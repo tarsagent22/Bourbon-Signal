@@ -36,7 +36,7 @@ for (const phrase of ['rawPrecision', 'store_level', 'hasExactStoreAddress', 'so
 }
 
 const locationsRoute = read('src/app/api/locations/route.ts');
-for (const phrase of ['storesPayload', 'combineStoreDirectoryRows', 'combinedRawLocations']) {
+for (const phrase of ['storesPayload', 'readBundledSiteExport', 'mergeStoreDirectoryPayloads', 'combinedRawLocations']) {
   if (!locationsRoute.includes(phrase)) fail(`Locations API should merge exact store export rows for sightings search: ${phrase}`);
 }
 

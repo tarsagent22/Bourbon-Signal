@@ -2,11 +2,23 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { normalizeMapStore } from '../src/lib/store-map.ts';
 import { buildSightingStoreSearchIndex, searchSightingStoreIndex, searchSightingStores } from '../src/lib/sighting-store-search.ts';
-import { combineStoreDirectoryRows } from '../src/lib/store-directory.ts';
+import { combineStoreDirectoryRows, mergeStoreDirectoryPayloads } from '../src/lib/store-directory.ts';
 
 const locationsPayload = JSON.parse(readFileSync(new URL('../engine/out/site/locations.json', import.meta.url), 'utf8'));
 const storesPayload = JSON.parse(readFileSync(new URL('../engine/out/site/stores.json', import.meta.url), 'utf8'));
 const rawStores = [...(locationsPayload.locations || []), ...(storesPayload.stores || [])];
+const lewisvilleRaw = (locationsPayload.locations || []).find((store: Record<string, unknown>) => store.city === 'Lewisville' && store.state === 'NC');
+assert.ok(lewisvilleRaw, 'bundled directory should contain the Lewisville NC ABC store');
+const remoteWithoutLewisville = {
+  locations: (locationsPayload.locations || []).filter((store: Record<string, unknown>) => store !== lewisvilleRaw),
+  stores: [],
+};
+const mergedRemoteAndBundled = mergeStoreDirectoryPayloads([remoteWithoutLewisville, { stores: [] }, locationsPayload, storesPayload]);
+assert.ok(mergedRemoteAndBundled.some((store) => store === lewisvilleRaw), 'bundled rows must fill a remote directory omission');
+const remoteOverride = { ...lewisvilleRaw, name: 'Remote directory name' };
+const remoteFirst = mergeStoreDirectoryPayloads([{ locations: [] }, { stores: [remoteOverride] }, locationsPayload]);
+assert.equal(remoteFirst.find((store) => store.address === lewisvilleRaw.address)?.name, 'Remote directory name', 'remote rows should retain precedence during dedupe');
+
 const stores = combineStoreDirectoryRows(rawStores).map((store) => normalizeMapStore(store));
 const exactStores = stores.filter((store) => store.precision === 'store' && store.searchable !== false);
 const searchIndex = buildSightingStoreSearchIndex(stores);
@@ -18,6 +30,11 @@ assert.ok(exactStores.length >= 4_400, `expected every exact store from the dire
 
 const concordPrefix = searchSightingStoreIndex(searchIndex, '854 uni');
 assert.ok(concordPrefix.some((store) => /Concord ABC Store/i.test(store.name || '') && /854 Union St/i.test(store.address || '')), 'predictive street search should find the Concord ABC store while the member types');
+
+const lewisvilleResults = searchSightingStoreIndex(searchIndex, 'Lewisville');
+assert.ok(lewisvilleResults.some((store) => store.state === 'NC' && store.city === 'Lewisville' && /6850 Shallowford/i.test(store.address || '')), 'Lewisville NC ABC store must be findable by city');
+const winstonSalemResults = searchSightingStoreIndex(searchIndex, 'Winston-Salem');
+assert.ok(winstonSalemResults.some((store) => store.state === 'NC' && /Winston-Salem/i.test(store.city)), 'Winston-Salem NC ABC stores must be findable by city');
 
 const zipPrefix = searchSightingStores(stores, '2750');
 assert.ok(zipPrefix.some((store) => store.zip?.startsWith('2750')), 'predictive ZIP search should return matching exact stores');
@@ -42,7 +59,7 @@ const hookSource = readFileSync(new URL('../src/hooks/useStores.ts', import.meta
 assert.match(hookSource, /if \(!res\.ok\) throw/, 'store loading must not cache an unauthorized/error response as an empty directory');
 assert.match(hookSource, /cachedStores = normalized/, 'successful full directory loads should remain cached');
 
-assert.match(hookSource, /combineStoreDirectoryRows/, 'the member hook must merge both complete directory arrays before normalization');
+assert.match(hookSource, /mergeStoreDirectoryPayloads/, 'the member hook must merge both complete directory arrays before normalization');
 
 const clientSource = readFileSync(new URL('../src/app/sightings/SightingsClient.tsx', import.meta.url), 'utf8');
 assert.match(clientSource, /useDeferredValue\(storeQuery\)/, 'predictive search should defer expensive ranking so typing stays responsive');

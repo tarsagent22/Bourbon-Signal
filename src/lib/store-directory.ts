@@ -24,3 +24,17 @@ export function combineStoreDirectoryRows(rows: unknown[]) {
   }
   return Array.from(directory.values());
 }
+
+export function mergeStoreDirectoryPayloads(payloads: Array<Record<string, unknown> | null | undefined>) {
+  const rows = payloads.flatMap((payload) => {
+    if (!payload) return [];
+    const locations = Array.isArray(payload.locations)
+      ? payload.locations
+      : Array.isArray(payload.stores)
+        ? payload.stores
+        : [];
+    const stores = Array.isArray(payload.stores) ? payload.stores : [];
+    return [...locations, ...stores];
+  });
+  return combineStoreDirectoryRows(rows);
+}

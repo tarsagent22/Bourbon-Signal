@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { normalizeMapStore, type MapStoreRecord } from "@/lib/store-map";
-import { combineStoreDirectoryRows } from "@/lib/store-directory";
+import { mergeStoreDirectoryPayloads } from "@/lib/store-directory";
 
 export interface Store extends MapStoreRecord {
   hours?: string;
@@ -24,10 +24,7 @@ function loadStores() {
       // Engine returns { locations: [...] }, { stores: [...] }, or raw array
       const raw: Record<string, unknown>[] = Array.isArray(data)
         ? data
-        : combineStoreDirectoryRows([
-            ...(Array.isArray(data?.locations) ? data.locations : []),
-            ...(Array.isArray(data?.stores) ? data.stores : []),
-          ]);
+        : mergeStoreDirectoryPayloads([data]);
       const normalized = raw.map((store) => normalizeMapStore(store));
       if (!normalized.length) throw new Error("Store directory returned no locations");
       cachedStores = normalized;

@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
-import { readSiteExport, siteExportHeaders, listStates, normalizeStoreForSite, normalizeDropForSite, isUserFacingDropSignal } from "@/lib/site-engine-contract";
+import { readSiteExport, readBundledSiteExport, siteExportHeaders, listStates, normalizeStoreForSite, normalizeDropForSite, isUserFacingDropSignal } from "@/lib/site-engine-contract";
 import { californiaAreaMatchesFields, parseCaliforniaAreaQuery } from "@/lib/california-area";
 import { nevadaAreaMatchesFields, parseNevadaAreaQuery } from "@/lib/nevada-area";
-import { combineStoreDirectoryRows } from "@/lib/store-directory";
+import { mergeStoreDirectoryPayloads } from "@/lib/store-directory";
 
 function normalizeText(value: unknown) {
   return typeof value === "string" ? value.toLowerCase().trim() : "";
@@ -96,13 +96,14 @@ export async function GET(request: Request) {
       readSiteExport("drops"),
     ]);
     const exportPayload = locationsPayload ?? storesPayload;
-    const rawLocations = Array.isArray(locationsPayload?.locations)
-      ? locationsPayload.locations
-      : Array.isArray(locationsPayload?.stores)
-        ? locationsPayload.stores
-        : [];
-    const rawStores = Array.isArray(storesPayload?.stores) ? storesPayload.stores : [];
-    const combinedRawLocations = combineStoreDirectoryRows([...rawLocations, ...rawStores]);
+    const bundledLocationsPayload = readBundledSiteExport("locations");
+    const bundledStoresPayload = readBundledSiteExport("stores");
+    const combinedRawLocations = mergeStoreDirectoryPayloads([
+      locationsPayload,
+      storesPayload,
+      bundledLocationsPayload,
+      bundledStoresPayload,
+    ]);
     const dropsByState = new Map<string, ActionableDropLocation[]>();
     (Array.isArray(dropsPayload?.drops) ? dropsPayload.drops : [])
       .map((drop) => normalizeDropForSite(drop as Record<string, unknown>))
