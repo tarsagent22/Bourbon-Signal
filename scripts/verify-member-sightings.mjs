@@ -11,6 +11,10 @@ const sightingsClient = read('src/app/sightings/SightingsClient.tsx');
 for (const phrase of ['activeTab', 'Submit', 'Feed', 'sightingType', 'Seen in store', 'Online/Social Media', 'Member Sightings', 'stateFilter', 'All states']) {
   if (!sightingsClient.includes(phrase)) fail(`Sightings page should include ${phrase}`);
 }
+if (!/uploadSightingPhoto\(savedSighting\.id, proofPhoto\)/.test(sightingsClient) || !/if \(proofPhoto\)/.test(sightingsClient) || !/Photo selected: \{proofPhoto\.name\}/.test(sightingsClient)) {
+  fail('Sightings submission must upload a selected photo for both new and duplicate-owned records and visibly confirm the pending upload.');
+}
+
 const sightingStoreSearch = read('src/lib/sighting-store-search.ts');
 if (!sightingsClient.includes('searchSightingStoreIndex') || !sightingStoreSearch.includes('store.precision === "store"')) {
   fail('Sightings store search should predictively search exact stores while excluding board/area records.');

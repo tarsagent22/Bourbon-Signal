@@ -350,14 +350,15 @@ export default function SightingsClient() {
     try {
       const { sighting: savedSighting, created } = await addSighting(sighting);
       setSaved(savedSighting);
-      if (proofPhoto && created) {
+      if (proofPhoto) {
         try {
           await uploadSightingPhoto(savedSighting.id, proofPhoto);
         } catch (error) {
           setSubmitError(error instanceof Error ? `Sighting saved, but the photo was not attached: ${error.message}` : "Sighting saved, but the photo was not attached.");
+          return;
         }
       }
-      if (!created) setSubmitError("This sighting was already reported recently, so no duplicate or new photo was added.");
+      if (!created && !proofPhoto) setSubmitError("This sighting was already reported recently, so no duplicate was created.");
       setQuantityEstimate("");
       setPrice("");
       setNotes("");
@@ -529,6 +530,7 @@ export default function SightingsClient() {
                 <div className="sighting-two-col" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}><label><span className="sighting-label">Quantity estimate</span><input className="sighting-plain-input" value={quantityEstimate} onChange={(e) => setQuantityEstimate(e.target.value)} placeholder="e.g. 3 bottles" /></label><label><span className="sighting-label">Price</span><input className="sighting-plain-input" type="number" inputMode="decimal" value={price} onChange={(e) => setPrice(e.target.value)} placeholder="Optional" /></label></div>
                 <label style={{ display: "block", marginTop: 12 }}><span className="sighting-label">Notes</span><textarea className="sighting-plain-input" value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Optional: shelf location, purchase limit, social post context…" rows={4} /></label>
                 <label style={{ display: "block", marginTop: 12 }}><span className="sighting-label">Photo · optional</span><input className="sighting-plain-input" type="file" accept="image/jpeg,image/png,image/webp,image/heic,image/heif" onChange={(e) => setProofPhoto(e.target.files?.[0] || null)} /></label>
+                {proofPhoto ? <p style={{ color: "rgba(203,255,225,.82)", fontSize: 12, lineHeight: 1.5, margin: "8px 0 0" }}>Photo selected: {proofPhoto.name}. It will be uploaded before the sighting is marked complete.</p> : null}
                 <p style={{ color: "rgba(245,237,214,.46)", fontSize: 12, lineHeight: 1.5, margin: "8px 0 0" }}>A clear shelf or receipt photo can make the report more useful. Keep faces and personal info out of frame when possible.</p>
               </section>
 
