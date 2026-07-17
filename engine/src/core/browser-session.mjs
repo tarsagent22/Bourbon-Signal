@@ -27,8 +27,17 @@ async function cdpReady(cdpUrl = DEFAULT_CDP_URL) {
   }
 }
 
+export function filterBrowserExecutableCandidates(candidates, { exists = existsSync } = {}) {
+  return candidates
+    .filter(Boolean)
+    .filter((candidate) => {
+      const absolute = path.isAbsolute(candidate) || /^[A-Za-z]:[\\/]/.test(candidate);
+      return !absolute || exists(candidate);
+    });
+}
+
 function candidateChromePaths() {
-  return [
+  return filterBrowserExecutableCandidates([
     process.env.BROWSER_EXECUTABLE,
     process.env.CHROME_EXECUTABLE,
     process.env.GOOGLE_CHROME_BIN,
@@ -39,7 +48,7 @@ function candidateChromePaths() {
     '/usr/bin/google-chrome-stable',
     '/usr/bin/chromium',
     '/usr/bin/chromium-browser'
-  ].filter(Boolean).filter((candidate) => !path.isAbsolute(candidate) || existsSync(candidate));
+  ]);
 }
 
 function spawnBrowserForCdp(cdpUrl = DEFAULT_CDP_URL, options = {}) {
