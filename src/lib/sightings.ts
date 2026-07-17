@@ -93,6 +93,8 @@ export function canonicalizeLegacySighting(input: MemberSighting, ownerUserId: s
   const now = new Date();
   const createdAt = Number.isFinite(parsedCreatedAt.getTime()) && parsedCreatedAt <= now ? parsedCreatedAt.toISOString() : now.toISOString();
   const review = input.reviewState;
+  const reward = input.rewardState;
+  const photo = reward?.photoProof;
   return {
     id: String(input.id).slice(0, 160), bottleName: String(input.bottleName || "Unknown bottle").slice(0, 180),
     bottleId: input.bottleId ? String(input.bottleId).slice(0, 180) : undefined, rarityTier: input.rarityTier,
@@ -103,7 +105,23 @@ export function canonicalizeLegacySighting(input: MemberSighting, ownerUserId: s
     price: typeof input.price === "number" && Number.isFinite(input.price) ? input.price : null,
     notes: input.notes ? String(input.notes).slice(0, 1000) : undefined, source: input.source, sightingType: input.sightingType,
     reporterUserId: ownerUserId, createdAt, storeTimeZone: input.storeTimeZone ? String(input.storeTimeZone).slice(0, 80) : undefined,
-    rewardState: {},
+    rewardState: reward ? {
+      removedAt: reward.removedAt ? String(reward.removedAt).slice(0, 40) : undefined,
+      rejectedAt: reward.rejectedAt ? String(reward.rejectedAt).slice(0, 40) : undefined,
+      helpfulAt: reward.helpfulAt ? String(reward.helpfulAt).slice(0, 40) : undefined,
+      verificationSources: Array.isArray(reward.verificationSources) ? reward.verificationSources.filter((source) => source === "photo" || source === "community") : undefined,
+      verifiedAt: reward.verifiedAt ? String(reward.verifiedAt).slice(0, 40) : undefined,
+      photoProof: photo?.url ? {
+        url: String(photo.url).slice(0, 2048),
+        pathname: photo.pathname ? String(photo.pathname).slice(0, 1024) : undefined,
+        uploadedAt: String(photo.uploadedAt || createdAt).slice(0, 40),
+        status: photo.status,
+        reviewedAt: photo.reviewedAt ? String(photo.reviewedAt).slice(0, 40) : undefined,
+        reviewedBy: photo.reviewedBy ? String(photo.reviewedBy).slice(0, 180) : undefined,
+        rejectionReason: photo.rejectionReason ? String(photo.rejectionReason).slice(0, 180) : undefined,
+        publicUrl: typeof photo.publicUrl === "string" ? photo.publicUrl.slice(0, 2048) : photo.publicUrl,
+      } : undefined,
+    } : {},
     reviewState: review ? {
       needsBottleReview: Boolean(review.needsBottleReview), needsStoreReview: Boolean(review.needsStoreReview),
       manualBottleName: review.manualBottleName ? String(review.manualBottleName).slice(0, 180) : undefined,
@@ -113,6 +131,9 @@ export function canonicalizeLegacySighting(input: MemberSighting, ownerUserId: s
       manualStoreCity: review.manualStoreCity ? String(review.manualStoreCity).slice(0, 100) : undefined,
       manualStoreState: review.manualStoreState ? String(review.manualStoreState).slice(0, 32) : undefined,
       manualStoreZip: review.manualStoreZip ? String(review.manualStoreZip).slice(0, 20) : undefined,
+      reviewedAt: review.reviewedAt ? String(review.reviewedAt).slice(0, 40) : undefined,
+      reviewedBy: review.reviewedBy ? String(review.reviewedBy).slice(0, 180) : undefined,
+      reviewNote: review.reviewNote ? String(review.reviewNote).slice(0, 180) : undefined,
     } : undefined,
   };
 }

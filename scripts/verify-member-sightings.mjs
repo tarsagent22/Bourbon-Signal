@@ -91,8 +91,8 @@ for (const phrase of ['Approve sighting', 'pendingReview', 'Action saved and the
   if (!adminSightings.includes(phrase)) fail(`Admin sighting review should provide working queue feedback and embedding: ${phrase}`);
 }
 const adminSightingsRoute = read('src/app/api/admin/sightings/route.ts');
-for (const phrase of ['listAllUsers', 'resolveManualReview = true', 'pendingReview: needsSightingReview(updatedSighting)', 'Sighting not found']) {
-  if (!adminSightingsRoute.includes(phrase)) fail(`Admin sighting API should provide complete pagination and terminal action semantics: ${phrase}`);
+for (const phrase of ['listAllUsers', 'resolveManualReview = true', 'pendingReview: needsSightingReview(updatedSighting)', 'Sighting not found', 'Sighting review saved, but reward reconciliation failed', 'publicMetadata: { sightingsPreferences: nextPrefs }']) {
+  if (!adminSightingsRoute.includes(phrase)) fail(`Admin sighting API should provide complete pagination, terminal action semantics, and non-blocking reward reconciliation: ${phrase}`);
 }
 const controlRoom = read('src/app/admin/control-room/page.tsx');
 for (const phrase of ['id="sightings"', '<AdminSightingsClient embedded />', 'Member sighting approvals']) {

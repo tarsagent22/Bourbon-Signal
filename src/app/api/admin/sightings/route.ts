@@ -155,11 +155,16 @@ export async function PATCH(req: NextRequest) {
     const durableOwned = (await repository.listSightings()).filter((item) => item.reporterUserId === reporterUserId);
     const legacyOwned = prefs.submittedSightings.map((sighting) => ({ ...sighting, reporterUserId }));
     const nextRewards = reconcileMemberRewards(dedupeSightings([...legacyOwned, ...durableOwned]), privateMetadata.memberRewards, now);
-    await admin.client.users.updateUserMetadata(reporterUserId, { privateMetadata: { ...privateMetadata, memberRewards: nextRewards } });
+    await admin.client.users.updateUserMetadata(reporterUserId, { privateMetadata: { memberRewards: nextRewards } }).catch((error) => {
+      console.error("Sighting review saved, but reward reconciliation failed", error);
+    });
   } else {
     const nextPrefs = { ...prefs, submittedSightings: nextSightings };
     const nextRewards = reconcileMemberRewards(nextSightings, privateMetadata.memberRewards, now);
-    await admin.client.users.updateUserMetadata(reporterUserId, { publicMetadata: { ...publicMetadata, sightingsPreferences: nextPrefs }, privateMetadata: { ...privateMetadata, memberRewards: nextRewards } });
+    await admin.client.users.updateUserMetadata(reporterUserId, { publicMetadata: { sightingsPreferences: nextPrefs } });
+    await admin.client.users.updateUserMetadata(reporterUserId, { privateMetadata: { memberRewards: nextRewards } }).catch((error) => {
+      console.error("Sighting review saved, but reward reconciliation failed", error);
+    });
   }
   return NextResponse.json({
     ok: true,

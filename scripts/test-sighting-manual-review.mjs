@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { isLikelyDuplicateSighting, needsSightingReview, reviewReasonLabels, sanitizeManualSightingField, sightingDuplicateKey } from '../src/lib/sighting-review.ts';
+import { canonicalizeLegacySighting } from '../src/lib/sightings.ts';
 
 const baseSighting = {
   id: 'sighting_manual_1',
@@ -55,6 +56,24 @@ const approvedPhoto = needsSightingReview({
   rewardState: { photoProof: { url: 'https://example.com/proof.jpg', uploadedAt: '2026-07-03T14:01:00Z', status: 'verified_public' } },
 });
 assert.equal(approvedPhoto, false, 'approved photo proofs leave the queue');
+
+const migratedPhoto = canonicalizeLegacySighting({
+  ...baseSighting,
+  rewardState: {
+    photoProof: {
+      url: 'https://example.com/proof.jpg',
+      pathname: 'sighting-proofs/member/proof.jpg',
+      uploadedAt: '2026-07-03T14:01:00Z',
+      status: 'verified_public',
+      publicUrl: 'https://example.com/proof.jpg',
+    },
+    verificationSources: ['photo'],
+    verifiedAt: '2026-07-03T14:02:00Z',
+  },
+}, 'member_1');
+assert.equal(migratedPhoto.rewardState?.photoProof?.url, 'https://example.com/proof.jpg', 'durable migration preserves an approved legacy photo');
+assert.equal(migratedPhoto.rewardState?.photoProof?.status, 'verified_public');
+assert.deepEqual(migratedPhoto.rewardState?.verificationSources, ['photo']);
 
 const rejectedSighting = needsSightingReview({
   ...baseSighting,
