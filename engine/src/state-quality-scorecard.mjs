@@ -105,23 +105,38 @@ export function scoreStateQuality(input, options = {}) {
   };
 }
 
+function summarizeStateQuality(states) {
+  const scores = states.map((state) => state.score);
+  return {
+    stateCount: states.length,
+    releaseEligibleStates: states.filter((state) => state.releaseEligible).length,
+    releaseBlockedStates: states.filter((state) => !state.releaseEligible).length,
+    averageScore: scores.length ? Math.round(scores.reduce((sum, value) => sum + value, 0) / scores.length) : 0,
+    weakestStates: [...states].sort((a, b) => a.score - b.score || a.state.localeCompare(b.state)).slice(0, 5).map((state) => state.state),
+  };
+}
+
 export function buildStateQualityScorecard(inputs, { generatedAt = new Date().toISOString(), nowMs } = {}) {
   const states = inputs
     .map((input) => scoreStateQuality(input, { nowMs: nowMs || new Date(generatedAt).getTime() }))
     .sort((a, b) => b.score - a.score || a.state.localeCompare(b.state));
-  const scores = states.map((state) => state.score);
   return {
     schemaVersion: 2,
     generatedAt,
-    summary: {
-      stateCount: states.length,
-      releaseEligibleStates: states.filter((state) => state.releaseEligible).length,
-      releaseBlockedStates: states.filter((state) => !state.releaseEligible).length,
-      averageScore: scores.length ? Math.round(scores.reduce((sum, value) => sum + value, 0) / scores.length) : 0,
-      weakestStates: [...states].sort((a, b) => a.score - b.score || a.state.localeCompare(b.state)).slice(0, 5).map((state) => state.state),
-    },
+    summary: summarizeStateQuality(states),
     states,
   };
+}
+
+export function mergePartialRefreshStateQuality(previous, current, summary = {}) {
+  if (summary.partialRefresh !== true || previous?.schemaVersion !== current?.schemaVersion) return current;
+  const attempted = new Set((summary.attemptedStateIds || []).map((state) => String(state).toUpperCase()));
+  const previousByState = new Map((previous?.states || []).map((state) => [String(state.state).toUpperCase(), state]));
+  const states = (current?.states || []).map((state) => {
+    const stateId = String(state.state).toUpperCase();
+    return attempted.has(stateId) ? state : previousByState.get(stateId) || state;
+  }).sort((a, b) => b.score - a.score || a.state.localeCompare(b.state));
+  return { ...current, summary: summarizeStateQuality(states), states };
 }
 
 export function scopeStateQualityForRefresh(scorecard, summary = {}) {

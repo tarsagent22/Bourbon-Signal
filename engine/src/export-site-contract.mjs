@@ -6,7 +6,7 @@ import { buildLocationBible } from './location-bible.mjs';
 import { CUSTOMER_ACTIVE_STATE_IDS } from './state-sources.mjs';
 import { getStateLifecycle, lifecycleAllowsInventoryAlert, lifecycleAllowsWatchAlert } from './state-lifecycle.mjs';
 import { isCostcoSpiritsEligibleState } from './costco-eligibility.mjs';
-import { buildStateQualityInputs, buildStateQualityScorecard, compareStateQuality, scopeStateQualityForRefresh } from './state-quality-scorecard.mjs';
+import { buildStateQualityInputs, buildStateQualityScorecard, compareStateQuality, mergePartialRefreshStateQuality, scopeStateQualityForRefresh } from './state-quality-scorecard.mjs';
 import { buildStateDropPartitions, verifyStateDropPartitions } from './site-state-partitions.mjs';
 import { isArizonaRetailerInventory, isArizonaRetailerSignalIdentity } from './arizona-retailer-policy.mjs';
 import { isFloridaRetailerInventory, isFloridaRetailerSignalIdentity } from './florida-retailer-policy.mjs';
@@ -1560,10 +1560,9 @@ async function main() {
   });
   const stateCoverage = buildStateCoverage({ ...summary, states: activeSummaryStates }, { stateFilter: activeStateIds });
   const southeastReadiness = buildSoutheastReadiness({ ...summary, states: activeSummaryStates }, signals);
-  const stateQuality = buildStateQualityScorecard(
-    buildStateQualityInputs({ stateCoverage, drops: currentDrops, alerts: cappedAlertCandidates }),
-    { generatedAt },
-  );
+  const stateQualityInputs = buildStateQualityInputs({ stateCoverage, drops: currentDrops, alerts: cappedAlertCandidates });
+  const candidateStateQuality = buildStateQualityScorecard(stateQualityInputs, { generatedAt });
+  const stateQuality = mergePartialRefreshStateQuality(previousStateQuality, candidateStateQuality, summary);
   const attemptedQualityStates = summary.partialRefresh === true
     ? new Set((summary.attemptedStateIds || []).map((state) => String(state).toUpperCase()))
     : null;

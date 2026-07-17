@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import {
   buildStateQualityScorecard,
   compareStateQuality,
+  mergePartialRefreshStateQuality,
   scopeStateQualityForRefresh,
   scoreStateQuality,
 } from './state-quality-scorecard.mjs';
@@ -61,6 +62,28 @@ assert.equal(scorecard.states[0].state, 'AA');
 const partialScope = scopeStateQualityForRefresh(scorecard, { partialRefresh: true, attemptedStateIds: ['AA'] });
 assert.deepEqual(partialScope.states.map((state) => state.state), ['AA']);
 assert.equal(scopeStateQualityForRefresh(scorecard, { partialRefresh: false }), scorecard);
+
+const mergedPartial = mergePartialRefreshStateQuality(
+  {
+    schemaVersion: 2,
+    states: [
+      { state: 'CA', score: 90, releaseEligible: true },
+      { state: 'NC', score: 50, releaseEligible: false },
+    ],
+  },
+  {
+    schemaVersion: 2,
+    generatedAt: '2026-07-17T12:00:00.000Z',
+    states: [
+      { state: 'CA', score: 20, releaseEligible: false },
+      { state: 'NC', score: 85, releaseEligible: true },
+    ],
+  },
+  { partialRefresh: true, attemptedStateIds: ['NC'] },
+);
+assert.equal(mergedPartial.states.find((state) => state.state === 'CA').score, 90);
+assert.equal(mergedPartial.states.find((state) => state.state === 'NC').score, 85);
+assert.equal(mergedPartial.summary.releaseEligibleStates, 2);
 
 const regression = compareStateQuality(
   { states: [{ state: 'AA', score: 90, releaseEligible: true, dropCount: 100 }] },
