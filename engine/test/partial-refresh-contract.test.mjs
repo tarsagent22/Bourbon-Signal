@@ -3,11 +3,11 @@ import test from 'node:test';
 import { mergePartialRefreshDrops } from '../src/partial-refresh-contract.mjs';
 
 test('partial refresh replaces attempted states and preserves untouched published drops', () => {
-  const previousDrops = [
+  const previousDrops = { drops: [
     { id: 'nc-old', state: 'NC' },
     { id: 'il-old', state: 'IL' },
     { id: 'tn-old', state: 'TN' },
-  ];
+  ] };
   const currentDrops = [
     { id: 'nc-new', state: 'NC' },
     { id: 'az-new', state: 'AZ' },
