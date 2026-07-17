@@ -1,13 +1,13 @@
 {
   "schemaVersion": 1,
-  "exportedAt": "2026-07-17T00:44:00.000Z",
+  "exportedAt": "2026-07-17T03:01:10Z",
   "source": "Hermes scheduler read-only job listing",
   "jobs": [
     {
       "jobId": "3244b5822d87",
       "name": "Bourbon Signal autonomous company operator",
       "schedule": "0 1 * * *",
-      "deliver": "local",
+      "deliver": "telegram:-5461081025",
       "noAgent": false,
       "script": null,
       "workdir": "C:\\Users\\chand\\projects\\Bourbon-Signal-nightly",
@@ -27,7 +27,7 @@
       "jobId": "a7e40e29f603",
       "name": "Bourbon Signal silent demand and source scout",
       "schedule": "0 10 * * 1",
-      "deliver": "local",
+      "deliver": "telegram:-5461081025",
       "noAgent": false,
       "script": null,
       "workdir": "C:\\Users\\chand\\projects\\Bourbon-Signal-nightly",
@@ -77,7 +77,7 @@
       "jobId": "0f844531ccdf",
       "name": "Bourbon Signal live automation registry reconciliation",
       "schedule": "5 6 * * *",
-      "deliver": "local",
+      "deliver": "telegram:-5461081025",
       "noAgent": true,
       "script": "bourbon_signal_cron_reconcile.py",
       "workdir": "C:\\Users\\chand\\projects\\Bourbon-Signal-nightly",
