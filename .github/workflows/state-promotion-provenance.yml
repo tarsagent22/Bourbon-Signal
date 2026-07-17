@@ -1,6 +1,9 @@
 name: Verify state promotion provenance
 
 on:
+  push:
+    branches:
+      - preview/script-first-expansion
   workflow_dispatch:
     inputs:
       state:
@@ -32,7 +35,7 @@ jobs:
         id: validate
         shell: bash
         env:
-          RAW_STATE: ${{ inputs.state }}
+          RAW_STATE: ${{ inputs.state || 'UT' }}
         run: |
           set -euo pipefail
           if [[ ! "$RAW_STATE" =~ ^[A-Z]{2}(-[A-Z0-9]+)?$ ]]; then exit 1; fi
