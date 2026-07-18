@@ -58,6 +58,19 @@ assert.ok(stateGuides.length >= 3, "launch should include multiple substantive s
 assert.ok(stateGuides.every((guide) => guide.sections.length >= 3), "state guides need substantive sections");
 assert.ok(getStateGuide(stateGuides[0].slug), "state guides must be retrievable by slug");
 
+const northCarolina = getStateGuide("north-carolina");
+assert.ok(northCarolina, "North Carolina needs an authoritative local guide");
+assert.match(northCarolina.title, /North Carolina ABC bourbon/i, "the NC title should answer high-intent local search directly");
+assert.ok(northCarolina.sections.length >= 7, "the NC guide needs enough state-specific depth to stand alone");
+assert.ok((northCarolina.boardProfiles?.length || 0) >= 5, "the NC guide should compare major local board release channels");
+assert.ok(northCarolina.boardProfiles?.some((board) => board.name === "Mecklenburg County ABC" && board.releaseMethods.includes("Lottery")), "Mecklenburg lottery mechanics must be explicit");
+assert.ok(northCarolina.boardProfiles?.some((board) => board.name === "Durham County ABC" && board.releaseMethods.includes("Weekly drops")), "Durham's current weekly drop channel must be explicit");
+assert.ok((northCarolina.huntingSteps?.length || 0) >= 4, "the NC guide needs a practical hunting workflow");
+assert.ok((northCarolina.evidenceLevels?.length || 0) >= 3, "the NC guide must explain board, store, and shelf evidence");
+assert.ok((northCarolina.faqs?.length || 0) >= 6, "the NC guide needs direct answers to common local questions");
+assert.ok(northCarolina.sources.length >= 8, "the NC guide needs broad official sourcing, not one generic citation");
+assert.ok(northCarolina.sources.every((source) => source.url.startsWith("https://")), "NC authority links must use HTTPS");
+
 const nav = readFileSync(resolve("src/components/Navigation.tsx"), "utf8");
 assert.doesNotMatch(nav, /Release Radar/, "Release Radar must stay out of primary navigation");
 
@@ -144,6 +157,14 @@ assert.match(detailPageSource, /datePublished:\s*entry\.startDate/);
 const stateDetailSource = readFileSync(resolve("src/app/release-radar/states/[slug]/page.tsx"), "utf8");
 assert.match(stateDetailSource, /\/release-radar\/states/);
 assert.doesNotMatch(stateDetailSource, /\/release-radar#states/);
+assert.match(stateDetailSource, /FAQPage/, "deep state guides should publish visible FAQ schema");
+assert.match(stateDetailSource, /guide\.boardProfiles/, "deep state guides should render local release channels");
+assert.match(stateDetailSource, /guide\.evidenceLevels/, "state guides should teach the evidence hierarchy");
+assert.match(stateDetailSource, /guide\.huntingSteps/, "state guides should give hunters an actionable workflow");
+assert.match(stateDetailSource, /stateEntries/, "state guides should connect back to current Radar records");
+assert.match(stateDetailSource, /state=\$\{guide\.abbreviation\}/, "state guides should hand off to state-filtered live signals and calendar views");
+assert.match(stateDetailSource, /A \{guide\.state\} hunt that wastes less gas/, "deep-guide fieldwork headings must stay reusable across states");
+assert.match(stateDetailSource, /\{guide\.state\} bourbon questions, answered plainly/, "deep-guide FAQ headings must stay reusable across states");
 
 const cssSource = readFileSync(resolve("src/app/release-radar/release-radar.css"), "utf8");
 assert.equal((cssSource.match(/@media\s*\(max-width:\s*820px\)/g) || []).length, 1, "mobile styles should be consolidated into one layer");
@@ -155,6 +176,7 @@ assert.match(cssSource, /grid-template-columns:\s*repeat\(3,\s*1fr\)/, "three Ra
 assert.match(cssSource, /@keyframes rrBlipScan/, "radar blips need a sweep-synchronized blink sequence");
 assert.match(cssSource, /\.rr-blip--one[\s\S]*?animation-delay:\s*1\.85s/, "first blip timing should match its angular position");
 assert.match(cssSource, /\.rr-blip--two[\s\S]*?animation-delay:\s*5\.1s/, "second blip timing should match its angular position");
+assert.match(cssSource, /\.radar-faq summary:focus-visible/, "native FAQ controls need the same visible keyboard focus treatment as links");
 
 for (const route of [
   "src/app/release-radar/page.tsx",

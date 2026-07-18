@@ -75,6 +75,20 @@ type RadarEntrySeed = Omit<RadarEntry,
   "relationships"
 >;
 
+export interface StateGuideBoardProfile {
+  name: string;
+  area: string;
+  releaseMethods: string[];
+  guidance: string;
+  sourceUrl: string;
+}
+
+export interface StateGuideEvidenceLevel {
+  label: string;
+  strength: "Context" | "Area lead" | "Store lead" | "Current confirmation";
+  meaning: string;
+}
+
 export interface StateGuide {
   slug: string;
   state: string;
@@ -85,6 +99,10 @@ export interface StateGuide {
   updatedAt: string;
   quickFacts: Array<{ label: string; value: string }>;
   sections: Array<{ heading: string; body: string }>;
+  boardProfiles?: StateGuideBoardProfile[];
+  huntingSteps?: Array<{ title: string; body: string }>;
+  evidenceLevels?: StateGuideEvidenceLevel[];
+  faqs?: Array<{ question: string; answer: string }>;
   sources: RadarSource[];
 }
 
@@ -634,25 +652,129 @@ export const stateGuides: StateGuide[] = [
     slug: "north-carolina",
     state: "North Carolina",
     abbreviation: "NC",
-    title: "Where to find allocated bourbon in North Carolina",
-    dek: "North Carolina is a control state with locally operated ABC boards, so useful bourbon intelligence often begins at the board level before it reaches a specific store.",
-    model: "Control state · Local ABC boards",
-    updatedAt: "2026-07-10",
+    title: "North Carolina ABC bourbon releases, lotteries & allocated bottles",
+    dek: "A practical guide to North Carolina's local ABC boards, bourbon lotteries, release events, inventory clues, and the difference between a board shipment and a bottle you can actually buy.",
+    model: "Control state · Independent local ABC boards",
+    updatedAt: "2026-07-18",
     quickFacts: [
-      { label: "System", value: "State control with local boards" },
-      { label: "Inventory shape", value: "Board and store dependent" },
-      { label: "Best source", value: "NC ABCC plus local boards" },
-      { label: "Key caution", value: "Board shipment is not exact shelf stock" },
+      { label: "System", value: "State control with independent local boards" },
+      { label: "Release playbook", value: "Varies by board" },
+      { label: "Useful first clue", value: "Official board announcement or shipment" },
+      { label: "Strongest evidence", value: "Fresh exact-store confirmation" },
     ],
     sections: [
-      { heading: "How North Carolina releases allocated bourbon", body: "The state commission governs the system while local ABC boards operate stores and local release procedures. Allocation, shipment, event, and lottery practices can differ by board." },
-      { heading: "Why board-level intelligence matters", body: "A board can receive or report a shipment without confirming which store has a bottle available. Board-level evidence is useful for narrowing the hunt, but it should be labeled as an area lead." },
-      { heading: "How Bourbon Signal interprets North Carolina", body: "State filters remain board-oriented while individual signal details preserve city, county, store, and source precision when available. Exact-store claims require exact-store evidence." },
-      { heading: "Where hunters should look", body: "Use the NC ABC Commission for statewide policy and pricing, then consult the relevant local board for release events, lottery rules, store information, and local announcements." },
+      {
+        heading: "How North Carolina's ABC system actually works",
+        body: "North Carolina controls spirituous liquor at the state level, but the stores are run by county and municipal ABC boards. The NC ABC Commission approves products, manages statewide regulation and distribution, and sets the official pricing structure. Local boards order product, operate stores, and set their own release procedures within state law. That split is why a bottle can be part of the North Carolina system without being available in your town.",
+      },
+      {
+        heading: "Why there is no single NC bourbon drop schedule",
+        body: "Local boards are independent political subdivisions, not branches of one statewide retail chain. One board may use an annual lottery, another may run periodic first-come drops, and another may announce a special event. A method that works in Raleigh can be useless in Charlotte or Wilmington. Start with the board that serves the area where you can actually shop, then follow its official channels.",
+      },
+      {
+        heading: "How allocated bourbon reaches customers",
+        body: "North Carolina boards use several fair-distribution methods for scarce bottles: resident lotteries, drawings for purchase order, ticketed or first-come release events, recurring drops, and occasional grand-opening events. The rules belong to the specific board and event. Entry eligibility, geography, pickup location, bottle choice, and deadlines can all change, so the current official notice always outranks an old recap or social post.",
+      },
+      {
+        heading: "What the state price and allocated lists can tell you",
+        body: "The NC ABC Commission's price reports can confirm that a product is approved for sale, show its North Carolina code, and identify products classified for allocated or limited distribution. That is useful context, not a store locator. A statewide listing does not tell you that a local board ordered the bottle, received it, or placed it on a shelf.",
+      },
+      {
+        heading: "Board shipment does not mean shelf inventory",
+        body: "A shipment tied to a local board is a meaningful area lead. It says the hunt has narrowed from statewide possibility to a particular board, but it does not identify the receiving store or prove that the product is available for public sale. Bottles may still be in transit, awaiting board processing, reserved for a lottery or event, or already sold. Bourbon Signal keeps board-level evidence separate from exact-store inventory for that reason.",
+      },
+      {
+        heading: "The major local release channels",
+        body: "Mecklenburg publishes specialty-product lottery and Barrelpalooza information. Wake maintains a lottery page and a separate inventory search. Durham currently describes weekly allocated drops, an annual lottery, and special release events. Greensboro uses periodic drawings for a place in line, while New Hanover points hunters to its allocated-release newsletter. These are separate local programs, not one statewide calendar.",
+      },
+      {
+        heading: "A smarter way to hunt North Carolina bourbon",
+        body: "Pick the boards you can reasonably visit. Bookmark their official lottery, news, and inventory pages; join only the mailing lists they publish; and note the exact eligibility rules before entering. Use board shipments as an early clue, then wait for a board announcement, exact-store record, or current member sighting before making a drive. The goal is not to chase every rumor. It is to know which clues deserve your time.",
+      },
+      {
+        heading: "How Bourbon Signal reads North Carolina evidence",
+        body: "Bourbon Signal keeps customer filters at the board level because that matches how North Carolina distributes and communicates. Inside each signal, we preserve the more precise city, county, store, timestamp, and source when those details exist. Board shipments can inform the hunt, but they cannot independently trigger an exact-inventory alert. Fresh store-bound evidence carries more weight.",
+      },
+    ],
+    boardProfiles: [
+      {
+        name: "Mecklenburg County ABC",
+        area: "Charlotte and Mecklenburg County",
+        releaseMethods: ["Lottery", "Barrelpalooza", "Mailing list"],
+        guidance: "Use the official specialty-products page for lottery notices and Barrelpalooza details. Event administration can include an on-site drawing, so read the current rules before traveling.",
+        sourceUrl: "https://www.meckabc.com/store_operations/specialty_products_lottery.php",
+      },
+      {
+        name: "Wake County ABC",
+        area: "Raleigh and Wake County",
+        releaseMethods: ["Lottery", "Inventory search", "Board notices"],
+        guidance: "Wake's lottery page carries the current status and event rules. Its inventory search is a useful store lead, but Wake warns that quantities can be affected by pending deliveries and account purchases.",
+        sourceUrl: "https://wakeabc.com/lottery/",
+      },
+      {
+        name: "Durham County ABC",
+        area: "Durham County",
+        releaseMethods: ["Weekly drops", "Annual lottery", "Special events"],
+        guidance: "Durham's official bourbon page currently describes roughly 100 allocated bottles dropping weekly at participating stores, plus a fall-and-winter lottery and periodic events. Check the board's news before acting because timing and locations can change.",
+        sourceUrl: "https://www.durhamabc.com/bourbon",
+      },
+      {
+        name: "Greensboro ABC",
+        area: "Greensboro",
+        releaseMethods: ["Periodic drawings", "Special events"],
+        guidance: "Greensboro describes its lottery as a drawing for a place in line to purchase rare products. A winning position is a purchase opportunity, not a free bottle or a guarantee of a particular first choice.",
+        sourceUrl: "https://www.greensboroabc.com/greensboro-abc-lottery/",
+      },
+      {
+        name: "New Hanover County ABC",
+        area: "Wilmington and New Hanover County",
+        releaseMethods: ["Allocated drops", "Bourbon newsletter"],
+        guidance: "New Hanover's official allocated-product guidance says scarce products become available periodically and points hunters to its Bourbon Blast newsletter for special-release notices. Check the current notice for timing and eligibility.",
+        sourceUrl: "https://www.newhanovercountyabc.com/special-order-items/",
+      },
+      {
+        name: "Triad Municipal ABC",
+        area: "Winston-Salem, Lewisville and parts of Forsyth County",
+        releaseMethods: ["Board announcements"],
+        guidance: "Triad ABC does not publish the same standing bourbon program as Durham or Mecklenburg on the official pages reviewed for this update. Use the board's current store-services and contact information rather than borrowing another board's release routine.",
+        sourceUrl: "https://triadabc.org/store-services/",
+      },
+    ],
+    huntingSteps: [
+      { title: "Choose your boards", body: "Follow the boards you can realistically visit. North Carolina release rules are local, so a statewide rumor is rarely enough." },
+      { title: "Watch official channels", body: "Use board lottery pages, news posts, inventory tools, and published mailing lists. Check the date before trusting a page." },
+      { title: "Read the evidence level", body: "A state listing confirms context. A board shipment narrows the area. A fresh store record or sighting is the strongest reason to act." },
+      { title: "Check the rules", body: "Confirm residency, entry limits, purchase order, identification, pickup window, and whether the event is first-come or randomized." },
+      { title: "Make the trip count", body: "Recheck the source shortly before leaving. Scarce inventory moves quickly, and even a good lead is not a hold request." },
+    ],
+    evidenceLevels: [
+      { label: "State product or price listing", strength: "Context", meaning: "The bottle is recognized in North Carolina's system. It does not establish a local shipment or store quantity." },
+      { label: "Local board shipment", strength: "Area lead", meaning: "The board is tied to incoming product. The receiving store, release method, and public sale timing may still be unknown." },
+      { label: "Fresh exact-store record", strength: "Store lead", meaning: "A current source identifies a store. Verify timestamp and fulfillment details before driving." },
+      { label: "Current shelf report or member sighting", strength: "Current confirmation", meaning: "A recent human or retailer report is the closest evidence to shelf reality, but another buyer can still beat you there." },
+    ],
+    faqs: [
+      { question: "Does North Carolina ABC publish live bourbon inventory?", answer: "There is no single statewide, real-time shelf inventory covering every local ABC store. Some boards publish their own inventory searches or announcements. Their freshness and quantity meanings differ, so each source has to be read on its own terms." },
+      { question: "When do NC ABC stores release allocated bourbon?", answer: "There is no universal release day. Local boards choose their own mix of lotteries, scheduled events, recurring drops, drawings, and ordinary store placement. Follow the official board serving your area." },
+      { question: "Are all North Carolina bourbon lotteries open statewide?", answer: "No. Eligibility is set by the local board and can be limited by county, nearby counties, residency, age, or customer type. Read the current rules before entering; last year's terms may not apply." },
+      { question: "Is a board shipment the same as store availability?", answer: "No. A board shipment is an area-level clue. It does not name the receiving store, prove the bottle has reached a shelf, or show whether it is being held for a lottery or event." },
+      { question: "Are liquor prices the same across North Carolina ABC stores?", answer: "North Carolina law generally requires uniform retail pricing for spirituous liquor unless the ABC law provides otherwise. Monthly reductions and the current official price list still matter, so check the Commission's latest report." },
+      { question: "Can I special-order an allocated bourbon?", answer: "The state's special-order process is mainly for products not on the approved price list. It is not a shortcut around a local board's allocation, lottery, or limited-distribution rules. Ask your local board about the exact product." },
+      { question: "Can an ABC store hold an allocated bottle for me?", answer: "Do not assume it can. Hold and purchase procedures belong to the local board and may be stricter for high-demand products. Use the board's written policy or contact it directly rather than relying on a rule from another county." },
+      { question: "What is the fastest reliable way to track NC bourbon releases?", answer: "Combine official board notices with source-timestamped local evidence. Lotteries and events need deadline tracking; board shipments need store confirmation; exact-store signals need a freshness check. Each clue answers a different part of the hunt." },
     ],
     sources: [
-      { label: "North Carolina ABC Commission", url: "https://www.abc.nc.gov/", type: "state" },
-      { label: "NC spirituous liquor pricing", url: "https://www.abc.nc.gov/spirituous-liquor-pricing", type: "state" },
+      { label: "About the NC ABC Commission", url: "https://www.abc.nc.gov/about-nc-abc-commission", type: "state" },
+      { label: "NC ABC boards and stores", url: "https://www.abc.nc.gov/nc-abc-boards-and-stores", type: "state" },
+      { label: "NC ABC pricing reports and allocated list", url: "https://www.abc.nc.gov/pricing/pricing-reports", type: "state" },
+      { label: "NC ABC special orders", url: "https://www.abc.nc.gov/pricing/special-orders", type: "state" },
+      { label: "Mecklenburg specialty products", url: "https://www.meckabc.com/store_operations/specialty_products_lottery.php", type: "state" },
+      { label: "Wake County ABC lottery", url: "https://wakeabc.com/lottery/", type: "state" },
+      { label: "Wake County inventory search", url: "https://wakeabc.com/search-our-inventory/", type: "state" },
+      { label: "Durham bourbon programs", url: "https://www.durhamabc.com/bourbon", type: "state" },
+      { label: "Greensboro ABC lottery", url: "https://www.greensboroabc.com/greensboro-abc-lottery/", type: "state" },
+      { label: "New Hanover County allocated products", url: "https://www.newhanovercountyabc.com/special-order-items/", type: "state" },
+      { label: "Triad ABC store services", url: "https://triadabc.org/store-services/", type: "state" },
     ],
   },
   {
