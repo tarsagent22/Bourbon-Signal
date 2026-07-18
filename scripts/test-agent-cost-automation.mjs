@@ -6,7 +6,7 @@ import { join, resolve } from 'node:path';
 import { buildAutomationCostReport, sanitizeAutomationRun } from '../automation/bourbon-signal/automation-cost-report.mjs';
 import { classifyBottleQueueItem, processBottleQueue } from '../automation/bourbon-signal/bottle-queue-autoprocess.mjs';
 import { buildSourceExpansionCollection, engineStageInvocation, resolveScheduledStates, stagesForCollectionMode, summarizeStageOutput } from '../automation/bourbon-signal/source-expansion-collector.mjs';
-import { collectReleaseRadarLeads } from '../automation/bourbon-signal/release-radar-lead-collector.mjs';
+import { collectReleaseRadarLeads, queryPlan } from '../automation/bourbon-signal/release-radar-lead-collector.mjs';
 import { classifyExpansionAutonomy } from '../automation/bourbon-signal/autonomy-threshold.mjs';
 import { expansionPromotionGate, rankSourceInvestments } from '../automation/bourbon-signal/source-roi-core.mjs';
 import { buildDailyCompanyBrief, buildWeeklyStrategyReview } from './lib/operator-briefs.mjs';
@@ -28,6 +28,10 @@ function cronRunsPerDay(schedule) {
   assert.equal(month, '*');
   assert.equal(dayOfWeek, '*');
   return cronFieldCount(minute, 60) * cronFieldCount(hour, 24);
+}
+
+function cronHour(schedule) {
+  return Number(schedule.trim().split(/\s+/)[1].split(',')[0]);
 }
 
 function frequencyRunsPerDay(frequency) {
@@ -66,7 +70,12 @@ assert.equal(hermesByName.get('Bourbon Signal hourly known-source probe')?.sched
 assert.equal(hermesByName.get('Bourbon Signal deterministic state source collector')?.schedule, '15 */3 * * *');
 assert.equal(hermesByName.get('Bourbon Signal silent demand and source scout')?.schedule, '0 2,14 * * *');
 assert.equal(hermesByName.get('Bourbon Signal autonomous company operator')?.schedule, '45 2,14 * * *');
-assert.equal(hermesByName.get('Bourbon Signal silent Release Radar scout')?.schedule, '15 4 * * *');
+assert.equal(hermesByName.get('Bourbon Signal silent Release Radar scout')?.schedule, '15 1 * * *');
+assert.ok(cronRunsPerDay(hermesByName.get('Bourbon Signal silent Release Radar scout')?.schedule) > 0);
+assert.ok(
+  cronHour(hermesByName.get('Bourbon Signal silent Release Radar scout')?.schedule) < cronHour(hermesByName.get('Bourbon Signal autonomous company operator')?.schedule),
+  'the fresh Radar ledger must exist before the overnight operator selects an objective',
+);
 assert.equal(hermesByName.get('Bourbon Signal morning scorecard aggregation')?.schedule, '0 5 * * *');
 assert.equal(hermesByName.get('Bourbon Signal daily company brief')?.schedule, '30 5 * * *');
 for (const job of hermesSnapshot.jobs.filter((row) => !row.noAgent)) {
@@ -166,10 +175,16 @@ assert.equal(probeOnlyCollection.collectionMode, 'probe');
 assert.deepEqual(probeOnlyCollection.stages.map((stage) => stage.stage), ['probe']);
 assert.equal(probeOnlyCollection.canPublish, false);
 
+const radarQueries = queryPlan(undefined, '2026-07-18T01:15:00.000Z');
+assert.equal(radarQueries.length, 8);
+assert.ok(radarQueries[0].includes('abc.nc.gov') && radarQueries[0].includes('2026'), 'NC official sources must be searched first');
+assert.ok(radarQueries.some((query) => query.includes('North Carolina') && query.includes('lottery')));
+
 const leadCollection = await collectReleaseRadarLeads({
   results: [
-    { title: 'Official new release', url: 'https://distillery.example/releases?utm_source=brave', description: 'A release announcement.' },
-    { title: 'Official new release duplicate', url: 'https://distillery.example/releases', description: 'Duplicate.' },
+    { title: 'Official new release', url: 'https://distillery.example/releases?utm_source=brave', description: 'A <strong>bourbon release</strong> announcement.' },
+    { title: 'Official new release duplicate', url: 'https://distillery.example/releases', description: 'Duplicate bourbon release.' },
+    { title: 'Retail license handbook', url: 'https://agency.gov/license-guidelines', description: 'Rules for wine permits and restaurant licenses.' },
     { title: 'Unsafe', url: 'http://unsafe.example/release', description: 'Ignore.' },
   ],
   existingLedger: { leads: [] },
@@ -180,6 +195,10 @@ assert.equal(leadCollection.leads.length, 1);
 assert.equal(leadCollection.leads[0].status, 'new');
 assert.equal(leadCollection.leads[0].url, 'https://distillery.example/releases');
 assert.equal(leadCollection.leads[0].availabilitySemantics, 'announcement_only');
+assert.equal(leadCollection.leads[0].sourceTier, 'first_party_candidate');
+assert.equal(leadCollection.reviewQueue.length, 1);
+assert.equal(leadCollection.reviewQueue[0].url, 'https://distillery.example/releases');
+assert.equal(leadCollection.summary.queuedForSemanticReview, 1);
 assert.equal(leadCollection.summary.new, 1);
 const repeatedLeadCollection = await collectReleaseRadarLeads({
   results: [
@@ -189,6 +208,65 @@ const repeatedLeadCollection = await collectReleaseRadarLeads({
   generatedAt: '2026-07-17T12:00:00.000Z',
 });
 assert.equal(repeatedLeadCollection.summary.new, 0, 'repeat observations must not be reported as newly discovered leads');
+
+const refreshedAnnualLead = await collectReleaseRadarLeads({
+  results: [{
+    title: 'Official annual lottery',
+    url: 'https://agency.gov/annual-lottery',
+    description: 'Registration for the bourbon lottery runs August 3-23, 2026.',
+  }],
+  existingLedger: { leads: [{
+    id: 'old-annual', title: 'Official annual lottery', source: 'agency.gov', url: 'https://agency.gov/annual-lottery',
+    summary: 'Registration for the bourbon lottery ran August 3-23, 2025.', status: 'dismissed', reviewedAt: '2025-08-24T00:00:00Z',
+    firstSeenAt: '2025-01-01T00:00:00Z', lastSeenAt: '2025-01-01T00:00:00Z', observations: 1,
+  }] },
+  generatedAt: '2026-07-18T12:00:00.000Z',
+});
+assert.equal(refreshedAnnualLead.leads[0].status, 'changed', 'material date changes on reused official URLs must reopen review');
+assert.equal(refreshedAnnualLead.leads[0].publicationStatus, 'not_published');
+assert.equal(refreshedAnnualLead.leads[0].reviewedAt, undefined);
+assert.equal(refreshedAnnualLead.reviewQueue[0].url, 'https://agency.gov/annual-lottery');
+assert.equal(refreshedAnnualLead.summary.materiallyChanged, 1);
+
+const unchangedReopenedLead = await collectReleaseRadarLeads({
+  results: [{ title: 'Official annual lottery', url: 'https://agency.gov/annual-lottery', description: 'Registration for the bourbon lottery runs August 3-23, 2026.' }],
+  existingLedger: { leads: [{ ...refreshedAnnualLead.leads[0], publicationStatus: 'draft' }] },
+  generatedAt: '2026-07-19T12:00:00.000Z',
+});
+assert.equal(unchangedReopenedLead.leads[0].publicationStatus, 'not_published', 'every retained lead must preserve an explicit non-publication state');
+const explicitlyPublishedLead = await collectReleaseRadarLeads({
+  existingLedger: { leads: [{ ...refreshedAnnualLead.leads[0], publicationStatus: 'published' }] },
+  generatedAt: '2026-07-19T12:00:00.000Z',
+});
+assert.equal(explicitlyPublishedLead.leads.length, 0, 'only the explicit published state may leave the research ledger');
+
+const retainedAnnualLead = await collectReleaseRadarLeads({
+  existingLedger: { leads: [{
+    id: 'retained-annual', title: 'Official annual bourbon lottery', source: 'agency.gov', url: 'https://agency.gov/annual-lottery-retained',
+    summary: 'The 2025 bourbon lottery is closed.', status: 'retain_unverified', publicationStatus: 'not_published', reviewedAt: '2026-07-18T00:00:00Z',
+    recheckAfter: '2026-08-01T00:00:00Z', firstSeenAt: '2025-01-01T00:00:00Z', lastSeenAt: '2026-07-18T00:00:00Z', observations: 2,
+  }] },
+  generatedAt: '2026-07-19T12:00:00.000Z',
+});
+assert.equal(retainedAnnualLead.leads[0].id, 'retained-annual', 'scheduled reusable annual sources must survive until recheck');
+assert.equal(retainedAnnualLead.reviewQueue.length, 0);
+const dueAnnualLead = await collectReleaseRadarLeads({
+  existingLedger: retainedAnnualLead,
+  generatedAt: '2026-08-01T00:00:00.000Z',
+});
+assert.equal(dueAnnualLead.leads[0].id, 'retained-annual');
+assert.equal(dueAnnualLead.reviewQueue[0].id, 'retained-annual', 'a reusable annual source must enter review when its recheck becomes due');
+
+const saturatedLedger = await collectReleaseRadarLeads({
+  results: [{ title: 'New bourbon lottery', url: 'https://distillery.example/new-lottery', description: 'New bourbon lottery opens in 2026.' }],
+  existingLedger: { leads: Array.from({ length: 120 }, (_, index) => ({
+    id: `dismissed-${index}`, title: `Dismissed bourbon lottery ${index}`, source: `agency${index}.gov`, url: `https://agency${index}.gov/lottery`,
+    summary: 'Past bourbon lottery from 2026.', status: 'dismissed', reviewedAt: '2026-01-01T00:00:00Z', firstSeenAt: '2026-01-01T00:00:00Z', lastSeenAt: '2026-01-01T00:00:00Z', observations: 1,
+  })) },
+  generatedAt: '2026-07-18T12:00:00.000Z',
+});
+assert.ok(saturatedLedger.leads.some((lead) => lead.url === 'https://distillery.example/new-lottery'), 'terminal records cannot evict a fresh candidate');
+assert.equal(saturatedLedger.reviewQueue[0].url, 'https://distillery.example/new-lottery');
 
 const safeAutonomy = classifyExpansionAutonomy({
   sourceAuthority: 'official', termsStatus: 'clear', authentication: 'none', identity: 'exact_store', availabilitySemantics: 'honest', verticalSlice: 'complete', shadowRuns: 3, canaryRuns: 2, withinBudget: true, reversible: true, outboundChange: false, pricingOrEntitlementChange: false, legalUncertainty: false,

@@ -87,6 +87,26 @@ def resolve_repo(env: dict[str, str] | None = None) -> Path:
     )
 
 
+def release_radar_change_summary(payload: dict) -> str | None:
+    summary = payload.get("summary") if isinstance(payload, dict) else {}
+    summary = summary if isinstance(summary, dict) else {}
+    new_count = int(summary.get("new") or 0)
+    changed_count = int(summary.get("materiallyChanged") or 0)
+    if new_count <= 0 and changed_count <= 0:
+        return None
+    total = int(summary.get("total") or 0)
+    queued = int(summary.get("queuedForSemanticReview") or 0)
+    parts = []
+    if new_count:
+        parts.append(f"{new_count} new lead{'s' if new_count != 1 else ''}")
+    if changed_count:
+        parts.append(f"{changed_count} materially changed lead{'s' if changed_count != 1 else ''}")
+    return (
+        f"Release Radar lead collector: {' and '.join(parts)} require{'s' if len(parts) == 1 and parts[0].startswith('1 ') else ''} review "
+        f"({total} retained; {queued} queued); nothing was published or alerted."
+    )
+
+
 def failure_summary(stderr: str | None, stdout: str | None, fallback: str = "unknown error") -> str:
     lines = [line.strip() for line in f"{stderr or ''}\n{stdout or ''}".splitlines() if line.strip()]
     useful = [

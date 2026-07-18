@@ -319,7 +319,7 @@
       "active": true,
       "ownerLayer": "deterministic",
       "executionClass": "script_only",
-      "frequency": "daily at 04:15 Eastern",
+      "frequency": "daily at 01:15 Eastern",
       "agent": {
         "provider": null,
         "model": null,

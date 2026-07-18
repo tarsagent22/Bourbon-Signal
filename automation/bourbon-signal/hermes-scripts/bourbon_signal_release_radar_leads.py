@@ -1,7 +1,7 @@
 import json
 import subprocess
 
-from bourbon_signal_runtime import failure_summary, load_env, resolve_repo
+from bourbon_signal_runtime import failure_summary, load_env, release_radar_change_summary, resolve_repo
 
 ENV = load_env()
 REPO = resolve_repo(ENV)
@@ -16,10 +16,9 @@ if result.returncode != 0:
     raise SystemExit(result.returncode)
 try:
     report = json.loads(result.stdout)
-    new_count = int(report.get("summary", {}).get("new", 0))
-    if new_count:
-        total = int(report.get("summary", {}).get("total", new_count))
-        print(f"Release Radar lead collector: {new_count} unverified leads require review ({total} retained); nothing was published or alerted.")
+    summary = release_radar_change_summary(report)
+    if summary:
+        print(summary)
 except (json.JSONDecodeError, TypeError, ValueError):
     print("Release Radar lead collector failed: invalid report output")
     raise SystemExit(1)

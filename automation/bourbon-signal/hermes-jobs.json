@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "exportedAt": "2026-07-17T10:11:27.816114Z",
+  "exportedAt": "2026-07-18T13:58:25.927370Z",
   "source": "Hermes scheduler and config sanitized export",
   "timezone": "America/New_York",
   "jobs": [
@@ -16,7 +16,7 @@
       "provider": "openai-codex",
       "model": "gpt-5.6-luna",
       "reasoning": "xhigh",
-      "safetyHash": "dd29380e8c0d2eebe048800d8e2819603d9d0fb8fd5d6bb97614dc06d07ca91c"
+      "safetyHash": "9cbaaaac308ee09767e99e53071f3f9855626450f40b439ac549b5d80a4216e1"
     },
     {
       "jobId": "59eb8dd6ad07",
@@ -44,7 +44,7 @@
       "provider": "openai-codex",
       "model": "gpt-5.6-luna",
       "reasoning": "xhigh",
-      "safetyHash": "46abd849f8acb1d5d11e0d7f19f2a95902b74cb0bc9f4cb97b2100ffdce2f87e"
+      "safetyHash": "d8ee657a558123bbdce68f876a2825839cffa10e16e806b29a6502e995cd69ff"
     },
     {
       "jobId": "bf9e05209184",
@@ -63,7 +63,7 @@
     {
       "jobId": "00f56edff2e9",
       "name": "Bourbon Signal silent Release Radar scout",
-      "schedule": "15 4 * * *",
+      "schedule": "15 1 * * *",
       "deliver": "telegram:-5461081025",
       "noAgent": true,
       "script": "bourbon_signal_release_radar_leads.py",
