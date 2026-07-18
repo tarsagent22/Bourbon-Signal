@@ -19,7 +19,7 @@ export interface RadarRelationship {
   relationship: "related" | "same_series";
 }
 
-export const releaseRadarUpdatedAt = "2026-07-15";
+export const releaseRadarUpdatedAt = "2026-07-18";
 
 export interface RadarSource {
   label: string;
@@ -532,6 +532,39 @@ const radarEntrySeeds: RadarEntrySeed[] = [
     ],
     sources: [{ label: "Four Roses Single Barrel Collection", url: "https://www.fourrosesbourbon.com/bourbon/single-barrel-collection", type: "official" }],
   },
+  {
+    kind: "release",
+    slug: "alabama-abc-annual-fall-whiskey-release-2026",
+    eyebrow: "Alabama ABC release",
+    title: "Alabama ABC sets its Annual Fall Whiskey Release",
+    dek: "Alabama's official 2026 release schedule gives hunters one exact date for the state's fall whiskey event.",
+    summary: "Alabama ABC's official 2026 schedule lists the Annual Fall Whiskey Release for Saturday, December 12, 2026. The announcement establishes an event date, not bottle-level inventory, store assignments, quantities, or a purchase guarantee.",
+    startDate: "2026-12-12",
+    dateLabel: "Dec 12, 2026",
+    status: "announced",
+    states: ["Alabama"],
+    location: "Alabama",
+    availability: "Official release-event announcement",
+    featured: true,
+    calendar: true,
+    updatedAt: "2026-07-18",
+    facts: [
+      { label: "Date", value: "Saturday, December 12, 2026" },
+      { label: "Authority", value: "Alabama ABC Board" },
+      { label: "Signal", value: "Release event" },
+      { label: "Not confirmed", value: "Store inventory or bottle allocation" },
+    ],
+    sections: [
+      { heading: "What is confirmed", body: "Alabama ABC's official 2026 Limited Release Schedule names the Annual Fall Whiskey Release and assigns it to Saturday, December 12, 2026." },
+      { heading: "What the date does not mean", body: "This is an official event announcement, not a current shelf-inventory signal. The reviewed source does not establish bottle names, store assignments, quantities, or purchase eligibility." },
+      { heading: "Keep watching", body: "Alabama ABC's quarterly FAQ lists August 3–23 registration dates for September Bourbon Heritage Month while event weeks remain to be determined. Treat that as process guidance until Alabama ABC publishes the event details." },
+    ],
+    sources: [
+      { label: "Alabama ABC 2026 Limited Release Schedule", url: "https://alabcboard.gov/sites/default/files/2026-01/2026%20Limited%20Release%20Schedule.pdf", type: "state" },
+      { label: "Alabama ABC annual release products", url: "https://alabcboard.gov/stores/events/limited-release-programs/annual/price-products", type: "state" },
+      { label: "Alabama ABC quarterly FAQ", url: "https://alabcboard.gov/stores/events/limited-release-programs/quarterly/FAQ", type: "state" },
+    ],
+  },
 ];
 
 const STATE_MARKETS: Record<string, RadarMarket> = {
@@ -539,6 +572,7 @@ const STATE_MARKETS: Record<string, RadarMarket> = {
   Nevada: { code: "NV", label: "Nevada", scope: "state" },
   Pennsylvania: { code: "PA", label: "Pennsylvania", scope: "state" },
   Virginia: { code: "VA", label: "Virginia", scope: "state" },
+  Alabama: { code: "AL", label: "Alabama", scope: "state" },
   Nationwide: { code: "US", label: "Nationwide", scope: "national" },
 };
 

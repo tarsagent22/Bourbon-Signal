@@ -13,7 +13,7 @@ import {
 import { getAgendaOccurrences, getCalendarOccurrences, getInitialRadarMonth, isValidMonth } from "../src/lib/release-radar-calendar.ts";
 
 assert.ok(radarEntries.length >= 8, "Release Radar should launch with at least eight sourced records");
-assert.equal(releaseRadarUpdatedAt, "2026-07-15", "public Radar freshness should match the final review date");
+assert.equal(releaseRadarUpdatedAt, "2026-07-18", "public Radar freshness should match the final review date");
 assert.equal(new Set(radarEntries.map((entry) => entry.slug)).size, radarEntries.length, "record slugs must be unique");
 assert.ok(radarEntries.every((entry) => entry.sources.length > 0), "every record needs a source");
 assert.ok(radarEntries.every((entry) => entry.sources.every((source) => source.url.startsWith("https://"))), "sources must use HTTPS");
@@ -28,6 +28,13 @@ const lottery = getRadarEntry("lottery", "virginia-abc-rare-character-july-2026"
 assert.ok(lottery?.schemaStartDate?.endsWith("-04:00"), "lottery schema must retain its published Eastern opening time");
 assert.ok(lottery?.schemaEndDate?.endsWith("-04:00"), "lottery schema must retain its published Eastern closing time");
 const camp = getRadarEntry("event", "camp-buffalo-trace-2026");
+const alabama = getRadarEntry("release", "alabama-abc-annual-fall-whiskey-release-2026");
+assert.equal(alabama?.startDate, "2026-12-12", "Alabama's official event must retain its exact date");
+assert.equal(alabama?.calendar, true, "the Alabama event belongs in the exact-date calendar");
+assert.equal(alabama?.datePrecision, "exact", "the Alabama event must not degrade to a watch window");
+assert.equal(alabama?.availabilitySemantics, "announcement_only", "an event announcement must not become inventory");
+assert.ok(alabama?.sources.some((source) => source.url.includes("2026%20Limited%20Release%20Schedule.pdf")), "the Alabama event needs its official schedule source");
+assert.deepEqual(alabama?.markets, [{ code: "AL", label: "Alabama", scope: "state" }], "the Alabama event must retain its state market");
 assert.deepEqual(camp?.occurrenceDates, ["2026-08-29", "2026-09-05"], "separate Camp dates must not become one continuous event");
 assert.ok(lottery, "lottery fixture must exist");
 assert.ok(camp, "recurring event fixture must exist");
