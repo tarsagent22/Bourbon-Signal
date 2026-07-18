@@ -8,7 +8,7 @@ import { classifyBottleQueueItem, processBottleQueue } from '../automation/bourb
 import { buildSourceExpansionCollection, engineStageInvocation, resolveScheduledStates, stagesForCollectionMode, summarizeStageOutput } from '../automation/bourbon-signal/source-expansion-collector.mjs';
 import { collectReleaseRadarLeads } from '../automation/bourbon-signal/release-radar-lead-collector.mjs';
 import { classifyExpansionAutonomy } from '../automation/bourbon-signal/autonomy-threshold.mjs';
-import { rankSourceInvestments } from '../automation/bourbon-signal/source-roi-core.mjs';
+import { expansionPromotionGate, rankSourceInvestments } from '../automation/bourbon-signal/source-roi-core.mjs';
 import { buildDailyCompanyBrief, buildWeeklyStrategyReview } from './lib/operator-briefs.mjs';
 import { buildFinding } from './lib/operator-findings.mjs';
 import { renderStateLifecycleTypes, verifyStateLifecycleDrift } from './generate-state-lifecycle-types.mjs';
@@ -208,6 +208,11 @@ const ranked = rankSourceInvestments({
 });
 assert.equal(ranked.expansionTop[0].state, 'SMALL', 'high-confidence member value can outrank population-style demand alone');
 assert.equal(ranked.expansionTop[0].recommendation, 'expand_state_vertical_slice');
+assert.deepEqual(expansionPromotionGate({ sourceAuthority: 'official', runnerReachability: 0.7 }), { eligible: true, blockers: [], authority: 'official', reachability: 0.7 });
+assert.deepEqual(expansionPromotionGate({ sourceAuthority: 'unknown', runnerReachability: 0.2 }), { eligible: false, blockers: ['source_authority_not_official_or_first_party', 'production_runner_evidence_missing'], authority: 'unknown', reachability: 0.2 });
+const gatedCandidate = ranked.expansionTop.find((row) => row.state === 'LARGE');
+assert.equal(gatedCandidate.promotionEligible, false, 'unknown sources without runner evidence must be promotion-gated');
+assert.deepEqual(gatedCandidate.promotionBlockers, ['source_authority_not_official_or_first_party', 'production_runner_evidence_missing']);
 
 const scorecard = buildCompanyScorecard({
   checkedAt: '2026-07-16T12:00:00.000Z',

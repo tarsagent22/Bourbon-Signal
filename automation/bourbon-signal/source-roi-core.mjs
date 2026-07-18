@@ -32,6 +32,14 @@ function normalizedAuthority(value) {
   const authority = asString(value).toLowerCase();
   return ['official', 'first_party', 'verified', 'unknown'].includes(authority) ? authority : 'unknown';
 }
+export function expansionPromotionGate(candidate = {}) {
+  const authority = normalizedAuthority(candidate.sourceAuthority);
+  const reachability = Math.min(1, boundedNumber(candidate.runnerReachability, 1));
+  const blockers = [];
+  if (!['official', 'first_party'].includes(authority)) blockers.push('source_authority_not_official_or_first_party');
+  if (reachability < 0.7) blockers.push('production_runner_evidence_missing');
+  return { eligible: blockers.length === 0, blockers, authority, reachability };
+}
 function expansionScore(candidate) {
   const aggregateDemand = boundedNumber(candidate.aggregateDemand ?? candidate.demandScore);
   const paidMemberOverlap = boundedNumber(candidate.paidMemberOverlap);
@@ -44,20 +52,23 @@ function expansionScore(candidate) {
   const effort = Math.min(5, Math.max(1, Number.isFinite(Number(candidate.implementationEffort)) ? boundedNumber(candidate.implementationEffort, 5) : 5));
   const reversibility = Math.min(5, Math.max(1, Number.isFinite(Number(candidate.reversibility)) ? boundedNumber(candidate.reversibility, 5) : 5));
   const adjacency = Math.min(10, boundedNumber(candidate.strategicAdjacency, 10));
-  const authority = normalizedAuthority(candidate.sourceAuthority);
+  const gate = expansionPromotionGate(candidate);
+  const authority = gate.authority;
   const coverageTier = asString(candidate.coverageTier).toLowerCase();
   const coverageGap = /research|unknown|none/.test(coverageTier) ? 24 : /watch|catalog|board/.test(coverageTier) ? 15 : 5;
   const authorityScore = ({ official: 28, first_party: 25, verified: 12, unknown: 0 })[authority];
   const demandScore = Math.round(Math.min(40, aggregateDemand * 0.5) + Math.min(25, paidMemberOverlap * 3) + Math.min(25, canonicalBottleDemand * 2));
   const score = Math.round(demandScore + coverageGap + Math.min(18, exactStoreGap * 2) + Math.min(12, alertGradeGap * 2) + authorityScore + reachability * 20 + stability * 15 + adjacency * 2 + (6 - reversibility) * 4 - Math.min(18, requestBudget / 10) - effort * 6);
-  const ready = ['official', 'first_party'].includes(authority) && reachability >= 0.7 && stability >= 0.7 && effort <= 3 && reversibility <= 2;
+  const ready = gate.eligible && stability >= 0.7 && effort <= 3 && reversibility <= 2;
   return {
     state: stateKey(candidate),
     source: sourceKey(candidate),
     score,
     recommendation: ready ? 'expand_state_vertical_slice' : 'research_or_harden_source',
+    promotionEligible: gate.eligible,
+    promotionBlockers: gate.blockers,
     demandScore,
-    rankingInputs: { aggregateDemand, paidMemberOverlap, canonicalBottleDemand, coverageTier: coverageTier || 'unknown', exactStoreGap, alertGradeGap, sourceAuthority: authority, runnerReachability: reachability, expectedRequestBudget: requestBudget, sourceStability: stability, implementationEffort: effort, reversibility, strategicAdjacency: adjacency },
+    rankingInputs: { aggregateDemand, paidMemberOverlap, canonicalBottleDemand, coverageTier: coverageTier || 'unknown', exactStoreGap, alertGradeGap, sourceAuthority: authority, runnerReachability: reachability, expectedRequestBudget: requestBudget, sourceStability: stability, implementationEffort: effort, reversibility, strategicAdjacency: adjacency, promotionEligible: gate.eligible, promotionBlockers: gate.blockers },
   };
 }
 function addSource(map, row, type) {
