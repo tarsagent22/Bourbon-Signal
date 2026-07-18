@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "exportedAt": "2026-07-18T13:58:25.927370Z",
+  "exportedAt": "2026-07-18T14:41:09.286953Z",
   "source": "Hermes scheduler and config sanitized export",
   "timezone": "America/New_York",
   "jobs": [
@@ -16,7 +16,7 @@
       "provider": "openai-codex",
       "model": "gpt-5.6-luna",
       "reasoning": "xhigh",
-      "safetyHash": "9cbaaaac308ee09767e99e53071f3f9855626450f40b439ac549b5d80a4216e1"
+      "safetyHash": "3408558deddd54a84c13019daf9b96ed6a2bb48311cadae47cb31c0bc3a28727"
     },
     {
       "jobId": "59eb8dd6ad07",
