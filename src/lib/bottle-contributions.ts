@@ -1,5 +1,7 @@
-import { list, put } from "@vercel/blob";
+import { list } from "@vercel/blob";
 import { normalizeBottleKey, searchBourbonBible } from "@/lib/bourbonBible";
+import { selectLatestQueueBlob } from "@/lib/admin-review";
+import { createBottleContributionRepository, isStoredBottleContributionStatus, type BottleContributionRepository } from "@/lib/bottle-contribution-repository";
 
 export type BottleContributionSource = "sighting" | "collection" | "bottle_check";
 export type BottleContributionStatus = "new" | "matched_existing" | "needs_human" | "rejected" | "added" | "ignored";
@@ -28,8 +30,7 @@ export interface BottleContributionQueue {
   contributions: BottleContribution[];
 }
 
-const QUEUE_PATH = "bottle-contributions/queue.json";
-const EMPTY_QUEUE: BottleContributionQueue = { version: 1, updatedAt: new Date(0).toISOString(), contributions: [] };
+const LEGACY_QUEUE_PREFIX = "bottle-contributions/queue";
 
 function nowIso() {
   return new Date().toISOString();
@@ -41,37 +42,44 @@ function contributionId(normalizedName: string, source: BottleContributionSource
   return `bottle_${source}_${normalizedName.replace(/\s+/g, "-").slice(0, 64)}_${stamp}_${random}`;
 }
 
-async function blobUrlForQueue() {
-  const blobs = await list({ prefix: QUEUE_PATH, limit: 1 });
-  return blobs.blobs.find((blob) => blob.pathname === QUEUE_PATH)?.url || null;
+function isLegacyContribution(value: unknown): value is BottleContribution {
+  if (!value || typeof value !== "object") return false;
+  const item = value as Partial<BottleContribution>;
+  return typeof item.id === "string"
+    && typeof item.rawName === "string"
+    && typeof item.normalizedName === "string"
+    && typeof item.createdAt === "string"
+    && typeof item.updatedAt === "string"
+    && isStoredBottleContributionStatus(item.status);
 }
 
-export async function readBottleContributionQueue(): Promise<BottleContributionQueue> {
+async function migrateLegacyBlobQueue(repository: BottleContributionRepository) {
   try {
-    const url = await blobUrlForQueue();
-    if (!url) return EMPTY_QUEUE;
-    const res = await fetch(url, { cache: "no-store" });
-    if (!res.ok) return EMPTY_QUEUE;
-    const data = await res.json() as Partial<BottleContributionQueue>;
-    return {
-      version: 1,
-      updatedAt: typeof data.updatedAt === "string" ? data.updatedAt : nowIso(),
-      contributions: Array.isArray(data.contributions) ? data.contributions.filter((item): item is BottleContribution => Boolean(item && typeof item === "object" && item.id && item.rawName)) : [],
-    };
-  } catch {
-    return EMPTY_QUEUE;
+    const blobs: Array<{ pathname: string; url: string; uploadedAt: Date }> = [];
+    let cursor: string | undefined;
+    do {
+      const page = await list({ prefix: LEGACY_QUEUE_PREFIX, limit: 1000, cursor });
+      blobs.push(...page.blobs);
+      cursor = page.hasMore ? page.cursor : undefined;
+    } while (cursor);
+    const latest = selectLatestQueueBlob(blobs);
+    if (!latest) return;
+    const response = await fetch(latest.url, { cache: "no-store" });
+    if (!response.ok) throw new Error("Unable to read the legacy bottle queue.");
+    const payload = await response.json() as Partial<BottleContributionQueue>;
+    const contributions = Array.isArray(payload.contributions) ? payload.contributions.filter(isLegacyContribution) : [];
+    for (const contribution of contributions) await repository.importLegacyContribution(contribution);
+  } catch (error) {
+    console.error("Legacy bottle queue reconciliation failed", error);
   }
 }
 
-export async function writeBottleContributionQueue(queue: BottleContributionQueue) {
-  const next = { ...queue, version: 1 as const, updatedAt: nowIso() };
-  await put(QUEUE_PATH, JSON.stringify(next, null, 2), {
-    access: "public",
-    contentType: "application/json",
-    addRandomSuffix: false,
-    allowOverwrite: true,
-  });
-  return next;
+export async function readBottleContributionQueue(): Promise<BottleContributionQueue> {
+  const repository = createBottleContributionRepository();
+  await migrateLegacyBlobQueue(repository);
+  const contributions = await repository.listContributions(500);
+  const updatedAt = contributions.reduce((latest, item) => item.updatedAt > latest ? item.updatedAt : latest, new Date(0).toISOString());
+  return { version: 1, updatedAt, contributions };
 }
 
 export async function candidateMatchForBottle(rawName: string) {
@@ -97,26 +105,8 @@ export async function addBottleContribution(input: {
   const normalizedName = normalizeBottleKey(rawName);
   if (!rawName || normalizedName.length < 2) throw new Error("Bottle name is required");
 
-  const queue = await readBottleContributionQueue();
-  const existing = queue.contributions.find((item) => item.normalizedName === normalizedName && ["new", "needs_human", "matched_existing"].includes(item.status));
   const candidate = await candidateMatchForBottle(rawName);
   const now = nowIso();
-
-  if (existing) {
-    const updated: BottleContribution = {
-      ...existing,
-      duplicateCount: (existing.duplicateCount || 1) + 1,
-      updatedAt: now,
-      candidateBottleId: existing.candidateBottleId || candidate?.bottleId,
-      candidateBottleName: existing.candidateBottleName || candidate?.bottleName,
-      confidence: existing.confidence || candidate?.confidence,
-      context: { ...(existing.context || {}), latestSource: input.source },
-    };
-    const nextQueue = { ...queue, contributions: queue.contributions.map((item) => item.id === existing.id ? updated : item) };
-    await writeBottleContributionQueue(nextQueue);
-    return updated;
-  }
-
   const contribution: BottleContribution = {
     id: contributionId(normalizedName, input.source),
     rawName,
@@ -134,21 +124,15 @@ export async function addBottleContribution(input: {
     createdAt: now,
     updatedAt: now,
   };
-  await writeBottleContributionQueue({ ...queue, contributions: [contribution, ...queue.contributions].slice(0, 500) });
-  return contribution;
+  const repository = createBottleContributionRepository();
+  await migrateLegacyBlobQueue(repository);
+  return repository.upsertContribution(contribution);
 }
 
 export async function updateBottleContribution(id: string, patch: Partial<Pick<BottleContribution, "status" | "candidateBottleId" | "candidateBottleName" | "confidence" | "notes">>) {
-  const queue = await readBottleContributionQueue();
-  let updated: BottleContribution | null = null;
-  const contributions = queue.contributions.map((item) => {
-    if (item.id !== id) return item;
-    updated = { ...item, ...patch, updatedAt: nowIso() };
-    return updated;
-  });
-  if (!updated) throw new Error("Contribution not found");
-  await writeBottleContributionQueue({ ...queue, contributions });
-  return updated;
+  const repository = createBottleContributionRepository();
+  await migrateLegacyBlobQueue(repository);
+  return repository.updateContribution(id, patch, nowIso());
 }
 
 export function bottleContributionDigest(queue: BottleContributionQueue) {

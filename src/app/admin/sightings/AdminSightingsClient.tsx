@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check, Eye, EyeOff, RotateCw, Trash2, X } from "lucide-react";
+import { Eye, EyeOff, RotateCw, X } from "lucide-react";
 import type { MemberSighting } from "@/lib/sightings";
 
 type AdminSighting = MemberSighting & { reporterEmail?: string; reporterName?: string; reviewReasons?: string[] };
@@ -16,6 +16,13 @@ function statusLabel(sighting: AdminSighting) {
   if (proof.status === "verified_private") return "Photo reviewed · private";
   if (proof.status === "rejected") return "Photo rejected";
   return "Pending review";
+}
+
+function actionMessage(action: string, pendingReview: boolean) {
+  if (pendingReview) return "Saved. This sighting still has another review requirement.";
+  if (action === "verify_public") return "Approved and published. The sighting left the queue.";
+  if (action === "verify_private") return "Approved with a private photo. The sighting left the queue.";
+  return "Rejected. The sighting left the queue.";
 }
 
 export default function AdminSightingsClient({ embedded = false }: { embedded?: boolean }) {
@@ -58,7 +65,8 @@ export default function AdminSightingsClient({ embedded = false }: { embedded?: 
       setSightings((current) => data.pendingReview
         ? current.map((item) => item.id === sighting.id ? { ...item, ...data.sighting } : item)
         : current.filter((item) => item.id !== sighting.id));
-      setNotice(data.pendingReview ? "Action saved. This sighting still has another review requirement." : "Action saved and the sighting left the approval queue.");
+      setNotice(actionMessage(action, Boolean(data.pendingReview)));
+      if (typeof navigator !== "undefined" && "vibrate" in navigator) navigator.vibrate(12);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -76,11 +84,12 @@ export default function AdminSightingsClient({ embedded = false }: { embedded?: 
         .admin-title{font-family:var(--font-playfair);font-size:clamp(38px,9vw,70px);line-height:.95;margin:10px 0 12px}
         .admin-sub{max-width:640px;color:rgba(245,237,214,.64);font-size:15px;line-height:1.7;margin:0 0 22px}
         .admin-toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:20px 0;flex-wrap:wrap}
-        .admin-button{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid rgba(245,237,214,.12);background:rgba(245,237,214,.045);color:var(--color-cream);border-radius:999px;padding:10px 13px;font-family:var(--font-dm-sans);font-size:13px;font-weight:850;cursor:pointer}
-        .admin-button.gold{border-color:rgba(196,148,58,.32);background:rgba(196,148,58,.11)}
-        .admin-button.danger{border-color:rgba(255,140,110,.28);background:rgba(255,120,90,.08)}
+        .admin-button{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid rgba(245,237,214,.15);background:rgba(245,237,214,.055);color:var(--color-cream);border-radius:12px;padding:11px 14px;font-family:var(--font-dm-sans);font-size:13px;font-weight:850;cursor:pointer;transition:transform 120ms ease,background 120ms ease,border-color 120ms ease,box-shadow 120ms ease}
+        .admin-button:hover,.admin-button:focus-visible{outline:none;border-color:rgba(232,201,122,.58);background:rgba(232,201,122,.11);box-shadow:0 7px 20px rgba(0,0,0,.2)}.admin-button:active{transform:translateY(2px) scale(.985);box-shadow:none}.admin-button:disabled{cursor:wait;opacity:.52;transform:none}
+        .admin-button.gold{border-color:rgba(196,148,58,.5);background:linear-gradient(180deg,rgba(196,148,58,.24),rgba(196,148,58,.12))}
+        .admin-button.danger{border-color:rgba(255,140,110,.3);color:#ffc1b1}
         .admin-grid{display:grid;gap:14px}
-        .admin-card{border:1px solid rgba(245,237,214,.09);border-radius:24px;background:linear-gradient(145deg,rgba(23,17,12,.94),rgba(9,7,6,.98));box-shadow:0 18px 54px rgba(0,0,0,.28);overflow:hidden}
+        .admin-card{border:1px solid rgba(245,237,214,.09);border-radius:24px;background:linear-gradient(145deg,rgba(23,17,12,.94),rgba(9,7,6,.98));box-shadow:0 18px 54px rgba(0,0,0,.28);overflow:hidden;transition:opacity 140ms ease,transform 140ms ease,border-color 140ms ease}.admin-card.working{opacity:.72;transform:scale(.995);border-color:rgba(196,148,58,.38)}
         .admin-photo{display:block;width:100%;max-height:420px;object-fit:cover;background:#050403}
         .admin-body{padding:16px}
         .admin-meta{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:8px}
@@ -92,7 +101,8 @@ export default function AdminSightingsClient({ embedded = false }: { embedded?: 
         .admin-review-box{margin-top:12px;border:1px dashed rgba(196,148,58,.28);border-radius:16px;background:rgba(196,148,58,.055);padding:12px;color:rgba(245,237,214,.68)}
         .admin-review-tags{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:8px}.admin-review-tags span{border:1px solid rgba(196,148,58,.22);border-radius:999px;padding:5px 8px;color:rgba(232,201,122,.9);font-family:var(--font-jetbrains);font-size:9px;font-weight:850;text-transform:uppercase;letter-spacing:.08em}
         .admin-empty{border:1px solid rgba(245,237,214,.1);border-radius:22px;background:rgba(245,237,214,.04);padding:22px;color:rgba(245,237,214,.62)}
-        @media(max-width:680px){.admin-sightings-page{padding-left:12px;padding-right:12px}.admin-card{border-radius:20px}.admin-body{padding:14px}.admin-actions .admin-button{flex:1 1 46%;padding:11px 9px}}
+        @media(max-width:680px){.admin-sightings-page{padding-left:12px;padding-right:12px}.admin-card{border-radius:20px}.admin-body{padding:14px}.admin-actions .admin-button{flex:1 1 46%;min-height:46px;padding:11px 9px}.admin-actions .admin-button.danger{flex-basis:100%}}
+        @media(prefers-reduced-motion:reduce){.admin-button,.admin-card{transition:none}}
       `}</style>
       <div className="admin-wrap">
         {!embedded ? (
@@ -113,7 +123,7 @@ export default function AdminSightingsClient({ embedded = false }: { embedded?: 
           {sightings.map((sighting) => {
             const proof = sighting.rewardState?.photoProof;
             return (
-              <article className="admin-card" key={`${sighting.reporterUserId}:${sighting.id}`}>
+              <article className={`admin-card${workingId?.startsWith(`${sighting.id}:`) ? " working" : ""}`} aria-busy={workingId?.startsWith(`${sighting.id}:`) === true} key={`${sighting.reporterUserId}:${sighting.id}`}>
                 {proof?.url ? <img className="admin-photo" src={proof.url} alt={`Proof for ${sighting.bottleName}`} loading="lazy" /> : null}
                 <div className="admin-body">
                   <div className="admin-meta"><span className="admin-status">{statusLabel(sighting)}</span><span className="admin-time">{new Date(proof?.uploadedAt || sighting.createdAt).toLocaleString()}</span></div>
@@ -129,12 +139,9 @@ export default function AdminSightingsClient({ embedded = false }: { embedded?: 
                     </div>
                   ) : null}
                   <div className="admin-actions">
-                    <button disabled={Boolean(workingId)} className="admin-button gold" onClick={() => act(sighting, "verify_public")}><Eye size={14}/> {workingId === `${sighting.id}:verify_public` ? "Approving…" : "Approve sighting"}</button>
-                    {proof ? <button disabled={Boolean(workingId)} className="admin-button" onClick={() => act(sighting, "verify_private")}><EyeOff size={14}/> Approve photo privately</button> : null}
-                    {proof ? <button disabled={Boolean(workingId)} className="admin-button" onClick={() => act(sighting, "reject_photo")}><X size={14}/> Reject photo</button> : null}
-                    {(sighting.reviewState?.needsBottleReview || sighting.reviewState?.needsStoreReview) ? <button disabled={Boolean(workingId)} className="admin-button gold" onClick={() => act(sighting, "resolve_manual_review")}><Check size={14}/> Mark catalog added</button> : null}
-                    <button disabled={Boolean(workingId)} className="admin-button danger" onClick={() => act(sighting, "remove_sighting")}><Trash2 size={14}/> Remove</button>
-                    <button disabled={Boolean(workingId)} className="admin-button danger" onClick={() => act(sighting, "reject_sighting")}><X size={14}/> Reject sighting</button>
+                    <button disabled={Boolean(workingId)} className="admin-button gold" onClick={() => act(sighting, "verify_public")}><Eye size={14}/> {workingId === `${sighting.id}:verify_public` ? "Approving…" : proof ? "Approve & publish" : "Approve sighting"}</button>
+                    {proof ? <button disabled={Boolean(workingId)} className="admin-button" onClick={() => act(sighting, "verify_private")}><EyeOff size={14}/> {workingId === `${sighting.id}:verify_private` ? "Approving…" : "Approve, keep photo private"}</button> : null}
+                    <button disabled={Boolean(workingId)} className="admin-button danger" onClick={() => act(sighting, "reject_sighting")}><X size={14}/> {workingId === `${sighting.id}:reject_sighting` ? "Rejecting…" : "Reject sighting"}</button>
                   </div>
                 </div>
               </article>

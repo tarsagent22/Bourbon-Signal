@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { isRewardsAdminEmail } from "@/lib/sighting-rewards";
 import { readBottleContributionQueue, updateBottleContribution } from "@/lib/bottle-contributions";
+import { bottleContributionStatusForAction, isBottleContributionPending } from "@/lib/admin-review";
 
 function primaryEmail(user: { emailAddresses?: unknown[]; primaryEmailAddressId?: unknown }) {
   const emails = Array.isArray(user.emailAddresses) ? user.emailAddresses as Array<Record<string, unknown>> : [];
@@ -33,12 +34,7 @@ export async function PATCH(req: NextRequest) {
   const id = typeof payload.id === "string" ? payload.id : "";
   const action = typeof payload.action === "string" ? payload.action : "";
   if (!id) return NextResponse.json({ error: "Missing contribution" }, { status: 400 });
-  const status = action === "match" ? "matched_existing"
-    : action === "needs_human" ? "needs_human"
-      : action === "added" ? "added"
-        : action === "reject" ? "rejected"
-          : action === "ignore" ? "ignored"
-            : null;
+  const status = bottleContributionStatusForAction(action);
   if (!status) return NextResponse.json({ error: "Invalid action" }, { status: 400 });
   const updated = await updateBottleContribution(id, {
     status,
@@ -46,5 +42,9 @@ export async function PATCH(req: NextRequest) {
     candidateBottleName: typeof payload.candidateBottleName === "string" ? payload.candidateBottleName : undefined,
     notes: typeof payload.notes === "string" ? payload.notes.slice(0, 1000) : `Marked ${status} by admin.`,
   });
-  return NextResponse.json({ ok: true, contribution: updated });
+  return NextResponse.json({
+    ok: true,
+    pendingReview: isBottleContributionPending(updated.status),
+    contribution: updated,
+  });
 }

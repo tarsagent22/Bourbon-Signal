@@ -92,7 +92,7 @@ for (const phrase of ['Personal signal brief', 'Saved markets', 'Tracked bottles
 }
 
 const adminSightings = read('src/app/admin/sightings/AdminSightingsClient.tsx');
-for (const phrase of ['Approve sighting', 'pendingReview', 'Action saved and the sighting left the approval queue', 'embedded']) {
+for (const phrase of ['Approve & publish', 'Approve, keep photo private', 'pendingReview', 'Approved and published', 'navigator.vibrate', 'embedded']) {
   if (!adminSightings.includes(phrase)) fail(`Admin sighting review should provide working queue feedback and embedding: ${phrase}`);
 }
 const adminSightingsRoute = read('src/app/api/admin/sightings/route.ts');

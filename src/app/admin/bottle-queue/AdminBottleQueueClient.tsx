@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check, RotateCw, ShieldAlert, Trash2 } from "lucide-react";
+import { Check, Link2, RotateCw, X } from "lucide-react";
 
 type BottleContribution = {
   id: string;
@@ -19,19 +19,24 @@ type BottleContribution = {
   updatedAt: string;
 };
 
+type ReviewAction = "use_match" | "confirm_added" | "dismiss";
+
 function statusText(item: BottleContribution) {
-  if (item.status === "matched_existing") return "Matched existing";
-  if (item.status === "needs_human") return "Needs Chandler";
-  if (item.status === "added") return "Added to Bible";
-  if (item.status === "rejected") return "Rejected";
-  if (item.status === "ignored") return "Ignored";
-  return "New";
+  if (item.status === "needs_human") return "Needs review";
+  return item.candidateBottleName ? "Suggested match" : "New bottle";
 }
 
-export default function AdminBottleQueueClient() {
+function completionMessage(action: ReviewAction) {
+  if (action === "use_match") return "Matched to the suggested Bottle Bible entry.";
+  if (action === "confirm_added") return "Marked complete and removed from the queue.";
+  return "Dismissed as an invalid entry.";
+}
+
+export default function AdminBottleQueueClient({ embedded = false }: { embedded?: boolean }) {
   const [items, setItems] = useState<BottleContribution[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [workingId, setWorkingId] = useState<string | null>(null);
 
   const load = async () => {
@@ -49,21 +54,31 @@ export default function AdminBottleQueueClient() {
     }
   };
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => { void load(); }, []);
 
-  const act = async (item: BottleContribution, action: string) => {
-    setWorkingId(`${item.id}:${action}`);
+  const act = async (item: BottleContribution, action: ReviewAction) => {
+    const actionId = `${item.id}:${action}`;
+    setWorkingId(actionId);
     setError(null);
+    setNotice(null);
     try {
-      const notes = window.prompt("Optional note", item.notes || "") || item.notes || "";
       const res = await fetch("/api/admin/bottle-contributions", {
         method: "PATCH",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ id: item.id, action, notes, candidateBottleId: item.candidateBottleId, candidateBottleName: item.candidateBottleName }),
+        body: JSON.stringify({
+          id: item.id,
+          action,
+          candidateBottleId: item.candidateBottleId,
+          candidateBottleName: item.candidateBottleName,
+        }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Action failed");
-      await load();
+      setItems((current) => data.pendingReview
+        ? current.map((entry) => entry.id === item.id ? { ...entry, ...data.contribution } : entry)
+        : current.filter((entry) => entry.id !== item.id));
+      setNotice(completionMessage(action));
+      if (typeof navigator !== "undefined" && "vibrate" in navigator) navigator.vibrate(12);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
     } finally {
@@ -71,42 +86,41 @@ export default function AdminBottleQueueClient() {
     }
   };
 
-  const active = items.filter((item) => item.status === "new" || item.status === "needs_human" || item.status === "matched_existing");
+  const active = items.filter((item) => item.status === "new" || item.status === "needs_human");
 
   return (
-    <main className="admin-bottle-page">
+    <div className={`bq-page${embedded ? " embedded" : ""}`}>
       <style>{`
-        .admin-bottle-page{min-height:100vh;padding:104px 16px 70px;background:linear-gradient(180deg,#100c08,#1b130c 48%,#100c08);color:var(--color-cream)}
-        .admin-wrap{max-width:980px;margin:0 auto}.admin-kicker{font-family:var(--font-jetbrains);font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:rgba(232,201,122,.72);font-weight:850}.admin-title{font-family:var(--font-playfair);font-size:clamp(38px,9vw,70px);line-height:.95;margin:10px 0 12px}.admin-sub{max-width:720px;color:rgba(245,237,214,.64);font-size:15px;line-height:1.7;margin:0 0 22px}.admin-toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:20px 0;flex-wrap:wrap}.admin-button{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid rgba(245,237,214,.12);background:rgba(245,237,214,.045);color:var(--color-cream);border-radius:999px;padding:10px 13px;font-family:var(--font-dm-sans);font-size:13px;font-weight:850;cursor:pointer}.admin-button.gold{border-color:rgba(196,148,58,.32);background:rgba(196,148,58,.11)}.admin-button.danger{border-color:rgba(255,140,110,.28);background:rgba(255,120,90,.08)}.admin-grid{display:grid;gap:12px}.admin-card{border:1px solid rgba(245,237,214,.09);border-radius:22px;background:linear-gradient(145deg,rgba(23,17,12,.94),rgba(9,7,6,.98));box-shadow:0 18px 54px rgba(0,0,0,.28);padding:16px}.admin-meta{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:8px}.admin-status{font-family:var(--font-jetbrains);font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:rgba(232,201,122,.74);font-weight:850}.admin-time{font-family:var(--font-jetbrains);font-size:10px;color:rgba(245,237,214,.42);white-space:nowrap}.admin-name{font-family:var(--font-playfair);font-size:30px;line-height:1.04;margin:0 0 8px}.admin-detail{color:rgba(245,237,214,.62);font-size:13px;line-height:1.55;margin:0 0 4px}.admin-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.admin-empty{border:1px solid rgba(245,237,214,.1);border-radius:22px;background:rgba(245,237,214,.04);padding:22px;color:rgba(245,237,214,.62)}.admin-pill{display:inline-flex;border:1px solid rgba(196,148,58,.22);border-radius:999px;padding:5px 8px;color:rgba(232,201,122,.9);font-family:var(--font-jetbrains);font-size:9px;font-weight:850;text-transform:uppercase;letter-spacing:.08em;margin-right:6px;margin-top:4px}
+        .bq-page{min-height:100vh;padding:104px 16px 70px;background:linear-gradient(180deg,#100c08,#1b130c 48%,#100c08);color:var(--color-cream)}
+        .bq-page.embedded{min-height:0;padding:0;background:transparent}.bq-wrap{max-width:980px;margin:0 auto}.bq-kicker{font-family:var(--font-jetbrains);font-size:11px;text-transform:uppercase;letter-spacing:.14em;color:rgba(232,201,122,.72);font-weight:850}.bq-title{font-family:var(--font-playfair);font-size:clamp(38px,9vw,70px);line-height:.95;margin:10px 0 12px}.bq-sub{max-width:720px;color:rgba(245,237,214,.64);font-size:15px;line-height:1.7;margin:0 0 22px}.bq-toolbar{display:flex;justify-content:space-between;align-items:center;gap:12px;margin:12px 0;flex-wrap:wrap}.bq-button{display:inline-flex;align-items:center;justify-content:center;gap:7px;border:1px solid rgba(245,237,214,.15);background:rgba(245,237,214,.055);color:var(--color-cream);border-radius:12px;padding:11px 14px;font-family:var(--font-dm-sans);font-size:13px;font-weight:850;cursor:pointer;transition:transform 120ms ease,background 120ms ease,border-color 120ms ease,box-shadow 120ms ease}.bq-button:hover,.bq-button:focus-visible{outline:none;border-color:rgba(232,201,122,.58);background:rgba(232,201,122,.11);box-shadow:0 7px 20px rgba(0,0,0,.2)}.bq-button:active{transform:translateY(2px) scale(.985);box-shadow:none}.bq-button:disabled{cursor:wait;opacity:.52;transform:none}.bq-button.primary{border-color:rgba(196,148,58,.5);background:linear-gradient(180deg,rgba(196,148,58,.24),rgba(196,148,58,.12))}.bq-button.danger{border-color:rgba(255,140,110,.3);color:#ffc1b1}.bq-grid{display:grid;gap:12px}.bq-card{border:1px solid rgba(245,237,214,.1);border-radius:18px;background:linear-gradient(145deg,rgba(23,17,12,.94),rgba(9,7,6,.98));box-shadow:0 18px 54px rgba(0,0,0,.28);padding:16px;transition:opacity 140ms ease,transform 140ms ease,border-color 140ms ease}.bq-card.working{opacity:.72;transform:scale(.995);border-color:rgba(196,148,58,.38)}.bq-meta{display:flex;justify-content:space-between;gap:12px;align-items:flex-start;margin-bottom:8px}.bq-status{font-family:var(--font-jetbrains);font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:rgba(232,201,122,.8);font-weight:850}.bq-time{font-family:var(--font-jetbrains);font-size:10px;color:rgba(245,237,214,.42);white-space:nowrap}.bq-name{font-family:var(--font-playfair);font-size:30px;line-height:1.04;margin:0 0 8px}.bq-detail{color:rgba(245,237,214,.62);font-size:13px;line-height:1.55;margin:0 0 4px}.bq-recommendation{margin:12px 0 0;border-left:2px solid rgba(196,148,58,.58);background:rgba(196,148,58,.07);padding:10px 12px;color:rgba(245,237,214,.78);font-size:13px;line-height:1.5}.bq-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px}.bq-empty{border:1px solid rgba(245,237,214,.1);border-radius:14px;background:rgba(245,237,214,.04);padding:16px;color:rgba(245,237,214,.62);margin:10px 0}.bq-empty.success{border-color:rgba(115,201,135,.28);background:rgba(56,130,74,.1);color:#bceac5}
+        @media(max-width:680px){.bq-page{padding-left:12px;padding-right:12px}.bq-actions .bq-button{flex:1 1 46%;min-height:46px}.bq-actions .bq-button.danger{flex-basis:100%}}
+        @media(prefers-reduced-motion:reduce){.bq-button,.bq-card{transition:none}}
       `}</style>
-      <div className="admin-wrap">
-        <div className="admin-kicker">Admin review</div>
-        <h1 className="admin-title">Bottle queue</h1>
-        <p className="admin-sub">Missing bottles from Bottle Check, My Collection, and Member Sightings. Match obvious entries, reject spam, or hold ambiguous bottles for research.</p>
-        <div className="admin-toolbar"><span className="admin-status">{loading ? "Loading…" : `${active.length} active / ${items.length} total`}</span><button className="admin-button" type="button" onClick={load}><RotateCw size={14}/> Refresh</button></div>
-        {error ? <div className="admin-empty" style={{ color: "#ffb4a3" }}>{error}</div> : null}
-        {!loading && active.length === 0 ? <div className="admin-empty">No bottle contributions need review right now.</div> : null}
-        <div className="admin-grid">
-          {active.map((item) => (
-            <article className="admin-card" key={item.id}>
-              <div className="admin-meta"><span className="admin-status">{statusText(item)}</span><span className="admin-time">{new Date(item.updatedAt || item.createdAt).toLocaleString()}</span></div>
-              <h2 className="admin-name">{item.rawName}</h2>
-              <p className="admin-detail">Source: {item.source.replace("_", " ")} · duplicates: {item.duplicateCount || 1} · contributor: {item.userEmail || "member"}</p>
-              <p className="admin-detail">Normalized: {item.normalizedName}</p>
-              {item.candidateBottleName ? <p className="admin-detail">Candidate match: <strong>{item.candidateBottleName}</strong> {item.confidence ? `· ${item.confidence} confidence` : ""}</p> : null}
-              {item.notes ? <p className="admin-detail">Notes: {item.notes}</p> : null}
-              <div><span className="admin-pill">{item.status}</span>{item.confidence ? <span className="admin-pill">{item.confidence}</span> : null}</div>
-              <div className="admin-actions">
-                <button disabled={Boolean(workingId)} className="admin-button gold" onClick={() => act(item, "match")}><Check size={14}/> Match existing</button>
-                <button disabled={Boolean(workingId)} className="admin-button gold" onClick={() => act(item, "added")}><Check size={14}/> Mark added</button>
-                <button disabled={Boolean(workingId)} className="admin-button" onClick={() => act(item, "needs_human")}><ShieldAlert size={14}/> Needs Chandler</button>
-                <button disabled={Boolean(workingId)} className="admin-button danger" onClick={() => act(item, "reject")}><Trash2 size={14}/> Spam/reject</button>
-                <button disabled={Boolean(workingId)} className="admin-button" onClick={() => act(item, "ignore")}>Ignore</button>
+      <div className="bq-wrap">
+        {!embedded ? <><div className="bq-kicker">Admin review</div><h1 className="bq-title">Bottle queue</h1><p className="bq-sub">Resolve member-entered bottles by accepting a suggested match, confirming that you added the bottle, or dismissing an invalid entry.</p></> : null}
+        <div className="bq-toolbar"><span className="bq-status">{loading ? "Loading…" : `${active.length} bottle${active.length === 1 ? "" : "s"} need review`}</span><button className="bq-button" type="button" onClick={() => void load()} disabled={loading}><RotateCw size={14}/> {loading ? "Refreshing…" : "Refresh"}</button></div>
+        {error ? <div className="bq-empty" role="alert" style={{ color: "#ffb4a3" }}>{error}</div> : null}
+        {notice ? <div className="bq-empty success" role="status">{notice}</div> : null}
+        {!loading && active.length === 0 ? <div className="bq-empty">Nothing in the bottle queue.</div> : null}
+        <div className="bq-grid">
+          {active.map((item) => {
+            const itemWorking = workingId?.startsWith(`${item.id}:`) === true;
+            return <article className={`bq-card${itemWorking ? " working" : ""}`} key={item.id} aria-busy={itemWorking}>
+              <div className="bq-meta"><span className="bq-status">{statusText(item)}</span><span className="bq-time">{new Date(item.updatedAt || item.createdAt).toLocaleString()}</span></div>
+              <h2 className="bq-name">{item.rawName}</h2>
+              <p className="bq-detail">From {item.source.replace("_", " ")} · submitted {item.duplicateCount || 1} time{item.duplicateCount === 1 ? "" : "s"}</p>
+              <p className="bq-detail">Normalized as {item.normalizedName}</p>
+              {item.candidateBottleName ? <div className="bq-recommendation">Suggested Bottle Bible match: <strong>{item.candidateBottleName}</strong>{item.confidence ? ` · ${item.confidence} confidence` : ""}</div> : null}
+              {item.notes ? <p className="bq-detail" style={{ marginTop: 10 }}>Previous note: {item.notes}</p> : null}
+              <div className="bq-actions">
+                {item.candidateBottleName ? <button disabled={Boolean(workingId)} className="bq-button primary" onClick={() => void act(item, "use_match")}><Link2 size={15}/> {workingId === `${item.id}:use_match` ? "Matching…" : "Use suggested match"}</button> : null}
+                <button disabled={Boolean(workingId)} className="bq-button primary" onClick={() => void act(item, "confirm_added")}><Check size={15}/> {workingId === `${item.id}:confirm_added` ? "Saving…" : "I added this bottle"}</button>
+                <button disabled={Boolean(workingId)} className="bq-button danger" onClick={() => void act(item, "dismiss")}><X size={15}/> {workingId === `${item.id}:dismiss` ? "Dismissing…" : "Dismiss invalid entry"}</button>
               </div>
-            </article>
-          ))}
+            </article>;
+          })}
         </div>
       </div>
-    </main>
+    </div>
   );
 }
