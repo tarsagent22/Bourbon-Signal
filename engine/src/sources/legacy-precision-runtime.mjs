@@ -83,6 +83,7 @@ export async function runLegacyPrecisionSource({
   });
   const result = isolated.results[0];
   const value = result.value || { signals: [], roadblocks: [] };
+  const metadata = value.metadata || result.metadata || null;
   const signals = value.signals || [];
   const roadblocks = [...(value.roadblocks || [])];
   const containment = failureRoadblock({ stateId, label, url, result });
@@ -91,7 +92,8 @@ export async function runLegacyPrecisionSource({
     signals,
     roadblocks,
     sourceReports: [sourceReport({ sourceId, label, url, result, signals })],
-    sourceResults: [summarizeSourceResult(result)],
+    sourceResults: [{ ...summarizeSourceResult(result), ...(metadata ? { metadata } : {}) }],
+    metadata,
     stale: result.stale,
     staleReason: result.stale ? result.error?.message || result.status : null,
   };

@@ -599,6 +599,7 @@ export async function collectState(config, bible, options = {}) {
     sources: sourceReports,
     sourceResults,
     sourceCircuitState: sourceCircuitBreaker.snapshot(),
+    precisionMetadata: precisionProbe.metadata || null,
     signals: dedupedSignals,
     roadblocks,
     stale: Boolean(precisionProbe.stale),

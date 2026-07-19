@@ -2,6 +2,7 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 
 const OUT = path.resolve('out');
+const VIRGINIA_INVENTORY_MAX_AGE_MS = Math.max(60 * 60_000, Number(process.env.BOURBON_SIGNAL_VA_INVENTORY_MAX_AGE_MS || 24 * 60 * 60_000));
 
 async function readJson(file) {
   return JSON.parse(await readFile(file, 'utf8'));
@@ -33,13 +34,41 @@ async function main() {
   const vaDrops = (drops.drops || []).filter((drop) => drop.state === 'VA');
   const vaLocations = (locations.locations || []).filter((location) => location.state === 'VA');
   const storeSignals = signals.filter((signal) => signal.locationPrecision === 'store_level');
+  const nowMs = Date.now();
+  const expiredInventorySignals = storeSignals.filter((signal) => {
+    if (!/store_inventory/i.test(String(signal.eventType || ''))) return false;
+    const timestamp = Date.parse(String(signal.observedAt || ''));
+    return !Number.isFinite(timestamp) || nowMs - timestamp > VIRGINIA_INVENTORY_MAX_AGE_MS;
+  });
+  const expiredInventoryIds = new Set(expiredInventorySignals.map((signal) => signal.sourceSignalId || signal.key));
   const inventorySignals = signals.filter((signal) => signal.canAlertAsInventory);
-  const positiveSignals = signals.filter((signal) => signal.eventType === 'store_inventory_result' && Number(signal.quantity || 0) > 0);
-  const productCodes = new Set(signals.map((signal) => String(signal.sourceUrl || '').match(/productCode=([^&]+)/)?.[1]).filter(Boolean));
+  const positiveSignals = signals.filter((signal) => signal.eventType === 'store_inventory_result' && Number(signal.quantity || 0) > 0 && !signal.sourceStale && !expiredInventoryIds.has(signal.sourceSignalId || signal.key));
+  const productCodes = new Set(signals.map((signal) => signal.productCode || String(signal.sourceUrl || '').match(/productCode=([^&]+)/)?.[1]).filter(Boolean));
   const canonicalNames = new Set(signals.map((signal) => signal.canonicalName).filter(Boolean));
   const bad1792 = signals.filter((signal) => /1792\s+Small\s+Batch/i.test(String(signal.rawName || '')) && /Full\s+Proof/i.test(String(signal.canonicalName || '')));
   const invalidOriginRoadblocks = (state.roadblocks || []).filter((roadblock) => /No Store exists/i.test(String(roadblock.error || '')));
   const directPage403s = (state.roadblocks || []).filter((roadblock) => Number(roadblock.status) === 403 && /abc\.virginia\.gov\/products/i.test(String(roadblock.url || '')));
+  const rateLimitRoadblocks = (state.roadblocks || []).filter((roadblock) => Number(roadblock.status) === 429);
+  const rollingFreshnessRoadblocks = (state.roadblocks || []).filter((roadblock) => roadblock.source === 'Virginia ABC rolling inventory freshness');
+  const staleAlertableSignals = signals.filter((signal) => (signal.sourceStale || expiredInventoryIds.has(signal.sourceSignalId || signal.key)) && signal.canAlertAsInventory);
+  const supportedOriginStoreIds = new Set((state.precisionMetadata?.virginia?.supportedOriginStoreIds || []).map(String));
+  const regularProductCoverage = new Map();
+  for (const signal of signals) {
+    if (signal.sourceStale || expiredInventoryIds.has(signal.sourceSignalId || signal.key) || signal.productLimitedCaveat !== false || !signal.storeId) continue;
+    const code = signal.productCode || String(signal.sourceUrl || '').match(/productCode=([^&]+)/)?.[1];
+    if (!code) continue;
+    if (!regularProductCoverage.has(code)) regularProductCoverage.set(code, new Set());
+    regularProductCoverage.get(code).add(String(signal.storeId));
+  }
+  const undercoveredRegularProducts = [...regularProductCoverage.entries()]
+    .filter(([, stores]) => stores.size < 390)
+    .map(([code, stores]) => ({ code, storeCount: stores.size }));
+  const missingSupportedStores = [...regularProductCoverage.entries()]
+    .map(([code, stores]) => ({ code, missingStoreIds: [...supportedOriginStoreIds].filter((storeId) => !stores.has(storeId)) }))
+    .filter((entry) => entry.missingStoreIds.length);
+  const unexpectedSupportedStores = [...regularProductCoverage.entries()]
+    .map(([code, stores]) => ({ code, unexpectedStoreIds: [...stores].filter((storeId) => !supportedOriginStoreIds.has(storeId)) }))
+    .filter((entry) => entry.unexpectedStoreIds.length);
 
   assert(state.status === 'useful', `VA state status must be useful, got ${state.status}`, { status: state.status, stale: state.stale, staleReason: state.staleReason });
   assert(!state.stale, 'VA must not be using stale fallback data', { status: state.status, staleReason: state.staleReason, staleFallbackAt: state.staleFallbackAt });
@@ -49,12 +78,19 @@ async function main() {
   assert(positiveSignals.length >= 20, 'VA positive store inventory signal count below current official-store availability threshold', positiveSignals.length);
   assert(vaDrops.length >= 45, 'VA site drops below current customer-visible official-store availability threshold', vaDrops.length);
   assert(vaLocations.length >= 350, 'VA site locations below definition-of-done threshold', vaLocations.length);
-  const usingCacheReuse = (state.roadblocks || []).some((roadblock) => /cache reuse/i.test(String(roadblock.source || '')));
-  const productCodeThreshold = usingCacheReuse ? 5 : 12;
-  assert(productCodes.size >= productCodeThreshold, 'VA product-code coverage below expanded top-performer baseline', [...productCodes]);
+  assert(productCodes.size >= 12, 'VA product-code coverage below expanded top-performer baseline', [...productCodes]);
+  assert(!staleAlertableSignals.length, 'VA stale cache rows must never remain inventory-alertable', staleAlertableSignals.slice(0, 10));
+  assert(!expiredInventorySignals.length, 'VA contains inventory rows older than the 24-hour live window', expiredInventorySignals.slice(0, 10));
+  assert(state.precisionMetadata?.virginia?.storeUniverseVerified === true && supportedOriginStoreIds.size >= 390, 'VA supported-store universe is not verified', state.precisionMetadata?.virginia || null);
+  assert(regularProductCoverage.size >= 10, 'VA fresh regular-product coverage is incomplete', [...regularProductCoverage.keys()]);
+  assert(!undercoveredRegularProducts.length, 'VA regular products do not cover the statewide supported-store floor', undercoveredRegularProducts);
+  assert(!missingSupportedStores.length, 'VA regular products are missing supported store identities', missingSupportedStores);
+  assert(!unexpectedSupportedStores.length, 'VA regular products contain unsupported store identities', unexpectedSupportedStores);
   assert(canonicalNames.has('Buffalo Trace Bourbon'), 'VA Buffalo Trace canonical identity missing', [...canonicalNames]);
   assert(!canonicalNames.has('1792 Full Proof') || !bad1792.length, 'VA 1792 Small Batch is being misidentified as 1792 Full Proof', bad1792.slice(0, 10));
   assert(!invalidOriginRoadblocks.length, 'VA has stale/invalid store-origin roadblocks', invalidOriginRoadblocks.slice(0, 10));
+  assert(!rateLimitRoadblocks.length, 'VA still has unresolved source rate-limit roadblocks', rateLimitRoadblocks.slice(0, 10));
+  assert(!rollingFreshnessRoadblocks.length, 'VA still has stale product partitions retained', rollingFreshnessRoadblocks);
   assert(directPage403s.length <= 4, 'VA has more direct product-page 403 roadblocks than expected', directPage403s.slice(0, 10));
 
   console.log(`VA verified: ${signals.length} signals, ${storeSignals.length} store-level, ${inventorySignals.length} inventory-alertable, ${positiveSignals.length} positive inventory, ${vaDrops.length} site drops, ${vaLocations.length} locations, ${productCodes.size} product codes. Event types: ${JSON.stringify(groupBy(signals, (s) => s.eventType))}`);

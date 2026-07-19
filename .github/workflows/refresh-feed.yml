@@ -24,15 +24,15 @@ permissions:
 jobs:
   collect-verify-publish:
     runs-on: ubuntu-latest
-    timeout-minutes: 28
+    timeout-minutes: 35
     env:
       NEXT_TELEMETRY_DISABLED: "1"
       BOURBON_SIGNAL_SKIP_BROWSER_COLLECTORS: "1"
       BOURBON_SIGNAL_BROWSER_PREFLIGHT: "0"
       BOURBON_SIGNAL_AUTO_DEPLOY: "0"
       BOURBON_SIGNAL_REFRESH_CADENCE_MINUTES: "30"
-      BOURBON_SIGNAL_RUN_STEP_TIMEOUT_MS: "1080000"
-      BOURBON_SIGNAL_REFRESH_STEP_TIMEOUT_MS: "1200000"
+      BOURBON_SIGNAL_RUN_STEP_TIMEOUT_MS: "1320000"
+      BOURBON_SIGNAL_REFRESH_STEP_TIMEOUT_MS: "1500000"
       BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
       ENGINE_SNAPSHOT_ENCRYPTION_KEY: ${{ secrets.ENGINE_SNAPSHOT_ENCRYPTION_KEY }}
       BOURBON_SIGNAL_DISABLED_STATES: ${{ vars.BOURBON_SIGNAL_DISABLED_STATES }}
@@ -51,7 +51,7 @@ jobs:
         run: npm ci && npm --prefix engine ci
 
       - name: Restore collector artifacts and adaptive scheduler state
-        uses: actions/cache@v4
+        uses: actions/cache/restore@v4
         with:
           path: |
             engine/out/browser
@@ -60,10 +60,17 @@ jobs:
             engine/out/snapshots
             engine/out/optimization/source-run-history.json
             engine/out/optimization/state-run-metrics.json
-            engine/out/site
-          key: inventory-refresh-${{ runner.os }}-${{ github.run_id }}
+          key: inventory-collector-state-${{ runner.os }}-${{ github.run_id }}
           restore-keys: |
-            inventory-refresh-${{ runner.os }}-
+            inventory-collector-state-${{ runner.os }}-
+
+      - name: Restore last published site contract
+        uses: actions/cache/restore@v4
+        with:
+          path: engine/out/site
+          key: inventory-published-site-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: |
+            inventory-published-site-${{ runner.os }}-
 
       - name: Verify expansion capacity and reliability policy
         working-directory: engine
@@ -80,6 +87,10 @@ jobs:
       - name: Verify coherent site contract
         working-directory: engine
         run: npm run verify:site
+
+      - name: Verify Virginia statewide live inventory recovery
+        working-directory: engine
+        run: npm run verify:va
 
       - name: Verify no unproven state promotion entered the customer path
         working-directory: engine
@@ -99,6 +110,26 @@ jobs:
             node engine/src/data-plane/publish-site-snapshot.mjs --rollback
             exit 1
           fi
+
+      - name: Save collector artifacts and adaptive scheduler state
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: |
+            engine/out/browser
+            engine/out/cache
+            engine/out/states
+            engine/out/snapshots
+            engine/out/optimization/source-run-history.json
+            engine/out/optimization/state-run-metrics.json
+          key: inventory-collector-state-${{ runner.os }}-${{ github.run_id }}
+
+      - name: Save verified published site contract
+        if: success()
+        uses: actions/cache/save@v4
+        with:
+          path: engine/out/site
+          key: inventory-published-site-${{ runner.os }}-${{ github.run_id }}
 
       - name: Preserve refresh diagnostics
         if: always()

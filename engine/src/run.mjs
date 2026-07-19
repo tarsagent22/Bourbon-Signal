@@ -54,7 +54,7 @@ const STATE_TIMEOUT_OVERRIDES_MS = {
   // VA and IN can legitimately do broad store-level inventory work. Give them
   // enough room in the full scheduled run so they do not regress to stale
   // fallback while still keeping hard failure bounds.
-  VA: Number(process.env.BOURBON_SIGNAL_VA_STATE_TIMEOUT_MS || 900_000),
+  VA: Number(process.env.BOURBON_SIGNAL_VA_STATE_TIMEOUT_MS || 1_200_000),
   IN: Number(process.env.BOURBON_SIGNAL_IN_STATE_TIMEOUT_MS || 900_000),
   // NC board intelligence + county inventory probes can cross the generic
   // timeout during normal successful runs. Give it the same scheduled-run

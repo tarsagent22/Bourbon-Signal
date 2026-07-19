@@ -34,7 +34,7 @@ test('scheduled refresh persists collector history, the actual scheduler state, 
   assert.match(diagnosticsStep, /engine\/out\/optimization\/source-run-history\.json/);
   assert.match(diagnosticsStep, /engine\/out\/source-slo-7d\.json/);
   assert.match(diagnosticsStep, /engine\/out\/source-slo-7d\.md/);
-  assert.match(workflow, /timeout-minutes:\s*28/);
+  assert.match(workflow, /timeout-minutes:\s*35/);
   assert.doesNotMatch(workflow, /Refresh and gate the Texas candidate/);
   assert.match(workflow, /verify:production-engine[\s\S]*?--rollback/);
   assert.match(workflow, /engine\/out\/snapshots/);

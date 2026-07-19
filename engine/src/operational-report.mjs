@@ -10,6 +10,13 @@ import { hasPositiveInventoryEvidence } from './operational-candidate-policy.mjs
 const OUT = path.resolve('out');
 const HISTORY = path.join(OUT, 'history');
 const SNAPSHOTS = path.join(HISTORY, 'snapshots');
+const VIRGINIA_INVENTORY_MAX_AGE_MS = Math.max(60 * 60_000, Number(process.env.BOURBON_SIGNAL_VA_INVENTORY_MAX_AGE_MS || 24 * 60 * 60_000));
+
+function virginiaInventoryExpired(signal, nowMs = Date.now()) {
+  if (signal?.state !== 'VA' || !/store_inventory/i.test(String(signal.eventType || ''))) return false;
+  const timestamp = Date.parse(String(observedAt(signal) || ''));
+  return !Number.isFinite(timestamp) || nowMs - timestamp > VIRGINIA_INVENTORY_MAX_AGE_MS;
+}
 
 async function readJson(file, fallback = null) {
   try { return JSON.parse(await readFile(file, 'utf8')); } catch { return fallback; }
@@ -76,6 +83,10 @@ function canonicalizeSignal(signal, bible) {
     sourceChain: signal.sourceChain || signal.raw?.chain || null,
     merchantId: signal.merchantId || signal.raw?.merchantId || signal.raw?.option?.merchant_id || null,
     productId: signal.productId || signal.raw?.productId || signal.raw?.product?.id || signal.raw?.option?.product_id || null,
+    productCode: signal.productCode || signal.raw?.product?.code || String(signal.sourceUrl || '').match(/productCode=([^&]+)/)?.[1] || null,
+    productLimitedCaveat: typeof signal.productLimitedCaveat === 'boolean'
+      ? signal.productLimitedCaveat
+      : typeof signal.raw?.product?.limitedCaveat === 'boolean' ? signal.raw.product.limitedCaveat : null,
     variantId: signal.variantId || signal.raw?.variantId || signal.raw?.variant?.id || signal.raw?.option?.option_id || null,
     observedAt: observedAt(signal),
     sourceEventAt: signal.sourceEventAt || null,
@@ -108,6 +119,8 @@ function canonicalizeSignal(signal, bible) {
     locationValue: policy.locationValue,
     canAlertAsInventory: policy.canAlertAsInventory,
     canAlertAsWatch: policy.canAlertAsWatch,
+    sourceStale: signal.sourceStale === true || virginiaInventoryExpired(signal),
+    staleSourceCaveat: signal.staleSourceCaveat || (virginiaInventoryExpired(signal) ? 'Virginia ABC inventory is older than the 24-hour live-inventory window; verify with the store.' : null),
     sampleOnly: Boolean(signal.raw?.sampleOnly),
     rawName: signal.rawName || null
   };

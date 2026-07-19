@@ -51,6 +51,8 @@ const EVENT_WEIGHTS = [
   [/policy/i, -0.08]
 ];
 
+const VIRGINIA_INVENTORY_MAX_AGE_MS = Math.max(60 * 60_000, Number(process.env.BOURBON_SIGNAL_VA_INVENTORY_MAX_AGE_MS || 24 * 60 * 60_000));
+
 const MODE_CAPS = {
   policy_only: 0.35,
   watch_until_store_api: 0.62,
@@ -215,7 +217,13 @@ export function confidenceForSignal(signal) {
   const nevadaRetailerEvent = signal.state === 'NV' && /^retailer_store_inventory_result$/i.test(eventType);
   const nevadaInventoryAllowed = !nevadaRetailerEvent || isNevadaRetailerInventory(signal);
   const nevadaWatchAllowed = !nevadaRetailerEvent || isNevadaRetailerSignalIdentity(signal);
+  const virginiaObservedAt = Date.parse(String(signal.observedAt || signal.fetchedAt || ''));
+  const virginiaInventoryExpired = signal.state === 'VA'
+    && /store_inventory/i.test(eventType)
+    && (!Number.isFinite(virginiaObservedAt) || Date.now() - virginiaObservedAt > VIRGINIA_INVENTORY_MAX_AGE_MS);
   const runtimeAlertBlocked = signal.stale === true
+    || signal.sourceStale === true
+    || virginiaInventoryExpired
     || signal.quarantined === true
     || signal.raw?.sourceRuntimeNonAlertable === true
     || signal.raw?.staleFallback === true;
