@@ -20,6 +20,7 @@ concurrency:
 
 permissions:
   contents: read
+  actions: read
 
 jobs:
   collect-verify-publish:
@@ -85,6 +86,12 @@ jobs:
           key: inventory-published-site-${{ runner.os }}-${{ github.run_id }}
           restore-keys: |
             inventory-published-site-${{ runner.os }}-
+
+      - name: Hydrate complete state reports for targeted recovery
+        if: ${{ inputs.states != '' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/hydrate-state-reports.mjs
 
       - name: Verify expansion capacity and reliability policy
         working-directory: engine

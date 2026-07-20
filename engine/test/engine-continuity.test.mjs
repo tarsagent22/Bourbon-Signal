@@ -32,6 +32,9 @@ test('scheduled refresh persists collector history, the actual scheduler state, 
   const browserSaveStep = workflow.match(/- name: Save browser source artifacts[\s\S]*?(?=\n      - name:)/)?.[0] || '';
   const diagnosticsStep = workflow.match(/- name: Preserve refresh diagnostics[\s\S]*$/)?.[0] || '';
   assert.match(workflow, /cron:\s*["']7,37 \* \* \* \*['"]/);
+  assert.match(workflow, /permissions:[\s\S]*?actions:\s*read/);
+  assert.match(workflow, /Hydrate complete state reports for targeted recovery[\s\S]*?GH_TOKEN:[\s\S]*?hydrate-state-reports\.mjs/);
+  assert.ok(workflow.indexOf('Hydrate complete state reports for targeted recovery') < workflow.indexOf('Refresh all due customer-active states'), 'targeted recovery must hydrate complete baseline state reports before collection');
   assert.match(cacheStep, /engine\/out\/optimization\/state-run-metrics\.json/);
   assert.match(cacheStep, /engine\/out\/optimization\/source-run-history\.json/);
   assert.match(cacheStep, /engine\/out\/browser/);
