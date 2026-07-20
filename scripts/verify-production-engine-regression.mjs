@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
+import { selectVerificationStates } from './production-verification-scope.mjs';
 
 const ROOT = process.cwd();
 const BASE_URL = process.env.BOURBON_SIGNAL_LIVE_BASE_URL || 'https://www.bourbonsignal.com';
@@ -49,7 +50,8 @@ function localDropsByState() {
 async function main() {
   const localStats = readJson('engine/out/site/stats.json', {});
   const localDropMap = localDropsByState();
-  const states = activeStates();
+  const allStates = activeStates();
+  const states = selectVerificationStates(allStates, process.env.BOURBON_SIGNAL_VERIFY_STATES || '');
   let liveStatsRes = null;
   for (let attempt = 1; attempt <= PRODUCTION_VERIFY_ATTEMPTS; attempt += 1) {
     liveStatsRes = await getJson('/api/stats');

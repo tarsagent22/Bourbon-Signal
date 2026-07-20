@@ -133,6 +133,8 @@ jobs:
         run: node src/data-plane/publish-site-snapshot.mjs --site-dir out/site
 
       - name: Verify production observes the refreshed engine or roll back
+        env:
+          BOURBON_SIGNAL_VERIFY_STATES: ${{ inputs.states || '' }}
         run: |
           if ! npm run verify:production-engine; then
             node engine/src/data-plane/publish-site-snapshot.mjs --rollback
