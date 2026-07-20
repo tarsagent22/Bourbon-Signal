@@ -41,6 +41,9 @@ test('scheduled refresh persists collector history, the actual scheduler state, 
     const step = workflow.match(new RegExp(`- name: Verify ${label}[\\s\\S]*?(?=\\n      - name:)`))?.[0] || '';
     assert.match(step, new RegExp(`!inputs\\.states[\\s\\S]*contains\\(inputs\\.states, '${state}'\\)`), `${state} verifier must only gate full or ${state}-targeted refreshes`);
   }
+  const productionVerificationStep = workflow.match(/- name: Verify production observes the refreshed engine or roll back[\s\S]*?(?=\n      - name:)/)?.[0] || '';
+  assert.match(productionVerificationStep, /BOURBON_SIGNAL_VERIFY_STATES:\s*\$\{\{ inputs\.states \|\| '' \}\}/);
+  assert.match(productionVerificationStep, /verify:production-engine[\s\S]*?--rollback/);
   assert.match(cacheStep, /engine\/out\/optimization\/state-run-metrics\.json/);
   assert.match(cacheStep, /engine\/out\/optimization\/source-run-history\.json/);
   assert.match(cacheStep, /engine\/out\/browser/);
