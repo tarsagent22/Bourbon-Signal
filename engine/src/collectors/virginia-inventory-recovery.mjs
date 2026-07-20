@@ -94,6 +94,29 @@ export function mergeVirginiaProductPartitions(cachedSignals, livePartitions, co
   return [...retained, ...refreshed];
 }
 
+export function summarizeVirginiaProductErrors(errors) {
+  const failures = (errors || []).filter(Boolean);
+  if (!failures.length) return null;
+  const counts = new Map();
+  for (const failure of failures) {
+    const status = Number(failure.status) || 0;
+    counts.set(status, (counts.get(status) || 0) + 1);
+  }
+  const statuses = [...counts.entries()]
+    .sort(([left], [right]) => left - right)
+    .map(([status, count]) => `${count} HTTP ${status || 'transport'}`)
+    .join(', ');
+  const representative = String(failures[0].error || 'Virginia ABC inventory request failed.')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 240);
+  return {
+    status: counts.size === 1 ? [...counts.keys()][0] : 0,
+    url: failures[0].url || null,
+    error: `${failures.length} store-origin probe failure(s) (${statuses}); representative error: ${representative}`
+  };
+}
+
 export function applyVirginiaInventoryFreshness(signals, nowMs = Date.now(), maxInventoryAgeMs = 24 * 60 * 60_000) {
   return (signals || []).map((signal) => {
     const observedAt = finiteTimestamp(signal?.observedAt);

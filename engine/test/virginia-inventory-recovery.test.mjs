@@ -7,6 +7,7 @@ import {
   evaluateVirginiaProductCoverage,
   mergeVirginiaProductPartitions,
   selectVirginiaProductsForRefresh,
+  summarizeVirginiaProductErrors,
   virginiaAbortableDelay
 } from '../src/collectors/virginia-inventory-recovery.mjs';
 import { legacyPrecisionRuntimeOptions } from '../src/collectors/precision-probes.mjs';
@@ -83,6 +84,20 @@ test('Virginia product partitions replace only complete successful live products
   assert.equal(merged.filter((row) => row.raw.product.code === 'A').length, 2);
   assert.equal(merged.find((row) => row.raw.product.code === 'A' && row.storeId === '101')?.quantity, 3);
   assert.equal(merged.find((row) => row.raw.product.code === 'B')?.observedAt, '2026-07-18T00:00:00.000Z');
+});
+
+test('Virginia repeated origin failures collapse into one bounded product summary', () => {
+  const summary = summarizeVirginiaProductErrors([
+    { status: 429, url: 'https://www.abc.virginia.gov/first', error: '<html> Too   Many Requests </html>' },
+    { status: 429, url: 'https://www.abc.virginia.gov/second', error: 'Too Many Requests' },
+    { status: 0, url: 'https://www.abc.virginia.gov/third', error: 'socket timeout' }
+  ]);
+  assert.deepEqual(summary, {
+    status: 0,
+    url: 'https://www.abc.virginia.gov/first',
+    error: '3 store-origin probe failure(s) (1 HTTP transport, 2 HTTP 429); representative error: <html> Too Many Requests </html>'
+  });
+  assert.equal(summarizeVirginiaProductErrors([]), null);
 });
 
 test('Virginia completeness requires every supported origin store before replacing a product partition', () => {

@@ -54,6 +54,7 @@ import {
   evaluateVirginiaProductCoverage,
   mergeVirginiaProductPartitions,
   selectVirginiaProductsForRefresh,
+  summarizeVirginiaProductErrors,
   throwIfVirginiaAborted,
   virginiaAbortableDelay,
   virginiaProductCode
@@ -8511,13 +8512,14 @@ async function collectVirginia(config, bible, options = {}) {
       livePartitions.set(product.code, productSignals);
       completedProductCodes.add(product.code);
     } else {
-      for (const error of productErrors.slice(0, 3)) {
+      const error = summarizeVirginiaProductErrors(productErrors);
+      if (error) {
         roadblocks.push({
           state: config.id,
           source: 'Virginia ABC storeNearby inventory API',
           url: error.url || `https://www.abc.virginia.gov/products/bourbon/${product.slug}`,
           status: error.status || 0,
-          error: error.error || 'Virginia ABC inventory request failed.',
+          error: error.error,
           nextRoute: 'Retry this bounded product partition after the source cools down; retain the last complete partition meanwhile.'
         });
       }
