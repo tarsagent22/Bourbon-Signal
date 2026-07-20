@@ -37,7 +37,7 @@ if (packageJson.name !== 'bourbon-signal') {
 if (!packageJson.scripts?.['test:ops']) {
   fail('package.json should expose test:ops for workflow guardrails.');
 }
-for (const scriptName of ['watchdog:alerts', 'test:alert-copy-contract', 'verify:production-engine', 'ops:source-roi', 'ops:signal-calendar', 'ops:bottle-queue', 'generate:state-lifecycle-types', 'verify:state-lifecycle-drift', 'test:state-user-path', 'ops:radar-leads', 'ops:source-expansion', 'ops:automation-cost', 'verify:automation', 'test:agent-cost-automation']) {
+for (const scriptName of ['watchdog:alerts', 'test:alert-copy-contract', 'verify:production-engine', 'ops:source-roi', 'ops:signal-calendar', 'ops:bottle-queue', 'generate:state-lifecycle-types', 'verify:state-lifecycle-drift', 'test:state-user-path', 'ops:radar-leads', 'ops:source-expansion', 'ops:automation-cost', 'ops:operator-outcomes', 'verify:automation', 'test:agent-cost-automation']) {
   if (!packageJson.scripts?.[scriptName]) fail(`package.json should expose ${scriptName} for Bourbon Signal self-improvement loops.`);
 }
 
@@ -200,7 +200,7 @@ if (!/CHECKOUT_ENABLED|site-mode/.test(checkoutRoute)) {
 expectNoModuleScopeStripe('src/app/api/webhooks/stripe/route.ts');
 
 const alertDelivery = read('src/lib/alert-delivery.ts');
-for (const requiredFile of ['scripts/bourbon-signal-alert-watchdog.mjs', 'scripts/verify-alert-copy-contract.mjs', 'scripts/verify-production-engine-regression.mjs', 'scripts/verify-automation-registry.mjs', 'automation/bourbon-signal/automation-registry.json', 'automation/bourbon-signal/automation-registry.schema.json', 'automation/bourbon-signal/automation-cost-report.mjs', 'automation/bourbon-signal/autonomy-threshold-contract.json', 'automation/bourbon-signal/source-expansion-collector.mjs', 'automation/bourbon-signal/release-radar-lead-collector.mjs', 'engine/src/build-store-identity.mjs', 'automation/bourbon-signal/source-roi-ranker.mjs', 'automation/bourbon-signal/bottle-queue-autoprocess.mjs', 'automation/bourbon-signal/signal-calendar-prototype.mjs']) {
+for (const requiredFile of ['scripts/bourbon-signal-alert-watchdog.mjs', 'scripts/verify-alert-copy-contract.mjs', 'scripts/verify-production-engine-regression.mjs', 'scripts/verify-automation-registry.mjs', 'automation/bourbon-signal/automation-registry.json', 'automation/bourbon-signal/automation-registry.schema.json', 'automation/bourbon-signal/automation-cost-report.mjs', 'automation/bourbon-signal/operator-outcomes.mjs', 'automation/bourbon-signal/operator-run.schema.json', 'automation/bourbon-signal/autonomous-operator-prompt.md', 'automation/bourbon-signal/autonomy-threshold-contract.json', 'automation/bourbon-signal/source-expansion-collector.mjs', 'automation/bourbon-signal/release-radar-lead-collector.mjs', 'engine/src/build-store-identity.mjs', 'automation/bourbon-signal/source-roi-ranker.mjs', 'automation/bourbon-signal/bottle-queue-autoprocess.mjs', 'automation/bourbon-signal/signal-calendar-prototype.mjs']) {
   expectFile(requiredFile);
 }
 const automationRegistry = JSON.parse(read('automation/bourbon-signal/automation-registry.json'));
@@ -209,7 +209,9 @@ const normalizeNewlines = (value) => value.replaceAll(String.fromCharCode(13), '
 const localAppData = process.env.LOCALAPPDATA;
 const runtimeSource = expectFile(path.join('automation', 'bourbon-signal', 'hermes-scripts', 'bourbon_signal_runtime.py'));
 const installedRuntimePath = localAppData ? path.join(localAppData, 'hermes', 'scripts', 'bourbon_signal_runtime.py') : '';
-if (runtimeSource && installedRuntimePath && existsSync(installedRuntimePath)
+if (runtimeSource && installedRuntimePath && !existsSync(installedRuntimePath)) {
+  fail('Installed Bourbon Signal Hermes runtime helper is missing.');
+} else if (runtimeSource && installedRuntimePath
   && normalizeNewlines(runtimeSource) !== normalizeNewlines(readFileSync(installedRuntimePath, 'utf8'))) {
   fail('Installed Bourbon Signal Hermes runtime helper drifted from source control.');
 }
@@ -220,7 +222,9 @@ for (const job of hermesSnapshot.jobs || []) {
   if (source && /C:\\\\Users\\\\/i.test(source)) fail(`Hermes script must derive its repository and profile paths at runtime: ${job.script}`);
   if (source && source.includes('subprocess.run') && !source.includes('raise SystemExit')) fail(`Hermes script must return a nonzero job status when its subprocess fails: ${job.script}`);
   const installedPath = localAppData ? path.join(localAppData, 'hermes', 'scripts', job.script) : '';
-  if (source && installedPath && existsSync(installedPath)) {
+  if (source && installedPath && !existsSync(installedPath)) {
+    fail(`Installed Hermes script is missing: ${job.script}`);
+  } else if (source && installedPath) {
     const installed = normalizeNewlines(readFileSync(installedPath, 'utf8'));
     if (normalizeNewlines(source) !== installed) fail(`Installed Hermes script drifted from source control: ${job.script}`);
   }

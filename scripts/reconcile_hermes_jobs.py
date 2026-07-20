@@ -2,7 +2,17 @@ import json
 import re
 import subprocess
 from pathlib import Path
-from export_hermes_jobs import CONFIG, LIVE_JOBS, read_timezone, reasoning_for, safety_hash
+from export_hermes_jobs import (
+    AUTONOMOUS_OPERATOR_SCRIPT,
+    AUTONOMOUS_PROFILE_CONFIG,
+    CONFIG,
+    LIVE_JOBS,
+    profile_model,
+    profile_wrapper_safety_hash,
+    read_timezone,
+    reasoning_for,
+    safety_hash,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 EXPECTED_PATH = ROOT / "automation" / "bourbon-signal" / "hermes-jobs.json"
@@ -38,6 +48,8 @@ expected = expected_payload["jobs"]
 expected_by_id = {job["jobId"]: job for job in expected}
 failures = []
 config_text = CONFIG.read_text(encoding="utf-8")
+autonomous_config_text = AUTONOMOUS_PROFILE_CONFIG.read_text(encoding="utf-8") if AUTONOMOUS_PROFILE_CONFIG.is_file() else ""
+autonomous_model, autonomous_provider = profile_model(autonomous_config_text)
 live_timezone = read_timezone(config_text)
 if live_timezone != expected_payload.get("timezone"):
     failures.append(f"timezone: live={live_timezone!r} expected={expected_payload.get('timezone')!r}")
@@ -54,13 +66,16 @@ for job_id, wanted in expected_by_id.items():
             failures.append(f"{job_id} {key}: live={live.get(key)!r} expected={wanted.get(key)!r}")
     raw = raw_by_id.get(job_id, {})
     no_agent = bool(wanted.get("noAgent"))
-    actual_model = None if no_agent else raw.get("model")
-    actual_provider = None if no_agent else raw.get("provider")
+    profile_wrapped = wanted.get("script") == AUTONOMOUS_OPERATOR_SCRIPT
+    actual_model = autonomous_model if profile_wrapped else None if no_agent else raw.get("model")
+    actual_provider = autonomous_provider if profile_wrapped else None if no_agent else raw.get("provider")
+    reasoning_config = autonomous_config_text if profile_wrapped else config_text
     for key, actual in [
         ("provider", actual_provider),
         ("model", actual_model),
-        ("reasoning", reasoning_for(actual_model, config_text)),
+        ("reasoning", reasoning_for(actual_model, reasoning_config)),
         ("safetyHash", safety_hash(raw)),
+        ("profileSafetyHash", profile_wrapper_safety_hash(ROOT, autonomous_config_text) if profile_wrapped else None),
     ]:
         if actual != wanted.get(key):
             failures.append(f"{job_id} {key}: live={actual!r} expected={wanted.get(key)!r}")

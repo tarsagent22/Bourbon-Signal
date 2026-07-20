@@ -4,6 +4,7 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { buildAutomationCostReport, sanitizeAutomationRun } from '../automation/bourbon-signal/automation-cost-report.mjs';
+import { summarizeOperatorOutcomes } from '../automation/bourbon-signal/operator-outcomes.mjs';
 import { classifyBottleQueueItem, processBottleQueue } from '../automation/bourbon-signal/bottle-queue-autoprocess.mjs';
 import { buildSourceExpansionCollection, engineStageInvocation, resolveScheduledStates, stagesForCollectionMode, summarizeStageOutput } from '../automation/bourbon-signal/source-expansion-collector.mjs';
 import { collectReleaseRadarLeads, queryPlan } from '../automation/bourbon-signal/release-radar-lead-collector.mjs';
@@ -64,7 +65,8 @@ const deterministicRunsPerDay = registry.automations.filter((entry) => entry.exe
 const agentRunsPerWeek = registry.automations.filter((entry) => entry.executionClass !== 'script_only').reduce((sum, entry) => sum + (frequencyRunsPerDay(entry.frequency) * 7), 0);
 assert.ok(Math.abs(cadence.expectedTotals.deterministicRunsPerDay - deterministicRunsPerDay) < 1e-6);
 assert.ok(Math.abs(cadence.expectedTotals.agenticRunsPerWeek - agentRunsPerWeek) < 1e-6);
-assert.deepEqual(cadence.agentPolicy, { provider: 'openai-codex', model: 'gpt-5.6-luna', reasoning: 'xhigh' });
+assert.deepEqual(cadence.codingAgentPolicy, { profile: 'bourbonbot', provider: 'openai-codex', model: 'gpt-5.6-sol', reasoning: 'low', approvalCronMode: 'approve' });
+assert.deepEqual(cadence.analysisAgentPolicy, { provider: 'openai-codex', model: 'gpt-5.6-luna', reasoning: 'xhigh' });
 assert.equal(hermesSnapshot.timezone, 'America/New_York');
 assert.equal(hermesByName.get('Bourbon Signal hourly known-source probe')?.schedule, '40 * * * *');
 assert.equal(hermesByName.get('Bourbon Signal deterministic state source collector')?.schedule, '15 */3 * * *');
@@ -78,6 +80,10 @@ assert.ok(
 );
 assert.equal(hermesByName.get('Bourbon Signal morning scorecard aggregation')?.schedule, '0 5 * * *');
 assert.equal(hermesByName.get('Bourbon Signal daily company brief')?.schedule, '30 5 * * *');
+const codingOperator = hermesByName.get('Bourbon Signal autonomous company operator');
+assert.deepEqual([codingOperator.noAgent, codingOperator.script, codingOperator.provider, codingOperator.model, codingOperator.reasoning], [true, 'bourbon_signal_autonomous_operator.py', 'openai-codex', 'gpt-5.6-sol', 'low']);
+assert.match(codingOperator.profileSafetyHash || '', /^[a-f0-9]{64}$/);
+assert.ok(hermesSnapshot.jobs.every((job) => job.workdir === 'C:\\c\\Users\\chand\\projects\\Bourbon-Signal-autonomous'), 'Every scheduled Bourbon Signal job must use the isolated clone.');
 for (const job of hermesSnapshot.jobs.filter((row) => !row.noAgent)) {
   assert.deepEqual([job.provider, job.model, job.reasoning], ['openai-codex', 'gpt-5.6-luna', 'xhigh']);
   assert.match(job.safetyHash || '', /^[a-f0-9]{64}$/, `${job.name} must bind prompt, skills, and toolsets`);
@@ -134,6 +140,36 @@ assert.deepEqual(sanitizeAutomationRun({ jobId: 'hermes-daily-operator', status:
   jobId: 'hermes-daily-operator', executionClass: 'agent', failed: false, tokens: 11,
   braveQueries: 0, httpProbes: 0, browserPages: 0, statesDiscovered: 0, sourcesDiscovered: 0, statesPromoted: 0, sourcesPromoted: 0, usefulFindings: 0, objectivesCompleted: 0, coverageDelta: 0,
 });
+
+const outcome = summarizeOperatorOutcomes([
+  {
+    runId: '2026-07-18T10:00:00Z-aaaaaaaa', objectiveId: 'radar-alabama', outcome: 'completed', startedObjective: true,
+    findingsQualified: 3, merged: true, deployed: true, productionVerified: true,
+    releaseRadarPublished: 1, engineExpansionsCompleted: 0, coverageDelta: 0,
+    discoveryToCompletionHours: 4,
+  },
+  {
+    runId: '2026-07-19T10:00:00Z-bbbbbbbb', objectiveId: 'engine-va', outcome: 'continued', startedObjective: true,
+    findingsQualified: 2, merged: false, deployed: false, productionVerified: false,
+    releaseRadarPublished: 0, engineExpansionsCompleted: 0, coverageDelta: 0,
+    discoveryToCompletionHours: null,
+  },
+  {
+    runId: '2026-07-20T10:00:00Z-cccccccc', objectiveId: 'engine-va', outcome: 'completed', startedObjective: false,
+    findingsQualified: 1, merged: true, deployed: true, productionVerified: true,
+    releaseRadarPublished: 0, engineExpansionsCompleted: 1, coverageDelta: 12,
+    discoveryToCompletionHours: 8,
+  },
+], '2026-07-20T11:00:00Z');
+assert.equal(outcome.metrics.qualifiedFindings, 6);
+assert.equal(outcome.metrics.objectivesCompleted, 2);
+assert.equal(outcome.metrics.objectiveCompletionRate, 1);
+assert.equal(outcome.metrics.productionReleases, 2);
+assert.equal(outcome.metrics.releaseRadarPublications, 1);
+assert.equal(outcome.metrics.engineExpansionsCompleted, 1);
+assert.equal(outcome.metrics.coverageDelta, 12);
+assert.equal(outcome.metrics.continuedRuns, 1);
+assert.equal(outcome.metrics.medianDiscoveryToCompletionHours, 6);
 
 assert.equal(classifyBottleQueueItem({ confidence: 'high', candidateBottleId: 'weller-12', candidateBottleName: 'Weller 12' }).safe, true);
 assert.equal(classifyBottleQueueItem({ confidence: 'medium', duplicateCount: 3, candidateBottleId: 'weller-12', candidateBottleName: 'Weller 12' }).safe, false);

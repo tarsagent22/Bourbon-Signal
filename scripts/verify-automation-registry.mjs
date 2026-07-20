@@ -55,7 +55,7 @@ export function verifyAutomationRegistry(registry, { workflowPaths = activeWorkf
     if (entry.executionClass === 'script_only' && (entry.agent?.provider !== null || entry.agent?.model !== null)) fail(failures, `${prefix} script_only jobs cannot declare an agent model.`);
     if (entry.executionClass !== 'script_only' && (!entry.agent?.provider || !entry.agent?.model)) fail(failures, `${prefix} agentic jobs require provider and model.`);
     if (entry.executionClass === 'script_only' && entry.agent?.reasoning !== null) fail(failures, `${prefix} script_only jobs cannot declare reasoning.`);
-    if (entry.executionClass !== 'script_only' && entry.agent?.reasoning !== 'xhigh') fail(failures, `${prefix} agentic jobs must use xhigh reasoning.`);
+    if (entry.executionClass !== 'script_only' && !['low', 'xhigh'].includes(entry.agent?.reasoning)) fail(failures, `${prefix} agentic jobs must declare low or xhigh reasoning.`);
     if (!isPlainObject(entry.externalApi) || !Array.isArray(entry.externalApi.classes) || !Number.isInteger(entry.externalApi.maxRequestsPerRun) || entry.externalApi.maxRequestsPerRun < 0) fail(failures, `${prefix} needs a bounded externalApi declaration.`);
     if (!MUTATION_CLASSES.has(entry.customerMutation)) fail(failures, `${prefix} has invalid customerMutation.`);
     if (!PROMOTION_CLASSES.has(entry.promotionDeployment)) fail(failures, `${prefix} has invalid promotionDeployment.`);
@@ -69,18 +69,20 @@ export function verifyAutomationRegistry(registry, { workflowPaths = activeWorkf
       const liveJob = liveHermesJobs.get(entry.hermesJobId);
       if (!liveJob) fail(failures, `${prefix} has an unknown Hermes job id.`);
       else {
-        const expectsNoAgent = entry.executionClass === 'script_only';
-        if (liveJob.noAgent !== expectsNoAgent) fail(failures, `${prefix} executionClass does not match live no_agent=${liveJob.noAgent}.`);
-        if (expectsNoAgent && !liveJob.script) fail(failures, `${prefix} script_only job is missing a live scheduler script.`);
+        const profileWrapped = Boolean(entry.agent?.profile);
+        const expectsNoAgent = entry.executionClass === 'script_only' || profileWrapped;
+        if (liveJob.noAgent !== expectsNoAgent) fail(failures, `${prefix} executionClass/profile wrapper does not match live no_agent=${liveJob.noAgent}.`);
+        if (expectsNoAgent && !liveJob.script) fail(failures, `${prefix} script-only or profile-wrapped job is missing a live scheduler script.`);
+        if (profileWrapped && !/^[a-f0-9]{64}$/.test(String(liveJob.profileSafetyHash || ''))) fail(failures, `${prefix} profile-wrapped job must bind its wrapper, prompt, model, provider, and reasoning policy.`);
         if (!expectedHermesWorkdir || liveJob.workdir !== expectedHermesWorkdir) fail(failures, `${prefix} live scheduler workdir drifted from the host repository root.`);
-        if (expectsNoAgent && entry.killSwitch !== `cron_pause:${entry.hermesJobId}`) fail(failures, `${prefix} script_only job must expose its live cron pause kill switch.`);
+        if (expectsNoAgent && entry.killSwitch !== `cron_pause:${entry.hermesJobId}`) fail(failures, `${prefix} script-only or profile-wrapped job must expose its live cron pause kill switch.`);
         if (entry.delivery === 'main_chat' && liveJob.deliver !== 'origin') fail(failures, `${prefix} must deliver to the main chat origin.`);
         if (entry.delivery === 'local' && liveJob.deliver !== 'local') fail(failures, `${prefix} must deliver locally.`);
         if (entry.delivery === 'ops_chat') {
           if (!/^telegram:-?\d+$/.test(String(liveJob.deliver || ''))) fail(failures, `${prefix} must deliver to an explicit Telegram ops chat.`);
           else opsDeliveryTargets.add(liveJob.deliver);
         }
-        if (!expectsNoAgent && (liveJob.provider !== entry.agent.provider || liveJob.model !== entry.agent.model || liveJob.reasoning !== entry.agent.reasoning)) {
+        if (entry.executionClass !== 'script_only' && (liveJob.provider !== entry.agent.provider || liveJob.model !== entry.agent.model || liveJob.reasoning !== entry.agent.reasoning)) {
           fail(failures, `${prefix} agent model/reasoning drifted from the scheduler snapshot.`);
         }
       }

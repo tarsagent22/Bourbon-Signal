@@ -12,7 +12,7 @@ All Hermes schedules use `America/New_York`. GitHub Actions cron expressions are
 | Shadow evidence | 01:15, 05:15, 09:15, 13:15, 17:15, 21:15 UTC | GitHub script-only | GitHub artifacts/errors |
 | Browser probe | 05:50 and 17:50 UTC | GitHub script-only | GitHub artifacts/errors |
 | Semantic source review | 02:00 and 14:00 Eastern | Luna/xhigh | Ops chat for material decisions |
-| Autonomous implementation operator | 02:45 and 14:45 Eastern | Luna/xhigh | Ops chat for material changes |
+| Autonomous implementation operator | 02:45 and 14:45 Eastern | GPT-5.6 Sol/low in isolated `bourbonbot` profile | Ops chat for completed work, continuation, or material blockers |
 | Release Radar lead collection | 04:15 Eastern | Script-only | Ops only for new leads/errors; consumed by brief |
 | Weekly strategy review | Friday 03:30 Eastern | Luna/xhigh | Main chat |
 | Morning scorecard aggregation | 05:00 Eastern | Script-only | Silent success; ops chat error |
@@ -29,6 +29,11 @@ The 05:15 Eastern briefing cutoff includes all completed morning artifacts. Cont
 - Discovery, probes, shadow, and browser jobs cannot publish, promote states, or deliver inventory alerts.
 - Semantic review does not edit code. It creates bounded, deduplicated operator findings.
 - Only the isolated operator worktree may implement one selected objective per run.
+- All Hermes jobs use the dedicated `C:\\c\\Users\\chand\\projects\\Bourbon-Signal-autonomous` clone; interactive branches cannot block or be overwritten by scheduled work.
+- The coding shift is a profile-wrapped no-agent cron job: the `bourbonbot` profile pins GPT-5.6 Sol with `agent.reasoning_effort: low`, while non-coding semantic and briefing jobs retain their own model policy.
+- An existing objective lock is resumed before any new selection. Temporary blockers preserve the branch, worktree, lock, and continuation state.
+- Coding completion means focused tests, review, PR, required CI, safe merge, deployment, custom-domain verification, and objective release—not merely a finding or draft PR.
+- Every coding shift must validate and aggregate `operator-run-latest.json`; `operator-outcomes-latest.json` tracks qualified findings, starts, completions, merged PRs, production releases, Radar publications, engine expansions, coverage delta, blocked/continued/failed runs, and discovery-to-completion time.
 - Existing lifecycle, fixture, shadow, canary, provenance, public-eligibility, and alert-eligibility gates remain mandatory.
 - Routine success is silent. The ops chat receives changes, failures, and drift; the main chat receives owner briefs and decisions.
 - Deterministic wrappers resolve the repository from `BOURBON_SIGNAL_REPO`, the current directory, or a trusted live cron `workdir`; they no longer assume Hermes executes attached scripts from the job workdir.
