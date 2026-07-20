@@ -35,7 +35,7 @@ The 05:15 Eastern briefing cutoff includes all completed morning artifacts. Cont
 - Coding completion means focused tests, review, PR, required CI, safe merge, deployment, custom-domain verification, and objective release—not merely a finding or draft PR.
 - Every coding shift must validate and aggregate `operator-run-latest.json`; `operator-outcomes-latest.json` tracks qualified findings, starts, completions, merged PRs, production releases, Radar publications, engine expansions, coverage delta, blocked/continued/failed runs, and discovery-to-completion time.
 - Existing lifecycle, fixture, shadow, canary, provenance, public-eligibility, and alert-eligibility gates remain mandatory.
-- Routine success is silent. The ops chat receives changes, failures, and drift; the main chat receives owner briefs and decisions.
+- Routine deterministic success is silent. The autonomous coding operator emits only a short owner-facing completion/continuation/error summary; raw agent transcripts, diffs, ANSI color codes, and internal objective JSON are never delivered to chat. The ops chat receives material changes, failures, and drift; the main chat receives owner briefs and decisions.
 - Deterministic wrappers resolve the repository from `BOURBON_SIGNAL_REPO`, the current directory, or a trusted live cron `workdir`; they no longer assume Hermes executes attached scripts from the job workdir.
 - Deterministic wrappers exit nonzero on subprocess or report-contract failures and retain the actionable error rather than the trailing Node.js version line.
 - Scheduler reconciliation binds SHA-256 safety hashes over agent prompts, skill lists, and enabled toolsets without exporting prompt text.
