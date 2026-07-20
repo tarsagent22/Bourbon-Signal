@@ -70,6 +70,14 @@ jobs:
           restore-keys: |
             inventory-collector-state-${{ runner.os }}-
 
+      - name: Restore browser source artifacts
+        uses: actions/cache/restore@v4
+        with:
+          path: engine/out/browser
+          key: inventory-browser-state-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            inventory-browser-state-${{ runner.os }}-
+
       - name: Restore last published site contract
         uses: actions/cache/restore@v4
         with:
@@ -122,8 +130,8 @@ jobs:
             exit 1
           fi
 
-      - name: Save collector artifacts and adaptive scheduler state
-        if: always()
+      - name: Save verified collector state
+        if: success()
         uses: actions/cache/save@v4
         with:
           path: |
@@ -135,6 +143,13 @@ jobs:
             engine/out/optimization/source-run-history.json
             engine/out/optimization/state-run-metrics.json
           key: inventory-collector-state-${{ runner.os }}-${{ github.run_id }}
+
+      - name: Save browser source artifacts
+        if: always()
+        uses: actions/cache/save@v4
+        with:
+          path: engine/out/browser
+          key: inventory-browser-state-${{ runner.os }}-${{ github.run_id }}-${{ github.run_attempt }}
 
       - name: Save verified published site contract
         if: success()
