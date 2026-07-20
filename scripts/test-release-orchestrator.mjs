@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import {
   assertCleanOriginMain,
   buildReleaseManifest,
@@ -83,5 +84,12 @@ assert.equal(manifest.source.commit, 'abc123');
 assert.equal(manifest.artifacts.siteExportSha256, 'site123');
 assert.equal(manifest.artifacts.localVerifiedBuildId, 'build123');
 assert.deepEqual(manifest.verification, [{ command: 'npm run verify:ci', ok: true }]);
+
+const releaseSource = readFileSync(new URL('./release-production.mjs', import.meta.url), 'utf8');
+const rootInstall = releaseSource.indexOf("['npm', ['ci']]");
+const engineInstall = releaseSource.indexOf("['npm', ['--prefix', 'engine', 'ci']]");
+const verificationRun = releaseSource.indexOf("['npm', ['run', 'verify:ci']]");
+assert.ok(rootInstall >= 0 && engineInstall > rootInstall && verificationRun > engineInstall,
+  'clean production releases must install the independently packaged engine before verification');
 
 console.log('Release orchestrator core tests passed.');

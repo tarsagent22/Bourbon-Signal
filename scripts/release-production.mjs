@@ -152,6 +152,7 @@ async function verifyAndBuild(tempRoot) {
   await run('vercel', ['pull', '--yes', '--environment=production', '--scope', VERCEL_SCOPE], { cwd: tempRoot, timeoutMs: 5 * 60_000 });
   for (const [command, args] of [
     ['npm', ['ci']],
+    ['npm', ['--prefix', 'engine', 'ci']],
     ['npm', ['run', 'verify:ci']],
   ]) {
     const result = await run(command, args, { cwd: tempRoot });
