@@ -58,6 +58,16 @@ def run_artifact(objective_id: str, outcome: str, *, started: bool, complete: bo
     }
 
 
+ansi_diff = "\x1b[38;2;218;165;32mreview diff\x1b[0m \x1b[38;2;255;255;255mobjective-lock.json\x1b[0m"
+assert operator.clean_delivery_text(ansi_diff) == "review diff objective-lock.json"
+completed_summary = operator.owner_summary(run_artifact("bsf-0123456789abcdef", "completed", started=True, complete=True))
+assert "Pull request: #123 merged" in completed_summary
+assert "Production: verified" in completed_summary
+assert "bsf-" not in completed_summary and "contractVersion" not in completed_summary and "\x1b" not in completed_summary
+wrapper_source = (SCRIPT_DIR / "bourbon_signal_autonomous_operator.py").read_text(encoding="utf-8")
+assert "print(agent.stdout" not in wrapper_source
+
+
 with tempfile.TemporaryDirectory() as directory:
     projects = Path(directory)
     repo = projects / "Bourbon-Signal-autonomous"

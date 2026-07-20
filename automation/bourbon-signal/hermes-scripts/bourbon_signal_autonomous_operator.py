@@ -23,6 +23,46 @@ PROMPT_RELATIVE = Path("automation/bourbon-signal/autonomous-operator-prompt.md"
 RUN_RELATIVE = Path("automation/bourbon-signal/reports/operator-run-latest.json")
 OUTCOME_SCRIPT = Path("automation/bourbon-signal/operator-outcomes.mjs")
 LOCK_RELATIVE = Path(".operator/objective-lock.json")
+ANSI_ESCAPE = re.compile(r"\x1B(?:\[[0-?]*[ -/]*[@-~]|[@-_])")
+
+
+def clean_delivery_text(value: object, limit: int = 500) -> str:
+    text = ANSI_ESCAPE.sub("", str(value or ""))
+    text = re.sub(r"[\x00-\x08\x0b\x0c\x0e-\x1f\x7f]", "", text)
+    text = re.sub(r"\s+", " ", text).strip()
+    return text[:limit]
+
+
+def owner_summary(artifact: dict) -> str:
+    outcome = artifact.get("outcome")
+    lane = clean_delivery_text(artifact.get("lane") or "general", 80).replace("_", " ").title()
+    if outcome == "completed":
+        lines = [
+            "Bourbon Signal automation completed a release.",
+            f"- Area: {lane}",
+            f"- Pull request: #{artifact['prNumber']} merged",
+            "- Production: verified",
+        ]
+        release_count = int(artifact.get("releaseRadarPublished") or 0)
+        expansion_count = int(artifact.get("engineExpansionsCompleted") or 0)
+        if release_count:
+            lines.append(f"- Release Radar items published: {release_count}")
+        if expansion_count:
+            lines.append(f"- Engine expansions completed: {expansion_count}")
+        return "\n".join(lines)
+    if outcome == "no_qualified_work":
+        return "Bourbon Signal automation checked the backlog; no qualified work was ready to implement."
+    if outcome in {"continued", "blocked"}:
+        lines = [
+            "Bourbon Signal automation preserved unfinished work for the next shift.",
+            f"- Area: {lane}",
+        ]
+        blocker = clean_delivery_text(artifact.get("blocker"), 240)
+        if blocker:
+            lines.append(f"- Reason: {blocker}")
+        return "\n".join(lines)
+    blocker = clean_delivery_text(artifact.get("blocker"), 240) or "The coding shift did not finish successfully."
+    return f"Bourbon Signal automation needs attention.\n- Reason: {blocker}"
 
 
 def run(command: list[str], cwd: Path, timeout: int = 180) -> subprocess.CompletedProcess[str]:
@@ -142,7 +182,7 @@ def run_agent(command: list[str], repo: Path, timeout: int = 3_300) -> subproces
     return subprocess.CompletedProcess(command, process.returncode, stdout, stderr)
 
 
-def failure_artifact(repo: Path, run_id: str, started_at: str, objective: dict | None, outcome: str, blocker: str, *, resumed: bool = False) -> None:
+def failure_artifact(repo: Path, run_id: str, started_at: str, objective: dict | None, outcome: str, blocker: str, *, resumed: bool = False) -> dict:
     now = datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
     payload = {
         "contractVersion": "bourbon-signal/operator-run@1",
@@ -171,6 +211,7 @@ def failure_artifact(repo: Path, run_id: str, started_at: str, objective: dict |
     target = repo / RUN_RELATIVE
     target.parent.mkdir(parents=True, exist_ok=True)
     target.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    return payload
 
 
 def aggregate(repo: Path, run_id: str, started_at: str, objective: dict | None) -> subprocess.CompletedProcess[str]:
@@ -287,29 +328,28 @@ def main() -> int:
     except subprocess.TimeoutExpired:
         final = read_objective_lock(repo)
         tracked = objective or final
-        failure_artifact(repo, run_id, started_at, tracked, "continued" if tracked else "failed", "Coding shift exceeded 55 minutes; the process tree was terminated and continuation state was preserved.", resumed=bool(objective))
+        artifact = failure_artifact(repo, run_id, started_at, tracked, "continued" if tracked else "failed", "Coding shift exceeded 55 minutes; the process tree was terminated and continuation state was preserved.", resumed=bool(objective))
         checked = aggregate(repo, run_id, started_at, tracked)
-        print("Autonomous operator exceeded its bounded 55-minute coding shift; continuation state was preserved.")
+        print(owner_summary(artifact))
         return 124 if checked.returncode == 0 else checked.returncode
-    if agent.stdout.strip():
-        print(agent.stdout.strip())
     if agent.returncode != 0:
         blocker = failure_summary(agent.stderr, agent.stdout, "Autonomous operator failed.")
         final = read_objective_lock(repo)
         tracked = objective or final
-        failure_artifact(repo, run_id, started_at, tracked, "continued" if tracked else "failed", blocker, resumed=bool(objective))
+        artifact = failure_artifact(repo, run_id, started_at, tracked, "continued" if tracked else "failed", clean_delivery_text(blocker), resumed=bool(objective))
         checked = aggregate(repo, run_id, started_at, tracked)
         if checked.returncode != 0:
-            print(failure_summary(checked.stderr, checked.stdout, "Operator failure outcome aggregation failed."))
+            print(f"Bourbon Signal automation needs attention.\n- Reason: {clean_delivery_text(failure_summary(checked.stderr, checked.stdout, 'Operator failure outcome aggregation failed.'), 240)}")
             return checked.returncode
-        print(blocker)
+        print(owner_summary(artifact))
         return agent.returncode
     artifact, final = validate_transition(repo, objective)
     expected = objective or final or ({"objectiveId": artifact["objectiveId"]} if artifact.get("objectiveId") else None)
     checked = aggregate(repo, run_id, started_at, expected)
     if checked.returncode != 0:
-        print(failure_summary(checked.stderr, checked.stdout, "Operator outcome validation failed."))
+        print(f"Bourbon Signal automation needs attention.\n- Reason: {clean_delivery_text(failure_summary(checked.stderr, checked.stdout, 'Operator outcome validation failed.'), 240)}")
         return checked.returncode
+    print(owner_summary(artifact))
     return 0
 
 
@@ -334,5 +374,5 @@ if __name__ == "__main__":
         raise SystemExit(main())
     except Exception as error:
         record_uncaught_failure(error)
-        print(str(error)[:500])
+        print(f"Bourbon Signal automation needs attention.\n- Reason: {clean_delivery_text(error, 240)}")
         raise SystemExit(1)
