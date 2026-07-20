@@ -5,6 +5,7 @@ import { unstable_cache } from "next/cache";
 import { getActiveEngineStateName } from "@/lib/activeStates";
 import { createRemoteSiteSnapshotReader } from "@/lib/remote-site-snapshot";
 import { VercelBlobSnapshotStorage } from "@/lib/vercel-blob-snapshot-storage";
+import { buildStateStats } from "@/lib/site-stats-metrics";
 
 const SITE_EXPORT_DIR = join(process.cwd(), "engine", "out", "site");
 const CONTRACT_VERSION = "bourbon-signal-site-v0.1";
@@ -436,26 +437,7 @@ export function normalizeStatsForSite(stats: JsonRecord, bottles: JsonRecord[] =
   const unicornCount = bottles.filter((bottle) => bottle.tier === "unicorn").length;
   const allocatedCount = bottles.filter((bottle) => bottle.tier === "allocated").length;
 
-  const byState = drops.reduce<Record<string, { drops: number; stores: number; bottles: number }>>((acc, drop) => {
-    const state = asString(drop.state);
-    if (!state) return acc;
-    acc[state] ??= { drops: 0, stores: 0, bottles: 0 };
-    acc[state].drops += 1;
-    return acc;
-  }, {});
-
-  for (const store of stores) {
-    const state = asString(store.state);
-    if (!state) continue;
-    accEnsure(byState, state).stores += 1;
-  }
-
-  for (const bottle of bottles) {
-    const bottleStates = Array.isArray(bottle.states) ? bottle.states.map(String) : [];
-    for (const state of bottleStates) {
-      accEnsure(byState, state).bottles += 1;
-    }
-  }
+  const byState = buildStateStats(drops, stores, bottles);
 
   return {
     ...stats,
@@ -469,9 +451,4 @@ export function normalizeStatsForSite(stats: JsonRecord, bottles: JsonRecord[] =
     by_state: byState,
     lastUpdated: asString(stats.generatedAt, new Date().toISOString()),
   };
-}
-
-function accEnsure(acc: Record<string, { drops: number; stores: number; bottles: number }>, state: string) {
-  acc[state] ??= { drops: 0, stores: 0, bottles: 0 };
-  return acc[state];
 }

@@ -1,4 +1,4 @@
-import { ensureBrowserCdp, killBrowserCdp } from './core/browser-session.mjs';
+import { cdpFetch, ensureBrowserCdp, killBrowserCdp } from './core/browser-session.mjs';
 import { atomicWriteJson } from './fwgs-artifact-policy.mjs';
 
 const DEFAULT_CDP = process.env.FWGS_CDP_URL || process.env.OHLQ_CDP_URL || 'http://127.0.0.1:18800';
@@ -54,12 +54,6 @@ const SEARCH_TERMS = (process.env.FWGS_SEARCH_TERMS || DEFAULT_SEARCH_TERMS.join
   .filter(Boolean);
 
 function sleep(ms) { return new Promise((resolve) => setTimeout(resolve, ms)); }
-
-async function cdpFetch(cdpUrl, route, options = {}) {
-  const res = await fetch(`${cdpUrl.replace(/\/$/, '')}${route}`, options);
-  if (!res.ok) throw new Error(`CDP ${route} returned ${res.status}: ${await res.text().catch(() => '')}`);
-  return res.json();
-}
 
 async function getOrCreateTarget(cdpUrl) {
   const newTarget = async () => {

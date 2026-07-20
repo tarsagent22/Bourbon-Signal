@@ -363,8 +363,8 @@ if (!/readdir\(siteDir\)/.test(refreshSite) || !/siteExportFileCount/.test(refre
 if (!/pidAlive\) \{[\s\S]*?return false;/.test(refreshSite)) {
   fail('engine/src/refresh-site.mjs should never ignore a live refresh lock just because the run is older than the stale-lock threshold.');
 }
-if (!/Math\.max\(\.\.\.candidates\)/.test(refreshSite)) {
-  fail('engine/src/refresh-site.mjs should throttle browser refreshes from the most recent browser attempt or success, not only the last success.');
+if (!/lastSuccessMs/.test(refreshSite) || /candidates\s*=\s*\[[^\]]*lastBrowserAttemptAt/s.test(refreshSite)) {
+  fail('engine/src/refresh-site.mjs should throttle successful FWGS refreshes while allowing a failed latest attempt to retry on the next scheduled run.');
 }
 const fwgsFull = read('engine/src/fwgs-browser-full.mjs');
 if (!/ALLOW_PARTIAL/.test(fwgsFull) || !/leaving previous full artifact untouched/.test(fwgsFull) || !/readUsableChunk/.test(fwgsFull)) {
