@@ -24,7 +24,14 @@
     "agenticRunsPerWeek": 36,
     "deterministicRunSharePercentApprox": 97.89
   },
-  "agentPolicy": {
+  "codingAgentPolicy": {
+    "profile": "bourbonbot",
+    "provider": "openai-codex",
+    "model": "gpt-5.6-sol",
+    "reasoning": "low",
+    "approvalCronMode": "approve"
+  },
+  "analysisAgentPolicy": {
     "provider": "openai-codex",
     "model": "gpt-5.6-luna",
     "reasoning": "xhigh"

@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://bourbonsignal.com/schemas/operator-run.schema.json",
+  "title": "Bourbon Signal autonomous operator run",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "contractVersion", "runId", "startedAt", "completedAt", "objectiveId",
+    "lane", "outcome", "startedObjective", "resumedObjective", "prNumber",
+    "merged", "deployed", "productionVerified", "mergeCommitSha", "deploymentId", "productionChecks", "findingsQualified",
+    "releaseRadarPublished", "engineExpansionsCompleted", "coverageDelta",
+    "discoveryToCompletionHours", "blocker"
+  ],
+  "properties": {
+    "contractVersion": { "const": "bourbon-signal/operator-run@1" },
+    "runId": { "type": "string", "pattern": "^[0-9T:.-]+Z-[a-f0-9]{8}$", "maxLength": 64 },
+    "startedAt": { "type": "string", "format": "date-time" },
+    "completedAt": { "type": "string", "format": "date-time" },
+    "objectiveId": { "type": ["string", "null"], "maxLength": 120 },
+    "lane": { "enum": ["release_radar", "engine_expansion", "product", "reliability", "security", "none"] },
+    "outcome": { "enum": ["completed", "continued", "blocked", "no_qualified_work", "failed"] },
+    "startedObjective": { "type": "boolean" },
+    "resumedObjective": { "type": "boolean" },
+    "prNumber": { "type": ["integer", "null"], "minimum": 1 },
+    "merged": { "type": "boolean" },
+    "deployed": { "type": "boolean" },
+    "productionVerified": { "type": "boolean" },
+    "mergeCommitSha": { "type": ["string", "null"], "pattern": "^[a-f0-9]{40}$" },
+    "deploymentId": { "type": ["string", "null"], "minLength": 3, "maxLength": 200 },
+    "productionChecks": { "type": "array", "maxItems": 5, "items": { "type": "string", "pattern": "^https://(www\\.)?bourbonsignal\\.com(/|$)" } },
+    "findingsQualified": { "type": "integer", "minimum": 0, "maximum": 10000 },
+    "releaseRadarPublished": { "type": "integer", "minimum": 0, "maximum": 100 },
+    "engineExpansionsCompleted": { "type": "integer", "minimum": 0, "maximum": 100 },
+    "coverageDelta": { "type": "integer", "minimum": 0, "maximum": 1000000 },
+    "discoveryToCompletionHours": { "type": ["number", "null"], "minimum": 0, "maximum": 100000 },
+    "blocker": { "type": ["string", "null"], "maxLength": 500 }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "outcome": { "const": "completed" } } },
+      "then": { "properties": { "merged": { "const": true }, "deployed": { "const": true }, "productionVerified": { "const": true }, "mergeCommitSha": { "type": "string" }, "deploymentId": { "type": "string" }, "productionChecks": { "minItems": 1 } } }
+    },
+    {
+      "if": { "properties": { "outcome": { "const": "completed" } } },
+      "then": { "properties": { "objectiveId": { "type": "string", "minLength": 1 } } }
+    },
+    {
+      "if": { "properties": { "productionVerified": { "const": true } } },
+      "then": { "properties": { "deployed": { "const": true }, "merged": { "const": true } } }
+    },
+    {
+      "if": { "properties": { "merged": { "const": true } } },
+      "then": { "properties": { "prNumber": { "type": "integer" } } }
+    },
+    {
+      "if": { "properties": { "outcome": { "enum": ["continued", "blocked", "no_qualified_work", "failed"] } } },
+      "then": { "properties": { "discoveryToCompletionHours": { "type": "null" } } }
+    },
+    {
+      "if": { "properties": { "outcome": { "const": "no_qualified_work" } } },
+      "then": { "properties": { "objectiveId": { "type": "null" } } }
+    }
+  ]
+}

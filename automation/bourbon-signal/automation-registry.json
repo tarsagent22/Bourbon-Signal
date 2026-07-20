@@ -264,8 +264,9 @@
       "frequency": "twice daily at 02:45 and 14:45 Eastern",
       "agent": {
         "provider": "openai-codex",
-        "model": "gpt-5.6-luna",
-        "reasoning": "xhigh"
+        "model": "gpt-5.6-sol",
+        "reasoning": "low",
+        "profile": "bourbonbot"
       },
       "externalApi": {
         "classes": [
@@ -277,7 +278,7 @@
       "customerMutation": "none",
       "promotionDeployment": "operator_only",
       "silencePolicy": "report_output",
-      "killSwitch": "operator_objective_lock",
+      "killSwitch": "cron_pause:3244b5822d87",
       "artifacts": [
         "operator_findings",
         "objective_lock"

@@ -36,7 +36,8 @@
           "properties": {
             "provider": { "type": ["string", "null"] },
             "model": { "type": ["string", "null"] },
-            "reasoning": { "enum": ["xhigh", null] }
+            "reasoning": { "enum": ["low", "xhigh", null] },
+            "profile": { "type": ["string", "null"], "pattern": "^[a-z0-9][a-z0-9_-]{1,63}$" }
           }
         },
         "externalApi": {
