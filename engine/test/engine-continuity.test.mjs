@@ -30,11 +30,17 @@ test('scheduled refresh persists collector history, the actual scheduler state, 
   const browserRestoreStep = workflow.match(/- name: Restore browser source artifacts[\s\S]*?(?=\n      - name:)/)?.[0] || '';
   const stableSaveStep = workflow.match(/- name: Save verified collector state[\s\S]*?(?=\n      - name:)/)?.[0] || '';
   const browserSaveStep = workflow.match(/- name: Save browser source artifacts[\s\S]*?(?=\n      - name:)/)?.[0] || '';
+  const hydrationStep = workflow.match(/- name: Hydrate complete state reports for recovery[\s\S]*?(?=\n      - name:)/)?.[0] || '';
   const diagnosticsStep = workflow.match(/- name: Preserve refresh diagnostics[\s\S]*$/)?.[0] || '';
   assert.match(workflow, /cron:\s*["']7,37 \* \* \* \*['"]/);
   assert.match(workflow, /permissions:[\s\S]*?actions:\s*read/);
-  assert.match(workflow, /Hydrate complete state reports for targeted recovery[\s\S]*?GH_TOKEN:[\s\S]*?hydrate-state-reports\.mjs/);
-  assert.ok(workflow.indexOf('Hydrate complete state reports for targeted recovery') < workflow.indexOf('Refresh all due customer-active states'), 'targeted recovery must hydrate complete baseline state reports before collection');
+  assert.match(hydrationStep, /GH_TOKEN:[\s\S]*?hydrate-state-reports\.mjs/);
+  assert.doesNotMatch(hydrationStep, /if:/, 'state report hydration must also protect scheduled runs from a cold or version-missed cache');
+  assert.ok(workflow.indexOf('Hydrate complete state reports for recovery') < workflow.indexOf('Refresh all due customer-active states'), 'every refresh must hydrate a complete baseline before collection');
+  for (const [label, state] of [['Virginia statewide live inventory recovery', 'VA'], ['Pennsylvania FWGS exact-store inventory recovery', 'PA'], ['California San Diego release gate', 'CA']]) {
+    const step = workflow.match(new RegExp(`- name: Verify ${label}[\\s\\S]*?(?=\\n      - name:)`))?.[0] || '';
+    assert.match(step, new RegExp(`!inputs\\.states[\\s\\S]*contains\\(inputs\\.states, '${state}'\\)`), `${state} verifier must only gate full or ${state}-targeted refreshes`);
+  }
   assert.match(cacheStep, /engine\/out\/optimization\/state-run-metrics\.json/);
   assert.match(cacheStep, /engine\/out\/optimization\/source-run-history\.json/);
   assert.match(cacheStep, /engine\/out\/browser/);

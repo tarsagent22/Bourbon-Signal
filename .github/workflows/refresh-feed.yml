@@ -87,8 +87,7 @@ jobs:
           restore-keys: |
             inventory-published-site-${{ runner.os }}-
 
-      - name: Hydrate complete state reports for targeted recovery
-        if: ${{ inputs.states != '' }}
+      - name: Hydrate complete state reports for recovery
         env:
           GH_TOKEN: ${{ github.token }}
         run: node scripts/hydrate-state-reports.mjs
@@ -111,10 +110,12 @@ jobs:
         run: npm run verify:site
 
       - name: Verify Virginia statewide live inventory recovery
+        if: ${{ !inputs.states || contains(inputs.states, 'VA') }}
         working-directory: engine
         run: npm run verify:va
 
       - name: Verify Pennsylvania FWGS exact-store inventory recovery
+        if: ${{ !inputs.states || contains(inputs.states, 'PA') }}
         working-directory: engine
         run: npm run verify:pa
 
@@ -123,6 +124,7 @@ jobs:
         run: npm run verify:state-integration -- --all-active
 
       - name: Verify California San Diego release gate
+        if: ${{ !inputs.states || contains(inputs.states, 'CA') }}
         working-directory: engine
         run: npm run verify:ca
 
