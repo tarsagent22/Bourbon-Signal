@@ -24,15 +24,20 @@ permissions:
 jobs:
   collect-verify-publish:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 80
     env:
       NEXT_TELEMETRY_DISABLED: "1"
-      BOURBON_SIGNAL_SKIP_BROWSER_COLLECTORS: "1"
       BOURBON_SIGNAL_BROWSER_PREFLIGHT: "0"
       BOURBON_SIGNAL_AUTO_DEPLOY: "0"
       BOURBON_SIGNAL_REFRESH_CADENCE_MINUTES: "30"
       BOURBON_SIGNAL_RUN_STEP_TIMEOUT_MS: "1320000"
       BOURBON_SIGNAL_REFRESH_STEP_TIMEOUT_MS: "1500000"
+      BOURBON_SIGNAL_FWGS_BROWSER_STEP_TIMEOUT_MS: "1800000"
+      FWGS_INVENTORY_CONCURRENCY: "16"
+      FWGS_INVENTORY_SKU_BATCH_SIZE: "24"
+      FWGS_BATCH_SIZE: "25"
+      FWGS_FULL_CHUNK_LIMIT: "300"
+      FWGS_FULL_OFFSETS: "0,300,600"
       BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
       ENGINE_SNAPSHOT_ENCRYPTION_KEY: ${{ secrets.ENGINE_SNAPSHOT_ENCRYPTION_KEY }}
       BOURBON_SIGNAL_DISABLED_STATES: ${{ vars.BOURBON_SIGNAL_DISABLED_STATES }}
@@ -58,6 +63,7 @@ jobs:
             engine/out/cache
             engine/out/states
             engine/out/snapshots
+            engine/out/site-refresh-status.json
             engine/out/optimization/source-run-history.json
             engine/out/optimization/state-run-metrics.json
           key: inventory-collector-state-${{ runner.os }}-${{ github.run_id }}
@@ -81,6 +87,7 @@ jobs:
         env:
           BOURBON_SIGNAL_STATE_SCHEDULER: ${{ inputs.force_all_states == 'true' && '0' || '1' }}
           BOURBON_SIGNAL_RUN_STATES: ${{ inputs.states || '' }}
+          BOURBON_SIGNAL_BROWSER_REFRESH_MINUTES: ${{ contains(inputs.states, 'PA') && '0' || '240' }}
         run: npm run refresh:site
 
 
@@ -91,6 +98,10 @@ jobs:
       - name: Verify Virginia statewide live inventory recovery
         working-directory: engine
         run: npm run verify:va
+
+      - name: Verify Pennsylvania FWGS exact-store inventory recovery
+        working-directory: engine
+        run: npm run verify:pa
 
       - name: Verify no unproven state promotion entered the customer path
         working-directory: engine
@@ -120,6 +131,7 @@ jobs:
             engine/out/cache
             engine/out/states
             engine/out/snapshots
+            engine/out/site-refresh-status.json
             engine/out/optimization/source-run-history.json
             engine/out/optimization/state-run-metrics.json
           key: inventory-collector-state-${{ runner.os }}-${{ github.run_id }}

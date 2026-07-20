@@ -9,7 +9,12 @@ const DEFAULT_BROWSER_PROFILE_DIR = process.env.BROWSER_PROFILE_DIR || process.e
 export function sleep(ms) { return new Promise((resolve) => setTimeout(resolve, ms)); }
 
 export async function cdpFetch(cdpUrl, route, options = {}) {
-  const res = await fetch(`${cdpUrl.replace(/\/$/, '')}${route}`, options);
+  const { timeoutMs: requestedTimeoutMs, ...fetchOptions } = options;
+  const timeoutMs = Number(requestedTimeoutMs || process.env.BROWSER_CDP_FETCH_TIMEOUT_MS || 5000);
+  const res = await fetch(`${cdpUrl.replace(/\/$/, '')}${route}`, {
+    ...fetchOptions,
+    signal: fetchOptions.signal || AbortSignal.timeout(timeoutMs),
+  });
   if (!res.ok) throw new Error(`CDP ${route} returned ${res.status}: ${await res.text().catch(() => '')}`);
   return res.json();
 }

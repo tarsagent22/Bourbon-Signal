@@ -34,7 +34,8 @@ test('scheduled refresh persists collector history, the actual scheduler state, 
   assert.match(diagnosticsStep, /engine\/out\/optimization\/source-run-history\.json/);
   assert.match(diagnosticsStep, /engine\/out\/source-slo-7d\.json/);
   assert.match(diagnosticsStep, /engine\/out\/source-slo-7d\.md/);
-  assert.match(workflow, /timeout-minutes:\s*35/);
+  const workflowTimeoutMinutes = Number(workflow.match(/timeout-minutes:\s*(\d+)/)?.[1] || 0);
+  assert.ok(workflowTimeoutMinutes >= 80, `refresh workflow timeout ${workflowTimeoutMinutes}m must cover 30m FWGS + 22m state run + installs, verification, publication, and rollback checks`);
   assert.doesNotMatch(workflow, /Refresh and gate the Texas candidate/);
   assert.match(workflow, /verify:production-engine[\s\S]*?--rollback/);
   assert.match(workflow, /engine\/out\/snapshots/);

@@ -20,7 +20,7 @@ const freshInventory = inventory.filter((signal) => {
 });
 
 assert.equal(state.state, 'CA');
-assert.equal(state.status, 'useful');
+assert.ok(['useful', 'useful_retained_not_due'].includes(state.status), `California status ${JSON.stringify(state.status)} is not release-useful.`);
 assert.equal(state.roadblocks?.length ?? 0, 0);
 assert.ok(inventory.length >= 12, `expected at least 12 California inventory rows; got ${inventory.length}`);
 assert.ok(new Set(inventory.map((signal) => signal.storeId)).size >= 2, 'expected at least two independently identity-bound San Diego stores');

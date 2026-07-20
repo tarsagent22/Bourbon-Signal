@@ -9,6 +9,10 @@ const ATTEMPTS = Math.max(2, Number(process.env.BOURBON_SIGNAL_WATCHDOG_ATTEMPTS
 const RETRY_DELAY_MS = Math.max(0, Number(process.env.BOURBON_SIGNAL_WATCHDOG_RETRY_DELAY_MS || 15_000));
 const REPORT_PATH = process.env.BOURBON_SIGNAL_WATCHDOG_REPORT || path.resolve('engine/out/production-watchdog.json');
 
+const STATE_COVERAGE_FLOORS = {
+  PA: { minStores: 450, minDrops: 1000, requiredPrecision: 'store_level' },
+};
+
 function sleep(ms) { return new Promise((resolve) => setTimeout(resolve, ms)); }
 
 async function activeStates() {
@@ -44,6 +48,12 @@ async function getJson(route) {
 export function evaluateProductionHealth({ nowMs = Date.now(), activeStates: states = [], stats, stateChecks = [], opsHealth = null } = {}) {
   const failures = [];
   const warnings = [];
+  const recoveryStates = new Set();
+  let requiresFullRecovery = false;
+  const addGlobalFailure = (message) => {
+    failures.push(message);
+    requiresFullRecovery = true;
+  };
   const rollbackAt = opsHealth?.body?.engine?.lastRollback?.at;
   const rollbackAgeMs = nowMs - Date.parse(rollbackAt || '');
   if (Number.isFinite(rollbackAgeMs) && rollbackAgeMs >= 0 && rollbackAgeMs <= 60 * 60_000) {
@@ -52,21 +62,52 @@ export function evaluateProductionHealth({ nowMs = Date.now(), activeStates: sta
   const generatedAt = stats?.body?.generatedAt || null;
   const generatedMs = Date.parse(generatedAt || '');
   const snapshotAgeMs = Number.isFinite(generatedMs) ? Math.max(0, nowMs - generatedMs) : null;
-  if (!stats?.ok) failures.push(`/api/stats failed with status ${stats?.status || 'unavailable'}.`);
-  if (stats?.source !== 'remote-snapshot') failures.push(`Production must serve the remote snapshot, got ${stats?.source || 'unknown source'}.`);
-  if (!stats?.snapshotId) failures.push('Production snapshot identity header is missing.');
-  if (snapshotAgeMs === null || snapshotAgeMs > MAX_SNAPSHOT_AGE_MS) failures.push(`Production snapshot must be no older than 45 minutes; generatedAt=${generatedAt || 'missing'}.`);
-  if (Number(stats?.body?.stateCount || 0) !== states.length) failures.push(`Production state count ${stats?.body?.stateCount ?? 'missing'} does not match active state count ${states.length}.`);
-  if (Number(stats?.body?.refreshHealth?.failedStateCount || 0) > 0) failures.push(`Production reports ${stats.body.refreshHealth.failedStateCount} failed state(s).`);
+  if (!stats?.ok) addGlobalFailure(`/api/stats failed with status ${stats?.status || 'unavailable'}.`);
+  if (stats?.source !== 'remote-snapshot') addGlobalFailure(`Production must serve the remote snapshot, got ${stats?.source || 'unknown source'}.`);
+  if (!stats?.snapshotId) addGlobalFailure('Production snapshot identity header is missing.');
+  if (snapshotAgeMs === null || snapshotAgeMs > MAX_SNAPSHOT_AGE_MS) addGlobalFailure(`Production snapshot must be no older than 45 minutes; generatedAt=${generatedAt || 'missing'}.`);
+  if (Number(stats?.body?.stateCount || 0) !== states.length) addGlobalFailure(`Production state count ${stats?.body?.stateCount ?? 'missing'} does not match active state count ${states.length}.`);
+  if (Number(stats?.body?.refreshHealth?.failedStateCount || 0) > 0) addGlobalFailure(`Production reports ${stats.body.refreshHealth.failedStateCount} failed state(s).`);
   const checked = new Map(stateChecks.map((row) => [row.state, row]));
   for (const state of states) {
     const row = checked.get(state);
-    if (!row?.ok) failures.push(`${state}: production state partition failed with status ${row?.status || 'unavailable'}.`);
-    if (row?.source !== 'remote-snapshot') failures.push(`${state}: production state partition must serve the remote snapshot, got ${row?.source || 'unknown source'}.`);
-    if (stats?.snapshotId && row?.snapshotId !== stats.snapshotId) failures.push(`${state}: production state partition snapshot ${row?.snapshotId || 'missing'} does not match stats snapshot ${stats.snapshotId}.`);
+    if (!row?.ok) {
+      failures.push(`${state}: production state partition returned ${row?.status || 'no response'}.`);
+      if (stats?.ok) recoveryStates.add(state);
+    }
+    if (row?.source !== 'remote-snapshot') {
+      failures.push(`${state}: production state partition must serve the remote snapshot, got ${row?.source || 'unknown source'}.`);
+      if (stats?.ok) recoveryStates.add(state);
+    }
+    if (stats?.snapshotId && row?.snapshotId !== stats.snapshotId) {
+      failures.push(`${state}: production state partition snapshot ${row?.snapshotId || 'missing'} does not match stats snapshot ${stats.snapshotId}.`);
+      if (stats?.ok) recoveryStates.add(state);
+    }
   }
+
+  if (stats?.ok) {
+    const coverageRows = new Map((Array.isArray(stats.body?.stateCoverage?.states) ? stats.body.stateCoverage.states : []).map((row) => [row.state, row]));
+    for (const [state, floor] of Object.entries(STATE_COVERAGE_FLOORS)) {
+      if (!states.includes(state)) continue;
+      const metrics = stats.body?.by_state?.[state] || {};
+      const coverage = coverageRows.get(state) || {};
+      const exactStores = Number(metrics.exactStores || 0);
+      const exactDrops = Number(metrics.exactStoreDrops || 0);
+      const precision = String(coverage.bestLocationPrecision || 'unknown');
+      const stateFailures = [];
+      if (exactStores < floor.minStores) stateFailures.push(`exact stores ${exactStores} < ${floor.minStores}`);
+      if (exactDrops < floor.minDrops) stateFailures.push(`exact-store drops ${exactDrops} < ${floor.minDrops}`);
+      if (precision !== floor.requiredPrecision) stateFailures.push(`precision ${precision} != ${floor.requiredPrecision}`);
+      if (stateFailures.length) {
+        failures.push(`${state}: exact-store coverage collapsed (${stateFailures.join(', ')}).`);
+        recoveryStates.add(state);
+      }
+    }
+  }
+
   return {
     ok: failures.length === 0,
+    recoveryStates: requiresFullRecovery ? [] : [...recoveryStates].sort(),
     checkedAt: new Date(nowMs).toISOString(),
     snapshotId: stats?.snapshotId || null,
     generatedAt,

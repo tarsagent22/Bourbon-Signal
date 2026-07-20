@@ -53,10 +53,16 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          recovery_states="$(node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('engine/out/production-watchdog.json','utf8'));process.stdout.write((p.recoveryStates||[]).join(','))")"
           active_runs="$(gh run list --workflow refresh-feed.yml --limit 10 --json status --jq '[.[] | select(.status == "in_progress" or .status == "queued")] | length')"
           if [ "$active_runs" -eq 0 ]; then
-            gh workflow run refresh-feed.yml --ref main -f force_all_states=true
-            echo "Stale snapshot detected; guarded recovery dispatched."
+            if [ -n "$recovery_states" ]; then
+              gh workflow run refresh-feed.yml --ref main -f states="$recovery_states"
+              echo "State coverage collapse detected; targeted recovery dispatched for $recovery_states."
+            else
+              gh workflow run refresh-feed.yml --ref main -f force_all_states=true
+              echo "Stale or incoherent snapshot detected; guarded full recovery dispatched."
+            fi
           else
             echo "A guarded refresh is already active; suppressing duplicate recovery dispatch."
           fi

@@ -1,7 +1,8 @@
-import { mkdir, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
+import { DEFAULT_CDP_URL, ensureBrowserCdp, killBrowserCdp } from './core/browser-session.mjs';
 
 const ROOT = process.cwd();
 const PROJECT_ROOT = path.dirname(ROOT);
@@ -20,17 +21,10 @@ const BROWSER_STEP_TIMEOUT_MS = Number(process.env.BOURBON_SIGNAL_BROWSER_STEP_T
 const FWGS_BROWSER_STEP_TIMEOUT_MS = Number(process.env.BOURBON_SIGNAL_FWGS_BROWSER_STEP_TIMEOUT_MS || 22 * 60_000);
 const DEPLOY_TIMEOUT_MS = Number(process.env.BOURBON_SIGNAL_DEPLOY_TIMEOUT_MS || 45 * 60_000);
 const DEPLOY_RETRIES = Number(process.env.BOURBON_SIGNAL_DEPLOY_RETRIES || 3);
-const CDP_PORT = Number(process.env.OPENCLAW_BROWSER_CDP_PORT || 18800);
-const CDP_URL = process.env.OPENCLAW_BROWSER_CDP_URL || `http://127.0.0.1:${CDP_PORT}`;
-const CHROME_EXE = process.env.CHROME_EXE || 'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe';
-const CHROME_PROFILE = path.join(OUT, 'browser-profile');
+const CDP_URL = process.env.OPENCLAW_BROWSER_CDP_URL || DEFAULT_CDP_URL;
 
 async function readJson(file, fallback = null) {
   try { return JSON.parse(await readFile(file, 'utf8')); } catch { return fallback; }
-}
-
-async function exists(file) {
-  try { await stat(file); return true; } catch { return false; }
 }
 
 function sleep(ms) {
@@ -57,6 +51,17 @@ async function releaseLock() {
   await rm(LOCK, { force: true });
 }
 
+function terminateProcessTree(child) {
+  if (!child?.pid) return;
+  if (process.platform === 'win32') {
+    const killer = spawn('taskkill.exe', ['/PID', String(child.pid), '/T', '/F'], { stdio: 'ignore', windowsHide: true });
+    killer.on('error', () => {});
+    return;
+  }
+  try { process.kill(-child.pid, 'SIGTERM'); }
+  catch { try { child.kill('SIGTERM'); } catch {} }
+}
+
 function runNode(script, args = [], options = {}) {
   return new Promise((resolve, reject) => {
     const startedAt = new Date().toISOString();
@@ -72,14 +77,15 @@ function runNode(script, args = [], options = {}) {
       cwd: ROOT,
       stdio: ['ignore', 'pipe', 'pipe'],
       env,
-      windowsHide: true
+      windowsHide: true,
+      detached: true,
     });
     let stdout = '';
     let stderr = '';
     const timer = timeoutMs > 0 ? setTimeout(() => {
       const message = `${script} timed out after ${Math.round(timeoutMs / 1000)}s`;
       stderr += `\n${message}\n`;
-      try { child.kill(); } catch {}
+      terminateProcessTree(child);
       reject(Object.assign(new Error(message), {
         result: { script, args, code: 'timeout', startedAt, finishedAt: new Date().toISOString(), stdout: stdout.slice(-4000), stderr: stderr.slice(-4000) }
       }));
@@ -106,14 +112,15 @@ function runCommand(command, args = [], options = {}) {
       stdio: ['ignore', 'pipe', 'pipe'],
       env: options.env || process.env,
       shell: process.platform === 'win32',
-      windowsHide: true
+      windowsHide: true,
+      detached: true,
     });
     let stdout = '';
     let stderr = '';
     const timer = timeoutMs > 0 ? setTimeout(() => {
       const message = `${command} ${args.join(' ')} timed out after ${Math.round(timeoutMs / 1000)}s`;
       stderr += `\n${message}\n`;
-      try { child.kill(); } catch {}
+      terminateProcessTree(child);
       reject(Object.assign(new Error(message), {
         result: { script: command, args, code: 'timeout', startedAt, finishedAt: new Date().toISOString(), stdout: stdout.slice(-4000), stderr: stderr.slice(-4000) }
       }));
@@ -258,55 +265,14 @@ async function maybeDeploySite() {
   return deployed;
 }
 
-async function cdpReady() {
-  try {
-    const res = await fetch(`${CDP_URL}/json/version`, { signal: AbortSignal.timeout(1500) });
-    return res.ok;
-  } catch {
-    return false;
-  }
-}
-
-async function ensureHeadlessCdp() {
-  if (await cdpReady()) return null;
-  if (!(await exists(CHROME_EXE))) {
-    throw new Error(`Chrome executable not found: ${CHROME_EXE}`);
-  }
-  await mkdir(CHROME_PROFILE, { recursive: true });
-  const child = spawn(CHROME_EXE, [
-    '--headless=new',
-    `--remote-debugging-port=${CDP_PORT}`,
-    `--user-data-dir=${CHROME_PROFILE}`,
-    '--disable-gpu',
-    '--disable-background-networking',
-    '--no-first-run',
-    '--no-default-browser-check',
-    'about:blank'
-  ], {
-    cwd: ROOT,
-    stdio: 'ignore',
-    windowsHide: true
-  });
-
-  for (let i = 0; i < 20; i += 1) {
-    await new Promise((resolve) => setTimeout(resolve, 500));
-    if (await cdpReady()) return child;
-  }
-  child.kill();
-  throw new Error(`Headless Chrome CDP did not become ready at ${CDP_URL}`);
-}
-
 async function shouldRunBrowserCollectors() {
   if (process.env.BOURBON_SIGNAL_SKIP_BROWSER_COLLECTORS === '1') return false;
   const last = await readJson(STATUS);
-  const candidates = [last?.lastBrowserRefreshAt, last?.lastBrowserAttemptAt]
-    .map((value) => value ? new Date(value).getTime() : NaN)
-    .filter((value) => Number.isFinite(value));
-  if (!candidates.length) {
+  const lastSuccessMs = last?.lastBrowserRefreshAt ? new Date(last.lastBrowserRefreshAt).getTime() : NaN;
+  if (!Number.isFinite(lastSuccessMs)) {
     return BROWSER_REFRESH_MINUTES < 999_000;
   }
-  const lastBrowserActivityMs = Math.max(...candidates);
-  const ageMs = Date.now() - lastBrowserActivityMs;
+  const ageMs = Date.now() - lastSuccessMs;
   return ageMs >= BROWSER_REFRESH_MINUTES * 60_000;
 }
 
@@ -326,22 +292,21 @@ async function main() {
       // Browser-assisted sources are heavier and can take longer than the base run. Refresh them on a
       // controlled cadence, then each base run folds the newest complete artifacts into the site export.
       let browserOk = false;
-      let launchedBrowser = null;
+      let browserOwner = null;
       lastBrowserAttemptAt = new Date().toISOString();
       try {
-        const hadExistingCdp = await cdpReady();
-        launchedBrowser = await ensureHeadlessCdp();
-        const browserScripts = hadExistingCdp
-          ? ['src/ohlq-browser-collector.mjs', 'src/fwgs-browser-full.mjs']
-          : ['src/fwgs-browser-full.mjs'];
-        if (!hadExistingCdp) {
+        browserOwner = await ensureBrowserCdp(CDP_URL);
+        const browserScripts = browserOwner.started
+          ? ['src/fwgs-browser-full.mjs']
+          : ['src/ohlq-browser-collector.mjs', 'src/fwgs-browser-full.mjs'];
+        if (browserOwner.started) {
           warnings.push('OHLQ browser collector skipped on scheduled headless Chrome because OHLQ Cloudflare requires an already-warmed interactive browser session; last known OHLQ artifact/snapshot remains in use.');
         }
         for (const script of browserScripts) {
           try {
             const timeoutMs = script.includes('fwgs-browser-full') ? FWGS_BROWSER_STEP_TIMEOUT_MS : BROWSER_STEP_TIMEOUT_MS;
             steps.push(await runNode(script, [], { timeoutMs }));
-            browserOk = true;
+            if (script.includes('fwgs-browser-full')) browserOk = true;
           } catch (error) {
             warnings.push(`${script}: ${error.message}`);
             if (error.result) steps.push(error.result);
@@ -352,7 +317,7 @@ async function main() {
         warnings.push(`browser-cdp: ${error.message}`);
         console.warn(`Browser-assisted collectors skipped; continuing with last artifacts: ${error.message}`);
       } finally {
-        if (launchedBrowser) launchedBrowser.kill();
+        await killBrowserCdp(browserOwner);
       }
       if (browserOk) lastBrowserRefreshAt = new Date().toISOString();
     }

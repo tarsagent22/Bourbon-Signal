@@ -28,6 +28,7 @@ async function main() {
   const locationsPayload = await readJson(path.join(OUT, 'site', 'locations.json'));
   const fwgs = await readJson(path.join(OUT, 'browser', 'fwgs-store-inventory.json'));
   const browserRefreshStatus = await readJson(path.join(OUT, 'browser-refresh-status.json'), null);
+  const siteRefreshStatus = await readJson(path.join(OUT, 'site-refresh-status.json'), null);
 
   const signals = (snapshot.signals || []).filter((signal) => signal.state === 'PA');
   const storeSignals = signals.filter((signal) => signal.eventType === 'store_inventory_result' && signal.locationPrecision === 'store_level');
@@ -60,6 +61,17 @@ async function main() {
   assert(ageHours(fwgs.generatedAt) <= MAX_AGE_HOURS, 'FWGS browser artifact is stale.', { generatedAt: fwgs.generatedAt, maxAgeHours: MAX_AGE_HOURS });
   const paRefresh = (browserRefreshStatus?.results || []).find((result) => result.id === 'pa-fwgs');
   assert(!paRefresh || (['refreshed', 'fresh_artifact_reused'].includes(paRefresh.status) && !paRefresh.preservedPreviousArtifact), 'PA browser refresh status indicates a failed/preserved FWGS artifact.', paRefresh);
+  const latestScheduledAttemptMs = Date.parse(siteRefreshStatus?.lastBrowserAttemptAt || '');
+  const latestSuccessfulFwgsMs = Math.max(
+    Date.parse(siteRefreshStatus?.lastBrowserRefreshAt || '') || 0,
+    Date.parse(fwgs.generatedAt || '') || 0,
+  );
+  assert(!Number.isFinite(latestScheduledAttemptMs) || latestSuccessfulFwgsMs >= latestScheduledAttemptMs, 'Latest scheduled FWGS browser attempt failed or preserved an older artifact.', {
+    lastBrowserAttemptAt: siteRefreshStatus?.lastBrowserAttemptAt || null,
+    lastBrowserRefreshAt: siteRefreshStatus?.lastBrowserRefreshAt || null,
+    artifactGeneratedAt: fwgs.generatedAt || null,
+    warnings: siteRefreshStatus?.warnings || [],
+  });
   assert(storeSignals.length >= 1000, 'PA store-level signal count is below threshold.', storeSignals.length);
   assert(inventorySignals.length >= 1000, 'PA inventory-alertable signal count is below threshold.', inventorySignals.length);
   assert(exactDrops.length >= 1000, 'PA site exact-store drop count is below threshold.', exactDrops.length);

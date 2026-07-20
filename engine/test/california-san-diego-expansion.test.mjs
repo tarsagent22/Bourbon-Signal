@@ -47,6 +47,7 @@ test('California release verifier aligns alert expectations with the strict fres
   assert.match(verifier, /CURRENT_INVENTORY_ALERT_MAX_AGE_HOURS/);
   assert.match(verifier, /freshInventory\.length/);
   assert.match(verifier, /stale California inventory must not produce alert candidates/i);
+  assert.match(verifier, /useful_retained_not_due/, 'California release verification must accept an unchanged fresh partition that the scheduler correctly retained as not due.');
 });
 
 function productFixture(overrides = {}) {
