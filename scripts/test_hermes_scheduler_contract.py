@@ -1,10 +1,11 @@
 import os
 import sys
+import tempfile
 from datetime import datetime
 from pathlib import Path
 from zoneinfo import ZoneInfo
 
-from export_hermes_jobs import profile_model, read_timezone, reasoning_for, safety_hash
+from export_hermes_jobs import normalized_file_hash, profile_model, read_timezone, reasoning_for, safety_hash
 
 CONFIG = """agent:
   reasoning_effort: low
@@ -27,6 +28,12 @@ job = {"prompt": "safe", "skills": ["one"], "enabled_toolsets": ["file"], "no_ag
 assert safety_hash(job) == safety_hash(dict(job))
 assert safety_hash({**job, "prompt": "changed"}) != safety_hash(job)
 assert safety_hash({"no_agent": True}) is None
+with tempfile.TemporaryDirectory() as directory:
+    fixture = Path(directory) / "fixture.txt"
+    fixture.write_bytes(b"one\r\ntwo\r\n")
+    windows_hash = normalized_file_hash(fixture)
+    fixture.write_bytes(b"one\ntwo\n")
+    assert normalized_file_hash(fixture) == windows_hash
 
 local_app_data = os.environ.get("LOCALAPPDATA")
 if local_app_data:

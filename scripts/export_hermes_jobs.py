@@ -41,6 +41,11 @@ def profile_model(config_text: str) -> tuple[str | None, str | None]:
     return clean(model), clean(provider)
 
 
+def normalized_file_hash(file: Path) -> str:
+    normalized = file.read_text(encoding="utf-8").replace("\r\n", "\n").replace("\r", "\n")
+    return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
+
+
 def profile_wrapper_safety_hash(root: Path, config_text: str) -> str:
     model, provider = profile_model(config_text)
     files = [
@@ -60,7 +65,7 @@ def profile_wrapper_safety_hash(root: Path, config_text: str) -> str:
         "provider": provider,
         "reasoning": reasoning_for(model, config_text),
         "cronMode": cron_mode,
-        "files": {str(file.relative_to(root)).replace("\\", "/"): hashlib.sha256(file.read_bytes()).hexdigest() for file in files},
+        "files": {str(file.relative_to(root)).replace("\\", "/"): normalized_file_hash(file) for file in files},
     }
     return hashlib.sha256(json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
 
