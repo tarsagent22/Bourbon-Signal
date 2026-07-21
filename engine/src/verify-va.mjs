@@ -42,7 +42,7 @@ async function main() {
     const timestamp = Date.parse(String(signal.observedAt || ''));
     return !Number.isFinite(timestamp) || nowMs - timestamp > VIRGINIA_INVENTORY_MAX_AGE_MS;
   });
-  const expiredInventoryIds = new Set(expiredInventorySignals.map((signal) => signal.sourceSignalId || signal.key));
+  const expiredInventoryIds = new Set(expiredInventorySignals.flatMap((signal) => [signal.sourceSignalId, signal.key].filter(Boolean)));
   const inventorySignals = signals.filter((signal) => signal.canAlertAsInventory);
   const positiveSignals = signals.filter((signal) => signal.eventType === 'store_inventory_result' && Number(signal.quantity || 0) > 0 && !signal.sourceStale && !expiredInventoryIds.has(signal.sourceSignalId || signal.key));
   const productCodes = new Set(signals.map((signal) => signal.productCode || String(signal.sourceUrl || '').match(/productCode=([^&]+)/)?.[1]).filter(Boolean));
@@ -55,6 +55,7 @@ async function main() {
   const staleAlertableSignals = signals.filter((signal) => (signal.sourceStale || expiredInventoryIds.has(signal.sourceSignalId || signal.key)) && signal.canAlertAsInventory);
   const stateAlertableSignals = signals.filter((signal) => signal.alertable || signal.canAlertAsInventory || signal.canAlertAsWatch);
   const alertableDrops = vaDrops.filter((drop) => drop.alertable || drop.canAlertAsInventory || drop.canAlertAsWatch);
+  const expiredAlertableDrops = alertableDrops.filter((drop) => expiredInventoryIds.has(drop.sourceSignalId || drop.sourceSignalKey || drop.key || drop.id));
   const eligibleAlertCandidates = (alerts.alerts || []).filter((candidate) => candidate.state === 'VA'
     && (candidate.eligibleForDelivery || candidate.eligibleForOnSite || candidate.eligibleForEmail || candidate.eligibleForSms));
   const supportedOriginStoreIds = new Set((state.precisionMetadata?.virginia?.supportedOriginStoreIds || []).map(String));
@@ -104,7 +105,10 @@ async function main() {
   });
   assert(productCodes.size >= 12, 'VA product-code coverage below expanded top-performer baseline', [...productCodes]);
   assert(!staleAlertableSignals.length, 'VA stale cache rows must never remain inventory-alertable', staleAlertableSignals.slice(0, 10));
-  assert(!expiredInventorySignals.length, 'VA contains inventory rows older than the 24-hour live window', expiredInventorySignals.slice(0, 10));
+  assert(!expiredAlertableDrops.length, 'VA public drops derived from expired inventory must remain non-alertable', expiredAlertableDrops.slice(0, 10));
+  if (!allowSafeStaleFallback) {
+    assert(!expiredInventorySignals.length, 'VA targeted recovery still contains inventory rows older than the 24-hour live window', expiredInventorySignals.slice(0, 10));
+  }
   assert(state.precisionMetadata?.virginia?.storeUniverseVerified === true && supportedOriginStoreIds.size >= 390, 'VA supported-store universe is not verified', state.precisionMetadata?.virginia || null);
   assert(regularProductCoverage.size >= 10, 'VA fresh regular-product coverage is incomplete', [...regularProductCoverage.keys()]);
   assert(!undercoveredRegularProducts.length, 'VA regular products do not cover the statewide supported-store floor', undercoveredRegularProducts);
@@ -114,7 +118,9 @@ async function main() {
   assert(!canonicalNames.has('1792 Full Proof') || !bad1792.length, 'VA 1792 Small Batch is being misidentified as 1792 Full Proof', bad1792.slice(0, 10));
   assert(!invalidOriginRoadblocks.length, 'VA has stale/invalid store-origin roadblocks', invalidOriginRoadblocks.slice(0, 10));
   assert(!rateLimitRoadblocks.length, 'VA still has unresolved source rate-limit roadblocks', rateLimitRoadblocks.slice(0, 10));
-  assert(!rollingFreshnessRoadblocks.length, 'VA still has stale product partitions retained', rollingFreshnessRoadblocks);
+  if (!allowSafeStaleFallback) {
+    assert(!rollingFreshnessRoadblocks.length, 'VA targeted recovery still has stale product partitions retained', rollingFreshnessRoadblocks);
+  }
   assert(directPage403s.length <= 4, 'VA has more direct product-page 403 roadblocks than expected', directPage403s.slice(0, 10));
 
   console.log(`VA verified: ${signals.length} signals, ${storeSignals.length} store-level, ${inventorySignals.length} inventory-alertable, ${positiveSignals.length} positive inventory, ${vaDrops.length} site drops, ${vaLocations.length} locations, ${productCodes.size} product codes. Event types: ${JSON.stringify(groupBy(signals, (s) => s.eventType))}`);

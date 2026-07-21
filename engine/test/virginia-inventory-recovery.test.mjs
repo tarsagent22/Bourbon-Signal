@@ -220,6 +220,9 @@ test('production refresh isolates an explicitly stale Virginia lane without weak
   assert.match(verifier, /allow-safe-stale-fallback/);
   assert.match(verifier, /\^stale_/);
   assert.match(verifier, /stateAlertableSignals/);
+  assert.match(verifier, /expiredAlertableDrops/);
+  assert.match(verifier, /flatMap\(\(signal\) => \[signal\.sourceSignalId, signal\.key\]/);
+  assert.match(verifier, /if \(!allowSafeStaleFallback\)/);
   assert.match(verifier, /alertableDrops/);
   assert.match(verifier, /eligibleAlertCandidates/);
   assert.match(workflow, /uses:\s*actions\/cache\/restore@v4/);
