@@ -33,7 +33,8 @@ export default async function RadarDetailPage({ params }: { params: Promise<{ ki
   const entry = getRadarEntryByPath(kind, slug);
   if (!entry) notFound();
   const canonical = `https://www.bourbonsignal.com${radarPath(entry)}`;
-  const isScheduled = Boolean(entry.calendar) && (entry.kind === "event" || entry.kind === "lottery");
+  const isScheduled = Boolean(entry.calendar) && (entry.kind === "event" || entry.kind === "lottery" || Boolean(entry.schemaStartDate) || Boolean(entry.occurrences?.some((occurrence) => occurrence.schemaStartDate)));
+  const scheduledOccurrences = entry.occurrences || entry.occurrenceDates?.map((date) => ({ date, label: date, schemaStartDate: undefined, schemaEndDate: undefined }));
   const relatedState = stateGuides.find((guide) => entry.states.includes(guide.state));
   const relatedEntries = entry.relationships
     .map((relationship) => radarEntries.find((candidate) => candidate.slug === relationship.targetSlug))
@@ -45,10 +46,10 @@ export default async function RadarDetailPage({ params }: { params: Promise<{ ki
     url: canonical,
     organizer: { "@type": "Organization", name: entry.sources[0].label, url: entry.sources[0].url },
   };
-  const schema: Record<string, unknown> = isScheduled ? entry.occurrenceDates?.length ? {
+  const schema: Record<string, unknown> = isScheduled ? scheduledOccurrences?.length ? {
     "@context": "https://schema.org", "@type": "EventSeries", ...eventBase,
-    subEvent: entry.occurrenceDates.map((date) => ({
-      "@type": "Event", ...eventBase, startDate: date, endDate: date,
+    subEvent: scheduledOccurrences.map((occurrence) => ({
+      "@type": "Event", ...eventBase, startDate: occurrence.schemaStartDate || occurrence.date, endDate: occurrence.schemaEndDate || occurrence.date,
       eventAttendanceMode: "https://schema.org/OfflineEventAttendanceMode",
       location: entry.location ? { "@type": "Place", name: entry.location } : undefined,
     })),
@@ -62,7 +63,7 @@ export default async function RadarDetailPage({ params }: { params: Promise<{ ki
       : entry.location ? { "@type": "Place", name: entry.location } : undefined,
   } : {
     "@context": "https://schema.org", "@type": "Article", headline: entry.title, description: entry.summary,
-    datePublished: entry.startDate, dateModified: entry.updatedAt, mainEntityOfPage: canonical,
+    datePublished: entry.updatedAt, dateModified: entry.updatedAt, mainEntityOfPage: canonical,
     publisher: { "@type": "Organization", name: "Bourbon Signal", url: "https://www.bourbonsignal.com" },
     citation: entry.sources.map((source) => source.url),
   };

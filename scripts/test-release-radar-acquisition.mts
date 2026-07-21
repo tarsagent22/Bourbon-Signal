@@ -71,10 +71,13 @@ const preciseEntries = radarEntries.filter((entry) => entry.datePrecision === "e
 const broadEntries = radarEntries.filter((entry) => entry.datePrecision === "window");
 const ics = buildReleaseRadarIcs(radarEntries, { origin: "https://www.bourbonsignal.com" });
 assert.match(ics, /^BEGIN:VCALENDAR\r\n/, "ICS must use the calendar envelope and CRLF line endings");
-assert.equal((ics.match(/BEGIN:VEVENT/g) || []).length, preciseEntries.reduce((count, entry) => count + (entry.occurrenceDates?.length || 1), 0), "each precise occurrence should produce one event");
+assert.equal((ics.match(/BEGIN:VEVENT/g) || []).length, preciseEntries.reduce((count, entry) => count + (entry.occurrences?.length || entry.occurrenceDates?.length || 1), 0), "each precise occurrence should produce one event");
 for (const entry of preciseEntries) assert.match(ics, new RegExp(`UID:[^\\r\\n]*${entry.slug}`), `ICS should include ${entry.slug}`);
 for (const entry of broadEntries) assert.doesNotMatch(ics, new RegExp(entry.slug), `broad window ${entry.slug} must stay out of ICS`);
 assert.match(ics, /X-BOURBON-SIGNAL-SEMANTICS:announcement-only/, "calendar exports must preserve non-inventory semantics");
+assert.match(ics, /UID:cary-beer-bourbon-bbq-2026-20260731@[\s\S]*?DTSTART:20260731T220000Z[\s\S]*?DTEND:20260801T020000Z/, "Cary Friday ICS must retain its published 6–10 PM Eastern session");
+assert.match(ics, /UID:cary-beer-bourbon-bbq-2026-20260801@[\s\S]*?DTSTART:20260801T160000Z[\s\S]*?DTEND:20260801T220000Z/, "Cary Saturday ICS must retain its published noon–6 PM Eastern session");
+assert.match(ics, /UID:garrison-brothers-laguna-madre-2026-20260808@[\s\S]*?DTSTART:20260808T130000Z[\s\S]*?DTEND:20260808T210000Z/, "Laguna Madre ICS must retain its official 8 AM–4 PM Central event window");
 
 const normalized = normalizeRadarPreferences({
   followedReleases: [
