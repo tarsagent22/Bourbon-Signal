@@ -27,6 +27,7 @@ function groupBy(items, keyFn) {
 async function main() {
   const snapshot = await readJson(path.join(OUT, 'current-snapshot.json'));
   const drops = await readJson(path.join(OUT, 'site', 'drops.json'));
+  const alerts = await readJson(path.join(OUT, 'site', 'alerts.json'));
   const locations = await readJson(path.join(OUT, 'site', 'locations.json'));
   const state = await readJson(path.join(OUT, 'states', 'VA.json'));
 
@@ -51,6 +52,10 @@ async function main() {
   const rateLimitRoadblocks = (state.roadblocks || []).filter((roadblock) => Number(roadblock.status) === 429);
   const rollingFreshnessRoadblocks = (state.roadblocks || []).filter((roadblock) => roadblock.source === 'Virginia ABC rolling inventory freshness');
   const staleAlertableSignals = signals.filter((signal) => (signal.sourceStale || expiredInventoryIds.has(signal.sourceSignalId || signal.key)) && signal.canAlertAsInventory);
+  const stateAlertableSignals = signals.filter((signal) => signal.alertable || signal.canAlertAsInventory || signal.canAlertAsWatch);
+  const alertableDrops = vaDrops.filter((drop) => drop.alertable || drop.canAlertAsInventory || drop.canAlertAsWatch);
+  const eligibleAlertCandidates = (alerts.alerts || []).filter((candidate) => candidate.state === 'VA'
+    && (candidate.eligibleForDelivery || candidate.eligibleForOnSite || candidate.eligibleForEmail || candidate.eligibleForSms));
   const supportedOriginStoreIds = new Set((state.precisionMetadata?.virginia?.supportedOriginStoreIds || []).map(String));
   const regularProductCoverage = new Map();
   for (const signal of signals) {
@@ -69,6 +74,19 @@ async function main() {
   const unexpectedSupportedStores = [...regularProductCoverage.entries()]
     .map(([code, stores]) => ({ code, unexpectedStoreIds: [...stores].filter((storeId) => !supportedOriginStoreIds.has(storeId)) }))
     .filter((entry) => entry.unexpectedStoreIds.length);
+  const allowSafeStaleFallback = process.argv.includes('--allow-safe-stale-fallback');
+
+  if (allowSafeStaleFallback && /^stale_/i.test(String(state.status || ''))) {
+    assert(state.stale === true, 'VA degraded status must remain explicitly stale', { status: state.status, stale: state.stale });
+    assert(Boolean(state.staleReason), 'VA degraded status must explain why the last trusted report was retained');
+    assert(signals.length >= 700, 'VA retained signal count below safe degraded-lane threshold', signals.length);
+    assert(storeSignals.length >= 700, 'VA retained store-level signal count below safe degraded-lane threshold', storeSignals.length);
+    assert(!stateAlertableSignals.length, 'VA degraded lane must mark every retained signal non-alertable', stateAlertableSignals.slice(0, 10));
+    assert(!alertableDrops.length, 'VA degraded lane must mark every public drop non-alertable', alertableDrops.slice(0, 10));
+    assert(!eligibleAlertCandidates.length, 'VA degraded lane must export zero eligible alert candidates', eligibleAlertCandidates.slice(0, 10));
+    console.log(`VA safely isolated as ${state.status}: ${signals.length} retained signals and zero alertable signals, drops, or candidates. Other fresh states may publish while bounded Virginia recovery continues.`);
+    return;
+  }
 
   assert(state.status === 'useful', `VA state status must be useful, got ${state.status}`, { status: state.status, stale: state.stale, staleReason: state.staleReason });
   assert(!state.stale, 'VA must not be using stale fallback data', { status: state.status, staleReason: state.staleReason, staleFallbackAt: state.staleFallbackAt });

@@ -154,7 +154,7 @@ function adaptAlertCandidates(input: {
     .filter((candidate) => candidate.eligibleForDelivery === true)
     .filter((candidate) => candidateMatchesArea(candidate, areaPreferences))
     .filter((candidate) => candidateMatchesBottlePrefs(candidate, alertMode, bottlePreferences))
-    .filter(candidatePassesFreshEmailGuardrails)
+    .filter((candidate) => candidatePassesFreshEmailGuardrails(candidate))
     .map((candidate) => {
       const policy = record(candidate.freshnessPolicyHours);
       const freshnessHours = numberValue(candidate.freshnessHours, Number.NaN);

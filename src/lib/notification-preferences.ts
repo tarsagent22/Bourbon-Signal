@@ -73,6 +73,8 @@ export interface MemberAlertRecord {
   quantity: number | null;
   score: number;
   priorityClass: "major" | "standard";
+  signalAt?: string;
+  freshnessLimitHours?: number;
   createdAt: string;
   readAt: string | null;
   archivedAt: string | null;

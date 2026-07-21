@@ -109,8 +109,13 @@ jobs:
         working-directory: engine
         run: npm run verify:site
 
-      - name: Verify Virginia statewide live inventory recovery
-        if: ${{ !inputs.states || contains(inputs.states, 'VA') }}
+      - name: Verify Virginia scheduled lane or isolate a safe stale fallback
+        if: ${{ !inputs.states }}
+        working-directory: engine
+        run: npm run verify:va -- --allow-safe-stale-fallback
+
+      - name: Verify Virginia targeted statewide live inventory recovery
+        if: ${{ inputs.states && contains(inputs.states, 'VA') }}
         working-directory: engine
         run: npm run verify:va
 

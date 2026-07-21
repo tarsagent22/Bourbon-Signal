@@ -10,6 +10,8 @@ function read(path) {
 }
 
 const delivery = read('src/lib/alert-delivery.ts');
+const runSafety = read('src/lib/alert-run-safety.ts');
+const exportContract = read('engine/src/export-site-contract.mjs');
 const route = read('src/app/api/alerts/deliver/route.ts');
 const vercel = read('vercel.json');
 
@@ -84,6 +86,50 @@ if (!route.includes('ALERT_MONITOR_ONLY') || !route.includes('monitorOnly')) {
 
 if (!/const dryRun = options\.dryRun === true \|\| requestedQueueMode === "shadow"/.test(delivery)) {
   fail('Queue shadow mode must force dry-run behavior even if an environment toggle is misconfigured.');
+}
+
+if (!runSafety.includes('ALERT_FRESHNESS_HARD_CAP_HOURS = 1') || !delivery.includes('resolveAlertFreshnessCapHours')) {
+  fail('Every alert delivery channel must enforce the non-configurable one-hour freshness ceiling.');
+}
+
+if (!delivery.includes('signalFreshnessHoursAt(asString(candidate.signalAt), now)')
+  || !exportContract.includes('signalAt: c.signalAt || null')
+  || !exportContract.includes('signalAt: dropSignalAt(drop)')) {
+  fail('Final delivery must recompute age from the canonical signal timestamp rather than trusting export-time freshness.');
+}
+
+if (!delivery.includes('if (!candidatePassesFreshEmailGuardrails(candidate))')
+  || !delivery.includes('if (!candidatePassesFreshSmsGuardrails(candidate))')
+  || !delivery.includes('await pruneStaleOnSiteAlerts()')) {
+  fail('On-site, email, and SMS must each recheck freshness at their final provider or metadata mutation boundary.');
+}
+
+if (!delivery.includes('suppressStaleQueuedIntent') || !delivery.includes('stale_at_final_delivery_boundary')) {
+  fail('Queue claims that age out before send must be terminally suppressed instead of retried.');
+}
+
+if (!runSafety.includes('future_alert_snapshot')) {
+  fail('Substantially future-dated snapshots must fail closed.');
+}
+
+for (const finalBoundary of [
+  '.filter((candidate) => candidatePassesFreshOnSiteGuardrails(candidate))',
+  '.filter((candidate) => candidatePassesFreshEmailGuardrails(candidate))',
+  '.filter((candidate) => candidatePassesFreshSmsGuardrails(candidate))',
+]) {
+  if (!delivery.includes(finalBoundary)) fail(`Missing final channel freshness boundary: ${finalBoundary}`);
+}
+
+if (!runSafety.includes('resolveAlertSnapshotMaxAgeMinutes') || !runSafety.includes('Math.min(Number(configured), 60)')) {
+  fail('Snapshot-age configuration must not widen beyond one hour.');
+}
+
+const freshnessTable = exportContract.match(/function maxFreshnessForActionability[\s\S]*?const table = \{([\s\S]*?)\n  \};/u)?.[1] || '';
+const widenedFreshness = [...freshnessTable.matchAll(/(?:onSite|email|sms):\s*(\d+(?:\.\d+)?)/gu)]
+  .map((match) => Number(match[1]))
+  .filter((value) => value > 1);
+if (widenedFreshness.length) {
+  fail(`Engine alert policy widens ${widenedFreshness.length} channel freshness window(s) past one hour.`);
 }
 
 if (process.exitCode) {

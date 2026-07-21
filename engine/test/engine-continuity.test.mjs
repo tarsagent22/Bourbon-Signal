@@ -37,7 +37,12 @@ test('scheduled refresh persists collector history, the actual scheduler state, 
   assert.match(hydrationStep, /GH_TOKEN:[\s\S]*?hydrate-state-reports\.mjs/);
   assert.doesNotMatch(hydrationStep, /if:/, 'state report hydration must also protect scheduled runs from a cold or version-missed cache');
   assert.ok(workflow.indexOf('Hydrate complete state reports for recovery') < workflow.indexOf('Refresh all due customer-active states'), 'every refresh must hydrate a complete baseline before collection');
-  for (const [label, state] of [['Virginia statewide live inventory recovery', 'VA'], ['Pennsylvania FWGS exact-store inventory recovery', 'PA'], ['California San Diego release gate', 'CA']]) {
+  const scheduledVirginiaStep = workflow.match(/- name: Verify Virginia scheduled lane or isolate a safe stale fallback[\s\S]*?(?=\n      - name:)/)?.[0] || '';
+  const targetedVirginiaStep = workflow.match(/- name: Verify Virginia targeted statewide live inventory recovery[\s\S]*?(?=\n      - name:)/)?.[0] || '';
+  assert.match(scheduledVirginiaStep, /if:\s*\$\{\{ !inputs\.states \}\}[\s\S]*--allow-safe-stale-fallback/);
+  assert.match(targetedVirginiaStep, /inputs\.states && contains\(inputs\.states, 'VA'\)[\s\S]*run: npm run verify:va/);
+  assert.doesNotMatch(targetedVirginiaStep, /allow-safe-stale-fallback/, 'VA-targeted recovery must remain strict');
+  for (const [label, state] of [['Pennsylvania FWGS exact-store inventory recovery', 'PA'], ['California San Diego release gate', 'CA']]) {
     const step = workflow.match(new RegExp(`- name: Verify ${label}[\\s\\S]*?(?=\\n      - name:)`))?.[0] || '';
     assert.match(step, new RegExp(`!inputs\\.states[\\s\\S]*contains\\(inputs\\.states, '${state}'\\)`), `${state} verifier must only gate full or ${state}-targeted refreshes`);
   }

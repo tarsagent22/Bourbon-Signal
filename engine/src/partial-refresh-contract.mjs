@@ -32,5 +32,14 @@ export function mergePartialRefreshDrops({ previousDrops = [], currentDrops = []
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
-  }).slice(0, 10000);
+  }).map((drop) => preserved.has(stateOf(drop)) ? {
+    ...drop,
+    stale: true,
+    sourceStale: true,
+    staleSourceCaveat: true,
+    staleReason: drop.staleReason || 'preserved_state_fallback',
+    alertable: false,
+    canAlertAsInventory: false,
+    canAlertAsWatch: false,
+  } : drop).slice(0, 10000);
 }

@@ -300,6 +300,10 @@ function candidateFromChange(change, bootstrap = false) {
     blockers.push('manual_refresh_quarantine');
   }
   const eligibleForDelivery = blockers.length === 0 && reliability.eligibleForDelivery;
+  const usesSourceEventTime = /shipment|delivery|release|lottery|drawing|allocation/i.test(String(sig.eventType || sig.type || ''));
+  const signalAt = usesSourceEventTime
+    ? (sig.sourceEventAt || sig.eventAt || sig.displayAt || sig.observedAt || sig.fetchedAt || null)
+    : (sig.observedAt || sig.fetchedAt || sig.sourceEventAt || null);
   return {
     id: stableId([change.type, sig.key, JSON.stringify(change.fields || [])]),
     changeType: change.type,
@@ -328,6 +332,7 @@ function candidateFromChange(change, bootstrap = false) {
     warehouseQty: sig.warehouseQty,
     price: sig.price,
     confidence: sig.confidence,
+    signalAt,
     sampleOnly: Boolean(sig.sampleOnly),
     ...reliability,
     eligibleForDelivery,
