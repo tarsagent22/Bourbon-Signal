@@ -69,7 +69,7 @@ assert.match(dropFeedSource, /feedStateParam\s*=\s*urlStateFilter\s*\|\|/, "a Ra
 
 const preciseEntries = radarEntries.filter((entry) => entry.datePrecision === "exact");
 const broadEntries = radarEntries.filter((entry) => entry.datePrecision === "window");
-const ics = buildReleaseRadarIcs(radarEntries, { origin: "https://www.bourbonsignal.com" });
+const ics = buildReleaseRadarIcs(radarEntries, { origin: "https://www.bourbonsignal.com", today: "2026-07-01" });
 assert.match(ics, /^BEGIN:VCALENDAR\r\n/, "ICS must use the calendar envelope and CRLF line endings");
 assert.equal((ics.match(/BEGIN:VEVENT/g) || []).length, preciseEntries.reduce((count, entry) => count + (entry.occurrences?.length || entry.occurrenceDates?.length || 1), 0), "each precise occurrence should produce one event");
 for (const entry of preciseEntries) assert.match(ics, new RegExp(`UID:[^\\r\\n]*${entry.slug}`), `ICS should include ${entry.slug}`);
@@ -78,6 +78,9 @@ assert.match(ics, /X-BOURBON-SIGNAL-SEMANTICS:announcement-only/, "calendar expo
 assert.match(ics, /UID:cary-beer-bourbon-bbq-2026-20260731@[\s\S]*?DTSTART:20260731T220000Z[\s\S]*?DTEND:20260801T020000Z/, "Cary Friday ICS must retain its published 6–10 PM Eastern session");
 assert.match(ics, /UID:cary-beer-bourbon-bbq-2026-20260801@[\s\S]*?DTSTART:20260801T160000Z[\s\S]*?DTEND:20260801T220000Z/, "Cary Saturday ICS must retain its published noon–6 PM Eastern session");
 assert.match(ics, /UID:garrison-brothers-laguna-madre-2026-20260808@[\s\S]*?DTSTART:20260808T130000Z[\s\S]*?DTEND:20260808T210000Z/, "Laguna Madre ICS must retain its official 8 AM–4 PM Central event window");
+const currentIcs = buildReleaseRadarIcs(radarEntries, { origin: "https://www.bourbonsignal.com", today: "2026-07-21" });
+assert.doesNotMatch(currentIcs, /virginia-abc-rare-character-july-2026/, "closed lotteries must expire from the live calendar export");
+assert.match(currentIcs, /cary-beer-bourbon-bbq-2026/, "future NC events must remain in the live calendar export");
 
 const normalized = normalizeRadarPreferences({
   followedReleases: [
@@ -145,6 +148,8 @@ assert.doesNotMatch(actionSource, /\/pricing|checkout|upgrade/i, "public Radar a
 const routeSource = readFileSync(resolve("src/app/release-radar/calendar.ics/route.ts"), "utf8");
 assert.match(routeSource, /text\/calendar/);
 assert.match(routeSource, /Content-Disposition/);
+assert.match(routeSource, /revalidate\s*=\s*3600/, "the calendar export must re-evaluate opportunity expiry without requiring a deploy");
+assert.doesNotMatch(routeSource, /force-static/, "a build-frozen calendar cannot expire closed opportunities automatically");
 const workflowSource = readFileSync(resolve(".github/workflows/ci.yml"), "utf8");
 assert.doesNotMatch(workflowSource, /release-radar-scout/, "the silent scout must not be installed as a live CI or cron job");
 const alertDeliverySource = readFileSync(resolve("src/lib/alert-delivery.ts"), "utf8");

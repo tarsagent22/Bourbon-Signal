@@ -1,7 +1,8 @@
-import { radarPath, type RadarEntry, type RadarOccurrence } from "./release-radar.ts";
+import { isRadarEntryExpired, radarPath, type RadarEntry, type RadarOccurrence } from "./release-radar.ts";
 
 interface ReleaseRadarIcsOptions {
   origin: string;
+  today?: string;
 }
 
 function escapeText(value: string) {
@@ -59,8 +60,9 @@ function eventLines(entry: RadarEntry, date: string, rangeEnd?: string, occurren
 
 export function buildReleaseRadarIcs(entries: RadarEntry[], options: ReleaseRadarIcsOptions) {
   const origin = options.origin.replace(/\/$/, "");
+  const today = options.today || new Date().toISOString().slice(0, 10);
   const events = entries
-    .filter((entry) => entry.datePrecision === "exact" && entry.calendar === true)
+    .filter((entry) => entry.datePrecision === "exact" && entry.calendar === true && !isRadarEntryExpired(entry, today))
     .flatMap((entry) => {
       if (entry.occurrences?.length) {
         return entry.occurrences.flatMap((occurrence, index) => eventLines(entry, occurrence.date, undefined, index, occurrence));

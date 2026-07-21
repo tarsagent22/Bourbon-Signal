@@ -48,6 +48,7 @@
     "ops:browser-benchmark": "node automation/bourbon-signal/browser-benchmark.mjs",
     "ops:radar-scout": "node automation/bourbon-signal/release-radar-scout.mjs",
     "ops:radar-leads": "node automation/bourbon-signal/release-radar-lead-collector.mjs",
+    "ops:radar-nc-monitor": "node --experimental-strip-types automation/bourbon-signal/nc-release-radar-monitor.mts",
     "ops:source-expansion": "node automation/bourbon-signal/source-expansion-collector.mjs",
     "ops:automation-cost": "node automation/bourbon-signal/automation-cost-report.mjs",
     "ops:operator-outcomes": "node automation/bourbon-signal/operator-outcomes.mjs",

@@ -184,10 +184,11 @@ Release Radar has an equally constrained lead lane:
 ```bash
 npm run ops:radar-leads -- --input path/to/search-results.json --apply
 npm run ops:radar-leads -- --execute --apply
+npm run ops:radar-nc-monitor -- --apply --print
 npm run ops:radar-scout -- --lead-ledger automation/bourbon-signal/reports/release-radar-leads-latest.json
 ```
 
-The collector uses direct Brave only with `--execute` and `BRAVE_SEARCH_API_KEY`, caps query count, deduplicates canonical HTTPS URLs, and writes unverified announcement-only leads. It cannot publish, open a PR, create alerts, or alter public Radar records. The scout keeps unverified leads in a review-required draft lane.
+The collector uses direct Brave only with `--execute` and `BRAVE_SEARCH_API_KEY`, caps query count, deduplicates canonical HTTPS URLs, and writes unverified announcement-only leads. The NC monitor rechecks every official board/state source in the NC guide plus every primary source attached to a published NC Radar record. It stores only bounded fingerprints and date/status markers, quietly establishes the first baseline, queues material changes for semantic review, and escalates a source only after two consecutive failures. It cannot publish, open a PR, create alerts, or treat an announcement as inventory. Exact NC events and lotteries cross a runtime closing boundary automatically; historical records remain citable while upcoming and ICS surfaces stop presenting them as actionable.
 
 ## Autonomous expansion threshold
 
@@ -205,7 +206,7 @@ Do not include in these automations unless Chandler separately asks:
 - Pricing/legal changes without approval
 - Alert-readiness scoring
 - Treating catalog/watch/shipment data as live inventory
-- Installing the Release Radar scout as a live cron or automatic publishing job
+- Turning the live Release Radar source monitor or draft scout into an unreviewed automatic publisher
 
 ## Structured operator backbone
 

@@ -8,6 +8,7 @@ import { summarizeOperatorOutcomes } from '../automation/bourbon-signal/operator
 import { classifyBottleQueueItem, processBottleQueue } from '../automation/bourbon-signal/bottle-queue-autoprocess.mjs';
 import { buildSourceExpansionCollection, engineStageInvocation, resolveScheduledStates, stagesForCollectionMode, summarizeStageOutput } from '../automation/bourbon-signal/source-expansion-collector.mjs';
 import { collectReleaseRadarLeads, queryPlan } from '../automation/bourbon-signal/release-radar-lead-collector.mjs';
+import { buildNcRadarSourceRegistry, monitorNcRadarSources } from '../automation/bourbon-signal/nc-release-radar-monitor.mts';
 import { classifyExpansionAutonomy } from '../automation/bourbon-signal/autonomy-threshold.mjs';
 import { expansionPromotionGate, rankSourceInvestments } from '../automation/bourbon-signal/source-roi-core.mjs';
 import { buildDailyCompanyBrief, buildWeeklyStrategyReview } from './lib/operator-briefs.mjs';
@@ -244,6 +245,143 @@ const repeatedLeadCollection = await collectReleaseRadarLeads({
   generatedAt: '2026-07-17T12:00:00.000Z',
 });
 assert.equal(repeatedLeadCollection.summary.new, 0, 'repeat observations must not be reported as newly discovered leads');
+
+const ncRegistry = buildNcRadarSourceRegistry();
+assert.ok(ncRegistry.length >= 15, 'the NC monitor must cover board guidance plus published NC event sources');
+assert.ok(ncRegistry.some((source) => source.url === 'https://wakeabc.com/lottery/'));
+assert.ok(ncRegistry.some((source) => source.url === 'https://www.greensboroabc.com/about/events/'));
+assert.ok(ncRegistry.some((source) => source.trackedSlugs.includes('durham-abc-annual-bourbon-lottery-2026-watch')));
+
+const monitorSources = [{ id: 'wake-lottery', label: 'Wake lottery', url: 'https://wakeabc.com/lottery/', sourceType: 'state', trackedSlugs: [] }];
+const baselineMonitor = await monitorNcRadarSources({
+  sources: monitorSources,
+  previousState: { sources: {} },
+  generatedAt: '2026-07-21T12:00:00.000Z',
+  fetchImpl: async () => new Response('<html><title>Wake Lottery</title><body>The bourbon lottery is currently closed. Check back for 2026 updates.</body></html>', { status: 200, headers: { 'content-type': 'text/html' } }),
+});
+assert.equal(baselineMonitor.summary.baselined, 1);
+assert.equal(baselineMonitor.summary.materiallyChanged, 0, 'the first observation establishes a quiet baseline');
+assert.equal(baselineMonitor.canPublish, false);
+assert.equal(baselineMonitor.canCreateAlerts, false);
+const changedMonitor = await monitorNcRadarSources({
+  sources: monitorSources,
+  previousState: baselineMonitor.state,
+  generatedAt: '2026-07-22T12:00:00.000Z',
+  fetchImpl: async () => new Response('<html><title>Wake Lottery</title><body>Registration is now open July 22 through July 26, 2026 for the bourbon lottery.</body></html>', { status: 200, headers: { 'content-type': 'text/html' } }),
+});
+assert.equal(changedMonitor.summary.materiallyChanged, 1);
+assert.equal(changedMonitor.reviewQueue[0].kind, 'material_change');
+assert.match(changedMonitor.reviewQueue[0].summary, /semantic review/i);
+assert.equal(changedMonitor.findings.length, 1, 'material official-source changes must flow into the canonical review backlog');
+const firstFailure = await monitorNcRadarSources({
+  sources: monitorSources,
+  previousState: baselineMonitor.state,
+  generatedAt: '2026-07-22T12:00:00.000Z',
+  fetchImpl: async () => new Response('unavailable', { status: 503 }),
+});
+assert.equal(firstFailure.summary.reviewFailures, 0, 'one transient source failure must not page the operator');
+const repeatedFailure = await monitorNcRadarSources({
+  sources: monitorSources,
+  previousState: firstFailure.state,
+  generatedAt: '2026-07-23T12:00:00.000Z',
+  fetchImpl: async () => new Response('unavailable', { status: 503 }),
+});
+assert.equal(repeatedFailure.summary.reviewFailures, 1, 'two consecutive failures must enter review');
+assert.equal(repeatedFailure.reviewQueue[0].kind, 'source_failure');
+
+let redirectFetches = 0;
+const offHostRedirect = await monitorNcRadarSources({
+  sources: monitorSources,
+  previousState: { sources: {} },
+  generatedAt: '2026-07-21T12:00:00.000Z',
+  fetchImpl: async () => {
+    redirectFetches += 1;
+    return new Response(null, { status: 302, headers: { location: 'http://169.254.169.254/latest/meta-data' } });
+  },
+});
+assert.equal(offHostRedirect.summary.failed, 1);
+assert.equal(redirectFetches, 1, 'off-host redirect destinations must be rejected before a second request');
+let literalIpFetches = 0;
+const literalIpSource = [{ id: 'literal-ip', label: 'Invalid literal IP', url: 'https://[fc00::1]/lottery', sourceType: 'state', trackedSlugs: [] }];
+const literalIpMonitor = await monitorNcRadarSources({
+  sources: literalIpSource,
+  previousState: { sources: {} },
+  generatedAt: '2026-07-21T12:00:00.000Z',
+  fetchImpl: async () => {
+    literalIpFetches += 1;
+    return new Response('unexpected', { status: 200 });
+  },
+});
+assert.equal(literalIpMonitor.summary.failed, 1);
+assert.equal(literalIpFetches, 0, 'literal IP sources, including IPv6 private ranges, must be rejected before fetch');
+const oversizedBody = new ReadableStream({
+  start(controller) {
+    controller.enqueue(new Uint8Array(2_000_001));
+    controller.close();
+  },
+});
+const oversizedMonitor = await monitorNcRadarSources({
+  sources: monitorSources,
+  previousState: { sources: {} },
+  generatedAt: '2026-07-21T12:00:00.000Z',
+  fetchImpl: async () => new Response(oversizedBody, { status: 200, headers: { 'content-type': 'text/html' } }),
+});
+assert.equal(oversizedMonitor.summary.failed, 1, 'chunked responses must be bounded even without Content-Length');
+const expiredNcEntry = {
+  slug: 'already-closed-nc-event', title: 'Already closed event', states: ['North Carolina'], kind: 'event', calendar: true,
+  startDate: '2026-07-01', endDate: '2026-07-01', sources: [{ label: 'Official', url: 'https://wakeabc.com/lottery/', type: 'state' }],
+};
+const quietExpiryBaseline = await monitorNcRadarSources({
+  sources: monitorSources,
+  previousState: { sources: {} },
+  generatedAt: '2026-07-21T12:00:00.000Z',
+  entries: [expiredNcEntry],
+  fetchImpl: async () => new Response('<html><body>Lottery status</body></html>', { status: 200, headers: { 'content-type': 'text/html' } }),
+});
+assert.equal(quietExpiryBaseline.summary.newlyExpired, 0, 'preexisting closed opportunities must be absorbed by the quiet first baseline');
+assert.deepEqual(quietExpiryBaseline.state.expiredSlugs, ['already-closed-nc-event']);
+const overflowSources = Array.from({ length: 10 }, (_, index) => ({
+  id: `source-${index}`, label: `Official source ${index}`, url: `https://example.com/source-${index}`, sourceType: 'state', trackedSlugs: [],
+}));
+const overflowBaseline = await monitorNcRadarSources({
+  sources: overflowSources,
+  previousState: { sources: {} },
+  generatedAt: '2026-07-21T12:00:00.000Z',
+  entries: [],
+  fetchImpl: async () => new Response('<html><body>Lottery registration is closed for 2026.</body></html>', { status: 200, headers: { 'content-type': 'text/html' } }),
+});
+const overflowChanged = await monitorNcRadarSources({
+  sources: overflowSources,
+  previousState: overflowBaseline.state,
+  generatedAt: '2026-07-22T12:00:00.000Z',
+  entries: [],
+  fetchImpl: async () => new Response('<html><body>Lottery registration is now open for 2026.</body></html>', { status: 200, headers: { 'content-type': 'text/html' } }),
+});
+assert.equal(overflowChanged.findings.length, 8);
+assert.equal(overflowChanged.summary.deferredForSemanticReview, 2);
+const overflowDrained = await monitorNcRadarSources({
+  sources: overflowSources,
+  previousState: overflowChanged.state,
+  generatedAt: '2026-07-23T12:00:00.000Z',
+  entries: [],
+  fetchImpl: async () => new Response('<html><body>Lottery registration is now open for 2026.</body></html>', { status: 200, headers: { 'content-type': 'text/html' } }),
+});
+assert.equal(overflowDrained.findings.length, 2, 'deferred material changes must remain observable on the next run');
+assert.equal(overflowDrained.summary.deferredForSemanticReview, 0);
+const failureOne = await monitorNcRadarSources({
+  sources: overflowSources, previousState: overflowBaseline.state, generatedAt: '2026-07-22T12:00:00.000Z', entries: [],
+  fetchImpl: async () => new Response('unavailable', { status: 503 }),
+});
+const failureTwo = await monitorNcRadarSources({
+  sources: overflowSources, previousState: failureOne.state, generatedAt: '2026-07-23T12:00:00.000Z', entries: [],
+  fetchImpl: async () => new Response('unavailable', { status: 503 }),
+});
+const failureThree = await monitorNcRadarSources({
+  sources: overflowSources, previousState: failureTwo.state, generatedAt: '2026-07-24T12:00:00.000Z', entries: [],
+  fetchImpl: async () => new Response('unavailable', { status: 503 }),
+});
+const reviewedFailureSources = new Set([...failureTwo.findings, ...failureThree.findings].map((finding) => finding.sourceKey.split(':')[1]));
+assert.equal(reviewedFailureSources.size, 10, 'persistent source-failure overflow must rotate so no official source is starved');
 
 const refreshedAnnualLead = await collectReleaseRadarLeads({
   results: [{
