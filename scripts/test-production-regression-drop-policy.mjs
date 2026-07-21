@@ -3,10 +3,12 @@ import { readFileSync } from 'node:fs';
 import { isDropExpectedInLiveFeed, parseLiveDropTotal } from './production-regression-drop-policy.mjs';
 
 const now = Date.parse('2026-07-21T02:00:00.000Z');
-const inventory = { state: 'TX', canAlertAsInventory: true };
+const inventory = { state: 'TX', canAlertAsInventory: true, quantity: 1 };
 
 assert.equal(isDropExpectedInLiveFeed({ ...inventory, lastConfirmedAt: '2026-07-18T02:00:00.000Z' }, now), true, 'exactly 72-hour inventory remains visible');
 assert.equal(isDropExpectedInLiveFeed({ ...inventory, lastConfirmedAt: '2026-07-18T01:59:59.999Z' }, now), false, 'inventory older than 72 hours is not a live-feed regression expectation');
+assert.equal(isDropExpectedInLiveFeed({ ...inventory, quantity: 0, lastConfirmedAt: '2026-07-21T01:59:00.000Z' }, now), false, 'zero-quantity inventory is not exposed by the live route');
+assert.equal(isDropExpectedInLiveFeed({ state: 'AL', type: 'alabc_limited_release_store_drop', locationPrecision: 'store_level', availabilityScope: 'store_reported', quantity: 0, displayAt: '2026-07-21T01:59:00.000Z' }, now), true, 'fresh zero-quantity release context remains visible');
 assert.equal(isDropExpectedInLiveFeed({ state: 'PA', type: 'store_inventory_aggregate', quantity: 56, lastConfirmedAt: '2026-07-18T01:59:59.999Z' }, now), false, 'positive store inventory aggregates use the same 72-hour route window');
 assert.equal(isDropExpectedInLiveFeed({ state: 'UT', type: 'board_inventory_aggregate', quantity: 56, lastConfirmedAt: '2026-07-18T01:59:59.999Z', displayAt: '2026-07-18T01:59:59.999Z' }, now), true, 'board aggregates remain 30-day context rather than store inventory');
 assert.equal(isDropExpectedInLiveFeed({ state: 'OH', sourceStale: true, displayAt: '2026-07-07T02:00:00.000Z' }, now), true, 'Ohio stale feed may remain visible for exactly 14 days');

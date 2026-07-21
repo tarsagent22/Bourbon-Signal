@@ -14,17 +14,15 @@ function asTime(value) {
 
 function isInventorySignal(drop) {
   const type = String(drop.event_type ?? drop.type ?? '').toLowerCase();
-  const category = String(drop.signal_category ?? drop.signalCategory ?? '').toLowerCase();
-  const scope = String(drop.availability_scope ?? drop.availabilityScope ?? '').toLowerCase();
-  const precision = String(drop.location_precision ?? drop.locationPrecision ?? '').toLowerCase();
+  const category = String(drop.signal_category || drop.signalCategory || '').toLowerCase();
+  const aggregateContext = type === 'board_inventory_aggregate' || type === 'county_inventory_aggregate';
   return drop.can_alert_as_inventory === true
     || drop.canAlertAsInventory === true
     || category === 'inventory'
     || (type === 'store_inventory_aggregate' && Number(drop.quantity || 0) > 0)
-    || scope === 'store_reported'
-    || precision === 'store_level'
+    || (!aggregateContext && type.includes('inventory'))
     || type.includes('in_stock')
-    || type.includes('inventory_result');
+    || type.includes('availability');
 }
 
 function dropFreshnessTime(drop) {
@@ -47,6 +45,7 @@ export function parseLiveDropTotal(value) {
 }
 
 export function isDropExpectedInLiveFeed(drop, now = Date.now()) {
+  if (isInventorySignal(drop) && !(Number(drop?.quantity || 0) > 0)) return false;
   const timestamp = dropFreshnessTime(drop);
   if (!Number.isFinite(timestamp)) return false;
   if (timestamp > now + FUTURE_CLOCK_SKEW_MS) return false;
