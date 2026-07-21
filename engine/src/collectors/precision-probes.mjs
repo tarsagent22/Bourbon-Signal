@@ -930,8 +930,15 @@ const TX_SPECS_PRODUCT_URLS = [
   'https://specsonline.com/shop/spirits/tx-bourbon-whiskey-6-case/',
   'https://specsonline.com/shop/spirits/specs-single-barrel-tx-bourbon/'
 ];
-const TX_CITYHIVE_MAX_PAGES = Number(process.env.BOURBON_SIGNAL_TX_CITYHIVE_MAX_PAGES || 2);
-const TX_TWIN_MAX_MERCHANTS = Math.max(1, Math.min(40, Number(process.env.BOURBON_SIGNAL_TX_TWIN_MAX_MERCHANTS) || 28));
+export function texasCityHiveRequestLimits(env = process.env) {
+  return {
+    // One broad category request across four branches produced useful Twin inventory without
+    // the 429 caused by the former 28-branch x two-page request matrix. Keep overrides bounded.
+    maxPages: Math.max(1, Math.min(3, Number(env.BOURBON_SIGNAL_TX_CITYHIVE_MAX_PAGES) || 1)),
+    twinMaxMerchants: Math.max(1, Math.min(40, Number(env.BOURBON_SIGNAL_TX_TWIN_MAX_MERCHANTS) || 4)),
+  };
+}
+const { maxPages: TX_CITYHIVE_MAX_PAGES, twinMaxMerchants: TX_TWIN_MAX_MERCHANTS } = texasCityHiveRequestLimits();
 const TX_TWIN_MERCHANT_IDS = [
   '5af17b54c8852b44f5995f46', '5af17b52c8852b44f5995f41', '5ada5b59db109f209fb1b63d', '546ba9ef3932330002910100',
   '5af17ad1c8852b44f5995ed8', '5ada111597465774e9268c20', '5af17bacc8852b44f5995f78', '5af17be2c8852b44f5995fb9',
@@ -6597,7 +6604,7 @@ export function legacyPrecisionRuntimeOptions(stateId, sourceRunnerOptions = {},
   const stateKey = String(stateId || '').toUpperCase();
   const stateTimeout = env[`BOURBON_SIGNAL_${stateKey}_PRECISION_TIMEOUT_MS`];
   const stateAttempts = env[`BOURBON_SIGNAL_${stateKey}_PRECISION_ATTEMPTS`];
-  const defaultTimeoutMs = stateKey === 'VA' ? 1_140_000 : stateKey === 'AZ' ? 300_000 : 120_000;
+  const defaultTimeoutMs = stateKey === 'VA' ? 1_140_000 : ['AZ', 'TX'].includes(stateKey) ? 300_000 : 120_000;
   const defaultMaxAttempts = stateKey === 'VA' || stateKey === 'AZ' ? 1 : 2;
   return {
     ...sourceRunnerOptions,
