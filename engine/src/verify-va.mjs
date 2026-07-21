@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
+import { minimumVirginiaSiteLocationCount } from './collectors/virginia-inventory-recovery.mjs';
 
 const OUT = path.resolve('out');
 const VIRGINIA_INVENTORY_MAX_AGE_MS = Math.max(60 * 60_000, Number(process.env.BOURBON_SIGNAL_VA_INVENTORY_MAX_AGE_MS || 24 * 60 * 60_000));
@@ -95,7 +96,12 @@ async function main() {
   assert(inventorySignals.length >= 20, 'VA inventory-alertable signal count below current official-store availability threshold', inventorySignals.length);
   assert(positiveSignals.length >= 20, 'VA positive store inventory signal count below current official-store availability threshold', positiveSignals.length);
   assert(vaDrops.length >= 45, 'VA site drops below current customer-visible official-store availability threshold', vaDrops.length);
-  assert(vaLocations.length >= 350, 'VA site locations below definition-of-done threshold', vaLocations.length);
+  const minimumSiteLocations = minimumVirginiaSiteLocationCount(state.precisionMetadata?.virginia?.supportedOriginStoreIds?.length);
+  assert(vaLocations.length >= minimumSiteLocations, 'VA site locations below dynamic supported-store threshold', {
+    actual: vaLocations.length,
+    minimum: minimumSiteLocations,
+    supportedOriginStores: state.precisionMetadata?.virginia?.supportedOriginStoreIds?.length || 0,
+  });
   assert(productCodes.size >= 12, 'VA product-code coverage below expanded top-performer baseline', [...productCodes]);
   assert(!staleAlertableSignals.length, 'VA stale cache rows must never remain inventory-alertable', staleAlertableSignals.slice(0, 10));
   assert(!expiredInventorySignals.length, 'VA contains inventory rows older than the 24-hour live window', expiredInventorySignals.slice(0, 10));

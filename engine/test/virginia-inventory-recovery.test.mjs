@@ -6,6 +6,7 @@ import {
   applyVirginiaInventoryFreshness,
   evaluateVirginiaProductCoverage,
   mergeVirginiaProductPartitions,
+  minimumVirginiaSiteLocationCount,
   seedVirginiaInventoryCacheSignals,
   selectVirginiaProductsForRefresh,
   summarizeVirginiaProductErrors,
@@ -63,6 +64,13 @@ test('Virginia cold bootstrap always includes verifier-required products', () =>
   const selected = selectVirginiaProductsForRefresh(products, [], Date.now(), { maxProducts: 12 });
   assert.equal(selected.length, 12);
   assert.ok(selected.some((product) => product.code === 'buffalo-trace'));
+});
+
+test('Virginia site-location gate scales to the supported store universe', () => {
+  assert.equal(minimumVirginiaSiteLocationCount(392), 300);
+  assert.equal(minimumVirginiaSiteLocationCount(800), 600);
+  assert.equal(minimumVirginiaSiteLocationCount(100), 100);
+  assert.equal(minimumVirginiaSiteLocationCount(0), 300);
 });
 
 test('Virginia cold runners seed the rolling cache from the hydrated state report', () => {

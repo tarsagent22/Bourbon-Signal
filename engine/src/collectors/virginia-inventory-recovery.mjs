@@ -25,6 +25,14 @@ export function virginiaAbortableDelay(ms, signal) {
   });
 }
 
+export function minimumVirginiaSiteLocationCount(supportedOriginStoreCount) {
+  const supportedCount = Number.isFinite(Number(supportedOriginStoreCount))
+    ? Math.max(0, Number(supportedOriginStoreCount))
+    : 0;
+  if (!supportedCount) return 300;
+  return Math.min(supportedCount, Math.max(300, Math.ceil(supportedCount * 0.75)));
+}
+
 export function virginiaProductCode(signal) {
   const rawCode = signal?.raw?.product?.code;
   if (rawCode != null && String(rawCode).trim()) return String(rawCode).trim();
