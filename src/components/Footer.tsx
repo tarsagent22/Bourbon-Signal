@@ -3,6 +3,8 @@
 const footerLinks = [
   { label: "FAQ", href: "/#faq" },
   { label: "Release Radar", href: "/release-radar" },
+  { label: "Facebook", href: "https://www.facebook.com/share/g/1BTYhwxSwC/?mibextid=wwXIfr", external: true },
+  { label: "Instagram", href: "https://www.instagram.com/bourbonsignal", external: true },
   { label: "Privacy", href: "/legal/privacy" },
   { label: "Terms", href: "/legal/terms" },
   { label: "Disclaimer", href: "/legal/disclaimer" },
@@ -51,6 +53,8 @@ export default function Footer() {
               <a
                 key={link.label}
                 href={link.href}
+                target={link.external ? "_blank" : undefined}
+                rel={link.external ? "noopener noreferrer" : undefined}
                 className="transition-colors duration-300"
                 style={{
                   fontFamily: "var(--font-dm-sans)",
