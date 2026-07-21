@@ -328,9 +328,10 @@
       },
       "externalApi": {
         "classes": [
-          "brave_search"
+          "brave_search",
+          "official_nc_source_http"
         ],
-        "maxRequestsPerRun": 8
+        "maxRequestsPerRun": 40
       },
       "customerMutation": "none",
       "promotionDeployment": "none",
@@ -338,7 +339,9 @@
       "killSwitch": "cron_pause:00f56edff2e9",
       "artifacts": [
         "release_radar_lead_ledger",
-        "release_radar_scout"
+        "release_radar_scout",
+        "nc_release_radar_source_state",
+        "nc_release_radar_monitor"
       ],
       "delivery": "ops_chat"
     },

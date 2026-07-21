@@ -4,7 +4,9 @@ import { ArrowRight, ArrowUpRight } from "lucide-react";
 import { notFound } from "next/navigation";
 import { JsonLd, RadarNav } from "@/components/release-radar/RadarPrimitives";
 import { RadarEntryActions } from "@/components/release-radar/RadarEntryActions";
-import { getRadarEntryByPath, radarEntries, radarPath, radarPathKinds, stateGuides } from "@/lib/release-radar";
+import { getRadarDisplayStatus, getRadarEntryByPath, radarEntries, radarPath, radarPathKinds, stateGuides } from "@/lib/release-radar";
+
+export const revalidate = 3600;
 
 export function generateStaticParams() {
   return radarEntries.map((entry) => {
@@ -32,6 +34,7 @@ export default async function RadarDetailPage({ params }: { params: Promise<{ ki
   if (!radarPathKinds().includes(kind)) notFound();
   const entry = getRadarEntryByPath(kind, slug);
   if (!entry) notFound();
+  const displayStatus = getRadarDisplayStatus(entry, new Date().toISOString().slice(0, 10));
   const canonical = `https://www.bourbonsignal.com${radarPath(entry)}`;
   const isScheduled = Boolean(entry.calendar) && (entry.kind === "event" || entry.kind === "lottery" || Boolean(entry.schemaStartDate) || Boolean(entry.occurrences?.some((occurrence) => occurrence.schemaStartDate)));
   const scheduledOccurrences = entry.occurrences || entry.occurrenceDates?.map((date) => ({ date, label: date, schemaStartDate: undefined, schemaEndDate: undefined }));
@@ -83,7 +86,7 @@ export default async function RadarDetailPage({ params }: { params: Promise<{ ki
           <div className="radar-breadcrumbs"><Link href="/">Bourbon Signal</Link><span>/</span><Link href="/release-radar">Release Radar</Link><span>/</span><span>{entry.eyebrow}</span></div>
           <div className="radar-detail__hero">
             <div>
-              <p className="radar-detail__eyebrow"><span className={`radar-status radar-status--${entry.status}`}>{entry.status}</span> {entry.eyebrow}</p>
+              <p className="radar-detail__eyebrow"><span className={`radar-status radar-status--${displayStatus}`}>{displayStatus}</span> {entry.eyebrow}</p>
               <h1>{entry.title}</h1>
               <p className="radar-detail__dek">{entry.dek}</p>
               <p className="radar-detail__source-note">{entry.verificationStatus === "official" ? "Official source" : "Source verified"} · Announcement only · Last checked {entry.updatedAt}</p>

@@ -107,6 +107,25 @@ def release_radar_change_summary(payload: dict) -> str | None:
     )
 
 
+def nc_radar_change_summary(payload: dict) -> str | None:
+    summary = payload.get("summary") if isinstance(payload, dict) else {}
+    summary = summary if isinstance(summary, dict) else {}
+    changed = int(summary.get("materiallyChanged") or 0)
+    failures = int(summary.get("reviewFailures") or 0)
+    expired = int(summary.get("newlyExpired") or 0)
+    if changed <= 0 and failures <= 0 and expired <= 0:
+        return None
+    parts = []
+    if changed:
+        parts.append(f"{changed} official source change{'s' if changed != 1 else ''}")
+    if failures:
+        parts.append(f"{failures} repeated source failure{'s' if failures != 1 else ''}")
+    if expired:
+        parts.append(f"{expired} newly closed opportunit{'ies' if expired != 1 else 'y'}")
+    queued = int(summary.get("queuedForSemanticReview") or 0)
+    return f"NC Release Radar monitor: {', '.join(parts)} ({queued} queued for review); nothing was auto-published or alerted."
+
+
 def failure_summary(stderr: str | None, stdout: str | None, fallback: str = "unknown error") -> str:
     lines = [line.strip() for line in f"{stderr or ''}\n{stdout or ''}".splitlines() if line.strip()]
     useful = [

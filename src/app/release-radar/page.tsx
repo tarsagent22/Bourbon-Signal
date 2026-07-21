@@ -6,6 +6,8 @@ import { RadarCalendarDownload } from "@/components/release-radar/RadarCalendarD
 import { radarEntries, radarPath, releaseRadarUpdatedAt } from "@/lib/release-radar";
 import { getInitialRadarMonth } from "@/lib/release-radar-calendar";
 
+export const revalidate = 3600;
+
 export default function ReleaseRadarPage() {
   const calendarEntries = radarEntries.filter((entry) => entry.calendar === true || entry.kind === "bottle" || entry.status === "watch").sort((a, b) => a.startDate.localeCompare(b.startDate));
   const checked = releaseRadarUpdatedAt;

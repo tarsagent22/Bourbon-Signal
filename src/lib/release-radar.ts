@@ -907,6 +907,25 @@ export function getUpcomingEntries(fromDate: string) {
     .sort((a, b) => a.startDate.localeCompare(b.startDate));
 }
 
+function latestOpportunityDate(entry: RadarEntry) {
+  const occurrenceDates = entry.occurrences?.map((occurrence) => occurrence.date) || entry.occurrenceDates || [];
+  const candidates = [...occurrenceDates, entry.endDate, entry.startDate]
+    .filter((date): date is string => /^\d{4}-\d{2}-\d{2}$/.test(date || ""))
+    .sort();
+  return candidates.at(-1) || null;
+}
+
+export function isRadarEntryExpired(entry: RadarEntry, today: string) {
+  if (entry.calendar !== true || (entry.kind !== "event" && entry.kind !== "lottery")) return false;
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(today)) return false;
+  const closesOn = latestOpportunityDate(entry);
+  return Boolean(closesOn && closesOn < today);
+}
+
+export function getRadarDisplayStatus(entry: RadarEntry, today: string): RadarEntry["status"] | "closed" {
+  return isRadarEntryExpired(entry, today) ? "closed" : entry.status;
+}
+
 export function getStateGuide(slug: string) {
   return stateGuides.find((guide) => guide.slug === slug);
 }

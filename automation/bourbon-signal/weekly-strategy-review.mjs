@@ -13,6 +13,7 @@ const DEFAULT_FINDING_REPORTS = [
   'weekly-engine-brief-latest.json',
   'source-roi-latest.json',
   'radar-findings-latest.json',
+  'nc-release-radar-monitor-latest.json',
 ].map((file) => path.join(REPORT_DIR, file));
 
 export async function generateWeeklyStrategyReview(argv = process.argv.slice(2)) {

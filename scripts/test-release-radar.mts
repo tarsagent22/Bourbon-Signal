@@ -8,6 +8,8 @@ import {
   getUpcomingEntries,
   getEntriesByKind,
   getStateGuide,
+  getRadarDisplayStatus,
+  isRadarEntryExpired,
   releaseRadarUpdatedAt,
 } from "../src/lib/release-radar.ts";
 import { getAgendaOccurrences, getCalendarOccurrences, getInitialRadarMonth, isValidMonth } from "../src/lib/release-radar-calendar.ts";
@@ -67,6 +69,11 @@ assert.equal(durhamLottery?.calendar, false, "an undated Durham seasonal lottery
 assert.equal(durhamLottery?.datePrecision, "window");
 assert.equal(mecklenburgLottery?.calendar, false, "Mecklenburg's standing lottery program must not invent a 2026 event date");
 assert.equal(mecklenburgLottery?.datePrecision, "window");
+assert.equal(isRadarEntryExpired(lottery!, "2026-07-16"), false, "an opportunity remains active through its official closing date");
+assert.equal(isRadarEntryExpired(lottery!, "2026-07-17"), true, "a closed lottery must expire automatically after its official end date");
+assert.equal(getRadarDisplayStatus(lottery!, "2026-07-17"), "closed", "expired opportunities must not keep an upcoming label");
+assert.equal(isRadarEntryExpired(durhamLottery!, "2027-01-01"), false, "standing undated watch programs remain reviewable rather than receiving a fabricated expiry");
+assert.equal(isRadarEntryExpired(lagunaMadre!, "2027-01-01"), false, "release announcements are historical intelligence, not expiring entry opportunities");
 assert.ok(expandedReleaseWindows.every((entry) => entry?.status === "watch"), "source-backed broad releases must appear in the main Release windows deck without inventing calendar dates");
 assert.ok([...expandedReleaseWindows, durhamLottery, mecklenburgLottery].every((entry) => /^\d{4}(?:-\d{2})?$/.test(entry?.startDate || "")), "new window-only records may carry year or month precision but must not fabricate day-level dates");
 assert.ok([caryFestival, ncBourbonFestival, charlotteWhiskeyWineFire, greensboroStoreTasting, durhamLottery, mecklenburgLottery]
