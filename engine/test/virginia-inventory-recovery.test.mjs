@@ -6,6 +6,7 @@ import {
   applyVirginiaInventoryFreshness,
   evaluateVirginiaProductCoverage,
   mergeVirginiaProductPartitions,
+  seedVirginiaInventoryCacheSignals,
   selectVirginiaProductsForRefresh,
   summarizeVirginiaProductErrors,
   virginiaAbortableDelay
@@ -62,6 +63,36 @@ test('Virginia cold bootstrap always includes verifier-required products', () =>
   const selected = selectVirginiaProductsForRefresh(products, [], Date.now(), { maxProducts: 12 });
   assert.equal(selected.length, 12);
   assert.ok(selected.some((product) => product.code === 'buffalo-trace'));
+});
+
+test('Virginia cold runners seed the rolling cache from the hydrated state report', () => {
+  const seeded = seedVirginiaInventoryCacheSignals({
+    finishedAt: '2026-07-20T22:52:41.174Z',
+    signals: [
+      {
+        ...signal('A', '101', '2026-07-19T20:00:00.000Z', 3),
+        state: 'VA',
+        sourceRuntimeId: 'precision:va',
+        locationPrecision: 'store_level',
+        stale: true,
+        staleReason: 'retained fallback',
+        alertable: false,
+        canAlertAsInventory: false,
+        raw: { product: { code: 'A' }, staleFallback: true, staleFallbackAt: '2026-07-20T22:52:41.174Z' }
+      },
+      { ...signal('B', '101', '2026-07-19T20:00:00.000Z'), state: 'NC', sourceRuntimeId: 'precision:nc', locationPrecision: 'store_level' },
+      { state: 'VA', sourceRuntimeId: 'precision:va', eventType: 'policy_signal', locationPrecision: 'statewide_catalog' }
+    ]
+  });
+
+  assert.equal(seeded.generatedAt, '2026-07-20T22:52:41.174Z');
+  assert.equal(seeded.signals.length, 1);
+  assert.equal(seeded.signals[0].canAlertAsInventory, false);
+  assert.equal(seeded.signals[0].canAlertAsWatch, false);
+  assert.equal(seeded.signals[0].stale, true);
+  assert.equal(seeded.signals[0].sourceStale, true);
+  assert.equal(seeded.signals[0].alertable, false);
+  assert.equal(seeded.signals[0].raw.staleFallback, true);
 });
 
 test('Virginia product partitions replace only complete successful live products', () => {
@@ -147,6 +178,7 @@ test('Virginia collector continuously refreshes bounded product shards instead o
   assert.match(collectorSource, /recoveryBacklogProductCodes\.size\s*>\s*VIRGINIA_PRODUCTS_PER_RUN/);
   assert.match(collectorSource, /missingCachedProductCodes/);
   assert.match(collectorSource, /supportedCachedSignals/);
+  assert.match(collectorSource, /seedVirginiaInventoryCacheSignals\(/);
   assert.match(collectorSource, /cacheNeedsSanitization/);
   assert.match(collectorSource, /sharedRateLimitState/);
   assert.match(collectorSource, /retryAfter:\s*res\.headers\.get\('retry-after'\)/);
@@ -168,12 +200,20 @@ test('Virginia verifier blocks stale alertable rows and incomplete regular-produ
   assert.match(verifierSource, /expiredInventorySignals/);
 });
 
-test('production refresh runs the Virginia recovery verifier before snapshot publication', async () => {
+test('production refresh isolates an explicitly stale Virginia lane without weakening targeted recovery', async () => {
   const workflow = await readFile(new URL('../../.github/workflows/refresh-feed.yml', import.meta.url), 'utf8');
+  const verifier = await readFile(new URL('../src/verify-va.mjs', import.meta.url), 'utf8');
   const verifyIndex = workflow.indexOf('npm run verify:va');
   const publishIndex = workflow.indexOf('Publish and atomically activate encrypted snapshot');
   assert.ok(verifyIndex >= 0, 'refresh workflow must run verify:va');
   assert.ok(publishIndex > verifyIndex, 'Virginia verification must precede publication');
+  assert.match(workflow, /npm run verify:va -- --allow-safe-stale-fallback/);
+  assert.match(workflow, /inputs\.states && contains\(inputs\.states, 'VA'\)[^]*run: npm run verify:va/);
+  assert.match(verifier, /allow-safe-stale-fallback/);
+  assert.match(verifier, /\^stale_/);
+  assert.match(verifier, /stateAlertableSignals/);
+  assert.match(verifier, /alertableDrops/);
+  assert.match(verifier, /eligibleAlertCandidates/);
   assert.match(workflow, /uses:\s*actions\/cache\/restore@v4/);
   assert.match(workflow, /if:\s*always\(\)[^]*uses:\s*actions\/cache\/save@v4/);
   assert.match(workflow, /inventory-collector-state-/);

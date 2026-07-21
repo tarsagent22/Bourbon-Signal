@@ -53,6 +53,7 @@ import {
   applyVirginiaInventoryFreshness,
   evaluateVirginiaProductCoverage,
   mergeVirginiaProductPartitions,
+  seedVirginiaInventoryCacheSignals,
   selectVirginiaProductsForRefresh,
   summarizeVirginiaProductErrors,
   throwIfVirginiaAborted,
@@ -1191,10 +1192,18 @@ function sleep(ms) { return new Promise((resolve) => setTimeout(resolve, ms)); }
 async function readCachedVirginiaSignals() {
   try {
     const cached = JSON.parse(await readFile(VIRGINIA_CACHE_PATH, 'utf8'));
-    return cached && Array.isArray(cached.signals) ? cached : { signals: [] };
+    if (cached && Array.isArray(cached.signals) && cached.signals.length) return cached;
   } catch {
-    return { signals: [] };
+    // A cold hosted runner has no rolling cache; hydrate from the last trusted state report below.
   }
+  try {
+    const stateReport = JSON.parse(await readFile('out/states/VA.json', 'utf8'));
+    const seeded = seedVirginiaInventoryCacheSignals(stateReport);
+    if (seeded.signals.length) return seeded;
+  } catch {
+    // A genuinely new state has neither a rolling cache nor a hydrated report.
+  }
+  return { signals: [] };
 }
 
 async function writeCachedVirginiaSignals(signals, signal) {

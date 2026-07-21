@@ -39,6 +39,12 @@ test('attempted fallback states retain their last published drops', () => {
     fallbackStateIds: ['TN'],
   });
   assert.deepEqual(merged.map((drop) => drop.id), ['tn-old', 'il-old']);
+  const fallback = merged.find((drop) => drop.id === 'tn-old');
+  assert.equal(fallback.stale, true);
+  assert.equal(fallback.sourceStale, true);
+  assert.equal(fallback.alertable, false);
+  assert.equal(fallback.canAlertAsInventory, false);
+  assert.equal(fallback.canAlertAsWatch, false);
 });
 
 test('full refresh never retains rows solely from the previous contract', () => {

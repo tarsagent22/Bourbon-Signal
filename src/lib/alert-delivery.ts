@@ -5,7 +5,7 @@ import { ALERT_FROM, ALERT_REPLY_TO, getResendClient } from "@/lib/email-alerts"
 import { isPaidTier } from "@/lib/entitlements";
 import { buildAlertId, normalizeNotificationPreferences, type EmailAlertMode, type MemberAlertRecord, type SmsAlertMode } from "@/lib/notification-preferences";
 import { readSiteExport, readSiteExportResult } from "@/lib/site-engine-contract";
-import { evaluateAlertSnapshotSafety } from "@/lib/alert-run-safety";
+import { alertFreshnessIsDeliverable, evaluateAlertSnapshotSafety, resolveAlertFreshnessCapHours, signalFreshnessHoursAt } from "@/lib/alert-run-safety";
 import { ACTIVE_ENGINE_STATE_CODES, getActiveEngineStateName } from "@/lib/activeStates";
 import { locationMatchesAny, normalizeStateCodeParam } from "@/lib/location-normalization";
 import { formatSmsAlert } from "@/lib/sms-alert-copy";
@@ -77,9 +77,9 @@ const ALERT_DELIVERY_ENABLED = process.env.ALERT_DELIVERY_ENABLED === "1";
 const ALERT_ONSITE_DELIVERY_ENABLED = ALERT_DELIVERY_ENABLED || process.env.ALERT_ONSITE_DELIVERY_ENABLED === "1";
 const ALERT_EMAIL_DELIVERY_ENABLED = ALERT_DELIVERY_ENABLED || process.env.ALERT_EMAIL_DELIVERY_ENABLED === "1";
 const ALERT_SMS_DELIVERY_ENABLED = process.env.ALERT_SMS_DELIVERY_ENABLED === "1";
-const ALERT_REALTIME_MAX_FRESHNESS_HOURS = Number(process.env.ALERT_REALTIME_MAX_FRESHNESS_HOURS || 2);
-const ALERT_EMAIL_MAX_FRESHNESS_HOURS = Number(process.env.ALERT_EMAIL_MAX_FRESHNESS_HOURS || ALERT_REALTIME_MAX_FRESHNESS_HOURS);
-const ALERT_SMS_MAX_FRESHNESS_HOURS = Number(process.env.ALERT_SMS_MAX_FRESHNESS_HOURS || ALERT_REALTIME_MAX_FRESHNESS_HOURS);
+const ALERT_REALTIME_MAX_FRESHNESS_HOURS = resolveAlertFreshnessCapHours(Number(process.env.ALERT_REALTIME_MAX_FRESHNESS_HOURS));
+const ALERT_EMAIL_MAX_FRESHNESS_HOURS = resolveAlertFreshnessCapHours(Number(process.env.ALERT_EMAIL_MAX_FRESHNESS_HOURS || ALERT_REALTIME_MAX_FRESHNESS_HOURS));
+const ALERT_SMS_MAX_FRESHNESS_HOURS = resolveAlertFreshnessCapHours(Number(process.env.ALERT_SMS_MAX_FRESHNESS_HOURS || ALERT_REALTIME_MAX_FRESHNESS_HOURS));
 const ALERT_EMAIL_ALLOWED_RECIPIENTS = toStrings(process.env.ALERT_EMAIL_ALLOWED_RECIPIENTS?.split(",")).map((email) => email.toLowerCase());
 const ALERT_SMS_ALLOWED_RECIPIENTS = toStrings(process.env.ALERT_SMS_ALLOWED_RECIPIENTS?.split(",")).map(normalizePhoneNumber).filter(Boolean);
 const ALERT_SAFE_SUBJECT_PREFIX = "fresh signal detected";
@@ -328,10 +328,14 @@ function candidateDeliveryCautions(candidate: CandidateAlert) {
   return toStrings(candidate.cautions).map((caution) => caution.toLowerCase());
 }
 
-export function candidatePassesFreshOnSiteGuardrails(candidate: CandidateAlert) {
+function candidateFreshnessHoursAtDelivery(candidate: CandidateAlert, now: string = new Date().toISOString()) {
+  return signalFreshnessHoursAt(asString(candidate.signalAt), now);
+}
+
+export function candidatePassesFreshOnSiteGuardrails(candidate: CandidateAlert, now?: string) {
   const blockers = candidateDeliveryBlockers(candidate);
   const cautions = candidateDeliveryCautions(candidate);
-  const freshnessHours = asNumber(candidate.freshnessHours, Number.NaN);
+  const freshnessHours = candidateFreshnessHoursAtDelivery(candidate, now);
 
   if (!candidateCanUseOnSite(candidate)) return false;
   if (asBoolean(candidate.bootstrap)) return false;
@@ -339,14 +343,13 @@ export function candidatePassesFreshOnSiteGuardrails(candidate: CandidateAlert) 
   if (blockers.includes("manual_refresh_quarantine")) return false;
   if (blockers.includes("stale_observation")) return false;
   if (cautions.includes("unknown_freshness")) return false;
-  if (!Number.isFinite(freshnessHours)) return false;
-  return freshnessHours <= freshnessPolicyHours(candidate, "onSite", ALERT_EMAIL_MAX_FRESHNESS_HOURS);
+  return alertFreshnessIsDeliverable(freshnessHours, freshnessPolicyHours(candidate, "onSite", ALERT_EMAIL_MAX_FRESHNESS_HOURS));
 }
 
-export function candidatePassesFreshEmailGuardrails(candidate: CandidateAlert) {
+export function candidatePassesFreshEmailGuardrails(candidate: CandidateAlert, now?: string) {
   const blockers = candidateDeliveryBlockers(candidate);
   const cautions = candidateDeliveryCautions(candidate);
-  const freshnessHours = asNumber(candidate.freshnessHours, Number.NaN);
+  const freshnessHours = candidateFreshnessHoursAtDelivery(candidate, now);
 
   if (!candidateCanSendEmail(candidate)) return false;
   if (asBoolean(candidate.bootstrap)) return false;
@@ -354,15 +357,14 @@ export function candidatePassesFreshEmailGuardrails(candidate: CandidateAlert) {
   if (blockers.includes("manual_refresh_quarantine")) return false;
   if (blockers.includes("stale_observation")) return false;
   if (cautions.includes("unknown_freshness")) return false;
-  if (!Number.isFinite(freshnessHours)) return false;
-  return freshnessHours <= freshnessPolicyHours(candidate, "email", ALERT_EMAIL_MAX_FRESHNESS_HOURS);
+  return alertFreshnessIsDeliverable(freshnessHours, freshnessPolicyHours(candidate, "email", ALERT_EMAIL_MAX_FRESHNESS_HOURS));
 }
 
-export function candidatePassesFreshSmsGuardrails(candidate: CandidateAlert) {
+export function candidatePassesFreshSmsGuardrails(candidate: CandidateAlert, now?: string) {
   if (!candidateCanSendSms(candidate)) return false;
-  if (!candidatePassesFreshEmailGuardrails(candidate)) return false;
-  const freshnessHours = asNumber(candidate.freshnessHours, Number.NaN);
-  return Number.isFinite(freshnessHours) && freshnessHours <= freshnessPolicyHours(candidate, "sms", ALERT_SMS_MAX_FRESHNESS_HOURS);
+  if (!candidatePassesFreshEmailGuardrails(candidate, now)) return false;
+  const freshnessHours = candidateFreshnessHoursAtDelivery(candidate, now);
+  return alertFreshnessIsDeliverable(freshnessHours, freshnessPolicyHours(candidate, "sms", ALERT_SMS_MAX_FRESHNESS_HOURS));
 }
 
 function candidateTimestampLabel(candidate: CandidateAlert) {
@@ -539,7 +541,11 @@ function groupCandidatesByLocation(candidates: CandidateAlert[]) {
   return Array.from(groups.entries()).map(([locationKey, rows]) => {
     const sorted = [...rows].sort(sortCandidatesForMember);
     const primary = sorted[0] || rows[0];
-    const freshnessHours = Math.min(...sorted.map((candidate) => asNumber(candidate.freshnessHours, Number.POSITIVE_INFINITY)).filter(Number.isFinite));
+    const freshnessHours = Math.max(...sorted.map((candidate) => asNumber(candidate.freshnessHours, Number.NEGATIVE_INFINITY)).filter(Number.isFinite));
+    const signalAt = sorted
+      .map((candidate) => asString(candidate.signalAt))
+      .filter(Boolean)
+      .sort((a, b) => Date.parse(a) - Date.parse(b))[0] || asString(primary.signalAt);
     const quantity = sorted.reduce((sum, candidate) => sum + (asNumber(candidate.quantity) || asNumber(candidate.warehouseQty)), 0);
     const groupDedupeKey = stableGroupedAlertDedupeKey(locationKey, sorted);
     return {
@@ -547,6 +553,7 @@ function groupCandidatesByLocation(candidates: CandidateAlert[]) {
       __groupCandidates: sorted,
       bottle: candidateBottleSummary({ __groupCandidates: sorted }),
       quantity,
+      signalAt,
       freshnessHours: Number.isFinite(freshnessHours) ? freshnessHours : primary.freshnessHours,
       dedupeKey: groupDedupeKey,
       matchKey: `location-group:${stableHash(locationKey)}`,
@@ -650,6 +657,8 @@ function normalizeMemberAlertRecord(input: unknown): MemberAlertRecord | null {
     quantity: typeof source.quantity === "number" && Number.isFinite(source.quantity) ? source.quantity : null,
     score: asNumber(source.score),
     priorityClass: source.priorityClass === "major" ? "major" : "standard",
+    signalAt: asString(source.signalAt) || undefined,
+    freshnessLimitHours: Number.isFinite(Number(source.freshnessLimitHours)) ? Number(source.freshnessLimitHours) : undefined,
     createdAt,
     readAt: asString(source.readAt) || null,
     archivedAt: asString(source.archivedAt) || null,
@@ -681,12 +690,21 @@ export function candidateToMemberAlert(userId: string, candidate: CandidateAlert
     quantity: asNumber(candidate.quantity) || asNumber(candidate.warehouseQty) || null,
     score: asNumber(candidate.reliabilityScore, asNumber(candidate.score)),
     priorityClass: candidate.priorityClass === "major" ? "major" : "standard",
+    signalAt: asString(candidate.signalAt),
+    freshnessLimitHours: freshnessPolicyHours(candidate, "onSite", ALERT_EMAIL_MAX_FRESHNESS_HOURS),
     createdAt,
     readAt: null,
     archivedAt: null,
     emailDeliveredAt: null,
     emailModeAtSend: null,
   };
+}
+
+function memberAlertPassesFinalFreshness(alert: MemberAlertRecord, now: string = new Date().toISOString()) {
+  return alertFreshnessIsDeliverable(
+    signalFreshnessHoursAt(alert.signalAt, now),
+    alert.freshnessLimitHours,
+  );
 }
 
 function deliveryAuthorized(req: Request) {
@@ -880,7 +898,7 @@ export async function deliverPreferenceAlerts(req: Request, options: {
   const candidates = (snapshotSafety.safe ? allCandidates : [])
     .filter((candidate) => asBoolean(candidate.eligibleForDelivery))
     .filter(candidateCanUseOnSite)
-    .filter(candidatePassesFreshOnSiteGuardrails)
+    .filter((candidate) => candidatePassesFreshOnSiteGuardrails(candidate))
     .sort((a, b) => asNumber(b.reliabilityScore) - asNumber(a.reliabilityScore));
 
   const summary = {
@@ -927,6 +945,9 @@ export async function deliverPreferenceAlerts(req: Request, options: {
     skippedNoEmail: 0,
     skippedDedupe: 0,
     skippedOnSiteDedupe: 0,
+    skippedFinalOnSiteFreshness: 0,
+    skippedFinalEmailFreshness: 0,
+    skippedFinalSmsFreshness: 0,
     skippedSpecificBottlePrefs: 0,
     queueMode,
     queueIntentsObserved: 0,
@@ -1000,6 +1021,17 @@ export async function deliverPreferenceAlerts(req: Request, options: {
     summary.queueFailures += 1;
   }
 
+  async function suppressStaleQueuedIntent(candidate: AlertCandidateRecord | null) {
+    if (!queueRepository || !candidate || queueMode !== "active") return;
+    await queueRepository.markFailed(
+      candidate.id,
+      createHash("sha256").update("stale_at_final_delivery_boundary").digest("hex").slice(0, 16),
+      new Date().toISOString(),
+      undefined,
+    );
+    summary.queueFailures += 1;
+  }
+
   if (!dryRun && !baselineOnSiteOnly && !baselineEmailOnly && !baselineSmsOnly && queueMode === "off" && !ALERT_ONSITE_DELIVERY_ENABLED && !ALERT_EMAIL_DELIVERY_ENABLED && !ALERT_SMS_DELIVERY_ENABLED) {
     return {
       ...summary,
@@ -1057,6 +1089,15 @@ export async function deliverPreferenceAlerts(req: Request, options: {
 
       let newOnSiteAlerts: MemberAlertRecord[] = [];
       let onSiteQueueCandidates: AlertCandidateRecord[] = [];
+      const pruneStaleOnSiteAlerts = async () => {
+        const freshAlerts = newOnSiteAlerts.filter((alert) => memberAlertPassesFinalFreshness(alert));
+        const freshAlertIds = new Set(freshAlerts.map((alert) => alert.id));
+        const staleQueueCandidates = onSiteQueueCandidates.filter((candidate) => !freshAlertIds.has(asString(candidate.payload?.alertId)));
+        for (const queuedCandidate of staleQueueCandidates) await suppressStaleQueuedIntent(queuedCandidate);
+        summary.skippedFinalOnSiteFreshness += newOnSiteAlerts.length - freshAlerts.length;
+        newOnSiteAlerts = freshAlerts;
+        onSiteQueueCandidates = onSiteQueueCandidates.filter((candidate) => freshAlertIds.has(asString(candidate.payload?.alertId)));
+      };
       const alertInbox = normalizeAlertInboxMetadata(privateMetadata.alertInbox);
       if (baselineOnSiteOnly) {
         const baselineDedupeKeys = uniqueStrings(matchingPreferenceCandidates.map((candidate) => asString(candidate.dedupeKey, asString(candidate.id))).filter(Boolean));
@@ -1088,6 +1129,7 @@ export async function deliverPreferenceAlerts(req: Request, options: {
         const existingOnSiteDedupe = new Set((alertInbox.recent || []).map((alert) => alert.dedupeKey));
         const onSiteBaseline = new Set(deliveryMetadata.onSiteBaselineDedupeKeys || []);
         const draftOnSiteAlerts = matchingPreferenceCandidates
+          .filter((candidate) => candidatePassesFreshOnSiteGuardrails(candidate))
           .filter((candidate) => {
             const dedupeKey = asString(candidate.dedupeKey, asString(candidate.id));
             const duplicate = existingOnSiteDedupe.has(dedupeKey) || onSiteBaseline.has(dedupeKey);
@@ -1127,7 +1169,7 @@ export async function deliverPreferenceAlerts(req: Request, options: {
         } else if (!emailRecipientAllowed(email)) {
           summary.skippedEmailRecipientNotAllowed += matchingPreferenceCandidates.length;
         } else {
-          const emailModeCandidates = matchingPreferenceCandidates.filter(candidatePassesFreshEmailGuardrails).filter((candidate) => candidateMatchesEmailMode(candidate, notificationPrefs.email.mode));
+          const emailModeCandidates = matchingPreferenceCandidates.filter((candidate) => candidatePassesFreshEmailGuardrails(candidate)).filter((candidate) => candidateMatchesEmailMode(candidate, notificationPrefs.email.mode));
           if (baselineEmailOnly) {
             const baselineDedupeKeys = uniqueStrings(emailModeCandidates.map((candidate) => asString(candidate.dedupeKey, asString(candidate.id))).filter(Boolean));
             summary.emailBaselinesCreated += baselineDedupeKeys.length;
@@ -1183,6 +1225,11 @@ export async function deliverPreferenceAlerts(req: Request, options: {
             });
             if (reservation && reservation.reason !== "shadow_enqueued" && !reservation.claimed) continue;
             const queuedCandidate = reservation?.claimed ? reservation.candidate : null;
+            if (!candidatePassesFreshEmailGuardrails(candidate)) {
+              summary.skippedFinalEmailFreshness += 1;
+              await suppressStaleQueuedIntent(queuedCandidate);
+              continue;
+            }
 
             try {
               let messageId: string | null = null;
@@ -1247,7 +1294,7 @@ export async function deliverPreferenceAlerts(req: Request, options: {
       } else if (notificationPrefs.sms.enabled && !baselineEmailOnly) {
         const phone = normalizePhoneNumber(notificationPrefs.sms.phone || "");
         const smsCandidates = matchingPreferenceCandidates
-          .filter(candidatePassesFreshSmsGuardrails)
+          .filter((candidate) => candidatePassesFreshSmsGuardrails(candidate))
           .filter((candidate) => candidateMatchesSmsMode(candidate, notificationPrefs.sms.mode, bottlePrefs));
 
         if (!phone) {
@@ -1307,6 +1354,11 @@ export async function deliverPreferenceAlerts(req: Request, options: {
             });
             if (reservation && reservation.reason !== "shadow_enqueued" && !reservation.claimed) continue;
             const queuedCandidate = reservation?.claimed ? reservation.candidate : null;
+            if (!candidatePassesFreshSmsGuardrails(candidate)) {
+              summary.skippedFinalSmsFreshness += 1;
+              await suppressStaleQueuedIntent(queuedCandidate);
+              continue;
+            }
             try {
               let messageId: string | null = null;
               let status: string | null = null;
@@ -1332,6 +1384,7 @@ export async function deliverPreferenceAlerts(req: Request, options: {
         }
       }
 
+      await pruneStaleOnSiteAlerts();
       if ((newRecords.length || newOnSiteAlerts.length) && !dryRun) {
         const nextRecent = [...newRecords, ...(deliveryMetadata.recent || [])]
           .filter((record, index, rows) => rows.findIndex((item) => item.dedupeKey === record.dedupeKey && (item.channel || "email") === (record.channel || "email")) === index)
@@ -1379,6 +1432,7 @@ export async function deliverPreferenceAlerts(req: Request, options: {
         }
 
         let createdRealAlert = newRecords.length > 0;
+        await pruneStaleOnSiteAlerts();
         if (newOnSiteAlerts.length) {
           let onSiteInboxWritten = false;
           const nextOnSiteAlerts = [...newOnSiteAlerts, ...(alertInbox.recent || [])]
@@ -1399,6 +1453,8 @@ export async function deliverPreferenceAlerts(req: Request, options: {
           } catch (error) {
             const primaryError = error instanceof Error ? error.message : String(error);
             try {
+              await pruneStaleOnSiteAlerts();
+              if (!newOnSiteAlerts.length) throw new Error("all on-site alerts became stale before compaction retry");
               // Clerk rejects oversized/legacy-shaped private metadata with 422s. Do not let a stale
               // historical inbox block the current alert; retry with a compact inbox containing only
               // freshly-created records, still deduped by the candidate key.

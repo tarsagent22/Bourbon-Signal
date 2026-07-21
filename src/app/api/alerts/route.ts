@@ -96,7 +96,7 @@ export async function POST(req: NextRequest) {
   const candidates = (await readCandidates())
     .filter((candidate) => asBoolean(candidate.eligibleForDelivery))
     .filter(candidateCanUseOnSite)
-    .filter(candidatePassesFreshOnSiteGuardrails)
+    .filter((candidate) => candidatePassesFreshOnSiteGuardrails(candidate))
     .filter((candidate) => candidateMatchesArea(candidate, areaPrefs))
     .filter((candidate) => candidateMatchesBottlePrefs(candidate, alertMode, bottlePrefs))
     .sort((a, b) => asNumber(b.reliabilityScore) - asNumber(a.reliabilityScore));

@@ -31,6 +31,33 @@ export function virginiaProductCode(signal) {
   return String(signal?.sourceUrl || '').match(/[?&]productCode=([^&]+)/)?.[1] || null;
 }
 
+export function seedVirginiaInventoryCacheSignals(stateReport) {
+  const signals = (stateReport?.signals || [])
+    .filter((signal) => signal?.state === 'VA'
+      && signal?.sourceRuntimeId === 'precision:va'
+      && signal?.locationPrecision === 'store_level'
+      && signal?.storeId
+      && virginiaProductCode(signal))
+    .map((signal) => ({
+      ...signal,
+      stale: true,
+      sourceStale: true,
+      staleSourceCaveat: true,
+      alertable: false,
+      canAlertAsInventory: false,
+      canAlertAsWatch: false,
+      raw: {
+        ...(signal.raw || {}),
+        staleFallback: true,
+        staleReason: signal.staleReason || signal.raw?.staleReason || stateReport?.staleReason || 'state_report_cache_seed'
+      }
+    }));
+  return {
+    generatedAt: stateReport?.finishedAt || stateReport?.generatedAt || null,
+    signals
+  };
+}
+
 export function selectVirginiaProductsForRefresh(products, cachedSignals, nowMs = Date.now(), options = {}) {
   const maxProducts = Math.max(1, Number(options.maxProducts || 8));
   const regularIntervalMs = Math.max(1, Number(options.regularIntervalMs || 2 * 60 * 60_000));

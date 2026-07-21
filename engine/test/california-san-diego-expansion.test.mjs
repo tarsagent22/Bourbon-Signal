@@ -317,4 +317,14 @@ test('current inventory alert projection uses the current snapshot rather than h
     /const currentInventoryAlertCandidates = buildCurrentInventoryAlertsFromDrops\(alertableCurrentDrops\);/,
     'fresh non-fallback current inventory must drive baseline on-site candidates',
   );
+  assert.match(
+    exporter,
+    /signalAt: dropSignalAt\(drop\)/,
+    'alert candidates must carry the canonical signal timestamp into final delivery checks',
+  );
+  assert.match(
+    exporter,
+    /usesSourceEventTime[\s\S]*?sourceEventAt \|\| drop\?\.eventAt \|\| drop\?\.displayAt/,
+    'shipment and release alerts must age from their source event instead of a later crawler refresh',
+  );
 });

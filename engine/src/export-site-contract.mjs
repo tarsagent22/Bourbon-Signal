@@ -994,12 +994,12 @@ function alertActionabilityClass(candidate) {
 
 function maxFreshnessForActionability(actionabilityClass, channel) {
   const table = {
-    store_inventory: { onSite: 2, email: 2, sms: 2 },
-    store_delivery_lead: { onSite: 2, email: 2, sms: 2 },
-    board_or_county_lead: { onSite: 2, email: 2, sms: 2 },
-    distillery_release_watch: { onSite: 24, email: 24, sms: 4 },
-    retailer_warehouse_watch: { onSite: 2, email: 2, sms: 2 },
-    aggregate_watch: { onSite: 24, email: 0, sms: 0 },
+    store_inventory: { onSite: 1, email: 1, sms: 1 },
+    store_delivery_lead: { onSite: 1, email: 1, sms: 1 },
+    board_or_county_lead: { onSite: 1, email: 1, sms: 1 },
+    distillery_release_watch: { onSite: 1, email: 1, sms: 1 },
+    retailer_warehouse_watch: { onSite: 1, email: 1, sms: 1 },
+    aggregate_watch: { onSite: 1, email: 0, sms: 0 },
     context_only: { onSite: 0, email: 0, sms: 0 }
   };
   return table[actionabilityClass]?.[channel] || 0;
@@ -1082,6 +1082,7 @@ function buildAlerts(alerts) {
     priorityClass: c.priorityClass || 'hold',
     deliveryChannel: c.deliveryChannel || 'review_only',
     sendRecommendation: c.sendRecommendation || 'review_before_send',
+    signalAt: c.signalAt || null,
     freshnessHours: c.freshnessHours ?? null,
     bootstrap: Boolean(c.bootstrap),
     changeType: c.changeType || null,
@@ -1178,9 +1179,16 @@ function capAlertCandidatesByState(candidates, limit = 200, perStateCap = 50) {
   return selected.sort(alertCandidateSort);
 }
 
-function dropAgeHours(drop) {
-  const observed = Date.parse(drop?.observedAt || drop?.lastConfirmedAt || drop?.displayAt || drop?.firstSeenAt || 0);
-  return Number.isFinite(observed) ? Math.max(0, (Date.now() - observed) / (60 * 60 * 1000)) : Infinity;
+function dropSignalAt(drop) {
+  const usesSourceEventTime = /shipment|delivery|release|lottery|drawing|allocation/i.test(String(drop?.type || drop?.eventType || ''));
+  return usesSourceEventTime
+    ? (drop?.sourceEventAt || drop?.eventAt || drop?.displayAt || drop?.observedAt || drop?.lastConfirmedAt || drop?.firstSeenAt || null)
+    : (drop?.observedAt || drop?.lastConfirmedAt || drop?.displayAt || drop?.firstSeenAt || null);
+}
+
+function dropAgeHours(drop, nowMs = Date.now()) {
+  const observed = Date.parse(dropSignalAt(drop) || 0);
+  return Number.isFinite(observed) ? Math.max(0, (nowMs - observed) / (60 * 60 * 1000)) : Infinity;
 }
 
 function signalAgeHours(signal) {
@@ -1232,7 +1240,8 @@ function buildCurrentInventoryAlertsFromDrops(drops) {
       priorityClass: drop.tier === 'limited' ? 'standard' : 'major',
       deliveryChannel: 'onsite_candidate',
       sendRecommendation: drop.state === 'CA' ? 'display_on_site_until_change_detected' : 'send_to_matching_testers',
-      freshnessHours: Number(dropAgeHours(drop).toFixed(1)),
+      signalAt: dropSignalAt(drop),
+      freshnessHours: Number(dropAgeHours(drop).toFixed(2)),
       bootstrap: false,
       changeType: 'current_inventory_signal',
       dedupeKey: stableId(['current_inventory_alert', drop.state, drop.canonicalId || drop.bottleName, drop.storeId || drop.locationName, drop.availabilityStatus || '', drop.quantity || 0]),
@@ -1293,7 +1302,8 @@ function buildRegionalWatchAlertsFromDrops(drops) {
       priorityClass: drop.tier === 'limited' ? 'standard' : 'major',
       deliveryChannel: 'watch_candidate',
       sendRecommendation: 'send_to_matching_testers',
-      freshnessHours: Number(dropAgeHours(drop).toFixed(1)),
+      signalAt: dropSignalAt(drop),
+      freshnessHours: Number(dropAgeHours(drop).toFixed(2)),
       bootstrap: false,
       changeType: 'current_regional_watch_signal',
       dedupeKey: stableId(['regional_watch_alert', drop.state, drop.canonicalId || drop.bottleName, drop.locationPrecision, drop.locationName, drop.quantity || 0, drop.warehouseQty || 0]),
