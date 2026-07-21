@@ -2,6 +2,7 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { selectVerificationStates } from './production-verification-scope.mjs';
+import { isDropExpectedInLiveFeed, parseLiveDropTotal } from './production-regression-drop-policy.mjs';
 
 const ROOT = process.cwd();
 const BASE_URL = process.env.BOURBON_SIGNAL_LIVE_BASE_URL || 'https://www.bourbonsignal.com';
@@ -36,10 +37,11 @@ function activeStates() {
   const cfg = readJson('src/config/state-lifecycle.json', {});
   return (cfg.activeStates || []).filter((state) => cfg.states?.[state]?.publicStatus === 'active');
 }
-function localDropsByState() {
+function localDropsByState(nowMs = Date.now()) {
   const payload = readJson('engine/out/site/drops.json', { drops: [] });
   const map = new Map();
   for (const drop of payload.drops || []) {
+    if (!isDropExpectedInLiveFeed(drop, nowMs)) continue;
     const state = String(drop.state || '').toUpperCase();
     if (!state) continue;
     map.set(state, (map.get(state) || 0) + 1);
@@ -81,13 +83,17 @@ async function main() {
   for (const state of states) {
     const localTotal = localDropMap.get(state) || 0;
     const res = await getJson(`/api/drops?state=${encodeURIComponent(state)}&limit=1`);
-    const liveTotal = Number(res.json?.total || 0);
+    const liveTotal = parseLiveDropTotal(res.json?.total);
     checkedStates.push({ state, localTotal, liveTotal, status: res.status });
     if (!res.ok || !res.json) {
       fail(`${state}: /api/drops failed with status ${res.status}.`);
       continue;
     }
-    if (localTotal >= ABS_DROP_FLOOR && liveTotal === 0) fail(`${state}: live drops collapsed to 0 from local ${localTotal}.`);
+    if (liveTotal === null) {
+      fail(`${state}: /api/drops returned an invalid total.`);
+      continue;
+    }
+    if (localTotal > 0 && liveTotal === 0) fail(`${state}: live drops collapsed to 0 from local ${localTotal}.`);
     else if (localTotal >= 20 && liveTotal < Math.floor(localTotal * MIN_RATIO)) {
       fail(`${state}: live drops ${liveTotal} below ${Math.floor(localTotal * MIN_RATIO)} (${Math.round(MIN_RATIO * 100)}% of local ${localTotal}).`);
     }
