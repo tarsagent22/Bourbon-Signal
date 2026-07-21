@@ -1,3 +1,5 @@
+import { radarExpansionSeeds } from "./release-radar-expansion.ts";
+
 export type RadarKind = "release" | "lottery" | "event" | "bottle";
 export type RadarVerificationStatus = "official" | "verified";
 export type RadarDatePrecision = "exact" | "window";
@@ -19,12 +21,19 @@ export interface RadarRelationship {
   relationship: "related" | "same_series";
 }
 
-export const releaseRadarUpdatedAt = "2026-07-18";
+export interface RadarOccurrence {
+  date: string;
+  label: string;
+  schemaStartDate?: string;
+  schemaEndDate?: string;
+}
+
+export const releaseRadarUpdatedAt = "2026-07-21";
 
 export interface RadarSource {
   label: string;
   url: string;
-  type: "official" | "state";
+  type: "official" | "state" | "press";
 }
 
 export interface RadarEntry {
@@ -39,6 +48,7 @@ export interface RadarEntry {
   schemaStartDate?: string;
   schemaEndDate?: string;
   occurrenceDates?: string[];
+  occurrences?: RadarOccurrence[];
   dateLabel: string;
   status: "announced" | "open" | "upcoming" | "releasing" | "watch";
   states: string[];
@@ -65,7 +75,7 @@ export interface RadarEntry {
   sources: RadarSource[];
 }
 
-type RadarEntrySeed = Omit<RadarEntry,
+export type RadarEntrySeed = Omit<RadarEntry,
   "datePrecision" |
   "verificationStatus" |
   "availabilitySemantics" |
@@ -573,6 +583,8 @@ const STATE_MARKETS: Record<string, RadarMarket> = {
   Pennsylvania: { code: "PA", label: "Pennsylvania", scope: "state" },
   Virginia: { code: "VA", label: "Virginia", scope: "state" },
   Alabama: { code: "AL", label: "Alabama", scope: "state" },
+  "North Carolina": { code: "NC", label: "North Carolina", scope: "state" },
+  Texas: { code: "TX", label: "Texas", scope: "state" },
   Nationwide: { code: "US", label: "Nationwide", scope: "national" },
 };
 
@@ -638,7 +650,7 @@ const VERIFIED_ENTRY_SLUGS = new Set([
   "kentucky-bourbon-festival-2026",
 ]);
 
-export const radarEntries: RadarEntry[] = radarEntrySeeds.map((entry) => {
+export const radarEntries: RadarEntry[] = [...radarEntrySeeds, ...radarExpansionSeeds].map((entry) => {
   const bottleRelations = CANONICAL_BOTTLES[entry.slug] || [];
   return {
     ...entry,
@@ -689,7 +701,7 @@ export const stateGuides: StateGuide[] = [
     title: "North Carolina ABC bourbon releases, lotteries & allocated bottles",
     dek: "A practical guide to North Carolina's local ABC boards, bourbon lotteries, release events, inventory clues, and the difference between a board shipment and a bottle you can actually buy.",
     model: "Control state · Independent local ABC boards",
-    updatedAt: "2026-07-18",
+    updatedAt: "2026-07-21",
     quickFacts: [
       { label: "System", value: "State control with independent local boards" },
       { label: "Release playbook", value: "Varies by board" },
@@ -755,8 +767,8 @@ export const stateGuides: StateGuide[] = [
       {
         name: "Greensboro ABC",
         area: "Greensboro",
-        releaseMethods: ["Periodic drawings", "Special events"],
-        guidance: "Greensboro describes its lottery as a drawing for a place in line to purchase rare products. A winning position is a purchase opportunity, not a free bottle or a guarantee of a particular first choice.",
+        releaseMethods: ["Periodic drawings", "Special events", "Store tastings"],
+        guidance: "Greensboro publishes exact store tasting dates, times, products, and age requirements on its events calendar. Its separate lottery is a drawing for a place in line to purchase rare products, not a free bottle or a guaranteed first choice.",
         sourceUrl: "https://www.greensboroabc.com/greensboro-abc-lottery/",
       },
       {
@@ -807,6 +819,7 @@ export const stateGuides: StateGuide[] = [
       { label: "Wake County inventory search", url: "https://wakeabc.com/search-our-inventory/", type: "state" },
       { label: "Durham bourbon programs", url: "https://www.durhamabc.com/bourbon", type: "state" },
       { label: "Greensboro ABC lottery", url: "https://www.greensboroabc.com/greensboro-abc-lottery/", type: "state" },
+      { label: "Greensboro ABC events", url: "https://www.greensboroabc.com/about/events/", type: "state" },
       { label: "New Hanover County allocated products", url: "https://www.newhanovercountyabc.com/special-order-items/", type: "state" },
       { label: "Triad ABC store services", url: "https://triadabc.org/store-services/", type: "state" },
     ],

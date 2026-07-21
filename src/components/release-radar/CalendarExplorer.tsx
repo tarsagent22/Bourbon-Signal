@@ -52,7 +52,14 @@ function statusLabel(entry: RadarEntry) {
 }
 
 function sourceType(entry: RadarEntry) {
-  return entry.sources[0]?.type === "state" ? "State source" : "Official source";
+  if (entry.sources[0]?.type === "state") return "State source";
+  if (entry.sources[0]?.type === "press") return "Press source";
+  return "Official source";
+}
+
+function watchMatchesMonth(entry: RadarEntry, month: string) {
+  if (/^\d{4}$/.test(entry.startDate)) return entry.startDate === month.slice(0, 4);
+  return entry.startDate.slice(0, 7) === month;
 }
 
 export function CalendarExplorer({ entries, initialMonth, today }: { entries: RadarEntry[]; initialMonth: string; today: string }) {
@@ -105,7 +112,7 @@ export function CalendarExplorer({ entries, initialMonth, today }: { entries: Ra
     }), [matchingEntries, month, today]);
 
   const watchEntries = useMemo(() => matchingEntries
-    .filter((entry) => entry.calendar !== true && (entry.kind === "release" || entry.kind === "bottle") && entry.startDate.startsWith(`${month}-`)), [matchingEntries, month]);
+    .filter((entry) => entry.calendar !== true && (entry.kind === "release" || entry.kind === "bottle" || entry.kind === "lottery") && watchMatchesMonth(entry, month)), [matchingEntries, month]);
 
   const [year, monthNumber] = month.split("-").map(Number);
   const firstWeekday = new Date(Date.UTC(year, monthNumber - 1, 1)).getUTCDay();
@@ -163,11 +170,11 @@ export function CalendarExplorer({ entries, initialMonth, today }: { entries: Ra
                 <p>{entry.dek}</p>
                 <div className="rr-card-facts">
                   {entry.location && <span><MapPin size={13} /> {entry.location}</span>}
-                  {leadFact && <span><Clock3 size={13} /> {leadFact.value}</span>}
+                  {(entry.occurrences?.length || leadFact) && <span><Clock3 size={13} /> {entry.occurrences?.length ? occurrence.label : leadFact?.value}</span>}
                 </div>
                 <footer className="rr-card-proof">
                   <span>{sourceType(entry)} · Updated {entry.updatedAt}</span>
-                  <a href={entry.sources[0]?.url} target="_blank" rel="noreferrer">Official source <ArrowUpRight size={12} /></a>
+                  <a href={entry.sources[0]?.url} target="_blank" rel="noreferrer">{sourceType(entry)} <ArrowUpRight size={12} /></a>
                 </footer>
               </div>
             </article>;
@@ -176,7 +183,7 @@ export function CalendarExplorer({ entries, initialMonth, today }: { entries: Ra
       </section>
 
       {watchEntries.length > 0 && <section className="rr-watch-deck" aria-labelledby="watch-title">
-        <header><div><h3 id="watch-title">Release windows</h3></div><p>Announced without an exact date.</p></header>
+        <header><div><h3 id="watch-title">Watch windows</h3></div><p>Announced without an exact date.</p></header>
         <div>{watchEntries.map((entry) => <Link href={radarPath(entry)} key={entry.slug} className="rr-watch-card"><span>{entry.dateLabel}</span><strong>{entry.title}</strong><p>{entry.availability}</p><small>{sourceType(entry)} · {entry.sources[0]?.label}</small><ArrowUpRight size={16}/></Link>)}</div>
       </section>}
     </section>

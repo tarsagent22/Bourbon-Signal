@@ -21,6 +21,7 @@ export function getInitialRadarMonth(entries: RadarEntry[], today: string, fallb
   const futureStartDates = entries
     .filter((entry) => entry.calendar === true)
     .flatMap((entry) => {
+      if (entry.occurrences?.length) return entry.occurrences.map((occurrence) => occurrence.date).filter((date) => date >= today);
       if (entry.occurrenceDates?.length) return entry.occurrenceDates.filter((date) => date >= today);
       return entry.startDate >= today ? [entry.startDate] : [];
     })
@@ -30,7 +31,9 @@ export function getInitialRadarMonth(entries: RadarEntry[], today: string, fallb
 }
 
 export function getCalendarOccurrences(entry: RadarEntry, month: string): CalendarOccurrence[] {
-  const dates = entry.occurrenceDates?.length
+  const dates = entry.occurrences?.length
+    ? entry.occurrences.map((occurrence) => ({ date: occurrence.date, label: occurrence.label }))
+    : entry.occurrenceDates?.length
     ? entry.occurrenceDates.map((date) => ({ date, label: shortDate(date) }))
     : entry.endDate && entry.endDate !== entry.startDate
       ? [
@@ -43,6 +46,12 @@ export function getCalendarOccurrences(entry: RadarEntry, month: string): Calend
 }
 
 export function getAgendaOccurrences(entry: RadarEntry, month: string): CalendarOccurrence[] {
+  if (entry.occurrences?.length) {
+    return entry.occurrences
+      .filter((occurrence) => occurrence.date.startsWith(`${month}-`))
+      .map((occurrence) => ({ date: occurrence.date, label: occurrence.label }));
+  }
+
   if (entry.occurrenceDates?.length) {
     return entry.occurrenceDates
       .filter((date) => date.startsWith(`${month}-`))

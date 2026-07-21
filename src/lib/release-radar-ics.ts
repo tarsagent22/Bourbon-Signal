@@ -1,4 +1,4 @@
-import { radarPath, type RadarEntry } from "./release-radar.ts";
+import { radarPath, type RadarEntry, type RadarOccurrence } from "./release-radar.ts";
 
 interface ReleaseRadarIcsOptions {
   origin: string;
@@ -28,11 +28,12 @@ function nextDay(value: string) {
   return date.toISOString().slice(0, 10);
 }
 
-function eventLines(entry: RadarEntry, date: string, rangeEnd?: string, occurrenceIndex = 0) {
+function eventLines(entry: RadarEntry, date: string, rangeEnd?: string, occurrenceIndex = 0, occurrence?: RadarOccurrence) {
   const path = radarPath(entry);
-  const hasPublishedTime = occurrenceIndex === 0 && entry.occurrenceDates === undefined && Boolean(entry.schemaStartDate);
-  const startTimestamp = hasPublishedTime && entry.schemaStartDate ? utcTimestamp(entry.schemaStartDate) : null;
-  const endTimestamp = hasPublishedTime && entry.schemaEndDate ? utcTimestamp(entry.schemaEndDate) : null;
+  const entryStart = occurrenceIndex === 0 && entry.occurrenceDates === undefined && entry.occurrences === undefined ? entry.schemaStartDate : undefined;
+  const entryEnd = occurrenceIndex === 0 && entry.occurrenceDates === undefined && entry.occurrences === undefined ? entry.schemaEndDate : undefined;
+  const startTimestamp = occurrence?.schemaStartDate ? utcTimestamp(occurrence.schemaStartDate) : entryStart ? utcTimestamp(entryStart) : null;
+  const endTimestamp = occurrence?.schemaEndDate ? utcTimestamp(occurrence.schemaEndDate) : entryEnd ? utcTimestamp(entryEnd) : null;
   const lines = [
     "BEGIN:VEVENT",
     `UID:${entry.slug}-${compactDate(date)}@bourbonsignal.com`,
@@ -61,6 +62,9 @@ export function buildReleaseRadarIcs(entries: RadarEntry[], options: ReleaseRada
   const events = entries
     .filter((entry) => entry.datePrecision === "exact" && entry.calendar === true)
     .flatMap((entry) => {
+      if (entry.occurrences?.length) {
+        return entry.occurrences.flatMap((occurrence, index) => eventLines(entry, occurrence.date, undefined, index, occurrence));
+      }
       if (entry.occurrenceDates?.length) {
         return entry.occurrenceDates.flatMap((date, index) => eventLines(entry, date, undefined, index));
       }
