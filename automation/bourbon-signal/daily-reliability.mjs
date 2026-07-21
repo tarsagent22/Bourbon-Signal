@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { findingsFromDailyReliability } from '../../scripts/lib/finding-adapters.mjs';
 import { isProtectedDashboardResponse } from './production-checks.mjs';
 
@@ -38,6 +39,19 @@ function ageLabel(value) {
 }
 async function readJson(file, fallback = null) {
   try { return JSON.parse(await readFile(file, 'utf8')); } catch { return fallback; }
+}
+export async function readLiveJson(pathname, fallback, fetchImpl = fetch) {
+  try {
+    const response = await fetchImpl(`${BASE_URL}${pathname}`, {
+      headers: { 'user-agent': 'BourbonSignalReliabilityCheck/1.0' },
+      redirect: 'error',
+    });
+    if (!response.ok) return fallback;
+    const payload = await response.json();
+    return payload && typeof payload === 'object' ? payload : fallback;
+  } catch {
+    return fallback;
+  }
 }
 function pushIssue(issues, severity, area, message, detail = null) {
   issues.push({ severity, area, message, detail });
@@ -148,12 +162,16 @@ async function main() {
   const generatedAt = nowIso();
   const issues = [];
 
-  const [stats, drops, alerts, sourceHealth] = await Promise.all([
+  const [localStats, drops, alerts, sourceHealth] = await Promise.all([
     readJson(path.join(SITE_OUT, 'stats.json'), {}),
     readJson(path.join(SITE_OUT, 'drops.json'), {}),
     readJson(path.join(SITE_OUT, 'alerts.json'), {}),
     readJson(path.join(ENGINE_OUT, 'source-health.json'), {}),
   ]);
+  // A committed export is a fallback, not evidence of current production
+  // health. Prefer the cache-bypassed live snapshot so recovered states do
+  // not keep generating stale/degraded objectives until another code commit.
+  const stats = await readLiveJson(`/api/stats?operatorCheck=${Date.now()}`, localStats);
 
   const productionSpecs = [
     ['homepage', '/', ({ res }) => res.status === 200],
@@ -278,7 +296,10 @@ async function main() {
   process.exitCode = critical ? 2 : warn ? 1 : 0;
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exitCode = 2;
-});
+const invoked = process.argv[1] ? pathToFileURL(path.resolve(process.argv[1])).href : '';
+if (import.meta.url === invoked) {
+  main().catch((err) => {
+    console.error(err);
+    process.exitCode = 2;
+  });
+}

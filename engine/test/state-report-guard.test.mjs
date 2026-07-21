@@ -39,6 +39,15 @@ test('preserves the last good state report when a successful collector silently 
   assert.equal(result.report.sourceResults[0].status, 'collapsed');
 });
 
+test('repeated quality fallback keeps one stable status suffix', () => {
+  const previous = report('TX', 100, { status: 'stale_useful_quality_fallback_quality_fallback' });
+  const candidate = report('TX', 20);
+  const result = guardStateReport({ previous, candidate, now: '2026-07-21T18:00:00.000Z' });
+
+  assert.equal(result.accepted, false);
+  assert.equal(result.report.status, 'stale_useful_quality_fallback');
+});
+
 test('accepts a healthy expansion and first report', () => {
   assert.equal(guardStateReport({ previous: report('FL', 1), candidate: report('FL', 73) }).accepted, true);
   assert.equal(guardStateReport({ previous: null, candidate: report('TX', 760) }).accepted, true);

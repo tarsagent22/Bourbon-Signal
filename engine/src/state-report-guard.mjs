@@ -44,7 +44,9 @@ function collapseReason(previous, candidate, { minBaseline = 1, minRatio = 0.5, 
 }
 
 function preservedFallback(previous, reason, now = new Date().toISOString(), candidate = null) {
-  const priorStatus = String(previous.status || '').replace(/^(stale_)+/, '') || 'previous_report';
+  const priorStatus = String(previous.status || '')
+    .replace(/^(stale_)+/, '')
+    .replace(/(?:_quality_fallback)+$/, '') || 'previous_report';
   const lastGoodAt = previous.lastGoodAt || previous.finishedAt || null;
   return {
     ...previous,
