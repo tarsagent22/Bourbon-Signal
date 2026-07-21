@@ -2,6 +2,16 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { confidenceForSignal } from '../src/confidence-policy.mjs';
 import { isTexasRetailerInventory, isTexasRetailerSignalIdentity } from '../src/texas-retailer-policy.mjs';
+import { legacyPrecisionRuntimeOptions, texasCityHiveRequestLimits } from '../src/collectors/precision-probes.mjs';
+
+test('Texas CityHive defaults keep Twin Liquors below the rate-limited request matrix', () => {
+  assert.deepEqual(texasCityHiveRequestLimits({}), { maxPages: 1, twinMaxMerchants: 4 });
+  assert.deepEqual(texasCityHiveRequestLimits({
+    BOURBON_SIGNAL_TX_CITYHIVE_MAX_PAGES: '2',
+    BOURBON_SIGNAL_TX_TWIN_MAX_MERCHANTS: '8',
+  }), { maxPages: 2, twinMaxMerchants: 8 });
+  assert.equal(legacyPrecisionRuntimeOptions('TX', {}, {}).timeoutMs, 300_000);
+});
 
 const twin = {
   state: 'TX', stateCode: 'TX', eventType: 'cityhive_store_inventory_result',
