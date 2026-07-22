@@ -164,6 +164,11 @@ test('Virginia precision runtime gives one bounded shard enough time and never d
   assert.equal(legacyPrecisionRuntimeOptions('VA', { schedule: true }, {}).schedule, false);
 });
 
+test('an explicitly targeted state bypasses the source not-due scheduler', () => {
+  assert.equal(legacyPrecisionRuntimeOptions('OH', {}, { BOURBON_SIGNAL_RUN_STATES: 'PA,VA,OH' }).schedule, false);
+  assert.equal(legacyPrecisionRuntimeOptions('OH', {}, {}).schedule, undefined);
+});
+
 test('Virginia parent state watchdog stays above the bounded precision runtime', async () => {
   const runSource = await readFile(new URL('../src/run.mjs', import.meta.url), 'utf8');
   assert.match(runSource, /VA:[^\n]*1_200_000/);
