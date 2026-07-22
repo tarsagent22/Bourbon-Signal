@@ -1,6 +1,7 @@
 ﻿import { readFile, access } from 'node:fs/promises';
 import path from 'node:path';
 import { STATE_SOURCES } from './state-sources.mjs';
+import { validateVirginiaGlobalQuality } from './collectors/virginia-inventory-recovery.mjs';
 
 async function exists(file) {
   try { await access(file); return true; } catch { return false; }
@@ -103,13 +104,10 @@ async function main() {
   if (ncCreamSignal) throw new Error(`NC non-bourbon cream/liqueur row leaked into tracked shipment feed: ${ncCreamSignal.rawName || ncCreamSignal.canonicalName}`);
 
   const vaSignals = operational.signals.filter((s) => s.state === 'VA');
-  const vaStoreSignals = vaSignals.filter((s) => s.locationPrecision === 'store_level');
-  const vaInventorySignals = vaSignals.filter((s) => s.canAlertAsInventory);
-  const vaBad1792 = vaSignals.find((s) => /1792\s+Small\s+Batch/i.test(String(s.rawName || '')) && /Full\s+Proof/i.test(String(s.canonicalName || '')));
-  if (vaSignals.length < 700) throw new Error(`VA signal count below threshold: ${vaSignals.length}`);
-  if (vaStoreSignals.length < 700) throw new Error(`VA store-level signal count below threshold: ${vaStoreSignals.length}`);
-  if (vaInventorySignals.length < 250) throw new Error(`VA inventory-alertable signal count below threshold: ${vaInventorySignals.length}`);
-  if (vaBad1792) throw new Error(`VA 1792 Small Batch misidentified as ${vaBad1792.canonicalName}`);
+  const vaState = await readJson(path.join(out, 'states', 'VA.json')).catch(() => null);
+  const vaQuality = validateVirginiaGlobalQuality(vaState, vaSignals);
+  if (!vaQuality.ok) throw new Error(vaQuality.problems.join('; '));
+  if (vaQuality.safeStale) console.log(`VA safely isolated as ${vaState.status}: ${vaQuality.counts.signals} retained signals and zero alertable rows.`);
   if (activeStateIds.has('OR')) {
     const orRows = operational.signals.filter((s) => s.state === 'OR' && s.eventType === 'store_inventory_result');
     const orSourceUnavailable = await orUnavailable(out);

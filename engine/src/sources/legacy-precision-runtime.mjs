@@ -1,5 +1,5 @@
 import { createSourceAdapter } from './source-adapter.mjs';
-import { summarizeSourceResult } from './source-result.mjs';
+import { markSourceValueNonAlertable, summarizeSourceResult } from './source-result.mjs';
 import { runSourceAdapters } from './source-runner.mjs';
 
 function stampedEntries(entries, sourceRuntimeId) {
@@ -83,18 +83,33 @@ export async function runLegacyPrecisionSource({
   });
   const result = isolated.results[0];
   const value = result.value || { signals: [], roadblocks: [] };
+  const valueDeclaredStale = value.stale === true;
+  const effectiveResult = valueDeclaredStale
+    ? {
+        ...result,
+        status: 'stale_fallback',
+        stale: true,
+        alertable: false,
+        lastGoodAt: value.previousFinishedAt || null,
+        attempts: (result.attempts || []).map((attempt) => ({ ...attempt, outcome: 'stale_fallback' })),
+      }
+    : result;
   const metadata = value.metadata || result.metadata || null;
-  const signals = value.signals || [];
-  const roadblocks = [...(value.roadblocks || [])];
-  const containment = failureRoadblock({ stateId, label, url, result });
+  const effectiveValue = valueDeclaredStale
+    ? markSourceValueNonAlertable(value, value.staleReason || 'Legacy precision collector retained stale fallback rows.', { stale: true })
+    : value;
+  const signals = effectiveValue.signals || [];
+  const roadblocks = [...(effectiveValue.roadblocks || [])];
+  const containment = failureRoadblock({ stateId, label, url, result: effectiveResult });
   if (containment) roadblocks.push(containment);
   return {
     signals,
     roadblocks,
-    sourceReports: [sourceReport({ sourceId, label, url, result, signals })],
-    sourceResults: [{ ...summarizeSourceResult(result), ...(metadata ? { metadata } : {}) }],
+    sourceReports: [sourceReport({ sourceId, label, url, result: effectiveResult, signals })],
+    sourceResults: [{ ...summarizeSourceResult(effectiveResult), ...(metadata ? { metadata } : {}) }],
     metadata,
-    stale: result.stale,
-    staleReason: result.stale ? result.error?.message || result.status : null,
+    stale: effectiveResult.stale,
+    staleReason: value.staleReason || (effectiveResult.stale ? effectiveResult.error?.message || effectiveResult.status : null),
+    previousFinishedAt: value.previousFinishedAt || null,
   };
 }

@@ -161,13 +161,13 @@ export function compareStateQuality(previous, current, { maxScoreDrop = 15, minD
     const currentStatus = String(state.input?.status || '');
     const preservedFallback = /quality_fallback/iu.test(currentStatus)
       && currentDrops >= Math.floor(priorDrops * minDropRatio);
+    const hardWeaknesses = new Set(['unknown_freshness', 'no_public_drops', 'no_store_level_drops', 'degraded_state_status']);
+    const hardSourceFailure = (state.weaknesses || []).some((weakness) => hardWeaknesses.has(weakness))
+      || /stale|failed|degraded/iu.test(currentStatus);
     if (number(before.score) - number(state.score) > maxScoreDrop) {
       if (preservedFallback) warnings.push(`${state.state}: quality score fell from ${before.score} to ${state.score} while the last-good rows remain preserved.`);
       else failures.push(`${state.state}: quality score fell from ${before.score} to ${state.score}.`);
     }
-    const hardWeaknesses = new Set(['unknown_freshness', 'no_public_drops', 'no_store_level_drops', 'degraded_state_status']);
-    const hardSourceFailure = (state.weaknesses || []).some((weakness) => hardWeaknesses.has(weakness))
-      || /stale|failed|degraded/iu.test(currentStatus);
     if (priorDrops >= 5 && currentDrops < Math.floor(priorDrops * minDropRatio)) {
       const dropRatio = priorDrops > 0 ? currentDrops / priorDrops : 0;
       const message = `${state.state}: public drops fell from ${priorDrops} to ${currentDrops}.`;
@@ -195,6 +195,7 @@ export function buildStateQualityInputs({ stateCoverage, drops, alerts }) {
     const state = String(coverage.state || '').toUpperCase();
     const stateDrops = (drops || []).filter((drop) => String(drop.state || drop.state_code || '').toUpperCase() === state);
     const stateAlerts = (alerts || []).filter((alert) => String(alert.state || '').toUpperCase() === state && alert.eligibleForDelivery === true);
+    const alertCapableDrops = stateDrops.filter((drop) => drop.canAlertAsInventory === true || drop.canAlertAsWatch === true);
     const sources = new Set();
     let freshestObservedAt = null;
     let freshestMs = -Infinity;
@@ -215,7 +216,7 @@ export function buildStateQualityInputs({ stateCoverage, drops, alerts }) {
       signalCount: coverage.signalCount,
       dropCount: stateDrops.length,
       storeLevelDropCount,
-      alertCandidateCount: stateAlerts.length,
+      alertCandidateCount: Math.max(stateAlerts.length, alertCapableDrops.length),
       sourceCount: sources.size || number(coverage.sourceCount),
       roadblockCount: coverage.roadblockCount,
       freshestObservedAt,

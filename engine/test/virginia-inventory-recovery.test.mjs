@@ -10,6 +10,7 @@ import {
   seedVirginiaInventoryCacheSignals,
   selectVirginiaProductsForRefresh,
   summarizeVirginiaProductErrors,
+  validateVirginiaGlobalQuality,
   virginiaAbortableDelay
 } from '../src/collectors/virginia-inventory-recovery.mjs';
 import { legacyPrecisionRuntimeOptions } from '../src/collectors/precision-probes.mjs';
@@ -334,4 +335,18 @@ test('stale Virginia cache remains visible but is never labeled live or alertabl
   assert.match(stale?.staleSourceCaveat || '', /last confirmed/i);
   assert.equal(fresh?.sourceStale, false);
   assert.equal(fresh?.canAlertAsInventory, true);
+});
+
+test('Virginia global quality accepts the 20-row live floor and only an explicitly non-alerting stale lane', () => {
+  const freshRows = Array.from({ length: 700 }, (_, index) => ({
+    locationPrecision: 'store_level',
+    canAlertAsInventory: index < 20,
+    canAlertAsWatch: index < 20,
+  }));
+  assert.equal(validateVirginiaGlobalQuality({ status: 'useful', stale: false }, freshRows).ok, true);
+  assert.equal(validateVirginiaGlobalQuality({ status: 'useful', stale: false }, freshRows.map((row, index) => ({ ...row, canAlertAsInventory: index < 19 }))).ok, false);
+
+  const staleRows = freshRows.map((row) => ({ ...row, alertable: false, canAlertAsInventory: false, canAlertAsWatch: false }));
+  assert.equal(validateVirginiaGlobalQuality({ status: 'stale_useful', stale: true }, staleRows).ok, true);
+  assert.equal(validateVirginiaGlobalQuality({ status: 'stale_useful', stale: true }, [{ ...staleRows[0], canAlertAsWatch: true }, ...staleRows.slice(1)]).ok, false);
 });

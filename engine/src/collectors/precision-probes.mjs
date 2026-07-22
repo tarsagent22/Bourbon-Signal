@@ -60,6 +60,7 @@ import {
   virginiaAbortableDelay,
   virginiaProductCode
 } from './virginia-inventory-recovery.mjs';
+import { loadOhioInventoryRecoverySeed, seedOhioInventoryCacheSignals } from './ohio-inventory-recovery.mjs';
 
 const require = createRequire(import.meta.url);
 const { PDFParse } = require('pdf-parse');
@@ -7211,6 +7212,9 @@ async function collectOhio(config, bible) {
   try {
     const prior = JSON.parse(await readFile('out/current-snapshot.json', 'utf8'));
     const priorOhlq = (prior.signals || []).filter((s) => s.state === config.id && /^browser_assisted_store_inventory_/.test(String(s.eventType || '')) && ['limited_supply', 'in_stock'].includes(String(s.availabilityStatus || '')));
+    const priorObservedTimes = priorOhlq.map((signal) => Date.parse(signal.observedAt || '')).filter(Number.isFinite);
+    if (!previousFinishedAt && priorObservedTimes.length) previousFinishedAt = new Date(Math.max(...priorObservedTimes)).toISOString();
+    if (!previousFinishedAt && Number.isFinite(Date.parse(prior.generatedAt || ''))) previousFinishedAt = new Date(Date.parse(prior.generatedAt)).toISOString();
     for (const s of priorOhlq) {
       signals.push({
         id: stableId([config.id, 'ohlq-prior-positive-status', s.key]),
@@ -7245,7 +7249,30 @@ async function collectOhio(config, bible) {
       return { signals, roadblocks, stale: true, staleReason: staleReason || 'OHLQ browser artifact did not contain positive decoded rows; retained prior snapshot rows', previousFinishedAt };
     }
   } catch {
-    // No prior operational OHLQ snapshot is available; fall through to static discovery evidence.
+    // No prior operational OHLQ snapshot is available; fall through to the hydrated state report.
+  }
+  try {
+    const priorStateReport = JSON.parse(await readFile('out/states/OH.json', 'utf8'));
+    const seeded = seedOhioInventoryCacheSignals(priorStateReport);
+    signals.push(...seeded.signals);
+    if (signals.length) {
+      previousFinishedAt = previousFinishedAt || seeded.generatedAt;
+      roadblocks.push({ state: config.id, source: 'OHLQ scheduled browser refresh fallback', url: browserOutPath, status: 0, error: 'Current OHLQ browser artifact was unavailable; retained stale, non-alerting OHLQ rows from the hydrated Ohio state report.', nextRoute: 'Refresh OHLQ from an already-warmed interactive browser session while preserving the labeled state-report fallback.' });
+      return { signals, roadblocks, stale: true, staleReason: staleReason || 'OHLQ browser artifact unavailable; retained hydrated state-report rows', previousFinishedAt };
+    }
+  } catch {
+    // No hydrated Ohio report is available; fall through to static discovery evidence.
+  }
+  try {
+    const seeded = await loadOhioInventoryRecoverySeed('data/ohlq-recovery-seed-2026-07-22.json.gz');
+    signals.push(...seeded.signals);
+    if (signals.length) {
+      previousFinishedAt = previousFinishedAt || seeded.generatedAt;
+      roadblocks.push({ state: config.id, source: 'OHLQ bounded recovery seed', url: browserOutPath, status: 0, error: 'No live, current-snapshot, or hydrated-state OHLQ inventory was available; restored the bounded July 22 capture as stale, non-alerting feed context.', nextRoute: 'Replace the recovery seed with a fresh warmed-browser collection; never use seeded rows for alerts.' });
+      return { signals, roadblocks, stale: true, staleReason: staleReason || 'OHLQ bounded recovery seed retained as stale feed context', previousFinishedAt };
+    }
+  } catch {
+    // No bounded recovery seed is available; fall through to static discovery evidence.
   }
   try {
     const discovery = JSON.parse(await readFile(discoveryPath, 'utf8'));

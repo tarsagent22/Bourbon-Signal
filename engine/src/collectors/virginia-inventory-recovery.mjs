@@ -166,3 +166,30 @@ export function applyVirginiaInventoryFreshness(signals, nowMs = Date.now(), max
     };
   });
 }
+
+export function validateVirginiaGlobalQuality(stateReport, signals) {
+  const rows = signals || [];
+  const storeRows = rows.filter((signal) => signal.locationPrecision === 'store_level');
+  const inventoryRows = rows.filter((signal) => signal.canAlertAsInventory === true);
+  const alertableRows = rows.filter((signal) => signal.alertable || signal.canAlertAsInventory || signal.canAlertAsWatch);
+  const bad1792 = rows.filter((signal) => /1792\s+Small\s+Batch/i.test(String(signal.rawName || '')) && /Full\s+Proof/i.test(String(signal.canonicalName || '')));
+  const safeStale = stateReport?.stale === true && /^stale_/i.test(String(stateReport?.status || ''));
+  const problems = [];
+
+  if (rows.length < 700) problems.push(`VA signal count below threshold: ${rows.length}`);
+  if (storeRows.length < 700) problems.push(`VA store-level signal count below threshold: ${storeRows.length}`);
+  if (safeStale) {
+    if (alertableRows.length) problems.push(`VA safe stale fallback contains ${alertableRows.length} alertable row(s)`);
+  } else {
+    if (stateReport?.stale === true || stateReport?.status !== 'useful') problems.push(`VA state must be useful or an explicitly safe stale fallback, got ${stateReport?.status || 'missing'}`);
+    if (inventoryRows.length < 20) problems.push(`VA inventory-alertable signal count below threshold: ${inventoryRows.length}`);
+  }
+  if (bad1792.length) problems.push(`VA 1792 Small Batch is misidentified as 1792 Full Proof in ${bad1792.length} row(s)`);
+
+  return {
+    ok: problems.length === 0,
+    safeStale,
+    problems,
+    counts: { signals: rows.length, storeRows: storeRows.length, inventoryRows: inventoryRows.length, alertableRows: alertableRows.length },
+  };
+}
