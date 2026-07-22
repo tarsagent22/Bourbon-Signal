@@ -31,6 +31,7 @@ assert.ok(lottery?.schemaStartDate?.endsWith("-04:00"), "lottery schema must ret
 assert.ok(lottery?.schemaEndDate?.endsWith("-04:00"), "lottery schema must retain its published Eastern closing time");
 const camp = getRadarEntry("event", "camp-buffalo-trace-2026");
 const alabama = getRadarEntry("release", "alabama-abc-annual-fall-whiskey-release-2026");
+const still630 = getRadarEntry("release", "still-630-indomitable-monthly-release-2026");
 const caryFestival = getRadarEntry("event", "cary-beer-bourbon-bbq-2026");
 const ncBourbonFestival = getRadarEntry("event", "north-carolina-bourbon-spirits-festival-2026");
 const charlotteWhiskeyWineFire = getRadarEntry("event", "charlotte-whiskey-wine-fire-2026");
@@ -53,6 +54,16 @@ assert.equal(alabama?.datePrecision, "exact", "the Alabama event must not degrad
 assert.equal(alabama?.availabilitySemantics, "announcement_only", "an event announcement must not become inventory");
 assert.ok(alabama?.sources.some((source) => source.url.includes("2026%20Limited%20Release%20Schedule.pdf")), "the Alabama event needs its official schedule source");
 assert.deepEqual(alabama?.markets, [{ code: "AL", label: "Alabama", scope: "state" }], "the Alabama event must retain its state market");
+assert.equal(alabama?.evidenceRetrievedAt, "2026-07-22T06:03:09Z", "Alabama evidence needs a durable retrieval timestamp");
+assert.equal(alabama?.reviewAfter, "2026-12-13", "Alabama must be rechecked after the event");
+assert.ok(still630, "Still 630 needs a durable release-process guide");
+assert.equal(still630?.startDate, "2026", "a recurring process must not invent an exact future date");
+assert.equal(still630?.calendar, false, "an undated monthly process stays outside exact calendar cells");
+assert.equal(still630?.datePrecision, "window");
+assert.equal(still630?.availabilitySemantics, "announcement_only");
+assert.equal(still630?.reviewAfter, "2026-08-07", "the recurring claim needs a near-term recheck");
+assert.ok(still630?.sources.some((source) => source.url === "https://www.still630.com/pages/indomitable-spirit-of-america"), "Still 630 needs its official evidence URL");
+assert.deepEqual(still630?.markets, [{ code: "MO", label: "Missouri", scope: "state" }]);
 assert.deepEqual(camp?.occurrenceDates, ["2026-08-29", "2026-09-05"], "separate Camp dates must not become one continuous event");
 assert.deepEqual(caryFestival?.occurrences, [
   { date: "2026-07-31", label: "Friday · 6–10 PM", schemaStartDate: "2026-07-31T18:00:00-04:00", schemaEndDate: "2026-07-31T22:00:00-04:00" },
