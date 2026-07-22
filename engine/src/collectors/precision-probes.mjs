@@ -7,7 +7,7 @@ import { createRequire } from 'node:module';
 import { randomUUID } from 'node:crypto';
 import { stableId, stripHtml, titleCase } from '../core/text.mjs';
 import { collectNorthCarolinaIntelligence } from './north-carolina-intelligence.mjs';
-import { normalizeCityHiveReportedQuantity, rotatingSourceCohort } from './cityhive-hardening.mjs';
+import { normalizeCityHiveReportedQuantity, reconcileCityHiveRateLimitsWithCache, rotatingSourceCohort } from './cityhive-hardening.mjs';
 import { createSourceAdapter } from '../sources/source-adapter.mjs';
 import { MalformedSourceError, sourceErrorForHttp, TransientSourceError } from '../sources/source-error.mjs';
 import { summarizeSourceResult } from '../sources/source-result.mjs';
@@ -3109,7 +3109,14 @@ async function collectTennesseeCityHive(config, bible, observedAt) {
       return !selectedSourceIds.has(sourceId) || blockedSourceIds.has(sourceId);
     });
     const liveKeys = new Set(signals.map((signal) => signal.id));
-    signals.push(...retained.filter((signal) => !liveKeys.has(signal.id)));
+    const retainedFallback = retained.filter((signal) => !liveKeys.has(signal.id));
+    signals.push(...retainedFallback);
+    const reconciled = reconcileCityHiveRateLimitsWithCache({
+      roadblocks,
+      sources: selectedSources,
+      retainedSignals: retainedFallback,
+    });
+    roadblocks.splice(0, roadblocks.length, ...reconciled.roadblocks);
   }
 
   if (!signals.some((signal) => signal.eventType === 'cityhive_store_inventory_result')) {

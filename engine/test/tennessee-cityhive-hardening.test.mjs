@@ -1,6 +1,10 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { normalizeCityHiveReportedQuantity, rotatingSourceCohort } from '../src/collectors/cityhive-hardening.mjs';
+import {
+  normalizeCityHiveReportedQuantity,
+  reconcileCityHiveRateLimitsWithCache,
+  rotatingSourceCohort,
+} from '../src/collectors/cityhive-hardening.mjs';
 
 test('Tennessee CityHive cohorts rotate without hammering the full source universe', () => {
   const sources = ['a', 'b', 'c', 'd', 'e'];
@@ -20,4 +24,37 @@ test('CityHive quantity 100 is binary availability rather than an exact shelf co
     binaryAvailability: false,
     quantity: 7
   });
+});
+
+test('a rate-limited Tennessee source is not reported broken when fresh positive cache preserves it', () => {
+  const result = reconcileCityHiveRateLimitsWithCache({
+    sources: [{
+      id: 'happy-ours-wine-and-spirits',
+      sourceLabel: 'Happy Ours Wine & Spirits CityHive store inventory',
+    }],
+    roadblocks: [
+      { source: 'Happy Ours Wine & Spirits CityHive store inventory', status: 429, error: 'HTTP 429' },
+      { source: 'Another source', status: 500, error: 'HTTP 500' },
+    ],
+    retainedSignals: [{
+      eventType: 'cityhive_store_inventory_result',
+      quantity: 1,
+      raw: { chain: 'happy-ours-wine-and-spirits', cacheFallback: true },
+    }],
+  });
+
+  assert.deepEqual(result.recoveredSourceIds, ['happy-ours-wine-and-spirits']);
+  assert.deepEqual(result.roadblocks, [{ source: 'Another source', status: 500, error: 'HTTP 500' }]);
+});
+
+test('a 429 remains actionable when cache has no positive inventory for that source', () => {
+  const roadblock = { source: 'Happy Ours Wine & Spirits CityHive store inventory', status: 429, error: 'HTTP 429' };
+  const result = reconcileCityHiveRateLimitsWithCache({
+    sources: [{ id: 'happy-ours-wine-and-spirits', sourceLabel: roadblock.source }],
+    roadblocks: [roadblock],
+    retainedSignals: [{ eventType: 'cityhive_store_inventory_out_of_stock', quantity: 0, raw: { chain: 'happy-ours-wine-and-spirits' } }],
+  });
+
+  assert.deepEqual(result.recoveredSourceIds, []);
+  assert.deepEqual(result.roadblocks, [roadblock]);
 });
