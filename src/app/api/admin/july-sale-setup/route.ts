@@ -64,6 +64,13 @@ export async function POST(req: NextRequest) {
       });
     }
 
+    const configuredProducts = targetCoupon.applies_to?.products || [];
+    const matchingProducts = productIds.filter((productId) => configuredProducts.includes(productId));
+    console.warn("Corrected July sale coupon product check:", JSON.stringify({
+      requestedProductCount: productIds.length,
+      configuredProductCount: configuredProducts.length,
+      matchingProductCount: matchingProducts.length,
+    }));
     const validationErrors = productIds.map((productId) => validateJulySaleCoupon(targetCoupon, productId)).filter(Boolean);
     if (validationErrors.length > 0) {
       console.warn("Corrected July sale coupon validation failed:", validationErrors.join("; "));
