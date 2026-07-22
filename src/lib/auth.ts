@@ -47,7 +47,7 @@ export function useAuth() {
     signIn: () => openSignIn(),
     signUp: () => {
       if (typeof window !== "undefined") {
-        window.location.href = "/sign-up?redirect_url=/pricing";
+        window.location.href = "/sign-up";
       }
     },
     signOut: () => signOut(),
