@@ -30,6 +30,13 @@ import { getPopularBottlePool } from "@/lib/bottleSuggestions";
 import { ENGINE_COVERED_STATE_CODES } from "@/lib/statePreferences";
 import { getActiveEngineStateAreaLabel, getActiveEngineStateName } from "@/lib/activeStates";
 import { buildUserTasteProfile, createBourbonDnaProfile, scoreBourbonDnaMatch } from "@/lib/bourbon-dna";
+import {
+  buildRecommendationFeedbackModel,
+  rankRecommendationCandidates,
+  recommendationReadiness,
+  type RecommendationFeedbackEntry,
+} from "@/lib/bourbon-recommendations";
+import { applyTrackedRecommendation, createSerialFeedbackMutationQueue, shouldApplyFeedbackLoad, shouldRunFeedbackMutation } from "@/lib/recommendation-feedback-client";
 import { californiaAreaMatchesFields } from "@/lib/california-area";
 import { nevadaAreaMatchesFields, SUPPORTED_NEVADA_AREAS } from "@/lib/nevada-area";
 
@@ -124,6 +131,7 @@ interface RecommendedBottleInsight {
   matchedFlavors: string[];
   recentSightings: Array<{ location: string; state: string; timestamp: string; href: string }>;
   reason: string;
+  laneLabel: string;
   proofMatchLabel: string;
   proofMatchExplanation: string;
   mashBillMatch?: string;
@@ -804,7 +812,7 @@ export default function DashboardPage() {
   const { drops: recentDrops } = useDrops({ limit: 120 });
   const { drops: ncDrops } = useDrops({ limit: 500, state: "NC" });
   const { stats: engineStats } = useStats();
-  const { isSignedIn, signIn, entitlements } = useAuth();
+  const { isSignedIn, signIn, entitlements, user } = useAuth();
   const isFreeTier = entitlements.tier === "free";
   const canAccessDashboard = entitlements.canAccessDashboard;
   const canUseAdvancedFilters = entitlements.canUseAdvancedFilters;
@@ -813,6 +821,7 @@ export default function DashboardPage() {
   const canUseCollection = entitlements.canUseCollection;
   const canUseRecommendations = entitlements.canUseRecommendations;
   const canReceiveSightingsAlerts = entitlements.canReceiveSightingsAlerts;
+  const feedbackUserId = isSignedIn ? user?.id || null : null;
   const { prefs, loading: prefsLoading, savePreferences } = useAreaPreferences();
   const { watchedBottles, addBottle, removeBottle } = useWatchlistStore();
   const { rewards: memberRewards } = useSightings(isSignedIn && canAccessDashboard);
@@ -856,8 +865,17 @@ export default function DashboardPage() {
   const [collectionRatingDrafts, setCollectionRatingDrafts] = useState<Record<string, number>>({});
   const [editingCollectionKey, setEditingCollectionKey] = useState<string | null>(null);
   const [dnaFeedbackState, setDnaFeedbackState] = useState<Record<string, string>>({});
+  const [dnaFeedbackEntries, setDnaFeedbackEntries] = useState<RecommendationFeedbackEntry[]>([]);
+  const [dnaFeedbackOwnerId, setDnaFeedbackOwnerId] = useState<string | null>(null);
+  const [dnaFeedbackStatus, setDnaFeedbackStatus] = useState<"idle" | "loading" | "ready" | "error">("idle");
+  const [dnaFeedbackError, setDnaFeedbackError] = useState<string | null>(null);
+  const [resettingDnaFeedback, setResettingDnaFeedback] = useState(false);
+  const dnaFeedbackRequestVersionRef = useRef(0);
+  const dnaFeedbackMutationVersionRef = useRef(0);
+  const dnaFeedbackMutationQueueRef = useRef(createSerialFeedbackMutationQueue());
+  const activeFeedbackUserIdRef = useRef<string | null>(feedbackUserId);
+  activeFeedbackUserIdRef.current = feedbackUserId;
   const [recommendationVisibleCount, setRecommendationVisibleCount] = useState(4);
-  const [recommendationRefreshNonce, setRecommendationRefreshNonce] = useState(0);
 
   useEffect(() => {
     setMounted(true);
@@ -929,6 +947,66 @@ export default function DashboardPage() {
   useEffect(() => {
     if (activeDashboardSection === "recommendations") setRecommendationVisibleCount(4);
   }, [activeDashboardSection]);
+
+  useEffect(() => {
+    dnaFeedbackRequestVersionRef.current += 1;
+    dnaFeedbackMutationVersionRef.current = 0;
+    dnaFeedbackMutationQueueRef.current = createSerialFeedbackMutationQueue();
+    setDnaFeedbackEntries([]);
+    setDnaFeedbackState({});
+    setDnaFeedbackOwnerId(feedbackUserId);
+    setDnaFeedbackStatus("idle");
+    setDnaFeedbackError(null);
+    setResettingDnaFeedback(false);
+  }, [feedbackUserId]);
+
+  useEffect(() => {
+    if (!feedbackUserId || !canUseRecommendations || activeDashboardSection !== "recommendations") return;
+    const requestedUserId = feedbackUserId;
+    const requestVersion = ++dnaFeedbackRequestVersionRef.current;
+    const mutationVersionAtStart = dnaFeedbackMutationVersionRef.current;
+    let cancelled = false;
+    setDnaFeedbackStatus("loading");
+    setDnaFeedbackError(null);
+
+    void fetch("/api/bourbon-dna/feedback")
+      .then(async (response) => {
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(typeof payload.error === "string" ? payload.error : "Could not load recommendation feedback.");
+        return payload;
+      })
+      .then((payload) => {
+        if (cancelled || !shouldApplyFeedbackLoad({
+          requestedUserId,
+          activeUserId: activeFeedbackUserIdRef.current,
+          requestVersion,
+          currentRequestVersion: dnaFeedbackRequestVersionRef.current,
+          mutationVersionAtStart,
+          currentMutationVersion: dnaFeedbackMutationVersionRef.current,
+        })) return;
+        const entries = Array.isArray(payload.bourbonDnaFeedback?.entries) ? payload.bourbonDnaFeedback.entries : [];
+        setDnaFeedbackEntries(entries);
+        setDnaFeedbackOwnerId(requestedUserId);
+        setDnaFeedbackStatus("ready");
+      })
+      .catch((error) => {
+        if (cancelled || !shouldApplyFeedbackLoad({
+          requestedUserId,
+          activeUserId: activeFeedbackUserIdRef.current,
+          requestVersion,
+          currentRequestVersion: dnaFeedbackRequestVersionRef.current,
+          mutationVersionAtStart,
+          currentMutationVersion: dnaFeedbackMutationVersionRef.current,
+        })) return;
+        setDnaFeedbackEntries([]);
+        setDnaFeedbackOwnerId(requestedUserId);
+        setDnaFeedbackStatus("error");
+        setDnaFeedbackError(error instanceof Error ? error.message : "Could not load recommendation feedback.");
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [activeDashboardSection, canUseRecommendations, feedbackUserId]);
 
   useEffect(() => {
     if (!shouldPrepareBottleCatalog || broadBottleCatalog.length > 0) return;
@@ -1146,8 +1224,18 @@ export default function DashboardPage() {
     };
   }, [collectionEntries, collectionTasteProfile]);
 
+  const recommendationFeedbackModel = useMemo(
+    () => buildRecommendationFeedbackModel(dnaFeedbackEntries),
+    [dnaFeedbackEntries],
+  );
+  const recommendationQuickStart = useMemo(
+    () => recommendationReadiness(collectionEntries.filter((entry) => entry.rating > 0).length),
+    [collectionEntries],
+  );
+
   const collectionRecommendationInsights = useMemo<RecommendedBottleInsight[]>(() => {
     if (!shouldPrepareRecommendations) return [];
+    if (!feedbackUserId || dnaFeedbackOwnerId !== feedbackUserId || dnaFeedbackStatus !== "ready") return [];
     const ownedKeys = new Set(collectionEntries.map((entry) => entry.canonicalKey));
     const recommendationOptionsMap = new Map<string, BottleOption>();
     for (const option of broadCatalogBottleOptions) recommendationOptionsMap.set(option.canonicalKey, option);
@@ -1155,7 +1243,7 @@ export default function DashboardPage() {
     const recommendationOptions = Array.from(recommendationOptionsMap.values());
 
     if (!collectionTasteProfile.favoriteTags.length) return [];
-    return recommendationOptions
+    const rawItems = recommendationOptions
       .filter((option) => !ownedKeys.has(option.canonicalKey) && !selectedCanonicalKeys.has(option.canonicalKey))
       .map((option) => {
         const dnaProfile = createBourbonDnaProfile({
@@ -1166,56 +1254,71 @@ export default function DashboardPage() {
           userTags: option.bottle.flavor,
         });
         const dnaMatch = scoreBourbonDnaMatch(collectionTasteProfile, dnaProfile, option.bottle.proof);
+        const matchedDrops = recentDrops
+          .filter((drop) => isRealDropEvent(drop))
+          .filter((drop) => dropMatchesBottle(drop, option.bottle))
+          .filter((drop) => dropMatchesAreaPreferences(drop, localPrefs))
+          .slice(0, 3);
+        const recentSightings = matchedDrops.map((drop) => {
+          const state = dropStateLabel(drop);
+          return {
+            location: dropLocationLabel(drop),
+            state,
+            timestamp: drop.timestamp || drop.observed_at || drop.event_at || drop.first_seen_at || "",
+            href: finderSignalHref(option.label, state),
+          };
+        });
         return {
           option,
+          dnaProfile,
           matchedFlavors: dnaMatch.matchedTags,
-          dnaScore: dnaMatch.score,
+          dnaScore: dnaMatch.score + (option.bottle.tier === "allocated" ? 0.6 : 0),
           dnaReason: dnaMatch.explanation,
           proofMatchLabel: dnaMatch.proofMatch.label,
           proofMatchExplanation: dnaMatch.proofMatch.explanation,
           mashBillMatch: dnaMatch.mashBillMatch,
-          recentSightings: recentDrops
-          .filter((drop) => isRealDropEvent(drop))
-          .filter((drop) => dropMatchesBottle(drop, option.bottle))
-          .filter((drop) => dropMatchesAreaPreferences(drop, localPrefs))
-          .slice(0, 3)
-          .map((drop) => {
-            const state = dropStateLabel(drop);
-            return {
-              location: dropLocationLabel(drop),
-              state,
-              timestamp: drop.timestamp || drop.observed_at || drop.event_at || drop.first_seen_at || "",
-              href: finderSignalHref(option.label, state),
-            };
-          }),
+          recentSightings,
+          recentSignals: matchedDrops.map((drop) => ({
+            timestamp: drop.timestamp || drop.observed_at || drop.event_at || drop.first_seen_at || undefined,
+            exactStore: drop.exact_store === true || drop.confidence_tier === "exact_store",
+            alertGrade: drop.can_alert_as_inventory === true || drop.canAlertAsWatch === true,
+          })),
         };
       })
-      .map((item) => ({
-        ...item,
-        score: item.dnaScore + item.recentSightings.length * 2 + (item.option.bottle.tier === "allocated" ? 1 : 0),
-      }))
-      .filter((item) => item.score > 0 && (item.matchedFlavors.length > 0 || item.proofMatchLabel !== "Proof unavailable"))
-      .sort((a, b) => {
-        const scoreDelta = b.score - a.score;
-        if (Math.abs(scoreDelta) > 0.75) return scoreDelta;
-        if (b.recentSightings.length !== a.recentSightings.length) return b.recentSightings.length - a.recentSightings.length;
-        const seedScore = (key: string) => Array.from(key).reduce((total, char, index) => total + ((char.charCodeAt(0) + recommendationRefreshNonce * 31) * (index + 3 + recommendationRefreshNonce)) % 997, 0);
-        return seedScore(b.option.canonicalKey) - seedScore(a.option.canonicalKey) || a.option.label.localeCompare(b.option.label);
-      })
-      .slice(0, 12)
-      .map((item) => ({
+      .filter((item) => item.dnaScore > 0 && (item.matchedFlavors.length > 0 || item.proofMatchLabel !== "Proof unavailable"));
+
+    const itemByKey = new Map(rawItems.map((item) => [item.option.canonicalKey, item]));
+    const ranked = rankRecommendationCandidates(rawItems.map((item) => ({
+      canonicalKey: item.option.canonicalKey,
+      bottleName: item.option.label,
+      producer: item.option.bottle.distillery,
+      baseScore: item.dnaScore,
+      matchedTags: item.matchedFlavors,
+      profileConfidence: item.dnaProfile.confidence,
+      profileMethod: item.dnaProfile.method,
+      fallbackOnly: item.dnaProfile.tags.length === 1 && item.dnaProfile.tags[0] === "Balanced" && item.dnaProfile.signals.includes("fallback balanced profile"),
+      mashBillFamily: item.dnaProfile.mashBillFamily,
+      recentSignals: item.recentSignals,
+    })), recommendationFeedbackModel, { limit: 12 });
+
+    return ranked.flatMap((recommendation) => {
+      const item = itemByKey.get(recommendation.canonicalKey);
+      if (!item) return [];
+      return [{
         option: item.option,
-        score: item.score,
+        score: recommendation.adjustedScore,
         matchedFlavors: item.matchedFlavors,
         recentSightings: item.recentSightings,
         proofMatchLabel: item.proofMatchLabel,
         proofMatchExplanation: item.proofMatchExplanation,
         mashBillMatch: item.mashBillMatch,
-        reason: item.recentSightings.length
-          ? `${item.dnaReason} Recent signal nearby.`
+        laneLabel: recommendation.laneLabel,
+        reason: recommendation.marketScore > 0
+          ? `${item.dnaReason} Fresh signal nearby.`
           : item.dnaReason,
-      }));
-  }, [bottleOptions, broadCatalogBottleOptions, collectionEntries, collectionTasteProfile, localPrefs, recentDrops, recommendationRefreshNonce, selectedCanonicalKeys, shouldPrepareRecommendations]);
+      }];
+    });
+  }, [bottleOptions, broadCatalogBottleOptions, collectionEntries, collectionTasteProfile, dnaFeedbackOwnerId, dnaFeedbackStatus, feedbackUserId, localPrefs, recentDrops, recommendationFeedbackModel, selectedCanonicalKeys, shouldPrepareRecommendations]);
 
   const suggestedBottleOptions = useMemo(() => {
     const pool = getPopularBottlePool(alertBottleLibraryOptions.map((option) => option.bottle)).slice(0, 5);
@@ -1572,7 +1675,7 @@ export default function DashboardPage() {
     });
   };
 
-  const trackCollectionSuggestion = async (option: BottleOption) => {
+  const trackCollectionSuggestion = async (insight: RecommendedBottleInsight) => {
     if (!isSignedIn) {
       signIn();
       return;
@@ -1581,49 +1684,113 @@ export default function DashboardPage() {
       setCollectionError("Loading your saved preferences. Try again in a second.");
       return;
     }
-    addBottleOption(option);
-    setAlertMode("specific_bottles");
+    const option = insight.option;
+    const newlyAddedIds = option.bottleIds.filter((id) => !watchedBottles.includes(id));
+    const previousAlertMode = alertMode;
     setCollectionError(null);
-    void savePreferences({
-      alertMode: "specific_bottles",
-      bottleAlertPreferences: {
-        bottleNames: Array.from(new Set([...watchedBottleOptions.map((watched) => watched.label), option.label])),
-        bottleKeys: Array.from(new Set([...Array.from(selectedCanonicalKeys), option.canonicalKey])),
-      },
-    }).catch((error) => {
+    try {
+      await applyTrackedRecommendation({
+        optimisticallyTrack: () => {
+          addBottleOption(option);
+          setAlertMode("specific_bottles");
+        },
+        persistTracking: () => savePreferences({
+          alertMode: "specific_bottles",
+          bottleAlertPreferences: {
+            bottleNames: Array.from(new Set([...watchedBottleOptions.map((watched) => watched.label), option.label])),
+            bottleKeys: Array.from(new Set([...Array.from(selectedCanonicalKeys), option.canonicalKey])),
+          },
+        }),
+        rollbackTracking: () => {
+          newlyAddedIds.forEach((id) => removeBottle(id));
+          setAlertMode(previousAlertMode);
+        },
+        writePositiveFeedback: async () => {
+          await submitDnaFeedback(insight, "saved");
+        },
+      });
+    } catch (error) {
       setCollectionError(error instanceof Error ? error.message : "Could not track that suggestion yet.");
-    });
+    }
   };
 
   const submitDnaFeedback = async (insight: RecommendedBottleInsight, signal: "useful" | "not_for_me" | "already_own" | "saved") => {
-    if (!isSignedIn) {
+    const requestedUserId = feedbackUserId;
+    if (!requestedUserId) {
+      signIn();
+      return false;
+    }
+    if (activeFeedbackUserIdRef.current !== requestedUserId) return false;
+    const stateKey = `${insight.option.canonicalKey}:${signal}`;
+    dnaFeedbackMutationVersionRef.current += 1;
+    setDnaFeedbackState((prev) => ({ ...prev, [stateKey]: "saving" }));
+    setCollectionError(null);
+    return dnaFeedbackMutationQueueRef.current(async () => {
+      if (!shouldRunFeedbackMutation(requestedUserId, activeFeedbackUserIdRef.current)) return false;
+      try {
+        const response = await fetch("/api/bourbon-dna/feedback", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            bottleId: insight.option.bottle.canonical_id || insight.option.bottle.id,
+            bottleName: insight.option.label,
+            canonicalKey: insight.option.canonicalKey,
+            signal,
+            matchedTags: insight.matchedFlavors,
+            score: insight.score,
+          }),
+        });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(typeof payload.error === "string" ? payload.error : "Could not save DNA feedback.");
+        if (activeFeedbackUserIdRef.current === requestedUserId) {
+          const entries = Array.isArray(payload.bourbonDnaFeedback?.entries) ? payload.bourbonDnaFeedback.entries : [];
+          setDnaFeedbackEntries(entries);
+          setDnaFeedbackOwnerId(requestedUserId);
+          setDnaFeedbackStatus("ready");
+          setDnaFeedbackError(null);
+          setDnaFeedbackState((prev) => ({ ...prev, [stateKey]: "saved" }));
+        }
+        return true;
+      } catch (error) {
+        if (activeFeedbackUserIdRef.current === requestedUserId) {
+          setDnaFeedbackState((prev) => ({ ...prev, [stateKey]: "error" }));
+          setCollectionError(error instanceof Error ? error.message : "Could not save DNA feedback.");
+        }
+        return false;
+      }
+    });
+  };
+
+  const resetDnaFeedback = async () => {
+    const requestedUserId = feedbackUserId;
+    if (!requestedUserId) {
       signIn();
       return;
     }
-    const stateKey = `${insight.option.canonicalKey}:${signal}`;
-    setDnaFeedbackState((prev) => ({ ...prev, [stateKey]: "saved" }));
+    dnaFeedbackMutationVersionRef.current += 1;
+    setResettingDnaFeedback(true);
     setCollectionError(null);
-    void fetch("/api/bourbon-dna/feedback", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        bottleId: insight.option.bottle.canonical_id || insight.option.bottle.id,
-        bottleName: insight.option.label,
-        signal,
-        matchedTags: insight.matchedFlavors,
-        score: insight.score,
-      }),
-    })
-      .then(async (response) => {
-        if (!response.ok) {
-          const payload = await response.json().catch(() => ({}));
-          throw new Error(typeof payload.error === "string" ? payload.error : "Could not save DNA feedback.");
+    await dnaFeedbackMutationQueueRef.current(async () => {
+      if (!shouldRunFeedbackMutation(requestedUserId, activeFeedbackUserIdRef.current)) return;
+      try {
+        const response = await fetch("/api/bourbon-dna/feedback", { method: "DELETE" });
+        const payload = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(typeof payload.error === "string" ? payload.error : "Could not reset hidden bottles.");
+        if (activeFeedbackUserIdRef.current === requestedUserId) {
+          setDnaFeedbackEntries([]);
+          setDnaFeedbackState({});
+          setDnaFeedbackOwnerId(requestedUserId);
+          setDnaFeedbackStatus("ready");
+          setDnaFeedbackError(null);
         }
-      })
-      .catch((error) => {
-        setDnaFeedbackState((prev) => ({ ...prev, [stateKey]: "error" }));
-        setCollectionError(error instanceof Error ? error.message : "Could not save DNA feedback.");
-      });
+      } catch (error) {
+        if (activeFeedbackUserIdRef.current === requestedUserId) {
+          setCollectionError(error instanceof Error ? error.message : "Could not reset hidden bottles.");
+        }
+      } finally {
+        if (activeFeedbackUserIdRef.current === requestedUserId) setResettingDnaFeedback(false);
+      }
+    });
   };
 
   const toggleState = (state: string) => {
@@ -3343,11 +3510,37 @@ export default function DashboardPage() {
               <span>We’re matching your collection against the bottle catalog and recent local signal.</span>
             </div>
           </StepShell>
+          ) : activeDashboardSection === "recommendations" && canUseRecommendations && (dnaFeedbackOwnerId !== feedbackUserId || dnaFeedbackStatus === "idle" || dnaFeedbackStatus === "loading") ? (
+          <StepShell
+            step="Recommendations"
+            title="Recommended bottles"
+            subtitle="Loading your hidden bottle preferences…"
+            hideHeader
+            attached
+          >
+            <div className="dashboard-loading-panel">
+              <strong>Loading recommendations</strong>
+              <span>We’re applying your saved bottle feedback before ranking matches.</span>
+            </div>
+          </StepShell>
+          ) : activeDashboardSection === "recommendations" && canUseRecommendations && dnaFeedbackStatus === "error" ? (
+          <StepShell
+            step="Recommendations"
+            title="Recommended bottles"
+            subtitle="Your saved bottle feedback could not be loaded."
+            hideHeader
+            attached
+          >
+            <div className="dashboard-loading-panel">
+              <strong>Recommendations unavailable</strong>
+              <span>{dnaFeedbackError || "Could not load recommendation feedback."}</span>
+            </div>
+          </StepShell>
           ) : activeDashboardSection === "recommendations" && canUseRecommendations ? (
           <StepShell
             step="Recommendations"
             title="Recommended bottles"
-            subtitle="A first pass at matching bottles you rate highly with flavor overlap and recent local sighting context."
+            subtitle="Personalized matches from bottles you rate, feedback you give, and fresh local signal."
             hideHeader
             attached
           >
@@ -3363,8 +3556,18 @@ export default function DashboardPage() {
                   <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", color: "var(--color-text-secondary)", fontSize: "13px", lineHeight: 1.6 }}>
                     {bourbonDnaSummary.favoriteTags.length
                       ? `${bourbonDnaSummary.favoriteTags.slice(0, 3).join(" · ")}${bourbonDnaSummary.preferredProofRange ? ` · ${bourbonDnaSummary.preferredProofRange.min}-${bourbonDnaSummary.preferredProofRange.max} proof` : ""}`
-                      : "Add 3–5 bottles you’ve tried to unlock better matches."}
+                      : "Add 3 bottles you’ve tried to unlock your first matches."}
                   </p>
+                  {!recommendationQuickStart.ready ? (
+                    <div style={{ display: "flex", alignItems: "center", gap: "10px", flexWrap: "wrap" }}>
+                      <span style={{ fontFamily: "var(--font-dm-sans)", color: "var(--color-text-tertiary)", fontSize: "12px" }}>
+                        {recommendationQuickStart.ratedBottleCount}/{recommendationQuickStart.target} bottles added
+                      </span>
+                      <button type="button" onClick={() => { prepareDashboardSection("collection"); setActiveDashboardSection("collection"); }} style={{ border: "1px solid rgba(196,148,58,0.26)", borderRadius: "999px", background: "rgba(196,148,58,0.10)", color: "var(--color-accent-amber)", padding: "7px 10px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", fontWeight: 800, cursor: "pointer" }}>
+                        Add bottles
+                      </button>
+                    </div>
+                  ) : null}
                   {bourbonDnaSummary.favoriteTags.length ? (
                     <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", color: "var(--color-text-tertiary)", fontSize: "12px", lineHeight: 1.5 }}>
                       {bourbonDnaSummary.confidence === "strong"
@@ -3380,7 +3583,8 @@ export default function DashboardPage() {
                       {collectionRecommendationInsights.slice(0, recommendationVisibleCount).map((insight) => (
                       <div key={insight.option.canonicalKey} style={{ borderRadius: "16px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(0,0,0,0.12)", padding: "13px", display: "grid", gap: "10px" }}>
                         <div>
-                          <strong style={{ fontFamily: "var(--font-dm-sans)", color: "var(--color-cream)", fontSize: "13px" }}>{insight.option.label}</strong>
+                          <span style={{ display: "inline-block", marginBottom: 5, borderRadius: "999px", border: "1px solid rgba(196,148,58,0.18)", background: "rgba(196,148,58,0.08)", color: "var(--color-accent-amber)", padding: "3px 6px", fontFamily: "var(--font-jetbrains)", fontSize: "9px", letterSpacing: "0.06em", textTransform: "uppercase" }}>{insight.laneLabel}</span>
+                          <strong style={{ display: "block", fontFamily: "var(--font-dm-sans)", color: "var(--color-cream)", fontSize: "13px" }}>{insight.option.label}</strong>
                           <span style={{ display: "block", marginTop: 4, fontFamily: "var(--font-dm-sans)", color: "var(--color-text-tertiary)", fontSize: "12px", lineHeight: 1.5 }}>{insight.reason}</span>
                         </div>
                         <div style={{ display: "flex", flexWrap: "wrap", gap: "6px" }}>
@@ -3399,20 +3603,21 @@ export default function DashboardPage() {
                             {insight.recentSightings.length > 1 ? `${insight.recentSightings.length} recent signals` : "Recent signal"} · {insight.recentSightings[0].state ? `${insight.recentSightings[0].state} · ` : ""}{insight.recentSightings[0].location}{insight.recentSightings[0].timestamp ? ` · ${formatShortDate(insight.recentSightings[0].timestamp)}` : ""}
                           </Link>
                         ) : null}
-                        <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                          <button onClick={() => trackCollectionSuggestion(insight.option)} style={{ flex: "1 1 130px", border: "1px solid rgba(196,148,58,0.28)", borderRadius: "999px", background: "rgba(196,148,58,0.12)", color: "var(--color-accent-amber)", padding: "8px 10px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", fontWeight: 700, cursor: "pointer" }}>Track bottle</button>
-                          <button type="button" onClick={() => submitDnaFeedback(insight, "saved")} style={{ border: "1px solid rgba(255,255,255,0.09)", borderRadius: "999px", background: dnaFeedbackState[`${insight.option.canonicalKey}:saved`] === "saved" ? "rgba(82,180,126,0.12)" : "rgba(255,255,255,0.025)", color: dnaFeedbackState[`${insight.option.canonicalKey}:saved`] === "saved" ? "#9AD4B1" : "var(--color-text-secondary)", padding: "8px 10px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", fontWeight: 700, cursor: dnaFeedbackState[`${insight.option.canonicalKey}:saved`] === "saving" ? "progress" : "pointer" }}>{dnaFeedbackState[`${insight.option.canonicalKey}:saved`] === "saved" ? "Saved ✓" : "Save"}</button>
-                        </div>
-                        <div style={{ display: "flex", flexWrap: "wrap", gap: "6px", alignItems: "center" }}>
-                          <span style={{ fontFamily: "var(--font-dm-sans)", color: "var(--color-text-tertiary)", fontSize: "11px" }}>Useful?</span>
-                          {([
-                            ["useful", "👍"],
-                            ["not_for_me", "👎"],
-                            ["already_own", "Have/tried"],
-                          ] as const).map(([signal, label]) => {
+                        <div style={{ display: "flex", gap: "7px", flexWrap: "wrap" }}>
+                          <button onClick={() => { void trackCollectionSuggestion(insight); }} style={{ flex: "1 1 120px", border: "1px solid rgba(196,148,58,0.28)", borderRadius: "999px", background: "rgba(196,148,58,0.12)", color: "var(--color-accent-amber)", padding: "8px 10px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", fontWeight: 700, cursor: "pointer" }}>Track bottle</button>
+                          {(["not_for_me", "already_own"] as const).map((signal) => {
                             const status = dnaFeedbackState[`${insight.option.canonicalKey}:${signal}`];
+                            const label = signal === "not_for_me" ? "Not for me" : "Rate it";
+                            const handleFeedback = () => {
+                              void submitDnaFeedback(insight, signal);
+                              if (signal === "already_own") {
+                                stageCollectionBottle(insight.option);
+                                prepareDashboardSection("collection");
+                                setActiveDashboardSection("collection");
+                              }
+                            };
                             return (
-                              <button key={signal} type="button" onClick={() => submitDnaFeedback(insight, signal)} style={{ border: "1px solid rgba(255,255,255,0.08)", borderRadius: "999px", background: status === "saved" ? "rgba(82,180,126,0.12)" : "rgba(255,255,255,0.025)", color: status === "saved" ? "#9AD4B1" : "var(--color-text-tertiary)", padding: "6px 8px", fontFamily: "var(--font-dm-sans)", fontSize: "11px", cursor: status === "saving" ? "progress" : "pointer" }}>
+                              <button key={signal} type="button" disabled={status === "saving"} onClick={handleFeedback} style={{ border: "1px solid rgba(255,255,255,0.08)", borderRadius: "999px", background: status === "saved" ? "rgba(82,180,126,0.12)" : "rgba(255,255,255,0.025)", color: status === "saved" ? "#9AD4B1" : "var(--color-text-tertiary)", padding: "8px 9px", fontFamily: "var(--font-dm-sans)", fontSize: "11px", cursor: status === "saving" ? "progress" : "pointer" }}>
                                 {status === "saving" ? "Saving…" : status === "saved" ? "Saved ✓" : label}
                               </button>
                             );
@@ -3428,8 +3633,11 @@ export default function DashboardPage() {
                       ) : recommendationVisibleCount > 4 ? (
                         <button type="button" onClick={() => setRecommendationVisibleCount(4)} style={{ border: "1px solid rgba(255,255,255,0.09)", borderRadius: "999px", background: "rgba(255,255,255,0.025)", color: "var(--color-text-secondary)", padding: "9px 12px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", fontWeight: 800, cursor: "pointer" }}>Show fewer</button>
                       ) : null}
-                      <button type="button" onClick={() => { setRecommendationRefreshNonce((nonce) => nonce + 1); setRecommendationVisibleCount(4); }} style={{ border: "1px solid rgba(255,255,255,0.09)", borderRadius: "999px", background: "rgba(255,255,255,0.025)", color: "var(--color-text-secondary)", padding: "9px 12px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", fontWeight: 800, cursor: "pointer" }}>Refresh recommendations</button>
+
                       <button type="button" onClick={() => { prepareDashboardSection("collection"); setActiveDashboardSection("collection"); }} style={{ border: "1px solid rgba(255,255,255,0.09)", borderRadius: "999px", background: "rgba(255,255,255,0.025)", color: "var(--color-text-secondary)", padding: "9px 12px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", fontWeight: 800, cursor: "pointer" }}>Add more bottles</button>
+                      {dnaFeedbackEntries.length > 0 ? (
+                        <button type="button" disabled={resettingDnaFeedback} onClick={() => { void resetDnaFeedback(); }} style={{ border: 0, background: "transparent", color: "var(--color-text-tertiary)", padding: "9px 4px", fontFamily: "var(--font-dm-sans)", fontSize: "11px", cursor: resettingDnaFeedback ? "progress" : "pointer", textDecoration: "underline", textUnderlineOffset: "3px" }}>{resettingDnaFeedback ? "Resetting…" : "Reset hidden bottles"}</button>
+                      ) : null}
                     </div>
                     <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", color: "var(--color-text-tertiary)", fontSize: "12px", lineHeight: 1.55 }}>
                       Want better matches? Add or rate more bottles in My Collection.
@@ -3437,9 +3645,14 @@ export default function DashboardPage() {
                   </div>
                   </>
                 ) : (
-                  <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", color: "var(--color-text-secondary)", fontSize: "13px", lineHeight: 1.7 }}>
-                    Add 3–5 bottles you’ve tried to unlock better recommendations.
-                  </p>
+                  <div style={{ display: "grid", gap: "8px" }}>
+                    <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", color: "var(--color-text-secondary)", fontSize: "13px", lineHeight: 1.7 }}>
+                      Add 3–5 bottles you’ve tried to unlock better recommendations.
+                    </p>
+                    {dnaFeedbackEntries.length > 0 ? (
+                      <button type="button" disabled={resettingDnaFeedback} onClick={() => { void resetDnaFeedback(); }} style={{ justifySelf: "start", border: 0, background: "transparent", color: "var(--color-text-tertiary)", padding: "5px 0", fontFamily: "var(--font-dm-sans)", fontSize: "11px", cursor: resettingDnaFeedback ? "progress" : "pointer", textDecoration: "underline", textUnderlineOffset: "3px" }}>{resettingDnaFeedback ? "Resetting…" : "Reset hidden bottles"}</button>
+                    ) : null}
+                  </div>
                 )}
               </div>
 
