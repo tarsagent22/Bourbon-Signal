@@ -63,13 +63,16 @@ assert.deepEqual(julySaleCheckoutConfig("bib_lifetime", "AdDCc6jD", new Date("20
   expiresAt: null,
 });
 assert.deepEqual(buildJulySaleSessionFields(julySaleCheckoutConfig("standard_annual", "AdDCc6jD", saleNow)), {
-  allow_promotion_codes: false,
   discounts: [{ coupon: "AdDCc6jD" }],
 });
+assert.equal(
+  Object.hasOwn(buildJulySaleSessionFields(julySaleCheckoutConfig("standard_annual", "AdDCc6jD", saleNow)), "allow_promotion_codes"),
+  false,
+  "Stripe rejects Checkout Sessions that include both discounts and allow_promotion_codes, even when allow_promotion_codes is false",
+);
 const finalDayConfig = julySaleCheckoutConfig("standard_annual", "AdDCc6jD", new Date("2026-07-31T12:00:00-04:00"));
 assert.equal(finalDayConfig.expiresAt, 1785556800);
 assert.deepEqual(buildJulySaleSessionFields(finalDayConfig), {
-  allow_promotion_codes: false,
   discounts: [{ coupon: "AdDCc6jD" }],
   expires_at: 1785556800,
 });

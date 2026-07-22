@@ -92,7 +92,6 @@ export function buildJulySaleSessionFields(config: JulySaleCheckoutConfig) {
     return { allow_promotion_codes: config.allowPromotionCodes };
   }
   const fields = {
-    allow_promotion_codes: false,
     discounts: [{ coupon: config.couponId }],
   };
   return config.expiresAt
