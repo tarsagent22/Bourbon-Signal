@@ -70,6 +70,8 @@ export interface RadarEntry {
   bottleRelations: RadarBottleRelation[];
   relationships: RadarRelationship[];
   updatedAt: string;
+  evidenceRetrievedAt?: string;
+  reviewAfter?: string;
   facts: Array<{ label: string; value: string }>;
   sections: Array<{ heading: string; body: string }>;
   sources: RadarSource[];
@@ -558,6 +560,8 @@ const radarEntrySeeds: RadarEntrySeed[] = [
     featured: true,
     calendar: true,
     updatedAt: "2026-07-18",
+    evidenceRetrievedAt: "2026-07-22T06:03:09Z",
+    reviewAfter: "2026-12-13",
     facts: [
       { label: "Date", value: "Saturday, December 12, 2026" },
       { label: "Authority", value: "Alabama ABC Board" },
@@ -575,6 +579,40 @@ const radarEntrySeeds: RadarEntrySeed[] = [
       { label: "Alabama ABC quarterly FAQ", url: "https://alabcboard.gov/stores/events/limited-release-programs/quarterly/FAQ", type: "state" },
     ],
   },
+  {
+    kind: "release",
+    slug: "still-630-indomitable-monthly-release-2026",
+    eyebrow: "Distillery release guide",
+    title: "Still 630 continues its monthly Indomitable bourbon series",
+    dek: "The St. Louis distillery describes a new commemorative bourbon release each month through 2026.",
+    summary: "Still 630's official Indomitable Spirit of America page describes one new commemorative bourbon release each month during 2026. It does not publish a complete future calendar, so this guide stays an undated release window rather than inventing exact dates or claiming shelf inventory.",
+    startDate: "2026",
+    dateLabel: "Monthly through 2026",
+    status: "watch",
+    states: ["Missouri"],
+    location: "St. Louis, Missouri",
+    bottle: "Indomitable Spirit of America 250th Birthday Bourbon",
+    availability: "Official recurring release process",
+    calendar: false,
+    updatedAt: "2026-07-22",
+    evidenceRetrievedAt: "2026-07-22T06:03:09Z",
+    reviewAfter: "2026-08-07",
+    facts: [
+      { label: "Cadence", value: "One release monthly during 2026" },
+      { label: "Distillery", value: "Still 630" },
+      { label: "Location", value: "St. Louis, Missouri" },
+      { label: "Date precision", value: "Recurring process; no future exact date published" },
+    ],
+    sections: [
+      { heading: "What is confirmed", body: "Still 630's official page says a new Indomitable Spirit of America commemorative bourbon is released monthly during 2026." },
+      { heading: "Why this is a release window", body: "The official page supports the recurring monthly process but does not provide a complete set of future release dates. Bourbon Signal therefore does not place inferred first-Friday dates on the calendar." },
+      { heading: "Availability context", body: "This is announcement intelligence, not proof of current shelf stock, quantity, or orderability. Check the official distillery page and shop for the current release." },
+    ],
+    sources: [
+      { label: "Still 630 Indomitable Spirit of America", url: "https://www.still630.com/pages/indomitable-spirit-of-america", type: "official" },
+      { label: "Still 630 shop", url: "https://www.still630.com/shop", type: "official" },
+    ],
+  },
 ];
 
 const STATE_MARKETS: Record<string, RadarMarket> = {
@@ -583,6 +621,7 @@ const STATE_MARKETS: Record<string, RadarMarket> = {
   Pennsylvania: { code: "PA", label: "Pennsylvania", scope: "state" },
   Virginia: { code: "VA", label: "Virginia", scope: "state" },
   Alabama: { code: "AL", label: "Alabama", scope: "state" },
+  Missouri: { code: "MO", label: "Missouri", scope: "state" },
   "North Carolina": { code: "NC", label: "North Carolina", scope: "state" },
   Texas: { code: "TX", label: "Texas", scope: "state" },
   Nationwide: { code: "US", label: "Nationwide", scope: "national" },
