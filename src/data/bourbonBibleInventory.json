@@ -5382,16 +5382,18 @@
     "proof": 101,
     "ageStatement": "025Y",
     "msrp": 9999.95,
-    "availability": "allocated",
-    "buyerVerdict": "grab_at_msrp",
+    "availability": "unicorn",
+    "buyerVerdict": "special_find",
     "aliases": [
-      "Eagle Rare 25Y"
+      "Eagle Rare 25Y",
+      "Eagle Rare 25 Year",
+      "Eagle Rare Aged 25 Years"
     ],
     "isSignalTracked": false,
     "isAlertEligible": true,
-    "summary": "A bottle with enough demand or restricted distribution to be worth checking locally.",
-    "guidance": "Worth grabbing near MSRP if it is a bottle you want.",
-    "source": "NC ABC quarterly price list"
+    "summary": "A 25-year, 101-proof ultra-premium Eagle Rare expression and one of the rarest bottles in the catalog.",
+    "guidance": "Treat this as a unicorn bottle. Verify provenance and price carefully; it is not comparable to ordinary allocated Eagle Rare releases.",
+    "source": "Buffalo Trace official product page; NC ABC quarterly price list"
   },
   {
     "id": "eagle-rare-single-barrel-select",

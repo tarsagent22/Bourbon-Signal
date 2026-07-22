@@ -25,6 +25,7 @@ interface BottleResult {
   } | null;
   localSignal?: {
     state: string;
+    rarityScore: number;
     localScore: number;
     scoreStatus: "bible_baseline" | "local_adjusted";
     scoreBasis: string;
@@ -108,9 +109,9 @@ function formatDate(value: string | null | undefined) {
 }
 
 function scoreTone(score: number) {
-  if (score >= 82) return "hot";
+  if (score >= 86) return "hot";
   if (score >= 58) return "warm";
-  if (score >= 36) return "medium";
+  if (score >= 35) return "medium";
   return "quiet";
 }
 
@@ -513,13 +514,13 @@ export default function BottleCheckPage() {
                 <p className="bc-summary">{bottle.summary}</p>
 
                 {signal ? (
-                  <div className={`bc-score ${scoreTone(signal.localScore)}`}>
+                  <div className={`bc-score ${scoreTone(signal.rarityScore)}`}>
                     <div>
-                      <span>Bottle Score</span>
-                      <strong>{signal.localScore}</strong>
+                      <span>Rarity Score</span>
+                      <strong>{signal.rarityScore}</strong>
                     </div>
                     <p>{signal.label}</p>
-                    <small>{signal.scoreStatus === "local_adjusted" ? "Adjusted with recent Bourbon Signal sightings." : "Based on bottle profile; no recent local sightings yet."}</small>
+                    <small>{signal.scoreBasis}</small>
                   </div>
                 ) : null}
 
