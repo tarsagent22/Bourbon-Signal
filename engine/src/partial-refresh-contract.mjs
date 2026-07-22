@@ -22,14 +22,18 @@ export function mergePartialRefreshDrops({ previousDrops = [], currentDrops = []
   const preserved = new Set(fallbackStateIds.map((state) => String(state).toUpperCase()));
   if (!partialRefresh && !preserved.size) return currentRows;
   const previousStates = new Set(previousRows.map(stateOf));
+  const safeStaleRows = (rows) => rows.length > 0 && rows.every((drop) => drop?.sourceStale === true
+    && drop?.alertable !== true
+    && drop?.canAlertAsInventory !== true
+    && drop?.canAlertAsWatch !== true
+    && Boolean(drop?.staleSourceCaveat));
+  const newestTime = (rows) => Math.max(0, ...rows.map((drop) => Date.parse(drop?.sourceEventAt || drop?.observedAt || drop?.displayAt || drop?.lastConfirmedAt || drop?.timestamp || 0)).filter(Number.isFinite));
   const staleBootstrapStates = new Set([...preserved].filter((state) => {
-    if (previousStates.has(state)) return false;
     const rows = currentRows.filter((drop) => stateOf(drop) === state);
-    return rows.length > 0 && rows.every((drop) => drop?.sourceStale === true
-      && drop?.alertable !== true
-      && drop?.canAlertAsInventory !== true
-      && drop?.canAlertAsWatch !== true
-      && Boolean(drop?.staleSourceCaveat));
+    if (!safeStaleRows(rows)) return false;
+    if (!previousStates.has(state)) return true;
+    const priorRows = previousRows.filter((drop) => stateOf(drop) === state);
+    return safeStaleRows(priorRows) && newestTime(rows) > newestTime(priorRows);
   }));
   const effectivePreserved = new Set([...preserved].filter((state) => !staleBootstrapStates.has(state)));
   const attempted = new Set(attemptedStateIds.map((state) => String(state).toUpperCase()).filter((state) => !effectivePreserved.has(state)));

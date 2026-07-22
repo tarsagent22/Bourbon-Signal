@@ -61,6 +61,36 @@ test('a fallback state with no prior customer rows may bootstrap only explicitly
   });
   assert.deepEqual(safe.map((drop) => drop.id), ['oh-stale', 'pa-old']);
 
+  const newerSafe = mergePartialRefreshDrops({
+    previousDrops: [{
+      id: 'oh-older-stale', state: 'OH', sourceStale: true, alertable: false,
+      canAlertAsInventory: false, canAlertAsWatch: false, staleSourceCaveat: 'Old cached OHLQ row.',
+      observedAt: '2026-07-21T12:00:00.000Z',
+    }],
+    currentDrops: [{
+      id: 'oh-newer-stale', state: 'OH', sourceStale: true, alertable: false,
+      canAlertAsInventory: false, canAlertAsWatch: false, staleSourceCaveat: 'Newer cached OHLQ row.',
+      observedAt: '2026-07-22T12:00:00.000Z',
+    }],
+    partialRefresh: true,
+    attemptedStateIds: ['OH'],
+    fallbackStateIds: ['OH'],
+  });
+  assert.deepEqual(newerSafe.map((drop) => drop.id), ['oh-newer-stale']);
+
+  const healthyPrior = mergePartialRefreshDrops({
+    previousDrops: [{ id: 'oh-live', state: 'OH', sourceStale: false, canAlertAsInventory: true }],
+    currentDrops: [{
+      id: 'oh-newer-stale', state: 'OH', sourceStale: true, alertable: false,
+      canAlertAsInventory: false, canAlertAsWatch: false, staleSourceCaveat: 'Newer cached OHLQ row.',
+      observedAt: '2026-07-22T12:00:00.000Z',
+    }],
+    partialRefresh: true,
+    attemptedStateIds: ['OH'],
+    fallbackStateIds: ['OH'],
+  });
+  assert.deepEqual(healthyPrior.map((drop) => drop.id), ['oh-live']);
+
   const unsafe = mergePartialRefreshDrops({
     previousDrops: [],
     currentDrops: [{ id: 'oh-unsafe', state: 'OH', sourceStale: true, alertable: true }],
