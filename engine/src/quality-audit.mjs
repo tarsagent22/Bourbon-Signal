@@ -1,6 +1,7 @@
 import { readFile, readdir, writeFile, mkdir, access } from 'node:fs/promises';
 import path from 'node:path';
 import { CUSTOMER_ACTIVE_STATE_IDS, STATE_SOURCES } from './state-sources.mjs';
+import { validateVirginiaGlobalQuality } from './collectors/virginia-inventory-recovery.mjs';
 
 const ROOT = path.resolve('.');
 const OUT = path.join(ROOT, 'out');
@@ -94,13 +95,10 @@ async function main() {
   if (ncCreamSignals.length) problems.push(problem('NC tracked shipment/warehouse signals include non-bourbon cream/liqueur rows.', 'error', ncCreamSignals.slice(0, 10).map((s) => ({ key: s.key, bottle: s.rawName || s.canonicalName }))));
 
   const vaSignals = (snapshot.signals || []).filter((s) => s.state === 'VA');
-  const vaStoreSignals = vaSignals.filter((s) => s.locationPrecision === 'store_level');
-  const vaInventorySignals = vaSignals.filter((s) => s.canAlertAsInventory);
-  const vaBad1792 = vaSignals.filter((s) => /1792\s+Small\s+Batch/i.test(String(s.rawName || '')) && /Full\s+Proof/i.test(String(s.canonicalName || '')));
-  if (vaSignals.length < 700) problems.push(problem('VA signal count is below definition-of-done threshold.', 'error', vaSignals.length));
-  if (vaStoreSignals.length < 700) problems.push(problem('VA store-level signal count is below definition-of-done threshold.', 'error', vaStoreSignals.length));
-  if (vaInventorySignals.length < 250) problems.push(problem('VA inventory-alertable signal count is below definition-of-done threshold.', 'error', vaInventorySignals.length));
-  if (vaBad1792.length) problems.push(problem('VA 1792 Small Batch is being misidentified as 1792 Full Proof.', 'error', vaBad1792.slice(0, 10).map((s) => ({ raw: s.rawName, canonical: s.canonicalName }))));
+  const vaState = await readJson(path.join(OUT, 'states', 'VA.json')).catch(() => null);
+  const vaQuality = validateVirginiaGlobalQuality(vaState, vaSignals);
+  for (const message of vaQuality.problems) problems.push(problem(message, 'error', vaQuality.counts));
+  if (vaQuality.safeStale && vaQuality.ok) problems.push(problem('VA is serving an explicitly stale, non-alerting retained lane while bounded recovery continues.', 'warning', vaQuality.counts));
 
   const orInventory = (snapshot.signals || []).filter((s) => s.state === 'OR' && s.eventType === 'store_inventory_result');
   if (activeStateIds.has('OR')) {

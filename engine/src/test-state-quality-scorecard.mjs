@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import {
+  buildStateQualityInputs,
   buildStateQualityScorecard,
   compareStateQuality,
   mergePartialRefreshStateQuality,
@@ -52,6 +53,38 @@ const watchLane = scoreStateQuality({
   status: 'useful',
 });
 assert.ok(!watchLane.weaknesses.includes('no_store_level_drops'), 'watch lanes must not be judged as live store inventory');
+
+const quietAlertCapableInventory = buildStateQualityInputs({
+  stateCoverage: {
+    states: [{
+      state: 'PA',
+      coverageTier: 'live_store_inventory',
+      signalCount: 1200,
+      sourceCount: 3,
+      roadblockCount: 0,
+      status: 'useful',
+    }],
+  },
+  drops: [{
+    state: 'PA',
+    locationPrecision: 'store_level',
+    canAlertAsInventory: true,
+    observedAt: '2026-07-22T12:00:00.000Z',
+    sourceUrl: 'https://example.test/inventory',
+  }],
+  alerts: [],
+});
+assert.equal(
+  quietAlertCapableInventory[0].alertCandidateCount,
+  1,
+  'a healthy quiet inventory lane must retain alert-readiness credit even when no new delivery event exists',
+);
+const genericSourceAlertable = buildStateQualityInputs({
+  stateCoverage: { states: [{ state: 'PA', coverageTier: 'live_store_inventory', status: 'useful' }] },
+  drops: [{ state: 'PA', locationPrecision: 'store_level', alertable: true }],
+  alerts: [],
+});
+assert.equal(genericSourceAlertable[0].alertCandidateCount, 0, 'generic source alertability must not earn delivery-readiness credit');
 
 const scorecard = buildStateQualityScorecard([strong.input, weak.input, watchLane.input], { generatedAt: '2026-07-09T00:00:00.000Z' });
 assert.equal(scorecard.schemaVersion, 2);
@@ -121,6 +154,18 @@ const inventoryChurn = compareStateQuality(
 );
 assert.equal(inventoryChurn.ok, true, 'normal rare-inventory churn must not block a fresh whole-site snapshot');
 assert.ok(inventoryChurn.warnings.some((warning) => warning.includes('without a hard source failure')));
+
+const quietAlertScoreRegression = compareStateQuality(
+  { states: [{ state: 'PA', score: 98, releaseEligible: true, input: { dropCount: 3600, status: 'useful' } }] },
+  { states: [{ state: 'PA', score: 80, releaseEligible: true, weaknesses: ['no_alert_candidates'], input: { dropCount: 3637, status: 'useful' } }] },
+);
+assert.equal(quietAlertScoreRegression.ok, false, 'a total alert-capability loss must remain release-blocking');
+
+const sourceDiversityRegression = compareStateQuality(
+  { states: [{ state: 'PA', score: 98, releaseEligible: true, input: { dropCount: 3600, status: 'useful' } }] },
+  { states: [{ state: 'PA', score: 70, releaseEligible: true, weaknesses: ['single_source_dependency'], input: { dropCount: 3600, status: 'useful' } }] },
+);
+assert.equal(sourceDiversityRegression.ok, false, 'large quality losses outside a quiet alert cycle must remain release-blocking');
 
 const hardEligibilityRegression = compareStateQuality(
   { states: [{ state: 'FL', score: 66, releaseEligible: true, input: { dropCount: 24, status: 'useful' } }] },

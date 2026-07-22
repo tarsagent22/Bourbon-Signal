@@ -5,6 +5,7 @@ import test from 'node:test';
 import { SourceCircuitBreaker } from '../src/sources/circuit-breaker.mjs';
 import { TransientSourceError } from '../src/sources/source-error.mjs';
 import { runLegacyPrecisionSource } from '../src/sources/legacy-precision-runtime.mjs';
+import { appendSourceSloObservations } from '../src/sources/slo-report.mjs';
 
 const fixture = async (name) => JSON.parse(await readFile(new URL(`./fixtures/source-runtime/${name}`, import.meta.url), 'utf8'));
 
@@ -47,6 +48,45 @@ test('legacy precision source failures keep a healthy sibling result and retain 
   assert.equal(stale.signals[0].canAlertAsWatch, false);
   assert.equal(healthy.sourceResults[0].status, 'success');
   assert.equal(healthy.signals[0].sourceRuntimeId, 'precision:fixture-healthy');
+});
+
+test('legacy precision collectors preserve an explicitly stale successful envelope', async () => {
+  const result = await runLegacyPrecisionSource({
+    sourceId: 'precision:fixture-declared-stale',
+    label: 'Fixture declared stale precision source',
+    stateId: 'OH',
+    url: 'https://stale.fixture.test/source',
+    collect: async () => ({
+      signals: [{ id: 'stale-row', canAlertAsInventory: false, canAlertAsWatch: false }],
+      roadblocks: [],
+      stale: true,
+      staleReason: 'retained state report',
+      previousFinishedAt: '2026-07-22T12:00:00.000Z',
+    }),
+    sourceRunnerOptions: { maxAttempts: 1, timeoutMs: 100 },
+  });
+
+  assert.equal(result.stale, true);
+  assert.equal(result.staleReason, 'retained state report');
+  assert.equal(result.previousFinishedAt, '2026-07-22T12:00:00.000Z');
+  assert.equal(result.sourceReports[0].stale, true);
+  assert.equal(result.sourceResults[0].status, 'stale_fallback');
+  assert.equal(result.sourceResults[0].stale, true);
+  assert.equal(result.sourceResults[0].alertable, false);
+  assert.equal(result.sourceResults[0].lastGoodAt, '2026-07-22T12:00:00.000Z');
+  assert.equal(result.sourceResults[0].attempts[0].outcome, 'stale_fallback');
+  assert.equal(result.signals[0].stale, true);
+  assert.equal(result.signals[0].sourceStale, true);
+  assert.equal(result.signals[0].canAlertAsInventory, false);
+  assert.equal(result.signals[0].canAlertAsWatch, false);
+  const history = appendSourceSloObservations(null, result.sourceResults, { now: '2026-07-22T12:01:00.000Z' });
+  assert.equal(history.observations[0].outcome, 'stale_fallback');
+  const unknownProvenance = await runLegacyPrecisionSource({
+    sourceId: 'precision:fixture-stale-unknown-time',
+    collect: async () => ({ signals: [], roadblocks: [], stale: true, staleReason: 'missing source timestamp' }),
+    sourceRunnerOptions: { maxAttempts: 1, timeoutMs: 100 },
+  });
+  assert.equal(unknownProvenance.sourceResults[0].lastGoodAt, null, 'stale fallbacks must not invent a current last-good timestamp');
 });
 
 test('legacy precision source quarantine remains public but non-alertable and recovery closes a persisted half-open circuit', async () => {

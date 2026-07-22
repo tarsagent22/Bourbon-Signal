@@ -5,7 +5,7 @@ export const SOURCE_RESULT_CONTRACT_VERSION = 'bourbon-signal-source-result-v1';
 function nonAlertableSignal(signal, reason, stale) {
   return {
     ...signal,
-    ...(stale ? { stale: true, staleReason: reason } : {}),
+    ...(stale ? { stale: true, sourceStale: true, staleReason: reason } : {}),
     canAlertAsInventory: false,
     canAlertAsWatch: false,
     alertable: false,
