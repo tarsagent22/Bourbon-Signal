@@ -29,6 +29,9 @@ function ContinueCheckoutContent() {
   const [error, setError] = useState<string | null>(null);
   const plan = useMemo(() => normalizePlan(searchParams.get("plan")), [searchParams]);
   const source = searchParams.get("source") || "unknown";
+  const expectedPromotion = searchParams.get("expectedPromotion") === "july_sale_2026"
+    ? "july_sale_2026"
+    : undefined;
 
   useEffect(() => {
     if (!plan) {
@@ -38,7 +41,11 @@ function ContinueCheckoutContent() {
     if (!isLoaded) return;
     if (!isSignedIn) {
       checkoutStartedRef.current = false;
-      router.replace(`/sign-up?redirect_url=${encodeURIComponent(`/checkout/continue?plan=${plan}&source=${source}`)}`);
+      const promotionQuery = expectedPromotion
+        ? `&expectedPromotion=${encodeURIComponent(expectedPromotion)}`
+        : "";
+      const continueUrl = `/checkout/continue?plan=${plan}&source=${encodeURIComponent(source)}${promotionQuery}`;
+      router.replace(`/sign-up?redirect_url=${encodeURIComponent(continueUrl)}`);
       return;
     }
     if (checkoutStartedRef.current) return;
@@ -51,7 +58,7 @@ function ContinueCheckoutContent() {
         const res = await fetch("/api/checkout", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ plan, source }),
+          body: JSON.stringify({ plan, source, expectedPromotion }),
         });
         const data = (await res.json()) as { url?: string; error?: string };
         if (!res.ok || !data.url) throw new Error(data.error || "Checkout is not available.");
@@ -66,7 +73,7 @@ function ContinueCheckoutContent() {
     return () => {
       cancelled = true;
     };
-  }, [isLoaded, isSignedIn, plan, router]);
+  }, [expectedPromotion, isLoaded, isSignedIn, plan, router, source]);
 
   return (
     <main

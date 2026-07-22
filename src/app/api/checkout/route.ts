@@ -7,6 +7,12 @@ import { CHECKOUT_ENABLED } from "@/lib/site-mode";
 import { countFounderMemberships, type FounderAllocationUser } from "@/lib/founder-allocation";
 import { activateMembership } from "@/lib/membership-server";
 import { mergeGrowthMilestoneMetadata, normalizeCheckoutSource } from "@/lib/growth-events";
+import {
+  buildJulySaleSessionFields,
+  julySaleCheckoutConfig,
+  sessionHasCouponId,
+  validateJulySaleCoupon,
+} from "@/lib/july-sale";
 
 export const dynamic = "force-dynamic";
 
@@ -85,6 +91,15 @@ async function findReusableCheckoutSession(stripe: Stripe, userId: string, planI
   return null;
 }
 
+async function validateConfiguredJulySale(stripe: Stripe, couponId: string, priceId: string) {
+  const [coupon, price] = await Promise.all([
+    stripe.coupons.retrieve(couponId),
+    stripe.prices.retrieve(priceId),
+  ]);
+  const productId = typeof price.product === "string" ? price.product : price.product.id;
+  return validateJulySaleCoupon(coupon, productId);
+}
+
 export async function POST(req: NextRequest) {
   if (!CHECKOUT_ENABLED && process.env.NEXT_PUBLIC_ENABLE_LAUNCH_CHECKOUT !== "1") {
     return NextResponse.json(
@@ -103,7 +118,11 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Stripe checkout is not configured." }, { status: 503 });
   }
 
-  const body = (await req.json().catch(() => ({}))) as { plan?: string; source?: string };
+  const body = (await req.json().catch(() => ({}))) as {
+    plan?: string;
+    source?: string;
+    expectedPromotion?: string;
+  };
   const source = normalizeCheckoutSource(body.source);
   const planId = normalizeBillingPlan(body.plan);
   if (!planId) {
@@ -114,6 +133,19 @@ export async function POST(req: NextRequest) {
   const priceId = getStripePriceId(planId);
   if (!priceId) {
     return NextResponse.json({ error: `${plan.label} is not configured yet.` }, { status: 503 });
+  }
+
+  const julySaleConfig = julySaleCheckoutConfig(
+    planId,
+    process.env.STRIPE_JULY_SALE_COUPON_ID,
+  );
+  const { couponId: julySaleCouponId } = julySaleConfig;
+
+  if (body.expectedPromotion === "july_sale_2026" && julySaleConfig.state !== "active") {
+    return NextResponse.json(
+      { error: "The July sale is no longer available. Refresh pricing before continuing." },
+      { status: 409 },
+    );
   }
 
   if (planId === "bib_lifetime") {
@@ -128,6 +160,23 @@ export async function POST(req: NextRequest) {
   const currentTier = resolveEffectiveMembershipTier(user.publicMetadata);
   if (TIER_RANK[currentTier] >= TIER_RANK[plan.tier]) {
     return NextResponse.json({ error: "Your current Bourbon Signal membership already includes this level." }, { status: 409 });
+  }
+
+  if (julySaleConfig.state === "misconfigured") {
+    console.error("July sale checkout is missing its coupon configuration.");
+    return NextResponse.json({ error: "The July sale is temporarily unavailable. You have not been charged." }, { status: 503 });
+  }
+  if (julySaleConfig.state === "active" && julySaleCouponId) {
+    try {
+      const couponError = await validateConfiguredJulySale(stripe, julySaleCouponId, priceId);
+      if (couponError) {
+        console.error("July sale coupon validation failed:", couponError);
+        return NextResponse.json({ error: "The July sale is temporarily unavailable. You have not been charged." }, { status: 503 });
+      }
+    } catch (error) {
+      console.error("Unable to validate the July sale coupon:", error);
+      return NextResponse.json({ error: "The July sale is temporarily unavailable. You have not been charged." }, { status: 503 });
+    }
   }
 
   const reusableSession = await findReusableCheckoutSession(stripe, userId, planId, priceId);
@@ -156,7 +205,24 @@ export async function POST(req: NextRequest) {
     // refund-and-repay card switch). Do not resurrect access from an old paid Checkout Session;
     // let the user create a fresh Checkout Session below.
     if (!completedPaidSession && reusableSession.url) {
-      return NextResponse.json({ url: reusableSession.url, reused: true });
+      const hasConfiguredSaleCoupon = sessionHasCouponId(
+        reusableSession.discounts,
+        julySaleConfig.configuredCouponId,
+      );
+      const reusableDiscountedSession = julySaleConfig.state === "active"
+        && hasConfiguredSaleCoupon
+        && (!julySaleConfig.expiresAt || (
+          Boolean(reusableSession.expires_at)
+          && reusableSession.expires_at <= julySaleConfig.expiresAt
+        ));
+
+      if (reusableDiscountedSession || (julySaleConfig.state === "inactive" && !hasConfiguredSaleCoupon)) {
+        return NextResponse.json({ url: reusableSession.url, reused: true });
+      }
+
+      // Replace full-price sessions during the sale and retire sale sessions once
+      // the server-authoritative campaign window closes.
+      await stripe.checkout.sessions.expire(reusableSession.id);
     }
   }
 
@@ -176,10 +242,10 @@ export async function POST(req: NextRequest) {
     customer_email: email,
     client_reference_id: userId,
     line_items: [{ price: priceId, quantity: 1 }],
-    allow_promotion_codes: true,
     success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}`,
     cancel_url: `${origin}/pricing?checkout=${plan.id}`,
     metadata,
+    ...buildJulySaleSessionFields(julySaleConfig),
   };
 
   if (plan.stripeMode === "subscription") {

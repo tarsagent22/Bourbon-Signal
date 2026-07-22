@@ -7,7 +7,7 @@ import { TIER_ENTITLEMENTS } from "../src/lib/entitlements.ts";
 
 const faqComponent = await readFile(new URL("../src/components/sections/FAQ.tsx", import.meta.url), "utf8");
 const homePage = await readFile(new URL("../src/app/page.tsx", import.meta.url), "utf8");
-const pricingPage = await readFile(new URL("../src/app/pricing/page.tsx", import.meta.url), "utf8");
+const pricingPage = await readFile(new URL("../src/app/pricing/PricingPageClient.tsx", import.meta.url), "utf8");
 
 const productFaqs = getFaqItems("product");
 assert.equal(productFaqs.length, 10);
