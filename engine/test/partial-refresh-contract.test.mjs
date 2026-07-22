@@ -47,6 +47,30 @@ test('attempted fallback states retain their last published drops', () => {
   assert.equal(fallback.canAlertAsWatch, false);
 });
 
+test('a fallback state with no prior customer rows may bootstrap only explicitly stale non-alerting context', () => {
+  const safe = mergePartialRefreshDrops({
+    previousDrops: [{ id: 'pa-old', state: 'PA' }],
+    currentDrops: [{
+      id: 'oh-stale', state: 'OH', sourceStale: true, stale: true,
+      alertable: false, canAlertAsInventory: false, canAlertAsWatch: false,
+      staleSourceCaveat: 'Verify with OHLQ before driving.',
+    }],
+    partialRefresh: true,
+    attemptedStateIds: ['OH'],
+    fallbackStateIds: ['OH'],
+  });
+  assert.deepEqual(safe.map((drop) => drop.id), ['oh-stale', 'pa-old']);
+
+  const unsafe = mergePartialRefreshDrops({
+    previousDrops: [],
+    currentDrops: [{ id: 'oh-unsafe', state: 'OH', sourceStale: true, alertable: true }],
+    partialRefresh: true,
+    attemptedStateIds: ['OH'],
+    fallbackStateIds: ['OH'],
+  });
+  assert.deepEqual(unsafe, []);
+});
+
 test('full refresh never retains rows solely from the previous contract', () => {
   const merged = mergePartialRefreshDrops({
     previousDrops: [{ id: 'old', state: 'IL' }],
