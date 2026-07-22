@@ -66,6 +66,7 @@ export async function POST(req: NextRequest) {
 
     const validationErrors = productIds.map((productId) => validateJulySaleCoupon(targetCoupon, productId)).filter(Boolean);
     if (validationErrors.length > 0) {
+      console.warn("Corrected July sale coupon validation failed:", validationErrors.join("; "));
       return NextResponse.json({ error: "The corrected coupon did not pass checkout validation." }, { status: 409 });
     }
 
