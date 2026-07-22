@@ -6613,11 +6613,16 @@ export function legacyPrecisionRuntimeOptions(stateId, sourceRunnerOptions = {},
   const stateKey = String(stateId || '').toUpperCase();
   const stateTimeout = env[`BOURBON_SIGNAL_${stateKey}_PRECISION_TIMEOUT_MS`];
   const stateAttempts = env[`BOURBON_SIGNAL_${stateKey}_PRECISION_ATTEMPTS`];
+  const explicitlyTargeted = String(env.BOURBON_SIGNAL_RUN_STATES || '')
+    .split(',')
+    .map((value) => value.trim().toUpperCase())
+    .filter(Boolean)
+    .includes(stateKey);
   const defaultTimeoutMs = stateKey === 'VA' ? 1_140_000 : ['AZ', 'TX'].includes(stateKey) ? 300_000 : 120_000;
   const defaultMaxAttempts = stateKey === 'VA' || stateKey === 'AZ' ? 1 : 2;
   return {
     ...sourceRunnerOptions,
-    ...(stateKey === 'VA' ? { schedule: false } : {}),
+    ...(stateKey === 'VA' || explicitlyTargeted ? { schedule: false } : {}),
     timeoutMs: sourceRunnerOptions.timeoutMs ?? Number(stateTimeout || env.BOURBON_SIGNAL_LEGACY_PRECISION_TIMEOUT_MS || defaultTimeoutMs),
     maxAttempts: sourceRunnerOptions.maxAttempts ?? Number(stateAttempts || env.BOURBON_SIGNAL_LEGACY_PRECISION_ATTEMPTS || defaultMaxAttempts),
   };
