@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { AVAILABLE_STATES } from "@/lib/statePreferences";
@@ -132,6 +132,9 @@ export default function BottleCheckPage() {
   const [trackSaved, setTrackSaved] = useState(false);
   const [freeChecksUsed, setFreeChecksUsed] = useState(0);
   const [liveSuggestions, setLiveSuggestions] = useState<NonNullable<BottleResult["bottle"]>[]>([]);
+  const [suggestionsOpen, setSuggestionsOpen] = useState(false);
+  const [suggestionSession, setSuggestionSession] = useState(0);
+  const suggestionRequestVersion = useRef(0);
   const [addingMissingBottle, setAddingMissingBottle] = useState(false);
   const [missingBottleAdded, setMissingBottleAdded] = useState(false);
   const [missingBottleAddedName, setMissingBottleAddedName] = useState("");
@@ -139,6 +142,40 @@ export default function BottleCheckPage() {
 
   const remainingFreeChecks = bottleCheckLimit === null ? null : Math.max(0, bottleCheckLimit - freeChecksUsed);
   const hasFreeChecksRemaining = remainingFreeChecks === null || remainingFreeChecks > 0;
+
+  function openSuggestionMenu() {
+    suggestionRequestVersion.current += 1;
+    setLiveSuggestions([]);
+    setSuggestionsOpen(true);
+    setSuggestionSession((current) => current + 1);
+  }
+
+  function closeSuggestionMenu() {
+    suggestionRequestVersion.current += 1;
+    setSuggestionsOpen(false);
+    setLiveSuggestions([]);
+  }
+
+  function updateSuggestionQuery(value: string) {
+    suggestionRequestVersion.current += 1;
+    setLiveSuggestions([]);
+    setSuggestionsOpen(true);
+    setQuery(value);
+  }
+
+  function updateSuggestionState(value: string) {
+    suggestionRequestVersion.current += 1;
+    setLiveSuggestions([]);
+    setState(value);
+  }
+
+  function selectSuggestion(suggestion: NonNullable<BottleResult["bottle"]>) {
+    closeSuggestionMenu();
+    setQuery(suggestion.canonicalName);
+    setSubmittedQuery(suggestion.canonicalName);
+    setSubmittedState(state);
+    setHasSearched(true);
+  }
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -197,25 +234,36 @@ export default function BottleCheckPage() {
   }, [state]);
 
   useEffect(() => {
+    if (!suggestionsOpen) {
+      setLiveSuggestions([]);
+      return;
+    }
+
     const q = query.trim();
     if (q.length < 2) {
       setLiveSuggestions([]);
       return;
     }
 
+    const requestVersion = ++suggestionRequestVersion.current;
     const controller = new AbortController();
     const timer = window.setTimeout(async () => {
       try {
         const res = await fetch(`/api/bottle-check?q=${encodeURIComponent(q)}&state=${encodeURIComponent(state)}&intent=suggest`, { signal: controller.signal });
-        if (!res.ok) return setLiveSuggestions([]);
+        if (requestVersion !== suggestionRequestVersion.current) return;
+        if (!res.ok) {
+          setLiveSuggestions([]);
+          return;
+        }
         const data = (await res.json()) as BottleResult;
+        if (requestVersion !== suggestionRequestVersion.current) return;
         const suggestions = dedupeSuggestions([data.bottle, ...(data.suggestions || [])]
           .filter((suggestion): suggestion is NonNullable<BottleResult["bottle"]> => Boolean(suggestion))
           .filter((suggestion, index, array) => array.findIndex((item) => item.id === suggestion.id) === index))
           .slice(0, 6);
         setLiveSuggestions(suggestions);
       } catch (error) {
-        if ((error as Error).name !== "AbortError") setLiveSuggestions([]);
+        if ((error as Error).name !== "AbortError" && requestVersion === suggestionRequestVersion.current) setLiveSuggestions([]);
       }
     }, 180);
 
@@ -223,7 +271,7 @@ export default function BottleCheckPage() {
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [query, state]);
+  }, [query, state, suggestionsOpen, suggestionSession]);
 
   const bottle = result?.bottle || null;
   const signal = result?.localSignal;
@@ -241,6 +289,7 @@ export default function BottleCheckPage() {
     event.preventDefault();
     const nextQuery = query.trim();
     if (!nextQuery) return;
+    closeSuggestionMenu();
     if (!hasFreeChecksRemaining) {
       setResult({ bottle: null, message: "Free includes 3 Bottle Checks. Upgrade for unlimited Bottle Check access." });
       return;
@@ -276,7 +325,7 @@ export default function BottleCheckPage() {
       if (!res.ok) throw new Error(typeof data.error === "string" ? data.error : "Could not add that bottle yet.");
       setMissingBottleAdded(true);
       setMissingBottleAddedName(rawName);
-      setLiveSuggestions([]);
+      closeSuggestionMenu();
     } catch (error) {
       setMissingBottleError(error instanceof Error ? error.message : "Could not add that bottle yet.");
     } finally {
@@ -354,7 +403,19 @@ export default function BottleCheckPage() {
                 <input
                   id="bottle-search"
                   value={query}
-                  onChange={(event) => { setQuery(event.target.value); setMissingBottleAdded(false); setMissingBottleAddedName(""); setMissingBottleError(null); }}
+                  onFocus={openSuggestionMenu}
+                  onPointerDown={openSuggestionMenu}
+                  onKeyDown={(event) => {
+                    if (event.key === "Escape") {
+                      closeSuggestionMenu();
+                    }
+                  }}
+                  onChange={(event) => {
+                    updateSuggestionQuery(event.target.value);
+                    setMissingBottleAdded(false);
+                    setMissingBottleAddedName("");
+                    setMissingBottleError(null);
+                  }}
                   placeholder="Try Blanton's, Weller Green, Maker's Mark…"
                   autoComplete="off"
                 />
@@ -364,6 +425,7 @@ export default function BottleCheckPage() {
                     className="bc-search-clear"
                     aria-label="Clear bottle search"
                     onClick={() => {
+                      closeSuggestionMenu();
                       setQuery("");
                       setResult(null);
                       setHasSearched(false);
@@ -376,18 +438,13 @@ export default function BottleCheckPage() {
                   </button>
                 ) : null}
               </div>
-              {liveSuggestions.length > 0 ? (
-                <div className="bc-live-suggestions">
+              {suggestionsOpen && liveSuggestions.length > 0 ? (
+                <div className="bc-live-suggestions" aria-label="Bottle suggestions">
                   {liveSuggestions.map((suggestion) => (
                     <button
                       key={suggestion.id}
                       type="button"
-                      onClick={() => {
-                        setQuery(suggestion.canonicalName);
-                        setSubmittedQuery(suggestion.canonicalName);
-                        setSubmittedState(state);
-                        setHasSearched(true);
-                      }}
+                      onClick={() => selectSuggestion(suggestion)}
                     >
                       <span>{suggestion.canonicalName}</span>
                       <em className={`bc-tier ${suggestion.availability}`}>{availabilityLabels[suggestion.availability] || suggestion.availability}</em>
@@ -403,7 +460,7 @@ export default function BottleCheckPage() {
             </div>
             <div className="bc-field state">
               <label htmlFor="state-select">Area</label>
-              <select id="state-select" value={state} onChange={(event) => setState(event.target.value)} className="bourbon-select">
+              <select id="state-select" value={state} onChange={(event) => updateSuggestionState(event.target.value)} className="bourbon-select">
                 {activeStates.map((item) => (
                   <option key={item.code} value={item.code}>{item.name}</option>
                 ))}
