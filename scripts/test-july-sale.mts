@@ -89,6 +89,12 @@ const validCoupon = {
   applies_to: { products: ["prod_standard"] },
 };
 assert.equal(validateJulySaleCoupon(validCoupon, "prod_standard", saleNow), null);
+assert.equal(validateJulySaleCoupon({
+  ...validCoupon,
+  applies_to: { products: [] },
+  metadata: { campaign: "july_sale_2026", provisioned_by: "bourbon_signal" },
+}, "prod_standard", saleNow), null);
+assert.match(validateJulySaleCoupon({ ...validCoupon, applies_to: { products: [] } }, "prod_standard", saleNow) || "", /product/);
 assert.match(validateJulySaleCoupon({ ...validCoupon, percent_off: 10 }, "prod_standard", saleNow) || "", /15%/);
 assert.match(validateJulySaleCoupon({ ...validCoupon, duration: "forever" }, "prod_standard", saleNow) || "", /once/);
 assert.match(validateJulySaleCoupon(validCoupon, "prod_other", saleNow) || "", /product/);

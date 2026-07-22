@@ -32,6 +32,7 @@ type CouponLike = {
   duration?: string;
   redeem_by?: number | null;
   applies_to?: { products?: string[] } | null;
+  metadata?: Record<string, string> | null;
 };
 
 type DiscountLike = {
@@ -114,7 +115,10 @@ export function validateJulySaleCoupon(coupon: CouponLike, productId: string, no
   if (coupon.duration !== "once") return "July sale coupon must apply once.";
   if (coupon.redeem_by && coupon.redeem_by <= Math.floor(now.getTime() / 1000)) return "July sale coupon has expired.";
   const products = coupon.applies_to?.products || [];
-  if (!products.includes(productId)) return "July sale coupon does not apply to this product.";
+  const backendRestricted = products.length === 0
+    && coupon.metadata?.campaign === "july_sale_2026"
+    && coupon.metadata?.provisioned_by === "bourbon_signal";
+  if (!backendRestricted && !products.includes(productId)) return "July sale coupon does not apply to this product.";
   return null;
 }
 
