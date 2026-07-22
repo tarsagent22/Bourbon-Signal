@@ -5,12 +5,12 @@ const read = (path: string) => fs.readFileSync(path, "utf8");
 const page = read("src/app/page.tsx");
 const footer = read("src/components/Footer.tsx");
 const layout = read("src/app/layout.tsx");
-const pricing = read("src/app/pricing/page.tsx");
+const pricing = read("src/app/pricing/PricingPageClient.tsx");
 const faq = read("src/lib/faq-content.ts");
 const radarCta = read("src/components/sections/ReleaseRadarSection.tsx");
 const radarCtaStyles = read("src/components/sections/ReleaseRadarSection.module.css");
 
-assert.match(pricing, /useState<BillingCycle>\("monthly"\)/, "pricing should default to monthly billing and monthly prices");
+assert.match(pricing, /useState<BillingCycle>\(\(\) => julySaleActive \? "annual" : "monthly"\)/, "pricing should feature eligible annual plans only while the July sale is active");
 
 assert.match(page, /import ReleaseRadarSection from "@\/components\/sections\/ReleaseRadarSection"/);
 assert.match(page, /<ReleaseRadarSection\s*\/>/);
