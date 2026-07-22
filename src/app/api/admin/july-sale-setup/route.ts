@@ -1,7 +1,7 @@
 import { timingSafeEqual } from "node:crypto";
 import { NextRequest, NextResponse } from "next/server";
 import Stripe from "stripe";
-import { getStripePriceId } from "@/lib/stripe-plans";
+import { getStripePriceId, LAUNCH_BILLING_PLANS } from "@/lib/stripe-plans";
 import { validateJulySaleCoupon } from "@/lib/july-sale";
 
 export const runtime = "nodejs";
@@ -75,6 +75,39 @@ export async function POST(req: NextRequest) {
     if (validationErrors.length > 0) {
       console.warn("Corrected July sale coupon validation failed:", validationErrors.join("; "));
       return NextResponse.json({ error: "The corrected coupon did not pass checkout validation." }, { status: 409 });
+    }
+
+    if (req.nextUrl.searchParams.get("verifyCheckout") === "1") {
+      const sessions = await Promise.all(ELIGIBLE_PLANS.map(async (planId) => {
+        const priceId = getStripePriceId(planId);
+        if (!priceId) throw new Error(`Missing production price for ${planId}.`);
+        return stripe.checkout.sessions.create({
+          mode: LAUNCH_BILLING_PLANS[planId].stripeMode,
+          line_items: [{ price: priceId, quantity: 1 }],
+          discounts: [{ coupon: TARGET_COUPON_ID }],
+          success_url: "https://www.bourbonsignal.com/success?verification=1",
+          cancel_url: "https://www.bourbonsignal.com/pricing?verification=cancelled",
+          metadata: { verification: "july_sale_2026" },
+        });
+      }));
+      const results = sessions.map((session, index) => ({
+        plan: ELIGIBLE_PLANS[index],
+        subtotal: session.amount_subtotal,
+        discount: session.total_details?.amount_discount || 0,
+        total: session.amount_total,
+        currency: session.currency,
+      }));
+      await Promise.all(sessions.map((session) => stripe.checkout.sessions.expire(session.id)));
+      const validTotals = results.every((result) => (
+        typeof result.subtotal === "number"
+        && typeof result.total === "number"
+        && result.discount > 0
+        && result.total === result.subtotal - result.discount
+      ));
+      if (!validTotals) {
+        return NextResponse.json({ error: "Stripe did not return valid discounted checkout totals." }, { status: 409 });
+      }
+      return NextResponse.json({ ok: true, checkouts: results });
     }
 
     return NextResponse.json({ ok: true, configuredProducts: productIds.length });
