@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
-import { minimumVirginiaSiteLocationCount } from './collectors/virginia-inventory-recovery.mjs';
+import { isVirginiaRegularInventoryExpired, minimumVirginiaSiteLocationCount } from './collectors/virginia-inventory-recovery.mjs';
 
 const OUT = path.resolve('out');
 const VIRGINIA_INVENTORY_MAX_AGE_MS = Math.max(60 * 60_000, Number(process.env.BOURBON_SIGNAL_VA_INVENTORY_MAX_AGE_MS || 24 * 60 * 60_000));
@@ -37,11 +37,7 @@ async function main() {
   const vaLocations = (locations.locations || []).filter((location) => location.state === 'VA');
   const storeSignals = signals.filter((signal) => signal.locationPrecision === 'store_level');
   const nowMs = Date.now();
-  const expiredInventorySignals = storeSignals.filter((signal) => {
-    if (!/store_inventory/i.test(String(signal.eventType || ''))) return false;
-    const timestamp = Date.parse(String(signal.observedAt || ''));
-    return !Number.isFinite(timestamp) || nowMs - timestamp > VIRGINIA_INVENTORY_MAX_AGE_MS;
-  });
+  const expiredInventorySignals = storeSignals.filter((signal) => isVirginiaRegularInventoryExpired(signal, nowMs, VIRGINIA_INVENTORY_MAX_AGE_MS));
   const expiredInventoryIds = new Set(expiredInventorySignals.flatMap((signal) => [signal.sourceSignalId, signal.key].filter(Boolean)));
   const inventorySignals = signals.filter((signal) => signal.canAlertAsInventory);
   const positiveSignals = signals.filter((signal) => signal.eventType === 'store_inventory_result' && Number(signal.quantity || 0) > 0 && !signal.sourceStale && !expiredInventoryIds.has(signal.sourceSignalId || signal.key));

@@ -52,6 +52,7 @@ import {
 import {
   applyVirginiaInventoryFreshness,
   evaluateVirginiaProductCoverage,
+  isVirginiaRegularInventoryExpired,
   mergeVirginiaProductPartitions,
   seedVirginiaInventoryCacheSignals,
   selectVirginiaProductsForRefresh,
@@ -8593,7 +8594,10 @@ async function collectVirginia(config, bible, options = {}) {
   }
   const enrichedSignals = mergedSignals.map((signal) => enrichVirginiaCachedSignal(signal, cached.generatedAt));
   const signals = applyVirginiaInventoryFreshness(enrichedSignals, Date.now(), VIRGINIA_INVENTORY_MAX_AGE_MS);
-  const staleProductCodes = new Set(signals.filter((signal) => signal.sourceStale).map((signal) => signal.raw?.product?.code).filter(Boolean));
+  const staleProductCodes = new Set(signals
+    .filter((signal) => isVirginiaRegularInventoryExpired(signal, Date.now(), VIRGINIA_INVENTORY_MAX_AGE_MS))
+    .map((signal) => signal.raw?.product?.code)
+    .filter(Boolean));
   const representedProductCodes = new Set(signals.map(virginiaProductCode).filter(Boolean));
   for (const product of VIRGINIA_PRODUCTS) {
     if (!representedProductCodes.has(product.code)) staleProductCodes.add(product.code);

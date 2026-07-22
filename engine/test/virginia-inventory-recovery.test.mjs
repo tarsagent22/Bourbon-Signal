@@ -5,6 +5,7 @@ import test from 'node:test';
 import {
   applyVirginiaInventoryFreshness,
   evaluateVirginiaProductCoverage,
+  isVirginiaRegularInventoryExpired,
   mergeVirginiaProductPartitions,
   minimumVirginiaSiteLocationCount,
   seedVirginiaInventoryCacheSignals,
@@ -181,6 +182,7 @@ test('Virginia collector continuously refreshes bounded product shards instead o
   assert.match(collectorSource, /evaluateVirginiaProductCoverage\(/);
   assert.match(collectorSource, /mergeVirginiaProductPartitions\(/);
   assert.match(collectorSource, /applyVirginiaInventoryFreshness\(/);
+  assert.match(collectorSource, /isVirginiaRegularInventoryExpired\(signal, Date\.now\(\), VIRGINIA_INVENTORY_MAX_AGE_MS\)/);
   assert.match(collectorSource, /collectVirginia\(config, bible, options\)/);
   assert.match(collectorSource, /fetchVirginiaInventoryOrigin\(product, origin, options\.signal/);
   assert.match(collectorSource, /VIRGINIA_COLD_START_PRODUCTS_PER_RUN/);
@@ -335,6 +337,15 @@ test('stale Virginia cache remains visible but is never labeled live or alertabl
   assert.match(stale?.staleSourceCaveat || '', /last confirmed/i);
   assert.equal(fresh?.sourceStale, false);
   assert.equal(fresh?.canAlertAsInventory, true);
+});
+
+test('Virginia targeted freshness gate ignores policy-only limited products but blocks stale regular inventory', () => {
+  const now = Date.parse('2026-07-22T15:30:00.000Z');
+  const observedAt = '2026-07-21T14:00:00.000Z';
+  assert.equal(isVirginiaRegularInventoryExpired({ eventType: 'store_inventory_result', productLimitedCaveat: true, observedAt }, now), false);
+  assert.equal(isVirginiaRegularInventoryExpired({ eventType: 'store_inventory_result', productLimitedCaveat: false, observedAt }, now), true);
+  assert.equal(isVirginiaRegularInventoryExpired({ eventType: 'store_inventory_result', raw: { product: { limitedCaveat: true } }, observedAt }, now), false);
+  assert.equal(isVirginiaRegularInventoryExpired({ eventType: 'store_inventory_result', raw: { product: { limitedCaveat: false } }, observedAt }, now), true);
 });
 
 test('Virginia global quality accepts the 20-row live floor and only an explicitly non-alerting stale lane', () => {
