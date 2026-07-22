@@ -5,6 +5,7 @@ import { captureSearchEvent } from "@/lib/search-capture";
 import { normalizeDropForSite, readSiteExport, siteExportHeaders } from "@/lib/site-engine-contract";
 import { getEntitlements } from "@/lib/entitlements";
 import { getMemberTasteScore } from "@/lib/member-taste-score";
+import { getRarityProfile } from "@/lib/bottle-rarity-score";
 
 
 const FREE_BOTTLE_CHECK_LIMIT = 3;
@@ -37,6 +38,7 @@ async function consumeFreeBottleCheckIfNeeded(intent: string) {
 
 interface LocalSignal {
   state: string;
+  rarityScore: number;
   localScore: number;
   scoreStatus: "bible_baseline" | "local_adjusted";
   scoreBasis: string;
@@ -80,41 +82,6 @@ async function getDropsForBottle(bottle: BibleBottle, state?: string) {
   } catch {
     return [];
   }
-}
-
-function getBibleBaselineScore(bottle: BibleBottle) {
-  return getAvailabilityScore(bottle, bottle.availability);
-}
-
-function getAvailabilityScore(bottle: BibleBottle, availability: AvailabilityTier) {
-  const availabilityBase: Record<string, number> = {
-    common: 22,
-    regional: 40,
-    seasonal: 48,
-    limited: 62,
-    allocated: 76,
-    highly_allocated: 88,
-    unicorn: 97,
-  };
-
-  const verdictBoost: Record<string, number> = {
-    safe_to_pass: -4,
-    fair_buy: 0,
-    good_buy: 5,
-    grab_at_msrp: 8,
-    special_find: 10,
-    unknown: 0,
-  };
-
-  const proofBoost = typeof bottle.proof === "number" && bottle.proof >= 115 ? 3 : typeof bottle.proof === "number" && bottle.proof >= 100 ? 1 : 0;
-  const ageText = `${bottle.ageStatement || ""}`.toLowerCase();
-  const ageMatch = ageText.match(/(\d+)/);
-  const ageBoost = ageMatch ? Math.min(4, Math.max(0, Number(ageMatch[1]) - 8)) : 0;
-  const alertBoost = bottle.isAlertEligible ? 2 : 0;
-
-  const raw = (availabilityBase[availability] ?? 45) + (verdictBoost[bottle.buyerVerdict] ?? 0) + proofBoost + ageBoost + alertBoost;
-  const capped = availability === "common" ? Math.min(35, raw) : raw;
-  return Math.max(1, Math.min(100, Math.round(capped)));
 }
 
 const CONTROLLED_OR_ALLOCATED_MARKETS = new Set(["NC", "VA", "PA", "AL", "MD-MONTGOMERY"]);
@@ -228,49 +195,37 @@ async function getLocalSignal(bottle: BibleBottle, state: string): Promise<Local
   const recent90 = drops.filter((drop) => now - asTime(drop.timestamp) <= 90 * day);
   const recent30 = drops.filter((drop) => now - asTime(drop.timestamp) <= 30 * day);
   const lastSeenAt = drops[0]?.timestamp ? String(drops[0].timestamp) : null;
-  const uniqueLocations = new Set(recent90.map((drop) => String(drop.store_id || drop.store_name || drop.display_location || drop.board_name || drop.store_city || "")).filter(Boolean));
 
   const marketAvailability = getMarketAdjustedAvailability(bottle, state);
-  const baselineScore = getAvailabilityScore(bottle, marketAvailability.availability);
+  const rarityProfile = getRarityProfile(marketAvailability.availability);
+  const rarityScore = rarityProfile.score;
   const hasLocalSignal = recent90.length > 0;
-  const ageDays = hasLocalSignal && lastSeenAt ? Math.floor((now - asTime(lastSeenAt)) / day) : null;
-  const recencyBoost = ageDays == null ? 0 : Math.max(0, 8 - ageDays / 7);
-  const opportunityBoost = hasLocalSignal ? Math.min(8, recent30.length * 1.2 + uniqueLocations.size * 0.6) : 0;
-  const scarcityLift = !hasLocalSignal && marketAvailability.availability !== "common" ? 4 : 0;
-  const abundancePenalty = marketAvailability.availability === "common" && recent90.length >= 12 && uniqueLocations.size >= 6 ? 5 : 0;
-  const commonLocalCap = marketAvailability.availability === "common" ? 38 : 100;
-  const localScore = hasLocalSignal
-    ? Math.max(1, Math.min(commonLocalCap, Math.round(baselineScore + recencyBoost + opportunityBoost - abundancePenalty)))
-    : Math.max(1, Math.min(commonLocalCap, Math.round(baselineScore + scarcityLift)));
-  const scoreStatus: LocalSignal["scoreStatus"] = hasLocalSignal || marketAvailability.adjusted ? "local_adjusted" : "bible_baseline";
-  const scoreBasis = hasLocalSignal
-    ? `Bottle profile adjusted by recent Bourbon Signal sightings${marketAvailability.adjusted ? " and state-specific scarcity context" : ""}.`
-    : marketAvailability.adjusted
-      ? `Bottle profile adjusted for ${state} market scarcity. ${marketAvailability.reasons[0] || "Local availability differs from the national label."}`
-      : "Bottle profile based on availability, buyer guidance, proof/age context, and alert eligibility.";
+  const scoreStatus: LocalSignal["scoreStatus"] = marketAvailability.adjusted ? "local_adjusted" : "bible_baseline";
+  const scoreBasis = marketAvailability.adjusted
+    ? `Rarity tier adjusted for ${state} market context. ${marketAvailability.reasons[0] || "Local availability differs from the national tier."}`
+    : "National rarity tier only; taste and recent local sightings are shown separately.";
 
   const confidence: LocalSignal["confidence"] = recent90.length >= 8 ? "high" : recent90.length >= 2 ? "medium" : "low";
-  let label = "Not enough local signal";
-  if (marketAvailability.adjusted && bottle.availability === "common") label = "Common nationally, scarce locally";
-  else if (marketAvailability.availability === "common") label = "Common shelf bottle";
-  else if (localScore >= 90) label = hasLocalSignal ? "Extremely rare local find" : "Extremely rare bottle";
-  else if (localScore >= 75) label = hasLocalSignal ? "Rare in your area" : "Rare bottle";
-  else if (localScore >= 58) label = hasLocalSignal ? "Worth checking locally" : "Limited or allocated bottle";
-  else if (localScore >= 36) label = hasLocalSignal ? "Moderate local signal" : "Regional or situational bottle";
+  const label = marketAvailability.adjusted && bottle.availability === "common"
+    ? "Common nationally, scarce locally"
+    : rarityProfile.label;
 
   let verdict = "Check price and local context before deciding.";
   if (marketAvailability.adjusted && bottle.availability === "common") verdict = "This may be easy to dismiss nationally, but in your selected market it can behave like an allocated bottle. Good buy near MSRP if you actually want it; do not chase secondary pricing.";
   else if (marketAvailability.availability === "common") verdict = "Usually safe to pass unless you specifically want it.";
-  else if (!hasLocalSignal) verdict = "Solid bottle if priced fairly. Bourbon Signal does not have recent local sightings for it yet, so this score is based on bottle profile rather than confirmed local availability.";
-  else if (localScore >= 82) verdict = "Grab near MSRP if this is a bottle you want.";
-  else if (localScore >= 62) verdict = "Worth considering at a fair shelf price.";
-  else if (confidence === "low") verdict = "Not enough local history yet; use the national bottle context as a guide.";
+  else if (marketAvailability.availability === "unicorn") verdict = "A true unicorn retail find. Verify provenance and price before treating it as actionable.";
+  else if (marketAvailability.availability === "highly_allocated") verdict = "Extremely difficult to find at retail. Act quickly near MSRP if it is a bottle you want.";
+  else if (marketAvailability.availability === "allocated") verdict = "A meaningful allocated find. Worth considering near MSRP if it fits your collection.";
+  else if (!hasLocalSignal) verdict = "The rarity tier is based on the bottle profile. Bourbon Signal does not have recent sightings for it in this market yet.";
+  else if (marketAvailability.availability === "limited") verdict = "Worth considering at a fair shelf price.";
+  else if (confidence === "low") verdict = "Not enough local history yet; use the national rarity tier as a guide.";
 
   const canTrack = Boolean(bottle.isAlertEligible && bottle.availability !== "common");
 
   return {
     state,
-    localScore,
+    rarityScore,
+    localScore: rarityScore,
     scoreStatus,
     scoreBasis,
     label,

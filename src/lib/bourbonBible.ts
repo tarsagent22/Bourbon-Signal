@@ -1,5 +1,6 @@
 import inventoryBottles from "@/data/bourbonBibleInventory.json";
 import { readSiteExport } from "@/lib/site-engine-contract";
+import { mergeBottleCatalogSources } from "@/lib/bottle-catalog-merge";
 
 export type AvailabilityTier = "common" | "regional" | "seasonal" | "limited" | "allocated" | "highly_allocated" | "unicorn";
 export type BuyerVerdict = "safe_to_pass" | "fair_buy" | "good_buy" | "grab_at_msrp" | "special_find" | "unknown";
@@ -176,25 +177,6 @@ function scoreBottleMatch(bottle: BibleBottle, query: string): { score: number; 
   return { score: 0, reason: "fuzzy" };
 }
 
-function dedupeBottles(bottles: BibleBottle[]) {
-  const byKey = new Map<string, BibleBottle>();
-  for (const bottle of bottles) {
-    const key = bottle.id || slugifyBottle(bottle.canonicalName);
-    const existing = byKey.get(key);
-    if (!existing) {
-      byKey.set(key, { ...bottle, aliases: Array.from(new Set([...(bottle.aliases || []), bottle.canonicalName])) });
-      continue;
-    }
-    byKey.set(key, {
-      ...existing,
-      ...bottle,
-      aliases: Array.from(new Set([...(existing.aliases || []), ...(bottle.aliases || []), existing.canonicalName, bottle.canonicalName])),
-      isSignalTracked: existing.isSignalTracked || bottle.isSignalTracked,
-      isAlertEligible: existing.isAlertEligible || bottle.isAlertEligible,
-    });
-  }
-  return Array.from(byKey.values()).sort((a, b) => a.canonicalName.localeCompare(b.canonicalName));
-}
 
 function tierFromEngine(value: unknown): AvailabilityTier {
   const tier = String(value || "").toLowerCase();
@@ -249,9 +231,14 @@ function readInventoryBibleBottles(): BibleBottle[] {
 }
 
 export async function getBourbonBible() {
-  // Inventory bottles are broad lookup context. Curated seed + engine records come after
-  // so allocated/drop-aware metadata wins when the same canonical id appears twice.
-  return dedupeBottles([...readInventoryBibleBottles(), ...SEED_BOTTLES, ...await readEngineBibleBottles()]);
+  // Engine tiers drive alert priority, not the customer-facing rarity score. Apply
+  // live engine data first, then broad inventory editorial metadata, then the most
+  // deliberate curated profiles. Signal flags and aliases survive every merge.
+  return mergeBottleCatalogSources([
+    await readEngineBibleBottles(),
+    readInventoryBibleBottles(),
+    SEED_BOTTLES,
+  ]);
 }
 
 export async function searchBourbonBible(query: string, limit = 8): Promise<BibleSearchResult[]> {
