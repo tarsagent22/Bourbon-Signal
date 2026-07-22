@@ -152,6 +152,15 @@ export function summarizeVirginiaProductErrors(errors) {
   };
 }
 
+export function isVirginiaRegularInventoryExpired(signal, nowMs = Date.now(), maxInventoryAgeMs = 24 * 60 * 60_000) {
+  const limitedCaveat = typeof signal?.productLimitedCaveat === 'boolean'
+    ? signal.productLimitedCaveat
+    : signal?.raw?.product?.limitedCaveat;
+  if (!/store_inventory/i.test(String(signal?.eventType || '')) || limitedCaveat !== false) return false;
+  const observedAt = finiteTimestamp(signal?.observedAt);
+  return observedAt == null || nowMs - observedAt > maxInventoryAgeMs;
+}
+
 export function applyVirginiaInventoryFreshness(signals, nowMs = Date.now(), maxInventoryAgeMs = 24 * 60 * 60_000) {
   return (signals || []).map((signal) => {
     const observedAt = finiteTimestamp(signal?.observedAt);
