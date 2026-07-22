@@ -12,7 +12,10 @@ const ELIGIBLE_PLANS = ["standard_annual", "barrel_annual", "bib_lifetime"] as c
 const validateConfiguredSale = unstable_cache(async () => {
   const secretKey = String(process.env.STRIPE_SECRET_KEY || process.env.STRIPE_SECRET_KEY_LIVE || "").trim();
   const couponId = String(process.env.STRIPE_JULY_SALE_COUPON_ID || "").trim();
-  if (!secretKey || !couponId) return false;
+  if (!secretKey || !couponId) {
+    console.warn("July sale readiness is disabled because required Stripe configuration is missing.");
+    return false;
+  }
 
   try {
     const stripe = new Stripe(secretKey);
@@ -22,12 +25,21 @@ const validateConfiguredSale = unstable_cache(async () => {
       if (!priceId) return null;
       return stripe.prices.retrieve(priceId);
     }));
-    if (prices.some((price) => !price)) return false;
-    return prices.every((price) => {
-      if (!price) return false;
+    if (prices.some((price) => !price)) {
+      console.warn("July sale readiness failed because an eligible production price is missing.");
+      return false;
+    }
+    const validationErrors = prices.map((price, index) => {
+      if (!price) return `${ELIGIBLE_PLANS[index]}: missing price`;
       const productId = typeof price.product === "string" ? price.product : price.product.id;
-      return validateJulySaleCoupon(coupon, productId) === null;
-    });
+      const error = validateJulySaleCoupon(coupon, productId);
+      return error ? `${ELIGIBLE_PLANS[index]}: ${error}` : null;
+    }).filter(Boolean);
+    if (validationErrors.length > 0) {
+      console.warn("July sale readiness validation failed:", validationErrors.join("; "));
+      return false;
+    }
+    return true;
   } catch (error) {
     console.error("Unable to validate public July sale availability:", error);
     return false;
