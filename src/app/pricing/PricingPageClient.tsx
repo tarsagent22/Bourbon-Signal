@@ -134,7 +134,7 @@ const comparisonRows = [
 function PricingPageContent({ julySaleEnabled }: { julySaleEnabled: boolean }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { isSignedIn, memberTier } = useAuth();
+  const { isLoaded, isSignedIn, memberTier } = useAuth();
   const julySaleActive = julySaleEnabled;
   const [billingCycle, setBillingCycle] = useState<BillingCycle>(() => julySaleActive ? "annual" : "monthly");
   const [pendingPlan, setPendingPlan] = useState<PaidPlanId | "free" | null>(null);
@@ -254,6 +254,23 @@ function PricingPageContent({ julySaleEnabled }: { julySaleEnabled: boolean }) {
           </ScrollReveal>
         </section>
 
+        {isLoaded && (!isSignedIn || memberTier === "free") ? (
+          <section className="free-preview-strip" aria-label="Continue with free access">
+            <div>
+              <p>Free · $0 · no card required</p>
+              <h2>{isSignedIn ? "Your free account is active. Keep exploring without paying." : "Start free. Browse the signal before you pay."}</h2>
+            </div>
+            <ul>
+              <li>7 recent Drop Feed signals</li>
+              <li>3 Bottle Checks</li>
+              <li>Release Radar and Member Sightings</li>
+            </ul>
+            <button type="button" onClick={() => router.push(isSignedIn ? "/dashboard" : "/sign-up?redirect_url=%2Fwelcome")}>
+              {isSignedIn ? "Continue with Free" : "Create Free Account"}
+            </button>
+          </section>
+        ) : null}
+
         {julySaleActive ? (
           <section className="july-sale-banner" aria-label="July membership sale">
             <p>July member sale</p>
@@ -262,21 +279,6 @@ function PricingPageContent({ julySaleEnabled }: { julySaleEnabled: boolean }) {
               <span>Standard annual $21.24 · Barrel annual $42.49 · Bottled in Bond Founder lifetime $42.49</span>
             </div>
             <em>Discount applied automatically at checkout · annual savings apply to the first annual payment</em>
-          </section>
-        ) : null}
-
-        {!isSignedIn ? (
-          <section className="free-preview-strip" aria-label="Free access account">
-            <div>
-              <p>Free access</p>
-              <h2>Create an account first. Browse the signal before you pay.</h2>
-            </div>
-            <ul>
-              <li>Limited Drop Feed access</li>
-              <li>3 Bottle Checks</li>
-              <li>Limited member sightings access</li>
-            </ul>
-            <button type="button" onClick={() => router.push("/sign-up?redirect_url=/pricing")}>Start free access</button>
           </section>
         ) : null}
 

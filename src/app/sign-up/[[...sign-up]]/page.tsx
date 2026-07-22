@@ -3,24 +3,13 @@
 import { useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { SignUp } from "@clerk/nextjs";
+import { resolveSignUpRedirect } from "@/lib/growth-events";
 
 const DEFAULT_ONBOARDING_REDIRECT = "/welcome";
 
-function safeRedirectUrl(value: string | null) {
-  if (!value) return DEFAULT_ONBOARDING_REDIRECT;
-  try {
-    if (value.startsWith("/")) return value.startsWith("//") ? DEFAULT_ONBOARDING_REDIRECT : value;
-    const url = new URL(value);
-    if (typeof window !== "undefined" && url.origin === window.location.origin) return `${url.pathname}${url.search}${url.hash}`;
-  } catch {
-    return DEFAULT_ONBOARDING_REDIRECT;
-  }
-  return DEFAULT_ONBOARDING_REDIRECT;
-}
-
 export default function SignUpPage() {
   const searchParams = useSearchParams();
-  const redirectUrl = safeRedirectUrl(searchParams.get("redirect_url"));
+  const redirectUrl = resolveSignUpRedirect(searchParams.get("redirect_url"));
   const encodedRedirect = encodeURIComponent(redirectUrl);
   const [ageChecked, setAgeChecked] = useState(false);
   const [confirmedAge, setConfirmedAge] = useState(false);

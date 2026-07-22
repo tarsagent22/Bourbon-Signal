@@ -21,6 +21,7 @@ import { getDisplayName, isRealDropEvent, type DropEvent } from "@/lib/drops";
 import { LiquidToggle } from "@/components/LiquidToggle";
 import { NotificationChannelCard } from "@/components/dashboard/NotificationChannelCard";
 import { WeeklyIntelligenceCard } from "@/components/dashboard/WeeklyIntelligenceCard";
+import FreeMemberDashboard from "@/components/dashboard/FreeMemberDashboard";
 import {
   getDefaultNotificationPreferences,
   type NotificationPreferences,
@@ -807,6 +808,25 @@ function HubCard({
 }
 
 export default function DashboardPage() {
+  const { isLoaded, entitlements } = useAuth();
+  const isFreeTier = entitlements.tier === "free";
+
+  if (!isLoaded) {
+    return (
+      <div style={{ minHeight: "100vh", background: "var(--color-bg-primary)" }}>
+        <Navigation />
+        <main style={{ minHeight: "72vh", display: "grid", placeItems: "center", color: "var(--color-text-secondary)", fontFamily: "var(--font-dm-sans)" }}>
+          Loading your dashboard…
+        </main>
+      </div>
+    );
+  }
+
+  if (isFreeTier) return <FreeMemberDashboard />;
+  return <PaidMemberDashboard />;
+}
+
+function PaidMemberDashboard() {
   const { bottles, loading } = useBottles();
   const { stores } = useStores();
   const { drops: recentDrops } = useDrops({ limit: 120 });
