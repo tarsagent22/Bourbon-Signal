@@ -29,6 +29,7 @@ const api = read("src/app/api/coverage/route.ts");
 const navigation = read("src/components/Navigation.tsx");
 const mapRedirect = read("src/app/map/page.tsx");
 const sitemap = read("src/app/sitemap.ts");
+const middleware = read("src/middleware.ts");
 
 assert.match(page, /readCurrentCoverageContract/, "the page reads the one server-side coverage truth");
 assert.match(page, /searchParams/, "server rendering honors URL state selection");
@@ -75,6 +76,7 @@ assert.match(api, /searchCurrentCoverageTargets/, "public search resolves throug
 assert.match(api, /Cache-Control/, "public coverage reads have an explicit cache policy");
 assert.match(navigation, /label:\s*"Coverage",\s*href:\s*"\/coverage"/, "Coverage is in primary navigation");
 assert.match(mapRedirect, /redirect\("\/coverage"\)/, "legacy /map traffic redirects to /coverage");
+assert.doesNotMatch(middleware, /"\/map\(\.\*\)"/, "legacy /map traffic reaches the public redirect instead of the sign-in wall");
 assert.match(sitemap, /`\$\{origin\}\/coverage`/, "the public coverage explorer is discoverable in the sitemap");
 
 console.log("coverage public surface tests passed");
