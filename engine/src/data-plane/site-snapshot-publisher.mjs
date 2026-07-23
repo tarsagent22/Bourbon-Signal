@@ -92,6 +92,9 @@ export async function publishSiteSnapshot(storage, files, metadata, options = {}
   const maxAttempts = Number(options.pointerRetries ?? 3) + 1;
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     const current = await storage.readPointer();
+    if (options.expectedActive !== undefined && current?.active !== options.expectedActive) {
+      throw new Error(`Active snapshot changed during publication: expected ${options.expectedActive}, found ${current?.active || 'none'}`);
+    }
     if (current?.active === manifest.snapshotId) {
       if (typeof storage.ensurePointerEvent === 'function') await storage.ensurePointerEvent(current);
       return { status: 'already_active', manifest, pointer: current };
@@ -140,6 +143,9 @@ export async function rollbackSiteSnapshot(storage, options = {}) {
   const maxAttempts = Number(options.pointerRetries ?? 3) + 1;
   for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
     const current = await storage.readPointer();
+    if (options.expectedActive !== undefined && current?.active !== options.expectedActive) {
+      return { status: 'active_snapshot_mismatch', pointer: current };
+    }
     if (!current?.active) return { status: 'no_active_snapshot', pointer: current };
     if (current.lastRollback?.to === current.active) {
       if (typeof storage.ensurePointerEvent === 'function') await storage.ensurePointerEvent(current);

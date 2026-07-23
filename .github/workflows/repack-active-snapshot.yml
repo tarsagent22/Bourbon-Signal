@@ -1,0 +1,68 @@
+name: Repack active production snapshot
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirmation:
+        description: "Type REPACK_ACTIVE_SNAPSHOT to confirm the atomic production transport migration"
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: production-inventory-refresh
+  cancel-in-progress: false
+
+jobs:
+  repack:
+    if: ${{ inputs.confirmation == 'REPACK_ACTIVE_SNAPSHOT' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: production
+    steps:
+      - name: Checkout verified production engine
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 1
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Stage and verify every compressed immutable object
+        id: stage
+        env:
+          BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+          ENGINE_SNAPSHOT_ENCRYPTION_KEY: ${{ secrets.ENGINE_SNAPSHOT_ENCRYPTION_KEY }}
+        run: |
+          result="$(node engine/src/data-plane/repack-active-site-snapshot.mjs --stage)"
+          echo "$result"
+          source_id="$(node -e 'const value=JSON.parse(process.argv[1]); if (!value.oldSnapshotId) process.exit(1); process.stdout.write(value.oldSnapshotId)' "$result")"
+          snapshot_id="$(node -e 'const value=JSON.parse(process.argv[1]); if (!value.newSnapshotId) process.exit(1); process.stdout.write(value.newSnapshotId)' "$result")"
+          echo "source_id=$source_id" >> "$GITHUB_OUTPUT"
+          echo "snapshot_id=$snapshot_id" >> "$GITHUB_OUTPUT"
+      - name: Atomically activate the staged snapshot
+        id: activate
+        continue-on-error: true
+        env:
+          BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+          ENGINE_SNAPSHOT_ENCRYPTION_KEY: ${{ secrets.ENGINE_SNAPSHOT_ENCRYPTION_KEY }}
+        run: node engine/src/data-plane/repack-active-site-snapshot.mjs --activate-staged "${{ steps.stage.outputs.source_id }}" "${{ steps.stage.outputs.snapshot_id }}"
+      - name: Verify production serves the repacked snapshot
+        id: verify
+        if: ${{ steps.activate.outcome == 'success' }}
+        continue-on-error: true
+        run: node engine/src/data-plane/repack-active-site-snapshot.mjs --verify-live "${{ steps.stage.outputs.snapshot_id }}"
+      - name: Roll back only if the staged snapshot became active
+        if: ${{ always() && (steps.activate.outcome == 'failure' || steps.verify.outcome == 'failure') }}
+        env:
+          BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+        run: node engine/src/data-plane/repack-active-site-snapshot.mjs --rollback-if-active "${{ steps.stage.outputs.snapshot_id }}"
+      - name: Fail after guarded rollback
+        if: ${{ always() && (steps.activate.outcome == 'failure' || steps.verify.outcome == 'failure') }}
+        run: exit 1
