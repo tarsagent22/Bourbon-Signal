@@ -1,4 +1,5 @@
 import { getActiveEngineStateName } from "@/lib/activeStates";
+import { getScheduledReleaseSignalCopy, isScheduledReleaseSignal } from "@/lib/scheduled-release-signals";
 
 export interface DropEvent {
   timestamp: string;
@@ -115,6 +116,10 @@ export interface GroupedDrop {
   evidence?: string | null;
   dataLane?: string | null;
   canAlertAsWatch?: boolean;
+  scheduledRelease?: boolean;
+  scheduledReleaseLabel?: string;
+  scheduledReleaseDetail?: string;
+  scheduledReleaseCaveat?: string;
   timestampBasis?: string;
   eventAt?: string;
   firstSeenAt?: string;
@@ -427,6 +432,13 @@ export function groupDrops(drops: DropEvent[], limit: number = 20): GroupedDrop[
       if (!existing.evidence && event.evidence) existing.evidence = event.evidence;
       if (!existing.dataLane && event.dataLane) existing.dataLane = event.dataLane;
       if (!existing.canAlertAsWatch && event.canAlertAsWatch) existing.canAlertAsWatch = event.canAlertAsWatch;
+      const scheduledCopy = getScheduledReleaseSignalCopy(event);
+      if (!existing.scheduledRelease && scheduledCopy) {
+        existing.scheduledRelease = true;
+        existing.scheduledReleaseLabel = scheduledCopy.statusLine;
+        existing.scheduledReleaseDetail = scheduledCopy.detail;
+        existing.scheduledReleaseCaveat = scheduledCopy.explanation;
+      }
       if (!existing.eventAt && event.event_at) existing.eventAt = event.event_at;
       if (!existing.firstSeenAt || (event.first_seen_at && event.first_seen_at < existing.firstSeenAt)) existing.firstSeenAt = event.first_seen_at;
       if (!existing.lastConfirmedAt || (event.last_confirmed_at && event.last_confirmed_at > existing.lastConfirmedAt)) existing.lastConfirmedAt = event.last_confirmed_at;
@@ -435,6 +447,7 @@ export function groupDrops(drops: DropEvent[], limit: number = 20): GroupedDrop[
         existing.onlineInStockQuantity = event.online_in_stock_quantity;
       }
     } else {
+      const scheduledCopy = getScheduledReleaseSignalCopy(event);
       groups.set(groupKey, {
         displayName,
         event_type: event.event_type,
@@ -476,6 +489,10 @@ export function groupDrops(drops: DropEvent[], limit: number = 20): GroupedDrop[
         evidence: event.evidence,
         dataLane: event.dataLane,
         canAlertAsWatch: event.canAlertAsWatch,
+        scheduledRelease: isScheduledReleaseSignal(event),
+        scheduledReleaseLabel: scheduledCopy?.statusLine,
+        scheduledReleaseDetail: scheduledCopy?.detail,
+        scheduledReleaseCaveat: scheduledCopy?.explanation,
         timestampBasis: event.timestamp_basis,
         eventAt: event.event_at,
         firstSeenAt: event.first_seen_at,
