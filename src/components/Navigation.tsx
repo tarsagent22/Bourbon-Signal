@@ -11,6 +11,7 @@ import { controlRoomNavVisibleForUser } from "@/lib/control-room-nav-access";
 
 const navLinks = [
   { label: "Feed", href: "/#drops" },
+  { label: "Coverage", href: "/coverage" },
   { label: "Dashboard", href: "/dashboard" },
   { label: "Sightings", href: "/sightings" },
   { label: "Bottle Check", href: "/bottle-check" },
@@ -18,7 +19,7 @@ const navLinks = [
 
 export default function Navigation() {
   const pathname = usePathname();
-  const isGlassPage = pathname === "/bottle-check" || pathname === "/sightings" || pathname === "/pricing" || pathname.startsWith("/release-radar");
+  const isGlassPage = pathname === "/bottle-check" || pathname === "/coverage" || pathname === "/sightings" || pathname === "/pricing" || pathname.startsWith("/release-radar");
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mounted, setMounted] = useState(false);

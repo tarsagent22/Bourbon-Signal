@@ -55,7 +55,7 @@ export default async function CompanyControlRoomPage() {
   if (!isCompanyControlRoomOwnerEmail(companyMemberPrimaryEmail(user))) notFound();
 
   const snapshot = await getCompanyControlRoomSnapshot();
-  const { memberships, founder, revenue, audience, growth, lifecycle, demand, experiments, retailer, engine, alerts, release, automation } = snapshot;
+  const { memberships, founder, revenue, audience, growth, lifecycle, demand, coverageDemand, experiments, retailer, engine, alerts, release, automation } = snapshot;
   const deliveryCounts = alerts.counts as Record<string, number>;
   const stateExceptions = engine.failedStates + engine.degradedStates + engine.staleStates;
   const activeExperimentResult = experiments.aggregate.experiments.find((item) => item.experiment === experiments.activeExperiment);
@@ -79,6 +79,7 @@ export default async function CompanyControlRoomPage() {
 
         <nav className="cr-jump" aria-label="Control room sections">
           <a href="#actions">Your actions</a>
+          <a href="#coverage-demand">Coverage demand</a>
           <a href="#business">Business</a>
           <a href="#product">Product</a>
           <a href="#operations">Operations</a>
@@ -100,6 +101,9 @@ export default async function CompanyControlRoomPage() {
             <Link href="/admin/operations" className={stateExceptions > 0 ? "needs-action" : ""}>
               <span>Engine exceptions</span><strong>{stateExceptions}</strong><small>{stateExceptions > 0 ? "Inspect states" : "Clear"}</small>
             </Link>
+            <Link href="#coverage-demand" className={coverageDemand.totalOpenRequests > 0 ? "needs-action" : ""}>
+              <span>Coverage demand</span><strong>{coverageDemand.totalOpenRequests}</strong><small>{coverageDemand.totalOpenRequests > 0 ? "Review gaps" : "Clear"}</small>
+            </Link>
           </div>
 
           <div className="cr-queue-grid">
@@ -114,6 +118,45 @@ export default async function CompanyControlRoomPage() {
               <AdminSightingsClient embedded />
             </article>
           </div>
+        </section>
+
+        <section id="coverage-demand" className="cr-section">
+          <div className="cr-heading">
+            <div><p>Explicit member requests</p><h2>Coverage demand</h2></div>
+            <span>{coverageDemand.source === "database" ? `${coverageDemand.uniqueRequesters} unique requesters` : "Request store unavailable"}</span>
+          </div>
+          {coverageDemand.source === "database" ? (
+            <>
+              <div className="cr-metrics four">
+                <Metric label="Open requests" value={coverageDemand.totalOpenRequests} detail="Requested or on our radar" accent />
+                <Metric label="Unique requesters" value={coverageDemand.uniqueRequesters} detail="Identities hidden in this aggregate" />
+                <Metric label="Requested targets" value={coverageDemand.targets.length} detail="Canonical state, city, and store gaps" />
+                <Metric label="Partial read" value={coverageDemand.partial ? "Yes" : "No"} detail={coverageDemand.partial ? "Queue reached its safe read bound" : "Queue is within its safe read bound"} />
+              </div>
+              {coverageDemand.targets.length ? (
+                <div className="cr-demand-list">
+                  {coverageDemand.targets.slice(0, 12).map((target) => (
+                    <article key={`${target.targetType}:${target.stateCode}:${target.label}`}>
+                      <div>
+                        <span>{target.targetType} · {target.stateCode}</span>
+                        <h3>{target.label}</h3>
+                      </div>
+                      <dl>
+                        <div><dt>Unique requesters</dt><dd>{target.uniqueRequesters}</dd></div>
+                        <div><dt>Paid / free</dt><dd>{target.paidRequesters} / {target.freeRequesters}</dd></div>
+                        <div><dt>Current capability</dt><dd>{target.currentCapabilityLabel}</dd></div>
+                        <div><dt>Health</dt><dd>{target.currentHealthLabel}</dd></div>
+                      </dl>
+                      <p>{target.gap}</p>
+                    </article>
+                  ))}
+                </div>
+              ) : <div className="cr-unavailable"><strong>No open coverage requests.</strong><p>The queue will populate from authenticated state, city, and store requests.</p></div>}
+              <p className="cr-note">Requester identities stay private by default. Paid/free mix uses current membership classification and excludes owner and retailer accounts.</p>
+            </>
+          ) : (
+            <div className="cr-unavailable"><strong>Coverage demand is not connected.</strong><p>The request database could not be read, so this view does not substitute inferred geography or fabricated counts.</p></div>
+          )}
         </section>
 
         <section id="business" className="cr-section">
@@ -270,14 +313,15 @@ const controlRoomCss = `
 .cr-checked{text-align:right}.cr-checked p{margin:10px 0 0;color:rgba(245,237,214,.45);font:11px/1.3 var(--font-jetbrains)}.cr-status{display:inline-flex;border:1px solid;border-radius:999px;padding:7px 10px;font:900 9px/1 var(--font-jetbrains);letter-spacing:.12em;text-transform:uppercase}.cr-status.good{border-color:rgba(115,201,135,.34);background:rgba(56,130,74,.13);color:#aee7ba}.cr-status.warn{border-color:rgba(220,166,55,.38);background:rgba(196,148,58,.12);color:#efd38f}.cr-status.bad{border-color:rgba(222,94,73,.36);background:rgba(154,50,35,.14);color:#f4aa9f}
 .cr-jump{position:sticky;top:0;z-index:5;display:flex;gap:7px;overflow:auto;padding:14px 0;background:linear-gradient(180deg,#0d0a07 72%,transparent)}.cr-jump a{border:1px solid rgba(245,237,214,.1);border-radius:999px;padding:9px 12px;color:rgba(245,237,214,.66);font:800 10px/1 var(--font-jetbrains);letter-spacing:.08em;text-decoration:none;text-transform:uppercase;white-space:nowrap;transition:transform 120ms ease,border-color 120ms ease,background 120ms ease}.cr-jump a:hover,.cr-jump a:focus-visible{outline:none;border-color:rgba(196,148,58,.55);background:rgba(196,148,58,.08);color:#f5edd6}.cr-jump a:active{transform:translateY(2px)}
 .cr-section{scroll-margin-top:62px;margin-top:22px;border:1px solid rgba(245,237,214,.1);background:linear-gradient(145deg,rgba(255,255,255,.042),rgba(255,255,255,.018));padding:24px;box-shadow:0 24px 80px rgba(0,0,0,.17)}.cr-priority{border-color:rgba(196,148,58,.28);box-shadow:0 28px 90px rgba(0,0,0,.28)}.cr-heading{display:flex;align-items:end;justify-content:space-between;gap:18px;margin-bottom:20px}.cr-heading h2{margin:7px 0 0;font:700 clamp(25px,3vw,35px)/1 var(--font-playfair);letter-spacing:-.025em}.cr-heading>span{color:rgba(245,237,214,.5);font:11px/1.3 var(--font-jetbrains)}
-.cr-attention-strip{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:18px}.cr-attention-strip>a,.cr-attention-strip>div{display:grid;grid-template-columns:1fr auto;gap:5px 14px;border:1px solid rgba(115,201,135,.18);border-radius:14px;background:rgba(56,130,74,.06);padding:13px 14px;color:#f5edd6;text-decoration:none}.cr-attention-strip .needs-action{border-color:rgba(220,166,55,.34);background:rgba(196,148,58,.1)}.cr-attention-strip span{color:rgba(245,237,214,.58);font-size:12px}.cr-attention-strip strong{grid-row:span 2;font:700 28px/1 var(--font-playfair)}.cr-attention-strip small{color:rgba(245,237,214,.42);font-size:10px}.cr-attention-strip a{transition:transform 120ms ease,border-color 120ms ease}.cr-attention-strip a:hover{border-color:rgba(196,148,58,.6)}.cr-attention-strip a:active{transform:translateY(2px)}
+.cr-attention-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:18px}.cr-attention-strip>a,.cr-attention-strip>div{display:grid;grid-template-columns:1fr auto;gap:5px 14px;border:1px solid rgba(115,201,135,.18);border-radius:14px;background:rgba(56,130,74,.06);padding:13px 14px;color:#f5edd6;text-decoration:none}.cr-attention-strip .needs-action{border-color:rgba(220,166,55,.34);background:rgba(196,148,58,.1)}.cr-attention-strip span{color:rgba(245,237,214,.58);font-size:12px}.cr-attention-strip strong{grid-row:span 2;font:700 28px/1 var(--font-playfair)}.cr-attention-strip small{color:rgba(245,237,214,.42);font-size:10px}.cr-attention-strip a{transition:transform 120ms ease,border-color 120ms ease}.cr-attention-strip a:hover{border-color:rgba(196,148,58,.6)}.cr-attention-strip a:active{transform:translateY(2px)}
 .cr-queue-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.cr-queue-panel{min-width:0;border:1px solid rgba(245,237,214,.09);border-radius:18px;background:rgba(7,5,4,.42);padding:16px}.cr-subheading{display:flex;justify-content:space-between;align-items:end;gap:12px}.cr-subheading h3{margin:6px 0 0;font:700 25px/1 var(--font-playfair)}.cr-subheading a{color:#d9b768;font-size:11px}.cr-note{margin:15px 0 0;color:rgba(245,237,214,.47);font-size:12px;line-height:1.55}.cr-note.top{margin:9px 0 2px}
 .cr-metrics{display:grid;gap:1px;border:1px solid rgba(245,237,214,.08);background:rgba(245,237,214,.08)}.cr-metrics.four{grid-template-columns:repeat(4,minmax(0,1fr))}.cr-metric{min-height:142px;padding:18px;background:#15100c}.cr-metric.accent{background:linear-gradient(145deg,rgba(196,148,58,.18),#15100c 64%)}.cr-metric p{margin:0;color:rgba(245,237,214,.48);font:900 9px/1 var(--font-jetbrains);letter-spacing:.12em;text-transform:uppercase}.cr-metric strong{display:block;margin-top:17px;color:#f5edd6;font:700 clamp(27px,4vw,41px)/.95 var(--font-playfair);letter-spacing:-.035em;overflow-wrap:anywhere}.cr-metric span{display:block;margin-top:13px;color:rgba(245,237,214,.52);font-size:12px;line-height:1.45}
 .cr-details{margin-top:14px;border:1px solid rgba(245,237,214,.09);background:rgba(0,0,0,.12)}.cr-details>summary,.cr-contract>summary{cursor:pointer;list-style:none;padding:14px 16px;color:#d9b768;font:800 11px/1.3 var(--font-jetbrains);letter-spacing:.08em;text-transform:uppercase}.cr-details>summary::-webkit-details-marker,.cr-contract>summary::-webkit-details-marker{display:none}.cr-details>summary:after,.cr-contract>summary:after{content:'+';float:right}.cr-details[open]>summary:after,.cr-contract[open]>summary:after{content:'−'}.cr-detail-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;padding:0 14px 14px}.cr-list{margin:0;background:#15100c;padding:8px 14px}.cr-list div{display:flex;justify-content:space-between;gap:18px;padding:11px 0;border-bottom:1px solid rgba(245,237,214,.08)}.cr-list div:last-child{border:0}.cr-list dt{color:rgba(245,237,214,.56);font-size:12px}.cr-list dd{margin:0;text-align:right;font:800 12px/1.3 var(--font-jetbrains)}
 .cr-delivery{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px}.cr-delivery div{border-left:2px solid rgba(196,148,58,.55);background:#15100c;padding:15px}.cr-delivery span{display:block;color:rgba(245,237,214,.45);font:900 9px/1 var(--font-jetbrains);letter-spacing:.1em;text-transform:uppercase}.cr-delivery strong{display:block;margin-top:9px;font:700 20px/1 var(--font-playfair)}.cr-lines{margin-top:14px}.cr-lines div{display:flex;justify-content:space-between;gap:20px;border-top:1px solid rgba(245,237,214,.08);padding:12px 0;color:rgba(245,237,214,.48);font-size:11px}.cr-lines strong{color:rgba(245,237,214,.72);font-family:var(--font-jetbrains);font-weight:500;text-align:right}
+.cr-demand-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}.cr-demand-list article{min-width:0;border:1px solid rgba(245,237,214,.09);background:#15100c;padding:16px}.cr-demand-list article>div>span{color:#c4943a;font:900 9px/1 var(--font-jetbrains);letter-spacing:.1em;text-transform:uppercase}.cr-demand-list h3{margin:7px 0 0;font:700 22px/1.05 var(--font-playfair)}.cr-demand-list dl{margin:13px 0 0}.cr-demand-list dl div{display:flex;justify-content:space-between;gap:12px;border-top:1px solid rgba(245,237,214,.07);padding:8px 0}.cr-demand-list dt{color:rgba(245,237,214,.46);font-size:10px}.cr-demand-list dd{margin:0;color:rgba(245,237,214,.82);font:800 10px/1.3 var(--font-jetbrains);text-align:right}.cr-demand-list p{margin:10px 0 0;color:rgba(245,237,214,.57);font-size:11px;line-height:1.5}
 .cr-background{padding-bottom:16px}.cr-background-item{border-top:1px solid rgba(245,237,214,.1)}.cr-background-item:last-child{border-bottom:1px solid rgba(245,237,214,.1)}.cr-background-item>summary{display:flex;align-items:center;justify-content:space-between;gap:16px;cursor:pointer;list-style:none;padding:15px 2px}.cr-background-item>summary::-webkit-details-marker{display:none}.cr-background-item>summary>span:first-child{display:grid;gap:5px}.cr-background-item>summary strong{font-size:14px}.cr-background-item>summary small{color:rgba(245,237,214,.44);font-size:11px}.cr-background-body{padding:2px 2px 17px;color:rgba(245,237,214,.64);font-size:13px;line-height:1.6}.cr-background-body>p{max-width:800px}.cr-list.compact{max-width:720px;margin-top:12px}.cr-contract{max-width:900px;margin-top:12px;border:1px solid rgba(245,237,214,.09);background:#15100c}.cr-contract dl{margin:0;padding:0 15px 10px}.cr-contract dl div{display:grid;grid-template-columns:130px 1fr;gap:16px;padding:10px 0;border-top:1px solid rgba(245,237,214,.07)}.cr-contract dt{color:#d9b768;font:900 9px/1.4 var(--font-jetbrains);letter-spacing:.08em;text-transform:uppercase}.cr-contract dd{margin:0;color:rgba(245,237,214,.62);font-size:12px}.cr-mini-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(245,237,214,.08);max-width:900px}.cr-mini-metrics .cr-metric{min-height:120px}.cr-unavailable{max-width:760px;border-left:2px solid rgba(220,166,55,.5);background:rgba(196,148,58,.07);padding:14px}.cr-unavailable p{margin:5px 0 0}
 .cr-tool-links{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:16px}.cr-tool-links a{display:flex;justify-content:space-between;gap:15px;border:1px solid rgba(245,237,214,.09);border-radius:12px;padding:15px;color:#f5edd6;text-decoration:none;font-size:13px;transition:transform 120ms ease,border-color 120ms ease,background 120ms ease}.cr-tool-links a span{color:#c4943a}.cr-tool-links a:hover,.cr-tool-links a:focus-visible{outline:none;border-color:rgba(196,148,58,.55);background:rgba(196,148,58,.07)}.cr-tool-links a:active{transform:translateY(2px)}.cr-footer{display:flex;justify-content:space-between;gap:20px;padding:20px 2px;color:rgba(245,237,214,.34);font:10px/1.4 var(--font-jetbrains)}.cr-footer a{color:rgba(245,237,214,.52)}
-@media(max-width:980px){.cr-queue-grid{grid-template-columns:1fr}.cr-metrics.four{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:980px){.cr-queue-grid,.cr-demand-list{grid-template-columns:1fr}.cr-attention-strip,.cr-metrics.four{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:700px){.cr-attention-strip,.cr-detail-grid,.cr-delivery,.cr-mini-metrics,.cr-tool-links{grid-template-columns:1fr}.cr-shell{padding:18px 12px 45px}.cr-header{align-items:flex-start;display:grid}.cr-checked{text-align:left}.cr-section{padding:16px}.cr-heading{align-items:flex-start;display:grid}.cr-metrics.four{grid-template-columns:1fr}.cr-metric{min-height:124px}.cr-subheading{align-items:flex-start}.cr-lines div{display:grid}.cr-jump{margin-inline:-12px;padding-inline:12px}.cr-contract dl div{grid-template-columns:1fr;gap:5px}}
 @media(prefers-reduced-motion:reduce){.cr-jump a,.cr-attention-strip a,.cr-tool-links a{transition:none}}
 `;

@@ -6,6 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "migrate:recommendation-feedback": "node scripts/migrate-recommendation-feedback.mjs",
+    "migrate:coverage-requests": "node scripts/migrate-coverage-requests.mjs --check",
+    "migrate:coverage-requests:apply": "node scripts/migrate-coverage-requests.mjs --apply",
     "start": "next start",
     "lint": "next lint",
     "ops:daily": "node automation/bourbon-signal/daily-reliability.mjs",
@@ -60,6 +62,7 @@
     "watchdog:engine": "node scripts/production-engine-watchdog.mjs",
     "test:production-engine-watchdog": "node scripts/test-production-engine-watchdog.mjs",
     "test:site-engine-stats": "node --no-warnings --experimental-strip-types scripts/test-site-engine-stats.mts",
+    "test:coverage": "node --no-warnings --experimental-strip-types scripts/test-coverage-contract.mts && node --no-warnings --experimental-strip-types scripts/test-coverage-public-surface.mts && node --no-warnings --experimental-strip-types scripts/test-coverage-requests.mts && node --no-warnings --experimental-strip-types scripts/test-coverage-member-owner-surfaces.mts",
     "test:state-report-hydration": "node scripts/test-state-report-hydration.mjs",
     "test:production-verification-scope": "node scripts/test-production-verification-scope.mjs",
     "test:alert-copy-contract": "node scripts/verify-alert-copy-contract.mjs",
@@ -104,7 +107,7 @@
     "test:member-weekly-delivery": "node --no-warnings --experimental-strip-types scripts/test-member-weekly-delivery.mts",
     "test:member-weekly-surface": "node scripts/verify-member-weekly-surface.mjs",
     "capture:performance-baseline": "node scripts/capture-performance-baseline.mjs",
-    "verify:ci": "npm run verify:state-lifecycle-drift && npm run test:state-user-path && npm run test:utah-user-path && npm run test:feed-history-owner-nav && npm run test:operator-backbone && npm run test:production-checks && npm run test:company-scorecard-feed && npm run test:agent-cost-automation && npm run test:growth-events && npm run test:demand-intelligence && npm run test:growth-experiments && npm run test:member-welcome && npm run test:bottle-check-suggestions && npm run test:bottle-rarity-score && npm run test:member-activation && npm run test:member-weekly-intelligence && npm run test:member-weekly-delivery && npm run test:member-weekly-surface && npm run test:bourbon-recommendations && npm run test:recommendation-feedback-repository && npm run test:checkout-attribution && npm run test:july-sale && npm run test:growth-funnels && npm run test:first-alert-created && npm run test:sprint4-contracts && npm run test:faq-content && npm run test:home-release-radar && npm run test:sightings-preview && npm run test:member-sightings && npm run test:retailer-portal && npm run test:retailer-acquisition && npm run test:release-radar && npm run test:scheduled-release-copy && npm run test:california-area && npm run test:progressive-feed && npm run test:drop-feed-policy && npm run test:drop-feed-performance && npm run test:ops && npm run test:release && npm run test:sms-alerts && npm run test:alert-delivery-policy && npm run test:performance-budgets && npm run test:alert-queue-repository && npm run test:alert-queue-schema && npm run test:operations-dashboard && npm --prefix engine run test:ga && npm --prefix engine run verify:site && npm --prefix engine run verify:state-integration -- --all-active && npm --prefix engine run verify:reliability && npm --prefix engine run verify:pa:automation && npm run test:production-engine-watchdog && npm run test:site-engine-stats && npm run test:state-report-hydration && npm run test:production-verification-scope && npm run test:alert-copy-contract && npm run test:engine-snapshot-reader && npm run build"
+    "verify:ci": "npm run verify:state-lifecycle-drift && npm run test:coverage && npm run test:state-user-path && npm run test:utah-user-path && npm run test:feed-history-owner-nav && npm run test:operator-backbone && npm run test:production-checks && npm run test:company-scorecard-feed && npm run test:agent-cost-automation && npm run test:growth-events && npm run test:demand-intelligence && npm run test:growth-experiments && npm run test:member-welcome && npm run test:bottle-check-suggestions && npm run test:bottle-rarity-score && npm run test:member-activation && npm run test:member-weekly-intelligence && npm run test:member-weekly-delivery && npm run test:member-weekly-surface && npm run test:bourbon-recommendations && npm run test:recommendation-feedback-repository && npm run test:checkout-attribution && npm run test:july-sale && npm run test:growth-funnels && npm run test:first-alert-created && npm run test:sprint4-contracts && npm run test:faq-content && npm run test:home-release-radar && npm run test:sightings-preview && npm run test:member-sightings && npm run test:retailer-portal && npm run test:retailer-acquisition && npm run test:release-radar && npm run test:scheduled-release-copy && npm run test:california-area && npm run test:progressive-feed && npm run test:drop-feed-policy && npm run test:drop-feed-performance && npm run test:ops && npm run test:release && npm run test:sms-alerts && npm run test:alert-delivery-policy && npm run test:performance-budgets && npm run test:alert-queue-repository && npm run test:alert-queue-schema && npm run test:operations-dashboard && npm --prefix engine run test:ga && npm --prefix engine run verify:site && npm --prefix engine run verify:state-integration -- --all-active && npm --prefix engine run verify:reliability && npm --prefix engine run verify:pa:automation && npm run test:production-engine-watchdog && npm run test:site-engine-stats && npm run test:state-report-hydration && npm run test:production-verification-scope && npm run test:alert-copy-contract && npm run test:engine-snapshot-reader && npm run build"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.5.16",
@@ -116,6 +119,7 @@
     "@types/three": "^0.183.1",
     "@vercel/analytics": "^2.0.1",
     "@vercel/blob": "^2.5.0",
+    "d3-geo": "^3.1.1",
     "framer-motion": "^12.38.0",
     "lucide-react": "^0.577.0",
     "next": "^15.5.20",
@@ -125,13 +129,17 @@
     "resend": "^6.12.2",
     "stripe": "^21.0.1",
     "three": "^0.183.2",
+    "topojson-client": "^3.1.0",
+    "us-atlas": "^3.0.1",
     "zustand": "^5.0.12"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
+    "@types/d3-geo": "^3.1.0",
     "@types/node": "^22",
     "@types/react": "^19",
     "@types/react-dom": "^19",
+    "@types/topojson-client": "^3.1.5",
     "ajv": "^8.20.0",
     "eslint": "^9",
     "eslint-config-next": "^15.5.20",

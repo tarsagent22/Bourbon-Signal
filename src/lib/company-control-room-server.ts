@@ -21,6 +21,8 @@ import { FOUNDER_SPOT_LIMIT } from "@/lib/entitlements";
 import { getRetailerRepository } from "@/lib/retailer-repository";
 import { retailerSubmissionLifecycle } from "@/lib/retailer-portal";
 import { readAutomationCostAggregateFromEnvironment, type AutomationCostTotals } from "@/lib/automation-cost";
+import { readCurrentCoverageContract } from "@/lib/coverage-server";
+import { readCoverageDemandForOwner } from "@/lib/coverage-demand-server";
 
 interface RevenueSnapshot {
   source: "stripe" | "unavailable";
@@ -216,9 +218,10 @@ export async function getCompanyControlRoomSnapshot() {
   const memberships = summarizeMemberships(users);
   const growth = aggregateGrowthFunnels(users);
   const lifecycle = aggregateLifecycleCohorts(users);
-  const [stats, bottlePayload] = await Promise.all([
+  const [stats, bottlePayload, coverageContract] = await Promise.all([
     readSiteExport("stats") as Promise<Record<string, unknown> | null>,
     readSiteExport("bottles") as Promise<Record<string, unknown> | null>,
+    readCurrentCoverageContract(),
   ]);
   const engineBottles = Array.isArray(bottlePayload?.bottles)
     ? bottlePayload.bottles as Array<Record<string, unknown>>
@@ -239,10 +242,11 @@ export async function getCompanyControlRoomSnapshot() {
     currentDeploymentId: process.env.VERCEL_DEPLOYMENT_ID || null,
   });
   const engineMetrics = extractEngineControlRoomMetrics(stats);
-  const [revenue, audience, retailer] = await Promise.all([
+  const [revenue, audience, retailer, coverageDemand] = await Promise.all([
     readStripeRevenue(),
     readAudience(users),
     readRetailerFunnel(),
+    readCoverageDemandForOwner(users, coverageContract),
   ]);
 
   const checkedAt = new Date().toISOString();
@@ -260,6 +264,7 @@ export async function getCompanyControlRoomSnapshot() {
     growth,
     lifecycle,
     demand,
+    coverageDemand,
     experiments,
     retailer,
     engine: {
