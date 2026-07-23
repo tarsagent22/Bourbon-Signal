@@ -2117,7 +2117,7 @@ function PaidMemberDashboard() {
               <p style={{ margin: "18px auto 0", maxWidth: 540, fontFamily: "var(--font-dm-sans)", fontSize: 15, lineHeight: 1.7, color: "var(--color-text-secondary)" }}>Free access gets a limited Drop Feed and 3 Bottle Checks. Upgrade for alert setup, member sightings, and dashboard tools.</p>
               <a href="/pricing" style={{ display: "inline-flex", marginTop: 22, borderRadius: 999, padding: "12px 18px", background: "linear-gradient(135deg, #C4943A, #E8C97A)", color: "#0D0B07", fontFamily: "var(--font-dm-sans)", fontWeight: 800, textDecoration: "none" }}>View memberships</a>
             </section>
-            {isSignedIn ? <CoverageRequestsCard /> : null}
+            {isSignedIn ? <CoverageRequestsCard emptyMode="compact" /> : null}
           </div>
         </main>
         <Footer />
@@ -2769,7 +2769,6 @@ function PaidMemberDashboard() {
 
           <SignalStrengthCard model={signalStrengthModel} onSectionSelect={openDashboardSection} />
           <WeeklyIntelligenceCard isSignedIn={isSignedIn} />
-          <CoverageRequestsCard />
           <div className="personal-signal-brief" aria-label="Personal signal brief" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "10px", margin: "12px 0 18px" }}>
             {[{ label: "Saved markets", value: localPrefs.states.length ? `${localPrefs.states.length}` : "0" }, { label: "Tracked bottles", value: watchedBottleOptions.length ? `${watchedBottleOptions.length}` : "0" }, { label: "Recent matching drops", value: watchlistSignals.length ? `${watchlistSignals.length}` : "0" }].map((item) => (
               <div key={item.label} style={{ border: "1px solid rgba(255,255,255,0.07)", borderRadius: "14px", background: "rgba(10,8,5,0.42)", padding: "12px" }}>
@@ -3800,6 +3799,7 @@ function PaidMemberDashboard() {
           </StepShell>
           ) : null}
 
+          <CoverageRequestsCard emptyMode="compact" />
           </div>
         </div>
       </motion.main>

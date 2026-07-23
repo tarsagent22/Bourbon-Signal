@@ -10,6 +10,9 @@ import styles from "./coverage.module.css";
 interface CoverageRequestFormProps {
   state: CoverageState;
   target: CoverageSearchResult | null;
+  visible: boolean;
+  onCancel: () => void;
+  onDraftRestored: () => void;
 }
 
 interface RequestDraft {
@@ -24,7 +27,7 @@ interface RequestDraft {
 
 const DRAFT_KEY = "bourbon_signal_coverage_request_draft";
 
-export function CoverageRequestForm({ state, target }: CoverageRequestFormProps) {
+export function CoverageRequestForm({ state, target, visible, onCancel, onDraftRestored }: CoverageRequestFormProps) {
   const { isLoaded, isSignedIn, user } = useAuth();
   const accountId = user?.id || null;
   const [targetType, setTargetType] = useState<CoverageRequestTargetType>("state");
@@ -46,7 +49,6 @@ export function CoverageRequestForm({ state, target }: CoverageRequestFormProps)
   currentStateCode.current = state.code;
 
   useEffect(() => {
-    if (!target) return;
     setStatus("idle");
     setMessage("");
     setAreaLabel("");
@@ -54,6 +56,10 @@ export function CoverageRequestForm({ state, target }: CoverageRequestFormProps)
     setManualStoreName("");
     setManualCity("");
     setManualAddress("");
+    if (!target) {
+      setTargetType("state");
+      return;
+    }
     if (target.kind === "city") {
       setTargetType("city");
       setAreaLabel(target.city || target.label);
@@ -70,6 +76,7 @@ export function CoverageRequestForm({ state, target }: CoverageRequestFormProps)
     }
     setTargetType("store");
     setStoreId("");
+    setAreaLabel(target.label);
     setManualStoreName(target.label);
   }, [target]);
 
@@ -119,11 +126,11 @@ export function CoverageRequestForm({ state, target }: CoverageRequestFormProps)
       setManualStoreName(stored.manualStoreName);
       setManualCity(stored.manualCity);
       setManualAddress(stored.manualAddress);
-      window.sessionStorage.removeItem(DRAFT_KEY);
+      onDraftRestored();
     } catch {
       window.sessionStorage.removeItem(DRAFT_KEY);
     }
-  }, [state.code]);
+  }, [onDraftRestored, state.code]);
 
   const draft: RequestDraft = {
     stateCode: state.code,
@@ -146,6 +153,11 @@ export function CoverageRequestForm({ state, target }: CoverageRequestFormProps)
   function preserveDraft() {
     window.sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
     markStarted();
+  }
+
+  function cancelRequest() {
+    window.sessionStorage.removeItem(DRAFT_KEY);
+    onCancel();
   }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -184,6 +196,7 @@ export function CoverageRequestForm({ state, target }: CoverageRequestFormProps)
         || currentStateCode.current !== requestStateCode) return;
       if (!response.ok || !payload.request) throw new Error(payload.error || "Coverage request could not be saved.");
       setStatus("saved");
+      window.sessionStorage.removeItem(DRAFT_KEY);
       setMessage(payload.request.status === "on_radar" ? "This request is on our radar." : "Request saved. Its status appears below.");
       window.dispatchEvent(new Event("coverage-request-saved"));
       trackCoverageEvent("coverage_request_submitted", { state: requestStateCode, targetType });
@@ -198,22 +211,27 @@ export function CoverageRequestForm({ state, target }: CoverageRequestFormProps)
   }
 
   return (
-    <section className={styles.requestBlock} aria-labelledby="coverage-request-heading">
-      <div className={styles.subhead}>
-        <p>Help set the expansion queue</p>
-        <h3 id="coverage-request-heading">Request coverage</h3>
+    <section className={styles.requestBlock} aria-labelledby="coverage-request-heading" hidden={!visible}>
+      <div className={styles.requestHeader}>
+        <div className={styles.subhead}>
+          <p>Help improve local coverage</p>
+          <h3 id="coverage-request-heading" tabIndex={-1}>Request coverage</h3>
+        </div>
+        <button type="button" onClick={cancelRequest}>Cancel</button>
       </div>
 
       <form onSubmit={submit} onFocusCapture={markStarted}>
-        <fieldset className={styles.targetChoices}>
-          <legend>Request target</legend>
-          {(["state", "city", "store"] as const).map((kind) => (
-            <label key={kind}>
-              <input type="radio" name="coverage-target" value={kind} checked={targetType === kind} onChange={() => setTargetType(kind)} />
-              <span>{kind === "city" ? "City / area" : kind[0].toUpperCase() + kind.slice(1)}</span>
-            </label>
-          ))}
-        </fieldset>
+        {target?.kind === "unknown" ? (
+          <fieldset className={styles.targetChoices}>
+            <legend>Is this a city or store?</legend>
+            {(["city", "store"] as const).map((kind) => (
+              <label key={kind}>
+                <input type="radio" name="coverage-target" value={kind} checked={targetType === kind} onChange={() => setTargetType(kind)} />
+                <span>{kind === "city" ? "City / area" : "Store"}</span>
+              </label>
+            ))}
+          </fieldset>
+        ) : null}
 
         {targetType === "state" ? <p className={styles.requestTargetSummary}>{state.name} statewide expansion</p> : null}
 

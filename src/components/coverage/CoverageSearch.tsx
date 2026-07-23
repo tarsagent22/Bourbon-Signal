@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useId, useRef, useState } from "react";
-import type { CoverageSearchResult } from "@/lib/coverage-model";
+import type { CoverageSearchResult, CoverageSearchStatus } from "@/lib/coverage-model";
 import styles from "./coverage.module.css";
 import { trackCoverageEvent } from "@/lib/coverage-analytics-client";
 
@@ -14,11 +14,18 @@ interface CoverageSearchProps {
 const STATUS_LABELS: Record<CoverageSearchResult["status"], string> = {
   covered: "Covered",
   "partially-covered": "Partially covered",
-  "known-not-active": "Known, not actively monitored",
+  "known-not-active": "Not actively monitored",
   "actively-monitored": "Actively monitored",
-  "known-expansion-candidate": "Known / expansion candidate",
-  "not-found": "Not found",
+  "known-expansion-candidate": "Not actively monitored",
+  "not-found": "Not covered",
 };
+
+const REQUESTABLE_STATUSES = new Set<CoverageSearchStatus>([
+  "partially-covered",
+  "known-not-active",
+  "known-expansion-candidate",
+  "not-found",
+]);
 
 export function CoverageSearch({ stateCode, stateName, onTargetSelected }: CoverageSearchProps) {
   const inputId = useId();
@@ -34,9 +41,8 @@ export function CoverageSearch({ stateCode, stateName, onTargetSelected }: Cover
     setQuery("");
     setResults([]);
     setStatus("idle");
-    onTargetSelected(null);
     return () => requestController.current?.abort();
-  }, [stateCode, onTargetSelected]);
+  }, [stateCode]);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -78,7 +84,7 @@ export function CoverageSearch({ stateCode, stateName, onTargetSelected }: Cover
   return (
     <section className={styles.searchBlock} aria-labelledby={`${inputId}-heading`}>
       <div className={styles.subhead}>
-        <p>Local check</p>
+        <p>Check your area</p>
         <h3 id={`${inputId}-heading`}>Search a city or store in this state</h3>
       </div>
       <form className={styles.searchForm} onSubmit={submit}>
@@ -96,25 +102,31 @@ export function CoverageSearch({ stateCode, stateName, onTargetSelected }: Cover
           {status === "loading" ? "Checking…" : "Check"}
         </button>
       </form>
-      <p className={styles.searchPrivacy}>Search text stays out of analytics. Results describe monitoring, not bottle availability.</p>
+      <p className={styles.searchPrivacy}>Results describe monitoring coverage, not current bottle availability.</p>
       <div className={styles.searchResults} aria-live="polite" aria-busy={status === "loading"}>
-        {status === "error" ? <p className={styles.inlineError}>Coverage search is temporarily unavailable. You can still request this area below.</p> : null}
-        {status === "ready" ? results.map((result, index) => (
-          <button
-            type="button"
-            key={`${result.kind}:${result.canonicalTargetKey || result.label}:${index}`}
-            className={styles.searchResult}
-            data-status={result.status}
-            onClick={() => onTargetSelected(result)}
-          >
-            <span>
-              <strong>{result.label}</strong>
-              <small>{[result.city, result.address].filter(Boolean).join(" · ")}</small>
-            </span>
-            <span className={styles.resultStatus}>{STATUS_LABELS[result.status]}</span>
-            <p>{result.detail}</p>
-          </button>
-        )) : null}
+        {status === "error" ? <p className={styles.inlineError}>Search is temporarily unavailable. Please try again.</p> : null}
+        {status === "ready" ? results.map((result, index) => {
+          const requestable = REQUESTABLE_STATUSES.has(result.status);
+          return (
+            <article
+              key={`${result.kind}:${result.canonicalTargetKey || result.label}:${index}`}
+              className={styles.searchResult}
+              data-status={result.status}
+            >
+              <span>
+                <strong>{result.label}</strong>
+                <small>{[result.city, result.address].filter(Boolean).join(" · ")}</small>
+              </span>
+              <span className={styles.resultStatus}>{STATUS_LABELS[result.status]}</span>
+              <p>{result.detail}</p>
+              {requestable ? (
+                <button className={styles.searchResultAction} type="button" onClick={() => onTargetSelected(result)}>
+                  Request coverage
+                </button>
+              ) : null}
+            </article>
+          );
+        }) : null}
       </div>
     </section>
   );

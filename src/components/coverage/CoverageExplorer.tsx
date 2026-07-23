@@ -55,13 +55,9 @@ export function CoverageExplorer({ contract, initialStateCode }: CoverageExplore
     <main className={styles.shell}>
       <div className={styles.atmosphere} aria-hidden="true" />
       <header className={styles.hero}>
-        <p className={styles.eyebrow}>The Bourbon Signal coverage desk</p>
-        <h1>Know what we can see<br /><em>before you join the hunt.</em></h1>
-        <p>Explore honest source capability by state, then check a city or store. Coverage never means a bottle is on the shelf right now.</p>
-        <div className={styles.freshnessNote}>
-          <span aria-hidden="true" />
-          Coverage model updated {contract.generatedAt ? new Date(contract.generatedAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" }) : "with the latest available source export"}
-        </div>
+        <p className={styles.eyebrow}>Bourbon Signal Coverage</p>
+        <h1>Check coverage <em>near you.</em></h1>
+        <p>Select a state, then search a city or store to see what Bourbon Signal monitors. Coverage does not mean a bottle is on the shelf right now.</p>
       </header>
 
       <section className={styles.mobileSelector} aria-label="Choose a state">
@@ -98,9 +94,9 @@ export function CoverageExplorer({ contract, initialStateCode }: CoverageExplore
             </ul>
           </details>
         </div>
-        <CoverageStatePanel state={selectedState} selectedTarget={selectedTarget} onTargetSelected={setSelectedTarget} />
+        <CoverageStatePanel key={selectedState.code} state={selectedState} selectedTarget={selectedTarget} onTargetSelected={setSelectedTarget} />
       </section>
-      <div className={styles.memberRequests}><CoverageRequestsCard /></div>
+      <div className={styles.memberRequests}><CoverageRequestsCard emptyMode="hidden" /></div>
     </main>
   );
 }

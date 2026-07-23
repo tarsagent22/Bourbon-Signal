@@ -51,17 +51,28 @@ assert.match(explorer, /coverage_page_viewed/, "coverage page reach uses the pri
 assert.match(explorer, /coverage_state_selected/, "state selection uses the privacy-safe event contract");
 assert.match(explorer, /Browse all states/, "a complete text/list fallback accompanies the SVG");
 assert.match(explorer, /capabilityLabel/, "list fallback includes the same coverage text as the map");
+assert.match(explorer, /<h1>Check coverage <em>near you\.<\/em><\/h1>/, "the hero leads with the member question");
 assert.match(explorer, /Coverage legend/, "the explorer includes a text-labeled legend");
 assert.match(explorer, /<select/, "mobile users get a direct state selector");
+assert.ok(explorer.indexOf("<CoverageMap") < explorer.indexOf("<CoverageStatePanel"), "the map remains the front-facing feature on every layout");
+assert.match(explorer, /<CoverageStatePanel key=\{selectedState\.code\}/, "state changes remount local request state before draft restoration");
 
-assert.match(panel, /What we can see/, "state drilldown explains supported visibility");
+assert.match(panel, /How coverage works/, "technical coverage detail uses progressive disclosure");
 assert.match(panel, /What we cannot yet see/, "state drilldown states its limits");
-assert.match(panel, /healthLabel/, "health is separate from capability");
-assert.match(panel, /Known stores[\s\S]*Probeable[\s\S]*Live inventory[\s\S]*Alert-grade/, "capability layers stay distinct");
+assert.match(panel, /data-health=\{state\.health\}/, "health is separate from capability");
+assert.match(panel, /Known stores[\s\S]*Monitored stores[\s\S]*Inventory monitoring[\s\S]*Alert-ready/, "technical layers use customer-friendly labels");
+assert.ok(panel.indexOf("<CoverageSearch") < panel.indexOf("How coverage works"), "local search appears before technical detail");
+assert.match(panel, /visible=\{requestOpen\}/, "the full request form stays hidden until a state or search result asks for it");
+assert.match(panel, /coverage-request-heading[\s\S]*\.focus\(\)/, "revealed request UI receives keyboard focus");
 assert.doesNotMatch(panel + search, /quantity|bottle signal|bottleName|signalCount/i, "public explorer does not expose gated bottle data");
 
 assert.match(search, /Search a city or store in this state/, "city/store search is clearly labeled");
+assert.match(search, /REQUESTABLE_STATUSES/, "request actions are driven by missing or partial search results");
+assert.match(search, /Request coverage/, "requestable search results expose an explicit action");
+assert.doesNotMatch(search, /requestFailedSearch|Request this city or store/, "technical search failures cannot create synthetic request targets");
 assert.match(search, /AbortController/, "state changes cancel in-flight location searches");
+const searchResetEffect = search.match(/useEffect\(\(\) => \{([\s\S]*?)\}, \[stateCode\]\);/)?.[1] || "";
+assert.doesNotMatch(searchResetEffect, /onTargetSelected/, "search initialization cannot close a restored sign-in draft");
 assert.match(search, /requestState[\s\S]*stateCode/, "late responses cannot populate results for the previous state");
 for (const status of ["covered", "partially-covered", "known-not-active", "actively-monitored", "known-expansion-candidate", "not-found"]) {
   assert.match(search, new RegExp(status), `search renders the ${status} status`);

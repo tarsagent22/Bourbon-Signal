@@ -18,7 +18,9 @@ function targetLabel(request: MemberCoverageRequest) {
   return request.areaLabel;
 }
 
-export function CoverageRequestsCard() {
+export type CoverageRequestsEmptyMode = "compact" | "hidden";
+
+export function CoverageRequestsCard({ emptyMode = "compact" }: { emptyMode?: CoverageRequestsEmptyMode }) {
   const { isLoaded, isSignedIn, user } = useAuth();
   const accountId = user?.id || null;
   const [requests, setRequests] = useState<MemberCoverageRequest[]>([]);
@@ -70,6 +72,18 @@ export function CoverageRequestsCard() {
   const visibleRequests = loadedAccountId === accountId ? requests : [];
   const visibleStatus = loadedAccountId === accountId ? status : "loading";
 
+  if (visibleStatus === "loading") return null;
+  if (visibleStatus === "error" && emptyMode === "hidden") return null;
+  if (visibleStatus === "ready" && visibleRequests.length === 0) {
+    if (emptyMode === "hidden") return null;
+    return (
+      <Link className={styles.compactLink} href="/coverage">
+        <span><strong>Check coverage near you</strong><small>Search your state, city, or regular store.</small></span>
+        <span aria-hidden="true">→</span>
+      </Link>
+    );
+  }
+
   return (
     <section className={styles.card} aria-labelledby="member-coverage-requests-heading">
       <div className={styles.heading}>
@@ -80,15 +94,8 @@ export function CoverageRequestsCard() {
         <Link href="/coverage">Explore coverage</Link>
       </div>
       <div aria-live="polite">
-        {visibleStatus === "loading" ? (
-          <div className={styles.loading}><span /><span /></div>
-        ) : visibleStatus === "error" ? (
+        {visibleStatus === "error" ? (
           <p className={styles.message}>Request status is temporarily unavailable. Your saved requests have not been removed.</p>
-        ) : visibleRequests.length === 0 ? (
-          <div className={styles.empty}>
-            <strong>No coverage requests yet.</strong>
-            <span>Check your state, city, or regular store and send a request when coverage is missing.</span>
-          </div>
         ) : (
           <ul className={styles.list}>
             {visibleRequests.map((request) => (

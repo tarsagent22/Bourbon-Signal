@@ -221,6 +221,12 @@ assert.match(form, /setManualStoreName\(target\.label\)/, "matched store labels 
 assert.match(form, /setManualCity\(""\)[\s\S]*setManualAddress\(""\)[\s\S]*\}, \[target\]\)/, "selecting a new search result clears stale location details");
 assert.doesNotMatch(form, /setManualStoreName\(target\.storeId\s*\?\s*""\s*:\s*target\.label\)/, "matched store labels are not discarded before sign-in");
 assert.match(form, /\/api\/coverage\/requests/, "signed-in submissions use the private request API");
+assert.match(form, /hidden=\{!visible\}/, "the long request form is not shown before a user asks for coverage");
+assert.match(form, /onDraftRestored\(\)/, "a sign-in return reopens its preserved request draft");
+assert.doesNotMatch(form, /onDraftRestored\(\);\s*window\.sessionStorage\.removeItem\(DRAFT_KEY\)/, "draft restoration survives React effect replay");
+assert.match(form, /cancelRequest[\s\S]*removeItem\(DRAFT_KEY\)[\s\S]*onCancel\(\)/, "canceling clears a preserved draft");
+assert.match(form, /setStatus\("saved"\);\s*window\.sessionStorage\.removeItem\(DRAFT_KEY\)/, "saving clears a preserved draft");
+assert.match(form, /target\?\.kind === "unknown"/, "target choices only appear when an unmatched search needs clarification");
 
 const migration = read("scripts/migrate-coverage-requests.mjs");
 assert.match(migration, /--check/);

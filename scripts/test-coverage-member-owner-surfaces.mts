@@ -86,12 +86,13 @@ for (const label of ["Requested", "On our radar", "Coverage improved", "Closed"]
   assert.match(memberCard, new RegExp(label), `member card includes the ${label} status`);
 }
 assert.match(memberCard, /aria-live=/, "status loading and errors are announced");
-assert.match(memberCard, /No coverage requests yet/, "member card has an honest empty state");
+assert.match(memberCard, /emptyMode/, "request history supports compact and hidden empty states");
 assert.match(memberStyles, /@media\s*\(max-width:\s*640px\)/, "member request status is responsive");
 assert.match(memberStyles, /:focus-visible/, "member request links have visible focus");
 assert.match(dashboard, /import \{ CoverageRequestsCard \}/);
-assert.ok((dashboard.match(/<CoverageRequestsCard\s*\/>/g) || []).length >= 2, "paid and free dashboard surfaces retain coverage requests");
-assert.match(explorer, /CoverageRequestsCard/, "signed-in users can see request status on the public coverage surface, including free members");
+assert.ok((dashboard.match(/<CoverageRequestsCard\s+emptyMode="compact"\s*\/>/g) || []).length >= 2, "paid and free dashboards use a compact empty coverage link");
+assert.ok(dashboard.lastIndexOf("<CoverageRequestsCard") > dashboard.indexOf('renderSectionButton("memberPoints")'), "paid request history sits below primary dashboard tools");
+assert.match(explorer, /<CoverageRequestsCard emptyMode="hidden"/, "the public page hides duplicate request history until a request exists");
 assert.match(memberCard, /useAuth/, "the public request-status card stays hidden for signed-out visitors");
 assert.match(memberCard, /user\?\.id/, "request status reloads on Clerk account changes");
 assert.match(memberCard, /setRequests\(\[\]\)/, "an account change clears prior private request rows before reloading");
