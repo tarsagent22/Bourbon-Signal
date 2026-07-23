@@ -60,6 +60,36 @@
       "delivery": "github_only"
     },
     {
+      "id": "github-repack-active-snapshot",
+      "platform": "github_workflow",
+      "workflowPath": ".github/workflows/repack-active-snapshot.yml",
+      "active": true,
+      "ownerLayer": "deterministic",
+      "executionClass": "script_only",
+      "frequency": "manual transport migration only",
+      "agent": {
+        "provider": null,
+        "model": null,
+        "reasoning": null
+      },
+      "externalApi": {
+        "classes": [
+          "vercel_blob",
+          "customer_domain_http"
+        ],
+        "maxRequestsPerRun": 500
+      },
+      "customerMutation": "snapshot_activation",
+      "promotionDeployment": "snapshot_activation",
+      "silencePolicy": "report_output",
+      "killSwitch": "workflow_dispatch_confirmation",
+      "artifacts": [
+        "compressed_immutable_snapshot",
+        "live_snapshot_identity_verification"
+      ],
+      "delivery": "github_only"
+    },
+    {
       "id": "github-engine-watchdog",
       "platform": "github_workflow",
       "workflowPath": ".github/workflows/engine-watchdog.yml",
