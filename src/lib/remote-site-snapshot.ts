@@ -1,4 +1,5 @@
 import { createDecipheriv, createHash } from "node:crypto";
+import { gunzipSync } from "node:zlib";
 
 export interface RemoteSnapshotStorage {
   readPointer(): Promise<Record<string, unknown> | null>;
@@ -19,6 +20,8 @@ interface SiteSnapshotManifest {
   files: Record<string, FileDescriptor>;
 }
 
+const MAX_SNAPSHOT_PLAINTEXT_BYTES = 64 * 1024 * 1024;
+
 function canonicalize(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(canonicalize);
   if (value && typeof value === "object") {
@@ -32,19 +35,26 @@ function sha256(value: string) {
   return createHash("sha256").update(value).digest("hex");
 }
 
-function decryptObject(serialized: string, encryptionKey: string) {
+function decryptObject(serialized: string, encryptionKey: string, expectedBytes: number) {
   const key = Buffer.from(encryptionKey || "", "base64url");
   if (key.length !== 32) throw new Error("Invalid engine snapshot encryption key");
+  if (!Number.isSafeInteger(expectedBytes) || expectedBytes < 0 || expectedBytes > MAX_SNAPSHOT_PLAINTEXT_BYTES) {
+    throw new Error("Engine snapshot file exceeds the plaintext size limit");
+  }
   const payload = JSON.parse(serialized) as Record<string, string>;
   if (payload.contractVersion !== "bourbon-signal-encrypted-object-v1" || payload.algorithm !== "aes-256-gcm") {
     throw new Error("Unsupported encrypted engine snapshot object");
   }
   const decipher = createDecipheriv("aes-256-gcm", key, Buffer.from(payload.iv, "base64url"));
+  if (payload.encoding === "gzip") decipher.setAAD(Buffer.from("bourbon-signal-encrypted-object-v1:gzip", "utf8"));
   decipher.setAuthTag(Buffer.from(payload.tag, "base64url"));
-  return Buffer.concat([
+  const decoded = Buffer.concat([
     decipher.update(Buffer.from(payload.ciphertext, "base64url")),
     decipher.final(),
-  ]).toString("utf8");
+  ]);
+  if (payload.encoding === undefined) return decoded.toString("utf8");
+  if (payload.encoding === "gzip") return gunzipSync(decoded, { maxOutputLength: expectedBytes }).toString("utf8");
+  throw new Error(`Unsupported encrypted engine snapshot encoding: ${String(payload.encoding)}`);
 }
 
 function verifyManifest(value: unknown): SiteSnapshotManifest {
@@ -72,7 +82,7 @@ export function createRemoteSiteSnapshotReader(options: { storage: RemoteSnapsho
       if (!descriptor) throw new Error(`Engine snapshot file is not declared: ${filePath}`);
       const encrypted = await options.storage.readObject(`engine/snapshots/${snapshotId}/files/${filePath}.enc`);
       if (!encrypted) throw new Error(`Engine snapshot file is missing: ${filePath}`);
-      const plaintext = decryptObject(encrypted, options.encryptionKey);
+      const plaintext = decryptObject(encrypted, options.encryptionKey, descriptor.bytes);
       if (Buffer.byteLength(plaintext) !== descriptor.bytes || sha256(plaintext) !== descriptor.sha256) {
         throw new Error(`Engine snapshot file hash mismatch: ${filePath}`);
       }

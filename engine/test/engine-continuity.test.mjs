@@ -84,7 +84,7 @@ test('scheduled refresh persists collector history, the actual scheduler state, 
   assert.match(blobReader, /_engine_pointer/);
   assert.match(blobReader, /cache:\s*["']no-store["']/);
   const siteContract = await readFile(new URL('../../src/lib/site-engine-contract.ts', import.meta.url), 'utf8');
-  assert.match(siteContract, /const readActivePointer = async \(\) => blobStorage\.readPointer\(\)/);
+  assert.match(siteContract, /const readActivePointer = unstable_cache\([\s\S]*?blobStorage\.readPointer\(\)[\s\S]*?revalidate:\s*15/);
   const productionGuard = await readFile(new URL('../../scripts/verify-production-engine-regression.mjs', import.meta.url), 'utf8');
   assert.match(productionGuard, /Live stateCount .*does not match local/);
   assert.match(productionGuard, /Live generatedAt .*does not match local/);

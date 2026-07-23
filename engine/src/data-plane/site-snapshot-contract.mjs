@@ -1,6 +1,8 @@
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'node:crypto';
+import { gunzipSync } from 'node:zlib';
 
 export const SITE_SNAPSHOT_CONTRACT_VERSION = 'bourbon-signal-file-snapshot-v1';
+export const MAX_SNAPSHOT_PLAINTEXT_BYTES = 64 * 1024 * 1024;
 
 function canonicalize(value) {
   if (Array.isArray(value)) return value.map(canonicalize);
@@ -33,9 +35,11 @@ function decodeEncryptionKey(value) {
 
 export function encryptSnapshotObject(plaintext, encryptionKey) {
   const key = decodeEncryptionKey(encryptionKey);
+  const input = Buffer.from(String(plaintext), 'utf8');
+  if (input.length > MAX_SNAPSHOT_PLAINTEXT_BYTES) throw new Error('Snapshot object exceeds the plaintext size limit');
   const iv = randomBytes(12);
   const cipher = createCipheriv('aes-256-gcm', key, iv);
-  const ciphertext = Buffer.concat([cipher.update(String(plaintext), 'utf8'), cipher.final()]);
+  const ciphertext = Buffer.concat([cipher.update(input), cipher.final()]);
   return JSON.stringify({
     contractVersion: 'bourbon-signal-encrypted-object-v1',
     algorithm: 'aes-256-gcm',
@@ -52,11 +56,20 @@ export function decryptSnapshotObject(serialized, encryptionKey) {
     throw new Error('Unsupported encrypted snapshot object');
   }
   const decipher = createDecipheriv('aes-256-gcm', key, Buffer.from(payload.iv, 'base64url'));
+  if (payload.encoding === 'gzip') decipher.setAAD(Buffer.from('bourbon-signal-encrypted-object-v1:gzip', 'utf8'));
   decipher.setAuthTag(Buffer.from(payload.tag, 'base64url'));
-  return Buffer.concat([
+  const decoded = Buffer.concat([
     decipher.update(Buffer.from(payload.ciphertext, 'base64url')),
     decipher.final(),
-  ]).toString('utf8');
+  ]);
+  if (payload.encoding === undefined) {
+    if (decoded.length > MAX_SNAPSHOT_PLAINTEXT_BYTES) throw new Error('Snapshot object exceeds the plaintext size limit');
+    return decoded.toString('utf8');
+  }
+  if (payload.encoding === 'gzip') {
+    return gunzipSync(decoded, { maxOutputLength: MAX_SNAPSHOT_PLAINTEXT_BYTES }).toString('utf8');
+  }
+  throw new Error(`Unsupported encrypted snapshot encoding: ${String(payload.encoding)}`);
 }
 
 export function createSiteSnapshotManifest(files, metadata) {
