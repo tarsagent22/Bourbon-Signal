@@ -93,6 +93,7 @@ export function createSiteSnapshotManifest(files, metadata) {
   if (!Object.keys(fileManifest).length) throw new Error('Snapshot contains no files');
   const unsigned = {
     contractVersion: SITE_SNAPSHOT_CONTRACT_VERSION,
+    objectEncoding: 'gzip',
     generatedAt: metadata.generatedAt,
     appCommit: String(metadata.appCommit),
     engineCommit: String(metadata.engineCommit),

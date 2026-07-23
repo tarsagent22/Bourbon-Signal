@@ -32,6 +32,7 @@ test('site snapshot manifest is deterministic and rejects missing or tampered fi
   const two = createSiteSnapshotManifest({ 'states/NC/drops.json': files['states/NC/drops.json'], 'stats.json': files['stats.json'] }, metadata);
   assert.equal(one.snapshotId, two.snapshotId);
   assert.equal(one.contractVersion, 'bourbon-signal-file-snapshot-v1');
+  assert.equal(one.objectEncoding, 'gzip');
   assert.equal(one.files['stats.json'].bytes, Buffer.byteLength(files['stats.json']));
   assert.deepEqual(verifySiteSnapshotManifest(one, files), { ok: true });
   assert.equal(verifySiteSnapshotManifest(one, { 'stats.json': files['stats.json'] }).ok, false);
