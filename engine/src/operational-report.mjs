@@ -3,6 +3,7 @@ import path from 'node:path';
 import { stableId } from './core/text.mjs';
 import { BourbonBible } from './core/bible.mjs';
 import { confidenceForSignal, STATE_CONFIDENCE_POLICY } from './confidence-policy.mjs';
+import { hasVerifiedGeorgiaRetailerInventory, suppressGeorgiaActivationBaseline } from './georgia-activation-policy.mjs';
 import { locationValue, precisionRank } from './location-precision.mjs';
 import { appendChangeJournal } from './optimization/change-journal.mjs';
 import { hasPositiveInventoryEvidence } from './operational-candidate-policy.mjs';
@@ -10,6 +11,7 @@ import { hasPositiveInventoryEvidence } from './operational-candidate-policy.mjs
 const OUT = path.resolve('out');
 const HISTORY = path.join(OUT, 'history');
 const SNAPSHOTS = path.join(HISTORY, 'snapshots');
+const GEORGIA_ACTIVATION_STATE = path.join(OUT, 'optimization', 'georgia-retailer-activation.json');
 const VIRGINIA_INVENTORY_MAX_AGE_MS = Math.max(60 * 60_000, Number(process.env.BOURBON_SIGNAL_VA_INVENTORY_MAX_AGE_MS || 24 * 60 * 60_000));
 
 function virginiaInventoryExpired(signal, nowMs = Date.now()) {
@@ -105,6 +107,10 @@ function canonicalizeSignal(signal, bible) {
     lat: optionalNumber(signal.lat, signal.latitude, signal.raw?.lat, signal.raw?.latitude, signal.raw?.Latitude),
     lng: optionalNumber(signal.lng, signal.lon, signal.longitude, signal.raw?.lng, signal.raw?.lon, signal.raw?.longitude, signal.raw?.Longitude),
     quantity: qty(signal),
+    quantityIsExact: typeof signal.quantityIsExact === 'boolean' ? signal.quantityIsExact : null,
+    reportedQuantity: signal.state === 'GA' && Number.isFinite(Number(signal.reportedQuantity ?? signal.raw?.reportedQuantity))
+      ? Number(signal.reportedQuantity ?? signal.raw?.reportedQuantity)
+      : null,
     availabilityStatus: signal.availabilityStatus || signal.raw?.availability?.status || null,
     availabilityLabel: signal.availabilityLabel || signal.raw?.availability?.label || null,
     sourceAvailabilityVerified: signal.sourceAvailabilityVerified === true,
@@ -115,7 +121,9 @@ function canonicalizeSignal(signal, bible) {
     baseConfidence: Number(signal.confidence || 0.35) || 0.35,
     confidence: policy.confidence,
     policyMode: policy.policyMode,
-    inventorySemantics: policy.inventorySemantics,
+    inventorySemantics: signal.state === 'GA' && signal.inventorySemantics
+      ? signal.inventorySemantics
+      : policy.inventorySemantics,
     locationValue: policy.locationValue,
     canAlertAsInventory: policy.canAlertAsInventory,
     canAlertAsWatch: policy.canAlertAsWatch,
@@ -326,6 +334,8 @@ function candidateFromChange(change, bootstrap = false) {
     storeAddress: sig.storeAddress,
     city: sig.city,
     quantity: sig.quantity,
+    quantityIsExact: sig.quantityIsExact,
+    reportedQuantity: sig.reportedQuantity,
     availabilityStatus: sig.availabilityStatus,
     availabilityLabel: sig.availabilityLabel,
     availabilityValue: sig.availabilityValue,
@@ -391,12 +401,19 @@ async function main() {
 
   const changes = diffSnapshots(previous?.snapshot, current).sort((a, b) => changeScore(b) - changeScore(a));
   const bootstrap = !previous?.snapshot;
-  const alertCandidates = diversifyCandidates((bootstrap
+  const georgiaActivationState = await readJson(GEORGIA_ACTIVATION_STATE, { activated: false });
+  const rawAlertCandidates = diversifyCandidates((bootstrap
     ? signals.slice(0, 150).map((sig) => candidateFromChange({ type: 'new_signal', key: sig.key, before: null, after: sig }, true))
     : changes.map((change) => candidateFromChange(change, false)))
     .filter((c) => !c.sampleOnly)
     .filter((c) => c.action !== 'do_not_alert_context_only' || c.score >= 65)
     .sort((a, b) => b.score - a.score));
+  const alertCandidates = suppressGeorgiaActivationBaseline(
+    rawAlertCandidates,
+    previous?.snapshot?.signals || [],
+    signals,
+    georgiaActivationState,
+  );
   const previousJournal = await readJson(path.join(OUT, 'change-journal.json'), { entries: [] });
   const changeJournal = appendChangeJournal(previousJournal, signals, { recordedAt: generatedAt });
 
@@ -407,6 +424,14 @@ async function main() {
   await writeFile(path.join(OUT, 'alert-candidates.json'), JSON.stringify({ generatedAt, previousSnapshot: previous?.file || null, bootstrap, candidateCount: alertCandidates.length, candidates: alertCandidates }, null, 2));
   await writeFile(path.join(OUT, 'confidence-policy.json'), JSON.stringify({ generatedAt, policies: STATE_CONFIDENCE_POLICY }, null, 2));
   await writeFile(path.join(OUT, 'change-journal.json'), JSON.stringify(changeJournal, null, 2));
+  if (hasVerifiedGeorgiaRetailerInventory(signals)) {
+    await mkdir(path.dirname(GEORGIA_ACTIVATION_STATE), { recursive: true });
+    await writeFile(GEORGIA_ACTIVATION_STATE, JSON.stringify({
+      activated: true,
+      firstActivatedAt: georgiaActivationState?.firstActivatedAt || generatedAt,
+      lastVerifiedAt: generatedAt,
+    }, null, 2));
+  }
 
   const diffMd = ['# Bourbon Signal Run Diff', '', `Generated: ${generatedAt}`, `Previous snapshot: ${previous?.file || '[none: bootstrap run]'}`, `Changes: ${changes.length}`, ''];
   for (const change of changes.slice(0, 100)) {

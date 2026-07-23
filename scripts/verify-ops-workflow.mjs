@@ -48,7 +48,7 @@ if (!enginePackageJson.scripts?.['verify:site']) {
 if (!enginePackageJson.scripts?.['store:identity']) {
   fail('engine/package.json should expose store:identity so refresh/deploy loops can build the store identity graph.');
 }
-for (const scriptName of ['verify:state-integration', 'verify:state-fixtures', 'shadow:expansion', 'canary:state', 'promote:state']) {
+for (const scriptName of ['verify:state-integration', 'verify:state-fixtures', 'shadow:expansion', 'canary:state', 'promote:state', 'test:ga', 'verify:ga']) {
   if (!enginePackageJson.scripts?.[scriptName]) fail(`engine/package.json should expose ${scriptName} for guarded state expansion.`);
 }
 
@@ -129,6 +129,14 @@ for (const state of ['FL', 'GA', 'NH', 'OH', 'OR', 'UT']) {
     && enginePackageJson.scripts?.['verify:fl']
     && /FLORIDA_RETAILER_IDENTITIES/.test(read('engine/src/florida-retailer-policy.mjs'))
     && /isFloridaRetailerInventory/.test(read('engine/src/export-site-contract.mjs'));
+  const isHardenedGeorgiaLiveInventory = state === 'GA'
+    && customerStates.has('GA')
+    && lifecycle?.publicStatus === 'active'
+    && lifecycle?.lifecycle === 'retailer_store_inventory'
+    && lifecycle?.coverageTier === 'live_store_inventory'
+    && enginePackageJson.scripts?.['verify:ga']
+    && /GEORGIA_CITYHIVE_IDENTITIES/.test(read('engine/src/georgia-retailer-policy.mjs'))
+    && /isGeorgiaRetailerInventory/.test(read('engine/src/export-site-contract.mjs'));
   const isHardenedUtahAggregateWatch = state === 'UT'
     && customerStates.has('UT')
     && lifecycle?.publicStatus === 'active'
@@ -139,7 +147,7 @@ for (const state of ['FL', 'GA', 'NH', 'OH', 'OR', 'UT']) {
     && enginePackageJson.scripts?.['verify:ut']
     && existsSync(path.join(root, 'engine/data/state-integration/UT.json'))
     && existsSync(path.join(root, 'engine/data/state-fixtures/UT.json'));
-  if (isCostcoOnlyExpansion || isHardenedOhioLiveInventory || isHardenedFloridaLiveInventory || isHardenedUtahAggregateWatch) continue;
+  if (isCostcoOnlyExpansion || isHardenedOhioLiveInventory || isHardenedFloridaLiveInventory || isHardenedGeorgiaLiveInventory || isHardenedUtahAggregateWatch) continue;
   if (customerStates.has(state)) fail(`${state} should remain research-only until hardened enough for its explicitly verified customer-facing coverage contract.`);
   if (lifecycle?.publicStatus !== 'research_only') {
     fail(`${state} should have explicit research_only lifecycle status unless it has an explicitly verified customer-facing coverage contract.`);
@@ -433,6 +441,12 @@ if (canaryWorkflow && /vercel deploy[^\n]*--prod/.test(canaryWorkflow)) fail('Ca
 const refreshFeedWorkflow = expectFile('.github/workflows/refresh-feed.yml');
 if (refreshFeedWorkflow && !refreshFeedWorkflow.includes('Verify no unproven state promotion entered the customer path')) {
   fail('Production refresh must verify the state integration gate before snapshot publication.');
+}
+if (refreshFeedWorkflow && (!refreshFeedWorkflow.includes('Verify Georgia private-retailer release gate')
+  || !refreshFeedWorkflow.includes('engine/out/optimization/georgia-retailer-activation.json')
+  || /Verify Georgia private-retailer release gate[\s\S]{0,160}contains\(inputs\.states, 'GA'\)/.test(refreshFeedWorkflow)
+  || refreshFeedWorkflow.indexOf('Verify Georgia private-retailer release gate') > refreshFeedWorkflow.indexOf('Publish and atomically activate encrypted snapshot'))) {
+  fail('Production refresh must run the unconditional Georgia verifier after coherent export and before snapshot publication.');
 }
 
 if (failures.length) {

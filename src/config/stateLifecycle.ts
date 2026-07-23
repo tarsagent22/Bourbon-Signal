@@ -315,12 +315,12 @@ export const STATE_LIFECYCLE_CONFIG = {
     },
     "GA": {
       "customerLabel": "Georgia",
-      "sourceLabel": "Georgia Costco warehouse bourbon watch",
+      "sourceLabel": "Georgia retailer inventory + Costco warehouse watch",
       "publicStatus": "active",
-      "lifecycle": "costco_warehouse_inventory_watch",
-      "coverageTier": "retailer_warehouse_inventory",
-      "refinementLevel": "warehouse",
-      "customerSummary": "Costco warehouse bourbon signals for Georgia warehouses where verified. Costco is treated as an in-state retailer source with fast-moving inventory caveats."
+      "lifecycle": "retailer_store_inventory",
+      "coverageTier": "live_store_inventory",
+      "refinementLevel": "city_store",
+      "customerSummary": "Guarded first-party retailer signals from exact Georgia storefront identities, plus Costco warehouse bourbon watch where verified. Binary orderability is kept distinct from retailer-reported quantity, and every store signal includes a verify before driving caveat."
     },
     "KY": {
       "customerLabel": "Kentucky",

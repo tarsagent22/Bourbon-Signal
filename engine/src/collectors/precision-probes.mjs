@@ -23,6 +23,16 @@ import {
   isAllowedHttpsHost,
 } from './florida-tampa-surfaces.mjs';
 import {
+  GEORGIA_CITYHIVE_SOURCES,
+  GEORGIA_GOTOLIQUOR_STORES,
+  GEORGIA_LIGHTSPEED_STORES,
+  isAllowedGeorgiaBourbonIdentity,
+  isAllowedGeorgiaBottleFormat,
+  normalizeGeorgiaCityHiveQuantity,
+  parseGeorgiaGoToLiquorStoreProducts,
+  parseGeorgiaLightspeedProducts,
+} from './georgia-retailer-surfaces.mjs';
+import {
   CALIFORNIA_SAN_DIEGO_SHOPIFY_SOURCES,
   buildCaliforniaSourceCacheSignals,
   filterFreshCaliforniaSignals,
@@ -923,6 +933,10 @@ const FL_GASPARS_MAX_PAGES = Math.max(1, Math.min(40, Number(process.env.BOURBON
 const FL_GASPARS_DELAY_MS = Math.max(300, Math.min(5_000, Number(process.env.BOURBON_SIGNAL_FL_GASPARS_DELAY_MS) || 500));
 const FL_GASPARS_STORE = { id: 'gaspars-liquor-shoppe:tampa-56th', name: "Gaspar's Liquor Shoppe", address: '8448 N 56th St, Tampa, FL 33617', city: 'Tampa', zip: '33617' };
 const FL_LIQUOR_DEPOT_URL = 'https://www.liquordepottampa.com/shop-picks';
+
+const GA_CITYHIVE_PAGE_DELAY_MS = Math.max(500, Math.min(5_000, Number(process.env.BOURBON_SIGNAL_GA_CITYHIVE_PAGE_DELAY_MS) || 750));
+const GA_CITYHIVE_SOURCE_DELAY_MS = Math.max(750, Math.min(10_000, Number(process.env.BOURBON_SIGNAL_GA_CITYHIVE_SOURCE_DELAY_MS) || 1_000));
+const GA_GOTOLIQUOR_SOURCE_DELAY_MS = Math.max(500, Math.min(5_000, Number(process.env.BOURBON_SIGNAL_GA_GOTOLIQUOR_SOURCE_DELAY_MS) || 750));
 
 const TX_SPECS_RELEASE_URL = 'https://specsonline.com/bourbonday2024/';
 const TX_INVENTORY_CACHE_PATH = 'out/cache/tx-cityhive-inventory.json';
@@ -4252,6 +4266,311 @@ async function collectFlorida(config, bible) {
   };
 }
 
+function georgiaStoreLocator(config, source, store, observedAt) {
+  return {
+    id: stableId([config.id, 'cityhive-store-location', source.id, store.id]),
+    state: config.id,
+    sourceLabel: `${source.chainName} CityHive store locator`,
+    sourceUrl: source.baseUrl,
+    sourceChain: source.id,
+    merchantId: store.id,
+    rawName: store.name,
+    canonicalBottleId: null,
+    canonicalName: null,
+    confidence: 0.78,
+    eventType: 'retailer_store_location',
+    locationPrecision: 'store_level',
+    locationName: store.name,
+    storeName: store.name,
+    storeId: `${source.id}:${store.id}`,
+    storeAddress: store.address,
+    city: store.city,
+    stateCode: 'GA',
+    postalCode: store.zip,
+    zip: store.zip,
+    quantity: 0,
+    observedAt,
+    canAlertAsInventory: false,
+    canAlertAsWatch: false,
+    inventorySemantics: `${source.chainName} CityHive configuration identifies an exact Georgia retailer location. The locator row is not bottle inventory.`,
+    evidence: `${source.chainName} identifies ${store.name} at ${store.address}.`,
+    raw: { chain: source.id, merchantId: store.id, configuredStoreIdentity: true },
+  };
+}
+
+function georgiaFirstPartyProductUrl(value, source) {
+  try {
+    if (!value) return null;
+    const url = new URL(value, source.baseUrl);
+    return url.protocol === 'https:'
+      && url.hostname.toLowerCase() === new URL(source.baseUrl).hostname.toLowerCase()
+      && /\/shop\/product\//i.test(url.pathname)
+      ? url.href
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+async function collectGeorgiaCityHive(config, bible, observedAt, options = {}) {
+  const signals = [];
+  const roadblocks = [];
+  const seenOptions = new Set();
+  for (const source of GEORGIA_CITYHIVE_SOURCES) {
+    let sourceInventoryCount = 0;
+    let reachableCount = 0;
+    for (const store of source.merchants.values()) {
+      const url = new URL(source.categoryUrl);
+      url.searchParams.set('merchant-id', store.id);
+      const res = await textFetch(url.href, { headers: { accept: 'text/html,*/*' }, timeoutMs: 24_000, signal: options.signal });
+      if (!res.ok) {
+        roadblocks.push({
+          state: config.id,
+          source: source.sourceLabel,
+          url: url.href,
+          status: res.status || 0,
+          error: res.error || `HTTP ${res.status}`,
+          nextRoute: res.status === 429
+            ? 'Stop this first-party CityHive source for the run and retry at the next bounded cadence; do not bypass retailer controls.'
+            : 'Retry the exact first-party CityHive merchant page at low cadence; do not use marketplace or bypass routes.',
+        });
+        if (res.status === 429) break;
+        continue;
+      }
+      reachableCount += 1;
+      signals.push(georgiaStoreLocator(config, source, store, observedAt));
+      const blobs = cityHiveJsonBlobs(res.text);
+      for (const product of cityHiveProducts(blobs)) {
+        for (const productMerchant of product?.merchants || []) {
+          for (const option of productMerchant?.product_options || []) {
+            if (!isBourbonRelevantProduct(product, option)) continue;
+            const merchantId = String(option?.merchant_id || '');
+            if (merchantId !== store.id || !source.merchants.has(merchantId)) continue;
+            if (String(option?.full_address || '') !== store.address) continue;
+            const rawName = htmlToText(option?.option_display_data?.name || product?.name || '');
+            const size = option?.option_params?.size;
+            const formatText = [
+              rawName,
+              size?.quantity && size?.measure ? `${size.quantity}${size.measure}` : '',
+              JSON.stringify(option?.option_params || {}),
+              JSON.stringify(option?.option_display_data || {}),
+            ].filter(Boolean).join(' ');
+            if (!rawName || !isAllowedGeorgiaBottleFormat(formatText)) continue;
+            const { match, record, unsafeReason } = cityHiveSafeBottleMatch(rawName, bible);
+            if (!record || !isAllowedGeorgiaBourbonIdentity(rawName, record.canonical)) continue;
+            const normalized = normalizeGeorgiaCityHiveQuantity(option?.quantity);
+            if (normalized.reportedQuantity <= 0) continue;
+            const productUrl = georgiaFirstPartyProductUrl(option?.product_url, source);
+            if (!productUrl) continue;
+            const optionKey = `${source.id}|${merchantId}|${option?.product_id || product?.id || ''}|${option?.option_id || ''}`;
+            if (seenOptions.has(optionKey)) continue;
+            seenOptions.add(optionKey);
+            sourceInventoryCount += 1;
+            const binary = normalized.binaryAvailability;
+            const priceValue = Number(option?.price);
+            const price = Number.isFinite(priceValue) && priceValue > 0 ? priceValue : null;
+            signals.push({
+              id: stableId([config.id, 'cityhive-store-inventory', source.id, merchantId, option?.option_id, normalized.reportedQuantity, option?.price]),
+              state: config.id,
+              sourceLabel: source.sourceLabel,
+              sourceUrl: productUrl,
+              sourceChain: source.id,
+              merchantId,
+              productId: String(option?.product_id || product?.id || ''),
+              variantId: String(option?.option_id || ''),
+              rawName,
+              canonicalBottleId: record.id,
+              canonicalName: record.canonical,
+              tier: record.tier,
+              confidence: Math.max(0.82, match?.confidence || 0.5),
+              eventType: 'cityhive_store_inventory_result',
+              locationPrecision: 'store_level',
+              locationName: store.name,
+              storeName: store.name,
+              storeId: `${source.id}:${merchantId}`,
+              storeAddress: store.address,
+              city: store.city,
+              stateCode: 'GA',
+              postalCode: store.zip,
+              zip: store.zip,
+              quantity: normalized.quantity,
+              quantityIsExact: normalized.quantityIsExact,
+              reportedQuantity: normalized.reportedQuantity,
+              price,
+              availabilityStatus: 'in_stock',
+              availabilityLabel: binary ? 'Retailer reports available; exact count not published' : `Retailer reports ${normalized.quantity} available`,
+              sourceAvailabilityVerified: true,
+              observedAt,
+              canAlertAsInventory: true,
+              canAlertAsWatch: true,
+              inventorySemantics: binary ? 'binary_retailer_orderable_no_exact_count' : 'exact_retailer_reported_quantity',
+              evidence: binary
+                ? `${source.chainName} reports ${rawName} available at ${store.address}; the high source sentinel is binary orderability, not an exact shelf count. Verify before driving.`
+                : `${source.chainName} reports ${normalized.quantity} of ${rawName} at ${store.address}. Verify before driving.`,
+              raw: {
+                chain: source.id,
+                merchantId,
+                sourceAvailabilityVerified: true,
+                reportedQuantity: normalized.reportedQuantity,
+                binaryAvailability: binary,
+                product: { id: product?.id || option?.product_id || null, name: product?.name || rawName },
+                option,
+                matchGuard: unsafeReason,
+              },
+            });
+          }
+        }
+      }
+      await sleep(GA_CITYHIVE_PAGE_DELAY_MS);
+    }
+    if (reachableCount > 0 && sourceInventoryCount === 0) {
+      roadblocks.push({
+        state: config.id,
+        source: source.sourceLabel,
+        url: source.categoryUrl,
+        status: source.id === 'fairington-wine-spirits' ? 'locator_only_no_products' : 'reachable_no_safe_inventory_rows',
+        error: source.id === 'fairington-wine-spirits'
+          ? 'The exact Fairington CityHive premises was reachable, but no product options were published; retaining locator-only evidence.'
+          : 'The first-party CityHive pages were reachable, but no exact-store, safely matched Georgia bourbon inventory survived.',
+        nextRoute: 'Retry the exact configured merchant pages at low cadence and keep locator/catalog rows non-alertable; do not weaken bottle, format, or geography guards.',
+      });
+    }
+    await sleep(GA_CITYHIVE_SOURCE_DELAY_MS);
+  }
+  return { signals, roadblocks };
+}
+
+function georgiaBinaryRetailerSignal(config, store, product, bible, observedAt, sourceIdentity) {
+  const { match, record, unsafeReason } = cityHiveSafeBottleMatch(product.rawName, bible);
+  if (!record || !isAllowedGeorgiaBottleFormat(product.rawName) || !isAllowedGeorgiaBourbonIdentity(product.rawName, record.canonical)) return null;
+  return {
+    id: stableId([config.id, store.chain, store.id, product.productId, record.id]),
+    state: config.id,
+    sourceLabel: store.sourceLabel,
+    sourceUrl: product.productUrl,
+    sourceChain: store.chain,
+    merchantId: store.merchantId,
+    productId: product.productId,
+    rawName: product.rawName,
+    canonicalBottleId: record.id,
+    canonicalName: record.canonical,
+    tier: record.tier,
+    confidence: Math.max(0.82, match?.confidence || 0.5),
+    eventType: 'retailer_store_inventory_result',
+    locationPrecision: 'store_level',
+    locationName: store.name,
+    storeName: store.name,
+    storeId: store.storeId,
+    storeAddress: store.address,
+    city: store.city,
+    stateCode: 'GA',
+    postalCode: store.zip,
+    zip: store.zip,
+    quantity: 0,
+    quantityIsExact: false,
+    price: product.price,
+    availabilityStatus: 'in_stock',
+    availabilityLabel: 'Add to Cart available; exact count not published',
+    sourceAvailabilityVerified: true,
+    observedAt,
+    canAlertAsInventory: true,
+    canAlertAsWatch: true,
+    inventorySemantics: 'binary_retailer_orderable_no_exact_count',
+    evidence: `${store.name} publishes a visible Add to Cart control for ${product.rawName} at ${store.address}; exact count is not exposed. Verify before driving.`,
+    raw: {
+      source: sourceIdentity,
+      chain: store.chain,
+      merchantId: store.merchantId,
+      productId: product.productId,
+      quantitySemantics: 'binary_retailer_orderable_no_exact_count',
+      sourceAvailabilityVerified: true,
+      matchGuard: unsafeReason,
+    },
+  };
+}
+
+async function collectGeorgiaGoToLiquorStore(config, bible, observedAt, options = {}) {
+  const signals = [];
+  const roadblocks = [];
+  for (const store of GEORGIA_GOTOLIQUOR_STORES) {
+    const res = await curlTextFetch(store.categoryUrl, { timeoutMs: 30_000, signal: options.signal });
+    if (!res.ok) {
+      roadblocks.push({
+        state: config.id,
+        source: store.sourceLabel,
+        url: store.categoryUrl,
+        status: res.status || 0,
+        error: res.error || `HTTP ${res.status}`,
+        nextRoute: res.status === 403
+          ? 'The exact first-party category page is protected. Retry at the next cadence or inspect with an ordinary browser; do not bypass anti-bot controls or use marketplace data.'
+          : 'Retry the exact first-party server-rendered category page at low cadence; do not use search, pagination, cart, or store-switch routes.',
+      });
+      await sleep(GA_GOTOLIQUOR_SOURCE_DELAY_MS);
+      continue;
+    }
+    const products = parseGeorgiaGoToLiquorStoreProducts(res.text, store);
+    for (const product of products) {
+      const signal = georgiaBinaryRetailerSignal(config, store, product, bible, observedAt, 'gotoliquorstore_server_rendered_add_to_cart');
+      if (signal) signals.push(signal);
+    }
+    if (!products.length) roadblocks.push({
+      state: config.id,
+      source: store.sourceLabel,
+      url: store.categoryUrl,
+      status: 'reachable_no_store_bound_add_to_cart_rows',
+      error: 'No server-rendered product-item block had a visible Add to Cart/GaAddtoCart control tied to the configured singleton store ID.',
+      nextRoute: 'Inspect the exact first-party category response at low cadence; keep catalog-only rows non-alertable and do not use alternate query/cart/store-switch routes.',
+    });
+    await sleep(GA_GOTOLIQUOR_SOURCE_DELAY_MS);
+  }
+  return { signals, roadblocks };
+}
+
+async function collectGeorgiaLightspeed(config, bible, observedAt, options = {}) {
+  const signals = [];
+  const roadblocks = [];
+  for (const source of GEORGIA_LIGHTSPEED_STORES) {
+    const res = await curlTextFetch(source.categoryUrl, { timeoutMs: 30_000, signal: options.signal });
+    if (!res.ok) {
+      roadblocks.push({
+        state: config.id,
+        source: source.sourceLabel,
+        url: source.categoryUrl,
+        status: res.status || 0,
+        error: res.error || `HTTP ${res.status}`,
+        nextRoute: 'Retry the first-party Lightspeed category page at the bounded two-second source cadence; do not use third-party marketplace data or bypass protections.',
+      });
+    } else {
+      const products = parseGeorgiaLightspeedProducts(res.text, source);
+      for (const product of products) {
+        const signal = georgiaBinaryRetailerSignal(config, source, product, bible, observedAt, 'lightspeed_category_visible_add_to_cart');
+        if (signal) signals.push(signal);
+      }
+      if (!products.length) roadblocks.push({
+        state: config.id,
+        source: source.sourceLabel,
+        url: source.categoryUrl,
+        status: 'reachable_no_visible_add_to_cart_cards',
+        error: 'The first-party Lightspeed category page exposed no product cards with a visible same-host Add to cart link.',
+        nextRoute: 'Inspect the public category markup without following cart routes or weakening same-host, bottle, or format guards.',
+      });
+    }
+    await sleep(source.delayMs);
+  }
+  return { signals, roadblocks };
+}
+
+async function collectGeorgia(config, bible, options = {}) {
+  const observedAt = new Date().toISOString();
+  const cityHive = await collectGeorgiaCityHive(config, bible, observedAt, options);
+  const lightspeed = await collectGeorgiaLightspeed(config, bible, observedAt, options);
+  const goToLiquorStore = await collectGeorgiaGoToLiquorStore(config, bible, observedAt, options);
+  return {
+    signals: [...cityHive.signals, ...lightspeed.signals, ...goToLiquorStore.signals],
+    roadblocks: [...cityHive.roadblocks, ...lightspeed.roadblocks, ...goToLiquorStore.roadblocks],
+  };
+}
+
 async function collectArizona(config, bible, options = {}) {
   const observedAt = new Date().toISOString();
   const signals = [];
@@ -6576,7 +6895,7 @@ async function collectKentucky(config, bible) {
 }
 
 const LEGACY_PRECISION_RUNTIME_STATES = new Set([
-  'KY', 'OH', 'OR', 'IA', 'UT', 'ID', 'AL', 'NC', 'IL', 'IN', 'TN', 'AZ', 'NV', 'FL', 'SC', 'TX', 'VA', 'PA', 'MD-MONTGOMERY',
+  'KY', 'OH', 'OR', 'IA', 'UT', 'ID', 'AL', 'NC', 'IL', 'IN', 'TN', 'AZ', 'NV', 'FL', 'GA', 'SC', 'TX', 'VA', 'PA', 'MD-MONTGOMERY',
 ]);
 
 function precisionRuntimeUrl(config) {
@@ -6601,6 +6920,7 @@ async function collectPrecisionProbesDirect(config, bible, existingSignals = [],
   if (config.id === 'CA') return collectCalifornia(config, bible, options);
   if (config.id === 'NV') return collectNevada(config, bible);
   if (config.id === 'FL') return collectFlorida(config, bible);
+  if (config.id === 'GA') return collectGeorgia(config, bible, options);
   if (config.id === 'SC') return collectSouthCarolina(config, bible);
   if (config.id === 'TX') return collectTexas(config, bible);
   if (config.id === 'VA') return collectVirginia(config, bible, options);
@@ -6618,8 +6938,8 @@ export function legacyPrecisionRuntimeOptions(stateId, sourceRunnerOptions = {},
     .map((value) => value.trim().toUpperCase())
     .filter(Boolean)
     .includes(stateKey);
-  const defaultTimeoutMs = stateKey === 'VA' ? 1_140_000 : ['AZ', 'TX'].includes(stateKey) ? 300_000 : 120_000;
-  const defaultMaxAttempts = stateKey === 'VA' || stateKey === 'AZ' ? 1 : 2;
+  const defaultTimeoutMs = stateKey === 'VA' ? 1_140_000 : ['AZ', 'GA', 'TX'].includes(stateKey) ? 300_000 : 120_000;
+  const defaultMaxAttempts = ['VA', 'AZ', 'GA'].includes(stateKey) ? 1 : 2;
   return {
     ...sourceRunnerOptions,
     ...(stateKey === 'VA' || explicitlyTargeted ? { schedule: false } : {}),

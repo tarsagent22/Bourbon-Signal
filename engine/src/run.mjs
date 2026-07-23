@@ -71,6 +71,9 @@ const STATE_TIMEOUT_OVERRIDES_MS = {
   // slow or retrying. Let them finish instead of publishing stale fallbacks.
   TN: Number(process.env.BOURBON_SIGNAL_TN_STATE_TIMEOUT_MS || 420_000),
   SC: Number(process.env.BOURBON_SIGNAL_SC_STATE_TIMEOUT_MS || 420_000),
+  // Georgia fans out through identity-bound retailer storefronts. Keep the
+  // parent watchdog above the bounded precision-source timeout.
+  GA: Number(process.env.BOURBON_SIGNAL_GA_STATE_TIMEOUT_MS || 420_000),
   // Texas fans out through bounded first-party merchant cohorts. Keep the parent
   // watchdog above the normal cohort duration while retaining a hard ceiling.
   TX: Number(process.env.BOURBON_SIGNAL_TX_STATE_TIMEOUT_MS || 900_000),
