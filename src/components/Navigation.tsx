@@ -152,6 +152,28 @@ export default function Navigation() {
               />
             </a>
           ))}
+          {canSeeControlRoomNav ? (
+            <a
+              href="/admin/control-room"
+              className="relative group"
+              style={{
+                fontFamily: "var(--font-dm-sans)",
+                fontSize: "clamp(12px, 0.9vw, 14px)",
+                fontWeight: 600,
+                color: "var(--color-accent-amber)",
+                textDecoration: "none",
+                transition: "color 300ms ease",
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.color = "var(--color-text-primary)")}
+              onMouseLeave={(e) => (e.currentTarget.style.color = "var(--color-accent-amber)")}
+            >
+              Control Room
+              <span
+                className="absolute bottom-[-4px] left-0 h-[2px] w-0 group-hover:w-full transition-all duration-300"
+                style={{ backgroundColor: "var(--color-accent-amber)" }}
+              />
+            </a>
+          ) : null}
         </div>
 
         {/* Right side */}
@@ -483,22 +505,6 @@ export default function Navigation() {
                   >
                     {billingPending ? "Opening billing…" : "Manage billing"}
                   </button>
-                ) : null}
-                {canSeeControlRoomNav ? (
-                  <a
-                    href="/admin/control-room"
-                    onClick={() => setMobileOpen(false)}
-                    style={{
-                      fontFamily: "var(--font-dm-sans)",
-                      fontSize: "13px",
-                      fontWeight: 700,
-                      color: "var(--color-accent-amber)",
-                      textDecoration: "none",
-                      marginBottom: "4px",
-                    }}
-                  >
-                    Control Room
-                  </a>
                 ) : null}
 
                 <button

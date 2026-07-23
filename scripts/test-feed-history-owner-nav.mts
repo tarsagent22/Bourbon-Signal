@@ -40,6 +40,9 @@ assert.match(feedSource, /Historical ·/, "older cards must be labeled rather th
 const navSource = readFileSync("src/components/Navigation.tsx", "utf8");
 assert.doesNotMatch(navSource.match(/const navLinks = \[[\s\S]*?\];/)?.[0] || "", /Control Room/, "Control Room must not enter shared navigation");
 assert.match(navSource, /controlRoomNavVisibleForUser\(user\)/);
-assert.match(navSource, /href="\/admin\/control-room"/);
+const desktopNav = navSource.slice(navSource.indexOf("{/* Desktop nav links */}"), navSource.indexOf("{/* Right side */}"));
+const mobileAuthMenu = navSource.slice(navSource.indexOf("{/* Mobile auth — clean bottom section */}"));
+assert.match(desktopNav, /href="\/admin\/control-room"/, "the exact owner should see Control Room in the desktop navigation");
+assert.doesNotMatch(mobileAuthMenu, /href="\/admin\/control-room"/, "Control Room must remain hidden on mobile");
 
-console.log("Historical filtered feed and owner-only navigation contracts passed.");
+console.log("Historical filtered feed and owner-only desktop navigation contracts passed.");
