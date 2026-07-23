@@ -66,6 +66,7 @@ jobs:
             engine/out/snapshots
             engine/out/site-refresh-status.json
             engine/out/optimization/source-run-history.json
+            engine/out/optimization/georgia-retailer-activation.json
             engine/out/optimization/state-run-metrics.json
           key: inventory-collector-state-${{ runner.os }}-${{ github.run_id }}
           restore-keys: |
@@ -108,6 +109,10 @@ jobs:
       - name: Verify coherent site contract
         working-directory: engine
         run: npm run verify:site
+
+      - name: Verify Georgia private-retailer release gate
+        working-directory: engine
+        run: npm run verify:ga
 
       - name: Verify Virginia scheduled lane or isolate a safe stale fallback
         if: ${{ !inputs.states }}
@@ -157,6 +162,7 @@ jobs:
             engine/out/snapshots
             engine/out/site-refresh-status.json
             engine/out/optimization/source-run-history.json
+            engine/out/optimization/georgia-retailer-activation.json
             engine/out/optimization/state-run-metrics.json
           key: inventory-collector-state-${{ runner.os }}-${{ github.run_id }}
 
@@ -189,5 +195,6 @@ jobs:
             engine/out/source-slo-7d.json
             engine/out/source-slo-7d.md
             engine/out/optimization/source-run-history.json
+            engine/out/optimization/georgia-retailer-activation.json
             engine/out/optimization/state-run-metrics.json
             engine/out/states/*.json

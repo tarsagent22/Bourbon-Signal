@@ -1,5 +1,12 @@
 import { CUSTOMER_ACTIVE_STATE_IDS as CONFIG_CUSTOMER_ACTIVE_STATE_IDS } from './state-lifecycle.mjs';
 import { costcoSourceForState } from './costco-eligibility.mjs';
+import { GEORGIA_CITYHIVE_SOURCES, GEORGIA_GOTOLIQUOR_STORES, GEORGIA_LIGHTSPEED_STORES } from './collectors/georgia-retailer-surfaces.mjs';
+
+const GEORGIA_RETAILER_SOURCES = [
+  ...GEORGIA_CITYHIVE_SOURCES.map((source) => ({ name: source.sourceLabel, label: source.sourceLabel, url: source.categoryUrl, precisionOnly: true })),
+  ...GEORGIA_GOTOLIQUOR_STORES.map((store) => ({ name: store.sourceLabel, label: store.sourceLabel, url: store.categoryUrl, precisionOnly: true })),
+  ...GEORGIA_LIGHTSPEED_STORES.map((store) => ({ name: store.sourceLabel, label: store.sourceLabel, url: store.categoryUrl, precisionOnly: true })),
+];
 
 const BASE_STATE_SOURCES = [
   {
@@ -421,10 +428,10 @@ const BASE_STATE_SOURCES = [
     apiCandidates: []
   },
   {
-    id: 'GA', label: 'Georgia Costco warehouse bourbon watch', tier: 'B', strategy: 'costco_warehouse_inventory_watch', cadence: '15-60m',
-    value: 'Costco-only expansion state. Treat Costco warehouse/app availability as an in-state retailer source with verify-before-driving caveats.',
-    rareSignalTarget: false,
-    sources: [],
+    id: 'GA', label: 'Georgia retailer inventory + Costco warehouse watch', tier: 'B', strategy: 'retailer_store_inventory', cadence: '30-60m',
+    value: 'Exact-identity first-party Georgia retailer inventory plus Costco warehouse observations where verified. Binary Add to Cart/orderability is distinct from exact CityHive quantity, and every store signal carries a verify-before-driving caveat.',
+    rareSignalTarget: true,
+    sources: GEORGIA_RETAILER_SOURCES,
     apiCandidates: []
   },
   {
