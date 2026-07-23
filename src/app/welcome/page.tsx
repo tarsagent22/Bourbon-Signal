@@ -33,8 +33,9 @@ export default function WelcomePage() {
           </div>
 
           <div className={styles.primaryActions}>
-            <Link href="/dashboard" className={styles.primaryAction}>Continue with my free account</Link>
-            <span>No card required</span>
+            <Link href="/pricing?source=welcome" className={styles.primaryAction}>Upgrade membership</Link>
+            <Link href="/dashboard" className={styles.secondaryAction}>Continue with my free account</Link>
+            <span>Your free account stays active · No card required</span>
           </div>
 
           <div className={styles.nextActions} aria-label="Start exploring Bourbon Signal">
@@ -43,9 +44,7 @@ export default function WelcomePage() {
             <Link href="/release-radar">Explore Release Radar</Link>
           </div>
 
-          <p className={styles.pricingLink}>
-            Want saved alerts and the full feed later? <Link href="/pricing?source=welcome">Compare memberships</Link> whenever you are ready.
-          </p>
+          <p className={styles.pricingLink}>Both paths lead to the real member dashboard. Free access keeps the product preview; upgrading unlocks saved alerts and the full feed.</p>
         </section>
       </main>
       <Footer />

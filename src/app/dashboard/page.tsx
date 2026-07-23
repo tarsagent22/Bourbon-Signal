@@ -21,7 +21,6 @@ import { getDisplayName, isRealDropEvent, type DropEvent } from "@/lib/drops";
 import { LiquidToggle } from "@/components/LiquidToggle";
 import { NotificationChannelCard } from "@/components/dashboard/NotificationChannelCard";
 import { WeeklyIntelligenceCard } from "@/components/dashboard/WeeklyIntelligenceCard";
-import FreeMemberDashboard from "@/components/dashboard/FreeMemberDashboard";
 import {
   getDefaultNotificationPreferences,
   type NotificationPreferences,
@@ -808,8 +807,7 @@ function HubCard({
 }
 
 export default function DashboardPage() {
-  const { isLoaded, entitlements } = useAuth();
-  const isFreeTier = entitlements.tier === "free";
+  const { isLoaded } = useAuth();
 
   if (!isLoaded) {
     return (
@@ -822,7 +820,6 @@ export default function DashboardPage() {
     );
   }
 
-  if (isFreeTier) return <FreeMemberDashboard />;
   return <PaidMemberDashboard />;
 }
 
@@ -2184,9 +2181,16 @@ function PaidMemberDashboard() {
                   color: "var(--color-text-secondary)",
                 }}
               >
-                Set your alerts, rate bottles you own or have tasted, and get recommendations based on what you like.
+                {isFreeTier
+                  ? "Explore the real member workspace. Free access includes 7 recent signals, 3 Bottle Checks, and Member Sightings; upgrade when you want saved alerts, the full feed, and advanced hunting tools."
+                  : "Set your alerts, rate bottles you own or have tasted, and get recommendations based on what you like."}
               </p>
             </ScrollReveal>
+            {isFreeTier ? (
+              <ScrollReveal delay={180}>
+                <Link href="/pricing?source=dashboard" className="dashboard-hero-upgrade">Upgrade membership</Link>
+              </ScrollReveal>
+            ) : null}
           </div>
         </section>
 
@@ -2195,6 +2199,31 @@ function PaidMemberDashboard() {
             max-width: 820px;
             margin: 0 auto;
             padding: 0 clamp(16px, 5vw, 36px) 82px;
+          }
+          .dashboard-hero-upgrade {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 42px;
+            margin-top: 18px;
+            border: 1px solid rgba(232,201,122,0.44);
+            border-radius: 999px;
+            padding: 11px 17px;
+            color: #100c08;
+            background: linear-gradient(135deg, rgba(196,148,58,0.98), rgba(232,201,122,0.94));
+            box-shadow: 0 12px 34px rgba(196,148,58,0.2), 0 0 28px rgba(232,201,122,0.08);
+            font-family: var(--font-dm-sans);
+            font-size: 13px;
+            font-weight: 900;
+            text-decoration: none;
+            transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
+          }
+          .dashboard-hero-upgrade:hover,
+          .dashboard-hero-upgrade:focus-visible {
+            transform: translateY(-1px);
+            filter: brightness(1.05);
+            box-shadow: 0 16px 40px rgba(196,148,58,0.28), 0 0 34px rgba(232,201,122,0.12);
+            outline: none;
           }
           .dashboard-workspace {
             display: grid;
