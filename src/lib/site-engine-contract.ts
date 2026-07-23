@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { unstable_cache } from "next/cache";
 import { getActiveEngineStateName } from "@/lib/activeStates";
+import { getScheduledReleaseSignalCopy } from "@/lib/scheduled-release-signals";
 import { createRemoteSiteSnapshotReader } from "@/lib/remote-site-snapshot";
 import { VercelBlobSnapshotStorage } from "@/lib/vercel-blob-snapshot-storage";
 import { buildStateStats } from "@/lib/site-stats-metrics";
@@ -287,6 +288,7 @@ export function normalizeDropForSite(drop: JsonRecord) {
   const anchorRepeatedInventoryToFirstSeen = shouldAnchorInventoryToFirstSeen(type) && firstSeenAt && lastConfirmedAt && firstSeenAt !== lastConfirmedAt;
   const publicDisplayAt = anchorRepeatedInventoryToFirstSeen ? (eventAt || firstSeenAt) : exportedDisplayAt;
   const publicTimestampBasis = anchorRepeatedInventoryToFirstSeen ? (eventAt ? "source_event_at" : "first_seen_at") : exportedTimestampBasis;
+  const scheduledReleaseCopy = getScheduledReleaseSignalCopy(drop);
 
   return {
     ...drop,
@@ -325,6 +327,11 @@ export function normalizeDropForSite(drop: JsonRecord) {
     location_precision: locationPrecision,
     can_alert_as_inventory: canAlertAsInventory,
     signal_label: signalLabel,
+    scheduled_release: Boolean(scheduledReleaseCopy),
+    scheduledRelease: Boolean(scheduledReleaseCopy),
+    scheduledReleaseLabel: scheduledReleaseCopy?.statusLine,
+    scheduledReleaseDetail: scheduledReleaseCopy?.detail,
+    scheduledReleaseCaveat: scheduledReleaseCopy?.explanation,
     signal_category: getPublicSignalCategory(type, locationPrecision, quantity, canAlertAsInventory),
     display_state: getPublicStateLabel(state),
     display_location: locationLabel,

@@ -27,6 +27,7 @@ import { locationLabelsMatch, normalizeStateCodeParam, publicStateCode } from "@
 import { coveredAreaLabelsMatch, getCoveredAreaOptionsForState } from "@/lib/feed-area-options";
 import { californiaAreaMatchesFields } from "@/lib/california-area";
 import { nevadaAreaMatchesFields } from "@/lib/nevada-area";
+import { getScheduledReleaseSignalCopy } from "@/lib/scheduled-release-signals";
 
 
 type DropSortMode = "newest" | "nearby" | "rarity" | "az";
@@ -631,6 +632,10 @@ function getSignalTrust(drop: GroupedDrop): { label: string; detail: string; ton
     const meta = getDistilleryCardMeta(drop);
     return { label: meta?.eyebrow || "Official distillery", detail: meta?.caveat || "Official distillery availability/release lead; not retailer store inventory.", tone: "official" };
   }
+  const scheduledCopy = getScheduledReleaseSignalCopy(drop);
+  if (scheduledCopy) {
+    return { label: "Scheduled release", detail: scheduledCopy.explanation, tone: "official" };
+  }
   if (isStoreLevelSignal(drop)) {
     return { label: "Store-level", detail: "Reported at a specific store; verify before driving.", tone: "exact" };
   }
@@ -753,24 +758,25 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport, onVoteS
   const [hovered, setHovered] = useState(false);
   const tier = TIER_CONFIG[drop.rarity_tier] || TIER_CONFIG.unknown;
   const distilleryMeta = getDistilleryCardMeta(drop);
+  const scheduledReleaseCopy = getScheduledReleaseSignalCopy(drop);
   const description = getEventDescription(drop);
   const stateLabel = drop.displayState || formatStateLabel(drop.state);
   const primaryLocation = drop.locations[0]?.label || description;
   const locationSummary = drop.locations.length > 1 ? `${drop.locations.length} locations` : primaryLocation;
   const primaryMeta = distilleryMeta?.primaryLine || getPrimarySignalMeta(drop, locationSummary, stateLabel);
   const retailerAppearance = retailerCardAppearance(drop);
-  const signalLabel = retailerAppearance ? `Verified retailer · ${retailerAppearance.label}` : (drop.signalLabel || "Bottle drop");
+  const signalLabel = scheduledReleaseCopy?.badge || (retailerAppearance ? `Verified retailer · ${retailerAppearance.label}` : (drop.signalLabel || "Bottle drop"));
   const signalTrust = getSignalTrust(drop);
-  const baseSignalTime = drop.retailerSignalState === "upcoming" && drop.eventDate
+  const baseSignalTime = scheduledReleaseCopy?.statusLine || (drop.retailerSignalState === "upcoming" && drop.eventDate
     ? `Starts ${formatDropTime({ ...drop, timestamp: drop.eventDate })}`
-    : (distilleryMeta?.checkedLabel || formatDropTime(drop));
+    : (distilleryMeta?.checkedLabel || formatDropTime(drop)));
   const signalTime = drop.historical ? `Historical · ${baseSignalTime}` : baseSignalTime;
   const pricing = lookupPricing(drop.displayName, drop.retail_price ?? undefined);
   const hasPricing = pricing.msrp !== undefined;
   const isUserSighting = Boolean((drop as GroupedDrop & { isUserSighting?: boolean }).isUserSighting);
   const userQuantityEstimate = (drop as GroupedDrop & { userQuantityEstimate?: string }).userQuantityEstimate;
-  const canQuickReport = !distilleryMeta && !isUserSighting && (drop.canAlertAsInventory || drop.exactStore || drop.availabilityScope === "exact" || drop.locationPrecision === "store_level");
-  const canUseHeroAccent = Boolean(distilleryMeta) || drop.rarity_tier === "unicorn" || drop.rarity_tier === "allocated";
+  const canQuickReport = !distilleryMeta && !scheduledReleaseCopy && !isUserSighting && (drop.canAlertAsInventory || drop.exactStore || drop.availabilityScope === "exact" || drop.locationPrecision === "store_level");
+  const canUseHeroAccent = Boolean(distilleryMeta || scheduledReleaseCopy) || drop.rarity_tier === "unicorn" || drop.rarity_tier === "allocated";
   const hasTopCardAccent = index === 0 && canUseHeroAccent;
   const addSightingHref = `/sightings?bottle=${encodeURIComponent(drop.displayName)}${drop.state ? `&state=${encodeURIComponent(drop.state)}` : ""}`;
 
@@ -809,7 +815,13 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport, onVoteS
       ? `${formatRelativeTime(firstReportedAt)} · confirmed ${formatRelativeTime(lastReportedAt)}`
       : formatRelativeTime(firstReportedAt);
 
-    if (isBoardLevelSignal(drop)) {
+    if (scheduledReleaseCopy) {
+      details.push({ label: "What this means", value: scheduledReleaseCopy.explanation });
+      details.push({ label: "Release timing", value: scheduledReleaseCopy.statusLine });
+      details.push({ label: "Before you go", value: scheduledReleaseCopy.detail });
+      if (reportedLabel) details.push({ label: "Last checked", value: reportedLabel });
+      if (drop.retail_price && drop.retail_price > 0) details.push({ label: "MSRP", value: `$${Math.round(drop.retail_price)}` });
+    } else if (isBoardLevelSignal(drop)) {
       details.push({ label: "What this means", value: `${signalTrust.label}; exact store can vary.` });
       if (reportedLabel) details.push({ label: "Reported", value: reportedLabel });
       if (drop.retail_price && drop.retail_price > 0) details.push({ label: "MSRP", value: `$${Math.round(drop.retail_price)}` });
@@ -957,6 +969,20 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport, onVoteS
             ) : null}
             <div style={{ marginTop: "7px", fontFamily: "var(--font-dm-sans)", fontSize: "11.5px", color: "rgba(245,237,214,0.48)", lineHeight: 1.35 }}>
               Not retail inventory. Verify before driving.
+            </div>
+          </div>
+        ) : null}
+
+        {scheduledReleaseCopy ? (
+          <div style={{ marginTop: "10px", padding: "10px 11px", borderRadius: "15px", border: "1px solid rgba(196,148,58,0.18)", background: "linear-gradient(135deg, rgba(196,148,58,0.08), rgba(245,237,214,0.025))" }}>
+            <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", fontWeight: 850, color: "rgba(245,237,214,0.9)", lineHeight: 1.25 }}>
+              {scheduledReleaseCopy.statusLine}
+            </div>
+            <div style={{ marginTop: "5px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "rgba(245,237,214,0.66)", lineHeight: 1.35 }}>
+              Planned release signal — not live inventory.
+            </div>
+            <div style={{ marginTop: "7px", fontFamily: "var(--font-jetbrains)", fontSize: "10px", fontWeight: 850, letterSpacing: "0.08em", color: "rgba(232,201,122,0.86)", textTransform: "uppercase" }}>
+              Not live inventory
             </div>
           </div>
         ) : null}
@@ -1135,6 +1161,12 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport, onVoteS
               {distilleryMeta.limitLine ? <span style={{ color: "rgba(232,201,122,0.72)" }}>{distilleryMeta.limitLine}</span> : null}
             </div>
           ) : null}
+          {scheduledReleaseCopy ? (
+            <div style={{ marginTop: "7px", display: "flex", alignItems: "center", gap: "8px", flexWrap: "wrap", fontFamily: "var(--font-dm-sans)", fontSize: "12px", lineHeight: 1.35 }}>
+              <span style={{ color: "rgba(245,237,214,0.82)", fontWeight: 800 }}>{scheduledReleaseCopy.statusLine}</span>
+              <span style={{ color: "rgba(232,201,122,0.72)", fontFamily: "var(--font-jetbrains)", fontSize: "10px", fontWeight: 850, letterSpacing: "0.08em", textTransform: "uppercase" }}>Not live inventory</span>
+            </div>
+          ) : null}
         </div>
 
         {distilleryMeta?.sourceUrl || !isFreeUser ? (
@@ -1290,7 +1322,7 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport, onVoteS
                         </div>
                         <div style={{ display: "grid", gap: "8px" }}>
                           {visibleLocations.map((location: DropLocation) => {
-                            const destinationLabel = distilleryMeta ? "Official pickup location" : drop.signalCategory === "delivery" ? "Shipment destination" : "Source location";
+                            const destinationLabel = distilleryMeta ? "Official pickup location" : scheduledReleaseCopy ? "Scheduled release location" : drop.signalCategory === "delivery" ? "Shipment destination" : "Source location";
                             const sourceLocationLabel = distilleryMeta?.primaryLine || location.label;
                             const rawSecondaryLine = distilleryMeta ? location.address || distilleryMeta.sourceLabel : location.address || location.boardName;
                             const secondaryLine = rawSecondaryLine && !locationLabelsMatch(rawSecondaryLine, sourceLocationLabel) ? rawSecondaryLine : "";
