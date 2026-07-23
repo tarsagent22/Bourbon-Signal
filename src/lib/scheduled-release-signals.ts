@@ -1,6 +1,7 @@
 export type ScheduledReleaseInput = {
   event_type?: string | null;
   eventType?: string | null;
+  type?: string | null;
   signal_category?: string | null;
   signalCategory?: string | null;
   signal_label?: string | null;
@@ -19,7 +20,7 @@ function text(value: unknown) {
 }
 
 export function isScheduledReleaseSignal(drop: ScheduledReleaseInput) {
-  const eventType = text(drop.event_type ?? drop.eventType).toLowerCase();
+  const eventType = text(drop.event_type ?? drop.eventType ?? drop.type).toLowerCase();
   const category = text(drop.signal_category ?? drop.signalCategory).toLowerCase();
   const label = text(drop.signal_label ?? drop.signalLabel).toLowerCase();
   const caveat = text(drop.inventoryCaveat).toLowerCase();

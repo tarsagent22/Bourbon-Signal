@@ -28,6 +28,7 @@ const releaseDrop = {
 };
 
 assert.equal(isScheduledReleaseSignal(releaseDrop), true, "Alabama limited-release rows must be recognized as scheduled release signals");
+assert.equal(isScheduledReleaseSignal({ ...releaseDrop, event_type: undefined, type: "alabc_limited_release_store_drop" }), true, "API-export rows that use type instead of event_type must still be recognized");
 assert.equal(isScheduledReleaseSignal({ ...releaseDrop, event_type: "cityhive_store_inventory_result", signal_category: "inventory" }), false, "live retailer inventory must not be labeled as scheduled release");
 assert.equal(formatScheduledReleaseOccurrence(releaseDrop), "Release occurs Jul 25, 2026", "scheduled releases must show when the release actually happens");
 
