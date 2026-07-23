@@ -45,6 +45,28 @@ interface DropsResponse {
   error?: string;
 }
 
+const DROP_FEED_CLIENT_CACHE_MS = 60_000;
+const DROP_FEED_CLIENT_CACHE_LIMIT = 24;
+const dropFeedResponseCache = new Map<string, { expiresAt: number; data: DropsResponse }>();
+
+async function fetchDropFeedPage(url: string, signal?: AbortSignal, forceRefresh = false) {
+  const cached = dropFeedResponseCache.get(url);
+  if (!forceRefresh && cached && cached.expiresAt > Date.now()) return cached.data;
+  if (cached) dropFeedResponseCache.delete(url);
+
+  const res = await fetch(url, { signal });
+  const body = (await res.json()) as DropsResponse;
+  if (!res.ok) throw new Error(body.error || "Failed to load drops");
+
+  dropFeedResponseCache.set(url, { expiresAt: Date.now() + DROP_FEED_CLIENT_CACHE_MS, data: body });
+  while (dropFeedResponseCache.size > DROP_FEED_CLIENT_CACHE_LIMIT) {
+    const oldestKey = dropFeedResponseCache.keys().next().value;
+    if (!oldestKey) break;
+    dropFeedResponseCache.delete(oldestKey);
+  }
+  return body;
+}
+
 const KENTUCKY_RELEASE_WATCH_SOURCE_COUNT = 8;
 
 const RETAILER_SIGNAL_CARDS = {
@@ -1433,6 +1455,11 @@ export default function DropFeed() {
     if (typeof window === "undefined") return "";
     return new URLSearchParams(window.location.search).get("bottle") || "";
   });
+  const [debouncedBottleSearch, setDebouncedBottleSearch] = useState(bottleSearch);
+  useEffect(() => {
+    const timer = window.setTimeout(() => setDebouncedBottleSearch(bottleSearch), 180);
+    return () => window.clearTimeout(timer);
+  }, [bottleSearch]);
   const [urlStateFilter, setUrlStateFilter] = useState<string | null>(() => {
     if (typeof window === "undefined") return null;
     return normalizeStateCodeParam(new URLSearchParams(window.location.search).get("state"));
@@ -1456,7 +1483,7 @@ export default function DropFeed() {
 
   const activeTierParam = useMemo(() => canUseDropFeedFilters ? Array.from(activeTiers).sort().join(",") : "", [activeTiers, canUseDropFeedFilters]);
   const activeAreaParam = useMemo(() => canUseDropFeedFilters ? areaQueryFromFilter(countyFilter) : "", [canUseDropFeedFilters, countyFilter]);
-  const activeBottleParam = canUseBottleSearch ? bottleSearch.trim() : "";
+  const activeBottleParam = canUseBottleSearch ? debouncedBottleSearch.trim() : "";
 
   const feedStateParam = urlStateFilter || (canUseStateFilter
     ? (hasSelectedStates && preferredStates.length === 1
@@ -1466,7 +1493,7 @@ export default function DropFeed() {
         : null)
     : null);
 
-  const fetchDrops = useCallback(async () => {
+  const fetchDrops = useCallback(async ({ signal, forceRefresh = false }: { signal?: AbortSignal; forceRefresh?: boolean } = {}) => {
     try {
       let nextOffset = 0;
       let latestJson: DropsResponse | null = null;
@@ -1483,9 +1510,7 @@ export default function DropFeed() {
         }
         if (activeBottleParam) query.set("bottle", activeBottleParam);
         if (activeAreaParam) query.set(feedStateParam === "NV" ? "area" : feedStateParam === "CA" ? "area" : "store", activeAreaParam);
-        const res = await fetch(`/api/drops?${query.toString()}`);
-        if (!res.ok) throw new Error("fetch failed");
-        const json: DropsResponse = await res.json();
+        const json = await fetchDropFeedPage(`/api/drops?${query.toString()}`, signal, forceRefresh);
         latestJson = json;
 
         const pageDrops = json.drops;
@@ -1527,7 +1552,8 @@ export default function DropFeed() {
       setNextDropOffset(nextOffset);
       setNextDropCursor(json.nextCursor ?? null);
       setVisibleDropCount(isFreeUser ? 7 : 10);
-    } catch {
+    } catch (fetchError) {
+      if (fetchError instanceof DOMException && fetchError.name === "AbortError") return;
       setError(true);
     }
   }, [activeAreaParam, activeBottleParam, activeTierParam, feedStateParam, isFreeUser]);
@@ -1538,9 +1564,19 @@ export default function DropFeed() {
 
 
   useEffect(() => {
-    fetchDrops();
-    const interval = setInterval(fetchDrops, POLL_INTERVAL_SECONDS * 1000);
-    return () => clearInterval(interval);
+    let controller = new AbortController();
+    const load = (forceRefresh: boolean) => {
+      controller.abort();
+      controller = new AbortController();
+      void fetchDrops({ signal: controller.signal, forceRefresh });
+    };
+
+    load(false);
+    const interval = window.setInterval(() => load(true), POLL_INTERVAL_SECONDS * 1000);
+    return () => {
+      controller.abort();
+      window.clearInterval(interval);
+    };
   }, [fetchDrops]);
 
   const storeCoordinateLookup = new Map<string, { lat: number; lng: number }>();
@@ -1787,9 +1823,7 @@ export default function DropFeed() {
         }
         if (activeBottleParam) query.set("bottle", activeBottleParam);
         if (activeAreaParam) query.set(feedStateParam === "NV" ? "area" : feedStateParam === "CA" ? "area" : "store", activeAreaParam);
-        const res = await fetch(`/api/drops?${query.toString()}`);
-        if (!res.ok) throw new Error("fetch failed");
-        const json: DropsResponse = await res.json();
+        const json = await fetchDropFeedPage(`/api/drops?${query.toString()}`);
         latestJson = json;
 
         const sourceDrops = json.drops.length > 0 ? json.drops : [];

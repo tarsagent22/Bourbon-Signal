@@ -1,5 +1,6 @@
 import { getEntitlements } from "@/lib/entitlements";
 import { NextResponse } from "next/server";
+import { unstable_cache } from "next/cache";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { isUserFacingDropSignal, normalizeDropForSite, readSiteExportResults, siteExportHeaders } from "@/lib/site-engine-contract";
 import { locationLabelsMatch, normalizeStateCodeParam } from "@/lib/location-normalization";
@@ -233,11 +234,16 @@ function diversifyDrops<T extends Record<string, unknown>>(drops: T[]) {
   return diversified;
 }
 
+const readCachedPublicRetailerSubmissions = unstable_cache(
+  async () => getRetailerRepository().listPublicSubmissions({ ensureSchema: false }),
+  ["public-retailer-submissions-v2"],
+  { revalidate: 15 },
+);
+
 async function publicRetailerSubmissions() {
   try {
-    return await getRetailerRepository().listPublicSubmissions();
-  } catch (error) {
-    console.error("[api/drops] Retailer signals unavailable:", error);
+    return await readCachedPublicRetailerSubmissions();
+  } catch {
     return [];
   }
 }
@@ -285,11 +291,11 @@ export async function GET(request: Request) {
   }) || Boolean(state);
 
   try {
-    const [[dropResult, statsResult], retailerSubmissions, bourbonBible] = await Promise.all([
+    const [[dropResult, statsResult], retailerSubmissions] = await Promise.all([
       readSiteExportResults(["drops", "stats"]),
       publicRetailerSubmissions(),
-      getBourbonBible(),
     ]);
+    const bourbonBible = retailerSubmissions.length > 0 ? await getBourbonBible() : [];
     const exportPayload = dropResult.payload;
     const statsPayload = statsResult.payload;
     const rawDrops = Array.isArray(exportPayload?.drops) ? exportPayload.drops : [];

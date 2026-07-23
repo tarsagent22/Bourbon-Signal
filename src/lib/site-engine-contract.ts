@@ -46,7 +46,14 @@ export function readBundledSiteExport(name: SiteExportName) {
 }
 
 const blobStorage = new VercelBlobSnapshotStorage();
-const readActivePointer = async () => blobStorage.readPointer();
+// The pointer is the only mutable object in the snapshot reader. A very short
+// Data Cache window removes a Blob round trip from every private/filter request
+// while keeping a newly activated snapshot visible within seconds.
+const readActivePointer = unstable_cache(
+  async () => blobStorage.readPointer(),
+  ["engine-active-snapshot-pointer-v2"],
+  { revalidate: 15 },
+);
 const readImmutableObject = unstable_cache(
   async (key: string) => blobStorage.readObject(key),
   ["engine-immutable-snapshot-object-v1"],

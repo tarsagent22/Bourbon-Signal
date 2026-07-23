@@ -479,8 +479,11 @@ export class RetailerRepository {
     return rows.map((row) => submissionFromRow(row as Record<string, unknown>));
   }
 
-  async listPublicSubmissions() {
-    await this.ensureSchema();
+  async listPublicSubmissions(options: { ensureSchema?: boolean } = {}) {
+    // Public feed reads are latency-sensitive and the schema is deployed ahead of
+    // traffic. Keep the default for admin/maintenance callers, but let the feed
+    // bypass request-path DDL on serverless cold starts.
+    if (options.ensureSchema !== false) await this.ensureSchema();
     const rows = await this.query.query(`
       SELECT submissions.*
       FROM retailer_submissions submissions
