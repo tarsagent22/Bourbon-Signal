@@ -31,5 +31,7 @@ assert.equal(coveredAreaLabelsMatch("North Charleston", "Charleston"), false, "C
 assert.equal(coveredAreaLabelsMatch("Mecklenburg ABC Board", "Mecklenburg"), true, "board suffix normalization must remain supported");
 const dropFeedSource = readFileSync(new URL("../src/components/sections/DropFeed.tsx", import.meta.url), "utf8");
 assert.match(dropFeedSource, /getCoveredAreaOptionsForState\(selectedState\)/, "DropFeed must merge configured covered areas for the selected state");
+const dropsRouteSource = readFileSync(new URL("../src/app/api/drops/route.ts", import.meta.url), "utf8");
+assert.match(dropsRouteSource, /\}\)\s*\|\|\s*Boolean\(state\)/, "Selecting a state must auto-include that state's freshest historical rows instead of requiring See more");
 
 console.log("Drop feed policy tests passed.");

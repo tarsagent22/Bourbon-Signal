@@ -282,7 +282,7 @@ export async function GET(request: Request) {
     isSignedIn,
     canUseAdvancedFilters: entitlements.canUseAdvancedFilters,
     tierCount: tierFilter.size,
-  });
+  }) || Boolean(state);
 
   try {
     const [[dropResult, statsResult], retailerSubmissions, bourbonBible] = await Promise.all([
