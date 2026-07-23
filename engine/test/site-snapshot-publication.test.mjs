@@ -38,14 +38,20 @@ test('site snapshot manifest is deterministic and rejects missing or tampered fi
   assert.equal(verifySiteSnapshotManifest(one, { ...files, 'stats.json': `${files['stats.json']} ` }).ok, false);
 });
 
-test('snapshot objects are encrypted and authenticated', () => {
-  const plaintext = files['stats.json'];
+test('snapshot objects are compressed, encrypted, and authenticated', () => {
+  const plaintext = JSON.stringify({ ...JSON.parse(files['stats.json']), repeated: 'bourbon-signal-'.repeat(2_000) });
   const encrypted = encryptSnapshotObject(plaintext, encryptionKey);
+  const envelope = JSON.parse(encrypted);
+  assert.equal(envelope.encoding, 'gzip');
+  assert.ok(Buffer.byteLength(encrypted) < Buffer.byteLength(plaintext) / 2);
   assert.doesNotMatch(encrypted, /signalCount/);
   assert.equal(decryptSnapshotObject(encrypted, encryptionKey), plaintext);
   const tampered = JSON.parse(encrypted);
   tampered.ciphertext = `${tampered.ciphertext.slice(0, -2)}aa`;
   assert.throws(() => decryptSnapshotObject(JSON.stringify(tampered), encryptionKey));
+  const encodingTampered = JSON.parse(encrypted);
+  delete encodingTampered.encoding;
+  assert.throws(() => decryptSnapshotObject(JSON.stringify(encodingTampered), encryptionKey));
 });
 
 test('publication can stage and verify a complete snapshot without activating it', async () => {

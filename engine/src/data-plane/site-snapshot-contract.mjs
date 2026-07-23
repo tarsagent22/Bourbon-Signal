@@ -1,5 +1,5 @@
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from 'node:crypto';
-import { gunzipSync } from 'node:zlib';
+import { gzipSync, gunzipSync } from 'node:zlib';
 
 export const SITE_SNAPSHOT_CONTRACT_VERSION = 'bourbon-signal-file-snapshot-v1';
 export const MAX_SNAPSHOT_PLAINTEXT_BYTES = 64 * 1024 * 1024;
@@ -39,10 +39,13 @@ export function encryptSnapshotObject(plaintext, encryptionKey) {
   if (input.length > MAX_SNAPSHOT_PLAINTEXT_BYTES) throw new Error('Snapshot object exceeds the plaintext size limit');
   const iv = randomBytes(12);
   const cipher = createCipheriv('aes-256-gcm', key, iv);
-  const ciphertext = Buffer.concat([cipher.update(input), cipher.final()]);
+  cipher.setAAD(Buffer.from('bourbon-signal-encrypted-object-v1:gzip', 'utf8'));
+  const compressed = gzipSync(input, { level: 6 });
+  const ciphertext = Buffer.concat([cipher.update(compressed), cipher.final()]);
   return JSON.stringify({
     contractVersion: 'bourbon-signal-encrypted-object-v1',
     algorithm: 'aes-256-gcm',
+    encoding: 'gzip',
     iv: iv.toString('base64url'),
     tag: cipher.getAuthTag().toString('base64url'),
     ciphertext: ciphertext.toString('base64url'),
