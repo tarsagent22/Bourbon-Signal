@@ -7,7 +7,7 @@ import { createRequire } from 'node:module';
 import { randomUUID } from 'node:crypto';
 import { stableId, stripHtml, titleCase } from '../core/text.mjs';
 import { collectNorthCarolinaIntelligence } from './north-carolina-intelligence.mjs';
-import { normalizeCityHiveReportedQuantity, reconcileCityHiveRateLimitsWithCache, rotatingSourceCohort } from './cityhive-hardening.mjs';
+import { freshCityHivePositiveSignals, normalizeCityHiveReportedQuantity, reconcileCityHiveRateLimitsWithCache, rotatingSourceCohort } from './cityhive-hardening.mjs';
 import { createSourceAdapter } from '../sources/source-adapter.mjs';
 import { MalformedSourceError, sourceErrorForHttp, TransientSourceError } from '../sources/source-error.mjs';
 import { summarizeSourceResult } from '../sources/source-result.mjs';
@@ -922,6 +922,8 @@ const FL_TARGET_COHORT_SIZE = Math.max(1, Math.min(6, Number(process.env.BOURBON
 const FL_TARGET_ROTATION_MS = Math.max(60 * 60_000, Number(process.env.BOURBON_SIGNAL_FL_TARGET_ROTATION_MS) || 6 * 60 * 60_000);
 const FL_CITYHIVE_MAX_PAGES = Math.max(1, Math.min(3, Number(process.env.BOURBON_SIGNAL_FL_CITYHIVE_MAX_PAGES) || 1));
 const FL_CITYHIVE_PAGE_DELAY_MS = Math.max(300, Math.min(5_000, Number(process.env.BOURBON_SIGNAL_FL_CITYHIVE_PAGE_DELAY_MS) || 500));
+const FL_CITYHIVE_SOURCE_DELAY_MS = Math.max(1_000, Math.min(10_000, Number(process.env.BOURBON_SIGNAL_FL_CITYHIVE_SOURCE_DELAY_MS) || 2_000));
+const FL_CITYHIVE_FALLBACK_MAX_AGE_MS = Math.max(30 * 60_000, Number(process.env.BOURBON_SIGNAL_FL_CITYHIVE_FALLBACK_MAX_AGE_MS) || 6 * 60 * 60_000);
 const FL_CITYHIVE_SOURCES = [
   { id: 'my-florida-liquors', chainName: '1001 Liquors / My Florida Liquors', sourceLabel: '1001 Liquors / My Florida Liquors CityHive store inventory', baseUrl: 'https://myfloridaliquors.com', urls: ['https://myfloridaliquors.com/shop/?subtype=Bourbon'] },
   { id: 'paradise-fubar-liquors', chainName: 'Paradise / Fubar Liquors', sourceLabel: 'Paradise / Fubar Liquors Florida CityHive store inventory', baseUrl: 'https://shopparadiseliquor.com', urls: ['https://shopparadiseliquor.com/shop/?subtype=Bourbon'] },
@@ -4167,6 +4169,7 @@ async function collectFloridaCityHive(config, bible, observedAt) {
         await sleep(FL_CITYHIVE_PAGE_DELAY_MS);
       }
     }
+    await sleep(FL_CITYHIVE_SOURCE_DELAY_MS);
   }
   return { signals, roadblocks };
 }
@@ -4251,13 +4254,31 @@ async function collectFloridaLiquorDepot(config, bible, observedAt) {
   return { signals, roadblocks: signals.length ? [] : [{ state: 'FL', source: 'Liquor Depot Tampa online quantity watch', url: FL_LIQUOR_DEPOT_URL, status: 'reachable_no_safe_inventory_rows', error: 'No safely matched positive online quantity rows.', nextRoute: 'Retain the page as catalog evidence and retry without mapping chain inventory to a physical store.' }] };
 }
 
-async function collectFlorida(config, bible) {
+async function collectFlorida(config, bible, existingSignals = []) {
   const observedAt = new Date().toISOString();
   const mdp = await collectFloridaMdp(config, bible, observedAt);
   const target = await collectFloridaTarget(config, bible, observedAt);
   const shopify = await collectFloridaShopifyRetailers(config, bible, observedAt);
   const abc = await collectFloridaAbc(config, bible, observedAt);
   const cityHive = await collectFloridaCityHive(config, bible, observedAt);
+  const liveCityHiveIds = new Set(cityHive.signals.map((signal) => signal.id));
+  const retainedCityHive = freshCityHivePositiveSignals(
+    existingSignals,
+    FL_CITYHIVE_SOURCES.map((source) => source.id),
+    observedAt,
+    FL_CITYHIVE_FALLBACK_MAX_AGE_MS,
+  ).filter((signal) => !liveCityHiveIds.has(signal.id))
+    .map((signal) => ({
+      ...signal,
+      raw: { ...(signal.raw || {}), cacheFallback: true, cacheFallbackReason: 'fresh_previous_partition' },
+    }));
+  cityHive.signals.push(...retainedCityHive);
+  const reconciledCityHive = reconcileCityHiveRateLimitsWithCache({
+    roadblocks: cityHive.roadblocks,
+    sources: FL_CITYHIVE_SOURCES,
+    retainedSignals: retainedCityHive,
+  });
+  cityHive.roadblocks.splice(0, cityHive.roadblocks.length, ...reconciledCityHive.roadblocks);
   const gaspars = await collectFloridaGaspars(config, bible, observedAt);
   const liquorDepot = await collectFloridaLiquorDepot(config, bible, observedAt);
   return {
@@ -6919,7 +6940,7 @@ async function collectPrecisionProbesDirect(config, bible, existingSignals = [],
   if (config.id === 'AZ') return collectArizona(config, bible, options);
   if (config.id === 'CA') return collectCalifornia(config, bible, options);
   if (config.id === 'NV') return collectNevada(config, bible);
-  if (config.id === 'FL') return collectFlorida(config, bible);
+  if (config.id === 'FL') return collectFlorida(config, bible, existingSignals);
   if (config.id === 'GA') return collectGeorgia(config, bible, options);
   if (config.id === 'SC') return collectSouthCarolina(config, bible);
   if (config.id === 'TX') return collectTexas(config, bible);

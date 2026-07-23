@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
+  freshCityHivePositiveSignals,
   normalizeCityHiveReportedQuantity,
   reconcileCityHiveRateLimitsWithCache,
   rotatingSourceCohort,
@@ -24,6 +25,20 @@ test('CityHive quantity 100 is binary availability rather than an exact shelf co
     binaryAvailability: false,
     quantity: 7
   });
+});
+
+test('CityHive fallback accepts only fresh positive rows from the requested source', () => {
+  const observedAt = '2026-07-23T06:00:00.000Z';
+  const signals = [
+    { eventType: 'cityhive_store_inventory_result', quantity: 1, observedAt: '2026-07-23T02:00:00.000Z', raw: { chain: 'paradise-fubar-liquors' } },
+    { eventType: 'cityhive_store_inventory_result', quantity: 1, observedAt: '2026-07-22T20:00:00.000Z', raw: { chain: 'paradise-fubar-liquors' } },
+    { eventType: 'cityhive_store_inventory_out_of_stock', quantity: 0, observedAt: '2026-07-23T05:00:00.000Z', raw: { chain: 'paradise-fubar-liquors' } },
+    { eventType: 'cityhive_store_inventory_result', quantity: 1, observedAt: '2026-07-23T05:00:00.000Z', raw: { chain: 'other-source' } },
+  ];
+  assert.deepEqual(
+    freshCityHivePositiveSignals(signals, ['paradise-fubar-liquors'], observedAt, 6 * 60 * 60_000),
+    [signals[0]],
+  );
 });
 
 test('a rate-limited Tennessee source is not reported broken when fresh positive cache preserves it', () => {

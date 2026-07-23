@@ -29,3 +29,20 @@ export function reconcileCityHiveRateLimitsWithCache({ roadblocks = [], sources 
     )),
   };
 }
+
+export function freshCityHivePositiveSignals(signals = [], sourceIds = [], observedAt = new Date().toISOString(), maxAgeMs = 0) {
+  const allowedSources = new Set(sourceIds);
+  const now = new Date(observedAt).getTime();
+  const ageLimit = Math.max(0, Number(maxAgeMs) || 0);
+  if (!Number.isFinite(now) || ageLimit <= 0) return [];
+  return (signals || []).filter((signal) => {
+    const sourceId = signal?.raw?.chain || signal?.sourceChain;
+    const observed = new Date(signal?.observedAt || 0).getTime();
+    return allowedSources.has(sourceId)
+      && signal?.eventType === 'cityhive_store_inventory_result'
+      && Number(signal?.quantity || 0) > 0
+      && Number.isFinite(observed)
+      && now >= observed
+      && now - observed <= ageLimit;
+  });
+}
