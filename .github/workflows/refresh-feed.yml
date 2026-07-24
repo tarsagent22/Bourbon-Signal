@@ -64,6 +64,7 @@ jobs:
             engine/out/cache
             engine/out/states
             engine/out/snapshots
+            engine/out/location-bible-official.json
             engine/out/site-refresh-status.json
             engine/out/optimization/source-run-history.json
             engine/out/optimization/georgia-retailer-activation.json
@@ -98,6 +99,13 @@ jobs:
         working-directory: engine
         run: npm run verify:reliability
 
+      - name: Refresh North Carolina official board and store directory
+        if: ${{ inputs.states && contains(inputs.states, 'NC') }}
+        working-directory: engine
+        env:
+          BOURBON_SIGNAL_LOCATION_STATES: NC
+        run: npm run location:bible
+
       - name: Refresh all due customer-active states
         working-directory: engine
         env:
@@ -106,6 +114,11 @@ jobs:
           BOURBON_SIGNAL_BROWSER_REFRESH_MINUTES: ${{ contains(inputs.states, 'PA') && '0' || '240' }}
         run: npm run refresh:site
 
+
+      - name: Verify North Carolina official directory publication
+        if: ${{ inputs.states && contains(inputs.states, 'NC') }}
+        working-directory: engine
+        run: npm run verify:nc-directory
 
       - name: Verify coherent site contract
         working-directory: engine
@@ -162,6 +175,7 @@ jobs:
             engine/out/cache
             engine/out/states
             engine/out/snapshots
+            engine/out/location-bible-official.json
             engine/out/site-refresh-status.json
             engine/out/optimization/source-run-history.json
             engine/out/optimization/georgia-retailer-activation.json
