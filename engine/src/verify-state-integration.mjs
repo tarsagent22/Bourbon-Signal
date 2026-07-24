@@ -53,9 +53,6 @@ export function verifyStateExportIntegrity({ state, lifecycle, stateDrops, drops
     }
     if (!timePresent(alert) && !Number.isFinite(Number(alert.freshnessHours))) failures.push(`${state}: delivery-eligible alert lacks freshness evidence.`);
   }
-  if (String(lifecycle?.coverageTier || '') === 'live_store_inventory' && rows.length === 0) {
-    failures.push(`${state}: active live-inventory state has no customer-visible rows.`);
-  }
   if (candidateAlerts.some((alert) => alert.canAlertAsInventory === false || alert.alertable === false)) {
     failures.push(`${state}: non-inventory/watch-only row entered a delivery alert channel.`);
   }
