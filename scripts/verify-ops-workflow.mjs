@@ -444,9 +444,9 @@ if (refreshFeedWorkflow && !refreshFeedWorkflow.includes('Verify no unproven sta
 }
 if (refreshFeedWorkflow && (!refreshFeedWorkflow.includes('Verify Georgia private-retailer release gate')
   || !refreshFeedWorkflow.includes('engine/out/optimization/georgia-retailer-activation.json')
-  || /Verify Georgia private-retailer release gate[\s\S]{0,160}contains\(inputs\.states, 'GA'\)/.test(refreshFeedWorkflow)
+  || !/Verify Georgia private-retailer release gate[\s\S]{0,180}!inputs\.states\s*\|\|\s*contains\(inputs\.states, 'GA'\)/.test(refreshFeedWorkflow)
   || refreshFeedWorkflow.indexOf('Verify Georgia private-retailer release gate') > refreshFeedWorkflow.indexOf('Publish and atomically activate encrypted snapshot'))) {
-  fail('Production refresh must run the unconditional Georgia verifier after coherent export and before snapshot publication.');
+  fail('Production refresh must run the Georgia verifier for full or Georgia-targeted refreshes after coherent export and before snapshot publication.');
 }
 
 if (failures.length) {

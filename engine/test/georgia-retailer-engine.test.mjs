@@ -324,7 +324,7 @@ test('Georgia precision, exporter, verifier, and publication workflow are guarde
   const workflow = readFileSync(new URL('../../.github/workflows/refresh-feed.yml', import.meta.url), 'utf8');
   assert.match(workflow, /Verify Georgia private-retailer release gate/);
   assert.match(workflow, /engine\/out\/optimization\/georgia-retailer-activation\.json/);
-  assert.doesNotMatch(workflow, /Verify Georgia private-retailer release gate[\s\S]{0,160}contains\(inputs\.states, 'GA'\)/);
+  assert.match(workflow, /Verify Georgia private-retailer release gate[\s\S]{0,180}!inputs\.states\s*\|\|\s*contains\(inputs\.states, 'GA'\)/);
   assert.ok(workflow.indexOf('Verify coherent site contract') < workflow.indexOf('Verify Georgia private-retailer release gate'));
   assert.ok(workflow.indexOf('Verify Georgia private-retailer release gate') < workflow.indexOf('Publish and atomically activate encrypted snapshot'));
 

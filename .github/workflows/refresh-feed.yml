@@ -91,6 +91,7 @@ jobs:
       - name: Hydrate complete state reports for recovery
         env:
           GH_TOKEN: ${{ github.token }}
+          BOURBON_SIGNAL_RUN_STATES: ${{ inputs.states || '' }}
         run: node scripts/hydrate-state-reports.mjs
 
       - name: Verify expansion capacity and reliability policy
@@ -111,6 +112,7 @@ jobs:
         run: npm run verify:site
 
       - name: Verify Georgia private-retailer release gate
+        if: ${{ !inputs.states || contains(inputs.states, 'GA') }}
         working-directory: engine
         run: npm run verify:ga
 

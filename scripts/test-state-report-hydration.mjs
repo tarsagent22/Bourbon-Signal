@@ -2,7 +2,13 @@ import assert from 'node:assert/strict';
 import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
-import { selectTrustedRuns, validateStateReportDirectory } from './hydrate-state-reports.mjs';
+import { selectTrustedRuns, statesRequiredForHydration, validateStateReportDirectory } from './hydrate-state-reports.mjs';
+
+assert.deepEqual(
+  statesRequiredForHydration(['CO', 'IN', 'NY', 'VA'], 'NY, co'),
+  ['IN', 'VA'],
+  'Targeted states are refreshed next and must not block hydration when older artifacts predate their activation.',
+);
 
 assert.deepEqual(
   selectTrustedRuns([
