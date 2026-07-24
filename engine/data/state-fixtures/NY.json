@@ -1,0 +1,126 @@
+{
+  "schemaVersion": 1,
+  "state": "NY",
+  "sourceSentinelRequired": true,
+  "cases": [
+    {
+      "id": "ny-buffalo-trace-positive",
+      "kind": "positive_bottle_match",
+      "input": {
+        "sourceId": "cellar-53",
+        "rawName": "Buffalo Trace Bourbon 750ml",
+        "quantity": 4
+      },
+      "expected": {
+        "canonicalName": "Buffalo Trace Bourbon",
+        "tier": "allocated",
+        "customerVisible": true,
+        "alertable": true
+      }
+    },
+    {
+      "id": "ny-ordinary-bourbon-not-rare",
+      "kind": "ordinary_vs_rare_negative",
+      "input": {
+        "sourceId": "cellar-53",
+        "rawName": "Generic Kentucky Straight Bourbon 750ml",
+        "quantity": 3
+      },
+      "expected": {
+        "rareMatch": false,
+        "alertable": false
+      }
+    },
+    {
+      "id": "ny-rye-cream-rtd-exclusions",
+      "kind": "rye_cream_liqueur_rtd_exclusion",
+      "input": {
+        "sourceId": "cellar-53",
+        "rawNames": [
+          "Buffalo Trace Rye 750ml",
+          "Buffalo Trace Bourbon Cream 750ml",
+          "Buffalo Trace Ready to Drink Cocktail 750ml",
+          "Cabernet Sauvignon Aged in Bourbon Barrels 750ml"
+        ],
+        "quantity": 2
+      },
+      "expected": {
+        "rareMatch": false,
+        "alertable": false
+      }
+    },
+    {
+      "id": "ny-size-multipack-exclusion",
+      "kind": "size_or_multipack_exclusion",
+      "input": {
+        "sourceId": "cellar-53",
+        "rawName": "Buffalo Trace Mini Gift Pack 12 x 50ml",
+        "quantity": 6
+      },
+      "expected": {
+        "rareMatch": false,
+        "alertable": false
+      }
+    },
+    {
+      "id": "ny-cityhive-sentinel-availability",
+      "kind": "availability_semantics",
+      "input": {
+        "sourceId": "cellar-53",
+        "rawName": "Buffalo Trace Bourbon 750ml",
+        "quantity": 100
+      },
+      "expected": {
+        "quantity": 0,
+        "quantityIsExact": false,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "canAlertAsInventory": true
+      }
+    },
+    {
+      "id": "ny-exact-store-identity",
+      "kind": "store_identity",
+      "input": {
+        "sourceId": "cellar-53",
+        "rawName": "Buffalo Trace Bourbon 750ml",
+        "quantity": 4
+      },
+      "expected": {
+        "storeId": "cellar-53:56f03a5769702d2666060000",
+        "storeAddress": "785 10TH AVENUE, NEW YORK, NY 10019",
+        "fabricateIdentity": false
+      }
+    },
+    {
+      "id": "ny-original-observation-time",
+      "kind": "timestamp_freshness",
+      "input": {
+        "sourceId": "cellar-53",
+        "rawName": "Buffalo Trace Bourbon 750ml",
+        "quantity": 4,
+        "fetchedAt": "2026-07-23T12:00:00.000Z",
+        "nowAt": "2026-07-23T18:00:00.000Z"
+      },
+      "expected": {
+        "preserveOriginalTimestamp": true,
+        "futureTimestampAllowed": false,
+        "staleRowsAlertable": false
+      }
+    },
+    {
+      "id": "ny-first-party-domain-sentinel",
+      "kind": "source_specific_sentinel",
+      "input": {
+        "sourceUrl": "https://cellar53wine.com/shop/?subtype=Bourbon"
+      },
+      "expected": {
+        "officialHost": true,
+        "allowlistedHosts": [
+          "cellar53wine.com",
+          "nyc.flatiron-wines.com",
+          "www.broadwayspirits.com"
+        ]
+      }
+    }
+  ]
+}

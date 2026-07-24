@@ -5,14 +5,34 @@ import path from 'node:path';
 
 const state = String(process.argv.find((value) => value.startsWith('--state='))?.split('=')[1] || '').toUpperCase();
 if (!/^[A-Z]{2}(?:-[A-Z0-9]+)?$/.test(state)) throw new Error('Provide --state=AA.');
+const candidateDrops = String(process.env.PROMOTION_CANDIDATE_DROPS || '');
+if (!/^data\/canary-inputs\/[A-Za-z0-9._/-]+\.json$/.test(candidateDrops) || candidateDrops.includes('..')) throw new Error('PROMOTION_CANDIDATE_DROPS must bind a repository-controlled canary input.');
 const root = process.cwd();
 const files = [
+  `engine/${candidateDrops}`,
   `engine/data/state-integration/${state}.json`,
   `engine/data/state-fixtures/${state}.json`,
   'engine/src/state-sources.mjs',
   'engine/src/collectors/precision-probes.mjs',
+  'engine/src/collectors/metro-retailer-surfaces.mjs',
+  'engine/src/metro-retailer-policy.mjs',
+  'engine/src/build-state-canary-preview.mjs',
+  'engine/src/verify-state-integration.mjs',
   'engine/src/export-site-contract.mjs',
+  'src/lib/new-york-area.ts',
+  'src/lib/colorado-area.ts',
+  'src/lib/coverage-model.ts',
+  'src/lib/statePreferences.ts',
+  'src/lib/alert-delivery.ts',
+  'src/app/api/drops/route.ts',
+  'src/app/api/user/preferences/route.ts',
+  'src/app/dashboard/page.tsx',
+  'src/components/sections/DropFeed.tsx',
+  'scripts/build-promotion-provenance.mjs',
   'src/config/state-lifecycle.json',
+  `engine/out/canary/${state}/site/canary-preview-policy.json`,
+  `engine/out/canary/${state}/site/lifecycle-preview.json`,
+  `engine/out/canary/${state}/site/states/${state}/drops.json`,
 ];
 const fileDigests = {};
 for (const file of files) {

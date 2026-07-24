@@ -13,6 +13,8 @@ import { getBourbonBible } from "@/lib/bourbonBible";
 import { isVerifiedRetailerDrop, retailerFeedSnapshot, retailerSubmissionToFeedCard, type RetailerFeedTier } from "@/lib/retailer-signal-feed";
 import { californiaAreaMatchesFields, parseCaliforniaAreaQuery } from "@/lib/california-area";
 import { nevadaAreaMatchesFields, parseNevadaAreaQuery } from "@/lib/nevada-area";
+import { newYorkAreaMatchesFields, parseNewYorkAreaQuery } from "@/lib/new-york-area";
+import { coloradoAreaMatchesFields, parseColoradoAreaQuery } from "@/lib/colorado-area";
 
 const ANONYMOUS_DROP_PREVIEW_LIMIT = 7;
 const DROP_FEED_TIERS = new Set(["unicorn", "allocated", "limited"]);
@@ -274,11 +276,19 @@ export async function GET(request: Request) {
   const store = !entitlements.canUseDropFeedFilters ? undefined : url.searchParams.get("store")?.toLowerCase().trim();
   const californiaArea = parseCaliforniaAreaQuery(url.searchParams.get("area"));
   const nevadaArea = parseNevadaAreaQuery(url.searchParams.get("area"));
+  const nyAreas = parseNewYorkAreaQuery(url.searchParams.get("area"));
+  const coAreas = parseColoradoAreaQuery(url.searchParams.get("area"));
   if (state === "CA" && californiaArea.requested && !californiaArea.valid) {
     return NextResponse.json({ drops: [], total: 0, error: "Unsupported California area" }, { status: 400 });
   }
   if (state === "NV" && nevadaArea.requested && !nevadaArea.valid) {
     return NextResponse.json({ drops: [], total: 0, error: "Unsupported Nevada area" }, { status: 400 });
+  }
+  if (state === "NY" && nyAreas.requested && !nyAreas.valid) {
+    return NextResponse.json({ drops: [], total: 0, error: "Unsupported New York area" }, { status: 400 });
+  }
+  if (state === "CO" && coAreas.requested && !coAreas.valid) {
+    return NextResponse.json({ drops: [], total: 0, error: "Unsupported Colorado area" }, { status: 400 });
   }
   const include = entitlements.canUseAdvancedFilters ? url.searchParams.get("include")?.toLowerCase().trim() : undefined;
 
@@ -340,6 +350,54 @@ export async function GET(request: Request) {
       return filtered;
     };
 
+    const applyRequestedAreaFilter = (items: typeof drops) => {
+      if (state === "CA" && californiaArea.areas.length) {
+        return items.filter((drop) => californiaAreaMatchesFields([
+          drop.store_city,
+          drop.store_address,
+          drop.store_name,
+          drop.store_county,
+          drop.board_name,
+          drop.display_location,
+          (drop as Record<string, unknown>).locationName,
+        ], californiaArea.areas));
+      }
+      if (state === "NV" && nevadaArea.areas.length) {
+        return items.filter((drop) => nevadaAreaMatchesFields([
+          drop.store_city,
+          drop.store_address,
+          drop.store_name,
+          drop.store_county,
+          drop.board_name,
+          drop.display_location,
+          (drop as Record<string, unknown>).locationName,
+        ], nevadaArea.areas));
+      }
+      if (state === "NY") {
+        return items.filter((drop) => newYorkAreaMatchesFields([
+          drop.store_city,
+          drop.store_address,
+          drop.store_name,
+          drop.store_county,
+          drop.board_name,
+          drop.display_location,
+          (drop as Record<string, unknown>).locationName,
+        ], nyAreas.areas.length ? nyAreas.areas : ["New York City"]));
+      }
+      if (state === "CO") {
+        return items.filter((drop) => coloradoAreaMatchesFields([
+          drop.store_city,
+          drop.store_address,
+          drop.store_name,
+          drop.store_county,
+          drop.board_name,
+          drop.display_location,
+          (drop as Record<string, unknown>).locationName,
+        ], coAreas.areas.length ? coAreas.areas : ["Denver Metro"]));
+      }
+      return items;
+    };
+
     if (include !== "all" || historicalMode) {
       drops = applyPublicDropFilters(drops, { filterDegradedStates: true });
     }
@@ -347,22 +405,7 @@ export async function GET(request: Request) {
     if (state) {
       drops = drops.filter((drop) => String(drop.state ?? drop.state_code ?? "").toUpperCase() === state);
     }
-    if (state === "CA" && californiaArea.areas.length) {
-      drops = drops.filter((drop) => californiaAreaMatchesFields([
-        drop.store_city,
-        drop.store_address,
-        drop.display_location,
-        (drop as Record<string, unknown>).locationName,
-      ], californiaArea.areas));
-    }
-    if (state === "NV" && nevadaArea.areas.length) {
-      drops = drops.filter((drop) => nevadaAreaMatchesFields([
-        drop.store_city,
-        drop.store_address,
-        drop.display_location,
-        (drop as Record<string, unknown>).locationName,
-      ], nevadaArea.areas));
-    }
+    drops = applyRequestedAreaFilter(drops);
 
     if (tierFilter.size > 0) {
       drops = drops.filter((drop) => tierFilter.has(dropRarityTier(drop)));
@@ -371,6 +414,7 @@ export async function GET(request: Request) {
     if (include !== "all" && state && drops.length === 0 && !bottle && !store && degradedStates.has(state)) {
       drops = applyPublicDropFilters(normalizedDrops, { filterDegradedStates: false })
         .filter((drop) => String(drop.state ?? drop.state_code ?? "").toUpperCase() === state);
+      drops = applyRequestedAreaFilter(drops);
       if (tierFilter.size > 0) drops = drops.filter((drop) => tierFilter.has(dropRarityTier(drop)));
       degradedStateFallback = drops.length > 0;
     }

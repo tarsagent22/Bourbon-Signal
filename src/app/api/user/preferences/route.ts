@@ -14,6 +14,8 @@ import { getEntitlements } from "@/lib/entitlements";
 import { getQaPreviewTierFromRequest, isQaPreviewRequest, QA_PREVIEW_PREFERENCES } from "@/lib/preview-qa";
 import { normalizeCaliforniaAreas } from "@/lib/california-area";
 import { normalizeNevadaAreas } from "@/lib/nevada-area";
+import { normalizeNewYorkAreas } from "@/lib/new-york-area";
+import { normalizeColoradoAreas } from "@/lib/colorado-area";
 import { deriveMemberActivation, mergeActivationMilestones, type ActivationMilestone } from "@/lib/member-activation";
 import { classifyCompanyMember } from "@/lib/company-control-room";
 import { recordExperimentConversion } from "@/lib/experiment-participation";
@@ -43,6 +45,8 @@ export interface AreaPreferences {
   scAreas: string[];
   caAreas: string[];
   nvAreas: string[];
+  nyAreas: string[];
+  coAreas: string[];
   paCounties: string[];
   paStores: string[];
 }
@@ -93,6 +97,8 @@ const EMPTY_AREA_PREFERENCES: AreaPreferences = {
   scAreas: [],
   caAreas: [],
   nvAreas: [],
+  nyAreas: [],
+  coAreas: [],
   paCounties: [],
   paStores: [],
 };
@@ -134,6 +140,8 @@ function normalizeAreaPreferences(input: unknown): AreaPreferences {
     scAreas: toStringArray(source.scAreas),
     caAreas: normalizeCaliforniaAreas(source.caAreas),
     nvAreas: normalizeNevadaAreas(source.nvAreas),
+    nyAreas: normalizeNewYorkAreas(source.nyAreas),
+    coAreas: normalizeColoradoAreas(source.coAreas),
     paCounties: toStringArray(source.paCounties),
     paStores: toStringArray(source.paStores),
   };
@@ -142,7 +150,7 @@ function normalizeAreaPreferences(input: unknown): AreaPreferences {
 
 function trimAreaPreferencesToLimit(areaPreferences: AreaPreferences, limit: number | null): AreaPreferences {
   if (limit === null) return areaPreferences;
-  if (limit <= 0) return { ...areaPreferences, states: [], ncBoards: [], vaCities: [], ohCities: [], iaCities: [], idCities: [], scAreas: [], caAreas: [], nvAreas: [], paCounties: [], paStores: [] };
+  if (limit <= 0) return { ...areaPreferences, states: [], ncBoards: [], vaCities: [], ohCities: [], iaCities: [], idCities: [], scAreas: [], caAreas: [], nvAreas: [], nyAreas: [], coAreas: [], paCounties: [], paStores: [] };
 
   let remaining = limit;
   const next: AreaPreferences = { ...EMPTY_AREA_PREFERENCES, states: [] };
@@ -163,6 +171,8 @@ function trimAreaPreferencesToLimit(areaPreferences: AreaPreferences, limit: num
     else if (state === "SC") next.scAreas = takeDetails(areaPreferences.scAreas);
     else if (state === "CA") next.caAreas = takeDetails(areaPreferences.caAreas);
     else if (state === "NV") next.nvAreas = takeDetails(areaPreferences.nvAreas);
+    else if (state === "NY") next.nyAreas = takeDetails(areaPreferences.nyAreas);
+    else if (state === "CO") next.coAreas = takeDetails(areaPreferences.coAreas);
     else if (state === "PA") {
       const paDetails = [...areaPreferences.paCounties, ...areaPreferences.paStores].slice(0, remaining);
       next.paCounties = areaPreferences.paCounties.filter((value) => paDetails.includes(value));

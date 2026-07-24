@@ -15,6 +15,8 @@ import { reserveAlertDelivery, type AlertQueueMode } from "@/lib/alert-queue/del
 import type { AlertCandidateRecord, AlertChannel } from "@/lib/alert-queue/repository";
 import { californiaAreaMatchesFields, normalizeCaliforniaAreas } from "@/lib/california-area";
 import { nevadaAreaMatchesFields, normalizeNevadaAreas } from "@/lib/nevada-area";
+import { newYorkAreaMatchesFields, normalizeNewYorkAreas } from "@/lib/new-york-area";
+import { coloradoAreaMatchesFields, normalizeColoradoAreas } from "@/lib/colorado-area";
 import { firstAlertCreatedMetadata } from "@/lib/member-activation";
 
 export interface AreaPreferences {
@@ -27,6 +29,8 @@ export interface AreaPreferences {
   scAreas: string[];
   caAreas: string[];
   nvAreas: string[];
+  nyAreas: string[];
+  coAreas: string[];
   paCounties: string[];
   paStores: string[];
 }
@@ -113,6 +117,8 @@ export function normalizeAreaPrefs(input: unknown): AreaPreferences {
     scAreas: toStrings(source.scAreas),
     caAreas: normalizeCaliforniaAreas(source.caAreas),
     nvAreas: normalizeNevadaAreas(source.nvAreas),
+    nyAreas: normalizeNewYorkAreas(source.nyAreas),
+    coAreas: normalizeColoradoAreas(source.coAreas),
     paCounties: toStrings(source.paCounties),
     paStores: toStrings(source.paStores),
   };
@@ -194,6 +200,8 @@ export function candidateMatchesArea(candidate: CandidateAlert, areaPrefs: AreaP
   if (state === "SC" && areaPrefs.scAreas.length) return locationMatchesAny(locationFields, areaPrefs.scAreas);
   if (state === "CA" && areaPrefs.caAreas.length) return californiaAreaMatchesFields(locationFields, areaPrefs.caAreas);
   if (state === "NV" && areaPrefs.nvAreas.length) return nevadaAreaMatchesFields(locationFields, areaPrefs.nvAreas);
+  if (state === "NY") return newYorkAreaMatchesFields(locationFields, areaPrefs.nyAreas.length ? areaPrefs.nyAreas : ["New York City"]);
+  if (state === "CO") return coloradoAreaMatchesFields(locationFields, areaPrefs.coAreas.length ? areaPrefs.coAreas : ["Denver Metro"]);
   if (state === "PA" && (areaPrefs.paCounties.length || areaPrefs.paStores.length)) {
     const countyMatch = areaPrefs.paCounties.length > 0 && locationMatchesAny(locationFields, areaPrefs.paCounties);
     const storeMatch = areaPrefs.paStores.length > 0
@@ -234,6 +242,8 @@ function hasSavedAreaPreferences(areaPrefs: AreaPreferences) {
     areaPrefs.scAreas.length ||
     areaPrefs.caAreas.length ||
     areaPrefs.nvAreas.length ||
+    areaPrefs.nyAreas.length ||
+    areaPrefs.coAreas.length ||
     areaPrefs.paCounties.length ||
     areaPrefs.paStores.length
   );
@@ -584,6 +594,22 @@ function matchedLocationFromOptions(candidate: CandidateAlert, options: string[]
 function candidateMatchedArea(candidate: CandidateAlert, areaPrefs: AreaPreferences) {
   const state = normalizeStateCodeParam(asString(candidate.state)) || asString(candidate.state).toUpperCase();
   const locationName = asString(candidate.locationName) || asString(candidate.storeName) || asString(candidate.storeAddress);
+  const locationFields = [
+    asString(candidate.locationName),
+    asString(candidate.displayLocation),
+    asString(candidate.storeName),
+    asString(candidate.storeAddress),
+    asString(candidate.storeCity),
+    asString(candidate.storeCounty),
+    asString(candidate.boardName),
+    asString(candidate.location_name),
+    asString(candidate.display_location),
+    asString(candidate.store_name),
+    asString(candidate.store_address),
+    asString(candidate.store_city),
+    asString(candidate.store_county),
+    asString(candidate.board_name),
+  ];
   if (state === "NC" && areaPrefs.ncBoards.length) return matchedLocationFromOptions(candidate, areaPrefs.ncBoards) || locationName || stateLabel(state);
   if (state === "VA" && areaPrefs.vaCities.length) return matchedLocationFromOptions(candidate, areaPrefs.vaCities) || locationName || stateLabel(state);
   if (state === "OH" && areaPrefs.ohCities.length) return matchedLocationFromOptions(candidate, areaPrefs.ohCities) || locationName || stateLabel(state);
@@ -592,6 +618,8 @@ function candidateMatchedArea(candidate: CandidateAlert, areaPrefs: AreaPreferen
   if (state === "SC" && areaPrefs.scAreas.length) return matchedLocationFromOptions(candidate, areaPrefs.scAreas) || locationName || stateLabel(state);
   if (state === "CA" && areaPrefs.caAreas.length) return californiaAreaMatchesFields([locationName, asString(candidate.storeAddress), asString(candidate.storeCity)], areaPrefs.caAreas) ? "San Diego" : locationName || stateLabel(state);
   if (state === "NV" && areaPrefs.nvAreas.length) return areaPrefs.nvAreas.find((area) => nevadaAreaMatchesFields([locationName, asString(candidate.storeAddress), asString(candidate.storeCity)], [area])) || locationName || stateLabel(state);
+  if (state === "NY") return newYorkAreaMatchesFields(locationFields, areaPrefs.nyAreas.length ? areaPrefs.nyAreas : ["New York City"]) ? "New York City" : locationName || stateLabel(state);
+  if (state === "CO") return coloradoAreaMatchesFields(locationFields, areaPrefs.coAreas.length ? areaPrefs.coAreas : ["Denver Metro"]) ? "Denver Metro" : locationName || stateLabel(state);
   if (state === "PA" && areaPrefs.paCounties.length) return matchedLocationFromOptions(candidate, areaPrefs.paCounties) || locationName || stateLabel(state);
   if (locationName) return locationName;
   return stateLabel(state);

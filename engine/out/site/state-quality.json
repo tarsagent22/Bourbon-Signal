@@ -2,16 +2,16 @@
   "schemaVersion": 2,
   "generatedAt": "2026-07-16T22:59:25.184Z",
   "summary": {
-    "stateCount": 25,
+    "stateCount": 27,
     "releaseEligibleStates": 11,
-    "releaseBlockedStates": 14,
-    "averageScore": 49,
+    "releaseBlockedStates": 16,
+    "averageScore": 46,
     "weakestStates": [
       "VA",
       "SC",
       "AZ",
-      "GA",
-      "MI"
+      "CO",
+      "GA"
     ]
   },
   "states": [
@@ -517,6 +517,41 @@
       }
     },
     {
+      "state": "CO",
+      "coverageTier": "live_store_inventory",
+      "score": 10,
+      "threshold": 65,
+      "releaseEligible": false,
+      "freshnessHours": null,
+      "dimensions": {
+        "freshness": 0,
+        "volume": 0,
+        "precision": 0,
+        "alerts": 0,
+        "sourceDiversity": 0,
+        "reliability": 10
+      },
+      "weaknesses": [
+        "unknown_freshness",
+        "no_public_drops",
+        "no_store_level_drops",
+        "no_alert_candidates",
+        "single_source_dependency"
+      ],
+      "input": {
+        "state": "CO",
+        "coverageTier": "live_store_inventory",
+        "signalCount": 18,
+        "dropCount": 0,
+        "storeLevelDropCount": 0,
+        "alertCandidateCount": 0,
+        "sourceCount": 0,
+        "roadblockCount": 0,
+        "freshestObservedAt": null,
+        "status": "useful"
+      }
+    },
+    {
       "state": "GA",
       "coverageTier": "retailer_warehouse_inventory",
       "score": 10,
@@ -643,6 +678,41 @@
         "state": "MO",
         "coverageTier": "retailer_warehouse_inventory",
         "signalCount": 0,
+        "dropCount": 0,
+        "storeLevelDropCount": 0,
+        "alertCandidateCount": 0,
+        "sourceCount": 0,
+        "roadblockCount": 0,
+        "freshestObservedAt": null,
+        "status": "useful"
+      }
+    },
+    {
+      "state": "NY",
+      "coverageTier": "live_store_inventory",
+      "score": 10,
+      "threshold": 65,
+      "releaseEligible": false,
+      "freshnessHours": null,
+      "dimensions": {
+        "freshness": 0,
+        "volume": 0,
+        "precision": 0,
+        "alerts": 0,
+        "sourceDiversity": 0,
+        "reliability": 10
+      },
+      "weaknesses": [
+        "unknown_freshness",
+        "no_public_drops",
+        "no_store_level_drops",
+        "no_alert_candidates",
+        "single_source_dependency"
+      ],
+      "input": {
+        "state": "NY",
+        "coverageTier": "live_store_inventory",
+        "signalCount": 1,
         "dropCount": 0,
         "storeLevelDropCount": 0,
         "alertCandidateCount": 0,

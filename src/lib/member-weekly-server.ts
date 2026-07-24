@@ -67,6 +67,8 @@ function savedAreasFromMetadata(publicMetadata: UnknownRecord): MemberWeeklySave
     SC: strings(areas.scAreas),
     CA: strings(areas.caAreas),
     NV: strings(areas.nvAreas),
+    NY: strings(areas.nyAreas),
+    CO: strings(areas.coAreas),
     PA: [...strings(areas.paCounties), ...strings(areas.paStores)],
   };
   return strings(areas.states)
@@ -100,6 +102,8 @@ function areaPreferencesFromMetadata(publicMetadata: UnknownRecord) {
     scAreas: strings(source.scAreas),
     caAreas: strings(source.caAreas),
     nvAreas: strings(source.nvAreas),
+    nyAreas: strings(source.nyAreas),
+    coAreas: strings(source.coAreas),
     paCounties: strings(source.paCounties),
     paStores: strings(source.paStores),
   };

@@ -56,8 +56,8 @@ jobs:
             echo "Invalid state input" >&2
             exit 1
           fi
-          if [[ ! "$RAW_CANDIDATE_DROPS" =~ ^out/canary-inputs/[A-Za-z0-9._/-]+\.json$ ]] || [[ "$RAW_CANDIDATE_DROPS" == *".."* ]]; then
-            echo "Candidate path must be a repository-controlled engine/out/canary-inputs JSON file" >&2
+          if [[ ! "$RAW_CANDIDATE_DROPS" =~ ^data/canary-inputs/[A-Za-z0-9._/-]+\.json$ ]] || [[ "$RAW_CANDIDATE_DROPS" == *".."* ]]; then
+            echo "Candidate path must be a repository-controlled engine/data/canary-inputs JSON file" >&2
             exit 1
           fi
           echo "state=$RAW_STATE" >> "$GITHUB_OUTPUT"
@@ -70,11 +70,15 @@ jobs:
           CANDIDATE_DROPS: ${{ steps.validate.outputs.candidate_drops }}
         run: npm run canary:state -- --state="$STATE" --candidate-drops="$CANDIDATE_DROPS" --out-dir="out/canary/$STATE/site"
 
+      - name: Build bourbon bible for executable fixtures
+        working-directory: engine
+        run: npm run bible
+
       - name: Verify candidate golden fixture contract
         working-directory: engine
         env:
           STATE: ${{ steps.validate.outputs.state }}
-        run: npm run verify:state-fixtures -- --state="$STATE"
+        run: npm run verify:state-fixtures -- --state="$STATE" --canary
 
       - name: Verify candidate vertical slice against canary snapshot
         working-directory: engine
@@ -89,6 +93,8 @@ jobs:
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
           STATE: ${{ steps.validate.outputs.state }}
         run: |
+          cp "engine/out/canary/$STATE/site/lifecycle-preview.json" src/config/state-lifecycle.json
+          node scripts/generate-state-lifecycle-types.mjs
           rm -rf engine/out/site
           cp -R "engine/out/canary/$STATE/site" engine/out/site
           preview_url="$(npx vercel deploy --yes --token "$VERCEL_TOKEN" --build-env ALERT_DELIVERY_ENABLED=0 --build-env ALERT_ONSITE_DELIVERY_ENABLED=0 --build-env ALERT_EMAIL_DELIVERY_ENABLED=0 --build-env ALERT_SMS_DELIVERY_ENABLED=0 --build-env BOURBON_SIGNAL_ALERT_QUEUE_MODE=shadow --env ALERT_DELIVERY_ENABLED=0 --env ALERT_ONSITE_DELIVERY_ENABLED=0 --env ALERT_EMAIL_DELIVERY_ENABLED=0 --env ALERT_SMS_DELIVERY_ENABLED=0 --env BOURBON_SIGNAL_ALERT_QUEUE_MODE=shadow)"

@@ -7,6 +7,7 @@ import { isIndianaRetailerInventory, isIndianaRetailerSignalIdentity } from './i
 import { isTexasRetailerInventory, isTexasRetailerSignalIdentity } from './texas-retailer-policy.mjs';
 import { isCaliforniaRetailerInventory, isCaliforniaRetailerSignalIdentity } from './california-retailer-policy.mjs';
 import { isNevadaRetailerInventory, isNevadaRetailerSignalIdentity } from './nevada-retailer-policy.mjs';
+import { isMetroRetailerInventory, isMetroRetailerSignalIdentity } from './metro-retailer-policy.mjs';
 
 export const STATE_CONFIDENCE_POLICY = {
   OH: { maxAlertMode: 'browser_store_inventory_status', inventorySemantics: 'OHLQ store-level product availability is collected through browser/CDP via /api/product-availability/{sku} with RequestVerificationToken from the rendered page. The frontend bundle decodes hashed availability buckets as Not Available, Sold Out, Limited Supply, and In Stock. Direct server fetch is Cloudflare-gated and OHLQ does not expose explicit bottle counts, so alerts should describe status, not quantity.', defaultCadence: '15-60m' },
@@ -37,7 +38,9 @@ export const STATE_CONFIDENCE_POLICY = {
   FL: { maxAlertMode: 'policy_only', inventorySemantics: 'Florida ABT official pages expose licensing/quota-license lottery context, not bourbon product availability.', defaultCadence: 'weekly-monthly' },
   AZ: { maxAlertMode: 'policy_only', inventorySemantics: 'Arizona is a private retail market. Only explicitly whitelisted retailer merchant inventory rows may alert; policy and store-location context remain non-inventory.', defaultCadence: '30-60m' },
   CA: { maxAlertMode: 'policy_only', inventorySemantics: 'California is a private retail market. Only explicitly whitelisted first-party retailer rows with exact San Diego premises identity and positive pickup/order availability may alert; catalog-only rows remain watch context.', defaultCadence: '30-60m' },
-  NV: { maxAlertMode: 'policy_only', inventorySemantics: 'Nevada is a private retail market. Only explicitly whitelisted first-party retailer rows with exact premises identity and positive store pickup/orderability may alert; catalog, shipping, delivery-only, and blocked rows remain watch context.', defaultCadence: '30-60m' }
+  NV: { maxAlertMode: 'policy_only', inventorySemantics: 'Nevada is a private retail market. Only explicitly whitelisted first-party retailer rows with exact premises identity and positive store pickup/orderability may alert; catalog, shipping, delivery-only, and blocked rows remain watch context.', defaultCadence: '30-60m' },
+  NY: { maxAlertMode: 'policy_only', inventorySemantics: 'New York coverage is deliberately limited to the New York City first-party retailer allowlist. Only exact merchant, premises, product URL, pickup, and positive orderability evidence may alert; broader New York catalog or shipping presence remains non-inventory.', defaultCadence: '30-60m' },
+  CO: { maxAlertMode: 'policy_only', inventorySemantics: 'Colorado coverage is deliberately limited to the Denver Metro first-party retailer allowlist. Only exact merchant, premises, product URL, pickup, and positive orderability evidence may alert; broader Colorado catalog or shipping presence remains non-inventory.', defaultCadence: '30-60m' }
 };
 
 const EVENT_WEIGHTS = [
@@ -145,6 +148,12 @@ const NEVADA_RETAILER_POLICY = {
   defaultCadence: '30-60m'
 };
 
+const METRO_RETAILER_POLICY = {
+  maxAlertMode: 'alert_retailer_store_inventory_caveat',
+  inventorySemantics: 'Whitelisted New York City and Denver Metro retailer rows are bound to an exact first-party host, merchant, physical premises, and product identity. CityHive counts below 100 retain exact retailer-reported quantity; sentinel counts and Shopify availability remain binary orderability. Verify pickup before driving.',
+  defaultCadence: '30-60m'
+};
+
 
 const KENTUCKY_DISTILLERY_POLICY = {
   maxAlertMode: 'distillery_release_watch',
@@ -191,6 +200,10 @@ function policyForSignal(signal) {
   if (signal.state === 'NV'
     && /^retailer_store_inventory_result$/i.test(eventType)
     && isNevadaRetailerSignalIdentity(signal)) return NEVADA_RETAILER_POLICY;
+  if (['NY', 'CO'].includes(signal.state)
+    && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(eventType)
+    && isMetroRetailerSignalIdentity(signal)
+    && isMetroRetailerInventory(signal)) return METRO_RETAILER_POLICY;
   if (signal.state === 'KY' && /^distillery_/i.test(eventType)) return KENTUCKY_DISTILLERY_POLICY;
   if (isCostcoSpiritsEligibleState(signal.state) && /^costco_warehouse_inventory/i.test(eventType)) return COSTCO_WAREHOUSE_POLICY;
   return basePolicy;
@@ -231,6 +244,9 @@ export function confidenceForSignal(signal) {
   const nevadaRetailerEvent = signal.state === 'NV' && /^retailer_store_inventory_result$/i.test(eventType);
   const nevadaInventoryAllowed = !nevadaRetailerEvent || isNevadaRetailerInventory(signal);
   const nevadaWatchAllowed = !nevadaRetailerEvent || isNevadaRetailerSignalIdentity(signal);
+  const metroRetailerEvent = ['NY', 'CO'].includes(signal.state) && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(eventType);
+  const metroInventoryAllowed = !metroRetailerEvent || isMetroRetailerInventory(signal);
+  const metroWatchAllowed = !metroRetailerEvent || (isMetroRetailerSignalIdentity(signal) && isMetroRetailerInventory(signal));
   const virginiaObservedAt = Date.parse(String(signal.observedAt || signal.fetchedAt || ''));
   const virginiaInventoryExpired = signal.state === 'VA'
     && /store_inventory/i.test(eventType)
@@ -246,7 +262,7 @@ export function confidenceForSignal(signal) {
     policyMode: policy.maxAlertMode,
     inventorySemantics: policy.inventorySemantics,
     locationValue: locationValue(signal),
-    canAlertAsInventory: !runtimeAlertBlocked && texasInventoryAllowed && indianaInventoryAllowed && georgiaInventoryAllowed && californiaInventoryAllowed && nevadaInventoryAllowed && !isDistilleryLane && hasPositiveInventory && !inventoryBlockedBySemantics && rank >= 6 && confidence >= 0.72,
-    canAlertAsWatch: !runtimeAlertBlocked && indianaWatchAllowed && georgiaWatchAllowed && californiaWatchAllowed && nevadaWatchAllowed && !isSampleOnly && !watchBlockedBySemantics && confidence >= 0.5 && policy.maxAlertMode !== 'policy_only'
+    canAlertAsInventory: !runtimeAlertBlocked && texasInventoryAllowed && indianaInventoryAllowed && georgiaInventoryAllowed && californiaInventoryAllowed && nevadaInventoryAllowed && metroInventoryAllowed && !isDistilleryLane && hasPositiveInventory && !inventoryBlockedBySemantics && rank >= 6 && confidence >= 0.72,
+    canAlertAsWatch: !runtimeAlertBlocked && indianaWatchAllowed && georgiaWatchAllowed && californiaWatchAllowed && nevadaWatchAllowed && metroWatchAllowed && !isSampleOnly && !watchBlockedBySemantics && confidence >= 0.5 && policy.maxAlertMode !== 'policy_only'
   };
 }

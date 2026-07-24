@@ -1,0 +1,172 @@
+{
+  "schemaVersion": 1,
+  "state": "CO",
+  "lifecycle": {
+    "customerLabel": "Colorado",
+    "publicStatus": "active",
+    "coverageTier": "live_store_inventory",
+    "refinementLevel": "city"
+  },
+  "collector": {
+    "sourceIds": [
+      "metro:co:bonnie-brae-liquor",
+      "metro:co:mollys-spirits",
+      "metro:co:total-beverage"
+    ],
+    "registration": "engine/src/state-sources.mjs and engine/src/collectors/precision-probes.mjs register three bounded, isolated Denver Metro CityHive sources behind the legacy precision runtime."
+  },
+  "storeIdentity": {
+    "mode": "exact_allowlisted_merchant_and_premises",
+    "addressRequired": true,
+    "proof": "Every inventory row must match one frozen first-party host, source chain, merchant ID, store ID, city, ZIP, and normalized premises address. Multi-store Molly's rows are resolved only by their exact allowlisted merchant and premises pair."
+  },
+  "sourceSemantics": {
+    "availability": "CityHive pickup offers with positive quantities below 100 preserve exact retailer-reported counts; values at or above 100 are binary orderability only. Every row remains verify-before-driving.",
+    "inventoryAlertable": true,
+    "watchAlertable": true
+  },
+  "customerPaths": {
+    "stateFilter": {
+      "status": "verified",
+      "assertion": "Lifecycle-backed website state controls include Colorado."
+    },
+    "areaFilter": {
+      "status": "verified",
+      "assertion": "Drop Feed client/API filters and strict location matchers expose only Denver Metro."
+    },
+    "preferences": {
+      "status": "verified",
+      "assertion": "Account-owned preferences normalize and persist the exact Denver Metro selection."
+    },
+    "dashboard": {
+      "status": "verified",
+      "assertion": "Dashboard state and area controls expose Denver Metro with the lifecycle caveat."
+    },
+    "dropFeedApi": {
+      "status": "verified",
+      "assertion": "The Drop Feed API parses and applies the strict Denver Metro query filter."
+    },
+    "finder": {
+      "status": "verified",
+      "assertion": "Exact public store IDs and addresses remain searchable through lifecycle-backed website location surfaces."
+    },
+    "alerts": {
+      "status": "verified",
+      "assertion": "Central confidence and export policy re-run the metro identity and inventory guard so forged host, merchant, premises, geography, availability, format, or precision dimensions fail closed."
+    },
+    "monitoring": {
+      "status": "verified",
+      "assertion": "The legacy precision runtime contains source failures, records explicit roadblocks, and preserves healthy sibling sources plus only still-fresh cache evidence for isolated source loss."
+    },
+    "export": {
+      "status": "verified",
+      "assertion": "Engine export policy retains exact versus binary CityHive quantity semantics and revalidates metro retailer identity before projecting an actionable inventory lane."
+    }
+  },
+  "evidence": {
+    "shadow": {
+      "status": "success",
+      "runs": 3,
+      "artifact": "engine/data/state-evidence/CO/shadow-runs.json",
+      "reason": "Three isolated alert-disabled live collector runs passed with exact source and premises identity."
+    },
+    "canary": {
+      "status": "success",
+      "runs": 2,
+      "artifact": "engine/data/state-evidence/CO/canary-runs.json",
+      "reason": "Two coherent alert-disabled canary snapshots passed state integration verification."
+    },
+    "production": {
+      "status": "not_deployed",
+      "url": null,
+      "assertion": "This manifest documents implemented engine contracts only and does not claim production deployment.",
+      "reason": "Production promotion and website wiring were outside the authorized engine-only scope."
+    },
+    "immutablePromotionEvidence": {
+      "schemaVersion": 1,
+      "state": "CO",
+      "generatedAt": "2026-07-24T04:50:06.702Z",
+      "sourceConfigHash": "8da37e44f93fbec7c3cf86cbfa33e78f4b092134d7416dd0cd6bd6ad6c84456b",
+      "previewUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/30067755884",
+      "shadowRuns": [
+        {
+          "runId": "local-shadow-co-1",
+          "status": "success",
+          "generatedAt": "2026-07-24T03:12:27.082751Z",
+          "artifactPath": "out/shadow/CO/local-evidence/report-1.json",
+          "artifactHash": "787571f238aaee104ae0160b0b1071119c23b9cb14d3e73e37f10b84c15fc77f",
+          "signalCount": 18,
+          "sourceChains": [
+            "bonnie-brae-liquor",
+            "mollys-spirits",
+            "total-beverage"
+          ],
+          "roadblockCount": 0,
+          "alertsDisabled": true,
+          "productionSnapshotTouched": false
+        },
+        {
+          "runId": "local-shadow-co-2",
+          "status": "success",
+          "generatedAt": "2026-07-24T03:12:30.680259Z",
+          "artifactPath": "out/shadow/CO/local-evidence/report-2.json",
+          "artifactHash": "ba363c4766de7880c84bcbd386b2bfc50c8138222c539635fa353b81a9044e59",
+          "signalCount": 18,
+          "sourceChains": [
+            "bonnie-brae-liquor",
+            "mollys-spirits",
+            "total-beverage"
+          ],
+          "roadblockCount": 0,
+          "alertsDisabled": true,
+          "productionSnapshotTouched": false
+        },
+        {
+          "runId": "local-shadow-co-3",
+          "status": "success",
+          "generatedAt": "2026-07-24T03:12:34.055961Z",
+          "artifactPath": "out/shadow/CO/local-evidence/report-3.json",
+          "artifactHash": "410b0b8e3de41cde19219a4581033553606b2ccace1178fc9200791b576081bf",
+          "signalCount": 18,
+          "sourceChains": [
+            "bonnie-brae-liquor",
+            "mollys-spirits",
+            "total-beverage"
+          ],
+          "roadblockCount": 0,
+          "alertsDisabled": true,
+          "productionSnapshotTouched": false
+        }
+      ],
+      "canaryRuns": [
+        {
+          "runId": "local-canary-v2-co-1",
+          "status": "success",
+          "generatedAt": "2026-07-24T04:23:19.632762Z",
+          "artifactHash": "f0cdbe330d2d77869e0c3fd761d6eeb2c44306fba7efd7a7869524bbf6584922"
+        },
+        {
+          "runId": "local-canary-v2-co-2",
+          "status": "success",
+          "generatedAt": "2026-07-24T04:23:20.159223Z",
+          "artifactHash": "214088eb8f52f02f13bbdcca5fa0f2159921592b63ff93b01b7a1aea8de43869"
+        }
+      ],
+      "provenance": {
+        "status": "success",
+        "repository": "tarsagent22/Bourbon-Signal",
+        "workflowFile": ".github/workflows/state-promotion-provenance.yml",
+        "workflowName": "Verify state promotion provenance",
+        "workflowRunId": "30067755884",
+        "workflowRunAttempt": "1",
+        "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/30067755884",
+        "commitSha": "8ff436d7e6066bd5b9ee86085c17c9e57d947619",
+        "artifactId": "8586850690",
+        "artifactName": "state-promotion-provenance-CO-30067755884",
+        "artifactDigest": "ec6ad0295ee15416895e8c9d6baf23754fcd6e5d4c0294d17a35ae2416ba8dfb",
+        "bundleDigest": "cb8a6e9d48fb3450ebb178dfbecc9716980fdfa05d4d8b464bbc3e42e2c44f6e",
+        "generatedAt": "2026-07-24T04:49:16.814Z"
+      }
+    }
+  }
+}

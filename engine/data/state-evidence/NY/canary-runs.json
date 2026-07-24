@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "state": "NY",
+  "runs": [
+    {
+      "runId": "local-canary-v2-ny-1",
+      "status": "success",
+      "generatedAt": "2026-07-24T04:23:18.583232Z",
+      "artifactHash": "e90e53439c5d1302791a68b28b0648dc14405cdc1d8435191cf0af1919609c19"
+    },
+    {
+      "runId": "local-canary-v2-ny-2",
+      "status": "success",
+      "generatedAt": "2026-07-24T04:23:19.106600Z",
+      "artifactHash": "273a03c7b9a7504a93364cf885fc14f677b9b5534668d7dd8c747ba1d259bbd1"
+    }
+  ]
+}

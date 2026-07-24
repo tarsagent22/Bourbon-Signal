@@ -273,9 +273,9 @@ test('first Georgia retailer activation is on-site baseline only while later cha
   assert.deepEqual(later.blockers, []);
 });
 
-test('Georgia lifecycle and registry expose retailer inventory without changing the active-state count', () => {
+test('Georgia lifecycle and registry expose retailer inventory within the authoritative active-state set', () => {
   const config = JSON.parse(readFileSync(new URL('../../src/config/state-lifecycle.json', import.meta.url), 'utf8'));
-  assert.equal(config.activeStates.length, 25);
+  assert.equal(new Set(config.activeStates).size, config.activeStates.length);
   assert.ok(config.activeStates.includes('GA'));
   const lifecycle = getStateLifecycle('GA');
   assert.equal(lifecycle.sourceLabel, 'Georgia retailer inventory + Costco warehouse watch');

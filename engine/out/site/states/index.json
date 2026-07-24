@@ -2,7 +2,7 @@
   "contractVersion": "bourbon-signal-site-v0.1",
   "generatedAt": "2026-07-16T22:59:25.184Z",
   "totalCount": 4758,
-  "stateCount": 25,
+  "stateCount": 27,
   "states": [
     {
       "state": "AL",
@@ -18,6 +18,11 @@
       "state": "CA",
       "file": "states/CA/drops.json",
       "count": 20
+    },
+    {
+      "state": "CO",
+      "file": "states/CO/drops.json",
+      "count": 0
     },
     {
       "state": "FL",
@@ -83,6 +88,11 @@
       "state": "NV",
       "file": "states/NV/drops.json",
       "count": 22
+    },
+    {
+      "state": "NY",
+      "file": "states/NY/drops.json",
+      "count": 0
     },
     {
       "state": "OH",

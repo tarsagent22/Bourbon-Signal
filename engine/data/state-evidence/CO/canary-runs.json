@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "state": "CO",
+  "runs": [
+    {
+      "runId": "local-canary-v2-co-1",
+      "status": "success",
+      "generatedAt": "2026-07-24T04:23:19.632762Z",
+      "artifactHash": "f0cdbe330d2d77869e0c3fd761d6eeb2c44306fba7efd7a7869524bbf6584922"
+    },
+    {
+      "runId": "local-canary-v2-co-2",
+      "status": "success",
+      "generatedAt": "2026-07-24T04:23:20.159223Z",
+      "artifactHash": "214088eb8f52f02f13bbdcca5fa0f2159921592b63ff93b01b7a1aea8de43869"
+    }
+  ]
+}

@@ -10,7 +10,7 @@ import {
 const registryUrl = new URL('../data/state-expansion-candidates.json', import.meta.url);
 const lifecycleUrl = new URL('../../src/config/state-lifecycle.json', import.meta.url);
 
-test('national candidate registry gives every state an explicit non-promoting lifecycle record', async () => {
+test('national candidate registry gives every state an explicit lifecycle record without mutating activation', async () => {
   const registry = JSON.parse(await readFile(registryUrl, 'utf8'));
   const lifecycle = JSON.parse(await readFile(lifecycleUrl, 'utf8'));
   const before = structuredClone(lifecycle.activeStates);
@@ -22,7 +22,8 @@ test('national candidate registry gives every state an explicit non-promoting li
   assert.ok(registry.scopedControlMarkets.some((market) => market.id === 'MD-MONTGOMERY'));
   assert.equal(registry.states.find((state) => state.state === 'OR').lifecycleStage, 'discovery');
   assert.equal(registry.states.find((state) => state.state === 'NH').lifecycleStage, 'discovery');
-  assert.equal(registry.states.find((state) => state.state === 'CO').lifecycleStage, 'discovery');
+  assert.equal(registry.states.find((state) => state.state === 'CO').lifecycleStage, 'active');
+  assert.equal(registry.states.find((state) => state.state === 'NY').lifecycleStage, 'active');
 });
 
 test('candidate contract rejects missing fields, implicit states, and discovery records marked customer-active', () => {

@@ -1,12 +1,23 @@
 import { CUSTOMER_ACTIVE_STATE_IDS as CONFIG_CUSTOMER_ACTIVE_STATE_IDS } from './state-lifecycle.mjs';
 import { costcoSourceForState } from './costco-eligibility.mjs';
 import { GEORGIA_CITYHIVE_SOURCES, GEORGIA_GOTOLIQUOR_STORES, GEORGIA_LIGHTSPEED_STORES } from './collectors/georgia-retailer-surfaces.mjs';
+import { COLORADO_RETAILER_SOURCES, NEW_YORK_RETAILER_SOURCES } from './collectors/metro-retailer-surfaces.mjs';
 
 const GEORGIA_RETAILER_SOURCES = [
   ...GEORGIA_CITYHIVE_SOURCES.map((source) => ({ name: source.sourceLabel, label: source.sourceLabel, url: source.categoryUrl, precisionOnly: true })),
   ...GEORGIA_GOTOLIQUOR_STORES.map((store) => ({ name: store.sourceLabel, label: store.sourceLabel, url: store.categoryUrl, precisionOnly: true })),
   ...GEORGIA_LIGHTSPEED_STORES.map((store) => ({ name: store.sourceLabel, label: store.sourceLabel, url: store.categoryUrl, precisionOnly: true })),
 ];
+
+function metroSourceRecord(source) {
+  return {
+    kind: source.platform === 'shopify' ? 'api' : 'html',
+    name: source.sourceLabel,
+    label: source.sourceLabel,
+    url: source.productsUrl,
+    precisionOnly: true,
+  };
+}
 
 const BASE_STATE_SOURCES = [
   {
@@ -376,6 +387,20 @@ const BASE_STATE_SOURCES = [
       { kind: 'api', url: 'https://missiontrailswineandspirits.com/products.json?limit=250', label: 'Mission Trails Wine & Spirits Shopify San Diego pickup availability', precisionOnly: true },
       { kind: 'api', url: 'https://chipsliquor.com/products.json?limit=250', label: 'Chips Liquor Shopify online catalog watch', precisionOnly: true }
     ],
+    apiCandidates: []
+  },
+  {
+    id: 'NY', label: 'New York City first-party retailer inventory', tier: 'B', strategy: 'retailer_store_inventory', cadence: '30-60m',
+    value: 'Exact-premises New York City retailer inventory from Cellar 53 CityHive plus Broadway Spirits and Flatiron Wines Shopify pickup/orderability. Coverage is intentionally limited to the named Manhattan premises; binary availability is never projected as an exact count.',
+    rareSignalTarget: true,
+    sources: NEW_YORK_RETAILER_SOURCES.map(metroSourceRecord),
+    apiCandidates: []
+  },
+  {
+    id: 'CO', label: 'Denver Metro first-party retailer inventory', tier: 'B', strategy: 'retailer_store_inventory', cadence: '30-60m',
+    value: "Exact-premises Denver Metro CityHive inventory from Bonnie Brae Liquor, Molly's Spirits, and Total Beverage. Only allowlisted merchant/store pickup rows qualify, and CityHive sentinel quantities remain binary rather than exact.",
+    rareSignalTarget: true,
+    sources: COLORADO_RETAILER_SOURCES.map(metroSourceRecord),
     apiCandidates: []
   },
   {

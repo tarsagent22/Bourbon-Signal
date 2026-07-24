@@ -1,13 +1,14 @@
 name: Verify state promotion provenance
 
 on:
-  push:
-    branches:
-      - preview/script-first-expansion
   workflow_dispatch:
     inputs:
       state:
         description: "Promoted state ID"
+        required: true
+        type: string
+      candidate_drops:
+        description: "Engine-relative canary input under data/canary-inputs"
         required: true
         type: string
 
@@ -35,25 +36,30 @@ jobs:
         id: validate
         shell: bash
         env:
-          RAW_STATE: ${{ inputs.state || 'UT' }}
+          RAW_STATE: ${{ inputs.state }}
+          RAW_CANDIDATE_DROPS: ${{ inputs.candidate_drops }}
         run: |
           set -euo pipefail
           if [[ ! "$RAW_STATE" =~ ^[A-Z]{2}(-[A-Z0-9]+)?$ ]]; then exit 1; fi
+          if [[ ! "$RAW_CANDIDATE_DROPS" =~ ^data/canary-inputs/[A-Za-z0-9._/-]+\.json$ ]] || [[ "$RAW_CANDIDATE_DROPS" == *".."* ]]; then exit 1; fi
           echo "state=$RAW_STATE" >> "$GITHUB_OUTPUT"
+          echo "candidate_drops=$RAW_CANDIDATE_DROPS" >> "$GITHUB_OUTPUT"
       - name: Install dependencies
         run: npm ci && npm ci --prefix engine
       - name: Verify promoted state and source truth contracts
         env:
           STATE: ${{ steps.validate.outputs.state }}
+          CANDIDATE_DROPS: ${{ steps.validate.outputs.candidate_drops }}
         run: |
           npm --prefix engine run bible
-          npm --prefix engine run verify:state-fixtures -- --state="$STATE"
-          npm --prefix engine run verify:state-integration -- --state="$STATE"
+          npm --prefix engine run verify:state-fixtures -- --state="$STATE" --canary
+          npm --prefix engine run canary:state -- --state="$STATE" --candidate-drops="$CANDIDATE_DROPS" --out-dir="out/canary/$STATE/site"
+          npm --prefix engine run verify:state-integration -- --canary --state="$STATE" --site-dir="out/canary/$STATE/site" --config="out/canary/$STATE/site/lifecycle-preview.json"
           npm --prefix engine run verify:reliability
-          node scripts/test-utah-generated-user-path.mjs
       - name: Build workflow-issued provenance bundle
         env:
           STATE: ${{ steps.validate.outputs.state }}
+          PROMOTION_CANDIDATE_DROPS: ${{ steps.validate.outputs.candidate_drops }}
         run: node scripts/build-promotion-provenance.mjs --state="$STATE"
       - name: Upload immutable promotion provenance
         uses: actions/upload-artifact@v4

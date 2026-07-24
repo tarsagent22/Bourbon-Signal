@@ -40,6 +40,8 @@ import {
 import { applyTrackedRecommendation, createSerialFeedbackMutationQueue, shouldApplyFeedbackLoad, shouldRunFeedbackMutation } from "@/lib/recommendation-feedback-client";
 import { californiaAreaMatchesFields } from "@/lib/california-area";
 import { nevadaAreaMatchesFields, SUPPORTED_NEVADA_AREAS } from "@/lib/nevada-area";
+import { newYorkAreaMatchesFields, SUPPORTED_NEW_YORK_AREAS } from "@/lib/new-york-area";
+import { coloradoAreaMatchesFields, SUPPORTED_COLORADO_AREAS } from "@/lib/colorado-area";
 
 const EMPTY_PREFS: AreaPreferences = {
   states: [],
@@ -51,12 +53,14 @@ const EMPTY_PREFS: AreaPreferences = {
   scAreas: [],
   caAreas: [],
   nvAreas: [],
+  nyAreas: [],
+  coAreas: [],
   paCounties: [],
   paStores: [],
 };
 
 const SIMPLE_STATE_CODES = ENGINE_COVERED_STATE_CODES;
-const CITY_REFINABLE_STATE_CODES = new Set<string>(["IA", "ID", "VA", "OH", "PA", "SC", "CA", "NV"]);
+const CITY_REFINABLE_STATE_CODES = new Set<string>(["IA", "ID", "VA", "OH", "PA", "SC", "CA", "NV", "NY", "CO"]);
 const STORE_REFINABLE_STATE_CODES = new Set<string>(["PA"]);
 const SC_ALERT_AREA_SEEDS = [
   "Myrtle Beach",
@@ -247,9 +251,13 @@ function countAlertAreas(areaPrefs: AreaPreferences) {
                   ? areaPrefs.caAreas.length
                   : state === "NV"
                     ? areaPrefs.nvAreas.length
-                    : state === "PA"
-                      ? areaPrefs.paCounties.length + areaPrefs.paStores.length
-                      : 0;
+                    : state === "NY"
+                      ? areaPrefs.nyAreas.length
+                      : state === "CO"
+                        ? areaPrefs.coAreas.length
+                        : state === "PA"
+                          ? areaPrefs.paCounties.length + areaPrefs.paStores.length
+                          : 0;
     return count + Math.max(1, detailCount);
   }, 0);
 }
@@ -628,6 +636,26 @@ function dropMatchesAreaPreferences(drop: DropEvent, areaPrefs: AreaPreferences)
     ...(drop.stores || []).flatMap((store) => [store.store_address, store.city]),
     ...(drop.store_details || []).flatMap((store) => [store.name, store.city, store.county]),
   ], areaPrefs.nvAreas);
+  if (state === "NY") return newYorkAreaMatchesFields([
+    dropLocationLabel(drop),
+    drop.board_name,
+    drop.store_city,
+    drop.store_county,
+    drop.store_address,
+    drop.store_name,
+    ...(drop.stores || []).flatMap((store) => [store.store_address, store.city]),
+    ...(drop.store_details || []).flatMap((store) => [store.name, store.city, store.county]),
+  ], areaPrefs.nyAreas.length ? areaPrefs.nyAreas : ["New York City"]);
+  if (state === "CO") return coloradoAreaMatchesFields([
+    dropLocationLabel(drop),
+    drop.board_name,
+    drop.store_city,
+    drop.store_county,
+    drop.store_address,
+    drop.store_name,
+    ...(drop.stores || []).flatMap((store) => [store.store_address, store.city]),
+    ...(drop.store_details || []).flatMap((store) => [store.name, store.city, store.county]),
+  ], areaPrefs.coAreas.length ? areaPrefs.coAreas : ["Denver Metro"]);
   if (state === "PA" && areaPrefs.paCounties.length) return areaPrefs.paCounties.some((city) => location.includes(normalizeLocationText(city)));
   if (state === "PA" && areaPrefs.paStores.length) return areaPrefs.paStores.some((storeId) => location.includes(normalizeLocationText(storeId)));
   return true;
@@ -1531,7 +1559,23 @@ function PaidMemberDashboard() {
       selectedCount: localPrefs.nvAreas.length,
       totalCount: SUPPORTED_NEVADA_AREAS.length,
     },
-  ]), [citiesByState, localPrefs.caAreas.length, localPrefs.nvAreas.length, localPrefs.iaCities.length, localPrefs.idCities.length, localPrefs.ncBoards.length, localPrefs.ohCities.length, localPrefs.paCounties.length, localPrefs.scAreas.length, localPrefs.vaCities.length, ncBoards.length]);
+    {
+      stateCode: "NY",
+      label: "New York",
+      detailLabel: "areas",
+      summary: "New York alerts currently cover verified New York City retailer inventory only.",
+      selectedCount: localPrefs.nyAreas.length,
+      totalCount: SUPPORTED_NEW_YORK_AREAS.length,
+    },
+    {
+      stateCode: "CO",
+      label: "Colorado",
+      detailLabel: "areas",
+      summary: "Colorado alerts currently cover verified Denver Metro retailer inventory only.",
+      selectedCount: localPrefs.coAreas.length,
+      totalCount: SUPPORTED_COLORADO_AREAS.length,
+    },
+  ]), [citiesByState, localPrefs.caAreas.length, localPrefs.coAreas.length, localPrefs.nvAreas.length, localPrefs.nyAreas.length, localPrefs.iaCities.length, localPrefs.idCities.length, localPrefs.ncBoards.length, localPrefs.ohCities.length, localPrefs.paCounties.length, localPrefs.scAreas.length, localPrefs.vaCities.length, ncBoards.length]);
 
   const addBottleOption = (option: BottleOption) => {
     option.bottleIds.forEach((id) => addBottle(id));
@@ -1827,6 +1871,8 @@ function PaidMemberDashboard() {
           scAreas: state === "SC" ? prev.scAreas : [],
           caAreas: state === "CA" ? prev.caAreas : [],
           nvAreas: state === "NV" ? prev.nvAreas : [],
+          nyAreas: state === "NY" ? prev.nyAreas : [],
+          coAreas: state === "CO" ? prev.coAreas : [],
           paCounties: state === "PA" ? prev.paCounties : [],
           paStores: state === "PA" ? prev.paStores : [],
         };
@@ -1842,6 +1888,8 @@ function PaidMemberDashboard() {
         scAreas: state === "SC" && removing ? [] : prev.scAreas,
         caAreas: state === "CA" && removing ? [] : prev.caAreas,
         nvAreas: state === "NV" && removing ? [] : prev.nvAreas,
+        nyAreas: state === "NY" && removing ? [] : prev.nyAreas,
+        coAreas: state === "CO" && removing ? [] : prev.coAreas,
         paCounties: state === "PA" && removing ? [] : prev.paCounties,
         paStores: state === "PA" && removing ? [] : prev.paStores,
       };
@@ -1912,6 +1960,22 @@ function PaidMemberDashboard() {
         return {
           ...prev,
           nvAreas: has ? prev.nvAreas.filter((item) => item !== value) : [...prev.nvAreas, value],
+        };
+      }
+      if (state === "NY") {
+        const has = prev.nyAreas.includes(value);
+        if (!has && !canAddAlertArea(prev)) return prev;
+        return {
+          ...prev,
+          nyAreas: has ? prev.nyAreas.filter((item) => item !== value) : [...prev.nyAreas, value],
+        };
+      }
+      if (state === "CO") {
+        const has = prev.coAreas.includes(value);
+        if (!has && !canAddAlertArea(prev)) return prev;
+        return {
+          ...prev,
+          coAreas: has ? prev.coAreas.filter((item) => item !== value) : [...prev.coAreas, value],
         };
       }
       if (state === "PA") {
@@ -2809,16 +2873,26 @@ function PaidMemberDashboard() {
                           ? localPrefs.caAreas
                           : activeState === "NV"
                             ? localPrefs.nvAreas
-                            : activeState === "PA"
-                              ? localPrefs.paCounties
-                              : customerAreaLabel
-                                ? [customerAreaLabel]
-                                : localPrefs.states.includes(activeState) ? ["Statewide coverage"] : [];
+                            : activeState === "NY"
+                              ? localPrefs.nyAreas
+                              : activeState === "CO"
+                                ? localPrefs.coAreas
+                                : activeState === "PA"
+                                  ? localPrefs.paCounties
+                                  : customerAreaLabel
+                                    ? [customerAreaLabel]
+                                    : localPrefs.states.includes(activeState) ? ["Statewide coverage"] : [];
               const isCityRefinable = CITY_REFINABLE_STATE_CODES.has(activeState);
               const isStoreRefinable = STORE_REFINABLE_STATE_CODES.has(activeState);
-              const detailLabel = activeState === "NC" ? "boards" : activeState === "CA" || activeState === "NV" ? "areas" : isStoreRefinable ? "cities / stores" : isCityRefinable ? "cities" : customerAreaLabel ? "areas" : "coverage";
-              const cityOptions = activeState === "NV" ? [...SUPPORTED_NEVADA_AREAS] : citiesByState[activeState] ?? [];
-              const cityPrefs = activeState === "IA" ? localPrefs.iaCities : activeState === "ID" ? localPrefs.idCities : activeState === "VA" ? localPrefs.vaCities : activeState === "OH" ? localPrefs.ohCities : activeState === "SC" ? localPrefs.scAreas : activeState === "CA" ? localPrefs.caAreas : activeState === "NV" ? localPrefs.nvAreas : activeState === "PA" ? localPrefs.paCounties : [];
+              const detailLabel = activeState === "NC" ? "boards" : ["CA", "NV", "NY", "CO"].includes(activeState) ? "areas" : isStoreRefinable ? "cities / stores" : isCityRefinable ? "cities" : customerAreaLabel ? "areas" : "coverage";
+              const cityOptions = activeState === "NV"
+                ? [...SUPPORTED_NEVADA_AREAS]
+                : activeState === "NY"
+                  ? [...SUPPORTED_NEW_YORK_AREAS]
+                  : activeState === "CO"
+                    ? [...SUPPORTED_COLORADO_AREAS]
+                    : citiesByState[activeState] ?? [];
+              const cityPrefs = activeState === "IA" ? localPrefs.iaCities : activeState === "ID" ? localPrefs.idCities : activeState === "VA" ? localPrefs.vaCities : activeState === "OH" ? localPrefs.ohCities : activeState === "SC" ? localPrefs.scAreas : activeState === "CA" ? localPrefs.caAreas : activeState === "NV" ? localPrefs.nvAreas : activeState === "NY" ? localPrefs.nyAreas : activeState === "CO" ? localPrefs.coAreas : activeState === "PA" ? localPrefs.paCounties : [];
               const filteredNcBoards = ncBoards.filter((board) => !territorySearch.trim() || board.toLowerCase().includes(territorySearch.toLowerCase()));
               const filteredCities = cityOptions.filter((city) => !territorySearch.trim() || city.toLowerCase().includes(territorySearch.toLowerCase()));
 
@@ -2880,7 +2954,11 @@ function PaidMemberDashboard() {
                               {activeState === "NC"
                                 ? "Pick the ABC boards you actually chase. If you leave this blank, alerts use statewide NC intelligence only after you save the state."
                                 : isCityRefinable
-                                  ? activeState === "IA"
+                                  ? activeState === "NY"
+                                    ? "New York coverage is limited to New York City. Select this metro area to keep alerts explicitly scoped; it does not imply statewide New York coverage."
+                                    : activeState === "CO"
+                                      ? "Colorado coverage is limited to Denver Metro: Denver, Lakeside, Westminster, and Greenwood Village. It does not imply statewide Colorado coverage."
+                                      : activeState === "IA"
                                     ? "Pick Iowa cities from ABD store-delivery data. Leave cities blank to keep statewide Iowa coverage."
                                     : activeState === "ID"
                                       ? "Pick Idaho cities from official Idaho Liquor store availability status. Store rows include as-of dates and should be verified before driving."
