@@ -4,6 +4,8 @@ import type { DropEvent } from "@/lib/drops";
 import { locationMatchesAny, normalizeStateCodeParam } from "@/lib/location-normalization";
 import { californiaAreaMatchesFields } from "@/lib/california-area";
 import { nevadaAreaMatchesFields } from "@/lib/nevada-area";
+import { newYorkAreaMatchesFields } from "@/lib/new-york-area";
+import { coloradoAreaMatchesFields } from "@/lib/colorado-area";
 
 const resendApiKey = process.env.RESEND_API_KEY;
 
@@ -100,6 +102,20 @@ export function matchDropToPreferences(drop: DropEvent, prefs?: AreaPreferences 
     if (prefs.nvAreas.length === 0) return { matched: true, matchedState: state, matchedArea: drop.store_city || "Nevada" };
     const matchedArea = prefs.nvAreas.find((area) => nevadaAreaMatchesFields(fields, [area]));
     return matchedArea ? { matched: true, matchedState: state, matchedArea } : { matched: false };
+  }
+
+  if (state === "NY") {
+    const fields = [drop.locationName, drop.display_location, drop.store_name, drop.store_address, drop.store_city, drop.store_county, drop.board_name];
+    return newYorkAreaMatchesFields(fields, prefs.nyAreas.length ? prefs.nyAreas : ["New York City"])
+      ? { matched: true, matchedState: state, matchedArea: "New York City" }
+      : { matched: false };
+  }
+
+  if (state === "CO") {
+    const fields = [drop.locationName, drop.display_location, drop.store_name, drop.store_address, drop.store_city, drop.store_county, drop.board_name];
+    return coloradoAreaMatchesFields(fields, prefs.coAreas.length ? prefs.coAreas : ["Denver Metro"])
+      ? { matched: true, matchedState: state, matchedArea: "Denver Metro" }
+      : { matched: false };
   }
 
   if (state === "VA" || state === "OH" || state === "IA" || state === "ID" || state === "SC") {

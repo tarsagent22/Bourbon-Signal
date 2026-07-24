@@ -1,0 +1,126 @@
+{
+  "schemaVersion": 1,
+  "state": "CO",
+  "sourceSentinelRequired": true,
+  "cases": [
+    {
+      "id": "co-buffalo-trace-positive",
+      "kind": "positive_bottle_match",
+      "input": {
+        "sourceId": "bonnie-brae-liquor",
+        "rawName": "Buffalo Trace Bourbon 750ml",
+        "quantity": 4
+      },
+      "expected": {
+        "canonicalName": "Buffalo Trace Bourbon",
+        "tier": "allocated",
+        "customerVisible": true,
+        "alertable": true
+      }
+    },
+    {
+      "id": "co-ordinary-bourbon-not-rare",
+      "kind": "ordinary_vs_rare_negative",
+      "input": {
+        "sourceId": "bonnie-brae-liquor",
+        "rawName": "Generic Kentucky Straight Bourbon 750ml",
+        "quantity": 3
+      },
+      "expected": {
+        "rareMatch": false,
+        "alertable": false
+      }
+    },
+    {
+      "id": "co-rye-cream-rtd-exclusions",
+      "kind": "rye_cream_liqueur_rtd_exclusion",
+      "input": {
+        "sourceId": "bonnie-brae-liquor",
+        "rawNames": [
+          "Buffalo Trace Rye 750ml",
+          "Buffalo Trace Bourbon Cream 750ml",
+          "Buffalo Trace Ready to Drink Cocktail 750ml",
+          "Cabernet Sauvignon Aged in Bourbon Barrels 750ml"
+        ],
+        "quantity": 2
+      },
+      "expected": {
+        "rareMatch": false,
+        "alertable": false
+      }
+    },
+    {
+      "id": "co-size-multipack-exclusion",
+      "kind": "size_or_multipack_exclusion",
+      "input": {
+        "sourceId": "bonnie-brae-liquor",
+        "rawName": "Buffalo Trace Mini Gift Pack 12 x 50ml",
+        "quantity": 6
+      },
+      "expected": {
+        "rareMatch": false,
+        "alertable": false
+      }
+    },
+    {
+      "id": "co-cityhive-exact-availability",
+      "kind": "availability_semantics",
+      "input": {
+        "sourceId": "bonnie-brae-liquor",
+        "rawName": "Buffalo Trace Bourbon 750ml",
+        "quantity": 7
+      },
+      "expected": {
+        "quantity": 7,
+        "quantityIsExact": true,
+        "inventorySemantics": "exact_retailer_reported_quantity",
+        "canAlertAsInventory": true
+      }
+    },
+    {
+      "id": "co-exact-store-identity",
+      "kind": "store_identity",
+      "input": {
+        "sourceId": "bonnie-brae-liquor",
+        "rawName": "Buffalo Trace Bourbon 750ml",
+        "quantity": 4
+      },
+      "expected": {
+        "storeId": "bonnie-brae-liquor:5a25ddc66befa569f21cce70",
+        "storeAddress": "785 S University Blvd Denver CO 80209",
+        "fabricateIdentity": false
+      }
+    },
+    {
+      "id": "co-original-observation-time",
+      "kind": "timestamp_freshness",
+      "input": {
+        "sourceId": "bonnie-brae-liquor",
+        "rawName": "Buffalo Trace Bourbon 750ml",
+        "quantity": 4,
+        "fetchedAt": "2026-07-23T12:00:00.000Z",
+        "nowAt": "2026-07-23T18:00:00.000Z"
+      },
+      "expected": {
+        "preserveOriginalTimestamp": true,
+        "futureTimestampAllowed": false,
+        "staleRowsAlertable": false
+      }
+    },
+    {
+      "id": "co-first-party-domain-sentinel",
+      "kind": "source_specific_sentinel",
+      "input": {
+        "sourceUrl": "https://bonniebraeliquor.com/shop/?subtype=Bourbon"
+      },
+      "expected": {
+        "officialHost": true,
+        "allowlistedHosts": [
+          "bonniebraeliquor.com",
+          "mollysspirits.com",
+          "totalbev.com"
+        ]
+      }
+    }
+  ]
+}

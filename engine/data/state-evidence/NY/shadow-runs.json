@@ -1,0 +1,55 @@
+{
+  "schemaVersion": 1,
+  "state": "NY",
+  "mode": "shadow",
+  "runs": [
+    {
+      "runId": "local-shadow-ny-1",
+      "status": "success",
+      "generatedAt": "2026-07-24T03:12:13.840404Z",
+      "artifactPath": "out/shadow/NY/local-evidence/report-1.json",
+      "artifactHash": "12646ea166f6573700701e23f25947c48e68b008ed49ad94f98add45cd6ce3a3",
+      "signalCount": 11,
+      "sourceChains": [
+        "broadway-spirits",
+        "cellar-53",
+        "flatiron-wines"
+      ],
+      "roadblockCount": 0,
+      "alertsDisabled": true,
+      "productionSnapshotTouched": false
+    },
+    {
+      "runId": "local-shadow-ny-2",
+      "status": "success",
+      "generatedAt": "2026-07-24T03:12:19.181839Z",
+      "artifactPath": "out/shadow/NY/local-evidence/report-2.json",
+      "artifactHash": "2df45c6f590b51b1053bdddc0cde11ca0e0f5947a2b6eae8f339c34ab4b460b3",
+      "signalCount": 11,
+      "sourceChains": [
+        "broadway-spirits",
+        "cellar-53",
+        "flatiron-wines"
+      ],
+      "roadblockCount": 0,
+      "alertsDisabled": true,
+      "productionSnapshotTouched": false
+    },
+    {
+      "runId": "local-shadow-ny-3",
+      "status": "success",
+      "generatedAt": "2026-07-24T03:12:23.568513Z",
+      "artifactPath": "out/shadow/NY/local-evidence/report-3.json",
+      "artifactHash": "28fcc26fd47be8e4f44f1c117a594a8e425ffb52500034ae432c6227a584d1cd",
+      "signalCount": 11,
+      "sourceChains": [
+        "broadway-spirits",
+        "cellar-53",
+        "flatiron-wines"
+      ],
+      "roadblockCount": 0,
+      "alertsDisabled": true,
+      "productionSnapshotTouched": false
+    }
+  ]
+}

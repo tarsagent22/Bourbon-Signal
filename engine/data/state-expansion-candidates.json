@@ -1,58 +1,1452 @@
 {
   "schemaVersion": "bourbon-signal-national-state-candidates-v1",
   "states": [
-    { "state": "AL", "customerLabel": "Alabama", "marketClassification": "control", "targetScopes": ["statewide"], "lifecycleStage": "active", "sourceClassesSought": ["official_control_board", "official_catalog", "official_release"], "currentBlockers": [], "rankingInputs": { "demandSignals": [], "strategicSignals": [] }, "lastDiscoveryAt": null, "lastProbeAt": null, "nextEligibleAt": null, "requestBudget": { "maxQueriesPerRun": 4, "maxProbesPerRun": 8 }, "promotionEvidenceRefs": ["src/config/state-lifecycle.json"] },
-    { "state": "AK", "customerLabel": "Alaska", "marketClassification": "private", "targetScopes": ["statewide"], "lifecycleStage": "discovery", "sourceClassesSought": ["retailer_storefront", "public_platform_surface", "allocated_release"], "currentBlockers": [], "rankingInputs": { "demandSignals": [], "strategicSignals": [] }, "lastDiscoveryAt": null, "lastProbeAt": null, "nextEligibleAt": null, "requestBudget": { "maxQueriesPerRun": 4, "maxProbesPerRun": 8 }, "promotionEvidenceRefs": [] },
-    { "state": "AZ", "customerLabel": "Arizona", "marketClassification": "private", "targetScopes": ["statewide"], "lifecycleStage": "active", "sourceClassesSought": ["retailer_storefront", "public_platform_surface", "allocated_release"], "currentBlockers": [], "rankingInputs": { "demandSignals": [], "strategicSignals": [] }, "lastDiscoveryAt": null, "lastProbeAt": null, "nextEligibleAt": null, "requestBudget": { "maxQueriesPerRun": 4, "maxProbesPerRun": 8 }, "promotionEvidenceRefs": ["src/config/state-lifecycle.json"] },
-    { "state": "AR", "customerLabel": "Arkansas", "marketClassification": "control", "targetScopes": ["statewide"], "lifecycleStage": "discovery", "sourceClassesSought": ["official_control_board", "official_catalog", "official_release"], "currentBlockers": [], "rankingInputs": { "demandSignals": [], "strategicSignals": [] }, "lastDiscoveryAt": null, "lastProbeAt": null, "nextEligibleAt": null, "requestBudget": { "maxQueriesPerRun": 4, "maxProbesPerRun": 8 }, "promotionEvidenceRefs": [] },
-    { "state": "CA", "customerLabel": "California", "marketClassification": "private", "targetScopes": ["statewide"], "lifecycleStage": "active", "sourceClassesSought": ["retailer_storefront", "public_platform_surface", "allocated_release"], "currentBlockers": [], "rankingInputs": { "demandSignals": [], "strategicSignals": [] }, "lastDiscoveryAt": null, "lastProbeAt": null, "nextEligibleAt": null, "requestBudget": { "maxQueriesPerRun": 4, "maxProbesPerRun": 8 }, "promotionEvidenceRefs": ["src/config/state-lifecycle.json"] },
-    { "state": "CO", "customerLabel": "Colorado", "marketClassification": "private", "targetScopes": ["statewide"], "lifecycleStage": "discovery", "sourceClassesSought": ["retailer_storefront", "public_platform_surface", "allocated_release"], "currentBlockers": ["No bounded factory discovery run has been recorded."], "rankingInputs": { "demandSignals": [], "strategicSignals": [] }, "lastDiscoveryAt": null, "lastProbeAt": null, "nextEligibleAt": null, "requestBudget": { "maxQueriesPerRun": 4, "maxProbesPerRun": 8 }, "promotionEvidenceRefs": [] },
-    { "state": "CT", "customerLabel": "Connecticut", "marketClassification": "private", "targetScopes": ["statewide"], "lifecycleStage": "discovery", "sourceClassesSought": ["retailer_storefront", "public_platform_surface", "allocated_release"], "currentBlockers": [], "rankingInputs": { "demandSignals": [], "strategicSignals": [] }, "lastDiscoveryAt": null, "lastProbeAt": null, "nextEligibleAt": null, "requestBudget": { "maxQueriesPerRun": 4, "maxProbesPerRun": 8 }, "promotionEvidenceRefs": [] },
-    { "state": "DE", "customerLabel": "Delaware", "marketClassification": "private", "targetScopes": ["statewide"], "lifecycleStage": "discovery", "sourceClassesSought": ["retailer_storefront", "public_platform_surface", "allocated_release"], "currentBlockers": [], "rankingInputs": { "demandSignals": [], "strategicSignals": [] }, "lastDiscoveryAt": null, "lastProbeAt": null, "nextEligibleAt": null, "requestBudget": { "maxQueriesPerRun": 4, "maxProbesPerRun": 8 }, "promotionEvidenceRefs": [] },
-    { "state": "FL", "customerLabel": "Florida", "marketClassification": "private", "targetScopes": ["statewide"], "lifecycleStage": "active", "sourceClassesSought": ["retailer_storefront", "public_platform_surface", "allocated_release"], "currentBlockers": [], "rankingInputs": { "demandSignals": [], "strategicSignals": [] }, "lastDiscoveryAt": null, "lastProbeAt": null, "nextEligibleAt": null, "requestBudget": { "maxQueriesPerRun": 4, "maxProbesPerRun": 8 }, "promotionEvidenceRefs": ["src/config/state-lifecycle.json"] },
-    { "state": "GA", "customerLabel": "Georgia", "marketClassification": "private", "targetScopes": ["statewide"], "lifecycleStage": "active", "sourceClassesSought": ["retailer_storefront", "public_platform_surface", "allocated_release"], "currentBlockers": [], "rankingInputs": { "demandSignals": [], "strategicSignals": [] }, "lastDiscoveryAt": null, "lastProbeAt": null, "nextEligibleAt": null, "requestBudget": { "maxQueriesPerRun": 4, "maxProbesPerRun": 8 }, "promotionEvidenceRefs": ["src/config/state-lifecycle.json"] },
-    { "state": "HI", "customerLabel": "Hawaii", "marketClassification": "private", "targetScopes": ["statewide"], "lifecycleStage": "discovery", "sourceClassesSought": ["retailer_storefront", "public_platform_surface", "allocated_release"], "currentBlockers": [], "rankingInputs": { "demandSignals": [], "strategicSignals": [] }, "lastDiscoveryAt": null, "lastProbeAt": null, "nextEligibleAt": null, "requestBudget": { "maxQueriesPerRun": 4, "maxProbesPerRun": 8 }, "promotionEvidenceRefs": [] },
-    { "state": "ID", "customerLabel": "Idaho", "marketClassification": "control", "targetScopes": ["statewide"], "lifecycleStage": "active", "sourceClassesSought": ["official_control_board", "official_catalog", "official_release"], "currentBlockers": [], "rankingInputs": { "demandSignals": [], "strategicSignals": [] }, "lastDiscoveryAt": null, "lastProbeAt": null, "nextEligibleAt": null, "requestBudget": { "maxQueriesPerRun": 4, "maxProbesPerRun": 8 }, "promotionEvidenceRefs": ["src/config/state-lifecycle.json"] },
-    { "state": "IL", "customerLabel": "Illinois", "marketClassification": "private", "targetScopes": ["statewide"], "lifecycleStage": "active", "sourceClassesSought": ["retailer_storefront", "public_platform_surface", "allocated_release"], "currentBlockers": [], "rankingInputs": { "demandSignals": [], "strategicSignals": [] }, "lastDiscoveryAt": null, "lastProbeAt": null, "nextEligibleAt": null, "requestBudget": { "maxQueriesPerRun": 4, "maxProbesPerRun": 8 }, "promotionEvidenceRefs": ["src/config/state-lifecycle.json"] },
-    { "state": "IN", "customerLabel": "Indiana", "marketClassification": "private", "targetScopes": ["statewide"], "lifecycleStage": "active", "sourceClassesSought": ["retailer_storefront", "public_platform_surface", "allocated_release"], "currentBlockers": [], "rankingInputs": { "demandSignals": [], "strategicSignals": [] }, "lastDiscoveryAt": null, "lastProbeAt": null, "nextEligibleAt": null, "requestBudget": { "maxQueriesPerRun": 4, "maxProbesPerRun": 8 }, "promotionEvidenceRefs": ["src/config/state-lifecycle.json"] },
-    { "state": "IA", "customerLabel": "Iowa", "marketClassification": "control", "targetScopes": ["statewide"], "lifecycleStage": "active", "sourceClassesSought": ["official_control_board", "official_catalog", "official_release"], "currentBlockers": [], "rankingInputs": { "demandSignals": [], "strategicSignals": [] }, "lastDiscoveryAt": null, "lastProbeAt": null, "nextEligibleAt": null, "requestBudget": { "maxQueriesPerRun": 4, "maxProbesPerRun": 8 }, "promotionEvidenceRefs": ["src/config/state-lifecycle.json"] },
-    { "state": "KS", "customerLabel": "Kansas", "marketClassification": "control", "targetScopes": ["statewide"], "lifecycleStage": "discovery", "sourceClassesSought": ["official_control_board", "official_catalog", "official_release"], "currentBlockers": [], "rankingInputs": { "demandSignals": [], "strategicSignals": [] }, "lastDiscoveryAt": null, "lastProbeAt": null, "nextEligibleAt": null, "requestBudget": { "maxQueriesPerRun": 4, "maxProbesPerRun": 8 }, "promotionEvidenceRefs": [] },
-    { "state": "KY", "customerLabel": "Kentucky", "marketClassification": "private", "targetScopes": ["statewide"], "lifecycleStage": "active", "sourceClassesSought": ["retailer_storefront", "public_platform_surface", "allocated_release"], "currentBlockers": [], "rankingInputs": { "demandSignals": [], "strategicSignals": [] }, "lastDiscoveryAt": null, "lastProbeAt": null, "nextEligibleAt": null, "requestBudget": { "maxQueriesPerRun": 4, "maxProbesPerRun": 8 }, "promotionEvidenceRefs": ["src/config/state-lifecycle.json"] },
-    { "state": "LA", "customerLabel": "Louisiana", "marketClassification": "private", "targetScopes": ["statewide"], "lifecycleStage": "discovery", "sourceClassesSought": ["retailer_storefront", "public_platform_surface", "allocated_release"], "currentBlockers": [], "rankingInputs": { "demandSignals": [], "strategicSignals": [] }, "lastDiscoveryAt": null, "lastProbeAt": null, "nextEligibleAt": null, "requestBudget": { "maxQueriesPerRun": 4, "maxProbesPerRun": 8 }, "promotionEvidenceRefs": [] },
-    { "state": "ME", "customerLabel": "Maine", "marketClassification": "control", "targetScopes": ["statewide"], "lifecycleStage": "discovery", "sourceClassesSought": ["official_control_board", "official_catalog", "official_release"], "currentBlockers": [], "rankingInputs": { "demandSignals": [], "strategicSignals": [] }, "lastDiscoveryAt": null, "lastProbeAt": null, "nextEligibleAt": null, "requestBudget": { "maxQueriesPerRun": 4, "maxProbesPerRun": 8 }, "promotionEvidenceRefs": [] },
-    { "state": "MD", "customerLabel": "Maryland", "marketClassification": "mixed", "targetScopes": ["statewide"], "lifecycleStage": "discovery", "sourceClassesSought": ["official_control_board", "retailer_storefront", "public_platform_surface"], "currentBlockers": [], "rankingInputs": { "demandSignals": [], "strategicSignals": [] }, "lastDiscoveryAt": null, "lastProbeAt": null, "nextEligibleAt": null, "requestBudget": { "maxQueriesPerRun": 4, "maxProbesPerRun": 8 }, "promotionEvidenceRefs": [] },
-    { "state": "MA", "customerLabel": "Massachusetts", "marketClassification": "private", "targetScopes": ["statewide"], "lifecycleStage": "discovery", "sourceClassesSought": ["retailer_storefront", "public_platform_surface", "allocated_release"], "currentBlockers": [], "rankingInputs": { "demandSignals": [], "strategicSignals": [] }, "lastDiscoveryAt": null, "lastProbeAt": null, "nextEligibleAt": null, "requestBudget": { "maxQueriesPerRun": 4, "maxProbesPerRun": 8 }, "promotionEvidenceRefs": [] },
-    { "state": "MI", "customerLabel": "Michigan", "marketClassification": "control", "targetScopes": ["statewide"], "lifecycleStage": "active", "sourceClassesSought": ["official_control_board", "official_catalog", "official_release"], "currentBlockers": [], "rankingInputs": { "demandSignals": [], "strategicSignals": [] }, "lastDiscoveryAt": null, "lastProbeAt": null, "nextEligibleAt": null, "requestBudget": { "maxQueriesPerRun": 4, "maxProbesPerRun": 8 }, "promotionEvidenceRefs": ["src/config/state-lifecycle.json"] },
-    { "state": "MN", "customerLabel": "Minnesota", "marketClassification": "private", "targetScopes": ["statewide"], "lifecycleStage": "active", "sourceClassesSought": ["retailer_storefront", "public_platform_surface", "allocated_release"], "currentBlockers": [], "rankingInputs": { "demandSignals": [], "strategicSignals": [] }, "lastDiscoveryAt": null, "lastProbeAt": null, "nextEligibleAt": null, "requestBudget": { "maxQueriesPerRun": 4, "maxProbesPerRun": 8 }, "promotionEvidenceRefs": ["src/config/state-lifecycle.json"] },
-    { "state": "MS", "customerLabel": "Mississippi", "marketClassification": "control", "targetScopes": ["statewide"], "lifecycleStage": "discovery", "sourceClassesSought": ["official_control_board", "official_catalog", "official_release"], "currentBlockers": [], "rankingInputs": { "demandSignals": [], "strategicSignals": [] }, "lastDiscoveryAt": null, "lastProbeAt": null, "nextEligibleAt": null, "requestBudget": { "maxQueriesPerRun": 4, "maxProbesPerRun": 8 }, "promotionEvidenceRefs": [] },
-    { "state": "MO", "customerLabel": "Missouri", "marketClassification": "private", "targetScopes": ["statewide"], "lifecycleStage": "active", "sourceClassesSought": ["retailer_storefront", "public_platform_surface", "allocated_release"], "currentBlockers": [], "rankingInputs": { "demandSignals": [], "strategicSignals": [] }, "lastDiscoveryAt": null, "lastProbeAt": null, "nextEligibleAt": null, "requestBudget": { "maxQueriesPerRun": 4, "maxProbesPerRun": 8 }, "promotionEvidenceRefs": ["src/config/state-lifecycle.json"] },
-    { "state": "MT", "customerLabel": "Montana", "marketClassification": "control", "targetScopes": ["statewide"], "lifecycleStage": "discovery", "sourceClassesSought": ["official_control_board", "official_catalog", "official_release"], "currentBlockers": [], "rankingInputs": { "demandSignals": [], "strategicSignals": [] }, "lastDiscoveryAt": null, "lastProbeAt": null, "nextEligibleAt": null, "requestBudget": { "maxQueriesPerRun": 4, "maxProbesPerRun": 8 }, "promotionEvidenceRefs": [] },
-    { "state": "NE", "customerLabel": "Nebraska", "marketClassification": "private", "targetScopes": ["statewide"], "lifecycleStage": "discovery", "sourceClassesSought": ["retailer_storefront", "public_platform_surface", "allocated_release"], "currentBlockers": [], "rankingInputs": { "demandSignals": [], "strategicSignals": [] }, "lastDiscoveryAt": null, "lastProbeAt": null, "nextEligibleAt": null, "requestBudget": { "maxQueriesPerRun": 4, "maxProbesPerRun": 8 }, "promotionEvidenceRefs": [] },
-    { "state": "NV", "customerLabel": "Nevada", "marketClassification": "private", "targetScopes": ["statewide"], "lifecycleStage": "active", "sourceClassesSought": ["retailer_storefront", "public_platform_surface", "allocated_release"], "currentBlockers": [], "rankingInputs": { "demandSignals": [], "strategicSignals": [] }, "lastDiscoveryAt": null, "lastProbeAt": null, "nextEligibleAt": null, "requestBudget": { "maxQueriesPerRun": 4, "maxProbesPerRun": 8 }, "promotionEvidenceRefs": ["src/config/state-lifecycle.json"] },
-    { "state": "NH", "customerLabel": "New Hampshire", "marketClassification": "control", "targetScopes": ["statewide"], "lifecycleStage": "discovery", "sourceClassesSought": ["official_control_board", "official_catalog", "official_release"], "currentBlockers": ["Official outlet/product routes currently fail closed on Cloudflare or Turnstile access challenges."], "rankingInputs": { "demandSignals": [], "strategicSignals": [] }, "lastDiscoveryAt": null, "lastProbeAt": null, "nextEligibleAt": null, "requestBudget": { "maxQueriesPerRun": 4, "maxProbesPerRun": 8 }, "promotionEvidenceRefs": [] },
-    { "state": "NJ", "customerLabel": "New Jersey", "marketClassification": "private", "targetScopes": ["statewide"], "lifecycleStage": "discovery", "sourceClassesSought": ["retailer_storefront", "public_platform_surface", "allocated_release"], "currentBlockers": [], "rankingInputs": { "demandSignals": [], "strategicSignals": [] }, "lastDiscoveryAt": null, "lastProbeAt": null, "nextEligibleAt": null, "requestBudget": { "maxQueriesPerRun": 4, "maxProbesPerRun": 8 }, "promotionEvidenceRefs": [] },
-    { "state": "NM", "customerLabel": "New Mexico", "marketClassification": "private", "targetScopes": ["statewide"], "lifecycleStage": "discovery", "sourceClassesSought": ["retailer_storefront", "public_platform_surface", "allocated_release"], "currentBlockers": [], "rankingInputs": { "demandSignals": [], "strategicSignals": [] }, "lastDiscoveryAt": null, "lastProbeAt": null, "nextEligibleAt": null, "requestBudget": { "maxQueriesPerRun": 4, "maxProbesPerRun": 8 }, "promotionEvidenceRefs": [] },
-    { "state": "NY", "customerLabel": "New York", "marketClassification": "private", "targetScopes": ["statewide"], "lifecycleStage": "discovery", "sourceClassesSought": ["retailer_storefront", "public_platform_surface", "allocated_release"], "currentBlockers": [], "rankingInputs": { "demandSignals": [], "strategicSignals": [] }, "lastDiscoveryAt": null, "lastProbeAt": null, "nextEligibleAt": null, "requestBudget": { "maxQueriesPerRun": 4, "maxProbesPerRun": 8 }, "promotionEvidenceRefs": [] },
-    { "state": "NC", "customerLabel": "North Carolina", "marketClassification": "control", "targetScopes": ["statewide"], "lifecycleStage": "active", "sourceClassesSought": ["official_control_board", "official_catalog", "official_release"], "currentBlockers": [], "rankingInputs": { "demandSignals": [], "strategicSignals": [] }, "lastDiscoveryAt": null, "lastProbeAt": null, "nextEligibleAt": null, "requestBudget": { "maxQueriesPerRun": 4, "maxProbesPerRun": 8 }, "promotionEvidenceRefs": ["src/config/state-lifecycle.json"] },
-    { "state": "ND", "customerLabel": "North Dakota", "marketClassification": "control", "targetScopes": ["statewide"], "lifecycleStage": "discovery", "sourceClassesSought": ["official_control_board", "official_catalog", "official_release"], "currentBlockers": [], "rankingInputs": { "demandSignals": [], "strategicSignals": [] }, "lastDiscoveryAt": null, "lastProbeAt": null, "nextEligibleAt": null, "requestBudget": { "maxQueriesPerRun": 4, "maxProbesPerRun": 8 }, "promotionEvidenceRefs": [] },
-    { "state": "OH", "customerLabel": "Ohio", "marketClassification": "control", "targetScopes": ["statewide"], "lifecycleStage": "active", "sourceClassesSought": ["official_control_board", "official_catalog", "official_release"], "currentBlockers": [], "rankingInputs": { "demandSignals": [], "strategicSignals": [] }, "lastDiscoveryAt": null, "lastProbeAt": null, "nextEligibleAt": null, "requestBudget": { "maxQueriesPerRun": 4, "maxProbesPerRun": 8 }, "promotionEvidenceRefs": ["src/config/state-lifecycle.json"] },
-    { "state": "OK", "customerLabel": "Oklahoma", "marketClassification": "private", "targetScopes": ["statewide"], "lifecycleStage": "discovery", "sourceClassesSought": ["retailer_storefront", "public_platform_surface", "allocated_release"], "currentBlockers": [], "rankingInputs": { "demandSignals": [], "strategicSignals": [] }, "lastDiscoveryAt": null, "lastProbeAt": null, "nextEligibleAt": null, "requestBudget": { "maxQueriesPerRun": 4, "maxProbesPerRun": 8 }, "promotionEvidenceRefs": [] },
-    { "state": "OR", "customerLabel": "Oregon", "marketClassification": "control", "targetScopes": ["statewide"], "lifecycleStage": "discovery", "sourceClassesSought": ["official_control_board", "official_catalog", "official_release"], "currentBlockers": ["Existing Oregon Liquor Search browser/session collection is research-only until it produces reliable current store rows."], "rankingInputs": { "demandSignals": [], "strategicSignals": [] }, "lastDiscoveryAt": null, "lastProbeAt": null, "nextEligibleAt": null, "requestBudget": { "maxQueriesPerRun": 4, "maxProbesPerRun": 8 }, "promotionEvidenceRefs": [] },
-    { "state": "PA", "customerLabel": "Pennsylvania", "marketClassification": "control", "targetScopes": ["statewide"], "lifecycleStage": "active", "sourceClassesSought": ["official_control_board", "official_catalog", "official_release"], "currentBlockers": [], "rankingInputs": { "demandSignals": [], "strategicSignals": [] }, "lastDiscoveryAt": null, "lastProbeAt": null, "nextEligibleAt": null, "requestBudget": { "maxQueriesPerRun": 4, "maxProbesPerRun": 8 }, "promotionEvidenceRefs": ["src/config/state-lifecycle.json"] },
-    { "state": "RI", "customerLabel": "Rhode Island", "marketClassification": "private", "targetScopes": ["statewide"], "lifecycleStage": "discovery", "sourceClassesSought": ["retailer_storefront", "public_platform_surface", "allocated_release"], "currentBlockers": [], "rankingInputs": { "demandSignals": [], "strategicSignals": [] }, "lastDiscoveryAt": null, "lastProbeAt": null, "nextEligibleAt": null, "requestBudget": { "maxQueriesPerRun": 4, "maxProbesPerRun": 8 }, "promotionEvidenceRefs": [] },
-    { "state": "SC", "customerLabel": "South Carolina", "marketClassification": "private", "targetScopes": ["statewide"], "lifecycleStage": "active", "sourceClassesSought": ["retailer_storefront", "public_platform_surface", "allocated_release"], "currentBlockers": [], "rankingInputs": { "demandSignals": [], "strategicSignals": [] }, "lastDiscoveryAt": null, "lastProbeAt": null, "nextEligibleAt": null, "requestBudget": { "maxQueriesPerRun": 4, "maxProbesPerRun": 8 }, "promotionEvidenceRefs": ["src/config/state-lifecycle.json"] },
-    { "state": "SD", "customerLabel": "South Dakota", "marketClassification": "private", "targetScopes": ["statewide"], "lifecycleStage": "discovery", "sourceClassesSought": ["retailer_storefront", "public_platform_surface", "allocated_release"], "currentBlockers": [], "rankingInputs": { "demandSignals": [], "strategicSignals": [] }, "lastDiscoveryAt": null, "lastProbeAt": null, "nextEligibleAt": null, "requestBudget": { "maxQueriesPerRun": 4, "maxProbesPerRun": 8 }, "promotionEvidenceRefs": [] },
-    { "state": "TN", "customerLabel": "Tennessee", "marketClassification": "private", "targetScopes": ["statewide"], "lifecycleStage": "active", "sourceClassesSought": ["retailer_storefront", "public_platform_surface", "allocated_release"], "currentBlockers": [], "rankingInputs": { "demandSignals": [], "strategicSignals": [] }, "lastDiscoveryAt": null, "lastProbeAt": null, "nextEligibleAt": null, "requestBudget": { "maxQueriesPerRun": 4, "maxProbesPerRun": 8 }, "promotionEvidenceRefs": ["src/config/state-lifecycle.json"] },
-    { "state": "TX", "customerLabel": "Texas", "marketClassification": "private", "targetScopes": ["statewide"], "lifecycleStage": "active", "sourceClassesSought": ["retailer_storefront", "public_platform_surface", "allocated_release"], "currentBlockers": [], "rankingInputs": { "demandSignals": [], "strategicSignals": [] }, "lastDiscoveryAt": null, "lastProbeAt": null, "nextEligibleAt": null, "requestBudget": { "maxQueriesPerRun": 4, "maxProbesPerRun": 8 }, "promotionEvidenceRefs": ["src/config/state-lifecycle.json"] },
-    { "state": "UT", "customerLabel": "Utah", "marketClassification": "control", "targetScopes": ["statewide"], "lifecycleStage": "active", "sourceClassesSought": ["official_control_board", "official_catalog", "official_release"], "currentBlockers": ["Exact per-store shelf inventory and address identity are not yet available; customer rows remain aggregate and non-alertable."], "rankingInputs": { "demandSignals": [], "strategicSignals": ["official_state_source", "successful_shadow_and_canary"] }, "lastDiscoveryAt": "2026-07-16T22:14:22.306Z", "lastProbeAt": "2026-07-16T22:59:26.140Z", "nextEligibleAt": null, "requestBudget": { "maxQueriesPerRun": 4, "maxProbesPerRun": 8 }, "promotionEvidenceRefs": ["engine/data/state-integration/UT.json", "engine/data/state-fixtures/UT.json", "src/config/state-lifecycle.json"] },
-    { "state": "VT", "customerLabel": "Vermont", "marketClassification": "control", "targetScopes": ["statewide"], "lifecycleStage": "discovery", "sourceClassesSought": ["official_control_board", "official_catalog", "official_release"], "currentBlockers": [], "rankingInputs": { "demandSignals": [], "strategicSignals": [] }, "lastDiscoveryAt": null, "lastProbeAt": null, "nextEligibleAt": null, "requestBudget": { "maxQueriesPerRun": 4, "maxProbesPerRun": 8 }, "promotionEvidenceRefs": [] },
-    { "state": "VA", "customerLabel": "Virginia", "marketClassification": "control", "targetScopes": ["statewide"], "lifecycleStage": "active", "sourceClassesSought": ["official_control_board", "official_catalog", "official_release"], "currentBlockers": [], "rankingInputs": { "demandSignals": [], "strategicSignals": [] }, "lastDiscoveryAt": null, "lastProbeAt": null, "nextEligibleAt": null, "requestBudget": { "maxQueriesPerRun": 4, "maxProbesPerRun": 8 }, "promotionEvidenceRefs": ["src/config/state-lifecycle.json"] },
-    { "state": "WA", "customerLabel": "Washington", "marketClassification": "private", "targetScopes": ["statewide"], "lifecycleStage": "active", "sourceClassesSought": ["retailer_storefront", "public_platform_surface", "allocated_release"], "currentBlockers": [], "rankingInputs": { "demandSignals": [], "strategicSignals": [] }, "lastDiscoveryAt": null, "lastProbeAt": null, "nextEligibleAt": null, "requestBudget": { "maxQueriesPerRun": 4, "maxProbesPerRun": 8 }, "promotionEvidenceRefs": ["src/config/state-lifecycle.json"] },
-    { "state": "WV", "customerLabel": "West Virginia", "marketClassification": "control", "targetScopes": ["statewide"], "lifecycleStage": "discovery", "sourceClassesSought": ["official_control_board", "official_catalog", "official_release"], "currentBlockers": [], "rankingInputs": { "demandSignals": [], "strategicSignals": [] }, "lastDiscoveryAt": null, "lastProbeAt": null, "nextEligibleAt": null, "requestBudget": { "maxQueriesPerRun": 4, "maxProbesPerRun": 8 }, "promotionEvidenceRefs": [] },
-    { "state": "WI", "customerLabel": "Wisconsin", "marketClassification": "private", "targetScopes": ["statewide"], "lifecycleStage": "active", "sourceClassesSought": ["retailer_storefront", "public_platform_surface", "allocated_release"], "currentBlockers": [], "rankingInputs": { "demandSignals": [], "strategicSignals": [] }, "lastDiscoveryAt": null, "lastProbeAt": null, "nextEligibleAt": null, "requestBudget": { "maxQueriesPerRun": 4, "maxProbesPerRun": 8 }, "promotionEvidenceRefs": ["src/config/state-lifecycle.json"] },
-    { "state": "WY", "customerLabel": "Wyoming", "marketClassification": "control", "targetScopes": ["statewide"], "lifecycleStage": "discovery", "sourceClassesSought": ["official_control_board", "official_catalog", "official_release"], "currentBlockers": [], "rankingInputs": { "demandSignals": [], "strategicSignals": [] }, "lastDiscoveryAt": null, "lastProbeAt": null, "nextEligibleAt": null, "requestBudget": { "maxQueriesPerRun": 4, "maxProbesPerRun": 8 }, "promotionEvidenceRefs": [] }
+    {
+      "state": "AL",
+      "customerLabel": "Alabama",
+      "marketClassification": "control",
+      "targetScopes": [
+        "statewide"
+      ],
+      "lifecycleStage": "active",
+      "sourceClassesSought": [
+        "official_control_board",
+        "official_catalog",
+        "official_release"
+      ],
+      "currentBlockers": [],
+      "rankingInputs": {
+        "demandSignals": [],
+        "strategicSignals": []
+      },
+      "lastDiscoveryAt": null,
+      "lastProbeAt": null,
+      "nextEligibleAt": null,
+      "requestBudget": {
+        "maxQueriesPerRun": 4,
+        "maxProbesPerRun": 8
+      },
+      "promotionEvidenceRefs": [
+        "src/config/state-lifecycle.json"
+      ]
+    },
+    {
+      "state": "AK",
+      "customerLabel": "Alaska",
+      "marketClassification": "private",
+      "targetScopes": [
+        "statewide"
+      ],
+      "lifecycleStage": "discovery",
+      "sourceClassesSought": [
+        "retailer_storefront",
+        "public_platform_surface",
+        "allocated_release"
+      ],
+      "currentBlockers": [],
+      "rankingInputs": {
+        "demandSignals": [],
+        "strategicSignals": []
+      },
+      "lastDiscoveryAt": null,
+      "lastProbeAt": null,
+      "nextEligibleAt": null,
+      "requestBudget": {
+        "maxQueriesPerRun": 4,
+        "maxProbesPerRun": 8
+      },
+      "promotionEvidenceRefs": []
+    },
+    {
+      "state": "AZ",
+      "customerLabel": "Arizona",
+      "marketClassification": "private",
+      "targetScopes": [
+        "statewide"
+      ],
+      "lifecycleStage": "active",
+      "sourceClassesSought": [
+        "retailer_storefront",
+        "public_platform_surface",
+        "allocated_release"
+      ],
+      "currentBlockers": [],
+      "rankingInputs": {
+        "demandSignals": [],
+        "strategicSignals": []
+      },
+      "lastDiscoveryAt": null,
+      "lastProbeAt": null,
+      "nextEligibleAt": null,
+      "requestBudget": {
+        "maxQueriesPerRun": 4,
+        "maxProbesPerRun": 8
+      },
+      "promotionEvidenceRefs": [
+        "src/config/state-lifecycle.json"
+      ]
+    },
+    {
+      "state": "AR",
+      "customerLabel": "Arkansas",
+      "marketClassification": "control",
+      "targetScopes": [
+        "statewide"
+      ],
+      "lifecycleStage": "discovery",
+      "sourceClassesSought": [
+        "official_control_board",
+        "official_catalog",
+        "official_release"
+      ],
+      "currentBlockers": [],
+      "rankingInputs": {
+        "demandSignals": [],
+        "strategicSignals": []
+      },
+      "lastDiscoveryAt": null,
+      "lastProbeAt": null,
+      "nextEligibleAt": null,
+      "requestBudget": {
+        "maxQueriesPerRun": 4,
+        "maxProbesPerRun": 8
+      },
+      "promotionEvidenceRefs": []
+    },
+    {
+      "state": "CA",
+      "customerLabel": "California",
+      "marketClassification": "private",
+      "targetScopes": [
+        "statewide"
+      ],
+      "lifecycleStage": "active",
+      "sourceClassesSought": [
+        "retailer_storefront",
+        "public_platform_surface",
+        "allocated_release"
+      ],
+      "currentBlockers": [],
+      "rankingInputs": {
+        "demandSignals": [],
+        "strategicSignals": []
+      },
+      "lastDiscoveryAt": null,
+      "lastProbeAt": null,
+      "nextEligibleAt": null,
+      "requestBudget": {
+        "maxQueriesPerRun": 4,
+        "maxProbesPerRun": 8
+      },
+      "promotionEvidenceRefs": [
+        "src/config/state-lifecycle.json"
+      ]
+    },
+    {
+      "state": "CO",
+      "customerLabel": "Colorado",
+      "marketClassification": "private",
+      "targetScopes": [
+        "Denver Metro"
+      ],
+      "lifecycleStage": "canary",
+      "sourceClassesSought": [
+        "retailer_storefront",
+        "public_platform_surface",
+        "allocated_release"
+      ],
+      "currentBlockers": [],
+      "rankingInputs": {
+        "demandSignals": [],
+        "strategicSignals": []
+      },
+      "lastDiscoveryAt": null,
+      "lastProbeAt": null,
+      "nextEligibleAt": null,
+      "requestBudget": {
+        "maxQueriesPerRun": 4,
+        "maxProbesPerRun": 8
+      },
+      "promotionEvidenceRefs": [
+        "engine/data/state-integration/CO.json",
+        "engine/data/state-fixtures/CO.json"
+      ]
+    },
+    {
+      "state": "CT",
+      "customerLabel": "Connecticut",
+      "marketClassification": "private",
+      "targetScopes": [
+        "statewide"
+      ],
+      "lifecycleStage": "discovery",
+      "sourceClassesSought": [
+        "retailer_storefront",
+        "public_platform_surface",
+        "allocated_release"
+      ],
+      "currentBlockers": [],
+      "rankingInputs": {
+        "demandSignals": [],
+        "strategicSignals": []
+      },
+      "lastDiscoveryAt": null,
+      "lastProbeAt": null,
+      "nextEligibleAt": null,
+      "requestBudget": {
+        "maxQueriesPerRun": 4,
+        "maxProbesPerRun": 8
+      },
+      "promotionEvidenceRefs": []
+    },
+    {
+      "state": "DE",
+      "customerLabel": "Delaware",
+      "marketClassification": "private",
+      "targetScopes": [
+        "statewide"
+      ],
+      "lifecycleStage": "discovery",
+      "sourceClassesSought": [
+        "retailer_storefront",
+        "public_platform_surface",
+        "allocated_release"
+      ],
+      "currentBlockers": [],
+      "rankingInputs": {
+        "demandSignals": [],
+        "strategicSignals": []
+      },
+      "lastDiscoveryAt": null,
+      "lastProbeAt": null,
+      "nextEligibleAt": null,
+      "requestBudget": {
+        "maxQueriesPerRun": 4,
+        "maxProbesPerRun": 8
+      },
+      "promotionEvidenceRefs": []
+    },
+    {
+      "state": "FL",
+      "customerLabel": "Florida",
+      "marketClassification": "private",
+      "targetScopes": [
+        "statewide"
+      ],
+      "lifecycleStage": "active",
+      "sourceClassesSought": [
+        "retailer_storefront",
+        "public_platform_surface",
+        "allocated_release"
+      ],
+      "currentBlockers": [],
+      "rankingInputs": {
+        "demandSignals": [],
+        "strategicSignals": []
+      },
+      "lastDiscoveryAt": null,
+      "lastProbeAt": null,
+      "nextEligibleAt": null,
+      "requestBudget": {
+        "maxQueriesPerRun": 4,
+        "maxProbesPerRun": 8
+      },
+      "promotionEvidenceRefs": [
+        "src/config/state-lifecycle.json"
+      ]
+    },
+    {
+      "state": "GA",
+      "customerLabel": "Georgia",
+      "marketClassification": "private",
+      "targetScopes": [
+        "statewide"
+      ],
+      "lifecycleStage": "active",
+      "sourceClassesSought": [
+        "retailer_storefront",
+        "public_platform_surface",
+        "allocated_release"
+      ],
+      "currentBlockers": [],
+      "rankingInputs": {
+        "demandSignals": [],
+        "strategicSignals": []
+      },
+      "lastDiscoveryAt": null,
+      "lastProbeAt": null,
+      "nextEligibleAt": null,
+      "requestBudget": {
+        "maxQueriesPerRun": 4,
+        "maxProbesPerRun": 8
+      },
+      "promotionEvidenceRefs": [
+        "src/config/state-lifecycle.json"
+      ]
+    },
+    {
+      "state": "HI",
+      "customerLabel": "Hawaii",
+      "marketClassification": "private",
+      "targetScopes": [
+        "statewide"
+      ],
+      "lifecycleStage": "discovery",
+      "sourceClassesSought": [
+        "retailer_storefront",
+        "public_platform_surface",
+        "allocated_release"
+      ],
+      "currentBlockers": [],
+      "rankingInputs": {
+        "demandSignals": [],
+        "strategicSignals": []
+      },
+      "lastDiscoveryAt": null,
+      "lastProbeAt": null,
+      "nextEligibleAt": null,
+      "requestBudget": {
+        "maxQueriesPerRun": 4,
+        "maxProbesPerRun": 8
+      },
+      "promotionEvidenceRefs": []
+    },
+    {
+      "state": "ID",
+      "customerLabel": "Idaho",
+      "marketClassification": "control",
+      "targetScopes": [
+        "statewide"
+      ],
+      "lifecycleStage": "active",
+      "sourceClassesSought": [
+        "official_control_board",
+        "official_catalog",
+        "official_release"
+      ],
+      "currentBlockers": [],
+      "rankingInputs": {
+        "demandSignals": [],
+        "strategicSignals": []
+      },
+      "lastDiscoveryAt": null,
+      "lastProbeAt": null,
+      "nextEligibleAt": null,
+      "requestBudget": {
+        "maxQueriesPerRun": 4,
+        "maxProbesPerRun": 8
+      },
+      "promotionEvidenceRefs": [
+        "src/config/state-lifecycle.json"
+      ]
+    },
+    {
+      "state": "IL",
+      "customerLabel": "Illinois",
+      "marketClassification": "private",
+      "targetScopes": [
+        "statewide"
+      ],
+      "lifecycleStage": "active",
+      "sourceClassesSought": [
+        "retailer_storefront",
+        "public_platform_surface",
+        "allocated_release"
+      ],
+      "currentBlockers": [],
+      "rankingInputs": {
+        "demandSignals": [],
+        "strategicSignals": []
+      },
+      "lastDiscoveryAt": null,
+      "lastProbeAt": null,
+      "nextEligibleAt": null,
+      "requestBudget": {
+        "maxQueriesPerRun": 4,
+        "maxProbesPerRun": 8
+      },
+      "promotionEvidenceRefs": [
+        "src/config/state-lifecycle.json"
+      ]
+    },
+    {
+      "state": "IN",
+      "customerLabel": "Indiana",
+      "marketClassification": "private",
+      "targetScopes": [
+        "statewide"
+      ],
+      "lifecycleStage": "active",
+      "sourceClassesSought": [
+        "retailer_storefront",
+        "public_platform_surface",
+        "allocated_release"
+      ],
+      "currentBlockers": [],
+      "rankingInputs": {
+        "demandSignals": [],
+        "strategicSignals": []
+      },
+      "lastDiscoveryAt": null,
+      "lastProbeAt": null,
+      "nextEligibleAt": null,
+      "requestBudget": {
+        "maxQueriesPerRun": 4,
+        "maxProbesPerRun": 8
+      },
+      "promotionEvidenceRefs": [
+        "src/config/state-lifecycle.json"
+      ]
+    },
+    {
+      "state": "IA",
+      "customerLabel": "Iowa",
+      "marketClassification": "control",
+      "targetScopes": [
+        "statewide"
+      ],
+      "lifecycleStage": "active",
+      "sourceClassesSought": [
+        "official_control_board",
+        "official_catalog",
+        "official_release"
+      ],
+      "currentBlockers": [],
+      "rankingInputs": {
+        "demandSignals": [],
+        "strategicSignals": []
+      },
+      "lastDiscoveryAt": null,
+      "lastProbeAt": null,
+      "nextEligibleAt": null,
+      "requestBudget": {
+        "maxQueriesPerRun": 4,
+        "maxProbesPerRun": 8
+      },
+      "promotionEvidenceRefs": [
+        "src/config/state-lifecycle.json"
+      ]
+    },
+    {
+      "state": "KS",
+      "customerLabel": "Kansas",
+      "marketClassification": "control",
+      "targetScopes": [
+        "statewide"
+      ],
+      "lifecycleStage": "discovery",
+      "sourceClassesSought": [
+        "official_control_board",
+        "official_catalog",
+        "official_release"
+      ],
+      "currentBlockers": [],
+      "rankingInputs": {
+        "demandSignals": [],
+        "strategicSignals": []
+      },
+      "lastDiscoveryAt": null,
+      "lastProbeAt": null,
+      "nextEligibleAt": null,
+      "requestBudget": {
+        "maxQueriesPerRun": 4,
+        "maxProbesPerRun": 8
+      },
+      "promotionEvidenceRefs": []
+    },
+    {
+      "state": "KY",
+      "customerLabel": "Kentucky",
+      "marketClassification": "private",
+      "targetScopes": [
+        "statewide"
+      ],
+      "lifecycleStage": "active",
+      "sourceClassesSought": [
+        "retailer_storefront",
+        "public_platform_surface",
+        "allocated_release"
+      ],
+      "currentBlockers": [],
+      "rankingInputs": {
+        "demandSignals": [],
+        "strategicSignals": []
+      },
+      "lastDiscoveryAt": null,
+      "lastProbeAt": null,
+      "nextEligibleAt": null,
+      "requestBudget": {
+        "maxQueriesPerRun": 4,
+        "maxProbesPerRun": 8
+      },
+      "promotionEvidenceRefs": [
+        "src/config/state-lifecycle.json"
+      ]
+    },
+    {
+      "state": "LA",
+      "customerLabel": "Louisiana",
+      "marketClassification": "private",
+      "targetScopes": [
+        "statewide"
+      ],
+      "lifecycleStage": "discovery",
+      "sourceClassesSought": [
+        "retailer_storefront",
+        "public_platform_surface",
+        "allocated_release"
+      ],
+      "currentBlockers": [],
+      "rankingInputs": {
+        "demandSignals": [],
+        "strategicSignals": []
+      },
+      "lastDiscoveryAt": null,
+      "lastProbeAt": null,
+      "nextEligibleAt": null,
+      "requestBudget": {
+        "maxQueriesPerRun": 4,
+        "maxProbesPerRun": 8
+      },
+      "promotionEvidenceRefs": []
+    },
+    {
+      "state": "ME",
+      "customerLabel": "Maine",
+      "marketClassification": "control",
+      "targetScopes": [
+        "statewide"
+      ],
+      "lifecycleStage": "discovery",
+      "sourceClassesSought": [
+        "official_control_board",
+        "official_catalog",
+        "official_release"
+      ],
+      "currentBlockers": [],
+      "rankingInputs": {
+        "demandSignals": [],
+        "strategicSignals": []
+      },
+      "lastDiscoveryAt": null,
+      "lastProbeAt": null,
+      "nextEligibleAt": null,
+      "requestBudget": {
+        "maxQueriesPerRun": 4,
+        "maxProbesPerRun": 8
+      },
+      "promotionEvidenceRefs": []
+    },
+    {
+      "state": "MD",
+      "customerLabel": "Maryland",
+      "marketClassification": "mixed",
+      "targetScopes": [
+        "statewide"
+      ],
+      "lifecycleStage": "discovery",
+      "sourceClassesSought": [
+        "official_control_board",
+        "retailer_storefront",
+        "public_platform_surface"
+      ],
+      "currentBlockers": [],
+      "rankingInputs": {
+        "demandSignals": [],
+        "strategicSignals": []
+      },
+      "lastDiscoveryAt": null,
+      "lastProbeAt": null,
+      "nextEligibleAt": null,
+      "requestBudget": {
+        "maxQueriesPerRun": 4,
+        "maxProbesPerRun": 8
+      },
+      "promotionEvidenceRefs": []
+    },
+    {
+      "state": "MA",
+      "customerLabel": "Massachusetts",
+      "marketClassification": "private",
+      "targetScopes": [
+        "statewide"
+      ],
+      "lifecycleStage": "discovery",
+      "sourceClassesSought": [
+        "retailer_storefront",
+        "public_platform_surface",
+        "allocated_release"
+      ],
+      "currentBlockers": [],
+      "rankingInputs": {
+        "demandSignals": [],
+        "strategicSignals": []
+      },
+      "lastDiscoveryAt": null,
+      "lastProbeAt": null,
+      "nextEligibleAt": null,
+      "requestBudget": {
+        "maxQueriesPerRun": 4,
+        "maxProbesPerRun": 8
+      },
+      "promotionEvidenceRefs": []
+    },
+    {
+      "state": "MI",
+      "customerLabel": "Michigan",
+      "marketClassification": "control",
+      "targetScopes": [
+        "statewide"
+      ],
+      "lifecycleStage": "active",
+      "sourceClassesSought": [
+        "official_control_board",
+        "official_catalog",
+        "official_release"
+      ],
+      "currentBlockers": [],
+      "rankingInputs": {
+        "demandSignals": [],
+        "strategicSignals": []
+      },
+      "lastDiscoveryAt": null,
+      "lastProbeAt": null,
+      "nextEligibleAt": null,
+      "requestBudget": {
+        "maxQueriesPerRun": 4,
+        "maxProbesPerRun": 8
+      },
+      "promotionEvidenceRefs": [
+        "src/config/state-lifecycle.json"
+      ]
+    },
+    {
+      "state": "MN",
+      "customerLabel": "Minnesota",
+      "marketClassification": "private",
+      "targetScopes": [
+        "statewide"
+      ],
+      "lifecycleStage": "active",
+      "sourceClassesSought": [
+        "retailer_storefront",
+        "public_platform_surface",
+        "allocated_release"
+      ],
+      "currentBlockers": [],
+      "rankingInputs": {
+        "demandSignals": [],
+        "strategicSignals": []
+      },
+      "lastDiscoveryAt": null,
+      "lastProbeAt": null,
+      "nextEligibleAt": null,
+      "requestBudget": {
+        "maxQueriesPerRun": 4,
+        "maxProbesPerRun": 8
+      },
+      "promotionEvidenceRefs": [
+        "src/config/state-lifecycle.json"
+      ]
+    },
+    {
+      "state": "MS",
+      "customerLabel": "Mississippi",
+      "marketClassification": "control",
+      "targetScopes": [
+        "statewide"
+      ],
+      "lifecycleStage": "discovery",
+      "sourceClassesSought": [
+        "official_control_board",
+        "official_catalog",
+        "official_release"
+      ],
+      "currentBlockers": [],
+      "rankingInputs": {
+        "demandSignals": [],
+        "strategicSignals": []
+      },
+      "lastDiscoveryAt": null,
+      "lastProbeAt": null,
+      "nextEligibleAt": null,
+      "requestBudget": {
+        "maxQueriesPerRun": 4,
+        "maxProbesPerRun": 8
+      },
+      "promotionEvidenceRefs": []
+    },
+    {
+      "state": "MO",
+      "customerLabel": "Missouri",
+      "marketClassification": "private",
+      "targetScopes": [
+        "statewide"
+      ],
+      "lifecycleStage": "active",
+      "sourceClassesSought": [
+        "retailer_storefront",
+        "public_platform_surface",
+        "allocated_release"
+      ],
+      "currentBlockers": [],
+      "rankingInputs": {
+        "demandSignals": [],
+        "strategicSignals": []
+      },
+      "lastDiscoveryAt": null,
+      "lastProbeAt": null,
+      "nextEligibleAt": null,
+      "requestBudget": {
+        "maxQueriesPerRun": 4,
+        "maxProbesPerRun": 8
+      },
+      "promotionEvidenceRefs": [
+        "src/config/state-lifecycle.json"
+      ]
+    },
+    {
+      "state": "MT",
+      "customerLabel": "Montana",
+      "marketClassification": "control",
+      "targetScopes": [
+        "statewide"
+      ],
+      "lifecycleStage": "discovery",
+      "sourceClassesSought": [
+        "official_control_board",
+        "official_catalog",
+        "official_release"
+      ],
+      "currentBlockers": [],
+      "rankingInputs": {
+        "demandSignals": [],
+        "strategicSignals": []
+      },
+      "lastDiscoveryAt": null,
+      "lastProbeAt": null,
+      "nextEligibleAt": null,
+      "requestBudget": {
+        "maxQueriesPerRun": 4,
+        "maxProbesPerRun": 8
+      },
+      "promotionEvidenceRefs": []
+    },
+    {
+      "state": "NE",
+      "customerLabel": "Nebraska",
+      "marketClassification": "private",
+      "targetScopes": [
+        "statewide"
+      ],
+      "lifecycleStage": "discovery",
+      "sourceClassesSought": [
+        "retailer_storefront",
+        "public_platform_surface",
+        "allocated_release"
+      ],
+      "currentBlockers": [],
+      "rankingInputs": {
+        "demandSignals": [],
+        "strategicSignals": []
+      },
+      "lastDiscoveryAt": null,
+      "lastProbeAt": null,
+      "nextEligibleAt": null,
+      "requestBudget": {
+        "maxQueriesPerRun": 4,
+        "maxProbesPerRun": 8
+      },
+      "promotionEvidenceRefs": []
+    },
+    {
+      "state": "NV",
+      "customerLabel": "Nevada",
+      "marketClassification": "private",
+      "targetScopes": [
+        "statewide"
+      ],
+      "lifecycleStage": "active",
+      "sourceClassesSought": [
+        "retailer_storefront",
+        "public_platform_surface",
+        "allocated_release"
+      ],
+      "currentBlockers": [],
+      "rankingInputs": {
+        "demandSignals": [],
+        "strategicSignals": []
+      },
+      "lastDiscoveryAt": null,
+      "lastProbeAt": null,
+      "nextEligibleAt": null,
+      "requestBudget": {
+        "maxQueriesPerRun": 4,
+        "maxProbesPerRun": 8
+      },
+      "promotionEvidenceRefs": [
+        "src/config/state-lifecycle.json"
+      ]
+    },
+    {
+      "state": "NH",
+      "customerLabel": "New Hampshire",
+      "marketClassification": "control",
+      "targetScopes": [
+        "statewide"
+      ],
+      "lifecycleStage": "discovery",
+      "sourceClassesSought": [
+        "official_control_board",
+        "official_catalog",
+        "official_release"
+      ],
+      "currentBlockers": [
+        "Official outlet/product routes currently fail closed on Cloudflare or Turnstile access challenges."
+      ],
+      "rankingInputs": {
+        "demandSignals": [],
+        "strategicSignals": []
+      },
+      "lastDiscoveryAt": null,
+      "lastProbeAt": null,
+      "nextEligibleAt": null,
+      "requestBudget": {
+        "maxQueriesPerRun": 4,
+        "maxProbesPerRun": 8
+      },
+      "promotionEvidenceRefs": []
+    },
+    {
+      "state": "NJ",
+      "customerLabel": "New Jersey",
+      "marketClassification": "private",
+      "targetScopes": [
+        "statewide"
+      ],
+      "lifecycleStage": "discovery",
+      "sourceClassesSought": [
+        "retailer_storefront",
+        "public_platform_surface",
+        "allocated_release"
+      ],
+      "currentBlockers": [],
+      "rankingInputs": {
+        "demandSignals": [],
+        "strategicSignals": []
+      },
+      "lastDiscoveryAt": null,
+      "lastProbeAt": null,
+      "nextEligibleAt": null,
+      "requestBudget": {
+        "maxQueriesPerRun": 4,
+        "maxProbesPerRun": 8
+      },
+      "promotionEvidenceRefs": []
+    },
+    {
+      "state": "NM",
+      "customerLabel": "New Mexico",
+      "marketClassification": "private",
+      "targetScopes": [
+        "statewide"
+      ],
+      "lifecycleStage": "discovery",
+      "sourceClassesSought": [
+        "retailer_storefront",
+        "public_platform_surface",
+        "allocated_release"
+      ],
+      "currentBlockers": [],
+      "rankingInputs": {
+        "demandSignals": [],
+        "strategicSignals": []
+      },
+      "lastDiscoveryAt": null,
+      "lastProbeAt": null,
+      "nextEligibleAt": null,
+      "requestBudget": {
+        "maxQueriesPerRun": 4,
+        "maxProbesPerRun": 8
+      },
+      "promotionEvidenceRefs": []
+    },
+    {
+      "state": "NY",
+      "customerLabel": "New York",
+      "marketClassification": "private",
+      "targetScopes": [
+        "New York City"
+      ],
+      "lifecycleStage": "canary",
+      "sourceClassesSought": [
+        "retailer_storefront",
+        "public_platform_surface",
+        "allocated_release"
+      ],
+      "currentBlockers": [],
+      "rankingInputs": {
+        "demandSignals": [],
+        "strategicSignals": []
+      },
+      "lastDiscoveryAt": null,
+      "lastProbeAt": null,
+      "nextEligibleAt": null,
+      "requestBudget": {
+        "maxQueriesPerRun": 4,
+        "maxProbesPerRun": 8
+      },
+      "promotionEvidenceRefs": [
+        "engine/data/state-integration/NY.json",
+        "engine/data/state-fixtures/NY.json"
+      ]
+    },
+    {
+      "state": "NC",
+      "customerLabel": "North Carolina",
+      "marketClassification": "control",
+      "targetScopes": [
+        "statewide"
+      ],
+      "lifecycleStage": "active",
+      "sourceClassesSought": [
+        "official_control_board",
+        "official_catalog",
+        "official_release"
+      ],
+      "currentBlockers": [],
+      "rankingInputs": {
+        "demandSignals": [],
+        "strategicSignals": []
+      },
+      "lastDiscoveryAt": null,
+      "lastProbeAt": null,
+      "nextEligibleAt": null,
+      "requestBudget": {
+        "maxQueriesPerRun": 4,
+        "maxProbesPerRun": 8
+      },
+      "promotionEvidenceRefs": [
+        "src/config/state-lifecycle.json"
+      ]
+    },
+    {
+      "state": "ND",
+      "customerLabel": "North Dakota",
+      "marketClassification": "control",
+      "targetScopes": [
+        "statewide"
+      ],
+      "lifecycleStage": "discovery",
+      "sourceClassesSought": [
+        "official_control_board",
+        "official_catalog",
+        "official_release"
+      ],
+      "currentBlockers": [],
+      "rankingInputs": {
+        "demandSignals": [],
+        "strategicSignals": []
+      },
+      "lastDiscoveryAt": null,
+      "lastProbeAt": null,
+      "nextEligibleAt": null,
+      "requestBudget": {
+        "maxQueriesPerRun": 4,
+        "maxProbesPerRun": 8
+      },
+      "promotionEvidenceRefs": []
+    },
+    {
+      "state": "OH",
+      "customerLabel": "Ohio",
+      "marketClassification": "control",
+      "targetScopes": [
+        "statewide"
+      ],
+      "lifecycleStage": "active",
+      "sourceClassesSought": [
+        "official_control_board",
+        "official_catalog",
+        "official_release"
+      ],
+      "currentBlockers": [],
+      "rankingInputs": {
+        "demandSignals": [],
+        "strategicSignals": []
+      },
+      "lastDiscoveryAt": null,
+      "lastProbeAt": null,
+      "nextEligibleAt": null,
+      "requestBudget": {
+        "maxQueriesPerRun": 4,
+        "maxProbesPerRun": 8
+      },
+      "promotionEvidenceRefs": [
+        "src/config/state-lifecycle.json"
+      ]
+    },
+    {
+      "state": "OK",
+      "customerLabel": "Oklahoma",
+      "marketClassification": "private",
+      "targetScopes": [
+        "statewide"
+      ],
+      "lifecycleStage": "discovery",
+      "sourceClassesSought": [
+        "retailer_storefront",
+        "public_platform_surface",
+        "allocated_release"
+      ],
+      "currentBlockers": [],
+      "rankingInputs": {
+        "demandSignals": [],
+        "strategicSignals": []
+      },
+      "lastDiscoveryAt": null,
+      "lastProbeAt": null,
+      "nextEligibleAt": null,
+      "requestBudget": {
+        "maxQueriesPerRun": 4,
+        "maxProbesPerRun": 8
+      },
+      "promotionEvidenceRefs": []
+    },
+    {
+      "state": "OR",
+      "customerLabel": "Oregon",
+      "marketClassification": "control",
+      "targetScopes": [
+        "statewide"
+      ],
+      "lifecycleStage": "discovery",
+      "sourceClassesSought": [
+        "official_control_board",
+        "official_catalog",
+        "official_release"
+      ],
+      "currentBlockers": [
+        "Existing Oregon Liquor Search browser/session collection is research-only until it produces reliable current store rows."
+      ],
+      "rankingInputs": {
+        "demandSignals": [],
+        "strategicSignals": []
+      },
+      "lastDiscoveryAt": null,
+      "lastProbeAt": null,
+      "nextEligibleAt": null,
+      "requestBudget": {
+        "maxQueriesPerRun": 4,
+        "maxProbesPerRun": 8
+      },
+      "promotionEvidenceRefs": []
+    },
+    {
+      "state": "PA",
+      "customerLabel": "Pennsylvania",
+      "marketClassification": "control",
+      "targetScopes": [
+        "statewide"
+      ],
+      "lifecycleStage": "active",
+      "sourceClassesSought": [
+        "official_control_board",
+        "official_catalog",
+        "official_release"
+      ],
+      "currentBlockers": [],
+      "rankingInputs": {
+        "demandSignals": [],
+        "strategicSignals": []
+      },
+      "lastDiscoveryAt": null,
+      "lastProbeAt": null,
+      "nextEligibleAt": null,
+      "requestBudget": {
+        "maxQueriesPerRun": 4,
+        "maxProbesPerRun": 8
+      },
+      "promotionEvidenceRefs": [
+        "src/config/state-lifecycle.json"
+      ]
+    },
+    {
+      "state": "RI",
+      "customerLabel": "Rhode Island",
+      "marketClassification": "private",
+      "targetScopes": [
+        "statewide"
+      ],
+      "lifecycleStage": "discovery",
+      "sourceClassesSought": [
+        "retailer_storefront",
+        "public_platform_surface",
+        "allocated_release"
+      ],
+      "currentBlockers": [],
+      "rankingInputs": {
+        "demandSignals": [],
+        "strategicSignals": []
+      },
+      "lastDiscoveryAt": null,
+      "lastProbeAt": null,
+      "nextEligibleAt": null,
+      "requestBudget": {
+        "maxQueriesPerRun": 4,
+        "maxProbesPerRun": 8
+      },
+      "promotionEvidenceRefs": []
+    },
+    {
+      "state": "SC",
+      "customerLabel": "South Carolina",
+      "marketClassification": "private",
+      "targetScopes": [
+        "statewide"
+      ],
+      "lifecycleStage": "active",
+      "sourceClassesSought": [
+        "retailer_storefront",
+        "public_platform_surface",
+        "allocated_release"
+      ],
+      "currentBlockers": [],
+      "rankingInputs": {
+        "demandSignals": [],
+        "strategicSignals": []
+      },
+      "lastDiscoveryAt": null,
+      "lastProbeAt": null,
+      "nextEligibleAt": null,
+      "requestBudget": {
+        "maxQueriesPerRun": 4,
+        "maxProbesPerRun": 8
+      },
+      "promotionEvidenceRefs": [
+        "src/config/state-lifecycle.json"
+      ]
+    },
+    {
+      "state": "SD",
+      "customerLabel": "South Dakota",
+      "marketClassification": "private",
+      "targetScopes": [
+        "statewide"
+      ],
+      "lifecycleStage": "discovery",
+      "sourceClassesSought": [
+        "retailer_storefront",
+        "public_platform_surface",
+        "allocated_release"
+      ],
+      "currentBlockers": [],
+      "rankingInputs": {
+        "demandSignals": [],
+        "strategicSignals": []
+      },
+      "lastDiscoveryAt": null,
+      "lastProbeAt": null,
+      "nextEligibleAt": null,
+      "requestBudget": {
+        "maxQueriesPerRun": 4,
+        "maxProbesPerRun": 8
+      },
+      "promotionEvidenceRefs": []
+    },
+    {
+      "state": "TN",
+      "customerLabel": "Tennessee",
+      "marketClassification": "private",
+      "targetScopes": [
+        "statewide"
+      ],
+      "lifecycleStage": "active",
+      "sourceClassesSought": [
+        "retailer_storefront",
+        "public_platform_surface",
+        "allocated_release"
+      ],
+      "currentBlockers": [],
+      "rankingInputs": {
+        "demandSignals": [],
+        "strategicSignals": []
+      },
+      "lastDiscoveryAt": null,
+      "lastProbeAt": null,
+      "nextEligibleAt": null,
+      "requestBudget": {
+        "maxQueriesPerRun": 4,
+        "maxProbesPerRun": 8
+      },
+      "promotionEvidenceRefs": [
+        "src/config/state-lifecycle.json"
+      ]
+    },
+    {
+      "state": "TX",
+      "customerLabel": "Texas",
+      "marketClassification": "private",
+      "targetScopes": [
+        "statewide"
+      ],
+      "lifecycleStage": "active",
+      "sourceClassesSought": [
+        "retailer_storefront",
+        "public_platform_surface",
+        "allocated_release"
+      ],
+      "currentBlockers": [],
+      "rankingInputs": {
+        "demandSignals": [],
+        "strategicSignals": []
+      },
+      "lastDiscoveryAt": null,
+      "lastProbeAt": null,
+      "nextEligibleAt": null,
+      "requestBudget": {
+        "maxQueriesPerRun": 4,
+        "maxProbesPerRun": 8
+      },
+      "promotionEvidenceRefs": [
+        "src/config/state-lifecycle.json"
+      ]
+    },
+    {
+      "state": "UT",
+      "customerLabel": "Utah",
+      "marketClassification": "control",
+      "targetScopes": [
+        "statewide"
+      ],
+      "lifecycleStage": "active",
+      "sourceClassesSought": [
+        "official_control_board",
+        "official_catalog",
+        "official_release"
+      ],
+      "currentBlockers": [
+        "Exact per-store shelf inventory and address identity are not yet available; customer rows remain aggregate and non-alertable."
+      ],
+      "rankingInputs": {
+        "demandSignals": [],
+        "strategicSignals": [
+          "official_state_source",
+          "successful_shadow_and_canary"
+        ]
+      },
+      "lastDiscoveryAt": "2026-07-16T22:14:22.306Z",
+      "lastProbeAt": "2026-07-16T22:59:26.140Z",
+      "nextEligibleAt": null,
+      "requestBudget": {
+        "maxQueriesPerRun": 4,
+        "maxProbesPerRun": 8
+      },
+      "promotionEvidenceRefs": [
+        "engine/data/state-integration/UT.json",
+        "engine/data/state-fixtures/UT.json",
+        "src/config/state-lifecycle.json"
+      ]
+    },
+    {
+      "state": "VT",
+      "customerLabel": "Vermont",
+      "marketClassification": "control",
+      "targetScopes": [
+        "statewide"
+      ],
+      "lifecycleStage": "discovery",
+      "sourceClassesSought": [
+        "official_control_board",
+        "official_catalog",
+        "official_release"
+      ],
+      "currentBlockers": [],
+      "rankingInputs": {
+        "demandSignals": [],
+        "strategicSignals": []
+      },
+      "lastDiscoveryAt": null,
+      "lastProbeAt": null,
+      "nextEligibleAt": null,
+      "requestBudget": {
+        "maxQueriesPerRun": 4,
+        "maxProbesPerRun": 8
+      },
+      "promotionEvidenceRefs": []
+    },
+    {
+      "state": "VA",
+      "customerLabel": "Virginia",
+      "marketClassification": "control",
+      "targetScopes": [
+        "statewide"
+      ],
+      "lifecycleStage": "active",
+      "sourceClassesSought": [
+        "official_control_board",
+        "official_catalog",
+        "official_release"
+      ],
+      "currentBlockers": [],
+      "rankingInputs": {
+        "demandSignals": [],
+        "strategicSignals": []
+      },
+      "lastDiscoveryAt": null,
+      "lastProbeAt": null,
+      "nextEligibleAt": null,
+      "requestBudget": {
+        "maxQueriesPerRun": 4,
+        "maxProbesPerRun": 8
+      },
+      "promotionEvidenceRefs": [
+        "src/config/state-lifecycle.json"
+      ]
+    },
+    {
+      "state": "WA",
+      "customerLabel": "Washington",
+      "marketClassification": "private",
+      "targetScopes": [
+        "statewide"
+      ],
+      "lifecycleStage": "active",
+      "sourceClassesSought": [
+        "retailer_storefront",
+        "public_platform_surface",
+        "allocated_release"
+      ],
+      "currentBlockers": [],
+      "rankingInputs": {
+        "demandSignals": [],
+        "strategicSignals": []
+      },
+      "lastDiscoveryAt": null,
+      "lastProbeAt": null,
+      "nextEligibleAt": null,
+      "requestBudget": {
+        "maxQueriesPerRun": 4,
+        "maxProbesPerRun": 8
+      },
+      "promotionEvidenceRefs": [
+        "src/config/state-lifecycle.json"
+      ]
+    },
+    {
+      "state": "WV",
+      "customerLabel": "West Virginia",
+      "marketClassification": "control",
+      "targetScopes": [
+        "statewide"
+      ],
+      "lifecycleStage": "discovery",
+      "sourceClassesSought": [
+        "official_control_board",
+        "official_catalog",
+        "official_release"
+      ],
+      "currentBlockers": [],
+      "rankingInputs": {
+        "demandSignals": [],
+        "strategicSignals": []
+      },
+      "lastDiscoveryAt": null,
+      "lastProbeAt": null,
+      "nextEligibleAt": null,
+      "requestBudget": {
+        "maxQueriesPerRun": 4,
+        "maxProbesPerRun": 8
+      },
+      "promotionEvidenceRefs": []
+    },
+    {
+      "state": "WI",
+      "customerLabel": "Wisconsin",
+      "marketClassification": "private",
+      "targetScopes": [
+        "statewide"
+      ],
+      "lifecycleStage": "active",
+      "sourceClassesSought": [
+        "retailer_storefront",
+        "public_platform_surface",
+        "allocated_release"
+      ],
+      "currentBlockers": [],
+      "rankingInputs": {
+        "demandSignals": [],
+        "strategicSignals": []
+      },
+      "lastDiscoveryAt": null,
+      "lastProbeAt": null,
+      "nextEligibleAt": null,
+      "requestBudget": {
+        "maxQueriesPerRun": 4,
+        "maxProbesPerRun": 8
+      },
+      "promotionEvidenceRefs": [
+        "src/config/state-lifecycle.json"
+      ]
+    },
+    {
+      "state": "WY",
+      "customerLabel": "Wyoming",
+      "marketClassification": "control",
+      "targetScopes": [
+        "statewide"
+      ],
+      "lifecycleStage": "discovery",
+      "sourceClassesSought": [
+        "official_control_board",
+        "official_catalog",
+        "official_release"
+      ],
+      "currentBlockers": [],
+      "rankingInputs": {
+        "demandSignals": [],
+        "strategicSignals": []
+      },
+      "lastDiscoveryAt": null,
+      "lastProbeAt": null,
+      "nextEligibleAt": null,
+      "requestBudget": {
+        "maxQueriesPerRun": 4,
+        "maxProbesPerRun": 8
+      },
+      "promotionEvidenceRefs": []
+    }
   ],
   "scopedControlMarkets": [
-    { "id": "MD-MONTGOMERY", "state": "MD", "customerLabel": "Montgomery County, Maryland", "marketClassification": "control", "targetScopes": ["Montgomery County"], "lifecycleStage": "active", "sourceClassesSought": ["county_control_board", "official_catalog", "official_release"], "currentBlockers": [], "rankingInputs": { "demandSignals": [], "strategicSignals": [] }, "lastDiscoveryAt": null, "lastProbeAt": null, "nextEligibleAt": null, "requestBudget": { "maxQueriesPerRun": 2, "maxProbesPerRun": 4 }, "promotionEvidenceRefs": ["src/config/state-lifecycle.json"] }
+    {
+      "id": "MD-MONTGOMERY",
+      "state": "MD",
+      "customerLabel": "Montgomery County, Maryland",
+      "marketClassification": "control",
+      "targetScopes": [
+        "Montgomery County"
+      ],
+      "lifecycleStage": "active",
+      "sourceClassesSought": [
+        "county_control_board",
+        "official_catalog",
+        "official_release"
+      ],
+      "currentBlockers": [],
+      "rankingInputs": {
+        "demandSignals": [],
+        "strategicSignals": []
+      },
+      "lastDiscoveryAt": null,
+      "lastProbeAt": null,
+      "nextEligibleAt": null,
+      "requestBudget": {
+        "maxQueriesPerRun": 2,
+        "maxProbesPerRun": 4
+      },
+      "promotionEvidenceRefs": [
+        "src/config/state-lifecycle.json"
+      ]
+    }
   ]
 }

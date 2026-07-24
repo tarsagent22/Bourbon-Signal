@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "state": "NY",
+  "mode": "canary_preview",
+  "runs": [
+    {
+      "runId": "local-canary-ny-1",
+      "status": "success",
+      "generatedAt": "2026-07-24T03:38:52.965264Z",
+      "artifactPath": "out/canary/NY/local-run-1/states/NY/drops.json",
+      "artifactHash": "c7bb52f053fb9c63db9d1efd10a766d1394d5f39c9b9c501402fd35acea7fc07",
+      "candidateCount": 11,
+      "alertsDisabled": true,
+      "productionSnapshotTouched": false
+    },
+    {
+      "runId": "local-canary-ny-2",
+      "status": "success",
+      "generatedAt": "2026-07-24T03:38:53.425113Z",
+      "artifactPath": "out/canary/NY/local-run-2/states/NY/drops.json",
+      "artifactHash": "c7bb52f053fb9c63db9d1efd10a766d1394d5f39c9b9c501402fd35acea7fc07",
+      "candidateCount": 11,
+      "alertsDisabled": true,
+      "productionSnapshotTouched": false
+    }
+  ]
+}

@@ -27,6 +27,8 @@ import { locationLabelsMatch, normalizeStateCodeParam, publicStateCode } from "@
 import { coveredAreaLabelsMatch, getCoveredAreaOptionsForState } from "@/lib/feed-area-options";
 import { californiaAreaMatchesFields } from "@/lib/california-area";
 import { nevadaAreaMatchesFields } from "@/lib/nevada-area";
+import { newYorkAreaMatchesFields } from "@/lib/new-york-area";
+import { coloradoAreaMatchesFields } from "@/lib/colorado-area";
 import { getScheduledReleaseSignalCopy } from "@/lib/scheduled-release-signals";
 
 
@@ -344,6 +346,8 @@ function dropAreaMatchesFilter(drop: GroupedDrop, filterValue: string) {
   if (!wanted) return true;
   if (drop.state === "CA") return californiaAreaMatchesFields(areaLabelsForDrop(drop), [wanted]);
   if (drop.state === "NV") return nevadaAreaMatchesFields(areaLabelsForDrop(drop), [wanted]);
+  if (drop.state === "NY") return newYorkAreaMatchesFields(areaLabelsForDrop(drop), [wanted]);
+  if (drop.state === "CO") return coloradoAreaMatchesFields(areaLabelsForDrop(drop), [wanted]);
   return areaLabelsForDrop(drop).some((label) => coveredAreaLabelsMatch(label, wanted));
 }
 
@@ -1509,7 +1513,7 @@ export default function DropFeed() {
           query.set("history", "1");
         }
         if (activeBottleParam) query.set("bottle", activeBottleParam);
-        if (activeAreaParam) query.set(feedStateParam === "NV" ? "area" : feedStateParam === "CA" ? "area" : "store", activeAreaParam);
+        if (activeAreaParam) query.set(feedStateParam === "NV" ? "area" : feedStateParam === "NY" ? "area" : feedStateParam === "CO" ? "area" : feedStateParam === "CA" ? "area" : "store", activeAreaParam);
         const json = await fetchDropFeedPage(`/api/drops?${query.toString()}`, signal, forceRefresh);
         latestJson = json;
 
@@ -1604,6 +1608,8 @@ export default function DropFeed() {
   const matchesActiveFeedFilters = (drop: GroupedDrop) => {
     // State filtering via URL signal links or the feed state selector.
     if (feedStateParam && drop.state && drop.state !== feedStateParam) return false;
+    if (drop.state === "NY" && !newYorkAreaMatchesFields(areaLabelsForDrop(drop), ["New York City"])) return false;
+    if (drop.state === "CO" && !coloradoAreaMatchesFields(areaLabelsForDrop(drop), ["Denver Metro"])) return false;
     if (canUseDropFeedFilters && activeTiers.size > 0 && !activeTiers.has(drop.rarity_tier)) return false;
     const bottleNeedle = canUseBottleSearch ? normalizeFilterText(bottleSearch) : "";
     if (bottleNeedle && !normalizeFilterText(drop.displayName).includes(bottleNeedle)) return false;
@@ -1659,6 +1665,12 @@ export default function DropFeed() {
     if (dropState === "NV" && areaPrefs.nvAreas.length > 0) {
       return nevadaAreaMatchesFields(areaLabelsForDrop(drop), areaPrefs.nvAreas);
     }
+    if (dropState === "NY") {
+      return newYorkAreaMatchesFields(areaLabelsForDrop(drop), areaPrefs.nyAreas.length ? areaPrefs.nyAreas : ["New York City"]);
+    }
+    if (dropState === "CO") {
+      return coloradoAreaMatchesFields(areaLabelsForDrop(drop), areaPrefs.coAreas.length ? areaPrefs.coAreas : ["Denver Metro"]);
+    }
 
     // PA city/store filter
     if (dropState === "PA" && areaPrefs.paCounties.length > 0) return matchesAnyLocationPreference(areaPrefs.paCounties);
@@ -1685,9 +1697,17 @@ export default function DropFeed() {
       kind?: "store" | "board" | "store-group" | null
     ) => {
       const state = String(stateValue || "").toUpperCase();
-      const baseLabel = cleanAreaLabel(labelValue);
+      let baseLabel = cleanAreaLabel(labelValue);
       if (!state || !activeStateCodes.has(state)) return;
       if (selectedState && state !== selectedState) return;
+      if (state === "NY") {
+        if (!newYorkAreaMatchesFields([baseLabel], ["New York City"])) return;
+        baseLabel = "New York City";
+      }
+      if (state === "CO") {
+        if (!coloradoAreaMatchesFields([baseLabel], ["Denver Metro"])) return;
+        baseLabel = "Denver Metro";
+      }
       const includeNcBoardDirectoryOption = state === "NC" && kind === "board";
       if (!hasSignal && !includeNcBoardDirectoryOption) return;
       if (!isUsefulAreaLabel(baseLabel, state)) return;
@@ -1822,7 +1842,7 @@ export default function DropFeed() {
           query.set("history", "1");
         }
         if (activeBottleParam) query.set("bottle", activeBottleParam);
-        if (activeAreaParam) query.set(feedStateParam === "NV" ? "area" : feedStateParam === "CA" ? "area" : "store", activeAreaParam);
+        if (activeAreaParam) query.set(feedStateParam === "NV" ? "area" : feedStateParam === "NY" ? "area" : feedStateParam === "CO" ? "area" : feedStateParam === "CA" ? "area" : "store", activeAreaParam);
         const json = await fetchDropFeedPage(`/api/drops?${query.toString()}`);
         latestJson = json;
 

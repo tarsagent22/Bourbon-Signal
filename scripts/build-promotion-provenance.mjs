@@ -11,7 +11,11 @@ const files = [
   `engine/data/state-fixtures/${state}.json`,
   'engine/src/state-sources.mjs',
   'engine/src/collectors/precision-probes.mjs',
+  'engine/src/collectors/metro-retailer-surfaces.mjs',
+  'engine/src/metro-retailer-policy.mjs',
   'engine/src/export-site-contract.mjs',
+  'src/lib/new-york-area.ts',
+  'src/lib/colorado-area.ts',
   'src/config/state-lifecycle.json',
 ];
 const fileDigests = {};

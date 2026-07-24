@@ -386,6 +386,21 @@ export const STATE_LIFECYCLE_CONFIG = {
       "refinementLevel": "area",
       "customerSummary": "First-party San Diego retailer pickup availability with exact store identity and verify-before-driving caveats. Online catalog-only sources remain watch-only; Costco warehouse signals stay a separate fast-moving availability lane."
     },
+    "CO": {
+      "customerLabel": "Colorado",
+      "sourceLabel": "Denver Metro first-party retailer inventory",
+      "customerAreaLabel": "Denver Metro",
+      "areaOptions": [
+        "Denver Metro"
+      ],
+      "publicStatus": "shadow",
+      "lifecycle": "retailer_store_inventory",
+      "coverageTier": "live_store_inventory",
+      "refinementLevel": "city",
+      "customerSummary": "Verified first-party retailer store inventory in Denver Metro, currently limited to Denver, Lakeside, Westminster, and Greenwood Village signals. This metro-scoped coverage does not imply statewide Colorado availability; verify before driving.",
+      "promotionStage": "canary",
+      "shadowEligible": true
+    },
     "MI": {
       "customerLabel": "Michigan",
       "sourceLabel": "Michigan Costco warehouse bourbon watch",
@@ -425,6 +440,21 @@ export const STATE_LIFECYCLE_CONFIG = {
         "Reno–Sparks"
       ],
       "customerSummary": "First-party retailer store availability and pickup orderability across Las Vegas Valley and Reno–Sparks. Binary availability is not an exact shelf count; verify before driving. Costco remains a separate warehouse watch lane."
+    },
+    "NY": {
+      "customerLabel": "New York",
+      "sourceLabel": "New York City first-party retailer inventory",
+      "customerAreaLabel": "New York City",
+      "areaOptions": [
+        "New York City"
+      ],
+      "publicStatus": "shadow",
+      "lifecycle": "retailer_store_inventory",
+      "coverageTier": "live_store_inventory",
+      "refinementLevel": "city",
+      "customerSummary": "Verified first-party retailer store inventory in New York City, limited to New York, Manhattan, Brooklyn, Queens, Bronx, and Staten Island location signals. This metro-scoped coverage does not imply statewide New York availability; verify before driving.",
+      "promotionStage": "canary",
+      "shadowEligible": true
     },
     "WA": {
       "customerLabel": "Washington",

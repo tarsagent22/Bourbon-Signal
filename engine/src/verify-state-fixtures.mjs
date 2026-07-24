@@ -3,9 +3,15 @@ import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { BourbonBible } from './core/bible.mjs';
-import { STATE_SOURCES } from './state-sources.mjs';
+import { ALL_STATE_SOURCES } from './state-sources.mjs';
 import { lifecycleAllowsInventoryAlert, lifecycleAllowsWatchAlert } from './state-lifecycle.mjs';
 import { transformUtahAggregateRow } from './collectors/precision-probes.mjs';
+import {
+  COLORADO_RETAILER_SOURCES,
+  NEW_YORK_RETAILER_SOURCES,
+  parseMetroCityHiveHtml,
+} from './collectors/metro-retailer-surfaces.mjs';
+import { isMetroRetailerInventory } from './metro-retailer-policy.mjs';
 
 const REQUIRED_KINDS = Object.freeze([
   'positive_bottle_match',
@@ -48,8 +54,8 @@ export function validateStateFixtures(payload) {
 }
 
 function registeredHostsForState(state) {
-  const definition = STATE_SOURCES.find((entry) => entry.id === state);
-  const sources = definition?.sources || [];
+  const config = ALL_STATE_SOURCES.find((entry) => entry.id === state);
+  const sources = config?.sources || [];
   return new Set(sources.flatMap((source) => [source.url, ...(source.urls || [])]).map((value) => {
     try { return new URL(value).hostname.toLowerCase(); } catch { return ''; }
   }).filter(Boolean));
@@ -67,8 +73,164 @@ function utahProductionSignal(rawName, input, bible, index = 0) {
   }, { observedAt: input.fetchedAt || '2026-07-16T22:14:22.306Z' });
 }
 
-function evaluateCase(item, { state, bible, registeredHosts }) {
+function metroFixtureSource(state, sourceId) {
+  const sources = state === 'NY' ? NEW_YORK_RETAILER_SOURCES : state === 'CO' ? COLORADO_RETAILER_SOURCES : [];
+  return sources.find((source) => source.id === sourceId && source.platform === 'cityhive') || sources.find((source) => source.platform === 'cityhive') || null;
+}
+
+function metroFixtureSignal(state, rawName, input, bible) {
+  const source = metroFixtureSource(state, input.sourceId);
+  const store = source?.stores?.[0];
+  if (!source || !store) return null;
+  const merchantId = String(input.merchantId || store.merchantId);
+  const address = String(input.address || store.address);
+  const quantity = input.quantity ?? 4;
+  const pickup = input.pickup === false ? ['delivery'] : ['pick_up'];
+  const payload = {
+    merchant_configs: [{
+      merchant: {
+        id: merchantId,
+        display_name: store.name,
+        address: {
+          full_address: address,
+          address_properties: { city: store.city, state: store.stateCode, zip: store.zip },
+        },
+      },
+    }],
+    products: [{
+      id: 'fixture-product',
+      name: rawName,
+      basic_category: ['bourbon'],
+      size: { quantity: '750', measure: 'ml' },
+      merchants: [{
+        merchant_id: merchantId,
+        merchant_name: store.name,
+        full_address: address,
+        offer_types: pickup,
+        product_options: [{
+          product_id: 'fixture-product',
+          option_id: 'fixture-option',
+          merchant_id: merchantId,
+          merchant_name: store.name,
+          full_address: address,
+          quantity,
+          price: 34.99,
+          product_url: `${source.baseUrl}/shop/product/fixture-bourbon/fixture-product?option-id=fixture-option`,
+          option_display_data: {
+            name: rawName,
+            size: { quantity: '750', measure: 'ml' },
+            basic_category: ['bourbon'],
+          },
+        }],
+      }],
+    }],
+  };
+  const encoded = encodeURIComponent(JSON.stringify(payload));
+  const row = parseMetroCityHiveHtml(`<script>JSON.parse(decodeURIComponent("${encoded}"))</script>`, source)[0];
+  if (!row) return null;
+  const match = bible.match(row.title);
+  const record = match?.record || null;
+  const signal = {
+    id: `${state}:fixture:${row.productId}:${row.variantId}`,
+    state,
+    stateCode: state,
+    sourceLabel: source.sourceLabel,
+    sourceUrl: row.productUrl,
+    sourceChain: source.id,
+    merchantId: row.merchantId,
+    productId: row.productId,
+    variantId: row.variantId,
+    rawName: row.title,
+    canonicalBottleId: record?.id || null,
+    canonicalName: record?.canonical || null,
+    tier: record?.tier || null,
+    eventType: 'retailer_store_inventory_result',
+    locationPrecision: 'store_level',
+    locationName: `${store.name} — ${store.address}`,
+    storeId: store.id,
+    storeName: store.name,
+    storeAddress: store.address,
+    address: store.address,
+    city: store.city,
+    area: source.area,
+    postalCode: store.zip,
+    zip: store.zip,
+    quantity: row.quantity,
+    quantityIsExact: row.quantityIsExact,
+    reportedQuantity: row.reportedQuantity,
+    availabilityStatus: 'in_stock',
+    sourceAvailabilityVerified: true,
+    observedAt: input.fetchedAt || new Date().toISOString(),
+    inventorySemantics: row.inventorySemantics,
+    raw: {
+      chain: source.id,
+      platform: source.platform,
+      merchantId: row.merchantId,
+      reportedQuantity: row.reportedQuantity,
+    },
+  };
+  return { signal, record, row };
+}
+
+function evaluateMetroCase(item, { state, bible, registeredHosts, candidateActive = false }) {
   const input = item.input || {};
+  const names = Array.isArray(input.rawNames) ? input.rawNames.map(String) : [String(input.rawName || 'Buffalo Trace Bourbon 750ml')];
+  const values = names.map((name) => metroFixtureSignal(state, name, input, bible)).filter(Boolean);
+  if (item.kind === 'positive_bottle_match') {
+    const value = values[0];
+    return {
+      canonicalName: value?.record?.canonical || null,
+      tier: value?.record?.tier || null,
+      customerVisible: Boolean(value?.record),
+      alertable: Boolean(value && isMetroRetailerInventory(value.signal) && (candidateActive || lifecycleAllowsInventoryAlert(state))),
+    };
+  }
+  if (['ordinary_vs_rare_negative', 'rye_cream_liqueur_rtd_exclusion', 'size_or_multipack_exclusion'].includes(item.kind)) {
+    const rareMatch = values.some((value) => Boolean(value.record) && RARE_TIERS.has(String(value.record.tier || '').toLowerCase()));
+    return {
+      rareMatch,
+      alertable: values.some((value) => isMetroRetailerInventory(value.signal) && RARE_TIERS.has(String(value.record?.tier || '').toLowerCase())),
+    };
+  }
+  if (item.kind === 'availability_semantics') {
+    const value = values[0];
+    return {
+      quantity: value?.signal?.quantity ?? null,
+      quantityIsExact: value?.signal?.quantityIsExact ?? null,
+      inventorySemantics: value?.signal?.inventorySemantics || null,
+      canAlertAsInventory: Boolean(value && isMetroRetailerInventory(value.signal) && (candidateActive || lifecycleAllowsInventoryAlert(state))),
+    };
+  }
+  if (item.kind === 'store_identity') {
+    const value = values[0];
+    return {
+      storeId: value?.signal?.storeId || null,
+      storeAddress: value?.signal?.storeAddress || null,
+      fabricateIdentity: false,
+    };
+  }
+  if (item.kind === 'timestamp_freshness') {
+    const value = values[0];
+    const observedMs = Date.parse(value?.signal?.observedAt || '');
+    const nowMs = Date.parse(input.nowAt || value?.signal?.observedAt || '');
+    const stale = !Number.isFinite(observedMs) || !Number.isFinite(nowMs) || nowMs < observedMs || nowMs - observedMs > 4 * 60 * 60_000;
+    return {
+      preserveOriginalTimestamp: value?.signal?.observedAt === input.fetchedAt,
+      futureTimestampAllowed: false,
+      staleRowsAlertable: Boolean(!stale && value && isMetroRetailerInventory(value.signal)),
+    };
+  }
+  if (item.kind === 'source_specific_sentinel') {
+    let host = '';
+    try { host = new URL(input.sourceUrl).hostname.toLowerCase(); } catch {}
+    return { officialHost: registeredHosts.has(host), allowlistedHosts: [...registeredHosts].sort() };
+  }
+  return {};
+}
+
+function evaluateCase(item, { state, bible, registeredHosts, candidateActive = false }) {
+  const input = item.input || {};
+  if (state === 'NY' || state === 'CO') return evaluateMetroCase(item, { state, bible, registeredHosts, candidateActive });
   const alertable = lifecycleAllowsInventoryAlert(state) || lifecycleAllowsWatchAlert(state);
   const names = Array.isArray(input.rawNames) ? input.rawNames.map(String) : [String(input.rawName || 'Eagle Rare 10 Year')];
   const productionSignals = state === 'UT' ? names.map((name, index) => utahProductionSignal(name, input, bible, index)) : [];
@@ -107,12 +269,12 @@ function evaluateCase(item, { state, bible, registeredHosts }) {
 
 function sameValue(left, right) { return JSON.stringify(left) === JSON.stringify(right); }
 
-export async function executeStateFixtures(payload, { bibleFile = path.resolve('out/bourbon-bible.json') } = {}) {
+export async function executeStateFixtures(payload, { bibleFile = path.resolve('out/bourbon-bible.json'), candidateActive = false } = {}) {
   const failures = [];
   const bible = await BourbonBible.load(bibleFile);
   const registeredHosts = registeredHostsForState(payload.state);
   for (const item of payload.cases || []) {
-    const actual = evaluateCase(item, { state: payload.state, bible, registeredHosts });
+    const actual = evaluateCase(item, { state: payload.state, bible, registeredHosts, candidateActive });
     for (const [key, expected] of Object.entries(item.expected || {})) {
       if (!sameValue(actual[key], expected)) failures.push(`${item.id}: expected ${key}=${JSON.stringify(expected)} but got ${JSON.stringify(actual[key])}.`);
     }
@@ -135,7 +297,7 @@ async function main() {
   const shape = validateStateFixtures(payload);
   if (state && payload.state !== state) shape.failures.push(`Fixture state ${payload.state} does not match requested ${state}.`);
   if (!shape.ok || shape.failures.length) throw new Error(shape.failures.join(' '));
-  const execution = await executeStateFixtures(payload);
+  const execution = await executeStateFixtures(payload, { candidateActive: process.argv.includes('--canary') });
   if (!execution.ok) throw new Error(execution.failures.join(' '));
   console.log(`State fixture contract and executable assertions passed for ${payload.state}.`);
 }

@@ -50,6 +50,16 @@ import {
   verifyNevadaFulfillmentPolicy,
 } from './nevada-retailer-surfaces.mjs';
 import {
+  COLORADO_RETAILER_SOURCES,
+  NEW_YORK_RETAILER_SOURCES,
+  filterFreshMetroSignals,
+  mergeMetroSourceCacheSignals,
+  parseMetroCityHiveHtml,
+  parseMetroShopifyProducts,
+  verifyMetroShopifyFulfillmentPolicy,
+} from './metro-retailer-surfaces.mjs';
+import { isMetroRetailerInventory } from '../metro-retailer-policy.mjs';
+import {
   INDIANA_TARGET_STORES,
   filterFreshIndianaTargetSignals,
   indianaCityHivePriorityRank,
@@ -83,6 +93,12 @@ const CA_SAN_DIEGO_SHOPIFY_SOURCE_DELAY_MS = Math.max(250, Math.min(10_000, Numb
 const NEVADA_RETAILER_ARTIFACT_PATH = 'out/browser/NV-retailer-inventory.json';
 const NEVADA_RETAILER_CACHE_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_NV_CACHE_MAX_AGE_MS || 4 * 60 * 60_000);
 const NEVADA_RETAILER_SOURCE_DELAY_MS = Math.max(400, Math.min(10_000, Number(process.env.BOURBON_SIGNAL_NV_SOURCE_DELAY_MS) || 900));
+const METRO_RETAILER_CACHE_MAX_AGE_MS = Math.max(60_000, Number(process.env.BOURBON_SIGNAL_METRO_CACHE_MAX_AGE_MS || 4 * 60 * 60_000));
+const METRO_RETAILER_SOURCE_DELAY_MS = Math.max(250, Math.min(10_000, Number(process.env.BOURBON_SIGNAL_METRO_SOURCE_DELAY_MS) || 750));
+const METRO_RETAILER_SOURCES_BY_STATE = Object.freeze({
+  NY: NEW_YORK_RETAILER_SOURCES,
+  CO: COLORADO_RETAILER_SOURCES,
+});
 
 
 const TRACKED_TERMS = {
@@ -6438,6 +6454,390 @@ async function collectKentuckyReleaseWatchPages(config, bible, observedAt) {
   return { signals, roadblocks };
 }
 
+function metroRetailerArtifactPath(stateId) {
+  return `out/browser/${String(stateId || '').toUpperCase()}-metro-retailer-inventory.json`;
+}
+
+function metroRetailerSources(stateId) {
+  return METRO_RETAILER_SOURCES_BY_STATE[String(stateId || '').toUpperCase()] || [];
+}
+
+function configuredMetroSources(config) {
+  const registeredLabels = new Set((config?.sources || []).map((source) => source.label || source.name).filter(Boolean));
+  return metroRetailerSources(config?.id).filter((source) => registeredLabels.has(source.sourceLabel));
+}
+
+async function readMetroRetailerCache(stateId) {
+  const artifactPath = metroRetailerArtifactPath(stateId);
+  try {
+    const cache = JSON.parse(await readFile(artifactPath, 'utf8'));
+    if (cache?.state !== stateId || !Array.isArray(cache?.signals)) return null;
+    const signals = filterFreshMetroSignals(cache.signals, Date.now(), METRO_RETAILER_CACHE_MAX_AGE_MS)
+      .filter((signal) => isMetroRetailerInventory(signal));
+    if (!signals.length) return null;
+    return {
+      ...cache,
+      signals,
+      roadblocks: Array.isArray(cache.roadblocks) ? cache.roadblocks : [],
+      artifactPath,
+    };
+  } catch {
+    return null;
+  }
+}
+
+function cachedMetroRetailerSignals(cache) {
+  return (cache?.signals || []).map((signal) => ({
+    ...signal,
+    raw: {
+      ...(signal.raw || {}),
+      cacheFallback: true,
+      cacheGeneratedAt: cache.generatedAt,
+      artifactPath: cache.artifactPath || metroRetailerArtifactPath(signal.state),
+    },
+  }));
+}
+
+async function writeMetroRetailerCache(stateId, signals, roadblocks) {
+  const artifactPath = metroRetailerArtifactPath(stateId);
+  const payload = {
+    schemaVersion: 1,
+    state: stateId,
+    generatedAt: new Date().toISOString(),
+    source: `${stateId} bounded metro first-party retailer inventory cache`,
+    cacheMaxAgeMs: METRO_RETAILER_CACHE_MAX_AGE_MS,
+    signalCount: signals.length,
+    sourceChains: [...new Set(signals.map((signal) => signal.sourceChain).filter(Boolean))].sort(),
+    signals,
+    roadblocks,
+  };
+  await mkdir(path.dirname(artifactPath), { recursive: true });
+  await writeFile(artifactPath, JSON.stringify(payload, null, 2));
+}
+
+function failedMetroResponse(result, label) {
+  const message = result?.error || `HTTP ${result?.status || 0}`;
+  if (!result || Number(result.status || 0) === 0) return new TransientSourceError(`${label}: ${message}`, { status: result?.status ?? 0 });
+  return sourceErrorForHttp(result.status, `${label}: ${message}`);
+}
+
+async function fetchMetroShopifyProducts(source, signal) {
+  const products = [];
+  const maxPages = Math.max(1, Math.min(6, Number(source.maxPages) || 1));
+  for (let page = 1; page <= maxPages; page += 1) {
+    const separator = source.productsUrl.includes('?') ? '&' : '?';
+    const url = `${source.productsUrl}${separator}page=${page}`;
+    const response = await textFetch(url, {
+      headers: { accept: 'application/json,*/*' },
+      timeoutMs: 30_000,
+      signal,
+    });
+    if (!response.ok) throw failedMetroResponse(response, `${source.sourceLabel} bounded Shopify page ${page}`);
+    let payload;
+    try { payload = JSON.parse(response.text); } catch (error) {
+      throw new MalformedSourceError(`${source.sourceLabel} returned malformed Shopify JSON`, {
+        cause: error,
+        status: response.status || 0,
+      });
+    }
+    if (!Array.isArray(payload?.products)) {
+      throw new MalformedSourceError(`${source.sourceLabel} Shopify response did not contain a products array`, {
+        status: response.status || 0,
+      });
+    }
+    products.push(...payload.products);
+    if (payload.products.length < 250) break;
+    await sleep(METRO_RETAILER_SOURCE_DELAY_MS);
+  }
+  return products;
+}
+
+async function fetchMetroRetailerRows(source, signal) {
+  if (source.platform === 'cityhive') {
+    const rows = [];
+    const seen = new Set();
+    for (const store of source.stores) {
+      const pageUrl = new URL(source.productsUrl);
+      pageUrl.searchParams.set('merchant-id', store.merchantId);
+      const response = await textFetch(pageUrl.toString(), {
+        headers: { accept: 'text/html,*/*' },
+        timeoutMs: 30_000,
+        signal,
+      });
+      if (!response.ok) throw failedMetroResponse(response, `${source.sourceLabel} CityHive merchant ${store.merchantId}`);
+      for (const row of parseMetroCityHiveHtml(response.text, source)) {
+        if (row.merchantId !== store.merchantId) continue;
+        const key = `${row.merchantId}:${row.productId}:${row.variantId}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        rows.push(row);
+      }
+      await sleep(METRO_RETAILER_SOURCE_DELAY_MS);
+    }
+    return {
+      rows,
+      fulfillmentPolicyVerified: true,
+    };
+  }
+
+  const policyResponse = await textFetch(source.fulfillmentPolicyUrl, {
+    headers: { accept: 'text/html,*/*' },
+    timeoutMs: 30_000,
+    signal,
+  });
+  if (!policyResponse.ok) throw failedMetroResponse(policyResponse, `${source.sourceLabel} pickup policy`);
+  if (!verifyMetroShopifyFulfillmentPolicy(source, policyResponse.text)) {
+    throw new MalformedSourceError(`${source.sourceLabel} first-party page no longer proves pickup at the exact allowlisted premises`, {
+      status: policyResponse.status || 0,
+      details: { fulfillmentPolicyUrl: source.fulfillmentPolicyUrl },
+    });
+  }
+  const products = await fetchMetroShopifyProducts(source, signal);
+  return {
+    rows: parseMetroShopifyProducts({ products }, source),
+    fulfillmentPolicyVerified: true,
+  };
+}
+
+async function collectMetroRetailerSource(config, bible, source, observedAt, signal) {
+  const fetched = await fetchMetroRetailerRows(source, signal);
+  const signals = [];
+  for (const row of fetched.rows) {
+    const store = source.stores.find((candidate) => candidate.merchantId === row.merchantId);
+    if (!store) continue;
+    const { match, record, unsafeReason } = cityHiveSafeBottleMatch(row.title, bible);
+    if (!record || !Number.isFinite(match?.confidence) || match.confidence < 0.72) continue;
+    const metroSignal = {
+      id: stableId([config.id, source.id, row.merchantId, row.productId, row.variantId]),
+      state: config.id,
+      stateCode: source.stateCode,
+      sourceLabel: source.sourceLabel,
+      sourceUrl: row.productUrl,
+      sourceChain: source.id,
+      sourceRuntimeId: `metro:${source.stateCode.toLowerCase()}:${source.id}`,
+      merchantId: row.merchantId,
+      productId: row.productId,
+      productHandle: row.handle || null,
+      variantId: row.variantId,
+      variantAvailable: source.platform === 'shopify' ? true : null,
+      rawName: row.title,
+      canonicalBottleId: record.id,
+      canonicalName: record.canonical,
+      tier: record.tier,
+      confidence: Math.min(0.92, match.confidence),
+      eventType: 'retailer_store_inventory_result',
+      locationPrecision: 'store_level',
+      locationName: `${store.name} — ${store.address}`,
+      storeId: store.id,
+      storeName: store.name,
+      storeAddress: store.address,
+      address: store.address,
+      city: store.city,
+      area: source.area,
+      postalCode: store.zip,
+      zip: store.zip,
+      quantity: row.quantity,
+      quantityIsExact: row.quantityIsExact,
+      reportedQuantity: row.reportedQuantity,
+      price: row.price,
+      availabilityStatus: 'in_stock',
+      availabilityLabel: source.platform === 'shopify'
+        ? 'Available to order with pickup published for this premises'
+        : row.quantityIsExact
+          ? `${row.quantity} retailer-reported at this pickup premises`
+          : 'Retailer reports orderable availability; exact count is not published',
+      sourceAvailabilityVerified: row.sourceAvailabilityVerified === true,
+      fulfillmentPolicyVerified: source.platform === 'shopify' && fetched.fulfillmentPolicyVerified === true,
+      pickupOfferVerified: source.platform === 'cityhive' && row.pickupOfferVerified === true,
+      premisesVerified: row.premisesVerified === true,
+      observedAt,
+      canAlertAsInventory: true,
+      canAlertAsWatch: true,
+      inventorySemantics: row.inventorySemantics,
+      evidence: source.platform === 'shopify'
+        ? `${source.chainName} marks this exact variant available on its first-party product feed, while a separately fetched same-host page proves pickup at ${store.address}.`
+        : `${source.chainName} embeds a positive CityHive option bound to merchant ${row.merchantId}, pickup, and ${store.address}.`,
+      caveat: row.quantityIsExact
+        ? 'Retailer-reported quantity can change quickly. Verify pickup before driving.'
+        : 'Binary retailer orderability, not an exact shelf count. Verify pickup before driving.',
+      raw: {
+        chain: source.id,
+        platform: source.platform,
+        merchantId: row.merchantId,
+        reportedQuantity: row.reportedQuantity,
+        pickupOfferVerified: row.pickupOfferVerified === true,
+        fulfillmentPolicyVerified: source.platform === 'shopify' && fetched.fulfillmentPolicyVerified === true,
+        fulfillmentPolicyUrl: source.fulfillmentPolicyUrl,
+        premisesVerified: row.premisesVerified === true,
+        product: { id: row.productId, handle: row.handle || null },
+        variant: { id: row.variantId, sku: row.sku || null, size: row.variantTitle || null, available: true },
+        matchGuard: unsafeReason,
+      },
+    };
+    if (isMetroRetailerInventory(metroSignal)) signals.push(metroSignal);
+  }
+  const roadblocks = [];
+  if (!signals.length) {
+    roadblocks.push({
+      state: config.id,
+      source: source.sourceLabel,
+      sourceRuntimeId: `metro:${source.stateCode.toLowerCase()}:${source.id}`,
+      url: source.productsUrl,
+      status: 'reachable_no_safe_inventory_rows',
+      error: `${source.platform} returned ${fetched.rows.length} candidate rows but no identity-bound, safely matched bourbon inventory rows survived the premises, format, pickup, and bottle guards.`,
+      nextRoute: 'Inspect the current first-party source shape without weakening merchant, premises, format, pickup, or product identity requirements.',
+    });
+  }
+  return { signals, roadblocks };
+}
+
+function previousMetroSourceResults(cache, sources) {
+  return Object.fromEntries(sources.flatMap((source) => {
+    const signals = (cache?.signals || []).filter((signal) => signal.sourceChain === source.id);
+    if (!signals.length) return [];
+    const observedTimes = signals.map((signal) => Date.parse(signal.observedAt || '')).filter(Number.isFinite);
+    const lastGoodAt = observedTimes.length ? new Date(Math.max(...observedTimes)).toISOString() : null;
+    if (!lastGoodAt) return [];
+    const sourceId = `metro:${source.stateCode.toLowerCase()}:${source.id}`;
+    return [[sourceId, {
+      sourceId,
+      sourceLabel: source.sourceLabel,
+      sourceUrl: source.productsUrl,
+      status: 'success',
+      ok: true,
+      stale: false,
+      alertable: true,
+      lastGoodAt,
+      sourceMetadata: { stateId: source.stateCode, lane: 'metro_retailer' },
+      value: { signals, roadblocks: [] },
+    }]];
+  }));
+}
+
+async function collectMetroRetailers(config, bible, options = {}) {
+  const sources = configuredMetroSources(config);
+  if (!sources.length) {
+    return {
+      signals: [],
+      roadblocks: [{
+        state: config.id,
+        source: `${config.id} metro retailer registry`,
+        status: 'missing_configured_source_registration',
+        error: 'The precision collector was invoked without any matching allowlisted metro source registrations.',
+        nextRoute: 'Restore the exact engine state-sources registrations; do not probe unregistered retailer URLs.',
+      }],
+    };
+  }
+
+  const observedAt = new Date().toISOString();
+  const cache = await readMetroRetailerCache(config.id);
+  const forceLive = process.env[`BOURBON_SIGNAL_${config.id}_FORCE_METRO_LIVE`] === '1';
+  if (cache && !forceLive) {
+    return {
+      signals: cachedMetroRetailerSignals(cache),
+      roadblocks: [
+        ...(cache.roadblocks || []),
+        {
+          state: config.id,
+          source: `${config.id} metro retailer cache reuse`,
+          url: cache.artifactPath,
+          status: 'fresh_cache_reuse',
+          error: `Using ${cache.signals.length} identity-validated rows with their original observation timestamps from ${cache.generatedAt}.`,
+          nextRoute: `Set BOURBON_SIGNAL_${config.id}_FORCE_METRO_LIVE=1 only for a bounded scheduled or maintenance refresh.`,
+        },
+      ],
+      metadata: {
+        lane: 'metro_retailer',
+        cacheReused: true,
+        cacheGeneratedAt: cache.generatedAt,
+        sourceIds: sources.map((source) => `metro:${source.stateCode.toLowerCase()}:${source.id}`),
+      },
+    };
+  }
+
+  const adapters = sources.map((source) => createSourceAdapter({
+    id: `metro:${source.stateCode.toLowerCase()}:${source.id}`,
+    label: source.sourceLabel,
+    url: source.productsUrl,
+    metadata: { stateId: config.id, lane: 'metro_retailer', platform: source.platform },
+    execute: (_context, { signal }) => collectMetroRetailerSource(config, bible, source, observedAt, signal),
+    validate: (value) => Array.isArray(value?.signals) && Array.isArray(value?.roadblocks)
+      ? true
+      : `${source.sourceLabel} returned a malformed metro retailer result`,
+    recordCount: (value) => value.signals.length,
+  }));
+  const isolated = await runSourceAdapters(adapters, {}, {
+    ...options.sourceRunnerOptions,
+    previousResults: previousMetroSourceResults(cache, sources),
+    circuitBreaker: options.sourceCircuitBreaker,
+    schedule: false,
+    concurrency: Math.min(3, sources.length),
+    perDomain: 1,
+    timeoutMs: Number(process.env.BOURBON_SIGNAL_METRO_SOURCE_TIMEOUT_MS || 75_000),
+    maxAttempts: Number(process.env.BOURBON_SIGNAL_METRO_SOURCE_ATTEMPTS || 2),
+    retryDelayMs: METRO_RETAILER_SOURCE_DELAY_MS,
+  });
+
+  const liveSignals = [];
+  const roadblocks = [];
+  const completedSourceIds = new Set();
+  for (const [index, result] of isolated.results.entries()) {
+    const source = sources[index];
+    if (result.ok) {
+      completedSourceIds.add(source.id);
+      liveSignals.push(...(result.value?.signals || []));
+      roadblocks.push(...(result.value?.roadblocks || []));
+      continue;
+    }
+    roadblocks.push({
+      state: config.id,
+      source: source.sourceLabel,
+      sourceRuntimeId: result.sourceId,
+      url: source.productsUrl,
+      status: result.status,
+      error: result.error?.message || 'Isolated metro retailer source failed.',
+      nextRoute: 'Keep healthy sibling sources running and retain only still-fresh cached rows for this source; do not project source loss as out-of-stock.',
+    });
+  }
+
+  const cachedSignals = cachedMetroRetailerSignals(cache);
+  const signals = mergeMetroSourceCacheSignals(liveSignals, cachedSignals, completedSourceIds);
+  const retainedSourceChains = new Set(signals
+    .filter((signal) => !completedSourceIds.has(signal.sourceChain))
+    .map((signal) => signal.sourceChain));
+  if (retainedSourceChains.size) {
+    roadblocks.push({
+      state: config.id,
+      source: `${config.id} metro retailer partial cache`,
+      url: cache?.artifactPath || metroRetailerArtifactPath(config.id),
+      status: 'partial_fresh_cache_merge',
+      error: `Retained still-fresh rows for ${[...retainedSourceChains].sort().join(', ')} after isolated source loss; original observation timestamps were preserved.`,
+      nextRoute: 'Retry only the failed retailer sources on the next bounded cadence and let their cache rows expire normally if no fresh proof returns.',
+    });
+  }
+  if (completedSourceIds.size) await writeMetroRetailerCache(config.id, signals, roadblocks);
+  if (!signals.length) {
+    roadblocks.push({
+      state: config.id,
+      source: `${config.id} metro first-party retailer availability`,
+      url: sources.map((source) => source.productsUrl).join(', '),
+      status: 'reachable_no_inventory_rows',
+      error: 'No fresh, identity-bound metro retailer rows survived the bounded collectors and cache freshness gate.',
+      nextRoute: 'Keep the state fail-closed; do not substitute catalog, shipping, marketplace, stale, or unregistered retailer evidence.',
+    });
+  }
+  return {
+    signals,
+    roadblocks,
+    metadata: {
+      lane: 'metro_retailer',
+      cacheReused: false,
+      completedSourceIds: [...completedSourceIds].sort(),
+      sourceResults: isolated.results.map(summarizeSourceResult),
+    },
+  };
+}
+
 async function readCaliforniaSanDiegoShopifyCache() {
   try {
     const cache = JSON.parse(await readFile(CA_SAN_DIEGO_SHOPIFY_ARTIFACT_PATH, 'utf8'));
@@ -6916,7 +7316,7 @@ async function collectKentucky(config, bible) {
 }
 
 const LEGACY_PRECISION_RUNTIME_STATES = new Set([
-  'KY', 'OH', 'OR', 'IA', 'UT', 'ID', 'AL', 'NC', 'IL', 'IN', 'TN', 'AZ', 'NV', 'FL', 'GA', 'SC', 'TX', 'VA', 'PA', 'MD-MONTGOMERY',
+  'KY', 'OH', 'OR', 'IA', 'UT', 'ID', 'AL', 'NC', 'IL', 'IN', 'TN', 'AZ', 'NV', 'FL', 'GA', 'SC', 'TX', 'VA', 'PA', 'MD-MONTGOMERY', 'NY', 'CO',
 ]);
 
 function precisionRuntimeUrl(config) {
@@ -6942,6 +7342,7 @@ async function collectPrecisionProbesDirect(config, bible, existingSignals = [],
   if (config.id === 'NV') return collectNevada(config, bible);
   if (config.id === 'FL') return collectFlorida(config, bible, existingSignals);
   if (config.id === 'GA') return collectGeorgia(config, bible, options);
+  if (config.id === 'NY' || config.id === 'CO') return collectMetroRetailers(config, bible, options);
   if (config.id === 'SC') return collectSouthCarolina(config, bible);
   if (config.id === 'TX') return collectTexas(config, bible);
   if (config.id === 'VA') return collectVirginia(config, bible, options);
@@ -6959,8 +7360,8 @@ export function legacyPrecisionRuntimeOptions(stateId, sourceRunnerOptions = {},
     .map((value) => value.trim().toUpperCase())
     .filter(Boolean)
     .includes(stateKey);
-  const defaultTimeoutMs = stateKey === 'VA' ? 1_140_000 : ['AZ', 'GA', 'TX'].includes(stateKey) ? 300_000 : 120_000;
-  const defaultMaxAttempts = ['VA', 'AZ', 'GA'].includes(stateKey) ? 1 : 2;
+  const defaultTimeoutMs = stateKey === 'VA' ? 1_140_000 : ['AZ', 'GA', 'TX'].includes(stateKey) ? 300_000 : ['NY', 'CO'].includes(stateKey) ? 240_000 : 120_000;
+  const defaultMaxAttempts = ['VA', 'AZ', 'GA', 'NY', 'CO'].includes(stateKey) ? 1 : 2;
   return {
     ...sourceRunnerOptions,
     ...(stateKey === 'VA' || explicitlyTargeted ? { schedule: false } : {}),

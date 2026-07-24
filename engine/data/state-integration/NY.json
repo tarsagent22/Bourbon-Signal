@@ -1,0 +1,86 @@
+{
+  "schemaVersion": 1,
+  "state": "NY",
+  "lifecycle": {
+    "customerLabel": "New York",
+    "publicStatus": "active",
+    "coverageTier": "live_store_inventory",
+    "refinementLevel": "city"
+  },
+  "collector": {
+    "sourceIds": [
+      "metro:ny:cellar-53",
+      "metro:ny:broadway-spirits",
+      "metro:ny:flatiron-wines"
+    ],
+    "registration": "engine/src/state-sources.mjs and engine/src/collectors/precision-probes.mjs register three bounded, isolated New York City first-party retailer sources behind the legacy precision runtime."
+  },
+  "storeIdentity": {
+    "mode": "exact_allowlisted_merchant_and_premises",
+    "addressRequired": true,
+    "proof": "Every inventory row must match one frozen first-party host, source chain, merchant ID, store ID, city, ZIP, and normalized premises address. CityHive product URLs must carry the exact option ID; Shopify product URLs must be exact same-host handle URLs."
+  },
+  "sourceSemantics": {
+    "availability": "CityHive positive quantities below 100 are exact retailer-reported counts; values at or above 100 and available Shopify variants are binary orderability only. Pickup and exact premises proof are mandatory, and every row remains verify-before-driving.",
+    "inventoryAlertable": true,
+    "watchAlertable": true
+  },
+  "customerPaths": {
+    "stateFilter": {
+      "status": "verified",
+      "assertion": "Lifecycle-backed website state controls include New York."
+    },
+    "areaFilter": {
+      "status": "verified",
+      "assertion": "Drop Feed client/API filters and strict location matchers expose only New York City."
+    },
+    "preferences": {
+      "status": "verified",
+      "assertion": "Account-owned preferences normalize and persist the exact New York City selection."
+    },
+    "dashboard": {
+      "status": "verified",
+      "assertion": "Dashboard state and area controls expose New York City with the lifecycle caveat."
+    },
+    "dropFeedApi": {
+      "status": "verified",
+      "assertion": "The Drop Feed API parses and applies the strict New York City query filter."
+    },
+    "finder": {
+      "status": "verified",
+      "assertion": "Exact public store IDs and addresses remain searchable through lifecycle-backed website location surfaces."
+    },
+    "alerts": {
+      "status": "verified",
+      "assertion": "Central confidence and export policy re-run the metro identity and inventory guard so forged host, merchant, premises, geography, availability, format, or precision dimensions fail closed."
+    },
+    "monitoring": {
+      "status": "verified",
+      "assertion": "The legacy precision runtime contains source failures, records explicit roadblocks, and preserves healthy sibling sources plus only still-fresh cache evidence for isolated source loss."
+    },
+    "export": {
+      "status": "verified",
+      "assertion": "Engine export policy retains exact versus binary quantity semantics and revalidates metro retailer identity before projecting an actionable inventory lane."
+    }
+  },
+  "evidence": {
+    "shadow": {
+      "status": "success",
+      "runs": 3,
+      "artifact": "engine/data/state-evidence/NY/shadow-runs.json",
+      "reason": "Three isolated alert-disabled live collector runs passed with exact source and premises identity."
+    },
+    "canary": {
+      "status": "success",
+      "runs": 2,
+      "artifact": "engine/data/state-evidence/NY/canary-runs.json",
+      "reason": "Two coherent alert-disabled canary snapshots passed state integration verification."
+    },
+    "production": {
+      "status": "not_deployed",
+      "url": null,
+      "assertion": "This manifest documents implemented engine contracts only and does not claim production deployment.",
+      "reason": "Production promotion and website wiring were outside the authorized engine-only scope."
+    }
+  }
+}

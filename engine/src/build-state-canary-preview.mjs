@@ -35,6 +35,32 @@ export function buildCanaryPreviewPayload({ base, state, candidateDrops }) {
   coverage.states = coverageStates;
   stats.stateCoverage = coverage;
   stats.stateCount = coverageStates.length;
+  const locations = clone(base?.locations);
+  const locationRows = asArray(locations.locations || locations.stores);
+  const candidateLocations = candidateRows
+    .filter((row) => row?.storeId && row?.storeAddress)
+    .map((row) => ({
+      id: row.storeId,
+      storeId: row.storeId,
+      name: row.storeName || row.locationName || row.storeId,
+      storeName: row.storeName || row.locationName || row.storeId,
+      address: row.storeAddress,
+      storeAddress: row.storeAddress,
+      city: row.city || null,
+      state: normalizedState,
+      zip: row.zip || null,
+      lat: row.lat ?? null,
+      lng: row.lng ?? null,
+    }));
+  const mergedLocations = locationRows.filter((row) => String(row?.state || '').toUpperCase() !== normalizedState);
+  const seenLocationIds = new Set(mergedLocations.map((row) => String(row?.storeId || row?.id || '')));
+  for (const row of candidateLocations) {
+    if (seenLocationIds.has(row.storeId)) continue;
+    seenLocationIds.add(row.storeId);
+    mergedLocations.push(row);
+  }
+  locations.locations = mergedLocations;
+  locations.count = mergedLocations.length;
   return {
     manifest,
     drops,
@@ -42,6 +68,7 @@ export function buildCanaryPreviewPayload({ base, state, candidateDrops }) {
     stateDrops: { state: normalizedState, count: candidateRows.length, drops: candidateRows },
     alerts,
     stats,
+    locations,
     previewPolicy: {
       schemaVersion: 1,
       state: normalizedState,
@@ -64,6 +91,7 @@ export async function buildStateCanaryPreview({ state, candidateDrops, lifecycle
     stateIndex: await readJson(path.join(siteDir, 'states', 'index.json'), { states: [], totalCount: 0, stateCount: 0 }),
     alerts: await readJson(path.join(siteDir, 'alerts.json'), { alerts: [] }),
     stats: await readJson(path.join(siteDir, 'stats.json'), {}),
+    locations: await readJson(path.join(siteDir, 'locations.json'), { locations: [] }),
   };
   const preview = buildCanaryPreviewPayload({ base, state, candidateDrops });
   const lifecyclePreview = lifecycleConfig ? clone(lifecycleConfig) : null;
@@ -84,6 +112,7 @@ export async function buildStateCanaryPreview({ state, candidateDrops, lifecycle
     writeFile(path.join(outDir, 'states', preview.stateDrops.state, 'drops.json'), JSON.stringify(preview.stateDrops, null, 2)),
     writeFile(path.join(outDir, 'alerts.json'), JSON.stringify(preview.alerts, null, 2)),
     writeFile(path.join(outDir, 'stats.json'), JSON.stringify(preview.stats, null, 2)),
+    writeFile(path.join(outDir, 'locations.json'), JSON.stringify(preview.locations, null, 2)),
     writeFile(path.join(outDir, 'canary-preview-policy.json'), JSON.stringify(preview.previewPolicy, null, 2)),
     ...(lifecyclePreview ? [writeFile(path.join(outDir, 'lifecycle-preview.json'), JSON.stringify(lifecyclePreview, null, 2))] : []),
   ]);

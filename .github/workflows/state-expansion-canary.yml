@@ -56,8 +56,8 @@ jobs:
             echo "Invalid state input" >&2
             exit 1
           fi
-          if [[ ! "$RAW_CANDIDATE_DROPS" =~ ^out/canary-inputs/[A-Za-z0-9._/-]+\.json$ ]] || [[ "$RAW_CANDIDATE_DROPS" == *".."* ]]; then
-            echo "Candidate path must be a repository-controlled engine/out/canary-inputs JSON file" >&2
+          if [[ ! "$RAW_CANDIDATE_DROPS" =~ ^data/canary-inputs/[A-Za-z0-9._/-]+\.json$ ]] || [[ "$RAW_CANDIDATE_DROPS" == *".."* ]]; then
+            echo "Candidate path must be a repository-controlled engine/data/canary-inputs JSON file" >&2
             exit 1
           fi
           echo "state=$RAW_STATE" >> "$GITHUB_OUTPUT"
@@ -74,7 +74,7 @@ jobs:
         working-directory: engine
         env:
           STATE: ${{ steps.validate.outputs.state }}
-        run: npm run verify:state-fixtures -- --state="$STATE"
+        run: npm run verify:state-fixtures -- --state="$STATE" --canary
 
       - name: Verify candidate vertical slice against canary snapshot
         working-directory: engine

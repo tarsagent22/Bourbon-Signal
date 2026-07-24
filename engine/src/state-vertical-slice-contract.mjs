@@ -67,12 +67,26 @@ export function validateStateVerticalSliceManifest(manifest) {
   if (!object(evidence)) failures.push('evidence must be an object.');
   else {
     for (const stage of ['shadow', 'canary']) {
-      if (!object(evidence[stage]) || Number(evidence[stage].runs) < 1 || !text(evidence[stage].artifact)) {
-        failures.push(`evidence.${stage} requires positive runs and an artifact reference.`);
+      const stageEvidence = evidence[stage];
+      if (!object(stageEvidence)) {
+        failures.push(`evidence.${stage} is required.`);
+      } else if (stageEvidence.status === 'not_run') {
+        if (Number(stageEvidence.runs) !== 0 || stageEvidence.artifact != null || !text(stageEvidence.reason)) {
+          failures.push(`evidence.${stage} not_run evidence requires runs=0, artifact=null, and a reason.`);
+        }
+      } else if (Number(stageEvidence.runs) < 1 || !text(stageEvidence.artifact)) {
+        failures.push(`evidence.${stage} requires positive runs and an artifact reference, or an explicit not_run record.`);
       }
     }
-    if (!object(evidence.production) || !text(evidence.production.url) || !text(evidence.production.assertion)) {
-      failures.push('evidence.production requires URL and assertion.');
+    const production = evidence.production;
+    if (!object(production)) {
+      failures.push('evidence.production is required.');
+    } else if (production.status === 'not_deployed') {
+      if (production.url != null || !text(production.assertion) || !text(production.reason)) {
+        failures.push('evidence.production not_deployed evidence requires url=null, assertion, and reason.');
+      }
+    } else if (!text(production.url) || !text(production.assertion)) {
+      failures.push('evidence.production requires URL and assertion, or an explicit not_deployed record.');
     }
   }
   return { ok: failures.length === 0, failures };
