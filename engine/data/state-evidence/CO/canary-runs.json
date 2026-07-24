@@ -1,27 +1,18 @@
 {
   "schemaVersion": 1,
   "state": "CO",
-  "mode": "canary_preview",
   "runs": [
     {
-      "runId": "local-canary-co-1",
+      "runId": "local-canary-v2-co-1",
       "status": "success",
-      "generatedAt": "2026-07-24T03:38:53.887195Z",
-      "artifactPath": "out/canary/CO/local-run-1/states/CO/drops.json",
-      "artifactHash": "d2c683632e60d276df203793c2e4430a38ffabb7c7c13f8c3554af8c1ad78abf",
-      "candidateCount": 18,
-      "alertsDisabled": true,
-      "productionSnapshotTouched": false
+      "generatedAt": "2026-07-24T04:23:19.632762Z",
+      "artifactHash": "f0cdbe330d2d77869e0c3fd761d6eeb2c44306fba7efd7a7869524bbf6584922"
     },
     {
-      "runId": "local-canary-co-2",
+      "runId": "local-canary-v2-co-2",
       "status": "success",
-      "generatedAt": "2026-07-24T03:38:54.352722Z",
-      "artifactPath": "out/canary/CO/local-run-2/states/CO/drops.json",
-      "artifactHash": "d2c683632e60d276df203793c2e4430a38ffabb7c7c13f8c3554af8c1ad78abf",
-      "candidateCount": 18,
-      "alertsDisabled": true,
-      "productionSnapshotTouched": false
+      "generatedAt": "2026-07-24T04:23:20.159223Z",
+      "artifactHash": "214088eb8f52f02f13bbdcca5fa0f2159921592b63ff93b01b7a1aea8de43869"
     }
   ]
 }

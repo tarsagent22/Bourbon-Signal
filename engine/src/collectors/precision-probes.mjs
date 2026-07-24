@@ -6715,7 +6715,7 @@ function previousMetroSourceResults(cache, sources) {
 }
 
 async function collectMetroRetailers(config, bible, options = {}) {
-  const sources = configuredMetroSources(config);
+  const sources = configuredMetroSources(config).filter((source) => source.inventoryEligible === true);
   if (!sources.length) {
     return {
       signals: [],

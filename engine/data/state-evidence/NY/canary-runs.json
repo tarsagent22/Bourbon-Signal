@@ -1,27 +1,18 @@
 {
   "schemaVersion": 1,
   "state": "NY",
-  "mode": "canary_preview",
   "runs": [
     {
-      "runId": "local-canary-ny-1",
+      "runId": "local-canary-v2-ny-1",
       "status": "success",
-      "generatedAt": "2026-07-24T03:38:52.965264Z",
-      "artifactPath": "out/canary/NY/local-run-1/states/NY/drops.json",
-      "artifactHash": "c7bb52f053fb9c63db9d1efd10a766d1394d5f39c9b9c501402fd35acea7fc07",
-      "candidateCount": 11,
-      "alertsDisabled": true,
-      "productionSnapshotTouched": false
+      "generatedAt": "2026-07-24T04:23:18.583232Z",
+      "artifactHash": "e90e53439c5d1302791a68b28b0648dc14405cdc1d8435191cf0af1919609c19"
     },
     {
-      "runId": "local-canary-ny-2",
+      "runId": "local-canary-v2-ny-2",
       "status": "success",
-      "generatedAt": "2026-07-24T03:38:53.425113Z",
-      "artifactPath": "out/canary/NY/local-run-2/states/NY/drops.json",
-      "artifactHash": "c7bb52f053fb9c63db9d1efd10a766d1394d5f39c9b9c501402fd35acea7fc07",
-      "candidateCount": 11,
-      "alertsDisabled": true,
-      "productionSnapshotTouched": false
+      "generatedAt": "2026-07-24T04:23:19.106600Z",
+      "artifactHash": "273a03c7b9a7504a93364cf885fc14f677b9b5534668d7dd8c747ba1d259bbd1"
     }
   ]
 }

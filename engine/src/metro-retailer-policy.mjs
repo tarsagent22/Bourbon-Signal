@@ -131,6 +131,7 @@ export function isMetroRetailerSignalIdentity(signal) {
 export function isMetroRetailerInventory(signal) {
   if (!isMetroRetailerSignalIdentity(signal)) return false;
   const { source } = sourceAndStore(signal);
+  if (source.inventoryEligible !== true) return false;
   if (signal.locationPrecision !== 'store_level') return false;
   if (signal.availabilityStatus !== 'in_stock' || signal.sourceAvailabilityVerified !== true) return false;
   const rawName = String(signal.rawName || '').trim();

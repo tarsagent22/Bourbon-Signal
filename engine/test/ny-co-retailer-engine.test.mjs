@@ -17,6 +17,7 @@ import { confidenceForSignal, STATE_CONFIDENCE_POLICY } from '../src/confidence-
 import { collectPrecisionProbes, legacyPrecisionRuntimeOptions } from '../src/collectors/precision-probes.mjs';
 import { getStateLifecycle } from '../src/state-lifecycle.mjs';
 import { ALL_STATE_SOURCES } from '../src/state-sources.mjs';
+import { verifyMetroCanaryRows } from '../src/verify-state-integration.mjs';
 
 const nyCityHive = NEW_YORK_RETAILER_SOURCES.find((source) => source.id === 'cellar-53');
 const nyShopify = NEW_YORK_RETAILER_SOURCES.find((source) => source.id === 'broadway-spirits');
@@ -85,12 +86,13 @@ test('NYC and Denver registries are bounded to exact first-party retailer identi
   assert.deepEqual(NEW_YORK_RETAILER_SOURCES.map((source) => source.id), ['cellar-53', 'broadway-spirits', 'flatiron-wines']);
   assert.deepEqual(COLORADO_RETAILER_SOURCES.map((source) => source.id), ['bonnie-brae-liquor', 'mollys-spirits', 'total-beverage']);
   assert.ok(NEW_YORK_RETAILER_SOURCES.every((source) => source.stateCode === 'NY' && source.area === 'New York City'));
+  assert.ok(NEW_YORK_RETAILER_SOURCES.filter((source) => source.platform === 'shopify').every((source) => source.inventoryMode === 'catalog_only' && source.inventoryEligible === false));
   assert.ok(COLORADO_RETAILER_SOURCES.every((source) => source.stateCode === 'CO' && source.area === 'Denver Metro'));
   assert.equal(new Set(NEW_YORK_RETAILER_SOURCES.flatMap((source) => source.stores.map((store) => store.address))).size, 3);
   assert.ok(new Set(COLORADO_RETAILER_SOURCES.flatMap((source) => source.stores.map((store) => store.address))).size >= 4);
   for (const source of [...NEW_YORK_RETAILER_SOURCES, ...COLORADO_RETAILER_SOURCES]) {
     assert.match(source.baseUrl, /^https:\/\//);
-    assert.ok(source.inventoryEligible);
+    assert.equal(source.inventoryEligible, source.platform === 'cityhive');
     assert.ok(source.stores.every((store) => store.id && store.name && store.address && store.city && store.zip && store.merchantId));
   }
 });
@@ -109,15 +111,12 @@ test('CityHive parser requires allowlisted merchant, exact premises, pickup, pos
   assert.deepEqual(normalizeMetroCityHiveQuantity(100), { reportedQuantity: 100, quantity: 0, quantityIsExact: false, binaryAvailability: true });
 });
 
-test('Shopify parser and fulfillment verifier require same-host pickup proof and available variants', () => {
+test('Shopify parser remains catalog-only even when a generic same-host pickup page and available variant exist', () => {
   const html = `Pickup location Broadway Spirits Free. Usually ready in 1hr. 299 Broadway New York, NY, 10007. Store Pickup.`;
-  assert.equal(verifyMetroShopifyFulfillmentPolicy(nyShopify, html), true);
+  assert.equal(verifyMetroShopifyFulfillmentPolicy(nyShopify, html), false);
   assert.equal(verifyMetroShopifyFulfillmentPolicy(nyShopify, 'Shipping is available nationwide.'), false);
   const rows = parseMetroShopifyProducts({ products: [{ id: 1, title: 'Buffalo Trace Bourbon 750ml', handle: 'buffalo-trace-bourbon', product_type: 'Bourbon', variants: [{ id: 2, title: '750ml', available: true, price: '34.99' }, { id: 3, title: '750ml', available: false, price: '34.99' }] }] }, nyShopify);
-  assert.equal(rows.length, 1);
-  assert.equal(rows[0].quantity, 0);
-  assert.equal(rows[0].quantityIsExact, false);
-  assert.equal(rows[0].inventorySemantics, 'binary_retailer_orderable_no_exact_count');
+  assert.equal(rows.length, 0, 'catalog-only Shopify sources must not emit inventory candidates');
   assert.equal(parseMetroShopifyProducts({ products: [{ id: 4, title: 'Buffalo Trace Candle', handle: 'candle', variants: [{ id: 5, title: 'Default', available: true }] }] }, nyShopify).length, 0);
 });
 
@@ -140,6 +139,16 @@ test('central identity and confidence policy fail closed on every forged dimensi
     assert.equal(isMetroRetailerInventory(forged), false, JSON.stringify(forged));
     assert.equal(confidenceForSignal(forged).canAlertAsInventory, false, JSON.stringify(forged));
   }
+});
+
+test('canary verification rejects forged source URLs and stale inventory', () => {
+  const [row] = parseMetroCityHiveHtml(encodedPage(cityHivePayload(nyCityHive)), nyCityHive);
+  const generatedAt = new Date().toISOString();
+  const valid = { ...signalFor(nyCityHive, row, { observedAt: generatedAt }), canAlertAsInventory: true };
+  assert.deepEqual(verifyMetroCanaryRows({ state: 'NY', rows: [valid], generatedAt }), []);
+  assert.match(verifyMetroCanaryRows({ state: 'NY', rows: [{ ...valid, sourceUrl: 'https://attacker.example/fake' }], generatedAt }).join('\n'), /production metro identity/i);
+  const stale = { ...valid, observedAt: new Date(Date.parse(generatedAt) - 5 * 60 * 60_000).toISOString() };
+  assert.match(verifyMetroCanaryRows({ state: 'NY', rows: [stale], generatedAt }).join('\n'), /stale/i);
 });
 
 test('New York and Colorado are runner-routed metro inventory states with conservative public scope', async () => {

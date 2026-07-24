@@ -6,7 +6,7 @@ import { pathToFileURL } from 'node:url';
 function asArray(value) { return Array.isArray(value) ? value : []; }
 function clone(value) { return structuredClone(value || {}); }
 
-export function buildCanaryPreviewPayload({ base, state, candidateDrops }) {
+export function buildCanaryPreviewPayload({ base, state, candidateDrops, candidateGeneratedAt = null }) {
   const normalizedState = String(state || '').toUpperCase();
   const candidateRows = asArray(candidateDrops);
   if (!normalizedState || candidateRows.some((row) => String(row?.state || '').toUpperCase() !== normalizedState)) {
@@ -73,6 +73,7 @@ export function buildCanaryPreviewPayload({ base, state, candidateDrops }) {
       schemaVersion: 1,
       state: normalizedState,
       mode: 'canary_preview',
+      generatedAt: candidateGeneratedAt,
       alertDeliveryEnabled: false,
       productionSnapshotPublicationEnabled: false,
       productionDeploymentEnabled: false,
@@ -84,7 +85,7 @@ async function readJson(file, fallback = {}) {
   try { return JSON.parse(await readFile(file, 'utf8')); } catch { return fallback; }
 }
 
-export async function buildStateCanaryPreview({ state, candidateDrops, lifecycleConfig = null, siteDir = path.resolve('out', 'site'), outDir = path.resolve('out', 'canary', String(state || '').toUpperCase()) } = {}) {
+export async function buildStateCanaryPreview({ state, candidateDrops, candidateGeneratedAt = null, lifecycleConfig = null, siteDir = path.resolve('out', 'site'), outDir = path.resolve('out', 'canary', String(state || '').toUpperCase()) } = {}) {
   const base = {
     manifest: await readJson(path.join(siteDir, 'manifest.json')),
     drops: await readJson(path.join(siteDir, 'drops.json'), { drops: [] }),
@@ -93,7 +94,7 @@ export async function buildStateCanaryPreview({ state, candidateDrops, lifecycle
     stats: await readJson(path.join(siteDir, 'stats.json'), {}),
     locations: await readJson(path.join(siteDir, 'locations.json'), { locations: [] }),
   };
-  const preview = buildCanaryPreviewPayload({ base, state, candidateDrops });
+  const preview = buildCanaryPreviewPayload({ base, state, candidateDrops, candidateGeneratedAt });
   const lifecyclePreview = lifecycleConfig ? clone(lifecycleConfig) : null;
   if (lifecyclePreview?.states?.[preview.stateDrops.state]) {
     lifecyclePreview.activeStates = Array.from(new Set([...(lifecyclePreview.activeStates || []), preview.stateDrops.state]));
@@ -131,9 +132,10 @@ async function main() {
   const candidateFile = argValue('--candidate-drops');
   if (!state || !candidateFile) throw new Error('Usage: build-state-canary-preview --state=<STATE> --candidate-drops=<site-drop-json>');
   const payload = await readJson(path.resolve(candidateFile), []);
+  if (!Number.isFinite(Date.parse(String(payload?.generatedAt || '')))) throw new Error('Candidate preview payload requires a valid generatedAt timestamp.');
   const candidateDrops = asArray(payload?.drops || payload);
   const lifecycleConfig = await readJson(path.resolve(argValue('--config') || path.join('..', 'src', 'config', 'state-lifecycle.json')), null);
-  const result = await buildStateCanaryPreview({ state, candidateDrops, lifecycleConfig, siteDir: path.resolve(argValue('--site-dir') || path.join('out', 'site')), outDir: path.resolve(argValue('--out-dir') || path.join('out', 'canary', state, 'site')) });
+  const result = await buildStateCanaryPreview({ state, candidateDrops, candidateGeneratedAt: payload.generatedAt, lifecycleConfig, siteDir: path.resolve(argValue('--site-dir') || path.join('out', 'site')), outDir: path.resolve(argValue('--out-dir') || path.join('out', 'canary', state, 'site')) });
   console.log(JSON.stringify({ state, outDir: result.outDir, alertsDisabled: true, productionSnapshotTouched: false, productionDeploymentEnabled: false }, null, 2));
 }
 

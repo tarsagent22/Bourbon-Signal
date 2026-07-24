@@ -5,6 +5,7 @@ import path from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { validateStateVerticalSliceManifest } from './state-vertical-slice-contract.mjs';
 import { validateStateFixtures } from './verify-state-fixtures.mjs';
+import { isMetroRetailerInventory } from './metro-retailer-policy.mjs';
 
 function object(value) { return value && typeof value === 'object' && !Array.isArray(value); }
 function asArray(value) { return Array.isArray(value) ? value : []; }
@@ -12,6 +13,18 @@ function stateOf(row) { return String(row?.state || row?.state_code || '').trim(
 function hasText(value) { return typeof value === 'string' && value.trim().length > 0; }
 function timePresent(row) {
   return ['observedAt', 'displayAt', 'eventAt', 'firstSeenAt', 'lastConfirmedAt', 'timestamp'].some((key) => Number.isFinite(Date.parse(String(row?.[key] || ''))));
+}
+
+export function verifyMetroCanaryRows({ state, rows, generatedAt }) {
+  const failures = [];
+  const generatedMs = Date.parse(String(generatedAt || ''));
+  if (!Number.isFinite(generatedMs)) failures.push(`${state}: canary preview is missing a valid candidate generation timestamp.`);
+  for (const row of asArray(rows).filter((candidate) => candidate?.canAlertAsInventory === true)) {
+    if (!isMetroRetailerInventory(row)) failures.push(`${state}: canary inventory row fails the production metro identity, premises, pickup, or source policy.`);
+    const observedMs = Date.parse(String(row.observedAt || ''));
+    if (!Number.isFinite(observedMs) || !Number.isFinite(generatedMs) || observedMs > generatedMs + 15 * 60_000 || generatedMs - observedMs > 4 * 60 * 60_000) failures.push(`${state}: canary inventory row is stale or future-dated relative to the candidate artifact.`);
+  }
+  return failures;
 }
 
 export function verifyStateExportIntegrity({ state, lifecycle, stateDrops, drops, alerts }) {
@@ -115,6 +128,9 @@ export function verifyStateIntegration({ state, config, manifest, fixtures, site
   if (!asArray(site?.stats?.stateCoverage?.states).some((entry) => stateOf(entry) === normalized)) failures.push(`${normalized}: monitoring state coverage is missing.`);
   if (partition && stateDrops && Number(partition.count) !== Number(stateDrops.count)) failures.push(`${normalized}: partition index count does not match payload.`);
   if (stateDrops) failures.push(...verifyStateExportIntegrity({ state: normalized, lifecycle, stateDrops, drops: site?.drops, alerts: site?.alerts }).failures);
+  if ((normalized === 'NY' || normalized === 'CO') && site?.previewPolicy?.mode === 'canary_preview') {
+    failures.push(...verifyMetroCanaryRows({ state: normalized, rows: stateDrops?.drops, generatedAt: site.previewPolicy.generatedAt }));
+  }
 
   const locations = asArray(site?.locations?.locations || site?.locations?.stores);
   const hasFinderIdentity = locations.some((row) => stateOf(row) === normalized && (hasText(row.address) || hasText(row.storeAddress) || hasText(row.id) || hasText(row.storeId)));
@@ -144,6 +160,7 @@ async function loadSite(siteDir, state) {
     drops: await readJson(path.join(siteDir, 'drops.json'), { drops: [] }),
     alerts: await readJson(path.join(siteDir, 'alerts.json'), { alerts: [] }),
     locations: await readJson(path.join(siteDir, 'locations.json'), { locations: [] }),
+    previewPolicy: await readJson(path.join(siteDir, 'canary-preview-policy.json'), null),
     stateIndex,
     stateDrops: partition ? { [state]: await readJson(path.join(siteDir, partition.file), null) } : {},
   };
