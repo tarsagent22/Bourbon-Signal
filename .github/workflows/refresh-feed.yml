@@ -111,6 +111,7 @@ jobs:
         run: npm run verify:site
 
       - name: Verify Georgia private-retailer release gate
+        if: ${{ !inputs.states || contains(inputs.states, 'GA') }}
         working-directory: engine
         run: npm run verify:ga
 
