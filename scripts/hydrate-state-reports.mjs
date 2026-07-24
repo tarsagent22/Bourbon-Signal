@@ -10,6 +10,11 @@ const execFileAsync = promisify(execFile);
 const ROOT = process.cwd();
 const STATE_DIR = path.resolve(process.env.BOURBON_SIGNAL_STATE_REPORT_DIR || path.join(ROOT, 'engine/out/states'));
 const ACTIVE_STATES = [...CUSTOMER_ACTIVE_STATE_IDS].sort();
+export function statesRequiredForHydration(activeStates = ACTIVE_STATES, targetedStates = process.env.BOURBON_SIGNAL_RUN_STATES || '') {
+  const targeted = new Set(String(targetedStates).split(',').map((value) => value.trim().toUpperCase()).filter(Boolean));
+  return [...activeStates].filter((state) => !targeted.has(state)).sort();
+}
+const REQUIRED_STATES = statesRequiredForHydration();
 const PRODUCTION_BRANCH = process.env.BOURBON_SIGNAL_PRODUCTION_BRANCH || 'main';
 
 async function readJson(file) {
@@ -34,7 +39,7 @@ export async function validateStateReportDirectory(directory, activeStates = ACT
 }
 
 async function currentReportsComplete() {
-  return validateStateReportDirectory(STATE_DIR);
+  return validateStateReportDirectory(STATE_DIR, REQUIRED_STATES);
 }
 
 export function selectTrustedRuns(runs, productionBranch = PRODUCTION_BRANCH) {
@@ -58,7 +63,7 @@ async function downloadRunArtifact(runId, destination) {
 async function main() {
   const current = await currentReportsComplete();
   if (current.ok) {
-    console.log(`State report hydration not needed: ${ACTIVE_STATES.length} active reports are complete.`);
+    console.log(`State report hydration not needed: ${REQUIRED_STATES.length} non-target active reports are complete.`);
     return;
   }
 
@@ -76,16 +81,16 @@ async function main() {
       try {
         await downloadRunArtifact(run.databaseId, destination);
         const candidate = path.join(destination, 'states');
-        const validation = await validateStateReportDirectory(candidate);
+        const validation = await validateStateReportDirectory(candidate, REQUIRED_STATES);
         if (!validation.ok) {
           attempts.push(`${run.databaseId}: ${validation.failures.slice(0, 3).join('; ')}`);
           continue;
         }
         await mkdir(STATE_DIR, { recursive: true });
-        for (const state of ACTIVE_STATES) {
+        for (const state of REQUIRED_STATES) {
           await cp(path.join(candidate, `${state}.json`), path.join(STATE_DIR, `${state}.json`), { force: true });
         }
-        console.log(`Hydrated ${ACTIVE_STATES.length} active state reports from successful refresh ${run.databaseId} (${run.createdAt}, ${run.headBranch}).`);
+        console.log(`Hydrated ${REQUIRED_STATES.length} non-target active state reports from successful refresh ${run.databaseId} (${run.createdAt}, ${run.headBranch}).`);
         return;
       } catch (error) {
         attempts.push(`${run.databaseId}: ${error.message}`);
