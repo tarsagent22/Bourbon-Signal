@@ -159,7 +159,7 @@ test('New York and Colorado are runner-routed metro inventory states with conser
     assert.equal(lifecycle.refinementLevel, 'city');
     assert.deepEqual(lifecycle.areaOptions, [area]);
     assert.ok(ALL_STATE_SOURCES.some((source) => source.id === state && source.sources.length >= 3));
-    assert.equal(legacyPrecisionRuntimeOptions(state).schedule, undefined);
+    assert.equal(legacyPrecisionRuntimeOptions(state, {}, {}).schedule, undefined);
     const result = await collectPrecisionProbes({ id: state, sources: [] }, { match: () => ({ record: null }) }, [], { sourceRunnerOptions: { run: async () => ({ signals: [], roadblocks: [] }) } });
     assert.ok(result && Array.isArray(result.signals) && Array.isArray(result.roadblocks));
   }

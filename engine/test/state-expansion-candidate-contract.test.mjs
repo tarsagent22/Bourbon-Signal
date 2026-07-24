@@ -22,8 +22,8 @@ test('national candidate registry gives every state an explicit lifecycle record
   assert.ok(registry.scopedControlMarkets.some((market) => market.id === 'MD-MONTGOMERY'));
   assert.equal(registry.states.find((state) => state.state === 'OR').lifecycleStage, 'discovery');
   assert.equal(registry.states.find((state) => state.state === 'NH').lifecycleStage, 'discovery');
-  assert.equal(registry.states.find((state) => state.state === 'CO').lifecycleStage, 'canary');
-  assert.equal(registry.states.find((state) => state.state === 'NY').lifecycleStage, 'canary');
+  assert.equal(registry.states.find((state) => state.state === 'CO').lifecycleStage, 'active');
+  assert.equal(registry.states.find((state) => state.state === 'NY').lifecycleStage, 'active');
 });
 
 test('candidate contract rejects missing fields, implicit states, and discovery records marked customer-active', () => {

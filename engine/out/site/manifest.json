@@ -284,6 +284,11 @@
       "count": 20
     },
     {
+      "state": "CO",
+      "file": "states/CO/drops.json",
+      "count": 0
+    },
+    {
       "state": "FL",
       "file": "states/FL/drops.json",
       "count": 28
@@ -347,6 +352,11 @@
       "state": "NV",
       "file": "states/NV/drops.json",
       "count": 22
+    },
+    {
+      "state": "NY",
+      "file": "states/NY/drops.json",
+      "count": 0
     },
     {
       "state": "OH",

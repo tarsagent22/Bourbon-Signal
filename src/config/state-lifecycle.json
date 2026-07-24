@@ -24,7 +24,9 @@
     "NV",
     "WA",
     "WI",
-    "UT"
+    "UT",
+    "NY",
+    "CO"
   ],
   "reliabilityPolicy": {
     "schemaVersion": 1,
@@ -391,13 +393,109 @@
       "areaOptions": [
         "Denver Metro"
       ],
-      "publicStatus": "shadow",
+      "publicStatus": "active",
       "lifecycle": "retailer_store_inventory",
       "coverageTier": "live_store_inventory",
       "refinementLevel": "city",
       "customerSummary": "Verified first-party retailer store inventory in Denver Metro, currently limited to Denver, Lakeside, Westminster, and Greenwood Village signals. This metro-scoped coverage does not imply statewide Colorado availability; verify before driving.",
-      "promotionStage": "canary",
-      "shadowEligible": true
+      "promotionStage": "active",
+      "shadowEligible": true,
+      "promotionEvidence": {
+        "shadowRuns": 3,
+        "canaryRuns": 2,
+        "verifiedAt": "2026-07-24T04:26:32.371Z",
+        "shadowArtifact": "engine/data/state-evidence/CO/shadow-runs.json",
+        "canaryArtifact": "engine/data/state-evidence/CO/canary-runs.json",
+        "canaryPreviewUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/30066728049",
+        "verticalSliceManifest": "engine/data/state-integration/CO.json",
+        "fixtureContract": "engine/data/state-fixtures/CO.json",
+        "immutableEvidence": {
+          "schemaVersion": 1,
+          "state": "CO",
+          "generatedAt": "2026-07-24T04:26:22.872Z",
+          "sourceConfigHash": "8da37e44f93fbec7c3cf86cbfa33e78f4b092134d7416dd0cd6bd6ad6c84456b",
+          "previewUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/30066728049",
+          "shadowRuns": [
+            {
+              "runId": "local-shadow-co-1",
+              "status": "success",
+              "generatedAt": "2026-07-24T03:12:27.082751Z",
+              "artifactPath": "out/shadow/CO/local-evidence/report-1.json",
+              "artifactHash": "787571f238aaee104ae0160b0b1071119c23b9cb14d3e73e37f10b84c15fc77f",
+              "signalCount": 18,
+              "sourceChains": [
+                "bonnie-brae-liquor",
+                "mollys-spirits",
+                "total-beverage"
+              ],
+              "roadblockCount": 0,
+              "alertsDisabled": true,
+              "productionSnapshotTouched": false
+            },
+            {
+              "runId": "local-shadow-co-2",
+              "status": "success",
+              "generatedAt": "2026-07-24T03:12:30.680259Z",
+              "artifactPath": "out/shadow/CO/local-evidence/report-2.json",
+              "artifactHash": "ba363c4766de7880c84bcbd386b2bfc50c8138222c539635fa353b81a9044e59",
+              "signalCount": 18,
+              "sourceChains": [
+                "bonnie-brae-liquor",
+                "mollys-spirits",
+                "total-beverage"
+              ],
+              "roadblockCount": 0,
+              "alertsDisabled": true,
+              "productionSnapshotTouched": false
+            },
+            {
+              "runId": "local-shadow-co-3",
+              "status": "success",
+              "generatedAt": "2026-07-24T03:12:34.055961Z",
+              "artifactPath": "out/shadow/CO/local-evidence/report-3.json",
+              "artifactHash": "410b0b8e3de41cde19219a4581033553606b2ccace1178fc9200791b576081bf",
+              "signalCount": 18,
+              "sourceChains": [
+                "bonnie-brae-liquor",
+                "mollys-spirits",
+                "total-beverage"
+              ],
+              "roadblockCount": 0,
+              "alertsDisabled": true,
+              "productionSnapshotTouched": false
+            }
+          ],
+          "canaryRuns": [
+            {
+              "runId": "local-canary-v2-co-1",
+              "status": "success",
+              "generatedAt": "2026-07-24T04:23:19.632762Z",
+              "artifactHash": "f0cdbe330d2d77869e0c3fd761d6eeb2c44306fba7efd7a7869524bbf6584922"
+            },
+            {
+              "runId": "local-canary-v2-co-2",
+              "status": "success",
+              "generatedAt": "2026-07-24T04:23:20.159223Z",
+              "artifactHash": "214088eb8f52f02f13bbdcca5fa0f2159921592b63ff93b01b7a1aea8de43869"
+            }
+          ],
+          "provenance": {
+            "status": "success",
+            "repository": "tarsagent22/Bourbon-Signal",
+            "workflowFile": ".github/workflows/state-promotion-provenance.yml",
+            "workflowName": "Verify state promotion provenance",
+            "workflowRunId": "30066728049",
+            "workflowRunAttempt": "1",
+            "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/30066728049",
+            "commitSha": "f9c56d3f1e57713a02388db9463346f9ce4ab6da",
+            "artifactId": "8586511325",
+            "artifactName": "state-promotion-provenance-CO-30066728049",
+            "artifactDigest": "5a4bf35bd32ed02edcc1c3a429651078b37693221a874d5aa977ead56ebf12d7",
+            "bundleDigest": "e19afec3297d977d557296ad6c540221d4ad39098b3e61beb8599a4ed27b1733",
+            "generatedAt": "2026-07-24T04:25:20.421Z"
+          }
+        }
+      }
     },
     "MI": {
       "customerLabel": "Michigan",
@@ -435,9 +533,9 @@
       "refinementLevel": "area",
       "areaOptions": [
         "Las Vegas Valley",
-        "Reno\u2013Sparks"
+        "Reno–Sparks"
       ],
-      "customerSummary": "First-party retailer store availability and pickup orderability across Las Vegas Valley and Reno\u2013Sparks. Binary availability is not an exact shelf count; verify before driving. Costco remains a separate warehouse watch lane."
+      "customerSummary": "First-party retailer store availability and pickup orderability across Las Vegas Valley and Reno–Sparks. Binary availability is not an exact shelf count; verify before driving. Costco remains a separate warehouse watch lane."
     },
     "NY": {
       "customerLabel": "New York",
@@ -446,13 +544,109 @@
       "areaOptions": [
         "New York City"
       ],
-      "publicStatus": "shadow",
+      "publicStatus": "active",
       "lifecycle": "retailer_store_inventory",
       "coverageTier": "live_store_inventory",
       "refinementLevel": "city",
       "customerSummary": "Verified first-party retailer store inventory in New York City, limited to New York, Manhattan, Brooklyn, Queens, Bronx, and Staten Island location signals. This metro-scoped coverage does not imply statewide New York availability; verify before driving.",
-      "promotionStage": "canary",
-      "shadowEligible": true
+      "promotionStage": "active",
+      "shadowEligible": true,
+      "promotionEvidence": {
+        "shadowRuns": 3,
+        "canaryRuns": 2,
+        "verifiedAt": "2026-07-24T04:26:31.660Z",
+        "shadowArtifact": "engine/data/state-evidence/NY/shadow-runs.json",
+        "canaryArtifact": "engine/data/state-evidence/NY/canary-runs.json",
+        "canaryPreviewUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/30066726123",
+        "verticalSliceManifest": "engine/data/state-integration/NY.json",
+        "fixtureContract": "engine/data/state-fixtures/NY.json",
+        "immutableEvidence": {
+          "schemaVersion": 1,
+          "state": "NY",
+          "generatedAt": "2026-07-24T04:26:22.870Z",
+          "sourceConfigHash": "ef15a51a0ba26e8e810945d0d0661107b130473abfb023aa08891a98c6e91287",
+          "previewUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/30066726123",
+          "shadowRuns": [
+            {
+              "runId": "local-shadow-ny-1",
+              "status": "success",
+              "generatedAt": "2026-07-24T03:12:13.840404Z",
+              "artifactPath": "out/shadow/NY/local-evidence/report-1.json",
+              "artifactHash": "12646ea166f6573700701e23f25947c48e68b008ed49ad94f98add45cd6ce3a3",
+              "signalCount": 11,
+              "sourceChains": [
+                "broadway-spirits",
+                "cellar-53",
+                "flatiron-wines"
+              ],
+              "roadblockCount": 0,
+              "alertsDisabled": true,
+              "productionSnapshotTouched": false
+            },
+            {
+              "runId": "local-shadow-ny-2",
+              "status": "success",
+              "generatedAt": "2026-07-24T03:12:19.181839Z",
+              "artifactPath": "out/shadow/NY/local-evidence/report-2.json",
+              "artifactHash": "2df45c6f590b51b1053bdddc0cde11ca0e0f5947a2b6eae8f339c34ab4b460b3",
+              "signalCount": 11,
+              "sourceChains": [
+                "broadway-spirits",
+                "cellar-53",
+                "flatiron-wines"
+              ],
+              "roadblockCount": 0,
+              "alertsDisabled": true,
+              "productionSnapshotTouched": false
+            },
+            {
+              "runId": "local-shadow-ny-3",
+              "status": "success",
+              "generatedAt": "2026-07-24T03:12:23.568513Z",
+              "artifactPath": "out/shadow/NY/local-evidence/report-3.json",
+              "artifactHash": "28fcc26fd47be8e4f44f1c117a594a8e425ffb52500034ae432c6227a584d1cd",
+              "signalCount": 11,
+              "sourceChains": [
+                "broadway-spirits",
+                "cellar-53",
+                "flatiron-wines"
+              ],
+              "roadblockCount": 0,
+              "alertsDisabled": true,
+              "productionSnapshotTouched": false
+            }
+          ],
+          "canaryRuns": [
+            {
+              "runId": "local-canary-v2-ny-1",
+              "status": "success",
+              "generatedAt": "2026-07-24T04:23:18.583232Z",
+              "artifactHash": "e90e53439c5d1302791a68b28b0648dc14405cdc1d8435191cf0af1919609c19"
+            },
+            {
+              "runId": "local-canary-v2-ny-2",
+              "status": "success",
+              "generatedAt": "2026-07-24T04:23:19.106600Z",
+              "artifactHash": "273a03c7b9a7504a93364cf885fc14f677b9b5534668d7dd8c747ba1d259bbd1"
+            }
+          ],
+          "provenance": {
+            "status": "success",
+            "repository": "tarsagent22/Bourbon-Signal",
+            "workflowFile": ".github/workflows/state-promotion-provenance.yml",
+            "workflowName": "Verify state promotion provenance",
+            "workflowRunId": "30066726123",
+            "workflowRunAttempt": "1",
+            "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/30066726123",
+            "commitSha": "f9c56d3f1e57713a02388db9463346f9ce4ab6da",
+            "artifactId": "8586510183",
+            "artifactName": "state-promotion-provenance-NY-30066726123",
+            "artifactDigest": "9b9a682f5de75ef9cbc93aab1bb9fa53c05ecb8843bbd378ec093d4299b94f25",
+            "bundleDigest": "e38611db1312c093dc8819a5290bb7d5b2006d43c25f2b2a04b356d6c15fb1f8",
+            "generatedAt": "2026-07-24T04:25:15.768Z"
+          }
+        }
+      }
     },
     "WA": {
       "customerLabel": "Washington",

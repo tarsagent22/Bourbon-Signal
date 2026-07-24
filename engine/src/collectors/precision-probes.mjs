@@ -6731,10 +6731,12 @@ async function collectMetroRetailers(config, bible, options = {}) {
 
   const observedAt = new Date().toISOString();
   const cache = await readMetroRetailerCache(config.id);
+  const eligibleSourceIds = new Set(sources.map((source) => source.id));
+  const eligibleCachedSignals = cachedMetroRetailerSignals(cache).filter((cachedSignal) => eligibleSourceIds.has(cachedSignal.sourceChain));
   const forceLive = process.env[`BOURBON_SIGNAL_${config.id}_FORCE_METRO_LIVE`] === '1';
   if (cache && !forceLive) {
     return {
-      signals: cachedMetroRetailerSignals(cache),
+      signals: eligibleCachedSignals,
       roadblocks: [
         ...(cache.roadblocks || []),
         {
@@ -6742,7 +6744,7 @@ async function collectMetroRetailers(config, bible, options = {}) {
           source: `${config.id} metro retailer cache reuse`,
           url: cache.artifactPath,
           status: 'fresh_cache_reuse',
-          error: `Using ${cache.signals.length} identity-validated rows with their original observation timestamps from ${cache.generatedAt}.`,
+          error: `Using ${eligibleCachedSignals.length} currently eligible identity-validated rows with their original observation timestamps from ${cache.generatedAt}.`,
           nextRoute: `Set BOURBON_SIGNAL_${config.id}_FORCE_METRO_LIVE=1 only for a bounded scheduled or maintenance refresh.`,
         },
       ],
@@ -6800,7 +6802,7 @@ async function collectMetroRetailers(config, bible, options = {}) {
     });
   }
 
-  const cachedSignals = cachedMetroRetailerSignals(cache);
+  const cachedSignals = eligibleCachedSignals;
   const signals = mergeMetroSourceCacheSignals(liveSignals, cachedSignals, completedSourceIds);
   const retainedSourceChains = new Set(signals
     .filter((signal) => !completedSourceIds.has(signal.sourceChain))
@@ -7370,6 +7372,21 @@ export function legacyPrecisionRuntimeOptions(stateId, sourceRunnerOptions = {},
   };
 }
 
+function eligibleMetroPreviousPrecisionResults(previousResults, stateId) {
+  if (!['NY', 'CO'].includes(stateId) || !previousResults || typeof previousResults !== 'object') return previousResults;
+  const eligible = new Set(configuredMetroSources({ id: stateId }).filter((source) => source.inventoryEligible === true).map((source) => source.id));
+  return Object.fromEntries(Object.entries(previousResults).map(([key, result]) => {
+    const previousSignals = Array.isArray(result?.value?.signals) ? result.value.signals : [];
+    return [key, {
+      ...result,
+      value: {
+        ...(result?.value || {}),
+        signals: previousSignals.filter((signal) => eligible.has(signal.sourceChain)),
+      },
+    }];
+  }));
+}
+
 export async function collectPrecisionProbes(config, bible, existingSignals = [], options = {}) {
   if (config.id === 'CA') return collectCalifornia(config, bible, options);
   if (!LEGACY_PRECISION_RUNTIME_STATES.has(config.id)) {
@@ -7382,7 +7399,7 @@ export async function collectPrecisionProbes(config, bible, existingSignals = []
     label: `${config.label} precision collector`,
     url: precisionRuntimeUrl(config),
     collect: ({ signal }) => collectPrecisionProbesDirect(config, bible, existingSignals, { ...options, signal }),
-    previousResults: options.previousSourceResults,
+    previousResults: eligibleMetroPreviousPrecisionResults(options.previousSourceResults, config.id),
     circuitBreaker: options.sourceCircuitBreaker,
     sourceRunnerOptions: legacyPrecisionRuntimeOptions(config.id, sourceRunnerOptions),
   });

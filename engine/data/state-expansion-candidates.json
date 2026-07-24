@@ -149,7 +149,7 @@
       "targetScopes": [
         "Denver Metro"
       ],
-      "lifecycleStage": "canary",
+      "lifecycleStage": "active",
       "sourceClassesSought": [
         "retailer_storefront",
         "public_platform_surface",
@@ -878,7 +878,7 @@
       "targetScopes": [
         "New York City"
       ],
-      "lifecycleStage": "canary",
+      "lifecycleStage": "active",
       "sourceClassesSought": [
         "retailer_storefront",
         "public_platform_surface",

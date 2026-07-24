@@ -81,6 +81,92 @@
       "url": null,
       "assertion": "This manifest documents implemented engine contracts only and does not claim production deployment.",
       "reason": "Production promotion and website wiring were outside the authorized engine-only scope."
+    },
+    "immutablePromotionEvidence": {
+      "schemaVersion": 1,
+      "state": "CO",
+      "generatedAt": "2026-07-24T04:26:22.872Z",
+      "sourceConfigHash": "8da37e44f93fbec7c3cf86cbfa33e78f4b092134d7416dd0cd6bd6ad6c84456b",
+      "previewUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/30066728049",
+      "shadowRuns": [
+        {
+          "runId": "local-shadow-co-1",
+          "status": "success",
+          "generatedAt": "2026-07-24T03:12:27.082751Z",
+          "artifactPath": "out/shadow/CO/local-evidence/report-1.json",
+          "artifactHash": "787571f238aaee104ae0160b0b1071119c23b9cb14d3e73e37f10b84c15fc77f",
+          "signalCount": 18,
+          "sourceChains": [
+            "bonnie-brae-liquor",
+            "mollys-spirits",
+            "total-beverage"
+          ],
+          "roadblockCount": 0,
+          "alertsDisabled": true,
+          "productionSnapshotTouched": false
+        },
+        {
+          "runId": "local-shadow-co-2",
+          "status": "success",
+          "generatedAt": "2026-07-24T03:12:30.680259Z",
+          "artifactPath": "out/shadow/CO/local-evidence/report-2.json",
+          "artifactHash": "ba363c4766de7880c84bcbd386b2bfc50c8138222c539635fa353b81a9044e59",
+          "signalCount": 18,
+          "sourceChains": [
+            "bonnie-brae-liquor",
+            "mollys-spirits",
+            "total-beverage"
+          ],
+          "roadblockCount": 0,
+          "alertsDisabled": true,
+          "productionSnapshotTouched": false
+        },
+        {
+          "runId": "local-shadow-co-3",
+          "status": "success",
+          "generatedAt": "2026-07-24T03:12:34.055961Z",
+          "artifactPath": "out/shadow/CO/local-evidence/report-3.json",
+          "artifactHash": "410b0b8e3de41cde19219a4581033553606b2ccace1178fc9200791b576081bf",
+          "signalCount": 18,
+          "sourceChains": [
+            "bonnie-brae-liquor",
+            "mollys-spirits",
+            "total-beverage"
+          ],
+          "roadblockCount": 0,
+          "alertsDisabled": true,
+          "productionSnapshotTouched": false
+        }
+      ],
+      "canaryRuns": [
+        {
+          "runId": "local-canary-v2-co-1",
+          "status": "success",
+          "generatedAt": "2026-07-24T04:23:19.632762Z",
+          "artifactHash": "f0cdbe330d2d77869e0c3fd761d6eeb2c44306fba7efd7a7869524bbf6584922"
+        },
+        {
+          "runId": "local-canary-v2-co-2",
+          "status": "success",
+          "generatedAt": "2026-07-24T04:23:20.159223Z",
+          "artifactHash": "214088eb8f52f02f13bbdcca5fa0f2159921592b63ff93b01b7a1aea8de43869"
+        }
+      ],
+      "provenance": {
+        "status": "success",
+        "repository": "tarsagent22/Bourbon-Signal",
+        "workflowFile": ".github/workflows/state-promotion-provenance.yml",
+        "workflowName": "Verify state promotion provenance",
+        "workflowRunId": "30066728049",
+        "workflowRunAttempt": "1",
+        "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/30066728049",
+        "commitSha": "f9c56d3f1e57713a02388db9463346f9ce4ab6da",
+        "artifactId": "8586511325",
+        "artifactName": "state-promotion-provenance-CO-30066728049",
+        "artifactDigest": "5a4bf35bd32ed02edcc1c3a429651078b37693221a874d5aa977ead56ebf12d7",
+        "bundleDigest": "e19afec3297d977d557296ad6c540221d4ad39098b3e61beb8599a4ed27b1733",
+        "generatedAt": "2026-07-24T04:25:20.421Z"
+      }
     }
   }
 }

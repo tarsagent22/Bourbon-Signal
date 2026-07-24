@@ -81,6 +81,92 @@
       "url": null,
       "assertion": "This manifest documents implemented engine contracts only and does not claim production deployment.",
       "reason": "Production promotion and website wiring were outside the authorized engine-only scope."
+    },
+    "immutablePromotionEvidence": {
+      "schemaVersion": 1,
+      "state": "NY",
+      "generatedAt": "2026-07-24T04:26:22.870Z",
+      "sourceConfigHash": "ef15a51a0ba26e8e810945d0d0661107b130473abfb023aa08891a98c6e91287",
+      "previewUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/30066726123",
+      "shadowRuns": [
+        {
+          "runId": "local-shadow-ny-1",
+          "status": "success",
+          "generatedAt": "2026-07-24T03:12:13.840404Z",
+          "artifactPath": "out/shadow/NY/local-evidence/report-1.json",
+          "artifactHash": "12646ea166f6573700701e23f25947c48e68b008ed49ad94f98add45cd6ce3a3",
+          "signalCount": 11,
+          "sourceChains": [
+            "broadway-spirits",
+            "cellar-53",
+            "flatiron-wines"
+          ],
+          "roadblockCount": 0,
+          "alertsDisabled": true,
+          "productionSnapshotTouched": false
+        },
+        {
+          "runId": "local-shadow-ny-2",
+          "status": "success",
+          "generatedAt": "2026-07-24T03:12:19.181839Z",
+          "artifactPath": "out/shadow/NY/local-evidence/report-2.json",
+          "artifactHash": "2df45c6f590b51b1053bdddc0cde11ca0e0f5947a2b6eae8f339c34ab4b460b3",
+          "signalCount": 11,
+          "sourceChains": [
+            "broadway-spirits",
+            "cellar-53",
+            "flatiron-wines"
+          ],
+          "roadblockCount": 0,
+          "alertsDisabled": true,
+          "productionSnapshotTouched": false
+        },
+        {
+          "runId": "local-shadow-ny-3",
+          "status": "success",
+          "generatedAt": "2026-07-24T03:12:23.568513Z",
+          "artifactPath": "out/shadow/NY/local-evidence/report-3.json",
+          "artifactHash": "28fcc26fd47be8e4f44f1c117a594a8e425ffb52500034ae432c6227a584d1cd",
+          "signalCount": 11,
+          "sourceChains": [
+            "broadway-spirits",
+            "cellar-53",
+            "flatiron-wines"
+          ],
+          "roadblockCount": 0,
+          "alertsDisabled": true,
+          "productionSnapshotTouched": false
+        }
+      ],
+      "canaryRuns": [
+        {
+          "runId": "local-canary-v2-ny-1",
+          "status": "success",
+          "generatedAt": "2026-07-24T04:23:18.583232Z",
+          "artifactHash": "e90e53439c5d1302791a68b28b0648dc14405cdc1d8435191cf0af1919609c19"
+        },
+        {
+          "runId": "local-canary-v2-ny-2",
+          "status": "success",
+          "generatedAt": "2026-07-24T04:23:19.106600Z",
+          "artifactHash": "273a03c7b9a7504a93364cf885fc14f677b9b5534668d7dd8c747ba1d259bbd1"
+        }
+      ],
+      "provenance": {
+        "status": "success",
+        "repository": "tarsagent22/Bourbon-Signal",
+        "workflowFile": ".github/workflows/state-promotion-provenance.yml",
+        "workflowName": "Verify state promotion provenance",
+        "workflowRunId": "30066726123",
+        "workflowRunAttempt": "1",
+        "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/30066726123",
+        "commitSha": "f9c56d3f1e57713a02388db9463346f9ce4ab6da",
+        "artifactId": "8586510183",
+        "artifactName": "state-promotion-provenance-NY-30066726123",
+        "artifactDigest": "9b9a682f5de75ef9cbc93aab1bb9fa53c05ecb8843bbd378ec093d4299b94f25",
+        "bundleDigest": "e38611db1312c093dc8819a5290bb7d5b2006d43c25f2b2a04b356d6c15fb1f8",
+        "generatedAt": "2026-07-24T04:25:15.768Z"
+      }
     }
   }
 }

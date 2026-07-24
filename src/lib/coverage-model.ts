@@ -394,14 +394,19 @@ function stateAreas(
   stores: readonly StoreRecord[],
 ) {
   const values = new Map<string, string>();
-  for (const value of [
-    lifecycleEntry?.customerAreaLabel,
+  const configuredAreas = [
     ...(lifecycleEntry?.areaOptions || []),
-    row?.customerAreaLabel,
     ...(row?.areaOptions || []),
-    ...locations.flatMap((location) => [location.city, location.county]),
-    ...stores.flatMap((store) => [store.city, store.county]),
-  ]) {
+  ].map((value) => cleanText(value, 120)).filter((value): value is string => Boolean(value));
+  const candidateAreas = configuredAreas.length
+    ? configuredAreas
+    : [
+        lifecycleEntry?.customerAreaLabel,
+        row?.customerAreaLabel,
+        ...locations.flatMap((location) => [location.city, location.county]),
+        ...stores.flatMap((store) => [store.city, store.county]),
+      ];
+  for (const value of candidateAreas) {
     const cleaned = cleanText(value, 120);
     if (!cleaned) continue;
     const key = coverageTargetToken(cleaned).replace(/-county$/, "");
@@ -427,10 +432,13 @@ function visibilityCopy(
     return {
       canSee: ["Current source-backed store monitoring at the precision stated above."],
       cannotSee: [
+        /does not imply statewide|metro-scoped/i.test(summary)
+          ? "Statewide coverage outside the configured metro area is not implied."
+          : null,
         /board/i.test(summary)
           ? "Board and warehouse leads are not exact shelf inventory unless an exact store source supports them."
           : "A monitored store is not a shelf guarantee; retailer availability can move quickly, so verify before driving.",
-      ],
+      ].filter((value): value is string => Boolean(value)),
     };
   }
   if (coverageTier === "store_availability_status") {
