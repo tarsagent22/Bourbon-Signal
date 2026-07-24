@@ -70,6 +70,10 @@ jobs:
           CANDIDATE_DROPS: ${{ steps.validate.outputs.candidate_drops }}
         run: npm run canary:state -- --state="$STATE" --candidate-drops="$CANDIDATE_DROPS" --out-dir="out/canary/$STATE/site"
 
+      - name: Build bourbon bible for executable fixtures
+        working-directory: engine
+        run: npm run bible
+
       - name: Verify candidate golden fixture contract
         working-directory: engine
         env:
