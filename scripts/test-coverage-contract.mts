@@ -21,6 +21,9 @@ const locationsPayload = JSON.parse(readFileSync(new URL("../engine/out/site/loc
 const storesPayload = JSON.parse(readFileSync(new URL("../engine/out/site/stores.json", import.meta.url), "utf8")) as {
   stores?: CoverageStoreInput[];
 };
+const ncIntelligencePayload = JSON.parse(readFileSync(new URL("../engine/out/site/nc-intelligence.json", import.meta.url), "utf8")) as {
+  boards?: Array<{ boardName?: string }>;
+};
 
 const contract = buildCoverageContract({
   lifecycle: STATE_LIFECYCLE_CONFIG,
@@ -80,6 +83,26 @@ assert.equal(northCarolina.capability, "active", "broad board leads plus selecte
 assert.ok(northCarolina.layers.live < northCarolina.layers.known, "NC store-locator records stay separate from monitored inventory stores");
 assert.match(northCarolina.summary, /board/i);
 assert.match(northCarolina.cannotSee.join(" "), /board.*(?:not|isn.t).*exact|not.*exact.*board/i);
+
+const coverageSearchInputs = {
+  lifecycle: STATE_LIFECYCLE_CONFIG,
+  stateRows: statsPayload.stateCoverage?.states || [],
+  locations: locationsPayload.locations || [],
+  stores: storesPayload.stores || [],
+};
+for (const boardName of new Set((ncIntelligencePayload.boards || []).map((board) => board.boardName).filter((name): name is string => Boolean(name)))) {
+  const results = searchCoverageTargets({ ...coverageSearchInputs, stateCode: "NC", query: boardName, limit: 20 });
+  assert.ok(results.some((result) => result.label === boardName && result.kind === "city"), `${boardName} must be findable as an NC board/area target`);
+}
+for (const area of northCarolina.areas) {
+  const results = searchCoverageTargets({ ...coverageSearchInputs, stateCode: "NC", query: area, limit: 20 });
+  assert.ok(results.some((result) => result.kind !== "unknown"), `${area} must be findable as a represented NC area`);
+}
+for (const location of (locationsPayload.locations || []).filter((entry) => entry.state === "NC" && (entry.type === "store" || entry.locationType === "store") && entry.searchable !== false)) {
+  const query = location.address || [location.name, location.city].filter(Boolean).join(" ");
+  const results = searchCoverageTargets({ ...coverageSearchInputs, stateCode: "NC", query, limit: 20 });
+  assert.ok(results.some((result) => result.kind === "store" && result.storeId === location.id), `${location.name || location.id} must be findable as an NC store target`);
+}
 
 const iowa = contract.states.find((state) => state.code === "IA");
 assert.ok(iowa);

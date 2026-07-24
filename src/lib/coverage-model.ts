@@ -628,9 +628,15 @@ export function searchCoverageTargets(args: {
   const results: CoverageSearchResult[] = [];
 
   const cityNames = new Set<string>();
+  const searchableAreaLocations = locations.filter((location) => location.searchable !== false && !isStoreLocation(location));
   for (const value of [
     ...(lifecycleEntry?.areaOptions || []),
     ...searchableRecords.flatMap((record) => [record.city, record.county]),
+    ...searchableAreaLocations.flatMap((location) => [
+      location.city,
+      location.county,
+      /board/i.test(String(location.type || location.locationType || "")) ? location.name : null,
+    ]),
   ]) {
     const label = cleanText(value, 120);
     if (label && coverageTargetToken(label).includes(queryToken)) cityNames.add(label);
@@ -640,11 +646,20 @@ export function searchCoverageTargets(args: {
     const cityStores = searchableRecords.filter((record) => (
       coverageTargetToken(record.city) === cityToken || coverageTargetToken(record.county) === cityToken
     ));
+    const areaLocations = searchableAreaLocations.filter((location) => [location.name, location.city, location.county]
+      .some((value) => coverageTargetToken(value) === cityToken));
     const monitored = sourceAvailable ? cityStores.filter((record) => record.monitoringAttached).length : 0;
+    const monitoredArea = sourceAvailable && areaLocations.some((location) => location.collectorAttached === true || location.hasSignals === true);
+    const boardOrAggregateArea = areaLocations.some((location) => /board|area|aggregate|warehouse|catalog/i.test([
+      location.type,
+      location.locationType,
+      location.precision,
+      location.inventoryCapability,
+    ].filter(Boolean).join(" ")));
     const stateTier = cleanText(row?.coverageTier || lifecycleEntry?.coverageTier, 80);
     const status: CoverageSearchStatus = monitored === 0
-      ? sourceAvailable && (lifecycleEntry?.areaOptions || []).some((area) => coverageTargetToken(area) === cityToken)
-        ? INTELLIGENCE_TIERS.has(stateTier) || stateTier === "retailer_warehouse_inventory" ? "partially-covered" : "covered"
+      ? sourceAvailable && (monitoredArea || (lifecycleEntry?.areaOptions || []).some((area) => coverageTargetToken(area) === cityToken))
+        ? INTELLIGENCE_TIERS.has(stateTier) || stateTier === "retailer_warehouse_inventory" || boardOrAggregateArea ? "partially-covered" : "covered"
         : "known-not-active"
       : monitored < cityStores.length || INTELLIGENCE_TIERS.has(stateTier) || stateTier === "retailer_warehouse_inventory"
         ? "partially-covered"
