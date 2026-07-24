@@ -1,9 +1,21 @@
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { stableId } from './core/text.mjs';
 
 const OUT_FILE = path.resolve('out/location-bible-official.json');
 const USER_AGENT = 'BourbonSignalLocationBible/0.1 (+https://bourbonsignal.com)';
+const TARGET_STATES = new Set(String(process.env.BOURBON_SIGNAL_LOCATION_STATES || '')
+  .split(',')
+  .map((state) => state.trim().toUpperCase())
+  .filter(Boolean));
+
+async function readJson(file, fallback) {
+  try { return JSON.parse(await readFile(file, 'utf8')); } catch { return fallback; }
+}
+
+function shouldCollectState(state) {
+  return TARGET_STATES.size === 0 || TARGET_STATES.has(String(state || '').toUpperCase());
+}
 
 const SOURCES = [
   {
@@ -318,34 +330,46 @@ function parseVermontOutlets(text, source) {
 }
 
 async function main() {
-  const all = [];
-  const sourceReports = [];
-  try {
-    const nc = await collectNorthCarolinaOfficialLocations();
-    all.push(...nc.locations);
-    sourceReports.push(nc.report);
-    console.log(`NC_ABC_STORE_LOCATOR: ${nc.locations.length} locations (${nc.report.boards} boards, ${nc.report.failures} failures)`);
-  } catch (error) {
-    sourceReports.push({ id: 'NC_ABC_STORE_LOCATOR', state: 'NC', status: 'failed', error: error.message, sourceUrl: NC_STORE_LOCATOR_URL });
-    console.warn(`NC_ABC_STORE_LOCATOR: failed - ${error.message}`);
+  const previous = await readJson(OUT_FILE, { locations: [], sourceReports: [] });
+  const collected = [];
+  const freshReports = [];
+  if (shouldCollectState('NC')) {
+    try {
+      const nc = await collectNorthCarolinaOfficialLocations();
+      collected.push(...nc.locations);
+      freshReports.push(nc.report);
+      console.log(`NC_ABC_STORE_LOCATOR: ${nc.locations.length} locations (${nc.report.boards} boards, ${nc.report.failures} failures)`);
+    } catch (error) {
+      freshReports.push({ id: 'NC_ABC_STORE_LOCATOR', state: 'NC', status: 'failed', error: error.message, sourceUrl: NC_STORE_LOCATOR_URL });
+      console.warn(`NC_ABC_STORE_LOCATOR: failed - ${error.message}`);
+    }
   }
 
-  for (const source of SOURCES) {
+  for (const source of SOURCES.filter((candidate) => shouldCollectState(candidate.state))) {
     try {
       const text = await fetchText(source.url);
       const records = source.parser(text, source);
-      all.push(...records);
-      sourceReports.push({ id: source.id, state: source.state, status: 'ok', count: records.length, sourceUrl: source.sourceUrl });
+      collected.push(...records);
+      freshReports.push({ id: source.id, state: source.state, status: 'ok', count: records.length, sourceUrl: source.sourceUrl });
       console.log(`${source.id}: ${records.length} locations`);
     } catch (error) {
-      sourceReports.push({ id: source.id, state: source.state, status: 'failed', error: error.message, sourceUrl: source.sourceUrl });
+      freshReports.push({ id: source.id, state: source.state, status: 'failed', error: error.message, sourceUrl: source.sourceUrl });
       console.warn(`${source.id}: failed - ${error.message}`);
     }
   }
 
+  // Directory rows are non-inventory discovery infrastructure. Preserve prior rows
+  // when an official directory is temporarily unavailable, then let successfully
+  // refreshed rows replace matching identities. This prevents a targeted engine
+  // refresh from making known boards, cities, or stores disappear from Finder.
   const byId = new Map();
-  for (const location of all) if (location.id && !byId.has(location.id)) byId.set(location.id, location);
+  for (const location of previous.locations || []) if (location.id) byId.set(location.id, location);
+  for (const location of collected) if (location.id) byId.set(location.id, location);
   const locations = [...byId.values()].sort((a, b) => String(a.state).localeCompare(String(b.state)) || String(a.name).localeCompare(String(b.name)));
+
+  const reportById = new Map((previous.sourceReports || []).map((report) => [report.id, report]));
+  for (const report of freshReports) reportById.set(report.id, report);
+  const sourceReports = [...reportById.values()];
   const payload = { generatedAt: new Date().toISOString(), count: locations.length, sourceReports, locations };
   await mkdir(path.dirname(OUT_FILE), { recursive: true });
   await writeFile(OUT_FILE, JSON.stringify(payload, null, 2));
