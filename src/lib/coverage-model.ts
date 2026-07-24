@@ -151,7 +151,7 @@ const CAPABILITY_LABELS: Record<CoverageCapability, string> = {
   deep: "Deep coverage",
   active: "Active coverage",
   focused: "Focused coverage",
-  intelligence: "Intelligence only",
+  intelligence: "Sparse coverage",
   "not-active": "Not active yet",
 };
 
@@ -330,14 +330,17 @@ function stateCapability(
 ): CoverageCapability {
   if (!currentSource) return "not-active";
   if (coverageTier === "live_store_inventory") {
-    if (lifecycle === "store_inventory" && liveStores >= 25 && representedLiveCities >= 3) return "deep";
-    if (lifecycle === "retailer_store_inventory") {
-      return liveStores >= 10 && representedLiveCities >= 3 ? "active" : "focused";
-    }
-    return liveStores > 0 ? "active" : "focused";
+    if (lifecycle === "store_inventory" && liveStores >= 250 && representedLiveCities >= 25) return "deep";
+    if (liveStores >= 25 && representedLiveCities >= 5) return "active";
+    if (liveStores >= 5 && representedLiveCities >= 2) return "focused";
+    return "intelligence";
   }
-  if (coverageTier === "store_availability_status") return "active";
-  if (coverageTier === "retailer_warehouse_inventory") return "focused";
+  if (coverageTier === "store_availability_status") {
+    if (liveStores >= 25 && representedLiveCities >= 5) return "active";
+    if (liveStores >= 5 && representedLiveCities >= 2) return "focused";
+    return "intelligence";
+  }
+  if (coverageTier === "retailer_warehouse_inventory") return "intelligence";
   if (INTELLIGENCE_TIERS.has(coverageTier)) return "intelligence";
   return "not-active";
 }

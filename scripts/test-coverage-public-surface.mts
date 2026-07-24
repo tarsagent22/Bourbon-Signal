@@ -24,6 +24,7 @@ const explorer = read("src/components/coverage/CoverageExplorer.tsx");
 const map = read("src/components/coverage/CoverageMap.tsx");
 const panel = read("src/components/coverage/CoverageStatePanel.tsx");
 const search = read("src/components/coverage/CoverageSearch.tsx");
+const requestForm = read("src/components/coverage/CoverageRequestForm.tsx");
 const styles = read("src/components/coverage/coverage.module.css");
 const api = read("src/app/api/coverage/route.ts");
 const navigation = read("src/components/Navigation.tsx");
@@ -47,12 +48,15 @@ assert.doesNotMatch(map, /tilePath|TILE_WIDTH|COVERAGE_MAP_CELLS/, "the public v
 assert.doesNotMatch(map + explorer + styles, /mapbox|googleapis|google maps|leaflet|arcgis/i, "no external map service is used");
 
 assert.match(explorer, /router\.replace/, "state selection updates the URL without a full navigation");
+assert.match(explorer, /COVERAGE_REQUEST_DRAFT_KEY[\s\S]*sessionStorage\.removeItem/, "changing map or selector state clears any draft tied to the previous state");
 assert.match(explorer, /coverage_page_viewed/, "coverage page reach uses the privacy-safe event contract");
 assert.match(explorer, /coverage_state_selected/, "state selection uses the privacy-safe event contract");
 assert.match(explorer, /Browse all states/, "a complete text/list fallback accompanies the SVG");
 assert.match(explorer, /capabilityLabel/, "list fallback includes the same coverage text as the map");
 assert.match(explorer, /<h1>Check coverage <em>near you\.<\/em><\/h1>/, "the hero leads with the member question");
 assert.match(explorer, /Coverage legend/, "the explorer includes a text-labeled legend");
+assert.doesNotMatch(explorer + panel + map, /Intelligence only/i, "coverage categories use customer-facing language");
+assert.match(explorer, /\["intelligence", "Sparse coverage"\]/, "the lightest active category is labeled Sparse coverage");
 assert.match(explorer, /<select/, "mobile users get a direct state selector");
 assert.ok(explorer.indexOf("<CoverageMap") < explorer.indexOf("<CoverageStatePanel"), "the map remains the front-facing feature on every layout");
 assert.match(explorer, /<CoverageStatePanel key=\{selectedState\.code\}/, "state changes remount local request state before draft restoration");
@@ -62,17 +66,16 @@ assert.match(panel, /What we cannot yet see/, "state drilldown states its limits
 assert.match(panel, /data-health=\{state\.health\}/, "health is separate from capability");
 assert.match(panel, /Known stores[\s\S]*Monitored stores[\s\S]*Inventory monitoring[\s\S]*Alert-ready/, "technical layers use customer-friendly labels");
 assert.ok(panel.indexOf("<CoverageSearch") < panel.indexOf("How coverage works"), "local search appears before technical detail");
-assert.match(panel, /visible=\{requestOpen\}/, "the full request form stays hidden until a state or search result asks for it");
+assert.match(panel, /visible=\{requestOpen\}/, "the generalized request form stays hidden until its single action is used");
 assert.match(panel, /coverage-request-heading[\s\S]*\.focus\(\)/, "revealed request UI receives keyboard focus");
+assert.equal((panel.match(/>\s*Request coverage\s*</g) || []).length, 1, "the state panel presents exactly one coverage-request action");
+assert.doesNotMatch(panel, /Request better statewide coverage/, "statewide-only request language is removed");
 assert.doesNotMatch(panel + search, /quantity|bottle signal|bottleName|signalCount/i, "public explorer does not expose gated bottle data");
 
 assert.match(search, /Search a city or store in this state/, "city/store search is clearly labeled");
-assert.match(search, /REQUESTABLE_STATUSES/, "request actions are driven by missing or partial search results");
-assert.match(search, /Request coverage/, "requestable search results expose an explicit action");
+assert.doesNotMatch(search, /REQUESTABLE_STATUSES|onTargetSelected|Request coverage/, "search results describe coverage without duplicating request actions");
 assert.doesNotMatch(search, /requestFailedSearch|Request this city or store/, "technical search failures cannot create synthetic request targets");
 assert.match(search, /AbortController/, "state changes cancel in-flight location searches");
-const searchResetEffect = search.match(/useEffect\(\(\) => \{([\s\S]*?)\}, \[stateCode\]\);/)?.[1] || "";
-assert.doesNotMatch(searchResetEffect, /onTargetSelected/, "search initialization cannot close a restored sign-in draft");
 assert.match(search, /requestState[\s\S]*stateCode/, "late responses cannot populate results for the previous state");
 for (const status of ["covered", "partially-covered", "known-not-active", "actively-monitored", "known-expansion-candidate", "not-found"]) {
   assert.match(search, new RegExp(status), `search renders the ${status} status`);
@@ -82,10 +85,19 @@ assert.doesNotMatch(search, /track\([^)]*query|analytics[^;]*query/i, "raw locat
 assert.match(styles, /@media\s*\(max-width:\s*700px\)/, "the explorer has a mobile layout");
 assert.match(styles, /:focus-visible/, "interactive controls have visible focus treatment");
 assert.match(styles, /@media\s*\(prefers-reduced-motion:\s*reduce\)/, "motion respects user preference");
+assert.match(styles, /--coverage-deep:\s*#3f9b68/i, "the strongest coverage category is green");
+assert.match(styles, /--coverage-active:\s*#789f63/i, "active coverage uses a secondary green");
+assert.match(styles, /--coverage-focused:\s*#c59a4a/i, "focused coverage steps down to amber");
+
+assert.match(requestForm, /<select[\s\S]*required[\s\S]*US_STATE_OPTIONS/, "the generalized form requires a valid state selection");
+assert.match(requestForm, />City or area <small>optional<\/small>/, "city is optional");
+assert.match(requestForm, />Store name <small>optional<\/small>/, "store is optional");
+assert.doesNotMatch(requestForm, /targetChoices|coverage-target|Matched store/, "the generalized form does not ask users to choose among request modes");
 
 assert.match(api, /searchCurrentCoverageTargets/, "public search resolves through the shared server contract");
 assert.match(api, /Cache-Control/, "public coverage reads have an explicit cache policy");
 assert.match(navigation, /label:\s*"Coverage",\s*href:\s*"\/coverage"/, "Coverage is in primary navigation");
+assert.ok(navigation.indexOf('label: "Bottle Check"') < navigation.indexOf('label: "Coverage"'), "Coverage follows Bottle Check in primary navigation");
 assert.match(mapRedirect, /redirect\("\/coverage"\)/, "legacy /map traffic redirects to /coverage");
 assert.doesNotMatch(middleware, /"\/map\(\.\*\)"/, "legacy /map traffic reaches the public redirect instead of the sign-in wall");
 assert.match(sitemap, /`\$\{origin\}\/coverage`/, "the public coverage explorer is discoverable in the sitemap");

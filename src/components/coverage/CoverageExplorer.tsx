@@ -2,9 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { CoverageContract, CoverageSearchResult } from "@/lib/coverage-model";
+import type { CoverageContract } from "@/lib/coverage-model";
 import { CoverageMap } from "./CoverageMap";
 import { CoverageStatePanel } from "./CoverageStatePanel";
+import { COVERAGE_REQUEST_DRAFT_KEY } from "./CoverageRequestForm";
 import { CoverageRequestsCard } from "@/components/dashboard/CoverageRequestsCard";
 import { trackCoverageEvent } from "@/lib/coverage-analytics-client";
 import styles from "./coverage.module.css";
@@ -18,7 +19,7 @@ const LEGEND = [
   ["deep", "Deep coverage"],
   ["active", "Active coverage"],
   ["focused", "Focused coverage"],
-  ["intelligence", "Intelligence only"],
+  ["intelligence", "Sparse coverage"],
   ["not-active", "Not active yet"],
 ] as const;
 
@@ -29,7 +30,6 @@ export function CoverageExplorer({ contract, initialStateCode }: CoverageExplore
   const [selectedCode, setSelectedCode] = useState(
     contract.states.some((state) => state.code === initialStateCode) ? initialStateCode : fallbackCode,
   );
-  const [selectedTarget, setSelectedTarget] = useState<CoverageSearchResult | null>(null);
   const selectedState = useMemo(
     () => contract.states.find((state) => state.code === selectedCode) || contract.states[0],
     [contract.states, selectedCode],
@@ -42,12 +42,12 @@ export function CoverageExplorer({ contract, initialStateCode }: CoverageExplore
   }, [selectedCode]);
 
   const selectState = useCallback((stateCode: string) => {
-    if (!contract.states.some((state) => state.code === stateCode)) return;
+    if (!contract.states.some((state) => state.code === stateCode) || stateCode === selectedCode) return;
+    window.sessionStorage.removeItem(COVERAGE_REQUEST_DRAFT_KEY);
     setSelectedCode(stateCode);
-    setSelectedTarget(null);
     router.replace(`/coverage?state=${encodeURIComponent(stateCode)}`, { scroll: false });
     trackCoverageEvent("coverage_state_selected", { state: stateCode });
-  }, [contract.states, router]);
+  }, [contract.states, router, selectedCode]);
 
   if (!selectedState) return null;
 
@@ -94,7 +94,7 @@ export function CoverageExplorer({ contract, initialStateCode }: CoverageExplore
             </ul>
           </details>
         </div>
-        <CoverageStatePanel key={selectedState.code} state={selectedState} selectedTarget={selectedTarget} onTargetSelected={setSelectedTarget} />
+        <CoverageStatePanel key={selectedState.code} state={selectedState} />
       </section>
       <div className={styles.memberRequests}><CoverageRequestsCard emptyMode="hidden" /></div>
     </main>

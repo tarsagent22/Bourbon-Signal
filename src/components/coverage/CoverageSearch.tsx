@@ -1,14 +1,13 @@
 "use client";
 
 import { FormEvent, useEffect, useId, useRef, useState } from "react";
-import type { CoverageSearchResult, CoverageSearchStatus } from "@/lib/coverage-model";
+import type { CoverageSearchResult } from "@/lib/coverage-model";
 import styles from "./coverage.module.css";
 import { trackCoverageEvent } from "@/lib/coverage-analytics-client";
 
 interface CoverageSearchProps {
   stateCode: string;
   stateName: string;
-  onTargetSelected: (target: CoverageSearchResult | null) => void;
 }
 
 const STATUS_LABELS: Record<CoverageSearchResult["status"], string> = {
@@ -20,14 +19,7 @@ const STATUS_LABELS: Record<CoverageSearchResult["status"], string> = {
   "not-found": "Not covered",
 };
 
-const REQUESTABLE_STATUSES = new Set<CoverageSearchStatus>([
-  "partially-covered",
-  "known-not-active",
-  "known-expansion-candidate",
-  "not-found",
-]);
-
-export function CoverageSearch({ stateCode, stateName, onTargetSelected }: CoverageSearchProps) {
+export function CoverageSearch({ stateCode, stateName }: CoverageSearchProps) {
   const inputId = useId();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<CoverageSearchResult[]>([]);
@@ -53,7 +45,6 @@ export function CoverageSearch({ stateCode, stateName, onTargetSelected }: Cover
     const controller = new AbortController();
     requestController.current = controller;
     setStatus("loading");
-    onTargetSelected(null);
     try {
       const response = await fetch("/api/coverage", {
         method: "POST",
@@ -105,28 +96,20 @@ export function CoverageSearch({ stateCode, stateName, onTargetSelected }: Cover
       <p className={styles.searchPrivacy}>Results describe monitoring coverage, not current bottle availability.</p>
       <div className={styles.searchResults} aria-live="polite" aria-busy={status === "loading"}>
         {status === "error" ? <p className={styles.inlineError}>Search is temporarily unavailable. Please try again.</p> : null}
-        {status === "ready" ? results.map((result, index) => {
-          const requestable = REQUESTABLE_STATUSES.has(result.status);
-          return (
-            <article
-              key={`${result.kind}:${result.canonicalTargetKey || result.label}:${index}`}
-              className={styles.searchResult}
-              data-status={result.status}
-            >
-              <span>
-                <strong>{result.label}</strong>
-                <small>{[result.city, result.address].filter(Boolean).join(" · ")}</small>
-              </span>
-              <span className={styles.resultStatus}>{STATUS_LABELS[result.status]}</span>
-              <p>{result.detail}</p>
-              {requestable ? (
-                <button className={styles.searchResultAction} type="button" onClick={() => onTargetSelected(result)}>
-                  Request coverage
-                </button>
-              ) : null}
-            </article>
-          );
-        }) : null}
+        {status === "ready" ? results.map((result, index) => (
+          <article
+            key={`${result.kind}:${result.canonicalTargetKey || result.label}:${index}`}
+            className={styles.searchResult}
+            data-status={result.status}
+          >
+            <span>
+              <strong>{result.label}</strong>
+              <small>{[result.city, result.address].filter(Boolean).join(" · ")}</small>
+            </span>
+            <span className={styles.resultStatus}>{STATUS_LABELS[result.status]}</span>
+            <p>{result.detail}</p>
+          </article>
+        )) : null}
       </div>
     </section>
   );

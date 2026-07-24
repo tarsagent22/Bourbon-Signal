@@ -73,10 +73,13 @@ assert.throws(
   () => normalizeCoverageRequestTarget({ targetType: "store", stateCode: "IL", storeId: "unverified" }, { baselineCoverageFingerprint: "x" }),
   /current directory/i,
 );
-assert.throws(
-  () => normalizeCoverageRequestTarget({ targetType: "store", stateCode: "IL", manualStoreName: "Only a name" }, { baselineCoverageFingerprint: "x" }),
-  /city/i,
+const storeWithoutCity = normalizeCoverageRequestTarget(
+  { targetType: "store", stateCode: "IL", manualStoreName: "Only a name" },
+  { baselineCoverageFingerprint: "x" },
 );
+assert.equal(storeWithoutCity.areaKey, null, "city is optional for a generalized store request");
+assert.equal(storeWithoutCity.areaLabel, "Illinois");
+assert.equal(storeWithoutCity.canonicalTargetKey, "store:IL:manual:unspecified:only-a-name");
 
 const safeAnalytics = sanitizeCoverageAnalyticsEvent("coverage_search_resolved", {
   state: "IL",
@@ -215,18 +218,21 @@ assert.match(form, /submitGeneration/, "late submissions cannot update a differe
 assert.match(form, /\/sign-in\?redirect_url=/, "signed-out users return to the selected coverage state");
 assert.match(form, /Request coverage and email me when it meaningfully improves\./, "notification consent is explicit");
 assert.match(form, /useState\(false\)/, "email notifications require an affirmative unchecked opt-in");
-assert.match(form, /setAreaLabel\(""\)[\s\S]*setManualStoreName\(""\)[\s\S]*\}, \[state\.code\]\)/, "changing states clears stale request fields");
-assert.match(form, /manualStoreName[\s\S]*manualCity[\s\S]*manualAddress/, "unknown stores have a bounded manual fallback");
-assert.match(form, /setManualStoreName\(target\.label\)/, "matched store labels survive the sign-in return draft");
-assert.match(form, /setManualCity\(""\)[\s\S]*setManualAddress\(""\)[\s\S]*\}, \[target\]\)/, "selecting a new search result clears stale location details");
-assert.doesNotMatch(form, /setManualStoreName\(target\.storeId\s*\?\s*""\s*:\s*target\.label\)/, "matched store labels are not discarded before sign-in");
+assert.match(form, /selectedStateCode[\s\S]*manualCity[\s\S]*manualStoreName[\s\S]*manualAddress/, "one generalized draft preserves state and optional local detail");
+assert.match(form, /accountId:\s*string\s*\|\s*null/, "sign-in drafts carry an explicit account-ownership marker");
+assert.match(form, /renderedAccountId[\s\S]*accountId !== renderedAccountId[\s\S]*removeItem\(DRAFT_KEY\)[\s\S]*setRenderedAccountId\(accountId\)/, "sign-out and account switches clear private request state and finish the transition with a rerender");
+assert.match(form, /accountTransitionPending[\s\S]*Checking account/, "private fields are not rendered during auth loading or an account transition");
+assert.match(form, /stored\.accountId[\s\S]*accountId[\s\S]*removeItem\(DRAFT_KEY\)/, "a draft owned by another account cannot be restored");
+assert.match(form, /function changeState[\s\S]*setManualCity\(""\)[\s\S]*setManualStoreName\(""\)[\s\S]*setManualAddress\(""\)[\s\S]*removeItem\(DRAFT_KEY\)/, "changing the required state clears stale local details and its saved draft");
+assert.match(form, /manualStoreName\.trim\(\)\s*\?\s*"store"[\s\S]*manualCity\.trim\(\)\s*\?\s*"city"[\s\S]*:\s*"state"/, "request scope is derived from the optional fields instead of a mode chooser");
+assert.doesNotMatch(form, /CoverageSearchResult|storeId|targetChoices|coverage-target/, "the generalized request form is decoupled from individual search results");
 assert.match(form, /\/api\/coverage\/requests/, "signed-in submissions use the private request API");
 assert.match(form, /hidden=\{!visible\}/, "the long request form is not shown before a user asks for coverage");
 assert.match(form, /onDraftRestored\(\)/, "a sign-in return reopens its preserved request draft");
 assert.doesNotMatch(form, /onDraftRestored\(\);\s*window\.sessionStorage\.removeItem\(DRAFT_KEY\)/, "draft restoration survives React effect replay");
 assert.match(form, /cancelRequest[\s\S]*removeItem\(DRAFT_KEY\)[\s\S]*onCancel\(\)/, "canceling clears a preserved draft");
 assert.match(form, /setStatus\("saved"\);\s*window\.sessionStorage\.removeItem\(DRAFT_KEY\)/, "saving clears a preserved draft");
-assert.match(form, /target\?\.kind === "unknown"/, "target choices only appear when an unmatched search needs clarification");
+assert.match(form, /Choose a state\. Add a city, store, or both/, "the form explains its one generalized request path");
 
 const migration = read("scripts/migrate-coverage-requests.mjs");
 assert.match(migration, /--check/);

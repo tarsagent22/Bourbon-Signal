@@ -7,10 +7,10 @@
   --coverage-faint: rgba(245, 237, 214, 0.42);
   --coverage-line: rgba(245, 237, 214, 0.11);
   --coverage-amber: #d8a84f;
-  --coverage-deep: #d8a84f;
-  --coverage-active: #9a7333;
-  --coverage-focused: #6f7142;
-  --coverage-intelligence: #4f5e5b;
+  --coverage-deep: #3f9b68;
+  --coverage-active: #789f63;
+  --coverage-focused: #c59a4a;
+  --coverage-intelligence: #755e4b;
   --coverage-inactive: #312c28;
   min-height: 100vh;
   position: relative;
@@ -259,6 +259,30 @@
   white-space: nowrap;
 }
 
+.capabilityBadge[data-capability="deep"] {
+  border-color: rgba(63, 155, 104, 0.55);
+  background: rgba(63, 155, 104, 0.13);
+  color: #8fd5ac;
+}
+
+.capabilityBadge[data-capability="active"] {
+  border-color: rgba(120, 159, 99, 0.55);
+  background: rgba(120, 159, 99, 0.13);
+  color: #b2d19f;
+}
+
+.capabilityBadge[data-capability="focused"] {
+  border-color: rgba(197, 154, 74, 0.5);
+  background: rgba(197, 154, 74, 0.12);
+  color: #e5c47e;
+}
+
+.capabilityBadge[data-capability="intelligence"] {
+  border-color: rgba(117, 94, 75, 0.62);
+  background: rgba(117, 94, 75, 0.16);
+  color: #cdb49c;
+}
+
 .capabilityBadge[data-capability="not-active"] {
   border-color: var(--coverage-line);
   color: var(--coverage-muted);
@@ -312,22 +336,34 @@
   font-size: 12px;
 }
 
-.stateRequestButton {
+.requestCoverageButton {
+  display: grid;
+  gap: 5px;
+  justify-items: start;
   width: 100%;
-  margin-top: 12px;
-  border: 1px solid rgba(216, 168, 79, 0.32);
-  background: rgba(216, 168, 79, 0.08);
-  padding: 11px 14px;
-  color: var(--coverage-amber);
-  font: 800 11px/1.2 var(--font-dm-sans);
+  margin-top: 16px;
+  border: 1px solid var(--coverage-amber);
+  background: var(--coverage-amber);
+  padding: 13px 15px;
+  color: var(--coverage-ink);
   cursor: pointer;
+  text-align: left;
 }
 
-.stateRequestButton:hover,
-.stateRequestButton:focus-visible {
-  outline: 2px solid var(--coverage-amber);
+.requestCoverageButton span {
+  font: 800 12px/1.2 var(--font-dm-sans);
+}
+
+.requestCoverageButton small {
+  color: rgba(13, 10, 7, 0.7);
+  font: 600 9px/1.35 var(--font-dm-sans);
+}
+
+.requestCoverageButton:hover,
+.requestCoverageButton:focus-visible {
+  outline: 2px solid var(--coverage-cream);
   outline-offset: 3px;
-  background: rgba(216, 168, 79, 0.13);
+  filter: brightness(1.08);
 }
 
 .coverageDetails {
@@ -543,26 +579,6 @@
   padding: 5px 6px;
 }
 
-.searchResultAction {
-  grid-column: 1 / -1;
-  justify-self: start;
-  margin-top: 5px;
-  border: 0;
-  background: transparent;
-  padding: 4px 0;
-  color: var(--coverage-amber);
-  font: 800 10px/1.2 var(--font-dm-sans);
-  cursor: pointer;
-  text-decoration: underline;
-  text-underline-offset: 3px;
-}
-
-.searchResultAction:hover,
-.searchResultAction:focus-visible {
-  outline: 2px solid var(--coverage-amber);
-  outline-offset: 3px;
-  color: var(--coverage-cream);
-}
 
 .inlineError {
   margin: 0;
@@ -612,53 +628,6 @@
   margin-top: 12px;
 }
 
-.targetChoices {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 6px;
-  margin: 0;
-  padding: 0;
-  border: 0;
-}
-
-.targetChoices legend {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(0 0 0 0);
-}
-
-.targetChoices label {
-  position: relative;
-}
-
-.targetChoices input {
-  position: absolute;
-  opacity: 0;
-}
-
-.targetChoices span {
-  display: grid;
-  place-items: center;
-  min-height: 38px;
-  border: 1px solid var(--coverage-line);
-  background: rgba(0, 0, 0, 0.16);
-  color: var(--coverage-muted);
-  font: 800 10px/1 var(--font-dm-sans);
-  cursor: pointer;
-}
-
-.targetChoices input:checked + span {
-  border-color: var(--coverage-amber);
-  background: rgba(216, 168, 79, 0.13);
-  color: var(--coverage-cream);
-}
-
-.targetChoices input:focus-visible + span {
-  outline: 2px solid var(--coverage-cream);
-  outline-offset: 2px;
-}
 
 .requestField {
   display: grid;
@@ -668,7 +637,8 @@
   letter-spacing: 0.04em;
 }
 
-.requestField input {
+.requestField input,
+.requestField select {
   width: 100%;
   border: 1px solid var(--coverage-line);
   background: rgba(0, 0, 0, 0.2);
@@ -678,19 +648,23 @@
   outline: none;
 }
 
-.requestField input:focus-visible {
+.requestField input:focus-visible,
+.requestField select:focus-visible {
   border-color: var(--coverage-amber);
   box-shadow: 0 0 0 3px rgba(216, 168, 79, 0.14);
 }
 
-.manualStoreFields {
-  display: grid;
-  gap: 10px;
+.requestAuthLoading {
+  margin: 14px 0 0;
+  border: 1px solid var(--coverage-line);
+  padding: 14px;
+  color: var(--coverage-muted);
+  font: 11px/1.5 var(--font-dm-sans);
 }
 
-.manualStoreFields > p,
+.requestInstructions,
+.requestPrivacy,
 .requestPromise,
-.requestTargetSummary,
 .requestMessage {
   margin: 0;
   color: var(--coverage-faint);

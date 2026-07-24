@@ -142,19 +142,18 @@ export function normalizeCoverageRequestTarget(
   const city = sanitizedText(source.manualCity || source.areaLabel, 120);
   const address = sanitizedText(source.manualAddress || source.storeAddress, 220);
   if (storeName.length < 2) throw new CoverageRequestValidationError("Enter the store name.");
-  if (city.length < 2) throw new CoverageRequestValidationError("Enter the store city.");
   const cityKey = coverageTargetToken(city, 80);
   const storeKey = coverageTargetToken(storeName, 80);
-  if (!cityKey || !storeKey) throw new CoverageRequestValidationError("Enter a valid store name and city.");
+  if (!storeKey) throw new CoverageRequestValidationError("Enter a valid store name.");
   return {
     targetType: type,
     stateCode: state.code,
-    areaKey: cityKey,
-    areaLabel: city,
+    areaKey: cityKey || null,
+    areaLabel: city || state.name,
     storeId: null,
     storeName,
     storeAddress: address || null,
-    canonicalTargetKey: `store:${state.code}:manual:${cityKey}:${storeKey}`.slice(0, 180),
+    canonicalTargetKey: `store:${state.code}:manual:${cityKey || "unspecified"}:${storeKey}`.slice(0, 180),
     notificationEnabled,
     baselineCoverageFingerprint,
   };

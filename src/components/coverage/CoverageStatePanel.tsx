@@ -1,15 +1,13 @@
 "use client";
 
 import { useCallback, useState } from "react";
-import type { CoverageSearchResult, CoverageState } from "@/lib/coverage-model";
+import type { CoverageState } from "@/lib/coverage-model";
 import { CoverageSearch } from "./CoverageSearch";
 import { CoverageRequestForm } from "./CoverageRequestForm";
 import styles from "./coverage.module.css";
 
 interface CoverageStatePanelProps {
   state: CoverageState;
-  selectedTarget: CoverageSearchResult | null;
-  onTargetSelected: (target: CoverageSearchResult | null) => void;
 }
 
 function healthCopy(state: CoverageState) {
@@ -19,7 +17,7 @@ function healthCopy(state: CoverageState) {
   return state.capability === "not-active" ? "No active monitoring source" : "No recent source update";
 }
 
-export function CoverageStatePanel({ state, selectedTarget, onTargetSelected }: CoverageStatePanelProps) {
+export function CoverageStatePanel({ state }: CoverageStatePanelProps) {
   const [requestOpen, setRequestOpen] = useState(false);
 
   const focusRequest = useCallback(() => {
@@ -30,32 +28,19 @@ export function CoverageStatePanel({ state, selectedTarget, onTargetSelected }: 
     });
   }, []);
 
-  const openRequest = useCallback((target: CoverageSearchResult | null) => {
-    onTargetSelected(target);
+  const openRequest = useCallback(() => {
     setRequestOpen(true);
     focusRequest();
-  }, [focusRequest, onTargetSelected]);
-
-  const handleSearchTarget = useCallback((target: CoverageSearchResult | null) => {
-    if (!target) {
-      setRequestOpen(false);
-      onTargetSelected(null);
-      return;
-    }
-    openRequest(target);
-  }, [onTargetSelected, openRequest]);
+  }, [focusRequest]);
 
   const closeRequest = useCallback(() => {
     setRequestOpen(false);
-    onTargetSelected(null);
-  }, [onTargetSelected]);
+  }, []);
 
   const handleDraftRestored = useCallback(() => {
     setRequestOpen(true);
     focusRequest();
   }, [focusRequest]);
-
-  const canRequestStatewide = state.capability !== "deep";
 
   return (
     <aside className={styles.detailPanel} aria-labelledby="coverage-state-heading">
@@ -80,18 +65,18 @@ export function CoverageStatePanel({ state, selectedTarget, onTargetSelected }: 
         </div>
       ) : null}
 
-      <CoverageSearch stateCode={state.code} stateName={state.name} onTargetSelected={handleSearchTarget} />
+      <CoverageSearch stateCode={state.code} stateName={state.name} />
 
-      {canRequestStatewide && !requestOpen ? (
-        <button className={styles.stateRequestButton} type="button" onClick={() => openRequest(null)}>
-          Request better statewide coverage
+      {!requestOpen ? (
+        <button className={styles.requestCoverageButton} type="button" onClick={openRequest}>
+          <span>Request coverage</span>
+          <small>State required · city and store optional</small>
         </button>
       ) : null}
 
       <div id="coverage-request">
         <CoverageRequestForm
           state={state}
-          target={selectedTarget}
           visible={requestOpen}
           onCancel={closeRequest}
           onDraftRestored={handleDraftRestored}

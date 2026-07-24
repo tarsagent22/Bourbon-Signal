@@ -1,7 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useRef, useState } from "react";
-import type { CoverageSearchResult, CoverageState } from "@/lib/coverage-model";
+import { US_STATE_OPTIONS, type CoverageState } from "@/lib/coverage-model";
 import type { CoverageRequestTargetType, MemberCoverageRequest } from "@/lib/coverage-request";
 import { useAuth } from "@/lib/auth";
 import { trackCoverageEvent } from "@/lib/coverage-analytics-client";
@@ -9,85 +9,52 @@ import styles from "./coverage.module.css";
 
 interface CoverageRequestFormProps {
   state: CoverageState;
-  target: CoverageSearchResult | null;
   visible: boolean;
   onCancel: () => void;
   onDraftRestored: () => void;
 }
 
 interface RequestDraft {
+  accountId: string | null;
   stateCode: string;
-  targetType: CoverageRequestTargetType;
-  areaLabel: string;
-  storeId: string;
-  manualStoreName: string;
   manualCity: string;
+  manualStoreName: string;
   manualAddress: string;
+  notificationEnabled: boolean;
 }
 
-const DRAFT_KEY = "bourbon_signal_coverage_request_draft";
+export const COVERAGE_REQUEST_DRAFT_KEY = "bourbon_signal_coverage_request_draft";
+const DRAFT_KEY = COVERAGE_REQUEST_DRAFT_KEY;
 
-export function CoverageRequestForm({ state, target, visible, onCancel, onDraftRestored }: CoverageRequestFormProps) {
+export function CoverageRequestForm({ state, visible, onCancel, onDraftRestored }: CoverageRequestFormProps) {
   const { isLoaded, isSignedIn, user } = useAuth();
   const accountId = user?.id || null;
-  const [targetType, setTargetType] = useState<CoverageRequestTargetType>("state");
-  const [areaLabel, setAreaLabel] = useState("");
-  const [storeId, setStoreId] = useState("");
-  const [manualStoreName, setManualStoreName] = useState("");
+  const [selectedStateCode, setSelectedStateCode] = useState(state.code);
   const [manualCity, setManualCity] = useState("");
+  const [manualStoreName, setManualStoreName] = useState("");
   const [manualAddress, setManualAddress] = useState("");
   const [notificationEnabled, setNotificationEnabled] = useState(false);
   const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [message, setMessage] = useState("");
+  const [renderedAccountId, setRenderedAccountId] = useState<string | null>(null);
   const started = useRef(false);
-  const previousAccountId = useRef<string | null>(null);
   const currentAccountId = useRef(accountId);
-  const currentStateCode = useRef(state.code);
+  const currentStateCode = useRef(selectedStateCode);
   const submitGeneration = useRef(0);
   const submitController = useRef<AbortController | null>(null);
   currentAccountId.current = accountId;
-  currentStateCode.current = state.code;
+  currentStateCode.current = selectedStateCode;
 
-  useEffect(() => {
-    setStatus("idle");
-    setMessage("");
-    setAreaLabel("");
-    setStoreId("");
-    setManualStoreName("");
-    setManualCity("");
-    setManualAddress("");
-    if (!target) {
-      setTargetType("state");
-      return;
-    }
-    if (target.kind === "city") {
-      setTargetType("city");
-      setAreaLabel(target.city || target.label);
-      setStoreId("");
-      return;
-    }
-    if (target.kind === "store") {
-      setTargetType("store");
-      setStoreId(target.storeId || "");
-      setManualStoreName(target.label);
-      setManualCity(target.city || "");
-      setManualAddress(target.address || "");
-      return;
-    }
-    setTargetType("store");
-    setStoreId("");
-    setAreaLabel(target.label);
-    setManualStoreName(target.label);
-  }, [target]);
+  const targetType: CoverageRequestTargetType = manualStoreName.trim() ? "store" : manualCity.trim() ? "city" : "state";
+  const accountTransitionPending = !isLoaded
+    || (renderedAccountId !== null && renderedAccountId !== accountId);
 
   useEffect(() => {
     submitController.current?.abort();
     submitGeneration.current += 1;
-    setTargetType("state");
-    setAreaLabel("");
-    setStoreId("");
-    setManualStoreName("");
+    setSelectedStateCode(state.code);
     setManualCity("");
+    setManualStoreName("");
     setManualAddress("");
     setNotificationEnabled(false);
     setStatus("idle");
@@ -96,15 +63,13 @@ export function CoverageRequestForm({ state, target, visible, onCancel, onDraftR
   }, [state.code]);
 
   useEffect(() => {
-    const previous = previousAccountId.current;
-    if (accountId && previous && accountId !== previous) {
+    if (!isLoaded) return;
+    if (renderedAccountId && accountId !== renderedAccountId) {
       submitController.current?.abort();
       submitGeneration.current += 1;
-      setTargetType("state");
-      setAreaLabel("");
-      setStoreId("");
-      setManualStoreName("");
+      setSelectedStateCode(state.code);
       setManualCity("");
+      setManualStoreName("");
       setManualAddress("");
       setNotificationEnabled(false);
       setStatus("idle");
@@ -112,42 +77,49 @@ export function CoverageRequestForm({ state, target, visible, onCancel, onDraftR
       started.current = false;
       window.sessionStorage.removeItem(DRAFT_KEY);
     }
-    if (accountId) previousAccountId.current = accountId;
-  }, [accountId]);
+    setRenderedAccountId(accountId);
+  }, [accountId, isLoaded, renderedAccountId, state.code]);
 
   useEffect(() => {
-    if (typeof window === "undefined") return;
+    if (typeof window === "undefined" || !isLoaded) return;
     try {
       const stored = JSON.parse(window.sessionStorage.getItem(DRAFT_KEY) || "null") as RequestDraft | null;
-      if (!stored || stored.stateCode !== state.code) return;
-      setTargetType(stored.targetType);
-      setAreaLabel(stored.areaLabel);
-      setStoreId(stored.storeId);
-      setManualStoreName(stored.manualStoreName);
-      setManualCity(stored.manualCity);
-      setManualAddress(stored.manualAddress);
+      const validState = stored && US_STATE_OPTIONS.some((option) => option.code === stored.stateCode);
+      if (!stored || !validState || stored.stateCode !== state.code) return;
+      if (stored.accountId && stored.accountId !== accountId) {
+        window.sessionStorage.removeItem(DRAFT_KEY);
+        return;
+      }
+      if (accountId && !stored.accountId) {
+        stored.accountId = accountId;
+        window.sessionStorage.setItem(DRAFT_KEY, JSON.stringify(stored));
+      }
+      setSelectedStateCode(stored.stateCode);
+      setManualCity(stored.manualCity || "");
+      setManualStoreName(stored.manualStoreName || "");
+      setManualAddress(stored.manualAddress || "");
+      setNotificationEnabled(stored.notificationEnabled === true);
       onDraftRestored();
     } catch {
       window.sessionStorage.removeItem(DRAFT_KEY);
     }
-  }, [onDraftRestored, state.code]);
+  }, [accountId, isLoaded, onDraftRestored, state.code]);
 
   const draft: RequestDraft = {
-    stateCode: state.code,
-    targetType,
-    areaLabel,
-    storeId,
-    manualStoreName,
+    accountId,
+    stateCode: selectedStateCode,
     manualCity,
+    manualStoreName,
     manualAddress,
+    notificationEnabled,
   };
-  const returnPath = `/coverage?state=${encodeURIComponent(state.code)}`;
+  const returnPath = `/coverage?state=${encodeURIComponent(selectedStateCode)}`;
   const signInHref = `/sign-in?redirect_url=${encodeURIComponent(returnPath)}`;
 
   function markStarted() {
     if (started.current) return;
     started.current = true;
-    trackCoverageEvent("coverage_request_started", { state: state.code, targetType });
+    trackCoverageEvent("coverage_request_started", { state: selectedStateCode, targetType });
   }
 
   function preserveDraft() {
@@ -160,6 +132,18 @@ export function CoverageRequestForm({ state, target, visible, onCancel, onDraftR
     onCancel();
   }
 
+  function changeState(stateCode: string) {
+    submitController.current?.abort();
+    submitGeneration.current += 1;
+    setSelectedStateCode(stateCode);
+    setManualCity("");
+    setManualStoreName("");
+    setManualAddress("");
+    window.sessionStorage.removeItem(DRAFT_KEY);
+    setStatus("idle");
+    setMessage("");
+  }
+
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     markStarted();
@@ -170,7 +154,8 @@ export function CoverageRequestForm({ state, target, visible, onCancel, onDraftR
     const generation = submitGeneration.current + 1;
     submitGeneration.current = generation;
     const requestAccountId = accountId;
-    const requestStateCode = state.code;
+    const requestStateCode = selectedStateCode;
+    const requestTargetType = targetType;
     setStatus("saving");
     setMessage("");
     try {
@@ -178,10 +163,9 @@ export function CoverageRequestForm({ state, target, visible, onCancel, onDraftR
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          targetType,
+          targetType: requestTargetType,
           stateCode: requestStateCode,
-          areaLabel,
-          storeId: storeId || undefined,
+          areaLabel: manualCity,
           manualStoreName,
           manualCity,
           manualAddress,
@@ -199,7 +183,7 @@ export function CoverageRequestForm({ state, target, visible, onCancel, onDraftR
       window.sessionStorage.removeItem(DRAFT_KEY);
       setMessage(payload.request.status === "on_radar" ? "This request is on our radar." : "Request saved. Its status appears below.");
       window.dispatchEvent(new Event("coverage-request-saved"));
-      trackCoverageEvent("coverage_request_submitted", { state: requestStateCode, targetType });
+      trackCoverageEvent("coverage_request_submitted", { state: requestStateCode, targetType: requestTargetType });
     } catch (error) {
       if (controller.signal.aborted
         || submitGeneration.current !== generation
@@ -220,60 +204,41 @@ export function CoverageRequestForm({ state, target, visible, onCancel, onDraftR
         <button type="button" onClick={cancelRequest}>Cancel</button>
       </div>
 
+      {accountTransitionPending ? (
+        <p className={styles.requestAuthLoading} aria-live="polite">Checking account…</p>
+      ) : (
       <form onSubmit={submit} onFocusCapture={markStarted}>
-        {target?.kind === "unknown" ? (
-          <fieldset className={styles.targetChoices}>
-            <legend>Is this a city or store?</legend>
-            {(["city", "store"] as const).map((kind) => (
-              <label key={kind}>
-                <input type="radio" name="coverage-target" value={kind} checked={targetType === kind} onChange={() => setTargetType(kind)} />
-                <span>{kind === "city" ? "City / area" : "Store"}</span>
-              </label>
-            ))}
-          </fieldset>
-        ) : null}
+        <p className={styles.requestInstructions}>Choose a state. Add a city, store, or both only if you want us to investigate a specific place.</p>
 
-        {targetType === "state" ? <p className={styles.requestTargetSummary}>{state.name} statewide expansion</p> : null}
+        <label className={styles.requestField}>
+          <span>State <small>required</small></span>
+          <select name="stateCode" value={selectedStateCode} required onChange={(event) => changeState(event.target.value)}>
+            {US_STATE_OPTIONS.map((option) => <option key={option.code} value={option.code}>{option.name}</option>)}
+          </select>
+        </label>
 
-        {targetType === "city" ? (
-          <label className={styles.requestField}>
-            <span>City or area</span>
-            <input value={areaLabel} maxLength={120} required onChange={(event) => setAreaLabel(event.target.value)} />
-          </label>
-        ) : null}
+        <label className={styles.requestField}>
+          <span>City or area <small>optional</small></span>
+          <input name="manualCity" value={manualCity} maxLength={120} onChange={(event) => setManualCity(event.target.value)} />
+        </label>
 
-        {targetType === "store" ? storeId ? (
-          <div className={styles.matchedStore}>
-            <span>Matched store</span>
-            <strong>{target?.label || manualStoreName}</strong>
-            <button type="button" onClick={() => { setStoreId(""); setManualStoreName(target?.label || ""); }}>Use manual details instead</button>
-          </div>
-        ) : (
-          <div className={styles.manualStoreFields}>
-            <label className={styles.requestField}>
-              <span>Store name</span>
-              <input name="manualStoreName" value={manualStoreName} maxLength={180} required onChange={(event) => setManualStoreName(event.target.value)} />
-            </label>
-            <label className={styles.requestField}>
-              <span>City</span>
-              <input name="manualCity" value={manualCity} maxLength={120} required onChange={(event) => setManualCity(event.target.value)} />
-            </label>
-            <label className={styles.requestField}>
-              <span>Street or address detail <small>optional</small></span>
-              <input name="manualAddress" value={manualAddress} maxLength={220} onChange={(event) => setManualAddress(event.target.value)} />
-            </label>
-            <p>Manual details stay private in the request queue and do not create a public store.</p>
-          </div>
-        ) : null}
+        <label className={styles.requestField}>
+          <span>Store name <small>optional</small></span>
+          <input name="manualStoreName" value={manualStoreName} maxLength={180} onChange={(event) => setManualStoreName(event.target.value)} />
+        </label>
+
+        <label className={styles.requestField}>
+          <span>Street or address detail <small>optional</small></span>
+          <input name="manualAddress" value={manualAddress} maxLength={220} onChange={(event) => setManualAddress(event.target.value)} />
+        </label>
+        <p className={styles.requestPrivacy}>Request details stay private and do not create a public store listing.</p>
 
         <label className={styles.notificationChoice}>
           <input type="checkbox" checked={notificationEnabled} onChange={(event) => setNotificationEnabled(event.target.checked)} />
           <span>Request coverage and email me when it meaningfully improves.</span>
         </label>
 
-        {!isLoaded ? (
-          <button className={styles.requestSubmit} type="button" disabled>Checking account…</button>
-        ) : isSignedIn ? (
+        {isSignedIn ? (
           <button className={styles.requestSubmit} type="submit" disabled={status === "saving"}>
             {status === "saving" ? "Saving request…" : status === "saved" ? "Request saved" : "Send coverage request"}
           </button>
@@ -283,6 +248,7 @@ export function CoverageRequestForm({ state, target, visible, onCancel, onDraftR
         <p className={styles.requestPromise}>Requests guide investigation; they do not promise a launch date.</p>
         <p className={status === "error" ? styles.inlineError : styles.requestMessage} aria-live="polite">{message}</p>
       </form>
+      )}
     </section>
   );
 }

@@ -41,6 +41,22 @@ assert.ok(contract.states.every((state) => state.layers.known >= state.layers.pr
 assert.ok(contract.states.every((state) => state.layers.probeable >= state.layers.live));
 assert.ok(contract.states.every((state) => state.layers.live >= state.layers.alertGrade));
 
+const expectedCapabilities = {
+  deep: ["OH", "PA", "VA"],
+  active: ["ID", "IL", "IN", "NC"],
+  focused: ["SC", "TX"],
+  intelligence: ["AL", "AZ", "CA", "FL", "GA", "IA", "KY", "MD", "MI", "NV", "TN", "UT"],
+} as const;
+for (const [capability, codes] of Object.entries(expectedCapabilities)) {
+  assert.deepEqual(
+    contract.states.filter((state) => state.capability === capability).map((state) => state.code).sort(),
+    [...codes].sort(),
+    `${capability} states match the conservative nationwide evidence audit`,
+  );
+}
+assert.equal(contract.states.filter((state) => state.capability === "not-active").length, 30, "states without current useful evidence remain inactive");
+assert.ok(contract.states.filter((state) => state.capability === "intelligence").every((state) => state.capabilityLabel === "Sparse coverage"));
+
 const maryland = contract.states.find((state) => state.code === "MD");
 assert.ok(maryland, "Maryland is customer-facing under its real state code");
 assert.equal(contract.states.some((state) => state.code === "MD-MONTGOMERY"), false);
@@ -94,7 +110,7 @@ assert.ok(ohio.layers.known < 600, "differing upstream identifiers cannot double
 
 const warehouseState = contract.states.find((state) => state.code === "AZ");
 assert.ok(warehouseState);
-assert.equal(warehouseState.capability, "focused", "warehouse watches are scoped coverage");
+assert.equal(warehouseState.capability, "intelligence", "warehouse watches are sparse rather than store-level coverage");
 
 for (const stateCode of ["MN", "MO", "WA", "WI"]) {
   const state = contract.states.find((entry) => entry.code === stateCode);
@@ -208,7 +224,7 @@ const transientHealthContract = buildCoverageContract({
   stores: [],
 });
 const transientNorthCarolina = transientHealthContract.states.find((state) => state.code === "NC");
-assert.equal(transientNorthCarolina?.capability, "active", "transient health cannot erase stable capability");
+assert.equal(transientNorthCarolina?.capability, "intelligence", "one exact store is sparse coverage, independent of temporary source health");
 assert.equal(transientNorthCarolina?.health, "temporarily-limited");
 
 const fallbackHealthContract = buildCoverageContract({
