@@ -392,7 +392,10 @@ async function collectStateResilientUnlocked(config) {
     const guarded = guardStateReport({
       previous,
       candidate,
-      options: { isPublicBottleCandidate: (signal) => isIndexedCustomerDropSignal(signal, tierIndex) },
+      options: {
+        isPublicBottleCandidate: (signal) => isIndexedCustomerDropSignal(signal, tierIndex),
+        mergePartialFallback: config.id === 'TX' || config.id === 'SC',
+      },
     });
     if (!guarded.accepted) console.warn(`${config.id} quality guard preserved previous report: ${guarded.reason}`);
     await atomicWriteJson(statePath, guarded.report);
