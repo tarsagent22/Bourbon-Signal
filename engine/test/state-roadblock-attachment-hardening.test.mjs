@@ -99,9 +99,10 @@ test('repeated platform failures become one evidence-preserving blocker', () => 
   }), failures.slice(0, 1));
 });
 
-test('state collectors consume bounded blockers, quiet safe cache reuse, and share configured store ids', () => {
+test('state collectors consume bounded blockers, quiet safe cache reuse, use live retailer hosts, and share configured store ids', () => {
   assert.match(collectorSource, /summarizeRepeatedPlatformFailures/);
   assert.match(collectorSource, /isTerminalProbeFailure/);
+  assert.match(collectorSource, /id:\s*'zipps-liquor'[\s\S]{0,260}baseUrl:\s*'https:\/\/shop\.zippsliquor\.com'[\s\S]{0,260}https:\/\/shop\.zippsliquor\.com\/shop\/\?tags=bourbon/);
   assert.match(collectorSource, /buildIndianaTargetStoreLocationSignals/);
   assert.match(collectorSource, /buildGeorgiaConfiguredStoreLocationSignals/);
   assert.doesNotMatch(collectorSource, /source:\s*['"]Indiana ATC public facility permit search cache reuse['"]/);

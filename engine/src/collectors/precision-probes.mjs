@@ -1009,7 +1009,7 @@ const TX_CITYHIVE_SOURCES = [
       'https://twinliquors.com/shop/?subtype=whiskey'
     ]
   },
-  { id: 'zipps-liquor', chainName: 'Zipps Liquor', sourceLabel: 'Zipps Liquor CityHive store inventory', baseUrl: 'https://www.zippsliquor.com', urls: ['https://www.zippsliquor.com/shop/?subtype=Bourbon'] },
+  { id: 'zipps-liquor', chainName: 'Zipps Liquor', sourceLabel: 'Zipps Liquor CityHive store inventory', baseUrl: 'https://shop.zippsliquor.com', urls: ['https://shop.zippsliquor.com/shop/?tags=bourbon'] },
   { id: 'pelican-liquor', chainName: 'Pelican Liquor', sourceLabel: 'Pelican Liquor McKinney CityHive store inventory', baseUrl: 'https://www.pelicanliquor.com', urls: ['https://www.pelicanliquor.com/shop/?subtype=Bourbon'] },
   { id: 'tipsy-liquor-round-rock', chainName: 'Tipsy Liquor Round Rock', sourceLabel: 'Tipsy Liquor Round Rock CityHive store inventory', baseUrl: 'https://tipsyliquorroundrock.com', urls: ['https://tipsyliquorroundrock.com/shop/?subtype=Bourbon'] },
   { id: 'wb-liquors', chainName: 'WB Liquors & Wine', sourceLabel: 'WB Liquors & Wine Texas CityHive store inventory', baseUrl: 'https://wbliquors.com', urls: ['https://wbliquors.com/shop/?subtype=whiskey'] },
