@@ -1,10 +1,26 @@
+function signalObservationIdentity(signal) {
+  return JSON.stringify([
+    signal?.eventType || signal?.type || '',
+    signal?.canonicalId || signal?.canonicalBottleId || signal?.bottleId || signal?.canonicalName || signal?.rawName || signal?.id || '',
+    signal?.storeId || signal?.locationId || signal?.storeAddress || signal?.locationName || signal?.county || signal?.city || signal?.id || '',
+    signal?.sourceLabel || signal?.source || signal?.sourceChain || '',
+    signal?.productId || signal?.productCode || signal?.ncCode || signal?.raw?.ncCode || '',
+  ].map((value) => String(value).trim().toLowerCase()));
+}
+
 function isActionableStoreSignal(signal) {
   return signal?.locationPrecision === 'store_level'
     && (signal?.canAlertAsInventory === true || signal?.sourceAvailabilityVerified === true);
 }
 
+function countUniqueSignals(report, predicate = null) {
+  return new Set((report?.signals || [])
+    .filter((signal) => !predicate || predicate(signal))
+    .map(signalObservationIdentity)).size;
+}
+
 function countActionable(report) {
-  return (report?.signals || []).filter(isActionableStoreSignal).length;
+  return countUniqueSignals(report, isActionableStoreSignal);
 }
 
 function countPublicBottleCandidates(report, isPublicBottleCandidate = null) {
@@ -89,8 +105,8 @@ function reconcileNcObservationHistory(previous, candidate) {
 }
 
 function collapseReason(previous, candidate, { minBaseline = 1, minRatio = 0.5, isPublicBottleCandidate = null } = {}) {
-  const previousSignals = previous?.signals?.length || 0;
-  const candidateSignals = candidate?.signals?.length || 0;
+  const previousSignals = countUniqueSignals(previous);
+  const candidateSignals = countUniqueSignals(candidate);
   if (previousSignals >= minBaseline && candidateSignals < Math.ceil(previousSignals * minRatio)) {
     return `signal count collapsed from ${previousSignals} to ${candidateSignals}`;
   }

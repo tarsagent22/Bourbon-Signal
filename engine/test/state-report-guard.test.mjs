@@ -39,6 +39,22 @@ test('preserves the last good state report when a successful collector silently 
   assert.equal(result.report.sourceResults[0].status, 'collapsed');
 });
 
+test('duplicate rows do not inflate the quality baseline or force a stale fallback', () => {
+  const previous = report('TX', 100);
+  const candidate = report('TX', 1);
+  for (const signal of [...previous.signals, ...candidate.signals]) {
+    signal.eventType = 'cityhive_store_inventory_result';
+    signal.canonicalId = 'bottle-1';
+    signal.storeId = 'store-1';
+    signal.sourceLabel = 'Texas CityHive inventory';
+    signal.productId = 'product-1';
+  }
+
+  const result = guardStateReport({ previous, candidate });
+  assert.equal(result.accepted, true);
+  assert.equal(result.report.signals.length, 1);
+});
+
 test('repeated quality fallback keeps one stable status suffix', () => {
   const previous = report('TX', 100, { status: 'stale_useful_quality_fallback_quality_fallback' });
   const candidate = report('TX', 20);
@@ -193,7 +209,7 @@ test('duplicate inventory rows cannot hide a collapse in unique public bottle-st
     options: { isPublicBottleCandidate: (signal) => signal.projectedTier === 'limited' },
   });
   assert.equal(result.accepted, false);
-  assert.match(result.reason, /public bottle candidate count collapsed from 72 to 7/i);
+  assert.match(result.reason, /actionable store signal count collapsed from 100 to 7/i);
 });
 
 test('a stale last-good fallback remains the public baseline on the next collection attempt', () => {
