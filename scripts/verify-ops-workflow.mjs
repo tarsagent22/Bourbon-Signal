@@ -442,11 +442,13 @@ const refreshFeedWorkflow = expectFile('.github/workflows/refresh-feed.yml');
 if (refreshFeedWorkflow && !refreshFeedWorkflow.includes('Verify no unproven state promotion entered the customer path')) {
   fail('Production refresh must verify the state integration gate before snapshot publication.');
 }
-if (refreshFeedWorkflow && (!refreshFeedWorkflow.includes('Verify Georgia private-retailer release gate')
+if (refreshFeedWorkflow && (!refreshFeedWorkflow.includes('Verify Georgia scheduled lane or isolate an explicit last-known fallback')
+  || !refreshFeedWorkflow.includes('Verify Georgia targeted private-retailer recovery')
   || !refreshFeedWorkflow.includes('engine/out/optimization/georgia-retailer-activation.json')
-  || !/Verify Georgia private-retailer release gate[\s\S]{0,180}!inputs\.states\s*\|\|\s*contains\(inputs\.states, 'GA'\)/.test(refreshFeedWorkflow)
-  || refreshFeedWorkflow.indexOf('Verify Georgia private-retailer release gate') > refreshFeedWorkflow.indexOf('Publish and atomically activate encrypted snapshot'))) {
-  fail('Production refresh must run the Georgia verifier for full or Georgia-targeted refreshes after coherent export and before snapshot publication.');
+  || !/Verify Georgia scheduled lane or isolate an explicit last-known fallback[\s\S]{0,240}!inputs\.states[\s\S]{0,240}--allow-labeled-last-known-fallback/.test(refreshFeedWorkflow)
+  || !/Verify Georgia targeted private-retailer recovery[\s\S]{0,240}inputs\.states && contains\(inputs\.states, 'GA'\)[\s\S]{0,180}run: npm run verify:ga/.test(refreshFeedWorkflow)
+  || refreshFeedWorkflow.indexOf('Verify Georgia targeted private-retailer recovery') > refreshFeedWorkflow.indexOf('Publish and atomically activate encrypted snapshot'))) {
+  fail('Production refresh must isolate an explicitly labeled GA fallback on full runs while keeping GA-targeted recovery strict before snapshot publication.');
 }
 
 if (failures.length) {

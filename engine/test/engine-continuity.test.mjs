@@ -37,6 +37,11 @@ test('scheduled refresh persists collector history, the actual scheduler state, 
   assert.match(hydrationStep, /GH_TOKEN:[\s\S]*?hydrate-state-reports\.mjs/);
   assert.doesNotMatch(hydrationStep, /if:/, 'state report hydration must also protect scheduled runs from a cold or version-missed cache');
   assert.ok(workflow.indexOf('Hydrate complete state reports for recovery') < workflow.indexOf('Refresh all due customer-active states'), 'every refresh must hydrate a complete baseline before collection');
+  const scheduledGeorgiaStep = workflow.match(/- name: Verify Georgia scheduled lane or isolate an explicit last-known fallback[\s\S]*?(?=\n      - name:)/)?.[0] || '';
+  const targetedGeorgiaStep = workflow.match(/- name: Verify Georgia targeted private-retailer recovery[\s\S]*?(?=\n      - name:)/)?.[0] || '';
+  assert.match(scheduledGeorgiaStep, /if:\s*\$\{\{ !inputs\.states \}\}[\s\S]*--allow-labeled-last-known-fallback/);
+  assert.match(targetedGeorgiaStep, /inputs\.states && contains\(inputs\.states, 'GA'\)[\s\S]*run: npm run verify:ga/);
+  assert.doesNotMatch(targetedGeorgiaStep, /allow-labeled-last-known-fallback/, 'GA-targeted recovery must remain fresh-only');
   const scheduledVirginiaStep = workflow.match(/- name: Verify Virginia scheduled lane or isolate a safe stale fallback[\s\S]*?(?=\n      - name:)/)?.[0] || '';
   const targetedVirginiaStep = workflow.match(/- name: Verify Virginia targeted statewide live inventory recovery[\s\S]*?(?=\n      - name:)/)?.[0] || '';
   assert.match(scheduledVirginiaStep, /if:\s*\$\{\{ !inputs\.states \}\}[\s\S]*--allow-safe-stale-fallback/);
@@ -69,6 +74,17 @@ test('scheduled refresh persists collector history, the actual scheduler state, 
   assert.doesNotMatch(workflow, /Refresh and gate the Texas candidate/);
   assert.match(workflow, /verify:production-engine[\s\S]*?--rollback/);
   assert.match(workflow, /engine\/out\/snapshots/);
+  for (const stepName of [
+    'Refresh all due customer-active states',
+    'Verify coherent site contract',
+    'Verify no unproven state promotion entered the customer path',
+    'Publish and atomically activate encrypted snapshot',
+    'Verify production observes the refreshed engine or roll back',
+  ]) {
+    const step = workflow.match(new RegExp(`- name: ${stepName}[\\s\\S]*?(?=\\n      - name:)`))?.[0] || '';
+    assert.ok(step, `missing unconditional nationwide gate: ${stepName}`);
+    assert.doesNotMatch(step, /\n        if:/, `${stepName} must remain unconditional`);
+  }
   const exporter = await readFile(new URL('../src/export-site-contract.mjs', import.meta.url), 'utf8');
   assert.match(exporter, /buildStateQualityInputs\(\{ stateCoverage, drops: currentDrops,/);
   const runner = await readFile(new URL('../src/run.mjs', import.meta.url), 'utf8');

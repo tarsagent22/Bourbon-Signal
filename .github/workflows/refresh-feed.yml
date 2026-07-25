@@ -124,8 +124,13 @@ jobs:
         working-directory: engine
         run: npm run verify:site
 
-      - name: Verify Georgia private-retailer release gate
-        if: ${{ !inputs.states || contains(inputs.states, 'GA') }}
+      - name: Verify Georgia scheduled lane or isolate an explicit last-known fallback
+        if: ${{ !inputs.states }}
+        working-directory: engine
+        run: npm run verify:ga -- --allow-labeled-last-known-fallback
+
+      - name: Verify Georgia targeted private-retailer recovery
+        if: ${{ inputs.states && contains(inputs.states, 'GA') }}
         working-directory: engine
         run: npm run verify:ga
 

@@ -21,6 +21,7 @@ import { legacyPrecisionRuntimeOptions } from '../src/collectors/precision-probe
 import { getStateLifecycle } from '../src/state-lifecycle.mjs';
 import { ALL_STATE_SOURCES } from '../src/state-sources.mjs';
 import { suppressGeorgiaActivationBaseline } from '../src/georgia-activation-policy.mjs';
+import { verifyGeorgiaReleasePolicy } from '../src/georgia-release-policy.mjs';
 
 const cityHiveSource = GEORGIA_CITYHIVE_SOURCES?.find((source) => source.id === 'tower-wine-spirits');
 const goToStore = GEORGIA_GOTOLIQUOR_STORES?.find((store) => store.id === '1071');
@@ -273,6 +274,131 @@ test('first Georgia retailer activation is on-site baseline only while later cha
   assert.deepEqual(later.blockers, []);
 });
 
+test('Georgia release policy allows only an explicitly labeled non-alerting last-known fallback', () => {
+  const observedAt = '2026-07-23T00:00:00.000Z';
+  const staleReason = 'Quality guard preserved the last good report because signal count collapsed from 12 to 0.';
+  const retainedSignal = binarySignal(goToStore, {
+    observedAt,
+    stale: true,
+    staleReason,
+    canAlertAsInventory: false,
+    canAlertAsWatch: false,
+    alertable: false,
+    raw: {
+      staleFallback: true,
+      staleFallbackAt: '2026-07-24T12:00:00.000Z',
+      staleReason,
+    },
+  });
+  const retainedDrop = {
+    ...retainedSignal,
+    type: retainedSignal.eventType,
+    sourceStale: true,
+    staleSourceCaveat: true,
+  };
+  const state = {
+    state: 'GA',
+    status: 'stale_useful_quality_fallback',
+    stale: true,
+    staleReason,
+    staleFallbackAt: '2026-07-24T12:00:00.000Z',
+    lastGoodAt: observedAt,
+    signals: [retainedSignal],
+  };
+
+  const result = verifyGeorgiaReleasePolicy({
+    state,
+    siteDrops: [retainedDrop],
+    siteAlerts: [],
+    allowLabeledLastKnownFallback: true,
+    nowMs: Date.parse('2026-07-24T13:00:00.000Z'),
+  });
+
+  assert.equal(result.fallback, true);
+  assert.equal(result.inventorySignals, 1);
+  assert.equal(result.projectedDrops, 1);
+  assert.equal(isGeorgiaRetailerInventory(retainedSignal), false, 'the live-inventory predicate must continue to reject every retained row');
+  assert.equal(retainedSignal.observedAt, observedAt, 'verification must not rewrite a retained observation timestamp');
+  assert.equal(retainedSignal.stale, true, 'verification must never convert a stale row into a fresh row');
+});
+
+test('Georgia release policy keeps normal and targeted verification fresh-only', () => {
+  const observedAt = '2026-07-24T12:00:00.000Z';
+  const signal = binarySignal(goToStore, { observedAt });
+  const drop = { ...signal, type: signal.eventType };
+  const state = { state: 'GA', status: 'useful', stale: false, signals: [signal] };
+
+  const result = verifyGeorgiaReleasePolicy({
+    state,
+    siteDrops: [drop],
+    siteAlerts: [{
+      state: 'GA',
+      changeType: 'current_inventory_signal',
+      eligibleForDelivery: true,
+      eligibleForOnSite: true,
+      eligibleForEmail: false,
+      eligibleForSms: false,
+      inventorySemantics: signal.inventorySemantics,
+      quantityIsExact: false,
+    }],
+    nowMs: Date.parse('2026-07-24T13:00:00.000Z'),
+  });
+  assert.equal(result.fallback, false);
+
+  const staleReason = 'Quality guard preserved the last good report because signal count collapsed from 12 to 0.';
+  const staleSignal = {
+    ...signal,
+    observedAt: '2026-07-23T00:00:00.000Z',
+    stale: true,
+    staleReason,
+    canAlertAsInventory: false,
+    canAlertAsWatch: false,
+    alertable: false,
+    raw: { staleFallback: true, staleReason, staleFallbackAt: '2026-07-24T12:00:00.000Z' },
+  };
+  const staleState = {
+    state: 'GA',
+    status: 'stale_useful_quality_fallback',
+    stale: true,
+    staleReason,
+    staleFallbackAt: '2026-07-24T12:00:00.000Z',
+    lastGoodAt: staleSignal.observedAt,
+    signals: [staleSignal],
+  };
+  const staleDrop = { ...staleSignal, type: staleSignal.eventType, sourceStale: true, staleSourceCaveat: true };
+
+  assert.throws(() => verifyGeorgiaReleasePolicy({
+    state: staleState,
+    siteDrops: [staleDrop],
+    siteAlerts: [],
+    nowMs: Date.parse('2026-07-24T13:00:00.000Z'),
+  }), /fresh|fallback/i, 'strict GA verification must reject a retained fallback');
+
+  assert.throws(() => verifyGeorgiaReleasePolicy({
+    state: { ...staleState, staleReason: '', staleFallbackAt: null },
+    siteDrops: [staleDrop],
+    siteAlerts: [],
+    allowLabeledLastKnownFallback: true,
+    nowMs: Date.parse('2026-07-24T13:00:00.000Z'),
+  }), /explicit|label|reason/i, 'fallback opt-in must not accept an unlabeled stale report');
+
+  assert.throws(() => verifyGeorgiaReleasePolicy({
+    state: staleState,
+    siteDrops: [{ ...staleDrop, canAlertAsInventory: true }],
+    siteAlerts: [],
+    allowLabeledLastKnownFallback: true,
+    nowMs: Date.parse('2026-07-24T13:00:00.000Z'),
+  }), /non-alert|alert/i, 'fallback rows must never regain alert eligibility');
+
+  assert.throws(() => verifyGeorgiaReleasePolicy({
+    state: staleState,
+    siteDrops: [{ ...staleDrop, storeId: 'forged:store' }],
+    siteAlerts: [],
+    allowLabeledLastKnownFallback: true,
+    nowMs: Date.parse('2026-07-24T13:00:00.000Z'),
+  }), /exact|identity/i, 'fallback rows must preserve exact retailer and premises identity');
+});
+
 test('Georgia lifecycle and registry expose retailer inventory within the authoritative active-state set', () => {
   const config = JSON.parse(readFileSync(new URL('../../src/config/state-lifecycle.json', import.meta.url), 'utf8'));
   assert.equal(new Set(config.activeStates).size, config.activeStates.length);
@@ -322,11 +448,13 @@ test('Georgia precision, exporter, verifier, and publication workflow are guarde
   assert.equal(enginePackage.scripts['test:ga'], 'node --test test/georgia-retailer-engine.test.mjs');
   assert.equal(enginePackage.scripts['verify:ga'], 'node src/verify-ga.mjs');
   const workflow = readFileSync(new URL('../../.github/workflows/refresh-feed.yml', import.meta.url), 'utf8');
-  assert.match(workflow, /Verify Georgia private-retailer release gate/);
+  assert.match(workflow, /Verify Georgia scheduled lane or isolate an explicit last-known fallback/);
+  assert.match(workflow, /Verify Georgia targeted private-retailer recovery/);
   assert.match(workflow, /engine\/out\/optimization\/georgia-retailer-activation\.json/);
-  assert.match(workflow, /Verify Georgia private-retailer release gate[\s\S]{0,180}!inputs\.states\s*\|\|\s*contains\(inputs\.states, 'GA'\)/);
-  assert.ok(workflow.indexOf('Verify coherent site contract') < workflow.indexOf('Verify Georgia private-retailer release gate'));
-  assert.ok(workflow.indexOf('Verify Georgia private-retailer release gate') < workflow.indexOf('Publish and atomically activate encrypted snapshot'));
+  assert.match(workflow, /Verify Georgia scheduled lane or isolate an explicit last-known fallback[\s\S]{0,240}!inputs\.states[\s\S]{0,240}--allow-labeled-last-known-fallback/);
+  assert.match(workflow, /Verify Georgia targeted private-retailer recovery[\s\S]{0,240}inputs\.states && contains\(inputs\.states, 'GA'\)[\s\S]{0,180}run: npm run verify:ga/);
+  assert.ok(workflow.indexOf('Verify coherent site contract') < workflow.indexOf('Verify Georgia scheduled lane or isolate an explicit last-known fallback'));
+  assert.ok(workflow.indexOf('Verify Georgia targeted private-retailer recovery') < workflow.indexOf('Publish and atomically activate encrypted snapshot'));
 
   const runEngine = readFileSync(new URL('../src/run.mjs', import.meta.url), 'utf8');
   assert.match(runEngine, /GA:\s*Number\(process\.env\.BOURBON_SIGNAL_GA_STATE_TIMEOUT_MS\s*\|\|\s*420_000\)/);
