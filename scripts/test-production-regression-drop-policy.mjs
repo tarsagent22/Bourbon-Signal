@@ -32,6 +32,8 @@ assert.equal(liveDropTotalMeetsRegressionFloor({ localTotal: 0, liveTotal: 0, mi
 assert.equal(liveDropTotalMeetsRegressionFloor({ localTotal: 1, liveTotal: null, minRatio: 0.4 }), false);
 
 const verifierSource = readFileSync(new URL('./verify-production-engine-regression.mjs', import.meta.url), 'utf8');
+const dropRouteSource = readFileSync(new URL('../src/app/api/drops/route.ts', import.meta.url), 'utf8');
+assert.match(dropRouteSource, /!status\.startsWith\(["']stale_useful["']\)/, 'labeled stale-useful variants must stay visible while row-age gates remain authoritative');
 assert.match(verifierSource, /pendingStates/, 'drop totals must retry in rounds while route-local snapshot caches converge');
 assert.match(verifierSource, /PRODUCTION_VERIFY_ATTEMPTS/, 'drop retries must stay bounded');
 assert.match(verifierSource, /liveDropTotalMeetsRegressionFloor/, 'drop retries must use the same regression floor as final validation');

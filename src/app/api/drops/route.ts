@@ -177,7 +177,7 @@ function degradedEngineStates(statsPayload: Record<string, unknown> | null | und
         // stale_useful means the engine intentionally retained recent usable rows
         // from the prior successful state run. Do not turn that into a blank UI;
         // individual drop-age gates below still prevent old signals from looking fresh.
-        return status !== "stale_useful";
+        return !status.startsWith("stale_useful");
       })
       .map((state) => String(state.state ?? "").toUpperCase())
       .filter(Boolean)
