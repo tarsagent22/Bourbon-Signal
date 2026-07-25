@@ -21,6 +21,11 @@ export function updateStateRunMetric(metrics = {}, result) {
   const previous = metrics[result.id] || {};
   const changed = Boolean(result.ok) && result.contentHash !== previous.contentHash;
   const failed = !result.ok;
+  const startedAt = Date.parse(result.startedAt || '');
+  const finishedAt = Date.parse(result.finishedAt || '');
+  const runtimeMs = Number.isFinite(startedAt) && Number.isFinite(finishedAt) && finishedAt >= startedAt
+    ? finishedAt - startedAt
+    : null;
   return {
     ...metrics,
     [result.id]: {
@@ -33,6 +38,8 @@ export function updateStateRunMetric(metrics = {}, result) {
       contentHash: result.contentHash || previous.contentHash || null,
       lastProbeAt: result.finishedAt || new Date().toISOString(),
       lastSuccessfulProbeAt: failed ? previous.lastSuccessfulProbeAt || null : result.finishedAt || new Date().toISOString(),
+      lastRuntimeMs: runtimeMs ?? previous.lastRuntimeMs ?? null,
+      totalRuntimeMs: Number(previous.totalRuntimeMs || 0) + (runtimeMs || 0),
     },
   };
 }

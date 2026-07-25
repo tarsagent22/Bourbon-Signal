@@ -13,6 +13,7 @@
     "location": "node src/location-report.mjs",
     "location:bible": "node src/collect-location-bible.mjs",
     "operational": "node src/operational-report.mjs",
+    "report:source-usefulness": "node src/source-usefulness-report.mjs",
     "export:site": "node --max-old-space-size=16384 src/export-site-contract.mjs",
     "repeatability": "node src/repeatability-check.mjs",
     "quality": "node src/quality-audit.mjs",

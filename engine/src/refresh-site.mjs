@@ -328,6 +328,13 @@ async function main() {
     steps.push(await runNode('src/location-report.mjs'));
     steps.push(await runNode('src/operational-report.mjs'));
     steps.push(await runNode('src/export-site-contract.mjs'));
+    try {
+      steps.push(await runNode('src/source-usefulness-report.mjs'));
+    } catch (error) {
+      warnings.push(`source-usefulness-report: ${error.message}`);
+      if (error.result) steps.push(error.result);
+      console.warn(`Source usefulness diagnostics failed non-blocking: ${error.message}`);
+    }
     steps.push(await runNode('src/build-store-identity.mjs'));
 
     try {

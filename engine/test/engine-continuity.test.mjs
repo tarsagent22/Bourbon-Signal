@@ -69,6 +69,8 @@ test('scheduled refresh persists collector history, the actual scheduler state, 
   assert.match(diagnosticsStep, /engine\/out\/optimization\/source-run-history\.json/);
   assert.match(diagnosticsStep, /engine\/out\/source-slo-7d\.json/);
   assert.match(diagnosticsStep, /engine\/out\/source-slo-7d\.md/);
+  assert.match(diagnosticsStep, /engine\/out\/source-usefulness-roi\.json/);
+  assert.match(diagnosticsStep, /engine\/out\/source-usefulness-roi\.md/);
   const workflowTimeoutMinutes = Number(workflow.match(/timeout-minutes:\s*(\d+)/)?.[1] || 0);
   assert.ok(workflowTimeoutMinutes >= 80, `refresh workflow timeout ${workflowTimeoutMinutes}m must cover 30m FWGS + 22m state run + installs, verification, publication, and rollback checks`);
   assert.doesNotMatch(workflow, /Refresh and gate the Texas candidate/);
@@ -90,6 +92,12 @@ test('scheduled refresh persists collector history, the actual scheduler state, 
   const runner = await readFile(new URL('../src/run.mjs', import.meta.url), 'utf8');
   assert.match(runner, /degraded_previous_report_retry/);
   assert.match(runner, /previousReport\.stale === true/);
+  const refreshRunner = await readFile(new URL('../src/refresh-site.mjs', import.meta.url), 'utf8');
+  assert.ok(
+    refreshRunner.indexOf("runNode('src/export-site-contract.mjs')") < refreshRunner.indexOf("runNode('src/source-usefulness-report.mjs')"),
+    'source usefulness must inspect the final customer-visible export',
+  );
+  assert.match(refreshRunner, /try\s*\{[\s\S]*runNode\('src\/source-usefulness-report\.mjs'\)[\s\S]*catch[\s\S]*warnings\.push/, 'source usefulness diagnostics must remain non-gating');
   const fallback = await readFile(new URL('../src/state-report-fallback.mjs', import.meta.url), 'utf8');
   assert.match(fallback, /lastGoodAt:\s*report\.lastGoodAt\s*\|\|\s*report\.finishedAt/);
   assert.match(fallback, /canAlertAsInventory:\s*false/);

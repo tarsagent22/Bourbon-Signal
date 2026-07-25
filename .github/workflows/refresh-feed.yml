@@ -215,6 +215,8 @@ jobs:
             engine/out/operational-report.json
             engine/out/source-slo-7d.json
             engine/out/source-slo-7d.md
+            engine/out/source-usefulness-roi.json
+            engine/out/source-usefulness-roi.md
             engine/out/optimization/source-run-history.json
             engine/out/optimization/georgia-retailer-activation.json
             engine/out/optimization/state-run-metrics.json

@@ -118,6 +118,7 @@ test('persistent SLO history records each real retry attempt and exposes state e
 
   assert.equal(history.observations.length, 2);
   assert.deepEqual(history.observations.map((observation) => observation.outcome), ['timeout', 'success']);
+  assert.deepEqual(history.observations.map((observation) => observation.runtimeMs), [30_000, 30_000]);
   assert.equal(history.observations[0].errorKind, 'timeout');
   assert.equal('errorKind' in history.observations[1], false);
   assert.equal(report.observedSampleCount, 2);

@@ -12,16 +12,23 @@ function validTime(value) {
 
 function observationFromResult(result, now, attempt = null, attemptIndex = 0) {
   const observedAt = attempt?.finishedAt || result.finishedAt || result.checkedAt || now;
+  const startedAt = attempt?.startedAt || result.startedAt || null;
   const sourceId = String(result.sourceId || '').trim();
   if (!sourceId || validTime(observedAt) == null) return null;
   const outcome = result.quarantined ? 'quarantined' : String(attempt?.outcome || result.status || 'failed');
   const attemptNumber = Number(attempt?.attempt || (attempt ? attemptIndex + 1 : 0));
+  const startedAtMs = validTime(startedAt);
+  const observedAtMs = validTime(observedAt);
+  const runtimeMs = startedAtMs != null && observedAtMs != null && observedAtMs >= startedAtMs
+    ? observedAtMs - startedAtMs
+    : null;
   return {
     id: `${sourceId}|${result.startedAt || observedAt}|${attemptNumber}|${observedAt}|${outcome}`,
     sourceId,
     observedAt,
     outcome,
     attemptCount: attempt ? 1 : Number(result.attemptCount || 0),
+    ...(runtimeMs != null ? { runtimeMs } : {}),
     ...(attempt?.error?.kind || result.error?.kind ? { errorKind: attempt?.error?.kind || result.error?.kind } : {}),
     ...(result.sourceMetadata?.stateId ? { stateId: String(result.sourceMetadata.stateId) } : {}),
   };
