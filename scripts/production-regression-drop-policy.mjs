@@ -5,6 +5,7 @@ const MAX_OH_STALE_FEED_AGE_MS = 14 * DAY_MS;
 const MAX_DELIVERY_DROP_AGE_MS = 14 * DAY_MS;
 const MAX_CONTEXT_DROP_AGE_MS = 30 * DAY_MS;
 const FUTURE_CLOCK_SKEW_MS = 15 * 60 * 1000;
+const DROP_FEED_TIERS = new Set(['unicorn', 'allocated', 'limited']);
 
 function asTime(value) {
   if (typeof value !== 'string' || !value.trim()) return Number.NaN;
@@ -52,6 +53,8 @@ export function liveDropTotalMeetsRegressionFloor({ localTotal, liveTotal, minRa
 }
 
 export function isDropExpectedInLiveFeed(drop, now = Date.now()) {
+  const tier = String(drop.rarity_tier ?? drop.tier ?? '').toLowerCase();
+  if (!DROP_FEED_TIERS.has(tier)) return false;
   if (isInventorySignal(drop) && !(Number(drop?.quantity || 0) > 0)) return false;
   const timestamp = dropFreshnessTime(drop);
   if (!Number.isFinite(timestamp)) return false;
