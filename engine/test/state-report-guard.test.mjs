@@ -53,6 +53,80 @@ test('accepts a healthy expansion and first report', () => {
   assert.equal(guardStateReport({ previous: null, candidate: report('TX', 760) }).accepted, true);
 });
 
+test('NC repeat observations keep their first feed timestamp while real shipments and locations remain new', () => {
+  const previous = {
+    ...report('NC', 0),
+    signals: [
+      {
+        id: 'wake-buffalo-trace',
+        state: 'NC',
+        eventType: 'store_inventory_result',
+        canonicalId: 'buffalo-trace',
+        sourceLabel: 'Wake County ABC store inventory search',
+        sourceUrl: 'https://wakeabc.example/inventory/buffalo-trace',
+        storeId: 'wake-store-1',
+        storeName: 'Wake Store 1',
+        locationPrecision: 'store_level',
+        quantity: 6,
+        availabilityStatus: 'in_stock',
+        price: 29.95,
+        observedAt: '2026-07-24T18:20:00.000Z',
+        canAlertAsInventory: true,
+      },
+      {
+        id: 'wake-shipment-12',
+        state: 'NC',
+        eventType: 'nc_board_shipment_snapshot',
+        canonicalId: 'eagle-rare',
+        sourceLabel: 'NC ABC Stock Shipped Data',
+        sourceUrl: 'https://abc2.nc.gov/Pricing/ViewItemDetails/123',
+        locationName: 'Wake County ABC Board',
+        locationPrecision: 'board_county',
+        quantity: 12,
+        sourceEventAt: '2026-07-24T15:04:00.000Z',
+        observedAt: '2026-07-24T15:04:00.000Z',
+      },
+    ],
+  };
+  const candidate = {
+    ...report('NC', 0),
+    finishedAt: '2026-07-24T21:41:00.000Z',
+    signals: [
+      {
+        ...previous.signals[0],
+        observedAt: '2026-07-24T21:40:00.000Z',
+      },
+      {
+        ...previous.signals[1],
+        id: 'wake-shipment-24',
+        quantity: 24,
+        sourceEventAt: '2026-07-24T21:04:00.000Z',
+        observedAt: '2026-07-24T21:04:00.000Z',
+      },
+      {
+        ...previous.signals[0],
+        id: 'mecklenburg-buffalo-trace',
+        storeId: 'mecklenburg-store-1',
+        storeName: 'Mecklenburg Store 1',
+        observedAt: '2026-07-24T21:40:00.000Z',
+      },
+    ],
+  };
+
+  const result = guardStateReport({ previous, candidate });
+  assert.equal(result.accepted, true);
+
+  const unchanged = result.report.signals.find((signal) => signal.id === 'wake-buffalo-trace');
+  assert.equal(unchanged.observedAt, '2026-07-24T21:40:00.000Z');
+  assert.equal(unchanged.firstSeenAt, '2026-07-24T18:20:00.000Z');
+  assert.equal(unchanged.lastConfirmedAt, '2026-07-24T21:40:00.000Z');
+
+  const shipment = result.report.signals.find((signal) => signal.id === 'wake-shipment-24');
+  assert.equal(shipment.firstSeenAt, '2026-07-24T21:04:00.000Z');
+  assert.equal(shipment.lastConfirmedAt, '2026-07-24T21:04:00.000Z');
+  assert.ok(result.report.signals.some((signal) => signal.storeId === 'mecklenburg-store-1'));
+});
+
 test('preserves low-volume watch lanes when they collapse to zero', () => {
   const result = guardStateReport({ previous: report('KY', 8, { actionable: 0 }), candidate: report('KY', 0, { actionable: 0 }) });
   assert.equal(result.accepted, false);

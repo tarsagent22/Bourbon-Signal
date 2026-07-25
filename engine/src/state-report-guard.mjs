@@ -22,6 +22,72 @@ function countPublicBottleCandidates(report, isPublicBottleCandidate = null) {
   return uniqueRows.size;
 }
 
+function ncObservationIdentity(signal) {
+  return JSON.stringify([
+    signal?.eventType || signal?.type || '',
+    signal?.canonicalId || signal?.canonicalBottleId || signal?.bottleId || signal?.canonicalName || signal?.rawName || '',
+    signal?.sourceChain || signal?.sourceLabel || signal?.source || '',
+    signal?.sourceUrl || '',
+    signal?.merchantId || '',
+    signal?.productId || signal?.productCode || signal?.ncCode || signal?.raw?.ncCode || '',
+    signal?.variantId || '',
+    signal?.storeId || signal?.locationId || signal?.storeName || signal?.locationName || signal?.storeAddress || signal?.county || signal?.city || '',
+  ].map((value) => String(value).trim().toLowerCase()));
+}
+
+function ncObservationContent(signal) {
+  return JSON.stringify([
+    signal?.quantity ?? null,
+    signal?.storeQty ?? null,
+    signal?.warehouseQty ?? null,
+    signal?.reportedQuantity ?? null,
+    signal?.availabilityStatus ?? null,
+    signal?.availabilityValue ?? null,
+    signal?.sourceAvailabilityVerified ?? null,
+    signal?.price ?? null,
+    signal?.sourceEventAt ?? null,
+    signal?.eventDate ?? signal?.releaseDate ?? null,
+  ]);
+}
+
+function earliestTimestamp(...values) {
+  return values
+    .filter((value) => Number.isFinite(Date.parse(String(value || ''))))
+    .sort((left, right) => Date.parse(left) - Date.parse(right))[0] || null;
+}
+
+function latestTimestamp(...values) {
+  return values
+    .filter((value) => Number.isFinite(Date.parse(String(value || ''))))
+    .sort((left, right) => Date.parse(right) - Date.parse(left))[0] || null;
+}
+
+function reconcileNcObservationHistory(previous, candidate) {
+  if (candidate?.state !== 'NC') return candidate;
+  const previousByObservation = new Map();
+  for (const signal of previous?.signals || []) {
+    const key = `${ncObservationIdentity(signal)}|${ncObservationContent(signal)}`;
+    const matches = previousByObservation.get(key) || [];
+    matches.push(signal);
+    previousByObservation.set(key, matches);
+  }
+
+  return {
+    ...candidate,
+    signals: (candidate.signals || []).map((signal) => {
+      const observedAt = signal.observedAt || signal.fetchedAt || null;
+      const key = `${ncObservationIdentity(signal)}|${ncObservationContent(signal)}`;
+      const matches = previousByObservation.get(key) || [];
+      const prior = matches.shift() || null;
+      return {
+        ...signal,
+        firstSeenAt: earliestTimestamp(prior?.firstSeenAt, prior?.observedAt, signal.firstSeenAt, observedAt),
+        lastConfirmedAt: latestTimestamp(prior?.lastConfirmedAt, prior?.observedAt, signal.lastConfirmedAt, observedAt),
+      };
+    }),
+  };
+}
+
 function collapseReason(previous, candidate, { minBaseline = 1, minRatio = 0.5, isPublicBottleCandidate = null } = {}) {
   const previousSignals = previous?.signals?.length || 0;
   const candidateSignals = candidate?.signals?.length || 0;
@@ -92,9 +158,10 @@ export function guardStateReport({ previous, candidate, now, options } = {}) {
     if (!previous) return { accepted: false, report: null, reason: 'candidate and previous report are missing' };
     return { accepted: false, report: preservedFallback(previous, 'the candidate report was missing', now), reason: 'candidate report missing' };
   }
-  if (!previous) return { accepted: true, report: candidate, reason: null };
+  const reconciledCandidate = reconcileNcObservationHistory(previous, candidate);
+  if (!previous) return { accepted: true, report: reconciledCandidate, reason: null };
 
-  const reason = collapseReason(previous, candidate, options);
-  if (!reason) return { accepted: true, report: candidate, reason: null };
-  return { accepted: false, report: preservedFallback(previous, reason, now, candidate), reason };
+  const reason = collapseReason(previous, reconciledCandidate, options);
+  if (!reason) return { accepted: true, report: reconciledCandidate, reason: null };
+  return { accepted: false, report: preservedFallback(previous, reason, now, reconciledCandidate), reason };
 }
