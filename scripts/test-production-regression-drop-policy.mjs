@@ -35,6 +35,9 @@ assert.equal(liveDropTotalMeetsRegressionFloor({ localTotal: 1, liveTotal: null,
 
 const verifierSource = readFileSync(new URL('./verify-production-engine-regression.mjs', import.meta.url), 'utf8');
 const dropRouteSource = readFileSync(new URL('../src/app/api/drops/route.ts', import.meta.url), 'utf8');
+const siteContractSource = readFileSync(new URL('../src/lib/site-engine-contract.ts', import.meta.url), 'utf8');
+assert.match(siteContractSource, /type === ["']retailer_store_inventory_result["'][\s\S]{0,160}quantity > 0/, 'the app must accept positive retailer inventory rows already admitted by the engine exporter');
+assert.match(siteContractSource, /type === ["']cityhive_store_inventory_result["'][\s\S]{0,160}quantity > 0/, 'the app must accept positive CityHive inventory rows already admitted by the engine exporter');
 assert.match(dropRouteSource, /!status\.startsWith\(["']stale_useful["']\)/, 'labeled stale-useful variants must stay visible while row-age gates remain authoritative');
 assert.match(verifierSource, /pendingStates/, 'drop totals must retry in rounds while route-local snapshot caches converge');
 assert.match(verifierSource, /PRODUCTION_VERIFY_ATTEMPTS/, 'drop retries must stay bounded');

@@ -388,6 +388,8 @@ export function isUserFacingDropSignal(drop: {
   if (type === "store_inventory_aggregate" && precision === "store_aggregate") return quantity > 0;
   if (type === "browser_assisted_store_inventory_limited_supply") return true;
   if (type === "browser_assisted_store_inventory_in_stock") return true;
+  if (type === "retailer_store_inventory_result") return quantity > 0;
+  if (type === "cityhive_store_inventory_result") return quantity > 0;
   if (type === "distillery_gift_shop_availability" && precision === "distillery") return true;
   if (type === "store_inventory_result") return quantity > 0;
 
