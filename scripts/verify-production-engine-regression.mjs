@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { selectVerificationStates } from './production-verification-scope.mjs';
-import { isDropExpectedInLiveFeed, parseLiveDropTotal } from './production-regression-drop-policy.mjs';
+import { isDropExpectedInLiveFeed, liveDropTotalMeetsRegressionFloor, parseLiveDropTotal } from './production-regression-drop-policy.mjs';
 
 const ROOT = process.cwd();
 const BASE_URL = process.env.BOURBON_SIGNAL_LIVE_BASE_URL || 'https://www.bourbonsignal.com';
@@ -80,13 +80,27 @@ async function main() {
   if (liveStats.refreshHealth?.staleStateCount > 0) warn(`Live refreshHealth has staleStateCount=${liveStats.refreshHealth.staleStateCount}.`);
 
   const checkedStates = [];
+  const latestStateResponses = new Map();
+  let pendingStates = [...states];
+  for (let attempt = 1; attempt <= PRODUCTION_VERIFY_ATTEMPTS && pendingStates.length; attempt += 1) {
+    const stillPending = [];
+    for (const state of pendingStates) {
+      const localTotal = localDropMap.get(state) || 0;
+      const res = await getJson(`/api/drops?state=${encodeURIComponent(state)}&limit=1`);
+      const liveTotal = parseLiveDropTotal(res.json?.total);
+      latestStateResponses.set(state, { state, localTotal, liveTotal, status: res.status, ok: res.ok && Boolean(res.json) });
+      if (!res.ok || !res.json || !liveDropTotalMeetsRegressionFloor({ localTotal, liveTotal, minRatio: MIN_RATIO })) stillPending.push(state);
+    }
+    pendingStates = stillPending;
+    if (pendingStates.length && attempt < PRODUCTION_VERIFY_ATTEMPTS) await sleep(PRODUCTION_VERIFY_DELAY_MS);
+  }
+
   for (const state of states) {
-    const localTotal = localDropMap.get(state) || 0;
-    const res = await getJson(`/api/drops?state=${encodeURIComponent(state)}&limit=1`);
-    const liveTotal = parseLiveDropTotal(res.json?.total);
-    checkedStates.push({ state, localTotal, liveTotal, status: res.status });
-    if (!res.ok || !res.json) {
-      fail(`${state}: /api/drops failed with status ${res.status}.`);
+    const result = latestStateResponses.get(state) || { state, localTotal: localDropMap.get(state) || 0, liveTotal: null, status: 0, ok: false };
+    const { localTotal, liveTotal, status } = result;
+    checkedStates.push({ state, localTotal, liveTotal, status });
+    if (!result.ok) {
+      fail(`${state}: /api/drops failed with status ${status}.`);
       continue;
     }
     if (liveTotal === null) {

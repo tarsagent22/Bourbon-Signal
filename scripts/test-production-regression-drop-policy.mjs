@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { isDropExpectedInLiveFeed, parseLiveDropTotal } from './production-regression-drop-policy.mjs';
+import { isDropExpectedInLiveFeed, liveDropTotalMeetsRegressionFloor, parseLiveDropTotal } from './production-regression-drop-policy.mjs';
 
 const now = Date.parse('2026-07-21T02:00:00.000Z');
 const inventory = { state: 'TX', canAlertAsInventory: true, quantity: 1 };
@@ -25,7 +25,16 @@ for (const invalid of [null, '', false, '12', -1, 1.5, Number.NaN, Number.POSITI
   assert.equal(parseLiveDropTotal(invalid), null, `invalid live total must fail closed: ${String(invalid)}`);
 }
 
+assert.equal(liveDropTotalMeetsRegressionFloor({ localTotal: 42, liveTotal: 0, minRatio: 0.4 }), false, 'a stale zero response must be retried');
+assert.equal(liveDropTotalMeetsRegressionFloor({ localTotal: 42, liveTotal: 15, minRatio: 0.4 }), false, 'a stale response below the floor must be retried');
+assert.equal(liveDropTotalMeetsRegressionFloor({ localTotal: 42, liveTotal: 16, minRatio: 0.4 }), true);
+assert.equal(liveDropTotalMeetsRegressionFloor({ localTotal: 0, liveTotal: 0, minRatio: 0.4 }), true);
+assert.equal(liveDropTotalMeetsRegressionFloor({ localTotal: 1, liveTotal: null, minRatio: 0.4 }), false);
+
 const verifierSource = readFileSync(new URL('./verify-production-engine-regression.mjs', import.meta.url), 'utf8');
+assert.match(verifierSource, /pendingStates/, 'drop totals must retry in rounds while route-local snapshot caches converge');
+assert.match(verifierSource, /PRODUCTION_VERIFY_ATTEMPTS/, 'drop retries must stay bounded');
+assert.match(verifierSource, /liveDropTotalMeetsRegressionFloor/, 'drop retries must use the same regression floor as final validation');
 assert.match(verifierSource, /localTotal > 0 && liveTotal === 0/, 'even one fresh local row must fail when the live state collapses to zero');
 assert.match(verifierSource, /liveTotal === null/, 'invalid live totals must fail closed');
 
