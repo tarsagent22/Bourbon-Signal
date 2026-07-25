@@ -11,7 +11,7 @@ const HERMES_JOBS_PATH = path.join(ROOT, 'automation', 'bourbon-signal', 'hermes
 const OWNER_LAYERS = new Set(['deterministic', 'sensor', 'operator', 'brief']);
 const EXECUTION_CLASSES = new Set(['script_only', 'script_then_agent', 'agent']);
 const MUTATION_CLASSES = new Set(['none', 'internal_state', 'snapshot_activation']);
-const PROMOTION_CLASSES = new Set(['none', 'guarded_recovery_dispatch', 'snapshot_activation', 'operator_only']);
+const PROMOTION_CLASSES = new Set(['none', 'guarded_recovery_dispatch', 'snapshot_activation', 'operator_only', 'draft_pr_only']);
 const SILENCE_POLICIES = new Set(['quiet_on_success', 'compact_exception_only', 'report_output']);
 const DELIVERY_CLASSES = new Set(['local', 'main_chat', 'ops_chat', 'github_only']);
 

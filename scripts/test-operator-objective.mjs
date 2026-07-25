@@ -139,6 +139,10 @@ function gitHarness(events = [], remoteClaims = new Set()) {
 }
 
 const fixtureDir = mkdtempSync(path.join(tmpdir(), 'operator-objective-'));
+await assert.rejects(
+  () => objectiveMain(['select', '--apply'], { environment: {}, log: () => {} }),
+  /shared release-lane OS lock/i,
+);
 try {
   const findingsFile = path.join(fixtureDir, 'canonical-findings.json');
   const lockFile = path.join(fixtureDir, 'objective-lock.json');
@@ -149,7 +153,7 @@ try {
   const dryGit = gitHarness();
   const dryResult = await objectiveMain([
     'select', `--file=${findingsFile}`, '--repo=owner/repo', `--lock=${lockFile}`, `--worktree=${worktree}`, `--at=${observedAt}`,
-  ], { runGh: dryGithub.runGh, runGit: dryGit.runGit, log: () => {} });
+  ], { runGh: dryGithub.runGh, runGit: dryGit.runGit, log: () => {}, environment: { BOURBON_SIGNAL_RELEASE_LANE_LEASE_ID: 'test-lease' } });
   assert.equal(dryResult.mode, 'dry-run');
   assert.equal(dryGithub.calls.length, 0, 'selection dry-run must not contact or mutate GitHub');
   assert.equal(dryGit.calls.length, 0, 'selection dry-run must not mutate or inspect git state');
@@ -161,7 +165,7 @@ try {
   const git = gitHarness(events, remoteClaims);
   const selected = await objectiveMain([
     'select', `--file=${findingsFile}`, '--repo=owner/repo', `--lock=${lockFile}`, `--worktree=${worktree}`, `--at=${observedAt}`, '--apply',
-  ], { runGh: github.runGh, runGit: git.runGit, log: () => {} });
+  ], { runGh: github.runGh, runGit: git.runGit, log: () => {}, environment: { BOURBON_SIGNAL_RELEASE_LANE_LEASE_ID: 'test-lease' } });
   assert.equal(selected.mode, 'apply');
   assert.equal(github.status(), 'in-progress');
   assert.equal(existsSync(lockFile), true);
@@ -174,24 +178,24 @@ try {
   await assert.rejects(() => objectiveMain([
     'select', `--file=${findingsFile}`, '--repo=owner/repo', `--lock=${path.join(fixtureDir, 'competing-lock.json')}`,
     `--worktree=${path.join(fixtureDir, 'competing-worktree')}`, `--at=${observedAt}`, '--apply',
-  ], { runGh: github.runGh, runGit: competingGit.runGit, log: () => {} }), /remote objective branch already exists|already (?:selected|in-progress)|cannot be claimed/i);
+  ], { runGh: github.runGh, runGit: competingGit.runGit, log: () => {}, environment: { BOURBON_SIGNAL_RELEASE_LANE_LEASE_ID: 'test-lease' } }), /remote objective branch already exists|already (?:selected|in-progress)|cannot be claimed/i);
   assert.equal(competingGit.calls.some((call) => call.args[0] === 'worktree' && call.args[1] === 'add'), false, 'a second operator cannot create independent objective work');
 
   await assert.rejects(() => objectiveMain([
     'release', `--lock=${lockFile}`, `--worktree=${worktree}`, '--repo=owner/repo', '--apply',
-  ], { runGh: github.runGh, runGit: git.runGit, log: () => {} }), /--disposition/);
+  ], { runGh: github.runGh, runGit: git.runGit, log: () => {}, environment: { BOURBON_SIGNAL_RELEASE_LANE_LEASE_ID: 'test-lease' } }), /--disposition/);
   assert.equal(existsSync(lockFile), true);
 
   git.state.dirty = true;
   await assert.rejects(() => objectiveMain([
     'release', `--lock=${lockFile}`, `--worktree=${worktree}`, '--repo=owner/repo', '--disposition=resolved', '--apply',
-  ], { runGh: github.runGh, runGit: git.runGit, log: () => {} }), /dirty objective worktree/i);
+  ], { runGh: github.runGh, runGit: git.runGit, log: () => {}, environment: { BOURBON_SIGNAL_RELEASE_LANE_LEASE_ID: 'test-lease' } }), /dirty objective worktree/i);
   assert.equal(github.status(), 'in-progress');
   git.state.dirty = false;
 
   await assert.rejects(() => objectiveMain([
     'release', `--lock=${lockFile}`, `--worktree=${worktree}`, '--repo=owner/repo', '--disposition=resolved', '--apply',
-  ], { runGh: github.runGh, runGit: git.runGit, log: () => {} }), /merged or archived/i);
+  ], { runGh: github.runGh, runGit: git.runGit, log: () => {}, environment: { BOURBON_SIGNAL_RELEASE_LANE_LEASE_ID: 'test-lease' } }), /merged or archived/i);
   assert.equal(github.status(), 'in-progress');
 
   git.state.archived = true;
@@ -199,7 +203,7 @@ try {
   const gitCallsBeforeReleaseDryRun = git.calls.length;
   const releaseDryRun = await objectiveMain([
     'release', `--lock=${lockFile}`, `--worktree=${worktree}`, '--repo=owner/repo', '--disposition=resolved',
-  ], { runGh: github.runGh, runGit: git.runGit, log: () => {} });
+  ], { runGh: github.runGh, runGit: git.runGit, log: () => {}, environment: { BOURBON_SIGNAL_RELEASE_LANE_LEASE_ID: 'test-lease' } });
   assert.equal(releaseDryRun.mode, 'dry-run');
   assert.equal(github.calls.length, ghCallsBeforeReleaseDryRun, 'release dry-run must not contact or mutate GitHub');
   assert.equal(git.calls.slice(gitCallsBeforeReleaseDryRun).some((call) => (
@@ -211,7 +215,7 @@ try {
   git.state.failBranchDelete = true;
   await assert.rejects(() => objectiveMain([
     'release', `--lock=${lockFile}`, `--worktree=${worktree}`, '--repo=owner/repo', '--disposition=resolved', '--apply',
-  ], { runGh: github.runGh, runGit: git.runGit, log: () => {} }), /branch delete failure/);
+  ], { runGh: github.runGh, runGit: git.runGit, log: () => {}, environment: { BOURBON_SIGNAL_RELEASE_LANE_LEASE_ID: 'test-lease' } }), /branch delete failure/);
   assert.equal(github.status(), 'resolved', 'canonical disposition is updated before local cleanup');
   assert.equal(existsSync(lockFile), true, 'the lock survives any cleanup failure');
   assert.ok(events.indexOf('github:resolved') < events.indexOf('git:worktree-remove'));
@@ -219,7 +223,7 @@ try {
   git.state.failBranchDelete = false;
   await objectiveMain([
     'release', `--lock=${lockFile}`, `--worktree=${worktree}`, '--repo=owner/repo', '--disposition=resolved', '--apply',
-  ], { runGh: github.runGh, runGit: git.runGit, log: () => {} });
+  ], { runGh: github.runGh, runGit: git.runGit, log: () => {}, environment: { BOURBON_SIGNAL_RELEASE_LANE_LEASE_ID: 'test-lease' } });
   assert.equal(existsSync(lockFile), false, 'unlock happens only after canonical update and safe cleanup');
   assert.equal(git.state.registeredWorktree, null);
   assert.equal(git.state.branch, null);
@@ -233,11 +237,11 @@ try {
   await objectiveMain([
     'select', `--file=${findingsFile}`, '--repo=owner/repo', `--lock=${mergedLock}`, `--worktree=${mergedWorktree}`,
     `--at=${observedAt}`, '--apply',
-  ], { runGh: mergedGithub.runGh, runGit: mergedGit.runGit, log: () => {} });
+  ], { runGh: mergedGithub.runGh, runGit: mergedGit.runGit, log: () => {}, environment: { BOURBON_SIGNAL_RELEASE_LANE_LEASE_ID: 'test-lease' } });
   mergedGit.state.merged = true;
   await objectiveMain([
     'release', `--lock=${mergedLock}`, '--repo=owner/repo', '--disposition=dismissed', '--apply',
-  ], { runGh: mergedGithub.runGh, runGit: mergedGit.runGit, log: () => {} });
+  ], { runGh: mergedGithub.runGh, runGit: mergedGit.runGit, log: () => {}, environment: { BOURBON_SIGNAL_RELEASE_LANE_LEASE_ID: 'test-lease' } });
   assert.equal(mergedGithub.status(), 'dismissed');
   assert.equal(mergedRemoteClaims.size, 0, 'a merged remote claim branch is removed before unlock');
   assert.equal(existsSync(mergedLock), false);
@@ -251,7 +255,7 @@ try {
   await assert.rejects(() => objectiveMain([
     'select', `--file=${findingsFile}`, '--repo=owner/repo', `--lock=${rollbackLock}`, `--worktree=${rollbackWorktree}`,
     `--at=${observedAt}`, '--apply',
-  ], { runGh: rollbackGithub.runGh, runGit: rollbackGit.runGit, log: () => {} }), /fixture worktree failure/);
+  ], { runGh: rollbackGithub.runGh, runGit: rollbackGit.runGit, log: () => {}, environment: { BOURBON_SIGNAL_RELEASE_LANE_LEASE_ID: 'test-lease' } }), /fixture worktree failure/);
   assert.equal(rollbackGithub.status(), 'backlog', 'failed lock/worktree creation rolls the canonical claim back');
   assert.equal(existsSync(rollbackLock), false);
   assert.equal(rollbackRemoteClaims.size, 0, 'failed selection also releases the atomic remote claim');
@@ -264,13 +268,13 @@ try {
   await objectiveMain([
     'select', `--file=${findingsFile}`, '--repo=owner/repo', `--lock=${remoteOnlyLock}`, `--worktree=${remoteOnlyWorktree}`,
     `--at=${observedAt}`, '--apply',
-  ], { runGh: remoteOnlyGithub.runGh, runGit: remoteOnlyGit.runGit, log: () => {} });
+  ], { runGh: remoteOnlyGithub.runGh, runGit: remoteOnlyGit.runGit, log: () => {}, environment: { BOURBON_SIGNAL_RELEASE_LANE_LEASE_ID: 'test-lease' } });
   remoteOnlyGit.state.registeredWorktree = null;
   remoteOnlyGit.state.branch = null;
   remoteOnlyGit.state.archived = true;
   await assert.rejects(() => objectiveMain([
     'release', `--lock=${remoteOnlyLock}`, '--repo=owner/repo', '--disposition=blocked', '--apply',
-  ], { runGh: remoteOnlyGithub.runGh, runGit: remoteOnlyGit.runGit, log: () => {} }), /not merged.*preserving archive/i);
+  ], { runGh: remoteOnlyGithub.runGh, runGit: remoteOnlyGit.runGit, log: () => {}, environment: { BOURBON_SIGNAL_RELEASE_LANE_LEASE_ID: 'test-lease' } }), /not merged.*preserving archive/i);
   assert.equal(remoteOnlyClaims.size, 1, 'a remote-only unmerged objective archive cannot be deleted');
   assert.equal(existsSync(remoteOnlyLock), true);
 
@@ -290,7 +294,7 @@ try {
   await assert.rejects(() => objectiveMain([
     'select', `--file=${findingsFile}`, '--repo=owner/repo', `--lock=${rollbackFailureLock}`, `--worktree=${rollbackFailureWorktree}`,
     `--at=${observedAt}`, '--apply',
-  ], { runGh: failingRollbackGh, runGit: rollbackFailureGit.runGit, log: () => {} }), /objective rollback also failed/i);
+  ], { runGh: failingRollbackGh, runGit: rollbackFailureGit.runGit, log: () => {}, environment: { BOURBON_SIGNAL_RELEASE_LANE_LEASE_ID: 'test-lease' } }), /objective rollback also failed/i);
   assert.equal(rollbackFailureGithub.status(), 'selected');
   assert.equal(existsSync(rollbackFailureLock), true, 'failed canonical rollback preserves the local recovery lock');
   assert.equal(rollbackFailureClaims.size, 1, 'failed canonical rollback preserves the remote claim');

@@ -30,6 +30,34 @@
       "delivery": "github_only"
     },
     {
+      "id": "github-single-release-lane",
+      "platform": "github_workflow",
+      "workflowPath": ".github/workflows/release-lane.yml",
+      "active": true,
+      "ownerLayer": "deterministic",
+      "executionClass": "script_only",
+      "frequency": "on every pull request state change",
+      "agent": {
+        "provider": null,
+        "model": null,
+        "reasoning": null
+      },
+      "externalApi": {
+        "classes": [
+          "github_check_run"
+        ],
+        "maxRequestsPerRun": 100
+      },
+      "customerMutation": "none",
+      "promotionDeployment": "none",
+      "silencePolicy": "compact_exception_only",
+      "killSwitch": "github_workflow_disable",
+      "artifacts": [
+        "single-release-lane status"
+      ],
+      "delivery": "github_only"
+    },
+    {
       "id": "github-refresh-feed",
       "platform": "github_workflow",
       "workflowPath": ".github/workflows/refresh-feed.yml",
@@ -306,7 +334,7 @@
         "maxRequestsPerRun": 200
       },
       "customerMutation": "none",
-      "promotionDeployment": "operator_only",
+      "promotionDeployment": "draft_pr_only",
       "silencePolicy": "report_output",
       "killSwitch": "cron_pause:3244b5822d87",
       "artifacts": [
