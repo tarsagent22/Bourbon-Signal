@@ -458,4 +458,6 @@ test('Georgia precision, exporter, verifier, and publication workflow are guarde
 
   const runEngine = readFileSync(new URL('../src/run.mjs', import.meta.url), 'utf8');
   assert.match(runEngine, /GA:\s*Number\(process\.env\.BOURBON_SIGNAL_GA_STATE_TIMEOUT_MS\s*\|\|\s*420_000\)/);
+  const genericCollector = readFileSync(new URL('../src/collectors/generic-state.mjs', import.meta.url), 'utf8');
+  assert.match(genericCollector, /status:\s*precisionProbe\.stale[\s\S]{0,400}:\s*retainedNotDue/, 'stale source backoff must remain explicitly stale before retained-not-due labeling');
 });

@@ -350,3 +350,40 @@ test('customer-facing source aliases join back to runtime lanes and skipped chec
   assert.equal(report.lanes[0].metrics.runtimeSampleCount, 1);
   assert.equal(report.lanes[0].metrics.averageRuntimeMs, 1_000);
 });
+
+test('missing reliability measurements remain unavailable instead of becoming fabricated zero or success', () => {
+  const report = buildSourceUsefulnessReport({
+    stateReports: [{
+      state: 'HH',
+      sourceResults: [{ sourceId: 'precision:hh', sourceLabel: 'HH precision', status: 'not_due', attemptCount: 0 }],
+      sources: [],
+      signals: [],
+      roadblocks: [],
+    }],
+    sourceSlo: { sources: [{ sourceId: 'precision:hh', observedSampleCount: 0, availabilityRatio: null }] },
+    generatedAt: GENERATED_AT,
+  });
+  assert.equal(report.lanes[0].metrics.reliabilityRatio, null);
+  assert.equal(report.lanes[0].metrics.reliabilitySampleCount, 0);
+  assert.equal(report.lanes[0].metrics.reliabilitySource, 'unavailable');
+});
+
+test('legacy precision lanes with multiple retailer labels are explicitly identified as aggregated', () => {
+  const report = buildSourceUsefulnessReport({
+    stateReports: [{
+      state: 'GA',
+      sourceResults: [{ sourceId: 'precision:ga', sourceLabel: 'Georgia precision', status: 'success' }],
+      sources: [],
+      signals: [
+        { id: 'a', state: 'GA', sourceRuntimeId: 'precision:ga', sourceLabel: 'A Retailer', eventType: 'store_inventory_result', locationPrecision: 'store_level', storeId: 'a', canonicalId: 'bottle-a', canAlertAsInventory: true },
+        { id: 'b', state: 'GA', sourceRuntimeId: 'precision:ga', sourceLabel: 'B Retailer', eventType: 'store_inventory_result', locationPrecision: 'store_level', storeId: 'b', canonicalId: 'bottle-b', canAlertAsInventory: true },
+      ],
+      roadblocks: [],
+    }],
+    generatedAt: GENERATED_AT,
+  });
+  assert.equal(report.lanes.length, 1);
+  assert.equal(report.lanes[0].aggregatedLegacyLane, true);
+  assert.equal(report.lanes[0].sourceLabel, 'GA aggregated precision lane');
+  assert.deepEqual(report.lanes[0].sourceLabels, ['A Retailer', 'B Retailer', 'Georgia precision']);
+});

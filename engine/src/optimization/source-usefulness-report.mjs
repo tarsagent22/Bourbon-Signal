@@ -13,6 +13,7 @@ const CATALOG_WATCH_RE = /catalog|document|surface|policy|context|location|licen
 const USEFUL_SIGNAL_RE = /inventory|allocation|shipment|delivery|release|lottery|raffle|drop/i;
 
 function finiteNumber(value) {
+  if (value == null || value === '') return null;
   const number = Number(value);
   return Number.isFinite(number) ? number : null;
 }
@@ -217,10 +218,10 @@ function sourceReliability(sourceId, sourceSloIndex, historyObservations, latest
       reliabilitySource: 'source_run_history',
     };
   }
-  if (latestStatuses.size) {
-    const statuses = [...latestStatuses];
+  const statuses = [...latestStatuses].filter((status) => !EXCLUDED_RELIABILITY_OUTCOMES.has(status));
+  if (statuses.length) {
     return {
-      reliabilityRatio: statuses.some((status) => status === 'success' || status === 'not_due') ? 1 : 0,
+      reliabilityRatio: statuses.some((status) => status === 'success') ? 1 : 0,
       reliabilitySampleCount: 1,
       reliabilitySource: 'latest_source_result',
     };
@@ -495,12 +496,15 @@ export function buildSourceUsefulnessReport({
     ));
     const labels = [...lane.labels].filter(Boolean).sort((left, right) => left.localeCompare(right));
     const urls = [...lane.urls].filter(Boolean).sort((left, right) => left.localeCompare(right));
+    const aggregatedLegacyLane = lane.sourceId.startsWith('precision:') && labels.length > 1;
     const result = {
       rank: 0,
       state: lane.state || null,
       sourceId: lane.sourceId,
-      sourceLabel: labels[0] || lane.sourceId,
-      sourceUrl: urls[0] || null,
+      sourceLabel: aggregatedLegacyLane ? `${lane.state} aggregated precision lane` : labels[0] || lane.sourceId,
+      sourceLabels: labels,
+      sourceUrl: aggregatedLegacyLane ? null : urls[0] || null,
+      aggregatedLegacyLane,
       derivedLane: lane.derived,
       evidenceClass: evidenceClassFor(metrics),
       score,
