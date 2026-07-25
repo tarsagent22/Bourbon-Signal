@@ -63,12 +63,14 @@ test('legacy precision collectors preserve an explicitly stale successful envelo
       staleReason: 'retained state report',
       previousFinishedAt: '2026-07-22T12:00:00.000Z',
     }),
-    sourceRunnerOptions: { maxAttempts: 1, timeoutMs: 100 },
+    sourceRunnerOptions: { maxAttempts: 1, timeoutMs: 100, now: () => '2026-07-22T12:01:00.000Z' },
   });
 
   assert.equal(result.stale, true);
   assert.equal(result.staleReason, 'retained state report');
   assert.equal(result.previousFinishedAt, '2026-07-22T12:00:00.000Z');
+  assert.equal(result.lastGoodAt, '2026-07-22T12:00:00.000Z');
+  assert.equal(result.staleFallbackAt, '2026-07-22T12:01:00.000Z', 'stale precision envelopes must record when the fallback was retained');
   assert.equal(result.sourceReports[0].stale, true);
   assert.equal(result.sourceResults[0].status, 'stale_fallback');
   assert.equal(result.sourceResults[0].stale, true);

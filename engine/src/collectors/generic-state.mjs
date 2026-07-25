@@ -604,6 +604,7 @@ export async function collectState(config, bible, options = {}) {
     roadblocks,
     stale: Boolean(precisionProbe.stale),
     staleReason: precisionProbe.staleReason || null,
+    staleFallbackAt: precisionProbe.staleFallbackAt || null,
     previousFinishedAt: precisionProbe.previousFinishedAt || null,
     status: retainedNotDue
       ? 'useful_retained_not_due'
