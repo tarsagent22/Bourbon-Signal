@@ -44,6 +44,13 @@ export function parseLiveDropTotal(value) {
   return typeof value === 'number' && Number.isSafeInteger(value) && value >= 0 ? value : null;
 }
 
+export function liveDropTotalMeetsRegressionFloor({ localTotal, liveTotal, minRatio }) {
+  if (liveTotal === null) return false;
+  if (localTotal > 0 && liveTotal === 0) return false;
+  if (localTotal >= 20 && liveTotal < Math.floor(localTotal * minRatio)) return false;
+  return true;
+}
+
 export function isDropExpectedInLiveFeed(drop, now = Date.now()) {
   if (isInventorySignal(drop) && !(Number(drop?.quantity || 0) > 0)) return false;
   const timestamp = dropFreshnessTime(drop);
