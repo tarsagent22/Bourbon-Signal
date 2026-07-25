@@ -169,6 +169,50 @@ function preservedFallback(previous, reason, now = new Date().toISOString(), can
   };
 }
 
+function partialFallback(previous, candidate, reason, now = new Date().toISOString()) {
+  const currentIdentities = new Set((candidate.signals || []).map(signalObservationIdentity));
+  const retainedSignals = (previous.signals || [])
+    .filter((signal) => !currentIdentities.has(signalObservationIdentity(signal)))
+    .map((signal) => ({
+      ...signal,
+      stale: true,
+      sourceStale: true,
+      staleReason: `Latest partial refresh did not reconfirm this identity: ${reason}.`,
+      staleSourceCaveat: `Last confirmed by the source before the latest partial refresh; verify with the store before driving.`,
+      canAlertAsInventory: false,
+      canAlertAsWatch: false,
+      alertable: false,
+      raw: {
+        ...(signal.raw || {}),
+        staleFallback: true,
+        staleFallbackAt: now,
+        staleReason: `Latest partial refresh did not reconfirm this identity: ${reason}.`,
+      },
+    }));
+  return {
+    ...candidate,
+    status: 'partial_useful_quality_fallback',
+    stale: false,
+    staleReason: null,
+    partial: true,
+    partialReason: reason,
+    previousFinishedAt: previous.finishedAt || previous.lastGoodAt || null,
+    lastGoodAt: candidate.finishedAt || candidate.lastGoodAt || now,
+    signals: [...(candidate.signals || []), ...retainedSignals],
+    roadblocks: [
+      ...(candidate.roadblocks || []).filter((roadblock) => roadblock.status !== 'quality_regression_partial_report'),
+      {
+        state: candidate.state,
+        source: `${candidate.label || candidate.state} state quality guard`,
+        url: `out/states/${candidate.state}.json`,
+        status: 'quality_regression_partial_report',
+        error: reason,
+        nextRoute: 'Publish current identities and retain missing identities as non-alerting stale context while later runs repair coverage.',
+      },
+    ],
+  };
+}
+
 export function guardStateReport({ previous, candidate, now, options } = {}) {
   if (!candidate) {
     if (!previous) return { accepted: false, report: null, reason: 'candidate and previous report are missing' };
@@ -179,5 +223,8 @@ export function guardStateReport({ previous, candidate, now, options } = {}) {
 
   const reason = collapseReason(previous, reconciledCandidate, options);
   if (!reason) return { accepted: true, report: reconciledCandidate, reason: null };
+  if (options?.mergePartialFallback && (reconciledCandidate.signals || []).length > 0) {
+    return { accepted: true, report: partialFallback(previous, reconciledCandidate, reason, now), reason };
+  }
   return { accepted: false, report: preservedFallback(previous, reason, now, reconciledCandidate), reason };
 }

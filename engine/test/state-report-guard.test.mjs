@@ -55,6 +55,30 @@ test('duplicate rows do not inflate the quality baseline or force a stale fallba
   assert.equal(result.report.signals.length, 1);
 });
 
+test('partial quality fallback publishes fresh rows and keeps missing identities as non-alerting stale context', () => {
+  const previous = report('TX', 6);
+  const candidate = report('TX', 2);
+  candidate.finishedAt = '2026-07-25T04:00:00.000Z';
+
+  const result = guardStateReport({
+    previous,
+    candidate,
+    now: '2026-07-25T04:00:01.000Z',
+    options: { mergePartialFallback: true },
+  });
+
+  assert.equal(result.accepted, true);
+  assert.equal(result.report.status, 'partial_useful_quality_fallback');
+  assert.equal(result.report.stale, false);
+  assert.equal(result.report.partial, true);
+  assert.match(result.report.partialReason, /collapsed/i);
+  assert.equal(result.report.signals.length, 6);
+  assert.equal(result.report.signals.filter((signal) => signal.sourceStale === true).length, 4);
+  assert.equal(result.report.signals.filter((signal) => signal.sourceStale === true).every((signal) => typeof signal.staleSourceCaveat === 'string' && signal.staleSourceCaveat.length > 0), true);
+  assert.equal(result.report.signals.filter((signal) => signal.canAlertAsInventory === true).length, 2);
+  assert.equal(result.report.signals.filter((signal) => signal.sourceStale === true).every((signal) => signal.canAlertAsInventory === false && signal.canAlertAsWatch === false), true);
+});
+
 test('repeated quality fallback keeps one stable status suffix', () => {
   const previous = report('TX', 100, { status: 'stale_useful_quality_fallback_quality_fallback' });
   const candidate = report('TX', 20);

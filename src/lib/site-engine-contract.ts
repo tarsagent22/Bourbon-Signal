@@ -282,7 +282,9 @@ export function normalizeDropForSite(drop: JsonRecord) {
   const quantity = asNumber(drop.quantity);
   const locationPrecision = asString(drop.locationPrecision);
   const exactStoreDetails = hasExactStoreDetails(drop);
-  const canAlertAsInventory = asBoolean(drop.canAlertAsInventory) && exactStoreDetails;
+  const sourceStale = asBoolean(drop.sourceStale) || asBoolean(drop.stale);
+  const staleSourceCaveat = asString(drop.staleSourceCaveat) || "Last-known source availability; verify with the store before driving.";
+  const canAlertAsInventory = asBoolean(drop.canAlertAsInventory) && exactStoreDetails && !sourceStale;
   const type = asString(drop.type, "signal");
   const signalLabel = getPublicSignalLabel(type, locationPrecision, quantity, canAlertAsInventory);
   const isStoreInventory = isStoreLevelInventory(type, locationPrecision, canAlertAsInventory) && exactStoreDetails;
@@ -299,6 +301,9 @@ export function normalizeDropForSite(drop: JsonRecord) {
 
   return {
     ...drop,
+    sourceStale,
+    staleSourceCaveat: sourceStale ? staleSourceCaveat : asString(drop.staleSourceCaveat) || undefined,
+    inventoryCaveat: sourceStale ? staleSourceCaveat : asString(drop.inventoryCaveat) || undefined,
     bottle_id: asString(drop.canonicalId, asString(drop.bottleId)),
     canonical_id: asString(drop.canonicalId, asString(drop.bottleId)),
     canonical_name: asString(drop.canonicalName, asString(drop.bottleName, "Unknown Bottle")),
@@ -329,11 +334,11 @@ export function normalizeDropForSite(drop: JsonRecord) {
     state_code: state,
     source: asString(drop.source, "engine-site-export"),
     exact_store: locationPrecision === "store_level" && exactStoreDetails,
-    availability_scope: isStoreInventory ? "store_reported" : isDistilleryDrop(type, locationPrecision) ? "distillery" : locationPrecision === "board_county" ? "board" : locationPrecision === "board_warehouse" ? "warehouse" : "page",
-    confidence_tier: isStoreInventory ? "source_reported_store" : isDistilleryDrop(type, locationPrecision) ? "official_distillery_drop" : (type === "nc_board_shipment_snapshot" || type === "nc_statewide_warehouse_stock") ? "online_positive" : "listing_only",
+    availability_scope: sourceStale && isStoreInventory ? "stale_store_context" : isStoreInventory ? "store_reported" : isDistilleryDrop(type, locationPrecision) ? "distillery" : locationPrecision === "board_county" ? "board" : locationPrecision === "board_warehouse" ? "warehouse" : "page",
+    confidence_tier: sourceStale && isStoreInventory ? "stale_store_context" : isStoreInventory ? "source_reported_store" : isDistilleryDrop(type, locationPrecision) ? "official_distillery_drop" : (type === "nc_board_shipment_snapshot" || type === "nc_statewide_warehouse_stock") ? "online_positive" : "listing_only",
     location_precision: locationPrecision,
     can_alert_as_inventory: canAlertAsInventory,
-    signal_label: signalLabel,
+    signal_label: sourceStale && isStoreInventory ? "Last-known store availability" : signalLabel,
     scheduled_release: Boolean(scheduledReleaseCopy),
     scheduledRelease: Boolean(scheduledReleaseCopy),
     scheduledReleaseLabel: scheduledReleaseCopy?.statusLine,
