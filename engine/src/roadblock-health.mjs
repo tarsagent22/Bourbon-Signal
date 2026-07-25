@@ -1,6 +1,6 @@
 import { stableId } from './core/text.mjs';
 
-const EXPECTED_NEGATIVE = /reachable_no_safe|no_safe_inventory|no current|not currently|sold out|out of stock|store closed for ecommerce|catalog only|no matching/i;
+const EXPECTED_NEGATIVE = /reachable_no_safe|no_safe_inventory|locator_only|no current|not currently|sold out|out of stock|store closed for ecommerce|catalog only|no matching/i;
 const BLOCKED = /cloudflare|captcha|forbidden|access denied|rate.?limit|blocked|robot/i;
 
 export function classifyRoadblock(roadblock = {}) {

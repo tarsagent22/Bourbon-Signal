@@ -5,6 +5,7 @@ import test from 'node:test';
 import { SourceCircuitBreaker } from '../src/sources/circuit-breaker.mjs';
 import { TransientSourceError } from '../src/sources/source-error.mjs';
 import { runLegacyPrecisionSource } from '../src/sources/legacy-precision-runtime.mjs';
+import { createSourceSkippedResult } from '../src/sources/source-result.mjs';
 import { appendSourceSloObservations } from '../src/sources/slo-report.mjs';
 
 const fixture = async (name) => JSON.parse(await readFile(new URL(`./fixtures/source-runtime/${name}`, import.meta.url), 'utf8'));
@@ -63,12 +64,14 @@ test('legacy precision collectors preserve an explicitly stale successful envelo
       staleReason: 'retained state report',
       previousFinishedAt: '2026-07-22T12:00:00.000Z',
     }),
-    sourceRunnerOptions: { maxAttempts: 1, timeoutMs: 100 },
+    sourceRunnerOptions: { maxAttempts: 1, timeoutMs: 100, now: () => '2026-07-22T12:01:00.000Z' },
   });
 
   assert.equal(result.stale, true);
   assert.equal(result.staleReason, 'retained state report');
   assert.equal(result.previousFinishedAt, '2026-07-22T12:00:00.000Z');
+  assert.equal(result.lastGoodAt, '2026-07-22T12:00:00.000Z');
+  assert.equal(result.staleFallbackAt, '2026-07-22T12:01:00.000Z', 'stale precision envelopes must record when the fallback was retained');
   assert.equal(result.sourceReports[0].stale, true);
   assert.equal(result.sourceResults[0].status, 'stale_fallback');
   assert.equal(result.sourceResults[0].stale, true);
@@ -87,6 +90,39 @@ test('legacy precision collectors preserve an explicitly stale successful envelo
     sourceRunnerOptions: { maxAttempts: 1, timeoutMs: 100 },
   });
   assert.equal(unknownProvenance.sourceResults[0].lastGoodAt, null, 'stale fallbacks must not invent a current last-good timestamp');
+});
+
+test('a not-due source preserves a stale non-alertable envelope during backoff', () => {
+  const previous = {
+    sourceId: 'precision:ga',
+    stale: true,
+    alertable: false,
+    lastGoodAt: '2026-07-24T21:41:49.438Z',
+    value: {
+      signals: [{
+        id: 'ga-retained',
+        stale: true,
+        alertable: false,
+        canAlertAsInventory: false,
+        canAlertAsWatch: false,
+        raw: { staleFallback: true },
+      }],
+      roadblocks: [],
+    },
+  };
+  const result = createSourceSkippedResult({
+    adapter: { id: 'precision:ga', label: 'Georgia precision', url: 'https://ga.example.test', metadata: { stateId: 'GA' } },
+    previous,
+    status: 'not_due',
+    now: '2026-07-24T22:00:00.000Z',
+  });
+
+  assert.equal(result.status, 'not_due');
+  assert.equal(result.stale, true);
+  assert.equal(result.alertable, false);
+  assert.equal(result.value.signals[0].stale, true);
+  assert.equal(result.value.signals[0].canAlertAsInventory, false);
+  assert.equal(result.value.signals[0].canAlertAsWatch, false);
 });
 
 test('legacy precision source quarantine remains public but non-alertable and recovery closes a persisted half-open circuit', async () => {

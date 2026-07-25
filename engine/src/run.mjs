@@ -583,6 +583,7 @@ async function main() {
         id: config.id,
         ok: wasRun && !report.stale && !/^failed_/.test(String(report.status || '')),
         contentHash: wasRun ? stableReportHash(report) : null,
+        startedAt: wasRun ? report.startedAt : null,
         finishedAt: wasRun ? (report.finishedAt || new Date().toISOString()) : new Date().toISOString(),
       });
     }

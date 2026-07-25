@@ -34,6 +34,38 @@ export const INDIANA_TARGET_STORES = new Map([
   ['3309', { slug: 'west-lafayette-state-street', name: 'Target West Lafayette State Street', address: '300 W State St, Ste 100, West Lafayette, IN 47906', city: 'West Lafayette', zip: '47906' }],
 ].map(([id, store]) => [id, { ...store, id, officialUrl: `https://www.target.com/sl/${store.slug}/${id}` }]));
 
+export function buildIndianaTargetStoreLocationSignals(observedAt) {
+  return [...INDIANA_TARGET_STORES.values()].map((store) => ({
+    id: `target-indiana-store-location:${store.id}`,
+    state: 'IN',
+    stateCode: 'IN',
+    sourceLabel: 'Target Indiana official exact-store identity',
+    sourceUrl: store.officialUrl,
+    sourceChain: 'target',
+    merchantId: store.id,
+    rawName: store.name,
+    canonicalBottleId: null,
+    canonicalName: null,
+    confidence: 0.8,
+    eventType: 'retailer_store_location',
+    locationPrecision: 'store_level',
+    locationName: store.name,
+    storeName: store.name,
+    storeId: `target:${store.id}`,
+    storeAddress: store.address,
+    city: store.city,
+    postalCode: store.zip,
+    zip: store.zip,
+    quantity: 0,
+    observedAt,
+    canAlertAsInventory: false,
+    canAlertAsWatch: false,
+    inventorySemantics: 'The configured official Target store page identifies an exact Indiana premises. This directory row is not product availability or bottle inventory.',
+    evidence: `Target's official store identity maps store ${store.id} to ${store.name}, ${store.address}.`,
+    raw: { chain: 'target', merchantId: store.id, configuredOfficialStoreIdentity: true },
+  }));
+}
+
 export function parseIndianaTargetSearchProducts(payload) {
   let json = payload;
   if (typeof payload === 'string') {

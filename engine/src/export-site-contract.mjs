@@ -456,11 +456,13 @@ function buildFreshnessIndex(historicalSignals = [], currentSignals = []) {
     const key = signalFreshnessKey(signal);
     if (!key) continue;
     const observedAt = signal.observedAt || signal.fetchedAt || null;
+    const firstSeenAt = signal.firstSeenAt || observedAt;
+    const lastConfirmedAt = signal.lastConfirmedAt || observedAt;
     const cur = index.get(key) || { firstSeenAt: null, lastConfirmedAt: null, eventAt: null };
     const eventAt = sourceEventAt(signal);
     if (eventAt && (!cur.eventAt || eventAt < cur.eventAt)) cur.eventAt = eventAt;
-    if (observedAt && (!cur.firstSeenAt || observedAt < cur.firstSeenAt)) cur.firstSeenAt = observedAt;
-    if (observedAt && (!cur.lastConfirmedAt || observedAt > cur.lastConfirmedAt)) cur.lastConfirmedAt = observedAt;
+    if (firstSeenAt && (!cur.firstSeenAt || firstSeenAt < cur.firstSeenAt)) cur.firstSeenAt = firstSeenAt;
+    if (lastConfirmedAt && (!cur.lastConfirmedAt || lastConfirmedAt > cur.lastConfirmedAt)) cur.lastConfirmedAt = lastConfirmedAt;
     index.set(key, cur);
   }
   return index;

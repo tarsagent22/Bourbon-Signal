@@ -17,16 +17,24 @@ export function normalizeCityHiveReportedQuantity(value) {
 export function reconcileCityHiveRateLimitsWithCache({ roadblocks = [], sources = [], retainedSignals = [] } = {}) {
   const sourceLabelById = new Map((sources || []).map((source) => [source.id, source.sourceLabel]));
   const recoveredSourceIds = new Set((retainedSignals || [])
-    .filter((signal) => signal?.eventType === 'cityhive_store_inventory_result' && Number(signal?.quantity || 0) > 0)
+    .filter((signal) => signal?.eventType === 'cityhive_store_inventory_result'
+      && Number(signal?.quantity || 0) > 0
+      && signal?.raw?.cacheFallback === true)
     .map((signal) => signal?.raw?.chain)
     .filter((sourceId) => sourceLabelById.has(sourceId)));
   const recoveredLabels = new Set([...recoveredSourceIds].map((sourceId) => sourceLabelById.get(sourceId)));
+  const failedLabels = new Set((roadblocks || [])
+    .filter((roadblock) => Number.isFinite(Number(roadblock?.status)) && Number(roadblock.status) >= 400)
+    .map((roadblock) => roadblock?.source)
+    .filter(Boolean));
+  const isReachabilitySummary = (roadblock) => /^(?:reachable_no_safe_inventory_rows|reachable_no_inventory_rows)$/i.test(String(roadblock?.status || ''));
+  const isRecoveredNoise = (roadblock) => Number(roadblock?.status) === 429 || isReachabilitySummary(roadblock);
 
   return {
     recoveredSourceIds: [...recoveredSourceIds].sort(),
     roadblocks: (roadblocks || []).filter((roadblock) => !(
-      Number(roadblock?.status) === 429 && recoveredLabels.has(roadblock?.source)
-    )),
+      isRecoveredNoise(roadblock) && recoveredLabels.has(roadblock?.source)
+    ) && !(isReachabilitySummary(roadblock) && failedLabels.has(roadblock?.source))),
   };
 }
 

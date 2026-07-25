@@ -91,6 +91,8 @@ function canonicalizeSignal(signal, bible) {
       : typeof signal.raw?.product?.limitedCaveat === 'boolean' ? signal.raw.product.limitedCaveat : null,
     variantId: signal.variantId || signal.raw?.variantId || signal.raw?.variant?.id || signal.raw?.option?.option_id || null,
     observedAt: observedAt(signal),
+    firstSeenAt: signal.firstSeenAt || null,
+    lastConfirmedAt: signal.lastConfirmedAt || null,
     sourceEventAt: signal.sourceEventAt || null,
     eventDate: signal.eventDate || signal.releaseDate || signal.raw?.eventDate || signal.raw?.releaseDate || null,
     releaseDate: signal.releaseDate || signal.eventDate || signal.raw?.releaseDate || signal.raw?.eventDate || null,

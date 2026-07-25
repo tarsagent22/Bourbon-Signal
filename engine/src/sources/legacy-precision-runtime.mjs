@@ -110,6 +110,8 @@ export async function runLegacyPrecisionSource({
     metadata,
     stale: effectiveResult.stale,
     staleReason: value.staleReason || (effectiveResult.stale ? effectiveResult.error?.message || effectiveResult.status : null),
+    staleFallbackAt: effectiveResult.stale ? (value.staleFallbackAt || effectiveResult.finishedAt || null) : null,
+    lastGoodAt: value.lastGoodAt || value.previousFinishedAt || effectiveResult.lastGoodAt || null,
     previousFinishedAt: value.previousFinishedAt || null,
   };
 }

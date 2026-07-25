@@ -68,6 +68,7 @@ Operational outputs now turn snapshots into user-facing candidates:
 - `out/history/snapshots/*.json` — persisted run snapshots for future comparisons.
 - `out/diff.json` / `.md` — new/changed/missing signal comparisons against the previous snapshot.
 - `out/alert-candidates.json` / `.md` — ranked inventory/watch candidates, with state policy and confidence semantics attached.
+- `out/source-usefulness-roi.json` / `.md` — diagnostic-only source-lane ROI ranking that combines fresh exact-store alert value, monitored stores, useful signals, reliability, roadblocks, and runtime cost. It never enables alerts or gates a release.
 - `out/confidence-policy.json` — state-by-state rules for how to interpret signals without overclaiming live inventory.
 
 Website-facing contract outputs live under `out/site/` and are the only files the Next.js app should consume when integration begins:

@@ -23,11 +23,13 @@ test('explicit requested states bypass adaptive cadence', () => {
 });
 
 test('metrics retain yield, unchanged, and failure history', () => {
-  const first = updateStateRunMetric({}, { id: 'NC', ok: true, contentHash: 'a', finishedAt: now });
-  const unchanged = updateStateRunMetric(first, { id: 'NC', ok: true, contentHash: 'a', finishedAt: now });
-  const failed = updateStateRunMetric(unchanged, { id: 'NC', ok: false, contentHash: 'a', finishedAt: now });
+  const first = updateStateRunMetric({}, { id: 'NC', ok: true, contentHash: 'a', startedAt: '2026-07-10T13:59:59.000Z', finishedAt: now });
+  const unchanged = updateStateRunMetric(first, { id: 'NC', ok: true, contentHash: 'a', startedAt: '2026-07-10T13:59:58.000Z', finishedAt: now });
+  const failed = updateStateRunMetric(unchanged, { id: 'NC', ok: false, contentHash: 'a', startedAt: '2026-07-10T13:59:57.000Z', finishedAt: now });
   assert.equal(failed.NC.probes, 3);
   assert.equal(failed.NC.usefulChanges, 1);
   assert.equal(failed.NC.consecutiveUnchanged, 1);
   assert.equal(failed.NC.consecutiveFailures, 1);
+  assert.equal(failed.NC.lastRuntimeMs, 3_000);
+  assert.equal(failed.NC.totalRuntimeMs, 6_000);
 });

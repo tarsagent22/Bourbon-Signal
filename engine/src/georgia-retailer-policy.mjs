@@ -133,14 +133,13 @@ export function isGeorgiaRetailerSignalIdentity(signal) {
   return false;
 }
 
-export function isGeorgiaRetailerInventory(signal) {
+export function isGeorgiaRetailerInventoryEvidence(signal) {
   if (!isGeorgiaRetailerSignalIdentity(signal)) return false;
   if (signal.locationPrecision !== 'store_level') return false;
   if (signal.availabilityStatus !== 'in_stock' || signal.sourceAvailabilityVerified !== true) return false;
   if (!String(signal.rawName || '').trim() || !hasCoherentProductIdentity(signal) || !isGuardedGeorgiaBourbon(signal)) return false;
   if (!isAllowedGeorgiaBottleFormat(formatDescription(signal))) return false;
   if (!/^.+,\s*GA\s+\d{5}(?:,\s*USA)?$/i.test(String(signal.storeAddress || ''))) return false;
-  if (signal.stale === true || signal.sourceStale === true || signal.raw?.staleFallback === true) return false;
 
   const source = sourceName(signal);
   if (typeof signal.quantity !== 'number' || !Number.isFinite(signal.quantity)) return false;
@@ -164,6 +163,13 @@ export function isGeorgiaRetailerInventory(signal) {
   }
   if (GOTOLIQUOR_BY_LABEL.has(source) || LIGHTSPEED_BY_LABEL.has(source)) return binary;
   return binary || exactCityHive;
+}
+
+export function isGeorgiaRetailerInventory(signal) {
+  return isGeorgiaRetailerInventoryEvidence(signal)
+    && signal.stale !== true
+    && signal.sourceStale !== true
+    && signal.raw?.staleFallback !== true;
 }
 
 export { CITYHIVE_BY_LABEL as GEORGIA_CITYHIVE_IDENTITIES };

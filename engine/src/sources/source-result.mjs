@@ -100,7 +100,8 @@ export function createSourceSkippedResult({ adapter, previous = null, status, no
   const retained = previous?.value !== undefined && previous?.value !== null;
   const circuitOpen = status === 'circuit_open';
   const disabled = status === 'disabled';
-  const nonAlertable = circuitOpen || disabled || quarantined;
+  const retainedWasStale = retained && previous?.stale === true;
+  const nonAlertable = circuitOpen || disabled || quarantined || retainedWasStale;
   const reason = quarantined
     ? `Source ${adapter.id} is quarantined`
     : circuitOpen ? `Source ${adapter.id} circuit is open` : `Source ${adapter.id} was ${status}`;
@@ -111,7 +112,7 @@ export function createSourceSkippedResult({ adapter, previous = null, status, no
     sourceUrl: adapter.url,
     status: quarantined ? 'quarantined' : status,
     ok: false,
-    stale: (circuitOpen || quarantined) && retained,
+    stale: (circuitOpen || quarantined || retainedWasStale) && retained,
     quarantined,
     alertable: !nonAlertable && previous?.alertable === true,
     attemptCount: 0,
@@ -119,7 +120,7 @@ export function createSourceSkippedResult({ adapter, previous = null, status, no
     finishedAt: now,
     checkedAt: circuitOpen || quarantined ? now : previous?.checkedAt || null,
     lastGoodAt: previous?.lastGoodAt || null,
-    value: nonAlertable && retained ? markSourceValueNonAlertable(previous.value, reason, { stale: circuitOpen || quarantined }) : previous?.value ?? null,
+    value: nonAlertable && retained ? markSourceValueNonAlertable(previous.value, reason, { stale: circuitOpen || quarantined || retainedWasStale }) : previous?.value ?? null,
     metadata: previous?.metadata || previous?.value?.metadata || null,
     error: error ? serializeSourceError(error) : null,
     sourceMetadata: adapter.metadata,

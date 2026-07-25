@@ -604,11 +604,12 @@ export async function collectState(config, bible, options = {}) {
     roadblocks,
     stale: Boolean(precisionProbe.stale),
     staleReason: precisionProbe.staleReason || null,
+    staleFallbackAt: precisionProbe.staleFallbackAt || null,
     previousFinishedAt: precisionProbe.previousFinishedAt || null,
-    status: retainedNotDue
-      ? 'useful_retained_not_due'
-      : precisionProbe.stale
-        ? `stale_${sourceReports.some((s) => s.ok && (s.matchedBottleCount > 0 || s.pdfLinkCount > 0 || s.documentLinkCount > 0)) ? 'useful' : sourceReports.some((s) => s.ok) ? 'reachable_needs_deeper_parser' : 'blocked'}`
+    status: precisionProbe.stale
+      ? `stale_${sourceReports.some((s) => s.ok && (s.matchedBottleCount > 0 || s.pdfLinkCount > 0 || s.documentLinkCount > 0)) ? 'useful' : sourceReports.some((s) => s.ok) ? 'reachable_needs_deeper_parser' : 'blocked'}`
+      : retainedNotDue
+        ? 'useful_retained_not_due'
         : sourceReports.some((s) => s.ok && (s.matchedBottleCount > 0 || s.pdfLinkCount > 0 || s.documentLinkCount > 0)) ? 'useful' : sourceReports.some((s) => s.ok) ? 'reachable_needs_deeper_parser' : 'blocked'
   };
 }

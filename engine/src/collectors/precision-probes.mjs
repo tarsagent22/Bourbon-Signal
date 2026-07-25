@@ -8,6 +8,7 @@ import { randomUUID } from 'node:crypto';
 import { stableId, stripHtml, titleCase } from '../core/text.mjs';
 import { collectNorthCarolinaIntelligence } from './north-carolina-intelligence.mjs';
 import { freshCityHivePositiveSignals, normalizeCityHiveReportedQuantity, reconcileCityHiveRateLimitsWithCache, rotatingSourceCohort } from './cityhive-hardening.mjs';
+import { attachConfiguredStoreIdentity, configuredStoreId, isTerminalProbeFailure, summarizeRepeatedPlatformFailures } from './probe-hardening.mjs';
 import { createSourceAdapter } from '../sources/source-adapter.mjs';
 import { MalformedSourceError, sourceErrorForHttp, TransientSourceError } from '../sources/source-error.mjs';
 import { summarizeSourceResult } from '../sources/source-result.mjs';
@@ -23,6 +24,7 @@ import {
   isAllowedHttpsHost,
 } from './florida-tampa-surfaces.mjs';
 import {
+  buildGeorgiaConfiguredStoreLocationSignals,
   GEORGIA_CITYHIVE_SOURCES,
   GEORGIA_GOTOLIQUOR_STORES,
   GEORGIA_LIGHTSPEED_STORES,
@@ -60,6 +62,7 @@ import {
 } from './metro-retailer-surfaces.mjs';
 import { isMetroRetailerInventory } from '../metro-retailer-policy.mjs';
 import {
+  buildIndianaTargetStoreLocationSignals,
   INDIANA_TARGET_STORES,
   filterFreshIndianaTargetSignals,
   indianaCityHivePriorityRank,
@@ -1006,7 +1009,7 @@ const TX_CITYHIVE_SOURCES = [
       'https://twinliquors.com/shop/?subtype=whiskey'
     ]
   },
-  { id: 'zipps-liquor', chainName: 'Zipps Liquor', sourceLabel: 'Zipps Liquor CityHive store inventory', baseUrl: 'https://www.zippsliquor.com', urls: ['https://www.zippsliquor.com/shop/?subtype=Bourbon'] },
+  { id: 'zipps-liquor', chainName: 'Zipps Liquor', sourceLabel: 'Zipps Liquor CityHive store inventory', baseUrl: 'https://shop.zippsliquor.com', urls: ['https://shop.zippsliquor.com/shop/?tags=bourbon'] },
   { id: 'pelican-liquor', chainName: 'Pelican Liquor', sourceLabel: 'Pelican Liquor McKinney CityHive store inventory', baseUrl: 'https://www.pelicanliquor.com', urls: ['https://www.pelicanliquor.com/shop/?subtype=Bourbon'] },
   { id: 'tipsy-liquor-round-rock', chainName: 'Tipsy Liquor Round Rock', sourceLabel: 'Tipsy Liquor Round Rock CityHive store inventory', baseUrl: 'https://tipsyliquorroundrock.com', urls: ['https://tipsyliquorroundrock.com/shop/?subtype=Bourbon'] },
   { id: 'wb-liquors', chainName: 'WB Liquors & Wine', sourceLabel: 'WB Liquors & Wine Texas CityHive store inventory', baseUrl: 'https://wbliquors.com', urls: ['https://wbliquors.com/shop/?subtype=whiskey'] },
@@ -1982,6 +1985,7 @@ async function collectIndianaPenguinLiquor(config, bible, observedAt) {
   const signals = [];
   const roadblocks = [];
   const productUrls = new Set(IN_PENGUIN_SEED_PRODUCT_URLS);
+  let categoryBlocked = false;
 
   for (const categoryUrl of IN_PENGUIN_CATEGORY_URLS) {
     const res = await curlTextFetch(categoryUrl, { timeoutMs: 30_000 });
@@ -1994,6 +1998,10 @@ async function collectIndianaPenguinLiquor(config, bible, observedAt) {
         error: res.error || `HTTP ${res.status}`,
         nextRoute: 'Penguin rejects Node fetch; retry source-specific curl/browser fetch or inspect GotoLiquorStore page changes.'
       });
+      if (isTerminalProbeFailure(res.status)) {
+        categoryBlocked = true;
+        break;
+      }
       continue;
     }
     for (const href of penguinProductLinks(res.text)) {
@@ -2004,7 +2012,7 @@ async function collectIndianaPenguinLiquor(config, bible, observedAt) {
 
   const seenProducts = new Set();
   let parsedPages = 0;
-  for (const productUrl of [...productUrls].slice(0, IN_PENGUIN_MAX_PRODUCT_PAGES)) {
+  for (const productUrl of categoryBlocked ? [] : [...productUrls].slice(0, IN_PENGUIN_MAX_PRODUCT_PAGES)) {
     const res = await curlTextFetch(productUrl, { timeoutMs: 30_000 });
     if (!res.ok) {
       roadblocks.push({
@@ -2015,6 +2023,7 @@ async function collectIndianaPenguinLiquor(config, bible, observedAt) {
         error: res.error || `HTTP ${res.status}`,
         nextRoute: 'Retry with curl/browser fetch; keep Penguin rows fail-closed when product pages cannot be read.'
       });
+      if (isTerminalProbeFailure(res.status)) break;
       continue;
     }
     parsedPages += 1;
@@ -2061,7 +2070,7 @@ async function collectIndianaPenguinLiquor(config, bible, observedAt) {
     await sleep(200);
   }
 
-  if (!signals.length) {
+  if (!signals.length && !categoryBlocked && !roadblocks.some((roadblock) => isTerminalProbeFailure(roadblock.status))) {
     roadblocks.push({
       state: config.id,
       source: 'Penguin Liquor Lafayette in-stock product pages',
@@ -2313,10 +2322,12 @@ async function collectIndianaKahns(config, bible, observedAt) {
   const signals = [];
   const roadblocks = [];
   let totalCount = 0;
+  let requestFailed = false;
   const seenProducts = new Set();
   for (let pageIndex = 0; pageIndex < IN_KAHNS_MAX_PAGES; pageIndex++) {
     const page = await fetchKahnsProducts(pageIndex);
     if (!page.ok) {
+      requestFailed = true;
       roadblocks.push({
         state: config.id,
         source: "Kahn's Fine Wines & Spirits in-stock bourbon API",
@@ -2378,7 +2389,7 @@ async function collectIndianaKahns(config, bible, observedAt) {
     if (!page.products?.length || (pageIndex + 1) * IN_KAHNS_PAGE_SIZE >= totalCount) break;
     await sleep(300);
   }
-  if (!signals.length) {
+  if (!signals.length && !requestFailed) {
     roadblocks.push({
       state: config.id,
       source: "Kahn's Fine Wines & Spirits in-stock bourbon API",
@@ -2535,19 +2546,15 @@ async function collectIndianaCityHive(config, bible, observedAt) {
   const cache = await readIndianaCityHiveCache();
   const cacheAgeMs = cache?.generatedAt ? Date.now() - new Date(cache.generatedAt).getTime() : Infinity;
   if (process.env.BOURBON_SIGNAL_IN_FORCE_CITYHIVE_LIVE !== '1' && cache && Number.isFinite(cacheAgeMs) && cacheAgeMs >= 0 && cacheAgeMs < IN_CITYHIVE_LIVE_REFRESH_MIN_AGE_MS) {
+    const cachedSignals = cachedIndianaCityHiveSignals(cache, observedAt);
+    const reconciled = reconcileCityHiveRateLimitsWithCache({
+      roadblocks: cache.roadblocks || [],
+      sources: IN_CITYHIVE_SOURCES,
+      retainedSignals: cachedSignals,
+    });
     return {
-      signals: cachedIndianaCityHiveSignals(cache, observedAt),
-      roadblocks: [
-        ...(cache.roadblocks || []),
-        {
-          state: config.id,
-          source: 'Indiana CityHive retailer inventory cache reuse',
-          url: IN_CITYHIVE_ARTIFACT_PATH,
-          status: 200,
-          error: `Using ${cache.signals.length} cached CityHive store-level rows from ${cache.generatedAt}; scheduled refresh avoids repeated retailer 429s unless BOURBON_SIGNAL_IN_FORCE_CITYHIVE_LIVE=1.`,
-          nextRoute: 'Force live CityHive refresh during a maintenance window; otherwise keep cache-backed rows inside the freshness window.'
-        }
-      ]
+      signals: cachedSignals,
+      roadblocks: reconciled.roadblocks,
     };
   }
   const seenPageFirstProducts = new Set();
@@ -2556,6 +2563,7 @@ async function collectIndianaCityHive(config, bible, observedAt) {
 
   for (const source of IN_CITYHIVE_SOURCES) {
     let sourceBlocked = false;
+    let sourceReachable = false;
     for (const seedUrl of source.urls) {
       if (sourceBlocked) break;
       const crawlUrls = cityHivePageUrls(seedUrl);
@@ -2573,9 +2581,10 @@ async function collectIndianaCityHive(config, bible, observedAt) {
             error: res.error || `HTTP ${res.status}`,
             nextRoute: 'Retry the CityHive page or inspect rendered/network calls for current product JSON shape.'
           });
-          if (res.status === 429) sourceBlocked = true;
+          if (isTerminalProbeFailure(res.status)) sourceBlocked = true;
           break;
         }
+        sourceReachable = true;
         const blobs = cityHiveJsonBlobs(res.text);
         if (!merchantPagesQueued && cityHiveShouldExpandMerchants(seedUrl)) {
           merchantPagesQueued = true;
@@ -2689,7 +2698,7 @@ async function collectIndianaCityHive(config, bible, observedAt) {
         await sleep(IN_CITYHIVE_PAGE_DELAY_MS);
       }
     }
-    if (!signals.some((signal) => signal.raw?.chain === source.id && signal.eventType === 'cityhive_store_inventory_result')) {
+    if (sourceReachable && !signals.some((signal) => signal.raw?.chain === source.id && signal.eventType === 'cityhive_store_inventory_result')) {
       roadblocks.push({
         state: config.id,
         source: source.sourceLabel,
@@ -2702,32 +2711,17 @@ async function collectIndianaCityHive(config, bible, observedAt) {
     await sleep(IN_CITYHIVE_SOURCE_DELAY_MS);
   }
 
-  if (signals.some((signal) => signal.eventType === 'cityhive_store_inventory_result')) {
-    const cacheAdded = mergeMissingIndianaCityHiveCacheChains(signals, cache, observedAt);
-    if (cacheAdded) {
-      roadblocks.push({
-        state: config.id,
-        source: 'Indiana CityHive retailer inventory cache',
-        url: IN_CITYHIVE_ARTIFACT_PATH,
-        status: 'partial_fresh_cache_merge',
-        error: `Live CityHive fetch produced inventory but missed ${cacheAdded} cached rows from source chains that did not refresh cleanly; merged fresh cache from ${cache.generatedAt}.`,
-        nextRoute: 'Keep per-store CityHive expansion paced and let missing chains refresh on the next scheduled run.'
-      });
-    }
+  const liveInventoryProduced = signals.some((signal) => signal.eventType === 'cityhive_store_inventory_result');
+  const liveSignals = [...signals];
+  const liveRoadblocks = [...roadblocks];
+  if (liveInventoryProduced) {
+    mergeMissingIndianaCityHiveCacheChains(signals, cache, observedAt);
   }
 
   if (!signals.some((signal) => signal.eventType === 'cityhive_store_inventory_result')) {
     if (cache) {
       signals.push(...cachedIndianaCityHiveSignals(cache, observedAt));
-      roadblocks.push({
-        state: config.id,
-        source: 'Indiana CityHive retailer inventory cache',
-        url: IN_CITYHIVE_ARTIFACT_PATH,
-        status: 'fresh_cache_fallback',
-        error: `Live CityHive fetch did not produce positive inventory rows; reused fresh cache from ${cache.generatedAt}.`,
-        nextRoute: 'Keep CityHive requests paced and retry live retailer pages on next scheduled run.'
-      });
-    } else {
+    } else if (!roadblocks.length) {
       roadblocks.push({
         state: config.id,
         source: 'Indiana CityHive retailer inventory pages',
@@ -2737,10 +2731,14 @@ async function collectIndianaCityHive(config, bible, observedAt) {
         nextRoute: 'Inspect embedded CityHive product JSON and pagination parameters; selected stores may simply be out of relevant products.'
       });
     }
-  } else {
-    await writeIndianaCityHiveCache(signals, roadblocks);
   }
-  return { signals, roadblocks };
+  if (liveInventoryProduced) await writeIndianaCityHiveCache(liveSignals, liveRoadblocks);
+  const reconciled = reconcileCityHiveRateLimitsWithCache({
+    roadblocks,
+    sources: IN_CITYHIVE_SOURCES,
+    retainedSignals: signals,
+  });
+  return { signals, roadblocks: reconciled.roadblocks };
 }
 
 async function readIndianaTargetCache() {
@@ -2779,6 +2777,7 @@ function cachedIndianaTargetSignals(cache) {
 }
 
 async function collectIndianaTarget(config, bible, observedAt) {
+  const locationSignals = buildIndianaTargetStoreLocationSignals(observedAt);
   const signals = [];
   const roadblocks = [];
   const cache = await readIndianaTargetCache();
@@ -2797,7 +2796,7 @@ async function collectIndianaTarget(config, bible, observedAt) {
       error: 'Target RedSky collection requires BOURBON_SIGNAL_TARGET_REDSKY_KEY at runtime.',
       nextRoute: 'Configure the public Target frontend key in the protected runner environment; never hardcode it or treat category presence as inventory.',
     });
-    return { signals, roadblocks };
+    return { signals: [...locationSignals, ...signals], roadblocks };
   }
   const visitorId = randomUUID();
   const searchParams = new URLSearchParams({
@@ -2824,7 +2823,7 @@ async function collectIndianaTarget(config, bible, observedAt) {
       error: search.error || `HTTP ${search.status}`,
       nextRoute: 'Refresh the public Target frontend key and retry the public RedSky search at low cadence; never promote category presence as inventory.',
     });
-    return { signals, roadblocks };
+    return { signals: [...locationSignals, ...signals], roadblocks };
   }
 
   const products = parseIndianaTargetSearchProducts(search.text);
@@ -2838,7 +2837,7 @@ async function collectIndianaTarget(config, bible, observedAt) {
       error: 'Target search returned no valid product array for the bounded bourbon query.',
       nextRoute: 'Inspect the public Target RedSky search response shape without weakening store or product identity guards.',
     });
-    return { signals, roadblocks };
+    return { signals: [...locationSignals, ...signals], roadblocks };
   }
 
   const seen = new Set();
@@ -2953,18 +2952,7 @@ async function collectIndianaTarget(config, bible, observedAt) {
   const liveSignalCount = signals.length;
   if (cache) {
     const merged = mergeIndianaTargetCacheSignals(signals, cachedIndianaTargetSignals(cache), { completedStoreIds });
-    const cacheAdded = merged.length - signals.length;
     signals.splice(0, signals.length, ...merged);
-    if (cacheAdded > 0 && selectedStores.some(([id]) => !completedStoreIds.has(id))) {
-      roadblocks.push({
-        state: config.id,
-        source: 'Target Indiana RedSky store fulfillment cache',
-        url: IN_TARGET_ARTIFACT_PATH,
-        status: 'partial_fresh_cache_merge',
-        error: `Target refresh was incomplete for part of the selected cohort; retained ${cacheAdded} still-fresh cached rows instead of projecting false stock loss.`,
-        nextRoute: 'Retry incomplete stores on the next low-cadence cohort and replace cache only after every bounded fulfillment request completes.',
-      });
-    }
   }
   if (shouldWriteIndianaTargetCache(liveSignalCount, completedStoreIds)) await writeIndianaTargetCache(signals, roadblocks);
   if (!signals.length) {
@@ -2977,7 +2965,7 @@ async function collectIndianaTarget(config, bible, observedAt) {
       nextRoute: 'Retain official store discovery and retry fulfillment without treating catalog/search presence as inventory.',
     });
   }
-  return { signals, roadblocks };
+  return { signals: [...locationSignals, ...signals], roadblocks };
 }
 
 async function collectTennesseeCityHive(config, bible, observedAt) {
@@ -3575,7 +3563,7 @@ function southCarolinaStoreLocationSignal(config, sourceLabel, sourceUrl, store,
     locationPrecision: 'store_level',
     locationName: store.name,
     storeName: store.name,
-    storeId: `${chain}:${store.id}`,
+    storeId: configuredStoreId(chain, store),
     storeAddress: store.address,
     city: store.city,
     stateCode: 'SC',
@@ -4529,10 +4517,11 @@ function georgiaBinaryRetailerSignal(config, store, product, bible, observedAt, 
 async function collectGeorgiaGoToLiquorStore(config, bible, observedAt, options = {}) {
   const signals = [];
   const roadblocks = [];
+  const platformFailures = [];
   for (const store of GEORGIA_GOTOLIQUOR_STORES) {
     const res = await curlTextFetch(store.categoryUrl, { timeoutMs: 30_000, signal: options.signal });
     if (!res.ok) {
-      roadblocks.push({
+      const failure = {
         state: config.id,
         source: store.sourceLabel,
         url: store.categoryUrl,
@@ -4541,7 +4530,11 @@ async function collectGeorgiaGoToLiquorStore(config, bible, observedAt, options 
         nextRoute: res.status === 403
           ? 'The exact first-party category page is protected. Retry at the next cadence or inspect with an ordinary browser; do not bypass anti-bot controls or use marketplace data.'
           : 'Retry the exact first-party server-rendered category page at low cadence; do not use search, pagination, cart, or store-switch routes.',
-      });
+      };
+      if (Number(res.status) === 403) {
+        platformFailures.push(failure);
+        if (platformFailures.length >= 2) break;
+      } else roadblocks.push(failure);
       await sleep(GA_GOTOLIQUOR_SOURCE_DELAY_MS);
       continue;
     }
@@ -4560,6 +4553,12 @@ async function collectGeorgiaGoToLiquorStore(config, bible, observedAt, options 
     });
     await sleep(GA_GOTOLIQUOR_SOURCE_DELAY_MS);
   }
+  roadblocks.push(...summarizeRepeatedPlatformFailures(platformFailures, {
+    state: config.id,
+    source: 'Georgia GoToLiquorStore exact-store inventory platform',
+    configuredProbeCount: GEORGIA_GOTOLIQUOR_STORES.length,
+    nextRoute: 'Retry two representative configured first-party store pages at the next cadence; do not bypass anti-bot controls or substitute marketplace/search evidence.',
+  }));
   return { signals, roadblocks };
 }
 
@@ -4599,11 +4598,12 @@ async function collectGeorgiaLightspeed(config, bible, observedAt, options = {})
 
 async function collectGeorgia(config, bible, options = {}) {
   const observedAt = new Date().toISOString();
+  const configuredLocations = buildGeorgiaConfiguredStoreLocationSignals(observedAt);
   const cityHive = await collectGeorgiaCityHive(config, bible, observedAt, options);
   const lightspeed = await collectGeorgiaLightspeed(config, bible, observedAt, options);
   const goToLiquorStore = await collectGeorgiaGoToLiquorStore(config, bible, observedAt, options);
   return {
-    signals: [...cityHive.signals, ...lightspeed.signals, ...goToLiquorStore.signals],
+    signals: [...configuredLocations, ...cityHive.signals, ...lightspeed.signals, ...goToLiquorStore.signals],
     roadblocks: [...cityHive.roadblocks, ...lightspeed.roadblocks, ...goToLiquorStore.roadblocks],
   };
 }
@@ -4814,24 +4814,37 @@ async function collectSouthCarolinaCityHive(config, bible, observedAt) {
   const cache = await readSouthCarolinaCityHiveCache();
   const cacheAgeMs = cache?.generatedAt ? Date.now() - new Date(cache.generatedAt).getTime() : Infinity;
   if (process.env.BOURBON_SIGNAL_SC_FORCE_CITYHIVE_LIVE !== '1' && cache && Number.isFinite(cacheAgeMs) && cacheAgeMs >= 0 && cacheAgeMs <= SC_CITYHIVE_CACHE_MAX_AGE_MS) {
+    const cachedSignals = cachedSouthCarolinaCityHiveSignals(cache, observedAt);
+    const reconciled = reconcileCityHiveRateLimitsWithCache({
+      roadblocks: cache.roadblocks || [],
+      sources: SC_CITYHIVE_SOURCES,
+      retainedSignals: cachedSignals,
+    });
+    const sourceLabels = new Set(SC_CITYHIVE_SOURCES.map((source) => source.sourceLabel));
+    const platformFailures = reconciled.roadblocks.filter((roadblock) =>
+      sourceLabels.has(roadblock?.source) && isTerminalProbeFailure(roadblock?.status));
+    const otherRoadblocks = reconciled.roadblocks.filter((roadblock) =>
+      !platformFailures.includes(roadblock)
+      && !(platformFailures.length && roadblock?.source === 'South Carolina CityHive retailer inventory pages'));
     return {
-      signals: cachedSouthCarolinaCityHiveSignals(cache, observedAt),
+      signals: cachedSignals,
       roadblocks: [
-        ...(cache.roadblocks || []),
-        {
+        ...otherRoadblocks,
+        ...summarizeRepeatedPlatformFailures(platformFailures, {
           state: config.id,
-          source: 'South Carolina CityHive retailer inventory cache reuse',
-          url: SC_CITYHIVE_ARTIFACT_PATH,
-          status: 200,
-          error: `Using ${cache.signals.length} cached CityHive store-level rows from ${cache.generatedAt}; scheduled refresh avoids repeated retailer traffic unless BOURBON_SIGNAL_SC_FORCE_CITYHIVE_LIVE=1.`,
-          nextRoute: 'Force live South Carolina CityHive refresh during a maintenance window; otherwise keep cache-backed rows inside the freshness window.'
-        }
-      ]
+          source: 'South Carolina CityHive exact-store inventory platform',
+          configuredProbeCount: SC_CITYHIVE_SOURCES.reduce((count, source) => count + (source.merchantIds || []).length, 0),
+          nextRoute: 'Retry two representative configured first-party merchant pages at the next live cadence; do not bypass platform controls or broaden to marketplace/search evidence.',
+        }),
+      ],
     };
   }
 
   const seenProductOptions = new Set();
   const seenStores = new Set();
+  const platformFailures = [];
+  const configuredProbeCount = SC_CITYHIVE_SOURCES.reduce((count, source) => count + (source.merchantIds || []).length, 0);
+  let reachablePageCount = 0;
   let globallyBlocked = false;
   for (const source of SC_CITYHIVE_SOURCES) {
     if (globallyBlocked) break;
@@ -4845,20 +4858,22 @@ async function collectSouthCarolinaCityHive(config, bible, observedAt) {
         for (const url of cityHiveMerchantPageUrls(seedUrl, merchantId, SC_CITYHIVE_MAX_PAGES)) {
           const res = await curlTextFetch(url, { headers: { accept: 'text/html,*/*' }, timeoutMs: 36_000, maxBuffer: 8 * 1024 * 1024 });
           if (!res.ok) {
-            roadblocks.push({
+            const failure = {
               state: config.id,
               source: source.sourceLabel,
               url,
               status: res.status || 0,
               error: res.error || `HTTP ${res.status}`,
               nextRoute: 'Retry the selected South Carolina CityHive merchant-id page or inspect rendered/network calls for current product JSON shape.'
-            });
-            if (res.status === 429) {
+            };
+            if (isTerminalProbeFailure(res.status)) {
+              platformFailures.push(failure);
               sourceBlocked = true;
-              globallyBlocked = true;
-            }
+              globallyBlocked = platformFailures.length >= 2;
+            } else roadblocks.push(failure);
             break;
           }
+          reachablePageCount += 1;
           const blobs = cityHiveJsonBlobs(res.text);
           const products = cityHiveProducts(blobs);
           for (const cfg of cityHiveMerchantConfigs(blobs)) {
@@ -4963,18 +4978,19 @@ async function collectSouthCarolinaCityHive(config, bible, observedAt) {
     }
   }
 
-  if (!signals.some((signal) => signal.eventType === 'cityhive_store_inventory_result')) {
+  roadblocks.push(...summarizeRepeatedPlatformFailures(platformFailures, {
+    state: config.id,
+    source: 'South Carolina CityHive exact-store inventory platform',
+    configuredProbeCount,
+    nextRoute: 'Retry two representative configured first-party merchant pages at the next live cadence; do not bypass platform controls or broaden to marketplace/search evidence.',
+  }));
+  const liveInventoryProduced = signals.some((signal) => signal.eventType === 'cityhive_store_inventory_result');
+  const liveSignals = [...signals];
+  const liveRoadblocks = [...roadblocks];
+  if (!liveInventoryProduced) {
     if (cache) {
       signals.push(...cachedSouthCarolinaCityHiveSignals(cache, observedAt));
-      roadblocks.push({
-        state: config.id,
-        source: 'South Carolina CityHive retailer inventory cache',
-        url: SC_CITYHIVE_ARTIFACT_PATH,
-        status: 'fresh_cache_fallback',
-        error: `Live South Carolina CityHive fetch did not produce positive inventory rows; reused fresh cache from ${cache.generatedAt}.`,
-        nextRoute: 'Keep selected merchant-id CityHive requests paced and retry live retailer pages on next scheduled run.'
-      });
-    } else {
+    } else if (reachablePageCount > 0) {
       roadblocks.push({
         state: config.id,
         source: 'South Carolina CityHive retailer inventory pages',
@@ -4984,10 +5000,14 @@ async function collectSouthCarolinaCityHive(config, bible, observedAt) {
         nextRoute: 'Inspect embedded CityHive product JSON, merchant-id selection, and product_options quantity fields.'
       });
     }
-  } else {
-    await writeSouthCarolinaCityHiveCache(signals, roadblocks);
   }
-  return { signals, roadblocks };
+  if (liveInventoryProduced) await writeSouthCarolinaCityHiveCache(liveSignals, liveRoadblocks);
+  const reconciled = reconcileCityHiveRateLimitsWithCache({
+    roadblocks,
+    sources: SC_CITYHIVE_SOURCES,
+    retainedSignals: signals,
+  });
+  return { signals, roadblocks: reconciled.roadblocks };
 }
 
 async function fetchDaBrownBagSearch(term) {
@@ -5247,7 +5267,7 @@ function phase1CatalogSignal(config, sourceLabel, sourceUrl, store, rawName, bib
     locationPrecision: 'store_level',
     locationName: store.name,
     storeName: store.name,
-    storeId: store.id,
+    storeId: configuredStoreId(extra.raw?.chain, store),
     storeAddress: store.address,
     city: store.city,
     stateCode: 'SC',
@@ -5370,12 +5390,23 @@ async function collectSouthCarolinaOwensTether(config, bible, observedAt) {
 async function collectSouthCarolinaPhase1Myrtle(config, bible, observedAt) {
   const cache = await readSouthCarolinaPhase1Cache();
   if (cache && process.env.BOURBON_SIGNAL_SC_FORCE_PHASE1_LIVE !== '1') {
+    const configuredStores = new Map([
+      ['liquor-store-near-me-myrtle-beach', SC_LIQUOR_STORE_NEAR_ME_STORE],
+      ['burnt-barrel-wine-and-spirits', SC_BURNT_BARREL_STORE],
+      ['owens-liquors', SC_OWENS_STORE],
+    ]);
     return {
-      signals: cache.signals.map((signal) => ({ ...signal, observedAt: cache.generatedAt || signal.observedAt || observedAt, raw: { ...(signal.raw || {}), cacheFallback: true, cacheGeneratedAt: cache.generatedAt, artifactPath: SC_PHASE1_ARTIFACT_PATH } })),
-      roadblocks: [
-        ...(cache.roadblocks || []),
-        { state: config.id, source: 'South Carolina Phase 1 Myrtle Beach watch cache reuse', url: SC_PHASE1_ARTIFACT_PATH, status: 200, error: `Using ${cache.signals.length} cached Myrtle Beach Phase 1 watch rows from ${cache.generatedAt}; low-cadence cache avoids repeated retailer traffic.`, nextRoute: 'Force only during maintenance with BOURBON_SIGNAL_SC_FORCE_PHASE1_LIVE=1.' }
-      ]
+      signals: cache.signals.map((signal) => {
+        const cachedSignal = {
+          ...signal,
+          observedAt: cache.generatedAt || signal.observedAt || observedAt,
+          raw: { ...(signal.raw || {}), cacheFallback: true, cacheGeneratedAt: cache.generatedAt, artifactPath: SC_PHASE1_ARTIFACT_PATH },
+        };
+        const chain = cachedSignal.raw?.chain;
+        const store = configuredStores.get(chain);
+        return store ? attachConfiguredStoreIdentity(cachedSignal, chain, store, 'SC') : cachedSignal;
+      }),
+      roadblocks: cache.roadblocks || [],
     };
   }
   const liquorStoreNearMe = await collectSouthCarolinaLiquorStoreNearMe(config, bible, observedAt);
@@ -5517,9 +5548,11 @@ async function collectTexas(config, bible) {
             url,
             status: res.status,
             error: res.error || `HTTP ${res.status}`,
-            nextRoute: res.status === 429 ? 'Source stopped after first rate limit; retry on a later scheduled run.' : 'Retry the Texas CityHive page or inspect rendered/network calls for current product JSON shape.'
+            nextRoute: isTerminalProbeFailure(res.status)
+              ? 'Source stopped after the terminal response; retry the configured first-party page on a later scheduled run.'
+              : 'Retry the Texas CityHive page or inspect rendered/network calls for current product JSON shape.'
           });
-          if (res.status === 429) continue sourceLoop;
+          if (isTerminalProbeFailure(res.status)) continue sourceLoop;
           continue;
         }
         const blobs = cityHiveJsonBlobs(res.text);
@@ -5636,6 +5669,7 @@ async function collectTexas(config, bible) {
   }
 
   const release = await textFetch(TX_SPECS_RELEASE_URL, { timeoutMs: 24_000 });
+  const specsTerminalBlocked = !release.ok && isTerminalProbeFailure(release.status);
   if (release.ok) {
     const text = stripHtml(release.text);
     const matched = bible.scanText(text).filter((match) => TX_WATCH_RE.test(match.canonical || ''));
@@ -5678,7 +5712,7 @@ async function collectTexas(config, bible) {
     });
   }
 
-  for (const url of TX_SPECS_PRODUCT_URLS) {
+  for (const url of specsTerminalBlocked ? [] : TX_SPECS_PRODUCT_URLS) {
     const res = await textFetch(url, { timeoutMs: 18_000 });
     if (!res.ok) {
       roadblocks.push({ state: config.id, source: "Spec's public product page", url, status: res.status, error: res.error || `HTTP ${res.status}`, nextRoute: "Retry product page or inspect rendered page for product JSON." });
@@ -5722,8 +5756,17 @@ async function collectTexas(config, bible) {
       for (let index = signals.length - 1; index >= 0; index -= 1) {
         if (signals[index].eventType === 'cityhive_store_inventory_result') signals.splice(index, 1);
       }
-      signals.push(...cached.signals.map((signal) => ({ ...signal, fallback: true, fallbackReason: 'Texas CityHive live run was rate-limited; using the last complete inventory artifact within the six-hour TTL.' })));
-      roadblocks.push({ state: config.id, source: 'Texas CityHive inventory cache', url: TX_INVENTORY_CACHE_PATH, status: 'fresh_cache_fallback', error: `Live run produced ${liveInventory.length} inventory rows; retained ${cached.signals.length} rows from the last complete artifact.`, nextRoute: 'Retry at the next scheduled cadence; never extend inventory beyond the configured cache TTL.' });
+      signals.push(...cached.signals.map((signal) => ({
+        ...signal,
+        fallback: true,
+        fallbackReason: 'Texas CityHive live run was blocked or incomplete; using the last complete inventory artifact within the six-hour TTL.',
+        raw: {
+          ...(signal.raw || {}),
+          cacheFallback: true,
+          cacheGeneratedAt: cached.generatedAt,
+          artifactPath: TX_INVENTORY_CACHE_PATH,
+        },
+      })));
     }
   }
 
@@ -5749,16 +5792,6 @@ async function collectTexas(config, bible) {
     raw: { productUrls: TX_SPECS_PRODUCT_URLS, releaseUrl: TX_SPECS_RELEASE_URL }
   });
 
-  if (!signals.some((s) => s.eventType === 'retailer_release_watch_signal' || s.eventType === 'retailer_product_catalog_signal')) {
-    roadblocks.push({
-      state: config.id,
-      source: 'Texas retailer public-source coverage',
-      url: TX_SPECS_RELEASE_URL,
-      status: 'no_public_retailer_signals',
-      error: "Texas public-source pass did not extract usable Spec's catalog/release signals.",
-      nextRoute: "Add a rendered/browser collector for Spec's or another Texas retailer with explicitly public store/product availability."
-    });
-  }
   return { signals, roadblocks };
 }
 
@@ -7637,16 +7670,6 @@ async function collectIndiana(config, bible) {
   try {
     const artifact = await collectIndianaAtcPackageStores();
     const atcObservedAt = artifact.generatedAt || observedAt;
-    if (artifact.cacheReuse) {
-      roadblocks.push({
-        state: config.id,
-        source: 'Indiana ATC public facility permit search cache reuse',
-        url: IN_ATC_ARTIFACT_PATH,
-        status: 200,
-        error: `Using ${artifact.stores?.length || 0} cached active package-store permit rows from ${artifact.cacheGeneratedAt || artifact.generatedAt}; scheduled refresh avoids the slow ASP.NET paging flow unless BOURBON_SIGNAL_IN_FORCE_ATC_LIVE=1.`,
-        nextRoute: 'Force live ATC refresh during maintenance; permit rows are store-coverage infrastructure, not bottle inventory.'
-      });
-    }
 
     for (const store of artifact.stores || []) {
       signals.push({
@@ -7677,15 +7700,6 @@ async function collectIndiana(config, bible) {
         raw: { permit: store, artifactPath: IN_ATC_ARTIFACT_PATH }
       });
     }
-    roadblocks.push({
-      state: config.id,
-      source: 'Indiana bottle-level inventory',
-      url: 'https://www.in.gov/atc/public-records/',
-      status: 'private_market_no_control_inventory',
-      error: 'Indiana ATC exposes license/permit data, not public bottle inventory. Retailer-specific inventory/catalog collectors are required for bottle alerts.',
-      nextRoute: 'Prioritize Big Red/Bourbon World, Total Wine, Cap n Cork, Crown Liquors, and other Indiana retailer shop endpoints for bottle-level inventory/watch extraction.'
-    });
-
     const bourbonWorld = await textFetch(IN_BOURBON_WORLD_URL, { headers: { accept: 'text/html,*/*' } });
     if (bourbonWorld.ok) {
       const allocatedItems = parseIndianaBourbonWorldAllocated(bourbonWorld.text)
