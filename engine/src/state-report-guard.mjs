@@ -178,7 +178,7 @@ function partialFallback(previous, candidate, reason, now = new Date().toISOStri
       stale: true,
       sourceStale: true,
       staleReason: `Latest partial refresh did not reconfirm this identity: ${reason}.`,
-      staleSourceCaveat: true,
+      staleSourceCaveat: `Last confirmed by the source before the latest partial refresh; verify with the store before driving.`,
       canAlertAsInventory: false,
       canAlertAsWatch: false,
       alertable: false,

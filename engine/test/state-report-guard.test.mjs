@@ -74,6 +74,7 @@ test('partial quality fallback publishes fresh rows and keeps missing identities
   assert.match(result.report.partialReason, /collapsed/i);
   assert.equal(result.report.signals.length, 6);
   assert.equal(result.report.signals.filter((signal) => signal.sourceStale === true).length, 4);
+  assert.equal(result.report.signals.filter((signal) => signal.sourceStale === true).every((signal) => typeof signal.staleSourceCaveat === 'string' && signal.staleSourceCaveat.length > 0), true);
   assert.equal(result.report.signals.filter((signal) => signal.canAlertAsInventory === true).length, 2);
   assert.equal(result.report.signals.filter((signal) => signal.sourceStale === true).every((signal) => signal.canAlertAsInventory === false && signal.canAlertAsWatch === false), true);
 });
