@@ -100,6 +100,43 @@ export const GEORGIA_LIGHTSPEED_STORES = [
   lightspeed('ansley-wine-merchants:atlanta', 'ansley-wine-merchants', 'Ansley Wine Merchants', 'lightspeed:640117', 'ansley-wine-merchants.shoplightspeed.com', 'https://ansley-wine-merchants.shoplightspeed.com/spirits/whiskies/bourbon/', '1544 Piedmont Ave NE #211, Atlanta, GA 30324', 'Atlanta', '30324'),
 ];
 
+export function buildGeorgiaConfiguredStoreLocationSignals(observedAt) {
+  return [...GEORGIA_GOTOLIQUOR_STORES, ...GEORGIA_LIGHTSPEED_STORES].map((store) => ({
+    id: `georgia-configured-store-location:${store.storeId}`,
+    state: 'GA',
+    stateCode: 'GA',
+    sourceLabel: `${store.name} first-party exact-store identity`,
+    sourceUrl: store.categoryUrl,
+    sourceChain: store.chain,
+    merchantId: store.merchantId,
+    rawName: store.name,
+    canonicalBottleId: null,
+    canonicalName: null,
+    confidence: 0.8,
+    eventType: 'retailer_store_location',
+    locationPrecision: 'store_level',
+    locationName: store.name,
+    storeName: store.name,
+    storeId: store.storeId,
+    storeAddress: store.address,
+    city: store.city,
+    postalCode: store.zip,
+    zip: store.zip,
+    quantity: 0,
+    observedAt,
+    canAlertAsInventory: false,
+    canAlertAsWatch: false,
+    inventorySemantics: 'The configured first-party retailer category identifies an exact Georgia premises. This directory row is not product availability or bottle inventory.',
+    evidence: `${store.name}'s configured first-party category identity is attached to ${store.address}.`,
+    raw: {
+      chain: store.chain,
+      merchantId: store.merchantId,
+      configuredFirstPartyStoreIdentity: true,
+      platform: GEORGIA_GOTOLIQUOR_STORES.includes(store) ? 'gotoliquorstore' : 'lightspeed',
+    },
+  }));
+}
+
 function decodeHtml(value) {
   return String(value || '')
     .replace(/&quot;|&#34;/gi, '"')

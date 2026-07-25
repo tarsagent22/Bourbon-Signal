@@ -49,6 +49,7 @@ test('a rate-limited Tennessee source is not reported broken when fresh positive
     }],
     roadblocks: [
       { source: 'Happy Ours Wine & Spirits CityHive store inventory', status: 429, error: 'HTTP 429' },
+      { source: 'Happy Ours Wine & Spirits CityHive store inventory', status: 'reachable_no_safe_inventory_rows', error: 'No safe inventory rows' },
       { source: 'Another source', status: 500, error: 'HTTP 500' },
     ],
     retainedSignals: [{
@@ -62,6 +63,22 @@ test('a rate-limited Tennessee source is not reported broken when fresh positive
   assert.deepEqual(result.roadblocks, [{ source: 'Another source', status: 500, error: 'HTTP 500' }]);
 });
 
+test('live rows do not disguise a current CityHive rate limit as recovered cache', () => {
+  const roadblock = { source: 'Happy Ours Wine & Spirits CityHive store inventory', status: 429, error: 'HTTP 429' };
+  const result = reconcileCityHiveRateLimitsWithCache({
+    sources: [{ id: 'happy-ours-wine-and-spirits', sourceLabel: roadblock.source }],
+    roadblocks: [roadblock],
+    retainedSignals: [{
+      eventType: 'cityhive_store_inventory_result',
+      quantity: 1,
+      raw: { chain: 'happy-ours-wine-and-spirits' },
+    }],
+  });
+
+  assert.deepEqual(result.recoveredSourceIds, []);
+  assert.deepEqual(result.roadblocks, [roadblock]);
+});
+
 test('a 429 remains actionable when cache has no positive inventory for that source', () => {
   const roadblock = { source: 'Happy Ours Wine & Spirits CityHive store inventory', status: 429, error: 'HTTP 429' };
   const result = reconcileCityHiveRateLimitsWithCache({
@@ -72,4 +89,19 @@ test('a 429 remains actionable when cache has no positive inventory for that sou
 
   assert.deepEqual(result.recoveredSourceIds, []);
   assert.deepEqual(result.roadblocks, [roadblock]);
+});
+
+test('a real source failure replaces its contradictory reachable-no-inventory summary', () => {
+  const source = 'Happy Ours Wine & Spirits CityHive store inventory';
+  const failure = { source, status: 429, error: 'HTTP 429' };
+  const result = reconcileCityHiveRateLimitsWithCache({
+    sources: [{ id: 'happy-ours-wine-and-spirits', sourceLabel: source }],
+    roadblocks: [
+      failure,
+      { source, status: 'reachable_no_safe_inventory_rows', error: 'No safe inventory rows' },
+    ],
+    retainedSignals: [],
+  });
+
+  assert.deepEqual(result.roadblocks, [failure]);
 });

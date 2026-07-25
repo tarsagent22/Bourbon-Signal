@@ -5,6 +5,7 @@ import { classifyRoadblock, summarizeRoadblocks } from '../src/roadblock-health.
 
 test('expected no-inventory outcomes do not inflate operational failures', () => {
   assert.equal(classifyRoadblock({ status: 'reachable_no_safe_inventory_rows', error: 'No safe rows' }).severity, 'expected_negative');
+  assert.equal(classifyRoadblock({ status: 'locator_only_no_products', error: 'Exact store is reachable but publishes no product options' }).severity, 'expected_negative');
   assert.equal(classifyRoadblock({ error: 'Store Closed for Ecommerce' }).severity, 'expected_negative');
   assert.equal(classifyRoadblock({ status: 500, error: 'upstream failed' }).severity, 'operational_failure');
 });
