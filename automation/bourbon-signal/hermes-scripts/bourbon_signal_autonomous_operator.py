@@ -2,18 +2,18 @@ import hashlib
 import json
 import os
 import re
+import shutil
 import subprocess
 import sys
-from datetime import datetime, timezone
+from contextlib import contextmanager
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
 from bourbon_signal_runtime import failure_summary, load_env, resolve_repo
 
-PROFILE = "bourbonbot"
 MODEL = "gpt-5.6-sol"
-PROVIDER = "openai-codex"
 EXPECTED_REPO = Path(r"C:\c\Users\chand\projects\Bourbon-Signal-autonomous").resolve()
 EXPECTED_ORIGINS = {
     "https://github.com/tarsagent22/Bourbon-Signal.git",
@@ -23,6 +23,8 @@ PROMPT_RELATIVE = Path("automation/bourbon-signal/autonomous-operator-prompt.md"
 RUN_RELATIVE = Path("automation/bourbon-signal/reports/operator-run-latest.json")
 OUTCOME_SCRIPT = Path("automation/bourbon-signal/operator-outcomes.mjs")
 LOCK_RELATIVE = Path(".operator/objective-lock.json")
+RELEASE_LANE_LOCK_RELATIVE = Path(".operator/release-lane.lock")
+RELEASE_LANE_LEASE_HOURS = 2
 ANSI_ESCAPE = re.compile(r"\x1B(?:\[[0-?]*[ -/]*[@-~]|[@-_])")
 
 
@@ -57,6 +59,8 @@ def owner_summary(artifact: dict) -> str:
             "Bourbon Signal automation preserved unfinished work for the next shift.",
             f"- Area: {lane}",
         ]
+        if artifact.get("prNumber"):
+            lines.append(f"- Draft pull request: #{artifact['prNumber']}")
         blocker = clean_delivery_text(artifact.get("blocker"), 240)
         if blocker:
             lines.append(f"- Reason: {blocker}")
@@ -98,9 +102,114 @@ def dedicated_repo() -> Path:
 
 
 def synchronize(repo: Path) -> None:
+    branch = require_ok(run(["git", "branch", "--show-current"], repo), "base branch lookup failed")
+    if branch != "main":
+        raise RuntimeError(f"Autonomous operator found the dedicated base clone on {branch or 'detached HEAD'}, not main; refusing to overwrite interactive work.")
+    status = require_ok(run(["git", "status", "--porcelain", "--untracked-files=normal"], repo), "base worktree status failed")
+    if status:
+        raise RuntimeError("Autonomous operator found a dirty base clone; refusing destructive synchronization or concurrent edits.")
     require_ok(run(["git", "fetch", "origin", "--prune"], repo, 300), "git fetch failed")
-    require_ok(run(["git", "checkout", "main"], repo), "git checkout main failed")
-    require_ok(run(["git", "reset", "--hard", "origin/main"], repo), "git synchronization failed")
+    require_ok(run(["git", "merge", "--ff-only", "origin/main"], repo), "git fast-forward synchronization failed")
+
+
+def list_open_pull_requests(repo: Path) -> list[dict]:
+    raw = require_ok(run([
+        "gh", "pr", "list", "--repo", "tarsagent22/Bourbon-Signal", "--state", "open", "--limit", "100",
+        "--json", "number,headRefName,baseRefName,isDraft,headRefOid",
+    ], repo), "open pull request lookup failed")
+    rows = json.loads(raw or "[]")
+    if not isinstance(rows, list):
+        raise RuntimeError("Open pull request lookup returned an invalid payload.")
+    return rows
+
+
+def validate_release_lane(pull_requests: list[dict], objective: dict | None) -> None:
+    if len(pull_requests) > 1:
+        raise RuntimeError(f"Exactly one active release lane is allowed; found {len(pull_requests)} open pull requests.")
+    if not pull_requests:
+        return
+    pull = pull_requests[0]
+    if not objective:
+        raise RuntimeError(f"Open PR #{pull.get('number')} must be reconciled before automation selects another objective.")
+    if pull.get("headRefName") != objective.get("branch"):
+        raise RuntimeError(f"Open PR #{pull.get('number')} does not match the locked objective branch {objective.get('branch')}.")
+    if pull.get("baseRefName") != "main":
+        raise RuntimeError("The automation-owned release PR must target main.")
+    if pull.get("isDraft") is not True:
+        raise RuntimeError("The automation-owned pull request must remain draft until Chandler explicitly promotes it.")
+
+
+def git_is_ancestor(repo: Path, older: str, newer: str) -> bool:
+    result = run(["git", "merge-base", "--is-ancestor", older, newer], repo)
+    if result.returncode not in {0, 1}:
+        raise RuntimeError(f"Branch ancestry check failed: {failure_summary(result.stderr, result.stdout, 'git merge-base failed')}")
+    return result.returncode == 0
+
+
+def reconcile_objective_branch(repo: Path, objective: dict) -> str:
+    worktree = Path(objective["worktree"]).resolve()
+    branch = str(objective["branch"])
+    branch_ref = f"refs/heads/{branch}"
+    branch_is_ancestor = git_is_ancestor(repo, branch_ref, "origin/main")
+    main_is_ancestor = git_is_ancestor(repo, "origin/main", branch_ref)
+    if not branch_is_ancestor and not main_is_ancestor:
+        raise RuntimeError("The locked objective branch diverged from current main; automation stopped for deliberate reconciliation.")
+    if branch_is_ancestor and not main_is_ancestor:
+        tracked = require_ok(run(["git", "status", "--porcelain", "--untracked-files=no"], worktree), "objective worktree status failed")
+        if tracked:
+            raise RuntimeError("The stale objective branch has tracked edits; automation refused to overwrite them during current-main reconciliation.")
+        require_ok(run(["git", "merge", "--ff-only", "origin/main"], worktree), "objective branch fast-forward failed")
+        require_ok(run(["git", "push", "origin", f"HEAD:{branch}"], worktree, 300), "objective branch fast-forward push failed")
+        return "fast_forwarded"
+    return "current"
+
+
+@contextmanager
+def release_lane_lease(repo: Path, run_id: str):
+    target = repo / RELEASE_LANE_LOCK_RELATIVE
+    guard = target.with_suffix(".guard")
+    target.parent.mkdir(parents=True, exist_ok=True)
+    handle = open(guard, "a+b")
+    handle.seek(0, os.SEEK_END)
+    if handle.tell() == 0:
+        handle.write(b"0")
+        handle.flush()
+    handle.seek(0)
+    try:
+        if os.name == "nt":
+            import msvcrt
+            msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
+        else:
+            import fcntl
+            fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except (OSError, IOError) as error:
+        handle.close()
+        raise RuntimeError("The release lane is already owned by another live process.") from error
+    now = datetime.now(timezone.utc)
+    payload = {
+        "contractVersion": "bourbon-signal/release-lane-lease@1",
+        "runId": run_id,
+        "pid": os.getpid(),
+        "acquiredAt": now.isoformat().replace("+00:00", "Z"),
+        "expiresAt": (now + timedelta(hours=RELEASE_LANE_LEASE_HOURS)).isoformat().replace("+00:00", "Z"),
+    }
+    try:
+        target.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        yield
+    finally:
+        try:
+            current = json.loads(target.read_text(encoding="utf-8")) if target.exists() else {}
+            if current.get("runId") == run_id:
+                target.unlink(missing_ok=True)
+        finally:
+            handle.seek(0)
+            if os.name == "nt":
+                import msvcrt
+                msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
+            else:
+                import fcntl
+                fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+            handle.close()
 
 
 def read_objective_lock(repo: Path) -> dict | None:
@@ -145,6 +254,25 @@ def read_objective_lock(repo: Path) -> dict | None:
     return lock
 
 
+def preserve_initial_objective_lock(repo: Path, initial: dict | None) -> dict | None:
+    try:
+        final = read_objective_lock(repo)
+    except Exception:
+        final = None
+    if not initial:
+        return final
+    if final == initial:
+        return final
+    worktree = Path(initial["worktree"]).resolve()
+    if not worktree.is_dir():
+        raise RuntimeError("Automation removed both the objective lock and its canonical worktree.")
+    target = repo / LOCK_RELATIVE
+    temporary = target.with_suffix(".restore.tmp")
+    temporary.write_text(json.dumps(initial, indent=2) + "\n", encoding="utf-8")
+    os.replace(temporary, target)
+    return read_objective_lock(repo)
+
+
 def active_objective(repo: Path) -> dict | None:
     return read_objective_lock(repo)
 
@@ -161,7 +289,32 @@ def terminate_tree(process: subprocess.Popen[str]) -> None:
         process.wait(timeout=10)
 
 
-def run_agent(command: list[str], repo: Path, timeout: int = 3_300) -> subprocess.CompletedProcess[str]:
+def restricted_agent_environment(repo: Path, run_id: str) -> dict[str, str]:
+    source = load_env()
+    safe_keys = {
+        "PATH", "HOME", "USERPROFILE", "APPDATA", "LOCALAPPDATA", "TEMP", "TMP", "TMPDIR",
+        "SYSTEMROOT", "WINDIR", "COMSPEC", "PATHEXT", "TERM", "LANG", "LC_ALL", "COLORTERM",
+    }
+    environment = {key: value for key, value in source.items() if key.upper() in safe_keys}
+    isolated = repo / ".operator" / "restricted-auth" / run_id.replace(":", "-")
+    gh_config = isolated / "gh"
+    vercel_config = isolated / "vercel"
+    gh_config.mkdir(parents=True, exist_ok=True)
+    vercel_config.mkdir(parents=True, exist_ok=True)
+    environment.update({
+        "BOURBON_SIGNAL_REPO": str(repo),
+        "HERMES_CRON_SESSION": "1",
+        "GH_CONFIG_DIR": str(gh_config),
+        "VERCEL_CONFIG_DIR": str(vercel_config),
+        "GIT_TERMINAL_PROMPT": "0",
+        "GIT_CONFIG_COUNT": "1",
+        "GIT_CONFIG_KEY_0": "remote.origin.pushurl",
+        "GIT_CONFIG_VALUE_0": "disabled-by-bourbon-signal-release-lane://no-push",
+    })
+    return environment
+
+
+def run_agent(command: list[str], repo: Path, run_id: str, timeout: int = 3_300) -> subprocess.CompletedProcess[str]:
     creationflags = subprocess.CREATE_NEW_PROCESS_GROUP if sys.platform == "win32" else 0
     process = subprocess.Popen(
         command,
@@ -172,14 +325,79 @@ def run_agent(command: list[str], repo: Path, timeout: int = 3_300) -> subproces
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
         creationflags=creationflags,
-        env={**load_env(), "BOURBON_SIGNAL_REPO": str(repo), "HERMES_CRON_SESSION": "1"},
+        env=restricted_agent_environment(repo, run_id),
     )
     try:
         stdout, stderr = process.communicate(timeout=timeout)
     except subprocess.TimeoutExpired:
         terminate_tree(process)
         raise
+    finally:
+        shutil.rmtree(repo / ".operator" / "restricted-auth" / run_id.replace(":", "-"), ignore_errors=True)
     return subprocess.CompletedProcess(command, process.returncode, stdout, stderr)
+
+
+def prepare_draft_pull_request(repo: Path, objective: dict) -> int:
+    worktree = Path(objective["worktree"]).resolve()
+    branch = str(objective["branch"])
+    current_branch = require_ok(run(["git", "branch", "--show-current"], worktree), "objective branch lookup failed")
+    if current_branch != branch:
+        raise RuntimeError(f"Objective worktree changed branches from {branch} to {current_branch or 'detached HEAD'}.")
+    status = require_ok(run(["git", "status", "--porcelain"], worktree), "objective worktree status failed")
+    if status:
+        raise RuntimeError("Coding subprocess left uncommitted changes; the wrapper refused to publish a partial draft.")
+    require_ok(run(["git", "fetch", "origin", "main"], worktree, 300), "current-main fetch failed before draft handoff")
+    if not git_is_ancestor(worktree, "origin/main", "HEAD"):
+        raise RuntimeError("Current main changed during the coding shift; the draft branch requires deliberate reconciliation and revalidation.")
+    pulls = list_open_pull_requests(repo)
+    validate_release_lane(pulls, objective)
+    head = require_ok(run(["git", "rev-parse", "HEAD"], worktree), "objective head lookup failed")
+    main = require_ok(run(["git", "rev-parse", "origin/main"], worktree), "current main lookup failed")
+    if not pulls and head == main:
+        raise RuntimeError("The coding shift produced no committed change for a draft pull request.")
+    require_ok(run(["git", "push", "origin", f"HEAD:{branch}"], worktree, 300), "normal fast-forward draft push failed")
+    if pulls:
+        pr_number = int(pulls[0]["number"])
+        post = list_open_pull_requests(repo)
+        if len(post) != 1 or int(post[0].get("number") or 0) != pr_number or post[0].get("headRefName") != branch or post[0].get("baseRefName") != "main" or post[0].get("isDraft") is not True or post[0].get("headRefOid") != head:
+            raise RuntimeError("The existing draft PR changed during deterministic handoff; publication state was not claimed.")
+        return pr_number
+    created = require_ok(run([
+        "gh", "pr", "create", "--repo", "tarsagent22/Bourbon-Signal", "--draft", "--base", "main", "--head", branch,
+        "--title", f"Draft release: {str(objective['title'])[:90]}",
+        "--body", f"Unattended draft handoff for #{objective['issueNumber']}. Requires daytime reconciliation, review, guarded merge, deployment, and production verification.",
+    ], repo, 300), "draft pull request creation failed")
+    match = re.search(r"/pull/(\d+)(?:\s|$)", created)
+    if not match:
+        raise RuntimeError("Draft pull request creation returned no verifiable PR number.")
+    pr_number = int(match.group(1))
+    post = list_open_pull_requests(repo)
+    valid_created = len(post) == 1 and int(post[0].get("number") or 0) == pr_number and post[0].get("headRefName") == branch and post[0].get("baseRefName") == "main" and post[0].get("isDraft") is True and post[0].get("headRefOid") == head
+    if not valid_created:
+        created = next((pull for pull in post if int(pull.get("number") or 0) == pr_number), None)
+        safe_to_close = created is not None and created.get("headRefName") == branch and created.get("baseRefName") == "main" and created.get("isDraft") is True and created.get("headRefOid") == head and len(post) > 1
+        if safe_to_close:
+            require_ok(run(["gh", "pr", "close", str(pr_number), "--repo", "tarsagent22/Bourbon-Signal", "--comment", "Closed automatically because another release lane appeared during deterministic draft creation."], repo, 120), "competing draft PR cleanup failed")
+            raise RuntimeError("Another release lane appeared during draft creation; the wrapper closed only its unchanged competing draft.")
+        raise RuntimeError("Draft PR state changed during creation; the wrapper preserved the owner-controlled PR and stopped without mutation.")
+    return pr_number
+
+
+def write_run_artifact(repo: Path, artifact: dict) -> None:
+    target = repo / RUN_RELATIVE
+    temporary = target.with_suffix(".tmp")
+    temporary.write_text(json.dumps(artifact, indent=2) + "\n", encoding="utf-8")
+    os.replace(temporary, target)
+
+
+def import_agent_artifact(repo: Path, source: Path) -> None:
+    if not source.is_file():
+        raise RuntimeError("Coding subprocess did not write the required sandbox run artifact.")
+    payload = json.loads(source.read_text(encoding="utf-8"))
+    if not isinstance(payload, dict):
+        raise RuntimeError("Coding subprocess wrote a non-object sandbox run artifact.")
+    write_run_artifact(repo, payload)
+    shutil.rmtree(source.parent, ignore_errors=True)
 
 
 def failure_artifact(repo: Path, run_id: str, started_at: str, objective: dict | None, outcome: str, blocker: str, *, resumed: bool = False) -> dict:
@@ -263,14 +481,27 @@ def validate_transition(repo: Path, initial: dict | None) -> tuple[dict, dict | 
     final = read_objective_lock(repo)
     outcome = artifact.get("outcome")
     artifact_id = artifact.get("objectiveId")
+    if outcome == "completed":
+        raise RuntimeError("Autonomous coding shifts are draft-only and may not merge or complete a production release.")
+    if any(artifact.get(field) is True for field in ("merged", "deployed", "productionVerified")) \
+            or artifact.get("mergeCommitSha") is not None \
+            or artifact.get("deploymentId") is not None \
+            or artifact.get("productionChecks") \
+            or int(artifact.get("releaseRadarPublished") or 0) > 0 \
+            or int(artifact.get("engineExpansionsCompleted") or 0) > 0 \
+            or int(artifact.get("coverageDelta") or 0) > 0:
+        raise RuntimeError("Draft-only automation may not claim a merge, deployment, publication, expansion, or production verification.")
     if artifact.get("startedObjective") and artifact.get("resumedObjective"):
         raise RuntimeError("A run cannot both start and resume an objective.")
     if artifact.get("resumedObjective") and not initial:
         raise RuntimeError("A run cannot claim continuation without an initial lock.")
     if initial and artifact_id != initial["objectiveId"]:
         raise RuntimeError("Operator run artifact changed the locked objective ID.")
-    if initial and outcome in {"continued", "blocked", "failed"} and (not final or final["objectiveId"] != initial["objectiveId"]):
+    incomplete = outcome in {"continued", "blocked", "failed"}
+    if incomplete and artifact_id and (not final or final["objectiveId"] != artifact_id):
         raise RuntimeError("Incomplete objective did not preserve its canonical continuation lock.")
+    if outcome == "continued" and not artifact_id:
+        raise RuntimeError("A continued run must identify and preserve one objective.")
     if initial and outcome == "completed" and final is not None:
         raise RuntimeError("Completed objective did not release its canonical lock.")
     if not initial and final and artifact_id != final["objectiveId"]:
@@ -288,54 +519,64 @@ def validate_transition(repo: Path, initial: dict | None) -> tuple[dict, dict | 
     return artifact, final
 
 
-def main() -> int:
-    started = datetime.now(timezone.utc)
-    started_at = started.isoformat().replace("+00:00", "Z")
-    run_id = f"{started_at}-{hashlib.sha256(os.urandom(16)).hexdigest()[:8]}"
-    repo = dedicated_repo()
+def run_shift(repo: Path, started_at: str, run_id: str) -> int:
     synchronize(repo)
     objective = active_objective(repo)
-    if objective:
-        verify_canonical_objective(repo, objective)
+    try:
+        validate_release_lane(list_open_pull_requests(repo), objective)
+        if objective:
+            reconcile_objective_branch(repo, objective)
+            verify_canonical_objective(repo, objective)
+    except RuntimeError as error:
+        artifact = failure_artifact(repo, run_id, started_at, objective, "blocked", str(error), resumed=bool(objective))
+        checked = aggregate(repo, run_id, started_at, objective)
+        print(owner_summary(artifact))
+        return 0 if checked.returncode == 0 else checked.returncode
+    if not objective:
+        artifact = failure_artifact(repo, run_id, started_at, None, "no_qualified_work", "No locked release objective exists; unattended automation may not select or create a new release lane.")
+        checked = aggregate(repo, run_id, started_at, None)
+        print(owner_summary(artifact))
+        return 0 if checked.returncode == 0 else checked.returncode
     prompt_file = repo / PROMPT_RELATIVE
     if not prompt_file.is_file():
         raise RuntimeError(f"Operator prompt is missing: {prompt_file}")
     run_file = repo / RUN_RELATIVE
     run_file.unlink(missing_ok=True)
-    continuation = (
-        f"A validated active objective `{objective['objectiveId']}` exists in `{objective['worktree']}`. Resume it; selecting any new objective is forbidden."
-        if objective else
-        "No active objective lock exists. You may select exactly one eligible objective under the canonical policy."
-    )
+    agent_cwd = Path(objective["worktree"]).resolve()
+    agent_artifact_dir = repo / ".operator" / "agent-artifacts" / run_id.replace(":", "-")
+    agent_artifact_dir.mkdir(parents=True, exist_ok=True)
+    agent_run_file = agent_artifact_dir / "operator-run-latest.json"
+    continuation = f"A validated active objective `{objective['objectiveId']}` exists in `{objective['worktree']}`. Resume it; selecting any new objective is forbidden."
     prompt = (
         prompt_file.read_text(encoding="utf-8")
         + f"\n\nRuntime contract:\n- Run ID: `{run_id}`\n"
         + f"- Started at: `{started_at}`\n"
         + f"- Dedicated base repository: `{repo}`\n"
-        + f"- Required centralized run artifact: `{repo / RUN_RELATIVE}`\n- {continuation}\n"
-        + "Use that exact run ID and startedAt in the required run artifact. Even when working in a locked objective worktree, write the artifact to the centralized absolute path above.\n"
+        + f"- Required sandbox artifact: `{agent_run_file}`\n- {continuation}\n"
+        + "Use that exact run ID and startedAt in the required run artifact. Write only to the sandbox artifact path above; the deterministic wrapper imports it into the centralized run contract.\n"
     )
+    codex_cli = shutil.which("codex")
+    if not codex_cli:
+        raise RuntimeError("Codex CLI is unavailable for the sandboxed coding shift.")
     command = [
-        "hermes", "-p", PROFILE, "chat", "-q", prompt,
-        "-m", MODEL, "--provider", PROVIDER,
-        "-t", "terminal,file,web",
-        "-s", "bourbon-signal-product-engineering,github-pr-workflow,requesting-code-review,notification-delivery-safety",
-        "-Q", "--max-turns", "500", "--source", "cron",
+        codex_cli, "exec", "--sandbox", "workspace-write", "--ephemeral", "--add-dir", str(agent_artifact_dir),
+        "-m", MODEL, "-c", 'model_reasoning_effort="low"', prompt,
     ]
-    agent_cwd = Path(objective["worktree"]).resolve() if objective else repo
     try:
-        agent = run_agent(command, agent_cwd)
+        agent = run_agent(command, agent_cwd, run_id)
     except subprocess.TimeoutExpired:
-        final = read_objective_lock(repo)
+        shutil.rmtree(agent_artifact_dir, ignore_errors=True)
+        final = preserve_initial_objective_lock(repo, objective)
         tracked = objective or final
         artifact = failure_artifact(repo, run_id, started_at, tracked, "continued" if tracked else "failed", "Coding shift exceeded 55 minutes; the process tree was terminated and continuation state was preserved.", resumed=bool(objective))
         checked = aggregate(repo, run_id, started_at, tracked)
         print(owner_summary(artifact))
         return 124 if checked.returncode == 0 else checked.returncode
+    final_after_agent = preserve_initial_objective_lock(repo, objective)
     if agent.returncode != 0:
+        shutil.rmtree(agent_artifact_dir, ignore_errors=True)
         blocker = failure_summary(agent.stderr, agent.stdout, "Autonomous operator failed.")
-        final = read_objective_lock(repo)
-        tracked = objective or final
+        tracked = objective or final_after_agent
         artifact = failure_artifact(repo, run_id, started_at, tracked, "continued" if tracked else "failed", clean_delivery_text(blocker), resumed=bool(objective))
         checked = aggregate(repo, run_id, started_at, tracked)
         if checked.returncode != 0:
@@ -343,7 +584,15 @@ def main() -> int:
             return checked.returncode
         print(owner_summary(artifact))
         return agent.returncode
+    import_agent_artifact(repo, agent_run_file)
     artifact, final = validate_transition(repo, objective)
+    if artifact.get("outcome") == "continued":
+        try:
+            artifact["prNumber"] = prepare_draft_pull_request(repo, objective)
+            artifact["blocker"] = "Draft PR is preserved for daytime reconciliation, review, guarded merge, deployment, and production verification."
+            write_run_artifact(repo, artifact)
+        except RuntimeError as error:
+            artifact = failure_artifact(repo, run_id, started_at, objective, "continued", str(error), resumed=True)
     expected = objective or final or ({"objectiveId": artifact["objectiveId"]} if artifact.get("objectiveId") else None)
     checked = aggregate(repo, run_id, started_at, expected)
     if checked.returncode != 0:
@@ -353,18 +602,28 @@ def main() -> int:
     return 0
 
 
+def main() -> int:
+    started = datetime.now(timezone.utc)
+    started_at = started.isoformat().replace("+00:00", "Z")
+    run_id = f"{started_at}-{hashlib.sha256(os.urandom(16)).hexdigest()[:8]}"
+    repo = dedicated_repo()
+    with release_lane_lease(repo, run_id):
+        return run_shift(repo, started_at, run_id)
+
+
 def record_uncaught_failure(error: Exception) -> None:
     try:
         repo = dedicated_repo()
         started = datetime.now(timezone.utc)
         started_at = started.isoformat().replace("+00:00", "Z")
         run_id = f"{started_at}-{hashlib.sha256(os.urandom(16)).hexdigest()[:8]}"
-        try:
-            objective = read_objective_lock(repo)
-        except Exception:
-            objective = None
-        failure_artifact(repo, run_id, started_at, objective, "continued" if objective else "failed", f"Wrapper preflight or validation failed: {str(error)[:400]}", resumed=bool(objective))
-        aggregate(repo, run_id, started_at, objective)
+        with release_lane_lease(repo, run_id):
+            try:
+                objective = read_objective_lock(repo)
+            except Exception:
+                objective = None
+            failure_artifact(repo, run_id, started_at, objective, "continued" if objective else "failed", f"Wrapper preflight or validation failed: {str(error)[:400]}", resumed=bool(objective))
+            aggregate(repo, run_id, started_at, objective)
     except Exception:
         pass
 

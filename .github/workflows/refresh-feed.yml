@@ -158,16 +158,41 @@ jobs:
         working-directory: engine
         run: npm run verify:ca
 
+      - name: Refuse publication from a stale main checkout
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/verify-release-lane.mjs --phase=publish
+
       - name: Publish and atomically activate encrypted snapshot
+        id: publish
         working-directory: engine
         run: node src/data-plane/publish-site-snapshot.mjs --site-dir out/site
 
+      - name: Verify publication authority after activation
+        id: authority
+        if: ${{ always() && steps.publish.outputs.snapshot_id != '' }}
+        continue-on-error: true
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: node scripts/verify-release-lane.mjs --phase=publish
+
+      - name: Roll back only this snapshot if publication failed or authority was superseded
+        if: ${{ always() && steps.publish.outputs.snapshot_id != '' && (steps.publish.outcome == 'failure' || steps.authority.outcome == 'failure') }}
+        env:
+          BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
+        run: node engine/src/data-plane/publish-site-snapshot.mjs --rollback-if-active "${{ steps.publish.outputs.snapshot_id }}"
+
+      - name: Fail after guarded publication rollback
+        if: ${{ always() && steps.publish.outputs.snapshot_id != '' && (steps.publish.outcome == 'failure' || steps.authority.outcome == 'failure') }}
+        run: exit 1
+
       - name: Verify production observes the refreshed engine or roll back
         env:
+          BLOB_READ_WRITE_TOKEN: ${{ secrets.BLOB_READ_WRITE_TOKEN }}
           BOURBON_SIGNAL_VERIFY_STATES: ${{ inputs.states || '' }}
         run: |
           if ! npm run verify:production-engine; then
-            node engine/src/data-plane/publish-site-snapshot.mjs --rollback
+            node engine/src/data-plane/publish-site-snapshot.mjs --rollback-if-active "${{ steps.publish.outputs.snapshot_id }}"
             exit 1
           fi
 

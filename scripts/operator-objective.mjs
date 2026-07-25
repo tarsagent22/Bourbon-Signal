@@ -273,6 +273,10 @@ async function applyRelease({ git, findingService, lock, lockFile, worktreeDir, 
 export async function main(argv = process.argv.slice(2), dependencies = {}) {
   const [command] = argv;
   const apply = argv.includes('--apply');
+  const environment = dependencies.environment || process.env;
+  if (apply && !environment.BOURBON_SIGNAL_RELEASE_LANE_LEASE_ID) {
+    throw new Error('Applied objective selection and release require the shared release-lane OS lock; use npm run operator:objective -- ...');
+  }
   const lockFile = path.resolve(option(argv, 'lock') || DEFAULT_LOCK);
   const requestedWorktree = option(argv, 'worktree') ? path.resolve(option(argv, 'worktree')) : null;
   const repoOption = option(argv, 'repo');

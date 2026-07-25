@@ -1,10 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { mkdtemp, mkdir, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, mkdir, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 
-import { collectSiteFiles, parseArgs, siteSnapshotMetadata } from '../src/data-plane/publish-site-snapshot.mjs';
+import { collectSiteFiles, parseArgs, runPublisher, siteSnapshotMetadata } from '../src/data-plane/publish-site-snapshot.mjs';
 
 test('publisher recursively collects only declared JSON snapshot files', async () => {
   const root = await mkdtemp(path.join(tmpdir(), 'bs-site-snapshot-'));
@@ -20,9 +20,35 @@ test('publisher recursively collects only declared JSON snapshot files', async (
   }
 });
 
-test('publisher CLI exposes an explicit rollback mode for failed live verification', () => {
+test('publisher CLI exposes explicit and identity-guarded rollback modes', () => {
   assert.equal(parseArgs(['--rollback']).rollback, true);
+  assert.equal(parseArgs(['--rollback-if-active', 'snapshot-123']).rollbackIfActive, 'snapshot-123');
+  assert.throws(() => parseArgs(['--rollback-if-active', '']), /non-empty snapshot identity/);
+  assert.throws(() => parseArgs(['--rollback-if-active']), /non-empty snapshot identity/);
   assert.equal(parseArgs(['--stage']).activate, false);
+});
+
+test('publisher records the guarded snapshot identity before any activation attempt', async () => {
+  const root = await mkdtemp(path.join(tmpdir(), 'bs-site-snapshot-output-'));
+  const output = path.join(root, 'github-output.txt');
+  const previous = {
+    output: process.env.GITHUB_OUTPUT,
+    blob: process.env.BLOB_READ_WRITE_TOKEN,
+    encryption: process.env.ENGINE_SNAPSHOT_ENCRYPTION_KEY,
+  };
+  try {
+    await writeFile(path.join(root, 'stats.json'), '{"generatedAt":"2026-07-10T12:33:49.778Z","stateCoverage":{"states":[]}}');
+    process.env.GITHUB_OUTPUT = output;
+    delete process.env.BLOB_READ_WRITE_TOKEN;
+    delete process.env.ENGINE_SNAPSHOT_ENCRYPTION_KEY;
+    await assert.rejects(runPublisher(['--site-dir', root]), /BLOB_READ_WRITE_TOKEN is required/);
+    assert.match(await readFile(output, 'utf8'), /^snapshot_id=[A-Za-z0-9._-]+\n$/);
+  } finally {
+    if (previous.output === undefined) delete process.env.GITHUB_OUTPUT; else process.env.GITHUB_OUTPUT = previous.output;
+    if (previous.blob === undefined) delete process.env.BLOB_READ_WRITE_TOKEN; else process.env.BLOB_READ_WRITE_TOKEN = previous.blob;
+    if (previous.encryption === undefined) delete process.env.ENGINE_SNAPSHOT_ENCRYPTION_KEY; else process.env.ENGINE_SNAPSHOT_ENCRYPTION_KEY = previous.encryption;
+    await rm(root, { recursive: true, force: true });
+  }
 });
 
 test('publisher metadata binds collection, app, engine, and state health provenance', () => {

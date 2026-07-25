@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { createHash } from 'node:crypto';
 import { execFile } from 'node:child_process';
-import { readFile, readdir } from 'node:fs/promises';
+import { appendFile, readFile, readdir } from 'node:fs/promises';
 import path from 'node:path';
 import { promisify } from 'node:util';
 import { pathToFileURL } from 'node:url';
@@ -70,20 +70,27 @@ export function parseArgs(argv) {
     const index = argv.indexOf(flag);
     return index >= 0 ? argv[index + 1] : null;
   };
+  const guardedRollback = argv.includes('--rollback-if-active');
+  const rollbackIfActive = valueAfter('--rollback-if-active');
+  if (guardedRollback && (!rollbackIfActive || rollbackIfActive.startsWith('--'))) {
+    throw new Error('--rollback-if-active requires a non-empty snapshot identity');
+  }
   return {
     siteDir: path.resolve(valueAfter('--site-dir') || path.join(process.cwd(), 'out', 'site')),
     dryRun: argv.includes('--dry-run'),
     rollback: argv.includes('--rollback'),
+    guardedRollback,
+    rollbackIfActive,
     activate: !argv.includes('--stage'),
   };
 }
 
 export async function runPublisher(argv = process.argv.slice(2)) {
   const options = parseArgs(argv);
-  if (options.rollback) {
+  if (options.rollback || options.guardedRollback) {
     if (!process.env.BLOB_READ_WRITE_TOKEN) throw new Error('BLOB_READ_WRITE_TOKEN is required to rollback');
     const storage = new VercelBlobObjectStorage();
-    return rollbackSiteSnapshot(storage);
+    return rollbackSiteSnapshot(storage, options.rollbackIfActive ? { expectedActive: options.rollbackIfActive } : {});
   }
   const files = await collectSiteFiles(options.siteDir);
   const stats = JSON.parse(files['stats.json'] || '{}');
@@ -96,6 +103,7 @@ export async function runPublisher(argv = process.argv.slice(2)) {
   });
   const manifest = createSiteSnapshotManifest(files, metadata);
   if (options.dryRun) return { status: 'dry_run', manifest, fileCount: Object.keys(files).length };
+  if (process.env.GITHUB_OUTPUT) await appendFile(process.env.GITHUB_OUTPUT, `snapshot_id=${manifest.snapshotId}\n`, 'utf8');
   if (!process.env.BLOB_READ_WRITE_TOKEN) throw new Error('BLOB_READ_WRITE_TOKEN is required to publish');
   if (!process.env.ENGINE_SNAPSHOT_ENCRYPTION_KEY) throw new Error('ENGINE_SNAPSHOT_ENCRYPTION_KEY is required to publish');
   const storage = new VercelBlobObjectStorage();

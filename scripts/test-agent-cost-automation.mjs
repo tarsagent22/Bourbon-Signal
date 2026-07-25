@@ -44,7 +44,7 @@ function frequencyRunsPerDay(frequency) {
   if (frequency.startsWith('twice daily')) return 2;
   if (frequency.startsWith('Friday')) return 1 / 7;
   if (frequency === 'monthly') return 1 / 30;
-  if (frequency.startsWith('manual') || frequency === 'push and pull request') return 0;
+  if (frequency.startsWith('manual') || frequency.startsWith('on every') || frequency === 'push and pull request') return 0;
   throw new Error(`Unhandled automation frequency: ${frequency}`);
 }
 

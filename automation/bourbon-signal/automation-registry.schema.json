@@ -50,7 +50,7 @@
           }
         },
         "customerMutation": { "enum": ["none", "internal_state", "snapshot_activation"] },
-        "promotionDeployment": { "enum": ["none", "guarded_recovery_dispatch", "snapshot_activation", "operator_only"] },
+        "promotionDeployment": { "enum": ["none", "guarded_recovery_dispatch", "snapshot_activation", "operator_only", "draft_pr_only"] },
         "silencePolicy": { "enum": ["quiet_on_success", "compact_exception_only", "report_output"] },
         "killSwitch": { "type": "string", "minLength": 3, "maxLength": 120 },
         "artifacts": { "type": "array", "items": { "type": "string", "maxLength": 200 }, "maxItems": 8 }
