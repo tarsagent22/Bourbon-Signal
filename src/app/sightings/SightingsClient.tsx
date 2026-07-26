@@ -422,10 +422,10 @@ export default function SightingsClient() {
         .sighting-tab.active{color:var(--color-cream);background:transparent;box-shadow:none}
         .sighting-tab.active:after{background:rgba(196,148,58,.62)}
         .sighting-empty{color:rgba(245,237,214,.46);font-size:13px}
-        .sighting-feed-shell{position:relative;border:1px solid rgba(245,237,214,.07);border-radius:24px;background:linear-gradient(180deg,rgba(16,12,9,.78),rgba(8,6,5,.46));padding:13px 0 0;box-shadow:0 20px 64px rgba(0,0,0,.24);overflow:hidden}
+        .sighting-feed-shell{position:relative;background:linear-gradient(180deg,rgba(16,12,9,.42),transparent 30%);padding:12px 0 0;overflow:visible}
         .sighting-feed-shell:before{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(245,237,214,.026),transparent 28%);opacity:.8}
         .sighting-mode-shell{position:relative;margin-top:22px;margin-bottom:10px;border:0;border-radius:0;background:transparent;padding:0;display:flex;gap:22px;width:fit-content;max-width:100%}
-        .sighting-feed-top{position:relative;display:flex;justify-content:space-between;align-items:end;gap:14px;flex-wrap:wrap;padding:0 16px 14px;border-bottom:1px solid rgba(245,237,214,.055)}
+        .sighting-feed-top{position:relative;display:flex;justify-content:space-between;align-items:end;gap:14px;flex-wrap:wrap;padding:0 4px 14px;border-bottom:1px solid var(--boundary-subtle)}
         .sighting-feed-count{display:inline-flex;font-family:var(--font-dm-sans);font-size:13px;font-weight:750;color:rgba(245,237,214,.62)}
         .sighting-menu{position:relative;min-width:172px}
         .sighting-menu > span{display:block;margin-bottom:5px;font-family:var(--font-jetbrains);font-size:8px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:rgba(245,237,214,.34)}
@@ -435,9 +435,9 @@ export default function SightingsClient() {
         .sighting-menu-panel{position:absolute;z-index:40;top:calc(100% + 7px);left:0;right:0;max-height:286px;overflow-y:auto;display:grid;grid-template-columns:1fr;gap:6px;padding:8px;border-radius:15px;border:1px solid rgba(245,237,214,.11);background:rgba(13,10,8,.98);box-shadow:0 18px 40px rgba(0,0,0,.38),inset 0 1px 0 rgba(255,255,255,.035);scrollbar-color:rgba(245,237,214,.42) rgba(245,237,214,.08);scrollbar-width:thin}
         .sighting-menu-option{min-height:42px;border-radius:11px;border:1px solid rgba(245,237,214,.06);background:rgba(245,237,214,.022);color:rgba(245,237,214,.68);font-family:var(--font-dm-sans);font-size:13px;font-weight:650;text-align:left;padding:9px 11px;cursor:pointer}
         .sighting-menu-option:hover,.sighting-menu-option.active{border-color:rgba(196,148,58,.24);background:rgba(196,148,58,.075);color:var(--color-cream)}
-        .sighting-card-list{position:relative;display:grid;gap:13px;padding:12px}
-        .sighting-card{position:relative;overflow:hidden;border:1px solid rgba(245,237,214,.075);border-radius:21px;padding:18px;background:linear-gradient(145deg,rgba(18,13,10,.94),rgba(8,7,6,.98));box-shadow:0 14px 38px rgba(0,0,0,.22),inset 0 1px 0 rgba(255,255,255,.03)}
-        .sighting-card:before{content:"";position:absolute;left:18px;right:18px;top:0;height:1px;background:linear-gradient(90deg,transparent,rgba(196,148,58,.22),transparent);opacity:.8}
+        .sighting-card-list{position:relative;display:grid;gap:0;padding:0 4px}
+        .sighting-card{position:relative;overflow:hidden;border-bottom:1px solid var(--boundary-subtle);padding:22px 4px;background:transparent}
+        .sighting-card:before{content:none}
         .sighting-card:after{content:none}
         .sighting-card-kicker{position:relative;display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
         .sighting-eyebrow{font-family:var(--font-jetbrains);font-size:9px;text-transform:uppercase;letter-spacing:.11em;color:rgba(206,169,91,.72);font-weight:800}
@@ -447,7 +447,7 @@ export default function SightingsClient() {
         .sighting-store-line svg{flex:0 0 auto;margin-top:1px;color:rgba(206,169,91,.54)}
         .sighting-address{position:relative;margin:4px 0 0 23px;color:rgba(245,237,214,.43);font-size:12px;line-height:1.45}
         .sighting-detail-row{position:relative;display:flex;flex-wrap:wrap;gap:7px;margin-top:14px;align-items:center}
-        .sighting-detail-pill{border:1px solid rgba(245,237,214,.07);border-radius:999px;background:rgba(5,4,3,.2);padding:6px 9px;color:rgba(245,237,214,.58);font-family:var(--font-dm-sans);font-size:11px;font-weight:760;line-height:1;max-width:100%}
+        .sighting-detail-pill{border-radius:999px;background:rgba(245,237,214,.055);padding:6px 9px;color:rgba(245,237,214,.58);font-family:var(--font-dm-sans);font-size:11px;font-weight:760;line-height:1;max-width:100%}
         .sighting-detail-pill.verified{border-color:rgba(83,211,146,.24);background:rgba(83,211,146,.08);color:rgba(198,255,222,.88)}
         .sighting-detail-pill.tier{font-family:var(--font-jetbrains);font-size:10px;font-weight:850;letter-spacing:.08em;text-transform:uppercase}
         .sighting-detail-pill.tier-limited{border-color:rgba(138,138,138,.28);background:rgba(138,138,138,.08);color:rgba(245,237,214,.72)}
@@ -462,13 +462,13 @@ export default function SightingsClient() {
         .vote-button{display:inline-flex;align-items:center;gap:5px;border:1px solid rgba(245,237,214,.085);background:rgba(245,237,214,.028);color:rgba(245,237,214,.58);font-family:var(--font-jetbrains);font-size:11px;font-weight:800;border-radius:999px;padding:7px 9px;cursor:pointer;transition:border-color .18s ease,background .18s ease,color .18s ease,transform .18s ease}
         .vote-button:hover{transform:translateY(-1px);border-color:rgba(245,237,214,.18);color:rgba(245,237,214,.86);background:rgba(245,237,214,.045)}
         .vote-button.active{border-color:rgba(196,148,58,.32);background:rgba(196,148,58,.085);color:var(--color-cream)}
-        .sighting-empty-panel{position:relative;margin:0 14px 14px;padding:20px;border:1px solid rgba(245,237,214,.09);border-radius:18px;background:rgba(5,4,3,.18)}
+        .sighting-empty-panel{position:relative;margin:0 4px 14px;padding:20px 0;border-top:1px solid var(--boundary-subtle);background:transparent}
         .sighting-empty-panel strong{display:block;margin-bottom:5px;color:var(--color-cream);font-family:var(--font-playfair);font-size:22px;font-weight:700}
         .sighting-empty-panel span{display:block;color:rgba(245,237,214,.52);font-size:13px;line-height:1.55}
-        .sighting-loading-card{height:156px;border-radius:20px;border:1px solid rgba(245,237,214,.06);background:linear-gradient(100deg,rgba(245,237,214,.026),rgba(245,237,214,.06),rgba(245,237,214,.026));background-size:220% 100%;animation:sightingShimmer 1.4s ease-in-out infinite}
+        .sighting-loading-card{height:156px;border-bottom:1px solid var(--boundary-subtle);background:linear-gradient(100deg,rgba(245,237,214,.016),rgba(245,237,214,.045),rgba(245,237,214,.016));background-size:220% 100%;animation:sightingShimmer 1.4s ease-in-out infinite}
         @keyframes sightingShimmer{0%{background-position:120% 0}100%{background-position:-120% 0}}
         @media (prefers-reduced-motion:reduce){.sighting-loading-card{animation:none}.vote-button,.sighting-card,.sighting-location-button,.sighting-submit,.sighting-tab{transition:none!important}}
-        @media (max-width:700px){main{padding-left:14px!important;padding-right:14px!important}.sighting-two-col{grid-template-columns:1fr!important}.sighting-mode-shell{gap:18px;margin-top:20px;margin-bottom:9px}.sighting-feed-shell{margin-left:-2px;margin-right:-2px;border-radius:22px;padding-top:12px}.sighting-feed-top{align-items:flex-end;padding:0 13px 12px}.sighting-menu{min-width:150px}.sighting-card-list{padding:10px;gap:12px}.sighting-card{border-radius:19px;padding:17px}.sighting-bottom{align-items:flex-end}.sighting-tier-line{flex:1;min-width:0}.sighting-votes{gap:5px}.vote-button{padding:7px 8px}.sighting-tab{min-width:auto;padding-left:4px;padding-right:4px}.sighting-card-kicker{align-items:flex-start}.sighting-time{padding-top:1px}.sighting-title{padding-right:0}.sighting-address{margin-left:23px}.sighting-detail-pill{font-size:11px}.sighting-empty-panel{margin:0 10px 10px;padding:18px}}
+        @media (max-width:700px){main{padding-left:14px!important;padding-right:14px!important}.sighting-two-col{grid-template-columns:1fr!important}.sighting-mode-shell{gap:18px;margin-top:20px;margin-bottom:9px}.sighting-feed-shell{margin-left:-2px;margin-right:-2px;padding-top:12px}.sighting-feed-top{align-items:flex-end;padding:0 4px 12px}.sighting-menu{min-width:150px}.sighting-card-list{padding:0 4px;gap:0}.sighting-card{padding:20px 4px}.sighting-bottom{align-items:flex-end}.sighting-tier-line{flex:1;min-width:0}.sighting-votes{gap:5px}.vote-button{padding:7px 8px}.sighting-tab{min-width:auto;padding-left:4px;padding-right:4px}.sighting-card-kicker{align-items:flex-start}.sighting-time{padding-top:1px}.sighting-title{padding-right:0}.sighting-address{margin-left:23px}.sighting-detail-pill{font-size:11px}.sighting-empty-panel{margin:0 4px 10px;padding:18px 0}}
       `}</style>
 
       <div style={{ maxWidth: "1040px", margin: "0 auto" }}>
@@ -484,7 +484,7 @@ export default function SightingsClient() {
         </div>
 
         {activeTab === "submit" ? (
-          <section style={{ border: "1px solid rgba(245,237,214,0.1)", borderRadius: "0 28px 28px 28px", background: "rgba(245,237,214,0.045)", padding: 22, boxShadow: "0 24px 70px rgba(0,0,0,0.34)" }}>
+          <section style={{ borderRadius: "var(--radius-feature)", background: "var(--surface-soft)", padding: 22, boxShadow: "0 24px 64px rgba(0,0,0,0.24)" }}>
             {isLimitedFeedPreview ? <div className="sighting-empty-panel" style={{ margin: "0 0 18px", textAlign: "center" }}><strong>Help the community scout</strong><span>Free members can post sightings. Upgrade when you want the full member feed and alert stack.</span></div> : null}
             <div style={{ display: "grid", gap: 14 }}>
               <section className="sighting-step-card" data-complete={Boolean(selectedBottleId || (isManualBottle && manualBottleConfirmed))}>

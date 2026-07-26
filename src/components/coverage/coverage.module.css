@@ -114,10 +114,9 @@
 }
 
 .mapFrame {
-  border: 1px solid var(--coverage-line);
-  background: linear-gradient(150deg, rgba(245, 237, 214, 0.038), rgba(245, 237, 214, 0.012));
+  background: linear-gradient(150deg, rgba(245, 237, 214, 0.032), rgba(245, 237, 214, 0.008));
   padding: clamp(12px, 2.4vw, 28px);
-  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.24);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.18);
 }
 
 .mapSvg {
@@ -182,8 +181,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  border: solid var(--coverage-line);
-  border-width: 0 1px 1px;
+  border-top: 1px solid var(--coverage-line);
   padding: 13px 16px;
 }
 
@@ -227,9 +225,10 @@
   top: 80px;
   max-height: calc(100vh - 96px);
   overflow: auto;
-  border: 1px solid rgba(216, 168, 79, 0.24);
   background: linear-gradient(165deg, rgba(33, 24, 16, 0.98), rgba(17, 12, 9, 0.99));
   padding: clamp(18px, 2.4vw, 28px);
+  border-radius: var(--radius-feature);
+  box-shadow: 0 28px 72px rgba(0, 0, 0, 0.2);
   scrollbar-color: rgba(216, 168, 79, 0.45) transparent;
 }
 
@@ -324,11 +323,14 @@
 }
 
 .quickFacts span {
-  border: 1px solid var(--coverage-line);
-  background: rgba(245, 237, 214, 0.03);
-  padding: 8px 10px;
+  padding: 5px 12px 5px 0;
   color: var(--coverage-muted);
   font: 10px/1.2 var(--font-dm-sans);
+}
+
+.quickFacts span + span {
+  border-left: 1px solid var(--coverage-line);
+  padding-left: 12px;
 }
 
 .quickFacts strong {
@@ -368,8 +370,8 @@
 
 .coverageDetails {
   margin-top: 18px;
-  border: 1px solid var(--coverage-line);
-  background: rgba(245, 237, 214, 0.018);
+  border-block: 1px solid var(--coverage-line);
+  background: transparent;
 }
 
 .coverageDetails > summary {
@@ -413,8 +415,7 @@
 
 .precisionList span,
 .areaList span {
-  border: 1px solid var(--coverage-line);
-  background: rgba(245, 237, 214, 0.035);
+  background: rgba(245, 237, 214, 0.045);
   padding: 6px 8px;
   color: var(--coverage-muted);
   font: 10px/1 var(--font-dm-sans);
@@ -426,7 +427,7 @@
   gap: 1px;
   margin-top: 20px;
   background: var(--coverage-line);
-  border: 1px solid var(--coverage-line);
+  border-block: 1px solid var(--coverage-line);
 }
 
 .visibilityGrid section {
@@ -464,7 +465,7 @@
   gap: 1px;
   margin: 12px 0 0;
   background: var(--coverage-line);
-  border: 1px solid var(--coverage-line);
+  border-block: 1px solid var(--coverage-line);
 }
 
 .layerGrid div {
@@ -540,7 +541,7 @@
   grid-template-columns: minmax(0, 1fr) auto;
   gap: 4px 10px;
   width: 100%;
-  border: 1px solid var(--coverage-line);
+  border-left: 2px solid var(--coverage-line);
   background: rgba(245, 237, 214, 0.025);
   padding: 11px;
   color: var(--coverage-cream);
@@ -551,7 +552,7 @@
 .searchResult[data-status="known-not-active"],
 .searchResult[data-status="known-expansion-candidate"],
 .searchResult[data-status="not-found"] {
-  border-color: rgba(216, 168, 79, 0.2);
+  border-left-color: rgba(216, 168, 79, 0.28);
 }
 
 .searchResult strong {
@@ -590,7 +591,6 @@
 
 .requestBlock {
   margin-top: 20px;
-  border: 1px solid rgba(216, 168, 79, 0.24);
   background: rgba(216, 168, 79, 0.07);
   padding: 13px;
 }
@@ -656,7 +656,7 @@
 
 .requestAuthLoading {
   margin: 14px 0 0;
-  border: 1px solid var(--coverage-line);
+  border-top: 1px solid var(--coverage-line);
   padding: 14px;
   color: var(--coverage-muted);
   font: 11px/1.5 var(--font-dm-sans);
@@ -743,8 +743,8 @@
 
 .stateList {
   margin-top: 12px;
-  border: 1px solid var(--coverage-line);
-  background: rgba(245, 237, 214, 0.018);
+  border-block: 1px solid var(--coverage-line);
+  background: transparent;
 }
 
 .stateList summary {

@@ -621,7 +621,7 @@ const bottleCheckCss = `
 .bc-hero { padding: 54px 0 26px; }
 .bc-hero h1 { max-width: 920px; font-family: var(--font-playfair); font-size: clamp(42px, 7vw, 78px); line-height: .94; letter-spacing: -.045em; margin: 0; overflow-wrap:break-word; }
 .bc-shell { padding: 10px 0 78px; }
-.bc-search-card { display:flex; align-items:flex-end; gap:12px; width:100%; max-width:100%; box-sizing:border-box; padding:16px; border:1px solid rgba(196,148,58,.22); border-radius:24px; background:linear-gradient(180deg, rgba(255,255,255,.052), rgba(255,255,255,.025)); box-shadow:0 24px 90px rgba(0,0,0,.30), inset 0 1px 0 rgba(255,255,255,.055); }
+.bc-search-card { display:flex; align-items:flex-end; gap:12px; width:100%; max-width:100%; box-sizing:border-box; padding:18px; border-radius:var(--radius-feature); background:linear-gradient(180deg, var(--surface-raised), var(--surface-soft)); box-shadow:0 24px 72px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.045); }
 .bc-field { display:grid; gap:8px; min-width:0; max-width:100%; }
 .bc-field.grow { position:relative; z-index:8; flex:1 1 0; min-width:0; }
 .bc-field.state { width:220px; min-width:0; }
@@ -640,10 +640,10 @@ const bottleCheckCss = `
 .bc-live-suggestions .bc-tier { flex-shrink:0; min-width:0; max-width:42vw; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .bc-search-card > button, .bc-track-box > button { height:48px; border:none; border-radius:14px; background:linear-gradient(135deg, #C4943A 0%, #D4A44A 100%); color:#14100C; padding:0 18px; font:900 14px/1 var(--font-dm-sans); cursor:pointer; flex-shrink:0; }
 .bc-track-box > button:disabled { cursor:default; opacity:.72; }
-.bc-panel { margin-top:18px; border:1px solid rgba(245,237,214,.08); border-radius:22px; padding:24px; background:rgba(255,255,255,.026); color:var(--color-text-secondary); font:14px/1.7 var(--font-dm-sans); }
+.bc-panel { margin-top:22px; border-top:1px solid var(--boundary-subtle); padding:24px 4px; background:transparent; color:var(--color-text-secondary); font:14px/1.7 var(--font-dm-sans); }
 .bc-panel strong { color:var(--color-cream); display:block; font:700 22px/1.2 var(--font-playfair); margin-bottom:8px; }
 .bc-result-grid { display:grid; grid-template-columns:minmax(0, 1.35fr) minmax(320px, .85fr); gap:16px; margin-top:18px; }
-.bc-verdict-card, .bc-detail-card { border:1px solid rgba(245,237,214,.09); border-radius:28px; background:linear-gradient(180deg, rgba(255,255,255,.048), rgba(255,255,255,.022)); box-shadow:0 24px 90px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.04); padding:28px; }
+.bc-verdict-card, .bc-detail-card { border-radius:var(--radius-feature); background:linear-gradient(180deg, rgba(255,255,255,.046), rgba(255,255,255,.018)); box-shadow:0 24px 72px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.035); padding:28px; }
 .bc-verdict-card { background:radial-gradient(circle at 16% 0%, rgba(196,148,58,.16), transparent 42%), linear-gradient(180deg, rgba(255,255,255,.052), rgba(255,255,255,.024)); }
 .bc-card-topline { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
 .bc-tier { display:inline-flex; border-radius:999px; padding:7px 10px; font:900 10px/1 var(--font-dm-sans); letter-spacing:.10em; text-transform:uppercase; border:1px solid rgba(245,237,214,.14); color:var(--color-text-secondary); background:rgba(255,255,255,.04); }
@@ -652,15 +652,15 @@ const bottleCheckCss = `
 .bc-confidence { color:var(--color-text-tertiary); font:800 11px/1 var(--font-dm-sans); letter-spacing:.08em; text-transform:uppercase; }
 .bc-verdict-card h2 { margin:18px 0 0; font:700 clamp(32px, 5vw, 56px)/.98 var(--font-playfair); letter-spacing:-.035em; color:var(--color-cream); }
 .bc-summary { margin:14px 0 0; color:var(--color-text-secondary); font:16px/1.7 var(--font-dm-sans); }
-.bc-score { margin-top:22px; display:grid; grid-template-columns:150px minmax(0,1fr); gap:16px; align-items:center; border-radius:24px; border:1px solid rgba(196,148,58,.16); padding:20px; background:linear-gradient(135deg, rgba(0,0,0,.22), rgba(196,148,58,.055)); }
+.bc-score { margin-top:22px; display:grid; grid-template-columns:150px minmax(0,1fr); gap:16px; align-items:center; border-radius:18px; padding:20px; background:linear-gradient(135deg, rgba(0,0,0,.22), rgba(196,148,58,.065)); }
 .bc-score span { display:block; color:var(--color-text-tertiary); font:900 11px/1 var(--font-dm-sans); letter-spacing:.10em; text-transform:uppercase; }
 .bc-score strong { display:block; margin-top:8px; font:800 54px/.85 var(--font-playfair); color:var(--color-cream); }
 .bc-score p { margin:0; color:var(--color-text-primary); font:800 20px/1.25 var(--font-dm-sans); }
 .bc-score small { display:block; margin-top:6px; color:var(--color-text-tertiary); font:700 12px/1.35 var(--font-dm-sans); }
-.bc-score.hot { border-color:rgba(196,148,58,.38); box-shadow:inset 0 0 0 1px rgba(196,148,58,.08); }
+.bc-score.hot { box-shadow:inset 0 1px 0 rgba(232,201,122,.10); }
 .bc-score.hot strong, .bc-score.warm strong { color:var(--color-accent-amber); }
 .bc-score.quiet strong { color:rgba(245,237,214,.55); }
-.bc-member-taste-score { margin-top:12px; display:grid; grid-template-columns:116px minmax(0,1fr); gap:14px; align-items:center; border-radius:20px; border:1px solid rgba(232,201,122,.18); padding:14px 16px; background:linear-gradient(135deg, rgba(196,148,58,.075), rgba(0,0,0,.16)); }
+.bc-member-taste-score { margin-top:12px; display:grid; grid-template-columns:116px minmax(0,1fr); gap:14px; align-items:center; border-radius:18px; padding:14px 16px; background:linear-gradient(135deg, rgba(196,148,58,.085), rgba(0,0,0,.16)); }
 .bc-member-taste-score span { display:block; color:rgba(232,201,122,.78); font:900 10px/1 var(--font-jetbrains); letter-spacing:.11em; text-transform:uppercase; }
 .bc-member-taste-score strong { display:block; margin-top:6px; font:800 34px/.9 var(--font-playfair); color:var(--color-accent-amber); }
 .bc-member-taste-score p { margin:0; color:var(--color-cream); font:800 15px/1.25 var(--font-dm-sans); }
@@ -669,7 +669,7 @@ const bottleCheckCss = `
 .bc-guidance h3, .bc-detail-card h3, .bc-recent h4, .bc-suggestions h4 { margin:0; color:var(--color-cream); font:800 15px/1 var(--font-dm-sans); letter-spacing:.04em; text-transform:uppercase; }
 .bc-guidance p { margin:10px 0 0; color:var(--color-text-primary); font:16px/1.7 var(--font-dm-sans); }
 .bc-guidance small { display:block; margin-top:8px; color:var(--color-text-tertiary); font:13px/1.6 var(--font-dm-sans); }
-.bc-track-box { margin-top:22px; border-radius:18px; border:1px solid rgba(196,148,58,.16); background:rgba(196,148,58,.055); padding:16px; display:flex; justify-content:space-between; gap:16px; align-items:center; }
+.bc-track-box { margin-top:22px; border-top:1px solid var(--boundary-accent); background:rgba(196,148,58,.045); padding:16px 4px 0; display:flex; justify-content:space-between; gap:16px; align-items:center; }
 .bc-track-box p { margin:0; color:var(--color-text-secondary); font:13px/1.65 var(--font-dm-sans); }
 .bc-track-box strong { color:var(--color-cream); }
 .bc-track-content { display:grid; gap:10px; min-width:0; }
@@ -686,7 +686,7 @@ const bottleCheckCss = `
 .bc-stat-grid span { display:block; color:var(--color-text-tertiary); font:800 10px/1 var(--font-dm-sans); letter-spacing:.08em; text-transform:uppercase; }
 .bc-stat-grid strong { display:block; margin-top:8px; color:var(--color-cream); font:800 16px/1.2 var(--font-dm-sans); }
 .bc-recent, .bc-suggestions { display:grid; gap:10px; }
-.bc-sighting { border:1px solid rgba(245,237,214,.075); border-radius:14px; padding:12px; background:rgba(255,255,255,.025); }
+.bc-sighting { border-bottom:1px solid var(--boundary-subtle); padding:12px 2px; background:transparent; }
 .bc-sighting strong { display:block; color:var(--color-cream); font:800 13px/1.25 var(--font-dm-sans); }
 .bc-sighting span, .bc-recent p { display:block; margin-top:5px; color:var(--color-text-secondary); font:12px/1.5 var(--font-dm-sans); }
 .bc-suggestions button { text-align:left; border:1px solid rgba(245,237,214,.09); border-radius:12px; background:rgba(255,255,255,.03); color:var(--color-text-primary); padding:10px 12px; font:700 13px/1.2 var(--font-dm-sans); cursor:pointer; }
