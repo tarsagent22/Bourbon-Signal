@@ -230,7 +230,11 @@ function readInventoryBibleBottles(): BibleBottle[] {
   }));
 }
 
-export async function getBourbonBible() {
+const BOURBON_BIBLE_CACHE_TTL_MS = 60_000;
+let bourbonBibleCache: { value: BibleBottle[]; expiresAt: number } | null = null;
+let bourbonBibleInFlight: Promise<BibleBottle[]> | null = null;
+
+async function buildBourbonBible() {
   // Engine tiers drive alert priority, not the customer-facing rarity score. Apply
   // live engine data first, then broad inventory editorial metadata, then the most
   // deliberate curated profiles. Signal flags and aliases survive every merge.
@@ -239,6 +243,21 @@ export async function getBourbonBible() {
     readInventoryBibleBottles(),
     SEED_BOTTLES,
   ]);
+}
+
+export async function getBourbonBible() {
+  if (bourbonBibleCache && bourbonBibleCache.expiresAt > Date.now()) return bourbonBibleCache.value;
+  if (bourbonBibleInFlight) return bourbonBibleInFlight;
+
+  bourbonBibleInFlight = buildBourbonBible()
+    .then((value) => {
+      bourbonBibleCache = { value, expiresAt: Date.now() + BOURBON_BIBLE_CACHE_TTL_MS };
+      return value;
+    })
+    .finally(() => {
+      bourbonBibleInFlight = null;
+    });
+  return bourbonBibleInFlight;
 }
 
 export async function searchBourbonBible(query: string, limit = 8): Promise<BibleSearchResult[]> {
