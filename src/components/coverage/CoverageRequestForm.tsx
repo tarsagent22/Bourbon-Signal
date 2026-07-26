@@ -115,6 +115,7 @@ export function CoverageRequestForm({ state, visible, onCancel, onDraftRestored 
   };
   const returnPath = `/coverage?state=${encodeURIComponent(selectedStateCode)}`;
   const signInHref = `/sign-in?redirect_url=${encodeURIComponent(returnPath)}`;
+  const signUpHref = `/sign-up?redirect_url=${encodeURIComponent(returnPath)}`;
 
   function markStarted() {
     if (started.current) return;
@@ -243,7 +244,11 @@ export function CoverageRequestForm({ state, visible, onCancel, onDraftRestored 
             {status === "saving" ? "Saving request…" : status === "saved" ? "Request saved" : "Send coverage request"}
           </button>
         ) : (
-          <a className={styles.requestSubmit} href={signInHref} onClick={preserveDraft}>Sign in to send this request</a>
+          <>
+            <a className={styles.requestSubmit} href={signUpHref} onClick={preserveDraft}>Create a free account to send this request</a>
+            <p className={styles.requestAuthHelp}>No payment or card required.</p>
+            <a className={styles.requestSignIn} href={signInHref} onClick={preserveDraft}>Already have an account? Sign in.</a>
+          </>
         )}
         <p className={styles.requestPromise}>Requests guide investigation; they do not promise a launch date.</p>
         <p className={status === "error" ? styles.inlineError : styles.requestMessage} aria-live="polite">{message}</p>

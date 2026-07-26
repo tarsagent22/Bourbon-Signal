@@ -11,6 +11,7 @@ export default function SignUpPage() {
   const searchParams = useSearchParams();
   const redirectUrl = resolveSignUpRedirect(searchParams.get("redirect_url"));
   const encodedRedirect = encodeURIComponent(redirectUrl);
+  const isCoverageRequestRedirect = redirectUrl.startsWith("/coverage");
   const [ageChecked, setAgeChecked] = useState(false);
   const [confirmedAge, setConfirmedAge] = useState(false);
   const [attempted, setAttempted] = useState(false);
@@ -67,11 +68,29 @@ export default function SignUpPage() {
       </div>
 
       {confirmedAge ? (
-        redirectUrl === DEFAULT_ONBOARDING_REDIRECT ? (
-          <SignUp forceRedirectUrl="/welcome" signInForceRedirectUrl="/welcome" signInUrl="/sign-in?redirect_url=%2Fwelcome" />
-        ) : (
-          <SignUp forceRedirectUrl={redirectUrl} signInForceRedirectUrl={redirectUrl} signInUrl={`/sign-in?redirect_url=${encodedRedirect}`} />
-        )
+        <>
+          {isCoverageRequestRedirect ? (
+            <p
+              style={{
+                width: "100%",
+                maxWidth: "400px",
+                margin: "0 0 16px",
+                color: "var(--color-text-secondary)",
+                fontFamily: "var(--font-dm-sans)",
+                fontSize: "14px",
+                lineHeight: 1.5,
+                textAlign: "center",
+              }}
+            >
+              Create your free account to send this coverage request. No payment or card required.
+            </p>
+          ) : null}
+          {redirectUrl === DEFAULT_ONBOARDING_REDIRECT ? (
+            <SignUp forceRedirectUrl="/welcome" signInForceRedirectUrl="/welcome" signInUrl="/sign-in?redirect_url=%2Fwelcome" />
+          ) : (
+            <SignUp forceRedirectUrl={redirectUrl} signInForceRedirectUrl={redirectUrl} signInUrl={`/sign-in?redirect_url=${encodedRedirect}`} />
+          )}
+        </>
       ) : (
         <section
           aria-labelledby="age-confirmation-title"

@@ -723,6 +723,24 @@
   filter: saturate(0.2);
 }
 
+.requestAuthHelp,
+.requestSignIn {
+  margin: 0;
+  text-align: center;
+  color: var(--coverage-faint);
+  font: 10px/1.45 var(--font-dm-sans);
+}
+
+.requestSignIn {
+  color: var(--coverage-amber);
+  text-underline-offset: 2px;
+}
+
+.requestSignIn:hover,
+.requestSignIn:focus-visible {
+  color: var(--coverage-cream);
+}
+
 .stateList {
   margin-top: 12px;
   border: 1px solid var(--coverage-line);
