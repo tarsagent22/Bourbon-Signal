@@ -2268,6 +2268,15 @@ function PaidMemberDashboard() {
             margin: 0 auto;
             padding: 0 clamp(16px, 5vw, 36px) 82px;
           }
+          .personal-signal-stat {
+            min-width: 0;
+            padding: 8px 14px;
+            border-left: 1px solid var(--boundary-subtle);
+          }
+          .personal-signal-stat:first-child {
+            border-left: 0;
+            padding-left: 2px;
+          }
           .dashboard-hero-upgrade {
             display: inline-flex;
             align-items: center;
@@ -2355,8 +2364,7 @@ function PaidMemberDashboard() {
             overflow: hidden;
             min-height: 316px;
             margin-bottom: 18px;
-            border: 1px solid rgba(196,148,58,0.16);
-            border-radius: 28px;
+            border-radius: var(--radius-feature);
             background:
               radial-gradient(ellipse 560px 220px at 68% 18%, rgba(196,148,58,0.105), transparent 58%),
               linear-gradient(145deg, rgba(24,17,11,0.97), rgba(8,7,5,0.99));
@@ -2561,20 +2569,16 @@ function PaidMemberDashboard() {
           }
           .signal-dimension {
             min-width: 0;
-            border-radius: 16px;
-            border: 1px solid rgba(245,237,214,0.062);
-            background: rgba(5,4,3,0.16);
-            padding: 11px;
-            box-shadow: inset 0 1px 0 rgba(255,255,255,0.025);
+            border-top: 1px solid var(--boundary-subtle);
+            background: transparent;
+            padding: 12px 2px 4px;
           }
           .signal-dimension[data-state="active"],
           .signal-dimension[data-state="strong"] {
-            border-color: rgba(196,148,58,0.20);
-            background: rgba(196,148,58,0.055);
+            border-top-color: var(--boundary-accent);
           }
           .signal-dimension[data-state="locked"] {
-            border-color: rgba(245,237,214,0.055);
-            background: rgba(245,237,214,0.018);
+            opacity: 0.66;
           }
           .signal-dimension-top {
             display: flex;
@@ -2627,11 +2631,11 @@ function PaidMemberDashboard() {
           .dashboard-section-button {
             width: 100%;
             min-width: 0;
-            border: 1px solid rgba(245,237,214,0.09);
-            border-radius: 22px;
-            background:
-              linear-gradient(145deg, rgba(245,237,214,0.052), rgba(245,237,214,0.018)),
-              rgba(13,10,7,0.78);
+            appearance: none;
+            border: 0;
+            border-bottom: 1px solid var(--boundary-subtle);
+            border-radius: 0;
+            background: transparent;
             color: var(--color-text-secondary);
             padding: 18px 18px 17px;
             text-align: left;
@@ -2640,24 +2644,20 @@ function PaidMemberDashboard() {
             align-items: center;
             justify-content: space-between;
             gap: 18px;
-            box-shadow: 0 18px 44px rgba(0,0,0,0.18), inset 0 1px 0 rgba(255,255,255,0.035);
-            margin-bottom: 14px;
+            box-shadow: none;
+            margin-bottom: 0;
             position: relative;
             z-index: 2;
             transition: border-color 180ms ease, background 180ms ease, transform 180ms ease, box-shadow 180ms ease, border-radius 180ms ease, margin-bottom 180ms ease;
           }
           .dashboard-section-button:hover {
             transform: translateY(-1px);
-            border-color: rgba(196,148,58,0.22);
-            background:
-              linear-gradient(145deg, rgba(196,148,58,0.075), rgba(245,237,214,0.022)),
-              rgba(16,12,8,0.84);
+            border-bottom-color: var(--boundary-accent);
+            background: var(--surface-soft);
           }
           .dashboard-section-button[data-active="true"] {
-            border-color: rgba(196,148,58,0.42);
-            border-bottom-color: rgba(196,148,58,0.18);
-            border-bottom-left-radius: 0;
-            border-bottom-right-radius: 0;
+            border-bottom-color: var(--boundary-accent);
+            border-radius: var(--radius-feature) var(--radius-feature) 0 0;
             margin-bottom: 0;
             background:
               radial-gradient(circle at 18% 0%, rgba(196,148,58,0.16), transparent 42%),
@@ -2704,8 +2704,7 @@ function PaidMemberDashboard() {
           .section-status {
             width: fit-content;
             border-radius: 999px;
-            border: 1px solid rgba(196,148,58,0.22);
-            background: rgba(196,148,58,0.075);
+            background: rgba(196,148,58,0.11);
             padding: 4px 8px 3px;
             font-family: var(--font-jetbrains);
             font-size: 9px;
@@ -2835,7 +2834,7 @@ function PaidMemberDashboard() {
           <WeeklyIntelligenceCard isSignedIn={isSignedIn} />
           <div className="personal-signal-brief" aria-label="Personal signal brief" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "10px", margin: "12px 0 18px" }}>
             {[{ label: "Saved markets", value: localPrefs.states.length ? `${localPrefs.states.length}` : "0" }, { label: "Tracked bottles", value: watchedBottleOptions.length ? `${watchedBottleOptions.length}` : "0" }, { label: "Recent matching drops", value: watchlistSignals.length ? `${watchlistSignals.length}` : "0" }].map((item) => (
-              <div key={item.label} style={{ border: "1px solid rgba(255,255,255,0.07)", borderRadius: "14px", background: "rgba(10,8,5,0.42)", padding: "12px" }}>
+              <div key={item.label} className="personal-signal-stat">
                 <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: "9px", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(245,237,214,0.48)" }}>{item.label}</div>
                 <strong style={{ display: "block", marginTop: "5px", fontFamily: "var(--font-playfair)", color: "var(--color-cream)", fontSize: "22px" }}>{item.value}</strong>
               </div>

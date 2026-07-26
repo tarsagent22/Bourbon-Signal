@@ -889,23 +889,17 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport, onVoteS
     >
 
       <div
-        className="md:hidden"
-        onClick={() => hasDetails && !isBlurred && setExpanded(!expanded)}
+        className="md:hidden dropfeed-signal-card"
+                onClick={() => hasDetails && !isBlurred && setExpanded(!expanded)}
         style={{
           position: "relative",
-          marginBottom: "12px",
-          padding: "15px 15px 14px",
-          borderRadius: "22px",
-          border: `1px solid ${retailerAppearance ? retailerAppearance.border : distilleryMeta ? "rgba(196,148,58,0.22)" : "rgba(245,237,214,0.085)"}`,
-          background:
-            retailerAppearance
-              ? retailerAppearance.background
-              : distilleryMeta
-              ? "linear-gradient(145deg, rgba(196,148,58,0.11) 0%, rgba(31,22,12,0.94) 42%, rgba(11,9,7,0.96) 100%)"
-              : hasTopCardAccent
-              ? "linear-gradient(145deg, rgba(196,148,58,0.14) 0%, rgba(31,22,12,0.94) 42%, rgba(12,10,7,0.96) 100%)"
-              : "linear-gradient(145deg, rgba(245,237,214,0.055) 0%, rgba(24,18,12,0.92) 44%, rgba(11,9,7,0.94) 100%)",
-          boxShadow: hasTopCardAccent ? "0 18px 42px rgba(0,0,0,0.36), inset 0 1px 0 rgba(255,255,255,0.045)" : "0 14px 34px rgba(0,0,0,0.28), inset 0 1px 0 rgba(255,255,255,0.035)",
+          marginBottom: 0,
+          padding: "20px 4px",
+          borderRadius: 0,
+          border: "none",
+          borderBottom: "1px solid var(--boundary-subtle)",
+          background: "transparent",
+          boxShadow: "none",
           overflow: "hidden",
           cursor: hasDetails ? "pointer" : "default",
         }}
@@ -1978,12 +1972,11 @@ export default function DropFeed() {
           width: 100%;
           margin: 12px 0 0;
           overflow: hidden;
-          border-radius: 999px;
-          border: 1px solid rgba(196,148,58,0.24);
-          background:
-            linear-gradient(90deg, rgba(10,7,5,0.96), rgba(27,18,12,0.9) 48%, rgba(10,7,5,0.96)),
-            radial-gradient(circle at 15% 0%, rgba(232,201,122,0.14), transparent 34%);
-          box-shadow: inset 0 1px 0 rgba(255,255,255,0.055), 0 12px 34px rgba(0,0,0,0.24);
+          border-block: 1px solid var(--boundary-accent);
+          background: linear-gradient(90deg, transparent, rgba(27,18,12,0.72) 48%, transparent);
+        }
+        .dropfeed-signal-card {
+          border: 0;
         }
         .signal-ticker::before,
         .signal-ticker::after {
@@ -2077,8 +2070,8 @@ export default function DropFeed() {
           display: inline-flex;
           align-items: center;
           justify-content: center;
-          border: 1px solid rgba(245,237,214,0.12);
-          background: rgba(245,237,214,0.045);
+          border: 0;
+          background: rgba(245,237,214,0.055);
           color: rgba(245,237,214,0.62);
           border-radius: 999px;
           padding: 5px 9px;
@@ -2216,8 +2209,8 @@ export default function DropFeed() {
         .bourbon-menu-option {
           min-height: 44px;
           border-radius: 12px;
-          border: 1px solid rgba(245,237,214,0.07);
-          background: rgba(245,237,214,0.025);
+          border: 0;
+          background: transparent;
           color: rgba(245,237,214,0.72);
           font-family: var(--font-dm-sans);
           font-size: 13px;
@@ -2441,10 +2434,10 @@ export default function DropFeed() {
           >
             {/* Tier filter pills */}
             {[
-              { tier: "all", label: "All drops", activeBg: "rgba(245,237,214,0.14)", activeColor: "var(--color-cream)", inactiveBg: "rgba(245,237,214,0.025)", inactiveColor: "rgba(245,237,214,0.42)", border: "1px solid rgba(245,237,214,0.1)" },
-              { tier: "unicorn", label: "Unicorn", activeBg: "rgba(196,148,58,0.24)", activeColor: "#E8C97A", inactiveBg: "rgba(196,148,58,0.045)", inactiveColor: "rgba(196,148,58,0.38)", border: "1px solid rgba(196,148,58,0.16)" },
-              { tier: "allocated", label: "Allocated", activeBg: "rgba(184,115,51,0.2)", activeColor: "#D4943A", inactiveBg: "rgba(184,115,51,0.035)", inactiveColor: "rgba(184,115,51,0.36)", border: "1px solid rgba(184,115,51,0.14)" },
-              { tier: "limited", label: "Limited", activeBg: "rgba(138,138,138,0.16)", activeColor: "rgba(245,237,214,0.74)", inactiveBg: "rgba(138,138,138,0.035)", inactiveColor: "rgba(138,138,138,0.34)", border: "1px solid rgba(138,138,138,0.14)" },
+              { tier: "all", label: "All drops", activeBg: "rgba(245,237,214,0.14)", activeColor: "var(--color-cream)", inactiveBg: "transparent", inactiveColor: "rgba(245,237,214,0.42)" },
+              { tier: "unicorn", label: "Unicorn", activeBg: "rgba(196,148,58,0.18)", activeColor: "#E8C97A", inactiveBg: "transparent", inactiveColor: "rgba(196,148,58,0.46)" },
+              { tier: "allocated", label: "Allocated", activeBg: "rgba(184,115,51,0.16)", activeColor: "#D4943A", inactiveBg: "transparent", inactiveColor: "rgba(184,115,51,0.44)" },
+              { tier: "limited", label: "Limited", activeBg: "rgba(138,138,138,0.14)", activeColor: "rgba(245,237,214,0.74)", inactiveBg: "transparent", inactiveColor: "rgba(138,138,138,0.46)" },
             ].map((pill) => {
               const isAll = pill.tier === "all";
               const isActive = isAll ? activeTiers.size === 0 : activeTiers.has(pill.tier);
@@ -2473,7 +2466,7 @@ export default function DropFeed() {
                   style={{
                     background: isActive ? pill.activeBg : pill.inactiveBg,
                     color: isActive ? pill.activeColor : pill.inactiveColor,
-                    border: isActive ? `1px solid ${pill.tier === "all" ? "rgba(245,237,214,0.2)" : pill.tier === "unicorn" ? "rgba(196,148,58,0.38)" : pill.tier === "allocated" ? "rgba(184,115,51,0.32)" : "rgba(138,138,138,0.28)"}` : pill.border,
+                    border: "none",
                     fontFamily: "var(--font-dm-sans)",
                     fontSize: "13px",
                     fontWeight: 600,
