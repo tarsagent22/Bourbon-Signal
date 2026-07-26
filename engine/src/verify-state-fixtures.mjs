@@ -12,6 +12,9 @@ import {
   parseMetroCityHiveHtml,
 } from './collectors/metro-retailer-surfaces.mjs';
 import { isMetroRetailerInventory } from './metro-retailer-policy.mjs';
+import { MISSISSIPPI_RETAILER_SOURCES } from './collectors/mississippi-retailer-surfaces.mjs';
+import { buildMississippiRetailerSignal } from './collectors/mississippi-retailer-collector.mjs';
+import { isMississippiRetailerInventory } from './mississippi-retailer-policy.mjs';
 
 const REQUIRED_KINDS = Object.freeze([
   'positive_bottle_match',
@@ -228,9 +231,95 @@ function evaluateMetroCase(item, { state, bible, registeredHosts, candidateActiv
   return {};
 }
 
+function mississippiFixtureSignal(rawName, input, bible) {
+  const source = MISSISSIPPI_RETAILER_SOURCES.find((entry) => entry.permitNumber === String(input.permitNumber || ''))
+    || MISSISSIPPI_RETAILER_SOURCES[0];
+  if (!source) return null;
+  const match = bible.match(rawName);
+  const record = match?.record || null;
+  const productId = source.platform === 'gotoliquorstore' ? '1138' : 'fixture-product';
+  const variantId = source.platform === 'cityhive' ? 'fixture-option' : null;
+  const productUrl = source.platform === 'gotoliquorstore'
+    ? `${source.baseUrl}/p/fixture-bourbon/${productId}`
+    : `${source.baseUrl}/shop/product/fixture-bourbon/${productId}?option-id=${variantId}`;
+  const signal = buildMississippiRetailerSignal(source, {
+    productId,
+    variantId,
+    title: rawName,
+    productUrl,
+    price: 34.99,
+    reportedQuantity: input.reportedQuantity ?? 4,
+    sourceAvailabilityVerified: true,
+    pickupOfferVerified: true,
+    premisesVerified: true,
+  }, {
+    observedAt: input.fetchedAt || '2026-07-25T20:00:00.000Z',
+    bottle: record ? {
+      id: record.id,
+      canonical: record.canonical,
+      tier: record.tier,
+      confidence: match?.confidence || 0.8,
+    } : null,
+  });
+  return { source, signal, record };
+}
+
+function evaluateMississippiCase(item, { bible, registeredHosts, candidateActive = false }) {
+  const input = item.input || {};
+  const names = Array.isArray(input.rawNames) ? input.rawNames.map(String) : [String(input.rawName || 'Buffalo Trace Bourbon 750ml')];
+  const values = names.map((name) => mississippiFixtureSignal(name, input, bible)).filter(Boolean);
+  if (item.kind === 'positive_bottle_match') {
+    const value = values[0];
+    return {
+      canonicalName: value?.record?.canonical || null,
+      tier: value?.record?.tier || null,
+      customerVisible: Boolean(value?.record && isMississippiRetailerInventory(value.signal)),
+      alertable: Boolean(value && isMississippiRetailerInventory(value.signal) && candidateActive && lifecycleAllowsInventoryAlert('MS')),
+    };
+  }
+  if (['ordinary_vs_rare_negative', 'rye_cream_liqueur_rtd_exclusion', 'size_or_multipack_exclusion'].includes(item.kind)) {
+    const rareMatch = values.some((value) => isMississippiRetailerInventory(value.signal)
+      && Boolean(value.record)
+      && RARE_TIERS.has(String(value.record.tier || '').toLowerCase()));
+    return { rareMatch, alertable: false };
+  }
+  if (item.kind === 'availability_semantics') {
+    const value = values[0];
+    return {
+      quantity: value?.signal?.quantity ?? null,
+      quantityIsExact: value?.signal?.quantityIsExact ?? null,
+      inventorySemantics: value?.signal?.inventorySemantics || null,
+      canAlertAsInventory: Boolean(value && isMississippiRetailerInventory(value.signal) && candidateActive && lifecycleAllowsInventoryAlert('MS')),
+    };
+  }
+  if (item.kind === 'store_identity') {
+    const value = values[0];
+    return {
+      storeId: value?.signal?.storeId || null,
+      storeAddress: value?.signal?.storeAddress || null,
+      fabricateIdentity: false,
+    };
+  }
+  if (item.kind === 'timestamp_freshness') {
+    const value = values[0];
+    return {
+      preserveOriginalTimestamp: value?.signal?.observedAt === input.fetchedAt,
+      futureTimestampAllowed: false,
+      staleRowsAlertable: false,
+    };
+  }
+  if (item.kind === 'source_specific_sentinel') {
+    let host = '';
+    try { host = new URL(input.sourceUrl).hostname.toLowerCase(); } catch {}
+    return { officialHost: registeredHosts.has(host), allowlistedHosts: [...registeredHosts].sort() };
+  }
+  return {};
+}
+
 function evaluateCase(item, { state, bible, registeredHosts, candidateActive = false }) {
   const input = item.input || {};
   if (state === 'NY' || state === 'CO') return evaluateMetroCase(item, { state, bible, registeredHosts, candidateActive });
+  if (state === 'MS') return evaluateMississippiCase(item, { bible, registeredHosts, candidateActive });
   const alertable = lifecycleAllowsInventoryAlert(state) || lifecycleAllowsWatchAlert(state);
   const names = Array.isArray(input.rawNames) ? input.rawNames.map(String) : [String(input.rawName || 'Eagle Rare 10 Year')];
   const productionSignals = state === 'UT' ? names.map((name, index) => utahProductionSignal(name, input, bible, index)) : [];

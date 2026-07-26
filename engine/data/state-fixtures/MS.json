@@ -1,0 +1,123 @@
+{
+  "schemaVersion": 1,
+  "state": "MS",
+  "sourceSentinelRequired": true,
+  "cases": [
+    {
+      "id": "ms-buffalo-trace-positive-baseline",
+      "kind": "positive_bottle_match",
+      "input": {
+        "permitNumber": "029254",
+        "rawName": "Buffalo Trace Bourbon 750ml",
+        "reportedQuantity": 8
+      },
+      "expected": {
+        "canonicalName": "Buffalo Trace Bourbon",
+        "tier": "allocated",
+        "customerVisible": true,
+        "alertable": false
+      }
+    },
+    {
+      "id": "ms-ordinary-bourbon-not-rare",
+      "kind": "ordinary_vs_rare_negative",
+      "input": {
+        "permitNumber": "029254",
+        "rawName": "Generic Kentucky Straight Bourbon 750ml"
+      },
+      "expected": {
+        "rareMatch": false,
+        "alertable": false
+      }
+    },
+    {
+      "id": "ms-rye-cream-rtd-exclusions",
+      "kind": "rye_cream_liqueur_rtd_exclusion",
+      "input": {
+        "permitNumber": "029254",
+        "rawNames": [
+          "Buffalo Trace Rye 750ml",
+          "Buffalo Trace Bourbon Cream 750ml",
+          "Buffalo Trace Ready to Drink Cocktail 750ml"
+        ]
+      },
+      "expected": {
+        "rareMatch": false,
+        "alertable": false
+      }
+    },
+    {
+      "id": "ms-size-multipack-exclusion",
+      "kind": "size_or_multipack_exclusion",
+      "input": {
+        "permitNumber": "029254",
+        "rawName": "Buffalo Trace Mini Gift Pack 12 x 50ml"
+      },
+      "expected": {
+        "rareMatch": false,
+        "alertable": false
+      }
+    },
+    {
+      "id": "ms-binary-orderability",
+      "kind": "availability_semantics",
+      "input": {
+        "permitNumber": "044692",
+        "rawName": "Eagle Rare Kentucky Straight Bourbon 750ml",
+        "reportedQuantity": 10
+      },
+      "expected": {
+        "quantity": 0,
+        "quantityIsExact": false,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "canAlertAsInventory": false
+      }
+    },
+    {
+      "id": "ms-exact-permit-store-identity",
+      "kind": "store_identity",
+      "input": {
+        "permitNumber": "029254",
+        "rawName": "Eagle Rare Kentucky Straight Bourbon 750ml"
+      },
+      "expected": {
+        "storeId": "ms-permit-029254",
+        "storeAddress": "904 Goodman Rd W Ste A Horn Lake MS 38637",
+        "fabricateIdentity": false
+      }
+    },
+    {
+      "id": "ms-original-observation-time",
+      "kind": "timestamp_freshness",
+      "input": {
+        "permitNumber": "044692",
+        "rawName": "Buffalo Trace Bourbon 750ml",
+        "fetchedAt": "2026-07-25T20:00:00.000Z",
+        "nowAt": "2026-07-25T21:00:00.000Z"
+      },
+      "expected": {
+        "preserveOriginalTimestamp": true,
+        "futureTimestampAllowed": false,
+        "staleRowsAlertable": false
+      }
+    },
+    {
+      "id": "ms-first-party-domain-sentinel",
+      "kind": "source_specific_sentinel",
+      "input": {
+        "sourceUrl": "https://www.desotoliquor.com/shop/?subtype=Bourbon"
+      },
+      "expected": {
+        "officialHost": true,
+        "allowlistedHosts": [
+          "tap.dor.ms.gov",
+          "thehernandowinespirits.com",
+          "www.aliquorwarehouse.com",
+          "www.cabinfeverliquor.com",
+          "www.desotoliquor.com",
+          "www.dor.ms.gov"
+        ]
+      }
+    }
+  ]
+}

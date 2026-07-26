@@ -1,0 +1,6229 @@
+{
+  "contractVersion": "bourbon-signal/ms-package-retailers-research@1",
+  "generatedAt": "2026-07-26T03:27:02.968Z",
+  "sourceUrl": "https://tap.dor.ms.gov/_/",
+  "permitType": "Package Retailer",
+  "pageCount": 7,
+  "rowCount": 690,
+  "uniquePermitCount": 690,
+  "rows": [
+    {
+      "dba": "LIQUOR CORNER STORE",
+      "address": "44 S EASON BLVD TUPELO MS 38804-5282",
+      "city": "TUPELO",
+      "county": "Lee",
+      "permitType": "Package Retailer",
+      "permitNumber": "021760",
+      "wholesaler": false
+    },
+    {
+      "dba": "DISCOUNT WINE & LIQUOR",
+      "address": "1075B LAKE HARBOUR DR RIDGELAND MS 39157-1052",
+      "city": "RIDGELAND",
+      "county": "Madison",
+      "permitType": "Package Retailer",
+      "permitNumber": "026922",
+      "wholesaler": false
+    },
+    {
+      "dba": "THE DEPOT WINE & SPIRITS",
+      "address": "1112 HWY 278 E STE B AMORY MS 38821-1112",
+      "city": "AMORY",
+      "county": "Monroe",
+      "permitType": "Package Retailer",
+      "permitNumber": "089028",
+      "wholesaler": false
+    },
+    {
+      "dba": "WINE N DOWN LIQUOR",
+      "address": "560 STEWART ST HOLLY SPRINGS MS 38635-2605",
+      "city": "HOLLY SPRINGS",
+      "county": "Marshall",
+      "permitType": "Package Retailer",
+      "permitNumber": "055022",
+      "wholesaler": false
+    },
+    {
+      "dba": "SOUTHERN CORK & BARREL LLC",
+      "address": "7314 U S HIGHWAY 49 STE 40 HATTIESBURG MS 39402-9103",
+      "city": "HATTIESBURG",
+      "county": "Forrest",
+      "permitType": "Package Retailer",
+      "permitNumber": "042844",
+      "wholesaler": false
+    },
+    {
+      "dba": "CHILLIES PACKAGE STORE",
+      "address": "2002 HIGHWAY 82 E GREENVILLE MS 38703-6026",
+      "city": "GREENVILLE",
+      "county": "Washington",
+      "permitType": "Package Retailer",
+      "permitNumber": "050113",
+      "wholesaler": false
+    },
+    {
+      "dba": "P AND B PACKAGE STORE LLC",
+      "address": "749 W BROADWAY ST YAZOO CITY MS 39194-3939",
+      "city": "YAZOO CITY",
+      "county": "Yazoo",
+      "permitType": "Package Retailer",
+      "permitNumber": "046287",
+      "wholesaler": false
+    },
+    {
+      "dba": "6 & 51",
+      "address": "103 HIGHWAY 51 S BATESVILLE MS 38606-2611",
+      "city": "BATESVILLE",
+      "county": "Panola",
+      "permitType": "Package Retailer",
+      "permitNumber": "049212",
+      "wholesaler": false
+    },
+    {
+      "dba": "BARRELHEAD WINE AND SPIRITS",
+      "address": "4876 PLAZA DR UNIT 4876 TYLERTOWN MS 39667-9221",
+      "city": "TYLERTOWN",
+      "county": "Walthall",
+      "permitType": "Package Retailer",
+      "permitNumber": "053213",
+      "wholesaler": false
+    },
+    {
+      "dba": "METRO LIQUOR AND WINE 1 LLC",
+      "address": "4155 ROBINSON ST JACKSON MS 39209-6516",
+      "city": "JACKSON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "041445",
+      "wholesaler": false
+    },
+    {
+      "dba": "AMERICAN SPIRITS, LLC",
+      "address": "390 SECOND ST PELAHATCHIE MS 39145-2939",
+      "city": "PELAHATCHIE",
+      "county": "Rankin",
+      "permitType": "Package Retailer",
+      "permitNumber": "049301",
+      "wholesaler": false
+    },
+    {
+      "dba": "KILN WINE & SPIRITS INC.",
+      "address": "17450 HIGHWAY 603 STE B KILN MS 39556-8211",
+      "city": "KILN",
+      "county": "Hancock",
+      "permitType": "Package Retailer",
+      "permitNumber": "027528",
+      "wholesaler": false
+    },
+    {
+      "dba": "C&C PACKAGE STORE",
+      "address": "931 MLK DRIVE MARKS MS 38646",
+      "city": "MARKS",
+      "county": "Quitman",
+      "permitType": "Package Retailer",
+      "permitNumber": "052341",
+      "wholesaler": false
+    },
+    {
+      "dba": "LIQUOR TIME",
+      "address": "4573 BULLARD ST STE B JACKSON MS 39209-3316",
+      "city": "JACKSON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "046060",
+      "wholesaler": false
+    },
+    {
+      "dba": "1ST LIQUOR",
+      "address": "324 S 4TH ST STE B3 BALDWYN MS 38824",
+      "city": "BALDWYN",
+      "county": "Prentiss",
+      "permitType": "Package Retailer",
+      "permitNumber": "040974",
+      "wholesaler": false
+    },
+    {
+      "dba": "EDNA'S PACKAGE STORE",
+      "address": "4820 POPLAR SPRINGS DR STE D MERIDIAN MS 39305-2678",
+      "city": "MERIDIAN",
+      "county": "Lauderdale",
+      "permitType": "Package Retailer",
+      "permitNumber": "041074",
+      "wholesaler": false
+    },
+    {
+      "dba": "LEGACY WINE & SPIRITS",
+      "address": "340 CALHOUN STATION PKWY STE C CANTON MS 39046-7057",
+      "city": "CANTON",
+      "county": "Madison",
+      "permitType": "Package Retailer",
+      "permitNumber": "051119",
+      "wholesaler": false
+    },
+    {
+      "dba": "DISCOUNT PACKAGE STORE",
+      "address": "1725B SUSIE B RUFFIN AVE LAUREL MS 39440-3071",
+      "city": "LAUREL",
+      "county": "Jones",
+      "permitType": "Package Retailer",
+      "permitNumber": "043839",
+      "wholesaler": false
+    },
+    {
+      "dba": "GLOSTER LIQUOR STORE LLC",
+      "address": "560 N CAPTAIN GLOSTER DR GLOSTER MS 39638-3412",
+      "city": "GLOSTER",
+      "county": "Amite",
+      "permitType": "Package Retailer",
+      "permitNumber": "092001",
+      "wholesaler": false
+    },
+    {
+      "dba": "P & R PACKAGE STORE",
+      "address": "2043 HWY 51 WESSON MS 39191",
+      "city": "WESSON",
+      "county": "Copiah",
+      "permitType": "Package Retailer",
+      "permitNumber": "042085",
+      "wholesaler": false
+    },
+    {
+      "dba": "M & S LIQUOR AND WINE",
+      "address": "175 WHALEY DR HOLLY SPRINGS MS 38635-3253",
+      "city": "HOLLY SPRINGS",
+      "county": "Marshall",
+      "permitType": "Package Retailer",
+      "permitNumber": "029656",
+      "wholesaler": false
+    },
+    {
+      "dba": "OUTBACK LIQUOR COMPANY LLC",
+      "address": "4275 HIGHWAY 49 STE B D'LO MS 39062",
+      "city": "D'LO",
+      "county": "Simpson",
+      "permitType": "Package Retailer",
+      "permitNumber": "044639",
+      "wholesaler": false
+    },
+    {
+      "dba": "STARKVILLE DISCOUNT LIQUOR",
+      "address": "1024 LOUISVILLE ST STARKVILLE MS 39759-3904",
+      "city": "STARKVILLE",
+      "county": "Oktibbeha",
+      "permitType": "Package Retailer",
+      "permitNumber": "025021",
+      "wholesaler": false
+    },
+    {
+      "dba": "LAGARDE'S FINE WINE AND SPIRITS, LLC",
+      "address": "128 BLAIZE AVE BAY SAINT LOUIS MS 39520-4302",
+      "city": "BAY SAINT LOUIS",
+      "county": "Hancock",
+      "permitType": "Package Retailer",
+      "permitNumber": "047489",
+      "wholesaler": false
+    },
+    {
+      "dba": "SAW INC",
+      "address": "201 ACADEMY RD STE 3 STARKVILLE MS 39759-4161",
+      "city": "STARKVILLE",
+      "county": "Oktibbeha",
+      "permitType": "Package Retailer",
+      "permitNumber": "050662",
+      "wholesaler": false
+    },
+    {
+      "dba": "BECKHAM ENTERPRISES LLC",
+      "address": "134 WEISENBERGER RD STE B MADISON MS 39110-5023",
+      "city": "MADISON",
+      "county": "Madison",
+      "permitType": "Package Retailer",
+      "permitNumber": "069018",
+      "wholesaler": false
+    },
+    {
+      "dba": "RIDGEWOOD LIQUOR AND WINE",
+      "address": "900 E COUNTY LINE RD STE 160 RIDGELAND MS 39157-1922",
+      "city": "RIDGELAND",
+      "county": "Madison",
+      "permitType": "Package Retailer",
+      "permitNumber": "043920",
+      "wholesaler": false
+    },
+    {
+      "dba": "WILLIAMS & SONS PEACE LLC",
+      "address": "3520 MAIN ST MOSS POINT MS 39563-5104",
+      "city": "MOSS POINT",
+      "county": "Jackson",
+      "permitType": "Package Retailer",
+      "permitNumber": "044138",
+      "wholesaler": false
+    },
+    {
+      "dba": "YAZOO PACKAGE STORE",
+      "address": "209 W BROADWAY ST YAZOO CITY MS 39194-4003",
+      "city": "YAZOO CITY",
+      "county": "Yazoo",
+      "permitType": "Package Retailer",
+      "permitNumber": "051012",
+      "wholesaler": false
+    },
+    {
+      "dba": "S AND G LIQUOR STORE",
+      "address": "2613 J R LYNCH ST JACKSON MS 39209-7444",
+      "city": "JACKSON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "051126",
+      "wholesaler": false
+    },
+    {
+      "dba": "NEWMAN'S PACKAGE STORE, INC.",
+      "address": "1348 HWY 51 NE BROOKHAVEN MS 39601",
+      "city": "BROOKHAVEN",
+      "county": "Lincoln",
+      "permitType": "Package Retailer",
+      "permitNumber": "028908",
+      "wholesaler": false
+    },
+    {
+      "dba": "WINE & LIQUOR GALLERY",
+      "address": "2546 HIGHWAY 145 UNIT B SALTILLO MS 38866-6981",
+      "city": "SALTILLO",
+      "county": "Lee",
+      "permitType": "Package Retailer",
+      "permitNumber": "028761",
+      "wholesaler": false
+    },
+    {
+      "dba": "VARUNI ENTERPRISES LLC",
+      "address": "1229 PASS RD GULFPORT MS 39501-6234",
+      "city": "GULFPORT",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "042371",
+      "wholesaler": false
+    },
+    {
+      "dba": "BAY STREET PACKAGE LLC",
+      "address": "325 E BAY ST MAGNOLIA MS 39652-2815",
+      "city": "MAGNOLIA",
+      "county": "Pike",
+      "permitType": "Package Retailer",
+      "permitNumber": "051252",
+      "wholesaler": false
+    },
+    {
+      "dba": "GERMANTOWN WINE AND SPIRITS",
+      "address": "101 LEXINGTON DR STE E MADISON MS 39110-6986",
+      "city": "MADISON",
+      "county": "Madison",
+      "permitType": "Package Retailer",
+      "permitNumber": "058063",
+      "wholesaler": false
+    },
+    {
+      "dba": "RUBY'S LIQUOR, INC.",
+      "address": "246 WHITEOAK AVE BLDG B RALEIGH MS 39153-6082",
+      "city": "RALEIGH",
+      "county": "Smith",
+      "permitType": "Package Retailer",
+      "permitNumber": "094003",
+      "wholesaler": false
+    },
+    {
+      "dba": "RA PACKAGE STORE INC",
+      "address": "1970 JERRY CLOWER BLVD YAZOO CITY MS 39194-2559",
+      "city": "YAZOO CITY",
+      "county": "Yazoo",
+      "permitType": "Package Retailer",
+      "permitNumber": "047283",
+      "wholesaler": false
+    },
+    {
+      "dba": "FREDDIE'S FINE SPIRITS",
+      "address": "1806 HIGHWAY 39 N BLDG 1806 MERIDIAN MS 39301-2701",
+      "city": "MERIDIAN",
+      "county": "Lauderdale",
+      "permitType": "Package Retailer",
+      "permitNumber": "030442",
+      "wholesaler": false
+    },
+    {
+      "dba": "WHOLESALE LIQUOR",
+      "address": "414 S CASS ST CORINTH MS 38834-6110",
+      "city": "CORINTH",
+      "county": "Alcorn",
+      "permitType": "Package Retailer",
+      "permitNumber": "028238",
+      "wholesaler": false
+    },
+    {
+      "dba": "STREETMAN CELLARS LLC",
+      "address": "1038 HIGHWAY 51 MADISON MS 39110-7253",
+      "city": "MADISON",
+      "county": "Madison",
+      "permitType": "Package Retailer",
+      "permitNumber": "051851",
+      "wholesaler": false
+    },
+    {
+      "dba": "GRAPEVINE LIQUOR & WINE L L C",
+      "address": "5847 GETWELL RD STE A13 SOUTHAVEN MS 38672-6816",
+      "city": "SOUTHAVEN",
+      "county": "DeSoto",
+      "permitType": "Package Retailer",
+      "permitNumber": "025525",
+      "wholesaler": false
+    },
+    {
+      "dba": "ANDYS WINE LIQUOR",
+      "address": "118 W PRESLEY BLVD MCCOMB MS 39648-5522",
+      "city": "MCCOMB",
+      "county": "Pike",
+      "permitType": "Package Retailer",
+      "permitNumber": "045443",
+      "wholesaler": false
+    },
+    {
+      "dba": "THE PACKAGE STORE",
+      "address": "279D HIGHWAY 72 BURNSVILLE MS 38833-9317",
+      "city": "BURNSVILLE",
+      "county": "Tishomingo",
+      "permitType": "Package Retailer",
+      "permitNumber": "028681",
+      "wholesaler": false
+    },
+    {
+      "dba": "HILL LIQUOR",
+      "address": "3189 HIGHWAY 45 N STE D COLUMBUS MS 39705-1251",
+      "city": "COLUMBUS",
+      "county": "Lowndes",
+      "permitType": "Package Retailer",
+      "permitNumber": "045436",
+      "wholesaler": false
+    },
+    {
+      "dba": "REDDS PACKAGE STORE",
+      "address": "605 BROAD ST CRENSHAW MS 38621-5405",
+      "city": "CRENSHAW",
+      "county": "Panola",
+      "permitType": "Package Retailer",
+      "permitNumber": "020721",
+      "wholesaler": false
+    },
+    {
+      "dba": "RIVERFRONT LIQUORS",
+      "address": "201 W CLAIBORNE AVE GREENWOOD MS 38930-3528",
+      "city": "GREENWOOD",
+      "county": "Leflore",
+      "permitType": "Package Retailer",
+      "permitNumber": "052263",
+      "wholesaler": false
+    },
+    {
+      "dba": "GK LIQUOR & WINE LLC",
+      "address": "6804 OLD CANTON RD RIDGELAND MS 39157-1227",
+      "city": "RIDGELAND",
+      "county": "Madison",
+      "permitType": "Package Retailer",
+      "permitNumber": "041265",
+      "wholesaler": false
+    },
+    {
+      "dba": "TOASTED BARREL WINE & SPIRITS",
+      "address": "5132 BEATLINE RD STE D LONG BEACH MS 39560-3870",
+      "city": "LONG BEACH",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "040389",
+      "wholesaler": false
+    },
+    {
+      "dba": "HIMALI, LLC DBA GOLDEN EAGLE WINE & LIQUOR",
+      "address": "2401 HARDY ST STE 40 HATTIESBURG MS 39401-5921",
+      "city": "HATTIESBURG",
+      "county": "Forrest",
+      "permitType": "Package Retailer",
+      "permitNumber": "052342",
+      "wholesaler": false
+    },
+    {
+      "dba": "TRACE TRAIL WINE & LIQUOR",
+      "address": "717 RICE RD STE C RIDGELAND MS 39157-3041",
+      "city": "RIDGELAND",
+      "county": "Madison",
+      "permitType": "Package Retailer",
+      "permitNumber": "048181",
+      "wholesaler": false
+    },
+    {
+      "dba": "BAY SPRINGS WINE & SPIRITS LLC",
+      "address": "2675 HIGHWAY 15 STE A BAY SPRINGS MS 39422-7431",
+      "city": "BAY SPRINGS",
+      "county": "Jasper",
+      "permitType": "Package Retailer",
+      "permitNumber": "044194",
+      "wholesaler": false
+    },
+    {
+      "dba": "THE LIQUOR STORE",
+      "address": "845 COOPER RD JACKSON MS 39212-4019",
+      "city": "JACKSON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "042442",
+      "wholesaler": false
+    },
+    {
+      "dba": "GULF HILLS PACKAGE STORE LLC",
+      "address": "6021 WASHINGTON AVE OCEAN SPRINGS MS 39564-2648",
+      "city": "OCEAN SPRINGS",
+      "county": "Jackson",
+      "permitType": "Package Retailer",
+      "permitNumber": "023199",
+      "wholesaler": false
+    },
+    {
+      "dba": "INNOVATIVE CONCEPTS LLC",
+      "address": "2273 HIGHWAY 49 SUNFLOWER MS 38778-9660",
+      "city": "SUNFLOWER",
+      "county": "Sunflower",
+      "permitType": "Package Retailer",
+      "permitNumber": "027029",
+      "wholesaler": false
+    },
+    {
+      "dba": "GENERATION NEXT",
+      "address": "310 HIGHWAY 51 STE C RIDGELAND MS 39157-3425",
+      "city": "RIDGELAND",
+      "county": "Madison",
+      "permitType": "Package Retailer",
+      "permitNumber": "044430",
+      "wholesaler": false
+    },
+    {
+      "dba": "MJ'S DISCOUNT LIQUOR",
+      "address": "145 AZALEA DR WAYNESBORO MS 39367-7716",
+      "city": "WAYNESBORO",
+      "county": "Wayne",
+      "permitType": "Package Retailer",
+      "permitNumber": "042133",
+      "wholesaler": false
+    },
+    {
+      "dba": "TONY'S WINE & SPIRIT",
+      "address": "307 THACKER LOOP OXFORD MS 38655-8550",
+      "city": "OXFORD",
+      "county": "Lafayette",
+      "permitType": "Package Retailer",
+      "permitNumber": "027806",
+      "wholesaler": false
+    },
+    {
+      "dba": "HELEN WINE AND SPIRITS LLC",
+      "address": "759 HIGHWAY 51 PICKENS MS 39146-3479",
+      "city": "PICKENS",
+      "county": "Holmes",
+      "permitType": "Package Retailer",
+      "permitNumber": "042283",
+      "wholesaler": false
+    },
+    {
+      "dba": "LEAF RIVER WINE & SPIRITS LLC",
+      "address": "503 3RD AVE NEW AUGUSTA MS 39462",
+      "city": "NEW AUGUSTA",
+      "county": "Perry",
+      "permitType": "Package Retailer",
+      "permitNumber": "040586",
+      "wholesaler": false
+    },
+    {
+      "dba": "THE SPOT WINE & SPIRIT",
+      "address": "1021 W BEACON ST PHILADELPHIA MS 39350-3218",
+      "city": "PHILADELPHIA",
+      "county": "Neshoba",
+      "permitType": "Package Retailer",
+      "permitNumber": "102032",
+      "wholesaler": false
+    },
+    {
+      "dba": "WHISTLE STOP WINES & SPIRITS",
+      "address": "505 E MULBERRY ST DURANT MS 39063-3729",
+      "city": "DURANT",
+      "county": "Holmes",
+      "permitType": "Package Retailer",
+      "permitNumber": "048510",
+      "wholesaler": false
+    },
+    {
+      "dba": "RICHTON BOTTLE SHOP INC",
+      "address": "308 N FRONT ST STE F RICHTON MS 39476-2205",
+      "city": "RICHTON",
+      "county": "Perry",
+      "permitType": "Package Retailer",
+      "permitNumber": "027871",
+      "wholesaler": false
+    },
+    {
+      "dba": "RAINES CELLARS LLC",
+      "address": "4845 MAIN ST FLORA MS 39071-9691",
+      "city": "FLORA",
+      "county": "Madison",
+      "permitType": "Package Retailer",
+      "permitNumber": "046388",
+      "wholesaler": false
+    },
+    {
+      "dba": "B & E FINE WINE & SPIRITS",
+      "address": "1003 HIGHWAY 98 BYP STE 2 COLUMBIA MS 39429-3741",
+      "city": "COLUMBIA",
+      "county": "Marion",
+      "permitType": "Package Retailer",
+      "permitNumber": "040254",
+      "wholesaler": false
+    },
+    {
+      "dba": "RED MAPLE LIQUOR",
+      "address": "2929 ELLISVILLE BLVD # 4L LAUREL MS 39440-6011",
+      "city": "LAUREL",
+      "county": "Jones",
+      "permitType": "Package Retailer",
+      "permitNumber": "028608",
+      "wholesaler": false
+    },
+    {
+      "dba": "PLEASURE LAND WINE & LIQUOR",
+      "address": "3136 HIGHWAY 27 MONTICELLO MS 39654-9402",
+      "city": "MONTICELLO",
+      "county": "Lawrence",
+      "permitType": "Package Retailer",
+      "permitNumber": "045444",
+      "wholesaler": false
+    },
+    {
+      "dba": "CHEERS VINEYARD, LLC",
+      "address": "311 CALHOUN STATION PKWY STE C & D MADISON MS 39110",
+      "city": "MADISON",
+      "county": "Madison",
+      "permitType": "Package Retailer",
+      "permitNumber": "049360",
+      "wholesaler": false
+    },
+    {
+      "dba": "NORTHSIDE PACKAGE LIQUOR",
+      "address": "1206 HIGHWAY 13 N COLUMBIA MS 39429-2016",
+      "city": "COLUMBIA",
+      "county": "Marion",
+      "permitType": "Package Retailer",
+      "permitNumber": "045346",
+      "wholesaler": false
+    },
+    {
+      "dba": "BUCKSHOTS, LLC",
+      "address": "27368 JP LADNER ROAD STE D PASS CHRISTIAN MS 39571",
+      "city": "PASS CHRISTIAN",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "043079",
+      "wholesaler": false
+    },
+    {
+      "dba": "LUCKY'S WINE & LIQUOR CORNER STORE BEVERAGE INC",
+      "address": "7037 HACKS CROSS RD OLIVE BRANCH MS 38654-4285",
+      "city": "OLIVE BRANCH",
+      "county": "DeSoto",
+      "permitType": "Package Retailer",
+      "permitNumber": "029595",
+      "wholesaler": false
+    },
+    {
+      "dba": "CHICOT PLAZA LIQUOR",
+      "address": "3429 OLD MOBILE AVE PASCAGOULA MS 39581-3751",
+      "city": "PASCAGOULA",
+      "county": "Jackson",
+      "permitType": "Package Retailer",
+      "permitNumber": "047029",
+      "wholesaler": false
+    },
+    {
+      "dba": "TONEY'S 61N LIQUOR & WINES, LL",
+      "address": "650 HIGHWAY 61 N VICKSBURG MS 39183-3429",
+      "city": "VICKSBURG",
+      "county": "Warren",
+      "permitType": "Package Retailer",
+      "permitNumber": "085008",
+      "wholesaler": false
+    },
+    {
+      "dba": "TOP SHELF LIQUOR AND WINE INC",
+      "address": "675 W SERVICE DR STE C COLDWATER MS 38618-3822",
+      "city": "COLDWATER",
+      "county": "Tate",
+      "permitType": "Package Retailer",
+      "permitNumber": "045247",
+      "wholesaler": false
+    },
+    {
+      "dba": "BROADWAY WINES & LIQUORS",
+      "address": "1818 BROADWAY DR STE 20 HATTIESBURG MS 39402-3205",
+      "city": "HATTIESBURG",
+      "county": "Forrest",
+      "permitType": "Package Retailer",
+      "permitNumber": "007960",
+      "wholesaler": false
+    },
+    {
+      "dba": "ALEXANDER'S LIQUOR AND WINE",
+      "address": "400 AZALEA DR WAYNESBORO MS 39367-2637",
+      "city": "WAYNESBORO",
+      "county": "Wayne",
+      "permitType": "Package Retailer",
+      "permitNumber": "087001",
+      "wholesaler": false
+    },
+    {
+      "dba": "VINE BOTTLE SHOP",
+      "address": "707 N LAMAR BLVD STE 2 OXFORD MS 38655-3242",
+      "city": "OXFORD",
+      "county": "Lafayette",
+      "permitType": "Package Retailer",
+      "permitNumber": "044426",
+      "wholesaler": false
+    },
+    {
+      "dba": "MCDOWELL LIQUOR & WINE LLC",
+      "address": "735 W MCDOWELL RD STE B JACKSON MS 39204-5402",
+      "city": "JACKSON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "049377",
+      "wholesaler": false
+    },
+    {
+      "dba": "VARUNIS WINES AND SPIRTIS LLC",
+      "address": "4840 HIGHWAY 18 W STE F JACKSON MS 39209-9666",
+      "city": "JACKSON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "043336",
+      "wholesaler": false
+    },
+    {
+      "dba": "C RAINEY LLC",
+      "address": "302 E MONROE AVE OKOLONA MS 38860-1903",
+      "city": "OKOLONA",
+      "county": "Chickasaw",
+      "permitType": "Package Retailer",
+      "permitNumber": "049821",
+      "wholesaler": false
+    },
+    {
+      "dba": "POTTS CAMP LIQUIOR & SPIRITS LLC",
+      "address": "6802 CHURCH AVE POTTS CAMP MS 38659-9547",
+      "city": "POTTS CAMP",
+      "county": "Marshall",
+      "permitType": "Package Retailer",
+      "permitNumber": "041517",
+      "wholesaler": false
+    },
+    {
+      "dba": "SAANVI 1 INC",
+      "address": "805 HIGHWAY 82 E INDIANOLA MS 38751-2323",
+      "city": "INDIANOLA",
+      "county": "Sunflower",
+      "permitType": "Package Retailer",
+      "permitNumber": "056094",
+      "wholesaler": false
+    },
+    {
+      "dba": "JAD ENTERPRISES LLC",
+      "address": "3466 MCCULLOUGH BLVD STE C BELDEN MS 38826-9469",
+      "city": "BELDEN",
+      "county": "Lee",
+      "permitType": "Package Retailer",
+      "permitNumber": "057052",
+      "wholesaler": false
+    },
+    {
+      "dba": "DISCOUNT LIQUOR AND WINE",
+      "address": "3140 W WOODROW WILSON AVE JACKSON MS 39209-3405",
+      "city": "JACKSON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "023184",
+      "wholesaler": false
+    },
+    {
+      "dba": "THE LIQUOR SHOP",
+      "address": "4112 CLAY ST VICKSBURG MS 39183-3436",
+      "city": "VICKSBURG",
+      "county": "Warren",
+      "permitType": "Package Retailer",
+      "permitNumber": "029094",
+      "wholesaler": false
+    },
+    {
+      "dba": "K & J LIQUOR",
+      "address": "1241 RIVER SIDE DR LAMBERT MS 38643",
+      "city": "LAMBERT",
+      "county": "Quitman",
+      "permitType": "Package Retailer",
+      "permitNumber": "025532",
+      "wholesaler": false
+    },
+    {
+      "dba": "COCKTAILZ FINE WINE AND SPIRIT",
+      "address": "1716 HIGHWAY 51 STE H MADISON MS 39110-5020",
+      "city": "MADISON",
+      "county": "Madison",
+      "permitType": "Package Retailer",
+      "permitNumber": "044411",
+      "wholesaler": false
+    },
+    {
+      "dba": "LEVURE BOTTLE SHOP CO",
+      "address": "4465 I 55 N STE 102A JACKSON MS 39206-6102",
+      "city": "JACKSON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "050213",
+      "wholesaler": false
+    },
+    {
+      "dba": "L & M PACKAGE STORE INC",
+      "address": "423 PASS RD GULFPORT MS 39507-2903",
+      "city": "GULFPORT",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "001051",
+      "wholesaler": false
+    },
+    {
+      "dba": "I 55 WINE AND SPIRITS",
+      "address": "4924 I 55 N STE 104 JACKSON MS 39211-5419",
+      "city": "JACKSON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "030580",
+      "wholesaler": false
+    },
+    {
+      "dba": "DANG'S LIQUOR & WINE",
+      "address": "10394 DIBERVILLE BLVD STE A DIBERVILLE MS 39540-2509",
+      "city": "DIBERVILLE",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "023967",
+      "wholesaler": false
+    },
+    {
+      "dba": "CHEERZ LIQUOR",
+      "address": "4277 HIGHWAY 15 BLDG 4277 LOUIN MS 39338",
+      "city": "LOUIN",
+      "county": "Jasper",
+      "permitType": "Package Retailer",
+      "permitNumber": "042259",
+      "wholesaler": false
+    },
+    {
+      "dba": "LITT, LLC",
+      "address": "300 LAWRENCE ST SUMMIT MS 39666-8119",
+      "city": "SUMMIT",
+      "county": "Pike",
+      "permitType": "Package Retailer",
+      "permitNumber": "047788",
+      "wholesaler": false
+    },
+    {
+      "dba": "JACKS PACKAGE STORE INC",
+      "address": "801A W PARK AVE GREENWOOD MS 38930-2824",
+      "city": "GREENWOOD",
+      "county": "Leflore",
+      "permitType": "Package Retailer",
+      "permitNumber": "005535",
+      "wholesaler": false
+    },
+    {
+      "dba": "HOTSHOT LIQUOR",
+      "address": "1159 E NORTHSIDE DR STE A JACKSON MS 39206",
+      "city": "JACKSON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "042348",
+      "wholesaler": false
+    },
+    {
+      "dba": "LIQUOR WORLD",
+      "address": "6800 TULANE RD STE 2 HORN LAKE MS 38637",
+      "city": "HORN LAKE",
+      "county": "DeSoto",
+      "permitType": "Package Retailer",
+      "permitNumber": "051261",
+      "wholesaler": false
+    },
+    {
+      "dba": "HICKORY HILL WINE AND LIQOUR",
+      "address": "7205 MARTIN BLUFF RD STE D GAUTIER MS 39553-3201",
+      "city": "GAUTIER",
+      "county": "Jackson",
+      "permitType": "Package Retailer",
+      "permitNumber": "063050",
+      "wholesaler": false
+    },
+    {
+      "dba": "LEES DISCOUNT LIQUOR",
+      "address": "1210 W MAIN ST TUPELO MS 38801-3412",
+      "city": "TUPELO",
+      "county": "Lee",
+      "permitType": "Package Retailer",
+      "permitNumber": "040878",
+      "wholesaler": false
+    },
+    {
+      "dba": "MR LIQUOR & WINE INC",
+      "address": "1001 ROBB ST SUMMIT MS 39666-8303",
+      "city": "SUMMIT",
+      "county": "Pike",
+      "permitType": "Package Retailer",
+      "permitNumber": "072020",
+      "wholesaler": false
+    },
+    {
+      "dba": "RM LIQUOR AND WINE LLC",
+      "address": "722 S FIRST ST STE B BROOKHAVEN MS 39601-4110",
+      "city": "BROOKHAVEN",
+      "county": "Lincoln",
+      "permitType": "Package Retailer",
+      "permitNumber": "050913",
+      "wholesaler": false
+    },
+    {
+      "dba": "MAGNOLIA WINE AND SPIRITS LLC",
+      "address": "1453B S LAMAR BLVD OXFORD MS 38655-4740",
+      "city": "OXFORD",
+      "county": "Lafayette",
+      "permitType": "Package Retailer",
+      "permitNumber": "029517",
+      "wholesaler": false
+    },
+    {
+      "dba": "LELAND LIQUOR LLC",
+      "address": "111 HIGHWAY 82 E LELAND MS 38756-3421",
+      "city": "LELAND",
+      "county": "Washington",
+      "permitType": "Package Retailer",
+      "permitNumber": "043916",
+      "wholesaler": false
+    },
+    {
+      "dba": "SIPX LLC",
+      "address": "208 S GLOSTER ST TUPELO MS 38801-4746",
+      "city": "TUPELO",
+      "county": "Lee",
+      "permitType": "Package Retailer",
+      "permitNumber": "043857",
+      "wholesaler": false
+    },
+    {
+      "dba": "TOPS LIQUOR STORE",
+      "address": "3099 CHURCH RD E SOUTHAVEN MS 38672-2000",
+      "city": "SOUTHAVEN",
+      "county": "DeSoto",
+      "permitType": "Package Retailer",
+      "permitNumber": "042239",
+      "wholesaler": false
+    },
+    {
+      "dba": "GOLD NUGGET PACKAGE STORE",
+      "address": "19010 PINEVILLE RD LONG BEACH MS 39560-4505",
+      "city": "LONG BEACH",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "045155",
+      "wholesaler": false
+    },
+    {
+      "dba": "SILVER LEAF WINE AND SPIRIT",
+      "address": "6954 OLD CANTON RD STE C RIDGELAND MS 39157-1293",
+      "city": "RIDGELAND",
+      "county": "Madison",
+      "permitType": "Package Retailer",
+      "permitNumber": "048603",
+      "wholesaler": false
+    },
+    {
+      "dba": "K & G PACKAGE STORE",
+      "address": "305 HWY-61S SHAW MS 38773",
+      "city": "SHAW",
+      "county": "Bolivar",
+      "permitType": "Package Retailer",
+      "permitNumber": "057040",
+      "wholesaler": false
+    },
+    {
+      "dba": "TIGER DISCOUNT LIQUORS",
+      "address": "11628 HIGHWAY 57 VANCLEAVE MS 39565-8231",
+      "city": "VANCLEAVE",
+      "county": "Jackson",
+      "permitType": "Package Retailer",
+      "permitNumber": "022258",
+      "wholesaler": false
+    },
+    {
+      "dba": "LIQUORS UNLIMITED DISC PACKAGE STORE INC",
+      "address": "3002 MARKET ST PASCAGOULA MS 39567-5153",
+      "city": "PASCAGOULA",
+      "county": "Jackson",
+      "permitType": "Package Retailer",
+      "permitNumber": "005562",
+      "wholesaler": false
+    },
+    {
+      "dba": "HARRY T'S WHOLSALE WINE &",
+      "address": "758 HIGHWAY 43 S CANTON MS 39046-9344",
+      "city": "CANTON",
+      "county": "Madison",
+      "permitType": "Package Retailer",
+      "permitNumber": "023986",
+      "wholesaler": false
+    },
+    {
+      "dba": "61 LIQUOR",
+      "address": "1571 HIGHWAY 61 N TUNICA MS 38676-9668",
+      "city": "TUNICA",
+      "county": "Tunica",
+      "permitType": "Package Retailer",
+      "permitNumber": "022749",
+      "wholesaler": false
+    },
+    {
+      "dba": "J & J PACKAGE STORE",
+      "address": "108 W WASHINGTON STREET BLDG STORE MOORHEAD MS 38761",
+      "city": "MOORHEAD",
+      "county": "Sunflower",
+      "permitType": "Package Retailer",
+      "permitNumber": "051000",
+      "wholesaler": false
+    },
+    {
+      "dba": "STAR SPIRITS LLC",
+      "address": "1049 FRONTAGE DR E STE E WIGGINS MS 39577-8177",
+      "city": "WIGGINS",
+      "county": "Stone",
+      "permitType": "Package Retailer",
+      "permitNumber": "051380",
+      "wholesaler": false
+    },
+    {
+      "dba": "BIN 605",
+      "address": "1423 MAGNOLIA ST STE G GULFPORT MS 39507-3569",
+      "city": "GULFPORT",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "023823",
+      "wholesaler": false
+    },
+    {
+      "dba": "MAND WINE AND LIQUOR LLC",
+      "address": "2755 S LIBERTY ST STE B CANTON MS 39046",
+      "city": "CANTON",
+      "county": "Madison",
+      "permitType": "Package Retailer",
+      "permitNumber": "045163",
+      "wholesaler": false
+    },
+    {
+      "dba": "THREE GUYS WINE AND SPIRITS",
+      "address": "124 STATE HIGHWAY 15 S BLDG 1 NEW ALBANY MS 38652-5225",
+      "city": "NEW ALBANY",
+      "county": "Union",
+      "permitType": "Package Retailer",
+      "permitNumber": "029655",
+      "wholesaler": false
+    },
+    {
+      "dba": "BM LIQUOR AND WINE",
+      "address": "1670 PASS RD STE L BILOXI MS 39531-4360",
+      "city": "BILOXI",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "028909",
+      "wholesaler": false
+    },
+    {
+      "dba": "CAUSEWAY WINE & SPIRITS",
+      "address": "1040 SPILLWAY CIR BRANDON MS 39047-6035",
+      "city": "BRANDON",
+      "county": "Rankin",
+      "permitType": "Package Retailer",
+      "permitNumber": "046578",
+      "wholesaler": false
+    },
+    {
+      "dba": "CHEERS",
+      "address": "2445 HIGHWAY 51 S STE 2 HERNANDO MS 38632-1734",
+      "city": "HERNANDO",
+      "county": "DeSoto",
+      "permitType": "Package Retailer",
+      "permitNumber": "045712",
+      "wholesaler": false
+    },
+    {
+      "dba": "5 STAR LIQUOR",
+      "address": "3109 TERRY RD # A JACKSON MS 39212-2942",
+      "city": "JACKSON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "045528",
+      "wholesaler": false
+    },
+    {
+      "dba": "WINE & SPIRITS",
+      "address": "763 CLINTON PKWY CLINTON MS 39056-5245",
+      "city": "CLINTON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "024370",
+      "wholesaler": false
+    },
+    {
+      "dba": "STELLAR CELLAR WINE & SPIRITS",
+      "address": "609 HIGHWAY 51 S BROOKHAVEN MS 39601-3724",
+      "city": "BROOKHAVEN",
+      "county": "Lincoln",
+      "permitType": "Package Retailer",
+      "permitNumber": "042633",
+      "wholesaler": false
+    },
+    {
+      "dba": "662 WINE & LIQUOR",
+      "address": "3650 N GLOSTER ST BLDG 1 TUPELO MS 38804-9730",
+      "city": "TUPELO",
+      "county": "Lee",
+      "permitType": "Package Retailer",
+      "permitNumber": "042221",
+      "wholesaler": false
+    },
+    {
+      "dba": "CORNER WINE & SPIRITS",
+      "address": "1220 E NORTHSIDE DR STE 320 JACKSON MS 39211-5518",
+      "city": "JACKSON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "061049",
+      "wholesaler": false
+    },
+    {
+      "dba": "THE SHOPPE",
+      "address": "1920 BLUECUTT RD STE 1 COLUMBUS MS 39701-3641",
+      "city": "COLUMBUS",
+      "county": "Lowndes",
+      "permitType": "Package Retailer",
+      "permitNumber": "026142",
+      "wholesaler": false
+    },
+    {
+      "dba": "TWENTY-ONE LIQUOR & WINE",
+      "address": "1217 CENTRAL AVE W WIGGINS MS 39577-2419",
+      "city": "WIGGINS",
+      "county": "Stone",
+      "permitType": "Package Retailer",
+      "permitNumber": "043833",
+      "wholesaler": false
+    },
+    {
+      "dba": "LA VINO INC",
+      "address": "1204 N GLOSTER ST TUPELO MS 38804-1206",
+      "city": "TUPELO",
+      "county": "Lee",
+      "permitType": "Package Retailer",
+      "permitNumber": "022810",
+      "wholesaler": false
+    },
+    {
+      "dba": "MR EGYPT & LIQUOR LLC",
+      "address": "8304 HWY BLDG B GULFPORT MS 39501",
+      "city": "GULFPORT",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "047201",
+      "wholesaler": false
+    },
+    {
+      "dba": "BYRAM LIQUOR",
+      "address": "6745 S SIWELL RD STE 101 BYRAM MS 39272-8740",
+      "city": "BYRAM",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "050469",
+      "wholesaler": false
+    },
+    {
+      "dba": "JB PACKAGE LIQUOR & WINE",
+      "address": "540 PEARL RIVER AVE MCCOMB MS 39648-4248",
+      "city": "MCCOMB",
+      "county": "Pike",
+      "permitType": "Package Retailer",
+      "permitNumber": "029206",
+      "wholesaler": false
+    },
+    {
+      "dba": "LLC",
+      "address": "478 CHURCH RD E SOUTHAVEN MS 38671-9714",
+      "city": "SOUTHAVEN",
+      "county": "DeSoto",
+      "permitType": "Package Retailer",
+      "permitNumber": "027480",
+      "wholesaler": false
+    },
+    {
+      "dba": "211 PACKAGE STORE",
+      "address": "211 HIGHWAY 33 STE A FAYETTE MS 39069-4548",
+      "city": "FAYETTE",
+      "county": "Jefferson",
+      "permitType": "Package Retailer",
+      "permitNumber": "027784",
+      "wholesaler": false
+    },
+    {
+      "dba": "GOODMAN 51 LIQUOR",
+      "address": "7212 HIGHWAY 51 GOODMAN MS 39079",
+      "city": "GOODMAN",
+      "county": "Holmes",
+      "permitType": "Package Retailer",
+      "permitNumber": "051769",
+      "wholesaler": false
+    },
+    {
+      "dba": "B & B PACKAGE STORE",
+      "address": "225 MARTIN LUTHER KING DR MARKS MS 38646-1102",
+      "city": "MARKS",
+      "county": "Quitman",
+      "permitType": "Package Retailer",
+      "permitNumber": "024017",
+      "wholesaler": false
+    },
+    {
+      "dba": "DECATUR BOTTLE SHOP LLC",
+      "address": "15434 HWY.15 DECATUR MS 39327",
+      "city": "DECATUR",
+      "county": "Newton",
+      "permitType": "Package Retailer",
+      "permitNumber": "045900",
+      "wholesaler": false
+    },
+    {
+      "dba": "RED CABOOSE CORK & BOTTLE, LLC",
+      "address": "15557 WEST MAIN ST LOUISVILLE MS 39339",
+      "city": "LOUISVILLE",
+      "county": "Winston",
+      "permitType": "Package Retailer",
+      "permitNumber": "082010",
+      "wholesaler": false
+    },
+    {
+      "dba": "CROSS CORNER LIQUOR STORE",
+      "address": "4215 MAIN ST MOSS POINT MS 39563-3931",
+      "city": "MOSS POINT",
+      "county": "Jackson",
+      "permitType": "Package Retailer",
+      "permitNumber": "081030",
+      "wholesaler": false
+    },
+    {
+      "dba": "G & J OLD CANTON LIQUOR INC.",
+      "address": "6562 OLD CANTON RD RIDGELAND MS 39157-1313",
+      "city": "RIDGELAND",
+      "county": "Madison",
+      "permitType": "Package Retailer",
+      "permitNumber": "030152",
+      "wholesaler": false
+    },
+    {
+      "dba": "SOUTH POINTE WINE & LIQUOR",
+      "address": "5328 U S HIGHWAY 49 HATTIESBURG MS 39401-9011",
+      "city": "HATTIESBURG",
+      "county": "Forrest",
+      "permitType": "Package Retailer",
+      "permitNumber": "055023",
+      "wholesaler": false
+    },
+    {
+      "dba": "61 LIQUOR STORE & MORE",
+      "address": "4002 HIGHWAY 61 S STE C VICKSBURG MS 39180-7620",
+      "city": "VICKSBURG",
+      "county": "Warren",
+      "permitType": "Package Retailer",
+      "permitNumber": "046831",
+      "wholesaler": false
+    },
+    {
+      "dba": "BROADMOOR WINE & SPIRITS",
+      "address": "4900 POPLAR SPRINGS DR STE 25 MERIDIAN MS 39305-1610",
+      "city": "MERIDIAN",
+      "county": "Lauderdale",
+      "permitType": "Package Retailer",
+      "permitNumber": "046893",
+      "wholesaler": false
+    },
+    {
+      "dba": "NEAIL'S PACKAGE STORE LLC",
+      "address": "500 HIGHWAY 6 E BATESVILLE MS 38606-3002",
+      "city": "BATESVILLE",
+      "county": "Panola",
+      "permitType": "Package Retailer",
+      "permitNumber": "099026",
+      "wholesaler": false
+    },
+    {
+      "dba": "MIDTOWN MARKET WINE & SPIRITS",
+      "address": "3720 HARDY ST STE 7 HATTIESBURG MS 39402-1596",
+      "city": "HATTIESBURG",
+      "county": "Forrest",
+      "permitType": "Package Retailer",
+      "permitNumber": "084013",
+      "wholesaler": false
+    },
+    {
+      "dba": "KOUNTRY BOYZ LLC",
+      "address": "2827 E ROANE AVE EUPORA MS 39744-2641",
+      "city": "EUPORA",
+      "county": "Webster",
+      "permitType": "Package Retailer",
+      "permitNumber": "046298",
+      "wholesaler": false
+    },
+    {
+      "dba": "RJ DISCOUNT LIQUOR",
+      "address": "7152 WILL ROBBINS HWY NETTLETON MS 38858-5918",
+      "city": "NETTLETON",
+      "county": "Lee",
+      "permitType": "Package Retailer",
+      "permitNumber": "040395",
+      "wholesaler": false
+    },
+    {
+      "dba": "SHANNON WINE & LIQUOR",
+      "address": "641 ROMIE HILL AVE SHANNON MS 38868-9372",
+      "city": "SHANNON",
+      "county": "Lee",
+      "permitType": "Package Retailer",
+      "permitNumber": "046922",
+      "wholesaler": false
+    },
+    {
+      "dba": "PACKAGE STORE OF MARION",
+      "address": "5586 DALE DR MARION MS 39342-9607",
+      "city": "MARION",
+      "county": "Lauderdale",
+      "permitType": "Package Retailer",
+      "permitNumber": "029038",
+      "wholesaler": false
+    },
+    {
+      "dba": "SHIV OF COLUMBUS INC",
+      "address": "706 ALABAMA ST COLUMBUS MS 39702-5402",
+      "city": "COLUMBUS",
+      "county": "Lowndes",
+      "permitType": "Package Retailer",
+      "permitNumber": "041640",
+      "wholesaler": false
+    },
+    {
+      "dba": "T.MATI SPIRITS LLC",
+      "address": "720 LAKELAND DR JACKSON MS 39216-4610",
+      "city": "JACKSON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "042723",
+      "wholesaler": false
+    },
+    {
+      "dba": "DAVE LIQUOR",
+      "address": "201 N RAGSDALE AVE HAZLEHURST MS 39083-2707",
+      "city": "HAZLEHURST",
+      "county": "Copiah",
+      "permitType": "Package Retailer",
+      "permitNumber": "029721",
+      "wholesaler": false
+    },
+    {
+      "dba": "BJS LIQUOR & WINE",
+      "address": "12452 HIGHWAY 49 STE 5 GULFPORT MS 39503-2743",
+      "city": "GULFPORT",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "020221",
+      "wholesaler": false
+    },
+    {
+      "dba": "OLIVE BRANCH PACKAGE STR",
+      "address": "7457 GOODMAN RD OLIVE BRANCH MS 38654-2001",
+      "city": "OLIVE BRANCH",
+      "county": "DeSoto",
+      "permitType": "Package Retailer",
+      "permitNumber": "007720",
+      "wholesaler": false
+    },
+    {
+      "dba": "THOMSON SQUARE WINE & SPIRITS",
+      "address": "972 BARNES CROSSING RD TUPELO MS 38804-0910",
+      "city": "TUPELO",
+      "county": "Lee",
+      "permitType": "Package Retailer",
+      "permitNumber": "040697",
+      "wholesaler": false
+    },
+    {
+      "dba": "DISCOUNT LIQUORS & WINES",
+      "address": "146 MARKET PL HAZLEHURST MS 39083-2205",
+      "city": "HAZLEHURST",
+      "county": "Copiah",
+      "permitType": "Package Retailer",
+      "permitNumber": "027392",
+      "wholesaler": false
+    },
+    {
+      "dba": "HERNANDO WINE AND SPIRITS",
+      "address": "2358 MOUNT PLEASANT RD HERNANDO MS 38632-1909",
+      "city": "HERNANDO",
+      "county": "DeSoto",
+      "permitType": "Package Retailer",
+      "permitNumber": "044692",
+      "wholesaler": false
+    },
+    {
+      "dba": "BEE'S MARINA PACKAGE LLC",
+      "address": "50187 OLD HIGHWAY 25 ABERDEEN MS 39730-9040",
+      "city": "ABERDEEN",
+      "county": "Monroe",
+      "permitType": "Package Retailer",
+      "permitNumber": "049908",
+      "wholesaler": false
+    },
+    {
+      "dba": "THE BOTTLE SHOP BILOXI, LLC",
+      "address": "13066 SHRINERS BLVD STE B BILOXI MS 39532-8616",
+      "city": "BILOXI",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "053097",
+      "wholesaler": false
+    },
+    {
+      "dba": "PHILLY EXPRESS 2 LLC",
+      "address": "598 BEASLEY RD STE A JACKSON MS 39206-2803",
+      "city": "JACKSON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "041651",
+      "wholesaler": false
+    },
+    {
+      "dba": "TRIANGLE MART PACKAGE STORE LL",
+      "address": "208 TRIANGLE DR JACKSON MS 39206-5216",
+      "city": "JACKSON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "030559",
+      "wholesaler": false
+    },
+    {
+      "dba": "FT BAYOU WINE & SPIRITS",
+      "address": "1699 BIENVILLE BLVD OCEAN SPRINGS MS 39564-3002",
+      "city": "OCEAN SPRINGS",
+      "county": "Jackson",
+      "permitType": "Package Retailer",
+      "permitNumber": "007550",
+      "wholesaler": false
+    },
+    {
+      "dba": "STATELINE LIQUOR & WINE",
+      "address": "1069 STATELINE RD SOUTHAVEN MS 38671",
+      "city": "SOUTHAVEN",
+      "county": "DeSoto",
+      "permitType": "Package Retailer",
+      "permitNumber": "027094",
+      "wholesaler": false
+    },
+    {
+      "dba": "TERRY WINE & LIQUOR",
+      "address": "430B W CUNNINGHAM AVE TERRY MS 39170-9209",
+      "city": "TERRY",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "086050",
+      "wholesaler": false
+    },
+    {
+      "dba": "GS ENTERPRISE LLC",
+      "address": "1668 SIMPSON HIGHWAY 149 MENDENHALL MS 39114-3442",
+      "city": "MENDENHALL",
+      "county": "Simpson",
+      "permitType": "Package Retailer",
+      "permitNumber": "042203",
+      "wholesaler": false
+    },
+    {
+      "dba": "WINE & LIQUOR",
+      "address": "5310 CLINTON BLVD JACKSON MS 39209-3002",
+      "city": "JACKSON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "045254",
+      "wholesaler": false
+    },
+    {
+      "dba": "VILLAGE WINE AND SPIRITS",
+      "address": "1625 E COUNTY LINE RD STE 320 JACKSON MS 39211-1833",
+      "city": "JACKSON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "030464",
+      "wholesaler": false
+    },
+    {
+      "dba": "DESOTO LIQUOR & WINE",
+      "address": "2753 MCINGVALE RD STE 101 HERNANDO MS 38632-8648",
+      "city": "HERNANDO",
+      "county": "DeSoto",
+      "permitType": "Package Retailer",
+      "permitNumber": "048299",
+      "wholesaler": false
+    },
+    {
+      "dba": "6367 HWY 51 LIQUOR INC",
+      "address": "6367 HIGHWAY 51 POPE MS 38658",
+      "city": "POPE",
+      "county": "Panola",
+      "permitType": "Package Retailer",
+      "permitNumber": "044425",
+      "wholesaler": false
+    },
+    {
+      "dba": "OLD TRACE WINE MARKET",
+      "address": "735 RICE ROAD STE A RIDGELAND MS 39157",
+      "city": "RIDGELAND",
+      "county": "Madison",
+      "permitType": "Package Retailer",
+      "permitNumber": "047183",
+      "wholesaler": false
+    },
+    {
+      "dba": "CORKTOWN LLC",
+      "address": "401 PORTER AVE UNIT 3 BLDG A OCEAN SPRINGS MS 39564-3715",
+      "city": "OCEAN SPRINGS",
+      "county": "Jackson",
+      "permitType": "Package Retailer",
+      "permitNumber": "042948",
+      "wholesaler": false
+    },
+    {
+      "dba": "CHARLIE SANG PACKAGE STORE INC",
+      "address": "709 BRADFORD ST ROSEDALE MS 38769",
+      "city": "ROSEDALE",
+      "county": "Bolivar",
+      "permitType": "Package Retailer",
+      "permitNumber": "008497",
+      "wholesaler": false
+    },
+    {
+      "dba": "RESERVOIR WINE & SPIRITS",
+      "address": "775 LAKE HARBOUR DR STE C RIDGELAND MS 39157-1292",
+      "city": "RIDGELAND",
+      "county": "Madison",
+      "permitType": "Package Retailer",
+      "permitNumber": "048419",
+      "wholesaler": false
+    },
+    {
+      "dba": "SPIRITS",
+      "address": "1765 POPPS FERRY RD STE E BILOXI MS 39532-2158",
+      "city": "BILOXI",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "025352",
+      "wholesaler": false
+    },
+    {
+      "dba": "QUICK 7 PACKAGE STORE",
+      "address": "535 N HAYDEN ST BELZONI MS 39038-3615",
+      "city": "BELZONI",
+      "county": "Humphreys",
+      "permitType": "Package Retailer",
+      "permitNumber": "051001",
+      "wholesaler": false
+    },
+    {
+      "dba": "D D PACKAGE STORE",
+      "address": "1187 N MARTIN LUTHER KING ST STE C NATCHEZ MS 39120",
+      "city": "NATCHEZ",
+      "county": "Adams",
+      "permitType": "Package Retailer",
+      "permitNumber": "027810",
+      "wholesaler": false
+    },
+    {
+      "dba": "CLAY WINE AND LIQUOR",
+      "address": "1408 CLAY ST VICKSBURG MS 39183",
+      "city": "VICKSBURG",
+      "county": "Warren",
+      "permitType": "Package Retailer",
+      "permitNumber": "048532",
+      "wholesaler": false
+    },
+    {
+      "dba": "CIRCLE J LIQUOR & WINE",
+      "address": "1009 N WEST ST BLDG C JACKSON MS 39202",
+      "city": "JACKSON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "101007",
+      "wholesaler": false
+    },
+    {
+      "dba": "PAAVN INC",
+      "address": "1529 SIMPSON HIGHWAY 49 MAGEE MS 39111-4209",
+      "city": "MAGEE",
+      "county": "Simpson",
+      "permitType": "Package Retailer",
+      "permitNumber": "049467",
+      "wholesaler": false
+    },
+    {
+      "dba": "BRIARWOOD MART PKG STORE",
+      "address": "4949 OLD CANTON RD JACKSON MS 39211-5405",
+      "city": "JACKSON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "023461",
+      "wholesaler": false
+    },
+    {
+      "dba": "K & J PACKAGE STORE INC",
+      "address": "616 E CLAY ST GREENVILLE MS 38701-5222",
+      "city": "GREENVILLE",
+      "county": "Washington",
+      "permitType": "Package Retailer",
+      "permitNumber": "026639",
+      "wholesaler": false
+    },
+    {
+      "dba": "COWBOYS LIQUOR & WINE LLC",
+      "address": "2527 ELLISVILLE BLVD LAUREL MS 39440-6003",
+      "city": "LAUREL",
+      "county": "Jones",
+      "permitType": "Package Retailer",
+      "permitNumber": "042752",
+      "wholesaler": false
+    },
+    {
+      "dba": "EUPORA WINE & SPIRITS LLC",
+      "address": "1826 VETERANS MEMORIAL BLVD EUPORA MS 39744-2033",
+      "city": "EUPORA",
+      "county": "Webster",
+      "permitType": "Package Retailer",
+      "permitNumber": "045732",
+      "wholesaler": false
+    },
+    {
+      "dba": "ROBERT'S LIQUORS",
+      "address": "240 EISENHOWER DR BILOXI MS 39531-3601",
+      "city": "BILOXI",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "045221",
+      "wholesaler": false
+    },
+    {
+      "dba": "JACKS PACKAGE STORE",
+      "address": "2516 8TH ST MERIDIAN MS 39301-4945",
+      "city": "MERIDIAN",
+      "county": "Lauderdale",
+      "permitType": "Package Retailer",
+      "permitNumber": "007494",
+      "wholesaler": false
+    },
+    {
+      "dba": "EASTSIDE WINE AND LIQUOR LLC",
+      "address": "281 SYLVARENA AVE RALEIGH MS 39153-6010",
+      "city": "RALEIGH",
+      "county": "Smith",
+      "permitType": "Package Retailer",
+      "permitNumber": "070013",
+      "wholesaler": false
+    },
+    {
+      "dba": "HINDUSTAN, LLC",
+      "address": "309 HIGHWAY 12 E STARKVILLE MS 39759-3769",
+      "city": "STARKVILLE",
+      "county": "Oktibbeha",
+      "permitType": "Package Retailer",
+      "permitNumber": "050607",
+      "wholesaler": false
+    },
+    {
+      "dba": "SWEET MAGNOLIAS WINE & LIQOUR",
+      "address": "4416 W RAILROAD ST GULFPORT MS 39501-2477",
+      "city": "GULFPORT",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "062045",
+      "wholesaler": false
+    },
+    {
+      "dba": "PASS CHRISTIAN BOTTLE SHOPPE",
+      "address": "117 HAYDEN AVE PASS CHRISTIAN MS 39571-4902",
+      "city": "PASS CHRISTIAN",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "048217",
+      "wholesaler": false
+    },
+    {
+      "dba": "CARLS WINE & SPIRITS LLC",
+      "address": "6565 HWY 98 W STE 70 HATTIESBURG MS 39402",
+      "city": "HATTIESBURG",
+      "county": "Lamar",
+      "permitType": "Package Retailer",
+      "permitNumber": "023870",
+      "wholesaler": false
+    },
+    {
+      "dba": "RG LIQUOR AND WINE",
+      "address": "1532 W PEACE ST CANTON MS 39046-5325",
+      "city": "CANTON",
+      "county": "Madison",
+      "permitType": "Package Retailer",
+      "permitNumber": "050005",
+      "wholesaler": false
+    },
+    {
+      "dba": "SUPER SAVER LIQUOR LLC",
+      "address": "3802 W 4TH ST STE A HATTIESBURG MS 39401-5788",
+      "city": "HATTIESBURG",
+      "county": "Forrest",
+      "permitType": "Package Retailer",
+      "permitNumber": "023804",
+      "wholesaler": false
+    },
+    {
+      "dba": "JHD LLC",
+      "address": "1034 W WOODROW WILSON AVE JACKSON MS 39213-7439",
+      "city": "JACKSON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "029635",
+      "wholesaler": false
+    },
+    {
+      "dba": "THE WHISKEY BARN",
+      "address": "105 NORTH FRONT STREET SANDERSVILLE MS 39477-0692",
+      "city": "SANDERSVILLE",
+      "county": "Jones",
+      "permitType": "Package Retailer",
+      "permitNumber": "041959",
+      "wholesaler": false
+    },
+    {
+      "dba": "TOOTSIE ROLL WINE AND LIQUOR LLC",
+      "address": "401 SUMMIT ST MCCOMB MS 39648-3346",
+      "city": "MCCOMB",
+      "county": "Pike",
+      "permitType": "Package Retailer",
+      "permitNumber": "052257",
+      "wholesaler": false
+    },
+    {
+      "dba": "ELITE LIQUOR AND WINES INC",
+      "address": "9180 HACKS CROSS RD STE 300-400 OLIVE BRANCH MS 38654-3832",
+      "city": "OLIVE BRANCH",
+      "county": "DeSoto",
+      "permitType": "Package Retailer",
+      "permitNumber": "050386",
+      "wholesaler": false
+    },
+    {
+      "dba": "G AND G LLC",
+      "address": "3016 HIGHWAY 51 S HERNANDO MS 38632-2714",
+      "city": "HERNANDO",
+      "county": "DeSoto",
+      "permitType": "Package Retailer",
+      "permitNumber": "048224",
+      "wholesaler": false
+    },
+    {
+      "dba": "CHIANTI LIQUOR",
+      "address": "3001 HIGHWAY 51 N STE E NESBIT MS 38651",
+      "city": "NESBIT",
+      "county": "DeSoto",
+      "permitType": "Package Retailer",
+      "permitNumber": "058368",
+      "wholesaler": false
+    },
+    {
+      "dba": "ENDELEA ENTERPRISES LLC",
+      "address": "665 S PEAR ORCHARD RD STE 112 RIDGELAND MS 39157-4859",
+      "city": "RIDGELAND",
+      "county": "Madison",
+      "permitType": "Package Retailer",
+      "permitNumber": "052634",
+      "wholesaler": false
+    },
+    {
+      "dba": "SKYLER'S LIQUOR AND WINE",
+      "address": "1621 PASS RD STE F BILOXI MS 39531-4365",
+      "city": "BILOXI",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "088007",
+      "wholesaler": false
+    },
+    {
+      "dba": "MAGEE WINE AND LIQUOR",
+      "address": "1708 SIMPSON HIGHWAY 49 STE 3 MAGEE MS 39111-5032",
+      "city": "MAGEE",
+      "county": "Simpson",
+      "permitType": "Package Retailer",
+      "permitNumber": "041215",
+      "wholesaler": false
+    },
+    {
+      "dba": "JW JENNINGS LIQUOR",
+      "address": "504 HANCOCK ST BLDG BUILDING TUTWILER MS 38963",
+      "city": "TUTWILER",
+      "county": "Tallahatchie",
+      "permitType": "Package Retailer",
+      "permitNumber": "050265",
+      "wholesaler": false
+    },
+    {
+      "dba": "PIRATES LIQUORS",
+      "address": "2905 25TH AVE STE F GULFPORT MS 39501-5918",
+      "city": "GULFPORT",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "052179",
+      "wholesaler": false
+    },
+    {
+      "dba": "SOLOMANS PACKAGE LIQUOR & WINE",
+      "address": "271D BEAUVOIR RD BILOXI MS 39531-4008",
+      "city": "BILOXI",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "007465",
+      "wholesaler": false
+    },
+    {
+      "dba": "BETTER DAZE WINES & SPIRITS",
+      "address": "1787 MAGNOLIA DR MACON MS 39341-2036",
+      "city": "MACON",
+      "county": "Noxubee",
+      "permitType": "Package Retailer",
+      "permitNumber": "040304",
+      "wholesaler": false
+    },
+    {
+      "dba": "RED MONKEY PACKAGE STORE LLC",
+      "address": "955 LAKEVIEW DR GRENADA MS 38901-4306",
+      "city": "GRENADA",
+      "county": "Grenada",
+      "permitType": "Package Retailer",
+      "permitNumber": "022374",
+      "wholesaler": false
+    },
+    {
+      "dba": "UNIVERSITY WINE & SPIRITS",
+      "address": "6335 HWY 49 STE 30 HATTIESBURG MS 39402",
+      "city": "HATTIESBURG",
+      "county": "Forrest",
+      "permitType": "Package Retailer",
+      "permitNumber": "023375",
+      "wholesaler": false
+    },
+    {
+      "dba": "LOUISVILLE DISCOUNT PACKAGE IN",
+      "address": "2768 N CHURCH AVE LOUISVILLE MS 39339-2054",
+      "city": "LOUISVILLE",
+      "county": "Winston",
+      "permitType": "Package Retailer",
+      "permitNumber": "027355",
+      "wholesaler": false
+    },
+    {
+      "dba": "SUMMIT WINE AND LIQUOR LLC",
+      "address": "1272 EVELYN GANDY PKWY STE 70 PETAL MS 39465-3953",
+      "city": "PETAL",
+      "county": "Forrest",
+      "permitType": "Package Retailer",
+      "permitNumber": "050153",
+      "wholesaler": false
+    },
+    {
+      "dba": "WINONA FINE WINES & SPIRT",
+      "address": "645 MIDDLETON RD WINONA MS 38967-2021",
+      "city": "WINONA",
+      "county": "Montgomery",
+      "permitType": "Package Retailer",
+      "permitNumber": "008018",
+      "wholesaler": false
+    },
+    {
+      "dba": "THIRSTY 8 OAK INC",
+      "address": "2842 MAY BLVD STE 101 SOUTHAVEN MS 38672",
+      "city": "SOUTHAVEN",
+      "county": "DeSoto",
+      "permitType": "Package Retailer",
+      "permitNumber": "042925",
+      "wholesaler": false
+    },
+    {
+      "dba": "GALAXY LIQUOR",
+      "address": "685B CALDWELL DR HAZLEHURST MS 39083-2307",
+      "city": "HAZLEHURST",
+      "county": "Copiah",
+      "permitType": "Package Retailer",
+      "permitNumber": "040656",
+      "wholesaler": false
+    },
+    {
+      "dba": "CARTHAGE LIQUOR LLC",
+      "address": "807 HIGHWAY 35 S CARTHAGE MS 39051-5803",
+      "city": "CARTHAGE",
+      "county": "Leake",
+      "permitType": "Package Retailer",
+      "permitNumber": "050293",
+      "wholesaler": false
+    },
+    {
+      "dba": "LOVE AMERICA WINE",
+      "address": "5791 TERRY RD STE 209 BYRAM MS 39272-9206",
+      "city": "BYRAM",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "026862",
+      "wholesaler": false
+    },
+    {
+      "dba": "DRINX FINE WINE & SPIRITS",
+      "address": "3821 PROMENADE PKWY # O-06 DIBERVILLE MS 39540-5374",
+      "city": "DIBERVILLE",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "071056",
+      "wholesaler": false
+    },
+    {
+      "dba": "BOTTLE SHOP WINE & SPIRITS",
+      "address": "2712 GEORGE PATTERSON PARKWAY STE 102 OXFORD MS 38655",
+      "city": "OXFORD",
+      "county": "Lafayette",
+      "permitType": "Package Retailer",
+      "permitNumber": "043253",
+      "wholesaler": false
+    },
+    {
+      "dba": "MARKETPLACE WINE AND SPIRITS",
+      "address": "701 SISK AVE # B OXFORD MS 38655-3413",
+      "city": "OXFORD",
+      "county": "Lafayette",
+      "permitType": "Package Retailer",
+      "permitNumber": "030581",
+      "wholesaler": false
+    },
+    {
+      "dba": "FAIR CITY LIQUOR INC",
+      "address": "12060 PECAN AVENUE PHILADELPHIA MS 39350",
+      "city": "PHILADELPHIA",
+      "county": "Neshoba",
+      "permitType": "Package Retailer",
+      "permitNumber": "029458",
+      "wholesaler": false
+    },
+    {
+      "dba": "LIQUOR PALACE",
+      "address": "4498 W NORTHSIDE DR STE D JACKSON MS 39209-2436",
+      "city": "JACKSON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "040556",
+      "wholesaler": false
+    },
+    {
+      "dba": "DAKS ENTERPRISES LLC",
+      "address": "807 E MAIN STREET BLDG STE B FULTON MS 38843",
+      "city": "FULTON",
+      "county": "Itawamba",
+      "permitType": "Package Retailer",
+      "permitNumber": "050582",
+      "wholesaler": false
+    },
+    {
+      "dba": "EAST AVENUE PACKAGE STORE",
+      "address": "516 EAST AVE N HOLLANDALE MS 38748-3718",
+      "city": "HOLLANDALE",
+      "county": "Washington",
+      "permitType": "Package Retailer",
+      "permitNumber": "024087",
+      "wholesaler": false
+    },
+    {
+      "dba": "THREE WISE MEN LLC",
+      "address": "2308 EAST SHILOH ROAD CORINTH MS 38834",
+      "city": "CORINTH",
+      "county": "Alcorn",
+      "permitType": "Package Retailer",
+      "permitNumber": "051255",
+      "wholesaler": false
+    },
+    {
+      "dba": "RUSTY BARREL WINE & LIQUOR",
+      "address": "8987 HIGHWAY 19 N COLLINSVILLE MS 39325-9399",
+      "city": "COLLINSVILLE",
+      "county": "Lauderdale",
+      "permitType": "Package Retailer",
+      "permitNumber": "070145",
+      "wholesaler": false
+    },
+    {
+      "dba": "GLOSTER WINE AND SPIRITS",
+      "address": "618 N GLOSTER ST TUPELO MS 38804-1945",
+      "city": "TUPELO",
+      "county": "Lee",
+      "permitType": "Package Retailer",
+      "permitNumber": "041341",
+      "wholesaler": false
+    },
+    {
+      "dba": "BYPASS LIQUORS",
+      "address": "345 HIGHWAY 82 W FRNT 1 GREENWOOD MS 38930-6538",
+      "city": "GREENWOOD",
+      "county": "Leflore",
+      "permitType": "Package Retailer",
+      "permitNumber": "061352",
+      "wholesaler": false
+    },
+    {
+      "dba": "MARNAS FINE WINE & SPIRITS",
+      "address": "6051 DALE DR STE E MARION MS 39342-9467",
+      "city": "MARION",
+      "county": "Lauderdale",
+      "permitType": "Package Retailer",
+      "permitNumber": "029966",
+      "wholesaler": false
+    },
+    {
+      "dba": "PATRIOT SPIRITS INC",
+      "address": "35 BYRD BLVD STE 201 PETAL MS 39465-9288",
+      "city": "PETAL",
+      "county": "Forrest",
+      "permitType": "Package Retailer",
+      "permitNumber": "026013",
+      "wholesaler": false
+    },
+    {
+      "dba": "SHIV SHAKTI BYHALIA INC",
+      "address": "65 EAST STONEWALL RD BYHALIA MS 38611",
+      "city": "BYHALIA",
+      "county": "Marshall",
+      "permitType": "Package Retailer",
+      "permitNumber": "040796",
+      "wholesaler": false
+    },
+    {
+      "dba": "61 LIQUOR STORE LLC",
+      "address": "446 HIGHWAY 61 NORTH CLEVELAND MS 38732",
+      "city": "CLEVELAND",
+      "county": "Bolivar",
+      "permitType": "Package Retailer",
+      "permitNumber": "043834",
+      "wholesaler": false
+    },
+    {
+      "dba": "LIQUOR CONNECTION",
+      "address": "5315 I 55 N JACKSON MS 39206-4105",
+      "city": "JACKSON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "023929",
+      "wholesaler": false
+    },
+    {
+      "dba": "RULEVILLE SPIRITS",
+      "address": "648 N OAK AVE RULEVILLE MS 38771-3628",
+      "city": "RULEVILLE",
+      "county": "Sunflower",
+      "permitType": "Package Retailer",
+      "permitNumber": "042308",
+      "wholesaler": false
+    },
+    {
+      "dba": "TIPSY'S LIQUOR & WINE",
+      "address": "141 HIGHWAY 61 S NATCHEZ MS 39120-5216",
+      "city": "NATCHEZ",
+      "county": "Adams",
+      "permitType": "Package Retailer",
+      "permitNumber": "047635",
+      "wholesaler": false
+    },
+    {
+      "dba": "MICKEYS LAKESIDE PACKAGE",
+      "address": "5287 COUNTY ROAD 16 STE B PACHUTA MS 39347-5280",
+      "city": "PACHUTA",
+      "county": "Jasper",
+      "permitType": "Package Retailer",
+      "permitNumber": "042760",
+      "wholesaler": false
+    },
+    {
+      "dba": "A H LIQUOR STORE LLC",
+      "address": "1007 W BAY STREET MAGNOLIA MS BLDG 1007 MAGNOLIA MS 39652",
+      "city": "MAGNOLIA",
+      "county": "Pike",
+      "permitType": "Package Retailer",
+      "permitNumber": "057006",
+      "wholesaler": false
+    },
+    {
+      "dba": "LANGSTON'S LIQUOR",
+      "address": "21612 HWY 613 MOSS POINT MS 39562",
+      "city": "MOSS POINT",
+      "county": "Jackson",
+      "permitType": "Package Retailer",
+      "permitNumber": "040386",
+      "wholesaler": false
+    },
+    {
+      "dba": "BODDLES WINE AND SPIRITS",
+      "address": "115-B HWY 12 EAST BLDG B KOSCIUSKO MS 39090",
+      "city": "KOSCIUSKO",
+      "county": "Attala",
+      "permitType": "Package Retailer",
+      "permitNumber": "042713",
+      "wholesaler": false
+    },
+    {
+      "dba": "CHASER'S LIQUOR & WINE",
+      "address": "2801 S GLOSTER ST STE B TUPELO MS 38801-8821",
+      "city": "TUPELO",
+      "county": "Lee",
+      "permitType": "Package Retailer",
+      "permitNumber": "049463",
+      "wholesaler": false
+    },
+    {
+      "dba": "CHOICE LIQUOR AND WINE INC",
+      "address": "2450 GOODMAN RD W HORN LAKE MS 38637-1309",
+      "city": "HORN LAKE",
+      "county": "DeSoto",
+      "permitType": "Package Retailer",
+      "permitNumber": "049280",
+      "wholesaler": false
+    },
+    {
+      "dba": "LUCEDALE WINE AND LIQUOR LLC",
+      "address": "26500 HIGHWAY 63 STE B LUCEDALE MS 39452-4921",
+      "city": "LUCEDALE",
+      "county": "Jackson",
+      "permitType": "Package Retailer",
+      "permitNumber": "050726",
+      "wholesaler": false
+    },
+    {
+      "dba": "SUNRISE 09 LLC",
+      "address": "2329 MARTIN LUTHER KING JR DR COLUMBUS MS 39705-2640",
+      "city": "COLUMBUS",
+      "county": "Lowndes",
+      "permitType": "Package Retailer",
+      "permitNumber": "044445",
+      "wholesaler": false
+    },
+    {
+      "dba": "PAVAN PETAL LLC",
+      "address": "202 S MAIN ST PETAL MS 39465-2361",
+      "city": "PETAL",
+      "county": "Forrest",
+      "permitType": "Package Retailer",
+      "permitNumber": "057069",
+      "wholesaler": false
+    },
+    {
+      "dba": "COCKTAIL LLC",
+      "address": "942 HIGHWAY 90 WAVELAND MS 39576-2312",
+      "city": "WAVELAND",
+      "county": "Hancock",
+      "permitType": "Package Retailer",
+      "permitNumber": "026539",
+      "wholesaler": false
+    },
+    {
+      "dba": "ANDY'S LIQUOR LLC",
+      "address": "317 A MAIN ST MONTICELLO MS 39601",
+      "city": "MONTICELLO",
+      "county": "Lawrence",
+      "permitType": "Package Retailer",
+      "permitNumber": "048139",
+      "wholesaler": false
+    },
+    {
+      "dba": "TOPPERS FINE WINE AND SPIRITS",
+      "address": "1139 OLD FANNIN RD STE R BRANDON MS 39047-9245",
+      "city": "BRANDON",
+      "county": "Rankin",
+      "permitType": "Package Retailer",
+      "permitNumber": "044830",
+      "wholesaler": false
+    },
+    {
+      "dba": "CLOVERLEAF PKG STORE CORP",
+      "address": "2122 N FRONTAGE RD MERIDIAN MS 39301-6158",
+      "city": "MERIDIAN",
+      "county": "Lauderdale",
+      "permitType": "Package Retailer",
+      "permitNumber": "046736",
+      "wholesaler": false
+    },
+    {
+      "dba": "LIBRARY LIQUORS",
+      "address": "15160 HWY 67 STE B BILOXI MS 39532",
+      "city": "BILOXI",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "045740",
+      "wholesaler": false
+    },
+    {
+      "dba": "CLINTON WINE AND LIQUOR LLC",
+      "address": "484 SPRINGRIDGE RD STE A CLINTON MS 39056-4807",
+      "city": "CLINTON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "043623",
+      "wholesaler": false
+    },
+    {
+      "dba": "MUDDLERS LIQUOR AND WINE INC",
+      "address": "984 MAIN ST SOUTHAVEN MS 38671-1509",
+      "city": "SOUTHAVEN",
+      "county": "DeSoto",
+      "permitType": "Package Retailer",
+      "permitNumber": "046224",
+      "wholesaler": false
+    },
+    {
+      "dba": "NP HOUSTON LLC",
+      "address": "905 N PONTOTOC ST STE C HOUSTON MS 38851-1516",
+      "city": "HOUSTON",
+      "county": "Chickasaw",
+      "permitType": "Package Retailer",
+      "permitNumber": "047896",
+      "wholesaler": false
+    },
+    {
+      "dba": "STEEL BOOZE",
+      "address": "259 HIGHWAY 51 COMO MS 38619-9448",
+      "city": "COMO",
+      "county": "Panola",
+      "permitType": "Package Retailer",
+      "permitNumber": "042325",
+      "wholesaler": false
+    },
+    {
+      "dba": "FINE WINE AND LIQUOR LOFT INC",
+      "address": "28 MARKET CT STE 150 HATTIESBURG MS 39402-7208",
+      "city": "HATTIESBURG",
+      "county": "Lamar",
+      "permitType": "Package Retailer",
+      "permitNumber": "024005",
+      "wholesaler": false
+    },
+    {
+      "dba": "THE WINE CELLAR",
+      "address": "5218 GOODMAN RD STE 105 OLIVE BRANCH MS 38654-7985",
+      "city": "OLIVE BRANCH",
+      "county": "DeSoto",
+      "permitType": "Package Retailer",
+      "permitNumber": "028692",
+      "wholesaler": false
+    },
+    {
+      "dba": "MERCHANT OF VINO",
+      "address": "4500 I 55 N JACKSON MS 39211-5930",
+      "city": "JACKSON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "028984",
+      "wholesaler": false
+    },
+    {
+      "dba": "THE WINE CELLAR",
+      "address": "102 CARTERVILLE RD PETAL MS 39465-2502",
+      "city": "PETAL",
+      "county": "Forrest",
+      "permitType": "Package Retailer",
+      "permitNumber": "047059",
+      "wholesaler": false
+    },
+    {
+      "dba": "HOLIDAY LIQUOR",
+      "address": "1016 ELLISVILLE BLVD LAUREL MS 39440-5353",
+      "city": "LAUREL",
+      "county": "Jones",
+      "permitType": "Package Retailer",
+      "permitNumber": "027929",
+      "wholesaler": false
+    },
+    {
+      "dba": "VAULT LLC 2",
+      "address": "3611 DENNY AVE PASCAGOULA MS 39581-5419",
+      "city": "PASCAGOULA",
+      "county": "Jackson",
+      "permitType": "Package Retailer",
+      "permitNumber": "068034",
+      "wholesaler": false
+    },
+    {
+      "dba": "GREENFIELD WINE & SPIRITS LLC",
+      "address": "3006 GREENFIELD RD STE C BRANDON MS 39042",
+      "city": "BRANDON",
+      "county": "Rankin",
+      "permitType": "Package Retailer",
+      "permitNumber": "049873",
+      "wholesaler": false
+    },
+    {
+      "dba": "CORK AND BOTTLE WINE AND SPIRI",
+      "address": "1331 SOUTH STREET, SUITE A BLDG A GRENADA MS 38901",
+      "city": "GRENADA",
+      "county": "Grenada",
+      "permitType": "Package Retailer",
+      "permitNumber": "096013",
+      "wholesaler": false
+    },
+    {
+      "dba": "82 EAST LIQUOR LLC",
+      "address": "628 HIGHWAY 82 E GREENVILLE MS 38701-5451",
+      "city": "GREENVILLE",
+      "county": "Washington",
+      "permitType": "Package Retailer",
+      "permitNumber": "041978",
+      "wholesaler": false
+    },
+    {
+      "dba": "C & N LIQUORS DBA LEGACY LIQUO",
+      "address": "1403 GOODMAN RD W BLDG 8 & 9 HORN LAKE MS 38637-1402",
+      "city": "HORN LAKE",
+      "county": "DeSoto",
+      "permitType": "Package Retailer",
+      "permitNumber": "040700",
+      "wholesaler": false
+    },
+    {
+      "dba": "LIQUOR WORLD LLC",
+      "address": "6160 HIGHWAY 45 ALT S WEST POINT MS 39773-9432",
+      "city": "WEST POINT",
+      "county": "Clay",
+      "permitType": "Package Retailer",
+      "permitNumber": "045653",
+      "wholesaler": false
+    },
+    {
+      "dba": "SUNRISE WINE & SPIRITS LLC",
+      "address": "5681 HIGHWAY 18 W STE B JACKSON MS 39209-9622",
+      "city": "JACKSON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "041733",
+      "wholesaler": false
+    },
+    {
+      "dba": "DOWNTOWN WINE & LIQUOR INC",
+      "address": "150 SUNFLOWER AVE CLARKSDALE MS 38614-4219",
+      "city": "CLARKSDALE",
+      "county": "Coahoma",
+      "permitType": "Package Retailer",
+      "permitNumber": "026629",
+      "wholesaler": false
+    },
+    {
+      "dba": "BROADWAY LIQUOR & SPIRITS LLC",
+      "address": "1305 S BROADWAY STREET SHELBY MS 38774",
+      "city": "SHELBY",
+      "county": "Bolivar",
+      "permitType": "Package Retailer",
+      "permitNumber": "051941",
+      "wholesaler": false
+    },
+    {
+      "dba": "K & R BUBBLES & BOOZE LLC",
+      "address": "318 W FRONTAGE RD COLLINS MS 39428-3855",
+      "city": "COLLINS",
+      "county": "Covington",
+      "permitType": "Package Retailer",
+      "permitNumber": "051859",
+      "wholesaler": false
+    },
+    {
+      "dba": "POWELL LIQUOR & WINE",
+      "address": "45 MOUNT OLIVET RD BATESVILLE MS 38606-7400",
+      "city": "BATESVILLE",
+      "county": "Panola",
+      "permitType": "Package Retailer",
+      "permitNumber": "051267",
+      "wholesaler": false
+    },
+    {
+      "dba": "WINE & LIQUOR",
+      "address": "1046 CHURCH RD W STE 105 SOUTHAVEN MS 38671-7140",
+      "city": "SOUTHAVEN",
+      "county": "DeSoto",
+      "permitType": "Package Retailer",
+      "permitNumber": "021674",
+      "wholesaler": false
+    },
+    {
+      "dba": "FERDIES DISCOUNT WINE & LIQUOR LLC",
+      "address": "721 HIGHWAY 19 N MERIDIAN MS 39307-6352",
+      "city": "MERIDIAN",
+      "county": "Lauderdale",
+      "permitType": "Package Retailer",
+      "permitNumber": "021334",
+      "wholesaler": false
+    },
+    {
+      "dba": "10 TO 10 LIQUORS",
+      "address": "579 EAST VETERANS BLVD CALHOUN CITY MS 38916",
+      "city": "CALHOUN CITY",
+      "county": "Calhoun",
+      "permitType": "Package Retailer",
+      "permitNumber": "050419",
+      "wholesaler": false
+    },
+    {
+      "dba": "DEBOS LIQUOR & WINE INC",
+      "address": "1113 US 61 UNIT A PORT GIBSON MS 39150",
+      "city": "PORT GIBSON",
+      "county": "Claiborne",
+      "permitType": "Package Retailer",
+      "permitNumber": "050319",
+      "wholesaler": false
+    },
+    {
+      "dba": "SONYA LIQUOR & WINE INC",
+      "address": "128A S MEMPHIS ST HOLLY SPRINGS MS 38635-2920",
+      "city": "HOLLY SPRINGS",
+      "county": "Marshall",
+      "permitType": "Package Retailer",
+      "permitNumber": "027054",
+      "wholesaler": false
+    },
+    {
+      "dba": "GOODMAN PACKAGE STORE",
+      "address": "6853 HIGHWAY 51 GOODMAN MS 39079-9003",
+      "city": "GOODMAN",
+      "county": "Holmes",
+      "permitType": "Package Retailer",
+      "permitNumber": "007352",
+      "wholesaler": false
+    },
+    {
+      "dba": "LOVELLS LIQUOR",
+      "address": "3911 HIGHWAY 305 S HERNANDO MS 38632-7105",
+      "city": "HERNANDO",
+      "county": "DeSoto",
+      "permitType": "Package Retailer",
+      "permitNumber": "057174",
+      "wholesaler": false
+    },
+    {
+      "dba": "PARIMAC PACKAGE STORE",
+      "address": "391 PHILADELPHIA RD DE KALB MS 39328-8093",
+      "city": "DE KALB",
+      "county": "Kemper",
+      "permitType": "Package Retailer",
+      "permitNumber": "006215",
+      "wholesaler": false
+    },
+    {
+      "dba": "THE LIQUOR BOX",
+      "address": "2763 OAK GROVE RD STE 50 HATTIESBURG MS 39402-5909",
+      "city": "HATTIESBURG",
+      "county": "Lamar",
+      "permitType": "Package Retailer",
+      "permitNumber": "050310",
+      "wholesaler": false
+    },
+    {
+      "dba": "ON THE FLY WINE & LIQUOR",
+      "address": "12258 SHRINERS BLVD STE B BILOXI MS 39532-8244",
+      "city": "BILOXI",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "069226",
+      "wholesaler": false
+    },
+    {
+      "dba": "NEW ALBANY FINE WINE AND SPIRI",
+      "address": "704 W BANKHEAD ST NEW ALBANY MS 38652-2801",
+      "city": "NEW ALBANY",
+      "county": "Union",
+      "permitType": "Package Retailer",
+      "permitNumber": "051170",
+      "wholesaler": false
+    },
+    {
+      "dba": "C&K LIQUOR STORE",
+      "address": "524 HOWARD AVE BILOXI MS 39530-4450",
+      "city": "BILOXI",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "041373",
+      "wholesaler": false
+    },
+    {
+      "dba": "7 SOUTH WINE AND SPIRITS",
+      "address": "104 COMMERCE DR BLDG 0 OXFORD MS 38655-7350",
+      "city": "OXFORD",
+      "county": "Lafayette",
+      "permitType": "Package Retailer",
+      "permitNumber": "108138",
+      "wholesaler": false
+    },
+    {
+      "dba": "FOREST SPIRIT WORLD LLC",
+      "address": "112 HILL ST UNIT B FOREST MS 39074-4129",
+      "city": "FOREST",
+      "county": "Scott",
+      "permitType": "Package Retailer",
+      "permitNumber": "047529",
+      "wholesaler": false
+    },
+    {
+      "dba": "LS LLC",
+      "address": "134 HIGHWAY 6 W BATESVILLE MS 38606-2507",
+      "city": "BATESVILLE",
+      "county": "Panola",
+      "permitType": "Package Retailer",
+      "permitNumber": "050484",
+      "wholesaler": false
+    },
+    {
+      "dba": "MP WINE AND LIQUOR",
+      "address": "4130A MAIN ST BLDG A MOSS POINT MS 39563",
+      "city": "MOSS POINT",
+      "county": "Jackson",
+      "permitType": "Package Retailer",
+      "permitNumber": "030090",
+      "wholesaler": false
+    },
+    {
+      "dba": "VTR LLC",
+      "address": "505 SPRINGRIDGE RD STE A CLINTON MS 39056-5612",
+      "city": "CLINTON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "052167",
+      "wholesaler": false
+    },
+    {
+      "dba": "BROOKWAY WINE & SPIRITS",
+      "address": "912 BROOKWAY BLVD BROOKHAVEN MS 39601-2644",
+      "city": "BROOKHAVEN",
+      "county": "Lincoln",
+      "permitType": "Package Retailer",
+      "permitNumber": "029255",
+      "wholesaler": false
+    },
+    {
+      "dba": "WINE RACK I, LLC",
+      "address": "4630 HANGING MOSS RD JACKSON MS 39206-3311",
+      "city": "JACKSON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "048836",
+      "wholesaler": false
+    },
+    {
+      "dba": "LIQUOR WORLD",
+      "address": "1928 HIGHWAY 45 N STE 2 COLUMBUS MS 39705-1949",
+      "city": "COLUMBUS",
+      "county": "Lowndes",
+      "permitType": "Package Retailer",
+      "permitNumber": "048800",
+      "wholesaler": false
+    },
+    {
+      "dba": "GIT N GO PACKAGE STORE",
+      "address": "494 ROAD 2878 BALDWYN MS 38824-9754",
+      "city": "BALDWYN",
+      "county": "Lee",
+      "permitType": "Package Retailer",
+      "permitNumber": "027891",
+      "wholesaler": false
+    },
+    {
+      "dba": "LEONARDS WINES & SPIRITS L L C",
+      "address": "725 MOLLY BARR RD OXFORD MS 38655-2158",
+      "city": "OXFORD",
+      "county": "Lafayette",
+      "permitType": "Package Retailer",
+      "permitNumber": "024565",
+      "wholesaler": false
+    },
+    {
+      "dba": "FRANKLIN STREET PACKAGE S",
+      "address": "303 JOHN R JUNKIN DR NATCHEZ MS 39120-3823",
+      "city": "NATCHEZ",
+      "county": "Adams",
+      "permitType": "Package Retailer",
+      "permitNumber": "007609",
+      "wholesaler": false
+    },
+    {
+      "dba": "FESTIVE 1 LLC",
+      "address": "103 W MONROE AVE OKOLONA MS 38860-1815",
+      "city": "OKOLONA",
+      "county": "Chickasaw",
+      "permitType": "Package Retailer",
+      "permitNumber": "044965",
+      "wholesaler": false
+    },
+    {
+      "dba": "EVERYTHING LIQUOR",
+      "address": "726 HIGHWAY 90 STE D GAUTIER MS 39553-5613",
+      "city": "GAUTIER",
+      "county": "Jackson",
+      "permitType": "Package Retailer",
+      "permitNumber": "046540",
+      "wholesaler": false
+    },
+    {
+      "dba": "DON CHUYS PLACE LLC",
+      "address": "1350 N LAMAR BLVD STE 2 OXFORD MS 38655-2801",
+      "city": "OXFORD",
+      "county": "Lafayette",
+      "permitType": "Package Retailer",
+      "permitNumber": "051955",
+      "wholesaler": false
+    },
+    {
+      "dba": "THE LIQUID LIBRARY",
+      "address": "3558 W MAIN STREET C UNIT CBLDG TUPELO MS 38801",
+      "city": "TUPELO",
+      "county": "Pontotoc",
+      "permitType": "Package Retailer",
+      "permitNumber": "046336",
+      "wholesaler": false
+    },
+    {
+      "dba": "MUD CREEK WINE & SPIRITS",
+      "address": "2989A W BARNES CROSSING RD TUPELO MS 38804",
+      "city": "TUPELO",
+      "county": "Lee",
+      "permitType": "Package Retailer",
+      "permitNumber": "047990",
+      "wholesaler": false
+    },
+    {
+      "dba": "QUITMAN LIQUOR AND WINE LLC",
+      "address": "204A N ARCHUSA AVE QUITMAN MS 39355-2417",
+      "city": "QUITMAN",
+      "county": "Clarke",
+      "permitType": "Package Retailer",
+      "permitNumber": "042270",
+      "wholesaler": false
+    },
+    {
+      "dba": "SENATOBIA SPIRITS",
+      "address": "4673 US-51N SENATOBIA MS 38668-2009",
+      "city": "SENATOBIA",
+      "county": "Tate",
+      "permitType": "Package Retailer",
+      "permitNumber": "044907",
+      "wholesaler": false
+    },
+    {
+      "dba": "ARROW WINE & SPIRITS LLC",
+      "address": "25 LAKEVIEW DR CLINTON MS 39056-5221",
+      "city": "CLINTON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "026481",
+      "wholesaler": false
+    },
+    {
+      "dba": "CHARLEYS WINE & SPIRITS",
+      "address": "718 S MERIDIAN ST ABERDEEN MS 39730-3345",
+      "city": "ABERDEEN",
+      "county": "Monroe",
+      "permitType": "Package Retailer",
+      "permitNumber": "046800",
+      "wholesaler": false
+    },
+    {
+      "dba": "TWIN STAR WINE & LIQUOR LLC",
+      "address": "9442 HIGHWAY 49 STE B GULFPORT MS 39503-4258",
+      "city": "GULFPORT",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "026984",
+      "wholesaler": false
+    },
+    {
+      "dba": "JB LIQUOR STORE LLC",
+      "address": "903 S MAIN ST ROSEDALE MS 38769",
+      "city": "ROSEDALE",
+      "county": "Bolivar",
+      "permitType": "Package Retailer",
+      "permitNumber": "049493",
+      "wholesaler": false
+    },
+    {
+      "dba": "76 LIQUOR STORE",
+      "address": "1696 W MAIN ST SENATOBIA MS 38668-2313",
+      "city": "SENATOBIA",
+      "county": "Tate",
+      "permitType": "Package Retailer",
+      "permitNumber": "043377",
+      "wholesaler": false
+    },
+    {
+      "dba": "CROSSROADS LIQUOR",
+      "address": "3779 HIGHWAY 18 ROSE HILL MS 39356-5369",
+      "city": "ROSE HILL",
+      "county": "Jasper",
+      "permitType": "Package Retailer",
+      "permitNumber": "049929",
+      "wholesaler": false
+    },
+    {
+      "dba": "FIVE STAR WINE AND LIQUOR",
+      "address": "190 COLLONADE PLZ SENATOBIA MS 38668-1723",
+      "city": "SENATOBIA",
+      "county": "Tate",
+      "permitType": "Package Retailer",
+      "permitNumber": "043936",
+      "wholesaler": false
+    },
+    {
+      "dba": "LEE'S LIQUOR & WINE",
+      "address": "707 3RD AVE SW MAGEE MS 39111-4039",
+      "city": "MAGEE",
+      "county": "Simpson",
+      "permitType": "Package Retailer",
+      "permitNumber": "075134",
+      "wholesaler": false
+    },
+    {
+      "dba": "HARDY ST MART WINE & LIQUOR LLC",
+      "address": "1900 HARDY ST STE B HATTIESBURG MS 39401-4984",
+      "city": "HATTIESBURG",
+      "county": "Forrest",
+      "permitType": "Package Retailer",
+      "permitNumber": "044859",
+      "wholesaler": false
+    },
+    {
+      "dba": "LEE STREET LIQUORS & WINE, INC",
+      "address": "500 S DAVIS AVE CLEVELAND MS 38732-3948",
+      "city": "CLEVELAND",
+      "county": "Bolivar",
+      "permitType": "Package Retailer",
+      "permitNumber": "041114",
+      "wholesaler": false
+    },
+    {
+      "dba": "NANBAI 9, LLC",
+      "address": "704 MAIN ST COLLINS MS 39428-6185",
+      "city": "COLLINS",
+      "county": "Covington",
+      "permitType": "Package Retailer",
+      "permitNumber": "043838",
+      "wholesaler": false
+    },
+    {
+      "dba": "THE LOFT WINE & SPIRITS",
+      "address": "206 STARLYN AVE NEW ALBAN NEW ALBANY MS 38652",
+      "city": "NEW ALBANY",
+      "county": "Union",
+      "permitType": "Package Retailer",
+      "permitNumber": "028565",
+      "wholesaler": false
+    },
+    {
+      "dba": "RAYMAX LLC",
+      "address": "8946 AIRWAYS BLVD STE 2 SOUTHAVEN MS 38671-2616",
+      "city": "SOUTHAVEN",
+      "county": "DeSoto",
+      "permitType": "Package Retailer",
+      "permitNumber": "070026",
+      "wholesaler": false
+    },
+    {
+      "dba": "98 LIQUOR & WINE LLC",
+      "address": "6068 U S HIGHWAY 98 STE 7 HATTIESBURG MS 39402-8881",
+      "city": "HATTIESBURG",
+      "county": "Lamar",
+      "permitType": "Package Retailer",
+      "permitNumber": "023670",
+      "wholesaler": false
+    },
+    {
+      "dba": "BYRAM WINE & SPIRITS LLC",
+      "address": "7262 S SIWELL RD BYRAM MS 39272-8703",
+      "city": "BYRAM",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "024630",
+      "wholesaler": false
+    },
+    {
+      "dba": "WOODVILLE PACKAGE STORE",
+      "address": "178 MAIN ST WOODVILLE MS 39669-9707",
+      "city": "WOODVILLE",
+      "county": "Wilkinson",
+      "permitType": "Package Retailer",
+      "permitNumber": "056004",
+      "wholesaler": false
+    },
+    {
+      "dba": "3 WAY LIQUOR",
+      "address": "833 ARNEZ AVE STE C FRIARS POINT MS 38631",
+      "city": "FRIARS POINT",
+      "county": "Coahoma",
+      "permitType": "Package Retailer",
+      "permitNumber": "046527",
+      "wholesaler": false
+    },
+    {
+      "dba": "T & S LIQUOR",
+      "address": "243 S HIGH SCHOOL AVE COLUMBIA MS 39429-3425",
+      "city": "COLUMBIA",
+      "county": "Marion",
+      "permitType": "Package Retailer",
+      "permitNumber": "008305",
+      "wholesaler": false
+    },
+    {
+      "dba": "BIG POPS LIQUOR",
+      "address": "137 OAK ST BILOXI MS 39530-4514",
+      "city": "BILOXI",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "020164",
+      "wholesaler": false
+    },
+    {
+      "dba": "WINES ETC",
+      "address": "1819 HIGHWAY 45 N COLUMBUS MS 39705-2119",
+      "city": "COLUMBUS",
+      "county": "Lowndes",
+      "permitType": "Package Retailer",
+      "permitNumber": "059268",
+      "wholesaler": false
+    },
+    {
+      "dba": "B & K DISCOUNT LIQUOR",
+      "address": "17422 HIGHWAY 49 STE A SAUCIER MS 39574-8170",
+      "city": "SAUCIER",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "023128",
+      "wholesaler": false
+    },
+    {
+      "dba": "COSTCO WHOLESALE #1366",
+      "address": "700 HIGHLAND COLONY PKWY RIDGELAND MS 39157-8701",
+      "city": "RIDGELAND",
+      "county": "Madison",
+      "permitType": "Package Retailer",
+      "permitNumber": "094030",
+      "wholesaler": false
+    },
+    {
+      "dba": "MISTER SPIRITS",
+      "address": "10338 LEMOYNE BLVD # A DIBERVILLE MS 39540-4912",
+      "city": "DIBERVILLE",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "060049",
+      "wholesaler": false
+    },
+    {
+      "dba": "OM WINES AND SPIRIT INC",
+      "address": "12 BRUNSWICK ST BYHALIA MS 38611-7000",
+      "city": "BYHALIA",
+      "county": "Marshall",
+      "permitType": "Package Retailer",
+      "permitNumber": "097026",
+      "wholesaler": false
+    },
+    {
+      "dba": "AJ'S TOTAL WINE & SPIRITS",
+      "address": "1864 SPILLWAY RD BLDG 1 BRANDON MS 39047-6063",
+      "city": "BRANDON",
+      "county": "Rankin",
+      "permitType": "Package Retailer",
+      "permitNumber": "050761",
+      "wholesaler": false
+    },
+    {
+      "dba": "EAGLE WINE & LIQUOR, LLC",
+      "address": "10 DELL ST BATESVILLE MS 38606-2354",
+      "city": "BATESVILLE",
+      "county": "Panola",
+      "permitType": "Package Retailer",
+      "permitNumber": "042215",
+      "wholesaler": false
+    },
+    {
+      "dba": "DEER PARK PACKAGE STORE",
+      "address": "325 JONES AVE JONESTOWN MS 38639",
+      "city": "JONESTOWN",
+      "county": "Coahoma",
+      "permitType": "Package Retailer",
+      "permitNumber": "045723",
+      "wholesaler": false
+    },
+    {
+      "dba": "E&B INVESTMENTS LLC",
+      "address": "108 ADAMS ST MACON MS 39341-3022",
+      "city": "MACON",
+      "county": "Noxubee",
+      "permitType": "Package Retailer",
+      "permitNumber": "052541",
+      "wholesaler": false
+    },
+    {
+      "dba": "VINTAGE WINE & LIQUOR",
+      "address": "1000 HIGHLAND COLONY PKWY STE 1010 RIDGELAND MS 39157-2074",
+      "city": "RIDGELAND",
+      "county": "Madison",
+      "permitType": "Package Retailer",
+      "permitNumber": "095029",
+      "wholesaler": false
+    },
+    {
+      "dba": "MARKEYS",
+      "address": "7525 ALEXANDER CROSSING OLIVE BRANCH MS 38654",
+      "city": "OLIVE BRANCH",
+      "county": "DeSoto",
+      "permitType": "Package Retailer",
+      "permitNumber": "042135",
+      "wholesaler": false
+    },
+    {
+      "dba": "LUCEDALE LIQUORS LLC",
+      "address": "12112 OLD 63 S LUCEDALE MS 39452-6626",
+      "city": "LUCEDALE",
+      "county": "George",
+      "permitType": "Package Retailer",
+      "permitNumber": "046435",
+      "wholesaler": false
+    },
+    {
+      "dba": "BROOKHAVEN SPIRIT & WINE",
+      "address": "718 E MONTICELLO ST BROOKHAVEN MS 39601-3544",
+      "city": "BROOKHAVEN",
+      "county": "Lincoln",
+      "permitType": "Package Retailer",
+      "permitNumber": "043503",
+      "wholesaler": false
+    },
+    {
+      "dba": "AUBURN WINE & SPIRITS LLC",
+      "address": "1368 ROAD 931 STE B TUPELO MS 38804-8261",
+      "city": "TUPELO",
+      "county": "Lee",
+      "permitType": "Package Retailer",
+      "permitNumber": "050739",
+      "wholesaler": false
+    },
+    {
+      "dba": "DURANT WINE AND SPIRITS",
+      "address": "599 E MULBERRY ST DURANT MS 39063-3729",
+      "city": "DURANT",
+      "county": "Holmes",
+      "permitType": "Package Retailer",
+      "permitNumber": "027305",
+      "wholesaler": false
+    },
+    {
+      "dba": "DAVIS LIQUOR AND WINE",
+      "address": "13211 DEDEAUX RD STE 7 GULFPORT MS 39503-5866",
+      "city": "GULFPORT",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "041779",
+      "wholesaler": false
+    },
+    {
+      "dba": "EASTSIDE WINE & SPIRITS, LLC",
+      "address": "368 E OXFORD ST PONTOTOC MS 38863",
+      "city": "PONTOTOC",
+      "county": "Pontotoc",
+      "permitType": "Package Retailer",
+      "permitNumber": "042336",
+      "wholesaler": false
+    },
+    {
+      "dba": "WESTOVER LIQUOR & WINE",
+      "address": "120 WESTOVER DRIVE STE 20 HATTIESBURG MS 39402",
+      "city": "HATTIESBURG",
+      "county": "Lamar",
+      "permitType": "Package Retailer",
+      "permitNumber": "044012",
+      "wholesaler": false
+    },
+    {
+      "dba": "CORKSCREW NORTH HILL LLC",
+      "address": "4835 29TH AVE MERIDIAN MS 39305-1608",
+      "city": "MERIDIAN",
+      "county": "Lauderdale",
+      "permitType": "Package Retailer",
+      "permitNumber": "043355",
+      "wholesaler": false
+    },
+    {
+      "dba": "EZ SPIRITS 2 LLC",
+      "address": "880 HIGHWAY 35 S FOREST MS 39074-4045",
+      "city": "FOREST",
+      "county": "Scott",
+      "permitType": "Package Retailer",
+      "permitNumber": "048667",
+      "wholesaler": false
+    },
+    {
+      "dba": "AMORY WINE GALLORY LLC",
+      "address": "202 HIGHWAY 6 N BLDG 1 AMORY MS 38821-1731",
+      "city": "AMORY",
+      "county": "Monroe",
+      "permitType": "Package Retailer",
+      "permitNumber": "071055",
+      "wholesaler": false
+    },
+    {
+      "dba": "JUDGE LLC",
+      "address": "125 W NORTHSIDE DR STE A JACKSON MS 39206-4723",
+      "city": "JACKSON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "030615",
+      "wholesaler": false
+    },
+    {
+      "dba": "BOTTLE SHOP WINE AND LIQUOR",
+      "address": "6270 OLD CANTON RD JACKSON MS 39211-2924",
+      "city": "JACKSON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "043922",
+      "wholesaler": false
+    },
+    {
+      "dba": "HILL TOP WINE & SPIRITS LLC",
+      "address": "819 S JACKSON ST HOUSTON MS 38851-8629",
+      "city": "HOUSTON",
+      "county": "Chickasaw",
+      "permitType": "Package Retailer",
+      "permitNumber": "047171",
+      "wholesaler": false
+    },
+    {
+      "dba": "CORK N BOTTLE LIQUOR AND WINE",
+      "address": "5118 GAUTIER VANCLEAVE RD GAUTIER MS 39553-4212",
+      "city": "GAUTIER",
+      "county": "Jackson",
+      "permitType": "Package Retailer",
+      "permitNumber": "027606",
+      "wholesaler": false
+    },
+    {
+      "dba": "S & S HOSPITALITY,LLC",
+      "address": "622 HIGHWAY 51 RIDGELAND MS 39157-2572",
+      "city": "RIDGELAND",
+      "county": "Madison",
+      "permitType": "Package Retailer",
+      "permitNumber": "046035",
+      "wholesaler": false
+    },
+    {
+      "dba": "RELIANCE 603 OXFORD INC",
+      "address": "603 SOUTH LAMAR BLVD OXFORD MS 38655",
+      "city": "OXFORD",
+      "county": "Lafayette",
+      "permitType": "Package Retailer",
+      "permitNumber": "050171",
+      "wholesaler": false
+    },
+    {
+      "dba": "TRIPLE C PACKAGE STORE",
+      "address": "21207A HIGHWAY 613 MOSS POINT MS 39562-9453",
+      "city": "MOSS POINT",
+      "county": "Jackson",
+      "permitType": "Package Retailer",
+      "permitNumber": "051009",
+      "wholesaler": false
+    },
+    {
+      "dba": "LIQUOR & WINE HUB",
+      "address": "580 HIGHWAY 49 FLORA MS 39071-9785",
+      "city": "FLORA",
+      "county": "Madison",
+      "permitType": "Package Retailer",
+      "permitNumber": "051394",
+      "wholesaler": false
+    },
+    {
+      "dba": "THUNDER'S WINE AND LIQUOR",
+      "address": "1339 MARKET ST PASCAGOULA MS 39567-6604",
+      "city": "PASCAGOULA",
+      "county": "Jackson",
+      "permitType": "Package Retailer",
+      "permitNumber": "066167",
+      "wholesaler": false
+    },
+    {
+      "dba": "GOVERNMENT STREET LIQUOR WINE",
+      "address": "2414 GOVERNMENT ST OCEAN SPRINGS MS 39564-4130",
+      "city": "OCEAN SPRINGS",
+      "county": "Jackson",
+      "permitType": "Package Retailer",
+      "permitNumber": "051240",
+      "wholesaler": false
+    },
+    {
+      "dba": "LIBERTY PACKAGE STORE",
+      "address": "978 MAIN ST LIBERTY MS 39645",
+      "city": "LIBERTY",
+      "county": "Amite",
+      "permitType": "Package Retailer",
+      "permitNumber": "008023",
+      "wholesaler": false
+    },
+    {
+      "dba": "K & K LIQUOR STORE",
+      "address": "4420 8TH ST MERIDIAN MS 39307-5954",
+      "city": "MERIDIAN",
+      "county": "Lauderdale",
+      "permitType": "Package Retailer",
+      "permitNumber": "048739",
+      "wholesaler": false
+    },
+    {
+      "dba": "EUPHORIA LIQUOR & WINE",
+      "address": "550 CHURCH RD E STE 1 SOUTHAVEN MS 38671-9777",
+      "city": "SOUTHAVEN",
+      "county": "DeSoto",
+      "permitType": "Package Retailer",
+      "permitNumber": "047895",
+      "wholesaler": false
+    },
+    {
+      "dba": "BROOKHAVEN PACKAGE STORE",
+      "address": "1410 HWY 51 NE STE A BROOKHAVEN MS 39601",
+      "city": "BROOKHAVEN",
+      "county": "Lincoln",
+      "permitType": "Package Retailer",
+      "permitNumber": "040198",
+      "wholesaler": false
+    },
+    {
+      "dba": "THE LIQUOR DEPOT LLC",
+      "address": "6615 WASHINGTON AVE STE A OCEAN SPRINGS MS 39564-2189",
+      "city": "OCEAN SPRINGS",
+      "county": "Jackson",
+      "permitType": "Package Retailer",
+      "permitNumber": "046416",
+      "wholesaler": false
+    },
+    {
+      "dba": "RABEN LIQUOR & WINE",
+      "address": "505 MAGNOLIA DR S STE B WIGGINS MS 39577-2750",
+      "city": "WIGGINS",
+      "county": "Stone",
+      "permitType": "Package Retailer",
+      "permitNumber": "063145",
+      "wholesaler": false
+    },
+    {
+      "dba": "BRYANTS PACKAGE STORE",
+      "address": "317 MAIN ST STE A JONESTOWN MS 38639",
+      "city": "JONESTOWN",
+      "county": "Coahoma",
+      "permitType": "Package Retailer",
+      "permitNumber": "046713",
+      "wholesaler": false
+    },
+    {
+      "dba": "WESTSIDE LIQUOR STORE",
+      "address": "2436 U S HIGHWAY 49 E SUMNER MS 38957-9712",
+      "city": "SUMNER",
+      "county": "Tallahatchie",
+      "permitType": "Package Retailer",
+      "permitNumber": "042343",
+      "wholesaler": false
+    },
+    {
+      "dba": "NICK'S LIQUOR & WINE",
+      "address": "631 S GLOSTER ST TUPELO MS 38801-5502",
+      "city": "TUPELO",
+      "county": "Lee",
+      "permitType": "Package Retailer",
+      "permitNumber": "052091",
+      "wholesaler": false
+    },
+    {
+      "dba": "TOAST & SIP VINEYARD",
+      "address": "2606 MEDGAR EVERS BLVD STE B JACKSON MS 39213-7558",
+      "city": "JACKSON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "027587",
+      "wholesaler": false
+    },
+    {
+      "dba": "MAHAKAYA LLC",
+      "address": "1678 BEACH BLVD STE A BILOXI MS 39531-5302",
+      "city": "BILOXI",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "043732",
+      "wholesaler": false
+    },
+    {
+      "dba": "GEORGETOWN WINE & LIQUOR",
+      "address": "10186 HIGHWAY 27 GEORGETOWN MS 39078-9622",
+      "city": "GEORGETOWN",
+      "county": "Copiah",
+      "permitType": "Package Retailer",
+      "permitNumber": "030176",
+      "wholesaler": false
+    },
+    {
+      "dba": "GINKGO LIQUOR AND WINE",
+      "address": "6704 WASHINGTON AVE OCEAN SPRINGS MS 39564-2129",
+      "city": "OCEAN SPRINGS",
+      "county": "Jackson",
+      "permitType": "Package Retailer",
+      "permitNumber": "046544",
+      "wholesaler": false
+    },
+    {
+      "dba": "LIFT UR SPIRITS",
+      "address": "101 S FRONT ST SENATOBIA MS 38668-2600",
+      "city": "SENATOBIA",
+      "county": "Tate",
+      "permitType": "Package Retailer",
+      "permitNumber": "028423",
+      "wholesaler": false
+    },
+    {
+      "dba": "302 LIQUOR & WINE",
+      "address": "5842 GOODMAN RD SPC 3-5 HORN LAKE MS 38637-8108",
+      "city": "HORN LAKE",
+      "county": "DeSoto",
+      "permitType": "Package Retailer",
+      "permitNumber": "047284",
+      "wholesaler": false
+    },
+    {
+      "dba": "4057 PROPER STREET",
+      "address": "4057 PROPERTY STREET BLDG 1 CORINTH MS 38834",
+      "city": "CORINTH",
+      "county": "Alcorn",
+      "permitType": "Package Retailer",
+      "permitNumber": "084030",
+      "wholesaler": false
+    },
+    {
+      "dba": "MS SPIRIT",
+      "address": "1626 DENNY AVE UNIT H PASCAGOULA MS 39567-3301",
+      "city": "PASCAGOULA",
+      "county": "Jackson",
+      "permitType": "Package Retailer",
+      "permitNumber": "056083",
+      "wholesaler": false
+    },
+    {
+      "dba": "DANNIES PACKAGE STORE",
+      "address": "400 W HENRY ST GREENWOOD MS 38930-5415",
+      "city": "GREENWOOD",
+      "county": "Leflore",
+      "permitType": "Package Retailer",
+      "permitNumber": "007839",
+      "wholesaler": false
+    },
+    {
+      "dba": "TWIN FORKS WINE",
+      "address": "408 HEMPHILL ST STE B HATTIESBURG MS 39401-3809",
+      "city": "HATTIESBURG",
+      "county": "Forrest",
+      "permitType": "Package Retailer",
+      "permitNumber": "028693",
+      "wholesaler": false
+    },
+    {
+      "dba": "LIQUOR LOCKER",
+      "address": "920 CEDAR LAKE RD STE O BILOXI MS 39532-2107",
+      "city": "BILOXI",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "022986",
+      "wholesaler": false
+    },
+    {
+      "dba": "CALISTOGA WINES & SPIRITS LLC",
+      "address": "1107 HIGHLAND COLONY PKWY RIDGELAND MS 39157-6079",
+      "city": "RIDGELAND",
+      "county": "Madison",
+      "permitType": "Package Retailer",
+      "permitNumber": "024075",
+      "wholesaler": false
+    },
+    {
+      "dba": "SIP'OLOGY WINE AND SPIRITS",
+      "address": "2386 PASS RD UNIT 9 BILOXI MS 39531-2236",
+      "city": "BILOXI",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "044841",
+      "wholesaler": false
+    },
+    {
+      "dba": "THE LIQUOR CABINET",
+      "address": "295 HIGHWAY 90 STE 2 BAY SAINT LOUIS MS 39520-3600",
+      "city": "BAY SAINT LOUIS",
+      "county": "Hancock",
+      "permitType": "Package Retailer",
+      "permitNumber": "028304",
+      "wholesaler": false
+    },
+    {
+      "dba": "NRPSV PACKAGE STORE",
+      "address": "5596B LYNCH STREET EXT JACKSON MS 39209-4526",
+      "city": "JACKSON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "042385",
+      "wholesaler": false
+    },
+    {
+      "dba": "D & D LIQUOR AND WINE",
+      "address": "902 HIGHWAY 82 W GREENWOOD MS 38930-2728",
+      "city": "GREENWOOD",
+      "county": "Leflore",
+      "permitType": "Package Retailer",
+      "permitNumber": "047712",
+      "wholesaler": false
+    },
+    {
+      "dba": "BUBBLY WINE AND LIQUOR, LLC",
+      "address": "1062 GOODMAN RD E SOUTHAVEN MS 38671-9536",
+      "city": "SOUTHAVEN",
+      "county": "DeSoto",
+      "permitType": "Package Retailer",
+      "permitNumber": "052256",
+      "wholesaler": false
+    },
+    {
+      "dba": "TRADITIONS WINE & SPIRITS INC",
+      "address": "123 GRANDVIEW BLVD STE O MADISON MS 39110-5512",
+      "city": "MADISON",
+      "county": "Madison",
+      "permitType": "Package Retailer",
+      "permitNumber": "050589",
+      "wholesaler": false
+    },
+    {
+      "dba": "FAYES PACKAGE STORE",
+      "address": "1654 MS HWY 15 MABEN MS 39750-0384",
+      "city": "MABEN",
+      "county": "Oktibbeha",
+      "permitType": "Package Retailer",
+      "permitNumber": "028829",
+      "wholesaler": false
+    },
+    {
+      "dba": "SAI LAKES INC",
+      "address": "3047 GOODMAN RD W HORN LAKE MS 38637-1105",
+      "city": "HORN LAKE",
+      "county": "DeSoto",
+      "permitType": "Package Retailer",
+      "permitNumber": "066568",
+      "wholesaler": false
+    },
+    {
+      "dba": "NORTHSIDE LIQUOR STORE",
+      "address": "1104 E NORTHSIDE DR STE E CLINTON MS 39056-3545",
+      "city": "CLINTON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "041952",
+      "wholesaler": false
+    },
+    {
+      "dba": "VINEYARD LIQUORS",
+      "address": "5025 CHURCH RD STE 135 OLIVE BRANCH MS 38654-4478",
+      "city": "OLIVE BRANCH",
+      "county": "DeSoto",
+      "permitType": "Package Retailer",
+      "permitNumber": "042407",
+      "wholesaler": false
+    },
+    {
+      "dba": "DON GABRIEL MARKET BODEGA",
+      "address": "2088 LAKELAND DR STE B JACKSON MS 39216-5009",
+      "city": "JACKSON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "042540",
+      "wholesaler": false
+    },
+    {
+      "dba": "B F KAUFMANS INC B F KUFMANS INC",
+      "address": "9020 HIGHWAY 51 N # 1 SOUTHAVEN MS 38671-1231",
+      "city": "SOUTHAVEN",
+      "county": "DeSoto",
+      "permitType": "Package Retailer",
+      "permitNumber": "025846",
+      "wholesaler": false
+    },
+    {
+      "dba": "BATESVILLE PACKAGE STORE (LIQ",
+      "address": "245 PEARSON ST BATESVILLE MS 38606-2400",
+      "city": "BATESVILLE",
+      "county": "Panola",
+      "permitType": "Package Retailer",
+      "permitNumber": "040990",
+      "wholesaler": false
+    },
+    {
+      "dba": "MIDTOWN DISCOUNT LIQUOR & WINE",
+      "address": "1805 COLUMBIA AVENUE PRENTISS MS 39474",
+      "city": "PRENTISS",
+      "county": "Jefferson Davis",
+      "permitType": "Package Retailer",
+      "permitNumber": "046681",
+      "wholesaler": false
+    },
+    {
+      "dba": "SALUT LIQUOR & WINE",
+      "address": "455-B BRIARWOOD DR JACKSON MS 39206",
+      "city": "JACKSON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "040256",
+      "wholesaler": false
+    },
+    {
+      "dba": "DELTA LIQUOR LAND LLC",
+      "address": "2216 HIGHWAY 82 E GREENWOOD MS 38930-6071",
+      "city": "GREENWOOD",
+      "county": "Leflore",
+      "permitType": "Package Retailer",
+      "permitNumber": "050390",
+      "wholesaler": false
+    },
+    {
+      "dba": "CELEBRATIONS WINE & LIQUO",
+      "address": "5178 HIGHWAY 51 N SENATOBIA MS 38668-1720",
+      "city": "SENATOBIA",
+      "county": "Tate",
+      "permitType": "Package Retailer",
+      "permitNumber": "028430",
+      "wholesaler": false
+    },
+    {
+      "dba": "FAR EAST LIQUORS LLC",
+      "address": "3429 HALLS FERRY RD STE D VICKSBURG MS 39180-5687",
+      "city": "VICKSBURG",
+      "county": "Warren",
+      "permitType": "Package Retailer",
+      "permitNumber": "027652",
+      "wholesaler": false
+    },
+    {
+      "dba": "TRIDENT 3 CORPORATION",
+      "address": "232 N WOODLAND DR FOREST MS 39074-3308",
+      "city": "FOREST",
+      "county": "Scott",
+      "permitType": "Package Retailer",
+      "permitNumber": "046733",
+      "wholesaler": false
+    },
+    {
+      "dba": "MIKE'S LIQUOR, INC.",
+      "address": "329A S LOCUST ST MCCOMB MS 39648-4332",
+      "city": "MCCOMB",
+      "county": "Pike",
+      "permitType": "Package Retailer",
+      "permitNumber": "026860",
+      "wholesaler": false
+    },
+    {
+      "dba": "BEASLEY ROAD PACKAGE STORE LLC",
+      "address": "615 BEASLEY RD JACKSON MS 39206-2805",
+      "city": "JACKSON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "024708",
+      "wholesaler": false
+    },
+    {
+      "dba": "VINTAGE WINE AND LIQUOR",
+      "address": "3680 SANGANI BLVD STE E DIBERVILLE MS 39540-8703",
+      "city": "DIBERVILLE",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "021779",
+      "wholesaler": false
+    },
+    {
+      "dba": "LAKE CITY LIQUOR LLC",
+      "address": "1969 COMMERCE ST GRENADA MS 38901-5107",
+      "city": "GRENADA",
+      "county": "Grenada",
+      "permitType": "Package Retailer",
+      "permitNumber": "029876",
+      "wholesaler": false
+    },
+    {
+      "dba": "LIKKER LEGGER PACKAGE STORE LL",
+      "address": "701 CARROLLTON AVE GREENWOOD MS 38930-5645",
+      "city": "GREENWOOD",
+      "county": "Leflore",
+      "permitType": "Package Retailer",
+      "permitNumber": "043541",
+      "wholesaler": false
+    },
+    {
+      "dba": "FOUR LANE LIQUOR STORE",
+      "address": "714 HIGHWAY 82 W INDIANOLA MS 38751-2037",
+      "city": "INDIANOLA",
+      "county": "Sunflower",
+      "permitType": "Package Retailer",
+      "permitNumber": "052058",
+      "wholesaler": false
+    },
+    {
+      "dba": "ITTA BENA WINE & SPIRITS LLC",
+      "address": "311 MARTIN LUTHER KING JR DR ITTA BENA MS 38941-2508",
+      "city": "ITTA BENA",
+      "county": "Leflore",
+      "permitType": "Package Retailer",
+      "permitNumber": "042433",
+      "wholesaler": false
+    },
+    {
+      "dba": "BROOKSVILLE PACKAGE",
+      "address": "253 HWY 145 A BROOKSVILLE MS 39739",
+      "city": "BROOKSVILLE",
+      "county": "Noxubee",
+      "permitType": "Package Retailer",
+      "permitNumber": "055079",
+      "wholesaler": false
+    },
+    {
+      "dba": "CELLARS OF STARKVILLE",
+      "address": "500 RUSSELL ST STE 11 STARKVILLE MS 39759-5411",
+      "city": "STARKVILLE",
+      "county": "Oktibbeha",
+      "permitType": "Package Retailer",
+      "permitNumber": "052243",
+      "wholesaler": false
+    },
+    {
+      "dba": "OAK BARREL WINE & SPRITS",
+      "address": "3901 HARDY ST HATTIESBURG MS 39402-1636",
+      "city": "HATTIESBURG",
+      "county": "Forrest",
+      "permitType": "Package Retailer",
+      "permitNumber": "022341",
+      "wholesaler": false
+    },
+    {
+      "dba": "TOWNE SQUARE LIQUOR LLC",
+      "address": "507 18TH AVE N STE 1 COLUMBUS MS 39705-2245",
+      "city": "COLUMBUS",
+      "county": "Lowndes",
+      "permitType": "Package Retailer",
+      "permitNumber": "065025",
+      "wholesaler": false
+    },
+    {
+      "dba": "LAUREL LIQUOR & WINE LLC",
+      "address": "3848 HIGHWAY 15 N LAUREL MS 39440",
+      "city": "LAUREL",
+      "county": "Jones",
+      "permitType": "Package Retailer",
+      "permitNumber": "026938",
+      "wholesaler": false
+    },
+    {
+      "dba": "SAFARI WINES & SPIRITS LLC",
+      "address": "407 S 11TH ST STE A OXFORD MS 38655-3921",
+      "city": "OXFORD",
+      "county": "Lafayette",
+      "permitType": "Package Retailer",
+      "permitNumber": "024598",
+      "wholesaler": false
+    },
+    {
+      "dba": "OCEAN SPIRIT LLC",
+      "address": "3942 BIENVILLE BLVD OCEAN SPRINGS MS 39564-5802",
+      "city": "OCEAN SPRINGS",
+      "county": "Jackson",
+      "permitType": "Package Retailer",
+      "permitNumber": "043512",
+      "wholesaler": false
+    },
+    {
+      "dba": "COMO WINE & LIQUOR LLC",
+      "address": "591 OAK ST STE B COMO MS 38619-6233",
+      "city": "COMO",
+      "county": "Panola",
+      "permitType": "Package Retailer",
+      "permitNumber": "049961",
+      "wholesaler": false
+    },
+    {
+      "dba": "V & V LIQUOR INC",
+      "address": "975 GOODMAN RD E STE 11 SOUTHAVEN MS 38671-8892",
+      "city": "SOUTHAVEN",
+      "county": "DeSoto",
+      "permitType": "Package Retailer",
+      "permitNumber": "055063",
+      "wholesaler": false
+    },
+    {
+      "dba": "K & H WINE -N- SPIRITS",
+      "address": "2001 N PINE AVE BLDG BUILDING HEIDELBERG MS 39439-3542",
+      "city": "HEIDELBERG",
+      "county": "Jasper",
+      "permitType": "Package Retailer",
+      "permitNumber": "043451",
+      "wholesaler": false
+    },
+    {
+      "dba": "FORTUNE WINE AND LIQUOR LLC",
+      "address": "805 HIGHWAY 35 N STE B CARTHAGE MS 39051-3017",
+      "city": "CARTHAGE",
+      "county": "Leake",
+      "permitType": "Package Retailer",
+      "permitNumber": "042345",
+      "wholesaler": false
+    },
+    {
+      "dba": "OAKS PACKAGE STORE",
+      "address": "26131 HIGHWAY 49 SAUCIER MS 39574-7103",
+      "city": "SAUCIER",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "021108",
+      "wholesaler": false
+    },
+    {
+      "dba": "MIDSOUTH LIQUORS",
+      "address": "8928 MIDSOUTH AVE OLIVE B OLIVE BRANCH MS 38654",
+      "city": "OLIVE BRANCH",
+      "county": "DeSoto",
+      "permitType": "Package Retailer",
+      "permitNumber": "026865",
+      "wholesaler": false
+    },
+    {
+      "dba": "RUCKERS PACKAGE STORE",
+      "address": "211 JEFFERSON ST TCHULA MS 39169-0343",
+      "city": "TCHULA",
+      "county": "Holmes",
+      "permitType": "Package Retailer",
+      "permitNumber": "006931",
+      "wholesaler": false
+    },
+    {
+      "dba": "JOYRICKY 4 LLC",
+      "address": "1200 N 2ND ST STE 2 BOONEVILLE MS 38829-1030",
+      "city": "BOONEVILLE",
+      "county": "Prentiss",
+      "permitType": "Package Retailer",
+      "permitNumber": "056093",
+      "wholesaler": false
+    },
+    {
+      "dba": "LITTLE JOE'S PACKAGE STORE",
+      "address": "1720 HIGHWAY 19 N MERIDIAN MS 39307-5304",
+      "city": "MERIDIAN",
+      "county": "Lauderdale",
+      "permitType": "Package Retailer",
+      "permitNumber": "051886",
+      "wholesaler": false
+    },
+    {
+      "dba": "KROSSTOWN PACKAGE STORE",
+      "address": "624 N STATE ST CLARKSDALE MS 38614-6518",
+      "city": "CLARKSDALE",
+      "county": "Coahoma",
+      "permitType": "Package Retailer",
+      "permitNumber": "043422",
+      "wholesaler": false
+    },
+    {
+      "dba": "NORTHSIDE SPIRITS LLC",
+      "address": "2101 VETERANS BLVD SUITE C BLDG SUITE C MCCOMB MS 39648",
+      "city": "MCCOMB",
+      "county": "Pike",
+      "permitType": "Package Retailer",
+      "permitNumber": "058371",
+      "wholesaler": false
+    },
+    {
+      "dba": "CANAL WINE & SPIRITS",
+      "address": "12251 CANAL RD STE C GULFPORT MS 39503",
+      "city": "GULFPORT",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "086055",
+      "wholesaler": false
+    },
+    {
+      "dba": "THIRD BASE LIQUOR AND WINE INC",
+      "address": "501 BATTLEGROUND DR IUKA MS 38852-1312",
+      "city": "IUKA",
+      "county": "Tishomingo",
+      "permitType": "Package Retailer",
+      "permitNumber": "043187",
+      "wholesaler": false
+    },
+    {
+      "dba": "UNITY CORINTH, LLC",
+      "address": "104 S HARPER RD CORINTH MS 38834-5278",
+      "city": "CORINTH",
+      "county": "Alcorn",
+      "permitType": "Package Retailer",
+      "permitNumber": "049922",
+      "wholesaler": false
+    },
+    {
+      "dba": "BASHILL LIQUOR INC",
+      "address": "1709 DELAWARE AVE MCCOMB MS 39648-3636",
+      "city": "MCCOMB",
+      "county": "Pike",
+      "permitType": "Package Retailer",
+      "permitNumber": "051799",
+      "wholesaler": false
+    },
+    {
+      "dba": "SHRI VINAYAK TWO LLC",
+      "address": "522 US-278 W AMORY MS 38821",
+      "city": "AMORY",
+      "county": "Monroe",
+      "permitType": "Package Retailer",
+      "permitNumber": "049418",
+      "wholesaler": false
+    },
+    {
+      "dba": "R & R LIQUOR & WINE",
+      "address": "6625 NOAH CURTIS ST STE B SHANNON MS 38868-8909",
+      "city": "SHANNON",
+      "county": "Lee",
+      "permitType": "Package Retailer",
+      "permitNumber": "030529",
+      "wholesaler": false
+    },
+    {
+      "dba": "OCCASIONS WINE & SPIRITS",
+      "address": "989 HIGHWAY 61 N VICKSBURG MS 39183-3415",
+      "city": "VICKSBURG",
+      "county": "Warren",
+      "permitType": "Package Retailer",
+      "permitNumber": "020652",
+      "wholesaler": false
+    },
+    {
+      "dba": "THE HIVE WINE & SPIRITS, LLC",
+      "address": "63 VETERANS MEMORIAL DR KOSCIUSKO MS 39090-3433",
+      "city": "KOSCIUSKO",
+      "county": "Attala",
+      "permitType": "Package Retailer",
+      "permitNumber": "045008",
+      "wholesaler": false
+    },
+    {
+      "dba": "KIAMIE PACKAGE STORE INC",
+      "address": "1609 JACKSON AVE W OXFORD MS 38655-4252",
+      "city": "OXFORD",
+      "county": "Lafayette",
+      "permitType": "Package Retailer",
+      "permitNumber": "000383",
+      "wholesaler": false
+    },
+    {
+      "dba": "OXFORD WINE & SPIRITS LLC",
+      "address": "800 COLLEGE HILL ROAD BLDG 6101 OXFORD MS 38655",
+      "city": "OXFORD",
+      "county": "Lafayette",
+      "permitType": "Package Retailer",
+      "permitNumber": "044130",
+      "wholesaler": false
+    },
+    {
+      "dba": "RUBY'S LIQUOR AND WINES",
+      "address": "215 FRONT STREET EXT INDIANOLA MS 38751-2862",
+      "city": "INDIANOLA",
+      "county": "Sunflower",
+      "permitType": "Package Retailer",
+      "permitNumber": "049183",
+      "wholesaler": false
+    },
+    {
+      "dba": "EAST FULTON WINE & SPIRITS",
+      "address": "703 E MAIN ST FULTON MS 38843-1415",
+      "city": "FULTON",
+      "county": "Itawamba",
+      "permitType": "Package Retailer",
+      "permitNumber": "052063",
+      "wholesaler": false
+    },
+    {
+      "dba": "BUDE PACKAGE STORE",
+      "address": "97 RAILROAD AVE BUDE MS 39630",
+      "city": "BUDE",
+      "county": "Franklin",
+      "permitType": "Package Retailer",
+      "permitNumber": "049688",
+      "wholesaler": false
+    },
+    {
+      "dba": "RIVER CITY LIQUOR STORE",
+      "address": "2192 IOWA BLVD STE 7 VICKSBURG MS 39180",
+      "city": "VICKSBURG",
+      "county": "Warren",
+      "permitType": "Package Retailer",
+      "permitNumber": "059036",
+      "wholesaler": false
+    },
+    {
+      "dba": "KORKD WINE AND LIQUOR",
+      "address": "2079 E PASS RD STE C GULFPORT MS 39507-3287",
+      "city": "GULFPORT",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "051695",
+      "wholesaler": false
+    },
+    {
+      "dba": "SIPS & NIPS LLC",
+      "address": "1004 HOLLAND AVE PHILADELPHIA MS 39350-2160",
+      "city": "PHILADELPHIA",
+      "county": "Neshoba",
+      "permitType": "Package Retailer",
+      "permitNumber": "028779",
+      "wholesaler": false
+    },
+    {
+      "dba": "MAYA 1 LLC",
+      "address": "2501 W MAIN ST BLDG A TUPELO MS 38801-3149",
+      "city": "TUPELO",
+      "county": "Lee",
+      "permitType": "Package Retailer",
+      "permitNumber": "041251",
+      "wholesaler": false
+    },
+    {
+      "dba": "THE WINE & LIQUOR SHOP",
+      "address": "1490 HIGHWAY 348 GUNTOWN MS 38849",
+      "city": "GUNTOWN",
+      "county": "Lee",
+      "permitType": "Package Retailer",
+      "permitNumber": "026359",
+      "wholesaler": false
+    },
+    {
+      "dba": "SIPPZ LIQUOR",
+      "address": "3272 HWY 49 STE 1 MENDENHALL MS 39114",
+      "city": "MENDENHALL",
+      "county": "Simpson",
+      "permitType": "Package Retailer",
+      "permitNumber": "046589",
+      "wholesaler": false
+    },
+    {
+      "dba": "KR LIQUOR AND WINE",
+      "address": "15121 HIGHWAY 16 W PHILADELPHIA MS 39350-6859",
+      "city": "PHILADELPHIA",
+      "county": "Neshoba",
+      "permitType": "Package Retailer",
+      "permitNumber": "073000",
+      "wholesaler": false
+    },
+    {
+      "dba": "MIKES FINE WINES AND LIQUORS",
+      "address": "1925 HIGHWAY 45 N COLUMBUS MS 39705-1950",
+      "city": "COLUMBUS",
+      "county": "Lowndes",
+      "permitType": "Package Retailer",
+      "permitNumber": "029610",
+      "wholesaler": false
+    },
+    {
+      "dba": "THE CORK AND BOTTLE",
+      "address": "326 W NORTH ST PASS CHRISTIAN MS 39571-3834",
+      "city": "PASS CHRISTIAN",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "047383",
+      "wholesaler": false
+    },
+    {
+      "dba": "JONIS NOOK & LAUNDRY LLC",
+      "address": "104 EDWARDS AVENUE MOUND BAYOU MS 38762",
+      "city": "MOUND BAYOU",
+      "county": "Bolivar",
+      "permitType": "Package Retailer",
+      "permitNumber": "043923",
+      "wholesaler": false
+    },
+    {
+      "dba": "GOT SHOTS",
+      "address": "16829 KAPALAMA RD STE H PASS CHRISTIAN MS 39571-8944",
+      "city": "PASS CHRISTIAN",
+      "county": "Hancock",
+      "permitType": "Package Retailer",
+      "permitNumber": "025289",
+      "wholesaler": false
+    },
+    {
+      "dba": "BROWN BAG PACKAGE STORE",
+      "address": "928 COLUMBIA AVE PRENTISS MS 39474",
+      "city": "PRENTISS",
+      "county": "Jefferson Davis",
+      "permitType": "Package Retailer",
+      "permitNumber": "024001",
+      "wholesaler": false
+    },
+    {
+      "dba": "JAMMU 2, LLC",
+      "address": "13 MS HWY 533 SOSO MS 39480",
+      "city": "SOSO",
+      "county": "Jones",
+      "permitType": "Package Retailer",
+      "permitNumber": "050961",
+      "wholesaler": false
+    },
+    {
+      "dba": "PATRICK'S FINE SPIRITS",
+      "address": "3101 LADNIER RD STE 1 GAUTIER MS 39553-5901",
+      "city": "GAUTIER",
+      "county": "Jackson",
+      "permitType": "Package Retailer",
+      "permitNumber": "046403",
+      "wholesaler": false
+    },
+    {
+      "dba": "SPIROS LIQUOR AND WINE",
+      "address": "1467 S GALLATIN ST JACKSON MS 39201-6312",
+      "city": "JACKSON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "040372",
+      "wholesaler": false
+    },
+    {
+      "dba": "BACCHUS WINE & LIQUOR",
+      "address": "99 JEFF DAVIS AVE LONG BEACH MS 39560-6161",
+      "city": "LONG BEACH",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "023241",
+      "wholesaler": false
+    },
+    {
+      "dba": "MIDTOWN WINE & SPIRITS",
+      "address": "2902 HARDY STREET STE N/A HATTIESBURG MS 39402",
+      "city": "HATTIESBURG",
+      "county": "Forrest",
+      "permitType": "Package Retailer",
+      "permitNumber": "046053",
+      "wholesaler": false
+    },
+    {
+      "dba": "MAA LAKSHMI INC",
+      "address": "323 IDLEWILD RD COLUMBUS MS 39702-6340",
+      "city": "COLUMBUS",
+      "county": "Lowndes",
+      "permitType": "Package Retailer",
+      "permitNumber": "040288",
+      "wholesaler": false
+    },
+    {
+      "dba": "CHOCTAW SPIRITS & WINE INC.",
+      "address": "209 CLINTON BLVD CLINTON MS 39056-5119",
+      "city": "CLINTON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "055105",
+      "wholesaler": false
+    },
+    {
+      "dba": "RK WINES",
+      "address": "3974 GOODMAN RD W HORN LAKE MS 38637-1324",
+      "city": "HORN LAKE",
+      "county": "DeSoto",
+      "permitType": "Package Retailer",
+      "permitNumber": "029788",
+      "wholesaler": false
+    },
+    {
+      "dba": "SIPS ON 7 LLC",
+      "address": "1700 BELK BLVD OXFORD MS 38655-5389",
+      "city": "OXFORD",
+      "county": "Lafayette",
+      "permitType": "Package Retailer",
+      "permitNumber": "049982",
+      "wholesaler": false
+    },
+    {
+      "dba": "BAD HABITZ WINE & LIQUOR INC",
+      "address": "23379 HIGHWAY 53 STE A GULFPORT MS 39503-8869",
+      "city": "GULFPORT",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "024771",
+      "wholesaler": false
+    },
+    {
+      "dba": "RAM WINE & LIQUOR INC",
+      "address": "1554 W PEACE ST STE A CANTON MS 39046-5325",
+      "city": "CANTON",
+      "county": "Madison",
+      "permitType": "Package Retailer",
+      "permitNumber": "044970",
+      "wholesaler": false
+    },
+    {
+      "dba": "OCEAN SPR DISCOUNT LIQUOR",
+      "address": "1813 GOVERNMENT ST OCEAN SPRINGS MS 39564-3942",
+      "city": "OCEAN SPRINGS",
+      "county": "Jackson",
+      "permitType": "Package Retailer",
+      "permitNumber": "006769",
+      "wholesaler": false
+    },
+    {
+      "dba": "BONITA WINE AND LIQUOR",
+      "address": "93 S FRONTAGE RD MERIDIAN MS 39301-6129",
+      "city": "MERIDIAN",
+      "county": "Lauderdale",
+      "permitType": "Package Retailer",
+      "permitNumber": "027826",
+      "wholesaler": false
+    },
+    {
+      "dba": "PARSHWA LLC",
+      "address": "6351 I 55 NORTH FRONTAGE RD STE 101 JACKSON MS 39213",
+      "city": "JACKSON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "067250",
+      "wholesaler": false
+    },
+    {
+      "dba": "HALLELUJAH WINE AND SPIRITS",
+      "address": "100 MAIN ST BLDG A NATCHEZ MS 39120-3458",
+      "city": "NATCHEZ",
+      "county": "Adams",
+      "permitType": "Package Retailer",
+      "permitNumber": "041617",
+      "wholesaler": false
+    },
+    {
+      "dba": "WIGGINS WINE & LIQUOR LLC",
+      "address": "1085 FRONTAGE DR E STE A WIGGINS MS 39577-8163",
+      "city": "WIGGINS",
+      "county": "Stone",
+      "permitType": "Package Retailer",
+      "permitNumber": "052258",
+      "wholesaler": false
+    },
+    {
+      "dba": "VK'S WINE & LIQUOR",
+      "address": "610 W PRESLEY BLVD MCCOMB MS 39648-5306",
+      "city": "MCCOMB",
+      "county": "Pike",
+      "permitType": "Package Retailer",
+      "permitNumber": "040760",
+      "wholesaler": false
+    },
+    {
+      "dba": "NT BROTHERS LIQUOR INC",
+      "address": "3971 MCCULLOUGH BLVD TUPELO MS 38801",
+      "city": "TUPELO",
+      "county": "Lee",
+      "permitType": "Package Retailer",
+      "permitNumber": "028209",
+      "wholesaler": false
+    },
+    {
+      "dba": "CASK AND BARREL",
+      "address": "1620 HIGHWAY 15 N STE A LAUREL MS 39440-1892",
+      "city": "LAUREL",
+      "county": "Jones",
+      "permitType": "Package Retailer",
+      "permitNumber": "045515",
+      "wholesaler": false
+    },
+    {
+      "dba": "90 PROOF LIQUOR",
+      "address": "2790B BEACH BLVD BILOXI MS 39531-4413",
+      "city": "BILOXI",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "045629",
+      "wholesaler": false
+    },
+    {
+      "dba": "J&K PACKAGE STORE",
+      "address": "4788 BETHEL RD STE 104 OLIVE BRANCH MS 38654-8765",
+      "city": "OLIVE BRANCH",
+      "county": "DeSoto",
+      "permitType": "Package Retailer",
+      "permitNumber": "108018",
+      "wholesaler": false
+    },
+    {
+      "dba": "COLLINS DISCOUNT WINE & SPIRIT",
+      "address": "816 MAIN ST COLLINS MS 39428-4181",
+      "city": "COLLINS",
+      "county": "Covington",
+      "permitType": "Package Retailer",
+      "permitNumber": "080022",
+      "wholesaler": false
+    },
+    {
+      "dba": "A LIQUOR WAREHOUSE INC",
+      "address": "605 MIDDLETON RD WINONA MS 38967-2021",
+      "city": "WINONA",
+      "county": "Montgomery",
+      "permitType": "Package Retailer",
+      "permitNumber": "046478",
+      "wholesaler": false
+    },
+    {
+      "dba": "PICKENS PACKAGE STORE",
+      "address": "306 HWY 51 PICKENS MS 39146-9237",
+      "city": "PICKENS",
+      "county": "Holmes",
+      "permitType": "Package Retailer",
+      "permitNumber": "005852",
+      "wholesaler": false
+    },
+    {
+      "dba": "LUCKY DISCOUNT LIQUOR",
+      "address": "275 RAYMOND RD JACKSON MS 39204-3814",
+      "city": "JACKSON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "021991",
+      "wholesaler": false
+    },
+    {
+      "dba": "BULLDOG WINE AND LIQUOR",
+      "address": "902 W GOVERNMENT ST BRANDON MS 39042-3033",
+      "city": "BRANDON",
+      "county": "Rankin",
+      "permitType": "Package Retailer",
+      "permitNumber": "052147",
+      "wholesaler": false
+    },
+    {
+      "dba": "VERONA WINE & SPIRITS",
+      "address": "4990 RAYMOND AVE TUPELO MS 38801-8669",
+      "city": "TUPELO",
+      "county": "Lee",
+      "permitType": "Package Retailer",
+      "permitNumber": "029821",
+      "wholesaler": false
+    },
+    {
+      "dba": "WESTGATE PACKAGE STORE",
+      "address": "1015 LEE DR STE 8 CLARKSDALE MS 38614-3698",
+      "city": "CLARKSDALE",
+      "county": "Coahoma",
+      "permitType": "Package Retailer",
+      "permitNumber": "026511",
+      "wholesaler": false
+    },
+    {
+      "dba": "MAHAY LIQUOR & WINE",
+      "address": "1438 W PEACE ST CANTON MS 39046-9060",
+      "city": "CANTON",
+      "county": "Madison",
+      "permitType": "Package Retailer",
+      "permitNumber": "028110",
+      "wholesaler": false
+    },
+    {
+      "dba": "BULLDOG PACKAGE STORE AND WINE COLLECTIONS",
+      "address": "301 HWY 12 STARKVILLE MS 39759-0085",
+      "city": "STARKVILLE",
+      "county": "Oktibbeha",
+      "permitType": "Package Retailer",
+      "permitNumber": "004478",
+      "wholesaler": false
+    },
+    {
+      "dba": "A1 LIQUOR & WINE",
+      "address": "412 11TH AVE SW MAGEE MS 39111-5381",
+      "city": "MAGEE",
+      "county": "Simpson",
+      "permitType": "Package Retailer",
+      "permitNumber": "051442",
+      "wholesaler": false
+    },
+    {
+      "dba": "TERRIE'S LIQUOR & WINE",
+      "address": "230 HIGHWAY 15 N PONTOTOC MS 38863-1313",
+      "city": "PONTOTOC",
+      "county": "Pontotoc",
+      "permitType": "Package Retailer",
+      "permitNumber": "029923",
+      "wholesaler": false
+    },
+    {
+      "dba": "HERITAGE DISCOUNT LIQUORS",
+      "address": "111 HERITAGE DR OXFORD MS 38655-5458",
+      "city": "OXFORD",
+      "county": "Lafayette",
+      "permitType": "Package Retailer",
+      "permitNumber": "050047",
+      "wholesaler": false
+    },
+    {
+      "dba": "HENRYS WINE AND LIQUOR INC",
+      "address": "4093 W MAIN ST TUPELO MS 38801-9427",
+      "city": "TUPELO",
+      "county": "Lee",
+      "permitType": "Package Retailer",
+      "permitNumber": "021261",
+      "wholesaler": false
+    },
+    {
+      "dba": "BRANDO'S HOUSE OF SPIRITS",
+      "address": "25068A HIGHWAY 51 CRYSTAL SPRINGS MS 39059-9496",
+      "city": "CRYSTAL SPRINGS",
+      "county": "Copiah",
+      "permitType": "Package Retailer",
+      "permitNumber": "058012",
+      "wholesaler": false
+    },
+    {
+      "dba": "EVANS AND EVANS ENTERPRISES LLC",
+      "address": "5266 OLD HIGHWAY 11 STE 10 HATTIESBURG MS 39402-7818",
+      "city": "HATTIESBURG",
+      "county": "Lamar",
+      "permitType": "Package Retailer",
+      "permitNumber": "044530",
+      "wholesaler": false
+    },
+    {
+      "dba": "O.D.'S WINE & LIQUOR LLC",
+      "address": "10207 BONEY AVE D'IBERVILLE MS 39540-4835",
+      "city": "D'IBERVILLE",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "045216",
+      "wholesaler": false
+    },
+    {
+      "dba": "ELVIS WINE & SPIRITS LLC",
+      "address": "2301 W MAIN ST STE B TUPELO MS 38801-3187",
+      "city": "TUPELO",
+      "county": "Lee",
+      "permitType": "Package Retailer",
+      "permitNumber": "046502",
+      "wholesaler": false
+    },
+    {
+      "dba": "PONTOTOC WINE AND SPIRITS",
+      "address": "286 W OXFORD ST PONTOTOC MS 38863-1920",
+      "city": "PONTOTOC",
+      "county": "Pontotoc",
+      "permitType": "Package Retailer",
+      "permitNumber": "066037",
+      "wholesaler": false
+    },
+    {
+      "dba": "THE BOOZY BARREL, LLC",
+      "address": "1110 MAIN ST BLDG COMMERCIAL CALEDONIA MS 39740",
+      "city": "CALEDONIA",
+      "county": "Lowndes",
+      "permitType": "Package Retailer",
+      "permitNumber": "041377",
+      "wholesaler": false
+    },
+    {
+      "dba": "VILLAGE LIQUOR",
+      "address": "11594 LORRAINE RD GULFPORT MS 39503-5917",
+      "city": "GULFPORT",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "046294",
+      "wholesaler": false
+    },
+    {
+      "dba": "FRANKS PACKAGE STORE",
+      "address": "26260 W MAIN ST WEST POINT MS 39773-2749",
+      "city": "WEST POINT",
+      "county": "Clay",
+      "permitType": "Package Retailer",
+      "permitNumber": "000444",
+      "wholesaler": false
+    },
+    {
+      "dba": "EXCLUSIVE SHOTS",
+      "address": "615 EAST 15TH ST UNIT B YAZOO CITY MS 39194",
+      "city": "YAZOO CITY",
+      "county": "Yazoo",
+      "permitType": "Package Retailer",
+      "permitNumber": "045248",
+      "wholesaler": false
+    },
+    {
+      "dba": "POPPS LIQUOR NOW",
+      "address": "2001 POPPS FERRY RD BILOXI MS 39532-3303",
+      "city": "BILOXI",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "045345",
+      "wholesaler": false
+    },
+    {
+      "dba": "LA SIP N SLIDE LLC",
+      "address": "313 LAFAYETTE ST COLUMBIA MS 39429-2059",
+      "city": "COLUMBIA",
+      "county": "Marion",
+      "permitType": "Package Retailer",
+      "permitNumber": "047645",
+      "wholesaler": false
+    },
+    {
+      "dba": "THOMAS WINE & LIQUOR EMPO",
+      "address": "4980 OLD CANTON RD JACKSON MS 39211-5404",
+      "city": "JACKSON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "000137",
+      "wholesaler": false
+    },
+    {
+      "dba": "WAVELAND DISCOUNT WINE-LIQUOR",
+      "address": "457 HIGHWAY 90 WAVELAND MS 39576-2507",
+      "city": "WAVELAND",
+      "county": "Hancock",
+      "permitType": "Package Retailer",
+      "permitNumber": "040971",
+      "wholesaler": false
+    },
+    {
+      "dba": "SCHOOL STREET WINE AND LIQUOR",
+      "address": "400 HIGHWAY 51 STE C RIDGELAND MS 39157-2878",
+      "city": "RIDGELAND",
+      "county": "Madison",
+      "permitType": "Package Retailer",
+      "permitNumber": "049682",
+      "wholesaler": false
+    },
+    {
+      "dba": "ANAYA LLC - LIQUOR STORE",
+      "address": "101 CHAPPELL HILL RD STE A PETAL MS 39465-3015",
+      "city": "PETAL",
+      "county": "Forrest",
+      "permitType": "Package Retailer",
+      "permitNumber": "052350",
+      "wholesaler": false
+    },
+    {
+      "dba": "TH 1 LLC",
+      "address": "1151 HIGHWAY 16 E BLDG B CARTHAGE MS 39051-4221",
+      "city": "CARTHAGE",
+      "county": "Leake",
+      "permitType": "Package Retailer",
+      "permitNumber": "048660",
+      "wholesaler": false
+    },
+    {
+      "dba": "M STAR 3 INC",
+      "address": "3604 INGALLS AVE PASCAGOULA MS 39581-2231",
+      "city": "PASCAGOULA",
+      "county": "Jackson",
+      "permitType": "Package Retailer",
+      "permitNumber": "052119",
+      "wholesaler": false
+    },
+    {
+      "dba": "FONDREN CELLARS",
+      "address": "633 DULING AVE JACKSON MS 39216-4008",
+      "city": "JACKSON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "026816",
+      "wholesaler": false
+    },
+    {
+      "dba": "POOH'S LIQUOR LLC",
+      "address": "15335 DEDEAUX RD STE E GULFPORT MS 39503-3645",
+      "city": "GULFPORT",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "028142",
+      "wholesaler": false
+    },
+    {
+      "dba": "JIGGER & JUG INC",
+      "address": "1308 HIGHWAY 82 E GREENVILLE MS 38703-5905",
+      "city": "GREENVILLE",
+      "county": "Washington",
+      "permitType": "Package Retailer",
+      "permitNumber": "027351",
+      "wholesaler": false
+    },
+    {
+      "dba": "KENS DISCOUNT WINE&LIQUR LLC",
+      "address": "1016 S MAIN ST # 2 PETAL MS 39465-2206",
+      "city": "PETAL",
+      "county": "Forrest",
+      "permitType": "Package Retailer",
+      "permitNumber": "042084",
+      "wholesaler": false
+    },
+    {
+      "dba": "A&G INVESTMENTS 3 LLC",
+      "address": "556 W PEACE ST CANTON MS 39046-4255",
+      "city": "CANTON",
+      "county": "Madison",
+      "permitType": "Package Retailer",
+      "permitNumber": "049489",
+      "wholesaler": false
+    },
+    {
+      "dba": "BROWN BAG",
+      "address": "28648 MS HIGHWAY 32 OAKLAND MS 38948-0019",
+      "city": "OAKLAND",
+      "county": "Yalobusha",
+      "permitType": "Package Retailer",
+      "permitNumber": "040806",
+      "wholesaler": false
+    },
+    {
+      "dba": "SIMMONS LIQUOR & WINE",
+      "address": "109 YAZOO ST LEXINGTON MS 39095-3618",
+      "city": "LEXINGTON",
+      "county": "Holmes",
+      "permitType": "Package Retailer",
+      "permitNumber": "052347",
+      "wholesaler": false
+    },
+    {
+      "dba": "THE CELLAR WINE & SPIRTS, INC.",
+      "address": "602 S ADAMS ST STE A FULTON MS 38843-8950",
+      "city": "FULTON",
+      "county": "Itawamba",
+      "permitType": "Package Retailer",
+      "permitNumber": "048332",
+      "wholesaler": false
+    },
+    {
+      "dba": "PITTSBORO LIQUOR & WINE INC",
+      "address": "25 NORTH MURPHREE PITTSBORO MS 38951",
+      "city": "PITTSBORO",
+      "county": "Calhoun",
+      "permitType": "Package Retailer",
+      "permitNumber": "030349",
+      "wholesaler": false
+    },
+    {
+      "dba": "DOC'S EASTSIDE WINE & LIQUOR LLC",
+      "address": "608 CHANTILLY ST LAUREL MS 39440-3643",
+      "city": "LAUREL",
+      "county": "Jones",
+      "permitType": "Package Retailer",
+      "permitNumber": "057176",
+      "wholesaler": false
+    },
+    {
+      "dba": "STANLEYS LIQUOR WINE INC",
+      "address": "1049 S STATE ST JACKSON MS 39201-5913",
+      "city": "JACKSON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "008087",
+      "wholesaler": false
+    },
+    {
+      "dba": "ACE LIQUOR",
+      "address": "2655 I 55 S STE A JACKSON MS 39204-5818",
+      "city": "JACKSON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "064044",
+      "wholesaler": false
+    },
+    {
+      "dba": "LINCOLN ROAD PACKAGE STORE INC",
+      "address": "2800 LINCOLN RD STE A HATTIESBURG MS 39402-3124",
+      "city": "HATTIESBURG",
+      "county": "Forrest",
+      "permitType": "Package Retailer",
+      "permitNumber": "022224",
+      "wholesaler": false
+    },
+    {
+      "dba": "PITTS PACKAGE STORE LLC",
+      "address": "1601 CARROLLTON AVE GREENWOOD MS 38930-5816",
+      "city": "GREENWOOD",
+      "county": "Leflore",
+      "permitType": "Package Retailer",
+      "permitNumber": "070240",
+      "wholesaler": false
+    },
+    {
+      "dba": "NORTHPARK LIQUOR MS LLC",
+      "address": "1150 E COUNTY LINE RD STE B RIDGELAND MS 39157-1935",
+      "city": "RIDGELAND",
+      "county": "Madison",
+      "permitType": "Package Retailer",
+      "permitNumber": "050314",
+      "wholesaler": false
+    },
+    {
+      "dba": "BIG DOG LIQUOR STORE INC",
+      "address": "2707 HIGHWAY 90 STE 20 GAUTIER MS 39553-5161",
+      "city": "GAUTIER",
+      "county": "Jackson",
+      "permitType": "Package Retailer",
+      "permitNumber": "048849",
+      "wholesaler": false
+    },
+    {
+      "dba": "ANJUMAN SOOD DBA THE VINEYARD",
+      "address": "801 S WHEATLEY ST STE E RIDGELAND MS 39157-5196",
+      "city": "RIDGELAND",
+      "county": "Madison",
+      "permitType": "Package Retailer",
+      "permitNumber": "046134",
+      "wholesaler": false
+    },
+    {
+      "dba": "AJ LIQUOR",
+      "address": "12 COMMERCE ST NOXAPATER MS 39346-6970",
+      "city": "NOXAPATER",
+      "county": "Winston",
+      "permitType": "Package Retailer",
+      "permitNumber": "059064",
+      "wholesaler": false
+    },
+    {
+      "dba": "THE VINEYARD",
+      "address": "2711 SUITE B OAK GROVE RD HATTIESBURG MS 39402",
+      "city": "HATTIESBURG",
+      "county": "Lamar",
+      "permitType": "Package Retailer",
+      "permitNumber": "026170",
+      "wholesaler": false
+    },
+    {
+      "dba": "AIRPORT LIQUOR",
+      "address": "1224 OLD HIGHWAY 51 NE BROOKHAVEN MS 39601-9517",
+      "city": "BROOKHAVEN",
+      "county": "Lincoln",
+      "permitType": "Package Retailer",
+      "permitNumber": "044029",
+      "wholesaler": false
+    },
+    {
+      "dba": "BEACHVIEW PACKAGE STORE",
+      "address": "3709 BEACHVIEW DR STE F OCEAN SPRINGS MS 39564-7803",
+      "city": "OCEAN SPRINGS",
+      "county": "Jackson",
+      "permitType": "Package Retailer",
+      "permitNumber": "023616",
+      "wholesaler": false
+    },
+    {
+      "dba": "BASSFIELD DISCOUNT LIQUOR",
+      "address": "30 HAWKINS AVE BASSFIELD MS 39421",
+      "city": "BASSFIELD",
+      "county": "Jefferson Davis",
+      "permitType": "Package Retailer",
+      "permitNumber": "021044",
+      "wholesaler": false
+    },
+    {
+      "dba": "JOEYS LIQUOR",
+      "address": "561 HOLLAND AVE STE 1 PHILADELPHIA MS 39350-2107",
+      "city": "PHILADELPHIA",
+      "county": "Neshoba",
+      "permitType": "Package Retailer",
+      "permitNumber": "052455",
+      "wholesaler": false
+    },
+    {
+      "dba": "7-51 LIQUOR LLC",
+      "address": "229 S DR MARTIN LUTHER KING JR BLVD STE A GRENADA MS 38901-2940",
+      "city": "GRENADA",
+      "county": "Grenada",
+      "permitType": "Package Retailer",
+      "permitNumber": "059369",
+      "wholesaler": false
+    },
+    {
+      "dba": "OAK SQUARE LIQUOR AND WINE LLC",
+      "address": "8288 FIRETOWER ROAD # D PASS CHRISTIAN MS 39571",
+      "city": "PASS CHRISTIAN",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "042839",
+      "wholesaler": false
+    },
+    {
+      "dba": "ROBINSON WINE & SPIRITS LLC",
+      "address": "2615 ROBINSON ST STE B JACKSON MS 39209-6916",
+      "city": "JACKSON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "046606",
+      "wholesaler": false
+    },
+    {
+      "dba": "YOU POUR IT",
+      "address": "1615 25TH AVE GULFPORT MS 39501-2834",
+      "city": "GULFPORT",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "051979",
+      "wholesaler": false
+    },
+    {
+      "dba": "KATS WINE & SPIRITS INC",
+      "address": "921 E FORTIFICATION ST JACKSON MS 39202-2424",
+      "city": "JACKSON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "008311",
+      "wholesaler": false
+    },
+    {
+      "dba": "SHAKTI KRUPA INC",
+      "address": "6518 HIGHWAY 63 MOSS POINT MS 39563-9529",
+      "city": "MOSS POINT",
+      "county": "Jackson",
+      "permitType": "Package Retailer",
+      "permitNumber": "086013",
+      "wholesaler": false
+    },
+    {
+      "dba": "YOKNAPATAWPHA WINE & SPIRITS",
+      "address": "2216 JACKSON AVE WEST OXFORD MS 38655",
+      "city": "OXFORD",
+      "county": "Lafayette",
+      "permitType": "Package Retailer",
+      "permitNumber": "040173",
+      "wholesaler": false
+    },
+    {
+      "dba": "NK WINE AND LIQUOR",
+      "address": "3525 WASHINGTON ST VICKSBURG MS 39180-5061",
+      "city": "VICKSBURG",
+      "county": "Warren",
+      "permitType": "Package Retailer",
+      "permitNumber": "040482",
+      "wholesaler": false
+    },
+    {
+      "dba": "RUBY I INC",
+      "address": "632 HIGHWAY 12 E STARKVILLE MS 39759-3826",
+      "city": "STARKVILLE",
+      "county": "Oktibbeha",
+      "permitType": "Package Retailer",
+      "permitNumber": "063044",
+      "wholesaler": false
+    },
+    {
+      "dba": "MADHU SHOP CORP",
+      "address": "5901 HIGHWAY 80 W STE A JACKSON MS 39209-3516",
+      "city": "JACKSON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "040307",
+      "wholesaler": false
+    },
+    {
+      "dba": "BERRYS SPIRITS AND MORE",
+      "address": "307 CHURCH ST PORT GIBSON MS 39150-2107",
+      "city": "PORT GIBSON",
+      "county": "Claiborne",
+      "permitType": "Package Retailer",
+      "permitNumber": "047518",
+      "wholesaler": false
+    },
+    {
+      "dba": "GRAVES PACKAGE STORE LLC",
+      "address": "110 W JACKSON ST BELZONI MS 39038-3538",
+      "city": "BELZONI",
+      "county": "Humphreys",
+      "permitType": "Package Retailer",
+      "permitNumber": "026842",
+      "wholesaler": false
+    },
+    {
+      "dba": "ACES LIQUOR",
+      "address": "4289 CASINO CENTER DR BLDG 1 ROBINSONVILLE MS 38664-6115",
+      "city": "ROBINSONVILLE",
+      "county": "Tunica",
+      "permitType": "Package Retailer",
+      "permitNumber": "099016",
+      "wholesaler": false
+    },
+    {
+      "dba": "BOS SALES INC",
+      "address": "830D CITY AVE S RIPLEY MS 38663-2940",
+      "city": "RIPLEY",
+      "county": "Tippah",
+      "permitType": "Package Retailer",
+      "permitNumber": "070004",
+      "wholesaler": false
+    },
+    {
+      "dba": "MASON JAR SPIRITS & WINE",
+      "address": "114 W FLORENCE ST HATTIESBURG MS 39401-6356",
+      "city": "HATTIESBURG",
+      "county": "Forrest",
+      "permitType": "Package Retailer",
+      "permitNumber": "045071",
+      "wholesaler": false
+    },
+    {
+      "dba": "WATERING HOLE CELLAR WINE",
+      "address": "132 1/2 LEONTYNE PRICE BLVD LAUREL MS 39440-4428",
+      "city": "LAUREL",
+      "county": "Jones",
+      "permitType": "Package Retailer",
+      "permitNumber": "046709",
+      "wholesaler": false
+    },
+    {
+      "dba": "NORMS DISCOUNT LIQUOR & WINE INC",
+      "address": "445 STATELINE RD W SOUTHAVEN MS 38671-1611",
+      "city": "SOUTHAVEN",
+      "county": "DeSoto",
+      "permitType": "Package Retailer",
+      "permitNumber": "024142",
+      "wholesaler": false
+    },
+    {
+      "dba": "CITY LIMITS WINE & SPIRTIS",
+      "address": "14576 OLD HIGHWAY 49 GULFPORT MS 39503-9502",
+      "city": "GULFPORT",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "043227",
+      "wholesaler": false
+    },
+    {
+      "dba": "VAIDEN PACKAGE STORE LLC",
+      "address": "33853 MS 35 STE A VAIDEN MS 39176",
+      "city": "VAIDEN",
+      "county": "Carroll",
+      "permitType": "Package Retailer",
+      "permitNumber": "046599",
+      "wholesaler": false
+    },
+    {
+      "dba": "TJS FINE WINE AND LIQUOR",
+      "address": "237 ORLEANS WAY STE D BRANDON MS 39042",
+      "city": "BRANDON",
+      "county": "Rankin",
+      "permitType": "Package Retailer",
+      "permitNumber": "048766",
+      "wholesaler": false
+    },
+    {
+      "dba": "TUPELO WINE & SPIRITS",
+      "address": "1663 N COLEY RD TUPELO MS 38801",
+      "city": "TUPELO",
+      "county": "Lee",
+      "permitType": "Package Retailer",
+      "permitNumber": "055298",
+      "wholesaler": false
+    },
+    {
+      "dba": "RICH'S FAMILY TRADITION LIQUORS",
+      "address": "3811 HIGHWAY 72 W CORINTH MS 38834-8553",
+      "city": "CORINTH",
+      "county": "Alcorn",
+      "permitType": "Package Retailer",
+      "permitNumber": "061255",
+      "wholesaler": false
+    },
+    {
+      "dba": "WINE & LIQUOR DISC #1",
+      "address": "1855 LAKELAND DR JACKSON MS 39216-4913",
+      "city": "JACKSON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "006719",
+      "wholesaler": false
+    },
+    {
+      "dba": "CORK & CASK",
+      "address": "709 S BROADWAY ST MCCOMB MS 39648-5131",
+      "city": "MCCOMB",
+      "county": "Pike",
+      "permitType": "Package Retailer",
+      "permitNumber": "049173",
+      "wholesaler": false
+    },
+    {
+      "dba": "TOP SHELF LIQUOR AND WINE",
+      "address": "600 HIGHWAY 80 W STE C CLINTON MS 39056-4168",
+      "city": "CLINTON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "049913",
+      "wholesaler": false
+    },
+    {
+      "dba": "JASCO WHOLESALE LIQUOR & WINE",
+      "address": "2014 TERRY RD JACKSON MS 39204-5028",
+      "city": "JACKSON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "026529",
+      "wholesaler": false
+    },
+    {
+      "dba": "CAPITAL WINE & SPIRITS",
+      "address": "3308 W CAPITOL ST JACKSON MS 39209-4103",
+      "city": "JACKSON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "047455",
+      "wholesaler": false
+    },
+    {
+      "dba": "MOONLIGHT LIQUOR",
+      "address": "3918 HIGHWAY 63 MOSS POINT MS 39563-6442",
+      "city": "MOSS POINT",
+      "county": "Jackson",
+      "permitType": "Package Retailer",
+      "permitNumber": "046906",
+      "wholesaler": false
+    },
+    {
+      "dba": "SOUTHERN SPIRITS LLC",
+      "address": "4013 BEATLINE RD STE B LONG BEACH MS 39560-4135",
+      "city": "LONG BEACH",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "046105",
+      "wholesaler": false
+    },
+    {
+      "dba": "BHATIA GINDO LLC PACKAGE",
+      "address": "1837 S CHURCH AVE LOUISVILLE MS 39339-2939",
+      "city": "LOUISVILLE",
+      "county": "Winston",
+      "permitType": "Package Retailer",
+      "permitNumber": "052353",
+      "wholesaler": false
+    },
+    {
+      "dba": "NORTHSIDE WINE & SPIRITS",
+      "address": "2866 W NORTHSIDE DR JACKSON MS 39213-4654",
+      "city": "JACKSON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "028731",
+      "wholesaler": false
+    },
+    {
+      "dba": "LIQUOR LODGE",
+      "address": "1150 E PEACE ST UNIT 202 CANTON MS 39046-4900",
+      "city": "CANTON",
+      "county": "Madison",
+      "permitType": "Package Retailer",
+      "permitNumber": "052827",
+      "wholesaler": false
+    },
+    {
+      "dba": "SIWELL WINE & SPIRITS",
+      "address": "4556 N SIWELL RD STE C JACKSON MS 39212-3671",
+      "city": "JACKSON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "059769",
+      "wholesaler": false
+    },
+    {
+      "dba": "VAULT LIQUOR & WINE LLC",
+      "address": "909 E CHURCH ST BOONEVILLE MS 38829-3805",
+      "city": "BOONEVILLE",
+      "county": "Prentiss",
+      "permitType": "Package Retailer",
+      "permitNumber": "051848",
+      "wholesaler": false
+    },
+    {
+      "dba": "LIQUOR LAND SARDIS INC",
+      "address": "502 E LEE ST SARDIS MS 38666-1239",
+      "city": "SARDIS",
+      "county": "Panola",
+      "permitType": "Package Retailer",
+      "permitNumber": "048435",
+      "wholesaler": false
+    },
+    {
+      "dba": "DABIT VENTURES INC",
+      "address": "1805 LELIA DR JACKSON MS 39216-4822",
+      "city": "JACKSON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "007531",
+      "wholesaler": false
+    },
+    {
+      "dba": "MAIN STREET LIQUOR",
+      "address": "333 S MAIN ST WATER VALLEY MS 38965-3318",
+      "city": "WATER VALLEY",
+      "county": "Yalobusha",
+      "permitType": "Package Retailer",
+      "permitNumber": "030110",
+      "wholesaler": false
+    },
+    {
+      "dba": "KINGS WINE AND SPIRITS LLC",
+      "address": "1112 HWY 16 EAST MAIN ST PHILADELPHIA MS 39350",
+      "city": "PHILADELPHIA",
+      "county": "Neshoba",
+      "permitType": "Package Retailer",
+      "permitNumber": "050987",
+      "wholesaler": false
+    },
+    {
+      "dba": "CAMPUS WINES AND SPIRITS",
+      "address": "1501 JACKSON AVE W STE 105 OXFORD MS 38655-2565",
+      "city": "OXFORD",
+      "county": "Lafayette",
+      "permitType": "Package Retailer",
+      "permitNumber": "040692",
+      "wholesaler": false
+    },
+    {
+      "dba": "OMSAI15 INC",
+      "address": "306A HWY 145N ABERDEEN MS 39730-2310",
+      "city": "ABERDEEN",
+      "county": "Monroe",
+      "permitType": "Package Retailer",
+      "permitNumber": "045717",
+      "wholesaler": false
+    },
+    {
+      "dba": "BAY BREEZE WINE & LIQUOR",
+      "address": "615 BLUE MEADOW RD BAY SAINT LOUIS MS 39520-2805",
+      "city": "BAY SAINT LOUIS",
+      "county": "Hancock",
+      "permitType": "Package Retailer",
+      "permitNumber": "055050",
+      "wholesaler": false
+    },
+    {
+      "dba": "CITY PACKAGE",
+      "address": "107 DELTA ST ROLLING FORK MS 39159-2266",
+      "city": "ROLLING FORK",
+      "county": "Sharkey",
+      "permitType": "Package Retailer",
+      "permitNumber": "042740",
+      "wholesaler": false
+    },
+    {
+      "dba": "RIVERSIDE LIQUOR STORE, LLC",
+      "address": "3117 HALLS FERRY RD VICKSBURG MS 39180-5109",
+      "city": "VICKSBURG",
+      "county": "Warren",
+      "permitType": "Package Retailer",
+      "permitNumber": "044339",
+      "wholesaler": false
+    },
+    {
+      "dba": "THE TOP SHELF",
+      "address": "10585 THREE RIVERS RD STE 5 GULFPORT MS 39503-3572",
+      "city": "GULFPORT",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "030205",
+      "wholesaler": false
+    },
+    {
+      "dba": "REBEL WINE & MORE",
+      "address": "1429 N LAMAR BLVD OXFORD MS 38655-2307",
+      "city": "OXFORD",
+      "county": "Lafayette",
+      "permitType": "Package Retailer",
+      "permitNumber": "029297",
+      "wholesaler": false
+    },
+    {
+      "dba": "SHREEJI BEVERAGES INC",
+      "address": "5950 HIGHWAY 301 STE A HORN LAKE MS 38637-9512",
+      "city": "HORN LAKE",
+      "county": "DeSoto",
+      "permitType": "Package Retailer",
+      "permitNumber": "044545",
+      "wholesaler": false
+    },
+    {
+      "dba": "J H WINE & SPIRITS LLC",
+      "address": "100 PRITCHARD AVE STE B BENTONIA MS 39040",
+      "city": "BENTONIA",
+      "county": "Yazoo",
+      "permitType": "Package Retailer",
+      "permitNumber": "029570",
+      "wholesaler": false
+    },
+    {
+      "dba": "STAR WINE & LIQUOR",
+      "address": "3100 BIENVILLE BLVD STE 42 OCEAN SPRINGS MS 39564-5733",
+      "city": "OCEAN SPRINGS",
+      "county": "Jackson",
+      "permitType": "Package Retailer",
+      "permitNumber": "008182",
+      "wholesaler": false
+    },
+    {
+      "dba": "DUKE BROTHERS LLC",
+      "address": "1203 N GLOSTER ST STE D TUPELO MS 38804-1241",
+      "city": "TUPELO",
+      "county": "Lee",
+      "permitType": "Package Retailer",
+      "permitNumber": "050578",
+      "wholesaler": false
+    },
+    {
+      "dba": "THE LIQUOR STORE",
+      "address": "2080 S FRONTAGE RD STE A VICKSBURG MS 39180-5884",
+      "city": "VICKSBURG",
+      "county": "Warren",
+      "permitType": "Package Retailer",
+      "permitNumber": "022463",
+      "wholesaler": false
+    },
+    {
+      "dba": "SAM'S CLUB# 8271",
+      "address": "257 GRANDVIEW BLVD MADISON MS 39110-5514",
+      "city": "MADISON",
+      "county": "Madison",
+      "permitType": "Package Retailer",
+      "permitNumber": "030474",
+      "wholesaler": false
+    },
+    {
+      "dba": "CORNER LIQUOR INC",
+      "address": "2309 HIGHWAY 1 S STE C GREENVILLE MS 38701-8335",
+      "city": "GREENVILLE",
+      "county": "Washington",
+      "permitType": "Package Retailer",
+      "permitNumber": "028302",
+      "wholesaler": false
+    },
+    {
+      "dba": "TUPELO LIQUOR MART, LLC",
+      "address": "1502 S GLOSTER ST TUPELO MS 38801-6510",
+      "city": "TUPELO",
+      "county": "Lee",
+      "permitType": "Package Retailer",
+      "permitNumber": "029666",
+      "wholesaler": false
+    },
+    {
+      "dba": "DISCOUNT PACKAGE STORE",
+      "address": "741 E FIFTEENTH ST YAZOO CITY MS 39194-2705",
+      "city": "YAZOO CITY",
+      "county": "Yazoo",
+      "permitType": "Package Retailer",
+      "permitNumber": "021989",
+      "wholesaler": false
+    },
+    {
+      "dba": "S & W SPIRITS",
+      "address": "2525 HIGHWAY 90 STE 9 GAUTIER MS 39553-5247",
+      "city": "GAUTIER",
+      "county": "Jackson",
+      "permitType": "Package Retailer",
+      "permitNumber": "049075",
+      "wholesaler": false
+    },
+    {
+      "dba": "82 PACKAGE STORE",
+      "address": "416 E MLK DR STARKVILLE MS 39759",
+      "city": "STARKVILLE",
+      "county": "Oktibbeha",
+      "permitType": "Package Retailer",
+      "permitNumber": "054096",
+      "wholesaler": false
+    },
+    {
+      "dba": "CASK & FLASK",
+      "address": "1832 HIGHWAY 1 S STE A GREENVILLE MS 38701-7834",
+      "city": "GREENVILLE",
+      "county": "Washington",
+      "permitType": "Package Retailer",
+      "permitNumber": "005617",
+      "wholesaler": false
+    },
+    {
+      "dba": "ANYTIME WINE & LIQUOR",
+      "address": "7731 GERMANTOWN RD STE 101 OLIVE BRANCH MS 38654-1266",
+      "city": "OLIVE BRANCH",
+      "county": "DeSoto",
+      "permitType": "Package Retailer",
+      "permitNumber": "047789",
+      "wholesaler": false
+    },
+    {
+      "dba": "F & G DRIVE IN BEVERAGES",
+      "address": "1707 WASHINGTON ST VICKSBURG MS 39180-3559",
+      "city": "VICKSBURG",
+      "county": "Warren",
+      "permitType": "Package Retailer",
+      "permitNumber": "007828",
+      "wholesaler": false
+    },
+    {
+      "dba": "568 LIQUOR AND WINE",
+      "address": "6010 SLAG RD MOSS POINT MS 39563-4734",
+      "city": "MOSS POINT",
+      "county": "Jackson",
+      "permitType": "Package Retailer",
+      "permitNumber": "042269",
+      "wholesaler": false
+    },
+    {
+      "dba": "DISCOUNT LIQUOR & WINE LLC",
+      "address": "1092 MAIN ST BLDG 1 FAYETTE MS 39069",
+      "city": "FAYETTE",
+      "county": "Jefferson",
+      "permitType": "Package Retailer",
+      "permitNumber": "053411",
+      "wholesaler": false
+    },
+    {
+      "dba": "GEORGE'S DISCOUNT WINE & LIQUOR",
+      "address": "309 N 16TH AVE LAUREL MS 39440-3848",
+      "city": "LAUREL",
+      "county": "Jones",
+      "permitType": "Package Retailer",
+      "permitNumber": "023842",
+      "wholesaler": false
+    },
+    {
+      "dba": "LAST CHANCE LIQUOR STORE",
+      "address": "5155 HIGHWAY 15 LOUIN MS 39338-4008",
+      "city": "LOUIN",
+      "county": "Jasper",
+      "permitType": "Package Retailer",
+      "permitNumber": "050676",
+      "wholesaler": false
+    },
+    {
+      "dba": "PAUL'S PACKAGE STORE",
+      "address": "645 NELSON ST BLDG 1 GREENVILLE MS 38701-2991",
+      "city": "GREENVILLE",
+      "county": "Washington",
+      "permitType": "Package Retailer",
+      "permitNumber": "047079",
+      "wholesaler": false
+    },
+    {
+      "dba": "SOUTHWEST PACKAGE STORE LLC",
+      "address": "1524 DELAWARE AVE MCCOMB MS 39648-3608",
+      "city": "MCCOMB",
+      "county": "Pike",
+      "permitType": "Package Retailer",
+      "permitNumber": "024055",
+      "wholesaler": false
+    },
+    {
+      "dba": "THE LITTLE WINE SHOPPE",
+      "address": "109 S 31ST AVE STE 20 HATTIESBURG MS 39401-7134",
+      "city": "HATTIESBURG",
+      "county": "Forrest",
+      "permitType": "Package Retailer",
+      "permitNumber": "063245",
+      "wholesaler": false
+    },
+    {
+      "dba": "STAR LIQUOR",
+      "address": "701 E MONTICELLO ST STE A BROOKHAVEN MS 39601-3447",
+      "city": "BROOKHAVEN",
+      "county": "Lincoln",
+      "permitType": "Package Retailer",
+      "permitNumber": "046586",
+      "wholesaler": false
+    },
+    {
+      "dba": "JS PACKAGE STORE INC",
+      "address": "14412 HWY 16 W DE KALB MS 39328",
+      "city": "DE KALB",
+      "county": "Kemper",
+      "permitType": "Package Retailer",
+      "permitNumber": "027801",
+      "wholesaler": false
+    },
+    {
+      "dba": "SWINGING BRIDGE DISCOUNT LIQUOR",
+      "address": "2 HOLIDAY RAMBLER LN BYRAM MS 39272-5580",
+      "city": "BYRAM",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "041622",
+      "wholesaler": false
+    },
+    {
+      "dba": "DELTA LIQUOR LLC",
+      "address": "200B EAST AVE N HOLLANDALE MS 38748-3712",
+      "city": "HOLLANDALE",
+      "county": "Washington",
+      "permitType": "Package Retailer",
+      "permitNumber": "046841",
+      "wholesaler": false
+    },
+    {
+      "dba": "KRAZEE DAWGS LIQUOR LLC",
+      "address": "203 WALMART CIR BOONEVILLE MS 38829-1005",
+      "city": "BOONEVILLE",
+      "county": "Prentiss",
+      "permitType": "Package Retailer",
+      "permitNumber": "051370",
+      "wholesaler": false
+    },
+    {
+      "dba": "SK 11 PACKAGE STORE",
+      "address": "213 SULLIVAN KILRAIN RD # 8 HATTIESBURG MS 39402-9003",
+      "city": "HATTIESBURG",
+      "county": "Forrest",
+      "permitType": "Package Retailer",
+      "permitNumber": "026330",
+      "wholesaler": false
+    },
+    {
+      "dba": "COBYS PACKAGE STORE",
+      "address": "1699 S MAIN ST STE D GREENVILLE MS 38701-7364",
+      "city": "GREENVILLE",
+      "county": "Washington",
+      "permitType": "Package Retailer",
+      "permitNumber": "025129",
+      "wholesaler": false
+    },
+    {
+      "dba": "SUMMIT STREET WINE & SPIRITS",
+      "address": "216 MAIN ST MCCOMB MS 39648-3924",
+      "city": "MCCOMB",
+      "county": "Pike",
+      "permitType": "Package Retailer",
+      "permitNumber": "051348",
+      "wholesaler": false
+    },
+    {
+      "dba": "042 WINE & SPIRITS LLC",
+      "address": "1378 W GOVERNMENT ST STE C BRANDON MS 39042-3198",
+      "city": "BRANDON",
+      "county": "Rankin",
+      "permitType": "Package Retailer",
+      "permitNumber": "044309",
+      "wholesaler": false
+    },
+    {
+      "dba": "CROSS CREEK WINE & SPIRITS",
+      "address": "5170 W 4TH ST STE 10 HATTIESBURG MS 39402-1081",
+      "city": "HATTIESBURG",
+      "county": "Lamar",
+      "permitType": "Package Retailer",
+      "permitNumber": "040588",
+      "wholesaler": false
+    },
+    {
+      "dba": "51 WINE AND SPIRITS",
+      "address": "1250 COLONY PARK BLVD STE C RIDGELAND MS 39157",
+      "city": "RIDGELAND",
+      "county": "Madison",
+      "permitType": "Package Retailer",
+      "permitNumber": "052435",
+      "wholesaler": false
+    },
+    {
+      "dba": "BEST PRICE",
+      "address": "100 EASTBROOK DR STE 160 PETAL MS 39465-6008",
+      "city": "PETAL",
+      "county": "Forrest",
+      "permitType": "Package Retailer",
+      "permitNumber": "054012",
+      "wholesaler": false
+    },
+    {
+      "dba": "82 PACKAGE LIQUOR",
+      "address": "19609 HIGHWAY 82 CARROLLTON MS 38917-7066",
+      "city": "CARROLLTON",
+      "county": "Carroll",
+      "permitType": "Package Retailer",
+      "permitNumber": "007936",
+      "wholesaler": false
+    },
+    {
+      "dba": "ELEGANT WINES AND LIQUOR",
+      "address": "3249 MEDGAR EVERS BLVD # BUILDING JACKSON MS 39213-6843",
+      "city": "JACKSON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "040991",
+      "wholesaler": false
+    },
+    {
+      "dba": "THE COACH'S CORNER",
+      "address": "1107 HIGHWAY 28 W STE A SOSO MS 39480-5546",
+      "city": "SOSO",
+      "county": "Jones",
+      "permitType": "Package Retailer",
+      "permitNumber": "028528",
+      "wholesaler": false
+    },
+    {
+      "dba": "PARKVIEW LIQUOR STORE",
+      "address": "2901 CLAY ST VICKSBURG MS 39183-3134",
+      "city": "VICKSBURG",
+      "county": "Warren",
+      "permitType": "Package Retailer",
+      "permitNumber": "027276",
+      "wholesaler": false
+    },
+    {
+      "dba": "DESOTO LIQUOR & WINE",
+      "address": "904 GOODMAN RD W STE A HORN LAKE MS 38637-1437",
+      "city": "HORN LAKE",
+      "county": "DeSoto",
+      "permitType": "Package Retailer",
+      "permitNumber": "029254",
+      "wholesaler": false
+    },
+    {
+      "dba": "GLENKIRK VILLAGE LIQUOR STORE",
+      "address": "1323 IDA ST TUPELO MS 38801-4677",
+      "city": "TUPELO",
+      "county": "Lee",
+      "permitType": "Package Retailer",
+      "permitNumber": "020049",
+      "wholesaler": false
+    },
+    {
+      "dba": "PRS LLC DBA OUTBACK LIQUOR",
+      "address": "6375 U S HIGHWAY 98 STE 30 HATTIESBURG MS 39402-7411",
+      "city": "HATTIESBURG",
+      "county": "Lamar",
+      "permitType": "Package Retailer",
+      "permitNumber": "045747",
+      "wholesaler": false
+    },
+    {
+      "dba": "NEWWELL WINE & SPIRITS LLC",
+      "address": "22267 HIGHWAY 28 UNION CHURCH MS 39668-7074",
+      "city": "UNION CHURCH",
+      "county": "Jefferson",
+      "permitType": "Package Retailer",
+      "permitNumber": "028671",
+      "wholesaler": false
+    },
+    {
+      "dba": "DEVINE SPIRIT MS 06 INC",
+      "address": "123HIGHWAY 145 N ABERDEEN MS 39730",
+      "city": "ABERDEEN",
+      "county": "Monroe",
+      "permitType": "Package Retailer",
+      "permitNumber": "043737",
+      "wholesaler": false
+    },
+    {
+      "dba": "THE WINE SELLER LLC",
+      "address": "104 HIGHWAY 278 E AMORY MS 38821-5227",
+      "city": "AMORY",
+      "county": "Monroe",
+      "permitType": "Package Retailer",
+      "permitNumber": "108035",
+      "wholesaler": false
+    },
+    {
+      "dba": "COMMODORE BOB'S BOTTLE SHOP LLC",
+      "address": "517 UNIVERSITY DR STE 1 STARKVILLE MS 39759-3040",
+      "city": "STARKVILLE",
+      "county": "Oktibbeha",
+      "permitType": "Package Retailer",
+      "permitNumber": "047169",
+      "wholesaler": false
+    },
+    {
+      "dba": "RAM LIQUOR LLC",
+      "address": "4800 I 55 N STE 32B JACKSON MS 39211-5555",
+      "city": "JACKSON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "049222",
+      "wholesaler": false
+    },
+    {
+      "dba": "CORINTH WINE & SPIRITS",
+      "address": "3116 N. SHILOH RD. B FRNT B CORINTH MS 38834",
+      "city": "CORINTH",
+      "county": "Alcorn",
+      "permitType": "Package Retailer",
+      "permitNumber": "056032",
+      "wholesaler": false
+    },
+    {
+      "dba": "VK HIGHER SPIRITS LLC",
+      "address": "1294 HIGHWAY 24 E BLDG 1 CENTREVILLE MS 39631-4224",
+      "city": "CENTREVILLE",
+      "county": "Wilkinson",
+      "permitType": "Package Retailer",
+      "permitNumber": "050798",
+      "wholesaler": false
+    },
+    {
+      "dba": "CECILS PACKAGE STORE INC",
+      "address": "916 S DAVIS AVE CLEVELAND MS 38732-3942",
+      "city": "CLEVELAND",
+      "county": "Bolivar",
+      "permitType": "Package Retailer",
+      "permitNumber": "005528",
+      "wholesaler": false
+    },
+    {
+      "dba": "NILKANTH ONE LLC",
+      "address": "21508 US HIGHWAY 45 STE 2 BROOKSVILLE MS 39739-5154",
+      "city": "BROOKSVILLE",
+      "county": "Noxubee",
+      "permitType": "Package Retailer",
+      "permitNumber": "044322",
+      "wholesaler": false
+    },
+    {
+      "dba": "J & G LIQUOR LLC",
+      "address": "1414 N STATE ST CLARKSDALE MS 38614-6549",
+      "city": "CLARKSDALE",
+      "county": "Coahoma",
+      "permitType": "Package Retailer",
+      "permitNumber": "051294",
+      "wholesaler": false
+    },
+    {
+      "dba": "SUNFLOWER CUT RATE LIQUOR",
+      "address": "109 W QUIVER ST SUNFLOWER MS 38778-9633",
+      "city": "SUNFLOWER",
+      "county": "Sunflower",
+      "permitType": "Package Retailer",
+      "permitNumber": "024770",
+      "wholesaler": false
+    },
+    {
+      "dba": "TS PACKAGE STORE LLC",
+      "address": "5541 ROBINSON ROAD EXT JACKSON MS 39204-4142",
+      "city": "JACKSON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "028688",
+      "wholesaler": false
+    },
+    {
+      "dba": "JOHN HOUSTONS LLC",
+      "address": "717 CLAY ST FRNT 1A VICKSBURG MS 39183-2933",
+      "city": "VICKSBURG",
+      "county": "Warren",
+      "permitType": "Package Retailer",
+      "permitNumber": "050965",
+      "wholesaler": false
+    },
+    {
+      "dba": "WELCH WINES & SPIRITS",
+      "address": "3020 HIGHWAY 51 S FRNT 3020 SENATOBIA MS 38668-6215",
+      "city": "SENATOBIA",
+      "county": "Tate",
+      "permitType": "Package Retailer",
+      "permitNumber": "040460",
+      "wholesaler": false
+    },
+    {
+      "dba": "HARDY COURT LIQUOR & WINE LLC",
+      "address": "#43 HARDY COURT SHPNG CTR GULFPORT MS 39507",
+      "city": "GULFPORT",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "021754",
+      "wholesaler": false
+    },
+    {
+      "dba": "LMT OF MS INC",
+      "address": "910 TUSCALOOSA RD STE 1 COLUMBUS MS 39702-1600",
+      "city": "COLUMBUS",
+      "county": "Lowndes",
+      "permitType": "Package Retailer",
+      "permitNumber": "049797",
+      "wholesaler": false
+    },
+    {
+      "dba": "GLENN'S PACKAGE STORE",
+      "address": "7717 HIGHWAY 613 MOSS POINT MS 39563-9390",
+      "city": "MOSS POINT",
+      "county": "Jackson",
+      "permitType": "Package Retailer",
+      "permitNumber": "023918",
+      "wholesaler": false
+    },
+    {
+      "dba": "SMOKEYS LIQUOR",
+      "address": "950 TOWNE SQ HWY 13 S COLUMBIA MS 39429",
+      "city": "COLUMBIA",
+      "county": "Marion",
+      "permitType": "Package Retailer",
+      "permitNumber": "021809",
+      "wholesaler": false
+    },
+    {
+      "dba": "BEACH VIEW WINE & LIQUOR",
+      "address": "2650 BEACH BLVD STE 38 BILOXI MS 39531-4517",
+      "city": "BILOXI",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "040568",
+      "wholesaler": false
+    },
+    {
+      "dba": "D VINE WINES & SPIRITS",
+      "address": "577 GOODMAN ROAD S-7 SOUTHAVEN MS 38671",
+      "city": "SOUTHAVEN",
+      "county": "DeSoto",
+      "permitType": "Package Retailer",
+      "permitNumber": "020917",
+      "wholesaler": false
+    },
+    {
+      "dba": "NORTHSIDE PACKAGE STORE",
+      "address": "229 MARTIN LUTHER KING JR DR STE A HOLLY SPRINGS MS 38635-1316",
+      "city": "HOLLY SPRINGS",
+      "county": "Marshall",
+      "permitType": "Package Retailer",
+      "permitNumber": "021453",
+      "wholesaler": false
+    },
+    {
+      "dba": "BOGART'S LIQUOR & WINE",
+      "address": "850 N GLOSTER ST STE 4 TUPELO MS 38804-1951",
+      "city": "TUPELO",
+      "county": "Lee",
+      "permitType": "Package Retailer",
+      "permitNumber": "041113",
+      "wholesaler": false
+    },
+    {
+      "dba": "TERRA NOVA WINES & SPIRIT",
+      "address": "1060 HIGHWAY 51 STE C MADISON MS 39110-7000",
+      "city": "MADISON",
+      "county": "Madison",
+      "permitType": "Package Retailer",
+      "permitNumber": "007481",
+      "wholesaler": false
+    },
+    {
+      "dba": "MYXERS",
+      "address": "250 W BEACON ST STE 1 PHILADELPHIA MS 39350-3179",
+      "city": "PHILADELPHIA",
+      "county": "Neshoba",
+      "permitType": "Package Retailer",
+      "permitNumber": "043747",
+      "wholesaler": false
+    },
+    {
+      "dba": "A&H LIQUROS",
+      "address": "8149 HWY 178 BYHALIA MS 38611",
+      "city": "BYHALIA",
+      "county": "Marshall",
+      "permitType": "Package Retailer",
+      "permitNumber": "071007",
+      "wholesaler": false
+    },
+    {
+      "dba": "SUPER C WINE & SPIRITS, LLC",
+      "address": "1109 E MAIN ST TUPELO MS 38804-2963",
+      "city": "TUPELO",
+      "county": "Lee",
+      "permitType": "Package Retailer",
+      "permitNumber": "050801",
+      "wholesaler": false
+    },
+    {
+      "dba": "LIQUORTHERAPY LLC",
+      "address": "918 HOWARD AVE STE C BILOXI MS 39530-4118",
+      "city": "BILOXI",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "057058",
+      "wholesaler": false
+    },
+    {
+      "dba": "TRACELAND PLAZA PKG STR",
+      "address": "2603 MAIN ST HWY 6 WEST TUPELO MS 38801",
+      "city": "TUPELO",
+      "county": "Lee",
+      "permitType": "Package Retailer",
+      "permitNumber": "006303",
+      "wholesaler": false
+    },
+    {
+      "dba": "RAMDARBAR LLC",
+      "address": "120 PLEASANT HILL RD NESBIT MS 38651-8901",
+      "city": "NESBIT",
+      "county": "DeSoto",
+      "permitType": "Package Retailer",
+      "permitNumber": "040562",
+      "wholesaler": false
+    },
+    {
+      "dba": "IKE AND CARRIES LIQUOR STORE",
+      "address": "171 HARRISON ST FAYETTE MS 39069",
+      "city": "FAYETTE",
+      "county": "Jefferson",
+      "permitType": "Package Retailer",
+      "permitNumber": "050306",
+      "wholesaler": false
+    },
+    {
+      "dba": "B & T LIQUOR",
+      "address": "299 GAINES HIGHWAY BLDG 2200 BOYLE MS 38730",
+      "city": "BOYLE",
+      "county": "Bolivar",
+      "permitType": "Package Retailer",
+      "permitNumber": "041191",
+      "wholesaler": false
+    },
+    {
+      "dba": "RIVER RATS LIQUOR SHACK",
+      "address": "482 HIGHWAY 90 STE D WAVELAND MS 39576-2561",
+      "city": "WAVELAND",
+      "county": "Hancock",
+      "permitType": "Package Retailer",
+      "permitNumber": "053114",
+      "wholesaler": false
+    },
+    {
+      "dba": "JOE T'S 51 LLC",
+      "address": "286 HIGHWAY 51 RIDGELAND MS 39157-3932",
+      "city": "RIDGELAND",
+      "county": "Madison",
+      "permitType": "Package Retailer",
+      "permitNumber": "043855",
+      "wholesaler": false
+    },
+    {
+      "dba": "BRIGHT VISON LIQUOR",
+      "address": "905 E PEACE ST CANTON MS 39046-4023",
+      "city": "CANTON",
+      "county": "Madison",
+      "permitType": "Package Retailer",
+      "permitNumber": "045322",
+      "wholesaler": false
+    },
+    {
+      "dba": "HOME TOWN LIQUOR STORE GREENVILLE MS",
+      "address": "845 MAIN ST GREENVILLE MS 38701-4110",
+      "city": "GREENVILLE",
+      "county": "Washington",
+      "permitType": "Package Retailer",
+      "permitNumber": "046443",
+      "wholesaler": false
+    },
+    {
+      "dba": "SPILLWAY WINE AND SPIRITS LLC",
+      "address": "1925 SPILLWAY RD STE 0 BRANDON MS 39047-6021",
+      "city": "BRANDON",
+      "county": "Rankin",
+      "permitType": "Package Retailer",
+      "permitNumber": "049263",
+      "wholesaler": false
+    },
+    {
+      "dba": "BOTTOMS UP LIQUOR & WINE INC",
+      "address": "5982 NOAH CURTIS ST SHANNON MS 38868-8917",
+      "city": "SHANNON",
+      "county": "Lee",
+      "permitType": "Package Retailer",
+      "permitNumber": "044448",
+      "wholesaler": false
+    },
+    {
+      "dba": "AGED TO PERFECTION LLC",
+      "address": "125 DAVIS AVE STE D PASS CHRISTIAN MS 39571-4531",
+      "city": "PASS CHRISTIAN",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "026482",
+      "wholesaler": false
+    },
+    {
+      "dba": "76 WINE AND LIQUOR LLC",
+      "address": "704 HWY 16 STE B CARTHAGE MS 39051",
+      "city": "CARTHAGE",
+      "county": "Leake",
+      "permitType": "Package Retailer",
+      "permitNumber": "040687",
+      "wholesaler": false
+    },
+    {
+      "dba": "ACE WINE & SPIRITS LLC",
+      "address": "690 YANDELL RD STE C CANTON MS 39046-8305",
+      "city": "CANTON",
+      "county": "Madison",
+      "permitType": "Package Retailer",
+      "permitNumber": "064048",
+      "wholesaler": false
+    },
+    {
+      "dba": "TOP SHELF WINE & LIQUORS",
+      "address": "7120 HIGHWAY 301 BLDG 7120 HORN LAKE MS 38637-9580",
+      "city": "HORN LAKE",
+      "county": "DeSoto",
+      "permitType": "Package Retailer",
+      "permitNumber": "048725",
+      "wholesaler": false
+    },
+    {
+      "dba": "J R'S WINE & SPIRITS INC",
+      "address": "2015 HIGHWAY 72 E CORINTH MS 38834-6710",
+      "city": "CORINTH",
+      "county": "Alcorn",
+      "permitType": "Package Retailer",
+      "permitNumber": "028240",
+      "wholesaler": false
+    },
+    {
+      "dba": "MAISANO'S FINE WINE AND SPIRIT",
+      "address": "1622 BIENVILLE BLVD OCEAN SPRINGS MS 39564-3000",
+      "city": "OCEAN SPRINGS",
+      "county": "Jackson",
+      "permitType": "Package Retailer",
+      "permitNumber": "047419",
+      "wholesaler": false
+    },
+    {
+      "dba": "DONNIE'S WINE AND SPIRIT",
+      "address": "6003 TULANE RD HORN LAKE MS 38637-2625",
+      "city": "HORN LAKE",
+      "county": "DeSoto",
+      "permitType": "Package Retailer",
+      "permitNumber": "048183",
+      "wholesaler": false
+    },
+    {
+      "dba": "DAVIDSON PACKAGE STORE INC",
+      "address": "199 SGT PRENTISS DR NATCHEZ MS 39120-4733",
+      "city": "NATCHEZ",
+      "county": "Adams",
+      "permitType": "Package Retailer",
+      "permitNumber": "008421",
+      "wholesaler": false
+    },
+    {
+      "dba": "LIQUOR STORE",
+      "address": "14432 LAMEY BRIDGE RD STE D DIBERVILLE MS 39540",
+      "city": "DIBERVILLE",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "041441",
+      "wholesaler": false
+    },
+    {
+      "dba": "WHOLE CELLARS PACKAGE STORE",
+      "address": "506 3RD ST BLDG 1 CLEVELAND MS 38732-2362",
+      "city": "CLEVELAND",
+      "county": "Bolivar",
+      "permitType": "Package Retailer",
+      "permitNumber": "046282",
+      "wholesaler": false
+    },
+    {
+      "dba": "SUKH LLC",
+      "address": "1226 W PEACE ST CANTON MS 39046-9056",
+      "city": "CANTON",
+      "county": "Madison",
+      "permitType": "Package Retailer",
+      "permitNumber": "029364",
+      "wholesaler": false
+    },
+    {
+      "dba": "OLD 25 COMPANY LLC",
+      "address": "611 BATTLEGROUND DR IUKA MS 38852-1314",
+      "city": "IUKA",
+      "county": "Tishomingo",
+      "permitType": "Package Retailer",
+      "permitNumber": "059668",
+      "wholesaler": false
+    },
+    {
+      "dba": "TUNICA WINE & SPIRITS",
+      "address": "1460 US HWY 61 NORTH TUNICA MS 38676",
+      "city": "TUNICA",
+      "county": "Tunica",
+      "permitType": "Package Retailer",
+      "permitNumber": "042126",
+      "wholesaler": false
+    },
+    {
+      "dba": "TULLOS COMPANIES, LLC",
+      "address": "3320 HIGHWAY 80 WEST JACKSON MS 39204",
+      "city": "JACKSON",
+      "county": "Hinds",
+      "permitType": "Package Retailer",
+      "permitNumber": "045034",
+      "wholesaler": false
+    },
+    {
+      "dba": "BULLFROG CORNER LIQUORS",
+      "address": "1432 GOODMAN RD W HORN LAKE MS 38637-1405",
+      "city": "HORN LAKE",
+      "county": "DeSoto",
+      "permitType": "Package Retailer",
+      "permitNumber": "051271",
+      "wholesaler": false
+    },
+    {
+      "dba": "THREE WAY PACKAGE LLC",
+      "address": "560 1/2 W PRESLEY BLVD MCCOMB MS 39648",
+      "city": "MCCOMB",
+      "county": "Pike",
+      "permitType": "Package Retailer",
+      "permitNumber": "048234",
+      "wholesaler": false
+    },
+    {
+      "dba": "DIXIE WINE & LIQUOR LLC",
+      "address": "16179 W MAIN ST LOUISVILLE MS 39339-2638",
+      "city": "LOUISVILLE",
+      "county": "Winston",
+      "permitType": "Package Retailer",
+      "permitNumber": "041766",
+      "wholesaler": false
+    },
+    {
+      "dba": "YOGI LIQUOR AND WINE",
+      "address": "819 HIGHWAY 90 STE B GAUTIER MS 39553-5503",
+      "city": "GAUTIER",
+      "county": "Jackson",
+      "permitType": "Package Retailer",
+      "permitNumber": "044932",
+      "wholesaler": false
+    },
+    {
+      "dba": "CHARLOTTE'S LIQUOR AND WINE",
+      "address": "350B SPUR ST BLDG B PONTOTOC MS 38863-2505",
+      "city": "PONTOTOC",
+      "county": "Pontotoc",
+      "permitType": "Package Retailer",
+      "permitNumber": "069132",
+      "wholesaler": false
+    },
+    {
+      "dba": "BY-PASS PACKAGE STORE",
+      "address": "5344 OLD HIGHWAY 42 HATTIESBURG MS 39401-1913",
+      "city": "HATTIESBURG",
+      "county": "Forrest",
+      "permitType": "Package Retailer",
+      "permitNumber": "042023",
+      "wholesaler": false
+    },
+    {
+      "dba": "SRI SRI INC",
+      "address": "7721 HACKS CROSS RD STE 110 OLIVE BRANCH MS 38654-3909",
+      "city": "OLIVE BRANCH",
+      "county": "DeSoto",
+      "permitType": "Package Retailer",
+      "permitNumber": "067151",
+      "wholesaler": false
+    },
+    {
+      "dba": "GEORGE'S WINE AND LIQUOR",
+      "address": "911 ROBINSON ST STE A WAYNESBORO MS 39367-2455",
+      "city": "WAYNESBORO",
+      "county": "Wayne",
+      "permitType": "Package Retailer",
+      "permitNumber": "067049",
+      "wholesaler": false
+    },
+    {
+      "dba": "SILVER SPRINGS WINE & SPIRITS",
+      "address": "804 UNION ST RIPLEY MS 38663-1433",
+      "city": "RIPLEY",
+      "county": "Tippah",
+      "permitType": "Package Retailer",
+      "permitNumber": "055066",
+      "wholesaler": false
+    },
+    {
+      "dba": "STEED MCGEE PACKAGE",
+      "address": "700 EAST GRAND AVENUE BLDG 700 INVERNESS MS 38753",
+      "city": "INVERNESS",
+      "county": "Sunflower",
+      "permitType": "Package Retailer",
+      "permitNumber": "030627",
+      "wholesaler": false
+    },
+    {
+      "dba": "J&C ROCCONI INC",
+      "address": "1415 HIGHWAY 8 CLEVELAND MS 38732-9788",
+      "city": "CLEVELAND",
+      "county": "Bolivar",
+      "permitType": "Package Retailer",
+      "permitNumber": "072002",
+      "wholesaler": false
+    },
+    {
+      "dba": "SIP N SMILE LLC",
+      "address": "503 N BROADWAY ST STE B MCCOMB MS 39648-3952",
+      "city": "MCCOMB",
+      "county": "Pike",
+      "permitType": "Package Retailer",
+      "permitNumber": "042459",
+      "wholesaler": false
+    },
+    {
+      "dba": "61 WINE & SPIRITS",
+      "address": "423A HIGHWAY 61 N NATCHEZ MS 39120",
+      "city": "NATCHEZ",
+      "county": "Adams",
+      "permitType": "Package Retailer",
+      "permitNumber": "026762",
+      "wholesaler": false
+    },
+    {
+      "dba": "CORK & BARRELL",
+      "address": "2595 MCINGVALE RD STE 102 HERNANDO MS 38632-8657",
+      "city": "HERNANDO",
+      "county": "DeSoto",
+      "permitType": "Package Retailer",
+      "permitNumber": "026314",
+      "wholesaler": false
+    },
+    {
+      "dba": "THE CABANA LIQUOR STORE",
+      "address": "1301 MAIN ST COLUMBUS MS 39701-4965",
+      "city": "COLUMBUS",
+      "county": "Lowndes",
+      "permitType": "Package Retailer",
+      "permitNumber": "028370",
+      "wholesaler": false
+    },
+    {
+      "dba": "TOP SHELF",
+      "address": "6542 GOODMAN RD STE 110 OLIVE BRANCH MS 38654",
+      "city": "OLIVE BRANCH",
+      "county": "DeSoto",
+      "permitType": "Package Retailer",
+      "permitNumber": "028454",
+      "wholesaler": false
+    },
+    {
+      "dba": "WILLIAMS CORNER PACKAGE",
+      "address": "6677 HIGHWAY 45 ALT S WEST POINT MS 39773-9430",
+      "city": "WEST POINT",
+      "county": "Clay",
+      "permitType": "Package Retailer",
+      "permitNumber": "030631",
+      "wholesaler": false
+    },
+    {
+      "dba": "305 WINE AND SPIRITS",
+      "address": "5028 HIGHWAY 305 N STE B OLIVE BRANCH MS 38654-3601",
+      "city": "OLIVE BRANCH",
+      "county": "DeSoto",
+      "permitType": "Package Retailer",
+      "permitNumber": "047329",
+      "wholesaler": false
+    },
+    {
+      "dba": "STROFFOLINO'S WINE & SPIRITS LLC",
+      "address": "800 MADISON ST W HOUSTON MS 38851",
+      "city": "HOUSTON",
+      "county": "",
+      "permitType": "Package Retailer",
+      "permitNumber": "044960",
+      "wholesaler": false
+    },
+    {
+      "dba": "ROAD TRIP III, LLC",
+      "address": "16598 HIGHWAY 603 STE B KILN MS 39556-8343",
+      "city": "KILN",
+      "county": "Hancock",
+      "permitType": "Package Retailer",
+      "permitNumber": "045240",
+      "wholesaler": false
+    },
+    {
+      "dba": "AA UNIFIED INC",
+      "address": "1045 CHURCH RD W SOUTHAVEN MS 38671",
+      "city": "SOUTHAVEN",
+      "county": "DeSoto",
+      "permitType": "Package Retailer",
+      "permitNumber": "054301",
+      "wholesaler": false
+    },
+    {
+      "dba": "WINE & SPIRITS",
+      "address": "14000 WILFRED SEYMOUR RD OCEAN SPRINGS MS 39565-6156",
+      "city": "OCEAN SPRINGS",
+      "county": "Jackson",
+      "permitType": "Package Retailer",
+      "permitNumber": "021396",
+      "wholesaler": false
+    },
+    {
+      "dba": "GULFCOAST LIQUOR & WINE",
+      "address": "4025 BIENVILLE BLVD OCEAN SPRINGS MS 39564-5806",
+      "city": "OCEAN SPRINGS",
+      "county": "Jackson",
+      "permitType": "Package Retailer",
+      "permitNumber": "024345",
+      "wholesaler": false
+    },
+    {
+      "dba": "LEXINGTON WINE & SPIRITS LLC",
+      "address": "204 YAZOO ST LEXINGTON MS 39095-3621",
+      "city": "LEXINGTON",
+      "county": "Holmes",
+      "permitType": "Package Retailer",
+      "permitNumber": "045911",
+      "wholesaler": false
+    },
+    {
+      "dba": "EXPRESS LIQUOR & WINE",
+      "address": "237 HIGHWAY 15 N PONTOTOC MS 38863-1314",
+      "city": "PONTOTOC",
+      "county": "Pontotoc",
+      "permitType": "Package Retailer",
+      "permitNumber": "046779",
+      "wholesaler": false
+    },
+    {
+      "dba": "16TH AVENUE WINE & LIQUOR",
+      "address": "868B S 16TH AVE LAUREL MS 39440-4926",
+      "city": "LAUREL",
+      "county": "Jones",
+      "permitType": "Package Retailer",
+      "permitNumber": "051549",
+      "wholesaler": false
+    },
+    {
+      "dba": "SOUTHERN WINE AND SPIRITS",
+      "address": "1302 MISSION 66 VICKSBURG MS 39180-3366",
+      "city": "VICKSBURG",
+      "county": "Warren",
+      "permitType": "Package Retailer",
+      "permitNumber": "040159",
+      "wholesaler": false
+    },
+    {
+      "dba": "SUNSHINE LIQUOR",
+      "address": "2500 OLD TAYLOR RD OXFORD MS 38655-5645",
+      "city": "OXFORD",
+      "county": "Lafayette",
+      "permitType": "Package Retailer",
+      "permitNumber": "041217",
+      "wholesaler": false
+    },
+    {
+      "dba": "STIR SPIRITS AND WINE, LLC",
+      "address": "2572 PASS ROAD STE D BILOXI MS 39531",
+      "city": "BILOXI",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "049175",
+      "wholesaler": false
+    },
+    {
+      "dba": "LITTLE SHOOTERS LIQUOR",
+      "address": "586 HIGHWAY 1 N GREENVILLE MS 38701-3172",
+      "city": "GREENVILLE",
+      "county": "Washington",
+      "permitType": "Package Retailer",
+      "permitNumber": "021835",
+      "wholesaler": false
+    },
+    {
+      "dba": "BLUE MOON WINE AND SPIRITS LLC",
+      "address": "451 HIGHWAY 12 EAST, PARCEL B KOSCIUSKO MS 39090",
+      "city": "KOSCIUSKO",
+      "county": "Attala",
+      "permitType": "Package Retailer",
+      "permitNumber": "048002",
+      "wholesaler": false
+    },
+    {
+      "dba": "THE LIQUOR HOUSE",
+      "address": "6835 WASHINGTON AVE STE F OCEAN SPRINGS MS 39564-2118",
+      "city": "OCEAN SPRINGS",
+      "county": "Jackson",
+      "permitType": "Package Retailer",
+      "permitNumber": "086015",
+      "wholesaler": false
+    },
+    {
+      "dba": "COTTON EXCHANGE LIQUOR STORE LLC",
+      "address": "740 HIGHWAY 49 STE D FLORA MS 39071-9653",
+      "city": "FLORA",
+      "county": "Madison",
+      "permitType": "Package Retailer",
+      "permitNumber": "020525",
+      "wholesaler": false
+    },
+    {
+      "dba": "PRIMARY LOCATION",
+      "address": "200 FRONT STREET EXT INDIANOLA MS 38751-2861",
+      "city": "INDIANOLA",
+      "county": "Sunflower",
+      "permitType": "Package Retailer",
+      "permitNumber": "042438",
+      "wholesaler": false
+    },
+    {
+      "dba": "LIQUOR FOR LESS & WINE TOO INC",
+      "address": "3075 GOODMAN RD E 5 SOUTHAVEN MS 38671",
+      "city": "SOUTHAVEN",
+      "county": "DeSoto",
+      "permitType": "Package Retailer",
+      "permitNumber": "022242",
+      "wholesaler": false
+    },
+    {
+      "dba": "CLAY STREET PACKAGE LLC",
+      "address": "109 S CLAY ST CHARLESTON MS 38921-2106",
+      "city": "CHARLESTON",
+      "county": "Tallahatchie",
+      "permitType": "Package Retailer",
+      "permitNumber": "026524",
+      "wholesaler": false
+    },
+    {
+      "dba": "ROSETTIS LIQUOR BARREL LTD",
+      "address": "998A HIGHWAY 90 BAY SAINT LOUIS MS 39520-3618",
+      "city": "BAY SAINT LOUIS",
+      "county": "Hancock",
+      "permitType": "Package Retailer",
+      "permitNumber": "024563",
+      "wholesaler": false
+    },
+    {
+      "dba": "SPEAKEASY WINE & SPIRITS, LLC",
+      "address": "105 W DONALD ST QUITMAN MS 39355-2013",
+      "city": "QUITMAN",
+      "county": "Clarke",
+      "permitType": "Package Retailer",
+      "permitNumber": "100003",
+      "wholesaler": false
+    },
+    {
+      "dba": "ALOHA WINE & SPIRITS LLC",
+      "address": "4400 E ALOHA DR DIAMONDHEAD MS 39525-3302",
+      "city": "DIAMONDHEAD",
+      "county": "Hancock",
+      "permitType": "Package Retailer",
+      "permitNumber": "023835",
+      "wholesaler": false
+    },
+    {
+      "dba": "A ONE LIQUOR AND WINE",
+      "address": "3046 INDIANA AVE STE N VICKSBURG MS 39180-5252",
+      "city": "VICKSBURG",
+      "county": "Warren",
+      "permitType": "Package Retailer",
+      "permitNumber": "046488",
+      "wholesaler": false
+    },
+    {
+      "dba": "RED GATE, INC",
+      "address": "204 2ND ST BELMONT MS 38827",
+      "city": "BELMONT",
+      "county": "Tishomingo",
+      "permitType": "Package Retailer",
+      "permitNumber": "051440",
+      "wholesaler": false
+    },
+    {
+      "dba": "SHRIJI KRUPA INC",
+      "address": "104 CAMPBELL LOOP HATTIESBURG MS 39401-3026",
+      "city": "HATTIESBURG",
+      "county": "Forrest",
+      "permitType": "Package Retailer",
+      "permitNumber": "047438",
+      "wholesaler": false
+    },
+    {
+      "dba": "SMITH'S PACKAGE STORE",
+      "address": "109 FRONT ST GREENVILLE MS 38703-9717",
+      "city": "GREENVILLE",
+      "county": "Washington",
+      "permitType": "Package Retailer",
+      "permitNumber": "043837",
+      "wholesaler": false
+    },
+    {
+      "dba": "HAPPY HOUR",
+      "address": "1700 S CHURCH AVE LOUISVILLE MS 39339-2938",
+      "city": "LOUISVILLE",
+      "county": "Winston",
+      "permitType": "Package Retailer",
+      "permitNumber": "049761",
+      "wholesaler": false
+    },
+    {
+      "dba": "DRAMS LLC",
+      "address": "121 CROSSING WAY STE B MADISON MS 39110",
+      "city": "MADISON",
+      "county": "Madison",
+      "permitType": "Package Retailer",
+      "permitNumber": "048815",
+      "wholesaler": false
+    },
+    {
+      "dba": "S & K LIQUOR",
+      "address": "2005 30TH AVE GULFPORT MS 39501-4537",
+      "city": "GULFPORT",
+      "county": "Harrison",
+      "permitType": "Package Retailer",
+      "permitNumber": "025847",
+      "wholesaler": false
+    },
+    {
+      "dba": "MFST LLC",
+      "address": "1408 S ADAMS ST FULTON MS 38843-7624",
+      "city": "FULTON",
+      "county": "Itawamba",
+      "permitType": "Package Retailer",
+      "permitNumber": "042316",
+      "wholesaler": false
+    }
+  ],
+  "reviewedAt": "2026-07-26T03:27:02.968Z",
+  "capturePolicy": {
+    "mode": "one_time_operator_supplied_public_research_capture",
+    "autonomousRefreshAllowed": false,
+    "sourcePolicyStatus": "source_policy_blocked",
+    "robotsPolicy": "User-agent: *\nDisallow: /",
+    "futureRefreshRequirement": "Official permitted export or API"
+  }
+}

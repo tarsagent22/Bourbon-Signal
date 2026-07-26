@@ -1,0 +1,6221 @@
+{
+  "schemaVersion": 1,
+  "contractVersion": "bourbon-signal/ms-research-dispositions@1",
+  "state": "MS",
+  "reviewBatchId": "ms-statewide-platform-research-2026-07-26",
+  "reviewedAt": "2026-07-26T04:50:54.569Z",
+  "reviewMethod": "Official permit identity plus statewide exact-name/address/city/domain and platform-cohort research; third-party marketplace leads were discovery-only.",
+  "entriesSha256": "a7449a38657fc921b2475c526c09b6f4aeae8102fe592801f7efd6265d26e8c2",
+  "entries": [
+    {
+      "permitNumber": "000137",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "000383",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "000444",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "001051",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "004478",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "005528",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "005535",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "005562",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "005617",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "005852",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "006215",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "006303",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "006719",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "006769",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "006931",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "007352",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "007465",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "007481",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "007494",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "007531",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "007550",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "007609",
+      "disposition": "blocked_by_source_policy",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "first_party_surface_blocked_by_source_policy",
+      "evidenceUrls": [
+        "https://spiritsofnatchez.com/"
+      ]
+    },
+    {
+      "permitNumber": "007720",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "007828",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "007839",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "007936",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "007960",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "008018",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "008023",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "008087",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "008182",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "008305",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "008311",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "008421",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "008497",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "020049",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "020164",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "020221",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "020525",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "020652",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "020721",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "020917",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "021044",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "021108",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "021261",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "021334",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "021396",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "021453",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "021674",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "021754",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "021760",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "021779",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "021809",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "021835",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "021989",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "021991",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "022224",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "022242",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "022258",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "022341",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "022374",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "022463",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "022749",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "022810",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "022986",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "023128",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "023184",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "023199",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "023241",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "023375",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "023461",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "023616",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "023670",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "023804",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "023823",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "023835",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "023842",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "023870",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "023918",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "023929",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "023967",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "023986",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "024001",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "024005",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "024017",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "024055",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "024075",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "024087",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "024142",
+      "disposition": "platform_probe_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "exact_permit_platform_probe_without_public_inventory",
+      "evidenceUrls": [
+        "https://play.google.com/store/apps/details?id=com.cta.norms_discount_liquor"
+      ]
+    },
+    {
+      "permitNumber": "024345",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "024370",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "024563",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "024565",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "024598",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "024630",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "024708",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "024770",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "024771",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "025021",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "025129",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "025289",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "025352",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "025525",
+      "disposition": "blocked_by_source_policy",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "first_party_surface_blocked_by_source_policy",
+      "evidenceUrls": [
+        "https://grapevineliquorandwine.com/"
+      ]
+    },
+    {
+      "permitNumber": "025532",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "025846",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "025847",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "026013",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "026142",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "026170",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "026314",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "026330",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "026359",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "026481",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "026482",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "026511",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "026524",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "026529",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "026539",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "026629",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "026639",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "026762",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "026816",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "026842",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "026860",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "026862",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "026865",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "026922",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "026938",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "026984",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "027029",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "027054",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "027094",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "027276",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "027305",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "027351",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "027355",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "027392",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "027480",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "027528",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "027587",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "027606",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "027652",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "027784",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "027801",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "027806",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "027810",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "027826",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "027871",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "027891",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "027929",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "028110",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "028142",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "028209",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "028238",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "028240",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "028302",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "028304",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "028370",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "028423",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "028430",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "028454",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "028528",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "028565",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "028608",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "028671",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "028681",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "028688",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "028692",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "028693",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "028731",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "028761",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "028779",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "028829",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "028908",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "028909",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "028984",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "029038",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "029094",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "029206",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "029254",
+      "disposition": "live_inventory",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "exact_first_party_inventory_capability_reviewed",
+      "evidenceUrls": [
+        "https://www.desotoliquor.com/shop/?subtype=Bourbon"
+      ]
+    },
+    {
+      "permitNumber": "029255",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "029297",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "029364",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "029458",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "029517",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "029570",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "029595",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "029610",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "029635",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "029655",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "029656",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "029666",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "029721",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "029788",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "029821",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "029876",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "029923",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "029966",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "030090",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "030110",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "030152",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "030176",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "030205",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "030349",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "030442",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "030464",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "030474",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "030529",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "030559",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "030580",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "030581",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "030615",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "030627",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "030631",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "040159",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "040173",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "040198",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "040254",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "040256",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "040288",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "040304",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "040307",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "040372",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "040386",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "040389",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "040395",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "040460",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "040482",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "040556",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "040562",
+      "disposition": "blocked_by_source_policy",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "first_party_surface_blocked_by_source_policy",
+      "evidenceUrls": [
+        "https://www.cabinfeverliquor.com/c/spirits/whiskey/19"
+      ]
+    },
+    {
+      "permitNumber": "040568",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "040586",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "040588",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "040656",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "040687",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "040692",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "040697",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "040700",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "040760",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "040796",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "040806",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "040878",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "040971",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "040974",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "040990",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "040991",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "041074",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "041113",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "041114",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "041191",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "041215",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "041217",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "041251",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "041265",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "041341",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "041373",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "041377",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "041441",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "041445",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "041517",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "041617",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "041622",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "041640",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "041651",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "041733",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "041766",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "041779",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "041952",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "041959",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "041978",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "042023",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "042084",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "042085",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "042126",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "042133",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "042135",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "042203",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "042215",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "042221",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "042239",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "042259",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "042269",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "042270",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "042283",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "042308",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "042316",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "042325",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "042336",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "042343",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "042345",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "042348",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "042371",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "042385",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "042407",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "042433",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "042438",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "042442",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "042459",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "042540",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "042633",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "042713",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "042723",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "042740",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "042752",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "042760",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "042839",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "042844",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "042925",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "042948",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "043079",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "043187",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "043227",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "043253",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "043336",
+      "disposition": "platform_probe_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "exact_permit_platform_probe_without_public_inventory",
+      "evidenceUrls": [
+        "https://play.google.com/store/apps/details?id=com.cta.shots_wine_spirits"
+      ]
+    },
+    {
+      "permitNumber": "043355",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "043377",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "043422",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "043451",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "043503",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "043512",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "043541",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "043623",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "043732",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "043737",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "043747",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "043833",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "043834",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "043837",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "043838",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "043839",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "043855",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "043857",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "043916",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "043920",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "043922",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "043923",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "043936",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "044012",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "044029",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "044130",
+      "disposition": "source_offline",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "reviewed_first_party_surface_offline",
+      "evidenceUrls": [
+        "https://oxfordws.com/"
+      ]
+    },
+    {
+      "permitNumber": "044138",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "044194",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "044309",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "044322",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "044339",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "044411",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "044425",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "044426",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "044430",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "044445",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "044448",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "044530",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "044545",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "044639",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "044692",
+      "disposition": "live_inventory",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "exact_first_party_inventory_capability_reviewed",
+      "evidenceUrls": [
+        "https://thehernandowinespirits.com/shop/?subtype=Bourbon"
+      ]
+    },
+    {
+      "permitNumber": "044830",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "044841",
+      "disposition": "source_offline",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "reviewed_first_party_surface_offline",
+      "evidenceUrls": [
+        "https://sipologywinespirits.com/"
+      ]
+    },
+    {
+      "permitNumber": "044859",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "044907",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "044932",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "044960",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "044965",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "044970",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "045008",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "045034",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "045071",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "045155",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "045163",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "045216",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "045221",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "045240",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "045247",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "045248",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "045254",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "045322",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "045345",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "045346",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "045436",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "045443",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "045444",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "045515",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "045528",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "045629",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "045653",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "045712",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "045717",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "045723",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "045732",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "045740",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "045747",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "045900",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "045911",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "046035",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "046053",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "046060",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "046105",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "046134",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "046224",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "046282",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "046287",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "046294",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "046298",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "046336",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "046388",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "046403",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "046416",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "046435",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "046443",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "046478",
+      "disposition": "blocked_by_source_policy",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "first_party_surface_blocked_by_source_policy",
+      "evidenceUrls": [
+        "https://www.aliquorwarehouse.com/c/spirits/whiskey/19"
+      ]
+    },
+    {
+      "permitNumber": "046488",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "046502",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "046527",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "046540",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "046544",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "046578",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "046586",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "046589",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "046599",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "046606",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "046681",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "046709",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "046713",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "046733",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "046736",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "046779",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "046800",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "046831",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "046841",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "046893",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "046906",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "046922",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "047029",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "047059",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "047079",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "047169",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "047171",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "047183",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "047201",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "047283",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "047284",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "047329",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "047383",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "047419",
+      "disposition": "blocked_by_source_policy",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "first_party_surface_blocked_by_source_policy",
+      "evidenceUrls": [
+        "https://mabrysfinewineandspirits.com/"
+      ]
+    },
+    {
+      "permitNumber": "047438",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "047455",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "047489",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "047518",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "047529",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "047635",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "047645",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "047712",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "047788",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "047789",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "047895",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "047896",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "047990",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "048002",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "048139",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "048181",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "048183",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "048217",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "048224",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "048234",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "048299",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "048332",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "048419",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "048435",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "048510",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "048532",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "048603",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "048660",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "048667",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "048725",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "048739",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "048766",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "048800",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "048815",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "048836",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "048849",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "049075",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "049173",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "049175",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "049183",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "049212",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "049222",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "049263",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "049280",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "049301",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "049360",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "049377",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "049418",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "049463",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "049467",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "049489",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "049493",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "049682",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "049688",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "049761",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "049797",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "049821",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "049873",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "049908",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "049913",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "049922",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "049929",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "049961",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "049982",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "050005",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "050047",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "050113",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "050153",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "050171",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "050213",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "050265",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "050293",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "050306",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "050310",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "050314",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "050319",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "050386",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "050390",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "050419",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "050469",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "050484",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "050578",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "050582",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "050589",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "050607",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "050662",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "050676",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "050726",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "050739",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "050761",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "050798",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "050801",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "050913",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "050961",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "050965",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "050987",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "051000",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "051001",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "051009",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "051012",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "051119",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "051126",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "051170",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "051240",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "051252",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "051255",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "051261",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "051267",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "051271",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "051294",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "051348",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "051370",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "051380",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "051394",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "051440",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "051442",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "051549",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "051695",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "051769",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "051799",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "051848",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "051851",
+      "disposition": "blocked_by_source_policy",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "first_party_surface_blocked_by_source_policy",
+      "evidenceUrls": [
+        "https://madison-cellars.com/"
+      ]
+    },
+    {
+      "permitNumber": "051859",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "051886",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "051941",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "051955",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "051979",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "052058",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "052063",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "052091",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "052119",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "052147",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "052167",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "052179",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "052243",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "052256",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "052257",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "052258",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "052263",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "052341",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "052342",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "052347",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "052350",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "052353",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "052435",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "052455",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "052541",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "052634",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "052827",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "053097",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "053114",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "053213",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "053411",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "054012",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "054096",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "054301",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "055022",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "055023",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "055050",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "055063",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "055066",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "055079",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "055105",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "055298",
+      "disposition": "blocked_by_source_policy",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "first_party_surface_blocked_by_source_policy",
+      "evidenceUrls": [
+        "https://tupelowine.com/"
+      ]
+    },
+    {
+      "permitNumber": "056004",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "056032",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "056083",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "056093",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "056094",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "057006",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "057040",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "057052",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "057058",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "057069",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "057174",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "057176",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "058012",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "058063",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "058368",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "058371",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "059036",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "059064",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "059268",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "059369",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "059668",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "059769",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "060049",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "061049",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "061255",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "061352",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "062045",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "063044",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "063050",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "063145",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "063245",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "064044",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "064048",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "065025",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "066037",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "066167",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "066568",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "067049",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "067151",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "067250",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "068034",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "069018",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "069132",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "069226",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "070004",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "070013",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "070026",
+      "disposition": "blocked_by_source_policy",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "first_party_surface_blocked_by_source_policy",
+      "evidenceUrls": [
+        "https://dwlms.com/"
+      ]
+    },
+    {
+      "permitNumber": "070145",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "070240",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "071007",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "071055",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "071056",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "072002",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "072020",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "073000",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "075134",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "080022",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "081030",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "082010",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "084013",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "084030",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "085008",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "086013",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "086015",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "086050",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "086055",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "087001",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "088007",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "089028",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "092001",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "094003",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "094030",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "095029",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "096013",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "097026",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "099016",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "099026",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "100003",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "101007",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "102032",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "108018",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "108035",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    },
+    {
+      "permitNumber": "108138",
+      "disposition": "directory_only",
+      "reviewStatus": "reviewed",
+      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceUrls": [
+        "https://tap.dor.ms.gov/_/"
+      ]
+    }
+  ]
+}

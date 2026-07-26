@@ -1,0 +1,305 @@
+{
+  "schemaVersion": 1,
+  "state": "MS",
+  "customerLabel": "Mississippi",
+  "programStatus": "research_only",
+  "reviewedAt": "2026-07-25T00:00:00.000Z",
+  "officialDirectory": {
+    "source": "Mississippi Department of Revenue TAP Search ABC Permits",
+    "sourceUrl": "https://tap.dor.ms.gov/_/",
+    "permitType": "Package Retailer",
+    "reviewedCurrentPermitCount": 690,
+    "reviewedCityCount": 168,
+    "reviewedCountyCount": 78,
+    "reviewedPageCount": 7,
+    "reviewedCaptureRowsSha256": "041a81a130128493fda40dd5ab4b9e9fe073f7d56e02298160797d104430eaa9",
+    "capturePolicy": {
+      "mode": "operator_supplied_authorized_capture_only",
+      "autonomousFetchAllowed": false,
+      "status": "source_policy_blocked",
+      "robotsPolicy": "User-agent: *\nDisallow: /",
+      "futureRefreshRequirement": "Official permitted export or API"
+    },
+    "countyCorrections": [
+      {
+        "permitNumber": "044960",
+        "city": "HOUSTON",
+        "county": "Chickasaw"
+      }
+    ]
+  },
+  "launchGates": {
+    "officialDirectoryIngestionPercent": 100,
+    "finalDispositionPercent": 100,
+    "minimumExactLiveInventoryStores": 50,
+    "minimumAlertGradeStores": 25,
+    "minimumRepresentedCities": 15,
+    "minimumRepresentedRegions": 6,
+    "requiredRegionGroups": [
+      "central-jackson-madison-rankin",
+      "gulf-coast",
+      "north"
+    ],
+    "maximumSingleMetroShare": 0.4,
+    "requireIndependentSourceRuntimeHealth": true,
+    "maximumAmbiguousSharedCatalogStores": 0
+  },
+  "regions": [
+    {
+      "id": "northwest-desoto-memphis-fringe",
+      "label": "Northwest / DeSoto-Memphis fringe",
+      "aliases": [
+        "Northwest",
+        "DeSoto-Memphis fringe",
+        "Northwest Mississippi"
+      ],
+      "counties": [
+        "Benton",
+        "DeSoto",
+        "Marshall",
+        "Tate",
+        "Tunica"
+      ],
+      "cities": [
+        "Byhalia",
+        "Hernando",
+        "Holly Springs",
+        "Horn Lake",
+        "Nesbit",
+        "Olive Branch",
+        "Southaven",
+        "Tunica"
+      ],
+      "regionGroup": "north"
+    },
+    {
+      "id": "north-central-oxford",
+      "label": "North Central / Oxford",
+      "aliases": [
+        "North Central",
+        "Oxford",
+        "North Central Mississippi"
+      ],
+      "counties": [
+        "Calhoun",
+        "Carroll",
+        "Grenada",
+        "Lafayette",
+        "Montgomery",
+        "Panola",
+        "Yalobusha"
+      ],
+      "cities": [
+        "Batesville",
+        "Grenada",
+        "Oxford",
+        "Water Valley",
+        "Winona"
+      ],
+      "regionGroup": "north"
+    },
+    {
+      "id": "northeast-tupelo-golden-triangle",
+      "label": "Northeast / Tupelo-Golden Triangle",
+      "aliases": [
+        "Northeast",
+        "Tupelo-Golden Triangle",
+        "Golden Triangle"
+      ],
+      "counties": [
+        "Alcorn",
+        "Chickasaw",
+        "Clay",
+        "Itawamba",
+        "Lee",
+        "Lowndes",
+        "Monroe",
+        "Noxubee",
+        "Oktibbeha",
+        "Pontotoc",
+        "Prentiss",
+        "Tippah",
+        "Tishomingo",
+        "Union",
+        "Webster",
+        "Winston"
+      ],
+      "cities": [
+        "Columbus",
+        "Corinth",
+        "Houston",
+        "Oxford",
+        "Starkville",
+        "Tupelo",
+        "West Point"
+      ],
+      "regionGroup": "north"
+    },
+    {
+      "id": "delta",
+      "label": "Delta / Greenville-Clarksdale-Greenwood",
+      "aliases": [
+        "Delta",
+        "Mississippi Delta",
+        "Greenville-Clarksdale-Greenwood"
+      ],
+      "counties": [
+        "Bolivar",
+        "Coahoma",
+        "Holmes",
+        "Humphreys",
+        "Issaquena",
+        "Leflore",
+        "Quitman",
+        "Sharkey",
+        "Sunflower",
+        "Tallahatchie",
+        "Washington"
+      ],
+      "cities": [
+        "Clarksdale",
+        "Cleveland",
+        "Greenville",
+        "Greenwood",
+        "Indianola"
+      ],
+      "regionGroup": "delta"
+    },
+    {
+      "id": "central-jackson-madison-rankin",
+      "label": "Central / Jackson-Madison-Rankin",
+      "aliases": [
+        "Central",
+        "Jackson-Madison-Rankin",
+        "Jackson Metro"
+      ],
+      "counties": [
+        "Attala",
+        "Hinds",
+        "Leake",
+        "Madison",
+        "Rankin",
+        "Scott",
+        "Simpson",
+        "Smith",
+        "Yazoo"
+      ],
+      "cities": [
+        "Brandon",
+        "Canton",
+        "Jackson",
+        "Madison",
+        "Ridgeland",
+        "Yazoo City"
+      ],
+      "regionGroup": "central"
+    },
+    {
+      "id": "east-central-meridian",
+      "label": "East Central / Meridian",
+      "aliases": [
+        "East Central",
+        "Meridian",
+        "East Central Mississippi"
+      ],
+      "counties": [
+        "Choctaw",
+        "Clarke",
+        "Jasper",
+        "Kemper",
+        "Lauderdale",
+        "Neshoba",
+        "Newton",
+        "Wayne"
+      ],
+      "cities": [
+        "Meridian",
+        "Philadelphia",
+        "Quitman",
+        "Waynesboro"
+      ],
+      "regionGroup": "east"
+    },
+    {
+      "id": "pine-belt-hattiesburg-laurel",
+      "label": "Pine Belt / Hattiesburg-Laurel",
+      "aliases": [
+        "Pine Belt",
+        "Hattiesburg-Laurel",
+        "Piney Woods"
+      ],
+      "counties": [
+        "Covington",
+        "Forrest",
+        "Jefferson Davis",
+        "Jones",
+        "Lamar",
+        "Marion",
+        "Perry"
+      ],
+      "cities": [
+        "Columbia",
+        "Hattiesburg",
+        "Laurel",
+        "Petal"
+      ],
+      "regionGroup": "south"
+    },
+    {
+      "id": "gulf-coast",
+      "label": "Gulf Coast / Gulfport-Biloxi-Pascagoula",
+      "aliases": [
+        "Gulf Coast",
+        "Mississippi Gulf Coast",
+        "Gulfport-Biloxi-Pascagoula"
+      ],
+      "counties": [
+        "George",
+        "Greene",
+        "Hancock",
+        "Harrison",
+        "Jackson",
+        "Pearl River",
+        "Stone"
+      ],
+      "cities": [
+        "Bay Saint Louis",
+        "Biloxi",
+        "Gulfport",
+        "Ocean Springs",
+        "Pascagoula"
+      ],
+      "regionGroup": "gulf"
+    },
+    {
+      "id": "southwest-natchez-brookhaven-mccomb-vicksburg",
+      "label": "Southwest / Natchez-Brookhaven-McComb-Vicksburg",
+      "aliases": [
+        "Southwest",
+        "Natchez-Brookhaven-McComb-Vicksburg",
+        "Southwest Mississippi"
+      ],
+      "counties": [
+        "Adams",
+        "Amite",
+        "Claiborne",
+        "Copiah",
+        "Franklin",
+        "Jefferson",
+        "Lawrence",
+        "Lincoln",
+        "Pike",
+        "Walthall",
+        "Warren",
+        "Wilkinson"
+      ],
+      "cities": [
+        "Brookhaven",
+        "McComb",
+        "Natchez",
+        "Vicksburg"
+      ],
+      "regionGroup": "southwest"
+    }
+  ]
+}

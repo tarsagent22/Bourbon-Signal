@@ -120,10 +120,24 @@
   ],
   MS: [
     {
+      url: 'https://tap.dor.ms.gov/_/',
+      label: 'Mississippi DOR TAP Package Retailer directory',
+      type: 'official_directory_signal',
+      text: 'The reviewed TAP search returned exactly 690 current Package Retailer permits across 168 cities and 78 counties. These rows provide the complete premises directory and never bottle inventory.',
+      nextRoute: 'Import only an operator-supplied authorized capture with exact-count, digest, shrink, and source-scoped last-good guards. Autonomous TAP refresh is source_policy_blocked pending an official permitted export or API.'
+    },
+    {
+      url: 'https://www.aliquorwarehouse.com/c/spirits/whiskey/19',
+      label: 'Mississippi selected exact-store retailer cohort',
+      type: 'private_retailer_inventory_signal',
+      text: 'Four reviewed first-party CityHive/GoToLiquorStore storefronts have exact permit, merchant/store, host, address, city, ZIP, pickup/orderability, and product identity bindings. Binary orderability never implies a positive bottle count.',
+      nextRoute: 'Run each store as an independent sourceRuntimeId in alert-disabled shadow; initial positive rows are baseline/site-only.'
+    },
+    {
       url: 'https://www.dor.ms.gov/abc/sales-distribution/past-price-changes-spas',
       label: 'Mississippi ABC past price changes and SPAs',
       type: 'price_document_index_signal',
-      text: 'Mississippi ABC publishes monthly SPA and bailment price-change PDFs under Past Price Changes & SPAs. This is the strongest public MS product/price-change route found so far, but it is not store inventory.',
+      text: 'Mississippi ABC publishes monthly SPA and bailment price-change PDFs under Past Price Changes & SPAs. This remains product/price-change intelligence and is never store inventory.',
       nextRoute: 'Add PDF text extraction for current SPA and bailment price-change PDFs, then normalize bourbon rows into catalog/price-watch signals.'
     },
     {
@@ -131,7 +145,7 @@
       label: 'Mississippi ABC vendor information',
       type: 'warehouse_policy_signal',
       text: 'Mississippi ABC vendor information describes registered products listed under bailment warehouse agreements; the vendor owns stock in the ABC Liquor Distribution Center until withdrawn from bailment for shipment to permitted retailers.',
-      nextRoute: 'Treat MS as warehouse/policy intelligence until a public product/price file is found; monitor DOR ABC pages and FOIA/public-record options for product list.'
+      nextRoute: 'Keep this lane separate from exact private-retailer inventory; monitor DOR ABC pages for substantive product, pricing, and release intelligence.'
     },
     {
       url: 'https://www.mpbonline.org/blogs/news/spirits-remain-low-in-mississippi-as-backlog-continues-for-states-sole-alcohol-warehouse/',

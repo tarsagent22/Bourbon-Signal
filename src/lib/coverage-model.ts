@@ -16,6 +16,7 @@ export interface CoverageLifecycleEntryInput {
   readonly inventoryAlertable?: boolean;
   readonly watchAlertable?: boolean;
   readonly customerSummary?: string;
+  readonly coverageLayerCounts?: Partial<CoverageLayerCounts>;
 }
 
 export interface CoverageLifecycleInput {
@@ -183,6 +184,11 @@ export function coverageInternalStateKey(stateCode: string, lifecycle: CoverageL
 
 function cleanText(value: unknown, maxLength = 240) {
   return typeof value === "string" ? value.replace(/\s+/g, " ").trim().slice(0, maxLength) : "";
+}
+
+function nonnegativeLayerCount(value: unknown) {
+  const count = Number(value);
+  return Number.isFinite(count) && count >= 0 ? Math.floor(count) : 0;
 }
 
 export function coverageTargetToken(value: unknown, maxLength = 80) {
@@ -518,16 +524,26 @@ function buildState(args: {
     representedLiveCities,
   );
   const health = stateHealth(internalStateKey, capability, row, args.degradedStates, args.healthLimited);
+  const configuredLayers = lifecycleEntry?.coverageLayerCounts;
   const layers: CoverageLayerCounts = {
-    known: storeRecords.length,
-    probeable: storeRecords.filter((store) => store.searchable && store.monitoringAttached).length,
-    catalogWatch: locations.filter((location) => location.collectorAttached === true && !isStoreLocation(location)).length
-      + storeRecords.filter((store) => store.monitoringAttached && !store.liveInventory).length,
-    live: liveStores,
-    alertGrade: alertGradeStores,
+    known: Math.max(storeRecords.length, nonnegativeLayerCount(configuredLayers?.known)),
+    probeable: Math.max(
+      storeRecords.filter((store) => store.searchable && store.monitoringAttached).length,
+      nonnegativeLayerCount(configuredLayers?.probeable),
+    ),
+    catalogWatch: Math.max(
+      locations.filter((location) => location.collectorAttached === true && !isStoreLocation(location)).length
+        + storeRecords.filter((store) => store.monitoringAttached && !store.liveInventory).length,
+      nonnegativeLayerCount(configuredLayers?.catalogWatch),
+    ),
+    live: Math.max(liveStores, nonnegativeLayerCount(configuredLayers?.live)),
+    alertGrade: Math.max(alertGradeStores, nonnegativeLayerCount(configuredLayers?.alertGrade)),
   };
+  const hasReviewedKnownLayer = capability === "not-active" && layers.known > 0;
   const summary = capability === "not-active"
-    ? "No current customer-facing monitoring source is active. Request coverage to help prioritize expansion."
+    ? hasReviewedKnownLayer
+      ? cleanText(lifecycleEntry?.customerSummary, 600) || "Known directory coverage is under research; live monitoring is not active."
+      : "No current customer-facing monitoring source is active. Request coverage to help prioritize expansion."
     : cleanText(row?.customerSummary || lifecycleEntry?.customerSummary, 600)
       || "Current source-backed coverage is available at the precision shown here.";
   const areas = stateAreas(lifecycleEntry, row, locations, storeRecords);
@@ -541,7 +557,9 @@ function buildState(args: {
     health,
     healthLabel: HEALTH_LABELS[health],
     summary,
-    sourceLabel: capability === "not-active" ? null : cleanText(row?.sourceLabel || lifecycleEntry?.sourceLabel, 180) || null,
+    sourceLabel: capability === "not-active" && !hasReviewedKnownLayer
+      ? null
+      : cleanText(row?.sourceLabel || lifecycleEntry?.sourceLabel, 180) || null,
     precisions,
     areas,
     representedAreaCount: areas.length,

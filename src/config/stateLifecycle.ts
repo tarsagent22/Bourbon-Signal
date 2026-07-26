@@ -526,6 +526,37 @@ export const STATE_LIFECYCLE_CONFIG = {
       "refinementLevel": "warehouse",
       "customerSummary": "Costco warehouse bourbon signals for Missouri warehouses where verified. Costco is treated as an in-state retailer source with fast-moving inventory caveats."
     },
+    "MS": {
+      "customerLabel": "Mississippi",
+      "sourceLabel": "Mississippi statewide directory + selected retailer research",
+      "publicStatus": "research_only",
+      "lifecycle": "hybrid_directory_retailer_research",
+      "coverageTier": "known_directory_selected_storefronts",
+      "refinementLevel": "region_city_store",
+      "areaOptions": [
+        "Northwest / DeSoto–Memphis fringe",
+        "North Central / Oxford",
+        "Northeast / Tupelo–Golden Triangle",
+        "Delta / Greenville–Clarksdale–Greenwood",
+        "Central / Jackson–Madison–Rankin",
+        "East Central / Meridian",
+        "Pine Belt / Hattiesburg–Laurel",
+        "Gulf Coast / Gulfport–Biloxi–Pascagoula",
+        "Southwest / Natchez–Brookhaven–McComb–Vicksburg"
+      ],
+      "promotionStage": "research_only",
+      "shadowEligible": true,
+      "inventoryAlertable": false,
+      "watchAlertable": false,
+      "coverageLayerCounts": {
+        "known": 690,
+        "probeable": 2,
+        "catalogWatch": 0,
+        "live": 0,
+        "alertGrade": 0
+      },
+      "customerSummary": "Research-only Mississippi foundation: all 690 current Package Retailer permits are known. Two exact first-party storefronts are probeable; two additional exact storefront identities are source-policy-blocked. No Mississippi alerts or active inventory coverage are authorized."
+    },
     "NV": {
       "customerLabel": "Nevada",
       "sourceLabel": "Nevada first-party retailer inventory + Costco watch",

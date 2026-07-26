@@ -1,6 +1,7 @@
 import "server-only";
 
 import { STATE_LIFECYCLE_CONFIG } from "@/config/stateLifecycle";
+import mississippiKnownStores from "@/config/mississippi-known-stores.json";
 import {
   buildCoverageContract,
   findCoverageStoreTarget,
@@ -9,6 +10,7 @@ import {
   type CoverageStateRowInput,
   type CoverageStoreInput,
 } from "@/lib/coverage-model";
+import { mergeCoverageStores } from "@/lib/coverage-known-stores";
 import { readSiteExportResults } from "@/lib/site-engine-contract";
 
 interface CoverageStatsPayload {
@@ -34,7 +36,10 @@ async function readCoverageInputs() {
     lifecycle: STATE_LIFECYCLE_CONFIG,
     stateRows: Array.isArray(stats.stateCoverage?.states) ? stats.stateCoverage.states : [],
     locations: Array.isArray(locations.locations) ? locations.locations : [],
-    stores: Array.isArray(stores.stores) ? stores.stores : [],
+    stores: mergeCoverageStores(
+      mississippiKnownStores.stores as CoverageStoreInput[],
+      Array.isArray(stores.stores) ? stores.stores : [],
+    ),
     degradedStates: Array.isArray(stats.refreshHealth?.degradedStates) ? stats.refreshHealth.degradedStates : [],
     generatedAt: stats.generatedAt,
     healthLimited: [statsResult, locationsResult, storesResult]
