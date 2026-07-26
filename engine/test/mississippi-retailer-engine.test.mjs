@@ -326,7 +326,8 @@ test('shadow verification rejects a hand-authored run count without bound produc
       publication: { productionSnapshotTouched: false },
       alerts: { disabled: true, deliveryAttempted: false, candidateRowsExported: false },
       metrics: { alertCandidateCount: 0 },
-      collector: { startedAt: new Date(Date.parse('2026-07-27T00:00:00.000Z') + index * 12 * 60 * 60_000).toISOString(), finishedAt: new Date(Date.parse('2026-07-27T00:05:00.000Z') + index * 12 * 60 * 60_000).toISOString() },
+      execution: { ok: true },
+      collector: { status: 'useful', startedAt: new Date(Date.parse('2026-07-27T00:00:00.000Z') + index * 12 * 60 * 60_000).toISOString(), finishedAt: new Date(Date.parse('2026-07-27T00:05:00.000Z') + index * 12 * 60 * 60_000).toISOString() },
     },
     report: { state: 'MS', sourceResults: [], signals: [] },
   }]));

@@ -11,6 +11,7 @@ import { buildMississippiRunPlan } from './collectors/mississippi-run-plan.mjs';
 import { MISSISSIPPI_RETAILER_SOURCES } from './collectors/mississippi-retailer-surfaces.mjs';
 import { MISSISSIPPI_TAP_SOURCE_POLICY } from './discovery/mississippi-package-directory.mjs';
 import { validateMississippiSourceAtlas } from './discovery/source-atlas.mjs';
+import { isMississippiRetailerInventory } from './mississippi-retailer-policy.mjs';
 import { getStateLifecycle, STATE_LIFECYCLE_CONFIG } from './state-lifecycle.mjs';
 import { verifyMississippiReleasePolicy } from './mississippi-release-policy.mjs';
 import { validateStateVerticalSliceManifest } from './state-vertical-slice-contract.mjs';
@@ -84,7 +85,10 @@ function verifyGithubShadowRunProvenance(evidence, expectedCommitSha) {
       assert.equal(artifactEvidence.publication?.productionSnapshotTouched, false);
       assert.equal(artifactEvidence.alerts?.disabled, true);
       assert.equal(artifactEvidence.alerts?.deliveryAttempted, false);
+      assert.equal(artifactEvidence.execution?.ok, true, 'Shadow artifact contains a failed inner collector execution.');
+      assert.notEqual(artifactEvidence.collector?.status, 'failed_shadow_collection');
       assert.equal(artifactReport.state, 'MS');
+      assert.notEqual(artifactReport.status, 'failed_shadow_collection');
       verified.set(String(github.workflowRunId), {
         artifactId: Number(artifact.id),
         artifactDigest: artifact.digest,
@@ -135,8 +139,9 @@ export function validateMississippiShadowEvidenceArtifact(evidence, {
     assert.equal(trustedEvidence.alerts?.deliveryAttempted, false);
     assert.equal(trustedEvidence.alerts?.candidateRowsExported, false);
     assert.equal(Number(trustedEvidence.metrics?.alertCandidateCount || 0), 0);
-    const sourceResults = trustedReport.sourceResults;
-    assert.ok(Array.isArray(sourceResults));
+    const allSourceResults = trustedReport.sourceResults;
+    assert.ok(Array.isArray(allSourceResults));
+    const sourceResults = allSourceResults.filter((result) => registeredRuntimeIds.has(result.sourceId));
     assert.equal(sourceResults.length, registeredRuntimeIds.size, 'Shadow source results must contain one result per registered Mississippi source.');
     assert.deepEqual(new Set(sourceResults.map((result) => result.sourceId)), registeredRuntimeIds, 'Shadow source results must cover every registered Mississippi source exactly.');
     for (const result of sourceResults) {
@@ -151,6 +156,16 @@ export function validateMississippiShadowEvidenceArtifact(evidence, {
       assert.equal(result.watchAlertable, false);
     }
     assert.ok(Array.isArray(trustedReport.signals));
+    const retailerSignals = trustedReport.signals.filter((signal) => registeredRuntimeIds.has(signal.sourceRuntimeId));
+    for (const sourceId of allowedRuntimeIds) {
+      assert.ok(retailerSignals.some((signal) => signal.sourceRuntimeId === sourceId), `Shadow run has no exact-store signal for ${sourceId}.`);
+    }
+    for (const signal of retailerSignals) {
+      assert.equal(allowedRuntimeIds.has(signal.sourceRuntimeId), true, 'Source-policy-blocked retailers cannot emit shadow inventory rows.');
+      assert.equal(isMississippiRetailerInventory(signal), true, 'Shadow retailer signal does not satisfy exact Mississippi inventory identity.');
+      assert.equal(signal.canAlertAsInventory, false);
+      assert.equal(signal.canAlertAsWatch, false);
+    }
     verifyMississippiReleasePolicy({ lifecycle: getStateLifecycle('MS'), signals: trustedReport.signals, alerts: [], phase: 'shadow' });
   }
   const spanMs = Math.max(...starts) - Math.min(...starts);

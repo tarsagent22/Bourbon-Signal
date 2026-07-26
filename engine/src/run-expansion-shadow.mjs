@@ -94,12 +94,13 @@ export async function runExpansionShadow({ lifecycle, states, limit = 5, outDir 
     await mkdir(stateDir, { recursive: true });
     const execution = await runCollector(state, reportFile, cwd);
     const report = await readJson(reportFile, { state, status: 'failed_shadow_collection', signals: [], sources: [], roadblocks: [{ state, error: execution.error }] });
+    await writeFile(reportFile, JSON.stringify(report, null, 2));
     const evidence = buildShadowEvidence(state, report);
     evidence.execution = { ok: execution.ok, error: execution.error, stdout: execution.stdout?.slice(-4000) || '', stderr: execution.stderr?.slice(-4000) || '' };
     await writeFile(path.join(stateDir, 'evidence.json'), JSON.stringify(evidence, null, 2));
     results.push({ state, directory: stateDir, evidence });
   }
-  const summary = { schemaVersion: 1, mode: 'shadow', runId, generatedAt: new Date().toISOString(), candidates, results: results.map((result) => ({ state: result.state, directory: result.directory, publication: result.evidence.publication, alerts: result.evidence.alerts, metrics: result.evidence.metrics })) };
+  const summary = { schemaVersion: 1, mode: 'shadow', runId, generatedAt: new Date().toISOString(), candidates, results: results.map((result) => ({ state: result.state, directory: result.directory, executionOk: result.evidence.execution?.ok === true, collectorStatus: result.evidence.collector?.status || 'unknown', publication: result.evidence.publication, alerts: result.evidence.alerts, metrics: result.evidence.metrics })) };
   await mkdir(outDir, { recursive: true });
   await writeFile(path.join(outDir, `run-${runId}.json`), JSON.stringify(summary, null, 2));
   return summary;
@@ -117,6 +118,9 @@ async function main() {
   const states = String(argValue('--states') || '').split(',').map(stateId).filter(Boolean);
   const summary = await runExpansionShadow({ lifecycle, states, limit: Number(argValue('--limit') || 5) });
   console.log(JSON.stringify({ mode: summary.mode, candidates: summary.candidates, runId: summary.runId, productionSnapshotTouched: false, alertsDisabled: true }, null, 2));
+  if (summary.results.some((result) => result.executionOk !== true)) {
+    throw new Error(`Shadow collection failed for ${summary.results.filter((result) => result.executionOk !== true).map((result) => result.state).join(', ')}.`);
+  }
 }
 
 const invokedPath = process.argv[1] ? pathToFileURL(path.resolve(process.argv[1])).href : '';
