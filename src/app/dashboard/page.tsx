@@ -3834,7 +3834,7 @@ function PaidMemberDashboard() {
                       </div>
                     ))}
                   </div>
-                  <Link href="/sightings" style={{ display: "inline-flex", marginTop: 14, color: "rgba(232,201,122,0.86)", fontFamily: "var(--font-dm-sans)", fontSize: 13, fontWeight: 800, textDecoration: "none" }}>Post a member sighting →</Link>
+                  <Link href="/sightings?tab=submit" style={{ display: "inline-flex", marginTop: 14, color: "rgba(232,201,122,0.86)", fontFamily: "var(--font-dm-sans)", fontSize: 13, fontWeight: 800, textDecoration: "none" }}>Post a member sighting →</Link>
                 </section>
 
                 <section className="member-points-badges" aria-label="Badge collection">
