@@ -9,6 +9,8 @@ import {
   type CoverageStateRowInput,
   type CoverageStoreInput,
 } from "../src/lib/coverage-model.ts";
+import { mergeCoverageStores } from "../src/lib/coverage-known-stores.ts";
+import { buildMississippiKnownStoresPayload, verifyReviewedMississippiUniverse } from "./generate-mississippi-known-stores.mjs";
 
 const statsPayload = JSON.parse(readFileSync(new URL("../engine/out/site/stats.json", import.meta.url), "utf8")) as {
   generatedAt?: string;
@@ -21,6 +23,16 @@ const locationsPayload = JSON.parse(readFileSync(new URL("../engine/out/site/loc
 const storesPayload = JSON.parse(readFileSync(new URL("../engine/out/site/stores.json", import.meta.url), "utf8")) as {
   stores?: CoverageStoreInput[];
 };
+const mississippiKnownStoresPayload = JSON.parse(readFileSync(new URL("../src/config/mississippi-known-stores.json", import.meta.url), "utf8")) as {
+  stores?: CoverageStoreInput[];
+};
+const mississippiCapture = JSON.parse(readFileSync(new URL("../engine/data/source-captures/MS-package-retailers-2026-07-26.json", import.meta.url), "utf8"));
+const mississippiProgram = JSON.parse(readFileSync(new URL("../src/config/mississippi-program.json", import.meta.url), "utf8"));
+const mississippiUniverse = JSON.parse(readFileSync(new URL("../engine/data/store-universe/MS.json", import.meta.url), "utf8"));
+const publicStores = mergeCoverageStores(
+  mississippiKnownStoresPayload.stores || [],
+  storesPayload.stores || [],
+);
 const ncIntelligencePayload = JSON.parse(readFileSync(new URL("../engine/out/site/nc-intelligence.json", import.meta.url), "utf8")) as {
   boards?: Array<{ boardName?: string }>;
 };
@@ -29,7 +41,7 @@ const contract = buildCoverageContract({
   lifecycle: STATE_LIFECYCLE_CONFIG,
   stateRows: statsPayload.stateCoverage?.states || [],
   locations: locationsPayload.locations || [],
-  stores: storesPayload.stores || [],
+  stores: publicStores,
   degradedStates: statsPayload.refreshHealth?.degradedStates || [],
   generatedAt: statsPayload.generatedAt,
 });
@@ -77,6 +89,65 @@ assert.equal(maryland.capability, "intelligence");
 assert.match(maryland.summary, /Montgomery County/i);
 assert.match(maryland.cannotSee.join(" "), /exact (?:per-)?store|shelf/i);
 
+const mississippi = contract.states.find((state) => state.code === "MS");
+assert.ok(mississippi, "Mississippi is represented in the public nationwide coverage contract");
+assert.equal(mississippi.capability, "not-active", "research data cannot promote Mississippi to active coverage");
+assert.deepEqual(mississippi.layers, {
+  known: 690,
+  probeable: 2,
+  catalogWatch: 0,
+  live: 0,
+  alertGrade: 0,
+});
+assert.equal(mississippi.representedAreaCount, 9);
+assert.match(mississippi.summary, /690 current Package Retailer permits/i);
+assert.match(mississippi.summary, /No Mississippi alerts or active inventory coverage/i);
+assert.match(mississippi.sourceLabel || "", /statewide directory/i);
+assert.match(mississippi.canSee.join(" "), /known directory/i);
+assert.match(mississippi.cannotSee.join(" "), /live shelf|alert-grade/i);
+assert.equal(mississippiKnownStoresPayload.stores?.length, 690);
+assert.equal(new Set((mississippiKnownStoresPayload.stores || []).map((store) => store.id)).size, 690);
+assert.doesNotThrow(() => verifyReviewedMississippiUniverse(mississippiUniverse, mississippiCapture, mississippiProgram));
+assert.deepEqual(mississippiKnownStoresPayload, buildMississippiKnownStoresPayload(mississippiUniverse), "published Mississippi known stores cannot drift from the reviewed universe payload");
+const tamperedMississippiUniverse = structuredClone(mississippiUniverse);
+tamperedMississippiUniverse.stores[0].address = "999 Tampered Identity Rd";
+assert.throws(
+  () => verifyReviewedMississippiUniverse(tamperedMississippiUniverse, mississippiCapture, mississippiProgram),
+  /byte-equivalent identities/iu,
+);
+const reviewedMississippiStore = (mississippiKnownStoresPayload.stores || []).find((store) => store.id === "ms-permit-046478");
+assert.ok(reviewedMississippiStore);
+const collisionProtectedStores = mergeCoverageStores([reviewedMississippiStore], [{
+  id: "ms-permit-046478",
+  state: "MS",
+  name: "Wrong Store",
+  address: "999 Attacker Rd",
+  city: "Jackson",
+  county: "Hinds",
+  source: "live inventory",
+  signalCount: 99,
+}]);
+assert.deepEqual(collisionProtectedStores[0], reviewedMississippiStore, "runtime ID collisions cannot replace reviewed Mississippi store identity");
+
+const mississippiStoreSearch = searchCoverageTargets({
+  lifecycle: STATE_LIFECYCLE_CONFIG,
+  stateCode: "MS",
+  query: "A Liquor Warehouse",
+  stores: publicStores,
+});
+assert.ok(mississippiStoreSearch.some((result) => result.kind === "store"
+  && result.storeId === "ms-permit-046478"
+  && result.status === "known-expansion-candidate"));
+const mississippiCitySearch = searchCoverageTargets({
+  lifecycle: STATE_LIFECYCLE_CONFIG,
+  stateCode: "MS",
+  query: "Winona",
+  stores: publicStores,
+});
+assert.ok(mississippiCitySearch.some((result) => result.kind === "city"
+  && result.label === "WINONA"
+  && result.status === "known-not-active"));
+
 const northCarolina = contract.states.find((state) => state.code === "NC");
 assert.ok(northCarolina);
 assert.equal(northCarolina.capability, "active", "broad board leads plus selected exact stores are useful but not deep statewide shelf coverage");
@@ -88,7 +159,7 @@ const coverageSearchInputs = {
   lifecycle: STATE_LIFECYCLE_CONFIG,
   stateRows: statsPayload.stateCoverage?.states || [],
   locations: locationsPayload.locations || [],
-  stores: storesPayload.stores || [],
+  stores: publicStores,
 };
 for (const boardName of new Set((ncIntelligencePayload.boards || []).map((board) => board.boardName).filter((name): name is string => Boolean(name)))) {
   const results = searchCoverageTargets({ ...coverageSearchInputs, stateCode: "NC", query: boardName, limit: 20 });

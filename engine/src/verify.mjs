@@ -2,6 +2,8 @@
 import path from 'node:path';
 import { STATE_SOURCES } from './state-sources.mjs';
 import { validateVirginiaGlobalQuality } from './collectors/virginia-inventory-recovery.mjs';
+import { verifyMississippiReleasePolicy } from './mississippi-release-policy.mjs';
+import { getStateLifecycle } from './state-lifecycle.mjs';
 
 async function exists(file) {
   try { await access(file); return true; } catch { return false; }
@@ -66,6 +68,12 @@ async function main() {
   if (!Array.isArray(signals.signals)) throw new Error('signals.json has invalid shape');
   if (!Array.isArray(operational.signals)) throw new Error('current-snapshot.json has invalid shape');
   if (!Array.isArray(alerts.candidates)) throw new Error('alert-candidates.json has invalid shape');
+  verifyMississippiReleasePolicy({
+    lifecycle: getStateLifecycle('MS'),
+    signals: operational.signals,
+    alerts: alerts.candidates,
+    phase: 'site-export',
+  });
   if (siteStats.contractVersion !== 'bourbon-signal-site-v0.1') throw new Error(`Unexpected site contract version: ${siteStats.contractVersion}`);
   if (!Array.isArray(siteBottles.bottles) || siteBottles.bottles.length < 50) throw new Error('site/bottles.json has invalid or too-small shape');
   if (!Array.isArray(siteLocations.locations) || siteLocations.locations.length < 800) throw new Error('site/locations.json has invalid or too-small shape');

@@ -29,7 +29,7 @@ export const LOCATION_PROFILES = {
   MT: { target: 'statewide_catalog', note: 'Montana price book/agency store list; no public store-level inventory located.' },
   WV: { target: 'statewide_catalog', note: 'WV ABCA search/barrel-pick pages are statewide product/release signals; no public store inventory located.' },
   WY: { target: 'statewide_catalog', note: 'Wyoming Liquor Division product pages are wholesale/product-level; no consumer store inventory found.' },
-  MS: { target: 'statewide_catalog', note: 'Mississippi ABC public pages expose SPA/bailment price-change PDFs and vendor/product policy, not bottle/store inventory.' },
+  MS: { target: 'store_level', note: 'Mississippi uses separate lanes: the complete TAP Package Retailer directory provides exact premises identity; four reviewed first-party CityHive/GoToLiquorStore sources can provide exact-store binary pickup/orderability; SPA, bailment, pricing, catalog, wholesale, and policy documents remain statewide intelligence only.' },
   KY: { target: 'distillery', note: 'Kentucky public value comes from official distillery gift-shop/drop and release-watch sources. Treat distillery signals separately from retailer store inventory.' },
   TN: { target: 'store_level', note: 'Tennessee is a private retail market; official ABC surfaces are licensing/policy, while selected public retailer e-commerce pages can expose store-level quantity/price with a verify-before-driving caveat.' },
   TX: { target: 'store_level', note: 'Texas is a private retail market. Guarded first-party CityHive sources provide exact-store retailer availability with verify-before-driving caveats; TABC and retailer catalog/event pages remain non-inventory context.' },

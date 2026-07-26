@@ -45,6 +45,10 @@ jobs:
       - name: Install engine dependencies
         run: npm ci --prefix engine
 
+      - name: Generate deterministic Bourbon Bible
+        working-directory: engine
+        run: npm run bible
+
       - name: Validate manual shadow inputs
         id: validate
         shell: bash

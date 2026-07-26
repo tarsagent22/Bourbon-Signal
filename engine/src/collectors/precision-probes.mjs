@@ -85,6 +85,7 @@ import {
   virginiaProductCode
 } from './virginia-inventory-recovery.mjs';
 import { loadOhioInventoryRecoverySeed, seedOhioInventoryCacheSignals } from './ohio-inventory-recovery.mjs';
+import { collectMississippiRetailers } from './mississippi-retailer-collector.mjs';
 
 const require = createRequire(import.meta.url);
 const { PDFParse } = require('pdf-parse');
@@ -7361,6 +7362,13 @@ function precisionRuntimeUrl(config) {
 }
 
 async function collectPrecisionProbesDirect(config, bible, existingSignals = [], options = {}) {
+  if (config.id === 'MS') return collectMississippiRetailers(config, {
+    ...options,
+    matchBottle: (rawName) => {
+      const { match, record } = cityHiveSafeBottleMatch(rawName, bible);
+      return record ? { ...record, confidence: match?.confidence || 0.8 } : null;
+    },
+  });
   if (config.id === 'KY') return collectKentucky(config, bible);
   if (config.id === 'OH') return collectOhio(config, bible);
   if (config.id === 'OR') return collectOregon(config, bible);

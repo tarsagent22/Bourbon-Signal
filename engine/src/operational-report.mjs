@@ -4,7 +4,14 @@ import { stableId } from './core/text.mjs';
 import { BourbonBible } from './core/bible.mjs';
 import { confidenceForSignal, STATE_CONFIDENCE_POLICY } from './confidence-policy.mjs';
 import { hasVerifiedGeorgiaRetailerInventory, suppressGeorgiaActivationBaseline } from './georgia-activation-policy.mjs';
+import {
+  hasVerifiedMississippiRetailerInventory,
+  MISSISSIPPI_SOURCE_CONFIG_DIGEST,
+  silenceMississippiResearchCandidates,
+  suppressMississippiActivationBaseline,
+} from './mississippi-activation-policy.mjs';
 import { locationValue, precisionRank } from './location-precision.mjs';
+import { getStateLifecycle } from './state-lifecycle.mjs';
 import { appendChangeJournal } from './optimization/change-journal.mjs';
 import { hasPositiveInventoryEvidence } from './operational-candidate-policy.mjs';
 
@@ -12,6 +19,7 @@ const OUT = path.resolve('out');
 const HISTORY = path.join(OUT, 'history');
 const SNAPSHOTS = path.join(HISTORY, 'snapshots');
 const GEORGIA_ACTIVATION_STATE = path.join(OUT, 'optimization', 'georgia-retailer-activation.json');
+const MISSISSIPPI_ACTIVATION_STATE = path.join(OUT, 'optimization', 'mississippi-retailer-activation.json');
 const VIRGINIA_INVENTORY_MAX_AGE_MS = Math.max(60 * 60_000, Number(process.env.BOURBON_SIGNAL_VA_INVENTORY_MAX_AGE_MS || 24 * 60 * 60_000));
 
 function virginiaInventoryExpired(signal, nowMs = Date.now()) {
@@ -404,18 +412,28 @@ async function main() {
   const changes = diffSnapshots(previous?.snapshot, current).sort((a, b) => changeScore(b) - changeScore(a));
   const bootstrap = !previous?.snapshot;
   const georgiaActivationState = await readJson(GEORGIA_ACTIVATION_STATE, { activated: false });
+  const mississippiActivationState = await readJson(MISSISSIPPI_ACTIVATION_STATE, null);
+  const mississippiLifecycle = getStateLifecycle('MS');
   const rawAlertCandidates = diversifyCandidates((bootstrap
     ? signals.slice(0, 150).map((sig) => candidateFromChange({ type: 'new_signal', key: sig.key, before: null, after: sig }, true))
     : changes.map((change) => candidateFromChange(change, false)))
     .filter((c) => !c.sampleOnly)
     .filter((c) => c.action !== 'do_not_alert_context_only' || c.score >= 65)
     .sort((a, b) => b.score - a.score));
-  const alertCandidates = suppressGeorgiaActivationBaseline(
+  const georgiaGuardedCandidates = suppressGeorgiaActivationBaseline(
     rawAlertCandidates,
     previous?.snapshot?.signals || [],
     signals,
     georgiaActivationState,
   );
+  const alertCandidates = mississippiLifecycle?.publicStatus === 'active'
+    ? suppressMississippiActivationBaseline(
+      georgiaGuardedCandidates,
+      previous?.snapshot?.signals || [],
+      signals,
+      mississippiActivationState,
+    )
+    : silenceMississippiResearchCandidates(georgiaGuardedCandidates);
   const previousJournal = await readJson(path.join(OUT, 'change-journal.json'), { entries: [] });
   const changeJournal = appendChangeJournal(previousJournal, signals, { recordedAt: generatedAt });
 
@@ -431,6 +449,17 @@ async function main() {
     await writeFile(GEORGIA_ACTIVATION_STATE, JSON.stringify({
       activated: true,
       firstActivatedAt: georgiaActivationState?.firstActivatedAt || generatedAt,
+      lastVerifiedAt: generatedAt,
+    }, null, 2));
+  }
+  if (mississippiLifecycle?.publicStatus === 'active' && hasVerifiedMississippiRetailerInventory(signals)) {
+    await mkdir(path.dirname(MISSISSIPPI_ACTIVATION_STATE), { recursive: true });
+    await writeFile(MISSISSIPPI_ACTIVATION_STATE, JSON.stringify({
+      markerVersion: 'bourbon-signal/ms-activation-baseline@1',
+      state: 'MS',
+      baselineEstablished: true,
+      sourceConfigDigest: MISSISSIPPI_SOURCE_CONFIG_DIGEST,
+      lifecycleActivatedAt: mississippiActivationState?.lifecycleActivatedAt || generatedAt,
       lastVerifiedAt: generatedAt,
     }, null, 2));
   }

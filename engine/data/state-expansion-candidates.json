@@ -652,17 +652,26 @@
     {
       "state": "MS",
       "customerLabel": "Mississippi",
-      "marketClassification": "control",
+      "marketClassification": "mixed",
       "targetScopes": [
         "statewide"
       ],
-      "lifecycleStage": "discovery",
+      "lifecycleStage": "shadow",
       "sourceClassesSought": [
         "official_control_board",
         "official_catalog",
-        "official_release"
+        "official_release",
+        "official_directory",
+        "retailer_storefront",
+        "public_platform_surface",
+        "exact_store_fulfillment"
       ],
-      "currentBlockers": [],
+      "currentBlockers": [
+        "Only 4 of the 690 known Package Retailer premises currently have accessible exact first-party inventory-capable storefronts.",
+        "Ten additional BottleCapps entries are blocked_by_source_policy, source_offline, or app-only probe discoveries and are not inventory-authoritative.",
+        "TAP robots policy blocks autonomous directory refresh; future refresh requires an official permitted export or API.",
+        "Statewide activation gates require 50 exact live stores, 25 transition-proven alert-grade stores, 15 cities, and 6 of 9 regions."
+      ],
       "rankingInputs": {
         "demandSignals": [],
         "strategicSignals": []

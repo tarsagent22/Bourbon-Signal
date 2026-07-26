@@ -18,7 +18,27 @@ export function selectShadowCandidates(lifecycle, { states = [], limit = 5 } = {
     .slice(0, Math.max(0, Number(limit) || 0));
 }
 
+export function validateShadowRunRequest(lifecycle, { requestedStates = [], candidates = [] } = {}) {
+  if (!lifecycle || typeof lifecycle !== 'object' || !Array.isArray(lifecycle.activeStates) || !lifecycle.states || typeof lifecycle.states !== 'object') {
+    throw new Error('Shadow collection requires a valid state lifecycle configuration.');
+  }
+  if (!Array.isArray(candidates) || candidates.length === 0) throw new Error('Shadow collection selected no eligible candidates.');
+  const requested = new Set(asArray(requestedStates).map(stateId).filter(Boolean));
+  const selected = new Set(candidates.map(stateId));
+  for (const state of requested) {
+    if (!selected.has(state)) throw new Error(`Requested shadow state ${state} is not eligible or was not selected.`);
+  }
+  return true;
+}
+
 function validTime(value) { return Number.isFinite(Date.parse(String(value || ''))); }
+
+export function isValidShadowReport(state, report) {
+  if (!report || typeof report !== 'object' || Array.isArray(report)) return false;
+  if (stateId(report.state) !== stateId(state) || !String(report.status || '').trim()) return false;
+  if (!validTime(report.startedAt) || !validTime(report.finishedAt) || Date.parse(report.finishedAt) < Date.parse(report.startedAt)) return false;
+  return Array.isArray(report.signals) && Array.isArray(report.sources) && Array.isArray(report.sourceResults);
+}
 
 export function buildShadowEvidence(state, report, { now = new Date().toISOString() } = {}) {
   const signals = asArray(report?.signals);
@@ -93,13 +113,17 @@ export async function runExpansionShadow({ lifecycle, states, limit = 5, outDir 
     const reportFile = path.join(stateDir, 'report.json');
     await mkdir(stateDir, { recursive: true });
     const execution = await runCollector(state, reportFile, cwd);
-    const report = await readJson(reportFile, { state, status: 'failed_shadow_collection', signals: [], sources: [], roadblocks: [{ state, error: execution.error }] });
+    const parsedReport = await readJson(reportFile, null);
+    const report = isValidShadowReport(state, parsedReport)
+      ? parsedReport
+      : { state, status: 'failed_shadow_collection', startedAt: null, finishedAt: null, signals: [], sources: [], sourceResults: [], roadblocks: [{ state, error: execution.error || 'missing_or_invalid_shadow_report' }] };
+    await writeFile(reportFile, JSON.stringify(report, null, 2));
     const evidence = buildShadowEvidence(state, report);
     evidence.execution = { ok: execution.ok, error: execution.error, stdout: execution.stdout?.slice(-4000) || '', stderr: execution.stderr?.slice(-4000) || '' };
     await writeFile(path.join(stateDir, 'evidence.json'), JSON.stringify(evidence, null, 2));
     results.push({ state, directory: stateDir, evidence });
   }
-  const summary = { schemaVersion: 1, mode: 'shadow', runId, generatedAt: new Date().toISOString(), candidates, results: results.map((result) => ({ state: result.state, directory: result.directory, publication: result.evidence.publication, alerts: result.evidence.alerts, metrics: result.evidence.metrics })) };
+  const summary = { schemaVersion: 1, mode: 'shadow', runId, generatedAt: new Date().toISOString(), candidates, results: results.map((result) => ({ state: result.state, directory: result.directory, executionOk: result.evidence.execution?.ok === true, collectorStatus: result.evidence.collector?.status || 'unknown', publication: result.evidence.publication, alerts: result.evidence.alerts, metrics: result.evidence.metrics })) };
   await mkdir(outDir, { recursive: true });
   await writeFile(path.join(outDir, `run-${runId}.json`), JSON.stringify(summary, null, 2));
   return summary;
@@ -113,10 +137,14 @@ function argValue(flag) {
 }
 
 async function main() {
-  const lifecycle = await readJson(path.resolve('..', 'src', 'config', 'state-lifecycle.json'), {});
+  const lifecycle = await readJson(path.resolve('..', 'src', 'config', 'state-lifecycle.json'), null);
   const states = String(argValue('--states') || '').split(',').map(stateId).filter(Boolean);
   const summary = await runExpansionShadow({ lifecycle, states, limit: Number(argValue('--limit') || 5) });
+  validateShadowRunRequest(lifecycle, { requestedStates: states, candidates: summary.candidates });
   console.log(JSON.stringify({ mode: summary.mode, candidates: summary.candidates, runId: summary.runId, productionSnapshotTouched: false, alertsDisabled: true }, null, 2));
+  if (summary.results.some((result) => result.executionOk !== true || result.collectorStatus === 'failed_shadow_collection')) {
+    throw new Error(`Shadow collection failed for ${summary.results.filter((result) => result.executionOk !== true || result.collectorStatus === 'failed_shadow_collection').map((result) => result.state).join(', ')}.`);
+  }
 }
 
 const invokedPath = process.argv[1] ? pathToFileURL(path.resolve(process.argv[1])).href : '';

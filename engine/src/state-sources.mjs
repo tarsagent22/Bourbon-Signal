@@ -2,6 +2,7 @@ import { CUSTOMER_ACTIVE_STATE_IDS as CONFIG_CUSTOMER_ACTIVE_STATE_IDS } from '.
 import { costcoSourceForState } from './costco-eligibility.mjs';
 import { GEORGIA_CITYHIVE_SOURCES, GEORGIA_GOTOLIQUOR_STORES, GEORGIA_LIGHTSPEED_STORES } from './collectors/georgia-retailer-surfaces.mjs';
 import { COLORADO_RETAILER_SOURCES, NEW_YORK_RETAILER_SOURCES } from './collectors/metro-retailer-surfaces.mjs';
+import { MISSISSIPPI_RETAILER_SOURCES } from './collectors/mississippi-retailer-surfaces.mjs';
 
 const GEORGIA_RETAILER_SOURCES = [
   ...GEORGIA_CITYHIVE_SOURCES.map((source) => ({ name: source.sourceLabel, label: source.sourceLabel, url: source.categoryUrl, precisionOnly: true })),
@@ -239,14 +240,30 @@ const BASE_STATE_SOURCES = [
     apiCandidates: []
   },
   {
-    id: 'MS', label: 'Mississippi ABC', tier: 'C', strategy: 'vendor_warehouse_policy_watch', cadence: 'monthly-weekly',
-    value: 'Weak public consumer signal; useful for policy/product intelligence until better public data is found.',
-    rareSignalTarget: false,
+    id: 'MS', label: 'Mississippi statewide directory + retailer research', tier: 'B', strategy: 'hybrid_official_intelligence_private_retailer', cadence: 'inventory-60m_directory-weekly',
+    value: 'Complete official Package Retailer premises directory plus four isolated exact first-party storefront adapters under alert-disabled shadow qualification. Official catalog, pricing, SPA, bailment, wholesale, and policy evidence remains noninventory; runtime health determines current storefront usability.',
+    active: false,
+    rareSignalTarget: true,
     sources: [
-      { kind: 'html', url: 'https://www.dor.ms.gov/abc/sales-distribution/past-price-changes-spas', label: 'Past price changes and SPAs' },
-      { kind: 'html', url: 'https://www.dor.ms.gov/abc/sales-distribution/vendor-information', label: 'ABC vendor information' },
-      { kind: 'pdf', url: 'https://www.dor.ms.gov/sites/default/files/abc/Full%20Price%20List/June%202026%20SPAs.pdf', label: 'June 2026 SPA price list PDF' },
-      { kind: 'pdf', url: 'https://www.dor.ms.gov/sites/default/files/abc/Full%20Price%20List/June%202026%20Bailment%20Price%20Changes.pdf', label: 'June 2026 bailment price changes PDF' }
+      { kind: 'html', url: 'https://tap.dor.ms.gov/_/', label: 'Mississippi DOR TAP Package Retailer directory', sourceLayer: 'directory', precisionOnly: true, inventoryAuthoritative: false, sourcePolicyStatus: 'source_policy_blocked', autonomousFetchAllowed: false, captureMode: 'operator_supplied_authorized_capture_only' },
+      { kind: 'html', url: 'https://www.dor.ms.gov/abc/sales-distribution/past-price-changes-spas', label: 'Past price changes and SPAs', sourceLayer: 'official_intelligence', inventoryAuthoritative: false },
+      { kind: 'html', url: 'https://www.dor.ms.gov/abc/sales-distribution/vendor-information', label: 'ABC vendor information', sourceLayer: 'official_intelligence', inventoryAuthoritative: false },
+      { kind: 'pdf', url: 'https://www.dor.ms.gov/sites/default/files/abc/Full%20Price%20List/July%202026%20SPAs.pdf', label: 'July 2026 SPA price list PDF', sourceLayer: 'official_intelligence', inventoryAuthoritative: false },
+      { kind: 'pdf', url: 'https://www.dor.ms.gov/sites/default/files/abc/Full%20Price%20List/July%202026%20Bailment%20Price%20Changes.pdf', label: 'July 2026 bailment price changes PDF', sourceLayer: 'official_intelligence', inventoryAuthoritative: false },
+      { kind: 'pdf', url: 'https://www.dor.ms.gov/sites/default/files/abc/Full%20Price%20List/August%202026%20SPAs.pdf', label: 'August 2026 SPA price list PDF', sourceLayer: 'official_intelligence', inventoryAuthoritative: false },
+      { kind: 'pdf', url: 'https://www.dor.ms.gov/sites/default/files/abc/Full%20Price%20List/August%202026%20Bailment%20Price%20Changes.pdf', label: 'August 2026 bailment price changes PDF', sourceLayer: 'official_intelligence', inventoryAuthoritative: false },
+      ...MISSISSIPPI_RETAILER_SOURCES.map((source) => ({
+        kind: 'html',
+        name: source.sourceLabel,
+        label: source.sourceLabel,
+        url: source.categoryUrl,
+        precisionOnly: true,
+        sourceLayer: source.autonomousFetchAllowed === false ? 'storefront_probe' : 'private_retailer_inventory',
+        autonomousFetchAllowed: source.autonomousFetchAllowed !== false,
+        sourcePolicyStatus: source.sourcePolicyStatus,
+        sourceRuntimeId: source.sourceRuntimeId,
+        permitNumber: source.permitNumber,
+      }))
     ],
     apiCandidates: []
   },

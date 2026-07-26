@@ -1,3 +1,5 @@
+import { parseGoToLiquorStoreProducts } from './gotoliquorstore-surfaces.mjs';
+
 function merchant(id, name, address, city, zip) {
   return [id, { id, name, address, city, state: 'GA', zip }];
 }
@@ -264,35 +266,15 @@ export function normalizeGeorgiaCityHiveQuantity(value) {
 
 export function parseGeorgiaGoToLiquorStoreProducts(html, store) {
   if (!store || !GEORGIA_GOTOLIQUOR_STORES.some((candidate) => candidate.id === store.id && candidate.hostname === store.hostname)) return [];
-  const rows = [];
-  const seen = new Set();
-  const blocks = blocksAtStarts(html, [/<(?:div|li|article)\b[^>]*class\s*=\s*["'][^"']*\bproduct-item\b[^"']*["'][^>]*>/gi]);
-  for (const block of blocks) {
-    const orderableProductIds = new Set();
-    for (const match of block.matchAll(/<(a|button)\b[^>]*>[\s\S]*?<\/\1>|<input\b[^>]*>/gi)) {
-      const control = match[0];
-      if (isHiddenControl(control)) continue;
-      if (!/Add\s+to\s+Cart|GaAddtoCart/i.test(control)) continue;
-      const escapedStoreId = escapedRegExp(store.id);
-      const storeBoundProductId = control.match(new RegExp(`addproducttocart_list\\(\\s*(\\d+)\\s*,\\s*${escapedStoreId}(?:\\s*,|\\s*\\))`, 'i'))?.[1];
-      const simpleCallProductId = control.match(new RegExp(`GaAddtoCart\\([\\s\\S]*?['\"](\\d+)['\"]\\s*,\\s*['\"]${escapedStoreId}['\"](?:\\s*,|\\s*\\))`, 'i'))?.[1];
-      const productVariableId = control.match(/GaAddtoCart\(\s*product_(\d+)\b/i)?.[1];
-      const dataProductId = control.match(/\bdata-(?:product-?id|product)\s*=\s*["'](\d+)["']/i)?.[1];
-      const dataStoreId = control.match(/\bdata-store-?id\s*=\s*["'](\d+)["']/i)?.[1];
-      const explicitlyBoundDataProductId = dataStoreId === store.id ? dataProductId : null;
-      const explicitlyBoundVariableId = storeBoundProductId && storeBoundProductId === productVariableId ? productVariableId : null;
-      const controlProductId = storeBoundProductId || simpleCallProductId || explicitlyBoundVariableId || explicitlyBoundDataProductId;
-      if (controlProductId) orderableProductIds.add(controlProductId);
-    }
-    if (!orderableProductIds.size) continue;
-    const product = productAnchor(block, store);
-    if (!product || !isAllowedGeorgiaBottleFormat(product.rawName)) continue;
-    const productId = product.url.pathname.match(/\/(\d+)\/?$/)?.[1] || '';
-    if (!productId || !orderableProductIds.has(productId) || seen.has(product.url.href)) continue;
-    seen.add(product.url.href);
-    rows.push({ productId, rawName: product.rawName, productUrl: product.url.href, price: priceFromBlock(block) });
-  }
-  return rows;
+  return parseGoToLiquorStoreProducts(html, store, {
+    stores: GEORGIA_GOTOLIQUOR_STORES,
+    isAllowedBottleFormat: isAllowedGeorgiaBottleFormat,
+  }).map((row) => ({
+    productId: row.productId,
+    rawName: row.title,
+    productUrl: row.productUrl,
+    price: row.price,
+  }));
 }
 
 export function parseGeorgiaLightspeedProducts(html, store) {

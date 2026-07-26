@@ -112,7 +112,7 @@ export function CoverageStatePanel({ state }: CoverageStatePanelProps) {
             </div>
             <dl className={styles.layerGrid}>
               <div><dt>Known stores</dt><dd>{state.layers.known}</dd></div>
-              <div><dt>Monitored stores</dt><dd>{state.layers.probeable}</dd></div>
+              <div><dt>Probeable stores</dt><dd>{state.layers.probeable}</dd></div>
               <div><dt>Catalog tracking</dt><dd>{state.layers.catalogWatch}</dd></div>
               <div><dt>Inventory monitoring</dt><dd>{state.layers.live}</dd></div>
               <div><dt>Alert-ready</dt><dd>{state.layers.alertGrade}</dd></div>
