@@ -17,9 +17,25 @@ assert.match(source, /onPointerDown=\{openSuggestionMenu\}/, "tapping an already
 assert.match(source, /onChange=\{\(event\) => \{[\s\S]*?updateSuggestionQuery\(event\.target\.value\)/, "typing must start a clean suggestion session");
 assert.match(source, /onClick=\{\(\) => selectSuggestion\(suggestion\)\}/, "suggestion buttons must use the close-before-select path");
 assert.match(source, /onChange=\{\(event\) => updateSuggestionState\(event\.target\.value\)\}/, "area selection must use the stale-request-safe path");
-assert.match(source, /suggestionsOpen && liveSuggestions\.length > 0/, "the list must render only during an open suggestion session");
+assert.match(source, /suggestionsOpen && \(suggestionsLoading \|\| liveSuggestions\.length > 0\)/, "the list must render only during an open suggestion session, including while loading");
 assert.match(source, /\[query, state, suggestionsOpen, suggestionSession\]/, "fresh taps must retrigger suggestion loading even when the menu was already open");
 assert.match(source, /event\.key === "Escape"[\s\S]*?closeSuggestionMenu\(\)/, "Escape must dismiss and invalidate suggestions");
 assert.doesNotMatch(source, /role="option"/, "ordinary suggestion buttons must not claim incomplete ARIA option keyboard behavior");
+assert.match(source, /const \[suggestionsLoading, setSuggestionsLoading\] = useState\(false\)/, "typing must expose immediate suggestion-loading feedback");
+assert.match(source, /suggestionsOpen && \(suggestionsLoading \|\| liveSuggestions\.length > 0\)/, "the suggestion surface must open while a query is loading, not only after results arrive");
+assert.match(source, /Searching Bottle Check/, "the open suggestion surface must tell the member that matching is in progress");
+assert.match(source, /!suggestionsLoading \? \([\s\S]*?bc-live-missing[\s\S]*?\) : null/, "the missing-bottle action must stay hidden until suggestion loading finishes");
+assert.match(source, /}, 100\);/, "predictive search debounce must stay at or below 100ms");
 
-console.log("Bottle Check suggestion dismissal contract passed.");
+const bibleSource = readFileSync(new URL("../src/lib/bourbonBible.ts", import.meta.url), "utf8");
+assert.match(bibleSource, /const BOURBON_BIBLE_CACHE_TTL_MS = 60_000/, "the merged Bottle Check catalog must have a short freshness-bounded memory cache");
+assert.match(bibleSource, /let bourbonBibleInFlight: Promise<BibleBottle\[\]> \| null = null/, "concurrent catalog reads must share one in-flight build");
+assert.match(bibleSource, /if \(bourbonBibleCache && bourbonBibleCache\.expiresAt > Date\.now\(\)\) return bourbonBibleCache\.value/, "warm suggestion requests must reuse the merged catalog");
+assert.match(bibleSource, /if \(bourbonBibleInFlight\) return bourbonBibleInFlight/, "simultaneous suggestion requests must not rebuild the catalog independently");
+
+const routeSource = readFileSync(new URL("../src/app/api/bottle-check/route.ts", import.meta.url), "utf8");
+assert.match(routeSource, /suggestionRows = query \? await searchBourbonBible\(query, 16\) : \[\]/, "the common query path must run one ranked catalog search");
+assert.match(routeSource, /bottle = suggestionRows\[0\] \|\| null/, "the primary match must come from the same ranked result set");
+assert.doesNotMatch(routeSource, /searchBourbonBible\(query, 1\)/, "the route must not repeat the same catalog search just to choose the first result");
+
+console.log("Bottle Check suggestion performance and dismissal contract passed.");

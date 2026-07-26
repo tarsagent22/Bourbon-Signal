@@ -134,8 +134,10 @@ export default function BottleCheckPage() {
   const [freeChecksUsed, setFreeChecksUsed] = useState(0);
   const [liveSuggestions, setLiveSuggestions] = useState<NonNullable<BottleResult["bottle"]>[]>([]);
   const [suggestionsOpen, setSuggestionsOpen] = useState(false);
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false);
   const [suggestionSession, setSuggestionSession] = useState(0);
   const suggestionRequestVersion = useRef(0);
+
   const [addingMissingBottle, setAddingMissingBottle] = useState(false);
   const [missingBottleAdded, setMissingBottleAdded] = useState(false);
   const [missingBottleAddedName, setMissingBottleAddedName] = useState("");
@@ -147,6 +149,7 @@ export default function BottleCheckPage() {
   function openSuggestionMenu() {
     suggestionRequestVersion.current += 1;
     setLiveSuggestions([]);
+    setSuggestionsLoading(query.trim().length >= 2);
     setSuggestionsOpen(true);
     setSuggestionSession((current) => current + 1);
   }
@@ -155,11 +158,13 @@ export default function BottleCheckPage() {
     suggestionRequestVersion.current += 1;
     setSuggestionsOpen(false);
     setLiveSuggestions([]);
+    setSuggestionsLoading(false);
   }
 
   function updateSuggestionQuery(value: string) {
     suggestionRequestVersion.current += 1;
     setLiveSuggestions([]);
+    setSuggestionsLoading(value.trim().length >= 2);
     setSuggestionsOpen(true);
     setQuery(value);
   }
@@ -167,6 +172,7 @@ export default function BottleCheckPage() {
   function updateSuggestionState(value: string) {
     suggestionRequestVersion.current += 1;
     setLiveSuggestions([]);
+    setSuggestionsLoading(query.trim().length >= 2);
     setState(value);
   }
 
@@ -237,17 +243,20 @@ export default function BottleCheckPage() {
   useEffect(() => {
     if (!suggestionsOpen) {
       setLiveSuggestions([]);
+      setSuggestionsLoading(false);
       return;
     }
 
     const q = query.trim();
     if (q.length < 2) {
       setLiveSuggestions([]);
+      setSuggestionsLoading(false);
       return;
     }
 
     const requestVersion = ++suggestionRequestVersion.current;
     const controller = new AbortController();
+    setSuggestionsLoading(true);
     const timer = window.setTimeout(async () => {
       try {
         const res = await fetch(`/api/bottle-check?q=${encodeURIComponent(q)}&state=${encodeURIComponent(state)}&intent=suggest`, { signal: controller.signal });
@@ -265,8 +274,10 @@ export default function BottleCheckPage() {
         setLiveSuggestions(suggestions);
       } catch (error) {
         if ((error as Error).name !== "AbortError" && requestVersion === suggestionRequestVersion.current) setLiveSuggestions([]);
+      } finally {
+        if (requestVersion === suggestionRequestVersion.current) setSuggestionsLoading(false);
       }
-    }, 180);
+    }, 100);
 
     return () => {
       window.clearTimeout(timer);
@@ -439,8 +450,11 @@ export default function BottleCheckPage() {
                   </button>
                 ) : null}
               </div>
-              {suggestionsOpen && liveSuggestions.length > 0 ? (
+              {suggestionsOpen && (suggestionsLoading || liveSuggestions.length > 0) ? (
                 <div className="bc-live-suggestions" aria-label="Bottle suggestions">
+                  {suggestionsLoading && liveSuggestions.length === 0 ? (
+                    <div className="bc-suggestion-loading" role="status" aria-live="polite">Searching Bottle Check…</div>
+                  ) : null}
                   {liveSuggestions.map((suggestion) => (
                     <button
                       key={suggestion.id}
@@ -451,10 +465,12 @@ export default function BottleCheckPage() {
                       <em className={`bc-tier ${suggestion.availability}`}>{availabilityLabels[suggestion.availability] || suggestion.availability}</em>
                     </button>
                   ))}
-                  <button type="button" className="bc-live-missing" onClick={addMissingBottleFromCheck} disabled={addingMissingBottle || missingBottleAdded}>
-                    <span>{missingBottleAdded ? "Added to Bourbon Signal ✓" : `Can’t find it? Add “${query.trim()}” to Bourbon Signal`}</span>
-                    <em>{!isSignedIn ? "Sign in" : addingMissingBottle ? "Adding…" : "Missing bottle"}</em>
-                  </button>
+                  {!suggestionsLoading ? (
+                    <button type="button" className="bc-live-missing" onClick={addMissingBottleFromCheck} disabled={addingMissingBottle || missingBottleAdded}>
+                      <span>{missingBottleAdded ? "Added to Bourbon Signal ✓" : `Can’t find it? Add “${query.trim()}” to Bourbon Signal`}</span>
+                      <em>{!isSignedIn ? "Sign in" : addingMissingBottle ? "Adding…" : "Missing bottle"}</em>
+                    </button>
+                  ) : null}
                   {missingBottleError ? <small className="bc-track-error">{missingBottleError}</small> : null}
                 </div>
               ) : null}
@@ -638,6 +654,7 @@ const bottleCheckCss = `
 .bc-live-suggestions .bc-live-missing em { color:var(--color-accent-amber); }
 .bc-live-suggestions span { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .bc-live-suggestions .bc-tier { flex-shrink:0; min-width:0; max-width:42vw; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.bc-suggestion-loading { padding:12px; color:var(--color-text-secondary); font:700 13px/1.3 var(--font-dm-sans); }
 .bc-search-card > button, .bc-track-box > button { height:48px; border:none; border-radius:14px; background:linear-gradient(135deg, #C4943A 0%, #D4A44A 100%); color:#14100C; padding:0 18px; font:900 14px/1 var(--font-dm-sans); cursor:pointer; flex-shrink:0; }
 .bc-track-box > button:disabled { cursor:default; opacity:.72; }
 .bc-panel { margin-top:22px; border-top:1px solid var(--boundary-subtle); padding:24px 4px; background:transparent; color:var(--color-text-secondary); font:14px/1.7 var(--font-dm-sans); }

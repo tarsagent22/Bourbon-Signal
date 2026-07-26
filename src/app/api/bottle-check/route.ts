@@ -257,10 +257,17 @@ export async function GET(request: Request) {
     return NextResponse.json({ bottle: null, suggestions: [], message: "Free includes 3 Bottle Checks. Upgrade for unlimited Bottle Check access.", usage: usageGate.usage }, { status: 403, headers: siteExportHeaders("local-export") });
   }
 
-  const [bottle, suggestionRows] = await Promise.all([
-    id ? getBottleById(id) : searchBourbonBible(query, 1).then((rows) => rows[0] || null),
-    query ? searchBourbonBible(query, 16) : Promise.resolve([]),
-  ]);
+  let bottle: BibleBottle | null;
+  let suggestionRows: BibleBottle[];
+  if (id) {
+    [bottle, suggestionRows] = await Promise.all([
+      getBottleById(id),
+      query ? searchBourbonBible(query, 16) : Promise.resolve([]),
+    ]);
+  } else {
+    suggestionRows = query ? await searchBourbonBible(query, 16) : [];
+    bottle = suggestionRows[0] || null;
+  }
   const suggestions = dedupeBottleSuggestions(suggestionRows).slice(0, 8);
 
   if (intent === "suggest") {
