@@ -27,7 +27,11 @@ interface SightingsFeedResponse {
   created?: boolean;
 }
 
-export function useSightings(enabled: boolean = true) {
+interface UseSightingsOptions {
+  includePreferences?: boolean;
+}
+
+export function useSightings(enabled: boolean = true, { includePreferences = true }: UseSightingsOptions = {}) {
   const [preferences, setPreferences] = useState<SightingsPreferences>(EMPTY_SIGHTINGS_PREFERENCES);
   const [rawPreferences, setRawPreferences] = useState<PreferencesResponse | null>(null);
   const [sightings, setSightings] = useState<MemberSighting[]>([]);
@@ -72,6 +76,10 @@ export function useSightings(enabled: boolean = true) {
     setLoading(true);
     setError(null);
     try {
+      if (!includePreferences) {
+        await refreshSightings();
+        return null;
+      }
       const [preferencesData] = await Promise.all([refreshPreferences(), refreshSightings()]);
       return preferencesData;
     } catch (err) {
@@ -81,7 +89,7 @@ export function useSightings(enabled: boolean = true) {
     } finally {
       setLoading(false);
     }
-  }, [enabled, refreshPreferences, refreshSightings]);
+  }, [enabled, includePreferences, refreshPreferences, refreshSightings]);
 
   useEffect(() => {
     refresh();

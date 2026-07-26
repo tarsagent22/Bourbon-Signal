@@ -160,16 +160,16 @@ function SightingDropdown({
 export default function SightingsClient() {
   const shouldReduceMotion = useReducedMotion();
   const { isLoaded: authLoaded, isSignedIn, signIn, entitlements } = useAuth();
+  const [activeTab, setActiveTab] = useState<"submit" | "feed">("feed");
   const canReadSightings = entitlements.canReadSightings;
   const canSubmitSightings = entitlements.canSubmitSightings;
   const isLimitedFeedPreview = authLoaded && isSignedIn && entitlements.tier === "free" && entitlements.sightingsPreviewLimit !== null;
   const optimisticMemberAccess = !authLoaded || canReadSightings;
   const canEditSightings = authLoaded && isSignedIn && canSubmitSightings;
-  const { bottles } = useBottles(optimisticMemberAccess);
-  const { stores, loading: storesLoading, error: storesError, reload: reloadStores } = useStores(authLoaded && isSignedIn && canSubmitSightings);
-  const { sightings, states, addSighting, voteSighting, uploadSightingPhoto, saving, loading, previewLimit, totalSightings } = useSightings(authLoaded && isSignedIn && canReadSightings);
+  const { bottles } = useBottles(activeTab === "submit" && optimisticMemberAccess);
+  const { stores, loading: storesLoading, error: storesError, reload: reloadStores } = useStores(activeTab === "submit" && authLoaded && isSignedIn && canSubmitSightings);
+  const { sightings, states, addSighting, voteSighting, uploadSightingPhoto, saving, loading, previewLimit, totalSightings } = useSightings(authLoaded && isSignedIn && canReadSightings, { includePreferences: false });
 
-  const [activeTab, setActiveTab] = useState<"submit" | "feed">("submit");
   const [sightingType, setSightingType] = useState<SightingType>("seen_in_store");
   const [stateFilter, setStateFilter] = useState("ALL");
   const [bottleQuery, setBottleQuery] = useState("");
@@ -197,12 +197,14 @@ export default function SightingsClient() {
 
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
+    const tab = searchParams.get("tab");
     const bottle = searchParams.get("bottle");
     if (bottle) setBottleQuery(bottle);
     const bottleId = searchParams.get("bottleId");
     if (bottleId) setSelectedBottleId(bottleId);
     const store = searchParams.get("store");
     if (store) setStoreQuery(store);
+    if (tab === "submit" || bottle || bottleId || store) setActiveTab("submit");
   }, []);
 
   useEffect(() => {
