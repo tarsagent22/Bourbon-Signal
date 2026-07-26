@@ -212,10 +212,19 @@ assert.doesNotMatch(route, /CREATE TABLE|ensureSchema/i, "schema creation is mig
 assert.doesNotMatch(route, /reviewNotes|review_notes/, "member responses never expose owner review notes");
 
 const form = read("src/components/coverage/CoverageRequestForm.tsx");
+const signUpPage = read("src/app/sign-up/[[...sign-up]]/page.tsx");
 assert.match(form, /useAuth/, "request UI uses the existing Clerk client pattern");
 assert.match(form, /user\?\.id/, "account changes are part of request-form isolation");
 assert.match(form, /submitGeneration/, "late submissions cannot update a different account or state");
 assert.match(form, /\/sign-in\?redirect_url=/, "signed-out users return to the selected coverage state");
+assert.match(form, /\/sign-up\?redirect_url=/, "new visitors can create an account and return to the selected coverage state");
+assert.match(form, /Create a free account to send this request/, "the request action explicitly offers a free account");
+assert.match(form, /No payment or card required\./, "the request action makes payment unnecessary explicit before authentication");
+assert.match(form, /Already have an account\? Sign in\./, "existing members retain a clear sign-in path");
+assert.match(form, /signUpHref[\s\S]*onClick=\{preserveDraft\}/, "free-account creation preserves the request draft");
+assert.match(signUpPage, /isCoverageRequestRedirect/, "coverage-originated signup recognizes the request context");
+assert.match(signUpPage, /Create your free account to send this coverage request\./, "account creation repeats that coverage requests do not require payment");
+assert.match(signUpPage, /No payment or card required\./, "account creation keeps the free/no-card promise visible");
 assert.match(form, /Request coverage and email me when it meaningfully improves\./, "notification consent is explicit");
 assert.match(form, /useState\(false\)/, "email notifications require an affirmative unchecked opt-in");
 assert.match(form, /selectedStateCode[\s\S]*manualCity[\s\S]*manualStoreName[\s\S]*manualAddress/, "one generalized draft preserves state and optional local detail");
