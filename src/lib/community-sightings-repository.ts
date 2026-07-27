@@ -34,6 +34,7 @@ export class CommunitySightingsRepository {
           )
         `);
         await this.query.query(`CREATE INDEX IF NOT EXISTS community_sightings_created_idx ON community_sightings (created_at DESC)`);
+        await this.query.query(`CREATE INDEX IF NOT EXISTS community_sightings_reporter_created_idx ON community_sightings (reporter_user_id, created_at DESC)`);
         await this.query.query(`
           CREATE TABLE IF NOT EXISTS community_sighting_votes (
             sighting_id TEXT NOT NULL REFERENCES community_sightings(id) ON DELETE CASCADE,
@@ -57,6 +58,15 @@ export class CommunitySightingsRepository {
     const rows = await this.query.query(
       `SELECT payload FROM community_sightings ORDER BY created_at DESC LIMIT $1`,
       [Math.max(1, Math.min(limit, 5000))],
+    ) as Array<{ payload: MemberSighting }>;
+    return rows.map((row) => row.payload);
+  }
+
+  async listSightingsForReporter(reporterUserId: string): Promise<MemberSighting[]> {
+    await this.ensureSchema();
+    const rows = await this.query.query(
+      `SELECT payload FROM community_sightings WHERE reporter_user_id = $1 ORDER BY created_at DESC`,
+      [reporterUserId],
     ) as Array<{ payload: MemberSighting }>;
     return rows.map((row) => row.payload);
   }

@@ -23,6 +23,17 @@ assert.equal(getRarityProfile("highly_allocated").label, "Extremely hard to find
 assert.equal(getRarityProfile("allocated").label, "Allocated bottle");
 assert.deepEqual(getRarityProfile("not_a_tier" as never), { score: 20, label: "Rarity not yet classified" }, "malformed catalog tiers must fail safely instead of crashing or implying rarity");
 
+assert.equal(getRarityProfile("allocated", "NC").score, 78, "North Carolina controlled-market scarcity should lift an allocated bottle within its tier band");
+assert.equal(getRarityProfile("allocated", "VA").score, 77, "Virginia should have its own state rarity adjustment");
+assert.equal(getRarityProfile("allocated", "KY").score, 72, "states without a curated market adjustment should retain the national anchor");
+assert.notEqual(getRarityProfile("allocated", "NC").score, getRarityProfile("allocated", "VA").score, "the same bottle tier must be able to score differently by state");
+assert.equal(getRarityProfile("common", "NC").score, 20, "ordinary shelf bottles should not become scarce merely because a state uses controlled distribution");
+assert.equal(getRarityProfile("unicorn", "NC").score, 100, "state adjustments must not exceed the rarity scale");
+const northCarolinaScores = tiers.map((tier) => getRarityProfile(tier, "NC").score);
+for (let index = 1; index < northCarolinaScores.length; index += 1) {
+  assert.ok(northCarolinaScores[index] > northCarolinaScores[index - 1], `${tiers[index]} must still outrank ${tiers[index - 1]} after state adjustment`);
+}
+
 const inventory = JSON.parse(readFileSync(new URL("../src/data/bourbonBibleInventory.json", import.meta.url), "utf8")) as Array<Record<string, unknown>>;
 const eagleRare25 = inventory.find((bottle) => bottle.id === "eagle-rare-25y");
 assert.ok(eagleRare25, "Eagle Rare 25 must remain in the Bottle Check catalog");
@@ -74,10 +85,12 @@ assert.match(bibleSource, /signalBottle\("eagle-rare-12",[\s\S]*?"highly_allocat
 assert.match(bibleSource, /mergeBottleCatalogSources\(\[\s*await readEngineBibleBottles\(\),\s*readInventoryBibleBottles\(\),\s*SEED_BOTTLES,\s*\]\)/, "engine alert data must be applied before customer-facing inventory and curated rarity profiles");
 
 const routeSource = readFileSync(new URL("../src/app/api/bottle-check/route.ts", import.meta.url), "utf8");
-assert.match(routeSource, /getRarityProfile\(marketAvailability\.availability\)/, "Bottle Check must derive score from the final rarity tier");
-assert.match(routeSource, /const rarityScore = rarityProfile\.score/, "Bottle Check must expose the tier-anchored rarity score");
+assert.match(routeSource, /getRarityProfile\(marketAvailability\.availability, state\)/, "Bottle Check must derive score from the final rarity tier and selected state");
+assert.match(routeSource, /const nationalRarityProfile = getRarityProfile\(bottle\.availability\)/, "Bottle Check must preserve the original national tier when explaining state adjustments");
+assert.match(routeSource, /National starting tier:/, "state-adjusted score copy must distinguish the national starting tier from the final market tier");
+assert.match(routeSource, /const rarityScore = rarityProfile\.score/, "Bottle Check must expose the state-adjusted, tier-bounded rarity score");
 assert.match(routeSource, /scoreStatus: "bible_baseline" \| "local_adjusted"/, "the existing API status enum must remain backward compatible");
-assert.doesNotMatch(routeSource, /proofBoost|ageBoost|alertBoost|recencyBoost|opportunityBoost|scarcityLift|abundancePenalty/, "proof, age, alert internals, and sightings must not distort rarity scores");
+assert.doesNotMatch(routeSource, /proofBoost|ageBoost|alertBoost|recencyBoost|opportunityBoost|abundancePenalty/, "proof, age, alert internals, and sightings must not distort rarity scores");
 
 const pageSource = readFileSync(new URL("../src/app/bottle-check/page.tsx", import.meta.url), "utf8");
 assert.match(pageSource, />Rarity Score</, "the UI must name the metric honestly");

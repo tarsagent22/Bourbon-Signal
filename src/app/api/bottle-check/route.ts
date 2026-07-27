@@ -5,7 +5,7 @@ import { captureSearchEvent } from "@/lib/search-capture";
 import { normalizeDropForSite, readSiteExport, siteExportHeaders } from "@/lib/site-engine-contract";
 import { getEntitlements } from "@/lib/entitlements";
 import { getMemberTasteScore } from "@/lib/member-taste-score";
-import { getRarityProfile } from "@/lib/bottle-rarity-score";
+import { getRarityProfile, getStateRarityAdjustment } from "@/lib/bottle-rarity-score";
 
 
 const FREE_BOTTLE_CHECK_LIMIT = 3;
@@ -197,18 +197,27 @@ async function getLocalSignal(bottle: BibleBottle, state: string): Promise<Local
   const lastSeenAt = drops[0]?.timestamp ? String(drops[0].timestamp) : null;
 
   const marketAvailability = getMarketAdjustedAvailability(bottle, state);
-  const rarityProfile = getRarityProfile(marketAvailability.availability);
+  const nationalRarityProfile = getRarityProfile(bottle.availability);
+  const marketTierProfile = getRarityProfile(marketAvailability.availability);
+  const rarityProfile = getRarityProfile(marketAvailability.availability, state);
+  const stateRarityAdjustment = getStateRarityAdjustment(marketAvailability.availability, state);
   const rarityScore = rarityProfile.score;
   const hasLocalSignal = recent90.length > 0;
-  const scoreStatus: LocalSignal["scoreStatus"] = marketAvailability.adjusted ? "local_adjusted" : "bible_baseline";
-  const scoreBasis = marketAvailability.adjusted
-    ? `Rarity tier adjusted for ${state} market context. ${marketAvailability.reasons[0] || "Local availability differs from the national tier."}`
-    : "National rarity tier only; taste and recent local sightings are shown separately.";
+  const scoreStatus: LocalSignal["scoreStatus"] = marketAvailability.adjusted || stateRarityAdjustment > 0 ? "local_adjusted" : "bible_baseline";
+  const scoreBasis = marketAvailability.adjusted && stateRarityAdjustment > 0
+    ? `State-adjusted rarity for ${state}. National starting tier: ${nationalRarityProfile.label}. ${marketAvailability.reasons[0] || `Market rules raise the bottle to ${marketTierProfile.label.toLowerCase()}.`} The controlled-market adjustment adds +${stateRarityAdjustment} within the ${marketTierProfile.label.toLowerCase()} band.`
+    : marketAvailability.adjusted
+      ? `State-adjusted rarity for ${state}. National starting tier: ${nationalRarityProfile.label}. ${marketAvailability.reasons[0] || `Market rules raise the bottle to ${marketTierProfile.label.toLowerCase()}.`}`
+      : stateRarityAdjustment > 0
+        ? `State-adjusted rarity for ${state}. National starting tier: ${nationalRarityProfile.label}. Controlled-market distribution adds +${stateRarityAdjustment} within that rarity band.`
+        : `National starting tier: ${nationalRarityProfile.label}. No additional ${state} market adjustment is currently applied.`;
 
   const confidence: LocalSignal["confidence"] = recent90.length >= 8 ? "high" : recent90.length >= 2 ? "medium" : "low";
   const label = marketAvailability.adjusted && bottle.availability === "common"
     ? "Common nationally, scarce locally"
-    : rarityProfile.label;
+    : stateRarityAdjustment > 0
+      ? `${rarityProfile.label} in ${state}`
+      : rarityProfile.label;
 
   let verdict = "Check price and local context before deciding.";
   if (marketAvailability.adjusted && bottle.availability === "common") verdict = "This may be easy to dismiss nationally, but in your selected market it can behave like an allocated bottle. Good buy near MSRP if you actually want it; do not chase secondary pricing.";

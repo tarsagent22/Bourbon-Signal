@@ -2,28 +2,73 @@ export type SmsAlertCopyInput = {
   bottleNames: string[];
   storeLabel: string;
   state?: string;
+  locationScope?: "store" | "board";
   quantityLabel?: string;
   timestampLabel?: string;
   sourceCaveat: string;
 };
 
-const TWO_SEGMENT_GSM_CHARACTER_BUDGET = 306;
+export type SmsLocationEvidence = {
+  locationPrecision?: unknown;
+  actionabilityClass?: unknown;
+  eventType?: unknown;
+};
 
-function asciiSmsText(value: string) {
+const TWO_SEGMENT_GSM_SEPTET_BUDGET = 306;
+const GSM_BASIC_CHARACTERS = new Set("@£$¥èéùìòÇ\nØø\rÅåΔ_ΦΓΛΩΠΨΣΘΞÆæßÉ !\"#¤%&'()*+,-./0123456789:;<=>?¡ABCDEFGHIJKLMNOPQRSTUVWXYZÄÖÑÜ§¿abcdefghijklmnopqrstuvwxyzäöñüà".split(""));
+const GSM_EXTENSION_CHARACTERS = new Set("^{}\\[~]|€".split(""));
+
+export function gsmSeptetLength(value: string) {
+  let septets = 0;
+  for (const character of value) {
+    if (GSM_BASIC_CHARACTERS.has(character)) septets += 1;
+    else if (GSM_EXTENSION_CHARACTERS.has(character)) septets += 2;
+    else return Number.POSITIVE_INFINITY;
+  }
+  return septets;
+}
+
+function truncateGsmField(value: string, maxSeptets: number) {
+  if (gsmSeptetLength(value) <= maxSeptets) return value;
+  const suffix = "...";
+  let result = "";
+  for (const character of value) {
+    if (gsmSeptetLength(`${result}${character}${suffix}`) > maxSeptets) break;
+    result += character;
+  }
+  return `${result.trimEnd()}${suffix}`;
+}
+
+export function isExactStoreSmsLocation(input: SmsLocationEvidence) {
+  const precision = String(input.locationPrecision || "").trim().toLowerCase();
+  const actionability = String(input.actionabilityClass || "").trim().toLowerCase();
+  const eventType = String(input.eventType || "").trim().toLowerCase();
+  if (/aggregate|board|county|warehouse|statewide/.test(`${precision} ${actionability} ${eventType}`)) return false;
+  if (precision) return precision === "store_level";
+  return actionability === "store_inventory" || /store_inventory|store_allocation|store_delivery|in_stock/.test(eventType);
+}
+
+function gsmSafeSmsText(value: string) {
   return value
     .normalize("NFKD")
     .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[‘’]/g, "'")
+    .replace(/[‘’`]/g, "'")
     .replace(/[“”]/g, '"')
     .replace(/[–—]/g, "-")
     .replace(/…/g, "...")
+    .replace(/\{/g, "(")
+    .replace(/\}/g, ")")
+    .replace(/\[/g, "(")
+    .replace(/\]/g, ")")
+    .replace(/[\\|]/g, "/")
+    .replace(/[\^~]/g, "-")
     .replace(/[^\x20-\x7E]/g, "")
     .replace(/\s+/g, " ")
     .trim();
 }
 
 function compactBottleName(value: string) {
-  return asciiSmsText(value)
+  return gsmSafeSmsText(value)
     .replace(/\bSmall Batch Straight Bourbon(?: Whiskey)?\b/gi, "Sm Batch Bourbon")
     .replace(/\bStraight Bourbon(?: Whiskey)? Small Batch\b/gi, "Bourbon Sm Batch")
     .replace(/\bKentucky Straight Bourbon(?: Whiskey)?\b/gi, "KY Bourbon")
@@ -39,7 +84,7 @@ function compactBottleName(value: string) {
 }
 
 function compactStoreLabel(value: string) {
-  return asciiSmsText(value)
+  return gsmSafeSmsText(value)
     .replace(/\bCounty ABC\s*-\s*/gi, "ABC, ")
     .replace(/\bRoad\b/gi, "Rd")
     .replace(/\bStreet\b/gi, "St")
@@ -58,13 +103,11 @@ function compactStoreLabel(value: string) {
 }
 
 function compactQuantity(value: string) {
-  return asciiSmsText(value)
-    .replace(/\s+reported$/i, "")
-    .trim();
+  return gsmSafeSmsText(value).replace(/\s+reported$/i, "").trim();
 }
 
 function compactTimestamp(value: string) {
-  return asciiSmsText(value)
+  return gsmSafeSmsText(value)
     .replace(/^within the last hour$/i, "<1 hr ago")
     .replace(/^about\s+([0-9.]+)\s+hours?\s+ago$/i, "~$1 hrs ago")
     .replace(/^([0-9.]+)\s+hours?\s+ago$/i, "$1 hrs ago")
@@ -72,28 +115,69 @@ function compactTimestamp(value: string) {
     .trim();
 }
 
-function buildSms(input: SmsAlertCopyInput, compact: boolean) {
-  const bottleNames = input.bottleNames
-    .map((name) => compact ? compactBottleName(name) : asciiSmsText(name))
+function buildSms(input: SmsAlertCopyInput, compact: boolean, bottleLimit = input.bottleNames.length) {
+  const allBottleNames = input.bottleNames
+    .map((name) => compact ? compactBottleName(name) : gsmSafeSmsText(name))
     .filter(Boolean);
-  const storeLabel = compact ? compactStoreLabel(input.storeLabel) : asciiSmsText(input.storeLabel);
-  const state = asciiSmsText(input.state || "").toUpperCase();
-  const stateSuffix = state && !new RegExp(`\\b${state.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i").test(storeLabel)
-    ? `, ${state}`
-    : "";
-  const quantity = compact ? compactQuantity(input.quantityLabel || "") : asciiSmsText(input.quantityLabel || "");
-  const timestamp = compact ? compactTimestamp(input.timestampLabel || "") : asciiSmsText(input.timestampLabel || "");
-  const detail = [quantity, timestamp].filter(Boolean).join(compact ? "; " : " ");
-  const detailSentence = detail ? ` ${detail}.` : "";
-  const caveat = asciiSmsText(input.sourceCaveat).replace(/\.*$/, ".");
-
-  return `Bourbon Signal: ${bottleNames.join("; ")} @ ${storeLabel}${stateSuffix}.${detailSentence} ${caveat} Reply STOP to unsubscribe.`
-    .replace(/\s+/g, " ")
-    .trim();
+  const bottleNames = allBottleNames.slice(0, Math.max(1, bottleLimit));
+  const overflow = Math.max(0, allBottleNames.length - bottleNames.length);
+  const storeLabel = compact ? compactStoreLabel(input.storeLabel) : gsmSafeSmsText(input.storeLabel);
+  const state = gsmSafeSmsText(input.state || "").toUpperCase();
+  const stateSuffix = state && !new RegExp(`\\b${state.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i").test(storeLabel) ? `, ${state}` : "";
+  const quantity = input.locationScope === "board" ? "" : compactQuantity(input.quantityLabel || "");
+  const timestamp = compactTimestamp(input.timestampLabel || "");
+  const detail = [quantity, timestamp].filter(Boolean).join(" - ");
+  const caveat = gsmSafeSmsText(input.sourceCaveat).replace(/\.*$/, ".");
+  const heading = allBottleNames.length === 1 ? "Fresh match" : "Matches";
+  const lines = [
+    "Bourbon Signal",
+    heading,
+    "",
+    ...bottleNames,
+    ...(overflow ? [`+${overflow} more matched bottles`] : []),
+    `${storeLabel}${stateSuffix}`,
+    ...(detail ? [detail] : []),
+    "",
+    caveat,
+    "Reply STOP to unsubscribe.",
+  ];
+  return lines.map((line) => line.replace(/[ \t]+/g, " ").trim()).join("\n").replace(/\n{3,}/g, "\n\n").trim();
 }
 
 export function formatSmsAlert(input: SmsAlertCopyInput) {
-  const full = buildSms(input, false);
-  if (full.length <= TWO_SEGMENT_GSM_CHARACTER_BUDGET) return full;
-  return buildSms(input, true);
+  const safeState = truncateGsmField(gsmSafeSmsText(input.state || ""), 16);
+  const safeInput = { ...input, state: safeState };
+  const full = buildSms(safeInput, false);
+  if (gsmSeptetLength(full) <= TWO_SEGMENT_GSM_SEPTET_BUDGET) return full;
+
+  const compact = buildSms(safeInput, true);
+  if (gsmSeptetLength(compact) <= TWO_SEGMENT_GSM_SEPTET_BUDGET) return compact;
+
+  for (let bottleLimit = Math.max(1, safeInput.bottleNames.length - 1); bottleLimit >= 1; bottleLimit -= 1) {
+    const summarized = buildSms(safeInput, true, bottleLimit);
+    if (gsmSeptetLength(summarized) <= TWO_SEGMENT_GSM_SEPTET_BUDGET) return summarized;
+  }
+
+  const boundedInput: SmsAlertCopyInput = {
+    ...safeInput,
+    bottleNames: [truncateGsmField(compactBottleName(safeInput.bottleNames[0] || "Bottle match"), 72)],
+    storeLabel: truncateGsmField(compactStoreLabel(safeInput.storeLabel || (safeState ? `Selected area, ${safeState}` : "Selected area")), 64),
+    quantityLabel: truncateGsmField(compactQuantity(safeInput.quantityLabel || ""), 24),
+    timestampLabel: truncateGsmField(compactTimestamp(safeInput.timestampLabel || ""), 22),
+    sourceCaveat: truncateGsmField(gsmSafeSmsText(safeInput.sourceCaveat), 48),
+  };
+  const bounded = buildSms(boundedInput, true, 1);
+  if (gsmSeptetLength(bounded) <= TWO_SEGMENT_GSM_SEPTET_BUDGET) return bounded;
+
+  const fallback = buildSms({
+    bottleNames: ["Tracked bottle match"],
+    storeLabel: safeState ? `Selected area, ${safeState}` : "Selected area",
+    state: safeState,
+    locationScope: safeInput.locationScope,
+    timestampLabel: "Recent signal",
+    sourceCaveat: "Check Bourbon Signal before driving.",
+  }, true, 1);
+  return gsmSeptetLength(fallback) <= TWO_SEGMENT_GSM_SEPTET_BUDGET
+    ? fallback
+    : "Bourbon Signal\nFresh match\n\nTracked bottle match\nSelected area\nRecent signal\n\nCheck Bourbon Signal before driving.\nReply STOP to unsubscribe.";
 }
