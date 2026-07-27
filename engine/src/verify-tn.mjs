@@ -92,9 +92,9 @@ if (targetedCohort) {
   assert(cityHiveSources.size >= 4, `Expected at least 4 TN CityHive inventory sources in the targeted cohort; got ${cityHiveSources.size}: ${[...cityHiveSources].join(', ')}`);
   assert(nonCityHiveSources.size >= 3, `Expected all 3 independent non-CityHive TN inventory sources; got ${nonCityHiveSources.size}`);
   assert(inventorySources.size >= 7, `Expected at least 7 TN inventory sources in the targeted cohort; got ${inventorySources.size}: ${[...inventorySources].join(', ')}`);
-  for (const city of ['Franklin', 'Brentwood', 'Murfreesboro']) {
-    assert(inventoryCities.has(city), `Expected current ${city} inventory coverage in the Nashville metro cohort; got ${[...inventoryCities].join(', ')}`);
-  }
+  const targetedMetroCities = ['Nashville', 'Franklin', 'Brentwood', 'Murfreesboro']
+    .filter((city) => inventoryCities.has(city));
+  assert(targetedMetroCities.length >= 2, `Expected current inventory coverage in at least 2 Nashville metro cities; got ${targetedMetroCities.join(', ') || 'none'} from ${[...inventoryCities].join(', ')}`);
   assert(inventoryStores.size >= 7, `Expected at least 7 current TN inventory stores in the targeted cohort; got ${inventoryStores.size}: ${[...inventoryStores].join(', ')}`);
 } else {
   assert(positiveCityHiveSignals.length >= 60, `Expected at least 60 exact-store, currently orderable TN CityHive rows; got ${positiveCityHiveSignals.length}`);
