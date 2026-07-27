@@ -429,6 +429,7 @@ test('lifecycle, collectors, verifiers, and CI expose all three demand-selected 
   const tnVerifier = readFileSync(new URL('../src/verify-tn.mjs', import.meta.url), 'utf8');
   assert.match(tnVerifier, /minimumStateRows:\s*targetedCohort\s*\?\s*60\s*:\s*1/);
   assert.match(tnVerifier, /currentQualifyingSignals/);
+  assert.match(tnVerifier, /targetedMetroCities\.length\s*>=\s*2/);
   const demandGate = workflow.indexOf('Verify demand metro generated evidence');
   const lastDemandGate = workflow.lastIndexOf('Verify demand metro generated evidence');
   const tnGate = workflow.indexOf('Verify Tennessee generated contract');
