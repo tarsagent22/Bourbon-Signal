@@ -47,6 +47,34 @@ test('attempted fallback states retain their last published drops', () => {
   assert.equal(fallback.canAlertAsWatch, false);
 });
 
+test('partial evidence fallback publishes fresh rows and retains only missing prior rows as stale context', () => {
+  const merged = mergePartialRefreshDrops({
+    previousDrops: {
+      drops: [
+        { id: 'tn-same', state: 'TN', canAlertAsInventory: true },
+        { id: 'tn-old-only', state: 'TN', canAlertAsInventory: true },
+        { id: 'tn-unsafe', state: 'TN', canAlertAsInventory: true },
+        { id: 'il-old', state: 'IL', canAlertAsInventory: true },
+      ],
+    },
+    currentDrops: [
+      { id: 'tn-same', state: 'TN', canAlertAsInventory: true, observedAt: '2026-07-27T12:05:00.000Z' },
+      { id: 'tn-new', state: 'TN', canAlertAsInventory: true, observedAt: '2026-07-27T12:06:00.000Z' },
+    ],
+    partialRefresh: true,
+    attemptedStateIds: ['TN'],
+    partialFallbackStateIds: ['TN'],
+    isSafePartialRetainedRow: (drop) => drop.id !== 'tn-unsafe',
+  });
+  assert.deepEqual(merged.map((drop) => drop.id), ['tn-same', 'tn-new', 'tn-old-only', 'il-old']);
+  assert.equal(merged[0].canAlertAsInventory, true);
+  assert.equal(merged[1].canAlertAsInventory, true);
+  assert.equal(merged[2].sourceStale, true);
+  assert.equal(merged[2].canAlertAsInventory, false);
+  assert.equal(merged[2].canAlertAsWatch, false);
+  assert.equal(merged[2].staleReason, 'partial_evidence_fallback');
+});
+
 test('a fallback state with no prior customer rows may bootstrap only explicitly stale non-alerting context', () => {
   const safe = mergePartialRefreshDrops({
     previousDrops: [{ id: 'pa-old', state: 'PA' }],

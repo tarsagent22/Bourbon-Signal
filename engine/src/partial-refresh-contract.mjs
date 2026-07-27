@@ -15,12 +15,13 @@ export function detectDropCollapseFallbacks(previousStateQuality, currentDrops =
     .sort();
 }
 
-export function mergePartialRefreshDrops({ previousDrops = [], currentDrops = [], partialRefresh = false, attemptedStateIds = [], fallbackStateIds = [] } = {}) {
+export function mergePartialRefreshDrops({ previousDrops = [], currentDrops = [], partialRefresh = false, attemptedStateIds = [], fallbackStateIds = [], partialFallbackStateIds = [], isSafePartialRetainedRow = () => true } = {}) {
   const previousRows = Array.isArray(previousDrops) ? previousDrops : Array.isArray(previousDrops?.drops) ? previousDrops.drops : [];
   const currentRows = Array.isArray(currentDrops) ? currentDrops : Array.isArray(currentDrops?.drops) ? currentDrops.drops : [];
   const stateOf = (drop) => String(drop?.state || drop?.state_code || '').toUpperCase();
   const preserved = new Set(fallbackStateIds.map((state) => String(state).toUpperCase()));
-  if (!partialRefresh && !preserved.size) return currentRows;
+  const partialPreserved = new Set(partialFallbackStateIds.map((state) => String(state).toUpperCase()));
+  if (!partialRefresh && !preserved.size && !partialPreserved.size) return currentRows;
   const previousStates = new Set(previousRows.map(stateOf));
   const safeStaleRows = (rows) => rows.length > 0 && rows.every((drop) => drop?.sourceStale === true
     && drop?.alertable !== true
@@ -37,9 +38,22 @@ export function mergePartialRefreshDrops({ previousDrops = [], currentDrops = []
   }));
   const effectivePreserved = new Set([...preserved].filter((state) => !staleBootstrapStates.has(state)));
   const attempted = new Set(attemptedStateIds.map((state) => String(state).toUpperCase()).filter((state) => !effectivePreserved.has(state)));
+  const partialRows = previousRows
+    .filter((drop) => partialPreserved.has(stateOf(drop)) && isSafePartialRetainedRow(drop))
+    .map((drop) => ({
+      ...drop,
+      stale: true,
+      sourceStale: true,
+      staleSourceCaveat: true,
+      staleReason: 'partial_evidence_fallback',
+      alertable: false,
+      canAlertAsInventory: false,
+      canAlertAsWatch: false,
+    }));
   const merged = [
     ...currentRows.filter((drop) => attempted.has(stateOf(drop))),
-    ...previousRows.filter((drop) => !attempted.has(stateOf(drop))),
+    ...partialRows,
+    ...previousRows.filter((drop) => !attempted.has(stateOf(drop)) && !partialPreserved.has(stateOf(drop))),
   ];
   const seen = new Set();
   return merged.filter((drop) => {

@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { tennesseeSourceForId } from './collectors/tennessee-retailer-surfaces.mjs';
+import { isTennesseeRetailerSignalIdentity } from './tennessee-retailer-policy.mjs';
 import {
   evaluateTennesseeSnapshotEvidence,
   qualifyingTennesseeInventoryEvidence,
@@ -19,6 +20,7 @@ const storesExport = await readJson('out/site/stores.json', { stores: [] });
 const locationsExport = await readJson('out/site/locations.json', { locations: [] });
 const dropsExport = await readJson('out/site/drops.json', { drops: [] });
 const allowFreshRetainedEvidence = process.argv.includes('--allow-fresh-retained-evidence');
+const targetedCohort = process.argv.includes('--targeted-cohort');
 
 assert(state, 'Missing out/states/TN.json; run node src/run-state.mjs TN first');
 assert(/^useful(?:_|$)/.test(String(state.status || '')), `Unexpected TN state status: ${state.status}`);
@@ -28,10 +30,16 @@ const signals = state.signals || [];
 const cacheGeneratedAtMs = cache?.generatedAt ? new Date(cache.generatedAt).getTime() : 0;
 const cacheAgeHours = Number.isFinite(cacheGeneratedAtMs) && cacheGeneratedAtMs > 0 ? (Date.now() - cacheGeneratedAtMs) / 3_600_000 : null;
 const qualifyingSignals = qualifyingTennesseeInventoryEvidence(signals);
+const stateStartedAtMs = new Date(state.startedAt).getTime();
+const currentQualifyingSignals = qualifyingSignals.filter((signal) => {
+  const observedAtMs = new Date(signal.lastConfirmedAt || signal.sourceEventAt || signal.observedAt || signal.timestamp || 0).getTime();
+  return Number.isFinite(stateStartedAtMs) && Number.isFinite(observedAtMs) && observedAtMs >= stateStartedAtMs;
+});
+const verifierSignals = targetedCohort ? currentQualifyingSignals : qualifyingSignals;
 const cityHiveInventorySignals = signals.filter((signal) => signal.eventType === 'cityhive_store_inventory_result');
-const positiveCityHiveSignals = qualifyingSignals.filter((signal) => signal.eventType === 'cityhive_store_inventory_result');
+const positiveCityHiveSignals = verifierSignals.filter((signal) => signal.eventType === 'cityhive_store_inventory_result');
 const retailerInventorySignals = signals.filter((signal) => signal.eventType === 'retailer_store_inventory_result');
-const positiveRetailerSignals = qualifyingSignals.filter((signal) => signal.eventType === 'retailer_store_inventory_result');
+const positiveRetailerSignals = verifierSignals.filter((signal) => signal.eventType === 'retailer_store_inventory_result');
 const positiveInventorySignals = [...positiveCityHiveSignals, ...positiveRetailerSignals];
 const cityHiveStoreLocations = signals.filter((signal) => signal.eventType === 'retailer_store_location'
   && tennesseeSourceForId(signal.sourceChain || signal.raw?.chain)?.platform === 'cityhive');
@@ -54,6 +62,14 @@ const cityHiveDrops = tnDrops.filter((drop) => drop.type === 'cityhive_store_inv
 const retailerDrops = tnDrops.filter((drop) => drop.type === 'retailer_store_inventory_result');
 const inventoryDrops = [...cityHiveDrops, ...retailerDrops];
 const alertableDrops = qualifyingTennesseeInventoryEvidence(inventoryDrops);
+const retainedStaleInventoryDrops = inventoryDrops.filter((drop) =>
+  drop.sourceStale === true
+  && drop.alertable !== true
+  && drop.canAlertAsInventory !== true
+  && drop.canAlertAsWatch !== true
+  && Boolean(drop.staleSourceCaveat)
+  && isTennesseeRetailerSignalIdentity(drop)
+);
 const cityHiveAlertableDrops = alertableDrops.filter((drop) => drop.type === 'cityhive_store_inventory_result');
 const retailerAlertableDrops = alertableDrops.filter((drop) => drop.type === 'retailer_store_inventory_result');
 const dropSources = new Set(inventoryDrops.map((drop) => drop.source).filter(Boolean));
@@ -64,26 +80,35 @@ const snapshotEvidence = evaluateTennesseeSnapshotEvidence({
   stateReport: state,
   dropsPayload: dropsExport,
   allowFreshRetainedEvidence,
+  minimumStateRows: targetedCohort ? 60 : 1,
+  minimumDropRows: targetedCohort ? 8 : 1,
 });
 
 assert(snapshotEvidence.ok, `TN generated snapshot evidence failed:\n- ${snapshotEvidence.failures.join('\n- ')}`);
-assert(positiveCityHiveSignals.length >= 60, `Expected at least 60 exact-store, currently orderable TN CityHive rows; got ${positiveCityHiveSignals.length}`);
-assert(positiveRetailerSignals.length >= 10, `Expected at least 10 exact-store, currently orderable non-CityHive TN rows; got ${positiveRetailerSignals.length}`);
-assert(positiveInventorySignals.length >= 75, `Expected at least 75 qualified TN inventory rows; got ${positiveInventorySignals.length}`);
-assert(cityHiveSources.size >= 7, `Expected at least 7 TN CityHive inventory sources; got ${cityHiveSources.size}: ${[...cityHiveSources].join(', ')}`);
-assert(nonCityHiveSources.size >= 1, `Expected at least 1 non-CityHive TN inventory source; got ${nonCityHiveSources.size}`);
-assert(inventorySources.size >= 8, `Expected at least 8 TN inventory sources; got ${inventorySources.size}: ${[...inventorySources].join(', ')}`);
-assert(inventoryCities.has('Nashville'), `Expected Nashville TN inventory coverage; got ${[...inventoryCities].join(', ')}`);
-assert(inventoryCities.has('Memphis'), `Expected Memphis TN inventory coverage; got ${[...inventoryCities].join(', ')}`);
-assert(inventoryCities.has('Knoxville'), `Expected Knoxville TN inventory coverage; got ${[...inventoryCities].join(', ')}`);
-assert(inventoryCities.has('Franklin'), `Expected Franklin TN inventory coverage; got ${[...inventoryCities].join(', ')}`);
-assert(inventoryCities.has('Brentwood'), `Expected Brentwood TN inventory coverage; got ${[...inventoryCities].join(', ')}`);
-assert(inventoryCities.has('Chattanooga'), `Expected Chattanooga TN inventory coverage; got ${[...inventoryCities].join(', ')}`);
-assert(inventoryCities.has('Johnson City'), `Expected Johnson City TN inventory coverage; got ${[...inventoryCities].join(', ')}`);
-assert(inventoryCities.has('Murfreesboro'), `Expected Murfreesboro TN inventory coverage; got ${[...inventoryCities].join(', ')}`);
-assert(inventoryCities.has('Germantown'), `Expected Germantown TN inventory coverage; got ${[...inventoryCities].join(', ')}`);
-assert(inventoryCities.has('Mount Pleasant') || inventoryCities.has('Mt Pleasant'), `Expected Mount Pleasant TN inventory coverage; got ${[...inventoryCities].join(', ')}`);
-assert(inventoryStores.size >= 20, `Expected at least 20 TN inventory stores; got ${inventoryStores.size}: ${[...inventoryStores].join(', ')}`);
+if (targetedCohort) {
+  assert(positiveCityHiveSignals.length >= 30, `Expected at least 30 current exact-store TN CityHive rows from the targeted cohort; got ${positiveCityHiveSignals.length}`);
+  assert(positiveRetailerSignals.length >= 10, `Expected at least 10 current exact-store non-CityHive TN rows; got ${positiveRetailerSignals.length}`);
+  assert(positiveInventorySignals.length >= 60, `Expected at least 60 qualified current TN inventory rows from the targeted cohort; got ${positiveInventorySignals.length}`);
+  assert(cityHiveSources.size >= 4, `Expected at least 4 TN CityHive inventory sources in the targeted cohort; got ${cityHiveSources.size}: ${[...cityHiveSources].join(', ')}`);
+  assert(nonCityHiveSources.size >= 3, `Expected all 3 independent non-CityHive TN inventory sources; got ${nonCityHiveSources.size}`);
+  assert(inventorySources.size >= 7, `Expected at least 7 TN inventory sources in the targeted cohort; got ${inventorySources.size}: ${[...inventorySources].join(', ')}`);
+  for (const city of ['Franklin', 'Brentwood', 'Murfreesboro']) {
+    assert(inventoryCities.has(city), `Expected current ${city} inventory coverage in the Nashville metro cohort; got ${[...inventoryCities].join(', ')}`);
+  }
+  assert(inventoryStores.size >= 7, `Expected at least 7 current TN inventory stores in the targeted cohort; got ${inventoryStores.size}: ${[...inventoryStores].join(', ')}`);
+} else {
+  assert(positiveCityHiveSignals.length >= 60, `Expected at least 60 exact-store, currently orderable TN CityHive rows; got ${positiveCityHiveSignals.length}`);
+  assert(positiveRetailerSignals.length >= 10, `Expected at least 10 exact-store, currently orderable non-CityHive TN rows; got ${positiveRetailerSignals.length}`);
+  assert(positiveInventorySignals.length >= 75, `Expected at least 75 qualified TN inventory rows; got ${positiveInventorySignals.length}`);
+  assert(cityHiveSources.size >= 7, `Expected at least 7 TN CityHive inventory sources; got ${cityHiveSources.size}: ${[...cityHiveSources].join(', ')}`);
+  assert(nonCityHiveSources.size >= 1, `Expected at least 1 non-CityHive TN inventory source; got ${nonCityHiveSources.size}`);
+  assert(inventorySources.size >= 8, `Expected at least 8 TN inventory sources; got ${inventorySources.size}: ${[...inventorySources].join(', ')}`);
+  for (const city of ['Nashville', 'Memphis', 'Knoxville', 'Franklin', 'Brentwood', 'Chattanooga', 'Johnson City', 'Murfreesboro', 'Germantown']) {
+    assert(inventoryCities.has(city), `Expected ${city} TN inventory coverage; got ${[...inventoryCities].join(', ')}`);
+  }
+  assert(inventoryCities.has('Mount Pleasant') || inventoryCities.has('Mt Pleasant'), `Expected Mount Pleasant TN inventory coverage; got ${[...inventoryCities].join(', ')}`);
+  assert(inventoryStores.size >= 20, `Expected at least 20 TN inventory stores; got ${inventoryStores.size}: ${[...inventoryStores].join(', ')}`);
+}
 assert(cityHiveStoreLocations.length >= cityHiveSources.size, `Expected TN CityHive store-location rows for CityHive inventory stores; locations=${cityHiveStoreLocations.length}, cityHiveSources=${cityHiveSources.size}`);
 assert(unsafeCanonicalMatches.length === 0, `Unsafe TN canonical matches found: ${unsafeCanonicalMatches.map((signal) => `${signal.rawName}=>${signal.canonicalName}`).join(', ')}`);
 assert(cacheAgeHours == null || cacheAgeHours <= 12, `TN CityHive cache is too old for customer-facing fast-inventory export: ${cacheAgeHours?.toFixed(1)}h`);
@@ -98,7 +123,7 @@ if ((dropsExport.drops || []).length) {
   assert(!unsafeNames.length, `TN exported inventory drops included non-bourbon categories: ${unsafeNames.map((drop) => drop.rawName || drop.bottleName).join(', ')}`);
   assert(cityHiveAlertableDrops.length <= positiveCityHiveSignals.length, `Exported TN CityHive drops exceeded source signals (${cityHiveAlertableDrops.length}/${positiveCityHiveSignals.length})`);
   assert(retailerAlertableDrops.length <= positiveRetailerSignals.length, `Exported TN retailer drops exceeded source signals (${retailerAlertableDrops.length}/${positiveRetailerSignals.length})`);
-  assert(alertableDrops.length === inventoryDrops.length, `Every exported TN inventory drop must be alertable/store-level; got ${alertableDrops.length}/${inventoryDrops.length}`);
+  assert(alertableDrops.length + retainedStaleInventoryDrops.length === inventoryDrops.length, `Every exported TN inventory drop must be either current/alertable or explicitly stale/non-alerting; got current=${alertableDrops.length}, stale=${retainedStaleInventoryDrops.length}, total=${inventoryDrops.length}`);
   assert(alertableDrops.length >= 8, `Expected at least 8 exported fresh TN inventory drops after public export dedupe; got ${alertableDrops.length}`);
   assert(cityHiveAlertableDrops.length >= 3, `Expected at least 3 exported fresh TN CityHive inventory drops; got ${cityHiveAlertableDrops.length}`);
   assert(dropSources.size >= 1, `Expected exported TN drops from at least one public retailer source; got ${dropSources.size}: ${[...dropSources].join(', ')}`);
@@ -128,8 +153,10 @@ console.log(JSON.stringify({
   exportedRetailerDrops: retailerDrops.length,
   exportedDrops: inventoryDrops.length,
   alertableDrops: alertableDrops.length,
+  retainedStaleInventoryDrops: retainedStaleInventoryDrops.length,
   snapshotEvidence: snapshotEvidence.counts,
   allowFreshRetainedEvidence,
+  targetedCohort,
   exportedStores: tnStores.length,
   exportedLocations: tnLocations.length
 }, null, 2));

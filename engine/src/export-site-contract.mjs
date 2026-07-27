@@ -15,6 +15,7 @@ import { isGeorgiaRetailerInventory, isGeorgiaRetailerSignalIdentity } from './g
 import { isIndianaRetailerInventory, isIndianaRetailerSignalIdentity } from './indiana-retailer-policy.mjs';
 import { isMetroRetailerInventory, isMetroRetailerSignalIdentity } from './metro-retailer-policy.mjs';
 import { isTennesseeRetailerInventory, isTennesseeRetailerSignalIdentity } from './tennessee-retailer-policy.mjs';
+import { canPublishTennesseePartialEvidenceFallback } from './tennessee-verification-policy.mjs';
 import { registeredDemandMetroStores } from './demand-metro-registry.mjs';
 import { demandMetroAreaLabel, demandMetroAreaMatchesFields } from './demand-metro-areas.mjs';
 import { attachRunIdentity, verifyRunCoherence } from './site-run-coherence.mjs';
@@ -1631,12 +1632,26 @@ async function main() {
   const previousDrops = await readJson(path.join(SITE_OUT, 'drops.json'), []);
   const previousStateQuality = await readJson(path.join(SITE_OUT, 'state-quality.json'), null);
   const detectedFallbackStateIds = detectDropCollapseFallbacks(previousStateQuality, currentDrops, summary.attemptedStateIds || []);
+  const tennesseeStateReport = detectedFallbackStateIds.includes('TN')
+    ? await readJson(path.join(OUT, 'states', 'TN.json'), null)
+    : null;
+  const partialFallbackStateIds = detectedFallbackStateIds.includes('TN')
+    && (summary.attemptedStateIds || []).includes('TN')
+    && canPublishTennesseePartialEvidenceFallback({
+      stateReport: tennesseeStateReport,
+      drops: currentDrops.filter((drop) => String(drop.state || drop.state_code || '').toUpperCase() === 'TN'),
+    })
+      ? ['TN']
+      : [];
+  const fullFallbackStateIds = detectedFallbackStateIds.filter((state) => !partialFallbackStateIds.includes(state));
   if (process.env.BOURBON_SIGNAL_DEBUG_PARTIAL_REFRESH === '1') {
     const debugCounts = Object.fromEntries([...new Set((summary.attemptedStateIds || []).map((state) => String(state).toUpperCase()))].map((state) => [state, currentDrops.filter((drop) => String(drop.state || drop.state_code || '').toUpperCase() === state).length]));
     console.warn(JSON.stringify({ attemptedStateIds: summary.attemptedStateIds, previousDropCounts: Object.fromEntries((previousStateQuality?.states || []).map((state) => [state.state, state.dropCount ?? state.input?.dropCount ?? 0])), currentDropCounts: debugCounts, detectedFallbackStateIds }));
   }
-  if (detectedFallbackStateIds.length) console.warn(`Site export preserved last-good customer lanes after drop collapse: ${detectedFallbackStateIds.join(', ')}`);
-  summary.fallbackStateIds = [...new Set([...(summary.fallbackStateIds || []), ...detectedFallbackStateIds])].sort();
+  if (fullFallbackStateIds.length) console.warn(`Site export preserved last-good customer lanes after drop collapse: ${fullFallbackStateIds.join(', ')}`);
+  if (partialFallbackStateIds.length) console.warn(`Site export published bounded current evidence and retained missing prior rows as stale context: ${partialFallbackStateIds.join(', ')}`);
+  summary.fallbackStateIds = [...new Set([...(summary.fallbackStateIds || []), ...fullFallbackStateIds])].sort();
+  summary.partialFallbackStateIds = partialFallbackStateIds;
   const fallbackStateIds = new Set(summary.fallbackStateIds);
   const drops = mergePartialRefreshDrops({
     previousDrops,
@@ -1644,6 +1659,9 @@ async function main() {
     partialRefresh: summary.partialRefresh === true,
     attemptedStateIds: summary.attemptedStateIds || [],
     fallbackStateIds: summary.fallbackStateIds,
+    partialFallbackStateIds: summary.partialFallbackStateIds,
+    isSafePartialRetainedRow: (drop) => String(drop.state || drop.state_code || '').toUpperCase() !== 'TN'
+      || isTennesseeRetailerSignalIdentity(drop),
   });
   const events = buildEvents(historicalSignals, bible);
   const alertableCurrentDrops = currentDrops.filter((drop) => !fallbackStateIds.has(String(drop.state || drop.state_code || '').toUpperCase()));
@@ -1688,11 +1706,51 @@ async function main() {
   const southeastReadiness = buildSoutheastReadiness({ ...summary, states: activeSummaryStates }, signals);
   const stateQualityInputs = buildStateQualityInputs({ stateCoverage, drops: currentDrops, alerts: cappedAlertCandidates });
   const candidateStateQuality = buildStateQualityScorecard(stateQualityInputs, { generatedAt });
-  const stateQuality = mergePartialRefreshStateQuality(previousStateQuality, candidateStateQuality, summary);
+  const qualityFallbackStateIds = [...new Set(summary.fallbackStateIds || [])].sort();
+  const qualitySummary = { ...summary, fallbackStateIds: qualityFallbackStateIds };
+  let stateQuality = mergePartialRefreshStateQuality(previousStateQuality, candidateStateQuality, qualitySummary);
+  if (partialFallbackStateIds.length) {
+    const currentByState = new Map((candidateStateQuality.states || []).map((state) => [String(state.state).toUpperCase(), state]));
+    stateQuality = {
+      ...stateQuality,
+      partialFallbackStateIds,
+      states: (stateQuality.states || []).map((state) => {
+        const stateId = String(state.state).toUpperCase();
+        if (!partialFallbackStateIds.includes(stateId)) return state;
+        const current = currentByState.get(stateId);
+        return {
+          ...state,
+          status: 'partial_fallback_current_plus_stale',
+          partialFallback: true,
+          currentScore: current?.score ?? null,
+          currentInput: current?.input ?? null,
+        };
+      }),
+    };
+  }
+  const comparisonFallbackStateIds = [...new Set([
+    ...qualityFallbackStateIds,
+    ...partialFallbackStateIds,
+  ])].sort();
+  const comparisonAttemptedStateIds = (summary.attemptedStateIds || [])
+    .map((state) => String(state).toUpperCase())
+    .filter((state) => !comparisonFallbackStateIds.includes(state));
+  const comparisonSummary = {
+    ...summary,
+    attemptedStateIds: comparisonAttemptedStateIds,
+    fallbackStateIds: comparisonFallbackStateIds,
+  };
   const attemptedQualityStates = summary.partialRefresh === true
-    ? new Set((summary.attemptedStateIds || []).map((state) => String(state).toUpperCase()))
+    ? new Set(comparisonAttemptedStateIds)
     : null;
-  const comparableStateQuality = scopeStateQualityForRefresh(stateQuality, summary);
+  const scopedStateQuality = scopeStateQualityForRefresh(stateQuality, comparisonSummary);
+  const comparableStateQuality = partialFallbackStateIds.length
+    ? {
+        ...scopedStateQuality,
+        states: (scopedStateQuality.states || []).filter((state) =>
+          !partialFallbackStateIds.includes(String(state.state).toUpperCase())),
+      }
+    : scopedStateQuality;
   const stateQualityRegression = previousStateQuality?.schemaVersion === stateQuality.schemaVersion
     ? compareStateQuality(previousStateQuality, comparableStateQuality)
     : { ok: true, failures: [], warnings: ['State-quality baseline schema changed; recording a current-snapshot baseline.'] };

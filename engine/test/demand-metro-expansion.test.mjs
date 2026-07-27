@@ -28,7 +28,10 @@ import {
 import { buildLocationBible } from '../src/location-bible.mjs';
 import { buildStores } from '../src/export-site-contract.mjs';
 import { confidenceForSignal } from '../src/confidence-policy.mjs';
-import { evaluateTennesseeSnapshotEvidence } from '../src/tennessee-verification-policy.mjs';
+import {
+  canPublishTennesseePartialEvidenceFallback,
+  evaluateTennesseeSnapshotEvidence,
+} from '../src/tennessee-verification-policy.mjs';
 
 function tennesseeBinarySignal(overrides = {}) {
   const store = registeredTennesseeStore('frugal-macdoogal', '6599a3f98893882b7f30798d');
@@ -280,6 +283,61 @@ test('Tennessee snapshot evidence requires a current generated partition or expl
   }).ok, false);
 });
 
+test('Tennessee partial evidence fallback requires a healthy current state and a bounded live drop floor', () => {
+  const startedAt = '2026-07-27T12:00:00.000Z';
+  const finishedAt = '2026-07-27T12:10:00.000Z';
+  const drops = Array.from({ length: 5 }, (_, index) => {
+    const base = tennesseeBinarySignal();
+    return tennesseeBinarySignal({
+      productId: `product-${index}`,
+      variantId: `option-${index}`,
+      observedAt: `2026-07-27T12:0${index + 1}:00.000Z`,
+      raw: {
+        ...base.raw,
+        option: {
+          ...base.raw.option,
+          product_id: `product-${index}`,
+          option_id: `option-${index}`,
+        },
+      },
+    });
+  });
+  const stateReport = {
+    state: 'TN', status: 'useful', stale: false, startedAt, finishedAt, signals: drops,
+  };
+  assert.equal(canPublishTennesseePartialEvidenceFallback({ stateReport, drops, now: '2026-07-27T12:11:00.000Z' }), true);
+  assert.equal(canPublishTennesseePartialEvidenceFallback({ stateReport, drops: drops.slice(0, 4), now: '2026-07-27T12:11:00.000Z' }), false);
+  assert.equal(canPublishTennesseePartialEvidenceFallback({ stateReport: { ...stateReport, stale: true }, drops, now: '2026-07-27T12:11:00.000Z' }), false);
+});
+
+test('targeted Tennessee evidence cannot satisfy current-row floors with fresh retained cache rows', () => {
+  const currentRows = Array.from({ length: 5 }, (_, index) => tennesseeBinarySignal({
+    productId: `current-${index}`,
+    variantId: `current-option-${index}`,
+    observedAt: `2026-07-27T12:0${index + 1}:00.000Z`,
+  }));
+  const retainedRows = Array.from({ length: 55 }, (_, index) => tennesseeBinarySignal({
+    productId: `retained-${index}`,
+    variantId: `retained-option-${index}`,
+    observedAt: '2026-07-27T11:30:00.000Z',
+    raw: { ...tennesseeBinarySignal().raw, cacheFallback: true },
+  }));
+  const result = evaluateTennesseeSnapshotEvidence({
+    stateReport: {
+      state: 'TN', status: 'useful', stale: false,
+      startedAt: '2026-07-27T12:00:00.000Z', finishedAt: '2026-07-27T12:10:00.000Z',
+      signals: [...currentRows, ...retainedRows],
+    },
+    dropsPayload: { generatedAt: '2026-07-27T12:11:00.000Z', drops: currentRows },
+    now: '2026-07-27T12:11:00.000Z',
+    minimumStateRows: 60,
+    minimumDropRows: 5,
+  });
+  assert.equal(result.ok, false);
+  assert.equal(result.counts.stateEvidence, 60);
+  assert.equal(result.counts.currentStateEvidence, 5);
+});
+
 test('Tennessee format and quantity policy rejects unsafe formats and keeps binary orderability non-exact', () => {
   for (const value of ['50ml Buffalo Trace', '375 ml bourbon', 'Buffalo Trace 3 Pack', 'Bourbon bundle', 'Case of 6 bourbon', '2 x 750ml bourbon', 'Buffalo Trace candle']) {
     assert.equal(isAllowedTennesseeBottleFormat(value), false, value);
@@ -346,6 +404,7 @@ test('confidence policy and source export fail closed for unverified Tennessee r
   assert.match(exporter, /binary_retailer_orderable_no_exact_count/);
   assert.match(exporter, /eligibleForEmail:[^\n]*false/);
   assert.match(exporter, /eligibleForSms:[^\n]*false/);
+  assert.match(exporter, /isSafePartialRetainedRow:[\s\S]*isTennesseeRetailerSignalIdentity/);
 });
 
 test('lifecycle, collectors, verifiers, and CI expose all three demand-selected metros', () => {
@@ -367,6 +426,9 @@ test('lifecycle, collectors, verifiers, and CI expose all three demand-selected 
   assert.match(rootPackage.scripts['verify:ci'], /verify:demand-metros -- --structural-only/);
 
   const workflow = readFileSync(new URL('../../.github/workflows/refresh-feed.yml', import.meta.url), 'utf8');
+  const tnVerifier = readFileSync(new URL('../src/verify-tn.mjs', import.meta.url), 'utf8');
+  assert.match(tnVerifier, /minimumStateRows:\s*targetedCohort\s*\?\s*60\s*:\s*1/);
+  assert.match(tnVerifier, /currentQualifyingSignals/);
   const demandGate = workflow.indexOf('Verify demand metro generated evidence');
   const lastDemandGate = workflow.lastIndexOf('Verify demand metro generated evidence');
   const tnGate = workflow.indexOf('Verify Tennessee generated contract');
@@ -376,6 +438,7 @@ test('lifecycle, collectors, verifiers, and CI expose all three demand-selected 
   assert.ok(lastTnGate < publish, 'every Tennessee verification path must precede publication');
   assert.match(workflow, /verify:demand-metros/);
   assert.match(workflow, /verify:tn/);
+  assert.match(workflow, /verify:tn -- --targeted-cohort/);
   assert.match(workflow, /--allow-fresh-retained-evidence/);
   assert.match(workflow, /BOURBON_SIGNAL_TN_FORCE_CITYHIVE_LIVE:[^\n]*contains\(inputs\.states, 'TN'\)[^\n]*'1'/);
   assert.doesNotMatch(workflow, /verify:demand-metros[^\n]*--structural-only/, 'production publication must use generated-evidence verification, never structural-only mode');

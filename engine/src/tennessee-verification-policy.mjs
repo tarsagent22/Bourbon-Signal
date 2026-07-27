@@ -35,6 +35,26 @@ export function qualifyingTennesseeInventoryEvidence(rows, {
   });
 }
 
+export function canPublishTennesseePartialEvidenceFallback({
+  stateReport,
+  drops,
+  now = new Date().toISOString(),
+  minimumCurrentStateRows = 5,
+  minimumCurrentDropRows = 5,
+} = {}) {
+  if (!stateReport || stateReport.state !== 'TN' || stateReport.stale === true || String(stateReport.status || '') !== 'useful') return false;
+  const startedAtMs = timestamp(stateReport.startedAt);
+  const finishedAtMs = timestamp(stateReport.finishedAt);
+  const nowMs = timestamp(now);
+  if (startedAtMs == null || finishedAtMs == null || nowMs == null || finishedAtMs > nowMs + 5 * 60_000) return false;
+  const currentStateRows = qualifyingTennesseeInventoryEvidence(stateReport.signals, { now })
+    .filter((row) => (evidenceTimestamp(row) ?? -Infinity) >= startedAtMs);
+  const currentDropRows = qualifyingTennesseeInventoryEvidence(drops, { now })
+    .filter((row) => (evidenceTimestamp(row) ?? -Infinity) >= startedAtMs);
+  return currentStateRows.length >= minimumCurrentStateRows
+    && currentDropRows.length >= minimumCurrentDropRows;
+}
+
 export function evaluateTennesseeSnapshotEvidence({
   stateReport,
   dropsPayload,
