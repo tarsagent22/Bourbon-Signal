@@ -177,7 +177,7 @@ jobs:
       - name: Verify Tennessee generated contract for targeted recovery
         if: ${{ inputs.states && contains(inputs.states, 'TN') }}
         working-directory: engine
-        run: npm run verify:tn
+        run: npm run verify:tn -- --targeted-cohort
 
       - name: Refuse publication from a stale main checkout
         env:
