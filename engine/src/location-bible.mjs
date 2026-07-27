@@ -1,5 +1,6 @@
 import { stableId } from './core/text.mjs';
 import { STATE_SOURCES } from './state-sources.mjs';
+import { registeredDemandMetroLocations } from './demand-metro-registry.mjs';
 
 const NC_COUNTIES = [
   'Alamance','Alexander','Alleghany','Anson','Ashe','Avery','Beaufort','Bertie','Bladen','Brunswick','Buncombe','Burke','Cabarrus','Caldwell','Camden','Carteret','Caswell','Catawba','Chatham','Cherokee','Chowan','Clay','Cleveland','Columbus','Craven','Cumberland','Currituck','Dare','Davidson','Davie','Duplin','Durham','Edgecombe','Forsyth','Franklin','Gaston','Gates','Graham','Granville','Greene','Guilford','Halifax','Harnett','Haywood','Henderson','Hertford','Hoke','Hyde','Iredell','Jackson','Johnston','Jones','Lee','Lenoir','Lincoln','Macon','Madison','Martin','McDowell','Mecklenburg','Mitchell','Montgomery','Moore','Nash','New Hanover','Northampton','Onslow','Orange','Pamlico','Pasquotank','Pender','Perquimans','Person','Pitt','Polk','Randolph','Richmond','Robeson','Rockingham','Rowan','Rutherford','Sampson','Scotland','Stanly','Stokes','Surry','Swain','Transylvania','Tyrrell','Union','Vance','Wake','Warren','Washington','Watauga','Wayne','Wilkes','Wilson','Yadkin','Yancey'
@@ -54,6 +55,7 @@ function makeLocation(input) {
     address: clean(input.address),
     city: clean(input.city),
     county: clean(input.county),
+    area: clean(input.area),
     zip: clean(input.zip),
     lat: typeof input.lat === 'number' && Number.isFinite(input.lat) ? input.lat : null,
     lng: typeof input.lng === 'number' && Number.isFinite(input.lng) ? input.lng : null,
@@ -67,6 +69,7 @@ function makeLocation(input) {
     signalCount: Number.isFinite(input.signalCount) ? input.signalCount : 0,
     lastSignalAt: clean(input.lastSignalAt),
     lastVerifiedAt: clean(input.lastVerifiedAt),
+    sourceAvailabilityVerified: input.sourceAvailabilityVerified === true,
     notes: clean(input.notes)
   };
   record.id = record.id || locationId(record);
@@ -80,6 +83,10 @@ export function buildLocationBible(signals = [], officialLocations = []) {
   for (const seed of STATEWIDE_LOCATION_SEEDS) {
     if (!activeStateIds.has(seed.state)) continue;
     locations.push(makeLocation({ ...seed, collectorAttached: Boolean(STATE_SOURCES.find((s) => s.id === seed.state)) }));
+  }
+
+  for (const location of registeredDemandMetroLocations()) {
+    if (activeStateIds.has(location.state)) locations.push(makeLocation(location));
   }
 
   const activeOfficialLocations = officialLocations.filter((location) => activeStateIds.has(location.state));
@@ -133,6 +140,8 @@ export function buildLocationBible(signals = [], officialLocations = []) {
     const isStore = signal.locationPrecision === 'store_level' && (signal.storeName || signal.locationName || signal.storeAddress);
     const isBoard = !isStore && (signal.locationName || signal.county || signal.city);
     if (!isStore && !isBoard) continue;
+    const countsAsAvailabilitySignal = signal.eventType !== 'retailer_store_location'
+      && signal.sourceAvailabilityVerified !== false;
 
     const location = makeLocation({
       id: isStore
@@ -144,6 +153,7 @@ export function buildLocationBible(signals = [], officialLocations = []) {
       address: signal.storeAddress,
       city: signal.city,
       county: signal.county,
+      area: signal.area,
       zip: signal.zip,
       lat: signal.lat,
       lng: signal.lng,
@@ -152,20 +162,20 @@ export function buildLocationBible(signals = [], officialLocations = []) {
       sourceUrl: signal.sourceUrl,
       inventoryCapability: signal.locationPrecision,
       collectorAttached: true,
-      hasSignals: true,
-      signalCount: 1,
-      lastSignalAt: signal.observedAt,
+      hasSignals: countsAsAvailabilitySignal,
+      signalCount: countsAsAvailabilitySignal ? 1 : 0,
+      lastSignalAt: countsAsAvailabilitySignal ? signal.observedAt : null,
       notes: signal.inventorySemantics
     });
     const key = location.id;
     const existing = groupedSignals.get(key);
     if (!existing) groupedSignals.set(key, location);
     else {
-      existing.signalCount += 1;
-      existing.hasSignals = true;
+      existing.signalCount += location.signalCount || 0;
+      existing.hasSignals = existing.hasSignals || location.hasSignals;
       existing.collectorAttached = true;
       if (location.lastSignalAt && (!existing.lastSignalAt || location.lastSignalAt > existing.lastSignalAt)) existing.lastSignalAt = location.lastSignalAt;
-      for (const field of ['name', 'address', 'city', 'county', 'zip', 'lat', 'lng', 'source', 'sourceUrl', 'notes']) {
+      for (const field of ['name', 'address', 'city', 'county', 'area', 'zip', 'lat', 'lng', 'source', 'sourceUrl', 'notes']) {
         if ((existing[field] == null || existing[field] === '') && location[field] != null) existing[field] = location[field];
       }
     }
@@ -205,7 +215,7 @@ export function buildLocationBible(signals = [], officialLocations = []) {
     existing.hasSignals = existing.hasSignals || location.hasSignals;
     existing.collectorAttached = existing.collectorAttached || location.collectorAttached;
     if (location.lastSignalAt && (!existing.lastSignalAt || location.lastSignalAt > existing.lastSignalAt)) existing.lastSignalAt = location.lastSignalAt;
-    for (const field of ['source', 'sourceUrl', 'notes']) {
+    for (const field of ['source', 'sourceUrl', 'notes', 'area']) {
       if ((existing[field] == null || existing[field] === '') && location[field] != null) existing[field] = location[field];
     }
   }

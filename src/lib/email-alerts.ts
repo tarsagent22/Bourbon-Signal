@@ -6,6 +6,11 @@ import { californiaAreaMatchesFields } from "@/lib/california-area";
 import { nevadaAreaMatchesFields } from "@/lib/nevada-area";
 import { newYorkAreaMatchesFields } from "@/lib/new-york-area";
 import { coloradoAreaMatchesFields } from "@/lib/colorado-area";
+import {
+  CHARLOTTE_METRO_BOARD_GROUP,
+  demandMetroAreaMatchesFields,
+  demandMetroBoardGroupMatchesFields,
+} from "@/lib/demand-metro-areas";
 
 const resendApiKey = process.env.RESEND_API_KEY;
 
@@ -75,7 +80,7 @@ export function matchDropToPreferences(drop: DropEvent, prefs?: AreaPreferences 
   if (state === "NC") {
     const board = (drop.locationName || drop.display_location || drop.board_name || drop.store_county || "").trim();
     if (prefs.ncBoards.length === 0) return { matched: true, matchedState: state, matchedArea: board || "North Carolina" };
-    const matchedBoard = prefs.ncBoards.find((candidate) => locationMatchesAny([
+    const fields = [
       drop.locationName,
       drop.display_location,
       drop.store_name,
@@ -83,9 +88,25 @@ export function matchDropToPreferences(drop: DropEvent, prefs?: AreaPreferences 
       drop.store_city,
       drop.store_county,
       drop.board_name,
-    ], [candidate]));
+    ];
+    if (demandMetroBoardGroupMatchesFields(fields, prefs.ncBoards)) {
+      return { matched: true, matchedState: state, matchedArea: CHARLOTTE_METRO_BOARD_GROUP };
+    }
+    const matchedBoard = prefs.ncBoards
+      .filter((candidate) => candidate !== CHARLOTTE_METRO_BOARD_GROUP)
+      .find((candidate) => locationMatchesAny(fields, [candidate]));
     return matchedBoard
       ? { matched: true, matchedState: state, matchedArea: matchedBoard }
+      : { matched: false };
+  }
+
+  if (state === "GA" || state === "TN") {
+    const areas = state === "GA" ? prefs.gaAreas : prefs.tnAreas;
+    const label = state === "GA" ? "Atlanta Metro" : "Nashville Metro";
+    const fields = [drop.locationName, drop.display_location, drop.store_name, drop.store_address, drop.store_city, drop.store_county, drop.board_name];
+    if (areas.length === 0) return { matched: true, matchedState: state, matchedArea: drop.store_city || label };
+    return demandMetroAreaMatchesFields(state, fields, areas)
+      ? { matched: true, matchedState: state, matchedArea: label }
       : { matched: false };
   }
 

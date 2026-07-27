@@ -74,6 +74,9 @@ export function sourceRuntimeOptionsFromArtifacts({ previousReport = null, sourc
   return {
     previousSourceResults,
     previousSourceCircuitState: previousReport?.sourceCircuitState || {},
-    sourceRunnerOptions: { sourceMetrics },
+    sourceRunnerOptions: {
+      sourceMetrics,
+      ...(process.env.BOURBON_SIGNAL_FORCE_SOURCE_RUN === '1' ? { schedule: false } : {}),
+    },
   };
 }

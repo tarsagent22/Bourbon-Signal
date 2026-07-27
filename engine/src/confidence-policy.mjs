@@ -9,6 +9,7 @@ import { isCaliforniaRetailerInventory, isCaliforniaRetailerSignalIdentity } fro
 import { isNevadaRetailerInventory, isNevadaRetailerSignalIdentity } from './nevada-retailer-policy.mjs';
 import { isMetroRetailerInventory, isMetroRetailerSignalIdentity } from './metro-retailer-policy.mjs';
 import { isMississippiRetailerInventory, isMississippiRetailerSignalIdentity } from './mississippi-retailer-policy.mjs';
+import { isTennesseeRetailerInventory, isTennesseeRetailerSignalIdentity } from './tennessee-retailer-policy.mjs';
 import { lifecycleAllowsInventoryAlert, lifecycleAllowsWatchAlert } from './state-lifecycle.mjs';
 
 export const STATE_CONFIDENCE_POLICY = {
@@ -179,10 +180,10 @@ function policyForSignal(signal) {
   const basePolicy = STATE_CONFIDENCE_POLICY[signal.state] || { maxAlertMode: 'unknown', inventorySemantics: 'No policy defined.' };
   const eventType = String(signal.eventType || signal.signalType || '');
   const source = String(signal.sourceLabel || signal.source || '');
-  if (signal.state === 'TN' && /^cityhive_store_inventory/i.test(eventType) && /CityHive/i.test(source)) return TENNESSEE_CITYHIVE_POLICY;
   if (signal.state === 'TN'
-    && /^(cityhive_store_inventory|retailer_store_inventory)/i.test(eventType)
-    && /CityHive|Cool Springs|Frugal|Corkdorks|Buster|Kimbrough|Cristy|Red Dog|Moon Wine|Westside/i.test(source)) return TENNESSEE_CITYHIVE_POLICY;
+    && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(eventType)
+    && isTennesseeRetailerSignalIdentity(signal)
+    && isTennesseeRetailerInventory(signal)) return TENNESSEE_CITYHIVE_POLICY;
   if (signal.state === 'TX'
     && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(eventType)
     && isTexasRetailerSignalIdentity(signal)) return TEXAS_CITYHIVE_POLICY;
@@ -250,6 +251,9 @@ export function confidenceForSignal(signal) {
   const georgiaRetailerEvent = signal.state === 'GA' && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(eventType);
   const georgiaInventoryAllowed = !georgiaRetailerEvent || isGeorgiaRetailerInventory(signal);
   const georgiaWatchAllowed = !georgiaRetailerEvent || (isGeorgiaRetailerSignalIdentity(signal) && isGeorgiaRetailerInventory(signal));
+  const tennesseeRetailerEvent = signal.state === 'TN' && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(eventType);
+  const tennesseeInventoryAllowed = !tennesseeRetailerEvent || isTennesseeRetailerInventory(signal);
+  const tennesseeWatchAllowed = !tennesseeRetailerEvent || (isTennesseeRetailerSignalIdentity(signal) && isTennesseeRetailerInventory(signal));
   const californiaRetailerEvent = signal.state === 'CA' && /^retailer_store_inventory_result$/i.test(eventType);
   const californiaInventoryAllowed = !californiaRetailerEvent || isCaliforniaRetailerInventory(signal);
   const californiaWatchAllowed = !californiaRetailerEvent || isCaliforniaRetailerSignalIdentity(signal);
@@ -279,7 +283,7 @@ export function confidenceForSignal(signal) {
     policyMode: policy.maxAlertMode,
     inventorySemantics: policy.inventorySemantics,
     locationValue: locationValue(signal),
-    canAlertAsInventory: !runtimeAlertBlocked && texasInventoryAllowed && indianaInventoryAllowed && georgiaInventoryAllowed && californiaInventoryAllowed && nevadaInventoryAllowed && metroInventoryAllowed && mississippiInventoryAllowed && !isDistilleryLane && hasPositiveInventory && !inventoryBlockedBySemantics && rank >= 6 && confidence >= 0.72,
-    canAlertAsWatch: !runtimeAlertBlocked && indianaWatchAllowed && georgiaWatchAllowed && californiaWatchAllowed && nevadaWatchAllowed && metroWatchAllowed && mississippiWatchAllowed && !isSampleOnly && !watchBlockedBySemantics && confidence >= 0.5 && policy.maxAlertMode !== 'policy_only'
+    canAlertAsInventory: !runtimeAlertBlocked && texasInventoryAllowed && indianaInventoryAllowed && georgiaInventoryAllowed && tennesseeInventoryAllowed && californiaInventoryAllowed && nevadaInventoryAllowed && metroInventoryAllowed && mississippiInventoryAllowed && !isDistilleryLane && hasPositiveInventory && !inventoryBlockedBySemantics && rank >= 6 && confidence >= 0.72,
+    canAlertAsWatch: !runtimeAlertBlocked && indianaWatchAllowed && georgiaWatchAllowed && tennesseeWatchAllowed && californiaWatchAllowed && nevadaWatchAllowed && metroWatchAllowed && mississippiWatchAllowed && !isSampleOnly && !watchBlockedBySemantics && confidence >= 0.5 && policy.maxAlertMode !== 'policy_only'
   };
 }

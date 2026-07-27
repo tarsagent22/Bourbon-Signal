@@ -16,6 +16,8 @@ const EMPTY_PREFS: UserAlertPreferences = {
   areaPreferences: {
     states: [],
     ncBoards: [],
+    gaAreas: [],
+    tnAreas: [],
     vaCities: [],
     ohCities: [],
     iaCities: [],

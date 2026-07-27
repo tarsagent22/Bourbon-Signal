@@ -84,7 +84,11 @@
       "lifecycle": "store_inventory_and_board_leads",
       "coverageTier": "live_store_inventory",
       "refinementLevel": "board",
-      "customerSummary": "ABC board, warehouse, and selected county-board store signals where public sources support them. Board-level rows are leads, not exact shelf inventory."
+      "customerSummary": "ABC board, warehouse, and selected county-board store signals where public sources support them. The Charlotte metro option expands deterministically to eight reviewed official boards; board-level rows remain leads, not exact shelf inventory.",
+      "customerAreaLabel": "North Carolina ABC boards",
+      "areaOptions": [
+        "Charlotte Metro ABC Boards"
+      ]
     },
     "VA": {
       "customerLabel": "Virginia",
@@ -166,8 +170,12 @@
       "publicStatus": "active",
       "lifecycle": "retailer_store_inventory",
       "coverageTier": "live_store_inventory",
-      "refinementLevel": "statewide",
-      "customerSummary": "Whitelisted Tennessee retailer e-commerce inventory with verify-before-driving caveats; official ABC pages are policy context only."
+      "refinementLevel": "city_store",
+      "customerSummary": "Whitelisted Tennessee retailer e-commerce inventory with exact host, merchant, address, product, safe-format, and current orderability binding. Binary availability never becomes an exact quantity; stable Nashville metro store identities remain discoverable even when no current row qualifies.",
+      "customerAreaLabel": "Nashville Metro",
+      "areaOptions": [
+        "Nashville Metro"
+      ]
     },
     "UT": {
       "customerLabel": "Utah",
@@ -320,7 +328,11 @@
       "lifecycle": "retailer_store_inventory",
       "coverageTier": "live_store_inventory",
       "refinementLevel": "city_store",
-      "customerSummary": "Guarded first-party retailer signals from exact Georgia storefront identities, plus Costco warehouse bourbon watch where verified. Binary orderability is kept distinct from retailer-reported quantity, and every store signal includes a verify before driving caveat."
+      "customerSummary": "Guarded first-party retailer signals from exact Georgia storefront identities, including a stable Atlanta metro store universe, plus Costco warehouse bourbon watch where verified. Binary orderability is kept distinct from retailer-reported quantity, and every store signal includes a verify before driving caveat.",
+      "customerAreaLabel": "Atlanta Metro",
+      "areaOptions": [
+        "Atlanta Metro"
+      ]
     },
     "KY": {
       "customerLabel": "Kentucky",

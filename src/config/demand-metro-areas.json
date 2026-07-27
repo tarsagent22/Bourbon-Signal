@@ -1,0 +1,107 @@
+{
+  "NC": {
+    "id": "charlotte-metro",
+    "label": "Charlotte Metro ABC Boards",
+    "preferenceField": "ncBoards",
+    "stateCode": "NC",
+    "stateName": "North Carolina",
+    "aliases": [
+      "Charlotte Metro ABC Boards",
+      "Charlotte Metro",
+      "Charlotte Metropolitan Area",
+      "Greater Charlotte",
+      "Charlotte"
+    ],
+    "localities": [
+      "Charlotte",
+      "Matthews",
+      "Mint Hill",
+      "Pineville",
+      "Huntersville",
+      "Cornelius",
+      "Concord",
+      "Kannapolis",
+      "Indian Trail",
+      "Monroe",
+      "Mooresville",
+      "Statesville",
+      "Gastonia"
+    ],
+    "counties": [
+      "Mecklenburg",
+      "Cabarrus",
+      "Union",
+      "Iredell",
+      "Gaston"
+    ],
+    "boardNames": [
+      "Mecklenburg County ABC Board",
+      "Concord ABC Board",
+      "Rowan/Kannapolis ABC Board",
+      "Indian Trail ABC Board",
+      "Monroe ABC Board",
+      "Mooresville ABC Board",
+      "Statesville ABC Board",
+      "Gastonia ABC Board"
+    ]
+  },
+  "GA": {
+    "id": "atlanta-metro",
+    "label": "Atlanta Metro",
+    "preferenceField": "gaAreas",
+    "stateCode": "GA",
+    "stateName": "Georgia",
+    "aliases": [
+      "Atlanta Metro",
+      "Atlanta Metropolitan Area",
+      "Greater Atlanta",
+      "Metro Atlanta",
+      "Atlanta"
+    ],
+    "localities": [
+      "Atlanta",
+      "Doraville",
+      "Brookhaven",
+      "Chamblee",
+      "Decatur",
+      "Stonecrest",
+      "Marietta",
+      "Alpharetta",
+      "Cumming",
+      "Suwanee",
+      "Fairburn",
+      "Norcross"
+    ],
+    "counties": [],
+    "boardNames": []
+  },
+  "TN": {
+    "id": "nashville-metro",
+    "label": "Nashville Metro",
+    "preferenceField": "tnAreas",
+    "stateCode": "TN",
+    "stateName": "Tennessee",
+    "aliases": [
+      "Nashville Metro",
+      "Nashville Metropolitan Area",
+      "Greater Nashville",
+      "Middle Tennessee",
+      "Nashville"
+    ],
+    "localities": [
+      "Nashville",
+      "Franklin",
+      "Brentwood",
+      "Murfreesboro",
+      "Smyrna",
+      "La Vergne",
+      "Hendersonville",
+      "Gallatin",
+      "Mount Juliet"
+    ],
+    "counties": [
+      "Davidson"
+    ],
+    "boardNames": []
+  }
+}

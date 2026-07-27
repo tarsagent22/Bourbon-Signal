@@ -10,6 +10,8 @@ export const QA_PREVIEW_PREFERENCES = {
   areaPreferences: {
     states: ["NC", "VA", "PA"],
     ncBoards: [],
+    gaAreas: [],
+    tnAreas: [],
     vaCities: [],
     ohCities: [],
     iaCities: [],

@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { unstable_cache } from "next/cache";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { isUserFacingDropSignal, normalizeDropForSite, readSiteExportResults, siteExportHeaders } from "@/lib/site-engine-contract";
-import { locationLabelsMatch, normalizeStateCodeParam } from "@/lib/location-normalization";
+import { normalizeStateCodeParam } from "@/lib/location-normalization";
 import { decodeDropCursor, DropCursorSnapshotError, paginateDrops } from "@/lib/drop-cursor";
 import { dropFeedCacheHeaders } from "@/lib/api-cache-contract";
 import { dropFreshnessTime, resolveDropLimit } from "@/lib/drop-feed-policy";
@@ -15,6 +15,12 @@ import { californiaAreaMatchesFields, parseCaliforniaAreaQuery } from "@/lib/cal
 import { nevadaAreaMatchesFields, parseNevadaAreaQuery } from "@/lib/nevada-area";
 import { newYorkAreaMatchesFields, parseNewYorkAreaQuery } from "@/lib/new-york-area";
 import { coloradoAreaMatchesFields, parseColoradoAreaQuery } from "@/lib/colorado-area";
+import {
+  demandMetroAreaMatchesFields,
+  demandMetroBoardGroupMatchesFields,
+  parseDemandMetroAreaQuery,
+} from "@/lib/demand-metro-areas";
+import { dropFeedStoreQueryMatches } from "@/lib/feed-area-options";
 
 const ANONYMOUS_DROP_PREVIEW_LIMIT = 7;
 const DROP_FEED_TIERS = new Set(["unicorn", "allocated", "limited"]);
@@ -78,37 +84,14 @@ function includesNeedle(value: unknown, needle: string) {
   return typeof value === "string" && value.toLowerCase().includes(needle);
 }
 
-function locationMatches(value: unknown, needle: string) {
-  if (typeof value !== "string") return false;
-  return locationLabelsMatch(value, needle);
-}
-
 function arrayIncludesNeedle(value: unknown, needle: string) {
   return Array.isArray(value) && value.some((item) => includesNeedle(item, needle));
-}
-
-function locationNeedles(value: string) {
-  return Array.from(
-    new Set(
-      [
-        value,
-        value.replace(/\s+abc\s+board$/i, ""),
-        value.replace(/\s+county\s+abc\s+board$/i, " county"),
-      ]
-        .map((item) => item.toLowerCase().trim())
-        .filter(Boolean)
-    )
-  );
 }
 
 function isBoardLevelDrop(drop: Record<string, unknown>) {
   const precision = String(drop.location_precision ?? drop.locationPrecision ?? "").toLowerCase();
   const scope = String(drop.availability_scope ?? drop.availabilityScope ?? "").toLowerCase();
   return precision.includes("board") || scope === "board";
-}
-
-function isBoardQuery(value: string) {
-  return /\b(board|abc)\b/i.test(value);
 }
 
 function engineRunTimestamp(statsPayload: Record<string, unknown> | null | undefined, exportGeneratedAt?: unknown) {
@@ -278,6 +261,7 @@ export async function GET(request: Request) {
   const nevadaArea = parseNevadaAreaQuery(url.searchParams.get("area"));
   const nyAreas = parseNewYorkAreaQuery(url.searchParams.get("area"));
   const coAreas = parseColoradoAreaQuery(url.searchParams.get("area"));
+  const demandMetroAreas = parseDemandMetroAreaQuery(state || "", url.searchParams.get("area"));
   if (state === "CA" && californiaArea.requested && !californiaArea.valid) {
     return NextResponse.json({ drops: [], total: 0, error: "Unsupported California area" }, { status: 400 });
   }
@@ -289,6 +273,9 @@ export async function GET(request: Request) {
   }
   if (state === "CO" && coAreas.requested && !coAreas.valid) {
     return NextResponse.json({ drops: [], total: 0, error: "Unsupported Colorado area" }, { status: 400 });
+  }
+  if (["NC", "GA", "TN"].includes(state || "") && demandMetroAreas.requested && !demandMetroAreas.valid) {
+    return NextResponse.json({ drops: [], total: 0, error: `Unsupported ${state} metro area` }, { status: 400 });
   }
   const include = entitlements.canUseAdvancedFilters ? url.searchParams.get("include")?.toLowerCase().trim() : undefined;
 
@@ -351,6 +338,23 @@ export async function GET(request: Request) {
     };
 
     const applyRequestedAreaFilter = (items: typeof drops) => {
+      if (["NC", "GA", "TN"].includes(state || "") && demandMetroAreas.areas.length) {
+        return items.filter((drop) => {
+          const fields = [
+            drop.store_city,
+            drop.store_address,
+            drop.store_name,
+            drop.store_county,
+            drop.board_name,
+            drop.display_location,
+            (drop as Record<string, unknown>).locationName,
+            (drop as Record<string, unknown>).area,
+          ];
+          return state === "NC"
+            ? demandMetroBoardGroupMatchesFields(fields, demandMetroAreas.areas)
+            : demandMetroAreaMatchesFields(state || "", fields, demandMetroAreas.areas);
+        });
+      }
       if (state === "CA" && californiaArea.areas.length) {
         return items.filter((drop) => californiaAreaMatchesFields([
           drop.store_city,
@@ -433,22 +437,24 @@ export async function GET(request: Request) {
     }
 
     if (store) {
-      const needles = locationNeedles(store);
-      const allowBoardLevelDrops = state === "NC" || isBoardQuery(store);
-      drops = drops.filter((drop) =>
-        (allowBoardLevelDrops || !isBoardLevelDrop(drop as Record<string, unknown>)) &&
-        needles.some((needle) => {
-          const record = drop as Record<string, unknown>;
-          return locationMatches(drop.store_name, needle) ||
-            locationMatches(drop.store_address, needle) ||
-            locationMatches(drop.store_city, needle) ||
-            locationMatches(drop.store_county, needle) ||
-            locationMatches(drop.board_name, needle) ||
-            locationMatches(drop.display_location, needle) ||
-            locationMatches(record.locationName, needle) ||
-            locationMatches(record.county, needle);
-        })
-      );
+      drops = drops.filter((drop) => {
+        const record = drop as Record<string, unknown>;
+        return dropFeedStoreQueryMatches({
+          state,
+          query: store,
+          isBoardLevel: isBoardLevelDrop(record),
+          fields: [
+            drop.store_name,
+            drop.store_address,
+            drop.store_city,
+            drop.store_county,
+            drop.board_name,
+            drop.display_location,
+            record.locationName,
+            record.county,
+          ],
+        });
+      });
     }
 
     drops.sort((a, b) => {

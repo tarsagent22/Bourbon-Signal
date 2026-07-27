@@ -34,10 +34,13 @@ import {
   type RadarPreferences,
 } from "@/lib/release-radar-preferences";
 import { buildSuppliedPreferenceMetadataPatch } from "@/lib/user-preference-patch";
+import { normalizeDemandMetroAreas, normalizeNcBoardPreferences } from "@/lib/demand-metro-areas";
 
 export interface AreaPreferences {
   states: string[];
   ncBoards: string[];
+  gaAreas: string[];
+  tnAreas: string[];
   vaCities: string[];
   ohCities: string[];
   iaCities: string[];
@@ -90,6 +93,8 @@ export type UserAlertPreferencePatch = Omit<Partial<UserAlertPreferences>, "noti
 const EMPTY_AREA_PREFERENCES: AreaPreferences = {
   states: [],
   ncBoards: [],
+  gaAreas: [],
+  tnAreas: [],
   vaCities: [],
   ohCities: [],
   iaCities: [],
@@ -132,7 +137,9 @@ function normalizeAreaPreferences(input: unknown): AreaPreferences {
 
   return {
     states: toStringArray(source.states).map((state) => state.toUpperCase()).filter((state) => supportedStates.has(state)),
-    ncBoards: toStringArray(source.ncBoards),
+    ncBoards: normalizeNcBoardPreferences(source.ncBoards),
+    gaAreas: normalizeDemandMetroAreas("GA", source.gaAreas),
+    tnAreas: normalizeDemandMetroAreas("TN", source.tnAreas),
     vaCities: toStringArray(source.vaCities),
     ohCities: toStringArray(source.ohCities),
     iaCities: toStringArray(source.iaCities),
@@ -150,7 +157,7 @@ function normalizeAreaPreferences(input: unknown): AreaPreferences {
 
 function trimAreaPreferencesToLimit(areaPreferences: AreaPreferences, limit: number | null): AreaPreferences {
   if (limit === null) return areaPreferences;
-  if (limit <= 0) return { ...areaPreferences, states: [], ncBoards: [], vaCities: [], ohCities: [], iaCities: [], idCities: [], scAreas: [], caAreas: [], nvAreas: [], nyAreas: [], coAreas: [], paCounties: [], paStores: [] };
+  if (limit <= 0) return { ...areaPreferences, states: [], ncBoards: [], gaAreas: [], tnAreas: [], vaCities: [], ohCities: [], iaCities: [], idCities: [], scAreas: [], caAreas: [], nvAreas: [], nyAreas: [], coAreas: [], paCounties: [], paStores: [] };
 
   let remaining = limit;
   const next: AreaPreferences = { ...EMPTY_AREA_PREFERENCES, states: [] };
@@ -164,6 +171,8 @@ function trimAreaPreferencesToLimit(areaPreferences: AreaPreferences, limit: num
       return take;
     };
     if (state === "NC") next.ncBoards = takeDetails(areaPreferences.ncBoards);
+    else if (state === "GA") next.gaAreas = takeDetails(areaPreferences.gaAreas);
+    else if (state === "TN") next.tnAreas = takeDetails(areaPreferences.tnAreas);
     else if (state === "VA") next.vaCities = takeDetails(areaPreferences.vaCities);
     else if (state === "OH") next.ohCities = takeDetails(areaPreferences.ohCities);
     else if (state === "IA") next.iaCities = takeDetails(areaPreferences.iaCities);

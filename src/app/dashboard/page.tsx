@@ -29,7 +29,7 @@ import {
 } from "@/lib/notification-preferences";
 import { getPopularBottlePool } from "@/lib/bottleSuggestions";
 import { ENGINE_COVERED_STATE_CODES } from "@/lib/statePreferences";
-import { getActiveEngineStateAreaLabel, getActiveEngineStateName } from "@/lib/activeStates";
+import { getActiveEngineStateAreaLabel, getActiveEngineStateAreaOptions, getActiveEngineStateName } from "@/lib/activeStates";
 import { buildUserTasteProfile, createBourbonDnaProfile, scoreBourbonDnaMatch } from "@/lib/bourbon-dna";
 import {
   buildRecommendationFeedbackModel,
@@ -42,10 +42,17 @@ import { californiaAreaMatchesFields } from "@/lib/california-area";
 import { nevadaAreaMatchesFields, SUPPORTED_NEVADA_AREAS } from "@/lib/nevada-area";
 import { newYorkAreaMatchesFields, SUPPORTED_NEW_YORK_AREAS } from "@/lib/new-york-area";
 import { coloradoAreaMatchesFields, SUPPORTED_COLORADO_AREAS } from "@/lib/colorado-area";
+import {
+  CHARLOTTE_METRO_BOARD_GROUP,
+  demandMetroAreaMatchesFields,
+  demandMetroBoardGroupMatchesFields,
+} from "@/lib/demand-metro-areas";
 
 const EMPTY_PREFS: AreaPreferences = {
   states: [],
   ncBoards: [],
+  gaAreas: [],
+  tnAreas: [],
   vaCities: [],
   ohCities: [],
   iaCities: [],
@@ -60,7 +67,7 @@ const EMPTY_PREFS: AreaPreferences = {
 };
 
 const SIMPLE_STATE_CODES = ENGINE_COVERED_STATE_CODES;
-const CITY_REFINABLE_STATE_CODES = new Set<string>(["IA", "ID", "VA", "OH", "PA", "SC", "CA", "NV", "NY", "CO"]);
+const CITY_REFINABLE_STATE_CODES = new Set<string>(["IA", "ID", "VA", "OH", "PA", "SC", "CA", "NV", "NY", "CO", "GA", "TN"]);
 const STORE_REFINABLE_STATE_CODES = new Set<string>(["PA"]);
 const SC_ALERT_AREA_SEEDS = [
   "Myrtle Beach",
@@ -237,6 +244,10 @@ function countAlertAreas(areaPrefs: AreaPreferences) {
   return areaPrefs.states.reduce((count, state) => {
     const detailCount = state === "NC"
       ? areaPrefs.ncBoards.length
+      : state === "GA"
+        ? areaPrefs.gaAreas.length
+        : state === "TN"
+          ? areaPrefs.tnAreas.length
       : state === "VA"
         ? areaPrefs.vaCities.length
         : state === "OH"
@@ -599,7 +610,7 @@ function dropMatchesAreaPreferences(drop: DropEvent, areaPrefs: AreaPreferences)
   const state = dropStateLabel(drop);
   if (areaPrefs.states.length && !areaPrefs.states.includes(state)) return false;
 
-  const location = normalizeLocationText([
+  const locationFields = [
     dropLocationLabel(drop),
     drop.board_name,
     drop.store_city,
@@ -608,9 +619,16 @@ function dropMatchesAreaPreferences(drop: DropEvent, areaPrefs: AreaPreferences)
     drop.store_name,
     ...(drop.stores || []).flatMap((store) => [store.store_address, store.city]),
     ...(drop.store_details || []).flatMap((store) => [store.name, store.city, store.county]),
-  ].filter(Boolean).join(" "));
+  ];
+  const location = normalizeLocationText(locationFields.filter(Boolean).join(" "));
 
-  if (state === "NC" && areaPrefs.ncBoards.length) return areaPrefs.ncBoards.some((board) => location.includes(normalizeLocationText(board)));
+  if (state === "NC" && areaPrefs.ncBoards.length) {
+    const ordinaryBoards = areaPrefs.ncBoards.filter((value) => value !== CHARLOTTE_METRO_BOARD_GROUP);
+    return demandMetroBoardGroupMatchesFields(locationFields, areaPrefs.ncBoards)
+      || ordinaryBoards.some((board) => location.includes(normalizeLocationText(board)));
+  }
+  if (state === "GA" && areaPrefs.gaAreas.length) return demandMetroAreaMatchesFields(state, locationFields, areaPrefs.gaAreas);
+  if (state === "TN" && areaPrefs.tnAreas.length) return demandMetroAreaMatchesFields(state, locationFields, areaPrefs.tnAreas);
   if (state === "VA" && areaPrefs.vaCities.length) return areaPrefs.vaCities.some((city) => location.includes(normalizeLocationText(city)));
   if (state === "OH" && areaPrefs.ohCities.length) return areaPrefs.ohCities.some((city) => location.includes(normalizeLocationText(city)));
   if (state === "IA" && areaPrefs.iaCities.length) return areaPrefs.iaCities.some((city) => location.includes(normalizeLocationText(city)));
@@ -1392,7 +1410,7 @@ function PaidMemberDashboard() {
   }, [addBottle, alertBottleLibraryOptions, isSignedIn, mounted, prefs.bottleAlertPreferences.bottleKeys, prefs.bottleAlertPreferences.bottleNames]);
 
   const ncBoards = useMemo(() => {
-    const boardNames = new Set<string>();
+    const boardNames = new Set<string>([CHARLOTTE_METRO_BOARD_GROUP]);
 
     const addBoard = (raw?: string | null) => {
       if (!raw) return;
@@ -1496,6 +1514,22 @@ function PaidMemberDashboard() {
       totalCount: ncBoards.length,
     },
     {
+      stateCode: "GA",
+      label: "Georgia",
+      detailLabel: "areas",
+      summary: "Atlanta Metro uses exact reviewed city and exact-store identities.",
+      selectedCount: localPrefs.gaAreas.length,
+      totalCount: getActiveEngineStateAreaOptions("GA").length,
+    },
+    {
+      stateCode: "TN",
+      label: "Tennessee",
+      detailLabel: "areas",
+      summary: "Nashville Metro uses exact first-party store identities and current orderability evidence.",
+      selectedCount: localPrefs.tnAreas.length,
+      totalCount: getActiveEngineStateAreaOptions("TN").length,
+    },
+    {
       stateCode: "VA",
       label: "Virginia",
       detailLabel: "cities",
@@ -1575,7 +1609,7 @@ function PaidMemberDashboard() {
       selectedCount: localPrefs.coAreas.length,
       totalCount: SUPPORTED_COLORADO_AREAS.length,
     },
-  ]), [citiesByState, localPrefs.caAreas.length, localPrefs.coAreas.length, localPrefs.nvAreas.length, localPrefs.nyAreas.length, localPrefs.iaCities.length, localPrefs.idCities.length, localPrefs.ncBoards.length, localPrefs.ohCities.length, localPrefs.paCounties.length, localPrefs.scAreas.length, localPrefs.vaCities.length, ncBoards.length]);
+  ]), [citiesByState, localPrefs.caAreas.length, localPrefs.coAreas.length, localPrefs.gaAreas.length, localPrefs.nvAreas.length, localPrefs.nyAreas.length, localPrefs.tnAreas.length, localPrefs.iaCities.length, localPrefs.idCities.length, localPrefs.ncBoards.length, localPrefs.ohCities.length, localPrefs.paCounties.length, localPrefs.scAreas.length, localPrefs.vaCities.length, ncBoards.length]);
 
   const addBottleOption = (option: BottleOption) => {
     option.bottleIds.forEach((id) => addBottle(id));
@@ -1864,6 +1898,8 @@ function PaidMemberDashboard() {
           ...prev,
           states: [state],
           ncBoards: state === "NC" ? prev.ncBoards : [],
+          gaAreas: state === "GA" ? prev.gaAreas : [],
+          tnAreas: state === "TN" ? prev.tnAreas : [],
           vaCities: state === "VA" ? prev.vaCities : [],
           ohCities: state === "OH" ? prev.ohCities : [],
           iaCities: state === "IA" ? prev.iaCities : [],
@@ -1881,6 +1917,8 @@ function PaidMemberDashboard() {
         ...prev,
         states: removing ? prev.states.filter((item) => item !== state) : [...prev.states, state],
         ncBoards: state === "NC" && removing ? [] : prev.ncBoards,
+        gaAreas: state === "GA" && removing ? [] : prev.gaAreas,
+        tnAreas: state === "TN" && removing ? [] : prev.tnAreas,
         vaCities: state === "VA" && removing ? [] : prev.vaCities,
         ohCities: state === "OH" && removing ? [] : prev.ohCities,
         iaCities: state === "IA" && removing ? [] : prev.iaCities,
@@ -1904,6 +1942,22 @@ function PaidMemberDashboard() {
         return {
           ...prev,
           ncBoards: has ? prev.ncBoards.filter((item) => item !== value) : [...prev.ncBoards, value],
+        };
+      }
+      if (state === "GA") {
+        const has = prev.gaAreas.includes(value);
+        if (!has && !canAddAlertArea(prev)) return prev;
+        return {
+          ...prev,
+          gaAreas: has ? prev.gaAreas.filter((item) => item !== value) : [...prev.gaAreas, value],
+        };
+      }
+      if (state === "TN") {
+        const has = prev.tnAreas.includes(value);
+        if (!has && !canAddAlertArea(prev)) return prev;
+        return {
+          ...prev,
+          tnAreas: has ? prev.tnAreas.filter((item) => item !== value) : [...prev.tnAreas, value],
         };
       }
       if (state === "VA") {
@@ -2858,6 +2912,10 @@ function PaidMemberDashboard() {
               const customerAreaLabel = getActiveEngineStateAreaLabel(activeState);
               const selectedDetails = activeState === "NC"
                 ? localPrefs.ncBoards
+                : activeState === "GA"
+                  ? localPrefs.gaAreas
+                  : activeState === "TN"
+                    ? localPrefs.tnAreas
                 : activeState === "IA"
                   ? localPrefs.iaCities
                   : activeState === "ID"
@@ -2883,15 +2941,17 @@ function PaidMemberDashboard() {
                                     : localPrefs.states.includes(activeState) ? ["Statewide coverage"] : [];
               const isCityRefinable = CITY_REFINABLE_STATE_CODES.has(activeState);
               const isStoreRefinable = STORE_REFINABLE_STATE_CODES.has(activeState);
-              const detailLabel = activeState === "NC" ? "boards" : ["CA", "NV", "NY", "CO"].includes(activeState) ? "areas" : isStoreRefinable ? "cities / stores" : isCityRefinable ? "cities" : customerAreaLabel ? "areas" : "coverage";
+              const detailLabel = activeState === "NC" ? "boards" : ["CA", "NV", "NY", "CO", "GA", "TN"].includes(activeState) ? "areas" : isStoreRefinable ? "cities / stores" : isCityRefinable ? "cities" : customerAreaLabel ? "areas" : "coverage";
               const cityOptions = activeState === "NV"
                 ? [...SUPPORTED_NEVADA_AREAS]
                 : activeState === "NY"
                   ? [...SUPPORTED_NEW_YORK_AREAS]
                   : activeState === "CO"
                     ? [...SUPPORTED_COLORADO_AREAS]
+                    : activeState === "GA" || activeState === "TN"
+                      ? getActiveEngineStateAreaOptions(activeState)
                     : citiesByState[activeState] ?? [];
-              const cityPrefs = activeState === "IA" ? localPrefs.iaCities : activeState === "ID" ? localPrefs.idCities : activeState === "VA" ? localPrefs.vaCities : activeState === "OH" ? localPrefs.ohCities : activeState === "SC" ? localPrefs.scAreas : activeState === "CA" ? localPrefs.caAreas : activeState === "NV" ? localPrefs.nvAreas : activeState === "NY" ? localPrefs.nyAreas : activeState === "CO" ? localPrefs.coAreas : activeState === "PA" ? localPrefs.paCounties : [];
+              const cityPrefs = activeState === "GA" ? localPrefs.gaAreas : activeState === "TN" ? localPrefs.tnAreas : activeState === "IA" ? localPrefs.iaCities : activeState === "ID" ? localPrefs.idCities : activeState === "VA" ? localPrefs.vaCities : activeState === "OH" ? localPrefs.ohCities : activeState === "SC" ? localPrefs.scAreas : activeState === "CA" ? localPrefs.caAreas : activeState === "NV" ? localPrefs.nvAreas : activeState === "NY" ? localPrefs.nyAreas : activeState === "CO" ? localPrefs.coAreas : activeState === "PA" ? localPrefs.paCounties : [];
               const filteredNcBoards = ncBoards.filter((board) => !territorySearch.trim() || board.toLowerCase().includes(territorySearch.toLowerCase()));
               const filteredCities = cityOptions.filter((city) => !territorySearch.trim() || city.toLowerCase().includes(territorySearch.toLowerCase()));
 
@@ -2957,6 +3017,10 @@ function PaidMemberDashboard() {
                                     ? "New York coverage is limited to New York City. Select this metro area to keep alerts explicitly scoped; it does not imply statewide New York coverage."
                                     : activeState === "CO"
                                       ? "Colorado coverage is limited to Denver Metro: Denver, Lakeside, Westminster, and Greenwood Village. It does not imply statewide Colorado coverage."
+                                      : activeState === "GA"
+                                        ? "Atlanta Metro is an exact reviewed grouping. Select it to scope alerts without implying statewide Georgia coverage."
+                                        : activeState === "TN"
+                                          ? "Nashville Metro is an exact reviewed grouping. Current alerts still require qualified first-party store orderability evidence."
                                       : activeState === "IA"
                                     ? "Pick Iowa cities from ABD store-delivery data. Leave cities blank to keep statewide Iowa coverage."
                                     : activeState === "ID"
@@ -2976,7 +3040,7 @@ function PaidMemberDashboard() {
                           <input
                             value={territorySearch}
                             onChange={(event) => setTerritorySearch(event.target.value)}
-                            placeholder={activeState === "NC" ? "Search boards like Wake, Mecklenburg, Greensboro…" : "Search cities…"}
+                            placeholder={activeState === "NC" ? "Search boards like Wake, Mecklenburg, Greensboro…" : ["GA", "TN"].includes(activeState) ? "Search metro areas…" : "Search cities…"}
                             style={{
                               width: "100%",
                               borderRadius: "14px",

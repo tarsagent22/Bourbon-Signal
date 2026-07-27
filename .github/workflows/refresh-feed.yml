@@ -112,6 +112,7 @@ jobs:
           BOURBON_SIGNAL_STATE_SCHEDULER: ${{ inputs.force_all_states == 'true' && '0' || '1' }}
           BOURBON_SIGNAL_RUN_STATES: ${{ inputs.states || '' }}
           BOURBON_SIGNAL_BROWSER_REFRESH_MINUTES: ${{ contains(inputs.states, 'PA') && '0' || '240' }}
+          BOURBON_SIGNAL_TN_FORCE_CITYHIVE_LIVE: ${{ inputs.states && contains(inputs.states, 'TN') && '1' || '0' }}
         run: npm run refresh:site
 
 
@@ -157,6 +158,26 @@ jobs:
         if: ${{ !inputs.states || contains(inputs.states, 'CA') }}
         working-directory: engine
         run: npm run verify:ca
+
+      - name: Verify demand metro generated evidence with fresh retained fallback
+        if: ${{ !contains(inputs.states, 'TN') }}
+        working-directory: engine
+        run: npm run verify:demand-metros -- --allow-fresh-retained-evidence
+
+      - name: Verify demand metro generated evidence for targeted Tennessee
+        if: ${{ inputs.states && contains(inputs.states, 'TN') }}
+        working-directory: engine
+        run: npm run verify:demand-metros
+
+      - name: Verify Tennessee generated contract with fresh retained fallback
+        if: ${{ !contains(inputs.states, 'TN') }}
+        working-directory: engine
+        run: npm run verify:tn -- --allow-fresh-retained-evidence
+
+      - name: Verify Tennessee generated contract for targeted recovery
+        if: ${{ inputs.states && contains(inputs.states, 'TN') }}
+        working-directory: engine
+        run: npm run verify:tn
 
       - name: Refuse publication from a stale main checkout
         env:
