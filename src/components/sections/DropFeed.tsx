@@ -30,6 +30,11 @@ import { nevadaAreaMatchesFields } from "@/lib/nevada-area";
 import { newYorkAreaMatchesFields } from "@/lib/new-york-area";
 import { coloradoAreaMatchesFields } from "@/lib/colorado-area";
 import { getScheduledReleaseSignalCopy } from "@/lib/scheduled-release-signals";
+import {
+  CHARLOTTE_METRO_BOARD_GROUP,
+  demandMetroAreaMatchesFields,
+  demandMetroBoardGroupMatchesFields,
+} from "@/lib/demand-metro-areas";
 
 
 type DropSortMode = "newest" | "nearby" | "rarity" | "az";
@@ -344,6 +349,15 @@ function dropAreaFilterValues(drop: GroupedDrop) {
 function dropAreaMatchesFilter(drop: GroupedDrop, filterValue: string) {
   const wanted = areaQueryFromFilter(filterValue);
   if (!wanted) return true;
+  const fields = [
+    drop.locationName,
+    drop.board_name,
+    drop.store_address,
+    ...(drop.counties || []),
+    ...drop.locations.flatMap((location) => [location.label, location.city, location.address, location.boardName]),
+  ];
+  if (drop.state === "NC" && wanted === CHARLOTTE_METRO_BOARD_GROUP) return demandMetroBoardGroupMatchesFields(fields, [wanted]);
+  if (drop.state === "GA" || drop.state === "TN") return demandMetroAreaMatchesFields(drop.state, fields, [wanted]);
   if (drop.state === "CA") return californiaAreaMatchesFields(areaLabelsForDrop(drop), [wanted]);
   if (drop.state === "NV") return nevadaAreaMatchesFields(areaLabelsForDrop(drop), [wanted]);
   if (drop.state === "NY") return newYorkAreaMatchesFields(areaLabelsForDrop(drop), [wanted]);
@@ -375,6 +389,7 @@ function areaMenuLabel(state?: string | null, baseLabel?: string | null, kind?: 
   const label = displayLocationLabel(baseLabel, stateCode);
   if (!label) return "";
   if (stateCode !== "NC") return label;
+  if (label === CHARLOTTE_METRO_BOARD_GROUP) return label;
   if (/warehouse/i.test(label)) return "";
   return /\bABC$/i.test(label) ? label : `${label} ABC`;
 }
@@ -1490,6 +1505,11 @@ export default function DropFeed() {
         ? areaPrefs.states[0]
         : null)
     : null);
+  const legacyAreaQueryKey = feedStateParam === "CA" ? "area" : "store";
+  const isNevadaAreaQuery = feedStateParam === "NV";
+  const areaQueryKey = isNevadaAreaQuery || ["NC", "GA", "TN", "NY", "CO"].includes(feedStateParam || "")
+    ? "area"
+    : legacyAreaQueryKey;
 
   const fetchDrops = useCallback(async ({ signal, forceRefresh = false }: { signal?: AbortSignal; forceRefresh?: boolean } = {}) => {
     try {
@@ -1507,7 +1527,7 @@ export default function DropFeed() {
           query.set("history", "1");
         }
         if (activeBottleParam) query.set("bottle", activeBottleParam);
-        if (activeAreaParam) query.set(feedStateParam === "NV" ? "area" : feedStateParam === "NY" ? "area" : feedStateParam === "CO" ? "area" : feedStateParam === "CA" ? "area" : "store", activeAreaParam);
+        if (activeAreaParam) query.set(areaQueryKey, activeAreaParam);
         const json = await fetchDropFeedPage(`/api/drops?${query.toString()}`, signal, forceRefresh);
         latestJson = json;
 
@@ -1554,7 +1574,7 @@ export default function DropFeed() {
       if (fetchError instanceof DOMException && fetchError.name === "AbortError") return;
       setError(true);
     }
-  }, [activeAreaParam, activeBottleParam, activeTierParam, feedStateParam, isFreeUser]);
+  }, [activeAreaParam, activeBottleParam, activeTierParam, areaQueryKey, feedStateParam, isFreeUser]);
 
   useEffect(() => {
     setVisibleDropCount(isFreeUser ? 7 : 10);
@@ -1627,10 +1647,16 @@ export default function DropFeed() {
 
     // NC board filter
     if (dropState === "NC" && areaPrefs.ncBoards.length > 0) {
-      const board = drop.board_name || "";
-      return areaPrefs.ncBoards.some((b) =>
-        board.toLowerCase().includes(b.toLowerCase())
-      );
+      const fields = [
+        drop.locationName,
+        drop.board_name,
+        drop.store_address,
+        ...(drop.counties || []),
+        ...drop.locations.flatMap((location) => [location.label, location.city, location.address, location.boardName]),
+      ];
+      const ordinaryBoards = areaPrefs.ncBoards.filter((value) => value !== CHARLOTTE_METRO_BOARD_GROUP);
+      return demandMetroBoardGroupMatchesFields(fields, areaPrefs.ncBoards)
+        || ordinaryBoards.some((board) => fields.some((field) => locationLabelsMatch(String(field || ""), board)));
     }
 
     const locationText = normalizeFilterText([
@@ -1645,6 +1671,16 @@ export default function DropFeed() {
     });
 
     // City-level filters for states where the site stores city preferences.
+    if (dropState === "GA" && areaPrefs.gaAreas.length > 0) return demandMetroAreaMatchesFields(dropState, [
+      drop.locationName,
+      drop.store_address,
+      ...drop.locations.flatMap((location) => [location.label, location.city, location.address]),
+    ], areaPrefs.gaAreas);
+    if (dropState === "TN" && areaPrefs.tnAreas.length > 0) return demandMetroAreaMatchesFields(dropState, [
+      drop.locationName,
+      drop.store_address,
+      ...drop.locations.flatMap((location) => [location.label, location.city, location.address]),
+    ], areaPrefs.tnAreas);
     if (dropState === "VA" && areaPrefs.vaCities.length > 0) return matchesAnyLocationPreference(areaPrefs.vaCities);
     if (dropState === "OH" && areaPrefs.ohCities.length > 0) return matchesAnyLocationPreference(areaPrefs.ohCities);
     if (dropState === "IA" && areaPrefs.iaCities.length > 0) return matchesAnyLocationPreference(areaPrefs.iaCities);
@@ -1744,6 +1780,7 @@ export default function DropFeed() {
     return Array.from(options.values())
       .filter((option) => {
         if (option.state !== "NC") return true;
+        if (option.baseLabel === CHARLOTTE_METRO_BOARD_GROUP) return true;
         return /\bABC(?:\s*·\s*NC)?$/i.test(option.label) && !/warehouse/i.test(option.label);
       })
       .sort((a, b) => a.state.localeCompare(b.state) || a.baseLabel.localeCompare(b.baseLabel));
@@ -1836,7 +1873,7 @@ export default function DropFeed() {
           query.set("history", "1");
         }
         if (activeBottleParam) query.set("bottle", activeBottleParam);
-        if (activeAreaParam) query.set(feedStateParam === "NV" ? "area" : feedStateParam === "NY" ? "area" : feedStateParam === "CO" ? "area" : feedStateParam === "CA" ? "area" : "store", activeAreaParam);
+        if (activeAreaParam) query.set(areaQueryKey, activeAreaParam);
         const json = await fetchDropFeedPage(`/api/drops?${query.toString()}`);
         latestJson = json;
 

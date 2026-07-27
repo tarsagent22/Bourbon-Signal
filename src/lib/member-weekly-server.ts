@@ -60,6 +60,8 @@ function savedAreasFromMetadata(publicMetadata: UnknownRecord): MemberWeeklySave
   const areas = record(publicMetadata.areaPreferences);
   const labelsByState: Record<string, string[]> = {
     NC: strings(areas.ncBoards),
+    GA: strings(areas.gaAreas),
+    TN: strings(areas.tnAreas),
     VA: strings(areas.vaCities),
     OH: strings(areas.ohCities),
     IA: strings(areas.iaCities),
@@ -95,6 +97,8 @@ function areaPreferencesFromMetadata(publicMetadata: UnknownRecord) {
   return {
     states: strings(source.states).map((state) => state.toUpperCase()),
     ncBoards: strings(source.ncBoards),
+    gaAreas: strings(source.gaAreas),
+    tnAreas: strings(source.tnAreas),
     vaCities: strings(source.vaCities),
     ohCities: strings(source.ohCities),
     iaCities: strings(source.iaCities),

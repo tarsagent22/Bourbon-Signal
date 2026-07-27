@@ -15,6 +15,11 @@ import { californiaAreaMatchesFields, parseCaliforniaAreaQuery } from "@/lib/cal
 import { nevadaAreaMatchesFields, parseNevadaAreaQuery } from "@/lib/nevada-area";
 import { newYorkAreaMatchesFields, parseNewYorkAreaQuery } from "@/lib/new-york-area";
 import { coloradoAreaMatchesFields, parseColoradoAreaQuery } from "@/lib/colorado-area";
+import {
+  demandMetroAreaMatchesFields,
+  demandMetroBoardGroupMatchesFields,
+  parseDemandMetroAreaQuery,
+} from "@/lib/demand-metro-areas";
 
 const ANONYMOUS_DROP_PREVIEW_LIMIT = 7;
 const DROP_FEED_TIERS = new Set(["unicorn", "allocated", "limited"]);
@@ -278,6 +283,7 @@ export async function GET(request: Request) {
   const nevadaArea = parseNevadaAreaQuery(url.searchParams.get("area"));
   const nyAreas = parseNewYorkAreaQuery(url.searchParams.get("area"));
   const coAreas = parseColoradoAreaQuery(url.searchParams.get("area"));
+  const demandMetroAreas = parseDemandMetroAreaQuery(state || "", url.searchParams.get("area"));
   if (state === "CA" && californiaArea.requested && !californiaArea.valid) {
     return NextResponse.json({ drops: [], total: 0, error: "Unsupported California area" }, { status: 400 });
   }
@@ -289,6 +295,9 @@ export async function GET(request: Request) {
   }
   if (state === "CO" && coAreas.requested && !coAreas.valid) {
     return NextResponse.json({ drops: [], total: 0, error: "Unsupported Colorado area" }, { status: 400 });
+  }
+  if (["NC", "GA", "TN"].includes(state || "") && demandMetroAreas.requested && !demandMetroAreas.valid) {
+    return NextResponse.json({ drops: [], total: 0, error: `Unsupported ${state} metro area` }, { status: 400 });
   }
   const include = entitlements.canUseAdvancedFilters ? url.searchParams.get("include")?.toLowerCase().trim() : undefined;
 
@@ -351,6 +360,23 @@ export async function GET(request: Request) {
     };
 
     const applyRequestedAreaFilter = (items: typeof drops) => {
+      if (["NC", "GA", "TN"].includes(state || "") && demandMetroAreas.areas.length) {
+        return items.filter((drop) => {
+          const fields = [
+            drop.store_city,
+            drop.store_address,
+            drop.store_name,
+            drop.store_county,
+            drop.board_name,
+            drop.display_location,
+            (drop as Record<string, unknown>).locationName,
+            (drop as Record<string, unknown>).area,
+          ];
+          return state === "NC"
+            ? demandMetroBoardGroupMatchesFields(fields, demandMetroAreas.areas)
+            : demandMetroAreaMatchesFields(state || "", fields, demandMetroAreas.areas);
+        });
+      }
       if (state === "CA" && californiaArea.areas.length) {
         return items.filter((drop) => californiaAreaMatchesFields([
           drop.store_city,

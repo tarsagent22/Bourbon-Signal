@@ -35,6 +35,15 @@ import {
   parseGeorgiaLightspeedProducts,
 } from './georgia-retailer-surfaces.mjs';
 import {
+  buildTennesseeConfiguredStoreLocationSignals,
+  registeredTennesseeStore,
+} from './tennessee-retailer-surfaces.mjs';
+import {
+  isAllowedTennesseeBottleFormat,
+  isTennesseeRetailerInventory,
+  normalizeTennesseeCityHiveQuantity,
+} from '../tennessee-retailer-policy.mjs';
+import {
   CALIFORNIA_SAN_DIEGO_SHOPIFY_SOURCES,
   buildCaliforniaSourceCacheSignals,
   filterFreshCaliforniaSignals,
@@ -2491,9 +2500,10 @@ async function readTennesseeCityHiveCache() {
     const generatedMs = new Date(cache.generatedAt || 0).getTime();
     const fresh = Number.isFinite(generatedMs) && Date.now() - generatedMs <= TN_CITYHIVE_CACHE_MAX_AGE_MS;
     if (!fresh) return null;
-    const signals = Array.isArray(cache.signals) ? cache.signals : [];
+    const signals = (Array.isArray(cache.signals) ? cache.signals : [])
+      .filter((signal) => isTennesseeRetailerInventory(signal));
     const roadblocks = Array.isArray(cache.roadblocks) ? cache.roadblocks : [];
-    if (!signals.some((signal) => signal.eventType === 'cityhive_store_inventory_result')) return null;
+    if (!signals.length) return null;
     return { ...cache, signals, roadblocks };
   } catch {
     return null;
@@ -2501,7 +2511,7 @@ async function readTennesseeCityHiveCache() {
 }
 
 function cachedTennesseeCityHiveSignals(cache, observedAt) {
-  return (cache?.signals || []).map((signal) => ({
+  return (cache?.signals || []).filter((signal) => isTennesseeRetailerInventory(signal)).map((signal) => ({
     ...signal,
     observedAt: signal.observedAt || cache.generatedAt || observedAt,
     raw: { ...(signal.raw || {}), cacheFallback: true, cacheGeneratedAt: cache.generatedAt, artifactPath: TN_CITYHIVE_ARTIFACT_PATH }
@@ -2516,9 +2526,10 @@ function tennesseeCityHivePositiveInventoryChains(signals = []) {
 }
 
 async function writeTennesseeCityHiveCache(signals, roadblocks) {
-  const nextPositiveCount = signals.filter((signal) => signal.eventType === 'cityhive_store_inventory_result').length;
+  const safeSignals = signals.filter((signal) => isTennesseeRetailerInventory(signal));
+  const nextPositiveCount = safeSignals.length;
   if (!nextPositiveCount) return;
-  const nextChains = tennesseeCityHivePositiveInventoryChains(signals);
+  const nextChains = tennesseeCityHivePositiveInventoryChains(safeSignals);
   const previous = await readTennesseeCityHiveCache();
   const previousChains = tennesseeCityHivePositiveInventoryChains(previous?.signals || []);
   const previousPositiveCount = Number(previous?.positiveInventorySignalCount || previous?.signals?.filter?.((signal) => signal.eventType === 'cityhive_store_inventory_result').length || 0);
@@ -2531,10 +2542,10 @@ async function writeTennesseeCityHiveCache(signals, roadblocks) {
     cacheMaxAgeMs: TN_CITYHIVE_CACHE_MAX_AGE_MS,
     sourceChainCount: nextChains.size,
     sourceChains: [...nextChains].sort(),
-    signalCount: signals.length,
+    signalCount: safeSignals.length,
     positiveInventorySignalCount: nextPositiveCount,
-    storeLocationSignalCount: signals.filter((signal) => signal.eventType === 'retailer_store_location').length,
-    signals,
+    storeLocationSignalCount: 0,
+    signals: safeSignals,
     roadblocks
   };
   await mkdir(path.dirname(TN_CITYHIVE_ARTIFACT_PATH), { recursive: true });
@@ -2969,6 +2980,17 @@ async function collectIndianaTarget(config, bible, observedAt) {
   return { signals: [...locationSignals, ...signals], roadblocks };
 }
 
+function exactTennesseeAddress(value, expected) {
+  const normalize = (input) => String(input || '')
+    .normalize('NFKD')
+    .toLowerCase()
+    .replace(/\busa\b/g, '')
+    .replace(/[^a-z0-9]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return normalize(value) === normalize(expected);
+}
+
 async function collectTennesseeCityHive(config, bible, observedAt) {
   const signals = [];
   const roadblocks = [];
@@ -2984,23 +3006,42 @@ async function collectTennesseeCityHive(config, bible, observedAt) {
           source: 'Tennessee CityHive retailer inventory cache reuse',
           url: TN_CITYHIVE_ARTIFACT_PATH,
           status: 200,
-          error: `Using ${cache.signals.length} cached CityHive store-level rows from ${cache.generatedAt}; scheduled refresh avoids repeated retailer 429s unless BOURBON_SIGNAL_TN_FORCE_CITYHIVE_LIVE=1.`,
-          nextRoute: 'Force live Tennessee CityHive refresh during a maintenance window; otherwise keep cache-backed rows inside the freshness window.'
+          error: `Using ${cache.signals.length} cache-backed exact-store CityHive rows from ${cache.generatedAt}; scheduled refresh avoids repeated retailer 429s unless BOURBON_SIGNAL_TN_FORCE_CITYHIVE_LIVE=1.`,
+          nextRoute: 'Force live Tennessee CityHive refresh during a maintenance window; otherwise keep only exact-store cache rows inside the freshness window.'
         }
       ]
     };
   }
+
   const seenProductOptions = new Set();
-  const seenStores = new Set();
   const seenPageFirstProducts = new Set();
   const blockedSourceIds = new Set();
+  const rejectedMerchants = new Set();
+  const rejectedAddresses = new Set();
+  const requestedSourceIds = new Set(String(process.env.BOURBON_SIGNAL_TN_CITYHIVE_SOURCE_IDS || '')
+    .split(',')
+    .map((value) => value.trim())
+    .filter(Boolean));
   const forceAllSources = process.env.BOURBON_SIGNAL_TN_CITYHIVE_FORCE_ALL_SOURCES === '1';
-  const selectedSources = forceAllSources
-    ? TN_CITYHIVE_SOURCES
-    : rotatingSourceCohort(TN_CITYHIVE_SOURCES, observedAt, TN_CITYHIVE_SOURCE_COHORT_SIZE, TN_CITYHIVE_ROTATION_MS);
+  const selectedSources = requestedSourceIds.size
+    ? TN_CITYHIVE_SOURCES.filter((source) => requestedSourceIds.has(source.id))
+    : forceAllSources
+      ? TN_CITYHIVE_SOURCES
+      : rotatingSourceCohort(TN_CITYHIVE_SOURCES, observedAt, TN_CITYHIVE_SOURCE_COHORT_SIZE, TN_CITYHIVE_ROTATION_MS);
+  if (requestedSourceIds.size && !selectedSources.length) {
+    roadblocks.push({
+      state: config.id,
+      source: 'Tennessee CityHive exact-store source selection',
+      url: '',
+      status: 'no_configured_source_ids_selected',
+      error: `None of the requested Tennessee CityHive source IDs are configured: ${[...requestedSourceIds].join(', ')}.`,
+      nextRoute: 'Use only reviewed source IDs from TN_CITYHIVE_SOURCES; do not substitute an unregistered host.'
+    });
+  }
 
   for (const source of selectedSources) {
     let sourceBlocked = false;
+    let sourceReachable = false;
     for (const seedUrl of source.urls) {
       if (sourceBlocked) break;
       for (const url of cityHivePageUrls(seedUrl, TN_CITYHIVE_MAX_PAGES)) {
@@ -3012,7 +3053,7 @@ async function collectTennesseeCityHive(config, bible, observedAt) {
             url,
             status: res.status || 0,
             error: res.error || `HTTP ${res.status}`,
-            nextRoute: 'Retry the CityHive page or inspect rendered/network calls for current product JSON shape.'
+            nextRoute: 'Retry the first-party CityHive page; never substitute search snippets or unregistered merchant rows.'
           });
           if (res.status === 429) {
             sourceBlocked = true;
@@ -3020,6 +3061,7 @@ async function collectTennesseeCityHive(config, bible, observedAt) {
           }
           break;
         }
+        sourceReachable = true;
 
         const blobs = cityHiveJsonBlobs(res.text);
         const products = cityHiveProducts(blobs);
@@ -3030,39 +3072,19 @@ async function collectTennesseeCityHive(config, bible, observedAt) {
 
         for (const cfg of cityHiveMerchantConfigs(blobs)) {
           const merchant = cfg?.merchant || cfg;
-          if (!merchant?.id || seenStores.has(`${source.id}|${merchant.id}`)) continue;
-          seenStores.add(`${source.id}|${merchant.id}`);
-          const a = cityHiveAddressParts(merchant.address || {});
-          if ((a.state || '').toUpperCase() && (a.state || '').toUpperCase() !== 'TN') continue;
-          signals.push({
-            id: stableId([config.id, 'cityhive-store-location', source.id, merchant.id]),
+          if (!merchant?.id) continue;
+          const store = registeredTennesseeStore(source.id, merchant.id);
+          if (store) continue;
+          const rejectKey = `${source.id}:${merchant.id}`;
+          if (rejectedMerchants.has(rejectKey)) continue;
+          rejectedMerchants.add(rejectKey);
+          roadblocks.push({
             state: config.id,
-            sourceLabel: `${source.chainName} CityHive store locator`,
-            sourceUrl: source.baseUrl,
-            rawName: merchant.display_name || merchant.name,
-            canonicalBottleId: null,
-            canonicalName: null,
-            confidence: 0.72,
-            eventType: 'retailer_store_location',
-            locationPrecision: 'store_level',
-            locationName: merchant.display_name || merchant.name,
-            storeName: merchant.display_name || merchant.name,
-            storeId: `${source.id}:${merchant.id}`,
-            storeAddress: a.fullAddress || [a.street, a.city, 'TN', a.zip].filter(Boolean).join(', '),
-            city: a.city,
-            county: a.county,
-            stateCode: 'TN',
-            postalCode: a.zip,
-            zip: a.zip,
-            lat: a.lat,
-            lng: a.lng,
-            quantity: 0,
-            observedAt,
-            canAlertAsInventory: false,
-            canAlertAsWatch: false,
-            inventorySemantics: `${source.chainName} CityHive store rows identify retailer locations/order-capable branches. Store rows are not bottle inventory by themselves.`,
-            evidence: `${source.chainName} CityHive configuration lists ${merchant.display_name || merchant.name}${a.fullAddress ? ` at ${a.fullAddress}` : ''}.`,
-            raw: { chain: source.id, merchant }
+            source: source.sourceLabel,
+            url,
+            status: 'unregistered_exact_store_identity',
+            error: `CityHive returned merchant ${merchant.id}, but it is not in the reviewed Tennessee exact-store registry.`,
+            nextRoute: 'Verify the first-party merchant name and street address before adding a stable identity; do not emit inventory meanwhile.'
           });
         }
 
@@ -3070,69 +3092,138 @@ async function collectTennesseeCityHive(config, bible, observedAt) {
           for (const merchant of product.merchants || []) {
             for (const option of merchant.product_options || []) {
               if (!isBourbonRelevantProduct(product, option)) continue;
+              const store = registeredTennesseeStore(source.id, option.merchant_id);
+              if (!store) continue;
               const key = `${source.id}|${option.merchant_id}|${option.product_id}|${option.option_id}`;
               if (seenProductOptions.has(key)) continue;
               seenProductOptions.add(key);
+              const fullAddress = option.full_address || '';
+              if (!exactTennesseeAddress(fullAddress, store.address)) {
+                const rejectKey = `${source.id}:${option.merchant_id}:${fullAddress}`;
+                if (!rejectedAddresses.has(rejectKey)) {
+                  rejectedAddresses.add(rejectKey);
+                  roadblocks.push({
+                    state: config.id,
+                    source: source.sourceLabel,
+                    url,
+                    status: 'exact_store_address_mismatch',
+                    error: `Merchant ${option.merchant_id} returned address "${fullAddress || 'missing'}"; expected "${store.address}".`,
+                    nextRoute: 'Re-verify the first-party merchant/address binding before updating the registry; this row remains nonalertable.'
+                  });
+                }
+                continue;
+              }
               const rawName = option.option_display_data?.name || product.name;
+              if (!isAllowedTennesseeBottleFormat(rawName)) continue;
               const { match, record, unsafeReason } = cityHiveSafeBottleMatch(rawName, bible);
               if (!record) continue;
-              const { reportedQuantity, binaryAvailability, quantity } = normalizeCityHiveReportedQuantity(option.quantity);
-              const fullAddress = option.full_address || null;
-              const city = fullAddress?.match(/,\s*([^,]+),\s*TN\s+\d{5}/i)?.[1] || null;
-              const zip = fullAddress?.match(/\bTN\s+(\d{5}(?:-\d{4})?)\b/i)?.[1] || null;
-              const size = option.option_params?.size ? `${option.option_params.size.quantity}${option.option_params.size.measure || ''}` : null;
-              signals.push({
-                id: stableId([config.id, 'cityhive-store-inventory', source.id, option.merchant_id, option.product_id, option.option_id]),
+              const normalizedQuantity = normalizeTennesseeCityHiveQuantity(option.quantity);
+              if (normalizedQuantity.reportedQuantity <= 0) continue;
+              const sourceUrl = option.product_url || '';
+              const price = Number(option.price || 0) || null;
+              const draft = {
+                id: stableId([config.id, 'cityhive-store-inventory', source.id, store.merchantId, option.product_id, option.option_id]),
                 state: config.id,
-                sourceLabel: source.sourceLabel,
-                sourceUrl: option.product_url || url,
+                stateCode: 'TN',
+                sourceLabel: store.sourceLabel,
+                sourceUrl,
+                sourceChain: store.sourceId,
+                merchantId: store.merchantId,
+                productId: String(option.product_id || product.id || ''),
+                variantId: String(option.option_id || ''),
                 rawName,
                 canonicalBottleId: record.id,
                 canonicalName: record.canonical,
-                confidence: Math.max(0.78, match?.confidence || 0.5),
-                eventType: quantity > 0 ? 'cityhive_store_inventory_result' : 'cityhive_store_inventory_out_of_stock',
+                confidence: Math.max(0.8, match?.confidence || 0.5),
+                eventType: 'cityhive_store_inventory_result',
                 locationPrecision: 'store_level',
-                locationName: option.merchant_name || source.chainName,
-                storeName: option.merchant_name || source.chainName,
-                storeId: option.merchant_id ? `${source.id}:${option.merchant_id}` : null,
-                storeAddress: fullAddress,
-                city,
-                stateCode: 'TN',
-                postalCode: zip,
-                zip,
+                locationName: store.name,
+                storeName: store.name,
+                storeId: store.storeId,
+                storeAddress: store.address,
+                city: store.city,
+                postalCode: store.zip,
+                zip: store.zip,
                 lat: Number(option.coordinates?.[1]) || null,
                 lng: Number(option.coordinates?.[0]) || null,
-                quantity,
-                price: Number(option.price || 0) || null,
-                availabilityStatus: quantity > 0 ? (binaryAvailability ? 'binary_retailer_in_stock' : 'in_stock') : 'out_of_stock',
-                availabilityLabel: quantity > 0 ? 'In stock' : 'Out of stock',
+                quantity: normalizedQuantity.quantity,
+                quantityIsExact: normalizedQuantity.quantityIsExact,
+                reportedQuantity: normalizedQuantity.reportedQuantity,
+                price,
+                availabilityStatus: normalizedQuantity.binaryAvailability ? 'binary_retailer_in_stock' : 'in_stock',
+                availabilityLabel: 'In stock',
                 observedAt,
-                canAlertAsInventory: quantity > 0,
-                canAlertAsWatch: true,
-                inventorySemantics: `${source.chainName} CityHive pages embed store-level product option availability and price for the selected branch. A reported value of 100 is treated as a binary availability sentinel, never an exact shelf count. Treat as retailer-published pickup/order availability and ask users to verify before driving.`,
-                evidence: binaryAvailability
-                  ? `${source.chainName} reports ${rawName} in stock${option.merchant_name ? ` at ${option.merchant_name}` : ''}${fullAddress ? ` (${fullAddress})` : ''}${option.price ? ` for $${Number(option.price).toFixed(2)}` : ''}; the retailer value ${reportedQuantity} is treated as binary availability, not an exact shelf count.`
-                  : `${source.chainName} CityHive reports ${quantity} ${size || 'unit'}${quantity === 1 ? '' : 's'} of ${rawName}${option.merchant_name ? ` at ${option.merchant_name}` : ''}${fullAddress ? ` (${fullAddress})` : ''}${option.price ? ` for $${Number(option.price).toFixed(2)}` : ''}.`,
-                raw: { chain: source.id, reportedQuantity, binaryAvailability, product: { id: product.id, name: product.name, basic_category: product.basic_category }, option, matchGuard: unsafeReason }
-              });
+                sourceAvailabilityVerified: true,
+                canAlertAsInventory: false,
+                canAlertAsWatch: false,
+                inventorySemantics: normalizedQuantity.binaryAvailability
+                  ? 'binary_retailer_orderable_no_exact_count'
+                  : 'exact_retailer_reported_quantity',
+                evidence: normalizedQuantity.binaryAvailability
+                  ? `${store.name} currently reports ${rawName} orderable at ${store.address}; source value ${normalizedQuantity.reportedQuantity} is a binary sentinel, not a bottle count.`
+                  : `${store.name} currently reports ${normalizedQuantity.quantity} ${rawName} at ${store.address}${price ? ` for $${price.toFixed(2)}` : ''}.`,
+                raw: {
+                  chain: store.sourceId,
+                  merchantId: store.merchantId,
+                  sourceAvailabilityVerified: true,
+                  reportedQuantity: normalizedQuantity.reportedQuantity,
+                  binaryAvailability: normalizedQuantity.binaryAvailability,
+                  product: { id: product.id, name: product.name, basic_category: product.basic_category },
+                  option,
+                  matchGuard: unsafeReason
+                }
+              };
+              if (!isTennesseeRetailerInventory(draft)) {
+                roadblocks.push({
+                  state: config.id,
+                  source: source.sourceLabel,
+                  url: sourceUrl || url,
+                  status: 'retailer_identity_policy_denied',
+                  error: `A ${store.name} option failed exact host, merchant, address, product, format, or availability binding.`,
+                  nextRoute: 'Inspect the first-party product URL and embedded option identity; keep the row nonalertable until every binding passes.'
+                });
+                continue;
+              }
+              draft.canAlertAsInventory = true;
+              draft.canAlertAsWatch = true;
+              signals.push(draft);
             }
           }
         }
         await sleep(TN_CITYHIVE_PAGE_DELAY_MS);
       }
     }
+    if (sourceReachable && !signals.some((signal) => signal.sourceChain === source.id)) {
+      roadblocks.push({
+        state: config.id,
+        source: source.sourceLabel,
+        url: source.urls[0],
+        status: 'reachable_no_exact_store_orderability',
+        error: `${source.chainName} returned no current bourbon row that passed exact host, merchant, address, bottle, size, and orderability binding.`,
+        nextRoute: 'Retry the bounded first-party crawl; do not treat a catalog or configured location as inventory.'
+      });
+    }
     await sleep(TN_CITYHIVE_SOURCE_DELAY_MS);
   }
 
   const selectedSourceIds = new Set(selectedSources.map((source) => source.id));
   if (cache) {
-    const retained = (cache.signals || []).filter((signal) => {
-      const sourceId = signal?.raw?.chain;
-      if (!sourceId) return false;
-      return !selectedSourceIds.has(sourceId) || blockedSourceIds.has(sourceId);
+    const retained = cache.signals.filter((signal) => {
+      const sourceId = signal.sourceChain || signal?.raw?.chain;
+      return isTennesseeRetailerInventory(signal) && (!selectedSourceIds.has(sourceId) || blockedSourceIds.has(sourceId));
     });
     const liveKeys = new Set(signals.map((signal) => signal.id));
-    const retainedFallback = retained.filter((signal) => !liveKeys.has(signal.id));
+    const retainedFallback = retained
+      .filter((signal) => !liveKeys.has(signal.id))
+      .map((signal) => ({
+        ...signal,
+        raw: {
+          ...(signal.raw || {}),
+          cacheFallback: true,
+          cacheGeneratedAt: cache.generatedAt,
+          artifactPath: TN_CITYHIVE_ARTIFACT_PATH,
+        },
+      }));
     signals.push(...retainedFallback);
     const reconciled = reconcileCityHiveRateLimitsWithCache({
       roadblocks,
@@ -3142,30 +3233,35 @@ async function collectTennesseeCityHive(config, bible, observedAt) {
     roadblocks.splice(0, roadblocks.length, ...reconciled.roadblocks);
   }
 
-  if (!signals.some((signal) => signal.eventType === 'cityhive_store_inventory_result')) {
-    if (cache) {
-      signals.push(...cachedTennesseeCityHiveSignals(cache, observedAt));
-      roadblocks.push({
-        state: config.id,
-        source: 'Tennessee CityHive retailer inventory cache',
-        url: TN_CITYHIVE_ARTIFACT_PATH,
-        status: 'fresh_cache_fallback',
-        error: `Live Tennessee CityHive fetch did not produce positive inventory rows; reused fresh cache from ${cache.generatedAt}.`,
-        nextRoute: 'Keep CityHive requests paced and retry live retailer pages on next scheduled run.'
-      });
-    } else {
-      roadblocks.push({
-        state: config.id,
-        source: 'Tennessee CityHive retailer inventory pages',
-        url: TN_CITYHIVE_SOURCES.map((source) => source.baseUrl).join(', '),
-        status: 'reachable_no_inventory_rows',
-        error: 'CityHive pages were reachable but no positive bourbon/whiskey store inventory rows were parsed.',
-        nextRoute: 'Inspect embedded CityHive product JSON and pagination parameters; selected stores may simply be out of relevant products.'
-      });
-    }
-  } else {
-    await writeTennesseeCityHiveCache(signals, roadblocks);
+  for (const source of TN_CITYHIVE_SOURCES) {
+    if (signals.some((signal) => (signal.sourceChain || signal?.raw?.chain) === source.id)) continue;
+    if (selectedSourceIds.has(source.id) && roadblocks.some((roadblock) => roadblock.source === source.sourceLabel)) continue;
+    roadblocks.push({
+      state: config.id,
+      source: source.sourceLabel,
+      url: source.urls[0],
+      status: selectedSourceIds.has(source.id)
+        ? 'reachable_no_exact_store_orderability'
+        : 'no_qualified_row_in_fresh_bounded_cache',
+      error: selectedSourceIds.has(source.id)
+        ? `${source.chainName} produced no current row that passed exact host, merchant, address, bottle, size, and orderability binding.`
+        : `${source.chainName} has no qualified current row in the selected live cohort or fresh exact-store cache.`,
+      nextRoute: 'Probe this reviewed first-party source in a future bounded cohort; keep its stable store identity discoverable but nonalertable until current orderability qualifies.'
+    });
   }
+
+  if (!signals.length && cache) {
+    signals.push(...cachedTennesseeCityHiveSignals(cache, observedAt));
+    roadblocks.push({
+      state: config.id,
+      source: 'Tennessee CityHive retailer inventory cache',
+      url: TN_CITYHIVE_ARTIFACT_PATH,
+      status: 'fresh_exact_store_cache_fallback',
+      error: `Live CityHive fetch produced no qualified rows; reused ${cache.signals.length} fresh exact-store rows from ${cache.generatedAt}.`,
+      nextRoute: 'Keep requests paced and retry live first-party pages; never retain a cache row that fails current identity policy.'
+    });
+  }
+  if (signals.length) await writeTennesseeCityHiveCache(signals, roadblocks);
   return { signals, roadblocks };
 }
 
@@ -3220,6 +3316,18 @@ async function collectTennesseeShopify(config, bible, observedAt) {
   const signals = [];
   const roadblocks = [];
   for (const source of TN_SHOPIFY_SOURCES) {
+    const store = registeredTennesseeStore(source.id, source.id);
+    if (!store) {
+      roadblocks.push({
+        state: config.id,
+        source: source.sourceLabel,
+        url: source.collectionUrl,
+        status: 'unregistered_exact_store_identity',
+        error: `${source.chainName} has no reviewed exact-store registry binding.`,
+        nextRoute: 'Verify the first-party host, store name, and street address before collecting inventory.'
+      });
+      continue;
+    }
     const page = await fetchTennesseeShopifyProducts(source);
     if (!page.ok) {
       roadblocks.push({
@@ -3232,79 +3340,71 @@ async function collectTennesseeShopify(config, bible, observedAt) {
       });
       continue;
     }
-    signals.push({
-      id: stableId([config.id, 'shopify-store-location', source.id]),
-      state: config.id,
-      sourceLabel: `${source.chainName} Shopify store locator`,
-      sourceUrl: source.baseUrl,
-      rawName: source.chainName,
-      canonicalBottleId: null,
-      canonicalName: null,
-      confidence: 0.72,
-      eventType: 'retailer_store_location',
-      locationPrecision: 'store_level',
-      locationName: source.chainName,
-      storeName: source.chainName,
-      storeId: source.id,
-      storeAddress: source.address,
-      city: source.city,
-      stateCode: 'TN',
-      postalCode: source.zip,
-      zip: source.zip,
-      lat: source.lat,
-      lng: source.lng,
-      quantity: 0,
-      observedAt,
-      canAlertAsInventory: false,
-      canAlertAsWatch: false,
-      inventorySemantics: `${source.chainName} Shopify collection identifies the retailer/storefront. Store rows are not bottle inventory by themselves.`,
-      evidence: `${source.chainName} public Shopify storefront is reachable at ${source.baseUrl}.`,
-      raw: { source: 'tn_shopify_store_location', sourceConfig: source }
-    });
     const seen = new Set();
     for (const product of page.products.slice(0, TN_SHOPIFY_MAX_PRODUCTS)) {
       if (!isTennesseeShopifyBourbonCandidate(product)) continue;
       for (const variant of product.variants || []) {
         if (!variant?.available) continue;
         const rawName = [product.title, variant.title && variant.title !== 'Default Title' ? variant.title : null].filter(Boolean).join(' ');
+        if (!isAllowedTennesseeBottleFormat(rawName)) continue;
         const { match, record, unsafeReason } = cityHiveSafeBottleMatch(rawName, bible);
         if (!record) continue;
         const key = `${source.id}|${product.id}|${variant.id}|${record.id}`;
         if (seen.has(key)) continue;
         seen.add(key);
         const price = Number(variant.price || 0) || null;
-        signals.push({
+        const draft = {
           id: stableId([config.id, 'shopify-store-inventory', source.id, product.id, variant.id, record.id, price]),
           state: config.id,
-          sourceLabel: source.sourceLabel,
+          stateCode: 'TN',
+          sourceLabel: store.sourceLabel,
           sourceUrl: `${source.baseUrl}/products/${product.handle || product.id}`,
+          sourceChain: store.sourceId,
+          merchantId: store.merchantId,
+          productId: String(product.id || ''),
+          variantId: String(variant.id || ''),
           rawName,
           canonicalBottleId: record.id,
           canonicalName: record.canonical,
-          confidence: Math.max(0.78, match?.confidence || 0.5),
+          confidence: Math.max(0.8, match?.confidence || 0.5),
           eventType: 'retailer_store_inventory_result',
           locationPrecision: 'store_level',
-          locationName: source.chainName,
-          storeName: source.chainName,
-          storeId: source.id,
-          storeAddress: source.address,
-          city: source.city,
-          stateCode: 'TN',
-          postalCode: source.zip,
-          zip: source.zip,
+          locationName: store.name,
+          storeName: store.name,
+          storeId: store.storeId,
+          storeAddress: store.address,
+          city: store.city,
+          postalCode: store.zip,
+          zip: store.zip,
           lat: source.lat,
           lng: source.lng,
-          quantity: 1,
+          quantity: 0,
+          quantityIsExact: false,
+          reportedQuantity: 1,
           price,
           availabilityStatus: 'shopify_available',
           availabilityLabel: 'Available online',
           observedAt,
-          canAlertAsInventory: true,
-          canAlertAsWatch: true,
-          inventorySemantics: `${source.chainName} Shopify products.json marks this variant available. Shopify does not expose exact on-hand count; quantity is a lower-bound availability marker and should be verified before driving/order placement.`,
-          evidence: `${source.chainName} Shopify collection lists ${rawName}${price ? ` for $${price.toFixed(2)}` : ''} with variant.available=true.`,
-          raw: { source: 'tn_shopify_products_json', sourceConfig: source, product: { id: product.id, title: product.title, handle: product.handle, product_type: product.product_type, tags: product.tags }, variant, matchGuard: unsafeReason }
-        });
+          sourceAvailabilityVerified: true,
+          canAlertAsInventory: false,
+          canAlertAsWatch: false,
+          inventorySemantics: 'binary_retailer_orderable_no_exact_count',
+          evidence: `${store.name} Shopify collection currently lists ${rawName}${price ? ` for $${price.toFixed(2)}` : ''} with variant.available=true; exact on-hand count is not exposed.`,
+          raw: {
+            chain: store.sourceId,
+            merchantId: store.merchantId,
+            sourceAvailabilityVerified: true,
+            reportedQuantity: 1,
+            source: 'tn_shopify_products_json',
+            product: { id: product.id, title: product.title, handle: product.handle, product_type: product.product_type, tags: product.tags },
+            variant,
+            matchGuard: unsafeReason
+          }
+        };
+        if (!isTennesseeRetailerInventory(draft)) continue;
+        draft.canAlertAsInventory = true;
+        draft.canAlertAsWatch = true;
+        signals.push(draft);
       }
     }
     if (!signals.some((signal) => signal.sourceLabel === source.sourceLabel && signal.eventType === 'retailer_store_inventory_result')) {
@@ -3324,6 +3424,20 @@ async function collectTennesseeShopify(config, bible, observedAt) {
 async function collectTennesseeCoolSprings(config, bible, observedAt) {
   const signals = [];
   const roadblocks = [];
+  const store = registeredTennesseeStore('cool-springs-wine-spirits', TN_COOL_SPRINGS_STORE.id);
+  if (!store) {
+    return {
+      signals,
+      roadblocks: [{
+        state: config.id,
+        source: 'Cool Springs Wine & Spirits public catalog API',
+        url: TN_COOL_SPRINGS_BASE_URL,
+        status: 'unregistered_exact_store_identity',
+        error: 'Cool Springs has no reviewed exact-store registry binding.',
+        nextRoute: 'Verify the first-party store ID and street address before collecting inventory.'
+      }]
+    };
+  }
   const seenItems = new Set();
   let totalCount = 0;
   for (let pageNumber = 1; pageNumber <= TN_COOL_SPRINGS_MAX_PAGES; pageNumber++) {
@@ -3348,41 +3462,59 @@ async function collectTennesseeCoolSprings(config, bible, observedAt) {
       const quantity = Math.max(0, Number(item.maxBaseQuantity ?? item.maxQuantity ?? 0) || 0);
       if (quantity <= 0) continue;
       const rawName = [item.name, item.size].filter(Boolean).join(' ');
+      if (!isAllowedTennesseeBottleFormat(rawName)) continue;
       const { match, record, unsafeReason } = cityHiveSafeBottleMatch(rawName, bible);
       if (!record) continue;
       const price = Number(item.actualPrice ?? item.suggestedPrice ?? 0) || null;
-      signals.push({
+      const draft = {
         id: stableId([config.id, 'cool-springs-store-inventory', item.id, quantity, price]),
         state: config.id,
-        sourceLabel: 'Cool Springs Wine & Spirits public catalog API',
+        stateCode: 'TN',
+        sourceLabel: store.sourceLabel,
         sourceUrl: coolSpringsProductUrl(item),
+        sourceChain: store.sourceId,
+        merchantId: store.merchantId,
+        productId: String(item.id),
         rawName,
         canonicalBottleId: record.id,
         canonicalName: record.canonical,
         confidence: Math.max(0.8, match?.confidence || 0.5),
         eventType: 'retailer_store_inventory_result',
         locationPrecision: 'store_level',
-        locationName: TN_COOL_SPRINGS_STORE.name,
-        storeName: TN_COOL_SPRINGS_STORE.name,
-        storeId: `cool-springs:${TN_COOL_SPRINGS_STORE.id}`,
-        storeAddress: TN_COOL_SPRINGS_STORE.address,
-        city: TN_COOL_SPRINGS_STORE.city,
-        stateCode: 'TN',
-        postalCode: TN_COOL_SPRINGS_STORE.zip,
-        zip: TN_COOL_SPRINGS_STORE.zip,
+        locationName: store.name,
+        storeName: store.name,
+        storeId: store.storeId,
+        storeAddress: store.address,
+        city: store.city,
+        postalCode: store.zip,
+        zip: store.zip,
         lat: TN_COOL_SPRINGS_STORE.lat,
         lng: TN_COOL_SPRINGS_STORE.lng,
         quantity,
+        quantityIsExact: true,
+        reportedQuantity: quantity,
         price,
         availabilityStatus: 'in_stock',
         availabilityLabel: 'In stock',
         observedAt,
-        canAlertAsInventory: true,
-        canAlertAsWatch: true,
-        inventorySemantics: 'Cool Springs Wine & Spirits public online catalog reports item price, out-of-stock flag, and max base quantity for pickup/order. Treat as retailer-published availability and ask users to verify before driving.',
-        evidence: `Cool Springs Wine & Spirits public catalog reports ${quantity} available ${rawName}${price ? ` at $${price.toFixed(2)}` : ''}.`,
-        raw: { chain: 'cool-springs-wine-spirits', item, matchGuard: unsafeReason }
-      });
+        sourceAvailabilityVerified: true,
+        canAlertAsInventory: false,
+        canAlertAsWatch: false,
+        inventorySemantics: 'exact_retailer_reported_quantity',
+        evidence: `${store.name} public catalog currently reports ${quantity} available ${rawName}${price ? ` at $${price.toFixed(2)}` : ''} for ${store.address}.`,
+        raw: {
+          chain: store.sourceId,
+          merchantId: store.merchantId,
+          sourceAvailabilityVerified: true,
+          reportedQuantity: quantity,
+          item,
+          matchGuard: unsafeReason
+        }
+      };
+      if (!isTennesseeRetailerInventory(draft)) continue;
+      draft.canAlertAsInventory = true;
+      draft.canAlertAsWatch = true;
+      signals.push(draft);
     }
     if (!page.items.length || pageNumber * TN_COOL_SPRINGS_PAGE_SIZE >= totalCount) break;
     await sleep(500);
@@ -3409,9 +3541,24 @@ function isGrabblBourbonRelevantProduct(item) {
   return /bourbon|american whiskey|american whisky|rye whiskey|rye whisky|blanton|eagle rare|weller|stagg|taylor|van winkle|buffalo trace|michter|willett|old fitz|1792|booker|baker|woodford|four roses|wild turkey|elijah craig|old forester|green river|bardstown|knob creek|bulleit|maker'?s mark|benchmark/i.test(text);
 }
 
-function grabblProductUrl(product) {
-  const id = product?.storeProduct?.[0]?.storeProductId || product?.productId || '';
+function grabblProductUrl(product, storeProduct) {
+  const id = storeProduct?.storeProductId || product?.productId || '';
   return id ? `https://gatewaywineandspirit.com/products/${encodeURIComponent(id)}` : 'https://gatewaywineandspirit.com/';
+}
+
+function grabblHasCurrentOrderability(storeProduct) {
+  const values = [
+    storeProduct?.availableQuantity,
+    storeProduct?.available_quantity,
+    storeProduct?.inventoryQuantity,
+    storeProduct?.inventory_quantity,
+    storeProduct?.onHand,
+    storeProduct?.quantity,
+    storeProduct?.stock,
+  ];
+  if (values.some((value) => Number.isFinite(Number(value)) && Number(value) > 0)) return true;
+  if ([storeProduct?.available, storeProduct?.isAvailable, storeProduct?.inStock, storeProduct?.isInStock, storeProduct?.pickupAvailable, storeProduct?.isPickupAvailable].some((value) => value === true)) return true;
+  return /\b(?:in.?stock|available|orderable|pickup.?available)\b/i.test(String(storeProduct?.availabilityStatus || storeProduct?.status || ''));
 }
 
 async function fetchGatewayGrabblProducts(search) {
@@ -3437,35 +3584,20 @@ async function collectTennesseeGatewayGrabbl(config, bible, observedAt) {
   const signals = [];
   const roadblocks = [];
   const seen = new Set();
-  signals.push({
-    id: stableId([config.id, 'grabbl-store-location', TN_GRABBL_GATEWAY_STORE.id]),
-    state: config.id,
-    sourceLabel: 'Gateway Wine & Spirits Grabbl public store API',
-    sourceUrl: 'https://gatewaywineandspirit.com/',
-    rawName: TN_GRABBL_GATEWAY_STORE.name,
-    canonicalBottleId: null,
-    canonicalName: null,
-    confidence: 0.72,
-    eventType: 'retailer_store_location',
-    locationPrecision: 'store_level',
-    locationName: TN_GRABBL_GATEWAY_STORE.name,
-    storeName: TN_GRABBL_GATEWAY_STORE.name,
-    storeId: `grabbl-gateway:${TN_GRABBL_GATEWAY_STORE.id}`,
-    storeAddress: TN_GRABBL_GATEWAY_STORE.address,
-    city: TN_GRABBL_GATEWAY_STORE.city,
-    stateCode: 'TN',
-    postalCode: TN_GRABBL_GATEWAY_STORE.zip,
-    zip: TN_GRABBL_GATEWAY_STORE.zip,
-    lat: TN_GRABBL_GATEWAY_STORE.lat,
-    lng: TN_GRABBL_GATEWAY_STORE.lng,
-    quantity: 0,
-    observedAt,
-    canAlertAsInventory: false,
-    canAlertAsWatch: false,
-    inventorySemantics: 'Gateway Wine & Spirits Grabbl rows identify the retailer location. Store rows are not bottle inventory by themselves.',
-    evidence: `Grabbl public white-label metadata identifies ${TN_GRABBL_GATEWAY_STORE.name} at ${TN_GRABBL_GATEWAY_STORE.address}.`,
-    raw: { chain: 'gateway-grabbl', store: TN_GRABBL_GATEWAY_STORE }
-  });
+  const store = registeredTennesseeStore('gateway-grabbl', TN_GRABBL_GATEWAY_STORE.id);
+  if (!store) {
+    return {
+      signals,
+      roadblocks: [{
+        state: config.id,
+        source: 'Gateway Wine & Spirits Grabbl public store API',
+        url: 'https://gatewaywineandspirit.com/',
+        status: 'unregistered_exact_store_identity',
+        error: 'Gateway has no reviewed exact-store registry binding.',
+        nextRoute: 'Verify the first-party store ID and street address before collecting inventory.'
+      }]
+    };
+  }
 
   let returnedRows = 0;
   for (const term of TN_GRABBL_GATEWAY_SEARCH_TERMS.slice(0, TN_GRABBL_MAX_TERMS)) {
@@ -3488,44 +3620,65 @@ async function collectTennesseeGatewayGrabbl(config, bible, observedAt) {
       for (const storeProduct of storeProducts) {
         if (storeProduct?.storeId && storeProduct.storeId !== TN_GRABBL_GATEWAY_STORE.id) continue;
         const rawName = [product.productName, product.size].filter(Boolean).join(' ');
+        if (!isAllowedTennesseeBottleFormat(rawName) || !grabblHasCurrentOrderability(storeProduct)) continue;
         const { match, record, unsafeReason } = cityHiveSafeBottleMatch(rawName, bible);
         if (!record) continue;
         const key = `${product.productId}|${storeProduct.storeProductId || ''}|${rawName}`;
         if (seen.has(key)) continue;
         seen.add(key);
         const price = Number(storeProduct.productPrice || 0) || null;
-        signals.push({
+        const draft = {
           id: stableId([config.id, 'gateway-grabbl-store-listing', product.productId, storeProduct.storeProductId || '', price]),
           state: config.id,
-          sourceLabel: 'Gateway Wine & Spirits Grabbl public store API',
-          sourceUrl: grabblProductUrl(product),
+          stateCode: 'TN',
+          sourceLabel: store.sourceLabel,
+          sourceUrl: grabblProductUrl(product, storeProduct),
+          sourceChain: store.sourceId,
+          merchantId: store.merchantId,
+          productId: String(product.productId || ''),
+          variantId: String(storeProduct.storeProductId || ''),
           rawName,
           canonicalBottleId: record.id,
           canonicalName: record.canonical,
-          confidence: Math.max(0.78, match?.confidence || 0.5),
+          confidence: Math.max(0.8, match?.confidence || 0.5),
           eventType: 'retailer_store_inventory_result',
           locationPrecision: 'store_level',
-          locationName: TN_GRABBL_GATEWAY_STORE.name,
-          storeName: TN_GRABBL_GATEWAY_STORE.name,
-          storeId: `grabbl-gateway:${TN_GRABBL_GATEWAY_STORE.id}`,
-          storeAddress: TN_GRABBL_GATEWAY_STORE.address,
-          city: TN_GRABBL_GATEWAY_STORE.city,
-          stateCode: 'TN',
-          postalCode: TN_GRABBL_GATEWAY_STORE.zip,
-          zip: TN_GRABBL_GATEWAY_STORE.zip,
+          locationName: store.name,
+          storeName: store.name,
+          storeId: store.storeId,
+          storeAddress: store.address,
+          city: store.city,
+          postalCode: store.zip,
+          zip: store.zip,
           lat: Number(storeProduct.latitude || TN_GRABBL_GATEWAY_STORE.lat) || TN_GRABBL_GATEWAY_STORE.lat,
           lng: Number(storeProduct.longitude || TN_GRABBL_GATEWAY_STORE.lng) || TN_GRABBL_GATEWAY_STORE.lng,
-          quantity: 1,
+          quantity: 0,
+          quantityIsExact: false,
+          reportedQuantity: 1,
           price,
           availabilityStatus: 'listed_for_pickup',
-          availabilityLabel: 'Listed online',
+          availabilityLabel: 'Available for pickup',
           observedAt,
-          canAlertAsInventory: true,
-          canAlertAsWatch: true,
-          inventorySemantics: 'Gateway Wine & Spirits public Grabbl web app lists this product for the named Murfreesboro store with price. Exact bottle count is not exposed; treat as retailer-published online pickup/order availability and verify before driving.',
-          evidence: `Gateway Wine & Spirits Grabbl search lists ${rawName}${price ? ` at $${price.toFixed(2)}` : ''} for ${TN_GRABBL_GATEWAY_STORE.address}; exact count is not exposed.`,
-          raw: { chain: 'gateway-grabbl', term, product, storeProduct, matchGuard: unsafeReason }
-        });
+          sourceAvailabilityVerified: true,
+          canAlertAsInventory: false,
+          canAlertAsWatch: false,
+          inventorySemantics: 'binary_retailer_orderable_no_exact_count',
+          evidence: `${store.name} Grabbl store response currently marks ${rawName}${price ? ` at $${price.toFixed(2)}` : ''} available for ${store.address}; exact count is not exposed.`,
+          raw: {
+            chain: store.sourceId,
+            merchantId: store.merchantId,
+            sourceAvailabilityVerified: true,
+            reportedQuantity: 1,
+            term,
+            product,
+            storeProduct,
+            matchGuard: unsafeReason
+          }
+        };
+        if (!isTennesseeRetailerInventory(draft)) continue;
+        draft.canAlertAsInventory = true;
+        draft.canAlertAsWatch = true;
+        signals.push(draft);
       }
     }
     await sleep(250);
@@ -3535,9 +3688,9 @@ async function collectTennesseeGatewayGrabbl(config, bible, observedAt) {
       state: config.id,
       source: 'Gateway Wine & Spirits Grabbl public store API',
       url: 'https://gatewaywineandspirit.com/',
-      status: 'reachable_no_safe_bourbon_inventory',
-      error: `Gateway Grabbl product search returned ${returnedRows} product rows but no safe Bourbon Signal matches survived relevance and bottle-bible guards.`,
-      nextRoute: 'Inspect Grabbl product names and add exact aliases only when identities are unambiguous.'
+      status: 'reachable_no_current_orderability_evidence',
+      error: `Gateway Grabbl product search returned ${returnedRows} product rows but none supplied current positive pickup/orderability evidence plus exact bottle and store identity.`,
+      nextRoute: 'Treat the response as catalog-only until the exact store payload exposes positive current availability; keep every listing nonalertable.'
     });
   }
   return { signals, roadblocks };
@@ -5513,11 +5666,15 @@ async function collectSouthCarolina(config, bible) {
 
 async function collectTennessee(config, bible) {
   const observedAt = new Date().toISOString();
+  const configuredStores = buildTennesseeConfiguredStoreLocationSignals(observedAt);
   const cityHive = await collectTennesseeCityHive(config, bible, observedAt);
   const shopify = await collectTennesseeShopify(config, bible, observedAt);
   const coolSprings = await collectTennesseeCoolSprings(config, bible, observedAt);
   const gatewayGrabbl = await collectTennesseeGatewayGrabbl(config, bible, observedAt);
-  return { signals: [...cityHive.signals, ...shopify.signals, ...coolSprings.signals, ...gatewayGrabbl.signals], roadblocks: [...cityHive.roadblocks, ...shopify.roadblocks, ...coolSprings.roadblocks, ...gatewayGrabbl.roadblocks] };
+  return {
+    signals: [...configuredStores, ...cityHive.signals, ...shopify.signals, ...coolSprings.signals, ...gatewayGrabbl.signals],
+    roadblocks: [...cityHive.roadblocks, ...shopify.roadblocks, ...coolSprings.roadblocks, ...gatewayGrabbl.roadblocks]
+  };
 }
 
 function specsProductNameFromText(text, fallbackUrl) {

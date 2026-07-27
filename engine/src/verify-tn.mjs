@@ -1,4 +1,6 @@
 import { readFile } from 'node:fs/promises';
+import { isTennesseeRetailerInventory } from './tennessee-retailer-policy.mjs';
+import { tennesseeSourceForId } from './collectors/tennessee-retailer-surfaces.mjs';
 
 async function readJson(file, fallback = null) {
   try { return JSON.parse(await readFile(file, 'utf8')); } catch { return fallback; }
@@ -22,11 +24,12 @@ const signals = state.signals || [];
 const cacheGeneratedAtMs = cache?.generatedAt ? new Date(cache.generatedAt).getTime() : 0;
 const cacheAgeHours = Number.isFinite(cacheGeneratedAtMs) && cacheGeneratedAtMs > 0 ? (Date.now() - cacheGeneratedAtMs) / 3_600_000 : null;
 const cityHiveInventorySignals = signals.filter((signal) => signal.eventType === 'cityhive_store_inventory_result');
-const positiveCityHiveSignals = cityHiveInventorySignals.filter((signal) => Number(signal.quantity || 0) > 0 && signal.storeId && signal.storeAddress && signal.canAlertAsInventory);
+const positiveCityHiveSignals = cityHiveInventorySignals.filter((signal) => signal.canAlertAsInventory && isTennesseeRetailerInventory(signal));
 const retailerInventorySignals = signals.filter((signal) => signal.eventType === 'retailer_store_inventory_result');
-const positiveRetailerSignals = retailerInventorySignals.filter((signal) => Number(signal.quantity || 0) > 0 && signal.storeId && signal.storeAddress && signal.canAlertAsInventory);
+const positiveRetailerSignals = retailerInventorySignals.filter((signal) => signal.canAlertAsInventory && isTennesseeRetailerInventory(signal));
 const positiveInventorySignals = [...positiveCityHiveSignals, ...positiveRetailerSignals];
-const cityHiveStoreLocations = signals.filter((signal) => signal.eventType === 'retailer_store_location' && /CityHive/i.test(String(signal.sourceLabel || '')));
+const cityHiveStoreLocations = signals.filter((signal) => signal.eventType === 'retailer_store_location'
+  && tennesseeSourceForId(signal.sourceChain || signal.raw?.chain)?.platform === 'cityhive');
 const inventorySources = new Set(positiveInventorySignals.map((signal) => signal.sourceLabel).filter(Boolean));
 const cityHiveSources = new Set(positiveCityHiveSignals.map((signal) => signal.sourceLabel).filter(Boolean));
 const nonCityHiveSources = new Set(positiveRetailerSignals.map((signal) => signal.sourceLabel).filter(Boolean));
@@ -45,17 +48,17 @@ const tnDrops = (dropsExport.drops || []).filter((drop) => drop.state === 'TN');
 const cityHiveDrops = tnDrops.filter((drop) => drop.type === 'cityhive_store_inventory_result');
 const retailerDrops = tnDrops.filter((drop) => drop.type === 'retailer_store_inventory_result');
 const inventoryDrops = [...cityHiveDrops, ...retailerDrops];
-const alertableDrops = inventoryDrops.filter((drop) => drop.canAlertAsInventory && Number(drop.quantity || 0) > 0 && drop.storeId && drop.storeAddress);
-const cityHiveAlertableDrops = cityHiveDrops.filter((drop) => drop.canAlertAsInventory && Number(drop.quantity || 0) > 0 && drop.storeId && drop.storeAddress);
-const retailerAlertableDrops = retailerDrops.filter((drop) => drop.canAlertAsInventory && Number(drop.quantity || 0) > 0 && drop.storeId && drop.storeAddress);
+const alertableDrops = inventoryDrops.filter((drop) => drop.canAlertAsInventory && isTennesseeRetailerInventory(drop));
+const cityHiveAlertableDrops = cityHiveDrops.filter((drop) => drop.canAlertAsInventory && isTennesseeRetailerInventory(drop));
+const retailerAlertableDrops = retailerDrops.filter((drop) => drop.canAlertAsInventory && isTennesseeRetailerInventory(drop));
 const dropSources = new Set(inventoryDrops.map((drop) => drop.source).filter(Boolean));
 const dropCities = new Set(inventoryDrops.map((drop) => String(drop.city || '').trim()).filter(Boolean));
 const tnStores = (storesExport.stores || []).filter((store) => store.state === 'TN');
 const tnLocations = (locationsExport.locations || []).filter((location) => location.state === 'TN');
 
-assert(positiveCityHiveSignals.length >= 60, `Expected at least 60 positive TN CityHive inventory rows; got ${positiveCityHiveSignals.length}`);
-assert(positiveRetailerSignals.length >= 10, `Expected at least 10 positive non-CityHive TN retailer inventory rows; got ${positiveRetailerSignals.length}`);
-assert(positiveInventorySignals.length >= 75, `Expected at least 75 positive TN inventory rows; got ${positiveInventorySignals.length}`);
+assert(positiveCityHiveSignals.length >= 60, `Expected at least 60 exact-store, currently orderable TN CityHive rows; got ${positiveCityHiveSignals.length}`);
+assert(positiveRetailerSignals.length >= 10, `Expected at least 10 exact-store, currently orderable non-CityHive TN rows; got ${positiveRetailerSignals.length}`);
+assert(positiveInventorySignals.length >= 75, `Expected at least 75 qualified TN inventory rows; got ${positiveInventorySignals.length}`);
 assert(cityHiveSources.size >= 7, `Expected at least 7 TN CityHive inventory sources; got ${cityHiveSources.size}: ${[...cityHiveSources].join(', ')}`);
 assert(nonCityHiveSources.size >= 1, `Expected at least 1 non-CityHive TN inventory source; got ${nonCityHiveSources.size}`);
 assert(inventorySources.size >= 8, `Expected at least 8 TN inventory sources; got ${inventorySources.size}: ${[...inventorySources].join(', ')}`);

@@ -3,6 +3,11 @@ import { readSiteExport, readBundledSiteExport, siteExportHeaders, listStates, n
 import { californiaAreaMatchesFields, parseCaliforniaAreaQuery } from "@/lib/california-area";
 import { nevadaAreaMatchesFields, parseNevadaAreaQuery } from "@/lib/nevada-area";
 import { mergeStoreDirectoryPayloads } from "@/lib/store-directory";
+import {
+  demandMetroAreaMatchesFields,
+  demandMetroBoardGroupMatchesFields,
+  parseDemandMetroAreaQuery,
+} from "@/lib/demand-metro-areas";
 
 function normalizeText(value: unknown) {
   return typeof value === "string" ? value.toLowerCase().trim() : "";
@@ -82,11 +87,15 @@ export async function GET(request: Request) {
   const state = url.searchParams.get("state")?.toUpperCase();
   const californiaArea = parseCaliforniaAreaQuery(url.searchParams.get("area"));
   const nevadaArea = parseNevadaAreaQuery(url.searchParams.get("area"));
+  const demandMetroAreas = parseDemandMetroAreaQuery(state || "", url.searchParams.get("area"));
   if (state === "CA" && californiaArea.requested && !californiaArea.valid) {
     return NextResponse.json({ locations: [], stores: [], total: 0, error: "Unsupported California area" }, { status: 400 });
   }
   if (state === "NV" && nevadaArea.requested && !nevadaArea.valid) {
     return NextResponse.json({ locations: [], stores: [], total: 0, error: "Unsupported Nevada area" }, { status: 400 });
+  }
+  if (["NC", "GA", "TN"].includes(state || "") && demandMetroAreas.requested && !demandMetroAreas.valid) {
+    return NextResponse.json({ locations: [], stores: [], total: 0, error: `Unsupported ${state} metro area` }, { status: 400 });
   }
 
   try {
@@ -142,6 +151,15 @@ export async function GET(request: Request) {
       locations = locations.filter((location) => {
         const record = location as Record<string, unknown>;
         return String(record.state ?? record.state_code ?? "").toUpperCase() === state;
+      });
+    }
+    if (["NC", "GA", "TN"].includes(state || "") && demandMetroAreas.areas.length) {
+      locations = locations.filter((location) => {
+        const record = location as Record<string, unknown>;
+        const fields = [record.city, record.address, record.name, record.displayLabel, record.area, record.county, record.district];
+        return state === "NC"
+          ? demandMetroBoardGroupMatchesFields(fields, demandMetroAreas.areas)
+          : demandMetroAreaMatchesFields(state || "", fields, demandMetroAreas.areas);
       });
     }
     if (state === "CA" && californiaArea.areas.length) {

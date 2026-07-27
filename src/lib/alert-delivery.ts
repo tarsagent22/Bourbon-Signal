@@ -18,10 +18,18 @@ import { nevadaAreaMatchesFields, normalizeNevadaAreas } from "@/lib/nevada-area
 import { newYorkAreaMatchesFields, normalizeNewYorkAreas } from "@/lib/new-york-area";
 import { coloradoAreaMatchesFields, normalizeColoradoAreas } from "@/lib/colorado-area";
 import { firstAlertCreatedMetadata } from "@/lib/member-activation";
+import {
+  CHARLOTTE_METRO_BOARD_GROUP,
+  demandMetroAreaMatchesFields,
+  demandMetroBoardGroupMatchesFields,
+  normalizeDemandMetroAreas,
+} from "@/lib/demand-metro-areas";
 
 export interface AreaPreferences {
   states: string[];
   ncBoards: string[];
+  gaAreas: string[];
+  tnAreas: string[];
   vaCities: string[];
   ohCities: string[];
   iaCities: string[];
@@ -109,7 +117,9 @@ export function normalizeAreaPrefs(input: unknown): AreaPreferences {
   const supportedStates = new Set<string>(ACTIVE_ENGINE_STATE_CODES);
   return {
     states: toStrings(source.states).map((state) => normalizeStateCodeParam(state)).filter((state): state is string => Boolean(state && supportedStates.has(state))),
-    ncBoards: toStrings(source.ncBoards),
+    ncBoards: toStrings(source.ncBoards).map((value) => normalizeDemandMetroAreas("NC", [value])[0] || value),
+    gaAreas: normalizeDemandMetroAreas("GA", source.gaAreas),
+    tnAreas: normalizeDemandMetroAreas("TN", source.tnAreas),
     vaCities: toStrings(source.vaCities),
     ohCities: toStrings(source.ohCities),
     iaCities: toStrings(source.iaCities),
@@ -192,7 +202,13 @@ export function candidateMatchesArea(candidate: CandidateAlert, areaPrefs: AreaP
     asString(candidate.board_name),
   ];
 
-  if (state === "NC" && areaPrefs.ncBoards.length) return locationMatchesAny(locationFields, areaPrefs.ncBoards);
+  if (state === "NC" && areaPrefs.ncBoards.length) {
+    const ordinaryBoards = areaPrefs.ncBoards.filter((value) => value !== CHARLOTTE_METRO_BOARD_GROUP);
+    return demandMetroBoardGroupMatchesFields(locationFields, areaPrefs.ncBoards)
+      || (ordinaryBoards.length > 0 && locationMatchesAny(locationFields, ordinaryBoards));
+  }
+  if (state === "GA" && areaPrefs.gaAreas.length) return demandMetroAreaMatchesFields(state, locationFields, areaPrefs.gaAreas);
+  if (state === "TN" && areaPrefs.tnAreas.length) return demandMetroAreaMatchesFields(state, locationFields, areaPrefs.tnAreas);
   if (state === "VA" && areaPrefs.vaCities.length) return locationMatchesAny(locationFields, areaPrefs.vaCities);
   if (state === "OH" && areaPrefs.ohCities.length) return locationMatchesAny(locationFields, areaPrefs.ohCities);
   if (state === "IA" && areaPrefs.iaCities.length) return locationMatchesAny(locationFields, areaPrefs.iaCities);
@@ -235,6 +251,8 @@ function hasSavedAreaPreferences(areaPrefs: AreaPreferences) {
   return Boolean(
     areaPrefs.states.length ||
     areaPrefs.ncBoards.length ||
+    areaPrefs.gaAreas.length ||
+    areaPrefs.tnAreas.length ||
     areaPrefs.vaCities.length ||
     areaPrefs.ohCities.length ||
     areaPrefs.iaCities.length ||
@@ -611,7 +629,12 @@ function candidateMatchedArea(candidate: CandidateAlert, areaPrefs: AreaPreferen
     asString(candidate.store_county),
     asString(candidate.board_name),
   ];
-  if (state === "NC" && areaPrefs.ncBoards.length) return matchedLocationFromOptions(candidate, areaPrefs.ncBoards) || locationName || stateLabel(state);
+  if (state === "NC" && areaPrefs.ncBoards.length) {
+    if (demandMetroBoardGroupMatchesFields(locationFields, areaPrefs.ncBoards)) return CHARLOTTE_METRO_BOARD_GROUP;
+    return matchedLocationFromOptions(candidate, areaPrefs.ncBoards) || locationName || stateLabel(state);
+  }
+  if (state === "GA" && areaPrefs.gaAreas.length && demandMetroAreaMatchesFields(state, locationFields, areaPrefs.gaAreas)) return "Atlanta Metro";
+  if (state === "TN" && areaPrefs.tnAreas.length && demandMetroAreaMatchesFields(state, locationFields, areaPrefs.tnAreas)) return "Nashville Metro";
   if (state === "VA" && areaPrefs.vaCities.length) return matchedLocationFromOptions(candidate, areaPrefs.vaCities) || locationName || stateLabel(state);
   if (state === "OH" && areaPrefs.ohCities.length) return matchedLocationFromOptions(candidate, areaPrefs.ohCities) || locationName || stateLabel(state);
   if (state === "IA" && areaPrefs.iaCities.length) return matchedLocationFromOptions(candidate, areaPrefs.iaCities) || locationName || stateLabel(state);
