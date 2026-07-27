@@ -140,6 +140,8 @@ export function buildLocationBible(signals = [], officialLocations = []) {
     const isStore = signal.locationPrecision === 'store_level' && (signal.storeName || signal.locationName || signal.storeAddress);
     const isBoard = !isStore && (signal.locationName || signal.county || signal.city);
     if (!isStore && !isBoard) continue;
+    const countsAsAvailabilitySignal = signal.eventType !== 'retailer_store_location'
+      && signal.sourceAvailabilityVerified !== false;
 
     const location = makeLocation({
       id: isStore
@@ -160,17 +162,17 @@ export function buildLocationBible(signals = [], officialLocations = []) {
       sourceUrl: signal.sourceUrl,
       inventoryCapability: signal.locationPrecision,
       collectorAttached: true,
-      hasSignals: true,
-      signalCount: 1,
-      lastSignalAt: signal.observedAt,
+      hasSignals: countsAsAvailabilitySignal,
+      signalCount: countsAsAvailabilitySignal ? 1 : 0,
+      lastSignalAt: countsAsAvailabilitySignal ? signal.observedAt : null,
       notes: signal.inventorySemantics
     });
     const key = location.id;
     const existing = groupedSignals.get(key);
     if (!existing) groupedSignals.set(key, location);
     else {
-      existing.signalCount += 1;
-      existing.hasSignals = true;
+      existing.signalCount += location.signalCount || 0;
+      existing.hasSignals = existing.hasSignals || location.hasSignals;
       existing.collectorAttached = true;
       if (location.lastSignalAt && (!existing.lastSignalAt || location.lastSignalAt > existing.lastSignalAt)) existing.lastSignalAt = location.lastSignalAt;
       for (const field of ['name', 'address', 'city', 'county', 'area', 'zip', 'lat', 'lng', 'source', 'sourceUrl', 'notes']) {

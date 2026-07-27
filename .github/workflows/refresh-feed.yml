@@ -112,6 +112,7 @@ jobs:
           BOURBON_SIGNAL_STATE_SCHEDULER: ${{ inputs.force_all_states == 'true' && '0' || '1' }}
           BOURBON_SIGNAL_RUN_STATES: ${{ inputs.states || '' }}
           BOURBON_SIGNAL_BROWSER_REFRESH_MINUTES: ${{ contains(inputs.states, 'PA') && '0' || '240' }}
+          BOURBON_SIGNAL_TN_FORCE_CITYHIVE_LIVE: ${{ inputs.states && contains(inputs.states, 'TN') && '1' || '0' }}
         run: npm run refresh:site
 
 

@@ -168,12 +168,25 @@ test('all 13 Nashville locator identities stay searchable without becoming inven
     && row.sourceAvailabilityVerified === false
   ));
 
+  const locatorLocations = buildLocationBible(locatorSignals, [])
+    .filter((row) => row.state === 'TN' && row.area === 'Nashville Metro');
+  assert.equal(locatorLocations.length, 13);
+  assert.ok(locatorLocations.every((row) =>
+    row.collectorAttached === true
+    && row.hasSignals === false
+    && row.signalCount === 0
+  ));
+
   const positive = tennesseeBinarySignal({ observedAt: '2026-07-27T12:05:00.000Z' });
   const withInventory = buildStores([...locatorSignals, positive]);
   const positiveStore = withInventory.find((row) => row.id === positive.storeId);
   assert.equal(positiveStore?.hasSignals, true);
   assert.equal(positiveStore?.signalCount, 1);
   assert.equal(positiveStore?.sourceAvailabilityVerified, true);
+  const positiveLocation = buildLocationBible([...locatorSignals, positive], [])
+    .find((row) => row.id === positive.storeId);
+  assert.equal(positiveLocation?.hasSignals, true);
+  assert.equal(positiveLocation?.signalCount, 1);
   assert.equal(
     withInventory.filter((row) => row.state === 'TN' && row.area === 'Nashville Metro' && row.hasSignals).length,
     1,
@@ -185,6 +198,9 @@ test('Grabbl orderability fails closed on denial and ambiguous status text', () 
     'not available',
     'unavailable',
     'not orderable',
+    'not in stock',
+    'currently not in stock',
+    'no longer available',
     'out of stock',
     'sold out',
     'available for pickup but sold out',
@@ -247,7 +263,7 @@ test('Tennessee snapshot evidence requires a current generated partition or expl
         error: 'Using cache-backed exact-store rows inside the bounded freshness window.',
       }],
     },
-  }).ok, true);
+  }).ok, false, 'a cache-reuse roadblock must not weaken targeted/current verification');
   assert.equal(evaluateTennesseeSnapshotEvidence({ ...retainedOnly, allowFreshRetainedEvidence: true }).ok, true);
 
   const expired = tennesseeBinarySignal({ observedAt: '2026-07-26T20:00:00.000Z' });
@@ -361,6 +377,7 @@ test('lifecycle, collectors, verifiers, and CI expose all three demand-selected 
   assert.match(workflow, /verify:demand-metros/);
   assert.match(workflow, /verify:tn/);
   assert.match(workflow, /--allow-fresh-retained-evidence/);
+  assert.match(workflow, /BOURBON_SIGNAL_TN_FORCE_CITYHIVE_LIVE:[^\n]*contains\(inputs\.states, 'TN'\)[^\n]*'1'/);
   assert.doesNotMatch(workflow, /verify:demand-metros[^\n]*--structural-only/, 'production publication must use generated-evidence verification, never structural-only mode');
   assert.doesNotMatch(workflow, /BOURBON_SIGNAL_VERIFY_SITE_DIR/, 'publication verification must inspect the generated workflow site directory');
 });

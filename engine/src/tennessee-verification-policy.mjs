@@ -68,7 +68,10 @@ export function evaluateTennesseeSnapshotEvidence({
     ? []
     : dropEvidence.filter((row) => (evidenceTimestamp(row) ?? -Infinity) >= stateStartedAtMs);
   const explicitlyAllowedRetention = stateReportExplicitlyAllowsFreshRetention(stateReport);
-  const retainedEvidenceAllowed = allowFreshRetainedEvidence || explicitlyAllowedRetention;
+  // A collector roadblock may explain why retained rows exist, but it must not
+  // weaken a targeted verifier. Only the caller (scheduled fallback lane) can
+  // explicitly authorize bounded fresh retention.
+  const retainedEvidenceAllowed = allowFreshRetainedEvidence;
   const eligibleStateEvidence = retainedEvidenceAllowed ? stateEvidence : currentStateEvidence;
   const eligibleDropEvidence = retainedEvidenceAllowed ? dropEvidence : currentDropEvidence;
 

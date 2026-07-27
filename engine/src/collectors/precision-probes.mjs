@@ -3558,7 +3558,7 @@ export function grabblHasCurrentOrderability(storeProduct) {
     .replace(/[_-]+/g, ' ')
     .replace(/\s+/g, ' ')
     .trim();
-  if (/\b(?:not\s+(?:currently\s+)?(?:available|orderable)|unavailable|out\s+of\s+stock|sold\s+out)\b/i.test(statusText)) return false;
+  if (/\b(?:not\s+(?:currently\s+)?(?:available|orderable|in\s+stock)|currently\s+not\s+in\s+stock|no\s+longer\s+available|unavailable|out\s+of\s+stock|sold\s+out)\b/i.test(statusText)) return false;
   if (/\b(?:status\s+unknown|unknown|unclear|pending|maybe|possibly|not\s+sure|cannot\s+confirm|can't\s+confirm)\b/i.test(statusText)) return false;
 
   const values = [

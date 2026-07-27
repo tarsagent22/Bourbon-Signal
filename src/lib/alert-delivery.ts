@@ -117,7 +117,7 @@ export function normalizeAreaPrefs(input: unknown): AreaPreferences {
   const supportedStates = new Set<string>(ACTIVE_ENGINE_STATE_CODES);
   return {
     states: toStrings(source.states).map((state) => normalizeStateCodeParam(state)).filter((state): state is string => Boolean(state && supportedStates.has(state))),
-    ncBoards: toStrings(source.ncBoards).map((value) => normalizeDemandMetroAreas("NC", [value])[0] || value),
+    ncBoards: uniqueStrings(toStrings(source.ncBoards).map((value) => normalizeDemandMetroAreas("NC", [value])[0] || value)),
     gaAreas: normalizeDemandMetroAreas("GA", source.gaAreas),
     tnAreas: normalizeDemandMetroAreas("TN", source.tnAreas),
     vaCities: toStrings(source.vaCities),
