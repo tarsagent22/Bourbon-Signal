@@ -24,7 +24,7 @@ import { useStores, type Store } from "@/hooks/useStores";
 import { useStats } from "@/lib/useEngineData";
 import { makeSightingId, type MemberSighting, type SignalReportKind, type SightingVoteKind } from "@/lib/sightings";
 import { locationLabelsMatch, normalizeStateCodeParam, publicStateCode } from "@/lib/location-normalization";
-import { coveredAreaLabelsMatch, getCoveredAreaOptionsForState } from "@/lib/feed-area-options";
+import { buildDropFeedAreaRequest, coveredAreaLabelsMatch, getCoveredAreaOptionsForState } from "@/lib/feed-area-options";
 import { californiaAreaMatchesFields } from "@/lib/california-area";
 import { nevadaAreaMatchesFields } from "@/lib/nevada-area";
 import { newYorkAreaMatchesFields } from "@/lib/new-york-area";
@@ -1495,7 +1495,6 @@ export default function DropFeed() {
   }, []);
 
   const activeTierParam = useMemo(() => canUseDropFeedFilters ? Array.from(activeTiers).sort().join(",") : "", [activeTiers, canUseDropFeedFilters]);
-  const activeAreaParam = useMemo(() => canUseDropFeedFilters ? areaQueryFromFilter(countyFilter) : "", [canUseDropFeedFilters, countyFilter]);
   const activeBottleParam = canUseBottleSearch ? debouncedBottleSearch.trim() : "";
 
   const feedStateParam = urlStateFilter || (canUseStateFilter
@@ -1505,11 +1504,12 @@ export default function DropFeed() {
         ? areaPrefs.states[0]
         : null)
     : null);
-  const legacyAreaQueryKey = feedStateParam === "CA" ? "area" : "store";
-  const isNevadaAreaQuery = feedStateParam === "NV";
-  const areaQueryKey = isNevadaAreaQuery || ["NC", "GA", "TN", "NY", "CO"].includes(feedStateParam || "")
-    ? "area"
-    : legacyAreaQueryKey;
+  const activeAreaRequest = useMemo(
+    () => canUseDropFeedFilters ? buildDropFeedAreaRequest(feedStateParam, countyFilter) : null,
+    [canUseDropFeedFilters, countyFilter, feedStateParam],
+  );
+  const activeAreaParam = activeAreaRequest?.value || "";
+  const activeAreaQueryKey = activeAreaRequest?.key || "store";
 
   const fetchDrops = useCallback(async ({ signal, forceRefresh = false }: { signal?: AbortSignal; forceRefresh?: boolean } = {}) => {
     try {
@@ -1527,7 +1527,7 @@ export default function DropFeed() {
           query.set("history", "1");
         }
         if (activeBottleParam) query.set("bottle", activeBottleParam);
-        if (activeAreaParam) query.set(areaQueryKey, activeAreaParam);
+        if (activeAreaParam) query.set(activeAreaQueryKey, activeAreaParam);
         const json = await fetchDropFeedPage(`/api/drops?${query.toString()}`, signal, forceRefresh);
         latestJson = json;
 
@@ -1574,7 +1574,7 @@ export default function DropFeed() {
       if (fetchError instanceof DOMException && fetchError.name === "AbortError") return;
       setError(true);
     }
-  }, [activeAreaParam, activeBottleParam, activeTierParam, areaQueryKey, feedStateParam, isFreeUser]);
+  }, [activeAreaParam, activeAreaQueryKey, activeBottleParam, activeTierParam, feedStateParam, isFreeUser]);
 
   useEffect(() => {
     setVisibleDropCount(isFreeUser ? 7 : 10);
@@ -1873,7 +1873,7 @@ export default function DropFeed() {
           query.set("history", "1");
         }
         if (activeBottleParam) query.set("bottle", activeBottleParam);
-        if (activeAreaParam) query.set(areaQueryKey, activeAreaParam);
+        if (activeAreaParam) query.set(activeAreaQueryKey, activeAreaParam);
         const json = await fetchDropFeedPage(`/api/drops?${query.toString()}`);
         latestJson = json;
 

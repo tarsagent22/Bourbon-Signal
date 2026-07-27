@@ -46,6 +46,16 @@ export function normalizeDemandMetroAreas(state: unknown, values: unknown): stri
   return values.some((value) => canonicalMetroArea(state, value) === definition.label) ? [definition.label] : [];
 }
 
+export function normalizeNcBoardPreferences(values: unknown): string[] {
+  if (!Array.isArray(values)) return [];
+  return Array.from(new Set(
+    values
+      .filter((value): value is string => typeof value === "string")
+      .map((value) => normalizeDemandMetroAreas("NC", [value])[0] || value.trim())
+      .filter(Boolean),
+  ));
+}
+
 export function parseDemandMetroAreaQuery(state: unknown, raw: unknown): { requested: boolean; valid: boolean; areas: string[] } {
   if (typeof raw !== "string" || raw.trim() === "") return { requested: false, valid: true, areas: [] };
   const values = raw.split(",").map((value) => value.trim()).filter(Boolean);

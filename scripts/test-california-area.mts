@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { californiaAreaMatchesFields, normalizeCaliforniaAreas, parseCaliforniaAreaQuery, SUPPORTED_CALIFORNIA_AREAS } from '../src/lib/california-area.ts';
+import { buildDropFeedAreaRequest } from '../src/lib/feed-area-options.ts';
 
 assert.deepEqual(SUPPORTED_CALIFORNIA_AREAS, ['San Diego']);
 assert.deepEqual(normalizeCaliforniaAreas(['San Diego', 'Los Angeles', 'san diego']), ['San Diego']);
@@ -16,9 +17,10 @@ assert.equal(californiaAreaMatchesFields(['San Diego'], []), true);
 assert.deepEqual(parseCaliforniaAreaQuery(null), { requested: false, valid: true, areas: [] });
 assert.deepEqual(parseCaliforniaAreaQuery('San Diego'), { requested: true, valid: true, areas: ['San Diego'] });
 assert.deepEqual(parseCaliforniaAreaQuery('Los Angeles'), { requested: true, valid: false, areas: [] });
+assert.deepEqual(buildDropFeedAreaRequest('CA', 'CA::san diego'), { key: 'area', value: 'san diego' });
 
 const sourceContracts = [
-  ['src/components/sections/DropFeed.tsx', ['feedStateParam === "CA" ? "area" : "store"', 'californiaAreaMatchesFields(areaLabelsForDrop(drop), [wanted])']],
+  ['src/components/sections/DropFeed.tsx', ['buildDropFeedAreaRequest(feedStateParam, countyFilter)', 'californiaAreaMatchesFields(areaLabelsForDrop(drop), [wanted])']],
   ['src/app/dashboard/page.tsx', ['californiaAreaMatchesFields([', 'areaPrefs.caAreas']],
   ['src/app/api/drops/route.ts', ['parseCaliforniaAreaQuery', 'californiaAreaMatchesFields']],
   ['src/app/api/stores/route.ts', ['parseCaliforniaAreaQuery', 'californiaAreaMatchesFields']],

@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { unstable_cache } from "next/cache";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { isUserFacingDropSignal, normalizeDropForSite, readSiteExportResults, siteExportHeaders } from "@/lib/site-engine-contract";
-import { locationLabelsMatch, normalizeStateCodeParam } from "@/lib/location-normalization";
+import { normalizeStateCodeParam } from "@/lib/location-normalization";
 import { decodeDropCursor, DropCursorSnapshotError, paginateDrops } from "@/lib/drop-cursor";
 import { dropFeedCacheHeaders } from "@/lib/api-cache-contract";
 import { dropFreshnessTime, resolveDropLimit } from "@/lib/drop-feed-policy";
@@ -20,6 +20,7 @@ import {
   demandMetroBoardGroupMatchesFields,
   parseDemandMetroAreaQuery,
 } from "@/lib/demand-metro-areas";
+import { dropFeedStoreQueryMatches } from "@/lib/feed-area-options";
 
 const ANONYMOUS_DROP_PREVIEW_LIMIT = 7;
 const DROP_FEED_TIERS = new Set(["unicorn", "allocated", "limited"]);
@@ -83,37 +84,14 @@ function includesNeedle(value: unknown, needle: string) {
   return typeof value === "string" && value.toLowerCase().includes(needle);
 }
 
-function locationMatches(value: unknown, needle: string) {
-  if (typeof value !== "string") return false;
-  return locationLabelsMatch(value, needle);
-}
-
 function arrayIncludesNeedle(value: unknown, needle: string) {
   return Array.isArray(value) && value.some((item) => includesNeedle(item, needle));
-}
-
-function locationNeedles(value: string) {
-  return Array.from(
-    new Set(
-      [
-        value,
-        value.replace(/\s+abc\s+board$/i, ""),
-        value.replace(/\s+county\s+abc\s+board$/i, " county"),
-      ]
-        .map((item) => item.toLowerCase().trim())
-        .filter(Boolean)
-    )
-  );
 }
 
 function isBoardLevelDrop(drop: Record<string, unknown>) {
   const precision = String(drop.location_precision ?? drop.locationPrecision ?? "").toLowerCase();
   const scope = String(drop.availability_scope ?? drop.availabilityScope ?? "").toLowerCase();
   return precision.includes("board") || scope === "board";
-}
-
-function isBoardQuery(value: string) {
-  return /\b(board|abc)\b/i.test(value);
 }
 
 function engineRunTimestamp(statsPayload: Record<string, unknown> | null | undefined, exportGeneratedAt?: unknown) {
@@ -459,22 +437,24 @@ export async function GET(request: Request) {
     }
 
     if (store) {
-      const needles = locationNeedles(store);
-      const allowBoardLevelDrops = state === "NC" || isBoardQuery(store);
-      drops = drops.filter((drop) =>
-        (allowBoardLevelDrops || !isBoardLevelDrop(drop as Record<string, unknown>)) &&
-        needles.some((needle) => {
-          const record = drop as Record<string, unknown>;
-          return locationMatches(drop.store_name, needle) ||
-            locationMatches(drop.store_address, needle) ||
-            locationMatches(drop.store_city, needle) ||
-            locationMatches(drop.store_county, needle) ||
-            locationMatches(drop.board_name, needle) ||
-            locationMatches(drop.display_location, needle) ||
-            locationMatches(record.locationName, needle) ||
-            locationMatches(record.county, needle);
-        })
-      );
+      drops = drops.filter((drop) => {
+        const record = drop as Record<string, unknown>;
+        return dropFeedStoreQueryMatches({
+          state,
+          query: store,
+          isBoardLevel: isBoardLevelDrop(record),
+          fields: [
+            drop.store_name,
+            drop.store_address,
+            drop.store_city,
+            drop.store_county,
+            drop.board_name,
+            drop.display_location,
+            record.locationName,
+            record.county,
+          ],
+        });
+      });
     }
 
     drops.sort((a, b) => {

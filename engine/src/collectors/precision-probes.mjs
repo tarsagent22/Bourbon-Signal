@@ -3546,7 +3546,21 @@ function grabblProductUrl(product, storeProduct) {
   return id ? `https://gatewaywineandspirit.com/products/${encodeURIComponent(id)}` : 'https://gatewaywineandspirit.com/';
 }
 
-function grabblHasCurrentOrderability(storeProduct) {
+export function grabblHasCurrentOrderability(storeProduct) {
+  const statusText = [
+    storeProduct?.availabilityStatus,
+    storeProduct?.availabilityLabel,
+    storeProduct?.status,
+  ]
+    .filter((value) => typeof value === 'string')
+    .join(' ')
+    .toLowerCase()
+    .replace(/[_-]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  if (/\b(?:not\s+(?:currently\s+)?(?:available|orderable)|unavailable|out\s+of\s+stock|sold\s+out)\b/i.test(statusText)) return false;
+  if (/\b(?:status\s+unknown|unknown|unclear|pending|maybe|possibly|not\s+sure|cannot\s+confirm|can't\s+confirm)\b/i.test(statusText)) return false;
+
   const values = [
     storeProduct?.availableQuantity,
     storeProduct?.available_quantity,
@@ -3558,7 +3572,7 @@ function grabblHasCurrentOrderability(storeProduct) {
   ];
   if (values.some((value) => Number.isFinite(Number(value)) && Number(value) > 0)) return true;
   if ([storeProduct?.available, storeProduct?.isAvailable, storeProduct?.inStock, storeProduct?.isInStock, storeProduct?.pickupAvailable, storeProduct?.isPickupAvailable].some((value) => value === true)) return true;
-  return /\b(?:in.?stock|available|orderable|pickup.?available)\b/i.test(String(storeProduct?.availabilityStatus || storeProduct?.status || ''));
+  return /\b(?:in\s+stock|available(?:\s+now)?(?:\s+for\s+(?:pickup|order))?|currently\s+available|orderable(?:\s+for\s+pickup)?|pickup\s+available)\b/i.test(statusText);
 }
 
 async function fetchGatewayGrabblProducts(search) {

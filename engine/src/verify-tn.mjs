@@ -1,6 +1,9 @@
 import { readFile } from 'node:fs/promises';
-import { isTennesseeRetailerInventory } from './tennessee-retailer-policy.mjs';
 import { tennesseeSourceForId } from './collectors/tennessee-retailer-surfaces.mjs';
+import {
+  evaluateTennesseeSnapshotEvidence,
+  qualifyingTennesseeInventoryEvidence,
+} from './tennessee-verification-policy.mjs';
 
 async function readJson(file, fallback = null) {
   try { return JSON.parse(await readFile(file, 'utf8')); } catch { return fallback; }
@@ -15,18 +18,20 @@ const cache = await readJson('out/browser/TN-cityhive-retailer-inventory.json', 
 const storesExport = await readJson('out/site/stores.json', { stores: [] });
 const locationsExport = await readJson('out/site/locations.json', { locations: [] });
 const dropsExport = await readJson('out/site/drops.json', { drops: [] });
+const allowFreshRetainedEvidence = process.argv.includes('--allow-fresh-retained-evidence');
 
 assert(state, 'Missing out/states/TN.json; run node src/run-state.mjs TN first');
-assert(state.status === 'useful', `Unexpected TN state status: ${state.status}`);
+assert(/^useful(?:_|$)/.test(String(state.status || '')), `Unexpected TN state status: ${state.status}`);
 assert(!state.stale, `TN must not be using stale fallback data: ${state.staleReason || 'stale=true'}`);
 
 const signals = state.signals || [];
 const cacheGeneratedAtMs = cache?.generatedAt ? new Date(cache.generatedAt).getTime() : 0;
 const cacheAgeHours = Number.isFinite(cacheGeneratedAtMs) && cacheGeneratedAtMs > 0 ? (Date.now() - cacheGeneratedAtMs) / 3_600_000 : null;
+const qualifyingSignals = qualifyingTennesseeInventoryEvidence(signals);
 const cityHiveInventorySignals = signals.filter((signal) => signal.eventType === 'cityhive_store_inventory_result');
-const positiveCityHiveSignals = cityHiveInventorySignals.filter((signal) => signal.canAlertAsInventory && isTennesseeRetailerInventory(signal));
+const positiveCityHiveSignals = qualifyingSignals.filter((signal) => signal.eventType === 'cityhive_store_inventory_result');
 const retailerInventorySignals = signals.filter((signal) => signal.eventType === 'retailer_store_inventory_result');
-const positiveRetailerSignals = retailerInventorySignals.filter((signal) => signal.canAlertAsInventory && isTennesseeRetailerInventory(signal));
+const positiveRetailerSignals = qualifyingSignals.filter((signal) => signal.eventType === 'retailer_store_inventory_result');
 const positiveInventorySignals = [...positiveCityHiveSignals, ...positiveRetailerSignals];
 const cityHiveStoreLocations = signals.filter((signal) => signal.eventType === 'retailer_store_location'
   && tennesseeSourceForId(signal.sourceChain || signal.raw?.chain)?.platform === 'cityhive');
@@ -48,14 +53,20 @@ const tnDrops = (dropsExport.drops || []).filter((drop) => drop.state === 'TN');
 const cityHiveDrops = tnDrops.filter((drop) => drop.type === 'cityhive_store_inventory_result');
 const retailerDrops = tnDrops.filter((drop) => drop.type === 'retailer_store_inventory_result');
 const inventoryDrops = [...cityHiveDrops, ...retailerDrops];
-const alertableDrops = inventoryDrops.filter((drop) => drop.canAlertAsInventory && isTennesseeRetailerInventory(drop));
-const cityHiveAlertableDrops = cityHiveDrops.filter((drop) => drop.canAlertAsInventory && isTennesseeRetailerInventory(drop));
-const retailerAlertableDrops = retailerDrops.filter((drop) => drop.canAlertAsInventory && isTennesseeRetailerInventory(drop));
+const alertableDrops = qualifyingTennesseeInventoryEvidence(inventoryDrops);
+const cityHiveAlertableDrops = alertableDrops.filter((drop) => drop.type === 'cityhive_store_inventory_result');
+const retailerAlertableDrops = alertableDrops.filter((drop) => drop.type === 'retailer_store_inventory_result');
 const dropSources = new Set(inventoryDrops.map((drop) => drop.source).filter(Boolean));
 const dropCities = new Set(inventoryDrops.map((drop) => String(drop.city || '').trim()).filter(Boolean));
 const tnStores = (storesExport.stores || []).filter((store) => store.state === 'TN');
 const tnLocations = (locationsExport.locations || []).filter((location) => location.state === 'TN');
+const snapshotEvidence = evaluateTennesseeSnapshotEvidence({
+  stateReport: state,
+  dropsPayload: dropsExport,
+  allowFreshRetainedEvidence,
+});
 
+assert(snapshotEvidence.ok, `TN generated snapshot evidence failed:\n- ${snapshotEvidence.failures.join('\n- ')}`);
 assert(positiveCityHiveSignals.length >= 60, `Expected at least 60 exact-store, currently orderable TN CityHive rows; got ${positiveCityHiveSignals.length}`);
 assert(positiveRetailerSignals.length >= 10, `Expected at least 10 exact-store, currently orderable non-CityHive TN rows; got ${positiveRetailerSignals.length}`);
 assert(positiveInventorySignals.length >= 75, `Expected at least 75 qualified TN inventory rows; got ${positiveInventorySignals.length}`);
@@ -117,6 +128,8 @@ console.log(JSON.stringify({
   exportedRetailerDrops: retailerDrops.length,
   exportedDrops: inventoryDrops.length,
   alertableDrops: alertableDrops.length,
+  snapshotEvidence: snapshotEvidence.counts,
+  allowFreshRetainedEvidence,
   exportedStores: tnStores.length,
   exportedLocations: tnLocations.length
 }, null, 2));

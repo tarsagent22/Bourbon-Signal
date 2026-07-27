@@ -530,6 +530,13 @@ function buildBottles(signals, bible, bibleRecords = []) {
 
 export function buildStores(signals) {
   const storeSignals = signals.filter((s) => s.locationPrecision === 'store_level' && (s.storeName || s.locationName || s.storeAddress));
+  const inventorySignals = storeSignals.filter((signal) => signal.sourceAvailabilityVerified === true && signalCanAlertAsInventory(signal));
+  const sameStore = (left, right) => {
+    if (left.storeId && right.storeId) return String(left.storeId) === String(right.storeId);
+    return left.state === right.state
+      && (left.storeName || left.locationName) === (right.storeName || right.locationName)
+      && (left.storeAddress || '') === (right.storeAddress || '');
+  };
   const configuredStores = registeredDemandMetroStores().map((store) => ({
     id: store.storeId,
     sourceStoreId: store.storeId,
@@ -549,27 +556,33 @@ export function buildStores(signals) {
     inventoryCapability: 'exact_store_source_registered',
     sourceAvailabilityVerified: false,
   }));
-  const signalStores = storeSignals.map((s) => ({
-    id: s.storeId ? String(s.storeId) : stableId([s.state, s.storeName || s.locationName, s.storeAddress || s.city || s.county]),
-    sourceStoreId: s.storeId ? String(s.storeId) : null,
-    state: s.state,
-    name: s.storeName || s.locationName,
-    address: s.storeAddress || null,
-    city: s.city || null,
-    county: s.county || null,
-    area: s.area || (demandMetroAreaMatchesFields(s.state, [s.city, s.storeAddress, s.storeName || s.locationName], [demandMetroAreaLabel(s.state)])
-      ? demandMetroAreaLabel(s.state)
-      : null),
-    zip: s.zip || null,
-    lat: s.lat,
-    lng: s.lng,
-    source: s.sourceLabel,
-    signalCount: storeSignals.filter((x) => x.state === s.state && (x.storeName || x.locationName) === (s.storeName || s.locationName) && (x.storeAddress || '') === (s.storeAddress || '')).length,
-    hasSignals: true,
-    collectorAttached: true,
-    inventoryCapability: s.locationPrecision,
-    sourceAvailabilityVerified: s.sourceAvailabilityVerified === true,
-  }));
+  const signalStores = storeSignals.map((s) => {
+    const matchingInventorySignals = inventorySignals.filter((candidate) => sameStore(candidate, s));
+    const signalCount = matchingInventorySignals.length;
+    const directoryOnly = String(s.eventType || s.type || '') === 'retailer_store_location'
+      || s.raw?.configuredStoreIdentity === true;
+    return {
+      id: s.storeId ? String(s.storeId) : stableId([s.state, s.storeName || s.locationName, s.storeAddress || s.city || s.county]),
+      sourceStoreId: s.storeId ? String(s.storeId) : null,
+      state: s.state,
+      name: s.storeName || s.locationName,
+      address: s.storeAddress || null,
+      city: s.city || null,
+      county: s.county || null,
+      area: s.area || (demandMetroAreaMatchesFields(s.state, [s.city, s.storeAddress, s.storeName || s.locationName], [demandMetroAreaLabel(s.state)])
+        ? demandMetroAreaLabel(s.state)
+        : null),
+      zip: s.zip || null,
+      lat: s.lat,
+      lng: s.lng,
+      source: s.sourceLabel,
+      signalCount,
+      hasSignals: signalCount > 0,
+      collectorAttached: true,
+      inventoryCapability: directoryOnly && signalCount === 0 ? 'exact_store_source_registered' : s.locationPrecision,
+      sourceAvailabilityVerified: signalCount > 0,
+    };
+  });
   const stores = uniqueBy([...signalStores, ...configuredStores], (s) => s.id);
   return stores.sort((a, b) => a.state.localeCompare(b.state) || String(a.name).localeCompare(String(b.name)));
 }
@@ -723,7 +736,7 @@ function isSafePublicSignal(signal) {
   if (signal.state === 'IN' && /^(cityhive_store_inventory|retailer_store_inventory)/i.test(type) && !/bourbon|whiskey|whisky|rye|blanton|eagle rare|weller|stagg|taylor|van winkle|buffalo trace|michter|willett|old fitz|elmer|rock hill|booker|baker|blood oath|four roses|1792|russell|woodford|wild turkey|elijah craig|old forester|green river|bardstown|knob creek|bulleit|maker/i.test(String(signal.rawName || signal.canonicalName || ''))) return false;
   if (signal.state === 'IL' && /^(retailer_store_inventory)/i.test(type) && !/bourbon|whiskey|whisky|rye|blanton|eagle rare|weller|stagg|taylor|van winkle|buffalo trace|michter|willett|old fitz|elmer|rock hill|booker|baker|blood oath|four roses|1792|russell|woodford|wild turkey|elijah craig|old forester|heaven hill|knob creek|maker|pappy/i.test(String(signal.rawName || signal.canonicalName || ''))) return false;
   if (signal.state === 'TN' && /^(cityhive_store_inventory|retailer_store_inventory)/i.test(type)) {
-    if (!isTennesseeRetailerSignalIdentity(signal) || !isTennesseeRetailerInventory(signal)) return false;
+    if (signal.canAlertAsInventory !== true || !isTennesseeRetailerSignalIdentity(signal) || !isTennesseeRetailerInventory(signal)) return false;
   }
 
   if (signal.state === 'PA' && type === 'store_inventory_result' && signal.locationPrecision === 'store_level') {

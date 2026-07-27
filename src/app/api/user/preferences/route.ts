@@ -34,7 +34,7 @@ import {
   type RadarPreferences,
 } from "@/lib/release-radar-preferences";
 import { buildSuppliedPreferenceMetadataPatch } from "@/lib/user-preference-patch";
-import { normalizeDemandMetroAreas } from "@/lib/demand-metro-areas";
+import { normalizeDemandMetroAreas, normalizeNcBoardPreferences } from "@/lib/demand-metro-areas";
 
 export interface AreaPreferences {
   states: string[];
@@ -137,7 +137,7 @@ function normalizeAreaPreferences(input: unknown): AreaPreferences {
 
   return {
     states: toStringArray(source.states).map((state) => state.toUpperCase()).filter((state) => supportedStates.has(state)),
-    ncBoards: toStringArray(source.ncBoards).map((value) => normalizeDemandMetroAreas("NC", [value])[0] || value),
+    ncBoards: normalizeNcBoardPreferences(source.ncBoards),
     gaAreas: normalizeDemandMetroAreas("GA", source.gaAreas),
     tnAreas: normalizeDemandMetroAreas("TN", source.tnAreas),
     vaCities: toStringArray(source.vaCities),

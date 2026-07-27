@@ -10,9 +10,11 @@ import {
   normalizeDemandMetroAreas,
 } from '../src/demand-metro-areas.mjs';
 import {
+  buildTennesseeConfiguredStoreLocationSignals,
   TENNESSEE_RETAILER_STORES,
   registeredTennesseeStore,
 } from '../src/collectors/tennessee-retailer-surfaces.mjs';
+import { grabblHasCurrentOrderability } from '../src/collectors/precision-probes.mjs';
 import {
   isAllowedTennesseeBottleFormat,
   isTennesseeRetailerInventory,
@@ -26,6 +28,7 @@ import {
 import { buildLocationBible } from '../src/location-bible.mjs';
 import { buildStores } from '../src/export-site-contract.mjs';
 import { confidenceForSignal } from '../src/confidence-policy.mjs';
+import { evaluateTennesseeSnapshotEvidence } from '../src/tennessee-verification-policy.mjs';
 
 function tennesseeBinarySignal(overrides = {}) {
   const store = registeredTennesseeStore('frugal-macdoogal', '6599a3f98893882b7f30798d');
@@ -131,7 +134,7 @@ test('Atlanta and Nashville exact-store registries provide stable metro depth wi
     .filter((store) => demandMetroAreaMatchesFields('TN', [store.city, store.address], ['Nashville Metro']));
 
   assert.ok(georgiaStores.length >= 20, `expected >=20 exact Atlanta-metro stores, got ${georgiaStores.length}`);
-  assert.ok(tennesseeStores.length >= 12, `expected >=12 exact Nashville-metro stores, got ${tennesseeStores.length}`);
+  assert.equal(tennesseeStores.length, 13, `expected all 13 exact Nashville-metro stores, got ${tennesseeStores.length}`);
   assert.ok(georgiaStores.every((store) => store.address && store.city));
   assert.ok(tennesseeStores.every((store) => store.storeId && store.merchantId && store.address && store.hostname));
 
@@ -139,13 +142,126 @@ test('Atlanta and Nashville exact-store registries provide stable metro depth wi
   const stableGaLocations = locations.filter((row) => row.state === 'GA' && row.area === 'Atlanta Metro');
   const stableTnLocations = locations.filter((row) => row.state === 'TN' && row.area === 'Nashville Metro');
   assert.ok(stableGaLocations.length >= 20);
-  assert.ok(stableTnLocations.length >= 12);
+  assert.equal(stableTnLocations.length, 13);
   assert.ok([...stableGaLocations, ...stableTnLocations].every((row) => row.hasSignals === false && row.inventoryCapability === 'exact_store_source_registered'));
 
   const stores = buildStores([]);
   assert.ok(stores.filter((row) => row.state === 'GA' && row.area === 'Atlanta Metro').length >= 20);
-  assert.ok(stores.filter((row) => row.state === 'TN' && row.area === 'Nashville Metro').length >= 12);
+  assert.equal(stores.filter((row) => row.state === 'TN' && row.area === 'Nashville Metro').length, 13);
   assert.ok(stores.filter((row) => ['GA', 'TN'].includes(row.state)).every((row) => row.signalCount === 0 && row.sourceAvailabilityVerified === false));
+});
+
+test('all 13 Nashville locator identities stay searchable without becoming inventory', () => {
+  const nashvilleRegistry = TENNESSEE_RETAILER_STORES
+    .filter((store) => demandMetroAreaMatchesFields('TN', [store.city, store.address], ['Nashville Metro']));
+  const locatorSignals = buildTennesseeConfiguredStoreLocationSignals('2026-07-27T12:00:00.000Z')
+    .filter((signal) => nashvilleRegistry.some((store) => store.storeId === signal.storeId));
+  assert.equal(locatorSignals.length, 13);
+
+  const locatorStores = buildStores(locatorSignals)
+    .filter((row) => row.state === 'TN' && row.area === 'Nashville Metro');
+  assert.equal(locatorStores.length, 13);
+  assert.ok(locatorStores.every((row) =>
+    row.collectorAttached === true
+    && row.hasSignals === false
+    && row.signalCount === 0
+    && row.sourceAvailabilityVerified === false
+  ));
+
+  const positive = tennesseeBinarySignal({ observedAt: '2026-07-27T12:05:00.000Z' });
+  const withInventory = buildStores([...locatorSignals, positive]);
+  const positiveStore = withInventory.find((row) => row.id === positive.storeId);
+  assert.equal(positiveStore?.hasSignals, true);
+  assert.equal(positiveStore?.signalCount, 1);
+  assert.equal(positiveStore?.sourceAvailabilityVerified, true);
+  assert.equal(
+    withInventory.filter((row) => row.state === 'TN' && row.area === 'Nashville Metro' && row.hasSignals).length,
+    1,
+  );
+});
+
+test('Grabbl orderability fails closed on denial and ambiguous status text', () => {
+  for (const status of [
+    'not available',
+    'unavailable',
+    'not orderable',
+    'out of stock',
+    'sold out',
+    'available for pickup but sold out',
+    'not available for pickup; orderable status unknown',
+    'available for pickup; current status unknown',
+    'not sure if available for pickup',
+  ]) {
+    assert.equal(grabblHasCurrentOrderability({ status }), false, status);
+  }
+  assert.equal(grabblHasCurrentOrderability({ isInStock: true, status: 'not available' }), false);
+  assert.equal(grabblHasCurrentOrderability({ isInStock: true }), true);
+  assert.equal(grabblHasCurrentOrderability({ pickupAvailable: true }), true);
+  assert.equal(grabblHasCurrentOrderability({ availableQuantity: 2 }), true);
+  assert.equal(grabblHasCurrentOrderability({ status: 'available for pickup' }), true);
+  assert.equal(grabblHasCurrentOrderability({ status: 'orderable for pickup' }), true);
+  assert.equal(grabblHasCurrentOrderability({ status: 'availability unknown' }), false);
+});
+
+test('Tennessee snapshot evidence requires a current generated partition or explicitly allowed fresh retention', () => {
+  const now = '2026-07-27T12:30:00.000Z';
+  const current = tennesseeBinarySignal({ observedAt: '2026-07-27T12:05:00.000Z' });
+  const base = {
+    stateReport: {
+      state: 'TN',
+      status: 'useful',
+      stale: false,
+      startedAt: '2026-07-27T12:00:00.000Z',
+      finishedAt: '2026-07-27T12:10:00.000Z',
+      signals: [current],
+    },
+    dropsPayload: {
+      generatedAt: '2026-07-27T12:11:00.000Z',
+      drops: [current],
+    },
+    now,
+  };
+  assert.equal(evaluateTennesseeSnapshotEvidence(base).ok, true);
+
+  const locatorOnly = {
+    ...base,
+    stateReport: { ...base.stateReport, signals: buildTennesseeConfiguredStoreLocationSignals(now) },
+    dropsPayload: { ...base.dropsPayload, drops: [] },
+  };
+  assert.equal(evaluateTennesseeSnapshotEvidence(locatorOnly).ok, false);
+
+  const retained = tennesseeBinarySignal({ observedAt: '2026-07-27T08:00:00.000Z' });
+  const retainedOnly = {
+    ...base,
+    stateReport: { ...base.stateReport, signals: [retained] },
+    dropsPayload: { ...base.dropsPayload, drops: [retained] },
+  };
+  assert.equal(evaluateTennesseeSnapshotEvidence(retainedOnly).ok, false);
+  assert.equal(evaluateTennesseeSnapshotEvidence({
+    ...retainedOnly,
+    stateReport: {
+      ...retainedOnly.stateReport,
+      roadblocks: [{
+        source: 'Tennessee CityHive retailer inventory cache reuse',
+        status: 200,
+        error: 'Using cache-backed exact-store rows inside the bounded freshness window.',
+      }],
+    },
+  }).ok, true);
+  assert.equal(evaluateTennesseeSnapshotEvidence({ ...retainedOnly, allowFreshRetainedEvidence: true }).ok, true);
+
+  const expired = tennesseeBinarySignal({ observedAt: '2026-07-26T20:00:00.000Z' });
+  const expiredRetention = {
+    ...retainedOnly,
+    stateReport: { ...base.stateReport, signals: [expired] },
+    dropsPayload: { ...base.dropsPayload, drops: [expired] },
+    allowFreshRetainedEvidence: true,
+  };
+  assert.equal(evaluateTennesseeSnapshotEvidence(expiredRetention).ok, false);
+  assert.equal(evaluateTennesseeSnapshotEvidence({
+    ...base,
+    dropsPayload: { ...base.dropsPayload, generatedAt: '2026-07-27T11:59:00.000Z' },
+  }).ok, false);
 });
 
 test('Tennessee format and quantity policy rejects unsafe formats and keeps binary orderability non-exact', () => {
@@ -210,6 +326,7 @@ test('confidence policy and source export fail closed for unverified Tennessee r
 
   const exporter = readFileSync(new URL('../src/export-site-contract.mjs', import.meta.url), 'utf8');
   assert.match(exporter, /isTennesseeRetailerInventory/);
+  assert.match(exporter, /signal\.canAlertAsInventory !== true/);
   assert.match(exporter, /binary_retailer_orderable_no_exact_count/);
   assert.match(exporter, /eligibleForEmail:[^\n]*false/);
   assert.match(exporter, /eligibleForSms:[^\n]*false/);
@@ -232,4 +349,17 @@ test('lifecycle, collectors, verifiers, and CI expose all three demand-selected 
   assert.equal(rootPackage.scripts['test:demand-metro-user-path'], 'node --no-warnings --experimental-strip-types scripts/test-demand-metro-user-path.mts');
   assert.match(rootPackage.scripts['verify:ci'], /test:demand-metro-user-path/);
   assert.match(rootPackage.scripts['verify:ci'], /verify:demand-metros/);
+
+  const workflow = readFileSync(new URL('../../.github/workflows/refresh-feed.yml', import.meta.url), 'utf8');
+  const demandGate = workflow.indexOf('Verify demand metro generated evidence');
+  const lastDemandGate = workflow.lastIndexOf('Verify demand metro generated evidence');
+  const tnGate = workflow.indexOf('Verify Tennessee generated contract');
+  const lastTnGate = workflow.lastIndexOf('Verify Tennessee generated contract');
+  const publish = workflow.indexOf('Publish and atomically activate encrypted snapshot');
+  assert.ok(demandGate >= 0 && lastDemandGate < tnGate, 'every demand metro verification path must precede Tennessee verification');
+  assert.ok(lastTnGate < publish, 'every Tennessee verification path must precede publication');
+  assert.match(workflow, /verify:demand-metros/);
+  assert.match(workflow, /verify:tn/);
+  assert.match(workflow, /--allow-fresh-retained-evidence/);
+  assert.doesNotMatch(workflow, /BOURBON_SIGNAL_VERIFY_SITE_DIR/, 'publication verification must inspect the generated workflow site directory');
 });

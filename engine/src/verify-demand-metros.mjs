@@ -12,8 +12,17 @@ import { registeredDemandMetroLocations, registeredDemandMetroStores } from './d
 import { buildStores } from './export-site-contract.mjs';
 import { buildLocationBible } from './location-bible.mjs';
 import { isTennesseeRetailerInventory } from './tennessee-retailer-policy.mjs';
+import {
+  evaluateTennesseeSnapshotEvidence,
+  qualifyingTennesseeInventoryEvidence,
+} from './tennessee-verification-policy.mjs';
 
-const SITE_DIR = path.resolve('out/site');
+const siteDirectoryOverride = process.env.BOURBON_SIGNAL_VERIFY_SITE_DIR;
+if (siteDirectoryOverride && process.env.GITHUB_ACTIONS === 'true') {
+  throw new Error('BOURBON_SIGNAL_VERIFY_SITE_DIR is local verification-only and cannot override the generated site directory in GitHub Actions.');
+}
+const SITE_DIR = path.resolve(siteDirectoryOverride || 'out/site');
+const OUT_DIR = path.resolve('out');
 const ROOT_DIR = path.resolve('..');
 
 async function readJson(file, fallback = null) {
@@ -55,8 +64,10 @@ function assert(condition, message, failures) {
 async function main() {
   const failures = [];
   const lifecycle = await readJson(path.join(ROOT_DIR, 'src/config/state-lifecycle.json'), {});
+  const tennesseeState = await readJson(path.join(OUT_DIR, 'states/TN.json'));
   const dropsPayload = await readJson(path.join(SITE_DIR, 'drops.json'));
   const alertsPayload = await readJson(path.join(SITE_DIR, 'alerts.json'));
+  const allowFreshRetainedEvidence = process.argv.includes('--allow-fresh-retained-evidence');
 
   assert(DEMAND_METRO_AREAS.NC.label === 'Charlotte Metro ABC Boards', 'Charlotte Metro ABC Boards canonical label drifted.', failures);
   assert(DEMAND_METRO_AREAS.GA.label === 'Atlanta Metro', 'Atlanta Metro canonical label drifted.', failures);
@@ -74,7 +85,7 @@ async function main() {
   const atlantaStores = configuredStores.filter((row) => row.state === 'GA' && row.area === 'Atlanta Metro');
   const nashvilleStores = configuredStores.filter((row) => row.state === 'TN' && row.area === 'Nashville Metro');
   assert(atlantaStores.length >= 20, `Atlanta Metro exact-store registry has ${atlantaStores.length}; expected at least 20.`, failures);
-  assert(nashvilleStores.length >= 12, `Nashville Metro exact-store registry has ${nashvilleStores.length}; expected at least 12.`, failures);
+  assert(nashvilleStores.length === 13, `Nashville Metro exact-store registry has ${nashvilleStores.length}; expected all 13.`, failures);
   assert(configuredLocations.every((row) => row.inventoryCapability === 'exact_store_source_registered' && row.hasSignals === false), 'Configured metro locations must remain non-inventory locator identities.', failures);
 
   // Build the stable directory projection from the current code instead of
@@ -87,22 +98,27 @@ async function main() {
   const exportedAtlantaLocations = exportLocations.filter((row) => stateOf(row) === 'GA' && row.area === 'Atlanta Metro');
   const exportedNashvilleLocations = exportLocations.filter((row) => stateOf(row) === 'TN' && row.area === 'Nashville Metro');
   assert(exportedAtlantaStores.length >= 20, `Store export exposes ${exportedAtlantaStores.length} Atlanta Metro exact-store identities; expected at least 20.`, failures);
-  assert(exportedNashvilleStores.length >= 12, `Store export exposes ${exportedNashvilleStores.length} Nashville Metro exact-store identities; expected at least 12.`, failures);
+  assert(exportedNashvilleStores.length === 13, `Store export exposes ${exportedNashvilleStores.length} Nashville Metro exact-store identities; expected all 13.`, failures);
   assert(exportedAtlantaLocations.length >= 20, `Location export exposes ${exportedAtlantaLocations.length} Atlanta Metro identities; expected at least 20.`, failures);
-  assert(exportedNashvilleLocations.length >= 12, `Location export exposes ${exportedNashvilleLocations.length} Nashville Metro identities; expected at least 12.`, failures);
-  assert([...exportedAtlantaStores, ...exportedNashvilleStores].every((row) => row.sourceAvailabilityVerified === false || Number(row.signalCount || 0) > 0), 'A configured exact-store export claims verified availability without a source signal.', failures);
+  assert(exportedNashvilleLocations.length === 13, `Location export exposes ${exportedNashvilleLocations.length} Nashville Metro identities; expected all 13.`, failures);
+  assert([...exportedAtlantaStores, ...exportedNashvilleStores].every((row) =>
+    row.sourceAvailabilityVerified === false
+    && row.hasSignals === false
+    && Number(row.signalCount || 0) === 0
+  ), 'A configured exact-store directory identity claims inventory or verified availability.', failures);
   assert(exportedAtlantaStores.every((row) => demandMetroAreaMatchesFields('GA', metroFields(row), ['Atlanta Metro'])), 'Atlanta Metro store export contains a cross-metro identity.', failures);
   assert(exportedNashvilleStores.every((row) => demandMetroAreaMatchesFields('TN', metroFields(row), ['Nashville Metro'])), 'Nashville Metro store export contains a cross-metro identity.', failures);
 
   const drops = rows(dropsPayload, 'drops');
-  const alertableTennessee = drops.filter((row) =>
-    stateOf(row) === 'TN'
-    && row.canAlertAsInventory === true
-    && row.sourceAvailabilityVerified === true
-    && row.sourceChain
-    && row.merchantId
-    && row.productId
+  const alertableTennessee = qualifyingTennesseeInventoryEvidence(drops).filter((row) =>
+    row.sourceChain && row.merchantId && row.productId
   );
+  const tennesseeSnapshotEvidence = evaluateTennesseeSnapshotEvidence({
+    stateReport: tennesseeState,
+    dropsPayload,
+    allowFreshRetainedEvidence,
+  });
+  assert(tennesseeSnapshotEvidence.ok, `Tennessee generated contract evidence failed:\n- ${tennesseeSnapshotEvidence.failures.join('\n- ')}`, failures);
   for (const row of alertableTennessee) {
     assert(isTennesseeRetailerInventory(row), `TN alertable drop ${row.id || row.sourceUrl || 'unknown'} fails exact retailer identity/orderability policy.`, failures);
   }
@@ -129,6 +145,8 @@ async function main() {
       atlantaStores: exportedAtlantaStores.length,
       nashvilleStores: exportedNashvilleStores.length,
       tennesseeAlertableDrops: alertableTennessee.length,
+      tennesseeSnapshotEvidence: tennesseeSnapshotEvidence.counts,
+      allowFreshRetainedEvidence,
     },
   }, null, 2));
 }
