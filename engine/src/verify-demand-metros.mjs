@@ -68,6 +68,7 @@ async function main() {
   const dropsPayload = await readJson(path.join(SITE_DIR, 'drops.json'));
   const alertsPayload = await readJson(path.join(SITE_DIR, 'alerts.json'));
   const allowFreshRetainedEvidence = process.argv.includes('--allow-fresh-retained-evidence');
+  const structuralOnly = process.argv.includes('--structural-only');
 
   assert(DEMAND_METRO_AREAS.NC.label === 'Charlotte Metro ABC Boards', 'Charlotte Metro ABC Boards canonical label drifted.', failures);
   assert(DEMAND_METRO_AREAS.GA.label === 'Atlanta Metro', 'Atlanta Metro canonical label drifted.', failures);
@@ -113,12 +114,16 @@ async function main() {
   const alertableTennessee = qualifyingTennesseeInventoryEvidence(drops).filter((row) =>
     row.sourceChain && row.merchantId && row.productId
   );
-  const tennesseeSnapshotEvidence = evaluateTennesseeSnapshotEvidence({
-    stateReport: tennesseeState,
-    dropsPayload,
-    allowFreshRetainedEvidence,
-  });
-  assert(tennesseeSnapshotEvidence.ok, `Tennessee generated contract evidence failed:\n- ${tennesseeSnapshotEvidence.failures.join('\n- ')}`, failures);
+  const tennesseeSnapshotEvidence = structuralOnly
+    ? { ok: true, failures: [], counts: null }
+    : evaluateTennesseeSnapshotEvidence({
+        stateReport: tennesseeState,
+        dropsPayload,
+        allowFreshRetainedEvidence,
+      });
+  if (!structuralOnly) {
+    assert(tennesseeSnapshotEvidence.ok, `Tennessee generated contract evidence failed:\n- ${tennesseeSnapshotEvidence.failures.join('\n- ')}`, failures);
+  }
   for (const row of alertableTennessee) {
     assert(isTennesseeRetailerInventory(row), `TN alertable drop ${row.id || row.sourceUrl || 'unknown'} fails exact retailer identity/orderability policy.`, failures);
   }
@@ -147,6 +152,7 @@ async function main() {
       tennesseeAlertableDrops: alertableTennessee.length,
       tennesseeSnapshotEvidence: tennesseeSnapshotEvidence.counts,
       allowFreshRetainedEvidence,
+      structuralOnly,
     },
   }, null, 2));
 }

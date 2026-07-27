@@ -348,7 +348,7 @@ test('lifecycle, collectors, verifiers, and CI expose all three demand-selected 
   const rootPackage = JSON.parse(readFileSync(new URL('../../package.json', import.meta.url), 'utf8'));
   assert.equal(rootPackage.scripts['test:demand-metro-user-path'], 'node --no-warnings --experimental-strip-types scripts/test-demand-metro-user-path.mts');
   assert.match(rootPackage.scripts['verify:ci'], /test:demand-metro-user-path/);
-  assert.match(rootPackage.scripts['verify:ci'], /verify:demand-metros/);
+  assert.match(rootPackage.scripts['verify:ci'], /verify:demand-metros -- --structural-only/);
 
   const workflow = readFileSync(new URL('../../.github/workflows/refresh-feed.yml', import.meta.url), 'utf8');
   const demandGate = workflow.indexOf('Verify demand metro generated evidence');
@@ -361,5 +361,6 @@ test('lifecycle, collectors, verifiers, and CI expose all three demand-selected 
   assert.match(workflow, /verify:demand-metros/);
   assert.match(workflow, /verify:tn/);
   assert.match(workflow, /--allow-fresh-retained-evidence/);
+  assert.doesNotMatch(workflow, /verify:demand-metros[^\n]*--structural-only/, 'production publication must use generated-evidence verification, never structural-only mode');
   assert.doesNotMatch(workflow, /BOURBON_SIGNAL_VERIFY_SITE_DIR/, 'publication verification must inspect the generated workflow site directory');
 });
