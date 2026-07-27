@@ -3811,6 +3811,10 @@ function PaidMemberDashboard() {
                     <div className="member-rewards-dashboard-stat"><strong>{memberRewards.currentWeeklyStreak}</strong><span>Week streak</span></div>
                     <div className="member-rewards-dashboard-stat"><strong>{memberRewards.badges.length}</strong><span>Badges earned</span></div>
                   </div>
+                  <div className="member-points-next-action">
+                    <strong>Every valid sighting earns points</strong>
+                    <span>Posting points: limited or unclassified +1 · allocated +2 · unicorn +3. Badges and maintained streaks can add bonus points; removed or rejected reports lose their posting points.</span>
+                  </div>
                   {(() => {
                     const nextBadge = memberRewards.badgeProgress.find((item) => !item.earned);
                     return nextBadge ? (

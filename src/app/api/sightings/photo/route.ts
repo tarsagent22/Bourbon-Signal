@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { del, head } from "@vercel/blob";
 import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
+import { getBourbonBible } from "@/lib/bourbonBible";
 import { canonicalizeLegacySighting, type MemberSighting, type SightingsPreferences } from "@/lib/sightings";
 import { createCommunitySightingsRepository } from "@/lib/community-sightings-repository";
 import { reconcileMemberRewards } from "@/lib/sighting-rewards";
+import { normalizeSightingsForRewards } from "@/lib/sighting-reward-tiers";
 import {
   ALLOWED_SIGHTING_PHOTO_TYPES,
   MAX_SIGHTING_PHOTO_BYTES,
@@ -128,9 +130,10 @@ export async function PATCH(req: NextRequest) {
     const publicMetadata = (user.publicMetadata && typeof user.publicMetadata === "object" ? user.publicMetadata : {}) as Record<string, unknown>;
     const privateMetadata = (user.privateMetadata && typeof user.privateMetadata === "object" ? user.privateMetadata : {}) as Record<string, unknown>;
     const prefs = normalizePrefs(publicMetadata.sightingsPreferences);
-    const durableOwned = (await owned.repository.listSightings()).filter((sighting) => sighting.reporterUserId === userId);
+    const durableOwned = await owned.repository.listSightingsForReporter(userId);
     const legacyOwned = prefs.submittedSightings.map((sighting) => ({ ...sighting, reporterUserId: userId }));
-    const nextRewards = reconcileMemberRewards(dedupeSightings([...legacyOwned, ...durableOwned]), privateMetadata.memberRewards);
+    const rewardSightings = normalizeSightingsForRewards(dedupeSightings([...legacyOwned, ...durableOwned]), await getBourbonBible());
+    const nextRewards = reconcileMemberRewards(rewardSightings, privateMetadata.memberRewards);
     await client.users.updateUserMetadata(userId, { privateMetadata: { memberRewards: nextRewards } }).catch((error) => {
       console.error("Sighting photo persisted, but reward reconciliation failed", error);
     });

@@ -5,6 +5,7 @@ const read = (path) => readFileSync(path, "utf8");
 const route = read("src/app/api/sightings/route.ts");
 const client = read("src/app/sightings/SightingsClient.tsx");
 const dashboard = read("src/app/dashboard/page.tsx");
+const repository = read("src/lib/community-sightings-repository.ts");
 
 assert.doesNotMatch(
   route,
@@ -15,6 +16,11 @@ assert.match(
   route,
   /const LEGACY_COMMUNITY_CACHE_TTL_MS = 5 \* 60 \* 1_000;/,
   "legacy community metadata should use a bounded five-minute warm-instance cache",
+);
+assert.match(
+  repository,
+  /listSightingsForReporter\(reporterUserId: string\)[\s\S]*?WHERE reporter_user_id = \$1[\s\S]*?ORDER BY created_at DESC/,
+  "reward reconciliation must have an exhaustive owner-scoped durable query instead of the capped public feed",
 );
 assert.match(
   route,
@@ -35,10 +41,15 @@ assert.doesNotMatch(
   /createCommunitySightingsRepository\(\)\.listSightings\(\)/,
   "GET must reuse the durable sightings already loaded for the feed instead of querying them again for rewards",
 );
+assert.match(
+  getBody,
+  /after\(\(\) => persistMemberRewardsBestEffort\(client, userId, nextRewards\)\)/,
+  "GET should defer one-time reward migrations until after the response",
+);
 assert.doesNotMatch(
   getBody,
-  /persistMemberRewardsBestEffort/,
-  "GET should compute rewards for the response but never write Clerk metadata on a read path",
+  /await persistMemberRewardsBestEffort/,
+  "GET reward migration must never block feed hydration on a Clerk write",
 );
 
 assert.match(

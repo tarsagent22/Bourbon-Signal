@@ -84,13 +84,13 @@ export function isRewardsAdminEmail(email?: string | null) {
 }
 
 export function isEligibleRewardsTier(tier?: MemberSighting["rarityTier"]) {
-  return tier === "allocated" || tier === "unicorn";
+  return tier == null || tier === "limited" || tier === "allocated" || tier === "unicorn";
 }
 
 export function basePointsForSighting(sighting: Pick<MemberSighting, "rarityTier">) {
-  if (sighting.rarityTier === "unicorn") return 2;
-  if (sighting.rarityTier === "allocated") return 1;
-  return 0;
+  if (sighting.rarityTier === "unicorn") return 3;
+  if (sighting.rarityTier === "allocated") return 2;
+  return 1;
 }
 
 export function communityVerified(upCount = 0, downCount = 0) {
@@ -188,7 +188,7 @@ export function summarizeMemberRewards(sightings: MemberSighting[], existing?: u
   const rewards = normalizeRewards(existing);
   const activeSightings = sightings.filter((sighting) => !sighting.rewardState?.removedAt && !sighting.rewardState?.rejectedAt);
   const eligible = activeSightings.filter((sighting) => isEligibleRewardsTier(sighting.rarityTier));
-  const helpful = activeSightings.filter((sighting) => Boolean(sighting.rewardState?.helpfulAt) || (sighting.upCount || 0) >= 3);
+  const helpful = activeSightings.filter((sighting) => communityVerified(Number(sighting.upCount || 0), Number(sighting.downCount || 0)));
   const photoSightings = activeSightings.filter((sighting) => {
     const status = sighting.rewardState?.photoProof?.status;
     return Boolean(status && status !== "rejected");
@@ -227,26 +227,44 @@ export function summarizeMemberRewards(sightings: MemberSighting[], existing?: u
   };
 }
 
+const MANAGED_REWARD_REASONS = new Set(["badge", "badge_v2", "streak_maintained", "streak_maintained_v2"]);
+
+function isManagedRewardEntry(entry: MemberRewardLedgerEntry) {
+  return entry.reason.startsWith("sighting_") || MANAGED_REWARD_REASONS.has(entry.reason);
+}
+
+function deactivateManagedRewards(rewards: MemberRewardsProfile, now: string) {
+  rewards.ledger = rewards.ledger.map((entry) => (
+    isManagedRewardEntry(entry) && !entry.revokedAt ? { ...entry, revokedAt: now } : entry
+  ));
+  rewards.points = rewards.ledger.filter((entry) => !entry.revokedAt).reduce((total, entry) => total + entry.points, 0);
+}
+
 function addLedger(rewards: MemberRewardsProfile, entry: Omit<MemberRewardLedgerEntry, "id" | "createdAt"> & { createdAt?: string }) {
   const createdAt = entry.createdAt || new Date().toISOString();
-  const id = `${entry.reason}:${entry.sightingId || entry.badgeId || "member"}:${createdAt}`;
-  if (rewards.ledger.some((item) => item.id === id || (!item.revokedAt && item.reason === entry.reason && item.sightingId === entry.sightingId && item.badgeId === entry.badgeId))) return;
+  const existingIndex = rewards.ledger.findIndex((item) => item.reason === entry.reason && item.sightingId === entry.sightingId && item.badgeId === entry.badgeId);
+  if (existingIndex >= 0) {
+    const existing = rewards.ledger[existingIndex];
+    rewards.ledger[existingIndex] = { ...existing, ...entry, createdAt: existing.createdAt || createdAt, revokedAt: undefined };
+    rewards.points += entry.points;
+    return;
+  }
+  const id = `${entry.reason}:${entry.sightingId || entry.badgeId || "member"}`;
   rewards.ledger = [{ id, createdAt, ...entry }, ...rewards.ledger].slice(0, 1000);
   rewards.points += entry.points;
 }
 
-function updateWeeklyStreak(rewards: MemberRewardsProfile, activeSightings: MemberSighting[], now: string) {
+function updateWeeklyStreak(rewards: MemberRewardsProfile, activeSightings: MemberSighting[]) {
   const weeks = Array.from(new Set(activeSightings
     .filter((sighting) => isEligibleRewardsTier(sighting.rarityTier))
     .map((sighting) => localWeekKey(sighting.createdAt, sighting.storeTimeZone))
     .filter(Boolean)))
     .sort();
-  if (weeks.length === 0) {
-    rewards.currentWeeklyStreak = 0;
-    return;
-  }
+  if (weeks.length === 0) return 0;
+
   let current = 1;
-  let longest = Math.max(rewards.longestWeeklyStreak || 0, 1);
+  let longest = 1;
+  let streakBonusPoints = 0;
   for (let index = 1; index < weeks.length; index += 1) {
     const previous = new Date(`${weeks[index - 1]}T00:00:00Z`);
     const expected = new Date(previous);
@@ -254,38 +272,52 @@ function updateWeeklyStreak(rewards: MemberRewardsProfile, activeSightings: Memb
     const expectedKey = `${expected.getUTCFullYear()}-${String(expected.getUTCMonth() + 1).padStart(2, "0")}-${String(expected.getUTCDate()).padStart(2, "0")}`;
     current = weeks[index] === expectedKey ? current + 1 : 1;
     longest = Math.max(longest, current);
+    if (current >= 2) {
+      streakBonusPoints += 1;
+      addLedger(rewards, {
+        badgeId: `streak_week_${weeks[index]}`,
+        reason: "streak_maintained_v2",
+        points: 1,
+        createdAt: `${weeks[index]}T00:00:00.000Z`,
+      });
+    }
   }
+
   rewards.currentWeeklyStreak = current;
   rewards.longestWeeklyStreak = longest;
   rewards.lastStreakWeek = weeks[weeks.length - 1];
-  if (current >= 2) addLedger(rewards, { badgeId: `streak_week_${weeks[weeks.length - 1]}`, reason: "streak_maintained", points: 1, createdAt: now });
+  return streakBonusPoints;
 }
 
-function revokeInvalidSightingPoints(rewards: MemberRewardsProfile, sightings: MemberSighting[], now: string) {
-  const invalidIds = new Set(sightings.filter((sighting) => sighting.rewardState?.removedAt || sighting.rewardState?.rejectedAt).map((sighting) => sighting.id));
-  if (!invalidIds.size) return;
-  rewards.ledger = rewards.ledger.map((entry) => {
-    if (!entry.sightingId || !invalidIds.has(entry.sightingId) || entry.revokedAt) return entry;
-    rewards.points -= entry.points;
-    return { ...entry, revokedAt: now };
+function reconcileSightingBasePoints(rewards: MemberRewardsProfile, sighting: MemberSighting) {
+  addLedger(rewards, {
+    sightingId: sighting.id,
+    reason: "sighting_base_v3",
+    points: basePointsForSighting(sighting),
+    createdAt: sighting.createdAt,
   });
 }
 
 export function reconcileMemberRewards(sightings: MemberSighting[], existing?: unknown, now = new Date().toISOString()) {
   const rewards = normalizeRewards(existing);
-  revokeInvalidSightingPoints(rewards, sightings, now);
+  const previousBadges = new Map(rewards.badges.map((badge) => [badge.id, badge]));
+  deactivateManagedRewards(rewards, now);
+  rewards.badges = [];
+  rewards.currentWeeklyStreak = 0;
+  rewards.longestWeeklyStreak = 0;
+  rewards.lastStreakWeek = undefined;
+
   const activeSightings = sightings.filter((sighting) => !sighting.rewardState?.removedAt && !sighting.rewardState?.rejectedAt);
-  for (const sighting of activeSightings) {
-    const base = basePointsForSighting(sighting);
-    if (base > 0) addLedger(rewards, { sightingId: sighting.id, reason: "sighting_base", points: base, createdAt: sighting.createdAt });
-  }
-  updateWeeklyStreak(rewards, activeSightings, now);
+  for (const sighting of activeSightings) reconcileSightingBasePoints(rewards, sighting);
+  const streakBonusPoints = updateWeeklyStreak(rewards, activeSightings);
 
   const summary = summarizeMemberRewards(activeSightings, rewards);
   const awardIf = (condition: boolean, award: MemberBadgeAward) => {
     if (!condition || rewards.badges.some((badge) => badge.id === award.id)) return;
-    rewards.badges = [award, ...rewards.badges].slice(0, 200);
-    addLedger(rewards, { badgeId: award.id, reason: "badge", points: award.pointsAwarded, createdAt: award.earnedAt });
+    const previous = previousBadges.get(award.id);
+    const nextAward = previous ? { ...award, earnedAt: previous.earnedAt } : award;
+    rewards.badges = [nextAward, ...rewards.badges].slice(0, 200);
+    addLedger(rewards, { badgeId: nextAward.id, reason: "badge_v2", points: nextAward.pointsAwarded, createdAt: nextAward.earnedAt });
   };
 
   awardIf(summary.eligibleSightings >= 1, badgeAward("first_sighting", "First Sighting", now));
@@ -296,5 +328,11 @@ export function reconcileMemberRewards(sightings: MemberSighting[], existing?: u
     awardIf(progress.current >= progress.target, badgeAward(progress.id, progress.label, now, progress.tier));
   }
 
+  const unmanagedPoints = rewards.ledger
+    .filter((entry) => !entry.revokedAt && !isManagedRewardEntry(entry))
+    .reduce((total, entry) => total + entry.points, 0);
+  const basePoints = activeSightings.reduce((total, sighting) => total + basePointsForSighting(sighting), 0);
+  const badgePoints = rewards.badges.reduce((total, badge) => total + badge.pointsAwarded, 0);
+  rewards.points = Math.max(0, unmanagedPoints + basePoints + streakBonusPoints + badgePoints);
   return rewards;
 }

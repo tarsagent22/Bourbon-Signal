@@ -8,7 +8,7 @@ import { readSiteExport, readSiteExportResult } from "@/lib/site-engine-contract
 import { alertFreshnessIsDeliverable, evaluateAlertSnapshotSafety, resolveAlertFreshnessCapHours, signalFreshnessHoursAt } from "@/lib/alert-run-safety";
 import { ACTIVE_ENGINE_STATE_CODES, getActiveEngineStateName } from "@/lib/activeStates";
 import { locationMatchesAny, normalizeStateCodeParam } from "@/lib/location-normalization";
-import { formatSmsAlert } from "@/lib/sms-alert-copy";
+import { formatSmsAlert, isExactStoreSmsLocation } from "@/lib/sms-alert-copy";
 import { stableGroupedAlertDedupeKey } from "@/lib/alert-dedupe";
 import { createProductionAlertQueueRepository } from "@/lib/alert-queue/runtime";
 import { reserveAlertDelivery, type AlertQueueMode } from "@/lib/alert-queue/delivery-gate";
@@ -477,10 +477,11 @@ function candidateLocationPrecision(candidate: CandidateAlert) {
 }
 
 function candidateIsStoreLevel(candidate: CandidateAlert) {
-  const precision = candidateLocationPrecision(candidate);
-  const actionability = asString(candidate.actionabilityClass).toLowerCase();
-  const eventType = asString(candidate.eventType).toLowerCase();
-  return precision === "store_level" || actionability === "store_inventory" || /store_inventory|store_allocation|store_delivery|in_stock/.test(eventType);
+  return isExactStoreSmsLocation({
+    locationPrecision: candidate.locationPrecision,
+    actionabilityClass: candidate.actionabilityClass,
+    eventType: candidate.eventType,
+  });
 }
 
 function candidateAddressLabel(candidate: CandidateAlert) {
@@ -795,15 +796,17 @@ function maskPhone(phone: string) {
 }
 
 function smsBodyForCandidate(candidate: CandidateAlert, storeLabel: string) {
-  const quantity = candidateQuantityLabel(candidate);
+  const storeLevel = candidateIsStoreLevel(candidate);
+  const quantity = storeLevel ? candidateQuantityLabel(candidate) : null;
   const timestamp = candidateTimestampLabel(candidate);
-  const sourceCaveat = candidateIsStoreLevel(candidate)
+  const sourceCaveat = storeLevel
     ? "Verify before driving."
     : "Board-level signal; check source before driving.";
   return formatSmsAlert({
     bottleNames: candidateBottleNames(candidate),
-    storeLabel,
+    storeLabel: storeLevel ? storeLabel : candidateSubjectLocationLabel(candidate),
     state: asString(candidate.state).toUpperCase(),
+    locationScope: storeLevel ? "store" : "board",
     quantityLabel: quantity || undefined,
     timestampLabel: timestamp,
     sourceCaveat,

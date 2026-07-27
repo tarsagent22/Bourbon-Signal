@@ -1,9 +1,11 @@
 import { after, NextRequest, NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
+import { getBourbonBible, searchBourbonBible, normalizeBottleKey as normalizeBibleBottleKey, type BibleBottle } from "@/lib/bourbonBible";
 import { canonicalizeLegacySighting, makeSightingId, normalizeBottleKey, type MemberSighting, type SightingType, type SightingVote, type SightingVoteKind, type SightingsPreferences } from "@/lib/sightings";
 import { createCommunitySightingsRepository, type DurableSightingVote } from "@/lib/community-sightings-repository";
 import { getEntitlements } from "@/lib/entitlements";
 import { reconcileMemberRewards, summarizeMemberRewards, type MemberRewardsSummary } from "@/lib/sighting-rewards";
+import { memberSightingTierForAvailability, normalizeSightingsForRewards } from "@/lib/sighting-reward-tiers";
 import { isLikelyDuplicateSighting, sanitizeManualSightingField } from "@/lib/sighting-review";
 import { getQaPreviewTierFromRequest, isQaPreviewRequest } from "@/lib/preview-qa";
 import { addBottleContribution } from "@/lib/bottle-contributions";
@@ -14,6 +16,17 @@ function normalizeSightingType(value: unknown): SightingType {
 
 function normalizeRarityTier(value: unknown): MemberSighting["rarityTier"] {
   return value === "unicorn" || value === "allocated" || value === "limited" ? value : "limited";
+}
+
+
+async function resolveSubmittedBottle(bottleName: string, bottleId?: string) {
+  const matches = await searchBourbonBible(bottleName, 12);
+  const normalizedName = normalizeBibleBottleKey(bottleName);
+  const idMatch = matches.find((bottle) => bottle.id === bottleId);
+  const bottleNameMatches = (bottle: BibleBottle) => normalizeBibleBottleKey(bottle.canonicalName) === normalizedName
+    || bottle.aliases.some((alias) => normalizeBibleBottleKey(alias) === normalizedName);
+  const exact = (idMatch && bottleNameMatches(idMatch) ? idMatch : null) || matches.find(bottleNameMatches);
+  return exact || null;
 }
 
 function normalizePrefs(input: unknown): SightingsPreferences {
@@ -136,12 +149,17 @@ async function persistMemberRewardsBestEffort(client: Awaited<ReturnType<typeof 
   });
 }
 
+function rewardsNeedPersistence(existing: unknown, next: unknown) {
+  return JSON.stringify(existing ?? null) !== JSON.stringify(next ?? null);
+}
+
 async function getAggregateSightings(currentUserId: string) {
   const repository = createCommunitySightingsRepository();
-  const [legacy, durableSightings, durableVotes] = await Promise.all([
+  const [legacy, durableSightings, durableVotes, durableOwned] = await Promise.all([
     readCachedLegacyCommunitySnapshot(),
     repository.listSightings(),
     repository.listVotes(),
+    repository.listSightingsForReporter(currentUserId),
   ]);
   const counts = voteCounts([...legacy.votes, ...durableVotes], currentUserId);
   const sightingsById = new Map<string, MemberSighting>();
@@ -167,6 +185,7 @@ async function getAggregateSightings(currentUserId: string) {
   return {
     sightings: sightings.sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)),
     durableSightings,
+    durableOwned,
   };
 }
 
@@ -199,10 +218,14 @@ export async function GET(req: NextRequest) {
   const publicMetadata = (user.publicMetadata && typeof user.publicMetadata === "object" ? user.publicMetadata : {}) as Record<string, unknown>;
   const privateMetadata = (user.privateMetadata && typeof user.privateMetadata === "object" ? user.privateMetadata : {}) as Record<string, unknown>;
   const prefs = normalizePrefs(publicMetadata.sightingsPreferences);
-  const durableOwned = aggregate.durableSightings.filter((item) => item.reporterUserId === userId);
+  const durableOwned = aggregate.durableOwned;
   const ownedSightings = dedupeSightings([...prefs.submittedSightings, ...durableOwned]);
-  const nextRewards = reconcileMemberRewards(ownedSightings, privateMetadata.memberRewards);
-  const rewards: MemberRewardsSummary = summarizeMemberRewards(ownedSightings, nextRewards);
+  const rewardSightings = normalizeSightingsForRewards(ownedSightings, await getBourbonBible());
+  const nextRewards = reconcileMemberRewards(rewardSightings, privateMetadata.memberRewards);
+  if (rewardsNeedPersistence(privateMetadata.memberRewards, nextRewards)) {
+    after(() => persistMemberRewardsBestEffort(client, userId, nextRewards));
+  }
+  const rewards: MemberRewardsSummary = summarizeMemberRewards(rewardSightings, nextRewards);
   const states = Array.from(new Set(sightings.map((sighting) => sighting.storeState).filter(Boolean))).sort();
   return NextResponse.json({ sightings, states, rewards, previewLimit, totalSightings: allSightings.length });
 }
@@ -240,12 +263,17 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Submitting Member Sightings is included with Standard Proof and above." }, { status: 403 });
   }
   const payload = (await req.json().catch(() => ({}))) as Partial<MemberSighting>;
-  const bottleName = sanitizeManualSightingField(payload.bottleName, 140);
+  const requestedBottleName = sanitizeManualSightingField(payload.bottleName, 140);
+  const requestedBottleId = typeof payload.bottleId === "string" ? payload.bottleId.slice(0, 160) : undefined;
+  const catalogBottle = requestedBottleName ? await resolveSubmittedBottle(requestedBottleName, requestedBottleId) : null;
+  const reviewInput = payload.reviewState && typeof payload.reviewState === "object" ? payload.reviewState : {};
+  const needsBottleReview = Boolean(reviewInput.needsBottleReview || reviewInput.manualBottleName || !catalogBottle);
+  const bottleName = catalogBottle?.canonicalName || requestedBottleName;
+  const bottleId = catalogBottle?.id || normalizeBottleKey(bottleName);
+  const rarityTier = needsBottleReview ? "limited" : memberSightingTierForAvailability(catalogBottle?.availability);
   const storeName = sanitizeManualSightingField(payload.storeName, 180);
   const storeAddress = sanitizeManualSightingField(payload.storeAddress, 220);
   const storeId = sanitizeManualSightingField(payload.storeId, 160);
-  const reviewInput = payload.reviewState && typeof payload.reviewState === "object" ? payload.reviewState : {};
-  const needsBottleReview = Boolean(reviewInput.needsBottleReview || reviewInput.manualBottleName);
   const needsStoreReview = Boolean(reviewInput.needsStoreReview || reviewInput.manualStoreName);
   const manualStoreCity = sanitizeManualSightingField(reviewInput.manualStoreCity || payload.storeCity, 120);
   const manualStoreState = sanitizeManualSightingField(reviewInput.manualStoreState || payload.storeState, 10).toUpperCase();
@@ -262,8 +290,8 @@ export async function POST(req: NextRequest) {
   const sighting: MemberSighting = {
     id: makeSightingId(),
     bottleName,
-    bottleId: typeof payload.bottleId === "string" ? payload.bottleId.slice(0, 160) : normalizeBottleKey(bottleName),
-    rarityTier: normalizeRarityTier(payload.rarityTier),
+    bottleId,
+    rarityTier,
     storeId,
     storeName,
     storeAddress,
@@ -282,7 +310,7 @@ export async function POST(req: NextRequest) {
       needsBottleReview,
       needsStoreReview,
       manualBottleName: needsBottleReview ? sanitizeManualSightingField(reviewInput.manualBottleName || bottleName, 140) : undefined,
-      manualBottleRarityTier: needsBottleReview ? normalizeRarityTier(reviewInput.manualBottleRarityTier || payload.rarityTier) : undefined,
+      manualBottleRarityTier: needsBottleReview ? "limited" : undefined,
       manualStoreName: needsStoreReview ? sanitizeManualSightingField(reviewInput.manualStoreName || storeName, 180) : undefined,
       manualStoreAddress: needsStoreReview ? storeAddress : undefined,
       manualStoreCity: needsStoreReview ? manualStoreCity : undefined,
@@ -292,18 +320,25 @@ export async function POST(req: NextRequest) {
     createdAt: new Date().toISOString(),
   };
   const repository = createCommunitySightingsRepository();
-  const durableSightings = await repository.listSightings();
-  const ownedSightings = dedupeSightings([...prefs.submittedSightings, ...durableSightings.filter((item) => item.reporterUserId === userId)]);
+  const durableSightings = await repository.listSightingsForReporter(userId);
+  const ownedSightings = dedupeSightings([...prefs.submittedSightings, ...durableSightings]);
+  const rewardCatalog = await getBourbonBible();
+  const rewardSightings = normalizeSightingsForRewards(ownedSightings, rewardCatalog);
   const privateMetadata = (user.privateMetadata && typeof user.privateMetadata === "object" ? user.privateMetadata : {}) as Record<string, unknown>;
   const duplicate = ownedSightings.find((existing) => isLikelyDuplicateSighting(existing, sighting));
   if (duplicate) {
-    const rewards: MemberRewardsSummary = summarizeMemberRewards(ownedSightings, privateMetadata.memberRewards);
+    const nextRewards = reconcileMemberRewards(rewardSightings, privateMetadata.memberRewards);
+    if (rewardsNeedPersistence(privateMetadata.memberRewards, nextRewards)) {
+      after(() => persistMemberRewardsBestEffort(client, userId, nextRewards));
+    }
+    const rewards: MemberRewardsSummary = summarizeMemberRewards(rewardSightings, nextRewards);
     return NextResponse.json({ ok: true, created: false, duplicate: true, sighting: duplicate, rewards });
   }
 
   const savedSighting = await repository.insertSighting(sighting);
   const nextOwnedSightings = [savedSighting, ...ownedSightings];
-  const nextRewards = reconcileMemberRewards(nextOwnedSightings, privateMetadata.memberRewards);
+  const nextRewardSightings = normalizeSightingsForRewards(nextOwnedSightings, rewardCatalog);
+  const nextRewards = reconcileMemberRewards(nextRewardSightings, privateMetadata.memberRewards);
   after(async () => {
     try {
       await persistMemberRewardsBestEffort(client, userId, nextRewards);
@@ -320,7 +355,7 @@ export async function POST(req: NextRequest) {
       console.error("Sighting saved, but follow-up metadata reconciliation failed", error);
     }
   });
-  const rewards: MemberRewardsSummary = summarizeMemberRewards(nextOwnedSightings, nextRewards);
+  const rewards: MemberRewardsSummary = summarizeMemberRewards(nextRewardSightings, nextRewards);
   return NextResponse.json({ ok: true, created: true, sighting: savedSighting, rewards });
 }
 
@@ -371,11 +406,12 @@ export async function PATCH(req: NextRequest) {
       const ownerPublicMetadata = (owner.publicMetadata && typeof owner.publicMetadata === "object" ? owner.publicMetadata : {}) as Record<string, unknown>;
       const ownerPrivateMetadata = (owner.privateMetadata && typeof owner.privateMetadata === "object" ? owner.privateMetadata : {}) as Record<string, unknown>;
       const ownerPrefs = normalizePrefs(ownerPublicMetadata.sightingsPreferences);
-      const durableOwned = (await repository.listSightings()).filter((item) => item.reporterUserId === updatedTarget.reporterUserId);
+      const durableOwned = await repository.listSightingsForReporter(updatedTarget.reporterUserId);
       const ownedSightings = dedupeSightings([...ownerPrefs.submittedSightings, ...durableOwned]);
-      const nextOwnerRewards = reconcileMemberRewards(ownedSightings, ownerPrivateMetadata.memberRewards);
+      const rewardSightings = normalizeSightingsForRewards(ownedSightings, await getBourbonBible());
+      const nextOwnerRewards = reconcileMemberRewards(rewardSightings, ownerPrivateMetadata.memberRewards);
       await client.users.updateUserMetadata(updatedTarget.reporterUserId, { privateMetadata: { ...ownerPrivateMetadata, memberRewards: nextOwnerRewards } });
-      rewards = summarizeMemberRewards(ownedSightings, nextOwnerRewards);
+      rewards = summarizeMemberRewards(rewardSightings, nextOwnerRewards);
     }
   } catch (error) {
     console.error("Sighting vote persisted, but reward reconciliation failed", error);

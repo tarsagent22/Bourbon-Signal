@@ -1,8 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
+import { getBourbonBible } from "@/lib/bourbonBible";
 import type { MemberSighting, SightingsPreferences } from "@/lib/sightings";
 import { createCommunitySightingsRepository } from "@/lib/community-sightings-repository";
 import { isRewardsAdminEmail, reconcileMemberRewards, type SightingPhotoReviewStatus } from "@/lib/sighting-rewards";
+import { normalizeSightingsForRewards } from "@/lib/sighting-reward-tiers";
 import { needsSightingReview, reviewReasonLabels } from "@/lib/sighting-review";
 
 function normalizePrefs(input: unknown): SightingsPreferences {
@@ -152,15 +154,19 @@ export async function PATCH(req: NextRequest) {
   if (!updatedSighting) return NextResponse.json({ error: "Sighting not found" }, { status: 404 });
   if (durableTarget) {
     await repository.updateSighting(updatedSighting);
-    const durableOwned = (await repository.listSightings()).filter((item) => item.reporterUserId === reporterUserId);
+    const durableOwned = await repository.listSightingsForReporter(reporterUserId);
     const legacyOwned = prefs.submittedSightings.map((sighting) => ({ ...sighting, reporterUserId }));
-    const nextRewards = reconcileMemberRewards(dedupeSightings([...legacyOwned, ...durableOwned]), privateMetadata.memberRewards, now);
+    const rewardSightings = normalizeSightingsForRewards(dedupeSightings([...legacyOwned, ...durableOwned]), await getBourbonBible());
+    const nextRewards = reconcileMemberRewards(rewardSightings, privateMetadata.memberRewards, now);
     await admin.client.users.updateUserMetadata(reporterUserId, { privateMetadata: { memberRewards: nextRewards } }).catch((error) => {
       console.error("Sighting review saved, but reward reconciliation failed", error);
     });
   } else {
     const nextPrefs = { ...prefs, submittedSightings: nextSightings };
-    const nextRewards = reconcileMemberRewards(nextSightings, privateMetadata.memberRewards, now);
+    const durableOwned = await repository.listSightingsForReporter(reporterUserId);
+    const legacyOwned = nextSightings.map((sighting) => ({ ...sighting, reporterUserId }));
+    const rewardSightings = normalizeSightingsForRewards(dedupeSightings([...legacyOwned, ...durableOwned]), await getBourbonBible());
+    const nextRewards = reconcileMemberRewards(rewardSightings, privateMetadata.memberRewards, now);
     await admin.client.users.updateUserMetadata(reporterUserId, { publicMetadata: { sightingsPreferences: nextPrefs } });
     await admin.client.users.updateUserMetadata(reporterUserId, { privateMetadata: { memberRewards: nextRewards } }).catch((error) => {
       console.error("Sighting review saved, but reward reconciliation failed", error);
