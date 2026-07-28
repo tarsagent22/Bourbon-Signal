@@ -541,7 +541,7 @@
       "sourceLabel": "Mississippi statewide directory + selected retailer research",
       "publicStatus": "research_only",
       "lifecycle": "hybrid_directory_retailer_research",
-      "coverageTier": "known_directory_selected_storefronts",
+      "coverageTier": "sparse_live_store_inventory",
       "refinementLevel": "region_city_store",
       "areaOptions": [
         "Northwest / DeSoto–Memphis fringe",
