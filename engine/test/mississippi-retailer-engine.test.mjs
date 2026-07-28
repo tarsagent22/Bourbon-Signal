@@ -216,6 +216,30 @@ test('research lifecycle keeps exact positive rows visible but nonalertable and 
   }), /cannot publish or deliver/iu);
 });
 
+test('sparse Mississippi coverage permits exact rows on-site while keeping every outbound channel closed', () => {
+  const source = MISSISSIPPI_RETAILER_SOURCES.find((entry) => entry.permitNumber === '029254');
+  const signal = exactSignal(source);
+  const lifecycle = {
+    publicStatus: 'active',
+    coverageTier: 'sparse_live_store_inventory',
+    inventoryAlertable: false,
+    watchAlertable: false,
+  };
+  const result = verifyMississippiReleasePolicy({
+    lifecycle,
+    phase: 'sparse',
+    signals: [signal],
+    alerts: [{ state: 'MS', eligibleForOnSite: true, eligibleForDelivery: false, eligibleForEmail: false, eligibleForSms: false, published: false }],
+  });
+  assert.equal(result.onSiteOnly, true);
+  assert.throws(() => verifyMississippiReleasePolicy({
+    lifecycle,
+    phase: 'sparse',
+    signals: [signal],
+    alerts: [{ state: 'MS', eligibleForOnSite: true, eligibleForDelivery: true, eligibleForEmail: false, eligibleForSms: false }],
+  }), /sparse coverage can be on-site only/iu);
+});
+
 test('collector isolates allowed stores and reports policy-blocked sources without requesting them', async () => {
   const htmlByHost = new Map([
     ['www.aliquorwarehouse.com', await fixture('gotoliquor/positive.html')],
