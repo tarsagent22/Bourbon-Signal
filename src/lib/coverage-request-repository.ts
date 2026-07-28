@@ -47,7 +47,7 @@ function asString(value: unknown) {
 }
 
 function rowToMemberRequest(row: CoverageRequestRow): MemberCoverageRequest {
-  const targetType = row.target_type === "city" || row.target_type === "store" ? row.target_type : "state";
+  const targetType = row.target_type === "county" || row.target_type === "city" || row.target_type === "store" ? row.target_type : "state";
   const status = REQUEST_STATUSES.has(row.status as CoverageRequestStatus) ? row.status as CoverageRequestStatus : "requested";
   return {
     id: asString(row.id),

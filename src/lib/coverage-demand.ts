@@ -1,11 +1,11 @@
 import type { CoverageCapability, CoverageContract, CoverageHealth } from "./coverage-model.ts";
-import type { CoverageRequestStatus } from "./coverage-request.ts";
+import type { CoverageRequestStatus, CoverageRequestTargetType } from "./coverage-request.ts";
 import type { OwnerCoverageRequestRow } from "./coverage-request-repository.ts";
 
 export type CoverageDemandMemberSegment = "paid" | "free" | "unknown";
 
 export interface CoverageDemandTarget {
-  targetType: "state" | "city" | "store";
+  targetType: CoverageRequestTargetType;
   stateCode: string;
   label: string;
   uniqueRequesters: number;
@@ -41,6 +41,11 @@ function gapForTarget(
     return capability === "not-active"
       ? "No active state source; this city or area remains uncovered."
       : "City or area depth is not established by the current state capability alone.";
+  }
+  if (targetType === "county") {
+    return capability === "not-active"
+      ? "No active state source; this county remains uncovered."
+      : "County depth is not established by the current state capability alone.";
   }
   if (capability === "not-active") return "No current customer-facing state source.";
   if (capability === "deep") return "Broader state depth was requested despite current deep source coverage.";

@@ -10,7 +10,7 @@ export type CoverageAnalyticsEvent = typeof COVERAGE_ANALYTICS_EVENTS[number];
 
 const EVENT_NAMES = new Set<string>(COVERAGE_ANALYTICS_EVENTS);
 const PROPERTY_KEYS = new Set(["state", "targetType", "resultCategory"]);
-const TARGET_TYPES = new Set(["state", "city", "store", "unknown"]);
+const TARGET_TYPES = new Set(["state", "county", "city", "store", "unknown"]);
 const RESULT_CATEGORIES = new Set([
   "covered",
   "partially-covered",

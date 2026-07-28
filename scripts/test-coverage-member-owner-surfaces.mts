@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { buildCoverageDemandSummary } from "../src/lib/coverage-demand.ts";
+import type { CoverageRequestTargetType } from "../src/lib/coverage-request.ts";
 import type { OwnerCoverageRequestRow } from "../src/lib/coverage-request-repository.ts";
 import type { CoverageContract } from "../src/lib/coverage-model.ts";
 
@@ -31,7 +32,7 @@ const contract: CoverageContract = {
   }],
 };
 
-function row(userId: string, canonicalTargetKey: string, targetType: "state" | "city" | "store", areaLabel: string): OwnerCoverageRequestRow {
+function row(userId: string, canonicalTargetKey: string, targetType: CoverageRequestTargetType, areaLabel: string): OwnerCoverageRequestRow {
   return {
     id: `${userId}-${canonicalTargetKey}`,
     userId,

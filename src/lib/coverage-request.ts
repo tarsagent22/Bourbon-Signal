@@ -1,6 +1,6 @@
 import { US_STATE_OPTIONS, coverageTargetToken } from "./coverage-model.ts";
 
-export type CoverageRequestTargetType = "state" | "city" | "store";
+export type CoverageRequestTargetType = "state" | "county" | "city" | "store";
 export type CoverageRequestStatus = "requested" | "on_radar" | "improved" | "closed";
 
 export interface MatchedCoverageStore {
@@ -61,8 +61,8 @@ function validState(value: unknown) {
 }
 
 function targetType(value: unknown): CoverageRequestTargetType {
-  if (value === "state" || value === "city" || value === "store") return value;
-  throw new CoverageRequestValidationError("Choose state, city, or store coverage.");
+  if (value === "state" || value === "county" || value === "city" || value === "store") return value;
+  throw new CoverageRequestValidationError("Choose state, county, city, or store coverage.");
 }
 
 export function normalizeCoverageRequestTarget(
@@ -90,6 +90,26 @@ export function normalizeCoverageRequestTarget(
       storeName: null,
       storeAddress: null,
       canonicalTargetKey: `state:${state.code}`,
+      notificationEnabled,
+      baselineCoverageFingerprint,
+    };
+  }
+
+  if (type === "county") {
+    const areaLabel = sanitizedText(source.manualCounty || source.areaLabel, 120);
+    const areaKey = coverageTargetToken(areaLabel, 80);
+    if (!areaLabel || areaLabel.length < 2 || !areaKey) {
+      throw new CoverageRequestValidationError("Enter a county.");
+    }
+    return {
+      targetType: type,
+      stateCode: state.code,
+      areaKey,
+      areaLabel,
+      storeId: null,
+      storeName: null,
+      storeAddress: null,
+      canonicalTargetKey: `county:${state.code}:${areaKey}`,
       notificationEnabled,
       baselineCoverageFingerprint,
     };

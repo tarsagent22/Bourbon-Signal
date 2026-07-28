@@ -16,10 +16,11 @@ function withoutRegistrationMarker(path: string) {
 
 export default function SignUpPage() {
   const searchParams = useSearchParams();
-  const redirectUrl = resolveSignUpRedirect(searchParams.get("redirect_url"));
+  const paidIntent = searchParams.get("intent") === "paid";
+  const redirectUrl = resolveSignUpRedirect(searchParams.get("redirect_url"), searchParams.get("intent"));
   const signInRedirectUrl = withoutRegistrationMarker(redirectUrl);
   const encodedSignInRedirect = encodeURIComponent(signInRedirectUrl);
-  const isCoverageRequestRedirect = redirectUrl.startsWith("/coverage");
+  const isCoverageRequestRedirect = searchParams.get("source") === "coverage";
   const [ageChecked, setAgeChecked] = useState(false);
   const [confirmedAge, setConfirmedAge] = useState(false);
   const [attempted, setAttempted] = useState(false);
@@ -126,10 +127,10 @@ export default function SignUpPage() {
                 : "No card required. Start with seven recent Drop Feed signals, three Bottle Checks, public Release Radar, and Member Sightings."}
             </span>
           </div>
-          {redirectUrl === DEFAULT_ONBOARDING_REDIRECT ? (
+          {!paidIntent || redirectUrl === DEFAULT_ONBOARDING_REDIRECT ? (
             <SignUp forceRedirectUrl="/welcome?registration=1" signInForceRedirectUrl="/welcome" signInUrl="/sign-in?redirect_url=%2Fwelcome" />
           ) : (
-            <SignUp forceRedirectUrl={redirectUrl} signInForceRedirectUrl={signInRedirectUrl} signInUrl={`/sign-in?redirect_url=${encodedSignInRedirect}`} />
+            <SignUp forceRedirectUrl={redirectUrl} signInForceRedirectUrl={signInRedirectUrl} signInUrl={`/sign-in?redirect_url=${encodedSignInRedirect}&signup_intent=paid`} />
           )}
         </>
       ) : (

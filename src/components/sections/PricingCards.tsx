@@ -32,7 +32,7 @@ export default function PricingCards() {
     }
 
     const checkoutPlan = plan === "monthly" ? "standard_monthly" : plan === "annual" ? "standard_annual" : "bib_lifetime";
-    router.push(`/sign-up?redirect_url=${encodeURIComponent(`/checkout/continue?plan=${checkoutPlan}`)}`);
+    router.push(`/sign-up?intent=paid&redirect_url=${encodeURIComponent(`/checkout/continue?plan=${checkoutPlan}&registration=1`)}`);
   };
 
   return (

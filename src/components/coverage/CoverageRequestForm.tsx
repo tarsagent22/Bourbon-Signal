@@ -12,11 +12,13 @@ interface CoverageRequestFormProps {
   visible: boolean;
   onCancel: () => void;
   onDraftRestored: () => void;
+  variant?: "coverage" | "welcome";
 }
 
 interface RequestDraft {
   accountId: string | null;
   stateCode: string;
+  manualCounty: string;
   manualCity: string;
   manualStoreName: string;
   manualAddress: string;
@@ -26,10 +28,11 @@ interface RequestDraft {
 export const COVERAGE_REQUEST_DRAFT_KEY = "bourbon_signal_coverage_request_draft";
 const DRAFT_KEY = COVERAGE_REQUEST_DRAFT_KEY;
 
-export function CoverageRequestForm({ state, visible, onCancel, onDraftRestored }: CoverageRequestFormProps) {
+export function CoverageRequestForm({ state, visible, onCancel, onDraftRestored, variant = "coverage" }: CoverageRequestFormProps) {
   const { isLoaded, isSignedIn, user } = useAuth();
   const accountId = user?.id || null;
   const [selectedStateCode, setSelectedStateCode] = useState(state.code);
+  const [manualCounty, setManualCounty] = useState("");
   const [manualCity, setManualCity] = useState("");
   const [manualStoreName, setManualStoreName] = useState("");
   const [manualAddress, setManualAddress] = useState("");
@@ -45,7 +48,7 @@ export function CoverageRequestForm({ state, visible, onCancel, onDraftRestored 
   currentAccountId.current = accountId;
   currentStateCode.current = selectedStateCode;
 
-  const targetType: CoverageRequestTargetType = manualStoreName.trim() ? "store" : manualCity.trim() ? "city" : "state";
+  const targetType: CoverageRequestTargetType = manualStoreName.trim() ? "store" : manualCity.trim() ? "city" : manualCounty.trim() ? "county" : "state";
   const accountTransitionPending = !isLoaded
     || (renderedAccountId !== null && renderedAccountId !== accountId);
 
@@ -53,6 +56,7 @@ export function CoverageRequestForm({ state, visible, onCancel, onDraftRestored 
     submitController.current?.abort();
     submitGeneration.current += 1;
     setSelectedStateCode(state.code);
+    setManualCounty("");
     setManualCity("");
     setManualStoreName("");
     setManualAddress("");
@@ -68,6 +72,7 @@ export function CoverageRequestForm({ state, visible, onCancel, onDraftRestored 
       submitController.current?.abort();
       submitGeneration.current += 1;
       setSelectedStateCode(state.code);
+      setManualCounty("");
       setManualCity("");
       setManualStoreName("");
       setManualAddress("");
@@ -85,16 +90,18 @@ export function CoverageRequestForm({ state, visible, onCancel, onDraftRestored 
     try {
       const stored = JSON.parse(window.sessionStorage.getItem(DRAFT_KEY) || "null") as RequestDraft | null;
       const validState = stored && US_STATE_OPTIONS.some((option) => option.code === stored.stateCode);
-      if (!stored || !validState || stored.stateCode !== state.code) return;
+      if (!stored || !validState) return;
       if (stored.accountId && stored.accountId !== accountId) {
         window.sessionStorage.removeItem(DRAFT_KEY);
         return;
       }
+      if (stored.stateCode !== state.code) return;
       if (accountId && !stored.accountId) {
         stored.accountId = accountId;
         window.sessionStorage.setItem(DRAFT_KEY, JSON.stringify(stored));
       }
       setSelectedStateCode(stored.stateCode);
+      setManualCounty(stored.manualCounty || "");
       setManualCity(stored.manualCity || "");
       setManualStoreName(stored.manualStoreName || "");
       setManualAddress(stored.manualAddress || "");
@@ -108,6 +115,7 @@ export function CoverageRequestForm({ state, visible, onCancel, onDraftRestored 
   const draft: RequestDraft = {
     accountId,
     stateCode: selectedStateCode,
+    manualCounty,
     manualCity,
     manualStoreName,
     manualAddress,
@@ -115,7 +123,7 @@ export function CoverageRequestForm({ state, visible, onCancel, onDraftRestored 
   };
   const returnPath = `/coverage?state=${encodeURIComponent(selectedStateCode)}`;
   const signInHref = `/sign-in?redirect_url=${encodeURIComponent(returnPath)}`;
-  const signUpHref = `/sign-up?redirect_url=${encodeURIComponent(returnPath)}`;
+  const signUpHref = "/sign-up?source=coverage";
 
   function markStarted() {
     if (started.current) return;
@@ -137,6 +145,7 @@ export function CoverageRequestForm({ state, visible, onCancel, onDraftRestored 
     submitController.current?.abort();
     submitGeneration.current += 1;
     setSelectedStateCode(stateCode);
+    setManualCounty("");
     setManualCity("");
     setManualStoreName("");
     setManualAddress("");
@@ -166,7 +175,8 @@ export function CoverageRequestForm({ state, visible, onCancel, onDraftRestored 
         body: JSON.stringify({
           targetType: requestTargetType,
           stateCode: requestStateCode,
-          areaLabel: manualCity,
+          areaLabel: requestTargetType === "county" ? manualCounty : manualCity,
+          manualCounty,
           manualStoreName,
           manualCity,
           manualAddress,
@@ -196,26 +206,31 @@ export function CoverageRequestForm({ state, visible, onCancel, onDraftRestored 
   }
 
   return (
-    <section className={styles.requestBlock} aria-labelledby="coverage-request-heading" hidden={!visible}>
+    <section className={`${styles.requestBlock} ${variant === "welcome" ? styles.requestBlockWelcome : ""}`} aria-labelledby="coverage-request-heading" hidden={!visible}>
       <div className={styles.requestHeader}>
         <div className={styles.subhead}>
-          <p>Help improve local coverage</p>
-          <h3 id="coverage-request-heading" tabIndex={-1}>Request coverage</h3>
+          <p>{variant === "welcome" ? "Optional" : "Help improve local coverage"}</p>
+          <h3 id="coverage-request-heading" tabIndex={-1}>{variant === "welcome" ? "Want Bourbon Signal to cover more near you?" : "Request coverage"}</h3>
         </div>
-        <button type="button" onClick={cancelRequest}>Cancel</button>
+        {variant === "coverage" ? <button type="button" onClick={cancelRequest}>Cancel</button> : null}
       </div>
 
       {accountTransitionPending ? (
         <p className={styles.requestAuthLoading} aria-live="polite">Checking account…</p>
       ) : (
-      <form onSubmit={submit} onFocusCapture={markStarted}>
-        <p className={styles.requestInstructions}>Choose a state. Add a city, store, or both only if you want us to investigate a specific place.</p>
+        <form onSubmit={submit} onFocusCapture={markStarted}>
+          <p className={styles.requestInstructions}>Your state is enough. Add a county, city, or store if there is a particular place you want us to check.</p>
 
         <label className={styles.requestField}>
           <span>State <small>required</small></span>
           <select name="stateCode" value={selectedStateCode} required onChange={(event) => changeState(event.target.value)}>
             {US_STATE_OPTIONS.map((option) => <option key={option.code} value={option.code}>{option.name}</option>)}
           </select>
+        </label>
+
+        <label className={styles.requestField}>
+          <span>County <small>optional</small></span>
+          <input name="manualCounty" value={manualCounty} maxLength={120} onChange={(event) => setManualCounty(event.target.value)} />
         </label>
 
         <label className={styles.requestField}>
@@ -250,9 +265,9 @@ export function CoverageRequestForm({ state, visible, onCancel, onDraftRestored 
             <a className={styles.requestSignIn} href={signInHref} onClick={preserveDraft}>Already have an account? Sign in.</a>
           </>
         )}
-        <p className={styles.requestPromise}>Requests guide investigation; they do not promise a launch date.</p>
-        <p className={status === "error" ? styles.inlineError : styles.requestMessage} aria-live="polite">{message}</p>
-      </form>
+          <p className={styles.requestPromise}>Requests guide investigation; they do not promise a launch date.</p>
+          <p className={status === "error" ? styles.inlineError : styles.requestMessage} aria-live="polite">{message}</p>
+        </form>
       )}
     </section>
   );

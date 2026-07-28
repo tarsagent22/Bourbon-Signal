@@ -119,8 +119,11 @@ assert.match(pricingPage, /checkoutContinueUrl\(plan, source, expectedPromotion\
 const continuePage = readFileSync("src/app/checkout/continue/page.tsx", "utf8");
 assert.match(continuePage, /JSON\.stringify\(\{ plan, source, expectedPromotion \}\)/, "continued checkout must send sale intent to the API");
 for (const phrase of [
-  "15% off through July 31",
-  "Discount applied automatically at checkout",
+  "July sale — 15% off",
+  "15% off annual memberships and Founder lifetime through July 31 at 11 PM ET; applied automatically.",
+  "first annual payment",
+  "renew at the regular price",
+  "Founder remains a one-time payment",
   "$21.24",
   "$42.49",
 ]) {

@@ -35,6 +35,13 @@ import {
 } from "@/lib/release-radar-preferences";
 import { buildSuppliedPreferenceMetadataPatch } from "@/lib/user-preference-patch";
 import { normalizeDemandMetroAreas, normalizeNcBoardPreferences } from "@/lib/demand-metro-areas";
+import {
+  applyMemberProfilePreferencePatch,
+  EMPTY_MEMBER_PROFILE_PREFERENCES,
+  MemberProfilePreferenceValidationError,
+  normalizeMemberProfilePreferences,
+  type MemberProfilePreferences,
+} from "@/lib/member-profile-preferences";
 
 export interface AreaPreferences {
   states: string[];
@@ -83,6 +90,7 @@ export interface UserAlertPreferences {
   };
   radarPreferences: RadarPreferences;
   sightingsPreferences?: SightingsPreferences;
+  memberProfile: MemberProfilePreferences;
   activation?: ReturnType<typeof deriveMemberActivation>;
 }
 
@@ -327,6 +335,7 @@ function buildResponseFromMetadata(user: Awaited<ReturnType<Awaited<ReturnType<t
     collectionPreferences: normalizeCollectionPreferences(user.publicMetadata?.collectionPreferences),
     radarPreferences: normalizeRadarPreferences(user.publicMetadata?.radarPreferences),
     sightingsPreferences: normalizeSightingsPreferences(user.publicMetadata?.sightingsPreferences),
+    memberProfile: normalizeMemberProfilePreferences(user.publicMetadata?.memberProfile),
     activation: deriveMemberActivation({
       tier: entitlements.tier,
       areas: areaPreferences.states,
@@ -347,6 +356,9 @@ function buildQaPreviewResponse(req: NextRequest, payload: Partial<UserAlertPref
   const collectionPreferences = normalizeCollectionPreferences(payload.collectionPreferences ?? QA_PREVIEW_PREFERENCES.collectionPreferences);
   const radarPreferences = normalizeRadarPreferences(payload.radarPreferences ?? QA_PREVIEW_PREFERENCES.radarPreferences);
   const sightingsPreferences = normalizeSightingsPreferences(payload.sightingsPreferences ?? QA_PREVIEW_PREFERENCES.sightingsPreferences);
+  const memberProfile = payload.memberProfile === undefined
+    ? EMPTY_MEMBER_PROFILE_PREFERENCES
+    : applyMemberProfilePreferencePatch(EMPTY_MEMBER_PROFILE_PREFERENCES, payload.memberProfile);
 
   if (entitlements.alertAreaLimit === 0) {
     areaPreferences = { ...areaPreferences, states: [] };
@@ -394,6 +406,7 @@ function buildQaPreviewResponse(req: NextRequest, payload: Partial<UserAlertPref
     collectionPreferences,
     radarPreferences,
     sightingsPreferences,
+    memberProfile,
   };
 }
 
@@ -439,7 +452,14 @@ export async function POST(req: NextRequest) {
     if (attemptedAlertWrite && entitlements.alertAreaLimit === 0) {
       return NextResponse.json({ error: "Alert setup is included with Standard Proof and above.", qaPreview: true, qaTier: entitlements.tier }, { status: 403 });
     }
-    return NextResponse.json(buildQaPreviewResponse(req, payload));
+    try {
+      return NextResponse.json(buildQaPreviewResponse(req, payload));
+    } catch (error) {
+      if (error instanceof MemberProfilePreferenceValidationError) {
+        return NextResponse.json({ error: error.message, qaPreview: true, qaTier: entitlements.tier }, { status: 400 });
+      }
+      throw error;
+    }
   }
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
@@ -495,6 +515,17 @@ export async function POST(req: NextRequest) {
   const collectionPreferences = normalizeCollectionPreferences(payload.collectionPreferences ?? existing.collectionPreferences ?? EMPTY_COLLECTION_PREFERENCES);
   const radarPreferences = normalizeRadarPreferences(payload.radarPreferences ?? existing.radarPreferences ?? EMPTY_RADAR_PREFERENCES);
   const sightingsPreferences = normalizeSightingsPreferences(payload.sightingsPreferences ?? existing.sightingsPreferences ?? EMPTY_SIGHTINGS_PREFERENCES);
+  let memberProfile = existing.memberProfile;
+  if (payload.memberProfile !== undefined) {
+    try {
+      memberProfile = applyMemberProfilePreferencePatch(existing.memberProfile, payload.memberProfile);
+    } catch (error) {
+      if (error instanceof MemberProfilePreferenceValidationError) {
+        return NextResponse.json({ error: error.message }, { status: 400 });
+      }
+      throw error;
+    }
+  }
   const entitlements = getEntitlements(user.publicMetadata);
   const attemptedAlertWrite = payload.areaPreferences !== undefined || payload.notificationPreferences !== undefined || payload.alertMode !== undefined || payload.bottleAlertPreferences !== undefined;
 
@@ -547,6 +578,7 @@ export async function POST(req: NextRequest) {
     collectionPreferences,
     radarPreferences,
     sightingsPreferences,
+    memberProfile,
   });
   const experimentMetadataPatch = payload.radarPreferences === undefined
     ? {}
@@ -566,5 +598,5 @@ export async function POST(req: NextRequest) {
     console.warn("preference activation milestone update failed", error instanceof Error ? error.message : "unknown error");
   }
 
-  return NextResponse.json({ ok: true, areaPreferences, notificationPreferences, alertMode, bottleAlertPreferences, collectionPreferences, radarPreferences, sightingsPreferences });
+  return NextResponse.json({ ok: true, areaPreferences, notificationPreferences, alertMode, bottleAlertPreferences, collectionPreferences, radarPreferences, sightingsPreferences, memberProfile });
 }

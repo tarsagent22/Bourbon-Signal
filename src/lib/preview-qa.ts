@@ -47,6 +47,10 @@ export const QA_PREVIEW_PREFERENCES = {
     signalReports: [],
     sightingVotes: [],
   },
+  memberProfile: {
+    homeState: null,
+    homeStateSelectedAt: null,
+  },
 };
 
 export function normalizeQaPreviewTier(value: unknown): MembershipTier {

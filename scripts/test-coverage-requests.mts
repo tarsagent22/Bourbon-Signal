@@ -35,6 +35,13 @@ const cityRequest = normalizeCoverageRequestTarget(
 assert.equal(cityRequest.areaLabel, "Raleigh");
 assert.equal(cityRequest.canonicalTargetKey, "city:NC:raleigh");
 
+const countyRequest = normalizeCoverageRequestTarget(
+  { targetType: "county", stateCode: "ar", manualCounty: "  <b>Pulaski County</b>  " },
+  { baselineCoverageFingerprint: "coverage-v1|AR|not-active" },
+);
+assert.equal(countyRequest.areaLabel, "Pulaski County");
+assert.equal(countyRequest.canonicalTargetKey, "county:AR:pulaski-county");
+
 const matchedStore = normalizeCoverageRequestTarget(
   { targetType: "store", stateCode: "il", storeId: "binnys:12", notificationEnabled: true },
   {
@@ -87,6 +94,11 @@ const safeAnalytics = sanitizeCoverageAnalyticsEvent("coverage_search_resolved",
   resultCategory: "actively-monitored",
 });
 assert.deepEqual(safeAnalytics, { state: "IL", targetType: "store", resultCategory: "actively-monitored" });
+assert.deepEqual(
+  sanitizeCoverageAnalyticsEvent("coverage_request_submitted", { state: "AR", targetType: "county" }),
+  { state: "AR", targetType: "county" },
+  "county requests remain visible in privacy-safe funnel analytics",
+);
 assert.equal(sanitizeCoverageAnalyticsEvent("coverage_search_resolved", {
   state: "IL",
   targetType: "store",
@@ -196,7 +208,9 @@ assert.match(schema, /CREATE TABLE IF NOT EXISTS coverage_requests/i);
 assert.match(schema, /notification_enabled BOOLEAN NOT NULL DEFAULT FALSE/i);
 assert.match(schema, /ALTER COLUMN notification_enabled SET DEFAULT FALSE/i);
 assert.match(schema, /UNIQUE\s*\(\s*user_id\s*,\s*canonical_target_key\s*\)/i);
-assert.match(schema, /CHECK\s*\(\s*target_type\s+IN\s*\('state',\s*'city',\s*'store'\)\s*\)/i);
+assert.match(schema, /CHECK\s*\(\s*target_type\s+IN\s*\('state',\s*'county',\s*'city',\s*'store'\)\s*\)/i);
+assert.match(schema, /target_type = 'county'[\s\S]*area_key IS NOT NULL/i, "county requests have a durable schema contract");
+assert.match(schema, /target_type = 'store' AND store_name IS NOT NULL/i, "a manual store request does not require a city");
 assert.match(schema, /CHECK\s*\(\s*status\s+IN\s*\('requested',\s*'on_radar',\s*'improved',\s*'closed'\)\s*\)/i);
 assert.doesNotMatch(schema, /\bip(?:_address)?\b|user_agent|analytics_id/i, "coverage storage has no raw IP or analytics identity field");
 assert.match(repositorySource, /WHERE status IN \('requested', 'on_radar'\)[\s\S]*ORDER BY updated_at DESC[\s\S]*LIMIT \$1/, "the owner read bound applies after closed requests are excluded");
@@ -217,7 +231,7 @@ assert.match(form, /useAuth/, "request UI uses the existing Clerk client pattern
 assert.match(form, /user\?\.id/, "account changes are part of request-form isolation");
 assert.match(form, /submitGeneration/, "late submissions cannot update a different account or state");
 assert.match(form, /\/sign-in\?redirect_url=/, "signed-out users return to the selected coverage state");
-assert.match(form, /\/sign-up\?redirect_url=/, "new visitors can create an account and return to the selected coverage state");
+assert.match(form, /\/sign-up\?source=coverage/, "new visitors enter the cohesive free-member Welcome flow");
 assert.match(form, /Create a free account to send this request/, "the request action explicitly offers a free account");
 assert.match(form, /No payment or card required\./, "the request action makes payment unnecessary explicit before authentication");
 assert.match(form, /Already have an account\? Sign in\./, "existing members retain a clear sign-in path");
@@ -227,13 +241,13 @@ assert.match(signUpPage, /Create your free account to send this coverage request
 assert.match(signUpPage, /No payment or card required\./, "account creation keeps the free/no-card promise visible");
 assert.match(form, /Request coverage and email me when it meaningfully improves\./, "notification consent is explicit");
 assert.match(form, /useState\(false\)/, "email notifications require an affirmative unchecked opt-in");
-assert.match(form, /selectedStateCode[\s\S]*manualCity[\s\S]*manualStoreName[\s\S]*manualAddress/, "one generalized draft preserves state and optional local detail");
+assert.match(form, /selectedStateCode[\s\S]*manualCounty[\s\S]*manualCity[\s\S]*manualStoreName[\s\S]*manualAddress/, "one generalized draft preserves state and optional local detail");
 assert.match(form, /accountId:\s*string\s*\|\s*null/, "sign-in drafts carry an explicit account-ownership marker");
 assert.match(form, /renderedAccountId[\s\S]*accountId !== renderedAccountId[\s\S]*removeItem\(DRAFT_KEY\)[\s\S]*setRenderedAccountId\(accountId\)/, "sign-out and account switches clear private request state and finish the transition with a rerender");
 assert.match(form, /accountTransitionPending[\s\S]*Checking account/, "private fields are not rendered during auth loading or an account transition");
 assert.match(form, /stored\.accountId[\s\S]*accountId[\s\S]*removeItem\(DRAFT_KEY\)/, "a draft owned by another account cannot be restored");
-assert.match(form, /function changeState[\s\S]*setManualCity\(""\)[\s\S]*setManualStoreName\(""\)[\s\S]*setManualAddress\(""\)[\s\S]*removeItem\(DRAFT_KEY\)/, "changing the required state clears stale local details and its saved draft");
-assert.match(form, /manualStoreName\.trim\(\)\s*\?\s*"store"[\s\S]*manualCity\.trim\(\)\s*\?\s*"city"[\s\S]*:\s*"state"/, "request scope is derived from the optional fields instead of a mode chooser");
+assert.match(form, /function changeState[\s\S]*setManualCounty\(""\)[\s\S]*setManualCity\(""\)[\s\S]*setManualStoreName\(""\)[\s\S]*setManualAddress\(""\)[\s\S]*removeItem\(DRAFT_KEY\)/, "changing the required state clears stale local details and its saved draft");
+assert.match(form, /manualStoreName\.trim\(\)\s*\?\s*"store"[\s\S]*manualCity\.trim\(\)\s*\?\s*"city"[\s\S]*manualCounty\.trim\(\)\s*\?\s*"county"[\s\S]*:\s*"state"/, "request scope is derived from the optional fields instead of a mode chooser");
 assert.doesNotMatch(form, /CoverageSearchResult|storeId|targetChoices|coverage-target/, "the generalized request form is decoupled from individual search results");
 assert.match(form, /\/api\/coverage\/requests/, "signed-in submissions use the private request API");
 assert.match(form, /hidden=\{!visible\}/, "the long request form is not shown before a user asks for coverage");
@@ -241,13 +255,14 @@ assert.match(form, /onDraftRestored\(\)/, "a sign-in return reopens its preserve
 assert.doesNotMatch(form, /onDraftRestored\(\);\s*window\.sessionStorage\.removeItem\(DRAFT_KEY\)/, "draft restoration survives React effect replay");
 assert.match(form, /cancelRequest[\s\S]*removeItem\(DRAFT_KEY\)[\s\S]*onCancel\(\)/, "canceling clears a preserved draft");
 assert.match(form, /setStatus\("saved"\);\s*window\.sessionStorage\.removeItem\(DRAFT_KEY\)/, "saving clears a preserved draft");
-assert.match(form, /Choose a state\. Add a city, store, or both/, "the form explains its one generalized request path");
+assert.match(form, /Add a county, city, or store/, "the form explains its one generalized request path");
 
 const migration = read("scripts/migrate-coverage-requests.mjs");
 assert.match(migration, /--check/);
 assert.match(migration, /--apply/);
 assert.match(migration, /--target/);
 assert.match(migration, /BOURBON_QUEUE_DATABASE_URL_UNPOOLED/);
+assert.match(migration, /state%county%city%store/, "migration verification includes the county constraint");
 assert.doesNotMatch(migration, /\|\|\s*process\.env\.(?:DATABASE_URL|BOURBON_QUEUE_DATABASE_URL)\b/, "apply mode does not silently fall back to an ambiguous database");
 
 console.log("coverage request tests passed");

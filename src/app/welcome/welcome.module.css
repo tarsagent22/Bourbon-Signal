@@ -1,216 +1,355 @@
 .page {
   min-height: 100vh;
-  padding: 124px 20px 80px;
+  padding: 124px 20px 84px;
   color: var(--color-cream);
   background:
-    radial-gradient(circle at 50% 12%, rgba(196, 148, 58, 0.15), transparent 34%),
+    radial-gradient(circle at 50% 3%, rgba(196, 148, 58, 0.11), transparent 30%),
     var(--color-bg-primary);
 }
 
-.panel {
-  width: min(100%, 820px);
+.journey {
+  width: min(100%, 920px);
   margin: 0 auto;
-  padding: clamp(28px, 5vw, 52px);
-  border: 1px solid rgba(196, 148, 58, 0.28);
-  border-radius: 28px;
-  background: linear-gradient(150deg, rgba(30, 22, 15, 0.96), rgba(10, 8, 6, 0.98));
-  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.36), inset 0 1px rgba(255, 255, 255, 0.05);
 }
 
-.eyebrow {
+.hero {
+  max-width: 760px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.eyebrow,
+.stepLabel {
   margin: 0;
   color: var(--color-accent-amber);
-  font: 900 11px/1.2 var(--font-jetbrains);
+  font: 900 10px/1.2 var(--font-jetbrains);
   letter-spacing: 0.15em;
-  text-align: center;
   text-transform: uppercase;
 }
 
-.title {
-  max-width: 700px;
-  margin: 15px auto 0;
-  font: 700 clamp(38px, 6vw, 64px)/0.98 var(--font-playfair);
-  letter-spacing: -0.045em;
-  text-align: center;
+.hero h1 {
+  margin: 15px 0 0;
+  font: 700 clamp(40px, 6.4vw, 68px)/0.98 var(--font-playfair);
+  letter-spacing: -0.047em;
   text-wrap: balance;
 }
 
-.copy {
-  max-width: 680px;
+.hero > p:last-child {
+  max-width: 650px;
   margin: 20px auto 0;
   color: var(--color-text-secondary);
-  font: 16px/1.7 var(--font-dm-sans);
-  text-align: center;
+  font: 15px/1.7 var(--font-dm-sans);
 }
 
-.stateStep {
+.stateChooser {
   display: grid;
-  gap: 12px;
-  margin-top: 30px;
-  padding: clamp(20px, 4vw, 30px);
-  border: 1px solid rgba(245, 237, 214, 0.1);
-  border-radius: 20px;
+  gap: 14px;
+  max-width: 680px;
+  margin: 44px auto 0;
+  padding: clamp(22px, 4vw, 32px);
+  border-radius: 18px;
   background: rgba(245, 237, 214, 0.035);
 }
 
-.stateStep label {
+.stateChooser h2,
+.section h2 {
+  margin: 7px 0 0;
+  color: var(--color-cream);
+  font: 700 clamp(25px, 4vw, 36px)/1.05 var(--font-playfair);
+  letter-spacing: -0.03em;
+}
+
+.stateChooser > div > p:last-child,
+.coverageSummary {
+  margin: 10px 0 0;
+  color: var(--color-text-secondary);
+  font: 14px/1.62 var(--font-dm-sans);
+}
+
+.stateChooser label {
+  margin-top: 5px;
   color: rgba(245, 237, 214, 0.72);
   font: 850 12px/1 var(--font-dm-sans);
 }
 
-.stateStep select {
+.stateChooser select {
   width: 100%;
   min-height: 50px;
   padding: 0 14px;
   border: 1px solid rgba(196, 148, 58, 0.34);
-  border-radius: 13px;
+  border-radius: 11px;
   color: var(--color-cream);
   background: #17110c;
   font: 750 15px/1 var(--font-dm-sans);
 }
 
-.stateStep select:focus-visible {
-  outline: 2px solid rgba(232, 201, 122, 0.75);
-  outline-offset: 2px;
+.stateChooser select:focus-visible,
+.primaryAction:focus-visible,
+.textButton:focus-visible,
+.changeState:focus-visible,
+.sectionHeading > a:focus-visible,
+.exploreLinks a:focus-visible {
+  outline: 2px solid rgba(232, 201, 122, 0.8);
+  outline-offset: 3px;
 }
 
-.coverage {
-  min-height: 116px;
-  padding: 15px 16px;
-  border-radius: 14px;
-  background: rgba(196, 148, 58, 0.065);
-}
-
-.coverage strong {
-  color: var(--color-cream);
-  font: 800 14px/1.3 var(--font-dm-sans);
-}
-
-.coverage p {
-  margin: 7px 0 0;
-  color: var(--color-text-secondary);
-  font: 13px/1.55 var(--font-dm-sans);
+.chooserActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
 }
 
 .primaryAction {
   display: inline-flex;
   justify-content: center;
-  width: 100%;
-  margin-top: 3px;
-  padding: 15px 20px;
+  padding: 14px 18px;
   border: 0;
-  border-radius: 14px;
+  border-radius: 11px;
   color: #17110b;
   background: linear-gradient(135deg, #d4920b, #f2c14e);
-  box-shadow: 0 14px 36px rgba(212, 146, 11, 0.23);
-  font: 900 15px/1 var(--font-dm-sans);
+  font: 900 14px/1 var(--font-dm-sans);
   cursor: pointer;
-  transition: transform 160ms ease, box-shadow 160ms ease, opacity 160ms ease;
-}
-
-.primaryAction:hover:not(:disabled),
-.primaryAction:focus-visible:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 18px 42px rgba(212, 146, 11, 0.3);
-  outline: none;
 }
 
 .primaryAction:disabled {
   cursor: not-allowed;
-  opacity: 0.46;
+  opacity: 0.5;
 }
 
-.nextActions {
-  display: grid;
-  gap: 10px;
-  margin-top: 18px;
+.textButton,
+.changeState {
+  border: 0;
+  padding: 8px;
+  color: rgba(245, 237, 214, 0.65);
+  background: transparent;
+  font: 800 12px/1.2 var(--font-dm-sans);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
 }
 
-.secondaryAction {
-  display: grid;
-  gap: 5px;
-  padding: 17px 18px;
-  border: 1px solid rgba(245, 237, 214, 0.13);
-  border-radius: 16px;
-  color: rgba(245, 237, 214, 0.92);
-  background: rgba(245, 237, 214, 0.025);
-  text-decoration: none;
+.inlineError {
+  min-height: 20px;
+  margin: 0;
+  color: #ffb4a8;
+  font: 750 12px/1.5 var(--font-dm-sans);
 }
 
-.secondaryAction span {
-  color: var(--color-accent-amber);
-  font: 900 9px/1 var(--font-jetbrains);
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.secondaryAction strong {
-  font: 800 16px/1.25 var(--font-dm-sans);
-}
-
-.secondaryAction small {
+.loading {
+  margin: 36px auto 0;
   color: var(--color-text-secondary);
-  font: 13px/1.45 var(--font-dm-sans);
-}
-
-.tertiaryAction {
-  justify-self: center;
-  padding: 9px 12px;
-  color: rgba(245, 237, 214, 0.72);
-  font: 750 13px/1.3 var(--font-dm-sans);
-  text-decoration: none;
-}
-
-.secondaryAction:hover,
-.secondaryAction:focus-visible,
-.tertiaryAction:hover,
-.tertiaryAction:focus-visible {
-  color: var(--color-cream);
-  border-color: rgba(196, 148, 58, 0.45);
-  outline: none;
-}
-
-.tertiaryAction:focus-visible {
-  border-radius: 8px;
-  outline: 2px solid rgba(232, 201, 122, 0.9);
-  outline-offset: 2px;
-}
-
-.membershipLink {
-  margin: 26px 0 0;
-  padding-top: 20px;
-  border-top: 1px solid rgba(245, 237, 214, 0.07);
-  color: rgba(245, 237, 214, 0.48);
-  font: 12px/1.55 var(--font-dm-sans);
+  font: 14px/1.6 var(--font-dm-sans);
   text-align: center;
 }
 
+.section {
+  margin-top: 48px;
+  padding-top: 34px;
+  border-top: 1px solid rgba(245, 237, 214, 0.1);
+}
+
+.sectionHeading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.sectionHeading > a {
+  flex: 0 0 auto;
+  margin-top: 8px;
+  color: rgba(232, 201, 122, 0.8);
+  font: 800 12px/1.3 var(--font-dm-sans);
+  text-underline-offset: 3px;
+}
+
+.previewMessage {
+  margin: 20px 0 0;
+  color: var(--color-text-secondary);
+  font: 14px/1.65 var(--font-dm-sans);
+}
+
+.signalList {
+  margin: 24px 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.signalList li {
+  padding: 20px 0;
+  border-top: 1px solid rgba(245, 237, 214, 0.075);
+}
+
+.signalList li:first-child {
+  border-top-color: rgba(196, 148, 58, 0.28);
+}
+
+.signalHeading {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.signalHeading strong {
+  color: rgba(245, 237, 214, 0.94);
+  font: 800 17px/1.25 var(--font-dm-sans);
+}
+
+.signalHeading span {
+  color: var(--color-accent-amber);
+  font: 850 10px/1.2 var(--font-jetbrains);
+  letter-spacing: 0.08em;
+  text-align: right;
+  text-transform: uppercase;
+}
+
+.signalList dl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px 22px;
+  margin: 10px 0 0;
+}
+
+.signalList dl div {
+  display: flex;
+  gap: 6px;
+}
+
+.signalList dt {
+  color: rgba(245, 237, 214, 0.38);
+  font: 750 11px/1.4 var(--font-dm-sans);
+}
+
+.signalList dd {
+  margin: 0;
+  color: rgba(245, 237, 214, 0.68);
+  font: 600 11px/1.4 var(--font-dm-sans);
+}
+
+.coverageSource,
+.coverageCaveat {
+  margin: 12px 0 0;
+  color: rgba(245, 237, 214, 0.52);
+  font: 12px/1.55 var(--font-dm-sans);
+}
+
+.coverageSource strong {
+  color: rgba(245, 237, 214, 0.78);
+}
+
+.coverageMetrics {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 24px 0 0;
+  border-top: 1px solid rgba(245, 237, 214, 0.08);
+}
+
+.coverageMetrics div {
+  padding: 16px 14px 16px 0;
+  border-bottom: 1px solid rgba(245, 237, 214, 0.08);
+}
+
+.coverageMetrics dt {
+  color: rgba(245, 237, 214, 0.43);
+  font: 750 10px/1.3 var(--font-dm-sans);
+  text-transform: uppercase;
+}
+
+.coverageMetrics dd {
+  margin: 6px 0 0;
+  color: rgba(245, 237, 214, 0.9);
+  font: 800 17px/1.2 var(--font-dm-sans);
+}
+
+.exploreLinks {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  margin-top: 22px;
+}
+
+.exploreLinks a {
+  display: grid;
+  gap: 5px;
+  padding: 16px 18px 16px 0;
+  border-top: 1px solid rgba(245, 237, 214, 0.075);
+  color: inherit;
+  text-decoration: none;
+}
+
+.exploreLinks a:nth-child(even) {
+  padding-left: 18px;
+}
+
+.exploreLinks strong {
+  color: rgba(245, 237, 214, 0.9);
+  font: 800 14px/1.3 var(--font-dm-sans);
+}
+
+.exploreLinks span {
+  color: var(--color-text-secondary);
+  font: 12px/1.5 var(--font-dm-sans);
+}
+
+.membershipLink {
+  margin: 24px 0 0;
+  color: rgba(245, 237, 214, 0.42);
+  font: 12px/1.55 var(--font-dm-sans);
+}
+
 .membershipLink a {
-  color: rgba(232, 201, 122, 0.82);
-  font-weight: 800;
+  color: rgba(232, 201, 122, 0.7);
 }
 
 @media (max-width: 640px) {
   .page {
-    padding: 104px 14px 60px;
+    padding: 104px 14px 62px;
   }
 
-  .panel {
-    padding: 26px 18px;
-    border-radius: 22px;
+  .stateChooser {
+    padding: 22px 18px;
   }
 
-  .coverage {
-    min-height: 0;
+  .sectionHeading,
+  .signalHeading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .sectionHeading {
+    gap: 8px;
+  }
+
+  .signalHeading {
+    gap: 7px;
+  }
+
+  .signalHeading span {
+    text-align: left;
+  }
+
+  .coverageMetrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .exploreLinks {
+    grid-template-columns: 1fr;
+  }
+
+  .exploreLinks a:nth-child(even) {
+    padding-left: 0;
+  }
+
+  .chooserActions {
+    align-items: stretch;
+    flex-direction: column;
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .primaryAction {
-    transition: none;
-  }
-
-  .primaryAction:hover {
-    transform: none;
+  .primaryAction,
+  .changeState,
+  .exploreLinks a {
+    scroll-behavior: auto;
   }
 }

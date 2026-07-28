@@ -2,6 +2,7 @@
 
 import { SignIn } from "@clerk/nextjs";
 import { useSearchParams } from "next/navigation";
+import { resolveSignUpRedirect } from "@/lib/growth-events";
 
 function safeRedirectUrl(value: string | null) {
   if (!value) return "/dashboard";
@@ -15,10 +16,21 @@ function safeRedirectUrl(value: string | null) {
   return "/dashboard";
 }
 
+function withRegistrationMarker(path: string) {
+  const url = new URL(path, "https://bourbonsignal.local");
+  url.searchParams.set("registration", "1");
+  return `${url.pathname}${url.search}${url.hash}`;
+}
+
 export default function SignInPage() {
   const searchParams = useSearchParams();
   const redirectUrl = safeRedirectUrl(searchParams.get("redirect_url"));
-  const encodedRedirect = encodeURIComponent(redirectUrl);
+  const paidSignupRedirect = resolveSignUpRedirect(redirectUrl, searchParams.get("signup_intent"));
+  const hasPaidSignupIntent = paidSignupRedirect !== "/welcome";
+  const newAccountRedirect = hasPaidSignupIntent
+    ? withRegistrationMarker(paidSignupRedirect)
+    : "/welcome?registration=1";
+  const encodedRedirect = encodeURIComponent(newAccountRedirect);
   return (
     <div
       style={{
@@ -60,7 +72,11 @@ export default function SignInPage() {
         </a>
       </div>
 
-      <SignIn forceRedirectUrl={redirectUrl} signUpForceRedirectUrl={redirectUrl} signUpUrl={`/sign-up?redirect_url=${encodedRedirect}`} />
+      <SignIn
+        forceRedirectUrl={redirectUrl}
+        signUpForceRedirectUrl={newAccountRedirect}
+        signUpUrl={hasPaidSignupIntent ? `/sign-up?intent=paid&redirect_url=${encodedRedirect}` : "/sign-up"}
+      />
     </div>
   );
 }

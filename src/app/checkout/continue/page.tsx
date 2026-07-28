@@ -47,8 +47,8 @@ function ContinueCheckoutContent() {
       const promotionQuery = expectedPromotion
         ? `&expectedPromotion=${encodeURIComponent(expectedPromotion)}`
         : "";
-      const continueUrl = `/checkout/continue?plan=${plan}&source=${encodeURIComponent(source)}${promotionQuery}`;
-      router.replace(`/sign-up?redirect_url=${encodeURIComponent(continueUrl)}`);
+      const continueUrl = `/checkout/continue?plan=${plan}&source=${encodeURIComponent(source)}${promotionQuery}&registration=1`;
+      router.replace(`/sign-up?intent=paid&redirect_url=${encodeURIComponent(continueUrl)}`);
       return;
     }
     if (checkoutStartedRef.current) return;
