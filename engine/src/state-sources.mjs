@@ -241,7 +241,7 @@ const BASE_STATE_SOURCES = [
   },
   {
     id: 'MS', label: 'Mississippi statewide directory + retailer research', tier: 'B', strategy: 'hybrid_official_intelligence_private_retailer', cadence: 'inventory-60m_directory-weekly',
-    value: 'Complete official Package Retailer premises directory plus four isolated exact first-party storefront adapters under alert-disabled shadow qualification. Official catalog, pricing, SPA, bailment, wholesale, and policy evidence remains noninventory; runtime health determines current storefront usability.',
+    value: 'Complete official Package Retailer premises directory plus six isolated exact first-party storefront adapters under alert-disabled shadow qualification. Official catalog, pricing, SPA, bailment, wholesale, and policy evidence remains noninventory; runtime health determines current storefront usability.',
     active: false,
     rareSignalTarget: true,
     sources: [

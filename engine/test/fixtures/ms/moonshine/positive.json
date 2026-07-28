@@ -1,0 +1,7 @@
+{
+  "product_store": "<div class=\"card\"><button data-product-template-id=\"2896\" data-product-product-id=\"3605\"></button><a itemprop=\"url\" href=\"/shop/17088-bulleit-straight-bourbon-90-proof-2896#attr=3442\"><h5 class=\"sltech_name_part\"> Bulleit Straight Bourbon 90 Proof </h5><h5 class=\"sltech_price_part\"> 1.75L &nbsp;$ 50.99 </h5></a></div>",
+  "available_store_tab": "<h5>Available from these stores</h5><ul><li><a href=\"https://www.moonshinems.com/terranova\"><h6>Terra Nova</h6></a><p>Madison Mississippi</p><h6 class=\"price\">Price: $50.99</h6><div class=\"action_area\"><form action=\"/shop/cart/update\"><input class=\"product_id store_wise_product_id\" name=\"product_id\" value=\"3605\"/><input name=\"seller_id\" id=\"seller_id\" value=\"1882\"/><select name=\"add_qty\"><option value=\"1\">1</option></select></form></div></li></ul>",
+  "moonshine_seller_id": 1882,
+  "moonshine_seller_name": "Terra Nova",
+  "moonshine_seller_url": "https://www.moonshinems.com/terranova"
+}

@@ -6,6 +6,7 @@ import {
   MISSISSIPPI_RETAILER_SOURCES,
   parseMississippiCityHiveHtml,
   parseMississippiGoToLiquorStoreProducts,
+  parseMississippiMoonshineResponse,
 } from '../src/collectors/mississippi-retailer-surfaces.mjs';
 import {
   buildMississippiRetailerSignal,
@@ -32,12 +33,14 @@ const fixture = (name) => readFile(new URL(`./fixtures/ms/${name}`, import.meta.
 
 function exactSignal(source, row = {}) {
   return buildMississippiRetailerSignal(source, {
-    productId: source.platform === 'cityhive' ? 'product-1' : '1138',
-    variantId: source.platform === 'cityhive' ? 'option-1' : null,
+    productId: source.platform === 'cityhive' ? 'product-1' : source.platform === 'moonshine' ? '2896' : '1138',
+    variantId: source.platform === 'cityhive' ? 'option-1' : source.platform === 'moonshine' ? '3605' : null,
     title: 'Buffalo Trace Bourbon 750ml',
     productUrl: source.platform === 'cityhive'
       ? `${source.baseUrl}/shop/product/buffalo-trace/product-1?option-id=option-1`
-      : `${source.baseUrl}/p/buffalo-trace-bourbon/1138`,
+      : source.platform === 'moonshine'
+        ? `${source.baseUrl}/shop/buffalo-trace-bourbon-2896`
+        : `${source.baseUrl}/p/buffalo-trace-bourbon/1138`,
     price: 31.99,
     reportedQuantity: 7,
     sourceAvailabilityVerified: true,
@@ -50,12 +53,12 @@ function exactSignal(source, row = {}) {
   });
 }
 
-test('registry binds the four reviewed stores to exact permit, merchant, host, premises, and independent runtime IDs', () => {
+test('registry binds eight reviewed stores to exact permit, merchant, host, premises, and independent runtime IDs', () => {
   assert.equal(registry.schemaVersion, 1);
-  assert.equal(registry.stores.length, 4);
-  assert.deepEqual(registry.stores.map((store) => store.permitNumber), ['046478', '040562', '029254', '044692']);
-  assert.equal(new Set(registry.stores.map((store) => store.sourceRuntimeId)).size, 4);
-  assert.deepEqual(registry.stores.map((store) => ({
+  assert.equal(registry.stores.length, 8);
+  assert.deepEqual(new Set(registry.stores.map((store) => store.permitNumber)), new Set(['046478', '040562', '029254', '044692', '044411', '049222', '051851', '007481']));
+  assert.equal(new Set(registry.stores.map((store) => store.sourceRuntimeId)).size, 8);
+  assert.deepEqual(registry.stores.slice(0, 4).map((store) => ({
     permit: store.permitNumber,
     merchant: store.merchantId,
     controlStore: store.controlStoreId || null,
@@ -66,11 +69,22 @@ test('registry binds the four reviewed stores to exact permit, merchant, host, p
     { permit: '046478', merchant: '955132', controlStore: '1031', host: 'www.aliquorwarehouse.com', city: 'Winona', zip: '38967' },
     { permit: '040562', merchant: '736142', controlStore: '1069', host: 'www.cabinfeverliquor.com', city: 'Nesbit', zip: '38651' },
     { permit: '029254', merchant: '68ba2980113a7a29c2076fc3', controlStore: null, host: 'www.desotoliquor.com', city: 'Horn Lake', zip: '38637' },
-    { permit: '044692', merchant: '669150d28f28f1287440bdce', controlStore: null, host: 'thehernandowinespirits.com', city: 'Hernando', zip: '38632' },
+    { permit: '044411', merchant: '323', controlStore: null, host: 'www.moonshinems.com', city: 'Madison', zip: '39110' },
+  ]);
+  assert.deepEqual(registry.stores.filter((store) => store.platform === 'moonshine').map((store) => ({
+    name: store.name,
+    seller: store.moonshineSellerId,
+    url: store.sellerUrl,
+    pickup: store.pickupAvailable,
+  })), [
+    { name: 'Barleys Beer Barn', seller: 323, url: 'https://www.moonshinems.com/barleysbeerbarn', pickup: true },
+    { name: 'Cork Screw', seller: 2118, url: 'https://www.moonshinems.com/corkscrew', pickup: true },
+    { name: 'Madison Cellars', seller: 7, url: 'https://www.moonshinems.com/madisoncellars', pickup: true },
+    { name: 'Terra Nova', seller: 1882, url: 'https://www.moonshinems.com/terranova', pickup: true },
   ]);
   assert.deepEqual(new Set(MISSISSIPPI_RETAILER_SOURCES.map((source) => source.permitNumber)), new Set(registry.stores.map((store) => store.permitNumber)));
-  assert.deepEqual(registry.stores.map((store) => store.autonomousFetchAllowed), [false, false, true, true]);
-  assert.deepEqual(registry.stores.map((store) => store.sourcePolicyStatus), ['blocked_by_source_policy', 'blocked_by_source_policy', 'allowed', 'allowed']);
+  assert.deepEqual(registry.stores.map((store) => store.autonomousFetchAllowed), [false, false, true, true, true, true, true, true]);
+  assert.deepEqual(registry.stores.map((store) => store.sourcePolicyStatus), ['blocked_by_source_policy', 'blocked_by_source_policy', 'allowed', 'allowed', 'allowed', 'allowed', 'allowed', 'allowed']);
 });
 
 test('GoTo parser requires visible store-bound orderability, safe format, and a clean same-host product URL', async () => {
@@ -130,11 +144,41 @@ test('CityHive parser binds exact merchant and premises but converts orderabilit
   assert.deepEqual(parseMississippiCityHiveHtml(forged, source), []);
 });
 
+test('Moonshine parser binds the selected seller, exact product URL, safe bottle size, price, and cart control', async () => {
+  const source = MISSISSIPPI_RETAILER_SOURCES.find((entry) => entry.permitNumber === '007481');
+  const payload = JSON.parse(await fixture('moonshine/positive.json'));
+  const rows = parseMississippiMoonshineResponse(payload, source);
+  assert.deepEqual(rows, [{
+    productId: '2896',
+    variantId: '3605',
+    platformProductId: '3605',
+    title: 'Bulleit Straight Bourbon 90 Proof 1.75L',
+    productUrl: 'https://www.moonshinems.com/shop/17088-bulleit-straight-bourbon-90-proof-2896',
+    price: 50.99,
+    reportedQuantity: null,
+    quantity: 0,
+    quantityIsExact: false,
+    sourceAvailabilityVerified: true,
+    pickupOfferVerified: true,
+    premisesVerified: true,
+    inventorySemantics: 'binary_retailer_orderable_no_exact_count',
+  }]);
+  const forgedSeller = { ...payload, moonshine_seller_id: 7 };
+  assert.deepEqual(parseMississippiMoonshineResponse(forgedSeller, source), []);
+  const forgedControl = { ...payload, available_store_tab: payload.available_store_tab.replace('seller_id\" value=\"1882', 'seller_id\" value=\"7') };
+  assert.deepEqual(parseMississippiMoonshineResponse(forgedControl, source), []);
+  const unsafeSize = { ...payload, product_store: payload.product_store.replace('1.75L', '375ml') };
+  assert.deepEqual(parseMississippiMoonshineResponse(unsafeSize, source), []);
+});
+
 test('exact Mississippi policy accepts guarded binary evidence and rejects every forged binding', () => {
   const source = MISSISSIPPI_RETAILER_SOURCES.find((entry) => entry.permitNumber === '029254');
   const signal = exactSignal(source);
   assert.equal(isMississippiRetailerSignalIdentity(signal), true);
   assert.equal(isMississippiRetailerInventory(signal), true);
+  const moonshine = MISSISSIPPI_RETAILER_SOURCES.find((entry) => entry.permitNumber === '007481');
+  assert.equal(isMississippiRetailerSignalIdentity(exactSignal(moonshine)), true);
+  assert.equal(isMississippiRetailerInventory(exactSignal(moonshine)), true);
   const blockedGoTo = MISSISSIPPI_RETAILER_SOURCES.find((entry) => entry.permitNumber === '046478');
   assert.equal(isMississippiRetailerSignalIdentity(exactSignal(blockedGoTo)), false);
   assert.equal(isMississippiRetailerInventory(exactSignal(blockedGoTo)), false);
@@ -260,17 +304,18 @@ test('collector isolates allowed stores and reports policy-blocked sources witho
       requestedHosts.push(new URL(url).hostname);
       return { ok: true, status: 200, text: htmlByHost.get(new URL(url).hostname) };
     },
+    fetchJson: async () => ({ ok: true, status: 200, cookie: 'session_id=test', payload: { product_store: '', available_store_tab: '' } }),
     matchBottle: () => ({ id: 'bb_test', canonical: 'Buffalo Trace Bourbon', tier: 'allocated', confidence: 0.94 }),
     now: () => new Date('2026-07-25T20:00:00.000Z'),
     sourceRunnerOptions: { timeoutMs: 5_000, maxAttempts: 1 },
   });
-  assert.equal(result.sourceResults.length, 4);
-  assert.equal(new Set(result.sourceResults.map((entry) => entry.sourceId)).size, 4);
+  assert.equal(result.sourceResults.length, 8);
+  assert.equal(new Set(result.sourceResults.map((entry) => entry.sourceId)).size, 8);
   assert.ok(result.sourceResults.every((entry) => entry.alertable === false
     && entry.inventoryAlertable === false
     && entry.watchAlertable === false));
-  assert.deepEqual(new Set(requestedHosts), new Set(['www.desotoliquor.com', 'thehernandowinespirits.com']));
-  assert.equal(result.runtime.partitionCount, 2);
+  assert.deepEqual(new Set(requestedHosts), new Set(['www.desotoliquor.com', 'thehernandowinespirits.com', 'www.moonshinems.com']));
+  assert.equal(result.runtime.partitionCount, 6);
   assert.equal(result.runtime.blockedSourceCount, 2);
   assert.equal(result.sourceResults.filter((entry) => entry.status === 'source_policy_blocked').length, 2);
   assert.equal(result.roadblocks.filter((entry) => entry.status === 'source_policy_blocked').length, 2);
@@ -281,13 +326,14 @@ test('collector isolates allowed stores and reports policy-blocked sources witho
 test('reachable zero-row Mississippi storefronts remain explicit roadblocks and nonalertable', async () => {
   const result = await collectMississippiRetailers({ id: 'MS' }, {
     fetchText: async () => ({ ok: true, status: 200, text: '<html><body>No exact-store orderability rows</body></html>' }),
+    fetchJson: async () => ({ ok: true, status: 200, cookie: 'session_id=test', payload: { product_store: '', available_store_tab: '' } }),
     matchBottle: () => ({ id: 'bb_test', canonical: 'Buffalo Trace Bourbon', tier: 'allocated', confidence: 0.94 }),
     now: () => new Date('2026-07-25T20:00:00.000Z'),
     sourceRunnerOptions: { timeoutMs: 5_000, maxAttempts: 1 },
   });
   assert.equal(result.signals.length, 0);
-  assert.equal(result.roadblocks.length, 4);
-  assert.equal(result.roadblocks.filter((entry) => entry.status === 'reachable_no_safe_orderability_rows').length, 2);
+  assert.equal(result.roadblocks.length, 8);
+  assert.equal(result.roadblocks.filter((entry) => entry.status === 'reachable_no_safe_orderability_rows').length, 6);
   assert.equal(result.roadblocks.filter((entry) => entry.status === 'source_policy_blocked').length, 2);
   assert.ok(result.sourceResults.every((entry) => entry.alertable === false));
 });
@@ -295,12 +341,12 @@ test('reachable zero-row Mississippi storefronts remain explicit roadblocks and 
 test('blocked BottleCapps probes stay health-visible, nonalertable, and out of inventory authority', async () => {
   const atlas = JSON.parse(await readFile(new URL('../data/source-atlas/MS.json', import.meta.url), 'utf8'));
   const health = summarizeMississippiSourceHealth({ atlas, sourceResults: [] });
-  assert.equal(health.inventorySources, 2);
+  assert.equal(health.inventorySources, 6);
   assert.equal(health.directorySourcePolicyStatus, 'source_policy_blocked');
-  assert.equal(health.blockedBySourcePolicy, 8);
+  assert.equal(health.blockedBySourcePolicy, 7);
   assert.equal(health.sourceOffline, 2);
   assert.equal(health.platformProbeOnly, 2);
-  assert.equal(health.entries.filter((entry) => entry.platform === 'bottlecapps').length, 10);
+  assert.equal(health.entries.filter((entry) => entry.platform === 'bottlecapps').length, 9);
   assert.ok(health.entries.filter((entry) => entry.platform === 'bottlecapps')
     .every((entry) => entry.healthVisible && !entry.inventoryAuthoritative && !entry.alertable));
 });
@@ -374,7 +420,7 @@ test('Mississippi is a hybrid research-only source with direct precision dispatc
   assert.equal(stateSource.strategy, 'hybrid_official_intelligence_private_retailer');
   assert.ok(stateSource.sources.some((source) => source.sourceLayer === 'directory'));
   assert.ok(stateSource.sources.some((source) => source.sourceLayer === 'official_intelligence'));
-  assert.equal(stateSource.sources.filter((source) => source.sourceLayer === 'private_retailer_inventory').length, 2);
+  assert.equal(stateSource.sources.filter((source) => source.sourceLayer === 'private_retailer_inventory').length, 6);
   assert.equal(stateSource.sources.filter((source) => source.sourceLayer === 'storefront_probe').length, 2);
 
   const precision = await readFile(new URL('../src/collectors/precision-probes.mjs', import.meta.url), 'utf8');

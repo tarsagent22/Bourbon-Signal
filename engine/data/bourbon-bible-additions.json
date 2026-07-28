@@ -405,12 +405,48 @@
       "canonical": "Bulleit Bourbon",
       "aliases": [
         "BULLEIT BOURBON",
-        "Bulleit Kentucky Straight Bourbon"
+        "Bulleit Kentucky Straight Bourbon",
+        "Bulleit Straight Bourbon",
+        "Bulleit Straight Bourbon 90 Proof"
       ],
       "tier": "standard",
       "producer": "Diageo",
       "sourceStates": [
         "VT"
+      ]
+    },
+    {
+      "canonical": "Woodford Reserve Bourbon",
+      "aliases": [
+        "Woodford Reserve Straight Bourbon",
+        "Woodford Reserve Bourbon Whiskey"
+      ],
+      "tier": "standard",
+      "producer": "Woodford Reserve",
+      "sourceStates": [
+        "MS"
+      ]
+    },
+    {
+      "canonical": "Old Forester Signature",
+      "aliases": [
+        "Old Forester Signature 100 Proof"
+      ],
+      "tier": "standard",
+      "producer": "Old Forester",
+      "sourceStates": [
+        "MS"
+      ]
+    },
+    {
+      "canonical": "Evan Williams 1783 Bourbon",
+      "aliases": [
+        "Evan Williams 1783"
+      ],
+      "tier": "standard",
+      "producer": "Heaven Hill",
+      "sourceStates": [
+        "MS"
       ]
     },
     {

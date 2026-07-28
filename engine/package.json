@@ -29,7 +29,7 @@
     "test:ga": "node --test test/georgia-retailer-engine.test.mjs",
     "test:demand-metros": "node --test test/demand-metro-expansion.test.mjs",
     "test:ny-co": "node --test test/ny-co-retailer-engine.test.mjs",
-    "test:ms": "node --test test/mississippi-package-directory.test.mjs test/mississippi-area.test.mjs test/mississippi-retailer-engine.test.mjs",
+    "test:ms": "node --test test/bible-matching.test.mjs test/mississippi-package-directory.test.mjs test/mississippi-area.test.mjs test/mississippi-retailer-engine.test.mjs",
     "verify:ga": "node src/verify-ga.mjs",
     "verify:demand-metros": "node src/verify-demand-metros.mjs",
     "verify:ms": "node src/verify-ms.mjs",

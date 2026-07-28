@@ -42,6 +42,12 @@ function exactProductUrl(signal, source) {
         && query[0][0] === 'option-id'
         && query[0][1] === String(signal.variantId || '');
     }
+    if (source.platform === 'moonshine') {
+      return !url.search
+        && /^\/shop\/[a-z0-9][a-z0-9-]*-\d+\/?$/iu.test(url.pathname)
+        && url.pathname.replace(/\/$/u, '').endsWith(`-${String(signal.productId || '')}`)
+        && Boolean(String(signal.variantId || '').trim());
+    }
     return false;
   } catch {
     return false;
