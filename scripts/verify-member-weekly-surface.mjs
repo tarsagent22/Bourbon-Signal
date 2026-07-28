@@ -52,7 +52,7 @@ assert.ok(card.includes("report.sections.map"), "dashboard renders only relevant
 assert.ok(card.includes("report.primaryAction"), "dashboard renders the report's one action");
 assert.ok(card.includes("No new signal this week"), "dashboard has an intentional silent-week state");
 assert.ok(card.includes("Email preview"), "dashboard exposes the dry-run email preview");
-assert.ok(dashboard.includes("<WeeklyIntelligenceCard"), "weekly intelligence is mounted in the existing dashboard");
+assert.equal(dashboard.includes("<WeeklyIntelligenceCard"), false, "weekly intelligence stays off the member dashboard until the product is owner-approved again");
 assert.ok(dashboard.includes("owner-controlled delivery pilot remains inactive"), "settings distinguish opt-in from pilot authorization");
 assert.ok(card.includes("delivery pilot is not active until owner authorization"), "preview truthfully reports inactive pilot delivery");
 

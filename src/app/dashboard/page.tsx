@@ -20,7 +20,6 @@ import { canonicalBottleKey, dropMatchesBottle } from "@/lib/bottleIdentity";
 import { getDisplayName, isRealDropEvent, type DropEvent } from "@/lib/drops";
 import { LiquidToggle } from "@/components/LiquidToggle";
 import { NotificationChannelCard } from "@/components/dashboard/NotificationChannelCard";
-import { WeeklyIntelligenceCard } from "@/components/dashboard/WeeklyIntelligenceCard";
 import { CoverageRequestsCard } from "@/components/dashboard/CoverageRequestsCard";
 import {
   getDefaultNotificationPreferences,
@@ -2836,7 +2835,6 @@ function PaidMemberDashboard() {
           <div className="dashboard-workspace">
 
           <SignalStrengthCard model={signalStrengthModel} onSectionSelect={openDashboardSection} />
-          <WeeklyIntelligenceCard isSignedIn={isSignedIn} />
           <div className="personal-signal-brief" aria-label="Personal signal brief" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "10px", margin: "12px 0 18px" }}>
             {[{ label: "Saved markets", value: localPrefs.states.length ? `${localPrefs.states.length}` : "0" }, { label: "Tracked bottles", value: watchedBottleOptions.length ? `${watchedBottleOptions.length}` : "0" }, { label: "Recent matching drops", value: watchlistSignals.length ? `${watchlistSignals.length}` : "0" }].map((item) => (
               <div key={item.label} className="personal-signal-stat">
