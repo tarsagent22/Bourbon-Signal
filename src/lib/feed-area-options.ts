@@ -1,15 +1,23 @@
 import { STATE_LIFECYCLE_CONFIG } from "../config/stateLifecycle.ts";
 import { demandMetroAreaLabel } from "./demand-metro-areas.ts";
+import { canonicalNcAbcBoardPreference, NC_ABC_BOARD_OPTIONS, ncAbcBoardPreferencesMatch } from "./nc-abc-boards.ts";
 import { locationLabelsMatch, locationMatchKeys, normalizeLocationText } from "./location-normalization.ts";
 
 type AreaState = { areaOptions?: readonly string[] };
 type DropFeedAreaRequest = { key: "area" | "store"; value: string };
 
+export function formatNcAbcAreaMenuLabel(label: string) {
+  return /\bABC(?:\s+Commission)?$/i.test(label) ? label : `${label} ABC`;
+}
+
 export function getCoveredAreaOptionsForState(state?: string | null) {
   const stateCode = String(state || "").trim().toUpperCase();
   if (!stateCode) return [];
   const states = STATE_LIFECYCLE_CONFIG.states as Record<string, AreaState>;
-  return states[stateCode]?.areaOptions ? [...states[stateCode].areaOptions] : [];
+  const configured = states[stateCode]?.areaOptions ? [...states[stateCode].areaOptions] : [];
+  return stateCode === "NC"
+    ? Array.from(new Set([...configured, ...NC_ABC_BOARD_OPTIONS]))
+    : configured;
 }
 
 export function coveredAreaLabelsMatch(a?: string | null, b?: string | null) {
@@ -66,6 +74,9 @@ export function dropFeedStoreQueryMatches({
   if (!value) return true;
   const allowBoardLevel = String(state || "").toUpperCase() === "NC" || /\b(board|abc)\b/i.test(value);
   if (isBoardLevel && !allowBoardLevel) return false;
+  if (String(state || "").toUpperCase() === "NC" && canonicalNcAbcBoardPreference(value)) {
+    return ncAbcBoardPreferencesMatch(fields, [value]);
+  }
   return storeQueryNeedles(value).some((needle) =>
     fields.some((field) => typeof field === "string" && locationLabelsMatch(field, needle)),
   );

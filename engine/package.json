@@ -65,6 +65,7 @@
     "refresh:site": "node src/refresh-site.mjs",
     "verify:nc": "node src/verify-nc.mjs",
     "verify:nc-directory": "node src/verify-nc-directory.mjs",
+    "verify:nc-board-registry": "node src/verify-nc-board-registry.mjs",
     "score:nc": "node src/score-nc-user-reach.mjs",
     "verify:va": "node src/verify-va.mjs",
     "verify:tn": "node src/verify-tn.mjs",

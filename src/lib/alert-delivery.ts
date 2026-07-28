@@ -23,7 +23,9 @@ import {
   demandMetroAreaMatchesFields,
   demandMetroBoardGroupMatchesFields,
   normalizeDemandMetroAreas,
+  normalizeNcBoardPreferences,
 } from "@/lib/demand-metro-areas";
+import { matchedNcAbcBoardPreference, ncAbcBoardPreferencesMatch } from "@/lib/nc-abc-boards";
 
 export interface AreaPreferences {
   states: string[];
@@ -117,7 +119,7 @@ export function normalizeAreaPrefs(input: unknown): AreaPreferences {
   const supportedStates = new Set<string>(ACTIVE_ENGINE_STATE_CODES);
   return {
     states: toStrings(source.states).map((state) => normalizeStateCodeParam(state)).filter((state): state is string => Boolean(state && supportedStates.has(state))),
-    ncBoards: uniqueStrings(toStrings(source.ncBoards).map((value) => normalizeDemandMetroAreas("NC", [value])[0] || value)),
+    ncBoards: normalizeNcBoardPreferences(source.ncBoards),
     gaAreas: normalizeDemandMetroAreas("GA", source.gaAreas),
     tnAreas: normalizeDemandMetroAreas("TN", source.tnAreas),
     vaCities: toStrings(source.vaCities),
@@ -205,7 +207,7 @@ export function candidateMatchesArea(candidate: CandidateAlert, areaPrefs: AreaP
   if (state === "NC" && areaPrefs.ncBoards.length) {
     const ordinaryBoards = areaPrefs.ncBoards.filter((value) => value !== CHARLOTTE_METRO_BOARD_GROUP);
     return demandMetroBoardGroupMatchesFields(locationFields, areaPrefs.ncBoards)
-      || (ordinaryBoards.length > 0 && locationMatchesAny(locationFields, ordinaryBoards));
+      || (ordinaryBoards.length > 0 && ncAbcBoardPreferencesMatch(locationFields, ordinaryBoards));
   }
   if (state === "GA" && areaPrefs.gaAreas.length) return demandMetroAreaMatchesFields(state, locationFields, areaPrefs.gaAreas);
   if (state === "TN" && areaPrefs.tnAreas.length) return demandMetroAreaMatchesFields(state, locationFields, areaPrefs.tnAreas);
@@ -631,7 +633,8 @@ function candidateMatchedArea(candidate: CandidateAlert, areaPrefs: AreaPreferen
   ];
   if (state === "NC" && areaPrefs.ncBoards.length) {
     if (demandMetroBoardGroupMatchesFields(locationFields, areaPrefs.ncBoards)) return CHARLOTTE_METRO_BOARD_GROUP;
-    return matchedLocationFromOptions(candidate, areaPrefs.ncBoards) || locationName || stateLabel(state);
+    const ordinaryBoards = areaPrefs.ncBoards.filter((value) => value !== CHARLOTTE_METRO_BOARD_GROUP);
+    return matchedNcAbcBoardPreference(locationFields, ordinaryBoards) || locationName || stateLabel(state);
   }
   if (state === "GA" && areaPrefs.gaAreas.length && demandMetroAreaMatchesFields(state, locationFields, areaPrefs.gaAreas)) return "Atlanta Metro";
   if (state === "TN" && areaPrefs.tnAreas.length && demandMetroAreaMatchesFields(state, locationFields, areaPrefs.tnAreas)) return "Nashville Metro";

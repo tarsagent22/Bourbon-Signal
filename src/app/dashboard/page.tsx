@@ -47,6 +47,7 @@ import {
   demandMetroAreaMatchesFields,
   demandMetroBoardGroupMatchesFields,
 } from "@/lib/demand-metro-areas";
+import { NC_ABC_BOARD_OPTIONS, ncAbcBoardPreferencesMatch } from "@/lib/nc-abc-boards";
 
 const EMPTY_PREFS: AreaPreferences = {
   states: [],
@@ -527,40 +528,6 @@ function normalizePreferenceBottleKey(value: string) {
 function normalizeLocationText(value: string) {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, " ").replace(/\s+/g, " ").trim();
 }
-
-function normalizeNcBoardLabel(value: string) {
-  return value
-    .replace(/abc/gi, "")
-    .replace(/board/gi, "")
-    .replace(/county/gi, "")
-    .replace(/\bstores?\b/gi, "")
-    .replace(/[()]/g, " ")
-    .replace(/\s+/g, " ")
-    .trim()
-    .split(" ")
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1).toLowerCase())
-    .join(" ");
-}
-
-function isLikelyNcBoardLabel(value: string) {
-  if (!value) return false;
-  if (/^store\b/i.test(value)) return false;
-  if (/\d/.test(value)) return false;
-  if (/warehouse|statewide|north carolina|county boards|\+/i.test(value)) return false;
-  return value.length >= 3;
-}
-
-function ncBoardSourceLabel(store: { name?: string | null; county?: string | null; district?: string | null; displayLabel?: string | null; locationType?: string | null; precision?: string | null; hasSignals?: boolean }) {
-  const isStoreRecord = store.locationType === "store" || store.precision === "store";
-  if (isStoreRecord) {
-    if (!store.hasSignals) return null;
-    return store.county || store.district || null;
-  }
-  const isBoardRecord = store.locationType === "county_board" || store.precision === "county_board";
-  if (!isBoardRecord) return null;
-  return store.district || store.county || store.name || store.displayLabel || null;
-}
-
 function isSelectableStoreLocation(store: { id?: string | null; name?: string | null; state?: string | null; city?: string | null; county?: string | null; precision?: string | null }) {
   return Boolean(store.id && store.name && store.precision === "store" && store.state && (store.city || store.county));
 }
@@ -625,7 +592,7 @@ function dropMatchesAreaPreferences(drop: DropEvent, areaPrefs: AreaPreferences)
   if (state === "NC" && areaPrefs.ncBoards.length) {
     const ordinaryBoards = areaPrefs.ncBoards.filter((value) => value !== CHARLOTTE_METRO_BOARD_GROUP);
     return demandMetroBoardGroupMatchesFields(locationFields, areaPrefs.ncBoards)
-      || ordinaryBoards.some((board) => location.includes(normalizeLocationText(board)));
+      || ncAbcBoardPreferencesMatch(locationFields, ordinaryBoards);
   }
   if (state === "GA" && areaPrefs.gaAreas.length) return demandMetroAreaMatchesFields(state, locationFields, areaPrefs.gaAreas);
   if (state === "TN" && areaPrefs.tnAreas.length) return demandMetroAreaMatchesFields(state, locationFields, areaPrefs.tnAreas);
@@ -1409,26 +1376,10 @@ function PaidMemberDashboard() {
     hydratedBottlePrefsKeyRef.current = savedSignature;
   }, [addBottle, alertBottleLibraryOptions, isSignedIn, mounted, prefs.bottleAlertPreferences.bottleKeys, prefs.bottleAlertPreferences.bottleNames]);
 
-  const ncBoards = useMemo(() => {
-    const boardNames = new Set<string>([CHARLOTTE_METRO_BOARD_GROUP]);
-
-    const addBoard = (raw?: string | null) => {
-      if (!raw) return;
-      const label = normalizeNcBoardLabel(raw);
-      if (isLikelyNcBoardLabel(label)) boardNames.add(label);
-    };
-
-    for (const store of stores) {
-      if (store.state !== "NC" && store.state !== "North Carolina") continue;
-      addBoard(ncBoardSourceLabel(store));
-    }
-
-    for (const drop of ncDrops) {
-      addBoard(drop.board_name || drop.store_county);
-    }
-
-    return Array.from(boardNames).sort();
-  }, [stores, ncDrops]);
+  const ncBoards = useMemo(() => [
+    CHARLOTTE_METRO_BOARD_GROUP,
+    ...NC_ABC_BOARD_OPTIONS,
+  ].sort(), []);
 
   const citiesByState = useMemo(() => {
     const grouped: Record<string, string[]> = {};

@@ -6,6 +6,7 @@ import {
 } from "@/lib/alert-delivery";
 import { evaluateAlertSnapshotSafety } from "@/lib/alert-run-safety";
 import { ACTIVE_ENGINE_STATE_NAMES } from "@/lib/activeStates";
+import { normalizeNcBoardPreferences } from "@/lib/demand-metro-areas";
 import {
   buildMemberWeeklyIntelligence,
   type MemberWeeklyAlertCandidate,
@@ -59,7 +60,7 @@ function normalizedBottleKey(value: string) {
 function savedAreasFromMetadata(publicMetadata: UnknownRecord): MemberWeeklySavedArea[] {
   const areas = record(publicMetadata.areaPreferences);
   const labelsByState: Record<string, string[]> = {
-    NC: strings(areas.ncBoards),
+    NC: normalizeNcBoardPreferences(areas.ncBoards),
     GA: strings(areas.gaAreas),
     TN: strings(areas.tnAreas),
     VA: strings(areas.vaCities),
@@ -96,7 +97,7 @@ function areaPreferencesFromMetadata(publicMetadata: UnknownRecord) {
   const source = record(publicMetadata.areaPreferences);
   return {
     states: strings(source.states).map((state) => state.toUpperCase()),
-    ncBoards: strings(source.ncBoards),
+    ncBoards: normalizeNcBoardPreferences(source.ncBoards),
     gaAreas: strings(source.gaAreas),
     tnAreas: strings(source.tnAreas),
     vaCities: strings(source.vaCities),

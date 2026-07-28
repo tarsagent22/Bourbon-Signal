@@ -24,7 +24,8 @@ import { useStores, type Store } from "@/hooks/useStores";
 import { useStats } from "@/lib/useEngineData";
 import { makeSightingId, type MemberSighting, type SignalReportKind, type SightingVoteKind } from "@/lib/sightings";
 import { locationLabelsMatch, normalizeStateCodeParam, publicStateCode } from "@/lib/location-normalization";
-import { buildDropFeedAreaRequest, coveredAreaLabelsMatch, getCoveredAreaOptionsForState } from "@/lib/feed-area-options";
+import { buildDropFeedAreaRequest, coveredAreaLabelsMatch, formatNcAbcAreaMenuLabel, getCoveredAreaOptionsForState } from "@/lib/feed-area-options";
+import { ncAbcBoardPreferencesMatch } from "@/lib/nc-abc-boards";
 import { californiaAreaMatchesFields } from "@/lib/california-area";
 import { nevadaAreaMatchesFields } from "@/lib/nevada-area";
 import { newYorkAreaMatchesFields } from "@/lib/new-york-area";
@@ -391,7 +392,7 @@ function areaMenuLabel(state?: string | null, baseLabel?: string | null, kind?: 
   if (stateCode !== "NC") return label;
   if (label === CHARLOTTE_METRO_BOARD_GROUP) return label;
   if (/warehouse/i.test(label)) return "";
-  return /\bABC$/i.test(label) ? label : `${label} ABC`;
+  return formatNcAbcAreaMenuLabel(label);
 }
 
 function getDropRarityRank(drop: GroupedDrop) {
@@ -1656,7 +1657,7 @@ export default function DropFeed() {
       ];
       const ordinaryBoards = areaPrefs.ncBoards.filter((value) => value !== CHARLOTTE_METRO_BOARD_GROUP);
       return demandMetroBoardGroupMatchesFields(fields, areaPrefs.ncBoards)
-        || ordinaryBoards.some((board) => fields.some((field) => locationLabelsMatch(String(field || ""), board)));
+        || ncAbcBoardPreferencesMatch(fields, ordinaryBoards);
     }
 
     const locationText = normalizeFilterText([
