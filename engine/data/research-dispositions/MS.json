@@ -5,7 +5,7 @@
   "reviewBatchId": "ms-statewide-platform-research-2026-07-26",
   "reviewedAt": "2026-07-26T04:50:54.569Z",
   "reviewMethod": "Official permit identity plus statewide exact-name/address/city/domain and platform-cohort research; third-party marketplace leads were discovery-only.",
-  "entriesSha256": "a7449a38657fc921b2475c526c09b6f4aeae8102fe592801f7efd6265d26e8c2",
+  "entriesSha256": "a4b67f009833d91e4b4ef13d563823c2f8c10bac24aa6f3380ff23d847da8cd6",
   "entries": [
     {
       "permitNumber": "000137",
@@ -162,11 +162,12 @@
     },
     {
       "permitNumber": "007481",
-      "disposition": "directory_only",
+      "disposition": "live_inventory",
       "reviewStatus": "reviewed",
-      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceClass": "exact_first_party_inventory_capability_reviewed",
       "evidenceUrls": [
-        "https://tap.dor.ms.gov/_/"
+        "https://www.moonshinems.com/terranova",
+        "https://www.moonshinems.com/moonshine/homepage/sliders"
       ]
     },
     {
@@ -3114,11 +3115,12 @@
     },
     {
       "permitNumber": "044411",
-      "disposition": "directory_only",
+      "disposition": "live_inventory",
       "reviewStatus": "reviewed",
-      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceClass": "exact_first_party_inventory_capability_reviewed",
       "evidenceUrls": [
-        "https://tap.dor.ms.gov/_/"
+        "https://www.moonshinems.com/barleysbeerbarn",
+        "https://www.moonshinems.com/moonshine/homepage/sliders"
       ]
     },
     {
@@ -4365,11 +4367,12 @@
     },
     {
       "permitNumber": "049222",
-      "disposition": "directory_only",
+      "disposition": "live_inventory",
       "reviewStatus": "reviewed",
-      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "evidenceClass": "exact_first_party_inventory_capability_reviewed",
       "evidenceUrls": [
-        "https://tap.dor.ms.gov/_/"
+        "https://www.moonshinems.com/corkscrew",
+        "https://www.moonshinems.com/moonshine/homepage/sliders"
       ]
     },
     {
@@ -5085,11 +5088,12 @@
     },
     {
       "permitNumber": "051851",
-      "disposition": "blocked_by_source_policy",
+      "disposition": "live_inventory",
       "reviewStatus": "reviewed",
-      "evidenceClass": "first_party_surface_blocked_by_source_policy",
+      "evidenceClass": "exact_first_party_inventory_capability_reviewed",
       "evidenceUrls": [
-        "https://madison-cellars.com/"
+        "https://www.moonshinems.com/madisoncellars",
+        "https://www.moonshinems.com/moonshine/homepage/sliders"
       ]
     },
     {

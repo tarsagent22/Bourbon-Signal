@@ -140,11 +140,12 @@ test('region matching is exact and source atlas closes every research dispositio
   assert.equal(summary.currentStores, 690);
   assert.equal(summary.unresearched, 0);
   assert.equal(summary.finalDispositions, 690);
-  assert.equal(summary.inventoryCapable, 2);
-  assert.equal(summary.blockedOrOfflineOrProbeOnly, 12);
-  assert.equal(atlas.stores.filter((store) => store.platform === 'bottlecapps').length, 10);
-  assert.equal(atlas.stores.filter((store) => store.disposition === 'directory_only').length, 676);
-  assert.equal(atlas.stores.filter((store) => store.disposition === 'blocked_by_source_policy').length, 8);
+  assert.equal(summary.inventoryCapable, 6);
+  assert.equal(summary.blockedOrOfflineOrProbeOnly, 11);
+  assert.equal(atlas.stores.filter((store) => store.platform === 'bottlecapps').length, 9);
+  assert.equal(atlas.stores.filter((store) => store.platform === 'moonshine').length, 4);
+  assert.equal(atlas.stores.filter((store) => store.disposition === 'directory_only').length, 673);
+  assert.equal(atlas.stores.filter((store) => store.disposition === 'blocked_by_source_policy').length, 7);
   assert.equal(atlas.stores.filter((store) => store.disposition === 'source_offline').length, 2);
   assert.equal(atlas.stores.filter((store) => store.disposition === 'platform_probe_only').length, 2);
   assert.equal(atlas.stores.find((store) => store.permitNumber === '043336')?.platformIds?.googlePlayApp, 'com.cta.shots_wine_spirits');

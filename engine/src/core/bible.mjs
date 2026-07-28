@@ -6,10 +6,16 @@ export class BourbonBible {
   constructor(records) {
     this.records = records;
     this.byKey = new Map();
+    this.byNormalizedAlias = new Map();
     this.aliasIndex = [];
     for (const record of records) {
       this.byKey.set(record.normalizedKey, record);
       for (const alias of [record.canonical, ...(record.aliases || [])]) {
+        const normalizedAlias = normalizeBottleName(alias).toLowerCase().replace(/\s+/g, ' ').trim();
+        if (normalizedAlias) {
+          if (this.byNormalizedAlias.has(normalizedAlias) && this.byNormalizedAlias.get(normalizedAlias) !== record) this.byNormalizedAlias.set(normalizedAlias, null);
+          else if (!this.byNormalizedAlias.has(normalizedAlias)) this.byNormalizedAlias.set(normalizedAlias, record);
+        }
         const key = fingerprintName(alias);
         if (key) this.aliasIndex.push({ key, alias, record });
       }
@@ -24,6 +30,10 @@ export class BourbonBible {
 
   match(rawName) {
     const normalized = normalizeBottleName(rawName);
+    const normalizedAlias = normalized.toLowerCase().replace(/\s+/g, ' ').trim();
+    const exactAlias = this.byNormalizedAlias.get(normalizedAlias);
+    if (exactAlias) return { record: exactAlias, confidence: 1, method: 'exact-normalized-alias' };
+    if (/\b(?:small batch|limited edition|single barrel|barrel proof|double oaked|straight bourbon)\b/iu.test(normalized)) return null;
     const key = fingerprintName(normalized);
     if (!key) return null;
     if (this.byKey.has(key)) return { record: this.byKey.get(key), confidence: 1, method: 'exact-key' };

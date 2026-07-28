@@ -218,19 +218,19 @@ export function verifyMississippiResearchFoundation() {
     currentStores: 690,
     unresearched: 0,
     finalDispositions: 690,
-    inventoryCapable: 2,
-    blockedOrOfflineOrProbeOnly: 12,
+    inventoryCapable: 6,
+    blockedOrOfflineOrProbeOnly: 11,
   });
-  assert.equal(atlas.stores.filter((store) => store.disposition === 'directory_only').length, 676);
-  assert.equal(atlas.stores.filter((store) => store.disposition === 'blocked_by_source_policy').length, 8);
+  assert.equal(atlas.stores.filter((store) => store.disposition === 'directory_only').length, 673);
+  assert.equal(atlas.stores.filter((store) => store.disposition === 'blocked_by_source_policy').length, 7);
   assert.equal(atlas.stores.filter((store) => store.disposition === 'source_offline').length, 2);
   assert.equal(atlas.stores.filter((store) => store.disposition === 'platform_probe_only').length, 2);
   assert.ok(atlas.researchMethod.statewideDirectoryReviewed);
   assert.ok(atlas.stores.filter((store) => store.disposition === 'directory_only')
     .every((store) => store.firstPartyDomains.length === 0));
 
-  assert.equal(registry.stores.length, 4);
-  assert.deepEqual(registry.stores.map((store) => store.permitNumber), ['046478', '040562', '029254', '044692']);
+  assert.equal(registry.stores.length, 8);
+  assert.deepEqual(new Set(registry.stores.map((store) => store.permitNumber)), new Set(['046478', '040562', '029254', '044692', '044411', '049222', '051851', '007481']));
   assert.deepEqual(registry.stores.filter((store) => store.platform === 'gotoliquorstore').map((store) => ({
     controlStoreId: store.controlStoreId,
     merchantId: store.merchantId,
@@ -238,7 +238,7 @@ export function verifyMississippiResearchFoundation() {
     { controlStoreId: '1031', merchantId: '955132' },
     { controlStoreId: '1069', merchantId: '736142' },
   ]);
-  assert.equal(new Set(registry.stores.map((store) => store.sourceRuntimeId)).size, 4);
+  assert.equal(new Set(registry.stores.map((store) => store.sourceRuntimeId)).size, 8);
   assert.deepEqual(new Set(MISSISSIPPI_RETAILER_SOURCES.map((source) => source.sourceRuntimeId)), new Set(registry.stores.map((store) => store.sourceRuntimeId)));
 
   assert.equal(lifecycle.publicStatus, 'research_only');
@@ -278,14 +278,14 @@ export function verifyMississippiShadowReadiness() {
   const research = verifyMississippiResearchFoundation();
   const health = readJson('../data/source-health/MS.json');
   const plan = buildMississippiRunPlan();
-  assert.equal(plan.partitions.length, 2);
-  assert.equal(new Set(plan.partitions.map((partition) => partition.id)).size, 2);
+  assert.equal(plan.partitions.length, 6);
+  assert.equal(new Set(plan.partitions.map((partition) => partition.id)).size, 6);
   assert.ok(plan.partitions.every((partition) => partition.sourceScopedLastGood));
   assert.equal(health.lifecycle, 'research_only');
-  assert.equal(health.inventorySources, 2);
+  assert.equal(health.inventorySources, 6);
   assert.equal(health.directorySourcePolicyStatus, 'source_policy_blocked');
   assert.equal(health.directoryAutonomousRequestsAllowed, false);
-  assert.equal(health.blockedBySourcePolicy, 8);
+  assert.equal(health.blockedBySourcePolicy, 7);
   assert.equal(health.sourceOffline, 2);
   assert.equal(health.platformProbeOnly, 2);
   assert.equal(health.alertableSources, 0);

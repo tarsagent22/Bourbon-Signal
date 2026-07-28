@@ -10,13 +10,13 @@
     "directoryOnlyRule": "directory_only is used only after the statewide method found no verified first-party inventory source; no per-store website is fabricated.",
     "inventoryAuthorityRule": "Only exact first-party host, permit, merchant/store ID, premises, pickup/orderability, product identity, and safe-format evidence may authorize inventory.",
     "directoryCaptureRule": "TAP robots policy is User-agent: * / Disallow: /. Autonomous TAP collection is source_policy_blocked and makes no request. The checked-in universe comes from a reviewed one-time operator-supplied capture; refresh requires an official permitted export or API.",
-    "blockedSourceRule": "Two exact GoToLiquorStore storefronts are manually readable but return 403 to the production HTTP client, so they remain blocked_by_source_policy rather than using an alternate-client or anti-bot bypass. Six BottleCapps first-party domains currently return DataDome 403; Oxford Wine & Spirits and Sipology fail DNS; two exact-permit Google Play discoveries are platform_probe_only/app_only_no_public_inventory. All twelve remain health-visible and nonalertable.",
+    "blockedSourceRule": "Two exact GoToLiquorStore storefronts are manually readable but return 403 to the production HTTP client, so they remain blocked_by_source_policy rather than using an alternate-client or anti-bot bypass. Five remaining BottleCapps first-party domains currently return DataDome 403; Oxford Wine & Spirits and Sipology fail DNS; two exact-permit Google Play discoveries are platform_probe_only/app_only_no_public_inventory. Madison Cellars' BottleCapps surface remains blocked, but its separate public Moonshine seller route is authorized and inventory-capable. All blocked, offline, and app-only routes remain health-visible and nonalertable.",
     "officialIntelligenceRule": "DOR permits, SPA, pricing, bailment, and wholesale documents are directory or intelligence only and never bottle inventory.",
     "dispositionLedger": {
       "contractVersion": "bourbon-signal/ms-research-dispositions@1",
       "reviewBatchId": "ms-statewide-platform-research-2026-07-26",
       "reviewedAt": "2026-07-26T04:50:54.569Z",
-      "entriesSha256": "a7449a38657fc921b2475c526c09b6f4aeae8102fe592801f7efd6265d26e8c2"
+      "entriesSha256": "a4b67f009833d91e4b4ef13d563823c2f8c10bac24aa6f3380ff23d847da8cd6"
     }
   },
   "stores": [
@@ -575,25 +575,30 @@
         "zip": "39110",
         "regionId": "central-jackson-madison-rankin"
       },
-      "firstPartyDomains": [],
-      "platform": null,
-      "platformIds": {},
-      "evidenceUrls": [
-        "https://tap.dor.ms.gov/_/"
+      "disposition": "live_inventory",
+      "sourceLayer": "private_retailer_inventory",
+      "firstPartyDomains": [
+        "www.moonshinems.com"
       ],
-      "sourceLayer": "directory",
-      "disposition": "directory_only",
-      "probeStatus": "statewide_method_no_verified_first_party_inventory_source",
-      "ecommerce": null,
-      "pickup": null,
-      "inventoryAuthoritative": false,
-      "healthVisible": false,
+      "platform": "moonshine",
+      "platformIds": {
+        "sellerId": "1882"
+      },
+      "evidenceUrls": [
+        "https://www.moonshinems.com/terranova",
+        "https://www.moonshinems.com/moonshine/homepage/sliders"
+      ],
+      "ecommerce": true,
+      "pickup": true,
+      "inventoryAuthoritative": true,
+      "probeStatus": "inventory_capable_binary_orderability",
+      "healthVisible": true,
       "alertable": false,
       "reviewProvenance": {
         "reviewBatchId": "ms-statewide-platform-research-2026-07-26",
         "reviewedAt": "2026-07-26T04:50:54.569Z",
         "reviewStatus": "reviewed",
-        "evidenceClass": "statewide_source_research_no_verified_first_party_inventory"
+        "evidenceClass": "exact_first_party_inventory_capability_reviewed"
       }
     },
     {
@@ -11099,25 +11104,30 @@
         "zip": "39110",
         "regionId": "central-jackson-madison-rankin"
       },
-      "firstPartyDomains": [],
-      "platform": null,
-      "platformIds": {},
-      "evidenceUrls": [
-        "https://tap.dor.ms.gov/_/"
+      "disposition": "live_inventory",
+      "sourceLayer": "private_retailer_inventory",
+      "firstPartyDomains": [
+        "www.moonshinems.com"
       ],
-      "sourceLayer": "directory",
-      "disposition": "directory_only",
-      "probeStatus": "statewide_method_no_verified_first_party_inventory_source",
-      "ecommerce": null,
-      "pickup": null,
-      "inventoryAuthoritative": false,
-      "healthVisible": false,
+      "platform": "moonshine",
+      "platformIds": {
+        "sellerId": "323"
+      },
+      "evidenceUrls": [
+        "https://www.moonshinems.com/barleysbeerbarn",
+        "https://www.moonshinems.com/moonshine/homepage/sliders"
+      ],
+      "ecommerce": true,
+      "pickup": true,
+      "inventoryAuthoritative": true,
+      "probeStatus": "inventory_capable_binary_orderability",
+      "healthVisible": true,
       "alertable": false,
       "reviewProvenance": {
         "reviewBatchId": "ms-statewide-platform-research-2026-07-26",
         "reviewedAt": "2026-07-26T04:50:54.569Z",
         "reviewStatus": "reviewed",
-        "evidenceClass": "statewide_source_research_no_verified_first_party_inventory"
+        "evidenceClass": "exact_first_party_inventory_capability_reviewed"
       }
     },
     {
@@ -15561,25 +15571,30 @@
         "zip": "39211",
         "regionId": "central-jackson-madison-rankin"
       },
-      "firstPartyDomains": [],
-      "platform": null,
-      "platformIds": {},
-      "evidenceUrls": [
-        "https://tap.dor.ms.gov/_/"
+      "disposition": "live_inventory",
+      "sourceLayer": "private_retailer_inventory",
+      "firstPartyDomains": [
+        "www.moonshinems.com"
       ],
-      "sourceLayer": "directory",
-      "disposition": "directory_only",
-      "probeStatus": "statewide_method_no_verified_first_party_inventory_source",
-      "ecommerce": null,
-      "pickup": null,
-      "inventoryAuthoritative": false,
-      "healthVisible": false,
+      "platform": "moonshine",
+      "platformIds": {
+        "sellerId": "2118"
+      },
+      "evidenceUrls": [
+        "https://www.moonshinems.com/corkscrew",
+        "https://www.moonshinems.com/moonshine/homepage/sliders"
+      ],
+      "ecommerce": true,
+      "pickup": true,
+      "inventoryAuthoritative": true,
+      "probeStatus": "inventory_capable_binary_orderability",
+      "healthVisible": true,
       "alertable": false,
       "reviewProvenance": {
         "reviewBatchId": "ms-statewide-platform-research-2026-07-26",
         "reviewedAt": "2026-07-26T04:50:54.569Z",
         "reviewStatus": "reviewed",
-        "evidenceClass": "statewide_source_research_no_verified_first_party_inventory"
+        "evidenceClass": "exact_first_party_inventory_capability_reviewed"
       }
     },
     {
@@ -18121,29 +18136,30 @@
         "zip": "39110",
         "regionId": "central-jackson-madison-rankin"
       },
+      "disposition": "live_inventory",
+      "sourceLayer": "private_retailer_inventory",
       "firstPartyDomains": [
-        "madison-cellars.com"
+        "www.moonshinems.com"
       ],
+      "platform": "moonshine",
       "platformIds": {
-        "siteId": "11754"
+        "sellerId": "7"
       },
       "evidenceUrls": [
-        "https://madison-cellars.com/"
+        "https://www.moonshinems.com/madisoncellars",
+        "https://www.moonshinems.com/moonshine/homepage/sliders"
       ],
-      "probeStatus": "blocked_by_source_policy",
-      "disposition": "blocked_by_source_policy",
-      "sourceLayer": "storefront_probe",
-      "platform": "bottlecapps",
-      "ecommerce": null,
-      "pickup": null,
-      "inventoryAuthoritative": false,
+      "ecommerce": true,
+      "pickup": true,
+      "inventoryAuthoritative": true,
+      "probeStatus": "inventory_capable_binary_orderability",
       "healthVisible": true,
       "alertable": false,
       "reviewProvenance": {
         "reviewBatchId": "ms-statewide-platform-research-2026-07-26",
         "reviewedAt": "2026-07-26T04:50:54.569Z",
         "reviewStatus": "reviewed",
-        "evidenceClass": "first_party_surface_blocked_by_source_policy"
+        "evidenceClass": "exact_first_party_inventory_capability_reviewed"
       }
     },
     {
