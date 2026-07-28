@@ -437,5 +437,29 @@ const pricingCss = `
 .compact-differences span { color:var(--color-text-secondary); font:12px/1.5 var(--font-dm-sans); }
 @media (max-width: 900px) { .july-sale-banner { grid-template-columns:1fr; text-align:left; } .july-sale-banner p { width:max-content; } .july-sale-banner em { text-align:left; } .free-preview-strip { grid-template-columns:1fr; text-align:left; } .free-preview-strip button { width:100%; } }
 @media (max-width: 760px) { .compact-differences > div { grid-template-columns:1fr; } }
-@media (max-width: 640px) { .launch-pricing-page { padding-top:108px; } .pricing-grid { grid-template-columns:1fr; width:calc(100% - 28px); } .pricing-card.founder { grid-column:auto; margin-top:20px; } .pricing-hero, .pricing-error, .checkout-canceled, .compact-differences { width:calc(100% - 28px); } .checkout-canceled-actions { display:grid; } .checkout-canceled-actions button { width:100%; } .pricing-hero h1 { font-size:clamp(42px, 12vw, 58px); } .pricing-description { min-height:0; } }
+@media (max-width: 640px) {
+  .launch-pricing-page { width:100%; max-width:100vw; padding-top:108px; overflow-x:clip; }
+  .pricing-hero,
+  .july-sale-banner,
+  .free-preview-strip,
+  .pricing-grid,
+  .pricing-error,
+  .checkout-canceled,
+  .compact-differences { width:calc(100vw - 28px); max-width:calc(100vw - 28px); box-sizing:border-box; }
+  .pricing-grid { grid-template-columns:minmax(0, 1fr); }
+  .pricing-card { width:100%; max-width:100%; box-sizing:border-box; }
+  .pricing-card.founder { grid-column:auto; margin-top:20px; }
+  .checkout-canceled-actions { display:grid; }
+  .checkout-canceled-actions button { width:100%; }
+  .pricing-hero h1 { max-width:100%; font-size:clamp(38px, 11vw, 50px); overflow-wrap:anywhere; }
+  .billing-toggle { width:100%; min-width:0; box-sizing:border-box; }
+  .billing-toggle button { min-width:0; padding:10px 6px; }
+  .billing-toggle span { display:block; margin:4px 0 0; font-size:8px; }
+  .july-sale-banner strong,
+  .july-sale-banner span,
+  .july-sale-banner em,
+  .pricing-description,
+  .tier-footnote { overflow-wrap:anywhere; }
+  .pricing-description { min-height:0; }
+}
 `;
