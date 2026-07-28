@@ -42,6 +42,7 @@ assert.match(pricingSource, /Continue with Free/);
 assert.match(pricingSource, /\/sign-up\?redirect_url=%2Fwelcome|\/sign-up/);
 assert.doesNotMatch(pricingSource, /comparisonRows|comparison-table|role="table"/, "the giant repeated plan comparison must be removed");
 assert.match(pricingSource, /compact-differences/);
+assert.match(pricingSource, /@media \(max-width:\s*640px\)[\s\S]*100vw - 28px/, "mobile pricing containers must be viewport-bound to prevent horizontal overflow");
 assert.match(pricingSource, /Recommended[\s\S]*Standard Proof/);
 assert.match(pricingSource, /Limited lifetime offer/);
 for (const plan of ["standard_monthly", "standard_annual", "barrel_monthly", "barrel_annual", "bib_lifetime"]) {
