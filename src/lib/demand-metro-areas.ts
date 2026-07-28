@@ -1,4 +1,5 @@
 import demandMetroConfig from "../config/demand-metro-areas.json" with { type: "json" };
+import { canonicalNcAbcBoardPreference } from "./nc-abc-boards.ts";
 
 type DemandMetroState = "NC" | "GA" | "TN";
 type DemandMetroDefinition = {
@@ -51,8 +52,8 @@ export function normalizeNcBoardPreferences(values: unknown): string[] {
   return Array.from(new Set(
     values
       .filter((value): value is string => typeof value === "string")
-      .map((value) => normalizeDemandMetroAreas("NC", [value])[0] || value.trim())
-      .filter(Boolean),
+      .map((value) => normalizeDemandMetroAreas("NC", [value])[0] || canonicalNcAbcBoardPreference(value))
+      .filter((value): value is string => Boolean(value)),
   ));
 }
 

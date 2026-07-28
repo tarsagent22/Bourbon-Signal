@@ -11,6 +11,7 @@ import {
   demandMetroAreaMatchesFields,
   demandMetroBoardGroupMatchesFields,
 } from "@/lib/demand-metro-areas";
+import { matchedNcAbcBoardPreference } from "@/lib/nc-abc-boards";
 
 const resendApiKey = process.env.RESEND_API_KEY;
 
@@ -92,9 +93,10 @@ export function matchDropToPreferences(drop: DropEvent, prefs?: AreaPreferences 
     if (demandMetroBoardGroupMatchesFields(fields, prefs.ncBoards)) {
       return { matched: true, matchedState: state, matchedArea: CHARLOTTE_METRO_BOARD_GROUP };
     }
-    const matchedBoard = prefs.ncBoards
-      .filter((candidate) => candidate !== CHARLOTTE_METRO_BOARD_GROUP)
-      .find((candidate) => locationMatchesAny(fields, [candidate]));
+    const matchedBoard = matchedNcAbcBoardPreference(
+      fields,
+      prefs.ncBoards.filter((candidate) => candidate !== CHARLOTTE_METRO_BOARD_GROUP),
+    );
     return matchedBoard
       ? { matched: true, matchedState: state, matchedArea: matchedBoard }
       : { matched: false };

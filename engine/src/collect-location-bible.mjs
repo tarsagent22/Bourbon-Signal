@@ -337,10 +337,10 @@ async function main() {
     try {
       const nc = await collectNorthCarolinaOfficialLocations();
       collected.push(...nc.locations);
-      freshReports.push(nc.report);
+      freshReports.push({ ...nc.report, observedAt: new Date().toISOString() });
       console.log(`NC_ABC_STORE_LOCATOR: ${nc.locations.length} locations (${nc.report.boards} boards, ${nc.report.failures} failures)`);
     } catch (error) {
-      freshReports.push({ id: 'NC_ABC_STORE_LOCATOR', state: 'NC', status: 'failed', error: error.message, sourceUrl: NC_STORE_LOCATOR_URL });
+      freshReports.push({ id: 'NC_ABC_STORE_LOCATOR', state: 'NC', status: 'failed', observedAt: new Date().toISOString(), error: error.message, sourceUrl: NC_STORE_LOCATOR_URL });
       console.warn(`NC_ABC_STORE_LOCATOR: failed - ${error.message}`);
     }
   }

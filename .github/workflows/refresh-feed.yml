@@ -100,7 +100,7 @@ jobs:
         run: npm run verify:reliability
 
       - name: Refresh North Carolina official board and store directory
-        if: ${{ inputs.states && contains(inputs.states, 'NC') }}
+        if: ${{ !inputs.states || contains(inputs.states, 'NC') }}
         working-directory: engine
         env:
           BOURBON_SIGNAL_LOCATION_STATES: NC
@@ -117,7 +117,7 @@ jobs:
 
 
       - name: Verify North Carolina official directory publication
-        if: ${{ inputs.states && contains(inputs.states, 'NC') }}
+        if: ${{ !inputs.states || contains(inputs.states, 'NC') }}
         working-directory: engine
         run: npm run verify:nc-directory
 
