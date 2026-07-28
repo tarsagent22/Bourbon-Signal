@@ -67,6 +67,9 @@ export interface CompanyMemberUser {
 
 export interface GrowthFunnelWindow {
   accounts: number;
+  signupStarted: number;
+  registrationCompleted: number;
+  onboardingStateSelected: number;
   freeValueReached: number;
   pricingViewed: number;
   checkoutStarted: number;
@@ -78,7 +81,7 @@ export interface GrowthFunnelWindow {
 }
 
 function emptyGrowthWindow(): GrowthFunnelWindow {
-  return { accounts: 0, freeValueReached: 0, pricingViewed: 0, checkoutStarted: 0, membershipActivated: 0, paidActivationCompleted: 0, firstAlertCreated: 0, unknownAttribution: 0, bySource: {} };
+  return { accounts: 0, signupStarted: 0, registrationCompleted: 0, onboardingStateSelected: 0, freeValueReached: 0, pricingViewed: 0, checkoutStarted: 0, membershipActivated: 0, paidActivationCompleted: 0, firstAlertCreated: 0, unknownAttribution: 0, bySource: {} };
 }
 
 export function aggregateGrowthFunnels(users: CompanyMemberUser[], now = new Date()) {
@@ -98,6 +101,9 @@ export function aggregateGrowthFunnels(users: CompanyMemberUser[], now = new Dat
       window.bySource[source] = (window.bySource[source] || 0) + 1;
       if (source === "unknown") window.unknownAttribution += 1;
       const milestones = metadata.activation && typeof metadata.activation === "object" ? metadata.activation as Metadata : {};
+      if (milestones.signup_started) window.signupStarted += 1;
+      if (milestones.registration_completed) window.registrationCompleted += 1;
+      if (milestones.onboarding_state_selected) window.onboardingStateSelected += 1;
       if (milestones.free_value_reached) window.freeValueReached += 1;
       if (milestones.pricing_viewed) window.pricingViewed += 1;
       if (milestones.checkout_started) window.checkoutStarted += 1;

@@ -35,7 +35,9 @@ assert.doesNotMatch(footer, /Daily Briefing/);
 assert.doesNotMatch(layout, /Daily Briefing/);
 assert.match(layout, /Release Radar/);
 assert.doesNotMatch(pricing, /Daily Briefing/);
-assert.match(pricing, /\["Release Radar", "Full", "Full", "Full", "Full"\]/);
+assert.match(pricing, /<li>Release Radar and Member Sightings<\/li>/, "public Release Radar must remain in the free benefits strip");
+assert.match(pricing, /compact-differences/);
+assert.doesNotMatch(pricing, /comparison-table|comparisonRows/, "public Release Radar must not depend on the removed giant comparison table");
 assert.doesNotMatch(faq, /Daily Briefing/);
 assert.match(faq, /What is Release Radar\?/);
 

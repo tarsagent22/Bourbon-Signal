@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
 import Navigation from "@/components/Navigation";
@@ -31,7 +31,7 @@ const checkoutPlanTiers: Record<PaidPlanId, MembershipTier> = {
 
 function checkoutContinueUrl(plan: PaidPlanId, source = "unknown", expectedPromotion?: string) {
   const promotion = expectedPromotion ? `&expectedPromotion=${encodeURIComponent(expectedPromotion)}` : "";
-  return `/checkout/continue?plan=${plan}&source=${encodeURIComponent(source)}${promotion}`;
+  return `/checkout/continue?plan=${plan}&source=${encodeURIComponent(source)}${promotion}&registration=1`;
 }
 
 type PricingTier = {
@@ -60,19 +60,16 @@ const paidTiers: PricingTier[] = [
     annualPrice: "$24.99",
     monthlyPlan: "standard_monthly",
     annualPlan: "standard_annual",
-    description: "Essential alerts and full access to most features with few limitations.",
+    description: "Turn the state signal you just explored into a focused hunting plan.",
     features: [
-      "SMS, Email, and on-site alerts",
-      "Up to 5 alert areas",
-      "Up to 15 tracked bottles",
-      "Full Drop Feed access with filter-by-state only",
-      "Unlimited Bottle Check access",
-      "Public Release Radar access",
-      "Member Sightings",
-      "No advanced feed filters or Sightings alerts",
+      "Full state Drop Feed",
+      "SMS, email, and on-site alerts",
+      "Track up to 5 areas and 15 bottles",
+      "Unlimited Bottle Checks",
     ],
-    footnote: "Best for focused tracking without advanced feed filters.",
+    footnote: "Recommended for most hunters who know the markets and bottles they care about.",
     accent: "standard",
+    featured: true,
   },
   {
     tier: "barrel",
@@ -82,54 +79,33 @@ const paidTiers: PricingTier[] = [
     annualPrice: "$49.99",
     monthlyPlan: "barrel_monthly",
     annualPlan: "barrel_annual",
-    description: "Everything in Standard Proof, plus unlimited alerts and advanced discovery tools.",
+    description: "Search more broadly, remove preference limits, and use advanced discovery tools.",
     features: [
       "Everything in Standard Proof",
-      "No Alert Preference Limits",
-      "Advanced Drop Feed filters",
-      "Member Sightings alerts",
-      "My Collection and Recommended Bottles",
+      "Unlimited alert preferences",
+      "Advanced Drop Feed filters and Sightings alerts",
+      "Collection tools and bottle recommendations",
     ],
-    footnote: "Best recurring plan if you miss the founder pass.",
+    footnote: "Best for hunters working across more areas with a larger watchlist.",
     accent: "barrel",
   },
   {
     tier: "bottled-in-bond",
     name: "Bottled in Bond",
-    eyebrow: "Lifetime Founding Members",
+    eyebrow: "Limited Founder Offer",
     oneTimePrice: "$49.99",
     plan: "bib_lifetime",
-    description: "Limited offer for members that want to experience the most that Bourbon Signal has to offer with no recurring fee.",
+    description: "Get the complete Barrel Proof experience for one payment while founder spots remain.",
     features: [
       "Lifetime access to all current and future features",
-      "Only 100 spots",
       "Founder badge & number on profile",
       "Numbered Founder’s glass",
-      "Founder-only exclusive benefits",
     ],
-    footnote: "Pay once before the founder allocation is gone.",
+    footnote: "Pay once before the 100-member founder allocation is gone.",
     accent: "founder",
-    featured: true,
   },
 ];
 
-
-const comparisonRows = [
-  ["Drop Feed access", "Limited", "Full · state only", "Full · advanced", "Full · advanced"],
-  ["Release Radar", "Full", "Full", "Full", "Full"],
-  ["Bottle Checks", "3", "Unlimited", "Unlimited", "Unlimited"],
-  ["Member Sightings", "Limited", "✓", "✓", "✓"],
-  ["SMS, email, and on-site alerts", "—", "✓", "✓", "✓"],
-  ["Alert preference limits", "—", "5 areas · 15 bottles", "No limits", "No limits"],
-  ["Signal Strength meter", "—", "Markets + bottles + alerts", "Adds taste profile", "Adds taste profile + founder calibration"],
-  ["Sightings alerts", "—", "—", "✓", "✓"],
-  ["My Collection", "—", "—", "✓", "✓"],
-  ["Recommended Bottles", "—", "—", "✓", "✓"],
-  ["Lifetime future features", "—", "—", "—", "✓"],
-  ["Founder badge + number", "—", "—", "—", "✓"],
-  ["Numbered Founder’s glass", "—", "—", "—", "✓"],
-  ["Founder-only benefits", "—", "—", "—", "✓"],
-];
 
 function PricingPageContent({ julySaleEnabled }: { julySaleEnabled: boolean }) {
   const router = useRouter();
@@ -138,11 +114,19 @@ function PricingPageContent({ julySaleEnabled }: { julySaleEnabled: boolean }) {
   const julySaleActive = julySaleEnabled;
   const [billingCycle, setBillingCycle] = useState<BillingCycle>(() => julySaleActive ? "annual" : "monthly");
   const [pendingPlan, setPendingPlan] = useState<PaidPlanId | "free" | null>(null);
+  const checkoutInFlight = useRef(false);
   const [error, setError] = useState<string | null>(null);
   const [founderSpots, setFounderSpots] = useState<{ limit: number; remaining: number | null } | null>(null);
 
   const currentTierRank = tierRank[memberTier];
-  const checkoutParam = searchParams.get("checkout") as PaidPlanId | null;
+  const checkoutValue = searchParams.get("checkout");
+  const checkoutParam = checkoutValue && Object.hasOwn(checkoutPlanTiers, checkoutValue)
+    ? checkoutValue as PaidPlanId
+    : null;
+  const canceledValue = searchParams.get("canceled");
+  const canceledPlan = canceledValue && Object.hasOwn(checkoutPlanTiers, canceledValue)
+    ? canceledValue as PaidPlanId
+    : null;
   const source = searchParams.get("source") || "unknown";
 
   useEffect(() => {
@@ -191,7 +175,9 @@ function PricingPageContent({ julySaleEnabled }: { julySaleEnabled: boolean }) {
       router.push(`/sign-up?redirect_url=${encodeURIComponent(checkoutContinueUrl(plan, source, expectedPromotion))}`);
       return;
     }
+    if (checkoutInFlight.current) return;
 
+    checkoutInFlight.current = true;
     setPendingPlan(plan);
     try {
       const res = await fetch("/api/checkout", {
@@ -209,6 +195,7 @@ function PricingPageContent({ julySaleEnabled }: { julySaleEnabled: boolean }) {
     } catch (checkoutError) {
       setError(checkoutError instanceof Error ? checkoutError.message : "Checkout is not available.");
     } finally {
+      checkoutInFlight.current = false;
       setPendingPlan(null);
     }
   }
@@ -271,6 +258,27 @@ function PricingPageContent({ julySaleEnabled }: { julySaleEnabled: boolean }) {
           </section>
         ) : null}
 
+        {isLoaded && canceledPlan ? (
+          <section className="checkout-canceled" role="status" aria-label="Checkout canceled">
+            <div>
+              <strong>Checkout canceled. You were not charged.</strong>
+              <span>{memberTier === "free" ? "Your free access is still active." : "Your current membership is still active."} Nothing restarts unless you choose it.</span>
+            </div>
+            <div className="checkout-canceled-actions">
+              <button
+                type="button"
+                disabled={pendingPlan === canceledPlan}
+                onClick={() => startCheckout(canceledPlan, checkoutPlanTiers[canceledPlan])}
+              >{pendingPlan === canceledPlan ? "Opening checkout…" : "Resume checkout"}</button>
+              <button
+                type="button"
+                onClick={() => router.replace(source === "unknown" ? "/pricing" : `/pricing?source=${encodeURIComponent(source)}`)}
+              >Choose another plan</button>
+              <button type="button" onClick={() => router.push(isSignedIn ? "/dashboard" : "/sign-up?redirect_url=%2Fwelcome")}>{memberTier === "free" ? "Continue with Free" : "Continue with current plan"}</button>
+            </div>
+          </section>
+        ) : null}
+
         {julySaleActive ? (
           <section className="july-sale-banner" aria-label="July membership sale">
             <p>July member sale</p>
@@ -295,7 +303,8 @@ function PricingPageContent({ julySaleEnabled }: { julySaleEnabled: boolean }) {
                 className={`pricing-card ${tier.accent} ${tier.featured ? "featured" : ""} ${current ? "current" : ""}`}
                 whileHover={{ y: -4, transition: { duration: 0.25 } }}
               >
-                {tier.featured ? <div className="pricing-ribbon">Lifetime offer · 100 spots</div> : null}
+                {tier.tier === "standard" ? <div className="pricing-ribbon">Recommended · Standard Proof</div> : null}
+                {tier.tier === "bottled-in-bond" ? <div className="pricing-ribbon">Limited lifetime offer · 100 spots</div> : null}
                 {tier.tier === "bottled-in-bond" ? (
                   <div className="founder-spots-meter" aria-label="Bottled in Bond founder spots remaining">
                     <span className="founder-spots-label">Founder allocation</span>
@@ -328,25 +337,12 @@ function PricingPageContent({ julySaleEnabled }: { julySaleEnabled: boolean }) {
 
         {error ? <p className="pricing-error" role="alert">{error}</p> : null}
 
-        <section className="comparison-wrap" aria-label="Membership feature comparison">
-          <div className="comparison-heading">
-            <h2>Compare Memberships</h2>
-          </div>
-          <div className="comparison-scroll" aria-label="Scroll plan comparison horizontally on small screens">
-            <div className="comparison-table" role="table">
-              <div className="comparison-row comparison-head" role="row">
-                <span>Feature</span><span>Free access</span><span>Standard</span><span>Barrel</span><span>Bottled in Bond</span>
-              </div>
-              {comparisonRows.map(([feature, free, standard, barrel, founder]) => (
-                <div className="comparison-row" role="row" key={feature}>
-                  {[feature, free, standard, barrel, founder].map((value, index) => (
-                    <span key={`${feature}-${index}`} className={value === "✓" ? "included" : value === "—" ? "not-included" : undefined}>
-                      {value}
-                    </span>
-                  ))}
-                </div>
-              ))}
-            </div>
+        <section className="compact-differences" aria-labelledby="compact-differences-title">
+          <h2 id="compact-differences-title">The differences that drive the decision</h2>
+          <div>
+            <article><strong>Standard keeps the hunt focused.</strong><span>Choose it for a defined set of states, areas, and bottles.</span></article>
+            <article><strong>Barrel removes the working limits.</strong><span>Choose it for advanced filtering, Sightings alerts, collection tools, and broader tracking.</span></article>
+            <article><strong>Founder changes how you pay.</strong><span>It carries Barrel-level access without a recurring fee while the limited allocation remains.</span></article>
           </div>
         </section>
 
@@ -388,11 +384,20 @@ const pricingCss = `
 .free-preview-strip li::before { content:"•"; color:var(--color-accent-amber); margin-right:7px; }
 .free-preview-strip button { border:1px solid rgba(196,148,58,.38); border-radius:13px; padding:12px 15px; color:var(--color-cream); background:rgba(196,148,58,.10); font:900 12px/1 var(--font-dm-sans); cursor:pointer; white-space:nowrap; transition:background .18s ease, transform .18s ease; }
 .free-preview-strip button:hover, .free-preview-strip button:focus-visible { outline:none; background:rgba(196,148,58,.17); transform:translateY(-1px); }
-.pricing-grid { width:min(1200px, calc(100% - 40px)); margin:34px auto 0; display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:14px; align-items:stretch; }
+.checkout-canceled { width:min(940px, calc(100% - 40px)); margin:20px auto 0; display:grid; gap:14px; border:1px solid rgba(136,211,148,.3); border-radius:18px; padding:16px 18px; background:rgba(136,211,148,.06); }
+.checkout-canceled > div:first-child { display:grid; gap:5px; }
+.checkout-canceled strong { color:#d7f4dc; font:800 16px/1.25 var(--font-dm-sans); }
+.checkout-canceled span { color:var(--color-text-secondary); font:13px/1.5 var(--font-dm-sans); }
+.checkout-canceled-actions { display:flex; flex-wrap:wrap; gap:8px; }
+.checkout-canceled-actions button { border:1px solid rgba(245,237,214,.16); border-radius:10px; padding:10px 12px; color:var(--color-cream); background:rgba(245,237,214,.04); font:800 12px/1 var(--font-dm-sans); cursor:pointer; }
+.checkout-canceled-actions button:first-child { border-color:rgba(196,148,58,.4); color:#17110B; background:linear-gradient(135deg, #C4943A, #D4A44A); }
+.checkout-canceled-actions button:disabled { cursor:wait; opacity:.62; }
+.checkout-canceled-actions button:hover:not(:disabled), .checkout-canceled-actions button:focus-visible:not(:disabled) { outline:2px solid rgba(232,201,122,.55); outline-offset:2px; }
+.pricing-grid { width:min(980px, calc(100% - 40px)); margin:34px auto 0; display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:14px; align-items:stretch; }
 .pricing-card { position:relative; display:flex; flex-direction:column; min-width:0; border:1px solid rgba(245,237,214,.09); border-radius:24px; padding:24px; background:linear-gradient(180deg, rgba(255,255,255,.048), rgba(255,255,255,.022)); box-shadow:0 24px 90px rgba(0,0,0,.28), inset 0 1px 0 rgba(255,255,255,.04); overflow:hidden; }
-.pricing-card.standard { order:2; }
-.pricing-card.barrel { order:3; }
-.pricing-card.founder { order:1; }
+.pricing-card.standard { order:1; }
+.pricing-card.barrel { order:2; }
+.pricing-card.founder { order:3; grid-column:1 / -1; margin-top:30px; }
 .pricing-card.featured { border-color:rgba(196,148,58,.55); background:radial-gradient(circle at 50% 0%, rgba(196,148,58,.18), transparent 44%), linear-gradient(180deg, rgba(255,255,255,.058), rgba(255,255,255,.026)); box-shadow:0 0 70px rgba(196,148,58,.11), 0 28px 100px rgba(0,0,0,.34); }
 .pricing-card.founder { border-color:rgba(212,164,74,.55); background:radial-gradient(circle at 18% 0%, rgba(212,164,74,.24), transparent 42%), radial-gradient(circle at 86% 12%, rgba(196,148,58,.15), transparent 36%), linear-gradient(180deg, rgba(255,255,255,.066), rgba(255,255,255,.028)); box-shadow:0 0 90px rgba(196,148,58,.16), 0 30px 110px rgba(0,0,0,.40), inset 0 1px 0 rgba(255,255,255,.06); }
 .pricing-card.founder::after { content:""; position:absolute; inset:1px; pointer-events:none; border-radius:23px; background:linear-gradient(135deg, rgba(212,164,74,.18), transparent 30%, transparent 70%, rgba(212,164,74,.10)); }
@@ -424,25 +429,13 @@ const pricingCss = `
 .pricing-actions button:hover:not(:disabled), .pricing-actions button:focus-visible:not(:disabled) { transform:translateY(-1px); outline:none; border-color:rgba(245,237,214,.62); }
 .pricing-actions button:disabled { cursor:default; opacity:.58; }
 .pricing-error { width:min(760px, calc(100% - 40px)); margin:20px auto 0; color:#ffb4a8; text-align:center; font:800 13px/1.5 var(--font-dm-sans); }
-.comparison-wrap { width:min(1040px, calc(100% - 40px)); margin:56px auto 0; border:1px solid rgba(245,237,214,.08); border-radius:26px; padding:24px; background:rgba(255,255,255,.026); box-shadow:0 24px 80px rgba(0,0,0,.22); }
-.comparison-heading { display:flex; align-items:end; justify-content:space-between; gap:18px; margin-bottom:18px; }
-.comparison-heading p { margin:0; color:var(--color-accent-amber); font:900 10px/1 var(--font-jetbrains); letter-spacing:.16em; text-transform:uppercase; }
-.comparison-heading h2 { margin:0; color:var(--color-cream); font:700 clamp(26px, 3vw, 38px)/1 var(--font-playfair); letter-spacing:-.03em; }
-.comparison-scroll { position:relative; overflow-x:auto; overscroll-behavior-x:contain; -webkit-overflow-scrolling:touch; padding-bottom:6px; scrollbar-width:thin; scrollbar-color:rgba(196,148,58,.55) rgba(255,255,255,.04); }
-.comparison-scroll::after { content:""; position:absolute; top:0; right:0; width:42px; height:100%; pointer-events:none; background:linear-gradient(90deg, transparent, rgba(16,12,9,.84)); opacity:0; }
-.comparison-table { display:grid; min-width:860px; gap:1px; overflow:visible; border-radius:16px; border:1px solid rgba(245,237,214,.07); background:rgba(245,237,214,.055); box-shadow:inset 0 1px 0 rgba(255,255,255,.035); isolation:isolate; }
-.comparison-row { display:grid; grid-template-columns:minmax(190px, 1.35fr) repeat(4, minmax(132px, 1fr)); background:rgba(255,255,255,.026); }
-.comparison-row span { min-width:0; min-height:46px; display:flex; align-items:center; justify-content:center; padding:13px 12px; color:var(--color-text-secondary); font:800 12px/1.35 var(--font-dm-sans); text-align:center; border-right:1px solid rgba(245,237,214,.055); }
-.comparison-row span:first-child { justify-content:flex-start; text-align:left; position:sticky; left:0; z-index:3; color:var(--color-cream); background:linear-gradient(90deg, rgba(26,20,15,1), rgba(26,20,15,.98)); box-shadow:8px 0 14px rgba(10,7,5,.24); }
-.comparison-row span:last-child { border-right:0; }
-.comparison-row span.included { color:#17110B; font-size:0; }
-.comparison-row span.included::before { content:"✓"; width:24px; height:24px; display:grid; place-items:center; border-radius:999px; color:#17110B; background:linear-gradient(135deg, #C4943A, #D4A44A); box-shadow:0 0 22px rgba(196,148,58,.18); font:950 14px/1 var(--font-dm-sans); }
-.comparison-row span.not-included { color:rgba(245,237,214,.24); }
-.comparison-head { background:rgba(196,148,58,.09); }
-.comparison-head span { min-height:50px; color:var(--color-accent-amber); font:900 10px/1.15 var(--font-jetbrains); letter-spacing:.12em; text-transform:uppercase; }
-.comparison-head span:first-child { z-index:4; background:linear-gradient(90deg, rgba(49,35,19,.99), rgba(39,29,18,.95)); color:var(--color-accent-amber); }
-@media (max-width: 1120px) { .pricing-grid { grid-template-columns:repeat(2, minmax(0, 1fr)); } }
+.compact-differences { width:min(980px, calc(100% - 40px)); margin:42px auto 0; border-top:1px solid rgba(245,237,214,.09); padding-top:30px; }
+.compact-differences h2 { margin:0; color:var(--color-cream); font:700 clamp(26px, 3vw, 36px)/1.05 var(--font-playfair); letter-spacing:-.03em; }
+.compact-differences > div { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:12px; margin-top:18px; }
+.compact-differences article { display:grid; gap:7px; padding:16px; border-radius:14px; background:rgba(245,237,214,.035); }
+.compact-differences strong { color:rgba(245,237,214,.9); font:800 13px/1.35 var(--font-dm-sans); }
+.compact-differences span { color:var(--color-text-secondary); font:12px/1.5 var(--font-dm-sans); }
 @media (max-width: 900px) { .july-sale-banner { grid-template-columns:1fr; text-align:left; } .july-sale-banner p { width:max-content; } .july-sale-banner em { text-align:left; } .free-preview-strip { grid-template-columns:1fr; text-align:left; } .free-preview-strip button { width:100%; } }
-@media (max-width: 760px) { .comparison-wrap { width:calc(100% - 28px); padding:16px 0 16px 16px; overflow:hidden; } .comparison-heading { display:grid; align-items:start; padding-right:16px; } .comparison-scroll { padding-right:16px; } .comparison-scroll::after { opacity:0; } .comparison-table { min-width:704px; border-radius:14px; } .comparison-row { grid-template-columns:132px repeat(4, 142px); } .comparison-row span { min-height:44px; padding:12px 9px; font-size:11px; } .comparison-row span:first-child { position:static; box-shadow:none; } .comparison-head span { font-size:9px; letter-spacing:.10em; } }
-@media (max-width: 640px) { .launch-pricing-page { padding-top:108px; } .pricing-grid { grid-template-columns:1fr; width:calc(100% - 28px); } .pricing-card.founder { grid-column:auto; } .pricing-hero, .pricing-error { width:calc(100% - 28px); } .pricing-hero h1 { font-size:clamp(42px, 12vw, 58px); } .pricing-description { min-height:0; } }
+@media (max-width: 760px) { .compact-differences > div { grid-template-columns:1fr; } }
+@media (max-width: 640px) { .launch-pricing-page { padding-top:108px; } .pricing-grid { grid-template-columns:1fr; width:calc(100% - 28px); } .pricing-card.founder { grid-column:auto; margin-top:20px; } .pricing-hero, .pricing-error, .checkout-canceled, .compact-differences { width:calc(100% - 28px); } .checkout-canceled-actions { display:grid; } .checkout-canceled-actions button { width:100%; } .pricing-hero h1 { font-size:clamp(42px, 12vw, 58px); } .pricing-description { min-height:0; } }
 `;

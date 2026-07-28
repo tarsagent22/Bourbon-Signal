@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
+import { clerkClient } from "@clerk/nextjs/server";
 import { verifyClerkWebhookSignature } from "@/lib/clerk-webhook";
+import { mergeGrowthMilestoneMetadata } from "@/lib/growth-events";
 import { createNewsletterContact, normalizeNewsletterEmail } from "@/lib/newsletter";
 import { notifyRetailerAccountCreated } from "@/lib/retailer-notifications";
 import { getRetailerRepository } from "@/lib/retailer-repository";
@@ -23,6 +25,10 @@ type ClerkWebhookUser = {
   emailAddresses?: ClerkEmailAddress[];
   unsafe_metadata?: Record<string, unknown>;
   unsafeMetadata?: Record<string, unknown>;
+  private_metadata?: Record<string, unknown>;
+  privateMetadata?: Record<string, unknown>;
+  created_at?: number;
+  createdAt?: number;
 };
 
 function verifyClerkSignature(payload: string, req: NextRequest) {
@@ -61,6 +67,19 @@ export async function POST(req: NextRequest) {
   }
 
   const user = event.data || {};
+  if (user.id) {
+    const client = await clerkClient();
+    const currentUser = await client.users.getUser(user.id);
+    const privateMetadata = currentUser.privateMetadata as Record<string, unknown>;
+    const registration = mergeGrowthMilestoneMetadata(
+      privateMetadata,
+      "registration_completed",
+      new Date(user.created_at || user.createdAt || Date.now()).toISOString(),
+    );
+    await client.users.updateUserMetadata(user.id, {
+      privateMetadata: { activation: registration.activation },
+    });
+  }
   const email = primaryEmailForWebhookUser(user);
   if (!email) return NextResponse.json({ ok: true, skipped: "missing-email" });
 
