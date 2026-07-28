@@ -4,6 +4,7 @@ import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth";
 import type { BillingPlanId } from "@/lib/entitlements";
+import { recordGrowthMilestone } from "@/lib/growth-client";
 
 const VALID_PLANS: BillingPlanId[] = [
   "standard_monthly",
@@ -26,12 +27,14 @@ function ContinueCheckoutContent() {
   const searchParams = useSearchParams();
   const { isLoaded, isSignedIn } = useAuth();
   const checkoutStartedRef = useRef(false);
+  const registrationCompletedRef = useRef(false);
   const [error, setError] = useState<string | null>(null);
   const plan = useMemo(() => normalizePlan(searchParams.get("plan")), [searchParams]);
   const source = searchParams.get("source") || "unknown";
   const expectedPromotion = searchParams.get("expectedPromotion") === "july_sale_2026"
     ? "july_sale_2026"
     : undefined;
+  const registrationCompleted = searchParams.get("registration") === "1";
 
   useEffect(() => {
     if (!plan) {
@@ -50,11 +53,16 @@ function ContinueCheckoutContent() {
     }
     if (checkoutStartedRef.current) return;
     checkoutStartedRef.current = true;
+    const shouldRecordRegistration = registrationCompleted && !registrationCompletedRef.current;
+    if (shouldRecordRegistration) registrationCompletedRef.current = true;
 
     let cancelled = false;
     async function openCheckout() {
       setError(null);
       try {
+        if (shouldRecordRegistration) {
+          await recordGrowthMilestone("registration_completed", { surface: "sign_up" });
+        }
         const res = await fetch("/api/checkout", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
@@ -73,7 +81,7 @@ function ContinueCheckoutContent() {
     return () => {
       cancelled = true;
     };
-  }, [expectedPromotion, isLoaded, isSignedIn, plan, router, source]);
+  }, [expectedPromotion, isLoaded, isSignedIn, plan, registrationCompleted, router, source]);
 
   return (
     <main

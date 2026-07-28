@@ -10,10 +10,12 @@ import {
   MapPin,
 
 } from "lucide-react";
-import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import type { RadarEntry, RadarKind } from "@/lib/release-radar";
 import { radarPath } from "@/lib/release-radar";
 import { getAgendaOccurrences, getCalendarOccurrences, isValidMonth } from "@/lib/release-radar-calendar";
+import { recordGrowthMilestone } from "@/lib/growth-client";
+import { useAuth } from "@/lib/auth";
 
 const typeLabels: Record<RadarKind, string> = {
   release: "Release",
@@ -63,9 +65,20 @@ function watchMatchesMonth(entry: RadarEntry, month: string) {
 }
 
 export function CalendarExplorer({ entries, initialMonth, today }: { entries: RadarEntry[]; initialMonth: string; today: string }) {
+  const { isSignedIn, entitlements } = useAuth();
   const [month, setMonth] = useState(initialMonth);
   const [state, setState] = useState("all");
   const [kind, setKind] = useState("all");
+  const explorationRecorded = useRef(false);
+
+  const recordExploration = (interaction: "calendar_filter" | "calendar_navigation") => {
+    if (!isSignedIn || entitlements.tier !== "free" || explorationRecorded.current) return;
+    explorationRecorded.current = true;
+    recordGrowthMilestone("free_value_reached", {
+      surface: "release_radar",
+      kind: interaction,
+    });
+  };
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -132,23 +145,23 @@ export function CalendarExplorer({ entries, initialMonth, today }: { entries: Ra
             <h2 id="calendar-title">{monthLabel(month)}</h2>
           </div>
           <div className="rr-month-controls">
-            <button type="button" onClick={() => setMonth(addMonths(month, -1))} aria-label="Previous month"><ChevronLeft size={18} /></button>
-            <button type="button" className="rr-month-today" onClick={() => setMonth(initialMonth)}>Latest</button>
-            <button type="button" onClick={() => setMonth(addMonths(month, 1))} aria-label="Next month"><ChevronRight size={18} /></button>
+            <button type="button" onClick={() => { setMonth(addMonths(month, -1)); recordExploration("calendar_navigation"); }} aria-label="Previous month"><ChevronLeft size={18} /></button>
+            <button type="button" className="rr-month-today" onClick={() => { setMonth(initialMonth); recordExploration("calendar_navigation"); }}>Latest</button>
+            <button type="button" onClick={() => { setMonth(addMonths(month, 1)); recordExploration("calendar_navigation"); }} aria-label="Next month"><ChevronRight size={18} /></button>
           </div>
         </div>
 
         <div className="rr-filters" aria-label="Calendar filters">
-          <label><b>State</b><select value={state} onChange={(event) => setState(event.target.value)}><option value="all">All states</option>{states.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
-          <label><b>Type</b><select value={kind} onChange={(event) => setKind(event.target.value)}><option value="all">All types</option><option value="bottle">Bottle releases</option><option value="lottery">Lotteries</option><option value="event">Events</option></select></label>
-          {filtersActive && <button type="button" className="rr-clear" onClick={() => { setState("all"); setKind("all"); }}>Clear</button>}
+          <label><b>State</b><select value={state} onChange={(event) => { setState(event.target.value); recordExploration("calendar_filter"); }}><option value="all">All states</option>{states.map((item) => <option key={item} value={item}>{item}</option>)}</select></label>
+          <label><b>Type</b><select value={kind} onChange={(event) => { setKind(event.target.value); recordExploration("calendar_filter"); }}><option value="all">All types</option><option value="bottle">Bottle releases</option><option value="lottery">Lotteries</option><option value="event">Events</option></select></label>
+          {filtersActive && <button type="button" className="rr-clear" onClick={() => { setState("all"); setKind("all"); recordExploration("calendar_filter"); }}>Clear</button>}
         </div>
       </div>
 
       <div className="rr-calendar-grid" aria-label={`${monthLabel(month)} calendar`}>
         {['Sun','Mon','Tue','Wed','Thu','Fri','Sat'].map((day) => <div className="rr-weekday" key={day}>{day}</div>)}
         {cells.map((day, index) => <div className={day ? "rr-day" : "rr-day rr-day--empty"} key={`${month}-${index}`}>
-          {day && <><span className="rr-day-number">{day}</span><div className="rr-day-events">{entriesForDay(day).map(({ entry, occurrence }) => <Link href={radarPath(entry)} className={`rr-day-event rr-day-event--${entry.kind}`} key={`${entry.kind}-${entry.slug}-${occurrence.date}`}><small>{occurrence.label}</small><strong>{entry.title}</strong></Link>)}</div></>}
+          {day && <><span className="rr-day-number">{day}</span><div className="rr-day-events">{entriesForDay(day).map(({ entry, occurrence }) => <Link href={radarPath(entry)} onClick={() => recordExploration("calendar_navigation")} className={`rr-day-event rr-day-event--${entry.kind}`} key={`${entry.kind}-${entry.slug}-${occurrence.date}`}><small>{occurrence.label}</small><strong>{entry.title}</strong></Link>)}</div></>}
         </div>)}
       </div>
 
@@ -166,7 +179,7 @@ export function CalendarExplorer({ entries, initialMonth, today }: { entries: Ra
               <div className="rr-timeline-node" aria-hidden><i /></div>
               <div className="rr-timeline-card">
                 <div className="rr-card-signal"><span>{entry.bottle ? "Bottle release" : typeLabels[entry.kind]}</span><b>{statusLabel(entry)}</b></div>
-                <Link className="rr-card-title" href={radarPath(entry)}><h4>{entry.title}</h4><ArrowUpRight size={19} aria-hidden /></Link>
+                <Link className="rr-card-title" href={radarPath(entry)} onClick={() => recordExploration("calendar_navigation")}><h4>{entry.title}</h4><ArrowUpRight size={19} aria-hidden /></Link>
                 <p>{entry.dek}</p>
                 <div className="rr-card-facts">
                   {entry.location && <span><MapPin size={13} /> {entry.location}</span>}
@@ -184,7 +197,7 @@ export function CalendarExplorer({ entries, initialMonth, today }: { entries: Ra
 
       {watchEntries.length > 0 && <section className="rr-watch-deck" aria-labelledby="watch-title">
         <header><div><h3 id="watch-title">Watch windows</h3></div><p>Announced without an exact date.</p></header>
-        <div>{watchEntries.map((entry) => <Link href={radarPath(entry)} key={entry.slug} className="rr-watch-card"><span>{entry.dateLabel}</span><strong>{entry.title}</strong><p>{entry.availability}</p><small>{sourceType(entry)} · {entry.sources[0]?.label}</small><ArrowUpRight size={16}/></Link>)}</div>
+        <div>{watchEntries.map((entry) => <Link href={radarPath(entry)} onClick={() => recordExploration("calendar_navigation")} key={entry.slug} className="rr-watch-card"><span>{entry.dateLabel}</span><strong>{entry.title}</strong><p>{entry.availability}</p><small>{sourceType(entry)} · {entry.sources[0]?.label}</small><ArrowUpRight size={16}/></Link>)}</div>
       </section>}
     </section>
   );

@@ -1,30 +1,66 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { SignUp } from "@clerk/nextjs";
-import { resolveSignUpRedirect } from "@/lib/growth-events";
+import { normalizeGrowthAttribution, resolveSignUpRedirect } from "@/lib/growth-events";
+import { recordGrowthMilestone } from "@/lib/growth-client";
 
 const DEFAULT_ONBOARDING_REDIRECT = "/welcome";
+
+function withoutRegistrationMarker(path: string) {
+  const url = new URL(path, "https://bourbonsignal.local");
+  url.searchParams.delete("registration");
+  return `${url.pathname}${url.search}${url.hash}`;
+}
 
 export default function SignUpPage() {
   const searchParams = useSearchParams();
   const redirectUrl = resolveSignUpRedirect(searchParams.get("redirect_url"));
-  const encodedRedirect = encodeURIComponent(redirectUrl);
+  const signInRedirectUrl = withoutRegistrationMarker(redirectUrl);
+  const encodedSignInRedirect = encodeURIComponent(signInRedirectUrl);
   const isCoverageRequestRedirect = redirectUrl.startsWith("/coverage");
   const [ageChecked, setAgeChecked] = useState(false);
   const [confirmedAge, setConfirmedAge] = useState(false);
   const [attempted, setAttempted] = useState(false);
+  const signupStartedRecorded = useRef(false);
 
   useEffect(() => {
-    if (window.localStorage.getItem("bourbon_signal_age_confirmed") === "1") {
-      setAgeChecked(true);
-      setConfirmedAge(true);
+    try {
+      if (window.localStorage.getItem("bourbon_signal_age_confirmed") === "1") {
+        setAgeChecked(true);
+        setConfirmedAge(true);
+      }
+    } catch {
+      setAgeChecked(false);
     }
   }, []);
 
+  useEffect(() => {
+    if (!confirmedAge || signupStartedRecorded.current) return;
+    signupStartedRecorded.current = true;
+    let referrer = "";
+    try {
+      referrer = document.referrer;
+    } catch {
+      referrer = "";
+    }
+    const attribution = normalizeGrowthAttribution({
+      surface: "sign_up",
+      utm_source: searchParams.get("utm_source"),
+      utm_medium: searchParams.get("utm_medium"),
+      utm_campaign: searchParams.get("utm_campaign"),
+      referrer,
+    });
+    void recordGrowthMilestone("signup_started", { surface: "sign_up" }, { attribution });
+  }, [confirmedAge, searchParams]);
+
   const confirmAge = () => {
-    window.localStorage.setItem("bourbon_signal_age_confirmed", "1");
+    try {
+      window.localStorage.setItem("bourbon_signal_age_confirmed", "1");
+    } catch {
+      // Storage is optional; legal confirmation still applies to this session.
+    }
     setConfirmedAge(true);
   };
 
@@ -69,26 +105,31 @@ export default function SignUpPage() {
 
       {confirmedAge ? (
         <>
-          {isCoverageRequestRedirect ? (
-            <p
-              style={{
-                width: "100%",
-                maxWidth: "400px",
-                margin: "0 0 16px",
-                color: "var(--color-text-secondary)",
-                fontFamily: "var(--font-dm-sans)",
-                fontSize: "14px",
-                lineHeight: 1.5,
-                textAlign: "center",
-              }}
-            >
-              Create your free account to send this coverage request. No payment or card required.
-            </p>
-          ) : null}
+          <div
+            style={{
+              width: "100%",
+              maxWidth: "400px",
+              margin: "0 0 16px",
+              color: "var(--color-text-secondary)",
+              fontFamily: "var(--font-dm-sans)",
+              fontSize: "14px",
+              lineHeight: 1.5,
+              textAlign: "center",
+            }}
+          >
+            <strong style={{ display: "block", color: "var(--color-text-primary)", fontSize: "17px", marginBottom: "5px" }}>
+              Create your free Bourbon Signal account.
+            </strong>
+            <span>
+              {isCoverageRequestRedirect
+                ? "Create your free account to send this coverage request. No payment or card required."
+                : "No card required. Start with seven recent Drop Feed signals, three Bottle Checks, public Release Radar, and Member Sightings."}
+            </span>
+          </div>
           {redirectUrl === DEFAULT_ONBOARDING_REDIRECT ? (
-            <SignUp forceRedirectUrl="/welcome" signInForceRedirectUrl="/welcome" signInUrl="/sign-in?redirect_url=%2Fwelcome" />
+            <SignUp forceRedirectUrl="/welcome?registration=1" signInForceRedirectUrl="/welcome" signInUrl="/sign-in?redirect_url=%2Fwelcome" />
           ) : (
-            <SignUp forceRedirectUrl={redirectUrl} signInForceRedirectUrl={redirectUrl} signInUrl={`/sign-in?redirect_url=${encodedRedirect}`} />
+            <SignUp forceRedirectUrl={redirectUrl} signInForceRedirectUrl={signInRedirectUrl} signInUrl={`/sign-in?redirect_url=${encodedSignInRedirect}`} />
           )}
         </>
       ) : (

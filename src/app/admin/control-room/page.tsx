@@ -182,10 +182,16 @@ export default async function CompanyControlRoomPage() {
               </dl>
               <dl className="cr-list">
                 <div><dt>New accounts · 7 days</dt><dd>{growth.days7.accounts}</dd></div>
+                <div><dt>Tracked signup starts · 7 days</dt><dd>{growth.days7.signupStarted}</dd></div>
+                <div><dt>Registration completed · 7 days</dt><dd>{growth.days7.registrationCompleted}</dd></div>
+                <div><dt>Onboarding state selected · 7 days</dt><dd>{growth.days7.onboardingStateSelected}</dd></div>
                 <div><dt>Reached free value · 7 days</dt><dd>{growth.days7.freeValueReached}</dd></div>
-                <div><dt>Checkout starts · 7 days</dt><dd>{growth.days7.checkoutStarted}</dd></div>
+                <div><dt>Pricing viewed · 7 days</dt><dd>{growth.days7.pricingViewed}</dd></div>
+                <div><dt>Checkout started · 7 days</dt><dd>{growth.days7.checkoutStarted}</dd></div>
+                <div><dt>Membership activated · 7 days</dt><dd>{growth.days7.membershipActivated}</dd></div>
+                <div><dt>Paid setup completed · 7 days</dt><dd>{growth.days7.paidActivationCompleted}</dd></div>
+                <div><dt>First alert · 7 days</dt><dd>{growth.days7.firstAlertCreated}</dd></div>
                 <div><dt>New accounts · 30 days</dt><dd>{growth.days30.accounts}</dd></div>
-                <div><dt>First alerts · 30 days</dt><dd>{growth.days30.firstAlertCreated}</dd></div>
                 <div><dt>Paid setup incomplete</dt><dd>{lifecycle.paidSetupIncomplete}</dd></div>
                 <div><dt>Ready · no first alert</dt><dd>{lifecycle.activatedNoFirstAlert}</dd></div>
               </dl>

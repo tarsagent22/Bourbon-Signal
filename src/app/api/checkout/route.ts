@@ -243,7 +243,7 @@ export async function POST(req: NextRequest) {
     client_reference_id: userId,
     line_items: [{ price: priceId, quantity: 1 }],
     success_url: `${origin}/success?session_id={CHECKOUT_SESSION_ID}`,
-    cancel_url: `${origin}/pricing?checkout=${plan.id}`,
+    cancel_url: `${origin}/pricing?canceled=${plan.id}&source=${source}`,
     metadata,
     ...buildJulySaleSessionFields(julySaleConfig),
   };

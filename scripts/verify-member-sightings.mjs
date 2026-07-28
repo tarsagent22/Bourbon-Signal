@@ -105,7 +105,7 @@ for (const phrase of ['id="sightings"', '<AdminSightingsClient embedded />', 'Me
 }
 
 const signUp = read('src/app/sign-up/[[...sign-up]]/page.tsx');
-for (const phrase of ['DEFAULT_ONBOARDING_REDIRECT = "/welcome"', 'forceRedirectUrl="/welcome"', 'signInForceRedirectUrl="/welcome"']) {
+for (const phrase of ['DEFAULT_ONBOARDING_REDIRECT = "/welcome"', 'forceRedirectUrl="/welcome?registration=1"', 'signInForceRedirectUrl="/welcome"']) {
   if (!signUp.includes(phrase)) fail(`Sign-up should redirect to the current welcome onboarding flow: ${phrase}`);
 }
 const alerts = read('src/app/alerts/page.tsx');

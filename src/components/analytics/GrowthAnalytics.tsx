@@ -2,9 +2,28 @@
 
 import { useEffect } from "react";
 import { usePathname, useSearchParams } from "next/navigation";
-import { track } from "@vercel/analytics";
+import { normalizeGrowthAttribution } from "@/lib/growth-events";
+import { recordGrowthMilestone } from "@/lib/growth-client";
 
-const surfaceForPath = (path: string) => path === "/" ? "homepage" : path.startsWith("/release-radar") ? "release_radar" : path.startsWith("/bottle-check") ? "bottle_check" : path.startsWith("/pricing") ? "pricing" : path.startsWith("/retailers") ? "retailer" : path.startsWith("/drops") ? "drop_feed" : "unknown";
+const surfaceForPath = (path: string) => path === "/"
+  ? "homepage"
+  : path.startsWith("/sign-up")
+    ? "sign_up"
+    : path.startsWith("/welcome")
+      ? "welcome"
+      : path.startsWith("/dashboard")
+        ? "dashboard"
+        : path.startsWith("/release-radar")
+          ? "release_radar"
+          : path.startsWith("/bottle-check")
+            ? "bottle_check"
+            : path.startsWith("/pricing")
+              ? "pricing"
+              : path.startsWith("/retailers")
+                ? "retailer"
+                : path.startsWith("/drops")
+                  ? "drop_feed"
+                  : "unknown";
 
 export default function GrowthAnalytics() {
   const pathname = usePathname();
@@ -21,19 +40,14 @@ export default function GrowthAnalytics() {
       referrerHost = "";
     }
 
-    track("product_surface_viewed", { surface });
-    void fetch("/api/growth/attribution", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        surface,
-        event: surface === "pricing" ? "pricing_viewed" : undefined,
-        utm_source: search.get("utm_source"),
-        utm_medium: search.get("utm_medium"),
-        utm_campaign: search.get("utm_campaign"),
-        referrerHost,
-      }),
-    }).catch(() => undefined);
+    const attribution = normalizeGrowthAttribution({
+      surface,
+      utm_source: search.get("utm_source"),
+      utm_medium: search.get("utm_medium"),
+      utm_campaign: search.get("utm_campaign"),
+      referrer: referrerHost ? `https://${referrerHost}` : "",
+    });
+    recordGrowthMilestone(surface === "pricing" ? "pricing_viewed" : "product_surface_viewed", { surface }, { attribution });
   }, [pathname, search]);
 
   return null;

@@ -6,6 +6,7 @@ import Footer from "@/components/Footer";
 import { AVAILABLE_STATES } from "@/lib/statePreferences";
 import { useAreaPreferences } from "@/hooks/useAreaPreferences";
 import { useAuth } from "@/lib/auth";
+import { recordGrowthMilestone } from "@/lib/growth-client";
 
 interface BottleResult {
   bottle: {
@@ -116,7 +117,7 @@ function scoreTone(score: number) {
 }
 
 export default function BottleCheckPage() {
-  const { isSignedIn, signIn, entitlements } = useAuth();
+  const { isLoaded, isSignedIn, signIn, entitlements } = useAuth();
   const bottleCheckLimit = entitlements.bottleCheckLimit;
   const isFreeBottleCheck = bottleCheckLimit !== null;
   const { prefs, loading: prefsLoading, savePreferences } = useAreaPreferences();
@@ -137,6 +138,9 @@ export default function BottleCheckPage() {
   const [suggestionsLoading, setSuggestionsLoading] = useState(false);
   const [suggestionSession, setSuggestionSession] = useState(0);
   const suggestionRequestVersion = useRef(0);
+  const pendingValueResult = useRef(false);
+  const freeValueRecorded = useRef(false);
+  const [valueResultVersion, setValueResultVersion] = useState(0);
 
   const [addingMissingBottle, setAddingMissingBottle] = useState(false);
   const [missingBottleAdded, setMissingBottleAdded] = useState(false);
@@ -217,11 +221,8 @@ export default function BottleCheckPage() {
         setResult(data);
         setHasSearched(true);
         if (res.ok && data.bottle) {
-          void fetch("/api/growth/attribution", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ surface: "bottle_check", event: "free_value_reached" }),
-          }).catch(() => undefined);
+          pendingValueResult.current = true;
+          setValueResultVersion((version) => version + 1);
         }
       } catch (error) {
         if ((error as Error).name !== "AbortError") {
@@ -235,6 +236,17 @@ export default function BottleCheckPage() {
     load();
     return () => controller.abort();
   }, [submittedQuery, submittedState]);
+
+  useEffect(() => {
+    if (!isLoaded || !pendingValueResult.current || freeValueRecorded.current) return;
+    pendingValueResult.current = false;
+    if (!isSignedIn || entitlements.tier !== "free") return;
+    freeValueRecorded.current = true;
+    void recordGrowthMilestone("free_value_reached", {
+      surface: "bottle_check",
+      kind: "bottle_check",
+    });
+  }, [entitlements.tier, isLoaded, isSignedIn, valueResultVersion]);
 
   useEffect(() => {
     setTrackingStates((prev) => Array.from(new Set([...(prev.length ? prev : []), state])));

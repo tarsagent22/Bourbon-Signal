@@ -3,11 +3,14 @@ import { aggregateGrowthFunnels, aggregateLifecycleCohorts } from "../src/lib/co
 
 const now = new Date("2026-07-15T12:00:00.000Z");
 const funnel = aggregateGrowthFunnels([
-  { createdAt: "2026-07-14T12:00:00.000Z", privateMetadata: { firstTouch: { surface: "drop_feed" }, activation: { free_value_reached: "2026-07-14T13:00:00.000Z", pricing_viewed: "2026-07-14T14:00:00.000Z", checkout_started: "2026-07-14T15:00:00.000Z", membership_activated: "2026-07-14T16:00:00.000Z", paid_activation_completed: "2026-07-14T17:00:00.000Z", first_alert_created: "2026-07-14T18:00:00.000Z" } } },
+  { createdAt: "2026-07-14T12:00:00.000Z", privateMetadata: { firstTouch: { surface: "drop_feed" }, activation: { signup_started: "2026-07-14T11:55:00.000Z", registration_completed: "2026-07-14T12:00:00.000Z", onboarding_state_selected: "2026-07-14T12:10:00.000Z", free_value_reached: "2026-07-14T13:00:00.000Z", pricing_viewed: "2026-07-14T14:00:00.000Z", checkout_started: "2026-07-14T15:00:00.000Z", membership_activated: "2026-07-14T16:00:00.000Z", paid_activation_completed: "2026-07-14T17:00:00.000Z", first_alert_created: "2026-07-14T18:00:00.000Z" } } },
   { createdAt: "2026-07-14T12:00:00.000Z", publicMetadata: { role: "retailer" } },
   { createdAt: "2026-07-14T12:00:00.000Z", primaryEmailAddressId: "owner", emailAddresses: [{ id: "owner", emailAddress: "chandler@bourbonsignal.com" }] },
 ], now);
 assert.equal(funnel.days7.accounts, 1);
+assert.equal(funnel.days7.signupStarted, 1);
+assert.equal(funnel.days7.registrationCompleted, 1);
+assert.equal(funnel.days7.onboardingStateSelected, 1);
 assert.equal(funnel.days30.firstAlertCreated, 1);
 assert.equal(funnel.days7.bySource.drop_feed, 1);
 assert.equal(funnel.days7.unknownAttribution, 0);

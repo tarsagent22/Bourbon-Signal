@@ -22,6 +22,7 @@ import { useAreaPreferences } from "@/hooks/useAreaPreferences";
 import { useSightings } from "@/hooks/useSightings";
 import { useStores, type Store } from "@/hooks/useStores";
 import { useStats } from "@/lib/useEngineData";
+import { recordGrowthMilestone } from "@/lib/growth-client";
 import { makeSightingId, type MemberSighting, type SignalReportKind, type SightingVoteKind } from "@/lib/sightings";
 import { locationLabelsMatch, normalizeStateCodeParam, publicStateCode } from "@/lib/location-normalization";
 import { buildDropFeedAreaRequest, coveredAreaLabelsMatch, formatNcAbcAreaMenuLabel, getCoveredAreaOptionsForState } from "@/lib/feed-area-options";
@@ -886,10 +887,11 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport, onVoteS
 
   const hasDetails = details.length > 0 || drop.locations.length > 0;
 
-  // Blur wall logic — free/signed-out users: first 5 clear, then faded + blurred teaser rows.
-  const isBlurred = isFreeUser && index >= 5;
-  const blurOpacity = index === 5 ? 0.62 : 0.34;
-  const blurAmount = index === 5 ? 2.5 : 5;
+  // Free access includes seven complete signal rows; entitlement gates still
+  // limit multi-location and member-only detail below.
+  const isBlurred = isFreeUser && index >= 7;
+  const blurOpacity = 0.34;
+  const blurAmount = 5;
 
   return (
     <motion.div
@@ -1318,26 +1320,8 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport, onVoteS
                       color: "rgba(245,237,214,0.74)",
                     }}
                   >
-                    <div
-                      style={{
-                        fontFamily: "var(--font-playfair)",
-                        fontSize: "18px",
-                        fontWeight: 700,
-                        color: "var(--color-cream)",
-                        marginBottom: "6px",
-                      }}
-                    >
-                      Want to see the signal details?
-                    </div>
                     <div style={{ fontSize: "13px", lineHeight: 1.55 }}>
-                      <a
-                        href="/pricing"
-                        style={{ color: "var(--color-accent-amber)", fontWeight: 800, textDecoration: "none" }}
-                        onClick={(event) => event.stopPropagation()}
-                      >
-                        Upgrade your membership
-                      </a>{" "}
-                      to unlock store-level details, timing notes, source context, and full locations.
+                      The free preview keeps member-only detail and additional locations private. The signal summary and first eligible location remain visible above.
                     </div>
                   </div>
                 ) : (
@@ -1486,6 +1470,10 @@ export default function DropFeed() {
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [nextDropOffset, setNextDropOffset] = useState(0);
   const [nextDropCursor, setNextDropCursor] = useState<string | null>(null);
+  const exploredFreeMarkets = useRef<Set<string>>(new Set());
+  const feedResultsRef = useRef<HTMLDivElement | null>(null);
+  const [feedResultsVisible, setFeedResultsVisible] = useState(false);
+  const [pageVisible, setPageVisible] = useState(false);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -1825,6 +1813,39 @@ export default function DropFeed() {
   const canShowMore = !isFreeUser && (hasLoadedHiddenRows || hasUnloadedRows || !!data?.hasMore);
   const displayedGrouped = finalFeed.slice(0, baseVisibleCount);
   const hiddenCount = data ? Math.max(0, data.total - grouped.length) + Math.max(0, finalFeed.length - displayedGrouped.length) : 0;
+  useEffect(() => {
+    const node = feedResultsRef.current;
+    if (!node) {
+      setFeedResultsVisible(false);
+      return;
+    }
+    const observer = new IntersectionObserver(
+      ([entry]) => setFeedResultsVisible(entry.isIntersecting),
+      { threshold: 0 },
+    );
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [data]);
+
+  useEffect(() => {
+    const syncVisibility = () => setPageVisible(document.visibilityState === "visible");
+    syncVisibility();
+    document.addEventListener("visibilitychange", syncVisibility);
+    return () => document.removeEventListener("visibilitychange", syncVisibility);
+  }, []);
+
+  useEffect(() => {
+    if (!isSignedIn || !isFreeUser || !feedStateParam || !data || displayedGrouped.length === 0 || !feedResultsVisible || !pageVisible || exploredFreeMarkets.current.has(feedStateParam)) return;
+    const timer = window.setTimeout(() => {
+      exploredFreeMarkets.current.add(feedStateParam);
+      recordGrowthMilestone("free_value_reached", {
+        surface: "drop_feed",
+        kind: "state_feed",
+        market: feedStateParam,
+      });
+    }, 4_000);
+    return () => window.clearTimeout(timer);
+  }, [data, displayedGrouped.length, feedResultsVisible, feedStateParam, isFreeUser, isSignedIn, pageVisible]);
   const stateFilterSummary = !hasSelectedStates || preferredStates.length === 0
     ? "Showing all covered states"
     : `Showing ${preferredStates.map((code) => AVAILABLE_STATES.find((state) => state.code === code)?.name || code).join(", ")}`;
@@ -2587,6 +2608,7 @@ export default function DropFeed() {
               transition={{ duration: 0.72, delay: 0.08, ease: [0.25, 0.1, 0.25, 1] }}
             >
               <div>
+                <div ref={feedResultsRef} aria-hidden="true" style={{ height: "1px" }} />
                 {displayedGrouped.length === 0 ? (
                   <div
                     style={{
@@ -2644,22 +2666,34 @@ export default function DropFeed() {
                 </div>
               )}
 
-              {/* Gradient overlay over blurred rows — only for free users */}
-              {isFreeUser && displayedGrouped.length > 5 && (
-                <div
-                  style={{
-                    position: "absolute",
-                    bottom: 0,
-                    left: 0,
-                    width: "100%",
-                    height: "160px",
-                    background: "linear-gradient(to bottom, transparent 0%, var(--color-bg-warm) 100%)",
-                    pointerEvents: "none",
-                  }}
-                />
-              )}
             </motion.div>
           )}
+
+          {isFreeUser && displayedGrouped.length >= 7 ? (
+            <div
+              className="dropfeed-free-value"
+              style={{
+                marginTop: "24px",
+                padding: "18px",
+                border: "1px solid rgba(196,148,58,0.2)",
+                borderRadius: "16px",
+                background: "rgba(196,148,58,0.06)",
+                color: "rgba(245,237,214,0.72)",
+                fontFamily: "var(--font-dm-sans)",
+                fontSize: "13px",
+                lineHeight: 1.55,
+                textAlign: "center",
+              }}
+            >
+              <strong style={{ display: "block", color: "var(--color-cream)", fontSize: "15px", marginBottom: "5px" }}>
+                You have seen the latest seven signals.
+              </strong>
+              Standard Proof unlocks the full state feed and alerts for the bottles and areas you choose.{" "}
+              <a href="/pricing?source=drop_feed" style={{ color: "var(--color-accent-amber)", fontWeight: 800 }}>
+                See Standard Proof
+              </a>
+            </div>
+          ) : null}
 
           {/* Drop count below feed */}
           {data && (

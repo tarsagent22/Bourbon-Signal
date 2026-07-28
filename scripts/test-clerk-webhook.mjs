@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { createHmac, randomBytes } from 'node:crypto';
 import { verifyClerkWebhookSignature } from '../src/lib/clerk-webhook.ts';
+import { readFileSync } from 'node:fs';
 
 const secretBytes = randomBytes(32);
 const secret = `whsec_${secretBytes.toString('base64')}`;
@@ -13,5 +14,10 @@ assert.equal(verifyClerkWebhookSignature({ payload, secret, id, timestamp, signa
 assert.equal(verifyClerkWebhookSignature({ payload, secret, id, timestamp, signature: `v1,${signature.slice(1)}` }), false);
 assert.equal(verifyClerkWebhookSignature({ payload, secret, id, timestamp: String(Number(timestamp) - 301), signature: `v1,${signature}` }), false);
 assert.equal(verifyClerkWebhookSignature({ payload, secret, id: '', timestamp, signature: `v1,${signature}` }), false);
+
+const routeSource = readFileSync('src/app/api/webhooks/clerk/route.ts', 'utf8');
+assert.match(routeSource, /event\.type !== "user\.created"/);
+assert.match(routeSource, /mergeGrowthMilestoneMetadata[\s\S]*"registration_completed"/);
+assert.match(routeSource, /updateUserMetadata\(user\.id/);
 
 console.log('Clerk webhook signature tests passed.');

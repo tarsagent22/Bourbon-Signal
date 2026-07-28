@@ -1,5 +1,8 @@
 export const GROWTH_EVENT_NAMES = [
   "product_surface_viewed",
+  "signup_started",
+  "registration_completed",
+  "onboarding_state_selected",
   "free_value_reached",
   "pricing_viewed",
   "checkout_started",
@@ -21,15 +24,34 @@ export const GROWTH_EVENT_NAMES = [
 ] as const;
 
 export type GrowthEventName = typeof GROWTH_EVENT_NAMES[number];
-export type DurableGrowthMilestone = "free_value_reached" | "pricing_viewed" | "checkout_started" | "membership_activated";
-export type GrowthSurface = "homepage" | "drop_feed" | "release_radar" | "bottle_check" | "pricing" | "retailer" | "unknown";
+export type DurableGrowthMilestone =
+  | "signup_started"
+  | "registration_completed"
+  | "onboarding_state_selected"
+  | "free_value_reached"
+  | "pricing_viewed"
+  | "checkout_started"
+  | "membership_activated"
+  | "paid_activation_completed"
+  | "first_alert_created";
+export type GrowthSurface =
+  | "homepage"
+  | "sign_up"
+  | "welcome"
+  | "dashboard"
+  | "drop_feed"
+  | "release_radar"
+  | "bottle_check"
+  | "pricing"
+  | "retailer"
+  | "unknown";
 export interface GrowthAttribution {
   surface: GrowthSurface;
   campaign: string;
   referrerHost: string;
 }
 
-const SURFACES = new Set<GrowthSurface>(["homepage", "drop_feed", "release_radar", "bottle_check", "pricing", "retailer", "unknown"]);
+const SURFACES = new Set<GrowthSurface>(["homepage", "sign_up", "welcome", "dashboard", "drop_feed", "release_radar", "bottle_check", "pricing", "retailer", "unknown"]);
 const EVENT_NAMES = new Set<string>(GROWTH_EVENT_NAMES);
 const MAX_VALUE_LENGTH = 80;
 
@@ -55,12 +77,22 @@ export function normalizeGrowthAttribution(input: Record<string, unknown>): Grow
   const source = safeToken(input.utm_source);
   const medium = safeToken(input.utm_medium);
   const campaignName = safeToken(input.utm_campaign);
-  const allowedSources = new Set(["newsletter", "direct", "instagram", "facebook", "google", "bing", "partner"]);
-  const allowedMedia = new Set(["email", "social", "organic", "referral", "none"]);
-  const campaign = allowedSources.has(source) && allowedMedia.has(medium) && campaignName !== "unknown"
-    ? `${source}:${medium}:${campaignName}`
-    : "unknown";
-  return { surface, campaign, referrerHost: safeHost(input.referrer) };
+  const allowedSources = new Set(["newsletter", "direct", "instagram", "facebook", "meta", "google", "bing", "partner"]);
+  const allowedMedia = new Set(["email", "social", "paid_social", "organic", "referral", "none"]);
+  const suppliedCampaignParts = typeof input.campaign === "string" ? input.campaign.split(":") : [];
+  const suppliedCampaign = suppliedCampaignParts.length === 3
+    && String(input.campaign).length <= MAX_VALUE_LENGTH
+    && allowedSources.has(suppliedCampaignParts[0])
+    && allowedMedia.has(suppliedCampaignParts[1])
+    && /^[a-z0-9_-]{1,80}$/.test(suppliedCampaignParts[2])
+    ? suppliedCampaignParts.join(":")
+    : null;
+  const composedCampaign = `${source}:${medium}:${campaignName}`;
+  const campaign = suppliedCampaign || (allowedSources.has(source) && allowedMedia.has(medium) && campaignName !== "unknown" && composedCampaign.length <= MAX_VALUE_LENGTH
+    ? composedCampaign
+    : "unknown");
+  const referrer = input.referrer || (typeof input.referrerHost === "string" ? `https://${input.referrerHost}` : "");
+  return { surface, campaign, referrerHost: safeHost(referrer) };
 }
 
 export function mergeFirstTouch(existing: GrowthAttribution | null | undefined, incoming: GrowthAttribution) {
