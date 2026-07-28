@@ -122,7 +122,8 @@ const clientMilestoneAllowlist = attributionRoute.match(/ALLOWED_MILESTONES[\s\S
 assert.doesNotMatch(clientMilestoneAllowlist, /registration_completed/, "registration completion must be webhook-authoritative, not client-writable");
 assert.match(attributionRoute, /storedSignupStarted[\s\S]*"signup_started"/);
 assert.match(attributionRoute, /if \(!privateMetadata\.firstTouch\) update\.firstTouch = firstTouch/);
-assert.match(attributionRoute, /ACTIVE_MARKETS\.has\(market\)/, "persisted onboarding markets must be active state codes");
+assert.match(attributionRoute, /US_STATE_CODES[\s\S]*HOME_STATE_MARKETS\.has\(market\)/, "persisted onboarding markets must be valid nationwide state codes");
+assert.match(attributionRoute, /\["surface", "kind", "market", "precision"\]/, "coarse preview precision may be persisted without member identity or location detail");
 assert.match(growthAnalytics, /path\.startsWith\("\/welcome"\)[\s\S]*path\.startsWith\("\/dashboard"\)/, "welcome and dashboard must be safe attribution surfaces");
 assert.match(bottleCheck, /recordGrowthMilestone\("free_value_reached"[\s\S]*kind:\s*"bottle_check"/);
 assert.match(dropFeed, /IntersectionObserver[\s\S]*!isSignedIn[\s\S]*!feedResultsVisible[\s\S]*!pageVisible[\s\S]*kind:\s*"state_feed"[\s\S]*4_000/, "authenticated state feed value requires continuous visible results dwell");

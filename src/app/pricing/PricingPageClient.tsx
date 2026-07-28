@@ -46,7 +46,6 @@ type PricingTier = {
   plan?: PaidPlanId;
   description: string;
   features: string[];
-  footnote?: string;
   accent: "quiet" | "standard" | "barrel" | "founder";
   featured?: boolean;
 };
@@ -63,11 +62,9 @@ const paidTiers: PricingTier[] = [
     description: "Turn the state signal you just explored into a focused hunting plan.",
     features: [
       "Full state Drop Feed",
-      "SMS, email, and on-site alerts",
-      "Track up to 5 areas and 15 bottles",
-      "Unlimited Bottle Checks",
+      "Alerts for up to 5 areas and 15 bottles",
+      "Unlimited Bottle Checks and full Member Sightings",
     ],
-    footnote: "Recommended for most hunters who know the markets and bottles they care about.",
     accent: "standard",
     featured: true,
   },
@@ -81,12 +78,10 @@ const paidTiers: PricingTier[] = [
     annualPlan: "barrel_annual",
     description: "Search more broadly, remove preference limits, and use advanced discovery tools.",
     features: [
-      "Everything in Standard Proof",
-      "Unlimited alert preferences",
-      "Advanced Drop Feed filters and Sightings alerts",
-      "Collection tools and bottle recommendations",
+      "Everything in Standard with unlimited preferences",
+      "Advanced filters and Sightings alerts",
+      "Collection tools and recommendations",
     ],
-    footnote: "Best for hunters working across more areas with a larger watchlist.",
     accent: "barrel",
   },
   {
@@ -101,10 +96,24 @@ const paidTiers: PricingTier[] = [
       "Founder badge & number on profile",
       "Numbered Founder’s glass",
     ],
-    footnote: "Pay once before the 100-member founder allocation is gone.",
     accent: "founder",
   },
 ];
+
+const comparisonRows = [
+  { feature: "Drop Feed", free: "7 recent signals", standard: "Full state feed", barrel: "Full feed", founder: "Full feed" },
+  { feature: "Bottle Checks", free: "3 lookups", standard: "Unlimited", barrel: "Unlimited", founder: "Unlimited" },
+  { feature: "Saved alerts", free: "—", standard: "On-site, email, and SMS", barrel: "On-site, email, and SMS", founder: "On-site, email, and SMS" },
+  { feature: "Area and bottle limits", free: "—", standard: "5 areas · 15 bottles", barrel: "Effectively unlimited", founder: "Effectively unlimited" },
+  { feature: "Member Sightings", free: "Limited preview and submissions", standard: "Full feed and submissions", barrel: "Full feed and submissions", founder: "Full feed and submissions" },
+  { feature: "Sightings alerts", free: "—", standard: "—", barrel: "Included", founder: "Included" },
+  { feature: "Advanced filters", free: "—", standard: "State-level tools", barrel: "Included", founder: "Included" },
+  { feature: "My Collection", free: "—", standard: "—", barrel: "Included", founder: "Included" },
+  { feature: "Recommendations", free: "—", standard: "—", barrel: "Included", founder: "Included" },
+  { feature: "Future features", free: "Free-tier releases", standard: "Standard-tier releases", barrel: "Barrel-tier releases", founder: "All current and future paid features" },
+  { feature: "Founder benefits", free: "—", standard: "—", barrel: "—", founder: "Badge, number, and numbered glass" },
+  { feature: "Billing", free: "$0 · no card", standard: "$2.99/month or $24.99/year", barrel: "$4.99/month or $49.99/year", founder: "$49.99 one time" },
+] as const;
 
 
 function PricingPageContent({ julySaleEnabled }: { julySaleEnabled: boolean }) {
@@ -161,7 +170,7 @@ function PricingPageContent({ julySaleEnabled }: { julySaleEnabled: boolean }) {
   async function startCheckout(plan: PaidPlanId | null, targetTier: MembershipTier) {
     setError(null);
     if (!plan) {
-      router.push("/sign-up?redirect_url=/dashboard");
+      router.push("/sign-up");
       return;
     }
     if (tierRank[targetTier] <= currentTierRank) {
@@ -172,7 +181,7 @@ function PricingPageContent({ julySaleEnabled }: { julySaleEnabled: boolean }) {
       ? "july_sale_2026"
       : undefined;
     if (!isSignedIn) {
-      router.push(`/sign-up?redirect_url=${encodeURIComponent(checkoutContinueUrl(plan, source, expectedPromotion))}`);
+      router.push(`/sign-up?intent=paid&redirect_url=${encodeURIComponent(checkoutContinueUrl(plan, source, expectedPromotion))}`);
       return;
     }
     if (checkoutInFlight.current) return;
@@ -252,7 +261,7 @@ function PricingPageContent({ julySaleEnabled }: { julySaleEnabled: boolean }) {
               <li>3 Bottle Checks</li>
               <li>Release Radar and Member Sightings</li>
             </ul>
-            <button type="button" onClick={() => router.push(isSignedIn ? "/dashboard" : "/sign-up?redirect_url=%2Fwelcome")}>
+            <button type="button" onClick={() => router.push(isSignedIn ? "/welcome" : "/sign-up")}>
               {isSignedIn ? "Continue with Free" : "Create Free Account"}
             </button>
           </section>
@@ -274,19 +283,19 @@ function PricingPageContent({ julySaleEnabled }: { julySaleEnabled: boolean }) {
                 type="button"
                 onClick={() => router.replace(source === "unknown" ? "/pricing" : `/pricing?source=${encodeURIComponent(source)}`)}
               >Choose another plan</button>
-              <button type="button" onClick={() => router.push(isSignedIn ? "/dashboard" : "/sign-up?redirect_url=%2Fwelcome")}>{memberTier === "free" ? "Continue with Free" : "Continue with current plan"}</button>
+              <button type="button" onClick={() => router.push(memberTier === "free" ? "/welcome" : "/dashboard")}>{memberTier === "free" ? "Continue with Free" : "Continue with current plan"}</button>
             </div>
           </section>
         ) : null}
 
         {julySaleActive ? (
           <section className="july-sale-banner" aria-label="July membership sale">
-            <p>July member sale</p>
+            <p>July sale — 15% off</p>
             <div>
-              <strong>15% off through July 31 at 11:00 PM ET</strong>
-              <span>Standard annual $21.24 · Barrel annual $42.49 · Bottled in Bond Founder lifetime $42.49</span>
+              <strong>15% off annual memberships and Founder lifetime through July 31 at 11 PM ET; applied automatically.</strong>
+              <span>Standard annual $21.24 · Barrel annual $42.49 · Founder lifetime $42.49 one time</span>
             </div>
-            <em>Discount applied automatically at checkout · annual savings apply to the first annual payment</em>
+            <em>The discount applies to the first annual payment; annual plans renew at the regular price. Founder remains a one-time payment.</em>
           </section>
         ) : null}
 
@@ -323,8 +332,7 @@ function PricingPageContent({ julySaleEnabled }: { julySaleEnabled: boolean }) {
                   {price.salePrice ? <small>15% off · applied automatically at checkout</small> : null}
                 </div>
                 <p className="pricing-description">{tier.description}</p>
-                <ul>{tier.features.map((feature) => <li key={feature}><span>✓</span>{feature}</li>)}</ul>
-                {tier.footnote ? <p className="tier-footnote">{tier.footnote}</p> : null}
+                <ul>{tier.features.map((feature) => <li key={feature}><span aria-hidden="true">✓</span>{feature}</li>)}</ul>
                 <div className="pricing-actions">
                   <button type="button" onClick={() => startCheckout(plan, tier.tier)} disabled={blocked || (plan !== null && pendingPlan === plan)}>
                     {actionLabel(tier, plan)}
@@ -337,12 +345,33 @@ function PricingPageContent({ julySaleEnabled }: { julySaleEnabled: boolean }) {
 
         {error ? <p className="pricing-error" role="alert">{error}</p> : null}
 
-        <section className="compact-differences" aria-labelledby="compact-differences-title">
-          <h2 id="compact-differences-title">The differences that drive the decision</h2>
-          <div>
-            <article><strong>Standard keeps the hunt focused.</strong><span>Choose it for a defined set of states, areas, and bottles.</span></article>
-            <article><strong>Barrel removes the working limits.</strong><span>Choose it for advanced filtering, Sightings alerts, collection tools, and broader tracking.</span></article>
-            <article><strong>Founder changes how you pay.</strong><span>It carries Barrel-level access without a recurring fee while the limited allocation remains.</span></article>
+        <section className="comparison-section" aria-labelledby="comparison-heading">
+          <h2 id="comparison-heading">Compare every membership</h2>
+          <p>Membership limits and access at a glance.</p>
+          <div className="comparison-table-wrap" tabIndex={0} aria-label="Scrollable membership comparison">
+            <table className="comparison-table" role="table">
+              <caption className="sr-only">Free, Standard Proof, Barrel Proof, and Bottled in Bond membership comparison</caption>
+              <thead>
+                <tr>
+                  <th scope="col">Feature</th>
+                  <th scope="col">Free</th>
+                  <th scope="col">Standard</th>
+                  <th scope="col">Barrel</th>
+                  <th scope="col">Bottled in Bond</th>
+                </tr>
+              </thead>
+              <tbody>
+                {comparisonRows.map((row) => (
+                  <tr key={row.feature}>
+                    <th scope="row">{row.feature}</th>
+                    <td>{row.free}</td>
+                    <td>{row.standard}</td>
+                    <td>{row.barrel}</td>
+                    <td>{row.founder}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
           </div>
         </section>
 
@@ -423,20 +452,23 @@ const pricingCss = `
 .pricing-card ul { margin:20px 0 0; padding:0; list-style:none; display:grid; gap:10px; }
 .pricing-card li { display:flex; gap:9px; align-items:flex-start; color:rgba(245,237,214,.80); font:13px/1.42 var(--font-dm-sans); }
 .pricing-card li span { flex:0 0 auto; color:var(--color-accent-amber); }
-.tier-footnote { margin:16px 0 0; border-top:1px solid rgba(245,237,214,.08); padding-top:14px; color:var(--color-text-tertiary); font:12px/1.55 var(--font-dm-sans); }
 .pricing-actions { margin-top:auto; padding-top:24px; display:grid; gap:9px; }
 .pricing-actions button { width:100%; border:1px solid rgba(196,148,58,.46); border-radius:13px; background:linear-gradient(135deg, rgba(196,148,58,.98), rgba(212,164,74,.98)); color:#17110B; padding:13px 14px; font:900 13px/1 var(--font-dm-sans); cursor:pointer; transition:transform .18s ease, border-color .18s ease, opacity .18s ease; }
 .pricing-actions button:hover:not(:disabled), .pricing-actions button:focus-visible:not(:disabled) { transform:translateY(-1px); outline:none; border-color:rgba(245,237,214,.62); }
 .pricing-actions button:disabled { cursor:default; opacity:.58; }
 .pricing-error { width:min(760px, calc(100% - 40px)); margin:20px auto 0; color:#ffb4a8; text-align:center; font:800 13px/1.5 var(--font-dm-sans); }
-.compact-differences { width:min(980px, calc(100% - 40px)); margin:42px auto 0; border-top:1px solid rgba(245,237,214,.09); padding-top:30px; }
-.compact-differences h2 { margin:0; color:var(--color-cream); font:700 clamp(26px, 3vw, 36px)/1.05 var(--font-playfair); letter-spacing:-.03em; }
-.compact-differences > div { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:12px; margin-top:18px; }
-.compact-differences article { display:grid; gap:7px; padding:16px; border-radius:14px; background:rgba(245,237,214,.035); }
-.compact-differences strong { color:rgba(245,237,214,.9); font:800 13px/1.35 var(--font-dm-sans); }
-.compact-differences span { color:var(--color-text-secondary); font:12px/1.5 var(--font-dm-sans); }
+.comparison-section { width:min(980px, calc(100% - 40px)); margin:48px auto 0; border-top:1px solid rgba(245,237,214,.09); padding-top:32px; }
+.comparison-section h2 { margin:0; color:var(--color-cream); font:700 clamp(28px, 4vw, 40px)/1.05 var(--font-playfair); letter-spacing:-.03em; }
+.comparison-section > p { margin:9px 0 0; color:var(--color-text-secondary); font:13px/1.5 var(--font-dm-sans); }
+.comparison-table-wrap { width:100%; max-width:100%; margin-top:20px; overflow-x:auto; overscroll-behavior-inline:contain; border-top:1px solid rgba(245,237,214,.12); border-bottom:1px solid rgba(245,237,214,.12); }
+.comparison-table-wrap:focus-visible { outline:2px solid rgba(232,201,122,.7); outline-offset:3px; }
+.comparison-table { width:100%; min-width:820px; border-collapse:collapse; color:var(--color-text-secondary); font:12px/1.45 var(--font-dm-sans); }
+.comparison-table th, .comparison-table td { padding:13px 14px; border-bottom:1px solid rgba(245,237,214,.07); text-align:left; vertical-align:top; }
+.comparison-table thead th { color:var(--color-cream); background:rgba(245,237,214,.045); font-weight:900; }
+.comparison-table thead th:not(:first-child) { color:var(--color-accent-amber); }
+.comparison-table tbody th { width:180px; color:rgba(245,237,214,.86); font-weight:800; }
+.comparison-table tbody tr:last-child th, .comparison-table tbody tr:last-child td { border-bottom:0; }
 @media (max-width: 900px) { .july-sale-banner { grid-template-columns:1fr; text-align:left; } .july-sale-banner p { width:max-content; } .july-sale-banner em { text-align:left; } .free-preview-strip { grid-template-columns:1fr; text-align:left; } .free-preview-strip button { width:100%; } }
-@media (max-width: 760px) { .compact-differences > div { grid-template-columns:1fr; } }
 @media (max-width: 640px) {
   .launch-pricing-page { width:100%; max-width:100vw; padding-top:108px; overflow-x:clip; }
   .pricing-hero,
@@ -445,7 +477,7 @@ const pricingCss = `
   .pricing-grid,
   .pricing-error,
   .checkout-canceled,
-  .compact-differences { width:calc(100vw - 28px); max-width:calc(100vw - 28px); box-sizing:border-box; }
+  .comparison-section { width:calc(100vw - 28px); max-width:calc(100vw - 28px); box-sizing:border-box; }
   .pricing-grid { grid-template-columns:minmax(0, 1fr); }
   .pricing-card { width:100%; max-width:100%; box-sizing:border-box; }
   .pricing-card.founder { grid-column:auto; margin-top:20px; }
@@ -458,8 +490,7 @@ const pricingCss = `
   .july-sale-banner strong,
   .july-sale-banner span,
   .july-sale-banner em,
-  .pricing-description,
-  .tier-footnote { overflow-wrap:anywhere; }
+  .pricing-description { overflow-wrap:anywhere; }
   .pricing-description { min-height:0; }
 }
 `;

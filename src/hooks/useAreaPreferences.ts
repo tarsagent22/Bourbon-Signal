@@ -35,6 +35,7 @@ const EMPTY_PREFS: UserAlertPreferences = {
   bottleAlertPreferences: { bottleNames: [], bottleKeys: [] },
   collectionPreferences: { bottles: [] },
   radarPreferences: { followedReleases: [] },
+  memberProfile: { homeState: null, homeStateSelectedAt: null },
 };
 
 type PreferenceResolution = "preview" | "signed-in" | "signed-out" | null;

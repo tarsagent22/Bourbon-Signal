@@ -36,8 +36,8 @@ assert.doesNotMatch(layout, /Daily Briefing/);
 assert.match(layout, /Release Radar/);
 assert.doesNotMatch(pricing, /Daily Briefing/);
 assert.match(pricing, /<li>Release Radar and Member Sightings<\/li>/, "public Release Radar must remain in the free benefits strip");
-assert.match(pricing, /compact-differences/);
-assert.doesNotMatch(pricing, /comparison-table|comparisonRows/, "public Release Radar must not depend on the removed giant comparison table");
+assert.match(pricing, /comparison-table|comparisonRows/, "public Release Radar belongs in the restored membership comparison");
+assert.doesNotMatch(pricing, /compact-differences/, "the summary substitute must not replace the comparison table");
 assert.doesNotMatch(faq, /Daily Briefing/);
 assert.match(faq, /What is Release Radar\?/);
 

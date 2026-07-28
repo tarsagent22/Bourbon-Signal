@@ -6,6 +6,7 @@ export const USER_PREFERENCE_METADATA_FIELDS = [
   "collectionPreferences",
   "radarPreferences",
   "sightingsPreferences",
+  "memberProfile",
 ] as const;
 
 export type UserPreferenceMetadataField = typeof USER_PREFERENCE_METADATA_FIELDS[number];

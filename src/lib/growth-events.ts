@@ -142,7 +142,22 @@ export function contextualProductHref(path: "pricing" | "sign_up", source: unkno
   return safeSource === "unknown" ? target : `${target}?source=${safeSource}`;
 }
 
-export function resolveSignUpRedirect(value: unknown) {
-  if (typeof value !== "string" || !value.startsWith("/") || value.startsWith("//")) return "/welcome";
-  return value;
+const PAID_SIGNUP_PLANS = new Set([
+  "standard_monthly",
+  "standard_annual",
+  "barrel_monthly",
+  "barrel_annual",
+  "bib_lifetime",
+]);
+
+export function resolveSignUpRedirect(value: unknown, intent: unknown = null) {
+  if (intent !== "paid" || typeof value !== "string" || !value.startsWith("/") || value.startsWith("//")) return "/welcome";
+  try {
+    const parsed = new URL(value, "https://www.bourbonsignal.com");
+    if (parsed.origin !== "https://www.bourbonsignal.com" || parsed.pathname !== "/checkout/continue") return "/welcome";
+    if (!PAID_SIGNUP_PLANS.has(parsed.searchParams.get("plan") || "")) return "/welcome";
+    return `${parsed.pathname}${parsed.search}`;
+  } catch {
+    return "/welcome";
+  }
 }

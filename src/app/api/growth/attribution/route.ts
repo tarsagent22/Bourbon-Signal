@@ -9,7 +9,7 @@ import {
   type DurableGrowthMilestone,
   type GrowthAttribution,
 } from "@/lib/growth-events";
-import { ACTIVE_ENGINE_STATE_CODES } from "@/lib/activeStates";
+import { US_STATE_CODES } from "@/lib/coverage-model";
 
 const ALLOWED_MILESTONES = new Set<DurableGrowthMilestone>([
   "signup_started",
@@ -17,7 +17,7 @@ const ALLOWED_MILESTONES = new Set<DurableGrowthMilestone>([
   "free_value_reached",
   "pricing_viewed",
 ]);
-const ACTIVE_MARKETS = new Set<string>(ACTIVE_ENGINE_STATE_CODES);
+const HOME_STATE_MARKETS = new Set<string>(US_STATE_CODES);
 const SIGNUP_COOKIE = "bs_signup_started";
 
 function storedAttribution(raw: string | undefined): GrowthAttribution | null {
@@ -42,7 +42,7 @@ function storedSignupStarted(raw: string | undefined) {
 
 function milestoneProperties(body: Record<string, unknown>) {
   return Object.fromEntries(
-    ["surface", "kind", "market"]
+    ["surface", "kind", "market", "precision"]
       .filter((key) => typeof body[key] === "string")
       .map((key) => [key, body[key]]),
   );
@@ -56,7 +56,7 @@ function validMilestoneContext(milestone: DurableGrowthMilestone, body: Record<s
   if (milestone === "pricing_viewed") return safe.surface === "pricing" ? safe : null;
   if (milestone === "onboarding_state_selected") {
     const market = safe.market?.toUpperCase();
-    return safe.surface === "welcome" && safe.kind === "state_selection" && market && ACTIVE_MARKETS.has(market)
+    return safe.surface === "welcome" && safe.kind === "state_selection" && market && HOME_STATE_MARKETS.has(market)
       ? safe
       : null;
   }
@@ -64,7 +64,8 @@ function validMilestoneContext(milestone: DurableGrowthMilestone, body: Record<s
     if (safe.surface === "bottle_check" && (!safe.kind || safe.kind === "bottle_check")) return safe;
     if (safe.surface === "release_radar" && ["calendar_filter", "calendar_navigation"].includes(safe.kind || "")) return safe;
     const market = safe.market?.toUpperCase();
-    if (safe.surface === "drop_feed" && safe.kind === "state_feed" && market && ACTIVE_MARKETS.has(market)) return safe;
+    if (safe.surface === "welcome" && safe.kind === "welcome_state_signals" && market && HOME_STATE_MARKETS.has(market)) return safe;
+    if (safe.surface === "drop_feed" && safe.kind === "state_feed" && market && HOME_STATE_MARKETS.has(market)) return safe;
   }
   return null;
 }

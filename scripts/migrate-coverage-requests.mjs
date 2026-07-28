@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import { neon } from "@neondatabase/serverless";
 
 const DATABASE_ENVIRONMENT_VARIABLE = "BOURBON_QUEUE_DATABASE_URL_UNPOOLED";
-const MIGRATION_VERSION = "coverage-requests-v1";
+const MIGRATION_VERSION = "coverage-requests-v2";
 
 function option(args, name) {
   const exact = args.indexOf(name);
@@ -89,7 +89,7 @@ const verification = await sql.query(`
       FROM pg_constraint
       WHERE conrelid = 'public.coverage_requests'::regclass
         AND contype = 'c'
-        AND pg_get_constraintdef(oid) LIKE '%target_type%state%city%store%'
+        AND pg_get_constraintdef(oid) LIKE '%target_type%state%county%city%store%'
     ) AS has_target_type_check,
     EXISTS (
       SELECT 1

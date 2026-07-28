@@ -595,6 +595,38 @@
   padding: 13px;
 }
 
+.requestBlockWelcome {
+  --coverage-ink: #0d0a07;
+  --coverage-cream: #f5edd6;
+  --coverage-muted: rgba(245, 237, 214, 0.62);
+  --coverage-faint: rgba(245, 237, 214, 0.42);
+  --coverage-line: rgba(245, 237, 214, 0.11);
+  --coverage-amber: #d8a84f;
+  margin-top: 0;
+  padding: 0;
+  color: var(--coverage-cream);
+  background: transparent;
+}
+
+.requestBlockWelcome form {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 16px;
+  margin-top: 20px;
+}
+
+.requestBlockWelcome .requestInstructions,
+.requestBlockWelcome .requestPrivacy,
+.requestBlockWelcome .notificationChoice,
+.requestBlockWelcome .requestSubmit,
+.requestBlockWelcome .requestPromise,
+.requestBlockWelcome .requestMessage,
+.requestBlockWelcome .inlineError,
+.requestBlockWelcome .requestAuthLoading,
+.requestBlockWelcome .requestAuthHelp,
+.requestBlockWelcome .requestSignIn {
+  grid-column: 1 / -1;
+}
+
 .requestBlock[hidden] {
   display: none;
 }
@@ -734,6 +766,12 @@
 .requestSignIn {
   color: var(--coverage-amber);
   text-underline-offset: 2px;
+}
+
+@media (max-width: 640px) {
+  .requestBlockWelcome form {
+    grid-template-columns: 1fr;
+  }
 }
 
 .requestSignIn:hover,
