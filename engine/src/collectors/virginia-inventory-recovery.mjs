@@ -34,6 +34,8 @@ export function minimumVirginiaSiteLocationCount(supportedOriginStoreCount) {
 }
 
 export function virginiaProductCode(signal) {
+  const directCode = signal?.productCode;
+  if (directCode != null && String(directCode).trim()) return String(directCode).trim();
   const rawCode = signal?.raw?.product?.code;
   if (rawCode != null && String(rawCode).trim()) return String(rawCode).trim();
   return String(signal?.sourceUrl || '').match(/[?&]productCode=([^&]+)/)?.[1] || null;
@@ -101,6 +103,60 @@ export function selectVirginiaProductsForRefresh(products, cachedSignals, nowMs 
     })
     .slice(0, maxProducts)
     .map((entry) => entry.product);
+}
+
+export function isVirginiaRetiredOriginFailure(failure) {
+  return Number(failure?.status) === 400
+    && /no\s+store\s+exists\s+for\s+store\s+number/i.test(String(failure?.error || ''));
+}
+
+export function selectVirginiaOriginStoreRows(json, originStoreId, productCode = null) {
+  const expectedOrigin = String(originStoreId || '').trim();
+  const expectedProduct = String(productCode || '').trim();
+  if (!expectedOrigin) return [];
+  const rows = [];
+  for (const productRow of json?.products || []) {
+    if (expectedProduct && String(productRow?.productId || '') !== expectedProduct) continue;
+    const store = productRow?.storeInfo;
+    const storeId = store?.storeId ?? store?.storeNumber ?? store?.id;
+    if (storeId == null || String(storeId) !== expectedOrigin) continue;
+    rows.push(store);
+  }
+  return rows;
+}
+
+export function sanitizeVirginiaInventoryCacheSignals(signals = []) {
+  const deduped = new Map();
+  for (const signal of signals) {
+    const storeId = String(signal?.storeId || '').trim();
+    const productCode = virginiaProductCode(signal) || 'unknown-product';
+    const key = storeId ? `${productCode}|${storeId}` : `${productCode}|${signal?.id || deduped.size}`;
+    const raw = signal?.raw || {};
+    const selectedOriginVerified = storeId
+      && String(raw.originStoreId || '') === storeId
+      && raw.sourceQuantityReported === true
+      && raw.sourceAvailabilityVerified === true
+      && Number(raw.virginiaCacheSchemaVersion) === 2;
+    const migrated = selectedOriginVerified ? signal : {
+      ...signal,
+      alertable: false,
+      canAlertAsInventory: false,
+      sourceStale: true,
+      stale: true,
+      staleReason: 'Legacy Virginia cache row predates selected-origin provenance and must be refreshed before alerting.',
+      raw: {
+        ...raw,
+        legacyVirginiaCache: true,
+        staleFallback: true,
+        staleReason: 'legacy_selected_origin_unverified'
+      }
+    };
+    const previous = deduped.get(key);
+    const migratedObservedAt = finiteTimestamp(migrated?.observedAt || migrated?.fetchedAt) || 0;
+    const previousObservedAt = finiteTimestamp(previous?.observedAt || previous?.fetchedAt) || 0;
+    if (!previous || migratedObservedAt >= previousObservedAt) deduped.set(key, migrated);
+  }
+  return [...deduped.values()];
 }
 
 export function evaluateVirginiaProductCoverage(signals, expectedStoreIds, options = {}) {

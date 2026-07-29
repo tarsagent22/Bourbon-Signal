@@ -6,10 +6,13 @@ import {
   applyVirginiaInventoryFreshness,
   evaluateVirginiaProductCoverage,
   isVirginiaRegularInventoryExpired,
+  isVirginiaRetiredOriginFailure,
   mergeVirginiaProductPartitions,
   minimumVirginiaSiteLocationCount,
+  sanitizeVirginiaInventoryCacheSignals,
   seedVirginiaInventoryCacheSignals,
   selectVirginiaProductsForRefresh,
+  selectVirginiaOriginStoreRows,
   summarizeVirginiaProductErrors,
   validateVirginiaGlobalQuality,
   virginiaAbortableDelay
@@ -103,6 +106,40 @@ test('Virginia cold runners seed the rolling cache from the hydrated state repor
   assert.equal(seeded.signals[0].sourceStale, true);
   assert.equal(seeded.signals[0].alertable, false);
   assert.equal(seeded.signals[0].raw.staleFallback, true);
+
+  const publicContractSeed = seedVirginiaInventoryCacheSignals({
+    finishedAt: '2026-07-20T22:52:41.174Z',
+    signals: [{
+      state: 'VA', sourceRuntimeId: 'precision:va', locationPrecision: 'store_level', storeId: '101',
+      productCode: '018006', sourceUrl: 'https://www.abc.virginia.gov/stores/101'
+    }]
+  });
+  assert.equal(publicContractSeed.signals.length, 1);
+  assert.equal(publicContractSeed.signals[0].productCode, '018006');
+});
+
+test('Virginia cache migration deduplicates legacy nearby rows and keeps them non-alertable until selected-origin refresh', () => {
+  const legacyOlder = {
+    id: 'legacy-old', storeId: '101', quantity: 4, observedAt: '2026-07-20T00:00:00.000Z', canAlertAsInventory: true,
+    raw: { product: { code: '018006', limitedCaveat: false }, store: { quantity: 4 } }
+  };
+  const legacyNewer = {
+    ...legacyOlder, id: 'legacy-new', quantity: 2, observedAt: '2026-07-21T00:00:00.000Z', raw: { product: { code: '018006', limitedCaveat: false }, store: { quantity: 2 } }
+  };
+  const verified = {
+    id: 'verified', storeId: '102', quantity: 3, observedAt: '2026-07-21T00:00:00.000Z', canAlertAsInventory: true,
+    raw: { product: { code: '018006', limitedCaveat: false }, originStoreId: '102', sourceQuantityReported: true, sourceAvailabilityVerified: true, virginiaCacheSchemaVersion: 2 }
+  };
+
+  const migrated = sanitizeVirginiaInventoryCacheSignals([legacyOlder, legacyNewer, verified]);
+  assert.equal(migrated.length, 2);
+  const legacy = migrated.find((signal) => signal.storeId === '101');
+  assert.equal(legacy.id, 'legacy-new');
+  assert.equal(legacy.canAlertAsInventory, false);
+  assert.equal(legacy.alertable, false);
+  assert.equal(legacy.sourceStale, true);
+  assert.equal(legacy.raw.legacyVirginiaCache, true);
+  assert.equal(migrated.find((signal) => signal.storeId === '102').canAlertAsInventory, true);
 });
 
 test('Virginia product partitions replace only complete successful live products', () => {
@@ -159,6 +196,31 @@ test('Virginia completeness requires every supported origin store before replaci
   assert.equal(evaluateVirginiaProductCoverage(rows, new Set(['101'])).complete, false);
 });
 
+test('Virginia inventory partitions use only the selected origin store row', () => {
+  const payload = {
+    products: [{
+      productId: '018006',
+      storeInfo: { storeId: 101, quantity: 4, city: 'Richmond' },
+      nearbyStores: [
+        { storeId: 102, quantity: 9, city: 'Henrico' },
+        { storeId: 103, quantity: 1, city: 'Ashland' }
+      ]
+    }]
+  };
+
+  assert.deepEqual(selectVirginiaOriginStoreRows(payload, '101', '018006'), [{ storeId: 101, quantity: 4, city: 'Richmond' }]);
+  assert.deepEqual(selectVirginiaOriginStoreRows(payload, '101', '999999'), []);
+  assert.deepEqual(selectVirginiaOriginStoreRows(payload, '102', '018006'), []);
+  assert.deepEqual(selectVirginiaOriginStoreRows({ products: [{ productId: '018006', nearbyStores: payload.products[0].nearbyStores }] }, '102', '018006'), []);
+});
+
+test('Virginia permanently retires only explicit no-store origin responses', () => {
+  assert.equal(isVirginiaRetiredOriginFailure({ status: 400, error: 'No Store exists for store number &#39;252&#39;' }), true);
+  assert.equal(isVirginiaRetiredOriginFailure({ status: 400, error: 'Value for productCode is invalid' }), false);
+  assert.equal(isVirginiaRetiredOriginFailure({ status: 429, error: 'No Store exists for store number 252' }), false);
+  assert.equal(isVirginiaRetiredOriginFailure({ status: 0, error: 'socket timeout' }), false);
+});
+
 test('Virginia precision runtime gives one bounded shard enough time and never duplicates it after timeout', () => {
   assert.deepEqual(legacyPrecisionRuntimeOptions('VA', {}, {}), { schedule: false, timeoutMs: 1_140_000, maxAttempts: 1 });
   assert.equal(legacyPrecisionRuntimeOptions('VA', { schedule: true }, {}).schedule, false);
@@ -190,6 +252,12 @@ test('Virginia collector continuously refreshes bounded product shards instead o
   assert.match(collectorSource, /isVirginiaRegularInventoryExpired\(signal, Date\.now\(\), VIRGINIA_INVENTORY_MAX_AGE_MS\)/);
   assert.match(collectorSource, /collectVirginia\(config, bible, options\)/);
   assert.match(collectorSource, /fetchVirginiaInventoryOrigin\(product, origin, options\.signal/);
+  assert.match(collectorSource, /selectVirginiaOriginStoreRows\(json, originStoreId, product\.code\)/);
+  assert.match(collectorSource, /quantityIsExact:\s*true/);
+  assert.match(collectorSource, /sourceAvailabilityVerified:\s*true/);
+  assert.match(collectorSource, /storeHours:/);
+  assert.match(collectorSource, /storePhone:/);
+  assert.match(collectorSource, /storeUrl:/);
   assert.match(collectorSource, /VIRGINIA_COLD_START_PRODUCTS_PER_RUN/);
   assert.match(collectorSource, /recoveryBacklogProductCodes\.size\s*>\s*VIRGINIA_PRODUCTS_PER_RUN/);
   assert.match(collectorSource, /missingCachedProductCodes/);
@@ -248,6 +316,11 @@ test('operational snapshot preserves Virginia product and stale-source metadata 
   assert.match(operational, /productCode:/);
   assert.match(operational, /productLimitedCaveat:/);
   assert.match(operational, /sourceStale:\s*signal\.sourceStale === true \|\| virginiaInventoryExpired\(signal\)/);
+  assert.match(operational, /storeHours:/);
+  assert.match(operational, /storePhone:/);
+  assert.match(operational, /storeUrl:/);
+  assert.match(operational, /\['GA', 'VA'\]\.includes\(signal\.state\)/);
+  assert.match(operational, /premisesVerified:\s*signal\.premisesVerified === true \|\| signal\.raw\?\.premisesVerified === true/);
 });
 
 test('Virginia supported-store identities propagate from precision collection into the state report', async () => {
@@ -297,6 +370,7 @@ test('site export preserves Virginia stale-source labeling instead of silently n
   assert.match(exporter, /signal\.staleSourceCaveat \|\|/);
   assert.match(exporter, /productCode:\s*signal\.productCode/);
   assert.match(exporter, /productLimitedCaveat:[^\n]*signal\.productLimitedCaveat/);
+  assert.match(exporter, /premisesVerified:\s*signal\.premisesVerified === true/);
 });
 
 test('confidence policy cannot re-enable stale Virginia inventory after collector freshness gating', () => {
