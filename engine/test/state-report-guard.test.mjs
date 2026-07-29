@@ -99,6 +99,18 @@ test('NC partial continuity publishes current signals and makes every retained r
     signal.canonicalId = `bottle-${index}`;
     signal.storeId = `store-${index}`;
   });
+  Object.assign(candidate.signals[24], {
+    eventType: 'source_reachable_no_bourbon_signal',
+    canonicalId: null,
+    storeId: null,
+    stale: true,
+    sourceStale: true,
+    canAlertAsInventory: false,
+    canAlertAsWatch: false,
+    alertable: false,
+    sourceAvailabilityVerified: undefined,
+    raw: { staleFallback: true },
+  });
 
   const result = guardStateReport({
     previous,
@@ -110,7 +122,7 @@ test('NC partial continuity publishes current signals and makes every retained r
   assert.equal(result.accepted, true);
   assert.equal(result.report.status, 'partial_useful_quality_fallback');
   assert.equal(result.report.stale, false);
-  assert.equal(result.report.signals.filter((signal) => signal.sourceStale === true).length, 63);
+  assert.equal(result.report.signals.filter((signal) => signal.sourceStale === true).length, 65);
   assert.equal(result.report.signals.filter((signal) => signal.sourceStale === true).every((signal) => (
     signal.canAlertAsInventory === false
       && signal.canAlertAsWatch === false
