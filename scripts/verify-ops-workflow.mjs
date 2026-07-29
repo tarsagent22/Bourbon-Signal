@@ -73,12 +73,30 @@ if (/guarded refresh dispatched/.test(engineWatchdogWorkflow)) {
 if (!/id:\s*recovery/.test(engineWatchdogWorkflow)) {
   fail('Engine watchdog recovery step must expose an outcome so notification escalation can distinguish recovery from failure.');
 }
-if (/Fail loudly after stale production snapshot/.test(engineWatchdogWorkflow)) {
-  fail('Engine watchdog must not mark a self-healing stale snapshot as a failed workflow run.');
+if (!/Escalate unresolved production freshness/.test(engineWatchdogWorkflow)) {
+  fail('Engine watchdog must keep unresolved stale production failed after dispatching recovery.');
 }
-if (!/steps\.recovery\.outcome == 'failure'/.test(engineWatchdogWorkflow)
-  || !/env\.BOURBON_SIGNAL_AUTO_RECOVERY_ENABLED == '0'/.test(engineWatchdogWorkflow)) {
-  fail('Engine watchdog should fail only when automatic recovery fails or is explicitly disabled.');
+if (!/if:\s*steps\.watchdog\.outcome == 'failure'/.test(engineWatchdogWorkflow)) {
+  fail('Engine watchdog escalation must follow the failed customer-domain probe rather than a green recovery-dispatch command.');
+}
+if (!/dispatched=true[^]*GITHUB_OUTPUT/.test(engineWatchdogWorkflow)
+  || !/steps\.recovery\.outputs\.dispatched == 'true'/.test(engineWatchdogWorkflow)
+  || !/Record active recovery without a duplicate dispatch/.test(engineWatchdogWorkflow)) {
+  fail('Engine watchdog must distinguish a newly dispatched recovery from an already-active refresh.');
+}
+const refreshWorkflow = read('.github/workflows/refresh-feed.yml');
+if (!/Verify Pennsylvania scheduled lane or isolate a safe stale fallback/.test(refreshWorkflow)
+  || !/verify:pa -- --allow-safe-stale-fallback/.test(refreshWorkflow)
+  || !/Verify Pennsylvania targeted exact-store recovery/.test(refreshWorkflow)) {
+  fail('Scheduled publication must isolate a safe retained PA fallback while targeted PA recovery remains strict.');
+}
+
+const paVerifier = read('engine/src/verify-pa.mjs');
+if (!/stateReport\?\.stale === true/.test(paVerifier)
+  || !/staleReason/.test(paVerifier)
+  || !/unsafeRetainedSignals/.test(paVerifier)
+  || !/signal\.canAlertAsInventory \|\| signal\.canAlertAsWatch/.test(paVerifier)) {
+  fail('PA scheduled fallback must require explicit stale provenance and deny all retained alertability.');
 }
 
 const stateLifecycleConfig = JSON.parse(read('src/config/state-lifecycle.json'));

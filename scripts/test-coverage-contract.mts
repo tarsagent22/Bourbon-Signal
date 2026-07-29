@@ -11,11 +11,19 @@ import {
 } from "../src/lib/coverage-model.ts";
 import { mergeCoverageStores } from "../src/lib/coverage-known-stores.ts";
 import { buildMississippiKnownStoresPayload, verifyReviewedMississippiUniverse } from "./generate-mississippi-known-stores.mjs";
+import { buildNcBoardCoverageSummary } from "../engine/src/nc-coverage-summary.mjs";
 
 const statsPayload = JSON.parse(readFileSync(new URL("../engine/out/site/stats.json", import.meta.url), "utf8")) as {
   generatedAt?: string;
   refreshHealth?: { degradedStates?: Array<Record<string, unknown>> };
   stateCoverage?: { states?: CoverageStateRowInput[] };
+  ncBoardIntelligence?: {
+    boardCount?: number;
+    officialStoreCount?: number;
+    representedAreaCount?: number;
+    boardsWithTrackedShipments?: number;
+    singleStoreShipmentBoardCount?: number;
+  };
 };
 const locationsPayload = JSON.parse(readFileSync(new URL("../engine/out/site/locations.json", import.meta.url), "utf8")) as {
   locations?: CoverageLocationInput[];
@@ -34,10 +42,23 @@ const publicStores = mergeCoverageStores(
   storesPayload.stores || [],
 );
 const ncIntelligencePayload = JSON.parse(readFileSync(new URL("../engine/out/site/nc-intelligence.json", import.meta.url), "utf8")) as {
-  boards?: Array<{ boardName?: string }>;
+  boards?: Array<{ boardName?: string; trackedShipmentRows?: number }>;
+  coverage?: { withTrackedShipments?: number; withWebsite?: number; withReleasePages?: number; withInventoryPages?: number };
+  sourcePolicy?: string;
 };
+const canonicalNcBoardIntelligence = buildNcBoardCoverageSummary(locationsPayload.locations || [], ncIntelligencePayload);
+assert.ok(canonicalNcBoardIntelligence, "NC exporter summary must be derived from the canonical directory and board intelligence payload");
 
 const contract = buildCoverageContract({
+  lifecycle: STATE_LIFECYCLE_CONFIG,
+  stateRows: statsPayload.stateCoverage?.states || [],
+  locations: locationsPayload.locations || [],
+  stores: publicStores,
+  degradedStates: statsPayload.refreshHealth?.degradedStates || [],
+  generatedAt: statsPayload.generatedAt,
+  ncBoardIntelligence: canonicalNcBoardIntelligence,
+});
+const baselineNcContract = buildCoverageContract({
   lifecycle: STATE_LIFECYCLE_CONFIG,
   stateRows: statsPayload.stateCoverage?.states || [],
   locations: locationsPayload.locations || [],
@@ -152,8 +173,36 @@ const northCarolina = contract.states.find((state) => state.code === "NC");
 assert.ok(northCarolina);
 assert.equal(northCarolina.capability, "active", "broad board leads plus selected exact stores are useful but not deep statewide shelf coverage");
 assert.ok(northCarolina.layers.live < northCarolina.layers.known, "NC store-locator records stay separate from monitored inventory stores");
+assert.equal(northCarolina.scope.knownBoards, 173, "NC coverage must expose every current official ABC board separately from stores");
+assert.equal(northCarolina.scope.shipmentBoards, 162, "NC coverage must count only canonical official boards represented by current shipment intelligence");
+assert.equal(northCarolina.scope.searchableStores, 465, "NC coverage must expose the official searchable store directory without inflating it with signal records");
+assert.equal(northCarolina.scope.inventoryMonitoredStores, 47, "NC coverage must count exact-store inventory sources independently from the official directory");
+assert.equal(northCarolina.scope.singleStoreShipmentBoards, 92, "one-store boards with shipment evidence must be disclosed as qualified store-equivalent intelligence");
+assert.equal(northCarolina.layers.live, northCarolina.scope.inventoryMonitoredStores, "single-store shipment leads must not inflate direct inventory monitoring");
+assert.equal(northCarolina.layers.alertGrade, baselineNcContract.states.find((state) => state.code === "NC")?.layers.alertGrade, "single-store shipment leads must never increase alert-grade shelf inventory");
+assert.equal(northCarolina.representedAreaCount, 283, "NC areas must count cities and towns with official store records rather than configured groups or board names");
+assert.match(northCarolina.canSee.join(" "), /single-store board.*shipment/i);
+assert.match(northCarolina.cannotSee.join(" "), /shipment.*(?:not|isn.t).*shelf|not.*shelf.*shipment/i);
 assert.match(northCarolina.summary, /board/i);
 assert.match(northCarolina.cannotSee.join(" "), /board.*(?:not|isn.t).*exact|not.*exact.*board/i);
+
+const canonicalZeroContract = buildCoverageContract({
+  lifecycle: STATE_LIFECYCLE_CONFIG,
+  stateRows: statsPayload.stateCoverage?.states || [],
+  locations: locationsPayload.locations || [],
+  stores: publicStores,
+  ncBoardIntelligence: {
+    boardCount: 0,
+    officialStoreCount: 0,
+    representedAreaCount: 0,
+    boardsWithTrackedShipments: 0,
+    singleStoreShipmentBoardCount: 0,
+  },
+});
+const canonicalZeroNc = canonicalZeroContract.states.find((state) => state.code === "NC");
+assert.ok(canonicalZeroNc);
+assert.equal(canonicalZeroNc.scope.searchableStores, 0, "a canonical zero searchable-store count must not fall back to broader known rows");
+assert.equal(canonicalZeroNc.scope.shipmentBoards, 0, "a canonical zero shipment-board count must remain zero");
 
 const coverageSearchInputs = {
   lifecycle: STATE_LIFECYCLE_CONFIG,

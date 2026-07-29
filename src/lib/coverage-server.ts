@@ -7,6 +7,7 @@ import {
   findCoverageStoreTarget,
   searchCoverageTargets,
   type CoverageLocationInput,
+  type CoverageNcBoardIntelligenceInput,
   type CoverageStateRowInput,
   type CoverageStoreInput,
 } from "@/lib/coverage-model";
@@ -17,6 +18,7 @@ interface CoverageStatsPayload {
   generatedAt?: string;
   refreshHealth?: { degradedStates?: Array<Record<string, unknown>> };
   stateCoverage?: { states?: CoverageStateRowInput[] };
+  ncBoardIntelligence?: CoverageNcBoardIntelligenceInput | null;
 }
 
 interface CoverageLocationsPayload {
@@ -42,6 +44,7 @@ async function readCoverageInputs() {
     ),
     degradedStates: Array.isArray(stats.refreshHealth?.degradedStates) ? stats.refreshHealth.degradedStates : [],
     generatedAt: stats.generatedAt,
+    ncBoardIntelligence: stats.ncBoardIntelligence || null,
     healthLimited: [statsResult, locationsResult, storesResult]
       .some((result) => result.source === "cache-fallback" || result.source === "empty-fallback"),
     source: statsResult.source,

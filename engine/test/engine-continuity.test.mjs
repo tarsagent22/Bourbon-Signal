@@ -47,7 +47,16 @@ test('scheduled refresh persists collector history, the actual scheduler state, 
   assert.match(scheduledVirginiaStep, /if:\s*\$\{\{ !inputs\.states \}\}[\s\S]*--allow-safe-stale-fallback/);
   assert.match(targetedVirginiaStep, /inputs\.states && contains\(inputs\.states, 'VA'\)[\s\S]*run: npm run verify:va/);
   assert.doesNotMatch(targetedVirginiaStep, /allow-safe-stale-fallback/, 'VA-targeted recovery must remain strict');
-  for (const [label, state] of [['Pennsylvania FWGS exact-store inventory recovery', 'PA'], ['California San Diego release gate', 'CA']]) {
+  const scheduledPennsylvaniaStep = workflow.match(/- name: Verify Pennsylvania scheduled lane or isolate a safe stale fallback[\s\S]*?(?=\n      - name:)/)?.[0] || '';
+  const targetedPennsylvaniaStep = workflow.match(/- name: Verify Pennsylvania targeted exact-store recovery[\s\S]*?(?=\n      - name:)/)?.[0] || '';
+  assert.match(scheduledPennsylvaniaStep, /if:\s*\$\{\{ !inputs\.states \}\}[\s\S]*--allow-safe-stale-fallback/);
+  assert.match(targetedPennsylvaniaStep, /inputs\.states && contains\(inputs\.states, 'PA'\)[\s\S]*run: npm run verify:pa/);
+  assert.doesNotMatch(targetedPennsylvaniaStep, /allow-safe-stale-fallback/, 'PA-targeted recovery must remain strict');
+  const scheduledDemandMetroStep = workflow.match(/- name: Verify demand metro generated evidence with fresh retained fallback[\s\S]*?(?=\n      - name:)/)?.[0] || '';
+  const scheduledTennesseeStep = workflow.match(/- name: Verify Tennessee generated contract with fresh retained fallback[\s\S]*?(?=\n      - name:)/)?.[0] || '';
+  assert.match(scheduledDemandMetroStep, /if:\s*\$\{\{ !inputs\.states \}\}/, 'unrelated targeted refreshes must not be blocked by the scheduled demand-metro fallback gate');
+  assert.match(scheduledTennesseeStep, /if:\s*\$\{\{ !inputs\.states \}\}/, 'unrelated targeted refreshes must not be blocked by the scheduled Tennessee fallback gate');
+  for (const [label, state] of [['California San Diego release gate', 'CA']]) {
     const step = workflow.match(new RegExp(`- name: Verify ${label}[\\s\\S]*?(?=\\n      - name:)`))?.[0] || '';
     assert.match(step, new RegExp(`!inputs\\.states[\\s\\S]*contains\\(inputs\\.states, '${state}'\\)`), `${state} verifier must only gate full or ${state}-targeted refreshes`);
   }

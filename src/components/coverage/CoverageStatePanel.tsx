@@ -60,8 +60,10 @@ export function CoverageStatePanel({ state }: CoverageStatePanelProps) {
 
       {state.representedAreaCount || state.monitoredStoreCount ? (
         <div className={styles.quickFacts} aria-label="Coverage at a glance">
-          {state.representedAreaCount ? <span><strong>{state.representedAreaCount}</strong> represented areas</span> : null}
-          {state.monitoredStoreCount ? <span><strong>{state.monitoredStoreCount}</strong> monitored stores</span> : null}
+          {state.representedAreaCount ? <span><strong>{state.representedAreaCount}</strong> {state.scope.knownBoards ? "store cities and towns" : "represented areas"}</span> : null}
+          {state.scope.knownBoards ? <span><strong>{state.scope.knownBoards}</strong> official boards</span> : null}
+          {state.scope.searchableStores ? <span><strong>{state.scope.searchableStores}</strong> searchable stores</span> : null}
+          {state.scope.inventoryMonitoredStores ? <span><strong>{state.scope.inventoryMonitoredStores}</strong> inventory-monitored stores</span> : null}
         </div>
       ) : null}
 
@@ -111,10 +113,13 @@ export function CoverageStatePanel({ state }: CoverageStatePanelProps) {
               <h3 id="coverage-layers-heading">Store monitoring levels</h3>
             </div>
             <dl className={styles.layerGrid}>
-              <div><dt>Known stores</dt><dd>{state.layers.known}</dd></div>
+              {state.scope.knownBoards ? <div><dt>Official boards</dt><dd>{state.scope.knownBoards}</dd></div> : null}
+              <div><dt>Searchable stores</dt><dd>{state.scope.searchableStores}</dd></div>
               <div><dt>Probeable stores</dt><dd>{state.layers.probeable}</dd></div>
               <div><dt>Catalog tracking</dt><dd>{state.layers.catalogWatch}</dd></div>
-              <div><dt>Inventory monitoring</dt><dd>{state.layers.live}</dd></div>
+              <div><dt>Inventory-monitored stores</dt><dd>{state.scope.inventoryMonitoredStores}</dd></div>
+              {state.scope.shipmentBoards ? <div><dt>Boards with shipment intelligence</dt><dd>{state.scope.shipmentBoards}</dd></div> : null}
+              {state.scope.singleStoreShipmentBoards ? <div><dt>Single-store shipment boards</dt><dd>{state.scope.singleStoreShipmentBoards}</dd></div> : null}
               <div><dt>Alert-ready</dt><dd>{state.layers.alertGrade}</dd></div>
             </dl>
           </section>
@@ -122,8 +127,8 @@ export function CoverageStatePanel({ state }: CoverageStatePanelProps) {
           {state.areas.length ? (
             <section className={styles.areaSection}>
               <div className={styles.subhead}>
-                <p>Represented areas</p>
-                <h3>{state.representedAreaCount} cities, counties, boards, or source areas</h3>
+                <p>{state.scope.knownBoards ? "Store directory footprint" : "Represented areas"}</p>
+                <h3>{state.scope.knownBoards ? `${state.representedAreaCount} cities and towns with official store records` : `${state.representedAreaCount} cities, counties, boards, or source areas`}</h3>
               </div>
               <div className={styles.areaList}>
                 {state.areas.slice(0, 8).map((area) => <span key={area}>{area}</span>)}
