@@ -22,11 +22,11 @@ const SOURCES = Object.freeze({
   'happy-ours-wine-and-spirits': source('happy-ours-wine-and-spirits', 'cityhive', 'happyour0c3f6e1f.sites.cityhive.app', 'Happy Ours Wine & Spirits CityHive store inventory'),
   'germantown-village-wine-and-liquor': source('germantown-village-wine-and-liquor', 'cityhive', 'germantownwineandliquor.com', 'Germantown Wine & Liquor CityHive store inventory'),
   'lakeshore-wine-and-spirits': source('lakeshore-wine-and-spirits', 'cityhive', 'lakeshorewineandspirit.com', 'Lakeshore Wine & Spirits CityHive store inventory'),
-  'kirby-wines-liquors': source('kirby-wines-liquors', 'cityhive', 'kirbywina689aaf8.sites.cityhive.app', 'Kirby Wines & Liquors CityHive store inventory'),
-  'green-meadow-wine-spirits': source('green-meadow-wine-spirits', 'cityhive', 'greenmea1758acc7.sites.cityhive.app', 'Green Meadow Wine & Spirits CityHive store inventory'),
+  'kirby-wines-liquors': source('kirby-wines-liquors', 'cityhive', 'www.kirbywines.com', 'Kirby Wines & Liquors CityHive store inventory'),
+  'green-meadow-wine-spirits': source('green-meadow-wine-spirits', 'cityhive', 'greenmeadowtn.com', 'Green Meadow Wine & Spirits CityHive store inventory'),
   'junction-liquors-smyrna': source('junction-liquors-smyrna', 'cityhive', 'junction-liquors.com', 'Junction Liquors - Smyrna CityHive store inventory'),
   'pour-vous-hendersonville': source('pour-vous-hendersonville', 'cityhive', 'pourvous.us', 'Pour Vous Wine, Spirits & Beer CityHive store inventory'),
-  'good-times-crossville': source('good-times-crossville', 'cityhive', 'goodtime438b8d5d.sites.cityhive.app', 'GOOD TIMES WINE SPIRITS & BREW CityHive store inventory'),
+  'good-times-crossville': source('good-times-crossville', 'cityhive', 'goodtimeswsb.com', 'GOOD TIMES WINE SPIRITS & BREW CityHive store inventory'),
   'campbell-station-wine-spirits': source('campbell-station-wine-spirits', 'cityhive', 'campbellstationwine.com', 'Campbell Station Wine & Spirits CityHive store inventory'),
   'red-spirits-and-wine': source('red-spirits-and-wine', 'cityhive', 'shopredspirits.com', 'RED Spirits & Wine CityHive store inventory'),
   'bottle-shop-mcewen': source('bottle-shop-mcewen', 'shopify', 'thebottleshopfranklin.com', 'The Bottle Shop at McEwen Shopify bourbon inventory'),
@@ -92,6 +92,11 @@ const STORE_BY_IDENTITY = new Map(TENNESSEE_RETAILER_STORES.map((item) => [`${it
 
 export function registeredTennesseeStore(sourceId, merchantId) {
   return STORE_BY_IDENTITY.get(`${String(sourceId || '')}:${String(merchantId || '')}`) || null;
+}
+
+export function tennesseeStoresForSource(sourceId) {
+  const normalized = String(sourceId || '');
+  return TENNESSEE_RETAILER_STORES.filter((item) => item.sourceId === normalized);
 }
 
 export function tennesseeSourceForId(sourceId) {

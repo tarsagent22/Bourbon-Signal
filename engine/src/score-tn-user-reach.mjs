@@ -42,7 +42,9 @@ for (const row of [...stateSignals, ...exportedDrops]) {
   byKey.set(key, row);
 }
 const inventoryRows = [...byKey.values()];
-const alertableInventoryRows = inventoryRows.filter((row) => row.canAlertAsInventory && Number(row.quantity || 0) > 0 && row.storeId && row.storeAddress);
+const hasPositiveInventoryEvidence = (row) => Number(row.quantity || 0) > 0
+  || (row.quantityIsExact === false && Number(row.reportedQuantity ?? row.raw?.reportedQuantity ?? row.raw?.sourceReportedQuantity ?? 0) > 0);
+const alertableInventoryRows = inventoryRows.filter((row) => row.canAlertAsInventory && hasPositiveInventoryEvidence(row) && row.storeId && row.storeAddress);
 const freshInventoryRows = alertableInventoryRows.filter((row) => {
   const observed = asTime(row.observedAt || row.lastConfirmedAt || row.firstSeenAt);
   return observed && Date.now() - observed <= 36 * 60 * 60 * 1000;

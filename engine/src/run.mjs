@@ -69,7 +69,7 @@ const STATE_TIMEOUT_OVERRIDES_MS = {
   // TN/SC retailer meshes occasionally need longer than the generic 180s
   // parent watchdog, especially when CityHive/backing retailer endpoints are
   // slow or retrying. Let them finish instead of publishing stale fallbacks.
-  TN: Number(process.env.BOURBON_SIGNAL_TN_STATE_TIMEOUT_MS || 420_000),
+  TN: Number(process.env.BOURBON_SIGNAL_TN_STATE_TIMEOUT_MS || 720_000),
   SC: Number(process.env.BOURBON_SIGNAL_SC_STATE_TIMEOUT_MS || 420_000),
   // Georgia fans out through identity-bound retailer storefronts. Keep the
   // parent watchdog above the bounded precision-source timeout.

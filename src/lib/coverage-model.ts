@@ -303,10 +303,25 @@ function stateStoreRecords(
     const key = identityKeys.get(identityFor(name, store.address, store.city)) || idKey;
     const previous = records.get(key);
     const source = cleanText(store.source, 220) || previous?.source || "";
-    const hasSignals = previous?.hasSignals ?? ((Number(store.signalCount) || 0) > 0);
+    const storeHasSignals = (Number(store.signalCount) || 0) > 0;
+    const hasSignals = previous
+      ? previous.hasSignals || (internalStateKey === 'TN' && storeHasSignals)
+      : storeHasSignals;
+    const observedCapabilities = sourceCapabilities(source, true);
+    const tennesseeSignalCapabilities = internalStateKey === 'TN' && storeHasSignals
+      ? {
+          ...observedCapabilities,
+          liveInventory: observedCapabilities.liveInventory || /Cool Springs Wine & Spirits public catalog API/i.test(source),
+        }
+      : { monitoringAttached: false, liveInventory: false };
     const capabilities = previous
-      ? { monitoringAttached: previous.monitoringAttached, liveInventory: previous.liveInventory }
-      : sourceCapabilities(source, true);
+      ? {
+          monitoringAttached: previous.monitoringAttached || tennesseeSignalCapabilities.monitoringAttached,
+          liveInventory: previous.liveInventory || tennesseeSignalCapabilities.liveInventory,
+        }
+      : internalStateKey === 'TN'
+        ? tennesseeSignalCapabilities
+        : observedCapabilities;
     records.set(key, {
       id: id || previous?.id || key,
       name: name || previous?.name || "",
