@@ -576,6 +576,35 @@
       "artifacts": [
         "company_scorecard_latest"
       ]
+    },
+    {
+      "id": "hermes-neon-local-backup",
+      "platform": "hermes_job",
+      "hermesJobId": "3cdc1e546a0e",
+      "active": true,
+      "ownerLayer": "deterministic",
+      "executionClass": "script_only",
+      "frequency": "daily at 04:15 Eastern",
+      "delivery": "main_chat",
+      "agent": {
+        "provider": null,
+        "model": null,
+        "reasoning": null
+      },
+      "externalApi": {
+        "classes": [
+          "neon_database",
+          "vercel_environment"
+        ],
+        "maxRequestsPerRun": 100
+      },
+      "customerMutation": "none",
+      "promotionDeployment": "none",
+      "silencePolicy": "quiet_on_success",
+      "killSwitch": "cron_pause:3cdc1e546a0e",
+      "artifacts": [
+        "encrypted_local_neon_backup"
+      ]
     }
   ],
   "timezone": "America/New_York"

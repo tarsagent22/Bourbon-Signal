@@ -212,8 +212,8 @@ let coverageRequestRepository: CoverageRequestRepository | null = null;
 
 export function getCoverageRequestRepository(env: NodeJS.ProcessEnv = process.env) {
   if (coverageRequestRepository) return coverageRequestRepository;
-  const connectionString = env.BOURBON_QUEUE_DATABASE_URL_UNPOOLED
-    || env.BOURBON_QUEUE_DATABASE_URL
+  const connectionString = env.BOURBON_QUEUE_DATABASE_URL
+    || env.BOURBON_QUEUE_DATABASE_URL_UNPOOLED
     || env.DATABASE_URL;
   if (!connectionString) throw new Error("Coverage request storage is not configured.");
   coverageRequestRepository = new CoverageRequestRepository(connectionString);

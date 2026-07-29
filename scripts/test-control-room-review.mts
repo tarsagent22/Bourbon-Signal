@@ -27,9 +27,10 @@ const bottleStorage = readFileSync(new URL("../src/lib/bottle-contributions.ts",
 assert.match(bottleStorage, /createBottleContributionRepository/);
 assert.doesNotMatch(bottleStorage, /access:\s*"public"|queue-\$\{Date\.now\(\)\}|\bdel\(/);
 const bottleRepository = readFileSync(new URL("../src/lib/bottle-contribution-repository.ts", import.meta.url), "utf8");
-assert.match(bottleRepository, /CREATE UNIQUE INDEX IF NOT EXISTS bottle_contributions_actionable_name_idx/);
+const bottleSchema = readFileSync(new URL("../src/lib/bottle-contribution-schema.sql", import.meta.url), "utf8");
+assert.match(bottleSchema, /CREATE UNIQUE INDEX IF NOT EXISTS bottle_contributions_actionable_name_idx/);
 assert.match(bottleRepository, /ON CONFLICT \(normalized_name\) WHERE status IN \('new', 'needs_human'\)/);
-assert.match(bottleRepository, /pg_advisory_xact_lock/);
+assert.doesNotMatch(bottleRepository, /ensureSchema|CREATE TABLE|CREATE INDEX/i);
 assert.match(bottleRepository, /RETURNING payload/);
 
 const bottleClient = readFileSync(new URL("../src/app/admin/bottle-queue/AdminBottleQueueClient.tsx", import.meta.url), "utf8");

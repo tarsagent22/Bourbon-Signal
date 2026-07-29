@@ -9,10 +9,8 @@ export interface DurableSightingVote {
 }
 
 function connectionString(env: NodeJS.ProcessEnv = process.env) {
-  return env.BOURBON_QUEUE_DATABASE_URL_UNPOOLED || env.BOURBON_QUEUE_DATABASE_URL || env.DATABASE_URL || null;
+  return env.BOURBON_QUEUE_DATABASE_URL || env.BOURBON_QUEUE_DATABASE_URL_UNPOOLED || env.DATABASE_URL || null;
 }
-
-let schemaReady: Promise<void> | null = null;
 
 export class CommunitySightingsRepository {
   private readonly query;
@@ -21,40 +19,7 @@ export class CommunitySightingsRepository {
     this.query = neon(url);
   }
 
-  async ensureSchema() {
-    if (!schemaReady) {
-      schemaReady = (async () => {
-        await this.query.query(`
-          CREATE TABLE IF NOT EXISTS community_sightings (
-            id TEXT PRIMARY KEY,
-            reporter_user_id TEXT NOT NULL,
-            payload JSONB NOT NULL,
-            created_at TIMESTAMPTZ NOT NULL,
-            updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-          )
-        `);
-        await this.query.query(`CREATE INDEX IF NOT EXISTS community_sightings_created_idx ON community_sightings (created_at DESC)`);
-        await this.query.query(`CREATE INDEX IF NOT EXISTS community_sightings_reporter_created_idx ON community_sightings (reporter_user_id, created_at DESC)`);
-        await this.query.query(`
-          CREATE TABLE IF NOT EXISTS community_sighting_votes (
-            sighting_id TEXT NOT NULL REFERENCES community_sightings(id) ON DELETE CASCADE,
-            user_id TEXT NOT NULL,
-            kind TEXT NOT NULL CHECK (kind IN ('up', 'down')),
-            created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-            PRIMARY KEY (sighting_id, user_id)
-          )
-        `);
-        await this.query.query(`CREATE INDEX IF NOT EXISTS community_sighting_votes_sighting_idx ON community_sighting_votes (sighting_id)`);
-      })().catch((error) => {
-        schemaReady = null;
-        throw error;
-      });
-    }
-    await schemaReady;
-  }
-
   async listSightings(limit = 1000): Promise<MemberSighting[]> {
-    await this.ensureSchema();
     const rows = await this.query.query(
       `SELECT payload FROM community_sightings ORDER BY created_at DESC LIMIT $1`,
       [Math.max(1, Math.min(limit, 5000))],
@@ -63,7 +28,6 @@ export class CommunitySightingsRepository {
   }
 
   async listSightingsForReporter(reporterUserId: string): Promise<MemberSighting[]> {
-    await this.ensureSchema();
     const rows = await this.query.query(
       `SELECT payload FROM community_sightings WHERE reporter_user_id = $1 ORDER BY created_at DESC`,
       [reporterUserId],
@@ -72,13 +36,11 @@ export class CommunitySightingsRepository {
   }
 
   async getSighting(id: string): Promise<MemberSighting | null> {
-    await this.ensureSchema();
     const rows = await this.query.query(`SELECT payload FROM community_sightings WHERE id = $1 LIMIT 1`, [id]) as Array<{ payload: MemberSighting }>;
     return rows[0]?.payload || null;
   }
 
   async insertSighting(sighting: MemberSighting): Promise<MemberSighting> {
-    await this.ensureSchema();
     const rows = await this.query.query(
       `INSERT INTO community_sightings (id, reporter_user_id, payload, created_at)
        VALUES ($1, $2, $3::jsonb, $4::timestamptz)
@@ -90,7 +52,6 @@ export class CommunitySightingsRepository {
   }
 
   async insertSightingIfAbsent(sighting: MemberSighting): Promise<MemberSighting> {
-    await this.ensureSchema();
     const rows = await this.query.query(
       `INSERT INTO community_sightings (id, reporter_user_id, payload, created_at)
        VALUES ($1, $2, $3::jsonb, $4::timestamptz)
@@ -104,7 +65,6 @@ export class CommunitySightingsRepository {
   }
 
   async updateSighting(sighting: MemberSighting): Promise<MemberSighting> {
-    await this.ensureSchema();
     const rows = await this.query.query(
       `WITH locked AS (SELECT pg_advisory_xact_lock(hashtext($1)))
        UPDATE community_sightings
@@ -125,7 +85,6 @@ export class CommunitySightingsRepository {
   }
 
   async replacePhotoProof(sightingId: string, ownerUserId: string, expectedPreviousUrl: string | null, photoProof: NonNullable<NonNullable<MemberSighting["rewardState"]>["photoProof"]>): Promise<MemberSighting | null> {
-    await this.ensureSchema();
     const rows = await this.query.query(
       `UPDATE community_sightings
        SET payload = jsonb_set(payload, '{rewardState,photoProof}', $4::jsonb, true), updated_at = NOW()
@@ -138,7 +97,6 @@ export class CommunitySightingsRepository {
   }
 
   async listVotes(): Promise<DurableSightingVote[]> {
-    await this.ensureSchema();
     const rows = await this.query.query(
       `SELECT sighting_id, user_id, kind, created_at FROM community_sighting_votes`,
     ) as Array<{ sighting_id: string; user_id: string; kind: SightingVoteKind; created_at: string | Date }>;
@@ -151,7 +109,6 @@ export class CommunitySightingsRepository {
   }
 
   async getVote(sightingId: string, userId: string): Promise<SightingVoteKind | null> {
-    await this.ensureSchema();
     const rows = await this.query.query(
       `SELECT kind FROM community_sighting_votes WHERE sighting_id = $1 AND user_id = $2 LIMIT 1`,
       [sightingId, userId],
@@ -160,7 +117,6 @@ export class CommunitySightingsRepository {
   }
 
   async setVote(sightingId: string, userId: string, kind: SightingVoteKind): Promise<void> {
-    await this.ensureSchema();
     await this.query.query(
       `INSERT INTO community_sighting_votes (sighting_id, user_id, kind) VALUES ($1, $2, $3)
        ON CONFLICT (sighting_id, user_id) DO UPDATE SET kind = EXCLUDED.kind, created_at = NOW()`,
@@ -169,7 +125,6 @@ export class CommunitySightingsRepository {
   }
 
   async toggleVote(sightingId: string, userId: string, kind: SightingVoteKind): Promise<{ kind: SightingVoteKind | null; upCount: number; downCount: number; sighting: MemberSighting }> {
-    await this.ensureSchema();
     const [, voteRows] = await this.query.transaction((tx) => [
       tx.query(`SELECT pg_advisory_xact_lock(hashtextextended($1, 0))`, [sightingId]),
       tx.query(
