@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import {
+  canonicalTrackedAcquisitionCampaign,
   isProductionGrowthEnvironment,
   mergeGrowthMilestoneMetadata,
   normalizeCheckoutSource,
@@ -20,14 +21,24 @@ const ALLOWED_MILESTONES = new Set<DurableGrowthMilestone>([
 const HOME_STATE_MARKETS = new Set<string>(US_STATE_CODES);
 const SIGNUP_COOKIE = "bs_signup_started";
 
-function storedAttribution(raw: string | undefined): GrowthAttribution | null {
+interface StoredAttribution extends GrowthAttribution {
+  recordedAt: number | null;
+}
+
+function storedAttribution(raw: string | undefined): StoredAttribution | null {
   if (!raw || raw.length > 1_000) return null;
   try {
     const value = JSON.parse(raw) as Record<string, unknown>;
     const surface = normalizeCheckoutSource(value.surface);
     const campaign = typeof value.campaign === "string" && /^[a-z0-9_:-]{1,80}$/.test(value.campaign) ? value.campaign : "unknown";
     const referrerHost = typeof value.referrerHost === "string" && /^[a-z0-9.-]{1,253}$/.test(value.referrerHost) ? value.referrerHost : "unknown";
-    return { surface, campaign, referrerHost };
+    const candidateRecordedAt = Number(value.recordedAt);
+    const recordedAt = Number.isFinite(candidateRecordedAt)
+      && candidateRecordedAt <= Date.now() + 60_000
+      && candidateRecordedAt >= Date.now() - 30 * 86_400_000
+      ? candidateRecordedAt
+      : null;
+    return { surface, campaign, referrerHost, recordedAt };
   } catch {
     return null;
   }
@@ -89,12 +100,18 @@ export async function POST(req: NextRequest) {
   if (process.env.NODE_ENV === "production" && !isProductionGrowthEnvironment(host)) return NextResponse.json({ ok: true });
 
   const body = await req.json().catch(() => ({})) as Record<string, unknown>;
-  const incoming = normalizeGrowthAttribution(body);
+  const normalizedIncoming = normalizeGrowthAttribution(body);
+  const canonicalCampaign = canonicalTrackedAcquisitionCampaign(normalizedIncoming.campaign);
+  const incoming = canonicalCampaign ? { ...normalizedIncoming, campaign: canonicalCampaign } : normalizedIncoming;
   const existingCookie = storedAttribution(req.cookies.get("bs_first_touch")?.value);
-  const firstTouch = existingCookie || incoming;
+  const nowMs = Date.now();
+  const legacyCookie = existingCookie?.recordedAt === null;
+  const firstTouch: StoredAttribution = existingCookie
+    ? { ...existingCookie, recordedAt: legacyCookie ? nowMs : existingCookie.recordedAt }
+    : { ...incoming, recordedAt: nowMs };
   const response = NextResponse.json({ ok: true });
 
-  if (!existingCookie) {
+  if (!existingCookie || legacyCookie) {
     response.cookies.set("bs_first_touch", JSON.stringify(firstTouch), {
       httpOnly: true,
       sameSite: "lax",
@@ -126,7 +143,11 @@ export async function POST(req: NextRequest) {
     const user = await client.users.getUser(userId);
     const privateMetadata = user.privateMetadata as Record<string, unknown>;
     const update: Record<string, unknown> = {};
-    if (!privateMetadata.firstTouch) update.firstTouch = firstTouch;
+    const userCreatedAt = new Date(user.createdAt).getTime();
+    const touchPrecededAccount = firstTouch.recordedAt !== null
+      && Number.isFinite(userCreatedAt)
+      && firstTouch.recordedAt <= userCreatedAt;
+    if (!privateMetadata.firstTouch && touchPrecededAccount) update.firstTouch = firstTouch;
 
     let nextMetadata = privateMetadata;
     if (milestone === "registration_completed" && context) {

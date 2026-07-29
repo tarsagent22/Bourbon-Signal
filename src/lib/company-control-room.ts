@@ -7,6 +7,7 @@ import {
   type ExperimentTelemetryEvent,
 } from "./growth-experiments.ts";
 import { readExperimentParticipation } from "./experiment-participation.ts";
+import { canonicalTrackedAcquisitionCampaign } from "./growth-events.ts";
 
 type MembershipTier = "free" | "standard" | "barrel" | "bottled-in-bond";
 type BillingPlanId = "standard_monthly" | "standard_annual" | "barrel_monthly" | "barrel_annual" | "bib_lifetime";
@@ -117,6 +118,80 @@ export function aggregateGrowthFunnels(users: CompanyMemberUser[], now = new Dat
     return window;
   };
   return { days7: collect(7), days30: collect(30) };
+}
+
+export interface CampaignFunnelWindow {
+  campaign: string;
+  accounts: number;
+  signupStarted: number;
+  registrationCompleted: number;
+  onboardingStateSelected: number;
+  freeValueReached: number;
+  pricingViewed: number;
+  checkoutStarted: number;
+  membershipActivated: number;
+  paidActivationCompleted: number;
+  firstAlertCreated: number;
+}
+
+export function aggregateCampaignFunnels(
+  users: CompanyMemberUser[],
+  now = new Date(),
+  since?: Date,
+) {
+  const cutoffDate = since ? new Date(since) : new Date(now);
+  if (!since) {
+    cutoffDate.setUTCHours(0, 0, 0, 0);
+    cutoffDate.setUTCDate(cutoffDate.getUTCDate() - 30);
+  }
+  const cutoff = cutoffDate.getTime();
+  const campaigns = new Map<string, CampaignFunnelWindow>();
+  const ensure = (campaign: string) => {
+    let entry = campaigns.get(campaign);
+    if (!entry) {
+      entry = {
+        campaign,
+        accounts: 0,
+        signupStarted: 0,
+        registrationCompleted: 0,
+        onboardingStateSelected: 0,
+        freeValueReached: 0,
+        pricingViewed: 0,
+        checkoutStarted: 0,
+        membershipActivated: 0,
+        paidActivationCompleted: 0,
+        firstAlertCreated: 0,
+      };
+      campaigns.set(campaign, entry);
+    }
+    return entry;
+  };
+
+  for (const user of users) {
+    const member = classifyCompanyMember(user);
+    if (member.isOwner || member.isRetailer) continue;
+    const createdAt = new Date(user.createdAt as string | number | Date).getTime();
+    if (!Number.isFinite(createdAt) || createdAt < cutoff || createdAt > now.getTime()) continue;
+    const metadata = user.privateMetadata || {};
+    const touch = metadata.firstTouch && typeof metadata.firstTouch === "object" ? metadata.firstTouch as Metadata : {};
+    const campaign = canonicalTrackedAcquisitionCampaign(touch.campaign);
+    if (!campaign) continue;
+    const entry = ensure(campaign);
+    entry.accounts += 1;
+    const milestones = metadata.activation && typeof metadata.activation === "object" ? metadata.activation as Metadata : {};
+    if (milestones.signup_started) entry.signupStarted += 1;
+    if (milestones.registration_completed) entry.registrationCompleted += 1;
+    if (milestones.onboarding_state_selected) entry.onboardingStateSelected += 1;
+    if (milestones.free_value_reached) entry.freeValueReached += 1;
+    if (milestones.pricing_viewed) entry.pricingViewed += 1;
+    if (milestones.checkout_started) entry.checkoutStarted += 1;
+    if (milestones.membership_activated) entry.membershipActivated += 1;
+    if (milestones.paid_activation_completed) entry.paidActivationCompleted += 1;
+    if (milestones.first_alert_created) entry.firstAlertCreated += 1;
+  }
+
+  return [...campaigns.values()].sort((a, b) =>
+    b.accounts - a.accounts || a.campaign.localeCompare(b.campaign));
 }
 
 export function aggregateLifecycleCohorts(users: CompanyMemberUser[]) {

@@ -123,6 +123,8 @@ assert.match(page, /isCompanyControlRoomOwnerEmail/);
 assert.match(page, /force-dynamic/);
 assert.match(page, /Demand-weighted investment/);
 assert.match(page, /Controlled experiments/);
+assert.match(page, /Tagged member cohort · 30 days/);
+assert.match(page, /Anonymous campaign visitors are measured in Vercel Web Analytics\./);
 assert.match(page, /Unique authenticated members only/);
 assert.doesNotMatch(page, /RESEND_API_KEY|CLERK_SECRET_KEY|STRIPE_SECRET_KEY|BLOB_READ_WRITE_TOKEN/);
 assert.match(layout, /index:\s*false/);
