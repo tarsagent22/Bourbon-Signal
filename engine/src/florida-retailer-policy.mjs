@@ -7,6 +7,7 @@ const FLORIDA_CITYHIVE_IDENTITIES = new Map([
   ['Paradise / Fubar Liquors Florida CityHive store inventory', { chain: 'paradise-fubar-liquors', hostname: 'shopparadiseliquor.com' }],
   ['Balm Liquor Riverview CityHive store inventory', { chain: 'balm-liquor', hostname: 'balmliquor.com' }],
   ['Sunshine Food & Spirits Clearwater CityHive store inventory', { chain: 'sunshine-food-spirits', hostname: 'sunshineliquorsclearwater.com' }],
+  ["Big Daddy's Miami-Dade CityHive store inventory", { chain: 'big-daddys-liquors', hostname: 'bigdaddysliquors.com' }],
 ]);
 
 const FLORIDA_WATCH_IDENTITIES = new Map([

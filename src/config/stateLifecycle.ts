@@ -312,7 +312,7 @@ export const STATE_LIFECYCLE_CONFIG = {
       "lifecycle": "retailer_store_inventory",
       "coverageTier": "live_store_inventory",
       "refinementLevel": "city_store",
-      "customerSummary": "Guarded first-party Florida retailer inventory with expanded Tampa Bay store coverage, exact store identity, and verify-before-driving caveats."
+      "customerSummary": "Guarded first-party Florida retailer inventory with expanded Tampa Bay and Miami-Dade exact-store coverage, explicit pickup identity, and verify-before-driving caveats."
     },
     "TX": {
       "customerLabel": "Texas",
