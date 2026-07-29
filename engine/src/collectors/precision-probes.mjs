@@ -950,14 +950,25 @@ const FL_TARGET_STORES = new Map([
 const FL_TARGET_COHORT_SIZE = Math.max(1, Math.min(6, Number(process.env.BOURBON_SIGNAL_FL_TARGET_COHORT_SIZE) || 4));
 const FL_TARGET_ROTATION_MS = Math.max(60 * 60_000, Number(process.env.BOURBON_SIGNAL_FL_TARGET_ROTATION_MS) || 6 * 60 * 60_000);
 const FL_CITYHIVE_MAX_PAGES = Math.max(1, Math.min(3, Number(process.env.BOURBON_SIGNAL_FL_CITYHIVE_MAX_PAGES) || 1));
+const FL_CITYHIVE_MAX_MERCHANTS_PER_SOURCE = Math.max(1, Math.min(12, Number(process.env.BOURBON_SIGNAL_FL_CITYHIVE_MAX_MERCHANTS_PER_SOURCE) || 6));
 const FL_CITYHIVE_PAGE_DELAY_MS = Math.max(300, Math.min(5_000, Number(process.env.BOURBON_SIGNAL_FL_CITYHIVE_PAGE_DELAY_MS) || 500));
 const FL_CITYHIVE_SOURCE_DELAY_MS = Math.max(1_000, Math.min(10_000, Number(process.env.BOURBON_SIGNAL_FL_CITYHIVE_SOURCE_DELAY_MS) || 2_000));
 const FL_CITYHIVE_FALLBACK_MAX_AGE_MS = Math.max(30 * 60_000, Number(process.env.BOURBON_SIGNAL_FL_CITYHIVE_FALLBACK_MAX_AGE_MS) || 6 * 60 * 60_000);
-const FL_CITYHIVE_SOURCES = [
+export const FL_CITYHIVE_SOURCES = [
   { id: 'my-florida-liquors', chainName: '1001 Liquors / My Florida Liquors', sourceLabel: '1001 Liquors / My Florida Liquors CityHive store inventory', baseUrl: 'https://myfloridaliquors.com', urls: ['https://myfloridaliquors.com/shop/?subtype=Bourbon'] },
   { id: 'paradise-fubar-liquors', chainName: 'Paradise / Fubar Liquors', sourceLabel: 'Paradise / Fubar Liquors Florida CityHive store inventory', baseUrl: 'https://shopparadiseliquor.com', urls: ['https://shopparadiseliquor.com/shop/?subtype=Bourbon'] },
   { id: 'balm-liquor', chainName: 'Balm Liquor Riverview', sourceLabel: 'Balm Liquor Riverview CityHive store inventory', baseUrl: 'https://balmliquor.com', urls: ['https://balmliquor.com/shop/?subtype=Bourbon'] },
   { id: 'sunshine-food-spirits', chainName: 'Sunshine Food & Spirits Clearwater', sourceLabel: 'Sunshine Food & Spirits Clearwater CityHive store inventory', baseUrl: 'https://sunshineliquorsclearwater.com', urls: ['https://sunshineliquorsclearwater.com/shop/?subtype=Bourbon'] },
+  {
+    id: 'big-daddys-liquors',
+    chainName: "Big Daddy's Wine & Liquors",
+    sourceLabel: "Big Daddy's Miami-Dade CityHive store inventory",
+    baseUrl: 'https://bigdaddysliquors.com',
+    urls: ['https://bigdaddysliquors.com/shop/?subtype=bourbon'],
+    discoveryUrl: 'https://bigdaddysliquors.com/shop/?region=Miami',
+    allowedCities: new Set(['Hialeah', 'Miami', 'North Miami']),
+    maxPages: 3,
+  },
 ];
 const FL_GASPARS_BOURBON_URL = 'https://www.gasparsliquorshoppe.com/bourbon/';
 const FL_GASPARS_MAX_PAGES = Math.max(1, Math.min(40, Number(process.env.BOURBON_SIGNAL_FL_GASPARS_MAX_PAGES) || 40));
@@ -1860,6 +1871,42 @@ function cityHivePriorityMerchants(blobs, source) {
   return merchants
     .sort((a, b) => cityHivePriorityRank(a) - cityHivePriorityRank(b) || a.ordinal - b.ordinal)
     .slice(0, IN_CITYHIVE_MAX_MERCHANTS_PER_SOURCE);
+}
+
+export function isFloridaCityHiveAddressAllowed(source, address = {}) {
+  const state = String(address.state || '').toUpperCase();
+  const fullAddress = String(address.fullAddress || address.full_address || '');
+  if (state !== 'FL' && !/,\s*FL\s+\d{5}/i.test(fullAddress)) return false;
+  if (!source?.allowedCities?.size) return true;
+  return source.allowedCities.has(String(address.city || '').trim());
+}
+
+export function floridaCityHivePriorityMerchants(blobs, source) {
+  const merchants = [];
+  const seen = new Set();
+  for (const cfg of cityHiveMerchantConfigs(blobs)) {
+    const merchant = cfg?.merchant || cfg;
+    if (!merchant?.id || seen.has(merchant.id)) continue;
+    seen.add(merchant.id);
+    const address = cityHiveAddressParts(merchant.address || {});
+    if (!isFloridaCityHiveAddressAllowed(source, address)) continue;
+    merchants.push({
+      id: String(merchant.id),
+      name: merchant.display_name || merchant.name || source.chainName,
+      city: address.city,
+      address: merchant.address || {},
+    });
+  }
+  return merchants.slice(0, FL_CITYHIVE_MAX_MERCHANTS_PER_SOURCE);
+}
+
+export function isFloridaCityHiveProductOptionAllowed(source, selectedMerchantIds, option = {}) {
+  const merchantId = String(option.merchant_id || '');
+  const fullAddress = String(option.full_address || '');
+  const city = fullAddress.match(/,\s*([^,]+),\s*FL\s+\d{5}/i)?.[1] || null;
+  return Boolean(merchantId
+    && selectedMerchantIds?.has(merchantId)
+    && isFloridaCityHiveAddressAllowed(source, { city, fullAddress }));
 }
 
 function isBourbonRelevantProduct(product, option) {
@@ -4265,13 +4312,10 @@ async function collectFloridaCityHive(config, bible, observedAt) {
         continue;
       }
       const firstBlobs = cityHiveJsonBlobs(first.text);
-      const merchants = cityHivePriorityMerchants(firstBlobs, source)
-        .filter((merchant) => {
-          const address = cityHiveAddressParts(merchant.address || {});
-          return String(address.state || '').toUpperCase() === 'FL' || /,\s*FL\s+\d{5}/i.test(address.fullAddress || '');
-        });
+      const merchants = floridaCityHivePriorityMerchants(firstBlobs, source);
+      const allowedMerchantIds = new Set(merchants.map((merchant) => merchant.id));
       const crawlUrls = [seedUrl];
-      for (const merchant of merchants) crawlUrls.push(...cityHiveMerchantPageUrls(seedUrl, merchant.id, FL_CITYHIVE_MAX_PAGES));
+      for (const merchant of merchants) crawlUrls.push(...cityHiveMerchantPageUrls(seedUrl, merchant.id, source.maxPages || FL_CITYHIVE_MAX_PAGES));
       for (const url of [...new Set(crawlUrls)]) {
         const res = url === seedUrl ? first : await textFetch(url, { headers: { accept: 'text/html,*/*' }, timeoutMs: 24_000 });
         if (!res.ok) {
@@ -4284,7 +4328,7 @@ async function collectFloridaCityHive(config, bible, observedAt) {
           const merchant = cfg?.merchant || cfg;
           if (!merchant?.id || seenStores.has(`${source.id}|${merchant.id}`)) continue;
           const address = cityHiveAddressParts(merchant.address || {});
-          if (String(address.state || '').toUpperCase() !== 'FL' && !/,\s*FL\s+\d{5}/i.test(address.fullAddress || '')) continue;
+          if (!isFloridaCityHiveAddressAllowed(source, address)) continue;
           seenStores.add(`${source.id}|${merchant.id}`);
           signals.push({
             id: stableId([config.id, 'cityhive-store-location', source.id, merchant.id]), state: config.id,
@@ -4308,7 +4352,8 @@ async function collectFloridaCityHive(config, bible, observedAt) {
               const key = `${source.id}|${merchantId}|${option.product_id}|${option.option_id}`;
               if (!merchantId || seenProductOptions.has(key)) continue;
               const fullAddress = String(option.full_address || '');
-              if (!/,\s*FL\s+\d{5}/i.test(fullAddress)) continue;
+              if (!isFloridaCityHiveProductOptionAllowed(source, allowedMerchantIds, option)) continue;
+              const city = fullAddress.match(/,\s*([^,]+),\s*FL\s+\d{5}/i)?.[1] || null;
               const sizeQuantity = Number(option.option_params?.size?.quantity || 0) || 0;
               const sizeMeasure = String(option.option_params?.size?.measure || '').toLowerCase();
               const sizeMl = sizeMeasure === 'l' ? sizeQuantity * 1000 : sizeMeasure === 'ml' ? sizeQuantity : null;
@@ -4319,7 +4364,6 @@ async function collectFloridaCityHive(config, bible, observedAt) {
               const { reportedQuantity, binaryAvailability, quantity } = normalizeCityHiveReportedQuantity(option.quantity);
               if (reportedQuantity <= 0) continue;
               seenProductOptions.add(key);
-              const city = fullAddress.match(/,\s*([^,]+),\s*FL\s+\d{5}/i)?.[1] || null;
               const zip = fullAddress.match(/\bFL\s+(\d{5}(?:-\d{4})?)\b/i)?.[1] || null;
               signals.push({
                 id: stableId([config.id, 'cityhive-store-inventory', source.id, merchantId, option.option_id, reportedQuantity, option.price]), state: config.id,
