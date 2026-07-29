@@ -10,6 +10,7 @@ import {
   buildOwnerExperimentAggregate,
   classifyCompanyMember,
   extractEngineControlRoomMetrics,
+  extractStateEngineHealth,
   summarizeMemberships,
   type CompanyMemberUser,
 } from "@/lib/company-control-room";
@@ -24,6 +25,7 @@ import { retailerSubmissionLifecycle } from "@/lib/retailer-portal";
 import { readAutomationCostAggregateFromEnvironment, type AutomationCostTotals } from "@/lib/automation-cost";
 import { readCurrentCoverageContract } from "@/lib/coverage-server";
 import { readCoverageDemandForOwner } from "@/lib/coverage-demand-server";
+import { getMemberCollectionRepository } from "@/lib/member-collection-repository";
 
 interface RevenueSnapshot {
   source: "stripe" | "unavailable";
@@ -219,16 +221,27 @@ async function loadCompanyControlRoomSnapshot() {
   const memberships = summarizeMemberships(users);
   const growthWindows = aggregateGrowthFunnels(users);
   const lifecycle = aggregateLifecycleCohorts(users);
-  const [stats, bottlePayload, coverageContract] = await Promise.all([
+  const [stats, bottlePayload, coverageContract, durableCollections] = await Promise.all([
     readSiteExport("stats") as Promise<Record<string, unknown> | null>,
     readSiteExport("bottles") as Promise<Record<string, unknown> | null>,
     readCurrentCoverageContract(),
+    Promise.resolve()
+      .then(() => getMemberCollectionRepository().getCollectionsForUsers(
+        users.map((user) => user.id).filter((userId): userId is string => typeof userId === "string" && Boolean(userId)),
+      ))
+      .catch((error) => {
+        console.error("durable collection demand source unavailable", error instanceof Error ? error.message : "unknown error");
+        return null;
+      }),
   ]);
   const engineBottles = Array.isArray(bottlePayload?.bottles)
     ? bottlePayload.bottles as Array<Record<string, unknown>>
     : [];
   const demandCatalog = engineBottles.length ? engineBottles : curatedBottles;
-  const demand = aggregateCompanyDemand(users, demandCatalog, ACTIVE_ENGINE_STATE_CODES);
+  const demand = {
+    ...aggregateCompanyDemand(users, demandCatalog, ACTIVE_ENGINE_STATE_CODES, durableCollections || undefined),
+    collectionSource: durableCollections ? "neon" as const : "unavailable" as const,
+  };
   const experiments = buildOwnerExperimentAggregate(users, undefined, isExperimentKillSwitchEnabled());
   const heartbeat = await readAlertDeliveryHeartbeat();
   const refreshHealth = stats?.refreshHealth && typeof stats.refreshHealth === "object"
@@ -278,6 +291,7 @@ async function loadCompanyControlRoomSnapshot() {
       ageMinutes: health.engine.ageMinutes,
       generatedAt: health.engine.generatedAt,
       ...engineMetrics,
+      stateEngines: extractStateEngineHealth(stats),
       failedStates: health.engine.failedStateCount,
       degradedStates: health.engine.degradedStateCount,
       staleStates: health.engine.staleStateCount,

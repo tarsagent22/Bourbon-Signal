@@ -222,12 +222,13 @@ export function aggregateCompanyDemand(
   users: readonly CompanyMemberUser[],
   catalog: readonly DemandBottleCatalogItem[],
   approvedStateCodes: readonly string[],
+  collectionsByUserId?: ReadonlyMap<string, unknown> | Readonly<Record<string, unknown>>,
 ) {
   const eligible = users.filter((user) => {
     const member = classifyCompanyMember(user);
     return !member.isOwner && !member.isRetailer;
   });
-  return aggregateMemberDemand(eligible, { catalog, approvedStateCodes });
+  return aggregateMemberDemand(eligible, { catalog, approvedStateCodes, collectionsByUserId });
 }
 
 export function buildOwnerExperimentAggregate(
@@ -359,6 +360,77 @@ export function extractEngineControlRoomMetrics(stats: Record<string, unknown> |
     signals: finiteMetric(stats?.signalCount),
     alertCandidates: finiteMetric(stats?.alertCandidateCount),
   };
+}
+
+export type StateEngineHealth = "healthy" | "warning" | "critical";
+
+export interface StateEngineHealthRow {
+  state: string;
+  label: string;
+  health: StateEngineHealth;
+  status: string;
+  stale: boolean;
+  signalCount: number;
+  roadblockCount: number;
+  sourceLabel: string | null;
+  bestLocationPrecision: string | null;
+  issue: string | null;
+}
+
+function readableEngineStatus(value: unknown) {
+  return typeof value === "string" && value.trim()
+    ? value.trim().replaceAll("_", " ")
+    : "status unavailable";
+}
+
+export function extractStateEngineHealth(stats: Record<string, unknown> | null): StateEngineHealthRow[] {
+  const stateCoverage = stats?.stateCoverage && typeof stats.stateCoverage === "object"
+    ? stats.stateCoverage as Record<string, unknown>
+    : {};
+  const coverageStates = Array.isArray(stateCoverage.states)
+    ? stateCoverage.states as Array<Record<string, unknown>>
+    : [];
+  const refreshHealth = stats?.refreshHealth && typeof stats.refreshHealth === "object"
+    ? stats.refreshHealth as Record<string, unknown>
+    : {};
+  const degradedStates = Array.isArray(refreshHealth.degradedStates)
+    ? refreshHealth.degradedStates as Array<Record<string, unknown>>
+    : [];
+  const degradedByState = new Map(degradedStates.map((row) => [String(row.state || "").toUpperCase(), row]));
+  const weight: Record<StateEngineHealth, number> = { critical: 0, warning: 1, healthy: 2 };
+
+  return coverageStates.map((coverage): StateEngineHealthRow => {
+    const state = String(coverage.state || "").toUpperCase();
+    const degraded = degradedByState.get(state);
+    const status = String(degraded?.status || coverage.status || "unknown");
+    const normalizedStatus = status.toLowerCase();
+    const stale = degraded?.stale === true || coverage.stale === true || normalizedStatus.startsWith("stale_");
+    const roadblockCount = finiteMetric(coverage.roadblockCount);
+    const critical = /^(?:failed_|blocked|awaiting_current_source_run)/.test(normalizedStatus);
+    const warning = !critical && (stale
+      || Boolean(degraded)
+      || /(?:degraded|reachable_needs_deeper_parser|quality_fallback)/.test(normalizedStatus)
+      || roadblockCount > 0);
+    const health: StateEngineHealth = critical ? "critical" : warning ? "warning" : "healthy";
+    const issueParts: string[] = [];
+    if (health !== "healthy") issueParts.push(critical ? readableEngineStatus(status) : stale ? "stale" : readableEngineStatus(status));
+    const staleReason = degraded?.staleReason || coverage.staleReason;
+    if (staleReason && health !== "healthy") issueParts.push(readableEngineStatus(staleReason));
+    if (roadblockCount > 0) issueParts.push(`${roadblockCount} ${roadblockCount === 1 ? "roadblock" : "roadblocks"}`);
+
+    return {
+      state,
+      label: typeof coverage.label === "string" && coverage.label ? coverage.label : state,
+      health,
+      status,
+      stale,
+      signalCount: finiteMetric(coverage.signalCount),
+      roadblockCount,
+      sourceLabel: typeof coverage.sourceLabel === "string" && coverage.sourceLabel ? coverage.sourceLabel : null,
+      bestLocationPrecision: typeof coverage.bestLocationPrecision === "string" && coverage.bestLocationPrecision ? coverage.bestLocationPrecision : null,
+      issue: issueParts.length ? issueParts.join(" · ") : null,
+    };
+  }).sort((a, b) => weight[a.health] - weight[b.health] || a.label.localeCompare(b.label));
 }
 
 export function summarizeMemberships(users: CompanyMemberUser[]) {

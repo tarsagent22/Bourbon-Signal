@@ -117,6 +117,7 @@ const bottleCheck = readFileSync("src/app/bottle-check/page.tsx", "utf8");
 const dropFeed = readFileSync("src/components/sections/DropFeed.tsx", "utf8");
 const releaseRadar = readFileSync("src/components/release-radar/CalendarExplorer.tsx", "utf8");
 const checkoutContinue = readFileSync("src/app/checkout/continue/page.tsx", "utf8");
+const dashboard = readFileSync("src/app/dashboard/page.tsx", "utf8");
 const paidAcquisitionReport = readFileSync("scripts/report-paid-acquisition.mts", "utf8");
 assert.match(growthClient, /sanitizeGrowthEvent\(name, properties\)/, "the client recorder must sanitize before analytics or persistence");
 assert.match(growthClient, /track\(name, analyticsProperties\)/, "Vercel custom events must receive the normalized campaign property");
@@ -148,4 +149,5 @@ assert.match(dropFeed, /Standard Proof unlocks the full state feed and alerts fo
 assert.match(releaseRadar, /onChange=[\s\S]*recordExploration\("calendar_filter"\)/, "Release Radar value must require an explicit interaction");
 assert.match(releaseRadar, /!isSignedIn \|\| entitlements\.tier !== "free"/, "anonymous Radar exploration must not count as free-member activation");
 assert.match(checkoutContinue, /registrationCompleted[\s\S]*recordGrowthMilestone\("registration_completed", \{ surface: "sign_up" \}\)/, "paid signup continuation must persist registration and first-touch before Stripe");
+assert.match(dashboard, /needsHomeStateActivation[\s\S]*href=\{needsHomeStateActivation \? "\/welcome" : "\/pricing\?source=dashboard"\}[\s\S]*See signals near you/, "free members without a home state must get a first-value CTA before an upgrade CTA");
 console.log("Growth event contract passed.");

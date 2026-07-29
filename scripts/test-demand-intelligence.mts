@@ -73,4 +73,26 @@ for (const forbidden of ["nc-0", "person@example.com", "unknown bottle", "histor
   assert.equal(serialized.includes(forbidden), false, `aggregate leaked ${forbidden}`);
 }
 
+const durableUsers = Array.from({ length: 5 }, (_, index) => ({
+  id: `durable-${index}`,
+  publicMetadata: {
+    collectionPreferences: { bottles: [{ bottleName: "Stagg Jr.", wouldBuyAgain: true }] },
+    areaPreferences: { states: ["NC"] },
+  },
+}));
+const durableCollections = new Map(durableUsers.map((user) => [user.id, {
+  bottles: [{ bottleName: "Weller Twelve", wouldBuyAgain: true }],
+}]));
+const durableSnapshot = aggregateMemberDemand(durableUsers, {
+  catalog,
+  approvedStateCodes: ["NC"],
+  collectionsByUserId: durableCollections,
+});
+assert.deepEqual(durableSnapshot.bottles, [{
+  canonicalBottleId: "weller-12",
+  canonicalBottleName: "Weller 12 Year",
+  memberCount: 5,
+  weightedDemand: 15,
+}], "durable Neon collections must replace stale or cleared Clerk collection metadata");
+
 console.log("Privacy-safe demand intelligence contract passed.");

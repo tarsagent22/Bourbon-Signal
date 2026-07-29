@@ -136,7 +136,7 @@ export function buildOpsHealth(input: {
   const failedStateCount = finiteNumber(input.refreshHealth?.failedStateCount);
   const degradedStateCount = finiteNumber(input.refreshHealth?.degradedStateCount);
   const staleStateCount = finiteNumber(input.refreshHealth?.staleStateCount);
-  const deploymentMismatch = Boolean(input.currentDeploymentId && input.heartbeat?.deploymentId !== input.currentDeploymentId);
+  const deploymentMismatch = Boolean(input.heartbeat && input.currentDeploymentId && input.heartbeat.deploymentId !== input.currentDeploymentId);
   const monitorOnly = process.env.ALERT_MONITOR_ONLY === "1";
   const deliveryChannelsEnabled = process.env.ALERT_ONSITE_DELIVERY_ENABLED === "1"
     || process.env.ALERT_EMAIL_DELIVERY_ENABLED === "1"
@@ -175,6 +175,12 @@ export function buildOpsHealth(input: {
     ok,
     checkedAt: new Date().toISOString(),
     release: {
+      status: deploymentMismatch
+        ? "critical"
+        : process.env.VERCEL_GIT_COMMIT_SHA && process.env.VERCEL_DEPLOYMENT_ID ? "healthy" : "unknown",
+      reason: deploymentMismatch
+        ? "alert_heartbeat_wrong_deployment"
+        : process.env.VERCEL_GIT_COMMIT_SHA && process.env.VERCEL_DEPLOYMENT_ID ? "deployment_identity_verified" : "deployment_identity_unavailable",
       commit: process.env.VERCEL_GIT_COMMIT_SHA || null,
       deploymentId: process.env.VERCEL_DEPLOYMENT_ID || null,
       environment: process.env.VERCEL_ENV || process.env.NODE_ENV || null,

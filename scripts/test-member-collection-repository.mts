@@ -28,8 +28,9 @@ class FakeDatabase {
       const userId = String(params[0]);
       const bottles = JSON.parse(String(params[2])) as CollectionBottlePreference[];
       const current = this.collections.get(userId) || { version: 0, bottles: [], migrated: false };
-      if (!current.migrated) this.collections.set(userId, { version: current.version + 1, bottles, migrated: true });
-      return [{ should_migrate: !current.migrated, entry_count: !current.migrated ? bottles.length : 0 }];
+      const shouldMigrate = !current.migrated && current.version === 0 && current.bottles.length === 0;
+      if (shouldMigrate) this.collections.set(userId, { version: current.version + 1, bottles, migrated: true });
+      return [{ should_migrate: shouldMigrate, entry_count: shouldMigrate ? bottles.length : 0 }];
     }
     if (text.includes('WITH current_state') && text.includes('next_version')) {
       const userId = String(params[0]);
@@ -40,6 +41,13 @@ class FakeDatabase {
       const next = { version: current.version + 1, bottles, migrated: true };
       this.collections.set(userId, next);
       return [{ outcome: 'saved', version: next.version }];
+    }
+    if (text.includes('FROM member_collection_state') && text.includes('member_collection_bottles') && text.includes('ANY($1::text[])')) {
+      const ids = params[0] as string[];
+      return ids.flatMap((userId) => {
+        const current = this.collections.get(userId);
+        return current ? current.bottles.map((bottle) => ({ user_id: userId, version: current.version, payload: bottle })) : [];
+      });
     }
     if (text.includes('FROM member_collection_state') && text.includes('member_collection_bottles')) {
       const userId = String(params[0]);
@@ -85,7 +93,16 @@ await assert.rejects(
   'stale full-collection writes are rejected instead of overwriting another device',
 );
 
+database.collections.set('user-c', { version: 1, bottles: [bottle('Newer Neon Bottle', 95)], migrated: false });
+assert.equal(await repository.migrateLegacyForUser('user-c', [bottle('Stale Clerk Bottle', 10)]), false, 'legacy import must not overwrite an existing durable write');
+assert.equal((await repository.getForUser('user-c')).bottles[0]?.bottleName, 'Newer Neon Bottle');
+
 await repository.migrateLegacyForUser('user-b', [bottle('Bottle A', 81)]);
+const collections = await repository.getCollectionsForUsers(['user-a', 'user-b', 'missing', 'user-a']);
+assert.equal(collections.size, 2);
+assert.equal(collections.get('user-a')?.version, 2);
+assert.equal(collections.get('user-a')?.bottles.length, 2);
+assert.equal(collections.get('user-b')?.bottles[0]?.bottleName, 'Bottle A');
 const aggregate = await repository.getTasteAggregate(['bottle a']);
 assert.deepEqual(aggregate, { average: 86, count: 2 });
 assert.equal(database.calls.some((call) => call.text.includes('GROUP BY user_id')), true, 'taste aggregation weights each member once');

@@ -317,17 +317,15 @@ function buildResponseFromMetadata(
 async function loadDurableCollection(
   user: Awaited<ReturnType<Awaited<ReturnType<typeof clerkClient>>["users"]["getUser"]>>,
 ) {
-  const legacyCollection = normalizeCollectionPreferences(user.publicMetadata?.collectionPreferences);
   try {
-    const repository = getMemberCollectionRepository();
-    if (legacyCollection.bottles.length > 0) {
-      await repository.migrateLegacyForUser(user.id, legacyCollection.bottles);
+    const collection = await getMemberCollectionRepository().getForUser(user.id);
+    const legacyCollection = normalizeCollectionPreferences(user.publicMetadata?.collectionPreferences);
+    if (legacyCollection.bottles.length > 0 && collection.version < 1) {
+      throw new Error("durable_collection_missing_for_legacy_user");
     }
-    const collection = await repository.getForUser(user.id);
     return { bottles: collection.bottles, version: collection.version };
   } catch (error) {
     console.error("durable member collection unavailable", error instanceof Error ? error.message : "unknown error");
-    if (legacyCollection.bottles.length > 0) return legacyCollection;
     throw new Error("durable_member_collection_unavailable");
   }
 }

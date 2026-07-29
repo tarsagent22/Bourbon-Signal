@@ -853,6 +853,7 @@ function PaidMemberDashboard() {
   const canReceiveSightingsAlerts = entitlements.canReceiveSightingsAlerts;
   const feedbackUserId = isSignedIn ? user?.id || null : null;
   const { prefs, loading: prefsLoading, savePreferences } = useAreaPreferences();
+  const needsHomeStateActivation = isFreeTier && isSignedIn && !prefsLoading && !prefs.memberProfile?.homeState;
   const { watchedBottles, addBottle, removeBottle } = useWatchlistStore();
   const { rewards: memberRewards } = useSightings(isSignedIn && canAccessDashboard);
 
@@ -2279,7 +2280,9 @@ function PaidMemberDashboard() {
             </ScrollReveal>
             {isFreeTier ? (
               <ScrollReveal delay={180}>
-                <Link href="/pricing?source=dashboard" className="dashboard-hero-upgrade">Upgrade membership</Link>
+                <Link href={needsHomeStateActivation ? "/welcome" : "/pricing?source=dashboard"} className="dashboard-hero-upgrade">
+                  {needsHomeStateActivation ? "See signals near you" : "Upgrade membership"}
+                </Link>
               </ScrollReveal>
             ) : null}
           </div>

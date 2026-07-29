@@ -10,6 +10,9 @@ const siteAlerts = JSON.parse(await readFile('out/site/alerts.json', 'utf8'));
 const stateQuality = JSON.parse(await readFile('out/site/state-quality.json', 'utf8'));
 const signals = Array.isArray(state.signals) ? state.signals : [];
 const inventory = signals.filter((signal) => signal.eventType === 'retailer_store_inventory_result');
+const allowSafeRetainedNotDue = process.argv.includes('--allow-safe-retained-not-due');
+const retainedNotDue = state.status === 'useful_retained_not_due' && state.stale !== true;
+const scheduledOnlyException = allowSafeRetainedNotDue && retainedNotDue;
 const currentInventoryAlertMaxAgeHours = Number(process.env.CURRENT_INVENTORY_ALERT_MAX_AGE_HOURS || 2);
 const currentInventoryAlertMaxAgeMs = currentInventoryAlertMaxAgeHours * 60 * 60 * 1000;
 const freshInventory = inventory.filter((signal) => {
@@ -44,7 +47,11 @@ const exportedAlerts = (siteAlerts.alerts ?? []).filter((row) => row.state === '
 assert.ok(exportedStores.length >= 2, 'root store export must include both inventory-eligible San Diego stores');
 assert.ok(exportedLocations.length >= 3, 'root location export must include San Diego inventory and watch locations');
 assert.ok(exportedStores.every((row) => row.city === 'San Diego' && row.address), 'exported California stores require exact San Diego addresses');
-if (freshInventory.length > 0) {
+if (freshInventory.length > 0 && exportedAlerts.length < Math.min(12, freshInventory.length)) {
+  assert.ok(scheduledOnlyException, 'fresh California inventory must expose on-site orderability alerts');
+  assert.ok(stateDrops.length >= 12, 'a retained-not-due California partition may omit duplicate baseline alerts only while its customer-facing drops remain intact');
+  assert.ok(exportedAlerts.every((row) => row.eligibleForEmail === false && row.eligibleForSms === false), 'a retained-not-due California partition must never leak outbound alerts');
+} else if (freshInventory.length > 0) {
   assert.ok(exportedAlerts.length >= Math.min(12, freshInventory.length), 'fresh California inventory must expose on-site orderability alerts');
 } else {
   assert.equal(exportedAlerts.length, 0, 'stale California inventory must not produce alert candidates');

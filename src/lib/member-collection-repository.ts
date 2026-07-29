@@ -53,6 +53,52 @@ export class MemberCollectionRepository {
     };
   }
 
+  async getCollectionsForUsers(userIds: readonly string[]): Promise<Map<string, MemberCollection>> {
+    const ids = [...new Set(userIds.map((value) => value.trim()).filter(Boolean))].slice(0, 20_000);
+    if (!ids.length) return new Map();
+    const rows = await this.database.query(`
+      SELECT state.user_id, state.version, bottles.payload
+      FROM member_collection_state AS state
+      LEFT JOIN member_collection_bottles AS bottles ON bottles.user_id = state.user_id
+      WHERE state.user_id = ANY($1::text[])
+      ORDER BY state.user_id ASC, bottles.rating DESC NULLS LAST, bottles.bottle_name ASC
+    `, [ids]) as Array<{ user_id?: unknown; version?: unknown; payload?: unknown }>;
+    const grouped = new Map<string, MemberCollection>();
+    for (const row of rows) {
+      const userId = typeof row.user_id === "string" ? row.user_id : "";
+      if (!userId) continue;
+      const current = grouped.get(userId) || { version: Number(row.version || 0), bottles: [] };
+      if (row.payload) current.bottles = normalizeCollectionBottles([...current.bottles, row.payload]);
+      grouped.set(userId, current);
+    }
+    return grouped;
+  }
+
+  async getLegacyRetirementEvidence(userId: string) {
+    const rows = await this.database.query(`
+      SELECT state.legacy_migrated_at, state.legacy_cleared_at,
+        backup.payload AS backup_payload, backup.backed_up_at
+      FROM member_collection_state AS state
+      LEFT JOIN member_collection_legacy_backups AS backup ON backup.user_id = state.user_id
+      WHERE state.user_id = $1
+    `, [userId]) as Array<{
+      legacy_migrated_at?: unknown;
+      legacy_cleared_at?: unknown;
+      backup_payload?: unknown;
+      backed_up_at?: unknown;
+    }>;
+    const row = rows[0];
+    const timestamp = (value: unknown) => value instanceof Date
+      ? value.toISOString()
+      : typeof value === "string" && Number.isFinite(Date.parse(value)) ? value : null;
+    return {
+      legacyMigratedAt: timestamp(row?.legacy_migrated_at),
+      legacyClearedAt: timestamp(row?.legacy_cleared_at),
+      backup: row?.backup_payload ?? null,
+      backedUpAt: timestamp(row?.backed_up_at),
+    };
+  }
+
   async migrateLegacyForUser(userId: string, entries: CollectionBottlePreference[], migrationAt = new Date().toISOString()) {
     if (!userId) throw new Error("A user id is required to migrate a collection.");
     const bottles = normalizeCollectionBottles(entries);
@@ -75,6 +121,10 @@ export class MemberCollectionRepository {
             legacy_migrated_at = EXCLUDED.legacy_migrated_at,
             updated_at = EXCLUDED.updated_at
           WHERE member_collection_state.legacy_migrated_at IS NULL
+            AND member_collection_state.version = 0
+            AND NOT EXISTS (
+              SELECT 1 FROM member_collection_bottles AS existing WHERE existing.user_id = $1
+            )
           RETURNING user_id
         ), removed AS (
           DELETE FROM member_collection_bottles
@@ -167,6 +217,17 @@ export class MemberCollectionRepository {
       UPDATE member_collection_state SET legacy_cleared_at = COALESCE(legacy_cleared_at, $2::timestamptz), updated_at = NOW()
       WHERE user_id = $1
     `, [userId, clearedAt]);
+  }
+
+  async listPendingLegacyClearAuditUserIds() {
+    const rows = await this.database.query(`
+      SELECT state.user_id
+      FROM member_collection_state AS state
+      INNER JOIN member_collection_legacy_backups AS backup ON backup.user_id = state.user_id
+      WHERE state.legacy_migrated_at IS NOT NULL AND state.legacy_cleared_at IS NULL
+      ORDER BY state.user_id
+    `) as Array<{ user_id?: unknown }>;
+    return rows.map((row) => String(row.user_id || "")).filter(Boolean);
   }
 
   async canReconcileStagedLegacy(userId: string) {

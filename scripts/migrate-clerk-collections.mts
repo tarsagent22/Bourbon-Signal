@@ -1,94 +1,155 @@
-#!/usr/bin/env node
-import { createClerkClient } from '@clerk/backend';
+import { createClerkClient } from "@clerk/backend";
+import { assessLegacyCollectionRetirement } from "./lib/legacy-collection-retirement.mjs";
 
-const loadedRepository = await import('../src/lib/member-collection-repository.ts');
-const repositoryModule = ((loadedRepository as { default?: unknown }).default || loadedRepository) as typeof import('../src/lib/member-collection-repository.ts');
-const loadedCollection = await import('../src/lib/member-collection.ts');
-const collectionModule = ((loadedCollection as { default?: unknown }).default || loadedCollection) as typeof import('../src/lib/member-collection.ts');
-const { MemberCollectionRepository } = repositoryModule;
-const { normalizeCollectionBottles } = collectionModule;
+const loadedCollection = await import("../src/lib/member-collection.ts");
+const collectionModule = ((loadedCollection as { default?: unknown }).default || loadedCollection) as typeof import("../src/lib/member-collection.ts");
+const loadedRepository = await import("../src/lib/member-collection-repository.ts");
+const repositoryModule = ((loadedRepository as { default?: unknown }).default || loadedRepository) as typeof import("../src/lib/member-collection-repository.ts");
+const { collectionFingerprint, normalizeCollectionBottles } = collectionModule;
+const { getMemberCollectionRepository } = repositoryModule;
 
-const clear = process.argv.includes('--clear');
-const apply = clear || process.argv.includes('--apply');
-const secretKey = process.env.CLERK_SECRET_KEY;
-const connectionString = process.env.BOURBON_QUEUE_DATABASE_URL
-  || process.env.BOURBON_QUEUE_DATABASE_URL_UNPOOLED
-  || process.env.DATABASE_URL;
-if (!secretKey) throw new Error('Missing CLERK_SECRET_KEY.');
-if (!connectionString) throw new Error('Missing durable application database connection.');
-
-const clerk = createClerkClient({ secretKey });
-const repository = new MemberCollectionRepository(connectionString);
-let offset = 0;
-let scanned = 0;
-let eligible = 0;
-let migrated = 0;
-let reconciled = 0;
-let diverged = 0;
-let cleared = 0;
-let bottleCount = 0;
-
-function fingerprint(bottles) {
-  return JSON.stringify(bottles
-    .map((bottle) => ({
-      canonicalKey: bottle.canonicalKey,
-      bottleId: bottle.bottleId,
-      rating: bottle.rating,
-      notes: bottle.notes || '',
-      tasteTags: [...(bottle.tasteTags || [])].sort(),
-      wouldBuyAgain: Boolean(bottle.wouldBuyAgain),
-    }))
-    .sort((left, right) => left.canonicalKey.localeCompare(right.canonicalKey)));
+interface ClerkCollectionUser {
+  id: string;
+  publicMetadata?: Record<string, unknown>;
 }
 
-while (true) {
-  const page = await clerk.users.getUserList({ limit: 100, offset });
-  if (!page.data.length) break;
-  for (const user of page.data) {
-    scanned += 1;
-    const legacy = normalizeCollectionBottles(user.publicMetadata?.collectionPreferences);
-    if (!legacy.length) continue;
-    eligible += 1;
-    bottleCount += legacy.length;
-    if (!apply) continue;
-    const imported = await repository.migrateLegacyForUser(user.id, legacy);
-    if (imported) migrated += 1;
-    let durable = await repository.getForUser(user.id);
-    if (fingerprint(durable.bottles) !== fingerprint(legacy)) {
-      if (clear) {
-        // During cutover grace, Neon may be newer; clear the stale legacy copy without overwriting authority.
-        diverged += 1;
-      } else {
-        if (!(await repository.canReconcileStagedLegacy(user.id))) {
-          throw new Error('Durable collection changed after staging; refusing to overwrite it from Clerk.');
-        }
-        durable = await repository.replaceForUser(user.id, legacy, durable.version);
-        reconciled += 1;
-      }
-    }
-    if (!clear && fingerprint(durable.bottles) !== fingerprint(legacy)) {
-      throw new Error('Durable collection verification failed; cutover staging stopped.');
-    }
-    if (clear) {
-      await clerk.users.updateUserMetadata(user.id, {
-        publicMetadata: { collectionPreferences: null },
-      });
-      await repository.markLegacyCleared(user.id);
-      cleared += 1;
-    }
+const applyMigrations = process.argv.includes("--apply");
+const clearLegacy = process.argv.includes("--clear");
+if (applyMigrations && clearLegacy) throw new Error("Use --apply and --clear in separate runs.");
+
+function clerkClientFromEnvironment() {
+  const secretKey = process.env.CLERK_SECRET_KEY?.trim();
+  if (!secretKey) throw new Error("CLERK_SECRET_KEY is required.");
+  return createClerkClient({ secretKey });
+}
+
+async function listAllUsers(client: ReturnType<typeof createClerkClient>) {
+  const users: ClerkCollectionUser[] = [];
+  let offset = 0;
+  const limit = 100;
+  while (true) {
+    const page = await client.users.getUserList({ limit, offset, orderBy: "+created_at" });
+    users.push(...page.data as ClerkCollectionUser[]);
+    offset += page.data.length;
+    if (!page.data.length || offset >= page.totalCount) break;
   }
-  offset += page.data.length;
-  if (page.data.length < 100) break;
+  return users;
 }
 
-console.log(JSON.stringify({
-  ok: true,
-  mode: clear ? 'clear' : apply ? 'stage' : 'check',
-  scanned,
-  eligible,
-  migrated,
-  reconciled,
-  diverged,
-  cleared,
-  bottleCount,
-}));
+function reasonCounts(assessments: Array<{ reasons: string[] }>) {
+  const counts: Record<string, number> = {};
+  for (const assessment of assessments) {
+    for (const reason of assessment.reasons) counts[reason] = (counts[reason] || 0) + 1;
+  }
+  return counts;
+}
+
+async function main() {
+  const client = clerkClientFromEnvironment();
+  const repository = getMemberCollectionRepository();
+  const users = await listAllUsers(client);
+  const usersById = new Map(users.map((user) => [user.id, user]));
+  const candidates = users.map((user) => ({
+    user,
+    legacy: { bottles: normalizeCollectionBottles(user.publicMetadata?.collectionPreferences) },
+  })).filter((row) => row.legacy.bottles.length > 0);
+
+  const checked = [];
+  for (const candidate of candidates) {
+    if (applyMigrations) await repository.migrateLegacyForUser(candidate.user.id, candidate.legacy.bottles);
+    const [durable, evidence] = await Promise.all([
+      repository.getForUser(candidate.user.id),
+      repository.getLegacyRetirementEvidence(candidate.user.id),
+    ]);
+    checked.push({
+      user: candidate.user,
+      legacy: candidate.legacy,
+      durable,
+      evidence,
+      assessment: assessLegacyCollectionRetirement({
+        legacyBottleCount: candidate.legacy.bottles.length,
+        durableBottleCount: durable.bottles.length,
+        backupBottleCount: normalizeCollectionBottles(evidence.backup).length,
+        durableVersion: durable.version,
+        legacyFingerprint: collectionFingerprint(candidate.legacy),
+        durableFingerprint: collectionFingerprint(durable),
+        backupFingerprint: collectionFingerprint(evidence.backup),
+        evidence,
+      }),
+    });
+  }
+
+  const unsafe = checked.filter((row) => !row.assessment.safeToClear);
+  const summary = {
+    mode: clearLegacy ? "clear" : applyMigrations ? "apply" : "check",
+    scanned: users.length,
+    eligible: checked.length,
+    safeToClear: checked.length - unsafe.length,
+    unsafe: unsafe.length,
+    bottleCount: checked.reduce((sum, row) => sum + row.assessment.legacyBottleCount, 0),
+    reasons: reasonCounts(unsafe.map((row) => row.assessment)),
+  };
+
+  if (!clearLegacy) {
+    console.log(JSON.stringify(summary));
+    if (unsafe.length > 0) {
+      throw new Error(`Legacy collection parity preflight failed for ${unsafe.length} collection(s).`);
+    }
+    return;
+  }
+  if (unsafe.length > 0) {
+    throw new Error(`Refusing to clear Clerk collection fallback: ${unsafe.length} collection(s) failed parity or backup checks (${JSON.stringify(summary.reasons)}).`);
+  }
+
+  let reconciledAuditRows = 0;
+  const pendingAuditUserIds = await repository.listPendingLegacyClearAuditUserIds();
+  const eligibleIds = new Set(checked.map((row) => row.user.id));
+  for (const userId of pendingAuditUserIds) {
+    if (eligibleIds.has(userId)) continue;
+    const user = usersById.get(userId);
+    if (!user || normalizeCollectionBottles(user.publicMetadata?.collectionPreferences).length > 0) continue;
+    const evidence = await repository.getLegacyRetirementEvidence(userId);
+    if (!evidence.backup || !evidence.backedUpAt) continue;
+    await repository.markLegacyCleared(userId);
+    reconciledAuditRows += 1;
+  }
+
+  let cleared = 0;
+  for (const row of checked) {
+    const currentUser = await client.users.getUser(row.user.id);
+    const currentLegacy = { bottles: normalizeCollectionBottles(currentUser.publicMetadata?.collectionPreferences) };
+    const [currentDurable, currentEvidence] = await Promise.all([
+      repository.getForUser(row.user.id),
+      repository.getLegacyRetirementEvidence(row.user.id),
+    ]);
+    const currentAssessment = assessLegacyCollectionRetirement({
+      legacyBottleCount: currentLegacy.bottles.length,
+      durableBottleCount: currentDurable.bottles.length,
+      backupBottleCount: normalizeCollectionBottles(currentEvidence.backup).length,
+      durableVersion: currentDurable.version,
+      legacyFingerprint: collectionFingerprint(currentLegacy),
+      durableFingerprint: collectionFingerprint(currentDurable),
+      backupFingerprint: collectionFingerprint(currentEvidence.backup),
+      evidence: currentEvidence,
+    });
+    if (!currentAssessment.safeToClear) {
+      throw new Error(`Refusing to clear a Clerk collection after its parity or backup evidence changed (${currentAssessment.reasons.join(",")}).`);
+    }
+    await client.users.updateUserMetadata(row.user.id, {
+      publicMetadata: { collectionPreferences: null },
+    });
+    const verified = await client.users.getUser(row.user.id);
+    if (normalizeCollectionBottles(verified.publicMetadata?.collectionPreferences).length > 0) {
+      throw new Error("Refusing to mark a Clerk collection cleared because post-write verification still found legacy bottles.");
+    }
+    await repository.markLegacyCleared(row.user.id);
+    cleared += 1;
+  }
+
+  console.log(JSON.stringify({ ...summary, cleared, reconciledAuditRows }));
+}
+
+main().catch((error) => {
+  console.error(error);
+  process.exit(1);
+});
