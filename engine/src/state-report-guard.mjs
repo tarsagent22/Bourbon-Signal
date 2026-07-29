@@ -191,6 +191,24 @@ function preservedFallback(previous, reason, now = new Date().toISOString(), can
   };
 }
 
+function sanitizeNonAlertingStaleSignal(signal) {
+  const stale = signal?.stale === true || signal?.sourceStale === true || signal?.raw?.staleFallback === true;
+  if (!stale) return signal;
+  return {
+    ...signal,
+    stale: true,
+    sourceStale: true,
+    canAlertAsInventory: false,
+    canAlertAsWatch: false,
+    alertable: false,
+    sourceAvailabilityVerified: false,
+    raw: {
+      ...(signal.raw || {}),
+      staleFallback: true,
+    },
+  };
+}
+
 function partialFallback(previous, candidate, reason, now = new Date().toISOString()) {
   const currentIdentities = new Set((candidate.signals || []).map(signalObservationIdentity));
   const retainedSignals = (previous.signals || [])
@@ -221,7 +239,10 @@ function partialFallback(previous, candidate, reason, now = new Date().toISOStri
     partialReason: reason,
     previousFinishedAt: previous.finishedAt || previous.lastGoodAt || null,
     lastGoodAt: candidate.finishedAt || candidate.lastGoodAt || now,
-    signals: [...(candidate.signals || []), ...retainedSignals],
+    signals: [
+      ...(candidate.signals || []).map(sanitizeNonAlertingStaleSignal),
+      ...retainedSignals.map(sanitizeNonAlertingStaleSignal),
+    ],
     roadblocks: [
       ...(candidate.roadblocks || []).filter((roadblock) => roadblock.status !== 'quality_regression_partial_report'),
       {
