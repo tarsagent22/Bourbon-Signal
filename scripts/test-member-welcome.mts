@@ -80,6 +80,39 @@ assert.doesNotMatch(pricingSource, /sign-up\?redirect_url=\/dashboard/, "pricing
 assert.match(pricingSource, /comparisonRows/);
 assert.match(pricingSource, /comparison-table/);
 assert.match(pricingSource, /role="table"/);
+for (const feature of [
+  "Drop Feed access",
+  "Release Radar",
+  "Bottle Checks",
+  "Member Sightings",
+  "SMS, email, and on-site alerts",
+  "Alert preference limits",
+  "Signal Strength meter",
+  "Sightings alerts",
+  "My Collection",
+  "Recommended Bottles",
+  "Lifetime future features",
+  "Founder badge + number",
+  "Numbered Founder’s glass",
+  "Founder-only benefits",
+]) {
+  assert.ok(pricingSource.includes(feature), `comparison must preserve the complete prior feature row: ${feature}`);
+}
+assert.match(pricingSource, /value === "✓"[\s\S]*included[\s\S]*value === "—"[\s\S]*not-included/, "comparison should use the prior checkmark and dash treatment");
+assert.match(pricingSource, /aria-label=\{value === "✓" \? "Included" : value === "—" \? "Not included" : undefined\}/, "symbol-only comparison cells need a single spoken label");
+assert.match(pricingSource, /\.comparison-row span:first-child\s*\{[^}]*position:sticky[^}]*left:0/, "feature labels must persist during horizontal scrolling");
+assert.doesNotMatch(pricingSource, /\.comparison-row span:first-child\s*\{[^}]*position:static/, "mobile must not disable the persistent feature column");
+assert.match(pricingSource, /@media \(max-width:\s*480px\)[\s\S]*\.comparison-scroll\s*\{[^}]*padding-right:0[\s\S]*grid-template-columns:132px repeat\(4, calc\(100vw - 178px\)\)/, "narrow mobile should size one complete plan beside the persistent feature labels without hidden scroller padding");
+for (const viewportWidth of [320, 375, 390]) {
+  const comparisonViewport = viewportWidth - 46;
+  const planWidth = viewportWidth - 178;
+  assert.equal(132 + planWidth, comparisonViewport, `sticky feature and plan columns must exactly fill the ${viewportWidth}px comparison viewport`);
+  assert.ok(planWidth >= 142, `${viewportWidth}px must retain a readable plan column`);
+}
+assert.match(pricingSource, /\.july-sale-banner\s*\{[^}]*grid-template-areas:/, "desktop sale copy must use bounded named grid areas");
+assert.doesNotMatch(pricingSource, /grid-template-columns:auto 1fr auto/, "sale disclaimer must not squeeze the offer into an intrinsic three-column layout");
+const founderCardSource = pricingSource.slice(pricingSource.indexOf('tier: "bottled-in-bond"'), pricingSource.indexOf("const comparisonRows"));
+assert.ok(founderCardSource.indexOf("Numbered Founder’s glass") < founderCardSource.indexOf("Founder badge & number on profile"), "the numbered glass should precede the profile badge in the Founder card");
 assert.doesNotMatch(pricingSource, /compact-differences/);
 assert.match(pricingSource, /July sale — 15% off/);
 assert.match(pricingSource, /annual memberships and Founder lifetime/);

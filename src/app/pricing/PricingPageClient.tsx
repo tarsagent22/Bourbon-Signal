@@ -93,26 +93,28 @@ const paidTiers: PricingTier[] = [
     description: "Get the complete Barrel Proof experience for one payment while founder spots remain.",
     features: [
       "Lifetime access to all current and future features",
-      "Founder badge & number on profile",
       "Numbered Founder’s glass",
+      "Founder badge & number on profile",
     ],
     accent: "founder",
   },
 ];
 
 const comparisonRows = [
-  { feature: "Drop Feed", free: "7 recent signals", standard: "Full state feed", barrel: "Full feed", founder: "Full feed" },
-  { feature: "Bottle Checks", free: "3 lookups", standard: "Unlimited", barrel: "Unlimited", founder: "Unlimited" },
-  { feature: "Saved alerts", free: "—", standard: "On-site, email, and SMS", barrel: "On-site, email, and SMS", founder: "On-site, email, and SMS" },
-  { feature: "Area and bottle limits", free: "—", standard: "5 areas · 15 bottles", barrel: "Effectively unlimited", founder: "Effectively unlimited" },
-  { feature: "Member Sightings", free: "Limited preview and submissions", standard: "Full feed and submissions", barrel: "Full feed and submissions", founder: "Full feed and submissions" },
-  { feature: "Sightings alerts", free: "—", standard: "—", barrel: "Included", founder: "Included" },
-  { feature: "Advanced filters", free: "—", standard: "State-level tools", barrel: "Included", founder: "Included" },
-  { feature: "My Collection", free: "—", standard: "—", barrel: "Included", founder: "Included" },
-  { feature: "Recommendations", free: "—", standard: "—", barrel: "Included", founder: "Included" },
-  { feature: "Future features", free: "Free-tier releases", standard: "Standard-tier releases", barrel: "Barrel-tier releases", founder: "All current and future paid features" },
-  { feature: "Founder benefits", free: "—", standard: "—", barrel: "—", founder: "Badge, number, and numbered glass" },
-  { feature: "Billing", free: "$0 · no card", standard: "$2.99/month or $24.99/year", barrel: "$4.99/month or $49.99/year", founder: "$49.99 one time" },
+  ["Drop Feed access", "Limited", "Full · state only", "Full · advanced", "Full · advanced"],
+  ["Release Radar", "Full", "Full", "Full", "Full"],
+  ["Bottle Checks", "3", "Unlimited", "Unlimited", "Unlimited"],
+  ["Member Sightings", "Limited", "✓", "✓", "✓"],
+  ["SMS, email, and on-site alerts", "—", "✓", "✓", "✓"],
+  ["Alert preference limits", "—", "5 areas · 15 bottles", "No limits", "No limits"],
+  ["Signal Strength meter", "—", "Markets + bottles + alerts", "Adds taste profile", "Adds taste profile + founder calibration"],
+  ["Sightings alerts", "—", "—", "✓", "✓"],
+  ["My Collection", "—", "—", "✓", "✓"],
+  ["Recommended Bottles", "—", "—", "✓", "✓"],
+  ["Lifetime future features", "—", "—", "—", "✓"],
+  ["Founder badge + number", "—", "—", "—", "✓"],
+  ["Numbered Founder’s glass", "—", "—", "—", "✓"],
+  ["Founder-only benefits", "—", "—", "—", "✓"],
 ] as const;
 
 
@@ -345,33 +347,33 @@ function PricingPageContent({ julySaleEnabled }: { julySaleEnabled: boolean }) {
 
         {error ? <p className="pricing-error" role="alert">{error}</p> : null}
 
-        <section className="comparison-section" aria-labelledby="comparison-heading">
-          <h2 id="comparison-heading">Compare every membership</h2>
-          <p>Membership limits and access at a glance.</p>
-          <div className="comparison-table-wrap" tabIndex={0} aria-label="Scrollable membership comparison">
-            <table className="comparison-table" role="table">
-              <caption className="sr-only">Free, Standard Proof, Barrel Proof, and Bottled in Bond membership comparison</caption>
-              <thead>
-                <tr>
-                  <th scope="col">Feature</th>
-                  <th scope="col">Free</th>
-                  <th scope="col">Standard</th>
-                  <th scope="col">Barrel</th>
-                  <th scope="col">Bottled in Bond</th>
-                </tr>
-              </thead>
-              <tbody>
-                {comparisonRows.map((row) => (
-                  <tr key={row.feature}>
-                    <th scope="row">{row.feature}</th>
-                    <td>{row.free}</td>
-                    <td>{row.standard}</td>
-                    <td>{row.barrel}</td>
-                    <td>{row.founder}</td>
-                  </tr>
+        <section className="comparison-wrap" aria-label="Membership feature comparison">
+          <div className="comparison-heading">
+            <h2>Compare Memberships</h2>
+            <p>Membership limits and access at a glance.</p>
+          </div>
+          <div className="comparison-scroll" tabIndex={0} aria-label="Scrollable membership comparison; feature labels remain visible">
+            <div className="comparison-table" role="table" aria-label="Free, Standard Proof, Barrel Proof, and Bottled in Bond membership comparison">
+              <div className="comparison-row comparison-head" role="row">
+                {["Feature", "Free access", "Standard", "Barrel", "Bottled in Bond"].map((heading) => (
+                  <span key={heading} role="columnheader">{heading}</span>
                 ))}
-              </tbody>
-            </table>
+              </div>
+              {comparisonRows.map(([feature, free, standard, barrel, founder]) => (
+                <div className="comparison-row" role="row" key={feature}>
+                  {[feature, free, standard, barrel, founder].map((value, index) => (
+                    <span
+                      key={`${feature}-${index}`}
+                      role={index === 0 ? "rowheader" : "cell"}
+                      className={value === "✓" ? "included" : value === "—" ? "not-included" : undefined}
+                      aria-label={value === "✓" ? "Included" : value === "—" ? "Not included" : undefined}
+                    >
+                      {value === "✓" ? <i aria-hidden="true">✓</i> : value}
+                    </span>
+                  ))}
+                </div>
+              ))}
+            </div>
           </div>
         </section>
 
@@ -400,12 +402,12 @@ const pricingCss = `
 .billing-toggle button[data-active="true"] { color:#17110B; background:linear-gradient(135deg, #C4943A, #D4A44A); box-shadow:0 10px 24px rgba(196,148,58,.18); }
 .billing-toggle button:hover, .billing-toggle button:focus-visible { outline:none; transform:translateY(-1px); }
 .billing-toggle span { margin-left:5px; font:900 10px/1 var(--font-jetbrains); letter-spacing:.08em; text-transform:uppercase; }
-.july-sale-banner { width:min(940px, calc(100% - 40px)); margin:24px auto 0; display:grid; grid-template-columns:auto 1fr auto; gap:16px; align-items:center; border:1px solid rgba(232,201,122,.38); border-radius:18px; padding:16px 18px; background:linear-gradient(135deg, rgba(196,148,58,.19), rgba(82,54,24,.15)); box-shadow:0 18px 60px rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.06); }
-.july-sale-banner p { margin:0; border-radius:999px; padding:7px 9px; color:#17110B; background:linear-gradient(135deg, #E8C97A, #C4943A); font:950 9px/1 var(--font-jetbrains); letter-spacing:.12em; text-transform:uppercase; white-space:nowrap; }
-.july-sale-banner div { display:grid; gap:5px; min-width:0; }
+.july-sale-banner { width:min(940px, calc(100% - 40px)); margin:24px auto 0; display:grid; grid-template-columns:auto minmax(0, 1fr); grid-template-areas:"badge offer" "badge terms"; column-gap:16px; row-gap:8px; align-items:start; border:1px solid rgba(232,201,122,.38); border-radius:18px; padding:18px; background:linear-gradient(135deg, rgba(196,148,58,.19), rgba(82,54,24,.15)); box-shadow:0 18px 60px rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.06); }
+.july-sale-banner p { grid-area:badge; margin:1px 0 0; border-radius:999px; padding:7px 9px; color:#17110B; background:linear-gradient(135deg, #E8C97A, #C4943A); font:950 9px/1 var(--font-jetbrains); letter-spacing:.12em; text-transform:uppercase; white-space:nowrap; }
+.july-sale-banner div { grid-area:offer; display:grid; gap:5px; min-width:0; }
 .july-sale-banner strong { color:var(--color-cream); font:700 22px/1.05 var(--font-playfair); }
 .july-sale-banner span { color:var(--color-text-secondary); font:800 12px/1.35 var(--font-dm-sans); }
-.july-sale-banner em { color:#E8C97A; font:900 11px/1.35 var(--font-dm-sans); font-style:normal; text-align:right; }
+.july-sale-banner em { grid-area:terms; max-width:760px; color:#E8C97A; font:800 11px/1.45 var(--font-dm-sans); font-style:normal; text-align:left; }
 .free-preview-strip { width:min(940px, calc(100% - 40px)); margin:30px auto 0; display:grid; grid-template-columns:1.2fr 1fr auto; gap:18px; align-items:center; border:1px solid rgba(245,237,214,.08); border-radius:22px; padding:18px 20px; background:linear-gradient(135deg, rgba(255,255,255,.044), rgba(196,148,58,.035)); box-shadow:0 18px 70px rgba(0,0,0,.20), inset 0 1px 0 rgba(255,255,255,.04); }
 .free-preview-strip p { margin:0 0 7px; color:var(--color-accent-amber); font:900 10px/1 var(--font-jetbrains); letter-spacing:.15em; text-transform:uppercase; }
 .free-preview-strip h2 { margin:0; color:var(--color-cream); font:700 clamp(21px, 2.2vw, 30px)/1.06 var(--font-playfair); letter-spacing:-.03em; }
@@ -457,18 +459,26 @@ const pricingCss = `
 .pricing-actions button:hover:not(:disabled), .pricing-actions button:focus-visible:not(:disabled) { transform:translateY(-1px); outline:none; border-color:rgba(245,237,214,.62); }
 .pricing-actions button:disabled { cursor:default; opacity:.58; }
 .pricing-error { width:min(760px, calc(100% - 40px)); margin:20px auto 0; color:#ffb4a8; text-align:center; font:800 13px/1.5 var(--font-dm-sans); }
-.comparison-section { width:min(980px, calc(100% - 40px)); margin:48px auto 0; border-top:1px solid rgba(245,237,214,.09); padding-top:32px; }
-.comparison-section h2 { margin:0; color:var(--color-cream); font:700 clamp(28px, 4vw, 40px)/1.05 var(--font-playfair); letter-spacing:-.03em; }
-.comparison-section > p { margin:9px 0 0; color:var(--color-text-secondary); font:13px/1.5 var(--font-dm-sans); }
-.comparison-table-wrap { width:100%; max-width:100%; margin-top:20px; overflow-x:auto; overscroll-behavior-inline:contain; border-top:1px solid rgba(245,237,214,.12); border-bottom:1px solid rgba(245,237,214,.12); }
-.comparison-table-wrap:focus-visible { outline:2px solid rgba(232,201,122,.7); outline-offset:3px; }
-.comparison-table { width:100%; min-width:820px; border-collapse:collapse; color:var(--color-text-secondary); font:12px/1.45 var(--font-dm-sans); }
-.comparison-table th, .comparison-table td { padding:13px 14px; border-bottom:1px solid rgba(245,237,214,.07); text-align:left; vertical-align:top; }
-.comparison-table thead th { color:var(--color-cream); background:rgba(245,237,214,.045); font-weight:900; }
-.comparison-table thead th:not(:first-child) { color:var(--color-accent-amber); }
-.comparison-table tbody th { width:180px; color:rgba(245,237,214,.86); font-weight:800; }
-.comparison-table tbody tr:last-child th, .comparison-table tbody tr:last-child td { border-bottom:0; }
-@media (max-width: 900px) { .july-sale-banner { grid-template-columns:1fr; text-align:left; } .july-sale-banner p { width:max-content; } .july-sale-banner em { text-align:left; } .free-preview-strip { grid-template-columns:1fr; text-align:left; } .free-preview-strip button { width:100%; } }
+.comparison-wrap { width:min(1040px, calc(100% - 40px)); margin:56px auto 0; border:1px solid rgba(245,237,214,.08); border-radius:26px; padding:24px; background:rgba(255,255,255,.026); box-shadow:0 24px 80px rgba(0,0,0,.22); }
+.comparison-heading { display:flex; align-items:end; justify-content:space-between; gap:18px; margin-bottom:18px; }
+.comparison-heading h2 { margin:0; color:var(--color-cream); font:700 clamp(26px, 3vw, 38px)/1 var(--font-playfair); letter-spacing:-.03em; }
+.comparison-heading p { margin:0; color:var(--color-text-secondary); font:13px/1.5 var(--font-dm-sans); text-align:right; }
+.comparison-scroll { position:relative; overflow-x:auto; overscroll-behavior-x:contain; -webkit-overflow-scrolling:touch; padding-bottom:6px; scrollbar-width:thin; scrollbar-color:rgba(196,148,58,.55) rgba(255,255,255,.04); }
+.comparison-scroll:focus-visible { outline:2px solid rgba(232,201,122,.7); outline-offset:3px; }
+.comparison-table { display:grid; min-width:860px; gap:1px; overflow:visible; border:1px solid rgba(245,237,214,.07); border-radius:16px; background:rgba(245,237,214,.055); box-shadow:inset 0 1px 0 rgba(255,255,255,.035); isolation:isolate; }
+.comparison-row { display:grid; grid-template-columns:minmax(190px, 1.35fr) repeat(4, minmax(132px, 1fr)); background:rgba(255,255,255,.026); }
+.comparison-row span { display:flex; align-items:center; justify-content:center; min-width:0; min-height:46px; padding:13px 12px; border-right:1px solid rgba(245,237,214,.055); color:var(--color-text-secondary); font:800 12px/1.35 var(--font-dm-sans); text-align:center; }
+.comparison-row span:first-child { position:sticky; left:0; z-index:3; justify-content:flex-start; color:var(--color-cream); background:linear-gradient(90deg, rgba(26,20,15,1), rgba(26,20,15,.99)); box-shadow:8px 0 14px rgba(10,7,5,.28); text-align:left; }
+.comparison-row span:last-child { border-right:0; }
+.comparison-row span.included { color:#17110B; font-size:0; }
+.comparison-row span.included i { display:grid; place-items:center; width:24px; height:24px; border-radius:999px; color:#17110B; background:linear-gradient(135deg, #C4943A, #D4A44A); box-shadow:0 0 22px rgba(196,148,58,.18); font:950 14px/1 var(--font-dm-sans); font-style:normal; }
+.comparison-row span.not-included { color:rgba(245,237,214,.24); }
+.comparison-head { background:rgba(196,148,58,.09); }
+.comparison-head span { min-height:50px; color:var(--color-accent-amber); font:900 10px/1.15 var(--font-jetbrains); letter-spacing:.12em; text-transform:uppercase; }
+.comparison-head span:first-child { z-index:4; color:var(--color-accent-amber); background:linear-gradient(90deg, rgba(49,35,19,1), rgba(39,29,18,.99)); }
+@media (max-width: 900px) { .july-sale-banner { grid-template-columns:1fr; grid-template-areas:"badge" "offer" "terms"; text-align:left; } .july-sale-banner p { width:max-content; } .free-preview-strip { grid-template-columns:1fr; text-align:left; } .free-preview-strip button { width:100%; } }
+@media (max-width: 760px) { .comparison-wrap { width:calc(100% - 28px); padding:16px 0 16px 16px; overflow:hidden; } .comparison-heading { display:grid; align-items:start; padding-right:16px; } .comparison-heading p { text-align:left; } .comparison-scroll { padding-right:16px; } .comparison-table { min-width:704px; border-radius:14px; } .comparison-row { grid-template-columns:132px repeat(4, 142px); } .comparison-row span { min-height:44px; padding:12px 9px; font-size:11px; } .comparison-head span { font-size:9px; letter-spacing:.10em; } }
+@media (max-width: 480px) { .comparison-scroll { padding-right:0; } .comparison-table { width:max-content; min-width:0; } .comparison-row { width:max-content; grid-template-columns:132px repeat(4, calc(100vw - 178px)); } }
 @media (max-width: 640px) {
   .launch-pricing-page { width:100%; max-width:100vw; padding-top:108px; overflow-x:clip; }
   .pricing-hero,
@@ -477,7 +487,7 @@ const pricingCss = `
   .pricing-grid,
   .pricing-error,
   .checkout-canceled,
-  .comparison-section { width:calc(100vw - 28px); max-width:calc(100vw - 28px); box-sizing:border-box; }
+  .comparison-wrap { width:calc(100vw - 28px); max-width:calc(100vw - 28px); box-sizing:border-box; }
   .pricing-grid { grid-template-columns:minmax(0, 1fr); }
   .pricing-card { width:100%; max-width:100%; box-sizing:border-box; }
   .pricing-card.founder { grid-column:auto; margin-top:20px; }
