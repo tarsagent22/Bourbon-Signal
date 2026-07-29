@@ -68,7 +68,7 @@ function optionalNumber(...values) {
   return null;
 }
 
-function canonicalizeSignal(signal, bible) {
+export function canonicalizeSignal(signal, bible) {
   const name = signal.canonicalName || signal.rawName || signal.matchedBottles?.[0]?.name || null;
   const unsafeSourceMatch = ['ID', 'IA', 'MD-MONTGOMERY', 'OH', 'UT'].includes(signal.state) && String(signal.raw?.sourceMatchStatus || signal.sourceMatchStatus || '').startsWith('source_name_kept:');
   const match = name && !unsafeSourceMatch ? bible.match(name) : null;
@@ -113,6 +113,10 @@ function canonicalizeSignal(signal, bible) {
     storeName: signal.storeName || null,
     storeId: storeId ? String(storeId) : null,
     storeAddress: signal.storeAddress || null,
+    storeUrl: signal.storeUrl || signal.raw?.storeUrl || null,
+    storePhone: signal.storePhone || signal.raw?.store?.PhoneNumber?.FormattedPhoneNumber || signal.raw?.store?.phone || null,
+    storeHours: signal.storeHours || signal.raw?.store?.hours || null,
+    shoppingCenter: signal.shoppingCenter || signal.raw?.store?.shoppingCenter || null,
     city: signal.city || null,
     county: signal.county || null,
     zip: signal.zip || signal.storeZip || signal.raw?.zip || signal.raw?.Zip || null,
@@ -120,12 +124,14 @@ function canonicalizeSignal(signal, bible) {
     lng: optionalNumber(signal.lng, signal.lon, signal.longitude, signal.raw?.lng, signal.raw?.lon, signal.raw?.longitude, signal.raw?.Longitude),
     quantity: qty(signal),
     quantityIsExact: typeof signal.quantityIsExact === 'boolean' ? signal.quantityIsExact : null,
-    reportedQuantity: signal.state === 'GA' && Number.isFinite(Number(signal.reportedQuantity ?? signal.raw?.reportedQuantity))
-      ? Number(signal.reportedQuantity ?? signal.raw?.reportedQuantity)
+    reportedQuantity: ['GA', 'VA'].includes(signal.state) && Number.isFinite(Number(signal.reportedQuantity ?? signal.raw?.reportedQuantity ?? signal.raw?.store?.quantity))
+      ? Number(signal.reportedQuantity ?? signal.raw?.reportedQuantity ?? signal.raw?.store?.quantity)
       : null,
     availabilityStatus: signal.availabilityStatus || signal.raw?.availability?.status || null,
     availabilityLabel: signal.availabilityLabel || signal.raw?.availability?.label || null,
-    sourceAvailabilityVerified: signal.sourceAvailabilityVerified === true,
+    sourceAvailabilityVerified: signal.sourceAvailabilityVerified === true || signal.raw?.sourceAvailabilityVerified === true,
+    premisesVerified: signal.premisesVerified === true || signal.raw?.premisesVerified === true,
+    fulfillmentPolicyVerified: signal.fulfillmentPolicyVerified === true,
     availabilityValue: signal.availabilityValue ?? signal.raw?.availability?.value ?? null,
     warehouseQty: Number(signal.warehouseQty ?? signal.raw?.warehouseQty ?? 0) || 0,
     price: price(signal),

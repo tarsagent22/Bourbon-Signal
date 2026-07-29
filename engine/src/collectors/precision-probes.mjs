@@ -85,8 +85,11 @@ import {
   applyVirginiaInventoryFreshness,
   evaluateVirginiaProductCoverage,
   isVirginiaRegularInventoryExpired,
+  isVirginiaRetiredOriginFailure,
   mergeVirginiaProductPartitions,
   seedVirginiaInventoryCacheSignals,
+  sanitizeVirginiaInventoryCacheSignals,
+  selectVirginiaOriginStoreRows,
   selectVirginiaProductsForRefresh,
   summarizeVirginiaProductErrors,
   throwIfVirginiaAborted,
@@ -6021,7 +6024,17 @@ async function virginiaStoreNumbers() {
     const name = String(a.LandmkName || '');
     const storeNumber = name.match(/(?:store\s*)?(\d{1,4})\b/i)?.[1];
     if (!storeNumber || !/abc/i.test(name)) continue;
-    stores.push({ storeNumber: String(Number(storeNumber)), name, city: a.City || null, address: a.Address || null });
+    stores.push({
+      storeNumber: String(Number(storeNumber)),
+      name,
+      city: a.City || null,
+      county: a.FIPSname || null,
+      address: a.Address || null,
+      zip: a.Zip || null,
+      phone: a.Phone && a.Phone !== '-' ? String(a.Phone) : null,
+      lat: Number(a.Y ?? 0) || null,
+      lng: Number(a.X ?? 0) || null
+    });
   }
   return [...new Map(stores.map((store) => [store.storeNumber, store])).values()].sort((a, b) => Number(a.storeNumber) - Number(b.storeNumber));
 }
@@ -9375,23 +9388,20 @@ async function collectNcStoreInventory(config, bible) {
   };
 }
 
-function virginiaStoreSignals(product, json, config, bible, url, supportedStoreIds = null) {
+function virginiaStoreSignals(product, json, config, bible, url, supportedStoreIds = null, origin = null) {
   const signals = [];
-  const rows = [];
-  for (const productRow of json.products || []) {
-    if (productRow.storeInfo) rows.push({ ...productRow.storeInfo, relation: 'selected_store' });
-    for (const store of productRow.nearbyStores || []) rows.push({ ...store, relation: 'nearby_store' });
-  }
-  const seen = new Set();
+  const originStoreId = String(origin?.storeNumber || '').trim();
+  const rows = selectVirginiaOriginStoreRows(json, originStoreId, product.code);
   for (const store of rows) {
-    const storeId = store.storeId || store.storeNumber || store.id;
-    const key = `${product.code}|${storeId}|${store.quantity ?? ''}`;
-    if (!storeId || (supportedStoreIds && !supportedStoreIds.has(String(storeId))) || seen.has(key)) continue;
-    seen.add(key);
+    const storeId = store.storeId ?? store.storeNumber ?? store.id;
+    if (!storeId || (supportedStoreIds && !supportedStoreIds.has(String(storeId)))) continue;
     const quantity = Number(store.quantity ?? 0) || 0;
-    const { base } = signalBase(config.id, 'Virginia ABC storeNearby inventory API', url, product.name, bible);
+    const productUrl = `https://www.abc.virginia.gov/products/bourbon/${product.slug}`;
+    const storeUrl = `https://www.abc.virginia.gov/stores/${storeId}`;
+    const apiPhone = store.PhoneNumber?.FormattedPhoneNumber || null;
+    const { base } = signalBase(config.id, 'Virginia ABC storeNearby inventory API', storeUrl, product.name, bible);
     signals.push({
-      id: stableId([config.id, product.code, storeId, quantity, store.address]),
+      id: stableId([config.id, 'va-store-nearby', product.code, storeId]),
       ...base,
       eventType: quantity > 0 ? 'store_inventory_result' : 'store_inventory_out_of_stock',
       locationPrecision: 'store_level',
@@ -9399,24 +9409,44 @@ function virginiaStoreSignals(product, json, config, bible, url, supportedStoreI
       storeName: `Virginia ABC Store ${storeId}`,
       storeId: String(storeId),
       storeAddress: store.address || [store.address1, store.address2, store.city, store.state, store.zip].filter(Boolean).join(', '),
-      city: store.city || null,
+      storeUrl: storeUrl,
+      storePhone: apiPhone || origin?.phone || null,
+      storeHours: store.hours || null,
+      shoppingCenter: store.shoppingCenter || null,
+      city: store.city || origin?.city || null,
+      county: origin?.county || null,
       stateCode: store.state || 'VA',
-      zip: store.zip || null,
-      postalCode: store.zip || null,
-      lat: Number(store.latitude ?? 0) || null,
-      lng: Number(store.longitude ?? 0) || null,
-      latitude: Number(store.latitude ?? 0) || null,
-      longitude: Number(store.longitude ?? 0) || null,
+      zip: store.zip || origin?.zip || null,
+      postalCode: store.zip || origin?.zip || null,
+      lat: Number(store.latitude ?? origin?.lat ?? 0) || null,
+      lng: Number(store.longitude ?? origin?.lng ?? 0) || null,
+      latitude: Number(store.latitude ?? origin?.lat ?? 0) || null,
+      longitude: Number(store.longitude ?? origin?.lng ?? 0) || null,
       distance: Number(store.distance ?? 0) || null,
       quantity,
+      reportedQuantity: quantity,
+      quantityIsExact: true,
       availabilityStatus: quantity > 0 ? 'in_stock' : 'out_of_stock',
       availabilityLabel: quantity > 0 ? `${quantity} reported available` : 'Out of stock',
+      sourceAvailabilityVerified: true,
+      premisesVerified: true,
       observedAt: base.fetchedAt,
       canAlertAsInventory: quantity > 0,
       canAlertAsWatch: true,
-      inventorySemantics: 'Virginia ABC public storeNearby API reports per-store inventory rows for regular catalog products. Limited-availability products may be hidden/randomized by policy outside release windows; verify before driving.',
-      evidence: `Virginia ABC API reports ${quantity} bottle(s) of ${product.name} at Store ${storeId}${store.city ? ` in ${store.city}` : ''}. ${product.limitedCaveat ? 'Limited-availability products may be intentionally hidden/randomized by policy outside release windows.' : 'Normal product inventory signal.'}`,
-      raw: { product, store }
+      inventorySemantics: 'Virginia ABC public storeNearby API reports an exact source quantity for the selected official store at collection time. Inventory can move quickly and is not a reservation; verify before driving.',
+      evidence: `Virginia ABC reports ${quantity} bottle(s) of ${product.name} at Store ${storeId}${store.city ? ` in ${store.city}` : ''}. ${product.limitedCaveat ? 'Limited-availability products may be intentionally hidden or randomized outside authorized release windows.' : 'This is a normal-product inventory reading.'} Verify before driving.`,
+      raw: {
+        product: { ...product, url: productUrl },
+        store,
+        originStoreId,
+        inventoryEndpoint: url,
+        storeUrl,
+        productUrl,
+        sourceQuantityReported: true,
+        sourceAvailabilityVerified: true,
+        premisesVerified: true,
+        virginiaCacheSchemaVersion: 2
+      }
     });
   }
   return signals;
@@ -9446,21 +9476,22 @@ function virginiaRetryAfterMs(response, fallbackMs) {
 }
 
 async function fetchVirginiaInventoryOrigin(product, origin, signal, sharedRateLimitState) {
-  const url = `https://www.abc.virginia.gov/webapi/inventory/storeNearby?storeNumber=${encodeURIComponent(origin.storeNumber)}&productCode=${encodeURIComponent(product.code)}&mileRadius=999&storeCount=5&buffer=0`;
+  const originStoreId = String(origin.storeNumber);
+  const url = `https://www.abc.virginia.gov/webapi/inventory/storeNearby?storeNumber=${encodeURIComponent(originStoreId)}&productCode=${encodeURIComponent(product.code)}&mileRadius=999&storeCount=5&buffer=0`;
   const attempts = Math.max(1, Math.min(4, Number(process.env.BOURBON_SIGNAL_VA_SOURCE_ATTEMPTS || 3)));
   const retryDelayMs = Math.max(500, Number(process.env.BOURBON_SIGNAL_VA_RETRY_DELAY_MS || 2_000));
   for (let attempt = 1; attempt <= attempts; attempt += 1) {
     throwIfVirginiaAborted(signal);
     if (sharedRateLimitState?.tripped) {
-      return { ok: false, url, status: 429, error: `Virginia ABC shared rate-limit circuit is open until ${new Date(sharedRateLimitState.blockedUntil).toISOString()}.` };
+      return { ok: false, origin, originStoreId, url, status: 429, error: `Virginia ABC shared rate-limit circuit is open until ${new Date(sharedRateLimitState.blockedUntil).toISOString()}.` };
     }
     const res = await textFetch(url, { signal, headers: { accept: 'application/json,*/*', referer: `https://www.abc.virginia.gov/products/bourbon/${product.slug}` } });
     throwIfVirginiaAborted(signal);
     if (res.ok) {
       try {
-        return { ok: true, url, json: JSON.parse(res.text) };
+        return { ok: true, origin, originStoreId, url, json: JSON.parse(res.text) };
       } catch (error) {
-        return { ok: false, url, status: res.status, error: `Invalid Virginia ABC JSON: ${error.message}` };
+        return { ok: false, origin, originStoreId, url, status: res.status, error: `Invalid Virginia ABC JSON: ${error.message}` };
       }
     }
     if (Number(res.status) === 429) {
@@ -9469,19 +9500,20 @@ async function fetchVirginiaInventoryOrigin(product, origin, signal, sharedRateL
         sharedRateLimitState.tripped = true;
         sharedRateLimitState.blockedUntil = Math.max(sharedRateLimitState.blockedUntil || 0, Date.now() + blockedForMs);
       }
-      return { ok: false, url, status: 429, error: `Virginia ABC rate limit opened the shared circuit for at least ${blockedForMs} ms.` };
+      return { ok: false, origin, originStoreId, url, status: 429, error: `Virginia ABC rate limit opened the shared circuit for at least ${blockedForMs} ms.` };
     }
     const retryable = Number(res.status) >= 500 || Number(res.status) === 0;
-    if (!retryable || attempt === attempts) return { ok: false, url, status: res.status, error: res.text.slice(0, 300) };
+    if (!retryable || attempt === attempts) return { ok: false, origin, originStoreId, url, status: res.status, error: res.text.slice(0, 300) };
     await virginiaAbortableDelay(retryDelayMs * attempt + Math.floor(Math.random() * 500), signal);
   }
-  return { ok: false, url, status: 0, error: 'Virginia ABC request attempts exhausted.' };
+  return { ok: false, origin, originStoreId, url, status: 0, error: 'Virginia ABC request attempts exhausted.' };
 }
 
 async function collectVirginia(config, bible, options = {}) {
   const roadblocks = [];
   const cached = await readCachedVirginiaSignals();
   const rawCachedSignals = cached.signals || [];
+  const sanitizedCachedSignals = sanitizeVirginiaInventoryCacheSignals(rawCachedSignals);
   let stores = [{ storeNumber: '101', name: 'Virginia ABC Store 101' }];
   let storeUniverseVerified = false;
   try {
@@ -9493,11 +9525,13 @@ async function collectVirginia(config, bible, options = {}) {
   }
 
   const expectedStoreIds = new Set(stores.map((store) => String(store.storeNumber)));
+  const retiredOriginStoreIds = new Set();
   const supportedCachedSignals = storeUniverseVerified
-    ? rawCachedSignals.filter((signal) => expectedStoreIds.has(String(signal.storeId || '')))
-    : rawCachedSignals;
+    ? sanitizedCachedSignals.filter((signal) => expectedStoreIds.has(String(signal.storeId || '')))
+    : sanitizedCachedSignals;
+  const cacheNeedsSanitization = supportedCachedSignals.length !== rawCachedSignals.length
+    || supportedCachedSignals.some((signal) => signal.raw?.legacyVirginiaCache === true);
   const cachedSignals = supportedCachedSignals;
-  const cacheNeedsSanitization = storeUniverseVerified && supportedCachedSignals.length !== rawCachedSignals.length;
   const nowMs = Date.now();
   const cachedProductCodes = new Set(cachedSignals.map(virginiaProductCode).filter(Boolean));
   const missingCachedProductCodes = new Set(VIRGINIA_PRODUCTS.map((product) => product.code).filter((code) => !cachedProductCodes.has(code)));
@@ -9535,7 +9569,9 @@ async function collectVirginia(config, bible, options = {}) {
         stopForRateLimit = true;
         break;
       }
-      const batch = stores.slice(i, i + batchSize);
+      const batch = stores
+        .slice(i, i + batchSize)
+        .filter((origin) => !retiredOriginStoreIds.has(String(origin.storeNumber)));
       const results = await Promise.allSettled(batch.map((origin) => fetchVirginiaInventoryOrigin(product, origin, options.signal, sharedRateLimitState)));
       throwIfVirginiaAborted(options.signal);
       for (const result of results) {
@@ -9544,11 +9580,25 @@ async function collectVirginia(config, bible, options = {}) {
           continue;
         }
         if (!result.value.ok) {
+          if (isVirginiaRetiredOriginFailure(result.value)) {
+            retiredOriginStoreIds.add(result.value.originStoreId);
+            expectedStoreIds.delete(result.value.originStoreId);
+            continue;
+          }
           if (Number(result.value.status) === 429) stopForRateLimit = true;
           productErrors.push(result.value);
           continue;
         }
-        for (const signal of virginiaStoreSignals(product, result.value.json, config, bible, result.value.url, expectedStoreIds)) {
+        const originSignals = virginiaStoreSignals(product, result.value.json, config, bible, result.value.url, expectedStoreIds, result.value.origin);
+        if (!originSignals.length) {
+          productErrors.push({
+            status: 200,
+            url: result.value.url,
+            error: `Virginia ABC response did not contain the selected origin store ${result.value.originStoreId}.`
+          });
+          continue;
+        }
+        for (const signal of originSignals) {
           if (seenSignalIds.has(signal.id)) continue;
           seenSignalIds.add(signal.id);
           productSignals.push(signal);
@@ -9588,8 +9638,9 @@ async function collectVirginia(config, bible, options = {}) {
   }
 
   throwIfVirginiaAborted(options.signal);
-  const mergedSignals = mergeVirginiaProductPartitions(cachedSignals, livePartitions, completedProductCodes);
-  if (completedProductCodes.size || cacheNeedsSanitization) {
+  const mergedSignals = mergeVirginiaProductPartitions(cachedSignals, livePartitions, completedProductCodes)
+    .filter((signal) => !storeUniverseVerified || expectedStoreIds.has(String(signal.storeId || '')));
+  if (completedProductCodes.size || cacheNeedsSanitization || retiredOriginStoreIds.size) {
     throwIfVirginiaAborted(options.signal);
     await writeCachedVirginiaSignals(mergedSignals, options.signal);
   }
@@ -9620,6 +9671,7 @@ async function collectVirginia(config, bible, options = {}) {
       virginia: {
         supportedOriginStoreIds: [...expectedStoreIds].sort((a, b) => Number(a) - Number(b)),
         supportedOriginStoreCount: expectedStoreIds.size,
+        retiredOriginStoreIds: [...retiredOriginStoreIds].sort((a, b) => Number(a) - Number(b)),
         storeUniverseVerified,
         completedProductCodes: [...completedProductCodes],
         selectedProductCodes: selectedProducts.map((product) => product.code)

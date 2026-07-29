@@ -341,6 +341,10 @@ function publicSignal(signal, bible, freshness = null) {
     storeName: signal.storeName,
     storeId: signal.storeId,
     storeAddress: signal.storeAddress,
+    storeUrl: signal.storeUrl || null,
+    storePhone: signal.storePhone || null,
+    storeHours: signal.storeHours || null,
+    shoppingCenter: signal.shoppingCenter || null,
     city: signal.city,
     area: signal.area || (demandMetroAreaMatchesFields(signal.state, [signal.city, signal.storeAddress, signal.locationName], [demandMetroAreaLabel(signal.state)])
       ? demandMetroAreaLabel(signal.state)
@@ -353,7 +357,7 @@ function publicSignal(signal, bible, freshness = null) {
     boardShipmentQuantity: signal.boardShipmentQuantity ?? null,
     shipmentStoreEquivalent: signal.shipmentStoreEquivalent === true,
     quantityIsExact: typeof signal.quantityIsExact === 'boolean' ? signal.quantityIsExact : null,
-    reportedQuantity: ['GA', 'TN', 'NY', 'CO'].includes(signal.state) && signal.reportedQuantity != null && Number.isFinite(Number(signal.reportedQuantity))
+    reportedQuantity: ['GA', 'TN', 'NY', 'CO', 'VA'].includes(signal.state) && signal.reportedQuantity != null && Number.isFinite(Number(signal.reportedQuantity))
       ? Number(signal.reportedQuantity)
       : null,
     availabilityStatus: signal.availabilityStatus,
