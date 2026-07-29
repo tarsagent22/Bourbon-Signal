@@ -49,7 +49,7 @@ const STATIC_BOARD_TARGETS = [
   { boardName: 'Durham County ABC Board', urls: ['https://www.durhamabc.com/drops', 'https://www.durhamabc.com/news'], capability: 'board_drop_posts' },
   { boardName: 'Mecklenburg County ABC Board', urls: ['https://www.meckabc.com/store_operations/specialty_products_lottery.php', 'https://www.meckabc.com/products/index.php'], capability: 'lottery_and_product_search' },
   { boardName: 'High Point ABC Board', urls: ['https://www.highpointabc.com/products', 'https://www.highpointabc.com/pages/view-inventory'], capability: 'inventory_or_product_search_page' },
-  { boardName: 'New Hanover County ABC Board', urls: ['https://www.newhanovercountyabc.com/bourbon-blast/', 'https://www.newhanovercountyabc.com/barrels/', 'https://www.newhanovercountyabc.com/lottery/', 'https://nh.abcgo.app/'], capability: 'board_release_notifications' },
+  { boardName: 'New Hanover County ABC Board', urls: ['https://www.newhanovercountyabc.com/bourbon-blast/', 'https://www.newhanovercountyabc.com/barrels/', 'https://www.newhanovercountyabc.com/sales/', 'https://www.newhanovercountyabc.com/lottery/', 'https://www.newhanovercountyabc.com/feed/', 'https://www.newhanovercountyabc.com/wp-json/wp/v2/posts', 'https://nh.abcgo.app/'], capability: 'board_release_notifications' },
   { boardName: 'New Hanover County ABC Board', urls: ['https://www.newhanovercountyabc.com/allocated-products/'], capability: 'allocated_product_release_page' },
   { boardName: 'Greensboro ABC Board', urls: ['https://www.greensboroabc.com/greensboro-abc-lottery/'], capability: 'lottery_page' },
   { boardName: 'Orange County ABC Board', urls: ['https://orangeabc.com/specialty-lottery/'], capability: 'lottery_page' },
@@ -61,9 +61,9 @@ const STATIC_BOARD_TARGETS = [
 
 const CANDIDATE_PATHS = [
   '/', '/products', '/product-search', '/inventory', '/search-our-inventory', '/search-results',
-  '/allocation-policy', '/lottery', '/bourbon-blast', '/barrels', '/drops', '/news', '/announcements',
+  '/allocation-policy', '/lottery', '/bourbon-blast', '/barrels', '/sales', '/drops', '/news', '/announcements', '/feed', '/wp-json/wp/v2/posts',
   '/specialty-products', '/limited-release', '/release-calendar', '/pages/view-inventory', '/blog', '/abc-policy-for-allocation-and-sale-of-special-liquors',
-  '/store_operations/specialty_products_lottery.php', '/products/index.php', '/sitemap.xml'
+  '/store_operations/specialty_products_lottery.php', '/products/index.php', '/sitemap.xml', '/wp-sitemap.xml'
 ];
 
 function decodeHtml(text = '') {

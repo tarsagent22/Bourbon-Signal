@@ -57,6 +57,7 @@ export interface CoverageLocationInput {
   searchable?: boolean;
   collectorAttached?: boolean;
   hasSignals?: boolean;
+  notes?: string | null;
 }
 
 export interface CoverageStoreInput {
@@ -79,6 +80,23 @@ export interface CoverageLayerCounts {
   alertGrade: number;
 }
 
+export interface CoverageScopeCounts {
+  knownBoards: number;
+  shipmentBoards: number;
+  searchableStores: number;
+  inventoryMonitoredStores: number;
+  singleStoreShipmentBoards: number;
+}
+
+export interface CoverageNcBoardIntelligenceInput {
+  boardCount?: number;
+  officialStoreCount?: number;
+  representedAreaCount?: number;
+  boardsWithTrackedShipments?: number;
+  singleStoreShipmentBoardCount?: number;
+  unresolvedShipmentBoardIdentityCount?: number;
+}
+
 export interface CoverageState {
   code: string;
   name: string;
@@ -93,6 +111,7 @@ export interface CoverageState {
   representedAreaCount: number;
   monitoredStoreCount: number;
   layers: CoverageLayerCounts;
+  scope: CoverageScopeCounts;
   canSee: string[];
   cannotSee: string[];
   fingerprint: string;
@@ -404,14 +423,20 @@ function stateAreas(
     ...(lifecycleEntry?.areaOptions || []),
     ...(row?.areaOptions || []),
   ].map((value) => cleanText(value, 120)).filter((value): value is string => Boolean(value));
-  const candidateAreas = configuredAreas.length
-    ? configuredAreas
-    : [
-        lifecycleEntry?.customerAreaLabel,
-        row?.customerAreaLabel,
-        ...locations.flatMap((location) => [location.city, location.county]),
-        ...stores.flatMap((store) => [store.city, store.county]),
-      ];
+  const isNorthCarolina = locations.some((location) => String(location.state || "").toUpperCase() === "NC");
+  const ncStoreAreas = locations
+    .filter((location) => /NC ABC Commission store locator/i.test(String(location.source || "")))
+    .flatMap((location) => [location.city, location.county]);
+  const candidateAreas = isNorthCarolina
+    ? ncStoreAreas
+    : configuredAreas.length
+      ? configuredAreas
+      : [
+          lifecycleEntry?.customerAreaLabel,
+          row?.customerAreaLabel,
+          ...locations.flatMap((location) => [location.city, location.county]),
+          ...stores.flatMap((store) => [store.city, store.county]),
+        ];
   for (const value of candidateAreas) {
     const cleaned = cleanText(value, 120);
     if (!cleaned) continue;
@@ -423,9 +448,11 @@ function stateAreas(
 }
 
 function visibilityCopy(
+  stateCode: string,
   coverageTier: string,
   capability: CoverageCapability,
   layers: CoverageLayerCounts,
+  scope: CoverageScopeCounts,
   summary: string,
 ) {
   if (capability === "not-active") {
@@ -435,6 +462,18 @@ function visibilityCopy(
     };
   }
   if (coverageTier === "live_store_inventory") {
+    if (stateCode === "NC") {
+      return {
+        canSee: [
+          `${scope.shipmentBoards} ABC boards represented by official shipment intelligence and ${scope.inventoryMonitoredStores} stores with direct inventory monitoring.`,
+          `${scope.singleStoreShipmentBoards} single-store boards provide qualified store-equivalent shipment intelligence because each board has only one official storefront.`,
+        ],
+        cannotSee: [
+          "A board shipment is not a shelf confirmation—even for a single-store board—and never becomes inventory-alert-ready without current store evidence.",
+          "Most NC boards do not publish continuous exact-store inventory; verify availability before driving.",
+        ],
+      };
+    }
     return {
       canSee: ["Current source-backed store monitoring at the precision stated above."],
       cannotSee: [
@@ -498,6 +537,7 @@ function buildState(args: {
   stores: readonly CoverageStoreInput[];
   degradedStates: readonly Record<string, unknown>[];
   healthLimited: boolean;
+  ncBoardIntelligence?: CoverageNcBoardIntelligenceInput | null;
 }) {
   const internalStateKey = coverageInternalStateKey(args.code, args.lifecycle);
   const lifecycleEntry = args.lifecycle.states[internalStateKey];
@@ -539,6 +579,37 @@ function buildState(args: {
     live: Math.max(liveStores, nonnegativeLayerCount(configuredLayers?.live)),
     alertGrade: Math.max(alertGradeStores, nonnegativeLayerCount(configuredLayers?.alertGrade)),
   };
+  const boardLocations = locations.filter((location) => /county_board/i.test(String(location.type || location.locationType || ""))
+    && /NC ABC Commission board list/i.test(String(location.source || "")));
+  const officialStoreLocations = locations.filter((location) => isStoreLocation(location)
+    && /NC ABC Commission store locator/i.test(String(location.source || ""))
+    && location.searchable !== false);
+  const shipmentBoards = new Set(locations
+    .filter((location) => /NC ABC Stock Shipped Data/i.test(String(location.source || "")))
+    .map((location) => cleanText(location.name, 180))
+    .filter(Boolean));
+  const officialStoresByBoard = new Map<string, Set<string>>();
+  for (const location of officialStoreLocations) {
+    const boardName = cleanText(location.notes, 600).match(/\bfor (.+? ABC (?:Board|Commission)) \(board id\b/i)?.[1] || "";
+    if (!boardName) continue;
+    const boardStores = officialStoresByBoard.get(boardName) || new Set<string>();
+    boardStores.add(cleanText(location.id, 160) || `${cleanText(location.address, 220)}|${cleanText(location.city, 120)}`);
+    officialStoresByBoard.set(boardName, boardStores);
+  }
+  const hasCanonicalNcStats = args.code === "NC"
+    && Number.isFinite(Number(args.ncBoardIntelligence?.officialStoreCount))
+    && Number.isFinite(Number(args.ncBoardIntelligence?.singleStoreShipmentBoardCount));
+  const scope: CoverageScopeCounts = {
+    knownBoards: hasCanonicalNcStats ? nonnegativeLayerCount(args.ncBoardIntelligence?.boardCount) : boardLocations.length,
+    shipmentBoards: hasCanonicalNcStats ? nonnegativeLayerCount(args.ncBoardIntelligence?.boardsWithTrackedShipments) : shipmentBoards.size,
+    searchableStores: hasCanonicalNcStats ? nonnegativeLayerCount(args.ncBoardIntelligence?.officialStoreCount) : officialStoreLocations.length || storeRecords.filter((store) => store.searchable).length,
+    inventoryMonitoredStores: liveStores,
+    singleStoreShipmentBoards: hasCanonicalNcStats
+      ? nonnegativeLayerCount(args.ncBoardIntelligence?.singleStoreShipmentBoardCount)
+      : args.code === "NC"
+        ? Array.from(officialStoresByBoard.entries()).filter(([boardName, boardStores]) => boardStores.size === 1 && shipmentBoards.has(boardName)).length
+        : 0,
+  };
   const hasReviewedKnownLayer = capability === "not-active" && layers.known > 0;
   const summary = capability === "not-active"
     ? hasReviewedKnownLayer
@@ -547,7 +618,7 @@ function buildState(args: {
     : cleanText(row?.customerSummary || lifecycleEntry?.customerSummary, 600)
       || "Current source-backed coverage is available at the precision shown here.";
   const areas = stateAreas(lifecycleEntry, row, locations, storeRecords);
-  const copy = visibilityCopy(tier, capability, layers, summary);
+  const copy = visibilityCopy(args.code, tier, capability, layers, scope, summary);
   const precisions = capability === "not-active" ? [] : precisionLabels(lifecycleEntry, row, locations, storeRecords);
   const state: CoverageState = {
     code: args.code,
@@ -565,6 +636,7 @@ function buildState(args: {
     representedAreaCount: areas.length,
     monitoredStoreCount: storeRecords.filter((store) => currentSource && store.monitoringAttached).length,
     layers,
+    scope,
     canSee: copy.canSee,
     cannotSee: copy.cannotSee,
     fingerprint: "",
@@ -579,6 +651,11 @@ function buildState(args: {
     state.layers.catalogWatch,
     state.layers.live,
     state.layers.alertGrade,
+    state.scope.knownBoards,
+    state.scope.shipmentBoards,
+    state.scope.searchableStores,
+    state.scope.inventoryMonitoredStores,
+    state.scope.singleStoreShipmentBoards,
   ].join("|");
   return state;
 }
@@ -591,6 +668,7 @@ export function buildCoverageContract(args: {
   degradedStates?: readonly Record<string, unknown>[];
   generatedAt?: string;
   healthLimited?: boolean;
+  ncBoardIntelligence?: CoverageNcBoardIntelligenceInput | null;
 }): CoverageContract {
   const stateRows = args.stateRows || [];
   const locations = args.locations || [];
@@ -608,6 +686,7 @@ export function buildCoverageContract(args: {
       stores,
       degradedStates,
       healthLimited: args.healthLimited === true,
+      ncBoardIntelligence: args.ncBoardIntelligence,
     })),
   };
 }

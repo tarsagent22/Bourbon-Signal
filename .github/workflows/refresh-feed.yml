@@ -145,8 +145,13 @@ jobs:
         working-directory: engine
         run: npm run verify:va
 
-      - name: Verify Pennsylvania FWGS exact-store inventory recovery
-        if: ${{ !inputs.states || contains(inputs.states, 'PA') }}
+      - name: Verify Pennsylvania scheduled lane or isolate a safe stale fallback
+        if: ${{ !inputs.states }}
+        working-directory: engine
+        run: npm run verify:pa -- --allow-safe-stale-fallback
+
+      - name: Verify Pennsylvania targeted exact-store recovery
+        if: ${{ inputs.states && contains(inputs.states, 'PA') }}
         working-directory: engine
         run: npm run verify:pa
 

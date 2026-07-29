@@ -3,6 +3,7 @@ import path from 'node:path';
 
 const OUT = path.resolve('out');
 const MAX_AGE_HOURS = Number(process.env.PA_STORE_INVENTORY_MAX_AGE_HOURS || 72);
+const ALLOW_SAFE_STALE_FALLBACK = process.argv.includes('--allow-safe-stale-fallback');
 
 async function readJson(file, fallback) {
   try { return JSON.parse(await readFile(file, 'utf8')); }
@@ -29,6 +30,7 @@ async function main() {
   const fwgs = await readJson(path.join(OUT, 'browser', 'fwgs-store-inventory.json'));
   const browserRefreshStatus = await readJson(path.join(OUT, 'browser-refresh-status.json'), null);
   const siteRefreshStatus = await readJson(path.join(OUT, 'site-refresh-status.json'), null);
+  const stateReport = await readJson(path.join(OUT, 'states', 'PA.json'), null);
 
   const signals = (snapshot.signals || []).filter((signal) => signal.state === 'PA');
   const storeSignals = signals.filter((signal) => signal.eventType === 'store_inventory_result' && signal.locationPrecision === 'store_level');
@@ -53,6 +55,13 @@ async function main() {
   const badDropCoordinates = exactDrops.filter((drop) => !coordinateInPennsylvania(drop.lat, drop.lng));
   const licenseeServiceCenterDrops = exactDrops.filter((drop) => /LICENSEE SERVICE CENTER/i.test(`${drop.storeName || ''} ${drop.locationName || ''}`));
   const licenseeServiceCenterAlerts = inventorySignals.filter((signal) => /LICENSEE SERVICE CENTER/i.test(`${signal.storeName || ''} ${signal.locationName || ''}`) && signal.canAlertAsInventory);
+  const safeFallback = ALLOW_SAFE_STALE_FALLBACK
+    && stateReport?.stale === true
+    && /^stale_useful_retained_/.test(String(stateReport?.status || ''))
+    && Boolean(String(stateReport?.staleReason || '').trim());
+  const retainedSignals = Array.isArray(stateReport?.signals) ? stateReport.signals : [];
+  const unsafeRetainedSignals = retainedSignals.filter((signal) => signal.stale !== true || signal.canAlertAsInventory || signal.canAlertAsWatch);
+  const unsafeFallbackDrops = exactDrops.filter((drop) => drop.canAlertAsInventory || drop.canAlertAsWatch);
 
   assert(fwgs.summary?.positiveInventoryRowCount >= 1000, 'FWGS browser artifact has too few positive PA inventory rows.', fwgs.summary);
   assert((fwgs.summary?.searchTermCount || fwgs.searchTerms?.length || 0) >= 30, 'FWGS PA search term mesh is too narrow for shipment-week unicorn/allocated discovery.', fwgs.summary);
@@ -60,24 +69,31 @@ async function main() {
   assert(Number(fwgs.summary?.invalidCoordinateCount || 0) === 0, 'FWGS browser artifact has invalid PA coordinates after normalization.', fwgs.summary);
   assert(ageHours(fwgs.generatedAt) <= MAX_AGE_HOURS, 'FWGS browser artifact is stale.', { generatedAt: fwgs.generatedAt, maxAgeHours: MAX_AGE_HOURS });
   const paRefresh = (browserRefreshStatus?.results || []).find((result) => result.id === 'pa-fwgs');
-  assert(!paRefresh || (['refreshed', 'fresh_artifact_reused'].includes(paRefresh.status) && !paRefresh.preservedPreviousArtifact), 'PA browser refresh status indicates a failed/preserved FWGS artifact.', paRefresh);
+  assert(!ALLOW_SAFE_STALE_FALLBACK || safeFallback || (!paRefresh || (['refreshed', 'fresh_artifact_reused'].includes(paRefresh.status) && !paRefresh.preservedPreviousArtifact)), 'PA scheduled fallback must be an explicitly stale, reason-labeled retained state report.', { status: stateReport?.status, stale: stateReport?.stale, staleReason: stateReport?.staleReason, paRefresh });
+  assert(safeFallback || !paRefresh || (['refreshed', 'fresh_artifact_reused'].includes(paRefresh.status) && !paRefresh.preservedPreviousArtifact), 'PA browser refresh status indicates a failed/preserved FWGS artifact.', paRefresh);
   const latestScheduledAttemptMs = Date.parse(siteRefreshStatus?.lastBrowserAttemptAt || '');
   const latestSuccessfulFwgsMs = Math.max(
     Date.parse(siteRefreshStatus?.lastBrowserRefreshAt || '') || 0,
     Date.parse(fwgs.generatedAt || '') || 0,
   );
-  assert(!Number.isFinite(latestScheduledAttemptMs) || latestSuccessfulFwgsMs >= latestScheduledAttemptMs, 'Latest scheduled FWGS browser attempt failed or preserved an older artifact.', {
+  assert(safeFallback || !Number.isFinite(latestScheduledAttemptMs) || latestSuccessfulFwgsMs >= latestScheduledAttemptMs, 'Latest scheduled FWGS browser attempt failed or preserved an older artifact.', {
     lastBrowserAttemptAt: siteRefreshStatus?.lastBrowserAttemptAt || null,
     lastBrowserRefreshAt: siteRefreshStatus?.lastBrowserRefreshAt || null,
     artifactGeneratedAt: fwgs.generatedAt || null,
     warnings: siteRefreshStatus?.warnings || [],
   });
   assert(storeSignals.length >= 1000, 'PA store-level signal count is below threshold.', storeSignals.length);
-  assert(inventorySignals.length >= 1000, 'PA inventory-alertable signal count is below threshold.', inventorySignals.length);
+  if (safeFallback) {
+    assert(retainedSignals.length >= 1000, 'PA retained fallback signal count is below threshold.', retainedSignals.length);
+    assert(!unsafeRetainedSignals.length, 'PA retained fallback signals must all be stale and non-alertable.', unsafeRetainedSignals.slice(0, 10));
+    assert(!unsafeFallbackDrops.length, 'PA retained fallback drops must not be alertable.', unsafeFallbackDrops.slice(0, 10));
+  } else {
+    assert(inventorySignals.length >= 1000, 'PA inventory-alertable signal count is below threshold.', inventorySignals.length);
+  }
   assert(exactDrops.length >= 1000, 'PA site exact-store drop count is below threshold.', exactDrops.length);
   assert(stores.length >= 450, 'PA site store count is below threshold.', stores.length);
   assert(locations.length >= stores.length, 'PA locations should include at least all PA stores.', { stores: stores.length, locations: locations.length });
-  assert(!staleExactDrops.length, 'PA exact-store user-facing drops include stale inventory.', staleExactDrops.slice(0, 10));
+  if (!safeFallback) assert(!staleExactDrops.length, 'PA exact-store user-facing drops include stale inventory.', staleExactDrops.slice(0, 10));
   assert(!falseFreshExactDrops.length, 'PA exact-store drops must not re-report unchanged inventory as fresh.', falseFreshExactDrops.slice(0, 10));
   assert(!missingStoreIds.length, 'PA exact-store drops are missing storeId needed for dashboard store targeting.', missingStoreIds.slice(0, 10));
   assert(!unmatchedDropStores.length, 'PA exact-store drops reference store ids not present in stores export.', unmatchedDropStores.slice(0, 10));

@@ -20,6 +20,7 @@ import { registeredDemandMetroStores } from './demand-metro-registry.mjs';
 import { demandMetroAreaLabel, demandMetroAreaMatchesFields } from './demand-metro-areas.mjs';
 import { attachRunIdentity, verifyRunCoherence } from './site-run-coherence.mjs';
 import { detectDropCollapseFallbacks, mergePartialRefreshDrops } from './partial-refresh-contract.mjs';
+import { buildNcBoardCoverageSummary } from './nc-coverage-summary.mjs';
 
 const OUT = path.resolve('out');
 const SNAPSHOTS = path.join(OUT, 'history', 'snapshots');
@@ -1764,6 +1765,7 @@ async function main() {
     throw new Error(`State quality regression blocked site export: ${stateQualityRegression.failures.join(' ')}`);
   }
   const historicalSignalCount = Math.max(historicalSignals.length, Number(previousStats.historicalSignalCount || 0));
+  const ncBoardCoverageSummary = buildNcBoardCoverageSummary(activeOfficialLocations, ncIntelligenceRaw);
   const stats = {
     contractVersion: CONTRACT_VERSION,
     ...runIdentity,
@@ -1804,14 +1806,7 @@ async function main() {
     stateCoverage,
     stateQuality: stateQuality.summary,
     southeastReadiness,
-    ncBoardIntelligence: ncIntelligenceRaw ? {
-      boardCount: ncIntelligenceRaw.coverage?.boardCount || 0,
-      boardsWithWebsites: ncIntelligenceRaw.coverage?.withWebsite || 0,
-      boardsWithTrackedShipments: ncIntelligenceRaw.coverage?.withTrackedShipments || 0,
-      boardsWithReleasePages: ncIntelligenceRaw.coverage?.withReleasePages || 0,
-      boardsWithInventoryPages: ncIntelligenceRaw.coverage?.withInventoryPages || 0,
-      sourcePolicy: ncIntelligenceRaw.sourcePolicy
-    } : null,
+    ncBoardIntelligence: ncBoardCoverageSummary,
     locationBibleSources: activeOfficialSourceReports,
     historicalTrends: historicalTrends.slice(0, 25),
     sourceCaveat: 'Standalone engine export only. Candidate alerts are not sent to users until app integration and alert policy are explicitly enabled.'
