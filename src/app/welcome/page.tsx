@@ -1,6 +1,21 @@
 "use client";
 
 import Link from "next/link";
+import {
+  ArrowUpRight,
+  BellRing,
+  CalendarDays,
+  Clock3,
+  Compass,
+  Gauge,
+  LayoutDashboard,
+  Map as MapIcon,
+  MapPin,
+  Radio,
+  Search,
+  Store,
+  UsersRound,
+} from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Footer from "@/components/Footer";
 import Navigation from "@/components/Navigation";
@@ -358,11 +373,14 @@ export default function WelcomePage() {
 
           {activeState ? (
             <>
-              <section className={styles.section} aria-labelledby="state-preview-heading">
+              <section className={`${styles.section} ${styles.signalSection}`} aria-labelledby="state-preview-heading">
                 <div className={styles.sectionHeading}>
-                  <div>
-                    <p className={styles.stepLabel}>Your latest state preview</p>
-                    <h2 id="state-preview-heading">{activeStateName}</h2>
+                  <div className={styles.headingGroup}>
+                    <span className={styles.landmark} aria-hidden="true">01</span>
+                    <div>
+                      <p className={styles.stepLabel}>Your latest state preview</p>
+                      <h2 id="state-preview-heading">{activeStateName}</h2>
+                    </div>
                   </div>
                   {!editingState ? (
                     <button
@@ -379,23 +397,30 @@ export default function WelcomePage() {
                 </div>
 
                 {previewLoading ? (
-                  <p className={styles.loading} aria-live="polite">Checking the latest eligible signals and live coverage…</p>
+                  <p className={styles.loading} aria-live="polite">Checking current signals and coverage…</p>
                 ) : (
                   <>
-                    <p className={styles.previewMessage}>{previewMessage}</p>
+                    <div className={styles.previewStatus}>
+                      <Radio size={15} aria-hidden="true" />
+                      <p>{previewMessage}</p>
+                    </div>
                     {drops.length ? (
                       <ol className={styles.signalList}>
                         {drops.map((drop, index) => (
                           <li key={`${drop.timestamp}-${drop.store_id || drop.board_name || index}`}>
-                            <div className={styles.signalHeading}>
-                              <strong>{signalName(drop)}</strong>
-                              <span>{cleanLabel(drop.signal_label || drop.rarity_tier) || "Eligible signal"}</span>
+                            <div className={styles.signalTopline}>
+                              <span className={styles.signalBadge}>{cleanLabel(drop.signal_label || drop.rarity_tier) || "Eligible signal"}</span>
+                              <span className={styles.signalTime}><Clock3 size={12} aria-hidden="true" />{signalTime(drop)}</span>
                             </div>
-                            <dl>
-                              <div><dt>Freshness</dt><dd>{signalTime(drop)}</dd></div>
-                              <div><dt>Location</dt><dd>{signalLocation(drop, activeStateName)}</dd></div>
-                              <div><dt>Source</dt><dd>{signalSource(drop)}</dd></div>
-                            </dl>
+                            <h3>{signalName(drop)}</h3>
+                            <div className={styles.signalLocation}>
+                              <MapPin size={14} aria-hidden="true" />
+                              <strong>{signalLocation(drop, activeStateName)}</strong>
+                            </div>
+                            <div className={styles.signalSource}>
+                              <span>Source</span>
+                              <strong>{signalSource(drop)}</strong>
+                            </div>
                           </li>
                         ))}
                       </ol>
@@ -404,40 +429,43 @@ export default function WelcomePage() {
                 )}
               </section>
 
-              <section className={styles.section} aria-labelledby="coverage-depth-heading">
+              <section className={`${styles.section} ${styles.coverageSection}`} aria-labelledby="coverage-depth-heading">
                 <div className={styles.sectionHeading}>
-                  <div>
-                    <p className={styles.stepLabel}>Live coverage depth</p>
-                    <h2 id="coverage-depth-heading">What Bourbon Signal can see now</h2>
+                  <div className={styles.headingGroup}>
+                    <span className={styles.landmark} aria-hidden="true">02</span>
+                    <div>
+                      <p className={styles.stepLabel}>Live coverage depth</p>
+                      <h2 id="coverage-depth-heading">What we can see now</h2>
+                    </div>
                   </div>
-                  <Link href={`/coverage?state=${encodeURIComponent(activeState)}`}>Open coverage map</Link>
+                  <Link className={styles.sectionAction} href={`/coverage?state=${encodeURIComponent(activeState)}`}><MapIcon size={14} aria-hidden="true" />Coverage map</Link>
                 </div>
                 {coverageError ? <p className={styles.previewMessage}>{coverageError}</p> : null}
                 {coverageState ? (
                   <>
-                    <p className={styles.coverageSummary}>{coverageState.summary}</p>
-                    {coverageState.sourceLabel ? (
-                      <p className={styles.coverageSource}>Primary source: <strong>{coverageState.sourceLabel}</strong></p>
-                    ) : null}
+                    <div className={styles.coverageOverview}>
+                      <div className={styles.coverageBadges}>
+                        <span><Gauge size={13} aria-hidden="true" />{coverageState.capabilityLabel}</span>
+                        <span data-health={coverageState.health}><Radio size={13} aria-hidden="true" />{coverageState.healthLabel}</span>
+                      </div>
+                      <p>{coverageState.capability === "not-active"
+                        ? `No active customer-facing source is available in ${activeStateName} yet.`
+                        : `${coverageState.sourceLabel || "Current sources"} provide the monitoring depth summarized below.`}</p>
+                    </div>
                     <dl className={styles.coverageMetrics}>
-                      <div><dt>Capability</dt><dd>{coverageState.capabilityLabel}</dd></div>
-                      <div><dt>Health</dt><dd>{coverageState.healthLabel}</dd></div>
-                      <div><dt>Known stores</dt><dd>{coverageState.layers.known}</dd></div>
-                      <div><dt>Monitored stores</dt><dd>{coverageState.monitoredStoreCount}</dd></div>
-                      <div><dt>Represented areas</dt><dd>{coverageState.representedAreaCount}</dd></div>
-                      <div><dt>Alert-ready</dt><dd>{coverageState.layers.alertGrade}</dd></div>
+                      <div className={styles.metricMajor}><Store size={16} aria-hidden="true" /><dt>Known stores</dt><dd>{coverageState.layers.known}</dd></div>
+                      <div className={styles.metricMajor}><Radio size={16} aria-hidden="true" /><dt>Monitored stores</dt><dd>{coverageState.monitoredStoreCount}</dd></div>
+                      <div><Compass size={14} aria-hidden="true" /><dt>Represented areas</dt><dd>{coverageState.representedAreaCount}</dd></div>
+                      <div><BellRing size={14} aria-hidden="true" /><dt>Alert-ready</dt><dd>{coverageState.layers.alertGrade}</dd></div>
                     </dl>
-                    {coverageState.capability === "not-active" ? (
-                      <p className={styles.coverageCaveat}>No active customer-facing monitoring source is available for this state yet.</p>
-                    ) : coverageState.health !== "current" ? (
-                      <p className={styles.coverageCaveat}>Coverage is available, but one or more sources are not currently at full health.</p>
-                    ) : null}
+                    <p className={styles.coverageCaveat}>Coverage counts describe source depth—not bottles currently sitting on shelves.{coverageState.health !== "current" && coverageState.capability !== "not-active" ? " One or more sources are currently limited." : ""}</p>
                   </>
                 ) : null}
               </section>
 
               {requestState ? (
-                <div className={styles.section}>
+                <section className={`${styles.section} ${styles.requestSection}`} aria-label="Optional coverage request">
+                  <div className={styles.requestMarker}><span className={styles.landmark} aria-hidden="true">03</span><p>Optional request</p></div>
                   <CoverageRequestForm
                     state={requestState}
                     visible
@@ -445,27 +473,31 @@ export default function WelcomePage() {
                     onCancel={() => undefined}
                     onDraftRestored={() => undefined}
                   />
-                </div>
+                </section>
               ) : null}
 
-              <section className={styles.section} aria-labelledby="explore-heading">
+              <section className={`${styles.section} ${styles.exploreSection}`} aria-labelledby="explore-heading">
                 <div className={styles.sectionHeading}>
-                  <div>
-                    <p className={styles.stepLabel}>Keep exploring</p>
-                    <h2 id="explore-heading">Explore the rest of Bourbon Signal</h2>
+                  <div className={styles.headingGroup}>
+                    <span className={styles.landmark} aria-hidden="true">04</span>
+                    <div>
+                      <p className={styles.stepLabel}>Keep exploring</p>
+                      <h2 id="explore-heading">Choose where to go next</h2>
+                    </div>
                   </div>
                 </div>
                 <nav className={styles.exploreLinks} aria-label="Explore Bourbon Signal">
-                  <Link href="/bottle-check"><strong>Bottle Check</strong><span>Look up bottle context and value.</span></Link>
-                  <Link href={`/?state=${encodeURIComponent(activeState)}#drops`}><strong>Drop Feed</strong><span>Open the broader state feed.</span></Link>
-                  <Link href="/release-radar"><strong>Release Radar</strong><span>Track public releases and calendars.</span></Link>
-                  <Link href="/sightings"><strong>Member Sightings</strong><span>Read recent community reports.</span></Link>
-                  <Link href={`/coverage?state=${encodeURIComponent(activeState)}`}><strong>Coverage Map</strong><span>See source depth across the country.</span></Link>
-                  <Link href="/dashboard"><strong>Dashboard</strong><span>Use your full member workspace.</span></Link>
+                  <Link className={styles.explorePrimary} href="/bottle-check"><Search aria-hidden="true" /><span><strong>Bottle Check</strong><small>Look up rarity, value, and recent evidence.</small></span><ArrowUpRight aria-hidden="true" /></Link>
+                  <Link href={`/?state=${encodeURIComponent(activeState)}#drops`}><Radio aria-hidden="true" /><span><strong>Drop Feed</strong><small>Open the broader state feed.</small></span><ArrowUpRight aria-hidden="true" /></Link>
+                  <Link href="/release-radar"><CalendarDays aria-hidden="true" /><span><strong>Release Radar</strong><small>Track public releases and calendars.</small></span><ArrowUpRight aria-hidden="true" /></Link>
+                  <Link href="/sightings"><UsersRound aria-hidden="true" /><span><strong>Member Sightings</strong><small>Read recent community reports.</small></span><ArrowUpRight aria-hidden="true" /></Link>
+                  <Link href={`/coverage?state=${encodeURIComponent(activeState)}`}><MapIcon aria-hidden="true" /><span><strong>Coverage Map</strong><small>See source depth across the country.</small></span><ArrowUpRight aria-hidden="true" /></Link>
+                  <Link href="/dashboard"><LayoutDashboard aria-hidden="true" /><span><strong>Dashboard</strong><small>Open your member workspace.</small></span><ArrowUpRight aria-hidden="true" /></Link>
                 </nav>
-                <p className={styles.membershipLink}>
-                  Curious about paid alerts and expanded tools? <Link href="/pricing?source=welcome">See pricing quietly.</Link>
-                </p>
+                <div className={styles.membershipAction}>
+                  <div><Compass size={18} aria-hidden="true" /><span><strong>Want alerts and expanded tools?</strong><small>Compare Free, Standard, Barrel, and Founder.</small></span></div>
+                  <Link href="/pricing?source=welcome">Compare memberships <ArrowUpRight size={14} aria-hidden="true" /></Link>
+                </div>
               </section>
             </>
           ) : null}

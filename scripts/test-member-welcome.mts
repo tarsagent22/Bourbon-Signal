@@ -53,9 +53,12 @@ assert.match(welcomeSource, /CoverageRequestForm/);
 assert.match(welcomeSource, /variant="welcome"/);
 assert.match(welcomeSource, /recordGrowthMilestone\("free_value_reached"[\s\S]*surface:\s*"welcome"[\s\S]*kind:\s*"welcome_state_signals"/);
 assert.match(requestFormSource, /Want Bourbon Signal to cover more near you\?/);
+assert.match(requestFormSource, /Email me when coverage meaningfully improves\./);
+assert.doesNotMatch(requestFormSource, /Request coverage and email me/i);
+assert.match(requestFormSource, /<details[\s\S]*Add county, city, or store details/, "optional local fields should not dominate the request form");
 assert.doesNotMatch(welcomeSource, /go deeper/i, "coverage copy must avoid the rejected phrasing");
 assert.doesNotMatch(requestFormSource, /go deeper/i, "embedded request copy must avoid the rejected phrasing");
-assert.match(welcomeSource, /Explore the rest of Bourbon Signal/);
+assert.match(welcomeSource, /Choose where to go next/);
 for (const destination of ["/bottle-check", "/release-radar", "#drops", "/sightings", "/coverage", "/dashboard"]) {
   assert.ok(welcomeSource.includes(destination), `Welcome explore section must include ${destination}`);
 }
@@ -64,7 +67,11 @@ assert.match(welcomeSource, /recordGrowthMilestone\("onboarding_state_selected"/
 assert.match(welcomeSource, /recordGrowthMilestone\("free_value_reached"/);
 assert.match(welcomeSource, /precision:\s*"state_preview"/, "Welcome milestone context stays coarse and privacy-safe");
 assert.doesNotMatch(welcomeStyles, /\.panel\s*\{[\s\S]{0,400}border:\s*1px/, "Welcome must not wrap the full journey in a bordered card");
-assert.match(welcomeStyles, /\.section\s*\{[\s\S]*border-top/, "Welcome hierarchy should use restrained dividers instead of stacked card borders");
+assert.match(welcomeStyles, /\.signalSection[\s\S]*radial-gradient/, "Welcome sections should use subtle tonal landmarks");
+assert.match(welcomeStyles, /\.signalList li[\s\S]*border:[\s\S]*border-radius/, "signal previews should use restrained Drop Feed-style cards");
+assert.match(welcomeStyles, /\.exploreLinks a[\s\S]*border:[\s\S]*border-radius/, "Explore destinations should look actionable");
+assert.match(welcomeSource, /Compare memberships/);
+assert.doesNotMatch(welcomeSource, /See pricing quietly/i);
 assert.match(requestFormSource, /variant.*welcome/);
 
 assert.match(pricingSource, /Continue with Free/);

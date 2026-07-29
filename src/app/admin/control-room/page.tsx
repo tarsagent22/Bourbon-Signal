@@ -129,9 +129,9 @@ export default async function CompanyControlRoomPage() {
             <>
               <div className="cr-metrics four">
                 <Metric label="Open requests" value={coverageDemand.totalOpenRequests} detail="Requested or on our radar" accent />
-                <Metric label="Unique requesters" value={coverageDemand.uniqueRequesters} detail="Identities hidden in this aggregate" />
-                <Metric label="Requested targets" value={coverageDemand.targets.length} detail="Canonical state, city, and store gaps" />
-                <Metric label="Partial read" value={coverageDemand.partial ? "Yes" : "No"} detail={coverageDemand.partial ? "Queue reached its safe read bound" : "Queue is within its safe read bound"} />
+                <Metric label="Unique requesters" value={coverageDemand.uniqueRequesters} detail="Authenticated members" />
+                <Metric label="Requested targets" value={coverageDemand.targets.length} detail="State, county, city, and store gaps" />
+                <Metric label="Email follow-up" value={coverageDemand.notificationOptIns} detail="Unique members asking to hear when coverage improves" />
               </div>
               {coverageDemand.targets.length ? (
                 <div className="cr-demand-list">
@@ -151,8 +151,37 @@ export default async function CompanyControlRoomPage() {
                     </article>
                   ))}
                 </div>
-              ) : <div className="cr-unavailable"><strong>No open coverage requests.</strong><p>The queue will populate from authenticated state, city, and store requests.</p></div>}
-              <p className="cr-note">Requester identities stay private by default. Paid/free mix uses current membership classification and excludes owner and retailer accounts.</p>
+              ) : <div className="cr-unavailable"><strong>No open coverage requests.</strong><p>The queue will populate from authenticated state, county, city, and store requests.</p></div>}
+              {coverageDemand.recentRequests.length ? (
+                <details className="cr-details cr-request-ledger" open>
+                  <summary>Recent individual requests</summary>
+                  <div className="cr-request-rows">
+                    {coverageDemand.recentRequests.map((request) => (
+                      <article key={request.id}>
+                        <div className="cr-request-person">
+                          <strong>{request.requesterName || (request.requesterEmail ? "Member" : "Member record unavailable")}</strong>
+                          {request.requesterEmail
+                            ? request.notificationEnabled
+                              ? <a href={`mailto:${request.requesterEmail}`}>{request.requesterEmail}</a>
+                              : <span className="cr-request-email">{request.requesterEmail}</span>
+                            : null}
+                        </div>
+                        <div className="cr-request-target">
+                          <span>{request.targetType} · {request.stateCode}</span>
+                          <strong>{request.targetLabel}</strong>
+                        </div>
+                        <div className="cr-request-flags">
+                          <span>{request.memberSegment} member</span>
+                          <span className={request.notificationEnabled ? "email-yes" : "email-no"}>Email updates: {request.notificationEnabled ? "Yes" : "No"}</span>
+                          <span>{request.status.replaceAll("_", " ")}</span>
+                        </div>
+                        <time dateTime={request.updatedAt}>{dateTime(request.updatedAt)}</time>
+                      </article>
+                    ))}
+                  </div>
+                </details>
+              ) : null}
+              <p className="cr-note">Individual identities and email intent appear only in this owner-authorized Control Room. Public demand reporting remains aggregate-only.{coverageDemand.partial ? " This read reached its safe row limit." : ""}</p>
             </>
           ) : (
             <div className="cr-unavailable"><strong>Coverage demand is not connected.</strong><p>The request database could not be read, so this view does not substitute inferred geography or fabricated counts.</p></div>
@@ -325,9 +354,10 @@ const controlRoomCss = `
 .cr-details{margin-top:14px;border:1px solid rgba(245,237,214,.09);background:rgba(0,0,0,.12)}.cr-details>summary,.cr-contract>summary{cursor:pointer;list-style:none;padding:14px 16px;color:#d9b768;font:800 11px/1.3 var(--font-jetbrains);letter-spacing:.08em;text-transform:uppercase}.cr-details>summary::-webkit-details-marker,.cr-contract>summary::-webkit-details-marker{display:none}.cr-details>summary:after,.cr-contract>summary:after{content:'+';float:right}.cr-details[open]>summary:after,.cr-contract[open]>summary:after{content:'−'}.cr-detail-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;padding:0 14px 14px}.cr-list{margin:0;background:#15100c;padding:8px 14px}.cr-list div{display:flex;justify-content:space-between;gap:18px;padding:11px 0;border-bottom:1px solid rgba(245,237,214,.08)}.cr-list div:last-child{border:0}.cr-list dt{color:rgba(245,237,214,.56);font-size:12px}.cr-list dd{margin:0;text-align:right;font:800 12px/1.3 var(--font-jetbrains)}
 .cr-delivery{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:14px}.cr-delivery div{border-left:2px solid rgba(196,148,58,.55);background:#15100c;padding:15px}.cr-delivery span{display:block;color:rgba(245,237,214,.45);font:900 9px/1 var(--font-jetbrains);letter-spacing:.1em;text-transform:uppercase}.cr-delivery strong{display:block;margin-top:9px;font:700 20px/1 var(--font-playfair)}.cr-lines{margin-top:14px}.cr-lines div{display:flex;justify-content:space-between;gap:20px;border-top:1px solid rgba(245,237,214,.08);padding:12px 0;color:rgba(245,237,214,.48);font-size:11px}.cr-lines strong{color:rgba(245,237,214,.72);font-family:var(--font-jetbrains);font-weight:500;text-align:right}
 .cr-demand-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}.cr-demand-list article{min-width:0;border:1px solid rgba(245,237,214,.09);background:#15100c;padding:16px}.cr-demand-list article>div>span{color:#c4943a;font:900 9px/1 var(--font-jetbrains);letter-spacing:.1em;text-transform:uppercase}.cr-demand-list h3{margin:7px 0 0;font:700 22px/1.05 var(--font-playfair)}.cr-demand-list dl{margin:13px 0 0}.cr-demand-list dl div{display:flex;justify-content:space-between;gap:12px;border-top:1px solid rgba(245,237,214,.07);padding:8px 0}.cr-demand-list dt{color:rgba(245,237,214,.46);font-size:10px}.cr-demand-list dd{margin:0;color:rgba(245,237,214,.82);font:800 10px/1.3 var(--font-jetbrains);text-align:right}.cr-demand-list p{margin:10px 0 0;color:rgba(245,237,214,.57);font-size:11px;line-height:1.5}
+.cr-request-ledger{margin-top:16px}.cr-request-rows{padding:0 14px 14px}.cr-request-rows article{display:grid;grid-template-columns:minmax(180px,1.2fr) minmax(150px,1fr) auto auto;align-items:center;gap:16px;padding:13px 2px;border-top:1px solid rgba(245,237,214,.08)}.cr-request-person,.cr-request-target{display:grid;gap:4px;min-width:0}.cr-request-person strong,.cr-request-target strong{overflow:hidden;color:#f5edd6;font-size:12px;text-overflow:ellipsis;white-space:nowrap}.cr-request-person a,.cr-request-email{overflow:hidden;color:#d9b768;font-size:10px;text-overflow:ellipsis;white-space:nowrap}.cr-request-target span{color:#c4943a;font:850 8px/1 var(--font-jetbrains);letter-spacing:.09em;text-transform:uppercase}.cr-request-flags{display:flex;flex-wrap:wrap;gap:5px}.cr-request-flags span{border-radius:999px;background:rgba(245,237,214,.055);padding:5px 7px;color:rgba(245,237,214,.58);font:800 8px/1 var(--font-jetbrains);text-transform:uppercase}.cr-request-flags .email-yes{background:rgba(56,130,74,.15);color:#aee7ba}.cr-request-rows time{color:rgba(245,237,214,.4);font:9px/1.3 var(--font-jetbrains);text-align:right}
 .cr-background{padding-bottom:16px}.cr-background-item{border-top:1px solid rgba(245,237,214,.1)}.cr-background-item:last-child{border-bottom:1px solid rgba(245,237,214,.1)}.cr-background-item>summary{display:flex;align-items:center;justify-content:space-between;gap:16px;cursor:pointer;list-style:none;padding:15px 2px}.cr-background-item>summary::-webkit-details-marker{display:none}.cr-background-item>summary>span:first-child{display:grid;gap:5px}.cr-background-item>summary strong{font-size:14px}.cr-background-item>summary small{color:rgba(245,237,214,.44);font-size:11px}.cr-background-body{padding:2px 2px 17px;color:rgba(245,237,214,.64);font-size:13px;line-height:1.6}.cr-background-body>p{max-width:800px}.cr-list.compact{max-width:720px;margin-top:12px}.cr-contract{max-width:900px;margin-top:12px;border:1px solid rgba(245,237,214,.09);background:#15100c}.cr-contract dl{margin:0;padding:0 15px 10px}.cr-contract dl div{display:grid;grid-template-columns:130px 1fr;gap:16px;padding:10px 0;border-top:1px solid rgba(245,237,214,.07)}.cr-contract dt{color:#d9b768;font:900 9px/1.4 var(--font-jetbrains);letter-spacing:.08em;text-transform:uppercase}.cr-contract dd{margin:0;color:rgba(245,237,214,.62);font-size:12px}.cr-mini-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(245,237,214,.08);max-width:900px}.cr-mini-metrics .cr-metric{min-height:120px}.cr-unavailable{max-width:760px;border-left:2px solid rgba(220,166,55,.5);background:rgba(196,148,58,.07);padding:14px}.cr-unavailable p{margin:5px 0 0}
 .cr-tool-links{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:16px}.cr-tool-links a{display:flex;justify-content:space-between;gap:15px;border:1px solid rgba(245,237,214,.09);border-radius:12px;padding:15px;color:#f5edd6;text-decoration:none;font-size:13px;transition:transform 120ms ease,border-color 120ms ease,background 120ms ease}.cr-tool-links a span{color:#c4943a}.cr-tool-links a:hover,.cr-tool-links a:focus-visible{outline:none;border-color:rgba(196,148,58,.55);background:rgba(196,148,58,.07)}.cr-tool-links a:active{transform:translateY(2px)}.cr-footer{display:flex;justify-content:space-between;gap:20px;padding:20px 2px;color:rgba(245,237,214,.34);font:10px/1.4 var(--font-jetbrains)}.cr-footer a{color:rgba(245,237,214,.52)}
 @media(max-width:980px){.cr-queue-grid,.cr-demand-list{grid-template-columns:1fr}.cr-attention-strip,.cr-metrics.four{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:700px){.cr-attention-strip,.cr-detail-grid,.cr-delivery,.cr-mini-metrics,.cr-tool-links{grid-template-columns:1fr}.cr-shell{padding:18px 12px 45px}.cr-header{align-items:flex-start;display:grid}.cr-checked{text-align:left}.cr-section{padding:16px}.cr-heading{align-items:flex-start;display:grid}.cr-metrics.four{grid-template-columns:1fr}.cr-metric{min-height:124px}.cr-subheading{align-items:flex-start}.cr-lines div{display:grid}.cr-jump{margin-inline:-12px;padding-inline:12px}.cr-contract dl div{grid-template-columns:1fr;gap:5px}}
+@media(max-width:700px){.cr-attention-strip,.cr-detail-grid,.cr-delivery,.cr-mini-metrics,.cr-tool-links{grid-template-columns:1fr}.cr-shell{padding:18px 12px 45px}.cr-header{align-items:flex-start;display:grid}.cr-checked{text-align:left}.cr-section{padding:16px}.cr-heading{align-items:flex-start;display:grid}.cr-metrics.four{grid-template-columns:1fr}.cr-metric{min-height:124px}.cr-subheading{align-items:flex-start}.cr-lines div{display:grid}.cr-jump{margin-inline:-12px;padding-inline:12px}.cr-contract dl div{grid-template-columns:1fr;gap:5px}.cr-request-rows article{grid-template-columns:1fr;gap:9px}.cr-request-rows time{text-align:left}}
 @media(prefers-reduced-motion:reduce){.cr-jump a,.cr-attention-strip a,.cr-tool-links a{transition:none}}
 `;

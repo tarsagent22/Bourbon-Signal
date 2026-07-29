@@ -25,7 +25,27 @@ export interface CoverageDemandTarget {
 export interface CoverageDemandSummary {
   totalOpenRequests: number;
   uniqueRequesters: number;
+  notificationOptIns: number;
   targets: CoverageDemandTarget[];
+  recentRequests: CoverageDemandRequestDetail[];
+}
+
+export interface CoverageDemandRequesterProfile {
+  name: string | null;
+  email: string | null;
+}
+
+export interface CoverageDemandRequestDetail {
+  id: string;
+  targetType: CoverageRequestTargetType;
+  stateCode: string;
+  targetLabel: string;
+  requesterName: string | null;
+  requesterEmail: string | null;
+  memberSegment: CoverageDemandMemberSegment;
+  notificationEnabled: boolean;
+  status: CoverageRequestStatus;
+  updatedAt: string;
 }
 
 function gapForTarget(
@@ -63,6 +83,7 @@ const WEAKNESS_WEIGHT: Record<CoverageCapability, number> = {
 export function buildCoverageDemandSummary(args: {
   requests: readonly OwnerCoverageRequestRow[];
   memberSegments: Readonly<Record<string, CoverageDemandMemberSegment>>;
+  requesterProfiles?: Readonly<Record<string, CoverageDemandRequesterProfile>>;
   coverage: CoverageContract;
 }): CoverageDemandSummary {
   const openRequests = args.requests.filter((request) => request.status === "requested" || request.status === "on_radar");
@@ -119,8 +140,26 @@ export function buildCoverageDemandSummary(args: {
   return {
     totalOpenRequests: openRequests.length,
     uniqueRequesters: globalRequesters.size,
+    notificationOptIns: new Set(openRequests.filter((request) => request.notificationEnabled).map((request) => request.userId)).size,
     targets: targets
       .sort((left, right) => right.sortWeight - left.sortWeight || left.label.localeCompare(right.label))
       .map(({ sortWeight: _sortWeight, ...target }) => target),
+    recentRequests: [...args.requests]
+      .sort((left, right) => right.updatedAt.localeCompare(left.updatedAt))
+      .slice(0, 40)
+      .map((request) => ({
+        id: request.id,
+        targetType: request.targetType,
+        stateCode: request.stateCode,
+        targetLabel: request.targetType === "store"
+          ? request.storeName || request.areaLabel || request.stateCode
+          : request.areaLabel || args.coverage.states.find((state) => state.code === request.stateCode)?.name || request.stateCode,
+        requesterName: args.requesterProfiles?.[request.userId]?.name || null,
+        requesterEmail: args.requesterProfiles?.[request.userId]?.email || null,
+        memberSegment: args.memberSegments[request.userId] || "unknown",
+        notificationEnabled: request.notificationEnabled,
+        status: request.status,
+        updatedAt: request.updatedAt,
+      })),
   };
 }

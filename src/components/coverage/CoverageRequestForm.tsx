@@ -36,6 +36,7 @@ export function CoverageRequestForm({ state, visible, onCancel, onDraftRestored,
   const [manualCity, setManualCity] = useState("");
   const [manualStoreName, setManualStoreName] = useState("");
   const [manualAddress, setManualAddress] = useState("");
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const [notificationEnabled, setNotificationEnabled] = useState(false);
   const [status, setStatus] = useState<"idle" | "saving" | "saved" | "error">("idle");
   const [message, setMessage] = useState("");
@@ -60,6 +61,7 @@ export function CoverageRequestForm({ state, visible, onCancel, onDraftRestored,
     setManualCity("");
     setManualStoreName("");
     setManualAddress("");
+    setDetailsOpen(false);
     setNotificationEnabled(false);
     setStatus("idle");
     setMessage("");
@@ -76,6 +78,7 @@ export function CoverageRequestForm({ state, visible, onCancel, onDraftRestored,
       setManualCity("");
       setManualStoreName("");
       setManualAddress("");
+      setDetailsOpen(false);
       setNotificationEnabled(false);
       setStatus("idle");
       setMessage("");
@@ -105,6 +108,7 @@ export function CoverageRequestForm({ state, visible, onCancel, onDraftRestored,
       setManualCity(stored.manualCity || "");
       setManualStoreName(stored.manualStoreName || "");
       setManualAddress(stored.manualAddress || "");
+      setDetailsOpen(Boolean(stored.manualCounty || stored.manualCity || stored.manualStoreName || stored.manualAddress));
       setNotificationEnabled(stored.notificationEnabled === true);
       onDraftRestored();
     } catch {
@@ -149,6 +153,7 @@ export function CoverageRequestForm({ state, visible, onCancel, onDraftRestored,
     setManualCity("");
     setManualStoreName("");
     setManualAddress("");
+    setDetailsOpen(false);
     window.sessionStorage.removeItem(DRAFT_KEY);
     setStatus("idle");
     setMessage("");
@@ -209,7 +214,7 @@ export function CoverageRequestForm({ state, visible, onCancel, onDraftRestored,
     <section className={`${styles.requestBlock} ${variant === "welcome" ? styles.requestBlockWelcome : ""}`} aria-labelledby="coverage-request-heading" hidden={!visible}>
       <div className={styles.requestHeader}>
         <div className={styles.subhead}>
-          <p>{variant === "welcome" ? "Optional" : "Help improve local coverage"}</p>
+          {variant === "coverage" ? <p>Help improve local coverage</p> : null}
           <h3 id="coverage-request-heading" tabIndex={-1}>{variant === "welcome" ? "Want Bourbon Signal to cover more near you?" : "Request coverage"}</h3>
         </div>
         {variant === "coverage" ? <button type="button" onClick={cancelRequest}>Cancel</button> : null}
@@ -219,7 +224,7 @@ export function CoverageRequestForm({ state, visible, onCancel, onDraftRestored,
         <p className={styles.requestAuthLoading} aria-live="polite">Checking account…</p>
       ) : (
         <form onSubmit={submit} onFocusCapture={markStarted}>
-          <p className={styles.requestInstructions}>Your state is enough. Add a county, city, or store if there is a particular place you want us to check.</p>
+          <p className={styles.requestInstructions}>Your state is enough. Add local details only if they would help us investigate a specific place.</p>
 
         <label className={styles.requestField}>
           <span>State <small>required</small></span>
@@ -228,30 +233,39 @@ export function CoverageRequestForm({ state, visible, onCancel, onDraftRestored,
           </select>
         </label>
 
+        <details
+          className={styles.requestDetails}
+          open={detailsOpen}
+          onToggle={(event) => setDetailsOpen(event.currentTarget.open)}
+        >
+          <summary>Add county, city, or store details <span>Optional</span></summary>
+          <div className={styles.requestDetailsFields}>
         <label className={styles.requestField}>
-          <span>County <small>optional</small></span>
+          <span>County</span>
           <input name="manualCounty" value={manualCounty} maxLength={120} onChange={(event) => setManualCounty(event.target.value)} />
         </label>
 
         <label className={styles.requestField}>
-          <span>City or area <small>optional</small></span>
+          <span>City or area</span>
           <input name="manualCity" value={manualCity} maxLength={120} onChange={(event) => setManualCity(event.target.value)} />
         </label>
 
         <label className={styles.requestField}>
-          <span>Store name <small>optional</small></span>
+          <span>Store name</span>
           <input name="manualStoreName" value={manualStoreName} maxLength={180} onChange={(event) => setManualStoreName(event.target.value)} />
         </label>
 
         <label className={styles.requestField}>
-          <span>Street or address detail <small>optional</small></span>
+          <span>Street or address detail</span>
           <input name="manualAddress" value={manualAddress} maxLength={220} onChange={(event) => setManualAddress(event.target.value)} />
         </label>
         <p className={styles.requestPrivacy}>Request details stay private and do not create a public store listing.</p>
+          </div>
+        </details>
 
         <label className={styles.notificationChoice}>
           <input type="checkbox" checked={notificationEnabled} onChange={(event) => setNotificationEnabled(event.target.checked)} />
-          <span>Request coverage and email me when it meaningfully improves.</span>
+          <span>Email me when coverage meaningfully improves.</span>
         </label>
 
         {isSignedIn ? (
