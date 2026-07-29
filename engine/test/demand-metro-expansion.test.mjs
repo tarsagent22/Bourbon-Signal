@@ -441,6 +441,10 @@ test('lifecycle, collectors, verifiers, and CI expose all three demand-selected 
   assert.match(workflow, /verify:tn/);
   assert.match(workflow, /verify:tn -- --targeted-cohort/);
   assert.match(workflow, /--allow-fresh-retained-evidence/);
+  assert.match(workflow, /--allow-scheduled-partial-evidence/);
+  assert.match(tnVerifier, /allowScheduledPartialEvidence/);
+  assert.match(tnVerifier, /positiveCityHiveSignals\.length >= 30/);
+  assert.match(tnVerifier, /positiveCityHiveSignals\.length >= 60/);
   assert.match(workflow, /BOURBON_SIGNAL_TN_FORCE_CITYHIVE_LIVE:[^\n]*contains\(inputs\.states, 'TN'\)[^\n]*'1'/);
   assert.doesNotMatch(workflow, /verify:demand-metros[^\n]*--structural-only/, 'production publication must use generated-evidence verification, never structural-only mode');
   assert.doesNotMatch(workflow, /BOURBON_SIGNAL_VERIFY_SITE_DIR/, 'publication verification must inspect the generated workflow site directory');
