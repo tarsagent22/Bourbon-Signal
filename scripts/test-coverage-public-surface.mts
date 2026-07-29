@@ -64,7 +64,9 @@ assert.match(explorer, /<CoverageStatePanel key=\{selectedState\.code\}/, "state
 assert.match(panel, /How coverage works/, "technical coverage detail uses progressive disclosure");
 assert.match(panel, /What we cannot yet see/, "state drilldown states its limits");
 assert.match(panel, /data-health=\{state\.health\}/, "health is separate from capability");
-assert.match(panel, /Known stores[\s\S]*Probeable stores[\s\S]*Inventory monitoring[\s\S]*Alert-ready/, "technical layers keep known, probeable, live, and alert-ready capability distinct");
+assert.match(panel, /Searchable stores[\s\S]*Probeable stores[\s\S]*Inventory-monitored stores[\s\S]*Alert-ready/, "technical layers keep known, probeable, live, and alert-ready capability distinct");
+assert.match(panel, /Official boards[\s\S]*Boards with shipment intelligence[\s\S]*Single-store shipment boards/, "NC board breadth and qualified one-store shipment intelligence remain visibly distinct from store inventory");
+assert.doesNotMatch(panel, /scope\.(?:searchableStores|inventoryMonitoredStores)\s*\|\|/, "valid zero scope counts must render as zero instead of falling back to broader layers");
 assert.ok(panel.indexOf("<CoverageSearch") < panel.indexOf("How coverage works"), "local search appears before technical detail");
 assert.match(panel, /visible=\{requestOpen\}/, "the generalized request form stays hidden until its single action is used");
 assert.match(panel, /coverage-request-heading[\s\S]*\.focus\(\)/, "revealed request UI receives keyboard focus");

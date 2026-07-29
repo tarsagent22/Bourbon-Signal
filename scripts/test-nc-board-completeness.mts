@@ -103,6 +103,11 @@ const dashboard = readText("src/app/dashboard/page.tsx");
 assert.match(dashboard, /NC_ABC_BOARD_OPTIONS/, "dashboard board preferences must start from the canonical registry, not transient stores or drops");
 const ncVerifier = readText("engine/src/verify-nc-directory.mjs");
 assert.match(ncVerifier, /nc-abc-boards\.json/);
+const ncCollector = readText("engine/src/collectors/north-carolina-intelligence.mjs");
+for (const route of ["/sales/", "/feed/", "/wp-json/wp/v2/posts", "https://nh.abcgo.app/"]) {
+  assert.ok(ncCollector.includes(route), `New Hanover first-party route ${route} must remain independently monitored`);
+}
+assert.match(ncCollector, /canAlertAsInventory:\s*false/, "New Hanover and board release surfaces must remain non-inventory-alertable");
 assert.match(ncVerifier, /canonical board/i);
 assert.match(ncVerifier, /observedAt/);
 assert.match(ncVerifier, /36 \* 60 \* 60 \* 1000/);

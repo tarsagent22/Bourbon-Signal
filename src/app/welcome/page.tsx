@@ -78,6 +78,7 @@ function fallbackCoverageState(code: string): CoverageState {
     representedAreaCount: 0,
     monitoredStoreCount: 0,
     layers: { known: 0, probeable: 0, catalogWatch: 0, live: 0, alertGrade: 0 },
+    scope: { knownBoards: 0, shipmentBoards: 0, searchableStores: 0, inventoryMonitoredStores: 0, singleStoreShipmentBoards: 0 },
     canSee: [],
     cannotSee: [],
     fingerprint: `coverage-v1|${code}|unavailable`,
@@ -453,12 +454,13 @@ export default function WelcomePage() {
                         : `${coverageState.sourceLabel || "Current sources"} provide the monitoring depth summarized below.`}</p>
                     </div>
                     <dl className={styles.coverageMetrics}>
-                      <div className={styles.metricMajor}><Store size={16} aria-hidden="true" /><dt>Known stores</dt><dd>{coverageState.layers.known}</dd></div>
-                      <div className={styles.metricMajor}><Radio size={16} aria-hidden="true" /><dt>Monitored stores</dt><dd>{coverageState.monitoredStoreCount}</dd></div>
-                      <div><Compass size={14} aria-hidden="true" /><dt>Represented areas</dt><dd>{coverageState.representedAreaCount}</dd></div>
-                      <div><BellRing size={14} aria-hidden="true" /><dt>Alert-ready</dt><dd>{coverageState.layers.alertGrade}</dd></div>
+                      {coverageState.scope.knownBoards ? <div className={styles.metricMajor}><Compass size={16} aria-hidden="true" /><dt>Known boards</dt><dd>{coverageState.scope.knownBoards}</dd></div> : null}
+                      <div className={styles.metricMajor}><Store size={16} aria-hidden="true" /><dt>Searchable stores</dt><dd>{coverageState.scope.searchableStores}</dd></div>
+                      <div className={styles.metricMajor}><Radio size={16} aria-hidden="true" /><dt>Inventory-monitored stores</dt><dd>{coverageState.scope.inventoryMonitoredStores}</dd></div>
+                      <div><Compass size={14} aria-hidden="true" /><dt>{coverageState.scope.knownBoards ? "Store cities and towns" : "Represented areas"}</dt><dd>{coverageState.representedAreaCount}</dd></div>
+                      {coverageState.scope.shipmentBoards ? <div><BellRing size={14} aria-hidden="true" /><dt>Boards with shipment intelligence</dt><dd>{coverageState.scope.shipmentBoards}</dd></div> : <div><BellRing size={14} aria-hidden="true" /><dt>Alert-ready</dt><dd>{coverageState.layers.alertGrade}</dd></div>}
                     </dl>
-                    <p className={styles.coverageCaveat}>Coverage counts describe source depth—not bottles currently sitting on shelves.{coverageState.health !== "current" && coverageState.capability !== "not-active" ? " One or more sources are currently limited." : ""}</p>
+                    <p className={styles.coverageCaveat}>Coverage counts describe source depth—not bottles currently sitting on shelves.{coverageState.scope.singleStoreShipmentBoards ? ` ${coverageState.scope.singleStoreShipmentBoards} one-store boards offer store-equivalent shipment intelligence, but shipment still does not confirm shelf stock.` : ""}{coverageState.health !== "current" && coverageState.capability !== "not-active" ? " One or more sources are currently limited." : ""}</p>
                   </>
                 ) : null}
               </section>
