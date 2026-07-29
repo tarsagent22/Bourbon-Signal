@@ -7,6 +7,7 @@ import { getScheduledReleaseSignalCopy } from "@/lib/scheduled-release-signals";
 import { createRemoteSiteSnapshotReader } from "@/lib/remote-site-snapshot";
 import { VercelBlobSnapshotStorage } from "@/lib/vercel-blob-snapshot-storage";
 import { buildStateStats } from "@/lib/site-stats-metrics";
+import { resolveDropQuantitySemantics } from "@/lib/drop-quantity-semantics";
 
 const SITE_EXPORT_DIR = join(process.cwd(), "engine", "out", "site");
 const CONTRACT_VERSION = "bourbon-signal-site-v0.1";
@@ -279,14 +280,14 @@ export function normalizeStoreForSite(store: JsonRecord) {
 
 export function normalizeDropForSite(drop: JsonRecord) {
   const state = asString(drop.state);
-  const quantity = asNumber(drop.quantity);
+  const { inventoryQuantity: quantity, shipmentQuantity, visibilityQuantity } = resolveDropQuantitySemantics(drop);
   const locationPrecision = asString(drop.locationPrecision);
   const exactStoreDetails = hasExactStoreDetails(drop);
   const sourceStale = asBoolean(drop.sourceStale) || asBoolean(drop.stale);
   const staleSourceCaveat = asString(drop.staleSourceCaveat) || "Last-known source availability; verify with the store before driving.";
   const canAlertAsInventory = asBoolean(drop.canAlertAsInventory) && exactStoreDetails && !sourceStale;
   const type = asString(drop.type, "signal");
-  const signalLabel = getPublicSignalLabel(type, locationPrecision, quantity, canAlertAsInventory);
+  const signalLabel = getPublicSignalLabel(type, locationPrecision, visibilityQuantity, canAlertAsInventory);
   const isStoreInventory = isStoreLevelInventory(type, locationPrecision, canAlertAsInventory) && exactStoreDetails;
   const locationLabel = getPublicLocationLabel(state, asString(drop.locationName), asString(drop.city), asString(drop.county));
   const eventAt = asString(drop.eventAt);
@@ -326,7 +327,7 @@ export function normalizeDropForSite(drop: JsonRecord) {
     store_name: asString(drop.storeName) || undefined,
     store_id: asString(drop.storeId) || undefined,
     quantity_in_stock: type === "nc_board_shipment_snapshot" ? undefined : quantity || undefined,
-    quantity_shipped: type === "nc_board_shipment_snapshot" ? quantity || undefined : undefined,
+    quantity_shipped: shipmentQuantity || undefined,
     quantity: quantity || undefined,
     rarity_tier: asString(drop.tier, "unknown"),
     retail_price: asNumber(drop.price) || null,
@@ -334,7 +335,7 @@ export function normalizeDropForSite(drop: JsonRecord) {
     state_code: state,
     source: asString(drop.source, "engine-site-export"),
     exact_store: locationPrecision === "store_level" && exactStoreDetails,
-    availability_scope: sourceStale && isStoreInventory ? "stale_store_context" : isStoreInventory ? "store_reported" : isDistilleryDrop(type, locationPrecision) ? "distillery" : locationPrecision === "board_county" ? "board" : locationPrecision === "board_warehouse" ? "warehouse" : "page",
+    availability_scope: sourceStale && isStoreInventory ? "stale_store_context" : isStoreInventory ? "store_reported" : isDistilleryDrop(type, locationPrecision) ? "distillery" : (locationPrecision === "board_county" || locationPrecision === "store_equivalent_shipment") ? "board" : locationPrecision === "board_warehouse" ? "warehouse" : "page",
     confidence_tier: sourceStale && isStoreInventory ? "stale_store_context" : isStoreInventory ? "source_reported_store" : isDistilleryDrop(type, locationPrecision) ? "official_distillery_drop" : (type === "nc_board_shipment_snapshot" || type === "nc_statewide_warehouse_stock") ? "online_positive" : "listing_only",
     location_precision: locationPrecision,
     can_alert_as_inventory: canAlertAsInventory,
@@ -344,12 +345,12 @@ export function normalizeDropForSite(drop: JsonRecord) {
     scheduledReleaseLabel: scheduledReleaseCopy?.statusLine,
     scheduledReleaseDetail: scheduledReleaseCopy?.detail,
     scheduledReleaseCaveat: scheduledReleaseCopy?.explanation,
-    signal_category: getPublicSignalCategory(type, locationPrecision, quantity, canAlertAsInventory),
+    signal_category: getPublicSignalCategory(type, locationPrecision, visibilityQuantity, canAlertAsInventory),
     display_state: getPublicStateLabel(state),
     display_location: locationLabel,
     is_user_facing_drop: isUserFacingDropSignal({
       type,
-      quantity,
+      quantity: visibilityQuantity,
       locationPrecision,
       canAlertAsInventory,
     }),
@@ -360,6 +361,8 @@ export function isUserFacingDropSignal(drop: {
   type?: string;
   event_type?: string;
   quantity?: number;
+  boardShipmentQuantity?: number;
+  quantity_shipped?: number;
   quantity_in_stock?: number;
   storeQty?: number;
   store_qty?: number;
@@ -371,7 +374,7 @@ export function isUserFacingDropSignal(drop: {
   can_alert_as_inventory?: boolean;
 }) {
   const type = String(drop.type ?? drop.event_type ?? "").toLowerCase();
-  const quantity = asNumber(drop.quantity, asNumber(drop.quantity_in_stock, asNumber(drop.storeQty, asNumber(drop.store_qty, asNumber(drop.warehouseQty, asNumber(drop.warehouse_qty))))));
+  const quantity = asNumber(drop.quantity, asNumber(drop.quantity_in_stock, asNumber(drop.boardShipmentQuantity, asNumber(drop.quantity_shipped, asNumber(drop.storeQty, asNumber(drop.store_qty, asNumber(drop.warehouseQty, asNumber(drop.warehouse_qty))))))));
   const precision = String(drop.locationPrecision ?? drop.location_precision ?? "").toLowerCase();
   const canAlert = drop.canAlertAsInventory === true || drop.can_alert_as_inventory === true;
 

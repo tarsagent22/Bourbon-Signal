@@ -115,6 +115,10 @@ jobs:
           BOURBON_SIGNAL_TN_FORCE_CITYHIVE_LIVE: ${{ inputs.states && contains(inputs.states, 'TN') && '1' || '0' }}
         run: npm run refresh:site
 
+      - name: Verify North Carolina current-plus-stale signal continuity
+        if: ${{ !inputs.states || contains(inputs.states, 'NC') }}
+        working-directory: engine
+        run: npm run verify:nc
 
       - name: Verify North Carolina official directory publication
         if: ${{ !inputs.states || contains(inputs.states, 'NC') }}

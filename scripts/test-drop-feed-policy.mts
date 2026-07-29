@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { dropFreshnessTime, resolveDropLimit } from "../src/lib/drop-feed-policy.ts";
+import { resolveDropQuantitySemantics } from "../src/lib/drop-quantity-semantics.ts";
 import { coveredAreaLabelsMatch, getCoveredAreaOptionsForState } from "../src/lib/feed-area-options.ts";
 
 assert.equal(resolveDropLimit("40", false, 7), 40);
@@ -22,6 +23,21 @@ assert.equal(dropFreshnessTime({
   timestamp: firstSeen,
   last_confirmed_at: lastConfirmed,
 }), Date.parse(firstSeen), "context events stay anchored to their public event timestamp");
+
+const singleStoreShipment = resolveDropQuantitySemantics({
+  type: "nc_board_shipment_snapshot",
+  quantity: null,
+  boardShipmentQuantity: 6,
+});
+assert.equal(singleStoreShipment.inventoryQuantity, 0, "store-equivalent shipment rows must never expose shelf quantity");
+assert.equal(singleStoreShipment.shipmentQuantity, 6, "store-equivalent shipment rows must preserve official shipped units");
+assert.equal(singleStoreShipment.visibilityQuantity, 6, "store-equivalent shipment units must keep the informational row visible");
+const siteContractSource = readFileSync(new URL("../src/lib/site-engine-contract.ts", import.meta.url), "utf8");
+assert.match(siteContractSource, /resolveDropQuantitySemantics\(drop\)/, "site normalization must apply shipment quantity semantics");
+assert.match(siteContractSource, /quantity_shipped:\s*shipmentQuantity\s*\|\|\s*undefined/, "site normalization must export shipped units separately");
+assert.match(siteContractSource, /store_equivalent_shipment"\)\s*\?\s*"board"/, "store-equivalent shipment availability must remain board-scoped");
+const dropDomainSource = readFileSync(new URL("../src/lib/drops.ts", import.meta.url), "utf8");
+assert.match(dropDomainSource, /event\.quantity_in_stock\s*\?\?\s*event\.quantity_shipped\s*\?\?\s*event\.quantity/, "drop-domain filtering must retain normalized shipment rows");
 
 assert.deepEqual(getCoveredAreaOptionsForState(null), [], "all-state feed should not preload every configured area");
 assert.ok(getCoveredAreaOptionsForState("SC").includes("Myrtle Beach"), "South Carolina feed must keep Myrtle Beach selectable even between signal refreshes");

@@ -136,7 +136,7 @@ export interface GroupedDrop {
 export function isRealDropEvent(event: DropEvent): boolean {
   const eventType = (event.event_type || '').toLowerCase();
   const locationPrecision = (event.location_precision || event.availability_scope || '').toLowerCase();
-  const quantity = event.quantity_in_stock ?? event.quantity ?? 0;
+  const quantity = event.quantity_in_stock ?? event.quantity_shipped ?? event.quantity ?? 0;
   const hasLocation = !!(
     event.store_address ||
     event.store_city ||

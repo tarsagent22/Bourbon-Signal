@@ -16,6 +16,7 @@ const NC_BOARD_WEBSITE_MAX = Number(process.env.BOURBON_SIGNAL_NC_BOARD_WEBSITE_
 const NC_BOARD_WEBSITE_URL_MAX = Number(process.env.BOURBON_SIGNAL_NC_BOARD_WEBSITE_URL_MAX || 8);
 const NC_BOARD_WEBSITE_TIMEOUT_MS = Number(process.env.BOURBON_SIGNAL_NC_BOARD_WEBSITE_TIMEOUT_MS || 5000);
 const NEW_HANOVER_BARREL_URL = 'https://www.newhanovercountyabc.com/barrels/';
+const NEW_HANOVER_WORDPRESS_POSTS_URL = 'https://www.newhanovercountyabc.com/wp-json/wp/v2/posts?search=barrel&per_page=100';
 const DURHAM_STRUCTURED_PRODUCTS_URL = 'https://www.durhamabc.com/4552233';
 
 const STRICT_TRACKED_RE = /buffalo trace|blanton|eagle rare|weller|stagg|e\.?h\.?\s*taylor|colonel\s*taylor|old fitz|fitzgerald|willett|pappy|van winkle|blood oath|old carter|elmer t|rock hill|george t|william larue|thomas h|elijah craig\s+barrel proof|four roses\s+(limited|limited edition|single barrel\s+(?:OES|OBS))|michter'?s\s+10|henry\s+mckenna\s+(?:10|single\s+barrel|bottled[ -]?in[ -]?bond|bib)|booker'?s|baker'?s|little book|parker'?s\s+heritage|old forester\s+(?:birthday|president'?s choice)|russell'?s\s+reserve\s+(?:13|15)|1792\s+(?:sweet wheat|single barrel|full proof|bottled in bond|12\s*year)|heaven hill\s+(?:heritage|grain to glass|18|17|90th)|knob creek\s+(?:12|15|18)|woodford reserve\s+(?:double double|masters collection|barrel strength)|jack daniel'?s\s+(?:10|12|14)|remus repeal|holladay|shenk'?s|bomberger'?s/i;
@@ -439,6 +440,20 @@ function parseNewHanoverBarrelItems(html = '') {
     const proof = Number(details.match(/([\d.]+)\s*Proof/i)?.[1]) || null;
     const size = details.match(/(?:^|\|)\s*(\.\d+L|\d+(?:\.\d+)?\s*(?:ML|L))\b/i)?.[1]?.replace(/\s+/g, '') || null;
     rows.push({ rawName, ncCode: match[1], details, price, proof, size });
+  }
+  return [...new Map(rows.map((row) => [row.ncCode, row])).values()];
+}
+
+export function parseNewHanoverWordPressPosts(posts) {
+  if (!Array.isArray(posts)) return [];
+  const rows = [];
+  for (const post of posts) {
+    const sourceUrl = /^https:\/\/www\.newhanovercountyabc\.com\//i.test(String(post?.link || '')) ? post.link : NEW_HANOVER_BARREL_URL;
+    const modified = String(post?.modified_gmt || post?.date_gmt || '').trim();
+    const sourceEventAt = Number.isFinite(Date.parse(modified)) ? new Date(modified.endsWith('Z') ? modified : `${modified}Z`).toISOString() : null;
+    for (const row of parseNewHanoverBarrelItems(String(post?.content?.rendered || ''))) {
+      rows.push({ ...row, sourceUrl, sourceEventAt });
+    }
   }
   return [...new Map(rows.map((row) => [row.ncCode, row])).values()];
 }
@@ -912,19 +927,58 @@ async function collectNewHanoverPublicProducts(config, bible, signals, roadblock
   const board = boards.get(boardName) || createBoardRecord(boardName, { website: 'https://www.newhanovercountyabc.com', capabilities: ['official_board_website'] });
   board.website ||= 'https://www.newhanovercountyabc.com';
   board.sourceUrls.add(NEW_HANOVER_BARREL_URL);
+  board.sourceUrls.add(NEW_HANOVER_WORDPRESS_POSTS_URL);
   addCapability(board, 'official_barrel_pick_item_cards');
   boards.set(boardName, board);
 
-  const res = await safeTextFetch(NEW_HANOVER_BARREL_URL, { referer: board.website, timeoutMs: NC_BOARD_WEBSITE_TIMEOUT_MS });
-  if (!res.ok) {
-    roadblocks.push({ state: config.id, source: 'New Hanover County ABC barrel-pick item cards', url: NEW_HANOVER_BARREL_URL, status: res.status, error: res.error || res.text.slice(0, 240), nextRoute: 'Retry the public WordPress barrel-pick page and inspect rendered card markup.' });
-    dossier.newHanoverPublicProducts = { sourceUrl: NEW_HANOVER_BARREL_URL, status: res.status, itemCount: 0, observedAt: new Date().toISOString() };
+  const page = await safeTextFetch(NEW_HANOVER_BARREL_URL, { referer: board.website, timeoutMs: NC_BOARD_WEBSITE_TIMEOUT_MS });
+  let rows = page.ok ? parseNewHanoverBarrelItems(page.text).map((row) => ({ ...row, sourceUrl: page.url || NEW_HANOVER_BARREL_URL, sourceEventAt: null })) : [];
+  let selectedSource = page.url || NEW_HANOVER_BARREL_URL;
+  let selectedStatus = page.status;
+  let route = 'wordpress_page';
+  let fallbackStatus = null;
+
+  if (!rows.length) {
+    const fallback = await safeTextFetch(NEW_HANOVER_WORDPRESS_POSTS_URL, {
+      referer: board.website,
+      timeoutMs: NC_BOARD_WEBSITE_TIMEOUT_MS,
+      headers: { accept: 'application/json,*/*' },
+    });
+    fallbackStatus = fallback.status;
+    if (fallback.ok) {
+      try { rows = parseNewHanoverWordPressPosts(JSON.parse(fallback.text)); } catch {}
+    }
+    if (rows.length) {
+      selectedSource = fallback.url || NEW_HANOVER_WORDPRESS_POSTS_URL;
+      selectedStatus = fallback.status;
+      route = 'wordpress_rest_fallback';
+      addCapability(board, 'official_wordpress_rest_product_fallback');
+    }
+  }
+
+  if (!rows.length) {
+    roadblocks.push({
+      state: config.id,
+      source: 'New Hanover County ABC barrel-pick item cards',
+      url: NEW_HANOVER_BARREL_URL,
+      status: page.status || fallbackStatus || 0,
+      error: page.error || page.text.slice(0, 240) || 'No parsable bourbon/whiskey barrel-pick cards from the public page or WordPress REST route.',
+      nextRoute: 'Retry the public page and first-party WordPress REST route; do not bypass access controls or promote ABCgo without public evidence.',
+    });
+    dossier.newHanoverPublicProducts = {
+      sourceUrl: NEW_HANOVER_BARREL_URL,
+      fallbackSourceUrl: NEW_HANOVER_WORDPRESS_POSTS_URL,
+      status: page.status,
+      fallbackStatus,
+      itemCount: 0,
+      observedAt: new Date().toISOString(),
+    };
     return;
   }
 
-  const rows = parseNewHanoverBarrelItems(res.text);
   for (const row of rows) {
-    const base = signalBase(config, 'New Hanover County ABC barrel-pick item cards', res.url || NEW_HANOVER_BARREL_URL, row.rawName, bible, 0.74);
+    const rowSource = row.sourceUrl || selectedSource;
+    const base = signalBase(config, 'New Hanover County ABC barrel-pick item cards', rowSource, row.rawName, bible, 0.74);
     signals.push({
       id: stableId([config.id, 'new-hanover-barrel-card', row.ncCode, row.rawName, row.price]),
       ...base,
@@ -937,24 +991,30 @@ async function collectNewHanoverPublicProducts(config, bible, signals, roadblock
       price: row.price,
       proof: row.proof,
       size: row.size,
+      sourceEventAt: row.sourceEventAt || null,
       observedAt: base.fetchedAt,
       canAlertAsInventory: false,
       canAlertAsWatch: true,
       inventorySemantics: 'Official New Hanover County ABC barrel-pick product card; page does not publish per-store shelf quantity.',
-      evidence: `New Hanover County ABC lists ${row.rawName} as an available barrel-pick offering${row.ncCode ? ` (NC Code ${row.ncCode})` : ''}${row.price ? ` at $${row.price.toFixed(2)}` : ''}. This is an official board product-card signal, not store-level inventory.`,
-      raw: { ...row, sourceUrl: res.url || NEW_HANOVER_BARREL_URL, precisionCaveat: 'official barrel-pick card; exact store and shelf quantity unknown' }
+      evidence: `New Hanover County ABC lists ${row.rawName} as a barrel-pick offering${row.ncCode ? ` (NC Code ${row.ncCode})` : ''}${row.price ? ` at $${row.price.toFixed(2)}` : ''}. This is an official board product-card signal, not current store-level inventory.`,
+      raw: { ...row, sourceUrl: rowSource, sourceRoute: route, precisionCaveat: 'official barrel-pick card; exact store and current shelf quantity unknown' },
     });
   }
 
-  board.officialPageReports.push({ url: res.url || NEW_HANOVER_BARREL_URL, status: res.status, capabilities: ['barrel_program_page', 'official_barrel_pick_item_cards'], releaseLanguage: true, strongReleaseLanguage: true, matchedBottles: rows.map((row) => row.rawName).slice(0, 20) });
+  board.officialPageReports.push({ url: selectedSource, status: selectedStatus, capabilities: ['barrel_program_page', 'official_barrel_pick_item_cards', ...(route === 'wordpress_rest_fallback' ? ['official_wordpress_rest_product_fallback'] : [])], releaseLanguage: true, strongReleaseLanguage: true, matchedBottles: rows.map((row) => row.rawName).slice(0, 20) });
   dossier.newHanoverPublicProducts = {
-    sourceUrl: res.url || NEW_HANOVER_BARREL_URL,
-    status: res.status,
+    sourceUrl: selectedSource,
+    primarySourceUrl: NEW_HANOVER_BARREL_URL,
+    fallbackSourceUrl: NEW_HANOVER_WORDPRESS_POSTS_URL,
+    route,
+    status: selectedStatus,
+    primaryStatus: page.status,
+    fallbackStatus,
     itemCount: rows.length,
     bourbonOrWhiskeyItemCount: rows.length,
     items: rows,
     observedAt: new Date().toISOString(),
-    note: 'Parsed official WordPress barrel-pick product cards. Cards include NC Code / price / proof but no store-specific quantity.'
+    note: 'Parsed official New Hanover barrel-pick cards from the public page or its first-party WordPress REST representation. Product cards are not current shelf inventory.',
   };
 }
 
