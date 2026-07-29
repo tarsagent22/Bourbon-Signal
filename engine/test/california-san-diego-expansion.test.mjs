@@ -324,7 +324,7 @@ test('current inventory alert projection uses the current snapshot rather than h
   );
   assert.match(
     exporter,
-    /usesSourceEventTime[\s\S]*?sourceEventAt \|\| drop\?\.eventAt \|\| drop\?\.displayAt/,
+    /function dropSignalAt\(drop\)[\s\S]*?return authoritativeSignalTimestamp\(drop\)/,
     'shipment and release alerts must age from their source event instead of a later crawler refresh',
   );
 });

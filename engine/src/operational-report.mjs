@@ -14,6 +14,7 @@ import { locationValue, precisionRank } from './location-precision.mjs';
 import { getStateLifecycle } from './state-lifecycle.mjs';
 import { appendChangeJournal } from './optimization/change-journal.mjs';
 import { hasPositiveInventoryEvidence } from './operational-candidate-policy.mjs';
+import { authoritativeSignalTimestamp, enforceArchivedSourceAlertPolicy } from './event-freshness.mjs';
 
 const OUT = path.resolve('out');
 const HISTORY = path.join(OUT, 'history');
@@ -79,6 +80,7 @@ function canonicalizeSignal(signal, bible) {
   const storeId = signal.storeId || signal.raw?.storeId || signal.raw?.store?.locationId || null;
   const key = [signal.state, bottleId || canonicalName || 'unknown', signal.eventType, signal.sourceLabel, locationPrecision, storeId || locationName || 'statewide'].join('|').toLowerCase();
   const policy = confidenceForSignal(signal);
+  const sourceAlertPolicy = enforceArchivedSourceAlertPolicy(signal);
   return {
     key: stableId([key]),
     sourceSignalId: signal.id,
@@ -135,8 +137,9 @@ function canonicalizeSignal(signal, bible) {
       ? signal.inventorySemantics
       : policy.inventorySemantics,
     locationValue: policy.locationValue,
-    canAlertAsInventory: policy.canAlertAsInventory,
-    canAlertAsWatch: policy.canAlertAsWatch,
+    canAlertAsInventory: sourceAlertPolicy.canAlertAsInventory === false ? false : policy.canAlertAsInventory,
+    canAlertAsWatch: sourceAlertPolicy.canAlertAsWatch === false ? false : policy.canAlertAsWatch,
+    archivedSourceAlertBlocked: sourceAlertPolicy.raw?.archivedSourceAlertBlocked === true,
     sourceStale: signal.sourceStale === true || virginiaInventoryExpired(signal),
     staleSourceCaveat: signal.staleSourceCaveat || (virginiaInventoryExpired(signal) ? 'Virginia ABC inventory is older than the 24-hour live-inventory window; verify with the store.' : null),
     sampleOnly: Boolean(signal.raw?.sampleOnly),
@@ -152,8 +155,8 @@ function signalSort(a, b) {
 }
 
 function diffSnapshots(prev, current) {
-  const previous = new Map((prev?.signals || []).map((s) => [s.key, s]));
-  const currentMap = new Map((current.signals || []).map((s) => [s.key, s]));
+  const previous = new Map((prev?.signals || []).map(enforceArchivedSourceAlertPolicy).map((s) => [s.key, s]));
+  const currentMap = new Map((current.signals || []).map(enforceArchivedSourceAlertPolicy).map((s) => [s.key, s]));
   const changes = [];
 
   for (const cur of currentMap.values()) {
@@ -213,7 +216,7 @@ function reliabilityForCandidate(change, sig, score) {
   const gates = [];
   const blockers = [];
   const cautions = [];
-  const ageHours = hoursSince(sig.observedAt);
+  const ageHours = hoursSince(authoritativeSignalTimestamp(sig));
   const precision = sig.locationPrecision || 'statewide_catalog';
   const precisionScore = precisionRank(precision);
   const confidence = Number(sig.confidence || 0);
@@ -318,10 +321,7 @@ function candidateFromChange(change, bootstrap = false) {
     blockers.push('manual_refresh_quarantine');
   }
   const eligibleForDelivery = blockers.length === 0 && reliability.eligibleForDelivery;
-  const usesSourceEventTime = /shipment|delivery|release|lottery|drawing|allocation/i.test(String(sig.eventType || sig.type || ''));
-  const signalAt = usesSourceEventTime
-    ? (sig.sourceEventAt || sig.eventAt || sig.displayAt || sig.observedAt || sig.fetchedAt || null)
-    : (sig.observedAt || sig.fetchedAt || sig.sourceEventAt || null);
+  const signalAt = authoritativeSignalTimestamp(sig);
   return {
     id: stableId([change.type, sig.key, JSON.stringify(change.fields || [])]),
     changeType: change.type,

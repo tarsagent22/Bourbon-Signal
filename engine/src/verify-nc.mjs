@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
+import { validateNcSourceLedgerContract } from './nc-source-ledger.mjs';
 
 const OUT = path.resolve('out');
 
@@ -48,7 +49,8 @@ async function main() {
   assert(nc.coverage?.withInventoryPages >= 5, 'NC inventory/product/release page coverage below threshold', nc.coverage);
   assert(nc.coverage?.withReleasePages >= 10, 'NC release/lottery/barrel page coverage below threshold', nc.coverage);
   assert(nc.sourceLedger?.contractVersion === 'bourbon-signal-nc-source-ledger-v1', 'NC operational source ledger is missing', nc.sourceLedger);
-  assert(nc.sourceLedger?.boardCount >= 170 && nc.sourceLedger?.boards?.length === nc.sourceLedger.boardCount, 'NC operational source ledger is incomplete', { boardCount: nc.sourceLedger?.boardCount, rows: nc.sourceLedger?.boards?.length });
+  const ledgerContractErrors = validateNcSourceLedgerContract(nc.sourceLedger);
+  assert(ledgerContractErrors.length === 0, 'NC operational source ledger is incomplete', { errors: ledgerContractErrors, boardCount: nc.sourceLedger?.boardCount, rows: nc.sourceLedger?.boards?.length });
   assert((nc.sourceLedger.boards || []).every((board) => board.boardId && board.qualification && board.expectedCadence && board.health && board.nextAction), 'NC operational source ledger contains incomplete board rows');
   assert((nc.sourceLedger.boards || []).every((board) => board.canAlertAsInventory === false), 'Board-level source ledger must never claim inventory alertability');
   assert((nc.sourceLedger.boards || []).filter((board) => board.qualification === 'single_store_board_shipment_intelligence').length >= 75, 'NC single-store shipment-intelligence ledger coverage below threshold');

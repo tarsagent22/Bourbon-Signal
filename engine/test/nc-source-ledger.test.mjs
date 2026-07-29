@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-import { buildNcSourceLedger, enrichNcSingleStoreShipmentSignals } from '../src/nc-source-ledger.mjs';
+import { buildNcSourceLedger, enrichNcSingleStoreShipmentSignals, validateNcSourceLedgerContract } from '../src/nc-source-ledger.mjs';
 import { locationValue, precisionRank } from '../src/location-precision.mjs';
 
 const locations = [
@@ -125,4 +125,11 @@ test('direct-inventory capability alone never fabricates source health or a succ
   assert.equal(board.lastSuccessfulRetrievalAt, null);
   assert.equal(board.supportingEvidenceHealth, 'healthy');
   assert.equal(board.lastSuccessfulSupportingEvidenceAt, '2026-07-29T05:00:00.000Z');
+});
+
+test('NC source ledger production contract requires exactly 173 unique official boards', () => {
+  const boards = Array.from({ length: 173 }, (_, index) => ({ boardId: `board-${index + 1}` }));
+  assert.deepEqual(validateNcSourceLedgerContract({ boardCount: 173, boards }), []);
+  assert.match(validateNcSourceLedgerContract({ boardCount: 172, boards: boards.slice(0, 172) }).join(' '), /exactly 173/i);
+  assert.match(validateNcSourceLedgerContract({ boardCount: 173, boards: [...boards.slice(0, 172), { boardId: 'board-172' }] }).join(' '), /unique board ids/i);
 });

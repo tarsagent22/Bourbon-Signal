@@ -444,18 +444,61 @@ function parseNewHanoverBarrelItems(html = '') {
   return [...new Map(rows.map((row) => [row.ncCode, row])).values()];
 }
 
+export function newHanoverProductWatchEligibility() {
+  return false;
+}
+
+export function newHanoverFailureOutcome({ page = {}, fallback = null, fallbackParseError = null } = {}) {
+  const primaryStatus = Number(page?.status || 0);
+  const fallbackStatus = fallback ? Number(fallback.status || 0) : null;
+  const primaryDetail = page?.ok
+    ? `primary page HTTP ${primaryStatus || 200} returned no parsable cards`
+    : `primary page failed (HTTP ${primaryStatus || 0}): ${String(page?.error || page?.text || 'unknown failure').slice(0, 180)}`;
+  if (fallback) {
+    if (!fallback.ok) {
+      return {
+        status: fallbackStatus ?? primaryStatus ?? 0,
+        primaryStatus,
+        fallbackStatus,
+        error: `WordPress REST route failed (HTTP ${fallbackStatus || 0}): ${String(fallback.error || fallback.text || 'unknown failure').slice(0, 180)}; ${primaryDetail}.`,
+      };
+    }
+    if (fallbackParseError) {
+      return {
+        status: fallbackStatus || 0,
+        primaryStatus,
+        fallbackStatus,
+        error: `WordPress REST route returned invalid JSON: ${String(fallbackParseError).slice(0, 180)}; ${primaryDetail}.`,
+      };
+    }
+    return {
+      status: fallbackStatus || primaryStatus || 0,
+      primaryStatus,
+      fallbackStatus,
+      error: `WordPress REST route returned no parsable bourbon/whiskey barrel-pick cards; ${primaryDetail}.`,
+    };
+  }
+  return { status: primaryStatus || 0, primaryStatus, fallbackStatus, error: `${primaryDetail}.` };
+}
+
 export function parseNewHanoverWordPressPosts(posts) {
   if (!Array.isArray(posts)) return [];
-  const rows = [];
+  const rowsByCode = new Map();
   for (const post of posts) {
     const sourceUrl = /^https:\/\/www\.newhanovercountyabc\.com\//i.test(String(post?.link || '')) ? post.link : NEW_HANOVER_BARREL_URL;
     const modified = String(post?.modified_gmt || post?.date_gmt || '').trim();
     const sourceEventAt = Number.isFinite(Date.parse(modified)) ? new Date(modified.endsWith('Z') ? modified : `${modified}Z`).toISOString() : null;
     for (const row of parseNewHanoverBarrelItems(String(post?.content?.rendered || ''))) {
-      rows.push({ ...row, sourceUrl, sourceEventAt });
+      const candidate = { ...row, sourceUrl, sourceEventAt };
+      const existing = rowsByCode.get(row.ncCode);
+      const candidateAt = Date.parse(candidate.sourceEventAt || 0);
+      const existingAt = Date.parse(existing?.sourceEventAt || 0);
+      if (!existing || (Number.isFinite(candidateAt) && (!Number.isFinite(existingAt) || candidateAt > existingAt))) {
+        rowsByCode.set(row.ncCode, candidate);
+      }
     }
   }
-  return [...new Map(rows.map((row) => [row.ncCode, row])).values()];
+  return [...rowsByCode.values()];
 }
 
 function extractWixWarmupData(html = '') {
@@ -937,16 +980,22 @@ async function collectNewHanoverPublicProducts(config, bible, signals, roadblock
   let selectedStatus = page.status;
   let route = 'wordpress_page';
   let fallbackStatus = null;
+  let fallback = null;
+  let fallbackParseError = null;
 
   if (!rows.length) {
-    const fallback = await safeTextFetch(NEW_HANOVER_WORDPRESS_POSTS_URL, {
+    fallback = await safeTextFetch(NEW_HANOVER_WORDPRESS_POSTS_URL, {
       referer: board.website,
       timeoutMs: NC_BOARD_WEBSITE_TIMEOUT_MS,
       headers: { accept: 'application/json,*/*' },
     });
     fallbackStatus = fallback.status;
     if (fallback.ok) {
-      try { rows = parseNewHanoverWordPressPosts(JSON.parse(fallback.text)); } catch {}
+      try {
+        rows = parseNewHanoverWordPressPosts(JSON.parse(fallback.text));
+      } catch (error) {
+        fallbackParseError = error?.message || String(error);
+      }
     }
     if (rows.length) {
       selectedSource = fallback.url || NEW_HANOVER_WORDPRESS_POSTS_URL;
@@ -957,19 +1006,24 @@ async function collectNewHanoverPublicProducts(config, bible, signals, roadblock
   }
 
   if (!rows.length) {
+    const failure = newHanoverFailureOutcome({ page, fallback, fallbackParseError });
     roadblocks.push({
       state: config.id,
       source: 'New Hanover County ABC barrel-pick item cards',
-      url: NEW_HANOVER_BARREL_URL,
-      status: page.status || fallbackStatus || 0,
-      error: page.error || page.text.slice(0, 240) || 'No parsable bourbon/whiskey barrel-pick cards from the public page or WordPress REST route.',
+      url: fallback ? NEW_HANOVER_WORDPRESS_POSTS_URL : NEW_HANOVER_BARREL_URL,
+      status: failure.status,
+      error: failure.error,
+      primaryStatus: failure.primaryStatus,
+      fallbackStatus: failure.fallbackStatus,
       nextRoute: 'Retry the public page and first-party WordPress REST route; do not bypass access controls or promote ABCgo without public evidence.',
     });
     dossier.newHanoverPublicProducts = {
       sourceUrl: NEW_HANOVER_BARREL_URL,
       fallbackSourceUrl: NEW_HANOVER_WORDPRESS_POSTS_URL,
-      status: page.status,
-      fallbackStatus,
+      status: failure.status,
+      primaryStatus: failure.primaryStatus,
+      fallbackStatus: failure.fallbackStatus,
+      fallbackParseError,
       itemCount: 0,
       observedAt: new Date().toISOString(),
     };
@@ -994,7 +1048,7 @@ async function collectNewHanoverPublicProducts(config, bible, signals, roadblock
       sourceEventAt: row.sourceEventAt || null,
       observedAt: base.fetchedAt,
       canAlertAsInventory: false,
-      canAlertAsWatch: true,
+      canAlertAsWatch: newHanoverProductWatchEligibility({ route, sourceEventAt: row.sourceEventAt }),
       inventorySemantics: 'Official New Hanover County ABC barrel-pick product card; page does not publish per-store shelf quantity.',
       evidence: `New Hanover County ABC lists ${row.rawName} as a barrel-pick offering${row.ncCode ? ` (NC Code ${row.ncCode})` : ''}${row.price ? ` at $${row.price.toFixed(2)}` : ''}. This is an official board product-card signal, not current store-level inventory.`,
       raw: { ...row, sourceUrl: rowSource, sourceRoute: route, precisionCaveat: 'official barrel-pick card; exact store and current shelf quantity unknown' },
