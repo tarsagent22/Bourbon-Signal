@@ -57,6 +57,9 @@ type Metadata = Record<string, unknown>;
 
 export interface CompanyMemberUser {
   id?: string;
+  firstName?: string | null;
+  lastName?: string | null;
+  username?: string | null;
   primaryEmailAddressId?: string | null;
   emailAddresses?: Array<{ id?: string; emailAddress?: string }>;
   publicMetadata?: Metadata;

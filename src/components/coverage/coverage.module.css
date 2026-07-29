@@ -615,6 +615,7 @@
 }
 
 .requestBlockWelcome .requestInstructions,
+.requestBlockWelcome .requestDetails,
 .requestBlockWelcome .requestPrivacy,
 .requestBlockWelcome .notificationChoice,
 .requestBlockWelcome .requestSubmit,
@@ -684,6 +685,61 @@
 .requestField select:focus-visible {
   border-color: var(--coverage-amber);
   box-shadow: 0 0 0 3px rgba(216, 168, 79, 0.14);
+}
+
+.requestDetails {
+  margin: 0;
+  border-block: 1px solid var(--coverage-line);
+}
+
+.requestDetails summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 13px 1px;
+  color: rgba(245, 237, 214, 0.74);
+  cursor: pointer;
+  font: 800 11px/1.3 var(--font-dm-sans);
+  list-style: none;
+}
+
+.requestDetails summary::-webkit-details-marker {
+  display: none;
+}
+
+.requestDetails summary::after {
+  content: "+";
+  color: var(--coverage-amber);
+  font: 500 18px/1 var(--font-dm-sans);
+}
+
+.requestDetails[open] summary::after {
+  content: "−";
+}
+
+.requestDetails summary span {
+  margin-left: auto;
+  color: var(--coverage-faint);
+  font: 800 8px/1 var(--font-jetbrains);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.requestDetails summary:focus-visible {
+  outline: 2px solid var(--coverage-amber);
+  outline-offset: 3px;
+}
+
+.requestDetailsFields {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px 16px;
+  padding: 4px 0 16px;
+}
+
+.requestDetailsFields .requestPrivacy {
+  grid-column: 1 / -1;
 }
 
 .requestAuthLoading {
@@ -769,7 +825,8 @@
 }
 
 @media (max-width: 640px) {
-  .requestBlockWelcome form {
+  .requestBlockWelcome form,
+  .requestDetailsFields {
     grid-template-columns: 1fr;
   }
 }

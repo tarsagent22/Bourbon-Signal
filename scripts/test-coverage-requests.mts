@@ -213,7 +213,9 @@ assert.match(schema, /target_type = 'county'[\s\S]*area_key IS NOT NULL/i, "coun
 assert.match(schema, /target_type = 'store' AND store_name IS NOT NULL/i, "a manual store request does not require a city");
 assert.match(schema, /CHECK\s*\(\s*status\s+IN\s*\('requested',\s*'on_radar',\s*'improved',\s*'closed'\)\s*\)/i);
 assert.doesNotMatch(schema, /\bip(?:_address)?\b|user_agent|analytics_id/i, "coverage storage has no raw IP or analytics identity field");
-assert.match(repositorySource, /WHERE status IN \('requested', 'on_radar'\)[\s\S]*ORDER BY updated_at DESC[\s\S]*LIMIT \$1/, "the owner read bound applies after closed requests are excluded");
+const ownerLedgerSource = repositorySource.slice(repositorySource.indexOf("listDemandForOwner"));
+assert.match(ownerLedgerSource, /WHERE status IN \('requested', 'on_radar'\)[\s\S]*LIMIT \$1/, "all open demand is selected before the owner row bound");
+assert.match(ownerLedgerSource, /WHERE status IN \('improved', 'closed'\)[\s\S]*LIMIT 40/, "the owner ledger also includes bounded recent history");
 
 const route = read("src/app/api/coverage/requests/route.ts");
 assert.match(route, /await auth\(\)/, "GET and POST use Clerk auth");
@@ -239,7 +241,8 @@ assert.match(form, /signUpHref[\s\S]*onClick=\{preserveDraft\}/, "free-account c
 assert.match(signUpPage, /isCoverageRequestRedirect/, "coverage-originated signup recognizes the request context");
 assert.match(signUpPage, /Create your free account to send this coverage request\./, "account creation repeats that coverage requests do not require payment");
 assert.match(signUpPage, /No payment or card required\./, "account creation keeps the free/no-card promise visible");
-assert.match(form, /Request coverage and email me when it meaningfully improves\./, "notification consent is explicit");
+assert.match(form, /Email me when coverage meaningfully improves\./, "notification consent is explicit without duplicating the submit action");
+assert.doesNotMatch(form, /Request coverage and email me/, "notification consent does not repeat the coverage-request action");
 assert.match(form, /useState\(false\)/, "email notifications require an affirmative unchecked opt-in");
 assert.match(form, /selectedStateCode[\s\S]*manualCounty[\s\S]*manualCity[\s\S]*manualStoreName[\s\S]*manualAddress/, "one generalized draft preserves state and optional local detail");
 assert.match(form, /accountId:\s*string\s*\|\s*null/, "sign-in drafts carry an explicit account-ownership marker");
@@ -255,7 +258,8 @@ assert.match(form, /onDraftRestored\(\)/, "a sign-in return reopens its preserve
 assert.doesNotMatch(form, /onDraftRestored\(\);\s*window\.sessionStorage\.removeItem\(DRAFT_KEY\)/, "draft restoration survives React effect replay");
 assert.match(form, /cancelRequest[\s\S]*removeItem\(DRAFT_KEY\)[\s\S]*onCancel\(\)/, "canceling clears a preserved draft");
 assert.match(form, /setStatus\("saved"\);\s*window\.sessionStorage\.removeItem\(DRAFT_KEY\)/, "saving clears a preserved draft");
-assert.match(form, /Add a county, city, or store/, "the form explains its one generalized request path");
+assert.match(form, /Add county, city, or store details/, "the form explains its one generalized request path");
+assert.match(form, /open=\{detailsOpen\}[\s\S]*onToggle=\{\(event\) => setDetailsOpen\(event\.currentTarget\.open\)\}/, "optional details remain open independently of field contents");
 
 const migration = read("scripts/migrate-coverage-requests.mjs");
 assert.match(migration, /--check/);

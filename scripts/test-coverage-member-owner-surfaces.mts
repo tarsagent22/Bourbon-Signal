@@ -63,6 +63,10 @@ const demand = buildCoverageDemandSummary({
     "user-free": "free",
     "user-unknown": "unknown",
   },
+  requesterProfiles: {
+    "user-paid": { name: "Pat Hunter", email: "pat@example.com" },
+    "user-free": { name: null, email: "free@example.com" },
+  },
   coverage: contract,
 });
 
@@ -75,7 +79,20 @@ assert.equal(demand.targets[0].paidRequesters, 1);
 assert.equal(demand.targets[0].freeRequesters, 1);
 assert.equal(demand.targets[0].currentCapability, "not-active");
 assert.match(demand.targets[0].gap, /city|area/i);
-assert.doesNotMatch(JSON.stringify(demand), /user-paid|user-free|user-unknown|userId|email/i, "owner aggregate drops requester identities");
+assert.equal(demand.notificationOptIns, 3);
+const repeatedOptInDemand = buildCoverageDemandSummary({
+  requests: [
+    row("user-paid", "state:OR", "state", "Oregon"),
+    row("user-paid", "city:OR:portland", "city", "Portland"),
+  ],
+  memberSegments: { "user-paid": "paid" },
+  coverage: contract,
+});
+assert.equal(repeatedOptInDemand.notificationOptIns, 1, "email follow-up counts unique opted-in members");
+const paidRequest = demand.recentRequests.find((request) => request.requesterEmail === "pat@example.com");
+assert.equal(paidRequest?.requesterName, "Pat Hunter");
+assert.equal(paidRequest?.notificationEnabled, true);
+assert.doesNotMatch(JSON.stringify(demand), /"userId"/, "owner presentation must not expose raw Clerk ids");
 
 const memberCard = read("src/components/dashboard/CoverageRequestsCard.tsx");
 const memberStyles = read("src/components/dashboard/CoverageRequestsCard.module.css");
@@ -111,6 +128,10 @@ assert.match(ownerPage, /Coverage demand/, "coverage demand is in owner attentio
 assert.match(ownerPage, /id="coverage-demand"/, "the owner queue has a direct section target");
 assert.match(ownerPage, /uniqueRequesters[\s\S]*paidRequesters[\s\S]*freeRequesters/, "queue renders aggregate requester mix");
 const coverageSection = ownerPage.slice(ownerPage.indexOf('id="coverage-demand"'), ownerPage.indexOf('id="business"'));
-assert.doesNotMatch(coverageSection, /requesterEmail|requesterName|userId/, "requester identity is private by default");
+assert.match(coverageSection, /Recent individual requests/);
+assert.match(coverageSection, /requesterEmail/);
+assert.match(coverageSection, /request\.requesterEmail[\s\S]*request\.notificationEnabled[\s\S]*mailto:/, "opted-in members keep an email action even when Clerk has no display name");
+assert.match(coverageSection, /Email updates:/);
+assert.doesNotMatch(coverageSection, /request\.userId/, "Control Room should show useful identity, not raw Clerk ids");
 
 console.log("coverage member and owner surface tests passed");

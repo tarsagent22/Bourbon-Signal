@@ -90,8 +90,8 @@ assert.match(styles, /--coverage-active:\s*#789f63/i, "active coverage uses a se
 assert.match(styles, /--coverage-focused:\s*#c59a4a/i, "focused coverage steps down to amber");
 
 assert.match(requestForm, /<select[\s\S]*required[\s\S]*US_STATE_OPTIONS/, "the generalized form requires a valid state selection");
-assert.match(requestForm, />City or area <small>optional<\/small>/, "city is optional");
-assert.match(requestForm, />Store name <small>optional<\/small>/, "store is optional");
+assert.match(requestForm, /<details[\s\S]*Add county, city, or store details[\s\S]*name="manualCity"/, "city is available as optional detail");
+assert.match(requestForm, /<details[\s\S]*name="manualStoreName"/, "store is available as optional detail");
 assert.doesNotMatch(requestForm, /targetChoices|coverage-target|Matched store/, "the generalized form does not ask users to choose among request modes");
 
 assert.match(api, /searchCurrentCoverageTargets/, "public search resolves through the shared server contract");

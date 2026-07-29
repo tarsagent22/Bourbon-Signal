@@ -185,10 +185,24 @@ export class CoverageRequestRepository {
         id, user_id, target_type, state_code, area_key, area_label, store_id, store_name,
         store_address, canonical_target_key, status, notification_enabled,
         requested_at, updated_at, baseline_coverage_fingerprint
-      FROM coverage_requests
-      WHERE status IN ('requested', 'on_radar')
+      FROM (
+        (
+          SELECT *
+          FROM coverage_requests
+          WHERE status IN ('requested', 'on_radar')
+          ORDER BY updated_at DESC
+          LIMIT $1
+        )
+        UNION ALL
+        (
+          SELECT *
+          FROM coverage_requests
+          WHERE status IN ('improved', 'closed')
+          ORDER BY updated_at DESC
+          LIMIT 40
+        )
+      ) AS owner_coverage_requests
       ORDER BY updated_at DESC
-      LIMIT $1
     `, [Math.max(1, Math.min(10_000, Math.floor(limit)))]) as CoverageRequestRow[];
     return rows.map((row) => ({ ...rowToMemberRequest(row), userId: asString(row.user_id) }));
   }
