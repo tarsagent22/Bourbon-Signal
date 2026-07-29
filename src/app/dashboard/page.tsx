@@ -890,6 +890,7 @@ function PaidMemberDashboard() {
   const [collectionNotes, setCollectionNotes] = useState("");
   const [savingCollection, setSavingCollection] = useState(false);
   const [savedCollection, setSavedCollection] = useState(false);
+  const [collectionSyncPending, setCollectionSyncPending] = useState(false);
   const [collectionError, setCollectionError] = useState<string | null>(null);
   const [manualCollectionBottleReady, setManualCollectionBottleReady] = useState(false);
   const [collectionRatingDrafts, setCollectionRatingDrafts] = useState<Record<string, number>>({});
@@ -1586,17 +1587,33 @@ function PaidMemberDashboard() {
       setCollectionError("Loading your saved preferences. Try again in a second.");
       return false;
     }
-    setSavingCollection(false);
-    setSavedCollection(true);
+    setSavingCollection(true);
+    setSavedCollection(false);
     setCollectionError(null);
-    const nextPrefs = { collectionPreferences: { bottles: entries } };
-    void savePreferences(nextPrefs)
-      .catch((error) => {
-        setCollectionError(error instanceof Error ? error.message : "Could not save your collection yet.");
-      })
-      .finally(() => setSavingCollection(false));
-    setTimeout(() => setSavedCollection(false), 1600);
-    return true;
+    const nextPrefs = {
+      collectionPreferences: {
+        bottles: entries,
+      },
+    };
+    try {
+      const result = await savePreferences(nextPrefs);
+      if (result?.status === "conflict") {
+        setCollectionSyncPending(true);
+        setSavedCollection(false);
+        setCollectionError("Your collection changed on another device. Review this version and save again.");
+        return false;
+      }
+      const pending = result?.status === "pending";
+      setCollectionSyncPending(pending);
+      setSavedCollection(true);
+      if (!pending) setTimeout(() => setSavedCollection(false), 1600);
+      return true;
+    } catch (error) {
+      setCollectionError(error instanceof Error ? error.message : "Could not save your collection yet.");
+      return false;
+    } finally {
+      setSavingCollection(false);
+    }
   };
 
   const stageCollectionBottle = (option: BottleOption) => {
@@ -1740,13 +1757,15 @@ function PaidMemberDashboard() {
           addBottleOption(option);
           setAlertMode("specific_bottles");
         },
-        persistTracking: () => savePreferences({
-          alertMode: "specific_bottles",
-          bottleAlertPreferences: {
-            bottleNames: Array.from(new Set([...watchedBottleOptions.map((watched) => watched.label), option.label])),
-            bottleKeys: Array.from(new Set([...Array.from(selectedCanonicalKeys), option.canonicalKey])),
-          },
-        }),
+        persistTracking: async () => {
+          await savePreferences({
+            alertMode: "specific_bottles",
+            bottleAlertPreferences: {
+              bottleNames: Array.from(new Set([...watchedBottleOptions.map((watched) => watched.label), option.label])),
+              bottleKeys: Array.from(new Set([...Array.from(selectedCanonicalKeys), option.canonicalKey])),
+            },
+          });
+        },
         rollbackTracking: () => {
           newlyAddedIds.forEach((id) => removeBottle(id));
           setAlertMode(previousAlertMode);
@@ -3619,7 +3638,7 @@ function PaidMemberDashboard() {
               )}
 
               {collectionError ? <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "#D77A61" }}>{collectionError}</p> : null}
-              {savedCollection ? <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "#9AD4B1" }}>Collection saved.</p> : null}
+              {savedCollection ? <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "#9AD4B1" }}>{collectionSyncPending ? "Saved on this device; sync pending." : "Collection saved."}</p> : null}
             </div>
           </StepShell>
           ) : null}

@@ -2,8 +2,8 @@ import { neon } from "@neondatabase/serverless";
 import { PostgresAlertQueueRepository, type SqlExecutor } from "./postgres-repository";
 
 export function alertQueueConnectionString(env: NodeJS.ProcessEnv = process.env) {
-  return env.BOURBON_QUEUE_DATABASE_URL_UNPOOLED
-    || env.BOURBON_QUEUE_DATABASE_URL
+  return env.BOURBON_QUEUE_DATABASE_URL
+    || env.BOURBON_QUEUE_DATABASE_URL_UNPOOLED
     || env.DATABASE_URL
     || null;
 }

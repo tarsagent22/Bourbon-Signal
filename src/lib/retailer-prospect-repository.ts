@@ -98,7 +98,7 @@ const REFRESH_EXISTING_PROSPECT_QUERY = `
 `;
 
 function connectionString(env: NodeJS.ProcessEnv = process.env) {
-  return env.BOURBON_QUEUE_DATABASE_URL_UNPOOLED || env.BOURBON_QUEUE_DATABASE_URL || env.DATABASE_URL || null;
+  return env.BOURBON_QUEUE_DATABASE_URL || env.BOURBON_QUEUE_DATABASE_URL_UNPOOLED || env.DATABASE_URL || null;
 }
 
 function asString(value: unknown) {

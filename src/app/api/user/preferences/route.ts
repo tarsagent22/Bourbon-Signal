@@ -42,6 +42,17 @@ import {
   normalizeMemberProfilePreferences,
   type MemberProfilePreferences,
 } from "@/lib/member-profile-preferences";
+import {
+  collectionFingerprint,
+  normalizeCollectionBottles,
+  type CollectionBottlePreference,
+} from "@/lib/member-collection";
+import {
+  getMemberCollectionRepository,
+  MemberCollectionConflictError,
+} from "@/lib/member-collection-repository";
+
+export type { CollectionBottlePreference } from "@/lib/member-collection";
 
 export interface AreaPreferences {
   states: string[];
@@ -63,20 +74,6 @@ export interface AreaPreferences {
 
 export type AlertMode = "specific_bottles" | "anything_notable";
 
-export interface CollectionBottlePreference {
-  bottleId: string;
-  bottleName: string;
-  canonicalKey: string;
-  rating: number;
-  tasteTags?: string[];
-  wouldBuyAgain?: boolean;
-  notes?: string;
-  pendingCanonicalMatch?: boolean;
-  bottleContributionId?: string;
-  addedAt: string;
-  updatedAt: string;
-}
-
 export interface UserAlertPreferences {
   areaPreferences: AreaPreferences;
   notificationPreferences: NotificationPreferences;
@@ -87,6 +84,7 @@ export interface UserAlertPreferences {
   };
   collectionPreferences: {
     bottles: CollectionBottlePreference[];
+    version?: number;
   };
   radarPreferences: RadarPreferences;
   sightingsPreferences?: SightingsPreferences;
@@ -217,41 +215,8 @@ function normalizeBottleAlertPreferences(input: unknown): UserAlertPreferences["
   };
 }
 
-function normalizeCollectionPreferences(input: unknown): UserAlertPreferences["collectionPreferences"] {
-  const source = (input && typeof input === "object" ? input : {}) as Record<string, unknown>;
-  const rawBottles = Array.isArray(source.bottles) ? source.bottles : [];
-  const seen = new Set<string>();
-  const bottles: CollectionBottlePreference[] = [];
-
-  for (const raw of rawBottles) {
-    const item = (raw && typeof raw === "object" ? raw : {}) as Record<string, unknown>;
-    const bottleName = typeof item.bottleName === "string" ? item.bottleName.trim() : "";
-    const bottleId = typeof item.bottleId === "string" ? item.bottleId.trim() : normalizeBottleKey(bottleName);
-    const canonicalKey = normalizeBottleKey(typeof item.canonicalKey === "string" ? item.canonicalKey : bottleName || bottleId);
-    if (!bottleName || !canonicalKey || seen.has(canonicalKey)) continue;
-    seen.add(canonicalKey);
-    const rawRating = typeof item.rating === "number" && Number.isFinite(item.rating) ? item.rating : 0;
-    const rating = Math.max(0, Math.min(100, Math.round(rawRating)));
-    const addedAt = typeof item.addedAt === "string" ? item.addedAt : new Date().toISOString();
-    const updatedAt = typeof item.updatedAt === "string" ? item.updatedAt : addedAt;
-    bottles.push({
-      bottleId,
-      bottleName,
-      canonicalKey,
-      rating,
-      tasteTags: Array.isArray(item.tasteTags)
-        ? Array.from(new Set(item.tasteTags.filter((tag): tag is string => typeof tag === "string").map((tag) => tag.trim()).filter(Boolean))).slice(0, 12)
-        : [],
-      wouldBuyAgain: typeof item.wouldBuyAgain === "boolean" ? item.wouldBuyAgain : rating >= 80,
-      notes: typeof item.notes === "string" ? item.notes.slice(0, 500) : "",
-      pendingCanonicalMatch: item.pendingCanonicalMatch === true,
-      bottleContributionId: typeof item.bottleContributionId === "string" ? item.bottleContributionId.slice(0, 180) : undefined,
-      addedAt,
-      updatedAt,
-    });
-  }
-
-  return { bottles: bottles.slice(0, 250) };
+function normalizeCollectionPreferences(input: unknown, version = 0): UserAlertPreferences["collectionPreferences"] {
+  return { bottles: normalizeCollectionBottles(input), version: Math.max(0, Math.floor(version)) };
 }
 
 function normalizeSightingsPreferences(input: unknown): SightingsPreferences {
@@ -321,7 +286,10 @@ function normalizeSightingsPreferences(input: unknown): SightingsPreferences {
   return { submittedSightings, signalReports, sightingVotes };
 }
 
-function buildResponseFromMetadata(user: Awaited<ReturnType<Awaited<ReturnType<typeof clerkClient>>["users"]["getUser"]>>): UserAlertPreferences {
+function buildResponseFromMetadata(
+  user: Awaited<ReturnType<Awaited<ReturnType<typeof clerkClient>>["users"]["getUser"]>>,
+  collectionPreferences: UserAlertPreferences["collectionPreferences"] = EMPTY_COLLECTION_PREFERENCES,
+): UserAlertPreferences {
   const areaPreferences = normalizeAreaPreferences(user.publicMetadata?.areaPreferences);
   const notificationPreferences = normalizeNotificationPreferences(user.publicMetadata?.notificationPreferences);
   const alertMode = normalizeAlertMode(user.publicMetadata?.alertMode);
@@ -332,7 +300,7 @@ function buildResponseFromMetadata(user: Awaited<ReturnType<Awaited<ReturnType<t
     notificationPreferences,
     alertMode,
     bottleAlertPreferences,
-    collectionPreferences: normalizeCollectionPreferences(user.publicMetadata?.collectionPreferences),
+    collectionPreferences,
     radarPreferences: normalizeRadarPreferences(user.publicMetadata?.radarPreferences),
     sightingsPreferences: normalizeSightingsPreferences(user.publicMetadata?.sightingsPreferences),
     memberProfile: normalizeMemberProfilePreferences(user.publicMetadata?.memberProfile),
@@ -344,6 +312,24 @@ function buildResponseFromMetadata(user: Awaited<ReturnType<Awaited<ReturnType<t
       channels: { onSite: notificationPreferences.onSite.enabled, email: notificationPreferences.email.enabled, sms: notificationPreferences.sms.enabled },
     }),
   };
+}
+
+async function loadDurableCollection(
+  user: Awaited<ReturnType<Awaited<ReturnType<typeof clerkClient>>["users"]["getUser"]>>,
+) {
+  const legacyCollection = normalizeCollectionPreferences(user.publicMetadata?.collectionPreferences);
+  try {
+    const repository = getMemberCollectionRepository();
+    if (legacyCollection.bottles.length > 0) {
+      await repository.migrateLegacyForUser(user.id, legacyCollection.bottles);
+    }
+    const collection = await repository.getForUser(user.id);
+    return { bottles: collection.bottles, version: collection.version };
+  } catch (error) {
+    console.error("durable member collection unavailable", error instanceof Error ? error.message : "unknown error");
+    if (legacyCollection.bottles.length > 0) return legacyCollection;
+    throw new Error("durable_member_collection_unavailable");
+  }
 }
 
 function buildQaPreviewResponse(req: NextRequest, payload: Partial<UserAlertPreferences> = {}) {
@@ -441,7 +427,11 @@ export async function GET(req: NextRequest) {
 
   const client = await clerkClient();
   const user = await client.users.getUser(userId);
-  return NextResponse.json(buildResponseFromMetadata(user));
+  const collection = await loadDurableCollection(user).catch(() => null);
+  if (!collection) {
+    return NextResponse.json({ error: "Collection storage is temporarily unavailable." }, { status: 503 });
+  }
+  return NextResponse.json(buildResponseFromMetadata(user, collection));
 }
 
 export async function POST(req: NextRequest) {
@@ -467,7 +457,11 @@ export async function POST(req: NextRequest) {
   const payload = (await req.json().catch(() => ({}))) as UserAlertPreferencePatch;
   const client = await clerkClient();
   const user = await client.users.getUser(userId);
-  const existing = buildResponseFromMetadata(user);
+  const durableCollection = await loadDurableCollection(user).catch(() => null);
+  if (!durableCollection) {
+    return NextResponse.json({ error: "Collection storage is temporarily unavailable." }, { status: 503 });
+  }
+  const existing = buildResponseFromMetadata(user, durableCollection);
 
   let areaPreferences = normalizeAreaPreferences(payload.areaPreferences ?? existing.areaPreferences ?? EMPTY_AREA_PREFERENCES);
   let notificationPreferences = existing.notificationPreferences ?? getDefaultNotificationPreferences();
@@ -512,7 +506,7 @@ export async function POST(req: NextRequest) {
   }
   const alertMode = payload.alertMode === undefined ? existing.alertMode : normalizeAlertMode(payload.alertMode);
   let bottleAlertPreferences = normalizeBottleAlertPreferences(payload.bottleAlertPreferences ?? existing.bottleAlertPreferences ?? EMPTY_BOTTLE_ALERT_PREFERENCES);
-  const collectionPreferences = normalizeCollectionPreferences(payload.collectionPreferences ?? existing.collectionPreferences ?? EMPTY_COLLECTION_PREFERENCES);
+  let collectionPreferences = normalizeCollectionPreferences(payload.collectionPreferences ?? existing.collectionPreferences ?? EMPTY_COLLECTION_PREFERENCES, existing.collectionPreferences.version || 0);
   const radarPreferences = normalizeRadarPreferences(payload.radarPreferences ?? existing.radarPreferences ?? EMPTY_RADAR_PREFERENCES);
   const sightingsPreferences = normalizeSightingsPreferences(payload.sightingsPreferences ?? existing.sightingsPreferences ?? EMPTY_SIGHTINGS_PREFERENCES);
   let memberProfile = existing.memberProfile;
@@ -570,6 +564,42 @@ export async function POST(req: NextRequest) {
   if (alertMode === "anything_notable" || bottleAlertPreferences.bottleKeys.length) milestones.push("watchlist_saved");
   if (notificationPreferences.onSite.enabled || notificationPreferences.email.enabled || notificationPreferences.sms.enabled) milestones.push("notification_channel_enabled");
   if (activation.complete) milestones.push("paid_activation_completed");
+  // All payload validation and entitlement checks must complete before Neon is mutated.
+  if (payload.collectionPreferences !== undefined) {
+    if (typeof payload.collectionPreferences.version !== "number" || !Number.isFinite(payload.collectionPreferences.version)) {
+      return NextResponse.json({
+        error: "Refresh before saving this collection.",
+        code: "collection_version_required",
+        currentVersion: existing.collectionPreferences.version || 0,
+        currentCollection: existing.collectionPreferences,
+      }, { status: 409 });
+    }
+    try {
+      const savedCollection = await getMemberCollectionRepository().replaceForUser(
+        userId,
+        collectionPreferences.bottles,
+        payload.collectionPreferences.version,
+      );
+      collectionPreferences = { bottles: savedCollection.bottles, version: savedCollection.version };
+    } catch (error) {
+      if (error instanceof MemberCollectionConflictError) {
+        const current = await getMemberCollectionRepository().getForUser(userId);
+        if (collectionFingerprint(current.bottles) === collectionFingerprint(collectionPreferences.bottles)) {
+          collectionPreferences = { bottles: current.bottles, version: current.version };
+        } else {
+          return NextResponse.json({
+            error: error.message,
+            code: "collection_version_conflict",
+            currentVersion: error.currentVersion,
+            currentCollection: { bottles: current.bottles, version: current.version },
+          }, { status: 409 });
+        }
+      } else {
+        console.error("member collection save failed", error instanceof Error ? error.message : "unknown error");
+        return NextResponse.json({ error: "Collection storage is temporarily unavailable." }, { status: 503 });
+      }
+    }
+  }
   const publicMetadataPatch = buildSuppliedPreferenceMetadataPatch(payload, {
     areaPreferences,
     notificationPreferences: notificationPreferencesMetadataPatch,
@@ -580,6 +610,7 @@ export async function POST(req: NextRequest) {
     sightingsPreferences,
     memberProfile,
   });
+  delete publicMetadataPatch.collectionPreferences;
   const experimentMetadataPatch = payload.radarPreferences === undefined
     ? {}
     : buildFollowExperimentMetadataPatch(req, user, existing.radarPreferences, radarPreferences);
@@ -591,11 +622,14 @@ export async function POST(req: NextRequest) {
   } else if (Object.keys(publicMetadataPatch).length > 0) {
     await client.users.updateUserMetadata(userId, { publicMetadata: publicMetadataPatch });
   }
-  try {
-    const milestoneMetadata = mergeActivationMilestones((user.privateMetadata || {}) as Record<string, unknown>, milestones, new Date().toISOString());
-    await client.users.updateUserMetadata(userId, { privateMetadata: { activation: milestoneMetadata.activation } });
-  } catch (error) {
-    console.warn("preference activation milestone update failed", error instanceof Error ? error.message : "unknown error");
+
+  if (milestones.length > 0) {
+    try {
+      const milestoneMetadata = mergeActivationMilestones((user.privateMetadata || {}) as Record<string, unknown>, milestones, new Date().toISOString());
+      await client.users.updateUserMetadata(userId, { privateMetadata: { activation: milestoneMetadata.activation } });
+    } catch (error) {
+      console.warn("preference activation milestone update failed", error instanceof Error ? error.message : "unknown error");
+    }
   }
 
   return NextResponse.json({ ok: true, areaPreferences, notificationPreferences, alertMode, bottleAlertPreferences, collectionPreferences, radarPreferences, sightingsPreferences, memberProfile });

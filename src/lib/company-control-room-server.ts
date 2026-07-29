@@ -213,7 +213,7 @@ async function listAllCompanyUsers(client: Awaited<ReturnType<typeof clerkClient
   return users;
 }
 
-export async function getCompanyControlRoomSnapshot() {
+async function loadCompanyControlRoomSnapshot() {
   const client = await clerkClient();
   const users = await listAllCompanyUsers(client);
   const memberships = summarizeMemberships(users);
@@ -298,4 +298,23 @@ export async function getCompanyControlRoomSnapshot() {
     ...snapshot,
     scorecard: buildCompanyScorecard(snapshot, checkedAt),
   };
+}
+
+const CONTROL_ROOM_CACHE_TTL_MS = 20_000;
+let controlRoomCache: { expiresAt: number; value: Awaited<ReturnType<typeof loadCompanyControlRoomSnapshot>> } | null = null;
+let controlRoomInFlight: Promise<Awaited<ReturnType<typeof loadCompanyControlRoomSnapshot>>> | null = null;
+
+export async function getCompanyControlRoomSnapshot() {
+  const now = Date.now();
+  if (controlRoomCache && controlRoomCache.expiresAt > now) return controlRoomCache.value;
+  if (controlRoomInFlight) return controlRoomInFlight;
+  controlRoomInFlight = loadCompanyControlRoomSnapshot()
+    .then((value) => {
+      controlRoomCache = { value, expiresAt: Date.now() + CONTROL_ROOM_CACHE_TTL_MS };
+      return value;
+    })
+    .finally(() => {
+      controlRoomInFlight = null;
+    });
+  return controlRoomInFlight;
 }

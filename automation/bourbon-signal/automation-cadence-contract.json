@@ -15,12 +15,13 @@
     "implementationOperator": 2,
     "releaseRadar": 1,
     "scorecardAggregation": 1,
+    "neonEncryptedBackup": 1,
     "morningBrief": 1,
     "schedulerReconciliation": 1
   },
   "expectedTotals": {
     "expansionDeterministicRunsPerDay": 40,
-    "deterministicRunsPerDay": 238.03333333333333,
+    "deterministicRunsPerDay": 239.03333333333333,
     "agenticRunsPerWeek": 36,
     "deterministicRunSharePercentApprox": 97.89
   },

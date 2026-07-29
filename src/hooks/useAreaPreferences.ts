@@ -11,6 +11,13 @@ import {
 } from "@/lib/area-preferences-cache";
 import { getDefaultNotificationPreferences } from "@/lib/notification-preferences";
 import { isQaPreviewMode, QA_PREVIEW_PREFERENCES } from "@/lib/preview-qa";
+import {
+  clearPendingCollection,
+  markPendingCollectionConflict,
+  readPendingCollection,
+  syncPendingCollection,
+  writePendingCollection,
+} from "@/lib/collection-offline-store";
 
 const EMPTY_PREFS: UserAlertPreferences = {
   areaPreferences: {
@@ -62,6 +69,18 @@ function mergePreferencePatch(base: UserAlertPreferences, patch: UserAlertPrefer
   } as UserAlertPreferences;
 }
 
+function mergeCollectionConflict(
+  local: UserAlertPreferences["collectionPreferences"],
+  remote: UserAlertPreferences["collectionPreferences"],
+) {
+  const bottles = new Map(remote.bottles.map((bottle) => [bottle.canonicalKey, bottle]));
+  for (const bottle of local.bottles) bottles.set(bottle.canonicalKey, bottle);
+  return {
+    bottles: [...bottles.values()].sort((left, right) => right.rating - left.rating || left.bottleName.localeCompare(right.bottleName)),
+    version: remote.version ?? 0,
+  };
+}
+
 export function useAreaPreferences() {
   const { isLoaded, isSignedIn, user } = useUser();
   const qaPreview = isQaPreviewMode();
@@ -93,17 +112,57 @@ export function useAreaPreferences() {
     }
     setLoading(true);
     setResolvedFor(null);
+    const pendingBeforeRequest = await readPendingCollection(requestedUserId);
+    if (pendingBeforeRequest && activeUserIdRef.current === requestedUserId) {
+      setPrefs((current) => ({ ...current, collectionPreferences: pendingBeforeRequest.collectionPreferences }));
+    }
     try {
       const res = await fetch("/api/user/preferences");
       if (res.ok) {
-        const data: UserAlertPreferences = await res.json();
+        let data: UserAlertPreferences = await res.json();
+        const pending = pendingBeforeRequest;
+        if (pending) {
+          const pendingPreferences = {
+            ...pending.collectionPreferences,
+            version: pending.collectionPreferences.version ?? 0,
+          };
+          data = { ...data, collectionPreferences: pendingPreferences };
+          let conflictPreferences: UserAlertPreferences["collectionPreferences"] | null = null;
+          try {
+            const synced = await syncPendingCollection(requestedUserId, async (collectionPreferences, pendingRecord) => {
+              const response = await fetch("/api/user/preferences", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ collectionPreferences }),
+              });
+              if (response.status === 409) {
+                const conflict = await response.json().catch(() => null) as { currentCollection?: UserAlertPreferences["collectionPreferences"] } | null;
+                if (conflict?.currentCollection) {
+                  conflictPreferences = mergeCollectionConflict(collectionPreferences, conflict.currentCollection);
+                  const rebased = await writePendingCollection(requestedUserId, conflictPreferences);
+                  if (rebased) await markPendingCollectionConflict(requestedUserId, rebased.operationId);
+                } else await markPendingCollectionConflict(requestedUserId, pendingRecord.operationId);
+                throw new Error("pending_collection_conflict");
+              }
+              if (!response.ok) throw new Error("pending_collection_sync_failed");
+              return await response.json() as UserAlertPreferences;
+            });
+            if (synced) data = synced;
+          } catch {
+            // Keep the device copy visible and retry after the next successful preferences load/save.
+            data = {
+              ...data,
+              collectionPreferences: conflictPreferences || pending.collectionPreferences,
+            };
+          }
+        }
         if (activeUserIdRef.current === requestedUserId) {
           setCachedAreaPreferences(requestedUserId, data);
           setPrefs(data);
         }
       }
     } catch {
-      if (activeUserIdRef.current === requestedUserId) setPrefs(EMPTY_PREFS);
+      // Preserve the last confirmed or device-cached preferences during an outage.
     } finally {
       if (activeUserIdRef.current === requestedUserId) {
         setLoading(false);
@@ -158,29 +217,73 @@ export function useAreaPreferences() {
 
   const savePreferences = useCallback(async (newPrefs: UserAlertPreferencePatch) => {
     const requestedUserId = userId;
-    const merged = mergePreferencePatch(getCachedAreaPreferences(requestedUserId) || prefs || EMPTY_PREFS, newPrefs);
-    setPrefs((current) => mergePreferencePatch(current, newPrefs));
+    const base = getCachedAreaPreferences(requestedUserId) || prefs || EMPTY_PREFS;
+    const requestPatch: UserAlertPreferencePatch = newPrefs.collectionPreferences
+      ? {
+          ...newPrefs,
+          collectionPreferences: {
+            ...newPrefs.collectionPreferences,
+            version: newPrefs.collectionPreferences.version ?? base.collectionPreferences.version ?? 0,
+          },
+        }
+      : newPrefs;
+    const merged = mergePreferencePatch(base, requestPatch);
+    setPrefs((current) => mergePreferencePatch(current, requestPatch));
     if (requestedUserId) setCachedAreaPreferences(requestedUserId, merged);
-    if (qaPreview) return;
+    if (qaPreview) return { status: "synced" as const };
+
+    const collectionWrite = Boolean(requestedUserId && requestPatch.collectionPreferences);
+    let pendingWrite = null as Awaited<ReturnType<typeof writePendingCollection>>;
+    if (collectionWrite && requestedUserId && requestPatch.collectionPreferences) {
+      pendingWrite = await writePendingCollection(requestedUserId, requestPatch.collectionPreferences);
+    }
 
     const res = await fetch("/api/user/preferences", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(newPrefs),
-    });
+      body: JSON.stringify(requestPatch),
+    }).catch(() => null);
+    if (!res) {
+      if (collectionWrite && pendingWrite) return { status: "pending" as const };
+      if (requestedUserId) clearCachedAreaPreferences(requestedUserId);
+      if (activeUserIdRef.current === requestedUserId) await fetchPrefs();
+      throw new Error("Failed to save preferences");
+    }
+    if (res.status === 409 && collectionWrite && requestedUserId && pendingWrite) {
+      const conflict = await res.json().catch(() => null) as { currentCollection?: UserAlertPreferences["collectionPreferences"] } | null;
+      const mergedConflict = conflict?.currentCollection && requestPatch.collectionPreferences
+        ? mergeCollectionConflict(requestPatch.collectionPreferences, conflict.currentCollection)
+        : requestPatch.collectionPreferences;
+      if (mergedConflict) {
+        const rebased = await writePendingCollection(requestedUserId, mergedConflict);
+        if (rebased) await markPendingCollectionConflict(requestedUserId, rebased.operationId);
+        const conflictedPreferences = { ...merged, collectionPreferences: mergedConflict };
+        setCachedAreaPreferences(requestedUserId, conflictedPreferences);
+        if (activeUserIdRef.current === requestedUserId) setPrefs(conflictedPreferences);
+      } else await markPendingCollectionConflict(requestedUserId, pendingWrite.operationId);
+      return { status: "conflict" as const };
+    }
     if (!res.ok) {
+      if (collectionWrite && pendingWrite && (res.status >= 500 || res.status === 408 || res.status === 429)) {
+        return { status: "pending" as const };
+      }
+      if (collectionWrite && requestedUserId && pendingWrite) {
+        await clearPendingCollection(requestedUserId, pendingWrite.operationId);
+      }
       if (requestedUserId) clearCachedAreaPreferences(requestedUserId);
       if (activeUserIdRef.current === requestedUserId) await fetchPrefs();
       throw new Error("Failed to save preferences");
     }
     const saved = await res.json().catch(() => null) as UserAlertPreferences | null;
-    if (activeUserIdRef.current !== requestedUserId) return;
+    if (collectionWrite && requestedUserId && pendingWrite) await clearPendingCollection(requestedUserId, pendingWrite.operationId);
+    if (activeUserIdRef.current !== requestedUserId) return { status: "synced" as const };
     if (saved && requestedUserId) {
       setCachedAreaPreferences(requestedUserId, saved);
       setPrefs(saved);
     } else {
       setPrefs(merged);
     }
+    return { status: "synced" as const };
   }, [fetchPrefs, prefs, qaPreview, userId]);
 
   return { prefs, loading, ready, savePreferences };
