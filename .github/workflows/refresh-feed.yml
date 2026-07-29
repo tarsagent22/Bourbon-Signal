@@ -165,7 +165,7 @@ jobs:
         run: npm run verify:ca
 
       - name: Verify demand metro generated evidence with fresh retained fallback
-        if: ${{ !contains(inputs.states, 'TN') }}
+        if: ${{ !inputs.states }}
         working-directory: engine
         run: npm run verify:demand-metros -- --allow-fresh-retained-evidence
 
@@ -175,7 +175,7 @@ jobs:
         run: npm run verify:demand-metros
 
       - name: Verify Tennessee generated contract with fresh retained fallback
-        if: ${{ !contains(inputs.states, 'TN') }}
+        if: ${{ !inputs.states }}
         working-directory: engine
         run: npm run verify:tn -- --allow-fresh-retained-evidence
 
