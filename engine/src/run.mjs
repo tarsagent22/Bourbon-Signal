@@ -10,7 +10,7 @@ import { confidenceForSignal } from './confidence-policy.mjs';
 import { atomicWriteJson, validateFwgsFullArtifact } from './fwgs-artifact-policy.mjs';
 import { runBoundedPool } from './optimization/worker-pool.mjs';
 import { selectScheduledStates, updateStateRunMetric } from './optimization/state-run-plan.mjs';
-import { guardStateReport } from './state-report-guard.mjs';
+import { guardStateReport, stateReportContinuityStateIds, usesPartialSignalContinuity } from './state-report-guard.mjs';
 import { resolveAggregateStateReports } from './state-report-aggregation.mjs';
 import { markStaleReport } from './state-report-fallback.mjs';
 import { withStateRunLock } from './state-run-lock.mjs';
@@ -394,7 +394,7 @@ async function collectStateResilientUnlocked(config) {
       candidate,
       options: {
         isPublicBottleCandidate: (signal) => isIndexedCustomerDropSignal(signal, tierIndex),
-        mergePartialFallback: config.id === 'TX' || config.id === 'SC',
+        mergePartialFallback: usesPartialSignalContinuity(config.id),
       },
     });
     if (!guarded.accepted) console.warn(`${config.id} quality guard preserved previous report: ${guarded.reason}`);
@@ -605,13 +605,15 @@ async function main() {
   await writeFile(path.join(OUT, 'source-slo-7d.json'), JSON.stringify(sourceSlo, null, 2));
   await writeFile(path.join(OUT, 'source-slo-7d.md'), sourceSloMarkdown(sourceSlo));
 
+  const stateContinuity = stateReportContinuityStateIds(allReports);
   const summary = {
     generatedAt: new Date().toISOString(),
     partialRefresh: aggregateReports.some((entry) => !entry.attempted),
     requestedStateIds: [...REQUESTED_STATE_IDS].sort(),
     attemptedStateIds: aggregateReports.filter((entry) => entry.attempted).map((entry) => entry.config.id).sort(),
     freshStateIds: aggregateReports.filter((entry) => entry.wasRun).map((entry) => entry.config.id).sort(),
-    fallbackStateIds: allReports.filter((report) => report.stale === true || /fallback/i.test(String(report.status || ''))).map((report) => report.state).sort(),
+    fallbackStateIds: stateContinuity.fallbackStateIds,
+    partialFallbackStateIds: stateContinuity.partialFallbackStateIds,
     stateCount: allReports.length,
     signalCount: allSignals.length,
     roadblockCount: allRoadblocks.length,

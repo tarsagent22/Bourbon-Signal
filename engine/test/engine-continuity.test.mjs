@@ -52,6 +52,8 @@ test('scheduled refresh persists collector history, the actual scheduler state, 
   assert.match(scheduledPennsylvaniaStep, /if:\s*\$\{\{ !inputs\.states \}\}[\s\S]*--allow-safe-stale-fallback/);
   assert.match(targetedPennsylvaniaStep, /inputs\.states && contains\(inputs\.states, 'PA'\)[\s\S]*run: npm run verify:pa/);
   assert.doesNotMatch(targetedPennsylvaniaStep, /allow-safe-stale-fallback/, 'PA-targeted recovery must remain strict');
+  const ncQualityStep = workflow.match(/- name: Verify North Carolina current-plus-stale signal continuity[\s\S]*?(?=\n      - name:)/)?.[0] || '';
+  assert.match(ncQualityStep, /if:\s*\$\{\{ !inputs\.states \|\| contains\(inputs\.states, 'NC'\) \}\}[\s\S]*run: npm run verify:nc/);
   const scheduledDemandMetroStep = workflow.match(/- name: Verify demand metro generated evidence with fresh retained fallback[\s\S]*?(?=\n      - name:)/)?.[0] || '';
   const scheduledTennesseeStep = workflow.match(/- name: Verify Tennessee generated contract with fresh retained fallback[\s\S]*?(?=\n      - name:)/)?.[0] || '';
   assert.match(scheduledDemandMetroStep, /if:\s*\$\{\{ !inputs\.states \}\}/, 'unrelated targeted refreshes must not be blocked by the scheduled demand-metro fallback gate');

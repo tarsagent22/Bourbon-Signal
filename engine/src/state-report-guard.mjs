@@ -78,6 +78,28 @@ function latestTimestamp(...values) {
     .sort((left, right) => Date.parse(right) - Date.parse(left))[0] || null;
 }
 
+const PARTIAL_SIGNAL_CONTINUITY_STATES = new Set(['NC', 'SC', 'TX']);
+
+export function usesPartialSignalContinuity(state) {
+  return PARTIAL_SIGNAL_CONTINUITY_STATES.has(String(state || '').trim().toUpperCase());
+}
+
+export function stateReportContinuityStateIds(reports = []) {
+  const partialFallbackStateIds = reports
+    .filter((report) => report?.partial === true || /^partial_useful_quality_fallback$/i.test(String(report?.status || '')))
+    .map((report) => String(report.state || '').toUpperCase())
+    .filter(Boolean);
+  const partial = new Set(partialFallbackStateIds);
+  const fallbackStateIds = reports
+    .filter((report) => report?.stale === true || /fallback/i.test(String(report?.status || '')))
+    .map((report) => String(report.state || '').toUpperCase())
+    .filter((state) => state && !partial.has(state));
+  return {
+    fallbackStateIds: [...new Set(fallbackStateIds)].sort(),
+    partialFallbackStateIds: [...new Set(partialFallbackStateIds)].sort(),
+  };
+}
+
 function reconcileNcObservationHistory(previous, candidate) {
   if (candidate?.state !== 'NC') return candidate;
   const previousByObservation = new Map();
@@ -182,6 +204,7 @@ function partialFallback(previous, candidate, reason, now = new Date().toISOStri
       canAlertAsInventory: false,
       canAlertAsWatch: false,
       alertable: false,
+      sourceAvailabilityVerified: false,
       raw: {
         ...(signal.raw || {}),
         staleFallback: true,

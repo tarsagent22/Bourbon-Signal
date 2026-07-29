@@ -2,6 +2,7 @@
 
 import { track } from "@vercel/analytics";
 import {
+  canonicalTrackedAcquisitionCampaign,
   sanitizeGrowthEvent,
   type GrowthAttribution,
   type GrowthEventName,
@@ -22,8 +23,13 @@ export function recordGrowthMilestone(
   const safeProperties = sanitizeGrowthEvent(name, properties);
   if (!safeProperties) return Promise.resolve(false);
 
+  const canonicalCampaign = canonicalTrackedAcquisitionCampaign(options.attribution?.campaign);
+  const analyticsProperties = canonicalCampaign
+    ? sanitizeGrowthEvent(name, { ...safeProperties, campaign: canonicalCampaign }) || safeProperties
+    : safeProperties;
+
   if (typeof window !== "undefined" && ["bourbonsignal.com", "www.bourbonsignal.com"].includes(window.location.hostname)) {
-    track(name, safeProperties);
+    track(name, analyticsProperties);
   }
 
   const attribution = options.attribution

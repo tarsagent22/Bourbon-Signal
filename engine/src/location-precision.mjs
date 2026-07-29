@@ -3,6 +3,7 @@ export const PRECISION_RANK = {
   statewide_policy: 1,
   statewide_catalog: 2,
   board_county: 3,
+  store_equivalent_shipment: 3,
   board_warehouse: 4,
   store_aggregate: 5,
   distillery: 6,

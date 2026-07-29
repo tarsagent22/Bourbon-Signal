@@ -21,6 +21,7 @@ import { demandMetroAreaLabel, demandMetroAreaMatchesFields } from './demand-met
 import { attachRunIdentity, verifyRunCoherence } from './site-run-coherence.mjs';
 import { detectDropCollapseFallbacks, mergePartialRefreshDrops } from './partial-refresh-contract.mjs';
 import { buildNcBoardCoverageSummary } from './nc-coverage-summary.mjs';
+import { buildNcSourceLedger, enrichNcSingleStoreShipmentSignals } from './nc-source-ledger.mjs';
 
 const OUT = path.resolve('out');
 const SNAPSHOTS = path.join(OUT, 'history', 'snapshots');
@@ -348,6 +349,8 @@ function publicSignal(signal, bible, freshness = null) {
     lat: signal.lat,
     lng: signal.lng,
     quantity: signal.quantity || signal.storeQty || 0,
+    boardShipmentQuantity: signal.boardShipmentQuantity ?? null,
+    shipmentStoreEquivalent: signal.shipmentStoreEquivalent === true,
     quantityIsExact: typeof signal.quantityIsExact === 'boolean' ? signal.quantityIsExact : null,
     reportedQuantity: ['GA', 'TN', 'NY', 'CO'].includes(signal.state) && signal.reportedQuantity != null && Number.isFinite(Number(signal.reportedQuantity))
       ? Number(signal.reportedQuantity)
@@ -660,7 +663,7 @@ function isUserFacingDropSignal(signal) {
   if (type.includes('allocated_release') || type.includes('county_allocated')) return false;
 
   if (type === 'alabc_limited_release_store_drop') return precision === 'store_level';
-  if (type === 'nc_board_shipment_snapshot') return quantity > 0;
+  if (type === 'nc_board_shipment_snapshot') return Number(signal.boardShipmentQuantity || quantity) > 0;
   if (type === 'nc_statewide_warehouse_stock') return quantity > 0;
   if (type === 'store_delivery_snapshot') return quantity > 0;
   if (type === 'store_allocation_snapshot') return signal.state === 'IA' && precision === 'store_level' && quantity > 0;
@@ -1620,9 +1623,10 @@ async function main() {
   const rare = await readJson(path.join(OUT, 'rare-signals.json'), {});
   const ncIntelligenceRaw = await readJson(path.join(OUT, 'nc-board-intelligence.json'), null);
 
-  const signals = (snapshot.signals || []).filter((signal) => SITE_ACTIVE_STATE_IDS.has(signal.state));
+  const rawSignals = (snapshot.signals || []).filter((signal) => SITE_ACTIVE_STATE_IDS.has(signal.state));
   const activeStateIds = SITE_ACTIVE_STATE_IDS;
   const activeOfficialLocations = (officialLocationBible.locations || []).filter((location) => activeStateIds.has(location.state));
+  const signals = enrichNcSingleStoreShipmentSignals(rawSignals, activeOfficialLocations);
   const activeOfficialSourceReports = (officialLocationBible.sourceReports || []).filter((report) => !report.state || activeStateIds.has(report.state));
   const historicalSignals = uniqueHistoricalSignals(snapshots, signals).filter((signal) => activeStateIds.has(signal.state));
   const bottles = buildBottles(signals, bible, biblePayload.records || []);
@@ -1636,7 +1640,7 @@ async function main() {
   const tennesseeStateReport = detectedFallbackStateIds.includes('TN')
     ? await readJson(path.join(OUT, 'states', 'TN.json'), null)
     : null;
-  const partialFallbackStateIds = detectedFallbackStateIds.includes('TN')
+  const tennesseePartialFallbackStateIds = detectedFallbackStateIds.includes('TN')
     && (summary.attemptedStateIds || []).includes('TN')
     && canPublishTennesseePartialEvidenceFallback({
       stateReport: tennesseeStateReport,
@@ -1644,6 +1648,10 @@ async function main() {
     })
       ? ['TN']
       : [];
+  const partialFallbackStateIds = [...new Set([
+    ...(summary.partialFallbackStateIds || []).map((state) => String(state).toUpperCase()),
+    ...tennesseePartialFallbackStateIds,
+  ])].sort();
   const fullFallbackStateIds = detectedFallbackStateIds.filter((state) => !partialFallbackStateIds.includes(state));
   if (process.env.BOURBON_SIGNAL_DEBUG_PARTIAL_REFRESH === '1') {
     const debugCounts = Object.fromEntries([...new Set((summary.attemptedStateIds || []).map((state) => String(state).toUpperCase()))].map((state) => [state, currentDrops.filter((drop) => String(drop.state || drop.state_code || '').toUpperCase() === state).length]));
@@ -1766,6 +1774,7 @@ async function main() {
   }
   const historicalSignalCount = Math.max(historicalSignals.length, Number(previousStats.historicalSignalCount || 0));
   const ncBoardCoverageSummary = buildNcBoardCoverageSummary(activeOfficialLocations, ncIntelligenceRaw);
+  const ncSourceLedger = buildNcSourceLedger(activeOfficialLocations, ncIntelligenceRaw);
   const stats = {
     contractVersion: CONTRACT_VERSION,
     ...runIdentity,
@@ -1867,7 +1876,7 @@ async function main() {
     historicalTrends: attachRunIdentity({ contractVersion: CONTRACT_VERSION, historyDays: HISTORY_DAYS, count: historicalTrends.length, trends: historicalTrends }, runIdentity),
     stateIndex: stateDropPartitions.index,
   };
-  if (ncIntelligenceRaw) artifactPayloads.ncIntelligence = attachRunIdentity({ contractVersion: CONTRACT_VERSION, ...ncIntelligenceRaw }, runIdentity);
+  if (ncIntelligenceRaw) artifactPayloads.ncIntelligence = attachRunIdentity({ contractVersion: CONTRACT_VERSION, ...ncIntelligenceRaw, sourceLedger: ncSourceLedger }, runIdentity);
   const coherence = verifyRunCoherence(artifactPayloads, runIdentity);
   if (!coherence.ok) throw new Error(`Site artifact run coherence failed: ${coherence.errors.join(' ')}`);
 

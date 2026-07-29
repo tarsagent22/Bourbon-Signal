@@ -2,6 +2,7 @@ import "server-only";
 import { clerkClient } from "@clerk/nextjs/server";
 import Stripe from "stripe";
 import {
+  aggregateCampaignFunnels,
   aggregateGrowthFunnels,
   aggregateLifecycleCohorts,
   buildCompanyScorecard,
@@ -216,7 +217,7 @@ export async function getCompanyControlRoomSnapshot() {
   const client = await clerkClient();
   const users = await listAllCompanyUsers(client);
   const memberships = summarizeMemberships(users);
-  const growth = aggregateGrowthFunnels(users);
+  const growthWindows = aggregateGrowthFunnels(users);
   const lifecycle = aggregateLifecycleCohorts(users);
   const [stats, bottlePayload, coverageContract] = await Promise.all([
     readSiteExport("stats") as Promise<Record<string, unknown> | null>,
@@ -242,12 +243,17 @@ export async function getCompanyControlRoomSnapshot() {
     currentDeploymentId: process.env.VERCEL_DEPLOYMENT_ID || null,
   });
   const engineMetrics = extractEngineControlRoomMetrics(stats);
+  const campaignNow = new Date();
   const [revenue, audience, retailer, coverageDemand] = await Promise.all([
     readStripeRevenue(),
     readAudience(users),
     readRetailerFunnel(),
     readCoverageDemandForOwner(users, coverageContract),
   ]);
+  const growth = {
+    ...growthWindows,
+    campaigns: aggregateCampaignFunnels(users, campaignNow),
+  };
 
   const checkedAt = new Date().toISOString();
   const automation = readAutomationCostAggregateFromEnvironment();

@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 
-import { guardStateReport } from '../src/state-report-guard.mjs';
+import { guardStateReport, stateReportContinuityStateIds, usesPartialSignalContinuity } from '../src/state-report-guard.mjs';
 import { markStaleReport } from '../src/state-report-fallback.mjs';
 
 function report(state, count, { actionable = count, status = 'useful' } = {}) {
@@ -77,6 +77,51 @@ test('partial quality fallback publishes fresh rows and keeps missing identities
   assert.equal(result.report.signals.filter((signal) => signal.sourceStale === true).every((signal) => typeof signal.staleSourceCaveat === 'string' && signal.staleSourceCaveat.length > 0), true);
   assert.equal(result.report.signals.filter((signal) => signal.canAlertAsInventory === true).length, 2);
   assert.equal(result.report.signals.filter((signal) => signal.sourceStale === true).every((signal) => signal.canAlertAsInventory === false && signal.canAlertAsWatch === false), true);
+});
+
+test('NC quality collapses use current-plus-stale continuity while unrelated states remain strict', () => {
+  assert.equal(usesPartialSignalContinuity('NC'), true);
+  assert.equal(usesPartialSignalContinuity('TX'), true);
+  assert.equal(usesPartialSignalContinuity('SC'), true);
+  assert.equal(usesPartialSignalContinuity('VA'), false);
+});
+
+test('NC partial continuity publishes current signals and makes every retained row non-alertable', () => {
+  const previous = report('NC', 88);
+  previous.signals.forEach((signal, index) => {
+    signal.canonicalId = `bottle-${index}`;
+    signal.storeId = `store-${index}`;
+    signal.sourceAvailabilityVerified = true;
+  });
+  const candidate = report('NC', 25);
+  candidate.finishedAt = '2026-07-29T03:10:40.000Z';
+  candidate.signals.forEach((signal, index) => {
+    signal.canonicalId = `bottle-${index}`;
+    signal.storeId = `store-${index}`;
+  });
+
+  const result = guardStateReport({
+    previous,
+    candidate,
+    now: '2026-07-29T03:10:41.000Z',
+    options: { mergePartialFallback: usesPartialSignalContinuity('NC') },
+  });
+
+  assert.equal(result.accepted, true);
+  assert.equal(result.report.status, 'partial_useful_quality_fallback');
+  assert.equal(result.report.stale, false);
+  assert.equal(result.report.signals.filter((signal) => signal.sourceStale === true).length, 63);
+  assert.equal(result.report.signals.filter((signal) => signal.sourceStale === true).every((signal) => (
+    signal.canAlertAsInventory === false
+      && signal.canAlertAsWatch === false
+      && signal.alertable === false
+      && signal.sourceAvailabilityVerified === false
+      && signal.raw?.staleFallback === true
+  )), true);
+  assert.deepEqual(stateReportContinuityStateIds([result.report]), {
+    fallbackStateIds: [],
+    partialFallbackStateIds: ['NC'],
+  });
 });
 
 test('repeated quality fallback keeps one stable status suffix', () => {

@@ -54,6 +54,18 @@ export interface GrowthAttribution {
 const SURFACES = new Set<GrowthSurface>(["homepage", "sign_up", "welcome", "dashboard", "drop_feed", "release_radar", "bottle_check", "pricing", "retailer", "unknown"]);
 const EVENT_NAMES = new Set<string>(GROWTH_EVENT_NAMES);
 const MAX_VALUE_LENGTH = 80;
+const TRACKED_ACQUISITION_CAMPAIGN_ALIASES = new Map([
+  ["meta:paid_social:state-preview", "meta:paid_social:state-preview"],
+  ["meta:paid_social:state_preview", "meta:paid_social:state-preview"],
+]);
+
+export function canonicalTrackedAcquisitionCampaign(value: unknown) {
+  return typeof value === "string" ? TRACKED_ACQUISITION_CAMPAIGN_ALIASES.get(value) || null : null;
+}
+
+export function isTrackedAcquisitionCampaign(value: unknown) {
+  return canonicalTrackedAcquisitionCampaign(value) !== null;
+}
 
 function safeToken(value: unknown, fallback = "unknown") {
   if (typeof value !== "string") return fallback;

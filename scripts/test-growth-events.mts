@@ -2,6 +2,8 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import {
   GROWTH_EVENT_NAMES,
+  canonicalTrackedAcquisitionCampaign,
+  isTrackedAcquisitionCampaign,
   normalizeGrowthAttribution,
   sanitizeGrowthEvent,
   mergeFirstTouch,
@@ -42,6 +44,9 @@ assert.deepEqual(normalizeGrowthAttribution({ surface: "unknown<script>", utm_so
   campaign: "unknown",
   referrerHost: "unknown",
 });
+assert.equal(isTrackedAcquisitionCampaign("meta:paid_social:state-preview"), true);
+assert.equal(canonicalTrackedAcquisitionCampaign("meta:paid_social:state_preview"), "meta:paid_social:state-preview");
+assert.equal(isTrackedAcquisitionCampaign("meta:paid_social:alice-example-com"), false, "only registered campaigns may enter aggregate analytics");
 assert.equal(sanitizeGrowthEvent("product_surface_viewed", { surface: "drop_feed" }).surface, "drop_feed");
 assert.equal(sanitizeGrowthEvent("product_surface_viewed", { email: "member@example.com" }), null);
 assert.equal(sanitizeGrowthEvent("not_an_event", { surface: "pricing" }), null);
@@ -112,7 +117,10 @@ const bottleCheck = readFileSync("src/app/bottle-check/page.tsx", "utf8");
 const dropFeed = readFileSync("src/components/sections/DropFeed.tsx", "utf8");
 const releaseRadar = readFileSync("src/components/release-radar/CalendarExplorer.tsx", "utf8");
 const checkoutContinue = readFileSync("src/app/checkout/continue/page.tsx", "utf8");
+const paidAcquisitionReport = readFileSync("scripts/report-paid-acquisition.mts", "utf8");
 assert.match(growthClient, /sanitizeGrowthEvent\(name, properties\)/, "the client recorder must sanitize before analytics or persistence");
+assert.match(growthClient, /track\(name, analyticsProperties\)/, "Vercel custom events must receive the normalized campaign property");
+assert.match(growthClient, /campaign:\s*options\.attribution\.campaign/, "anonymous landing events must retain campaign attribution in Vercel Analytics");
 assert.match(growthClient, /keepalive:\s*true/, "navigation-triggered milestones must survive the safe value-path handoff");
 assert.match(growthClient, /AbortController[\s\S]*2_500[\s\S]*signal:\s*controller\.signal/, "growth persistence must fail closed instead of hanging customer navigation indefinitely");
 assert.match(growthClient, /growthPersistenceQueue[\s\S]*\.then\(persist\)/, "authenticated milestone writes must be serialized to avoid metadata races");
@@ -121,7 +129,14 @@ assert.match(attributionRoute, /SIGNUP_COOKIE[\s\S]*httpOnly:\s*true/);
 const clientMilestoneAllowlist = attributionRoute.match(/ALLOWED_MILESTONES[\s\S]*?\(\[([\s\S]*?)\]\)/)?.[1] || "";
 assert.doesNotMatch(clientMilestoneAllowlist, /registration_completed/, "registration completion must be webhook-authoritative, not client-writable");
 assert.match(attributionRoute, /storedSignupStarted[\s\S]*"signup_started"/);
-assert.match(attributionRoute, /if \(!privateMetadata\.firstTouch\) update\.firstTouch = firstTouch/);
+assert.match(attributionRoute, /legacyCookie[\s\S]*!existingCookie \|\| legacyCookie/, "legacy first-touch cookies must be timestamp-upgraded before signup");
+assert.match(attributionRoute, /touchPrecededAccount[\s\S]*firstTouch\.recordedAt <= userCreatedAt[\s\S]*!privateMetadata\.firstTouch/, "existing accounts must not be backfilled from a later campaign click");
+assert.match(growthClient, /canonicalTrackedAcquisitionCampaign\(options\.attribution\?\.campaign\)[\s\S]*track\(name, analyticsProperties\)/, "only canonical registered campaign tags may enter Vercel custom-event dimensions");
+assert.doesNotMatch(attributionRoute, /recordLandingSession|growth_attribution_daily/, "anonymous analytics must not expose a public database write path");
+assert.match(paidAcquisitionReport, /\/v1\/query\/web-analytics\/events\/aggregate/);
+assert.match(paidAcquisitionReport, /eventData\/surface eq 'homepage'/);
+assert.match(paidAcquisitionReport, /eventData\/campaign in \('meta-paid_social-state-preview','meta-paid_social-state_preview'\)/);
+assert.doesNotMatch(paidAcquisitionReport, /emailAddresses|primaryEmailAddress|user\.id|ipAddress/, "the scheduled report must remain aggregate-only");
 assert.match(attributionRoute, /US_STATE_CODES[\s\S]*HOME_STATE_MARKETS\.has\(market\)/, "persisted onboarding markets must be valid nationwide state codes");
 assert.match(attributionRoute, /\["surface", "kind", "market", "precision"\]/, "coarse preview precision may be persisted without member identity or location detail");
 assert.match(growthAnalytics, /path\.startsWith\("\/welcome"\)[\s\S]*path\.startsWith\("\/dashboard"\)/, "welcome and dashboard must be safe attribution surfaces");

@@ -112,7 +112,7 @@ assert.match(ncVerifier, /canonical board/i);
 assert.match(ncVerifier, /observedAt/);
 assert.match(ncVerifier, /36 \* 60 \* 60 \* 1000/);
 const refreshWorkflow = readText(".github/workflows/refresh-feed.yml");
-assert.equal((refreshWorkflow.match(/!inputs\.states \|\| contains\(inputs\.states, 'NC'\)/g) || []).length, 2, "scheduled/full refreshes must collect and verify the NC board directory");
+assert.equal((refreshWorkflow.match(/!inputs\.states \|\| contains\(inputs\.states, 'NC'\)/g) || []).length, 3, "scheduled/full refreshes must collect NC, verify signal continuity, and verify the board directory");
 const preferenceRoute = readText("src/app/api/user/preferences/route.ts");
 assert.match(preferenceRoute, /normalizeNcBoardPreferences/);
 const alertDelivery = readText("src/lib/alert-delivery.ts");
