@@ -652,6 +652,8 @@
     {
       "state": "MS",
       "customerLabel": "Mississippi",
+      "automationPaused": true,
+      "automationPauseReason": "Owner-requested pause: exclude Mississippi from all scheduled discovery and probe jobs.",
       "marketClassification": "mixed",
       "targetScopes": [
         "statewide"

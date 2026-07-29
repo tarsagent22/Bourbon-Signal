@@ -9,6 +9,7 @@ ENV = load_env()
 REPO = resolve_repo(ENV)
 COLLECTOR = REPO / "automation" / "bourbon-signal" / "source-expansion-collector.mjs"
 REPORT = REPO / "automation" / "bourbon-signal" / "reports" / "known-source-probe-latest.json"
+CANDIDATE_REGISTRY = REPO / "engine" / "data" / "state-expansion-candidates.json"
 
 
 def read_report() -> dict | None:
@@ -33,7 +34,17 @@ def fingerprint(report: dict | None) -> str:
 
 
 before = fingerprint(read_report())
-available = sorted(path.stem for path in (REPO / "engine" / "out" / "discovery").glob("*.json") if len(path.stem) == 2 and path.stem.isalpha())
+try:
+    registry = json.loads(CANDIDATE_REGISTRY.read_text(encoding="utf-8"))
+except Exception:
+    print("Known-source probe failed: invalid state expansion registry")
+    raise SystemExit(1)
+paused = {str(row.get("state") or "").upper() for row in registry.get("states", []) if row.get("automationPaused") is True}
+available = sorted(
+    path.stem
+    for path in (REPO / "engine" / "out" / "discovery").glob("*.json")
+    if len(path.stem) == 2 and path.stem.isalpha() and path.stem.upper() not in paused
+)
 if not available:
     raise SystemExit(0)
 start = (int(time.time() // 3600) * 5) % len(available)
