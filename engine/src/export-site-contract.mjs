@@ -22,6 +22,7 @@ import { attachRunIdentity, verifyRunCoherence } from './site-run-coherence.mjs'
 import { detectDropCollapseFallbacks, mergePartialRefreshDrops } from './partial-refresh-contract.mjs';
 import { buildNcBoardCoverageSummary } from './nc-coverage-summary.mjs';
 import { buildNcSourceLedger, enrichNcSingleStoreShipmentSignals } from './nc-source-ledger.mjs';
+import { authoritativeSignalTimestamp, enforceArchivedSourceAlertPolicy } from './event-freshness.mjs';
 
 const OUT = path.resolve('out');
 const SNAPSHOTS = path.join(OUT, 'history', 'snapshots');
@@ -1050,6 +1051,7 @@ function isUpcomingActionableEvent(event) {
 function buildEvents(signals, bible) {
   const seen = new Set();
   return signals
+    .filter((signal) => signal?.raw?.archivedSourceAlertBlocked !== true)
     .filter((signal) => isSafePublicSignal(signal))
     .filter((signal) => isEventSignal(signal))
     .filter((signal) => isKentuckyOfficialDistillerySignal(signal) || findBibleRecord(signal, bible) || /calendar|policy|program|source_reachable|release_surface|lottery_surface|barrel_pick_surface|inventory_surface/i.test(String(signal.eventType || '')))
@@ -1272,10 +1274,7 @@ function capAlertCandidatesByState(candidates, limit = 200, perStateCap = 50) {
 }
 
 function dropSignalAt(drop) {
-  const usesSourceEventTime = /shipment|delivery|release|lottery|drawing|allocation/i.test(String(drop?.type || drop?.eventType || ''));
-  return usesSourceEventTime
-    ? (drop?.sourceEventAt || drop?.eventAt || drop?.displayAt || drop?.observedAt || drop?.lastConfirmedAt || drop?.firstSeenAt || null)
-    : (drop?.observedAt || drop?.lastConfirmedAt || drop?.displayAt || drop?.firstSeenAt || null);
+  return authoritativeSignalTimestamp(drop);
 }
 
 function dropAgeHours(drop, nowMs = Date.now()) {
@@ -1446,6 +1445,7 @@ function buildRegionalWatchAlertsFromDrops(drops) {
 function buildHistoricalTrends(historicalSignals, currentSignals, bible) {
   const byKey = new Map();
   for (const signal of historicalSignals || []) {
+    if (signal?.archivedSourceAlertBlocked === true || signal?.raw?.archivedSourceAlertBlocked === true) continue;
     if (!isSafePublicSignal(signal)) continue;
     const state = signal.state;
     if (!state) continue;
@@ -1623,12 +1623,16 @@ async function main() {
   const rare = await readJson(path.join(OUT, 'rare-signals.json'), {});
   const ncIntelligenceRaw = await readJson(path.join(OUT, 'nc-board-intelligence.json'), null);
 
-  const rawSignals = (snapshot.signals || []).filter((signal) => SITE_ACTIVE_STATE_IDS.has(signal.state));
+  const rawSignals = (snapshot.signals || [])
+    .filter((signal) => SITE_ACTIVE_STATE_IDS.has(signal.state))
+    .map(enforceArchivedSourceAlertPolicy);
   const activeStateIds = SITE_ACTIVE_STATE_IDS;
   const activeOfficialLocations = (officialLocationBible.locations || []).filter((location) => activeStateIds.has(location.state));
   const signals = enrichNcSingleStoreShipmentSignals(rawSignals, activeOfficialLocations);
   const activeOfficialSourceReports = (officialLocationBible.sourceReports || []).filter((report) => !report.state || activeStateIds.has(report.state));
-  const historicalSignals = uniqueHistoricalSignals(snapshots, signals).filter((signal) => activeStateIds.has(signal.state));
+  const historicalSignals = uniqueHistoricalSignals(snapshots, signals)
+    .filter((signal) => activeStateIds.has(signal.state))
+    .map(enforceArchivedSourceAlertPolicy);
   const bottles = buildBottles(signals, bible, biblePayload.records || []);
   const stores = buildStores(signals);
   const locations = buildLocationBible(signals, activeOfficialLocations);

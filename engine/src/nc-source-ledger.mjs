@@ -18,6 +18,19 @@ function unique(values = []) {
   return [...new Set(values.map((value) => String(value || '').trim()).filter(Boolean))];
 }
 
+export function validateNcSourceLedgerContract(ledger, expectedBoardCount = 173) {
+  const errors = [];
+  const boards = Array.isArray(ledger?.boards) ? ledger.boards : [];
+  const boardIds = boards.map((board) => String(board?.boardId || '').trim()).filter(Boolean);
+  if (Number(ledger?.boardCount) !== expectedBoardCount || boards.length !== expectedBoardCount) {
+    errors.push(`NC source ledger must contain exactly ${expectedBoardCount} official boards.`);
+  }
+  if (boardIds.length !== expectedBoardCount || new Set(boardIds).size !== expectedBoardCount) {
+    errors.push(`NC source ledger must contain ${expectedBoardCount} unique board IDs.`);
+  }
+  return errors;
+}
+
 function hasCapability(board, pattern) {
   return (board?.capabilities || []).some((capability) => pattern.test(String(capability || '')));
 }
