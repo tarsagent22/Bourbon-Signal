@@ -35,6 +35,7 @@ function nonNegative(value) { return Math.max(0, Math.min(1_000_000, Math.floor(
 
 export function resolveScheduledStates(registry, at = new Date().toISOString(), rotationHours = 0) {
   const candidates = (Array.isArray(registry?.states) ? registry.states : [])
+    .filter((state) => state?.automationPaused !== true)
     .filter((state) => !['active', 'alert_grade'].includes(state?.lifecycleStage));
   const eligible = selectRotatingStateCohort(candidates, { now: at, cohortSize: candidates.length });
   if (!eligible.length || !rotationHours) return eligible.slice(0, MAX_STATES_PER_RUN).map((state) => state.state);

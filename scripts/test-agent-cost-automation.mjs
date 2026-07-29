@@ -103,6 +103,28 @@ assert.throws(() => engineStageInvocation('publish'), /Unknown source-expansion 
 assert.deepEqual(stagesForCollectionMode('broad'), ['discovery', 'probe']);
 assert.deepEqual(stagesForCollectionMode('probe'), ['probe']);
 assert.throws(() => stagesForCollectionMode('publish'), /Unknown source-expansion mode/);
+const pausedStateRegistry = {
+  states: [
+    { state: 'MS', lifecycleStage: 'research', automationPaused: true },
+    { state: 'AR', lifecycleStage: 'research' },
+  ],
+};
+assert.deepEqual(
+  resolveScheduledStates(pausedStateRegistry, '2026-07-29T12:00:00.000Z'),
+  ['AR'],
+  'scheduled source expansion must exclude explicitly paused states',
+);
+const checkedInExpansionRegistry = JSON.parse(readFileSync(resolve('engine/data/state-expansion-candidates.json'), 'utf8'));
+assert.equal(
+  checkedInExpansionRegistry.states.find((row) => row.state === 'MS')?.automationPaused,
+  true,
+  'Mississippi must remain paused from scheduled source automation',
+);
+assert.match(
+  readFileSync(resolve('automation/bourbon-signal/hermes-scripts/bourbon_signal_known_source_probe.py'), 'utf8'),
+  /automationPaused/,
+  'the hourly known-source cron must honor the shared state pause',
+);
 assert.deepEqual(summarizeStageOutput([{ candidateCount: 3 }, { candidateCount: 4 }]), { candidates: 7, probeable: 0, blocked: 0 });
 assert.deepEqual(resolveScheduledStates({ states: [
   { state: 'AA', lifecycleStage: 'active', lastDiscoveryAt: null },
