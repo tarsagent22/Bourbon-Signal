@@ -29,7 +29,7 @@ function signalHost(signal) {
 function expectedProductPath(platform, value) {
   try {
     const path = new URL(String(value || '')).pathname;
-    if (platform === 'cityhive') return /\/shop\/product\//i.test(path);
+    if (platform === 'cityhive') return /\/(?:shop\/)?product\//i.test(path);
     if (platform === 'shopify') return /\/products\//i.test(path);
     if (platform === 'bottlecapps') return /\/s\/1000-1057\/i\//i.test(path);
     if (platform === 'grabbl') return /\/products\//i.test(path);

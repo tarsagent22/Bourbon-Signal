@@ -37,7 +37,16 @@ import {
 import {
   buildTennesseeConfiguredStoreLocationSignals,
   registeredTennesseeStore,
+  tennesseeStoresForSource,
 } from './tennessee-retailer-surfaces.mjs';
+import {
+  hasReviewedTennesseeCityHivePayload,
+  mergeTennesseeCityHiveCacheSignals,
+  selectTennesseeCityHiveSourceCohort,
+  tennesseeCityHiveSignalSourceId,
+  updateTennesseeCityHiveSourceAttemptAt,
+  updateTennesseeCityHiveSourceRefreshAt,
+} from './tennessee-cityhive-policy.mjs';
 import {
   isAllowedTennesseeBottleFormat,
   isTennesseeRetailerInventory,
@@ -478,7 +487,6 @@ const TN_CITYHIVE_CACHE_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_TN_CITYHI
 const TN_CITYHIVE_PAGE_DELAY_MS = Number(process.env.BOURBON_SIGNAL_TN_CITYHIVE_PAGE_DELAY_MS || 1_200);
 const TN_CITYHIVE_SOURCE_DELAY_MS = Number(process.env.BOURBON_SIGNAL_TN_CITYHIVE_SOURCE_DELAY_MS || 2_000);
 const TN_CITYHIVE_SOURCE_COHORT_SIZE = Math.max(1, Math.min(8, Number(process.env.BOURBON_SIGNAL_TN_CITYHIVE_SOURCE_COHORT_SIZE) || 4));
-const TN_CITYHIVE_ROTATION_MS = Math.max(30 * 60_000, Number(process.env.BOURBON_SIGNAL_TN_CITYHIVE_ROTATION_MS) || 60 * 60_000);
 
 
 const TN_COOL_SPRINGS_BASE_URL = 'https://shop.coolspringswine.com/s/1000-1057/';
@@ -1257,6 +1265,22 @@ function csvRows(text) {
 
 function sleep(ms) { return new Promise((resolve) => setTimeout(resolve, ms)); }
 
+function sleepWithSignal(ms, signal) {
+  signal?.throwIfAborted();
+  if (!signal) return sleep(ms);
+  return new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      signal.removeEventListener('abort', onAbort);
+      resolve();
+    }, ms);
+    const onAbort = () => {
+      clearTimeout(timer);
+      reject(signal.reason instanceof Error ? signal.reason : new Error('Collector aborted'));
+    };
+    signal.addEventListener('abort', onAbort, { once: true });
+  });
+}
+
 async function readCachedVirginiaSignals() {
   try {
     const cached = JSON.parse(await readFile(VIRGINIA_CACHE_PATH, 'utf8'));
@@ -1801,6 +1825,21 @@ function cityHiveProducts(blobs) {
   };
   for (const blob of blobs) visit(blob);
   return products;
+}
+
+function cityHiveHasProductPayload(blobs) {
+  let found = false;
+  const visit = (value) => {
+    if (found || !value || typeof value !== 'object') return;
+    if (Array.isArray(value)) { for (const child of value) visit(child); return; }
+    if (Object.prototype.hasOwnProperty.call(value, 'products') && Array.isArray(value.products)) {
+      found = true;
+      return;
+    }
+    for (const child of Object.values(value)) if (child && typeof child === 'object') visit(child);
+  };
+  for (const blob of blobs) visit(blob);
+  return found;
 }
 
 function cityHiveMerchantConfigs(blobs) {
@@ -2547,59 +2586,83 @@ function mergeMissingIndianaCityHiveCacheChains(signals, cache, observedAt) {
 async function readTennesseeCityHiveCache() {
   try {
     const cache = JSON.parse(await readFile(TN_CITYHIVE_ARTIFACT_PATH, 'utf8'));
-    const generatedMs = new Date(cache.generatedAt || 0).getTime();
-    const fresh = Number.isFinite(generatedMs) && Date.now() - generatedMs <= TN_CITYHIVE_CACHE_MAX_AGE_MS;
-    if (!fresh) return null;
-    const signals = (Array.isArray(cache.signals) ? cache.signals : [])
-      .filter((signal) => isTennesseeRetailerInventory(signal));
+    const signals = mergeTennesseeCityHiveCacheSignals({
+      cachedSignals: Array.isArray(cache.signals) ? cache.signals : [],
+      observedAt: new Date().toISOString(),
+      maxAgeMs: TN_CITYHIVE_CACHE_MAX_AGE_MS,
+      validate: isTennesseeRetailerInventory,
+    });
     const roadblocks = Array.isArray(cache.roadblocks) ? cache.roadblocks : [];
-    if (!signals.length) return null;
-    return { ...cache, signals, roadblocks };
+    const sourceAttemptAt = cache.sourceAttemptAt && typeof cache.sourceAttemptAt === 'object' ? cache.sourceAttemptAt : {};
+    const sourceRefreshAt = cache.sourceRefreshAt && typeof cache.sourceRefreshAt === 'object' ? cache.sourceRefreshAt : {};
+    if (!signals.length && !Object.keys(sourceAttemptAt).length && !Object.keys(sourceRefreshAt).length) return null;
+    return { ...cache, signals, roadblocks, sourceAttemptAt, sourceRefreshAt };
   } catch {
     return null;
   }
 }
 
-function cachedTennesseeCityHiveSignals(cache, observedAt) {
-  return (cache?.signals || []).filter((signal) => isTennesseeRetailerInventory(signal)).map((signal) => ({
-    ...signal,
-    observedAt: signal.observedAt || cache.generatedAt || observedAt,
-    raw: { ...(signal.raw || {}), cacheFallback: true, cacheGeneratedAt: cache.generatedAt, artifactPath: TN_CITYHIVE_ARTIFACT_PATH }
-  }));
-}
-
 function tennesseeCityHivePositiveInventoryChains(signals = []) {
   return new Set(signals
     .filter((signal) => signal.eventType === 'cityhive_store_inventory_result')
-    .map((signal) => signal?.raw?.chain)
+    .map(tennesseeCityHiveSignalSourceId)
     .filter(Boolean));
 }
 
-async function writeTennesseeCityHiveCache(signals, roadblocks) {
-  const safeSignals = signals.filter((signal) => isTennesseeRetailerInventory(signal));
-  const nextPositiveCount = safeSignals.length;
-  if (!nextPositiveCount) return;
-  const nextChains = tennesseeCityHivePositiveInventoryChains(safeSignals);
-  const previous = await readTennesseeCityHiveCache();
-  const previousChains = tennesseeCityHivePositiveInventoryChains(previous?.signals || []);
-  const previousPositiveCount = Number(previous?.positiveInventorySignalCount || previous?.signals?.filter?.((signal) => signal.eventType === 'cityhive_store_inventory_result').length || 0);
-  const allowDegradedCacheWrite = process.env.BOURBON_SIGNAL_TN_ALLOW_DEGRADED_CITYHIVE_CACHE_WRITE === '1';
-  if (!allowDegradedCacheWrite && previousChains.size >= 2 && nextChains.size < previousChains.size) return;
-  if (!allowDegradedCacheWrite && previousPositiveCount >= 60 && nextPositiveCount < Math.floor(previousPositiveCount * 0.85)) return;
+async function writeTennesseeCityHiveArtifact(payload, signal) {
+  await mkdir(path.dirname(TN_CITYHIVE_ARTIFACT_PATH), { recursive: true });
+  signal?.throwIfAborted();
+  const temporaryPath = `${TN_CITYHIVE_ARTIFACT_PATH}.${process.pid}.${randomUUID()}.tmp`;
+  try {
+    await writeFile(temporaryPath, JSON.stringify(payload, null, 2), signal ? { signal } : undefined);
+    signal?.throwIfAborted();
+    renameSync(temporaryPath, TN_CITYHIVE_ARTIFACT_PATH);
+  } finally {
+    await rm(temporaryPath, { force: true }).catch(() => {});
+  }
+}
+
+async function writeTennesseeCityHiveAttemptLease(cache, selectedSourceIds, observedAt, signal) {
+  const safeSignals = (cache?.signals || []).filter((signal) => isTennesseeRetailerInventory(signal));
+  const chains = tennesseeCityHivePositiveInventoryChains(safeSignals);
   const payload = {
-    generatedAt: new Date().toISOString(),
+    ...(cache || {}),
+    schemaVersion: 2,
+    generatedAt: cache?.generatedAt || observedAt,
     source: 'Tennessee CityHive retailer inventory cache',
     cacheMaxAgeMs: TN_CITYHIVE_CACHE_MAX_AGE_MS,
+    sourceAttemptAt: updateTennesseeCityHiveSourceAttemptAt(cache, selectedSourceIds, observedAt),
+    sourceRefreshAt: updateTennesseeCityHiveSourceRefreshAt(cache, new Set(), observedAt),
+    sourceChainCount: chains.size,
+    sourceChains: [...chains].sort(),
+    signalCount: safeSignals.length,
+    positiveInventorySignalCount: safeSignals.length,
+    storeLocationSignalCount: 0,
+    signals: safeSignals,
+    roadblocks: cache?.roadblocks || [],
+  };
+  await writeTennesseeCityHiveArtifact(payload, signal);
+}
+
+async function writeTennesseeCityHiveCache(signals, roadblocks, { previous, selectedSourceIds, completedSourceIds, observedAt, signal }) {
+  const safeSignals = signals.filter((signal) => isTennesseeRetailerInventory(signal));
+  const nextChains = tennesseeCityHivePositiveInventoryChains(safeSignals);
+  const payload = {
+    schemaVersion: 2,
+    generatedAt: observedAt,
+    source: 'Tennessee CityHive retailer inventory cache',
+    cacheMaxAgeMs: TN_CITYHIVE_CACHE_MAX_AGE_MS,
+    sourceAttemptAt: updateTennesseeCityHiveSourceAttemptAt(previous, selectedSourceIds, observedAt),
+    sourceRefreshAt: updateTennesseeCityHiveSourceRefreshAt(previous, completedSourceIds, observedAt),
     sourceChainCount: nextChains.size,
     sourceChains: [...nextChains].sort(),
     signalCount: safeSignals.length,
-    positiveInventorySignalCount: nextPositiveCount,
+    positiveInventorySignalCount: safeSignals.length,
     storeLocationSignalCount: 0,
     signals: safeSignals,
     roadblocks
   };
-  await mkdir(path.dirname(TN_CITYHIVE_ARTIFACT_PATH), { recursive: true });
-  await writeFile(TN_CITYHIVE_ARTIFACT_PATH, JSON.stringify(payload, null, 2));
+  await writeTennesseeCityHiveArtifact(payload, signal);
 }
 
 async function collectIndianaCityHive(config, bible, observedAt) {
@@ -3041,31 +3104,25 @@ function exactTennesseeAddress(value, expected) {
   return normalize(value) === normalize(expected);
 }
 
-async function collectTennesseeCityHive(config, bible, observedAt) {
+function tennesseeCityHiveSeedUrls(source) {
+  const stores = tennesseeStoresForSource(source.id);
+  if (!stores.length) return source.urls;
+  return source.urls.flatMap((seedUrl) => stores.map((store) => {
+    const url = new URL(seedUrl);
+    url.searchParams.set('merchant-id', store.merchantId);
+    return url.toString();
+  }));
+}
+
+async function collectTennesseeCityHive(config, bible, observedAt, options = {}) {
   const signals = [];
   const roadblocks = [];
   const cache = await readTennesseeCityHiveCache();
-  const cacheAgeMs = cache?.generatedAt ? Date.now() - new Date(cache.generatedAt).getTime() : Infinity;
-  if (process.env.BOURBON_SIGNAL_TN_FORCE_CITYHIVE_LIVE !== '1' && cache && Number.isFinite(cacheAgeMs) && cacheAgeMs >= 0 && cacheAgeMs <= TN_CITYHIVE_CACHE_MAX_AGE_MS) {
-    return {
-      signals: cachedTennesseeCityHiveSignals(cache, observedAt),
-      roadblocks: [
-        ...(cache.roadblocks || []),
-        {
-          state: config.id,
-          source: 'Tennessee CityHive retailer inventory cache reuse',
-          url: TN_CITYHIVE_ARTIFACT_PATH,
-          status: 200,
-          error: `Using ${cache.signals.length} cache-backed exact-store CityHive rows from ${cache.generatedAt}; scheduled refresh avoids repeated retailer 429s unless BOURBON_SIGNAL_TN_FORCE_CITYHIVE_LIVE=1.`,
-          nextRoute: 'Force live Tennessee CityHive refresh during a maintenance window; otherwise keep only exact-store cache rows inside the freshness window.'
-        }
-      ]
-    };
-  }
 
   const seenProductOptions = new Set();
   const seenPageFirstProducts = new Set();
-  const blockedSourceIds = new Set();
+  const failedSourceIds = new Set();
+  const completedSourceIds = new Set();
   const rejectedMerchants = new Set();
   const rejectedAddresses = new Set();
   const requestedSourceIds = new Set(String(process.env.BOURBON_SIGNAL_TN_CITYHIVE_SOURCE_IDS || '')
@@ -3073,11 +3130,12 @@ async function collectTennesseeCityHive(config, bible, observedAt) {
     .map((value) => value.trim())
     .filter(Boolean));
   const forceAllSources = process.env.BOURBON_SIGNAL_TN_CITYHIVE_FORCE_ALL_SOURCES === '1';
-  const selectedSources = requestedSourceIds.size
-    ? TN_CITYHIVE_SOURCES.filter((source) => requestedSourceIds.has(source.id))
-    : forceAllSources
-      ? TN_CITYHIVE_SOURCES
-      : rotatingSourceCohort(TN_CITYHIVE_SOURCES, observedAt, TN_CITYHIVE_SOURCE_COHORT_SIZE, TN_CITYHIVE_ROTATION_MS);
+  const selectedSources = selectTennesseeCityHiveSourceCohort(TN_CITYHIVE_SOURCES, {
+    cache,
+    cohortSize: TN_CITYHIVE_SOURCE_COHORT_SIZE,
+    forceAll: forceAllSources,
+    requestedSourceIds,
+  });
   if (requestedSourceIds.size && !selectedSources.length) {
     roadblocks.push({
       state: config.id,
@@ -3089,14 +3147,24 @@ async function collectTennesseeCityHive(config, bible, observedAt) {
     });
   }
 
+  const selectedSourceIds = new Set(selectedSources.map((source) => source.id));
+  if (selectedSourceIds.size) {
+    options.signal?.throwIfAborted();
+    await writeTennesseeCityHiveAttemptLease(cache, selectedSourceIds, observedAt, options.signal);
+  }
+
   for (const source of selectedSources) {
+    options.signal?.throwIfAborted();
     let sourceBlocked = false;
     let sourceReachable = false;
-    for (const seedUrl of source.urls) {
+    let sourcePayloadRecognized = false;
+    let reportedUnrecognizedPayload = false;
+    for (const seedUrl of tennesseeCityHiveSeedUrls(source)) {
       if (sourceBlocked) break;
       for (const url of cityHivePageUrls(seedUrl, TN_CITYHIVE_MAX_PAGES)) {
-        const res = await textFetch(url, { headers: { accept: 'text/html,*/*' }, timeoutMs: 24_000 });
+        const res = await textFetch(url, { headers: { accept: 'text/html,*/*' }, timeoutMs: 24_000, signal: options.signal });
         if (!res.ok) {
+          failedSourceIds.add(source.id);
           roadblocks.push({
             state: config.id,
             source: source.sourceLabel,
@@ -3107,7 +3175,6 @@ async function collectTennesseeCityHive(config, bible, observedAt) {
           });
           if (res.status === 429) {
             sourceBlocked = true;
-            blockedSourceIds.add(source.id);
           }
           break;
         }
@@ -3115,6 +3182,27 @@ async function collectTennesseeCityHive(config, bible, observedAt) {
 
         const blobs = cityHiveJsonBlobs(res.text);
         const products = cityHiveProducts(blobs);
+        const payloadMerchantIds = [
+          ...cityHiveMerchantConfigs(blobs).map((config) => (config?.merchant || config)?.id),
+          ...products.flatMap((product) => (product?.merchants || []).flatMap((merchant) => (merchant?.product_options || []).map((option) => option?.merchant_id))),
+        ].filter(Boolean);
+        const reviewedMerchantIds = tennesseeStoresForSource(source.id).map((store) => store.merchantId);
+        if (!hasReviewedTennesseeCityHivePayload(reviewedMerchantIds, payloadMerchantIds, cityHiveHasProductPayload(blobs))) {
+          failedSourceIds.add(source.id);
+          if (!reportedUnrecognizedPayload) {
+            reportedUnrecognizedPayload = true;
+            roadblocks.push({
+              state: config.id,
+              source: source.sourceLabel,
+              url,
+              status: 'unrecognized_cityhive_payload',
+              error: 'The first-party page returned HTTP 200 without a reviewed merchant-bound CityHive payload.',
+              nextRoute: 'Retain fresh cache and inspect the current CityHive schema or bot response before treating an empty parse as authoritative inventory.',
+            });
+          }
+          break;
+        }
+        sourcePayloadRecognized = true;
         const firstKey = products.slice(0, 3).map((p) => p?.id || p?.name).join('|');
         const repeatKey = `${source.id}|${seedUrl}|${firstKey}`;
         if (!products.length || seenPageFirstProducts.has(repeatKey)) continue;
@@ -3240,10 +3328,11 @@ async function collectTennesseeCityHive(config, bible, observedAt) {
             }
           }
         }
-        await sleep(TN_CITYHIVE_PAGE_DELAY_MS);
+        await sleepWithSignal(TN_CITYHIVE_PAGE_DELAY_MS, options.signal);
       }
     }
-    if (sourceReachable && !signals.some((signal) => signal.sourceChain === source.id)) {
+    if (sourcePayloadRecognized && !failedSourceIds.has(source.id)) completedSourceIds.add(source.id);
+    if (sourcePayloadRecognized && sourceReachable && !signals.some((signal) => signal.sourceChain === source.id)) {
       roadblocks.push({
         state: config.id,
         source: source.sourceLabel,
@@ -3253,28 +3342,30 @@ async function collectTennesseeCityHive(config, bible, observedAt) {
         nextRoute: 'Retry the bounded first-party crawl; do not treat a catalog or configured location as inventory.'
       });
     }
-    await sleep(TN_CITYHIVE_SOURCE_DELAY_MS);
+    await sleepWithSignal(TN_CITYHIVE_SOURCE_DELAY_MS, options.signal);
   }
 
-  const selectedSourceIds = new Set(selectedSources.map((source) => source.id));
+  const liveKeys = new Set(signals.map((signal) => signal.id));
+  const merged = mergeTennesseeCityHiveCacheSignals({
+    liveSignals: signals,
+    cachedSignals: cache?.signals || [],
+    selectedSourceIds,
+    failedSourceIds,
+    observedAt,
+    maxAgeMs: TN_CITYHIVE_CACHE_MAX_AGE_MS,
+    validate: isTennesseeRetailerInventory,
+  }).map((signal) => liveKeys.has(signal.id) ? signal : ({
+    ...signal,
+    raw: {
+      ...(signal.raw || {}),
+      cacheFallback: true,
+      cacheGeneratedAt: cache?.generatedAt,
+      artifactPath: TN_CITYHIVE_ARTIFACT_PATH,
+    },
+  }));
+  signals.splice(0, signals.length, ...merged);
   if (cache) {
-    const retained = cache.signals.filter((signal) => {
-      const sourceId = signal.sourceChain || signal?.raw?.chain;
-      return isTennesseeRetailerInventory(signal) && (!selectedSourceIds.has(sourceId) || blockedSourceIds.has(sourceId));
-    });
-    const liveKeys = new Set(signals.map((signal) => signal.id));
-    const retainedFallback = retained
-      .filter((signal) => !liveKeys.has(signal.id))
-      .map((signal) => ({
-        ...signal,
-        raw: {
-          ...(signal.raw || {}),
-          cacheFallback: true,
-          cacheGeneratedAt: cache.generatedAt,
-          artifactPath: TN_CITYHIVE_ARTIFACT_PATH,
-        },
-      }));
-    signals.push(...retainedFallback);
+    const retainedFallback = signals.filter((signal) => signal?.raw?.cacheFallback === true);
     const reconciled = reconcileCityHiveRateLimitsWithCache({
       roadblocks,
       sources: selectedSources,
@@ -3283,35 +3374,16 @@ async function collectTennesseeCityHive(config, bible, observedAt) {
     roadblocks.splice(0, roadblocks.length, ...reconciled.roadblocks);
   }
 
-  for (const source of TN_CITYHIVE_SOURCES) {
-    if (signals.some((signal) => (signal.sourceChain || signal?.raw?.chain) === source.id)) continue;
-    if (selectedSourceIds.has(source.id) && roadblocks.some((roadblock) => roadblock.source === source.sourceLabel)) continue;
-    roadblocks.push({
-      state: config.id,
-      source: source.sourceLabel,
-      url: source.urls[0],
-      status: selectedSourceIds.has(source.id)
-        ? 'reachable_no_exact_store_orderability'
-        : 'no_qualified_row_in_fresh_bounded_cache',
-      error: selectedSourceIds.has(source.id)
-        ? `${source.chainName} produced no current row that passed exact host, merchant, address, bottle, size, and orderability binding.`
-        : `${source.chainName} has no qualified current row in the selected live cohort or fresh exact-store cache.`,
-      nextRoute: 'Probe this reviewed first-party source in a future bounded cohort; keep its stable store identity discoverable but nonalertable until current orderability qualifies.'
+  if (selectedSources.length) {
+    options.signal?.throwIfAborted();
+    await writeTennesseeCityHiveCache(signals, roadblocks, {
+      previous: cache,
+      selectedSourceIds,
+      completedSourceIds,
+      observedAt,
+      signal: options.signal,
     });
   }
-
-  if (!signals.length && cache) {
-    signals.push(...cachedTennesseeCityHiveSignals(cache, observedAt));
-    roadblocks.push({
-      state: config.id,
-      source: 'Tennessee CityHive retailer inventory cache',
-      url: TN_CITYHIVE_ARTIFACT_PATH,
-      status: 'fresh_exact_store_cache_fallback',
-      error: `Live CityHive fetch produced no qualified rows; reused ${cache.signals.length} fresh exact-store rows from ${cache.generatedAt}.`,
-      nextRoute: 'Keep requests paced and retry live first-party pages; never retain a cache row that fails current identity policy.'
-    });
-  }
-  if (signals.length) await writeTennesseeCityHiveCache(signals, roadblocks);
   return { signals, roadblocks };
 }
 
@@ -3326,13 +3398,14 @@ function coolSpringsProductUrl(item) {
   return item?.id ? new URL(`i/${item.id}`, TN_COOL_SPRINGS_BASE_URL).toString() : new URL('b?q=bourbon', TN_COOL_SPRINGS_BASE_URL).toString();
 }
 
-async function fetchCoolSpringsProducts(pageNumber) {
+async function fetchCoolSpringsProducts(pageNumber, options = {}) {
   const body = JSON.stringify({ pn: pageNumber, ps: TN_COOL_SPRINGS_PAGE_SIZE, q: 'bourbon' });
   const res = await textFetch(new URL('api/b/', TN_COOL_SPRINGS_BASE_URL).toString(), {
     method: 'POST',
     body,
     headers: { accept: 'application/json,*/*', 'content-type': 'application/json' },
-    timeoutMs: 24_000
+    timeoutMs: 24_000,
+    signal: options.signal,
   });
   if (!res.ok) return { ok: false, status: res.status, error: res.error || `HTTP ${res.status}`, items: [], totalCount: 0 };
   try {
@@ -3351,8 +3424,8 @@ function isTennesseeShopifyBourbonCandidate(product) {
   return /\b(bourbon|american whiskey|american whisky|rye whiskey|rye whisky|blanton|eagle rare|weller|stagg|taylor|buffalo trace|michter|willett|old fitz|1792|booker|baker|four roses|woodford|wild turkey|elijah craig|old forester|green river|bardstown|knob creek|bulleit|maker'?s mark|benchmark|belle meade|chattanooga whiskey|hard truth|pursuit united)\b/i.test(text);
 }
 
-async function fetchTennesseeShopifyProducts(source) {
-  const res = await textFetch(source.collectionUrl, { headers: { accept: 'application/json,*/*' }, timeoutMs: 24_000 });
+async function fetchTennesseeShopifyProducts(source, options = {}) {
+  const res = await textFetch(source.collectionUrl, { headers: { accept: 'application/json,*/*' }, timeoutMs: 24_000, signal: options.signal });
   if (!res.ok) return { ok: false, status: res.status, error: res.error || `HTTP ${res.status}`, products: [] };
   try {
     const json = JSON.parse(res.text);
@@ -3362,10 +3435,11 @@ async function fetchTennesseeShopifyProducts(source) {
   }
 }
 
-async function collectTennesseeShopify(config, bible, observedAt) {
+async function collectTennesseeShopify(config, bible, observedAt, options = {}) {
   const signals = [];
   const roadblocks = [];
   for (const source of TN_SHOPIFY_SOURCES) {
+    options.signal?.throwIfAborted();
     const store = registeredTennesseeStore(source.id, source.id);
     if (!store) {
       roadblocks.push({
@@ -3378,7 +3452,7 @@ async function collectTennesseeShopify(config, bible, observedAt) {
       });
       continue;
     }
-    const page = await fetchTennesseeShopifyProducts(source);
+    const page = await fetchTennesseeShopifyProducts(source, options);
     if (!page.ok) {
       roadblocks.push({
         state: config.id,
@@ -3471,7 +3545,7 @@ async function collectTennesseeShopify(config, bible, observedAt) {
   return { signals, roadblocks };
 }
 
-async function collectTennesseeCoolSprings(config, bible, observedAt) {
+async function collectTennesseeCoolSprings(config, bible, observedAt, options = {}) {
   const signals = [];
   const roadblocks = [];
   const store = registeredTennesseeStore('cool-springs-wine-spirits', TN_COOL_SPRINGS_STORE.id);
@@ -3491,7 +3565,8 @@ async function collectTennesseeCoolSprings(config, bible, observedAt) {
   const seenItems = new Set();
   let totalCount = 0;
   for (let pageNumber = 1; pageNumber <= TN_COOL_SPRINGS_MAX_PAGES; pageNumber++) {
-    const page = await fetchCoolSpringsProducts(pageNumber);
+    options.signal?.throwIfAborted();
+    const page = await fetchCoolSpringsProducts(pageNumber, options);
     if (!page.ok) {
       roadblocks.push({
         state: config.id,
@@ -3567,7 +3642,7 @@ async function collectTennesseeCoolSprings(config, bible, observedAt) {
       signals.push(draft);
     }
     if (!page.items.length || pageNumber * TN_COOL_SPRINGS_PAGE_SIZE >= totalCount) break;
-    await sleep(500);
+    await sleepWithSignal(500, options.signal);
   }
   if (!signals.length) {
     roadblocks.push({
@@ -3625,14 +3700,15 @@ export function grabblHasCurrentOrderability(storeProduct) {
   return /\b(?:in\s+stock|available(?:\s+now)?(?:\s+for\s+(?:pickup|order))?|currently\s+available|orderable(?:\s+for\s+pickup)?|pickup\s+available)\b/i.test(statusText);
 }
 
-async function fetchGatewayGrabblProducts(search) {
+async function fetchGatewayGrabblProducts(search, options = {}) {
   const url = new URL(`/product-web/store/${TN_GRABBL_GATEWAY_STORE.id}/search`, TN_GRABBL_BASE_URL);
   url.searchParams.set('page', '1');
   url.searchParams.set('limit', String(TN_GRABBL_SEARCH_LIMIT));
   url.searchParams.set('search', search);
   const res = await textFetch(url.toString(), {
     headers: { accept: 'application/json,*/*', 'x-store-id': TN_GRABBL_GATEWAY_STORE.id },
-    timeoutMs: 24_000
+    timeoutMs: 24_000,
+    signal: options.signal,
   });
   if (!res.ok) return { ok: false, status: res.status || 0, error: res.error || `HTTP ${res.status}`, products: [], count: 0, url: url.toString() };
   try {
@@ -3644,7 +3720,7 @@ async function fetchGatewayGrabblProducts(search) {
   }
 }
 
-async function collectTennesseeGatewayGrabbl(config, bible, observedAt) {
+async function collectTennesseeGatewayGrabbl(config, bible, observedAt, options = {}) {
   const signals = [];
   const roadblocks = [];
   const seen = new Set();
@@ -3665,7 +3741,8 @@ async function collectTennesseeGatewayGrabbl(config, bible, observedAt) {
 
   let returnedRows = 0;
   for (const term of TN_GRABBL_GATEWAY_SEARCH_TERMS.slice(0, TN_GRABBL_MAX_TERMS)) {
-    const page = await fetchGatewayGrabblProducts(term);
+    options.signal?.throwIfAborted();
+    const page = await fetchGatewayGrabblProducts(term, options);
     if (!page.ok) {
       roadblocks.push({
         state: config.id,
@@ -3745,7 +3822,7 @@ async function collectTennesseeGatewayGrabbl(config, bible, observedAt) {
         signals.push(draft);
       }
     }
-    await sleep(250);
+    await sleepWithSignal(250, options.signal);
   }
   if (!signals.some((signal) => signal.eventType === 'retailer_store_inventory_result')) {
     roadblocks.push({
@@ -5725,13 +5802,16 @@ async function collectSouthCarolina(config, bible) {
   };
 }
 
-async function collectTennessee(config, bible) {
+async function collectTennessee(config, bible, options = {}) {
   const observedAt = new Date().toISOString();
   const configuredStores = buildTennesseeConfiguredStoreLocationSignals(observedAt);
-  const cityHive = await collectTennesseeCityHive(config, bible, observedAt);
-  const shopify = await collectTennesseeShopify(config, bible, observedAt);
-  const coolSprings = await collectTennesseeCoolSprings(config, bible, observedAt);
-  const gatewayGrabbl = await collectTennesseeGatewayGrabbl(config, bible, observedAt);
+  const cityHive = await collectTennesseeCityHive(config, bible, observedAt, options);
+  options.signal?.throwIfAborted();
+  const shopify = await collectTennesseeShopify(config, bible, observedAt, options);
+  options.signal?.throwIfAborted();
+  const coolSprings = await collectTennesseeCoolSprings(config, bible, observedAt, options);
+  options.signal?.throwIfAborted();
+  const gatewayGrabbl = await collectTennesseeGatewayGrabbl(config, bible, observedAt, options);
   return {
     signals: [...configuredStores, ...cityHive.signals, ...shopify.signals, ...coolSprings.signals, ...gatewayGrabbl.signals],
     roadblocks: [...cityHive.roadblocks, ...shopify.roadblocks, ...coolSprings.roadblocks, ...gatewayGrabbl.roadblocks]
@@ -7607,7 +7687,7 @@ async function collectPrecisionProbesDirect(config, bible, existingSignals = [],
   if (config.id === 'NC') return collectNorthCarolinaIntelligence(config, bible, collectNcStoreInventory);
   if (config.id === 'IL') return collectIllinois(config, bible);
   if (config.id === 'IN') return collectIndiana(config, bible);
-  if (config.id === 'TN') return collectTennessee(config, bible);
+  if (config.id === 'TN') return collectTennessee(config, bible, options);
   if (config.id === 'AZ') return collectArizona(config, bible, options);
   if (config.id === 'CA') return collectCalifornia(config, bible, options);
   if (config.id === 'NV') return collectNevada(config, bible);
@@ -7631,8 +7711,8 @@ export function legacyPrecisionRuntimeOptions(stateId, sourceRunnerOptions = {},
     .map((value) => value.trim().toUpperCase())
     .filter(Boolean)
     .includes(stateKey);
-  const defaultTimeoutMs = stateKey === 'VA' ? 1_140_000 : ['AZ', 'GA', 'TX'].includes(stateKey) ? 300_000 : ['NY', 'CO'].includes(stateKey) ? 240_000 : 120_000;
-  const defaultMaxAttempts = ['VA', 'AZ', 'GA', 'NY', 'CO'].includes(stateKey) ? 1 : 2;
+  const defaultTimeoutMs = stateKey === 'VA' ? 1_140_000 : stateKey === 'TN' ? 600_000 : ['AZ', 'GA', 'TX'].includes(stateKey) ? 300_000 : ['NY', 'CO'].includes(stateKey) ? 240_000 : 120_000;
+  const defaultMaxAttempts = ['VA', 'AZ', 'GA', 'NY', 'CO', 'TN'].includes(stateKey) ? 1 : 2;
   return {
     ...sourceRunnerOptions,
     ...(stateKey === 'VA' || explicitlyTargeted ? { schedule: false } : {}),

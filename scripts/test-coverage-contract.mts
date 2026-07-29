@@ -77,6 +77,23 @@ assert.ok(contract.states.every((state) => state.layers.known >= state.layers.pr
 assert.ok(contract.states.every((state) => state.layers.probeable >= state.layers.live));
 assert.ok(contract.states.every((state) => state.layers.live >= state.layers.alertGrade));
 
+const tennesseeSignalUpgrade = buildCoverageContract({
+  lifecycle: STATE_LIFECYCLE_CONFIG,
+  stateRows: [{ state: "TN", publicStatus: "active", status: "useful", signalCount: 5, bestLocationPrecision: "store_level" }],
+  locations: [
+    { id: "tn-cityhive-test", state: "TN", type: "store", name: "Reviewed CityHive Store", address: "1 Main St", city: "Franklin", source: "Tennessee reviewed exact-store identity", collectorAttached: true, hasSignals: false },
+    { id: "tn-cool-springs-test", state: "TN", type: "store", name: "Cool Springs Wine & Spirits", address: "2 Main St", city: "Franklin", source: "Tennessee reviewed exact-store identity", collectorAttached: true, hasSignals: false },
+  ],
+  stores: [
+    { id: "tn-cityhive-test", state: "TN", name: "Reviewed CityHive Store", address: "1 Main St", city: "Franklin", source: "Reviewed CityHive store inventory", signalCount: 3 },
+    { id: "tn-cool-springs-test", state: "TN", name: "Cool Springs Wine & Spirits", address: "2 Main St", city: "Franklin", source: "Cool Springs Wine & Spirits public catalog API", signalCount: 2 },
+  ],
+});
+const upgradedTennessee = tennesseeSignalUpgrade.states.find((state) => state.code === "TN");
+assert.ok(upgradedTennessee);
+assert.equal(upgradedTennessee.layers.live, 2, "current Tennessee store evidence upgrades reviewed identities to live monitoring");
+assert.equal(upgradedTennessee.layers.alertGrade, 2, "current Tennessee store evidence upgrades reviewed identities to alert grade");
+
 const expectedCapabilities = {
   deep: ["OH", "PA", "VA"],
   active: ["ID", "IL", "IN", "NC"],
