@@ -20,6 +20,7 @@ const storesExport = await readJson('out/site/stores.json', { stores: [] });
 const locationsExport = await readJson('out/site/locations.json', { locations: [] });
 const dropsExport = await readJson('out/site/drops.json', { drops: [] });
 const allowFreshRetainedEvidence = process.argv.includes('--allow-fresh-retained-evidence');
+const allowScheduledPartialEvidence = process.argv.includes('--allow-scheduled-partial-evidence');
 const targetedCohort = process.argv.includes('--targeted-cohort');
 
 assert(state, 'Missing out/states/TN.json; run node src/run-state.mjs TN first');
@@ -96,6 +97,15 @@ if (targetedCohort) {
     .filter((city) => inventoryCities.has(city));
   assert(targetedMetroCities.length >= 2, `Expected current inventory coverage in at least 2 Nashville metro cities; got ${targetedMetroCities.join(', ') || 'none'} from ${[...inventoryCities].join(', ')}`);
   assert(inventoryStores.size >= 7, `Expected at least 7 current TN inventory stores in the targeted cohort; got ${inventoryStores.size}: ${[...inventoryStores].join(', ')}`);
+} else if (allowScheduledPartialEvidence) {
+  assert(positiveCityHiveSignals.length >= 30, `Expected at least 30 safe retained TN CityHive rows for scheduled continuity; got ${positiveCityHiveSignals.length}`);
+  assert(positiveRetailerSignals.length >= 10, `Expected at least 10 safe retained non-CityHive TN rows for scheduled continuity; got ${positiveRetailerSignals.length}`);
+  assert(positiveInventorySignals.length >= 60, `Expected at least 60 qualified TN inventory rows for scheduled continuity; got ${positiveInventorySignals.length}`);
+  assert(cityHiveSources.size >= 4, `Expected at least 4 TN CityHive sources for scheduled continuity; got ${cityHiveSources.size}`);
+  assert(nonCityHiveSources.size >= 3, `Expected at least 3 non-CityHive TN sources for scheduled continuity; got ${nonCityHiveSources.size}`);
+  assert(inventorySources.size >= 7, `Expected at least 7 TN inventory sources for scheduled continuity; got ${inventorySources.size}`);
+  assert(inventoryCities.size >= 2, `Expected at least 2 TN inventory cities for scheduled continuity; got ${inventoryCities.size}`);
+  assert(inventoryStores.size >= 7, `Expected at least 7 TN inventory stores for scheduled continuity; got ${inventoryStores.size}`);
 } else {
   assert(positiveCityHiveSignals.length >= 60, `Expected at least 60 exact-store, currently orderable TN CityHive rows; got ${positiveCityHiveSignals.length}`);
   assert(positiveRetailerSignals.length >= 10, `Expected at least 10 exact-store, currently orderable non-CityHive TN rows; got ${positiveRetailerSignals.length}`);

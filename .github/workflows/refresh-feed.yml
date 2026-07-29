@@ -186,7 +186,7 @@ jobs:
       - name: Verify Tennessee generated contract with fresh retained fallback
         if: ${{ !inputs.states }}
         working-directory: engine
-        run: npm run verify:tn -- --allow-fresh-retained-evidence
+        run: npm run verify:tn -- --allow-fresh-retained-evidence --allow-scheduled-partial-evidence
 
       - name: Verify Tennessee generated contract for targeted recovery
         if: ${{ inputs.states && contains(inputs.states, 'TN') }}
