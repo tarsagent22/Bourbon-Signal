@@ -163,8 +163,13 @@ jobs:
         working-directory: engine
         run: npm run verify:state-integration -- --all-active
 
-      - name: Verify California San Diego release gate
-        if: ${{ !inputs.states || contains(inputs.states, 'CA') }}
+      - name: Verify California scheduled lane or isolate a safe retained partition
+        if: ${{ !inputs.states }}
+        working-directory: engine
+        run: npm run verify:ca -- --allow-safe-retained-not-due
+
+      - name: Verify California targeted exact-store recovery
+        if: ${{ inputs.states && contains(inputs.states, 'CA') }}
         working-directory: engine
         run: npm run verify:ca
 
@@ -187,6 +192,10 @@ jobs:
         if: ${{ inputs.states && contains(inputs.states, 'TN') }}
         working-directory: engine
         run: npm run verify:tn -- --targeted-cohort
+
+      - name: Verify degraded state isolation before publication
+        working-directory: engine
+        run: npm run verify:state-isolation
 
       - name: Refuse publication from a stale main checkout
         env:

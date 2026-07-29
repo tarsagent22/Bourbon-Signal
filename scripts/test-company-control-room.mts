@@ -5,6 +5,7 @@ import {
   aggregateCompanyDemand,
   buildOwnerExperimentAggregate,
   extractEngineControlRoomMetrics,
+  extractStateEngineHealth,
   isCompanyControlRoomOwnerEmail,
   summarizeMemberships,
 } from "../src/lib/company-control-room.ts";
@@ -112,7 +113,32 @@ assert.deepEqual(extractEngineControlRoomMetrics({
   alertCandidates: 645,
 });
 
+const stateEngines = extractStateEngineHealth({
+  stateCoverage: {
+    states: [
+      { state: "CA", label: "California", status: "useful", signalCount: 20, roadblockCount: 0, sourceLabel: "San Diego retailers", bestLocationPrecision: "store_level" },
+      { state: "ID", label: "Idaho", status: "stale_reachable_needs_deeper_parser", stale: true, staleReason: "not_due", signalCount: 135, roadblockCount: 1, sourceLabel: "Idaho source", bestLocationPrecision: "statewide" },
+      { state: "OH", label: "Ohio", status: "failed_browser", signalCount: 0, roadblockCount: 2, sourceLabel: "OHLQ", bestLocationPrecision: null },
+    ],
+  },
+  refreshHealth: {
+    degradedStates: [
+      { state: "ID", status: "stale_reachable_needs_deeper_parser", stale: true, staleReason: "not_due" },
+      { state: "OH", status: "failed_browser", stale: false },
+    ],
+  },
+});
+assert.deepEqual(stateEngines.map((row) => [row.state, row.health]), [
+  ["OH", "critical"],
+  ["ID", "warning"],
+  ["CA", "healthy"],
+]);
+assert.match(stateEngines[0].issue, /failed browser/i);
+assert.match(stateEngines[1].issue, /stale/i);
+assert.equal(stateEngines[2].issue, null);
+
 const page = readFileSync(new URL("../src/app/admin/control-room/page.tsx", import.meta.url), "utf8");
+const server = readFileSync(new URL("../src/lib/company-control-room-server.ts", import.meta.url), "utf8");
 const layout = readFileSync(new URL("../src/app/admin/control-room/layout.tsx", import.meta.url), "utf8");
 const robots = readFileSync(new URL("../src/app/robots.ts", import.meta.url), "utf8");
 const sitemap = readFileSync(new URL("../src/app/sitemap.ts", import.meta.url), "utf8");
@@ -123,10 +149,18 @@ assert.match(page, /isCompanyControlRoomOwnerEmail/);
 assert.match(page, /force-dynamic/);
 assert.match(page, /Demand-weighted investment/);
 assert.match(page, /Controlled experiments/);
+assert.match(page, /State engine health/);
+assert.match(page, /#state-engines/);
+assert.match(page, /cr-engine-health/);
+assert.match(page, /role="status"/);
+assert.match(page, /Collection demand is temporarily unavailable/);
+assert.match(page, /role="alert"/);
 assert.match(page, /Tagged member cohort · 30 days/);
 assert.match(page, /Anonymous campaign visitors are measured in Vercel Web Analytics\./);
 assert.match(page, /Unique authenticated members only/);
 assert.doesNotMatch(page, /RESEND_API_KEY|CLERK_SECRET_KEY|STRIPE_SECRET_KEY|BLOB_READ_WRITE_TOKEN/);
+assert.match(server, /getCollectionsForUsers/, "Control Room demand must read durable member collections");
+assert.match(server, /collectionSource:\s*durableCollections \? "neon"/, "Control Room must label its collection demand source");
 assert.match(layout, /index:\s*false/);
 assert.match(layout, /follow:\s*false/);
 assert.match(robots, /\/admin\//);

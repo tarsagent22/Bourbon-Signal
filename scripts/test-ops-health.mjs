@@ -13,6 +13,8 @@ const heartbeat = {
   counts: {},
   error: null,
 };
+process.env.VERCEL_GIT_COMMIT_SHA = 'commit-current';
+process.env.VERCEL_DEPLOYMENT_ID = 'dpl_current';
 const healthy = buildOpsHealth({
   heartbeat,
   engineGeneratedAt: recent,
@@ -22,8 +24,19 @@ const healthy = buildOpsHealth({
 assert.equal(healthy.ok, true);
 assert.equal(healthy.cron.expectedSchedule, EXPECTED_ALERT_CRON_SCHEDULE);
 assert.equal(healthy.cron.status, 'healthy');
+assert.equal(healthy.release.status, 'healthy');
+assert.equal(healthy.release.commit, 'commit-current');
 assert.equal(healthy.engine.status, 'healthy');
 assert.equal(healthy.engine.staleAfterMinutes, 45);
+
+const missingHeartbeat = buildOpsHealth({
+  heartbeat: null,
+  engineGeneratedAt: recent,
+  refreshHealth: { failedStateCount: 0, degradedStateCount: 0, staleStateCount: 0 },
+  currentDeploymentId: 'dpl_current',
+});
+assert.equal(missingHeartbeat.cron.status, 'unknown');
+assert.equal(missingHeartbeat.release.status, 'healthy', 'verified deployment identity must not be mislabeled as a mismatch when no heartbeat exists');
 
 const stale = buildOpsHealth({
   heartbeat: { ...heartbeat, completedAt: new Date(now.getTime() - 20 * 60_000).toISOString() },
@@ -72,6 +85,8 @@ const wrongDeployment = buildOpsHealth({
 });
 assert.equal(wrongDeployment.ok, false);
 assert.equal(wrongDeployment.cron.status, 'wrong_deployment');
+assert.equal(wrongDeployment.release.status, 'critical');
+assert.equal(wrongDeployment.release.reason, 'alert_heartbeat_wrong_deployment');
 
 const degradedEngine = buildOpsHealth({
   heartbeat,

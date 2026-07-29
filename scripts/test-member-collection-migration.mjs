@@ -17,7 +17,7 @@ assert.match(migration, /--check/);
 assert.match(migration, /--apply/);
 
 assert.match(route, /getMemberCollectionRepository/);
-assert.match(route, /migrateLegacyForUser/);
+assert.doesNotMatch(route, /migrateLegacyForUser/, 'runtime collection reads are Neon-only after guarded retirement');
 assert.match(route, /replaceForUser/);
 assert.match(route, /delete publicMetadataPatch\.collectionPreferences/, 'collection writes never rewrite the oversized Clerk payload');
 assert.doesNotMatch(route, /publicMetadataPatch\.collectionPreferences\s*=\s*null/, 'legacy Clerk data remains available during the rollback grace period');

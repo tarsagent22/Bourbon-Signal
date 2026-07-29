@@ -58,10 +58,11 @@ test('scheduled refresh persists collector history, the actual scheduler state, 
   const scheduledTennesseeStep = workflow.match(/- name: Verify Tennessee generated contract with fresh retained fallback[\s\S]*?(?=\n      - name:)/)?.[0] || '';
   assert.match(scheduledDemandMetroStep, /if:\s*\$\{\{ !inputs\.states \}\}/, 'unrelated targeted refreshes must not be blocked by the scheduled demand-metro fallback gate');
   assert.match(scheduledTennesseeStep, /if:\s*\$\{\{ !inputs\.states \}\}/, 'unrelated targeted refreshes must not be blocked by the scheduled Tennessee fallback gate');
-  for (const [label, state] of [['California San Diego release gate', 'CA']]) {
-    const step = workflow.match(new RegExp(`- name: Verify ${label}[\\s\\S]*?(?=\\n      - name:)`))?.[0] || '';
-    assert.match(step, new RegExp(`!inputs\\.states[\\s\\S]*contains\\(inputs\\.states, '${state}'\\)`), `${state} verifier must only gate full or ${state}-targeted refreshes`);
-  }
+  const scheduledCaliforniaStep = workflow.match(/- name: Verify California scheduled lane or isolate a safe retained partition[\s\S]*?(?=\n      - name:)/)?.[0] || '';
+  const targetedCaliforniaStep = workflow.match(/- name: Verify California targeted exact-store recovery[\s\S]*?(?=\n      - name:)/)?.[0] || '';
+  assert.match(scheduledCaliforniaStep, /if:\s*\$\{\{ !inputs\.states \}\}[\s\S]*--allow-safe-retained-not-due/);
+  assert.match(targetedCaliforniaStep, /inputs\.states && contains\(inputs\.states, 'CA'\)[\s\S]*run: npm run verify:ca/);
+  assert.doesNotMatch(targetedCaliforniaStep, /allow-safe-retained-not-due/, 'CA-targeted recovery must remain strict');
   const productionVerificationStep = workflow.match(/- name: Verify production observes the refreshed engine or roll back[\s\S]*?(?=\n      - name:)/)?.[0] || '';
   assert.match(productionVerificationStep, /BOURBON_SIGNAL_VERIFY_STATES:\s*\$\{\{ inputs\.states \|\| '' \}\}/);
   assert.match(productionVerificationStep, /verify:production-engine[\s\S]*?--rollback/);

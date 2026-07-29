@@ -119,12 +119,23 @@ interface MutableDemandCount {
   weightedDemand: number;
 }
 
+function collectionForUser(
+  collections: ReadonlyMap<string, unknown> | Readonly<Record<string, unknown>> | undefined,
+  userId: string | undefined,
+) {
+  if (!collections || !userId) return { found: false, value: null };
+  if (collections instanceof Map) return { found: collections.has(userId), value: collections.get(userId) };
+  const record = collections as Readonly<Record<string, unknown>>;
+  return { found: Object.prototype.hasOwnProperty.call(record, userId), value: record[userId] };
+}
+
 export function aggregateMemberDemand(
   users: readonly DemandMemberInput[],
   options: {
     catalog: readonly DemandBottleCatalogItem[];
     approvedStateCodes: readonly string[];
     minCohortSize?: number;
+    collectionsByUserId?: ReadonlyMap<string, unknown> | Readonly<Record<string, unknown>>;
   },
 ): DemandSnapshot {
   const minCohortSize = Math.max(DEFAULT_DEMAND_COHORT_SIZE, Math.floor(options.minCohortSize || DEFAULT_DEMAND_COHORT_SIZE));
@@ -138,7 +149,8 @@ export function aggregateMemberDemand(
     const cohortKey = typeof user.id === "string" && user.id ? `member:${user.id}` : `row:${index}`;
     const metadata = metadataObject(user.publicMetadata);
     const alertPreferences = metadataObject(metadata.bottleAlertPreferences);
-    const collectionPreferences = metadataObject(metadata.collectionPreferences);
+    const durableCollection = collectionForUser(options.collectionsByUserId, user.id);
+    const collectionPreferences = metadataObject(durableCollection.found ? durableCollection.value : metadata.collectionPreferences);
     const areaPreferences = metadataObject(metadata.areaPreferences);
     const memberBottleWeights = new Map<string, { canonical: CanonicalDemandBottle; weight: number }>();
 
