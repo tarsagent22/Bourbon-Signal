@@ -144,6 +144,20 @@
       "model": null,
       "reasoning": null,
       "safetyHash": null
+    },
+    {
+      "jobId": "3cdc1e546a0e",
+      "name": "Bourbon Signal encrypted Neon backup",
+      "schedule": "15 4 * * *",
+      "deliver": "origin",
+      "noAgent": true,
+      "script": "bourbon_neon_backup.py",
+      "workdir": "C:\\c\\Users\\chand\\projects\\Bourbon-Signal-autonomous",
+      "active": true,
+      "provider": null,
+      "model": null,
+      "reasoning": null,
+      "safetyHash": null
     }
   ]
 }

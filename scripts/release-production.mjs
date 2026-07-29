@@ -153,6 +153,7 @@ async function verifyAndBuild(tempRoot) {
   for (const [command, args] of [
     ['npm', ['ci']],
     ['npm', ['--prefix', 'engine', 'ci']],
+    ['vercel', ['env', 'run', '-e', 'production', '--', 'npm', 'run', 'migrate:app-storage']],
     ['npm', ['run', 'verify:ci']],
   ]) {
     const result = await run(command, args, { cwd: tempRoot });

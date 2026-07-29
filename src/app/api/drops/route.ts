@@ -220,7 +220,7 @@ function diversifyDrops<T extends Record<string, unknown>>(drops: T[]) {
 }
 
 const readCachedPublicRetailerSubmissions = unstable_cache(
-  async () => getRetailerRepository().listPublicSubmissions({ ensureSchema: false }),
+  async () => getRetailerRepository().listPublicSubmissions(),
   ["public-retailer-submissions-v2"],
   { revalidate: 15 },
 );

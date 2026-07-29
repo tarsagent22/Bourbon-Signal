@@ -13,8 +13,8 @@ const [routeSource, snapshotSource, repositorySource, feedSource] = await Promis
 ]);
 
 assert.match(snapshotSource, /const readActivePointer = unstable_cache\([\s\S]*?revalidate:\s*15/, "the mutable snapshot pointer should use a short server data cache instead of a Blob round trip on every private feed request");
-assert.match(repositorySource, /listPublicSubmissions\(options:[\s\S]*?ensureSchema\?: boolean[\s\S]*?if \(options\.ensureSchema !== false\) await this\.ensureSchema\(\)/, "public feed reads must be able to skip request-path schema migration work");
-assert.match(routeSource, /listPublicSubmissions\(\{ ensureSchema: false \}\)/, "the Drop Feed must not run retailer schema migrations on reads");
+assert.doesNotMatch(repositorySource, /ensureSchema|CREATE TABLE|ALTER TABLE|CREATE INDEX/i, "retailer repository request paths must remain DML-only");
+assert.match(routeSource, /listPublicSubmissions\(\)/, "the Drop Feed reads the migration-provisioned retailer schema");
 assert.match(routeSource, /unstable_cache\([\s\S]*?public-retailer-submissions-v2[\s\S]*?revalidate:\s*15/, "public retailer rows should be shared briefly across feed filter requests");
 assert.match(routeSource, /retailerSubmissions\.length > 0\s*\? await getBourbonBible\(\)\s*:\s*\[\]/, "the Drop Feed should not fetch the bottle catalog when there are no retailer submissions to enrich");
 assert.match(feedSource, /const dropFeedResponseCache = new Map/, "recent filter responses should be reusable during the browser session");

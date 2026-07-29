@@ -342,23 +342,24 @@ assert.ok(webhook.indexOf('unsafeMetadata.accountType !== "retailer"') < webhook
 assert.match(webhook, /upsertPendingApplication[\s\S]*notifyRetailerAccountCreated[\s\S]*markNotificationSent/);
 
 const repository = read("src/lib/retailer-repository.ts");
-assert.match(repository, /CREATE TABLE IF NOT EXISTS retailer_applications/);
-assert.match(repository, /CREATE TABLE IF NOT EXISTS retailer_stores/);
-assert.match(repository, /INSERT INTO retailer_stores[\s\S]*SELECT[\s\S]*FROM retailer_applications/);
-assert.match(repository, /ALTER TABLE retailer_submissions ADD COLUMN IF NOT EXISTS store_id TEXT/);
-assert.match(repository, /ALTER TABLE retailer_submissions ALTER COLUMN store_id SET NOT NULL/);
-assert.match(repository, /FOREIGN KEY \(store_id\) REFERENCES retailer_stores\(id\) ON DELETE RESTRICT/);
+const retailerSchema = read("src/lib/retailer-schema.sql");
+assert.match(retailerSchema, /CREATE TABLE IF NOT EXISTS retailer_applications/);
+assert.match(retailerSchema, /CREATE TABLE IF NOT EXISTS retailer_stores/);
+assert.match(retailerSchema, /INSERT INTO retailer_stores[\s\S]*SELECT[\s\S]*FROM retailer_applications/);
+assert.match(retailerSchema, /ALTER TABLE retailer_submissions ADD COLUMN IF NOT EXISTS store_id TEXT/);
+assert.match(retailerSchema, /ALTER TABLE retailer_submissions ALTER COLUMN store_id SET NOT NULL/);
+assert.match(retailerSchema, /FOREIGN KEY \(store_id\) REFERENCES retailer_stores\(id\) ON DELETE RESTRICT/);
 assert.match(repository, /ON CONFLICT \(user_id, store_address\) DO NOTHING/);
-assert.match(repository, /CREATE TABLE IF NOT EXISTS retailer_submissions/);
+assert.match(retailerSchema, /CREATE TABLE IF NOT EXISTS retailer_submissions/);
 assert.match(repository, /async createStore/);
 assert.match(repository, /async listStores/);
 assert.match(repository, /INNER JOIN retailer_stores stores[\s\S]*stores\.user_id = \$2[\s\S]*stores\.id = \$3[\s\S]*stores\.status = 'verified'/);
-assert.match(repository, /ALTER TABLE retailer_submissions ALTER COLUMN status SET DEFAULT 'reviewed'/);
+assert.match(retailerSchema, /ALTER TABLE retailer_submissions ALTER COLUMN status SET DEFAULT 'reviewed'/);
 assert.match(repository, /INSERT INTO retailer_submissions \(id, user_id, store_id, store_name, store_address, payload, status, reviewed_at, reviewed_by\)/);
 assert.match(repository, /'reviewed', NOW\(\), 'retailer_direct'/);
-assert.match(repository, /UPDATE retailer_submissions[\s\S]*status = 'reviewed'[\s\S]*WHERE status = 'pending_review'/);
+assert.match(retailerSchema, /UPDATE retailer_submissions[\s\S]*status = 'reviewed'[\s\S]*WHERE status = 'pending_review'/);
 assert.match(repository, /applications\.status = 'verified'/);
-assert.match(repository, /store_name TEXT NOT NULL/);
+assert.match(retailerSchema, /store_name TEXT NOT NULL/);
 assert.match(repository, /deleteApplication/);
 assert.match(repository, /DELETE FROM retailer_applications WHERE user_id = \$1/);
 assert.match(repository, /deleteSubmission/);
@@ -369,9 +370,9 @@ assert.match(repository, /payload->>'kind' IN \('bottle_drop', 'barrel_pick'\)/)
 assert.match(repository, /listPublicSubmissions/);
 assert.match(repository, /applications\.status = 'verified'/);
 assert.match(repository, /submissions\.status = 'reviewed'/);
-assert.match(repository, /terms_accepted_at TIMESTAMPTZ/);
-assert.match(repository, /terms_version TEXT/);
-assert.match(repository, /decision_notified_status TEXT/);
+assert.match(retailerSchema, /terms_accepted_at TIMESTAMPTZ/);
+assert.match(retailerSchema, /terms_version TEXT/);
+assert.match(retailerSchema, /decision_notified_status TEXT/);
 assert.match(repository, /updateApplicationProfile/);
 assert.match(repository, /markDecisionNotificationSent/);
 

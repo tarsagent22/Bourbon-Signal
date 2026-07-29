@@ -319,7 +319,8 @@ try {
 
 // Existing retailer application and direct-publishing behavior stays independently intact.
 const existingRepository = read("src/lib/retailer-repository.ts");
-assert.match(existingRepository, /status TEXT NOT NULL DEFAULT 'pending' CHECK \(status IN \('pending', 'verified', 'rejected'\)\)/);
+const existingSchema = read("src/lib/retailer-schema.sql");
+assert.match(existingSchema, /status TEXT NOT NULL DEFAULT 'pending' CHECK \(status IN \('pending', 'verified', 'rejected'\)\)/);
 assert.match(existingRepository, /'reviewed', NOW\(\), 'retailer_direct'/);
 
 console.log("Retailer acquisition contracts passed.");
