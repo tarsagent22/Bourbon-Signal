@@ -3,6 +3,7 @@ import { spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { DEFAULT_CDP_URL, ensureBrowserCdp, killBrowserCdp } from './core/browser-session.mjs';
+import { targetedRunNeedsBrowserCollectors } from './targeted-browser-policy.mjs';
 
 const ROOT = process.cwd();
 const PROJECT_ROOT = path.dirname(ROOT);
@@ -267,6 +268,7 @@ async function maybeDeploySite() {
 
 async function shouldRunBrowserCollectors() {
   if (process.env.BOURBON_SIGNAL_SKIP_BROWSER_COLLECTORS === '1') return false;
+  if (!targetedRunNeedsBrowserCollectors(process.env.BOURBON_SIGNAL_RUN_STATES)) return false;
   const last = await readJson(STATUS);
   const lastSuccessMs = last?.lastBrowserRefreshAt ? new Date(last.lastBrowserRefreshAt).getTime() : NaN;
   if (!Number.isFinite(lastSuccessMs)) {

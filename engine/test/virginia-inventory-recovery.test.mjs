@@ -20,8 +20,17 @@ import {
 import { legacyPrecisionRuntimeOptions } from '../src/collectors/precision-probes.mjs';
 import { runLegacyPrecisionSource } from '../src/sources/legacy-precision-runtime.mjs';
 import { confidenceForSignal } from '../src/confidence-policy.mjs';
+import { targetedRunNeedsBrowserCollectors } from '../src/targeted-browser-policy.mjs';
 
 const HOUR = 60 * 60_000;
+
+test('targeted Virginia recovery skips unrelated Pennsylvania and Ohio browser collectors', () => {
+  assert.equal(targetedRunNeedsBrowserCollectors('VA'), false);
+  assert.equal(targetedRunNeedsBrowserCollectors('VA,TN'), false);
+  assert.equal(targetedRunNeedsBrowserCollectors('VA,PA'), true);
+  assert.equal(targetedRunNeedsBrowserCollectors('OH'), true);
+  assert.equal(targetedRunNeedsBrowserCollectors(''), true);
+});
 
 function signal(code, storeId, observedAt, quantity = 1) {
   return {
