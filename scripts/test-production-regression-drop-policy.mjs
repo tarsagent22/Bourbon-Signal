@@ -20,6 +20,34 @@ assert.equal(isDropExpectedInLiveFeed({ state: 'SC', tier: 'standard', type: 're
 assert.equal(isDropExpectedInLiveFeed({ state: 'SC', type: 'retailer_store_inventory_result', quantity: 1, lastConfirmedAt: '2026-07-21T01:59:00.000Z' }, now), false, 'unknown tiers filtered by the public Drop Feed are not regression expectations');
 assert.equal(isDropExpectedInLiveFeed({ ...inventory, lastConfirmedAt: '2026-07-21T02:15:00.001Z' }, now), false, 'materially future-dated rows fail closed');
 assert.equal(isDropExpectedInLiveFeed({ ...inventory }, now), false, 'unknown freshness fails closed');
+const mississippiSparseInventory = {
+  state: 'MS',
+  tier: 'limited',
+  type: 'retailer_store_inventory_result',
+  quantity: 0,
+  quantityIsExact: false,
+  locationPrecision: 'store_level',
+  sourceRuntimeId: 'retailer:ms:tupelo2go:1187',
+  permitNumber: '055298',
+  storeId: 'ms-permit-055298',
+  sourceAvailabilityVerified: true,
+  premisesVerified: true,
+  pickupOfferVerified: false,
+  orderabilityOfferVerified: true,
+  eligibleForOnSite: true,
+  eligibleForDropFeed: true,
+  eligibleForWatch: false,
+  eligibleForDelivery: false,
+  eligibleForEmail: false,
+  eligibleForSms: false,
+  inventorySemantics: 'binary_retailer_orderable_no_exact_count',
+  canAlertAsInventory: false,
+  canAlertAsWatch: false,
+  lastConfirmedAt: '2026-07-21T01:59:00.000Z',
+};
+assert.equal(isDropExpectedInLiveFeed(mississippiSparseInventory, now), true, 'fresh identity-bound Mississippi binary orderability must be included in the production feed regression floor');
+assert.equal(isDropExpectedInLiveFeed({ ...mississippiSparseInventory, premisesVerified: false }, now), false, 'forged Mississippi orderability must fail the production feed regression floor');
+assert.equal(isDropExpectedInLiveFeed({ ...mississippiSparseInventory, sourceRuntimeId: 'retailer:ms:fake:999', permitNumber: '999999', storeId: 'ms-permit-999999' }, now), false, 'unreviewed Mississippi sources must fail the production feed regression floor');
 
 assert.equal(parseLiveDropTotal(0), 0);
 assert.equal(parseLiveDropTotal(12), 12);
@@ -30,22 +58,25 @@ for (const invalid of [null, '', false, '12', -1, 1.5, Number.NaN, Number.POSITI
 assert.equal(liveDropTotalMeetsRegressionFloor({ localTotal: 42, liveTotal: 0, minRatio: 0.4 }), false, 'a stale zero response must be retried');
 assert.equal(liveDropTotalMeetsRegressionFloor({ localTotal: 42, liveTotal: 15, minRatio: 0.4 }), false, 'a stale response below the floor must be retried');
 assert.equal(liveDropTotalMeetsRegressionFloor({ localTotal: 42, liveTotal: 16, minRatio: 0.4 }), true);
+assert.equal(liveDropTotalMeetsRegressionFloor({ localTotal: 9, liveTotal: 1, minRatio: 0.4 }), false, 'small state partitions must not pass with only one surviving row');
+assert.equal(liveDropTotalMeetsRegressionFloor({ localTotal: 9, liveTotal: 3, minRatio: 0.4 }), true);
 assert.equal(liveDropTotalMeetsRegressionFloor({ localTotal: 0, liveTotal: 0, minRatio: 0.4 }), true);
 assert.equal(liveDropTotalMeetsRegressionFloor({ localTotal: 1, liveTotal: null, minRatio: 0.4 }), false);
 
 const verifierSource = readFileSync(new URL('./verify-production-engine-regression.mjs', import.meta.url), 'utf8');
 const dropRouteSource = readFileSync(new URL('../src/app/api/drops/route.ts', import.meta.url), 'utf8');
 const siteContractSource = readFileSync(new URL('../src/lib/site-engine-contract.ts', import.meta.url), 'utf8');
+const dropVisibilitySource = readFileSync(new URL('../src/lib/drop-feed-visibility.ts', import.meta.url), 'utf8');
 const engineExporterSource = readFileSync(new URL('../engine/src/export-site-contract.mjs', import.meta.url), 'utf8');
 assert.match(engineExporterSource, /signal\.stale === true[\s\S]{0,160}signal\.sourceStale === true[\s\S]{0,160}return false/, 'stale fallback rows must fail closed before any state-specific alert override');
 assert.match(siteContractSource, /sourceStale[\s\S]{0,400}staleSourceCaveat[\s\S]{0,600}inventoryCaveat/, 'app normalization must visibly label retained stale store context');
-assert.match(siteContractSource, /type === ["']retailer_store_inventory_result["'][\s\S]{0,160}quantity > 0/, 'the app must accept positive retailer inventory rows already admitted by the engine exporter');
-assert.match(siteContractSource, /type === ["']cityhive_store_inventory_result["'][\s\S]{0,160}quantity > 0/, 'the app must accept positive CityHive inventory rows already admitted by the engine exporter');
+assert.match(dropVisibilitySource, /type === ["']retailer_store_inventory_result["'][\s\S]{0,160}quantity > 0/, 'the app must accept positive retailer inventory rows already admitted by the engine exporter');
+assert.match(dropVisibilitySource, /type === ["']cityhive_store_inventory_result["'][\s\S]{0,160}quantity > 0/, 'the app must accept positive CityHive inventory rows already admitted by the engine exporter');
 assert.match(dropRouteSource, /!status\.startsWith\(["']stale_useful["']\)/, 'labeled stale-useful variants must stay visible while row-age gates remain authoritative');
 assert.match(verifierSource, /pendingStates/, 'drop totals must retry in rounds while route-local snapshot caches converge');
 assert.match(verifierSource, /PRODUCTION_VERIFY_ATTEMPTS/, 'drop retries must stay bounded');
 assert.match(verifierSource, /liveDropTotalMeetsRegressionFloor/, 'drop retries must use the same regression floor as final validation');
-assert.match(verifierSource, /localTotal > 0 && liveTotal === 0/, 'even one fresh local row must fail when the live state collapses to zero');
+assert.match(verifierSource, /minimumLiveTotal[\s\S]{0,160}liveDropTotalMeetsRegressionFloor/, 'final production validation must enforce the same ratio floor for small and large state partitions');
 assert.match(verifierSource, /liveTotal === null/, 'invalid live totals must fail closed');
 
 console.log('Production regression local drop-filter contracts passed.');

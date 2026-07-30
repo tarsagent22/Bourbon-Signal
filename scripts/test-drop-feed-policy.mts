@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { dropFreshnessTime, resolveDropLimit } from "../src/lib/drop-feed-policy.ts";
 import { resolveDropQuantitySemantics } from "../src/lib/drop-quantity-semantics.ts";
+import { isUserFacingDropSignal, MISSISSIPPI_ONSITE_SOURCE_PERMITS } from "../src/lib/drop-feed-visibility.ts";
 import { coveredAreaLabelsMatch, getCoveredAreaOptionsForState } from "../src/lib/feed-area-options.ts";
 
 assert.equal(resolveDropLimit("40", false, 7), 40);
@@ -36,6 +37,7 @@ const siteContractSource = readFileSync(new URL("../src/lib/site-engine-contract
 assert.match(siteContractSource, /resolveDropQuantitySemantics\(drop\)/, "site normalization must apply shipment quantity semantics");
 assert.match(siteContractSource, /quantity_shipped:\s*shipmentQuantity\s*\|\|\s*undefined/, "site normalization must export shipped units separately");
 assert.match(siteContractSource, /store_equivalent_shipment"\)\s*\?\s*"board"/, "store-equivalent shipment availability must remain board-scoped");
+assert.match(siteContractSource, /isUserFacingDropSignal\(\{\s*\.\.\.drop,/s, "site normalization must preserve Mississippi feed-proof fields when recomputing visibility");
 const dropDomainSource = readFileSync(new URL("../src/lib/drops.ts", import.meta.url), "utf8");
 assert.match(dropDomainSource, /event\.quantity_in_stock\s*\?\?\s*event\.quantity_shipped\s*\?\?\s*event\.quantity/, "drop-domain filtering must retain normalized shipment rows");
 
@@ -49,5 +51,60 @@ const dropFeedSource = readFileSync(new URL("../src/components/sections/DropFeed
 assert.match(dropFeedSource, /getCoveredAreaOptionsForState\(selectedState\)/, "DropFeed must merge configured covered areas for the selected state");
 const dropsRouteSource = readFileSync(new URL("../src/app/api/drops/route.ts", import.meta.url), "utf8");
 assert.match(dropsRouteSource, /\}\)\s*\|\|\s*Boolean\(state\)/, "Selecting a state must auto-include that state's freshest historical rows instead of requiring See more");
+
+const mississippiRegistry = JSON.parse(readFileSync(new URL("../engine/data/mississippi-retailer-registry.json", import.meta.url), "utf8")) as { stores: Array<Record<string, unknown>> };
+const expectedMississippiSources = new Map(
+  mississippiRegistry.stores
+    .filter((store) => store.autonomousFetchAllowed === true && store.sourcePolicyStatus === "allowed" && /_orderability$/u.test(String(store.fulfillmentSemantics ?? "")))
+    .map((store) => [String(store.sourceRuntimeId), String(store.permitNumber)]),
+);
+assert.deepEqual(MISSISSIPPI_ONSITE_SOURCE_PERMITS, expectedMississippiSources, "the app feed allowlist must exactly match reviewed Mississippi orderability sources");
+
+const mississippiSparseInventory = {
+  type: "retailer_store_inventory_result",
+  state: "MS",
+  quantity: 0,
+  quantityIsExact: false,
+  locationPrecision: "store_level",
+  canAlertAsInventory: false,
+  canAlertAsWatch: false,
+  sourceRuntimeId: "retailer:ms:tupelo2go:1187",
+  permitNumber: "055298",
+  storeId: "ms-permit-055298",
+  sourceAvailabilityVerified: true,
+  premisesVerified: true,
+  pickupOfferVerified: false,
+  orderabilityOfferVerified: true,
+  eligibleForOnSite: true,
+  eligibleForDropFeed: true,
+  eligibleForWatch: false,
+  eligibleForDelivery: false,
+  eligibleForEmail: false,
+  eligibleForSms: false,
+  inventorySemantics: "binary_retailer_orderable_no_exact_count",
+};
+assert.equal(isUserFacingDropSignal(mississippiSparseInventory), true, "identity-bound Mississippi binary orderability must survive the API feed filter without becoming alertable");
+for (const [label, mutation] of [
+  ["wrong state", { state: "TN" }],
+  ["wrong runtime namespace", { sourceRuntimeId: "retailer:tn:tupelo2go:1187" }],
+  ["unreviewed Mississippi runtime", { sourceRuntimeId: "retailer:ms:fake:999", permitNumber: "999999", storeId: "ms-permit-999999" }],
+  ["missing exact permit", { permitNumber: "" }],
+  ["store/permit mismatch", { storeId: "ms-permit-041251" }],
+  ["exact quantity claim", { quantityIsExact: true }],
+  ["unverified availability", { sourceAvailabilityVerified: false }],
+  ["unverified premises", { premisesVerified: false }],
+  ["stale row", { stale: true }],
+  ["stale source", { sourceStale: true }],
+  ["no order control", { pickupOfferVerified: false, orderabilityOfferVerified: false }],
+  ["not approved on site", { eligibleForOnSite: false }],
+  ["not approved for feed", { eligibleForDropFeed: false }],
+  ["watch alert mutation", { eligibleForWatch: true }],
+  ["watch policy mutation", { canAlertAsWatch: true }],
+  ["email alert mutation", { eligibleForEmail: true }],
+  ["wrong inventory semantics", { inventorySemantics: "exact_quantity" }],
+  ["alert mutation", { canAlertAsInventory: true }],
+] as const) {
+  assert.equal(isUserFacingDropSignal({ ...mississippiSparseInventory, ...mutation }), false, `Mississippi feed visibility must fail closed for ${label}`);
+}
 
 console.log("Drop feed policy tests passed.");

@@ -107,9 +107,9 @@ async function main() {
       fail(`${state}: /api/drops returned an invalid total.`);
       continue;
     }
-    if (localTotal > 0 && liveTotal === 0) fail(`${state}: live drops collapsed to 0 from local ${localTotal}.`);
-    else if (localTotal >= 20 && liveTotal < Math.floor(localTotal * MIN_RATIO)) {
-      fail(`${state}: live drops ${liveTotal} below ${Math.floor(localTotal * MIN_RATIO)} (${Math.round(MIN_RATIO * 100)}% of local ${localTotal}).`);
+    const minimumLiveTotal = localTotal > 0 ? Math.max(1, Math.floor(localTotal * MIN_RATIO)) : 0;
+    if (!liveDropTotalMeetsRegressionFloor({ localTotal, liveTotal, minRatio: MIN_RATIO })) {
+      fail(`${state}: live drops ${liveTotal} below ${minimumLiveTotal} (${Math.round(MIN_RATIO * 100)}% floor for local ${localTotal}).`);
     }
   }
 
