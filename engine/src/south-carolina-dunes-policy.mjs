@@ -34,7 +34,8 @@ export function isSouthCarolinaDunesInventory(signal, nowMs = Date.now()) {
     && signal?.stateCode === 'SC'
     && eventType === 'retailer_store_inventory_result'
     && signal?.sourceLabel === DUNES_SOURCE_LABEL
-    && signal?.sourceRuntimeId === DUNES_RUNTIME_ID
+    && signal?.sourceRuntimeId === 'precision:sc'
+    && signal?.raw?.leafSourceRuntimeId === DUNES_RUNTIME_ID
     && signal?.storeId === DUNES_STORE_ID
     && signal?.storeName === 'Dunes Liquor'
     && signal?.city === 'Myrtle Beach'

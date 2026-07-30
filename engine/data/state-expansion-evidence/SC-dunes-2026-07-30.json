@@ -3,7 +3,7 @@
   "contractCommit": "c1b45b7086bbc1212b1929a9ef31e95ad95fdcea",
   "contractGitTag": "evidence/sc-dunes-contract-2026-07-30",
   "contractPath": "engine/data/state-expansion-evidence/SC-dunes-contract-2026-07-30.json",
-  "implementationDigest": "5caa180e60e8d8776312cf9251ad3b22e1d8dc2fac21ace92954944e364c9cd6",
+  "implementationDigest": "f45a7abb8f16db348f93764b6f5c6da52f9f999bc233867cce39b5724228a840",
   "implementationFiles": [
     "engine/src/collectors/precision-probes.mjs",
     "engine/test/sc-dunes-liquor.test.mjs",
