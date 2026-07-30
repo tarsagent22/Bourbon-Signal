@@ -1,0 +1,48 @@
+{
+  "cohort": "dunes-liquor-myrtle-beach",
+  "contractCommit": "c1b45b7086bbc1212b1929a9ef31e95ad95fdcea",
+  "contractGitTag": "evidence/sc-dunes-contract-2026-07-30",
+  "contractPath": "engine/data/state-expansion-evidence/SC-dunes-contract-2026-07-30.json",
+  "implementationDigest": "5caa180e60e8d8776312cf9251ad3b22e1d8dc2fac21ace92954944e364c9cd6",
+  "implementationFiles": [
+    "engine/src/collectors/precision-probes.mjs",
+    "engine/test/sc-dunes-liquor.test.mjs",
+    "engine/package.json",
+    "engine/data/discovery/SC-retailer-candidates.json",
+    "engine/data/store-universe/SC.json",
+    "package.json",
+    "engine/data/south-carolina-dunes-bible-additions.json",
+    "engine/src/build-bible.mjs",
+    "engine/src/confidence-policy.mjs",
+    "engine/src/south-carolina-dunes-policy.mjs",
+    "engine/src/verify-sc-dunes.mjs"
+  ],
+  "liveProbe": {
+    "city": "Myrtle Beach",
+    "currentExactInventoryRows": 13,
+    "currentStores": 1,
+    "inventoryAlertableRows": 13,
+    "observedAt": "2026-07-30T20:16:02.958Z",
+    "roadblocks": 0,
+    "runtimeId": "retailer:sc:dunes:6178",
+    "store": "Dunes Liquor",
+    "totalReportedUnits": 39,
+    "uniqueCanonicalBottles": 12
+  },
+  "publication": {
+    "deliveryVerified": false,
+    "fulfillmentGuaranteed": false,
+    "inventoryAlertable": true,
+    "verifyBeforeDriving": true,
+    "watchAlertable": true
+  },
+  "requestPolicy": {
+    "accessControlBypass": false,
+    "cacheMaxAgeHours": 6,
+    "maximumDetailConcurrency": 4,
+    "maximumRequests": 64,
+    "timeoutsRequired": true
+  },
+  "schemaVersion": 1,
+  "state": "SC"
+}

@@ -1,18 +1,18 @@
 {
-  "generatedAt": "2026-07-06T01:04:56.802Z",
+  "generatedAt": "2026-07-30T19:50:05.453Z",
   "state": "SC",
   "model": "Bourbon Signal national store universe v0.1",
   "caveat": "Known-store coverage is not equivalent to live bottle inventory. inventoryStatus separates directory-only, platform/probeable, live inventory, and alert-grade semantics.",
   "summary": {
     "seedCount": 10,
-    "probedCount": 10,
-    "knownStoreCount": 21,
-    "currentStoreCount": 21,
-    "probeDiscoveredStoreCount": 19,
+    "probedCount": 11,
+    "knownStoreCount": 22,
+    "currentStoreCount": 22,
+    "probeDiscoveredStoreCount": 20,
     "directorySeedStoreCount": 0,
     "directoryUrlStoreCount": 0,
     "byStatus": {
-      "live-inventory": 21
+      "live-inventory": 22
     },
     "cityCount": 13,
     "byCity": {
@@ -23,7 +23,7 @@
       "Landrum": 1,
       "Mauldin": 2,
       "Mount Pleasant": 1,
-      "Myrtle Beach": 2,
+      "Myrtle Beach": 3,
       "North Charleston": 1,
       "Rock Hill": 3,
       "Simpsonville": 1,
@@ -389,6 +389,24 @@
       "website": "https://www.aalmauldin.com",
       "ecommercePlatform": "woocommerce-store-api",
       "key": "all-american-liquor-mauldin-29662"
+    },
+    {
+      "id": "dunes-liquor:dunes-liquor-myrtle-beach",
+      "name": "Dunes Liquor",
+      "address": "980 Cipriana Drive, Unit A5-B, Myrtle Beach, SC 29572",
+      "city": "Myrtle Beach",
+      "state": "SC",
+      "zip": "29572",
+      "sourceLabels": [
+        "Dunes Liquor Myrtle Beach first-party metadata",
+        "Dunes Liquor runtime-store-6178 integrated-cart inventory"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "first-party-live-probe",
+      "website": "https://www.dunesliquor.com",
+      "ecommercePlatform": "integrated-cart-storefront",
+      "sourceRuntimeId": "retailer:sc:dunes:6178",
+      "key": "dunes-liquor-myrtle-beach-29572"
     }
   ]
 }

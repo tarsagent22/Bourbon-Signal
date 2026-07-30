@@ -1,0 +1,61 @@
+{
+  "notes": "Exact Dunes Liquor abbreviations reviewed from the frozen 2026-07-30 Myrtle Beach source capture. Keep this source-scoped file separate from cross-state evidence-locked additions.",
+  "families": [
+    {
+      "canonical": "Booker's Bourbon",
+      "aliases": ["Bookers Bbn Jimmy's Batch", "Bookers Bbn Jimmy's Batch 750ml"],
+      "tier": "limited",
+      "producer": "Jim Beam",
+      "sourceStates": ["SC"]
+    },
+    {
+      "canonical": "1792 Small Batch",
+      "aliases": ["1792 Bourbon Small Batch", "1792 Bourbon Small Batch 750ml"],
+      "tier": "core",
+      "producer": "Barton 1792 Distillery",
+      "sourceStates": ["SC"]
+    },
+    {
+      "canonical": "Woodford Reserve Double Oaked Bourbon",
+      "aliases": ["WOODFORD DOUBLE OAKED BOURBON", "WOODFORD DOUBLE OAKED BOURBON 750ml"],
+      "tier": "standard",
+      "producer": "Woodford Reserve",
+      "sourceStates": ["SC"]
+    },
+    {
+      "canonical": "Old Forester 1920 Prohibition Style",
+      "aliases": ["OLD FORESTER 1920", "OLD FORESTER 1920 750ml", "Old Forester 1920 Prohibition Style Bourbon"],
+      "tier": "standard",
+      "producer": "Old Forester",
+      "sourceStates": ["SC"]
+    },
+    {
+      "canonical": "Old Forester Statesman",
+      "aliases": ["OLD FORESTER STATESMAN", "OLD FORESTER STATESMAN 750ml"],
+      "tier": "standard",
+      "producer": "Old Forester",
+      "sourceStates": ["SC"]
+    },
+    {
+      "canonical": "Old Forester 1910 Old Fine Whisky",
+      "aliases": ["Old Forester Whsky 1910", "Old Forester Whsky 1910 750ml", "Old Forester 1910"],
+      "tier": "standard",
+      "producer": "Old Forester",
+      "sourceStates": ["SC"]
+    },
+    {
+      "canonical": "Elijah Craig Straight Rye Whiskey",
+      "aliases": ["Elijah Craig Ky Strt Rye Whsky", "Elijah Craig Ky Strt Rye Whsky 750ml", "Elijah Craig Ky Strt Rye Whsky 1.75L"],
+      "tier": "standard",
+      "producer": "Heaven Hill",
+      "sourceStates": ["SC"]
+    },
+    {
+      "canonical": "Baker's High Rye Bourbon",
+      "aliases": ["Bakers High Ry 7 Yr", "Bakers High Ry 7 Yr 750ml"],
+      "tier": "limited",
+      "producer": "Jim Beam",
+      "sourceStates": ["SC"]
+    }
+  ]
+}

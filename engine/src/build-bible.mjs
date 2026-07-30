@@ -54,7 +54,8 @@ async function main() {
   const records = new Map();
   const seedFiles = [
     { file: path.resolve('data/bourbon-bible-seed.json'), source: 'seed' },
-    { file: path.resolve('data/bourbon-bible-additions.json'), source: 'state-data-additions' }
+    { file: path.resolve('data/bourbon-bible-additions.json'), source: 'state-data-additions' },
+    { file: path.resolve('data/south-carolina-dunes-bible-additions.json'), source: 'state:SC:dunes' }
   ];
   const verifiedAliasNotes = [];
   for (const seedFile of seedFiles) {

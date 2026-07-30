@@ -1,0 +1,539 @@
+{
+  "method": "POST /Home/GetSearchResult",
+  "observedAt": "2026-07-30T19:36:44.157440Z",
+  "searches": [
+    {
+      "response": {
+        "Data": {
+          "lstFilterResult": [
+            {
+              "CatID": 0,
+              "ID": 73066,
+              "category": null,
+              "label": "BLANTONS BOURBON **750ml Single",
+              "value": "BLANTONS BOURBON **750ml Single"
+            }
+          ]
+        },
+        "ExtraData": null,
+        "SessionID": "",
+        "StatusCode": 0,
+        "StatusMsg": "",
+        "StatusVal": true
+      },
+      "term": "blanton"
+    },
+    {
+      "response": {
+        "Data": {
+          "lstFilterResult": [
+            {
+              "CatID": 0,
+              "ID": 74847,
+              "category": null,
+              "label": "BUFFALO TRACE BOURBON **750ml Single",
+              "value": "BUFFALO TRACE BOURBON **750ml Single"
+            },
+            {
+              "CatID": 0,
+              "ID": 88774,
+              "category": null,
+              "label": "Buffalo Trace Brbn Cream **750ml ",
+              "value": "Buffalo Trace Brbn Cream **750ml "
+            }
+          ]
+        },
+        "ExtraData": null,
+        "SessionID": "",
+        "StatusCode": 0,
+        "StatusMsg": "",
+        "StatusVal": true
+      },
+      "term": "buffalo"
+    },
+    {
+      "response": {
+        "Data": {
+          "lstFilterResult": [
+            {
+              "CatID": 0,
+              "ID": 74646,
+              "category": null,
+              "label": "EAGLE RARE SINGLE BARREL BOURB **750ml Single",
+              "value": "EAGLE RARE SINGLE BARREL BOURB **750ml Single"
+            }
+          ]
+        },
+        "ExtraData": null,
+        "SessionID": "",
+        "StatusCode": 0,
+        "StatusMsg": "",
+        "StatusVal": true
+      },
+      "term": "eagle rare"
+    },
+    {
+      "response": {
+        "Data": {
+          "lstFilterResult": []
+        },
+        "ExtraData": null,
+        "SessionID": "",
+        "StatusCode": 0,
+        "StatusMsg": "",
+        "StatusVal": true
+      },
+      "term": "stagg"
+    },
+    {
+      "response": {
+        "Data": {
+          "lstFilterResult": []
+        },
+        "ExtraData": null,
+        "SessionID": "",
+        "StatusCode": 0,
+        "StatusMsg": "",
+        "StatusVal": true
+      },
+      "term": "weller"
+    },
+    {
+      "response": {
+        "Data": {
+          "lstFilterResult": [
+            {
+              "CatID": 0,
+              "ID": 78051,
+              "category": null,
+              "label": "Michters Small Batch Bourbon **750ml ",
+              "value": "Michters Small Batch Bourbon **750ml "
+            }
+          ]
+        },
+        "ExtraData": null,
+        "SessionID": "",
+        "StatusCode": 0,
+        "StatusMsg": "",
+        "StatusVal": true
+      },
+      "term": "michter"
+    },
+    {
+      "response": {
+        "Data": {
+          "lstFilterResult": [
+            {
+              "CatID": 0,
+              "ID": 75979,
+              "category": null,
+              "label": "1792 Bourbon Small Batch **750ml Single",
+              "value": "1792 Bourbon Small Batch **750ml Single"
+            },
+            {
+              "CatID": 0,
+              "ID": 87076,
+              "category": null,
+              "label": "1792 SINGLE BARREL  **750ml Single",
+              "value": "1792 SINGLE BARREL  **750ml Single"
+            },
+            {
+              "CatID": 0,
+              "ID": 87291,
+              "category": null,
+              "label": "SMALL BATCH 1792  **1.75 L Single",
+              "value": "SMALL BATCH 1792  **1.75 L Single"
+            },
+            {
+              "CatID": 0,
+              "ID": 89103,
+              "category": null,
+              "label": "1792 Bourbon Full Proof **750ml ",
+              "value": "1792 Bourbon Full Proof **750ml "
+            }
+          ]
+        },
+        "ExtraData": null,
+        "SessionID": "",
+        "StatusCode": 0,
+        "StatusMsg": "",
+        "StatusVal": true
+      },
+      "term": "1792"
+    },
+    {
+      "response": {
+        "Data": {
+          "lstFilterResult": [
+            {
+              "CatID": 0,
+              "ID": 86289,
+              "category": null,
+              "label": "WILD TURKEY RARE BREED BOURBON **750ml ",
+              "value": "WILD TURKEY RARE BREED BOURBON **750ml "
+            }
+          ]
+        },
+        "ExtraData": null,
+        "SessionID": "",
+        "StatusCode": 0,
+        "StatusMsg": "",
+        "StatusVal": true
+      },
+      "term": "wild turkey rare"
+    },
+    {
+      "response": {
+        "Data": {
+          "lstFilterResult": [
+            {
+              "CatID": 0,
+              "ID": 73070,
+              "category": null,
+              "label": "Bookers Bbn Jimmy's Batch **750ml ",
+              "value": "Bookers Bbn Jimmy's Batch **750ml "
+            }
+          ]
+        },
+        "ExtraData": null,
+        "SessionID": "",
+        "StatusCode": 0,
+        "StatusMsg": "",
+        "StatusVal": true
+      },
+      "term": "booker"
+    },
+    {
+      "response": {
+        "Data": {
+          "lstFilterResult": [
+            {
+              "CatID": 0,
+              "ID": 73044,
+              "category": null,
+              "label": "BAKERS BOURBON **750ml ",
+              "value": "BAKERS BOURBON **750ml "
+            },
+            {
+              "CatID": 0,
+              "ID": 89278,
+              "category": null,
+              "label": "Bakers High Ry 7 Yr **750ml ",
+              "value": "Bakers High Ry 7 Yr **750ml "
+            }
+          ]
+        },
+        "ExtraData": null,
+        "SessionID": "",
+        "StatusCode": 0,
+        "StatusMsg": "",
+        "StatusVal": true
+      },
+      "term": "baker"
+    },
+    {
+      "response": {
+        "Data": {
+          "lstFilterResult": [
+            {
+              "CatID": 0,
+              "ID": 75912,
+              "category": null,
+              "label": "Elijah Craig Sml Batch Bourbon **750ml ",
+              "value": "Elijah Craig Sml Batch Bourbon **750ml "
+            },
+            {
+              "CatID": 0,
+              "ID": 87751,
+              "category": null,
+              "label": "Elijah Craig Sml Btch Ky Strgt **1.75 L Single",
+              "value": "Elijah Craig Sml Btch Ky Strgt **1.75 L Single"
+            },
+            {
+              "CatID": 0,
+              "ID": 87752,
+              "category": null,
+              "label": "Elijah Craig Ky Strt Rye Whsky  **750ml Single",
+              "value": "Elijah Craig Ky Strt Rye Whsky  **750ml Single"
+            },
+            {
+              "CatID": 0,
+              "ID": 87886,
+              "category": null,
+              "label": "Elijah Craig Sml Btch Ky Strgt  **375ML ",
+              "value": "Elijah Craig Sml Btch Ky Strgt  **375ML "
+            },
+            {
+              "CatID": 0,
+              "ID": 88338,
+              "category": null,
+              "label": "Elijah Craig Ky Strt Rye Whsky **1.75 L ",
+              "value": "Elijah Craig Ky Strt Rye Whsky **1.75 L "
+            },
+            {
+              "CatID": 0,
+              "ID": 88353,
+              "category": null,
+              "label": "Elijah Craig Sml Batch Brl Prf 6Pk **750ml ",
+              "value": "Elijah Craig Sml Batch Brl Prf 6Pk **750ml "
+            },
+            {
+              "CatID": 0,
+              "ID": 88555,
+              "category": null,
+              "label": "Elijah Craig **50ML ",
+              "value": "Elijah Craig **50ML "
+            },
+            {
+              "CatID": 0,
+              "ID": 88670,
+              "category": null,
+              "label": "Elijah Craig Toasted Brl **750ml ",
+              "value": "Elijah Craig Toasted Brl **750ml "
+            },
+            {
+              "CatID": 0,
+              "ID": 89078,
+              "category": null,
+              "label": "Elijah Craig Old Fashioned Syrup **8 OZ ",
+              "value": "Elijah Craig Old Fashioned Syrup **8 OZ "
+            },
+            {
+              "CatID": 0,
+              "ID": 89369,
+              "category": null,
+              "label": "Elijah Craig Pga Sml Batch **750ml ",
+              "value": "Elijah Craig Pga Sml Batch **750ml "
+            }
+          ]
+        },
+        "ExtraData": null,
+        "SessionID": "",
+        "StatusCode": 0,
+        "StatusMsg": "",
+        "StatusVal": true
+      },
+      "term": "elijah craig"
+    },
+    {
+      "response": {
+        "Data": {
+          "lstFilterResult": [
+            {
+              "CatID": 0,
+              "ID": 76270,
+              "category": null,
+              "label": "WOODFORD DOUBLE OAKED BOURBON **750ml ",
+              "value": "WOODFORD DOUBLE OAKED BOURBON **750ml "
+            }
+          ]
+        },
+        "ExtraData": null,
+        "SessionID": "",
+        "StatusCode": 0,
+        "StatusMsg": "",
+        "StatusVal": true
+      },
+      "term": "woodford double"
+    },
+    {
+      "response": {
+        "Data": {
+          "lstFilterResult": [
+            {
+              "CatID": 0,
+              "ID": 73888,
+              "category": null,
+              "label": "OLD FORESTER BOURBON **750ml Single",
+              "value": "OLD FORESTER BOURBON **750ml Single"
+            },
+            {
+              "CatID": 0,
+              "ID": 84474,
+              "category": null,
+              "label": "Old Forester Brbn 1897  **750ml ",
+              "value": "Old Forester Brbn 1897  **750ml "
+            },
+            {
+              "CatID": 0,
+              "ID": 85715,
+              "category": null,
+              "label": "OLD FORESTER 1920 **750ml ",
+              "value": "OLD FORESTER 1920 **750ml "
+            },
+            {
+              "CatID": 0,
+              "ID": 85716,
+              "category": null,
+              "label": "OLD FORESTER STATESMAN  **750ml ",
+              "value": "OLD FORESTER STATESMAN  **750ml "
+            },
+            {
+              "CatID": 0,
+              "ID": 87210,
+              "category": null,
+              "label": "Old Forester Brbn **1.75 L ",
+              "value": "Old Forester Brbn **1.75 L "
+            },
+            {
+              "CatID": 0,
+              "ID": 88464,
+              "category": null,
+              "label": "Old Forester Brbn 100 **750ml ",
+              "value": "Old Forester Brbn 100 **750ml "
+            },
+            {
+              "CatID": 0,
+              "ID": 88465,
+              "category": null,
+              "label": "Old Forester Whsky 1910 **750ml ",
+              "value": "Old Forester Whsky 1910 **750ml "
+            }
+          ]
+        },
+        "ExtraData": null,
+        "SessionID": "",
+        "StatusCode": 0,
+        "StatusMsg": "",
+        "StatusVal": true
+      },
+      "term": "old forester"
+    },
+    {
+      "response": {
+        "Data": {
+          "lstFilterResult": [
+            {
+              "CatID": 0,
+              "ID": 87029,
+              "category": null,
+              "label": "Willett Pot Still Reserve **750ml Single",
+              "value": "Willett Pot Still Reserve **750ml Single"
+            },
+            {
+              "CatID": 0,
+              "ID": 88695,
+              "category": null,
+              "label": "Willett Family Estate Rye **750ml ",
+              "value": "Willett Family Estate Rye **750ml "
+            },
+            {
+              "CatID": 0,
+              "ID": 88822,
+              "category": null,
+              "label": "Willett Pot Still Reserve **1.75 L ",
+              "value": "Willett Pot Still Reserve **1.75 L "
+            },
+            {
+              "CatID": 0,
+              "ID": 88824,
+              "category": null,
+              "label": "Willett Pot Still Reserve Nips **50ML ",
+              "value": "Willett Pot Still Reserve Nips **50ML "
+            },
+            {
+              "CatID": 0,
+              "ID": 89224,
+              "category": null,
+              "label": "Willett Single Barrel Rye 6 Yr **750ml ",
+              "value": "Willett Single Barrel Rye 6 Yr **750ml "
+            },
+            {
+              "CatID": 0,
+              "ID": 89255,
+              "category": null,
+              "label": "Willett Sib 13 Year Purple Top **750ml ",
+              "value": "Willett Sib 13 Year Purple Top **750ml "
+            },
+            {
+              "CatID": 0,
+              "ID": 89256,
+              "category": null,
+              "label": "Willett Wheated Bbn 8 Year **750ml ",
+              "value": "Willett Wheated Bbn 8 Year **750ml "
+            }
+          ]
+        },
+        "ExtraData": null,
+        "SessionID": "",
+        "StatusCode": 0,
+        "StatusMsg": "",
+        "StatusVal": true
+      },
+      "term": "willett"
+    },
+    {
+      "response": {
+        "Data": {
+          "lstFilterResult": [
+            {
+              "CatID": 0,
+              "ID": 88694,
+              "category": null,
+              "label": "Old Bardstown 90 Proof **750ml ",
+              "value": "Old Bardstown 90 Proof **750ml "
+            },
+            {
+              "CatID": 0,
+              "ID": 88703,
+              "category": null,
+              "label": "Bardstown Fusion **750ml ",
+              "value": "Bardstown Fusion **750ml "
+            },
+            {
+              "CatID": 0,
+              "ID": 88732,
+              "category": null,
+              "label": "Bardstown Bib **750ml ",
+              "value": "Bardstown Bib **750ml "
+            },
+            {
+              "CatID": 0,
+              "ID": 88733,
+              "category": null,
+              "label": "Bardstown Origin Bbn **750ml ",
+              "value": "Bardstown Origin Bbn **750ml "
+            },
+            {
+              "CatID": 0,
+              "ID": 89213,
+              "category": null,
+              "label": "Bardstown Amrut Collab **750ml ",
+              "value": "Bardstown Amrut Collab **750ml "
+            },
+            {
+              "CatID": 0,
+              "ID": 89214,
+              "category": null,
+              "label": "Bardstown Goose Island **750ml ",
+              "value": "Bardstown Goose Island **750ml "
+            }
+          ]
+        },
+        "ExtraData": null,
+        "SessionID": "",
+        "StatusCode": 0,
+        "StatusMsg": "",
+        "StatusVal": true
+      },
+      "term": "bardstown"
+    }
+  ],
+  "terms": [
+    "blanton",
+    "buffalo",
+    "eagle rare",
+    "stagg",
+    "weller",
+    "michter",
+    "1792",
+    "wild turkey rare",
+    "booker",
+    "baker",
+    "elijah craig",
+    "woodford double",
+    "old forester",
+    "willett",
+    "bardstown"
+  ]
+}
