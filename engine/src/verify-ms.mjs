@@ -383,7 +383,7 @@ export function verifyMississippiResearchFoundation() {
   assert.equal(contractDigest, `sha256:${createHash('sha256').update(stableJson(extensionContractPayload)).digest('hex')}`);
   assert.equal(extensionEvidence.contractDigest, contractDigest);
   assert.equal(extensionEvidence.evidenceClass, 'bounded_preproduction_live_probe');
-  const contractHistory = execFileSync('git', ['log', '-1', '--format=%H|%cI', '--', ':(top)engine/data/state-expansion-evidence/MS-tupelo2go-contract-2026-07-30.json'], { encoding: 'utf8' }).trim();
+  const contractHistory = execFileSync('git', ['log', '--no-merges', '--diff-filter=A', '-1', '--format=%H|%cI', '--', ':(top)engine/data/state-expansion-evidence/MS-tupelo2go-contract-2026-07-30.json'], { encoding: 'utf8' }).trim();
   const [contractHistoryCommit, contractHistoryCommittedAt] = contractHistory.split('|');
   assert.equal(extensionEvidence.contractGitCommit, contractHistoryCommit);
   assert.equal(Date.parse(extensionEvidence.contractGitCommittedAt), Date.parse(contractHistoryCommittedAt));
