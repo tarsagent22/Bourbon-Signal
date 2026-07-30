@@ -5,11 +5,13 @@ import { summarizeSourceResult } from '../sources/source-result.mjs';
 import { isMississippiRetailerInventory, isMississippiRetailerReleaseWatch } from '../mississippi-retailer-policy.mjs';
 import {
   MISSISSIPPI_RETAILER_SOURCES,
+  isMississippiCanonicalBottleCompatible,
   parseMississippiCityHiveHtml,
   parseMississippiGoDaddyReleaseProducts,
   parseMississippiGoToLiquorStoreProducts,
   parseMississippiMoonshineProductCards,
   parseMississippiMoonshineResponse,
+  parseMississippiTupelo2GoHtml,
 } from './mississippi-retailer-surfaces.mjs';
 
 async function boundedFetchText(url, { signal, cookie } = {}) {
@@ -23,9 +25,7 @@ async function boundedFetchText(url, { signal, cookie } = {}) {
       'user-agent': 'BourbonSignalSourceHealth/1.0 (+https://www.bourbonsignal.com/coverage)',
     },
   });
-  const body = await response.text();
-  if (Buffer.byteLength(body, 'utf8') > 8 * 1024 * 1024) throw new Error(`Mississippi retailer response from ${url} exceeded 8 MiB`);
-  return { ok: response.ok, status: response.status, text: body };
+  return { ok: response.ok, status: response.status, text: await readBoundedMississippiTextResponse(response, { url }) };
 }
 
 async function boundedFetchJson(url, { body, signal, cookie } = {}) {
@@ -55,6 +55,40 @@ async function boundedFetchJson(url, { body, signal, cookie } = {}) {
       .map((value) => value.split(';', 1)[0])
       .join('; '),
   };
+}
+
+export async function readBoundedMississippiTextResponse(response, {
+  url = 'unknown',
+  maxBytes = 8 * 1024 * 1024,
+} = {}) {
+  const contentLength = Number(response.headers?.get?.('content-length'));
+  if (Number.isFinite(contentLength) && contentLength > maxBytes) {
+    throw new Error(`Mississippi retailer response from ${url} exceeded ${maxBytes} bytes`);
+  }
+  if (!response.body?.getReader) {
+    const text = await response.text();
+    if (Buffer.byteLength(text, 'utf8') > maxBytes) throw new Error(`Mississippi retailer response from ${url} exceeded ${maxBytes} bytes`);
+    return text;
+  }
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let totalBytes = 0;
+  let text = '';
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      totalBytes += value.byteLength;
+      if (totalBytes > maxBytes) {
+        await reader.cancel('response_too_large');
+        throw new Error(`Mississippi retailer response from ${url} exceeded ${maxBytes} bytes`);
+      }
+      text += decoder.decode(value, { stream: true });
+    }
+    return text + decoder.decode();
+  } finally {
+    reader.releaseLock();
+  }
 }
 
 export async function readBoundedMississippiJsonResponse(response, {
@@ -113,6 +147,7 @@ export function buildMississippiRetailerSignal(source, row, {
   observedAt = new Date().toISOString(),
   bottle,
 } = {}) {
+  if (!bottle?.id || !bottle?.canonical || !isMississippiCanonicalBottleCompatible(row?.title, bottle.canonical)) return null;
   return {
     id: stableId(['MS', source.permitNumber, row.productId, row.variantId || 'product']),
     state: 'MS',
@@ -123,6 +158,7 @@ export function buildMississippiRetailerSignal(source, row, {
     sourceRuntimeId: source.sourceRuntimeId,
     merchantId: source.merchantId,
     productId: row.productId,
+    sourceProductBinding: row.productBinding || null,
     variantId: row.variantId || null,
     permitNumber: source.permitNumber,
     rawName: row.title,
@@ -167,6 +203,8 @@ export function buildMississippiRetailerSignal(source, row, {
       platformStoreId: source.platformStoreId,
       sourceLabelHash: source.sourceLabelHash,
       productId: row.productId,
+      productBinding: row.productBinding || null,
+      controlCode: row.controlCode || null,
       variantId: row.variantId || null,
       platformProductId: row.platformProductId || null,
       reportedQuantity: row.reportedQuantity ?? null,
@@ -258,6 +296,7 @@ export function buildMississippiReleaseWatchSignal(source, row, {
 function parserFor(source) {
   if (source.platform === 'gotoliquorstore') return parseMississippiGoToLiquorStoreProducts;
   if (source.platform === 'cityhive') return parseMississippiCityHiveHtml;
+  if (source.platform === 'tupelo2go') return parseMississippiTupelo2GoHtml;
   throw new TypeError(`Unsupported Mississippi retailer platform ${source.platform}`);
 }
 

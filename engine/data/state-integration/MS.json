@@ -22,9 +22,12 @@
       "retailer:ms:moonshine:1882",
       "retailer:ms:cityhive:669150d28f28f1287440bdce",
       "retailer:ms:moonshine:767",
-      "retailer:ms:godaddy:adf6c00c-b93f-4bbe-80c6-03e4a97b5a0a"
+      "retailer:ms:godaddy:adf6c00c-b93f-4bbe-80c6-03e4a97b5a0a",
+      "retailer:ms:tupelo2go:1187",
+      "retailer:ms:tupelo2go:1237",
+      "retailer:ms:tupelo2go:1544"
     ],
-    "registration": "Seven exact first-party inventory retailers and one bounded first-party release-watch source run through independent source adapters. Two exact GoTo adapters remain registered but source-policy-blocked, make no autonomous requests, and stay health-visible. MS is absent from LEGACY_PRECISION_RUNTIME_STATES."
+    "registration": "Ten exact inventory retailers and one bounded release-watch source run through independent source adapters. Three public Tupelo2Go merchant pages require exact permit premise, immutable restaurant ID, and active menu controls while proving only binary orderability. Two exact GoTo adapters remain registered but source-policy-blocked, make no autonomous requests, and stay health-visible. MS is absent from LEGACY_PRECISION_RUNTIME_STATES."
   },
   "storeIdentity": {
     "mode": "permit_derived_exact_allowlist",
@@ -34,7 +37,7 @@
   "sourceSemantics": {
     "directory": "Exactly 690 current Package Retailer permits across 168 cities and 78 counties; searchable identity only.",
     "officialIntelligence": "DOR catalog, SPA, pricing, bailment, wholesale, and policy documents are intelligence only and never bottle inventory.",
-    "availability": "Seven exact first-party storefronts are monitored for binary local orderability, and Mabry's bounded first-party surface contributes non-inventory release-watch evidence. Existing promotion evidence produced fresh exact-store rows from four stores across two reviewed regions. Inventory quantity is 0 and quantityIsExact is false; release-watch rows cannot imply shelf count or fulfillment.",
+    "availability": "Ten exact storefronts are monitored for binary local orderability, including three exact public Tupelo2Go merchant pages, and Mabry's bounded first-party surface contributes non-inventory release-watch evidence. The immutable pre-expansion baseline produced fresh exact-store rows from four stores across two reviewed regions. Inventory quantity is 0 and quantityIsExact is false; marketplace controls do not prove counts, pickup, delivery, or guaranteed fulfillment; release-watch rows cannot imply shelf count or fulfillment.",
     "inventoryAlertable": false,
     "watchAlertable": false,
     "initialObservationPolicy": "baseline_site_only"
@@ -42,7 +45,7 @@
   "customerPaths": {
     "coverage": {
       "status": "verified",
-      "assertion": "Coverage exposes Mississippi as sparse exact-store inventory with 690 known stores, eight probeable first-party sources, one non-inventory release-watch source, four currently live stores, and zero alert-grade stores."
+      "assertion": "Coverage exposes Mississippi exact-store inventory with 690 known stores, ten inventory sources plus one non-inventory release-watch source, a four-store immutable production baseline, three bounded preproduction-validated Tupelo merchant additions, and zero alert-grade stores."
     },
     "stateFilter": {
       "status": "verified",
@@ -74,7 +77,7 @@
     },
     "monitoring": {
       "status": "verified",
-      "assertion": "Ten independent retailer runtime IDs and blocked/offline/probe-only BottleCapps entries remain represented in source health."
+      "assertion": "Thirteen independent retailer runtime IDs and blocked/offline/probe-only BottleCapps entries remain represented in source health."
     },
     "export": {
       "status": "verified",
@@ -115,8 +118,8 @@
       "cityCount": 168,
       "countyCount": 78,
       "regionCount": 9,
-      "inventoryCapableStorefronts": 6,
-      "blockedOfflineOrProbeOnlyStorefronts": 11,
+      "inventoryCapableStorefronts": 10,
+      "blockedOfflineOrProbeOnlyStorefronts": 9,
       "artifact": "engine/data/source-atlas/MS.json"
     },
     "shadow": {

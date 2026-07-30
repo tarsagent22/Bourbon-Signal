@@ -3,9 +3,10 @@
   "contractVersion": "bourbon-signal/ms-research-dispositions@1",
   "state": "MS",
   "reviewBatchId": "ms-statewide-platform-research-2026-07-26",
-  "reviewedAt": "2026-07-26T04:50:54.569Z",
-  "reviewMethod": "Official permit identity plus statewide exact-name/address/city/domain and platform-cohort research; third-party marketplace leads were discovery-only.",
-  "entriesSha256": "bd2113c37e425588879c78d59ed36011a4aea3838a02ce73a6d1036c8578ae9e",
+  "reviewedAt": "2026-07-30T16:53:34.000Z",
+  "defaultEntryReviewedAt": "2026-07-26T04:50:54.569Z",
+  "reviewMethod": "Official permit identity plus statewide exact-name/address/city/domain and platform-cohort research; public delegated marketplace inventory is eligible only with exact permit premise, immutable merchant ID, current active product control, and conservative non-alertable orderability semantics.",
+  "entriesSha256": "ee917defcf5140b470fd3bd6788968880b1a17b5aa37d96898afe22a1a306a4d",
   "entries": [
     {
       "permitNumber": "000137",
@@ -2233,11 +2234,12 @@
     },
     {
       "permitNumber": "041113",
-      "disposition": "directory_only",
+      "disposition": "live_inventory",
       "reviewStatus": "reviewed",
-      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "reviewedAt": "2026-07-30T16:53:34.000Z",
+      "evidenceClass": "exact_public_marketplace_menu_orderability",
       "evidenceUrls": [
-        "https://tap.dor.ms.gov/_/"
+        "https://www.tupelo2go.com/r/1544/restaurants/delivery/Alcohol/Bogarts-Liquor-Wine-tupelo"
       ]
     },
     {
@@ -2278,11 +2280,12 @@
     },
     {
       "permitNumber": "041251",
-      "disposition": "directory_only",
+      "disposition": "live_inventory",
       "reviewStatus": "reviewed",
-      "evidenceClass": "statewide_source_research_no_verified_first_party_inventory",
+      "reviewedAt": "2026-07-30T16:53:34.000Z",
+      "evidenceClass": "exact_public_marketplace_menu_orderability",
       "evidenceUrls": [
-        "https://tap.dor.ms.gov/_/"
+        "https://www.tupelo2go.com/r/1237/restaurants/delivery/Alcohol/Maya-Wine-Spirits-tupelo"
       ]
     },
     {
@@ -5469,10 +5472,12 @@
     },
     {
       "permitNumber": "055298",
-      "disposition": "blocked_by_source_policy",
+      "disposition": "live_inventory",
       "reviewStatus": "reviewed",
-      "evidenceClass": "first_party_surface_blocked_by_source_policy",
+      "reviewedAt": "2026-07-30T16:53:34.000Z",
+      "evidenceClass": "exact_public_marketplace_menu_orderability",
       "evidenceUrls": [
+        "https://www.tupelo2go.com/r/1187/restaurants/delivery/Alcohol/Tupelo-Wine-Spirits-tupelo",
         "https://tupelowine.com/"
       ]
     },

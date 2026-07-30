@@ -33,7 +33,10 @@ const [capture, program] = await Promise.all([
 const universe = importMississippiPackageDirectory(capture, program);
 const atlas = buildMississippiSourceAtlas(universe);
 const summary = validateMississippiSourceAtlas(atlas);
-const health = summarizeMississippiSourceHealth({ atlas, generatedAt: universe.generatedAt });
+const health = summarizeMississippiSourceHealth({
+  atlas,
+  generatedAt: atlas.researchMethod?.dispositionLedger?.reviewedAt || universe.generatedAt,
+});
 await writeGeneratedJson(universePath, universe);
 await writeGeneratedJson(atlasPath, atlas);
 await writeGeneratedJson(healthPath, health);

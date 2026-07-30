@@ -132,13 +132,13 @@ assert.ok(mississippi, "Mississippi is represented in the public nationwide cove
 assert.equal(mississippi.capability, "focused", "reviewed sparse exact-store coverage must remain active without implying statewide depth");
 assert.deepEqual(mississippi.layers, {
   known: 690,
-  probeable: 8,
+  probeable: 11,
   catalogWatch: 1,
   live: 4,
   alertGrade: 0,
 });
 assert.equal(mississippi.representedAreaCount, 9);
-assert.match(mississippi.summary, /Sparse first-party Mississippi retailer inventory/i);
+assert.match(mississippi.summary, /Sparse exact-store Mississippi retailer inventory/i);
 assert.match(mississippi.summary, /outbound alerts remain disabled/i);
 assert.match(mississippi.sourceLabel || "", /exact-store retailer inventory/i);
 assert.match(mississippi.canSee.join(" "), /identity-bound orderability/i);

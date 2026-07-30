@@ -1,0 +1,44 @@
+{
+  "schemaVersion": 1,
+  "contractVersion": "bourbon-signal/ms-active-source-extension-contract@1",
+  "state": "MS",
+  "contractId": "ms-tupelo2go-2026-07-30",
+  "frozenAt": "2026-07-30T17:11:47.000Z",
+  "baseCommit": "69fb67fe37fce09b1a114be11d224f8e46cb6ee5",
+  "objective": "Significantly increase current Mississippi exact-store retailer signals and add live stores without changing alert eligibility.",
+  "supersedesRejectedPacketSha256": "f2fb65f40cf6d553b65694a69e4007ba244e87c64d52c56826a0503ec360b935",
+  "supersessionReason": "The rejected generic packet used fresh customer drop rows as a proxy for the user-requested total signal increase. This contract freezes direct total-signal, inventory-signal, live-store, and safety thresholds before collection.",
+  "baseline": {
+    "productionWorkflowRunId": 30554763408,
+    "productionCommit": "69fb67fe37fce09b1a114be11d224f8e46cb6ee5",
+    "totalSignals": 13,
+    "inventorySignals": 6,
+    "liveStores": 4,
+    "freshExactStoreDrops": 6,
+    "alertGradeStores": 0
+  },
+  "acceptance": {
+    "minimumTotalSignals": 26,
+    "minimumInventorySignals": 18,
+    "minimumLiveStores": 7,
+    "minimumNewCohortSignals": 12,
+    "minimumNewCohortLiveStores": 3,
+    "minimumFreshExactStoreDrops": 8,
+    "maximumAlertGradeStores": 0,
+    "maximumAlertableStaleRows": 0
+  },
+  "sourceRuntimeIds": [
+    "retailer:ms:tupelo2go:1187",
+    "retailer:ms:tupelo2go:1237",
+    "retailer:ms:tupelo2go:1544"
+  ],
+  "safety": {
+    "quantityIsExact": false,
+    "pickupClaimed": false,
+    "deliveryClaimed": false,
+    "guaranteedFulfillmentClaimed": false,
+    "inventoryAlertsEnabled": false,
+    "blockedNativeStorefrontsRequested": false
+  },
+  "contractDigest": "sha256:cee2770e5c40671eb3b87329be1348553f6ead5a96115675baf6fa48ad6ed0ec"
+}

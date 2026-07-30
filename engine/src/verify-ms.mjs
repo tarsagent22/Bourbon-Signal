@@ -6,9 +6,14 @@ import { existsSync, mkdtempSync, readFileSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { gunzipSync } from 'node:zlib';
 
 import { buildMississippiRunPlan } from './collectors/mississippi-run-plan.mjs';
-import { MISSISSIPPI_RETAILER_SOURCES } from './collectors/mississippi-retailer-surfaces.mjs';
+import {
+  MISSISSIPPI_RETAILER_SOURCES,
+  isMississippiCanonicalBottleCompatible,
+  parseMississippiTupelo2GoHtml,
+} from './collectors/mississippi-retailer-surfaces.mjs';
 import { MISSISSIPPI_TAP_SOURCE_POLICY } from './discovery/mississippi-package-directory.mjs';
 import { validateMississippiSourceAtlas } from './discovery/source-atlas.mjs';
 import { isMississippiRetailerInventory, isMississippiRetailerReleaseWatch } from './mississippi-retailer-policy.mjs';
@@ -20,6 +25,12 @@ import { validateStateFixtures } from './verify-state-fixtures.mjs';
 
 function readJson(relative) {
   return JSON.parse(readFileSync(new URL(relative, import.meta.url), 'utf8'));
+}
+
+function stableJson(value) {
+  if (Array.isArray(value)) return `[${value.map(stableJson).join(',')}]`;
+  if (value && typeof value === 'object') return `{${Object.keys(value).sort().map((key) => `${JSON.stringify(key)}:${stableJson(value[key])}`).join(',')}}`;
+  return JSON.stringify(value);
 }
 
 function sha256Relative(relative) {
@@ -304,6 +315,8 @@ export function verifyMississippiResearchFoundation() {
   const registry = readJson('../data/mississippi-retailer-registry.json');
   const integration = readJson('../data/state-integration/MS.json');
   const fixtures = readJson('../data/state-fixtures/MS.json');
+  const extensionContract = readJson('../data/state-expansion-evidence/MS-tupelo2go-contract-2026-07-30.json');
+  const extensionEvidence = readJson('../data/state-expansion-evidence/MS-tupelo2go-2026-07-30.json');
   const candidates = readJson('../data/state-expansion-candidates.json');
   const lifecycle = getStateLifecycle('MS');
   const atlasSummary = validateMississippiSourceAtlas(atlas);
@@ -342,11 +355,11 @@ export function verifyMississippiResearchFoundation() {
     currentStores: 690,
     unresearched: 0,
     finalDispositions: 690,
-    inventoryCapable: 7,
-    blockedOrOfflineOrProbeOnly: 10,
+    inventoryCapable: 10,
+    blockedOrOfflineOrProbeOnly: 9,
   });
-  assert.equal(atlas.stores.filter((store) => store.disposition === 'directory_only').length, 672);
-  assert.equal(atlas.stores.filter((store) => store.disposition === 'blocked_by_source_policy').length, 6);
+  assert.equal(atlas.stores.filter((store) => store.disposition === 'directory_only').length, 670);
+  assert.equal(atlas.stores.filter((store) => store.disposition === 'blocked_by_source_policy').length, 5);
   assert.equal(atlas.stores.filter((store) => store.disposition === 'source_offline').length, 2);
   assert.equal(atlas.stores.filter((store) => store.disposition === 'platform_probe_only').length, 2);
   assert.equal(atlas.stores.filter((store) => store.disposition === 'release_watch').length, 1);
@@ -354,8 +367,8 @@ export function verifyMississippiResearchFoundation() {
   assert.ok(atlas.stores.filter((store) => store.disposition === 'directory_only')
     .every((store) => store.firstPartyDomains.length === 0));
 
-  assert.equal(registry.stores.length, 10);
-  assert.deepEqual(new Set(registry.stores.map((store) => store.permitNumber)), new Set(['046478', '040562', '029254', '044692', '044411', '049222', '051851', '007481', '041265', '047419']));
+  assert.equal(registry.stores.length, 13);
+  assert.deepEqual(new Set(registry.stores.map((store) => store.permitNumber)), new Set(['046478', '040562', '029254', '044692', '044411', '049222', '051851', '007481', '041265', '047419', '055298', '041251', '041113']));
   assert.deepEqual(registry.stores.filter((store) => store.platform === 'gotoliquorstore').map((store) => ({
     controlStoreId: store.controlStoreId,
     merchantId: store.merchantId,
@@ -363,8 +376,104 @@ export function verifyMississippiResearchFoundation() {
     { controlStoreId: '1031', merchantId: '955132' },
     { controlStoreId: '1069', merchantId: '736142' },
   ]);
-  assert.equal(new Set(registry.stores.map((store) => store.sourceRuntimeId)).size, 10);
+  assert.equal(new Set(registry.stores.map((store) => store.sourceRuntimeId)).size, 13);
   assert.deepEqual(new Set(MISSISSIPPI_RETAILER_SOURCES.map((source) => source.sourceRuntimeId)), new Set(registry.stores.map((store) => store.sourceRuntimeId)));
+
+  const { contractDigest, ...extensionContractPayload } = extensionContract;
+  assert.equal(contractDigest, `sha256:${createHash('sha256').update(stableJson(extensionContractPayload)).digest('hex')}`);
+  assert.equal(extensionEvidence.contractDigest, contractDigest);
+  assert.equal(extensionEvidence.evidenceClass, 'bounded_preproduction_live_probe');
+  assert.match(extensionEvidence.contractGitCommit, /^[a-f0-9]{40}$/u);
+  const committedContract = JSON.parse(execFileSync('git', ['show', `${extensionEvidence.contractGitCommit}:engine/data/state-expansion-evidence/MS-tupelo2go-contract-2026-07-30.json`], { encoding: 'utf8' }));
+  assert.deepEqual(committedContract, extensionContract);
+  const contractHistoryCommittedAt = execFileSync('git', ['show', '-s', '--format=%cI', extensionEvidence.contractGitCommit], { encoding: 'utf8' }).trim();
+  assert.equal(Date.parse(extensionEvidence.contractGitCommittedAt), Date.parse(contractHistoryCommittedAt));
+  execFileSync('git', ['merge-base', '--is-ancestor', extensionEvidence.contractGitCommit, 'HEAD']);
+  assert.ok(Date.parse(extensionEvidence.observed.startedAt) >= Date.parse(contractHistoryCommittedAt), 'Extension probe must start after the acceptance contract exists in Git history.');
+  assert.ok(Date.parse(extensionEvidence.sourceCaptureObservedAt) >= Date.parse(extensionEvidence.observed.startedAt));
+  assert.ok(Date.parse(extensionEvidence.observed.startedAt) >= Date.parse(extensionContract.frozenAt), 'Extension probe must start after the acceptance contract is frozen.');
+  assert.deepEqual(extensionEvidence.baseline, extensionContract.baseline);
+  const acceptanceChecks = {
+    minimumTotalSignals: extensionEvidence.observed.totalSignals >= extensionContract.acceptance.minimumTotalSignals,
+    minimumInventorySignals: extensionEvidence.observed.inventorySignals >= extensionContract.acceptance.minimumInventorySignals,
+    minimumLiveStores: extensionEvidence.observed.liveStores >= extensionContract.acceptance.minimumLiveStores,
+    minimumNewCohortSignals: extensionEvidence.observed.newCohortSignals >= extensionContract.acceptance.minimumNewCohortSignals,
+    minimumNewCohortLiveStores: extensionEvidence.observed.newCohortLiveStores >= extensionContract.acceptance.minimumNewCohortLiveStores,
+    minimumFreshExactStoreDrops: extensionEvidence.observed.freshExactStoreDrops >= extensionContract.acceptance.minimumFreshExactStoreDrops,
+    maximumAlertGradeStores: extensionEvidence.observed.alertGradeStores <= extensionContract.acceptance.maximumAlertGradeStores,
+    maximumAlertableStaleRows: extensionEvidence.observed.alertableStaleRows <= extensionContract.acceptance.maximumAlertableStaleRows,
+  };
+  assert.ok(Object.values(acceptanceChecks).every(Boolean), `Extension acceptance failed: ${JSON.stringify(acceptanceChecks)}`);
+  assert.equal(extensionEvidence.passed, true);
+  assert.deepEqual(extensionEvidence.acceptanceChecks, acceptanceChecks);
+  assert.match(extensionEvidence.promotionNote, /four-store production baseline/iu);
+  const repositoryRoot = execFileSync('git', ['rev-parse', '--show-toplevel'], { encoding: 'utf8' }).trim();
+  const configuredTupeloSources = MISSISSIPPI_RETAILER_SOURCES.filter((source) => source.platform === 'tupelo2go');
+  assert.deepEqual(new Set(extensionContract.sourceRuntimeIds), new Set(configuredTupeloSources.map((source) => source.sourceRuntimeId)));
+  assert.deepEqual(new Set(Object.keys(extensionEvidence.sourceCaptures)), new Set(configuredTupeloSources.map((source) => source.marketplaceStoreId)));
+  const capturedProducts = new Map();
+  for (const [sourceId, capture] of Object.entries(extensionEvidence.sourceCaptures)) {
+    assert.ok(extensionContract.sourceRuntimeIds.includes(`retailer:ms:tupelo2go:${sourceId}`));
+    assert.match(capture.path, /^engine\/data\/source-captures\/MS-tupelo2go-2026-07-30\/[0-9]+\.html\.gz$/u);
+    const sourceBody = gunzipSync(readFileSync(path.join(repositoryRoot, capture.path)));
+    assert.equal(createHash('sha256').update(sourceBody).digest('hex'), capture.responseSha256);
+    assert.ok(sourceBody.byteLength > 0 && sourceBody.byteLength <= 8 * 1024 * 1024);
+    const configuredSource = configuredTupeloSources.find((source) => source.marketplaceStoreId === sourceId);
+    assert.ok(configuredSource);
+    const replayedRows = parseMississippiTupelo2GoHtml(sourceBody.toString('utf8'), configuredSource);
+    assert.ok(replayedRows.length > 0);
+    for (const row of replayedRows) capturedProducts.set(`${configuredSource.sourceRuntimeId}:${row.productId}`, row);
+  }
+  for (const artifact of Object.values(extensionEvidence.probeArtifacts)) {
+    assert.match(artifact.path, /^engine\/data\/state-expansion-evidence\/MS-tupelo2go-live-(?:report-2026-07-30\.json\.gz|metrics-2026-07-30\.json)$/u);
+    assert.equal(createHash('sha256').update(readFileSync(path.join(repositoryRoot, artifact.path))).digest('hex'), artifact.sha256);
+  }
+  const extensionStateReport = JSON.parse(gunzipSync(readFileSync(path.join(repositoryRoot, extensionEvidence.probeArtifacts.stateReport.path))));
+  const extensionMetrics = JSON.parse(readFileSync(path.join(repositoryRoot, extensionEvidence.probeArtifacts.metrics.path), 'utf8'));
+  const extensionInventory = extensionStateReport.signals.filter((signal) => signal.eventType === 'retailer_store_inventory_result');
+  const extensionCohortSignals = extensionInventory.filter((signal) => extensionContract.sourceRuntimeIds.includes(signal.sourceRuntimeId));
+  const derivedObserved = {
+    startedAt: extensionStateReport.startedAt,
+    finishedAt: extensionStateReport.finishedAt,
+    status: extensionStateReport.status,
+    totalSignals: extensionStateReport.signals.length,
+    inventorySignals: extensionInventory.length,
+    liveStores: extensionMetrics.liveStores,
+    newCohortSignals: extensionCohortSignals.length,
+    newCohortLiveStores: new Set(extensionCohortSignals.map((signal) => signal.storeId)).size,
+    freshExactStoreDrops: extensionMetrics.freshExactStoreDrops,
+    representedAreas: extensionMetrics.representedAreas,
+    alertGradeStores: extensionMetrics.alertGradeStores,
+    alertableStaleRows: extensionMetrics.alertableStaleRows,
+  };
+  for (const [key, value] of Object.entries(derivedObserved)) assert.deepEqual(extensionEvidence.observed[key], value, `Extension observed ${key} is not artifact-derived.`);
+  assert.ok(extensionCohortSignals.every((signal) => signal.quantity === 0
+    && signal.quantityIsExact === false
+    && signal.pickupOfferVerified !== true
+    && signal.deliveryOfferVerified !== true
+    && signal.orderabilityOfferVerified === true
+    && signal.canAlertAsInventory === false
+    && signal.canAlertAsWatch === false
+    && signal.alertable === false));
+  for (const signal of extensionCohortSignals) {
+    const replayedRow = capturedProducts.get(`${signal.sourceRuntimeId}:${signal.productId}`);
+    assert.ok(replayedRow, `Missing captured product ${signal.sourceRuntimeId}:${signal.productId}.`);
+    assert.equal(signal.sourceProductBinding, replayedRow.productBinding);
+    assert.equal(signal.raw?.productBinding, replayedRow.productBinding);
+    assert.equal(signal.sourceUrl, replayedRow.productUrl);
+    assert.equal(isMississippiCanonicalBottleCompatible(replayedRow.title, signal.canonicalName), true);
+  }
+  assert.deepEqual(new Set(extensionStateReport.sourceResults
+    .filter((result) => extensionContract.sourceRuntimeIds.includes(result.sourceId))
+    .map((result) => `${result.sourceId}:${result.status}`)), new Set(extensionContract.sourceRuntimeIds.map((sourceId) => `${sourceId}:success`)));
+  for (const [file, expected] of Object.entries(extensionEvidence.implementationFilesSha256)) {
+    assert.equal(createHash('sha256').update(readFileSync(path.join(repositoryRoot, file))).digest('hex'), expected, `${file} drifted from the checked extension evidence.`);
+  }
+  const implementationDigest = createHash('sha256').update(Object.entries(extensionEvidence.implementationFilesSha256)
+    .sort(([left], [right]) => left.localeCompare(right))
+    .map(([file, digest]) => `${file}\n${digest}\n`)
+    .join('')).digest('hex');
+  assert.equal(implementationDigest, extensionEvidence.implementationDigest);
 
   assert.equal(lifecycle.publicStatus, 'active');
   assert.equal(lifecycle.promotionStage, 'active');
@@ -434,14 +543,14 @@ export function verifyMississippiShadowReadiness() {
   const research = verifyMississippiResearchFoundation();
   const health = readJson('../data/source-health/MS.json');
   const plan = buildMississippiRunPlan();
-  assert.equal(plan.partitions.length, 8);
-  assert.equal(new Set(plan.partitions.map((partition) => partition.id)).size, 8);
+  assert.equal(plan.partitions.length, 11);
+  assert.equal(new Set(plan.partitions.map((partition) => partition.id)).size, 11);
   assert.ok(plan.partitions.every((partition) => partition.sourceScopedLastGood));
   assert.equal(health.lifecycle, 'sparse_live_store_inventory');
-  assert.equal(health.inventorySources, 7);
+  assert.equal(health.inventorySources, 10);
   assert.equal(health.directorySourcePolicyStatus, 'source_policy_blocked');
   assert.equal(health.directoryAutonomousRequestsAllowed, false);
-  assert.equal(health.blockedBySourcePolicy, 6);
+  assert.equal(health.blockedBySourcePolicy, 5);
   assert.equal(health.sourceOffline, 2);
   assert.equal(health.platformProbeOnly, 2);
   assert.equal(health.alertableSources, 0);
@@ -467,9 +576,45 @@ export function verifyMississippiShadowEvidence() {
   assert.equal(existsSync(artifactUrl), true, 'Mississippi shadow evidence artifact is missing.');
   const evidence = JSON.parse(readFileSync(artifactUrl, 'utf8'));
   const verifiedGithubRuns = verifyGithubShadowRunProvenance(evidence);
+  const lifecycle = getStateLifecycle('MS');
+  if (lifecycle.promotionStage === 'active' && lifecycle.shadowEligible === false) {
+    assert.deepEqual(new Set(Object.keys(evidence.sourceTree || {})), new Set(MISSISSIPPI_SHADOW_SOURCE_FILES));
+    const historicalRegistry = JSON.parse(execFileSync('git', ['show', `${evidence.sourceRevisionSha}:engine/data/mississippi-retailer-registry.json`], { encoding: 'utf8' }));
+    const historicalRegistered = new Set(historicalRegistry.stores.map((source) => source.sourceRuntimeId));
+    const historicalAllowed = new Set(historicalRegistry.stores.filter((source) => source.autonomousFetchAllowed !== false).map((source) => source.sourceRuntimeId));
+    const starts = [];
+    for (const run of evidence.runs) {
+      const trusted = verifiedGithubRuns.get(String(run.github.workflowRunId));
+      assert.ok(trusted);
+      const report = trusted.report;
+      starts.push(Date.parse(report.startedAt));
+      const sourceResults = report.sourceResults.filter((result) => historicalRegistered.has(result.sourceId));
+      assert.deepEqual(new Set(sourceResults.map((result) => result.sourceId)), historicalRegistered);
+      for (const result of sourceResults) {
+        assert.equal(result.status, historicalAllowed.has(result.sourceId) ? 'success' : 'source_policy_blocked');
+        assert.equal(result.alertable, false);
+        assert.equal(result.inventoryAlertable, false);
+        assert.equal(result.watchAlertable, false);
+      }
+      assert.ok(report.signals.filter((signal) => historicalRegistered.has(signal.sourceRuntimeId)).every((signal) => historicalAllowed.has(signal.sourceRuntimeId)
+        && signal.canAlertAsInventory === false
+        && signal.canAlertAsWatch === false));
+    }
+    const spanMs = Math.max(...starts) - Math.min(...starts);
+    assert.ok(spanMs >= 24 * 60 * 60_000 && spanMs <= 72 * 60 * 60_000);
+    verifyGithubPromotionProvenance(lifecycle);
+    return {
+      ...readiness,
+      phase: 'shadow',
+      actualShadowRuns: evidence.runs.length,
+      shadowSpanMs: spanMs,
+      shadowEvidence: shadow.artifact,
+      historicalPromotionEvidence: true,
+    };
+  }
   const validated = validateMississippiShadowEvidenceArtifact(evidence, { verifiedGithubRuns });
   assert.equal(Number(shadow.runs), validated.runs, 'Mississippi integration manifest run count must match the validated evidence artifact.');
-  verifyGithubPromotionProvenance(getStateLifecycle('MS'));
+  verifyGithubPromotionProvenance(lifecycle);
   return {
     ...readiness,
     phase: 'shadow',
