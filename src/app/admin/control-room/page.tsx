@@ -3,6 +3,7 @@ import { auth, clerkClient } from "@clerk/nextjs/server";
 import { notFound, redirect } from "next/navigation";
 import { getCompanyControlRoomSnapshot } from "@/lib/company-control-room-server";
 import { companyMemberPrimaryEmail, isCompanyControlRoomOwnerEmail } from "@/lib/company-control-room";
+import { formatControlRoomDateTime } from "@/lib/control-room-time";
 import AdminBottleQueueClient from "../bottle-queue/AdminBottleQueueClient";
 import AdminSightingsClient from "../sightings/AdminSightingsClient";
 
@@ -22,14 +23,6 @@ function count(value: number | null) {
   return value === null ? "—" : new Intl.NumberFormat("en-US").format(value);
 }
 
-function dateTime(value: string | null) {
-  if (!value) return "No timestamp";
-  const parsed = new Date(value);
-  return Number.isNaN(parsed.getTime()) ? "No timestamp" : parsed.toLocaleString("en-US", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  });
-}
 
 function statusTone(status: string) {
   if (["healthy", "monitoring", "ok", "stripe", "resend"].includes(status)) return "good";
@@ -73,7 +66,7 @@ export default async function CompanyControlRoomPage() {
           </div>
           <div className="cr-checked">
             <span className={`cr-status ${statusTone(engine.status)}`}>{engine.status.replaceAll("_", " ")}</span>
-            <p>Checked {dateTime(snapshot.checkedAt)}</p>
+            <p>Checked {formatControlRoomDateTime(snapshot.checkedAt)}</p>
           </div>
         </header>
 
@@ -176,7 +169,7 @@ export default async function CompanyControlRoomPage() {
                           <span className={request.notificationEnabled ? "email-yes" : "email-no"}>Email updates: {request.notificationEnabled ? "Yes" : "No"}</span>
                           <span>{request.status.replaceAll("_", " ")}</span>
                         </div>
-                        <time dateTime={request.updatedAt}>{dateTime(request.updatedAt)}</time>
+                        <time dateTime={request.updatedAt}>{formatControlRoomDateTime(request.updatedAt)}</time>
                       </article>
                     ))}
                   </div>
@@ -302,8 +295,8 @@ export default async function CompanyControlRoomPage() {
             <div><span>Last run</span><strong>{alerts.ageMinutes ?? "—"} min ago</strong></div>
           </div>
           <div className="cr-lines">
-            <div><span>Engine generated</span><strong>{dateTime(engine.generatedAt)}</strong></div>
-            <div><span>Alert monitor completed</span><strong>{dateTime(alerts.lastRunAt)}</strong></div>
+            <div><span>Engine generated</span><strong>{formatControlRoomDateTime(engine.generatedAt)}</strong></div>
+            <div><span>Alert monitor completed</span><strong>{formatControlRoomDateTime(alerts.lastRunAt)}</strong></div>
           </div>
         </section>
 
@@ -379,7 +372,7 @@ export default async function CompanyControlRoomPage() {
                   <Metric label="Failed runs" value={count(automation.totals.failedRuns ?? null)} detail={`${count((automation.totals.deterministicRuns ?? 0) + (automation.totals.agentRuns ?? 0))} tracked runs`} />
                   <Metric label="Coverage gained" value={count(automation.totals.customerCoverageDelta ?? null)} detail={`${count(automation.totals.sourcesPromoted ?? null)} sources promoted`} />
                 </div>
-                <p className="cr-note">Report generated {dateTime(automation.generatedAt)}.</p>
+                <p className="cr-note">Report generated {formatControlRoomDateTime(automation.generatedAt)}.</p>
               </> : <div className="cr-unavailable"><strong>Automation reporting is not connected.</strong><p>The jobs can still run, but this dashboard cannot currently prove their cadence, results, or cost. Empty counters have been removed because they were not useful. Nothing in this panel needs your action.</p></div>}
             </div>
           </details>

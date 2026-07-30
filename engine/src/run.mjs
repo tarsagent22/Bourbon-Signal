@@ -74,6 +74,10 @@ const STATE_TIMEOUT_OVERRIDES_MS = {
   // Georgia fans out through identity-bound retailer storefronts. Keep the
   // parent watchdog above the bounded precision-source timeout.
   GA: Number(process.env.BOURBON_SIGNAL_GA_STATE_TIMEOUT_MS || 420_000),
+  // Florida's exact-store CityHive mesh spans the state. Keep the parent
+  // watchdog above the bounded precision-source timeout so a healthy pass can
+  // finish instead of being mislabeled as stale fallback.
+  FL: Number(process.env.BOURBON_SIGNAL_FL_STATE_TIMEOUT_MS || 720_000),
   // Texas fans out through bounded first-party merchant cohorts. Keep the parent
   // watchdog above the normal cohort duration while retaining a hard ceiling.
   TX: Number(process.env.BOURBON_SIGNAL_TX_STATE_TIMEOUT_MS || 900_000),

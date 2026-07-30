@@ -23,6 +23,7 @@ const baseSignal = {
   quantity: 0,
   availabilityStatus: 'in_stock',
   sourceAvailabilityVerified: true,
+  canAlertAsInventory: true,
   confidence: 0.84,
 };
 
@@ -113,7 +114,7 @@ test('Florida policy accepts only the new exact first-party Tampa identities', (
     sourceLabel: 'Balm Liquor Riverview CityHive store inventory',
     sourceUrl: 'https://balmliquor.com/shop/product/test',
     sourceChain: 'balm-liquor', merchantId: '690be4c9ff35540f65da977b',
-    storeId: 'balm-liquor:690be4c9ff35540f65da977b', storeAddress: '12302 Balm Riverview Rd, Riverview, FL 33569', city: 'Riverview', stateCode: 'FL',
+    storeId: 'balm-liquor:690be4c9ff35540f65da977b', storeAddress: '12302 Balm Riverview Rd, Riverview, FL 33569, USA', city: 'Riverview', stateCode: 'FL',
   };
   for (const signal of [luekens, gaspars, balm]) {
     assert.equal(isFloridaRetailerSignalIdentity(signal), true);

@@ -1,14 +1,16 @@
 import { FLORIDA_LUEKENS_STORES, FLORIDA_TAMPA_TARGET_STORE_IDS } from './collectors/florida-tampa-surfaces.mjs';
+import { FLORIDA_CITYHIVE_SOURCES } from './collectors/florida-retailer-surfaces.mjs';
 
 const TARGET_FLORIDA_STORE_IDS = new Set(['649', '650', '1518', '1760', '2376', ...FLORIDA_TAMPA_TARGET_STORE_IDS]);
 
-const FLORIDA_CITYHIVE_IDENTITIES = new Map([
-  ['1001 Liquors / My Florida Liquors CityHive store inventory', { chain: 'my-florida-liquors', hostname: 'myfloridaliquors.com' }],
-  ['Paradise / Fubar Liquors Florida CityHive store inventory', { chain: 'paradise-fubar-liquors', hostname: 'shopparadiseliquor.com' }],
-  ['Balm Liquor Riverview CityHive store inventory', { chain: 'balm-liquor', hostname: 'balmliquor.com' }],
-  ['Sunshine Food & Spirits Clearwater CityHive store inventory', { chain: 'sunshine-food-spirits', hostname: 'sunshineliquorsclearwater.com' }],
-  ["Big Daddy's Miami-Dade CityHive store inventory", { chain: 'big-daddys-liquors', hostname: 'bigdaddysliquors.com' }],
-]);
+const FLORIDA_CITYHIVE_IDENTITIES = new Map(FLORIDA_CITYHIVE_SOURCES.map((source) => [
+  source.sourceLabel,
+  {
+    chain: source.id,
+    hostname: new URL(source.baseUrl).hostname.replace(/^www\./i, '').toLowerCase(),
+    stores: source.merchants,
+  },
+]));
 
 const FLORIDA_WATCH_IDENTITIES = new Map([
   ['Liquor Depot Tampa online quantity watch', {
@@ -73,10 +75,12 @@ export function isFloridaRetailerSignalIdentity(signal) {
 
   const cityHiveIdentity = FLORIDA_CITYHIVE_IDENTITIES.get(source);
   if (cityHiveIdentity) {
-    return chain === cityHiveIdentity.chain
+    const store = cityHiveIdentity.stores.get(merchantId);
+    return Boolean(store
+      && chain === cityHiveIdentity.chain
       && sourceHostname === cityHiveIdentity.hostname
-      && /^[0-9a-f]{24}$/i.test(merchantId)
-      && storeId === `${chain}:${merchantId}`;
+      && storeId === `${chain}:${merchantId}`
+      && String(signal.storeAddress || '') === store.address);
   }
 
   const identity = FLORIDA_RETAILER_IDENTITIES.get(source);
@@ -92,7 +96,9 @@ export function isFloridaRetailerInventory(signal) {
     && /^(retailer_store_inventory_result|cityhive_store_inventory_result)$/i.test(String(signal.eventType || signal.type || ''))
     && isFloridaRetailerSignalIdentity(signal)
     && signal.locationPrecision === 'store_level'
-    && (Number(signal.quantity || 0) > 0 || (signal.availabilityStatus === 'in_stock' && (signal.sourceAvailabilityVerified === true || signal.raw?.variant?.available === true || signal.raw?.sourceAvailabilityVerified === true)))
+    && signal.canAlertAsInventory === true
+    && signal.sourceAvailabilityVerified === true
+    && signal.availabilityStatus === 'in_stock'
     && Boolean(signal.storeId)
     && /,\s*FL\s+\d{5}/i.test(String(signal.storeAddress || ''));
 }

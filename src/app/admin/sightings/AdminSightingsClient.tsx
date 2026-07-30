@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Eye, EyeOff, RotateCw, X } from "lucide-react";
 import type { MemberSighting } from "@/lib/sightings";
+import { formatControlRoomDateTime } from "@/lib/control-room-time";
 
 type AdminSighting = MemberSighting & { reporterEmail?: string; reporterName?: string; reviewReasons?: string[] };
 
@@ -126,7 +127,7 @@ export default function AdminSightingsClient({ embedded = false }: { embedded?: 
               <article className={`admin-card${workingId?.startsWith(`${sighting.id}:`) ? " working" : ""}`} aria-busy={workingId?.startsWith(`${sighting.id}:`) === true} key={`${sighting.reporterUserId}:${sighting.id}`}>
                 {proof?.url ? <img className="admin-photo" src={proof.url} alt={`Proof for ${sighting.bottleName}`} loading="lazy" /> : null}
                 <div className="admin-body">
-                  <div className="admin-meta"><span className="admin-status">{statusLabel(sighting)}</span><span className="admin-time">{new Date(proof?.uploadedAt || sighting.createdAt).toLocaleString()}</span></div>
+                  <div className="admin-meta"><span className="admin-status">{statusLabel(sighting)}</span><span className="admin-time">{formatControlRoomDateTime(proof?.uploadedAt || sighting.createdAt)}</span></div>
                   <h2 className="admin-name">{sighting.bottleName}</h2>
                   <p className="admin-detail">{sighting.storeName} · {[sighting.storeCity, sighting.storeState].filter(Boolean).join(", ")}</p>
                   <p className="admin-detail">Reporter: {sighting.reporterName || "Member"} · {sighting.reporterEmail || "unknown"}</p>
