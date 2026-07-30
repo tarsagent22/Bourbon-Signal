@@ -8,6 +8,19 @@ const DEFAULT_BROWSER_PROFILE_DIR = process.env.BROWSER_PROFILE_DIR || process.e
 
 export function sleep(ms) { return new Promise((resolve) => setTimeout(resolve, ms)); }
 
+export function settleWaitRemaining({ nowMs, lastActivityMs, idleMs, maxWaitRemainingMs }) {
+  const quietRemaining = Math.max(0, Number(idleMs) - Math.max(0, Number(nowMs) - Number(lastActivityMs)));
+  return Math.max(0, Math.min(quietRemaining, Number(maxWaitRemainingMs)));
+}
+
+const ENDPOINT_DISCOVERY_BLOCKED_TYPES = Object.freeze(['Image', 'Font', 'Media', 'Stylesheet']);
+const ENDPOINT_DISCOVERY_BLOCKED_ORIGINS = Object.freeze([
+  '*://*.doubleclick.net/*',
+  '*://*.googletagmanager.com/*',
+  '*://*.google-analytics.com/*',
+  '*://alb.reddit.com/*',
+]);
+
 export async function cdpFetch(cdpUrl, route, options = {}) {
   const { timeoutMs: requestedTimeoutMs, ...fetchOptions } = options;
   const timeoutMs = Number(requestedTimeoutMs || process.env.BROWSER_CDP_FETCH_TIMEOUT_MS || 5000);
@@ -134,6 +147,7 @@ export class BrowserPage {
     this.seq = 0;
     this.pending = new Map();
     this.events = [];
+    this.protocolErrors = [];
     this.pageTimeoutMs = Number(options.pageTimeoutMs || process.env.BROWSER_PAGE_TIMEOUT_MS || 45000);
   }
 
@@ -147,6 +161,9 @@ export class BrowserPage {
     this.ws.addEventListener('message', (event) => {
       const msg = JSON.parse(event.data);
       if (msg.method) this.events.push({ at: new Date().toISOString(), method: msg.method, params: msg.params });
+      if (msg.method === 'Fetch.requestPaused') {
+        void this.routeEndpointDiscoveryResource(msg.params).catch((error) => this.protocolErrors.push(error));
+      }
       if (!msg.id) return;
       const pending = this.pending.get(msg.id);
       if (!pending) return;
@@ -188,17 +205,64 @@ export class BrowserPage {
     return result.result?.value;
   }
 
-  async navigate(url, waitMs = 1600) {
+  async configureEndpointDiscovery() {
+    await this.send('Fetch.enable', {
+      patterns: ENDPOINT_DISCOVERY_BLOCKED_TYPES.map((resourceType) => ({ urlPattern: '*', resourceType, requestStage: 'Request' })),
+    });
+    await this.send('Network.setBlockedURLs', { urls: [...ENDPOINT_DISCOVERY_BLOCKED_ORIGINS] });
+    await this.send('Network.setCacheDisabled', { cacheDisabled: false }).catch(() => null);
+  }
+
+  async routeEndpointDiscoveryResource(params = {}) {
+    if (!params.requestId) throw new Error('Fetch.requestPaused omitted requestId.');
+    if (ENDPOINT_DISCOVERY_BLOCKED_TYPES.includes(params.resourceType)) {
+      return this.send('Fetch.failRequest', { requestId: params.requestId, errorReason: 'BlockedByClient' });
+    }
+    return this.send('Fetch.continueRequest', { requestId: params.requestId });
+  }
+
+  lastNetworkActivityMs(fallback = Date.now()) {
+    for (let index = this.events.length - 1; index >= 0; index -= 1) {
+      const event = this.events[index];
+      if (!event?.method?.startsWith('Network.')) continue;
+      const at = Date.parse(event.at);
+      if (Number.isFinite(at)) return at;
+    }
+    return fallback;
+  }
+
+  async waitForNetworkIdle({ idleMs = 400, maxWaitMs = 2_000 } = {}) {
+    const startedAt = Date.now();
+    while (Date.now() - startedAt < maxWaitMs) {
+      const remaining = settleWaitRemaining({
+        nowMs: Date.now(),
+        lastActivityMs: this.lastNetworkActivityMs(startedAt),
+        idleMs,
+        maxWaitRemainingMs: maxWaitMs - (Date.now() - startedAt),
+      });
+      if (remaining <= 0) return;
+      await sleep(Math.min(100, remaining));
+    }
+  }
+
+  async navigate(url, options = {}) {
+    const settings = typeof options === 'number'
+      ? { maxSettleMs: options }
+      : options;
+    const idleMs = Number(settings.idleMs ?? 400);
+    const maxSettleMs = Number(settings.maxSettleMs ?? 2_000);
     this.events = [];
+    this.protocolErrors = [];
     await this.send('Page.navigate', { url });
     const started = Date.now();
     while (Date.now() - started < this.pageTimeoutMs) {
       const state = await this.evaluate('document.readyState', false).catch(() => 'loading');
       if (state === 'complete' || state === 'interactive') {
-        if (waitMs) await sleep(waitMs);
+        await this.waitForNetworkIdle({ idleMs, maxWaitMs: maxSettleMs });
+        if (this.protocolErrors.length) throw this.protocolErrors[0];
         return;
       }
-      await sleep(500);
+      await sleep(250);
     }
     throw new Error(`Timed out loading ${url}`);
   }
