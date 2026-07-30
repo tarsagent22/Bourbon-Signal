@@ -652,7 +652,8 @@
     {
       "state": "MS",
       "customerLabel": "Mississippi",
-      "automationPaused": false,
+      "automationPaused": true,
+      "automationPauseReason": "Sparse coverage is manually managed; scheduled source discovery remains paused to control cost while production evidence is monitored.",
       "marketClassification": "mixed",
       "targetScopes": [
         "statewide"

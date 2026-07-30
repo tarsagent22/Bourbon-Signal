@@ -407,7 +407,7 @@ export function verifyMississippiResearchFoundation() {
   const candidate = candidates.states.find((entry) => entry.state === 'MS');
   assert.equal(candidate.marketClassification, 'mixed');
   assert.equal(candidate.lifecycleStage, 'active');
-  assert.equal(candidate.automationPaused, false);
+  assert.equal(candidate.automationPaused, true);
   assert.ok(candidate.sourceClassesSought.includes('exact_store_fulfillment'));
   assert.equal(existsSync(new URL('../data/canary-inputs/MS.json', import.meta.url)), true, 'Mississippi canary input must remain checked in for reproducible verification.');
 
