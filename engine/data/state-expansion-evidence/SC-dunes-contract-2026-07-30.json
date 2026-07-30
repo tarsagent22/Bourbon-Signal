@@ -1,0 +1,256 @@
+{
+  "acceptance": {
+    "cacheMaxAgeHours": 6,
+    "maxConcurrency": 4,
+    "maxSourceRequests": 64,
+    "minimumAddedCurrentStores": 1,
+    "minimumSafeCurrentRows": 12,
+    "mustIncludeMyrtleBeach": true,
+    "rejectCategories": [
+      "cream",
+      "liqueur",
+      "cordial",
+      "wine",
+      "beer",
+      "tequila",
+      "vodka",
+      "rum",
+      "gin",
+      "brandy",
+      "cognac",
+      "mixers"
+    ],
+    "requireBibleMatch": true,
+    "requireExactPositiveQuantity": true,
+    "requireIntegratedCartMarker": true,
+    "requireIsOutOfStockFalse": true,
+    "requirePositivePrice": true,
+    "requireRuntimeStoreMarker": "Store_6178",
+    "requireStoreMetadataIdentityMatch": true
+  },
+  "baseline": {
+    "artifactDigest": "sha256:df6850588ec16679b0a6a464120ce3a87d7e9b1077579f13a869c454f7fbc707",
+    "artifactId": "8772164912",
+    "canonicalSnapshot": "2026-07-30T19-22-05-654Z-00d1401c7c43b777",
+    "freshAlertableRows": 0,
+    "productionInventoryRows": 32,
+    "productionStateSignals": 49,
+    "publicDropTotal": 14,
+    "workflowRunId": "30573544204"
+  },
+  "captureHashes": {
+    "item-details.json": "d44c3e515c4c7c83fedc4d31069a3f7dd07f06e613c710fc58fe7f23c741ceb4",
+    "search-results.json": "8c23238a5f3e727b963ac121abeaa532b008870b4e094f544e64c8e2881baaf6",
+    "store-metadata.json": "118fb8047f241ad045881735787e8c00fcbfc997609f5e7f5248e3556ba317b9",
+    "storefront.html": "94148ffdf84af070fb507b777730ad4eaa9e90d86dcb1dae95686b3235b1012d"
+  },
+  "cohort": "dunes-liquor-myrtle-beach",
+  "contractFrozenAt": "2026-07-30T19:36:44.157440Z",
+  "observedProbe": {
+    "positiveItemDetails": 29,
+    "positiveSample": [
+      {
+        "category": "**Bourbon",
+        "department": "Spirits**",
+        "name": "BAKERS BOURBON",
+        "price": 69.99,
+        "quantity": 10.0,
+        "size": "**750ml",
+        "sku": 73044
+      },
+      {
+        "category": "**Bourbon",
+        "department": "Spirits**",
+        "name": "Bookers Bbn Jimmy's Batch",
+        "price": 139.99,
+        "quantity": 1.0,
+        "size": "**750ml",
+        "sku": 73070
+      },
+      {
+        "category": "**Bourbon",
+        "department": "Spirits**",
+        "name": "OLD FORESTER BOURBON",
+        "price": 31.99,
+        "quantity": 11.0,
+        "size": "**750ml | Single",
+        "sku": 73888
+      },
+      {
+        "category": "**Bourbon",
+        "department": "Spirits**",
+        "name": "Elijah Craig Sml Batch Bourbon",
+        "price": 39.99,
+        "quantity": 5.0,
+        "size": "**750ml",
+        "sku": 75912
+      },
+      {
+        "category": "**Bourbon",
+        "department": "Spirits**",
+        "name": "1792 Bourbon Small Batch",
+        "price": 34.99,
+        "quantity": 2.0,
+        "size": "**750ml | Single",
+        "sku": 75979
+      },
+      {
+        "category": "**Bourbon",
+        "department": "Spirits**",
+        "name": "WOODFORD DOUBLE OAKED BOURBON",
+        "price": 73.99,
+        "quantity": 2.0,
+        "size": "**750ml",
+        "sku": 76270
+      },
+      {
+        "category": "**Bourbon",
+        "department": "Spirits**",
+        "name": "Michters Small Batch Bourbon",
+        "price": 59.99,
+        "quantity": 3.0,
+        "size": "**750ml",
+        "sku": 78051
+      },
+      {
+        "category": "**Bourbon",
+        "department": "Spirits**",
+        "name": "Old Forester Brbn 1897 ",
+        "price": 59.99,
+        "quantity": 3.0,
+        "size": "**750ml",
+        "sku": 84474
+      },
+      {
+        "category": "**Bourbon",
+        "department": "Spirits**",
+        "name": "OLD FORESTER 1920",
+        "price": 69.99,
+        "quantity": 4.0,
+        "size": "**750ml",
+        "sku": 85715
+      },
+      {
+        "category": "**Bourbon",
+        "department": "Spirits**",
+        "name": "OLD FORESTER STATESMAN ",
+        "price": 59.99,
+        "quantity": 4.0,
+        "size": "**750ml",
+        "sku": 85716
+      },
+      {
+        "category": "**Bourbon",
+        "department": "Spirits**",
+        "name": "WILD TURKEY RARE BREED BOURBON",
+        "price": 69.99,
+        "quantity": 4.0,
+        "size": "**750ml",
+        "sku": 86289
+      },
+      {
+        "category": "**Bourbon",
+        "department": "Spirits**",
+        "name": "Willett Pot Still Reserve",
+        "price": 59.99,
+        "quantity": 2.0,
+        "size": "**750ml | Single",
+        "sku": 87029
+      },
+      {
+        "category": "**Bourbon",
+        "department": "Spirits**",
+        "name": "1792 SINGLE BARREL ",
+        "price": 49.99,
+        "quantity": 1.0,
+        "size": "**750ml | Single",
+        "sku": 87076
+      },
+      {
+        "category": "**Bourbon",
+        "department": "Spirits**",
+        "name": "Old Forester Brbn",
+        "price": 45.99,
+        "quantity": 6.0,
+        "size": "**1.75 L",
+        "sku": 87210
+      },
+      {
+        "category": "**Bourbon",
+        "department": "Spirits**",
+        "name": "Elijah Craig Sml Btch Ky Strgt",
+        "price": 69.99,
+        "quantity": 6.0,
+        "size": "**1.75 L | Single",
+        "sku": 87751
+      },
+      {
+        "category": "**Whiskey",
+        "department": "Spirits**",
+        "name": "Elijah Craig Ky Strt Rye Whsky ",
+        "price": 37.99,
+        "quantity": 6.0,
+        "size": "**750ml | Single",
+        "sku": 87752
+      },
+      {
+        "category": "**Whiskey",
+        "department": "Spirits**",
+        "name": "Elijah Craig Ky Strt Rye Whsky",
+        "price": 74.99,
+        "quantity": 3.0,
+        "size": "**1.75 L",
+        "sku": 88338
+      },
+      {
+        "category": "**Bourbon",
+        "department": "Spirits**",
+        "name": "Elijah Craig Sml Batch Brl Prf 6Pk",
+        "price": 89.99,
+        "quantity": 6.0,
+        "size": "**750ml",
+        "sku": 88353
+      },
+      {
+        "category": "**Whiskey",
+        "department": "Spirits**",
+        "name": "Old Forester Whsky 1910",
+        "price": 69.99,
+        "quantity": 2.0,
+        "size": "**750ml",
+        "sku": 88465
+      },
+      {
+        "category": "**Bourbon",
+        "department": "Spirits**",
+        "name": "Elijah Craig Toasted Brl",
+        "price": 69.99,
+        "quantity": 2.0,
+        "size": "**750ml",
+        "sku": 88670
+      }
+    ],
+    "searchTermCount": 15,
+    "uniqueSearchItems": 44
+  },
+  "schemaVersion": 1,
+  "semantics": {
+    "alerts": "Only fresh exact-store rows passing identity, category, stock, price, and Bible guards may be alert-grade.",
+    "orderability": "The public integrated-cart storefront and item-detail endpoint prove current store-bound pickup/order availability; fulfillment should still be verified before driving.",
+    "quantity": "INSTOREQTY is treated as exact only when positive and IsOutOfStock is explicitly false."
+  },
+  "source": {
+    "baseUrl": "https://www.dunesliquor.com",
+    "controlEndpoints": [
+      "POST /Home/LoadBasicData",
+      "POST /Home/GetSearchResult",
+      "POST /ListManage/LoadItemDescription"
+    ],
+    "expectedAddress": "980 Cipriana Drive, Unit A5-B, Myrtle Beach, SC 29572",
+    "expectedPhone": "843-808-0092",
+    "name": "Dunes Liquor",
+    "runtimeId": "retailer:sc:dunes:6178",
+    "storeId": "dunes-liquor:dunes-liquor-myrtle-beach"
+  },
+  "state": "SC"
+}

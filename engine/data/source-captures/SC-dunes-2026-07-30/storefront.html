@@ -1,0 +1,1413 @@
+<!DOCTYPE html>
+<html>
+<head>
+
+
+    <meta charset="UTF-8" />
+    <meta name="format-detection" content="telephone=no" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=12,minimum-scale=1, user-scalable=yes">
+    <title>Dunes Liquor</title>
+    <link rel="icon" href="/Images/favicon.ico" type="image/x-icon" />
+
+
+
+    <link href="/css/CssThemes/DarkBlueTheme.css" rel="stylesheet" />
+    <link href="/css/CssThemes/WithOutBackground.css" rel="stylesheet" />
+    <link href="/js/bootstrap/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="/css/stylesheet.css?v=12" rel="stylesheet" />
+    <link href="/js/jquery-ui.min.css" rel="stylesheet" />
+    <link href="/css/owl.carousel.css" rel="stylesheet" />
+    <link href="/css/owl.transitions.css" rel="stylesheet" />
+    <link href="/css/responsive.css" rel="stylesheet" />
+    <link href="/css/font-awesome/css/font-awesome.min.css" rel="stylesheet" />
+    <link rel='stylesheet' href='https://fonts.googleapis.com/css?family=Barlow|Open+Sans' type='text/css'>
+    <link href="/css/Custom.css?v=12" rel="stylesheet" type='text/css' />
+    <script type="text/javascript" src="/js/jquery-2.1.1.min.js"></script>
+    <link href="/css/jquery-confirm.min.css" rel="stylesheet" type='text/css' />
+    <link href="/css/Checkout.css" rel="stylesheet" type='text/css' />
+    <link href="/css/toastr.min.css" rel="stylesheet" />
+    <script src="/js/ClientJS/jquery.bootpag.min.js"></script>
+    <script src="/js/aes.js"></script>
+    <script src="/js/price_range_script.js"></script>
+    <link href="/css/price_range_style.css" rel="stylesheet" />
+
+</head>
+<body style="background: white url(../Images/StoreImages/Store_6178/BG.jpg) fixed top center no-repeat;
+    background-size: cover;
+    color: #222;
+    font-family: 'Open Sans', sans-serif;
+    line-height: 18px;" id="DivWebSiteBody">
+    <label style="display:none" id="lblLayoutIsMobileView">0</label>
+    <label style="display:none" id="lblConfigClientID">
+        6178
+    </label>
+    <label style="display:none" id="lblConfigCurSymbol">$</label>
+    <label style="display:none" id="lblIsIntegratedCart">1</label>
+    <label style="display:none" id="lblIsDisplayStock">0</label>
+    <label style="display:none" id="lblIsDisplayPrice">1</label>
+    <label style="display:none" id="lblAllowToAddOutOfStockItem">0</label>
+    <label style="display:none" id="lblApplyRounding">1</label>
+    <label style="display:none" id="lblDisplayItemDescInPage">0</label>
+    <label style="display:none" id="lblProductBoxButtonTitle">Add to Cart</label>
+    <label style="display:none" id="lblItemCountInMobile">2</label>
+    <label style="display:none" id="lblItemCountInTablet">3</label>
+    <label style="display:none" id="lblItemCountInComputer">5</label>
+    <label style="display:none" id="lblIsbrownTheme">0</label>
+    <label style="display:none" id="lblHidePriceFilter">0</label>
+    <label style="display:none" id="lblDefaultEcommCountry">USA</label>
+    <label style="display:none" id="lblDisplayMiniCart">1</label>
+    <label style="display:none" id="lblFooterType">0</label>
+    <label style="display:none" id="lblGoToCartAfterAddItem">0</label>
+    <label style="display:none" id="lblShippingChargeType">0</label>
+    <label style="display:none" id="lblDefaultCountryCode">1</label>
+    <label style="display:none" id="lblHideItemReview">0</label>
+    <label style="display:none" id="lblSliderAutoPlay">5</label>
+    <label style="display:none" id="lblIsMobAppView">0</label>
+
+
+
+        <div class="wrapper-box">
+
+
+    <style>
+        #header #cart .heading span {
+            display: inline-block;
+            line-height: 15px;
+        }
+    </style>
+
+<style>
+    .search-form-wrapper {
+        display: none;
+        position: absolute;
+        left: 0;
+        right: 0;
+        padding: 50px 15px;
+        margin-top: -60px;
+    }
+
+    .hoverBoldFonts:hover {
+        font-weight: bold;
+    }
+
+    .navbar-default .navbar-nav > .open > a,
+    .navbar-default .navbar-nav > .open > a:hover,
+    .navbar-default .navbar-nav > .open > a:focus {
+        background-color: transparent !important
+    }
+
+    .MyAccountMenu {
+        padding: 15px 30px 15px 15px !important;
+    }
+
+        .MyAccountMenu li a {
+            font-size: 20px;
+            padding: 5px 20px !important;
+        }
+
+    .ProductsSubMenu {
+        border-radius: 5px !important;
+        column-count: 2;
+    }
+
+        .ProductsSubMenu li a {
+            font-size: 20px;
+        }
+
+    #NoItemsInCart {
+        border-radius: 5px !important;
+        padding: 15px !important;
+    }
+
+        #NoItemsInCart li a {
+            font-size: 15px;
+        }
+
+    #navbar-close {
+        color: #888;
+        width: 18px;
+        height: 18px;
+    }
+
+    .header {
+        background: rgb(0, 178, 255);
+        color: #fff;
+    }
+
+    .navbar-default .navbar-toggle:hover,
+    .navbar-default .navbar-toggle:focus {
+        background-color: transparent;
+    }
+
+    .ui-autocomplete {
+        overflow-y: hidden !important;
+        overflow-x: hidden !important;
+    }
+</style>
+
+<label id="lblMainHeaderType" style="display:none">0</label>
+
+<div id="header">
+    <div id="ClientHomeLoader" style="display:none; z-index: 999999999;">
+            <div style="position: fixed;
+        top: 0px;
+        right: 0px;
+        width: 100%;
+        height: 100%;
+        background-image: url('/Images/BrownLoader.svg');
+        background-repeat: no-repeat;
+        background-position: center;
+        z-index: 999999999"></div>
+    </div>
+
+        <style>
+            .MyAccountMenu {
+                border-radius: 5px !important;
+                right: -30px !important;
+            }
+
+            #LIOfProductsUL:hover > ul {
+                visibility: visible;
+                opacity: 0.99;
+                display: block;
+            }
+
+            #LIOfAccountUL:hover > ul {
+                visibility: visible;
+                opacity: 0.99;
+                display: block;
+            }
+
+            #HeaderMenuUL > li {
+                height: 70px !important;
+            }
+
+            .search-form-wrapper.open {
+                width: 27%;
+                display: block;
+                margin-left: 70%;
+                padding: 0px;
+                margin-top: 0px;
+            }
+
+            #SearchFormInputGroup {
+                background-color: white;
+                border-radius: 5px !important;
+                padding: 15px !important;
+            }
+        </style>
+            <header class="header-row">
+                <div class="duplicateContainer">
+                        <div class="table-container" style="margin-bottom:5px">
+                            <nav class="htop col-md-9 pull-right flip inner" id="top">
+                                <span class="drop-icon visible-sm visible-xs"><i class="fa fa-align-justify"></i></span>
+                                <div id="top-links" class="nav pull-right flip">
+                                    <ul>
+                                        <li id="liFondYourOrder" style="display:none">
+                                            <a href="/Home/FindYourOrder"><i style="font-size:large" class="fa fa-shopping-cart iconColor"></i> Find Your Order</a>
+                                        </li>
+                                        <li>
+                                            <a style="display:none" id="btnCustLogin" href="#" onclick="ClientManageModals('ListManage/_UserLogin', 'CustLogin')"><i style="font-size:large" class="fa fa-user iconColor"></i> Login</a>
+                                            <a class="iconColor" style="display:none;margin-top:2.5px !important" id="btnCustLogout" href="#" onclick="OpenLogoutModal()"><i style="font-size:large" class="fa fa-user iconColor"></i> Signout</a>
+                                        </li>
+                                        <li><a id="btnRegPageID" href="/ListManage/_SignUp"><i style="font-size:large" class="fa fa-user-plus iconColor"></i> Register</a></li>
+                                    </ul>
+                                </div>
+                                <div class="pull-right flip left-top">
+                                    <div id="currency" class="btn-group listofDynamicPages" style="display:none">
+                                        <button class="btn-link dropdown-toggle" data-toggle="dropdown"> <span><i style="font-size:large" class="fa fa-caret-down iconColor"></i> Store Links</span></button>
+                                        <ul class="dropdown-menu" id="ul_DynamicPage"></ul>
+                                    </div>
+                                    <div id="currency" class="btn-group MyAccount" style="display:none">
+                                        <button class="btn-link dropdown-toggle" data-toggle="dropdown"> <span><i style="font-size:large" class="fa fa-caret-down iconColor"></i> Your Account</span></button>
+                                        <ul class="dropdown-menu">
+                                            <li><a href="/Home/OrderHistory" class='currency-select btn btn-link btn-block'><i style="font-size:large" class="fa fa-shopping-cart iconColor"></i> Your Orders</a></li>
+                                            <li><a href="/Home/WishListPage" class='currency-select btn btn-link btn-block'><i style="font-size:large" class="fa fa-bookmark iconColor"></i> Your Favourites</a></li>
+                                            <li><a href="#" onclick="OpenProfilePage()" class='currency-select btn btn-link btn-block'><i style="font-size:large" class="fa fa-pencil-square-o iconColor"></i> Your Profile</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </nav>
+
+                            <div class="col-table-cel col-md-3 col-sm-4 col-xs-12 inner">
+                                <div id="logo"><a href="/"><img class="img-responsive" style="max-height:100px;" src="/Images/StoreImages/Store_6178/StoreLogo.png" alt="StoreLogo" /></a></div>
+                            </div>
+                            <div class="col-md-4 col-md-push-5 col-sm-8 col-xs-12 inner">
+                                <div class="links_contact pull-right flip">
+                                    <ul>
+                                        <li class="mobile"><i class="fa fa-phone iconColor"></i><span id="HeaderPhone"></span></li>
+                                        <li class="email"><a href="#"><i class="fa fa-envelope iconColor"></i><span class="__cf_email__" data-cfemail="32414742425d404672505b55415a5d421c515d5f" id="HeaderEmail"></span></a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="clearfix visible-sm-block visible-xs-block"></div>
+                            <div class="col-md-5 col-md-pull-4 col-sm-8 col-xs-12 inner2">
+                                <div id="search" class="input-group">
+                                    <input id="searchresult" type="text" style="max-height:300px;border: 1px solid red" name="search" placeholder="Type name here to search an item" class="form-control input-lg" />
+                                    <button type="button" class="button-search" style="border: 1px solid red"><i class="fa fa-search"></i></button>
+                                </div>
+                            </div>
+                            <div class="col-md-9 pull-right col-sm-4 col-xs-12 inner">
+                                <div id="cart">
+                                </div>
+                            </div>
+                        </div>
+                                            <marquee style="font-size: 15px;font-weight:bold;font-stretch:normal;color:#2551de;font-family:Comic Sans MS">Dunes Liquor - LOWEST PRICE IN THE TOWN.</marquee>
+                </div>
+            </header>
+            <nav id="menu" class="navbar navBarBGGradient">
+                <div class="navbar-header"> <span class="visible-xs visible-sm"> Menu <i class="fa fa-align-justify pull-right flip"></i></span></div>
+                <div class="collapse navbar-collapse navbar-ex1-collapse">
+                    <ul class="nav navbar-nav">
+                        <li><a class="home_link" title="Home" href="/"> <i class="fa fa-home"></i> </a></li>
+                            <li style="background-color:#ff0000; font-weight:bold; font-family:'Lucida Sans', 'Lucida Sans Regular', 'Lucida Grande', 'Lucida Sans Unicode', Geneva, Verdana, sans-serif;"><a class="home_link" title="Home" href="/Item/ItemCatalog?DEP_ID=0&amp;CAT_ID=0&amp;ONSALE=1&amp;SUBCAT_ID=0">On Sale</a></li>
+                                                            <li class="categories_defu dropdown">
+                                        <a class="dropdown-toggle" href="/Item/ItemCatalog?DEP_ID=1&amp;CAT_ID=0&amp;ONSALE=0&amp;SUBCAT_ID=0">WINE</a>
+                                    </li>
+                                    <li class="categories_defu dropdown">
+                                        <a class="dropdown-toggle" href="/Item/ItemCatalog?DEP_ID=3&amp;CAT_ID=0&amp;ONSALE=0&amp;SUBCAT_ID=0">LIQUOR</a>
+                                    </li>
+                                    <li class="categories_defu dropdown">
+                                        <a class="dropdown-toggle" href="/Item/ItemCatalog?DEP_ID=18&amp;CAT_ID=0&amp;ONSALE=0&amp;SUBCAT_ID=0">Spirits**</a>
+                                            <div class="dropdown-menu">
+                                                <ul style="">
+                                                            <li style="display:inline-block">
+                                                                <a href="/Item/ItemCatalog?DEP_ID=18&amp;CAT_ID=188&amp;ONSALE=0&amp;SUBCAT_ID=0">**Scotch</a>
+                                                            </li>
+                                                            <li style="display:inline-block">
+                                                                <a href="/Item/ItemCatalog?DEP_ID=18&amp;CAT_ID=189&amp;ONSALE=0&amp;SUBCAT_ID=0">**Whiskey</a>
+                                                            </li>
+                                                            <li style="display:inline-block">
+                                                                <a href="/Item/ItemCatalog?DEP_ID=18&amp;CAT_ID=190&amp;ONSALE=0&amp;SUBCAT_ID=0">**Bourbon</a>
+                                                            </li>
+                                                            <li style="display:inline-block">
+                                                                <a href="/Item/ItemCatalog?DEP_ID=18&amp;CAT_ID=191&amp;ONSALE=0&amp;SUBCAT_ID=0">**Tequila</a>
+                                                            </li>
+                                                            <li style="display:inline-block">
+                                                                <a href="/Item/ItemCatalog?DEP_ID=18&amp;CAT_ID=192&amp;ONSALE=0&amp;SUBCAT_ID=0">**Rum</a>
+                                                            </li>
+                                                            <li style="display:inline-block">
+                                                                <a href="/Item/ItemCatalog?DEP_ID=18&amp;CAT_ID=193&amp;ONSALE=0&amp;SUBCAT_ID=0">**Liquor</a>
+                                                            </li>
+                                                            <li style="display:inline-block">
+                                                                <a href="/Item/ItemCatalog?DEP_ID=18&amp;CAT_ID=194&amp;ONSALE=0&amp;SUBCAT_ID=0">**Mixters</a>
+                                                            </li>
+                                                            <li style="display:inline-block">
+                                                                <a href="/Item/ItemCatalog?DEP_ID=18&amp;CAT_ID=195&amp;ONSALE=0&amp;SUBCAT_ID=0">**Rtd</a>
+                                                            </li>
+                                                            <li style="display:inline-block">
+                                                                <a href="/Item/ItemCatalog?DEP_ID=18&amp;CAT_ID=196&amp;ONSALE=0&amp;SUBCAT_ID=0">**Gin</a>
+                                                            </li>
+                                                            <li style="display:inline-block">
+                                                                <a href="/Item/ItemCatalog?DEP_ID=18&amp;CAT_ID=197&amp;ONSALE=0&amp;SUBCAT_ID=0">**Moonshine/Grave Alc</a>
+                                                            </li>
+                                                            <li style="display:inline-block">
+                                                                <a href="/Item/ItemCatalog?DEP_ID=18&amp;CAT_ID=198&amp;ONSALE=0&amp;SUBCAT_ID=0">**Vodka</a>
+                                                            </li>
+                                                            <li style="display:inline-block">
+                                                                <a href="/Item/ItemCatalog?DEP_ID=18&amp;CAT_ID=199&amp;ONSALE=0&amp;SUBCAT_ID=0">**Brandy/Cognac</a>
+                                                            </li>
+                                                </ul>
+                                            </div>
+                                    </li>
+                                    <li class="categories_defu dropdown">
+                                        <a class="dropdown-toggle" href="/Item/ItemCatalog?DEP_ID=19&amp;CAT_ID=0&amp;ONSALE=0&amp;SUBCAT_ID=0">Wines**</a>
+                                    </li>
+                    </ul>
+                </div>
+            </nav>
+</div>
+
+<script type="text/javascript">
+    $(document).ready(function () {
+        if (WebsiteInMobileView) {
+            let newValue = $("#ClientHomeLoaderImg").attr("data-Mobile");
+            $("#ClientHomeLoaderImg").attr("width", newValue);
+            $("#ClientHomeLoaderImg").attr("height", newValue);
+            if (newValue == "150") {
+                $("#ClientHomeLoader").css("left", "27%");
+            }
+            $("#btnEmptyCart").addClass("btn-sm");
+            $("#btnEditCart").addClass("btn-sm");
+            $("#btnCheckOut").addClass("btn-sm");
+        }
+     });
+
+    function OpenProfilePage() {
+        let CUSTOMER_ID = localStorage["ENC_CUSTOMER_ID"];
+        //-> if not found then login dialalog
+        window.location.href = '/Home/YourProfile?CUSTOMER_ID=' + encodeURIComponent(CUSTOMER_ID);
+    }
+
+</script>
+
+            <div id="ClientManageModalsDiv"></div>
+            <div id="DivRenderBody">
+
+
+
+
+
+
+<style>
+    .owl-carousel .owl-stage {
+        transition-timing-function: linear !important;
+    }
+
+    .noBorderProductBox {
+        border: none !important;
+        -webkit-box-shadow: none !important
+    }
+
+        .noBorderProductBox:hover {
+            border: none !important;
+            -webkit-box-shadow: none !important
+        }
+
+    .adv_thumb {
+        transition: width .1s ease;
+    }
+
+        .adv_thumb :hover {
+            transition: width .1s ease;
+        }
+</style>
+
+
+<div class="duplicateContainer" style="margin-top:8px !important">
+    <div class="row">
+
+        <div id="content" class="col-md-12 col-sm-12" style="padding-left:0px !important;padding-right:0px !important">
+
+
+
+
+                    <div class="row">
+                        <div class="col-md-1 hidden-sm hidden-xs"></div>
+                        <div class="col-md-10 col-xs-12 col-sm-12 removeBothPaddingInMobile">
+
+                                <p class="HeadingOfSliders">
+                                    <span>New Arrival Group</span>
+                                    <a style="font-size:15px;margin-right:25px" class="pull-right iconColor" onclick="FilterFromHome(0,0,0,0,0,88)">View all</a>
+                                </p>
+
+                            <div class="owl-carousel product_carousel" id="ProductSlider">
+                                    <div class="product-thumb clearfix catalogBorder">
+                                        <a class='WholeBoxClickable' onclick="ItemDescription(72291)"></a>
+<div class="image">
+                                                <a onclick="ItemDescription(72291)" class="ProductThumbImage"><img src="/Images/StoreImages/Store_6178/ItemImage/LRG/72291.png" alt="Item Image" class="img-responsive"></a>
+                                            </div>
+                                        <div class="caption" style="height:125px !important">
+                                            <h4><a onclick="ItemDescription(72291)">1800 Coco Teq</a></h4>
+                                            <span style="line-height:20px !important;color:#767676;font-size:12px !important">**1.75 L</span>
+
+                                                        <p class="price">$ 47.99</p>
+                                                                                    </div>
+                                                                            </div>
+                                    <div class="product-thumb clearfix catalogBorder">
+                                        <a class='WholeBoxClickable' onclick="ItemDescription(72290)"></a>
+<div class="image">
+                                                <a onclick="ItemDescription(72290)" class="ProductThumbImage"><img src="/Images/StoreImages/Store_6178/ItemImage/LRG/72290.jpg" alt="Item Image" class="img-responsive"></a>
+                                            </div>
+                                        <div class="caption" style="height:125px !important">
+                                            <h4><a onclick="ItemDescription(72290)">1800 Repo Teq</a></h4>
+                                            <span style="line-height:20px !important;color:#767676;font-size:12px !important">**1.75 L</span>
+
+                                                        <p class="price">$ 64.99</p>
+                                                                                    </div>
+                                                    <div class="button-group">
+                                                        <button class="btn-primary" type="button" onclick="ItemDescription(72290)"><span>Add to Cart</span></button>
+                                                    </div>
+                                                                            </div>
+                                    <div class="product-thumb clearfix catalogBorder">
+                                        <a class='WholeBoxClickable' onclick="ItemDescription(72208)"></a>
+<div class="image">
+                                                <a onclick="ItemDescription(72208)" class="ProductThumbImage"><img src="/Images/StoreImages/Store_6178/ItemImage/LRG/72208.jpg" alt="Item Image" class="img-responsive"></a>
+                                            </div>
+                                        <div class="caption" style="height:125px !important">
+                                            <h4><a onclick="ItemDescription(72208)">1800 Silver Teq</a></h4>
+                                            <span style="line-height:20px !important;color:#767676;font-size:12px !important">**1.75 L</span>
+
+                                                        <p class="price">$ 64.99</p>
+                                                                                    </div>
+                                                    <div class="button-group">
+                                                        <button class="btn-primary" type="button" onclick="ItemDescription(72208)"><span>Add to Cart</span></button>
+                                                    </div>
+                                                                            </div>
+                                    <div class="product-thumb clearfix catalogBorder">
+                                        <a class='WholeBoxClickable' onclick="ItemDescription(67642)"></a>
+<div class="image">
+                                                <a onclick="ItemDescription(67642)" class="ProductThumbImage"><img src="/Images/StoreImages/Store_6178/ItemImage/LRG/67642.jpg" alt="Item Image" class="img-responsive"></a>
+                                            </div>
+                                        <div class="caption" style="height:125px !important">
+                                            <h4><a onclick="ItemDescription(67642)">99 Watermelon </a></h4>
+                                            <span style="line-height:20px !important;color:#767676;font-size:12px !important">**100ML</span>
+
+                                                        <p class="price">$ 1.99</p>
+                                                                                    </div>
+                                                    <div class="button-group">
+                                                        <button class="btn-primary" type="button" onclick="ItemDescription(67642)"><span>Add to Cart</span></button>
+                                                    </div>
+                                                                            </div>
+                                    <div class="product-thumb clearfix catalogBorder">
+                                        <a class='WholeBoxClickable' onclick="ItemDescription(72981)"></a>
+<div class="image">
+                                                <a onclick="ItemDescription(72981)" class="ProductThumbImage"><img src="/Images/StoreImages/Store_6178/ItemImage/LRG/72981.jpg" alt="Item Image" class="img-responsive"></a>
+                                            </div>
+                                        <div class="caption" style="height:125px !important">
+                                            <h4><a onclick="ItemDescription(72981)">ABERLOUR 12 YEAR OLD DOUBLE CA</a></h4>
+                                            <span style="line-height:20px !important;color:#767676;font-size:12px !important">**750ml | Single</span>
+
+                                                        <p class="price">$ 79.99</p>
+                                                                                    </div>
+                                                    <div class="button-group">
+                                                        <button class="btn-primary" type="button" onclick="ItemDescription(72981)"><span>Add to Cart</span></button>
+                                                    </div>
+                                                                            </div>
+                                    <div class="product-thumb clearfix catalogBorder">
+                                        <a class='WholeBoxClickable' onclick="ItemDescription(72482)"></a>
+<div class="image">
+                                                <a onclick="ItemDescription(72482)" class="ProductThumbImage"><img src="/Images/StoreImages/Store_6178/ItemImage/LRG/72482.jpg" alt="Item Image" class="img-responsive"></a>
+                                            </div>
+                                        <div class="caption" style="height:125px !important">
+                                            <h4><a onclick="ItemDescription(72482)">ABSOLUT VODKA</a></h4>
+                                            <span style="line-height:20px !important;color:#767676;font-size:12px !important">**375ML</span>
+
+                                                        <p class="price">$ 15.99</p>
+                                                                                    </div>
+                                                    <div class="button-group">
+                                                        <button class="btn-primary" type="button" onclick="ItemDescription(72482)"><span>Add to Cart</span></button>
+                                                    </div>
+                                                                            </div>
+                                    <div class="product-thumb clearfix catalogBorder">
+                                        <a class='WholeBoxClickable' onclick="ItemDescription(71973)"></a>
+<div class="image">
+                                                <a onclick="ItemDescription(71973)" class="ProductThumbImage"><img src="/Images/StoreImages/Store_6178/ItemImage/LRG/71973.jpg" alt="Item Image" class="img-responsive"></a>
+                                            </div>
+                                        <div class="caption" style="height:125px !important">
+                                            <h4><a onclick="ItemDescription(71973)">ABSOLUT VODKA</a></h4>
+                                            <span style="line-height:20px !important;color:#767676;font-size:12px !important">**1.75 L</span>
+
+                                                        <p class="price">$ 39.99</p>
+                                                                                    </div>
+                                                                            </div>
+                                    <div class="product-thumb clearfix catalogBorder">
+                                        <a class='WholeBoxClickable' onclick="ItemDescription(72049)"></a>
+<div class="image">
+                                                <a onclick="ItemDescription(72049)" class="ProductThumbImage"><img src="/Images/StoreImages/Store_6178/ItemImage/LRG/72049.jpg" alt="Item Image" class="img-responsive"></a>
+                                            </div>
+                                        <div class="caption" style="height:125px !important">
+                                            <h4><a onclick="ItemDescription(72049)">Adm Nelson Coco Rum</a></h4>
+                                            <span style="line-height:20px !important;color:#767676;font-size:12px !important">**1.75 L</span>
+
+                                                        <p class="price">$ 19.99</p>
+                                                                                    </div>
+                                                    <div class="button-group">
+                                                        <button class="btn-primary" type="button" onclick="ItemDescription(72049)"><span>Add to Cart</span></button>
+                                                    </div>
+                                                                            </div>
+                                    <div class="product-thumb clearfix catalogBorder">
+                                        <a class='WholeBoxClickable' onclick="ItemDescription(72116)"></a>
+<div class="image">
+                                                <a onclick="ItemDescription(72116)" class="ProductThumbImage"><img src="/Images/StoreImages/Store_6178/ItemImage/LRG/72116.png" alt="Item Image" class="img-responsive"></a>
+                                            </div>
+                                        <div class="caption" style="height:125px !important">
+                                            <h4><a onclick="ItemDescription(72116)">Adm Nelson Spiced Rum</a></h4>
+                                            <span style="line-height:20px !important;color:#767676;font-size:12px !important">**1.75 L</span>
+
+                                                        <p class="price">$ 15.99</p>
+                                                                                    </div>
+                                                    <div class="button-group">
+                                                        <button class="btn-primary" type="button" onclick="ItemDescription(72116)"><span>Add to Cart</span></button>
+                                                    </div>
+                                                                            </div>
+                                    <div class="product-thumb clearfix catalogBorder">
+                                        <a class='WholeBoxClickable' onclick="ItemDescription(72701)"></a>
+<div class="image">
+                                                <a onclick="ItemDescription(72701)" class="ProductThumbImage"><img src="/Images/StoreImages/Store_6178/ItemImage/LRG/72701.jpg" alt="Item Image" class="img-responsive"></a>
+                                            </div>
+                                        <div class="caption" style="height:125px !important">
+                                            <h4><a onclick="ItemDescription(72701)">Avion Silver Tequila</a></h4>
+                                            <span style="line-height:20px !important;color:#767676;font-size:12px !important">**375ML</span>
+
+                                                        <p class="price">$ 16.99</p>
+                                                                                    </div>
+                                                                            </div>
+                                    <div class="product-thumb clearfix catalogBorder">
+                                        <a class='WholeBoxClickable' onclick="ItemDescription(72488)"></a>
+<div class="image">
+                                                <a onclick="ItemDescription(72488)" class="ProductThumbImage"><img src="/Images/StoreImages/Store_6178/ItemImage/LRG/72488.png" alt="Item Image" class="img-responsive"></a>
+                                            </div>
+                                        <div class="caption" style="height:125px !important">
+                                            <h4><a onclick="ItemDescription(72488)">Bacardi Gold</a></h4>
+                                            <span style="line-height:20px !important;color:#767676;font-size:12px !important">**375ML</span>
+
+                                                        <p class="price">$ 7.99</p>
+                                                                                    </div>
+                                                    <div class="button-group">
+                                                        <button class="btn-primary" type="button" onclick="ItemDescription(72488)"><span>Add to Cart</span></button>
+                                                    </div>
+                                                                            </div>
+                                    <div class="product-thumb clearfix catalogBorder">
+                                        <a class='WholeBoxClickable' onclick="ItemDescription(72489)"></a>
+<div class="image">
+                                                <a onclick="ItemDescription(72489)" class="ProductThumbImage"><img src="/Images/StoreImages/Store_6178/ItemImage/LRG/72489.jpg" alt="Item Image" class="img-responsive"></a>
+                                            </div>
+                                        <div class="caption" style="height:125px !important">
+                                            <h4><a onclick="ItemDescription(72489)">Bacardi Light</a></h4>
+                                            <span style="line-height:20px !important;color:#767676;font-size:12px !important">**375ML | Single</span>
+
+                                                        <p class="price">$ 8.99</p>
+                                                                                    </div>
+                                                    <div class="button-group">
+                                                        <button class="btn-primary" type="button" onclick="ItemDescription(72489)"><span>Add to Cart</span></button>
+                                                    </div>
+                                                                            </div>
+                                    <div class="product-thumb clearfix catalogBorder">
+                                        <a class='WholeBoxClickable' onclick="ItemDescription(71980)"></a>
+<div class="image">
+                                                <a onclick="ItemDescription(71980)" class="ProductThumbImage"><img src="/Images/StoreImages/Store_6178/ItemImage/LRG/71980.jpg" alt="Item Image" class="img-responsive"></a>
+                                            </div>
+                                        <div class="caption" style="height:125px !important">
+                                            <h4><a onclick="ItemDescription(71980)">Bacardi Light Glass</a></h4>
+                                            <span style="line-height:20px !important;color:#767676;font-size:12px !important">**1.75 L | Single</span>
+
+                                                        <p class="price">$ 28.99</p>
+                                                                                    </div>
+                                                                            </div>
+                                    <div class="product-thumb clearfix catalogBorder">
+                                        <a class='WholeBoxClickable' onclick="ItemDescription(66580)"></a>
+<div class="image">
+                                                <a onclick="ItemDescription(66580)" class="ProductThumbImage"><img src="/Images/StoreImages/Store_6178/ItemImage/LRG/66580.jpg" alt="Item Image" class="img-responsive"></a>
+                                            </div>
+                                        <div class="caption" style="height:125px !important">
+                                            <h4><a onclick="ItemDescription(66580)">Bacardi White</a></h4>
+                                            <span style="line-height:20px !important;color:#767676;font-size:12px !important">**1.75 L</span>
+
+                                                        <p class="price">$ 29.99</p>
+                                                                                    </div>
+                                                    <div class="button-group">
+                                                        <button class="btn-primary" type="button" onclick="ItemDescription(66580)"><span>Add to Cart</span></button>
+                                                    </div>
+                                                                            </div>
+                                    <div class="product-thumb clearfix catalogBorder">
+                                        <a class='WholeBoxClickable' onclick="ItemDescription(71992)"></a>
+<div class="image">
+                                                <a onclick="ItemDescription(71992)" class="ProductThumbImage"><img src="/Images/StoreImages/Store_6178/ItemImage/LRG/71992.jpg" alt="Item Image" class="img-responsive"></a>
+                                            </div>
+                                        <div class="caption" style="height:125px !important">
+                                            <h4><a onclick="ItemDescription(71992)">BEEFEATER GIN</a></h4>
+                                            <span style="line-height:20px !important;color:#767676;font-size:12px !important">**1.75 L</span>
+
+                                                        <p class="price">$ 45.99</p>
+                                                                                    </div>
+                                                    <div class="button-group">
+                                                        <button class="btn-primary" type="button" onclick="ItemDescription(71992)"><span>Add to Cart</span></button>
+                                                    </div>
+                                                                            </div>
+                                    <div class="product-thumb clearfix catalogBorder">
+                                        <a class='WholeBoxClickable' onclick="ItemDescription(71993)"></a>
+<div class="image">
+                                                <a onclick="ItemDescription(71993)" class="ProductThumbImage"><img src="/Images/StoreImages/Store_6178/ItemImage/LRG/71993.jpg" alt="Item Image" class="img-responsive"></a>
+                                            </div>
+                                        <div class="caption" style="height:125px !important">
+                                            <h4><a onclick="ItemDescription(71993)">BELVEDERE VODKA</a></h4>
+                                            <span style="line-height:20px !important;color:#767676;font-size:12px !important">**1.75 L</span>
+
+                                                        <p class="price">$ 79.99</p>
+                                                                                    </div>
+                                                    <div class="button-group">
+                                                        <button class="btn-primary" type="button" onclick="ItemDescription(71993)"><span>Add to Cart</span></button>
+                                                    </div>
+                                                                            </div>
+                            </div>
+                            <hr class="horizontalLine" />
+                        </div>
+                        <div class="col-md-1 hidden-sm hidden-xs"></div>
+                    </div>
+
+                <div class="row">
+                    <div class="col-md-1 hidden-sm hidden-xs"></div>
+                    <div class="col-md-10 col-xs-12 col-sm-12 removeBothPaddingInMobile">
+
+                            <p class="HeadingOfSliders">
+                                <img src="/Images/OnSale.png" />
+                                <a style="font-size:15px;margin-right:25px" class="pull-right iconColor" href="/Item/ItemCatalog?DEP_ID=0&amp;CAT_ID=0&amp;ONSALE=1&amp;SUBCAT_ID=0">View all</a>
+                            </p>
+
+                        <div class="owl-carousel product_carousel" id="ProductSlider">
+                                <div class="product-thumb clearfix catalogBorder">
+                                    <a class='WholeBoxClickable' onclick="ItemDescription(87580)"></a>
+<div class="image">
+                                            <a onclick="ItemDescription(87580)" class="ProductThumbImage"><img src="/Images/StoreImages/Store_6178/ItemDefault.jpg" alt="Item Image" class="img-responsive"></a>
+                                        </div>
+                                    <div class="caption" style="height:95px;">
+                                        <h4><a onclick="ItemDescription(87580)">99 Mangoes</a></h4>
+                                        <span style="line-height:20px !important;color:#767676;font-size:12px !important">**50ML</span>
+
+                                                    <p class="price">$ 0.99</p>
+                                                                            </div>
+                                                <div class="button-group">
+                                                    <button class="btn-primary" type="button" onclick="ItemDescription(87580)"><span>Add to Cart</span></button>
+                                                </div>
+                                                                    </div>
+                        </div>
+                        <hr class="horizontalLine" />
+                    </div>
+                    <div class="col-md-1 hidden-sm hidden-xs"></div>
+                </div>
+
+
+
+        </div>
+    </div>
+</div>
+
+
+<script>
+
+    function FilterFromHome(RegionID, CountryID, SizeID, StartRangeID, EndRangeID, GroupID) {
+        window.location.href = '/Item/ItemCatalog?GROUP_ID=' + GroupID + '&COUNTRY_ID=' + CountryID + '&REGION_ID=' + RegionID + '&SIZEID=' + SizeID + '&START_RANGE=' + StartRangeID + '&END_RANGE=' + EndRangeID;
+    }
+
+    function hoverAdv(element, AddID) {
+        let hoverSRC = $(element).attr("data-hoverSRC");
+        if (hoverSRC != "") {
+            $("#img_add_" + AddID).attr('src', hoverSRC);
+        }
+    }
+
+    function unhoverAdv(element, AddID) {
+        $("#img_add_" + AddID).attr('src', $(element).attr("data-SRC"));
+    }
+
+</script>
+
+            </div>
+        </div>
+
+
+    <footer id="footer">
+        <div class="fpart-first FooterBGGradient1">
+            <div class="duplicateContainer">
+                    <br />
+                    <div class="container removeLeftPadding removeRightPadding">
+                        <div class="column col-lg-3 col-md-3">
+                            <h5 class="FooterHeader" style="font-weight:bold;font-size:20px !important">Information</h5><br />
+                            <ul style="margin-top:-10px !important">
+                                <li><a class="FooterSubTextSize" onclick="ClientManageModals('ListManage/_FeedbackForm', 'CustFeedback')">Feedback form</a></li>
+                                    <li><a class="FooterSubTextSize" onclick="ClientManageModals('ListManage/_ItemForm', 'ItemForm')">Can’t find item?</a></li>
+                            </ul>
+                            <ul id="footer_ul_DynamicPage" style="margin-top:-10px"></ul>
+                        </div>
+                        <div class="column col-lg-3 col-md-3 removeLeftPadding">
+                            <h5 class="FooterHeader" style="font-weight:bold;font-size:20px !important">Customer Service</h5><br />
+                            <ul style="margin-top:-10px !important">
+                                <li><a class="FooterSubTextSize" href="/Home/Contact">Contact Us</a></li>
+                                <li class="li_AboutUs" style="display:none"><a class="FooterSubTextSize" onclick="OpenAboutUsPage()">About Us</a><span style="display:none" id="btnAboutUs"></span></li>
+                            </ul>
+                        </div>
+                        <div class="column col-lg-3 col-md-3">
+                            <h5 class="FooterHeader" style="font-weight:bold;font-size:20px !important">Store Timings</h5><br />
+                            <ul style="margin-top:-10px !important">
+                                <li><a class="FooterSubTextSize" id="StoreTime1"></a></li>
+                                <li><a class="FooterSubTextSize" id="StoreTime2"></a></li>
+                                <li><a class="FooterSubTextSize" id="StoreTime3"></a></li>
+                            </ul>
+                        </div>
+                        <div class="contact col-lg-3 col-md-3 removeLeftPadding removeRightPadding">
+                            <h5 class="FooterHeader" style="font-weight:bold;font-size:20px !important">Contact Details</h5><br />
+                            <ul style="margin-top:-10px !important">
+                                <li class="address">
+                                    <i style="margin-bottom:5px" class="fa fa-map-marker col-md-2 removeLeftPadding removeRightPadding"></i>
+                                    <a class="col-md-10 removeLeftPadding" style="line-height:23px !important;margin-bottom:5px">
+                                        <span class="FooterSubTextSize" id="StoreAddress" style="display:none"></span>
+                                        <span class="FooterSubTextSize" id="StoreAddress2" style="display:none"></span>
+                                        <span class="FooterSubTextSize" id="StoreAddress3" style="display:none"></span>
+                                        <span class="FooterSubTextSize" id="StoreAddress4" style="display:none"></span>
+                                    </a>
+                                </li>
+                                <li class="email">
+                                    <i style="margin-bottom:5px" class="fa fa-envelope col-md-2 removeLeftPadding removeRightPadding"></i>
+                                    <a href="#" class="col-md-10 removeLeftPadding" style="line-height:30px !important;margin-bottom:5px;">
+                                        <span class="FooterSubTextSize StoreEmail __cf_email__" data-cfemail="96fff8f0f9d6f4fff1e5fef9e6b8f5f9fb"></span>
+                                    </a>
+                                </li>
+                                <li class="mobile">
+                                    <i class="fa fa-phone col-md-2 removeLeftPadding removeRightPadding"></i>
+                                    <a href="#" class="col-md-10 removeLeftPadding" style="line-height:30px !important;">
+                                        <span class="FooterSubTextSize" id="StorePhone"></span>
+                                    </a>
+                                </li>
+
+                            </ul>
+                        </div>
+                    </div>
+                    <br class="hidden-sm hidden-xs" />
+            </div>
+        </div>
+        <div class="fpart-second FooterBGGradient2">
+            <div class="duplicateContainer">
+                <div id="powered" class="container">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="payments_types">
+                                    <img data-toggle="tooltip" src="/Images/payment/payment_paypal.png" alt="paypal" title="PayPal">
+                                    <img data-toggle="tooltip" src="/Images/payment/payment_american.png" alt="american-express" title="American Express">
+                                    <img data-toggle="tooltip" src="/Images/payment/payment_2checkout.png" alt="2checkout" title="2checkout">
+                                    <img data-toggle="tooltip" src="/Images/payment/payment_maestro.png" alt="maestro" title="Maestro">
+                                    <img data-toggle="tooltip" src="/Images/payment/payment_discover.png" alt="discover" title="Discover">
+                                </div>
+                            </div>
+                                <div class="powered_text pull-left flip col-md-4">© 2021 <a href="http://sypramsoftware.com/" target="_blank">Sypram Software</a> LLC. All Rights Reserved</div>
+                            <div class="col-md-4">
+                                <div class="social pull-right flip">
+                                    <a href="#" target="_blank" style="display:none" id="btnFacebook"><img data-toggle="tooltip" src="/Images/socialicons/facebook.png" alt="Facebook" title="Facebook"></a>
+                                    <a href="#" target="_blank" style="display:none" id="btnTwitter"><img data-toggle="tooltip" src="/Images/socialicons/twitter.png" alt="Twitter" title="Twitter"></a>
+                                    <a href="#" target="_blank" style="display:none" id="btnGooglePlus"><img data-toggle="tooltip" src="/Images/socialicons/google_plus.png" alt="Google+" title="Google+"></a>
+                                    <a href="#" target="_blank" style="display:none" id="btnInstagram"><img data-toggle="tooltip" src="/Images/socialicons/instagram.png" alt="Instagram" title="Instagram"></a>
+                                    <a href="#" target="_blank" style="display:none" id="btnLinkedIn"><img data-toggle="tooltip" src="/Images/socialicons/linkedIn.png" alt="LinkedIn" title="LinkedIn"></a>
+                                </div>
+                            </div>
+                        </div>
+                </div>
+            </div>
+        </div>
+        <div id="back-top"><a data-toggle="tooltip" title="Back to Top" href="javascript:void(0)" class="backtotop"><i class="fa fa-chevron-up"></i></a></div>
+    </footer>
+            <div style="display:none;position: fixed;bottom: 0px;right: 0px;left: 0px;min-height: 35px;z-index: 1027;background-color: white;vertical-align: middle;" class="" id="cookie_directive_container">
+                <div style="text-align:center;">
+                    <div style="vertical-align:middle;display: inline-block;text-align: center;padding-top: 5px;padding-bottom: 5px;max-width:500px;margin-top:5px;margin-bottom:5px;">
+                        <span class="col-xl-12">
+                            This site uses cookies. Read how we use them, in our <a style="font-size:12px;" target="_blank" href="/Home/CustomePage?PageID=4">privacy policy</a>.&nbsp;
+                        </span>
+                    </div>
+                    <div style="vertical-align:middle;display: inline-block;text-align: left;/*! vertical-align: middle; */padding-top:5px;padding-bottom:5px;margin-top:5px;margin-bottom:5px;" id="cookie_accept">
+                        <a href="#" class="btn-sm btn-info gtm_I_accept " style="" id="btn_I_accept">I accept</a>
+                    </div>
+                </div>
+            </div>
+
+    <div id="StartUpModal" class="modal fade" role="dialog" style="z-index:999999" tabindex="-1" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog modal-sm">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-12" align="center">
+                            <label style="font-size:16px !important" class="bold">Login to view Website</label>
+                        </div>
+                    </div>
+                    <br />
+                    <div class="row">
+                        <div class="col-md-12">
+                            <input type="text" id="txtStartUpUserName" class="form-control" placeholder="Enter Username" /><br />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12">
+                            <input type="password" id="txtStartUpPwd" class="form-control" placeholder="Enter password" /><br />
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12" align="center">
+                            <button type="button" class="btn btn-success" onclick="SumbitStartUpForm()">Submit</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div id="CustLogoutModal" class="modal fade" role="dialog" style="z-index:999999">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <label class="bold">Do you want to Signout ?</label>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-success" onclick="CustLogout()">Signout</button>
+                    <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="modal fade" id="ManageReviewModal" style="z-index: 1000000 !important;" tabindex="-1" role="dialog" aria-hidden="true" data-backdrop="static" data-keyboard="false">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <center><h4 class="modal-title FontBold">Please Give Your Review</h4></center>
+                </div>
+                <div class="modal-body" style="max-height:700px; overflow-y:auto">
+                    <div class="row">
+                        <label class="col-md-3 col-sm-3 col-xs-3 control-label">Rating :</label>
+                        <div class="col-md-9 col-sm-9 col-xs-9" id="DivReviewRatingBox">
+                            <div class="star-rating">
+                                <span class="glyphicon glyphicon-star-empty" data-rating="1"></span>&nbsp;
+                                <span class="glyphicon glyphicon-star-empty" data-rating="2"></span>&nbsp;
+                                <span class="glyphicon glyphicon-star-empty" data-rating="3"></span>&nbsp;
+                                <span class="glyphicon glyphicon-star-empty" data-rating="4"></span>&nbsp;
+                                <span class="glyphicon glyphicon-star-empty" data-rating="5"></span>
+                                <input type="hidden" name="whatever1" class="rating-value" id="ReviewRatting" value="0.00">
+                            </div>
+                        </div>
+                    </div>
+                    <br />
+
+                    <div class="row">
+                        <label class="col-md-3 col-xs-12 col-sm-12 control-label">Your Email :</label>
+                        <div class="col-md-9 col-xs-12 col-sm-12">
+                            <input type="text" readonly id="txtReviewEmail" class="form-control" maxlength="100" placeholder="Enter Your Email">
+                        </div>
+                    </div>
+                    <br />
+                    <div class="row">
+                        <label class="col-md-3 col-xs-12 col-sm-12 control-label">Title of Review :</label>
+                        <div class="col-md-9 col-xs-12 col-sm-12">
+                            <input type="text" id="txtReviewTitle" class="form-control" maxlength="100" placeholder="Give your Review title">
+                        </div>
+                    </div>
+                    <br />
+                    <div class="row">
+                        <label class="col-md-3 col-xs-12 col-sm-12 control-label">How was your overall experience using the item ?</label>
+                        <div class="col-md-9 col-xs-12 col-sm-12">
+                            <textarea class="form-control" style="width:100%;margin-bottom:20px" rows="8" maxlength="255" id="txtReviewDescription" cols="60"></textarea>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-12 col-sm-12" align="center">
+                            <button type="button" class="btn btn-success" onclick="SubmitReview()">Submit</button>&nbsp;
+                            <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+<input id="LoadBasicData" name="LoadBasicData" type="hidden" value="/Home/LoadBasicData" />
+<input id="GetSearchResult" name="GetSearchResult" type="hidden" value="/Home/GetSearchResult" />
+<input id="TrackOrderFromCourierCompany" name="TrackOrderFromCourierCompany" type="hidden" value="/Home/TrackOrderFromCourierCompany" />
+<input id="DeletePendingOrder" name="DeletePendingOrder" type="hidden" value="/Home/DeletePendingOrder" />
+<input id="OTPVerification" name="OTPVerification" type="hidden" value="/Home/OTPVerification" />
+
+
+<input id="NewCustomerOTP" name="NewCustomerOTP" type="hidden" value="/ListManage/NewCustomerOTP" />
+<input id="SaveNewCustomer" name="SaveNewCustomer" type="hidden" value="/ListManage/SaveNewCustomer" />
+<input id="GuestOTP" name="GuestOTP" type="hidden" value="/ListManage/GuestOTP" />
+<input id="ValidateGuestOTP" name="ValidateGuestOTP" type="hidden" value="/ListManage/ValidateGuestOTP" />
+<input id="OTPSendToChangePassword" name="OTPSendToChangePassword" type="hidden" value="/ListManage/OTPSendToChangePassword" />
+<input id="ChangePassword" name="ChangePassword" type="hidden" value="/ListManage/ChangePassword" />
+
+
+<input id="SaveCustomerAccountDetails" name="SaveCustomerAccountDetails" type="hidden" value="/ListManage/SaveCustomerAccountDetails" />
+<input id="SaveCustomerAddress" name="SaveCustomerAddress" type="hidden" value="/ListManage/SaveCustomerAddress" />
+<input id="SaveCustomerChangedPassword" name="SaveCustomerChangedPassword" type="hidden" value="/ListManage/SaveCustomerChangedPassword" />
+<input id="UpdateAddressDetails" name="UpdateAddressDetails" type="hidden" value="/ListManage/UpdateAddressDetails" />
+
+
+<input id="CustomerLogin" name="CustomerLogin" type="hidden" value="/Home/CustomerLogin" />
+<input id="CustomerLogout" name="CustomerLogout" type="hidden" value="/Home/CustomerLogout" />
+<input id="CheckForAgeCheckDialog" name="CheckForAgeCheckDialog" type="hidden" value="/Home/CheckForAgeCheckDialog" />
+
+
+<input id="LoadItemDescription" name="LoadItemDescription" type="hidden" value="/ListManage/LoadItemDescription" />
+<input id="LoadChildItemDescription" name="LoadChildItemDescription" type="hidden" value="/ListManage/LoadChildItemDescription" />
+<input id="AddToWishList" name="AddToWishList" type="hidden" value="/Item/AddToWishList" />
+<input id="LoadWishList" name="LoadWishList" type="hidden" value="/Item/LoadWishList" />
+<input id="WishListItemRemove" name="WishListItemRemove" type="hidden" value="/Item/WishListItemRemove" />
+
+
+<input id="SubmitCustomerReview" name="SubmitCustomerReview" type="hidden" value="/ListManage/SubmitCustomerReview" />
+<input id="LoadCustomerReviews" name="LoadCustomerReviews" type="hidden" value="/ListManage/LoadCustomerReviews" />
+<input id="CustomerFeedback" name="CustomerFeedback" type="hidden" value="/ListManage/CustomerFeedback" />
+<input id="CustomerMissingItem" name="CustomerMissingItem" type="hidden" value="/ListManage/CustomerMissingItem" />
+
+
+<input id="LoadItemCatlog" name="LoadItemCatlog" type="hidden" value="/Item/LoadItemCatlog" />
+<input id="LoadFilteredCatlog" name="LoadFilteredCatlog" type="hidden" value="/Item/LoadFilteredCatlog" />
+
+
+<input id="ItemAddToCart" name="ItemAddToCart" type="hidden" value="/Item/ItemAddToCart" />
+<input id="ItemUpdateFromCart" name="ItemUpdateFromCart" type="hidden" value="/Item/ItemUpdateFromCart" />
+<input id="ItemRemoveFromCart" name="ItemRemoveFromCart" type="hidden" value="/Item/ItemRemoveFromCart" />
+<input id="GotoCartPage" name="GotoCartPage" type="hidden" value="/home/itemcart" />
+
+
+<input id="GoToHome" name="GoToHome" type="hidden" value="/" />
+<input id="GoToProducts" name="GoToProducts" type="hidden" value="/Home/Products" />
+<input id="GotoCheckOutPage" name="GotoCheckOutPage" type="hidden" value="/Home/CheckOut" />
+<input id="CheckExistingUser" name="CheckExistingUser" type="hidden" value="/Home/CheckExistingUser" />
+<input id="OrderConfirmed" name="OrderConfirmed" type="hidden" value="/Home/OrderConfirmed" />
+<input id="CCAvenuePayment" name="CCAvenuePayment" type="hidden" value="/Home/CCAvenuePayment" />
+<input id="ConvergePayment" name="ConvergePayment" type="hidden" value="/Home/ConvergePayment" />
+<input id="CalculateCityTaxFromZip" name="CalculateCityTaxFromZip" type="hidden" value="/Home/CalculateCityTaxFromZip" />
+<input id="GetTransactionStatus" name="GetTransactionStatus" type="hidden" value="/Home/GetTransactionStatus" />
+<input id="GetZoneWiseChargeFromZipcode" name="GetZoneWiseChargeFromZipcode" type="hidden" value="/Home/GetZoneWiseChargeFromZipcode" />
+<input id="GetCustomShippingCharge" name="GetCustomShippingCharge" type="hidden" value="/Home/GetCustomShippingCharge" />
+<input id="ClearAllCartBlob" name="ClearAllCartBlob" type="hidden" value="/Home/ClearAllCartBlob" />
+<input id="ValidateCoupon" name="ValidateCoupon" type="hidden" value="/Item/ValidateCoupon" />
+
+
+<input id="LoadAllOrder" name="LoadAllOrder" type="hidden" value="/Home/LoadAllOrder" />
+<input id="CancelWebOrder" name="CancelWebOrder" type="hidden" value="/Home/CancelWebOrder" />
+<input id="ReturnWebOrder" name="ReturnWebOrder" type="hidden" value="/Home/ReturnWebOrder" />
+<input id="ConfirmModifiedOrder" name="ConfirmModifiedOrder" type="hidden" value="/Home/ConfirmModifiedOrder" />
+<input id="FindOrderFromNumber" name="FindOrderFromNumber" type="hidden" value="/ListManage/FindOrderFromNumber" />
+<input id="DownloadInvoice" name="DownloadInvoice" type="hidden" value="/Home/DownloadInvoice" />
+
+
+<input id="CalculateTestShippingCharge" name="CalculateTestShippingCharge" type="hidden" value="/Home/CalculateTestShippingCharge" />
+<input id="LoadShippingRateListGrid" name="LoadShippingRateListGrid" type="hidden" value="/Home/LoadShippingRateListGrid" />
+<input id="LoadRateClass" name="LoadRateClass" type="hidden" value="/Home/LoadRateClass" />
+<input id="GetDetailsFromZipCode" name="GetDetailsFromZipCode" type="hidden" value="/Home/GetDetailsFromZipCode" />
+<input id="CheckDeliveryZipCode" name="CheckDeliveryZipCode" type="hidden" value="/Home/CheckDeliveryZipCode" />
+
+
+<input id="GetNotificationData" name="GetNotificationData" type="hidden" value="/Home/GetNotificationData" />
+<input id="SetNotificationData" name="SetNotificationData" type="hidden" value="/Home/SetNotificationData" />
+<input id="NotifyMe" name="NotifyMe" type="hidden" value="/ListManage/NotifyMe" />
+
+
+
+
+    <script type="text/javascript" src="/js/ClientJS/WebCommon.js?v=12"></script>
+    <script>
+        var WebsiteInMobileView = GetIsMobileView();
+    </script>
+    <script type="text/javascript" src="/js/ConfirmBox/CustomConfirmBox.js"></script>
+    <script type="text/javascript" src="/js/ConfirmBox/jquery-confirm.min.js"></script>
+    <script type="text/javascript" src="/js/jquery-ui.min.js"></script>
+    <script type="text/javascript" src="/js/bootstrap/js/bootstrap.min.js"></script>
+    <script type="text/javascript" src="/js/jquery.easing-1.3.min.js"></script>
+    <script type="text/javascript" src="/js/jquery.dcjqaccordion.min.js"></script>
+    <script type="text/javascript" src="/js/owl.carousel.min.js"></script>
+    <script type="text/javascript" src="/js/toastr.min.js"></script>
+    <script type="text/javascript" src="/js/custom.js?v=12"></script>
+    <script type="text/javascript" src="/js/ClientJS/EcommItem.js?v=12"></script>
+
+    <script type="text/javascript" src="/js/ClientJS/CustomerNew.js?v=12"></script>
+    <script type="text/javascript" src="/js/ClientJS/EcommCart.js?v=12"></script>
+    <script type="text/javascript" src="/js/ClientJS/CatalogItems.js?v=12"></script>
+    <script type="text/javascript" src="/js/ClientJS/WebOrderHistory.js?v=12"></script>
+</body>
+</html>
+<script>
+    //$(document).ready(function () {
+    //    if (navigator.userAgent.toLowerCase().indexOf("android") > -1) {
+    //        if (confirm("Open in app ?")) {
+    //            window.location = "https://play.google.com/store/apps/details?id=com.flipkart.android";
+    //        }
+    //    }
+    //    if (navigator.userAgent.toLowerCase().indexOf("iphone") > -1) {
+    //        if (confirm("Open in app ?")) {
+    //            window.location = 'https://apps.apple.com/in/app/flipkart-online-shopping-app/id742044692';
+    //        }
+    //    }
+    //});
+
+    var isOnIOS = navigator.userAgent.match(/iPad/i) || navigator.userAgent.match(/iPhone/i);
+    var eventName = isOnIOS ? "pagehide" : "beforeunload";
+
+    var eventName2 = isOnIOS ? "pageshow" : "onload";
+
+    window.addEventListener(eventName, function (event) {
+        $('#ClientHomeLoader').show();
+    });
+    window.addEventListener(eventName2, function (event) {
+        $('#ClientHomeLoader').hide();
+    });
+
+    var RootUrl = '/';
+
+    var hours = 1; // Reset when storage is more than 24hours
+    var now = new Date().getTime();
+    var setupTime = localStorage.getItem('setupTime');
+    let IsMobAppView = localStorage.getItem('IsMobAppView');
+
+    if (IsMobAppView == null || IsMobAppView == undefined || IsMobAppView == "null") {
+        CheckWebViewOrBrowserView();
+    }
+
+    //// Store the meta element
+    //var viewport_meta = document.getElementById('viewport-meta');
+
+    //// Define our viewport meta values
+    //var viewports = {
+    //    default: viewport_meta.getAttribute('content'),
+    //    mobileapp: "width=device-width, initial-scale=1, maximum-scale=1,minimum-scale=1, user-scalable=no"
+    //};
+
+    //// Change the viewport value based on screen.width
+    //var viewport_set = function () {
+    //    let IsMobAppView = localStorage.getItem('IsMobAppView');
+    //    if (IsMobAppView == "1")
+    //        viewport_meta.setAttribute('content', viewports.mobileapp);
+    //    else
+    //        viewport_meta.setAttribute('content', viewports.default);
+    //}
+
+    //function WindowResizeCalled() {
+    //    alert("1234");
+    //}
+
+    //$(window).resize(function () {
+    //    WindowResizeCalled();
+    //});
+
+    if (setupTime == null) {
+        localStorage.setItem('setupTime', now);
+        localStorage.setItem('StartupValidated', '0');
+    } else {
+        if (now - setupTime > hours * 60 * 60 * 1000) {
+            localStorage.setItem('StartupValidated', '0');
+            localStorage.setItem('StoreInfo', null);
+            localStorage.setItem('setupTime', now);
+            localStorage["ClientName"] = "";
+            localStorage["ClientEmail"] = "";
+            localStorage["CUSTOMER_ID"] = "";
+            localStorage["ENC_CUSTOMER_ID"] = "";
+            localStorage["CUST_SHIP_ZIPCODE"] = "";
+            localStorage["myCurrentZipCode"] = "";
+            localStorage.setItem('CartLatestDetails', null);
+            localStorage.setItem('OrderSummaryDetails', null);
+            localStorage.setItem('CartCount', null);
+            localStorage.setItem('CartBlob', null);
+            localStorage.setItem('IsMobAppView', '0');
+            CheckWebViewOrBrowserView();
+        }
+    }
+
+    function CheckWebViewOrBrowserView() {
+        var standalone = window.navigator.standalone,
+            userAgent = window.navigator.userAgent.toLowerCase(),
+            safari = /safari/.test(userAgent),
+            ios = /iphone|ipod|ipad/.test(userAgent);
+
+        if (ios) {
+            if (!standalone && safari) {
+                localStorage.setItem('IsMobAppView', '0'); //--ios Broswer
+            } else if (!standalone && !safari) {
+                localStorage.setItem('IsMobAppView', '1'); //--ios AppWebView
+            };
+        } else {
+            if (userAgent.includes('wv')) {
+                localStorage.setItem('IsMobAppView', '1'); //--Android Browser
+            } else {
+                localStorage.setItem('IsMobAppView', '0'); //--Android AppWebView
+            }
+        };
+    }
+
+    $(document).mouseup(function (e) {
+        if ($(e.target).closest(".search-form-tigger").length!=1 && $(e.target).closest("#SearchFormInputGroup").length === 0) {
+            CloseSearchForm();
+        }
+    });
+
+    $(document).ready(function () {
+        let IsMobAppView = localStorage.getItem('IsMobAppView');
+        if (IsMobAppView != undefined && IsMobAppView != null && IsMobAppView != "null") {
+
+            let _ismob = parseInt(IsMobAppView);
+            $("#lblIsMobAppView").text(_ismob);
+            if (_ismob == 0) {
+                DisplayCookies();
+                //getLocation();
+            }
+        }
+        else {
+            $("#lblIsMobAppView").text("0");
+            DisplayCookies();
+            //getLocation();
+        }
+
+        //getLocation();
+        $('.dropdown-toggle').click(function (event) {
+            if ($('.search-form-wrapper').hasClass('open')) {
+                CloseSearchForm();
+            }
+            if ($(this).attr("data-IsCartClicked") == undefined && $("#NoItemsInCart").is(":visible")) {
+                $("#NoItemsInCart").css("display", "none");
+            }
+            if ($('#navbar-close').hasClass('hidden') == false && $(this).attr("data-IsProductMenu") == undefined) {
+                $('#btnInMobileMenu').click();
+            }
+            //$("#btnInMobileMenu").trigger("onclick");
+        });
+
+        $('[data-toggle=search-form]').click(function () {
+            $('.search-form-wrapper').toggleClass('open');
+            $('.search-form-wrapper .search').focus();
+            $('html').toggleClass('search-form-open');
+            if ($("#NoItemsInCart").is(":visible")) {
+                $("#NoItemsInCart").css("display", "none");
+            }
+            if ($('html').hasClass('search-form-open') && $('#navbar-close').hasClass('hidden') == false) {
+                $('#btnInMobileMenu').click();
+            }
+            if ($('#SearchAnchorTag').hasClass('activeMenuInMobile'))
+                $('#SearchAnchorTag').removeClass('activeMenuInMobile');
+            else
+                $('#SearchAnchorTag').addClass('activeMenuInMobile');
+        });
+
+        $('[data-toggle=search-form-close]').click(function () {
+            CloseSearchForm();
+        });
+        $('.search-close').click(function (event) {
+            CloseSearchForm();
+        });
+
+        $('.search-form-wrapper .search').keypress(function (event) {
+            if ($(this).val() == "Search") $(this).val("");
+        });
+
+        $('#navbar2').on('shown.bs.collapse', function () {
+            if ($('html').hasClass('search-form-open')) {
+                CloseSearchForm();
+            }
+            if ($(this).attr("data-IsCartClicked") == undefined && $("#NoItemsInCart").is(":visible")) {
+                $("#NoItemsInCart").css("display", "none");
+            }
+            $('#navbar-hamburger').addClass('hidden');
+            $('#navbar-close').removeClass('hidden');
+            $('#btnInMobileMenu').addClass('activeMenuInMobile');
+        }).on('hidden.bs.collapse', function () {
+            CloseMobileMenu();
+        });
+
+        //let StartupValidated=localStorage.getItem('StartupValidated');
+        //if (StartupValidated == null || StartupValidated == "null" || StartupValidated == "0")
+        //  $("#StartUpModal").modal();
+
+        SumbitStartUpFormFinal();
+    });
+
+    function DisplayCookies() {
+        jQuery(function ($) {
+            checkCookie_eu();
+            function checkCookie_eu() {
+                var consent = getCookie_eu("cookies_consent");
+                if (consent == null || consent == "" || consent == undefined) {
+                    // show notification bar
+                   $('#cookie_directive_container').show();
+                }
+            }
+            function setCookie_eu(c_name, value, exdays) {
+                var exdate = new Date();
+                exdate.setDate(exdate.getDate() + exdays);
+                var c_value = escape(value) + ((exdays == null) ? "" : "; expires=" + exdate.toUTCString());
+                document.cookie = c_name + "=" + c_value + "; path=/";
+                $('#cookie_directive_container').hide('slow');
+            }
+            function getCookie_eu(c_name) {
+                var i, x, y, ARRcookies = document.cookie.split(";");
+                for (i = 0; i < ARRcookies.length; i++) {
+                    x = ARRcookies[i].substr(0, ARRcookies[i].indexOf("="));
+                    y = ARRcookies[i].substr(ARRcookies[i].indexOf("=") + 1);
+                    x = x.replace(/^\s+|\s+$/g, "");
+                    if (x == c_name) {
+                        return unescape(y);
+                    }
+                }
+            }
+            $("#btn_I_accept").click(function () {
+                setCookie_eu("cookies_consent", 1, 1825);
+            });
+        });
+    }
+
+    $("#LIOfProductsUL").hover(function () {
+        CloseSearchForm();
+    });
+
+    $("#LIOfAccountUL").hover(function () {
+        CloseSearchForm();
+    });
+
+    $("#DivRenderBody").mouseup(function (e) {
+        if ($("#MobUserOnClickLi").attr("data-isOpen") == "1") {
+            OpenCloseSubMenu_User(true);
+        }
+        if ($("#MobMenuOnClickLi").attr("data-isOpen") == "1") {
+            OpenCloseSubMenu_Menu(true);
+        }
+    });
+
+    $(function () {
+        $.widget("custom.catcomplete", $.ui.autocomplete, {
+            _create: function () {
+                this._super();
+                this.widget().menu("option", "items", "> :not(.ui-autocomplete-category)");
+            },
+            //_renderMenu: function (ul, items) {
+            //    var that = this,
+            //        currentCategory = "";
+            //    $.each(items, function (index, item) {
+            //        var li;
+            //        if (item.category != currentCategory) {
+            //            ul.append("<li class='ui-autocomplete-category'>" + item.category + "</li>");
+            //            currentCategory = item.category;
+            //        }
+            //        li = that._renderItemData(ul, item);
+            //        if (item.category) {
+            //            li.attr("aria-label", item.category + " : " + item.label);
+            //        }
+            //    });
+            //}
+        });
+
+        $("#searchresult").catcomplete({
+            delay: 0,
+            minLength: 3,
+            source: function (request, response) {
+                var URL = $("#GetSearchResult").val();
+
+                if (request.term != "") {
+                    $.ajax({
+                        url: URL,
+                        type: "POST",
+                        dataType: 'json',
+                        data: JSON.stringify({ SearchTerm: request.term}),
+                        contentType: "application/json; charset=utf-8",
+                        success: function (data) {
+                            if (data.StatusVal == false) {
+                                AlertPermision(data.StatusMsg);
+                                return false;
+                            }
+
+                            response($.map(data.Data.lstFilterResult, function (item) {
+                                return {
+                                    label: item.label,
+                                    value: item.value,
+                                    ID: item.ID,
+                                };
+                            }));
+
+                            return true;
+                        },
+                        error: function (result) {
+                            //AlertFailed("Error: Load Filter");
+                            return false;
+                        },
+                    });
+                }
+            },
+            select: function (event, ui) {
+
+                    ItemDescription(ui.item.ID);
+                //}
+            }
+        });
+    });
+
+    var $star_rating = $('#DivReviewRatingBox .star-rating .glyphicon');
+
+    var SetRatingStar = function () {
+        return $star_rating.each(function () {
+            if (parseInt($star_rating.siblings('input.rating-value').val()) >= parseInt($(this).data('rating'))) {
+                return $(this).removeClass('glyphicon-star-empty').addClass('glyphicon-star');
+            } else {
+                return $(this).removeClass('glyphicon-star').addClass('glyphicon-star-empty');
+            }
+        });
+    };
+
+    $star_rating.on('click', function () {
+        $star_rating.siblings('input.rating-value').val($(this).data('rating'));
+        return SetRatingStar();
+    });
+
+
+    function CloseSearchForm() {
+        $('#SearchAnchorTag').removeClass('activeMenuInMobile');
+        $('.search-form-wrapper').removeClass('open');
+        $('html').removeClass('search-form-open');
+    }
+
+    function CloseMobileMenu() {
+        $('#navbar-hamburger').removeClass('hidden');
+        $('#navbar-close').addClass('hidden');
+        $('#btnInMobileMenu').removeClass('activeMenuInMobile');
+    }
+
+    function OpenAboutUsPage() {
+        let PageID = $("#btnAboutUs").text();
+        if (PageID != "")
+            OpenDynamicPage(PageID);
+    }
+
+    function OpenDeliveryPage() {
+        let PageID = $("#btnDelivery").text();
+        if (PageID != "")
+            OpenDynamicPage(PageID);
+    }
+
+    function OpenDepFromSlider(DEP_ID) {
+        window.location.href = '/Item/ItemCatalog?DEP_ID=' + DEP_ID + '&CAT_ID=0&ONSALE=0&SUBCAT_ID=0';
+    }
+     function OpenCatFromSlider(CAT_ID) {
+        window.location.href = '/Item/ItemCatalog?DEP_ID=0&CAT_ID=' + CAT_ID + '&ONSALE=0&SUBCAT_ID=0';
+    }
+    function OpenCustomLinkFromSlider(Link) {
+        window.open(Link, '_blank');
+    }
+    function getLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(showPosition, showError);
+        }
+        else {
+            //x.innerHTML = "Geolocation is not supported by this browser.";
+        }
+    }
+
+    function showPosition(position) {
+        lat = position.coords.latitude;
+        lon = position.coords.longitude;
+        let locURL = "https://maps.googleapis.com/maps/api/geocode/json?latlng=";
+        locURL += lat + "," + lon + "&key=AIzaSyBGYXzLZ51MokcyNTiF_HpnCuMngOb-o0M";
+        var settings = {
+            "url": locURL,
+            "method": "GET",
+            "timeout": 0,
+        };
+
+        $.ajax(settings).done(function (response) {
+            let CountryName = "";
+            if (response.results != null && response.results.length > 0) {
+                for (var i = 0; i < response.results.length; i++) {
+                    if (CountryName != "")
+                        break;
+                    for (var k = 0; k < response.results[i].address_components.length; k++) {
+                        let existIndex = response.results[i].address_components[k].types.findIndex(v => v == "country");
+                        if (existIndex != -1) {
+                            CountryName = response.results[i].address_components[k]["short_name"];
+                            break;
+                        }
+                    }
+                }
+                if (CountryName.toUpperCase() == "US")
+                    window.location.href = "http://US.BAPS.Store";
+                else if (CountryName.toUpperCase() == "CA")
+                    window.location.href = "http://CA.BAPS.Store";
+            }
+        });
+    }
+
+    function showError(error) {
+        switch (error.code) {
+            case error.PERMISSION_DENIED:
+                //x.innerHTML = "User denied the request for Geolocation."
+                break;
+            case error.POSITION_UNAVAILABLE:
+                //x.innerHTML = "Location information is unavailable."
+                break;
+            case error.TIMEOUT:
+                //x.innerHTML = "The request to get user location timed out."
+                break;
+            case error.UNKNOWN_ERROR:
+                //x.innerHTML = "An unknown error occurred."
+                break;
+        }
+    }
+
+</script>
