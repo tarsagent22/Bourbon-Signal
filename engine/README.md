@@ -24,6 +24,36 @@ npm run or              # Oregon Liquor Search age-gated product/store drilldown
 npm run browser:discover # generic rendered/API discovery for configured difficult states
 ```
 
+## Measured state-expansion workflow
+
+Broad state improvements use the repository-enforced task packet and timing ledger from the repository root:
+
+```bash
+npm run engine:expansion -- init --state=GA --objective="Increase fresh exact-store Georgia inventory"
+# Fill only discoveryCommands, then execute the four read-only lanes.
+npm run engine:expansion -- discover --packet=.operator/engine-expansions/GA/task-packet.json
+# Use their artifacts to fill/freeze baseline, source dispositions, trust,
+# customer path, acceptance floors, exact phase commands, and rollback.
+npm run engine:expansion -- verify --packet=.operator/engine-expansions/GA/task-packet.json
+npm run engine:expansion -- phase --packet=.operator/engine-expansions/GA/task-packet.json --name=contract-freeze
+npm run engine:expansion -- phase --packet=.operator/engine-expansions/GA/task-packet.json --name=implementation
+npm run engine:expansion -- summary --ledger=.operator/engine-expansions/GA/timings.jsonl
+```
+
+The `live-probe` and `production-verification` commands must finish by writing six numeric metrics (`knownStores`, `liveStores`, `alertGradeStores`, `representedAreas`, `freshExactStoreDrops`, and `alertableStaleRows`) to a JSON file and invoking:
+
+```bash
+npm run engine:expansion -- acceptance --packet=<packet> --metrics=<metrics.json> --phase=live-probe
+```
+
+The helper atomically binds fresh acceptance evidence to the run ID, frozen packet digest, phase, HEAD, diff, and—on production verification—current `origin/main`. The phase fails if it reuses an old artifact or misses a floor.
+
+The runner requires a clean worktree based on current `origin/main`, creates an immutable run ID, requires a fresh state task packet and one writer, executes the four read-only discovery lanes with global concurrency at most three, prevents same-domain browser overlap, and records machine-readable durations/outcomes bound to the packet digest, state, base/head commits, diff digest, and configured-command digest. Phase commands are read only from the frozen packet—`--command` overrides are rejected. An exclusive writer lock and atomic attempt reservation prevent overlapping mutating phases. The runner enforces the contract-freeze → focused tests → one live probe → diff freeze → one full validation → one final review → guarded release order, evaluates the packet's acceptance floors from a fresh evidence artifact after live and production verification, and rejects repeated broad-gate attempts regardless of outcome. Use a narrow affected-test follow-up after a bounded finding; start a fresh run if the frozen contract itself changes.
+
+Browser discovery is endpoint-only: images, fonts, media, ads, and analytics are suppressed while scripts/XHR/fetch stay available. It uses adaptive network settling and processes independent domains in parallel, with one page active per domain. Captured endpoint evidence or fixtures accelerate development but never count as current inventory.
+
+Florida's independent top-level source lanes also run through a bounded three-way pool and retain source-level timings, while every lane remains sequential within its domain and continues to honor aborts, rate limits, freshness, and stale non-alertability.
+
 ## Stable website-facing contract
 
 `npm run export:site` writes integration-safe files under `out/site/`:

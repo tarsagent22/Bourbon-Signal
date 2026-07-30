@@ -6,6 +6,7 @@ import path from 'node:path';
 import { createRequire } from 'node:module';
 import { randomUUID } from 'node:crypto';
 import { stableId, stripHtml, titleCase } from '../core/text.mjs';
+import { runBoundedSourceLanes } from '../core/bounded-source-pool.mjs';
 import { collectNorthCarolinaIntelligence } from './north-carolina-intelligence.mjs';
 import { freshCityHivePositiveSignals, normalizeCityHiveReportedQuantity, oldestSourceEvidenceCohort, reconcileCityHiveRateLimitsWithCache, rotatingSourceCohort } from './cityhive-hardening.mjs';
 import { attachConfiguredStoreIdentity, configuredStoreId, isTerminalProbeFailure, summarizeRepeatedPlatformFailures } from './probe-hardening.mjs';
@@ -970,6 +971,7 @@ const FL_TARGET_STORES = new Map([
   ...FLORIDA_TAMPA_TARGET_STORES,
 ]);
 const FL_TARGET_COHORT_SIZE = Math.max(1, Math.min(6, Number(process.env.BOURBON_SIGNAL_FL_TARGET_COHORT_SIZE) || 4));
+const FL_SOURCE_CONCURRENCY = Math.max(1, Math.min(3, Number(process.env.BOURBON_SIGNAL_FL_SOURCE_CONCURRENCY) || 3));
 const FL_CITYHIVE_PAGE_DELAY_MS = Math.max(300, Math.min(5_000, Number(process.env.BOURBON_SIGNAL_FL_CITYHIVE_PAGE_DELAY_MS) || 500));
 const FL_CITYHIVE_SOURCE_DELAY_MS = Math.max(1_000, Math.min(10_000, Number(process.env.BOURBON_SIGNAL_FL_CITYHIVE_SOURCE_DELAY_MS) || 2_000));
 const FL_CITYHIVE_FALLBACK_MAX_AGE_MS = Math.max(30 * 60_000, Number(process.env.BOURBON_SIGNAL_FL_CITYHIVE_FALLBACK_MAX_AGE_MS) || 6 * 60 * 60_000);
@@ -4198,7 +4200,7 @@ async function collectFloridaMdp(config, bible, observedAt, options = {}) {
         break;
       }
     }
-    await sleep(FL_MDP_DELAY_MS);
+    await sleepWithSignal(FL_MDP_DELAY_MS, options.signal);
   }
   if (!signals.length && returnedProducts > 0) roadblocks.push({ state: config.id, source: 'MDP Liquor Kissimmee Shopify store inventory', url: FL_MDP_PRODUCTS_BASE_URL, status: 'reachable_no_safe_inventory_rows', error: `Shopify returned ${returnedProducts} products but no safely matched available bourbon rows.`, nextRoute: 'Inspect product titles and variant availability without weakening bottle or geography guards.' });
   return { signals, roadblocks };
@@ -4349,7 +4351,7 @@ async function collectFloridaShopifyRetailers(config, bible, observedAt, options
               raw: { chain: retailer.chain, merchantId: 'luekens-shopify', productId: product.id, variant: { id: variant.id, sku: variant.sku, available: true }, pickupVerified: true, pickupAddress: store.observedAddress }
             });
           }
-          await sleep(500);
+          await sleepWithSignal(500, options.signal);
           continue;
         }
         if (!retailer.store) {
@@ -4373,7 +4375,7 @@ async function collectFloridaShopifyRetailers(config, bible, observedAt, options
           raw: { chain: retailer.chain, merchantId: `${retailer.id}-shopify`, productId: product.id, variant: { id: variant.id, sku: variant.sku, available: true }, pickupVerified: true }
         });
       }
-      await sleep(500);
+      await sleepWithSignal(500, options.signal);
     }
     if (!productCount) roadblocks.push({ state: 'FL', source: retailer.label, url: retailer.productsUrl, status: 'reachable_no_products', error: 'No Shopify products returned.', nextRoute: 'Inspect public catalog response shape.' });
   }
@@ -4646,12 +4648,25 @@ async function collectFloridaLiquorDepot(config, bible, observedAt, options = {}
 async function collectFlorida(config, bible, existingSignals = [], options = {}) {
   const observedAt = new Date().toISOString();
   const configuredLocations = buildFloridaConfiguredStoreLocationSignals(observedAt);
-  const mdp = await collectFloridaMdp(config, bible, observedAt, options);
-  const target = await collectFloridaTarget(config, bible, observedAt, existingSignals, options);
+  const laneRun = await runBoundedSourceLanes([
+    { name: 'mdp', domain: 'mdp-florida', run: ({ signal }) => collectFloridaMdp(config, bible, observedAt, { ...options, signal }) },
+    { name: 'target', domain: 'target.com', run: ({ signal }) => collectFloridaTarget(config, bible, observedAt, existingSignals, { ...options, signal }) },
+    { name: 'shopify', domain: 'florida-shopify-group', run: ({ signal }) => collectFloridaShopifyRetailers(config, bible, observedAt, { ...options, signal }) },
+    { name: 'abc', domain: 'abcfws.com', run: ({ signal }) => collectFloridaAbc(config, bible, observedAt, { ...options, signal }) },
+    { name: 'cityhive', domain: 'florida-cityhive-group', run: ({ signal }) => collectFloridaCityHive(config, bible, observedAt, { ...options, signal }) },
+    { name: 'gaspars', domain: 'gasparsliquorshoppe.com', run: ({ signal }) => collectFloridaGaspars(config, bible, observedAt, { ...options, signal }) },
+    { name: 'liquor-depot', domain: 'liquordepottampa.com', run: ({ signal }) => collectFloridaLiquorDepot(config, bible, observedAt, { ...options, signal }) },
+  ], {
+    concurrency: options.sourceConcurrency ?? FL_SOURCE_CONCURRENCY,
+    signal: options.signal,
+  });
+  const lanes = new Map(laneRun.results.map((result) => [result.name, result.value]));
+  const mdp = lanes.get('mdp');
+  const target = lanes.get('target');
   const targetSignals = mergeFloridaTargetProbeHistory(existingSignals, target.signals);
-  const shopify = await collectFloridaShopifyRetailers(config, bible, observedAt, options);
-  const abc = await collectFloridaAbc(config, bible, observedAt, options);
-  const cityHive = await collectFloridaCityHive(config, bible, observedAt, options);
+  const shopify = lanes.get('shopify');
+  const abc = lanes.get('abc');
+  const cityHive = lanes.get('cityhive');
   const liveCityHiveIds = new Set(cityHive.signals.map((signal) => signal.id));
   const retainedCityHive = freshCityHivePositiveSignals(
     existingSignals,
@@ -4667,11 +4682,15 @@ async function collectFlorida(config, bible, existingSignals = [], options = {})
     retainedSignals: retainedCityHive,
   });
   cityHive.roadblocks.splice(0, cityHive.roadblocks.length, ...reconciledCityHive.roadblocks);
-  const gaspars = await collectFloridaGaspars(config, bible, observedAt, options);
-  const liquorDepot = await collectFloridaLiquorDepot(config, bible, observedAt, options);
+  const gaspars = lanes.get('gaspars');
+  const liquorDepot = lanes.get('liquor-depot');
   return {
     signals: [...configuredLocations, ...mdp.signals, ...targetSignals, ...shopify.signals, ...abc.signals, ...cityHive.signals, ...gaspars.signals, ...liquorDepot.signals],
     roadblocks: [...mdp.roadblocks, ...target.roadblocks, ...shopify.roadblocks, ...abc.roadblocks, ...cityHive.roadblocks, ...gaspars.roadblocks, ...liquorDepot.roadblocks],
+    metadata: {
+      sourceConcurrency: laneRun.concurrency,
+      sourceTimings: laneRun.timings,
+    },
   };
 }
 
