@@ -132,8 +132,8 @@ assert.ok(mississippi, "Mississippi is represented in the public nationwide cove
 assert.equal(mississippi.capability, "focused", "reviewed sparse exact-store coverage must remain active without implying statewide depth");
 assert.deepEqual(mississippi.layers, {
   known: 690,
-  probeable: 6,
-  catalogWatch: 0,
+  probeable: 8,
+  catalogWatch: 1,
   live: 4,
   alertGrade: 0,
 });

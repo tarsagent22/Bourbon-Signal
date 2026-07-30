@@ -11,7 +11,7 @@ import { buildMississippiRunPlan } from './collectors/mississippi-run-plan.mjs';
 import { MISSISSIPPI_RETAILER_SOURCES } from './collectors/mississippi-retailer-surfaces.mjs';
 import { MISSISSIPPI_TAP_SOURCE_POLICY } from './discovery/mississippi-package-directory.mjs';
 import { validateMississippiSourceAtlas } from './discovery/source-atlas.mjs';
-import { isMississippiRetailerInventory } from './mississippi-retailer-policy.mjs';
+import { isMississippiRetailerInventory, isMississippiRetailerReleaseWatch } from './mississippi-retailer-policy.mjs';
 import { getStateLifecycle, STATE_LIFECYCLE_CONFIG } from './state-lifecycle.mjs';
 import { validateImmutablePromotionEvidence } from './reliability-policy.mjs';
 import { verifyMississippiReleasePolicy } from './mississippi-release-policy.mjs';
@@ -206,15 +206,21 @@ export function validateMississippiShadowEvidenceArtifact(evidence, {
     }
     assert.ok(Array.isArray(trustedReport.signals));
     const retailerSignals = trustedReport.signals.filter((signal) => registeredRuntimeIds.has(signal.sourceRuntimeId));
+    const sourceByRuntimeId = new Map(MISSISSIPPI_RETAILER_SOURCES.map((source) => [source.sourceRuntimeId, source]));
     const liveStoreIds = new Set();
     const liveRegions = new Set();
     for (const signal of retailerSignals) {
-      assert.equal(allowedRuntimeIds.has(signal.sourceRuntimeId), true, 'Source-policy-blocked retailers cannot emit shadow inventory rows.');
-      assert.equal(isMississippiRetailerInventory(signal), true, 'Shadow retailer signal does not satisfy exact Mississippi inventory identity.');
+      assert.equal(allowedRuntimeIds.has(signal.sourceRuntimeId), true, 'Source-policy-blocked retailers cannot emit shadow rows.');
+      const source = sourceByRuntimeId.get(signal.sourceRuntimeId);
+      if (source?.platform === 'godaddy_release_watch') {
+        assert.equal(isMississippiRetailerReleaseWatch(signal), true, 'Shadow release-watch signal does not satisfy exact Mississippi non-inventory identity.');
+      } else {
+        assert.equal(isMississippiRetailerInventory(signal), true, 'Shadow retailer signal does not satisfy exact Mississippi inventory identity.');
+        if (signal.storeId) liveStoreIds.add(signal.storeId);
+        if (signal.regionId) liveRegions.add(signal.regionId);
+      }
       assert.equal(signal.canAlertAsInventory, false);
       assert.equal(signal.canAlertAsWatch, false);
-      if (signal.storeId) liveStoreIds.add(signal.storeId);
-      if (signal.regionId) liveRegions.add(signal.regionId);
     }
     assert.ok(liveStoreIds.size >= 4, 'Sparse Mississippi shadow evidence requires at least four exact stores with current safe inventory rows.');
     assert.ok(liveRegions.size >= 2, 'Sparse Mississippi shadow evidence requires live exact-store rows across at least two reviewed regions.');
@@ -336,19 +342,20 @@ export function verifyMississippiResearchFoundation() {
     currentStores: 690,
     unresearched: 0,
     finalDispositions: 690,
-    inventoryCapable: 6,
-    blockedOrOfflineOrProbeOnly: 11,
+    inventoryCapable: 7,
+    blockedOrOfflineOrProbeOnly: 10,
   });
-  assert.equal(atlas.stores.filter((store) => store.disposition === 'directory_only').length, 673);
-  assert.equal(atlas.stores.filter((store) => store.disposition === 'blocked_by_source_policy').length, 7);
+  assert.equal(atlas.stores.filter((store) => store.disposition === 'directory_only').length, 672);
+  assert.equal(atlas.stores.filter((store) => store.disposition === 'blocked_by_source_policy').length, 6);
   assert.equal(atlas.stores.filter((store) => store.disposition === 'source_offline').length, 2);
   assert.equal(atlas.stores.filter((store) => store.disposition === 'platform_probe_only').length, 2);
+  assert.equal(atlas.stores.filter((store) => store.disposition === 'release_watch').length, 1);
   assert.ok(atlas.researchMethod.statewideDirectoryReviewed);
   assert.ok(atlas.stores.filter((store) => store.disposition === 'directory_only')
     .every((store) => store.firstPartyDomains.length === 0));
 
-  assert.equal(registry.stores.length, 8);
-  assert.deepEqual(new Set(registry.stores.map((store) => store.permitNumber)), new Set(['046478', '040562', '029254', '044692', '044411', '049222', '051851', '007481']));
+  assert.equal(registry.stores.length, 10);
+  assert.deepEqual(new Set(registry.stores.map((store) => store.permitNumber)), new Set(['046478', '040562', '029254', '044692', '044411', '049222', '051851', '007481', '041265', '047419']));
   assert.deepEqual(registry.stores.filter((store) => store.platform === 'gotoliquorstore').map((store) => ({
     controlStoreId: store.controlStoreId,
     merchantId: store.merchantId,
@@ -356,7 +363,7 @@ export function verifyMississippiResearchFoundation() {
     { controlStoreId: '1031', merchantId: '955132' },
     { controlStoreId: '1069', merchantId: '736142' },
   ]);
-  assert.equal(new Set(registry.stores.map((store) => store.sourceRuntimeId)).size, 8);
+  assert.equal(new Set(registry.stores.map((store) => store.sourceRuntimeId)).size, 10);
   assert.deepEqual(new Set(MISSISSIPPI_RETAILER_SOURCES.map((source) => source.sourceRuntimeId)), new Set(registry.stores.map((store) => store.sourceRuntimeId)));
 
   assert.equal(lifecycle.publicStatus, 'active');
@@ -427,14 +434,14 @@ export function verifyMississippiShadowReadiness() {
   const research = verifyMississippiResearchFoundation();
   const health = readJson('../data/source-health/MS.json');
   const plan = buildMississippiRunPlan();
-  assert.equal(plan.partitions.length, 6);
-  assert.equal(new Set(plan.partitions.map((partition) => partition.id)).size, 6);
+  assert.equal(plan.partitions.length, 8);
+  assert.equal(new Set(plan.partitions.map((partition) => partition.id)).size, 8);
   assert.ok(plan.partitions.every((partition) => partition.sourceScopedLastGood));
   assert.equal(health.lifecycle, 'sparse_live_store_inventory');
-  assert.equal(health.inventorySources, 6);
+  assert.equal(health.inventorySources, 7);
   assert.equal(health.directorySourcePolicyStatus, 'source_policy_blocked');
   assert.equal(health.directoryAutonomousRequestsAllowed, false);
-  assert.equal(health.blockedBySourcePolicy, 7);
+  assert.equal(health.blockedBySourcePolicy, 6);
   assert.equal(health.sourceOffline, 2);
   assert.equal(health.platformProbeOnly, 2);
   assert.equal(health.alertableSources, 0);

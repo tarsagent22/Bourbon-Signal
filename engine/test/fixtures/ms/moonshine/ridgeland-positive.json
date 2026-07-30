@@ -1,0 +1,7 @@
+{
+  "product_store": "<div class=\"card\"><button data-product-template-id=\"5386\" data-product-product-id=\"6387\"></button><a itemprop=\"url\" href=\"/shop/buffalo-trace-bourbon-limit-1-order-5386\"><h5 class=\"sltech_name_part\"> Buffalo Trace Bourbon (Limit 1/order) </h5><h5 class=\"sltech_price_part\"> 750ml &nbsp;$ 46.99 </h5></a></div>",
+  "available_store_tab": "<h5>Available from these stores</h5><ul><li><a href=\"https://www.moonshinems.com/ridgelandwinespirit\"><h6>Ridgeland Wine &amp; Spirits</h6></a><p>Ridgeland Mississippi</p><h6 class=\"price\">Price: $46.99</h6><div class=\"action_area\"><form action=\"/shop/cart/update\"><input class=\"product_id store_wise_product_id\" name=\"product_id\" value=\"6387\"/><input name=\"seller_id\" id=\"seller_id\" value=\"767\"/><select name=\"add_qty\"><option value=\"1\">1</option></select></form></div></li></ul>",
+  "moonshine_seller_id": 767,
+  "moonshine_seller_name": "Ridgeland Wine & Spirits",
+  "moonshine_seller_url": "https://www.moonshinems.com/ridgelandwinespirit"
+}

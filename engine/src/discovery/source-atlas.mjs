@@ -139,6 +139,33 @@ const INVENTORY_SOURCES = Object.freeze([
     inventoryAuthoritative: true,
     probeStatus: 'inventory_capable_binary_orderability',
   },
+  {
+    permitNumber: '041265',
+    disposition: 'live_inventory',
+    sourceLayer: 'private_retailer_inventory',
+    firstPartyDomains: ['www.moonshinems.com'],
+    platform: 'moonshine',
+    platformIds: { sellerId: '767' },
+    evidenceUrls: ['https://www.moonshinems.com/ridgelandwinespirit', 'https://www.moonshinems.com/moonshine/homepage/sliders'],
+    ecommerce: true,
+    pickup: false,
+    exactStoreOrderability: true,
+    inventoryAuthoritative: true,
+    probeStatus: 'inventory_capable_binary_cart_orderability',
+  },
+  {
+    permitNumber: '047419',
+    disposition: 'release_watch',
+    sourceLayer: 'retailer_release_watch',
+    firstPartyDomains: ['premiumwineandliquor.com', 'adf6c00c-b93f-4bbe-80c6-03e4a97b5a0a.mysimplestore.com'],
+    platform: 'godaddy_release_watch',
+    platformIds: { merchantId: 'adf6c00c-b93f-4bbe-80c6-03e4a97b5a0a', storeId: '214b9772-46b0-454f-a908-23657dd9121b' },
+    evidenceUrls: ['https://premiumwineandliquor.com/online-shopping/ols/all', 'https://adf6c00c-b93f-4bbe-80c6-03e4a97b5a0a.mysimplestore.com/api/v2/products?page=1&per_page=100'],
+    ecommerce: true,
+    pickup: true,
+    inventoryAuthoritative: false,
+    probeStatus: 'release_watch_capable_non_inventory',
+  },
 ]);
 
 const BOTTLECAPPS_PROBES = Object.freeze([
@@ -168,13 +195,6 @@ const BOTTLECAPPS_PROBES = Object.freeze([
     firstPartyDomains: ['grapevineliquorandwine.com'],
     platformIds: { siteId: '11795' },
     evidenceUrls: ['https://grapevineliquorandwine.com/'],
-    probeStatus: 'blocked_by_source_policy',
-  },
-  {
-    permitNumber: '047419',
-    firstPartyDomains: ['mabrysfinewineandspirits.com'],
-    platformIds: {},
-    evidenceUrls: ['https://mabrysfinewineandspirits.com/'],
     probeStatus: 'blocked_by_source_policy',
   },
   {
@@ -304,7 +324,7 @@ export function buildMississippiSourceAtlas(universe) {
       directoryOnlyRule: 'directory_only is used only after the statewide method found no verified first-party inventory source; no per-store website is fabricated.',
       inventoryAuthorityRule: 'Only exact first-party host, permit, merchant/store ID, premises, pickup/orderability, product identity, and safe-format evidence may authorize inventory.',
       directoryCaptureRule: 'TAP robots policy is User-agent: * / Disallow: /. Autonomous TAP collection is source_policy_blocked and makes no request. The checked-in universe comes from a reviewed one-time operator-supplied capture; refresh requires an official permitted export or API.',
-      blockedSourceRule: 'Two exact GoToLiquorStore storefronts are manually readable but return 403 to the production HTTP client, so they remain blocked_by_source_policy rather than using an alternate-client or anti-bot bypass. Five remaining BottleCapps first-party domains currently return DataDome 403; Oxford Wine & Spirits and Sipology fail DNS; two exact-permit Google Play discoveries are platform_probe_only/app_only_no_public_inventory. Madison Cellars\' BottleCapps surface remains blocked, but its separate public Moonshine seller route is authorized and inventory-capable. All blocked, offline, and app-only routes remain health-visible and nonalertable.',
+      blockedSourceRule: 'Two exact GoToLiquorStore storefronts are manually readable but return 403 to the production HTTP client, so they remain blocked_by_source_policy rather than using an alternate-client or anti-bot bypass. Four remaining BottleCapps first-party domains currently return DataDome 403; Oxford Wine & Spirits and Sipology fail DNS; two exact-permit Google Play discoveries are platform_probe_only/app_only_no_public_inventory. Madison Cellars\' BottleCapps surface remains blocked, but its separate public Moonshine seller route is authorized and inventory-capable. Mabry\'s separate first-party GoDaddy release surface is authorized as non-inventory watch evidence. All blocked, offline, and app-only routes remain health-visible and nonalertable.',
       officialIntelligenceRule: 'DOR permits, SPA, pricing, bailment, and wholesale documents are directory or intelligence only and never bottle inventory.',
       dispositionLedger: {
         contractVersion: REVIEW_DISPOSITIONS.contractVersion,

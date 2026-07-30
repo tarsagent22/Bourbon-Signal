@@ -20,9 +20,11 @@
       "retailer:ms:moonshine:2118",
       "retailer:ms:moonshine:7",
       "retailer:ms:moonshine:1882",
-      "retailer:ms:cityhive:669150d28f28f1287440bdce"
+      "retailer:ms:cityhive:669150d28f28f1287440bdce",
+      "retailer:ms:moonshine:767",
+      "retailer:ms:godaddy:adf6c00c-b93f-4bbe-80c6-03e4a97b5a0a"
     ],
-    "registration": "Six allowed exact first-party CityHive and Moonshine retailers run through independent source adapters. Two exact GoTo adapters remain registered but source-policy-blocked, make no autonomous requests, and stay health-visible. MS is absent from LEGACY_PRECISION_RUNTIME_STATES."
+    "registration": "Seven exact first-party inventory retailers and one bounded first-party release-watch source run through independent source adapters. Two exact GoTo adapters remain registered but source-policy-blocked, make no autonomous requests, and stay health-visible. MS is absent from LEGACY_PRECISION_RUNTIME_STATES."
   },
   "storeIdentity": {
     "mode": "permit_derived_exact_allowlist",
@@ -32,7 +34,7 @@
   "sourceSemantics": {
     "directory": "Exactly 690 current Package Retailer permits across 168 cities and 78 counties; searchable identity only.",
     "officialIntelligence": "DOR catalog, SPA, pricing, bailment, wholesale, and policy documents are intelligence only and never bottle inventory.",
-    "availability": "Six exact first-party storefronts are monitored for binary local orderability. Shadow evidence repeatedly produced fresh exact-store rows from four stores across two reviewed regions. quantity is 0 and quantityIsExact is false.",
+    "availability": "Seven exact first-party storefronts are monitored for binary local orderability, and Mabry's bounded first-party surface contributes non-inventory release-watch evidence. Existing promotion evidence produced fresh exact-store rows from four stores across two reviewed regions. Inventory quantity is 0 and quantityIsExact is false; release-watch rows cannot imply shelf count or fulfillment.",
     "inventoryAlertable": false,
     "watchAlertable": false,
     "initialObservationPolicy": "baseline_site_only"
@@ -40,7 +42,7 @@
   "customerPaths": {
     "coverage": {
       "status": "verified",
-      "assertion": "Coverage exposes Mississippi as sparse exact-store inventory with 690 known stores, six probeable storefronts, four currently live stores, and zero alert-grade stores."
+      "assertion": "Coverage exposes Mississippi as sparse exact-store inventory with 690 known stores, eight probeable first-party sources, one non-inventory release-watch source, four currently live stores, and zero alert-grade stores."
     },
     "stateFilter": {
       "status": "verified",
@@ -72,7 +74,7 @@
     },
     "monitoring": {
       "status": "verified",
-      "assertion": "Eight independent retailer runtime IDs and blocked/offline/probe-only BottleCapps entries remain represented in source health."
+      "assertion": "Ten independent retailer runtime IDs and blocked/offline/probe-only BottleCapps entries remain represented in source health."
     },
     "export": {
       "status": "verified",

@@ -68,7 +68,8 @@ export const STATE_LIFECYCLE_CONFIG = {
       "MO",
       "NV",
       "WA",
-      "WI"
+      "WI",
+      "MS"
     ],
     "stateExpectedRunMs": {
       "TX": 420000,
@@ -585,12 +586,12 @@ export const STATE_LIFECYCLE_CONFIG = {
       "watchAlertable": false,
       "coverageLayerCounts": {
         "known": 690,
-        "probeable": 6,
-        "catalogWatch": 0,
+        "probeable": 8,
+        "catalogWatch": 1,
         "live": 4,
         "alertGrade": 0
       },
-      "customerSummary": "Sparse first-party Mississippi retailer inventory across DeSoto County and the Jackson–Madison area. Exact-store binary orderability is visible on-site when freshly observed; no exact bottle count is claimed, outbound alerts remain disabled, and customers should verify before driving.",
+      "customerSummary": "Sparse first-party Mississippi retailer inventory across DeSoto County and the Jackson–Madison area, plus conservative non-inventory release-watch evidence. Exact-store binary orderability is visible on-site when freshly observed; no exact bottle count is claimed, release-watch evidence stays nonalertable, outbound alerts remain disabled, and customers should verify before driving.",
       "promotionEvidence": {
         "shadowRuns": 3,
         "canaryRuns": 2,
