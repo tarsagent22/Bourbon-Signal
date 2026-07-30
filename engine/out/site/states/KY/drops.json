@@ -1,6 +1,6 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-07-30T12:17:06.201Z",
+  "generatedAt": "2026-07-16T22:59:25.184Z",
   "state": "KY",
   "count": 1,
   "drops": [
@@ -68,6 +68,6 @@
       "evidence": "Buffalo Trace public product-availability page lists Single Oak Rye Bourbon for the Gift Shop on 2026-07-18: Single Oak Rye Bourbon is available. $74.99, 375mL. *Limit one bottle per person, per day. While supplies last."
     }
   ],
-  "runId": "3fdeb482b09e73ee",
-  "engineGeneratedAt": "2026-07-30T11:25:27.951Z"
+  "runId": "a7401de0a51cca45",
+  "engineGeneratedAt": "2026-07-16T22:57:36.743Z"
 }

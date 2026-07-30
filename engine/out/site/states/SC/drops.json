@@ -1,6 +1,6 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-07-30T12:17:06.201Z",
+  "generatedAt": "2026-07-16T22:59:25.184Z",
   "state": "SC",
   "count": 3,
   "drops": [
@@ -52,16 +52,13 @@
       "policyMode": "policy_only",
       "canAlertAsInventory": false,
       "canAlertAsWatch": false,
-      "sourceStale": true,
-      "staleSourceCaveat": true,
+      "sourceStale": false,
+      "staleSourceCaveat": null,
       "dataLane": "informational",
       "informationalOnly": true,
       "inventoryCaveat": "Informational/watch data only; not live shelf inventory.",
       "inventorySemantics": "South Carolina DOR ABL official pages expose licensing/regulatory context only. Do not present as bottle availability. Whitelisted public retailer inventory rows are evaluated separately with retailer-published availability caveats.",
-      "evidence": "Liquor Store Near Me Myrtle Beach WooCommerce Store API lists Old Forester Birthday Bourbon with in-stock flag. Conservative inventory signal from catalog feed; confirm stock on site or in-store.",
-      "stale": true,
-      "staleReason": "preserved_state_fallback",
-      "alertable": false
+      "evidence": "Liquor Store Near Me Myrtle Beach WooCommerce Store API lists Old Forester Birthday Bourbon with in-stock flag. Conservative inventory signal from catalog feed; confirm stock on site or in-store."
     },
     {
       "id": "d2273e9f90f39d1e",
@@ -111,16 +108,13 @@
       "policyMode": "policy_only",
       "canAlertAsInventory": false,
       "canAlertAsWatch": false,
-      "sourceStale": true,
-      "staleSourceCaveat": true,
+      "sourceStale": false,
+      "staleSourceCaveat": null,
       "dataLane": "informational",
       "informationalOnly": true,
       "inventoryCaveat": "Informational/watch data only; not live shelf inventory.",
       "inventorySemantics": "South Carolina DOR ABL official pages expose licensing/regulatory context only. Do not present as bottle availability. Whitelisted public retailer inventory rows are evaluated separately with retailer-published availability caveats.",
-      "evidence": "Liquor Store Near Me Myrtle Beach WooCommerce Store API lists Michter’s 20 Year Bourbon with in-stock flag. Conservative inventory signal from catalog feed; confirm stock on site or in-store.",
-      "stale": true,
-      "staleReason": "preserved_state_fallback",
-      "alertable": false
+      "evidence": "Liquor Store Near Me Myrtle Beach WooCommerce Store API lists Michter’s 20 Year Bourbon with in-stock flag. Conservative inventory signal from catalog feed; confirm stock on site or in-store."
     },
     {
       "id": "1e37154dfc1dd78d",
@@ -170,18 +164,15 @@
       "policyMode": "policy_only",
       "canAlertAsInventory": false,
       "canAlertAsWatch": false,
-      "sourceStale": true,
-      "staleSourceCaveat": true,
+      "sourceStale": false,
+      "staleSourceCaveat": null,
       "dataLane": "informational",
       "informationalOnly": true,
       "inventoryCaveat": "Informational/watch data only; not live shelf inventory.",
       "inventorySemantics": "South Carolina DOR ABL official pages expose licensing/regulatory context only. Do not present as bottle availability. Whitelisted public retailer inventory rows are evaluated separately with retailer-published availability caveats.",
-      "evidence": "Liquor Store Near Me Myrtle Beach WooCommerce Store API lists Blanton’s Single Barrel with in-stock flag. Conservative inventory signal from catalog feed; confirm stock on site or in-store.",
-      "stale": true,
-      "staleReason": "preserved_state_fallback",
-      "alertable": false
+      "evidence": "Liquor Store Near Me Myrtle Beach WooCommerce Store API lists Blanton’s Single Barrel with in-stock flag. Conservative inventory signal from catalog feed; confirm stock on site or in-store."
     }
   ],
-  "runId": "3fdeb482b09e73ee",
-  "engineGeneratedAt": "2026-07-30T11:25:27.951Z"
+  "runId": "a7401de0a51cca45",
+  "engineGeneratedAt": "2026-07-16T22:57:36.743Z"
 }

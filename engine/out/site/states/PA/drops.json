@@ -1,6 +1,6 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-07-30T12:17:06.201Z",
+  "generatedAt": "2026-07-16T22:59:25.184Z",
   "state": "PA",
   "count": 2,
   "drops": [
@@ -55,17 +55,14 @@
       "confidence": 0.9,
       "policyMode": "alert_store_inventory_pickup_api",
       "canAlertAsInventory": false,
-      "canAlertAsWatch": false,
-      "sourceStale": true,
-      "staleSourceCaveat": true,
+      "canAlertAsWatch": true,
+      "sourceStale": false,
+      "staleSourceCaveat": null,
       "dataLane": "actionable_watch",
       "informationalOnly": false,
       "inventoryCaveat": "Informational/watch data only; not live shelf inventory.",
       "inventorySemantics": "FWGS browser/CDP collection uses the Oracle Commerce store-location endpoint plus /ccstorex/custom/v1/b2b/get-inventory to collect pickup quantity by SKU and store. Direct server fetch is Akamai/session gated, so scheduled collection needs a browser-assisted session bootstrap.",
-      "evidence": "FWGS Oracle Commerce hydration lists Willett Family Estate Single Barrel Straight Rye Whiskey 12 Year Old (100049616) at $579.99 with status IN_STOCK and 56 orderable/in-stock unit(s). This is statewide FWGS online/search inventory, not per-store shelf inventory; store-specific pickup still needs fulfillment/store API extraction.",
-      "stale": true,
-      "staleReason": "preserved_state_fallback",
-      "alertable": false
+      "evidence": "FWGS Oracle Commerce hydration lists Willett Family Estate Single Barrel Straight Rye Whiskey 12 Year Old (100049616) at $579.99 with status IN_STOCK and 56 orderable/in-stock unit(s). This is statewide FWGS online/search inventory, not per-store shelf inventory; store-specific pickup still needs fulfillment/store API extraction."
     },
     {
       "id": "f354af509c8134a9",
@@ -117,19 +114,16 @@
       "confidence": 0.9,
       "policyMode": "alert_store_inventory_pickup_api",
       "canAlertAsInventory": false,
-      "canAlertAsWatch": false,
-      "sourceStale": true,
-      "staleSourceCaveat": true,
+      "canAlertAsWatch": true,
+      "sourceStale": false,
+      "staleSourceCaveat": null,
       "dataLane": "actionable_watch",
       "informationalOnly": false,
       "inventoryCaveat": "Informational/watch data only; not live shelf inventory.",
       "inventorySemantics": "FWGS browser/CDP collection uses the Oracle Commerce store-location endpoint plus /ccstorex/custom/v1/b2b/get-inventory to collect pickup quantity by SKU and store. Direct server fetch is Akamai/session gated, so scheduled collection needs a browser-assisted session bootstrap.",
-      "evidence": "FWGS Oracle Commerce hydration lists Yellowstone Straight Bourbon Limited Edition 2025 (100055223) at $99.99 with status IN_STOCK and 104 orderable/in-stock unit(s). This is statewide FWGS online/search inventory, not per-store shelf inventory; store-specific pickup still needs fulfillment/store API extraction.",
-      "stale": true,
-      "staleReason": "preserved_state_fallback",
-      "alertable": false
+      "evidence": "FWGS Oracle Commerce hydration lists Yellowstone Straight Bourbon Limited Edition 2025 (100055223) at $99.99 with status IN_STOCK and 104 orderable/in-stock unit(s). This is statewide FWGS online/search inventory, not per-store shelf inventory; store-specific pickup still needs fulfillment/store API extraction."
     }
   ],
-  "runId": "3fdeb482b09e73ee",
-  "engineGeneratedAt": "2026-07-30T11:25:27.951Z"
+  "runId": "a7401de0a51cca45",
+  "engineGeneratedAt": "2026-07-16T22:57:36.743Z"
 }
