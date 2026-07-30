@@ -1,0 +1,13 @@
+{
+  "generatedAt": "2026-07-30T11:39:37.995Z",
+  "stateCoverage": {
+    "states": [
+      {
+        "state": "MS",
+        "coverageTier": "sparse_live_store_inventory",
+        "lifecycle": "retailer_store_inventory",
+        "signalCount": 1
+      }
+    ]
+  }
+}

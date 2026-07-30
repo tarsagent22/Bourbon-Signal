@@ -85,7 +85,9 @@ export function canonicalizeSignal(signal, bible) {
     key: stableId([key]),
     sourceSignalId: signal.id,
     state: signal.state,
+    stateCode: signal.stateCode || signal.state,
     bottleId,
+    canonicalBottleId: bottleId,
     canonicalName,
     tier: record?.tier || null,
     producer: record?.producer || null,
@@ -93,6 +95,7 @@ export function canonicalizeSignal(signal, bible) {
     sourceLabel: signal.sourceLabel,
     sourceUrl: signal.sourceUrl,
     sourceChain: signal.sourceChain || signal.raw?.chain || null,
+    sourceRuntimeId: signal.sourceRuntimeId || signal.raw?.sourceRuntimeId || null,
     merchantId: signal.merchantId || signal.raw?.merchantId || signal.raw?.option?.merchant_id || null,
     productId: signal.productId || signal.raw?.productId || signal.raw?.product?.id || signal.raw?.option?.product_id || null,
     productCode: signal.productCode || signal.raw?.product?.code || String(signal.sourceUrl || '').match(/productCode=([^&]+)/)?.[1] || null,
@@ -112,6 +115,7 @@ export function canonicalizeSignal(signal, bible) {
     locationName,
     storeName: signal.storeName || null,
     storeId: storeId ? String(storeId) : null,
+    permitNumber: signal.permitNumber || signal.raw?.permitNumber || null,
     storeAddress: signal.storeAddress || null,
     storeUrl: signal.storeUrl || signal.raw?.storeUrl || null,
     storePhone: signal.storePhone || signal.raw?.store?.PhoneNumber?.FormattedPhoneNumber || signal.raw?.store?.phone || null,
@@ -119,6 +123,7 @@ export function canonicalizeSignal(signal, bible) {
     shoppingCenter: signal.shoppingCenter || signal.raw?.store?.shoppingCenter || null,
     city: signal.city || null,
     county: signal.county || null,
+    regionId: signal.regionId || null,
     zip: signal.zip || signal.storeZip || signal.raw?.zip || signal.raw?.Zip || null,
     lat: optionalNumber(signal.lat, signal.latitude, signal.raw?.lat, signal.raw?.latitude, signal.raw?.Latitude),
     lng: optionalNumber(signal.lng, signal.lon, signal.longitude, signal.raw?.lng, signal.raw?.lon, signal.raw?.longitude, signal.raw?.Longitude),
@@ -131,6 +136,7 @@ export function canonicalizeSignal(signal, bible) {
     availabilityLabel: signal.availabilityLabel || signal.raw?.availability?.label || null,
     sourceAvailabilityVerified: signal.sourceAvailabilityVerified === true || signal.raw?.sourceAvailabilityVerified === true,
     premisesVerified: signal.premisesVerified === true || signal.raw?.premisesVerified === true,
+    pickupOfferVerified: signal.pickupOfferVerified === true || signal.raw?.pickupOfferVerified === true,
     fulfillmentPolicyVerified: signal.fulfillmentPolicyVerified === true,
     availabilityValue: signal.availabilityValue ?? signal.raw?.availability?.value ?? null,
     warehouseQty: Number(signal.warehouseQty ?? signal.raw?.warehouseQty ?? 0) || 0,
@@ -141,7 +147,9 @@ export function canonicalizeSignal(signal, bible) {
     policyMode: policy.policyMode,
     inventorySemantics: signal.state === 'GA' && signal.inventorySemantics
       ? signal.inventorySemantics
-      : policy.inventorySemantics,
+      : signal.state === 'MS' && signal.inventorySemantics
+        ? signal.inventorySemantics
+        : policy.inventorySemantics,
     locationValue: policy.locationValue,
     canAlertAsInventory: sourceAlertPolicy.canAlertAsInventory === false ? false : policy.canAlertAsInventory,
     canAlertAsWatch: sourceAlertPolicy.canAlertAsWatch === false ? false : policy.canAlertAsWatch,
@@ -149,7 +157,16 @@ export function canonicalizeSignal(signal, bible) {
     sourceStale: signal.sourceStale === true || virginiaInventoryExpired(signal),
     staleSourceCaveat: signal.staleSourceCaveat || (virginiaInventoryExpired(signal) ? 'Virginia ABC inventory is older than the 24-hour live-inventory window; verify with the store.' : null),
     sampleOnly: Boolean(signal.raw?.sampleOnly),
-    rawName: signal.rawName || null
+    rawName: signal.rawName || null,
+    raw: signal.state === 'MS' ? {
+      chain: signal.raw?.chain || signal.sourceChain || null,
+      merchantId: signal.raw?.merchantId || signal.merchantId || null,
+      controlStoreId: signal.raw?.controlStoreId || null,
+      displayedMerchantId: signal.raw?.displayedMerchantId || signal.merchantId || null,
+      platformStoreId: signal.raw?.platformStoreId || null,
+      permitNumber: signal.raw?.permitNumber || signal.permitNumber || null,
+      sourceRuntimeNonAlertable: signal.raw?.sourceRuntimeNonAlertable === true,
+    } : undefined
   };
 }
 

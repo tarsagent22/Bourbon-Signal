@@ -13,6 +13,7 @@ import { isArizonaRetailerInventory, isArizonaRetailerSignalIdentity } from './a
 import { isFloridaRetailerInventory, isFloridaRetailerSignalIdentity } from './florida-retailer-policy.mjs';
 import { isGeorgiaRetailerInventory, isGeorgiaRetailerSignalIdentity } from './georgia-retailer-policy.mjs';
 import { isIndianaRetailerInventory, isIndianaRetailerSignalIdentity } from './indiana-retailer-policy.mjs';
+import { isMississippiRetailerInventory } from './mississippi-retailer-policy.mjs';
 import { isMetroRetailerInventory, isMetroRetailerSignalIdentity } from './metro-retailer-policy.mjs';
 import { isTennesseeRetailerInventory, isTennesseeRetailerSignalIdentity } from './tennessee-retailer-policy.mjs';
 import { canPublishTennesseePartialEvidenceFallback } from './tennessee-verification-policy.mjs';
@@ -229,6 +230,7 @@ function publicSignal(signal, bible, freshness = null) {
   const isFlRetailerInventory = isFloridaRetailerInventory(signal);
   const isGaRetailerInventory = isGeorgiaRetailerInventory(signal);
   const isInRetailerInventory = signal.canAlertAsInventory === true && isIndianaRetailerInventory(signal);
+  const isMsSparseOnSiteInventory = isMississippiSparseOnSiteInventory(signal);
   const isMetroInventory = isMetroRetailerInventory(signal);
   const isInRetailerEvent = signal.state === 'IN'
     && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(String(signal.eventType || signal.type || ''));
@@ -251,6 +253,8 @@ function publicSignal(signal, bible, freshness = null) {
             : isGaRetailerInventory
               ? signal.inventorySemantics
             : isMetroInventory
+              ? signal.inventorySemantics
+            : isMsSparseOnSiteInventory
               ? signal.inventorySemantics
             : isInRetailerInventory
               ? 'Indiana is a private retail market. Identity-bound first-party retailer inventory and verified store-orderability rows may alert with a verify-before-driving caveat; binary availability is not an exact shelf count.'
@@ -290,6 +294,8 @@ function publicSignal(signal, bible, freshness = null) {
   const canAlertAsWatch = lifecycleAllowsWatchAlert(signal.state) && policyCanAlertAsWatch;
   const dataLane = isKyOfficialDistillery
     ? 'distillery_release_watch'
+    : isMsSparseOnSiteInventory
+      ? 'onsite_inventory'
     : canAlertAsInventory && signal.locationPrecision === 'store_level'
       ? 'actionable_inventory'
       : canAlertAsWatch
@@ -303,7 +309,9 @@ function publicSignal(signal, bible, freshness = null) {
   return {
     id: signal.key || signal.sourceSignalId || signal.id,
     state: signal.state,
+    stateCode: signal.stateCode || signal.state,
     bottleId: canonicalId,
+    canonicalBottleId: canonicalId,
     canonicalId,
     canonicalKey: preferOfficialSourceName ? null : (bibleRecord?.normalizedKey || null),
     bottleName: canonicalName,
@@ -314,8 +322,10 @@ function publicSignal(signal, bible, freshness = null) {
     producer: preferOfficialSourceName ? null : (signal.producer || bibleRecord?.producer || null),
     type: signal.eventType,
     source: signal.sourceLabel,
+    sourceLabel: signal.sourceLabel,
     sourceUrl: signal.sourceUrl,
     sourceChain: signal.sourceChain || signal.raw?.chain || null,
+    sourceRuntimeId: signal.sourceRuntimeId || signal.raw?.sourceRuntimeId || null,
     merchantId: signal.merchantId || signal.raw?.merchantId || signal.raw?.option?.merchant_id || null,
     productId: signal.productId || signal.raw?.product?.id || signal.raw?.option?.product_id || null,
     productHandle: signal.productHandle || signal.raw?.product?.handle || null,
@@ -340,6 +350,7 @@ function publicSignal(signal, bible, freshness = null) {
     locationName: signal.locationName,
     storeName: signal.storeName,
     storeId: signal.storeId,
+    permitNumber: signal.permitNumber || signal.raw?.permitNumber || null,
     storeAddress: signal.storeAddress,
     storeUrl: signal.storeUrl || null,
     storePhone: signal.storePhone || null,
@@ -350,6 +361,7 @@ function publicSignal(signal, bible, freshness = null) {
       ? demandMetroAreaLabel(signal.state)
       : null),
     county: signal.county,
+    regionId: signal.regionId || null,
     zip: signal.zip,
     lat: signal.lat,
     lng: signal.lng,
@@ -360,7 +372,7 @@ function publicSignal(signal, bible, freshness = null) {
     reportedQuantity: ['GA', 'TN', 'NY', 'CO', 'VA'].includes(signal.state) && signal.reportedQuantity != null && Number.isFinite(Number(signal.reportedQuantity))
       ? Number(signal.reportedQuantity)
       : null,
-    availabilityStatus: signal.availabilityStatus,
+    availabilityStatus: isMsSparseOnSiteInventory ? (signal.availabilityStatus || 'orderable') : signal.availabilityStatus,
     availabilityLabel: signal.availabilityLabel,
     sourceAvailabilityVerified: signal.sourceAvailabilityVerified === true,
     fulfillmentPolicyVerified: signal.fulfillmentPolicyVerified === true || signal.raw?.fulfillmentPolicyVerified === true,
@@ -369,9 +381,21 @@ function publicSignal(signal, bible, freshness = null) {
     warehouseQty: signal.warehouseQty || 0,
     price: signal.price || 0,
     confidence: Math.min(signal.confidence || 0, canAlertAsInventory && signal.locationPrecision === 'store_level' ? 0.86 : (signal.confidence || 0)),
-    policyMode: isCostcoWarehouseInventory ? 'alert_costco_warehouse_inventory_caveat' : isTnRetailerInventory || isScRetailerInventory || isAzRetailerInventory || isFlRetailerInventory || isGaRetailerInventory || isInRetailerInventory || isMetroInventory ? 'alert_retailer_store_inventory_caveat' : signal.policyMode,
+    policyMode: isMsSparseOnSiteInventory ? 'onsite_retailer_store_inventory_caveat' : isCostcoWarehouseInventory ? 'alert_costco_warehouse_inventory_caveat' : isTnRetailerInventory || isScRetailerInventory || isAzRetailerInventory || isFlRetailerInventory || isGaRetailerInventory || isInRetailerInventory || isMetroInventory ? 'alert_retailer_store_inventory_caveat' : signal.policyMode,
     canAlertAsInventory,
     canAlertAsWatch,
+    eligibleForOnSite: isMsSparseOnSiteInventory || canAlertAsInventory || canAlertAsWatch,
+    eligibleForDelivery: canAlertAsInventory || canAlertAsWatch,
+    raw: isMsSparseOnSiteInventory ? {
+      chain: signal.raw?.chain || signal.sourceChain || null,
+      sourceRuntimeId: signal.raw?.sourceRuntimeId || signal.sourceRuntimeId || null,
+      merchantId: signal.raw?.merchantId || signal.merchantId || null,
+      controlStoreId: signal.raw?.controlStoreId || null,
+      displayedMerchantId: signal.raw?.displayedMerchantId || signal.merchantId || null,
+      platformStoreId: signal.raw?.platformStoreId || null,
+      permitNumber: signal.raw?.permitNumber || signal.permitNumber || null,
+      sourceRuntimeNonAlertable: signal.raw?.sourceRuntimeNonAlertable === true,
+    } : undefined,
     sourceStale: signal.sourceStale === true || ohioFeedStaleCaveat(signal),
     staleSourceCaveat: signal.staleSourceCaveat || (ohioFeedStaleCaveat(signal) ? 'OHLQ collection is currently stale/blocked. This is the latest cached OHLQ status we have; verify on OHLQ or call the store before driving.' : null),
     dataLane,
@@ -388,6 +412,8 @@ function publicSignal(signal, bible, freshness = null) {
           ? 'First-party product orderability plus a separately fetched first-party pickup/collection policy for this single-location San Diego retailer. Exact shelf quantity is not published; verify pickup before driving.'
         : ['NY', 'CO'].includes(signal.state) && canAlertAsInventory
           ? 'Identity-bound first-party retailer availability at the exact configured premises. Binary orderability is not an exact count; verify pickup before driving.'
+        : isMsSparseOnSiteInventory
+          ? 'Sparse Mississippi first-party store orderability. No exact bottle count or hold is claimed; verify directly with the store before driving.'
         : canAlertAsInventory && signal.locationPrecision === 'store_level'
           ? 'Source-reported store availability. Fast-moving bottles may sell out quickly; verify directly with the store before driving.'
         : ['MD-MONTGOMERY', 'UT'].includes(signal.state)
@@ -407,7 +433,7 @@ function isFastMovingStoreInventory(signal) {
   const type = String(signal.eventType || signal.type || '').toLowerCase();
   const source = String(signal.sourceLabel || signal.source || '').toLowerCase();
   if (signal.locationPrecision !== 'store_level') return false;
-  if (!signalCanAlertAsInventory(signal)) return false;
+  if (!signalCanAlertAsInventory(signal) && !isMississippiSparseOnSiteInventory(signal)) return false;
   if (signal.state === 'NC' && source.includes('wake county abc store inventory search')) return true;
   return /store_inventory_result|cityhive_store_inventory_result|retailer_store_inventory_result|browser_assisted_store_inventory_(limited_supply|in_stock)/i.test(type);
 }
@@ -540,7 +566,7 @@ function buildBottles(signals, bible, bibleRecords = []) {
 
 export function buildStores(signals) {
   const storeSignals = signals.filter((s) => s.locationPrecision === 'store_level' && (s.storeName || s.locationName || s.storeAddress));
-  const inventorySignals = storeSignals.filter((signal) => signal.sourceAvailabilityVerified === true && signalCanAlertAsInventory(signal));
+  const inventorySignals = storeSignals.filter((signal) => signal.sourceAvailabilityVerified === true && (signalCanAlertAsInventory(signal) || isMississippiSparseOnSiteInventory(signal)));
   const sameStore = (left, right) => {
     if (left.storeId && right.storeId) return String(left.storeId) === String(right.storeId);
     return left.state === right.state
@@ -597,6 +623,17 @@ export function buildStores(signals) {
   return stores.sort((a, b) => a.state.localeCompare(b.state) || String(a.name).localeCompare(String(b.name)));
 }
 
+function isMississippiSparseOnSiteInventory(signal) {
+  const lifecycle = getStateLifecycle('MS');
+  return signal?.state === 'MS'
+    && lifecycle?.publicStatus === 'active'
+    && lifecycle?.coverageTier === 'sparse_live_store_inventory'
+    && signal?.stale !== true
+    && signal?.sourceStale !== true
+    && signal?.raw?.staleFallback !== true
+    && isMississippiRetailerInventory(signal);
+}
+
 function signalCanAlertAsInventory(signal) {
   if (signal.stale === true || signal.sourceStale === true || signal.raw?.staleFallback === true) return false;
   if (!lifecycleAllowsInventoryAlert(signal.state)) return false;
@@ -642,6 +679,7 @@ function dropPriority(signal) {
   if (isKentuckyDistilleryDrop(signal)) return 66;
   if (type === 'nc_statewide_warehouse_stock') return 58;
   if (signal.state === 'PA' && type === 'store_inventory_aggregate') return 56;
+  if (isMississippiSparseOnSiteInventory(signal)) return 49;
   if (signalCanAlertAsInventory(signal)) return 50;
   if (signal.state === 'MD-MONTGOMERY' && type === 'county_inventory_aggregate') return 32;
   if (signal.state === 'UT' && type === 'board_inventory_aggregate') return 31;
@@ -678,6 +716,9 @@ function isUserFacingDropSignal(signal) {
   if (type === 'store_inventory_result') {
     if (signal.state === 'ID') return precision === 'store_level' && Boolean(signal.storeId) && hasPositiveAvailabilityStatus(signal);
     return quantity > 0;
+  }
+  if (signal.state === 'MS' && /^(retailer_store_inventory_result|cityhive_store_inventory_result)$/.test(type)) {
+    return isMississippiSparseOnSiteInventory(signal);
   }
   if (signal.state === 'TN' && /^(retailer_store_inventory_result|cityhive_store_inventory_result)$/.test(type)) {
     return isTennesseeRetailerInventory(signal);
@@ -780,7 +821,7 @@ function publicDisplaySortTimestamp(signal, freshnessIndex) {
   return freshness?.eventAt || freshness?.firstSeenAt || signal.observedAt || signal.fetchedAt || freshness?.lastConfirmedAt || '';
 }
 
-function buildDrops(signals, bible, currentSignals = []) {
+export function buildDrops(signals, bible, currentSignals = []) {
   const seenSourceIds = new Set();
   const freshnessIndex = buildFreshnessIndex(signals, currentSignals);
   const currentKeys = new Set(currentSignals.map(signalFreshnessKey));
@@ -1507,6 +1548,7 @@ function stateCoverageTier(state) {
 
 function stateCoverageTesterValue(coverageTier) {
   if (coverageTier === 'live_store_inventory') return 'Live/store inventory where public source permits.';
+  if (coverageTier === 'sparse_live_store_inventory') return 'Sparse exact-store orderability from reviewed first-party retailers; verify before driving.';
   if (coverageTier === 'store_availability_status') return 'Official store availability status; verify before driving.';
   if (coverageTier === 'store_delivery_leads') return 'Official delivery/allocation leads; useful leads, not live shelf stock.';
   if (coverageTier === 'aggregate_inventory_watch') return 'Aggregate inventory, warehouse, or program-watch data; useful context, not exact store shelf stock.';

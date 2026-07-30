@@ -182,7 +182,7 @@ const HEALTH_LABELS: Record<CoverageHealth, string> = {
   "no-recent-update": "No recent update",
 };
 
-const LIVE_TIERS = new Set(["live_store_inventory", "store_availability_status"]);
+const LIVE_TIERS = new Set(["live_store_inventory", "store_availability_status", "sparse_live_store_inventory"]);
 const INTELLIGENCE_TIERS = new Set([
   "store_delivery_leads",
   "shipment_drop_intelligence",
@@ -380,6 +380,10 @@ function stateCapability(
     if (liveStores >= 5 && representedLiveCities >= 2) return "focused";
     return "intelligence";
   }
+  if (coverageTier === "sparse_live_store_inventory") {
+    if (liveStores >= 4) return "focused";
+    return "intelligence";
+  }
   if (coverageTier === "retailer_warehouse_inventory") return "intelligence";
   if (INTELLIGENCE_TIERS.has(coverageTier)) return "intelligence";
   return "not-active";
@@ -507,6 +511,12 @@ function visibilityCopy(
       cannotSee: ["Bottle counts, reservations, or a guarantee that an item remains on the shelf."],
     };
   }
+  if (coverageTier === "sparse_live_store_inventory") {
+    return {
+      canSee: ["Current identity-bound orderability from a small reviewed set of exact retailer premises."],
+      cannotSee: ["Statewide coverage, exact shelf counts, holds, or outbound inventory alerts; verify directly with the store before driving."],
+    };
+  }
   if (coverageTier === "store_delivery_leads") {
     return {
       canSee: ["Official store-level delivery and allocation leads."],
@@ -560,10 +570,12 @@ function buildState(args: {
   const locations = stateLocations(internalStateKey, args.locations);
   const storeRecords = stateStoreRecords(internalStateKey, args.locations, args.stores);
   const tier = cleanText(row?.coverageTier || lifecycleEntry?.coverageTier, 80);
-  const currentSource = sourceIsCurrentlyAvailable(lifecycleEntry, row, locations, storeRecords);
+  const configuredLayers = lifecycleEntry?.coverageLayerCounts;
+  const configuredLiveStores = nonnegativeLayerCount(configuredLayers?.live);
+  const currentSource = sourceIsCurrentlyAvailable(lifecycleEntry, row, locations, storeRecords) || configuredLiveStores > 0;
   const isLiveTier = LIVE_TIERS.has(tier);
   const liveStores = currentSource && isLiveTier
-    ? storeRecords.filter((store) => store.searchable && store.liveInventory).length
+    ? Math.max(storeRecords.filter((store) => store.searchable && store.liveInventory).length, configuredLiveStores)
     : 0;
   const alertGradeStores = currentSource && tier === "live_store_inventory" && lifecycleEntry?.inventoryAlertable !== false
     ? storeRecords.filter((store) => store.searchable && store.liveInventory && store.hasSignals).length
@@ -579,7 +591,6 @@ function buildState(args: {
     representedLiveCities,
   );
   const health = stateHealth(internalStateKey, capability, row, args.degradedStates, args.healthLimited);
-  const configuredLayers = lifecycleEntry?.coverageLayerCounts;
   const layers: CoverageLayerCounts = {
     known: Math.max(storeRecords.length, nonnegativeLayerCount(configuredLayers?.known)),
     probeable: Math.max(

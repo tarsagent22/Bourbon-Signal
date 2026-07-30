@@ -3,7 +3,7 @@
   "contractVersion": "bourbon-signal/ms-source-health@1",
   "state": "MS",
   "generatedAt": "2026-07-26T03:27:02.968Z",
-  "lifecycle": "research_only",
+  "lifecycle": "sparse_live_store_inventory",
   "directorySourcePolicyStatus": "source_policy_blocked",
   "directoryAutonomousRequestsAllowed": false,
   "inventorySources": 6,

@@ -23,6 +23,7 @@ export const STATE_LIFECYCLE_CONFIG = {
     "MI",
     "MN",
     "MO",
+    "MS",
     "NV",
     "WA",
     "WI",
@@ -562,10 +563,10 @@ export const STATE_LIFECYCLE_CONFIG = {
     },
     "MS": {
       "customerLabel": "Mississippi",
-      "sourceLabel": "Mississippi statewide directory + selected retailer research",
-      "publicStatus": "research_only",
-      "lifecycle": "hybrid_directory_retailer_research",
-      "coverageTier": "known_directory_selected_storefronts",
+      "sourceLabel": "Mississippi exact-store retailer inventory",
+      "publicStatus": "active",
+      "lifecycle": "retailer_store_inventory",
+      "coverageTier": "sparse_live_store_inventory",
       "refinementLevel": "region_city_store",
       "areaOptions": [
         "Northwest / DeSoto–Memphis fringe",
@@ -578,18 +579,30 @@ export const STATE_LIFECYCLE_CONFIG = {
         "Gulf Coast / Gulfport–Biloxi–Pascagoula",
         "Southwest / Natchez–Brookhaven–McComb–Vicksburg"
       ],
-      "promotionStage": "research_only",
-      "shadowEligible": true,
+      "promotionStage": "active",
+      "shadowEligible": false,
       "inventoryAlertable": false,
       "watchAlertable": false,
       "coverageLayerCounts": {
         "known": 690,
-        "probeable": 2,
+        "probeable": 6,
         "catalogWatch": 0,
-        "live": 0,
+        "live": 4,
         "alertGrade": 0
       },
-      "customerSummary": "Research-only Mississippi foundation: all 690 current Package Retailer permits are known. Two exact first-party storefronts are probeable; two additional exact storefront identities are source-policy-blocked. No Mississippi alerts or active inventory coverage are authorized."
+      "promotionEvidence": {
+        "immutableEvidence": {
+          "contractVersion": "bourbon-signal/state-promotion-evidence@1",
+          "state": "MS",
+          "sourceConfigHash": "c25ce153f4f4e2d4f17f797c3b5a4ef5baa6ae5f1ed219584facce3f2c47f521",
+          "sourceRevisionSha": "9f9419b90079f9a384f12000a14ee67143b32196",
+          "shadowEvidenceSha256": "abadeb4d2d16695192ac825553f94f86d2ebc9e162c2b53e0a7bcfc5b3e1cec5",
+          "canaryEvidenceSha256": "5b8b029e9d8f24be5dddee35920c22bf776a993b1453ea4a70cdd4629ad546cf",
+          "canaryInputSha256": "ca312fe8f1716ae4bafe2ee91917d9b51ccd2be1bda8d4b6b1f5b75af3dfc728",
+          "verifiedAt": "2026-07-30T11:39:37.995Z"
+        }
+      },
+      "customerSummary": "Sparse first-party Mississippi retailer inventory across DeSoto County and the Jackson–Madison area. Exact-store binary orderability is visible on-site when freshly observed; no exact bottle count is claimed, outbound alerts remain disabled, and customers should verify before driving."
     },
     "NV": {
       "customerLabel": "Nevada",

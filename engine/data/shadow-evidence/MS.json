@@ -1,0 +1,61 @@
+{
+  "contractVersion": "bourbon-signal/ms-shadow-evidence@2",
+  "state": "MS",
+  "sourceRevisionSha": "9f9419b90079f9a384f12000a14ee67143b32196",
+  "sourceTree": {
+    "engine/data/mississippi-retailer-registry.json": "b22738397ca85e523e972e8b45721513f3aecb87",
+    "src/config/mississippi-program.json": "5ce498250ddd53985087b88a290795feb84ef087",
+    "engine/src/collectors/mississippi-retailer-surfaces.mjs": "2ad9bb13ae975acd84c1a5f14bf174eb75479ac7",
+    "engine/src/collectors/mississippi-retailer-collector.mjs": "39b729d76df240321f82bd4fc943a7d6a8f7b896",
+    "engine/src/mississippi-retailer-policy.mjs": "3689a0eace204ad934501580c3b3fecf18ef6bcf",
+    "engine/src/collectors/mississippi-run-plan.mjs": "dbc092ddf51e0d58d64a82661f28beaff8e03ddd",
+    "engine/src/sources/source-adapter.mjs": "4325545201d1c676e5a1fdf6c24e487b4534b144",
+    "engine/src/sources/source-runner.mjs": "a84b8755906ce51f848a947bf9cc7bfbff94f9a8",
+    ".github/workflows/state-expansion-shadow.yml": "21837e32c9aa13bb870b88a7d5c0c53891661697",
+    "engine/src/run-expansion-shadow.mjs": "67929563ab0544d86e671b0d381ae42d525ef3a8"
+  },
+  "runs": [
+    {
+      "runId": "gha-30326676032-1",
+      "github": {
+        "repository": "tarsagent22/Bourbon-Signal",
+        "workflowRunId": 30326676032,
+        "runAttempt": 1,
+        "headSha": "9f9419b90079f9a384f12000a14ee67143b32196",
+        "artifactId": 8675918295,
+        "artifactName": "state-expansion-shadow-30326676032",
+        "artifactDigest": "sha256:6e67094230c23e720f0f83045eac03175773fa06243d7412c00cdb269a2a1942",
+        "evidenceRelativePath": "MS/2026-07-28T03-42-56-807Z/evidence.json",
+        "reportRelativePath": "MS/2026-07-28T03-42-56-807Z/report.json"
+      }
+    },
+    {
+      "runId": "gha-30433662576-1",
+      "github": {
+        "repository": "tarsagent22/Bourbon-Signal",
+        "workflowRunId": 30433662576,
+        "runAttempt": 1,
+        "headSha": "9fc60e8d681966cc754e0b4a7107ab3b3dedff5e",
+        "artifactId": 8716571598,
+        "artifactName": "state-expansion-shadow-30433662576",
+        "artifactDigest": "sha256:93e42030f5a0a46657098b207a7676a72c3f80b865dff933c09f9eed48243772",
+        "evidenceRelativePath": "MS/2026-07-29T07-58-52-253Z/evidence.json",
+        "reportRelativePath": "MS/2026-07-29T07-58-52-253Z/report.json"
+      }
+    },
+    {
+      "runId": "gha-30448010990-1",
+      "github": {
+        "repository": "tarsagent22/Bourbon-Signal",
+        "workflowRunId": 30448010990,
+        "runAttempt": 1,
+        "headSha": "9fc60e8d681966cc754e0b4a7107ab3b3dedff5e",
+        "artifactId": 8722298444,
+        "artifactName": "state-expansion-shadow-30448010990",
+        "artifactDigest": "sha256:a68d83b5272bae93fa284448b769570878bff217a6b2c964bbdd0204cce7d162",
+        "evidenceRelativePath": "MS/2026-07-29T11-33-29-295Z/evidence.json",
+        "reportRelativePath": "MS/2026-07-29T11-33-29-295Z/report.json"
+      }
+    }
+  ]
+}

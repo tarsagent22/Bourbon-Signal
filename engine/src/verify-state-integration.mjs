@@ -202,7 +202,15 @@ async function main() {
       continue;
     }
     if (!manifest) { failures.push(`${state}: no vertical-slice manifest found.`); continue; }
-    const site = await loadSite(siteDir, state);
+    const preReleaseSiteArtifact = manifest?.evidence?.production?.status === 'pending_release'
+      ? manifest?.evidence?.canary?.siteArtifact
+      : null;
+    const stateSiteDir = preReleaseSiteArtifact ? path.resolve(root, preReleaseSiteArtifact) : siteDir;
+    if (preReleaseSiteArtifact && !stateSiteDir.startsWith(`${path.resolve(root, 'engine/data/canary-site')}${path.sep}`)) {
+      failures.push(`${state}: pre-release site artifact escaped the checked-in canary-site root.`);
+      continue;
+    }
+    const site = await loadSite(stateSiteDir, state);
     failures.push(...verifyStateIntegration({ state, config, manifest, fixtures, site, sourceFiles, promotionEvidenceRequired: !canaryMode }).failures);
   }
   if (failures.length) throw new Error(failures.join('\n'));

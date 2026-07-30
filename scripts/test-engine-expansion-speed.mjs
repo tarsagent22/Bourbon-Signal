@@ -16,6 +16,7 @@ import {
   validateTaskPacket,
   verifyPhaseTransition,
 } from './lib/engine-expansion-speed.mjs';
+import { calculateStateExpansionMetrics } from './lib/state-expansion-runtime.mjs';
 
 function completePacket(state = 'GA') {
   const packet = createTaskPacket({ state, objective: 'Expand exact-store inventory safely.' });
@@ -175,6 +176,45 @@ test('frozen packet digest changes on mutation and acceptance floors are executa
   assert.equal(validateAcceptanceEvidence(packet, evidence, binding).ok, true);
   evidence.alertableStaleRows = 1;
   assert.equal(validateAcceptanceEvidence(packet, evidence, binding).ok, false);
+});
+
+test('state metrics count safe on-site-only exact stores as live without upgrading them to alert-grade', () => {
+  const observedAt = new Date().toISOString();
+  const row = {
+    state: 'MS',
+    eventType: 'retailer_store_inventory_result',
+    sourceLabel: 'Reviewed Mississippi retailer',
+    sourceUrl: 'https://retailer.example/shop/product/bottle-1',
+    canonicalBottleId: 'bb_test',
+    storeId: 'ms-permit-000001',
+    storeName: 'Reviewed Store',
+    storeAddress: '1 Main St Jackson MS 39201',
+    merchantId: 'merchant-1',
+    productId: 'bottle-1',
+    locationPrecision: 'store_level',
+    sourceAvailabilityVerified: true,
+    availabilityStatus: 'orderable',
+    eligibleForOnSite: true,
+    eligibleForDelivery: false,
+    canAlertAsInventory: false,
+    canAlertAsWatch: false,
+    observedAt,
+  };
+  assert.deepEqual(calculateStateExpansionMetrics({
+    stateCode: 'MS',
+    stateReport: { signals: [row] },
+    siteDrops: { drops: [row] },
+    knownStoreFloor: 690,
+    representedAreasFloor: 1,
+    minimumObservedAtMs: Date.parse(observedAt),
+  }), {
+    knownStores: 690,
+    liveStores: 1,
+    alertGradeStores: 0,
+    representedAreas: 1,
+    freshExactStoreDrops: 1,
+    alertableStaleRows: 0,
+  });
 });
 
 test('writer lock is exclusive and released explicitly', async () => {

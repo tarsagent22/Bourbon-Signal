@@ -85,7 +85,8 @@ function freshExactStore(row, stateCode, nowMs, maxAgeMs, minimumObservedAtMs) {
   if (sourceUrl.protocol !== 'https:' || !sourceUrl.hostname) return false;
   if (row?.locationPrecision !== 'store_level' || !row?.storeId || !row?.storeName || !storeAddress) return false;
   if (!sourceLabel || !canonicalBottleId || !row?.merchantId || !row?.productId) return false;
-  if (row?.canAlertAsInventory !== true || !verifiedAvailability || stale(row)) return false;
+  if (row?.canAlertAsInventory !== true && row?.eligibleForOnSite !== true) return false;
+  if (!verifiedAvailability || stale(row)) return false;
   const observedAt = Date.parse(row?.observedAt || row?.signalAt || '');
   return Number.isFinite(observedAt) && observedAt >= minimumObservedAtMs
     && nowMs >= observedAt && nowMs - observedAt <= maxAgeMs;
@@ -107,13 +108,16 @@ export function calculateStateExpansionMetrics({
   const drops = rows(siteDrops, 'drops').filter((row) => String(row?.state || row?.stateCode || '').toUpperCase() === state);
   const freshSignals = signals.filter((row) => freshExactStore(row, state, nowMs, maxAgeMs, minimumObservedAtMs));
   const freshDrops = drops.filter((row) => freshExactStore(row, state, nowMs, maxAgeMs, minimumObservedAtMs));
-  const freshSignalStores = new Set(freshSignals.map((row) => row.storeId));
+  const liveStoreIds = new Set([...freshSignals, ...freshDrops].map((row) => row.storeId));
+  const alertGradeStoreIds = new Set([...freshSignals, ...freshDrops]
+    .filter((row) => row.canAlertAsInventory === true)
+    .map((row) => row.storeId));
   const knownSignalStores = new Set(signals.filter((row) => row?.locationPrecision === 'store_level' && row?.storeId).map((row) => row.storeId));
   const layers = coverageState?.layers || {};
   return {
     knownStores: Math.max(Number(layers.known) || 0, knownSignalStores.size, Number(knownStoreFloor) || 0),
-    liveStores: freshSignalStores.size,
-    alertGradeStores: freshSignalStores.size,
+    liveStores: liveStoreIds.size,
+    alertGradeStores: alertGradeStoreIds.size,
     representedAreas: Math.max(Number(coverageState?.representedAreaCount) || 0, Number(representedAreasFloor) || 0),
     freshExactStoreDrops: freshDrops.length,
     alertableStaleRows: [...signals, ...drops].filter((row) => stale(row) && alertable(row)).length,

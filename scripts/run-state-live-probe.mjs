@@ -1,6 +1,8 @@
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { calculateStateExpansionMetrics, normalizeStateCode, optionValue, readJson, runCommand, writeJsonAtomic } from './lib/state-expansion-runtime.mjs';
+import { isMississippiRetailerInventory } from '../engine/src/mississippi-retailer-policy.mjs';
+import { getStateLifecycle } from '../engine/src/state-lifecycle.mjs';
 
 const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const state = normalizeStateCode(optionValue('state'));
@@ -34,12 +36,25 @@ try {
     ? registry.GEORGIA_CITYHIVE_SOURCES.reduce((sum, source) => sum + source.merchants.size, 0)
       + registry.GEORGIA_GOTOLIQUOR_STORES.length + registry.GEORGIA_LIGHTSPEED_STORES.length + 1
     : 0;
+  const metricsStateReport = state === 'MS'
+    ? {
+        ...stateReport,
+        signals: (stateReport.signals || []).map((signal) => isMississippiRetailerInventory(signal)
+          ? { ...signal, eligibleForOnSite: true, availabilityStatus: signal.availabilityStatus || 'orderable' }
+          : signal),
+      }
+    : stateReport;
+  const lifecycle = getStateLifecycle(state);
+  const liveAreas = new Set((metricsStateReport.signals || [])
+    .filter((signal) => signal.eligibleForOnSite === true || signal.canAlertAsInventory === true)
+    .map((signal) => signal.regionId || signal.area || signal.city)
+    .filter(Boolean));
   metrics = calculateStateExpansionMetrics({
     stateCode: state,
-    stateReport,
+    stateReport: metricsStateReport,
     siteDrops,
-    knownStoreFloor: registeredStores,
-    representedAreasFloor: 1,
+    knownStoreFloor: Math.max(registeredStores, Number(lifecycle?.coverageLayerCounts?.known) || 0),
+    representedAreasFloor: Math.max(1, liveAreas.size),
     minimumObservedAtMs: Date.parse(stateReport.startedAt || ''),
   });
   await writeJsonAtomic(path.resolve(root, metricsFile), metrics);

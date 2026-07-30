@@ -3,10 +3,10 @@
   "state": "MS",
   "lifecycle": {
     "customerLabel": "Mississippi",
-    "publicStatus": "research_only",
-    "promotionStage": "research_only",
-    "shadowEligible": true,
-    "coverageTier": "known_directory_selected_storefronts",
+    "publicStatus": "active",
+    "promotionStage": "active",
+    "shadowEligible": false,
+    "coverageTier": "sparse_live_store_inventory",
     "refinementLevel": "region_city_store",
     "inventoryAlertable": false,
     "watchAlertable": false
@@ -16,19 +16,23 @@
       "retailer:ms:gotoliquorstore:1031",
       "retailer:ms:gotoliquorstore:1069",
       "retailer:ms:cityhive:68ba2980113a7a29c2076fc3",
+      "retailer:ms:moonshine:323",
+      "retailer:ms:moonshine:2118",
+      "retailer:ms:moonshine:7",
+      "retailer:ms:moonshine:1882",
       "retailer:ms:cityhive:669150d28f28f1287440bdce"
     ],
-    "registration": "Two allowed exact first-party CityHive retailers run through independent source adapters in the direct Mississippi precision dispatch. Two exact GoTo adapters remain registered but source-policy-blocked, make no autonomous requests, and stay health-visible. MS is deliberately absent from LEGACY_PRECISION_RUNTIME_STATES."
+    "registration": "Six allowed exact first-party CityHive and Moonshine retailers run through independent source adapters. Two exact GoTo adapters remain registered but source-policy-blocked, make no autonomous requests, and stay health-visible. MS is absent from LEGACY_PRECISION_RUNTIME_STATES."
   },
   "storeIdentity": {
     "mode": "permit_derived_exact_allowlist",
     "addressRequired": true,
-    "proof": "Every one of the 690 reviewed premises has a unique ms-permit-NNNNNN ID and one of nine regions. Inventory additionally requires exact permit, merchant/store, host, product URL, premises, city, ZIP, pickup/orderability, and sourceRuntimeId bindings."
+    "proof": "Every reviewed premises has a unique ms-permit-NNNNNN ID. Inventory additionally requires exact permit, merchant/store, host, product URL, premises, city, ZIP, orderability, and sourceRuntimeId bindings."
   },
   "sourceSemantics": {
     "directory": "Exactly 690 current Package Retailer permits across 168 cities and 78 counties; searchable identity only.",
     "officialIntelligence": "DOR catalog, SPA, pricing, bailment, wholesale, and policy documents are intelligence only and never bottle inventory.",
-    "availability": "Four exact first-party storefronts expose binary pickup/orderability only. quantity is 0 and quantityIsExact is false.",
+    "availability": "Six exact first-party storefronts are monitored for binary local orderability. Shadow evidence repeatedly produced fresh exact-store rows from four stores across two reviewed regions. quantity is 0 and quantityIsExact is false.",
     "inventoryAlertable": false,
     "watchAlertable": false,
     "initialObservationPolicy": "baseline_site_only"
@@ -36,73 +40,84 @@
   "customerPaths": {
     "coverage": {
       "status": "verified",
-      "assertion": "The public Coverage contract shows 690 known directory stores, four probeable storefronts, zero live and zero alert-grade stores, nine regions, and searchable exact permit-derived store targets without promoting Mississippi to active coverage."
+      "assertion": "Coverage exposes Mississippi as sparse exact-store inventory with 690 known stores, six probeable storefronts, four currently live stores, and zero alert-grade stores."
     },
     "stateFilter": {
-      "status": "not_applicable",
-      "reason": "Mississippi is intentionally absent from activeStates."
+      "status": "verified",
+      "assertion": "Mississippi is an active sparse state and is available in state-scoped customer surfaces."
     },
     "areaFilter": {
       "status": "verified",
-      "assertion": "One canonical nine-region alias registry powers exact engine and shared website matching without substring bleed."
+      "assertion": "The canonical nine-region alias registry powers exact engine and shared website matching without substring bleed."
     },
     "preferences": {
-      "status": "not_applicable",
-      "reason": "Research-only lifecycle must not appear in active customer preferences."
+      "status": "verified",
+      "assertion": "Mississippi may be selected for on-site coverage while outbound inventory and watch alerts remain disabled."
     },
     "dashboard": {
-      "status": "not_applicable",
-      "reason": "Research-only Mississippi is intentionally absent from the customer dashboard."
+      "status": "verified",
+      "assertion": "Fresh exact-store Mississippi rows may appear on-site with sparse and verify-before-driving language."
     },
     "dropFeedApi": {
-      "status": "not_applicable",
-      "reason": "Research-only Mississippi is intentionally absent from active Drop Feed API state and area filters."
+      "status": "verified",
+      "assertion": "The Drop Feed may expose current exact-store Mississippi orderability rows; directory-only, official-intelligence, stale, aggregate, and blocked-source rows remain excluded."
     },
     "finder": {
       "status": "not_applicable",
-      "reason": "The checked-in permit universe is research data and is not exported to customer Finder surfaces before activation."
+      "reason": "The full permit directory remains research data and is not exported as live inventory."
     },
     "alerts": {
       "status": "verified",
-      "assertion": "Lifecycle, central confidence, activation baseline, retailer policy, and release policy keep all Mississippi delivery paths false."
+      "assertion": "Lifecycle, central confidence, activation baseline, retailer policy, and release policy keep email, SMS, and outbound delivery false."
     },
     "monitoring": {
       "status": "verified",
-      "assertion": "Four independent retailer runtime IDs and ten blocked/offline/probe-only BottleCapps entries are represented in the source-health summary."
+      "assertion": "Eight independent retailer runtime IDs and blocked/offline/probe-only BottleCapps entries remain represented in source health."
     },
     "export": {
-      "status": "not_applicable",
-      "reason": "No production snapshot, publication, canary claim, or Mississippi activation is included."
+      "status": "verified",
+      "assertion": "Only fresh exact-store rows that pass the Mississippi retailer policy may enter the active on-site snapshot."
     }
   },
   "evidence": {
+    "immutablePromotionEvidence": {
+      "contractVersion": "bourbon-signal/state-promotion-evidence@1",
+      "state": "MS",
+      "sourceConfigHash": "c25ce153f4f4e2d4f17f797c3b5a4ef5baa6ae5f1ed219584facce3f2c47f521",
+      "sourceRevisionSha": "9f9419b90079f9a384f12000a14ee67143b32196",
+      "shadowEvidenceSha256": "abadeb4d2d16695192ac825553f94f86d2ebc9e162c2b53e0a7bcfc5b3e1cec5",
+      "canaryEvidenceSha256": "5b8b029e9d8f24be5dddee35920c22bf776a993b1453ea4a70cdd4629ad546cf",
+      "canaryInputSha256": "ca312fe8f1716ae4bafe2ee91917d9b51ccd2be1bda8d4b6b1f5b75af3dfc728",
+      "verifiedAt": "2026-07-30T11:39:37.995Z"
+    },
     "research": {
       "status": "reviewed",
       "officialPermitCount": 690,
       "cityCount": 168,
       "countyCount": 78,
       "regionCount": 9,
-      "inventoryCapableStorefronts": 2,
-      "blockedOfflineOrProbeOnlyStorefronts": 12,
+      "inventoryCapableStorefronts": 6,
+      "blockedOfflineOrProbeOnlyStorefronts": 11,
       "artifact": "engine/data/source-atlas/MS.json"
     },
     "shadow": {
-      "status": "not_run",
-      "runs": 0,
-      "artifact": null,
-      "reason": "Production-runner shadow evidence must be gathered by at least three distinct executions over 24–72 hours; local implementation does not claim it."
+      "status": "reviewed",
+      "runs": 3,
+      "spanHours": 31.84,
+      "artifact": "engine/data/shadow-evidence/MS.json",
+      "assertion": "Three successful immutable GitHub Actions shadow runs spanning more than 24 hours produced safe exact-store rows from four stores across two reviewed regions with no delivery attempts or production publication."
     },
     "canary": {
-      "status": "not_run",
-      "runs": 0,
-      "artifact": null,
-      "reason": "No truthful canary observation exists, so no MS canary input or canary evidence is checked in."
+      "status": "reviewed",
+      "runs": 2,
+      "artifact": "engine/data/canary-evidence/MS.json",
+      "siteArtifact": "engine/data/canary-site/MS",
+      "assertion": "Two isolated non-deploying canary previews rendered the current Mississippi on-site drop with zero alert rows, delivery disabled, production snapshot publication disabled, and production deployment disabled."
     },
     "production": {
-      "status": "not_deployed",
-      "url": null,
-      "assertion": "This foundation does not touch production or activate Mississippi.",
-      "reason": "Mississippi remains research-only and has not met the activation gates."
+      "status": "pending_release",
+      "url": "https://www.bourbonsignal.com/api/drops?state=MS",
+      "assertion": "Production activation is permitted only after guarded merge, targeted refresh, and exact-store verification confirm at least four live stores and zero alert-grade outbound rows."
     }
   }
 }
