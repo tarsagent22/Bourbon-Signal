@@ -6089,6 +6089,13 @@ export function isFreshSouthCarolinaDunesCacheTimestamp(generatedAt, nowMs = Dat
     && ageMs <= SC_DUNES_CACHE_MAX_AGE_MS;
 }
 
+export function isReusableSouthCarolinaDunesCache(payload, nowMs = Date.now()) {
+  if (!isFreshSouthCarolinaDunesCacheTimestamp(payload?.generatedAt, nowMs) || !Array.isArray(payload?.signals)) return false;
+  const inventory = payload.signals.filter((signal) => signal?.eventType === 'retailer_store_inventory_result');
+  return inventory.length > 0
+    && inventory.every((signal) => signal?.raw?.leafSourceRuntimeId === SC_DUNES_RUNTIME_ID);
+}
+
 export async function collectSouthCarolinaDunes(config, bible, observedAt, options = {}) {
   const fetcher = options.fetcher || southCarolinaDunesTextFetch;
   const sleepFn = options.sleepFn || sleep;
@@ -6102,7 +6109,7 @@ export async function collectSouthCarolinaDunes(config, bible, observedAt, optio
   if (useCache) {
     try {
       const cached = JSON.parse(await readFile(SC_DUNES_ARTIFACT_PATH, 'utf8'));
-      if (isFreshSouthCarolinaDunesCacheTimestamp(cached.generatedAt) && Array.isArray(cached.signals)) {
+      if (isReusableSouthCarolinaDunesCache(cached)) {
         return {
           signals: cached.signals.map((signal) => ({ ...signal, observedAt: cached.generatedAt, fetchedAt: observedAt, raw: { ...(signal.raw || {}), cacheFallback: true, cacheGeneratedAt: cached.generatedAt } })),
           roadblocks: cached.roadblocks || [],
