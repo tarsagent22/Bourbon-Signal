@@ -377,6 +377,8 @@ function publicSignal(signal, bible, freshness = null) {
     sourceAvailabilityVerified: signal.sourceAvailabilityVerified === true,
     fulfillmentPolicyVerified: signal.fulfillmentPolicyVerified === true || signal.raw?.fulfillmentPolicyVerified === true,
     pickupOfferVerified: signal.pickupOfferVerified === true || signal.raw?.pickupOfferVerified === true,
+    deliveryOfferVerified: signal.deliveryOfferVerified === true || signal.raw?.deliveryOfferVerified === true,
+    orderabilityOfferVerified: signal.orderabilityOfferVerified === true || signal.raw?.orderabilityOfferVerified === true,
     premisesVerified: signal.premisesVerified === true || signal.raw?.premisesVerified === true,
     warehouseQty: signal.warehouseQty || 0,
     price: signal.price || 0,

@@ -2,10 +2,11 @@ import { stableId } from '../core/text.mjs';
 import { createSourceAdapter } from '../sources/source-adapter.mjs';
 import { runSourceAdapters } from '../sources/source-runner.mjs';
 import { summarizeSourceResult } from '../sources/source-result.mjs';
-import { isMississippiRetailerInventory } from '../mississippi-retailer-policy.mjs';
+import { isMississippiRetailerInventory, isMississippiRetailerReleaseWatch } from '../mississippi-retailer-policy.mjs';
 import {
   MISSISSIPPI_RETAILER_SOURCES,
   parseMississippiCityHiveHtml,
+  parseMississippiGoDaddyReleaseProducts,
   parseMississippiGoToLiquorStoreProducts,
   parseMississippiMoonshineProductCards,
   parseMississippiMoonshineResponse,
@@ -56,6 +57,58 @@ async function boundedFetchJson(url, { body, signal, cookie } = {}) {
   };
 }
 
+export async function readBoundedMississippiJsonResponse(response, {
+  url = 'unknown',
+  maxBytes = 8 * 1024 * 1024,
+} = {}) {
+  const contentLength = Number(response.headers?.get?.('content-length'));
+  if (Number.isFinite(contentLength) && contentLength > maxBytes) {
+    throw new Error(`Mississippi retailer JSON response from ${url} exceeded ${maxBytes} bytes`);
+  }
+  if (!response.body?.getReader) {
+    const text = await response.text();
+    if (Buffer.byteLength(text, 'utf8') > maxBytes) throw new Error(`Mississippi retailer JSON response from ${url} exceeded ${maxBytes} bytes`);
+    return JSON.parse(text);
+  }
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let totalBytes = 0;
+  let text = '';
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      totalBytes += value.byteLength;
+      if (totalBytes > maxBytes) {
+        await reader.cancel('response_too_large');
+        throw new Error(`Mississippi retailer JSON response from ${url} exceeded ${maxBytes} bytes`);
+      }
+      text += decoder.decode(value, { stream: true });
+    }
+    text += decoder.decode();
+    return JSON.parse(text);
+  } finally {
+    reader.releaseLock();
+  }
+}
+
+async function boundedFetchGetJson(url, { signal } = {}) {
+  const response = await fetch(url, {
+    redirect: 'error',
+    signal,
+    headers: {
+      accept: 'application/json',
+      'accept-language': 'en-US,en;q=0.8',
+      'user-agent': 'BourbonSignalSourceHealth/1.0 (+https://www.bourbonsignal.com/coverage)',
+    },
+  });
+  return {
+    ok: response.ok,
+    status: response.status,
+    payload: await readBoundedMississippiJsonResponse(response, { url }),
+  };
+}
+
 export function buildMississippiRetailerSignal(source, row, {
   observedAt = new Date().toISOString(),
   bottle,
@@ -96,13 +149,14 @@ export function buildMississippiRetailerSignal(source, row, {
     observedAt,
     sourceAvailabilityVerified: row.sourceAvailabilityVerified === true,
     pickupOfferVerified: row.pickupOfferVerified === true,
+    orderabilityOfferVerified: row.orderabilityOfferVerified === true,
     premisesVerified: row.premisesVerified === true,
     inventorySemantics: 'binary_retailer_orderable_no_exact_count',
     canAlertAsInventory: false,
     canAlertAsWatch: false,
     alertable: false,
     baselineOnly: true,
-    evidence: `${source.name} exposed a visible, exact-store-bound pickup/orderability control for ${row.title}. No exact bottle count is claimed.`,
+    evidence: `${source.name} exposed a visible, exact-store-bound ${row.pickupOfferVerified === true ? 'pickup' : 'cart'} orderability control for ${row.title}. No exact bottle count is claimed.`,
     raw: {
       chain: source.id,
       platform: source.platform,
@@ -118,8 +172,84 @@ export function buildMississippiRetailerSignal(source, row, {
       reportedQuantity: row.reportedQuantity ?? null,
       quantitySemantics: 'binary_retailer_orderable_no_exact_count',
       sourceAvailabilityVerified: true,
-      pickupOfferVerified: true,
+      pickupOfferVerified: row.pickupOfferVerified === true,
+      orderabilityOfferVerified: row.orderabilityOfferVerified === true,
       premisesVerified: true,
+      initialObservationPolicy: source.initialObservationPolicy,
+    },
+  };
+}
+
+export function buildMississippiReleaseWatchSignal(source, row, {
+  observedAt = new Date().toISOString(),
+  bottle,
+} = {}) {
+  return {
+    id: stableId(['MS', source.permitNumber, 'release-watch', row.productId]),
+    state: 'MS',
+    stateCode: 'MS',
+    sourceLabel: source.sourceLabel,
+    sourceUrl: row.productUrl,
+    sourceChain: source.id,
+    sourceRuntimeId: source.sourceRuntimeId,
+    merchantId: source.merchantId,
+    productId: row.productId,
+    sourceProductBinding: row.productBinding,
+    variantId: null,
+    permitNumber: source.permitNumber,
+    rawName: row.title,
+    canonicalBottleId: bottle?.id || null,
+    canonicalName: bottle?.canonical || null,
+    tier: bottle?.tier || null,
+    confidence: Number.isFinite(bottle?.confidence) ? bottle.confidence : 0.72,
+    eventType: 'retailer_release_hold_watch',
+    locationPrecision: 'store_level',
+    locationName: source.name,
+    storeName: source.name,
+    storeId: source.id,
+    storeAddress: source.address,
+    city: source.city,
+    storeCity: source.city,
+    county: source.county,
+    regionId: source.regionId,
+    postalCode: source.zip,
+    zip: source.zip,
+    quantity: 0,
+    quantityIsExact: false,
+    reportedQuantity: null,
+    price: row.price,
+    observedAt,
+    sourceEventAt: row.sourceUpdatedAt,
+    sourceAvailabilityVerified: row.sourceAvailabilityVerified === true,
+    pickupOfferVerified: false,
+    deliveryOfferVerified: false,
+    premisesVerified: row.premisesVerified === true,
+    inventorySemantics: 'retailer_release_hold_watch_no_inventory_count',
+    canAlertAsInventory: false,
+    canAlertAsWatch: false,
+    alertable: false,
+    baselineOnly: true,
+    evidence: `${source.name} currently exposes ${row.title} on its first-party release/hold surface. This is not an exact shelf count or guaranteed hold.`,
+    raw: {
+      chain: source.id,
+      platform: source.platform,
+      merchantId: source.merchantId,
+      controlStoreId: source.controlStoreId || null,
+      displayedMerchantId: source.merchantId,
+      permitNumber: source.permitNumber,
+      platformStoreId: source.platformStoreId,
+      sourceLabelHash: source.sourceLabelHash,
+      productId: row.productId,
+      productBinding: row.productBinding,
+      sourceProductUrl: row.productUrl,
+      variantId: null,
+      sourceUpdatedAt: row.sourceUpdatedAt,
+      quantitySemantics: 'retailer_release_hold_watch_no_inventory_count',
+      sourceAvailabilityVerified: true,
+      pickupOfferVerified: false,
+      deliveryOfferVerified: false,
+      premisesVerified: true,
+      sourceRuntimeNonAlertable: true,
       initialObservationPolicy: source.initialObservationPolicy,
     },
   };
@@ -226,15 +356,71 @@ async function collectMoonshineSource(source, {
   };
 }
 
+async function collectGoDaddyReleaseSource(source, {
+  fetchGetJson,
+  matchBottle,
+  observedAt,
+  signal,
+}) {
+  const response = await fetchGetJson(source.apiUrl, { signal });
+  if (!response?.ok) throw new Error(`${source.sourceLabel} HTTP ${response?.status || 0}`);
+  const parsedRows = parseMississippiGoDaddyReleaseProducts(response.payload, source, { observedAt });
+  const signals = [];
+  for (const row of parsedRows) {
+    const bottle = await matchBottle(row.title, source, row);
+    if (!bottle?.id || !bottle?.canonical) continue;
+    const candidate = buildMississippiReleaseWatchSignal(source, row, { observedAt, bottle });
+    if (isMississippiRetailerReleaseWatch(candidate)) signals.push(candidate);
+  }
+  const roadblocks = [];
+  if (!parsedRows.length) {
+    roadblocks.push({
+      state: 'MS',
+      source: source.sourceLabel,
+      sourceRuntimeId: source.sourceRuntimeId,
+      url: source.categoryUrl,
+      status: 'reachable_no_fresh_release_watch_rows',
+      error: 'The first-party release surface was reachable but exposed no fresh, available, exact-bottle bourbon rows.',
+      nextRoute: 'Keep this source nonalertable; do not reinterpret stale holds, generic allocation text, or zero-dollar records as inventory.',
+    });
+  } else if (!signals.length) {
+    roadblocks.push({
+      state: 'MS',
+      source: source.sourceLabel,
+      sourceRuntimeId: source.sourceRuntimeId,
+      url: source.categoryUrl,
+      status: 'reachable_no_safe_bottle_matches',
+      error: `${parsedRows.length} fresh exact-bottle release rows were inspected but none survived canonical matching.`,
+      nextRoute: 'Review exact bottle aliases without weakening first-party identity, freshness, or availability guards.',
+    });
+  }
+  return {
+    signals,
+    roadblocks,
+    recordsInspected: Number(response.payload?.products?.length || 0),
+    metadata: {
+      permitNumber: source.permitNumber,
+      platform: source.platform,
+      merchantId: source.merchantId,
+      complete: true,
+      parsedReleaseRows: parsedRows.length,
+    },
+  };
+}
+
 async function collectSource(source, {
   fetchText,
   fetchJson,
+  fetchGetJson,
   matchBottle,
   observedAt,
   signal,
 }) {
   if (source.platform === 'moonshine') {
     return collectMoonshineSource(source, { fetchText, fetchJson, matchBottle, observedAt, signal });
+  }
+  if (source.platform === 'godaddy_release_watch') {
+    return collectGoDaddyReleaseSource(source, { fetchGetJson, matchBottle, observedAt, signal });
   }
   const response = await fetchText(source.categoryUrl, { signal });
   if (!response?.ok) throw new Error(`${source.sourceLabel} HTTP ${response?.status || 0}`);
@@ -286,6 +472,7 @@ export async function collectMississippiRetailers(config, options = {}) {
   const observedAt = (options.now?.() || new Date()).toISOString();
   const fetchText = options.fetchText || boundedFetchText;
   const fetchJson = options.fetchJson || boundedFetchJson;
+  const fetchGetJson = options.fetchGetJson || boundedFetchGetJson;
   const matchBottle = options.matchBottle || (() => null);
   const enabledSources = MISSISSIPPI_RETAILER_SOURCES.filter((source) => source.autonomousFetchAllowed !== false);
   const blockedSources = MISSISSIPPI_RETAILER_SOURCES.filter((source) => source.autonomousFetchAllowed === false);
@@ -295,7 +482,7 @@ export async function collectMississippiRetailers(config, options = {}) {
     url: source.categoryUrl,
     metadata: {
       stateId: 'MS',
-      lane: 'private_retailer_inventory',
+      lane: source.platform === 'godaddy_release_watch' ? 'retailer_release_watch' : 'private_retailer_inventory',
       platform: source.platform,
       permitNumber: source.permitNumber,
     },
@@ -303,6 +490,7 @@ export async function collectMississippiRetailers(config, options = {}) {
     execute: (_context, { signal }) => collectSource(source, {
       fetchText,
       fetchJson,
+      fetchGetJson,
       matchBottle,
       observedAt,
       signal,

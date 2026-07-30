@@ -242,7 +242,7 @@ const BASE_STATE_SOURCES = [
   },
   {
     id: 'MS', label: 'Mississippi sparse exact-store retailer inventory', tier: 'B', strategy: 'hybrid_official_intelligence_private_retailer', cadence: 'inventory-60m_directory-weekly',
-    value: 'Complete official Package Retailer premises directory plus six isolated exact first-party storefront adapters. Fresh exact-store binary orderability may publish on-site; outbound alerts remain disabled. Official catalog, pricing, SPA, bailment, wholesale, and policy evidence remains noninventory; runtime health determines current storefront usability.',
+    value: 'Complete official Package Retailer premises directory plus seven isolated exact first-party inventory adapters and one bounded retailer release-watch adapter. Fresh exact-store binary orderability may publish on-site; release-watch rows and all outbound alerts remain disabled. Official catalog, pricing, SPA, bailment, wholesale, and policy evidence remains noninventory; runtime health determines current storefront usability.',
     active: true,
     rareSignalTarget: true,
     sources: [
@@ -254,12 +254,14 @@ const BASE_STATE_SOURCES = [
       { kind: 'pdf', url: 'https://www.dor.ms.gov/sites/default/files/abc/Full%20Price%20List/August%202026%20SPAs.pdf', label: 'August 2026 SPA price list PDF', sourceLayer: 'official_intelligence', inventoryAuthoritative: false },
       { kind: 'pdf', url: 'https://www.dor.ms.gov/sites/default/files/abc/Full%20Price%20List/August%202026%20Bailment%20Price%20Changes.pdf', label: 'August 2026 bailment price changes PDF', sourceLayer: 'official_intelligence', inventoryAuthoritative: false },
       ...MISSISSIPPI_RETAILER_SOURCES.map((source) => ({
-        kind: 'html',
+        kind: source.platform === 'godaddy_release_watch' ? 'api' : 'html',
         name: source.sourceLabel,
         label: source.sourceLabel,
         url: source.categoryUrl,
         precisionOnly: true,
-        sourceLayer: source.autonomousFetchAllowed === false ? 'storefront_probe' : 'private_retailer_inventory',
+        sourceLayer: source.autonomousFetchAllowed === false
+          ? 'storefront_probe'
+          : source.platform === 'godaddy_release_watch' ? 'retailer_release_watch' : 'private_retailer_inventory',
         autonomousFetchAllowed: source.autonomousFetchAllowed !== false,
         sourcePolicyStatus: source.sourcePolicyStatus,
         sourceRuntimeId: source.sourceRuntimeId,

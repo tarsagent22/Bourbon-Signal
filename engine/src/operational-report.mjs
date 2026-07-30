@@ -98,6 +98,7 @@ export function canonicalizeSignal(signal, bible) {
     sourceRuntimeId: signal.sourceRuntimeId || signal.raw?.sourceRuntimeId || null,
     merchantId: signal.merchantId || signal.raw?.merchantId || signal.raw?.option?.merchant_id || null,
     productId: signal.productId || signal.raw?.productId || signal.raw?.product?.id || signal.raw?.option?.product_id || null,
+    sourceProductBinding: signal.sourceProductBinding || signal.raw?.productBinding || null,
     productCode: signal.productCode || signal.raw?.product?.code || String(signal.sourceUrl || '').match(/productCode=([^&]+)/)?.[1] || null,
     productLimitedCaveat: typeof signal.productLimitedCaveat === 'boolean'
       ? signal.productLimitedCaveat
@@ -137,6 +138,8 @@ export function canonicalizeSignal(signal, bible) {
     sourceAvailabilityVerified: signal.sourceAvailabilityVerified === true || signal.raw?.sourceAvailabilityVerified === true,
     premisesVerified: signal.premisesVerified === true || signal.raw?.premisesVerified === true,
     pickupOfferVerified: signal.pickupOfferVerified === true || signal.raw?.pickupOfferVerified === true,
+    deliveryOfferVerified: signal.deliveryOfferVerified === true || signal.raw?.deliveryOfferVerified === true,
+    orderabilityOfferVerified: signal.orderabilityOfferVerified === true || signal.raw?.orderabilityOfferVerified === true,
     fulfillmentPolicyVerified: signal.fulfillmentPolicyVerified === true,
     availabilityValue: signal.availabilityValue ?? signal.raw?.availability?.value ?? null,
     warehouseQty: Number(signal.warehouseQty ?? signal.raw?.warehouseQty ?? 0) || 0,
@@ -165,6 +168,13 @@ export function canonicalizeSignal(signal, bible) {
       displayedMerchantId: signal.raw?.displayedMerchantId || signal.merchantId || null,
       platformStoreId: signal.raw?.platformStoreId || null,
       permitNumber: signal.raw?.permitNumber || signal.permitNumber || null,
+      productId: signal.raw?.productId || signal.productId || null,
+      productBinding: signal.raw?.productBinding || signal.sourceProductBinding || null,
+      sourceProductUrl: signal.raw?.sourceProductUrl || signal.sourceUrl || null,
+      sourceUpdatedAt: signal.raw?.sourceUpdatedAt || signal.sourceEventAt || null,
+      pickupOfferVerified: signal.raw?.pickupOfferVerified === true,
+      deliveryOfferVerified: signal.raw?.deliveryOfferVerified === true,
+      orderabilityOfferVerified: signal.raw?.orderabilityOfferVerified === true,
       sourceRuntimeNonAlertable: signal.raw?.sourceRuntimeNonAlertable === true,
     } : undefined
   };

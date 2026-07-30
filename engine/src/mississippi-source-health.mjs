@@ -1,4 +1,5 @@
 import { MISSISSIPPI_RETAILER_SOURCES } from './collectors/mississippi-retailer-surfaces.mjs';
+import { getStateLifecycle } from './state-lifecycle.mjs';
 
 export function summarizeMississippiSourceHealth({ atlas, sourceResults = [], generatedAt = new Date().toISOString() } = {}) {
   if (atlas?.state !== 'MS' || !Array.isArray(atlas.stores)) throw new TypeError('Mississippi source health requires the canonical source atlas');
@@ -38,7 +39,7 @@ export function summarizeMississippiSourceHealth({ atlas, sourceResults = [], ge
     contractVersion: 'bourbon-signal/ms-source-health@1',
     state: 'MS',
     generatedAt,
-    lifecycle: 'research_only',
+    lifecycle: getStateLifecycle('MS')?.coverageTier || 'research_only',
     directorySourcePolicyStatus: 'source_policy_blocked',
     directoryAutonomousRequestsAllowed: false,
     inventorySources: entries.filter((entry) => entry.inventoryAuthoritative).length,

@@ -1,0 +1,72 @@
+{
+  "count": 6,
+  "total_count": 6,
+  "products": [
+    {
+      "id": "mabry-very-olde-st-nick",
+      "slug": "very-olde-st-nick-ancient-cask-immaculata",
+      "name": "Very Olde St. Nick Ancient Cask IMMACULATA",
+      "description_raw": "Available for paid in-store pickup.",
+      "updated_at": "2026-05-04T12:14:13.271Z",
+      "available": true,
+      "in_stock": true,
+      "price": { "numeric": 273.19, "currency": "USD" },
+      "relative_url": "/ols/products/very-olde-st-nick-ancient-cask-immaculata"
+    },
+    {
+      "id": "mabry-rare-perfection-9",
+      "slug": "rare-perfection-9-year-old-kentucky-bourbon",
+      "name": "Rare Perfection 9-Year-Old Kentucky Bourbon",
+      "description_raw": "Available for paid in-store pickup.",
+      "updated_at": "2026-05-04T12:14:15.338Z",
+      "available": true,
+      "in_stock": true,
+      "price": { "numeric": 210.05, "currency": "USD" },
+      "relative_url": "/ols/products/rare-perfection-9-year-old-kentucky-bourbon"
+    },
+    {
+      "id": "mabry-k-luke",
+      "slug": "kluke-bottle-hold",
+      "name": "K.Luke bottle hold",
+      "description_raw": "Online out of stock.",
+      "updated_at": "2026-05-04T12:14:08.601Z",
+      "available": true,
+      "in_stock": false,
+      "price": { "numeric": 0, "currency": "USD" },
+      "relative_url": "/ols/products/kluke-bottle-hold"
+    },
+    {
+      "id": "mabry-buffalo-trace",
+      "slug": "buffalo-trace-single-barrel-hand-select-bottle-hold",
+      "name": "Buffalo Trace Single Barrel Hand select bottle hold",
+      "description_raw": "Old bottle hold.",
+      "updated_at": "2024-12-07T03:28:02.307Z",
+      "available": true,
+      "in_stock": true,
+      "price": { "numeric": 0, "currency": "USD" },
+      "relative_url": "/ols/products/buffalo-trace-single-barrel-hand-select-bottle-hold"
+    },
+    {
+      "id": "mabry-generic",
+      "slug": "allocated-bottles",
+      "name": "ALLOCATED BOTTLES",
+      "description_raw": "No exact bottle identity.",
+      "updated_at": "2026-07-20T12:00:00.000Z",
+      "available": true,
+      "in_stock": true,
+      "price": { "numeric": 0, "currency": "USD" },
+      "relative_url": "/ols/products/allocated-bottles"
+    },
+    {
+      "id": "mabry-tequila",
+      "slug": "maestro-dobel-anejo-tequila",
+      "name": "Maestro Dobel Anejo Tequila",
+      "description_raw": "Not bourbon.",
+      "updated_at": "2026-07-20T12:00:00.000Z",
+      "available": true,
+      "in_stock": true,
+      "price": { "numeric": 100, "currency": "USD" },
+      "relative_url": "/ols/products/maestro-dobel-anejo-tequila"
+    }
+  ]
+}

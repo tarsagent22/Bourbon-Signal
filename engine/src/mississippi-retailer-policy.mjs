@@ -18,6 +18,10 @@ function same(value, expected) {
   return String(value || '').trim() === String(expected || '').trim();
 }
 
+function releaseProductBinding(productId, productUrl, title) {
+  return createHash('sha256').update(`${productId}\n${productUrl}\n${title}`).digest('hex');
+}
+
 function samePremises(value, expected) {
   return normalizeCityHivePremises(value) === normalizeCityHivePremises(expected);
 }
@@ -47,6 +51,12 @@ function exactProductUrl(signal, source) {
         && /^\/shop\/[a-z0-9][a-z0-9-]*-\d+\/?$/iu.test(url.pathname)
         && url.pathname.replace(/\/$/u, '').endsWith(`-${String(signal.productId || '')}`)
         && Boolean(String(signal.variantId || '').trim());
+    }
+    if (source.platform === 'godaddy_release_watch') {
+      return !url.search
+        && /^\/online-shopping\/ols\/products\/[a-z0-9][a-z0-9-]*\/?$/iu.test(url.pathname)
+        && Boolean(String(signal.productId || '').trim())
+        && !String(signal.variantId || '').trim();
     }
     return false;
   } catch {
@@ -85,7 +95,6 @@ export function isMississippiRetailerSignalIdentity(signal) {
 export function isMississippiRetailerInventoryEvidence(signal) {
   return /^(?:cityhive_store_inventory_result|retailer_store_inventory_result)$/iu.test(String(signal?.eventType || signal?.type || ''))
     && signal.sourceAvailabilityVerified === true
-    && signal.pickupOfferVerified === true
     && signal.premisesVerified === true
     && signal.quantity === 0
     && signal.quantityIsExact === false
@@ -101,5 +110,45 @@ export function isMississippiRetailerInventoryEvidence(signal) {
 }
 
 export function isMississippiRetailerInventory(signal) {
-  return isMississippiRetailerSignalIdentity(signal) && isMississippiRetailerInventoryEvidence(signal);
+  const source = sourceForSignal(signal);
+  const exactFulfillment = source?.fulfillmentMode === 'exact_store_orderability'
+    ? signal.orderabilityOfferVerified === true
+      && signal.pickupOfferVerified !== true
+      && signal.deliveryOfferVerified !== true
+    : signal.pickupOfferVerified === true
+      && signal.orderabilityOfferVerified !== true
+      && signal.deliveryOfferVerified !== true;
+  return exactFulfillment
+    && isMississippiRetailerSignalIdentity(signal)
+    && isMississippiRetailerInventoryEvidence(signal);
+}
+
+export function isMississippiRetailerReleaseWatch(signal) {
+  const source = sourceForSignal(signal);
+  return source?.platform === 'godaddy_release_watch'
+    && isMississippiRetailerSignalIdentity(signal)
+    && String(signal?.eventType || signal?.type || '') === 'retailer_release_hold_watch'
+    && signal.sourceAvailabilityVerified === true
+    && signal.pickupOfferVerified !== true
+    && signal.deliveryOfferVerified !== true
+    && signal.premisesVerified === true
+    && signal.quantity === 0
+    && signal.quantityIsExact === false
+    && signal.inventorySemantics === 'retailer_release_hold_watch_no_inventory_count'
+    && Boolean(String(signal.productId || '').trim())
+    && same(signal.raw?.productId, signal.productId)
+    && same(signal.raw?.sourceProductUrl, signal.sourceUrl)
+    && same(signal.raw?.productBinding, signal.sourceProductBinding)
+    && same(signal.sourceProductBinding, releaseProductBinding(signal.productId, signal.sourceUrl, signal.rawName))
+    && same(signal.raw?.sourceUpdatedAt, signal.sourceEventAt)
+    && Boolean(String(signal.canonicalBottleId || '').trim())
+    && Boolean(String(signal.canonicalName || '').trim())
+    && isAllowedMississippiBottleFormat(signal.rawName)
+    && signal.canAlertAsInventory === false
+    && signal.canAlertAsWatch === false
+    && signal.alertable !== true
+    && signal.raw?.sourceRuntimeNonAlertable === true
+    && signal.stale !== true
+    && signal.sourceStale !== true
+    && signal.quarantined !== true;
 }

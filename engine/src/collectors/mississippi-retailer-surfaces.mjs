@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 
 import { parseCityHiveProducts } from './cityhive-surfaces.mjs';
@@ -11,7 +12,7 @@ export const MISSISSIPPI_RETAILER_SOURCES = Object.freeze(REGISTRY.stores.map((s
   stateCode: 'MS',
 })));
 
-const BOURBON_RE = /\b(?:bourbon|kentucky straight|american whiskey|blanton|buffalo trace|eagle rare|e\.?\s*h\.?\s*taylor|colonel taylor|weller|stagg|booker|baker|1792|maker'?s mark|old forester|woodford|four roses|knob creek|elijah craig|michter|willett|wild turkey|rare breed|larceny|heaven hill|henry mckenna|old fitzgerald|new riff|bardstown|green river|yellowstone|penelope|peerless|angel'?s envy|basil hayden|jefferson'?s)\b/iu;
+const BOURBON_RE = /\b(?:bourbon|kentucky straight|american whiskey|blanton|buffalo trace|eagle rare|e\.?\s*h\.?\s*taylor|colonel taylor|weller|stagg|booker|baker|1792|maker'?s mark|old forester|woodford|four roses|knob creek|elijah craig|michter|willett|wild turkey|rare breed|larceny|heaven hill|henry mckenna|old fitzgerald|new riff|bardstown|green river|yellowstone|penelope|peerless|angel'?s envy|basil hayden|jefferson'?s|very olde st\.? nick)\b/iu;
 const UNSAFE_RE = /\b(?:gift\s*(?:set|box|pack)|bundle|sampler|miniatures?|multipack|multi[\s-]*pack|variety\s*pack|case\s+of\s+\d+|pack\s+of\s+\d+|\d+\s*(?:pk|pack|bottles?)|\d+\s*[x×]\s*\d+(?:\.\d+)?\s*(?:ml|l)|candle|tumbler|glassware|barware|coaster|ornament|figurine|flask|shirt|hoodie|hat|gift\s*card|accessor(?:y|ies)|cocktail|ready\s*to\s*drink|rtd|liqueur|cordial|cream|flavou?red|wine|apple|peach|honey|cinnamon|peanut\s*butter|chocolate|vanilla)\b/iu;
 
 export function isAllowedMississippiBottleFormat(value) {
@@ -48,6 +49,60 @@ function decodeMoonshineText(value) {
     .replace(/&#39;/giu, "'")
     .replace(/\s+/gu, ' ')
     .trim();
+}
+
+function goDaddyProductUrl(source, relativeUrl) {
+  try {
+    const relative = String(relativeUrl || '');
+    const publicPath = relative.startsWith('/ols/products/') ? `/online-shopping${relative}` : relative;
+    const url = new URL(publicPath, `${source.baseUrl}/online-shopping/`);
+    if (url.protocol !== 'https:' || url.hostname !== source.hostname || url.username || url.password || url.search || url.hash) return null;
+    if (!/^\/online-shopping\/ols\/products\/[a-z0-9][a-z0-9-]*\/?$/iu.test(url.pathname)) return null;
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
+function mississippiReleaseProductBinding(productId, productUrl, title) {
+  return createHash('sha256').update(`${productId}\n${productUrl}\n${title}`).digest('hex');
+}
+
+export function parseMississippiGoDaddyReleaseProducts(payload, source, {
+  observedAt = new Date().toISOString(),
+} = {}) {
+  if (source?.platform !== 'godaddy_release_watch' || !Array.isArray(payload?.products)) return [];
+  const observedMs = Date.parse(observedAt);
+  const maxAgeMs = Number(source.releaseFreshnessDays || 120) * 24 * 60 * 60_000;
+  if (!Number.isFinite(observedMs) || !Number.isFinite(maxAgeMs) || maxAgeMs <= 0) return [];
+  return payload.products.flatMap((product) => {
+    const title = decodeMoonshineText(product?.name);
+    const sourceUpdatedAt = String(product?.updated_at || '');
+    const updatedMs = Date.parse(sourceUpdatedAt);
+    const productId = String(product?.id || '');
+    const productUrl = goDaddyProductUrl(source, product?.relative_url);
+    const price = Number(product?.price?.numeric);
+    if (!title || !productId || !productUrl || product?.available !== true || product?.in_stock !== true
+      || !isAllowedMississippiBottleFormat(title)
+      || !Number.isFinite(updatedMs) || updatedMs > observedMs + 5 * 60_000 || observedMs - updatedMs > maxAgeMs) return [];
+    return [{
+      productId,
+      productBinding: mississippiReleaseProductBinding(productId, productUrl, title),
+      variantId: null,
+      title,
+      productUrl,
+      price: Number.isFinite(price) && price > 0 ? price : 0,
+      reportedQuantity: null,
+      quantity: 0,
+      quantityIsExact: false,
+      sourceUpdatedAt,
+      sourceAvailabilityVerified: true,
+      pickupOfferVerified: false,
+      deliveryOfferVerified: false,
+      premisesVerified: true,
+      inventorySemantics: 'retailer_release_hold_watch_no_inventory_count',
+    }];
+  });
 }
 
 function escapeMoonshineRegex(value) {
@@ -111,22 +166,24 @@ export function parseMississippiMoonshineResponse(payload, source) {
   if (source?.platform !== 'moonshine') return [];
   const selectedSellerId = String(payload?.moonshine_seller_id || '');
   if (!selectedSellerId || selectedSellerId !== String(source.moonshineSellerId)
-    || String(payload?.moonshine_seller_name || '') !== String(source.name)
+    || decodeMoonshineText(payload?.moonshine_seller_name) !== decodeMoonshineText(source.name)
     || String(payload?.moonshine_seller_url || '') !== String(source.sellerUrl)) return [];
   const available = String(payload?.available_store_tab || '');
   if (!available) return [];
   const availableProductId = available.match(/name=["']product_id["'][^>]*value=["']([^"']+)["']/iu)?.[1] || '';
   if (!availableProductId) return [];
-  const sellerControl = new RegExp(`<a\\b[^>]*href=["']${escapeMoonshineRegex(source.sellerUrl)}["'][\\s\\S]{0,1200}?<h6[^>]*>\\s*${escapeMoonshineRegex(source.name)}\\s*<\\/h6>`, 'iu');
+  const sellerControlMatch = available.match(new RegExp(`<a\\b[^>]*href=["']${escapeMoonshineRegex(source.sellerUrl)}["'][\\s\\S]{0,1200}?<h6[^>]*>([\\s\\S]*?)<\\/h6>`, 'iu'));
+  const sellerControl = sellerControlMatch && decodeMoonshineText(sellerControlMatch[1]) === decodeMoonshineText(source.name);
   const cartControl = /<form\b[^>]*action=["']\/shop\/cart\/update["']/iu.test(available)
     && new RegExp(`name=["']seller_id["'][^>]*value=["']${escapeMoonshineRegex(source.moonshineSellerId)}["']`, 'iu').test(available);
-  if (!sellerControl.test(available) || !cartControl) return [];
+  if (!sellerControl || !cartControl) return [];
   return parseMoonshineCards(payload, source)
     .filter((row) => row.platformProductId === availableProductId)
     .map((row) => ({
       ...row,
       sourceAvailabilityVerified: true,
       pickupOfferVerified: source.pickupAvailable === true,
+      orderabilityOfferVerified: source.fulfillmentMode === 'exact_store_orderability',
       premisesVerified: true,
     }));
 }

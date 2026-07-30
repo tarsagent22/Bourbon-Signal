@@ -10,13 +10,13 @@
     "directoryOnlyRule": "directory_only is used only after the statewide method found no verified first-party inventory source; no per-store website is fabricated.",
     "inventoryAuthorityRule": "Only exact first-party host, permit, merchant/store ID, premises, pickup/orderability, product identity, and safe-format evidence may authorize inventory.",
     "directoryCaptureRule": "TAP robots policy is User-agent: * / Disallow: /. Autonomous TAP collection is source_policy_blocked and makes no request. The checked-in universe comes from a reviewed one-time operator-supplied capture; refresh requires an official permitted export or API.",
-    "blockedSourceRule": "Two exact GoToLiquorStore storefronts are manually readable but return 403 to the production HTTP client, so they remain blocked_by_source_policy rather than using an alternate-client or anti-bot bypass. Five remaining BottleCapps first-party domains currently return DataDome 403; Oxford Wine & Spirits and Sipology fail DNS; two exact-permit Google Play discoveries are platform_probe_only/app_only_no_public_inventory. Madison Cellars' BottleCapps surface remains blocked, but its separate public Moonshine seller route is authorized and inventory-capable. All blocked, offline, and app-only routes remain health-visible and nonalertable.",
+    "blockedSourceRule": "Two exact GoToLiquorStore storefronts are manually readable but return 403 to the production HTTP client, so they remain blocked_by_source_policy rather than using an alternate-client or anti-bot bypass. Four remaining BottleCapps first-party domains currently return DataDome 403; Oxford Wine & Spirits and Sipology fail DNS; two exact-permit Google Play discoveries are platform_probe_only/app_only_no_public_inventory. Madison Cellars' BottleCapps surface remains blocked, but its separate public Moonshine seller route is authorized and inventory-capable. Mabry's separate first-party GoDaddy release surface is authorized as non-inventory watch evidence. All blocked, offline, and app-only routes remain health-visible and nonalertable.",
     "officialIntelligenceRule": "DOR permits, SPA, pricing, bailment, and wholesale documents are directory or intelligence only and never bottle inventory.",
     "dispositionLedger": {
       "contractVersion": "bourbon-signal/ms-research-dispositions@1",
       "reviewBatchId": "ms-statewide-platform-research-2026-07-26",
       "reviewedAt": "2026-07-26T04:50:54.569Z",
-      "entriesSha256": "a4b67f009833d91e4b4ef13d563823c2f8c10bac24aa6f3380ff23d847da8cd6"
+      "entriesSha256": "bd2113c37e425588879c78d59ed36011a4aea3838a02ce73a6d1036c8578ae9e"
     }
   },
   "stores": [
@@ -8153,25 +8153,31 @@
         "zip": "39157",
         "regionId": "central-jackson-madison-rankin"
       },
-      "firstPartyDomains": [],
-      "platform": null,
-      "platformIds": {},
-      "evidenceUrls": [
-        "https://tap.dor.ms.gov/_/"
+      "disposition": "live_inventory",
+      "sourceLayer": "private_retailer_inventory",
+      "firstPartyDomains": [
+        "www.moonshinems.com"
       ],
-      "sourceLayer": "directory",
-      "disposition": "directory_only",
-      "probeStatus": "statewide_method_no_verified_first_party_inventory_source",
-      "ecommerce": null,
-      "pickup": null,
-      "inventoryAuthoritative": false,
-      "healthVisible": false,
+      "platform": "moonshine",
+      "platformIds": {
+        "sellerId": "767"
+      },
+      "evidenceUrls": [
+        "https://www.moonshinems.com/ridgelandwinespirit",
+        "https://www.moonshinems.com/moonshine/homepage/sliders"
+      ],
+      "ecommerce": true,
+      "pickup": false,
+      "exactStoreOrderability": true,
+      "inventoryAuthoritative": true,
+      "probeStatus": "inventory_capable_binary_cart_orderability",
+      "healthVisible": true,
       "alertable": false,
       "reviewProvenance": {
         "reviewBatchId": "ms-statewide-platform-research-2026-07-26",
         "reviewedAt": "2026-07-26T04:50:54.569Z",
         "reviewStatus": "reviewed",
-        "evidenceClass": "statewide_source_research_no_verified_first_party_inventory"
+        "evidenceClass": "exact_first_party_moonshine_cart_orderability"
       }
     },
     {
@@ -14225,27 +14231,32 @@
         "zip": "39564",
         "regionId": "gulf-coast"
       },
+      "disposition": "release_watch",
+      "sourceLayer": "retailer_release_watch",
       "firstPartyDomains": [
-        "mabrysfinewineandspirits.com"
+        "premiumwineandliquor.com",
+        "adf6c00c-b93f-4bbe-80c6-03e4a97b5a0a.mysimplestore.com"
       ],
-      "platformIds": {},
+      "platform": "godaddy_release_watch",
+      "platformIds": {
+        "merchantId": "adf6c00c-b93f-4bbe-80c6-03e4a97b5a0a",
+        "storeId": "214b9772-46b0-454f-a908-23657dd9121b"
+      },
       "evidenceUrls": [
-        "https://mabrysfinewineandspirits.com/"
+        "https://premiumwineandliquor.com/online-shopping/ols/all",
+        "https://adf6c00c-b93f-4bbe-80c6-03e4a97b5a0a.mysimplestore.com/api/v2/products?page=1&per_page=100"
       ],
-      "probeStatus": "blocked_by_source_policy",
-      "disposition": "blocked_by_source_policy",
-      "sourceLayer": "storefront_probe",
-      "platform": "bottlecapps",
-      "ecommerce": null,
-      "pickup": null,
+      "ecommerce": true,
+      "pickup": true,
       "inventoryAuthoritative": false,
+      "probeStatus": "release_watch_capable_non_inventory",
       "healthVisible": true,
       "alertable": false,
       "reviewProvenance": {
         "reviewBatchId": "ms-statewide-platform-research-2026-07-26",
         "reviewedAt": "2026-07-26T04:50:54.569Z",
         "reviewStatus": "reviewed",
-        "evidenceClass": "first_party_surface_blocked_by_source_policy"
+        "evidenceClass": "first_party_release_hold_watch_non_inventory"
       }
     },
     {
