@@ -13,6 +13,7 @@ import { MISSISSIPPI_TAP_SOURCE_POLICY } from './discovery/mississippi-package-d
 import { validateMississippiSourceAtlas } from './discovery/source-atlas.mjs';
 import { isMississippiRetailerInventory } from './mississippi-retailer-policy.mjs';
 import { getStateLifecycle, STATE_LIFECYCLE_CONFIG } from './state-lifecycle.mjs';
+import { validateImmutablePromotionEvidence } from './reliability-policy.mjs';
 import { verifyMississippiReleasePolicy } from './mississippi-release-policy.mjs';
 import { validateStateVerticalSliceManifest } from './state-vertical-slice-contract.mjs';
 import { validateStateFixtures } from './verify-state-fixtures.mjs';
@@ -126,6 +127,31 @@ function verifyGithubShadowRunProvenance(evidence) {
     }
   }
   return verified;
+}
+
+function verifyGithubPromotionProvenance(lifecycle) {
+  const provenance = lifecycle?.promotionEvidence?.immutableEvidence?.provenance;
+  const repository = execFileSync('gh', ['repo', 'view', '--json', 'nameWithOwner', '--jq', '.nameWithOwner'], { encoding: 'utf8' }).trim();
+  assert.equal(provenance.repository, repository);
+  const workflow = ghApiJson(`repos/${repository}/actions/runs/${provenance.workflowRunId}`);
+  assert.equal(workflow.head_sha, provenance.commitSha);
+  assert.equal(workflow.conclusion, 'success');
+  assert.equal(workflow.event, 'workflow_dispatch');
+  assert.match(String(workflow.path || ''), /^\.github\/workflows\/state-promotion-provenance\.yml(?:@|$)/u);
+  const artifacts = ghApiJson(`repos/${repository}/actions/runs/${provenance.workflowRunId}/artifacts?per_page=100`).artifacts || [];
+  const artifact = artifacts.find((entry) => Number(entry.id) === Number(provenance.artifactId));
+  assert.ok(artifact && artifact.expired !== true);
+  assert.equal(artifact.name, provenance.artifactName);
+  assert.equal(String(artifact.digest || '').replace(/^sha256:/u, ''), provenance.artifactDigest);
+  const downloadDir = mkdtempSync(path.join(tmpdir(), 'bs-ms-promotion-'));
+  try {
+    execFileSync('gh', ['run', 'download', String(provenance.workflowRunId), '--repo', repository, '--name', provenance.artifactName, '--dir', downloadDir], {
+      encoding: 'utf8', maxBuffer: 100 * 1024 * 1024,
+    });
+    assert.deepEqual(readTrustedArtifactJson(downloadDir, 'MS.json', 'Promotion provenance'), readJson('../data/promotion-provenance/MS.json'));
+  } finally {
+    rmSync(downloadDir, { recursive: true, force: true });
+  }
 }
 
 export function validateMississippiShadowEvidenceArtifact(evidence, {
@@ -345,11 +371,26 @@ export function verifyMississippiResearchFoundation() {
   assert.equal(integration.lifecycle.coverageTier, 'sparse_live_store_inventory');
   const immutable = integration.evidence.immutablePromotionEvidence;
   assert.deepEqual(lifecycle.promotionEvidence?.immutableEvidence, immutable);
-  assert.equal(immutable.sourceRevisionSha, readJson('../data/shadow-evidence/MS.json').sourceRevisionSha);
-  assert.equal(immutable.shadowEvidenceSha256, sha256Relative('../data/shadow-evidence/MS.json'));
-  assert.equal(immutable.canaryEvidenceSha256, sha256Relative('../data/canary-evidence/MS.json'));
-  assert.equal(immutable.canaryInputSha256, sha256Relative('../data/canary-inputs/MS.json'));
-  assert.equal(immutable.verifiedAt, readJson('../data/canary-evidence/MS.json').generatedAt);
+  assert.equal(validateImmutablePromotionEvidence('MS', lifecycle.promotionEvidence), true);
+  assert.equal(lifecycle.promotionEvidence.shadowRuns, 3);
+  assert.equal(lifecycle.promotionEvidence.canaryRuns, 2);
+  assert.equal(lifecycle.promotionEvidence.verticalSliceManifest, 'engine/data/state-integration/MS.json');
+  assert.equal(lifecycle.promotionEvidence.fixtureContract, 'engine/data/state-fixtures/MS.json');
+  assert.equal(lifecycle.promotionEvidence.canaryPreviewUrl, immutable.previewUrl);
+  const shadowEvidence = readJson('../data/shadow-evidence/MS.json');
+  assert.deepEqual(immutable.shadowRuns.map((run) => run.artifactHash), shadowEvidence.runs.map((run) => String(run.github.artifactDigest).replace(/^sha256:/u, '')));
+  assert.deepEqual(immutable.canaryRuns.map((run) => run.artifactHash), [
+    sha256Relative('../data/canary-inputs/MS.json'),
+    readJson('../data/canary-evidence/MS.json').previewPolicySha256,
+  ]);
+  const provenance = readJson('../data/promotion-provenance/MS.json');
+  assert.equal(provenance.state, 'MS');
+  assert.equal(provenance.repository, immutable.provenance.repository);
+  assert.equal(provenance.commitSha, immutable.provenance.commitSha);
+  assert.equal(provenance.workflowRunId, immutable.provenance.workflowRunId);
+  assert.equal(provenance.generatedAt, immutable.generatedAt);
+  assert.equal(provenance.bundleDigest, immutable.provenance.bundleDigest);
+  assert.equal(createHash('sha256').update(JSON.stringify(provenance.fileDigests)).digest('hex'), provenance.bundleDigest);
   assert.deepEqual(validateStateVerticalSliceManifest(integration), { ok: true, failures: [] });
   assert.equal(integration.evidence.shadow.status, 'reviewed');
   assert.ok(Number(integration.evidence.shadow.runs) >= 3);
@@ -421,6 +462,7 @@ export function verifyMississippiShadowEvidence() {
   const verifiedGithubRuns = verifyGithubShadowRunProvenance(evidence);
   const validated = validateMississippiShadowEvidenceArtifact(evidence, { verifiedGithubRuns });
   assert.equal(Number(shadow.runs), validated.runs, 'Mississippi integration manifest run count must match the validated evidence artifact.');
+  verifyGithubPromotionProvenance(getStateLifecycle('MS'));
   return {
     ...readiness,
     phase: 'shadow',

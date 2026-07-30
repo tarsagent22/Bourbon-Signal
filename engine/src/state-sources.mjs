@@ -243,7 +243,7 @@ const BASE_STATE_SOURCES = [
   {
     id: 'MS', label: 'Mississippi sparse exact-store retailer inventory', tier: 'B', strategy: 'hybrid_official_intelligence_private_retailer', cadence: 'inventory-60m_directory-weekly',
     value: 'Complete official Package Retailer premises directory plus six isolated exact first-party storefront adapters. Fresh exact-store binary orderability may publish on-site; outbound alerts remain disabled. Official catalog, pricing, SPA, bailment, wholesale, and policy evidence remains noninventory; runtime health determines current storefront usability.',
-    active: false,
+    active: true,
     rareSignalTarget: true,
     sources: [
       { kind: 'html', url: 'https://tap.dor.ms.gov/_/', label: 'Mississippi DOR TAP Package Retailer directory', sourceLayer: 'directory', precisionOnly: true, inventoryAuthoritative: false, sourcePolicyStatus: 'source_policy_blocked', autonomousFetchAllowed: false, captureMode: 'operator_supplied_authorized_capture_only' },

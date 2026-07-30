@@ -28,7 +28,8 @@ export const STATE_LIFECYCLE_CONFIG = {
     "WI",
     "UT",
     "NY",
-    "CO"
+    "CO",
+    "MS"
   ],
   "reliabilityPolicy": {
     "schemaVersion": 1,
@@ -563,7 +564,7 @@ export const STATE_LIFECYCLE_CONFIG = {
     "MS": {
       "customerLabel": "Mississippi",
       "sourceLabel": "Mississippi exact-store retailer inventory",
-      "publicStatus": "research_only",
+      "publicStatus": "active",
       "lifecycle": "retailer_store_inventory",
       "coverageTier": "sparse_live_store_inventory",
       "refinementLevel": "region_city_store",
@@ -578,8 +579,8 @@ export const STATE_LIFECYCLE_CONFIG = {
         "Gulf Coast / Gulfport–Biloxi–Pascagoula",
         "Southwest / Natchez–Brookhaven–McComb–Vicksburg"
       ],
-      "promotionStage": "shadow",
-      "shadowEligible": true,
+      "promotionStage": "active",
+      "shadowEligible": false,
       "inventoryAlertable": false,
       "watchAlertable": false,
       "coverageLayerCounts": {
@@ -589,7 +590,64 @@ export const STATE_LIFECYCLE_CONFIG = {
         "live": 4,
         "alertGrade": 0
       },
-      "customerSummary": "Sparse first-party Mississippi retailer inventory across DeSoto County and the Jackson–Madison area. Exact-store binary orderability is visible on-site when freshly observed; no exact bottle count is claimed, outbound alerts remain disabled, and customers should verify before driving."
+      "customerSummary": "Sparse first-party Mississippi retailer inventory across DeSoto County and the Jackson–Madison area. Exact-store binary orderability is visible on-site when freshly observed; no exact bottle count is claimed, outbound alerts remain disabled, and customers should verify before driving.",
+      "promotionEvidence": {
+        "shadowRuns": 3,
+        "canaryRuns": 2,
+        "verifiedAt": "2026-07-30T12:04:37.478Z",
+        "shadowArtifact": "engine/data/shadow-evidence/MS.json",
+        "canaryArtifact": "engine/data/canary-evidence/MS.json",
+        "canaryPreviewUrl": "https://bourbonsignal-2oozjq6y8-tarsagent22s-projects.vercel.app",
+        "verticalSliceManifest": "engine/data/state-integration/MS.json",
+        "fixtureContract": "engine/data/state-fixtures/MS.json",
+        "immutableEvidence": {
+          "schemaVersion": 1,
+          "state": "MS",
+          "generatedAt": "2026-07-30T12:02:44.739Z",
+          "sourceConfigHash": "c25ce153f4f4e2d4f17f797c3b5a4ef5baa6ae5f1ed219584facce3f2c47f521",
+          "previewUrl": "https://bourbonsignal-2oozjq6y8-tarsagent22s-projects.vercel.app",
+          "shadowRuns": [
+            {
+              "runId": "github-30326676032",
+              "status": "success",
+              "artifactHash": "6e67094230c23e720f0f83045eac03175773fa06243d7412c00cdb269a2a1942"
+            },
+            {
+              "runId": "github-30433662576",
+              "status": "success",
+              "artifactHash": "93e42030f5a0a46657098b207a7676a72c3f80b865dff933c09f9eed48243772"
+            },
+            {
+              "runId": "github-30448010990",
+              "status": "success",
+              "artifactHash": "a68d83b5272bae93fa284448b769570878bff217a6b2c964bbdd0204cce7d162"
+            }
+          ],
+          "canaryRuns": [
+            {
+              "runId": "ms-canary-input",
+              "status": "success",
+              "artifactHash": "ca312fe8f1716ae4bafe2ee91917d9b51ccd2be1bda8d4b6b1f5b75af3dfc728"
+            },
+            {
+              "runId": "ms-canary-policy",
+              "status": "success",
+              "artifactHash": "8196f71010619f99a92ef9854d27b84dbbd7b62165eb17e6c76766b248b1fd40"
+            }
+          ],
+          "provenance": {
+            "repository": "tarsagent22/Bourbon-Signal",
+            "workflowRunId": "30540884485",
+            "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/30540884485",
+            "commitSha": "ec11e34d00c6b3d1944b436e6bb8d6cf3b593c96",
+            "artifactId": "8758636527",
+            "artifactName": "state-promotion-provenance-MS-30540884485",
+            "artifactDigest": "84c4f13636bc2edd992a29b4367271dee9dc1247fa2e5b8a08249514b08610fa",
+            "bundleDigest": "ff22a511e2b21776ffab59894de3241096d1a8aa4a0d6084aefe89b58d9eb16a",
+            "status": "success"
+          }
+        }
+      }
     },
     "NV": {
       "customerLabel": "Nevada",
