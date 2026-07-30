@@ -1068,6 +1068,18 @@ const SC_ALL_AMERICAN_CACHE_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_SC_AL
 const SC_ALL_AMERICAN_DELAY_MS = Number(process.env.BOURBON_SIGNAL_SC_ALL_AMERICAN_DELAY_MS || 650);
 const SC_ALL_AMERICAN_TERMS = ['blanton', 'weller', 'eagle rare', 'stagg', 'taylor', '1792', 'buffalo trace', 'booker', 'baker'];
 const SC_ALL_AMERICAN_STORE = { id: 'all-american-liquor-mauldin', name: 'All American Liquor', address: '121 W Butler Rd, Mauldin, SC 29662', city: 'Mauldin', zip: '29662' };
+const SC_DUNES_BASE_URL = 'https://www.dunesliquor.com';
+const SC_DUNES_SOURCE_LABEL = 'Dunes Liquor Myrtle Beach integrated-cart inventory';
+const SC_DUNES_RUNTIME_ID = 'retailer:sc:dunes:6178';
+const SC_DUNES_ARTIFACT_PATH = 'out/browser/SC-dunes-liquor-inventory.json';
+const SC_DUNES_CACHE_MAX_AGE_MS = Math.max(30 * 60_000, Math.min(6 * 60 * 60_000, Number(process.env.BOURBON_SIGNAL_SC_DUNES_CACHE_MAX_AGE_MS) || 6 * 60 * 60_000));
+const SC_DUNES_MAX_ITEMS = Math.max(1, Math.min(47, Number(process.env.BOURBON_SIGNAL_SC_DUNES_MAX_ITEMS) || 47));
+const SC_DUNES_DETAIL_CONCURRENCY = Math.max(1, Math.min(4, Number(process.env.BOURBON_SIGNAL_SC_DUNES_DETAIL_CONCURRENCY) || 4));
+const SC_DUNES_DELAY_MS = Math.max(100, Math.min(2_000, Number(process.env.BOURBON_SIGNAL_SC_DUNES_DELAY_MS) || 250));
+const SC_DUNES_JSON_MAX_BYTES = 256 * 1_024;
+const SC_DUNES_STOREFRONT_MAX_BYTES = 512 * 1_024;
+const SC_DUNES_SEARCH_TERMS = ['blanton', 'buffalo', 'eagle rare', 'stagg', 'weller', 'michter', '1792', 'wild turkey rare', 'booker', 'baker', 'elijah craig', 'woodford double', 'old forester', 'willett', 'bardstown'];
+const SC_DUNES_STORE = { id: 'dunes-liquor-myrtle-beach', name: 'Dunes Liquor', address: '980 Cipriana Drive, Unit A5-B, Myrtle Beach, SC 29572', city: 'Myrtle Beach', zip: '29572' };
 const SC_CITYHIVE_SOURCES = [
   {
     id: 'greens-beverage',
@@ -1964,7 +1976,7 @@ function normalizedBottleText(value) {
     .trim();
 }
 
-function cityHiveSafeBottleMatch(rawName, bible) {
+export function cityHiveSafeBottleMatch(rawName, bible) {
   const { match, record } = bottleMatch(rawName, bible);
   if (!record) return { match, record: null, unsafeReason: 'no_bottle_bible_match' };
   const raw = normalizedBottleText(rawName);
@@ -1988,6 +2000,9 @@ function cityHiveSafeBottleMatch(rawName, bible) {
   if (/\bfour roses\b/.test(canonical) && /\bbarrel strength\b/.test(canonical)) {
     const hasBarrelStrengthSignal = /\b(barrel strength|cask strength|private selection|private barrel|single barrel select|oes[foqkv]|obs[foqkv])\b/.test(raw);
     if (!hasBarrelStrengthSignal) return { match, record: null, unsafeReason: 'four_roses_standard_single_barrel_not_barrel_strength' };
+  }
+  for (const yearExpression of [...canonical.matchAll(/\b((?:18|19|20)\d{2})\b/g)].map((m) => m[1])) {
+    if (!new RegExp(`\\b${yearExpression}\\b`).test(raw)) return { match, record: null, unsafeReason: `missing_expression:${yearExpression}` };
   }
   for (const year of [...canonical.matchAll(/\b(\d{1,2})\s*year\b/g)].map((m) => m[1])) {
     if (!new RegExp(`\\b${year}\\s*(?:year|yr|y)\\b`).test(raw)) return { match, record: null, unsafeReason: `missing_age:${year}` };
@@ -5665,6 +5680,145 @@ function htmlToText(value = '') {
   return decodeHtml(String(value).replace(/<script[\s\S]*?<\/script>/gi, ' ').replace(/<style[\s\S]*?<\/style>/gi, ' ').replace(/<[^>]+>/g, ' '));
 }
 
+function southCarolinaDunesText(value = '') {
+  return htmlToText(value).replace(/\*+/g, ' ').replace(/\s+/g, ' ').trim();
+}
+
+function southCarolinaDunesIdentityText(value = '') {
+  return southCarolinaDunesText(value).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+}
+
+function southCarolinaDunesNumeric(value) {
+  if (typeof value === 'number') return Number.isFinite(value) ? value : Number.NaN;
+  if (typeof value !== 'string' || !/^\s*\d+(?:\.\d+)?\s*$/.test(value)) return Number.NaN;
+  return Number(value.trim());
+}
+
+export function isSouthCarolinaDunesStoreMetadata(payload) {
+  if (payload?.StatusVal !== true) return false;
+  const store = payload?.Data?.StoreInfo;
+  if (!store) return false;
+  const address = southCarolinaDunesIdentityText([store.ADDRESS1, store.ADDRESS2, store.ADDRESS3, store.ADDRESS4].filter(Boolean).join(' '));
+  const phone = String(store.PHONE || '').replace(/\D/g, '');
+  return address.includes('980 cipriana drive unit a5')
+    && address.includes('unit b')
+    && address.includes('myrtle beach sc 29572')
+    && phone === '8438080092';
+}
+
+export function isSouthCarolinaDunesStorefrontHtml(html = '') {
+  const source = String(html || '');
+  return /id=["']lblIsIntegratedCart["'][^>]*>\s*1\s*</i.test(source)
+    && /Store_6178\/ItemImage\//i.test(source)
+    && /id=["']LoadItemDescription["'][^>]+value=["']\/ListManage\/LoadItemDescription["']/i.test(source)
+    && /id=["']ItemAddToCart["'][^>]+value=["']\/Item\/ItemAddToCart["']/i.test(source);
+}
+
+export function parseSouthCarolinaDunesItemDetail(payload, { searchRow } = {}) {
+  if (payload?.StatusVal !== true || !searchRow) return null;
+  const item = payload?.Data?.objItem;
+  if (!item) return null;
+  const sku = String(item.SKU ?? '').trim();
+  if (!sku || sku !== String(searchRow.ID ?? '').trim()) return null;
+  const itemName = southCarolinaDunesText(item.ITEMNAME);
+  const searchIdentity = southCarolinaDunesIdentityText(searchRow.label || searchRow.value);
+  const itemIdentity = southCarolinaDunesIdentityText(itemName);
+  if (!itemIdentity || !searchIdentity.includes(itemIdentity)) return null;
+  const department = southCarolinaDunesText(item.DEPNAME);
+  const category = southCarolinaDunesText(item.CATNAME);
+  if (department.toLowerCase() !== 'spirits' || !/^(bourbon|whiskey)$/i.test(category)) return null;
+  if (/\b(cream|liqueur|cordial|cocktail|ready to drink|vodka|gin|rum|tequila|mezcal|brandy|cognac|wine|beer|stout|bundle|gift card|syrup|mix(?:er|ters)?|nips?|mini(?:ature)?s?)\b|\b\d+\s*(?:pk|pack)\b/i.test(itemName)) return null;
+  const quantity = southCarolinaDunesNumeric(item.INSTOREQTY);
+  const price = southCarolinaDunesNumeric(item.PRICEPERUNIT);
+  if (!Number.isSafeInteger(quantity) || quantity <= 0 || item.IsOutOfStock !== false || !Number.isFinite(price) || price <= 0) return null;
+  const size = southCarolinaDunesText(item.SIZEPACK);
+  const sizeMatch = size.match(/^(\d+(?:\.\d+)?)\s*(ml|l|oz)(?:\s*\|\s*single)?$/i);
+  if (!sizeMatch) return null;
+  const sizeAmount = Number(sizeMatch[1]);
+  const sizeUnit = sizeMatch[2].toLowerCase();
+  const sizeMl = sizeUnit === 'l' ? sizeAmount * 1_000 : sizeUnit === 'oz' ? sizeAmount * 29.5735 : sizeAmount;
+  if (!Number.isFinite(sizeMl) || sizeMl < 375 || sizeMl > 1_750) return null;
+  const normalizedSize = size.replace(/\s*\|\s*single$/i, '').replace(/\s+/g, '');
+  return {
+    sku,
+    rawName: `${itemName} ${normalizedSize}`,
+    quantity,
+    price,
+    size: normalizedSize,
+    department,
+    category,
+    itemUrl: `${SC_DUNES_BASE_URL}/ListManage/ItemDescriptionPage?ItemID=${encodeURIComponent(sku)}`,
+    quantitySemantics: 'exact_retailer_in_store_quantity',
+    sourceAvailabilityVerified: true,
+    premisesVerified: true,
+    pickupOfferVerified: true,
+    orderabilityOfferVerified: true,
+  };
+}
+
+export function buildSouthCarolinaDunesSignal(config, row, { observedAt, record, match } = {}) {
+  if (!row || !record?.id || !record?.canonical || !observedAt) return null;
+  const id = stableId([config?.id || 'SC', SC_DUNES_RUNTIME_ID, row.sku]);
+  return {
+    id,
+    key: id,
+    state: config?.id || 'SC',
+    displayState: config?.id || 'SC',
+    sourceUrl: row.itemUrl,
+    sourceLabel: SC_DUNES_SOURCE_LABEL,
+    sourceRuntimeId: SC_DUNES_RUNTIME_ID,
+    eventType: 'retailer_store_inventory_result',
+    rawName: row.rawName,
+    canonicalBottleId: record.id,
+    bottleId: record.id,
+    canonicalName: record.canonical,
+    tier: record.tier,
+    confidence: Math.min(0.98, Math.max(0.86, match?.confidence || 0.86)),
+    sourceMatchStatus: 'bottle_bible_match',
+    quantity: row.quantity,
+    storeQty: row.quantity,
+    quantityIsExact: true,
+    quantitySemantics: row.quantitySemantics,
+    price: row.price,
+    availabilityStatus: 'in_stock',
+    availabilityLabel: `Retailer reports ${row.quantity} in store`,
+    sourceAvailabilityVerified: row.sourceAvailabilityVerified,
+    premisesVerified: row.premisesVerified,
+    pickupOfferVerified: row.pickupOfferVerified,
+    orderabilityOfferVerified: row.orderabilityOfferVerified,
+    deliveryOfferVerified: false,
+    fulfillmentGuaranteed: false,
+    locationPrecision: 'store_level',
+    locationName: SC_DUNES_STORE.name,
+    storeName: SC_DUNES_STORE.name,
+    storeId: `dunes-liquor:${SC_DUNES_STORE.id}`,
+    storeAddress: SC_DUNES_STORE.address,
+    city: SC_DUNES_STORE.city,
+    stateCode: config?.id || 'SC',
+    postalCode: SC_DUNES_STORE.zip,
+    zip: SC_DUNES_STORE.zip,
+    observedAt,
+    fetchedAt: observedAt,
+    canAlertAsInventory: true,
+    canAlertAsWatch: true,
+    dataLane: 'inventory',
+    inventorySemantics: 'Dunes Liquor public integrated-cart storefront reports an exact positive in-store quantity and price for its identity-bound Myrtle Beach premises. Treat as retailer-published pickup/order availability and verify before driving; delivery and fulfillment are not guaranteed.',
+    evidence: `Dunes Liquor item detail reports exact in-store quantity ${row.quantity} of ${row.rawName} at ${SC_DUNES_STORE.address} for $${row.price.toFixed(2)}; the response is bound to runtime store 6178 and its public integrated cart.`,
+    raw: {
+      chain: 'dunes-liquor',
+      runtimeStoreId: '6178',
+      sku: row.sku,
+      category: row.category,
+      department: row.department,
+      size: row.size,
+      quantitySemantics: row.quantitySemantics,
+      integratedCartVerified: true,
+      deliveryOfferVerified: false,
+      fulfillmentGuaranteed: false,
+    },
+  };
+}
+
 function wcStoreApiPrice(prices) {
   const raw = Number(prices?.price || 0);
   const minor = Number(prices?.currency_minor_unit ?? 2);
@@ -5839,6 +5993,195 @@ async function collectSouthCarolinaPhase1Myrtle(config, bible, observedAt) {
   return { signals, roadblocks };
 }
 
+export async function readBoundedSouthCarolinaDunesResponse(response, {
+  url = 'unknown',
+  maxBytes = SC_DUNES_JSON_MAX_BYTES,
+} = {}) {
+  const declaredBytes = Number(response.headers?.get?.('content-length'));
+  if (Number.isFinite(declaredBytes) && declaredBytes > maxBytes) {
+    await response.body?.cancel?.().catch(() => {});
+    throw new Error(`Dunes response from ${url} declared ${declaredBytes} bytes; maximum is ${maxBytes}`);
+  }
+  if (!response.body?.getReader) {
+    const text = await response.text();
+    if (Buffer.byteLength(text, 'utf8') > maxBytes) throw new Error(`Dunes response from ${url} exceeded ${maxBytes} bytes`);
+    return text;
+  }
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+  let totalBytes = 0;
+  let text = '';
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      totalBytes += value.byteLength;
+      if (totalBytes > maxBytes) {
+        await reader.cancel().catch(() => {});
+        throw new Error(`Dunes response from ${url} exceeded ${maxBytes} bytes`);
+      }
+      text += decoder.decode(value, { stream: true });
+    }
+    text += decoder.decode();
+    return text;
+  } finally {
+    reader.releaseLock?.();
+  }
+}
+
+async function southCarolinaDunesTextFetch(url, options = {}) {
+  const timeoutMs = Number(options.timeoutMs || 24_000);
+  const controller = new AbortController();
+  const timeout = timeoutMs > 0 ? setTimeout(() => controller.abort(), timeoutMs) : null;
+  const signals = [controller.signal, options.signal].filter(Boolean);
+  try {
+    const response = await fetch(url, {
+      redirect: 'follow',
+      headers: {
+        'user-agent': 'Mozilla/5.0 (BourbonSignal source-health)',
+        accept: 'text/html,application/json,*/*',
+        ...(options.headers || {}),
+      },
+      method: options.method || 'GET',
+      body: options.body,
+      signal: signals.length > 1 ? AbortSignal.any(signals) : controller.signal,
+    });
+    const text = await readBoundedSouthCarolinaDunesResponse(response, {
+      url: response.url || url,
+      maxBytes: options.maxBytes || SC_DUNES_JSON_MAX_BYTES,
+    });
+    return { ok: response.ok, status: response.status, url: response.url || url, contentType: response.headers.get('content-type') || '', text, error: null };
+  } catch (error) {
+    if (options.signal?.aborted) throw error;
+    return { ok: false, status: 0, url, contentType: '', text: '', error: error instanceof Error ? error.message : String(error) };
+  } finally {
+    if (timeout) clearTimeout(timeout);
+  }
+}
+
+async function southCarolinaDunesJson(fetcher, pathName, body, timeoutMs = 24_000) {
+  const url = `${SC_DUNES_BASE_URL}${pathName}`;
+  const res = await fetcher(url, {
+    method: 'POST',
+    headers: { accept: 'application/json,*/*', 'content-type': 'application/json; charset=utf-8' },
+    body: JSON.stringify(body),
+    timeoutMs,
+    maxBytes: SC_DUNES_JSON_MAX_BYTES,
+  });
+  if (!res.ok) return { ok: false, status: res.status || 0, url, error: res.error || `HTTP ${res.status}`, payload: null };
+  if (Buffer.byteLength(String(res.text || ''), 'utf8') > SC_DUNES_JSON_MAX_BYTES) {
+    return { ok: false, status: res.status || 0, url, error: `Dunes JSON response exceeded the ${SC_DUNES_JSON_MAX_BYTES}-byte maximum body.`, payload: null };
+  }
+  try {
+    return { ok: true, status: res.status, url, error: null, payload: JSON.parse(res.text) };
+  } catch (error) {
+    return { ok: false, status: res.status || 0, url, error: error instanceof Error ? error.message : String(error), payload: null };
+  }
+}
+
+export function isFreshSouthCarolinaDunesCacheTimestamp(generatedAt, nowMs = Date.now()) {
+  const generatedMs = Date.parse(String(generatedAt || ''));
+  const ageMs = nowMs - generatedMs;
+  return Number.isFinite(generatedMs)
+    && ageMs >= -5 * 60_000
+    && ageMs <= SC_DUNES_CACHE_MAX_AGE_MS;
+}
+
+export async function collectSouthCarolinaDunes(config, bible, observedAt, options = {}) {
+  const fetcher = options.fetcher || southCarolinaDunesTextFetch;
+  const sleepFn = options.sleepFn || sleep;
+  const useCache = options.useCache !== false && process.env.BOURBON_SIGNAL_SC_FORCE_DUNES_LIVE !== '1';
+  const persistCache = options.persistCache !== false;
+  const maxItems = Math.max(1, Math.min(SC_DUNES_MAX_ITEMS, Number(options.maxItems) || SC_DUNES_MAX_ITEMS));
+  const detailConcurrency = Math.max(1, Math.min(SC_DUNES_DETAIL_CONCURRENCY, Number(options.detailConcurrency) || SC_DUNES_DETAIL_CONCURRENCY));
+  const searchTerms = (options.searchTerms || SC_DUNES_SEARCH_TERMS).slice(0, SC_DUNES_SEARCH_TERMS.length);
+  const matchBottle = options.matchBottle || ((rawName) => cityHiveSafeBottleMatch(rawName, bible));
+
+  if (useCache) {
+    try {
+      const cached = JSON.parse(await readFile(SC_DUNES_ARTIFACT_PATH, 'utf8'));
+      if (isFreshSouthCarolinaDunesCacheTimestamp(cached.generatedAt) && Array.isArray(cached.signals)) {
+        return {
+          signals: cached.signals.map((signal) => ({ ...signal, observedAt: cached.generatedAt, fetchedAt: observedAt, raw: { ...(signal.raw || {}), cacheFallback: true, cacheGeneratedAt: cached.generatedAt } })),
+          roadblocks: cached.roadblocks || [],
+        };
+      }
+    } catch {}
+  }
+
+  const roadblocks = [];
+  const storefront = await fetcher(SC_DUNES_BASE_URL, { headers: { accept: 'text/html,*/*' }, timeoutMs: 24_000, maxBytes: SC_DUNES_STOREFRONT_MAX_BYTES });
+  const storefrontTooLarge = Buffer.byteLength(String(storefront.text || ''), 'utf8') > SC_DUNES_STOREFRONT_MAX_BYTES;
+  if (!storefront.ok || storefrontTooLarge || !isSouthCarolinaDunesStorefrontHtml(storefront.text)) {
+    return {
+      signals: [],
+      roadblocks: [{ state: config.id, source: SC_DUNES_SOURCE_LABEL, url: SC_DUNES_BASE_URL, status: storefront.status || 'identity_mismatch', error: storefrontTooLarge ? `Dunes storefront exceeded the ${SC_DUNES_STOREFRONT_MAX_BYTES}-byte maximum body.` : storefront.error || 'Dunes storefront did not preserve the integrated-cart and runtime-store-6178 identity markers.', nextRoute: 'Inspect the public storefront and item-control routes; do not emit inventory until both runtime and cart markers match.' }],
+    };
+  }
+
+  const metadata = await southCarolinaDunesJson(fetcher, '/Home/LoadBasicData', {});
+  if (!metadata.ok || !isSouthCarolinaDunesStoreMetadata(metadata.payload)) {
+    return {
+      signals: [],
+      roadblocks: [{ state: config.id, source: SC_DUNES_SOURCE_LABEL, url: metadata.url, status: metadata.status || 'identity_mismatch', error: metadata.error || 'Dunes public store metadata did not match the reviewed Myrtle Beach address and phone.', nextRoute: 'Re-verify the exact premises from first-party store metadata before collecting bottle rows.' }],
+    };
+  }
+
+  const signals = [southCarolinaStoreLocationSignal(config, SC_DUNES_SOURCE_LABEL, SC_DUNES_BASE_URL, SC_DUNES_STORE, observedAt, 'dunes-liquor')];
+  const searchRows = new Map();
+  let searchFailureCount = 0;
+  for (const term of searchTerms) {
+    const search = await southCarolinaDunesJson(fetcher, '/Home/GetSearchResult', { SearchTerm: term });
+    if (!search.ok || search.payload?.StatusVal !== true || !Array.isArray(search.payload?.Data?.lstFilterResult)) {
+      searchFailureCount += 1;
+    } else {
+      for (const row of search.payload.Data.lstFilterResult) {
+        const sku = String(row?.ID ?? '').trim();
+        if (sku && /^\d+$/.test(sku) && !searchRows.has(sku)) searchRows.set(sku, row);
+      }
+    }
+    if (SC_DUNES_DELAY_MS > 0) await sleepFn(SC_DUNES_DELAY_MS);
+  }
+  if (searchFailureCount) {
+    roadblocks.push({ state: config.id, source: SC_DUNES_SOURCE_LABEL, url: `${SC_DUNES_BASE_URL}/Home/GetSearchResult`, status: 'partial_search_failure', error: `${searchFailureCount} of ${searchTerms.length} bounded Dunes search requests failed or returned malformed data.`, nextRoute: 'Retry the same bounded public search cohort; do not broaden request volume.' });
+  }
+
+  const rows = [...searchRows.values()].slice(0, maxItems);
+  let detailFailureCount = 0;
+  for (let offset = 0; offset < rows.length; offset += detailConcurrency) {
+    const chunk = rows.slice(offset, offset + detailConcurrency);
+    const details = await Promise.all(chunk.map(async (searchRow) => ({
+      searchRow,
+      detail: await southCarolinaDunesJson(fetcher, '/ListManage/LoadItemDescription', { SKU: searchRow.ID, CUSTOMER_ID: null }),
+    })));
+    for (const { searchRow, detail } of details) {
+      if (!detail.ok) {
+        detailFailureCount += 1;
+        continue;
+      }
+      const parsed = parseSouthCarolinaDunesItemDetail(detail.payload, { searchRow });
+      if (!parsed || !isSouthCarolinaRetailerCandidate(parsed.rawName)) continue;
+      const { match, record } = matchBottle(parsed.rawName) || {};
+      if (!record) continue;
+      const signal = buildSouthCarolinaDunesSignal(config, parsed, { observedAt, record, match });
+      if (signal) signals.push(signal);
+    }
+    if (SC_DUNES_DELAY_MS > 0) await sleepFn(SC_DUNES_DELAY_MS);
+  }
+  if (detailFailureCount) {
+    roadblocks.push({ state: config.id, source: SC_DUNES_SOURCE_LABEL, url: `${SC_DUNES_BASE_URL}/ListManage/LoadItemDescription`, status: 'partial_detail_failure', error: `${detailFailureCount} of ${rows.length} bounded Dunes item-detail requests failed.`, nextRoute: 'Retry only the reviewed SKU cohort at the next cadence.' });
+  }
+  if (!signals.some((signal) => signal.eventType === 'retailer_store_inventory_result')) {
+    roadblocks.push({ state: config.id, source: SC_DUNES_SOURCE_LABEL, url: SC_DUNES_BASE_URL, status: 'reachable_no_safe_bourbon_inventory', error: `Dunes returned ${rows.length} reviewed search rows but no positive exact-stock Bible matches survived filtering.`, nextRoute: 'Inspect current names and stock controls; add aliases only for unambiguous bottle identities.' });
+  }
+
+  if (persistCache && signals.some((signal) => signal.eventType === 'retailer_store_inventory_result')) {
+    await mkdir(path.dirname(SC_DUNES_ARTIFACT_PATH), { recursive: true });
+    await writeFile(SC_DUNES_ARTIFACT_PATH, JSON.stringify({ generatedAt: observedAt, signals, roadblocks }, null, 2));
+  }
+  return { signals, roadblocks };
+}
+
 async function collectSouthCarolinaAllAmerican(config, bible, observedAt) {
   try {
     const cached = JSON.parse(await readFile(SC_ALL_AMERICAN_ARTIFACT_PATH, 'utf8'));
@@ -5923,11 +6266,12 @@ async function collectSouthCarolina(config, bible) {
   const cityHive = await collectSouthCarolinaCityHive(config, bible, observedAt);
   const daBrownBag = await collectSouthCarolinaDaBrownBag(config, bible, observedAt);
   const southernSpirits = await collectSouthCarolinaSouthernSpirits(config, bible, observedAt);
+  const dunes = await collectSouthCarolinaDunes(config, bible, observedAt);
   const allAmerican = await collectSouthCarolinaAllAmerican(config, bible, observedAt);
   const phase1Myrtle = await collectSouthCarolinaPhase1Myrtle(config, bible, observedAt);
   return {
-    signals: [...cityHive.signals, ...daBrownBag.signals, ...southernSpirits.signals, ...allAmerican.signals, ...phase1Myrtle.signals],
-    roadblocks: [...cityHive.roadblocks, ...daBrownBag.roadblocks, ...southernSpirits.roadblocks, ...allAmerican.roadblocks, ...phase1Myrtle.roadblocks]
+    signals: [...cityHive.signals, ...daBrownBag.signals, ...southernSpirits.signals, ...dunes.signals, ...allAmerican.signals, ...phase1Myrtle.signals],
+    roadblocks: [...cityHive.roadblocks, ...daBrownBag.roadblocks, ...southernSpirits.roadblocks, ...dunes.roadblocks, ...allAmerican.roadblocks, ...phase1Myrtle.roadblocks]
   };
 }
 

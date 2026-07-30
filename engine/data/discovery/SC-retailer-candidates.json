@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-12T00:20:00.000Z",
+  "generatedAt": "2026-07-30T19:50:05.453Z",
   "state": "SC",
   "method": "Brave-first regional discovery followed by one-pass public endpoint probes; no anti-bot bypass",
   "semantics": {
@@ -9,6 +9,7 @@
     "directory-only": "Authoritative store identity without bottle-level availability"
   },
   "retailers": [
+    {"name":"Dunes Liquor","city":"Myrtle Beach","address":"980 Cipriana Drive, Unit A5-B, Myrtle Beach, SC 29572","platform":"integrated-cart storefront","status":"live-inventory","notes":"Runtime store 6178; exact positive INSTOREQTY, IsOutOfStock=false, positive price, SKU, full-bottle format, and public cart controls. Bounded 2026-07-30 probe emitted 13 current rows across 12 canonical bottles."},
     {"name":"All American Liquor","city":"Mauldin","address":"121 W Butler Rd, Mauldin, SC 29662","platform":"WooCommerce Store API","status":"live-inventory","notes":"Explicit is_in_stock; in-store/wholesale only; exact quantity unavailable"},
     {"name":"Green's Beverage","city":"Columbia / Greenville / Myrtle Beach","platform":"CityHive","status":"live-inventory","notes":"Existing multi-store quantity feed"},
     {"name":"Wine & Bourbon Barn","city":"Simpsonville","platform":"CityHive","status":"live-inventory"},

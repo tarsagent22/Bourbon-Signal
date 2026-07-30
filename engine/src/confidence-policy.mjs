@@ -10,6 +10,7 @@ import { isNevadaRetailerInventory, isNevadaRetailerSignalIdentity } from './nev
 import { isMetroRetailerInventory, isMetroRetailerSignalIdentity } from './metro-retailer-policy.mjs';
 import { isMississippiRetailerInventory, isMississippiRetailerSignalIdentity } from './mississippi-retailer-policy.mjs';
 import { isTennesseeRetailerInventory, isTennesseeRetailerSignalIdentity } from './tennessee-retailer-policy.mjs';
+import { isSouthCarolinaDunesInventory } from './south-carolina-dunes-policy.mjs';
 import { lifecycleAllowsInventoryAlert, lifecycleAllowsWatchAlert } from './state-lifecycle.mjs';
 
 export const STATE_CONFIDENCE_POLICY = {
@@ -111,7 +112,7 @@ const TEXAS_CITYHIVE_POLICY = {
 
 const SOUTH_CAROLINA_RETAILER_POLICY = {
   maxAlertMode: 'alert_retailer_store_inventory_caveat',
-  inventorySemantics: 'South Carolina is a private retail market. Whitelisted public retailer sources (CityHive merchant-id pages, Da Brown Bag Clover, and Southern Spirits Shopify) can expose store-level retailer-published bottle availability; alert with a verify-before-driving caveat and preserve exact quantity semantics from the source.',
+  inventorySemantics: 'South Carolina is a private retail market. Whitelisted public retailer sources (CityHive merchant-id pages, Da Brown Bag Clover, Southern Spirits Shopify, and identity-bound Dunes Liquor runtime-store inventory) can expose store-level retailer-published bottle availability; alert with a verify-before-driving caveat and preserve exact quantity semantics from the source.',
   defaultCadence: 'daily-60m'
 };
 
@@ -176,7 +177,7 @@ const COSTCO_WAREHOUSE_POLICY = {
   defaultCadence: '15-60m'
 };
 
-function policyForSignal(signal) {
+function policyForSignal(signal, nowMs = Date.now()) {
   const basePolicy = STATE_CONFIDENCE_POLICY[signal.state] || { maxAlertMode: 'unknown', inventorySemantics: 'No policy defined.' };
   const eventType = String(signal.eventType || signal.signalType || '');
   const source = String(signal.sourceLabel || signal.source || '');
@@ -189,7 +190,8 @@ function policyForSignal(signal) {
     && isTexasRetailerSignalIdentity(signal)) return TEXAS_CITYHIVE_POLICY;
   if (signal.state === 'SC'
     && /^(cityhive_store_inventory|retailer_store_inventory)/i.test(eventType)
-    && /CityHive|Green's Beverage|Wine & Bourbon Barn|Da Brown Bag|Clover|Southern Spirits|Shopify/i.test(source)) return SOUTH_CAROLINA_RETAILER_POLICY;
+    && (/CityHive|Green's Beverage|Wine & Bourbon Barn|Da Brown Bag|Clover|Southern Spirits|Shopify/i.test(source)
+      || isSouthCarolinaDunesInventory(signal, nowMs))) return SOUTH_CAROLINA_RETAILER_POLICY;
   if (signal.state === 'AZ'
     && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(eventType)
     && isArizonaRetailerSignalIdentity(signal)) return ARIZONA_RETAILER_POLICY;
@@ -222,8 +224,8 @@ function policyForSignal(signal) {
   return basePolicy;
 }
 
-export function confidenceForSignal(signal) {
-  const policy = policyForSignal(signal);
+export function confidenceForSignal(signal, { nowMs = Date.now() } = {}) {
+  const policy = policyForSignal(signal, nowMs);
   const precision = signal.locationPrecision || 'statewide_catalog';
   const rank = precisionRank(precision);
   let confidence = Number(signal.confidence || 0.35) || 0.35;
@@ -263,6 +265,10 @@ export function confidenceForSignal(signal) {
   const metroRetailerEvent = ['NY', 'CO'].includes(signal.state) && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(eventType);
   const metroInventoryAllowed = !metroRetailerEvent || isMetroRetailerInventory(signal);
   const metroWatchAllowed = !metroRetailerEvent || (isMetroRetailerSignalIdentity(signal) && isMetroRetailerInventory(signal));
+  const southCarolinaDunesEvent = signal.state === 'SC'
+    && /^(cityhive_store_inventory|retailer_store_inventory)/i.test(eventType)
+    && (signal.sourceRuntimeId === 'retailer:sc:dunes:6178' || /Dunes Liquor/i.test(String(signal.sourceLabel || '')));
+  const southCarolinaDunesAllowed = !southCarolinaDunesEvent || isSouthCarolinaDunesInventory(signal, nowMs);
   const mississippiRetailerEvent = signal.state === 'MS' && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(eventType);
   const mississippiInventoryAllowed = !mississippiRetailerEvent
     || (isMississippiRetailerInventory(signal) && lifecycleAllowsInventoryAlert('MS'));
@@ -283,7 +289,7 @@ export function confidenceForSignal(signal) {
     policyMode: policy.maxAlertMode,
     inventorySemantics: policy.inventorySemantics,
     locationValue: locationValue(signal),
-    canAlertAsInventory: !runtimeAlertBlocked && texasInventoryAllowed && indianaInventoryAllowed && georgiaInventoryAllowed && tennesseeInventoryAllowed && californiaInventoryAllowed && nevadaInventoryAllowed && metroInventoryAllowed && mississippiInventoryAllowed && !isDistilleryLane && hasPositiveInventory && !inventoryBlockedBySemantics && rank >= 6 && confidence >= 0.72,
-    canAlertAsWatch: !runtimeAlertBlocked && indianaWatchAllowed && georgiaWatchAllowed && tennesseeWatchAllowed && californiaWatchAllowed && nevadaWatchAllowed && metroWatchAllowed && mississippiWatchAllowed && !isSampleOnly && !watchBlockedBySemantics && confidence >= 0.5 && policy.maxAlertMode !== 'policy_only'
+    canAlertAsInventory: !runtimeAlertBlocked && texasInventoryAllowed && indianaInventoryAllowed && georgiaInventoryAllowed && tennesseeInventoryAllowed && californiaInventoryAllowed && nevadaInventoryAllowed && metroInventoryAllowed && southCarolinaDunesAllowed && mississippiInventoryAllowed && !isDistilleryLane && hasPositiveInventory && !inventoryBlockedBySemantics && rank >= 6 && confidence >= 0.72,
+    canAlertAsWatch: !runtimeAlertBlocked && indianaWatchAllowed && georgiaWatchAllowed && tennesseeWatchAllowed && californiaWatchAllowed && nevadaWatchAllowed && metroWatchAllowed && southCarolinaDunesAllowed && mississippiWatchAllowed && !isSampleOnly && !watchBlockedBySemantics && confidence >= 0.5 && policy.maxAlertMode !== 'policy_only'
   };
 }
