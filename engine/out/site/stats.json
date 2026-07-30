@@ -420,7 +420,7 @@
           "Gulf Coast / Gulfport\u2013Biloxi\u2013Pascagoula",
           "Southwest / Natchez\u2013Brookhaven\u2013McComb\u2013Vicksburg"
         ],
-        "customerSummary": "Sparse first-party Mississippi retailer inventory across DeSoto County and the Jackson\u2013Madison area. Exact-store binary orderability is visible on-site when freshly observed; no exact bottle count is claimed, outbound alerts remain disabled, and customers should verify before driving.",
+        "customerSummary": "Sparse exact-store Mississippi retailer inventory across DeSoto County, the Jackson\u2013Madison area, and an identity-bound Tupelo merchant cohort, plus conservative non-inventory release-watch evidence. Exact-store binary orderability is visible on-site only when freshly observed; marketplace controls do not claim exact bottle counts, pickup, delivery, or guaranteed fulfillment, release-watch evidence stays nonalertable, outbound alerts remain disabled, and customers should verify before driving.",
         "coverageTier": "sparse_live_store_inventory"
       },
       {

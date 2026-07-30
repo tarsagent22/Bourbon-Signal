@@ -104,12 +104,14 @@
       "aliases": [
         "BARDSTOWN DISCOVERY SERIES",
         "Bardstown Discovery",
-        "Bardstown Discovery Series #11"
+        "Bardstown Discovery Series #11",
+        "Bardstown Bourbon Company Discovery Series"
       ],
       "tier": "limited",
       "producer": "Bardstown Bourbon Company",
       "sourceStates": [
-        "MI"
+        "MI",
+        "MS"
       ]
     },
     {
@@ -281,12 +283,14 @@
       "aliases": [
         "BLADE & BOW",
         "Blade & Bow",
-        "Blade and Bow Kentucky Straight Bourbon"
+        "Blade and Bow Kentucky Straight Bourbon",
+        "Blade and Bow Straight Bourbon"
       ],
       "tier": "limited",
       "producer": "Diageo",
       "sourceStates": [
-        "IA"
+        "IA",
+        "MS"
       ]
     },
     {
@@ -370,12 +374,14 @@
       "aliases": [
         "WHISTLEPIG 6YR PIGGYBACK BOURBON MINI",
         "WhistlePig 6YR PiggyBack Bourbon",
+        "WhistlePig 6 Year PiggyBack Bourbon",
         "PiggyBack Bourbon"
       ],
       "tier": "limited",
       "producer": "WhistlePig",
       "sourceStates": [
-        "IA"
+        "IA",
+        "MS"
       ]
     },
     {
@@ -1006,13 +1012,16 @@
       "aliases": [
         "Michter's US 1 Straight Bourbon Small Batch",
         "Michters US 1 Straight Bourbon Small Batch",
+        "Michter's US 1 Small Batch Bourbon",
+        "Michters US 1 Small Batch Bourbon",
         "Michter's Small Batch Bourbon",
         "Michters Small Batch Bourbon"
       ],
       "tier": "limited",
       "producer": "Michter's",
       "sourceStates": [
-        "PA"
+        "PA",
+        "MS"
       ]
     },
     {

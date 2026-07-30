@@ -242,7 +242,7 @@ const BASE_STATE_SOURCES = [
   },
   {
     id: 'MS', label: 'Mississippi sparse exact-store retailer inventory', tier: 'B', strategy: 'hybrid_official_intelligence_private_retailer', cadence: 'inventory-60m_directory-weekly',
-    value: 'Complete official Package Retailer premises directory plus seven isolated exact first-party inventory adapters and one bounded retailer release-watch adapter. Fresh exact-store binary orderability may publish on-site; release-watch rows and all outbound alerts remain disabled. Official catalog, pricing, SPA, bailment, wholesale, and policy evidence remains noninventory; runtime health determines current storefront usability.',
+    value: 'Complete official Package Retailer premises directory plus ten isolated exact inventory adapters and one bounded retailer release-watch adapter. Three public Tupelo2Go merchant pages require exact permit-premise and immutable restaurant-ID binding and prove only current binary menu orderability. Fresh exact-store rows may publish on-site; release-watch rows and all outbound alerts remain disabled. Official catalog, pricing, SPA, bailment, wholesale, and policy evidence remains noninventory; runtime health determines current storefront usability.',
     active: true,
     rareSignalTarget: true,
     sources: [

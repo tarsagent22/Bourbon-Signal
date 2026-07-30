@@ -170,6 +170,7 @@ export function canonicalizeSignal(signal, bible) {
       permitNumber: signal.raw?.permitNumber || signal.permitNumber || null,
       productId: signal.raw?.productId || signal.productId || null,
       productBinding: signal.raw?.productBinding || signal.sourceProductBinding || null,
+      controlCode: signal.raw?.controlCode || null,
       sourceProductUrl: signal.raw?.sourceProductUrl || signal.sourceUrl || null,
       sourceUpdatedAt: signal.raw?.sourceUpdatedAt || signal.sourceEventAt || null,
       pickupOfferVerified: signal.raw?.pickupOfferVerified === true,

@@ -4,16 +4,19 @@ import test from 'node:test';
 
 import {
   MISSISSIPPI_RETAILER_SOURCES,
+  isMississippiCanonicalBottleCompatible,
   parseMississippiCityHiveHtml,
   parseMississippiGoDaddyReleaseProducts,
   parseMississippiGoToLiquorStoreProducts,
   parseMississippiMoonshineResponse,
+  parseMississippiTupelo2GoHtml,
 } from '../src/collectors/mississippi-retailer-surfaces.mjs';
 import {
   buildMississippiReleaseWatchSignal,
   buildMississippiRetailerSignal,
   collectMississippiRetailers,
   readBoundedMississippiJsonResponse,
+  readBoundedMississippiTextResponse,
 } from '../src/collectors/mississippi-retailer-collector.mjs';
 import {
   isMississippiRetailerInventory,
@@ -59,11 +62,11 @@ function exactSignal(source, row = {}) {
   });
 }
 
-test('registry binds ten reviewed stores to exact permit, merchant, host, premises, and independent runtime IDs', () => {
+test('registry binds thirteen reviewed stores to exact permit, merchant, host, premises, and independent runtime IDs', () => {
   assert.equal(registry.schemaVersion, 1);
-  assert.equal(registry.stores.length, 10);
-  assert.deepEqual(new Set(registry.stores.map((store) => store.permitNumber)), new Set(['046478', '040562', '029254', '044692', '044411', '049222', '051851', '007481', '041265', '047419']));
-  assert.equal(new Set(registry.stores.map((store) => store.sourceRuntimeId)).size, 10);
+  assert.equal(registry.stores.length, 13);
+  assert.deepEqual(new Set(registry.stores.map((store) => store.permitNumber)), new Set(['046478', '040562', '029254', '044692', '044411', '049222', '051851', '007481', '041265', '047419', '055298', '041251', '041113']));
+  assert.equal(new Set(registry.stores.map((store) => store.sourceRuntimeId)).size, 13);
   assert.deepEqual(registry.stores.slice(0, 4).map((store) => ({
     permit: store.permitNumber,
     merchant: store.merchantId,
@@ -90,8 +93,8 @@ test('registry binds ten reviewed stores to exact permit, merchant, host, premis
     { name: 'Ridgeland Wine & Spirits', seller: 767, url: 'https://www.moonshinems.com/ridgelandwinespirit', pickup: false },
   ]);
   assert.deepEqual(new Set(MISSISSIPPI_RETAILER_SOURCES.map((source) => source.permitNumber)), new Set(registry.stores.map((store) => store.permitNumber)));
-  assert.deepEqual(registry.stores.map((store) => store.autonomousFetchAllowed), [false, false, true, true, true, true, true, true, true, true]);
-  assert.deepEqual(registry.stores.map((store) => store.sourcePolicyStatus), ['blocked_by_source_policy', 'blocked_by_source_policy', 'allowed', 'allowed', 'allowed', 'allowed', 'allowed', 'allowed', 'allowed', 'allowed']);
+  assert.deepEqual(registry.stores.map((store) => store.autonomousFetchAllowed), [false, false, true, true, true, true, true, true, true, true, true, true, true]);
+  assert.deepEqual(registry.stores.map((store) => store.sourcePolicyStatus), ['blocked_by_source_policy', 'blocked_by_source_policy', 'allowed', 'allowed', 'allowed', 'allowed', 'allowed', 'allowed', 'allowed', 'allowed', 'allowed', 'allowed', 'allowed']);
 });
 
 test('GoTo parser requires visible store-bound orderability, safe format, and a clean same-host product URL', async () => {
@@ -119,6 +122,90 @@ test('GoTo parser requires visible store-bound orderability, safe format, and a 
     (await fixture('gotoliquor/positive.html')).replaceAll('1031', '9999'),
     source,
   ), []);
+});
+
+test('Mississippi canonical compatibility rejects generic and wrong-grain containment matches', () => {
+  assert.equal(isMississippiRetailerInventory(null), false);
+  assert.equal(isMississippiCanonicalBottleCompatible('ANGELS ENVY BOURBON WHISKEY 750ml', 'Buffalo Trace Bourbon'), false);
+  assert.equal(isMississippiCanonicalBottleCompatible('OLD FITZGERALD 7YR BIB BOURBON 750ml', 'Old Forester 100 Proof Bourbon'), false);
+  assert.equal(isMississippiCanonicalBottleCompatible('OLD GRAND DAD BONDED BOURBON 750ml', 'Old Forester 100 Proof Bourbon'), false);
+  assert.equal(isMississippiCanonicalBottleCompatible('FOUR GATE BOURBON 750ml', 'Four Roses Limited Edition Small Batch'), false);
+  assert.equal(isMississippiCanonicalBottleCompatible('ANGELS ENVY BOURBON WHISKEY 750ml', "Angel's Envy Bourbon"), true);
+  assert.equal(isMississippiCanonicalBottleCompatible('WOODFORD RESERVE STRAIGHT WHEAT 750ml', 'Woodford Reserve Bourbon'), false);
+  assert.equal(isMississippiCanonicalBottleCompatible('WOODFORD RESERVE STRAIGHT MALT 750ml', 'Woodford Reserve Bourbon'), false);
+  assert.equal(isMississippiCanonicalBottleCompatible('Evan Williams Bourbon Whiskey (750 ml)', 'Evan Williams 1783 Bourbon'), false);
+  assert.equal(isMississippiCanonicalBottleCompatible('Rabbit Hole Bourbon Whiskey (750 ml)', 'Rabbit Hole Heigold Kentucky Straight Bourbon'), false);
+  assert.equal(isMississippiCanonicalBottleCompatible('WILD TURKEY 750ML', 'Wild Turkey Master'), false);
+  assert.equal(isMississippiCanonicalBottleCompatible('Old Forester 100 Proof Straight Kentucky Bourbon Whiskey Bottle (750 ml)', 'Old Forester 100 Proof Bourbon'), true);
+  assert.equal(isMississippiCanonicalBottleCompatible('BARRELL BOURBON BATCH 30 750ml', 'Barrell Bourbon Batch'), true);
+});
+
+test('Tupelo2Go parser binds exact marketplace vendor, permit premise, active product control, and binary orderability', async () => {
+  const source = MISSISSIPPI_RETAILER_SOURCES.find((entry) => entry.permitNumber === '055298');
+  const html = await fixture('tupelo2go/positive.html');
+  const rows = parseMississippiTupelo2GoHtml(html, source);
+  assert.equal(rows.length, 1);
+  assert.deepEqual({
+    productId: rows[0].productId,
+    variantId: rows[0].variantId,
+    title: rows[0].title,
+    productUrl: rows[0].productUrl,
+    price: rows[0].price,
+    quantity: rows[0].quantity,
+    quantityIsExact: rows[0].quantityIsExact,
+    orderabilityOfferVerified: rows[0].orderabilityOfferVerified,
+    pickupOfferVerified: rows[0].pickupOfferVerified,
+    premisesVerified: rows[0].premisesVerified,
+  }, {
+    productId: '16765721',
+    variantId: null,
+    title: 'ANGELS ENVY BOURBON WHISKEY 750ml',
+    productUrl: source.categoryUrl,
+    price: 65.99,
+    quantity: 0,
+    quantityIsExact: false,
+    orderabilityOfferVerified: true,
+    pickupOfferVerified: false,
+    premisesVerified: true,
+  });
+  assert.match(rows[0].productBinding, /^[0-9a-f]{64}$/u);
+  assert.deepEqual(parseMississippiTupelo2GoHtml(html.replaceAll('data-dd_vendorID="1187"', 'data-dd_vendorID="9999"'), source), []);
+  assert.deepEqual(parseMississippiTupelo2GoHtml(html.replaceAll('1663 coley rd', '999 attacker rd'), source), []);
+  assert.deepEqual(parseMississippiTupelo2GoHtml(html.replaceAll('Tupelo Wine Spirits', 'Forged Wine Spirits'), source), []);
+  assert.deepEqual(parseMississippiTupelo2GoHtml(html.replace("Lzip(16765721,'1'", "Lzip(16765721,'3'"), source), []);
+  const duplicate = `<a class="dd_item_a" href="#" OnClick="Lzip(16765721,'1', event);return false;"><div class="dd_menu-item"><div class="dd_menu-item-title">ANGELS ENVY BOURBON WHISKEY 750ml</div><p class="dd_menu-item-price">$65.99</p></div></a>`;
+  assert.equal(parseMississippiTupelo2GoHtml(`${html}${duplicate}`, source).length, 1);
+  const conflictingDuplicate = duplicate.replace('ANGELS ENVY BOURBON WHISKEY 750ml', 'BUFFALO TRACE BOURBON 750ml');
+  assert.deepEqual(parseMississippiTupelo2GoHtml(`${html}${conflictingDuplicate}`, source), []);
+  assert.deepEqual(parseMississippiTupelo2GoHtml(`${html}${' '.repeat(8 * 1024 * 1024)}`, source), []);
+  assert.deepEqual(parseMississippiTupelo2GoHtml(html, { ...source, categoryUrl: 'https://www.tupelo2go.com/r/9999/restaurants/delivery/Alcohol/Forged' }), []);
+});
+
+test('Tupelo2Go signal identity survives canonicalization but rejects forged product bindings and controls', async () => {
+  const source = MISSISSIPPI_RETAILER_SOURCES.find((entry) => entry.permitNumber === '055298');
+  const [row] = parseMississippiTupelo2GoHtml(await fixture('tupelo2go/positive.html'), source);
+  const signal = buildMississippiRetailerSignal(source, row, {
+    observedAt: '2026-07-25T19:30:00.000Z',
+    bottle: { id: 'bb_angels_envy', canonical: "Angel's Envy Bourbon", tier: 'standard', confidence: 1 },
+  });
+  assert.equal(buildMississippiRetailerSignal(source, row, {
+    observedAt: '2026-07-25T19:30:00.000Z',
+    bottle: { id: 'bb_buffalo_trace', canonical: 'Buffalo Trace Bourbon', tier: 'allocated', confidence: 0.94 },
+  }), null);
+  assert.equal(isMississippiRetailerSignalIdentity(signal), true);
+  assert.equal(isMississippiRetailerInventory(signal), true);
+  const normalized = canonicalizeSignal(signal, {
+    match: () => ({ record: { id: 'bb_angels_envy_bourbon', canonical: "Angel's Envy Bourbon", tier: 'limited', producer: "Angel's Envy" } }),
+  });
+  assert.equal(isMississippiRetailerInventory(normalized), true);
+  assert.equal(normalized.orderabilityOfferVerified, true);
+  assert.equal(normalized.pickupOfferVerified, false);
+  assert.equal(isMississippiRetailerInventory({ ...normalized, sourceProductBinding: '0'.repeat(64) }), false);
+  assert.equal(isMississippiRetailerInventory({ ...normalized, raw: { ...normalized.raw, productBinding: '0'.repeat(64) } }), false);
+  assert.equal(isMississippiRetailerInventory({ ...normalized, raw: { ...normalized.raw, controlCode: '9' } }), false);
+  assert.equal(isMississippiRetailerInventory({ ...normalized, sourceUrl: 'https://www.tupelo2go.com/r/9999/restaurants/delivery/Alcohol/Forged' }), false);
+  assert.equal(normalized.canAlertAsInventory, false);
+  assert.equal(normalized.canAlertAsWatch, false);
 });
 
 test('CityHive parser binds exact merchant and premises but converts orderability to non-exact zero quantity', async () => {
@@ -241,6 +328,15 @@ test('Mabrys parser emits only fresh exact-bottle in-stock release rows and neve
     sourceUrl: rows[1].productUrl,
     raw: { ...signal.raw, productId: rows[1].productId, sourceProductUrl: rows[1].productUrl },
   }), false);
+});
+
+test('bounded Mississippi text reader rejects oversized bodies before buffering them', async () => {
+  const small = new Response('<html>ok</html>', { headers: { 'content-type': 'text/html' } });
+  assert.equal(await readBoundedMississippiTextResponse(small, { maxBytes: 64 }), '<html>ok</html>');
+  const declaredOversize = new Response('ok', { headers: { 'content-length': '65' } });
+  await assert.rejects(() => readBoundedMississippiTextResponse(declaredOversize, { maxBytes: 64 }), /exceeded 64 bytes/iu);
+  const streamedOversize = new Response('x'.repeat(128));
+  await assert.rejects(() => readBoundedMississippiTextResponse(streamedOversize, { maxBytes: 64 }), /exceeded 64 bytes/iu);
 });
 
 test('bounded Mississippi JSON reader rejects oversized bodies before buffering them', async () => {
@@ -427,32 +523,46 @@ test('collector isolates allowed stores and reports policy-blocked sources witho
       .replaceAll('904 Goodman Rd W Ste A Horn Lake MS 38637', '2358 Mt Pleasant Rd Hernando MS 38632')
       .replaceAll('https://www.desotoliquor.com', 'https://thehernandowinespirits.com')],
   ]);
+  const tupelo2GoByUrl = new Map([
+    ['https://www.tupelo2go.com/r/1187/restaurants/delivery/Alcohol/Tupelo-Wine-Spirits-tupelo', await fixture('tupelo2go/positive.html')],
+    ['https://www.tupelo2go.com/r/1237/restaurants/delivery/Alcohol/Maya-Wine-Spirits-tupelo', await fixture('tupelo2go/maya.html')],
+    ['https://www.tupelo2go.com/r/1544/restaurants/delivery/Alcohol/Bogarts-Liquor-Wine-tupelo', await fixture('tupelo2go/bogarts.html')],
+  ]);
   const requestedHosts = [];
   const result = await collectMississippiRetailers({ id: 'MS' }, {
     fetchText: async (url) => {
       requestedHosts.push(new URL(url).hostname);
-      return { ok: true, status: 200, text: htmlByHost.get(new URL(url).hostname) };
+      return { ok: true, status: 200, text: tupelo2GoByUrl.get(url) || htmlByHost.get(new URL(url).hostname) };
     },
     fetchJson: async () => ({ ok: true, status: 200, cookie: 'session_id=test', payload: { product_store: '', available_store_tab: '' } }),
     fetchGetJson: async (url) => {
       requestedHosts.push(new URL(url).hostname);
       return { ok: true, status: 200, payload: mabrysPayload };
     },
-    matchBottle: () => ({ id: 'bb_test', canonical: 'Buffalo Trace Bourbon', tier: 'allocated', confidence: 0.94 }),
+    matchBottle: (title) => {
+      if (/angel'?s? envy/iu.test(title)) return { id: 'bb_angels_envy', canonical: "Angel's Envy Bourbon", tier: 'standard', confidence: 1 };
+      if (/bulleit/iu.test(title)) return { id: 'bb_bulleit', canonical: 'Bulleit Bourbon', tier: 'standard', confidence: 1 };
+      if (/buffalo trace/iu.test(title)) return { id: 'bb_buffalo_trace', canonical: 'Buffalo Trace Bourbon', tier: 'allocated', confidence: 1 };
+      if (/michters us 1 small batch/iu.test(title)) return { id: 'bb_michters_small_batch', canonical: "Michter's US 1 Straight Bourbon Small Batch", tier: 'limited', confidence: 1 };
+      if (/wild turkey.*rare breed/iu.test(title)) return { id: 'bb_wild_turkey_rare_breed', canonical: 'Wild Turkey Rare Breed Straight Bourbon', tier: 'limited', confidence: 1 };
+      if (/very olde/iu.test(title)) return { id: 'bb_very_olde', canonical: 'Very Olde St. Nick Ancient Cask Immaculata', tier: 'limited', confidence: 1 };
+      if (/rare perfection/iu.test(title)) return { id: 'bb_rare_perfection', canonical: 'Rare Perfection 9 Year Bourbon', tier: 'limited', confidence: 1 };
+      return null;
+    },
     now: () => new Date('2026-07-25T20:00:00.000Z'),
     sourceRunnerOptions: { timeoutMs: 5_000, maxAttempts: 1 },
   });
-  assert.equal(result.sourceResults.length, 10);
-  assert.equal(new Set(result.sourceResults.map((entry) => entry.sourceId)).size, 10);
+  assert.equal(result.sourceResults.length, 13);
+  assert.equal(new Set(result.sourceResults.map((entry) => entry.sourceId)).size, 13);
   assert.ok(result.sourceResults.every((entry) => entry.alertable === false
     && entry.inventoryAlertable === false
     && entry.watchAlertable === false));
-  assert.deepEqual(new Set(requestedHosts), new Set(['www.desotoliquor.com', 'thehernandowinespirits.com', 'www.moonshinems.com', 'adf6c00c-b93f-4bbe-80c6-03e4a97b5a0a.mysimplestore.com']));
-  assert.equal(result.runtime.partitionCount, 8);
+  assert.deepEqual(new Set(requestedHosts), new Set(['www.desotoliquor.com', 'thehernandowinespirits.com', 'www.moonshinems.com', 'adf6c00c-b93f-4bbe-80c6-03e4a97b5a0a.mysimplestore.com', 'www.tupelo2go.com']));
+  assert.equal(result.runtime.partitionCount, 11);
   assert.equal(result.runtime.blockedSourceCount, 2);
   assert.equal(result.sourceResults.filter((entry) => entry.status === 'source_policy_blocked').length, 2);
   assert.equal(result.roadblocks.filter((entry) => entry.status === 'source_policy_blocked').length, 2);
-  assert.ok(result.signals.length >= 2);
+  assert.ok(result.signals.length >= 5);
   assert.ok(result.signals.every((signal) => signal.quantity === 0 && signal.quantityIsExact === false));
 });
 
@@ -466,8 +576,8 @@ test('reachable zero-row Mississippi storefronts remain explicit roadblocks and 
     sourceRunnerOptions: { timeoutMs: 5_000, maxAttempts: 1 },
   });
   assert.equal(result.signals.length, 0);
-  assert.equal(result.roadblocks.length, 10);
-  assert.equal(result.roadblocks.filter((entry) => entry.status === 'reachable_no_safe_orderability_rows').length, 7);
+  assert.equal(result.roadblocks.length, 13);
+  assert.equal(result.roadblocks.filter((entry) => entry.status === 'reachable_no_safe_orderability_rows').length, 10);
   assert.equal(result.roadblocks.filter((entry) => entry.status === 'reachable_no_fresh_release_watch_rows').length, 1);
   assert.equal(result.roadblocks.filter((entry) => entry.status === 'source_policy_blocked').length, 2);
   assert.ok(result.sourceResults.every((entry) => entry.alertable === false));
@@ -476,12 +586,12 @@ test('reachable zero-row Mississippi storefronts remain explicit roadblocks and 
 test('blocked BottleCapps probes stay health-visible, nonalertable, and out of inventory authority', async () => {
   const atlas = JSON.parse(await readFile(new URL('../data/source-atlas/MS.json', import.meta.url), 'utf8'));
   const health = summarizeMississippiSourceHealth({ atlas, sourceResults: [] });
-  assert.equal(health.inventorySources, 7);
+  assert.equal(health.inventorySources, 10);
   assert.equal(health.directorySourcePolicyStatus, 'source_policy_blocked');
-  assert.equal(health.blockedBySourcePolicy, 6);
+  assert.equal(health.blockedBySourcePolicy, 5);
   assert.equal(health.sourceOffline, 2);
   assert.equal(health.platformProbeOnly, 2);
-  assert.equal(health.entries.filter((entry) => entry.platform === 'bottlecapps').length, 8);
+  assert.equal(health.entries.filter((entry) => entry.platform === 'bottlecapps').length, 7);
   assert.ok(health.entries.filter((entry) => entry.platform === 'bottlecapps')
     .every((entry) => entry.healthVisible && !entry.inventoryAuthoritative && !entry.alertable));
 });
@@ -553,7 +663,7 @@ test('Mississippi is sparse on-site exact-store coverage with direct precision d
   assert.equal(stateSource.strategy, 'hybrid_official_intelligence_private_retailer');
   assert.ok(stateSource.sources.some((source) => source.sourceLayer === 'directory'));
   assert.ok(stateSource.sources.some((source) => source.sourceLayer === 'official_intelligence'));
-  assert.equal(stateSource.sources.filter((source) => source.sourceLayer === 'private_retailer_inventory').length, 7);
+  assert.equal(stateSource.sources.filter((source) => source.sourceLayer === 'private_retailer_inventory').length, 10);
   assert.equal(stateSource.sources.filter((source) => source.sourceLayer === 'retailer_release_watch').length, 1);
   assert.equal(stateSource.sources.filter((source) => source.sourceLayer === 'storefront_probe').length, 2);
 

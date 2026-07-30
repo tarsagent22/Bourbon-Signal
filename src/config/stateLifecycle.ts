@@ -586,12 +586,12 @@ export const STATE_LIFECYCLE_CONFIG = {
       "watchAlertable": false,
       "coverageLayerCounts": {
         "known": 690,
-        "probeable": 8,
+        "probeable": 11,
         "catalogWatch": 1,
         "live": 4,
         "alertGrade": 0
       },
-      "customerSummary": "Sparse first-party Mississippi retailer inventory across DeSoto County and the Jackson–Madison area, plus conservative non-inventory release-watch evidence. Exact-store binary orderability is visible on-site when freshly observed; no exact bottle count is claimed, release-watch evidence stays nonalertable, outbound alerts remain disabled, and customers should verify before driving.",
+      "customerSummary": "Sparse exact-store Mississippi retailer inventory across DeSoto County, the Jackson–Madison area, and an identity-bound Tupelo merchant cohort, plus conservative non-inventory release-watch evidence. Exact-store binary orderability is visible on-site only when freshly observed; marketplace controls do not claim exact bottle counts, pickup, delivery, or guaranteed fulfillment, release-watch evidence stays nonalertable, outbound alerts remain disabled, and customers should verify before driving.",
       "promotionEvidence": {
         "shadowRuns": 3,
         "canaryRuns": 2,

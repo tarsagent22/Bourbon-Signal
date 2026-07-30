@@ -22,6 +22,18 @@ function releaseProductBinding(productId, productUrl, title) {
   return createHash('sha256').update(`${productId}\n${productUrl}\n${title}`).digest('hex');
 }
 
+function tupelo2GoProductBinding(source, productId, productUrl, title) {
+  return createHash('sha256').update(`${source.marketplaceStoreId}\n${productId}\n${productUrl}\n${title}`).digest('hex');
+}
+
+function exactTupelo2GoBinding(signal, source) {
+  if (source.platform !== 'tupelo2go') return true;
+  const expected = tupelo2GoProductBinding(source, signal.productId, signal.sourceUrl, signal.rawName);
+  return same(signal.sourceProductBinding, expected)
+    && same(signal.raw?.productBinding, expected)
+    && !String(signal.variantId || '').trim();
+}
+
 function samePremises(value, expected) {
   return normalizeCityHivePremises(value) === normalizeCityHivePremises(expected);
 }
@@ -51,6 +63,14 @@ function exactProductUrl(signal, source) {
         && /^\/shop\/[a-z0-9][a-z0-9-]*-\d+\/?$/iu.test(url.pathname)
         && url.pathname.replace(/\/$/u, '').endsWith(`-${String(signal.productId || '')}`)
         && Boolean(String(signal.variantId || '').trim());
+    }
+    if (source.platform === 'tupelo2go') {
+      const expected = new URL(source.categoryUrl);
+      return !url.search
+        && !url.hash
+        && url.pathname === expected.pathname
+        && same(signal.raw?.productId, signal.productId)
+        && /^[12]$/u.test(String(signal.raw?.controlCode || ''));
     }
     if (source.platform === 'godaddy_release_watch') {
       return !url.search
@@ -89,6 +109,7 @@ export function isMississippiRetailerSignalIdentity(signal) {
     && same(signal.raw?.displayedMerchantId, source.merchantId)
     && same(signal.raw?.platformStoreId, source.platformStoreId)
     && same(signal.raw?.permitNumber, source.permitNumber)
+    && exactTupelo2GoBinding(signal, source)
     && exactProductUrl(signal, source);
 }
 
@@ -111,7 +132,8 @@ export function isMississippiRetailerInventoryEvidence(signal) {
 
 export function isMississippiRetailerInventory(signal) {
   const source = sourceForSignal(signal);
-  const exactFulfillment = source?.fulfillmentMode === 'exact_store_orderability'
+  if (!signal || !source) return false;
+  const exactFulfillment = source.fulfillmentMode === 'exact_store_orderability'
     ? signal.orderabilityOfferVerified === true
       && signal.pickupOfferVerified !== true
       && signal.deliveryOfferVerified !== true

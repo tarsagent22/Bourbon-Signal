@@ -15,8 +15,8 @@
     "dispositionLedger": {
       "contractVersion": "bourbon-signal/ms-research-dispositions@1",
       "reviewBatchId": "ms-statewide-platform-research-2026-07-26",
-      "reviewedAt": "2026-07-26T04:50:54.569Z",
-      "entriesSha256": "bd2113c37e425588879c78d59ed36011a4aea3838a02ce73a6d1036c8578ae9e"
+      "reviewedAt": "2026-07-30T16:53:34.000Z",
+      "entriesSha256": "ee917defcf5140b470fd3bd6788968880b1a17b5aa37d96898afe22a1a306a4d"
     }
   },
   "stores": [
@@ -7961,25 +7961,30 @@
         "zip": "38804",
         "regionId": "northeast-tupelo-golden-triangle"
       },
-      "firstPartyDomains": [],
-      "platform": null,
-      "platformIds": {},
-      "evidenceUrls": [
-        "https://tap.dor.ms.gov/_/"
+      "disposition": "live_inventory",
+      "sourceLayer": "private_retailer_inventory",
+      "firstPartyDomains": [
+        "www.tupelo2go.com"
       ],
-      "sourceLayer": "directory",
-      "disposition": "directory_only",
-      "probeStatus": "statewide_method_no_verified_first_party_inventory_source",
-      "ecommerce": null,
+      "platform": "tupelo2go",
+      "platformIds": {
+        "marketplaceStoreId": "1544"
+      },
+      "evidenceUrls": [
+        "https://www.tupelo2go.com/r/1544/restaurants/delivery/Alcohol/Bogarts-Liquor-Wine-tupelo"
+      ],
+      "ecommerce": true,
       "pickup": null,
-      "inventoryAuthoritative": false,
-      "healthVisible": false,
+      "exactStoreOrderability": true,
+      "inventoryAuthoritative": true,
+      "probeStatus": "inventory_capable_binary_marketplace_orderability",
+      "healthVisible": true,
       "alertable": false,
       "reviewProvenance": {
         "reviewBatchId": "ms-statewide-platform-research-2026-07-26",
-        "reviewedAt": "2026-07-26T04:50:54.569Z",
+        "reviewedAt": "2026-07-30T16:53:34.000Z",
         "reviewStatus": "reviewed",
-        "evidenceClass": "statewide_source_research_no_verified_first_party_inventory"
+        "evidenceClass": "exact_public_marketplace_menu_orderability"
       }
     },
     {
@@ -8121,25 +8126,30 @@
         "zip": "38801",
         "regionId": "northeast-tupelo-golden-triangle"
       },
-      "firstPartyDomains": [],
-      "platform": null,
-      "platformIds": {},
-      "evidenceUrls": [
-        "https://tap.dor.ms.gov/_/"
+      "disposition": "live_inventory",
+      "sourceLayer": "private_retailer_inventory",
+      "firstPartyDomains": [
+        "www.tupelo2go.com"
       ],
-      "sourceLayer": "directory",
-      "disposition": "directory_only",
-      "probeStatus": "statewide_method_no_verified_first_party_inventory_source",
-      "ecommerce": null,
+      "platform": "tupelo2go",
+      "platformIds": {
+        "marketplaceStoreId": "1237"
+      },
+      "evidenceUrls": [
+        "https://www.tupelo2go.com/r/1237/restaurants/delivery/Alcohol/Maya-Wine-Spirits-tupelo"
+      ],
+      "ecommerce": true,
       "pickup": null,
-      "inventoryAuthoritative": false,
-      "healthVisible": false,
+      "exactStoreOrderability": true,
+      "inventoryAuthoritative": true,
+      "probeStatus": "inventory_capable_binary_marketplace_orderability",
+      "healthVisible": true,
       "alertable": false,
       "reviewProvenance": {
         "reviewBatchId": "ms-statewide-platform-research-2026-07-26",
-        "reviewedAt": "2026-07-26T04:50:54.569Z",
+        "reviewedAt": "2026-07-30T16:53:34.000Z",
         "reviewStatus": "reviewed",
-        "evidenceClass": "statewide_source_research_no_verified_first_party_inventory"
+        "evidenceClass": "exact_public_marketplace_menu_orderability"
       }
     },
     {
@@ -19496,29 +19506,31 @@
         "zip": "38801",
         "regionId": "northeast-tupelo-golden-triangle"
       },
+      "disposition": "live_inventory",
+      "sourceLayer": "private_retailer_inventory",
       "firstPartyDomains": [
-        "tupelowine.com"
+        "www.tupelo2go.com"
       ],
+      "platform": "tupelo2go",
       "platformIds": {
-        "siteId": "11112"
+        "marketplaceStoreId": "1187"
       },
       "evidenceUrls": [
+        "https://www.tupelo2go.com/r/1187/restaurants/delivery/Alcohol/Tupelo-Wine-Spirits-tupelo",
         "https://tupelowine.com/"
       ],
-      "probeStatus": "blocked_by_source_policy",
-      "disposition": "blocked_by_source_policy",
-      "sourceLayer": "storefront_probe",
-      "platform": "bottlecapps",
-      "ecommerce": null,
+      "ecommerce": true,
       "pickup": null,
-      "inventoryAuthoritative": false,
+      "exactStoreOrderability": true,
+      "inventoryAuthoritative": true,
+      "probeStatus": "inventory_capable_binary_marketplace_orderability",
       "healthVisible": true,
       "alertable": false,
       "reviewProvenance": {
         "reviewBatchId": "ms-statewide-platform-research-2026-07-26",
-        "reviewedAt": "2026-07-26T04:50:54.569Z",
+        "reviewedAt": "2026-07-30T16:53:34.000Z",
         "reviewStatus": "reviewed",
-        "evidenceClass": "first_party_surface_blocked_by_source_policy"
+        "evidenceClass": "exact_public_marketplace_menu_orderability"
       }
     },
     {
