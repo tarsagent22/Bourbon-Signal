@@ -11,6 +11,7 @@ import {
   isSouthCarolinaDunesStoreMetadata,
   isSouthCarolinaDunesStorefrontHtml,
   isFreshSouthCarolinaDunesCacheTimestamp,
+  isReusableSouthCarolinaDunesCache,
   parseSouthCarolinaDunesItemDetail,
   readBoundedSouthCarolinaDunesResponse,
 } from '../src/collectors/precision-probes.mjs';
@@ -76,6 +77,19 @@ test('Dunes cache freshness rejects future timestamps outside bounded clock skew
   assert.equal(isFreshSouthCarolinaDunesCacheTimestamp('2026-07-30T20:05:00.001Z', now), false);
   assert.equal(isFreshSouthCarolinaDunesCacheTimestamp('2026-07-30T13:59:59.999Z', now), false);
   assert.equal(isFreshSouthCarolinaDunesCacheTimestamp('not-a-date', now), false);
+});
+
+test('Dunes cache reuse requires leaf provenance on every retained inventory row', () => {
+  const now = Date.parse('2026-07-30T21:10:00.000Z');
+  const inventory = {
+    eventType: 'retailer_store_inventory_result',
+    raw: { leafSourceRuntimeId: 'retailer:sc:dunes:6178' },
+  };
+  const payload = { generatedAt: '2026-07-30T21:00:00.000Z', signals: [{ eventType: 'retailer_store_location' }, inventory] };
+  assert.equal(isReusableSouthCarolinaDunesCache(payload, now), true);
+  assert.equal(isReusableSouthCarolinaDunesCache({ ...payload, signals: [{ ...inventory, raw: {} }] }, now), false);
+  assert.equal(isReusableSouthCarolinaDunesCache({ ...payload, signals: [{ eventType: 'retailer_store_location' }] }, now), false);
+  assert.equal(isReusableSouthCarolinaDunesCache({ ...payload, generatedAt: '2026-07-31T21:00:00.000Z' }, now), false);
 });
 
 test('Dunes item detail preserves exact positive stock, price, SKU, and store-bound orderability', () => {
