@@ -28,8 +28,7 @@ export const STATE_LIFECYCLE_CONFIG = {
     "WI",
     "UT",
     "NY",
-    "CO",
-    "MS"
+    "CO"
   ],
   "reliabilityPolicy": {
     "schemaVersion": 1,
@@ -564,7 +563,7 @@ export const STATE_LIFECYCLE_CONFIG = {
     "MS": {
       "customerLabel": "Mississippi",
       "sourceLabel": "Mississippi exact-store retailer inventory",
-      "publicStatus": "active",
+      "publicStatus": "research_only",
       "lifecycle": "retailer_store_inventory",
       "coverageTier": "sparse_live_store_inventory",
       "refinementLevel": "region_city_store",
@@ -579,8 +578,8 @@ export const STATE_LIFECYCLE_CONFIG = {
         "Gulf Coast / Gulfport–Biloxi–Pascagoula",
         "Southwest / Natchez–Brookhaven–McComb–Vicksburg"
       ],
-      "promotionStage": "active",
-      "shadowEligible": false,
+      "promotionStage": "shadow",
+      "shadowEligible": true,
       "inventoryAlertable": false,
       "watchAlertable": false,
       "coverageLayerCounts": {
