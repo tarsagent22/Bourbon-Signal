@@ -985,6 +985,7 @@ const FL_LIQUOR_DEPOT_URL = 'https://www.liquordepottampa.com/shop-picks';
 const GA_CITYHIVE_PAGE_DELAY_MS = Math.max(500, Math.min(5_000, Number(process.env.BOURBON_SIGNAL_GA_CITYHIVE_PAGE_DELAY_MS) || 750));
 const GA_CITYHIVE_SOURCE_DELAY_MS = Math.max(750, Math.min(10_000, Number(process.env.BOURBON_SIGNAL_GA_CITYHIVE_SOURCE_DELAY_MS) || 1_000));
 const GA_GOTOLIQUOR_SOURCE_DELAY_MS = Math.max(500, Math.min(5_000, Number(process.env.BOURBON_SIGNAL_GA_GOTOLIQUOR_SOURCE_DELAY_MS) || 750));
+const GA_SOURCE_CONCURRENCY = Math.max(1, Math.min(3, Number(process.env.BOURBON_SIGNAL_GA_SOURCE_CONCURRENCY) || 3));
 
 const TX_SPECS_RELEASE_URL = 'https://specsonline.com/bourbonday2024/';
 const TX_INVENTORY_CACHE_PATH = 'out/cache/tx-cityhive-inventory.json';
@@ -4745,9 +4746,11 @@ async function collectGeorgiaCityHive(config, bible, observedAt, options = {}) {
   const roadblocks = [];
   const seenOptions = new Set();
   for (const source of GEORGIA_CITYHIVE_SOURCES) {
+    options.signal?.throwIfAborted();
     let sourceInventoryCount = 0;
     let reachableCount = 0;
     for (const store of source.merchants.values()) {
+      options.signal?.throwIfAborted();
       const url = new URL(source.categoryUrl);
       url.searchParams.set('merchant-id', store.id);
       const res = await textFetch(url.href, { headers: { accept: 'text/html,*/*' }, timeoutMs: 24_000, signal: options.signal });
@@ -4849,7 +4852,7 @@ async function collectGeorgiaCityHive(config, bible, observedAt, options = {}) {
           }
         }
       }
-      await sleep(GA_CITYHIVE_PAGE_DELAY_MS);
+      await sleepWithSignal(GA_CITYHIVE_PAGE_DELAY_MS, options.signal);
     }
     if (reachableCount > 0 && sourceInventoryCount === 0) {
       roadblocks.push({
@@ -4863,7 +4866,7 @@ async function collectGeorgiaCityHive(config, bible, observedAt, options = {}) {
         nextRoute: 'Retry the exact configured merchant pages at low cadence and keep locator/catalog rows non-alertable; do not weaken bottle, format, or geography guards.',
       });
     }
-    await sleep(GA_CITYHIVE_SOURCE_DELAY_MS);
+    await sleepWithSignal(GA_CITYHIVE_SOURCE_DELAY_MS, options.signal);
   }
   return { signals, roadblocks };
 }
@@ -4922,6 +4925,7 @@ async function collectGeorgiaGoToLiquorStore(config, bible, observedAt, options 
   const roadblocks = [];
   const platformFailures = [];
   for (const store of GEORGIA_GOTOLIQUOR_STORES) {
+    options.signal?.throwIfAborted();
     const res = await curlTextFetch(store.categoryUrl, { timeoutMs: 30_000, signal: options.signal });
     if (!res.ok) {
       const failure = {
@@ -4938,7 +4942,7 @@ async function collectGeorgiaGoToLiquorStore(config, bible, observedAt, options 
         platformFailures.push(failure);
         if (platformFailures.length >= 2) break;
       } else roadblocks.push(failure);
-      await sleep(GA_GOTOLIQUOR_SOURCE_DELAY_MS);
+      await sleepWithSignal(GA_GOTOLIQUOR_SOURCE_DELAY_MS, options.signal);
       continue;
     }
     const products = parseGeorgiaGoToLiquorStoreProducts(res.text, store);
@@ -4954,7 +4958,7 @@ async function collectGeorgiaGoToLiquorStore(config, bible, observedAt, options 
       error: 'No server-rendered product-item block had a visible Add to Cart/GaAddtoCart control tied to the configured singleton store ID.',
       nextRoute: 'Inspect the exact first-party category response at low cadence; keep catalog-only rows non-alertable and do not use alternate query/cart/store-switch routes.',
     });
-    await sleep(GA_GOTOLIQUOR_SOURCE_DELAY_MS);
+    await sleepWithSignal(GA_GOTOLIQUOR_SOURCE_DELAY_MS, options.signal);
   }
   roadblocks.push(...summarizeRepeatedPlatformFailures(platformFailures, {
     state: config.id,
@@ -4969,6 +4973,7 @@ async function collectGeorgiaLightspeed(config, bible, observedAt, options = {})
   const signals = [];
   const roadblocks = [];
   for (const source of GEORGIA_LIGHTSPEED_STORES) {
+    options.signal?.throwIfAborted();
     const res = await curlTextFetch(source.categoryUrl, { timeoutMs: 30_000, signal: options.signal });
     if (!res.ok) {
       roadblocks.push({
@@ -4994,7 +4999,7 @@ async function collectGeorgiaLightspeed(config, bible, observedAt, options = {})
         nextRoute: 'Inspect the public category markup without following cart routes or weakening same-host, bottle, or format guards.',
       });
     }
-    await sleep(source.delayMs);
+    await sleepWithSignal(source.delayMs, options.signal);
   }
   return { signals, roadblocks };
 }
@@ -5002,12 +5007,25 @@ async function collectGeorgiaLightspeed(config, bible, observedAt, options = {})
 async function collectGeorgia(config, bible, options = {}) {
   const observedAt = new Date().toISOString();
   const configuredLocations = buildGeorgiaConfiguredStoreLocationSignals(observedAt);
-  const cityHive = await collectGeorgiaCityHive(config, bible, observedAt, options);
-  const lightspeed = await collectGeorgiaLightspeed(config, bible, observedAt, options);
-  const goToLiquorStore = await collectGeorgiaGoToLiquorStore(config, bible, observedAt, options);
+  const laneRun = await runBoundedSourceLanes([
+    { name: 'cityhive', domain: 'georgia-cityhive-group', run: ({ signal }) => collectGeorgiaCityHive(config, bible, observedAt, { ...options, signal }) },
+    { name: 'lightspeed', domain: 'georgia-lightspeed-group', run: ({ signal }) => collectGeorgiaLightspeed(config, bible, observedAt, { ...options, signal }) },
+    { name: 'gotoliquorstore', domain: 'georgia-gotoliquorstore-group', run: ({ signal }) => collectGeorgiaGoToLiquorStore(config, bible, observedAt, { ...options, signal }) },
+  ], {
+    concurrency: options.sourceConcurrency ?? GA_SOURCE_CONCURRENCY,
+    signal: options.signal,
+  });
+  const lanes = new Map(laneRun.results.map((result) => [result.name, result.value]));
+  const cityHive = lanes.get('cityhive');
+  const lightspeed = lanes.get('lightspeed');
+  const goToLiquorStore = lanes.get('gotoliquorstore');
   return {
     signals: [...configuredLocations, ...cityHive.signals, ...lightspeed.signals, ...goToLiquorStore.signals],
     roadblocks: [...cityHive.roadblocks, ...lightspeed.roadblocks, ...goToLiquorStore.roadblocks],
+    metadata: {
+      sourceConcurrency: laneRun.concurrency,
+      sourceTimings: laneRun.timings,
+    },
   };
 }
 
