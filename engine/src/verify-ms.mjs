@@ -383,11 +383,12 @@ export function verifyMississippiResearchFoundation() {
   assert.equal(contractDigest, `sha256:${createHash('sha256').update(stableJson(extensionContractPayload)).digest('hex')}`);
   assert.equal(extensionEvidence.contractDigest, contractDigest);
   assert.equal(extensionEvidence.evidenceClass, 'bounded_preproduction_live_probe');
-  const contractHistory = execFileSync('git', ['log', '--no-merges', '--diff-filter=A', '-1', '--format=%H|%cI', '--', ':(top)engine/data/state-expansion-evidence/MS-tupelo2go-contract-2026-07-30.json'], { encoding: 'utf8' }).trim();
-  const [contractHistoryCommit, contractHistoryCommittedAt] = contractHistory.split('|');
-  assert.equal(extensionEvidence.contractGitCommit, contractHistoryCommit);
+  assert.match(extensionEvidence.contractGitCommit, /^[a-f0-9]{40}$/u);
+  const committedContract = JSON.parse(execFileSync('git', ['show', `${extensionEvidence.contractGitCommit}:engine/data/state-expansion-evidence/MS-tupelo2go-contract-2026-07-30.json`], { encoding: 'utf8' }));
+  assert.deepEqual(committedContract, extensionContract);
+  const contractHistoryCommittedAt = execFileSync('git', ['show', '-s', '--format=%cI', extensionEvidence.contractGitCommit], { encoding: 'utf8' }).trim();
   assert.equal(Date.parse(extensionEvidence.contractGitCommittedAt), Date.parse(contractHistoryCommittedAt));
-  execFileSync('git', ['merge-base', '--is-ancestor', contractHistoryCommit, 'HEAD']);
+  execFileSync('git', ['merge-base', '--is-ancestor', extensionEvidence.contractGitCommit, 'HEAD']);
   assert.ok(Date.parse(extensionEvidence.observed.startedAt) >= Date.parse(contractHistoryCommittedAt), 'Extension probe must start after the acceptance contract exists in Git history.');
   assert.ok(Date.parse(extensionEvidence.sourceCaptureObservedAt) >= Date.parse(extensionEvidence.observed.startedAt));
   assert.ok(Date.parse(extensionEvidence.observed.startedAt) >= Date.parse(extensionContract.frozenAt), 'Extension probe must start after the acceptance contract is frozen.');
