@@ -1,6 +1,6 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-07-16T22:59:25.184Z",
+  "generatedAt": "2026-07-30T12:17:06.201Z",
   "state": "UT",
   "count": 9,
   "drops": [
@@ -559,6 +559,6 @@
       "evidence": "Utah DABS API row for EAGLE RARE 10 YR BOURBON 750ml: storeQty=168, warehouseQty=216, status=A Limited Dist with Allocated Quantity. This is statewide aggregate data, not a per-store shelf count."
     }
   ],
-  "runId": "a7401de0a51cca45",
-  "engineGeneratedAt": "2026-07-16T22:57:36.743Z"
+  "runId": "3fdeb482b09e73ee",
+  "engineGeneratedAt": "2026-07-30T11:25:27.951Z"
 }

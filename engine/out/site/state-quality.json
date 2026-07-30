@@ -1,10 +1,10 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-07-16T22:59:25.184Z",
+  "generatedAt": "2026-07-30T12:17:06.201Z",
   "summary": {
-    "stateCount": 27,
+    "stateCount": 28,
     "releaseEligibleStates": 11,
-    "releaseBlockedStates": 16,
+    "releaseBlockedStates": 17,
     "averageScore": 46,
     "weakestStates": [
       "VA",
@@ -221,6 +221,21 @@
         "roadblockCount": 5,
         "freshestObservedAt": "2026-07-16T22:52:58.298Z",
         "status": "useful"
+      },
+      "status": "partial_fallback_current_plus_stale",
+      "partialFallback": true,
+      "currentScore": 77,
+      "currentInput": {
+        "state": "NC",
+        "coverageTier": "live_store_inventory",
+        "signalCount": 1832,
+        "dropCount": 467,
+        "storeLevelDropCount": 171,
+        "alertCandidateCount": 143,
+        "sourceCount": 30,
+        "roadblockCount": 4,
+        "freshestObservedAt": "2026-07-30T03:37:49.948Z",
+        "status": "partial_useful_quality_fallback"
       }
     },
     {
@@ -317,6 +332,21 @@
         "roadblockCount": 18,
         "freshestObservedAt": "2026-07-16T22:54:04.902Z",
         "status": "useful"
+      },
+      "status": "partial_fallback_current_plus_stale",
+      "partialFallback": true,
+      "currentScore": 92,
+      "currentInput": {
+        "state": "TX",
+        "coverageTier": "live_store_inventory",
+        "signalCount": 1570,
+        "dropCount": 150,
+        "storeLevelDropCount": 150,
+        "alertCandidateCount": 35,
+        "sourceCount": 65,
+        "roadblockCount": 3,
+        "freshestObservedAt": "2026-07-30T03:38:16.690Z",
+        "status": "partial_useful_quality_fallback"
       }
     },
     {
@@ -481,6 +511,40 @@
         "roadblockCount": 13,
         "freshestObservedAt": "2026-07-13T02:29:25.253Z",
         "status": "stale_useful_quality_fallback"
+      }
+    },
+    {
+      "state": "MS",
+      "coverageTier": "sparse_live_store_inventory",
+      "score": 41,
+      "threshold": 55,
+      "releaseEligible": false,
+      "freshnessHours": 0.9,
+      "dimensions": {
+        "freshness": 20,
+        "volume": 1,
+        "precision": 12,
+        "alerts": 0,
+        "sourceDiversity": 8,
+        "reliability": 0
+      },
+      "weaknesses": [
+        "thin_public_drops",
+        "no_alert_candidates",
+        "single_source_dependency",
+        "high_roadblock_load"
+      ],
+      "input": {
+        "state": "MS",
+        "coverageTier": "sparse_live_store_inventory",
+        "signalCount": 11,
+        "dropCount": 1,
+        "storeLevelDropCount": 1,
+        "alertCandidateCount": 0,
+        "sourceCount": 1,
+        "roadblockCount": 10,
+        "freshestObservedAt": "2026-07-30T11:25:01.505Z",
+        "status": "useful"
       }
     },
     {
@@ -899,13 +963,17 @@
       }
     }
   ],
+  "partialFallbackStateIds": [
+    "NC",
+    "TX"
+  ],
   "regression": {
     "ok": true,
     "failures": [],
     "warnings": [
-      "State-quality baseline schema changed; recording a current-snapshot baseline."
+      "Partial refresh quality comparison limited to attempted states: MS."
     ]
   },
-  "runId": "a7401de0a51cca45",
-  "engineGeneratedAt": "2026-07-16T22:57:36.743Z"
+  "runId": "3fdeb482b09e73ee",
+  "engineGeneratedAt": "2026-07-30T11:25:27.951Z"
 }

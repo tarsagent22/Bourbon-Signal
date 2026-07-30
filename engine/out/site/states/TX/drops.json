@@ -1,6 +1,6 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-07-16T22:59:25.184Z",
+  "generatedAt": "2026-07-30T12:17:06.201Z",
   "state": "TX",
   "count": 4,
   "drops": [
@@ -58,15 +58,18 @@
       "price": 29.99,
       "confidence": 0.86,
       "policyMode": "alert_retailer_store_inventory_caveat",
-      "canAlertAsInventory": true,
-      "canAlertAsWatch": true,
-      "sourceStale": false,
-      "staleSourceCaveat": null,
+      "canAlertAsInventory": false,
+      "canAlertAsWatch": false,
+      "sourceStale": true,
+      "staleSourceCaveat": true,
       "dataLane": "actionable_inventory",
       "informationalOnly": false,
       "inventoryCaveat": "Source-reported store availability. Fast-moving bottles may sell out quickly; verify directly with the store before driving.",
       "inventorySemantics": "Texas is a private retail market. Retailer CityHive pages can expose store-level bottle quantity and price for pickup/order-capable branches; alert as retailer-published availability with a verify-before-driving caveat.",
-      "evidence": "Twin Liquors reports 198 units of Buffalo Trace Bourbon at Twin Liquors - South Lamar for $29.99."
+      "evidence": "Twin Liquors reports 198 units of Buffalo Trace Bourbon at Twin Liquors - South Lamar for $29.99.",
+      "stale": true,
+      "staleReason": "partial_evidence_fallback",
+      "alertable": false
     },
     {
       "id": "8e5dd98bb5257c75",
@@ -122,15 +125,18 @@
       "price": 29.99,
       "confidence": 0.86,
       "policyMode": "alert_retailer_store_inventory_caveat",
-      "canAlertAsInventory": true,
-      "canAlertAsWatch": true,
-      "sourceStale": false,
-      "staleSourceCaveat": null,
+      "canAlertAsInventory": false,
+      "canAlertAsWatch": false,
+      "sourceStale": true,
+      "staleSourceCaveat": true,
       "dataLane": "actionable_inventory",
       "informationalOnly": false,
       "inventoryCaveat": "Source-reported store availability. Fast-moving bottles may sell out quickly; verify directly with the store before driving.",
       "inventorySemantics": "Texas is a private retail market. Retailer CityHive pages can expose store-level bottle quantity and price for pickup/order-capable branches; alert as retailer-published availability with a verify-before-driving caveat.",
-      "evidence": "Twin Liquors reports 138 units of Buffalo Trace Bourbon at Twin Liquors - Emporium Duval/183 for $29.99."
+      "evidence": "Twin Liquors reports 138 units of Buffalo Trace Bourbon at Twin Liquors - Emporium Duval/183 for $29.99.",
+      "stale": true,
+      "staleReason": "partial_evidence_fallback",
+      "alertable": false
     },
     {
       "id": "4288475b1cc0a2cd",
@@ -186,15 +192,18 @@
       "price": 29.99,
       "confidence": 0.86,
       "policyMode": "alert_retailer_store_inventory_caveat",
-      "canAlertAsInventory": true,
-      "canAlertAsWatch": true,
-      "sourceStale": false,
-      "staleSourceCaveat": null,
+      "canAlertAsInventory": false,
+      "canAlertAsWatch": false,
+      "sourceStale": true,
+      "staleSourceCaveat": true,
       "dataLane": "actionable_inventory",
       "informationalOnly": false,
       "inventoryCaveat": "Source-reported store availability. Fast-moving bottles may sell out quickly; verify directly with the store before driving.",
       "inventorySemantics": "Texas is a private retail market. Retailer CityHive pages can expose store-level bottle quantity and price for pickup/order-capable branches; alert as retailer-published availability with a verify-before-driving caveat.",
-      "evidence": "Twin Liquors reports 49 units of Buffalo Trace Bourbon at Twin Liquors - Balcones Drive for $29.99."
+      "evidence": "Twin Liquors reports 49 units of Buffalo Trace Bourbon at Twin Liquors - Balcones Drive for $29.99.",
+      "stale": true,
+      "staleReason": "partial_evidence_fallback",
+      "alertable": false
     },
     {
       "id": "ac54dd5481c31a68",
@@ -246,17 +255,20 @@
       "price": 59.99,
       "confidence": 0.86,
       "policyMode": "alert_retailer_store_inventory_caveat",
-      "canAlertAsInventory": true,
-      "canAlertAsWatch": true,
-      "sourceStale": false,
-      "staleSourceCaveat": null,
+      "canAlertAsInventory": false,
+      "canAlertAsWatch": false,
+      "sourceStale": true,
+      "staleSourceCaveat": true,
       "dataLane": "actionable_inventory",
       "informationalOnly": false,
       "inventoryCaveat": "Source-reported store availability. Fast-moving bottles may sell out quickly; verify directly with the store before driving.",
       "inventorySemantics": "Texas is a private retail market. Retailer CityHive pages can expose store-level bottle quantity and price for pickup/order-capable branches; alert as retailer-published availability with a verify-before-driving caveat.",
-      "evidence": "Twin Liquors reports 24 units of 1792 Full Proof Kentucky Straight Bourbon Twin Barrel at Twin Liquors - Balcones Drive for $59.99."
+      "evidence": "Twin Liquors reports 24 units of 1792 Full Proof Kentucky Straight Bourbon Twin Barrel at Twin Liquors - Balcones Drive for $59.99.",
+      "stale": true,
+      "staleReason": "partial_evidence_fallback",
+      "alertable": false
     }
   ],
-  "runId": "a7401de0a51cca45",
-  "engineGeneratedAt": "2026-07-16T22:57:36.743Z"
+  "runId": "3fdeb482b09e73ee",
+  "engineGeneratedAt": "2026-07-30T11:25:27.951Z"
 }

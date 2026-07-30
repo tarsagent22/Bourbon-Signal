@@ -1,6 +1,6 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "generatedAt": "2026-07-16T22:59:25.184Z",
+  "generatedAt": "2026-07-30T12:17:06.201Z",
   "state": "CA",
   "count": 20,
   "drops": [
@@ -1223,6 +1223,6 @@
       "evidence": "Mission Trails Wine & Spirits marks Willett Family Estate Small Batch Bourbon available on its first-party storefront and its separately fetched first-party policy publishes pickup/order fulfillment for the named San Diego premises. Exact quantity is not published."
     }
   ],
-  "runId": "a7401de0a51cca45",
-  "engineGeneratedAt": "2026-07-16T22:57:36.743Z"
+  "runId": "3fdeb482b09e73ee",
+  "engineGeneratedAt": "2026-07-30T11:25:27.951Z"
 }
