@@ -1071,6 +1071,7 @@ const SC_ALL_AMERICAN_STORE = { id: 'all-american-liquor-mauldin', name: 'All Am
 const SC_DUNES_BASE_URL = 'https://www.dunesliquor.com';
 const SC_DUNES_SOURCE_LABEL = 'Dunes Liquor Myrtle Beach integrated-cart inventory';
 const SC_DUNES_RUNTIME_ID = 'retailer:sc:dunes:6178';
+const SC_DUNES_RUNTIME_STORE_ID = '6178';
 const SC_DUNES_ARTIFACT_PATH = 'out/browser/SC-dunes-liquor-inventory.json';
 const SC_DUNES_CACHE_MAX_AGE_MS = Math.max(30 * 60_000, Math.min(6 * 60 * 60_000, Number(process.env.BOURBON_SIGNAL_SC_DUNES_CACHE_MAX_AGE_MS) || 6 * 60 * 60_000));
 const SC_DUNES_MAX_ITEMS = Math.max(1, Math.min(47, Number(process.env.BOURBON_SIGNAL_SC_DUNES_MAX_ITEMS) || 47));
@@ -5806,7 +5807,8 @@ export function buildSouthCarolinaDunesSignal(config, row, { observedAt, record,
     evidence: `Dunes Liquor item detail reports exact in-store quantity ${row.quantity} of ${row.rawName} at ${SC_DUNES_STORE.address} for $${row.price.toFixed(2)}; the response is bound to runtime store 6178 and its public integrated cart.`,
     raw: {
       chain: 'dunes-liquor',
-      runtimeStoreId: '6178',
+      leafSourceRuntimeId: SC_DUNES_RUNTIME_ID,
+      runtimeStoreId: SC_DUNES_RUNTIME_STORE_ID,
       sku: row.sku,
       category: row.category,
       department: row.department,

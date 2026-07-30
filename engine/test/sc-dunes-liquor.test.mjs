@@ -131,19 +131,26 @@ test('Dunes signal carries exact-store identity and alert-grade stock evidence w
   assert.equal(signal.fulfillmentGuaranteed, false);
   assert.match(signal.evidence, /exact in-store quantity 2/i);
   assert.equal(signal.raw.runtimeStoreId, '6178');
+  assert.equal(signal.raw.leafSourceRuntimeId, 'retailer:sc:dunes:6178');
   assert.equal(signal.raw.sku, '89103');
   const policy = confidenceForSignal(signal);
-  assert.equal(policy.policyMode, 'alert_retailer_store_inventory_caveat');
-  assert.equal(policy.canAlertAsInventory, true);
-  assert.equal(policy.canAlertAsWatch, true);
+  assert.equal(policy.policyMode, 'policy_only');
+  assert.equal(policy.canAlertAsInventory, false);
+  assert.equal(policy.canAlertAsWatch, false);
+  const productionWrapped = { ...signal, sourceRuntimeId: 'precision:sc' };
+  const productionPolicy = confidenceForSignal(productionWrapped);
+  assert.equal(productionPolicy.policyMode, 'alert_retailer_store_inventory_caveat');
+  assert.equal(productionPolicy.canAlertAsInventory, true);
+  assert.equal(productionPolicy.canAlertAsWatch, true);
   assert.match(operationalReportSource, /canAlertAsInventory:\s*sourceAlertPolicy\.canAlertAsInventory === false \? false : policy\.canAlertAsInventory/);
   assert.match(operationalReportSource, /canAlertAsWatch:\s*sourceAlertPolicy\.canAlertAsWatch === false \? false : policy\.canAlertAsWatch/);
   const signalObservedMs = Date.parse(signal.observedAt);
-  assert.equal(confidenceForSignal(signal, { nowMs: signalObservedMs }).canAlertAsInventory, true);
-  assert.equal(confidenceForSignal(signal, { nowMs: signalObservedMs + 6 * 60 * 60_000 + 1 }).canAlertAsInventory, false);
+  assert.equal(confidenceForSignal(productionWrapped, { nowMs: signalObservedMs }).canAlertAsInventory, true);
+  assert.equal(confidenceForSignal(productionWrapped, { nowMs: signalObservedMs + 6 * 60 * 60_000 + 1 }).canAlertAsInventory, false);
 
   for (const mutate of [
     (row) => { row.sourceRuntimeId = 'retailer:sc:dunes:9999'; },
+    (row) => { row.raw.leafSourceRuntimeId = 'retailer:sc:dunes:9999'; },
     (row) => { row.storeId = 'dunes-liquor:charleston'; },
     (row) => { row.storeAddress = '980 King Street, Charleston, SC 29403'; },
     (row) => { row.sourceUrl = 'https://example.com/ListManage/ItemDescriptionPage?ItemID=89103'; },
@@ -154,7 +161,7 @@ test('Dunes signal carries exact-store identity and alert-grade stock evidence w
     (row) => { row.quantity = true; row.storeQty = true; row.price = true; },
     (row) => { row.observedAt = '2026-07-29T19:36:44.157Z'; },
   ]) {
-    const forged = structuredClone(signal);
+    const forged = structuredClone(productionWrapped);
     mutate(forged);
     assert.equal(confidenceForSignal(forged).canAlertAsInventory, false);
   }

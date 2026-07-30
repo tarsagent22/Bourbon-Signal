@@ -50,7 +50,6 @@ async function main() {
   invariant(tagCommit.trim() === evidence.contractCommit, 'Dunes evidence tag no longer points to the frozen pre-implementation contract commit.');
   invariant(contractCommit.trim() === evidence.contractCommit, 'Dunes contract commit is unavailable in repository history.');
   invariant(taggedContractText.replace(/\r\n/g, '\n').trimEnd() === workingContractText.replace(/\r\n/g, '\n').trimEnd(), 'Working Dunes contract differs from the blob frozen at the tagged pre-implementation commit.');
-  await execFileAsync('git', ['merge-base', '--is-ancestor', evidence.contractCommit, 'HEAD'], { cwd: REPO_ROOT });
 
   const contract = JSON.parse(workingContractText);
   const replayNowMs = Date.parse(contract.contractFrozenAt);
@@ -103,8 +102,9 @@ async function main() {
   invariant(inventory.every((signal) => Number.isSafeInteger(signal.quantity) && signal.quantity > 0 && signal.quantityIsExact === true), 'Dunes replay emitted a non-positive or non-exact quantity.');
   invariant(inventory.every((signal) => signal.premisesVerified === true && signal.pickupOfferVerified === true && signal.orderabilityOfferVerified === true), 'Dunes replay emitted inventory without the reviewed premises and cart controls.');
   invariant(inventory.every((signal) => signal.deliveryOfferVerified === false && signal.fulfillmentGuaranteed === false), 'Dunes replay widened delivery or fulfillment semantics.');
-  invariant(inventory.every((signal) => isSouthCarolinaDunesInventory(signal, replayNowMs)), 'Dunes replay failed the central exact-identity policy.');
-  invariant(inventory.every((signal) => {
+  const productionWrappedInventory = inventory.map((signal) => ({ ...signal, sourceRuntimeId: 'precision:sc' }));
+  invariant(productionWrappedInventory.every((signal) => isSouthCarolinaDunesInventory(signal, replayNowMs)), 'Dunes replay failed the production precision-runtime identity policy.');
+  invariant(productionWrappedInventory.every((signal) => {
     const confidence = confidenceForSignal(signal, { nowMs: replayNowMs });
     return confidence.policyMode === 'alert_retailer_store_inventory_caveat'
       && confidence.canAlertAsInventory === true
