@@ -97,7 +97,7 @@ assert.equal(upgradedTennessee.layers.alertGrade, 2, "current Tennessee store ev
 const expectedCapabilities = {
   deep: ["OH", "PA", "VA"],
   active: ["ID", "IL", "IN", "NC"],
-  focused: ["SC", "TX"],
+  focused: ["MS", "SC", "TX"],
   intelligence: ["AL", "AZ", "CA", "CO", "FL", "GA", "IA", "KY", "MD", "MI", "NV", "NY", "TN", "UT"],
 } as const;
 for (const [capability, codes] of Object.entries(expectedCapabilities)) {
@@ -107,7 +107,7 @@ for (const [capability, codes] of Object.entries(expectedCapabilities)) {
     `${capability} states match the conservative nationwide evidence audit`,
   );
 }
-assert.equal(contract.states.filter((state) => state.capability === "not-active").length, 28, "states without current useful evidence remain inactive");
+assert.equal(contract.states.filter((state) => state.capability === "not-active").length, 27, "states without current useful evidence remain inactive");
 assert.ok(contract.states.filter((state) => state.capability === "intelligence").every((state) => state.capabilityLabel === "Sparse coverage"));
 for (const [code, area] of [["NY", "New York City"], ["CO", "Denver Metro"]] as const) {
   const metro = contract.states.find((state) => state.code === code);
@@ -129,20 +129,20 @@ assert.match(maryland.cannotSee.join(" "), /exact (?:per-)?store|shelf/i);
 
 const mississippi = contract.states.find((state) => state.code === "MS");
 assert.ok(mississippi, "Mississippi is represented in the public nationwide coverage contract");
-assert.equal(mississippi.capability, "not-active", "research data cannot promote Mississippi to active coverage");
+assert.equal(mississippi.capability, "focused", "reviewed sparse exact-store coverage must remain active without implying statewide depth");
 assert.deepEqual(mississippi.layers, {
   known: 690,
-  probeable: 2,
+  probeable: 6,
   catalogWatch: 0,
-  live: 0,
+  live: 4,
   alertGrade: 0,
 });
 assert.equal(mississippi.representedAreaCount, 9);
-assert.match(mississippi.summary, /690 current Package Retailer permits/i);
-assert.match(mississippi.summary, /No Mississippi alerts or active inventory coverage/i);
-assert.match(mississippi.sourceLabel || "", /statewide directory/i);
-assert.match(mississippi.canSee.join(" "), /known directory/i);
-assert.match(mississippi.cannotSee.join(" "), /live shelf|alert-grade/i);
+assert.match(mississippi.summary, /Sparse first-party Mississippi retailer inventory/i);
+assert.match(mississippi.summary, /outbound alerts remain disabled/i);
+assert.match(mississippi.sourceLabel || "", /exact-store retailer inventory/i);
+assert.match(mississippi.canSee.join(" "), /identity-bound orderability/i);
+assert.match(mississippi.cannotSee.join(" "), /Statewide coverage|outbound inventory alerts/i);
 assert.equal(mississippiKnownStoresPayload.stores?.length, 690);
 assert.equal(new Set((mississippiKnownStoresPayload.stores || []).map((store) => store.id)).size, 690);
 assert.doesNotThrow(() => verifyReviewedMississippiUniverse(mississippiUniverse, mississippiCapture, mississippiProgram));

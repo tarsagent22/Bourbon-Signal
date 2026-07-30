@@ -653,12 +653,12 @@
       "state": "MS",
       "customerLabel": "Mississippi",
       "automationPaused": true,
-      "automationPauseReason": "Owner-requested pause: exclude Mississippi from all scheduled discovery and probe jobs.",
+      "automationPauseReason": "Sparse coverage is manually managed; scheduled source discovery remains paused to control cost while production evidence is monitored.",
       "marketClassification": "mixed",
       "targetScopes": [
         "statewide"
       ],
-      "lifecycleStage": "shadow",
+      "lifecycleStage": "active",
       "sourceClassesSought": [
         "official_control_board",
         "official_catalog",
@@ -669,17 +669,23 @@
         "exact_store_fulfillment"
       ],
       "currentBlockers": [
-        "Only 4 of the 690 known Package Retailer premises currently have accessible exact first-party inventory-capable storefronts.",
+        "Only 4 of the 690 known Package Retailer premises currently produce tracked exact-store rows; growing this live-store count is the active priority.",
+        "Two additional allowed first-party storefronts are healthy but currently expose no tracked canonical bottle row.",
         "Ten additional BottleCapps entries are blocked_by_source_policy, source_offline, or app-only probe discoveries and are not inventory-authoritative.",
         "TAP robots policy blocks autonomous directory refresh; future refresh requires an official permitted export or API.",
-        "Statewide activation gates require 50 exact live stores, 25 transition-proven alert-grade stores, 15 cities, and 6 of 9 regions."
+        "Outbound alert activation remains closed until transition evidence supports alert-grade promotion."
       ],
       "rankingInputs": {
-        "demandSignals": [],
-        "strategicSignals": []
+        "demandSignals": [
+          "statewide_on_radar_coverage_request"
+        ],
+        "strategicSignals": [
+          "sparse_on_site_activation",
+          "live_store_growth_priority"
+        ]
       },
-      "lastDiscoveryAt": null,
-      "lastProbeAt": null,
+      "lastDiscoveryAt": "2026-07-30T10:35:22.671Z",
+      "lastProbeAt": "2026-07-30T10:46:36.076Z",
       "nextEligibleAt": null,
       "requestBudget": {
         "maxQueriesPerRun": 4,

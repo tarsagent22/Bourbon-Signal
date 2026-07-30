@@ -3,7 +3,7 @@
   "runId": "a7401de0a51cca45",
   "generatedAt": "2026-07-16T22:59:25.184Z",
   "engineGeneratedAt": "2026-07-16T22:57:36.743Z",
-  "stateCount": 27,
+  "stateCount": 28,
   "signalCount": 54080,
   "historicalSignalCount": 246355,
   "historyDays": 30,
@@ -395,6 +395,35 @@
         "coverageTier": "retailer_warehouse_inventory"
       },
       {
+        "state": "MS",
+        "label": "Mississippi",
+        "sourceLabel": "Mississippi exact-store retailer inventory",
+        "tier": "B",
+        "status": "useful",
+        "publicStatus": "active",
+        "lifecycle": "retailer_store_inventory",
+        "signalCount": 11,
+        "roadblockCount": 10,
+        "targetLocationPrecision": "store_level",
+        "bestLocationPrecision": "store_level",
+        "strategy": "hybrid_official_intelligence_private_retailer",
+        "refinementLevel": "region_city_store",
+        "customerAreaLabel": null,
+        "areaOptions": [
+          "Northwest / DeSoto\u2013Memphis fringe",
+          "North Central / Oxford",
+          "Northeast / Tupelo\u2013Golden Triangle",
+          "Delta / Greenville\u2013Clarksdale\u2013Greenwood",
+          "Central / Jackson\u2013Madison\u2013Rankin",
+          "East Central / Meridian",
+          "Pine Belt / Hattiesburg\u2013Laurel",
+          "Gulf Coast / Gulfport\u2013Biloxi\u2013Pascagoula",
+          "Southwest / Natchez\u2013Brookhaven\u2013McComb\u2013Vicksburg"
+        ],
+        "customerSummary": "Sparse first-party Mississippi retailer inventory across DeSoto County and the Jackson\u2013Madison area. Exact-store binary orderability is visible on-site when freshly observed; no exact bottle count is claimed, outbound alerts remain disabled, and customers should verify before driving.",
+        "coverageTier": "sparse_live_store_inventory"
+      },
+      {
         "state": "NC",
         "label": "North Carolina",
         "sourceLabel": "North Carolina ABC + county boards",
@@ -650,7 +679,7 @@
         "coverageTier": "retailer_warehouse_inventory"
       }
     ],
-    "stateCount": 27
+    "stateCount": 28
   },
   "stateQuality": {
     "stateCount": 25,

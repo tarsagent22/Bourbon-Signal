@@ -27,6 +27,8 @@ import { summarizeMississippiSourceHealth } from '../src/mississippi-source-heal
 import { confidenceForSignal } from '../src/confidence-policy.mjs';
 import { getStateLifecycle } from '../src/state-lifecycle.mjs';
 import { ALL_STATE_SOURCES } from '../src/state-sources.mjs';
+import { canonicalizeSignal } from '../src/operational-report.mjs';
+import { buildDrops } from '../src/export-site-contract.mjs';
 
 const registry = JSON.parse(await readFile(new URL('../data/mississippi-retailer-registry.json', import.meta.url), 'utf8'));
 const fixture = (name) => readFile(new URL(`./fixtures/ms/${name}`, import.meta.url), 'utf8');
@@ -202,7 +204,13 @@ test('exact Mississippi policy accepts guarded binary evidence and rejects every
 });
 
 test('research lifecycle keeps exact positive rows visible but nonalertable and suppresses the first baseline', () => {
-  const lifecycle = getStateLifecycle('MS');
+  const lifecycle = {
+    publicStatus: 'research_only',
+    promotionStage: 'research_only',
+    coverageTier: 'known_directory_selected_storefronts',
+    inventoryAlertable: false,
+    watchAlertable: false,
+  };
   const source = MISSISSIPPI_RETAILER_SOURCES.find((entry) => entry.permitNumber === '029254');
   const signal = exactSignal(source);
   const confidence = confidenceForSignal(signal);
@@ -284,6 +292,31 @@ test('sparse Mississippi coverage permits exact rows on-site while keeping every
   }), /sparse coverage can be on-site only/iu);
 });
 
+test('sparse Mississippi exact-store identity survives normalization and publishes on-site without outbound eligibility', () => {
+  const source = MISSISSIPPI_RETAILER_SOURCES.find((entry) => entry.permitNumber === '029254');
+  const sourceSignal = exactSignal(source, { title: 'Buffalo Trace Bourbon 750ml' });
+  sourceSignal.observedAt = new Date().toISOString();
+  const record = { id: 'bb_test', canonical: 'Buffalo Trace Bourbon', tier: 'allocated', producer: 'Buffalo Trace' };
+  const normalized = canonicalizeSignal(sourceSignal, { match: () => ({ record }) });
+  assert.equal(isMississippiRetailerInventory(normalized), true);
+  const bible = { byId: new Map([[record.id, record]]), byName: new Map() };
+  const [drop] = buildDrops([normalized], bible, [normalized]);
+  assert.ok(drop);
+  assert.equal(drop.storeId, source.id);
+  assert.equal(isMississippiRetailerInventory(drop), true);
+  assert.equal(drop.stateCode, 'MS');
+  assert.equal(drop.sourceRuntimeId, source.sourceRuntimeId);
+  assert.equal(drop.permitNumber, source.permitNumber);
+  assert.equal(drop.regionId, source.regionId);
+  assert.equal(drop.raw.platformStoreId, source.platformStoreId);
+  assert.equal(drop.eligibleForOnSite, true);
+  assert.equal(drop.eligibleForDelivery, false);
+  assert.equal(drop.canAlertAsInventory, false);
+  assert.equal(drop.canAlertAsWatch, false);
+  assert.equal(drop.dataLane, 'onsite_inventory');
+  assert.equal(drop.availabilityStatus, 'orderable');
+});
+
 test('collector isolates allowed stores and reports policy-blocked sources without requesting them', async () => {
   const htmlByHost = new Map([
     ['www.aliquorwarehouse.com', await fixture('gotoliquor/positive.html')],
@@ -353,17 +386,14 @@ test('blocked BottleCapps probes stay health-visible, nonalertable, and out of i
 
 test('shadow verification rejects a hand-authored run count without bound production evidence', () => {
   const commit = 'a'.repeat(40);
-  const digests = { retailerRegistry: 'b'.repeat(64), program: 'c'.repeat(64), lifecycle: 'd'.repeat(64) };
+  const sourceTree = { 'engine/data/mississippi-retailer-registry.json': 'b'.repeat(40) };
   const evidence = {
-    contractVersion: 'bourbon-signal/ms-shadow-evidence@1',
+    contractVersion: 'bourbon-signal/ms-shadow-evidence@2',
     state: 'MS',
-    codeCommitSha: commit,
-    configDigests: digests,
+    sourceRevisionSha: commit,
+    sourceTree,
     runs: [0, 1, 2].map((index) => ({
       runId: `fake-run-${index}`,
-      runner: 'production-runner',
-      codeCommitSha: commit,
-      configDigests: digests,
       startedAt: new Date(Date.parse('2026-07-27T00:00:00.000Z') + index * 12 * 60 * 60_000).toISOString(),
       finishedAt: new Date(Date.parse('2026-07-27T00:05:00.000Z') + index * 12 * 60 * 60_000).toISOString(),
       publicationAttempted: false,
@@ -375,14 +405,14 @@ test('shadow verification rejects a hand-authored run count without bound produc
     })),
   };
   assert.throws(
-    () => validateMississippiShadowEvidenceArtifact(evidence, { expectedCommitSha: commit, expectedConfigDigests: digests }),
+    () => validateMississippiShadowEvidenceArtifact(evidence, { expectedSourceTree: sourceTree }),
     /verified immutable GitHub workflow provenance/iu,
   );
   const artifactBoundEvidence = {
     ...evidence,
     runs: [0, 1, 2].map((index) => ({
       runId: `gha-${1000 + index}-1`,
-      github: { workflowRunId: 1000 + index, runAttempt: 1, artifactId: 2000 + index, artifactDigest: `sha256:${'e'.repeat(64)}` },
+      github: { workflowRunId: 1000 + index, runAttempt: 1, headSha: commit, artifactId: 2000 + index, artifactDigest: `sha256:${'e'.repeat(64)}` },
       sourceResults: MISSISSIPPI_RETAILER_SOURCES.map((source) => ({ sourceId: source.sourceRuntimeId, status: 'success' })),
     })),
   };
@@ -402,17 +432,18 @@ test('shadow verification rejects a hand-authored run count without bound produc
     report: { state: 'MS', sourceResults: [], signals: [] },
   }]));
   assert.throws(
-    () => validateMississippiShadowEvidenceArtifact(artifactBoundEvidence, { expectedCommitSha: commit, expectedConfigDigests: digests, verifiedGithubRuns: verifiedArtifactContents }),
+    () => validateMississippiShadowEvidenceArtifact(artifactBoundEvidence, { expectedSourceTree: sourceTree, verifiedGithubRuns: verifiedArtifactContents }),
     /source results must contain one result per registered Mississippi source/iu,
     'checked-in self-asserted rows cannot substitute for the downloaded artifact report',
   );
 });
 
-test('Mississippi is a hybrid research-only source with direct precision dispatch and no legacy collapse', async () => {
+test('Mississippi is sparse on-site exact-store coverage with direct precision dispatch and no legacy collapse', async () => {
   const lifecycle = getStateLifecycle('MS');
-  assert.equal(lifecycle.publicStatus, 'research_only');
-  assert.equal(lifecycle.promotionStage, 'research_only');
-  assert.equal(lifecycle.shadowEligible, true);
+  assert.equal(lifecycle.publicStatus, 'active');
+  assert.equal(lifecycle.promotionStage, 'active');
+  assert.equal(lifecycle.coverageTier, 'sparse_live_store_inventory');
+  assert.equal(lifecycle.shadowEligible, false);
   assert.equal(lifecycle.inventoryAlertable, false);
   assert.equal(lifecycle.watchAlertable, false);
 

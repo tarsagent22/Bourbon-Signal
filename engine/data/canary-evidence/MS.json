@@ -1,0 +1,18 @@
+{
+  "contractVersion": "bourbon-signal/ms-canary-evidence@2",
+  "state": "MS",
+  "generatedAt": "2026-07-30T11:39:37.995Z",
+  "candidateInput": "engine/data/canary-inputs/MS.json",
+  "candidateInputSha256": "ca312fe8f1716ae4bafe2ee91917d9b51ccd2be1bda8d4b6b1f5b75af3dfc728",
+  "candidateDropCount": 1,
+  "candidateStoreCount": 1,
+  "previewPolicySha256": "8196f71010619f99a92ef9854d27b84dbbd7b62165eb17e6c76766b248b1fd40",
+  "logicalRunsRequired": 2,
+  "assertions": {
+    "stateDropCount": 1,
+    "stateDeliveryAlertRows": 0,
+    "alertDeliveryEnabled": false,
+    "productionSnapshotPublicationEnabled": false,
+    "productionDeploymentEnabled": false
+  }
+}
