@@ -161,6 +161,16 @@ jobs:
         working-directory: engine
         run: npm run verify:pa
 
+      - name: Verify Florida scheduled lane with guarded current inventory and safe fallback
+        if: ${{ !inputs.states }}
+        working-directory: engine
+        run: npm run verify:fl -- --allow-safe-stale-fallback
+
+      - name: Verify Florida targeted statewide exact-store expansion
+        if: ${{ inputs.states && contains(inputs.states, 'FL') }}
+        working-directory: engine
+        run: npm run verify:fl
+
       - name: Verify no unproven state promotion entered the customer path
         working-directory: engine
         run: npm run verify:state-integration -- --all-active

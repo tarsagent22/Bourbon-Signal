@@ -1,3 +1,19 @@
+export function oldestSourceEvidenceCohort(sources, signals, cohortSize, sourceKey = (source) => String(source?.[0] || '')) {
+  if (!Array.isArray(sources) || sources.length === 0) return [];
+  const latestByKey = new Map();
+  for (const signal of signals || []) {
+    const key = String(signal?.raw?.sourceKey || signal?.merchantId || '').trim();
+    const timestamp = Date.parse(signal?.raw?.lastSuccessfulRefreshAt || signal?.raw?.lastAttemptAt || signal?.observedAt || '');
+    if (!key || !Number.isFinite(timestamp)) continue;
+    latestByKey.set(key, Math.max(latestByKey.get(key) || 0, timestamp));
+  }
+  return sources
+    .map((source, index) => ({ source, index, refreshedAt: latestByKey.get(String(sourceKey(source))) || 0 }))
+    .sort((left, right) => left.refreshedAt - right.refreshedAt || left.index - right.index)
+    .slice(0, Math.max(1, Math.min(sources.length, Number(cohortSize) || 1)))
+    .map((entry) => entry.source);
+}
+
 export function rotatingSourceCohort(sources, observedAt, cohortSize, rotationMs) {
   if (!Array.isArray(sources) || sources.length === 0) return [];
   const safeSize = Math.max(1, Math.min(sources.length, Number(cohortSize) || 1));

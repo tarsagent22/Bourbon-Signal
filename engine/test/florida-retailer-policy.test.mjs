@@ -19,6 +19,7 @@ const mdp = {
   quantity: 0,
   availabilityStatus: 'in_stock',
   sourceAvailabilityVerified: true,
+  canAlertAsInventory: true,
   confidence: 0.82,
   raw: { chain: 'mdp-liquor-kissimmee', merchantId: 'mdp-liquor-kissimmee-shopify', variant: { available: true } },
 };
@@ -37,7 +38,7 @@ test('Florida Target identity fails closed to explicitly listed Florida stores',
     state: 'FL', eventType: 'retailer_store_inventory_result', sourceLabel: 'Target Florida RedSky store fulfillment',
     sourceUrl: 'https://www.target.com/p/test/-/A-14983851', sourceChain: 'target', merchantId: '1518',
     locationPrecision: 'store_level', storeId: 'target:1518', storeAddress: '4750 Millenia Plaza Way, Orlando, FL 32839',
-    quantity: 0, availabilityStatus: 'in_stock', sourceAvailabilityVerified: true, confidence: 0.82,
+    quantity: 0, availabilityStatus: 'in_stock', sourceAvailabilityVerified: true, canAlertAsInventory: true, confidence: 0.82,
     raw: { chain: 'target', merchantId: '1518', availableToPromise: 5 },
   };
   assert.equal(isFloridaRetailerSignalIdentity(target), true);
@@ -71,7 +72,7 @@ test('Florida CityHive inventory binds first-party host, merchant, store, and Fl
     sourceChain: 'my-florida-liquors',
     merchantId: '5f58f60980eb420def3fd51b',
     storeId: 'my-florida-liquors:5f58f60980eb420def3fd51b',
-    storeAddress: '14904 E Orange Lake Blvd, Kissimmee, FL 34747',
+    storeAddress: '14904 E Orange Lake Blvd, Kissimmee, FL 34747, USA',
     raw: { chain: 'my-florida-liquors', merchantId: '5f58f60980eb420def3fd51b', sourceAvailabilityVerified: true },
   };
   assert.equal(isFloridaRetailerSignalIdentity(cityHive), true);
@@ -109,10 +110,10 @@ test('Florida registry includes the second-wave retailer discovery sources', () 
   const florida = ALL_STATE_SOURCES.find((entry) => entry.id === 'FL');
   const labels = florida.sources.map((source) => source.label || source.name);
   for (const expected of [
-    '1001 Liquors / My Florida Liquors bourbon catalog',
+    '1001 Liquors / My Florida Liquors CityHive store inventory',
     'Florida Plaza Liquors bourbon catalog',
     'Liquor Depot Tampa online quantity watch',
-    'Paradise / Fubar Liquors Florida catalog',
+    'Paradise Liquors & Wine Florida CityHive store inventory',
     "Gaspar's Liquor Shoppe Lightspeed store inventory",
   ]) assert.ok(labels.includes(expected), `Missing Florida source: ${expected}`);
 });

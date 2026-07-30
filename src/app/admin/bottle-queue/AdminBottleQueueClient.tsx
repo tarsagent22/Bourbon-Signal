@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { Check, Link2, RotateCw, X } from "lucide-react";
+import { formatControlRoomDateTime } from "@/lib/control-room-time";
 
 type BottleContribution = {
   id: string;
@@ -106,7 +107,7 @@ export default function AdminBottleQueueClient({ embedded = false }: { embedded?
           {active.map((item) => {
             const itemWorking = workingId?.startsWith(`${item.id}:`) === true;
             return <article className={`bq-card${itemWorking ? " working" : ""}`} key={item.id} aria-busy={itemWorking}>
-              <div className="bq-meta"><span className="bq-status">{statusText(item)}</span><span className="bq-time">{new Date(item.updatedAt || item.createdAt).toLocaleString()}</span></div>
+              <div className="bq-meta"><span className="bq-status">{statusText(item)}</span><span className="bq-time">{formatControlRoomDateTime(item.updatedAt || item.createdAt)}</span></div>
               <h2 className="bq-name">{item.rawName}</h2>
               <p className="bq-detail">From {item.source.replace("_", " ")} · submitted {item.duplicateCount || 1} time{item.duplicateCount === 1 ? "" : "s"}</p>
               <p className="bq-detail">Normalized as {item.normalizedName}</p>

@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { buildCoverageDemandSummary } from "../src/lib/coverage-demand.ts";
+import { CONTROL_ROOM_TIME_ZONE, formatControlRoomDateTime } from "../src/lib/control-room-time.ts";
 import type { CoverageRequestTargetType } from "../src/lib/coverage-request.ts";
 import type { OwnerCoverageRequestRow } from "../src/lib/coverage-request-repository.ts";
 import type { CoverageContract } from "../src/lib/coverage-model.ts";
@@ -93,6 +94,10 @@ const paidRequest = demand.recentRequests.find((request) => request.requesterEma
 assert.equal(paidRequest?.requesterName, "Pat Hunter");
 assert.equal(paidRequest?.notificationEnabled, true);
 assert.doesNotMatch(JSON.stringify(demand), /"userId"/, "owner presentation must not expose raw Clerk ids");
+assert.equal(CONTROL_ROOM_TIME_ZONE, "America/New_York");
+assert.equal(formatControlRoomDateTime("2026-07-29T20:31:07.519Z"), "Jul 29, 2026, 4:31 PM EDT", "summer request timestamps render in Eastern daylight time");
+assert.equal(formatControlRoomDateTime("2026-01-29T20:31:07.519Z"), "Jan 29, 2026, 3:31 PM EST", "winter request timestamps render in Eastern standard time");
+assert.equal(formatControlRoomDateTime("invalid"), "No timestamp");
 
 const memberCard = read("src/components/dashboard/CoverageRequestsCard.tsx");
 const memberStyles = read("src/components/dashboard/CoverageRequestsCard.module.css");
@@ -120,6 +125,8 @@ assert.match(requestForm, /coverage-request-saved/, "successful submissions anno
 
 const server = read("src/lib/company-control-room-server.ts");
 const ownerPage = read("src/app/admin/control-room/page.tsx");
+const bottleQueue = read("src/app/admin/bottle-queue/AdminBottleQueueClient.tsx");
+const sightingQueue = read("src/app/admin/sightings/AdminSightingsClient.tsx");
 assert.match(server, /coverageDemand/, "the owner snapshot includes aggregate coverage demand");
 assert.match(server, /classifyCompanyMember/, "paid/free mix uses the existing membership classification");
 assert.match(ownerPage, /isCompanyControlRoomOwnerEmail/, "the coverage queue inherits owner-only authorization");
@@ -131,7 +138,11 @@ const coverageSection = ownerPage.slice(ownerPage.indexOf('id="coverage-demand"'
 assert.match(coverageSection, /Recent individual requests/);
 assert.match(coverageSection, /requesterEmail/);
 assert.match(coverageSection, /request\.requesterEmail[\s\S]*request\.notificationEnabled[\s\S]*mailto:/, "opted-in members keep an email action even when Clerk has no display name");
-assert.match(coverageSection, /Email updates:/);
+assert.match(ownerPage, /Email updates:/);
+assert.match(ownerPage, /formatControlRoomDateTime\(request\.updatedAt\)/, "request timestamps use the explicit Eastern Time formatter");
+assert.match(bottleQueue, /formatControlRoomDateTime\(item\.updatedAt \|\| item\.createdAt\)/, "embedded bottle queue timestamps use Eastern Time");
+assert.match(sightingQueue, /formatControlRoomDateTime\(proof\?\.uploadedAt \|\| sighting\.createdAt\)/, "embedded sighting queue timestamps use Eastern Time");
+assert.doesNotMatch(`${ownerPage}\n${bottleQueue}\n${sightingQueue}`, /\.toLocaleString\(/, "Control Room timestamp surfaces do not fall back to browser-local time");
 assert.doesNotMatch(coverageSection, /request\.userId/, "Control Room should show useful identity, not raw Clerk ids");
 
 console.log("coverage member and owner surface tests passed");

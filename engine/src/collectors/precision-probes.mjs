@@ -7,7 +7,7 @@ import { createRequire } from 'node:module';
 import { randomUUID } from 'node:crypto';
 import { stableId, stripHtml, titleCase } from '../core/text.mjs';
 import { collectNorthCarolinaIntelligence } from './north-carolina-intelligence.mjs';
-import { freshCityHivePositiveSignals, normalizeCityHiveReportedQuantity, reconcileCityHiveRateLimitsWithCache, rotatingSourceCohort } from './cityhive-hardening.mjs';
+import { freshCityHivePositiveSignals, normalizeCityHiveReportedQuantity, oldestSourceEvidenceCohort, reconcileCityHiveRateLimitsWithCache, rotatingSourceCohort } from './cityhive-hardening.mjs';
 import { attachConfiguredStoreIdentity, configuredStoreId, isTerminalProbeFailure, summarizeRepeatedPlatformFailures } from './probe-hardening.mjs';
 import { createSourceAdapter } from '../sources/source-adapter.mjs';
 import { MalformedSourceError, sourceErrorForHttp, TransientSourceError } from '../sources/source-error.mjs';
@@ -23,6 +23,17 @@ import {
   isUsefulBourbonSize,
   isAllowedHttpsHost,
 } from './florida-tampa-surfaces.mjs';
+import {
+  buildFloridaConfiguredStoreLocationSignals,
+  FLORIDA_CITYHIVE_SOURCES,
+  registeredFloridaStore,
+} from './florida-retailer-surfaces.mjs';
+import {
+  floridaCityHiveProductIdentity,
+  floridaCityHiveSignalIdentityParts,
+  markFloridaCityHiveFallbackNonAlertable,
+  mergeFloridaTargetProbeHistory,
+} from './florida-cityhive-policy.mjs';
 import {
   buildGeorgiaConfiguredStoreLocationSignals,
   GEORGIA_CITYHIVE_SOURCES,
@@ -959,28 +970,10 @@ const FL_TARGET_STORES = new Map([
   ...FLORIDA_TAMPA_TARGET_STORES,
 ]);
 const FL_TARGET_COHORT_SIZE = Math.max(1, Math.min(6, Number(process.env.BOURBON_SIGNAL_FL_TARGET_COHORT_SIZE) || 4));
-const FL_TARGET_ROTATION_MS = Math.max(60 * 60_000, Number(process.env.BOURBON_SIGNAL_FL_TARGET_ROTATION_MS) || 6 * 60 * 60_000);
-const FL_CITYHIVE_MAX_PAGES = Math.max(1, Math.min(3, Number(process.env.BOURBON_SIGNAL_FL_CITYHIVE_MAX_PAGES) || 1));
-const FL_CITYHIVE_MAX_MERCHANTS_PER_SOURCE = Math.max(1, Math.min(12, Number(process.env.BOURBON_SIGNAL_FL_CITYHIVE_MAX_MERCHANTS_PER_SOURCE) || 6));
 const FL_CITYHIVE_PAGE_DELAY_MS = Math.max(300, Math.min(5_000, Number(process.env.BOURBON_SIGNAL_FL_CITYHIVE_PAGE_DELAY_MS) || 500));
 const FL_CITYHIVE_SOURCE_DELAY_MS = Math.max(1_000, Math.min(10_000, Number(process.env.BOURBON_SIGNAL_FL_CITYHIVE_SOURCE_DELAY_MS) || 2_000));
 const FL_CITYHIVE_FALLBACK_MAX_AGE_MS = Math.max(30 * 60_000, Number(process.env.BOURBON_SIGNAL_FL_CITYHIVE_FALLBACK_MAX_AGE_MS) || 6 * 60 * 60_000);
-export const FL_CITYHIVE_SOURCES = [
-  { id: 'my-florida-liquors', chainName: '1001 Liquors / My Florida Liquors', sourceLabel: '1001 Liquors / My Florida Liquors CityHive store inventory', baseUrl: 'https://myfloridaliquors.com', urls: ['https://myfloridaliquors.com/shop/?subtype=Bourbon'] },
-  { id: 'paradise-fubar-liquors', chainName: 'Paradise / Fubar Liquors', sourceLabel: 'Paradise / Fubar Liquors Florida CityHive store inventory', baseUrl: 'https://shopparadiseliquor.com', urls: ['https://shopparadiseliquor.com/shop/?subtype=Bourbon'] },
-  { id: 'balm-liquor', chainName: 'Balm Liquor Riverview', sourceLabel: 'Balm Liquor Riverview CityHive store inventory', baseUrl: 'https://balmliquor.com', urls: ['https://balmliquor.com/shop/?subtype=Bourbon'] },
-  { id: 'sunshine-food-spirits', chainName: 'Sunshine Food & Spirits Clearwater', sourceLabel: 'Sunshine Food & Spirits Clearwater CityHive store inventory', baseUrl: 'https://sunshineliquorsclearwater.com', urls: ['https://sunshineliquorsclearwater.com/shop/?subtype=Bourbon'] },
-  {
-    id: 'big-daddys-liquors',
-    chainName: "Big Daddy's Wine & Liquors",
-    sourceLabel: "Big Daddy's Miami-Dade CityHive store inventory",
-    baseUrl: 'https://bigdaddysliquors.com',
-    urls: ['https://bigdaddysliquors.com/shop/?subtype=bourbon'],
-    discoveryUrl: 'https://bigdaddysliquors.com/shop/?region=Miami',
-    allowedCities: new Set(['Hialeah', 'Miami', 'North Miami']),
-    maxPages: 3,
-  },
-];
+export const FL_CITYHIVE_SOURCES = FLORIDA_CITYHIVE_SOURCES;
 const FL_GASPARS_BOURBON_URL = 'https://www.gasparsliquorshoppe.com/bourbon/';
 const FL_GASPARS_MAX_PAGES = Math.max(1, Math.min(40, Number(process.env.BOURBON_SIGNAL_FL_GASPARS_MAX_PAGES) || 40));
 const FL_GASPARS_DELAY_MS = Math.max(300, Math.min(5_000, Number(process.env.BOURBON_SIGNAL_FL_GASPARS_DELAY_MS) || 500));
@@ -1919,8 +1912,8 @@ export function isFloridaCityHiveAddressAllowed(source, address = {}) {
   const state = String(address.state || '').toUpperCase();
   const fullAddress = String(address.fullAddress || address.full_address || '');
   if (state !== 'FL' && !/,\s*FL\s+\d{5}/i.test(fullAddress)) return false;
-  if (!source?.allowedCities?.size) return true;
-  return source.allowedCities.has(String(address.city || '').trim());
+  if (!(source?.merchants instanceof Map)) return false;
+  return [...source.merchants.values()].some((store) => store.address === fullAddress);
 }
 
 export function floridaCityHivePriorityMerchants(blobs, source) {
@@ -1928,27 +1921,23 @@ export function floridaCityHivePriorityMerchants(blobs, source) {
   const seen = new Set();
   for (const cfg of cityHiveMerchantConfigs(blobs)) {
     const merchant = cfg?.merchant || cfg;
-    if (!merchant?.id || seen.has(merchant.id)) continue;
-    seen.add(merchant.id);
+    const id = String(merchant?.id || '');
+    const configured = source?.merchants?.get(id);
+    if (!id || !configured || seen.has(id)) continue;
     const address = cityHiveAddressParts(merchant.address || {});
-    if (!isFloridaCityHiveAddressAllowed(source, address)) continue;
-    merchants.push({
-      id: String(merchant.id),
-      name: merchant.display_name || merchant.name || source.chainName,
-      city: address.city,
-      address: merchant.address || {},
-    });
+    if (address.fullAddress !== configured.address) continue;
+    seen.add(id);
+    merchants.push({ id, name: configured.name, city: configured.city, address: merchant.address || {} });
   }
-  return merchants.slice(0, FL_CITYHIVE_MAX_MERCHANTS_PER_SOURCE);
+  return merchants;
 }
 
 export function isFloridaCityHiveProductOptionAllowed(source, selectedMerchantIds, option = {}) {
   const merchantId = String(option.merchant_id || '');
-  const fullAddress = String(option.full_address || '');
-  const city = fullAddress.match(/,\s*([^,]+),\s*FL\s+\d{5}/i)?.[1] || null;
-  return Boolean(merchantId
+  const configured = source?.merchants?.get(merchantId);
+  return Boolean(configured
     && selectedMerchantIds?.has(merchantId)
-    && isFloridaCityHiveAddressAllowed(source, { city, fullAddress }));
+    && String(option.full_address || '') === configured.address);
 }
 
 function isBourbonRelevantProduct(product, option) {
@@ -4162,14 +4151,15 @@ async function collectArizonaTarget(config, bible, observedAt, options = {}) {
   return { signals, roadblocks };
 }
 
-async function collectFloridaMdp(config, bible, observedAt) {
+async function collectFloridaMdp(config, bible, observedAt, options = {}) {
   const signals = [];
   const roadblocks = [];
   const seenVariants = new Set();
   let returnedProducts = 0;
   for (let page = 1; page <= FL_MDP_MAX_PAGES; page++) {
+    options.signal?.throwIfAborted?.();
     const url = `${FL_MDP_PRODUCTS_BASE_URL}&page=${page}`;
-    const res = await textFetch(url, { headers: { accept: 'application/json,*/*' }, timeoutMs: 25_000 });
+    const res = await textFetch(url, { headers: { accept: 'application/json,*/*' }, timeoutMs: 25_000, signal: options.signal });
     if (!res.ok) {
       roadblocks.push({ state: config.id, source: 'MDP Liquor Kissimmee Shopify store inventory', url, status: res.status || 0, error: res.error || `HTTP ${res.status}`, nextRoute: 'Retry the public Shopify products feed at low cadence.' });
       break;
@@ -4214,30 +4204,59 @@ async function collectFloridaMdp(config, bible, observedAt) {
   return { signals, roadblocks };
 }
 
-async function collectFloridaTarget(config, bible, observedAt) {
+async function collectFloridaTarget(config, bible, observedAt, existingSignals = [], options = {}) {
   const signals = [];
   const roadblocks = [];
   const visitorId = crypto.randomUUID();
   const storeEntries = [...FL_TARGET_STORES.entries()];
-  const cohort = rotatingSourceCohort(storeEntries, observedAt, FL_TARGET_COHORT_SIZE, FL_TARGET_ROTATION_MS);
-  const cohortIndex = Math.floor(new Date(observedAt).getTime() / FL_TARGET_ROTATION_MS);
+  const cohort = oldestSourceEvidenceCohort(
+    storeEntries,
+    existingSignals.filter((signal) => signal?.sourceChain === 'target'),
+    FL_TARGET_COHORT_SIZE,
+  );
   const [seedStoreId] = cohort[0] || storeEntries[0];
   const searchParams = new URLSearchParams({ key: FL_TARGET_KEY, channel: 'WEB', count: '24', default_purchasability_filter: 'true', keyword: 'bourbon', offset: '0', page: '/s/bourbon', pricing_store_id: seedStoreId, store_ids: seedStoreId, visitor_id: visitorId });
   const searchUrl = `https://redsky.target.com/redsky_aggregations/v1/web/plp_search_v2?${searchParams}`;
-  const search = await textFetch(searchUrl, { headers: { accept: 'application/json', 'user-agent': 'Mozilla/5.0' }, timeoutMs: 25_000 });
+  const search = await textFetch(searchUrl, { headers: { accept: 'application/json', 'user-agent': 'Mozilla/5.0' }, timeoutMs: 25_000, signal: options.signal });
   if (!search.ok) return { signals, roadblocks: [{ state: config.id, source: 'Target Florida RedSky store fulfillment', url: searchUrl, status: search.status || 0, error: search.error || `HTTP ${search.status}`, nextRoute: 'Refresh the public Target frontend key and retry without bypassing retailer protection.' }] };
   let products = [];
   try { products = JSON.parse(search.text)?.data?.search?.products || []; } catch (error) { return { signals, roadblocks: [{ state: config.id, source: 'Target Florida RedSky store fulfillment', url: searchUrl, status: search.status || 0, error: error instanceof Error ? error.message : String(error), nextRoute: 'Inspect the RedSky search response shape.' }] }; }
   const seen = new Set();
   for (const [primaryStoreId, primaryStore] of cohort) {
+    options.signal?.throwIfAborted?.();
+    signals.push({
+      id: stableId([config.id, 'target-store-probe', primaryStoreId]),
+      state: config.id,
+      sourceLabel: 'Target Florida RedSky store fulfillment',
+      sourceUrl: `https://www.target.com/sl/${primaryStoreId}`,
+      sourceChain: 'target',
+      merchantId: primaryStoreId,
+      eventType: 'retailer_store_probe_status',
+      locationPrecision: 'store_level',
+      locationName: primaryStore.name,
+      storeName: primaryStore.name,
+      storeId: `target:${primaryStoreId}`,
+      storeAddress: primaryStore.address,
+      city: primaryStore.city,
+      stateCode: 'FL',
+      postalCode: primaryStore.zip,
+      zip: primaryStore.zip,
+      availabilityStatus: 'attempted',
+      sourceAvailabilityVerified: false,
+      observedAt,
+      canAlertAsInventory: false,
+      canAlertAsWatch: false,
+      evidence: 'Target store fulfillment probe attempted; this status row is scheduling evidence only and is never inventory.',
+      raw: { chain: 'target', merchantId: primaryStoreId, sourceKey: primaryStoreId, lastAttemptAt: observedAt },
+    });
     for (const product of products.slice(0, 12)) {
       const rawName = htmlToText(product?.item?.product_description?.title || '');
       const { match, record } = cityHiveSafeBottleMatch(rawName, bible);
       if (!record || !product?.tcin || product?.item?.is_alcoholic_beverage !== true) continue;
       const params = new URLSearchParams({ key: FL_TARGET_KEY, channel: 'WEB', tcin: String(product.tcin), store_id: primaryStoreId, store_positions_store_id: primaryStoreId, scheduled_delivery_store_id: primaryStoreId, zip: primaryStore.zip, visitor_id: visitorId });
       const url = `https://redsky.target.com/redsky_aggregations/v1/web/product_fulfillment_v1?${params}`;
-      const res = await textFetch(url, { headers: { accept: 'application/json', 'user-agent': 'Mozilla/5.0' }, timeoutMs: 20_000 });
-      if (!res.ok) { roadblocks.push({ state: config.id, source: 'Target Florida RedSky store fulfillment', url, status: res.status || 0, error: res.error || `HTTP ${res.status}`, nextRoute: 'Retry the public RedSky fulfillment endpoint at low cadence.' }); await sleep(400); continue; }
+      const res = await textFetch(url, { headers: { accept: 'application/json', 'user-agent': 'Mozilla/5.0' }, timeoutMs: 20_000, signal: options.signal });
+      if (!res.ok) { roadblocks.push({ state: config.id, source: 'Target Florida RedSky store fulfillment', url, status: res.status || 0, error: res.error || `HTTP ${res.status}`, nextRoute: 'Retry the public RedSky fulfillment endpoint at low cadence.' }); await sleepWithSignal(400, options.signal); continue; }
       let fulfillment = null;
       try { fulfillment = JSON.parse(res.text)?.data?.product?.fulfillment || null; } catch {}
       for (const option of fulfillment?.store_options || []) {
@@ -4259,13 +4278,13 @@ async function collectFloridaTarget(config, bible, observedAt) {
           canAlertAsInventory: true, canAlertAsWatch: true,
           inventorySemantics: 'Target RedSky reports store-specific pickup or in-store orderability. Available-to-promise quantity is retained as evidence but is not represented as exact shelf quantity.',
           evidence: `Target RedSky reports ${rawName} orderable at ${store.name}. Exact shelf quantity is not published.`,
-          raw: { chain: 'target', merchantId: locationId, tcin: String(product.tcin), cohortIndex, primaryStoreId, availableToPromise: Number(option.location_available_to_promise_quantity) || 0, orderPickup: option.order_pickup, inStoreOnly: option.in_store_only }
+          raw: { chain: 'target', merchantId: locationId, sourceKey: locationId, tcin: String(product.tcin), primaryStoreId, sourceAttemptedAt: observedAt, lastAttemptAt: observedAt, lastSuccessfulRefreshAt: observedAt, availableToPromise: Number(option.location_available_to_promise_quantity) || 0, orderPickup: option.order_pickup, inStoreOnly: option.in_store_only }
         });
       }
-      await sleep(400);
+      await sleepWithSignal(400, options.signal);
     }
   }
-  if (!signals.length) roadblocks.push({ state: config.id, source: 'Target Florida RedSky store fulfillment', status: 'reachable_no_safe_inventory_rows', error: 'Target returned no safely matched store-orderable bourbon rows for the current Florida cohort.', nextRoute: 'Retain store discovery and retry fulfillment without treating search presence as inventory.' });
+  if (!signals.some((signal) => signal.eventType === 'retailer_store_inventory_result')) roadblocks.push({ state: config.id, source: 'Target Florida RedSky store fulfillment', status: 'reachable_no_safe_inventory_rows', error: 'Target returned no safely matched store-orderable bourbon rows for the current Florida cohort.', nextRoute: 'Retain store discovery and retry fulfillment without treating search presence as inventory.' });
   return { signals, roadblocks };
 }
 
@@ -4285,14 +4304,15 @@ function floridaRetailerWatch(config, record, match, details) {
   };
 }
 
-async function collectFloridaShopifyRetailers(config, bible, observedAt) {
+async function collectFloridaShopifyRetailers(config, bible, observedAt, options = {}) {
   const signals = [];
   const roadblocks = [];
   for (const retailer of FL_SHOPIFY_RETAILERS) {
     let productCount = 0;
     for (let page = 1; page <= retailer.maxPages; page++) {
+      options.signal?.throwIfAborted?.();
       const url = `${retailer.productsUrl}&page=${page}`;
-      const res = await textFetch(url, { headers: { accept: 'application/json,*/*' }, timeoutMs: 25_000 });
+      const res = await textFetch(url, { headers: { accept: 'application/json,*/*' }, timeoutMs: 25_000, signal: options.signal });
       if (!res.ok) { roadblocks.push({ state: 'FL', source: retailer.label, url, status: res.status || 0, error: res.error || `HTTP ${res.status}`, nextRoute: 'Retry the public Shopify feed at low cadence.' }); break; }
       let products = [];
       try { products = JSON.parse(res.text)?.products || []; } catch { break; }
@@ -4310,7 +4330,7 @@ async function collectFloridaShopifyRetailers(config, bible, observedAt) {
         const price = Number(variant.price || 0) || null;
         if (retailer.pickupStores) {
           const pickupUrl = `https://${retailer.host}/variants/${variant.id}/?section_id=pickup-availability`;
-          const pickup = await textFetch(pickupUrl, { headers: { accept: 'text/html,*/*', 'user-agent': 'Mozilla/5.0' }, timeoutMs: 20_000 });
+          const pickup = await textFetch(pickupUrl, { headers: { accept: 'text/html,*/*', 'user-agent': 'Mozilla/5.0' }, timeoutMs: 20_000, signal: options.signal });
           if (!pickup.ok) {
             roadblocks.push({ state: 'FL', source: retailer.label, url: pickupUrl, status: pickup.status || 0, error: pickup.error || `HTTP ${pickup.status}`, nextRoute: 'Retry the public Shopify pickup-availability section at low cadence.' });
             continue;
@@ -4337,7 +4357,7 @@ async function collectFloridaShopifyRetailers(config, bible, observedAt) {
           continue;
         }
         const pickupUrl = `https://${retailer.host}/variants/${variant.id}/?section_id=pickup-availability`;
-        const pickup = await textFetch(pickupUrl, { headers: { accept: 'text/html,*/*' }, timeoutMs: 20_000 });
+        const pickup = await textFetch(pickupUrl, { headers: { accept: 'text/html,*/*', 'user-agent': 'Mozilla/5.0' }, timeoutMs: 20_000, signal: options.signal });
         const pickupText = htmlToText(pickup.text || '');
         if (!pickup.ok || !/pickup available/i.test(pickupText) || !/1646\s+(?:southwest|sw)\s+27th/i.test(pickupText)) continue;
         signals.push({
@@ -4360,9 +4380,9 @@ async function collectFloridaShopifyRetailers(config, bible, observedAt) {
   return { signals, roadblocks };
 }
 
-async function collectFloridaAbc(config, bible, observedAt) {
+async function collectFloridaAbc(config, bible, observedAt, options = {}) {
   const signals = [];
-  const res = await textFetch(FL_ABC_SEARCHSPRING_URL, { headers: { accept: 'application/json,*/*' }, timeoutMs: 25_000 });
+  const res = await textFetch(FL_ABC_SEARCHSPRING_URL, { headers: { accept: 'application/json,*/*' }, timeoutMs: 25_000, signal: options.signal });
   if (!res.ok) return { signals, roadblocks: [{ state: 'FL', source: 'ABC Fine Wine & Spirits Searchspring bourbon catalog', url: FL_ABC_SEARCHSPRING_URL, status: res.status || 0, error: res.error || `HTTP ${res.status}`, nextRoute: 'Retry the public retailer search endpoint.' }] };
   let rows = [];
   try { rows = JSON.parse(res.text)?.results || []; } catch {}
@@ -4377,107 +4397,180 @@ async function collectFloridaAbc(config, bible, observedAt) {
   return { signals, roadblocks: signals.length ? [] : [{ state: 'FL', source: 'ABC Fine Wine & Spirits Searchspring bourbon catalog', url: FL_ABC_SEARCHSPRING_URL, status: 'reachable_no_safe_inventory_rows', error: 'No safely matched in-stock allocated bourbon rows.', nextRoute: 'Keep catalog discovery active; require exact-store fulfillment before inventory alerting.' }] };
 }
 
-async function collectFloridaCityHive(config, bible, observedAt) {
+function floridaFirstPartyProductUrl(value, source) {
+  try {
+    if (!value) return null;
+    const url = new URL(value, source.baseUrl);
+    return url.protocol === 'https:'
+      && url.hostname.toLowerCase() === new URL(source.baseUrl).hostname.toLowerCase()
+      && /\/(?:shop\/)?product\//i.test(url.pathname)
+      ? url.href
+      : null;
+  } catch {
+    return null;
+  }
+}
+
+async function collectFloridaCityHive(config, bible, observedAt, options = {}) {
   const signals = [];
   const roadblocks = [];
   const seenProductOptions = new Set();
-  const seenStores = new Set();
   for (const source of FL_CITYHIVE_SOURCES) {
+    let sourceInventoryCount = 0;
+    let reachableStores = 0;
     let blocked = false;
-    for (const seedUrl of source.urls) {
+    for (const store of source.merchants.values()) {
+      options.signal?.throwIfAborted();
       if (blocked) break;
-      const first = await textFetch(seedUrl, { headers: { accept: 'text/html,*/*' }, timeoutMs: 24_000 });
-      if (!first.ok) {
-        roadblocks.push({ state: config.id, source: source.sourceLabel, url: seedUrl, status: first.status || 0, error: first.error || `HTTP ${first.status}`, nextRoute: 'Retry the public CityHive storefront at low cadence.' });
+      const url = new URL(source.categoryUrl);
+      url.searchParams.set('merchant-id', store.id);
+      const res = await textFetch(url.href, {
+        headers: { accept: 'text/html,*/*', 'user-agent': 'Mozilla/5.0' },
+        timeoutMs: 24_000,
+        signal: options.signal,
+      });
+      if (!res.ok) {
+        roadblocks.push({
+          state: config.id,
+          source: source.sourceLabel,
+          url: url.href,
+          status: res.status || 0,
+          error: res.error || `HTTP ${res.status}`,
+          nextRoute: res.status === 429
+            ? 'Stop this first-party CityHive source for the run and retry at the next bounded cadence; do not bypass retailer controls.'
+            : 'Retry the exact configured CityHive merchant page at low cadence; do not use marketplace or bypass routes.',
+        });
+        if (res.status === 429) blocked = true;
+        await sleepWithSignal(FL_CITYHIVE_PAGE_DELAY_MS, options.signal);
         continue;
       }
-      const firstBlobs = cityHiveJsonBlobs(first.text);
-      const merchants = floridaCityHivePriorityMerchants(firstBlobs, source);
-      const allowedMerchantIds = new Set(merchants.map((merchant) => merchant.id));
-      const crawlUrls = [seedUrl];
-      for (const merchant of merchants) crawlUrls.push(...cityHiveMerchantPageUrls(seedUrl, merchant.id, source.maxPages || FL_CITYHIVE_MAX_PAGES));
-      for (const url of [...new Set(crawlUrls)]) {
-        const res = url === seedUrl ? first : await textFetch(url, { headers: { accept: 'text/html,*/*' }, timeoutMs: 24_000 });
-        if (!res.ok) {
-          roadblocks.push({ state: config.id, source: source.sourceLabel, url, status: res.status || 0, error: res.error || `HTTP ${res.status}`, nextRoute: 'Retry the selected CityHive merchant page at low cadence.' });
-          if (res.status === 429) blocked = true;
-          break;
-        }
-        const blobs = cityHiveJsonBlobs(res.text);
-        for (const cfg of cityHiveMerchantConfigs(blobs)) {
-          const merchant = cfg?.merchant || cfg;
-          if (!merchant?.id || seenStores.has(`${source.id}|${merchant.id}`)) continue;
-          const address = cityHiveAddressParts(merchant.address || {});
-          if (!isFloridaCityHiveAddressAllowed(source, address)) continue;
-          seenStores.add(`${source.id}|${merchant.id}`);
-          signals.push({
-            id: stableId([config.id, 'cityhive-store-location', source.id, merchant.id]), state: config.id,
-            sourceLabel: `${source.chainName} CityHive store locator`, sourceUrl: source.baseUrl,
-            sourceChain: source.id, merchantId: String(merchant.id), rawName: merchant.display_name || merchant.name || source.chainName,
-            canonicalBottleId: null, canonicalName: null, confidence: 0.78, eventType: 'retailer_store_location', locationPrecision: 'store_level',
-            locationName: merchant.display_name || merchant.name || source.chainName, storeName: merchant.display_name || merchant.name || source.chainName,
-            storeId: `${source.id}:${merchant.id}`, storeAddress: address.fullAddress || [address.street, address.city, 'FL', address.zip].filter(Boolean).join(', '),
-            city: address.city || null, county: address.county, stateCode: 'FL', postalCode: address.zip, zip: address.zip, lat: address.lat, lng: address.lng,
-            quantity: 0, observedAt, canAlertAsInventory: false, canAlertAsWatch: false,
-            inventorySemantics: `${source.chainName} CityHive configuration identifies an order-capable Florida branch; the store row alone is not bottle inventory.`,
-            evidence: `${source.chainName} CityHive lists ${merchant.display_name || merchant.name || source.chainName}${address.fullAddress ? ` at ${address.fullAddress}` : ''}.`,
-            raw: { chain: source.id, merchantId: String(merchant.id), merchant }
-          });
-        }
-        for (const product of cityHiveProducts(blobs)) {
-          for (const merchant of product.merchants || []) {
-            for (const option of merchant.product_options || []) {
-              if (!isBourbonRelevantProduct(product, option)) continue;
-              const merchantId = String(option.merchant_id || '');
-              const key = `${source.id}|${merchantId}|${option.product_id}|${option.option_id}`;
-              if (!merchantId || seenProductOptions.has(key)) continue;
-              const fullAddress = String(option.full_address || '');
-              if (!isFloridaCityHiveProductOptionAllowed(source, allowedMerchantIds, option)) continue;
-              const city = fullAddress.match(/,\s*([^,]+),\s*FL\s+\d{5}/i)?.[1] || null;
-              const sizeQuantity = Number(option.option_params?.size?.quantity || 0) || 0;
-              const sizeMeasure = String(option.option_params?.size?.measure || '').toLowerCase();
-              const sizeMl = sizeMeasure === 'l' ? sizeQuantity * 1000 : sizeMeasure === 'ml' ? sizeQuantity : null;
-              if (sizeMl != null && sizeMl <= 375) continue;
-              const rawName = option.option_display_data?.name || product.name;
-              const { match, record, unsafeReason } = cityHiveSafeBottleMatch(rawName, bible);
-              if (!record) continue;
-              const { reportedQuantity, binaryAvailability, quantity } = normalizeCityHiveReportedQuantity(option.quantity);
-              if (reportedQuantity <= 0) continue;
-              seenProductOptions.add(key);
-              const zip = fullAddress.match(/\bFL\s+(\d{5}(?:-\d{4})?)\b/i)?.[1] || null;
-              signals.push({
-                id: stableId([config.id, 'cityhive-store-inventory', source.id, merchantId, option.option_id, reportedQuantity, option.price]), state: config.id,
-                sourceLabel: source.sourceLabel, sourceUrl: new URL(option.product_url || url, source.baseUrl).href, sourceChain: source.id, merchantId,
-                rawName, canonicalBottleId: record.id, canonicalName: record.canonical, tier: record.tier,
-                confidence: Math.max(0.8, match?.confidence || 0.5), eventType: 'cityhive_store_inventory_result', locationPrecision: 'store_level',
-                locationName: option.merchant_name || source.chainName, storeName: option.merchant_name || source.chainName,
-                storeId: `${source.id}:${merchantId}`, storeAddress: fullAddress, city, stateCode: 'FL', postalCode: zip, zip,
-                lat: Number(option.coordinates?.[1]) || null, lng: Number(option.coordinates?.[0]) || null,
-                quantity, price: Number(option.price || 0) || null, availabilityStatus: 'in_stock', availabilityLabel: binaryAvailability ? 'Retailer reports available' : `Retailer reports ${quantity} available`,
-                sourceAvailabilityVerified: true, observedAt, canAlertAsInventory: true, canAlertAsWatch: true,
-                inventorySemantics: reportedQuantity >= 100 ? `${source.chainName} CityHive uses a high quantity sentinel as binary availability; this is orderability, not exact shelf quantity.` : `${source.chainName} CityHive publishes positive store-level product-option quantity and price. Verify directly before driving.`,
-                evidence: `${source.chainName} CityHive reports ${rawName} available at ${option.merchant_name || source.chainName}${fullAddress ? ` (${fullAddress})` : ''}${option.price ? ` for $${Number(option.price).toFixed(2)}` : ''}.`,
-                raw: { chain: source.id, merchantId, sourceAvailabilityVerified: true, reportedQuantity, product: { id: product.id, name: product.name }, option, matchGuard: unsafeReason }
-              });
-            }
+      const blobs = cityHiveJsonBlobs(res.text);
+      if (!cityHiveHasProductPayload(blobs)) {
+        roadblocks.push({
+          state: config.id,
+          source: source.sourceLabel,
+          url: url.href,
+          status: 'unrecognized_cityhive_payload',
+          error: `The response for configured merchant ${store.id} did not contain a recognized CityHive products array.`,
+          nextRoute: 'Inspect the first-party payload shape; do not mark the source empty or refreshed from an unrecognized response.',
+        });
+        await sleepWithSignal(FL_CITYHIVE_PAGE_DELAY_MS, options.signal);
+        continue;
+      }
+      reachableStores += 1;
+      for (const product of cityHiveProducts(blobs)) {
+        for (const merchant of product?.merchants || []) {
+          for (const option of merchant?.product_options || []) {
+            if (!isBourbonRelevantProduct(product, option)) continue;
+            const merchantId = String(option?.merchant_id || '');
+            const configuredStore = registeredFloridaStore(source.id, merchantId);
+            if (!configuredStore || merchantId !== store.id) continue;
+            if (String(option?.full_address || '') !== configuredStore.address) continue;
+            const productUrl = floridaFirstPartyProductUrl(option?.product_url, source);
+            if (!productUrl) continue;
+            const size = option?.option_params?.size;
+            const sizeQuantity = Number(size?.quantity || 0) || 0;
+            const sizeMeasure = String(size?.measure || '').toLowerCase();
+            const sizeMl = sizeMeasure === 'l' ? sizeQuantity * 1000 : sizeMeasure === 'ml' ? sizeQuantity : null;
+            if (sizeMl != null && sizeMl <= 375) continue;
+            const rawName = htmlToText(option?.option_display_data?.name || product?.name || '');
+            const { match, record, unsafeReason } = cityHiveSafeBottleMatch(rawName, bible);
+            if (!record) continue;
+            const normalized = normalizeCityHiveReportedQuantity(option?.quantity);
+            if (normalized.reportedQuantity <= 0) continue;
+            const productIdentity = floridaCityHiveProductIdentity(option, product);
+            if (!productIdentity) continue;
+            const optionKey = `${source.id}|${merchantId}|${productIdentity.productId}|${productIdentity.variantId}`;
+            if (seenProductOptions.has(optionKey)) continue;
+            seenProductOptions.add(optionKey);
+            sourceInventoryCount += 1;
+            const priceValue = Number(option?.price);
+            const price = Number.isFinite(priceValue) && priceValue > 0 ? priceValue : null;
+            signals.push({
+              id: stableId(floridaCityHiveSignalIdentityParts({
+                sourceId: source.id,
+                merchantId,
+                productId: productIdentity.productId,
+                variantId: productIdentity.variantId,
+              })),
+              state: config.id,
+              sourceLabel: source.sourceLabel,
+              sourceUrl: productUrl,
+              sourceChain: source.id,
+              merchantId,
+              productId: productIdentity.productId,
+              variantId: productIdentity.variantId,
+              rawName,
+              canonicalBottleId: record.id,
+              canonicalName: record.canonical,
+              tier: record.tier,
+              confidence: Math.max(0.82, match?.confidence || 0.5),
+              eventType: 'cityhive_store_inventory_result',
+              locationPrecision: 'store_level',
+              locationName: configuredStore.name,
+              storeName: configuredStore.name,
+              storeId: `${source.id}:${merchantId}`,
+              storeAddress: configuredStore.address,
+              city: configuredStore.city,
+              stateCode: 'FL',
+              postalCode: configuredStore.zip,
+              zip: configuredStore.zip,
+              quantity: normalized.quantity,
+              quantityIsExact: !normalized.binaryAvailability,
+              reportedQuantity: normalized.reportedQuantity,
+              price,
+              availabilityStatus: 'in_stock',
+              availabilityLabel: normalized.binaryAvailability ? 'Retailer reports available; exact count not published' : `Retailer reports ${normalized.quantity} available`,
+              sourceAvailabilityVerified: true,
+              observedAt,
+              canAlertAsInventory: true,
+              canAlertAsWatch: true,
+              inventorySemantics: normalized.binaryAvailability ? 'binary_retailer_orderable_no_exact_count' : 'exact_retailer_reported_quantity',
+              evidence: normalized.binaryAvailability
+                ? `${source.chainName} reports ${rawName} available at ${configuredStore.address}; the high source sentinel is binary orderability, not an exact shelf count. Verify before driving.`
+                : `${source.chainName} reports ${normalized.quantity} of ${rawName} at ${configuredStore.address}. Verify before driving.`,
+              raw: {
+                chain: source.id,
+                merchantId,
+                sourceAvailabilityVerified: true,
+                configuredStoreIdentity: true,
+                reportedQuantity: normalized.reportedQuantity,
+                product: { id: product?.id, name: product?.name },
+                option,
+                matchGuard: unsafeReason,
+              },
+            });
           }
         }
-        await sleep(FL_CITYHIVE_PAGE_DELAY_MS);
       }
+      await sleepWithSignal(FL_CITYHIVE_PAGE_DELAY_MS, options.signal);
     }
-    await sleep(FL_CITYHIVE_SOURCE_DELAY_MS);
+    if (!sourceInventoryCount) {
+      roadblocks.push({
+        state: config.id,
+        source: source.sourceLabel,
+        url: source.categoryUrl,
+        status: reachableStores ? 'reachable_no_safe_inventory_rows' : 'no_recognized_store_payloads',
+        error: reachableStores
+          ? `Read ${reachableStores} exact configured merchant pages but no safely matched positive bourbon rows survived.`
+          : 'No exact configured merchant page returned a recognized CityHive product payload.',
+        nextRoute: 'Retry the exact configured merchant pages at low cadence; keep locator rows non-alertable and do not weaken merchant, address, bottle, or format guards.',
+      });
+    }
+    await sleepWithSignal(FL_CITYHIVE_SOURCE_DELAY_MS, options.signal);
   }
   return { signals, roadblocks };
 }
 
-async function collectFloridaGaspars(config, bible, observedAt) {
+async function collectFloridaGaspars(config, bible, observedAt, options = {}) {
   const signals = [];
   const roadblocks = [];
   const seenProducts = new Set();
   let catalogRows = 0;
   for (let page = 1; page <= FL_GASPARS_MAX_PAGES; page += 1) {
+    options.signal?.throwIfAborted?.();
     const url = page === 1 ? FL_GASPARS_BOURBON_URL : `${FL_GASPARS_BOURBON_URL}page${page}.html`;
-    const res = await textFetch(url, { headers: { accept: 'text/html,*/*', 'user-agent': 'Mozilla/5.0' }, timeoutMs: 25_000 });
+    const res = await textFetch(url, { headers: { accept: 'text/html,*/*', 'user-agent': 'Mozilla/5.0' }, timeoutMs: 25_000, signal: options.signal });
     if (!res.ok) {
       if (page === 1) roadblocks.push({ state: 'FL', source: "Gaspar's Liquor Shoppe Lightspeed store inventory", url, status: res.status || 0, error: res.error || `HTTP ${res.status}`, nextRoute: 'Retry the public Lightspeed bourbon catalog at low cadence.' });
       break;
@@ -4494,7 +4587,7 @@ async function collectFloridaGaspars(config, bible, observedAt) {
         roadblocks.push({ state: 'FL', source: "Gaspar's Liquor Shoppe Lightspeed store inventory", url: FL_GASPARS_BOURBON_URL, status: 'rejected_off_domain_product_url', error: `Rejected product JSON outside the first-party Gaspar's hostname.`, nextRoute: 'Inspect the first-party catalog markup without following the off-domain URL.' });
         continue;
       }
-      const detail = await textFetch(entry.jsonUrl, { redirect: 'manual', headers: { accept: 'application/json,*/*', 'user-agent': 'Mozilla/5.0' }, timeoutMs: 20_000 });
+      const detail = await textFetch(entry.jsonUrl, { redirect: 'manual', headers: { accept: 'application/json,*/*', 'user-agent': 'Mozilla/5.0' }, timeoutMs: 20_000, signal: options.signal });
       if (!detail.ok || !isAllowedHttpsHost(detail.url, 'gasparsliquorshoppe.com')) {
         roadblocks.push({ state: 'FL', source: "Gaspar's Liquor Shoppe Lightspeed store inventory", url: entry.jsonUrl, status: detail.status || 0, error: detail.error || `HTTP ${detail.status}`, nextRoute: 'Retry the public product JSON at low cadence.' });
         continue;
@@ -4518,16 +4611,16 @@ async function collectFloridaGaspars(config, bible, observedAt) {
         evidence: `Gaspar's Lightspeed storefront reports ${inventory.rawName} with ${inventory.quantity} in stock${inventory.price ? ` at $${inventory.price.toFixed(2)}` : ''}.`,
         raw: { chain: 'gaspars-liquor-shoppe', merchantId: 'lightspeed:640576', productId: inventory.productId, sku: inventory.sku, reportedQuantity: inventory.quantity }
       });
-      await sleep(350);
+      await sleepWithSignal(350, options.signal);
     }
-    await sleep(FL_GASPARS_DELAY_MS);
+    await sleepWithSignal(FL_GASPARS_DELAY_MS, options.signal);
   }
   if (!catalogRows) roadblocks.push({ state: 'FL', source: "Gaspar's Liquor Shoppe Lightspeed store inventory", url: FL_GASPARS_BOURBON_URL, status: 'reachable_no_products', error: 'No Lightspeed bourbon product cards were parsed.', nextRoute: 'Inspect the public category response shape without weakening identity guards.' });
   return { signals, roadblocks };
 }
 
-async function collectFloridaLiquorDepot(config, bible, observedAt) {
-  const res = await textFetch(FL_LIQUOR_DEPOT_URL, { headers: { accept: 'text/html,*/*', 'user-agent': 'Mozilla/5.0' }, timeoutMs: 25_000 });
+async function collectFloridaLiquorDepot(config, bible, observedAt, options = {}) {
+  const res = await textFetch(FL_LIQUOR_DEPOT_URL, { headers: { accept: 'text/html,*/*', 'user-agent': 'Mozilla/5.0' }, timeoutMs: 25_000, signal: options.signal });
   if (!res.ok) return { signals: [], roadblocks: [{ state: 'FL', source: 'Liquor Depot Tampa online quantity watch', url: FL_LIQUOR_DEPOT_URL, status: res.status || 0, error: res.error || `HTTP ${res.status}`, nextRoute: 'Retry the public Squarespace shop-picks page at low cadence.' }] };
   const signals = [];
   for (const item of parseSquarespaceInventoryItems(res.text)) {
@@ -4550,13 +4643,15 @@ async function collectFloridaLiquorDepot(config, bible, observedAt) {
   return { signals, roadblocks: signals.length ? [] : [{ state: 'FL', source: 'Liquor Depot Tampa online quantity watch', url: FL_LIQUOR_DEPOT_URL, status: 'reachable_no_safe_inventory_rows', error: 'No safely matched positive online quantity rows.', nextRoute: 'Retain the page as catalog evidence and retry without mapping chain inventory to a physical store.' }] };
 }
 
-async function collectFlorida(config, bible, existingSignals = []) {
+async function collectFlorida(config, bible, existingSignals = [], options = {}) {
   const observedAt = new Date().toISOString();
-  const mdp = await collectFloridaMdp(config, bible, observedAt);
-  const target = await collectFloridaTarget(config, bible, observedAt);
-  const shopify = await collectFloridaShopifyRetailers(config, bible, observedAt);
-  const abc = await collectFloridaAbc(config, bible, observedAt);
-  const cityHive = await collectFloridaCityHive(config, bible, observedAt);
+  const configuredLocations = buildFloridaConfiguredStoreLocationSignals(observedAt);
+  const mdp = await collectFloridaMdp(config, bible, observedAt, options);
+  const target = await collectFloridaTarget(config, bible, observedAt, existingSignals, options);
+  const targetSignals = mergeFloridaTargetProbeHistory(existingSignals, target.signals);
+  const shopify = await collectFloridaShopifyRetailers(config, bible, observedAt, options);
+  const abc = await collectFloridaAbc(config, bible, observedAt, options);
+  const cityHive = await collectFloridaCityHive(config, bible, observedAt, options);
   const liveCityHiveIds = new Set(cityHive.signals.map((signal) => signal.id));
   const retainedCityHive = freshCityHivePositiveSignals(
     existingSignals,
@@ -4564,10 +4659,7 @@ async function collectFlorida(config, bible, existingSignals = []) {
     observedAt,
     FL_CITYHIVE_FALLBACK_MAX_AGE_MS,
   ).filter((signal) => !liveCityHiveIds.has(signal.id))
-    .map((signal) => ({
-      ...signal,
-      raw: { ...(signal.raw || {}), cacheFallback: true, cacheFallbackReason: 'fresh_previous_partition' },
-    }));
+    .map(markFloridaCityHiveFallbackNonAlertable);
   cityHive.signals.push(...retainedCityHive);
   const reconciledCityHive = reconcileCityHiveRateLimitsWithCache({
     roadblocks: cityHive.roadblocks,
@@ -4575,10 +4667,10 @@ async function collectFlorida(config, bible, existingSignals = []) {
     retainedSignals: retainedCityHive,
   });
   cityHive.roadblocks.splice(0, cityHive.roadblocks.length, ...reconciledCityHive.roadblocks);
-  const gaspars = await collectFloridaGaspars(config, bible, observedAt);
-  const liquorDepot = await collectFloridaLiquorDepot(config, bible, observedAt);
+  const gaspars = await collectFloridaGaspars(config, bible, observedAt, options);
+  const liquorDepot = await collectFloridaLiquorDepot(config, bible, observedAt, options);
   return {
-    signals: [...mdp.signals, ...target.signals, ...shopify.signals, ...abc.signals, ...cityHive.signals, ...gaspars.signals, ...liquorDepot.signals],
+    signals: [...configuredLocations, ...mdp.signals, ...targetSignals, ...shopify.signals, ...abc.signals, ...cityHive.signals, ...gaspars.signals, ...liquorDepot.signals],
     roadblocks: [...mdp.roadblocks, ...target.roadblocks, ...shopify.roadblocks, ...abc.roadblocks, ...cityHive.roadblocks, ...gaspars.roadblocks, ...liquorDepot.roadblocks],
   };
 }
@@ -7691,7 +7783,7 @@ async function collectPrecisionProbesDirect(config, bible, existingSignals = [],
   if (config.id === 'AZ') return collectArizona(config, bible, options);
   if (config.id === 'CA') return collectCalifornia(config, bible, options);
   if (config.id === 'NV') return collectNevada(config, bible);
-  if (config.id === 'FL') return collectFlorida(config, bible, existingSignals);
+  if (config.id === 'FL') return collectFlorida(config, bible, existingSignals, options);
   if (config.id === 'GA') return collectGeorgia(config, bible, options);
   if (config.id === 'NY' || config.id === 'CO') return collectMetroRetailers(config, bible, options);
   if (config.id === 'SC') return collectSouthCarolina(config, bible);
@@ -7711,8 +7803,8 @@ export function legacyPrecisionRuntimeOptions(stateId, sourceRunnerOptions = {},
     .map((value) => value.trim().toUpperCase())
     .filter(Boolean)
     .includes(stateKey);
-  const defaultTimeoutMs = stateKey === 'VA' ? 1_140_000 : stateKey === 'TN' ? 600_000 : ['AZ', 'GA', 'TX'].includes(stateKey) ? 300_000 : ['NY', 'CO'].includes(stateKey) ? 240_000 : 120_000;
-  const defaultMaxAttempts = ['VA', 'AZ', 'GA', 'NY', 'CO', 'TN'].includes(stateKey) ? 1 : 2;
+  const defaultTimeoutMs = stateKey === 'VA' ? 1_140_000 : ['TN', 'FL'].includes(stateKey) ? 600_000 : ['AZ', 'GA', 'TX'].includes(stateKey) ? 300_000 : ['NY', 'CO'].includes(stateKey) ? 240_000 : 120_000;
+  const defaultMaxAttempts = ['VA', 'AZ', 'GA', 'NY', 'CO', 'TN', 'FL'].includes(stateKey) ? 1 : 2;
   return {
     ...sourceRunnerOptions,
     ...(stateKey === 'VA' || explicitlyTargeted ? { schedule: false } : {}),
@@ -7736,18 +7828,26 @@ function eligibleMetroPreviousPrecisionResults(previousResults, stateId) {
   }));
 }
 
+export function precisionExistingSignalsForState(stateId, existingSignals = [], previousSourceResults = {}) {
+  if (stateId !== 'FL') return existingSignals;
+  const previousSignals = previousSourceResults?.[legacyPrecisionSourceId(stateId)]?.value?.signals;
+  if (!Array.isArray(previousSignals)) return existingSignals;
+  return [...new Map([...previousSignals, ...existingSignals].map((signal) => [signal.id, signal])).values()];
+}
+
 export async function collectPrecisionProbes(config, bible, existingSignals = [], options = {}) {
   if (config.id === 'CA') return collectCalifornia(config, bible, options);
   if (!LEGACY_PRECISION_RUNTIME_STATES.has(config.id)) {
     return collectPrecisionProbesDirect(config, bible, existingSignals, options);
   }
   const sourceRunnerOptions = options.sourceRunnerOptions || {};
+  const precisionExistingSignals = precisionExistingSignalsForState(config.id, existingSignals, options.previousSourceResults);
   return runLegacyPrecisionSource({
     sourceId: legacyPrecisionSourceId(config.id),
     stateId: config.id,
     label: `${config.label} precision collector`,
     url: precisionRuntimeUrl(config),
-    collect: ({ signal }) => collectPrecisionProbesDirect(config, bible, existingSignals, { ...options, signal }),
+    collect: ({ signal }) => collectPrecisionProbesDirect(config, bible, precisionExistingSignals, { ...options, signal }),
     previousResults: eligibleMetroPreviousPrecisionResults(options.previousSourceResults, config.id),
     circuitBreaker: options.sourceCircuitBreaker,
     sourceRunnerOptions: legacyPrecisionRuntimeOptions(config.id, sourceRunnerOptions),
