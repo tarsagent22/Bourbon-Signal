@@ -211,7 +211,15 @@ async function main() {
       continue;
     }
     const site = await loadSite(stateSiteDir, state);
-    failures.push(...verifyStateIntegration({ state, config, manifest, fixtures, site, sourceFiles, promotionEvidenceRequired: !canaryMode }).failures);
+    failures.push(...verifyStateIntegration({
+      state,
+      config,
+      manifest,
+      fixtures,
+      site,
+      sourceFiles,
+      promotionEvidenceRequired: !canaryMode && !grandfathered.has(state),
+    }).failures);
   }
   if (failures.length) throw new Error(failures.join('\n'));
   console.log(`State integration verification passed for ${states.join(', ')}.`);

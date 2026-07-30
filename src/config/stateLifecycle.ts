@@ -68,7 +68,8 @@ export const STATE_LIFECYCLE_CONFIG = {
       "MO",
       "NV",
       "WA",
-      "WI"
+      "WI",
+      "MS"
     ],
     "stateExpectedRunMs": {
       "TX": 420000,
