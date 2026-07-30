@@ -8,6 +8,8 @@ import { createRemoteSiteSnapshotReader } from "@/lib/remote-site-snapshot";
 import { VercelBlobSnapshotStorage } from "@/lib/vercel-blob-snapshot-storage";
 import { buildStateStats } from "@/lib/site-stats-metrics";
 import { resolveDropQuantitySemantics } from "@/lib/drop-quantity-semantics";
+import { isUserFacingDropSignal } from "@/lib/drop-feed-visibility";
+export { isUserFacingDropSignal } from "@/lib/drop-feed-visibility";
 
 const SITE_EXPORT_DIR = join(process.cwd(), "engine", "out", "site");
 const CONTRACT_VERSION = "bourbon-signal-site-v0.1";
@@ -349,59 +351,13 @@ export function normalizeDropForSite(drop: JsonRecord) {
     display_state: getPublicStateLabel(state),
     display_location: locationLabel,
     is_user_facing_drop: isUserFacingDropSignal({
+      ...drop,
       type,
       quantity: visibilityQuantity,
       locationPrecision,
       canAlertAsInventory,
     }),
   };
-}
-
-export function isUserFacingDropSignal(drop: {
-  type?: string;
-  event_type?: string;
-  quantity?: number;
-  boardShipmentQuantity?: number;
-  quantity_shipped?: number;
-  quantity_in_stock?: number;
-  storeQty?: number;
-  store_qty?: number;
-  warehouseQty?: number;
-  warehouse_qty?: number;
-  locationPrecision?: string;
-  location_precision?: string;
-  canAlertAsInventory?: boolean;
-  can_alert_as_inventory?: boolean;
-}) {
-  const type = String(drop.type ?? drop.event_type ?? "").toLowerCase();
-  const quantity = asNumber(drop.quantity, asNumber(drop.quantity_in_stock, asNumber(drop.boardShipmentQuantity, asNumber(drop.quantity_shipped, asNumber(drop.storeQty, asNumber(drop.store_qty, asNumber(drop.warehouseQty, asNumber(drop.warehouse_qty))))))));
-  const precision = String(drop.locationPrecision ?? drop.location_precision ?? "").toLowerCase();
-  const canAlert = drop.canAlertAsInventory === true || drop.can_alert_as_inventory === true;
-
-  if (!type) return false;
-  if (type.includes("out_of_stock") || type.includes("out-of-stock")) return false;
-  if (type.includes("lottery")) return false;
-  if (type === "alabc_limited_release_store_drop") return precision === "store_level";
-  if (type.includes("allocated_release") || type.includes("statewide_policy")) return false;
-  if (type.includes("county_allocated")) return false;
-  if (type.includes("catalog") || precision === "statewide_catalog") return false;
-
-  if (type === "nc_board_shipment_snapshot") return quantity > 0;
-  if (type === "nc_statewide_warehouse_stock") return quantity > 0;
-  if (canAlert && precision === "store_level") return true;
-  if (type === "store_delivery_snapshot") return quantity > 0;
-  if (type === "store_allocation_snapshot" && precision === "store_level") return quantity > 0;
-  if (type === "county_inventory_aggregate" && precision === "store_aggregate") return quantity > 0;
-  if (type === "board_inventory_aggregate" && precision === "board_warehouse") return quantity > 0;
-  if (type === "store_inventory_aggregate" && precision === "store_aggregate") return quantity > 0;
-  if (type === "browser_assisted_store_inventory_limited_supply") return true;
-  if (type === "browser_assisted_store_inventory_in_stock") return true;
-  if (type === "retailer_store_inventory_result") return quantity > 0;
-  if (type === "cityhive_store_inventory_result") return quantity > 0;
-  if (type === "distillery_gift_shop_availability" && precision === "distillery") return true;
-  if (type === "store_inventory_result") return quantity > 0;
-
-  return false;
 }
 
 function getPublicSignalCategory(type: string, locationPrecision: string, quantity: number, canAlertAsInventory: boolean) {

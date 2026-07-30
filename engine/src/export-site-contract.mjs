@@ -387,7 +387,11 @@ function publicSignal(signal, bible, freshness = null) {
     canAlertAsInventory,
     canAlertAsWatch,
     eligibleForOnSite: isMsSparseOnSiteInventory || canAlertAsInventory || canAlertAsWatch,
-    eligibleForDelivery: canAlertAsInventory || canAlertAsWatch,
+    eligibleForDropFeed: isMsSparseOnSiteInventory ? true : undefined,
+    eligibleForWatch: isMsSparseOnSiteInventory ? false : undefined,
+    eligibleForDelivery: isMsSparseOnSiteInventory ? false : (canAlertAsInventory || canAlertAsWatch),
+    eligibleForEmail: isMsSparseOnSiteInventory ? false : undefined,
+    eligibleForSms: isMsSparseOnSiteInventory ? false : undefined,
     raw: isMsSparseOnSiteInventory ? {
       chain: signal.raw?.chain || signal.sourceChain || null,
       sourceRuntimeId: signal.raw?.sourceRuntimeId || signal.sourceRuntimeId || null,

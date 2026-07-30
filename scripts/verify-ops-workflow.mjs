@@ -293,7 +293,7 @@ for (const phrase of ['/api/alerts/deliver?dryRun=1', 'No alert delivery secret 
   if (!alertWatchdog.includes(phrase)) fail(`Alert watchdog should check: ${phrase}`);
 }
 const regressionGuard = read('scripts/verify-production-engine-regression.mjs');
-for (const phrase of ['activeStates', '/api/drops?state=', 'live drops collapsed to 0']) {
+for (const phrase of ['activeStates', '/api/drops?state=', 'liveDropTotalMeetsRegressionFloor', 'minimumLiveTotal']) {
   if (!regressionGuard.includes(phrase)) fail(`Production regression guard should check: ${phrase}`);
 }
 const storeIdentity = read('engine/src/build-store-identity.mjs');

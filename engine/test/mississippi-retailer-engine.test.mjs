@@ -501,7 +501,12 @@ test('sparse Mississippi exact-store identity survives normalization and publish
   assert.equal(drop.regionId, source.regionId);
   assert.equal(drop.raw.platformStoreId, source.platformStoreId);
   assert.equal(drop.eligibleForOnSite, true);
+  assert.equal(drop.eligibleForDropFeed, true);
+  assert.equal(drop.eligibleForWatch, false);
   assert.equal(drop.eligibleForDelivery, false);
+  assert.equal(drop.eligibleForEmail, false);
+  assert.equal(drop.eligibleForSms, false);
+  assert.equal(drop.sourceStale, false);
   assert.equal(drop.canAlertAsInventory, false);
   assert.equal(drop.canAlertAsWatch, false);
   assert.equal(drop.dataLane, 'onsite_inventory');
