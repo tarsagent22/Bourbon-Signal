@@ -69,6 +69,36 @@ export const GEORGIA_CITYHIVE_SOURCES = [
     baseUrl: 'https://vipliquoratl.com', categoryUrl: 'https://vipliquoratl.com/shop/?subtype=Bourbon',
     merchants: new Map([merchant('598102d9d05b4360e32fbf16', 'VIP Package Store', '5005 Snapfinger Woods Dr, Decatur, GA 30035, USA', 'Decatur', '30035')]),
   },
+  {
+    id: 'hd-wine-spirits', chainName: 'HD WINE SPIRITS+', sourceLabel: 'HD WINE SPIRITS+ CityHive store inventory',
+    baseUrl: 'https://hdspirits.com', categoryUrl: 'https://hdspirits.com/shop/?subtype=Bourbon',
+    merchants: new Map([merchant('602d5a6c72b84f0c61d19281', 'HD WINE SPIRITS+', '470 South Atlanta Street, Roswell, GA 30075', 'Roswell', '30075')]),
+  },
+  {
+    id: 'savi-provisions-decatur', chainName: 'MSD LLC Decatur GA', sourceLabel: 'MSD LLC Decatur GA CityHive store inventory',
+    baseUrl: 'https://shopsaviprovisionsdecatur.com', categoryUrl: 'https://shopsaviprovisionsdecatur.com/shop/?subtype=Bourbon',
+    merchants: new Map([merchant('6930c397acb8bc7e3f5cacf9', 'MSD LLC Decatur GA', '180 West Ponce de Leon Avenue, Decatur, GA 30030', 'Decatur', '30030')]),
+  },
+  {
+    id: 'beverage-city-2', chainName: 'Beverage City 2', sourceLabel: 'Beverage City 2 CityHive store inventory',
+    baseUrl: 'https://beveragecity2.com', categoryUrl: 'https://beveragecity2.com/shop/?subtype=Bourbon',
+    merchants: new Map([merchant('59810308d05b4360e32fc0fe', 'Beverage City 2', '5370 Campbellton Fairburn Road, Fairburn, GA 30213', 'Fairburn', '30213')]),
+  },
+  {
+    id: 'supreme-international-bws', chainName: 'Supreme International Beer, Wine and Spirits', sourceLabel: 'Supreme International Beer, Wine and Spirits CityHive store inventory',
+    baseUrl: 'https://supremeinternationalbws.com', categoryUrl: 'https://supremeinternationalbws.com/shop/?basic_category=bourbon',
+    merchants: new Map([merchant('683f8c2b49391b4d8202146c', 'Supreme International Beer, Wine and Spirits', '1338 Veterans Memorial Highway Southwest, Mableton, GA 30126', 'Mableton', '30126')]),
+  },
+  {
+    id: 'macs-beer-and-wine', chainName: "Mac's Beer and Wine", sourceLabel: "Mac's Beer and Wine CityHive store inventory",
+    baseUrl: 'https://macsbeerandwine.com', categoryUrl: 'https://macsbeerandwine.com/shop/?subtype=Bourbon',
+    merchants: new Map([merchant('629f5a1ee808aa2666f4d62d', "Mac's Beer and Wine", '21 Peachtree Place Northwest, Atlanta, GA 30309', 'Atlanta', '30309')]),
+  },
+  {
+    id: 'l-and-l-liquor', chainName: 'L&L Liquor', sourceLabel: 'L&L Liquor CityHive store inventory',
+    baseUrl: 'https://landlliquor.com', categoryUrl: 'https://landlliquor.com/shop/?subtype=Bourbon',
+    merchants: new Map([merchant('69a064d5f52db426597c677e', 'L&L Liquor', '2763 Georgia 54, Peachtree City, GA 30269', 'Peachtree City', '30269')]),
+  },
 ];
 
 function goTo(id, chain, name, hostname, categoryUrl, address, city, zip) {
