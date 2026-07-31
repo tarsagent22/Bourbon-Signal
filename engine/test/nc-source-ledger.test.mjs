@@ -127,6 +127,31 @@ test('direct-inventory capability alone never fabricates source health or a succ
   assert.equal(board.lastSuccessfulSupportingEvidenceAt, '2026-07-29T05:00:00.000Z');
 });
 
+test('a forged board-page redirect cannot certify supporting source health', () => {
+  const result = buildNcSourceLedger([{
+    id: 'board-forged', state: 'NC', source: 'NC ABC Commission board list',
+    name: 'Forged ABC Board', notes: 'Canonical NC ABC board option id 998.',
+  }], {
+    generatedAt: '2026-07-29T05:00:00.000Z',
+    boards: [{
+      boardName: 'Forged ABC Board',
+      website: 'https://official.example',
+      capabilities: [],
+      trackedShipmentRows: 0,
+      officialPageReports: [{
+        url: 'https://official.example/releases',
+        finalUrl: 'https://attacker.example/releases',
+        status: 200,
+        sourceIdentityVerified: false,
+      }],
+    }],
+  });
+  const board = result.boards[0];
+  assert.equal(board.qualification, 'official_board_website_watch');
+  assert.equal(board.supportingEvidenceHealth, 'watch_only');
+  assert.equal(board.lastSuccessfulSupportingEvidenceAt, null);
+});
+
 test('NC source ledger production contract requires exactly 173 unique official boards', () => {
   const boards = Array.from({ length: 173 }, (_, index) => ({ boardId: `board-${index + 1}` }));
   assert.deepEqual(validateNcSourceLedgerContract({ boardCount: 173, boards }), []);

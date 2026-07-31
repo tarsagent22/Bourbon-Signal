@@ -44,7 +44,7 @@ function hasCapability(board, pattern) {
 }
 
 function successfulPages(board) {
-  return (board?.officialPageReports || []).filter((report) => Number(report?.status) >= 200 && Number(report?.status) < 300);
+  return (board?.officialPageReports || []).filter((report) => report?.sourceIdentityVerified !== false && Number(report?.status) >= 200 && Number(report?.status) < 300);
 }
 
 function qualificationFor(board, officialStoreCount) {
