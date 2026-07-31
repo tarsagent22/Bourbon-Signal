@@ -118,6 +118,7 @@ jobs:
           BOURBON_SIGNAL_STATE_SCHEDULER: ${{ inputs.force_all_states == 'true' && '0' || '1' }}
           BOURBON_SIGNAL_RUN_STATES: ${{ inputs.states || '' }}
           BOURBON_SIGNAL_BROWSER_REFRESH_MINUTES: ${{ contains(inputs.states, 'PA') && '0' || '240' }}
+          BOURBON_SIGNAL_NY_FORCE_METRO_LIVE: ${{ contains(inputs.states, 'NY') && '1' || '0' }}
           BOURBON_SIGNAL_TN_FORCE_CITYHIVE_LIVE: ${{ contains(inputs.states, 'TN') && '1' || '0' }}
           BOURBON_SIGNAL_TN_CITYHIVE_FORCE_ALL_SOURCES: ${{ contains(inputs.states, 'TN') && '1' || '0' }}
           BOURBON_SIGNAL_FORCE_SOURCE_RUN: ${{ inputs.states != '' && '1' || '0' }}
