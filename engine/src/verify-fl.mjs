@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { isFloridaRetailerInventory, isFloridaRetailerSignalIdentity } from './florida-retailer-policy.mjs';
+import { PENSACOLA_SHOPIFY_SOURCE, PENSACOLA_SHOPIFY_STORES } from './collectors/florida-pensacola-surfaces.mjs';
 
 function assert(condition, message, sample = null) {
   if (!condition) throw new Error(`${message}${sample ? `\n${JSON.stringify(sample, null, 2).slice(0, 2000)}` : ''}`);
@@ -27,6 +28,7 @@ const activeInventory = inventory.filter((signal) => !hasStaleMarker(signal));
 const trusted = activeInventory.filter((signal) => isFresh(signal) && isFloridaRetailerInventory(signal));
 const trustedStores = new Set(trusted.map((signal) => signal.storeId));
 const trustedCities = new Set(trusted.map((signal) => signal.city));
+const pensacolaShopify = trusted.filter((signal) => signal.sourceLabel === PENSACOLA_SHOPIFY_SOURCE.sourceLabel);
 const configuredLocations = signals.filter((signal) => signal.eventType === 'retailer_store_location' && signal.raw?.configuredStoreIdentity === true);
 const unsafe = activeInventory.filter((signal) => !isFresh(signal)
   || !isFloridaRetailerSignalIdentity(signal)
@@ -52,7 +54,8 @@ const minimumSourceCount = allowSafeStaleFallback ? 5 : 8;
 const allowedStatuses = allowSafeStaleFallback ? ['useful', 'useful_retained_not_due'] : ['useful'];
 assert(allowedStatuses.includes(state.status), `Expected Florida status ${allowedStatuses.join(' or ')}; got ${state.status}`);
 assert(!state.stale, `Florida collector must not publish stale state fallback: ${state.staleReason || 'stale=true'}`);
-assert(configuredLocations.length >= 34, `Expected at least 34 reviewed Florida CityHive store locations; got ${configuredLocations.length}.`);
+const minimumConfiguredLocationCount = allowSafeStaleFallback ? 34 : 36;
+assert(configuredLocations.length >= minimumConfiguredLocationCount, `Expected at least ${minimumConfiguredLocationCount} reviewed Florida configured store locations; got ${configuredLocations.length}.`);
 assert(trusted.length > 0, 'Expected guarded Florida retailer inventory signals.');
 assert(trustedStores.size >= minimumStoreCount, `Expected at least ${minimumStoreCount} fresh exact Florida inventory stores; got ${trustedStores.size}.`);
 assert(trustedCities.size >= minimumCityCount, `Expected at least ${minimumCityCount} Florida inventory cities; got ${trustedCities.size}.`);
@@ -64,6 +67,10 @@ if (!allowSafeStaleFallback) {
     assert(trustedCities.has(city), `Expected fresh exact-store Florida expansion inventory in ${city}.`);
   }
   assert([...trustedCities].some((city) => ['Pensacola', 'Gulf Breeze', 'Fort Walton Beach', 'Destin', 'Crestview', 'Panama City Beach'].includes(city)), 'Expected fresh exact-store Panhandle inventory.');
+  assert(pensacolaShopify.some((signal) => {
+    const store = PENSACOLA_SHOPIFY_STORES.get(signal.storeId);
+    return store && signal.storeAddress === store.address && signal.raw?.variantPickupVerified === true;
+  }), 'Expected fresh exact-store Pensacola Shopify inventory from a reviewed variant-specific pickup location.');
 }
 const liquorDepotWatches = signals.filter((signal) => signal.sourceLabel === 'Liquor Depot Tampa online quantity watch');
 assert(liquorDepotWatches.length > 0, 'Expected Liquor Depot Tampa chain-level online quantity watches.');
@@ -77,6 +84,7 @@ console.log(JSON.stringify({
   mode: allowSafeStaleFallback ? 'scheduled-safe-fallback' : 'targeted-strict',
   stateStatus: state.status,
   inventorySignals: trusted.length,
+  pensacolaShopifySignals: pensacolaShopify.length,
   stores: trustedStores.size,
   configuredStores: configuredLocations.length,
   cities: [...trustedCities].sort(),

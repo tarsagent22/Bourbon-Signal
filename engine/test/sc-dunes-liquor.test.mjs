@@ -147,18 +147,18 @@ test('Dunes signal carries exact-store identity and alert-grade stock evidence w
   assert.equal(signal.raw.runtimeStoreId, '6178');
   assert.equal(signal.raw.leafSourceRuntimeId, 'retailer:sc:dunes:6178');
   assert.equal(signal.raw.sku, '89103');
-  const policy = confidenceForSignal(signal);
+  const signalObservedMs = Date.parse(signal.observedAt);
+  const policy = confidenceForSignal(signal, { nowMs: signalObservedMs });
   assert.equal(policy.policyMode, 'policy_only');
   assert.equal(policy.canAlertAsInventory, false);
   assert.equal(policy.canAlertAsWatch, false);
   const productionWrapped = { ...signal, sourceRuntimeId: 'precision:sc' };
-  const productionPolicy = confidenceForSignal(productionWrapped);
+  const productionPolicy = confidenceForSignal(productionWrapped, { nowMs: signalObservedMs });
   assert.equal(productionPolicy.policyMode, 'alert_retailer_store_inventory_caveat');
   assert.equal(productionPolicy.canAlertAsInventory, true);
   assert.equal(productionPolicy.canAlertAsWatch, true);
   assert.match(operationalReportSource, /canAlertAsInventory:\s*sourceAlertPolicy\.canAlertAsInventory === false \? false : policy\.canAlertAsInventory/);
   assert.match(operationalReportSource, /canAlertAsWatch:\s*sourceAlertPolicy\.canAlertAsWatch === false \? false : policy\.canAlertAsWatch/);
-  const signalObservedMs = Date.parse(signal.observedAt);
   assert.equal(confidenceForSignal(productionWrapped, { nowMs: signalObservedMs }).canAlertAsInventory, true);
   assert.equal(confidenceForSignal(productionWrapped, { nowMs: signalObservedMs + 6 * 60 * 60_000 + 1 }).canAlertAsInventory, false);
 

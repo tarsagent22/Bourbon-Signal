@@ -28,12 +28,18 @@ async function fileSha256(file) {
   return createHash('sha256').update(await readFile(file)).digest('hex');
 }
 
-async function implementationDigest(files) {
+async function implementationDigestAtCommit(commit, files) {
+  invariant(/^[0-9a-f]{40}$/i.test(String(commit || '')), 'Dunes evidence must bind the reviewed implementation to an immutable Git commit.');
   const hash = createHash('sha256');
   for (const file of files) {
     hash.update(file);
     hash.update('\0');
-    hash.update(await readFile(path.join(REPO_ROOT, file)));
+    const { stdout } = await execFileAsync('git', ['show', `${commit}:${file}`], {
+      cwd: REPO_ROOT,
+      encoding: 'buffer',
+      maxBuffer: 8 * 1024 * 1024,
+    });
+    hash.update(stdout);
     hash.update('\0');
   }
   return hash.digest('hex');
@@ -62,8 +68,8 @@ async function main() {
     invariant(actual === expected, `Dunes capture hash mismatch for ${name}.`);
   }
 
-  const actualImplementationDigest = await implementationDigest(evidence.implementationFiles || []);
-  invariant(actualImplementationDigest === evidence.implementationDigest, 'Dunes landed implementation digest does not match reviewed evidence.');
+  const actualImplementationDigest = await implementationDigestAtCommit(evidence.implementationCommit, evidence.implementationFiles || []);
+  invariant(actualImplementationDigest === evidence.implementationDigest, 'Dunes historical implementation digest does not match reviewed evidence.');
 
   const storefront = await readFile(path.join(CAPTURE_ROOT, 'storefront.html'), 'utf8');
   const metadata = await readJson(path.join(CAPTURE_ROOT, 'store-metadata.json'));

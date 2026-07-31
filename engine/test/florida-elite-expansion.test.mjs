@@ -12,6 +12,12 @@ import {
   registeredFloridaStore,
 } from '../src/collectors/florida-retailer-surfaces.mjs';
 import {
+  buildPensacolaShopifyStoreLocationSignals,
+  pensacolaVariantPickupUrl,
+  PENSACOLA_SHOPIFY_SOURCE,
+  PENSACOLA_SHOPIFY_STORES,
+} from '../src/collectors/florida-pensacola-surfaces.mjs';
+import {
   floridaCityHiveProductIdentity,
   floridaCityHiveSignalIdentityParts,
   markFloridaCityHiveFallbackNonAlertable,
@@ -20,7 +26,16 @@ import {
 import { oldestSourceEvidenceCohort } from '../src/collectors/cityhive-hardening.mjs';
 import { isFloridaRetailerInventory } from '../src/florida-retailer-policy.mjs';
 import { confidenceForSignal } from '../src/confidence-policy.mjs';
-import { legacyPrecisionRuntimeOptions, precisionExistingSignalsForState } from '../src/collectors/precision-probes.mjs';
+import { buildFloridaStandaloneStoreLocationSignals, legacyPrecisionRuntimeOptions, precisionExistingSignalsForState } from '../src/collectors/precision-probes.mjs';
+
+test('Florida standalone retailer directory identities survive transient inventory failures', () => {
+  const rows = buildFloridaStandaloneStoreLocationSignals('2026-07-31T00:00:00.000Z');
+  assert.equal(rows.length, 10);
+  assert.equal(new Set(rows.map((row) => row.storeId)).size, 10);
+  assert.ok(rows.every((row) => row.eventType === 'retailer_store_location'));
+  assert.ok(rows.every((row) => row.canAlertAsInventory === false && row.canAlertAsWatch === false));
+  assert.ok(rows.every((row) => row.raw.configuredStoreIdentity === true));
+});
 
 test('Florida CityHive registry materially expands exact-store coverage across underserved regions', () => {
   const stores = FLORIDA_CITYHIVE_SOURCES.flatMap((source) => [...source.merchants.values()].map((store) => ({ ...store, sourceId: source.id })));
@@ -186,8 +201,53 @@ test('Florida verifier rejects evidence older than 90 minutes and alertable stal
         });
       }
     }
+    for (const store of PENSACOLA_SHOPIFY_STORES.values()) {
+      index += 1;
+      inventory.push({
+        id: `fixture-${index}`,
+        state: 'FL',
+        sourceLabel: PENSACOLA_SHOPIFY_SOURCE.sourceLabel,
+        sourceUrl: 'https://www.pensacolaliquors.com/products/buffalo-trace-bourbon-750ml',
+        sourceChain: PENSACOLA_SHOPIFY_SOURCE.id,
+        merchantId: store.id,
+        productId: '7603067060419',
+        variantId: '42469227430083',
+        sourceProductBinding: pensacolaVariantPickupUrl('42469227430083'),
+        rawName: 'Buffalo Trace Bourbon 750ml',
+        canonicalBottleId: 'buffalo-trace-bourbon',
+        canonicalName: 'Buffalo Trace Bourbon',
+        eventType: 'retailer_store_inventory_result',
+        locationPrecision: 'store_level',
+        storeName: store.name,
+        storeId: store.id,
+        storeAddress: store.address,
+        city: store.city,
+        stateCode: 'FL',
+        postalCode: store.zip,
+        quantity: 0,
+        quantityIsExact: false,
+        availabilityStatus: 'in_stock',
+        sourceAvailabilityVerified: true,
+        pickupOfferVerified: true,
+        premisesVerified: true,
+        canAlertAsInventory: true,
+        canAlertAsWatch: true,
+        observedAt,
+        raw: {
+          chain: PENSACOLA_SHOPIFY_SOURCE.id,
+          merchantId: store.id,
+          productId: '7603067060419',
+          variantId: '42469227430083',
+          pickupVerified: true,
+          variantPickupVerified: true,
+          variantPickupUrl: pensacolaVariantPickupUrl('42469227430083'),
+          sourceAvailabilityVerified: true,
+        },
+      });
+    }
     const signals = [
       ...buildFloridaConfiguredStoreLocationSignals(observedAt),
+      ...buildPensacolaShopifyStoreLocationSignals(observedAt),
       ...inventory,
       { id: 'liquor-depot-watch', state: 'FL', sourceLabel: 'Liquor Depot Tampa online quantity watch', eventType: 'retailer_catalog_availability', locationPrecision: 'store_aggregate', canAlertAsInventory: false, canAlertAsWatch: true, observedAt },
     ];
@@ -210,7 +270,14 @@ test('Florida verifier rejects evidence older than 90 minutes and alertable stal
     assert.notEqual(runVerifier(retainedNotDue).status, 0, 'targeted mode still requires a fresh live collection');
     const tooOldAt = new Date(Date.now() - 91 * 60_000).toISOString();
     assert.notEqual(runVerifier(makeFixture(tooOldAt)).status, 0, 'environment overrides cannot expand the 90-minute ceiling');
-    const alertableFallback = makeFixture(freshAt, (signals) => signals.map((signal, i) => i === 34 ? { ...signal, raw: { ...signal.raw, cacheFallback: true } } : signal));
+    const alertableFallback = makeFixture(freshAt, (signals) => {
+      let mutated = false;
+      return signals.map((signal) => {
+        if (mutated || !/inventory_result$/.test(signal.eventType || '')) return signal;
+        mutated = true;
+        return { ...signal, raw: { ...signal.raw, cacheFallback: true } };
+      });
+    });
     assert.notEqual(runVerifier(alertableFallback, ['--allow-safe-stale-fallback']).status, 0, 'scheduled mode rejects alertable stale fallback rows');
   } finally {
     rmSync(dir, { recursive: true, force: true });
