@@ -5,16 +5,17 @@ import re
 import shutil
 import subprocess
 import sys
+import tempfile
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
-from bourbon_signal_runtime import failure_summary, load_env, resolve_repo
+from bourbon_signal_runtime import failure_summary, load_env
 
 MODEL = "gpt-5.6-sol"
-EXPECTED_REPO = Path(r"C:\c\Users\chand\projects\Bourbon-Signal-autonomous").resolve()
+EXPECTED_REPO = Path(r"C:\c\Users\chand\projects\Bourbon-Signal-operator-base").resolve()
 EXPECTED_ORIGINS = {
     "https://github.com/tarsagent22/Bourbon-Signal.git",
     "https://github.com/tarsagent22/Bourbon-Signal",
@@ -22,6 +23,7 @@ EXPECTED_ORIGINS = {
 PROMPT_RELATIVE = Path("automation/bourbon-signal/autonomous-operator-prompt.md")
 RUN_RELATIVE = Path("automation/bourbon-signal/reports/operator-run-latest.json")
 OUTCOME_SCRIPT = Path("automation/bourbon-signal/operator-outcomes.mjs")
+FINDINGS_SCRIPT = Path("scripts/operator-findings.mjs")
 LOCK_RELATIVE = Path(".operator/objective-lock.json")
 RELEASE_LANE_LOCK_RELATIVE = Path(".operator/release-lane.lock")
 RELEASE_LANE_LEASE_HOURS = 2
@@ -53,7 +55,7 @@ def owner_summary(artifact: dict) -> str:
             lines.append(f"- Engine expansions completed: {expansion_count}")
         return "\n".join(lines)
     if outcome == "no_qualified_work":
-        return "Bourbon Signal automation checked the backlog; no qualified work was ready to implement."
+        return ""
     if outcome in {"continued", "blocked"}:
         lines = [
             "Bourbon Signal automation preserved unfinished work for the next shift.",
@@ -69,7 +71,15 @@ def owner_summary(artifact: dict) -> str:
     return f"Bourbon Signal automation needs attention.\n- Reason: {blocker}"
 
 
-def run(command: list[str], cwd: Path, timeout: int = 180) -> subprocess.CompletedProcess[str]:
+def emit_owner_summary(artifact: dict) -> None:
+    summary = owner_summary(artifact)
+    if summary:
+        print(summary)
+
+
+def run(command: list[str], cwd: Path, timeout: int = 180, extra_env: dict[str, str] | None = None) -> subprocess.CompletedProcess[str]:
+    environment = {**load_env(), "BOURBON_SIGNAL_REPO": str(cwd), "HERMES_CRON_SESSION": "1"}
+    environment.update(extra_env or {})
     return subprocess.run(
         command,
         cwd=str(cwd),
@@ -78,7 +88,7 @@ def run(command: list[str], cwd: Path, timeout: int = 180) -> subprocess.Complet
         errors="replace",
         capture_output=True,
         timeout=timeout,
-        env={**load_env(), "BOURBON_SIGNAL_REPO": str(cwd), "HERMES_CRON_SESSION": "1"},
+        env=environment,
     )
 
 
@@ -88,8 +98,12 @@ def require_ok(result: subprocess.CompletedProcess[str], label: str) -> str:
     return result.stdout.strip()
 
 
+def operator_repo_from_env(environment: dict[str, str]) -> Path:
+    return Path(environment.get("BOURBON_SIGNAL_OPERATOR_REPO") or EXPECTED_REPO).resolve()
+
+
 def dedicated_repo() -> Path:
-    repo = resolve_repo(load_env()).resolve()
+    repo = operator_repo_from_env(load_env())
     if repo != EXPECTED_REPO:
         raise RuntimeError(f"Autonomous operator refused untrusted repository path: {repo}")
     package = json.loads((repo / "package.json").read_text(encoding="utf-8"))
@@ -188,6 +202,7 @@ def release_lane_lease(repo: Path, run_id: str):
     now = datetime.now(timezone.utc)
     payload = {
         "contractVersion": "bourbon-signal/release-lane-lease@1",
+        "leaseId": run_id,
         "runId": run_id,
         "pid": os.getpid(),
         "acquiredAt": now.isoformat().replace("+00:00", "Z"),
@@ -519,23 +534,67 @@ def validate_transition(repo: Path, initial: dict | None) -> tuple[dict, dict | 
     return artifact, final
 
 
+def admit_objective(repo: Path, run_id: str, selected_at: str) -> dict | None:
+    findings = require_ok(run([
+        "node", str(repo / FINDINGS_SCRIPT), "read", "--repo", "tarsagent22/Bourbon-Signal", "--state", "open",
+    ], repo, 180), "canonical finding lookup failed")
+    payload = json.loads(findings or "{}")
+    eligible = [
+        entry for entry in payload.get("findings", [])
+        if (entry.get("finding") or {}).get("status") in {"backlog", "selected", "in-progress"}
+    ]
+    if not eligible:
+        return None
+    admission_root = Path(tempfile.gettempdir()) / "bourbon-signal-operator-admission"
+    admission_root.mkdir(parents=True, exist_ok=True)
+    findings_file = admission_root / f"{run_id.replace(':', '-')}.json"
+    findings_file.write_text(json.dumps({"findings": eligible}) + "\n", encoding="utf-8")
+    common = [
+        "npm", "run", "operator:objective", "--", "select", "--file", str(findings_file),
+        "--repo", "tarsagent22/Bourbon-Signal", "--base", "main", "--remote", "origin", "--at", selected_at,
+    ]
+    try:
+        preview = json.loads(require_ok(run(
+            common,
+            repo,
+            180,
+            {"BOURBON_SIGNAL_RELEASE_LANE_LEASE_ID": run_id},
+        ), "objective admission preview failed"))
+        objective_id = str((preview.get("lock") or {}).get("objectiveId") or "")
+        if not re.fullmatch(r"bsf-[a-f0-9]{16}", objective_id):
+            raise RuntimeError("Objective admission preview returned an invalid objective ID.")
+        worktree = EXPECTED_REPO.parent / f"Bourbon-Signal-operator-{objective_id}"
+        require_ok(run(
+            [*common, "--worktree", str(worktree), "--apply"],
+            repo,
+            300,
+            {"BOURBON_SIGNAL_RELEASE_LANE_LEASE_ID": run_id},
+        ), "objective admission failed")
+    finally:
+        findings_file.unlink(missing_ok=True)
+    return read_objective_lock(repo)
+
+
 def run_shift(repo: Path, started_at: str, run_id: str) -> int:
     synchronize(repo)
     objective = active_objective(repo)
     try:
-        validate_release_lane(list_open_pull_requests(repo), objective)
+        pull_requests = list_open_pull_requests(repo)
+        validate_release_lane(pull_requests, objective)
+        if not objective and not pull_requests:
+            objective = admit_objective(repo, run_id, started_at)
         if objective:
             reconcile_objective_branch(repo, objective)
             verify_canonical_objective(repo, objective)
     except RuntimeError as error:
         artifact = failure_artifact(repo, run_id, started_at, objective, "blocked", str(error), resumed=bool(objective))
         checked = aggregate(repo, run_id, started_at, objective)
-        print(owner_summary(artifact))
+        emit_owner_summary(artifact)
         return 0 if checked.returncode == 0 else checked.returncode
     if not objective:
-        artifact = failure_artifact(repo, run_id, started_at, None, "no_qualified_work", "No locked release objective exists; unattended automation may not select or create a new release lane.")
+        artifact = failure_artifact(repo, run_id, started_at, None, "no_qualified_work", "No canonical backlog finding is currently eligible for a guarded draft objective.")
         checked = aggregate(repo, run_id, started_at, None)
-        print(owner_summary(artifact))
+        emit_owner_summary(artifact)
         return 0 if checked.returncode == 0 else checked.returncode
     prompt_file = repo / PROMPT_RELATIVE
     if not prompt_file.is_file():
@@ -570,7 +629,7 @@ def run_shift(repo: Path, started_at: str, run_id: str) -> int:
         tracked = objective or final
         artifact = failure_artifact(repo, run_id, started_at, tracked, "continued" if tracked else "failed", "Coding shift exceeded 55 minutes; the process tree was terminated and continuation state was preserved.", resumed=bool(objective))
         checked = aggregate(repo, run_id, started_at, tracked)
-        print(owner_summary(artifact))
+        emit_owner_summary(artifact)
         return 124 if checked.returncode == 0 else checked.returncode
     final_after_agent = preserve_initial_objective_lock(repo, objective)
     if agent.returncode != 0:
@@ -582,7 +641,7 @@ def run_shift(repo: Path, started_at: str, run_id: str) -> int:
         if checked.returncode != 0:
             print(f"Bourbon Signal automation needs attention.\n- Reason: {clean_delivery_text(failure_summary(checked.stderr, checked.stdout, 'Operator failure outcome aggregation failed.'), 240)}")
             return checked.returncode
-        print(owner_summary(artifact))
+        emit_owner_summary(artifact)
         return agent.returncode
     import_agent_artifact(repo, agent_run_file)
     artifact, final = validate_transition(repo, objective)
@@ -598,7 +657,7 @@ def run_shift(repo: Path, started_at: str, run_id: str) -> int:
     if checked.returncode != 0:
         print(f"Bourbon Signal automation needs attention.\n- Reason: {clean_delivery_text(failure_summary(checked.stderr, checked.stdout, 'Operator outcome validation failed.'), 240)}")
         return checked.returncode
-    print(owner_summary(artifact))
+    emit_owner_summary(artifact)
     return 0
 
 

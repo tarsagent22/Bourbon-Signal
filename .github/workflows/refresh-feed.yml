@@ -1,5 +1,7 @@
 name: Refresh production inventory feed
 
+run-name: ${{ inputs.incident_key != '' && format('Inventory recovery {0}', inputs.incident_key) || 'Production inventory refresh' }}
+
 on:
   schedule:
     - cron: "7,37 * * * *"
@@ -11,6 +13,10 @@ on:
         default: "false"
       states:
         description: "Optional comma-separated state ids to refresh"
+        required: false
+        default: ""
+      incident_key:
+        description: "Immutable watchdog incident fingerprint for recovery deduplication"
         required: false
         default: ""
 

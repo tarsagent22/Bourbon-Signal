@@ -31,6 +31,14 @@ export function validateNcSourceLedgerContract(ledger, expectedBoardCount = 173)
   return errors;
 }
 
+export function validateNcSingleStoreCoverage(ledger, minimumBoardCount = 75) {
+  const boards = Array.isArray(ledger?.boards) ? ledger.boards : [];
+  const singleStoreBoards = boards.filter((board) => Number(board?.officialStoreCount) === 1);
+  return singleStoreBoards.length >= minimumBoardCount
+    ? []
+    : [`NC official single-store board coverage below threshold: ${singleStoreBoards.length}/${minimumBoardCount}.`];
+}
+
 function hasCapability(board, pattern) {
   return (board?.capabilities || []).some((capability) => pattern.test(String(capability || '')));
 }

@@ -29,6 +29,7 @@ assert.match(backup, /createCipheriv\(["']aes-256-gcm["']/);
 assert.match(backup, /ProtectedData.*CurrentUser/s, 'Windows protects the local AES key with DPAPI');
 assert.match(backup, /gzipSync/);
 assert.match(backup, /retention/i);
+assert.match(backup, /['"]coverage_request_automation_jobs['"]/, 'encrypted backups include the durable coverage automation queue');
 assert.match(backup, /Number\.isInteger\(configuredRetention\)/);
 assert.match(backup, /isolationLevel:\s*['"]RepeatableRead['"]/);
 assert.match(backup, /JSON\.parse\(await readFile\(temporaryFile/);

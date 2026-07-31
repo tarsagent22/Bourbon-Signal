@@ -126,6 +126,33 @@ def nc_radar_change_summary(payload: dict) -> str | None:
     return f"NC Release Radar monitor: {', '.join(parts)} ({queued} queued for review); nothing was auto-published or alerted."
 
 
+def source_candidate_telemetry(previous: dict | None, current: dict | None) -> dict:
+    fields = ("state", "source", "sourceAuthority", "coverageTier", "runnerReachability")
+
+    def rows(report: dict | None) -> dict[tuple[str, str], tuple]:
+        output = {}
+        for row in (report or {}).get("expansionCandidates", []):
+            key = (str(row.get("state") or "").upper(), str(row.get("source") or "").strip())
+            if all(key):
+                output[key] = tuple(row.get(field) for field in fields)
+        return output
+
+    before = rows(previous)
+    after = rows(current)
+    shared = set(before) & set(after)
+    previous_telemetry = (previous or {}).get("automationTelemetry") or {}
+    receipts = previous_telemetry.get("consumerReceipts")
+    receipts = receipts[-200:] if isinstance(receipts, list) and all(isinstance(row, dict) for row in receipts) else []
+    return {
+        "new": len(set(after) - set(before)),
+        "changed": sum(before[key] != after[key] for key in shared),
+        "unchanged": sum(before[key] == after[key] for key in shared),
+        "consumed": len(receipts) if receipts else None,
+        "consumptionStatus": "recorded" if receipts else "unavailable",
+        "consumerReceipts": receipts,
+    }
+
+
 def failure_summary(stderr: str | None, stdout: str | None, fallback: str = "unknown error") -> str:
     lines = [line.strip() for line in f"{stderr or ''}\n{stdout or ''}".splitlines() if line.strip()]
     useful = [

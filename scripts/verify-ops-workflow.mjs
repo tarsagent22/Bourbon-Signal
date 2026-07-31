@@ -73,16 +73,15 @@ if (/guarded refresh dispatched/.test(engineWatchdogWorkflow)) {
 if (!/id:\s*recovery/.test(engineWatchdogWorkflow)) {
   fail('Engine watchdog recovery step must expose an outcome so notification escalation can distinguish recovery from failure.');
 }
-if (!/Escalate unresolved production freshness/.test(engineWatchdogWorkflow)) {
-  fail('Engine watchdog must keep unresolved stale production failed after dispatching recovery.');
+if (!/Escalate unresolved production freshness/.test(engineWatchdogWorkflow)
+  || !/if:\s*steps\.watchdog\.outcome == 'failure'/.test(engineWatchdogWorkflow)) {
+  fail('Engine watchdog must keep unresolved stale production failed after dispatching or deduplicating recovery.');
 }
-if (!/if:\s*steps\.watchdog\.outcome == 'failure'/.test(engineWatchdogWorkflow)) {
-  fail('Engine watchdog escalation must follow the failed customer-domain probe rather than a green recovery-dispatch command.');
-}
-if (!/dispatched=true[^]*GITHUB_OUTPUT/.test(engineWatchdogWorkflow)
-  || !/steps\.recovery\.outputs\.dispatched == 'true'/.test(engineWatchdogWorkflow)
-  || !/Record active recovery without a duplicate dispatch/.test(engineWatchdogWorkflow)) {
-  fail('Engine watchdog must distinguish a newly dispatched recovery from an already-active refresh.');
+if (!/outputs\.dispatch == 'true'/.test(engineWatchdogWorkflow)
+  || !/Record suppressed duplicate recovery/.test(engineWatchdogWorkflow)
+  || !/incident_key/.test(engineWatchdogWorkflow)
+  || !/displayTitle/.test(read('scripts/engine-recovery-dispatch-plan.mjs'))) {
+  fail('Engine watchdog must bind recovery deduplication to an immutable incident fingerprint.');
 }
 const refreshWorkflow = read('.github/workflows/refresh-feed.yml');
 if (!/Verify Pennsylvania scheduled lane or isolate a safe stale fallback/.test(refreshWorkflow)

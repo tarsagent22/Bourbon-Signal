@@ -46,40 +46,48 @@ jobs:
           if-no-files-found: error
           path: engine/out/production-watchdog.json
 
-      - name: Dispatch guarded recovery after two failed probes
-        id: recovery
-        continue-on-error: true
+      - name: Plan guarded recovery without redispatching an unchanged failure
+        id: recovery-plan
         if: steps.watchdog.outcome == 'failure' && env.BOURBON_SIGNAL_AUTO_RECOVERY_ENABLED != '0'
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          recovery_states="$(node -e "const fs=require('fs');const p=JSON.parse(fs.readFileSync('engine/out/production-watchdog.json','utf8'));process.stdout.write((p.recoveryStates||[]).join(','))")"
-          active_runs="$(gh run list --workflow refresh-feed.yml --limit 10 --json status --jq '[.[] | select(.status == "in_progress" or .status == "queued")] | length')"
-          if [ "$active_runs" -eq 0 ]; then
-            if [ -n "$recovery_states" ]; then
-              gh workflow run refresh-feed.yml --ref main -f states="$recovery_states"
-              echo "dispatched=true" >> "$GITHUB_OUTPUT"
-              echo "State coverage collapse detected; targeted recovery dispatched for $recovery_states."
-            else
-              gh workflow run refresh-feed.yml --ref main -f force_all_states=true
-              echo "dispatched=true" >> "$GITHUB_OUTPUT"
-              echo "Stale or incoherent snapshot detected; guarded full recovery dispatched."
-            fi
+          gh run list --workflow refresh-feed.yml --limit 10 --json databaseId,event,status,conclusion,headSha,createdAt,displayTitle > active-refresh-runs.json
+          gh run list --workflow refresh-feed.yml --event workflow_dispatch --limit 100 --json databaseId,event,status,conclusion,headSha,createdAt,displayTitle > recovery-attempts.json
+          node -e "const fs=require('fs');const active=JSON.parse(fs.readFileSync('active-refresh-runs.json','utf8')).filter(r=>r.status==='queued'||r.status==='in_progress');const attempts=JSON.parse(fs.readFileSync('recovery-attempts.json','utf8'));fs.writeFileSync('recent-refresh-runs.json',JSON.stringify([...active,...attempts]));"
+          node scripts/engine-recovery-dispatch-plan.mjs --watchdog engine/out/production-watchdog.json --runs recent-refresh-runs.json --head-sha "$GITHUB_SHA" > recovery-plan.json
+          echo "dispatch=$(node -e "const p=require('./recovery-plan.json');process.stdout.write(String(p.dispatch))")" >> "$GITHUB_OUTPUT"
+          echo "mode=$(node -e "const p=require('./recovery-plan.json');process.stdout.write(p.mode)")" >> "$GITHUB_OUTPUT"
+          echo "recovery_states=$(node -e "const p=require('./recovery-plan.json');process.stdout.write((p.states||[]).join(','))")" >> "$GITHUB_OUTPUT"
+          echo "reason=$(node -e "const p=require('./recovery-plan.json');process.stdout.write(p.reason)")" >> "$GITHUB_OUTPUT"
+          echo "incident_key=$(node -e "const p=require('./recovery-plan.json');process.stdout.write(p.incidentKey)")" >> "$GITHUB_OUTPUT"
+
+      - name: Dispatch guarded recovery after two failed probes
+        id: recovery
+        continue-on-error: true
+        if: steps.recovery-plan.outputs.dispatch == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          recovery_states="${{ steps.recovery-plan.outputs.recovery_states }}"
+          if [ -n "$recovery_states" ]; then
+            gh workflow run refresh-feed.yml --ref main -f states="$recovery_states" -f incident_key="${{ steps.recovery-plan.outputs.incident_key }}"
+            echo "State coverage collapse detected; targeted recovery dispatched for $recovery_states."
           else
-            echo "dispatched=false" >> "$GITHUB_OUTPUT"
-            echo "A guarded refresh is already active; suppressing duplicate recovery dispatch."
+            gh workflow run refresh-feed.yml --ref main -f force_all_states=true -f incident_key="${{ steps.recovery-plan.outputs.incident_key }}"
+            echo "Stale or incoherent snapshot detected; guarded full recovery dispatched."
           fi
 
       - name: Record recovery dispatch
-        if: steps.watchdog.outcome == 'failure' && steps.recovery.outputs.dispatched == 'true'
+        if: steps.watchdog.outcome == 'failure' && steps.recovery.outcome == 'success'
         run: echo "::warning title=Production recovery dispatched::The customer-domain freshness probe is still failed. Recovery was dispatched but has not yet been verified."
 
-      - name: Record active recovery without a duplicate dispatch
-        if: steps.watchdog.outcome == 'failure' && steps.recovery.outcome == 'success' && steps.recovery.outputs.dispatched != 'true'
-        run: echo "::warning title=Production recovery already active::The customer-domain freshness probe is still failed. An existing guarded refresh remains active; no duplicate recovery was dispatched."
+      - name: Record suppressed duplicate recovery
+        if: steps.watchdog.outcome == 'failure' && steps.recovery-plan.outcome == 'success' && steps.recovery-plan.outputs.dispatch != 'true'
+        run: echo "::warning title=Production recovery deduplicated::The customer-domain freshness probe is still failed. The unchanged incident already has an active or failed guarded recovery, so no duplicate was dispatched."
 
       - name: Escalate unresolved production freshness
         if: steps.watchdog.outcome == 'failure'
         run: |
-          echo "Production freshness remains outside the SLO. A dispatched recovery is not treated as restoration until a later customer-domain probe is healthy."
+          echo "Production freshness remains outside the SLO. Recovery dispatch or deduplication does not count as restoration."
           exit 1

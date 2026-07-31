@@ -68,4 +68,22 @@ assert runtime.release_radar_change_summary({
 assert runtime.release_radar_change_summary({
     "summary": {"new": 0, "materiallyChanged": 0, "total": 46, "queuedForSemanticReview": 0}
 }) is None
+telemetry = runtime.source_candidate_telemetry(
+    {
+        "expansionCandidates": [{"state": "NC", "source": "A", "coverageTier": "probeable", "runnerReachability": 1}],
+        "automationTelemetry": {"consumerReceipts": [{"fingerprint": "candidate-a", "consumedAt": "2026-07-31T00:00:00Z"}]},
+    },
+    {"expansionCandidates": [
+        {"state": "NC", "source": "A", "coverageTier": "browser_escalation_required", "runnerReachability": 0},
+        {"state": "SC", "source": "B", "coverageTier": "probeable", "runnerReachability": 1},
+    ]},
+)
+assert telemetry == {
+    "new": 1,
+    "changed": 1,
+    "unchanged": 0,
+    "consumed": 1,
+    "consumptionStatus": "recorded",
+    "consumerReceipts": [{"fingerprint": "candidate-a", "consumedAt": "2026-07-31T00:00:00Z"}],
+}
 print("Bourbon Signal Hermes runtime tests passed.")

@@ -64,6 +64,8 @@ completed_summary = operator.owner_summary(run_artifact("bsf-0123456789abcdef", 
 assert "Pull request: #123 merged" in completed_summary
 assert "Production: verified" in completed_summary
 assert "bsf-" not in completed_summary and "contractVersion" not in completed_summary and "\x1b" not in completed_summary
+assert operator.owner_summary(run_artifact("bsf-0123456789abcdef", "no_qualified_work", started=False, complete=False)) == ""
+assert operator.operator_repo_from_env({"BOURBON_SIGNAL_OPERATOR_REPO": r"C:\c\Users\chand\projects\Bourbon-Signal-operator-base"}) == Path(r"C:\c\Users\chand\projects\Bourbon-Signal-operator-base").resolve()
 wrapper_source = (SCRIPT_DIR / "bourbon_signal_autonomous_operator.py").read_text(encoding="utf-8")
 assert "print(agent.stdout" not in wrapper_source
 assert "release-lane.lock" in wrapper_source
@@ -73,6 +75,11 @@ assert '"merge", "--ff-only", "origin/main"' in wrapper_source
 assert '"--sandbox", "workspace-write", "--ephemeral", "--add-dir"' in wrapper_source
 assert '"hermes", "-p"' not in wrapper_source
 assert "GIT_CONFIG_VALUE_0" in wrapper_source and "GH_CONFIG_DIR" in wrapper_source
+assert 'operator-findings.mjs' in wrapper_source and '"read"' in wrapper_source
+assert '"npm", "run", "operator:objective", "--", "select"' in wrapper_source
+assert '"--apply"' in wrapper_source and "BOURBON_SIGNAL_RELEASE_LANE_LEASE_ID" in wrapper_source
+assert '"leaseId": run_id' in wrapper_source
+assert wrapper_source.count('{"BOURBON_SIGNAL_RELEASE_LANE_LEASE_ID": run_id}') >= 2
 
 operator.validate_release_lane([], None)
 operator.validate_release_lane([{"number": 9, "headRefName": "operator/bsf-0123456789abcdef-finish-objective", "baseRefName": "main", "isDraft": True}], {"branch": "operator/bsf-0123456789abcdef-finish-objective"})

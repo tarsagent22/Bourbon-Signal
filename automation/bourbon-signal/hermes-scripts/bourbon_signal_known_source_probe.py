@@ -3,7 +3,7 @@ import json
 import subprocess
 import time
 
-from bourbon_signal_runtime import failure_summary, load_env, resolve_repo
+from bourbon_signal_runtime import failure_summary, load_env, resolve_repo, source_candidate_telemetry
 
 ENV = load_env()
 REPO = resolve_repo(ENV)
@@ -33,7 +33,8 @@ def fingerprint(report: dict | None) -> str:
     return hashlib.sha256(json.dumps(compact, sort_keys=True).encode()).hexdigest()
 
 
-before = fingerprint(read_report())
+before_report = read_report()
+before = fingerprint(before_report)
 try:
     registry = json.loads(CANDIDATE_REGISTRY.read_text(encoding="utf-8"))
 except Exception:
@@ -62,6 +63,8 @@ except Exception:
     print("Known-source probe failed: invalid report output")
     raise SystemExit(1)
 after = fingerprint(report)
-# Material source changes are summarized by the twice-daily semantic review.
+report["automationTelemetry"] = source_candidate_telemetry(before_report, report)
+REPORT.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
+# Material source changes are summarized by the daily semantic review.
 # This deterministic probe stays silent unless it fails.
 _ = before, after

@@ -7,23 +7,24 @@
     "localSilent": ["routine_discovery", "routine_probe", "routine_shadow", "routine_browser", "successful_watchdogs"]
   },
   "dailyCadence": {
-    "knownSourceProbe": 24,
-    "broadDiscoveryAndScoring": 8,
+    "knownSourceProbe": 8,
+    "broadDiscoveryAndScoring": 4,
     "shadowEvidence": 6,
     "browserProbe": 2,
-    "semanticReview": 2,
-    "implementationOperator": 2,
+    "semanticReview": 1,
+    "implementationOperator": 1,
     "releaseRadar": 1,
     "scorecardAggregation": 1,
     "neonEncryptedBackup": 1,
     "morningBrief": 1,
-    "schedulerReconciliation": 1
+    "schedulerReconciliation": 1,
+    "coverageRequestCompletionLane": 288
   },
   "expectedTotals": {
-    "expansionDeterministicRunsPerDay": 40,
-    "deterministicRunsPerDay": 239.03333333333333,
-    "agenticRunsPerWeek": 36,
-    "deterministicRunSharePercentApprox": 97.89
+    "expansionDeterministicRunsPerDay": 20,
+    "deterministicRunsPerDay": 507.0333333333333,
+    "agenticRunsPerWeek": 22,
+    "deterministicRunSharePercentApprox": 99.38
   },
   "codingAgentPolicy": {
     "profile": "bourbonbot",

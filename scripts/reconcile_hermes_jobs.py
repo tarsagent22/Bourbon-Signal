@@ -2,6 +2,7 @@ import json
 import re
 import subprocess
 from pathlib import Path
+from lib.hermes_job_registry import classify_job_ids
 from export_hermes_jobs import (
     AUTONOMOUS_OPERATOR_SCRIPT,
     AUTONOMOUS_PROFILE_CONFIG,
@@ -55,8 +56,11 @@ if live_timezone != expected_payload.get("timezone"):
     failures.append(f"timezone: live={live_timezone!r} expected={expected_payload.get('timezone')!r}")
 raw_jobs = json.loads(LIVE_JOBS.read_text(encoding="utf-8")).get("jobs", [])
 raw_by_id = {job.get("id"): job for job in raw_jobs}
-if set(jobs) != set(expected_by_id):
-    failures.append(f"job IDs differ: live={sorted(jobs)} expected={sorted(expected_by_id)}")
+managed_workdirs = {str(job.get("workdir") or "").casefold() for job in expected if job.get("workdir")}
+managed_jobs = {job_id: job for job_id, job in jobs.items() if str(job.get("workdir") or "").casefold() in managed_workdirs}
+id_classification = classify_job_ids(managed_jobs, expected_by_id)
+if id_classification["missing"] or id_classification["unexpected"]:
+    failures.append(f"job IDs differ: missing={id_classification['missing']} unexpected={id_classification['unexpected']}")
 for job_id, wanted in expected_by_id.items():
     live = jobs.get(job_id)
     if not live:
@@ -75,7 +79,7 @@ for job_id, wanted in expected_by_id.items():
         ("model", actual_model),
         ("reasoning", reasoning_for(actual_model, reasoning_config)),
         ("safetyHash", safety_hash(raw)),
-        ("profileSafetyHash", profile_wrapper_safety_hash(ROOT, autonomous_config_text) if profile_wrapped else None),
+        ("profileSafetyHash", profile_wrapper_safety_hash(Path(live["workdir"]), autonomous_config_text, LIVE_JOBS.parent.parent / "scripts") if profile_wrapped else None),
     ]:
         if actual != wanted.get(key):
             failures.append(f"{job_id} {key}: live={actual!r} expected={wanted.get(key)!r}")

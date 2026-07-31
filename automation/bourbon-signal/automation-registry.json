@@ -319,7 +319,7 @@
       "active": true,
       "ownerLayer": "operator",
       "executionClass": "agent",
-      "frequency": "twice daily at 02:45 and 14:45 Eastern",
+      "frequency": "daily at 22:05 Eastern",
       "agent": {
         "provider": "openai-codex",
         "model": "gpt-5.6-sol",
@@ -438,7 +438,7 @@
       "active": true,
       "ownerLayer": "deterministic",
       "executionClass": "script_only",
-      "frequency": "every 3 hours",
+      "frequency": "every 6 hours",
       "agent": {
         "provider": null,
         "model": null,
@@ -469,7 +469,7 @@
       "active": true,
       "ownerLayer": "operator",
       "executionClass": "script_then_agent",
-      "frequency": "twice daily semantic review",
+      "frequency": "daily semantic review at 02:15 Eastern",
       "agent": {
         "provider": "openai-codex",
         "model": "gpt-5.6-luna",
@@ -499,7 +499,7 @@
       "active": true,
       "ownerLayer": "brief",
       "executionClass": "script_then_agent",
-      "frequency": "Friday at 03:30 Eastern",
+      "frequency": "Friday at 06:00 Eastern after the company brief",
       "agent": {
         "provider": "openai-codex",
         "model": "gpt-5.6-luna",
@@ -528,7 +528,7 @@
       "active": true,
       "ownerLayer": "deterministic",
       "executionClass": "script_only",
-      "frequency": "hourly at :40 Eastern",
+      "frequency": "every 3 hours at :40 Eastern",
       "delivery": "ops_chat",
       "agent": {
         "provider": null,
@@ -575,6 +575,38 @@
       "killSwitch": "cron_pause:290b9f17b468",
       "artifacts": [
         "company_scorecard_latest"
+      ]
+    },
+    {
+      "id": "hermes-coverage-request-completion-lane",
+      "platform": "hermes_job",
+      "hermesJobId": "0af9a869e52a",
+      "active": true,
+      "ownerLayer": "deterministic",
+      "executionClass": "script_only",
+      "frequency": "every 5 minutes",
+      "delivery": "local",
+      "agent": {
+        "provider": null,
+        "model": null,
+        "reasoning": null
+      },
+      "externalApi": {
+        "classes": [
+          "production_coverage_queue",
+          "local_kanban",
+          "engine_ops_outbox"
+        ],
+        "maxRequestsPerRun": 8
+      },
+      "customerMutation": "internal_state",
+      "promotionDeployment": "none",
+      "silencePolicy": "quiet_on_success",
+      "killSwitch": "cron_pause:0af9a869e52a",
+      "artifacts": [
+        "coverage_request_automation_jobs",
+        "coverage_expansion_terminal_results",
+        "engine_ops_delivery_receipts"
       ]
     },
     {
