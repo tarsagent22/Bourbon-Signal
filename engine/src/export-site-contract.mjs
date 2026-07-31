@@ -218,7 +218,7 @@ function isCostcoWarehouseInventorySignal(signal) {
     && /^costco_warehouse_inventory_result$/i.test(String(signal.eventType || signal.type || ''));
 }
 
-function publicSignal(signal, bible, freshness = null) {
+export function publicSignal(signal, bible, freshness = null) {
   const bibleRecord = findBibleRecord(signal, bible);
   const preferRetailerName = ['IN', 'IL', 'TN', 'SC', 'AZ', 'GA', 'NY', 'CO'].includes(signal.state) && /^(cityhive_store_inventory|retailer_store_inventory)/i.test(String(signal.eventType || ''));
   const isCostcoWarehouseInventory = isCostcoWarehouseInventorySignal(signal);
@@ -406,13 +406,22 @@ function publicSignal(signal, bible, freshness = null) {
     policyMode: isMsSparseOnSiteInventory ? 'onsite_retailer_store_inventory_caveat' : isCostcoWarehouseInventory ? 'alert_costco_warehouse_inventory_caveat' : isTnRetailerInventory || isScRetailerInventory || isAzRetailerInventory || isFlRetailerInventory || isGaRetailerInventory || isInRetailerInventory || isMetroInventory ? 'alert_retailer_store_inventory_caveat' : signal.policyMode,
     canAlertAsInventory,
     canAlertAsWatch,
+    alertable: staleFallback ? false : undefined,
     eligibleForOnSite: isMsSparseOnSiteInventory || canAlertAsInventory || canAlertAsWatch,
     eligibleForDropFeed: isMsSparseOnSiteInventory ? true : undefined,
     eligibleForWatch: isMsSparseOnSiteInventory ? false : undefined,
     eligibleForDelivery: isMsSparseOnSiteInventory ? false : (canAlertAsInventory || canAlertAsWatch),
     eligibleForEmail: isMsSparseOnSiteInventory || isScSouthernBinaryInventory ? false : undefined,
     eligibleForSms: isMsSparseOnSiteInventory || isScSouthernBinaryInventory ? false : undefined,
-    raw: isMsSparseOnSiteInventory ? {
+    raw: staleFallback ? {
+      lastKnownAvailabilityStatus: signal.raw?.lastKnownAvailabilityStatus || null,
+      lastKnownAvailabilityLabel: signal.raw?.lastKnownAvailabilityLabel || null,
+      lastKnownSourceAvailabilityVerified: signal.raw?.lastKnownSourceAvailabilityVerified === true,
+      sourceAvailabilityVerified: false,
+      sourceRuntimeNonAlertable: true,
+      staleFallback: true,
+      staleNonAlertable: true,
+    } : isMsSparseOnSiteInventory ? {
       chain: signal.raw?.chain || signal.sourceChain || null,
       sourceRuntimeId: signal.raw?.sourceRuntimeId || signal.sourceRuntimeId || null,
       merchantId: signal.raw?.merchantId || signal.merchantId || null,
@@ -423,7 +432,12 @@ function publicSignal(signal, bible, freshness = null) {
       sourceRuntimeNonAlertable: signal.raw?.sourceRuntimeNonAlertable === true,
     } : undefined,
     sourceStale: signal.sourceStale === true || ohioFeedStaleCaveat(signal),
-    staleSourceCaveat: signal.staleSourceCaveat || (ohioFeedStaleCaveat(signal) ? 'OHLQ collection is currently stale/blocked. This is the latest cached OHLQ status we have; verify on OHLQ or call the store before driving.' : null),
+    stale: staleFallback,
+    staleSourceCaveat: signal.staleSourceCaveat || (ohioFeedStaleCaveat(signal)
+      ? 'OHLQ collection is currently stale/blocked. This is the latest cached OHLQ status we have; verify on OHLQ or call the store before driving.'
+      : staleFallback
+        ? 'Last-known source evidence only; current availability is stale and not alertable. Verify directly before driving.'
+        : null),
     dataLane,
     informationalOnly: dataLane === 'informational',
     inventoryCaveat: isCostcoWarehouseInventory
