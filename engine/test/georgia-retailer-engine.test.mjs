@@ -14,8 +14,10 @@ import {
 } from '../src/collectors/georgia-retailer-surfaces.mjs';
 import {
   isGeorgiaRetailerInventory,
+  isGeorgiaRetailerLastKnownInventoryEvidence,
   isGeorgiaRetailerSignalIdentity,
 } from '../src/georgia-retailer-policy.mjs';
+import { markSignalStaleNonAlertable } from '../src/stale-signal-policy.mjs';
 import { confidenceForSignal } from '../src/confidence-policy.mjs';
 import { legacyPrecisionRuntimeOptions } from '../src/collectors/precision-probes.mjs';
 import { getStateLifecycle } from '../src/state-lifecycle.mjs';
@@ -277,19 +279,11 @@ test('first Georgia retailer activation is on-site baseline only while later cha
 test('Georgia release policy allows only an explicitly labeled non-alerting last-known fallback', () => {
   const observedAt = '2026-07-23T00:00:00.000Z';
   const staleReason = 'Quality guard preserved the last good report because signal count collapsed from 12 to 0.';
-  const retainedSignal = binarySignal(goToStore, {
-    observedAt,
-    stale: true,
+  const retainedSignal = markSignalStaleNonAlertable(
+    binarySignal(goToStore, { observedAt }),
     staleReason,
-    canAlertAsInventory: false,
-    canAlertAsWatch: false,
-    alertable: false,
-    raw: {
-      staleFallback: true,
-      staleFallbackAt: '2026-07-24T12:00:00.000Z',
-      staleReason,
-    },
-  });
+    '2026-07-24T12:00:00.000Z',
+  );
   const retainedDrop = {
     ...retainedSignal,
     type: retainedSignal.eventType,
@@ -320,6 +314,11 @@ test('Georgia release policy allows only an explicitly labeled non-alerting last
   assert.equal(isGeorgiaRetailerInventory(retainedSignal), false, 'the live-inventory predicate must continue to reject every retained row');
   assert.equal(retainedSignal.observedAt, observedAt, 'verification must not rewrite a retained observation timestamp');
   assert.equal(retainedSignal.stale, true, 'verification must never convert a stale row into a fresh row');
+  assert.equal(retainedSignal.sourceAvailabilityVerified, false, 'last-known evidence must not remain currently verified');
+  assert.equal(retainedSignal.raw.lastKnownSourceAvailabilityVerified, true, 'last-known proof must be preserved separately from current verification');
+  assert.equal(isGeorgiaRetailerLastKnownInventoryEvidence(retainedSignal), true);
+  assert.equal(isGeorgiaRetailerLastKnownInventoryEvidence({ ...retainedSignal, availabilityStatus: 'in_stock' }), false, 'current availability must remain explicitly stale');
+  assert.equal(isGeorgiaRetailerLastKnownInventoryEvidence({ ...retainedSignal, sourceAvailabilityVerified: true }), false, 'last-known proof must never become current verification');
 });
 
 test('Georgia release policy keeps normal and targeted verification fresh-only', () => {
@@ -346,16 +345,11 @@ test('Georgia release policy keeps normal and targeted verification fresh-only',
   assert.equal(result.fallback, false);
 
   const staleReason = 'Quality guard preserved the last good report because signal count collapsed from 12 to 0.';
-  const staleSignal = {
-    ...signal,
-    observedAt: '2026-07-23T00:00:00.000Z',
-    stale: true,
+  const staleSignal = markSignalStaleNonAlertable(
+    { ...signal, observedAt: '2026-07-23T00:00:00.000Z' },
     staleReason,
-    canAlertAsInventory: false,
-    canAlertAsWatch: false,
-    alertable: false,
-    raw: { staleFallback: true, staleReason, staleFallbackAt: '2026-07-24T12:00:00.000Z' },
-  };
+    '2026-07-24T12:00:00.000Z',
+  );
   const staleState = {
     state: 'GA',
     status: 'stale_useful_quality_fallback',

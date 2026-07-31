@@ -1,6 +1,14 @@
 export const STALE_RETAINED_AVAILABILITY_LABEL = 'Stale retained evidence; not alertable';
 
 export function markSignalStaleNonAlertable(signal = {}, reason, now = new Date().toISOString()) {
+  const prior = signal.raw || {};
+  const lastKnownAvailabilityStatus = prior.lastKnownAvailabilityStatus
+    || (signal.availabilityStatus && signal.availabilityStatus !== 'stale' ? signal.availabilityStatus : null);
+  const lastKnownAvailabilityLabel = prior.lastKnownAvailabilityLabel
+    || (signal.availabilityStatus && signal.availabilityStatus !== 'stale' ? signal.availabilityLabel || null : null);
+  const lastKnownSourceAvailabilityVerified = prior.lastKnownSourceAvailabilityVerified === true
+    || signal.sourceAvailabilityVerified === true
+    || prior.sourceAvailabilityVerified === true;
   return {
     ...signal,
     stale: true,
@@ -14,6 +22,9 @@ export function markSignalStaleNonAlertable(signal = {}, reason, now = new Date(
     sourceAvailabilityVerified: false,
     raw: {
       ...(signal.raw || {}),
+      lastKnownAvailabilityStatus,
+      lastKnownAvailabilityLabel,
+      lastKnownSourceAvailabilityVerified,
       sourceAvailabilityVerified: false,
       sourceRuntimeNonAlertable: true,
       staleFallback: true,
