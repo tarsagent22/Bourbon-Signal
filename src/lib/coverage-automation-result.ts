@@ -123,7 +123,7 @@ export function parseCoverageAutomationResult(value: unknown): CoverageAutomatio
 
   if (!Array.isArray(root.limitations) || root.limitations.length > 10) throw new Error("limitations must be a bounded array.");
   const limitations = root.limitations.map((entry, index) => text(entry, `limitations[${index}]`, 240));
-  const productionFingerprint = nullableText(root.productionFingerprint, "productionFingerprint", 240, /^[a-zA-Z0-9:|.,_/@+-]+$/);
+  const productionFingerprint = nullableText(root.productionFingerprint, "productionFingerprint", 240, /^[a-zA-Z0-9:|.,_/@+ -]+$/);
   const blockerCode = nullableText(root.blockerCode, "blockerCode", 80, /^[a-z0-9_-]+$/);
   const sourcesReviewed = integer(root.sourcesReviewed, "sourcesReviewed");
 
