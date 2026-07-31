@@ -1,5 +1,6 @@
 import json
 import os
+import sys
 from pathlib import Path
 
 
@@ -51,12 +52,27 @@ def resolve_repo(env: dict[str, str] | None = None) -> Path:
             raise RuntimeError("BOURBON_SIGNAL_REPO does not identify the Bourbon Signal repository.")
         return explicit
 
-    candidates: list[Path] = [Path.cwd()]
+    current = Path.cwd().expanduser().resolve()
+    if _is_repo(current):
+        return current
+    candidates: list[Path] = []
 
     jobs_path = hermes_home() / "cron" / "jobs.json"
     try:
         payload = json.loads(jobs_path.read_text(encoding="utf-8"))
         jobs = payload.get("jobs", payload) if isinstance(payload, dict) else payload
+        script_name = Path(sys.argv[0]).name
+        script_candidates = {}
+        for job in jobs if isinstance(jobs, list) else []:
+            if not isinstance(job, dict) or not job.get("workdir"):
+                continue
+            if Path(str(job.get("script") or "")).name != script_name:
+                continue
+            candidate = Path(job["workdir"]).expanduser().resolve()
+            if _is_repo(candidate):
+                script_candidates[str(candidate).casefold()] = candidate
+        if len(script_candidates) == 1:
+            return next(iter(script_candidates.values()))
         for job in jobs if isinstance(jobs, list) else []:
             if not isinstance(job, dict):
                 continue

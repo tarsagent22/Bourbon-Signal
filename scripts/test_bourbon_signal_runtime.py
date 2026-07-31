@@ -42,6 +42,17 @@ with tempfile.TemporaryDirectory() as temp:
 
 with tempfile.TemporaryDirectory() as temp:
     root = Path(temp)
+    current = make_repo(root / "current")
+    other = make_repo(root / "other")
+    local_app_data = root / "LocalAppData"
+    jobs_path = local_app_data / "hermes" / "cron" / "jobs.json"
+    jobs_path.parent.mkdir(parents=True)
+    jobs_path.write_text(json.dumps({"jobs": [{"name": "Bourbon Signal other", "workdir": str(other)}]}), encoding="utf-8")
+    with patch.dict(os.environ, {"LOCALAPPDATA": str(local_app_data)}, clear=True), patch.object(runtime.Path, "cwd", return_value=current):
+        assert runtime.resolve_repo(dict(os.environ)) == current.resolve()
+
+with tempfile.TemporaryDirectory() as temp:
+    root = Path(temp)
     local_app_data = root / "LocalAppData"
     jobs_path = local_app_data / "hermes" / "cron" / "jobs.json"
     jobs_path.parent.mkdir(parents=True)
@@ -55,6 +66,19 @@ with tempfile.TemporaryDirectory() as temp:
             raise AssertionError("ambiguous Bourbon Signal repositories must fail closed")
         except RuntimeError as error:
             assert "Multiple Bourbon Signal repositories" in str(error)
+
+with tempfile.TemporaryDirectory() as temp:
+    root = Path(temp)
+    local_app_data = root / "LocalAppData"
+    jobs_path = local_app_data / "hermes" / "cron" / "jobs.json"
+    jobs_path.parent.mkdir(parents=True)
+    selected = make_repo(root / "selected")
+    jobs_path.write_text(json.dumps({"jobs": [
+        {"script": "selected_job.py", "workdir": str(selected)},
+        {"script": "other_job.py", "workdir": str(make_repo(root / "other"))},
+    ]}), encoding="utf-8")
+    with patch.dict(os.environ, {"LOCALAPPDATA": str(local_app_data)}, clear=True), patch.object(runtime.Path, "cwd", return_value=root / "empty"), patch.object(runtime.sys, "argv", ["selected_job.py"]):
+        assert runtime.resolve_repo(dict(os.environ)) == selected.resolve()
 
 summary = runtime.failure_summary(
     "node:internal/modules/cjs/loader:123\nError: Cannot find module 'collector.mjs'\n    at loader\nNode.js v24.15.0",
