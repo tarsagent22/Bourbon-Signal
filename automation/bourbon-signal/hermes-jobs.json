@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "exportedAt": "2026-07-31T15:53:15.878831Z",
+  "exportedAt": "2026-07-31T16:03:02.342158Z",
   "source": "Hermes scheduler and config sanitized export",
   "timezone": "America/New_York",
   "jobs": [
@@ -17,7 +17,7 @@
       "model": "gpt-5.6-sol",
       "reasoning": "low",
       "safetyHash": null,
-      "profileSafetyHash": "10c76cc495c15b3b13c2a549586f5a35799e122185642687d5e7f93660a38df7"
+      "profileSafetyHash": "609b2fe75e9f2a52b09d8e8537786de3645f196c02b218a51efafa2a84f525b0"
     },
     {
       "jobId": "59eb8dd6ad07",
