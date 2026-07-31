@@ -1,6 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
-import { validateNcSourceLedgerContract } from './nc-source-ledger.mjs';
+import { validateNcSingleStoreCoverage, validateNcSourceLedgerContract } from './nc-source-ledger.mjs';
 
 const OUT = path.resolve('out');
 
@@ -53,7 +53,8 @@ async function main() {
   assert(ledgerContractErrors.length === 0, 'NC operational source ledger is incomplete', { errors: ledgerContractErrors, boardCount: nc.sourceLedger?.boardCount, rows: nc.sourceLedger?.boards?.length });
   assert((nc.sourceLedger.boards || []).every((board) => board.boardId && board.qualification && board.expectedCadence && board.health && board.nextAction), 'NC operational source ledger contains incomplete board rows');
   assert((nc.sourceLedger.boards || []).every((board) => board.canAlertAsInventory === false), 'Board-level source ledger must never claim inventory alertability');
-  assert((nc.sourceLedger.boards || []).filter((board) => board.qualification === 'single_store_board_shipment_intelligence').length >= 75, 'NC single-store shipment-intelligence ledger coverage below threshold');
+  const singleStoreCoverageErrors = validateNcSingleStoreCoverage(nc.sourceLedger);
+  assert(singleStoreCoverageErrors.length === 0, 'NC official single-store board coverage below threshold', { errors: singleStoreCoverageErrors });
   const ncShipmentSignals = nc.signalCounts?.nc_board_shipment_snapshot || 0;
   assert(ncShipmentSignals >= 400 || hasHealthyLowerVolumeShipmentRun(nc, ncShipmentSignals), 'NC board shipment signal count below source-volume-aware hard floor', { signalCounts: nc.signalCounts, stockShipped: nc.stockShipped, coverage: nc.coverage, roadblockCount: nc.roadblockCount });
   warn(ncShipmentSignals >= 400, 'official daily StockShipped extract is below the legacy 400-signal floor; treating as pass because source record volume, tracked-board coverage, and roadblocks are healthy', { signalCounts: nc.signalCounts, stockShipped: nc.stockShipped, coverage: nc.coverage, roadblockCount: nc.roadblockCount });

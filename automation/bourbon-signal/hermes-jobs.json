@@ -1,23 +1,23 @@
 {
   "schemaVersion": 2,
-  "exportedAt": "2026-07-18T14:53:33.625902Z",
+  "exportedAt": "2026-07-31T15:53:15.878831Z",
   "source": "Hermes scheduler and config sanitized export",
   "timezone": "America/New_York",
   "jobs": [
     {
       "jobId": "3244b5822d87",
       "name": "Bourbon Signal autonomous company operator",
-      "schedule": "45 2,14 * * *",
+      "schedule": "5 22 * * *",
       "deliver": "telegram:-5461081025",
       "noAgent": true,
       "script": "bourbon_signal_autonomous_operator.py",
-      "workdir": "C:\\c\\Users\\chand\\projects\\Bourbon-Signal-autonomous",
+      "workdir": "C:\\c\\Users\\chand\\projects\\Bourbon-Signal-operator-base",
       "active": true,
       "provider": "openai-codex",
       "model": "gpt-5.6-sol",
       "reasoning": "low",
       "safetyHash": null,
-      "profileSafetyHash": "4c7f0229d97e483004bee8a42923b4c3f25d22ac31ec19d62f20db88f1bbf6ec"
+      "profileSafetyHash": "10c76cc495c15b3b13c2a549586f5a35799e122185642687d5e7f93660a38df7"
     },
     {
       "jobId": "59eb8dd6ad07",
@@ -25,18 +25,19 @@
       "schedule": "30 5 * * *",
       "deliver": "origin",
       "noAgent": false,
-      "script": null,
+      "script": "bourbon_signal_active_coverage_requests.py",
       "workdir": "C:\\c\\Users\\chand\\projects\\Bourbon-Signal-autonomous",
       "active": true,
       "provider": "openai-codex",
       "model": "gpt-5.6-luna",
       "reasoning": "xhigh",
-      "safetyHash": "1aefddca406fb40f8c2d2bf55b0d6dbdf81cb6819e12e8bfa6608ec67aba39d2"
+      "safetyHash": "22584c1733363b996c8665fccffa33f0670922b8e5f1eb0230aada1b5784db3b",
+      "profileSafetyHash": null
     },
     {
       "jobId": "a7e40e29f603",
       "name": "Bourbon Signal silent demand and source scout",
-      "schedule": "0 2,14 * * *",
+      "schedule": "15 2 * * *",
       "deliver": "telegram:-5461081025",
       "noAgent": false,
       "script": null,
@@ -45,7 +46,8 @@
       "provider": "openai-codex",
       "model": "gpt-5.6-luna",
       "reasoning": "xhigh",
-      "safetyHash": "d8ee657a558123bbdce68f876a2825839cffa10e16e806b29a6502e995cd69ff"
+      "safetyHash": "d8ee657a558123bbdce68f876a2825839cffa10e16e806b29a6502e995cd69ff",
+      "profileSafetyHash": null
     },
     {
       "jobId": "bf9e05209184",
@@ -59,7 +61,8 @@
       "provider": null,
       "model": null,
       "reasoning": null,
-      "safetyHash": null
+      "safetyHash": null,
+      "profileSafetyHash": null
     },
     {
       "jobId": "00f56edff2e9",
@@ -73,12 +76,13 @@
       "provider": null,
       "model": null,
       "reasoning": null,
-      "safetyHash": null
+      "safetyHash": null,
+      "profileSafetyHash": null
     },
     {
       "jobId": "8143c08618e6",
       "name": "Bourbon Signal weekly strategy review",
-      "schedule": "30 3 * * 5",
+      "schedule": "0 6 * * 5",
       "deliver": "origin",
       "noAgent": false,
       "script": null,
@@ -87,12 +91,13 @@
       "provider": "openai-codex",
       "model": "gpt-5.6-luna",
       "reasoning": "xhigh",
-      "safetyHash": "be6a44cf03cbc80cf09f38682831fdeec4f80d83560b61a2e3fa65f71b5f5208"
+      "safetyHash": "be6a44cf03cbc80cf09f38682831fdeec4f80d83560b61a2e3fa65f71b5f5208",
+      "profileSafetyHash": null
     },
     {
       "jobId": "9e548bfe11d3",
       "name": "Bourbon Signal deterministic state source collector",
-      "schedule": "15 */3 * * *",
+      "schedule": "15 */6 * * *",
       "deliver": "telegram:-5461081025",
       "noAgent": true,
       "script": "bourbon_signal_source_expansion.py",
@@ -101,7 +106,8 @@
       "provider": null,
       "model": null,
       "reasoning": null,
-      "safetyHash": null
+      "safetyHash": null,
+      "profileSafetyHash": null
     },
     {
       "jobId": "0f844531ccdf",
@@ -115,12 +121,13 @@
       "provider": null,
       "model": null,
       "reasoning": null,
-      "safetyHash": null
+      "safetyHash": null,
+      "profileSafetyHash": null
     },
     {
       "jobId": "17c34f7e496e",
       "name": "Bourbon Signal hourly known-source probe",
-      "schedule": "40 * * * *",
+      "schedule": "40 */3 * * *",
       "deliver": "telegram:-5461081025",
       "noAgent": true,
       "script": "bourbon_signal_known_source_probe.py",
@@ -129,7 +136,8 @@
       "provider": null,
       "model": null,
       "reasoning": null,
-      "safetyHash": null
+      "safetyHash": null,
+      "profileSafetyHash": null
     },
     {
       "jobId": "290b9f17b468",
@@ -143,7 +151,8 @@
       "provider": null,
       "model": null,
       "reasoning": null,
-      "safetyHash": null
+      "safetyHash": null,
+      "profileSafetyHash": null
     },
     {
       "jobId": "3cdc1e546a0e",
@@ -157,7 +166,23 @@
       "provider": null,
       "model": null,
       "reasoning": null,
-      "safetyHash": null
+      "safetyHash": null,
+      "profileSafetyHash": null
+    },
+    {
+      "jobId": "0af9a869e52a",
+      "name": "Bourbon Signal coverage request completion lane",
+      "schedule": "every 5m",
+      "deliver": "local",
+      "noAgent": true,
+      "script": "bourbon_signal_coverage_request_agent.py",
+      "workdir": "C:\\c\\Users\\chand\\projects\\Bourbon-Signal-autonomous",
+      "active": true,
+      "provider": null,
+      "model": null,
+      "reasoning": null,
+      "safetyHash": null,
+      "profileSafetyHash": null
     }
   ]
 }

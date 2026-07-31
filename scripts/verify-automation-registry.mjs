@@ -36,7 +36,12 @@ export function verifyAutomationRegistry(registry, { workflowPaths = activeWorkf
   const hermesIds = new Set();
   const opsDeliveryTargets = new Set();
   const liveHermesJobs = new Map((Array.isArray(hermesJobs?.jobs) ? hermesJobs.jobs : []).map((job) => [job.jobId, job]));
-  const expectedHermesWorkdir = hermesJobs?.jobs?.[0]?.workdir || null;
+  const workdirCounts = new Map();
+  for (const job of liveHermesJobs.values()) {
+    const workdir = String(job?.workdir || '');
+    workdirCounts.set(workdir, (workdirCounts.get(workdir) || 0) + 1);
+  }
+  const expectedHermesWorkdir = [...workdirCounts.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] || null;
   for (const entry of registry.automations) {
     if (!isPlainObject(entry)) { fail(failures, 'Every registry entry must be an object.'); continue; }
     const prefix = `Registry entry ${String(entry.id || 'unknown')}`;
@@ -74,7 +79,13 @@ export function verifyAutomationRegistry(registry, { workflowPaths = activeWorkf
         if (liveJob.noAgent !== expectsNoAgent) fail(failures, `${prefix} executionClass/profile wrapper does not match live no_agent=${liveJob.noAgent}.`);
         if (expectsNoAgent && !liveJob.script) fail(failures, `${prefix} script-only or profile-wrapped job is missing a live scheduler script.`);
         if (profileWrapped && !/^[a-f0-9]{64}$/.test(String(liveJob.profileSafetyHash || ''))) fail(failures, `${prefix} profile-wrapped job must bind its wrapper, prompt, model, provider, and reasoning policy.`);
-        if (!expectedHermesWorkdir || liveJob.workdir !== expectedHermesWorkdir) fail(failures, `${prefix} live scheduler workdir drifted from the host repository root.`);
+        const dedicatedOperator = entry.id === 'hermes-daily-operator';
+        if (!expectedHermesWorkdir) fail(failures, `${prefix} is missing the host repository workdir.`);
+        else if (dedicatedOperator) {
+          if (liveJob.workdir === expectedHermesWorkdir || !/[\\/]Bourbon-Signal-operator-base$/i.test(String(liveJob.workdir || ''))) {
+            fail(failures, `${prefix} must use the isolated operator base checkout.`);
+          }
+        } else if (liveJob.workdir !== expectedHermesWorkdir) fail(failures, `${prefix} live scheduler workdir drifted from the host repository root.`);
         if (expectsNoAgent && entry.killSwitch !== `cron_pause:${entry.hermesJobId}`) fail(failures, `${prefix} script-only or profile-wrapped job must expose its live cron pause kill switch.`);
         if (entry.delivery === 'main_chat' && liveJob.deliver !== 'origin') fail(failures, `${prefix} must deliver to the main chat origin.`);
         if (entry.delivery === 'local' && liveJob.deliver !== 'local') fail(failures, `${prefix} must deliver locally.`);

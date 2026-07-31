@@ -69,10 +69,10 @@ assert.ok(Math.abs(cadence.expectedTotals.agenticRunsPerWeek - agentRunsPerWeek)
 assert.deepEqual(cadence.codingAgentPolicy, { profile: 'bourbonbot', provider: 'openai-codex', model: 'gpt-5.6-sol', reasoning: 'low', approvalCronMode: 'approve' });
 assert.deepEqual(cadence.analysisAgentPolicy, { provider: 'openai-codex', model: 'gpt-5.6-luna', reasoning: 'xhigh' });
 assert.equal(hermesSnapshot.timezone, 'America/New_York');
-assert.equal(hermesByName.get('Bourbon Signal hourly known-source probe')?.schedule, '40 * * * *');
-assert.equal(hermesByName.get('Bourbon Signal deterministic state source collector')?.schedule, '15 */3 * * *');
-assert.equal(hermesByName.get('Bourbon Signal silent demand and source scout')?.schedule, '0 2,14 * * *');
-assert.equal(hermesByName.get('Bourbon Signal autonomous company operator')?.schedule, '45 2,14 * * *');
+assert.equal(hermesByName.get('Bourbon Signal hourly known-source probe')?.schedule, '40 */3 * * *');
+assert.equal(hermesByName.get('Bourbon Signal deterministic state source collector')?.schedule, '15 */6 * * *');
+assert.equal(hermesByName.get('Bourbon Signal silent demand and source scout')?.schedule, '15 2 * * *');
+assert.equal(hermesByName.get('Bourbon Signal autonomous company operator')?.schedule, '5 22 * * *');
 assert.equal(hermesByName.get('Bourbon Signal silent Release Radar scout')?.schedule, '15 1 * * *');
 assert.ok(cronRunsPerDay(hermesByName.get('Bourbon Signal silent Release Radar scout')?.schedule) > 0);
 assert.ok(
@@ -84,7 +84,8 @@ assert.equal(hermesByName.get('Bourbon Signal daily company brief')?.schedule, '
 const codingOperator = hermesByName.get('Bourbon Signal autonomous company operator');
 assert.deepEqual([codingOperator.noAgent, codingOperator.script, codingOperator.provider, codingOperator.model, codingOperator.reasoning], [true, 'bourbon_signal_autonomous_operator.py', 'openai-codex', 'gpt-5.6-sol', 'low']);
 assert.match(codingOperator.profileSafetyHash || '', /^[a-f0-9]{64}$/);
-assert.ok(hermesSnapshot.jobs.every((job) => job.workdir === 'C:\\c\\Users\\chand\\projects\\Bourbon-Signal-autonomous'), 'Every scheduled Bourbon Signal job must use the isolated clone.');
+assert.equal(codingOperator.workdir, 'C:\\c\\Users\\chand\\projects\\Bourbon-Signal-operator-base');
+assert.ok(hermesSnapshot.jobs.filter((job) => job !== codingOperator).every((job) => job.workdir === 'C:\\c\\Users\\chand\\projects\\Bourbon-Signal-autonomous'), 'Non-operator jobs must use the authoritative automation checkout.');
 for (const job of hermesSnapshot.jobs.filter((row) => !row.noAgent)) {
   assert.deepEqual([job.provider, job.model, job.reasoning], ['openai-codex', 'gpt-5.6-luna', 'xhigh']);
   assert.match(job.safetyHash || '', /^[a-f0-9]{64}$/, `${job.name} must bind prompt, skills, and toolsets`);

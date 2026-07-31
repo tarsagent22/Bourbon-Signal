@@ -12,7 +12,9 @@ LIVE_JOBS = HERMES_HOME / "cron" / "jobs.json"
 CONFIG = HERMES_HOME / "config.yaml"
 AUTONOMOUS_PROFILE_CONFIG = HERMES_HOME / "profiles" / "bourbonbot" / "config.yaml"
 AUTONOMOUS_OPERATOR_SCRIPT = "bourbon_signal_autonomous_operator.py"
-REPO_WORKDIR = str(ROOT)
+REPO_WORKDIR = os.environ.get("BOURBON_SIGNAL_REGISTRY_WORKDIR") or str(ROOT)
+OPERATOR_WORKDIR = os.environ.get("BOURBON_SIGNAL_OPERATOR_WORKDIR") or str(ROOT.parent / "Bourbon-Signal-operator-base")
+MANAGED_WORKDIRS = {REPO_WORKDIR.casefold(), OPERATOR_WORKDIR.casefold()}
 
 
 def read_timezone(config_text: str, env: dict[str, str] | None = None) -> str:
@@ -46,17 +48,20 @@ def normalized_file_hash(file: Path) -> str:
     return hashlib.sha256(normalized.encode("utf-8")).hexdigest()
 
 
-def profile_wrapper_safety_hash(root: Path, config_text: str) -> str:
+def profile_wrapper_safety_hash(root: Path, config_text: str, script_root: Path | None = None) -> str:
     model, provider = profile_model(config_text)
-    files = [
-        root / "automation" / "bourbon-signal" / "hermes-scripts" / AUTONOMOUS_OPERATOR_SCRIPT,
-        root / "automation" / "bourbon-signal" / "hermes-scripts" / "bourbon_signal_runtime.py",
-        root / "automation" / "bourbon-signal" / "autonomous-operator-prompt.md",
-        root / "automation" / "bourbon-signal" / "operator-outcomes.mjs",
-        root / "automation" / "bourbon-signal" / "operator-run.schema.json",
-        root / "scripts" / "operator-objective.mjs",
-        root / "scripts" / "lib" / "operator-policy.mjs",
-    ]
+    wrappers = script_root or (root / "automation" / "bourbon-signal" / "hermes-scripts")
+    files = {
+        "hermes-scripts/bourbon_signal_autonomous_operator.py": wrappers / AUTONOMOUS_OPERATOR_SCRIPT,
+        "hermes-scripts/bourbon_signal_runtime.py": wrappers / "bourbon_signal_runtime.py",
+        "automation/bourbon-signal/autonomous-operator-prompt.md": root / "automation" / "bourbon-signal" / "autonomous-operator-prompt.md",
+        "automation/bourbon-signal/operator-outcomes.mjs": root / "automation" / "bourbon-signal" / "operator-outcomes.mjs",
+        "automation/bourbon-signal/operator-run.schema.json": root / "automation" / "bourbon-signal" / "operator-run.schema.json",
+        "scripts/operator-findings.mjs": root / "scripts" / "operator-findings.mjs",
+        "scripts/operator-objective.mjs": root / "scripts" / "operator-objective.mjs",
+        "scripts/run-with-release-lane-lock.py": root / "scripts" / "run-with-release-lane-lock.py",
+        "scripts/lib/operator-policy.mjs": root / "scripts" / "lib" / "operator-policy.mjs",
+    }
     cron_mode_match = re.search(r"(?m)^\s{2}cron_mode:\s*([^#\n]+)", config_text)
     cron_mode = cron_mode_match.group(1).strip().strip("'\"") if cron_mode_match else None
     payload = {
@@ -65,7 +70,7 @@ def profile_wrapper_safety_hash(root: Path, config_text: str) -> str:
         "provider": provider,
         "reasoning": reasoning_for(model, config_text),
         "cronMode": cron_mode,
-        "files": {str(file.relative_to(root)).replace("\\", "/"): normalized_file_hash(file) for file in files},
+        "files": {label: normalized_file_hash(file) for label, file in files.items()},
     }
     return hashlib.sha256(json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")).hexdigest()
 
@@ -98,7 +103,7 @@ def main() -> None:
     autonomous_model, autonomous_provider = profile_model(autonomous_config_text)
     jobs = []
     for job in live.get("jobs", []):
-        if job.get("workdir") != REPO_WORKDIR or not str(job.get("name", "")).startswith("Bourbon Signal"):
+        if str(job.get("workdir") or "").casefold() not in MANAGED_WORKDIRS:
             continue
         no_agent = bool(job.get("no_agent"))
         profile_wrapped = job.get("script") == AUTONOMOUS_OPERATOR_SCRIPT

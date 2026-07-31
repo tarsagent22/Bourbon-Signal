@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
-import { buildNcSourceLedger, enrichNcSingleStoreShipmentSignals, validateNcSourceLedgerContract } from '../src/nc-source-ledger.mjs';
+import { buildNcSourceLedger, enrichNcSingleStoreShipmentSignals, validateNcSingleStoreCoverage, validateNcSourceLedgerContract } from '../src/nc-source-ledger.mjs';
 import { locationValue, precisionRank } from '../src/location-precision.mjs';
 
 const locations = [
@@ -102,7 +102,7 @@ test('checked NC artifacts produce a complete 173-board ledger with qualified on
   assert.equal(ledger.boardCount, 173);
   assert.equal(ledger.boards.every((board) => board.boardId && board.boardName && board.qualification && board.expectedCadence && board.health && board.nextAction), true);
   assert.equal(ledger.boards.filter((board) => board.qualification === 'direct_inventory_monitored').length >= 3, true);
-  assert.equal(ledger.boards.filter((board) => board.qualification === 'single_store_board_shipment_intelligence').length >= 75, true);
+  assert.equal(ledger.boards.filter((board) => board.officialStoreCount === 1).length >= 75, true);
   assert.equal(ledger.boards.every((board) => board.canAlertAsInventory === false), true);
 });
 
@@ -132,4 +132,14 @@ test('NC source ledger production contract requires exactly 173 unique official 
   assert.deepEqual(validateNcSourceLedgerContract({ boardCount: 173, boards }), []);
   assert.match(validateNcSourceLedgerContract({ boardCount: 172, boards: boards.slice(0, 172) }).join(' '), /exactly 173/i);
   assert.match(validateNcSourceLedgerContract({ boardCount: 173, boards: [...boards.slice(0, 172), { boardId: 'board-172' }] }).join(' '), /unique board ids/i);
+});
+
+test('single-store coverage is stable when a quiet shipment day changes current qualifications', () => {
+  const boards = Array.from({ length: 100 }, (_, index) => ({
+    boardId: `single-${index + 1}`,
+    officialStoreCount: 1,
+    qualification: index < 74 ? 'single_store_board_shipment_intelligence' : 'official_board_website_watch',
+  }));
+  assert.deepEqual(validateNcSingleStoreCoverage({ boards }, 75), []);
+  assert.match(validateNcSingleStoreCoverage({ boards: boards.slice(0, 74) }, 75).join(' '), /official single-store board coverage below threshold/i);
 });
