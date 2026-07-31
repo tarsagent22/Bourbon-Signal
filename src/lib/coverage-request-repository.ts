@@ -347,13 +347,25 @@ export class CoverageRequestRepository {
       ), request_updated AS (
         UPDATE coverage_requests AS request
         SET
-          status = CASE WHEN $4 = 'improved' THEN 'improved' ELSE 'on_radar' END,
-          improved_at = CASE WHEN $4 = 'improved' THEN $5::timestamptz ELSE request.improved_at END,
+          status = CASE
+            WHEN $4 = 'improved' AND COALESCE($3::jsonb->'requesterNotification'->>'ready', 'false') = 'true' THEN 'improved'
+            ELSE 'on_radar'
+          END,
+          improved_at = CASE
+            WHEN $4 = 'improved' AND COALESCE($3::jsonb->'requesterNotification'->>'ready', 'false') = 'true' THEN $5::timestamptz
+            ELSE request.improved_at
+          END,
           improved_coverage_fingerprint = CASE
-            WHEN $4 = 'improved' THEN NULLIF($3::jsonb->>'productionFingerprint', '')
+            WHEN $4 = 'improved' AND COALESCE($3::jsonb->'requesterNotification'->>'ready', 'false') = 'true'
+              THEN NULLIF($3::jsonb->>'productionFingerprint', '')
             ELSE request.improved_coverage_fingerprint
           END,
-          review_notes = LEFT(COALESCE($3::jsonb->>'headline', 'Coverage automation completed.'), 1000),
+          review_notes = LEFT(
+            COALESCE($3::jsonb->>'headline', 'Coverage automation completed.')
+            || ' Requester notification: '
+            || COALESCE($3::jsonb->'requesterNotification'->>'reasonCode', 'not_ready'),
+            1000
+          ),
           updated_at = $5::timestamptz
         FROM completed
         WHERE request.id = completed.coverage_request_id
