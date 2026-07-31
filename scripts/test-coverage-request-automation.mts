@@ -22,7 +22,7 @@ const job = {
   areaKey: "pensacola",
   storeId: null,
   canonicalTargetKey: "city:FL:pensacola",
-  baselineCoverageFingerprint: "coverage-v1|FL|known|state,city|10|8|0|4|2|0|0|0|0",
+  baselineCoverageFingerprint: "coverage-v1|FL|active|Statewide,Area,City,Exact store|44|44|4|43|43|0|0|44|43|0",
   status: "claimed",
   taskId: null,
 };
@@ -44,7 +44,7 @@ const result = {
   schemaVersion: "bourbon-signal/coverage-expansion-result@1",
   outcome: "improved",
   headline: "Pensacola exact-store coverage is live.",
-  productionFingerprint: "coverage-v1|FL|live|city|12|10|0|6|4|0|0|0|0",
+  productionFingerprint: "coverage-v1|FL|active|Statewide,Area,City,Exact store|52|52|6|51|51|0|0|52|51|0",
   pullRequest: {
     number: 999,
     url: "https://github.com/tarsagent22/Bourbon-Signal/pull/999",

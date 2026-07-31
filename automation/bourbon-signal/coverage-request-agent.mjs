@@ -48,7 +48,7 @@ export function normalizeTerminalResult(value) {
   if (root.schemaVersion !== RESULT_SCHEMA) throw new Error('result schemaVersion is invalid.');
   if (!['improved', 'engine_improved', 'blocked'].includes(root.outcome)) throw new Error('result outcome is invalid.');
   const headline = cleanText(root.headline, 'headline', 240);
-  const productionFingerprint = root.productionFingerprint === null ? null : cleanText(root.productionFingerprint, 'productionFingerprint', 240, /^[a-zA-Z0-9:|.,_/@+-]+$/);
+  const productionFingerprint = root.productionFingerprint === null ? null : cleanText(root.productionFingerprint, 'productionFingerprint', 240, /^[a-zA-Z0-9:|.,_/@+ -]+$/);
   const pullRequest = root.pullRequest === null ? null : strictObject(root.pullRequest, 'pullRequest', ['number', 'url', 'mergeCommit']);
   if (pullRequest) {
     boundedInteger(pullRequest.number, 'pullRequest.number');
@@ -106,7 +106,7 @@ export function normalizeJob(value, { includeResult = false } = {}) {
     areaKey: job.areaKey === null ? null : cleanText(job.areaKey, 'areaKey', 80, /^[a-z0-9:-]+$/),
     storeId: job.storeId === null ? null : cleanText(job.storeId, 'storeId', 160, /^[a-z0-9:-]+$/),
     canonicalTargetKey: cleanText(job.canonicalTargetKey, 'canonicalTargetKey', 180, /^[a-zA-Z0-9:-]+$/),
-    baselineCoverageFingerprint: cleanText(job.baselineCoverageFingerprint, 'baselineCoverageFingerprint', 240, /^[a-zA-Z0-9:|.,_/@+-]+$/),
+    baselineCoverageFingerprint: cleanText(job.baselineCoverageFingerprint, 'baselineCoverageFingerprint', 240, /^[a-zA-Z0-9:|.,_/@+ -]+$/),
     status: cleanText(job.status, 'status', 32, /^[a-z_]+$/),
     taskId: job.taskId === null ? null : cleanText(job.taskId, 'taskId', 82, /^t_[a-zA-Z0-9]+$/),
   };
