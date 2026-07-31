@@ -1,10 +1,16 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
-
+import path from 'node:path';
+import { hasSouthCarolinaPositiveInventoryEvidence } from './south-carolina-retailer-policy.mjs';
 async function readJson(file, fallback = null) {
   try { return JSON.parse(await readFile(file, 'utf8')); } catch { return fallback; }
 }
 
-function norm(value) { return String(value || '').trim().toLowerCase().replace(/\s+/g, ' '); }
+function norm(value) {
+  const normalized = String(value || '').trim().toLowerCase().replace(/\s+/g, ' ');
+  if (normalized === 'mt pleasant') return 'mount pleasant';
+  if (normalized === 'hilton head island') return 'hilton head';
+  return normalized;
+}
 function title(value) { return String(value || '').trim().replace(/\w\S*/g, (part) => part[0].toUpperCase() + part.slice(1).toLowerCase()); }
 function clamp(value, min = 0, max = 1) { return Math.max(min, Math.min(max, Number(value || 0))); }
 function unique(values) { return [...new Set(values.filter(Boolean))]; }
@@ -27,6 +33,7 @@ const locationsExport = await readJson('out/site/locations.json', { locations: [
 const operationalExport = await readJson('out/current-snapshot.json', { signals: [] });
 
 const inventoryTypes = new Set(['cityhive_store_inventory_result', 'retailer_store_inventory_result', 'store_inventory_result']);
+
 const sourceSignals = (state.signals || []).filter((row) => !row.state || row.state === 'SC');
 const operationalSignals = (operationalExport.signals || []).filter((row) => row.state === 'SC');
 const exportedDrops = (dropsExport.drops || []).filter((row) => row.state === 'SC');
@@ -42,10 +49,11 @@ for (const row of [...sourceSignals, ...operationalSignals, ...exportedDrops]) {
   byKey.set(key, row);
 }
 const inventoryRows = [...byKey.values()];
-const alertableInventoryRows = inventoryRows.filter((row) => row.canAlertAsInventory && Number(row.quantity || 0) > 0 && row.locationPrecision === 'store_level' && row.storeId && row.storeAddress && /,\s*SC\s+\d{5}/i.test(String(row.storeAddress)));
+const alertableInventoryRows = inventoryRows.filter((row) => row.canAlertAsInventory && hasSouthCarolinaPositiveInventoryEvidence(row) && row.locationPrecision === 'store_level' && row.storeId && row.storeAddress && /,\s*SC\s+\d{5}/i.test(String(row.storeAddress)));
 const freshInventoryRows = alertableInventoryRows.filter((row) => {
   const observed = asTime(row.observedAt || row.lastConfirmedAt || row.firstSeenAt);
-  return observed && Date.now() - observed <= 36 * 60 * 60 * 1000;
+  const ageMs = Date.now() - observed;
+  return observed && ageMs >= -5 * 60_000 && ageMs <= 36 * 60 * 60 * 1000;
 });
 const sourceLabels = unique(alertableInventoryRows.map((row) => row.sourceLabel || row.source)).sort();
 const storeKeys = unique(alertableInventoryRows.map((row) => `${row.storeName || row.locationName || row.storeId}|${row.storeAddress || ''}`));
@@ -62,7 +70,7 @@ for (const row of alertableInventoryRows) {
 
 const marketBreakdown = MARKET_WEIGHTS.map((market) => {
   const cityHits = market.cities.map((city) => ({ city, count: inventoryByCity.get(city) || 0 })).filter((hit) => hit.count > 0);
-  const primaryHit = cityHits.some((hit) => hit.city === market.cities[0] || (market.id === 'charleston-lowcountry' && hit.city === 'north charleston') || (market.id === 'charlotte-adjacent-york-lancaster' && ['indian land', 'rock hill', 'fort mill'].includes(hit.city)));
+  const primaryHit = cityHits.some((hit) => hit.city === market.cities[0] || (market.id === 'charleston-lowcountry' && ['north charleston', 'mount pleasant'].includes(hit.city)) || (market.id === 'charlotte-adjacent-york-lancaster' && ['indian land', 'rock hill', 'fort mill'].includes(hit.city)));
   const cityFraction = cityHits.length / market.cities.length;
   const signalCount = cityHits.reduce((sum, hit) => sum + hit.count, 0);
   const depth = clamp(signalCount / market.depthTarget);

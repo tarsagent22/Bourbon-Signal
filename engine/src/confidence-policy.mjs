@@ -10,7 +10,8 @@ import { isNevadaRetailerInventory, isNevadaRetailerSignalIdentity } from './nev
 import { isMetroRetailerInventory, isMetroRetailerSignalIdentity } from './metro-retailer-policy.mjs';
 import { isMississippiRetailerInventory, isMississippiRetailerSignalIdentity } from './mississippi-retailer-policy.mjs';
 import { isTennesseeRetailerInventory, isTennesseeRetailerSignalIdentity } from './tennessee-retailer-policy.mjs';
-import { isSouthCarolinaDunesInventory } from './south-carolina-dunes-policy.mjs';
+import { isSouthCarolinaDunesInventory, isSouthCarolinaDunesSignal } from './south-carolina-dunes-policy.mjs';
+import { isSouthCarolinaSouthernSpiritsInventory, isSouthCarolinaSouthernSpiritsSignal } from './south-carolina-retailer-policy.mjs';
 import { lifecycleAllowsInventoryAlert, lifecycleAllowsWatchAlert } from './state-lifecycle.mjs';
 
 export const STATE_CONFIDENCE_POLICY = {
@@ -265,10 +266,12 @@ export function confidenceForSignal(signal, { nowMs = Date.now() } = {}) {
   const metroRetailerEvent = ['NY', 'CO'].includes(signal.state) && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(eventType);
   const metroInventoryAllowed = !metroRetailerEvent || isMetroRetailerInventory(signal);
   const metroWatchAllowed = !metroRetailerEvent || (isMetroRetailerSignalIdentity(signal) && isMetroRetailerInventory(signal));
-  const southCarolinaDunesEvent = signal.state === 'SC'
-    && /^(cityhive_store_inventory|retailer_store_inventory)/i.test(eventType)
-    && (signal.sourceRuntimeId === 'retailer:sc:dunes:6178' || /Dunes Liquor/i.test(String(signal.sourceLabel || '')));
+  const southCarolinaDunesEvent = /^(cityhive_store_inventory|retailer_store_inventory)/i.test(eventType)
+    && isSouthCarolinaDunesSignal(signal);
   const southCarolinaDunesAllowed = !southCarolinaDunesEvent || isSouthCarolinaDunesInventory(signal, nowMs);
+  const southCarolinaSouthernSpiritsEvent = /^(cityhive_store_inventory|retailer_store_inventory)/i.test(eventType)
+    && isSouthCarolinaSouthernSpiritsSignal(signal);
+  const southCarolinaSouthernSpiritsAllowed = !southCarolinaSouthernSpiritsEvent || isSouthCarolinaSouthernSpiritsInventory(signal, nowMs);
   const mississippiRetailerEvent = signal.state === 'MS' && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(eventType);
   const mississippiInventoryAllowed = !mississippiRetailerEvent
     || (isMississippiRetailerInventory(signal) && lifecycleAllowsInventoryAlert('MS'));
@@ -289,7 +292,7 @@ export function confidenceForSignal(signal, { nowMs = Date.now() } = {}) {
     policyMode: policy.maxAlertMode,
     inventorySemantics: policy.inventorySemantics,
     locationValue: locationValue(signal),
-    canAlertAsInventory: !runtimeAlertBlocked && texasInventoryAllowed && indianaInventoryAllowed && georgiaInventoryAllowed && tennesseeInventoryAllowed && californiaInventoryAllowed && nevadaInventoryAllowed && metroInventoryAllowed && southCarolinaDunesAllowed && mississippiInventoryAllowed && !isDistilleryLane && hasPositiveInventory && !inventoryBlockedBySemantics && rank >= 6 && confidence >= 0.72,
-    canAlertAsWatch: !runtimeAlertBlocked && indianaWatchAllowed && georgiaWatchAllowed && tennesseeWatchAllowed && californiaWatchAllowed && nevadaWatchAllowed && metroWatchAllowed && southCarolinaDunesAllowed && mississippiWatchAllowed && !isSampleOnly && !watchBlockedBySemantics && confidence >= 0.5 && policy.maxAlertMode !== 'policy_only'
+    canAlertAsInventory: !runtimeAlertBlocked && texasInventoryAllowed && indianaInventoryAllowed && georgiaInventoryAllowed && tennesseeInventoryAllowed && californiaInventoryAllowed && nevadaInventoryAllowed && metroInventoryAllowed && southCarolinaDunesAllowed && southCarolinaSouthernSpiritsAllowed && mississippiInventoryAllowed && !isDistilleryLane && hasPositiveInventory && !inventoryBlockedBySemantics && rank >= 6 && confidence >= 0.72,
+    canAlertAsWatch: !runtimeAlertBlocked && indianaWatchAllowed && georgiaWatchAllowed && tennesseeWatchAllowed && californiaWatchAllowed && nevadaWatchAllowed && metroWatchAllowed && southCarolinaDunesAllowed && southCarolinaSouthernSpiritsAllowed && mississippiWatchAllowed && !isSampleOnly && !watchBlockedBySemantics && confidence >= 0.5 && policy.maxAlertMode !== 'policy_only'
   };
 }

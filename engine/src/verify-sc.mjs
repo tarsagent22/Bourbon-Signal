@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises';
-
+import path from 'node:path';
+import { hasSouthCarolinaPositiveInventoryEvidence } from './south-carolina-retailer-policy.mjs';
 async function readJson(file, fallback = null) {
   try { return JSON.parse(await readFile(file, 'utf8')); } catch { return fallback; }
 }
@@ -22,6 +23,7 @@ if (!summaryState) throw new Error('SC is missing from summary active-state outp
 if (summaryState.status !== 'useful') throw new Error(`SC summary status is ${summaryState.status}, expected useful`);
 
 const inventoryTypes = new Set(['cityhive_store_inventory_result', 'retailer_store_inventory_result', 'store_inventory_result']);
+
 const stateSignals = (state.signals || []).filter((row) => !row.state || row.state === 'SC');
 const operationalSignals = (operational.signals || []).filter((row) => row.state === 'SC');
 const exportedDrops = (dropsExport.drops || []).filter((row) => row.state === 'SC');
@@ -29,10 +31,11 @@ const exportedStores = (storesExport.stores || []).filter((row) => row.state ===
 const exportedLocations = (locationsExport.locations || []).filter((row) => row.state === 'SC');
 
 const allInventory = [...stateSignals, ...operationalSignals, ...exportedDrops].filter((row) => inventoryTypes.has(row.eventType || row.type || ''));
-const alertable = allInventory.filter((row) => row.canAlertAsInventory && Number(row.quantity || 0) > 0 && row.locationPrecision === 'store_level');
+const alertable = allInventory.filter((row) => row.canAlertAsInventory && hasSouthCarolinaPositiveInventoryEvidence(row) && row.locationPrecision === 'store_level');
 const fresh = alertable.filter((row) => {
   const observed = asTime(row.observedAt || row.lastConfirmedAt || row.firstSeenAt);
-  return observed && Date.now() - observed <= 36 * 60 * 60 * 1000;
+  const ageMs = Date.now() - observed;
+  return observed && ageMs >= -5 * 60_000 && ageMs <= 36 * 60 * 60 * 1000;
 });
 const sources = unique(alertable.map((row) => row.sourceLabel || row.source)).sort();
 const stores = unique(alertable.map((row) => `${row.storeName || row.locationName || row.storeId}|${row.storeAddress || ''}`));
@@ -40,7 +43,7 @@ const cities = unique(alertable.map((row) => norm(row.city))).sort();
 const myrtleInventory = stateSignals.filter((row) =>
   inventoryTypes.has(row.eventType || row.type || '')
   && row.canAlertAsInventory
-  && Number(row.quantity || 0) > 0
+  && hasSouthCarolinaPositiveInventoryEvidence(row)
   && row.locationPrecision === 'store_level'
   && norm(row.city) === 'myrtle beach'
 );
@@ -48,7 +51,8 @@ const myrtleStores = unique(myrtleInventory.map((row) => `${row.storeName || row
 const myrtleSources = unique(myrtleInventory.map((row) => row.sourceLabel || row.source));
 const myrtleFresh = myrtleInventory.filter((row) => {
   const observed = asTime(row.observedAt || row.lastConfirmedAt || row.firstSeenAt);
-  return observed && Date.now() - observed <= 36 * 60 * 60 * 1000;
+  const ageMs = Date.now() - observed;
+  return observed && ageMs >= -5 * 60_000 && ageMs <= 36 * 60 * 60 * 1000;
 });
 const exportedMyrtleDrops = exportedDrops.filter((row) => norm(row.city || row.store_city) === 'myrtle beach');
 const exportedMyrtleStores = unique(exportedMyrtleDrops.map((row) => `${row.storeName || row.store_name || row.locationName || row.storeId}|${row.storeAddress || row.store_address || ''}`));
