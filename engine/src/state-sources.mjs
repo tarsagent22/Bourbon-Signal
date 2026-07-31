@@ -410,8 +410,8 @@ const BASE_STATE_SOURCES = [
     apiCandidates: []
   },
   {
-    id: 'NY', label: 'New York City first-party retailer inventory', tier: 'B', strategy: 'retailer_store_inventory', cadence: '30-60m',
-    value: 'Exact-premises New York City retailer inventory from Cellar 53 CityHive plus Broadway Spirits and Flatiron Wines Shopify pickup/orderability. Coverage is intentionally limited to the named Manhattan premises; binary availability is never projected as an exact count.',
+    id: 'NY', label: 'New York City + Nassau County first-party retailer inventory', tier: 'B', strategy: 'retailer_store_inventory', cadence: '30-60m',
+    value: 'Exact-premises New York City and Nassau County retailer inventory from configured CityHive and Shopify storefronts. Coverage is intentionally limited to the named premises; binary availability is never projected as an exact count.',
     rareSignalTarget: true,
     sources: NEW_YORK_RETAILER_SOURCES.map(metroSourceRecord),
     apiCandidates: []

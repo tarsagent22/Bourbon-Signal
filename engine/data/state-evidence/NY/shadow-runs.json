@@ -4,49 +4,37 @@
   "mode": "shadow",
   "runs": [
     {
-      "runId": "local-shadow-ny-1",
+      "runId": "nassau-shadow-2026-07-31-1",
       "status": "success",
-      "generatedAt": "2026-07-24T03:12:13.840404Z",
-      "artifactPath": "out/shadow/NY/local-evidence/report-1.json",
-      "artifactHash": "12646ea166f6573700701e23f25947c48e68b008ed49ad94f98add45cd6ce3a3",
-      "signalCount": 11,
-      "sourceChains": [
-        "broadway-spirits",
-        "cellar-53",
-        "flatiron-wines"
-      ],
+      "generatedAt": "2026-07-31T18:26:30.900Z",
+      "artifactPath": "out/shadow/NY/nassau-evidence/report-1.json",
+      "artifactHash": "907c7189f1eed82bf120244297d691ce295ddc2fd9463a5bafe8cea39eef2c9b",
+      "signalCount": 13,
+      "sourceChains": ["cherrywood-wine", "westbury-liquors", "wine-gallery"],
       "roadblockCount": 0,
       "alertsDisabled": true,
       "productionSnapshotTouched": false
     },
     {
-      "runId": "local-shadow-ny-2",
+      "runId": "nassau-shadow-2026-07-31-2",
       "status": "success",
-      "generatedAt": "2026-07-24T03:12:19.181839Z",
-      "artifactPath": "out/shadow/NY/local-evidence/report-2.json",
-      "artifactHash": "2df45c6f590b51b1053bdddc0cde11ca0e0f5947a2b6eae8f339c34ab4b460b3",
-      "signalCount": 11,
-      "sourceChains": [
-        "broadway-spirits",
-        "cellar-53",
-        "flatiron-wines"
-      ],
+      "generatedAt": "2026-07-31T18:26:36.986Z",
+      "artifactPath": "out/shadow/NY/nassau-evidence/report-2.json",
+      "artifactHash": "4cbf84689cdc50f4b53bd75d94a8b78d88ddce5f0fffc4ace7109c0b9278eb71",
+      "signalCount": 13,
+      "sourceChains": ["cherrywood-wine", "westbury-liquors", "wine-gallery"],
       "roadblockCount": 0,
       "alertsDisabled": true,
       "productionSnapshotTouched": false
     },
     {
-      "runId": "local-shadow-ny-3",
+      "runId": "nassau-shadow-2026-07-31-3",
       "status": "success",
-      "generatedAt": "2026-07-24T03:12:23.568513Z",
-      "artifactPath": "out/shadow/NY/local-evidence/report-3.json",
-      "artifactHash": "28fcc26fd47be8e4f44f1c117a594a8e425ffb52500034ae432c6227a584d1cd",
-      "signalCount": 11,
-      "sourceChains": [
-        "broadway-spirits",
-        "cellar-53",
-        "flatiron-wines"
-      ],
+      "generatedAt": "2026-07-31T18:26:43.199Z",
+      "artifactPath": "out/shadow/NY/nassau-evidence/report-3.json",
+      "artifactHash": "ff1da6721e5425e1a72172884dad0ff3985e4884c7effa643297b8ccc4ead5b9",
+      "signalCount": 13,
+      "sourceChains": ["cherrywood-wine", "westbury-liquors", "wine-gallery"],
       "roadblockCount": 0,
       "alertsDisabled": true,
       "productionSnapshotTouched": false

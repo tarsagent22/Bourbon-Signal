@@ -37,10 +37,12 @@ for (const [state, label, areas] of [["NY", "New York", ["New York City", "Nassa
 
 assert.deepEqual(lifecycle.states.NY.areaOptions, ["New York City", "Nassau County"]);
 assert.ok(lifecycle.states.NY.customerSummary.includes("Nassau County"));
+assert.ok(engineSources.includes("New York City + Nassau County first-party retailer inventory"), "NY operational source metadata must name both supported areas");
+assert.ok(engineSources.includes("Exact-premises New York City and Nassau County retailer inventory"), "NY operational source value must not retain the old Manhattan-only scope");
 assert.ok(metroRetailerSources.includes("wine-gallery") && metroRetailerSources.includes("cherrywood-wine") && metroRetailerSources.includes("westbury-liquors"));
 assert.ok(dropFeed.includes("SUPPORTED_NEW_YORK_AREAS"), "Drop Feed defaults must use the complete New York area contract");
 
-assert.ok(lifecycleSource.includes('New York City') && lifecycleSource.includes('Denver Metro'), "generated lifecycle source must expose both metro scopes");
+assert.ok(lifecycleSource.includes('New York City') && lifecycleSource.includes('Nassau County') && lifecycleSource.includes('Denver Metro'), "generated lifecycle source must expose every metro scope");
 assert.ok(existsSync(path.join(root, "src/lib/new-york-area.ts")));
 assert.ok(existsSync(path.join(root, "src/lib/colorado-area.ts")));
 
@@ -63,4 +65,4 @@ assert.ok(dropFeed.includes('newYorkAreaMatchesFields') && dropFeed.includes('co
 assert.ok(preferencesApi.includes('normalizeNewYorkAreas') && preferencesApi.includes('normalizeColoradoAreas'));
 assert.ok(dashboard.includes('SUPPORTED_NEW_YORK_AREAS') && dashboard.includes('SUPPORTED_COLORADO_AREAS'));
 
-console.log("New York City and Denver/Colorado website wiring contract passed.");
+console.log("New York City, Nassau County, and Denver/Colorado website wiring contract passed.");

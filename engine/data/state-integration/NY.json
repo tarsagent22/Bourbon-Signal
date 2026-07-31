@@ -71,13 +71,15 @@
       "status": "success",
       "runs": 3,
       "artifact": "engine/data/state-evidence/NY/shadow-runs.json",
-      "reason": "Three alert-disabled live collector runs passed with all reviewed New York City and Nassau County source identities and zero roadblocks."
+      "reason": "Three alert-disabled forced-live Nassau County runs each returned 13 fresh exact-store rows across Wine Gallery, Cherrywood Wine and Spirits, and Westbury Liquors with zero roadblocks and no production write.",
+      "verifiedAt": "2026-07-31T18:27:03.000Z"
     },
     "canary": {
       "status": "success",
       "runs": 2,
       "artifact": "engine/data/state-evidence/NY/canary-runs.json",
-      "reason": "Two coherent alert-disabled Nassau County canary snapshots passed state integration verification."
+      "reason": "Two coherent alert-disabled Nassau canary exports preserved exact store/source identity and passed the state integration verifier.",
+      "verifiedAt": "2026-07-31T18:27:03.000Z"
     },
     "production": {
       "status": "not_deployed",
@@ -88,19 +90,18 @@
     "immutablePromotionEvidence": {
       "schemaVersion": 1,
       "state": "NY",
-      "generatedAt": "2026-07-31T18:00:45.533Z",
+      "generatedAt": "2026-07-31T18:27:03.000Z",
       "sourceConfigHash": "6ba73fd702ea71835154fac8f02dc7963017aadacce12a874a002ef4f9435f17",
       "previewUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/30653400968",
       "shadowRuns": [
         {
-          "runId": "nassau-shadow-ny-1",
+          "runId": "nassau-shadow-2026-07-31-1",
           "status": "success",
-          "generatedAt": "2026-07-31T17:47:43.832Z",
-          "artifactPath": ".operator/engine-expansions/NY/shadow/report-1.json",
-          "artifactHash": "ffd746f26a80e5fffdd629736b1a00aa3e45677e59c96b28af5ef2f4dca28d30",
-          "signalCount": 14,
+          "generatedAt": "2026-07-31T18:26:30.900Z",
+          "artifactPath": "out/shadow/NY/nassau-evidence/report-1.json",
+          "artifactHash": "907c7189f1eed82bf120244297d691ce295ddc2fd9463a5bafe8cea39eef2c9b",
+          "signalCount": 13,
           "sourceChains": [
-            "cellar-53",
             "cherrywood-wine",
             "westbury-liquors",
             "wine-gallery"
@@ -110,14 +111,13 @@
           "productionSnapshotTouched": false
         },
         {
-          "runId": "nassau-shadow-ny-2",
+          "runId": "nassau-shadow-2026-07-31-2",
           "status": "success",
-          "generatedAt": "2026-07-31T17:47:52.260Z",
-          "artifactPath": ".operator/engine-expansions/NY/shadow/report-2.json",
-          "artifactHash": "3b1e2f8c172d0f62c541b8b8d572873140e446b18924ff968034057f306aad5e",
-          "signalCount": 14,
+          "generatedAt": "2026-07-31T18:26:36.986Z",
+          "artifactPath": "out/shadow/NY/nassau-evidence/report-2.json",
+          "artifactHash": "4cbf84689cdc50f4b53bd75d94a8b78d88ddce5f0fffc4ace7109c0b9278eb71",
+          "signalCount": 13,
           "sourceChains": [
-            "cellar-53",
             "cherrywood-wine",
             "westbury-liquors",
             "wine-gallery"
@@ -127,14 +127,13 @@
           "productionSnapshotTouched": false
         },
         {
-          "runId": "nassau-shadow-ny-3",
+          "runId": "nassau-shadow-2026-07-31-3",
           "status": "success",
-          "generatedAt": "2026-07-31T17:48:00.129Z",
-          "artifactPath": ".operator/engine-expansions/NY/shadow/report-3.json",
-          "artifactHash": "1799a0f92f449f4b4cbf7c3bb0c8c4025ce10a3335459e37fb7bf6ee3cf93898",
-          "signalCount": 14,
+          "generatedAt": "2026-07-31T18:26:43.199Z",
+          "artifactPath": "out/shadow/NY/nassau-evidence/report-3.json",
+          "artifactHash": "ff1da6721e5425e1a72172884dad0ff3985e4884c7effa643297b8ccc4ead5b9",
+          "signalCount": 13,
           "sourceChains": [
-            "cellar-53",
             "cherrywood-wine",
             "westbury-liquors",
             "wine-gallery"
@@ -146,15 +145,15 @@
       ],
       "canaryRuns": [
         {
-          "runId": "nassau-canary-ny-1",
+          "runId": "nassau-canary-2026-07-31-1",
           "status": "success",
-          "generatedAt": "2026-07-31T17:41:52.505Z",
+          "generatedAt": "2026-07-31T18:27:03.000Z",
           "artifactHash": "c85eb3f39f5bcb4d101e415b29a2d3a001557f1cea6f1dac5cc8882ac1f78b42"
         },
         {
-          "runId": "nassau-canary-ny-2",
+          "runId": "nassau-canary-2026-07-31-2",
           "status": "success",
-          "generatedAt": "2026-07-31T17:41:52.505Z",
+          "generatedAt": "2026-07-31T18:27:03.000Z",
           "artifactHash": "c85eb3f39f5bcb4d101e415b29a2d3a001557f1cea6f1dac5cc8882ac1f78b42"
         }
       ],
