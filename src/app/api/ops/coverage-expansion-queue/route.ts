@@ -1,7 +1,7 @@
 import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
 import { NextResponse } from "next/server";
 import { authorizeOpsBearer } from "@/lib/ops-auth";
-import { parseCoverageAutomationResult } from "@/lib/coverage-automation-result";
+import { COVERAGE_AUTOMATION_RESULT_SCHEMA, parseCoverageAutomationCompletionResult } from "@/lib/coverage-automation-result";
 import { getCoverageRequestRepository, type CoverageAutomationJob } from "@/lib/coverage-request-repository";
 
 export const dynamic = "force-dynamic";
@@ -56,7 +56,27 @@ function opaque(value: unknown, label: string, pattern = OPAQUE) {
   return value;
 }
 
-function publicJob(job: CoverageAutomationJob, includeResult = false) {
+function legacyTerminalResult(result: unknown) {
+  if (result === null || result === undefined) return result;
+  const parsed = parseCoverageAutomationCompletionResult(result);
+  if (parsed.schemaVersion === "bourbon-signal/coverage-expansion-result@1") return parsed;
+  return {
+    schemaVersion: "bourbon-signal/coverage-expansion-result@1" as const,
+    outcome: parsed.outcome,
+    headline: parsed.headline,
+    productionFingerprint: parsed.productionFingerprint,
+    pullRequest: parsed.pullRequest,
+    ci: parsed.ci,
+    refresh: parsed.refresh,
+    metrics: parsed.metrics,
+    canonicalVerification: parsed.canonicalVerification,
+    sourcesReviewed: parsed.exploration.sourceCandidates.length,
+    blockerCode: parsed.blockerCode,
+    limitations: parsed.limitations,
+  };
+}
+
+function publicJob(job: CoverageAutomationJob, includeResult = false, wantsCurrentResult = false) {
   return {
     jobKey: job.jobKey,
     coverageRequestId: job.coverageRequestId,
@@ -69,13 +89,17 @@ function publicJob(job: CoverageAutomationJob, includeResult = false) {
     baselineCoverageFingerprint: job.baselineCoverageFingerprint,
     status: job.status,
     taskId: job.taskId,
-    ...(includeResult ? { terminalResult: job.terminalResult, deliveryUncertain: job.deliveryUncertain === true } : {}),
+    ...(includeResult ? {
+      terminalResult: wantsCurrentResult ? job.terminalResult : legacyTerminalResult(job.terminalResult),
+      deliveryUncertain: job.deliveryUncertain === true,
+    } : {}),
   };
 }
 
 export async function POST(request: Request) {
   try {
     const input = await body(request);
+    const wantsCurrentResult = input.resultSchemaVersion === COVERAGE_AUTOMATION_RESULT_SCHEMA;
     const action = opaque(input.action, "action", /^[a-z_]{3,40}$/);
     const repository = getCoverageRequestRepository();
 
@@ -103,7 +127,7 @@ export async function POST(request: Request) {
       const job = await repository.claimAutomationNotification(notificationToken);
       return response({
         contractVersion: CONTRACT_VERSION,
-        job: job ? publicJob(job, true) : null,
+        job: job ? publicJob(job, true, wantsCurrentResult) : null,
         notificationToken: job && !job.deliveryUncertain ? notificationToken : null,
       }, job?.deliveryUncertain ? 409 : 200);
     }
@@ -141,7 +165,7 @@ export async function POST(request: Request) {
 
     if (action === "fail") {
       const failureCode = opaque(input.failureCode, "failureCode", /^automation_(?:terminal_contract_failure|task_missing)$/);
-      const terminalResult = parseCoverageAutomationResult({
+      const terminalResult = parseCoverageAutomationCompletionResult({
         schemaVersion: "bourbon-signal/coverage-expansion-result@1",
         outcome: "blocked",
         headline: failureCode === "automation_task_missing"
@@ -163,14 +187,14 @@ export async function POST(request: Request) {
       });
       const job = await repository.completeAutomationTask(jobKey, taskId, terminalResult);
       if (!job) return response({ error: "Coverage automation failure is stale or not bound to this task." }, 409);
-      return response({ contractVersion: CONTRACT_VERSION, job: publicJob(job, true) });
+      return response({ contractVersion: CONTRACT_VERSION, job: publicJob(job, true, wantsCurrentResult) });
     }
 
     if (action === "complete") {
-      const terminalResult = parseCoverageAutomationResult(input.terminalResult);
+      const terminalResult = parseCoverageAutomationCompletionResult(input.terminalResult);
       const job = await repository.completeAutomationTask(jobKey, taskId, terminalResult);
       if (!job) return response({ error: "Coverage automation result is stale or not bound to this task." }, 409);
-      return response({ contractVersion: CONTRACT_VERSION, job: publicJob(job, true) });
+      return response({ contractVersion: CONTRACT_VERSION, job: publicJob(job, true, wantsCurrentResult) });
     }
 
     return response({ error: "Unsupported coverage automation action." }, 400);
