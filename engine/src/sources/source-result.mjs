@@ -1,11 +1,12 @@
 import { serializeSourceError } from './source-error.mjs';
+import { markSignalStaleNonAlertable } from '../stale-signal-policy.mjs';
 
 export const SOURCE_RESULT_CONTRACT_VERSION = 'bourbon-signal-source-result-v1';
 
 function nonAlertableSignal(signal, reason, stale) {
+  if (stale) return markSignalStaleNonAlertable(signal, reason);
   return {
     ...signal,
-    ...(stale ? { stale: true, sourceStale: true, staleReason: reason } : {}),
     canAlertAsInventory: false,
     canAlertAsWatch: false,
     alertable: false,
@@ -13,7 +14,6 @@ function nonAlertableSignal(signal, reason, stale) {
       ...(signal?.raw || {}),
       sourceRuntimeNonAlertable: true,
       sourceRuntimeReason: reason,
-      ...(stale ? { staleFallback: true } : {}),
     },
   };
 }

@@ -108,6 +108,7 @@ test('scheduled refresh persists collector history, the actual scheduler state, 
   const runner = await readFile(new URL('../src/run.mjs', import.meta.url), 'utf8');
   assert.match(runner, /degraded_previous_report_retry/);
   assert.match(runner, /previousReport\.stale === true/);
+  assert.match(runner, /guarded\.report\?\.stale === true[\s\S]*markStaleReport\(guarded\.report/);
   const refreshRunner = await readFile(new URL('../src/refresh-site.mjs', import.meta.url), 'utf8');
   assert.ok(
     refreshRunner.indexOf("runNode('src/export-site-contract.mjs')") < refreshRunner.indexOf("runNode('src/source-usefulness-report.mjs')"),
@@ -116,8 +117,12 @@ test('scheduled refresh persists collector history, the actual scheduler state, 
   assert.match(refreshRunner, /try\s*\{[\s\S]*runNode\('src\/source-usefulness-report\.mjs'\)[\s\S]*catch[\s\S]*warnings\.push/, 'source usefulness diagnostics must remain non-gating');
   const fallback = await readFile(new URL('../src/state-report-fallback.mjs', import.meta.url), 'utf8');
   assert.match(fallback, /lastGoodAt:\s*report\.lastGoodAt\s*\|\|\s*report\.finishedAt/);
-  assert.match(fallback, /canAlertAsInventory:\s*false/);
-  assert.match(fallback, /canAlertAsWatch:\s*false/);
+  assert.match(fallback, /markSignalStaleNonAlertable/);
+  const stalePolicy = await readFile(new URL('../src/stale-signal-policy.mjs', import.meta.url), 'utf8');
+  assert.match(stalePolicy, /canAlertAsInventory:\s*false/);
+  assert.match(stalePolicy, /canAlertAsWatch:\s*false/);
+  assert.match(stalePolicy, /sourceAvailabilityVerified:\s*false/);
+  assert.match(stalePolicy, /staleNonAlertable:\s*true/);
   const verifier = await readFile(new URL('../src/verify-site-contract.mjs', import.meta.url), 'utf8');
   assert.doesNotMatch(verifier, /should not include TX|contains TX customer-facing|contains TX in states array/);
   const blobReader = await readFile(new URL('../../src/lib/vercel-blob-snapshot-storage.ts', import.meta.url), 'utf8');

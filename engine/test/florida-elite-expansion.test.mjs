@@ -26,6 +26,7 @@ import {
 import { oldestSourceEvidenceCohort } from '../src/collectors/cityhive-hardening.mjs';
 import { isFloridaRetailerInventory } from '../src/florida-retailer-policy.mjs';
 import { confidenceForSignal } from '../src/confidence-policy.mjs';
+import { markStaleReport } from '../src/state-report-fallback.mjs';
 import { buildFloridaStandaloneStoreLocationSignals, legacyPrecisionRuntimeOptions, precisionExistingSignalsForState } from '../src/collectors/precision-probes.mjs';
 
 test('Florida standalone retailer directory identities survive transient inventory failures', () => {
@@ -268,6 +269,15 @@ test('Florida verifier rejects evidence older than 90 minutes and alertable stal
     const retainedNotDue = { ...makeFixture(freshAt), status: 'useful_retained_not_due' };
     assert.equal(runVerifier(retainedNotDue, ['--allow-safe-stale-fallback']).status, 0, 'scheduled mode accepts fresh non-stale retained-not-due evidence');
     assert.notEqual(runVerifier(retainedNotDue).status, 0, 'targeted mode still requires a fresh live collection');
+    const guardedFallback = markStaleReport(
+      { ...makeFixture(freshAt), status: 'stale_useful_quality_fallback', stale: true },
+      { id: 'FL', label: 'Florida' },
+      'quality guard preserved the previous report',
+      new Date().toISOString(),
+    );
+    assert.equal(guardedFallback.status, 'stale_useful_quality_fallback');
+    assert.equal(runVerifier(guardedFallback, ['--allow-safe-stale-fallback']).status, 0, 'scheduled mode accepts only fully normalized guarded stale fallback evidence');
+    assert.notEqual(runVerifier(guardedFallback).status, 0, 'targeted mode still rejects guarded stale fallback evidence');
     const tooOldAt = new Date(Date.now() - 91 * 60_000).toISOString();
     assert.notEqual(runVerifier(makeFixture(tooOldAt)).status, 0, 'environment overrides cannot expand the 90-minute ceiling');
     const alertableFallback = makeFixture(freshAt, (signals) => {

@@ -402,8 +402,11 @@ async function collectStateResilientUnlocked(config) {
       },
     });
     if (!guarded.accepted) console.warn(`${config.id} quality guard preserved previous report: ${guarded.reason}`);
-    await atomicWriteJson(statePath, guarded.report);
-    return guarded.report;
+    const report = guarded.report?.stale === true
+      ? markStaleReport(guarded.report, config, guarded.report.staleReason || guarded.reason || 'state quality fallback')
+      : guarded.report;
+    await atomicWriteJson(statePath, report);
+    return report;
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error);
     const report = previous ? markStaleReport(previous, config, reason) : failedReport(config, reason);
