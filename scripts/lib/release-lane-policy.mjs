@@ -52,6 +52,22 @@ export function validateSingleReleaseLane(pullRequests, { objective = null } = {
   return { ok: true, pullRequest };
 }
 
+export function validateReleaseAdmission(pullRequests, { expectedMainSha, currentMainSha }) {
+  const open = Array.isArray(pullRequests) ? pullRequests : [];
+  if (open.length > 0) {
+    return { ok: false, reason: `Release admission requires an empty lane; found ${open.length} open pull request${open.length === 1 ? '' : 's'}.` };
+  }
+  const expected = String(expectedMainSha || '');
+  const current = String(currentMainSha || '');
+  if (!SHA_RE.test(expected) || !SHA_RE.test(current)) {
+    return { ok: false, reason: 'Release admission requires two 40-character commit SHAs.' };
+  }
+  if (expected.toLowerCase() !== current.toLowerCase()) {
+    return { ok: false, reason: `Release admission was prepared against stale main ${expected}; current main is ${current}.` };
+  }
+  return { ok: true };
+}
+
 export function classifyBranchRelationship({ branchIsAncestorOfMain, mainIsAncestorOfBranch }) {
   if (branchIsAncestorOfMain && !mainIsAncestorOfBranch) return { action: 'fast_forward' };
   if (!branchIsAncestorOfMain && !mainIsAncestorOfBranch) return { action: 'stop_diverged' };
