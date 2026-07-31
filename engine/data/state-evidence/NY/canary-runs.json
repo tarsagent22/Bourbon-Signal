@@ -3,16 +3,16 @@
   "state": "NY",
   "runs": [
     {
-      "runId": "local-canary-v2-ny-1",
+      "runId": "nassau-canary-2026-07-31-1",
       "status": "success",
-      "generatedAt": "2026-07-24T04:23:18.583232Z",
-      "artifactHash": "e90e53439c5d1302791a68b28b0648dc14405cdc1d8435191cf0af1919609c19"
+      "generatedAt": "2026-07-31T18:26:30.900Z",
+      "artifactHash": "64bcec88315f060397fcc20d53fae49390505d0d83588b068a1790a71d937b46"
     },
     {
-      "runId": "local-canary-v2-ny-2",
+      "runId": "nassau-canary-2026-07-31-2",
       "status": "success",
-      "generatedAt": "2026-07-24T04:23:19.106600Z",
-      "artifactHash": "273a03c7b9a7504a93364cf885fc14f677b9b5534668d7dd8c747ba1d259bbd1"
+      "generatedAt": "2026-07-31T18:26:36.986Z",
+      "artifactHash": "94615f2b4e641d93bfd89e8ffc90db9f854d4c6b7b79b248e50aafb717ce7765"
     }
   ]
 }

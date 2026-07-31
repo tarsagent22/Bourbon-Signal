@@ -13,7 +13,7 @@ import { getBourbonBible } from "@/lib/bourbonBible";
 import { isVerifiedRetailerDrop, retailerFeedSnapshot, retailerSubmissionToFeedCard, type RetailerFeedTier } from "@/lib/retailer-signal-feed";
 import { californiaAreaMatchesFields, parseCaliforniaAreaQuery } from "@/lib/california-area";
 import { nevadaAreaMatchesFields, parseNevadaAreaQuery } from "@/lib/nevada-area";
-import { newYorkAreaMatchesFields, parseNewYorkAreaQuery } from "@/lib/new-york-area";
+import { newYorkAreaMatchesFields, parseNewYorkAreaQuery, SUPPORTED_NEW_YORK_AREAS } from "@/lib/new-york-area";
 import { coloradoAreaMatchesFields, parseColoradoAreaQuery } from "@/lib/colorado-area";
 import {
   demandMetroAreaMatchesFields,
@@ -386,7 +386,7 @@ export async function GET(request: Request) {
           drop.board_name,
           drop.display_location,
           (drop as Record<string, unknown>).locationName,
-        ], nyAreas.areas.length ? nyAreas.areas : ["New York City"]));
+        ], nyAreas.areas.length ? nyAreas.areas : SUPPORTED_NEW_YORK_AREAS));
       }
       if (state === "CO") {
         return items.filter((drop) => coloradoAreaMatchesFields([

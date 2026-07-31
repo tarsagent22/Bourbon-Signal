@@ -568,15 +568,15 @@
       "coverageTier": "sparse_live_store_inventory",
       "refinementLevel": "region_city_store",
       "areaOptions": [
-        "Northwest / DeSoto–Memphis fringe",
+        "Northwest / DeSoto\u2013Memphis fringe",
         "North Central / Oxford",
-        "Northeast / Tupelo–Golden Triangle",
-        "Delta / Greenville–Clarksdale–Greenwood",
-        "Central / Jackson–Madison–Rankin",
+        "Northeast / Tupelo\u2013Golden Triangle",
+        "Delta / Greenville\u2013Clarksdale\u2013Greenwood",
+        "Central / Jackson\u2013Madison\u2013Rankin",
         "East Central / Meridian",
-        "Pine Belt / Hattiesburg–Laurel",
-        "Gulf Coast / Gulfport–Biloxi–Pascagoula",
-        "Southwest / Natchez–Brookhaven–McComb–Vicksburg"
+        "Pine Belt / Hattiesburg\u2013Laurel",
+        "Gulf Coast / Gulfport\u2013Biloxi\u2013Pascagoula",
+        "Southwest / Natchez\u2013Brookhaven\u2013McComb\u2013Vicksburg"
       ],
       "promotionStage": "active",
       "shadowEligible": false,
@@ -589,7 +589,7 @@
         "live": 4,
         "alertGrade": 0
       },
-      "customerSummary": "Sparse exact-store Mississippi retailer inventory across DeSoto County, the Jackson–Madison area, and an identity-bound Tupelo merchant cohort, plus conservative non-inventory release-watch evidence. Exact-store binary orderability is visible on-site only when freshly observed; marketplace controls do not claim exact bottle counts, pickup, delivery, or guaranteed fulfillment, release-watch evidence stays nonalertable, outbound alerts remain disabled, and customers should verify before driving.",
+      "customerSummary": "Sparse exact-store Mississippi retailer inventory across DeSoto County, the Jackson\u2013Madison area, and an identity-bound Tupelo merchant cohort, plus conservative non-inventory release-watch evidence. Exact-store binary orderability is visible on-site only when freshly observed; marketplace controls do not claim exact bottle counts, pickup, delivery, or guaranteed fulfillment, release-watch evidence stays nonalertable, outbound alerts remain disabled, and customers should verify before driving.",
       "promotionEvidence": {
         "shadowRuns": 3,
         "canaryRuns": 2,
@@ -657,22 +657,23 @@
       "refinementLevel": "area",
       "areaOptions": [
         "Las Vegas Valley",
-        "Reno–Sparks"
+        "Reno\u2013Sparks"
       ],
-      "customerSummary": "First-party retailer store availability and pickup orderability across Las Vegas Valley and Reno–Sparks. Binary availability is not an exact shelf count; verify before driving. Costco remains a separate warehouse watch lane."
+      "customerSummary": "First-party retailer store availability and pickup orderability across Las Vegas Valley and Reno\u2013Sparks. Binary availability is not an exact shelf count; verify before driving. Costco remains a separate warehouse watch lane."
     },
     "NY": {
       "customerLabel": "New York",
-      "sourceLabel": "New York City first-party retailer inventory",
-      "customerAreaLabel": "New York City",
+      "sourceLabel": "New York City and Nassau County first-party retailer inventory",
+      "customerAreaLabel": "New York City and Nassau County",
       "areaOptions": [
-        "New York City"
+        "New York City",
+        "Nassau County"
       ],
       "publicStatus": "active",
       "lifecycle": "retailer_store_inventory",
       "coverageTier": "live_store_inventory",
       "refinementLevel": "city",
-      "customerSummary": "Verified first-party retailer store inventory in New York City, limited to New York, Manhattan, Brooklyn, Queens, Bronx, and Staten Island location signals. This metro-scoped coverage does not imply statewide New York availability; verify before driving.",
+      "customerSummary": "Verified first-party retailer store inventory in New York City and at reviewed Nassau County premises in Garden City, Wantagh, and Westbury. This area-scoped coverage does not imply statewide New York availability; verify before driving.",
       "promotionStage": "active",
       "shadowEligible": true,
       "promotionEvidence": {
@@ -681,59 +682,59 @@
         "verifiedAt": "2026-07-24T04:26:31.660Z",
         "shadowArtifact": "engine/data/state-evidence/NY/shadow-runs.json",
         "canaryArtifact": "engine/data/state-evidence/NY/canary-runs.json",
-        "canaryPreviewUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/30067754269",
+        "canaryPreviewUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/30657094429",
         "verticalSliceManifest": "engine/data/state-integration/NY.json",
         "fixtureContract": "engine/data/state-fixtures/NY.json",
         "immutableEvidence": {
           "schemaVersion": 1,
           "state": "NY",
-          "generatedAt": "2026-07-24T04:50:06.701Z",
-          "sourceConfigHash": "ef15a51a0ba26e8e810945d0d0661107b130473abfb023aa08891a98c6e91287",
-          "previewUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/30067754269",
+          "generatedAt": "2026-07-31T18:56:07.028Z",
+          "sourceConfigHash": "6ba73fd702ea71835154fac8f02dc7963017aadacce12a874a002ef4f9435f17",
+          "previewUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/30657094429",
           "shadowRuns": [
             {
-              "runId": "local-shadow-ny-1",
+              "runId": "nassau-shadow-2026-07-31-1",
               "status": "success",
-              "generatedAt": "2026-07-24T03:12:13.840404Z",
-              "artifactPath": "out/shadow/NY/local-evidence/report-1.json",
-              "artifactHash": "12646ea166f6573700701e23f25947c48e68b008ed49ad94f98add45cd6ce3a3",
-              "signalCount": 11,
+              "generatedAt": "2026-07-31T18:26:30.900Z",
+              "artifactPath": "out/shadow/NY/nassau-evidence/report-1.json",
+              "artifactHash": "907c7189f1eed82bf120244297d691ce295ddc2fd9463a5bafe8cea39eef2c9b",
+              "signalCount": 13,
               "sourceChains": [
-                "broadway-spirits",
-                "cellar-53",
-                "flatiron-wines"
+                "cherrywood-wine",
+                "westbury-liquors",
+                "wine-gallery"
               ],
               "roadblockCount": 0,
               "alertsDisabled": true,
               "productionSnapshotTouched": false
             },
             {
-              "runId": "local-shadow-ny-2",
+              "runId": "nassau-shadow-2026-07-31-2",
               "status": "success",
-              "generatedAt": "2026-07-24T03:12:19.181839Z",
-              "artifactPath": "out/shadow/NY/local-evidence/report-2.json",
-              "artifactHash": "2df45c6f590b51b1053bdddc0cde11ca0e0f5947a2b6eae8f339c34ab4b460b3",
-              "signalCount": 11,
+              "generatedAt": "2026-07-31T18:26:36.986Z",
+              "artifactPath": "out/shadow/NY/nassau-evidence/report-2.json",
+              "artifactHash": "4cbf84689cdc50f4b53bd75d94a8b78d88ddce5f0fffc4ace7109c0b9278eb71",
+              "signalCount": 13,
               "sourceChains": [
-                "broadway-spirits",
-                "cellar-53",
-                "flatiron-wines"
+                "cherrywood-wine",
+                "westbury-liquors",
+                "wine-gallery"
               ],
               "roadblockCount": 0,
               "alertsDisabled": true,
               "productionSnapshotTouched": false
             },
             {
-              "runId": "local-shadow-ny-3",
+              "runId": "nassau-shadow-2026-07-31-3",
               "status": "success",
-              "generatedAt": "2026-07-24T03:12:23.568513Z",
-              "artifactPath": "out/shadow/NY/local-evidence/report-3.json",
-              "artifactHash": "28fcc26fd47be8e4f44f1c117a594a8e425ffb52500034ae432c6227a584d1cd",
-              "signalCount": 11,
+              "generatedAt": "2026-07-31T18:26:43.199Z",
+              "artifactPath": "out/shadow/NY/nassau-evidence/report-3.json",
+              "artifactHash": "ff1da6721e5425e1a72172884dad0ff3985e4884c7effa643297b8ccc4ead5b9",
+              "signalCount": 13,
               "sourceChains": [
-                "broadway-spirits",
-                "cellar-53",
-                "flatiron-wines"
+                "cherrywood-wine",
+                "westbury-liquors",
+                "wine-gallery"
               ],
               "roadblockCount": 0,
               "alertsDisabled": true,
@@ -742,16 +743,16 @@
           ],
           "canaryRuns": [
             {
-              "runId": "local-canary-v2-ny-1",
+              "runId": "nassau-canary-2026-07-31-1",
               "status": "success",
-              "generatedAt": "2026-07-24T04:23:18.583232Z",
-              "artifactHash": "e90e53439c5d1302791a68b28b0648dc14405cdc1d8435191cf0af1919609c19"
+              "generatedAt": "2026-07-31T18:26:30.900Z",
+              "artifactHash": "64bcec88315f060397fcc20d53fae49390505d0d83588b068a1790a71d937b46"
             },
             {
-              "runId": "local-canary-v2-ny-2",
+              "runId": "nassau-canary-2026-07-31-2",
               "status": "success",
-              "generatedAt": "2026-07-24T04:23:19.106600Z",
-              "artifactHash": "273a03c7b9a7504a93364cf885fc14f677b9b5534668d7dd8c747ba1d259bbd1"
+              "generatedAt": "2026-07-31T18:26:36.986Z",
+              "artifactHash": "94615f2b4e641d93bfd89e8ffc90db9f854d4c6b7b79b248e50aafb717ce7765"
             }
           ],
           "provenance": {
@@ -759,15 +760,15 @@
             "repository": "tarsagent22/Bourbon-Signal",
             "workflowFile": ".github/workflows/state-promotion-provenance.yml",
             "workflowName": "Verify state promotion provenance",
-            "workflowRunId": "30067754269",
+            "workflowRunId": "30657094429",
             "workflowRunAttempt": "1",
-            "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/30067754269",
-            "commitSha": "8ff436d7e6066bd5b9ee86085c17c9e57d947619",
-            "artifactId": "8586850796",
-            "artifactName": "state-promotion-provenance-NY-30067754269",
-            "artifactDigest": "35103018b362c11faebdff7d5fa3fd0298b46c14a6f5add7ea3c257190c02a15",
-            "bundleDigest": "c4b4912ea7ef94c22e84de146ed91cfe4ad3c1795c82dda85cba6a82160e5b25",
-            "generatedAt": "2026-07-24T04:49:17.264Z"
+            "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/30657094429",
+            "commitSha": "04af5e08f06d60159e38a2dd0bd435230d9669a7",
+            "artifactId": "8803668444",
+            "artifactName": "state-promotion-provenance-NY-30657094429",
+            "artifactDigest": "4eeb4da8552ae4a62c8b34f3835995a9a5cf7643e3c1b838ddec53864af624c3",
+            "bundleDigest": "c3542a5edf44d6a66a1b32aae8f9643429821058041665783e8bfb743ea79ede",
+            "generatedAt": "2026-07-31T18:56:07.028Z"
           }
         }
       }

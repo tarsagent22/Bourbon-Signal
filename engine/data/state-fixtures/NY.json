@@ -117,7 +117,10 @@
         "officialHost": true,
         "allowlistedHosts": [
           "cellar53wine.com",
+          "cherrywoodwine.com",
           "nyc.flatiron-wines.com",
+          "westburyliquors.com",
+          "winegalleryonline.com",
           "www.broadwayspirits.com"
         ]
       }

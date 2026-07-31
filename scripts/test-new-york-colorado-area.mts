@@ -12,10 +12,11 @@ import {
   SUPPORTED_COLORADO_AREAS,
 } from "../src/lib/colorado-area.ts";
 
-assert.deepEqual(SUPPORTED_NEW_YORK_AREAS, ["New York City"]);
-assert.deepEqual(normalizeNewYorkAreas(["NYC", "new york city", "Albany"]), ["New York City"]);
+assert.deepEqual(SUPPORTED_NEW_YORK_AREAS, ["New York City", "Nassau County"]);
+assert.deepEqual(normalizeNewYorkAreas(["NYC", "new york city", "nassau", "Albany"]), ["New York City", "Nassau County"]);
 assert.deepEqual(parseNewYorkAreaQuery(null), { requested: false, valid: true, areas: [] });
 assert.deepEqual(parseNewYorkAreaQuery("New York City"), { requested: true, valid: true, areas: ["New York City"] });
+assert.deepEqual(parseNewYorkAreaQuery("Nassau County"), { requested: true, valid: true, areas: ["Nassau County"] });
 assert.deepEqual(parseNewYorkAreaQuery("Albany"), { requested: true, valid: false, areas: [] });
 for (const field of [
   "New York City",
@@ -33,6 +34,19 @@ for (const field of ["New York State", "Albany, New York", "Manhattan, KS", "Lon
   assert.equal(newYorkAreaMatchesFields([field], ["New York City"]), false, `${field} must not expand New York City coverage`);
 }
 assert.equal(newYorkAreaMatchesFields(["Brooklyn"], []), true);
+
+for (const field of [
+  "Nassau County",
+  "270 Nassau Blvd, Garden City, NY 11530, USA",
+  "1152 Wantagh Ave, Wantagh, NY 11793, USA",
+  "1250 Old Country Rd, Westbury, NY 11590, USA",
+]) {
+  assert.equal(newYorkAreaMatchesFields([field], ["Nassau County"]), true, `${field} should match Nassau County`);
+  assert.equal(newYorkAreaMatchesFields([field], ["New York City"]), false, `${field} must not match New York City`);
+}
+for (const field of ["Long Island, NY", "Suffolk County", "Huntington, NY", "Nassau Street, New York, NY 10038"]) {
+  assert.equal(newYorkAreaMatchesFields([field], ["Nassau County"]), false, `${field} must not expand Nassau County coverage`);
+}
 
 assert.deepEqual(SUPPORTED_COLORADO_AREAS, ["Denver Metro"]);
 assert.deepEqual(normalizeColoradoAreas(["Denver", "denver metro", "Colorado Springs"]), ["Denver Metro"]);

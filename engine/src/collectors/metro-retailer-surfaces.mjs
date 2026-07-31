@@ -84,6 +84,36 @@ export const NEW_YORK_RETAILER_SOURCES = Object.freeze([
     area: 'New York City',
     fulfillmentPolicyUrl: 'https://nyc.flatiron-wines.com/pages/contact-us',
   }),
+  cityHiveSource({
+    id: 'wine-gallery',
+    chainName: 'Wine Gallery',
+    baseUrl: 'https://winegalleryonline.com',
+    stateCode: 'NY',
+    area: 'Nassau County',
+    stores: [
+      store('wine-gallery:61876e5342a87e4f872451ed', 'Wine Gallery', '61876e5342a87e4f872451ed', '270 Nassau Blvd, Garden City, NY 11530, USA', 'Garden City', 'NY', '11530'),
+    ],
+  }),
+  cityHiveSource({
+    id: 'cherrywood-wine',
+    chainName: 'Cherrywood Wine and Spirits',
+    baseUrl: 'https://cherrywoodwine.com',
+    stateCode: 'NY',
+    area: 'Nassau County',
+    stores: [
+      store('cherrywood-wine:60c76215dce6b4192e7804a5', 'Cherrywood Wine and Spirits Inc', '60c76215dce6b4192e7804a5', '1152 Wantagh Ave, Wantagh, NY 11793, USA', 'Wantagh', 'NY', '11793'),
+    ],
+  }),
+  cityHiveSource({
+    id: 'westbury-liquors',
+    chainName: 'Westbury Liquors',
+    baseUrl: 'https://westburyliquors.com',
+    stateCode: 'NY',
+    area: 'Nassau County',
+    stores: [
+      store('westbury-liquors:5ea0871ad98f77272c3fd8f3', 'Westbury Liquors', '5ea0871ad98f77272c3fd8f3', '1250 Old Country Rd, Westbury, NY 11590, USA', 'Westbury', 'NY', '11590'),
+    ],
+  }),
 ]);
 
 export const COLORADO_RETAILER_SOURCES = Object.freeze([

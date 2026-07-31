@@ -29,7 +29,7 @@ import { buildDropFeedAreaRequest, coveredAreaLabelsMatch, formatNcAbcAreaMenuLa
 import { ncAbcBoardPreferencesMatch } from "@/lib/nc-abc-boards";
 import { californiaAreaMatchesFields } from "@/lib/california-area";
 import { nevadaAreaMatchesFields } from "@/lib/nevada-area";
-import { newYorkAreaMatchesFields } from "@/lib/new-york-area";
+import { newYorkAreaMatchesFields, SUPPORTED_NEW_YORK_AREAS } from "@/lib/new-york-area";
 import { coloradoAreaMatchesFields } from "@/lib/colorado-area";
 import { getScheduledReleaseSignalCopy } from "@/lib/scheduled-release-signals";
 import {
@@ -1493,9 +1493,17 @@ export default function DropFeed() {
         ? areaPrefs.states[0]
         : null)
     : null);
+  const implicitSavedAreaFilter = !urlStateFilter
+    && !hasSelectedStates
+    && isSignedIn
+    && feedStateParam === "NY"
+    && areaPrefs.nyAreas.length === 1
+    ? areaPrefs.nyAreas[0]
+    : null;
   const activeAreaRequest = useMemo(
-    () => canUseDropFeedFilters ? buildDropFeedAreaRequest(feedStateParam, countyFilter) : null,
-    [canUseDropFeedFilters, countyFilter, feedStateParam],
+    () => (canUseDropFeedFilters ? buildDropFeedAreaRequest(feedStateParam, countyFilter) : null)
+      || buildDropFeedAreaRequest(feedStateParam, implicitSavedAreaFilter),
+    [canUseDropFeedFilters, countyFilter, feedStateParam, implicitSavedAreaFilter],
   );
   const activeAreaParam = activeAreaRequest?.value || "";
   const activeAreaQueryKey = activeAreaRequest?.key || "store";
@@ -1611,7 +1619,7 @@ export default function DropFeed() {
   const matchesActiveFeedFilters = (drop: GroupedDrop) => {
     // State filtering via URL signal links or the feed state selector.
     if (feedStateParam && drop.state && drop.state !== feedStateParam) return false;
-    if (drop.state === "NY" && !newYorkAreaMatchesFields(areaLabelsForDrop(drop), ["New York City"])) return false;
+    if (drop.state === "NY" && !newYorkAreaMatchesFields(areaLabelsForDrop(drop), SUPPORTED_NEW_YORK_AREAS)) return false;
     if (drop.state === "CO" && !coloradoAreaMatchesFields(areaLabelsForDrop(drop), ["Denver Metro"])) return false;
     if (canUseDropFeedFilters && activeTiers.size > 0 && !activeTiers.has(drop.rarity_tier)) return false;
     const bottleNeedle = canUseBottleSearch ? normalizeFilterText(bottleSearch) : "";
@@ -1625,7 +1633,7 @@ export default function DropFeed() {
     // The drop-feed state selector is an explicit browsing control and must
     // override saved alert-area preferences. Saved areas are only a default
     // when the user has not chosen a feed state/filter in this session.
-    if (feedStateParam || hasSelectedStates) return true;
+    if (urlStateFilter || hasSelectedStates) return true;
 
     // Not signed in, or no preferences set = show everything
     if (!isSignedIn || !areaPrefs.states.length) return true;
@@ -1685,7 +1693,7 @@ export default function DropFeed() {
       return nevadaAreaMatchesFields(areaLabelsForDrop(drop), areaPrefs.nvAreas);
     }
     if (dropState === "NY") {
-      return newYorkAreaMatchesFields(areaLabelsForDrop(drop), areaPrefs.nyAreas.length ? areaPrefs.nyAreas : ["New York City"]);
+      return newYorkAreaMatchesFields(areaLabelsForDrop(drop), areaPrefs.nyAreas.length ? areaPrefs.nyAreas : SUPPORTED_NEW_YORK_AREAS);
     }
     if (dropState === "CO") {
       return coloradoAreaMatchesFields(areaLabelsForDrop(drop), areaPrefs.coAreas.length ? areaPrefs.coAreas : ["Denver Metro"]);
@@ -1720,8 +1728,9 @@ export default function DropFeed() {
       if (!state || !activeStateCodes.has(state)) return;
       if (selectedState && state !== selectedState) return;
       if (state === "NY") {
-        if (!newYorkAreaMatchesFields([baseLabel], ["New York City"])) return;
-        baseLabel = "New York City";
+        const matchingArea = SUPPORTED_NEW_YORK_AREAS.find((area) => newYorkAreaMatchesFields([baseLabel], [area]));
+        if (!matchingArea) return;
+        baseLabel = matchingArea;
       }
       if (state === "CO") {
         if (!coloradoAreaMatchesFields([baseLabel], ["Denver Metro"])) return;

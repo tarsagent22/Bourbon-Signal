@@ -629,7 +629,7 @@ function dropMatchesAreaPreferences(drop: DropEvent, areaPrefs: AreaPreferences)
     drop.store_name,
     ...(drop.stores || []).flatMap((store) => [store.store_address, store.city]),
     ...(drop.store_details || []).flatMap((store) => [store.name, store.city, store.county]),
-  ], areaPrefs.nyAreas.length ? areaPrefs.nyAreas : ["New York City"]);
+  ], areaPrefs.nyAreas.length ? areaPrefs.nyAreas : SUPPORTED_NEW_YORK_AREAS);
   if (state === "CO") return coloradoAreaMatchesFields([
     dropLocationLabel(drop),
     drop.board_name,
@@ -1549,7 +1549,7 @@ function PaidMemberDashboard() {
       stateCode: "NY",
       label: "New York",
       detailLabel: "areas",
-      summary: "New York alerts currently cover verified New York City retailer inventory only.",
+      summary: "New York alerts cover verified retailer inventory in New York City and at reviewed Nassau County stores.",
       selectedCount: localPrefs.nyAreas.length,
       totalCount: SUPPORTED_NEW_YORK_AREAS.length,
     },
@@ -2985,7 +2985,7 @@ function PaidMemberDashboard() {
                                 ? "Pick the ABC boards you actually chase. If you leave this blank, alerts use statewide NC intelligence only after you save the state."
                                 : isCityRefinable
                                   ? activeState === "NY"
-                                    ? "New York coverage is limited to New York City. Select this metro area to keep alerts explicitly scoped; it does not imply statewide New York coverage."
+                                    ? "New York coverage is limited to New York City and reviewed Nassau County stores. Select the areas you want; this does not imply statewide New York coverage."
                                     : activeState === "CO"
                                       ? "Colorado coverage is limited to Denver Metro: Denver, Lakeside, Westminster, and Greenwood Village. It does not imply statewide Colorado coverage."
                                       : activeState === "GA"

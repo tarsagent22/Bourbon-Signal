@@ -109,12 +109,12 @@ for (const [capability, codes] of Object.entries(expectedCapabilities)) {
 }
 assert.equal(contract.states.filter((state) => state.capability === "not-active").length, 27, "states without current useful evidence remain inactive");
 assert.ok(contract.states.filter((state) => state.capability === "intelligence").every((state) => state.capabilityLabel === "Sparse coverage"));
-for (const [code, area] of [["NY", "New York City"], ["CO", "Denver Metro"]] as const) {
+for (const [code, areas, summaryArea] of [["NY", ["Nassau County", "New York City"], "New York City"], ["CO", ["Denver Metro"], "Denver Metro"]] as const) {
   const metro = contract.states.find((state) => state.code === code);
   assert.ok(metro, `${code} must be present in the national coverage contract`);
   assert.equal(metro.capability, "intelligence", `${code} remains conservatively sparse until more exact stores prove reliable`);
-  assert.deepEqual(metro.areas, [area]);
-  assert.match(metro.summary, new RegExp(area.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"));
+  assert.deepEqual(metro.areas, areas);
+  assert.match(metro.summary, new RegExp(summaryArea.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"));
   assert.match(metro.cannotSee.join(" "), /statewide|outside|limited|not.*state/i);
 }
 
