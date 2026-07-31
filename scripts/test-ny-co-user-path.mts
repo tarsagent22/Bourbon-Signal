@@ -66,6 +66,7 @@ assert.ok(dropsApi.includes('parseColoradoAreaQuery') && dropsApi.includes('colo
 assert.ok(alerts.includes('newYorkAreaMatchesFields') && alerts.includes('coloradoAreaMatchesFields'));
 assert.ok(dropFeed.includes('newYorkAreaMatchesFields') && dropFeed.includes('coloradoAreaMatchesFields'));
 assert.ok(dropFeed.includes('if (urlStateFilter || hasSelectedStates) return true;'), "an implicit saved-state default must not bypass saved New York area preferences");
+assert.ok(dropFeed.includes('buildDropFeedAreaRequest(feedStateParam, implicitSavedAreaFilter)'), "an implicit single saved New York area must narrow initial API pagination");
 assert.ok(preferencesApi.includes('normalizeNewYorkAreas') && preferencesApi.includes('normalizeColoradoAreas'));
 assert.ok(dashboard.includes('SUPPORTED_NEW_YORK_AREAS') && dashboard.includes('SUPPORTED_COLORADO_AREAS'));
 

@@ -745,14 +745,14 @@
             {
               "runId": "nassau-canary-2026-07-31-1",
               "status": "success",
-              "generatedAt": "2026-07-31T18:27:03.000Z",
-              "artifactHash": "c85eb3f39f5bcb4d101e415b29a2d3a001557f1cea6f1dac5cc8882ac1f78b42"
+              "generatedAt": "2026-07-31T18:26:30.900Z",
+              "artifactHash": "64bcec88315f060397fcc20d53fae49390505d0d83588b068a1790a71d937b46"
             },
             {
               "runId": "nassau-canary-2026-07-31-2",
               "status": "success",
-              "generatedAt": "2026-07-31T18:27:03.000Z",
-              "artifactHash": "c85eb3f39f5bcb4d101e415b29a2d3a001557f1cea6f1dac5cc8882ac1f78b42"
+              "generatedAt": "2026-07-31T18:26:36.986Z",
+              "artifactHash": "94615f2b4e641d93bfd89e8ffc90db9f854d4c6b7b79b248e50aafb717ce7765"
             }
           ],
           "provenance": {

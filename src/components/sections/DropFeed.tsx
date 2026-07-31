@@ -1493,9 +1493,17 @@ export default function DropFeed() {
         ? areaPrefs.states[0]
         : null)
     : null);
+  const implicitSavedAreaFilter = !urlStateFilter
+    && !hasSelectedStates
+    && isSignedIn
+    && feedStateParam === "NY"
+    && areaPrefs.nyAreas.length === 1
+    ? areaPrefs.nyAreas[0]
+    : null;
   const activeAreaRequest = useMemo(
-    () => canUseDropFeedFilters ? buildDropFeedAreaRequest(feedStateParam, countyFilter) : null,
-    [canUseDropFeedFilters, countyFilter, feedStateParam],
+    () => (canUseDropFeedFilters ? buildDropFeedAreaRequest(feedStateParam, countyFilter) : null)
+      || buildDropFeedAreaRequest(feedStateParam, implicitSavedAreaFilter),
+    [canUseDropFeedFilters, countyFilter, feedStateParam, implicitSavedAreaFilter],
   );
   const activeAreaParam = activeAreaRequest?.value || "";
   const activeAreaQueryKey = activeAreaRequest?.key || "store";
