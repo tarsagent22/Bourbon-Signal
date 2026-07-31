@@ -1625,7 +1625,7 @@ export default function DropFeed() {
     // The drop-feed state selector is an explicit browsing control and must
     // override saved alert-area preferences. Saved areas are only a default
     // when the user has not chosen a feed state/filter in this session.
-    if (feedStateParam || hasSelectedStates) return true;
+    if (urlStateFilter || hasSelectedStates) return true;
 
     // Not signed in, or no preferences set = show everything
     if (!isSignedIn || !areaPrefs.states.length) return true;

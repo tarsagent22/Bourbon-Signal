@@ -17,6 +17,7 @@ const engineSources = read("engine/src/state-sources.mjs");
 const metroRetailerSources = read("engine/src/collectors/metro-retailer-surfaces.mjs");
 const precision = read("engine/src/collectors/precision-probes.mjs");
 const confidence = read("engine/src/confidence-policy.mjs");
+const exporter = read("engine/src/export-site-contract.mjs");
 
 for (const [state, label, areas] of [["NY", "New York", ["New York City", "Nassau County"]], ["CO", "Colorado", ["Denver Metro"]]]) {
   const entry = lifecycle.states[state];
@@ -39,6 +40,8 @@ assert.deepEqual(lifecycle.states.NY.areaOptions, ["New York City", "Nassau Coun
 assert.ok(lifecycle.states.NY.customerSummary.includes("Nassau County"));
 assert.ok(engineSources.includes("New York City + Nassau County first-party retailer inventory"), "NY operational source metadata must name both supported areas");
 assert.ok(engineSources.includes("Exact-premises New York City and Nassau County retailer inventory"), "NY operational source value must not retain the old Manhattan-only scope");
+assert.ok(confidence.includes("New York City, Nassau County, and Denver Metro retailer rows"), "central metro confidence metadata must name Nassau County");
+assert.ok(exporter.includes("New York City, Nassau County, or Denver Metro retailer availability"), "exported on-site candidate metadata must name Nassau County");
 assert.ok(metroRetailerSources.includes("wine-gallery") && metroRetailerSources.includes("cherrywood-wine") && metroRetailerSources.includes("westbury-liquors"));
 assert.ok(dropFeed.includes("SUPPORTED_NEW_YORK_AREAS"), "Drop Feed defaults must use the complete New York area contract");
 
@@ -62,6 +65,7 @@ assert.ok(dropsApi.includes('parseNewYorkAreaQuery') && dropsApi.includes('newYo
 assert.ok(dropsApi.includes('parseColoradoAreaQuery') && dropsApi.includes('coloradoAreaMatchesFields'));
 assert.ok(alerts.includes('newYorkAreaMatchesFields') && alerts.includes('coloradoAreaMatchesFields'));
 assert.ok(dropFeed.includes('newYorkAreaMatchesFields') && dropFeed.includes('coloradoAreaMatchesFields'));
+assert.ok(dropFeed.includes('if (urlStateFilter || hasSelectedStates) return true;'), "an implicit saved-state default must not bypass saved New York area preferences");
 assert.ok(preferencesApi.includes('normalizeNewYorkAreas') && preferencesApi.includes('normalizeColoradoAreas'));
 assert.ok(dashboard.includes('SUPPORTED_NEW_YORK_AREAS') && dashboard.includes('SUPPORTED_COLORADO_AREAS'));
 

@@ -44,7 +44,7 @@ export const STATE_CONFIDENCE_POLICY = {
   AZ: { maxAlertMode: 'policy_only', inventorySemantics: 'Arizona is a private retail market. Only explicitly whitelisted retailer merchant inventory rows may alert; policy and store-location context remain non-inventory.', defaultCadence: '30-60m' },
   CA: { maxAlertMode: 'policy_only', inventorySemantics: 'California is a private retail market. Only explicitly whitelisted first-party retailer rows with exact San Diego premises identity and positive pickup/order availability may alert; catalog-only rows remain watch context.', defaultCadence: '30-60m' },
   NV: { maxAlertMode: 'policy_only', inventorySemantics: 'Nevada is a private retail market. Only explicitly whitelisted first-party retailer rows with exact premises identity and positive store pickup/orderability may alert; catalog, shipping, delivery-only, and blocked rows remain watch context.', defaultCadence: '30-60m' },
-  NY: { maxAlertMode: 'policy_only', inventorySemantics: 'New York coverage is deliberately limited to the New York City first-party retailer allowlist. Only exact merchant, premises, product URL, pickup, and positive orderability evidence may alert; broader New York catalog or shipping presence remains non-inventory.', defaultCadence: '30-60m' },
+  NY: { maxAlertMode: 'policy_only', inventorySemantics: 'New York coverage is deliberately limited to the New York City and Nassau County first-party retailer allowlist. Only exact merchant, premises, product URL, pickup, and positive orderability evidence may alert; broader New York catalog or shipping presence remains non-inventory.', defaultCadence: '30-60m' },
   CO: { maxAlertMode: 'policy_only', inventorySemantics: 'Colorado coverage is deliberately limited to the Denver Metro first-party retailer allowlist. Only exact merchant, premises, product URL, pickup, and positive orderability evidence may alert; broader Colorado catalog or shipping presence remains non-inventory.', defaultCadence: '30-60m' }
 };
 
@@ -155,7 +155,7 @@ const NEVADA_RETAILER_POLICY = {
 
 const METRO_RETAILER_POLICY = {
   maxAlertMode: 'alert_retailer_store_inventory_caveat',
-  inventorySemantics: 'Whitelisted New York City and Denver Metro retailer rows are bound to an exact first-party host, merchant, physical premises, and product identity. CityHive counts below 100 retain exact retailer-reported quantity; sentinel counts and Shopify availability remain binary orderability. Verify pickup before driving.',
+  inventorySemantics: 'Whitelisted New York City, Nassau County, and Denver Metro retailer rows are bound to an exact first-party host, merchant, physical premises, and product identity. CityHive counts below 100 retain exact retailer-reported quantity; sentinel counts and Shopify availability remain binary orderability. Verify pickup before driving.',
   defaultCadence: '30-60m'
 };
 
