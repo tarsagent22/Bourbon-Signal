@@ -12,12 +12,16 @@ import {
 import {
   isMetroRetailerInventory,
   isMetroRetailerSignalIdentity,
+  metroRetailerArea,
 } from '../src/metro-retailer-policy.mjs';
 import { confidenceForSignal, STATE_CONFIDENCE_POLICY } from '../src/confidence-policy.mjs';
 import { collectPrecisionProbes, legacyPrecisionRuntimeOptions } from '../src/collectors/precision-probes.mjs';
 import { getStateLifecycle } from '../src/state-lifecycle.mjs';
 import { ALL_STATE_SOURCES } from '../src/state-sources.mjs';
 import { verifyMetroCanaryRows } from '../src/verify-state-integration.mjs';
+import { canonicalizeSignal } from '../src/operational-report.mjs';
+import { buildCurrentInventoryAlertsFromDrops, buildDrops } from '../src/export-site-contract.mjs';
+import { stableId } from '../src/core/text.mjs';
 
 const nyCityHive = NEW_YORK_RETAILER_SOURCES.find((source) => source.id === 'cellar-53');
 const nyNassauCityHive = NEW_YORK_RETAILER_SOURCES.find((source) => source.id === 'wine-gallery');
@@ -48,7 +52,7 @@ function cityHivePayload(source, { quantity = 4, address, merchantId, productNam
 function signalFor(source, row, overrides = {}) {
   const store = source.stores.find((candidate) => candidate.merchantId === row.merchantId);
   return {
-    id: `${source.stateCode}:${source.id}:${row.productId}:${row.variantId}`,
+    id: stableId([source.stateCode, source.id, row.productId, row.variantId]),
     state: source.stateCode,
     stateCode: source.stateCode,
     sourceLabel: source.sourceLabel,
@@ -76,6 +80,8 @@ function signalFor(source, row, overrides = {}) {
     reportedQuantity: row.reportedQuantity,
     availabilityStatus: 'in_stock',
     sourceAvailabilityVerified: true,
+    pickupOfferVerified: true,
+    premisesVerified: true,
     observedAt: new Date().toISOString(),
     inventorySemantics: row.inventorySemantics,
     raw: { chain: source.id, platform: source.platform, merchantId: row.merchantId, reportedQuantity: row.reportedQuantity },
@@ -112,6 +118,46 @@ test('Nassau CityHive rows require the reviewed merchant and exact county premis
   assert.equal(parseMetroCityHiveHtml(encodedPage(cityHivePayload(nyNassauCityHive, { address: '270 Nassau St, New York, NY 10038' })), nyNassauCityHive).length, 0);
 });
 
+test('Nassau inventory survives operational canonicalization into the customer Drop Feed', () => {
+  const [row] = parseMetroCityHiveHtml(encodedPage(cityHivePayload(nyNassauCityHive)), nyNassauCityHive);
+  const source = signalFor(nyNassauCityHive, row);
+  const record = {
+    id: source.canonicalBottleId,
+    canonical: source.canonicalName,
+    normalizedKey: 'buffalo trace bourbon',
+    aliases: [source.rawName],
+    tier: 'allocated',
+  };
+  const canonical = canonicalizeSignal(source, { match: () => ({ record }) });
+  const bible = {
+    byId: new Map([[record.id, record]]),
+    byName: new Map([[record.normalizedKey, record]]),
+  };
+
+  assert.equal(canonical.area, undefined);
+  assert.equal(canonical.reportedQuantity, null);
+  assert.equal(canonical.locationName, source.storeName);
+  assert.equal(metroRetailerArea(canonical), 'Nassau County');
+  assert.equal(isMetroRetailerInventory(canonical), true);
+  const drops = buildDrops([canonical], bible, [canonical]);
+  assert.equal(drops.length, 1);
+  assert.equal(drops[0].area, 'Nassau County');
+  assert.equal(drops[0].reportedQuantity, row.reportedQuantity);
+  assert.equal(drops[0].storeId, source.storeId);
+  const currentInventoryAlerts = buildCurrentInventoryAlertsFromDrops(drops);
+  assert.equal(currentInventoryAlerts.length, 1);
+  assert.equal(currentInventoryAlerts[0].eligibleForEmail, false);
+  assert.equal(currentInventoryAlerts[0].eligibleForSms, false);
+
+  const staleCanonical = canonicalizeSignal({
+    ...source,
+    raw: { ...source.raw, staleFallback: true, sourceRuntimeNonAlertable: true },
+  }, { match: () => ({ record }) });
+  assert.equal(staleCanonical.canAlertAsInventory, false);
+  assert.equal(isMetroRetailerInventory(staleCanonical), false);
+  assert.equal(buildDrops([staleCanonical], bible, [staleCanonical]).length, 0);
+});
+
 test('CityHive parser requires allowlisted merchant, exact premises, pickup, positive availability, and safe format', () => {
   const [row] = parseMetroCityHiveHtml(encodedPage(cityHivePayload(coCityHive)), coCityHive);
   assert.equal(row.merchantId, coCityHive.stores[0].merchantId);
@@ -141,6 +187,10 @@ test('central identity and confidence policy fail closed on every forged dimensi
   assert.equal(isMetroRetailerSignalIdentity(valid), true);
   assert.equal(isMetroRetailerInventory(valid), true);
   assert.equal(confidenceForSignal(valid).canAlertAsInventory, true);
+  const canonicalShape = { ...valid, area: undefined, locationName: valid.storeName, reportedQuantity: null, storeQty: valid.quantity };
+  assert.equal(isMetroRetailerInventory(canonicalShape), true);
+  assert.equal(metroRetailerArea(canonicalShape), 'New York City');
+
   for (const forged of [
     { ...valid, sourceUrl: 'https://attacker.example/product' },
     { ...valid, merchantId: 'forged' },

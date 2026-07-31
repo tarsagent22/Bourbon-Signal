@@ -14,7 +14,7 @@ import { isFloridaRetailerInventory, isFloridaRetailerSignalIdentity } from './f
 import { isGeorgiaRetailerInventory, isGeorgiaRetailerSignalIdentity } from './georgia-retailer-policy.mjs';
 import { isIndianaRetailerInventory, isIndianaRetailerSignalIdentity } from './indiana-retailer-policy.mjs';
 import { isMississippiRetailerInventory } from './mississippi-retailer-policy.mjs';
-import { isMetroRetailerInventory, isMetroRetailerSignalIdentity } from './metro-retailer-policy.mjs';
+import { isMetroRetailerInventory, isMetroRetailerSignalIdentity, metroRetailerArea } from './metro-retailer-policy.mjs';
 import { isTennesseeRetailerInventory, isTennesseeRetailerSignalIdentity } from './tennessee-retailer-policy.mjs';
 import { isSouthCarolinaDunesInventory, isSouthCarolinaDunesSignal } from './south-carolina-dunes-policy.mjs';
 import { hasSouthCarolinaPositiveInventoryEvidence, isSouthCarolinaSouthernSpiritsInventory, isSouthCarolinaSouthernSpiritsSignal } from './south-carolina-retailer-policy.mjs';
@@ -259,7 +259,9 @@ export function publicSignal(signal, bible, freshness = null) {
             : isGaRetailerInventory
               ? signal.inventorySemantics
             : isMetroInventory
-              ? signal.inventorySemantics
+              ? (signal.quantityIsExact === true
+                ? 'exact_retailer_reported_quantity'
+                : 'binary_retailer_orderable_no_exact_count')
             : isMsSparseOnSiteInventory
               ? signal.inventorySemantics
             : isInRetailerInventory
@@ -372,7 +374,7 @@ export function publicSignal(signal, bible, freshness = null) {
     storeHours: signal.storeHours || null,
     shoppingCenter: signal.shoppingCenter || null,
     city: signal.city,
-    area: signal.area || (demandMetroAreaMatchesFields(signal.state, [signal.city, signal.storeAddress, signal.locationName], [demandMetroAreaLabel(signal.state)])
+    area: signal.area || (isMetroInventory ? metroRetailerArea(signal) : null) || (demandMetroAreaMatchesFields(signal.state, [signal.city, signal.storeAddress, signal.locationName], [demandMetroAreaLabel(signal.state)])
       ? demandMetroAreaLabel(signal.state)
       : null),
     county: signal.county,
@@ -386,8 +388,8 @@ export function publicSignal(signal, bible, freshness = null) {
     shipmentStoreEquivalent: signal.shipmentStoreEquivalent === true,
     quantityIsExact: typeof signal.quantityIsExact === 'boolean' ? signal.quantityIsExact : null,
     quantitySemantics: signal.quantitySemantics || signal.raw?.quantitySemantics || null,
-    reportedQuantity: ['GA', 'TN', 'NY', 'CO', 'VA'].includes(signal.state) && signal.reportedQuantity != null && Number.isFinite(Number(signal.reportedQuantity))
-      ? Number(signal.reportedQuantity)
+    reportedQuantity: ['GA', 'TN', 'NY', 'CO', 'VA'].includes(signal.state) && Number.isFinite(Number(signal.reportedQuantity ?? (isMetroInventory && signal.quantityIsExact === true ? signal.storeQty : null)))
+      ? Number(signal.reportedQuantity ?? signal.storeQty)
       : null,
     availabilityStatus: isMsSparseOnSiteInventory ? (signal.availabilityStatus || 'orderable') : signal.availabilityStatus,
     availabilityLabel: signal.availabilityLabel,
