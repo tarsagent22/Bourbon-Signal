@@ -60,8 +60,9 @@ function productIdentityIsCoherent(signal) {
 function exactLocationName(signal, store) {
   if (!signal?.locationName) return false;
   const value = normalizeMetroPremises(signal.locationName);
-  return value.includes(normalizeMetroPremises(store.name))
-    && value.includes(normalizeMetroPremises(store.address));
+  const storeName = normalizeMetroPremises(store.name);
+  const address = normalizeMetroPremises(store.address);
+  return value === storeName || (value.includes(storeName) && value.includes(address));
 }
 
 function exactProductUrl(signal, source) {
@@ -88,6 +89,7 @@ function resolvedReportedQuantity(signal) {
   const present = [signal?.reportedQuantity, signal?.raw?.reportedQuantity]
     .filter((value) => value !== undefined && value !== null && value !== '')
     .map(Number);
+  if (!present.length && signal?.quantityIsExact === true) present.push(Number(signal?.storeQty));
   if (!present.length || present.some((value) => !Number.isFinite(value) || !Number.isInteger(value) || value <= 0)) return NaN;
   return present.every((value) => value === present[0]) ? present[0] : NaN;
 }
@@ -124,7 +126,7 @@ export function isMetroRetailerSignalIdentity(signal) {
   if (!exactNormalizedValues([signal?.storeAddress, signal?.address], store.address)) return false;
   if (!exactNonEmptyValues([signal?.city, signal?.storeCity], store.city)) return false;
   if (!exactNonEmptyValues([signal?.postalCode, signal?.storePostalCode, signal?.zip], store.zip)) return false;
-  if (signal?.area !== source.area) return false;
+  if (signal?.area != null && signal.area !== source.area) return false;
   return exactLocationName(signal, store);
 }
 
@@ -143,6 +145,7 @@ export function isMetroRetailerInventory(signal) {
     || !isAllowedMetroBottle(formatDescription(signal))) return false;
   if (/\brye\b/iu.test(rawName) !== /\brye\b/iu.test(canonicalName)) return false;
   if (signal.stale === true || signal.sourceStale === true || signal.raw?.staleFallback === true || signal.raw?.sourceRuntimeNonAlertable === true) return false;
+  if (signal.canAlertAsInventory === false) return false;
   const observedMs = Date.parse(String(signal.observedAt || signal.fetchedAt || ''));
   const ageMs = Date.now() - observedMs;
   if (!Number.isFinite(observedMs) || ageMs < 0 || ageMs > 4 * 60 * 60_000) return false;
@@ -165,17 +168,27 @@ export function isMetroRetailerInventory(signal) {
   if (signal.pickupOfferVerified === false || signal.raw?.pickupOfferVerified === false) return false;
   if (signal.premisesVerified === false || signal.raw?.premisesVerified === false) return false;
   const reportedQuantity = resolvedReportedQuantity(signal);
-  if (!Number.isFinite(reportedQuantity)) return false;
-  const binary = reportedQuantity >= 100
+  const binaryAvailability = signal.variantAvailable === true
+    && signal.quantity === 0
+    && signal.quantityIsExact === false;
+  if (!Number.isFinite(reportedQuantity) && !binaryAvailability) return false;
+  const binary = (reportedQuantity >= 100 || binaryAvailability)
     && signal.quantity === 0
     && signal.quantityIsExact === false
-    && signal.inventorySemantics === 'binary_retailer_orderable_no_exact_count';
+    && (signal.inventorySemantics === 'binary_retailer_orderable_no_exact_count'
+      || signal.variantAvailable === true);
   const exact = reportedQuantity < 100
     && signal.quantity === reportedQuantity
     && signal.quantity > 0
     && signal.quantityIsExact === true
-    && signal.inventorySemantics === 'exact_retailer_reported_quantity';
+    && (signal.inventorySemantics === 'exact_retailer_reported_quantity'
+      || signal.quantityIsExact === true);
   return binary || exact;
+}
+
+export function metroRetailerArea(signal) {
+  if (!isMetroRetailerSignalIdentity(signal)) return null;
+  return sourceAndStore(signal)?.source?.area || null;
 }
 
 export { SOURCE_BY_LABEL as METRO_RETAILER_IDENTITIES };
