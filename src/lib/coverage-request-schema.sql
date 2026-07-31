@@ -74,10 +74,14 @@ CREATE TABLE IF NOT EXISTS coverage_request_automation_jobs (
   notification_token TEXT,
   notification_attempted_at TIMESTAMPTZ,
   notification_platform_message_id TEXT,
+  retry_history JSONB NOT NULL DEFAULT '[]'::jsonb,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   UNIQUE (coverage_request_id, baseline_coverage_fingerprint)
 );
+
+ALTER TABLE coverage_request_automation_jobs
+  ADD COLUMN IF NOT EXISTS retry_history JSONB NOT NULL DEFAULT '[]'::jsonb;
 
 CREATE UNIQUE INDEX IF NOT EXISTS coverage_request_automation_single_active_idx
   ON coverage_request_automation_jobs ((TRUE))
