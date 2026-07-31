@@ -5,6 +5,7 @@ import {
   isAllowedGeorgiaBourbonIdentity,
   isAllowedGeorgiaBottleFormat,
 } from './collectors/georgia-retailer-surfaces.mjs';
+import { isExplicitSafeStaleSignal } from './stale-signal-policy.mjs';
 
 const CITYHIVE_BY_LABEL = new Map(GEORGIA_CITYHIVE_SOURCES.map((source) => [source.sourceLabel, source]));
 const GOTOLIQUOR_BY_LABEL = new Map(GEORGIA_GOTOLIQUOR_STORES.map((store) => [store.sourceLabel, store]));
@@ -163,6 +164,15 @@ export function isGeorgiaRetailerInventoryEvidence(signal) {
   }
   if (GOTOLIQUOR_BY_LABEL.has(source) || LIGHTSPEED_BY_LABEL.has(source)) return binary;
   return binary || exactCityHive;
+}
+
+export function isGeorgiaRetailerLastKnownInventoryEvidence(signal) {
+  if (!isExplicitSafeStaleSignal(signal)) return false;
+  return isGeorgiaRetailerInventoryEvidence({
+    ...signal,
+    availabilityStatus: signal.raw?.lastKnownAvailabilityStatus,
+    sourceAvailabilityVerified: signal.raw?.lastKnownSourceAvailabilityVerified === true,
+  });
 }
 
 export function isGeorgiaRetailerInventory(signal) {

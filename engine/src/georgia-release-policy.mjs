@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 
 import {
   isGeorgiaRetailerInventory,
-  isGeorgiaRetailerInventoryEvidence,
+  isGeorgiaRetailerLastKnownInventoryEvidence,
   isGeorgiaRetailerSignalIdentity,
 } from './georgia-retailer-policy.mjs';
 
@@ -39,11 +39,13 @@ function isDeliveryDisabled(alert) {
     && alert.eligibleForSms !== true;
 }
 
-function assertQuantitySemantics(rowsToCheck) {
+function assertQuantitySemantics(rowsToCheck, { allowLastKnown = false } = {}) {
   const binary = rowsToCheck.filter((row) => row.inventorySemantics === 'binary_retailer_orderable_no_exact_count');
   const exact = rowsToCheck.filter((row) => row.inventorySemantics === 'exact_retailer_reported_quantity');
   assert.equal(binary.length + exact.length, rowsToCheck.length, 'Georgia rows must preserve an approved binary or exact-quantity inventory semantic.');
-  assert.ok(binary.every((row) => row.quantity === 0 && row.quantityIsExact === false && row.sourceAvailabilityVerified === true), 'Georgia binary rows must never invent positive quantity.');
+  assert.ok(binary.every((row) => row.quantity === 0
+    && row.quantityIsExact === false
+    && (row.sourceAvailabilityVerified === true || (allowLastKnown && row.raw?.lastKnownSourceAvailabilityVerified === true))), 'Georgia binary rows must never invent positive quantity.');
   assert.ok(exact.every((row) => row.quantity > 0 && row.quantity < 100 && row.quantityIsExact === true), 'Georgia exact CityHive quantities must be finite positive values below the binary sentinel.');
   return { binary, exact };
 }
@@ -84,21 +86,21 @@ export function verifyGeorgiaReleasePolicy({
     assert.ok(allowLabeledLastKnownFallback, 'Georgia verification requires fresh inventory unless the explicit labeled last-known fallback policy is enabled.');
     assertExplicitFallbackState(state);
     assert.ok(retailerRows.length > 0, 'Georgia labeled fallback must retain at least one exact-identity last-known retailer row.');
-    assert.ok(retailerRows.every(isGeorgiaRetailerSignalIdentity), 'Georgia fallback contains a retailer row that lost exact source/store identity.');
-    assert.ok(retailerRows.every(isGeorgiaRetailerInventoryEvidence), 'Georgia fallback contains a row that lost its source-backed inventory evidence or quantity semantics.');
     assert.ok(retailerRows.every((row) => row.stale === true
       && row.raw?.staleFallback === true
       && Boolean(row.staleReason || row.raw?.staleReason)
       && isNonAlerting(row)), 'Georgia retained signals must stay explicitly stale and non-alerting.');
-    assertQuantitySemantics(retailerRows);
+    assert.ok(retailerRows.every(isGeorgiaRetailerSignalIdentity), 'Georgia fallback contains a retailer row that lost exact source/store identity.');
+    assert.ok(retailerRows.every(isGeorgiaRetailerLastKnownInventoryEvidence), 'Georgia fallback contains a row that lost its explicitly preserved last-known source evidence or quantity semantics.');
+    assertQuantitySemantics(retailerRows, { allowLastKnown: true });
 
     assert.ok(georgiaDrops.length > 0, 'Georgia labeled fallback must retain its last-known customer rows.');
-    assert.ok(georgiaDrops.every(isGeorgiaRetailerSignalIdentity), 'Georgia fallback drops must retain exact source/store identity.');
-    assert.ok(georgiaDrops.every(isGeorgiaRetailerInventoryEvidence), 'Georgia fallback drops must retain source-backed inventory evidence and quantity semantics.');
     assert.ok(georgiaDrops.every((drop) => drop.stale === true
       && drop.sourceStale === true
       && Boolean(drop.staleSourceCaveat)
       && isNonAlerting(drop)), 'Georgia fallback drops must stay explicitly stale and non-alerting.');
+    assert.ok(georgiaDrops.every(isGeorgiaRetailerSignalIdentity), 'Georgia fallback drops must retain exact source/store identity.');
+    assert.ok(georgiaDrops.every(isGeorgiaRetailerLastKnownInventoryEvidence), 'Georgia fallback drops must retain explicitly preserved last-known source evidence and quantity semantics.');
     assert.ok(georgiaAlerts.every(isDeliveryDisabled), 'Georgia fallback must export zero alert-eligible rows on every channel.');
 
     return {
