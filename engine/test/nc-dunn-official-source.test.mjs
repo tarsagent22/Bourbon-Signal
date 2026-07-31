@@ -6,6 +6,7 @@ import {
   ncBoardPageSourceIdentity,
   ncBoardWebsiteSignalEligible,
   ncGenericBoardWebsiteWatchEligibility,
+  prioritizeNcBoardWebsiteTargets,
 } from '../src/collectors/north-carolina-intelligence.mjs';
 
 const dunn = NC_STATIC_BOARD_TARGETS.find((target) => target.boardName === 'Dunn ABC Board');
@@ -58,4 +59,21 @@ test('Dunn official policy source remains noninventory by contract', () => {
   assert.equal(ncGenericBoardWebsiteWatchEligibility(), false);
   assert.equal(ncBoardWebsiteSignalEligible(dunn.boardName, 'https://dunnabc.com/allocation-policy/'), true);
   assert.equal(ncBoardWebsiteSignalEligible(dunn.boardName, 'https://dunnabc.com/store-locations-hours/'), false);
+});
+
+test('Dunn stays inside the bounded production board-page cohort', () => {
+  const boards = NC_STATIC_BOARD_TARGETS.map((target, index) => ({
+    boardName: target.boardName,
+    website: null,
+    trackedUnits: 10_000 - index,
+  })).reverse();
+  const selected = prioritizeNcBoardWebsiteTargets(boards, 12).map((board) => board.boardName);
+  assert.equal(selected.includes('Dunn ABC Board'), true);
+  assert.deepEqual(selected.slice(0, 5), [
+    'Wake County ABC Board',
+    'Durham County ABC Board',
+    'Mecklenburg County ABC Board',
+    'High Point ABC Board',
+    'Dunn ABC Board',
+  ]);
 });
