@@ -187,7 +187,12 @@ test('California cache persistence retains source-runtime stale and non-alertabl
   assert.equal(fallback.canAlertAsInventory, false);
   assert.equal(fallback.canAlertAsWatch, false);
   assert.equal(fallback.alertable, false);
+  assert.equal(fallback.sourceAvailabilityVerified, false);
+  assert.equal(fallback.availabilityStatus, 'stale');
+  assert.equal(fallback.availabilityLabel, 'Stale retained evidence; not alertable');
   assert.equal(fallback.raw.sourceRuntimeNonAlertable, true);
+  assert.equal(fallback.raw.sourceAvailabilityVerified, false);
+  assert.equal(fallback.raw.staleNonAlertable, true);
   assert.equal(fallback.raw.staleFallback, true);
   assert.equal(rawCachedFallback.stale, undefined, 'the isolated result is used without mutating or rebuilding the raw cached row');
 });

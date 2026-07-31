@@ -1,26 +1,8 @@
+import { markSignalStaleNonAlertable } from './stale-signal-policy.mjs';
+
 export function markStaleReport(report, config, reason, now = new Date().toISOString()) {
   const priorStatus = String(report.status || '').replace(/^(stale_)+/, '') || 'previous_report';
-  const staleSignals = (report.signals || []).map((signal) => ({
-    ...signal,
-    stale: true,
-    sourceStale: true,
-    staleReason: reason,
-    canAlertAsInventory: false,
-    canAlertAsWatch: false,
-    alertable: false,
-    availabilityStatus: 'stale',
-    availabilityLabel: 'Stale retained evidence; not alertable',
-    sourceAvailabilityVerified: false,
-    raw: {
-      ...(signal.raw || {}),
-      sourceAvailabilityVerified: false,
-      sourceRuntimeNonAlertable: true,
-      staleFallback: true,
-      staleNonAlertable: true,
-      staleReason: reason,
-      staleFallbackAt: now,
-    },
-  }));
+  const staleSignals = (report.signals || []).map((signal) => markSignalStaleNonAlertable(signal, reason, now));
   const roadblocks = [
     ...(report.roadblocks || []).filter((roadblock) => String(roadblock.status || '') !== 'stale_previous_report'),
     {
