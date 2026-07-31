@@ -51,3 +51,51 @@ CREATE INDEX IF NOT EXISTS coverage_requests_user_updated_idx
 
 CREATE INDEX IF NOT EXISTS coverage_requests_demand_idx
   ON coverage_requests (status, canonical_target_key, updated_at DESC);
+
+CREATE TABLE IF NOT EXISTS coverage_request_automation_jobs (
+  job_key TEXT PRIMARY KEY CHECK (char_length(job_key) BETWEEN 20 AND 340),
+  coverage_request_id TEXT NOT NULL REFERENCES coverage_requests(id) ON DELETE CASCADE,
+  request_version TIMESTAMPTZ NOT NULL,
+  target_type TEXT NOT NULL CHECK (target_type IN ('state', 'county', 'city', 'store')),
+  state_code TEXT NOT NULL CHECK (state_code ~ '^[A-Z]{2}$'),
+  area_key TEXT,
+  store_id TEXT,
+  canonical_target_key TEXT NOT NULL CHECK (char_length(canonical_target_key) BETWEEN 1 AND 180),
+  baseline_coverage_fingerprint TEXT NOT NULL CHECK (char_length(baseline_coverage_fingerprint) BETWEEN 1 AND 240),
+  status TEXT NOT NULL DEFAULT 'queued' CHECK (status IN (
+    'queued', 'claimed', 'running', 'notification_pending',
+    'notification_sending', 'notified', 'delivery_uncertain', 'failed'
+  )),
+  lease_token TEXT,
+  lease_expires_at TIMESTAMPTZ,
+  task_id TEXT UNIQUE,
+  terminal_result JSONB,
+  outcome TEXT CHECK (outcome IS NULL OR outcome IN ('improved', 'engine_improved', 'blocked')),
+  notification_token TEXT,
+  notification_attempted_at TIMESTAMPTZ,
+  notification_platform_message_id TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  UNIQUE (coverage_request_id, baseline_coverage_fingerprint)
+);
+
+CREATE UNIQUE INDEX IF NOT EXISTS coverage_request_automation_single_active_idx
+  ON coverage_request_automation_jobs ((TRUE))
+  WHERE status IN ('claimed', 'running');
+
+CREATE INDEX IF NOT EXISTS coverage_request_automation_queue_idx
+  ON coverage_request_automation_jobs (status, created_at ASC);
+
+INSERT INTO coverage_request_automation_jobs (
+  job_key, coverage_request_id, request_version, target_type, state_code,
+  area_key, store_id, canonical_target_key, baseline_coverage_fingerprint,
+  status, created_at, updated_at
+)
+SELECT
+  'coverage-request:' || id::text || ':' || SUBSTRING(MD5(baseline_coverage_fingerprint) FROM 1 FOR 16),
+  id, updated_at, target_type, state_code,
+  area_key, store_id, canonical_target_key, baseline_coverage_fingerprint,
+  'queued', requested_at, updated_at
+FROM coverage_requests
+WHERE status = 'requested'
+ON CONFLICT (coverage_request_id, baseline_coverage_fingerprint) DO NOTHING;

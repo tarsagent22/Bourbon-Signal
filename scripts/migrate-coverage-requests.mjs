@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import { neon } from "@neondatabase/serverless";
 
 const DATABASE_ENVIRONMENT_VARIABLE = "BOURBON_QUEUE_DATABASE_URL_UNPOOLED";
-const MIGRATION_VERSION = "coverage-requests-v2";
+const MIGRATION_VERSION = "coverage-request-automation-v1";
 
 function option(args, name) {
   const exact = args.indexOf(name);
@@ -100,6 +100,9 @@ const verification = await sql.query(`
     ) AS has_status_check,
     to_regclass('public.coverage_requests_user_updated_idx') IS NOT NULL AS has_user_index,
     to_regclass('public.coverage_requests_demand_idx') IS NOT NULL AS has_demand_index,
+    to_regclass('public.coverage_request_automation_jobs') IS NOT NULL AS has_automation_jobs,
+    to_regclass('public.coverage_request_automation_single_active_idx') IS NOT NULL AS has_single_active_index,
+    to_regclass('public.coverage_request_automation_queue_idx') IS NOT NULL AS has_automation_queue_index,
     (
       SELECT column_default = 'false'
       FROM information_schema.columns
@@ -115,6 +118,9 @@ const schemaReady = verification[0]
   && verification[0].has_status_check === true
   && verification[0].has_user_index === true
   && verification[0].has_demand_index === true
+  && verification[0].has_automation_jobs === true
+  && verification[0].has_single_active_index === true
+  && verification[0].has_automation_queue_index === true
   && verification[0].has_opt_in_default === true;
 if (!schemaReady) {
   throw new Error("Coverage request schema verification failed.");
