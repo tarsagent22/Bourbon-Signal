@@ -684,15 +684,15 @@ export const STATE_LIFECYCLE_CONFIG = {
         "verifiedAt": "2026-07-24T04:26:31.660Z",
         "shadowArtifact": "engine/data/state-evidence/NY/shadow-runs.json",
         "canaryArtifact": "engine/data/state-evidence/NY/canary-runs.json",
-        "canaryPreviewUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/30653400968",
+        "canaryPreviewUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/30655336827",
         "verticalSliceManifest": "engine/data/state-integration/NY.json",
         "fixtureContract": "engine/data/state-fixtures/NY.json",
         "immutableEvidence": {
           "schemaVersion": 1,
           "state": "NY",
-          "generatedAt": "2026-07-31T18:27:03.000Z",
+          "generatedAt": "2026-07-31T18:29:40.412Z",
           "sourceConfigHash": "6ba73fd702ea71835154fac8f02dc7963017aadacce12a874a002ef4f9435f17",
-          "previewUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/30653400968",
+          "previewUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/30655336827",
           "shadowRuns": [
             {
               "runId": "nassau-shadow-2026-07-31-1",
@@ -762,15 +762,15 @@ export const STATE_LIFECYCLE_CONFIG = {
             "repository": "tarsagent22/Bourbon-Signal",
             "workflowFile": ".github/workflows/state-promotion-provenance.yml",
             "workflowName": "Verify state promotion provenance",
-            "workflowRunId": "30653400968",
+            "workflowRunId": "30655336827",
             "workflowRunAttempt": "1",
-            "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/30653400968",
-            "commitSha": "b1710102c490b95f6f2a62cef6be3de1a6f0825e",
-            "artifactId": "8802277396",
-            "artifactName": "state-promotion-provenance-NY-30653400968",
-            "artifactDigest": "5e7220e3a08321396beeec3aeb37b3d1d289b2702af989cc72f4cf877018e651",
-            "bundleDigest": "79fa1711d9a2f154220ac989f20e5a053a052b9fab71ed0b4b1eff5e4b3607c1",
-            "generatedAt": "2026-07-31T18:00:45.533Z"
+            "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/30655336827",
+            "commitSha": "e56c846829024637afea211dea8ecc2844b14d74",
+            "artifactId": "8802989797",
+            "artifactName": "state-promotion-provenance-NY-30655336827",
+            "artifactDigest": "5d3083f04abf3716ea5a10c230f186151f37d9aa96f0f2030277f8593ecfe1f2",
+            "bundleDigest": "cb053e384a55610e55feba74e9667f26fcf12ba5a008e2e616fb9fd566658a2a",
+            "generatedAt": "2026-07-31T18:29:40.412Z"
           }
         }
       }
