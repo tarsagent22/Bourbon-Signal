@@ -84,6 +84,9 @@ if (!/outputs\.dispatch == 'true'/.test(engineWatchdogWorkflow)
   fail('Engine watchdog must bind recovery deduplication to an immutable incident fingerprint.');
 }
 const refreshWorkflow = read('.github/workflows/refresh-feed.yml');
+if (!/BOURBON_SIGNAL_NY_FORCE_METRO_LIVE:[^\n]*contains\(inputs\.states, 'NY'\)[^\n]*'1'/.test(refreshWorkflow)) {
+  fail('A targeted New York refresh must force the metro retailer lane live instead of reusing a pre-Nassau cache.');
+}
 if (!/Verify Pennsylvania scheduled lane or isolate a safe stale fallback/.test(refreshWorkflow)
   || !/verify:pa -- --allow-safe-stale-fallback/.test(refreshWorkflow)
   || !/Verify Pennsylvania targeted exact-store recovery/.test(refreshWorkflow)) {
