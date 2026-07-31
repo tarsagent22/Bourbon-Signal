@@ -24,6 +24,7 @@ import { getStateLifecycle } from '../src/state-lifecycle.mjs';
 import { ALL_STATE_SOURCES } from '../src/state-sources.mjs';
 import { suppressGeorgiaActivationBaseline } from '../src/georgia-activation-policy.mjs';
 import { verifyGeorgiaReleasePolicy } from '../src/georgia-release-policy.mjs';
+import { publicSignal } from '../src/export-site-contract.mjs';
 
 const cityHiveSource = GEORGIA_CITYHIVE_SOURCES?.find((source) => source.id === 'tower-wine-spirits');
 const goToStore = GEORGIA_GOTOLIQUOR_STORES?.find((store) => store.id === '1071');
@@ -284,12 +285,11 @@ test('Georgia release policy allows only an explicitly labeled non-alerting last
     staleReason,
     '2026-07-24T12:00:00.000Z',
   );
-  const retainedDrop = {
-    ...retainedSignal,
-    type: retainedSignal.eventType,
-    sourceStale: true,
-    staleSourceCaveat: true,
-  };
+  const retainedDrop = publicSignal(retainedSignal, { byId: new Map(), byName: new Map() });
+  assert.equal(retainedDrop.stale, true);
+  assert.equal(retainedDrop.sourceStale, true);
+  assert.equal(retainedDrop.sourceAvailabilityVerified, false);
+  assert.equal(retainedDrop.raw.lastKnownSourceAvailabilityVerified, true);
   const state = {
     state: 'GA',
     status: 'stale_useful_quality_fallback',
