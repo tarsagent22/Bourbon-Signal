@@ -1,5 +1,6 @@
 import { FLORIDA_LUEKENS_STORES, FLORIDA_TAMPA_TARGET_STORE_IDS } from './collectors/florida-tampa-surfaces.mjs';
 import { FLORIDA_CITYHIVE_SOURCES } from './collectors/florida-retailer-surfaces.mjs';
+import { pensacolaProductUrl, pensacolaVariantPickupUrl, PENSACOLA_SHOPIFY_SOURCE, PENSACOLA_SHOPIFY_STORES } from './collectors/florida-pensacola-surfaces.mjs';
 
 const TARGET_FLORIDA_STORE_IDS = new Set(['649', '650', '1518', '1760', '2376', ...FLORIDA_TAMPA_TARGET_STORE_IDS]);
 
@@ -39,6 +40,17 @@ const FLORIDA_RETAILER_IDENTITIES = new Map([
     hostname: 'luekensliquors.com',
     merchants: new Set(['luekens-shopify']),
     stores: new Set(FLORIDA_LUEKENS_STORES.map((store) => store.id)),
+  }],
+  [PENSACOLA_SHOPIFY_SOURCE.sourceLabel, {
+    chain: PENSACOLA_SHOPIFY_SOURCE.id,
+    hostname: PENSACOLA_SHOPIFY_SOURCE.hostname.replace(/^www\./i, ''),
+    merchants: new Set(PENSACOLA_SHOPIFY_STORES.keys()),
+    stores: new Set(PENSACOLA_SHOPIFY_STORES.keys()),
+    storeAddresses: new Map([...PENSACOLA_SHOPIFY_STORES].map(([id, store]) => [id, store.address])),
+    requiresBinaryNoExactCount: true,
+    requiresProductPage: true,
+    requiresProductIdentity: true,
+    requiresPickupProof: true,
   }],
   ["Gaspar's Liquor Shoppe Lightspeed store inventory", {
     chain: 'gaspars-liquor-shoppe',
@@ -88,7 +100,23 @@ export function isFloridaRetailerSignalIdentity(signal) {
     && chain === identity.chain
     && sourceHostname === identity.hostname
     && identity.merchants.has(merchantId)
-    && identity.stores.has(storeId));
+    && identity.stores.has(storeId)
+    && (!identity.storeAddresses || identity.storeAddresses.get(storeId) === String(signal.storeAddress || ''))
+    && (!identity.requiresBinaryNoExactCount || (Number(signal.quantity || 0) === 0 && signal.quantityIsExact === false))
+    && (!identity.requiresProductPage || pensacolaProductUrl(signal.sourceUrl) === signal.sourceUrl)
+    && (!identity.requiresProductIdentity || (
+      String(signal.productId || '')
+      && String(signal.variantId || '')
+      && (signal.raw == null || (
+        String(signal.raw?.productId || '') === String(signal.productId)
+        && String(signal.raw?.variantId || '') === String(signal.variantId)
+      ))
+    ))
+    && (!identity.requiresPickupProof || (
+      signal.pickupOfferVerified === true
+      && signal.premisesVerified === true
+      && signal.sourceProductBinding === pensacolaVariantPickupUrl(signal.variantId)
+    )));
 }
 
 export function isFloridaRetailerInventory(signal) {

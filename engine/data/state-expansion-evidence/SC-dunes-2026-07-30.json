@@ -3,6 +3,7 @@
   "contractCommit": "c1b45b7086bbc1212b1929a9ef31e95ad95fdcea",
   "contractGitTag": "evidence/sc-dunes-contract-2026-07-30",
   "contractPath": "engine/data/state-expansion-evidence/SC-dunes-contract-2026-07-30.json",
+  "implementationCommit": "899b65b1cc5539fb60d8999d531d1eddd43648bd",
   "implementationDigest": "5542afd367e13324e4d7b2b7f92411df0d22a641ab1c7b3e25793a5c00e25c98",
   "implementationFiles": [
     "engine/src/collectors/precision-probes.mjs",

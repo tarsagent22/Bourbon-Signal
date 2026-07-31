@@ -16,6 +16,7 @@ import { summarizeSourceResult } from '../sources/source-result.mjs';
 import { runSourceAdapters } from '../sources/source-runner.mjs';
 import { legacyPrecisionSourceId, runLegacyPrecisionSource } from '../sources/legacy-precision-runtime.mjs';
 import {
+  FLORIDA_LUEKENS_STORES,
   FLORIDA_TAMPA_TARGET_STORES,
   parseLightspeedCatalogEntries,
   parseLightspeedProductInventory,
@@ -29,6 +30,15 @@ import {
   FLORIDA_CITYHIVE_SOURCES,
   registeredFloridaStore,
 } from './florida-retailer-surfaces.mjs';
+import {
+  buildPensacolaShopifyStoreLocationSignals,
+  isUsefulPensacolaShopifyFormat,
+  parsePensacolaShopifyCollectionLinks,
+  parsePensacolaShopifyProductPage,
+  parsePensacolaShopifyVariantPickup,
+  pensacolaVariantPickupUrl,
+  PENSACOLA_SHOPIFY_SOURCE,
+} from './florida-pensacola-surfaces.mjs';
 import {
   floridaCityHiveProductIdentity,
   floridaCityHiveSignalIdentityParts,
@@ -975,6 +985,10 @@ const FL_SOURCE_CONCURRENCY = Math.max(1, Math.min(3, Number(process.env.BOURBON
 const FL_CITYHIVE_PAGE_DELAY_MS = Math.max(300, Math.min(5_000, Number(process.env.BOURBON_SIGNAL_FL_CITYHIVE_PAGE_DELAY_MS) || 500));
 const FL_CITYHIVE_SOURCE_DELAY_MS = Math.max(1_000, Math.min(10_000, Number(process.env.BOURBON_SIGNAL_FL_CITYHIVE_SOURCE_DELAY_MS) || 2_000));
 const FL_CITYHIVE_FALLBACK_MAX_AGE_MS = Math.max(30 * 60_000, Number(process.env.BOURBON_SIGNAL_FL_CITYHIVE_FALLBACK_MAX_AGE_MS) || 6 * 60 * 60_000);
+const FL_PENSACOLA_MAX_COLLECTION_PAGES = Math.max(1, Math.min(3, Number(process.env.BOURBON_SIGNAL_FL_PENSACOLA_MAX_COLLECTION_PAGES) || 1));
+const FL_PENSACOLA_MAX_PRODUCT_PAGES = Math.max(1, Math.min(24, Number(process.env.BOURBON_SIGNAL_FL_PENSACOLA_MAX_PRODUCT_PAGES) || 10));
+const FL_PENSACOLA_MATCH_TARGET = Math.max(1, Math.min(8, Number(process.env.BOURBON_SIGNAL_FL_PENSACOLA_MATCH_TARGET) || 3));
+const FL_PENSACOLA_PAGE_DELAY_MS = Math.max(400, Math.min(5_000, Number(process.env.BOURBON_SIGNAL_FL_PENSACOLA_PAGE_DELAY_MS) || 650));
 export const FL_CITYHIVE_SOURCES = FLORIDA_CITYHIVE_SOURCES;
 const FL_GASPARS_BOURBON_URL = 'https://www.gasparsliquorshoppe.com/bourbon/';
 const FL_GASPARS_MAX_PAGES = Math.max(1, Math.min(40, Number(process.env.BOURBON_SIGNAL_FL_GASPARS_MAX_PAGES) || 40));
@@ -1348,7 +1362,7 @@ export async function curlTextFetch(url, options = {}) {
   const timeoutSeconds = String(Math.max(1, Math.ceil(timeoutMs / 1000)));
   const marker = '\n__BOURBON_SIGNAL_HTTP_STATUS__:';
   const args = [
-    '-L',
+    ...(options.followRedirects === false ? [] : ['-L']),
     '--max-time', timeoutSeconds,
     '-sS',
     '-A', options.userAgent || PENGUIN_BROWSER_UA
@@ -4581,6 +4595,189 @@ async function collectFloridaCityHive(config, bible, observedAt, options = {}) {
   return { signals, roadblocks };
 }
 
+function isPensacolaShopifyResponse(response) {
+  try {
+    const url = new URL(String(response?.url || ''));
+    return response?.ok === true
+      && url.protocol === 'https:'
+      && url.hostname.toLowerCase() === PENSACOLA_SHOPIFY_SOURCE.hostname;
+  } catch {
+    return false;
+  }
+}
+
+export async function collectFloridaPensacolaShopify(config, bible, observedAt, options = {}) {
+  const signals = [];
+  const roadblocks = [];
+  const productUrls = [];
+  const seenProductUrls = new Set();
+  for (let page = 1; page <= FL_PENSACOLA_MAX_COLLECTION_PAGES; page += 1) {
+    options.signal?.throwIfAborted?.();
+    const url = new URL(PENSACOLA_SHOPIFY_SOURCE.collectionUrl);
+    if (page > 1) url.searchParams.set('page', String(page));
+    const response = await curlTextFetch(url.href, {
+      headers: { accept: 'text/html,*/*', 'user-agent': 'Mozilla/5.0 (compatible; BourbonSignal/1.0; retailer inventory verification)' },
+      followRedirects: false,
+      timeoutMs: 24_000,
+      signal: options.signal,
+    });
+    if (!isPensacolaShopifyResponse(response)) {
+      roadblocks.push({
+        state: config.id,
+        source: PENSACOLA_SHOPIFY_SOURCE.sourceLabel,
+        url: url.href,
+        status: response.status || 0,
+        error: response.error || `HTTP ${response.status || 'unknown'} or an unapproved redirect`,
+        nextRoute: response.status === 429
+          ? 'Stop the first-party Shopify lane for this run and retry at the next bounded cadence; do not bypass retailer controls.'
+          : 'Retry the exact first-party bourbon collection at low cadence and preserve prior rows only as centrally denied stale context.',
+      });
+      break;
+    }
+    const pageLinks = parsePensacolaShopifyCollectionLinks(response.text);
+    if (!pageLinks.length) break;
+    for (const productUrl of pageLinks) {
+      if (seenProductUrls.has(productUrl)) continue;
+      seenProductUrls.add(productUrl);
+      productUrls.push(productUrl);
+      if (productUrls.length >= FL_PENSACOLA_MAX_PRODUCT_PAGES) break;
+    }
+    if (productUrls.length >= FL_PENSACOLA_MAX_PRODUCT_PAGES) break;
+    await sleepWithSignal(FL_PENSACOLA_PAGE_DELAY_MS, options.signal);
+  }
+
+  let matchedProducts = 0;
+  for (const productUrl of productUrls.slice(0, FL_PENSACOLA_MAX_PRODUCT_PAGES)) {
+    options.signal?.throwIfAborted?.();
+    const response = await curlTextFetch(productUrl, {
+      headers: { accept: 'text/html,*/*', 'user-agent': 'Mozilla/5.0 (compatible; BourbonSignal/1.0; retailer inventory verification)' },
+      followRedirects: false,
+      timeoutMs: 24_000,
+      signal: options.signal,
+    });
+    if (!isPensacolaShopifyResponse(response)) {
+      roadblocks.push({
+        state: config.id,
+        source: PENSACOLA_SHOPIFY_SOURCE.sourceLabel,
+        url: productUrl,
+        status: response.status || 0,
+        error: response.error || `HTTP ${response.status || 'unknown'} or an unapproved redirect`,
+        nextRoute: response.status === 429
+          ? 'Stop product-page requests for this source until the next bounded cadence.'
+          : 'Retry this exact first-party product page; do not infer availability from collection placement.',
+      });
+      if (response.status === 429) break;
+      await sleepWithSignal(FL_PENSACOLA_PAGE_DELAY_MS, options.signal);
+      continue;
+    }
+    const product = parsePensacolaShopifyProductPage(response.text, productUrl);
+    if (!product || !isUsefulPensacolaShopifyFormat(product.rawName)) {
+      await sleepWithSignal(FL_PENSACOLA_PAGE_DELAY_MS, options.signal);
+      continue;
+    }
+    const { match, record, unsafeReason } = cityHiveSafeBottleMatch(product.rawName, bible);
+    if (!record) {
+      await sleepWithSignal(FL_PENSACOLA_PAGE_DELAY_MS, options.signal);
+      continue;
+    }
+    const pickupUrl = pensacolaVariantPickupUrl(product.variantId);
+    const pickupResponse = await curlTextFetch(pickupUrl, {
+      headers: { accept: 'text/html,*/*' },
+      userAgent: 'Mozilla/5.0 (compatible; BourbonSignal/1.0; retailer inventory verification)',
+      followRedirects: false,
+      timeoutMs: 24_000,
+      signal: options.signal,
+    });
+    if (!isPensacolaShopifyResponse(pickupResponse)) {
+      roadblocks.push({
+        state: config.id,
+        source: PENSACOLA_SHOPIFY_SOURCE.sourceLabel,
+        url: pickupUrl,
+        status: pickupResponse.status || 0,
+        error: pickupResponse.error || `HTTP ${pickupResponse.status || 'unknown'} or an unapproved redirect`,
+        nextRoute: 'Retry the exact public Shopify variant pickup section; do not infer store availability from static product-page location copy.',
+      });
+      if (pickupResponse.status === 429) break;
+      await sleepWithSignal(FL_PENSACOLA_PAGE_DELAY_MS, options.signal);
+      continue;
+    }
+    const storesForProduct = parsePensacolaShopifyVariantPickup(pickupResponse.text, pickupUrl, product.variantId);
+    if (!storesForProduct.length) {
+      await sleepWithSignal(FL_PENSACOLA_PAGE_DELAY_MS, options.signal);
+      continue;
+    }
+    matchedProducts += 1;
+    for (const store of storesForProduct) {
+      signals.push({
+        id: stableId(['FL', PENSACOLA_SHOPIFY_SOURCE.id, store.id, product.productId, product.variantId]),
+        state: config.id,
+        sourceLabel: PENSACOLA_SHOPIFY_SOURCE.sourceLabel,
+        sourceUrl: productUrl,
+        sourceChain: PENSACOLA_SHOPIFY_SOURCE.id,
+        merchantId: store.id,
+        productId: product.productId,
+        variantId: product.variantId,
+        sourceProductBinding: pickupUrl,
+        rawName: product.rawName,
+        canonicalBottleId: record.id,
+        canonicalName: record.canonical,
+        tier: record.tier,
+        confidence: Math.max(0.84, match?.confidence || 0.5),
+        eventType: 'retailer_store_inventory_result',
+        locationPrecision: 'store_level',
+        locationName: store.name,
+        storeName: store.name,
+        storeId: store.id,
+        storeAddress: store.address,
+        city: store.city,
+        stateCode: 'FL',
+        postalCode: store.zip,
+        zip: store.zip,
+        quantity: 0,
+        quantityIsExact: false,
+        price: product.price,
+        availabilityStatus: 'in_stock',
+        availabilityLabel: 'Retailer reports pickup available; exact count not published',
+        sourceAvailabilityVerified: true,
+        pickupOfferVerified: true,
+        premisesVerified: true,
+        observedAt,
+        canAlertAsInventory: true,
+        canAlertAsWatch: true,
+        inventorySemantics: 'binary_retailer_orderable_no_exact_count',
+        evidence: `${PENSACOLA_SHOPIFY_SOURCE.chainName} reports ${product.rawName} available for pickup at ${store.address}; exact shelf count is not published. Verify before driving.`,
+        raw: {
+          chain: PENSACOLA_SHOPIFY_SOURCE.id,
+          merchantId: store.id,
+          productId: product.productId,
+          variantId: product.variantId,
+          pickupVerified: true,
+          variantPickupVerified: true,
+          variantPickupUrl: pickupUrl,
+          configuredStoreIdentity: true,
+          sourceAvailabilityVerified: true,
+          matchGuard: unsafeReason,
+        },
+      });
+    }
+    await sleepWithSignal(FL_PENSACOLA_PAGE_DELAY_MS, options.signal);
+    if (matchedProducts >= FL_PENSACOLA_MATCH_TARGET) break;
+  }
+  if (!signals.length) {
+    roadblocks.push({
+      state: config.id,
+      source: PENSACOLA_SHOPIFY_SOURCE.sourceLabel,
+      url: PENSACOLA_SHOPIFY_SOURCE.collectionUrl,
+      status: productUrls.length ? 'reachable_no_safe_inventory_rows' : 'no_first_party_product_links',
+      error: productUrls.length
+        ? `Read ${productUrls.length} bounded first-party product pages with ${matchedProducts} safe bottle matches but no exact reviewed pickup rows survived.`
+        : 'The first-party bourbon collection returned no same-origin product links.',
+      nextRoute: 'Retry at the next bounded cadence and keep configured store rows non-alertable; do not weaken product, pickup, store, or address identity.',
+    });
+  }
+  return { signals, roadblocks };
+}
+
 async function collectFloridaGaspars(config, bible, observedAt, options = {}) {
   const signals = [];
   const roadblocks = [];
@@ -4662,15 +4859,75 @@ async function collectFloridaLiquorDepot(config, bible, observedAt, options = {}
   return { signals, roadblocks: signals.length ? [] : [{ state: 'FL', source: 'Liquor Depot Tampa online quantity watch', url: FL_LIQUOR_DEPOT_URL, status: 'reachable_no_safe_inventory_rows', error: 'No safely matched positive online quantity rows.', nextRoute: 'Retain the page as catalog evidence and retry without mapping chain inventory to a physical store.' }] };
 }
 
+export function buildFloridaStandaloneStoreLocationSignals(observedAt) {
+  const stores = [
+    {
+      ...FL_MDP_STORE,
+      sourceLabel: 'MDP Liquor Kissimmee Shopify store inventory',
+      sourceUrl: FL_MDP_PRODUCTS_BASE_URL,
+      chain: 'mdp-liquor-kissimmee',
+      merchantId: 'mdp-liquor-kissimmee-shopify',
+    },
+    ...FLORIDA_LUEKENS_STORES.map((store) => ({
+      ...store,
+      sourceLabel: FL_SHOPIFY_RETAILERS[0].label,
+      sourceUrl: FL_SHOPIFY_RETAILERS[0].productsUrl,
+      chain: FL_SHOPIFY_RETAILERS[0].chain,
+      merchantId: store.id,
+    })),
+    {
+      ...FL_SHOPIFY_RETAILERS[1].store,
+      sourceLabel: FL_SHOPIFY_RETAILERS[1].label,
+      sourceUrl: FL_SHOPIFY_RETAILERS[1].productsUrl,
+      chain: FL_SHOPIFY_RETAILERS[1].chain,
+      merchantId: FL_SHOPIFY_RETAILERS[1].store.id,
+    },
+  ];
+  return stores.map((store) => ({
+    id: stableId(['FL', 'configured-store-location', store.chain, store.id]),
+    state: 'FL',
+    sourceLabel: `${store.sourceLabel} registry`,
+    sourceUrl: store.sourceUrl,
+    sourceChain: store.chain,
+    merchantId: store.merchantId,
+    rawName: store.name,
+    canonicalBottleId: null,
+    canonicalName: null,
+    confidence: 0.82,
+    eventType: 'retailer_store_location',
+    locationPrecision: 'store_level',
+    locationName: store.name,
+    storeName: store.name,
+    storeId: store.id,
+    storeAddress: store.address,
+    city: store.city,
+    stateCode: 'FL',
+    postalCode: store.zip,
+    zip: store.zip,
+    quantity: 0,
+    observedAt,
+    canAlertAsInventory: false,
+    canAlertAsWatch: false,
+    inventorySemantics: 'Reviewed first-party Florida retailer identity only; this stable directory row is not bottle inventory.',
+    evidence: `${store.name} is registered at ${store.address} for this first-party retailer source.`,
+    raw: { chain: store.chain, merchantId: store.merchantId, configuredStoreIdentity: true },
+  }));
+}
+
 async function collectFlorida(config, bible, existingSignals = [], options = {}) {
   const observedAt = new Date().toISOString();
-  const configuredLocations = buildFloridaConfiguredStoreLocationSignals(observedAt);
+  const configuredLocations = [
+    ...buildFloridaConfiguredStoreLocationSignals(observedAt),
+    ...buildFloridaStandaloneStoreLocationSignals(observedAt),
+    ...buildPensacolaShopifyStoreLocationSignals(observedAt),
+  ];
   const laneRun = await runBoundedSourceLanes([
     { name: 'mdp', domain: 'mdp-florida', run: ({ signal }) => collectFloridaMdp(config, bible, observedAt, { ...options, signal }) },
     { name: 'target', domain: 'target.com', run: ({ signal }) => collectFloridaTarget(config, bible, observedAt, existingSignals, { ...options, signal }) },
     { name: 'shopify', domain: 'florida-shopify-group', run: ({ signal }) => collectFloridaShopifyRetailers(config, bible, observedAt, { ...options, signal }) },
     { name: 'abc', domain: 'abcfws.com', run: ({ signal }) => collectFloridaAbc(config, bible, observedAt, { ...options, signal }) },
     { name: 'cityhive', domain: 'florida-cityhive-group', run: ({ signal }) => collectFloridaCityHive(config, bible, observedAt, { ...options, signal }) },
+    { name: 'pensacola-shopify', domain: 'pensacolaliquors.com', run: ({ signal }) => collectFloridaPensacolaShopify(config, bible, observedAt, { ...options, signal }) },
     { name: 'gaspars', domain: 'gasparsliquorshoppe.com', run: ({ signal }) => collectFloridaGaspars(config, bible, observedAt, { ...options, signal }) },
     { name: 'liquor-depot', domain: 'liquordepottampa.com', run: ({ signal }) => collectFloridaLiquorDepot(config, bible, observedAt, { ...options, signal }) },
   ], {
@@ -4684,6 +4941,7 @@ async function collectFlorida(config, bible, existingSignals = [], options = {})
   const shopify = lanes.get('shopify');
   const abc = lanes.get('abc');
   const cityHive = lanes.get('cityhive');
+  const pensacolaShopify = lanes.get('pensacola-shopify');
   const liveCityHiveIds = new Set(cityHive.signals.map((signal) => signal.id));
   const retainedCityHive = freshCityHivePositiveSignals(
     existingSignals,
@@ -4702,8 +4960,8 @@ async function collectFlorida(config, bible, existingSignals = [], options = {})
   const gaspars = lanes.get('gaspars');
   const liquorDepot = lanes.get('liquor-depot');
   return {
-    signals: [...configuredLocations, ...mdp.signals, ...targetSignals, ...shopify.signals, ...abc.signals, ...cityHive.signals, ...gaspars.signals, ...liquorDepot.signals],
-    roadblocks: [...mdp.roadblocks, ...target.roadblocks, ...shopify.roadblocks, ...abc.roadblocks, ...cityHive.roadblocks, ...gaspars.roadblocks, ...liquorDepot.roadblocks],
+    signals: [...configuredLocations, ...mdp.signals, ...targetSignals, ...shopify.signals, ...abc.signals, ...cityHive.signals, ...pensacolaShopify.signals, ...gaspars.signals, ...liquorDepot.signals],
+    roadblocks: [...mdp.roadblocks, ...target.roadblocks, ...shopify.roadblocks, ...abc.roadblocks, ...cityHive.roadblocks, ...pensacolaShopify.roadblocks, ...gaspars.roadblocks, ...liquorDepot.roadblocks],
     metadata: {
       sourceConcurrency: laneRun.concurrency,
       sourceTimings: laneRun.timings,

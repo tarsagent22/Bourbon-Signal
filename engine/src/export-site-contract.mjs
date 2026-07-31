@@ -328,6 +328,7 @@ function publicSignal(signal, bible, freshness = null) {
     sourceRuntimeId: signal.sourceRuntimeId || signal.raw?.sourceRuntimeId || null,
     merchantId: signal.merchantId || signal.raw?.merchantId || signal.raw?.option?.merchant_id || null,
     productId: signal.productId || signal.raw?.product?.id || signal.raw?.option?.product_id || null,
+    sourceProductBinding: signal.sourceProductBinding || signal.raw?.productBinding || null,
     productHandle: signal.productHandle || signal.raw?.product?.handle || null,
     productCode: signal.productCode || null,
     productLimitedCaveat: typeof signal.productLimitedCaveat === 'boolean' ? signal.productLimitedCaveat : null,
@@ -786,6 +787,9 @@ function aggregateLeadIdentity(signal) {
 
 function isSafePublicSignal(signal) {
   const type = String(signal.eventType || '');
+  if (signal.state === 'FL'
+    && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(type)
+    && (!isFloridaRetailerSignalIdentity(signal) || !isFloridaRetailerInventory(signal))) return false;
   if (['NY', 'CO'].includes(signal.state)
     && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(type)
     && (!isMetroRetailerSignalIdentity(signal) || !isMetroRetailerInventory(signal))) return false;
@@ -1350,6 +1354,10 @@ function ohioFeedStaleCaveat(signal) {
 
 function dropHasPositiveAlertInventory(drop) {
   if (['NY', 'CO'].includes(drop?.state)) return isMetroRetailerInventory(drop);
+  if (drop?.state === 'FL') {
+    return (Number(drop.quantity || 0) > 0 || drop.quantityIsExact === false)
+      && isFloridaRetailerInventory(drop);
+  }
   if (drop?.state === 'GA') return isGeorgiaRetailerInventory(drop);
   if (drop?.state === 'TN') return isTennesseeRetailerInventory(drop);
   if (Number(drop?.quantity || 0) > 0) return true;
@@ -1365,7 +1373,7 @@ function dropHasPositiveAlertInventory(drop) {
     && ['limited_supply', 'in_stock'].includes(String(drop?.availabilityStatus || '').toLowerCase());
 }
 
-function buildCurrentInventoryAlertsFromDrops(drops) {
+export function buildCurrentInventoryAlertsFromDrops(drops) {
   return (drops || [])
     .filter((drop) => drop && drop.canAlertAsInventory && drop.locationPrecision === 'store_level')
     .filter((drop) => dropAgeHours(drop) <= CURRENT_INVENTORY_ALERT_MAX_AGE_HOURS)
@@ -1376,9 +1384,15 @@ function buildCurrentInventoryAlertsFromDrops(drops) {
       const georgiaBaseline = drop.state === 'GA';
       const metroBaseline = ['NY', 'CO'].includes(drop.state);
       const tennesseeBinaryBaseline = drop.state === 'TN' && drop.inventorySemantics === 'binary_retailer_orderable_no_exact_count';
-      const binaryRetailerOrderability = (georgiaBaseline || metroBaseline || tennesseeBinaryBaseline)
+      const floridaBinaryBaseline = drop.state === 'FL'
+        && Number(drop.quantity || 0) === 0
+        && drop.quantityIsExact === false
+        && isFloridaRetailerInventory(drop);
+      const binaryRetailerOrderability = floridaBinaryBaseline || (
+        (georgiaBaseline || metroBaseline || tennesseeBinaryBaseline)
         && drop.inventorySemantics === 'binary_retailer_orderable_no_exact_count'
-        && Number(drop.quantity || 0) === 0;
+        && Number(drop.quantity || 0) === 0
+      );
       return ({
       id: stableId(['current_inventory_alert', drop.id || drop.state, drop.canonicalId || drop.bottleName, drop.storeId || drop.locationName, drop.quantity || 0, drop.availabilityStatus || '']),
       action: 'inventory_alert_candidate',
@@ -1386,12 +1400,12 @@ function buildCurrentInventoryAlertsFromDrops(drops) {
       reliabilityScore: drop.tier === 'unicorn' ? 92 : drop.tier === 'allocated' ? 88 : 82,
       eligibleForDelivery: true,
       eligibleForOnSite: true,
-      eligibleForEmail: drop.state === 'CA' || georgiaBaseline || metroBaseline || tennesseeBinaryBaseline ? false : true,
-      eligibleForSms: drop.state === 'CA' || georgiaBaseline || metroBaseline || tennesseeBinaryBaseline ? false : ['unicorn', 'allocated'].includes(String(drop.tier || '')),
+      eligibleForEmail: drop.state === 'CA' || georgiaBaseline || metroBaseline || tennesseeBinaryBaseline || floridaBinaryBaseline ? false : true,
+      eligibleForSms: drop.state === 'CA' || georgiaBaseline || metroBaseline || tennesseeBinaryBaseline || floridaBinaryBaseline ? false : ['unicorn', 'allocated'].includes(String(drop.tier || '')),
       actionabilityClass: 'store_inventory',
       priorityClass: drop.tier === 'limited' ? 'standard' : 'major',
       deliveryChannel: 'onsite_candidate',
-      sendRecommendation: drop.state === 'CA' || georgiaBaseline || metroBaseline || tennesseeBinaryBaseline ? 'display_on_site_until_change_detected' : 'send_to_matching_testers',
+      sendRecommendation: drop.state === 'CA' || georgiaBaseline || metroBaseline || tennesseeBinaryBaseline || floridaBinaryBaseline ? 'display_on_site_until_change_detected' : 'send_to_matching_testers',
       signalAt: dropSignalAt(drop),
       freshnessHours: Number(dropAgeHours(drop).toFixed(2)),
       bootstrap: false,
