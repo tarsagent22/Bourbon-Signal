@@ -11,7 +11,7 @@ function normalizedIdentity(value = '') {
 function hasExactDunesProductUrl(signal) {
   try {
     const url = new URL(String(signal.sourceUrl || ''));
-    const sku = String(signal.raw?.sku || '').trim();
+    const sku = String(signal.sku || signal.raw?.sku || '').trim();
     return url.protocol === 'https:'
       && url.hostname === 'www.dunesliquor.com'
       && url.pathname === '/ListManage/ItemDescriptionPage'
@@ -24,7 +24,7 @@ function hasExactDunesProductUrl(signal) {
 }
 
 export function isSouthCarolinaDunesInventory(signal, nowMs = Date.now()) {
-  const eventType = String(signal?.eventType || signal?.signalType || '');
+  const eventType = String(signal?.eventType || signal?.signalType || signal?.type || '');
   const quantity = typeof signal?.quantity === 'number' ? signal.quantity : Number.NaN;
   const storeQty = typeof signal?.storeQty === 'number' ? signal.storeQty : Number.NaN;
   const price = typeof signal?.price === 'number' ? signal.price : Number.NaN;
@@ -35,17 +35,17 @@ export function isSouthCarolinaDunesInventory(signal, nowMs = Date.now()) {
     && eventType === 'retailer_store_inventory_result'
     && signal?.sourceLabel === DUNES_SOURCE_LABEL
     && signal?.sourceRuntimeId === 'precision:sc'
-    && signal?.raw?.leafSourceRuntimeId === DUNES_RUNTIME_ID
+    && (signal?.leafSourceRuntimeId || signal?.raw?.leafSourceRuntimeId) === DUNES_RUNTIME_ID
     && signal?.storeId === DUNES_STORE_ID
     && signal?.storeName === 'Dunes Liquor'
     && signal?.city === 'Myrtle Beach'
-    && signal?.postalCode === '29572'
+    && String(signal?.postalCode || signal?.zip || '') === '29572'
     && normalizedIdentity(signal?.storeAddress) === DUNES_ADDRESS
     && signal?.locationPrecision === 'store_level'
     && hasExactDunesProductUrl(signal)
-    && signal?.raw?.runtimeStoreId === '6178'
-    && signal?.raw?.integratedCartVerified === true
-    && signal?.raw?.quantitySemantics === 'exact_retailer_in_store_quantity'
+    && String(signal?.runtimeStoreId || signal?.raw?.runtimeStoreId || '') === '6178'
+    && (signal?.integratedCartVerified ?? signal?.raw?.integratedCartVerified) === true
+    && (signal?.raw?.quantitySemantics == null || signal.raw.quantitySemantics === 'exact_retailer_in_store_quantity')
     && signal?.quantitySemantics === 'exact_retailer_in_store_quantity'
     && Number.isSafeInteger(quantity)
     && quantity > 0
@@ -65,4 +65,16 @@ export function isSouthCarolinaDunesInventory(signal, nowMs = Date.now()) {
     && Number.isFinite(observedMs)
     && ageMs >= -5 * 60_000
     && ageMs <= DUNES_MAX_AGE_MS;
+}
+
+export function isSouthCarolinaDunesSignal(signal) {
+  let sourceHost = '';
+  try { sourceHost = new URL(String(signal?.sourceUrl || '')).hostname.toLowerCase(); } catch {}
+  return signal?.sourceLabel === DUNES_SOURCE_LABEL
+    || signal?.sourceRuntimeId === DUNES_RUNTIME_ID
+    || signal?.leafSourceRuntimeId === DUNES_RUNTIME_ID
+    || signal?.raw?.leafSourceRuntimeId === DUNES_RUNTIME_ID
+    || signal?.storeId === DUNES_STORE_ID
+    || sourceHost === 'dunesliquor.com'
+    || sourceHost === 'www.dunesliquor.com';
 }

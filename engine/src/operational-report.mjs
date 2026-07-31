@@ -1,5 +1,6 @@
 import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { pathToFileURL } from 'node:url';
 import { stableId } from './core/text.mjs';
 import { BourbonBible } from './core/bible.mjs';
 import { confidenceForSignal, STATE_CONFIDENCE_POLICY } from './confidence-policy.mjs';
@@ -15,6 +16,7 @@ import { getStateLifecycle } from './state-lifecycle.mjs';
 import { appendChangeJournal } from './optimization/change-journal.mjs';
 import { hasPositiveInventoryEvidence } from './operational-candidate-policy.mjs';
 import { authoritativeSignalTimestamp, enforceArchivedSourceAlertPolicy } from './event-freshness.mjs';
+import { isSouthCarolinaSouthernSpiritsInventory } from './south-carolina-retailer-policy.mjs';
 
 const OUT = path.resolve('out');
 const HISTORY = path.join(OUT, 'history');
@@ -96,14 +98,18 @@ export function canonicalizeSignal(signal, bible) {
     sourceUrl: signal.sourceUrl,
     sourceChain: signal.sourceChain || signal.raw?.chain || null,
     sourceRuntimeId: signal.sourceRuntimeId || signal.raw?.sourceRuntimeId || null,
+    leafSourceRuntimeId: signal.leafSourceRuntimeId || signal.raw?.leafSourceRuntimeId || null,
     merchantId: signal.merchantId || signal.raw?.merchantId || signal.raw?.option?.merchant_id || null,
     productId: signal.productId || signal.raw?.productId || signal.raw?.product?.id || signal.raw?.option?.product_id || null,
+    productHandle: signal.productHandle || signal.raw?.product?.handle || null,
     sourceProductBinding: signal.sourceProductBinding || signal.raw?.productBinding || null,
     productCode: signal.productCode || signal.raw?.product?.code || String(signal.sourceUrl || '').match(/productCode=([^&]+)/)?.[1] || null,
+    sku: signal.sku || signal.raw?.sku || null,
     productLimitedCaveat: typeof signal.productLimitedCaveat === 'boolean'
       ? signal.productLimitedCaveat
       : typeof signal.raw?.product?.limitedCaveat === 'boolean' ? signal.raw.product.limitedCaveat : null,
     variantId: signal.variantId || signal.raw?.variantId || signal.raw?.variant?.id || signal.raw?.option?.option_id || null,
+    variantAvailable: signal.variantAvailable ?? signal.raw?.variant?.available ?? null,
     observedAt: observedAt(signal),
     firstSeenAt: signal.firstSeenAt || null,
     lastConfirmedAt: signal.lastConfirmedAt || null,
@@ -129,7 +135,9 @@ export function canonicalizeSignal(signal, bible) {
     lat: optionalNumber(signal.lat, signal.latitude, signal.raw?.lat, signal.raw?.latitude, signal.raw?.Latitude),
     lng: optionalNumber(signal.lng, signal.lon, signal.longitude, signal.raw?.lng, signal.raw?.lon, signal.raw?.longitude, signal.raw?.Longitude),
     quantity: qty(signal),
+    storeQty: Number(signal.storeQty ?? signal.raw?.storeQty ?? signal.quantity ?? 0) || 0,
     quantityIsExact: typeof signal.quantityIsExact === 'boolean' ? signal.quantityIsExact : null,
+    quantitySemantics: signal.quantitySemantics || signal.raw?.quantitySemantics || null,
     reportedQuantity: ['GA', 'VA'].includes(signal.state) && Number.isFinite(Number(signal.reportedQuantity ?? signal.raw?.reportedQuantity ?? signal.raw?.store?.quantity))
       ? Number(signal.reportedQuantity ?? signal.raw?.reportedQuantity ?? signal.raw?.store?.quantity)
       : null,
@@ -140,6 +148,9 @@ export function canonicalizeSignal(signal, bible) {
     pickupOfferVerified: signal.pickupOfferVerified === true || signal.raw?.pickupOfferVerified === true,
     deliveryOfferVerified: signal.deliveryOfferVerified === true || signal.raw?.deliveryOfferVerified === true,
     orderabilityOfferVerified: signal.orderabilityOfferVerified === true || signal.raw?.orderabilityOfferVerified === true,
+    integratedCartVerified: signal.integratedCartVerified === true || signal.raw?.integratedCartVerified === true,
+    runtimeStoreId: signal.runtimeStoreId || signal.raw?.runtimeStoreId || null,
+    fulfillmentGuaranteed: signal.fulfillmentGuaranteed === true || signal.raw?.fulfillmentGuaranteed === true,
     fulfillmentPolicyVerified: signal.fulfillmentPolicyVerified === true,
     availabilityValue: signal.availabilityValue ?? signal.raw?.availability?.value ?? null,
     warehouseQty: Number(signal.warehouseQty ?? signal.raw?.warehouseQty ?? 0) || 0,
@@ -343,7 +354,7 @@ function reliabilityForCandidate(change, sig, score) {
   };
 }
 
-function candidateFromChange(change, bootstrap = false) {
+export function candidateFromChange(change, bootstrap = false) {
   const sig = change.after || change.before;
   const score = changeScore(change);
   const action = sig.canAlertAsInventory ? 'inventory_alert_candidate' : sig.canAlertAsWatch ? 'watch_alert_candidate' : 'do_not_alert_context_only';
@@ -356,6 +367,7 @@ function candidateFromChange(change, bootstrap = false) {
   }
   const eligibleForDelivery = blockers.length === 0 && reliability.eligibleForDelivery;
   const signalAt = authoritativeSignalTimestamp(sig);
+  const southCarolinaBinaryBaseline = isSouthCarolinaSouthernSpiritsInventory(sig);
   return {
     id: stableId([change.type, sig.key, JSON.stringify(change.fields || [])]),
     changeType: change.type,
@@ -370,7 +382,9 @@ function candidateFromChange(change, bootstrap = false) {
     sourceChain: sig.sourceChain,
     merchantId: sig.merchantId,
     productId: sig.productId,
+    productHandle: sig.productHandle,
     variantId: sig.variantId,
+    variantAvailable: sig.variantAvailable,
     locationPrecision: sig.locationPrecision,
     locationName: sig.locationName,
     storeName: sig.storeName,
@@ -379,6 +393,7 @@ function candidateFromChange(change, bootstrap = false) {
     city: sig.city,
     quantity: sig.quantity,
     quantityIsExact: sig.quantityIsExact,
+    quantitySemantics: sig.quantitySemantics,
     reportedQuantity: sig.reportedQuantity,
     availabilityStatus: sig.availabilityStatus,
     availabilityLabel: sig.availabilityLabel,
@@ -390,11 +405,13 @@ function candidateFromChange(change, bootstrap = false) {
     sampleOnly: Boolean(sig.sampleOnly),
     ...reliability,
     eligibleForDelivery,
+    eligibleForEmail: southCarolinaBinaryBaseline ? false : undefined,
+    eligibleForSms: southCarolinaBinaryBaseline ? false : undefined,
     priorityClass: eligibleForDelivery ? reliability.priorityClass : 'hold',
     deliveryChannel: eligibleForDelivery ? reliability.deliveryChannel : 'review_only',
     blockers,
     cautions,
-    sendRecommendation: eligibleForDelivery ? reliability.sendRecommendation : blockers.length ? 'do_not_send' : reliability.sendRecommendation,
+    sendRecommendation: southCarolinaBinaryBaseline ? 'display_on_site_until_change_detected' : eligibleForDelivery ? reliability.sendRecommendation : blockers.length ? 'do_not_send' : reliability.sendRecommendation,
     policyMode: sig.policyMode,
     inventorySemantics: sig.inventorySemantics,
     locationValue: locationValue(sig),
@@ -524,4 +541,6 @@ async function main() {
   console.log(`Operational report: ${signals.length} normalized operational signals, ${changes.length} changes, ${alertCandidates.length} alert candidates. Bootstrap=${bootstrap}.`);
 }
 
-main().catch((error) => { console.error(error); process.exit(1); });
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
+  main().catch((error) => { console.error(error); process.exit(1); });
+}

@@ -5800,6 +5800,57 @@ function southernSpiritsProductUrl(product) {
   return product?.handle ? `https://southernspirits.com/products/${product.handle}` : 'https://southernspirits.com/products';
 }
 
+export function buildSouthCarolinaSouthernSpiritsSignal(product, bible, observedAt) {
+  if (!product?.id || !Array.isArray(product.variants)) return null;
+  const availableVariant = product.variants.find((variant) => variant?.available === true);
+  if (!availableVariant) return null;
+  const candidateText = southernSpiritsProductText(product, availableVariant);
+  if (!isSouthCarolinaRetailerCandidate(candidateText)) return null;
+  const rawName = [product.title, availableVariant.title && !/^default title$/i.test(availableVariant.title) ? availableVariant.title : null].filter(Boolean).join(' ');
+  const { match, record, unsafeReason } = cityHiveSafeBottleMatch(rawName, bible);
+  if (!record) return null;
+  const price = Number(availableVariant.price || 0) || null;
+  return {
+    id: stableId(['SC', 'shopify-store-inventory', SC_SOUTHERN_SPIRITS_STORE.id, product.id, availableVariant.id || '', price]),
+    state: 'SC',
+    sourceLabel: 'Southern Spirits Shopify products feed',
+    sourceUrl: southernSpiritsProductUrl(product),
+    sourceChain: 'southern-spirits',
+    rawName,
+    canonicalBottleId: record.id,
+    canonicalName: record.canonical,
+    productId: product.id,
+    productHandle: product.handle,
+    variantId: availableVariant.id,
+    variantAvailable: true,
+    confidence: Math.max(0.78, match?.confidence || 0.5),
+    eventType: 'retailer_store_inventory_result',
+    locationPrecision: 'store_level',
+    locationName: SC_SOUTHERN_SPIRITS_STORE.name,
+    storeName: SC_SOUTHERN_SPIRITS_STORE.name,
+    storeId: `southern-spirits:${SC_SOUTHERN_SPIRITS_STORE.id}`,
+    storeAddress: SC_SOUTHERN_SPIRITS_STORE.address,
+    city: SC_SOUTHERN_SPIRITS_STORE.city,
+    stateCode: 'SC',
+    postalCode: SC_SOUTHERN_SPIRITS_STORE.zip,
+    zip: SC_SOUTHERN_SPIRITS_STORE.zip,
+    quantity: 0,
+    storeQty: 0,
+    quantityIsExact: false,
+    quantitySemantics: 'binary_retailer_in_stock',
+    price,
+    availabilityStatus: 'in_stock',
+    availabilityLabel: 'Retailer reports availability — exact quantity unavailable',
+    sourceAvailabilityVerified: true,
+    observedAt,
+    canAlertAsInventory: true,
+    canAlertAsWatch: true,
+    inventorySemantics: 'Southern Spirits Shopify products feed exposes public online availability for one verified South Carolina premises, but not an exact bottle count. This is binary retailer availability; verify before driving or ordering.',
+    evidence: `Southern Spirits Shopify feed reports ${rawName}${price ? ` at $${price.toFixed(2)}` : ''} available for ${SC_SOUTHERN_SPIRITS_STORE.address}; exact count is not exposed.`,
+    raw: { chain: 'southern-spirits', product: { id: product.id, handle: product.handle, product_type: product.product_type, tags: product.tags }, variant: availableVariant, quantitySemantics: 'binary_retailer_in_stock', matchGuard: unsafeReason }
+  };
+}
+
 async function collectSouthCarolinaSouthernSpirits(config, bible, observedAt) {
   const signals = [southCarolinaStoreLocationSignal(config, 'Southern Spirits Shopify products feed', 'https://southernspirits.com/', SC_SOUTHERN_SPIRITS_STORE, observedAt, 'southern-spirits')];
   const roadblocks = [];
@@ -5828,46 +5879,10 @@ async function collectSouthCarolinaSouthernSpirits(config, bible, observedAt) {
     returnedRows += products.length;
     for (const product of products) {
       if (!product?.id || seenProducts.has(product.id)) continue;
-      const variants = Array.isArray(product.variants) ? product.variants : [];
-      const availableVariant = variants.find((variant) => variant?.available);
-      if (!availableVariant) continue;
-      const candidateText = southernSpiritsProductText(product, availableVariant);
-      if (!isSouthCarolinaRetailerCandidate(candidateText)) continue;
-      const rawName = [product.title, availableVariant.title && !/^default title$/i.test(availableVariant.title) ? availableVariant.title : null].filter(Boolean).join(' ');
-      const { match, record, unsafeReason } = cityHiveSafeBottleMatch(rawName, bible);
-      if (!record) continue;
+      const signal = buildSouthCarolinaSouthernSpiritsSignal(product, bible, observedAt);
+      if (!signal) continue;
       seenProducts.add(product.id);
-      const price = Number(availableVariant.price || 0) || null;
-      signals.push({
-        id: stableId([config.id, 'shopify-store-inventory', SC_SOUTHERN_SPIRITS_STORE.id, product.id, availableVariant.id || '', price]),
-        state: config.id,
-        sourceLabel: 'Southern Spirits Shopify products feed',
-        sourceUrl: southernSpiritsProductUrl(product),
-        rawName,
-        canonicalBottleId: record.id,
-        canonicalName: record.canonical,
-        confidence: Math.max(0.78, match?.confidence || 0.5),
-        eventType: 'retailer_store_inventory_result',
-        locationPrecision: 'store_level',
-        locationName: SC_SOUTHERN_SPIRITS_STORE.name,
-        storeName: SC_SOUTHERN_SPIRITS_STORE.name,
-        storeId: `southern-spirits:${SC_SOUTHERN_SPIRITS_STORE.id}`,
-        storeAddress: SC_SOUTHERN_SPIRITS_STORE.address,
-        city: SC_SOUTHERN_SPIRITS_STORE.city,
-        stateCode: 'SC',
-        postalCode: SC_SOUTHERN_SPIRITS_STORE.zip,
-        zip: SC_SOUTHERN_SPIRITS_STORE.zip,
-        quantity: 1,
-        price,
-        availabilityStatus: 'listed_available',
-        availabilityLabel: 'Listed available',
-        observedAt,
-        canAlertAsInventory: true,
-        canAlertAsWatch: true,
-        inventorySemantics: 'Southern Spirits Shopify products feed exposes public online availability for a verified single South Carolina store, but not exact bottle count. Quantity is a lower-bound availability marker; verify before driving/order placement.',
-        evidence: `Southern Spirits Shopify feed lists ${rawName}${price ? ` at $${price.toFixed(2)}` : ''} as available for ${SC_SOUTHERN_SPIRITS_STORE.address}; exact count is not exposed.`,
-        raw: { chain: 'southern-spirits', product: { id: product.id, handle: product.handle, product_type: product.product_type, tags: product.tags }, variant: availableVariant, quantitySemantics: 'listed_available_no_exact_count', matchGuard: unsafeReason }
-      });
+      signals.push({ ...signal, state: config.id, stateCode: config.id });
     }
     await sleep(250);
   }

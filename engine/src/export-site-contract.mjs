@@ -16,6 +16,8 @@ import { isIndianaRetailerInventory, isIndianaRetailerSignalIdentity } from './i
 import { isMississippiRetailerInventory } from './mississippi-retailer-policy.mjs';
 import { isMetroRetailerInventory, isMetroRetailerSignalIdentity } from './metro-retailer-policy.mjs';
 import { isTennesseeRetailerInventory, isTennesseeRetailerSignalIdentity } from './tennessee-retailer-policy.mjs';
+import { isSouthCarolinaDunesInventory, isSouthCarolinaDunesSignal } from './south-carolina-dunes-policy.mjs';
+import { hasSouthCarolinaPositiveInventoryEvidence, isSouthCarolinaSouthernSpiritsInventory, isSouthCarolinaSouthernSpiritsSignal } from './south-carolina-retailer-policy.mjs';
 import { canPublishTennesseePartialEvidenceFallback } from './tennessee-verification-policy.mjs';
 import { registeredDemandMetroStores } from './demand-metro-registry.mjs';
 import { demandMetroAreaLabel, demandMetroAreaMatchesFields } from './demand-metro-areas.mjs';
@@ -196,15 +198,16 @@ function isTennesseeCityHiveInventory(signal) {
 }
 
 function isSouthCarolinaAllowedRetailerSource(signal) {
-  return /CityHive|Green's Beverage|Wine & Bourbon Barn|Da Brown Bag|Clover|Southern Spirits|Shopify|All American Liquor/i.test(String(signal.sourceLabel || signal.source || ''));
+  return /CityHive|Green's Beverage|Wine & Bourbon Barn|Da Brown Bag|Clover|Dunes Liquor|Southern Spirits|All American Liquor/i.test(String(signal.sourceLabel || signal.source || ''));
 }
 
 function isSouthCarolinaRetailerInventory(signal) {
+  if (isSouthCarolinaDunesSignal(signal)) return isSouthCarolinaDunesInventory(signal);
   return signal.state === 'SC'
     && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(String(signal.eventType || signal.type || ''))
     && isSouthCarolinaAllowedRetailerSource(signal)
     && signal.locationPrecision === 'store_level'
-    && (Number(signal.quantity || 0) > 0 || (signal.sourceAvailabilityVerified === true && signal.availabilityStatus === 'in_stock'))
+    && hasSouthCarolinaPositiveInventoryEvidence(signal)
     && Boolean(signal.storeId)
     && /,\s*SC\s+\d{5}/i.test(String(signal.storeAddress || ''));
 }
@@ -226,6 +229,7 @@ function publicSignal(signal, bible, freshness = null) {
   const isTnCityHiveInventory = isTennesseeCityHiveInventory(signal);
   const isTnRetailerInventory = isTennesseeRetailerInventory(signal);
   const isScRetailerInventory = isSouthCarolinaRetailerInventory(signal);
+  const isScSouthernBinaryInventory = isSouthCarolinaSouthernSpiritsInventory(signal);
   const isAzRetailerInventory = isArizonaRetailerInventory(signal);
   const isFlRetailerInventory = isFloridaRetailerInventory(signal);
   const isGaRetailerInventory = isGeorgiaRetailerInventory(signal);
@@ -237,6 +241,8 @@ function publicSignal(signal, bible, freshness = null) {
   const isGaRetailerEvent = signal.state === 'GA'
     && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(String(signal.eventType || signal.type || ''));
   const isTnRetailerEvent = signal.state === 'TN'
+    && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(String(signal.eventType || signal.type || ''));
+  const isScRetailerEvent = signal.state === 'SC'
     && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(String(signal.eventType || signal.type || ''));
   const isMetroRetailerEvent = ['NY', 'CO'].includes(signal.state)
     && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(String(signal.eventType || signal.type || ''));
@@ -260,7 +266,9 @@ function publicSignal(signal, bible, freshness = null) {
               ? 'Indiana is a private retail market. Identity-bound first-party retailer inventory and verified store-orderability rows may alert with a verify-before-driving caveat; binary availability is not an exact shelf count.'
               : signal.inventorySemantics;
   const staleFallback = signal.stale === true || signal.sourceStale === true || signal.raw?.staleFallback === true;
-  const policyCanAlertAsInventory = !staleFallback && (isCostcoWarehouseInventory
+  const exactScRetailerIdentityAllowed = (!isSouthCarolinaSouthernSpiritsSignal(signal) || isSouthCarolinaSouthernSpiritsInventory(signal))
+    && (!isSouthCarolinaDunesSignal(signal) || isSouthCarolinaDunesInventory(signal));
+  const policyCanAlertAsInventory = exactScRetailerIdentityAllowed && !staleFallback && (isCostcoWarehouseInventory
     ? Boolean(signal.canAlertAsInventory) && (Number(signal.quantity || signal.storeQty || 0) > 0 || (signal.sourceAvailabilityVerified === true && signal.availabilityStatus === 'in_stock'))
     : signal.state === 'AZ'
       ? isAzRetailerInventory
@@ -274,8 +282,10 @@ function publicSignal(signal, bible, freshness = null) {
           ? (isInRetailerEvent ? isInRetailerInventory : Boolean(signal.canAlertAsInventory))
           : signal.state === 'TN'
             ? (isTnRetailerEvent ? Boolean(signal.canAlertAsInventory) && isTnRetailerInventory : Boolean(signal.canAlertAsInventory))
-            : Boolean(signal.canAlertAsInventory) || isScRetailerInventory);
-  const policyCanAlertAsWatch = !staleFallback && (isCostcoWarehouseInventory
+            : signal.state === 'SC'
+              ? (isScRetailerEvent ? Boolean(signal.canAlertAsInventory) && isScRetailerInventory : Boolean(signal.canAlertAsInventory))
+              : Boolean(signal.canAlertAsInventory));
+  const policyCanAlertAsWatch = exactScRetailerIdentityAllowed && !staleFallback && (isCostcoWarehouseInventory
     ? Boolean(signal.canAlertAsWatch)
     : signal.state === 'AZ'
       ? Boolean(signal.canAlertAsWatch) && isArizonaRetailerSignalIdentity(signal)
@@ -289,7 +299,9 @@ function publicSignal(signal, bible, freshness = null) {
           ? Boolean(signal.canAlertAsWatch) && (!isInRetailerEvent || isIndianaRetailerSignalIdentity(signal))
           : signal.state === 'TN'
             ? Boolean(signal.canAlertAsWatch) && (!isTnRetailerEvent || isTnRetailerInventory)
-            : Boolean(signal.canAlertAsWatch) || isScRetailerInventory);
+            : signal.state === 'SC'
+              ? Boolean(signal.canAlertAsWatch) && (!isScRetailerEvent || isScRetailerInventory)
+              : Boolean(signal.canAlertAsWatch));
   const canAlertAsInventory = lifecycleAllowsInventoryAlert(signal.state) && policyCanAlertAsInventory;
   const canAlertAsWatch = lifecycleAllowsWatchAlert(signal.state) && policyCanAlertAsWatch;
   const dataLane = isKyOfficialDistillery
@@ -326,11 +338,13 @@ function publicSignal(signal, bible, freshness = null) {
     sourceUrl: signal.sourceUrl,
     sourceChain: signal.sourceChain || signal.raw?.chain || null,
     sourceRuntimeId: signal.sourceRuntimeId || signal.raw?.sourceRuntimeId || null,
+    leafSourceRuntimeId: signal.leafSourceRuntimeId || signal.raw?.leafSourceRuntimeId || null,
     merchantId: signal.merchantId || signal.raw?.merchantId || signal.raw?.option?.merchant_id || null,
     productId: signal.productId || signal.raw?.product?.id || signal.raw?.option?.product_id || null,
     sourceProductBinding: signal.sourceProductBinding || signal.raw?.productBinding || null,
     productHandle: signal.productHandle || signal.raw?.product?.handle || null,
     productCode: signal.productCode || null,
+    sku: signal.sku || signal.raw?.sku || null,
     productLimitedCaveat: typeof signal.productLimitedCaveat === 'boolean' ? signal.productLimitedCaveat : null,
     variantId: signal.variantId || signal.raw?.variant?.id || signal.raw?.option?.option_id || null,
     variantAvailable: typeof signal.variantAvailable === 'boolean'
@@ -367,9 +381,11 @@ function publicSignal(signal, bible, freshness = null) {
     lat: signal.lat,
     lng: signal.lng,
     quantity: signal.quantity || signal.storeQty || 0,
+    storeQty: Number(signal.storeQty ?? signal.quantity ?? 0) || 0,
     boardShipmentQuantity: signal.boardShipmentQuantity ?? null,
     shipmentStoreEquivalent: signal.shipmentStoreEquivalent === true,
     quantityIsExact: typeof signal.quantityIsExact === 'boolean' ? signal.quantityIsExact : null,
+    quantitySemantics: signal.quantitySemantics || signal.raw?.quantitySemantics || null,
     reportedQuantity: ['GA', 'TN', 'NY', 'CO', 'VA'].includes(signal.state) && signal.reportedQuantity != null && Number.isFinite(Number(signal.reportedQuantity))
       ? Number(signal.reportedQuantity)
       : null,
@@ -381,6 +397,9 @@ function publicSignal(signal, bible, freshness = null) {
     deliveryOfferVerified: signal.deliveryOfferVerified === true || signal.raw?.deliveryOfferVerified === true,
     orderabilityOfferVerified: signal.orderabilityOfferVerified === true || signal.raw?.orderabilityOfferVerified === true,
     premisesVerified: signal.premisesVerified === true || signal.raw?.premisesVerified === true,
+    integratedCartVerified: signal.integratedCartVerified === true || signal.raw?.integratedCartVerified === true,
+    runtimeStoreId: signal.runtimeStoreId || signal.raw?.runtimeStoreId || null,
+    fulfillmentGuaranteed: signal.fulfillmentGuaranteed === true || signal.raw?.fulfillmentGuaranteed === true,
     warehouseQty: signal.warehouseQty || 0,
     price: signal.price || 0,
     confidence: Math.min(signal.confidence || 0, canAlertAsInventory && signal.locationPrecision === 'store_level' ? 0.86 : (signal.confidence || 0)),
@@ -391,8 +410,8 @@ function publicSignal(signal, bible, freshness = null) {
     eligibleForDropFeed: isMsSparseOnSiteInventory ? true : undefined,
     eligibleForWatch: isMsSparseOnSiteInventory ? false : undefined,
     eligibleForDelivery: isMsSparseOnSiteInventory ? false : (canAlertAsInventory || canAlertAsWatch),
-    eligibleForEmail: isMsSparseOnSiteInventory ? false : undefined,
-    eligibleForSms: isMsSparseOnSiteInventory ? false : undefined,
+    eligibleForEmail: isMsSparseOnSiteInventory || isScSouthernBinaryInventory ? false : undefined,
+    eligibleForSms: isMsSparseOnSiteInventory || isScSouthernBinaryInventory ? false : undefined,
     raw: isMsSparseOnSiteInventory ? {
       chain: signal.raw?.chain || signal.sourceChain || null,
       sourceRuntimeId: signal.raw?.sourceRuntimeId || signal.sourceRuntimeId || null,
@@ -457,7 +476,8 @@ function isFreshCurrentInventorySignal(signal, currentKeys) {
       : signal.state === 'VA' && String(signal.eventType || signal.type || '') === 'store_inventory_result'
         ? VA_STORE_INVENTORY_MAX_AGE_HOURS
         : FAST_STORE_INVENTORY_MAX_AGE_HOURS;
-  return Date.now() - observedAt <= maxAgeHours * 60 * 60 * 1000;
+  const ageMs = Date.now() - observedAt;
+  return ageMs >= -5 * 60_000 && ageMs <= maxAgeHours * 60 * 60 * 1000;
 }
 
 function signalFreshnessKey(signal) {
@@ -647,7 +667,8 @@ function signalCanAlertAsInventory(signal) {
   if (signal.state === 'AZ') return isArizonaRetailerInventory(signal);
   if (signal.state === 'GA') return Boolean(signal.canAlertAsInventory) && isGeorgiaRetailerInventory(signal);
   if (signal.state === 'TN') return Boolean(signal.canAlertAsInventory) && isTennesseeRetailerInventory(signal);
-  return Boolean(signal.canAlertAsInventory) || isTennesseeRetailerInventory(signal) || isSouthCarolinaRetailerInventory(signal);
+  if (signal.state === 'SC') return Boolean(signal.canAlertAsInventory) && isSouthCarolinaRetailerInventory(signal);
+  return Boolean(signal.canAlertAsInventory) || isTennesseeRetailerInventory(signal);
 }
 
 function signalCanAlertAsWatch(signal) {
@@ -655,7 +676,8 @@ function signalCanAlertAsWatch(signal) {
   if (signal.state === 'AZ') return Boolean(signal.canAlertAsWatch) && isArizonaRetailerSignalIdentity(signal);
   if (signal.state === 'GA') return Boolean(signal.canAlertAsWatch) && isGeorgiaRetailerSignalIdentity(signal) && isGeorgiaRetailerInventory(signal);
   if (signal.state === 'TN') return Boolean(signal.canAlertAsWatch) && isTennesseeRetailerSignalIdentity(signal) && isTennesseeRetailerInventory(signal);
-  return Boolean(signal.canAlertAsWatch) || isTennesseeRetailerInventory(signal) || isSouthCarolinaRetailerInventory(signal);
+  if (signal.state === 'SC') return Boolean(signal.canAlertAsWatch) && isSouthCarolinaRetailerInventory(signal);
+  return Boolean(signal.canAlertAsWatch) || isTennesseeRetailerInventory(signal);
 }
 
 function isKentuckyOfficialDistillerySignal(signal) {
@@ -707,6 +729,8 @@ function isUserFacingDropSignal(signal) {
   const canAlert = signalCanAlertAsInventory(signal);
 
   if (!type) return false;
+  if (isSouthCarolinaDunesSignal(signal)) return isSouthCarolinaDunesInventory(signal);
+  if (isSouthCarolinaSouthernSpiritsSignal(signal)) return isSouthCarolinaSouthernSpiritsInventory(signal);
   if (type.includes('out_of_stock') || type.includes('out-of-stock')) return false;
   if (type.includes('lottery') || type.includes('raffle') || type.includes('tasting')) return false;
   if (type.includes('policy') || type.includes('program') || type.includes('catalog') || type.includes('surface')) return false;
@@ -731,8 +755,8 @@ function isUserFacingDropSignal(signal) {
     return isTennesseeRetailerInventory(signal);
   }
   if (type === 'costco_warehouse_inventory_result') return isCostcoWarehouseInventorySignal(signal) && precision === 'store_level' && (quantity > 0 || (signal.sourceAvailabilityVerified === true && signal.availabilityStatus === 'in_stock'));
-  if (type === 'retailer_store_inventory_result') return quantity > 0 || (signal.sourceAvailabilityVerified === true && signal.availabilityStatus === 'in_stock');
-  if (type === 'cityhive_store_inventory_result') return quantity > 0 || (signal.sourceAvailabilityVerified === true && signal.availabilityStatus === 'in_stock');
+  if (type === 'retailer_store_inventory_result') return signal.state === 'SC' ? isSouthCarolinaRetailerInventory(signal) : quantity > 0 || (signal.sourceAvailabilityVerified === true && signal.availabilityStatus === 'in_stock');
+  if (type === 'cityhive_store_inventory_result') return signal.state === 'SC' ? isSouthCarolinaRetailerInventory(signal) : quantity > 0 || (signal.sourceAvailabilityVerified === true && signal.availabilityStatus === 'in_stock');
   if (type === 'browser_assisted_store_inventory_limited_supply') return true;
   if (type === 'browser_assisted_store_inventory_in_stock') return true;
   if (isKentuckyDistilleryDrop(signal)) return true;
@@ -1247,7 +1271,9 @@ function buildAlerts(alerts) {
     sourceChain: c.sourceChain || null,
     merchantId: c.merchantId || null,
     productId: c.productId || null,
+    productHandle: c.productHandle || null,
     variantId: c.variantId || null,
+    variantAvailable: c.variantAvailable ?? null,
     locationPrecision: c.locationPrecision,
     locationName: c.locationName,
     storeName: c.storeName,
@@ -1256,6 +1282,7 @@ function buildAlerts(alerts) {
     city: c.city || null,
     quantity: c.quantity || 0,
     quantityIsExact: typeof c.quantityIsExact === 'boolean' ? c.quantityIsExact : null,
+    quantitySemantics: c.quantitySemantics || null,
     reportedQuantity: c.reportedQuantity ?? null,
     availabilityStatus: c.availabilityStatus,
     availabilityLabel: c.availabilityLabel,
@@ -1334,12 +1361,16 @@ function dropSignalAt(drop) {
 
 function dropAgeHours(drop, nowMs = Date.now()) {
   const observed = Date.parse(dropSignalAt(drop) || 0);
-  return Number.isFinite(observed) ? Math.max(0, (nowMs - observed) / (60 * 60 * 1000)) : Infinity;
+  if (!Number.isFinite(observed)) return Infinity;
+  const ageMs = nowMs - observed;
+  return ageMs < -5 * 60_000 ? Infinity : Math.max(0, ageMs / (60 * 60 * 1000));
 }
 
 function signalAgeHours(signal) {
   const observedAt = asTime(signal?.observedAt || signal?.fetchedAt);
-  return observedAt ? Math.max(0, (Date.now() - observedAt) / (60 * 60 * 1000)) : Infinity;
+  if (!observedAt) return Infinity;
+  const ageMs = Date.now() - observedAt;
+  return ageMs < -5 * 60_000 ? Infinity : Math.max(0, ageMs / (60 * 60 * 1000));
 }
 
 function isOhioOhlqStoreInventorySignal(signal) {
@@ -1352,7 +1383,8 @@ function ohioFeedStaleCaveat(signal) {
   return isOhioOhlqStoreInventorySignal(signal) && signalAgeHours(signal) > FAST_STORE_INVENTORY_MAX_AGE_HOURS;
 }
 
-function dropHasPositiveAlertInventory(drop) {
+export function dropHasPositiveAlertInventory(drop) {
+  if (isSouthCarolinaDunesSignal(drop)) return isSouthCarolinaDunesInventory(drop);
   if (['NY', 'CO'].includes(drop?.state)) return isMetroRetailerInventory(drop);
   if (drop?.state === 'FL') {
     return (Number(drop.quantity || 0) > 0 || drop.quantityIsExact === false)
@@ -1360,6 +1392,7 @@ function dropHasPositiveAlertInventory(drop) {
   }
   if (drop?.state === 'GA') return isGeorgiaRetailerInventory(drop);
   if (drop?.state === 'TN') return isTennesseeRetailerInventory(drop);
+  if (drop?.state === 'SC') return hasSouthCarolinaPositiveInventoryEvidence(drop);
   if (Number(drop?.quantity || 0) > 0) return true;
   if (drop?.state === 'CA') {
     return String(drop?.type || drop?.eventType || '') === 'retailer_store_inventory_result'
@@ -1388,7 +1421,8 @@ export function buildCurrentInventoryAlertsFromDrops(drops) {
         && Number(drop.quantity || 0) === 0
         && drop.quantityIsExact === false
         && isFloridaRetailerInventory(drop);
-      const binaryRetailerOrderability = floridaBinaryBaseline || (
+      const southCarolinaBinaryBaseline = isSouthCarolinaSouthernSpiritsInventory(drop);
+      const binaryRetailerOrderability = floridaBinaryBaseline || southCarolinaBinaryBaseline || (
         (georgiaBaseline || metroBaseline || tennesseeBinaryBaseline)
         && drop.inventorySemantics === 'binary_retailer_orderable_no_exact_count'
         && Number(drop.quantity || 0) === 0
@@ -1400,13 +1434,14 @@ export function buildCurrentInventoryAlertsFromDrops(drops) {
       reliabilityScore: drop.tier === 'unicorn' ? 92 : drop.tier === 'allocated' ? 88 : 82,
       eligibleForDelivery: true,
       eligibleForOnSite: true,
-      eligibleForEmail: drop.state === 'CA' || georgiaBaseline || metroBaseline || tennesseeBinaryBaseline || floridaBinaryBaseline ? false : true,
-      eligibleForSms: drop.state === 'CA' || georgiaBaseline || metroBaseline || tennesseeBinaryBaseline || floridaBinaryBaseline ? false : ['unicorn', 'allocated'].includes(String(drop.tier || '')),
+      eligibleForEmail: drop.state === 'CA' || georgiaBaseline || metroBaseline || tennesseeBinaryBaseline || floridaBinaryBaseline || southCarolinaBinaryBaseline ? false : true,
+      eligibleForSms: drop.state === 'CA' || georgiaBaseline || metroBaseline || tennesseeBinaryBaseline || floridaBinaryBaseline || southCarolinaBinaryBaseline ? false : ['unicorn', 'allocated'].includes(String(drop.tier || '')),
       actionabilityClass: 'store_inventory',
       priorityClass: drop.tier === 'limited' ? 'standard' : 'major',
       deliveryChannel: 'onsite_candidate',
-      sendRecommendation: drop.state === 'CA' || georgiaBaseline || metroBaseline || tennesseeBinaryBaseline || floridaBinaryBaseline ? 'display_on_site_until_change_detected' : 'send_to_matching_testers',
+      sendRecommendation: drop.state === 'CA' || georgiaBaseline || metroBaseline || tennesseeBinaryBaseline || floridaBinaryBaseline || southCarolinaBinaryBaseline ? 'display_on_site_until_change_detected' : 'send_to_matching_testers',
       signalAt: dropSignalAt(drop),
+      observedAt: drop.observedAt || drop.signalAt || null,
       freshnessHours: Number(dropAgeHours(drop).toFixed(2)),
       bootstrap: false,
       changeType: 'current_inventory_signal',
@@ -1416,26 +1451,49 @@ export function buildCurrentInventoryAlertsFromDrops(drops) {
       blockers: [],
       cautions: ['verify_before_driving'],
       state: drop.state,
+      stateCode: drop.state,
       bottle: drop.bottleName || drop.canonicalName,
+      canonicalBottleId: drop.canonicalBottleId || drop.canonicalId || null,
+      canonicalId: drop.canonicalId || drop.canonicalBottleId || null,
+      canonicalName: drop.canonicalName || drop.bottleName || null,
+      rawName: drop.rawName || null,
       tier: drop.tier,
       eventType: drop.type,
       source: drop.source,
+      sourceLabel: drop.sourceLabel || drop.source,
       sourceUrl: drop.sourceUrl,
       sourceChain: drop.sourceChain || null,
+      sourceRuntimeId: drop.sourceRuntimeId || null,
+      leafSourceRuntimeId: drop.leafSourceRuntimeId || null,
       merchantId: drop.merchantId || null,
       productId: drop.productId || null,
+      productHandle: drop.productHandle || null,
       variantId: drop.variantId || null,
+      variantAvailable: typeof drop.variantAvailable === 'boolean' ? drop.variantAvailable : null,
+      sku: drop.sku || null,
       locationPrecision: drop.locationPrecision,
       locationName: drop.locationName,
       storeName: drop.storeName,
       storeId: drop.storeId || null,
       storeAddress: drop.storeAddress,
       city: drop.city || null,
+      postalCode: drop.zip || null,
+      zip: drop.zip || null,
       quantity: drop.quantity || 0,
+      storeQty: Number(drop.storeQty ?? drop.quantity ?? 0) || 0,
       quantityIsExact: typeof drop.quantityIsExact === 'boolean' ? drop.quantityIsExact : null,
+      quantitySemantics: drop.quantitySemantics || null,
       reportedQuantity: drop.reportedQuantity ?? null,
       availabilityStatus: drop.availabilityStatus,
       availabilityLabel: drop.availabilityLabel,
+      sourceAvailabilityVerified: drop.sourceAvailabilityVerified === true,
+      premisesVerified: drop.premisesVerified === true,
+      pickupOfferVerified: drop.pickupOfferVerified === true,
+      orderabilityOfferVerified: drop.orderabilityOfferVerified === true,
+      deliveryOfferVerified: drop.deliveryOfferVerified === true,
+      integratedCartVerified: drop.integratedCartVerified === true,
+      runtimeStoreId: drop.runtimeStoreId || null,
+      fulfillmentGuaranteed: drop.fulfillmentGuaranteed === true,
       warehouseQty: drop.warehouseQty || 0,
       price: drop.price || 0,
       confidence: drop.confidence,

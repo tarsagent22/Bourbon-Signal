@@ -4,6 +4,9 @@ import test from 'node:test';
 
 import { BourbonBible } from '../src/core/bible.mjs';
 import { confidenceForSignal } from '../src/confidence-policy.mjs';
+import { buildCurrentInventoryAlertsFromDrops, buildDrops } from '../src/export-site-contract.mjs';
+import { canonicalizeSignal } from '../src/operational-report.mjs';
+import { isSouthCarolinaDunesInventory } from '../src/south-carolina-dunes-policy.mjs';
 import {
   buildSouthCarolinaDunesSignal,
   cityHiveSafeBottleMatch,
@@ -177,8 +180,33 @@ test('Dunes signal carries exact-store identity and alert-grade stock evidence w
   ]) {
     const forged = structuredClone(productionWrapped);
     mutate(forged);
-    assert.equal(confidenceForSignal(forged).canAlertAsInventory, false);
+    assert.equal(confidenceForSignal(forged, { nowMs: signalObservedMs }).canAlertAsInventory, false);
   }
+});
+
+test('Dunes exact identity survives normalization and blocks cross-state delivery bypasses', () => {
+  const entry = detailFor(89103);
+  const parsed = parseSouthCarolinaDunesItemDetail(entry.response, { searchRow: entry.searchRow });
+  const signal = buildSouthCarolinaDunesSignal({ id: 'SC' }, parsed, {
+    observedAt: new Date().toISOString(),
+    record: { id: '1792-full-proof', canonical: '1792 Full Proof', tier: 'limited' },
+    match: { confidence: 0.97 },
+  });
+  const productionSignal = { ...signal, sourceRuntimeId: 'precision:sc' };
+  const normalized = canonicalizeSignal(productionSignal, bible);
+  assert.equal(isSouthCarolinaDunesInventory(normalized), true);
+
+  const record = { id: normalized.canonicalBottleId, canonical: normalized.canonicalName, tier: 'limited', aliases: [] };
+  const lookup = { byId: new Map([[record.id, record]]), byName: new Map() };
+  const drops = buildDrops([normalized], lookup, [normalized]);
+  assert.equal(drops.length, 1);
+  const [alert] = buildCurrentInventoryAlertsFromDrops(drops);
+  assert.equal(isSouthCarolinaDunesInventory(alert), true);
+
+  const crossState = { ...productionSignal, state: 'NC', stateCode: 'NC' };
+  assert.equal(confidenceForSignal(crossState).canAlertAsInventory, false);
+  assert.deepEqual(buildDrops([crossState], lookup, [crossState]), []);
+  assert.deepEqual(buildCurrentInventoryAlertsFromDrops([{ ...crossState, type: crossState.eventType, tier: 'limited' }]), []);
 });
 
 test('Dunes collector uses bounded public routes and isolates sold-out rows', async () => {
