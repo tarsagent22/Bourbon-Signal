@@ -445,6 +445,27 @@ export function ncBoardWebsiteSignalEligible(boardName, sourceUrl) {
   return !target?.signalUrls || target.signalUrls.includes(sourceUrl);
 }
 
+export function prioritizeNcBoardWebsiteTargets(boardValues, maxBoards = NC_BOARD_WEBSITE_MAX) {
+  const staticOrder = new Map();
+  for (const [index, target] of STATIC_BOARD_TARGETS.entries()) {
+    const key = boardKey(target.boardName);
+    if (!staticOrder.has(key)) staticOrder.set(key, index);
+  }
+  return [...boardValues]
+    .filter((board) => board.website || staticOrder.has(boardKey(board.boardName)))
+    .sort((a, b) => {
+      const aOrder = staticOrder.get(boardKey(a.boardName));
+      const bOrder = staticOrder.get(boardKey(b.boardName));
+      if (aOrder !== undefined || bOrder !== undefined) {
+        if (aOrder === undefined) return 1;
+        if (bOrder === undefined) return -1;
+        if (aOrder !== bOrder) return aOrder - bOrder;
+      }
+      return Number(b.trackedUnits || 0) - Number(a.trackedUnits || 0) || a.boardName.localeCompare(b.boardName);
+    })
+    .slice(0, Math.max(0, Number(maxBoards) || 0));
+}
+
 function candidateUrlsForBoard(board) {
   const urls = new Set();
   const staticTarget = STATIC_BOARD_TARGETS.find((target) => boardKey(target.boardName) === boardKey(board.boardName));
@@ -932,14 +953,7 @@ async function discoverBoardPages(board) {
 
 async function collectBoardWebsiteWatch(config, bible, signals, roadblocks, dossier, boards) {
   const reports = [];
-  const boardList = [...boards.values()]
-    .filter((board) => board.website || STATIC_BOARD_TARGETS.some((target) => boardKey(target.boardName) === boardKey(board.boardName)))
-    .sort((a, b) => {
-      const aStatic = STATIC_BOARD_TARGETS.some((target) => boardKey(target.boardName) === boardKey(a.boardName)) ? 1 : 0;
-      const bStatic = STATIC_BOARD_TARGETS.some((target) => boardKey(target.boardName) === boardKey(b.boardName)) ? 1 : 0;
-      return bStatic - aStatic || b.trackedUnits - a.trackedUnits || a.boardName.localeCompare(b.boardName);
-    })
-    .slice(0, NC_BOARD_WEBSITE_MAX);
+  const boardList = prioritizeNcBoardWebsiteTargets(boards.values());
 
   const batchSize = 6;
   for (let i = 0; i < boardList.length; i += batchSize) {
