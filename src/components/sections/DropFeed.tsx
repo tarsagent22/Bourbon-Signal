@@ -29,7 +29,7 @@ import { buildDropFeedAreaRequest, coveredAreaLabelsMatch, formatNcAbcAreaMenuLa
 import { ncAbcBoardPreferencesMatch } from "@/lib/nc-abc-boards";
 import { californiaAreaMatchesFields } from "@/lib/california-area";
 import { nevadaAreaMatchesFields } from "@/lib/nevada-area";
-import { newYorkAreaMatchesFields } from "@/lib/new-york-area";
+import { newYorkAreaMatchesFields, SUPPORTED_NEW_YORK_AREAS } from "@/lib/new-york-area";
 import { coloradoAreaMatchesFields } from "@/lib/colorado-area";
 import { getScheduledReleaseSignalCopy } from "@/lib/scheduled-release-signals";
 import {
@@ -1611,7 +1611,7 @@ export default function DropFeed() {
   const matchesActiveFeedFilters = (drop: GroupedDrop) => {
     // State filtering via URL signal links or the feed state selector.
     if (feedStateParam && drop.state && drop.state !== feedStateParam) return false;
-    if (drop.state === "NY" && !newYorkAreaMatchesFields(areaLabelsForDrop(drop), ["New York City"])) return false;
+    if (drop.state === "NY" && !newYorkAreaMatchesFields(areaLabelsForDrop(drop), SUPPORTED_NEW_YORK_AREAS)) return false;
     if (drop.state === "CO" && !coloradoAreaMatchesFields(areaLabelsForDrop(drop), ["Denver Metro"])) return false;
     if (canUseDropFeedFilters && activeTiers.size > 0 && !activeTiers.has(drop.rarity_tier)) return false;
     const bottleNeedle = canUseBottleSearch ? normalizeFilterText(bottleSearch) : "";
@@ -1685,7 +1685,7 @@ export default function DropFeed() {
       return nevadaAreaMatchesFields(areaLabelsForDrop(drop), areaPrefs.nvAreas);
     }
     if (dropState === "NY") {
-      return newYorkAreaMatchesFields(areaLabelsForDrop(drop), areaPrefs.nyAreas.length ? areaPrefs.nyAreas : ["New York City"]);
+      return newYorkAreaMatchesFields(areaLabelsForDrop(drop), areaPrefs.nyAreas.length ? areaPrefs.nyAreas : SUPPORTED_NEW_YORK_AREAS);
     }
     if (dropState === "CO") {
       return coloradoAreaMatchesFields(areaLabelsForDrop(drop), areaPrefs.coAreas.length ? areaPrefs.coAreas : ["Denver Metro"]);
@@ -1720,8 +1720,9 @@ export default function DropFeed() {
       if (!state || !activeStateCodes.has(state)) return;
       if (selectedState && state !== selectedState) return;
       if (state === "NY") {
-        if (!newYorkAreaMatchesFields([baseLabel], ["New York City"])) return;
-        baseLabel = "New York City";
+        const matchingArea = SUPPORTED_NEW_YORK_AREAS.find((area) => newYorkAreaMatchesFields([baseLabel], [area]));
+        if (!matchingArea) return;
+        baseLabel = matchingArea;
       }
       if (state === "CO") {
         if (!coloradoAreaMatchesFields([baseLabel], ["Denver Metro"])) return;

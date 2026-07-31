@@ -665,16 +665,17 @@ export const STATE_LIFECYCLE_CONFIG = {
     },
     "NY": {
       "customerLabel": "New York",
-      "sourceLabel": "New York City first-party retailer inventory",
-      "customerAreaLabel": "New York City",
+      "sourceLabel": "New York City and Nassau County first-party retailer inventory",
+      "customerAreaLabel": "New York City and Nassau County",
       "areaOptions": [
-        "New York City"
+        "New York City",
+        "Nassau County"
       ],
       "publicStatus": "active",
       "lifecycle": "retailer_store_inventory",
       "coverageTier": "live_store_inventory",
       "refinementLevel": "city",
-      "customerSummary": "Verified first-party retailer store inventory in New York City, limited to New York, Manhattan, Brooklyn, Queens, Bronx, and Staten Island location signals. This metro-scoped coverage does not imply statewide New York availability; verify before driving.",
+      "customerSummary": "Verified first-party retailer store inventory in New York City and at reviewed Nassau County premises in Garden City, Wantagh, and Westbury. This area-scoped coverage does not imply statewide New York availability; verify before driving.",
       "promotionStage": "active",
       "shadowEligible": true,
       "promotionEvidence": {

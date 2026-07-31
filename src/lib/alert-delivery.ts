@@ -15,7 +15,7 @@ import { reserveAlertDelivery, type AlertQueueMode } from "@/lib/alert-queue/del
 import type { AlertCandidateRecord, AlertChannel } from "@/lib/alert-queue/repository";
 import { californiaAreaMatchesFields, normalizeCaliforniaAreas } from "@/lib/california-area";
 import { nevadaAreaMatchesFields, normalizeNevadaAreas } from "@/lib/nevada-area";
-import { newYorkAreaMatchesFields, normalizeNewYorkAreas } from "@/lib/new-york-area";
+import { matchedNewYorkArea, newYorkAreaMatchesFields, normalizeNewYorkAreas, SUPPORTED_NEW_YORK_AREAS } from "@/lib/new-york-area";
 import { coloradoAreaMatchesFields, normalizeColoradoAreas } from "@/lib/colorado-area";
 import { firstAlertCreatedMetadata } from "@/lib/member-activation";
 import {
@@ -218,7 +218,7 @@ export function candidateMatchesArea(candidate: CandidateAlert, areaPrefs: AreaP
   if (state === "SC" && areaPrefs.scAreas.length) return locationMatchesAny(locationFields, areaPrefs.scAreas);
   if (state === "CA" && areaPrefs.caAreas.length) return californiaAreaMatchesFields(locationFields, areaPrefs.caAreas);
   if (state === "NV" && areaPrefs.nvAreas.length) return nevadaAreaMatchesFields(locationFields, areaPrefs.nvAreas);
-  if (state === "NY") return newYorkAreaMatchesFields(locationFields, areaPrefs.nyAreas.length ? areaPrefs.nyAreas : ["New York City"]);
+  if (state === "NY") return newYorkAreaMatchesFields(locationFields, areaPrefs.nyAreas.length ? areaPrefs.nyAreas : SUPPORTED_NEW_YORK_AREAS);
   if (state === "CO") return coloradoAreaMatchesFields(locationFields, areaPrefs.coAreas.length ? areaPrefs.coAreas : ["Denver Metro"]);
   if (state === "PA" && (areaPrefs.paCounties.length || areaPrefs.paStores.length)) {
     const countyMatch = areaPrefs.paCounties.length > 0 && locationMatchesAny(locationFields, areaPrefs.paCounties);
@@ -645,7 +645,7 @@ function candidateMatchedArea(candidate: CandidateAlert, areaPrefs: AreaPreferen
   if (state === "SC" && areaPrefs.scAreas.length) return matchedLocationFromOptions(candidate, areaPrefs.scAreas) || locationName || stateLabel(state);
   if (state === "CA" && areaPrefs.caAreas.length) return californiaAreaMatchesFields([locationName, asString(candidate.storeAddress), asString(candidate.storeCity)], areaPrefs.caAreas) ? "San Diego" : locationName || stateLabel(state);
   if (state === "NV" && areaPrefs.nvAreas.length) return areaPrefs.nvAreas.find((area) => nevadaAreaMatchesFields([locationName, asString(candidate.storeAddress), asString(candidate.storeCity)], [area])) || locationName || stateLabel(state);
-  if (state === "NY") return newYorkAreaMatchesFields(locationFields, areaPrefs.nyAreas.length ? areaPrefs.nyAreas : ["New York City"]) ? "New York City" : locationName || stateLabel(state);
+  if (state === "NY") return matchedNewYorkArea(locationFields, areaPrefs.nyAreas.length ? areaPrefs.nyAreas : SUPPORTED_NEW_YORK_AREAS) || locationName || stateLabel(state);
   if (state === "CO") return coloradoAreaMatchesFields(locationFields, areaPrefs.coAreas.length ? areaPrefs.coAreas : ["Denver Metro"]) ? "Denver Metro" : locationName || stateLabel(state);
   if (state === "PA" && areaPrefs.paCounties.length) return matchedLocationFromOptions(candidate, areaPrefs.paCounties) || locationName || stateLabel(state);
   if (locationName) return locationName;

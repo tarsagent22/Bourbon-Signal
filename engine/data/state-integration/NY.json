@@ -11,9 +11,12 @@
     "sourceIds": [
       "metro:ny:cellar-53",
       "metro:ny:broadway-spirits",
-      "metro:ny:flatiron-wines"
+      "metro:ny:flatiron-wines",
+      "metro:ny:wine-gallery",
+      "metro:ny:cherrywood-wine",
+      "metro:ny:westbury-liquors"
     ],
-    "registration": "engine/src/state-sources.mjs and engine/src/collectors/precision-probes.mjs register three bounded, isolated New York City first-party retailer sources behind the legacy precision runtime."
+    "registration": "engine/src/state-sources.mjs and engine/src/collectors/precision-probes.mjs register six bounded, isolated New York City and Nassau County first-party retailer sources behind the legacy precision runtime."
   },
   "storeIdentity": {
     "mode": "exact_allowlisted_merchant_and_premises",
@@ -32,19 +35,19 @@
     },
     "areaFilter": {
       "status": "verified",
-      "assertion": "Drop Feed client/API filters and strict location matchers expose only New York City."
+      "assertion": "Drop Feed client/API filters and strict location matchers expose New York City and Nassau County without implying statewide coverage."
     },
     "preferences": {
       "status": "verified",
-      "assertion": "Account-owned preferences normalize and persist the exact New York City selection."
+      "assertion": "Account-owned preferences normalize and persist exact New York City and Nassau County selections."
     },
     "dashboard": {
       "status": "verified",
-      "assertion": "Dashboard state and area controls expose New York City with the lifecycle caveat."
+      "assertion": "Dashboard state and area controls expose New York City and Nassau County with the lifecycle caveat."
     },
     "dropFeedApi": {
       "status": "verified",
-      "assertion": "The Drop Feed API parses and applies the strict New York City query filter."
+      "assertion": "The Drop Feed API parses and applies strict New York City and Nassau County query filters."
     },
     "finder": {
       "status": "verified",

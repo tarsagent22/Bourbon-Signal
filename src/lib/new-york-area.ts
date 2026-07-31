@@ -1,10 +1,12 @@
-export const SUPPORTED_NEW_YORK_AREAS = ["New York City"] as const;
+export const SUPPORTED_NEW_YORK_AREAS = ["New York City", "Nassau County"] as const;
 export type NewYorkArea = (typeof SUPPORTED_NEW_YORK_AREAS)[number];
 
 const CANONICAL_AREA_BY_TOKEN = new Map<string, NewYorkArea>([
   ["new york city", "New York City"],
   ["new york", "New York City"],
   ["nyc", "New York City"],
+  ["nassau", "Nassau County"],
+  ["nassau county", "Nassau County"],
 ]);
 
 const NEW_YORK_CITY_LOCALITIES = [
@@ -15,6 +17,12 @@ const NEW_YORK_CITY_LOCALITIES = [
   "queens",
   "bronx",
   "staten island",
+] as const;
+
+const NASSAU_COUNTY_LOCALITIES = [
+  "garden city",
+  "wantagh",
+  "westbury",
 ] as const;
 
 function normalize(value: string): string {
@@ -65,9 +73,29 @@ function fieldMatchesNewYorkCity(field: string): boolean {
   });
 }
 
+function fieldMatchesNassauCounty(field: string): boolean {
+  const token = normalize(field);
+  if (!token) return false;
+  if (token === "nassau" || token === "nassau county" || token === "nassau county ny" || token === "nassau county new york") return true;
+
+  return NASSAU_COUNTY_LOCALITIES.some((locality) => {
+    if (token === locality) return true;
+    if (token === `${locality} ny` || token === `${locality} new york`) return true;
+    return new RegExp(`\\b${locality} (?:ny|new york)(?: \\d{5}(?: \\d{4})?)?(?: usa)?$`).test(token);
+  });
+}
+
+export function matchedNewYorkArea(fields: readonly unknown[], selectedAreas: readonly string[]): NewYorkArea | null {
+  const areas = normalizeNewYorkAreas([...selectedAreas]);
+  for (const area of areas) {
+    const matches = area === "New York City" ? fieldMatchesNewYorkCity : fieldMatchesNassauCounty;
+    if (fields.some((field) => typeof field === "string" && matches(field))) return area;
+  }
+  return null;
+}
+
 export function newYorkAreaMatchesFields(fields: readonly unknown[], selectedAreas: readonly string[]): boolean {
   const areas = normalizeNewYorkAreas([...selectedAreas]);
   if (!areas.length) return true;
-  if (!areas.includes("New York City")) return false;
-  return fields.some((field) => typeof field === "string" && fieldMatchesNewYorkCity(field));
+  return matchedNewYorkArea(fields, areas) !== null;
 }

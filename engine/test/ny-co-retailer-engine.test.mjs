@@ -20,6 +20,7 @@ import { ALL_STATE_SOURCES } from '../src/state-sources.mjs';
 import { verifyMetroCanaryRows } from '../src/verify-state-integration.mjs';
 
 const nyCityHive = NEW_YORK_RETAILER_SOURCES.find((source) => source.id === 'cellar-53');
+const nyNassauCityHive = NEW_YORK_RETAILER_SOURCES.find((source) => source.id === 'wine-gallery');
 const nyShopify = NEW_YORK_RETAILER_SOURCES.find((source) => source.id === 'broadway-spirits');
 const coCityHive = COLORADO_RETAILER_SOURCES.find((source) => source.id === 'bonnie-brae-liquor');
 
@@ -82,19 +83,33 @@ function signalFor(source, row, overrides = {}) {
   };
 }
 
-test('NYC and Denver registries are bounded to exact first-party retailer identities', () => {
-  assert.deepEqual(NEW_YORK_RETAILER_SOURCES.map((source) => source.id), ['cellar-53', 'broadway-spirits', 'flatiron-wines']);
+test('NYC, Nassau, and Denver registries are bounded to exact first-party retailer identities', () => {
+  assert.deepEqual(NEW_YORK_RETAILER_SOURCES.map((source) => source.id), ['cellar-53', 'broadway-spirits', 'flatiron-wines', 'wine-gallery', 'cherrywood-wine', 'westbury-liquors']);
   assert.deepEqual(COLORADO_RETAILER_SOURCES.map((source) => source.id), ['bonnie-brae-liquor', 'mollys-spirits', 'total-beverage']);
-  assert.ok(NEW_YORK_RETAILER_SOURCES.every((source) => source.stateCode === 'NY' && source.area === 'New York City'));
+  assert.ok(NEW_YORK_RETAILER_SOURCES.every((source) => source.stateCode === 'NY' && ['New York City', 'Nassau County'].includes(source.area)));
+  assert.equal(NEW_YORK_RETAILER_SOURCES.filter((source) => source.area === 'Nassau County').length, 3);
   assert.ok(NEW_YORK_RETAILER_SOURCES.filter((source) => source.platform === 'shopify').every((source) => source.inventoryMode === 'catalog_only' && source.inventoryEligible === false));
   assert.ok(COLORADO_RETAILER_SOURCES.every((source) => source.stateCode === 'CO' && source.area === 'Denver Metro'));
-  assert.equal(new Set(NEW_YORK_RETAILER_SOURCES.flatMap((source) => source.stores.map((store) => store.address))).size, 3);
+  assert.equal(new Set(NEW_YORK_RETAILER_SOURCES.flatMap((source) => source.stores.map((store) => store.address))).size, 6);
   assert.ok(new Set(COLORADO_RETAILER_SOURCES.flatMap((source) => source.stores.map((store) => store.address))).size >= 4);
   for (const source of [...NEW_YORK_RETAILER_SOURCES, ...COLORADO_RETAILER_SOURCES]) {
     assert.match(source.baseUrl, /^https:\/\//);
     assert.equal(source.inventoryEligible, source.platform === 'cityhive');
     assert.ok(source.stores.every((store) => store.id && store.name && store.address && store.city && store.zip && store.merchantId));
   }
+});
+
+test('Nassau CityHive rows require the reviewed merchant and exact county premises', () => {
+  const [row] = parseMetroCityHiveHtml(encodedPage(cityHivePayload(nyNassauCityHive)), nyNassauCityHive);
+  assert.equal(row.merchantId, '61876e5342a87e4f872451ed');
+  assert.equal(row.quantity, 4);
+  const valid = signalFor(nyNassauCityHive, row);
+  assert.equal(valid.area, 'Nassau County');
+  assert.equal(valid.city, 'Garden City');
+  assert.equal(isMetroRetailerInventory(valid), true);
+  assert.equal(confidenceForSignal(valid).canAlertAsInventory, true);
+  assert.equal(parseMetroCityHiveHtml(encodedPage(cityHivePayload(nyNassauCityHive, { merchantId: nyCityHive.stores[0].merchantId })), nyNassauCityHive).length, 0);
+  assert.equal(parseMetroCityHiveHtml(encodedPage(cityHivePayload(nyNassauCityHive, { address: '270 Nassau St, New York, NY 10038' })), nyNassauCityHive).length, 0);
 });
 
 test('CityHive parser requires allowlisted merchant, exact premises, pickup, positive availability, and safe format', () => {
@@ -152,12 +167,12 @@ test('canary verification rejects forged source URLs and stale inventory', () =>
 });
 
 test('New York and Colorado are runner-routed metro inventory states with conservative public scope', async () => {
-  for (const [state, area] of [['NY', 'New York City'], ['CO', 'Denver Metro']]) {
+  for (const [state, areas] of [['NY', ['New York City', 'Nassau County']], ['CO', ['Denver Metro']]]) {
     const lifecycle = getStateLifecycle(state);
     assert.ok(['shadow', 'active'].includes(lifecycle?.publicStatus));
     assert.equal(lifecycle.coverageTier, 'live_store_inventory');
     assert.equal(lifecycle.refinementLevel, 'city');
-    assert.deepEqual(lifecycle.areaOptions, [area]);
+    assert.deepEqual(lifecycle.areaOptions, areas);
     assert.ok(ALL_STATE_SOURCES.some((source) => source.id === state && source.sources.length >= 3));
     assert.equal(legacyPrecisionRuntimeOptions(state, {}, {}).schedule, undefined);
     const result = await collectPrecisionProbes({ id: state, sources: [] }, { match: () => ({ record: null }) }, [], { sourceRunnerOptions: { run: async () => ({ signals: [], roadblocks: [] }) } });
