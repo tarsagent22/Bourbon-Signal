@@ -48,6 +48,10 @@ test('rejected worker attempts use cache without being marked as fresh', async (
     assert.equal(stale.status, 'stale_useful');
     assert.equal(stale.signals[0].canAlertAsInventory, false);
     assert.equal(stale.signals[0].canAlertAsWatch, false);
+    assert.equal(stale.signals[0].sourceAvailabilityVerified, false);
+    assert.equal(stale.signals[0].availabilityStatus, 'stale');
+    assert.equal(stale.signals[0].sourceStale, true);
+    assert.equal(stale.signals[0].raw.staleNonAlertable, true);
     assert.equal(stale.signals[0].raw.staleFallback, true);
   } finally {
     await rm(statesOut, { recursive: true, force: true });

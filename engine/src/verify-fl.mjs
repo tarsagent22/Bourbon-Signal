@@ -1,5 +1,6 @@
 import { readFile } from 'node:fs/promises';
 import { isFloridaRetailerInventory, isFloridaRetailerSignalIdentity } from './florida-retailer-policy.mjs';
+import { isExplicitSafeStaleSignal } from './florida-safe-stale-policy.mjs';
 import { PENSACOLA_SHOPIFY_SOURCE, PENSACOLA_SHOPIFY_STORES } from './collectors/florida-pensacola-surfaces.mjs';
 
 function assert(condition, message, sample = null) {
@@ -26,8 +27,18 @@ const isFresh = (signal) => {
 const staleFallbacks = inventory.filter(hasStaleMarker);
 const activeInventory = inventory.filter((signal) => !hasStaleMarker(signal));
 const trusted = activeInventory.filter((signal) => isFresh(signal) && isFloridaRetailerInventory(signal));
-const trustedStores = new Set(trusted.map((signal) => signal.storeId));
-const trustedCities = new Set(trusted.map((signal) => signal.city));
+const safeRetainedInventory = staleFallbacks.filter((signal) => isExplicitSafeStaleSignal(signal)
+  && isFloridaRetailerSignalIdentity(signal)
+  && signal.state === 'FL'
+  && signal.stateCode === 'FL'
+  && /,\s*FL\s+\d{5}/i.test(signal.storeAddress || '')
+  && signal.locationPrecision === 'store_level'
+  && Boolean(signal.storeId)
+  && Number(signal.quantity || 0) >= 0);
+const safeStaleFallbackMode = allowSafeStaleFallback && state.status === 'stale_useful';
+const coverageInventory = safeStaleFallbackMode ? safeRetainedInventory : trusted;
+const trustedStores = new Set(coverageInventory.map((signal) => signal.storeId));
+const trustedCities = new Set(coverageInventory.map((signal) => signal.city));
 const pensacolaShopify = trusted.filter((signal) => signal.sourceLabel === PENSACOLA_SHOPIFY_SOURCE.sourceLabel);
 const configuredLocations = signals.filter((signal) => signal.eventType === 'retailer_store_location' && signal.raw?.configuredStoreIdentity === true);
 const unsafe = activeInventory.filter((signal) => !isFresh(signal)
@@ -51,15 +62,22 @@ const minimumStoreCount = allowSafeStaleFallback ? 20 : 30;
 const minimumCityCount = allowSafeStaleFallback ? 15 : 24;
 const minimumSourceCount = allowSafeStaleFallback ? 5 : 8;
 
-const allowedStatuses = allowSafeStaleFallback ? ['useful', 'useful_retained_not_due'] : ['useful'];
+const allowedStatuses = allowSafeStaleFallback ? ['useful', 'useful_retained_not_due', 'stale_useful'] : ['useful'];
 assert(allowedStatuses.includes(state.status), `Expected Florida status ${allowedStatuses.join(' or ')}; got ${state.status}`);
-assert(!state.stale, `Florida collector must not publish stale state fallback: ${state.staleReason || 'stale=true'}`);
+if (safeStaleFallbackMode) {
+  assert(state.stale === true, 'Florida stale_useful fallback must be explicitly marked stale.');
+  assert(activeInventory.length === 0, 'Florida stale_useful fallback must contain zero active inventory rows.');
+  assert(signals.every(isExplicitSafeStaleSignal), 'Florida stale_useful fallback must explicitly mark every retained signal stale and non-alertable.');
+  assert(staleFallbacks.length === safeRetainedInventory.length, 'Florida retained fallback contains untrusted or alertable inventory rows.');
+} else {
+  assert(!state.stale, `Florida collector must not publish stale state fallback: ${state.staleReason || 'stale=true'}`);
+}
 const minimumConfiguredLocationCount = allowSafeStaleFallback ? 34 : 36;
 assert(configuredLocations.length >= minimumConfiguredLocationCount, `Expected at least ${minimumConfiguredLocationCount} reviewed Florida configured store locations; got ${configuredLocations.length}.`);
-assert(trusted.length > 0, 'Expected guarded Florida retailer inventory signals.');
-assert(trustedStores.size >= minimumStoreCount, `Expected at least ${minimumStoreCount} fresh exact Florida inventory stores; got ${trustedStores.size}.`);
+assert(coverageInventory.length > 0, 'Expected guarded Florida retailer inventory signals or a safe retained fallback.');
+assert(trustedStores.size >= minimumStoreCount, `Expected at least ${minimumStoreCount} exact Florida inventory stores; got ${trustedStores.size}.`);
 assert(trustedCities.size >= minimumCityCount, `Expected at least ${minimumCityCount} Florida inventory cities; got ${trustedCities.size}.`);
-assert(new Set(trusted.map((signal) => signal.sourceLabel)).size >= minimumSourceCount, `Expected at least ${minimumSourceCount} live Florida retailer inventory sources.`);
+assert(new Set(coverageInventory.map((signal) => signal.sourceLabel)).size >= minimumSourceCount, `Expected at least ${minimumSourceCount} Florida retailer inventory sources.`);
 assert(trustedCities.has('Kissimmee') || trustedCities.has('Orlando'), 'Expected verified Central Florida inventory.');
 assert([...trustedCities].some((city) => ['Tampa', 'Clearwater', 'Riverview', 'Largo', 'Saint Petersburg', 'Brandon', 'Wesley Chapel', 'Lutz'].includes(city)), 'Expected verified Tampa Bay inventory.');
 if (!allowSafeStaleFallback) {
@@ -81,15 +99,15 @@ assert(!smallFormats.length, 'Florida inventory and watch rows should exclude mi
 
 console.log(JSON.stringify({
   status: 'ok',
-  mode: allowSafeStaleFallback ? 'scheduled-safe-fallback' : 'targeted-strict',
+  mode: safeStaleFallbackMode ? 'scheduled-safe-stale-fallback' : (allowSafeStaleFallback ? 'scheduled-safe-fallback' : 'targeted-strict'),
   stateStatus: state.status,
-  inventorySignals: trusted.length,
+  inventorySignals: coverageInventory.length,
   pensacolaShopifySignals: pensacolaShopify.length,
   stores: trustedStores.size,
   configuredStores: configuredLocations.length,
   cities: [...trustedCities].sort(),
-  sources: [...new Set(trusted.map((signal) => signal.sourceLabel))].sort(),
+  sources: [...new Set(coverageInventory.map((signal) => signal.sourceLabel))].sort(),
   staleNonAlertableFallbacks: staleFallbacks.length,
   maxInventoryAgeMinutes: maxInventoryAgeMs / 60_000,
-  sample: trusted.slice(0, 6).map((signal) => ({ bottle: signal.canonicalName, price: signal.price, store: signal.storeName, availability: signal.availabilityLabel })),
+  sample: coverageInventory.slice(0, 6).map((signal) => ({ bottle: signal.canonicalName, price: signal.price, store: signal.storeName, availability: signal.availabilityLabel })),
 }, null, 2));

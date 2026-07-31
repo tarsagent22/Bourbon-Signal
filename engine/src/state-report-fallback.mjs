@@ -3,11 +3,23 @@ export function markStaleReport(report, config, reason, now = new Date().toISOSt
   const staleSignals = (report.signals || []).map((signal) => ({
     ...signal,
     stale: true,
+    sourceStale: true,
     staleReason: reason,
     canAlertAsInventory: false,
     canAlertAsWatch: false,
     alertable: false,
-    raw: { ...(signal.raw || {}), staleFallback: true, staleReason: reason, staleFallbackAt: now },
+    availabilityStatus: 'stale',
+    availabilityLabel: 'Stale retained evidence; not alertable',
+    sourceAvailabilityVerified: false,
+    raw: {
+      ...(signal.raw || {}),
+      sourceAvailabilityVerified: false,
+      sourceRuntimeNonAlertable: true,
+      staleFallback: true,
+      staleNonAlertable: true,
+      staleReason: reason,
+      staleFallbackAt: now,
+    },
   }));
   const roadblocks = [
     ...(report.roadblocks || []).filter((roadblock) => String(roadblock.status || '') !== 'stale_previous_report'),

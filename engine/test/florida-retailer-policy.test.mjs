@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 
 import { confidenceForSignal } from '../src/confidence-policy.mjs';
 import { isFloridaRetailerInventory, isFloridaRetailerSignalIdentity } from '../src/florida-retailer-policy.mjs';
+import { isExplicitSafeStaleSignal, STALE_RETAINED_AVAILABILITY_LABEL } from '../src/florida-safe-stale-policy.mjs';
 import { getStateLifecycle } from '../src/state-lifecycle.mjs';
 import { ALL_STATE_SOURCES } from '../src/state-sources.mjs';
 
@@ -31,6 +32,37 @@ test('Florida MDP Shopify inventory requires exact source, merchant, host, store
   assert.equal(isFloridaRetailerSignalIdentity({ ...mdp, merchantId: 'other' }), false);
   assert.equal(isFloridaRetailerInventory({ ...mdp, storeAddress: 'Kissimmee, GA 34746' }), false);
   assert.equal(isFloridaRetailerInventory({ ...mdp, sourceAvailabilityVerified: false, raw: { ...mdp.raw, variant: { available: false } } }), false);
+});
+
+test('Florida retained fallback requires every explicit stale and non-alertable marker', () => {
+  const stale = {
+    ...mdp,
+    stale: true,
+    sourceStale: true,
+    canAlertAsInventory: false,
+    canAlertAsWatch: false,
+    alertable: false,
+    availabilityStatus: 'stale',
+    availabilityLabel: STALE_RETAINED_AVAILABILITY_LABEL,
+    sourceAvailabilityVerified: false,
+    raw: {
+      ...mdp.raw,
+      sourceAvailabilityVerified: false,
+      sourceRuntimeNonAlertable: true,
+      staleFallback: true,
+      staleNonAlertable: true,
+    },
+  };
+  assert.equal(isExplicitSafeStaleSignal(stale), true);
+  for (const unsafe of [
+    { ...stale, alertable: true },
+    { ...stale, canAlertAsWatch: true },
+    { ...stale, sourceAvailabilityVerified: true },
+    { ...stale, availabilityStatus: 'in_stock' },
+    { ...stale, availabilityLabel: 'In stock' },
+    { ...stale, raw: { ...stale.raw, sourceRuntimeNonAlertable: false } },
+    { ...stale, raw: { ...stale.raw, staleNonAlertable: false } },
+  ]) assert.equal(isExplicitSafeStaleSignal(unsafe), false);
 });
 
 test('Florida Target identity fails closed to explicitly listed Florida stores', () => {
