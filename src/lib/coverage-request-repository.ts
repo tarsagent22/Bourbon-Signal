@@ -264,25 +264,21 @@ export class CoverageRequestRepository {
     const rows = await this.database.query(`
       WITH writer_lock AS (
         SELECT pg_advisory_xact_lock(hashtextextended('coverage-request-automation', 0))
-      ), requeued AS (
-        UPDATE coverage_request_automation_jobs AS job
-        SET status = 'queued', lease_token = NULL, lease_expires_at = NULL, updated_at = $2::timestamptz
-        FROM writer_lock
-        WHERE job.status = 'claimed'
-          AND job.task_id IS NULL
-          AND job.lease_expires_at <= $2::timestamptz
-        RETURNING job.job_key
       ), active AS (
         SELECT job.*, (job.status = 'claimed' AND job.lease_token = $1) AS owned
         FROM coverage_request_automation_jobs AS job, writer_lock
-        WHERE job.status IN ('claimed', 'running')
-          AND (SELECT COUNT(*) FROM requeued) >= 0
+        WHERE job.status = 'running'
+          OR (job.status = 'claimed' AND job.lease_expires_at > $2::timestamptz)
         ORDER BY job.created_at ASC
         LIMIT 1
       ), candidate AS (
         SELECT job.job_key
         FROM coverage_request_automation_jobs AS job, writer_lock
-        WHERE job.status = 'queued'
+        WHERE (
+          job.status = 'queued'
+          OR (job.status = 'claimed' AND job.lease_expires_at <= $2::timestamptz)
+        )
+          AND job.task_id IS NULL
           AND NOT EXISTS (SELECT 1 FROM active)
         ORDER BY job.created_at ASC
         FOR UPDATE SKIP LOCKED
@@ -366,6 +362,65 @@ export class CoverageRequestRepository {
       SELECT completed.*, FALSE AS owned, FALSE AS delivery_uncertain
       FROM completed, request_updated
     `, [jobKey, taskId, JSON.stringify(terminalResult), outcome, now]) as CoverageAutomationJobRow[];
+    return rows[0] ? rowToAutomationJob(rows[0]) : null;
+  }
+
+  async retryAutomationJob(
+    jobKey: string,
+    taskId: string,
+    now = new Date().toISOString(),
+  ): Promise<CoverageAutomationJob | null> {
+    const rows = await this.database.query(`
+      WITH writer_lock AS (
+        SELECT pg_advisory_xact_lock(hashtextextended('coverage-request-automation', 0))
+      ), candidate AS (
+        SELECT job.job_key, job.coverage_request_id, job.task_id,
+               job.terminal_result, job.notification_platform_message_id
+        FROM coverage_request_automation_jobs AS job
+        JOIN coverage_requests AS request ON request.id = job.coverage_request_id
+        CROSS JOIN writer_lock
+        WHERE job.job_key = $1
+          AND job.task_id = $2
+          AND job.status IN ('notification_pending', 'notified', 'failed')
+          AND job.outcome = 'blocked'
+          AND job.terminal_result->>'blockerCode' IN ('automation_terminal_contract_failure', 'automation_task_missing')
+          AND request.status IN ('requested', 'on_radar')
+          AND request.baseline_coverage_fingerprint = job.baseline_coverage_fingerprint
+        FOR UPDATE OF job, request
+      ), request_reset AS (
+        UPDATE coverage_requests AS request
+        SET
+          status = 'requested',
+          updated_at = CASE WHEN request.status = 'requested' THEN request.updated_at ELSE $3::timestamptz END,
+          review_notes = LEFT('Retrying after a fail-closed automation infrastructure error.', 1000)
+        FROM candidate
+        WHERE request.id = candidate.coverage_request_id
+        RETURNING request.id, request.updated_at
+      )
+      UPDATE coverage_request_automation_jobs AS job
+      SET
+        status = 'queued',
+        request_version = request_reset.updated_at,
+        lease_token = NULL,
+        lease_expires_at = NULL,
+        task_id = NULL,
+        terminal_result = NULL,
+        outcome = NULL,
+        notification_token = NULL,
+        notification_attempted_at = NULL,
+        notification_platform_message_id = NULL,
+        retry_history = COALESCE(job.retry_history, '[]'::jsonb) || jsonb_build_array(jsonb_build_object(
+          'taskId', candidate.task_id,
+          'terminalResult', candidate.terminal_result,
+          'platformMessageId', candidate.notification_platform_message_id,
+          'retriedAt', $3::timestamptz
+        )),
+        updated_at = $3::timestamptz
+      FROM candidate, request_reset
+      WHERE job.job_key = candidate.job_key
+        AND request_reset.id = candidate.coverage_request_id
+      RETURNING job.*, FALSE AS owned, FALSE AS delivery_uncertain
+    `, [jobKey, taskId, now]) as CoverageAutomationJobRow[];
     return rows[0] ? rowToAutomationJob(rows[0]) : null;
   }
 

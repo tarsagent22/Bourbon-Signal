@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import { neon } from "@neondatabase/serverless";
 
 const DATABASE_ENVIRONMENT_VARIABLE = "BOURBON_QUEUE_DATABASE_URL_UNPOOLED";
-const MIGRATION_VERSION = "coverage-request-automation-v1";
+const MIGRATION_VERSION = "coverage-request-automation-v2";
 
 function option(args, name) {
   const exact = args.indexOf(name);
@@ -103,6 +103,14 @@ const verification = await sql.query(`
     to_regclass('public.coverage_request_automation_jobs') IS NOT NULL AS has_automation_jobs,
     to_regclass('public.coverage_request_automation_single_active_idx') IS NOT NULL AS has_single_active_index,
     to_regclass('public.coverage_request_automation_queue_idx') IS NOT NULL AS has_automation_queue_index,
+    EXISTS (
+      SELECT 1
+      FROM information_schema.columns
+      WHERE table_schema = 'public'
+        AND table_name = 'coverage_request_automation_jobs'
+        AND column_name = 'retry_history'
+        AND data_type = 'jsonb'
+    ) AS has_retry_history,
     (
       SELECT column_default = 'false'
       FROM information_schema.columns
@@ -121,6 +129,7 @@ const schemaReady = verification[0]
   && verification[0].has_automation_jobs === true
   && verification[0].has_single_active_index === true
   && verification[0].has_automation_queue_index === true
+  && verification[0].has_retry_history === true
   && verification[0].has_opt_in_default === true;
 if (!schemaReady) {
   throw new Error("Coverage request schema verification failed.");

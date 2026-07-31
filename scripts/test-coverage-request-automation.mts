@@ -122,6 +122,8 @@ assert.match(route, /COVERAGE_AUTOMATION_OUTCOME_SECRET/);
 assert.match(route, /COVERAGE_AUTOMATION_CAPABILITY_SECRET/);
 assert.match(route, /authorityCapability/);
 assert.match(route, /action === "fail"/);
+assert.match(route, /action === "retry"/);
+assert.match(route, /retryAutomationJob/);
 assert.doesNotMatch(route, /COMPANY_SCORECARD_READ_SECRET|CRON_SECRET/);
 assert.match(route, /claim_notification/);
 assert.match(route, /verify_authority/);
@@ -136,12 +138,16 @@ assert.match(repository, /job\.task_id = \$2/);
 assert.match(repository, /notification_pending/);
 assert.match(repository, /delivery_uncertain/);
 assert.match(repository, /ON CONFLICT \(coverage_request_id, baseline_coverage_fingerprint\) DO NOTHING/);
+assert.match(repository, /retryAutomationJob/);
+assert.match(repository, /retry_history/);
+assert.match(repository, /status = 'claimed' AND job\.lease_expires_at <= \$2::timestamptz/);
 
 const schema = read("src/lib/coverage-request-schema.sql");
 assert.match(schema, /coverage_request_automation_jobs/);
 assert.match(schema, /coverage_request_automation_single_active_idx/);
 assert.match(schema, /WHERE status IN \('claimed', 'running'\)/);
 assert.match(schema, /notification_platform_message_id/);
+assert.match(schema, /retry_history JSONB/);
 
 const agent = read("automation/bourbon-signal/coverage-request-agent.mjs");
 assert.match(agent, /open\(lockPath, 'wx'/);

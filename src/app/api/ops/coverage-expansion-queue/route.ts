@@ -81,7 +81,7 @@ export async function POST(request: Request) {
 
     if (action === "claim" || action === "attach") {
       if (!authorizeOpsBearer(request.headers.get("authorization"), claimSecret())) return response({ error: "Unauthorized" }, 401);
-    } else if (action === "complete" || action === "fail" || action === "claim_notification" || action === "ack_notification") {
+    } else if (action === "complete" || action === "fail" || action === "retry" || action === "claim_notification" || action === "ack_notification") {
       if (!authorizeOpsBearer(request.headers.get("authorization"), outcomeSecret())) return response({ error: "Unauthorized" }, 401);
     } else if (action !== "verify_authority") {
       return response({ error: "Unsupported coverage automation action." }, 400);
@@ -119,6 +119,12 @@ export async function POST(request: Request) {
     }
 
     const taskId = opaque(input.taskId, "taskId", TASK_ID);
+
+    if (action === "retry") {
+      const job = await repository.retryAutomationJob(jobKey, taskId);
+      if (!job) return response({ error: "Coverage automation retry is stale, ineligible, or not bound to this task." }, 409);
+      return response({ contractVersion: CONTRACT_VERSION, job: publicJob(job) });
+    }
 
     if (action === "attach") {
       const leaseToken = opaque(input.leaseToken, "leaseToken", /^[a-f0-9-]{36}$/);
