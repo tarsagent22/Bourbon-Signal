@@ -684,59 +684,62 @@ export const STATE_LIFECYCLE_CONFIG = {
         "verifiedAt": "2026-07-24T04:26:31.660Z",
         "shadowArtifact": "engine/data/state-evidence/NY/shadow-runs.json",
         "canaryArtifact": "engine/data/state-evidence/NY/canary-runs.json",
-        "canaryPreviewUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/30067754269",
+        "canaryPreviewUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/30652414608",
         "verticalSliceManifest": "engine/data/state-integration/NY.json",
         "fixtureContract": "engine/data/state-fixtures/NY.json",
         "immutableEvidence": {
           "schemaVersion": 1,
           "state": "NY",
-          "generatedAt": "2026-07-24T04:50:06.701Z",
-          "sourceConfigHash": "ef15a51a0ba26e8e810945d0d0661107b130473abfb023aa08891a98c6e91287",
-          "previewUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/30067754269",
+          "generatedAt": "2026-07-31T17:46:01.404Z",
+          "sourceConfigHash": "6ba73fd702ea71835154fac8f02dc7963017aadacce12a874a002ef4f9435f17",
+          "previewUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/30652414608",
           "shadowRuns": [
             {
-              "runId": "local-shadow-ny-1",
+              "runId": "nassau-shadow-ny-1",
               "status": "success",
-              "generatedAt": "2026-07-24T03:12:13.840404Z",
-              "artifactPath": "out/shadow/NY/local-evidence/report-1.json",
-              "artifactHash": "12646ea166f6573700701e23f25947c48e68b008ed49ad94f98add45cd6ce3a3",
-              "signalCount": 11,
+              "generatedAt": "2026-07-31T17:47:43.832Z",
+              "artifactPath": ".operator/engine-expansions/NY/shadow/report-1.json",
+              "artifactHash": "ffd746f26a80e5fffdd629736b1a00aa3e45677e59c96b28af5ef2f4dca28d30",
+              "signalCount": 14,
               "sourceChains": [
-                "broadway-spirits",
                 "cellar-53",
-                "flatiron-wines"
+                "cherrywood-wine",
+                "westbury-liquors",
+                "wine-gallery"
               ],
               "roadblockCount": 0,
               "alertsDisabled": true,
               "productionSnapshotTouched": false
             },
             {
-              "runId": "local-shadow-ny-2",
+              "runId": "nassau-shadow-ny-2",
               "status": "success",
-              "generatedAt": "2026-07-24T03:12:19.181839Z",
-              "artifactPath": "out/shadow/NY/local-evidence/report-2.json",
-              "artifactHash": "2df45c6f590b51b1053bdddc0cde11ca0e0f5947a2b6eae8f339c34ab4b460b3",
-              "signalCount": 11,
+              "generatedAt": "2026-07-31T17:47:52.260Z",
+              "artifactPath": ".operator/engine-expansions/NY/shadow/report-2.json",
+              "artifactHash": "3b1e2f8c172d0f62c541b8b8d572873140e446b18924ff968034057f306aad5e",
+              "signalCount": 14,
               "sourceChains": [
-                "broadway-spirits",
                 "cellar-53",
-                "flatiron-wines"
+                "cherrywood-wine",
+                "westbury-liquors",
+                "wine-gallery"
               ],
               "roadblockCount": 0,
               "alertsDisabled": true,
               "productionSnapshotTouched": false
             },
             {
-              "runId": "local-shadow-ny-3",
+              "runId": "nassau-shadow-ny-3",
               "status": "success",
-              "generatedAt": "2026-07-24T03:12:23.568513Z",
-              "artifactPath": "out/shadow/NY/local-evidence/report-3.json",
-              "artifactHash": "28fcc26fd47be8e4f44f1c117a594a8e425ffb52500034ae432c6227a584d1cd",
-              "signalCount": 11,
+              "generatedAt": "2026-07-31T17:48:00.129Z",
+              "artifactPath": ".operator/engine-expansions/NY/shadow/report-3.json",
+              "artifactHash": "1799a0f92f449f4b4cbf7c3bb0c8c4025ce10a3335459e37fb7bf6ee3cf93898",
+              "signalCount": 14,
               "sourceChains": [
-                "broadway-spirits",
                 "cellar-53",
-                "flatiron-wines"
+                "cherrywood-wine",
+                "westbury-liquors",
+                "wine-gallery"
               ],
               "roadblockCount": 0,
               "alertsDisabled": true,
@@ -745,16 +748,16 @@ export const STATE_LIFECYCLE_CONFIG = {
           ],
           "canaryRuns": [
             {
-              "runId": "local-canary-v2-ny-1",
+              "runId": "nassau-canary-ny-1",
               "status": "success",
-              "generatedAt": "2026-07-24T04:23:18.583232Z",
-              "artifactHash": "e90e53439c5d1302791a68b28b0648dc14405cdc1d8435191cf0af1919609c19"
+              "generatedAt": "2026-07-31T17:41:52.505Z",
+              "artifactHash": "c85eb3f39f5bcb4d101e415b29a2d3a001557f1cea6f1dac5cc8882ac1f78b42"
             },
             {
-              "runId": "local-canary-v2-ny-2",
+              "runId": "nassau-canary-ny-2",
               "status": "success",
-              "generatedAt": "2026-07-24T04:23:19.106600Z",
-              "artifactHash": "273a03c7b9a7504a93364cf885fc14f677b9b5534668d7dd8c747ba1d259bbd1"
+              "generatedAt": "2026-07-31T17:41:52.505Z",
+              "artifactHash": "c85eb3f39f5bcb4d101e415b29a2d3a001557f1cea6f1dac5cc8882ac1f78b42"
             }
           ],
           "provenance": {
@@ -762,15 +765,15 @@ export const STATE_LIFECYCLE_CONFIG = {
             "repository": "tarsagent22/Bourbon-Signal",
             "workflowFile": ".github/workflows/state-promotion-provenance.yml",
             "workflowName": "Verify state promotion provenance",
-            "workflowRunId": "30067754269",
+            "workflowRunId": "30652414608",
             "workflowRunAttempt": "1",
-            "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/30067754269",
-            "commitSha": "8ff436d7e6066bd5b9ee86085c17c9e57d947619",
-            "artifactId": "8586850796",
-            "artifactName": "state-promotion-provenance-NY-30067754269",
-            "artifactDigest": "35103018b362c11faebdff7d5fa3fd0298b46c14a6f5add7ea3c257190c02a15",
-            "bundleDigest": "c4b4912ea7ef94c22e84de146ed91cfe4ad3c1795c82dda85cba6a82160e5b25",
-            "generatedAt": "2026-07-24T04:49:17.264Z"
+            "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/30652414608",
+            "commitSha": "4c0d4f04111e575c065346d999dc782e064ca611",
+            "artifactId": "8801909618",
+            "artifactName": "state-promotion-provenance-NY-30652414608",
+            "artifactDigest": "1da75292df8fe488db40d5bff2af6132d118d4dbb2e7e8fd12923cb4920aa21d",
+            "bundleDigest": "90fea9fb0fc4aa947b03432caf57dac50955346a615128d06e91cc0b3c0f8f89",
+            "generatedAt": "2026-07-31T17:46:01.404Z"
           }
         }
       }
