@@ -813,7 +813,7 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport, onVoteS
   const baseSignalTime = scheduledReleaseCopy?.statusLine || (drop.retailerSignalState === "upcoming" && drop.eventDate
     ? `Starts ${formatDropTime({ ...drop, timestamp: drop.eventDate })}`
     : (distilleryMeta?.checkedLabel || formatDropTime(drop)));
-  const signalTime = drop.historical ? `Historical · ${baseSignalTime}` : baseSignalTime;
+  const signalTime = baseSignalTime;
   const pricing = lookupPricing(drop.displayName, drop.retail_price ?? undefined);
   const hasPricing = pricing.msrp !== undefined;
   const isUserSighting = Boolean((drop as GroupedDrop & { isUserSighting?: boolean }).isUserSighting);

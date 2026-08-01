@@ -7,6 +7,18 @@ export function historicalDropFeedEnabled(input: {
   return input.requested && input.isSignedIn && input.canUseAdvancedFilters && input.tierCount > 0;
 }
 
+export function scopedDropFeedHistoryEnabled(input: {
+  state?: string | null;
+  area?: string | null;
+  store?: string | null;
+  bottle?: string | null;
+}) {
+  return [input.state, input.area, input.store, input.bottle].some((value) => {
+    const normalized = String(value || "").trim();
+    return normalized.length > 0 && normalized.toUpperCase() !== "ALL";
+  });
+}
+
 export function selectDropFeedHistory<T extends Record<string, unknown>>(
   rows: T[],
   historicalMode: boolean,

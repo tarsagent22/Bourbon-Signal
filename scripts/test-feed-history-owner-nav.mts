@@ -35,7 +35,7 @@ assert.match(apiSource, /include !== "all" \|\| historicalMode/, "history mode m
 
 const feedSource = readFileSync("src/components/sections/DropFeed.tsx", "utf8");
 assert.match(feedSource, /query\.set\("history", "1"\)/, "rarity-filtered feed requests should explicitly request history");
-assert.match(feedSource, /Historical ·/, "older cards must be labeled rather than portrayed as live inventory");
+assert.doesNotMatch(feedSource, /Historical ·/, "timestamps should communicate signal age without extra stale messaging");
 
 const navSource = readFileSync("src/components/Navigation.tsx", "utf8");
 assert.doesNotMatch(navSource.match(/const navLinks = \[[\s\S]*?\];/)?.[0] || "", /Control Room/, "Control Room must not enter shared navigation");
