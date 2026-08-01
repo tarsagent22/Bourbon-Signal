@@ -7,7 +7,7 @@ import { normalizeStateCodeParam } from "@/lib/location-normalization";
 import { decodeDropCursor, DropCursorSnapshotError, paginateDrops } from "@/lib/drop-cursor";
 import { dropFeedCacheHeaders } from "@/lib/api-cache-contract";
 import { dropFreshnessTime, resolveDropLimit } from "@/lib/drop-feed-policy";
-import { historicalDropFeedEnabled, selectDropFeedHistory } from "@/lib/drop-feed-history";
+import { historicalDropFeedEnabled, scopedDropFeedHistoryEnabled, selectDropFeedHistory } from "@/lib/drop-feed-history";
 import { getRetailerRepository } from "@/lib/retailer-repository";
 import { getBourbonBible } from "@/lib/bourbonBible";
 import { isVerifiedRetailerDrop, retailerFeedSnapshot, retailerSubmissionToFeedCard, type RetailerFeedTier } from "@/lib/retailer-signal-feed";
@@ -257,11 +257,12 @@ export async function GET(request: Request) {
   const state = normalizeStateCodeParam(url.searchParams.get("state"));
   const bottle = !entitlements.canUseBottleSearch ? undefined : url.searchParams.get("bottle")?.toLowerCase().trim();
   const store = !entitlements.canUseDropFeedFilters ? undefined : url.searchParams.get("store")?.toLowerCase().trim();
-  const californiaArea = parseCaliforniaAreaQuery(url.searchParams.get("area"));
-  const nevadaArea = parseNevadaAreaQuery(url.searchParams.get("area"));
-  const nyAreas = parseNewYorkAreaQuery(url.searchParams.get("area"));
-  const coAreas = parseColoradoAreaQuery(url.searchParams.get("area"));
-  const demandMetroAreas = parseDemandMetroAreaQuery(state || "", url.searchParams.get("area"));
+  const areaQuery = url.searchParams.get("area");
+  const californiaArea = parseCaliforniaAreaQuery(areaQuery);
+  const nevadaArea = parseNevadaAreaQuery(areaQuery);
+  const nyAreas = parseNewYorkAreaQuery(areaQuery);
+  const coAreas = parseColoradoAreaQuery(areaQuery);
+  const demandMetroAreas = parseDemandMetroAreaQuery(state || "", areaQuery);
   if (state === "CA" && californiaArea.requested && !californiaArea.valid) {
     return NextResponse.json({ drops: [], total: 0, error: "Unsupported California area" }, { status: 400 });
   }
@@ -277,15 +278,31 @@ export async function GET(request: Request) {
   if (["NC", "GA", "TN"].includes(state || "") && demandMetroAreas.requested && !demandMetroAreas.valid) {
     return NextResponse.json({ drops: [], total: 0, error: `Unsupported ${state} metro area` }, { status: 400 });
   }
+  const appliedAreaFilter = Boolean(
+    areaQuery?.trim()
+    && (
+      (state === "CA" && californiaArea.areas.length > 0)
+      || (state === "NV" && nevadaArea.areas.length > 0)
+      || (state === "NY" && nyAreas.areas.length > 0)
+      || (state === "CO" && coAreas.areas.length > 0)
+      || (["NC", "GA", "TN"].includes(state || "") && demandMetroAreas.areas.length > 0)
+    )
+  );
   const include = entitlements.canUseAdvancedFilters ? url.searchParams.get("include")?.toLowerCase().trim() : undefined;
 
   const tierFilter = parseTierFilter(url);
+  const scopedFilterHistory = scopedDropFeedHistoryEnabled({
+    state,
+    area: appliedAreaFilter ? areaQuery : undefined,
+    store,
+    bottle,
+  });
   const historicalMode = historicalDropFeedEnabled({
     requested: url.searchParams.get("history") === "1",
     isSignedIn,
     canUseAdvancedFilters: entitlements.canUseAdvancedFilters,
     tierCount: tierFilter.size,
-  }) || Boolean(state);
+  }) || scopedFilterHistory;
 
   try {
     const [[dropResult, statsResult], retailerSubmissions] = await Promise.all([
