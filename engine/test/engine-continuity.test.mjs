@@ -27,10 +27,13 @@ test('state quality v2 uses a current-snapshot baseline', () => {
 test('scheduled refresh persists collector history, the actual scheduler state, and runs twice hourly', async () => {
   const workflow = await readFile(new URL('../../.github/workflows/refresh-feed.yml', import.meta.url), 'utf8');
   const cacheStep = workflow.match(/- name: Restore collector artifacts and adaptive scheduler state[\s\S]*?(?=\n      - name:)/)?.[0] || '';
+  const ncIntelligenceRestoreStep = workflow.match(/- name: Restore North Carolina board intelligence[\s\S]*?(?=\n      - name:)/)?.[0] || '';
   const browserRestoreStep = workflow.match(/- name: Restore browser source artifacts[\s\S]*?(?=\n      - name:)/)?.[0] || '';
   const stableSaveStep = workflow.match(/- name: Save verified collector state[\s\S]*?(?=\n      - name:)/)?.[0] || '';
+  const ncIntelligenceSaveStep = workflow.match(/- name: Save verified North Carolina board intelligence[\s\S]*?(?=\n      - name:)/)?.[0] || '';
   const browserSaveStep = workflow.match(/- name: Save browser source artifacts[\s\S]*?(?=\n      - name:)/)?.[0] || '';
   const hydrationStep = workflow.match(/- name: Hydrate complete state reports for recovery[\s\S]*?(?=\n      - name:)/)?.[0] || '';
+  const refreshStep = workflow.match(/- name: Refresh all due customer-active states[\s\S]*?(?=\n      - name:)/)?.[0] || '';
   const diagnosticsStep = workflow.match(/- name: Preserve refresh diagnostics[\s\S]*$/)?.[0] || '';
   assert.match(workflow, /cron:\s*["']7,37 \* \* \* \*['"]/);
   assert.match(workflow, /permissions:[\s\S]*?actions:\s*read/);
@@ -68,6 +71,10 @@ test('scheduled refresh persists collector history, the actual scheduler state, 
   assert.match(productionVerificationStep, /verify:production-engine[\s\S]*?--rollback/);
   assert.match(cacheStep, /engine\/out\/optimization\/state-run-metrics\.json/);
   assert.match(cacheStep, /engine\/out\/optimization\/source-run-history\.json/);
+  assert.doesNotMatch(cacheStep, /engine\/out\/nc-board-intelligence\.json/, 'adding a path to the legacy combined cache would invalidate its existing cache version');
+  assert.match(ncIntelligenceRestoreStep, /engine\/out\/nc-board-intelligence\.json/, 'scheduled not-due NC runs must restore the board-intelligence input used by the site contract');
+  assert.match(ncIntelligenceRestoreStep, /id:\s*nc-intelligence-cache/);
+  assert.match(ncIntelligenceRestoreStep, /inventory-nc-board-intelligence-\$\{\{ runner\.os \}\}-\$\{\{ github\.run_id \}\}[\s\S]*restore-keys:[\s\S]*inventory-nc-board-intelligence-\$\{\{ runner\.os \}\}-/);
   assert.match(cacheStep, /engine\/out\/browser/);
   assert.match(cacheStep, /inventory-collector-state-/, 'stable restore must keep the legacy combined path/version for one-step migration');
   assert.match(browserRestoreStep, /engine\/out\/browser/);
@@ -75,6 +82,9 @@ test('scheduled refresh persists collector history, the actual scheduler state, 
   assert.match(browserRestoreStep, /github\.run_attempt/, 'browser cache must be replaceable across workflow re-runs');
   assert.match(stableSaveStep, /if:\s*success\(\)/);
   assert.match(stableSaveStep, /engine\/out\/browser/);
+  assert.doesNotMatch(stableSaveStep, /engine\/out\/nc-board-intelligence\.json/, 'the legacy combined cache path set must remain stable');
+  assert.match(ncIntelligenceSaveStep, /if:\s*success\(\)/);
+  assert.match(ncIntelligenceSaveStep, /engine\/out\/nc-board-intelligence\.json/, 'verified NC board intelligence must survive onto the next isolated runner');
   assert.match(browserSaveStep, /if:\s*always\(\)/);
   assert.match(browserSaveStep, /engine\/out\/browser/);
   assert.match(browserSaveStep, /github\.run_attempt/);
@@ -83,6 +93,10 @@ test('scheduled refresh persists collector history, the actual scheduler state, 
   assert.match(diagnosticsStep, /engine\/out\/source-slo-7d\.md/);
   assert.match(diagnosticsStep, /engine\/out\/source-usefulness-roi\.json/);
   assert.match(diagnosticsStep, /engine\/out\/source-usefulness-roi\.md/);
+  assert.match(diagnosticsStep, /engine\/out\/nc-board-intelligence\.json/, 'failed refresh artifacts must expose the exact NC board-intelligence input used by verification');
+  assert.match(diagnosticsStep, /engine\/out\/site\/stats\.json/, 'failed refresh artifacts must expose the exact generated stats that failed verification');
+  assert.match(refreshStep, /BOURBON_SIGNAL_FORCE_SOURCE_RUN:\s*\$\{\{ \(inputs\.states != '' \|\| inputs\.force_all_states == 'true' \|\| steps\.nc-intelligence-cache\.outputs\.cache-matched-key == ''\) && '1' \|\| '0' \}\}/, 'force-all recovery and a true NC intelligence cache miss must force source lanes instead of retaining not-due state without derived evidence');
+  assert.doesNotMatch(refreshStep, /nc-intelligence-cache\.outputs\.cache-hit/, 'a restore-key fallback reports cache-hit false and must not force every scheduled source lane');
   const workflowTimeoutMinutes = Number(workflow.match(/timeout-minutes:\s*(\d+)/)?.[1] || 0);
   assert.ok(workflowTimeoutMinutes >= 80, `refresh workflow timeout ${workflowTimeoutMinutes}m must cover 30m FWGS + 22m state run + installs, verification, publication, and rollback checks`);
   assert.doesNotMatch(workflow, /Refresh and gate the Texas candidate/);

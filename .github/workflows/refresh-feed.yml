@@ -79,6 +79,15 @@ jobs:
           restore-keys: |
             inventory-collector-state-${{ runner.os }}-
 
+      - name: Restore North Carolina board intelligence
+        id: nc-intelligence-cache
+        uses: actions/cache/restore@v4
+        with:
+          path: engine/out/nc-board-intelligence.json
+          key: inventory-nc-board-intelligence-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: |
+            inventory-nc-board-intelligence-${{ runner.os }}-
+
       - name: Restore browser source artifacts
         uses: actions/cache/restore@v4
         with:
@@ -121,7 +130,7 @@ jobs:
           BOURBON_SIGNAL_NY_FORCE_METRO_LIVE: ${{ contains(inputs.states, 'NY') && '1' || '0' }}
           BOURBON_SIGNAL_TN_FORCE_CITYHIVE_LIVE: ${{ contains(inputs.states, 'TN') && '1' || '0' }}
           BOURBON_SIGNAL_TN_CITYHIVE_FORCE_ALL_SOURCES: ${{ contains(inputs.states, 'TN') && '1' || '0' }}
-          BOURBON_SIGNAL_FORCE_SOURCE_RUN: ${{ inputs.states != '' && '1' || '0' }}
+          BOURBON_SIGNAL_FORCE_SOURCE_RUN: ${{ (inputs.states != '' || inputs.force_all_states == 'true' || steps.nc-intelligence-cache.outputs.cache-matched-key == '') && '1' || '0' }}
         run: npm run refresh:site
 
       - name: Verify North Carolina current-plus-stale signal continuity
@@ -270,6 +279,13 @@ jobs:
             engine/out/optimization/state-run-metrics.json
           key: inventory-collector-state-${{ runner.os }}-${{ github.run_id }}
 
+      - name: Save verified North Carolina board intelligence
+        if: success()
+        uses: actions/cache/save@v4
+        with:
+          path: engine/out/nc-board-intelligence.json
+          key: inventory-nc-board-intelligence-${{ runner.os }}-${{ github.run_id }}
+
       - name: Save browser source artifacts
         if: always()
         uses: actions/cache/save@v4
@@ -300,6 +316,8 @@ jobs:
             engine/out/source-slo-7d.md
             engine/out/source-usefulness-roi.json
             engine/out/source-usefulness-roi.md
+            engine/out/nc-board-intelligence.json
+            engine/out/site/stats.json
             engine/out/optimization/source-run-history.json
             engine/out/optimization/georgia-retailer-activation.json
             engine/out/optimization/state-run-metrics.json
