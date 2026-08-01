@@ -47,6 +47,33 @@ test('attempted fallback states retain their last published drops', () => {
   assert.equal(fallback.canAlertAsWatch, false);
 });
 
+test('retained Georgia customer rows preserve explicit last-known evidence while becoming non-alerting', () => {
+  const merged = mergePartialRefreshDrops({
+    previousDrops: [{
+      id: 'ga-live', state: 'GA', availabilityStatus: 'in_stock', availabilityLabel: 'Available',
+      sourceAvailabilityVerified: true, canAlertAsInventory: true, canAlertAsWatch: true, alertable: true,
+      raw: { merchantId: 'fixture-merchant' },
+    }],
+    currentDrops: [],
+    partialRefresh: true,
+    attemptedStateIds: ['GA'],
+    fallbackStateIds: ['GA'],
+  });
+  assert.equal(merged.length, 1);
+  const retained = merged[0];
+  assert.equal(retained.availabilityStatus, 'stale');
+  assert.equal(retained.sourceAvailabilityVerified, false);
+  assert.equal(retained.raw.lastKnownAvailabilityStatus, 'in_stock');
+  assert.equal(retained.raw.lastKnownSourceAvailabilityVerified, true);
+  assert.equal(retained.raw.sourceAvailabilityVerified, false);
+  assert.equal(retained.raw.staleFallback, true);
+  assert.equal(retained.raw.sourceRuntimeNonAlertable, true);
+  assert.equal(retained.canAlertAsInventory, false);
+  assert.equal(retained.canAlertAsWatch, false);
+  assert.equal(retained.alertable, false);
+  assert.match(retained.staleSourceCaveat, /last-known source evidence/i);
+});
+
 test('partial evidence fallback publishes fresh rows and retains only missing prior rows as stale context', () => {
   const merged = mergePartialRefreshDrops({
     previousDrops: {
