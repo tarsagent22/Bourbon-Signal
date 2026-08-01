@@ -1,3 +1,14 @@
+import { markSignalStaleNonAlertable } from './stale-signal-policy.mjs';
+
+function retainedDrop(drop, reason) {
+  return {
+    ...markSignalStaleNonAlertable(drop, reason),
+    staleSourceCaveat: typeof drop?.staleSourceCaveat === 'string' && drop.staleSourceCaveat.trim()
+      ? drop.staleSourceCaveat
+      : 'Last-known source evidence only; current availability is stale and not alertable. Verify directly before driving.',
+  };
+}
+
 export function detectDropCollapseFallbacks(previousStateQuality, currentDrops = [], attemptedStateIds = [], minRatio = 0.5) {
   const attempted = new Set(attemptedStateIds.map((state) => String(state).toUpperCase()));
   const currentCounts = new Map();
@@ -40,16 +51,7 @@ export function mergePartialRefreshDrops({ previousDrops = [], currentDrops = []
   const attempted = new Set(attemptedStateIds.map((state) => String(state).toUpperCase()).filter((state) => !effectivePreserved.has(state)));
   const partialRows = previousRows
     .filter((drop) => partialPreserved.has(stateOf(drop)) && isSafePartialRetainedRow(drop))
-    .map((drop) => ({
-      ...drop,
-      stale: true,
-      sourceStale: true,
-      staleSourceCaveat: true,
-      staleReason: 'partial_evidence_fallback',
-      alertable: false,
-      canAlertAsInventory: false,
-      canAlertAsWatch: false,
-    }));
+    .map((drop) => retainedDrop(drop, 'partial_evidence_fallback'));
   const merged = [
     ...currentRows.filter((drop) => attempted.has(stateOf(drop))),
     ...partialRows,
@@ -61,14 +63,7 @@ export function mergePartialRefreshDrops({ previousDrops = [], currentDrops = []
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
-  }).map((drop) => preserved.has(stateOf(drop)) ? {
-    ...drop,
-    stale: true,
-    sourceStale: true,
-    staleSourceCaveat: true,
-    staleReason: drop.staleReason || 'preserved_state_fallback',
-    alertable: false,
-    canAlertAsInventory: false,
-    canAlertAsWatch: false,
-  } : drop).slice(0, 10000);
+  }).map((drop) => preserved.has(stateOf(drop))
+    ? retainedDrop(drop, drop.staleReason || 'preserved_state_fallback')
+    : drop).slice(0, 10000);
 }
