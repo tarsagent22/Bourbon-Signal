@@ -1,11 +1,14 @@
 import hashlib
+import hmac
 import json
 import os
 import re
 import shutil
+import socket
 import subprocess
 import sys
 import tempfile
+import threading
 from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -15,6 +18,51 @@ from urllib.request import Request, urlopen
 from bourbon_signal_runtime import failure_summary, load_env
 
 MODEL = "gpt-5.6-sol"
+BROKER_PORT = 47683
+
+
+def receive_release_lane_frame(sock: socket.socket, limit: int = 256) -> bytes:
+    frame = bytearray()
+    while b"\n" not in frame:
+        if len(frame) >= limit:
+            raise RuntimeError("Release-lane broker frame exceeded its limit.")
+        chunk = sock.recv(min(64, limit - len(frame)))
+        if not chunk:
+            break
+        frame.extend(chunk)
+    return bytes(frame).split(b"\n", 1)[0]
+
+
+def start_release_lane_broker(inheritance_token: str):
+    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    if os.name == "nt" and hasattr(socket, "SO_EXCLUSIVEADDRUSE"):
+        server.setsockopt(socket.SOL_SOCKET, socket.SO_EXCLUSIVEADDRUSE, 1)
+    elif os.name != "nt":
+        server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    server.bind(("127.0.0.1", BROKER_PORT))
+    server.listen(8)
+    server.settimeout(0.2)
+    stopping = threading.Event()
+
+    def serve() -> None:
+        while not stopping.is_set():
+            try:
+                client, _ = server.accept()
+            except TimeoutError:
+                continue
+            except OSError:
+                break
+            with client:
+                try:
+                    client.settimeout(2)
+                    supplied = receive_release_lane_frame(client).decode("ascii", errors="ignore")
+                    client.sendall(b"OK\n" if hmac.compare_digest(supplied, inheritance_token) else b"NO\n")
+                except (OSError, RuntimeError):
+                    continue
+
+    thread = threading.Thread(target=serve, name="release-lane-broker", daemon=True)
+    thread.start()
+    return server, stopping, thread
 EXPECTED_REPO = Path(r"C:\c\Users\chand\projects\Bourbon-Signal-operator-base").resolve()
 EXPECTED_ORIGINS = {
     "https://github.com/tarsagent22/Bourbon-Signal.git",
@@ -79,6 +127,9 @@ def emit_owner_summary(artifact: dict) -> None:
 
 def run(command: list[str], cwd: Path, timeout: int = 180, extra_env: dict[str, str] | None = None) -> subprocess.CompletedProcess[str]:
     environment = {**load_env(), "BOURBON_SIGNAL_REPO": str(cwd), "HERMES_CRON_SESSION": "1"}
+    inheritance_token = os.environ.get("BOURBON_SIGNAL_RELEASE_LANE_INHERITANCE_TOKEN")
+    if inheritance_token:
+        environment["BOURBON_SIGNAL_RELEASE_LANE_INHERITANCE_TOKEN"] = inheritance_token
     environment.update(extra_env or {})
     return subprocess.run(
         command,
@@ -100,6 +151,26 @@ def require_ok(result: subprocess.CompletedProcess[str], label: str) -> str:
 
 def operator_repo_from_env(environment: dict[str, str]) -> Path:
     return Path(environment.get("BOURBON_SIGNAL_OPERATOR_REPO") or EXPECTED_REPO).resolve()
+
+
+def shared_release_lane_directory(repo: Path, environment: dict[str, str] | None = None) -> Path:
+    host_root = (Path.home() / "AppData" / "Local" / "hermes") if os.name == "nt" else (Path.home() / ".hermes")
+    return (host_root / "kanban" / "boards" / "bourbon-signal-coverage" / "release-lane").resolve()
+
+
+def sync_objective_registry(repo: Path, shared: Path) -> None:
+    source = repo / LOCK_RELATIVE
+    identity = str(repo).casefold() if os.name == "nt" else str(repo)
+    target = shared / "objectives" / f"{hashlib.sha256(identity.encode('utf-8')).hexdigest()}.json"
+    target.parent.mkdir(parents=True, exist_ok=True)
+    if not source.is_file():
+        target.unlink(missing_ok=True)
+        return
+    objective = json.loads(source.read_text(encoding="utf-8"))
+    payload = {"contractVersion": "bourbon-signal/objective-registry@1", "repository": str(repo), "objective": objective}
+    temporary = target.with_suffix(".tmp")
+    temporary.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+    os.replace(temporary, target)
 
 
 def dedicated_repo() -> Path:
@@ -180,7 +251,7 @@ def reconcile_objective_branch(repo: Path, objective: dict) -> str:
 
 @contextmanager
 def release_lane_lease(repo: Path, run_id: str):
-    target = repo / RELEASE_LANE_LOCK_RELATIVE
+    target = shared_release_lane_directory(repo) / "release-lane.lock"
     guard = target.with_suffix(".guard")
     target.parent.mkdir(parents=True, exist_ok=True)
     handle = open(guard, "a+b")
@@ -200,6 +271,7 @@ def release_lane_lease(repo: Path, run_id: str):
         handle.close()
         raise RuntimeError("The release lane is already owned by another live process.") from error
     now = datetime.now(timezone.utc)
+    inheritance_token = hashlib.sha256(os.urandom(32)).hexdigest()
     payload = {
         "contractVersion": "bourbon-signal/release-lane-lease@1",
         "leaseId": run_id,
@@ -207,16 +279,31 @@ def release_lane_lease(repo: Path, run_id: str):
         "pid": os.getpid(),
         "acquiredAt": now.isoformat().replace("+00:00", "Z"),
         "expiresAt": (now + timedelta(hours=RELEASE_LANE_LEASE_HOURS)).isoformat().replace("+00:00", "Z"),
+        "inheritanceDigest": hashlib.sha256(inheritance_token.encode("utf-8")).hexdigest(),
     }
+    prior_token = os.environ.get("BOURBON_SIGNAL_RELEASE_LANE_INHERITANCE_TOKEN")
+    broker = None
     try:
+        broker = start_release_lane_broker(inheritance_token)
         target.write_text(json.dumps(payload, indent=2) + "\n", encoding="utf-8")
+        os.environ["BOURBON_SIGNAL_RELEASE_LANE_INHERITANCE_TOKEN"] = inheritance_token
         yield
     finally:
         try:
+            sync_objective_registry(repo, target.parent)
             current = json.loads(target.read_text(encoding="utf-8")) if target.exists() else {}
             if current.get("runId") == run_id:
                 target.unlink(missing_ok=True)
         finally:
+            if broker:
+                server, stopping, thread = broker
+                stopping.set()
+                server.close()
+                thread.join(timeout=1)
+            if prior_token is None:
+                os.environ.pop("BOURBON_SIGNAL_RELEASE_LANE_INHERITANCE_TOKEN", None)
+            else:
+                os.environ["BOURBON_SIGNAL_RELEASE_LANE_INHERITANCE_TOKEN"] = prior_token
             handle.seek(0)
             if os.name == "nt":
                 import msvcrt

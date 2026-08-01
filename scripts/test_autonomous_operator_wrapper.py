@@ -1,5 +1,7 @@
 import importlib.util
 import json
+import os
+import socket
 import subprocess
 import sys
 import tempfile
@@ -13,6 +15,7 @@ spec = importlib.util.spec_from_file_location("autonomous_operator", SCRIPT_DIR 
 operator = importlib.util.module_from_spec(spec)
 assert spec.loader
 spec.loader.exec_module(operator)
+assert "socket.SO_REUSEADDR" in (SCRIPT_DIR / "bourbon_signal_autonomous_operator.py").read_text(encoding="utf-8")
 
 
 def lock_payload(worktree: Path, objective_id: str = "bsf-0123456789abcdef") -> dict:
@@ -101,6 +104,18 @@ with tempfile.TemporaryDirectory() as directory:
     worktree = projects / "Bourbon-Signal-operator-test"
     (repo / ".operator").mkdir(parents=True)
     worktree.mkdir()
+    isolated_release_root = projects / "hermes" / "kanban" / "boards" / "bourbon-signal-coverage" / "release-lane"
+    operator.shared_release_lane_directory = lambda *args, **kwargs: isolated_release_root
+    with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as probe:
+        probe.bind(("127.0.0.1", 0))
+        test_broker_port = probe.getsockname()[1]
+    operator.BROKER_PORT = test_broker_port
+    wrapper_source = (ROOT / "scripts" / "run-with-release-lane-lock.py").read_text(encoding="utf-8")
+    wrapper_source = wrapper_source.replace("BROKER_PORT = 47683", f"BROKER_PORT = {test_broker_port}")
+    canonical_line = '    host_root = (Path.home() / "AppData" / "Local" / "hermes") if os.name == "nt" else (Path.home() / ".hermes")'
+    assert canonical_line in wrapper_source
+    isolated_wrapper = projects / "run-with-release-lane-lock.py"
+    isolated_wrapper.write_text(wrapper_source.replace(canonical_line, f"    host_root = Path({str(projects / 'hermes')!r})"), encoding="utf-8")
     operator.EXPECTED_REPO = repo.resolve()
     original_load_env = operator.load_env
     operator.load_env = lambda: {"PATH": "fixture", "GH_TOKEN": "secret", "VERCEL_TOKEN": "secret", "DATABASE_URL": "secret", "BRAVE_SEARCH_API_KEY": "secret"}
@@ -110,10 +125,13 @@ with tempfile.TemporaryDirectory() as directory:
     assert not ({"GH_TOKEN", "VERCEL_TOKEN", "DATABASE_URL", "BRAVE_SEARCH_API_KEY"} & set(restricted))
     assert restricted["GIT_CONFIG_VALUE_0"].startswith("disabled-by-bourbon-signal-release-lane")
     assert restricted["GH_CONFIG_DIR"].startswith(str(repo)) and restricted["VERCEL_CONFIG_DIR"].startswith(str(repo))
+    release_lane_metadata = operator.shared_release_lane_directory(repo) / "release-lane.lock"
     with operator.release_lane_lease(repo, "lease-test-one"):
-        assert (repo / operator.RELEASE_LANE_LOCK_RELATIVE).is_file()
+        assert release_lane_metadata.is_file()
+        assert os.environ.get("BOURBON_SIGNAL_RELEASE_LANE_INHERITANCE_TOKEN")
+        assert json.loads(release_lane_metadata.read_text(encoding="utf-8"))["inheritanceDigest"]
         guarded = subprocess.run(
-            [sys.executable, str(ROOT / "scripts" / "run-with-release-lane-lock.py"), "--", sys.executable, "-c", "raise SystemExit(0)"],
+            [sys.executable, str(isolated_wrapper), "--", sys.executable, "-c", "raise SystemExit(0)"],
             cwd=repo,
             capture_output=True,
             text=True,
@@ -125,7 +143,7 @@ with tempfile.TemporaryDirectory() as directory:
             raise AssertionError("concurrent release writer was accepted")
         except RuntimeError:
             pass
-    assert not (repo / operator.RELEASE_LANE_LOCK_RELATIVE).exists()
+    assert not release_lane_metadata.exists()
     lock = lock_payload(worktree)
     (repo / operator.LOCK_RELATIVE).write_text(json.dumps(lock), encoding="utf-8")
     listing = f"worktree {repo}\nHEAD {'0' * 40}\nbranch refs/heads/main\n\nworktree {worktree}\nHEAD {'1' * 40}\nbranch refs/heads/{lock['branch']}\n"
