@@ -443,22 +443,33 @@ function stateLocations(internalStateKey: string, locations: readonly CoverageLo
   return locations.filter((location) => String(location.state || "").toUpperCase() === internalStateKey);
 }
 
-function sourceIsCurrentlyAvailable(
+function sourceStatusIsBlocked(value: unknown) {
+  const status = cleanText(value, 120).toLowerCase();
+  return /(?:^|[_\s-])(blocked|disabled|retired|source-unavailable|source_unavailable)(?:$|[_\s-])/.test(status);
+}
+
+function rowSourceIsBlocked(row: CoverageStateRowInput | undefined) {
+  return cleanText(row?.bestLocationPrecision, 80).toLowerCase() === "blocked"
+    || sourceStatusIsBlocked(row?.status);
+}
+
+function stateSourceIsBlocked(stateCode: string, degradedStates: readonly Record<string, unknown>[]) {
+  const publicCode = publicStateCode(stateCode);
+  return degradedStates.some((entry) => publicStateCode(entry.state) === publicCode && sourceStatusIsBlocked(entry.status));
+}
+
+function hasVerifiedCoverageSource(
   lifecycleEntry: CoverageLifecycleEntryInput | undefined,
   row: CoverageStateRowInput | undefined,
   stateLocationsList: readonly CoverageLocationInput[],
   stores: readonly StoreRecord[],
 ) {
   if (!lifecycleEntry || lifecycleEntry.publicStatus !== "active" || !row || row.publicStatus !== "active") return false;
-  const bestPrecision = cleanText(row.bestLocationPrecision, 80).toLowerCase();
-  const rowStatus = cleanText(row.status, 120).toLowerCase();
-  if (bestPrecision === "blocked" || /(?:^|[_\s-])(blocked|disabled|retired|source-unavailable|source_unavailable)(?:$|[_\s-])/.test(rowStatus)) {
-    return false;
-  }
+  if (rowSourceIsBlocked(row)) return false;
   const hasAttachedSource = stateLocationsList.some((location) => location.collectorAttached === true && !isStoreLocation(location));
   const hasCurrentStore = stores.some((store) => store.monitoringAttached);
-  const hasCurrentSignals = Number(row.signalCount || 0) > 0;
-  return hasAttachedSource || hasCurrentStore || hasCurrentSignals;
+  const hasObservedSourceSignals = Number(row?.signalCount || 0) > 0;
+  return hasAttachedSource || hasCurrentStore || hasObservedSourceSignals;
 }
 
 function publicUpdateLabel(
@@ -487,8 +498,20 @@ function publicCapabilities(
   };
 }
 
-function deriveCoverageStatus(capabilities: CoverageCapabilities): CoverageStatus {
-  return Object.values(capabilities).some(Boolean) ? "available" : "not-available";
+function deriveCoverageStatus(
+  sourceBlocked: boolean,
+  hasVerifiedSource: boolean,
+  capabilities: CoverageCapabilities,
+): CoverageStatus {
+  // A source explicitly blocked by its health record cannot surface stale or
+  // newly-arrived rows as public coverage until the block clears.
+  if (sourceBlocked) return "not-available";
+  // "Coverage available" means a verified source lane exists. It does not
+  // promise a fresh update, current shelf inventory, or alertability; those
+  // remain separately gated by current default-feed evidence.
+  return hasVerifiedSource || Object.values(capabilities).some(Boolean)
+    ? "available"
+    : "not-available";
 }
 
 function stateCapability(
@@ -526,12 +549,15 @@ function coverageCapabilityLabel(
   capability: CoverageCapability,
   capabilities: CoverageCapabilities,
   updateLabel: CoverageUpdateLabel | null,
+  coverageAvailable: boolean,
 ) {
-  if (capability === "not-active") return CAPABILITY_LABELS[capability];
+  if (capability === "not-active") {
+    return coverageAvailable ? COVERAGE_STATUS_LABELS.available : CAPABILITY_LABELS[capability];
+  }
   if (capabilities.currentBottleAvailability) return CAPABILITY_LABELS.deep;
   if (capabilities.publicUpdates) return updateLabel || CAPABILITY_LABELS.active;
   if (capabilities.storeInformation) return CAPABILITY_LABELS.focused;
-  return CAPABILITY_LABELS["not-active"];
+  return COVERAGE_STATUS_LABELS.available;
 }
 
 function stateHealth(
@@ -541,13 +567,16 @@ function stateHealth(
   degradedStates: readonly Record<string, unknown>[],
   healthLimited: boolean,
   freshnessLimited: boolean,
+  sourceBlocked: boolean,
+  hasFreshPublicOutput: boolean,
 ): CoverageHealth {
   const rowStatus = cleanText(row?.status, 100).toLowerCase();
   const publicCode = publicStateCode(internalStateKey);
   const degraded = degradedStates.some((entry) => publicStateCode(entry.state) === publicCode);
-  const limited = healthLimited || freshnessLimited || degraded || rowStatus.includes("stale") || rowStatus.includes("fallback");
-  if (status === "not-available") return limited ? "temporarily-limited" : "no-recent-update";
+  const limited = sourceBlocked || healthLimited || freshnessLimited || degraded || rowStatus.includes("stale") || rowStatus.includes("fallback");
   if (limited) return "temporarily-limited";
+  if (!hasFreshPublicOutput) return "no-recent-update";
+  if (status === "not-available") return "no-recent-update";
   if (rowStatus.includes("intermittent") || rowStatus.includes("degraded") || rowStatus.includes("partial")) return "intermittent";
   return "current";
 }
@@ -620,11 +649,19 @@ function visibilityCopy(
   layers: CoverageLayerCounts,
   scope: CoverageScopeCounts,
   summary: string,
+  coverageAvailable: boolean,
+  hasFreshPublicOutput: boolean,
 ) {
-  if (capability === "not-active") {
+  if (!coverageAvailable) {
     return {
       canSee: layers.known > 0 ? ["Known directory locations that can guide expansion work."] : ["No current customer-facing monitoring source."],
       cannotSee: ["No current source-backed monitoring, current bottle availability, or alert-grade coverage is available in this state."],
+    };
+  }
+  if (!hasFreshPublicOutput) {
+    return {
+      canSee: ["Verified source coverage is available, but no current public update is available right now."],
+      cannotSee: ["Current bottle availability and restock alerts are unavailable until current source output returns."],
     };
   }
   if (coverageTier === "live_store_inventory") {
@@ -714,6 +751,8 @@ function customerVisibilityCopy(
   updateLabel: CoverageUpdateLabel | null,
   capabilities: CoverageCapabilities,
   scope: CoverageScopeCounts,
+  coverageAvailable: boolean,
+  sourceLabel: string | null,
 ) {
   const canSee: string[] = [];
   const cannotSee: string[] = [];
@@ -739,6 +778,9 @@ function customerVisibilityCopy(
       ? "Get restock alerts where eligible."
       : "Get restock alerts where current availability supports them.");
   }
+  if (!canSee.length && coverageAvailable) {
+    canSee.push(`Coverage is available through ${sourceLabel || "verified sources"}, but no current public update is available right now.`);
+  }
   if (!capabilities.currentBottleAvailability) {
     cannotSee.push(capabilities.publicUpdates
       ? "Shipment information does not confirm current bottle availability."
@@ -756,6 +798,8 @@ function customerVisibilityCopy(
 function summaryCopy(
   updateLabel: CoverageUpdateLabel | null,
   capabilities: CoverageCapabilities,
+  coverageAvailable: boolean,
+  sourceLabel: string | null,
 ) {
   if (capabilities.currentBottleAvailability) return "Current bottle availability is available at selected stores.";
   if (capabilities.publicUpdates) {
@@ -764,6 +808,9 @@ function summaryCopy(
       : "Official updates are available here. Current bottle availability may not be covered yet.";
   }
   if (capabilities.storeInformation) return "Store information is available here. Current bottle availability is not available yet.";
+  if (coverageAvailable) {
+    return `Coverage is available through ${sourceLabel || "verified sources"}, but no current public update is available right now. Current bottle availability is not shown.`;
+  }
   return "We do not have a reliable way to check this area yet.";
 }
 
@@ -868,10 +915,13 @@ function buildState(args: {
   const tier = cleanText(row?.coverageTier || lifecycleEntry?.coverageTier, 80);
   const configuredLayers = lifecycleEntry?.coverageLayerCounts;
   const supportsDirectStoreAvailability = LIVE_TIERS.has(tier);
+  const sourceBlocked = rowSourceIsBlocked(row) || stateSourceIsBlocked(args.code, args.degradedStates);
+  const hasVerifiedSource = !sourceBlocked && hasVerifiedCoverageSource(lifecycleEntry, row, locations, storeRecords);
   const feedDegraded = isStateFeedDegraded(args.code, args.degradedStates);
   // Lifecycle/configuration tells us which evidence may be used; only current
   // default-feed output establishes that a customer can use it now.
-  const hasFreshPublicOutput = !args.healthLimited
+  const hasFreshPublicOutput = !sourceBlocked
+    && !args.healthLimited
     && !feedDegraded
     && args.dropEvidence.freshPublicSignalCount > 0;
   const directCurrentStores = supportsDirectStoreAvailability && hasFreshPublicOutput
@@ -948,9 +998,9 @@ function buildState(args: {
     representedLiveCities,
     capabilities.publicUpdates,
   );
-  const coverageStatusValue = deriveCoverageStatus(capabilities);
+  const coverageStatusValue = deriveCoverageStatus(sourceBlocked, hasVerifiedSource, capabilities);
   const areas = stateAreas(lifecycleEntry, row, locations, storeRecords);
-  const precisions = capability === "not-active" ? [] : precisionLabels(lifecycleEntry, row, locations, storeRecords);
+  const precisions = coverageStatusValue === "not-available" ? [] : precisionLabels(lifecycleEntry, row, locations, storeRecords);
   const usableFreshPublicSignals = hasFreshPublicOutput ? args.dropEvidence.freshPublicSignalCount : 0;
   const usableFreshPublicUpdates = hasFreshUpdateOutput
     ? Math.max(
@@ -991,22 +1041,40 @@ function buildState(args: {
     args.degradedStates,
     args.healthLimited,
     freshnessLimited,
+    sourceBlocked,
+    hasFreshPublicOutput,
   );
   const hasReviewedKnownLayer = capability === "not-active" && layers.known > 0;
-  const summary = capability === "not-active"
+  const summary = coverageStatusValue === "not-available"
     ? hasReviewedKnownLayer
       ? "Known directory locations can guide expansion work, but no fresh customer-facing monitoring source is active."
       : "No current customer-facing monitoring source is active. Request coverage to help prioritize expansion."
     : cleanText(row?.customerSummary || lifecycleEntry?.customerSummary, 600)
       || "Current source-backed coverage is available at the precision shown here.";
-  const customerSummary = summaryCopy(publicUpdate, capabilities);
-  const copy = visibilityCopy(args.code, tier, capability, layers, scope, summary);
-  const customerCopy = customerVisibilityCopy(publicUpdate, capabilities, scope);
+  const sourceLabel = cleanText(row?.sourceLabel || lifecycleEntry?.sourceLabel, 180) || null;
+  const customerSummary = summaryCopy(publicUpdate, capabilities, coverageStatusValue === "available", sourceLabel);
+  const copy = visibilityCopy(
+    args.code,
+    tier,
+    capability,
+    layers,
+    scope,
+    summary,
+    coverageStatusValue === "available",
+    hasFreshPublicOutput,
+  );
+  const customerCopy = customerVisibilityCopy(
+    publicUpdate,
+    capabilities,
+    scope,
+    coverageStatusValue === "available",
+    sourceLabel,
+  );
   const state: CoverageState = {
     code: args.code,
     name: cleanText(lifecycleEntry?.customerLabel || row?.label, 120) || args.defaultName,
     capability,
-    capabilityLabel: coverageCapabilityLabel(capability, capabilities, publicUpdate),
+    capabilityLabel: coverageCapabilityLabel(capability, capabilities, publicUpdate, coverageStatusValue === "available"),
     coverageDepth,
     coverageDepthLabel: COVERAGE_DEPTH_LABELS[coverageDepth],
     coverageStatus: coverageStatusValue,
@@ -1017,10 +1085,9 @@ function buildState(args: {
     health,
     healthLabel: HEALTH_LABELS[health],
     summary,
-    sourceLabel: capability === "not-active" && !hasReviewedKnownLayer
-
+    sourceLabel: coverageStatusValue === "not-available" && !hasReviewedKnownLayer
       ? null
-      : cleanText(row?.sourceLabel || lifecycleEntry?.sourceLabel, 180) || null,
+      : sourceLabel,
     precisions,
     areas,
     representedAreaCount: hasFreshPublicOutput
@@ -1041,6 +1108,7 @@ function buildState(args: {
     "coverage-v2",
     state.code,
     state.capability,
+    state.coverageStatus,
     state.coverageDepth,
     state.precisions.join(","),
     state.layers.known,
