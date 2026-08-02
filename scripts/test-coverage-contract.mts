@@ -138,15 +138,20 @@ assert.ok(contract.states.every((state) => (
   state.capabilities.restockAlerts === (state.freshness.alertEligibleStores > 0)
 )));
 assert.ok(contract.states.every((state) => (
-  state.coverageStatus === "not-available" ? state.coverageDepth === "not-available" : state.coverageDepth !== "not-available"
-)));
-for (const [code, areas, summaryArea] of [["NY", ["Nassau County", "New York City"], "New York City"], ["CO", ["Denver Metro"], "Denver Metro"]] as const) {
+  state.coverageDepth === "not-available" || state.coverageStatus === "available"
+)), "current coverage depth requires an available source lane, but an available lane may be temporarily quiet");
+for (const [code, areas] of [
+  ["NY", ["Nassau County", "New York City"]],
+  ["CO", ["Denver Metro"]],
+] as const) {
   const metro = contract.states.find((state) => state.code === code);
   assert.ok(metro, `${code} must be present in the national coverage contract`);
+  assert.equal(metro.coverageStatus, "available", `${code} retains verified source coverage while its feed is quiet`);
   assert.equal(metro.coverageDepth, "not-available", `${code} has no fresh customer-feed evidence at the captured snapshot`);
+  assert.equal(metro.health, "no-recent-update", `${code} cannot call quiet source output current`);
   assert.deepEqual(metro.areas, areas);
-  assert.match(metro.summary, /no fresh customer-facing monitoring/i);
-  assert.match(metro.cannotSee.join(" "), /no current|statewide|outside|limited|not.*state/i);
+  assert.match(metro.customerSummary || "", /Coverage is available.*no current public update/i);
+  assert.match(metro.customerCannotSee?.join(" ") || "", /Current bottle availability/i);
 }
 
 const maryland = contract.states.find((state) => state.code === "MD");
@@ -170,10 +175,12 @@ assert.deepEqual(mississippi.layers, {
 });
 assert.equal(mississippi.freshness.currentInventoryStores, 0, "no current exact-store output means Mississippi cannot claim current availability");
 assert.equal(mississippi.representedAreaCount, 0, "configured Mississippi areas do not inflate the current evidence footprint");
-assert.match(mississippi.summary, /Known directory locations.*no fresh customer-facing monitoring/i);
+assert.equal(mississippi.coverageStatus, "available", "a verified Mississippi retailer/release lane remains covered while it is quiet");
+assert.equal(mississippi.health, "no-recent-update", "quiet Mississippi output cannot be presented as current");
+assert.match(mississippi.summary, /Exact-store binary orderability is visible on-site only when freshly observed/i);
 assert.match(mississippi.sourceLabel || "", /exact-store retailer inventory/i);
-assert.match(mississippi.canSee.join(" "), /Known directory locations/i);
-assert.match(mississippi.cannotSee.join(" "), /No current source-backed monitoring/i);
+assert.match(mississippi.canSee.join(" "), /Verified source coverage is available/i);
+assert.match(mississippi.cannotSee.join(" "), /Current bottle availability and restock alerts are unavailable/i);
 assert.equal(mississippiKnownStoresPayload.stores?.length, 690);
 assert.equal(new Set((mississippiKnownStoresPayload.stores || []).map((store) => store.id)).size, 690);
 assert.doesNotThrow(() => verifyReviewedMississippiUniverse(mississippiUniverse, mississippiCapture, mississippiProgram));
@@ -235,7 +242,7 @@ const boardOnlyNorthCarolina = buildCoverageContract({
   stateRows: [{
     state: "NC",
     publicStatus: "active",
-    status: "stale_blocked",
+    status: "stale_useful_quality_fallback",
     coverageTier: "live_store_inventory",
     refinementLevel: "board",
     customerSummary: "Official board shipment information.",
@@ -343,6 +350,7 @@ assert.match(illinois.cannotSee.join(" "), /verify|guarantee|shelf/i);
 
 const indiana = contract.states.find((state) => state.code === "IN");
 assert.ok(indiana);
+assert.equal(indiana.coverageStatus, "available", "Indiana retains verified source coverage while stale rows cannot create current depth");
 assert.equal(indiana.coverageDepth, "not-available", "stale direct-store evidence cannot retain current customer depth");
 assert.ok(indiana.layers.live < indiana.layers.known, "ATC permit-spine stores are known locations, never live inventory");
 assert.ok(indiana.layers.probeable < indiana.layers.known, "directory and permit rows are not labeled probeable without a monitoring source");
@@ -355,15 +363,18 @@ assert.equal(texas.layers.live, texas.freshness.currentInventoryStores);
 
 const ohio = contract.states.find((state) => state.code === "OH");
 assert.ok(ohio);
+assert.equal(ohio.coverageStatus, "available", "Ohio retains its verified OHLQ coverage lane during a source limitation");
 assert.equal(ohio.coverageDepth, "not-available", "broad historical store evidence cannot retain current depth during a source issue");
 assert.equal(ohio.health, "temporarily-limited");
 assert.equal(ohio.layers.live, 0, "stale Ohio source evidence cannot claim current shelf availability");
 assert.ok(ohio.freshness.observedInventoryStores > 0);
-assert.equal(ohio.capabilityLabel, "Not available yet", "legacy capability labels cannot claim store information without fresh customer output");
-assert.doesNotMatch(ohio.canSee.join(" "), /Current source-backed store monitoring/i, "legacy visibility copy cannot claim current monitoring after the freshness gate closes");
+assert.equal(ohio.capabilityLabel, "Coverage available", "source coverage stays distinct from current store information");
+assert.doesNotMatch(ohio.capabilityLabel, /store information/i);
+assert.doesNotMatch(ohio.canSee.join(" "), /Current source-backed store monitoring/i, "quiet source coverage cannot claim current monitoring after the freshness gate closes");
 
 const warehouseState = contract.states.find((state) => state.code === "AZ");
 assert.ok(warehouseState);
+assert.equal(warehouseState.coverageStatus, "available", "verified warehouse-watch coverage remains available while the current feed is quiet");
 assert.equal(warehouseState.coverageDepth, "not-available", "configured warehouse watches do not create coverage depth without fresh output");
 
 for (const stateCode of ["MN", "MO", "WA", "WI"]) {
@@ -410,6 +421,7 @@ const lostSourceContract = buildCoverageContract({
   }],
   stores: [],
 });
+assert.equal(lostSourceContract.states.find((state) => state.code === "NC")?.coverageStatus, "not-available", "blocked sources cannot remain covered merely because stale locations exist");
 assert.equal(lostSourceContract.states.find((state) => state.code === "NC")?.capability, "not-active");
 
 const precisionWithoutSourceContract = buildCoverageContract({

@@ -90,8 +90,12 @@ for (const state of contract.states) {
   if (capabilities.currentBottleAvailability !== (freshness.currentInventoryStores > 0)) failures.push(`${state.code}: current availability contradicts evidence`);
   if (capabilities.restockAlerts !== (freshness.alertEligibleStores > 0)) failures.push(`${state.code}: alert capability contradicts evidence`);
   if (capabilities.publicUpdates !== (freshness.freshPublicUpdates > 0)) failures.push(`${state.code}: public updates contradict fresh customer output`);
-  if (state.coverageStatus === "not-available" && state.coverageDepth !== "not-available") failures.push(`${state.code}: unavailable state has a coverage depth`);
-  if (state.coverageStatus === "available" && state.coverageDepth === "not-available") failures.push(`${state.code}: available state is missing a coverage depth`);
+  // Coverage availability reflects a verified source lane. Current depth is a
+  // stricter, freshness-gated property, so an available state may legitimately
+  // have no current depth while its source is temporarily quiet.
+  if (state.coverageDepth !== "not-available" && state.coverageStatus !== "available") {
+    failures.push(`${state.code}: current coverage depth lacks an available source lane`);
+  }
   if (state.coverageDepth !== "not-available" && freshness.freshPublicSignals === 0) failures.push(`${state.code}: depth has no fresh customer-feed evidence`);
 
   const directActive = freshness.currentInventoryStores >= 5

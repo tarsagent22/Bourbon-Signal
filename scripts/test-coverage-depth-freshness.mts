@@ -164,6 +164,53 @@ assert.equal(pa.coverageDepth, "not-available", "listed stores plus stale aggreg
 assert.equal(mi.coverageStatus, "not-available", "configured-but-empty sources do not create customer coverage");
 assert.equal(mi.coverageDepth, "not-available", "configured-but-empty sources have no depth label beyond not available");
 
+const temporarilyQuietNcContract = buildCoverageContract({
+  lifecycle,
+  asOf: AS_OF,
+  stateRows: [{
+    state: "NC",
+    publicStatus: "active",
+    status: "stale_useful_quality_fallback",
+    coverageTier: "live_store_inventory",
+    bestLocationPrecision: "board",
+    signalCount: 1,
+  }],
+  locations: [{
+    id: "nc-board-source",
+    state: "NC",
+    type: "county_board",
+    name: "Example NC ABC Board",
+    source: "NC ABC Commission board list",
+    precision: "board_county",
+    collectorAttached: true,
+  }],
+  drops: [{
+    state: "NC",
+    type: "nc_board_shipment_snapshot",
+    source: "nc_abc",
+    tier: "allocated",
+    rarity_tier: "allocated",
+    locationPrecision: "board_county",
+    boardName: "Example NC ABC Board",
+    city: "Raleigh",
+    quantity: 1,
+    observedAt: "2026-07-01T14:00:00.000Z",
+    lastConfirmedAt: "2026-07-01T14:00:00.000Z",
+    sourceStale: true,
+    stale: true,
+  }],
+});
+const temporarilyQuietNc = temporarilyQuietNcContract.states.find((state) => state.code === "NC");
+assert.ok(temporarilyQuietNc);
+assert.equal(temporarilyQuietNc.coverageStatus, "available", "a verified NC ABC source lane remains coverage even when it has no current output");
+assert.equal(temporarilyQuietNc.coverageDepth, "not-available", "a quiet source lane does not retain current depth");
+assert.equal(temporarilyQuietNc.capabilities.publicUpdates, false, "stale NC shipment rows do not create a current public-update claim");
+assert.equal(temporarilyQuietNc.capabilities.currentBottleAvailability, false, "stale NC shipment rows never imply shelf inventory");
+assert.equal(temporarilyQuietNc.capabilities.restockAlerts, false, "stale NC shipment rows never enable alerts");
+assert.equal(temporarilyQuietNc.health, "temporarily-limited");
+assert.match(temporarilyQuietNc.customerSummary || "", /Coverage is available through North Carolina ABC boards/i);
+assert.match(temporarilyQuietNc.customerCannotSee?.join(" ") || "", /Current bottle availability/i);
+
 const retailerSubmissionContract = buildCoverageContract({
   lifecycle,
   asOf: AS_OF,
@@ -227,8 +274,36 @@ const marylandDegradedContract = buildCoverageContract({
 });
 const degradedMaryland = marylandDegradedContract.states.find((state) => state.code === "MD");
 assert.ok(degradedMaryland);
+assert.equal(degradedMaryland.coverageStatus, "not-available", "an explicit source block removes public coverage status");
+assert.equal(degradedMaryland.coverageDepth, "not-available", "an explicit source block removes current depth");
+assert.equal(degradedMaryland.capabilities.publicUpdates, false, "an explicit source block suppresses public updates");
+assert.equal(degradedMaryland.capabilities.currentBottleAvailability, false, "an explicit source block suppresses inventory claims");
+assert.equal(degradedMaryland.capabilities.restockAlerts, false, "an explicit source block suppresses alerts");
 assert.equal(degradedMaryland.freshness.currentInventoryStores, 0, "an internal Maryland degradation suppresses customer current-availability claims");
 assert.equal(degradedMaryland.health, "temporarily-limited", "an internal Maryland degradation remains visible in public health");
+
+const blockedRowNcContract = buildCoverageContract({
+  lifecycle,
+  asOf: AS_OF,
+  stateRows: [{
+    state: "NC",
+    publicStatus: "active",
+    status: "blocked",
+    coverageTier: "live_store_inventory",
+    bestLocationPrecision: "blocked",
+    signalCount: 1,
+  }],
+  drops: [exactStoreInventory({ state: "NC", storeId: "blocked-nc-1", city: "Raleigh", alertable: true })],
+});
+const blockedRowNc = blockedRowNcContract.states.find((state) => state.code === "NC");
+assert.ok(blockedRowNc);
+assert.equal(blockedRowNc.coverageStatus, "not-available", "a blocked NC source cannot be revived by a fresh exact-store row");
+assert.equal(blockedRowNc.coverageDepth, "not-available", "a blocked NC source cannot retain current depth");
+assert.equal(blockedRowNc.capabilities.publicUpdates, false, "a blocked NC source cannot expose public updates");
+assert.equal(blockedRowNc.capabilities.currentBottleAvailability, false, "a blocked NC source cannot expose bottle availability");
+assert.equal(blockedRowNc.capabilities.restockAlerts, false, "a blocked NC source cannot expose alerts");
+assert.equal(blockedRowNc.freshness.currentInventoryStores, 0, "a blocked NC source cannot retain current stores");
+assert.equal(blockedRowNc.health, "temporarily-limited");
 
 const duplicateIdentityContract = buildCoverageContract({
   lifecycle,
@@ -403,7 +478,7 @@ const boardSearch = searchCoverageTargets({
   query: "Raleigh",
   lifecycle,
   asOf: AS_OF,
-  stateRows: [{ state: "NC", publicStatus: "active", status: "stale_blocked", coverageTier: "live_store_inventory", bestLocationPrecision: "board", signalCount: 0 }],
+  stateRows: [{ state: "NC", publicStatus: "active", status: "stale_useful_quality_fallback", coverageTier: "live_store_inventory", bestLocationPrecision: "board", signalCount: 0 }],
   locations: [{
     id: "nc-raleigh-board",
     state: "NC",
