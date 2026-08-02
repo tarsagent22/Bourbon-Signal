@@ -167,13 +167,22 @@ assert.equal(mi.coverageDepth, "not-available", "configured-but-empty sources ha
 const temporarilyQuietNcContract = buildCoverageContract({
   lifecycle,
   asOf: AS_OF,
+  // Mirrors the persisted production NC state: stale fallback is blocked from
+  // refreshing because the source is not due, not because the source lane was
+  // disabled. It must remain covered while all current-data capabilities stay off.
   stateRows: [{
     state: "NC",
     publicStatus: "active",
-    status: "stale_useful_quality_fallback",
+    status: "stale_blocked",
     coverageTier: "live_store_inventory",
-    bestLocationPrecision: "board",
-    signalCount: 1,
+    bestLocationPrecision: "store_level",
+    signalCount: 2465,
+  }],
+  degradedStates: [{
+    state: "NC",
+    status: "stale_blocked",
+    stale: true,
+    staleReason: "not_due",
   }],
   locations: [{
     id: "nc-board-source",
@@ -198,7 +207,11 @@ const temporarilyQuietNcContract = buildCoverageContract({
     lastConfirmedAt: "2026-07-01T14:00:00.000Z",
     sourceStale: true,
     stale: true,
-  }],
+  },
+  // A stale-blocked source health state must suppress even an otherwise fresh
+  // input row; it changes availability freshness, not source coverage.
+  exactStoreInventory({ state: "NC", storeId: "nc-fresh-row-behind-stale-state", city: "Raleigh", alertable: true }),
+  ],
 });
 const temporarilyQuietNc = temporarilyQuietNcContract.states.find((state) => state.code === "NC");
 assert.ok(temporarilyQuietNc);
@@ -206,6 +219,7 @@ assert.equal(temporarilyQuietNc.coverageStatus, "available", "a verified NC ABC 
 assert.equal(temporarilyQuietNc.coverageDepth, "not-available", "a quiet source lane does not retain current depth");
 assert.equal(temporarilyQuietNc.capabilities.publicUpdates, false, "stale NC shipment rows do not create a current public-update claim");
 assert.equal(temporarilyQuietNc.capabilities.currentBottleAvailability, false, "stale NC shipment rows never imply shelf inventory");
+assert.equal(temporarilyQuietNc.freshness.currentInventoryStores, 0, "a stale-blocked NC state suppresses even an otherwise fresh exact-store input");
 assert.equal(temporarilyQuietNc.capabilities.restockAlerts, false, "stale NC shipment rows never enable alerts");
 assert.equal(temporarilyQuietNc.health, "temporarily-limited");
 assert.match(temporarilyQuietNc.customerSummary || "", /Coverage is available through North Carolina ABC boards/i);

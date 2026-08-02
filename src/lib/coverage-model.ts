@@ -443,9 +443,26 @@ function stateLocations(internalStateKey: string, locations: readonly CoverageLo
   return locations.filter((location) => String(location.state || "").toUpperCase() === internalStateKey);
 }
 
+const HARD_SOURCE_BLOCK_STATUSES = new Set([
+  "blocked",
+  "disabled",
+  "inactive",
+  "retired",
+  "policy_blocked",
+  "source_blocked",
+  "source_disabled",
+  "source_policy_blocked",
+  "source_retired",
+  "source_unavailable",
+]);
+
 function sourceStatusIsBlocked(value: unknown) {
-  const status = cleanText(value, 120).toLowerCase();
-  return /(?:^|[_\s-])(blocked|disabled|retired|source-unavailable|source_unavailable)(?:$|[_\s-])/.test(status);
+  const status = cleanText(value, 120)
+    .toLowerCase()
+    .replace(/[\s-]+/g, "_");
+  // Engine status `stale_blocked` means the latest retained evidence is not
+  // due for refresh; it does not mean the verified source lane was disabled.
+  return HARD_SOURCE_BLOCK_STATUSES.has(status);
 }
 
 function rowSourceIsBlocked(row: CoverageStateRowInput | undefined) {
