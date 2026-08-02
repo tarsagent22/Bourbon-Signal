@@ -1,14 +1,14 @@
 import { getEntitlements } from "@/lib/entitlements";
 import { NextResponse } from "next/server";
-import { unstable_cache } from "next/cache";
 import { auth, clerkClient } from "@clerk/nextjs/server";
-import { isUserFacingDropSignal, normalizeDropForSite, readSiteExportResults, siteExportHeaders } from "@/lib/site-engine-contract";
+import { normalizeDropForSite, readSiteExportResults, siteExportHeaders } from "@/lib/site-engine-contract";
 import { normalizeStateCodeParam } from "@/lib/location-normalization";
 import { decodeDropCursor, DropCursorSnapshotError, paginateDrops } from "@/lib/drop-cursor";
 import { dropFeedCacheHeaders } from "@/lib/api-cache-contract";
 import { dropFreshnessTime, resolveDropLimit } from "@/lib/drop-feed-policy";
+import { isFreshPublicDrop, isPublicDropFeedEligible, publicDropRarityTier, publicEvidenceStateCode } from "@/lib/public-drop-evidence";
 import { historicalDropFeedEnabled, scopedDropFeedHistoryEnabled, selectDropFeedHistory } from "@/lib/drop-feed-history";
-import { getRetailerRepository } from "@/lib/retailer-repository";
+import { readCachedPublicRetailerSubmissions } from "@/lib/retailer-public-submissions";
 import { getBourbonBible } from "@/lib/bourbonBible";
 import { isVerifiedRetailerDrop, retailerFeedSnapshot, retailerSubmissionToFeedCard, type RetailerFeedTier } from "@/lib/retailer-signal-feed";
 import { californiaAreaMatchesFields, parseCaliforniaAreaQuery } from "@/lib/california-area";
@@ -27,10 +27,6 @@ const DROP_FEED_TIERS = new Set(["unicorn", "allocated", "limited"]);
 const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * HOUR_MS;
 const MAX_ENGINE_AGE_MS = 24 * HOUR_MS;
-const MAX_INVENTORY_DROP_AGE_MS = 72 * HOUR_MS;
-const MAX_OH_STALE_FEED_AGE_MS = 14 * DAY_MS;
-const MAX_DELIVERY_DROP_AGE_MS = 14 * DAY_MS;
-const MAX_CONTEXT_DROP_AGE_MS = 30 * DAY_MS;
 const FUTURE_CLOCK_SKEW_MS = 15 * 60 * 1000;
 
 function retailerTierForAvailability(availability: string | undefined): RetailerFeedTier {
@@ -42,7 +38,7 @@ function retailerTierForAvailability(availability: string | undefined): Retailer
 }
 
 function dropRarityTier(drop: Record<string, unknown>) {
-  return String(drop.rarity_tier ?? drop.tier ?? "").toLowerCase();
+  return publicDropRarityTier(drop);
 }
 
 function normalizedDropText(value: unknown) {
@@ -54,14 +50,6 @@ function normalizedDropText(value: unknown) {
     .trim();
 }
 
-function isKnownFalseRareMatch(drop: Record<string, unknown>) {
-  const raw = normalizedDropText(drop.rawName ?? drop.raw_name ?? drop.bottleName ?? drop.brand_name ?? drop.canonicalName);
-  if (/\bfour roses\b/.test(raw) && /\b(small batch|small batch select|single barrel)\b/.test(raw)) {
-    const hasRareModifier = /\b(limited edition|limited release|le|barrel strength|cask strength|private selection|private barrel|single barrel select|oes[foqkv]|obs[foqkv])\b/.test(raw);
-    if (!hasRareModifier) return true;
-  }
-  return false;
-}
 
 function parseTierFilter(url: URL) {
   const raw = [url.searchParams.get("tier"), url.searchParams.get("tiers"), url.searchParams.get("rarity")]
@@ -76,9 +64,6 @@ function parseTierFilter(url: URL) {
   );
 }
 
-function isDropFeedRarity(drop: Record<string, unknown>) {
-  return isVerifiedRetailerDrop(drop) || (DROP_FEED_TIERS.has(dropRarityTier(drop)) && !isKnownFalseRareMatch(drop));
-}
 
 function includesNeedle(value: unknown, needle: string) {
   return typeof value === "string" && value.toLowerCase().includes(needle);
@@ -106,38 +91,8 @@ function asTime(value: unknown) {
   return Number.isFinite(time) ? time : Number.NaN;
 }
 
-function maxAgeForDrop(drop: Record<string, unknown>) {
-  const type = String(drop.event_type ?? drop.type ?? "").toLowerCase();
-  const category = String(drop.signal_category ?? drop.signalCategory ?? "").toLowerCase();
-  const scope = String(drop.availability_scope ?? drop.availabilityScope ?? "").toLowerCase();
-  const precision = String(drop.location_precision ?? drop.locationPrecision ?? "").toLowerCase();
-  const canAlert = drop.can_alert_as_inventory === true || drop.canAlertAsInventory === true;
-
-  if (String(drop.state ?? "").toUpperCase() === "OH" && drop.sourceStale === true) {
-    return MAX_OH_STALE_FEED_AGE_MS;
-  }
-  if (canAlert || category === "inventory" || scope === "store_reported" || precision === "store_level" || type.includes("in_stock") || type.includes("inventory_result")) {
-    return MAX_INVENTORY_DROP_AGE_MS;
-  }
-  if (category === "delivery" || type.includes("shipment") || type.includes("delivery") || type.includes("allocation_snapshot")) {
-    return MAX_DELIVERY_DROP_AGE_MS;
-  }
-  return MAX_CONTEXT_DROP_AGE_MS;
-}
-
 function isFreshEnoughForPublicFeed(drop: Record<string, unknown>, now = Date.now()) {
-  if (isVerifiedRetailerDrop(drop)) {
-    const expiresAt = Date.parse(String(drop.expiresAt ?? ""));
-    if (drop.retailerSignalState === "upcoming") {
-      const eventAt = Date.parse(String(drop.eventDate ?? drop.startsAt ?? drop.expiresAt ?? ""));
-      return Number.isFinite(eventAt) && eventAt > now;
-    }
-    if (drop.retailerSignalState === "live") return Number.isFinite(expiresAt) && expiresAt > now;
-  }
-  const timestamp = dropFreshnessTime(drop);
-  if (!Number.isFinite(timestamp)) return false;
-  if (timestamp > now + FUTURE_CLOCK_SKEW_MS) return false;
-  return now - timestamp <= maxAgeForDrop(drop);
+  return isFreshPublicDrop(drop, now);
 }
 
 function isEligibleHistoricalPublicDrop(drop: Record<string, unknown>, now = Date.now()) {
@@ -162,8 +117,8 @@ function degradedEngineStates(statsPayload: Record<string, unknown> | null | und
         // individual drop-age gates below still prevent old signals from looking fresh.
         return !status.startsWith("stale_useful");
       })
-      .map((state) => String(state.state ?? "").toUpperCase())
-      .filter(Boolean)
+      .map((state) => publicEvidenceStateCode(state.state))
+      .filter(Boolean),
   );
 }
 
@@ -218,12 +173,6 @@ function diversifyDrops<T extends Record<string, unknown>>(drops: T[]) {
   }
   return diversified;
 }
-
-const readCachedPublicRetailerSubmissions = unstable_cache(
-  async () => getRetailerRepository().listPublicSubmissions(),
-  ["public-retailer-submissions-v2"],
-  { revalidate: 15 },
-);
 
 async function publicRetailerSubmissions() {
   try {
@@ -325,26 +274,20 @@ export async function GET(request: Request) {
     let drops = [...normalizedDrops];
     const degradedStates = degradedEngineStates(statsPayload);
     const engineFresh = isEngineFresh(statsPayload, exportPayload?.generatedAt);
-    let degradedStateFallback = false;
-
-    const isBlockedWarehouseDrop = (drop: Record<string, unknown>) => {
-      const dropState = String(drop.state ?? drop.state_code ?? "").toUpperCase();
-      const eventType = String(drop.event_type ?? "");
-      const scope = String(drop.availability_scope ?? "");
-      return dropState === "NC" && (eventType === "nc_statewide_warehouse_stock" || scope === "warehouse");
-    };
+    // The normal customer feed must never retry around the same degraded-state
+    // gate used by Coverage; otherwise it can display rows Coverage rejects.
+    const degradedStateFallback = false;
 
     const applyPublicDropFilters = (items: typeof drops, options: { filterDegradedStates: boolean }) => {
       let filtered = [...items];
       // Do not blank the customer feed solely because the aggregate engine timestamp
       // crossed 24 hours. Every row is still checked against its stricter type-specific
       // freshness window below, so recent inventory survives while expired rows fail closed.
-      filtered = filtered.filter((drop) => isVerifiedRetailerDrop(drop as Record<string, unknown>) || isUserFacingDropSignal(drop));
-      filtered = filtered.filter((drop) => {
-        const dropState = String(drop.state ?? drop.state_code ?? "").toUpperCase();
-        return !isBlockedWarehouseDrop(drop as Record<string, unknown>) && (!options.filterDegradedStates || !degradedStates.has(dropState));
-      });
-      filtered = filtered.filter((drop) => isDropFeedRarity(drop));
+      // This is deliberately shared with Coverage. The normal default feed is
+      // the only evidence pool allowed to establish current customer depth.
+      filtered = filtered.filter((drop) => isPublicDropFeedEligible(drop, {
+        degradedStateCodes: options.filterDegradedStates ? degradedStates : undefined,
+      }));
       filtered = selectDropFeedHistory(
         filtered,
         historicalMode,
@@ -432,13 +375,6 @@ export async function GET(request: Request) {
       drops = drops.filter((drop) => tierFilter.has(dropRarityTier(drop)));
     }
 
-    if (include !== "all" && state && drops.length === 0 && !bottle && !store && degradedStates.has(state)) {
-      drops = applyPublicDropFilters(normalizedDrops, { filterDegradedStates: false })
-        .filter((drop) => String(drop.state ?? drop.state_code ?? "").toUpperCase() === state);
-      drops = applyRequestedAreaFilter(drops);
-      if (tierFilter.size > 0) drops = drops.filter((drop) => tierFilter.has(dropRarityTier(drop)));
-      degradedStateFallback = drops.length > 0;
-    }
 
     if (bottle) {
       drops = drops.filter(

@@ -31,6 +31,9 @@ const locationsPayload = JSON.parse(readFileSync(new URL("../engine/out/site/loc
 const storesPayload = JSON.parse(readFileSync(new URL("../engine/out/site/stores.json", import.meta.url), "utf8")) as {
   stores?: CoverageStoreInput[];
 };
+const dropsPayload = JSON.parse(readFileSync(new URL("../engine/out/site/drops.json", import.meta.url), "utf8")) as {
+  drops?: Array<Record<string, unknown>>;
+};
 const mississippiKnownStoresPayload = JSON.parse(readFileSync(new URL("../src/config/mississippi-known-stores.json", import.meta.url), "utf8")) as {
   stores?: CoverageStoreInput[];
 };
@@ -54,8 +57,10 @@ const contract = buildCoverageContract({
   stateRows: statsPayload.stateCoverage?.states || [],
   locations: locationsPayload.locations || [],
   stores: publicStores,
+  drops: dropsPayload.drops || [],
   degradedStates: statsPayload.refreshHealth?.degradedStates || [],
   generatedAt: statsPayload.generatedAt,
+  asOf: statsPayload.generatedAt,
   ncBoardIntelligence: canonicalNcBoardIntelligence,
 });
 const baselineNcContract = buildCoverageContract({
@@ -63,11 +68,14 @@ const baselineNcContract = buildCoverageContract({
   stateRows: statsPayload.stateCoverage?.states || [],
   locations: locationsPayload.locations || [],
   stores: publicStores,
+  drops: dropsPayload.drops || [],
   degradedStates: statsPayload.refreshHealth?.degradedStates || [],
   generatedAt: statsPayload.generatedAt,
+  asOf: statsPayload.generatedAt,
 });
 
-assert.equal(contract.contractVersion, "bourbon-signal/coverage@1");
+assert.equal(contract.contractVersion, "bourbon-signal/coverage@2");
+assert.equal(contract.evaluatedAt, statsPayload.generatedAt);
 assert.equal(contract.states.length, 51, "all 50 states and DC share one coverage truth");
 assert.equal(new Set(contract.states.map((state) => state.code)).size, 51, "state codes are unique");
 assert.ok(contract.states.some((state) => state.code === "DC" && state.name === "District of Columbia"));
@@ -91,31 +99,54 @@ const tennesseeSignalUpgrade = buildCoverageContract({
 });
 const upgradedTennessee = tennesseeSignalUpgrade.states.find((state) => state.code === "TN");
 assert.ok(upgradedTennessee);
-assert.equal(upgradedTennessee.layers.live, 2, "current Tennessee store evidence upgrades reviewed identities to live monitoring");
-assert.equal(upgradedTennessee.layers.alertGrade, 2, "current Tennessee store evidence upgrades reviewed identities to alert grade");
+assert.equal(upgradedTennessee.layers.live, 0, "configured Tennessee stores alone cannot claim current inventory monitoring");
+assert.equal(upgradedTennessee.layers.alertGrade, 0, "configured Tennessee stores alone cannot claim alert eligibility");
 
-const expectedCapabilities = {
-  deep: ["OH", "PA", "VA"],
-  active: ["ID", "IL", "IN", "NC"],
-  focused: ["MS", "SC", "TX"],
-  intelligence: ["AL", "AZ", "CA", "CO", "FL", "GA", "IA", "KY", "MD", "MI", "NV", "NY", "TN", "UT"],
-} as const;
-for (const [capability, codes] of Object.entries(expectedCapabilities)) {
-  assert.deepEqual(
-    contract.states.filter((state) => state.capability === capability).map((state) => state.code).sort(),
-    [...codes].sort(),
-    `${capability} states match the conservative nationwide evidence audit`,
-  );
-}
-assert.equal(contract.states.filter((state) => state.capability === "not-active").length, 27, "states without current useful evidence remain inactive");
-assert.ok(contract.states.filter((state) => state.capability === "intelligence").every((state) => state.capabilityLabel === "Shipments and releases"));
+const tennesseeFreshSignalUpgrade = buildCoverageContract({
+  lifecycle: STATE_LIFECYCLE_CONFIG,
+  stateRows: [{ state: "TN", publicStatus: "active", status: "useful", signalCount: 5, bestLocationPrecision: "store_level" }],
+  locations: [
+    { id: "tn-cityhive-test", state: "TN", type: "store", name: "Reviewed CityHive Store", address: "1 Main St", city: "Franklin", source: "Tennessee reviewed exact-store identity", collectorAttached: true, hasSignals: false },
+    { id: "tn-cool-springs-test", state: "TN", type: "store", name: "Cool Springs Wine & Spirits", address: "2 Main St", city: "Franklin", source: "Tennessee reviewed exact-store identity", collectorAttached: true, hasSignals: false },
+  ],
+  stores: [
+    { id: "tn-cityhive-test", state: "TN", name: "Reviewed CityHive Store", address: "1 Main St", city: "Franklin", source: "Reviewed CityHive store inventory", signalCount: 3 },
+    { id: "tn-cool-springs-test", state: "TN", name: "Cool Springs Wine & Spirits", address: "2 Main St", city: "Franklin", source: "Cool Springs Wine & Spirits public catalog API", signalCount: 2 },
+  ],
+  drops: [
+    { state: "TN", type: "retailer_store_inventory_result", source: "Reviewed CityHive store inventory", tier: "limited", rarity_tier: "limited", storeId: "tn-cityhive-test", storeName: "Reviewed CityHive Store", storeAddress: "1 Main St", city: "Franklin", locationPrecision: "store_level", signalCategory: "inventory", availabilityScope: "store_reported", canAlertAsInventory: true, quantity: 1, observedAt: "2026-08-02T13:00:00.000Z", lastConfirmedAt: "2026-08-02T13:00:00.000Z" },
+    { state: "TN", type: "retailer_store_inventory_result", source: "Cool Springs Wine & Spirits public catalog API", tier: "limited", rarity_tier: "limited", storeId: "tn-cool-springs-test", storeName: "Cool Springs Wine & Spirits", storeAddress: "2 Main St", city: "Franklin", locationPrecision: "store_level", signalCategory: "inventory", availabilityScope: "store_reported", canAlertAsInventory: true, quantity: 1, observedAt: "2026-08-02T13:00:00.000Z", lastConfirmedAt: "2026-08-02T13:00:00.000Z" },
+  ],
+  asOf: "2026-08-02T14:00:00.000Z",
+});
+const freshTennessee = tennesseeFreshSignalUpgrade.states.find((state) => state.code === "TN");
+assert.ok(freshTennessee);
+assert.equal(freshTennessee.layers.live, 2, "fresh Tennessee exact-store signals produce live monitoring");
+assert.equal(freshTennessee.layers.alertGrade, 2, "fresh Tennessee exact-store signals produce alert eligibility");
+
+assert.ok(contract.states.every((state) => ["active", "moderate", "sparse", "not-available"].includes(state.coverageDepth)));
+assert.ok(contract.states.every((state) => state.layers.live === state.freshness.currentInventoryStores));
+assert.ok(contract.states.every((state) => state.layers.alertGrade === state.freshness.alertEligibleStores));
+assert.ok(contract.states.every((state) => state.scope.inventoryMonitoredStores === state.freshness.currentInventoryStores));
+assert.ok(contract.states.every((state) => state.monitoredStoreCount === state.scope.inventoryMonitoredStores));
+assert.ok(contract.states.every((state) => state.freshness.currentInventoryStores <= state.freshness.observedInventoryStores));
+assert.ok(contract.states.every((state) => state.freshness.alertEligibleStores <= state.freshness.currentInventoryStores));
+assert.ok(contract.states.every((state) => (
+  state.capabilities.currentBottleAvailability === (state.freshness.currentInventoryStores > 0)
+)));
+assert.ok(contract.states.every((state) => (
+  state.capabilities.restockAlerts === (state.freshness.alertEligibleStores > 0)
+)));
+assert.ok(contract.states.every((state) => (
+  state.coverageStatus === "not-available" ? state.coverageDepth === "not-available" : state.coverageDepth !== "not-available"
+)));
 for (const [code, areas, summaryArea] of [["NY", ["Nassau County", "New York City"], "New York City"], ["CO", ["Denver Metro"], "Denver Metro"]] as const) {
   const metro = contract.states.find((state) => state.code === code);
   assert.ok(metro, `${code} must be present in the national coverage contract`);
-  assert.equal(metro.capability, "intelligence", `${code} remains conservatively sparse until more exact stores prove reliable`);
+  assert.equal(metro.coverageDepth, "not-available", `${code} has no fresh customer-feed evidence at the captured snapshot`);
   assert.deepEqual(metro.areas, areas);
-  assert.match(metro.summary, new RegExp(summaryArea.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"));
-  assert.match(metro.cannotSee.join(" "), /statewide|outside|limited|not.*state/i);
+  assert.match(metro.summary, /no fresh customer-facing monitoring/i);
+  assert.match(metro.cannotSee.join(" "), /no current|statewide|outside|limited|not.*state/i);
 }
 
 const maryland = contract.states.find((state) => state.code === "MD");
@@ -123,26 +154,26 @@ assert.ok(maryland, "Maryland is customer-facing under its real state code");
 assert.equal(contract.states.some((state) => state.code === "MD-MONTGOMERY"), false);
 assert.equal(maryland.name, "Maryland");
 assert.deepEqual(maryland.areas, ["Montgomery County"]);
-assert.equal(maryland.capability, "intelligence");
+assert.equal(maryland.coverageDepth, "sparse");
 assert.match(maryland.summary, /Montgomery County/i);
 assert.match(maryland.cannotSee.join(" "), /exact (?:per-)?store|shelf/i);
 
 const mississippi = contract.states.find((state) => state.code === "MS");
 assert.ok(mississippi, "Mississippi is represented in the public nationwide coverage contract");
-assert.equal(mississippi.capability, "focused", "reviewed sparse exact-store coverage must remain active without implying statewide depth");
+assert.equal(mississippi.coverageDepth, "not-available", "reviewed Mississippi directory records do not create current coverage depth without fresh output");
 assert.deepEqual(mississippi.layers, {
   known: 690,
   probeable: 11,
   catalogWatch: 1,
-  live: 4,
+  live: 0,
   alertGrade: 0,
 });
-assert.equal(mississippi.representedAreaCount, 9);
-assert.match(mississippi.summary, /Sparse exact-store Mississippi retailer inventory/i);
-assert.match(mississippi.summary, /outbound alerts remain disabled/i);
+assert.equal(mississippi.freshness.currentInventoryStores, 0, "no current exact-store output means Mississippi cannot claim current availability");
+assert.equal(mississippi.representedAreaCount, 0, "configured Mississippi areas do not inflate the current evidence footprint");
+assert.match(mississippi.summary, /Known directory locations.*no fresh customer-facing monitoring/i);
 assert.match(mississippi.sourceLabel || "", /exact-store retailer inventory/i);
-assert.match(mississippi.canSee.join(" "), /identity-bound orderability/i);
-assert.match(mississippi.cannotSee.join(" "), /Statewide coverage|outbound inventory alerts/i);
+assert.match(mississippi.canSee.join(" "), /Known directory locations/i);
+assert.match(mississippi.cannotSee.join(" "), /No current source-backed monitoring/i);
 assert.equal(mississippiKnownStoresPayload.stores?.length, 690);
 assert.equal(new Set((mississippiKnownStoresPayload.stores || []).map((store) => store.id)).size, 690);
 assert.doesNotThrow(() => verifyReviewedMississippiUniverse(mississippiUniverse, mississippiCapture, mississippiProgram));
@@ -188,16 +219,16 @@ assert.ok(mississippiCitySearch.some((result) => result.kind === "city"
 
 const northCarolina = contract.states.find((state) => state.code === "NC");
 assert.ok(northCarolina);
-assert.equal(northCarolina.capability, "active", "broad board leads plus selected exact stores are useful but not deep statewide shelf coverage");
+assert.equal(northCarolina.coverageDepth, "active", "broad board leads plus selected exact stores are active coverage without implying statewide shelf inventory");
 assert.ok(northCarolina.layers.live < northCarolina.layers.known, "NC store-locator records stay separate from monitored inventory stores");
 assert.equal(northCarolina.scope.knownBoards, 173, "NC coverage must expose every current official ABC board separately from stores");
-assert.equal(northCarolina.scope.shipmentBoards, 162, "NC coverage must count only canonical official boards represented by current shipment intelligence");
+assert.equal(northCarolina.scope.shipmentBoards, 160, "NC coverage must count fresh canonical boards represented by current shipment output");
 assert.equal(northCarolina.scope.searchableStores, 465, "NC coverage must expose the official searchable store directory without inflating it with signal records");
 assert.equal(northCarolina.scope.inventoryMonitoredStores, 47, "NC coverage must count exact-store inventory sources independently from the official directory");
-assert.equal(northCarolina.scope.singleStoreShipmentBoards, 92, "one-store boards with shipment evidence must be disclosed as qualified store-equivalent intelligence");
+assert.equal(northCarolina.scope.singleStoreShipmentBoards, 0, "configured one-store board counts cannot stand in for fresh store-equivalent shipment rows");
 assert.equal(northCarolina.layers.live, northCarolina.scope.inventoryMonitoredStores, "single-store shipment leads must not inflate direct inventory monitoring");
 assert.equal(northCarolina.layers.alertGrade, baselineNcContract.states.find((state) => state.code === "NC")?.layers.alertGrade, "single-store shipment leads must never increase alert-grade shelf inventory");
-assert.equal(northCarolina.representedAreaCount, 283, "NC areas must count cities and towns with official store records rather than configured groups or board names");
+assert.equal(northCarolina.representedAreaCount, 319, "NC area count must come from fresh current board/store evidence rather than configured directory areas");
 
 const boardOnlyNorthCarolina = buildCoverageContract({
   lifecycle: STATE_LIFECYCLE_CONFIG,
@@ -215,10 +246,24 @@ const boardOnlyNorthCarolina = buildCoverageContract({
     boardsWithTrackedShipments: 115,
     singleStoreShipmentBoardCount: 60,
   },
+  asOf: "2026-08-02T14:00:00.000Z",
+  drops: Array.from({ length: 25 }, (_, index) => ({
+    state: "NC",
+    type: "nc_board_shipment_snapshot",
+    source: "nc_abc",
+    tier: "allocated",
+    rarity_tier: "allocated",
+    locationPrecision: "board_county",
+    boardName: `Fresh NC Board ${index + 1}`,
+    city: `Fresh NC City ${index + 1}`,
+    quantity: 1,
+    observedAt: "2026-08-02T14:00:00.000Z",
+    lastConfirmedAt: "2026-08-02T14:00:00.000Z",
+  })),
 });
 const boardOnlyState = boardOnlyNorthCarolina.states.find((state) => state.code === "NC");
 assert.ok(boardOnlyState);
-assert.notEqual(boardOnlyState.capability, "not-active", "active board shipment coverage cannot become inactive just because inventory is unavailable");
+assert.equal(boardOnlyState.coverageDepth, "active", "active board shipment coverage retains active depth even with no current shelf inventory");
 assert.equal(boardOnlyState.coverageStatusLabel, "Coverage available", "the public status must describe coverage, not inventory depth");
 assert.deepEqual(boardOnlyState.capabilities, {
   storeInformation: true,
@@ -280,47 +325,51 @@ for (const location of (locationsPayload.locations || []).filter((entry) => entr
 
 const iowa = contract.states.find((state) => state.code === "IA");
 assert.ok(iowa);
-assert.equal(iowa.capability, "intelligence", "delivery leads do not become live shelf coverage");
+assert.equal(iowa.coverageDepth, "active", "broad official delivery coverage is active without becoming live shelf inventory");
 assert.equal(iowa.layers.live, 0, "delivery rows remain separate from live inventory");
 assert.match(iowa.cannotSee.join(" "), /live shelf|current shelf/i);
 
 const kentucky = contract.states.find((state) => state.code === "KY");
 assert.ok(kentucky);
-assert.equal(kentucky.capability, "intelligence");
+assert.equal(kentucky.coverageDepth, "sparse");
 assert.match(kentucky.summary, /distillery/i);
 assert.match(kentucky.cannotSee.join(" "), /retailer|store/i);
 
 const illinois = contract.states.find((state) => state.code === "IL");
 assert.ok(illinois);
-assert.equal(illinois.capability, "active", "a strong selected-retailer network is active, not statewide-deep by implication");
+assert.equal(illinois.coverageDepth, "active", "a broad selected-retailer network is active without implying statewide shelf guarantees");
 assert.match(illinois.summary, /retailer/i);
 assert.match(illinois.cannotSee.join(" "), /verify|guarantee|shelf/i);
 
 const indiana = contract.states.find((state) => state.code === "IN");
 assert.ok(indiana);
-assert.equal(indiana.capability, "active");
+assert.equal(indiana.coverageDepth, "not-available", "stale direct-store evidence cannot retain current customer depth");
 assert.ok(indiana.layers.live < indiana.layers.known, "ATC permit-spine stores are known locations, never live inventory");
 assert.ok(indiana.layers.probeable < indiana.layers.known, "directory and permit rows are not labeled probeable without a monitoring source");
 assert.ok(indiana.layers.live < 200, "only verified retailer inventory sources count as live in Indiana");
 
 const texas = contract.states.find((state) => state.code === "TX");
 assert.ok(texas);
-assert.equal(texas.capability, "focused", "store-locator breadth does not turn six inventory stores into deep coverage");
-assert.equal(texas.layers.live, 6);
+assert.ok(texas.freshness.observedInventoryStores > 0, "Texas depth is based on observed exact-store evidence, not locator size");
+assert.equal(texas.layers.live, texas.freshness.currentInventoryStores);
 
 const ohio = contract.states.find((state) => state.code === "OH");
 assert.ok(ohio);
-assert.equal(ohio.layers.live, ohio.layers.known, "location and store exports merge into one Ohio store universe");
-assert.ok(ohio.layers.known < 600, "differing upstream identifiers cannot double-count Ohio stores");
+assert.equal(ohio.coverageDepth, "not-available", "broad historical store evidence cannot retain current depth during a source issue");
+assert.equal(ohio.health, "temporarily-limited");
+assert.equal(ohio.layers.live, 0, "stale Ohio source evidence cannot claim current shelf availability");
+assert.ok(ohio.freshness.observedInventoryStores > 0);
+assert.equal(ohio.capabilityLabel, "Not available yet", "legacy capability labels cannot claim store information without fresh customer output");
+assert.doesNotMatch(ohio.canSee.join(" "), /Current source-backed store monitoring/i, "legacy visibility copy cannot claim current monitoring after the freshness gate closes");
 
 const warehouseState = contract.states.find((state) => state.code === "AZ");
 assert.ok(warehouseState);
-assert.equal(warehouseState.capability, "intelligence", "warehouse watches are sparse rather than store-level coverage");
+assert.equal(warehouseState.coverageDepth, "not-available", "configured warehouse watches do not create coverage depth without fresh output");
 
 for (const stateCode of ["MN", "MO", "WA", "WI"]) {
   const state = contract.states.find((entry) => entry.code === stateCode);
   assert.ok(state);
-  assert.equal(state.capability, "not-active", `${stateCode} cannot stay active after its current source evidence is gone`);
+  assert.equal(state.coverageDepth, "not-available", `${stateCode} cannot claim coverage after its current source evidence is gone`);
 }
 
 const lostSourceContract = buildCoverageContract({
@@ -429,7 +478,7 @@ const transientHealthContract = buildCoverageContract({
   stores: [],
 });
 const transientNorthCarolina = transientHealthContract.states.find((state) => state.code === "NC");
-assert.equal(transientNorthCarolina?.capability, "intelligence", "one exact store is sparse coverage, independent of temporary source health");
+assert.equal(transientNorthCarolina?.capability, "not-active", "configured exact-store metadata cannot establish coverage during a source-health limitation without fresh output");
 assert.equal(transientNorthCarolina?.health, "temporarily-limited");
 
 const fallbackHealthContract = buildCoverageContract({
@@ -449,6 +498,7 @@ const fallbackHealthContract = buildCoverageContract({
     coverageTier: "aggregate_inventory_watch",
     publicStatus: "active",
     status: "useful",
+
     bestLocationPrecision: "statewide",
     signalCount: 1,
   }],
@@ -532,14 +582,37 @@ const searchRows: CoverageStateRowInput[] = [{
   bestLocationPrecision: "store_level",
   signalCount: 1,
 }];
-
-const partialCity = searchCoverageTargets({
-  stateCode: "IL",
-  query: "Springfield",
+const searchDrops = [{
+  state: "IL",
+  type: "retailer_store_inventory_result",
+  source: "Signal Spirits store inventory",
+  tier: "limited",
+  rarity_tier: "limited",
+  storeId: "live-1",
+  storeName: "Signal Spirits",
+  storeAddress: "1 Main Street",
+  city: "Springfield",
+  locationPrecision: "store_level",
+  signalCategory: "inventory",
+  availabilityScope: "store_reported",
+  canAlertAsInventory: true,
+  quantity: 1,
+  observedAt: "2026-08-02T13:00:00.000Z",
+  lastConfirmedAt: "2026-08-02T13:00:00.000Z",
+}];
+const searchCoverageInputs = {
   lifecycle: STATE_LIFECYCLE_CONFIG,
   stateRows: searchRows,
   locations: searchLocations,
   stores: [],
+  drops: searchDrops,
+  asOf: "2026-08-02T14:00:00.000Z",
+};
+
+const partialCity = searchCoverageTargets({
+  stateCode: "IL",
+  query: "Springfield",
+  ...searchCoverageInputs,
 });
 assert.ok(partialCity.some((result) => result.kind === "city" && result.status === "partially-covered"));
 assert.ok(partialCity.some((result) => result.kind === "store" && result.status === "actively-monitored"));
@@ -548,30 +621,21 @@ assert.ok(partialCity.some((result) => result.kind === "store" && result.status 
 const quietStore = searchCoverageTargets({
   stateCode: "IL",
   query: "Quiet Spirits",
-  lifecycle: STATE_LIFECYCLE_CONFIG,
-  stateRows: searchRows,
-  locations: searchLocations,
-  stores: [],
+  ...searchCoverageInputs,
 });
-assert.equal(quietStore[0]?.status, "actively-monitored", "coverage capability does not disappear merely because a monitored store has no current signal");
+assert.equal(quietStore[0]?.status, "known-expansion-candidate", "a configured store without a fresh exact signal cannot be labeled actively monitored");
 
 const knownCity = searchCoverageTargets({
   stateCode: "IL",
   query: "Decatur",
-  lifecycle: STATE_LIFECYCLE_CONFIG,
-  stateRows: searchRows,
-  locations: searchLocations,
-  stores: [],
+  ...searchCoverageInputs,
 });
 assert.ok(knownCity.some((result) => result.kind === "city" && result.status === "known-not-active"));
 
 const privateCandidate = searchCoverageTargets({
   stateCode: "IL",
   query: "Internal Candidate",
-  lifecycle: STATE_LIFECYCLE_CONFIG,
-  stateRows: searchRows,
-  locations: searchLocations,
-  stores: [],
+  ...searchCoverageInputs,
 });
 assert.equal(privateCandidate[0]?.status, "not-found", "non-searchable internal location candidates stay private");
 assert.equal(findCoverageStoreTarget({
@@ -585,10 +649,7 @@ assert.equal(findCoverageStoreTarget({
 const missing = searchCoverageTargets({
   stateCode: "IL",
   query: "Nowhere Market",
-  lifecycle: STATE_LIFECYCLE_CONFIG,
-  stateRows: searchRows,
-  locations: searchLocations,
-  stores: [],
+  ...searchCoverageInputs,
 });
 assert.deepEqual(missing, [{
   kind: "unknown",

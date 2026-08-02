@@ -69,6 +69,8 @@ function fallbackCoverageState(code: string): CoverageState {
     name: STATE_NAMES.get(code) || code,
     capability: "not-active",
     capabilityLabel: "Not active yet",
+    coverageDepth: "not-available",
+    coverageDepthLabel: "Not available yet",
     coverageStatus: "not-available",
     coverageStatusLabel: "Not available yet",
     capabilities: {
@@ -88,9 +90,23 @@ function fallbackCoverageState(code: string): CoverageState {
     monitoredStoreCount: 0,
     layers: { known: 0, probeable: 0, catalogWatch: 0, live: 0, alertGrade: 0 },
     scope: { knownBoards: 0, shipmentBoards: 0, searchableStores: 0, inventoryMonitoredStores: 0, singleStoreShipmentBoards: 0 },
+    freshness: {
+      observedInventoryStores: 0,
+      currentInventoryStores: 0,
+      currentInventoryCities: 0,
+      alertEligibleStores: 0,
+      staleInventoryStores: 0,
+      freshPublicSignals: 0,
+      freshPublicUpdates: 0,
+      freshPublicUpdateBoards: 0,
+      freshPublicUpdateStores: 0,
+      freshPublicUpdateCities: 0,
+      freshPublicUpdateAreas: 0,
+      stalePublicSignals: 0,
+    },
     canSee: [],
     cannotSee: [],
-    fingerprint: `coverage-v1|${code}|unavailable`,
+    fingerprint: `coverage-v2|${code}|unavailable`,
   };
 }
 
