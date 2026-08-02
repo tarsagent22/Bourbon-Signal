@@ -1,10 +1,22 @@
+import {
+  derivePublicDropEvidence,
+  publicEvidenceAddressKey,
+  publicEvidenceSourceStoreIdKey,
+  publicEvidenceStateCode,
+  type PublicDropEvidenceInput,
+  type PublicDropStoreEvidence,
+  type StatePublicDropEvidence,
+} from "./public-drop-evidence.ts";
+
 export const COVERAGE_CAPABILITIES = ["deep", "active", "focused", "intelligence", "not-active"] as const;
 export const COVERAGE_STATUS_VALUES = ["available", "not-available"] as const;
 export const COVERAGE_HEALTH_LEVELS = ["current", "intermittent", "temporarily-limited", "no-recent-update"] as const;
+export const COVERAGE_DEPTH_VALUES = ["active", "moderate", "sparse", "not-available"] as const;
 
 export type CoverageCapability = typeof COVERAGE_CAPABILITIES[number];
 export type CoverageStatus = typeof COVERAGE_STATUS_VALUES[number];
 export type CoverageHealth = typeof COVERAGE_HEALTH_LEVELS[number];
+export type CoverageDepth = typeof COVERAGE_DEPTH_VALUES[number];
 export type CoverageUpdateLabel = "Shipments and releases" | "Official updates";
 
 export interface CoverageCapabilities {
@@ -82,6 +94,8 @@ export interface CoverageStoreInput {
   county?: string | null;
 }
 
+export type CoverageDropInput = PublicDropEvidenceInput;
+
 export interface CoverageLayerCounts {
   known: number;
   probeable: number;
@@ -98,6 +112,24 @@ export interface CoverageScopeCounts {
   singleStoreShipmentBoards: number;
 }
 
+export interface CoverageFreshnessEvidence {
+  observedInventoryStores: number;
+  currentInventoryStores: number;
+  /** Current exact-store cities after freshness, health, and feed eligibility gates. */
+  currentInventoryCities: number;
+  alertEligibleStores: number;
+  staleInventoryStores: number;
+  /** Fresh rows usable in the default customer Drop Feed. */
+  freshPublicSignals: number;
+  /** Fresh non-inventory/update rows usable in that feed. */
+  freshPublicUpdates: number;
+  freshPublicUpdateBoards: number;
+  freshPublicUpdateStores: number;
+  freshPublicUpdateCities: number;
+  freshPublicUpdateAreas: number;
+  stalePublicSignals: number;
+}
+
 export interface CoverageNcBoardIntelligenceInput {
   boardCount?: number;
   officialStoreCount?: number;
@@ -112,6 +144,8 @@ export interface CoverageState {
   name: string;
   capability: CoverageCapability;
   capabilityLabel: string;
+  coverageDepth: CoverageDepth;
+  coverageDepthLabel: string;
   coverageStatus: CoverageStatus;
   coverageStatusLabel: string;
   capabilities: CoverageCapabilities;
@@ -126,6 +160,7 @@ export interface CoverageState {
   monitoredStoreCount: number;
   layers: CoverageLayerCounts;
   scope: CoverageScopeCounts;
+  freshness: CoverageFreshnessEvidence;
   canSee: string[];
   cannotSee: string[];
   customerSummary?: string;
@@ -135,8 +170,9 @@ export interface CoverageState {
 }
 
 export interface CoverageContract {
-  contractVersion: "bourbon-signal/coverage@1";
+  contractVersion: "bourbon-signal/coverage@2";
   generatedAt: string | null;
+  evaluatedAt: string;
   states: CoverageState[];
 }
 
@@ -197,6 +233,13 @@ const COVERAGE_STATUS_LABELS: Record<CoverageStatus, string> = {
   "not-available": "Not available yet",
 };
 
+const COVERAGE_DEPTH_LABELS: Record<CoverageDepth, string> = {
+  active: "Active coverage",
+  moderate: "Moderate coverage",
+  sparse: "Sparse coverage",
+  "not-available": "Not available yet",
+};
+
 const HEALTH_LABELS: Record<CoverageHealth, string> = {
   current: "Information is current",
   intermittent: "Updates are intermittent",
@@ -218,8 +261,7 @@ const SHIPMENT_UPDATE_TIERS = new Set([
 ]);
 
 function publicStateCode(value: unknown) {
-  const normalized = String(value || "").trim().toUpperCase();
-  return normalized === "MD-MONTGOMERY" ? "MD" : normalized;
+  return publicEvidenceStateCode(value);
 }
 
 export function coverageInternalStateKey(stateCode: string, lifecycle: CoverageLifecycleInput) {
@@ -265,6 +307,37 @@ interface StoreRecord {
   hasSignals: boolean;
   precision: string;
   inventoryCapability: string;
+}
+
+function evidenceMatchesStore(
+  stateCode: string,
+  evidence: PublicDropStoreEvidence,
+  store: Pick<StoreRecord, "id" | "source" | "address" | "city">,
+  ambiguousSourceIdKeys: ReadonlySet<string>,
+) {
+  const storeSourceIdKey = publicEvidenceSourceStoreIdKey(stateCode, store.source, store.id);
+  const storeAddressKey = publicEvidenceAddressKey(stateCode, store.address, store.city);
+  const sameAddress = Boolean(evidence.addressKey && storeAddressKey) && evidence.addressKey === storeAddressKey;
+  if (sameAddress) return true;
+  const sameSourceId = Boolean(evidence.sourceIdKey && storeSourceIdKey) && evidence.sourceIdKey === storeSourceIdKey;
+  if (!sameSourceId) return false;
+  // A source-qualified ID is valid only while it identifies one premise. If
+  // the current evidence graph shows that ID at multiple addresses, an
+  // address-less directory row cannot safely select any one of them.
+  if (!storeAddressKey && ambiguousSourceIdKeys.has(storeSourceIdKey)) return false;
+  return !(evidence.addressKey && storeAddressKey && evidence.addressKey !== storeAddressKey);
+}
+
+function evidenceTargetId(evidence: PublicDropStoreEvidence) {
+  // A source ID is usually stable, but it cannot be the whole request target
+  // when the same source ID appears at more than one validated address. Keep
+  // both independently proven identities in that case.
+  if (evidence.sourceIdKey && evidence.addressKey) return `${evidence.sourceIdKey}|${evidence.addressKey}`;
+  return evidence.sourceIdKey || evidence.addressKey || evidence.id;
+}
+
+function evidenceRequestId(evidence: PublicDropStoreEvidence) {
+  return `evidence:${evidenceTargetId(evidence)}`;
 }
 
 function directoryOnlySource(source: string) {
@@ -388,19 +461,26 @@ function sourceIsCurrentlyAvailable(
   return hasAttachedSource || hasCurrentStore || hasCurrentSignals;
 }
 
-function publicUpdateLabel(coverageTier: string, scope: CoverageScopeCounts): CoverageUpdateLabel | null {
+function publicUpdateLabel(
+  coverageTier: string,
+  scope: CoverageScopeCounts,
+  hasFreshUpdates: boolean,
+): CoverageUpdateLabel | null {
+  if (!hasFreshUpdates) return null;
   if (scope.shipmentBoards > 0 || SHIPMENT_UPDATE_TIERS.has(coverageTier)) return "Shipments and releases";
-  if (INTELLIGENCE_TIERS.has(coverageTier)) return "Official updates";
-  return null;
+  return "Official updates";
 }
 
 function publicCapabilities(
   updateLabel: CoverageUpdateLabel | null,
   scope: CoverageScopeCounts,
   layers: CoverageLayerCounts,
+  hasFreshPublicOutput: boolean,
 ): CoverageCapabilities {
   return {
-    storeInformation: scope.searchableStores > 0,
+    // A static directory can support a fresh state signal, but it cannot by
+    // itself manufacture current customer coverage.
+    storeInformation: hasFreshPublicOutput && scope.searchableStores > 0,
     publicUpdates: updateLabel !== null,
     currentBottleAvailability: scope.inventoryMonitoredStores > 0,
     restockAlerts: layers.alertGrade > 0,
@@ -427,8 +507,10 @@ function stateCapability(
     return "intelligence";
   }
   if (coverageTier === "store_availability_status") {
+
     if (liveStores >= 25 && representedLiveCities >= 5) return "active";
     if (liveStores >= 5 && representedLiveCities >= 2) return "focused";
+
     return "intelligence";
   }
   if (coverageTier === "sparse_live_store_inventory") {
@@ -440,18 +522,32 @@ function stateCapability(
   return "not-active";
 }
 
+function coverageCapabilityLabel(
+  capability: CoverageCapability,
+  capabilities: CoverageCapabilities,
+  updateLabel: CoverageUpdateLabel | null,
+) {
+  if (capability === "not-active") return CAPABILITY_LABELS[capability];
+  if (capabilities.currentBottleAvailability) return CAPABILITY_LABELS.deep;
+  if (capabilities.publicUpdates) return updateLabel || CAPABILITY_LABELS.active;
+  if (capabilities.storeInformation) return CAPABILITY_LABELS.focused;
+  return CAPABILITY_LABELS["not-active"];
+}
+
 function stateHealth(
   internalStateKey: string,
   status: CoverageStatus,
   row: CoverageStateRowInput | undefined,
   degradedStates: readonly Record<string, unknown>[],
   healthLimited: boolean,
+  freshnessLimited: boolean,
 ): CoverageHealth {
-  if (status === "not-available") return "no-recent-update";
-  if (healthLimited) return "temporarily-limited";
   const rowStatus = cleanText(row?.status, 100).toLowerCase();
-  const degraded = degradedStates.some((entry) => String(entry.state || "").toUpperCase() === internalStateKey);
-  if (degraded || rowStatus.includes("stale") || rowStatus.includes("fallback")) return "temporarily-limited";
+  const publicCode = publicStateCode(internalStateKey);
+  const degraded = degradedStates.some((entry) => publicStateCode(entry.state) === publicCode);
+  const limited = healthLimited || freshnessLimited || degraded || rowStatus.includes("stale") || rowStatus.includes("fallback");
+  if (status === "not-available") return limited ? "temporarily-limited" : "no-recent-update";
+  if (limited) return "temporarily-limited";
   if (rowStatus.includes("intermittent") || rowStatus.includes("degraded") || rowStatus.includes("partial")) return "intermittent";
   return "current";
 }
@@ -528,7 +624,7 @@ function visibilityCopy(
   if (capability === "not-active") {
     return {
       canSee: layers.known > 0 ? ["Known directory locations that can guide expansion work."] : ["No current customer-facing monitoring source."],
-      cannotSee: ["Live shelf or alert-grade monitoring in this state."],
+      cannotSee: ["No current source-backed monitoring, current bottle availability, or alert-grade coverage is available in this state."],
     };
   }
   if (coverageTier === "live_store_inventory") {
@@ -542,6 +638,14 @@ function visibilityCopy(
           "A board shipment is not a shelf confirmation—even for a single-store board—and never becomes inventory-alert-ready without current store evidence.",
           "Most NC boards do not publish continuous exact-store inventory; verify availability before driving.",
         ],
+      };
+    }
+    if (scope.inventoryMonitoredStores === 0) {
+      return {
+        canSee: [scope.searchableStores > 0
+          ? "Listed store information is available; current bottle availability is temporarily unavailable."
+          : "Store monitoring is temporarily unavailable."],
+        cannotSee: ["Current bottle availability and alert-grade monitoring are temporarily limited until fresh exact-store evidence returns."],
       };
     }
     return {
@@ -564,7 +668,9 @@ function visibilityCopy(
   }
   if (coverageTier === "sparse_live_store_inventory") {
     return {
-      canSee: ["Current identity-bound orderability from a small reviewed set of exact retailer premises."],
+      canSee: [scope.inventoryMonitoredStores > 0
+        ? "Current identity-bound orderability from a small reviewed set of exact retailer premises."
+        : "A small reviewed, identity-bound orderability set is available; current orderability is temporarily unavailable."],
       cannotSee: ["Statewide coverage, exact shelf counts, holds, or outbound inventory alerts; verify directly with the store before driving."],
     };
   }
@@ -661,6 +767,87 @@ function summaryCopy(
   return "We do not have a reliable way to check this area yet.";
 }
 
+const EMPTY_DROP_EVIDENCE: StatePublicDropEvidence = {
+  observedInventoryStores: [],
+  currentInventoryStores: [],
+  alertableInventoryStores: [],
+  observedInventoryCities: 0,
+  currentInventoryCities: 0,
+  staleInventoryStoreCount: 0,
+  freshPublicSignalCount: 0,
+  freshPublicUpdateSignalCount: 0,
+  freshPublicUpdateBoards: 0,
+  freshPublicUpdateStores: 0,
+  freshPublicUpdateCities: 0,
+  freshPublicUpdateAreas: 0,
+  freshPublicUpdateAreaKeys: [],
+  freshStoreEquivalentShipmentBoards: 0,
+  stalePublicSignalCount: 0,
+};
+
+function isStateFeedDegraded(stateCode: string, degradedStates: readonly Record<string, unknown>[]) {
+  const publicCode = publicStateCode(stateCode);
+  return degradedStates.some((entry) => {
+    if (publicStateCode(entry.state) !== publicCode) return false;
+    // Retained useful rows remain visible in the feed, subject to row freshness.
+    return !cleanText(entry.status, 120).toLowerCase().startsWith("stale_useful");
+  });
+}
+
+function feedDegradedStateCodes(degradedStates: readonly Record<string, unknown>[]) {
+  return new Set(
+    degradedStates
+      .filter((entry) => !cleanText(entry.status, 120).toLowerCase().startsWith("stale_useful"))
+      .map((entry) => publicStateCode(entry.state))
+      .filter(Boolean),
+  );
+}
+
+function rowHasStaleHealth(row: CoverageStateRowInput | undefined) {
+  const status = cleanText(row?.status, 120).toLowerCase();
+  return status.includes("stale") || status.includes("fallback") || status.includes("blocked");
+}
+
+function deriveCoverageDepth(args: {
+  coverageTier: string;
+  freshPublicSignals: number;
+  currentInventoryStores: number;
+  currentInventoryCities: number;
+  freshPublicUpdates: number;
+  freshUpdateBoards: number;
+  freshUpdateStores: number;
+  freshUpdateCities: number;
+  freshUpdateAreas: number;
+}): CoverageDepth {
+  // This is intentionally independent of directory size, lifecycle config,
+  // source attachment, and historical observed rows. A depth label means
+  // current usable customer output exists at evaluation time.
+  if (args.freshPublicSignals === 0) return "not-available";
+
+  if (args.currentInventoryStores > 0) {
+    if (args.coverageTier === "sparse_live_store_inventory") return "sparse";
+    if (args.currentInventoryStores >= 25 && args.currentInventoryCities >= 5) return "active";
+    if (args.currentInventoryStores >= 5 && args.currentInventoryCities >= 2) return "moderate";
+    return "sparse";
+  }
+
+  if (args.freshPublicUpdates > 0) {
+    if (args.coverageTier === "distillery_release_watch") return "sparse";
+    if (args.freshUpdateBoards >= 20) return "active";
+    if (args.freshUpdateStores >= 25 && args.freshUpdateCities >= 5) return "active";
+    if (
+      args.freshUpdateBoards >= 5
+      || (args.freshUpdateStores >= 5 && args.freshUpdateCities >= 2)
+      || args.freshUpdateAreas >= 2
+    ) return "moderate";
+    return "sparse";
+  }
+
+  // A current feed row may be informative even when it cannot safely become a
+  // direct availability or update claim (for example, a policy-limited row).
+  return "sparse";
+}
+
 function buildState(args: {
   code: string;
   defaultName: string;
@@ -669,6 +856,7 @@ function buildState(args: {
   locations: readonly CoverageLocationInput[];
   stores: readonly CoverageStoreInput[];
   degradedStates: readonly Record<string, unknown>[];
+  dropEvidence: StatePublicDropEvidence;
   healthLimited: boolean;
   ncBoardIntelligence?: CoverageNcBoardIntelligenceInput | null;
 }) {
@@ -679,18 +867,33 @@ function buildState(args: {
   const storeRecords = stateStoreRecords(internalStateKey, args.locations, args.stores);
   const tier = cleanText(row?.coverageTier || lifecycleEntry?.coverageTier, 80);
   const configuredLayers = lifecycleEntry?.coverageLayerCounts;
-  const configuredLiveStores = nonnegativeLayerCount(configuredLayers?.live);
-  const currentSource = sourceIsCurrentlyAvailable(lifecycleEntry, row, locations, storeRecords) || configuredLiveStores > 0;
-  const isLiveTier = LIVE_TIERS.has(tier);
-  const liveStores = currentSource && isLiveTier
-    ? Math.max(storeRecords.filter((store) => store.searchable && store.liveInventory).length, configuredLiveStores)
-    : 0;
-  const alertGradeStores = currentSource && tier === "live_store_inventory" && lifecycleEntry?.inventoryAlertable !== false
-    ? storeRecords.filter((store) => store.searchable && store.liveInventory && store.hasSignals).length
-    : 0;
+  const supportsDirectStoreAvailability = LIVE_TIERS.has(tier);
+  const feedDegraded = isStateFeedDegraded(args.code, args.degradedStates);
+  // Lifecycle/configuration tells us which evidence may be used; only current
+  // default-feed output establishes that a customer can use it now.
+  const hasFreshPublicOutput = !args.healthLimited
+    && !feedDegraded
+    && args.dropEvidence.freshPublicSignalCount > 0;
+  const directCurrentStores = supportsDirectStoreAvailability && hasFreshPublicOutput
+    ? args.dropEvidence.currentInventoryStores
+    : [];
+  const directAlertableStores = supportsDirectStoreAvailability && hasFreshPublicOutput && lifecycleEntry?.inventoryAlertable !== false
+    ? args.dropEvidence.alertableInventoryStores
+    : [];
+  const liveStores = directCurrentStores.length;
+  const alertGradeStores = directAlertableStores.length;
+  // This is a current-availability metric, not historical evidence. Derive it
+  // from the health/policy-gated stores so a limited or degraded state cannot
+  // leak current-city coverage through freshness metadata.
   const representedLiveCities = new Set(
-    storeRecords.filter((store) => store.liveInventory).map((store) => store.city).filter(Boolean),
+    directCurrentStores.map((store) => store.city).filter(Boolean),
   ).size;
+  const hasFreshUpdateOutput = hasFreshPublicOutput && (
+    args.dropEvidence.freshPublicUpdateSignalCount > 0
+    // A policy-limited signal remains a useful feed update, but never turns
+    // into current shelf availability merely because a retailer posted it.
+    || (!supportsDirectStoreAvailability && args.dropEvidence.freshPublicSignalCount > 0)
+  );
   const layers: CoverageLayerCounts = {
     known: Math.max(storeRecords.length, nonnegativeLayerCount(configuredLayers?.known)),
     probeable: Math.max(
@@ -702,8 +905,9 @@ function buildState(args: {
         + storeRecords.filter((store) => store.monitoringAttached && !store.liveInventory).length,
       nonnegativeLayerCount(configuredLayers?.catalogWatch),
     ),
-    live: Math.max(liveStores, nonnegativeLayerCount(configuredLayers?.live)),
-    alertGrade: Math.max(alertGradeStores, nonnegativeLayerCount(configuredLayers?.alertGrade)),
+    // These are customer-visible current counts, not configured-store estimates.
+    live: liveStores,
+    alertGrade: alertGradeStores,
   };
   const boardLocations = locations.filter((location) => /county_board/i.test(String(location.type || location.locationType || ""))
     && /NC ABC Commission board list/i.test(String(location.source || "")));
@@ -726,61 +930,106 @@ function buildState(args: {
     && Number.isFinite(Number(args.ncBoardIntelligence?.officialStoreCount))
     && Number.isFinite(Number(args.ncBoardIntelligence?.singleStoreShipmentBoardCount));
   const scope: CoverageScopeCounts = {
-    knownBoards: hasCanonicalNcStats ? nonnegativeLayerCount(args.ncBoardIntelligence?.boardCount) : boardLocations.length,
-    shipmentBoards: hasCanonicalNcStats ? nonnegativeLayerCount(args.ncBoardIntelligence?.boardsWithTrackedShipments) : shipmentBoards.size,
+    knownBoards: boardLocations.length,
+    // Board counts used in capability/depth copy must be current public rows,
+    // never a historic stats/configuration counter.
+    shipmentBoards: hasFreshPublicOutput ? args.dropEvidence.freshPublicUpdateBoards : 0,
     searchableStores: hasCanonicalNcStats ? nonnegativeLayerCount(args.ncBoardIntelligence?.officialStoreCount) : officialStoreLocations.length || storeRecords.filter((store) => store.searchable).length,
     inventoryMonitoredStores: liveStores,
-    singleStoreShipmentBoards: hasCanonicalNcStats
-      ? nonnegativeLayerCount(args.ncBoardIntelligence?.singleStoreShipmentBoardCount)
-      : args.code === "NC"
-        ? Array.from(officialStoresByBoard.entries()).filter(([boardName, boardStores]) => boardStores.size === 1 && shipmentBoards.has(boardName)).length
-        : 0,
+    singleStoreShipmentBoards: hasFreshPublicOutput ? args.dropEvidence.freshStoreEquivalentShipmentBoards : 0,
   };
-  const publicUpdate = publicUpdateLabel(tier, scope);
-  const capabilities = publicCapabilities(publicUpdate, scope, layers);
+  const publicUpdate = publicUpdateLabel(tier, scope, hasFreshUpdateOutput);
+  const capabilities = publicCapabilities(publicUpdate, scope, layers, hasFreshPublicOutput);
   const capability = stateCapability(
     tier,
     cleanText(row?.lifecycle || lifecycleEntry?.lifecycle, 80),
-    currentSource,
+    hasFreshPublicOutput,
     liveStores,
     representedLiveCities,
     capabilities.publicUpdates,
   );
   const coverageStatusValue = deriveCoverageStatus(capabilities);
-  const health = stateHealth(internalStateKey, coverageStatusValue, row, args.degradedStates, args.healthLimited);
+  const areas = stateAreas(lifecycleEntry, row, locations, storeRecords);
+  const precisions = capability === "not-active" ? [] : precisionLabels(lifecycleEntry, row, locations, storeRecords);
+  const usableFreshPublicSignals = hasFreshPublicOutput ? args.dropEvidence.freshPublicSignalCount : 0;
+  const usableFreshPublicUpdates = hasFreshUpdateOutput
+    ? Math.max(
+      args.dropEvidence.freshPublicUpdateSignalCount,
+      supportsDirectStoreAvailability ? 0 : args.dropEvidence.freshPublicSignalCount,
+    )
+    : 0;
+  const coverageDepth = deriveCoverageDepth({
+    coverageTier: tier,
+    freshPublicSignals: usableFreshPublicSignals,
+    currentInventoryStores: liveStores,
+    currentInventoryCities: representedLiveCities,
+    freshPublicUpdates: usableFreshPublicUpdates,
+    freshUpdateBoards: hasFreshPublicOutput ? args.dropEvidence.freshPublicUpdateBoards : 0,
+    freshUpdateStores: hasFreshPublicOutput ? args.dropEvidence.freshPublicUpdateStores : 0,
+    freshUpdateCities: hasFreshPublicOutput ? args.dropEvidence.freshPublicUpdateCities : 0,
+    freshUpdateAreas: hasFreshPublicOutput ? args.dropEvidence.freshPublicUpdateAreas : 0,
+  });
+  const freshness: CoverageFreshnessEvidence = {
+    observedInventoryStores: args.dropEvidence.observedInventoryStores.length,
+    currentInventoryStores: liveStores,
+    currentInventoryCities: representedLiveCities,
+    alertEligibleStores: alertGradeStores,
+    staleInventoryStores: supportsDirectStoreAvailability ? args.dropEvidence.staleInventoryStoreCount : 0,
+    freshPublicSignals: usableFreshPublicSignals,
+    freshPublicUpdates: usableFreshPublicUpdates,
+    freshPublicUpdateBoards: hasFreshPublicOutput ? args.dropEvidence.freshPublicUpdateBoards : 0,
+    freshPublicUpdateStores: hasFreshPublicOutput ? args.dropEvidence.freshPublicUpdateStores : 0,
+    freshPublicUpdateCities: hasFreshPublicOutput ? args.dropEvidence.freshPublicUpdateCities : 0,
+    freshPublicUpdateAreas: hasFreshPublicOutput ? args.dropEvidence.freshPublicUpdateAreas : 0,
+    stalePublicSignals: args.dropEvidence.stalePublicSignalCount,
+  };
+  const freshnessLimited = args.dropEvidence.stalePublicSignalCount > 0 && usableFreshPublicSignals === 0;
+  const health = stateHealth(
+    internalStateKey,
+    coverageStatusValue,
+    row,
+    args.degradedStates,
+    args.healthLimited,
+    freshnessLimited,
+  );
   const hasReviewedKnownLayer = capability === "not-active" && layers.known > 0;
   const summary = capability === "not-active"
     ? hasReviewedKnownLayer
-      ? cleanText(lifecycleEntry?.customerSummary, 600) || "Known directory coverage is under research; live monitoring is not active."
+      ? "Known directory locations can guide expansion work, but no fresh customer-facing monitoring source is active."
       : "No current customer-facing monitoring source is active. Request coverage to help prioritize expansion."
     : cleanText(row?.customerSummary || lifecycleEntry?.customerSummary, 600)
       || "Current source-backed coverage is available at the precision shown here.";
   const customerSummary = summaryCopy(publicUpdate, capabilities);
-  const areas = stateAreas(lifecycleEntry, row, locations, storeRecords);
   const copy = visibilityCopy(args.code, tier, capability, layers, scope, summary);
   const customerCopy = customerVisibilityCopy(publicUpdate, capabilities, scope);
-  const precisions = capability === "not-active" ? [] : precisionLabels(lifecycleEntry, row, locations, storeRecords);
   const state: CoverageState = {
     code: args.code,
     name: cleanText(lifecycleEntry?.customerLabel || row?.label, 120) || args.defaultName,
     capability,
-    capabilityLabel: CAPABILITY_LABELS[capability],
+    capabilityLabel: coverageCapabilityLabel(capability, capabilities, publicUpdate),
+    coverageDepth,
+    coverageDepthLabel: COVERAGE_DEPTH_LABELS[coverageDepth],
     coverageStatus: coverageStatusValue,
     coverageStatusLabel: COVERAGE_STATUS_LABELS[coverageStatusValue],
     capabilities,
     updateLabel: publicUpdate,
+
     health,
     healthLabel: HEALTH_LABELS[health],
     summary,
     sourceLabel: capability === "not-active" && !hasReviewedKnownLayer
+
       ? null
       : cleanText(row?.sourceLabel || lifecycleEntry?.sourceLabel, 180) || null,
     precisions,
     areas,
-    representedAreaCount: areas.length,
-    monitoredStoreCount: storeRecords.filter((store) => currentSource && store.monitoringAttached).length,
+    representedAreaCount: hasFreshPublicOutput
+      ? Math.max(args.dropEvidence.freshPublicUpdateAreas, args.dropEvidence.currentInventoryCities)
+      : 0,
+    monitoredStoreCount: scope.inventoryMonitoredStores,
     layers,
     scope,
+    freshness,
     canSee: copy.canSee,
     cannotSee: copy.cannotSee,
     customerSummary,
@@ -789,9 +1038,10 @@ function buildState(args: {
     fingerprint: "",
   };
   state.fingerprint = [
-    "coverage-v1",
+    "coverage-v2",
     state.code,
     state.capability,
+    state.coverageDepth,
     state.precisions.join(","),
     state.layers.known,
     state.layers.probeable,
@@ -803,6 +1053,11 @@ function buildState(args: {
     state.scope.searchableStores,
     state.scope.inventoryMonitoredStores,
     state.scope.singleStoreShipmentBoards,
+    state.freshness.observedInventoryStores,
+    state.freshness.currentInventoryStores,
+    state.freshness.alertEligibleStores,
+    state.freshness.staleInventoryStores,
+    state.freshness.stalePublicSignals,
   ].join("|");
   return state;
 }
@@ -812,18 +1067,29 @@ export function buildCoverageContract(args: {
   stateRows?: readonly CoverageStateRowInput[];
   locations?: readonly CoverageLocationInput[];
   stores?: readonly CoverageStoreInput[];
+  drops?: readonly CoverageDropInput[];
   degradedStates?: readonly Record<string, unknown>[];
   generatedAt?: string;
+  asOf?: string;
   healthLimited?: boolean;
   ncBoardIntelligence?: CoverageNcBoardIntelligenceInput | null;
 }): CoverageContract {
   const stateRows = args.stateRows || [];
   const locations = args.locations || [];
   const stores = args.stores || [];
+  const drops = args.drops || [];
   const degradedStates = args.degradedStates || [];
+  const generatedAt = cleanText(args.generatedAt, 80) || null;
+  // Tests may use a captured engine snapshot as their clock; live callers pass a
+  // wall-clock value so old retained rows age out without a new deployment.
+  const evaluatedAt = cleanText(args.asOf, 80) || generatedAt || new Date().toISOString();
+  const evidenceByState = derivePublicDropEvidence(drops, evaluatedAt, {
+    degradedStateCodes: feedDegradedStateCodes(degradedStates),
+  });
   return {
-    contractVersion: "bourbon-signal/coverage@1",
-    generatedAt: cleanText(args.generatedAt, 80) || null,
+    contractVersion: "bourbon-signal/coverage@2",
+    generatedAt,
+    evaluatedAt,
     states: US_STATES.map(([code, defaultName]) => buildState({
       code,
       defaultName,
@@ -832,6 +1098,7 @@ export function buildCoverageContract(args: {
       locations,
       stores,
       degradedStates,
+      dropEvidence: evidenceByState.get(code) || EMPTY_DROP_EVIDENCE,
       healthLimited: args.healthLimited === true,
       ncBoardIntelligence: args.ncBoardIntelligence,
     })),
@@ -854,6 +1121,11 @@ export function searchCoverageTargets(args: {
   stateRows?: readonly CoverageStateRowInput[];
   locations?: readonly CoverageLocationInput[];
   stores?: readonly CoverageStoreInput[];
+  drops?: readonly CoverageDropInput[];
+  degradedStates?: readonly Record<string, unknown>[];
+  ncBoardIntelligence?: CoverageNcBoardIntelligenceInput | null;
+  asOf?: string;
+  healthLimited?: boolean;
   limit?: number;
 }): CoverageSearchResult[] {
   const stateCode = publicStateCode(args.stateCode);
@@ -867,11 +1139,44 @@ export function searchCoverageTargets(args: {
   const row = (args.stateRows || []).find((entry) => String(entry.state || "").toUpperCase() === internalStateKey);
   const lifecycleEntry = args.lifecycle.states[internalStateKey];
   const locations = stateLocations(internalStateKey, args.locations || []);
-  const sourceAvailable = sourceIsCurrentlyAvailable(lifecycleEntry, row, locations, records);
   const stateTier = cleanText(row?.coverageTier || lifecycleEntry?.coverageTier, 80);
-  const publicUpdateAvailable = sourceAvailable
-    || INTELLIGENCE_TIERS.has(stateTier)
-    || locations.some((location) => /NC ABC Stock Shipped Data/i.test(String(location.source || "")));
+  const evaluatedAt = cleanText(args.asOf, 80) || new Date().toISOString();
+  const currentEvidence = derivePublicDropEvidence(args.drops || [], evaluatedAt, {
+    degradedStateCodes: feedDegradedStateCodes(args.degradedStates || []),
+  }).get(stateCode) || EMPTY_DROP_EVIDENCE;
+  const coverageState = buildCoverageContract({
+    lifecycle: args.lifecycle,
+    stateRows: args.stateRows,
+    locations: args.locations,
+    stores: args.stores,
+    drops: args.drops,
+    degradedStates: args.degradedStates,
+    asOf: evaluatedAt,
+    healthLimited: args.healthLimited,
+    ncBoardIntelligence: args.ncBoardIntelligence,
+  }).states.find((state) => state.code === stateCode);
+  const sourceAvailable = coverageState?.capabilities.currentBottleAvailability === true;
+  const publicUpdateAvailable = coverageState?.capabilities.publicUpdates === true;
+  const currentInventoryEvidence = sourceAvailable ? currentEvidence.currentInventoryStores : [];
+  const sourceEvidenceCounts = new Map<string, number>();
+  for (const evidence of currentInventoryEvidence) {
+    for (const key of evidence.keys) {
+      if (!key.includes(":source:")) continue;
+      sourceEvidenceCounts.set(key, (sourceEvidenceCounts.get(key) || 0) + 1);
+    }
+  }
+  const ambiguousSourceIdKeys = new Set(
+    Array.from(sourceEvidenceCounts.entries())
+      .filter(([, count]) => count > 1)
+      .map(([key]) => key),
+  );
+  const storeHasCurrentEvidence = (store: StoreRecord) => {
+    if (!sourceAvailable) return false;
+    return currentInventoryEvidence.some((evidence) => evidenceMatchesStore(stateCode, evidence, store, ambiguousSourceIdKeys));
+  };
+  const currentEvidenceCities = new Set(currentInventoryEvidence
+    .map((evidence) => coverageTargetToken(evidence.city, 120))
+    .filter(Boolean));
   const limit = Math.max(1, Math.min(20, Math.floor(args.limit || 12)));
   const results: CoverageSearchResult[] = [];
 
@@ -880,6 +1185,7 @@ export function searchCoverageTargets(args: {
   for (const value of [
     ...(lifecycleEntry?.areaOptions || []),
     ...searchableRecords.flatMap((record) => [record.city, record.county]),
+    ...currentInventoryEvidence.map((evidence) => evidence.city),
     ...searchableAreaLocations.flatMap((location) => [
       location.city,
       location.county,
@@ -894,19 +1200,17 @@ export function searchCoverageTargets(args: {
     const cityStores = searchableRecords.filter((record) => (
       coverageTargetToken(record.city) === cityToken || coverageTargetToken(record.county) === cityToken
     ));
-    const areaLocations = searchableAreaLocations.filter((location) => [location.name, location.city, location.county]
-      .some((value) => coverageTargetToken(value) === cityToken));
-    const monitored = sourceAvailable ? cityStores.filter((record) => record.monitoringAttached).length : 0;
-    const monitoredArea = publicUpdateAvailable && areaLocations.some((location) => location.collectorAttached === true || location.hasSignals === true);
-    const boardOrAggregateArea = areaLocations.some((location) => /board|area|aggregate|warehouse|catalog/i.test([
-      location.type,
-      location.locationType,
-      location.precision,
-      location.inventoryCapability,
-    ].filter(Boolean).join(" ")));
+    const monitoredStoreCount = cityStores.filter((record) => storeHasCurrentEvidence(record)).length;
+    const monitored = currentEvidenceCities.has(cityToken) ? Math.max(1, monitoredStoreCount) : monitoredStoreCount;
+    const currentUpdateAtArea = publicUpdateAvailable && currentEvidence.freshPublicUpdateAreaKeys.some((key) => (
+      key === `city:${cityToken}`
+      || key === `county:${cityToken}`
+      || key === `board:${cityToken}`
+      || key === "statewide"
+    ));
     const status: CoverageSearchStatus = monitored === 0
-      ? publicUpdateAvailable && (monitoredArea || (lifecycleEntry?.areaOptions || []).some((area) => coverageTargetToken(area) === cityToken))
-        ? INTELLIGENCE_TIERS.has(stateTier) || stateTier === "retailer_warehouse_inventory" || boardOrAggregateArea ? "partially-covered" : "covered"
+      ? currentUpdateAtArea
+        ? "partially-covered"
         : "known-not-active"
       : monitored < cityStores.length || INTELLIGENCE_TIERS.has(stateTier) || stateTier === "retailer_warehouse_inventory"
         ? "partially-covered"
@@ -925,7 +1229,7 @@ export function searchCoverageTargets(args: {
   for (const store of searchableRecords) {
     const haystack = coverageTargetToken([store.name, store.city, store.county, store.address].filter(Boolean).join(" "), 400);
     if (!haystack.includes(queryToken)) continue;
-    const status: CoverageSearchStatus = sourceAvailable && store.monitoringAttached
+    const status: CoverageSearchStatus = storeHasCurrentEvidence(store)
       ? "actively-monitored"
       : "known-expansion-candidate";
     results.push({
@@ -939,6 +1243,26 @@ export function searchCoverageTargets(args: {
       city: store.city || undefined,
       address: store.address || undefined,
     });
+  }
+
+  if (sourceAvailable) {
+    for (const evidence of currentInventoryEvidence) {
+      const haystack = coverageTargetToken([evidence.name, evidence.city, evidence.county, evidence.address].filter(Boolean).join(" "), 400);
+      if (!haystack.includes(queryToken)) continue;
+      if (searchableRecords.some((store) => evidenceMatchesStore(stateCode, evidence, store, ambiguousSourceIdKeys))) continue;
+      const dynamicStoreId = evidenceRequestId(evidence);
+      results.push({
+        kind: "store",
+        label: evidence.name || evidence.address || "Current retailer availability",
+        stateCode,
+        status: "actively-monitored",
+        canonicalTargetKey: `store:${stateCode}:${coverageTargetToken(dynamicStoreId, 180)}`,
+        detail: searchStatusDetail("actively-monitored"),
+        storeId: dynamicStoreId,
+        city: evidence.city || undefined,
+        address: evidence.address || undefined,
+      });
+    }
   }
 
   if (results.length === 0) {
@@ -964,13 +1288,47 @@ export function findCoverageStoreTarget(args: {
   stateCode: string;
   storeId: string;
   lifecycle: CoverageLifecycleInput;
+  stateRows?: readonly CoverageStateRowInput[];
   locations?: readonly CoverageLocationInput[];
   stores?: readonly CoverageStoreInput[];
+  drops?: readonly CoverageDropInput[];
+  degradedStates?: readonly Record<string, unknown>[];
+  ncBoardIntelligence?: CoverageNcBoardIntelligenceInput | null;
+  asOf?: string;
+  healthLimited?: boolean;
 }): CoverageStoreMatch | null {
   const stateCode = publicStateCode(args.stateCode);
   const internalStateKey = coverageInternalStateKey(stateCode, args.lifecycle);
-  const requestedId = cleanText(args.storeId, 160);
+  const requestedId = cleanText(args.storeId, 400);
   if (!requestedId) return null;
+  const evidenceIdentity = requestedId.startsWith("evidence:") ? requestedId.slice("evidence:".length) : "";
+  if (evidenceIdentity) {
+    const evaluatedAt = cleanText(args.asOf, 80) || new Date().toISOString();
+    const coverageState = buildCoverageContract({
+      lifecycle: args.lifecycle,
+      stateRows: args.stateRows,
+      locations: args.locations,
+      stores: args.stores,
+      drops: args.drops,
+      degradedStates: args.degradedStates,
+      ncBoardIntelligence: args.ncBoardIntelligence,
+      asOf: evaluatedAt,
+      healthLimited: args.healthLimited,
+    }).states.find((state) => state.code === stateCode);
+    if (!coverageState?.capabilities.currentBottleAvailability) return null;
+    const evidence = (derivePublicDropEvidence(args.drops || [], evaluatedAt, {
+      degradedStateCodes: feedDegradedStateCodes(args.degradedStates || []),
+    }).get(stateCode) || EMPTY_DROP_EVIDENCE)
+      .currentInventoryStores.find((entry) => evidenceTargetId(entry) === evidenceIdentity);
+    if (!evidence) return null;
+    return {
+      id: evidenceRequestId(evidence),
+      name: evidence.name || evidence.address || "Current retailer availability",
+      city: evidence.city || undefined,
+      address: evidence.address || undefined,
+    };
+  }
+
   const store = stateStoreRecords(internalStateKey, args.locations || [], args.stores || [])
     .find((record) => record.searchable && record.id === requestedId);
   if (!store) return null;

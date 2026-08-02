@@ -1,0 +1,17 @@
+{
+  "drops": [
+    {
+      "state": "AZ",
+      "source": "verified-retailer",
+      "retailerReported": true,
+      "retailerSignalState": "live",
+      "type": "verified_retailer_drop",
+      "storeId": "audit-retailer-az",
+      "storeName": "Audit Retailer Arizona",
+      "storeAddress": "1 Audit Lane, Phoenix, AZ, 85001",
+      "locationPrecision": "store_level",
+      "canAlertAsInventory": true,
+      "expiresAt": "2099-01-01T00:00:00.000Z"
+    }
+  ]
+}

@@ -11,13 +11,16 @@ function read(path: string) {
 }
 
 const contract: CoverageContract = {
-  contractVersion: "bourbon-signal/coverage@1",
+  contractVersion: "bourbon-signal/coverage@2",
   generatedAt: "2026-07-23T12:00:00.000Z",
+  evaluatedAt: "2026-07-23T12:00:00.000Z",
   states: [{
     code: "OR",
     name: "Oregon",
     capability: "not-active",
     capabilityLabel: "Not active yet",
+    coverageDepth: "not-available",
+    coverageDepthLabel: "Not available yet",
     coverageStatus: "not-available",
     coverageStatusLabel: "Not available yet",
     capabilities: {
@@ -36,9 +39,11 @@ const contract: CoverageContract = {
     representedAreaCount: 1,
     monitoredStoreCount: 0,
     layers: { known: 1, probeable: 1, catalogWatch: 0, live: 0, alertGrade: 0 },
+    scope: { knownBoards: 0, shipmentBoards: 0, searchableStores: 1, inventoryMonitoredStores: 0, singleStoreShipmentBoards: 0 },
+    freshness: { observedInventoryStores: 0, currentInventoryStores: 0, alertEligibleStores: 0, staleInventoryStores: 0, stalePublicSignals: 0 },
     canSee: ["Known directory locations."],
     cannotSee: ["Live monitoring."],
-    fingerprint: "coverage-v1|OR|not-active",
+    fingerprint: "coverage-v2|OR|not-active",
   }],
 };
 

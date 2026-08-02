@@ -57,6 +57,18 @@ export function toIsoDate(value: unknown) {
   return parsed.toISOString();
 }
 
+const CANONICAL_UTC_TIMESTAMP = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3}Z$/;
+
+/**
+ * Keep malformed legacy JSON payloads from becoming customer-visible. The
+ * round-trip check rejects impossible dates that Date.parse would normalize.
+ */
+export function isCanonicalFutureRetailerExpiry(value: unknown, now = Date.now()) {
+  if (typeof value !== "string" || !CANONICAL_UTC_TIMESTAMP.test(value)) return false;
+  const timestamp = Date.parse(value);
+  return Number.isFinite(timestamp) && new Date(timestamp).toISOString() === value && timestamp > now;
+}
+
 function applicationFromRow(row: Record<string, unknown>): RetailerApplicationRecord {
   return {
     userId: asString(row.user_id),
@@ -352,7 +364,11 @@ export class RetailerRepository {
     return rows.map((row) => submissionFromRow(row as Record<string, unknown>));
   }
 
-  async listPublicSubmissions() {
+  async listPublicSubmissions(now = new Date().toISOString(), limit = 250) {
+    const boundedLimit = Number.isFinite(limit) ? Math.max(1, Math.min(250, Math.floor(limit))) : 250;
+    const requestedNow = Date.parse(now);
+    const currentTime = Number.isFinite(requestedNow) ? requestedNow : Date.now();
+    const cutoff = new Date(currentTime).toISOString();
     const rows = await this.query.query(`
       SELECT submissions.*
       FROM retailer_submissions submissions
@@ -360,9 +376,17 @@ export class RetailerRepository {
       WHERE submissions.status = 'reviewed'
         AND applications.status = 'verified'
         AND submissions.payload->>'kind' IN ('bottle_drop', 'barrel_pick', 'tasting', 'lottery')
+        AND COALESCE(submissions.payload->>'soldOutAt', '') = ''
+        -- Avoid casting user/legacy JSON text: a single malformed timestamp
+        -- must not make the entire customer-facing query fail.
+        AND COALESCE(submissions.payload->>'expiresAt', '') ~ '^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\\.[0-9]{3}Z$'
+        AND submissions.payload->>'expiresAt' > $1
       ORDER BY submissions.created_at DESC
-    `);
-    return rows.map((row) => submissionFromRow(row as Record<string, unknown>));
+      LIMIT $2
+    `, [cutoff, boundedLimit]);
+    return rows
+      .map((row) => submissionFromRow(row as Record<string, unknown>))
+      .filter((submission) => isCanonicalFutureRetailerExpiry(submission.expiresAt, currentTime));
   }
 
   async markSubmissionSoldOut(input: { id: string; userId: string; soldOutAt: string }) {

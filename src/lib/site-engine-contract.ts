@@ -201,6 +201,13 @@ function asString(value: unknown, fallback = "") {
   return typeof value === "string" ? value : fallback;
 }
 
+function firstNonEmptyString(...values: unknown[]) {
+  for (const value of values) {
+    if (typeof value === "string" && value.trim()) return value;
+  }
+  return "";
+}
+
 function asNumber(value: unknown, fallback = 0) {
   return typeof value === "number" && Number.isFinite(value) ? value : fallback;
 }
@@ -219,7 +226,7 @@ function isStoreLevelInventory(type: string, locationPrecision: string, canAlert
 }
 
 function hasExactStoreDetails(drop: JsonRecord) {
-  return Boolean(asString(drop.storeName) || asString(drop.storeAddress) || asString(drop.storeId));
+  return Boolean(firstNonEmptyString(drop.storeName, drop.store_name, drop.storeAddress, drop.store_address, drop.storeId, drop.store_id));
 }
 
 function isDistilleryDrop(type: string, locationPrecision: string) {
@@ -281,21 +288,26 @@ export function normalizeStoreForSite(store: JsonRecord) {
 }
 
 export function normalizeDropForSite(drop: JsonRecord) {
-  const state = asString(drop.state);
+  const state = firstNonEmptyString(drop.state, drop.state_code, drop.stateCode);
   const { inventoryQuantity: quantity, shipmentQuantity, visibilityQuantity } = resolveDropQuantitySemantics(drop);
-  const locationPrecision = asString(drop.locationPrecision);
+  const locationPrecision = firstNonEmptyString(drop.locationPrecision, drop.location_precision);
   const exactStoreDetails = hasExactStoreDetails(drop);
-  const sourceStale = asBoolean(drop.sourceStale) || asBoolean(drop.stale);
+  const sourceStale = asBoolean(drop.sourceStale) || asBoolean(drop.source_stale) || asBoolean(drop.stale);
   const staleSourceCaveat = asString(drop.staleSourceCaveat) || "Last-known source availability; verify with the store before driving.";
-  const canAlertAsInventory = asBoolean(drop.canAlertAsInventory) && exactStoreDetails && !sourceStale;
-  const type = asString(drop.type, "signal");
+  const canAlertAsInventory = (asBoolean(drop.canAlertAsInventory) || asBoolean(drop.can_alert_as_inventory)) && exactStoreDetails && !sourceStale;
+  const type = firstNonEmptyString(drop.type, drop.event_type) || "signal";
   const signalLabel = getPublicSignalLabel(type, locationPrecision, visibilityQuantity, canAlertAsInventory);
   const isStoreInventory = isStoreLevelInventory(type, locationPrecision, canAlertAsInventory) && exactStoreDetails;
-  const locationLabel = getPublicLocationLabel(state, asString(drop.locationName), asString(drop.city), asString(drop.county));
-  const eventAt = asString(drop.eventAt);
-  const firstSeenAt = asString(drop.firstSeenAt);
-  const lastConfirmedAt = asString(drop.lastConfirmedAt, asString(drop.observedAt));
-  const exportedDisplayAt = asString(drop.displayAt, eventAt || firstSeenAt || lastConfirmedAt || asString(drop.observedAt));
+  const locationLabel = getPublicLocationLabel(
+    state,
+    firstNonEmptyString(drop.locationName, drop.display_location),
+    firstNonEmptyString(drop.city, drop.store_city),
+    firstNonEmptyString(drop.county, drop.store_county),
+  );
+  const eventAt = firstNonEmptyString(drop.eventAt, drop.event_at);
+  const firstSeenAt = firstNonEmptyString(drop.firstSeenAt, drop.first_seen_at);
+  const lastConfirmedAt = firstNonEmptyString(drop.lastConfirmedAt, drop.last_confirmed_at, drop.observedAt, drop.observed_at);
+  const exportedDisplayAt = firstNonEmptyString(drop.displayAt, drop.display_at) || eventAt || firstSeenAt || lastConfirmedAt;
   const exportedTimestampBasis = asString(drop.timestampBasis, eventAt ? "source_event_at" : firstSeenAt ? "first_seen_at" : "last_confirmed_at");
   const anchorRepeatedInventoryToFirstSeen = shouldAnchorInventoryToFirstSeen(type) && firstSeenAt && lastConfirmedAt && firstSeenAt !== lastConfirmedAt;
   const publicDisplayAt = anchorRepeatedInventoryToFirstSeen ? (eventAt || firstSeenAt) : exportedDisplayAt;
@@ -323,11 +335,11 @@ export function normalizeDropForSite(drop: JsonRecord) {
     brand_name: asString(drop.bottleName, "Unknown Bottle"),
     tracked_brand_name: asString(drop.bottleName, "Unknown Bottle"),
     board_name: locationLabel || undefined,
-    store_address: asString(drop.storeAddress) || undefined,
-    store_city: asString(drop.city) || undefined,
-    store_county: asString(drop.county) || undefined,
-    store_name: asString(drop.storeName) || undefined,
-    store_id: asString(drop.storeId) || undefined,
+    store_address: firstNonEmptyString(drop.storeAddress, drop.store_address) || undefined,
+    store_city: firstNonEmptyString(drop.city, drop.store_city) || undefined,
+    store_county: firstNonEmptyString(drop.county, drop.store_county) || undefined,
+    store_name: firstNonEmptyString(drop.storeName, drop.store_name) || undefined,
+    store_id: firstNonEmptyString(drop.storeId, drop.store_id) || undefined,
     quantity_in_stock: type === "nc_board_shipment_snapshot" ? undefined : quantity || undefined,
     quantity_shipped: shipmentQuantity || undefined,
     quantity: quantity || undefined,
@@ -335,7 +347,7 @@ export function normalizeDropForSite(drop: JsonRecord) {
     retail_price: asNumber(drop.price) || null,
     state,
     state_code: state,
-    source: asString(drop.source, "engine-site-export"),
+    source: firstNonEmptyString(drop.source, drop.sourceName, drop.source_name) || "engine-site-export",
     exact_store: locationPrecision === "store_level" && exactStoreDetails,
     availability_scope: sourceStale && isStoreInventory ? "stale_store_context" : isStoreInventory ? "store_reported" : isDistilleryDrop(type, locationPrecision) ? "distillery" : (locationPrecision === "board_county" || locationPrecision === "store_equivalent_shipment") ? "board" : locationPrecision === "board_warehouse" ? "warehouse" : "page",
     confidence_tier: sourceStale && isStoreInventory ? "stale_store_context" : isStoreInventory ? "source_reported_store" : isDistilleryDrop(type, locationPrecision) ? "official_distillery_drop" : (type === "nc_board_shipment_snapshot" || type === "nc_statewide_warehouse_stock") ? "online_positive" : "listing_only",
