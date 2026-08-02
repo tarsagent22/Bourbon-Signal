@@ -68,7 +68,16 @@ function fallbackCoverageState(code: string): CoverageState {
     code,
     name: STATE_NAMES.get(code) || code,
     capability: "not-active",
-    capabilityLabel: "Coverage unavailable",
+    capabilityLabel: "Not active yet",
+    coverageStatus: "not-available",
+    coverageStatusLabel: "Not available yet",
+    capabilities: {
+      storeInformation: false,
+      publicUpdates: false,
+      currentBottleAvailability: false,
+      restockAlerts: false,
+    },
+    updateLabel: null,
     health: "no-recent-update",
     healthLabel: "Live coverage unavailable",
     summary: "Live coverage detail is temporarily unavailable.",
@@ -150,8 +159,8 @@ function statePreviewMessage(
   degradedStateFallback: boolean,
 ) {
   if (error) return `Latest signals for ${stateName} are temporarily unavailable. Live coverage detail and the optional request form remain below.`;
-  if (!drops.length && coverage?.capability === "not-active") {
-    return `Bourbon Signal does not currently have an active monitoring source in ${stateName}. No eligible state signals are available right now.`;
+  if (!drops.length && coverage?.coverageStatus === "not-available") {
+    return `Bourbon Signal does not currently have useful coverage in ${stateName}. No eligible state signals are available right now.`;
   }
   if (!drops.length) return `No eligible state signals are currently available in ${stateName}. Coverage may still be partial or source-specific.`;
   if (degradedStateFallback) {
@@ -435,8 +444,8 @@ export default function WelcomePage() {
                   <div className={styles.headingGroup}>
                     <span className={styles.landmark} aria-hidden="true">02</span>
                     <div>
-                      <p className={styles.stepLabel}>Live coverage depth</p>
-                      <h2 id="coverage-depth-heading">What we can see now</h2>
+                      <p className={styles.stepLabel}>Information available here</p>
+                      <h2 id="coverage-depth-heading">What you can do here</h2>
                     </div>
                   </div>
                   <Link className={styles.sectionAction} href={`/coverage?state=${encodeURIComponent(activeState)}`}><MapIcon size={14} aria-hidden="true" />Coverage map</Link>
@@ -446,21 +455,21 @@ export default function WelcomePage() {
                   <>
                     <div className={styles.coverageOverview}>
                       <div className={styles.coverageBadges}>
-                        <span><Gauge size={13} aria-hidden="true" />{coverageState.capabilityLabel}</span>
+                        <span><Gauge size={13} aria-hidden="true" />{coverageState.coverageStatusLabel}</span>
                         <span data-health={coverageState.health}><Radio size={13} aria-hidden="true" />{coverageState.healthLabel}</span>
                       </div>
-                      <p>{coverageState.capability === "not-active"
-                        ? `No active customer-facing source is available in ${activeStateName} yet.`
-                        : `${coverageState.sourceLabel || "Current sources"} provide the monitoring depth summarized below.`}</p>
+                      <p>{coverageState.coverageStatus === "not-available"
+                        ? `We do not have reliable coverage in ${activeStateName} yet.`
+                        : `Here is the information available in ${activeStateName}.`}</p>
                     </div>
                     <dl className={styles.coverageMetrics}>
-                      {coverageState.scope.knownBoards ? <div className={styles.metricMajor}><Compass size={16} aria-hidden="true" /><dt>Known boards</dt><dd>{coverageState.scope.knownBoards}</dd></div> : null}
-                      <div className={styles.metricMajor}><Store size={16} aria-hidden="true" /><dt>Searchable stores</dt><dd>{coverageState.scope.searchableStores}</dd></div>
-                      <div className={styles.metricMajor}><Radio size={16} aria-hidden="true" /><dt>Inventory-monitored stores</dt><dd>{coverageState.scope.inventoryMonitoredStores}</dd></div>
-                      <div><Compass size={14} aria-hidden="true" /><dt>{coverageState.scope.knownBoards ? "Store cities and towns" : "Represented areas"}</dt><dd>{coverageState.representedAreaCount}</dd></div>
-                      {coverageState.scope.shipmentBoards ? <div><BellRing size={14} aria-hidden="true" /><dt>Boards with shipment intelligence</dt><dd>{coverageState.scope.shipmentBoards}</dd></div> : <div><BellRing size={14} aria-hidden="true" /><dt>Alert-ready</dt><dd>{coverageState.layers.alertGrade}</dd></div>}
+                      {coverageState.scope.shipmentBoards ? <div className={styles.metricMajor}><Compass size={16} aria-hidden="true" /><dt>Official pages with shipment information</dt><dd>{coverageState.scope.shipmentBoards}</dd></div> : null}
+                      <div className={styles.metricMajor}><Store size={16} aria-hidden="true" /><dt>Stores listed</dt><dd>{coverageState.scope.searchableStores}</dd></div>
+                      <div className={styles.metricMajor}><Radio size={16} aria-hidden="true" /><dt>Stores with current availability</dt><dd>{coverageState.scope.inventoryMonitoredStores}</dd></div>
+                      <div><Compass size={14} aria-hidden="true" /><dt>{coverageState.scope.knownBoards ? "Store cities and towns" : "Areas with information"}</dt><dd>{coverageState.representedAreaCount}</dd></div>
+                      <div><BellRing size={14} aria-hidden="true" /><dt>Stores with restock alerts</dt><dd>{coverageState.layers.alertGrade}</dd></div>
                     </dl>
-                    <p className={styles.coverageCaveat}>Coverage counts describe source depth—not bottles currently sitting on shelves.{coverageState.scope.singleStoreShipmentBoards ? ` ${coverageState.scope.singleStoreShipmentBoards} one-store boards offer store-equivalent shipment intelligence, but shipment still does not confirm shelf stock.` : ""}{coverageState.health !== "current" && coverageState.capability !== "not-active" ? " One or more sources are currently limited." : ""}</p>
+                    <p className={styles.coverageCaveat}>Store counts tell you how much information is available; they do not mean bottles are currently on shelves.{coverageState.scope.shipmentBoards ? " Shipment information does not confirm shelf stock." : ""}{coverageState.health !== "current" && coverageState.coverageStatus !== "not-available" ? " Some information is temporarily limited." : ""}</p>
                   </>
                 ) : null}
               </section>
@@ -493,7 +502,7 @@ export default function WelcomePage() {
                   <Link href={`/?state=${encodeURIComponent(activeState)}#drops`}><Radio aria-hidden="true" /><span><strong>Drop Feed</strong><small>Open the broader state feed.</small></span><ArrowUpRight aria-hidden="true" /></Link>
                   <Link href="/release-radar"><CalendarDays aria-hidden="true" /><span><strong>Release Radar</strong><small>Track public releases and calendars.</small></span><ArrowUpRight aria-hidden="true" /></Link>
                   <Link href="/sightings"><UsersRound aria-hidden="true" /><span><strong>Member Sightings</strong><small>Read recent community reports.</small></span><ArrowUpRight aria-hidden="true" /></Link>
-                  <Link href={`/coverage?state=${encodeURIComponent(activeState)}`}><MapIcon aria-hidden="true" /><span><strong>Coverage Map</strong><small>See source depth across the country.</small></span><ArrowUpRight aria-hidden="true" /></Link>
+                  <Link href={`/coverage?state=${encodeURIComponent(activeState)}`}><MapIcon aria-hidden="true" /><span><strong>Coverage Map</strong><small>See what information is available across the country.</small></span><ArrowUpRight aria-hidden="true" /></Link>
                   <Link href="/dashboard"><LayoutDashboard aria-hidden="true" /><span><strong>Dashboard</strong><small>Open your member workspace.</small></span><ArrowUpRight aria-hidden="true" /></Link>
                 </nav>
                 <div className={styles.membershipAction}>

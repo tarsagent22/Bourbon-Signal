@@ -15,14 +15,6 @@ interface CoverageExplorerProps {
   initialStateCode: string;
 }
 
-const LEGEND = [
-  ["deep", "Deep coverage"],
-  ["active", "Active coverage"],
-  ["focused", "Focused coverage"],
-  ["intelligence", "Sparse coverage"],
-  ["not-active", "Not active yet"],
-] as const;
-
 export function CoverageExplorer({ contract, initialStateCode }: CoverageExplorerProps) {
   const router = useRouter();
   const pageViewTracked = useRef(false);
@@ -57,14 +49,14 @@ export function CoverageExplorer({ contract, initialStateCode }: CoverageExplore
       <header className={styles.hero}>
         <p className={styles.eyebrow}>Bourbon Signal Coverage</p>
         <h1>Check coverage <em>near you.</em></h1>
-        <p>Select a state, then search a city or store to see what Bourbon Signal monitors. Coverage does not mean a bottle is on the shelf right now.</p>
+        <p>Select a state, then search a city or store to see what information is available. A listed store is not the same as a bottle in stock right now.</p>
       </header>
 
       <section className={styles.mobileSelector} aria-label="Choose a state">
         <label htmlFor="coverage-state-select">State</label>
         <select id="coverage-state-select" value={selectedCode} onChange={(event) => selectState(event.target.value)}>
           {contract.states.map((state) => (
-            <option key={state.code} value={state.code}>{state.name} — {state.capabilityLabel}</option>
+            <option key={state.code} value={state.code}>{state.name} — {state.coverageStatusLabel}</option>
           ))}
         </select>
       </section>
@@ -72,14 +64,6 @@ export function CoverageExplorer({ contract, initialStateCode }: CoverageExplore
       <section className={styles.explorerGrid} aria-label="Coverage explorer">
         <div className={styles.mapColumn}>
           <CoverageMap states={contract.states} selectedCode={selectedCode} onSelect={selectState} />
-          <div className={styles.legend} aria-label="Coverage legend">
-            <h2>Coverage legend</h2>
-            <div>
-              {LEGEND.map(([capability, label]) => (
-                <span key={capability}><i data-capability={capability} aria-hidden="true" />{label}</span>
-              ))}
-            </div>
-          </div>
           <details className={styles.stateList}>
             <summary>Browse all states</summary>
             <ul>
@@ -87,7 +71,7 @@ export function CoverageExplorer({ contract, initialStateCode }: CoverageExplore
                 <li key={state.code}>
                   <button type="button" aria-current={selectedCode === state.code ? "true" : undefined} onClick={() => selectState(state.code)}>
                     <span><strong>{state.name}</strong><small>{state.healthLabel}</small></span>
-                    <span>{state.capabilityLabel}</span>
+                    <span>{state.coverageStatusLabel}</span>
                   </button>
                 </li>
               ))}

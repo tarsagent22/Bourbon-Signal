@@ -108,7 +108,7 @@ for (const [capability, codes] of Object.entries(expectedCapabilities)) {
   );
 }
 assert.equal(contract.states.filter((state) => state.capability === "not-active").length, 27, "states without current useful evidence remain inactive");
-assert.ok(contract.states.filter((state) => state.capability === "intelligence").every((state) => state.capabilityLabel === "Sparse coverage"));
+assert.ok(contract.states.filter((state) => state.capability === "intelligence").every((state) => state.capabilityLabel === "Shipments and releases"));
 for (const [code, areas, summaryArea] of [["NY", ["Nassau County", "New York City"], "New York City"], ["CO", ["Denver Metro"], "Denver Metro"]] as const) {
   const metro = contract.states.find((state) => state.code === code);
   assert.ok(metro, `${code} must be present in the national coverage contract`);
@@ -198,10 +198,47 @@ assert.equal(northCarolina.scope.singleStoreShipmentBoards, 92, "one-store board
 assert.equal(northCarolina.layers.live, northCarolina.scope.inventoryMonitoredStores, "single-store shipment leads must not inflate direct inventory monitoring");
 assert.equal(northCarolina.layers.alertGrade, baselineNcContract.states.find((state) => state.code === "NC")?.layers.alertGrade, "single-store shipment leads must never increase alert-grade shelf inventory");
 assert.equal(northCarolina.representedAreaCount, 283, "NC areas must count cities and towns with official store records rather than configured groups or board names");
+
+const boardOnlyNorthCarolina = buildCoverageContract({
+  lifecycle: STATE_LIFECYCLE_CONFIG,
+  stateRows: [{
+    state: "NC",
+    publicStatus: "active",
+    status: "stale_blocked",
+    coverageTier: "live_store_inventory",
+    refinementLevel: "board",
+    customerSummary: "Official board shipment information.",
+  }],
+  ncBoardIntelligence: {
+    boardCount: 173,
+    officialStoreCount: 465,
+    boardsWithTrackedShipments: 115,
+    singleStoreShipmentBoardCount: 60,
+  },
+});
+const boardOnlyState = boardOnlyNorthCarolina.states.find((state) => state.code === "NC");
+assert.ok(boardOnlyState);
+assert.notEqual(boardOnlyState.capability, "not-active", "active board shipment coverage cannot become inactive just because inventory is unavailable");
+assert.equal(boardOnlyState.coverageStatusLabel, "Coverage available", "the public status must describe coverage, not inventory depth");
+assert.deepEqual(boardOnlyState.capabilities, {
+  storeInformation: true,
+  publicUpdates: true,
+  currentBottleAvailability: false,
+  restockAlerts: false,
+}, "NC can have active shipment coverage without current availability or alerts");
+assert.match(boardOnlyState.customerSummary || "", /shipment and release coverage is active/i, "the visible summary names the active shipment coverage");
+assert.match(boardOnlyState.customerSummary || "", /does not confirm current bottle availability/i, "the visible summary states the inventory limitation");
+assert.match((boardOnlyState.customerCannotSee || []).join(" "), /current bottle availability/i, "missing live inventory remains an explicit limitation");
 assert.match(northCarolina.canSee.join(" "), /single-store board.*shipment/i);
 assert.match(northCarolina.cannotSee.join(" "), /shipment.*(?:not|isn.t).*shelf|not.*shelf.*shipment/i);
 assert.match(northCarolina.summary, /board/i);
 assert.match(northCarolina.cannotSee.join(" "), /board.*(?:not|isn.t).*exact|not.*exact.*board/i);
+assert.match(northCarolina.customerSummary || "", /current bottle availability/i);
+assert.match((northCarolina.customerCanSee || []).join(" "), /shipment and release information/i);
+assert.match((northCarolina.customerCanSee || []).join(" "), /current bottle availability/i);
+if (northCarolina.layers.alertGrade === 0) {
+  assert.match((northCarolina.customerCannotSee || []).join(" "), /restock alerts are not available/i);
+}
 
 const canonicalZeroContract = buildCoverageContract({
   lifecycle: STATE_LIFECYCLE_CONFIG,
@@ -559,7 +596,7 @@ assert.deepEqual(missing, [{
   stateCode: "IL",
   status: "not-found",
   canonicalTargetKey: null,
-  detail: "No matching city or store is in the current coverage directory.",
+  detail: "We do not currently have this city or store in our list.",
 }]);
 
 const serialized = JSON.stringify({ contract, search: partialCity });
