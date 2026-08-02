@@ -114,6 +114,9 @@ export interface CoverageState {
   scope: CoverageScopeCounts;
   canSee: string[];
   cannotSee: string[];
+  customerSummary?: string;
+  customerCanSee?: string[];
+  customerCannotSee?: string[];
   fingerprint: string;
 }
 
@@ -168,17 +171,17 @@ export const US_STATE_OPTIONS = US_STATES.map(([code, name]) => ({ code, name })
 export const US_STATE_CODES = US_STATE_OPTIONS.map((state) => state.code);
 
 const CAPABILITY_LABELS: Record<CoverageCapability, string> = {
-  deep: "Deep coverage",
-  active: "Active coverage",
-  focused: "Focused coverage",
-  intelligence: "Sparse coverage",
-  "not-active": "Not active yet",
+  deep: "Current bottle availability",
+  active: "Official local updates",
+  focused: "Store information",
+  intelligence: "Shipments and releases",
+  "not-active": "Not available yet",
 };
 
 const HEALTH_LABELS: Record<CoverageHealth, string> = {
-  current: "Current",
-  intermittent: "Intermittent",
-  "temporarily-limited": "Temporarily limited",
+  current: "Information is current",
+  intermittent: "Updates are intermittent",
+  "temporarily-limited": "Some information is temporarily limited",
   "no-recent-update": "No recent update",
 };
 
@@ -553,6 +556,107 @@ function visibilityCopy(
   };
 }
 
+function customerVisibilityCopy(
+  coverageTier: string,
+  capability: CoverageCapability,
+  layers: CoverageLayerCounts,
+  scope: CoverageScopeCounts,
+) {
+  const listedStores = scope.searchableStores;
+  const storeLine = listedStores > 0
+    ? `Store locations are available for ${listedStores} stores.`
+    : "Store locations are not available here yet.";
+  const shipmentLine = scope.shipmentBoards > 0
+    ? `We check shipment and release information from ${scope.shipmentBoards} official local pages. This does not confirm a bottle is on a shelf now.`
+    : null;
+  const availabilityLine = scope.inventoryMonitoredStores > 0
+    ? `We check current bottle availability at ${scope.inventoryMonitoredStores} stores.`
+    : null;
+  const alertLine = layers.alertGrade > 0
+    ? `We can send restock alerts for ${layers.alertGrade} stores.`
+    : null;
+
+  if (capability === "not-active") {
+    return {
+      canSee: layers.known > 0 ? [storeLine] : ["We do not have a reliable way to check this area yet."],
+      cannotSee: ["We cannot confirm current bottle availability or send restock alerts here yet."],
+    };
+  }
+
+  if (coverageTier === "live_store_inventory") {
+    const canSee = [storeLine, shipmentLine, availabilityLine, alertLine].filter((value): value is string => Boolean(value));
+    const cannotSee = [
+      availabilityLine
+        ? "A bottle can sell out before you get there. Verify with the store before driving."
+        : "We do not currently check bottle availability here.",
+      alertLine ? null : "Restock alerts are not available for this area yet.",
+    ].filter((value): value is string => Boolean(value));
+    return {
+      canSee: canSee.length ? canSee : ["We can show the official information available for this area."],
+      cannotSee,
+    };
+  }
+  if (coverageTier === "store_availability_status") {
+    return {
+      canSee: ["We can show the availability status reported by selected stores."],
+      cannotSee: ["We do not show exact bottle counts or guarantee that an item is still there."],
+    };
+  }
+  if (coverageTier === "sparse_live_store_inventory") {
+    return {
+      canSee: ["We check current bottle availability at a small number of stores."],
+      cannotSee: ["This does not cover the whole state. Verify with the store before driving."],
+    };
+  }
+  if (coverageTier === "store_delivery_leads") {
+    return {
+      canSee: ["We show official store delivery information."],
+      cannotSee: ["This does not confirm that a bottle is on a shelf now."],
+    };
+  }
+  if (coverageTier === "shipment_drop_intelligence") {
+    return {
+      canSee: ["We show official shipments, releases, and drops."],
+      cannotSee: ["This does not confirm current store availability."],
+    };
+  }
+  if (coverageTier === "aggregate_inventory_watch" || coverageTier === "retailer_warehouse_inventory") {
+    return {
+      canSee: ["We show official information for this area."],
+      cannotSee: ["We cannot show which store has a bottle now."],
+    };
+  }
+  if (coverageTier === "distillery_release_watch") {
+    return {
+      canSee: ["We show official distillery releases."],
+      cannotSee: ["We cannot show retailer store availability here."],
+    };
+  }
+  return {
+    canSee: [shipmentLine || storeLine],
+    cannotSee: ["We cannot confirm current bottle availability here."],
+  };
+}
+
+function summaryCopy(coverageTier: string, capability: CoverageCapability, scope: CoverageScopeCounts) {
+  if (capability === "not-active") {
+    return scope.searchableStores > 0
+      ? "Store locations are listed here, but we do not currently check bottle availability."
+      : "We do not have a reliable way to check this area yet.";
+  }
+  if (coverageTier === "live_store_inventory") {
+    return scope.inventoryMonitoredStores > 0
+      ? "We check current bottle availability at selected stores."
+      : "We can show store information here, but current bottle availability is not available yet.";
+  }
+  if (coverageTier === "store_availability_status") return "We show the availability status reported by selected stores.";
+  if (coverageTier === "sparse_live_store_inventory") return "We check current bottle availability at a small number of stores.";
+  if (coverageTier === "store_delivery_leads") return "We show official store delivery information.";
+  if (coverageTier === "shipment_drop_intelligence") return "We show official shipments, releases, and drops.";
+  if (coverageTier === "distillery_release_watch") return "We show official distillery releases.";
+  return "We show the official information available for this area.";
+}
+
 function buildState(args: {
   code: string;
   defaultName: string;
@@ -643,8 +747,10 @@ function buildState(args: {
       : "No current customer-facing monitoring source is active. Request coverage to help prioritize expansion."
     : cleanText(row?.customerSummary || lifecycleEntry?.customerSummary, 600)
       || "Current source-backed coverage is available at the precision shown here.";
+  const customerSummary = summaryCopy(tier, capability, scope);
   const areas = stateAreas(lifecycleEntry, row, locations, storeRecords);
   const copy = visibilityCopy(args.code, tier, capability, layers, scope, summary);
+  const customerCopy = customerVisibilityCopy(tier, capability, layers, scope);
   const precisions = capability === "not-active" ? [] : precisionLabels(lifecycleEntry, row, locations, storeRecords);
   const state: CoverageState = {
     code: args.code,
@@ -665,6 +771,9 @@ function buildState(args: {
     scope,
     canSee: copy.canSee,
     cannotSee: copy.cannotSee,
+    customerSummary,
+    customerCanSee: customerCopy.canSee,
+    customerCannotSee: customerCopy.cannotSee,
     fingerprint: "",
   };
   state.fingerprint = [
@@ -718,12 +827,12 @@ export function buildCoverageContract(args: {
 }
 
 function searchStatusDetail(status: CoverageSearchStatus) {
-  if (status === "covered") return "Meaningful current monitoring supports this city or area.";
-  if (status === "partially-covered") return "Selected stores or sources are monitored; citywide coverage is not implied.";
-  if (status === "known-not-active") return "This city is in the directory, but no matching store has active monitoring.";
-  if (status === "actively-monitored") return "This store is attached to a production monitoring source. Inventory is not implied.";
-  if (status === "known-expansion-candidate") return "This store is known, but it is not actively monitored.";
-  return "No matching city or store is in the current coverage directory.";
+  if (status === "covered") return "Current store information is available for this area.";
+  if (status === "partially-covered") return "Some store information is available; this does not cover every store in the area.";
+  if (status === "known-not-active") return "We can list this area, but we do not currently check bottle availability here.";
+  if (status === "actively-monitored") return "We check this store for current bottle availability when information is available.";
+  if (status === "known-expansion-candidate") return "We can list this store, but we do not currently check bottle availability here.";
+  return "We do not currently have this city or store in our list.";
 }
 
 export function searchCoverageTargets(args: {

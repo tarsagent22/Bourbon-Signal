@@ -8,7 +8,7 @@ export const revalidate = 60;
 
 export const metadata: Metadata = {
   title: "Coverage",
-  description: "Explore Bourbon Signal monitoring capability by state, city, and store without confusing coverage with current bottle availability.",
+  description: "Explore what Bourbon Signal can show by state, city, and store without confusing store listings with current bottle availability.",
   alternates: { canonical: "/coverage" },
   robots: {
     index: true,

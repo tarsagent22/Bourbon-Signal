@@ -70,7 +70,7 @@ export function CoverageMap({ states, selectedCode, onSelect }: CoverageMapProps
         role="group"
         aria-label="United States coverage map"
       >
-        <desc>Select a state to read its current coverage capability and source health.</desc>
+        <desc>Select a state to read what information is available and whether it is up to date.</desc>
         {MAPPED_STATES.map(({ code, feature: stateFeature }) => {
           const state = statesByCode.get(code);
           if (!state) return null;
@@ -84,7 +84,7 @@ export function CoverageMap({ states, selectedCode, onSelect }: CoverageMapProps
               role="button"
               tabIndex={0}
               aria-pressed={selected}
-              aria-label={`${state.name}: ${state.capabilityLabel}; health ${state.healthLabel}`}
+              aria-label={`${state.name}: ${state.capabilityLabel}; ${state.healthLabel}`}
               onClick={() => onSelect(state.code)}
               onKeyDown={(event) => handleKeyDown(event, state.code)}
             >
@@ -94,7 +94,7 @@ export function CoverageMap({ states, selectedCode, onSelect }: CoverageMapProps
           );
         })}
       </svg>
-      <p className={styles.mapCaption}>State colors show stable monitoring capability. Current source health appears in the detail panel.</p>
+      <p className={styles.mapCaption}>Select a state to read the available information and its update status.</p>
     </div>
   );
 }

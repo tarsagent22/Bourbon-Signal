@@ -435,8 +435,8 @@ export default function WelcomePage() {
                   <div className={styles.headingGroup}>
                     <span className={styles.landmark} aria-hidden="true">02</span>
                     <div>
-                      <p className={styles.stepLabel}>Live coverage depth</p>
-                      <h2 id="coverage-depth-heading">What we can see now</h2>
+                      <p className={styles.stepLabel}>Information available here</p>
+                      <h2 id="coverage-depth-heading">What you can do here</h2>
                     </div>
                   </div>
                   <Link className={styles.sectionAction} href={`/coverage?state=${encodeURIComponent(activeState)}`}><MapIcon size={14} aria-hidden="true" />Coverage map</Link>
@@ -450,17 +450,17 @@ export default function WelcomePage() {
                         <span data-health={coverageState.health}><Radio size={13} aria-hidden="true" />{coverageState.healthLabel}</span>
                       </div>
                       <p>{coverageState.capability === "not-active"
-                        ? `No active customer-facing source is available in ${activeStateName} yet.`
-                        : `${coverageState.sourceLabel || "Current sources"} provide the monitoring depth summarized below.`}</p>
+                        ? `We do not have a reliable way to check bottles in ${activeStateName} yet.`
+                        : `Here is the information available in ${activeStateName}.`}</p>
                     </div>
                     <dl className={styles.coverageMetrics}>
-                      {coverageState.scope.knownBoards ? <div className={styles.metricMajor}><Compass size={16} aria-hidden="true" /><dt>Known boards</dt><dd>{coverageState.scope.knownBoards}</dd></div> : null}
-                      <div className={styles.metricMajor}><Store size={16} aria-hidden="true" /><dt>Searchable stores</dt><dd>{coverageState.scope.searchableStores}</dd></div>
-                      <div className={styles.metricMajor}><Radio size={16} aria-hidden="true" /><dt>Inventory-monitored stores</dt><dd>{coverageState.scope.inventoryMonitoredStores}</dd></div>
-                      <div><Compass size={14} aria-hidden="true" /><dt>{coverageState.scope.knownBoards ? "Store cities and towns" : "Represented areas"}</dt><dd>{coverageState.representedAreaCount}</dd></div>
-                      {coverageState.scope.shipmentBoards ? <div><BellRing size={14} aria-hidden="true" /><dt>Boards with shipment intelligence</dt><dd>{coverageState.scope.shipmentBoards}</dd></div> : <div><BellRing size={14} aria-hidden="true" /><dt>Alert-ready</dt><dd>{coverageState.layers.alertGrade}</dd></div>}
+                      {coverageState.scope.shipmentBoards ? <div className={styles.metricMajor}><Compass size={16} aria-hidden="true" /><dt>Official pages with shipment information</dt><dd>{coverageState.scope.shipmentBoards}</dd></div> : null}
+                      <div className={styles.metricMajor}><Store size={16} aria-hidden="true" /><dt>Stores listed</dt><dd>{coverageState.scope.searchableStores}</dd></div>
+                      <div className={styles.metricMajor}><Radio size={16} aria-hidden="true" /><dt>Stores with current availability</dt><dd>{coverageState.scope.inventoryMonitoredStores}</dd></div>
+                      <div><Compass size={14} aria-hidden="true" /><dt>{coverageState.scope.knownBoards ? "Store cities and towns" : "Areas with information"}</dt><dd>{coverageState.representedAreaCount}</dd></div>
+                      <div><BellRing size={14} aria-hidden="true" /><dt>Stores with restock alerts</dt><dd>{coverageState.layers.alertGrade}</dd></div>
                     </dl>
-                    <p className={styles.coverageCaveat}>Coverage counts describe source depth—not bottles currently sitting on shelves.{coverageState.scope.singleStoreShipmentBoards ? ` ${coverageState.scope.singleStoreShipmentBoards} one-store boards offer store-equivalent shipment intelligence, but shipment still does not confirm shelf stock.` : ""}{coverageState.health !== "current" && coverageState.capability !== "not-active" ? " One or more sources are currently limited." : ""}</p>
+                    <p className={styles.coverageCaveat}>Store counts tell you how much information is available; they do not mean bottles are currently on shelves.{coverageState.scope.shipmentBoards ? " Shipment information does not confirm shelf stock." : ""}{coverageState.health !== "current" && coverageState.capability !== "not-active" ? " Some information is temporarily limited." : ""}</p>
                   </>
                 ) : null}
               </section>
@@ -493,7 +493,7 @@ export default function WelcomePage() {
                   <Link href={`/?state=${encodeURIComponent(activeState)}#drops`}><Radio aria-hidden="true" /><span><strong>Drop Feed</strong><small>Open the broader state feed.</small></span><ArrowUpRight aria-hidden="true" /></Link>
                   <Link href="/release-radar"><CalendarDays aria-hidden="true" /><span><strong>Release Radar</strong><small>Track public releases and calendars.</small></span><ArrowUpRight aria-hidden="true" /></Link>
                   <Link href="/sightings"><UsersRound aria-hidden="true" /><span><strong>Member Sightings</strong><small>Read recent community reports.</small></span><ArrowUpRight aria-hidden="true" /></Link>
-                  <Link href={`/coverage?state=${encodeURIComponent(activeState)}`}><MapIcon aria-hidden="true" /><span><strong>Coverage Map</strong><small>See source depth across the country.</small></span><ArrowUpRight aria-hidden="true" /></Link>
+                  <Link href={`/coverage?state=${encodeURIComponent(activeState)}`}><MapIcon aria-hidden="true" /><span><strong>Coverage Map</strong><small>See what information is available across the country.</small></span><ArrowUpRight aria-hidden="true" /></Link>
                   <Link href="/dashboard"><LayoutDashboard aria-hidden="true" /><span><strong>Dashboard</strong><small>Open your member workspace.</small></span><ArrowUpRight aria-hidden="true" /></Link>
                 </nav>
                 <div className={styles.membershipAction}>

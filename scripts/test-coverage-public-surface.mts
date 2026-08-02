@@ -20,12 +20,16 @@ assert.deepEqual(
 );
 
 const page = read("src/app/coverage/page.tsx");
+const coverageLoading = read("src/app/coverage/loading.tsx");
+const coverageError = read("src/app/coverage/error.tsx");
 const explorer = read("src/components/coverage/CoverageExplorer.tsx");
 const map = read("src/components/coverage/CoverageMap.tsx");
 const panel = read("src/components/coverage/CoverageStatePanel.tsx");
 const search = read("src/components/coverage/CoverageSearch.tsx");
 const requestForm = read("src/components/coverage/CoverageRequestForm.tsx");
 const styles = read("src/components/coverage/coverage.module.css");
+const model = read("src/lib/coverage-model.ts");
+const welcome = read("src/app/welcome/page.tsx");
 const api = read("src/app/api/coverage/route.ts");
 const navigation = read("src/components/Navigation.tsx");
 const mapRedirect = read("src/app/map/page.tsx");
@@ -36,6 +40,10 @@ assert.match(page, /readCurrentCoverageContract/, "the page reads the one server
 assert.match(page, /searchParams/, "server rendering honors URL state selection");
 assert.match(page, /CoverageExplorer/, "the public page renders the explorer");
 assert.match(page, /robots:[\s\S]*index:\s*true/, "coverage is a public acquisition surface");
+assert.match(page, /what Bourbon Signal can show/i, "coverage metadata uses customer language");
+assert.match(coverageLoading, /Loading available information/, "loading copy uses customer language");
+assert.match(coverageError, /We could not load this area/, "error copy uses customer language");
+assert.doesNotMatch(page + coverageLoading + coverageError, /monitoring capability|source map|source capability|source truth/i, "coverage route states do not expose internal language");
 
 assert.match(map, /<svg/, "the map is an inline local SVG");
 assert.match(map, /role="button"/, "each SVG state behaves as a control");
@@ -54,20 +62,31 @@ assert.match(explorer, /coverage_state_selected/, "state selection uses the priv
 assert.match(explorer, /Browse all states/, "a complete text/list fallback accompanies the SVG");
 assert.match(explorer, /capabilityLabel/, "list fallback includes the same coverage text as the map");
 assert.match(explorer, /<h1>Check coverage <em>near you\.<\/em><\/h1>/, "the hero leads with the member question");
-assert.match(explorer, /Coverage legend/, "the explorer includes a text-labeled legend");
-assert.doesNotMatch(explorer + panel + map, /Intelligence only/i, "coverage categories use customer-facing language");
-assert.match(explorer, /\["intelligence", "Sparse coverage"\]/, "the lightest active category is labeled Sparse coverage");
+assert.doesNotMatch(explorer, /Coverage legend/, "the explorer does not require a text-labeled legend");
+assert.doesNotMatch(explorer + panel + map, /Intelligence only|Deep coverage|Active coverage|Focused coverage|Sparse coverage/i, "coverage categories use direct customer-facing language");
 assert.match(explorer, /<select/, "mobile users get a direct state selector");
 assert.ok(explorer.indexOf("<CoverageMap") < explorer.indexOf("<CoverageStatePanel"), "the map remains the front-facing feature on every layout");
 assert.match(explorer, /<CoverageStatePanel key=\{selectedState\.code\}/, "state changes remount local request state before draft restoration");
+assert.doesNotMatch(explorer, /Coverage legend|const LEGEND/, "customers do not need a coverage legend to understand the page");
+assert.doesNotMatch(explorer + panel + search + map + welcome, /Known boards|Searchable stores|Probeable stores|Catalog tracking|Inventory-monitored stores|Alert-ready|Store monitoring levels|Boards with shipment intelligence|Single-store shipment boards|store-equivalent shipment intelligence/i, "internal coverage vocabulary stays out of the customer-facing surfaces");
+assert.match(panel, /What you can do here/, "the state panel explains customer outcomes directly");
+assert.match(model, /Store locations are available|Find stores/, "the model provides a plain store-directory explanation");
+assert.match(model, /shipments and releases/i, "the model names shipment and release information directly");
+assert.match(model, /current bottle availability/i, "the model names current availability directly");
+assert.match(model, /restock alerts/i, "the model names restock alerts directly");
+assert.match(model, /customerSummary|customerCanSee|customerCannotSee/, "plain customer copy is kept separate from the underlying coverage contract");
+assert.match(panel, /customerSummary \|\| state\.summary/, "the panel renders the plain customer summary");
+assert.match(panel, /customerCanSee \|\| state\.canSee/, "the panel renders the plain customer capabilities");
+assert.doesNotMatch(search, /Results describe monitoring coverage/i, "search explains what the customer gets rather than exposing monitoring terminology");
+assert.match(welcome, /What you can do here|stores listed|current bottle availability/i, "the welcome surface uses the same plain-language coverage vocabulary");
 
-assert.match(panel, /How coverage works/, "technical coverage detail uses progressive disclosure");
-assert.match(panel, /What we cannot yet see/, "state drilldown states its limits");
+assert.match(panel, /How we check this area/, "coverage detail uses progressive disclosure");
+assert.match(panel, /What is not available yet/, "state drilldown states its limits");
 assert.match(panel, /data-health=\{state\.health\}/, "health is separate from capability");
-assert.match(panel, /Searchable stores[\s\S]*Probeable stores[\s\S]*Inventory-monitored stores[\s\S]*Alert-ready/, "technical layers keep known, probeable, live, and alert-ready capability distinct");
-assert.match(panel, /Official boards[\s\S]*Boards with shipment intelligence[\s\S]*Single-store shipment boards/, "NC board breadth and qualified one-store shipment intelligence remain visibly distinct from store inventory");
-assert.doesNotMatch(panel, /scope\.(?:searchableStores|inventoryMonitoredStores)\s*\|\|/, "valid zero scope counts must render as zero instead of falling back to broader layers");
-assert.ok(panel.indexOf("<CoverageSearch") < panel.indexOf("How coverage works"), "local search appears before technical detail");
+assert.match(panel, /What you can do here/, "the state panel leads with plain customer outcomes");
+assert.match(panel, /state\.scope\.searchableStores\s*\?/, "listed-store count is rendered only when present");
+assert.match(panel, /state\.scope\.inventoryMonitoredStores\s*\?/, "availability-store count is rendered only when present");
+assert.ok(panel.indexOf("<CoverageSearch") < panel.indexOf("How we check this area"), "local search appears before explanatory detail");
 assert.match(panel, /visible=\{requestOpen\}/, "the generalized request form stays hidden until its single action is used");
 assert.match(panel, /coverage-request-heading[\s\S]*\.focus\(\)/, "revealed request UI receives keyboard focus");
 assert.equal((panel.match(/>\s*Request coverage\s*</g) || []).length, 1, "the state panel presents exactly one coverage-request action");

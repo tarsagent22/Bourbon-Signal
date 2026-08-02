@@ -11,12 +11,12 @@ interface CoverageSearchProps {
 }
 
 const STATUS_LABELS: Record<CoverageSearchResult["status"], string> = {
-  covered: "Covered",
-  "partially-covered": "Partially covered",
-  "known-not-active": "Not actively monitored",
-  "actively-monitored": "Actively monitored",
-  "known-expansion-candidate": "Not actively monitored",
-  "not-found": "Not covered",
+  covered: "Current bottle availability",
+  "partially-covered": "Some bottle availability information",
+  "known-not-active": "Store listed; no bottle check yet",
+  "actively-monitored": "Current bottle availability",
+  "known-expansion-candidate": "Store listed; no bottle check yet",
+  "not-found": "Not listed here",
 };
 
 export function CoverageSearch({ stateCode, stateName }: CoverageSearchProps) {
@@ -93,7 +93,7 @@ export function CoverageSearch({ stateCode, stateName }: CoverageSearchProps) {
           {status === "loading" ? "Checking…" : "Check"}
         </button>
       </form>
-      <p className={styles.searchPrivacy}>Results describe monitoring coverage, not current bottle availability.</p>
+      <p className={styles.searchPrivacy}>These results tell you what information we have for this place. They do not confirm a bottle is in stock now.</p>
       <div className={styles.searchResults} aria-live="polite" aria-busy={status === "loading"}>
         {status === "error" ? <p className={styles.inlineError}>Search is temporarily unavailable. Please try again.</p> : null}
         {status === "ready" ? results.map((result, index) => (

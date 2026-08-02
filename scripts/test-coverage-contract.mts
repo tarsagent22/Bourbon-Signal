@@ -108,7 +108,7 @@ for (const [capability, codes] of Object.entries(expectedCapabilities)) {
   );
 }
 assert.equal(contract.states.filter((state) => state.capability === "not-active").length, 27, "states without current useful evidence remain inactive");
-assert.ok(contract.states.filter((state) => state.capability === "intelligence").every((state) => state.capabilityLabel === "Sparse coverage"));
+assert.ok(contract.states.filter((state) => state.capability === "intelligence").every((state) => state.capabilityLabel === "Shipments and releases"));
 for (const [code, areas, summaryArea] of [["NY", ["Nassau County", "New York City"], "New York City"], ["CO", ["Denver Metro"], "Denver Metro"]] as const) {
   const metro = contract.states.find((state) => state.code === code);
   assert.ok(metro, `${code} must be present in the national coverage contract`);
@@ -202,6 +202,12 @@ assert.match(northCarolina.canSee.join(" "), /single-store board.*shipment/i);
 assert.match(northCarolina.cannotSee.join(" "), /shipment.*(?:not|isn.t).*shelf|not.*shelf.*shipment/i);
 assert.match(northCarolina.summary, /board/i);
 assert.match(northCarolina.cannotSee.join(" "), /board.*(?:not|isn.t).*exact|not.*exact.*board/i);
+assert.match(northCarolina.customerSummary || "", /current bottle availability/i);
+assert.match((northCarolina.customerCanSee || []).join(" "), /shipment and release information/i);
+assert.match((northCarolina.customerCanSee || []).join(" "), /current bottle availability/i);
+if (northCarolina.layers.alertGrade === 0) {
+  assert.match((northCarolina.customerCannotSee || []).join(" "), /restock alerts are not available/i);
+}
 
 const canonicalZeroContract = buildCoverageContract({
   lifecycle: STATE_LIFECYCLE_CONFIG,
@@ -559,7 +565,7 @@ assert.deepEqual(missing, [{
   stateCode: "IL",
   status: "not-found",
   canonicalTargetKey: null,
-  detail: "No matching city or store is in the current coverage directory.",
+  detail: "We do not currently have this city or store in our list.",
 }]);
 
 const serialized = JSON.stringify({ contract, search: partialCity });
