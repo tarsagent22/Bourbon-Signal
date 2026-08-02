@@ -14,7 +14,7 @@ function healthCopy(state: CoverageState) {
   if (state.health === "current") return "Information is current";
   if (state.health === "intermittent") return "Updates are intermittent";
   if (state.health === "temporarily-limited") return "Some information is temporarily limited";
-  return state.capability === "not-active" ? "Not available yet" : "No recent update";
+  return state.coverageStatus === "not-available" ? "Not available yet" : "No recent update";
 }
 
 export function CoverageStatePanel({ state }: CoverageStatePanelProps) {
@@ -49,7 +49,7 @@ export function CoverageStatePanel({ state }: CoverageStatePanelProps) {
           <p className={styles.eyebrow}>Selected state · {state.code}</p>
           <h2 id="coverage-state-heading" tabIndex={-1}>{state.name}</h2>
         </div>
-        <span className={styles.capabilityBadge} data-capability={state.capability}>{state.capabilityLabel}</span>
+        <span className={styles.capabilityBadge} data-coverage-status={state.coverageStatus}>{state.coverageStatusLabel}</span>
       </div>
       <div className={styles.healthRow}>
         <span>Update status</span>

@@ -68,7 +68,16 @@ function fallbackCoverageState(code: string): CoverageState {
     code,
     name: STATE_NAMES.get(code) || code,
     capability: "not-active",
-    capabilityLabel: "Coverage unavailable",
+    capabilityLabel: "Not active yet",
+    coverageStatus: "not-available",
+    coverageStatusLabel: "Not available yet",
+    capabilities: {
+      storeInformation: false,
+      publicUpdates: false,
+      currentBottleAvailability: false,
+      restockAlerts: false,
+    },
+    updateLabel: null,
     health: "no-recent-update",
     healthLabel: "Live coverage unavailable",
     summary: "Live coverage detail is temporarily unavailable.",
@@ -150,8 +159,8 @@ function statePreviewMessage(
   degradedStateFallback: boolean,
 ) {
   if (error) return `Latest signals for ${stateName} are temporarily unavailable. Live coverage detail and the optional request form remain below.`;
-  if (!drops.length && coverage?.capability === "not-active") {
-    return `Bourbon Signal does not currently have an active monitoring source in ${stateName}. No eligible state signals are available right now.`;
+  if (!drops.length && coverage?.coverageStatus === "not-available") {
+    return `Bourbon Signal does not currently have useful coverage in ${stateName}. No eligible state signals are available right now.`;
   }
   if (!drops.length) return `No eligible state signals are currently available in ${stateName}. Coverage may still be partial or source-specific.`;
   if (degradedStateFallback) {
@@ -446,11 +455,11 @@ export default function WelcomePage() {
                   <>
                     <div className={styles.coverageOverview}>
                       <div className={styles.coverageBadges}>
-                        <span><Gauge size={13} aria-hidden="true" />{coverageState.capabilityLabel}</span>
+                        <span><Gauge size={13} aria-hidden="true" />{coverageState.coverageStatusLabel}</span>
                         <span data-health={coverageState.health}><Radio size={13} aria-hidden="true" />{coverageState.healthLabel}</span>
                       </div>
-                      <p>{coverageState.capability === "not-active"
-                        ? `We do not have a reliable way to check bottles in ${activeStateName} yet.`
+                      <p>{coverageState.coverageStatus === "not-available"
+                        ? `We do not have reliable coverage in ${activeStateName} yet.`
                         : `Here is the information available in ${activeStateName}.`}</p>
                     </div>
                     <dl className={styles.coverageMetrics}>
@@ -460,7 +469,7 @@ export default function WelcomePage() {
                       <div><Compass size={14} aria-hidden="true" /><dt>{coverageState.scope.knownBoards ? "Store cities and towns" : "Areas with information"}</dt><dd>{coverageState.representedAreaCount}</dd></div>
                       <div><BellRing size={14} aria-hidden="true" /><dt>Stores with restock alerts</dt><dd>{coverageState.layers.alertGrade}</dd></div>
                     </dl>
-                    <p className={styles.coverageCaveat}>Store counts tell you how much information is available; they do not mean bottles are currently on shelves.{coverageState.scope.shipmentBoards ? " Shipment information does not confirm shelf stock." : ""}{coverageState.health !== "current" && coverageState.capability !== "not-active" ? " Some information is temporarily limited." : ""}</p>
+                    <p className={styles.coverageCaveat}>Store counts tell you how much information is available; they do not mean bottles are currently on shelves.{coverageState.scope.shipmentBoards ? " Shipment information does not confirm shelf stock." : ""}{coverageState.health !== "current" && coverageState.coverageStatus !== "not-available" ? " Some information is temporarily limited." : ""}</p>
                   </>
                 ) : null}
               </section>

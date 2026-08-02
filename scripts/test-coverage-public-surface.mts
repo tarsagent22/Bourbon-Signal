@@ -50,6 +50,7 @@ assert.match(map, /role="button"/, "each SVG state behaves as a control");
 assert.match(map, /tabIndex=\{0\}/, "SVG states are keyboard reachable");
 assert.match(map, /event\.key === "Enter"[\s\S]*event\.key === " "/, "Enter and Space activate SVG states");
 assert.match(map, /aria-label=/, "every state control has an accessible label");
+assert.match(map, /data-coverage-status/, "the map uses the simple public coverage status");
 assert.match(map, /states-10m\.json|states-albers-10m\.json/, "the visual uses real U.S. state geography rather than a tile grid");
 assert.match(map, /topojson-client/, "the local Census-derived topology is converted to state features");
 assert.doesNotMatch(map, /tilePath|TILE_WIDTH|COVERAGE_MAP_CELLS/, "the public visual is a state-line map, not a cartogram");
@@ -60,7 +61,7 @@ assert.match(explorer, /COVERAGE_REQUEST_DRAFT_KEY[\s\S]*sessionStorage\.removeI
 assert.match(explorer, /coverage_page_viewed/, "coverage page reach uses the privacy-safe event contract");
 assert.match(explorer, /coverage_state_selected/, "state selection uses the privacy-safe event contract");
 assert.match(explorer, /Browse all states/, "a complete text/list fallback accompanies the SVG");
-assert.match(explorer, /capabilityLabel/, "list fallback includes the same coverage text as the map");
+assert.match(explorer, /coverageStatusLabel/, "list fallback includes the same public status text as the map");
 assert.match(explorer, /<h1>Check coverage <em>near you\.<\/em><\/h1>/, "the hero leads with the member question");
 assert.doesNotMatch(explorer, /Coverage legend/, "the explorer does not require a text-labeled legend");
 assert.doesNotMatch(explorer + panel + map, /Intelligence only|Deep coverage|Active coverage|Focused coverage|Sparse coverage/i, "coverage categories use direct customer-facing language");
@@ -70,7 +71,7 @@ assert.match(explorer, /<CoverageStatePanel key=\{selectedState\.code\}/, "state
 assert.doesNotMatch(explorer, /Coverage legend|const LEGEND/, "customers do not need a coverage legend to understand the page");
 assert.doesNotMatch(explorer + panel + search + map + welcome, /Known boards|Searchable stores|Probeable stores|Catalog tracking|Inventory-monitored stores|Alert-ready|Store monitoring levels|Boards with shipment intelligence|Single-store shipment boards|store-equivalent shipment intelligence/i, "internal coverage vocabulary stays out of the customer-facing surfaces");
 assert.match(panel, /What you can do here/, "the state panel explains customer outcomes directly");
-assert.match(model, /Store locations are available|Find stores/, "the model provides a plain store-directory explanation");
+assert.match(model, /Find \$\{scope\.searchableStores\}|Find listed stores/, "the model provides a plain store-directory explanation");
 assert.match(model, /shipments and releases/i, "the model names shipment and release information directly");
 assert.match(model, /current bottle availability/i, "the model names current availability directly");
 assert.match(model, /restock alerts/i, "the model names restock alerts directly");
@@ -106,9 +107,8 @@ assert.doesNotMatch(search, /track\([^)]*query|analytics[^;]*query/i, "raw locat
 assert.match(styles, /@media\s*\(max-width:\s*700px\)/, "the explorer has a mobile layout");
 assert.match(styles, /:focus-visible/, "interactive controls have visible focus treatment");
 assert.match(styles, /@media\s*\(prefers-reduced-motion:\s*reduce\)/, "motion respects user preference");
-assert.match(styles, /--coverage-deep:\s*#3f9b68/i, "the strongest coverage category is green");
-assert.match(styles, /--coverage-active:\s*#789f63/i, "active coverage uses a secondary green");
-assert.match(styles, /--coverage-focused:\s*#c59a4a/i, "focused coverage steps down to amber");
+assert.match(styles, /--coverage-available:\s*#789f63/i, "available coverage uses one clear positive color");
+assert.match(styles, /--coverage-unavailable:\s*#312c28/i, "unavailable coverage uses one clear neutral color");
 
 assert.match(requestForm, /<select[\s\S]*required[\s\S]*US_STATE_OPTIONS/, "the generalized form requires a valid state selection");
 assert.match(requestForm, /<details[\s\S]*Add county, city, or store details[\s\S]*name="manualCity"/, "city is available as optional detail");

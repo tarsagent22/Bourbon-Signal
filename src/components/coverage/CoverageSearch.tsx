@@ -12,11 +12,11 @@ interface CoverageSearchProps {
 
 const STATUS_LABELS: Record<CoverageSearchResult["status"], string> = {
   covered: "Current bottle availability",
-  "partially-covered": "Some bottle availability information",
-  "known-not-active": "Store listed; no bottle check yet",
+  "partially-covered": "Coverage available",
+  "known-not-active": "Store listed; no current availability check",
   "actively-monitored": "Current bottle availability",
-  "known-expansion-candidate": "Store listed; no bottle check yet",
-  "not-found": "Not listed here",
+  "known-expansion-candidate": "Store listed; no current availability check",
+  "not-found": "Not listed yet",
 };
 
 export function CoverageSearch({ stateCode, stateName }: CoverageSearchProps) {

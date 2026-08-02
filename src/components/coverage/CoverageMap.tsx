@@ -79,16 +79,16 @@ export function CoverageMap({ states, selectedCode, onSelect }: CoverageMapProps
             <g
               key={state.code}
               className={styles.stateCell}
-              data-capability={state.capability}
+              data-coverage-status={state.coverageStatus}
               data-selected={selected}
               role="button"
               tabIndex={0}
               aria-pressed={selected}
-              aria-label={`${state.name}: ${state.capabilityLabel}; ${state.healthLabel}`}
+              aria-label={`${state.name}: ${state.coverageStatusLabel}; ${state.healthLabel}`}
               onClick={() => onSelect(state.code)}
               onKeyDown={(event) => handleKeyDown(event, state.code)}
             >
-              <title>{state.name}: {state.capabilityLabel}</title>
+              <title>{state.name}: {state.coverageStatusLabel}</title>
               <path className={styles.stateShape} d={path(stateFeature as Feature) || undefined} />
             </g>
           );

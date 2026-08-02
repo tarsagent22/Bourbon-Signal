@@ -7,11 +7,8 @@
   --coverage-faint: rgba(245, 237, 214, 0.42);
   --coverage-line: rgba(245, 237, 214, 0.11);
   --coverage-amber: #d8a84f;
-  --coverage-deep: #3f9b68;
-  --coverage-active: #789f63;
-  --coverage-focused: #c59a4a;
-  --coverage-intelligence: #755e4b;
-  --coverage-inactive: #312c28;
+  --coverage-available: #789f63;
+  --coverage-unavailable: #312c28;
   min-height: 100vh;
   position: relative;
   overflow: hidden;
@@ -132,18 +129,15 @@
 }
 
 .stateShape {
-  fill: var(--coverage-inactive);
+  fill: var(--coverage-unavailable);
   stroke: rgba(245, 237, 214, 0.2);
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
   transition: filter 180ms ease, stroke 180ms ease, transform 180ms ease;
 }
 
-.stateCell[data-capability="deep"] .stateShape { fill: var(--coverage-deep); }
-.stateCell[data-capability="active"] .stateShape { fill: var(--coverage-active); }
-.stateCell[data-capability="focused"] .stateShape { fill: var(--coverage-focused); stroke-dasharray: 4 2; }
-.stateCell[data-capability="intelligence"] .stateShape { fill: var(--coverage-intelligence); stroke-dasharray: 2 2; }
-.stateCell[data-capability="not-active"] .stateShape { fill: var(--coverage-inactive); stroke-dasharray: 1 3; }
+.stateCell[data-coverage-status="available"] .stateShape { fill: var(--coverage-available); }
+.stateCell[data-coverage-status="not-available"] .stateShape { fill: var(--coverage-unavailable); stroke-dasharray: 1 3; }
 
 .stateCell:hover .stateShape,
 .stateCell:focus-visible .stateShape {
@@ -166,7 +160,7 @@
   letter-spacing: 0.04em;
 }
 
-.stateCell[data-capability="deep"] .stateCode {
+.stateCell[data-coverage-status="available"] .stateCode {
   fill: var(--coverage-ink);
 }
 
@@ -212,13 +206,11 @@
   width: 9px;
   height: 9px;
   transform: rotate(45deg);
-  background: var(--coverage-inactive);
+  background: var(--coverage-unavailable);
 }
 
-.legend i[data-capability="deep"] { background: var(--coverage-deep); }
-.legend i[data-capability="active"] { background: var(--coverage-active); }
-.legend i[data-capability="focused"] { background: var(--coverage-focused); }
-.legend i[data-capability="intelligence"] { background: var(--coverage-intelligence); }
+.legend i[data-coverage-status="available"] { background: var(--coverage-available); }
+.legend i[data-coverage-status="not-available"] { background: var(--coverage-unavailable); }
 
 .detailPanel {
   position: sticky;
@@ -258,31 +250,13 @@
   white-space: nowrap;
 }
 
-.capabilityBadge[data-capability="deep"] {
-  border-color: rgba(63, 155, 104, 0.55);
-  background: rgba(63, 155, 104, 0.13);
-  color: #8fd5ac;
-}
-
-.capabilityBadge[data-capability="active"] {
+.capabilityBadge[data-coverage-status="available"] {
   border-color: rgba(120, 159, 99, 0.55);
   background: rgba(120, 159, 99, 0.13);
   color: #b2d19f;
 }
 
-.capabilityBadge[data-capability="focused"] {
-  border-color: rgba(197, 154, 74, 0.5);
-  background: rgba(197, 154, 74, 0.12);
-  color: #e5c47e;
-}
-
-.capabilityBadge[data-capability="intelligence"] {
-  border-color: rgba(117, 94, 75, 0.62);
-  background: rgba(117, 94, 75, 0.16);
-  color: #cdb49c;
-}
-
-.capabilityBadge[data-capability="not-active"] {
+.capabilityBadge[data-coverage-status="not-available"] {
   border-color: var(--coverage-line);
   color: var(--coverage-muted);
   background: rgba(245, 237, 214, 0.03);
