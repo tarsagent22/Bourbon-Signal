@@ -27,7 +27,7 @@ function ScrollToTopButton() {
     <AnimatePresence>
       {visible && (
         <motion.button
-          className="fixed bottom-6 right-6 z-50 flex items-center justify-center rounded-full cursor-pointer"
+          className="fixed bottom-6 right-6 z-50 hidden md:flex items-center justify-center rounded-full cursor-pointer"
           style={{
             width: "40px",
             height: "40px",

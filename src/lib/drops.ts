@@ -662,23 +662,7 @@ export const TIER_CONFIG: Record<string, { label: string; borderColor: string; p
       whiteSpace: "nowrap" as const,
     },
   },
-  regular: {
-    label: "REGULAR",
-    borderColor: "rgba(166,157,132,0.30)",
-    pillStyle: {
-      background: "rgba(166,157,132,0.08)",
-      border: "1px solid rgba(166,157,132,0.18)",
-      color: "rgba(245,237,214,0.58)",
-      fontFamily: "var(--font-dm-sans)",
-      fontSize: "9px",
-      fontWeight: 700,
-      textTransform: "uppercase" as const,
-      letterSpacing: "0.1em",
-      padding: "3px 10px",
-      borderRadius: "12px",
-      whiteSpace: "nowrap" as const,
-    },
-  },
+
   standard: {
     label: "STANDARD",
     borderColor: "rgba(166,157,132,0.42)",
