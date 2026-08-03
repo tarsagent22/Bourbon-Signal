@@ -22,7 +22,7 @@ import { canPublishTennesseePartialEvidenceFallback } from './tennessee-verifica
 import { registeredDemandMetroStores } from './demand-metro-registry.mjs';
 import { demandMetroAreaLabel, demandMetroAreaMatchesFields } from './demand-metro-areas.mjs';
 import { attachRunIdentity, verifyRunCoherence } from './site-run-coherence.mjs';
-import { detectDropCollapseFallbacks, mergeHistoricalBoardShipmentDrops, mergePartialRefreshDrops, selectFreshRunDrops } from './partial-refresh-contract.mjs';
+import { detectDropCollapseFallbacks, mergeHistoricalBoardShipmentDrops, mergePartialRefreshDrops, mergePartialRefreshLocations, selectFreshRunDrops } from './partial-refresh-contract.mjs';
 import { buildNcBoardCoverageSummary } from './nc-coverage-summary.mjs';
 import { buildNcSourceLedger, enrichNcSingleStoreShipmentSignals } from './nc-source-ledger.mjs';
 import { authoritativeSignalTimestamp, enforceArchivedSourceAlertPolicy } from './event-freshness.mjs';
@@ -1777,9 +1777,10 @@ async function main() {
     .map(enforceArchivedSourceAlertPolicy);
   const bottles = buildBottles(signals, bible, biblePayload.records || []);
   const stores = buildStores(signals);
-  const locations = buildLocationBible(signals, activeOfficialLocations);
+  const currentLocations = buildLocationBible(signals, activeOfficialLocations);
   const candidateDrops = buildDrops(historicalSignals, bible, signals);
   const currentDrops = buildDrops(signals, bible, signals);
+  const previousLocations = await readJson(path.join(SITE_OUT, 'locations.json'), []);
   const previousDrops = await readJson(path.join(SITE_OUT, 'drops.json'), []);
   const bootstrapDrops = await readJson(path.join(OUT, 'historical-bootstrap', 'drops.json'), []);
   const previousStateQuality = await readJson(path.join(SITE_OUT, 'state-quality.json'), null);
@@ -1819,6 +1820,12 @@ async function main() {
     partialFallbackStateIds: summary.partialFallbackStateIds,
     isSafePartialRetainedRow: (drop) => String(drop.state || drop.state_code || '').toUpperCase() !== 'TN'
       || isTennesseeRetailerSignalIdentity(drop),
+  });
+  const locations = mergePartialRefreshLocations({
+    previousLocations,
+    currentLocations,
+    partialRefresh: summary.partialRefresh === true,
+    attemptedStateIds: summary.attemptedStateIds || [],
   });
   const drops = mergeHistoricalBoardShipmentDrops({
     currentDrops: refreshedDrops,
@@ -1929,8 +1936,8 @@ async function main() {
     throw new Error(`State quality regression blocked site export: ${stateQualityRegression.failures.join(' ')}`);
   }
   const historicalSignalCount = Math.max(historicalSignals.length, Number(previousStats.historicalSignalCount || 0));
-  const ncBoardCoverageSummary = buildNcBoardCoverageSummary(activeOfficialLocations, ncIntelligenceRaw);
-  const ncSourceLedger = buildNcSourceLedger(activeOfficialLocations, ncIntelligenceRaw);
+  const ncBoardCoverageSummary = buildNcBoardCoverageSummary(locations, ncIntelligenceRaw);
+  const ncSourceLedger = buildNcSourceLedger(locations, ncIntelligenceRaw);
   const stats = {
     contractVersion: CONTRACT_VERSION,
     ...runIdentity,

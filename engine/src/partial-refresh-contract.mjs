@@ -114,6 +114,47 @@ export function mergeHistoricalBoardShipmentDrops({
   return [...normalizedCurrent, ...retained].slice(0, 10000);
 }
 
+function locationIdentity(location) {
+  return location?.id || [
+    String(location?.state || location?.state_code || '').toUpperCase(),
+    String(location?.type || location?.locationType || '').toLowerCase(),
+    String(location?.name || '').toLowerCase(),
+    String(location?.address || '').toLowerCase(),
+  ].join('|');
+}
+
+export function mergePartialRefreshLocations({
+  previousLocations = [],
+  currentLocations = [],
+  partialRefresh = false,
+  attemptedStateIds = [],
+} = {}) {
+  const locationRowsOf = (value) => Array.isArray(value) ? value : Array.isArray(value?.locations) ? value.locations : [];
+  const currentRows = locationRowsOf(currentLocations);
+  if (!partialRefresh) return currentRows;
+
+  const attemptedStates = new Set((attemptedStateIds || []).map((state) => String(state || '').toUpperCase()));
+  const stateOf = (location) => String(location?.state || location?.state_code || '').toUpperCase();
+  const merged = currentRows.filter((location) => attemptedStates.has(stateOf(location)));
+  const seen = new Set(merged.map(locationIdentity));
+
+  for (const location of locationRowsOf(previousLocations)) {
+    if (attemptedStates.has(stateOf(location))) continue;
+    const key = locationIdentity(location);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    merged.push(location);
+  }
+  for (const location of currentRows) {
+    if (attemptedStates.has(stateOf(location))) continue;
+    const key = locationIdentity(location);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    merged.push(location);
+  }
+  return merged;
+}
+
 export function mergePartialRefreshDrops({ previousDrops = [], currentDrops = [], partialRefresh = false, attemptedStateIds = [], fallbackStateIds = [], partialFallbackStateIds = [], isSafePartialRetainedRow = () => true } = {}) {
   const previousRows = Array.isArray(previousDrops) ? previousDrops : Array.isArray(previousDrops?.drops) ? previousDrops.drops : [];
   const currentRows = Array.isArray(currentDrops) ? currentDrops : Array.isArray(currentDrops?.drops) ? currentDrops.drops : [];

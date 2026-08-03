@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { detectDropCollapseFallbacks, mergeHistoricalBoardShipmentDrops, mergePartialRefreshDrops, selectFreshRunDrops } from '../src/partial-refresh-contract.mjs';
+import { detectDropCollapseFallbacks, mergeHistoricalBoardShipmentDrops, mergePartialRefreshDrops, mergePartialRefreshLocations, selectFreshRunDrops } from '../src/partial-refresh-contract.mjs';
 
 test('drop collapse detection marks attempted states for safe publication fallback', () => {
   const previous = { states: [{ state: 'IN', input: { dropCount: 72 } }, { state: 'TN', input: { dropCount: 35 } }] };
@@ -9,6 +9,35 @@ test('drop collapse detection marks attempted states for safe publication fallba
     ...Array.from({ length: 35 }, (_, index) => ({ id: `tn-${index}`, state: 'TN' })),
   ];
   assert.deepEqual(detectDropCollapseFallbacks(previous, current, ['IN', 'TN']), ['IN']);
+});
+
+test('partial refresh preserves untouched location coverage while current attempted-state rows win', () => {
+  const merged = mergePartialRefreshLocations({
+    previousLocations: {
+      locations: [
+        { id: 'nc-board', state: 'NC', name: 'Dunn ABC Board', signalCount: 6 },
+        { id: 'ga-store', state: 'GA', name: 'Old Georgia Store', signalCount: 1 },
+        { id: 'md-store', state: 'MD-MONTGOMERY', name: 'Montgomery ABS', signalCount: 2 },
+      ],
+    },
+    currentLocations: [
+      { id: 'ga-store', state: 'GA', name: 'Current Georgia Store', signalCount: 3 },
+      { id: 'nc-scaffold', state: 'NC', name: 'Harnett County ABC Board', signalCount: 0 },
+    ],
+    partialRefresh: true,
+    attemptedStateIds: ['GA'],
+  });
+  assert.deepEqual(merged.map((location) => location.id), ['ga-store', 'nc-board', 'md-store', 'nc-scaffold']);
+  assert.equal(merged.find((location) => location.id === 'ga-store')?.name, 'Current Georgia Store');
+});
+
+test('full refresh never preserves prior locations', () => {
+  assert.deepEqual(mergePartialRefreshLocations({
+    previousLocations: [{ id: 'old-nc', state: 'NC' }],
+    currentLocations: [{ id: 'current-ga', state: 'GA' }],
+    partialRefresh: false,
+    attemptedStateIds: ['GA'],
+  }), [{ id: 'current-ga', state: 'GA' }]);
 });
 
 test('partial refresh replaces attempted states and preserves untouched published drops', () => {

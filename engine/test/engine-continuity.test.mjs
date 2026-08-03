@@ -123,6 +123,10 @@ test('scheduled refresh persists collector history, the actual scheduler state, 
   }
   const exporter = await readFile(new URL('../src/export-site-contract.mjs', import.meta.url), 'utf8');
   assert.match(exporter, /buildStateQualityInputs\(\{ stateCoverage, drops: currentDrops,/);
+  assert.match(exporter, /const previousLocations = await readJson\(path\.join\(SITE_OUT, 'locations\.json'\), \[\]\)/);
+  assert.match(exporter, /const locations = mergePartialRefreshLocations\(\{[\s\S]*partialRefresh: summary\.partialRefresh === true,[\s\S]*attemptedStateIds: summary\.attemptedStateIds/);
+  assert.match(exporter, /buildNcBoardCoverageSummary\(locations, ncIntelligenceRaw\)/);
+  assert.match(exporter, /buildNcSourceLedger\(locations, ncIntelligenceRaw\)/);
   assert.match(exporter, /const freshRunDrops = selectFreshRunDrops\(\{ drops: currentDrops, freshStateIds: summary\.freshStateIds \}\)/);
   assert.match(exporter, /currentSourceDrops: freshRunDrops/);
   assert.match(exporter, /const alertableCurrentDrops = freshRunDrops\.filter/);
