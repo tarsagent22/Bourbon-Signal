@@ -12,7 +12,9 @@ import styles from "./coverage.module.css";
 interface CoverageMapProps {
   states: CoverageState[];
   selectedCode: string;
-  onSelect: (stateCode: string) => void;
+  onSelect?: (stateCode: string) => void;
+  interactive?: boolean;
+  compact?: boolean;
 }
 
 interface StateProperties {
@@ -52,25 +54,25 @@ const MAPPED_STATES = stateFeatures.features.flatMap((stateFeature) => {
   return code ? [{ code, feature: stateFeature }] : [];
 });
 
-export function CoverageMap({ states, selectedCode, onSelect }: CoverageMapProps) {
+export function CoverageMap({ states, selectedCode, onSelect, interactive = true, compact = false }: CoverageMapProps) {
   const statesByCode = new Map(states.map((state) => [state.code, state]));
 
   function handleKeyDown(event: KeyboardEvent<SVGGElement>, stateCode: string) {
-    if (event.key === "Enter" || event.key === " ") {
+    if (interactive && onSelect && (event.key === "Enter" || event.key === " ")) {
       event.preventDefault();
       onSelect(stateCode);
     }
   }
 
   return (
-    <div className={styles.mapFrame}>
+    <div className={`${styles.mapFrame} ${compact ? styles.mapFrameCompact : ""}`} data-interactive={interactive}>
       <svg
         className={styles.mapSvg}
         viewBox={`0 0 ${VIEW_WIDTH} ${VIEW_HEIGHT}`}
-        role="group"
-        aria-label="United States coverage map"
+        role={interactive ? "group" : "img"}
+        aria-label={interactive ? "Interactive United States coverage map" : "United States coverage map"}
       >
-        <desc>Colors show the strength of verified coverage sources. Update status is shown separately after you select a state.</desc>
+        <desc>Colors show verified coverage breadth by state.</desc>
         {MAPPED_STATES.map(({ code, feature: stateFeature }) => {
           const state = statesByCode.get(code);
           if (!state) return null;
@@ -81,12 +83,12 @@ export function CoverageMap({ states, selectedCode, onSelect }: CoverageMapProps
               className={styles.stateCell}
               data-coverage-strength={state.coverageStrength}
               data-selected={selected}
-              role="button"
-              tabIndex={0}
-              aria-pressed={selected}
-              aria-label={`${state.name}: ${state.coverageStrengthLabel}; ${state.healthLabel}`}
-              onClick={() => onSelect(state.code)}
-              onKeyDown={(event) => handleKeyDown(event, state.code)}
+              role={interactive ? "button" : undefined}
+              tabIndex={interactive ? 0 : undefined}
+              aria-pressed={interactive ? selected : undefined}
+              aria-label={interactive ? `${state.name}: ${state.coverageStrengthLabel}` : undefined}
+              onClick={interactive && onSelect ? () => onSelect(state.code) : undefined}
+              onKeyDown={interactive ? (event) => handleKeyDown(event, state.code) : undefined}
             >
               <title>{`${state.name}: ${state.coverageStrengthLabel}`}</title>
               <path className={styles.stateShape} d={path(stateFeature as Feature) || undefined} />
@@ -94,8 +96,8 @@ export function CoverageMap({ states, selectedCode, onSelect }: CoverageMapProps
           );
         })}
       </svg>
-      <div className={styles.mapLegend} aria-label="Coverage strength legend">
-        <span>Coverage strength</span>
+      <div className={styles.mapLegend} aria-label="Verified coverage breadth legend">
+        <span>Verified coverage breadth</span>
         <ul>
           <li aria-label="Strong coverage" data-coverage-strength="strong"><i aria-hidden="true" />Strong</li>
           <li aria-label="Moderate coverage" data-coverage-strength="moderate"><i aria-hidden="true" />Moderate</li>
@@ -103,7 +105,7 @@ export function CoverageMap({ states, selectedCode, onSelect }: CoverageMapProps
           <li aria-label="No coverage" data-coverage-strength="none"><i aria-hidden="true" />No coverage</li>
         </ul>
       </div>
-      <p className={styles.mapCaption}>Color shows the breadth of verified coverage sources. Select a state for its update status and what is available now.</p>
+      {!compact ? <p className={styles.mapCaption}>Color shows the breadth of verified coverage sources. Select a state to see what is available.</p> : null}
     </div>
   );
 }

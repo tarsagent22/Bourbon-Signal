@@ -49,7 +49,7 @@ export function CoverageExplorer({ contract, initialStateCode }: CoverageExplore
       <header className={styles.hero}>
         <p className={styles.eyebrow}>Bourbon Signal Coverage</p>
         <h1>Check coverage <em>near you.</em></h1>
-        <p>Select a state, then search a city or store to see what information is available. A listed store is not the same as a bottle in stock right now.</p>
+        <p>Select a state, then search a city or store.</p>
       </header>
 
       <section className={styles.mobileSelector} aria-label="Choose a state">
@@ -70,7 +70,7 @@ export function CoverageExplorer({ contract, initialStateCode }: CoverageExplore
               {contract.states.map((state) => (
                 <li key={state.code}>
                   <button type="button" aria-current={selectedCode === state.code ? "true" : undefined} onClick={() => selectState(state.code)}>
-                    <span><strong>{state.name}</strong><small>{state.healthLabel}</small></span>
+                    <strong>{state.name}</strong>
                     <span>{state.coverageStrengthLabel}</span>
                   </button>
                 </li>
