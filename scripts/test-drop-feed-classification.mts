@@ -157,7 +157,7 @@ const regular = resolveDropClassification({
 }, index);
 assert.equal(regular.tier, "regular", "the resolver may identify a regular bottle so the public eligibility gate can exclude it");
 assert.equal(regular.source, "national_baseline");
-assert.equal(TIER_CONFIG.regular.label, "REGULAR", "direct retailer reports for regular bottles need a neutral, accurate tag");
+assert.equal(TIER_CONFIG.regular, undefined, "the Drop Feed must not expose a Regular presentation");
 assert.deepEqual(DROP_FEED_CLASSIFICATION_TIERS, ["unicorn", "highly_allocated", "allocated", "limited"]);
 assert.equal(DROP_FEED_CLASSIFICATION_TIERS.includes("regular" as never), false, "Regular must not become a Drop Feed filter tier");
 

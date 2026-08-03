@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { ThumbsDown, ThumbsUp } from "lucide-react";
+import { ChevronDown, ThumbsDown, ThumbsUp } from "lucide-react";
 import CountyLink from "@/components/CountyLink";
 import {
   type DropEvent,
@@ -85,38 +85,37 @@ const RETAILER_SIGNAL_CARDS = {
   lottery: { label: "Lottery", border: "rgba(167,139,250,0.38)", background: "linear-gradient(115deg, rgba(139,92,246,0.15), rgba(9,9,9,0.94) 48%)" },
 } as const;
 
-const TIER_CARD_HIGHLIGHTS: Record<string, { border: string; background: string; hoverBackground: string }> = {
+const TIER_CARD_HIGHLIGHTS: Record<string, { border: string; glow: string; hoverGlow: string }> = {
   unicorn: {
     border: "rgba(232,201,122,0.78)",
-    background: "linear-gradient(100deg, rgba(52,22,47,0.52), rgba(9,9,9,0.18) 46%, transparent)",
-    hoverBackground: "linear-gradient(100deg, rgba(68,27,60,0.68), rgba(196,148,58,0.08) 52%, transparent)",
+    glow: "rgba(74,32,67,0.28)",
+    hoverGlow: "rgba(91,38,81,0.38)",
   },
   highly_allocated: {
     border: "rgba(232,166,64,0.72)",
-    background: "linear-gradient(100deg, rgba(112,66,17,0.28), rgba(9,9,9,0.16) 46%, transparent)",
-    hoverBackground: "linear-gradient(100deg, rgba(137,79,17,0.38), rgba(232,166,64,0.07) 52%, transparent)",
+    glow: "rgba(126,75,20,0.20)",
+    hoverGlow: "rgba(150,88,20,0.28)",
   },
   allocated: {
     border: "rgba(184,115,51,0.62)",
-    background: "linear-gradient(100deg, rgba(98,49,18,0.24), rgba(9,9,9,0.14) 46%, transparent)",
-    hoverBackground: "linear-gradient(100deg, rgba(118,59,20,0.34), rgba(184,115,51,0.07) 52%, transparent)",
+    glow: "rgba(112,56,21,0.18)",
+    hoverGlow: "rgba(137,68,23,0.26)",
   },
   limited: {
     border: "rgba(122,145,165,0.46)",
-    background: "linear-gradient(100deg, rgba(61,76,91,0.18), rgba(9,9,9,0.10) 46%, transparent)",
-    hoverBackground: "linear-gradient(100deg, rgba(72,91,108,0.26), rgba(122,145,165,0.05) 52%, transparent)",
-  },
-  regular: {
-    border: "rgba(166,157,132,0.24)",
-    background: "transparent",
-    hoverBackground: "rgba(245,237,214,0.035)",
+    glow: "rgba(63,79,94,0.16)",
+    hoverGlow: "rgba(75,94,111,0.23)",
   },
   unknown: {
     border: "rgba(166,157,132,0.18)",
-    background: "transparent",
-    hoverBackground: "rgba(245,237,214,0.035)",
+    glow: "rgba(166,157,132,0.06)",
+    hoverGlow: "rgba(166,157,132,0.10)",
   },
 };
+
+function premiumCardBackground(glow: string) {
+  return `radial-gradient(circle at 12% 0%, ${glow} 0%, transparent 34%), linear-gradient(180deg, rgba(22,18,14,0.96), rgba(12,10,8,0.98))`;
+}
 
 function retailerCardAppearance(drop: GroupedDrop) {
   if (!drop.retailerReported || !drop.retailerSignalKind) return null;
@@ -943,6 +942,8 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport, onVoteS
       animate={{ opacity: isBlurred ? blurOpacity : 1, y: 0 }}
       transition={{ duration: 0.5, ease: [0.25, 0.1, 0.25, 1] }}
       style={{
+        minWidth: 0,
+        width: "100%",
         filter: isBlurred ? `blur(${blurAmount}px)` : "none",
         pointerEvents: isBlurred ? "none" : "auto",
         userSelect: isBlurred ? "none" : "auto",
@@ -951,22 +952,21 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport, onVoteS
 
       <div
         className="md:hidden dropfeed-signal-card"
-                onClick={() => hasDetails && !isBlurred && setExpanded(!expanded)}
+        onClick={() => hasDetails && !isBlurred && setExpanded(!expanded)}
         style={{
           position: "relative",
           marginBottom: 0,
-          padding: "20px 4px",
-          borderRadius: 0,
-          border: "none",
-          borderBottom: "1px solid var(--boundary-subtle)",
-          background: classificationAppearance.background,
-          boxShadow: `inset 3px 0 0 ${classificationAppearance.border}`,
+          padding: "20px 18px 18px",
+          borderRadius: "18px",
+          border: "1px solid rgba(245,237,214,0.09)",
+          background: premiumCardBackground(classificationAppearance.glow),
+          boxShadow: "0 12px 32px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.025)",
           overflow: "hidden",
           cursor: hasDetails ? "pointer" : "default",
         }}
       >
-        <div className="flex items-center justify-between gap-3" style={{ marginBottom: "8px" }}>
-          <div className="flex items-center gap-2" style={{ minWidth: 0 }}>
+        <div className="flex items-start justify-between gap-3" style={{ marginBottom: "8px" }}>
+          <div className="flex items-center gap-2" style={{ minWidth: 0, flex: 1, flexWrap: "wrap" }}>
             {distilleryMeta ? (
               <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: "9px", fontWeight: 850, letterSpacing: "0.08em", color: "rgba(232,201,122,0.96)", background: "rgba(196,148,58,0.11)", border: "1px solid rgba(196,148,58,0.24)", padding: "4px 8px", borderRadius: "999px", textTransform: "uppercase", whiteSpace: "nowrap" }}>
                 {distilleryMeta.trustChip}
@@ -979,32 +979,13 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport, onVoteS
                     Verified retailer · {retailerAppearance.label}
                   </span>
                 ) : null}
-                <span
-                  style={{
-                    fontFamily: "var(--font-jetbrains)",
-                    fontSize: "9px",
-                    fontWeight: 700,
-                    letterSpacing: "0.08em",
-                    textTransform: "uppercase",
-                    color: "rgba(245,237,214,0.42)",
-                  }}
-                >
-                  {stateLabel}
-                </span>
               </>
             )}
           </div>
 
-          <div className="dropfeed-card-meta flex items-center gap-2" style={{ minWidth: 0 }}>
-            {!distilleryMeta && hasPricing && (
-              <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: "10px", color: "rgba(245,237,214,0.5)", whiteSpace: "nowrap" }}>
-                ${pricing.msrp} MSRP
-              </span>
-            )}
-            <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: "10px", color: "rgba(245,237,214,0.38)", whiteSpace: "nowrap" }}>
-              {signalTime}
-            </span>
-          </div>
+          <span style={{ fontFamily: "var(--font-jetbrains)", fontSize: "9px", fontWeight: 800, letterSpacing: "0.08em", textTransform: "uppercase", color: "rgba(245,237,214,0.48)", whiteSpace: "nowrap", flexShrink: 0 }}>
+            {stateLabel}
+          </span>
         </div>
 
         <div
@@ -1021,9 +1002,19 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport, onVoteS
             overflow: "hidden",
             textOverflow: "ellipsis",
             maxWidth: "100%",
+            marginTop: "13px",
           }}
         >
           {drop.displayName}
+        </div>
+
+        <div className="dropfeed-card-meta flex items-center justify-between gap-3" style={{ marginTop: "11px", minWidth: 0 }}>
+          <span style={{ minWidth: 0, flex: 1, overflow: "hidden", textOverflow: "ellipsis", fontFamily: "var(--font-jetbrains)", fontSize: "10px", color: "rgba(245,237,214,0.62)", whiteSpace: "nowrap" }}>
+            {!distilleryMeta && hasPricing ? `MSRP $${pricing.msrp}` : signalLabel}
+          </span>
+          <span style={{ flexShrink: 0, fontFamily: "var(--font-jetbrains)", fontSize: "10px", color: "rgba(245,237,214,0.46)", whiteSpace: "nowrap" }}>
+            {signalTime}
+          </span>
         </div>
 
         {distilleryMeta ? (
@@ -1074,15 +1065,11 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport, onVoteS
           </div>
         ) : null}
 
-        <div className="flex items-center justify-between gap-3" style={{ marginTop: "12px", paddingTop: "11px", borderTop: "1px solid rgba(245,237,214,0.07)" }}>
+        <div className="dropfeed-card-summary" style={{ marginTop: "14px", padding: "12px 0", borderTop: "1px solid rgba(245,237,214,0.07)", borderBottom: "1px solid rgba(245,237,214,0.06)" }}>
           <div className="min-w-0">
             <div style={{ fontFamily: "var(--font-dm-sans)", fontSize: distilleryMeta ? "13px" : "14px", fontWeight: distilleryMeta ? 600 : 650, color: "rgba(245,237,214,0.78)", whiteSpace: distilleryMeta ? "normal" : "nowrap", overflow: distilleryMeta ? "visible" : "hidden", textOverflow: distilleryMeta ? "clip" : "ellipsis", lineHeight: 1.35 }}>
               {distilleryMeta ? distilleryMeta.explanation : primaryMeta}
             </div>
-          </div>
-
-          <div className="flex items-center gap-2" style={{ flexShrink: 0 }}>
-            {hasDetails ? <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "rgba(245,237,214,0.38)" }}>{distilleryMeta ? "More" : "Details"}</span> : null}
           </div>
         </div>
 
@@ -1103,35 +1090,45 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport, onVoteS
           </div>
         ) : null}
 
-        {distilleryMeta?.sourceUrl || !isFreeUser ? (
-          <div className="flex items-center gap-2" style={{ marginTop: "11px", flexWrap: "wrap" }} onClick={(event) => event.stopPropagation()}>
-            {distilleryMeta?.sourceUrl ? (
-              <a className="sighting-chip" href={distilleryMeta.sourceUrl} target="_blank" rel="noreferrer">{distilleryMeta.ctaLabel}</a>
-            ) : null}
-            {!distilleryMeta && canQuickReport ? (
+        <div className="dropfeed-card-footer flex items-center justify-between gap-3" style={{ marginTop: "14px", minHeight: "30px" }}>
+          <div className="flex items-center gap-2" style={{ flexWrap: "wrap" }} onClick={(event) => event.stopPropagation()}>
+            {distilleryMeta?.sourceUrl || !isFreeUser ? (
               <>
-                <button type="button" className={`sighting-chip ${reportKind === "seen" ? "active" : ""}`} onClick={() => onReport?.(drop, "seen")}>Seen</button>
-                <button type="button" className={`sighting-chip ${reportKind === "not_seen" ? "active caution" : ""}`} onClick={() => onReport?.(drop, "not_seen")}>Not seen</button>
+                {distilleryMeta?.sourceUrl ? (
+                  <a className="sighting-chip" href={distilleryMeta.sourceUrl} target="_blank" rel="noreferrer">{distilleryMeta.ctaLabel}</a>
+                ) : null}
+                {!distilleryMeta && canQuickReport ? (
+                  <>
+                    <button type="button" className={`sighting-chip ${reportKind === "seen" ? "active" : ""}`} onClick={() => onReport?.(drop, "seen")}>Seen</button>
+                    <button type="button" className={`sighting-chip ${reportKind === "not_seen" ? "active caution" : ""}`} onClick={() => onReport?.(drop, "not_seen")}>Not seen</button>
+                  </>
+                ) : !distilleryMeta && !isUserSighting ? (
+                  <a className="sighting-chip" href={addSightingHref}>Add sighting</a>
+                ) : null}
+                {memberVoteControls}
               </>
-            ) : !distilleryMeta && !isUserSighting ? (
-              <a className="sighting-chip" href={addSightingHref}>Add sighting</a>
             ) : null}
-            {memberVoteControls}
           </div>
-        ) : null}
+          {hasDetails ? (
+            <span className="dropfeed-details-control" style={{ display: "inline-flex", alignItems: "center", gap: "5px", marginLeft: "auto", fontFamily: "var(--font-dm-sans)", fontSize: "12px", fontWeight: 750, color: "rgba(245,237,214,0.64)", whiteSpace: "nowrap" }}>
+              Details <ChevronDown size={14} aria-hidden="true" style={{ transform: expanded ? "rotate(180deg)" : "rotate(0deg)", transition: "transform 180ms ease" }} />
+            </span>
+          ) : null}
+        </div>
 
       </div>
 
       {/* Main row */}
       <div
-        className="hidden md:flex items-center"
+        className="hidden md:flex items-center dropfeed-signal-card"
         style={{
-          padding: "16px 20px",
+          padding: "20px 22px",
           cursor: hasDetails ? "pointer" : "default",
-          background: hovered ? classificationAppearance.hoverBackground : retailerAppearance ? retailerAppearance.background : distilleryMeta ? "linear-gradient(90deg, rgba(196,148,58,0.055), rgba(196,148,58,0.015) 42%, transparent)" : classificationAppearance.background,
-          borderLeft: `2px solid ${retailerAppearance?.border || classificationAppearance.border}`,
+          borderRadius: "16px",
+          border: `1px solid ${hovered ? "rgba(245,237,214,0.14)" : "rgba(245,237,214,0.085)"}`,
+          background: premiumCardBackground(hovered ? classificationAppearance.hoverGlow : classificationAppearance.glow),
           transform: hovered ? "translateY(-2px)" : "translateY(0)",
-          boxShadow: hovered ? "0 8px 24px rgba(0,0,0,0.3)" : "none",
+          boxShadow: hovered ? "0 16px 38px rgba(0,0,0,0.34), inset 0 1px 0 rgba(255,255,255,0.035)" : "0 10px 28px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.025)",
           transition: "all 200ms ease",
         }}
         onClick={() => hasDetails && !isBlurred && setExpanded(!expanded)}
@@ -1347,10 +1344,14 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport, onVoteS
               <div
                 className="dropfeed-detail-panel"
                 style={{
-                  padding: "12px 20px 12px 101px",
+                  marginTop: "8px",
+                  padding: "16px 22px 18px",
+                  borderRadius: "16px",
+                  border: "1px solid rgba(245,237,214,0.08)",
+                  background: "rgba(16,13,10,0.9)",
                   fontFamily: "var(--font-dm-sans)",
                   fontSize: "12px",
-                  color: "rgba(245,237,214,0.5)",
+                  color: "rgba(245,237,214,0.56)",
                 }}
               >
                 {isFreeUser ? (
@@ -2145,6 +2146,17 @@ export default function DropFeed() {
         @media (prefers-reduced-motion: reduce) {
           .signal-ticker-track { animation: none; transform: none; }
         }
+        .dropfeed-card-stack {
+          display: grid;
+          grid-template-columns: minmax(0, 1fr);
+          gap: 12px;
+        }
+        .dropfeed-details-control {
+          transition: color 160ms ease;
+        }
+        .dropfeed-signal-card:hover .dropfeed-details-control {
+          color: rgba(245,237,214,0.88) !important;
+        }
         @media (max-width: 767px) {
           #drops { padding-top: 18px !important; }
           .dropfeed-shell { padding-left: 18px !important; padding-right: 18px !important; }
@@ -2175,7 +2187,7 @@ export default function DropFeed() {
           .dropfeed-card-meta span {
             font-size: 9px !important;
           }
-          .dropfeed-detail-panel { padding: 4px 2px 14px 8px !important; }
+          .dropfeed-detail-panel { padding: 16px 18px 18px !important; }
         }
         .sighting-chip {
           display: inline-flex;
@@ -2665,8 +2677,8 @@ export default function DropFeed() {
               viewport={{ once: true, margin: "-80px" }}
               transition={{ duration: 0.72, delay: 0.08, ease: [0.25, 0.1, 0.25, 1] }}
             >
-              <div>
-                <div ref={feedResultsRef} aria-hidden="true" style={{ height: "1px" }} />
+              <div className="dropfeed-card-stack">
+                <div ref={feedResultsRef} aria-hidden="true" style={{ position: "absolute", top: 0, height: "1px" }} />
                 {displayedGrouped.length === 0 ? (
                   <div
                     style={{
