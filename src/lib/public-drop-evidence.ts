@@ -9,7 +9,7 @@ const MAX_OH_STALE_FEED_AGE_MS = 14 * DAY_MS;
 const MAX_DELIVERY_DROP_AGE_MS = 14 * DAY_MS;
 const MAX_CONTEXT_DROP_AGE_MS = 30 * DAY_MS;
 const FUTURE_CLOCK_SKEW_MS = 15 * 60 * 1000;
-const DROP_FEED_TIERS = new Set(["unicorn", "allocated", "limited"]);
+const DROP_FEED_TIERS = new Set(["unicorn", "highly_allocated", "allocated", "limited"]);
 
 export type PublicDropEvidenceInput = Record<string, unknown>;
 

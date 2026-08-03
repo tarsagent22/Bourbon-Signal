@@ -9,8 +9,8 @@ import { dropFreshnessTime, resolveDropLimit } from "@/lib/drop-feed-policy";
 import { isFreshPublicDrop, isPublicDropFeedEligible, publicDropRarityTier, publicEvidenceStateCode } from "@/lib/public-drop-evidence";
 import { historicalDropFeedEnabled, scopedDropFeedHistoryEnabled, selectDropFeedHistory } from "@/lib/drop-feed-history";
 import { readCachedPublicRetailerSubmissions } from "@/lib/retailer-public-submissions";
-import { getBourbonBible } from "@/lib/bourbonBible";
-import { isVerifiedRetailerDrop, retailerFeedSnapshot, retailerSubmissionToFeedCard, type RetailerFeedTier } from "@/lib/retailer-signal-feed";
+import dropFeedClassification from "@/data/drop-feed-classification.generated.json";
+import { isVerifiedRetailerDrop, retailerFeedSnapshot, retailerSubmissionToFeedCard } from "@/lib/retailer-signal-feed";
 import { californiaAreaMatchesFields, parseCaliforniaAreaQuery } from "@/lib/california-area";
 import { nevadaAreaMatchesFields, parseNevadaAreaQuery } from "@/lib/nevada-area";
 import { newYorkAreaMatchesFields, parseNewYorkAreaQuery, SUPPORTED_NEW_YORK_AREAS } from "@/lib/new-york-area";
@@ -21,21 +21,20 @@ import {
   parseDemandMetroAreaQuery,
 } from "@/lib/demand-metro-areas";
 import { dropFeedStoreQueryMatches } from "@/lib/feed-area-options";
+import {
+  DROP_FEED_CLASSIFICATION_TIERS,
+  getDropClassificationIndex,
+  resolveDropClassification,
+  type DropClassificationBottle,
+} from "@/lib/drop-classification";
 
 const ANONYMOUS_DROP_PREVIEW_LIMIT = 7;
-const DROP_FEED_TIERS = new Set(["unicorn", "allocated", "limited"]);
+const DROP_FEED_TIERS = new Set<string>(DROP_FEED_CLASSIFICATION_TIERS);
 const HOUR_MS = 60 * 60 * 1000;
 const DAY_MS = 24 * HOUR_MS;
 const MAX_ENGINE_AGE_MS = 24 * HOUR_MS;
 const FUTURE_CLOCK_SKEW_MS = 15 * 60 * 1000;
 
-function retailerTierForAvailability(availability: string | undefined): RetailerFeedTier {
-  if (availability === "highly_allocated") return "unicorn";
-  if (availability === "allocated") return "allocated";
-  if (availability === "limited" || availability === "regional" || availability === "seasonal") return "limited";
-  if (availability === "common") return "standard";
-  return "unknown";
-}
 
 function dropRarityTier(drop: Record<string, unknown>) {
   return publicDropRarityTier(drop);
@@ -258,19 +257,27 @@ export async function GET(request: Request) {
       readSiteExportResults(["drops", "stats"]),
       publicRetailerSubmissions(),
     ]);
-    const bourbonBible = retailerSubmissions.length > 0 ? await getBourbonBible() : [];
     const exportPayload = dropResult.payload;
     const statsPayload = statsResult.payload;
     const rawDrops = Array.isArray(exportPayload?.drops) ? exportPayload.drops : [];
-    const bibleById = new Map(bourbonBible.map((bottle) => [bottle.id, bottle]));
-    const bibleByName = new Map(bourbonBible.map((bottle) => [normalizedDropText(bottle.canonicalName), bottle]));
     const retailerDrops = retailerSubmissions
-      .map((submission) => {
-        const bottle = (submission.bottleId ? bibleById.get(submission.bottleId) : undefined) || bibleByName.get(normalizedDropText(submission.title));
-        return retailerSubmissionToFeedCard(submission, new Date(), retailerTierForAvailability(bottle?.availability));
-      })
+      .map((submission) => retailerSubmissionToFeedCard(submission, new Date()))
       .filter((drop): drop is NonNullable<typeof drop> => Boolean(drop));
-    const normalizedDrops = [...rawDrops, ...retailerDrops].map((drop) => normalizeDropForSite(drop as Record<string, unknown>));
+    const classificationIndex = getDropClassificationIndex(dropFeedClassification.records as unknown as DropClassificationBottle[]);
+    const normalizedDrops = [...rawDrops, ...retailerDrops]
+      .map((drop) => normalizeDropForSite(drop as Record<string, unknown>))
+      .map((drop) => {
+        const classification = resolveDropClassification(drop, classificationIndex);
+        return {
+          ...drop,
+          tier: classification.tier,
+          rarity_tier: classification.tier,
+          classification_source: classification.source,
+          classification_state: classification.state,
+          classification_bottle_id: classification.bottleId,
+          national_tier: classification.nationalTier,
+        };
+      });
     let drops = [...normalizedDrops];
     const degradedStates = degradedEngineStates(statsPayload);
     const engineFresh = isEngineFresh(statsPayload, exportPayload?.generatedAt);
@@ -426,7 +433,7 @@ export async function GET(request: Request) {
     const shouldDiversify = !bottle && !store;
     const displayDrops = shouldDiversify ? diversifyDrops(drops as Record<string, unknown>[]) : drops;
     const engineSnapshot = String(dropResult.snapshotId || exportPayload?.generatedAt || engineRunTimestamp(statsPayload, exportPayload?.generatedAt));
-    const snapshot = `${engineSnapshot}:retailer:${retailerFeedSnapshot(retailerSubmissions)}:history:${historicalMode ? 1 : 0}`;
+    const snapshot = `${engineSnapshot}:classification:${classificationIndex.version}:retailer:${retailerFeedSnapshot(retailerSubmissions)}:history:${historicalMode ? 1 : 0}`;
     const page = paginateDrops(displayDrops, { limit, offset, cursor: requestedCursor, snapshot });
     const pagedDrops = page.items;
 

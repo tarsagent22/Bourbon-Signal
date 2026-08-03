@@ -378,7 +378,8 @@ assert.match(repository, /markDecisionNotificationSent/);
 
 const dropsApi = read("src/app/api/drops/route.ts");
 assert.match(dropsApi, /retailerSubmissionToFeedCard/);
-assert.match(dropsApi, /getBourbonBible/);
+assert.match(dropsApi, /drop-feed-classification\.generated\.json/);
+assert.match(dropsApi, /resolveDropClassification/);
 assert.match(dropsApi, /retailerFeedSnapshot/);
 assert.match(dropsApi, /isVerifiedRetailerDrop/);
 const eventsApi = read("src/app/api/events/route.ts");

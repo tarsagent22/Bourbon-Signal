@@ -5,12 +5,13 @@ import { gzipSync } from "node:zlib";
 import { createRemoteSiteSnapshotReader } from "../src/lib/remote-site-snapshot.ts";
 import { createSiteSnapshotManifest } from "../engine/src/data-plane/site-snapshot-contract.mjs";
 
-const [routeSource, snapshotSource, repositorySource, feedSource, retailerPublicSource] = await Promise.all([
+const [routeSource, snapshotSource, repositorySource, feedSource, retailerPublicSource, classificationSource] = await Promise.all([
   readFile(new URL("../src/app/api/drops/route.ts", import.meta.url), "utf8"),
   readFile(new URL("../src/lib/site-engine-contract.ts", import.meta.url), "utf8"),
   readFile(new URL("../src/lib/retailer-repository.ts", import.meta.url), "utf8"),
   readFile(new URL("../src/components/sections/DropFeed.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/lib/retailer-public-submissions.ts", import.meta.url), "utf8"),
+  readFile(new URL("../src/lib/drop-classification.ts", import.meta.url), "utf8"),
 ]);
 
 assert.match(snapshotSource, /const readActivePointer = unstable_cache\([\s\S]*?revalidate:\s*15/, "the mutable snapshot pointer should use a short server data cache instead of a Blob round trip on every private feed request");
@@ -18,7 +19,11 @@ assert.doesNotMatch(repositorySource, /ensureSchema|CREATE TABLE|ALTER TABLE|CRE
 assert.match(routeSource, /readCachedPublicRetailerSubmissions/, "the Drop Feed reads the shared migration-provisioned retailer schema reader");
 assert.match(retailerPublicSource, /listPublicSubmissions\(\)/, "the shared retailer reader queries the migration-provisioned retailer schema");
 assert.match(retailerPublicSource, /unstable_cache\([\s\S]*?public-retailer-submissions-v3[\s\S]*?revalidate:\s*15/, "public retailer rows should be shared briefly across feed and coverage requests");
-assert.match(routeSource, /retailerSubmissions\.length > 0\s*\? await getBourbonBible\(\)\s*:\s*\[\]/, "the Drop Feed should not fetch the bottle catalog when there are no retailer submissions to enrich");
+assert.doesNotMatch(routeSource, /getBourbonBible/, "the Drop Feed request path must not cold-build the quadratic merged Bourbon Bible");
+assert.match(routeSource, /drop-feed-classification\.generated\.json/, "the Drop Feed should load the generated canonical classification artifact");
+assert.match(routeSource, /getDropClassificationIndex\(dropFeedClassification\.records/, "the Drop Feed should use the cached generated classification index");
+assert.doesNotMatch(routeSource, /bibleById|bibleByName/, "the request path must not rebuild separate catalog maps outside the cached classification index");
+assert.match(classificationSource, /const indexCache = new WeakMap[\s\S]*?indexCache\.get\(bottles\)[\s\S]*?indexCache\.set\(bottles, index\)/, "classification aliases should not be rebuilt while the cached Bourbon Bible array is unchanged");
 assert.match(feedSource, /const dropFeedResponseCache = new Map/, "recent filter responses should be reusable during the browser session");
 assert.match(feedSource, /new AbortController\(\)[\s\S]*?controller\.abort\(\)/, "superseded filter requests should be aborted");
 assert.match(feedSource, /fetchDropFeedPage\([^)]*signal[^)]*forceRefresh/, "filter loading should use the cached, cancellable page fetcher");
