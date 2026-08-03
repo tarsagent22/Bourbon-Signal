@@ -88,7 +88,8 @@
 .textButton:focus-visible,
 .changeState:focus-visible,
 .sectionHeading > a:focus-visible,
-.exploreLinks a:focus-visible {
+.exploreLinks a:focus-visible,
+.membershipAction > a:focus-visible {
   outline: 2px solid rgba(232, 201, 122, 0.8);
   outline-offset: 3px;
 }
@@ -505,9 +506,11 @@
   align-items: center;
   justify-content: space-between;
   gap: 18px;
-  margin-top: 18px;
-  padding-top: 18px;
-  border-top: 1px solid rgba(245, 237, 214, 0.075);
+  margin-top: 22px;
+  padding: 18px;
+  border: 1px solid rgba(196, 148, 58, 0.2);
+  border-radius: 15px;
+  background: linear-gradient(135deg, rgba(196, 148, 58, 0.095), rgba(245, 237, 214, 0.025));
 }
 
 .membershipAction > div {
@@ -528,8 +531,8 @@
 }
 
 .membershipAction small {
-  color: rgba(245, 237, 214, 0.42);
-  font: 10px/1.35 var(--font-dm-sans);
+  color: rgba(245, 237, 214, 0.68);
+  font: 11px/1.45 var(--font-dm-sans);
 }
 
 .membershipAction > a {

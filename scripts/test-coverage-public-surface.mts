@@ -79,7 +79,7 @@ assert.match(model, /customerSummary|customerCanSee|customerCannotSee/, "plain c
 assert.match(panel, /customerSummary \|\| state\.summary/, "the panel renders the plain customer summary");
 assert.match(panel, /customerCanSee \|\| state\.canSee/, "the panel renders the plain customer capabilities");
 assert.doesNotMatch(search, /Results describe monitoring coverage/i, "search explains what the customer gets rather than exposing monitoring terminology");
-assert.match(welcome, /What you can do here|stores listed|current bottle availability/i, "the welcome surface uses the same plain-language coverage vocabulary");
+assert.match(welcome, /coverage explained|Stores represented|Stores reporting current availability/i, "the welcome surface uses the same plain-language coverage vocabulary");
 
 assert.match(panel, /How we check this area/, "coverage detail uses progressive disclosure");
 assert.match(panel, /What is not available yet/, "state drilldown states its limits");

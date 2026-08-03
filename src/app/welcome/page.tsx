@@ -343,9 +343,9 @@ export default function WelcomePage() {
       <main className={styles.page}>
         <div className={styles.journey}>
           <header className={styles.hero}>
-            <p className={styles.eyebrow}>Free member activation</p>
-            <h1>Start with the bourbon signal closest to home.</h1>
-            <p>Your home state personalizes this preview. It does not subscribe you to alerts, and you can change it here anytime.</p>
+            <p className={styles.eyebrow}>Your free account</p>
+            <h1>Start with bourbon signals close to home.</h1>
+            <p>Choose a home state to see five recent signals, current coverage, and where better coverage is needed. Free accounts do not include alerts.</p>
           </header>
 
           {!preferencesReady ? (
@@ -462,8 +462,8 @@ export default function WelcomePage() {
                   <div className={styles.headingGroup}>
                     <span className={styles.landmark} aria-hidden="true">02</span>
                     <div>
-                      <p className={styles.stepLabel}>Information available here</p>
-                      <h2 id="coverage-depth-heading">What you can do here</h2>
+                      <p className={styles.stepLabel}>Coverage in your state</p>
+                      <h2 id="coverage-depth-heading">{activeStateName} coverage explained</h2>
                     </div>
                   </div>
                   <Link className={styles.sectionAction} href={`/coverage?state=${encodeURIComponent(activeState)}`}><MapIcon size={14} aria-hidden="true" />Coverage map</Link>
@@ -473,21 +473,25 @@ export default function WelcomePage() {
                   <>
                     <div className={styles.coverageOverview}>
                       <div className={styles.coverageBadges}>
-                        <span><Gauge size={13} aria-hidden="true" />{coverageState.coverageStrengthLabel}</span>
-                        <span data-health={coverageState.health}><Radio size={13} aria-hidden="true" />{coverageState.healthLabel}</span>
+                        <span><Gauge size={13} aria-hidden="true" />Coverage: {coverageState.coverageStrength === "none" ? "None" : titleCase(coverageState.coverageStrength)}</span>
+                        <span data-health={coverageState.health}><Radio size={13} aria-hidden="true" />Updates: {coverageState.healthLabel}</span>
                       </div>
                       <p>{coverageState.coverageStatus === "not-available"
-                        ? `We do not have reliable coverage in ${activeStateName} yet.`
-                        : `Here is the information available in ${activeStateName}.`}</p>
+                        ? `We do not have reliable coverage in ${activeStateName} yet. Use the request below to tell us where coverage matters most.`
+                        : `We track ${coverageState.scope.shipmentBoards
+                          ? `official shipment information${coverageState.capabilities.currentBottleAvailability ? " and availability at supported stores" : ""}`
+                          : coverageState.capabilities.currentBottleAvailability
+                            ? "availability at supported stores and areas"
+                            : "verified public updates from supported sources"} in ${activeStateName}. Coverage shows how broadly we can monitor the state; Updates show whether those sources are reporting normally.`}</p>
                     </div>
                     <dl className={styles.coverageMetrics}>
-                      {coverageState.scope.shipmentBoards ? <div className={styles.metricMajor}><Compass size={16} aria-hidden="true" /><dt>Official pages with shipment information</dt><dd>{coverageState.scope.shipmentBoards}</dd></div> : null}
-                      <div className={styles.metricMajor}><Store size={16} aria-hidden="true" /><dt>Stores listed</dt><dd>{coverageState.scope.searchableStores}</dd></div>
-                      <div className={styles.metricMajor}><Radio size={16} aria-hidden="true" /><dt>Stores with current availability</dt><dd>{coverageState.scope.inventoryMonitoredStores}</dd></div>
-                      <div><Compass size={14} aria-hidden="true" /><dt>{coverageState.scope.knownBoards ? "Store cities and towns" : "Areas with information"}</dt><dd>{coverageState.representedAreaCount}</dd></div>
-                      <div><BellRing size={14} aria-hidden="true" /><dt>Stores with restock alerts</dt><dd>{coverageState.layers.alertGrade}</dd></div>
+                      {coverageState.scope.shipmentBoards ? <div className={styles.metricMajor}><Compass size={16} aria-hidden="true" /><dt>{activeState === "NC" ? "ABC boards with shipment information" : "Official shipment sources"}</dt><dd>{coverageState.scope.shipmentBoards}</dd></div> : null}
+                      <div className={styles.metricMajor}><Store size={16} aria-hidden="true" /><dt>Stores represented</dt><dd>{coverageState.scope.searchableStores}</dd></div>
+                      <div className={styles.metricMajor}><Radio size={16} aria-hidden="true" /><dt>Stores reporting current availability</dt><dd>{coverageState.scope.inventoryMonitoredStores}</dd></div>
+                      <div><Compass size={14} aria-hidden="true" /><dt>{coverageState.scope.knownBoards ? "Cities and towns represented" : "Areas represented"}</dt><dd>{coverageState.representedAreaCount}</dd></div>
+                      <div><BellRing size={14} aria-hidden="true" /><dt>Stores eligible for paid alerts</dt><dd>{coverageState.layers.alertGrade}</dd></div>
                     </dl>
-                    <p className={styles.coverageCaveat}>Store counts tell you how much information is available; they do not mean bottles are currently on shelves.{coverageState.scope.shipmentBoards ? " Shipment information does not confirm shelf stock." : ""}{coverageState.health !== "current" && coverageState.coverageStatus !== "not-available" ? " Some information is temporarily limited." : ""}</p>
+                    <p className={styles.coverageCaveat}>These counts describe coverage, not bottles currently on the shelf.{coverageState.scope.shipmentBoards ? " Official shipment reports show what reached a board or area; they do not confirm stock at a specific store." : ""}{coverageState.health !== "current" && coverageState.coverageStatus !== "not-available" ? " Some source updates are currently delayed." : ""}</p>
                   </>
                 ) : null}
               </section>
@@ -524,8 +528,8 @@ export default function WelcomePage() {
                   <Link href="/dashboard"><LayoutDashboard aria-hidden="true" /><span><strong>Dashboard</strong><small>Open your member workspace.</small></span><ArrowUpRight aria-hidden="true" /></Link>
                 </nav>
                 <div className={styles.membershipAction}>
-                  <div><Compass size={18} aria-hidden="true" /><span><strong>Want alerts and expanded tools?</strong><small>Compare Free, Standard, Barrel, and Founder.</small></span></div>
-                  <Link href="/pricing?source=welcome">Compare memberships <ArrowUpRight size={14} aria-hidden="true" /></Link>
+                  <div><BellRing size={18} aria-hidden="true" /><span><strong>Your free account is a preview.</strong><small>Paid unlocks the full feed, saved alert areas, bottle watchlists, and live alerts. Plans start at $2.99/month.</small></span></div>
+                  <Link href="/pricing?source=welcome">See paid options <ArrowUpRight size={14} aria-hidden="true" /></Link>
                 </div>
               </section>
             </>
