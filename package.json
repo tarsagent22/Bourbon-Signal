@@ -86,7 +86,7 @@
     "test:coverage": "node --no-warnings --experimental-strip-types scripts/test-coverage-contract.mts && node --no-warnings --experimental-strip-types scripts/test-coverage-strength.mts && node --no-warnings --experimental-strip-types scripts/test-coverage-public-surface.mts && node --no-warnings --experimental-strip-types scripts/test-coverage-requests.mts && node --no-warnings --experimental-strip-types scripts/test-coverage-member-owner-surfaces.mts && node --no-warnings --experimental-strip-types scripts/test-coverage-request-automation.mts",
     "test:coverage-depth": "node --no-warnings --experimental-strip-types scripts/test-coverage-depth-freshness.mts && node --no-warnings --experimental-strip-types scripts/audit-coverage-depth.mts --check && node --no-warnings --experimental-strip-types scripts/audit-coverage-depth.mts --check --retailer-fixture=scripts/fixtures/coverage-retailer-audit-fixture.json",
     "report:coverage-depth": "node --no-warnings --experimental-strip-types scripts/audit-coverage-depth.mts",
-    "test:nc-board-completeness": "node --no-warnings --experimental-strip-types scripts/test-nc-board-completeness.mts",
+    "test:nc-board-completeness": "node --no-warnings --experimental-strip-types scripts/test-nc-board-completeness.mts && tsx scripts/test-nc-board-feed-normalization.mts && tsx scripts/test-nc-board-alert-matching.mts",
     "test:premium-boundaries": "node scripts/test-premium-boundary-system.mjs",
     "test:state-report-hydration": "node scripts/test-state-report-hydration.mjs",
     "test:production-verification-scope": "node scripts/test-production-verification-scope.mjs",

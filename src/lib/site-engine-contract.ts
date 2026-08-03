@@ -9,6 +9,7 @@ import { VercelBlobSnapshotStorage } from "@/lib/vercel-blob-snapshot-storage";
 import { buildStateStats } from "@/lib/site-stats-metrics";
 import { resolveDropQuantitySemantics } from "@/lib/drop-quantity-semantics";
 import { isUserFacingDropSignal } from "@/lib/drop-feed-visibility";
+import { canonicalNcAbcBoardEvidence } from "@/lib/nc-abc-boards";
 export { isUserFacingDropSignal } from "@/lib/drop-feed-visibility";
 
 const SITE_EXPORT_DIR = join(process.cwd(), "engine", "out", "site");
@@ -298,9 +299,13 @@ export function normalizeDropForSite(drop: JsonRecord) {
   const type = firstNonEmptyString(drop.type, drop.event_type) || "signal";
   const signalLabel = getPublicSignalLabel(type, locationPrecision, visibilityQuantity, canAlertAsInventory);
   const isStoreInventory = isStoreLevelInventory(type, locationPrecision, canAlertAsInventory) && exactStoreDetails;
-  const locationLabel = getPublicLocationLabel(
+  const sourceLocationName = firstNonEmptyString(drop.locationName, drop.display_location);
+  const canonicalShipmentBoard = state === "NC" && type === "nc_board_shipment_snapshot"
+    ? canonicalNcAbcBoardEvidence(sourceLocationName)
+    : null;
+  const locationLabel = canonicalShipmentBoard || getPublicLocationLabel(
     state,
-    firstNonEmptyString(drop.locationName, drop.display_location),
+    sourceLocationName,
     firstNonEmptyString(drop.city, drop.store_city),
     firstNonEmptyString(drop.county, drop.store_county),
   );
@@ -419,7 +424,7 @@ function getPublicLocationLabel(state: string, locationName: string, city: strin
   if (state === "MD-MONTGOMERY") return "Montgomery County, MD";
   if (city && county) return `${city} (${county} Co.)`;
   if (city) return city;
-  if (county && /abc board/i.test(county)) return county;
+  if (county && /abc (?:board|commission)/i.test(county)) return county;
   if (county) return `${county} County`;
   return locationName;
 }

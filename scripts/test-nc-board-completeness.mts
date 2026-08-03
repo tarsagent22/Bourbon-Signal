@@ -3,7 +3,8 @@ import { readFileSync } from "node:fs";
 import { getCoveredAreaOptionsForState, buildDropFeedAreaRequest, dropFeedStoreQueryMatches, formatNcAbcAreaMenuLabel } from "../src/lib/feed-area-options.ts";
 import { normalizeNcBoardPreferences } from "../src/lib/demand-metro-areas.ts";
 import { searchCoverageTargets } from "../src/lib/coverage-model.ts";
-import { ncAbcBoardPreferencesMatch } from "../src/lib/nc-abc-boards.ts";
+import { matchedNcAbcBoardPreference, ncAbcBoardPreferencesMatch } from "../src/lib/nc-abc-boards.ts";
+import { isPublicDropFeedEligible } from "../src/lib/public-drop-evidence.ts";
 
 const readJson = (relative: string) => JSON.parse(readFileSync(new URL(`../${relative}`, import.meta.url), "utf8"));
 const readText = (relative: string) => readFileSync(new URL(`../${relative}`, import.meta.url), "utf8");
@@ -62,6 +63,98 @@ for (const board of registry.boards) {
 assert.deepEqual(normalizeNcBoardPreferences(["Fake County ABC", "NC statewide warehouse"]), [], "unsupported saved labels must be rejected");
 assert.equal(formatNcAbcAreaMenuLabel("Catawba Tribal ABC Commission"), "Catawba Tribal ABC Commission");
 assert.equal(formatNcAbcAreaMenuLabel("Cherokee Tribal ABC Commission"), "Cherokee Tribal ABC Commission");
+
+// The state shipment export historically used county-style labels even when
+// the canonical board selector used an ABC label. These aliases must resolve
+// without weakening identity for same-name municipal/county boards.
+assert.equal(
+  ncAbcBoardPreferencesMatch(["Dunn County"], ["Dunn ABC"]),
+  true,
+  "legacy Dunn County shipment labels must resolve to the Dunn ABC area",
+);
+assert.equal(
+  matchedNcAbcBoardPreference(
+    ["Hertford ABC Board", "Hertford County"],
+    ["Hertford ABC", "Hertford County ABC"],
+  ),
+  "Hertford ABC",
+  "the authoritative shipment board label must win over a conflicting derived county label",
+);
+assert.equal(
+  matchedNcAbcBoardPreference(
+    ["Hertford County ABC Board", "Hertford County"],
+    ["Hertford ABC", "Hertford County ABC"],
+  ),
+  "Hertford County ABC",
+  "the Hertford County board must remain distinct from the Hertford municipal board",
+);
+assert.equal(
+  ncAbcBoardPreferencesMatch(["Tribal ABC Commission"], ["Catawba Tribal ABC Commission"]),
+  false,
+  "an ambiguous generic tribal label must not be guessed into a specific board",
+);
+for (const [municipalBoard, countyBoard, countyQuery] of [
+  ["Hertford ABC Board", "Hertford County ABC", "Hertford County"],
+  ["Brunswick ABC Board", "Brunswick County ABC", "Brunswick County"],
+] as const) {
+  assert.equal(
+    dropFeedStoreQueryMatches({
+      state: "NC",
+      query: countyQuery,
+      isBoardLevel: true,
+      fields: [municipalBoard, countyQuery],
+    }),
+    false,
+    `${countyQuery} query must not fuzzy-match the same-name municipal board`,
+  );
+  assert.equal(
+    dropFeedStoreQueryMatches({
+      state: "NC",
+      query: countyQuery,
+      isBoardLevel: true,
+      fields: [`${countyQuery} ABC Board`, countyQuery],
+    }),
+    true,
+    `${countyQuery} query must remain matchable to ${countyBoard}`,
+  );
+}
+
+const dropsPayload = readJson("engine/out/site/drops.json") as { drops?: Array<Record<string, unknown>> };
+const shipmentDrops = (dropsPayload.drops || [])
+  .filter((drop) => String(drop.state || drop.state_code || "").toUpperCase() === "NC")
+  .filter((drop) => String(drop.type || drop.event_type || "") === "nc_board_shipment_snapshot");
+const resolvableShipmentDrops = shipmentDrops.filter((drop) => drop.locationName !== "Tribal ABC Commission");
+for (const drop of resolvableShipmentDrops) {
+  const fields = [drop.locationName, drop.location_name, drop.board_name, drop.display_location, drop.store_county, drop.county];
+  const matches = registry.boards.filter((board) => ncAbcBoardPreferencesMatch(fields, [board.filterLabel]));
+  assert.equal(
+    matches.length,
+    1,
+    `shipment ${String(drop.id || drop.locationName)} must resolve to exactly one canonical board; got ${matches.map((board) => board.filterLabel).join(", ")}`,
+  );
+  assert.equal(isPublicDropFeedEligible(drop), true, `shipment ${String(drop.id || drop.locationName)} must remain public-feed eligible`);
+  assert.equal(
+    dropFeedStoreQueryMatches({
+      state: "NC",
+      query: matches[0].filterLabel,
+      isBoardLevel: true,
+      fields,
+    }),
+    true,
+    `historical shipment ${String(drop.id || drop.locationName)} must survive its canonical area filter`,
+  );
+}
+const dunnShipmentDrops = shipmentDrops.filter((drop) => drop.locationName === "Dunn ABC Board");
+assert.ok(dunnShipmentDrops.length > 0, "checked-in shipment evidence must include Dunn fixtures");
+assert.ok(
+  dunnShipmentDrops.every((drop) => dropFeedStoreQueryMatches({
+    state: "NC",
+    query: "Dunn ABC",
+    isBoardLevel: true,
+    fields: [drop.locationName, drop.location_name, drop.board_name, drop.display_location, drop.store_county, drop.county],
+  })),
+  "all eligible historical Dunn board shipments must survive the Dunn area filter",
+);
 
 const alertPayload = readJson("engine/out/site/alerts.json") as { alerts?: Array<Record<string, unknown>> };
 const ncStoreCandidates = (alertPayload.alerts || []).filter((candidate) => String(candidate.state || "").toUpperCase() === "NC" && candidate.locationPrecision === "store_level");

@@ -182,27 +182,33 @@ async function readAlertCandidateBatch() {
   };
 }
 
+function candidateAreaLocationFields(candidate: CandidateAlert) {
+  return [
+    asString(candidate.locationName),
+    asString(candidate.boardName),
+    asString(candidate.location_name),
+    asString(candidate.board_name),
+    asString(candidate.displayLocation),
+    asString(candidate.display_location),
+    asString(candidate.storeName),
+    asString(candidate.store_name),
+    asString(candidate.storeAddress),
+    asString(candidate.store_address),
+    asString(candidate.storeCity),
+    asString(candidate.store_city),
+    asString(candidate.storeCounty),
+    asString(candidate.store_county),
+    asString(candidate.city),
+    asString(candidate.county),
+  ];
+}
+
 export function candidateMatchesArea(candidate: CandidateAlert, areaPrefs: AreaPreferences) {
   const state = normalizeStateCodeParam(asString(candidate.state));
   if (!state) return false;
   if (areaPrefs.states.length && !areaPrefs.states.includes(state)) return false;
 
-  const locationFields = [
-    asString(candidate.locationName),
-    asString(candidate.displayLocation),
-    asString(candidate.storeName),
-    asString(candidate.storeAddress),
-    asString(candidate.storeCity),
-    asString(candidate.storeCounty),
-    asString(candidate.boardName),
-    asString(candidate.location_name),
-    asString(candidate.display_location),
-    asString(candidate.store_name),
-    asString(candidate.store_address),
-    asString(candidate.store_city),
-    asString(candidate.store_county),
-    asString(candidate.board_name),
-  ];
+  const locationFields = candidateAreaLocationFields(candidate);
 
   if (state === "NC" && areaPrefs.ncBoards.length) {
     const ordinaryBoards = areaPrefs.ncBoards.filter((value) => value !== CHARLOTTE_METRO_BOARD_GROUP);
@@ -615,22 +621,7 @@ function matchedLocationFromOptions(candidate: CandidateAlert, options: string[]
 function candidateMatchedArea(candidate: CandidateAlert, areaPrefs: AreaPreferences) {
   const state = normalizeStateCodeParam(asString(candidate.state)) || asString(candidate.state).toUpperCase();
   const locationName = asString(candidate.locationName) || asString(candidate.storeName) || asString(candidate.storeAddress);
-  const locationFields = [
-    asString(candidate.locationName),
-    asString(candidate.displayLocation),
-    asString(candidate.storeName),
-    asString(candidate.storeAddress),
-    asString(candidate.storeCity),
-    asString(candidate.storeCounty),
-    asString(candidate.boardName),
-    asString(candidate.location_name),
-    asString(candidate.display_location),
-    asString(candidate.store_name),
-    asString(candidate.store_address),
-    asString(candidate.store_city),
-    asString(candidate.store_county),
-    asString(candidate.board_name),
-  ];
+  const locationFields = candidateAreaLocationFields(candidate);
   if (state === "NC" && areaPrefs.ncBoards.length) {
     if (demandMetroBoardGroupMatchesFields(locationFields, areaPrefs.ncBoards)) return CHARLOTTE_METRO_BOARD_GROUP;
     const ordinaryBoards = areaPrefs.ncBoards.filter((value) => value !== CHARLOTTE_METRO_BOARD_GROUP);

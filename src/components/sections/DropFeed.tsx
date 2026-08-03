@@ -25,7 +25,7 @@ import { useStats } from "@/lib/useEngineData";
 import { recordGrowthMilestone } from "@/lib/growth-client";
 import { makeSightingId, type MemberSighting, type SignalReportKind, type SightingVoteKind } from "@/lib/sightings";
 import { locationLabelsMatch, normalizeStateCodeParam, publicStateCode } from "@/lib/location-normalization";
-import { buildDropFeedAreaRequest, coveredAreaLabelsMatch, formatNcAbcAreaMenuLabel, getCoveredAreaOptionsForState } from "@/lib/feed-area-options";
+import { buildDropFeedAreaRequest, coveredAreaLabelsMatch, dropFeedStoreQueryMatches, formatNcAbcAreaMenuLabel, getCoveredAreaOptionsForState } from "@/lib/feed-area-options";
 import { ncAbcBoardPreferencesMatch } from "@/lib/nc-abc-boards";
 import { californiaAreaMatchesFields } from "@/lib/california-area";
 import { nevadaAreaMatchesFields } from "@/lib/nevada-area";
@@ -391,6 +391,12 @@ function dropAreaMatchesFilter(drop: GroupedDrop, filterValue: string) {
     ...drop.locations.flatMap((location) => [location.label, location.city, location.address, location.boardName]),
   ];
   if (drop.state === "NC" && wanted === CHARLOTTE_METRO_BOARD_GROUP) return demandMetroBoardGroupMatchesFields(fields, [wanted]);
+  if (drop.state === "NC") return dropFeedStoreQueryMatches({
+    state: drop.state,
+    query: wanted,
+    isBoardLevel: ncDropAreaKind(drop) === "board",
+    fields,
+  });
   if (drop.state === "GA" || drop.state === "TN") return demandMetroAreaMatchesFields(drop.state, fields, [wanted]);
   if (drop.state === "CA") return californiaAreaMatchesFields(areaLabelsForDrop(drop), [wanted]);
   if (drop.state === "NV") return nevadaAreaMatchesFields(areaLabelsForDrop(drop), [wanted]);
