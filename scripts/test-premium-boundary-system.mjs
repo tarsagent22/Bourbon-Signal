@@ -72,7 +72,7 @@ for (const token of [
 for (const selector of [".mapFrame", ".detailPanel", ".quickFacts span"]) {
   assertNoFullBorder(sources.coverage, selector);
 }
-assert.doesNotMatch(ruleBody(sources.coverage, ".legend"), /border-width\s*:\s*0\s+1px\s+1px/, "Coverage legend should not complete the map frame box");
+assert.doesNotMatch(ruleBody(sources.coverage, ".mapLegend"), /border-width\s*:\s*0\s+1px\s+1px/, "Coverage legend should not complete the map frame box");
 
 for (const selector of [".bc-search-card", ".bc-panel", ".bc-verdict-card, .bc-detail-card"]) {
   assertNoFullBorder(sources.bottleCheck, selector);
