@@ -310,12 +310,12 @@ test('California registry and lifecycle expose one truthful San Diego customer a
   assert.deepEqual(lifecycle.areaOptions, ['San Diego']);
 });
 
-test('current inventory alert projection uses the current snapshot rather than historical rows', async () => {
+test('current inventory alert projection uses only fresh-run rows rather than historical or cached rows', async () => {
   const exporter = await readFile(new URL('../src/export-site-contract.mjs', import.meta.url), 'utf8');
   assert.match(
     exporter,
-    /const alertableCurrentDrops = currentDrops\.filter\(\(drop\) => !fallbackStateIds\.has/,
-    'fresh current inventory must exclude guarded fallback states before alert projection',
+    /const alertableCurrentDrops = freshRunDrops\.filter\(\(drop\) => !fallbackStateIds\.has/,
+    'fresh-run inventory must exclude scheduler-skipped and guarded fallback states before alert projection',
   );
   assert.match(
     exporter,

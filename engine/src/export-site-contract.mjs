@@ -22,7 +22,7 @@ import { canPublishTennesseePartialEvidenceFallback } from './tennessee-verifica
 import { registeredDemandMetroStores } from './demand-metro-registry.mjs';
 import { demandMetroAreaLabel, demandMetroAreaMatchesFields } from './demand-metro-areas.mjs';
 import { attachRunIdentity, verifyRunCoherence } from './site-run-coherence.mjs';
-import { detectDropCollapseFallbacks, mergePartialRefreshDrops } from './partial-refresh-contract.mjs';
+import { detectDropCollapseFallbacks, mergeHistoricalBoardShipmentDrops, mergePartialRefreshDrops, selectFreshRunDrops } from './partial-refresh-contract.mjs';
 import { buildNcBoardCoverageSummary } from './nc-coverage-summary.mjs';
 import { buildNcSourceLedger, enrichNcSingleStoreShipmentSignals } from './nc-source-ledger.mjs';
 import { authoritativeSignalTimestamp, enforceArchivedSourceAlertPolicy } from './event-freshness.mjs';
@@ -80,24 +80,26 @@ async function exists(file) {
   try { await stat(file); return true; } catch { return false; }
 }
 
-async function recentSnapshots(days = HISTORY_DAYS) {
-  const cutoff = Date.now() - days * 24 * 60 * 60 * 1000;
-  if (!(await exists(SNAPSHOTS))) return [];
+export async function recentSnapshots(days = HISTORY_DAYS, options = {}) {
+  const snapshotsPath = options.snapshotsPath || SNAPSHOTS;
+  const now = Number.isFinite(options.now) ? options.now : Date.now();
+  const limit = Number.isFinite(options.limit) ? options.limit : HISTORY_SNAPSHOT_LIMIT;
+  const cutoff = now - days * 24 * 60 * 60 * 1000;
+  if (!(await exists(snapshotsPath))) return [];
 
-  const files = (await readdir(SNAPSHOTS)).filter((f) => f.endsWith('.json')).sort().reverse();
+  const files = (await readdir(snapshotsPath)).filter((f) => f.endsWith('.json')).sort().reverse();
   const snapshots = [];
   for (const file of files) {
-    const fullPath = path.join(SNAPSHOTS, file);
-    if (HISTORY_SNAPSHOT_LIMIT > 0 && snapshots.length >= HISTORY_SNAPSHOT_LIMIT) break;
+    const fullPath = path.join(snapshotsPath, file);
     const data = await readJson(fullPath);
     const ts = new Date(data?.generatedAt || '').getTime();
-    if (!Number.isFinite(ts)) continue;
-    if (ts < cutoff) {
-      // Keep the engine's on-disk operational history bounded to the same history window the site exposes.
+    if (!Number.isFinite(ts) || ts < cutoff) {
+      // Scan the complete directory before applying the read cap so the persisted
+      // twice-hourly cache remains bounded to the same history window as the site.
       await rm(fullPath, { force: true });
       continue;
     }
-    snapshots.push(data);
+    if (limit <= 0 || snapshots.length < limit) snapshots.push(data);
   }
   return snapshots;
 }
@@ -1779,6 +1781,7 @@ async function main() {
   const candidateDrops = buildDrops(historicalSignals, bible, signals);
   const currentDrops = buildDrops(signals, bible, signals);
   const previousDrops = await readJson(path.join(SITE_OUT, 'drops.json'), []);
+  const bootstrapDrops = await readJson(path.join(OUT, 'historical-bootstrap', 'drops.json'), []);
   const previousStateQuality = await readJson(path.join(SITE_OUT, 'state-quality.json'), null);
   const detectedFallbackStateIds = detectDropCollapseFallbacks(previousStateQuality, currentDrops, summary.attemptedStateIds || []);
   const tennesseeStateReport = detectedFallbackStateIds.includes('TN')
@@ -1806,7 +1809,8 @@ async function main() {
   summary.fallbackStateIds = [...new Set([...(summary.fallbackStateIds || []), ...fullFallbackStateIds])].sort();
   summary.partialFallbackStateIds = partialFallbackStateIds;
   const fallbackStateIds = new Set(summary.fallbackStateIds);
-  const drops = mergePartialRefreshDrops({
+  const freshRunDrops = selectFreshRunDrops({ drops: currentDrops, freshStateIds: summary.freshStateIds });
+  const refreshedDrops = mergePartialRefreshDrops({
     previousDrops,
     currentDrops: candidateDrops,
     partialRefresh: summary.partialRefresh === true,
@@ -1816,9 +1820,17 @@ async function main() {
     isSafePartialRetainedRow: (drop) => String(drop.state || drop.state_code || '').toUpperCase() !== 'TN'
       || isTennesseeRetailerSignalIdentity(drop),
   });
+  const drops = mergeHistoricalBoardShipmentDrops({
+    currentDrops: refreshedDrops,
+    currentSourceDrops: freshRunDrops,
+    previousDrops,
+    bootstrapDrops,
+    historyDays: HISTORY_DAYS,
+  });
   const events = buildEvents(historicalSignals, bible);
-  const alertableCurrentDrops = currentDrops.filter((drop) => !fallbackStateIds.has(String(drop.state || drop.state_code || '').toUpperCase()));
-  const reportedAlertCandidates = buildAlerts({ candidates: (alerts.candidates || []).filter((candidate) => activeStateIds.has(candidate.state) && !fallbackStateIds.has(String(candidate.state).toUpperCase())) });
+  const alertableCurrentDrops = freshRunDrops.filter((drop) => !fallbackStateIds.has(String(drop.state || drop.state_code || '').toUpperCase()));
+  const freshReportedAlertCandidates = selectFreshRunDrops({ drops: alerts.candidates, freshStateIds: summary.freshStateIds });
+  const reportedAlertCandidates = buildAlerts({ candidates: freshReportedAlertCandidates.filter((candidate) => activeStateIds.has(candidate.state) && !fallbackStateIds.has(String(candidate.state).toUpperCase())) });
   const currentInventoryAlertCandidates = buildCurrentInventoryAlertsFromDrops(alertableCurrentDrops);
   const regionalWatchAlertCandidates = buildRegionalWatchAlertsFromDrops(alertableCurrentDrops);
   const alertCandidates = uniqueBy([...reportedAlertCandidates, ...regionalWatchAlertCandidates, ...currentInventoryAlertCandidates].map(applyAlertPolicyToCandidate), (candidate) => candidate.dedupeKey || candidate.id)

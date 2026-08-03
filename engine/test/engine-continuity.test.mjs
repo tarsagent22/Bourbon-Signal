@@ -26,7 +26,9 @@ test('state quality v2 uses a current-snapshot baseline', () => {
 
 test('scheduled refresh persists collector history, the actual scheduler state, and runs twice hourly', async () => {
   const workflow = await readFile(new URL('../../.github/workflows/refresh-feed.yml', import.meta.url), 'utf8');
+  const bootstrapPreserveStep = workflow.match(/- name: Preserve checked-in board shipment history bootstrap[\s\S]*?(?=\n      - name:)/)?.[0] || '';
   const cacheStep = workflow.match(/- name: Restore collector artifacts and adaptive scheduler state[\s\S]*?(?=\n      - name:)/)?.[0] || '';
+  const bootstrapRestoreStep = workflow.match(/- name: Restore checked-in board shipment history bootstrap[\s\S]*?(?=\n      - name:)/)?.[0] || '';
   const ncIntelligenceRestoreStep = workflow.match(/- name: Restore North Carolina board intelligence[\s\S]*?(?=\n      - name:)/)?.[0] || '';
   const browserRestoreStep = workflow.match(/- name: Restore browser source artifacts[\s\S]*?(?=\n      - name:)/)?.[0] || '';
   const stableSaveStep = workflow.match(/- name: Save verified collector state[\s\S]*?(?=\n      - name:)/)?.[0] || '';
@@ -71,6 +73,12 @@ test('scheduled refresh persists collector history, the actual scheduler state, 
   assert.match(productionVerificationStep, /verify:production-engine[\s\S]*?--rollback/);
   assert.match(cacheStep, /engine\/out\/optimization\/state-run-metrics\.json/);
   assert.match(cacheStep, /engine\/out\/optimization\/source-run-history\.json/);
+  assert.match(cacheStep, /engine\/out\/history\/snapshots/, 'the raw 30-day signal history must survive clean scheduled runners');
+  assert.match(stableSaveStep, /engine\/out\/history\/snapshots/, 'verified raw signal history must be saved for the next runner');
+  assert.match(bootstrapPreserveStep, /engine\/out\/site\/drops\.json[\s\S]*RUNNER_TEMP/, 'the checked-in evidence baseline must be copied before cache restore overwrites it');
+  assert.match(bootstrapRestoreStep, /RUNNER_TEMP[\s\S]*engine\/out\/historical-bootstrap\/drops\.json/, 'the evidence baseline must be available outside the published site directory');
+  assert.ok(workflow.indexOf('Preserve checked-in board shipment history bootstrap') < workflow.indexOf('Restore last published site contract'));
+  assert.ok(workflow.indexOf('Restore checked-in board shipment history bootstrap') < workflow.indexOf('Refresh all due customer-active states'));
   assert.doesNotMatch(cacheStep, /engine\/out\/nc-board-intelligence\.json/, 'adding a path to the legacy combined cache would invalidate its existing cache version');
   assert.match(ncIntelligenceRestoreStep, /engine\/out\/nc-board-intelligence\.json/, 'scheduled not-due NC runs must restore the board-intelligence input used by the site contract');
   assert.match(ncIntelligenceRestoreStep, /id:\s*nc-intelligence-cache/);
@@ -115,6 +123,11 @@ test('scheduled refresh persists collector history, the actual scheduler state, 
   }
   const exporter = await readFile(new URL('../src/export-site-contract.mjs', import.meta.url), 'utf8');
   assert.match(exporter, /buildStateQualityInputs\(\{ stateCoverage, drops: currentDrops,/);
+  assert.match(exporter, /const freshRunDrops = selectFreshRunDrops\(\{ drops: currentDrops, freshStateIds: summary\.freshStateIds \}\)/);
+  assert.match(exporter, /currentSourceDrops: freshRunDrops/);
+  assert.match(exporter, /const alertableCurrentDrops = freshRunDrops\.filter/);
+  assert.match(exporter, /const freshReportedAlertCandidates = selectFreshRunDrops\(\{ drops: alerts\.candidates, freshStateIds: summary\.freshStateIds \}\)/);
+  assert.match(exporter, /buildAlerts\(\{ candidates: freshReportedAlertCandidates\.filter/);
   assert.match(exporter, /comparisonFallbackStateIds[\s\S]*partialFallbackStateIds/);
   assert.match(exporter, /partial_fallback_current_plus_stale/);
   assert.match(exporter, /currentInput:\s*current\?\.input/);

@@ -26,6 +26,94 @@ export function detectDropCollapseFallbacks(previousStateQuality, currentDrops =
     .sort();
 }
 
+function rowsOf(value) {
+  return Array.isArray(value) ? value : Array.isArray(value?.drops) ? value.drops : [];
+}
+
+export function selectFreshRunDrops({ drops = [], freshStateIds = [] } = {}) {
+  if (!Array.isArray(freshStateIds)) return [];
+  const freshStates = new Set(freshStateIds
+    .map((stateId) => String(stateId || '').trim().toUpperCase())
+    .filter((stateId) => /^[A-Z]{2}(?:-[A-Z0-9]+)*$/.test(stateId)));
+  return rowsOf(drops).filter((drop) => freshStates.has(String(drop?.state || drop?.state_code || '').trim().toUpperCase()));
+}
+
+function dropIdentity(drop) {
+  return drop?.id || [
+    String(drop?.state || drop?.state_code || '').toUpperCase(),
+    drop?.canonicalId || drop?.canonical_id,
+    drop?.sourceUrl,
+    drop?.locationName,
+    drop?.quantity,
+    drop?.availabilityStatus,
+    drop?.sourceEventAt,
+  ].join('|');
+}
+
+function dropEventTime(drop) {
+  return Date.parse(drop?.sourceEventAt || drop?.observedAt || drop?.displayAt || drop?.lastConfirmedAt || drop?.timestamp || '');
+}
+
+function informationalBoardShipmentDrop(drop) {
+  return {
+    ...drop,
+    canAlertAsInventory: false,
+    canAlertAsWatch: false,
+    alertable: false,
+    eligibleForDelivery: false,
+    deliveryEligible: false,
+    dataLane: 'informational',
+    informationalOnly: true,
+  };
+}
+
+function historicalBoardShipmentDrop(drop) {
+  return informationalBoardShipmentDrop(retainedDrop(drop, 'historical_board_shipment'));
+}
+
+export function mergeHistoricalBoardShipmentDrops({
+  currentDrops = [],
+  currentSourceDrops = [],
+  previousDrops = [],
+  bootstrapDrops = [],
+  now = new Date().toISOString(),
+  historyDays = 30,
+} = {}) {
+  const currentRows = rowsOf(currentDrops);
+  const nowMs = Date.parse(now);
+  const historyMs = Number(historyDays) * 24 * 60 * 60 * 1000;
+  if (!Number.isFinite(nowMs) || !Number.isFinite(historyMs) || historyMs <= 0) return currentRows;
+  const cutoff = nowMs - historyMs;
+  const isNcBoardShipment = (drop) => String(drop?.state || drop?.state_code || '').toUpperCase() === 'NC'
+    && String(drop?.type || drop?.eventType || drop?.event_type || '').toLowerCase() === 'nc_board_shipment_snapshot';
+  const withinHistory = (drop) => {
+    const eventTime = dropEventTime(drop);
+    return Number.isFinite(eventTime) && eventTime >= cutoff && eventTime <= nowMs;
+  };
+  const currentSourceKeys = new Set(rowsOf(currentSourceDrops).filter(isNcBoardShipment).map(dropIdentity));
+  const normalizedCurrent = currentRows
+    .filter((drop) => !isNcBoardShipment(drop) || withinHistory(drop))
+    .map((drop) => {
+      if (!isNcBoardShipment(drop)) return drop;
+      return currentSourceKeys.has(dropIdentity(drop))
+        ? informationalBoardShipmentDrop(drop)
+        : historicalBoardShipmentDrop(drop);
+    });
+  const seen = new Set(normalizedCurrent.map(dropIdentity));
+  const retained = [...rowsOf(previousDrops), ...rowsOf(bootstrapDrops)]
+    .filter(isNcBoardShipment)
+    .filter(withinHistory)
+    .sort((a, b) => dropEventTime(b) - dropEventTime(a))
+    .filter((drop) => {
+      const key = dropIdentity(drop);
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .map(historicalBoardShipmentDrop);
+  return [...normalizedCurrent, ...retained].slice(0, 10000);
+}
+
 export function mergePartialRefreshDrops({ previousDrops = [], currentDrops = [], partialRefresh = false, attemptedStateIds = [], fallbackStateIds = [], partialFallbackStateIds = [], isSafePartialRetainedRow = () => true } = {}) {
   const previousRows = Array.isArray(previousDrops) ? previousDrops : Array.isArray(previousDrops?.drops) ? previousDrops.drops : [];
   const currentRows = Array.isArray(currentDrops) ? currentDrops : Array.isArray(currentDrops?.drops) ? currentDrops.drops : [];
