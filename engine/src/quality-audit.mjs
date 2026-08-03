@@ -2,6 +2,7 @@ import { readFile, readdir, writeFile, mkdir, access } from 'node:fs/promises';
 import path from 'node:path';
 import { CUSTOMER_ACTIVE_STATE_IDS, STATE_SOURCES } from './state-sources.mjs';
 import { validateVirginiaGlobalQuality } from './collectors/virginia-inventory-recovery.mjs';
+import { hasHealthyLowerVolumeShipmentRun } from './nc-coverage-summary.mjs';
 
 const ROOT = path.resolve('.');
 const OUT = path.join(ROOT, 'out');
@@ -23,13 +24,6 @@ async function listFiles(dir) {
 }
 
 function problem(message, severity = 'error', detail = null) { return { severity, message, detail }; }
-
-function hasHealthyLowerVolumeNcShipmentRun(ncPayload, shipmentSignals) {
-  return shipmentSignals >= 350
-    && Number(ncPayload.stockShipped?.recordCount || 0) >= 50_000
-    && Number(ncPayload.coverage?.withTrackedShipments || 0) >= 100
-    && Number(ncPayload.roadblockCount || 0) === 0;
-}
 
 async function orUnavailable() {
   const state = await readJson(path.join(OUT, 'states', 'OR.json')).catch(() => null);
@@ -73,7 +67,7 @@ async function main() {
     if (ncPayload.contractVersion !== 'bourbon-signal-site-v0.1') problems.push(problem('Unexpected NC intelligence contract version.', 'error', ncPayload.contractVersion));
     if ((ncPayload.coverage?.boardCount || 0) < 170) problems.push(problem('NC intelligence board directory coverage is below definition-of-done threshold.', 'error', ncPayload.coverage));
     const ncShipmentSignals = ncPayload.signalCounts?.nc_board_shipment_snapshot || 0;
-    if (ncShipmentSignals < 400 && !hasHealthyLowerVolumeNcShipmentRun(ncPayload, ncShipmentSignals)) problems.push(problem('NC board shipment signal count is below source-volume-aware hard-floor threshold.', 'error', { signalCounts: ncPayload.signalCounts, stockShipped: ncPayload.stockShipped, coverage: ncPayload.coverage, roadblockCount: ncPayload.roadblockCount }));
+    if (ncShipmentSignals < 400 && !hasHealthyLowerVolumeShipmentRun(ncPayload, ncShipmentSignals)) problems.push(problem('NC board shipment signal count is below source-volume-aware hard-floor threshold.', 'error', { signalCounts: ncPayload.signalCounts, stockShipped: ncPayload.stockShipped, coverage: ncPayload.coverage, roadblockCount: ncPayload.roadblockCount }));
     if (ncShipmentSignals < 500) problems.push(problem('NC board shipment signal count is below historical definition-of-done target; official source volume may be lighter today.', 'warning', { signalCounts: ncPayload.signalCounts, stockShipped: ncPayload.stockShipped, coverage: ncPayload.coverage, roadblockCount: ncPayload.roadblockCount }));
     if ((ncPayload.signalCounts?.nc_statewide_warehouse_stock || 0) < 1) problems.push(problem('NC warehouse positive-stock radar is missing.', 'error', ncPayload.signalCounts));
     if ((ncPayload.roadblockCount || 0) > 5) problems.push(problem('NC collector has too many current roadblocks for definition-of-done.', 'error', ncPayload.roadblockCount));

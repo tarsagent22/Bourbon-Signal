@@ -1,6 +1,7 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { validateNcSingleStoreCoverage, validateNcSourceLedgerContract } from './nc-source-ledger.mjs';
+import { hasHealthyLowerVolumeShipmentRun } from './nc-coverage-summary.mjs';
 
 const OUT = path.resolve('out');
 
@@ -18,13 +19,6 @@ function assert(condition, message, detail = null) {
 
 function warn(condition, message, detail = null) {
   if (!condition) console.warn(`NC warning: ${message}${detail ? ` ${JSON.stringify(detail)}` : ''}`);
-}
-
-function hasHealthyLowerVolumeShipmentRun(nc, shipmentSignals) {
-  return shipmentSignals >= 350
-    && Number(nc.stockShipped?.recordCount || 0) >= 50_000
-    && Number(nc.coverage?.withTrackedShipments || 0) >= 100
-    && Number(nc.roadblockCount || 0) === 0;
 }
 
 async function main() {
@@ -57,7 +51,7 @@ async function main() {
   assert(singleStoreCoverageErrors.length === 0, 'NC official single-store board coverage below threshold', { errors: singleStoreCoverageErrors });
   const ncShipmentSignals = nc.signalCounts?.nc_board_shipment_snapshot || 0;
   assert(ncShipmentSignals >= 400 || hasHealthyLowerVolumeShipmentRun(nc, ncShipmentSignals), 'NC board shipment signal count below source-volume-aware hard floor', { signalCounts: nc.signalCounts, stockShipped: nc.stockShipped, coverage: nc.coverage, roadblockCount: nc.roadblockCount });
-  warn(ncShipmentSignals >= 400, 'official daily StockShipped extract is below the legacy 400-signal floor; treating as pass because source record volume, tracked-board coverage, and roadblocks are healthy', { signalCounts: nc.signalCounts, stockShipped: nc.stockShipped, coverage: nc.coverage, roadblockCount: nc.roadblockCount });
+  warn(ncShipmentSignals >= 400, 'official daily StockShipped extract is below the legacy 400-signal floor; treating as pass because the current official source volume, board breadth, product coverage, price enrichment, and roadblocks are healthy', { signalCounts: nc.signalCounts, stockShipped: nc.stockShipped, coverage: nc.coverage, roadblockCount: nc.roadblockCount });
   warn(ncShipmentSignals >= 500, 'official daily StockShipped extract is below the historical 500-signal target; treating as pass because board coverage/roadblocks remain healthy', nc.signalCounts);
   assert(nc.warehouse?.sourceUrl === 'https://abc2.nc.gov/StoresBoards/Stocks' && Number.isFinite(Date.parse(nc.warehouse?.observedAt || '')), 'NC warehouse radar observation metadata is missing', nc.warehouse);
   warn((nc.signalCounts?.nc_statewide_warehouse_stock || 0) >= 1, 'NC warehouse source returned no positive tracked rows in this observation; keeping the lane healthy but publishing no warehouse availability signal', nc.warehouse);

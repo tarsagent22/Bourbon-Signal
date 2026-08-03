@@ -4,6 +4,7 @@ import { STATE_SOURCES } from './state-sources.mjs';
 import { validateVirginiaGlobalQuality } from './collectors/virginia-inventory-recovery.mjs';
 import { verifyMississippiReleasePolicy } from './mississippi-release-policy.mjs';
 import { getStateLifecycle } from './state-lifecycle.mjs';
+import { hasHealthyLowerVolumeShipmentRun } from './nc-coverage-summary.mjs';
 
 async function exists(file) {
   try { await access(file); return true; } catch { return false; }
@@ -28,13 +29,6 @@ async function ohlqBrowserUnavailable(out) {
   const failedPreflight = (browserStatus?.results || []).some((r) => r.id === 'ohlq' && r.ok === false && /failed|rejected|timeout/i.test(`${r.status || ''} ${r.error || ''}`));
   const hasOhlqRoadblock = (state?.roadblocks || []).some((r) => /OHLQ/i.test(`${r.source || ''} ${r.url || ''}`) && /Cloudflare|CDP|browser|blocked|timeout|ECONNREFUSED|artifact|fixture/i.test(`${r.error || ''} ${r.nextRoute || ''}`));
   return Boolean(failedPreflight || hasOhlqRoadblock);
-}
-
-function hasHealthyLowerVolumeNcShipmentRun(ncIntelligence, shipmentSignals) {
-  return shipmentSignals >= 350
-    && Number(ncIntelligence.stockShipped?.recordCount || 0) >= 50_000
-    && Number(ncIntelligence.coverage?.withTrackedShipments || 0) >= 100
-    && Number(ncIntelligence.roadblockCount || 0) === 0;
 }
 
 async function main() {
@@ -86,7 +80,7 @@ async function main() {
   if (ncIntelligence.contractVersion !== 'bourbon-signal-site-v0.1') throw new Error(`Unexpected NC intelligence contract version: ${ncIntelligence.contractVersion}`);
   if (ncIntelligence.coverage?.boardCount < 170) throw new Error('NC intelligence board directory coverage is below threshold');
   const ncShipmentSignals = ncIntelligence.signalCounts?.nc_board_shipment_snapshot || 0;
-  if (ncShipmentSignals < 400 && !hasHealthyLowerVolumeNcShipmentRun(ncIntelligence, ncShipmentSignals)) throw new Error('NC board shipment signal count is below source-volume-aware hard floor');
+  if (ncShipmentSignals < 400 && !hasHealthyLowerVolumeShipmentRun(ncIntelligence, ncShipmentSignals)) throw new Error('NC board shipment signal count is below source-volume-aware hard floor');
   if (ncShipmentSignals < 400) console.log(`NC StockShipped extract below legacy hard floor but healthy by source-volume gate: ${ncShipmentSignals}`);
   if (ncShipmentSignals < 500) console.log(`NC StockShipped extract below historical target: ${ncShipmentSignals}`);
   if (ncIntelligence.signalCounts?.nc_statewide_warehouse_stock < 1) throw new Error('NC warehouse positive-stock radar is missing');
