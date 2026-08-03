@@ -106,6 +106,14 @@ Apply a verified production release:
 npm run release:production
 ```
 
+For a code-only/UI release when the committed engine export must remain unchanged, use:
+
+```bash
+npm run release:production:code-only
+```
+
+Code-only mode is mutually exclusive with `--publish-site-exports`. It builds only the derived ignored `store-identity.json` required for release provenance, preserves the committed site export, acquires the shared release-lane lease for applied promotion, and still runs the production environment check, full CI/build, Vercel promotion, aliases, cron, manifest, and live checks. It does not refresh collector data or relax alert delivery policy.
+
 Every applied release must prove:
 
 - clean `HEAD === origin/main`
