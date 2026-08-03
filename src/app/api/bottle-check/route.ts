@@ -5,7 +5,8 @@ import { captureSearchEvent } from "@/lib/search-capture";
 import { normalizeDropForSite, readSiteExport, siteExportHeaders } from "@/lib/site-engine-contract";
 import { getEntitlements } from "@/lib/entitlements";
 import { getMemberTasteScore } from "@/lib/member-taste-score";
-import { getRarityProfile, getStateRarityAdjustment } from "@/lib/bottle-rarity-score";
+import { getRarityProfile } from "@/lib/bottle-rarity-score";
+import { getPublicScarcityLabel, getScarcityBadges, normalizeBottleScarcity, resolveBottleScarcity, scarcityTierToAvailability, type ScarcityTier } from "@/lib/bottle-scarcity";
 
 
 const FREE_BOTTLE_CHECK_LIMIT = 3;
@@ -39,12 +40,26 @@ async function consumeFreeBottleCheckIfNeeded(intent: string) {
 interface LocalSignal {
   state: string;
   rarityScore: number;
+  nationalRarityScore: number;
   localScore: number;
   scoreStatus: "bible_baseline" | "local_adjusted";
   scoreBasis: string;
   label: string;
   verdict: string;
   confidence: "high" | "medium" | "low";
+  signalConfidence: "high" | "medium" | "low";
+  classificationConfidence: "high" | "medium" | "low";
+  nationalTier: ScarcityTier;
+  marketTier: ScarcityTier;
+  nationalLabel: string;
+  marketLabel: string;
+  nationalConfidence: "high" | "medium" | "low";
+  localConfidence: "high" | "medium" | "low" | null;
+  nationalReason: string;
+  localReason: string | null;
+  releaseBadges: string[];
+  localClassificationEstablished: boolean;
+  classificationSource: "national_baseline" | "state_override";
   recentCount90d: number;
   recentCount30d: number;
   lastSeenAt: string | null;
@@ -84,27 +99,6 @@ async function getDropsForBottle(bottle: BibleBottle, state?: string) {
   }
 }
 
-const CONTROLLED_OR_ALLOCATED_MARKETS = new Set(["NC", "VA", "PA", "AL", "MD-MONTGOMERY"]);
-
-const LOCAL_SCARCITY_RULES: { pattern: RegExp; states?: string[]; floor: AvailabilityTier; reason: string }[] = [
-  {
-    pattern: /\bbuffalo trace\b/i,
-    states: ["NC", "VA", "PA", "MD-MONTGOMERY"],
-    floor: "allocated",
-    reason: "Buffalo Trace is nationally common, but controlled/allocated markets often treat it like an allocated bottle.",
-  },
-  {
-    pattern: /\b(weller|blanton|eagle rare|e\.?h\.?\s*taylor|stagg|elmer t\.? lee|rock hill farms|van winkle|pappy|sazerac 18|thomas h\.? handy|william larue)\b/i,
-    floor: "allocated",
-    reason: "High-demand allocated family; local shelves can be meaningfully tighter than national availability labels imply.",
-  },
-  {
-    pattern: /\b(michter'?s 10|old fitzgerald|birthday bourbon|parker'?s heritage|four roses limited|blood oath|little book|jack daniel'?s (10|12))\b/i,
-    floor: "limited",
-    reason: "Limited/seasonal release with hunter demand; local availability can be uneven.",
-  },
-];
-
 const availabilityRank: Record<AvailabilityTier, number> = {
   common: 1,
   regional: 2,
@@ -115,47 +109,12 @@ const availabilityRank: Record<AvailabilityTier, number> = {
   unicorn: 7,
 };
 
-function higherAvailability(a: AvailabilityTier, b: AvailabilityTier): AvailabilityTier {
-  return availabilityRank[b] > availabilityRank[a] ? b : a;
-}
-
-function getMarketAdjustedAvailability(bottle: BibleBottle, state: string) {
-  const haystack = [bottle.id, bottle.canonicalName, bottle.brand, bottle.producer, bottle.summary, ...bottle.aliases]
-    .filter(Boolean)
-    .join(" ");
-  const normalizedState = state.toUpperCase();
-  let availability = bottle.availability;
-  const reasons: string[] = [];
-
-  for (const rule of LOCAL_SCARCITY_RULES) {
-    if (rule.states && !rule.states.includes(normalizedState)) continue;
-    if (!rule.pattern.test(haystack)) continue;
-    const next = higherAvailability(availability, rule.floor);
-    if (next !== availability) {
-      availability = next;
-      reasons.push(rule.reason);
-    }
-  }
-
-  const locallyUnevenCommon = bottle.availability === "common" && /uneven|scarce|not always|varies by market|rarely/i.test(`${bottle.summary} ${bottle.guidance}`);
-  if (locallyUnevenCommon && CONTROLLED_OR_ALLOCATED_MARKETS.has(normalizedState)) {
-    const next = higherAvailability(availability, "regional");
-    if (next !== availability) {
-      availability = next;
-      reasons.push("This bottle is marked common nationally, but its own profile says distribution is uneven by market.");
-    }
-  }
-
-  return {
-    availability,
-    adjusted: availability !== bottle.availability,
-    reasons,
-  };
-}
 
 function userFacingBottle(bottle: BibleBottle) {
   return {
     ...bottle,
+    scarcityLabel: getPublicScarcityLabel(bottle),
+    releaseBadges: getScarcityBadges(bottle),
     summary: bottle.summary.replace(/Bourbon Bible/g, "Bottle Check index"),
     guidance: bottle.guidance.replace(/Bourbon Bible/g, "Bottle Check"),
   };
@@ -196,50 +155,59 @@ async function getLocalSignal(bottle: BibleBottle, state: string): Promise<Local
   const recent30 = drops.filter((drop) => now - asTime(drop.timestamp) <= 30 * day);
   const lastSeenAt = drops[0]?.timestamp ? String(drops[0].timestamp) : null;
 
-  const marketAvailability = getMarketAdjustedAvailability(bottle, state);
-  const nationalRarityProfile = getRarityProfile(bottle.availability);
-  const marketTierProfile = getRarityProfile(marketAvailability.availability);
-  const rarityProfile = getRarityProfile(marketAvailability.availability, state);
-  const stateRarityAdjustment = getStateRarityAdjustment(marketAvailability.availability, state);
-  const rarityScore = rarityProfile.score;
+  const scarcity = resolveBottleScarcity(normalizeBottleScarcity(bottle as unknown as Record<string, unknown>), state);
+  const nationalRarityProfile = getRarityProfile(scarcityTierToAvailability(scarcity.nationalTier));
+  const rarityProfile = getRarityProfile(scarcityTierToAvailability(scarcity.marketTier));
+  const classificationSupported = scarcity.classificationSource === "state_override"
+    || scarcity.nationalConfidence !== "low"
+    || scarcity.nationalTier === "regular";
+  const rarityScore = classificationSupported ? rarityProfile.score : 20;
   const hasLocalSignal = recent90.length > 0;
-  const scoreStatus: LocalSignal["scoreStatus"] = marketAvailability.adjusted || stateRarityAdjustment > 0 ? "local_adjusted" : "bible_baseline";
-  const scoreBasis = marketAvailability.adjusted && stateRarityAdjustment > 0
-    ? `State-adjusted rarity for ${state}. National starting tier: ${nationalRarityProfile.label}. ${marketAvailability.reasons[0] || `Market rules raise the bottle to ${marketTierProfile.label.toLowerCase()}.`} The controlled-market adjustment adds +${stateRarityAdjustment} within the ${marketTierProfile.label.toLowerCase()} band.`
-    : marketAvailability.adjusted
-      ? `State-adjusted rarity for ${state}. National starting tier: ${nationalRarityProfile.label}. ${marketAvailability.reasons[0] || `Market rules raise the bottle to ${marketTierProfile.label.toLowerCase()}.`}`
-      : stateRarityAdjustment > 0
-        ? `State-adjusted rarity for ${state}. National starting tier: ${nationalRarityProfile.label}. Controlled-market distribution adds +${stateRarityAdjustment} within that rarity band.`
-        : `National starting tier: ${nationalRarityProfile.label}. No additional ${state} market adjustment is currently applied.`;
+  const scoreStatus: LocalSignal["scoreStatus"] = scarcity.classificationSource === "state_override" ? "local_adjusted" : "bible_baseline";
+  const scoreBasis = !classificationSupported
+    ? "The national scarcity tier is under evidence review. Local sightings and price context remain available, but the rarity score is not treated as verified."
+    : scarcity.classificationSource === "state_override"
+    ? `National baseline: ${scarcity.nationalLabel}. Local evidence: ${scarcity.localReason}`
+    : `National baseline: ${scarcity.nationalLabel}. ${scarcity.localLabel}.`;
 
   const confidence: LocalSignal["confidence"] = recent90.length >= 8 ? "high" : recent90.length >= 2 ? "medium" : "low";
-  const label = marketAvailability.adjusted && bottle.availability === "common"
-    ? "Common nationally, scarce locally"
-    : stateRarityAdjustment > 0
-      ? `${rarityProfile.label} in ${state}`
-      : rarityProfile.label;
+  const label = scarcity.classificationSource === "state_override" ? scarcity.localLabel : scarcity.nationalLabel;
 
   let verdict = "Check price and local context before deciding.";
-  if (marketAvailability.adjusted && bottle.availability === "common") verdict = "This may be easy to dismiss nationally, but in your selected market it can behave like an allocated bottle. Good buy near MSRP if you actually want it; do not chase secondary pricing.";
-  else if (marketAvailability.availability === "common") verdict = "Usually safe to pass unless you specifically want it.";
-  else if (marketAvailability.availability === "unicorn") verdict = "A true unicorn retail find. Verify provenance and price before treating it as actionable.";
-  else if (marketAvailability.availability === "highly_allocated") verdict = "Extremely difficult to find at retail. Act quickly near MSRP if it is a bottle you want.";
-  else if (marketAvailability.availability === "allocated") verdict = "A meaningful allocated find. Worth considering near MSRP if it fits your collection.";
+  if (!classificationSupported) verdict = "This bottle's scarcity tier is still being sourced. Use recent local sightings and price context; do not treat the current tier as verified.";
+  else if (scarcity.marketTier === "regular") verdict = "Usually safe to pass unless you specifically want it.";
+  else if (scarcity.marketTier === "unicorn") verdict = "A true unicorn retail find. Verify provenance and price before treating it as actionable.";
+  else if (scarcity.marketTier === "highly_allocated") verdict = "Extremely difficult to find at retail. Act quickly near MSRP if it is a bottle you want.";
+  else if (scarcity.marketTier === "allocated") verdict = "A meaningful allocated find. Worth considering near MSRP if it fits your collection.";
   else if (!hasLocalSignal) verdict = "The rarity tier is based on the bottle profile. Bourbon Signal does not have recent sightings for it in this market yet.";
-  else if (marketAvailability.availability === "limited") verdict = "Worth considering at a fair shelf price.";
+  else if (scarcity.marketTier === "limited") verdict = "Worth considering at a fair shelf price.";
   else if (confidence === "low") verdict = "Not enough local history yet; use the national rarity tier as a guide.";
 
-  const canTrack = Boolean(bottle.isAlertEligible && bottle.availability !== "common");
+  const canTrack = Boolean(bottle.isAlertEligible && scarcity.marketTier !== "regular");
 
   return {
     state,
     rarityScore,
+    nationalRarityScore: scarcity.nationalConfidence === "low" && scarcity.nationalTier !== "regular" ? 20 : nationalRarityProfile.score,
     localScore: rarityScore,
     scoreStatus,
     scoreBasis,
     label,
     verdict,
     confidence,
+    signalConfidence: confidence,
+    classificationConfidence: scarcity.confidence,
+    nationalTier: scarcity.nationalTier,
+    marketTier: scarcity.marketTier,
+    nationalLabel: scarcity.nationalLabel,
+    marketLabel: scarcity.marketLabel,
+    nationalConfidence: scarcity.nationalConfidence,
+    localConfidence: scarcity.localConfidence,
+    nationalReason: `National baseline: ${scarcity.nationalLabel} (${scarcity.nationalConfidence} confidence).`,
+    localReason: scarcity.localReason,
+    releaseBadges: getScarcityBadges(scarcity),
+    localClassificationEstablished: scarcity.localClassificationEstablished,
+    classificationSource: scarcity.classificationSource,
     recentCount90d: recent90.length,
     recentCount30d: recent30.length,
     lastSeenAt,
@@ -251,7 +219,7 @@ async function getLocalSignal(bottle: BibleBottle, state: string): Promise<Local
       signalLabel: typeof drop.signal_label === "string" ? drop.signal_label : undefined,
     })),
     canTrack,
-    trackDisabledReason: canTrack ? undefined : bottle.availability === "common" ? "Alert settings are intentionally disabled for common shelf bottles." : "Tracking is not enabled for this bottle yet.",
+    trackDisabledReason: canTrack ? undefined : scarcity.marketTier === "regular" ? "Alert settings are intentionally disabled for regularly available bottles in this market." : "Tracking is not enabled for this bottle yet.",
   };
 }
 
