@@ -25,6 +25,10 @@ const [authSource, signInSource, signUpSource, welcomeSource, pricingSource, das
   readFile(new URL("../src/hooks/useAreaPreferences.ts", import.meta.url), "utf8"),
 ]);
 const welcomeStyles = await readFile(new URL("../src/app/welcome/welcome.module.css", import.meta.url), "utf8");
+const coverageMapSource = await readFile(new URL("../src/components/coverage/CoverageMap.tsx", import.meta.url), "utf8");
+const coverageSummarySource = await readFile(new URL("../src/components/coverage/CoverageSummary.tsx", import.meta.url), "utf8");
+const coverageSummaryStyles = await readFile(new URL("../src/components/coverage/CoverageSummary.module.css", import.meta.url), "utf8");
+const coveragePanelSource = await readFile(new URL("../src/components/coverage/CoverageStatePanel.tsx", import.meta.url), "utf8");
 
 assert.match(authSource, /window\.location\.href = "\/sign-up"/);
 assert.doesNotMatch(authSource, /redirect_url=\/pricing/);
@@ -77,12 +81,24 @@ const welcomeCoverageSection = welcomeSource.slice(
   welcomeSource.indexOf('aria-labelledby="coverage-depth-heading"'),
   welcomeSource.indexOf('aria-label="Optional coverage request"'),
 );
-assert.match(welcomeCoverageSection, /coverageStrengthLabel/, "the section shows the canonical positive coverage type");
-assert.match(welcomeCoverageSection, /activeState === "NC"[\s\S]*coverageState\.scope\.knownBoards[\s\S]*NC ABC boards monitored/, "NC shows all canonical boards rather than only boards with fresh signals");
-assert.match(welcomeCoverageSection, /coverageState\.scope\.inventoryMonitoredStores > 0[\s\S]*Stores with current inventory signals/, "states show current inventory-store breadth only when it is nonzero");
-assert.equal((welcomeCoverageSection.match(/<dt>/g) || []).length, 2, "the coverage summary has at most the NC board and inventory-store metrics");
-assert.match(welcomeStyles, /\.coverageMetrics\s*\{[\s\S]{0,180}grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)[\s\S]{0,180}max-width: 540px/, "the two coverage metrics stay compact rather than stretching across the section");
-assert.match(welcomeCoverageSection, /Shipment reports show board or area deliveries—not guaranteed shelf stock\./);
+assert.match(welcomeSource, /dynamic\([\s\S]*import\("@\/components\/coverage\/CoverageMap"\)[\s\S]*ssr:\s*false/, "map geometry is split out of Welcome's initial bundle");
+assert.match(welcomeSource, /setCoverageStates\(coverageResult\.value\.payload\.states\)/, "Welcome retains the full coverage contract for the embedded map");
+assert.match(welcomeCoverageSection, /<CoverageMap[\s\S]*states=\{coverageStates\}[\s\S]*selectedCode=\{activeState\}[\s\S]*interactive=\{false\}[\s\S]*compact/, "the embedded map highlights the home state without changing it");
+assert.match(welcomeCoverageSection, /Explore the full map/, "the display map has a clear path to the interactive explorer");
+assert.match(welcomeCoverageSection, /<CoverageSummary state=\{coverageState\}/, "Welcome renders the shared concise summary");
+assert.ok(welcomeCoverageSection.indexOf("<CoverageMap") < welcomeCoverageSection.indexOf("<CoverageSummary"), "the map appears before the state summary");
+assert.match(coverageMapSource, /interactive = true/, "the reusable map remains interactive by default");
+assert.match(coverageMapSource, /role=\{interactive \? "button" : undefined\}/, "display mode removes fake button semantics");
+assert.match(coverageSummarySource, /coverageStrengthLabel/, "the shared summary shows the canonical coverage type");
+assert.match(coverageSummarySource, /state\.code === "NC"[\s\S]*state\.scope\.knownBoards[\s\S]*NC ABC boards monitored/, "the shared summary shows all canonical NC boards");
+assert.match(coverageSummarySource, /state\.scope\.inventoryMonitoredStores > 0[\s\S]*Stores with current inventory signals/, "the shared summary shows only nonzero inventory-store breadth");
+assert.equal((coverageSummarySource.match(/<dt>/g) || []).length, 2, "the shared summary has at most two metrics");
+assert.match(coverageSummaryStyles, /grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)[\s\S]{0,180}max-width: 540px/, "the shared summary stays compact");
+assert.doesNotMatch(coverageSummaryStyles, /@media[\s\S]*\.metrics\s*\{[\s\S]{0,80}grid-template-columns:\s*1fr/, "narrow screens retain the compact two-metric row");
+assert.match(coverageSummarySource, /Shipment reports show board or area deliveries—not guaranteed shelf stock\./);
+assert.match(coveragePanelSource, /<CoverageSummary state=\{state\}/, "the full Coverage page uses the same summary component");
+assert.doesNotMatch(coveragePanelSource, /Update status|healthCopy|stateSummary|quickFacts|tracked shipment data|official local pages|stores listed|stores with current availability/i, "the full panel removes the verbose duplicate facts");
+assert.match(coveragePanelSource, /<CoverageSearch[\s\S]*Request coverage[\s\S]*How we check this area/, "search, requests, and collapsed methodology remain on the full page");
 assert.doesNotMatch(welcomeCoverageSection, /Updates:|healthLabel|data-health|temporarily limited|source updates|boards with recent signals/i, "the coverage summary omits negative or freshness-heavy messaging");
 assert.doesNotMatch(welcomeCoverageSection, /coverage explained|ABC boards with shipment information|Official shipment sources|Stores represented|Cities and towns represented|Areas represented|Stores eligible for paid alerts|These counts describe coverage/i, "the previous verbose metrics and explanation are removed");
 assert.doesNotMatch(welcomeSource, /Information available here|What you can do here|Stores listed|Stores with restock alerts/);

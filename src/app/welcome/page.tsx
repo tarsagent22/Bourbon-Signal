@@ -1,19 +1,17 @@
 "use client";
 
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import {
   ArrowUpRight,
   BellRing,
   CalendarDays,
   Clock3,
-  Compass,
-  Gauge,
   LayoutDashboard,
   Map as MapIcon,
   MapPin,
   Radio,
   Search,
-  Store,
   UsersRound,
 } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -23,6 +21,7 @@ import {
   COVERAGE_REQUEST_DRAFT_KEY,
   CoverageRequestForm,
 } from "@/components/coverage/CoverageRequestForm";
+import { CoverageSummary } from "@/components/coverage/CoverageSummary";
 import { useAreaPreferences } from "@/hooks/useAreaPreferences";
 import { useAuth } from "@/lib/auth";
 import type { CoverageContract, CoverageState } from "@/lib/coverage-model";
@@ -46,6 +45,10 @@ interface CoverageDraftPreview {
 }
 
 const STATE_NAMES = new Map<string, string>(US_STATE_OPTIONS.map((state) => [state.code, state.name]));
+const CoverageMap = dynamic(
+  () => import("@/components/coverage/CoverageMap").then((module) => module.CoverageMap),
+  { ssr: false },
+);
 
 function draftStateForAccount(accountId: string | null) {
   try {
@@ -202,6 +205,7 @@ export default function WelcomePage() {
   const [dropsError, setDropsError] = useState("");
   const [degradedStateFallback, setDegradedStateFallback] = useState(false);
   const [coverageState, setCoverageState] = useState<CoverageState | null>(null);
+  const [coverageStates, setCoverageStates] = useState<CoverageState[]>([]);
   const [coverageError, setCoverageError] = useState("");
   const [previewLoading, setPreviewLoading] = useState(false);
   const registrationRecorded = useRef(false);
@@ -289,6 +293,7 @@ export default function WelcomePage() {
         if (coverageResult.status === "fulfilled"
           && coverageResult.value.response.ok
           && Array.isArray(coverageResult.value.payload.states)) {
+          setCoverageStates(coverageResult.value.payload.states);
           const current = coverageResult.value.payload.states.find((state) => state.code === activeState) || null;
           setCoverageState(current);
           if (!current) setCoverageError("Coverage detail for this state is temporarily unavailable.");
@@ -466,26 +471,22 @@ export default function WelcomePage() {
                       <h2 id="coverage-depth-heading">{activeStateName} coverage</h2>
                     </div>
                   </div>
-                  <Link className={styles.sectionAction} href={`/coverage?state=${encodeURIComponent(activeState)}`}><MapIcon size={14} aria-hidden="true" />Coverage map</Link>
                 </div>
                 {coverageError ? <p className={styles.previewMessage}>{coverageError}</p> : null}
-                {coverageState ? (
-                  <>
-                    <div className={styles.coverageOverview}>
-                      <div className={styles.coverageBadges}>
-                        <span><Gauge size={13} aria-hidden="true" />{coverageState.coverageStrengthLabel}</span>
-                      </div>
-                    </div>
-                    {(activeState === "NC" && coverageState.scope.knownBoards > 0)
-                      || coverageState.scope.inventoryMonitoredStores > 0 ? (
-                        <dl className={styles.coverageMetrics}>
-                          {activeState === "NC" && coverageState.scope.knownBoards > 0 ? <div className={styles.metricMajor}><Compass size={16} aria-hidden="true" /><dt>NC ABC boards monitored</dt><dd>{coverageState.scope.knownBoards}</dd></div> : null}
-                          {coverageState.scope.inventoryMonitoredStores > 0 ? <div className={styles.metricMajor}><Store size={16} aria-hidden="true" /><dt>Stores with current inventory signals</dt><dd>{coverageState.scope.inventoryMonitoredStores}</dd></div> : null}
-                        </dl>
-                      ) : null}
-                    {activeState === "NC" || coverageState.scope.shipmentBoards > 0 ? <p className={styles.coverageCaveat}>Shipment reports show board or area deliveries—not guaranteed shelf stock.</p> : null}
-                  </>
+                {coverageStates.length ? (
+                  <div className={styles.coverageMapEmbed}>
+                    <CoverageMap
+                      states={coverageStates}
+                      selectedCode={activeState}
+                      interactive={false}
+                      compact
+                    />
+                    <Link className={styles.coverageMapLink} href={`/coverage?state=${encodeURIComponent(activeState)}`}>
+                      Explore the full map <ArrowUpRight size={14} aria-hidden="true" />
+                    </Link>
+                  </div>
                 ) : null}
+                {coverageState ? <CoverageSummary state={coverageState} /> : null}
               </section>
 
               {requestState ? (

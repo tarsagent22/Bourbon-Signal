@@ -8,6 +8,7 @@ const root = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const files = {
   globals: "src/app/globals.css",
   coverage: "src/components/coverage/coverage.module.css",
+  coverageSummary: "src/components/coverage/CoverageSummary.module.css",
   bottleCheck: "src/app/bottle-check/page.tsx",
   dashboard: "src/app/dashboard/page.tsx",
   sightings: "src/app/sightings/SightingsClient.tsx",
@@ -69,9 +70,10 @@ for (const token of [
   assert.match(sources.globals, new RegExp(`${escapeRegex(token)}\\s*:`), `Missing semantic design token ${token}`);
 }
 
-for (const selector of [".mapFrame", ".detailPanel", ".quickFacts span"]) {
+for (const selector of [".mapFrame", ".detailPanel"]) {
   assertNoFullBorder(sources.coverage, selector);
 }
+assertNoFullBorder(sources.coverageSummary, ".metrics div");
 assert.doesNotMatch(ruleBody(sources.coverage, ".mapLegend"), /border-width\s*:\s*0\s+1px\s+1px/, "Coverage legend should not complete the map frame box");
 
 for (const selector of [".bc-search-card", ".bc-panel", ".bc-verdict-card, .bc-detail-card"]) {

@@ -88,6 +88,7 @@
 .textButton:focus-visible,
 .changeState:focus-visible,
 .sectionHeading > a:focus-visible,
+.coverageMapLink:focus-visible,
 .exploreLinks a:focus-visible,
 .membershipAction > a:focus-visible {
   outline: 2px solid rgba(232, 201, 122, 0.8);
@@ -330,91 +331,23 @@
   white-space: nowrap;
 }
 
-.coverageOverview {
-  display: grid;
-  gap: 13px;
+.coverageMapEmbed {
   max-width: 720px;
-  margin-top: 22px;
+  margin-top: 20px;
 }
 
-.coverageOverview > p {
-  margin: 0;
-  color: rgba(245, 237, 214, 0.61);
-  font: 13px/1.55 var(--font-dm-sans);
-}
-
-.coverageBadges {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
-}
-
-.coverageBadges span {
+.coverageMapLink {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 7px 9px;
-  border-radius: 999px;
-  color: #b8d6b4;
-  background: rgba(86, 137, 91, 0.12);
-  font: 800 9px/1 var(--font-jetbrains);
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  margin-top: 10px;
+  color: rgba(232, 201, 122, 0.86);
+  font: 800 11px/1.2 var(--font-dm-sans);
+  text-decoration: none;
 }
 
-.coverageBadges span[data-health="temporarily-limited"],
-.coverageBadges span[data-health="intermittent"],
-.coverageBadges span[data-health="no-recent-update"] {
-  color: rgba(232, 201, 122, 0.84);
-  background: rgba(196, 148, 58, 0.1);
-}
-
-.coverageMetrics {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-  max-width: 540px;
-  margin: 22px 0 0;
-}
-
-.coverageMetrics div {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  align-content: start;
-  gap: 8px;
-  min-width: 0;
-  padding: 15px;
-  border-radius: 15px;
-  color: rgba(232, 201, 122, 0.68);
-  background: rgba(245, 237, 214, 0.035);
-}
-
-.coverageMetrics dt {
-  grid-column: 2;
-  color: rgba(245, 237, 214, 0.43);
-  font: 750 9px/1.25 var(--font-dm-sans);
-  text-transform: uppercase;
-}
-
-.coverageMetrics dd {
-  grid-column: 1 / -1;
-  margin: 5px 0 0;
-  color: rgba(245, 237, 214, 0.92);
-  font: 700 24px/1 var(--font-playfair);
-}
-
-.coverageMetrics .metricMajor {
-  background: rgba(196, 148, 58, 0.065);
-}
-
-.coverageMetrics .metricMajor dd {
-  font-size: 31px;
-}
-
-.coverageCaveat {
-  margin: 15px 0 0;
-  color: rgba(245, 237, 214, 0.58);
-  font: 12px/1.55 var(--font-dm-sans);
+.coverageMapLink:hover {
+  color: var(--color-cream);
 }
 
 .requestMarker {
@@ -597,10 +530,6 @@
 
   .signalTime {
     max-width: 47%;
-  }
-
-  .coverageMetrics {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .exploreLinks .explorePrimary {

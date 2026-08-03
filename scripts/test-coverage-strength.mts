@@ -138,13 +138,15 @@ assert.equal(attachmentOnlyVirginia.coverageStrength, "sparse", "source attachme
 const mapSource = readFileSync(new URL("../src/components/coverage/CoverageMap.tsx", import.meta.url), "utf8");
 const explorerSource = readFileSync(new URL("../src/components/coverage/CoverageExplorer.tsx", import.meta.url), "utf8");
 const panelSource = readFileSync(new URL("../src/components/coverage/CoverageStatePanel.tsx", import.meta.url), "utf8");
+const summarySource = readFileSync(new URL("../src/components/coverage/CoverageSummary.tsx", import.meta.url), "utf8");
 const cssSource = readFileSync(new URL("../src/components/coverage/coverage.module.css", import.meta.url), "utf8");
 
 assert.match(mapSource, /data-coverage-strength/, "map colors must derive from coverage strength, not binary availability");
 assert.match(mapSource, /state\.coverageStrengthLabel/, "map accessibility labels must state the coverage tier");
 assert.match(mapSource, /aria-label="Strong coverage"/, "legend swatches must expose their text tier to assistive technology");
 assert.match(explorerSource, /state\.coverageStrengthLabel/, "mobile selector and browse list must show the strength tier");
-assert.match(panelSource, /state\.coverageStrengthLabel/, "state panel must lead with the honest strength tag");
+assert.match(panelSource, /<CoverageSummary state=\{state\}/, "state panel must render the shared summary");
+assert.match(summarySource, /state\.coverageStrengthLabel/, "shared summary must lead with the honest strength tag");
 assert.match(cssSource, /data-coverage-strength="strong"/, "CSS must provide a distinct strong color");
 assert.match(cssSource, /data-coverage-strength="moderate"/, "CSS must provide a distinct moderate color");
 assert.match(cssSource, /data-coverage-strength="sparse"/, "CSS must provide a distinct sparse color");
