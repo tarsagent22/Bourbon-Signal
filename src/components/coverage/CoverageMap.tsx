@@ -88,7 +88,7 @@ export function CoverageMap({ states, selectedCode, onSelect }: CoverageMapProps
               onClick={() => onSelect(state.code)}
               onKeyDown={(event) => handleKeyDown(event, state.code)}
             >
-              <title>{state.name}: {state.coverageStrengthLabel}</title>
+              <title>{`${state.name}: ${state.coverageStrengthLabel}`}</title>
               <path className={styles.stateShape} d={path(stateFeature as Feature) || undefined} />
             </g>
           );
