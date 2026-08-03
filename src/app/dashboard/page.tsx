@@ -577,6 +577,7 @@ function dropMatchesAreaPreferences(drop: DropEvent, areaPrefs: AreaPreferences)
   if (areaPrefs.states.length && !areaPrefs.states.includes(state)) return false;
 
   const locationFields = [
+    drop.locationName,
     dropLocationLabel(drop),
     drop.board_name,
     drop.store_city,

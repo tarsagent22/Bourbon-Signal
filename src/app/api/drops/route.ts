@@ -404,13 +404,13 @@ export async function GET(request: Request) {
           query: store,
           isBoardLevel: isBoardLevelDrop(record),
           fields: [
+            record.locationName,
             drop.store_name,
             drop.store_address,
             drop.store_city,
             drop.store_county,
             drop.board_name,
             drop.display_location,
-            record.locationName,
             record.county,
           ],
         });
