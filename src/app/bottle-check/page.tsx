@@ -15,6 +15,12 @@ interface BottleResult {
     brand: string;
     category: string;
     availability: "common" | "regional" | "seasonal" | "limited" | "allocated" | "highly_allocated" | "unicorn";
+    nationalTier: "regular" | "limited" | "allocated" | "highly_allocated" | "unicorn";
+    nationalConfidence: "high" | "medium" | "low";
+    releaseCadence: string;
+    distributionScope: string;
+    scarcityLabel: string;
+    releaseBadges: string[];
     buyerVerdict: string;
     aliases: string[];
     isSignalTracked?: boolean;
@@ -27,12 +33,26 @@ interface BottleResult {
   localSignal?: {
     state: string;
     rarityScore: number;
+    nationalRarityScore: number;
     localScore: number;
     scoreStatus: "bible_baseline" | "local_adjusted";
     scoreBasis: string;
     label: string;
     verdict: string;
     confidence: "high" | "medium" | "low";
+    signalConfidence: "high" | "medium" | "low";
+    classificationConfidence: "high" | "medium" | "low";
+    nationalTier: "regular" | "limited" | "allocated" | "highly_allocated" | "unicorn";
+    marketTier: "regular" | "limited" | "allocated" | "highly_allocated" | "unicorn";
+    nationalLabel: string;
+    marketLabel: string;
+    nationalConfidence: "high" | "medium" | "low";
+    localConfidence: "high" | "medium" | "low" | null;
+    nationalReason: string;
+    localReason: string | null;
+    releaseBadges: string[];
+    localClassificationEstablished: boolean;
+    classificationSource: "national_baseline" | "state_override";
     recentCount90d: number;
     recentCount30d: number;
     lastSeenAt: string | null;
@@ -50,16 +70,6 @@ interface BottleResult {
   message?: string;
   usage?: { used: number; limit: number; remaining: number } | null;
 }
-
-const availabilityLabels: Record<string, string> = {
-  common: "Common",
-  regional: "Regional",
-  seasonal: "Seasonal",
-  limited: "Limited",
-  allocated: "Allocated",
-  highly_allocated: "Highly allocated",
-  unicorn: "Unicorn",
-};
 
 const activeStates = AVAILABLE_STATES.filter((state) => state.active);
 
@@ -305,9 +315,13 @@ export default function BottleCheckPage() {
   const savedBottleNames = prefs.bottleAlertPreferences.bottleNames.map(normalizeBottleKey);
   const isTracked = Boolean(bottleKey && (savedBottleKeys.includes(bottleKey) || savedBottleNames.includes(bottleKey)));
   const canTrack = Boolean(bottle && signal?.canTrack);
-  const isCommon = bottle?.availability === "common";
+  const isRegular = signal?.marketTier === "regular";
   const canSaveAlertFromBottleCheck = entitlements.trackedBottleLimit !== 0;
-  const activeStateName = activeStates.find((item) => item.code === state)?.name || state;
+  const resultStateCode = signal?.state || submittedState;
+  const resultStateName = activeStates.find((item) => item.code === resultStateCode)?.name || resultStateCode;
+  const classificationIsUnderReview = signal?.classificationSource === "national_baseline"
+    && signal.classificationConfidence === "low"
+    && signal.nationalTier !== "regular";
 
   function submitSearch(event: React.FormEvent) {
     event.preventDefault();
@@ -474,7 +488,7 @@ export default function BottleCheckPage() {
                       onClick={() => selectSuggestion(suggestion)}
                     >
                       <span>{suggestion.canonicalName}</span>
-                      <em className={`bc-tier ${suggestion.availability}`}>{availabilityLabels[suggestion.availability] || suggestion.availability}</em>
+                      <em className={`bc-tier ${suggestion.nationalTier}`}>{suggestion.scarcityLabel}</em>
                     </button>
                   ))}
                   {!suggestionsLoading ? (
@@ -535,8 +549,8 @@ export default function BottleCheckPage() {
             <div className="bc-result-grid">
               <article className="bc-verdict-card">
                 <div className="bc-card-topline">
-                  <span className={`bc-tier ${bottle.availability}`}>{availabilityLabels[bottle.availability] || bottle.availability}</span>
-                  <span className="bc-confidence">Local signal: {signal?.confidence || "low"}</span>
+                  <span className={`bc-tier ${bottle.nationalTier}`}>{bottle.scarcityLabel}</span>
+                  <span className="bc-confidence">National baseline · {signal?.nationalConfidence || bottle.nationalConfidence} confidence</span>
                 </div>
                 <h2>{bottle.canonicalName}</h2>
                 <p className="bc-summary">{bottle.summary}</p>
@@ -544,11 +558,26 @@ export default function BottleCheckPage() {
                 {signal ? (
                   <div className={`bc-score ${scoreTone(signal.rarityScore)}`}>
                     <div>
-                      <span>Rarity Score</span>
-                      <strong>{signal.rarityScore}</strong>
+                      <span>{classificationIsUnderReview ? "Evidence status" : "Rarity Score"}</span>
+                      <strong>{classificationIsUnderReview ? "—" : signal.rarityScore}</strong>
                     </div>
-                    <p>{signal.label}</p>
+                    <p>{classificationIsUnderReview ? "Scarcity under review" : signal.label}</p>
                     <small>{signal.scoreBasis}</small>
+                  </div>
+                ) : null}
+
+                {signal ? (
+                  <div className="bc-classification-context">
+                    <div>
+                      <span>National baseline</span>
+                      <strong>{signal.nationalLabel}</strong>
+                    </div>
+                    <div>
+                      <span>{resultStateName}</span>
+                      <strong>{signal.localClassificationEstablished ? signal.marketLabel : "Local classification not established"}</strong>
+                    </div>
+                    <p>{signal.localClassificationEstablished ? signal.localReason : "We use the national baseline until authoritative local evidence or normalized market coverage supports an override."}</p>
+                    {signal.releaseBadges.length ? <div className="bc-release-badges">{signal.releaseBadges.map((badge) => <em key={badge}>{badge}</em>)}</div> : null}
                   </div>
                 ) : null}
 
@@ -564,13 +593,13 @@ export default function BottleCheckPage() {
                 ) : null}
                 <div className="bc-guidance">
                   <h3>In-store read</h3>
-                  <p>{signal?.verdict || bottle.guidance}</p>
-                  <small>{bottle.guidance}</small>
+                  <p>{classificationIsUnderReview ? "This bottle's scarcity tier is still being sourced. Use recent local sightings and price context; do not treat the current tier as verified." : (signal?.verdict || bottle.guidance)}</p>
+                  <small>{classificationIsUnderReview ? "Purchase guidance is withheld until this classification has enough evidence." : bottle.guidance}</small>
                 </div>
 
                 <div className="bc-track-box">
-                  {isCommon ? (
-                    <p><strong>No alert settings for common bottles.</strong> Bottle Check can still help you evaluate it, but everyday shelf bottles stay out of alert/watchlist noise.</p>
+                  {isRegular ? (
+                    <p><strong>No alert settings for regularly available bottles in this market.</strong> Bottle Check can still help you evaluate it, but everyday shelf bottles stay out of alert/watchlist noise.</p>
                   ) : canTrack ? (
                     canSaveAlertFromBottleCheck ? (
                     <>
@@ -612,8 +641,9 @@ export default function BottleCheckPage() {
               </article>
 
               <aside className="bc-detail-card">
-                <h3>Local signal in {activeStateName}</h3>
+                <h3>Local signal in {resultStateName}</h3>
                 <p className="bc-local-note">Recent Bourbon Signal sightings for the selected market. This is not a live shelf confirmation.</p>
+                <p className="bc-local-confidence">Signal coverage: {signal?.signalConfidence || "low"} confidence</p>
                 <div className="bc-stat-grid">
                   <div><span>Last seen</span><strong>{formatDate(signal?.lastSeenAt)}</strong></div>
                   <div><span>30 days</span><strong>{signal?.recentCount30d ?? 0}</strong></div>
@@ -677,7 +707,7 @@ const bottleCheckCss = `
 .bc-card-topline { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
 .bc-tier { display:inline-flex; border-radius:999px; padding:7px 10px; font:900 10px/1 var(--font-dm-sans); letter-spacing:.10em; text-transform:uppercase; border:1px solid rgba(245,237,214,.14); color:var(--color-text-secondary); background:rgba(255,255,255,.04); }
 .bc-tier.allocated, .bc-tier.highly_allocated, .bc-tier.unicorn { border-color:rgba(196,148,58,.38); color:var(--color-accent-amber); background:rgba(196,148,58,.10); }
-.bc-tier.common { border-color:rgba(245,237,214,.11); color:rgba(245,237,214,.58); }
+.bc-tier.regular { border-color:rgba(245,237,214,.11); color:rgba(245,237,214,.58); }
 .bc-confidence { color:var(--color-text-tertiary); font:800 11px/1 var(--font-dm-sans); letter-spacing:.08em; text-transform:uppercase; }
 .bc-verdict-card h2 { margin:18px 0 0; font:700 clamp(32px, 5vw, 56px)/.98 var(--font-playfair); letter-spacing:-.035em; color:var(--color-cream); }
 .bc-summary { margin:14px 0 0; color:var(--color-text-secondary); font:16px/1.7 var(--font-dm-sans); }
@@ -689,6 +719,14 @@ const bottleCheckCss = `
 .bc-score.hot { box-shadow:inset 0 1px 0 rgba(232,201,122,.10); }
 .bc-score.hot strong, .bc-score.warm strong { color:var(--color-accent-amber); }
 .bc-score.quiet strong { color:rgba(245,237,214,.55); }
+.bc-classification-context { margin-top:12px; display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:10px; border-radius:16px; padding:14px 16px; background:rgba(0,0,0,.16); border:1px solid rgba(245,237,214,.07); }
+.bc-classification-context > div { min-width:0; }
+.bc-classification-context span { display:block; color:var(--color-text-tertiary); font:900 10px/1 var(--font-dm-sans); letter-spacing:.09em; text-transform:uppercase; }
+.bc-classification-context strong { display:block; margin-top:6px; color:var(--color-cream); font:800 14px/1.3 var(--font-dm-sans); }
+.bc-classification-context > p { grid-column:1/-1; margin:2px 0 0; color:var(--color-text-tertiary); font:12px/1.45 var(--font-dm-sans); }
+.bc-release-badges { grid-column:1/-1; display:flex; flex-wrap:wrap; gap:6px; }
+.bc-release-badges em { border-radius:999px; padding:5px 8px; background:rgba(196,148,58,.09); color:var(--color-accent-amber); font:800 10px/1 var(--font-dm-sans); font-style:normal; }
+.bc-local-confidence { margin:5px 0 0; color:var(--color-text-tertiary); font:800 10px/1.3 var(--font-dm-sans); letter-spacing:.07em; text-transform:uppercase; }
 .bc-member-taste-score { margin-top:12px; display:grid; grid-template-columns:116px minmax(0,1fr); gap:14px; align-items:center; border-radius:18px; padding:14px 16px; background:linear-gradient(135deg, rgba(196,148,58,.085), rgba(0,0,0,.16)); }
 .bc-member-taste-score span { display:block; color:rgba(232,201,122,.78); font:900 10px/1 var(--font-jetbrains); letter-spacing:.11em; text-transform:uppercase; }
 .bc-member-taste-score strong { display:block; margin-top:6px; font:800 34px/.9 var(--font-playfair); color:var(--color-accent-amber); }
@@ -720,5 +758,5 @@ const bottleCheckCss = `
 .bc-sighting span, .bc-recent p { display:block; margin-top:5px; color:var(--color-text-secondary); font:12px/1.5 var(--font-dm-sans); }
 .bc-suggestions button { text-align:left; border:1px solid rgba(245,237,214,.09); border-radius:12px; background:rgba(255,255,255,.03); color:var(--color-text-primary); padding:10px 12px; font:700 13px/1.2 var(--font-dm-sans); cursor:pointer; }
 @media (max-width: 900px) { .bc-search-card, .bc-result-grid, .bc-score, .bc-member-taste-score, .bc-track-box { grid-template-columns:1fr; flex-direction:column; align-items:stretch; } .bc-field, .bc-field.grow, .bc-field.state { width:100%; max-width:100%; } .bc-search-card > button, .bc-track-box > button { width:100%; } .bc-stat-grid { grid-template-columns:1fr; } }
-@media (max-width: 520px) { .bc-hero, .bc-shell { width:calc(100% - 28px); } .bc-hero { padding-top:42px; } .bc-hero h1 { font-size:clamp(42px, 12vw, 56px); line-height:.96; } .bc-search-card { padding:14px; border-radius:22px; } .bc-live-suggestions button { grid-template-columns:minmax(0,1fr); align-items:start; gap:6px; padding:11px 12px; } .bc-live-suggestions .bc-tier { justify-self:start; max-width:100%; } }
+@media (max-width: 520px) { .bc-hero, .bc-shell { width:calc(100% - 28px); } .bc-hero { padding-top:42px; } .bc-hero h1 { font-size:clamp(42px, 12vw, 56px); line-height:.96; } .bc-search-card { padding:14px; border-radius:22px; } .bc-live-suggestions button { grid-template-columns:minmax(0,1fr); align-items:start; gap:6px; padding:11px 12px; } .bc-live-suggestions .bc-tier { justify-self:start; max-width:100%; } .bc-classification-context { grid-template-columns:1fr; } .bc-classification-context > p, .bc-release-badges { grid-column:1; } }
 `;

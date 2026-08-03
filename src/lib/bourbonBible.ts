@@ -1,11 +1,13 @@
 import inventoryBottles from "@/data/bourbonBibleInventory.json";
 import { readSiteExport } from "@/lib/site-engine-contract";
 import { mergeBottleCatalogSources } from "@/lib/bottle-catalog-merge";
+import { getBottleStateScarcityOverrides } from "@/data/bottle-scarcity-overrides";
+import { mergeStateScarcityOverrides, normalizeBottleScarcity, type BottleScarcity, type ScarcityConfidence, type ScarcityTier } from "@/lib/bottle-scarcity";
 
 export type AvailabilityTier = "common" | "regional" | "seasonal" | "limited" | "allocated" | "highly_allocated" | "unicorn";
 export type BuyerVerdict = "safe_to_pass" | "fair_buy" | "good_buy" | "grab_at_msrp" | "special_find" | "unknown";
 
-export interface BibleBottle {
+export interface BibleBottle extends BottleScarcity {
   id: string;
   canonicalName: string;
   brand: string;
@@ -23,12 +25,25 @@ export interface BibleBottle {
   guidance: string;
 }
 
+interface EngineScarcityEvidence {
+  tier: ScarcityTier;
+  stateCount: number;
+  inventorySignalCount: number;
+  bestConfidence: number;
+  latestObservedAt: string | null;
+}
+
+type BibleBottleInput = Omit<BibleBottle, keyof BottleScarcity> & Partial<BottleScarcity> & {
+  source?: string;
+  engineScarcityEvidence?: EngineScarcityEvidence;
+};
+
 export interface BibleSearchResult extends BibleBottle {
   matchScore: number;
   matchReason: "exact" | "alias" | "fuzzy" | "engine";
 }
 
-const SEED_BOTTLES: BibleBottle[] = [
+const SEED_BOTTLES: BibleBottleInput[] = [
   commonBottle("buffalo-trace-bourbon", "Buffalo Trace Bourbon", "Buffalo Trace", ["buffalo trace", "bt", "buffalo trace kentucky straight bourbon"], "Popular and sometimes unevenly distributed, but not truly rare nationally.", "Good buy around MSRP if you like the profile. Do not chase secondary pricing."),
   commonBottle("makers-mark", "Maker's Mark", "Maker's Mark", ["makers", "maker's", "makers mark bourbon", "maker mark"], "A widely available wheated bourbon and a dependable shelf bottle.", "Safe to pass unless you specifically need it."),
   commonBottle("makers-mark-46", "Maker's Mark 46", "Maker's Mark", ["makers 46", "maker's 46"], "A common Maker's Mark expression with extra oak influence.", "Worth considering if priced normally and you want a richer wheated profile."),
@@ -109,7 +124,7 @@ const SEED_BOTTLES: BibleBottle[] = [
   signalBottle("elmer-t-lee", "Elmer T. Lee Single Barrel", "Elmer T. Lee", ["elmer t lee", "etl", "elmer lee"], "highly_allocated", "A scarce Buffalo Trace single barrel bourbon.", "Special find near MSRP."),
 ];
 
-function commonBottle(id: string, canonicalName: string, brand: string, aliases: string[], summary: string, guidance: string, availability: AvailabilityTier = "common"): BibleBottle {
+function commonBottle(id: string, canonicalName: string, brand: string, aliases: string[], summary: string, guidance: string, availability: AvailabilityTier = "common"): BibleBottleInput {
   return {
     id,
     canonicalName,
@@ -125,7 +140,7 @@ function commonBottle(id: string, canonicalName: string, brand: string, aliases:
   };
 }
 
-function signalBottle(id: string, canonicalName: string, brand: string, aliases: string[], availability: AvailabilityTier, summary: string, guidance: string): BibleBottle {
+function signalBottle(id: string, canonicalName: string, brand: string, aliases: string[], availability: AvailabilityTier, summary: string, guidance: string): BibleBottleInput {
   return {
     id,
     canonicalName,
@@ -186,7 +201,7 @@ function tierFromEngine(value: unknown): AvailabilityTier {
   return "limited";
 }
 
-async function readEngineBibleBottles(): Promise<BibleBottle[]> {
+async function readEngineBibleBottles(): Promise<BibleBottleInput[]> {
   try {
     const payload = await readSiteExport("bottles");
     const raw = Array.isArray(payload?.bottles) ? payload.bottles : [];
@@ -198,6 +213,7 @@ async function readEngineBibleBottles(): Promise<BibleBottle[]> {
         if (!canonicalName) return null;
         const id = String(item!.canonical_id || item!.id || slugifyBottle(canonicalName));
         const tier = tierFromEngine(item!.tier);
+        const engineTier = normalizeBottleScarcity({ availability: tier }).nationalTier;
         const aliases = Array.isArray(item!.aliases) ? item!.aliases.map(String) : [];
         return {
           id,
@@ -211,18 +227,25 @@ async function readEngineBibleBottles(): Promise<BibleBottle[]> {
           aliases: [canonicalName, ...aliases],
           isSignalTracked: true,
           isAlertEligible: tier !== "common",
+          engineScarcityEvidence: {
+            tier: engineTier,
+            stateCount: typeof item!.stateCount === "number" ? Math.max(0, Math.floor(item!.stateCount)) : 0,
+            inventorySignalCount: typeof item!.inventorySignalCount === "number" ? Math.max(0, Math.floor(item!.inventorySignalCount)) : 0,
+            bestConfidence: typeof item!.bestConfidence === "number" ? Math.max(0, Math.min(1, item!.bestConfidence)) : 0,
+            latestObservedAt: typeof item!.latestObservedAt === "string" ? item!.latestObservedAt : null,
+          },
           summary: "This bottle appears in Bourbon Signal's live signal data.",
           guidance: "Use the local signal below to decide whether this is worth grabbing in your area.",
-        } satisfies BibleBottle;
+        } satisfies BibleBottleInput;
       })
-      .filter(Boolean) as BibleBottle[];
+      .filter(Boolean) as BibleBottleInput[];
   } catch {
     return [];
   }
 }
 
-function readInventoryBibleBottles(): BibleBottle[] {
-  return (inventoryBottles as unknown as BibleBottle[]).map((bottle) => ({
+function readInventoryBibleBottles(): BibleBottleInput[] {
+  return (inventoryBottles as unknown as BibleBottleInput[]).map((bottle) => ({
     ...bottle,
     aliases: Array.isArray(bottle.aliases) ? bottle.aliases : [],
     isSignalTracked: false,
@@ -242,7 +265,47 @@ async function buildBourbonBible() {
     await readEngineBibleBottles(),
     readInventoryBibleBottles(),
     SEED_BOTTLES,
-  ]);
+  ]).map((bottle): BibleBottle => {
+    const inheritedTier = normalizeBottleScarcity({ availability: bottle.availability }).nationalTier;
+    const engineEvidence = bottle.engineScarcityEvidence;
+    const engineCorroboratesTier = engineEvidence?.tier === inheritedTier;
+    const engineConfidence: ScarcityConfidence = !engineEvidence || !engineCorroboratesTier
+      ? "low"
+      : engineEvidence.stateCount >= 4
+        && engineEvidence.inventorySignalCount >= 20
+        && engineEvidence.bestConfidence >= 0.8
+        ? "high"
+        : engineEvidence.stateCount >= 2
+          && engineEvidence.inventorySignalCount >= 5
+          && engineEvidence.bestConfidence >= 0.7
+          ? "medium"
+          : "low";
+    const inventorySourceIds = typeof bottle.source === "string" && bottle.source.includes("NC ABC quarterly price list")
+      ? ["official-nc-quarterly-price-list"]
+      : [];
+    const engineSourceIds = engineConfidence !== "low" ? ["engine-verified-inventory-signals"] : [];
+    const engineReviewedAt = engineConfidence !== "low" && engineEvidence?.latestObservedAt
+      ? engineEvidence.latestObservedAt.slice(0, 10)
+      : null;
+    const scarcity = normalizeBottleScarcity({
+      ...bottle,
+      nationalTier: inheritedTier,
+      nationalConfidence: bottle.nationalConfidence || engineConfidence,
+      scarcitySourceIds: bottle.scarcitySourceIds?.length
+        ? bottle.scarcitySourceIds
+        : [...inventorySourceIds, ...engineSourceIds],
+      scarcityLastReviewedAt: bottle.scarcityLastReviewedAt || engineReviewedAt,
+      stateOverrides: mergeStateScarcityOverrides(
+        bottle.stateOverrides || [],
+        getBottleStateScarcityOverrides(bottle.id, inheritedTier),
+      ),
+    });
+    const { engineScarcityEvidence: _engineScarcityEvidence, source: _source, ...publicBottle } = bottle;
+    return {
+      ...publicBottle,
+      ...scarcity,
+    };
+  });
 }
 
 export async function getBourbonBible() {

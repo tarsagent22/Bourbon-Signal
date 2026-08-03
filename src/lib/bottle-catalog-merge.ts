@@ -1,3 +1,6 @@
+import { mergeStateScarcityOverrides, type StateScarcityOverride } from "./bottle-scarcity.ts";
+import { canonicalBottleId, isBottleIdentityRedirectTarget } from "../data/bottle-identity-redirects.ts";
+
 export interface BottleCatalogEntry {
   id: string;
   canonicalName: string;
@@ -5,6 +8,8 @@ export interface BottleCatalogEntry {
   aliases: string[];
   isSignalTracked?: boolean;
   isAlertEligible?: boolean;
+  nationalTier?: string;
+  stateOverrides?: StateScarcityOverride[];
 }
 
 function normalizeIdentity(value: string) {
@@ -24,7 +29,7 @@ function normalizeIdentity(value: string) {
 
 function identityKeys(bottle: BottleCatalogEntry) {
   return new Set(
-    [bottle.id, bottle.canonicalName]
+    [canonicalBottleId(bottle.id), bottle.id, bottle.canonicalName]
       .map(normalizeIdentity)
       .filter(Boolean),
   );
@@ -64,7 +69,8 @@ export function mergeBottleCatalogSources<T extends BottleCatalogEntry>(sources:
       const bottleKeys = identityKeys(bottle);
       const matchingIndexes: number[] = [];
       for (let index = 0; index < merged.length; index += 1) {
-        if (variantsAreCompatible(bottle, merged[index]) && intersects(bottleKeys, identityKeys(merged[index]))) matchingIndexes.push(index);
+        const sameCanonicalId = canonicalBottleId(bottle.id) === canonicalBottleId(merged[index].id);
+        if (sameCanonicalId || (variantsAreCompatible(bottle, merged[index]) && intersects(bottleKeys, identityKeys(merged[index])))) matchingIndexes.push(index);
       }
 
       const existing = matchingIndexes.map((index) => merged[index]);
@@ -75,10 +81,18 @@ export function mergeBottleCatalogSources<T extends BottleCatalogEntry>(sources:
       ]));
       const isSignalTracked = existing.some((entry) => entry.isSignalTracked) || Boolean(bottle.isSignalTracked);
       const isAlertEligible = existing.some((entry) => entry.isAlertEligible) || Boolean(bottle.isAlertEligible);
+      const stateOverrides = mergeStateScarcityOverrides(
+        ...existing.map((entry) => entry.stateOverrides || []),
+        bottle.stateOverrides || [],
+      );
+      const canonicalIds = [...existing, bottle].map((entry) => canonicalBottleId(entry.id));
+      const canonicalId = canonicalIds.find(isBottleIdentityRedirectTarget) || canonicalBottleId(bottle.id);
       const combined = Object.assign({}, ...existing, bottle, {
+        id: canonicalId,
         aliases,
         isSignalTracked,
         isAlertEligible,
+        stateOverrides,
       }) as T;
 
       for (const index of matchingIndexes.reverse()) merged.splice(index, 1);
