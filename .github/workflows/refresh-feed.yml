@@ -62,6 +62,11 @@ jobs:
       - name: Install dependencies
         run: npm ci && npm --prefix engine ci
 
+      - name: Preserve checked-in board shipment history bootstrap
+        run: |
+          mkdir -p "$RUNNER_TEMP/board-history-bootstrap"
+          cp engine/out/site/drops.json "$RUNNER_TEMP/board-history-bootstrap/drops.json"
+
       - name: Restore collector artifacts and adaptive scheduler state
         uses: actions/cache/restore@v4
         with:
@@ -70,6 +75,7 @@ jobs:
             engine/out/cache
             engine/out/states
             engine/out/snapshots
+            engine/out/history/snapshots
             engine/out/location-bible-official.json
             engine/out/site-refresh-status.json
             engine/out/optimization/source-run-history.json
@@ -103,6 +109,11 @@ jobs:
           key: inventory-published-site-${{ runner.os }}-${{ github.run_id }}
           restore-keys: |
             inventory-published-site-${{ runner.os }}-
+
+      - name: Restore checked-in board shipment history bootstrap
+        run: |
+          mkdir -p engine/out/historical-bootstrap
+          cp "$RUNNER_TEMP/board-history-bootstrap/drops.json" engine/out/historical-bootstrap/drops.json
 
       - name: Hydrate complete state reports for recovery
         env:
@@ -272,6 +283,7 @@ jobs:
             engine/out/cache
             engine/out/states
             engine/out/snapshots
+            engine/out/history/snapshots
             engine/out/location-bible-official.json
             engine/out/site-refresh-status.json
             engine/out/optimization/source-run-history.json

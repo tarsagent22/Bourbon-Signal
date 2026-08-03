@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { detectDropCollapseFallbacks, mergePartialRefreshDrops } from '../src/partial-refresh-contract.mjs';
+import { detectDropCollapseFallbacks, mergeHistoricalBoardShipmentDrops, mergePartialRefreshDrops, selectFreshRunDrops } from '../src/partial-refresh-contract.mjs';
 
 test('drop collapse detection marks attempted states for safe publication fallback', () => {
   const previous = { states: [{ state: 'IN', input: { dropCount: 72 } }, { state: 'TN', input: { dropCount: 35 } }] };
@@ -164,4 +164,119 @@ test('full refresh never retains rows solely from the previous contract', () => 
     attemptedStateIds: ['IL'],
   });
   assert.deepEqual(merged, [{ id: 'new', state: 'IL' }]);
+});
+
+test('full refresh retains eligible NC board-shipment history from published and bootstrap contracts', () => {
+  const merged = mergeHistoricalBoardShipmentDrops({
+    currentDrops: [{
+      id: 'wake-current', state: 'NC', type: 'nc_board_shipment_snapshot',
+      locationName: 'Wake County ABC Board', sourceEventAt: '2026-08-02T12:00:00.000Z',
+    }],
+    previousDrops: { drops: [{
+      id: 'dunn-july-12', state: 'NC', type: 'nc_board_shipment_snapshot',
+      locationName: 'Dunn ABC Board', sourceEventAt: '2026-07-12T12:00:00.000Z',
+      canAlertAsInventory: false, canAlertAsWatch: true, alertable: true,
+    }] },
+    bootstrapDrops: { drops: [{
+      id: 'brunswick-july-12', state: 'NC', type: 'nc_board_shipment_snapshot',
+      locationName: 'Brunswick County ABC Board', sourceEventAt: '2026-07-12T13:00:00.000Z',
+      canAlertAsInventory: false, canAlertAsWatch: false,
+    }] },
+    now: '2026-08-03T12:00:00.000Z',
+    historyDays: 30,
+  });
+  assert.deepEqual(merged.map((drop) => drop.id), ['wake-current', 'brunswick-july-12', 'dunn-july-12']);
+  const retainedDunn = merged.find((drop) => drop.id === 'dunn-july-12');
+  assert.equal(retainedDunn?.sourceStale, true);
+  assert.equal(retainedDunn?.canAlertAsInventory, false);
+  assert.equal(retainedDunn?.canAlertAsWatch, false);
+  assert.equal(retainedDunn?.alertable, false);
+  assert.equal(retainedDunn?.eligibleForDelivery, false);
+  assert.equal(retainedDunn?.dataLane, 'informational');
+  assert.equal(retainedDunn?.informationalOnly, true);
+});
+
+test('fresh-run provenance excludes cached rows from historical-current and alert inputs', () => {
+  const cachedNc = {
+    id: 'cached-nc', state: 'NC', type: 'nc_board_shipment_snapshot', observedAt: '2026-07-12T12:00:00.000Z',
+    canAlertAsWatch: true, dataLane: 'actionable_watch',
+  };
+  const freshGa = {
+    id: 'fresh-ga', state: 'GA', type: 'store_inventory_result', observedAt: '2026-08-03T11:00:00.000Z',
+    canAlertAsInventory: true,
+  };
+  const freshMdScoped = {
+    id: 'fresh-md', state: 'MD-MONTGOMERY', type: 'county_inventory_aggregate', observedAt: '2026-08-03T11:00:00.000Z',
+    canAlertAsInventory: true,
+  };
+  assert.deepEqual(
+    selectFreshRunDrops({ drops: [cachedNc, freshGa, freshMdScoped], freshStateIds: ['GA', 'MD-MONTGOMERY'] }),
+    [freshGa, freshMdScoped],
+  );
+  assert.deepEqual(selectFreshRunDrops({ drops: [cachedNc], freshStateIds: undefined }), []);
+});
+
+test('historical retention sanitizes untouched partial-refresh shipment rows and expires old ones', () => {
+  const merged = mergeHistoricalBoardShipmentDrops({
+    currentDrops: [
+      {
+        id: 'ga-current', state: 'GA', type: 'store_inventory_result', observedAt: '2026-08-03T11:00:00.000Z',
+        canAlertAsInventory: true,
+      },
+      {
+        id: 'dunn-retained', state: 'NC', type: 'nc_board_shipment_snapshot', observedAt: '2026-07-12T12:00:00.000Z',
+        canAlertAsWatch: true, dataLane: 'actionable_watch',
+      },
+      {
+        id: 'expired-retained', state: 'NC', type: 'nc_board_shipment_snapshot', observedAt: '2026-06-01T12:00:00.000Z',
+        canAlertAsWatch: true, dataLane: 'actionable_watch',
+      },
+    ],
+    currentSourceDrops: [{ id: 'ga-current', state: 'GA', type: 'store_inventory_result' }],
+    now: '2026-08-03T12:00:00.000Z',
+    historyDays: 30,
+  });
+  assert.deepEqual(merged.map((drop) => drop.id), ['ga-current', 'dunn-retained']);
+  const retainedDunn = merged.find((drop) => drop.id === 'dunn-retained');
+  assert.equal(retainedDunn?.sourceStale, true);
+  assert.equal(retainedDunn?.canAlertAsWatch, false);
+  assert.equal(retainedDunn?.dataLane, 'informational');
+});
+
+test('genuinely current NC shipment rows remain current but informational and non-alertable', () => {
+  const currentShipment = {
+    id: 'wake-current', state: 'NC', type: 'nc_board_shipment_snapshot', observedAt: '2026-08-03T11:00:00.000Z',
+    canAlertAsWatch: true, dataLane: 'actionable_watch',
+  };
+  const merged = mergeHistoricalBoardShipmentDrops({
+    currentDrops: [currentShipment],
+    currentSourceDrops: [currentShipment],
+    now: '2026-08-03T12:00:00.000Z',
+    historyDays: 30,
+  });
+  assert.equal(merged.length, 1);
+  assert.equal(merged[0].sourceStale, undefined);
+  assert.equal(merged[0].canAlertAsWatch, false);
+  assert.equal(merged[0].alertable, false);
+  assert.equal(merged[0].dataLane, 'informational');
+  assert.equal(merged[0].informationalOnly, true);
+});
+
+test('historical retention never revives inventory, expired shipments, or duplicate current rows', () => {
+  const merged = mergeHistoricalBoardShipmentDrops({
+    currentDrops: [{
+      id: 'dunn-same', state: 'NC', type: 'nc_board_shipment_snapshot',
+      locationName: 'Dunn ABC Board', sourceEventAt: '2026-08-02T12:00:00.000Z',
+    }],
+    previousDrops: { drops: [
+      { id: 'dunn-same', state: 'NC', type: 'nc_board_shipment_snapshot', sourceEventAt: '2026-07-12T12:00:00.000Z' },
+      { id: 'old-shipment', state: 'NC', type: 'nc_board_shipment_snapshot', sourceEventAt: '2026-06-01T12:00:00.000Z' },
+      { id: 'old-inventory', state: 'NC', type: 'store_inventory_result', observedAt: '2026-07-12T12:00:00.000Z' },
+      { id: 'other-state', state: 'VA', type: 'nc_board_shipment_snapshot', sourceEventAt: '2026-07-12T12:00:00.000Z' },
+    ] },
+    now: '2026-08-03T12:00:00.000Z',
+    historyDays: 30,
+  });
+  assert.deepEqual(merged.map((drop) => drop.id), ['dunn-same']);
+  assert.equal(merged[0].sourceEventAt, '2026-08-02T12:00:00.000Z');
 });
