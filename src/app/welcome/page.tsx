@@ -463,7 +463,7 @@ export default function WelcomePage() {
                     <span className={styles.landmark} aria-hidden="true">02</span>
                     <div>
                       <p className={styles.stepLabel}>Coverage in your state</p>
-                      <h2 id="coverage-depth-heading">{activeStateName} coverage explained</h2>
+                      <h2 id="coverage-depth-heading">{activeStateName} coverage</h2>
                     </div>
                   </div>
                   <Link className={styles.sectionAction} href={`/coverage?state=${encodeURIComponent(activeState)}`}><MapIcon size={14} aria-hidden="true" />Coverage map</Link>
@@ -473,25 +473,17 @@ export default function WelcomePage() {
                   <>
                     <div className={styles.coverageOverview}>
                       <div className={styles.coverageBadges}>
-                        <span><Gauge size={13} aria-hidden="true" />Coverage: {coverageState.coverageStrength === "none" ? "None" : titleCase(coverageState.coverageStrength)}</span>
-                        <span data-health={coverageState.health}><Radio size={13} aria-hidden="true" />Updates: {coverageState.healthLabel}</span>
+                        <span><Gauge size={13} aria-hidden="true" />{coverageState.coverageStrengthLabel}</span>
                       </div>
-                      <p>{coverageState.coverageStatus === "not-available"
-                        ? `We do not have reliable coverage in ${activeStateName} yet. Use the request below to tell us where coverage matters most.`
-                        : `We track ${coverageState.scope.shipmentBoards
-                          ? `official shipment information${coverageState.capabilities.currentBottleAvailability ? " and availability at supported stores" : ""}`
-                          : coverageState.capabilities.currentBottleAvailability
-                            ? "availability at supported stores and areas"
-                            : "verified public updates from supported sources"} in ${activeStateName}. Coverage shows how broadly we can monitor the state; Updates show whether those sources are reporting normally.`}</p>
                     </div>
-                    <dl className={styles.coverageMetrics}>
-                      {coverageState.scope.shipmentBoards ? <div className={styles.metricMajor}><Compass size={16} aria-hidden="true" /><dt>{activeState === "NC" ? "ABC boards with shipment information" : "Official shipment sources"}</dt><dd>{coverageState.scope.shipmentBoards}</dd></div> : null}
-                      <div className={styles.metricMajor}><Store size={16} aria-hidden="true" /><dt>Stores represented</dt><dd>{coverageState.scope.searchableStores}</dd></div>
-                      <div className={styles.metricMajor}><Radio size={16} aria-hidden="true" /><dt>Stores reporting current availability</dt><dd>{coverageState.scope.inventoryMonitoredStores}</dd></div>
-                      <div><Compass size={14} aria-hidden="true" /><dt>{coverageState.scope.knownBoards ? "Cities and towns represented" : "Areas represented"}</dt><dd>{coverageState.representedAreaCount}</dd></div>
-                      <div><BellRing size={14} aria-hidden="true" /><dt>Stores eligible for paid alerts</dt><dd>{coverageState.layers.alertGrade}</dd></div>
-                    </dl>
-                    <p className={styles.coverageCaveat}>These counts describe coverage, not bottles currently on the shelf.{coverageState.scope.shipmentBoards ? " Official shipment reports show what reached a board or area; they do not confirm stock at a specific store." : ""}{coverageState.health !== "current" && coverageState.coverageStatus !== "not-available" ? " Some source updates are currently delayed." : ""}</p>
+                    {(activeState === "NC" && coverageState.scope.knownBoards > 0)
+                      || coverageState.scope.inventoryMonitoredStores > 0 ? (
+                        <dl className={styles.coverageMetrics}>
+                          {activeState === "NC" && coverageState.scope.knownBoards > 0 ? <div className={styles.metricMajor}><Compass size={16} aria-hidden="true" /><dt>NC ABC boards monitored</dt><dd>{coverageState.scope.knownBoards}</dd></div> : null}
+                          {coverageState.scope.inventoryMonitoredStores > 0 ? <div className={styles.metricMajor}><Store size={16} aria-hidden="true" /><dt>Stores with current inventory signals</dt><dd>{coverageState.scope.inventoryMonitoredStores}</dd></div> : null}
+                        </dl>
+                      ) : null}
+                    {activeState === "NC" || coverageState.scope.shipmentBoards > 0 ? <p className={styles.coverageCaveat}>Shipment reports show board or area deliveries—not guaranteed shelf stock.</p> : null}
                   </>
                 ) : null}
               </section>

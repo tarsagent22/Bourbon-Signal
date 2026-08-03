@@ -79,7 +79,9 @@ assert.match(model, /customerSummary|customerCanSee|customerCannotSee/, "plain c
 assert.match(panel, /customerSummary \|\| state\.summary/, "the panel renders the plain customer summary");
 assert.match(panel, /customerCanSee \|\| state\.canSee/, "the panel renders the plain customer capabilities");
 assert.doesNotMatch(search, /Results describe monitoring coverage/i, "search explains what the customer gets rather than exposing monitoring terminology");
-assert.match(welcome, /coverage explained|Stores represented|Stores reporting current availability/i, "the welcome surface uses the same plain-language coverage vocabulary");
+assert.match(welcome, /coverageStrengthLabel/, "the welcome surface uses the canonical coverage type");
+assert.match(welcome, /NC ABC boards monitored/, "the welcome surface distinguishes total NC board monitoring from fresh signals");
+assert.match(welcome, /Stores with current inventory signals/, "the welcome surface names usable inventory breadth directly");
 
 assert.match(panel, /How we check this area/, "coverage detail uses progressive disclosure");
 assert.match(panel, /What is not available yet/, "state drilldown states its limits");
