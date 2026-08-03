@@ -70,7 +70,7 @@ export function CoverageMap({ states, selectedCode, onSelect }: CoverageMapProps
         role="group"
         aria-label="United States coverage map"
       >
-        <desc>Select a state to read what information is available and whether it is up to date.</desc>
+        <desc>Colors show the strength of verified coverage sources. Update status is shown separately after you select a state.</desc>
         {MAPPED_STATES.map(({ code, feature: stateFeature }) => {
           const state = statesByCode.get(code);
           if (!state) return null;
@@ -79,22 +79,31 @@ export function CoverageMap({ states, selectedCode, onSelect }: CoverageMapProps
             <g
               key={state.code}
               className={styles.stateCell}
-              data-coverage-status={state.coverageStatus}
+              data-coverage-strength={state.coverageStrength}
               data-selected={selected}
               role="button"
               tabIndex={0}
               aria-pressed={selected}
-              aria-label={`${state.name}: ${state.coverageStatusLabel}; ${state.healthLabel}`}
+              aria-label={`${state.name}: ${state.coverageStrengthLabel}; ${state.healthLabel}`}
               onClick={() => onSelect(state.code)}
               onKeyDown={(event) => handleKeyDown(event, state.code)}
             >
-              <title>{state.name}: {state.coverageStatusLabel}</title>
+              <title>{state.name}: {state.coverageStrengthLabel}</title>
               <path className={styles.stateShape} d={path(stateFeature as Feature) || undefined} />
             </g>
           );
         })}
       </svg>
-      <p className={styles.mapCaption}>Select a state to read the available information and its update status.</p>
+      <div className={styles.mapLegend} aria-label="Coverage strength legend">
+        <span>Coverage strength</span>
+        <ul>
+          <li aria-label="Strong coverage" data-coverage-strength="strong"><i aria-hidden="true" />Strong</li>
+          <li aria-label="Moderate coverage" data-coverage-strength="moderate"><i aria-hidden="true" />Moderate</li>
+          <li aria-label="Sparse coverage" data-coverage-strength="sparse"><i aria-hidden="true" />Sparse</li>
+          <li aria-label="No coverage" data-coverage-strength="none"><i aria-hidden="true" />No coverage</li>
+        </ul>
+      </div>
+      <p className={styles.mapCaption}>Color shows the breadth of verified coverage sources. Select a state for its update status and what is available now.</p>
     </div>
   );
 }

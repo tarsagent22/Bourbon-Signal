@@ -56,7 +56,7 @@ export function CoverageExplorer({ contract, initialStateCode }: CoverageExplore
         <label htmlFor="coverage-state-select">State</label>
         <select id="coverage-state-select" value={selectedCode} onChange={(event) => selectState(event.target.value)}>
           {contract.states.map((state) => (
-            <option key={state.code} value={state.code}>{state.name} — {state.coverageStatusLabel}</option>
+            <option key={state.code} value={state.code}>{state.name} — {state.coverageStrengthLabel}</option>
           ))}
         </select>
       </section>
@@ -71,7 +71,7 @@ export function CoverageExplorer({ contract, initialStateCode }: CoverageExplore
                 <li key={state.code}>
                   <button type="button" aria-current={selectedCode === state.code ? "true" : undefined} onClick={() => selectState(state.code)}>
                     <span><strong>{state.name}</strong><small>{state.healthLabel}</small></span>
-                    <span>{state.coverageStatusLabel}</span>
+                    <span>{state.coverageStrengthLabel}</span>
                   </button>
                 </li>
               ))}

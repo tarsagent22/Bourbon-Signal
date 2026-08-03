@@ -10,11 +10,18 @@ import {
 
 export const COVERAGE_CAPABILITIES = ["deep", "active", "focused", "intelligence", "not-active"] as const;
 export const COVERAGE_STATUS_VALUES = ["available", "not-available"] as const;
+export const COVERAGE_STRENGTH_VALUES = ["strong", "moderate", "sparse", "none"] as const;
 export const COVERAGE_HEALTH_LEVELS = ["current", "intermittent", "temporarily-limited", "no-recent-update"] as const;
 export const COVERAGE_DEPTH_VALUES = ["active", "moderate", "sparse", "not-available"] as const;
 
 export type CoverageCapability = typeof COVERAGE_CAPABILITIES[number];
 export type CoverageStatus = typeof COVERAGE_STATUS_VALUES[number];
+/**
+ * Durable breadth of verified customer-facing sources. Unlike coverageDepth,
+ * this deliberately does not disappear merely because the latest source run is
+ * stale or temporarily quiet.
+ */
+export type CoverageStrength = typeof COVERAGE_STRENGTH_VALUES[number];
 export type CoverageHealth = typeof COVERAGE_HEALTH_LEVELS[number];
 export type CoverageDepth = typeof COVERAGE_DEPTH_VALUES[number];
 export type CoverageUpdateLabel = "Shipments and releases" | "Official updates";
@@ -106,6 +113,12 @@ export interface CoverageLayerCounts {
 
 export interface CoverageScopeCounts {
   knownBoards: number;
+  /** Official boards with canonical tracked shipment evidence; never a current-shelf claim. */
+  trackedShipmentBoards: number;
+  /** Distinct identity-bound observed source targets used to determine breadth. */
+  verifiedSourceTargets: number;
+  /** Distinct cities/areas represented by those verified source targets. */
+  verifiedSourceAreas: number;
   shipmentBoards: number;
   searchableStores: number;
   inventoryMonitoredStores: number;
@@ -148,6 +161,8 @@ export interface CoverageState {
   coverageDepthLabel: string;
   coverageStatus: CoverageStatus;
   coverageStatusLabel: string;
+  coverageStrength: CoverageStrength;
+  coverageStrengthLabel: string;
   capabilities: CoverageCapabilities;
   updateLabel: CoverageUpdateLabel | null;
   health: CoverageHealth;
@@ -170,7 +185,7 @@ export interface CoverageState {
 }
 
 export interface CoverageContract {
-  contractVersion: "bourbon-signal/coverage@2";
+  contractVersion: "bourbon-signal/coverage@3";
   generatedAt: string | null;
   evaluatedAt: string;
   states: CoverageState[];
@@ -231,6 +246,13 @@ const CAPABILITY_LABELS: Record<CoverageCapability, string> = {
 const COVERAGE_STATUS_LABELS: Record<CoverageStatus, string> = {
   available: "Coverage available",
   "not-available": "Not available yet",
+};
+
+const COVERAGE_STRENGTH_LABELS: Record<CoverageStrength, string> = {
+  strong: "Strong coverage",
+  moderate: "Moderate coverage",
+  sparse: "Sparse coverage",
+  none: "No coverage",
 };
 
 const COVERAGE_DEPTH_LABELS: Record<CoverageDepth, string> = {
@@ -487,6 +509,61 @@ function hasVerifiedCoverageSource(
   const hasCurrentStore = stores.some((store) => store.monitoringAttached);
   const hasObservedSourceSignals = Number(row?.signalCount || 0) > 0;
   return hasAttachedSource || hasCurrentStore || hasObservedSourceSignals;
+}
+
+interface VerifiedSourceBreadth {
+  targetCount: number;
+  areaCount: number;
+  trackedShipmentBoards: number;
+}
+
+function verifiedSourceBreadth(
+  stateCode: string,
+  observedInventoryStores: readonly PublicDropStoreEvidence[],
+  ncBoardIntelligence?: CoverageNcBoardIntelligenceInput | null,
+): VerifiedSourceBreadth {
+  const targets = new Set<string>();
+  const areas = new Set<string>();
+  const remember = (key: string, area: unknown) => {
+    const target = cleanText(key, 500);
+    if (!target) return;
+    targets.add(target);
+    const normalizedArea = coverageTargetToken(area, 120);
+    if (normalizedArea) areas.add(normalizedArea);
+  };
+
+
+  // Only identity-bound observed store evidence contributes to geographic
+  // breadth. A source attachment or directory record alone remains Sparse.
+  for (const evidence of observedInventoryStores) {
+    const key = evidence.addressKey || evidence.sourceIdKey || coverageTargetToken(evidence.id, 220);
+    remember(`store:${key}`, evidence.city);
+  }
+
+  return {
+    targetCount: targets.size,
+    areaCount: areas.size,
+    trackedShipmentBoards: stateCode === "NC"
+      ? nonnegativeLayerCount(ncBoardIntelligence?.boardsWithTrackedShipments)
+      : 0,
+  };
+}
+
+function deriveCoverageStrength(
+  coverageStatus: CoverageStatus,
+  coverageTier: string,
+  scope: Pick<CoverageScopeCounts, "trackedShipmentBoards" | "verifiedSourceTargets" | "verifiedSourceAreas">,
+): CoverageStrength {
+  if (coverageStatus !== "available") return "none";
+  // These source lanes are deliberately reviewed as narrow/specific even when
+  // they produce several rows; a count must not erase that boundary.
+  if (coverageTier === "sparse_live_store_inventory" || coverageTier === "distillery_release_watch") return "sparse";
+
+  if (scope.trackedShipmentBoards >= 25) return "strong";
+  if (scope.verifiedSourceTargets >= 25 && scope.verifiedSourceAreas >= 5) return "strong";
+  if (scope.trackedShipmentBoards >= 5) return "moderate";
+  if (scope.verifiedSourceTargets >= 5 && scope.verifiedSourceAreas >= 2) return "moderate";
+  return "sparse";
 }
 
 function publicUpdateLabel(
@@ -996,8 +1073,20 @@ function buildState(args: {
   const hasCanonicalNcStats = args.code === "NC"
     && Number.isFinite(Number(args.ncBoardIntelligence?.officialStoreCount))
     && Number.isFinite(Number(args.ncBoardIntelligence?.singleStoreShipmentBoardCount));
+  const sourceBreadth = sourceBlocked
+    ? { targetCount: 0, areaCount: 0, trackedShipmentBoards: 0 }
+    : verifiedSourceBreadth(
+      args.code,
+      args.dropEvidence.observedInventoryStores,
+      args.ncBoardIntelligence,
+    );
   const scope: CoverageScopeCounts = {
     knownBoards: boardLocations.length,
+    // Tracked-board breadth is durable evidence for the rating. It never
+    // implies that a shipment is current or that a bottle is on a shelf.
+    trackedShipmentBoards: sourceBreadth.trackedShipmentBoards,
+    verifiedSourceTargets: sourceBreadth.targetCount,
+    verifiedSourceAreas: sourceBreadth.areaCount,
     // Board counts used in capability/depth copy must be current public rows,
     // never a historic stats/configuration counter.
     shipmentBoards: hasFreshPublicOutput ? args.dropEvidence.freshPublicUpdateBoards : 0,
@@ -1016,6 +1105,7 @@ function buildState(args: {
     capabilities.publicUpdates,
   );
   const coverageStatusValue = deriveCoverageStatus(sourceBlocked, hasVerifiedSource, capabilities);
+  const coverageStrength = deriveCoverageStrength(coverageStatusValue, tier, scope);
   const areas = stateAreas(lifecycleEntry, row, locations, storeRecords);
   const precisions = coverageStatusValue === "not-available" ? [] : precisionLabels(lifecycleEntry, row, locations, storeRecords);
   const usableFreshPublicSignals = hasFreshPublicOutput ? args.dropEvidence.freshPublicSignalCount : 0;
@@ -1096,6 +1186,8 @@ function buildState(args: {
     coverageDepthLabel: COVERAGE_DEPTH_LABELS[coverageDepth],
     coverageStatus: coverageStatusValue,
     coverageStatusLabel: COVERAGE_STATUS_LABELS[coverageStatusValue],
+    coverageStrength,
+    coverageStrengthLabel: COVERAGE_STRENGTH_LABELS[coverageStrength],
     capabilities,
     updateLabel: publicUpdate,
 
@@ -1121,6 +1213,9 @@ function buildState(args: {
     customerCannotSee: customerCopy.cannotSee,
     fingerprint: "",
   };
+  // Request automation uses this evidence fingerprint as a baseline. Keep its
+  // established v2 shape so adding a customer-display tier cannot manufacture
+  // a coverage improvement or notification.
   state.fingerprint = [
     "coverage-v2",
     state.code,
@@ -1172,7 +1267,7 @@ export function buildCoverageContract(args: {
     degradedStateCodes: feedDegradedStateCodes(degradedStates),
   });
   return {
-    contractVersion: "bourbon-signal/coverage@2",
+    contractVersion: "bourbon-signal/coverage@3",
     generatedAt,
     evaluatedAt,
     states: US_STATES.map(([code, defaultName]) => buildState({
