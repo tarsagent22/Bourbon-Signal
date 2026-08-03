@@ -6,6 +6,29 @@ function normalizeBoard(value = '') {
     .trim();
 }
 
+const NC_STOCK_SHIPPED_DATA_URL = 'https://abc2.nc.gov/Search/StockShippedData';
+const MAX_CURRENT_SHIPMENT_AGE_MS = 36 * 60 * 60 * 1000;
+
+export function hasHealthyLowerVolumeShipmentRun(nc, shipmentSignals, now = Date.now()) {
+  const stock = nc?.stockShipped || {};
+  const observedAt = Date.parse(stock.observedAt || '');
+  const observationAge = Number(now) - observedAt;
+  const signalCount = Number(shipmentSignals || 0);
+  return stock.sourceUrl === NC_STOCK_SHIPPED_DATA_URL
+    && Number.isFinite(observedAt)
+    && observationAge >= -10 * 60 * 1000
+    && observationAge <= MAX_CURRENT_SHIPMENT_AGE_MS
+    && signalCount >= 250
+    && Number(stock.trackedSignalCount || 0) >= signalCount
+    && Number(stock.controlledDistributionSignalCount || 0) >= 100
+    && Number(stock.priceEnrichedSignalCount || 0) >= Math.floor(signalCount * 0.95)
+    && Number(stock.recordCount || 0) >= 50_000
+    && Number(stock.productCount || 0) >= 2_000
+    && Number(stock.boardCount || 0) >= 170
+    && Number(nc?.coverage?.withTrackedShipments || 0) >= 100
+    && Number(nc?.roadblockCount || 0) <= 1;
+}
+
 export function buildNcBoardCoverageSummary(activeOfficialLocations = [], ncIntelligenceRaw = null) {
   if (!ncIntelligenceRaw) return null;
 
