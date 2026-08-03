@@ -160,7 +160,9 @@ def main() -> int:
         if expires_at <= datetime.now(timezone.utc):
             raise RuntimeError("Inherited release-lane lease has expired.")
         assert_broker(inheritance_token)
-        return subprocess.run(arguments, cwd=repo, env=dict(os.environ), check=False).returncode
+        environment = dict(os.environ)
+        environment["BOURBON_SIGNAL_RELEASE_LANE_VALIDATED"] = "1"
+        return subprocess.run(arguments, cwd=repo, env=environment, check=False).returncode
 
     handle = guard.open("a+b")
     if guard.stat().st_size == 0:
@@ -192,6 +194,7 @@ def main() -> int:
         environment = dict(os.environ)
         environment["BOURBON_SIGNAL_RELEASE_LANE_LEASE_ID"] = lease_id
         environment["BOURBON_SIGNAL_RELEASE_LANE_INHERITANCE_TOKEN"] = inheritance_token
+        environment["BOURBON_SIGNAL_RELEASE_LANE_VALIDATED"] = "1"
         return subprocess.run(arguments, cwd=repo, env=environment, check=False).returncode
     finally:
         if broker:

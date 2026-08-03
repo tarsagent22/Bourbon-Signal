@@ -20,20 +20,43 @@ import {
 const SOURCE_ROOT = process.cwd();
 const EXPECTED_CRON = { path: '/api/alerts/deliver?cron=v3', schedule: '*/5 * * * *' };
 const DEFAULT_DOMAINS = ['bourbonsignal.com', 'www.bourbonsignal.com'];
-const RELEASE_TIMEOUT_MS = Number(process.env.BOURBON_SIGNAL_RELEASE_TIMEOUT_MS || 30 * 60_000);
-const HEALTH_WAIT_MS = Number(process.env.BOURBON_SIGNAL_RELEASE_HEALTH_WAIT_MS || 8 * 60_000);
+const NO_TIMEOUT = Symbol('no-timeout');
+
+function positiveTimeout(name, configured, fallback) {
+  const value = Number(configured || fallback);
+  if (!Number.isFinite(value) || value <= 0) throw new Error(`${name} must be a finite positive number of milliseconds.`);
+  return value;
+}
+
+const RELEASE_TIMEOUT_MS = positiveTimeout('BOURBON_SIGNAL_RELEASE_TIMEOUT_MS', process.env.BOURBON_SIGNAL_RELEASE_TIMEOUT_MS, 30 * 60_000);
+const HEALTH_WAIT_MS = positiveTimeout('BOURBON_SIGNAL_RELEASE_HEALTH_WAIT_MS', process.env.BOURBON_SIGNAL_RELEASE_HEALTH_WAIT_MS, 8 * 60_000);
 const VERCEL_SCOPE = process.env.VERCEL_SCOPE || 'tarsagent22s-projects';
+const RELEASE_LANE_WRAPPER = path.join(SOURCE_ROOT, 'scripts', 'run-with-release-lane-lock.py');
 
 function argsFrom(argv) {
-  const args = { apply: false, publishSiteExports: null, skipHealthWait: false };
+  const args = { apply: false, publishSiteExports: null, skipHealthWait: false, codeOnly: false };
   for (let index = 0; index < argv.length; index += 1) {
     const arg = argv[index];
     if (arg === '--apply') args.apply = true;
     else if (arg === '--publish-site-exports') args.publishSiteExports = path.resolve(argv[++index] || '');
+    else if (arg === '--code-only') args.codeOnly = true;
     else if (arg === '--skip-health-wait') args.skipHealthWait = true;
     else throw new Error(`Unknown release argument: ${arg}`);
   }
+  if (args.codeOnly && args.publishSiteExports) {
+    throw new Error('Code-only release cannot publish site exports.');
+  }
   return args;
+}
+
+async function assertInheritedReleaseLease() {
+  await run('python', [
+    RELEASE_LANE_WRAPPER,
+    '--',
+    process.execPath,
+    '-e',
+    'process.exit(0)',
+  ], { cwd: SOURCE_ROOT, timeoutMs: 15_000 });
 }
 
 function commandName(name) {
@@ -53,7 +76,7 @@ function run(command, args, { cwd, timeoutMs = RELEASE_TIMEOUT_MS, quiet = false
     });
     let stdout = '';
     let stderr = '';
-    const timer = setTimeout(() => {
+    const timer = timeoutMs === NO_TIMEOUT ? null : setTimeout(() => {
       child.kill();
       reject(new Error(`${command} ${args.join(' ')} timed out after ${Math.round(timeoutMs / 1000)}s`));
     }, timeoutMs);
@@ -142,7 +165,7 @@ async function stageExports(tempRoot, sourceDir) {
   return { changed: true, files: copied.files, changedPaths };
 }
 
-async function verifyAndBuild(tempRoot) {
+async function verifyAndBuild(tempRoot, { codeOnly = false } = {}) {
   const verification = [];
   const projectLink = path.join(SOURCE_ROOT, '.vercel', 'project.json');
   const linkedProject = await stat(projectLink).catch(() => null);
@@ -158,8 +181,17 @@ async function verifyAndBuild(tempRoot) {
   ]) {
     const result = await run(command, args, { cwd: tempRoot });
     verification.push({ command: `${command} ${args.join(' ')}`, ok: true, startedAt: result.startedAt, finishedAt: result.finishedAt });
+    if (codeOnly && args[0] === '--prefix' && args[1] === 'engine' && args[2] === 'ci') {
+      const identity = await run('npm', ['--prefix', 'engine', 'run', 'store:identity'], { cwd: tempRoot });
+      verification.push({ command: 'npm --prefix engine run store:identity', ok: true, startedAt: identity.startedAt, finishedAt: identity.finishedAt });
+    }
   }
   return verification;
+}
+
+async function assertCodeOnlyExportsUnchanged(tempRoot) {
+  const status = (await git(tempRoot, ['status', '--porcelain', '--', 'engine/out/site'])).stdout.trim();
+  if (status) throw new Error(`Code-only release must preserve tracked engine/out/site exports. Found:\n${status}`);
 }
 
 async function writeBuildManifest(tempRoot, verification) {
@@ -259,12 +291,11 @@ async function saveReleaseStatus(record) {
   await writeFile(output, JSON.stringify(record, null, 2));
 }
 
-async function main() {
-  const options = argsFrom(process.argv.slice(2));
+async function main(options = argsFrom(process.argv.slice(2))) {
   const tempBase = await mkdtemp(path.join(os.tmpdir(), 'bourbon-signal-release-'));
   const tempRoot = path.join(tempBase, 'repo');
   let worktreeAdded = false;
-  const record = { schemaVersion: 1, startedAt: new Date().toISOString(), apply: options.apply, ok: false };
+  const record = { schemaVersion: 1, startedAt: new Date().toISOString(), apply: options.apply, codeOnly: options.codeOnly, ok: false };
   try {
     const baseCommit = await cleanCheckoutAtOriginMain(tempRoot);
     worktreeAdded = true;
@@ -281,7 +312,8 @@ async function main() {
     const status = (await git(tempRoot, ['status', '--porcelain'])).stdout;
     assertCleanOriginMain({ head, originMain, status: options.publishSiteExports ? '' : status });
 
-    const verification = await verifyAndBuild(tempRoot);
+    const verification = await verifyAndBuild(tempRoot, { codeOnly: options.codeOnly });
+    if (options.codeOnly) await assertCodeOnlyExportsUnchanged(tempRoot);
     const manifest = await writeBuildManifest(tempRoot, verification);
     record.manifest = manifest;
     if (!options.apply) {
@@ -309,7 +341,37 @@ async function main() {
   }
 }
 
-main().catch((error) => {
+async function runCli() {
+  const options = argsFrom(process.argv.slice(2));
+  const leaseEnvironment = {
+    leaseId: process.env.BOURBON_SIGNAL_RELEASE_LANE_LEASE_ID || '',
+    inheritanceToken: process.env.BOURBON_SIGNAL_RELEASE_LANE_INHERITANCE_TOKEN || '',
+    validated: process.env.BOURBON_SIGNAL_RELEASE_LANE_VALIDATED || '',
+  };
+  const suppliedLeaseFields = Object.values(leaseEnvironment).filter(Boolean).length;
+  if (options.apply && suppliedLeaseFields > 0 && (suppliedLeaseFields !== 3 || leaseEnvironment.validated !== '1')) {
+    throw new Error('Inherited release-lane environment is incomplete or invalid.');
+  }
+  const inheritedLease = suppliedLeaseFields === 3 && leaseEnvironment.validated === '1';
+  if (options.apply && inheritedLease) {
+    await assertInheritedReleaseLease();
+    await main(options);
+    return;
+  }
+  if (options.apply) {
+    await run('python', [
+      RELEASE_LANE_WRAPPER,
+      '--',
+      process.execPath,
+      path.resolve(process.argv[1]),
+      ...process.argv.slice(2),
+    ], { cwd: SOURCE_ROOT, timeoutMs: NO_TIMEOUT });
+    return;
+  }
+  await main(options);
+}
+
+runCli().catch((error) => {
   console.error(`Release failed: ${error instanceof Error ? error.message : error}`);
   process.exit(1);
 });

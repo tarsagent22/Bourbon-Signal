@@ -24,7 +24,9 @@ with tempfile.TemporaryDirectory() as temp:
     canonical_line = '    host_root = (Path.home() / "AppData" / "Local" / "hermes") if os.name == "nt" else (Path.home() / ".hermes")'
     assert canonical_line in source
     assert "socket.SO_REUSEADDR" in source
-    assert source.index("register_objective_repository(repo, operator)") < source.index("return subprocess.run(arguments, cwd=repo, env=environment")
+    parent_spawn = source.index("return subprocess.run(arguments, cwd=repo, env=environment", source.index("register_objective_repository(repo, operator)"))
+    assert source.index("register_objective_repository(repo, operator)") < parent_spawn
+    assert "BOURBON_SIGNAL_RELEASE_LANE_VALIDATED" in source
     isolated_script.write_text(source.replace(canonical_line, f"    host_root = Path({str(repo / 'hermes')!r})"), encoding="utf-8")
     spec = spec_from_file_location("release_lane_lock_isolated", isolated_script)
     module = module_from_spec(spec)
@@ -69,7 +71,7 @@ with tempfile.TemporaryDirectory() as temp:
         env["BOURBON_SIGNAL_RELEASE_LANE_LEASE_ID"] = lease_id
         env["BOURBON_SIGNAL_RELEASE_LANE_INHERITANCE_TOKEN"] = inheritance_token
         ok = subprocess.run(
-            [sys.executable, str(isolated_script), "--", sys.executable, "-c", "raise SystemExit(0)"],
+            [sys.executable, str(isolated_script), "--", sys.executable, "-c", "import os; raise SystemExit(0 if os.environ.get('BOURBON_SIGNAL_RELEASE_LANE_VALIDATED') == '1' else 1)"],
             cwd=repo,
             env=env,
             capture_output=True,

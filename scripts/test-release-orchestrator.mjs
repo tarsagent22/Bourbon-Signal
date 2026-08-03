@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import {
   assertCleanOriginMain,
@@ -91,5 +92,49 @@ const engineInstall = releaseSource.indexOf("['npm', ['--prefix', 'engine', 'ci'
 const verificationRun = releaseSource.indexOf("['npm', ['run', 'verify:ci']]");
 assert.ok(rootInstall >= 0 && engineInstall > rootInstall && verificationRun > engineInstall,
   'clean production releases must install the independently packaged engine before verification');
+
+const codeOnlyFlag = releaseSource.includes("'--code-only'");
+const codeOnlyGuard = releaseSource.includes("Code-only release cannot publish site exports");
+const identityBuild = releaseSource.includes("store:identity");
+assert.ok(codeOnlyFlag && codeOnlyGuard && identityBuild, "code-only release must generate only the derived identity graph");
+const invalidCodeOnly = spawnSync(process.execPath, ['scripts/release-production.mjs', '--code-only', '--publish-site-exports', 'engine/out/site'], { cwd: process.cwd(), encoding: 'utf8' });
+assert.notEqual(invalidCodeOnly.status, 0, 'mixed code-only/export release invocation must fail before release work begins');
+assert.match(`${invalidCodeOnly.stdout}${invalidCodeOnly.stderr}`, /Code-only release cannot publish site exports/);
+for (const invalidTimeout of ['0', '-1', 'not-a-number']) {
+  const rejectedTimeout = spawnSync(process.execPath, ['scripts/release-production.mjs', '--code-only'], {
+    cwd: process.cwd(), encoding: 'utf8', env: { ...process.env, BOURBON_SIGNAL_RELEASE_TIMEOUT_MS: invalidTimeout },
+  });
+  assert.notEqual(rejectedTimeout.status, 0, 'invalid configured substep timeouts must fail before release work begins');
+  assert.match(`${rejectedTimeout.stdout}${rejectedTimeout.stderr}`, /BOURBON_SIGNAL_RELEASE_TIMEOUT_MS must be a finite positive number/);
+}
+const sharedLease = releaseSource.includes('run-with-release-lane-lock.py') && releaseSource.includes('BOURBON_SIGNAL_RELEASE_LANE_LEASE_ID') && releaseSource.includes('BOURBON_SIGNAL_RELEASE_LANE_VALIDATED');
+const runCliSource = releaseSource.slice(releaseSource.indexOf('async function runCli()'));
+assert.match(runCliSource, /path\.resolve\(process\.argv\[1\]\),[\s\S]*?timeoutMs: NO_TIMEOUT/, 'the outer lease owner must remain alive for the full applied release');
+assert.match(releaseSource, /const NO_TIMEOUT = Symbol\('no-timeout'\)/, 'no-timeout must be an internal sentinel rather than user-configurable numeric input');
+assert.match(releaseSource, /timeoutMs === NO_TIMEOUT \? null : setTimeout/, 'only the lease-owner sentinel may disable a command timeout');
+const trackedExportGuard = releaseSource.includes('Code-only release must preserve tracked engine/out/site exports');
+const lockWrapper = readFileSync(new URL('./run-with-release-lane-lock.py', import.meta.url), 'utf8');
+assert.match(lockWrapper, /BOURBON_SIGNAL_RELEASE_LANE_VALIDATED/);
+const cleanReleaseEnv = { ...process.env };
+for (const name of ['BOURBON_SIGNAL_RELEASE_LANE_LEASE_ID', 'BOURBON_SIGNAL_RELEASE_LANE_INHERITANCE_TOKEN', 'BOURBON_SIGNAL_RELEASE_LANE_VALIDATED']) delete cleanReleaseEnv[name];
+const partialLeaseEnvironments = [
+  { BOURBON_SIGNAL_RELEASE_LANE_VALIDATED: '1' },
+  { BOURBON_SIGNAL_RELEASE_LANE_LEASE_ID: 'forged' },
+  { BOURBON_SIGNAL_RELEASE_LANE_INHERITANCE_TOKEN: 'forged' },
+  { BOURBON_SIGNAL_RELEASE_LANE_LEASE_ID: 'forged', BOURBON_SIGNAL_RELEASE_LANE_INHERITANCE_TOKEN: 'forged', BOURBON_SIGNAL_RELEASE_LANE_VALIDATED: '0' },
+];
+for (const partialLease of partialLeaseEnvironments) {
+  const rejectedPartialLease = spawnSync(process.execPath, ['scripts/release-production.mjs', '--apply', '--code-only'], {
+    cwd: process.cwd(), encoding: 'utf8', env: { ...cleanReleaseEnv, ...partialLease },
+  });
+  assert.notEqual(rejectedPartialLease.status, 0, 'partial inherited release-lane environments must fail before applying');
+  assert.match(`${rejectedPartialLease.stdout}${rejectedPartialLease.stderr}`, /Inherited release-lane environment is incomplete or invalid/);
+}
+const forgedLease = spawnSync(process.execPath, ['scripts/release-production.mjs', '--apply', '--code-only'], {
+  cwd: process.cwd(), encoding: 'utf8', env: { ...cleanReleaseEnv, BOURBON_SIGNAL_RELEASE_LANE_LEASE_ID: 'forged', BOURBON_SIGNAL_RELEASE_LANE_INHERITANCE_TOKEN: 'forged', BOURBON_SIGNAL_RELEASE_LANE_VALIDATED: '1' },
+});
+assert.notEqual(forgedLease.status, 0, 'forged inherited release leases must fail closed before applying');
+assert.match(`${forgedLease.stdout}${forgedLease.stderr}`, /Inherited release-lane lease/);
+assert.ok(sharedLease && trackedExportGuard, 'applied releases must hold a shared lease and code-only mode must preserve tracked exports');
 
 console.log('Release orchestrator core tests passed.');
