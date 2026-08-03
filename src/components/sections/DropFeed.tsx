@@ -85,6 +85,39 @@ const RETAILER_SIGNAL_CARDS = {
   lottery: { label: "Lottery", border: "rgba(167,139,250,0.38)", background: "linear-gradient(115deg, rgba(139,92,246,0.15), rgba(9,9,9,0.94) 48%)" },
 } as const;
 
+const TIER_CARD_HIGHLIGHTS: Record<string, { border: string; background: string; hoverBackground: string }> = {
+  unicorn: {
+    border: "rgba(232,201,122,0.78)",
+    background: "linear-gradient(100deg, rgba(52,22,47,0.52), rgba(9,9,9,0.18) 46%, transparent)",
+    hoverBackground: "linear-gradient(100deg, rgba(68,27,60,0.68), rgba(196,148,58,0.08) 52%, transparent)",
+  },
+  highly_allocated: {
+    border: "rgba(232,166,64,0.72)",
+    background: "linear-gradient(100deg, rgba(112,66,17,0.28), rgba(9,9,9,0.16) 46%, transparent)",
+    hoverBackground: "linear-gradient(100deg, rgba(137,79,17,0.38), rgba(232,166,64,0.07) 52%, transparent)",
+  },
+  allocated: {
+    border: "rgba(184,115,51,0.62)",
+    background: "linear-gradient(100deg, rgba(98,49,18,0.24), rgba(9,9,9,0.14) 46%, transparent)",
+    hoverBackground: "linear-gradient(100deg, rgba(118,59,20,0.34), rgba(184,115,51,0.07) 52%, transparent)",
+  },
+  limited: {
+    border: "rgba(122,145,165,0.46)",
+    background: "linear-gradient(100deg, rgba(61,76,91,0.18), rgba(9,9,9,0.10) 46%, transparent)",
+    hoverBackground: "linear-gradient(100deg, rgba(72,91,108,0.26), rgba(122,145,165,0.05) 52%, transparent)",
+  },
+  regular: {
+    border: "rgba(166,157,132,0.24)",
+    background: "transparent",
+    hoverBackground: "rgba(245,237,214,0.035)",
+  },
+  unknown: {
+    border: "rgba(166,157,132,0.18)",
+    background: "transparent",
+    hoverBackground: "rgba(245,237,214,0.035)",
+  },
+};
+
 function retailerCardAppearance(drop: GroupedDrop) {
   if (!drop.retailerReported || !drop.retailerSignalKind) return null;
   return RETAILER_SIGNAL_CARDS[drop.retailerSignalKind];
@@ -397,7 +430,7 @@ function areaMenuLabel(state?: string | null, baseLabel?: string | null, kind?: 
 }
 
 function getDropRarityRank(drop: GroupedDrop) {
-  return drop.rarity_tier === "unicorn" ? 3 : drop.rarity_tier === "allocated" ? 2 : drop.rarity_tier === "limited" ? 1 : 0;
+  return drop.rarity_tier === "unicorn" ? 4 : drop.rarity_tier === "highly_allocated" ? 3 : drop.rarity_tier === "allocated" ? 2 : drop.rarity_tier === "limited" ? 1 : 0;
 }
 
 function distanceMiles(a?: { lat: number; lng: number } | null, b?: { lat?: number; lng?: number }) {
@@ -800,6 +833,8 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport, onVoteS
   const [expanded, setExpanded] = useState(false);
   const [hovered, setHovered] = useState(false);
   const tier = TIER_CONFIG[drop.rarity_tier] || TIER_CONFIG.unknown;
+  const classificationAppearance = TIER_CARD_HIGHLIGHTS[drop.rarity_tier] || TIER_CARD_HIGHLIGHTS.unknown;
+  const classificationLabel = tier.label.toLowerCase().replace(/\b\w/g, (letter) => letter.toUpperCase());
   const distilleryMeta = getDistilleryCardMeta(drop);
   const scheduledReleaseCopy = getScheduledReleaseSignalCopy(drop);
   const description = getEventDescription(drop);
@@ -819,8 +854,6 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport, onVoteS
   const isUserSighting = Boolean((drop as GroupedDrop & { isUserSighting?: boolean }).isUserSighting);
   const userQuantityEstimate = (drop as GroupedDrop & { userQuantityEstimate?: string }).userQuantityEstimate;
   const canQuickReport = !distilleryMeta && !scheduledReleaseCopy && !isUserSighting && (drop.canAlertAsInventory || drop.exactStore || drop.availabilityScope === "exact" || drop.locationPrecision === "store_level");
-  const canUseHeroAccent = Boolean(distilleryMeta || scheduledReleaseCopy) || drop.rarity_tier === "unicorn" || drop.rarity_tier === "allocated";
-  const hasTopCardAccent = index === 0 && canUseHeroAccent;
   const addSightingHref = `/sightings?bottle=${encodeURIComponent(drop.displayName)}${drop.state ? `&state=${encodeURIComponent(drop.state)}` : ""}`;
 
   const memberVoteControls = isUserSighting && onVoteSighting ? (
@@ -845,6 +878,16 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport, onVoteS
   ) : null;
   // Build detail fields
   const details: { label: string; value: string }[] = [];
+  if (drop.classificationSource === "state_override" && stateLabel) {
+    details.push({ label: "Classification", value: `${classificationLabel} in ${stateLabel}.` });
+  } else if (drop.classificationSource === "national_baseline") {
+    details.push({
+      label: "Classification",
+      value: stateLabel
+        ? `${classificationLabel}. National classification used because no ${stateLabel} classification is available.`
+        : `${classificationLabel}. National classification.`,
+    });
+  }
   if (distilleryMeta) {
     details.push({ label: "What this means", value: distilleryMeta.explanation });
     details.push({ label: "Timing", value: distilleryMeta.statusLine });
@@ -916,8 +959,8 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport, onVoteS
           borderRadius: 0,
           border: "none",
           borderBottom: "1px solid var(--boundary-subtle)",
-          background: "transparent",
-          boxShadow: "none",
+          background: classificationAppearance.background,
+          boxShadow: `inset 3px 0 0 ${classificationAppearance.border}`,
           overflow: "hidden",
           cursor: hasDetails ? "pointer" : "default",
         }}
@@ -1085,8 +1128,8 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport, onVoteS
         style={{
           padding: "16px 20px",
           cursor: hasDetails ? "pointer" : "default",
-          background: hovered ? "rgba(196, 148, 58, 0.08)" : retailerAppearance ? retailerAppearance.background : distilleryMeta ? "linear-gradient(90deg, rgba(196,148,58,0.055), rgba(196,148,58,0.015) 42%, transparent)" : "transparent",
-          borderLeft: retailerAppearance ? `2px solid ${retailerAppearance.border}` : undefined,
+          background: hovered ? classificationAppearance.hoverBackground : retailerAppearance ? retailerAppearance.background : distilleryMeta ? "linear-gradient(90deg, rgba(196,148,58,0.055), rgba(196,148,58,0.015) 42%, transparent)" : classificationAppearance.background,
+          borderLeft: `2px solid ${retailerAppearance?.border || classificationAppearance.border}`,
           transform: hovered ? "translateY(-2px)" : "translateY(0)",
           boxShadow: hovered ? "0 8px 24px rgba(0,0,0,0.3)" : "none",
           transition: "all 200ms ease",
@@ -2184,6 +2227,11 @@ export default function DropFeed() {
           background: linear-gradient(135deg, #C4943A 0%, #E8C97A 52%, #C4943A 100%);
           border-color: rgba(232,201,122,0.8) !important;
         }
+        .drop-tier-badge.tier-highly_allocated {
+          color: #F0BD69;
+          background: linear-gradient(135deg, rgba(216,154,56,0.24), rgba(239,184,92,0.14));
+          border-color: rgba(232,166,64,0.48) !important;
+        }
         .drop-tier-badge.tier-allocated {
           color: #FFD5A0;
           background: rgba(184,115,51,0.22);
@@ -2504,6 +2552,7 @@ export default function DropFeed() {
             {[
               { tier: "all", label: "All drops", activeBg: "rgba(245,237,214,0.14)", activeColor: "var(--color-cream)", inactiveBg: "transparent", inactiveColor: "rgba(245,237,214,0.42)" },
               { tier: "unicorn", label: "Unicorn", activeBg: "rgba(196,148,58,0.18)", activeColor: "#E8C97A", inactiveBg: "transparent", inactiveColor: "rgba(196,148,58,0.46)" },
+              { tier: "highly_allocated", label: "Highly Allocated", activeBg: "rgba(216,154,56,0.18)", activeColor: "#F0BD69", inactiveBg: "transparent", inactiveColor: "rgba(216,154,56,0.48)" },
               { tier: "allocated", label: "Allocated", activeBg: "rgba(184,115,51,0.16)", activeColor: "#D4943A", inactiveBg: "transparent", inactiveColor: "rgba(184,115,51,0.44)" },
               { tier: "limited", label: "Limited", activeBg: "rgba(138,138,138,0.14)", activeColor: "rgba(245,237,214,0.74)", inactiveBg: "transparent", inactiveColor: "rgba(138,138,138,0.46)" },
             ].map((pill) => {

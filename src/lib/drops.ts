@@ -24,6 +24,10 @@ export interface DropEvent {
   quantity_in_stock?: number;
   quantity?: number;
   rarity_tier: string;
+  classification_source?: "state_override" | "national_baseline" | "signal";
+  classification_state?: string | null;
+  classification_bottle_id?: string | null;
+  national_tier?: string | null;
   retail_price?: number | null;
   state?: string;
   state_code?: string;
@@ -79,6 +83,10 @@ export interface GroupedDrop {
   displayName: string;
   event_type: string;
   rarity_tier: string;
+  classificationSource?: "state_override" | "national_baseline" | "signal";
+  classificationState?: string | null;
+  classificationBottleId?: string | null;
+  nationalTier?: string | null;
   timestamp: string;
   counties: string[];
   board_name?: string;
@@ -374,7 +382,8 @@ export function groupDrops(drops: DropEvent[], limit: number = 20): GroupedDrop[
 
     const ts = new Date(event.timestamp).getTime();
     const bucket = Math.floor(ts / SIX_HOURS);
-    const groupKey = `${displayName.toLowerCase()}|${event.event_type}|${bucket}`;
+    const groupState = String(event.classification_state || event.state || event.state_code || "unknown").trim().toUpperCase();
+    const groupKey = `${displayName.toLowerCase()}|${event.event_type}|${groupState}|${bucket}`;
 
     const existing = groups.get(groupKey);
     const locations = getLocation(event);
@@ -397,7 +406,7 @@ export function groupDrops(drops: DropEvent[], limit: number = 20): GroupedDrop[
       if (event.quantity_in_stock) {
         existing.quantity_in_stock = (existing.quantity_in_stock || 0) + event.quantity_in_stock;
       }
-      const rarityOrder: Record<string, number> = { unicorn: 3, allocated: 2, limited: 1 };
+      const rarityOrder: Record<string, number> = { unicorn: 4, highly_allocated: 3, allocated: 2, limited: 1 };
       if ((rarityOrder[event.rarity_tier] || 0) > (rarityOrder[existing.rarity_tier] || 0)) {
         existing.rarity_tier = event.rarity_tier;
       }
@@ -432,6 +441,13 @@ export function groupDrops(drops: DropEvent[], limit: number = 20): GroupedDrop[
       if (!existing.evidence && event.evidence) existing.evidence = event.evidence;
       if (!existing.dataLane && event.dataLane) existing.dataLane = event.dataLane;
       if (!existing.canAlertAsWatch && event.canAlertAsWatch) existing.canAlertAsWatch = event.canAlertAsWatch;
+      if (existing.classificationSource !== "state_override" && event.classification_source === "state_override") {
+        existing.rarity_tier = event.rarity_tier;
+        existing.classificationSource = event.classification_source;
+        existing.classificationState = event.classification_state;
+        existing.classificationBottleId = event.classification_bottle_id;
+        existing.nationalTier = event.national_tier;
+      }
       const scheduledCopy = getScheduledReleaseSignalCopy(event);
       if (!existing.scheduledRelease && scheduledCopy) {
         existing.scheduledRelease = true;
@@ -452,6 +468,10 @@ export function groupDrops(drops: DropEvent[], limit: number = 20): GroupedDrop[
         displayName,
         event_type: event.event_type,
         rarity_tier: event.rarity_tier,
+        classificationSource: event.classification_source,
+        classificationState: event.classification_state,
+        classificationBottleId: event.classification_bottle_id,
+        nationalTier: event.national_tier,
         timestamp: event.timestamp,
         counties: locations.map((location) => location.label),
         board_name: event.board_name || event.store_city,
@@ -502,7 +522,7 @@ export function groupDrops(drops: DropEvent[], limit: number = 20): GroupedDrop[
     }
   }
 
-  const rarityOrder: Record<string, number> = { unicorn: 3, allocated: 2, limited: 1 };
+  const rarityOrder: Record<string, number> = { unicorn: 4, highly_allocated: 3, allocated: 2, limited: 1 };
   const SIX_HOURS_MS = 6 * 60 * 60 * 1000;
 
   return Array.from(groups.values())
@@ -591,6 +611,23 @@ export const TIER_CONFIG: Record<string, { label: string; borderColor: string; p
       whiteSpace: "nowrap" as const,
     },
   },
+  highly_allocated: {
+    label: "HIGHLY ALLOCATED",
+    borderColor: "#D89A38",
+    pillStyle: {
+      background: "linear-gradient(135deg, rgba(216,154,56,0.24), rgba(239,184,92,0.14))",
+      border: "1px solid rgba(232,166,64,0.48)",
+      color: "#F0BD69",
+      fontFamily: "var(--font-dm-sans)",
+      fontSize: "9px",
+      fontWeight: 700,
+      textTransform: "uppercase" as const,
+      letterSpacing: "0.1em",
+      padding: "3px 10px",
+      borderRadius: "12px",
+      whiteSpace: "nowrap" as const,
+    },
+  },
   allocated: {
     label: "ALLOCATED",
     borderColor: "#B87333",
@@ -615,6 +652,23 @@ export const TIER_CONFIG: Record<string, { label: string; borderColor: string; p
       background: "rgba(138,138,138,0.12)",
       border: "1px solid rgba(138,138,138,0.25)",
       color: "#8A8A8A",
+      fontFamily: "var(--font-dm-sans)",
+      fontSize: "9px",
+      fontWeight: 700,
+      textTransform: "uppercase" as const,
+      letterSpacing: "0.1em",
+      padding: "3px 10px",
+      borderRadius: "12px",
+      whiteSpace: "nowrap" as const,
+    },
+  },
+  regular: {
+    label: "REGULAR",
+    borderColor: "rgba(166,157,132,0.30)",
+    pillStyle: {
+      background: "rgba(166,157,132,0.08)",
+      border: "1px solid rgba(166,157,132,0.18)",
+      color: "rgba(245,237,214,0.58)",
       fontFamily: "var(--font-dm-sans)",
       fontSize: "9px",
       fontWeight: 700,

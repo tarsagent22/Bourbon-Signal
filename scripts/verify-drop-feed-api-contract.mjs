@@ -58,7 +58,7 @@ function maxPublicAgeMs(drop) {
   return 30 * dayMs;
 }
 
-const dropWorthyTiers = new Set(['unicorn', 'allocated', 'limited']);
+const dropWorthyTiers = new Set(['unicorn', 'highly_allocated', 'allocated', 'limited']);
 
 const allStates = await getJson('/api/drops?state=all&limit=20');
 if (!Array.isArray(allStates.drops) || allStates.drops.length === 0 || Number(allStates.total || 0) === 0) {

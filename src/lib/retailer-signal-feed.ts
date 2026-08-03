@@ -7,7 +7,7 @@ const STATE_CODES = new Set([
   "AL", "AK", "AZ", "AR", "CA", "CO", "CT", "DE", "FL", "GA", "HI", "ID", "IL", "IN", "IA", "KS", "KY", "LA", "ME", "MD", "MA", "MI", "MN", "MS", "MO", "MT", "NE", "NV", "NH", "NJ", "NM", "NY", "NC", "ND", "OH", "OK", "OR", "PA", "RI", "SC", "SD", "TN", "TX", "UT", "VT", "VA", "WA", "WV", "WI", "WY", "DC",
 ]);
 
-export type RetailerFeedTier = "unicorn" | "allocated" | "limited" | "standard" | "unknown";
+export type RetailerFeedTier = "unicorn" | "highly_allocated" | "allocated" | "limited" | "standard" | "unknown";
 export type RetailerFeedSignalKind = "drop" | "barrel_pick" | "tasting" | "lottery";
 
 export function retailerStateCode(address: string) {
