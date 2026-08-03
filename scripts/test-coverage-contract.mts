@@ -74,7 +74,7 @@ const baselineNcContract = buildCoverageContract({
   asOf: statsPayload.generatedAt,
 });
 
-assert.equal(contract.contractVersion, "bourbon-signal/coverage@2");
+assert.equal(contract.contractVersion, "bourbon-signal/coverage@3");
 assert.equal(contract.evaluatedAt, statsPayload.generatedAt);
 assert.equal(contract.states.length, 51, "all 50 states and DC share one coverage truth");
 assert.equal(new Set(contract.states.map((state) => state.code)).size, 51, "state codes are unique");
@@ -227,6 +227,8 @@ assert.ok(mississippiCitySearch.some((result) => result.kind === "city"
 const northCarolina = contract.states.find((state) => state.code === "NC");
 assert.ok(northCarolina);
 assert.equal(northCarolina.coverageDepth, "active", "broad board leads plus selected exact stores are active coverage without implying statewide shelf inventory");
+assert.equal(northCarolina.coverageStrength, "strong", "broad NC board shipment sources are strong coverage independent of freshness");
+assert.ok(northCarolina.scope.trackedShipmentBoards >= 25, "NC Strong coverage is backed by broad canonical tracked-board evidence rather than a directory count");
 assert.ok(northCarolina.layers.live < northCarolina.layers.known, "NC store-locator records stay separate from monitored inventory stores");
 assert.equal(northCarolina.scope.knownBoards, 173, "NC coverage must expose every current official ABC board separately from stores");
 assert.equal(northCarolina.scope.shipmentBoards, 160, "NC coverage must count fresh canonical boards represented by current shipment output");
@@ -271,6 +273,7 @@ const boardOnlyNorthCarolina = buildCoverageContract({
 const boardOnlyState = boardOnlyNorthCarolina.states.find((state) => state.code === "NC");
 assert.ok(boardOnlyState);
 assert.equal(boardOnlyState.coverageDepth, "active", "active board shipment coverage retains active depth even with no current shelf inventory");
+assert.equal(boardOnlyState.coverageStrength, "strong", "board shipment breadth remains strong even without current shelf inventory");
 assert.equal(boardOnlyState.coverageStatusLabel, "Coverage available", "the public status must describe coverage, not inventory depth");
 assert.deepEqual(boardOnlyState.capabilities, {
   storeInformation: true,

@@ -49,7 +49,7 @@ export function CoverageStatePanel({ state }: CoverageStatePanelProps) {
           <p className={styles.eyebrow}>Selected state · {state.code}</p>
           <h2 id="coverage-state-heading" tabIndex={-1}>{state.name}</h2>
         </div>
-        <span className={styles.capabilityBadge} data-coverage-status={state.coverageStatus}>{state.coverageStatusLabel}</span>
+        <span className={styles.coverageStrengthBadge} data-coverage-strength={state.coverageStrength}>{state.coverageStrengthLabel}</span>
       </div>
       <div className={styles.healthRow}>
         <span>Update status</span>
@@ -57,9 +57,10 @@ export function CoverageStatePanel({ state }: CoverageStatePanelProps) {
       </div>
       <p className={styles.stateSummary}>{state.customerSummary || state.summary}</p>
 
-      {state.representedAreaCount || state.scope.searchableStores || state.scope.inventoryMonitoredStores ? (
+      {state.representedAreaCount || (state.coverageStatus === "available" && state.scope.trackedShipmentBoards) || state.scope.searchableStores || state.scope.inventoryMonitoredStores ? (
         <div className={styles.quickFacts} aria-label="Coverage at a glance">
           {state.representedAreaCount ? <span><strong>{state.representedAreaCount}</strong> {state.scope.knownBoards ? "store cities and towns" : "represented areas"}</span> : null}
+          {state.coverageStatus === "available" && state.scope.trackedShipmentBoards ? <span><strong>{state.scope.trackedShipmentBoards}</strong> boards with tracked shipment data</span> : null}
           {state.scope.shipmentBoards ? <span><strong>{state.scope.shipmentBoards}</strong> official local pages with shipment information</span> : null}
           {state.scope.searchableStores ? <span><strong>{state.scope.searchableStores}</strong> stores listed</span> : null}
           {state.scope.inventoryMonitoredStores ? <span><strong>{state.scope.inventoryMonitoredStores}</strong> stores with current availability</span> : null}

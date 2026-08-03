@@ -73,6 +73,8 @@ function fallbackCoverageState(code: string): CoverageState {
     coverageDepthLabel: "Not available yet",
     coverageStatus: "not-available",
     coverageStatusLabel: "Not available yet",
+    coverageStrength: "none",
+    coverageStrengthLabel: "No coverage",
     capabilities: {
       storeInformation: false,
       publicUpdates: false,
@@ -89,7 +91,7 @@ function fallbackCoverageState(code: string): CoverageState {
     representedAreaCount: 0,
     monitoredStoreCount: 0,
     layers: { known: 0, probeable: 0, catalogWatch: 0, live: 0, alertGrade: 0 },
-    scope: { knownBoards: 0, shipmentBoards: 0, searchableStores: 0, inventoryMonitoredStores: 0, singleStoreShipmentBoards: 0 },
+    scope: { knownBoards: 0, trackedShipmentBoards: 0, verifiedSourceTargets: 0, verifiedSourceAreas: 0, shipmentBoards: 0, searchableStores: 0, inventoryMonitoredStores: 0, singleStoreShipmentBoards: 0 },
     freshness: {
       observedInventoryStores: 0,
       currentInventoryStores: 0,
@@ -471,7 +473,7 @@ export default function WelcomePage() {
                   <>
                     <div className={styles.coverageOverview}>
                       <div className={styles.coverageBadges}>
-                        <span><Gauge size={13} aria-hidden="true" />{coverageState.coverageStatusLabel}</span>
+                        <span><Gauge size={13} aria-hidden="true" />{coverageState.coverageStrengthLabel}</span>
                         <span data-health={coverageState.health}><Radio size={13} aria-hidden="true" />{coverageState.healthLabel}</span>
                       </div>
                       <p>{coverageState.coverageStatus === "not-available"

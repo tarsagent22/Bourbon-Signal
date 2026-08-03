@@ -7,8 +7,10 @@
   --coverage-faint: rgba(245, 237, 214, 0.42);
   --coverage-line: rgba(245, 237, 214, 0.11);
   --coverage-amber: #d8a84f;
-  --coverage-available: #789f63;
-  --coverage-unavailable: #312c28;
+  --coverage-strong: #789f63;
+  --coverage-moderate: #d8a84f;
+  --coverage-sparse: #ae7552;
+  --coverage-none: #312c28;
   min-height: 100vh;
   position: relative;
   overflow: hidden;
@@ -129,15 +131,17 @@
 }
 
 .stateShape {
-  fill: var(--coverage-unavailable);
+  fill: var(--coverage-none);
   stroke: rgba(245, 237, 214, 0.2);
   stroke-width: 1;
   vector-effect: non-scaling-stroke;
   transition: filter 180ms ease, stroke 180ms ease, transform 180ms ease;
 }
 
-.stateCell[data-coverage-status="available"] .stateShape { fill: var(--coverage-available); }
-.stateCell[data-coverage-status="not-available"] .stateShape { fill: var(--coverage-unavailable); stroke-dasharray: 1 3; }
+.stateCell[data-coverage-strength="strong"] .stateShape { fill: var(--coverage-strong); }
+.stateCell[data-coverage-strength="moderate"] .stateShape { fill: var(--coverage-moderate); }
+.stateCell[data-coverage-strength="sparse"] .stateShape { fill: var(--coverage-sparse); }
+.stateCell[data-coverage-strength="none"] .stateShape { fill: var(--coverage-none); stroke-dasharray: 1 3; }
 
 .stateCell:hover .stateShape,
 .stateCell:focus-visible .stateShape {
@@ -160,41 +164,40 @@
   letter-spacing: 0.04em;
 }
 
-.stateCell[data-coverage-status="available"] .stateCode {
-  fill: var(--coverage-ink);
-}
-
 .mapCaption {
   margin: 14px 0 0;
   color: var(--coverage-faint);
   font: 11px/1.5 var(--font-dm-sans);
 }
 
-.legend {
+.mapLegend {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
+  margin-top: 14px;
   border-top: 1px solid var(--coverage-line);
-  padding: 13px 16px;
+  padding-top: 13px;
 }
 
-.legend h2 {
-  margin: 0;
+.mapLegend > span {
   color: var(--coverage-faint);
   font: 800 9px/1 var(--font-jetbrains);
   letter-spacing: 0.12em;
   text-transform: uppercase;
 }
 
-.legend > div {
+.mapLegend ul {
   display: flex;
-  gap: 12px;
   flex-wrap: wrap;
   justify-content: flex-end;
+  gap: 8px 12px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-.legend span {
+.mapLegend li {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -202,15 +205,17 @@
   font: 10px/1 var(--font-dm-sans);
 }
 
-.legend i {
+.mapLegend i {
   width: 9px;
   height: 9px;
   transform: rotate(45deg);
-  background: var(--coverage-unavailable);
+  background: var(--coverage-none);
 }
 
-.legend i[data-coverage-status="available"] { background: var(--coverage-available); }
-.legend i[data-coverage-status="not-available"] { background: var(--coverage-unavailable); }
+.mapLegend li[data-coverage-strength="strong"] i { background: var(--coverage-strong); }
+.mapLegend li[data-coverage-strength="moderate"] i { background: var(--coverage-moderate); }
+.mapLegend li[data-coverage-strength="sparse"] i { background: var(--coverage-sparse); }
+.mapLegend li[data-coverage-strength="none"] i { background: var(--coverage-none); }
 
 .detailPanel {
   position: sticky;
@@ -237,7 +242,7 @@
   letter-spacing: -0.035em;
 }
 
-.capabilityBadge,
+.coverageStrengthBadge,
 .resultStatus {
   display: inline-flex;
   border: 1px solid rgba(216, 168, 79, 0.32);
@@ -250,13 +255,25 @@
   white-space: nowrap;
 }
 
-.capabilityBadge[data-coverage-status="available"] {
+.coverageStrengthBadge[data-coverage-strength="strong"] {
   border-color: rgba(120, 159, 99, 0.55);
   background: rgba(120, 159, 99, 0.13);
   color: #b2d19f;
 }
 
-.capabilityBadge[data-coverage-status="not-available"] {
+.coverageStrengthBadge[data-coverage-strength="moderate"] {
+  border-color: rgba(216, 168, 79, 0.55);
+  background: rgba(216, 168, 79, 0.13);
+  color: #efcf88;
+}
+
+.coverageStrengthBadge[data-coverage-strength="sparse"] {
+  border-color: rgba(174, 117, 82, 0.6);
+  background: rgba(174, 117, 82, 0.14);
+  color: #e8b28c;
+}
+
+.coverageStrengthBadge[data-coverage-strength="none"] {
   border-color: var(--coverage-line);
   color: var(--coverage-muted);
   background: rgba(245, 237, 214, 0.03);
@@ -554,7 +571,6 @@
   padding: 5px 6px;
 }
 
-
 .inlineError {
   margin: 0;
   border-left: 2px solid #d66e57;
@@ -634,7 +650,6 @@
   gap: 12px;
   margin-top: 12px;
 }
-
 
 .requestField {
   display: grid;
@@ -929,10 +944,11 @@
   .mapFrame {
     padding: 8px;
   }
-  .legend {
+  .mapLegend {
     display: grid;
+    gap: 10px;
   }
-  .legend > div {
+  .mapLegend ul {
     justify-content: flex-start;
   }
   .detailPanel {
@@ -941,7 +957,7 @@
   .panelHeader {
     display: grid;
   }
-  .capabilityBadge {
+  .coverageStrengthBadge {
     justify-self: start;
   }
   .visibilityGrid {

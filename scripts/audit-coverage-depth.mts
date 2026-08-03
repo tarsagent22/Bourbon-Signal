@@ -75,7 +75,7 @@ const contract = buildCoverageContract({
 });
 
 const failures: string[] = [];
-if (contract.contractVersion !== "bourbon-signal/coverage@2") failures.push(`Unexpected contract version: ${contract.contractVersion}`);
+if (contract.contractVersion !== "bourbon-signal/coverage@3") failures.push(`Unexpected contract version: ${contract.contractVersion}`);
 if (contract.states.length !== 51) failures.push(`Expected 51 state/DC records, got ${contract.states.length}`);
 if (new Set(contract.states.map((state) => state.code)).size !== 51) failures.push("State/DC codes are not unique");
 
@@ -98,6 +98,25 @@ for (const state of contract.states) {
   }
   if (state.coverageDepth !== "not-available" && freshness.freshPublicSignals === 0) failures.push(`${state.code}: depth has no fresh customer-feed evidence`);
 
+  // Strength is intentionally independent of freshness, but must still be
+  // backed by verified source targets/areas or canonical tracked-board data.
+  const broadVerifiedCoverage = scope.trackedShipmentBoards >= 25
+    || (scope.verifiedSourceTargets >= 25 && scope.verifiedSourceAreas >= 5);
+  const meaningfulVerifiedCoverage = scope.trackedShipmentBoards >= 5
+    || (scope.verifiedSourceTargets >= 5 && scope.verifiedSourceAreas >= 2);
+  if (state.coverageStatus === "not-available" && state.coverageStrength !== "none") {
+    failures.push(`${state.code}: unavailable source lane cannot carry a strength tier`);
+  }
+  if (state.coverageStatus === "available" && state.coverageStrength === "none") {
+    failures.push(`${state.code}: available source lane cannot have no coverage strength`);
+  }
+  if (state.coverageStrength === "strong" && !broadVerifiedCoverage) {
+    failures.push(`${state.code}: strong coverage lacks broad verified source breadth`);
+  }
+  if (state.coverageStrength === "moderate" && !meaningfulVerifiedCoverage) {
+    failures.push(`${state.code}: moderate coverage lacks multi-target verified breadth`);
+  }
+
   const directActive = freshness.currentInventoryStores >= 5
     && freshness.currentInventoryCities >= 2;
   const updateActive = freshness.freshPublicUpdateBoards >= 20
@@ -114,6 +133,7 @@ for (const state of contract.states) {
 
 const rows = [...contract.states].sort((left, right) => left.name.localeCompare(right.name));
 const groups = new Map(["active", "moderate", "sparse", "not-available"].map((depth) => [depth, rows.filter((state) => state.coverageDepth === depth)]));
+const strengthGroups = new Map(["strong", "moderate", "sparse", "none"].map((strength) => [strength, rows.filter((state) => state.coverageStrength === strength)]));
 
 if (format === "json") {
   process.stdout.write(`${JSON.stringify({
@@ -123,6 +143,7 @@ if (format === "json") {
     retailerFixturePath: retailerFixturePath || null,
     failures,
     groups: Object.fromEntries(Array.from(groups, ([depth, states]) => [depth, states.map((state) => state.code)])),
+    strengthGroups: Object.fromEntries(Array.from(strengthGroups, ([strength, states]) => [strength, states.map((state) => state.code)])),
     states: rows,
   }, null, 2)}\n`);
 } else {
@@ -132,11 +153,17 @@ if (format === "json") {
     console.log(`**${depth} (${states.length})** — ${states.map((state) => state.name).join(", ") || "None"}`);
   }
   console.log("");
-  console.log("| State | Depth | Fresh signals | Fresh updates | Update scope (boards/stores/cities) | Current stores | Alert-eligible stores |");
-  console.log("| --- | --- | ---: | ---: | ---: | ---: | ---: |");
+  console.log("## Coverage strength (verified historical breadth)");
+  console.log("");
+  for (const [strength, states] of strengthGroups) {
+    console.log(`**${strength} (${states.length})** — ${states.map((state) => state.name).join(", ") || "None"}`);
+  }
+  console.log("");
+  console.log("| State | Strength | Verified evidence targets | Areas | Tracked shipment boards | Depth | Fresh signals | Fresh updates | Update scope (boards/stores/cities) | Current stores | Alert-eligible stores |");
+  console.log("| --- | --- | ---: | ---: | ---: | --- | ---: | ---: | ---: | ---: | ---: |");
   for (const state of rows) {
     const { freshness } = state;
-    console.log(`| ${markdownCell(state.name)} | ${state.coverageDepth} | ${freshness.freshPublicSignals} | ${freshness.freshPublicUpdates} | ${freshness.freshPublicUpdateBoards}/${freshness.freshPublicUpdateStores}/${freshness.freshPublicUpdateCities} | ${freshness.currentInventoryStores} | ${freshness.alertEligibleStores} |`);
+    console.log(`| ${markdownCell(state.name)} | ${state.coverageStrength} | ${state.scope.verifiedSourceTargets} | ${state.scope.verifiedSourceAreas} | ${state.scope.trackedShipmentBoards} | ${state.coverageDepth} | ${freshness.freshPublicSignals} | ${freshness.freshPublicUpdates} | ${freshness.freshPublicUpdateBoards}/${freshness.freshPublicUpdateStores}/${freshness.freshPublicUpdateCities} | ${freshness.currentInventoryStores} | ${freshness.alertEligibleStores} |`);
   }
   if (failures.length) {
     console.log("");
