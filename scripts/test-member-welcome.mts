@@ -73,15 +73,18 @@ assert.match(welcomeStyles, /\.exploreLinks a[\s\S]*border:[\s\S]*border-radius/
 assert.doesNotMatch(welcomeSource, /See pricing quietly|Compare Free, Standard, Barrel, and Founder/i);
 assert.match(welcomeSource, /Your free account/);
 assert.match(welcomeSource, /Free accounts do not include alerts\./, "free onboarding must state the entitlement boundary plainly");
-assert.match(welcomeSource, /Coverage:/, "coverage breadth needs an explicit label");
-assert.match(welcomeSource, /Updates:/, "source health needs a separate explicit label");
-assert.match(welcomeSource, /ABC boards with shipment information|Official shipment sources/, "shipment coverage must use customer-facing source language");
-assert.match(welcomeSource, /activeState === "NC" \? "ABC boards with shipment information" : "Official shipment sources"/, "NC board wording must not leak into other states");
-assert.match(welcomeSource, /Stores represented/);
-assert.match(welcomeSource, /Stores reporting current availability/);
-assert.match(welcomeSource, /Cities and towns represented|Areas represented/);
-assert.match(welcomeSource, /Stores eligible for paid alerts/, "free members must not mistake alert-ready coverage for an included feature");
-assert.match(welcomeSource, /These counts describe coverage, not bottles currently on the shelf\./);
+const welcomeCoverageSection = welcomeSource.slice(
+  welcomeSource.indexOf('aria-labelledby="coverage-depth-heading"'),
+  welcomeSource.indexOf('aria-label="Optional coverage request"'),
+);
+assert.match(welcomeCoverageSection, /coverageStrengthLabel/, "the section shows the canonical positive coverage type");
+assert.match(welcomeCoverageSection, /activeState === "NC"[\s\S]*coverageState\.scope\.knownBoards[\s\S]*NC ABC boards monitored/, "NC shows all canonical boards rather than only boards with fresh signals");
+assert.match(welcomeCoverageSection, /coverageState\.scope\.inventoryMonitoredStores > 0[\s\S]*Stores with current inventory signals/, "states show current inventory-store breadth only when it is nonzero");
+assert.equal((welcomeCoverageSection.match(/<dt>/g) || []).length, 2, "the coverage summary has at most the NC board and inventory-store metrics");
+assert.match(welcomeStyles, /\.coverageMetrics\s*\{[\s\S]{0,180}grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)[\s\S]{0,180}max-width: 540px/, "the two coverage metrics stay compact rather than stretching across the section");
+assert.match(welcomeCoverageSection, /Shipment reports show board or area deliveries—not guaranteed shelf stock\./);
+assert.doesNotMatch(welcomeCoverageSection, /Updates:|healthLabel|data-health|temporarily limited|source updates|boards with recent signals/i, "the coverage summary omits negative or freshness-heavy messaging");
+assert.doesNotMatch(welcomeCoverageSection, /coverage explained|ABC boards with shipment information|Official shipment sources|Stores represented|Cities and towns represented|Areas represented|Stores eligible for paid alerts|These counts describe coverage/i, "the previous verbose metrics and explanation are removed");
 assert.doesNotMatch(welcomeSource, /Information available here|What you can do here|Stores listed|Stores with restock alerts/);
 assert.match(welcomeSource, /Your free account is a preview\./);
 assert.match(welcomeSource, /Paid unlocks the full feed, saved alert areas, bottle watchlists, and live alerts\./);
