@@ -16,7 +16,7 @@ import { getStateLifecycle } from './state-lifecycle.mjs';
 import { appendChangeJournal } from './optimization/change-journal.mjs';
 import { hasPositiveInventoryEvidence } from './operational-candidate-policy.mjs';
 import { authoritativeSignalTimestamp, enforceArchivedSourceAlertPolicy } from './event-freshness.mjs';
-import { isSouthCarolinaSouthernSpiritsInventory } from './south-carolina-retailer-policy.mjs';
+import { isSouthCarolinaAllAmericanSignal, isSouthCarolinaSouthernSpiritsInventory } from './south-carolina-retailer-policy.mjs';
 
 const OUT = path.resolve('out');
 const HISTORY = path.join(OUT, 'history');
@@ -105,6 +105,10 @@ export function canonicalizeSignal(signal, bible) {
     sourceProductBinding: signal.sourceProductBinding || signal.raw?.productBinding || null,
     productCode: signal.productCode || signal.raw?.product?.code || String(signal.sourceUrl || '').match(/productCode=([^&]+)/)?.[1] || null,
     sku: signal.sku || signal.raw?.sku || null,
+    sourceProductProofId: signal.sourceProductProofId || (signal.raw?.product?.id == null ? null : String(signal.raw.product.id)),
+    sourceProductProofSku: signal.sourceProductProofSku || signal.raw?.product?.sku || null,
+    sourceProductInStock: signal.sourceProductInStock ?? signal.raw?.product?.is_in_stock ?? null,
+    sourceProductBackordered: signal.sourceProductBackordered ?? signal.raw?.product?.is_on_backorder ?? null,
     productLimitedCaveat: typeof signal.productLimitedCaveat === 'boolean'
       ? signal.productLimitedCaveat
       : typeof signal.raw?.product?.limitedCaveat === 'boolean' ? signal.raw.product.limitedCaveat : null,
@@ -188,6 +192,14 @@ export function canonicalizeSignal(signal, bible) {
       deliveryOfferVerified: signal.raw?.deliveryOfferVerified === true,
       orderabilityOfferVerified: signal.raw?.orderabilityOfferVerified === true,
       sourceRuntimeNonAlertable: signal.raw?.sourceRuntimeNonAlertable === true,
+    } : isSouthCarolinaAllAmericanSignal(signal) ? {
+      chain: signal.raw?.chain || null,
+      product: {
+        id: signal.raw?.product?.id ?? null,
+        sku: signal.raw?.product?.sku ?? null,
+        is_in_stock: signal.raw?.product?.is_in_stock ?? null,
+        is_on_backorder: signal.raw?.product?.is_on_backorder ?? null,
+      },
     } : undefined
   };
 }

@@ -101,6 +101,7 @@ import {
   verifyMetroShopifyFulfillmentPolicy,
 } from './metro-retailer-surfaces.mjs';
 import { isMetroRetailerInventory } from '../metro-retailer-policy.mjs';
+import { isSouthCarolinaAllAmericanInventory } from '../south-carolina-retailer-policy.mjs';
 import {
   buildIndianaTargetStoreLocationSignals,
   INDIANA_TARGET_STORES,
@@ -1078,7 +1079,7 @@ const SC_CITYHIVE_PAGE_DELAY_MS = Number(process.env.BOURBON_SIGNAL_SC_CITYHIVE_
 const SC_ALL_AMERICAN_BASE_URL = 'https://www.aalmauldin.com';
 const SC_ALL_AMERICAN_SOURCE_LABEL = 'All American Liquor Mauldin WooCommerce in-store availability';
 const SC_ALL_AMERICAN_ARTIFACT_PATH = 'out/browser/SC-all-american-inventory.json';
-const SC_ALL_AMERICAN_CACHE_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_SC_ALL_AMERICAN_CACHE_MAX_AGE_MS || 6 * 60 * 60_000);
+const SC_ALL_AMERICAN_CACHE_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_SC_ALL_AMERICAN_CACHE_MAX_AGE_MS || 2 * 60 * 60_000);
 const SC_ALL_AMERICAN_DELAY_MS = Number(process.env.BOURBON_SIGNAL_SC_ALL_AMERICAN_DELAY_MS || 650);
 const SC_ALL_AMERICAN_TERMS = ['blanton', 'weller', 'eagle rare', 'stagg', 'taylor', '1792', 'buffalo trace', 'booker', 'baker'];
 const SC_ALL_AMERICAN_STORE = { id: 'all-american-liquor-mauldin', name: 'All American Liquor', address: '121 W Butler Rd, Mauldin, SC 29662', city: 'Mauldin', zip: '29662' };
@@ -6464,11 +6465,139 @@ export async function collectSouthCarolinaDunes(config, bible, observedAt, optio
   return { signals, roadblocks };
 }
 
+export function isSouthCarolinaAllAmericanCacheUsable(signals, generatedAt, nowMs = Date.now()) {
+  const generatedMs = Date.parse(String(generatedAt || ''));
+  const ageMs = nowMs - generatedMs;
+  if (!Array.isArray(signals)
+    || !Number.isFinite(generatedMs)
+    || ageMs < -5 * 60_000
+    || ageMs > SC_ALL_AMERICAN_CACHE_MAX_AGE_MS) return false;
+  const sourceSignals = signals.filter((signal) => signal?.eventType === 'retailer_store_inventory_result');
+  const exactLocation = (signal) => signal?.eventType === 'retailer_store_location'
+    && signal?.state === 'SC'
+    && signal?.sourceLabel === SC_ALL_AMERICAN_SOURCE_LABEL
+    && signal?.sourceUrl === SC_ALL_AMERICAN_BASE_URL
+    && signal?.storeId === `all-american-liquor:${SC_ALL_AMERICAN_STORE.id}`
+    && signal?.storeName === SC_ALL_AMERICAN_STORE.name
+    && signal?.storeAddress === SC_ALL_AMERICAN_STORE.address
+    && signal?.city === SC_ALL_AMERICAN_STORE.city
+    && String(signal?.postalCode || signal?.zip || '') === SC_ALL_AMERICAN_STORE.zip
+    && signal?.raw?.chain === 'all-american-liquor';
+  const exactInventory = (signal) => signal?.raw?.product != null
+    && String(signal.raw.product.id ?? '') === String(signal?.productId ?? '')
+    && String(signal.raw.product.sku ?? '') === String(signal?.sku ?? '')
+    && signal.raw.product.is_in_stock === true
+    && signal.raw.product.is_on_backorder === false
+    && isSouthCarolinaAllAmericanInventory(signal, nowMs);
+  return sourceSignals.length > 0
+    && signals.every((signal) => exactLocation(signal) || exactInventory(signal));
+}
+
+function isUnsafeSouthCarolinaAllAmericanFormat(rawName) {
+  const miniature = [...String(rawName || '').matchAll(/\b(\d{2,3})\s*ml\b/gi)]
+    .some((match) => Number(match[1]) <= 375);
+  const multipack = /\b(?:[2-9]\d?\s*(?:x|×)\s*\d{2,4}\s*ml|[2-9]\d?\s*-?\s*(?:pk|pack)|pack\s+of\s+[2-9]\d?|multi\s*-?\s*pack)\b/i.test(String(rawName || ''));
+  return miniature || multipack;
+}
+
+export function buildSouthCarolinaAllAmericanSignal(config, product, bible, observedAt) {
+  const rawName = htmlToText(product?.name || '')
+    .replace(/[’‘]/g, "'")
+    .replace(/[–—]/g, '-')
+    .replace(/\s+/g, ' ')
+    .trim();
+  const productId = product?.id;
+  const sku = String(product?.sku || '').trim();
+  if (!rawName
+    || productId == null
+    || !String(productId).trim()
+    || !sku
+    || product?.is_in_stock !== true
+    || product?.is_on_backorder !== false
+    || isUnsafeSouthCarolinaAllAmericanFormat(rawName)
+    || !isSouthCarolinaRetailerCandidate(rawName)) return null;
+  let sourceUrl;
+  try {
+    const parsed = new URL(String(product?.permalink || ''));
+    if (parsed.protocol !== 'https:'
+      || parsed.hostname !== 'www.aalmauldin.com'
+      || !/^\/product\/[a-z0-9-]+\/$/.test(parsed.pathname)
+      || parsed.search
+      || parsed.hash) return null;
+    sourceUrl = parsed.href;
+  } catch {
+    return null;
+  }
+  const { match, record } = cityHiveSafeBottleMatch(rawName, bible);
+  if (!record) return null;
+  const price = wcStoreApiPrice(product?.prices);
+  return {
+    id: stableId([config.id, 'all-american-liquor', productId]),
+    key: stableId([config.id, 'all-american-liquor', productId]),
+    state: config.id,
+    displayState: config.id,
+    sourceUrl,
+    sourceLabel: SC_ALL_AMERICAN_SOURCE_LABEL,
+    sourceChain: 'all-american-liquor',
+    eventType: 'retailer_store_inventory_result',
+    rawName,
+    canonicalBottleId: record.id,
+    bottleId: record.id,
+    canonicalName: record.canonical,
+    tier: record.tier,
+    confidence: Math.min(0.86, Math.max(0.76, match?.confidence || 0.8)),
+    sourceMatchStatus: 'bottle_bible_match',
+    productId,
+    sku,
+    sourceProductProofId: String(productId),
+    sourceProductProofSku: sku,
+    quantity: 0,
+    storeQty: 0,
+    quantityIsExact: false,
+    quantitySemantics: 'binary_retailer_in_stock',
+    price,
+    availabilityStatus: 'in_stock',
+    availabilityLabel: 'Retailer reports in-store availability — exact quantity unavailable',
+    sourceAvailabilityVerified: true,
+    orderabilityOfferVerified: false,
+    sourceProductInStock: true,
+    sourceProductBackordered: false,
+    locationPrecision: 'store_level',
+    locationName: SC_ALL_AMERICAN_STORE.name,
+    storeName: SC_ALL_AMERICAN_STORE.name,
+    storeId: `all-american-liquor:${SC_ALL_AMERICAN_STORE.id}`,
+    storeAddress: SC_ALL_AMERICAN_STORE.address,
+    city: SC_ALL_AMERICAN_STORE.city,
+    stateCode: config.id,
+    postalCode: SC_ALL_AMERICAN_STORE.zip,
+    zip: SC_ALL_AMERICAN_STORE.zip,
+    observedAt,
+    fetchedAt: observedAt,
+    canAlertAsInventory: true,
+    canAlertAsWatch: true,
+    dataLane: 'inventory',
+    inventorySemantics: 'All American Liquor publicly marks this SKU in stock for its Mauldin premises, while its shop states inventory is wholesale/in-store only and subject to change. This is binary in-store availability, not online purchasability or exact bottle quantity.',
+    evidence: `All American Liquor WooCommerce Store API reports ${rawName} is_in_stock=true${price ? ` at $${price.toFixed(2)}` : ''} for the Mauldin store; exact quantity is not exposed.`,
+    raw: {
+      chain: 'all-american-liquor',
+      product: {
+        id: productId,
+        sku,
+        is_in_stock: product.is_in_stock,
+        is_purchasable: product.is_purchasable,
+        is_on_backorder: product.is_on_backorder,
+        prices: product.prices,
+        add_to_cart: product.add_to_cart,
+      },
+    },
+  };
+}
+
 async function collectSouthCarolinaAllAmerican(config, bible, observedAt) {
   try {
     const cached = JSON.parse(await readFile(SC_ALL_AMERICAN_ARTIFACT_PATH, 'utf8'));
-    const generatedMs = Date.parse(cached.generatedAt || '');
-    if (process.env.BOURBON_SIGNAL_SC_FORCE_ALL_AMERICAN_LIVE !== '1' && Number.isFinite(generatedMs) && Date.now() - generatedMs <= SC_ALL_AMERICAN_CACHE_MAX_AGE_MS && Array.isArray(cached.signals)) {
+    if (process.env.BOURBON_SIGNAL_SC_FORCE_ALL_AMERICAN_LIVE !== '1'
+      && isSouthCarolinaAllAmericanCacheUsable(cached.signals, cached.generatedAt)) {
       return { signals: cached.signals.map((signal) => ({ ...signal, observedAt: cached.generatedAt, fetchedAt: observedAt, raw: { ...(signal.raw || {}), cacheFallback: true, cacheGeneratedAt: cached.generatedAt } })), roadblocks: cached.roadblocks || [] };
     }
   } catch {}
@@ -6480,7 +6609,7 @@ async function collectSouthCarolinaAllAmerican(config, bible, observedAt) {
     const url = `${SC_ALL_AMERICAN_BASE_URL}/wp-json/wc/store/v1/products?search=${encodeURIComponent(term)}&per_page=20`;
     const res = await textFetch(url, { headers: { accept: 'application/json' }, timeoutMs: 18_000 });
     if (!res.ok) {
-      roadblocks.push({ state: config.id, source: SC_ALL_AMERICAN_SOURCE_LABEL, url, status: res.status || 0, error: res.error || `HTTP ${res.status}`, nextRoute: 'Retry the public WooCommerce Store API at low cadence; retain recent cache for no more than six hours.' });
+      roadblocks.push({ state: config.id, source: SC_ALL_AMERICAN_SOURCE_LABEL, url, status: res.status || 0, error: res.error || `HTTP ${res.status}`, nextRoute: 'Retry the public WooCommerce Store API at low cadence; retain recent cache for no more than two hours.' });
       await sleep(SC_ALL_AMERICAN_DELAY_MS);
       continue;
     }
@@ -6490,56 +6619,27 @@ async function collectSouthCarolinaAllAmerican(config, bible, observedAt) {
       continue;
     }
     for (const product of Array.isArray(products) ? products : []) {
-      const rawName = htmlToText(product?.name || '');
-      if (!rawName || seen.has(product?.id) || product?.is_in_stock !== true || product?.is_on_backorder === true || !isSouthCarolinaRetailerCandidate(rawName)) continue;
-      const { match, record } = cityHiveSafeBottleMatch(rawName, bible);
-      if (!record) continue;
+      if (seen.has(product?.id)) continue;
+      const signal = buildSouthCarolinaAllAmericanSignal(config, product, bible, observedAt);
+      if (!signal) continue;
       seen.add(product.id);
-      const price = wcStoreApiPrice(product?.prices);
-      signals.push({
-        id: stableId([config.id, 'all-american-liquor', product.id]),
-        key: stableId([config.id, 'all-american-liquor', product.id]),
-        state: config.id,
-        displayState: config.id,
-        sourceUrl: product?.permalink || url,
-        sourceLabel: SC_ALL_AMERICAN_SOURCE_LABEL,
-        eventType: 'retailer_store_inventory_result',
-        rawName,
-        canonicalBottleId: record.id,
-        bottleId: record.id,
-        canonicalName: record.canonical,
-        tier: record.tier,
-        confidence: Math.min(0.86, Math.max(0.76, match?.confidence || 0.8)),
-        sourceMatchStatus: 'bottle_bible_match',
-        quantity: 0,
-        storeQty: 0,
-        quantitySemantics: 'binary_retailer_in_stock',
-        price,
-        availabilityStatus: 'in_stock',
-        availabilityLabel: 'Retailer reports in-store availability — exact quantity unavailable',
-        sourceAvailabilityVerified: true,
-        locationPrecision: 'store_level',
-        locationName: SC_ALL_AMERICAN_STORE.name,
-        storeName: SC_ALL_AMERICAN_STORE.name,
-        storeId: `all-american-liquor:${SC_ALL_AMERICAN_STORE.id}`,
-        storeAddress: SC_ALL_AMERICAN_STORE.address,
-        city: SC_ALL_AMERICAN_STORE.city,
-        stateCode: config.id,
-        zip: SC_ALL_AMERICAN_STORE.zip,
-        observedAt,
-        fetchedAt: observedAt,
-        canAlertAsInventory: true,
-        canAlertAsWatch: true,
-        dataLane: 'inventory',
-        inventorySemantics: 'All American Liquor publicly marks this SKU in stock for its Mauldin premises, while its shop states inventory is wholesale/in-store only and subject to change. This is binary in-store availability, not online purchasability or exact bottle quantity.',
-        evidence: `All American Liquor WooCommerce Store API reports ${rawName} is_in_stock=true${price ? ` at $${price.toFixed(2)}` : ''} for the Mauldin store; exact quantity is not exposed.`,
-        raw: { chain: 'all-american-liquor', product: { id: product.id, sku: product.sku, is_in_stock: product.is_in_stock, is_purchasable: product.is_purchasable, is_on_backorder: product.is_on_backorder, prices: product.prices, add_to_cart: product.add_to_cart } }
-      });
+      signals.push(signal);
     }
     await sleep(SC_ALL_AMERICAN_DELAY_MS);
   }
-  await mkdir(path.dirname(SC_ALL_AMERICAN_ARTIFACT_PATH), { recursive: true });
-  await writeFile(SC_ALL_AMERICAN_ARTIFACT_PATH, JSON.stringify({ generatedAt: observedAt, signals, roadblocks }, null, 2));
+  try {
+    await mkdir(path.dirname(SC_ALL_AMERICAN_ARTIFACT_PATH), { recursive: true });
+    await writeFile(SC_ALL_AMERICAN_ARTIFACT_PATH, JSON.stringify({ generatedAt: observedAt, signals, roadblocks }, null, 2));
+  } catch (error) {
+    roadblocks.push({
+      state: config.id,
+      source: SC_ALL_AMERICAN_SOURCE_LABEL,
+      url: SC_ALL_AMERICAN_BASE_URL,
+      status: 'cache_write_failed',
+      error: error instanceof Error ? error.message : String(error),
+      nextRoute: 'Serve this bounded live result without cache reuse and retry cache persistence on the next scheduled run.',
+    });
+  }
   return { signals, roadblocks };
 }
 

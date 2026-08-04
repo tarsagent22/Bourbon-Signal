@@ -17,7 +17,7 @@ import { isMississippiRetailerInventory } from './mississippi-retailer-policy.mj
 import { isMetroRetailerInventory, isMetroRetailerSignalIdentity, metroRetailerArea } from './metro-retailer-policy.mjs';
 import { isTennesseeRetailerInventory, isTennesseeRetailerSignalIdentity } from './tennessee-retailer-policy.mjs';
 import { isSouthCarolinaDunesInventory, isSouthCarolinaDunesSignal } from './south-carolina-dunes-policy.mjs';
-import { hasSouthCarolinaPositiveInventoryEvidence, isSouthCarolinaSouthernSpiritsInventory, isSouthCarolinaSouthernSpiritsSignal } from './south-carolina-retailer-policy.mjs';
+import { hasSouthCarolinaPositiveInventoryEvidence, isSouthCarolinaAllAmericanInventory, isSouthCarolinaAllAmericanSignal, isSouthCarolinaSouthernSpiritsInventory, isSouthCarolinaSouthernSpiritsSignal } from './south-carolina-retailer-policy.mjs';
 import { canPublishTennesseePartialEvidenceFallback } from './tennessee-verification-policy.mjs';
 import { registeredDemandMetroStores } from './demand-metro-registry.mjs';
 import { demandMetroAreaLabel, demandMetroAreaMatchesFields } from './demand-metro-areas.mjs';
@@ -271,7 +271,8 @@ export function publicSignal(signal, bible, freshness = null) {
               : signal.inventorySemantics;
   const staleFallback = signal.stale === true || signal.sourceStale === true || signal.raw?.staleFallback === true;
   const exactScRetailerIdentityAllowed = (!isSouthCarolinaSouthernSpiritsSignal(signal) || isSouthCarolinaSouthernSpiritsInventory(signal))
-    && (!isSouthCarolinaDunesSignal(signal) || isSouthCarolinaDunesInventory(signal));
+    && (!isSouthCarolinaDunesSignal(signal) || isSouthCarolinaDunesInventory(signal))
+    && (!isSouthCarolinaAllAmericanSignal(signal) || isSouthCarolinaAllAmericanInventory(signal));
   const policyCanAlertAsInventory = exactScRetailerIdentityAllowed && !staleFallback && (isCostcoWarehouseInventory
     ? Boolean(signal.canAlertAsInventory) && (Number(signal.quantity || signal.storeQty || 0) > 0 || (signal.sourceAvailabilityVerified === true && signal.availabilityStatus === 'in_stock'))
     : signal.state === 'AZ'
@@ -349,6 +350,10 @@ export function publicSignal(signal, bible, freshness = null) {
     productHandle: signal.productHandle || signal.raw?.product?.handle || null,
     productCode: signal.productCode || null,
     sku: signal.sku || signal.raw?.sku || null,
+    sourceProductProofId: signal.sourceProductProofId || null,
+    sourceProductProofSku: signal.sourceProductProofSku || null,
+    sourceProductInStock: signal.sourceProductInStock ?? signal.raw?.product?.is_in_stock ?? null,
+    sourceProductBackordered: signal.sourceProductBackordered ?? signal.raw?.product?.is_on_backorder ?? null,
     productLimitedCaveat: typeof signal.productLimitedCaveat === 'boolean' ? signal.productLimitedCaveat : null,
     variantId: signal.variantId || signal.raw?.variant?.id || signal.raw?.option?.option_id || null,
     variantAvailable: typeof signal.variantAvailable === 'boolean'
@@ -1439,8 +1444,10 @@ export function buildCurrentInventoryAlertsFromDrops(drops) {
         && Number(drop.quantity || 0) === 0
         && drop.quantityIsExact === false
         && isFloridaRetailerInventory(drop);
-      const southCarolinaBinaryBaseline = isSouthCarolinaSouthernSpiritsInventory(drop);
-      const binaryRetailerOrderability = floridaBinaryBaseline || southCarolinaBinaryBaseline || (
+      const southCarolinaInStoreBaseline = isSouthCarolinaAllAmericanInventory(drop);
+      const southCarolinaBinaryBaseline = isSouthCarolinaSouthernSpiritsInventory(drop)
+        || southCarolinaInStoreBaseline;
+      const binaryRetailerOrderability = floridaBinaryBaseline || isSouthCarolinaSouthernSpiritsInventory(drop) || (
         (georgiaBaseline || metroBaseline || tennesseeBinaryBaseline)
         && drop.inventorySemantics === 'binary_retailer_orderable_no_exact_count'
         && Number(drop.quantity || 0) === 0
@@ -1465,7 +1472,9 @@ export function buildCurrentInventoryAlertsFromDrops(drops) {
       changeType: 'current_inventory_signal',
       dedupeKey: stableId(['current_inventory_alert', drop.state, drop.canonicalId || drop.bottleName, drop.storeId || drop.locationName, drop.availabilityStatus || '', drop.quantity || 0]),
       matchKey: stableId([drop.state, drop.canonicalId || drop.bottleName, drop.storeId || drop.locationName || 'regional']),
-      gates: ['current_public_drop', 'store_level', binaryRetailerOrderability || drop.state === 'CA' ? 'verified_binary_orderability' : 'positive_quantity'],
+      gates: ['current_public_drop', 'store_level', southCarolinaInStoreBaseline
+        ? 'verified_binary_in_store_availability'
+        : binaryRetailerOrderability || drop.state === 'CA' ? 'verified_binary_orderability' : 'positive_quantity'],
       blockers: [],
       cautions: ['verify_before_driving'],
       state: drop.state,
@@ -1489,6 +1498,10 @@ export function buildCurrentInventoryAlertsFromDrops(drops) {
       variantId: drop.variantId || null,
       variantAvailable: typeof drop.variantAvailable === 'boolean' ? drop.variantAvailable : null,
       sku: drop.sku || null,
+      sourceProductProofId: drop.sourceProductProofId || null,
+      sourceProductProofSku: drop.sourceProductProofSku || null,
+      sourceProductInStock: drop.sourceProductInStock ?? null,
+      sourceProductBackordered: drop.sourceProductBackordered ?? null,
       locationPrecision: drop.locationPrecision,
       locationName: drop.locationName,
       storeName: drop.storeName,
@@ -1521,8 +1534,10 @@ export function buildCurrentInventoryAlertsFromDrops(drops) {
         ? 'Current first-party binary retailer orderability plus separately verified pickup/collection policy eligible for San Diego member matching.'
         : metroBaseline
           ? 'Current identity-bound New York City, Nassau County, or Denver Metro retailer availability eligible for conservative on-site matching; verify pickup before driving.'
-        : binaryRetailerOrderability
-          ? 'Current first-party binary retailer orderability eligible for on-site matching; exact quantity is not published.'
+        : southCarolinaInStoreBaseline
+          ? 'Current first-party binary in-store availability eligible for on-site matching; online orderability and exact quantity are not published.'
+          : binaryRetailerOrderability
+            ? 'Current first-party binary retailer orderability eligible for on-site matching; exact quantity is not published.'
         : 'Current source-backed store-level drop eligible for member alert matching.',
       evidence: safeString(drop.evidence, 700)
       });
