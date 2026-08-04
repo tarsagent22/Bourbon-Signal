@@ -183,6 +183,21 @@
       "reasoning": null,
       "safetyHash": null,
       "profileSafetyHash": null
+    },
+    {
+      "jobId": "0ee6b2c9fb07",
+      "name": "Bourbon Signal guarded Release Radar publisher",
+      "schedule": "*/15 * * * *",
+      "deliver": "telegram:-5461081025",
+      "noAgent": true,
+      "script": "bourbon_signal_release_radar_publisher.py",
+      "workdir": "C:\\c\\Users\\chand\\projects\\Bourbon-Signal-autonomous",
+      "active": true,
+      "provider": null,
+      "model": null,
+      "reasoning": null,
+      "safetyHash": null,
+      "profileSafetyHash": null
     }
   ]
 }
