@@ -16,6 +16,10 @@
     {
       "path": "/api/member-weekly-intelligence/deliver?cron=v1",
       "schedule": "0 14 * * 4"
+    },
+    {
+      "path": "/api/free-member-day-two/deliver?live=1&cron=v1",
+      "schedule": "0 * * * *"
     }
   ]
 }

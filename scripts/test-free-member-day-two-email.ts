@@ -15,8 +15,8 @@ import { CORE_PAID_MEMBERSHIP_PLANS, PAID_MEMBERSHIP_PLANS } from "../src/lib/me
 
 async function main() {
 assert.equal(FREE_MEMBER_DAY_TWO_CAMPAIGN_ID, "free-member-day-two-v1");
-assert.equal(FREE_MEMBER_DAY_TWO_SUBJECT, "Make Bourbon Signal work harder for your hunt");
-assert.equal(FREE_MEMBER_DAY_TWO_LIVE_SEND_SUPPORTED, false, "V1 must be impossible to send while copy is under review");
+assert.equal(FREE_MEMBER_DAY_TWO_SUBJECT, "Welcome to the Bourbon Signal community");
+assert.equal(FREE_MEMBER_DAY_TWO_LIVE_SEND_SUPPORTED, true, "approved V1 must support guarded live delivery");
 assert.deepEqual(CORE_PAID_MEMBERSHIP_PLANS.map((plan) => plan.tier), ["standard", "barrel"]);
 assert.deepEqual(CORE_PAID_MEMBERSHIP_PLANS.map((plan) => [plan.monthlyPrice, plan.annualPrice]), [["$2.99", "$24.99"], ["$4.99", "$49.99"]]);
 assert.equal(PAID_MEMBERSHIP_PLANS.length, 3, "pricing page keeps the separate conditional Founder offer");
@@ -28,7 +28,7 @@ const config = buildFreeMemberDayTwoConfig({
   RESEND_DIGEST_AUDIENCE_ID: "audience",
 } as unknown as NodeJS.ProcessEnv);
 assert.deepEqual(resolveFreeMemberDayTwoDeliveryMode({ requestLive: false, config }), { mode: "dry_run", reason: null });
-assert.deepEqual(resolveFreeMemberDayTwoDeliveryMode({ requestLive: true, config }), { mode: "blocked", reason: "live_not_supported" });
+assert.deepEqual(resolveFreeMemberDayTwoDeliveryMode({ requestLive: true, config }), { mode: "live", reason: null });
 
 assert.equal(isFreeMemberDayTwoWindow({
   createdAt: "2026-08-03T14:30:00.000Z",
@@ -80,41 +80,61 @@ const html = await render(FreeMemberDayTwoEmail({
 const visibleHtml = html.replaceAll("<!-- -->", "");
 for (const required of [
   "BOURBON SIGNAL",
-  "Make Bourbon Signal work harder for your hunt",
+  "Make Bourbon Signal work harder for you",
   "Chandler here",
-  "Standard Proof",
-  "$2.99/month",
-  "$24.99/year",
-  "Barrel Proof",
-  "$4.99/month",
-  "$49.99/year",
+  "Pappy",
+  "BTAC",
+  "Drop Feed",
+  "Member Sightings",
+  "Bottle Checker",
+  "Points and badges",
+  "Upgraded memberships can add",
+  "Personalized alerts",
+  "Full drop feed and filters",
+  "Saved watchlists",
+  "Your collection",
+  "DNA and bottle recommendations",
+  "Point redemption",
   "Compare membership options",
   "Request coverage",
-  "your free account stays free",
+  "join the Bourbon Signal Facebook group",
+  "follow Bourbon Signal on Instagram",
   "{{unsubscribeUrl}}",
   "Bourbon Signal is intended for users 21+",
 ]) assert.ok(visibleHtml.includes(required), `email must include: ${required}`);
-for (const forbidden of ["July", "sale", "Founder", "founder", "spots remaining", "guaranteed in stock", "drive now"]) {
+for (const forbidden of ["Standard Proof", "Barrel Proof", "$2.99", "$4.99", "MEMBERSHIP OPTIONS", "July", "sale", "Founder", "founder", "spots remaining", "guaranteed in stock", "drive now", "Hey Casey,"]) {
   assert.ok(!html.includes(forbidden), `evergreen email must omit: ${forbidden}`);
 }
 assert.match(html, /pricing\?source=day2_free_followup/);
 assert.match(html, /coverage\?source=day2_free_followup/);
+assert.match(html, /https:\/\/www\.facebook\.com\/share\/g\/1BTYhwxSwC\//);
+assert.match(html, /https:\/\/www\.instagram\.com\/bourbonsignal/);
 assert.match(html, /background-color:#15100c/i, "email must use a native dark shell");
 assert.doesNotMatch(html, /background-color:\s*(#fff|white)/i, "email must not expose a white mobile shell");
+assert.doesNotMatch(html, /border:1px solid #493521/i, "approved email must not restore the tacky outer shell border");
+assert.match(html, /margin:0 0 10px[^]*Thanks again,/i, "signature signoff must have intentional spacing");
+assert.match(html, /margin:0 0 2px[^]*Chandler/i, "signature name and brand must stay together");
 
-const [pricingSource, routeSource, middlewareSource, vercelSource, serverSource, newsletterPreferencesSource] = await Promise.all([
+const [pricingSource, routeSource, middlewareSource, vercelSource, serverSource, newsletterPreferencesSource, layoutSource, timeZoneCaptureSource] = await Promise.all([
   readFile(new URL("../src/app/pricing/PricingPageClient.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/app/api/free-member-day-two/deliver/route.ts", import.meta.url), "utf8"),
   readFile(new URL("../src/middleware.ts", import.meta.url), "utf8"),
   readFile(new URL("../vercel.json", import.meta.url), "utf8"),
   readFile(new URL("../src/lib/free-member-day-two-server.ts", import.meta.url), "utf8"),
   readFile(new URL("../src/app/api/newsletter/preferences/route.ts", import.meta.url), "utf8"),
+  readFile(new URL("../src/app/layout.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../src/components/LifecycleTimeZoneCapture.tsx", import.meta.url), "utf8"),
 ]);
 assert.match(pricingSource, /PAID_MEMBERSHIP_PLANS/);
 assert.doesNotMatch(pricingSource, /monthlyPrice:\s*"\$2\.99"/, "pricing and email must share one plan catalog");
 assert.match(routeSource, /assertFreeMemberDayTwoDeliveryAuthorized/);
 assert.match(middlewareSource, /\/api\/free-member-day-two\/deliver/);
-assert.doesNotMatch(vercelSource, /free-member-day-two/, "no production schedule may be registered before V1 approval");
+const vercelConfig = JSON.parse(vercelSource) as { crons?: Array<{ path?: string; schedule?: string }> };
+assert.ok(vercelConfig.crons?.some((cron) => cron.path === "/api/free-member-day-two/deliver?live=1&cron=v1" && cron.schedule === "0 * * * *"), "approved Day-2 delivery must run hourly so each IANA timezone receives the email during its 7 PM hour");
+assert.match(layoutSource, /LifecycleTimeZoneCapture/);
+for (const invariant of ["useUser", "Intl.DateTimeFormat", "/api/user/time-zone", "sessionStorage", "response.ok"]) {
+  assert.match(timeZoneCaptureSource, new RegExp(invariant.replaceAll("/", "\\/")), `global timezone capture must include ${invariant}`);
+}
 assert.match(serverSource, /FREE_MEMBER_DAY_TWO_LIVE_SEND_SUPPORTED/);
 assert.match(serverSource, /recipientMasterSubscription/);
 assert.match(serverSource, /idempotencyKey/);
