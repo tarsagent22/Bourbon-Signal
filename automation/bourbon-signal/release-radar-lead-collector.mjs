@@ -39,14 +39,50 @@ function cleanText(value, max = 300) {
     .slice(0, max);
 }
 
+const MONTH_NUMBERS = new Map([
+  ['jan', 1], ['january', 1], ['feb', 2], ['february', 2], ['mar', 3], ['march', 3],
+  ['apr', 4], ['april', 4], ['may', 5], ['jun', 6], ['june', 6], ['jul', 7], ['july', 7],
+  ['aug', 8], ['august', 8], ['sep', 9], ['september', 9], ['oct', 10], ['october', 10],
+  ['nov', 11], ['november', 11], ['dec', 12], ['december', 12],
+]);
+const MONTH_PATTERN = '(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)';
+
+function exactDateToken(yearValue, monthValue, dayValue) {
+  const year = Number(yearValue);
+  const month = Number(monthValue);
+  const day = Number(dayValue);
+  const date = new Date(Date.UTC(year, month - 1, day));
+  if (date.getUTCFullYear() !== year || date.getUTCMonth() + 1 !== month || date.getUTCDate() !== day) return null;
+  return `${String(year).padStart(4, '0')}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+}
+
+function temporalTokens(text) {
+  const dates = new Set();
+  const years = new Set([...text.matchAll(/\b20\d{2}\b/g)].map((match) => match[0]));
+  const add = (year, month, day) => {
+    const token = exactDateToken(year, month, day);
+    if (token) dates.add(token);
+  };
+  for (const match of text.matchAll(/\b(20\d{2})-(\d{1,2})-(\d{1,2})\b/g)) add(match[1], match[2], match[3]);
+  for (const match of text.matchAll(/\b(\d{1,2})[\/-](\d{1,2})\s*(?:-|–|through|to)\s*(\d{1,2})[\/-](\d{1,2})[\/-](20\d{2})\b/g)) {
+    add(match[5], match[1], match[2]);
+    add(match[5], match[3], match[4]);
+  }
+  for (const match of text.matchAll(/\b(\d{1,2})[\/-](\d{1,2})[\/-](20\d{2})\b/g)) add(match[3], match[1], match[2]);
+  const namedRange = new RegExp(`\\b${MONTH_PATTERN}\\s+(\\d{1,2})\\s*(?:-|–|through|to)\\s*(?:${MONTH_PATTERN}\\s+)?(\\d{1,2}),?\\s+(20\\d{2})\\b`, 'gi');
+  for (const match of text.matchAll(namedRange)) {
+    add(match[5], MONTH_NUMBERS.get(match[1].toLowerCase()), match[2]);
+    add(match[5], MONTH_NUMBERS.get((match[3] || match[1]).toLowerCase()), match[4]);
+  }
+  const namedDate = new RegExp(`\\b${MONTH_PATTERN}\\s+(\\d{1,2}),?\\s+(20\\d{2})\\b`, 'gi');
+  for (const match of text.matchAll(namedDate)) add(match[3], MONTH_NUMBERS.get(match[1].toLowerCase()), match[2]);
+  return [...(dates.size ? dates : years)].sort();
+}
+
 function materialSignature(lead) {
   const title = cleanText(lead?.title, 180).toLowerCase();
   const text = `${title} ${cleanText(lead?.summary, 420).toLowerCase()}`;
-  const temporal = [
-    ...text.matchAll(/\b20\d{2}\b/g),
-    ...text.matchAll(/\b(?:jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|jun(?:e)?|jul(?:y)?|aug(?:ust)?|sep(?:tember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\s+\d{1,2}(?:\s*[-–]\s*\d{1,2})?(?:,?\s+20\d{2})?/gi),
-    ...text.matchAll(/\b20\d{2}-\d{2}-\d{2}\b/g),
-  ].map((match) => match[0].toLowerCase()).sort();
+  const temporal = temporalTokens(text);
   return JSON.stringify({ title, temporal });
 }
 
@@ -58,7 +94,8 @@ function hasMaterialChange(previous, next) {
   const previousYears = previousSignature.temporal.flatMap((token) => token.match(/20\d{2}/g) || []).map(Number);
   const nextYears = nextSignature.temporal.flatMap((token) => token.match(/20\d{2}/g) || []).map(Number);
   const advancesYear = nextYears.length > 0 && Math.max(...nextYears) > (previousYears.length > 0 ? Math.max(...previousYears) : 0);
-  return advancesYear || previousSignature.title !== nextSignature.title;
+  const changesDatedWindow = JSON.stringify(previousSignature.temporal) !== JSON.stringify(nextSignature.temporal);
+  return advancesYear || changesDatedWindow || previousSignature.title !== nextSignature.title;
 }
 
 function dueForReview(lead, generatedAt) {
@@ -165,6 +202,8 @@ export async function collectReleaseRadarLeads({ results = [], existingLedger = 
       source: previous.source || lead.source,
       summary: changed ? lead.summary : previous.summary || lead.summary,
       status: changed ? 'changed' : previous.status,
+      verificationStatus: changed ? 'unverified' : previous.verificationStatus || lead.verificationStatus,
+      alertGradeEligible: changed ? false : previous.alertGradeEligible === true,
       lastSeenAt: generatedAt,
       observations: Math.min(1_000_000, Number(previous.observations || 1) + 1),
     } : { ...lead, firstSeenAt: generatedAt, lastSeenAt: generatedAt, observations: 1 };

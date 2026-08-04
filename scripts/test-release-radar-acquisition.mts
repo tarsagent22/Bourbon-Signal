@@ -8,7 +8,9 @@ import {
   getTrackableBottleRelation,
   isRadarEntryAlertGrade,
   radarEntries,
+  releaseRadarUpdatedAt,
 } from "../src/lib/release-radar.ts";
+import { collectReleaseRadarLeads } from "../automation/bourbon-signal/release-radar-lead-collector.mjs";
 import { buildReleaseRadarIcs } from "../src/lib/release-radar-ics.ts";
 import {
   followRadarRelease,
@@ -26,6 +28,123 @@ assert.ok(radarEntries.every((entry) => entry.calendar === (entry.datePrecision 
 assert.ok(radarEntries.every((entry) => entry.followEligibility.release || entry.followEligibility.bottle), "every acquisition record needs a follow or track action");
 assert.ok(radarEntries.filter((entry) => entry.followEligibility.bottle).every((entry) => getTrackableBottleRelation(entry)), "trackable records need a canonical bottle relation");
 assert.equal(new Set(radarEntries.flatMap((entry) => entry.bottleRelations.map((relation) => relation.canonicalId))).has(""), false, "canonical bottle ids cannot be empty");
+
+const alabamaQ3 = radarEntries.find((entry) => entry.slug === "alabama-abc-q3-whiskey-sweepstakes-2026");
+assert.ok(alabamaQ3, "the official open Alabama Q3 registration window must be published");
+assert.equal(alabamaQ3.kind, "lottery");
+assert.equal(alabamaQ3.startDate, "2026-08-03");
+assert.equal(alabamaQ3.endDate, "2026-08-23");
+assert.equal(alabamaQ3.calendar, true);
+assert.equal(alabamaQ3.availabilitySemantics, "announcement_only");
+assert.equal(alabamaQ3.sources[0]?.url, "https://alabcboard.gov/stores/events/limited-release-programs/quarterly/FAQ");
+assert.equal(releaseRadarUpdatedAt, "2026-08-04", "the public Radar freshness label must match the newest reviewed entry");
+
+const sameYearWindowChange = await collectReleaseRadarLeads({
+  existingLedger: { leads: [{
+    id: "rrl-quarterly",
+    title: "Quarterly Whiskey Release FAQ",
+    url: "https://agency.gov/quarterly-lottery",
+    source: "agency.gov",
+    summary: "Registration runs May 4-24, 2026.",
+    status: "reviewed",
+    publicationStatus: "not_published",
+    reviewedAt: "2026-06-01T00:00:00Z",
+    firstSeenAt: "2026-05-01T00:00:00Z",
+    lastSeenAt: "2026-06-01T00:00:00Z",
+    observations: 2,
+  }] },
+  results: [{
+    title: "Quarterly Whiskey Release FAQ",
+    url: "https://agency.gov/quarterly-lottery",
+    description: "Registration runs August 3-23, 2026. Event September 19, 2026.",
+  }],
+  generatedAt: "2026-08-04T12:00:00Z",
+});
+assert.equal(sameYearWindowChange.summary.materiallyChanged, 1, "same-year date-window changes on reusable official URLs must reopen review");
+assert.equal(sameYearWindowChange.summary.queuedForSemanticReview, 1);
+assert.equal(sameYearWindowChange.leads[0]?.status, "changed");
+assert.match(sameYearWindowChange.leads[0]?.summary || "", /August 3-23/);
+
+const numericSameYearWindowChange = await collectReleaseRadarLeads({
+  existingLedger: { leads: [{
+    id: "rrl-numeric-quarterly",
+    title: "Quarterly Whiskey Release FAQ",
+    url: "https://agency.gov/numeric-quarterly-lottery",
+    source: "agency.gov",
+    summary: "Registration runs 05/04/2026-05/24/2026.",
+    status: "verified",
+    verificationStatus: "verified",
+    publicationStatus: "not_published",
+    reviewedAt: "2026-06-01T00:00:00Z",
+    evidenceUrls: ["https://agency.gov/numeric-quarterly-lottery"],
+    alertGradeEligible: true,
+    firstSeenAt: "2026-05-01T00:00:00Z",
+    lastSeenAt: "2026-06-01T00:00:00Z",
+    observations: 2,
+  }] },
+  results: [{
+    title: "Quarterly Whiskey Release FAQ",
+    url: "https://agency.gov/numeric-quarterly-lottery",
+    description: "Registration runs 08/03/2026-08/23/2026.",
+  }],
+  generatedAt: "2026-08-04T12:00:00Z",
+});
+assert.equal(numericSameYearWindowChange.summary.materiallyChanged, 1, "numeric same-year date changes must reopen review");
+assert.equal(numericSameYearWindowChange.leads[0]?.verificationStatus, "unverified", "reopened leads must discard prior verification status");
+assert.equal(numericSameYearWindowChange.leads[0]?.alertGradeEligible, false, "reopened announcement leads must never inherit alert-grade eligibility");
+assert.equal(numericSameYearWindowChange.leads[0]?.reviewedAt, undefined);
+assert.equal(numericSameYearWindowChange.leads[0]?.evidenceUrls, undefined);
+
+const equivalentDatePhrasing = await collectReleaseRadarLeads({
+  existingLedger: { leads: [{
+    id: "rrl-equivalent-quarterly",
+    title: "Quarterly Whiskey Release FAQ",
+    url: "https://agency.gov/equivalent-quarterly-lottery",
+    source: "agency.gov",
+    summary: "Registration runs May 4-24, 2026.",
+    status: "reviewed",
+    publicationStatus: "not_published",
+    reviewedAt: "2026-06-01T00:00:00Z",
+    firstSeenAt: "2026-05-01T00:00:00Z",
+    lastSeenAt: "2026-06-01T00:00:00Z",
+    observations: 2,
+  }] },
+  results: [{
+    title: "Quarterly Whiskey Release FAQ",
+    url: "https://agency.gov/equivalent-quarterly-lottery",
+    description: "Registration runs May 4 through May 24, 2026.",
+  }],
+  generatedAt: "2026-08-04T12:00:00Z",
+});
+assert.equal(equivalentDatePhrasing.summary.materiallyChanged, 0, "equivalent date formatting must not reopen review");
+
+const equivalentCompactNumericRange = await collectReleaseRadarLeads({
+  existingLedger: { leads: [{
+    id: "rrl-compact-numeric-quarterly",
+    title: "Quarterly Whiskey Release FAQ",
+    url: "https://agency.gov/compact-numeric-quarterly-lottery",
+    source: "agency.gov",
+    summary: "Registration runs May 4-24, 2026.",
+    status: "reviewed",
+    publicationStatus: "not_published",
+    reviewedAt: "2026-06-01T00:00:00Z",
+    firstSeenAt: "2026-05-01T00:00:00Z",
+    lastSeenAt: "2026-06-01T00:00:00Z",
+    observations: 2,
+  }] },
+  results: [{
+    title: "Quarterly Whiskey Release FAQ",
+    url: "https://agency.gov/compact-numeric-quarterly-lottery",
+    description: "Registration runs 05/04-05/24/2026.",
+  }],
+  generatedAt: "2026-08-04T12:00:00Z",
+});
+assert.equal(equivalentCompactNumericRange.summary.materiallyChanged, 0, "a compact numeric range with one trailing year must normalize to the same dates");
+
+assert.equal(alabamaQ3.evidenceRetrievedAt, "2026-08-04T07:36:00Z");
+const alabamaAnnual = radarEntries.find((entry) => entry.slug === "alabama-abc-annual-fall-whiskey-release-2026");
+assert.equal(alabamaAnnual?.updatedAt, "2026-08-04", "content refreshed with Q3 dates must carry current provenance");
+assert.equal(alabamaAnnual?.evidenceRetrievedAt, "2026-08-04T07:36:00Z");
 
 const bottleCatalogPayload = JSON.parse(readFileSync(resolve("engine/out/site/bottles.json"), "utf8")) as {
   bottles?: Array<{
@@ -78,6 +197,7 @@ assert.match(ics, /X-BOURBON-SIGNAL-SEMANTICS:announcement-only/, "calendar expo
 assert.match(ics, /UID:cary-beer-bourbon-bbq-2026-20260731@[\s\S]*?DTSTART:20260731T220000Z[\s\S]*?DTEND:20260801T020000Z/, "Cary Friday ICS must retain its published 6–10 PM Eastern session");
 assert.match(ics, /UID:cary-beer-bourbon-bbq-2026-20260801@[\s\S]*?DTSTART:20260801T160000Z[\s\S]*?DTEND:20260801T220000Z/, "Cary Saturday ICS must retain its published noon–6 PM Eastern session");
 assert.match(ics, /UID:garrison-brothers-laguna-madre-2026-20260808@[\s\S]*?DTSTART:20260808T130000Z[\s\S]*?DTEND:20260808T210000Z/, "Laguna Madre ICS must retain its official 8 AM–4 PM Central event window");
+assert.match(ics, /UID:alabama-abc-q3-whiskey-sweepstakes-2026-20260803@[\s\S]*?DTSTART;VALUE=DATE:20260803[\s\S]*?DTEND;VALUE=DATE:20260824/, "Alabama Q3 ICS must include the August 3-23 registration window inclusively");
 const currentIcs = buildReleaseRadarIcs(radarEntries, { origin: "https://www.bourbonsignal.com", today: "2026-07-21" });
 assert.doesNotMatch(currentIcs, /virginia-abc-rare-character-july-2026/, "closed lotteries must expire from the live calendar export");
 assert.match(currentIcs, /cary-beer-bourbon-bbq-2026/, "future NC events must remain in the live calendar export");

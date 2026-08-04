@@ -15,7 +15,7 @@ import {
 import { getAgendaOccurrences, getCalendarOccurrences, getInitialRadarMonth, isValidMonth } from "../src/lib/release-radar-calendar.ts";
 
 assert.ok(radarEntries.length >= 29, "Release Radar should carry a broad, source-backed 2026 release and event slate");
-assert.equal(releaseRadarUpdatedAt, "2026-07-21", "public Radar freshness should match the final review date");
+assert.equal(releaseRadarUpdatedAt, "2026-08-04", "public Radar freshness should match the final review date");
 assert.equal(new Set(radarEntries.map((entry) => entry.slug)).size, radarEntries.length, "record slugs must be unique");
 assert.ok(radarEntries.every((entry) => entry.sources.length > 0), "every record needs a source");
 assert.ok(radarEntries.every((entry) => entry.sources.every((source) => source.url.startsWith("https://"))), "sources must use HTTPS");
@@ -54,7 +54,7 @@ assert.equal(alabama?.datePrecision, "exact", "the Alabama event must not degrad
 assert.equal(alabama?.availabilitySemantics, "announcement_only", "an event announcement must not become inventory");
 assert.ok(alabama?.sources.some((source) => source.url.includes("2026%20Limited%20Release%20Schedule.pdf")), "the Alabama event needs its official schedule source");
 assert.deepEqual(alabama?.markets, [{ code: "AL", label: "Alabama", scope: "state" }], "the Alabama event must retain its state market");
-assert.equal(alabama?.evidenceRetrievedAt, "2026-07-22T06:03:09Z", "Alabama evidence needs a durable retrieval timestamp");
+assert.equal(alabama?.evidenceRetrievedAt, "2026-08-04T07:36:00Z", "Alabama evidence needs a durable retrieval timestamp");
 assert.equal(alabama?.reviewAfter, "2026-12-13", "Alabama must be rechecked after the event");
 assert.ok(still630, "Still 630 needs a durable release-process guide");
 assert.equal(still630?.startDate, "2026", "a recurring process must not invent an exact future date");

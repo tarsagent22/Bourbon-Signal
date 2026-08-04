@@ -28,7 +28,7 @@ export interface RadarOccurrence {
   schemaEndDate?: string;
 }
 
-export const releaseRadarUpdatedAt = "2026-07-21";
+export const releaseRadarUpdatedAt = "2026-08-04";
 
 export interface RadarSource {
   label: string;
@@ -545,6 +545,38 @@ const radarEntrySeeds: RadarEntrySeed[] = [
     sources: [{ label: "Four Roses Single Barrel Collection", url: "https://www.fourrosesbourbon.com/bourbon/single-barrel-collection", type: "official" }],
   },
   {
+    kind: "lottery",
+    slug: "alabama-abc-q3-whiskey-sweepstakes-2026",
+    eyebrow: "Alabama ABC sweepstakes",
+    title: "Alabama opens registration for its Q3 whiskey release",
+    calendar: true,
+    dek: "The official Alabama ABC window is open through August 23 for a guaranteed position in line at the September limited-release event.",
+    summary: "Eligible Alabama residents can register August 3–23 for the Q3 Limited-Release Sweepstakes. Winners and non-winners are scheduled to be notified August 25, store product lists are due September 1, and the event is set for September 19. A winning entry secures a position in line, not a particular bottle.",
+    startDate: "2026-08-03",
+    endDate: "2026-08-23",
+    dateLabel: "Registration · Aug 3–23",
+    status: "open",
+    states: ["Alabama"],
+    location: "Participating Alabama ABC Select Spirits locations",
+    availability: "Official limited-release sweepstakes registration",
+    featured: true,
+    updatedAt: "2026-08-04",
+    evidenceRetrievedAt: "2026-08-04T07:36:00Z",
+    reviewAfter: "2026-09-20",
+    facts: [
+      { label: "Registration", value: "August 3–23" },
+      { label: "Notification", value: "August 25" },
+      { label: "Product lists", value: "September 1" },
+      { label: "Event", value: "September 19" },
+    ],
+    sections: [
+      { heading: "What is open now", body: "Alabama ABC's official FAQ lists August 3 through August 23 as the Q3 sweepstakes entry period. Eligible participants may register for a position in line at up to four locations, but may win at only one location for the event." },
+      { heading: "What happens next", body: "The official schedule lists winner and non-winner notification for August 25, store product lists for September 1, and the limited-release event for September 19." },
+      { heading: "What registration does not guarantee", body: "A selected entry guarantees a position in line, not a specific bottle, quantity, price, or purchase. Alabama ABC's current terms and event materials remain authoritative." },
+    ],
+    sources: [{ label: "Alabama ABC quarterly release FAQ", url: "https://alabcboard.gov/stores/events/limited-release-programs/quarterly/FAQ", type: "state" }],
+  },
+  {
     kind: "release",
     slug: "alabama-abc-annual-fall-whiskey-release-2026",
     eyebrow: "Alabama ABC release",
@@ -559,8 +591,8 @@ const radarEntrySeeds: RadarEntrySeed[] = [
     availability: "Official release-event announcement",
     featured: true,
     calendar: true,
-    updatedAt: "2026-07-18",
-    evidenceRetrievedAt: "2026-07-22T06:03:09Z",
+    updatedAt: "2026-08-04",
+    evidenceRetrievedAt: "2026-08-04T07:36:00Z",
     reviewAfter: "2026-12-13",
     facts: [
       { label: "Date", value: "Saturday, December 12, 2026" },
@@ -571,7 +603,7 @@ const radarEntrySeeds: RadarEntrySeed[] = [
     sections: [
       { heading: "What is confirmed", body: "Alabama ABC's official 2026 Limited Release Schedule names the Annual Fall Whiskey Release and assigns it to Saturday, December 12, 2026." },
       { heading: "What the date does not mean", body: "This is an official event announcement, not a current shelf-inventory signal. The reviewed source does not establish bottle names, store assignments, quantities, or purchase eligibility." },
-      { heading: "Keep watching", body: "Alabama ABC's quarterly FAQ lists August 3–23 registration dates for September Bourbon Heritage Month while event weeks remain to be determined. Treat that as process guidance until Alabama ABC publishes the event details." },
+      { heading: "Separate quarterly window", body: "Alabama ABC's Q3 sweepstakes is a separate release lane with registration August 3–23 and an event date of September 19. Follow that current window independently from the annual December release." },
     ],
     sources: [
       { label: "Alabama ABC 2026 Limited Release Schedule", url: "https://alabcboard.gov/sites/default/files/2026-01/2026%20Limited%20Release%20Schedule.pdf", type: "state" },
