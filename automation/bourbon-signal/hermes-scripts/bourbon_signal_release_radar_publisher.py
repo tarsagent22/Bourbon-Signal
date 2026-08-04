@@ -191,7 +191,7 @@ EXECUTION CONTRACT
 1. Fetch each listed primary source at runtime and confirm its exact dates, market, rules, and current relevance. Treat the embedded review as a lead rather than runtime proof.
 2. Reconcile each record against the current production Release Radar catalog, detail pages, and calendar output before creating a duplicate.
 3. Publish only source-supported release, registration, lottery, or official event intelligence. Keep every item announcement-only and non-alertable. Do not represent retailer inventory, shelf quantity, fulfillment, or guaranteed bottle access.
-4. When at least one genuinely new or materially changed record qualifies, implement the smallest coherent catalog change in this task worktree. Add focused regression coverage, obtain an independent read-only review, wait for required CI/preview checks, and create or update only the sole draft PR. Put `Release-Radar-Candidate-Digest: {digest_candidates(candidates)}` in the PR body.
+4. When at least one genuinely new or materially changed record qualifies, implement the smallest coherent catalog change in this task worktree. Add focused regression coverage, obtain an independent read-only review, and wait for required CI/preview checks. Draft-PR admission and creation must run under `python scripts/run-with-release-lane-lock.py -- ...`; inside that single locked child operation recheck the open-PR lane, current origin/main, and objective-lock compatibility before creating only the sole draft PR. Put `Release-Radar-Candidate-Digest: {digest_candidates(candidates)}` in the PR body.
 5. Do not mark the PR ready, merge, deploy, alter production, or send any message. The deterministic controller validates exact head, files, review, CI, and canonical production.
 6. If all records already exist, complete as reconciled without a PR. If primary evidence fails the contract, complete as blocked with precise reasons.
 7. Send no Telegram or customer messages.
@@ -296,8 +296,31 @@ def safe_result(task: dict[str, Any]) -> dict[str, Any] | None:
     return value
 
 
-def promote_draft(result: dict[str, Any], state: dict[str, Any]) -> dict[str, str]:
+def independent_review(result: dict[str, Any]) -> dict[str, str]:
     pull = result["pullRequest"]
+    output = HERMES_HOME / "automation" / f"release-radar-review-{pull['headSha']}.txt"
+    prompt = (
+        f"Review only `git diff origin/main...{pull['headSha']}` for Release Radar correctness, source integrity, "
+        "announcement-only/non-alert semantics, security, and test adequacy. Do not edit files. "
+        "The only acceptable final line is PASS when there are no blockers, otherwise BLOCKER: followed by reasons."
+    )
+    run_command([
+        "codex", "exec", "--sandbox", "danger-full-access", "-c", "model_reasoning_effort='medium'",
+        "--output-last-message", str(output), prompt,
+    ], timeout=140)
+    verdict = output.read_text(encoding="utf-8", errors="replace").strip()
+    if not re.search(r"(?mi)^PASS\s*$", verdict) or re.search(r"(?mi)^BLOCKER", verdict):
+        raise RuntimeError(f"Independent Release Radar review did not pass: {verdict[:500]}")
+    return {"headSha": pull["headSha"], "verdictSha256": hashlib.sha256(verdict.encode("utf-8")).hexdigest()}
+
+
+def promote_draft(result: dict[str, Any], state: dict[str, Any]) -> dict[str, str]:
+    if os.environ.get("BOURBON_SIGNAL_RELEASE_LANE_VALIDATED") != "1":
+        raise RuntimeError("Release Radar promotion requires the shared release-lane writer lock.")
+    pull = result["pullRequest"]
+    review_proof = state.get("independentReview")
+    if not isinstance(review_proof, dict) or review_proof.get("headSha") != pull.get("headSha"):
+        raise RuntimeError("Release Radar exact head lacks independent controller review proof.")
     number = pull["number"]
     detail = json.loads(run_command(["gh", "pr", "view", str(number), "--repo", "tarsagent22/Bourbon-Signal", "--json", "number,url,state,isDraft,baseRefName,headRefName,headRefOid,body,files,statusCheckRollup"]))
     digest = state.get("candidateDigest")
@@ -435,9 +458,12 @@ def run_once(*, plan: bool = False) -> str:
                 return prepare_notification(state, f"Release Radar publisher needs attention.\n- Task: {task_id}\n- Status: {status}\n- Terminal result failed validation.\n- Candidates: {titles}", now, terminal=True)
             if result["outcome"] == "draft_ready" and not state.get("mergeProof"):
                 try:
-                    state["mergeProof"] = promote_draft(result, state)
-                    state["productionVerificationAttempts"] = 0
-                    write_json_atomic(STATE, state)
+                    if not state.get("independentReview"):
+                        state["independentReview"] = independent_review(result)
+                        write_json_atomic(STATE, state)
+                        return ""
+                    wrapper = REPO / "scripts" / "run-with-release-lane-lock.py"
+                    run_command([sys.executable, str(wrapper), "--", sys.executable, str(Path(__file__).resolve()), "--promote"], timeout=175)
                     return ""
                 except Exception as error:
                     return prepare_notification(state, f"Release Radar publisher needs attention.\n- Task: {task_id}\n- Guarded promotion stopped: {str(error)[:500]}", now, terminal=True)
@@ -519,9 +545,20 @@ def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--plan", action="store_true")
     parser.add_argument("--self-test", action="store_true")
+    parser.add_argument("--promote", action="store_true")
     args = parser.parse_args()
     if args.self_test:
         self_test()
+        return 0
+    if args.promote:
+        state = load_state()
+        task = show_task(str(state.get("taskId") or ""))
+        result = safe_result(task)
+        if not result or result.get("outcome") != "draft_ready":
+            raise RuntimeError("Release Radar promotion state is not eligible.")
+        state["mergeProof"] = promote_draft(result, state)
+        state["productionVerificationAttempts"] = 0
+        write_json_atomic(STATE, state)
         return 0
     with exclusive_lock() as acquired:
         if not acquired:
