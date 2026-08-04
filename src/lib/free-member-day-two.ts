@@ -3,10 +3,11 @@ import { getEntitlements } from "./entitlements";
 import { masterUnsubscribed } from "./member-weekly-delivery";
 
 export const FREE_MEMBER_DAY_TWO_CAMPAIGN_ID = "free-member-day-two-v1";
-export const FREE_MEMBER_DAY_TWO_SUBJECT = "Make Bourbon Signal work harder for your hunt";
+export const FREE_MEMBER_DAY_TWO_SUBJECT = "Welcome to the Bourbon Signal community";
 export const FREE_MEMBER_DAY_TWO_PREHEADER = "Unlock the full feed and alerts—or tell us where you want better coverage.";
-// Deliberately hard-disabled until Chandler approves the exact V1 draft.
-export const FREE_MEMBER_DAY_TWO_LIVE_SEND_SUPPORTED = false;
+// Copy approved after a one-recipient Resend inbox test. Runtime flags, suppression,
+// current eligibility, and idempotency still gate every live provider call.
+export const FREE_MEMBER_DAY_TWO_LIVE_SEND_SUPPORTED = true;
 
 export interface FreeMemberDayTwoUser {
   id: string;
