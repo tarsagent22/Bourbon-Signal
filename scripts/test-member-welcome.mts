@@ -13,17 +13,19 @@ assert.equal(
 assert.equal(resolveSignUpRedirect("/dashboard", "paid"), "/welcome", "paid intent cannot bless an arbitrary internal route");
 assert.equal(contextualProductHref("pricing", "drop_feed"), "/pricing?source=drop_feed");
 
-const [authSource, signInSource, signUpSource, welcomeSource, pricingSource, dashboardSource, middlewareSource, requestFormSource, preferencesHookSource] = await Promise.all([
+const [authSource, signInSource, signUpSource, welcomeSource, pricingSource, pricingCatalogSource, dashboardSource, middlewareSource, requestFormSource, preferencesHookSource] = await Promise.all([
   readFile(new URL("../src/lib/auth.ts", import.meta.url), "utf8"),
   readFile(new URL("../src/app/sign-in/[[...sign-in]]/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/app/sign-up/[[...sign-up]]/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/app/welcome/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/app/pricing/PricingPageClient.tsx", import.meta.url), "utf8"),
+  readFile(new URL("../src/lib/membership-plan-catalog.ts", import.meta.url), "utf8"),
   readFile(new URL("../src/app/dashboard/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/middleware.ts", import.meta.url), "utf8"),
   readFile(new URL("../src/components/coverage/CoverageRequestForm.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/hooks/useAreaPreferences.ts", import.meta.url), "utf8"),
 ]);
+const pricingTruthSource = `${pricingSource}\n${pricingCatalogSource}`;
 const welcomeStyles = await readFile(new URL("../src/app/welcome/welcome.module.css", import.meta.url), "utf8");
 const coverageMapSource = await readFile(new URL("../src/components/coverage/CoverageMap.tsx", import.meta.url), "utf8");
 const coverageSummarySource = await readFile(new URL("../src/components/coverage/CoverageSummary.tsx", import.meta.url), "utf8");
@@ -134,7 +136,7 @@ for (const feature of [
   "Numbered Founder’s glass",
   "Founder-only benefits",
 ]) {
-  assert.ok(pricingSource.includes(feature), `comparison must preserve the complete prior feature row: ${feature}`);
+  assert.ok(pricingTruthSource.includes(feature), `comparison must preserve the complete prior feature row: ${feature}`);
 }
 assert.match(pricingSource, /value === "✓"[\s\S]*included[\s\S]*value === "—"[\s\S]*not-included/, "comparison should use the prior checkmark and dash treatment");
 assert.match(pricingSource, /aria-label=\{value === "✓" \? "Included" : value === "—" \? "Not included" : undefined\}/, "symbol-only comparison cells need a single spoken label");
@@ -149,7 +151,7 @@ for (const viewportWidth of [320, 375, 390]) {
 }
 assert.match(pricingSource, /\.july-sale-banner\s*\{[^}]*grid-template-areas:/, "desktop sale copy must use bounded named grid areas");
 assert.doesNotMatch(pricingSource, /grid-template-columns:auto 1fr auto/, "sale disclaimer must not squeeze the offer into an intrinsic three-column layout");
-const founderCardSource = pricingSource.slice(pricingSource.indexOf('tier: "bottled-in-bond"'), pricingSource.indexOf("const comparisonRows"));
+const founderCardSource = pricingCatalogSource.slice(pricingCatalogSource.indexOf('tier: "bottled-in-bond"'), pricingCatalogSource.indexOf("export const CORE_PAID_MEMBERSHIP_PLANS"));
 assert.ok(founderCardSource.indexOf("Numbered Founder’s glass") < founderCardSource.indexOf("Founder badge & number on profile"), "the numbered glass should precede the profile badge in the Founder card");
 assert.doesNotMatch(pricingSource, /compact-differences/);
 assert.match(pricingSource, /July sale — 15% off/);
@@ -160,10 +162,10 @@ assert.match(pricingSource, /@media \(max-width:\s*640px\)[\s\S]*100vw - 28px/, 
 assert.match(pricingSource, /Recommended[\s\S]*Standard Proof/);
 assert.match(pricingSource, /Limited lifetime offer/);
 for (const plan of ["standard_monthly", "standard_annual", "barrel_monthly", "barrel_annual", "bib_lifetime"]) {
-  assert.ok(pricingSource.includes(plan), `pricing must preserve checkout plan ${plan}`);
+  assert.ok(pricingTruthSource.includes(plan), `pricing must preserve checkout plan ${plan}`);
 }
 for (const price of ["$2.99", "$24.99", "$4.99", "$49.99"]) {
-  assert.ok(pricingSource.includes(price), `pricing must preserve approved price ${price}`);
+  assert.ok(pricingTruthSource.includes(price), `pricing must preserve approved price ${price}`);
 }
 assert.match(pricingSource, /canceledPlan[\s\S]*\/welcome/, "a canceled paid signup choosing Free must complete Welcome");
 assert.doesNotMatch(dashboardSource, /FreeMemberDashboard/, "free members should use the real dashboard instead of a parallel imitation");

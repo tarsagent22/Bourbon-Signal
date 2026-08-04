@@ -47,9 +47,10 @@ async function updateMemberMasterSuppression(email: string, suppressed: boolean,
 
 export async function POST(request: NextRequest) {
   const form = await request.formData().catch(() => null);
-  const email = normalizeNewsletterEmail(String(form?.get("email") || ""));
-  const signature = String(form?.get("sig") || "");
-  const action: NewsletterAction = form?.get("action") === "resubscribe" ? "resubscribe" : "unsubscribe";
+  const oneClick = String(form?.get("List-Unsubscribe") || "") === "One-Click";
+  const email = normalizeNewsletterEmail(String(form?.get("email") || (oneClick ? request.nextUrl.searchParams.get("email") : "") || ""));
+  const signature = String(form?.get("sig") || (oneClick ? request.nextUrl.searchParams.get("sig") : "") || "");
+  const action: NewsletterAction = oneClick ? "unsubscribe" : form?.get("action") === "resubscribe" ? "resubscribe" : "unsubscribe";
   const confirmation: NewsletterResubscribeConfirmation = {
     purpose: String(form?.get("confirmationPurpose") || "") as NewsletterResubscribeConfirmation["purpose"],
     version: String(form?.get("confirmationVersion") || "") as NewsletterResubscribeConfirmation["version"],
@@ -62,6 +63,7 @@ export async function POST(request: NextRequest) {
     ? verifyNewsletterSignature(email, signature)
     : verifyNewsletterPreferenceAuthorization({ action, email, unsubscribeSignature: signature, confirmation });
   if (!isValidNewsletterEmail(email) || !authorized) {
+    if (oneClick) return new NextResponse(null, { status: 400, headers: { "Cache-Control": "private, no-store" } });
     return redirectResult(request, email, signature, "invalid");
   }
 
@@ -69,8 +71,10 @@ export async function POST(request: NextRequest) {
     if (action === "resubscribe") await subscribeNewsletterContact(email);
     else await unsubscribeNewsletterContact(email);
     await updateMemberMasterSuppression(email, action === "unsubscribe", new Date().toISOString());
+    if (oneClick) return new NextResponse(null, { status: 204, headers: { "Cache-Control": "private, no-store" } });
     return redirectResult(request, email, signature, action === "resubscribe" ? "resubscribed" : "unsubscribed");
   } catch {
+    if (oneClick) return new NextResponse(null, { status: 500, headers: { "Cache-Control": "private, no-store" } });
     return redirectResult(request, email, signature, "error");
   }
 }
