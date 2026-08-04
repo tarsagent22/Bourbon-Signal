@@ -6,6 +6,7 @@ import { buildSouthCarolinaAllAmericanSignal, isSouthCarolinaAllAmericanCacheUsa
 import { confidenceForSignal } from '../src/confidence-policy.mjs';
 import { buildCurrentInventoryAlertsFromDrops, buildDrops } from '../src/export-site-contract.mjs';
 import { canonicalizeSignal } from '../src/operational-report.mjs';
+import { verifyAllAmericanAlertProjection } from '../src/verify-sc-all-american-alert-projection.mjs';
 import {
   hasSouthCarolinaPositiveInventoryEvidence,
   isSouthCarolinaAllAmericanInventory,
@@ -82,6 +83,36 @@ test('All American identity survives normalization and reaches on-site cards wit
   assert.equal(alert.gates.includes('verified_binary_orderability'), false);
   assert.match(alert.reason, /in-store availability/i);
   assert.match(alert.reason, /online orderability.*not published/i);
+});
+
+test('All American production verifier accepts separate first-run change and current on-site projections', () => {
+  const drop = {
+    canonicalBottleId: 'bottle-1',
+    storeId: 'all-american-liquor:all-american-liquor-mauldin',
+  };
+  const current = {
+    ...drop,
+    changeType: 'current_inventory_signal',
+    gates: ['current_public_drop', 'store_level', 'verified_binary_in_store_availability'],
+  };
+  const firstRunChange = {
+    ...drop,
+    changeType: 'availability_increase',
+    gates: ['verified_binary_in_store_availability'],
+  };
+
+  assert.deepEqual(
+    verifyAllAmericanAlertProjection({ sourceDrops: [drop], sourceAlerts: [current, firstRunChange] }),
+    { currentInventoryAlerts: [current], additionalChangeAlerts: 1 },
+  );
+  assert.throws(
+    () => verifyAllAmericanAlertProjection({ sourceDrops: [drop], sourceAlerts: [firstRunChange] }),
+    /current on-site projection mismatch/,
+  );
+  assert.throws(
+    () => verifyAllAmericanAlertProjection({ sourceDrops: [drop], sourceAlerts: [current, current] }),
+    /current on-site projection mismatch/,
+  );
 });
 
 test('All American exact identity rejects forged source, premise, product, stock, and freshness bindings', () => {

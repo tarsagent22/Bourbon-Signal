@@ -3,6 +3,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 import { isSouthCarolinaAllAmericanInventory } from './south-carolina-retailer-policy.mjs';
+import { verifyAllAmericanAlertProjection } from './verify-sc-all-american-alert-projection.mjs';
 
 const ENGINE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const REPO_ROOT = path.resolve(ENGINE_ROOT, '..');
@@ -49,7 +50,6 @@ if (!sourceDrops.length) throw new Error('All American rows did not reach the cu
 if (!sourceDrops.every((row) => isSouthCarolinaAllAmericanInventory(row) && row.eligibleForOnSite === true)) throw new Error('All American customer drops widened or lost reviewed policy');
 
 const sourceAlerts = alerts.filter((row) => row.state === 'SC' && sourceMatches(row));
-if (sourceAlerts.length !== sourceDrops.length) throw new Error(`All American on-site alert projection mismatch (${sourceAlerts.length} alerts for ${sourceDrops.length} drops)`);
 if (!sourceAlerts.every((row) => isSouthCarolinaAllAmericanInventory(row)
   && row.eligibleForOnSite === true
   && row.eligibleForEmail === false
@@ -58,6 +58,7 @@ if (!sourceAlerts.every((row) => isSouthCarolinaAllAmericanInventory(row)
   && !row.gates?.includes('verified_binary_orderability'))) {
   throw new Error('All American baseline alert projection is not on-site-only binary inventory');
 }
+const { currentInventoryAlerts, additionalChangeAlerts } = verifyAllAmericanAlertProjection({ sourceDrops, sourceAlerts });
 
 const sourceStores = stores.filter((row) => row.state === 'SC' && sourceMatches(row));
 if (sourceStores.length !== 1
@@ -85,7 +86,8 @@ const metrics = {
   allAmerican: {
     sourceRows: sourceRows.length,
     customerDrops: sourceDrops.length,
-    onSiteAlerts: sourceAlerts.length,
+    onSiteAlerts: currentInventoryAlerts.length,
+    firstRunChangeAlerts: additionalChangeAlerts,
     storeId: ALL_AMERICAN_STORE_ID,
   },
 };
