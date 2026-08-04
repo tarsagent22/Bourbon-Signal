@@ -6,6 +6,7 @@ export {
   issueNewsletterResubscribeConfirmation,
   newsletterSignatureFor,
   newsletterSigningSecret,
+  newsletterOneClickUnsubscribeUrl,
   newsletterUnsubscribeUrl,
   normalizeNewsletterEmail,
   verifyNewsletterPreferenceAuthorization,

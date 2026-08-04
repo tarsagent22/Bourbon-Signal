@@ -55,6 +55,7 @@ export default clerkMiddleware(async (auth, request) => {
   if (url.pathname === "/api/alerts/deliver") return NextResponse.next();
   if (url.pathname === "/api/alerts/manual-send") return NextResponse.next();
   if (url.pathname === "/api/member-weekly-intelligence/deliver") return NextResponse.next();
+  if (url.pathname === "/api/free-member-day-two/deliver") return NextResponse.next();
   if (url.pathname === "/api/member-weekly-intelligence/unsubscribe") return NextResponse.next();
   if (url.pathname === "/api/webhooks/stripe") return NextResponse.next();
   if (!isProtectedRoute(request)) return withDashboardCacheBust(NextResponse.next(), url.pathname);

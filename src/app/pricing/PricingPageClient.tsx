@@ -10,6 +10,12 @@ import FAQ from "@/components/sections/FAQ";
 import { useAuth } from "@/lib/auth";
 import type { BillingPlanId, MembershipTier } from "@/lib/entitlements";
 import { isJulySaleEligiblePlan, julySalePriceLabel } from "@/lib/july-sale";
+import type { PaidMembershipPlan } from "@/lib/membership-plan-catalog";
+import {
+  CHECKOUT_PLAN_TIERS,
+  MEMBERSHIP_COMPARISON_ROWS,
+  PAID_MEMBERSHIP_PLANS,
+} from "@/lib/membership-plan-catalog";
 
 const tierRank: Record<MembershipTier, number> = {
   free: 0,
@@ -20,102 +26,16 @@ const tierRank: Record<MembershipTier, number> = {
 
 type BillingCycle = "monthly" | "annual";
 type PaidPlanId = BillingPlanId;
+type PricingTier = PaidMembershipPlan;
 
-const checkoutPlanTiers: Record<PaidPlanId, MembershipTier> = {
-  standard_monthly: "standard",
-  standard_annual: "standard",
-  barrel_monthly: "barrel",
-  barrel_annual: "barrel",
-  bib_lifetime: "bottled-in-bond",
-};
+const checkoutPlanTiers = CHECKOUT_PLAN_TIERS;
+const paidTiers = PAID_MEMBERSHIP_PLANS;
+const comparisonRows = MEMBERSHIP_COMPARISON_ROWS;
 
 function checkoutContinueUrl(plan: PaidPlanId, source = "unknown", expectedPromotion?: string) {
   const promotion = expectedPromotion ? `&expectedPromotion=${encodeURIComponent(expectedPromotion)}` : "";
   return `/checkout/continue?plan=${plan}&source=${encodeURIComponent(source)}${promotion}&registration=1`;
 }
-
-type PricingTier = {
-  tier: MembershipTier;
-  name: string;
-  eyebrow: string;
-  monthlyPrice?: string;
-  annualPrice?: string;
-  oneTimePrice?: string;
-  monthlyPlan?: PaidPlanId;
-  annualPlan?: PaidPlanId;
-  plan?: PaidPlanId;
-  description: string;
-  features: string[];
-  accent: "quiet" | "standard" | "barrel" | "founder";
-  featured?: boolean;
-};
-
-const paidTiers: PricingTier[] = [
-  {
-    tier: "standard",
-    name: "Standard Proof",
-    eyebrow: "Core Membership",
-    monthlyPrice: "$2.99",
-    annualPrice: "$24.99",
-    monthlyPlan: "standard_monthly",
-    annualPlan: "standard_annual",
-    description: "Turn the state signal you just explored into a focused hunting plan.",
-    features: [
-      "Full state Drop Feed",
-      "Alerts for up to 5 areas and 15 bottles",
-      "Unlimited Bottle Checks and full Member Sightings",
-    ],
-    accent: "standard",
-    featured: true,
-  },
-  {
-    tier: "barrel",
-    name: "Barrel Proof",
-    eyebrow: "Serious hunters",
-    monthlyPrice: "$4.99",
-    annualPrice: "$49.99",
-    monthlyPlan: "barrel_monthly",
-    annualPlan: "barrel_annual",
-    description: "Search more broadly, remove preference limits, and use advanced discovery tools.",
-    features: [
-      "Everything in Standard with unlimited preferences",
-      "Advanced filters and Sightings alerts",
-      "Collection tools and recommendations",
-    ],
-    accent: "barrel",
-  },
-  {
-    tier: "bottled-in-bond",
-    name: "Bottled in Bond",
-    eyebrow: "Limited Founder Offer",
-    oneTimePrice: "$49.99",
-    plan: "bib_lifetime",
-    description: "Get the complete Barrel Proof experience for one payment while founder spots remain.",
-    features: [
-      "Lifetime access to all current and future features",
-      "Numbered Founder’s glass",
-      "Founder badge & number on profile",
-    ],
-    accent: "founder",
-  },
-];
-
-const comparisonRows = [
-  ["Drop Feed access", "Limited", "Full · state only", "Full · advanced", "Full · advanced"],
-  ["Release Radar", "Full", "Full", "Full", "Full"],
-  ["Bottle Checks", "3", "Unlimited", "Unlimited", "Unlimited"],
-  ["Member Sightings", "Limited", "✓", "✓", "✓"],
-  ["SMS, email, and on-site alerts", "—", "✓", "✓", "✓"],
-  ["Alert preference limits", "—", "5 areas · 15 bottles", "No limits", "No limits"],
-  ["Signal Strength meter", "—", "Markets + bottles + alerts", "Adds taste profile", "Adds taste profile + founder calibration"],
-  ["Sightings alerts", "—", "—", "✓", "✓"],
-  ["My Collection", "—", "—", "✓", "✓"],
-  ["Recommended Bottles", "—", "—", "✓", "✓"],
-  ["Lifetime future features", "—", "—", "—", "✓"],
-  ["Founder badge + number", "—", "—", "—", "✓"],
-  ["Numbered Founder’s glass", "—", "—", "—", "✓"],
-  ["Founder-only benefits", "—", "—", "—", "✓"],
-] as const;
 
 
 function PricingPageContent({ julySaleEnabled }: { julySaleEnabled: boolean }) {

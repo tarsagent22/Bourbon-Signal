@@ -58,6 +58,18 @@ export function newsletterUnsubscribeUrl(
   return `${baseUrl.replace(/\/$/, "")}/unsubscribe?${params.toString()}`;
 }
 
+export function newsletterOneClickUnsubscribeUrl(
+  email: string,
+  baseUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.bourbonsignal.com",
+) {
+  const normalizedEmail = normalizeNewsletterEmail(email);
+  const params = new URLSearchParams({
+    email: normalizedEmail,
+    sig: newsletterSignatureFor(normalizedEmail),
+  });
+  return `${baseUrl.replace(/\/$/, "")}/api/newsletter/preferences?${params.toString()}`;
+}
+
 function resubscribeConfirmationPayload(email: string, confirmation: Omit<NewsletterResubscribeConfirmation, "signature">) {
   return [
     confirmation.version,

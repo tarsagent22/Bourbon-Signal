@@ -209,6 +209,7 @@ export default function WelcomePage() {
   const [coverageError, setCoverageError] = useState("");
   const [previewLoading, setPreviewLoading] = useState(false);
   const registrationRecorded = useRef(false);
+  const timeZoneRecorded = useRef(false);
   const freeValueRecordedFor = useRef(new Set<string>());
 
   const persistedHomeState = prefs.memberProfile?.homeState || "";
@@ -226,6 +227,39 @@ export default function WelcomePage() {
       if (recorded) window.history.replaceState({}, "", "/welcome");
       else registrationRecorded.current = false;
     });
+  }, [isLoaded, isSignedIn]);
+
+  useEffect(() => {
+    if (!isLoaded || !isSignedIn || timeZoneRecorded.current) return;
+    const timeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    if (!timeZone) return;
+    let cancelled = false;
+    let retryTimer: ReturnType<typeof setTimeout> | undefined;
+    timeZoneRecorded.current = true;
+
+    const persistTimeZone = async (attempt: number) => {
+      try {
+        const response = await fetch("/api/user/time-zone", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ timeZone }),
+        });
+        if (response.ok) return;
+      } catch {
+        // Retry below while the welcome page remains mounted.
+      }
+      if (!cancelled && attempt < 3) {
+        retryTimer = setTimeout(() => void persistTimeZone(attempt + 1), attempt * 1_000);
+      } else if (!cancelled) {
+        timeZoneRecorded.current = false;
+      }
+    };
+
+    void persistTimeZone(1);
+    return () => {
+      cancelled = true;
+      if (retryTimer) clearTimeout(retryTimer);
+    };
   }, [isLoaded, isSignedIn]);
 
   useEffect(() => {
