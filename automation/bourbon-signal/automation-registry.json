@@ -404,6 +404,39 @@
       "delivery": "ops_chat"
     },
     {
+      "id": "hermes-release-radar-publisher",
+      "platform": "hermes_job",
+      "hermesJobId": "0ee6b2c9fb07",
+      "active": true,
+      "ownerLayer": "deterministic",
+      "executionClass": "script_only",
+      "frequency": "every 15 minutes",
+      "agent": {
+        "provider": null,
+        "model": null,
+        "reasoning": null
+      },
+      "externalApi": {
+        "classes": [
+          "local_kanban",
+          "primary_source_http",
+          "github",
+          "canonical_production"
+        ],
+        "maxRequestsPerRun": 12
+      },
+      "customerMutation": "internal_state",
+      "promotionDeployment": "guarded_recovery_dispatch",
+      "silencePolicy": "compact_exception_only",
+      "killSwitch": "cron_pause:0ee6b2c9fb07",
+      "artifacts": [
+        "release_radar_publication_task",
+        "release_radar_publication_state",
+        "engine_ops_publication_outcome"
+      ],
+      "delivery": "ops_chat"
+    },
+    {
       "id": "hermes-bottle-queue",
       "platform": "hermes_job",
       "hermesJobId": "bf9e05209184",
