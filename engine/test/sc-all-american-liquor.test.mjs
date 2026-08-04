@@ -89,6 +89,8 @@ test('All American production verifier accepts separate first-run change and cur
   const drop = {
     canonicalBottleId: 'bottle-1',
     storeId: 'all-american-liquor:all-american-liquor-mauldin',
+    productId: 1216,
+    sku: '080686011408',
   };
   const current = {
     ...drop,
@@ -111,6 +113,13 @@ test('All American production verifier accepts separate first-run change and cur
   );
   assert.throws(
     () => verifyAllAmericanAlertProjection({ sourceDrops: [drop], sourceAlerts: [current, current] }),
+    /current on-site projection mismatch/,
+  );
+  assert.throws(
+    () => verifyAllAmericanAlertProjection({
+      sourceDrops: [drop],
+      sourceAlerts: [{ ...current, productId: 1234, sku: 'forged' }],
+    }),
     /current on-site projection mismatch/,
   );
 });

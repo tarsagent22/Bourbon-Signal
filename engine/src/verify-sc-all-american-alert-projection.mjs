@@ -2,12 +2,14 @@ function projectionIdentity(row) {
   return [
     String(row?.canonicalBottleId || row?.canonicalId || ''),
     String(row?.storeId || ''),
+    String(row?.productId || ''),
+    String(row?.sku || ''),
   ].join('|');
 }
 
 export function verifyAllAmericanAlertProjection({ sourceDrops = [], sourceAlerts = [] } = {}) {
   const dropIdentities = new Set(sourceDrops.map(projectionIdentity));
-  if (dropIdentities.has('|') || dropIdentities.size !== sourceDrops.length) {
+  if (dropIdentities.has('|||') || dropIdentities.size !== sourceDrops.length) {
     throw new Error('All American customer drops have missing or duplicate projection identities');
   }
 
@@ -18,7 +20,7 @@ export function verifyAllAmericanAlertProjection({ sourceDrops = [], sourceAlert
   const missing = [...dropIdentities].filter((identity) => !currentAlertIdentities.has(identity));
   const unexpected = [...currentAlertIdentities].filter((identity) => !dropIdentities.has(identity));
 
-  if (currentAlertIdentities.has('|')
+  if (currentAlertIdentities.has('|||')
     || currentInventoryAlerts.length !== sourceDrops.length
     || currentAlertIdentities.size !== dropIdentities.size
     || missing.length
