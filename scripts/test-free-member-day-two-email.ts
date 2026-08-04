@@ -6,6 +6,7 @@ import {
   FREE_MEMBER_DAY_TWO_CAMPAIGN_ID,
   FREE_MEMBER_DAY_TWO_LIVE_SEND_SUPPORTED,
   FREE_MEMBER_DAY_TWO_SUBJECT,
+  assertFreeMemberDayTwoDeliveryAuthorized,
   buildFreeMemberDayTwoConfig,
   evaluateFreeMemberDayTwoCandidate,
   isFreeMemberDayTwoWindow,
@@ -29,6 +30,20 @@ const config = buildFreeMemberDayTwoConfig({
 } as unknown as NodeJS.ProcessEnv);
 assert.deepEqual(resolveFreeMemberDayTwoDeliveryMode({ requestLive: false, config }), { mode: "dry_run", reason: null });
 assert.deepEqual(resolveFreeMemberDayTwoDeliveryMode({ requestLive: true, config }), { mode: "live", reason: null });
+
+const dualSecretEnv = {
+  FREE_MEMBER_DAY_TWO_DELIVERY_SECRET: "manual-secret",
+  CRON_SECRET: "vercel-cron-secret",
+} as unknown as NodeJS.ProcessEnv;
+assert.doesNotThrow(() => assertFreeMemberDayTwoDeliveryAuthorized(new Request("https://example.com", {
+  headers: { Authorization: "Bearer manual-secret" },
+}), dualSecretEnv), "manual delivery secret must authorize operator probes");
+assert.doesNotThrow(() => assertFreeMemberDayTwoDeliveryAuthorized(new Request("https://example.com", {
+  headers: { Authorization: "Bearer vercel-cron-secret" },
+}), dualSecretEnv), "Vercel CRON_SECRET must remain valid when a separate manual secret is configured");
+assert.throws(() => assertFreeMemberDayTwoDeliveryAuthorized(new Request("https://example.com", {
+  headers: { Authorization: "Bearer wrong-secret" },
+}), dualSecretEnv), /Unauthorized/);
 
 assert.equal(isFreeMemberDayTwoWindow({
   createdAt: "2026-08-03T14:30:00.000Z",
