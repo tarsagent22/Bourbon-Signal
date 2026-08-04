@@ -150,10 +150,14 @@ function safeEqual(left: string, right: string) {
 }
 
 export function assertFreeMemberDayTwoDeliveryAuthorized(request: Request, env: NodeJS.ProcessEnv = process.env) {
-  const expected = env.FREE_MEMBER_DAY_TWO_DELIVERY_SECRET || env.CRON_SECRET || "";
+  const expected = [env.FREE_MEMBER_DAY_TWO_DELIVERY_SECRET, env.CRON_SECRET]
+    .map((value) => value?.trim() || "")
+    .filter(Boolean);
   const authorization = request.headers.get("authorization") || "";
   const supplied = authorization.startsWith("Bearer ")
     ? authorization.slice("Bearer ".length).trim()
     : request.headers.get("x-free-member-day-two-secret")?.trim() || "";
-  if (!expected || !supplied || !safeEqual(expected, supplied)) throw new Error("Unauthorized Day-2 delivery request");
+  if (!expected.length || !supplied || !expected.some((value) => safeEqual(value, supplied))) {
+    throw new Error("Unauthorized Day-2 delivery request");
+  }
 }
