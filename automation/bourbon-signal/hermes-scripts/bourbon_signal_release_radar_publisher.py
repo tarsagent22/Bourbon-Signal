@@ -284,7 +284,7 @@ def safe_result(task: dict[str, Any]) -> dict[str, Any] | None:
         return None
     if outcome == "draft_ready":
         pull = value.get("pullRequest")
-        if status != "done" or ci.get("status") != "passed" or review.get("status") != "passed" or not isinstance(pull, dict):
+        if not entries or status != "done" or ci.get("status") != "passed" or review.get("status") != "passed" or not isinstance(pull, dict):
             return None
         if set(pull) != {"number", "url", "headSha", "branch"} or not isinstance(pull.get("number"), int) or not re.fullmatch(r"[a-f0-9]{40}", str(pull.get("headSha") or "")):
             return None
