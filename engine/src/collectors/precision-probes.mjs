@@ -119,6 +119,7 @@ import {
   isVirginiaRegularInventoryExpired,
   isVirginiaRetiredOriginFailure,
   mergeVirginiaProductPartitions,
+  planVirginiaOriginStores,
   seedVirginiaInventoryCacheSignals,
   sanitizeVirginiaInventoryCacheSignals,
   selectVirginiaOriginStoreRows,
@@ -10538,9 +10539,31 @@ async function collectVirginia(config, bible, options = {}) {
   const sanitizedCachedSignals = sanitizeVirginiaInventoryCacheSignals(rawCachedSignals);
   let stores = [{ storeNumber: '101', name: 'Virginia ABC Store 101' }];
   let storeUniverseVerified = false;
+  let verifiedPriorityStoreIds = [];
+  let rejectedPriorityStoreIds = [];
   try {
     stores = (await virginiaStoreNumbers()).filter((store) => !VIRGINIA_INVALID_ORIGIN_STORES.has(String(Number(store.storeNumber))));
     if (!stores.length) throw new Error('No Virginia ABC stores parsed from ArcGIS');
+    const requestedPriorityStoreIds = String(process.env.BOURBON_SIGNAL_VA_PRIORITY_STORE_IDS
+      || process.env.BOURBON_SIGNAL_VA_REQUIRED_STORE_ID
+      || '49')
+      .split(',')
+      .map((value) => value.trim())
+      .filter(Boolean);
+    const originPlan = planVirginiaOriginStores(stores, requestedPriorityStoreIds);
+    stores = originPlan.stores;
+    verifiedPriorityStoreIds = originPlan.verifiedPriorityStoreIds;
+    rejectedPriorityStoreIds = originPlan.rejectedPriorityStoreIds;
+    if (rejectedPriorityStoreIds.length) {
+      roadblocks.push({
+        state: config.id,
+        source: 'Virginia ABC priority-store premises verification',
+        url: VIRGINIA_STORES_ARCGIS_URL,
+        status: 'priority_identity_rejected',
+        error: `Did not prioritize Virginia ABC store id(s) ${rejectedPriorityStoreIds.join(', ')} because the reviewed official premises identity was missing or changed.`,
+        nextRoute: 'Review the current official store identity before changing the priority registry; preserve the statewide scan unchanged.'
+      });
+    }
     storeUniverseVerified = true;
   } catch (error) {
     roadblocks.push({ state: config.id, source: 'Virginia ABC stores ArcGIS', url: VIRGINIA_STORES_ARCGIS_URL, status: 0, error: error.message, nextRoute: 'Use location bible official store export or Virginia ABC store locator as fallback.' });
@@ -10695,6 +10718,8 @@ async function collectVirginia(config, bible, options = {}) {
         supportedOriginStoreCount: expectedStoreIds.size,
         retiredOriginStoreIds: [...retiredOriginStoreIds].sort((a, b) => Number(a) - Number(b)),
         storeUniverseVerified,
+        verifiedPriorityStoreIds,
+        rejectedPriorityStoreIds,
         completedProductCodes: [...completedProductCodes],
         selectedProductCodes: selectedProducts.map((product) => product.code)
       }

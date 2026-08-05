@@ -9,6 +9,7 @@ import {
   isVirginiaRetiredOriginFailure,
   mergeVirginiaProductPartitions,
   minimumVirginiaSiteLocationCount,
+  planVirginiaOriginStores,
   sanitizeVirginiaInventoryCacheSignals,
   seedVirginiaInventoryCacheSignals,
   selectVirginiaProductsForRefresh,
@@ -85,6 +86,33 @@ test('Virginia site-location gate scales to the supported store universe', () =>
   assert.equal(minimumVirginiaSiteLocationCount(800), 600);
   assert.equal(minimumVirginiaSiteLocationCount(100), 100);
   assert.equal(minimumVirginiaSiteLocationCount(0), 300);
+});
+
+test('Virginia Store 49 is prioritized only after the official Ballston identity matches', () => {
+  const stores = [
+    { storeNumber: '1', name: 'ABC Store 001', address: '10 First Street', city: 'Richmond', zip: '23219' },
+    { storeNumber: '49', name: 'ABC Store 049', address: '881 North Quincy Street', city: 'Arlington', zip: '22203' },
+    { storeNumber: '248', name: 'ABC Store 248', address: '4709B Langston Boulevard', city: 'Arlington', zip: '22207-3406' },
+  ];
+
+  const plan = planVirginiaOriginStores(stores);
+  assert.deepEqual(plan.stores.map((store) => store.storeNumber), ['49', '1', '248']);
+  assert.deepEqual(plan.verifiedPriorityStoreIds, ['49']);
+  assert.deepEqual(plan.rejectedPriorityStoreIds, []);
+  assert.equal(new Set(plan.stores.map((store) => store.storeNumber)).size, stores.length);
+});
+
+test('Virginia Store 49 priority fails closed for unknown or forged premises without filtering statewide stores', () => {
+  const stores = [
+    { storeNumber: '1', name: 'ABC Store 001', address: '10 First Street', city: 'Richmond', zip: '23219' },
+    { storeNumber: '49', name: 'ABC Store 049', address: '999 Forged Street', city: 'Arlington', zip: '22203' },
+    { storeNumber: '248', name: 'ABC Store 248', address: '4709B Langston Boulevard', city: 'Arlington', zip: '22207-3406' },
+  ];
+
+  const plan = planVirginiaOriginStores(stores, ['49', '999']);
+  assert.deepEqual(plan.stores, stores);
+  assert.deepEqual(plan.verifiedPriorityStoreIds, []);
+  assert.deepEqual(plan.rejectedPriorityStoreIds, ['49', '999']);
 });
 
 test('Virginia cold runners seed the rolling cache from the hydrated state report', () => {
@@ -255,6 +283,7 @@ test('Virginia retry and batch delays stop immediately when the source runtime a
 test('Virginia collector continuously refreshes bounded product shards instead of treating cache reuse as a roadblock', async () => {
   const collectorSource = await readFile(new URL('../src/collectors/precision-probes.mjs', import.meta.url), 'utf8');
   assert.match(collectorSource, /selectVirginiaProductsForRefresh\(/);
+  assert.match(collectorSource, /planVirginiaOriginStores\(/);
   assert.match(collectorSource, /evaluateVirginiaProductCoverage\(/);
   assert.match(collectorSource, /mergeVirginiaProductPartitions\(/);
   assert.match(collectorSource, /applyVirginiaInventoryFreshness\(/);
@@ -288,6 +317,14 @@ test('Virginia verifier blocks stale alertable rows and incomplete regular-produ
   assert.match(verifierSource, /sourceStale/);
   assert.match(verifierSource, /productLimitedCaveat/);
   assert.match(verifierSource, /supportedOriginStoreIds/);
+  assert.match(verifierSource, /verifiedPriorityStoreIds\.has\('49'\)/);
+  assert.match(verifierSource, /rejectedPriorityStoreIds/);
+  assert.match(verifierSource, /if \(requiredTargetStoreId\)/);
+  assert.match(verifierSource, /requiredTargetStoreId === '49'/);
+  assert.match(verifierSource, /targetStoreSignals\.some/);
+  assert.match(verifierSource, /targetStoreDrops\.length\s*>\s*0/);
+  assert.match(verifierSource, /signal\.stale\s*\|\|\s*signal\.sourceStale/);
+  assert.match(verifierSource, /signal\.alertable\s*\|\|\s*signal\.canAlertAsInventory\s*\|\|\s*signal\.canAlertAsWatch/);
   assert.match(verifierSource, /missingSupportedStores/);
   assert.match(verifierSource, /rollingFreshnessRoadblocks/);
   assert.match(verifierSource, /expiredInventorySignals/);
@@ -302,12 +339,21 @@ test('production refresh isolates an explicitly stale Virginia lane without weak
   assert.ok(publishIndex > verifyIndex, 'Virginia verification must precede publication');
   assert.match(workflow, /npm run verify:va -- --allow-safe-stale-fallback/);
   assert.match(workflow, /inputs\.states && contains\(inputs\.states, 'VA'\)[^]*run: npm run verify:va/);
+  assert.match(workflow, /va_required_store_id:/);
+  assert.match(workflow, /BOURBON_SIGNAL_VA_REQUIRED_STORE_ID:\s*\$\{\{ inputs\.va_required_store_id \|\| '' \}\}/);
+  assert.match(workflow, /Validate Virginia required-store dispatch/);
+  assert.match(workflow, /inputs\.va_required_store_id != ''/);
+  assert.match(workflow, /states\.includes\('VA'\)/);
+  assert.match(workflow, /va_required_store_id requires an explicit VA state target/);
   assert.match(verifier, /allow-safe-stale-fallback/);
   assert.match(verifier, /\^stale_/);
+  assert.match(verifier, /!requiredTargetStoreId\s*&&\s*allowSafeStaleFallback/);
   assert.match(verifier, /stateAlertableSignals/);
   assert.match(verifier, /expiredAlertableDrops/);
   assert.match(verifier, /flatMap\(\(signal\) => \[signal\.sourceSignalId, signal\.key\]/);
-  assert.match(verifier, /if \(!allowSafeStaleFallback\)/);
+  assert.match(verifier, /!allowSafeStaleFallback\s*&&\s*rollingFreshnessRoadblocks\.length/);
+  assert.match(verifier, /targetStoreSignals/);
+  assert.match(verifier, /targetStoreDrops/);
   assert.match(verifier, /alertableDrops/);
   assert.match(verifier, /eligibleAlertCandidates/);
   assert.match(workflow, /uses:\s*actions\/cache\/restore@v4/);
