@@ -98,7 +98,7 @@
     "test:alert-queue-schema": "node scripts/test-alert-queue-schema.mjs",
     "backup:alert-queue": "node scripts/alert-queue-backup.mjs backup",
     "verify:alert-queue-backup": "node scripts/alert-queue-backup.mjs verify",
-    "test:operations-dashboard": "node scripts/test-operations-dashboard-contract.mjs && node --no-warnings --experimental-strip-types scripts/test-company-control-room.mts && node --no-warnings --experimental-strip-types scripts/test-control-room-review.mts",
+    "test:operations-dashboard": "node scripts/test-operations-dashboard-contract.mjs && node --no-warnings --experimental-strip-types scripts/test-company-control-room.mts && node --no-warnings --experimental-strip-types scripts/test-control-room-review.mts && node --no-warnings --experimental-strip-types scripts/test-approved-catalog.mts",
     "test:growth-events": "node --no-warnings --experimental-strip-types scripts/test-growth-events.mts",
     "report:paid-acquisition": "node --no-warnings --experimental-strip-types scripts/report-paid-acquisition.mts",
     "test:demand-intelligence": "node --no-warnings --experimental-strip-types scripts/test-demand-intelligence.mts && node --no-warnings --experimental-strip-types scripts/test-search-capture-privacy.mts && node scripts/test-search-demand-report.mjs && node scripts/test-source-roi-demand.mjs",

@@ -55,6 +55,7 @@ function splitSql(source) {
 const schemaFiles = [
   '../src/lib/member-collection-schema.sql',
   '../src/lib/bottle-contribution-schema.sql',
+  '../src/lib/approved-catalog-schema.sql',
   '../src/lib/community-sightings-schema.sql',
   '../src/lib/retailer-schema.sql',
 ];
@@ -75,6 +76,8 @@ if (check) {
 }
 
 const expected = [
+  'approved_catalog_bottles',
+  'approved_catalog_locations',
   'bottle_contributions',
   'community_sighting_votes',
   'community_sightings',
@@ -93,6 +96,8 @@ const rows = await sql.query(`
 const found = new Set(rows.map((row) => row.table_name));
 const missing = expected.filter((table) => !found.has(table));
 const requiredColumns = {
+  approved_catalog_bottles: ['id', 'normalized_name', 'payload', 'approved_by'],
+  approved_catalog_locations: ['id', 'normalized_key', 'payload', 'approved_by'],
   bottle_contributions: ['id', 'status', 'payload'],
   community_sighting_votes: ['sighting_id', 'user_id', 'kind'],
   community_sightings: ['id', 'reporter_user_id', 'payload'],
@@ -131,6 +136,8 @@ const invalidDefinitions = Object.entries(criticalColumnDefinitions).flatMap(([c
   return actual && actual[0] === expectedDefinition[0] && actual[1] === expectedDefinition[1] ? [] : [column];
 });
 const expectedIndexes = [
+  'approved_catalog_bottles_updated_idx',
+  'approved_catalog_locations_updated_idx',
   'bottle_contributions_updated_idx',
   'community_sightings_created_idx',
   'community_sighting_votes_sighting_idx',

@@ -19,10 +19,12 @@ function statusLabel(sighting: AdminSighting) {
   return "Pending review";
 }
 
-function actionMessage(action: string, pendingReview: boolean) {
+function actionMessage(action: string, pendingReview: boolean, catalogResult?: { bottle?: { canonicalName?: string } | null; location?: { name?: string } | null }) {
   if (pendingReview) return "Saved. This sighting still has another review requirement.";
-  if (action === "verify_public") return "Approved and published. The sighting left the queue.";
-  if (action === "verify_private") return "Approved with a private photo. The sighting left the queue.";
+  const additions = [catalogResult?.bottle?.canonicalName ? `bottle ${catalogResult.bottle.canonicalName}` : "", catalogResult?.location?.name ? `location ${catalogResult.location.name}` : ""].filter(Boolean);
+  const catalogNote = additions.length ? ` Added ${additions.join(" and ")} to the catalog.` : "";
+  if (action === "verify_public") return `Approved and published.${catalogNote} The sighting left the queue.`;
+  if (action === "verify_private") return `Approved with a private photo.${catalogNote} The sighting left the queue.`;
   return "Rejected. The sighting left the queue.";
 }
 
@@ -66,7 +68,7 @@ export default function AdminSightingsClient({ embedded = false }: { embedded?: 
       setSightings((current) => data.pendingReview
         ? current.map((item) => item.id === sighting.id ? { ...item, ...data.sighting } : item)
         : current.filter((item) => item.id !== sighting.id));
-      setNotice(actionMessage(action, Boolean(data.pendingReview)));
+      setNotice(actionMessage(action, Boolean(data.pendingReview), data.catalogResult));
       if (typeof navigator !== "undefined" && "vibrate" in navigator) navigator.vibrate(12);
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err));
@@ -123,6 +125,7 @@ export default function AdminSightingsClient({ embedded = false }: { embedded?: 
         <div className="admin-grid">
           {sightings.map((sighting) => {
             const proof = sighting.rewardState?.photoProof;
+            const addsCatalog = Boolean(sighting.reviewState?.needsBottleReview || sighting.reviewState?.needsStoreReview);
             return (
               <article className={`admin-card${workingId?.startsWith(`${sighting.id}:`) ? " working" : ""}`} aria-busy={workingId?.startsWith(`${sighting.id}:`) === true} key={`${sighting.reporterUserId}:${sighting.id}`}>
                 {proof?.url ? <img className="admin-photo" src={proof.url} alt={`Proof for ${sighting.bottleName}`} loading="lazy" /> : null}
@@ -140,7 +143,7 @@ export default function AdminSightingsClient({ embedded = false }: { embedded?: 
                     </div>
                   ) : null}
                   <div className="admin-actions">
-                    <button disabled={Boolean(workingId)} className="admin-button gold" onClick={() => act(sighting, "verify_public")}><Eye size={14}/> {workingId === `${sighting.id}:verify_public` ? "Approving…" : proof ? "Approve & publish" : "Approve sighting"}</button>
+                    <button disabled={Boolean(workingId)} className="admin-button gold" onClick={() => act(sighting, "verify_public")}><Eye size={14}/> {workingId === `${sighting.id}:verify_public` ? "Approving…" : addsCatalog ? "Add catalog + approve" : proof ? "Approve & publish" : "Approve sighting"}</button>
                     {proof ? <button disabled={Boolean(workingId)} className="admin-button" onClick={() => act(sighting, "verify_private")}><EyeOff size={14}/> {workingId === `${sighting.id}:verify_private` ? "Approving…" : "Approve, keep photo private"}</button> : null}
                     <button disabled={Boolean(workingId)} className="admin-button danger" onClick={() => act(sighting, "reject_sighting")}><X size={14}/> {workingId === `${sighting.id}:reject_sighting` ? "Rejecting…" : "Reject sighting"}</button>
                   </div>

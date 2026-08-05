@@ -34,7 +34,7 @@ assert.doesNotMatch(bottleRepository, /ensureSchema|CREATE TABLE|CREATE INDEX/i)
 assert.match(bottleRepository, /RETURNING payload/);
 
 const bottleClient = readFileSync(new URL("../src/app/admin/bottle-queue/AdminBottleQueueClient.tsx", import.meta.url), "utf8");
-for (const phrase of ["Use suggested match", "I added this bottle", "Dismiss invalid entry", "pendingReview", "role=\"status\"", "navigator.vibrate", "embedded"]) {
+for (const phrase of ["Use suggested match", "Add to Bottle Bible", "Dismiss invalid entry", "pendingReview", "role=\"status\"", "navigator.vibrate", "embedded"]) {
   assert.match(bottleClient, new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
 }
 for (const phrase of ["Needs Chandler", "Spam/reject", ">Ignore<", "Mark added"]) {
