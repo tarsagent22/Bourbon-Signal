@@ -87,13 +87,12 @@ assert.match(panel, /customerCanSee \|\| state\.canSee/, "the panel renders the 
 assert.doesNotMatch(search, /Results describe monitoring coverage/i, "search explains what the customer gets rather than exposing monitoring terminology");
 assert.match(welcome, /CoverageSummary/, "Welcome uses the shared coverage summary");
 assert.match(summary, /NC ABC boards monitored/, "the shared summary distinguishes total NC board monitoring from fresh signals");
-assert.match(summary, /Stores with current inventory signals/, "the shared summary names usable inventory breadth directly");
+assert.doesNotMatch(summary, /Stores with current inventory signals|inventoryMonitoredStores/, "the shared summary omits current freshness and inventory-health counts");
 
 assert.match(panel, /How we check this area/, "coverage detail uses progressive disclosure");
 assert.match(panel, /What is not available yet/, "state drilldown states its limits");
 assert.doesNotMatch(panel, /data-health|Update status|healthCopy/, "the primary state panel omits update-health messaging");
 assert.match(panel, /What you can do here/, "the state panel leads with plain customer outcomes");
-assert.match(summary, /state\.scope\.inventoryMonitoredStores > 0/, "availability-store count is rendered only when present");
 assert.ok(panel.indexOf("<CoverageSearch") < panel.indexOf("How we check this area"), "local search appears before explanatory detail");
 assert.match(panel, /visible=\{requestOpen\}/, "the generalized request form stays hidden until its single action is used");
 assert.match(panel, /coverage-request-heading[\s\S]*\.focus\(\)/, "revealed request UI receives keyboard focus");

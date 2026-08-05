@@ -1,4 +1,4 @@
-import { Compass, Gauge, Store } from "lucide-react";
+import { Compass, Gauge } from "lucide-react";
 import type { CoverageState } from "@/lib/coverage-model";
 import styles from "./CoverageSummary.module.css";
 
@@ -8,7 +8,6 @@ interface CoverageSummaryProps {
 
 export function CoverageSummary({ state }: CoverageSummaryProps) {
   const showNcBoards = state.code === "NC" && state.scope.knownBoards > 0;
-  const showInventoryStores = state.scope.inventoryMonitoredStores > 0;
   const showShipmentCaveat = state.code === "NC" || state.scope.shipmentBoards > 0;
 
   return (
@@ -18,20 +17,13 @@ export function CoverageSummary({ state }: CoverageSummaryProps) {
         {state.coverageStrengthLabel}
       </span>
 
-      {showNcBoards || showInventoryStores ? (
+      {showNcBoards ? (
         <dl className={styles.metrics} aria-label="Coverage at a glance">
           {showNcBoards ? (
             <div>
               <Compass size={16} aria-hidden="true" />
               <dt>NC ABC boards monitored</dt>
               <dd>{state.scope.knownBoards}</dd>
-            </div>
-          ) : null}
-          {state.scope.inventoryMonitoredStores > 0 ? (
-            <div>
-              <Store size={16} aria-hidden="true" />
-              <dt>Stores with current inventory signals</dt>
-              <dd>{state.scope.inventoryMonitoredStores}</dd>
             </div>
           ) : null}
         </dl>

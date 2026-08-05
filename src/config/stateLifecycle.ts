@@ -87,6 +87,7 @@ export const STATE_LIFECYCLE_CONFIG = {
       "publicStatus": "active",
       "lifecycle": "store_inventory_and_board_leads",
       "coverageTier": "live_store_inventory",
+      "peakCoverageStrength": "strong",
       "refinementLevel": "board",
       "customerSummary": "ABC board, warehouse, and selected county-board store signals where public sources support them. The Charlotte metro option expands deterministically to eight reviewed official boards; board-level rows remain leads, not exact shelf inventory.",
       "customerAreaLabel": "North Carolina ABC boards",
@@ -100,6 +101,7 @@ export const STATE_LIFECYCLE_CONFIG = {
       "publicStatus": "active",
       "lifecycle": "store_inventory",
       "coverageTier": "live_store_inventory",
+      "peakCoverageStrength": "strong",
       "refinementLevel": "city",
       "customerSummary": "Virginia ABC store availability for normal products, with limited-availability caveats."
     },
@@ -109,6 +111,7 @@ export const STATE_LIFECYCLE_CONFIG = {
       "publicStatus": "active",
       "lifecycle": "store_inventory",
       "coverageTier": "live_store_inventory",
+      "peakCoverageStrength": "strong",
       "refinementLevel": "city_store",
       "customerSummary": "FWGS pickup/store inventory where public browser extraction confirms current store rows."
     },
@@ -118,6 +121,7 @@ export const STATE_LIFECYCLE_CONFIG = {
       "publicStatus": "active",
       "lifecycle": "store_inventory",
       "coverageTier": "live_store_inventory",
+      "peakCoverageStrength": "strong",
       "refinementLevel": "city",
       "customerSummary": "OHLQ browser-assisted store availability where the public source is reachable."
     },
@@ -156,6 +160,7 @@ export const STATE_LIFECYCLE_CONFIG = {
       "publicStatus": "active",
       "lifecycle": "retailer_store_inventory",
       "coverageTier": "live_store_inventory",
+      "peakCoverageStrength": "strong",
       "refinementLevel": "statewide",
       "customerSummary": "Whitelisted public retailer inventory rows with strict bourbon matching and verify-before-driving caveats. Costco warehouse bourbon signals are included alongside Illinois retailer inventory where verified."
     },
@@ -165,6 +170,7 @@ export const STATE_LIFECYCLE_CONFIG = {
       "publicStatus": "active",
       "lifecycle": "retailer_store_inventory",
       "coverageTier": "live_store_inventory",
+      "peakCoverageStrength": "strong",
       "refinementLevel": "statewide",
       "customerSummary": "Verified retailer store inventory and pickup/orderability across Indiana, with exact-store identity and verify-before-driving caveats. ATC rows provide store-spine context only and are never bottle availability. Costco warehouse bourbon signals are included where verified."
     },
@@ -335,6 +341,7 @@ export const STATE_LIFECYCLE_CONFIG = {
       "publicStatus": "active",
       "lifecycle": "retailer_store_inventory",
       "coverageTier": "live_store_inventory",
+      "peakCoverageStrength": "strong",
       "refinementLevel": "city_store",
       "customerSummary": "Guarded first-party Florida retailer inventory across Tampa Bay, Central Florida, South Florida, Jacksonville, Sarasota, Gainesville, and the Panhandle, with exact merchant/store identity, current retailer-reported quantity or binary orderability when observed, and verify-before-driving caveats."
     },
@@ -353,6 +360,7 @@ export const STATE_LIFECYCLE_CONFIG = {
       "publicStatus": "active",
       "lifecycle": "retailer_store_inventory",
       "coverageTier": "live_store_inventory",
+      "peakCoverageStrength": "moderate",
       "refinementLevel": "city_store",
       "customerSummary": "Guarded first-party retailer signals from exact Georgia storefront identities, including a stable Atlanta metro store universe, plus Costco warehouse bourbon watch where verified. Binary orderability is kept distinct from retailer-reported quantity, and every store signal includes a verify before driving caveat.",
       "customerAreaLabel": "Atlanta Metro",
@@ -375,6 +383,7 @@ export const STATE_LIFECYCLE_CONFIG = {
       "publicStatus": "active",
       "lifecycle": "retailer_store_inventory",
       "coverageTier": "live_store_inventory",
+      "peakCoverageStrength": "sparse",
       "refinementLevel": "area",
       "customerAreaLabel": "South Carolina retailer areas",
       "areaOptions": [

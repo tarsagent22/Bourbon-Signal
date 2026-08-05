@@ -41,6 +41,7 @@ export interface CoverageLifecycleEntryInput {
   readonly publicStatus?: string;
   readonly lifecycle?: string;
   readonly coverageTier?: string;
+  readonly peakCoverageStrength?: Exclude<CoverageStrength, "none">;
   readonly refinementLevel?: string;
   readonly inventoryAlertable?: boolean;
   readonly watchAlertable?: boolean;
@@ -1105,7 +1106,10 @@ function buildState(args: {
     capabilities.publicUpdates,
   );
   const coverageStatusValue = deriveCoverageStatus(sourceBlocked, hasVerifiedSource, capabilities);
-  const coverageStrength = deriveCoverageStrength(coverageStatusValue, tier, scope);
+  const configuredPeakStrength = lifecycleEntry?.peakCoverageStrength;
+  const coverageStrength = configuredPeakStrength && COVERAGE_STRENGTH_VALUES.includes(configuredPeakStrength)
+    ? configuredPeakStrength
+    : deriveCoverageStrength(coverageStatusValue, tier, scope);
   const areas = stateAreas(lifecycleEntry, row, locations, storeRecords);
   const precisions = coverageStatusValue === "not-available" ? [] : precisionLabels(lifecycleEntry, row, locations, storeRecords);
   const usableFreshPublicSignals = hasFreshPublicOutput ? args.dropEvidence.freshPublicSignalCount : 0;
