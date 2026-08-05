@@ -5,7 +5,7 @@ import { readFileSync } from 'node:fs';
 import { confidenceForSignal } from '../src/confidence-policy.mjs';
 import { applyNcBoardShipmentPolicy } from '../src/collectors/north-carolina-intelligence.mjs';
 import { isRetainedNotDueReport } from '../src/collectors/generic-state.mjs';
-import { hasHealthyLowerVolumeShipmentRun } from '../src/nc-coverage-summary.mjs';
+import { hasHealthyLowerVolumeShipmentRun, hasSafeScheduledPartialShipmentFallback } from '../src/nc-coverage-summary.mjs';
 
 test('NC board shipment signals remain informational and cannot create watch alerts', () => {
   const result = confidenceForSignal({
@@ -70,10 +70,45 @@ test('NC lower-volume shipment verification follows current official source brea
   assert.equal(hasHealthyLowerVolumeShipmentRun({ ...healthy, stockShipped: { ...healthy.stockShipped, priceEnrichedSignalCount: 100 } }, 282, now), false);
 });
 
+test('NC scheduled partial fallback accepts a current official volume dip only with fully non-alerting retained context', () => {
+  const now = Date.parse('2026-08-05T12:57:31.000Z');
+  const nc = {
+    stockShipped: {
+      sourceUrl: 'https://abc2.nc.gov/Search/StockShippedData',
+      observedAt: '2026-08-04T15:04:18.000Z',
+      boardCount: 174,
+      productCount: 2673,
+      recordCount: 65765,
+      trackedSignalCount: 237,
+      controlledDistributionSignalCount: 107,
+      priceEnrichedSignalCount: 237,
+    },
+    coverage: { boardCount: 174, withTrackedShipments: 95 },
+    roadblockCount: 0,
+  };
+  const current = { id: 'current', sourceStale: false, stale: false, raw: {} };
+  const retained = {
+    id: 'retained',
+    sourceStale: true,
+    canAlertAsInventory: false,
+    canAlertAsWatch: false,
+    alertable: false,
+    sourceAvailabilityVerified: false,
+  };
+  const report = { status: 'partial_useful_quality_fallback', partial: true, stale: false, signals: [current, retained] };
+
+  assert.equal(hasSafeScheduledPartialShipmentFallback(nc, report, 237, now), true);
+  assert.equal(hasHealthyLowerVolumeShipmentRun(nc, 237, now), false, 'strict lower-volume recovery remains blocked');
+  assert.equal(hasSafeScheduledPartialShipmentFallback({ ...nc, coverage: { ...nc.coverage, withTrackedShipments: 80 } }, report, 237, now), false);
+  assert.equal(hasSafeScheduledPartialShipmentFallback(nc, { ...report, stale: true }, 237, now), false);
+  assert.equal(hasSafeScheduledPartialShipmentFallback(nc, { ...report, signals: [current, { ...retained, canAlertAsInventory: true }] }, 237, now), false);
+  assert.equal(hasSafeScheduledPartialShipmentFallback(nc, { ...report, signals: [retained] }, 237, now), false);
+});
+
 test('all NC release gates use the shared source-backed lower-volume policy', () => {
   for (const sourcePath of ['../src/verify-nc.mjs', '../src/verify.mjs', '../src/quality-audit.mjs']) {
     const source = readFileSync(new URL(sourcePath, import.meta.url), 'utf8');
-    assert.match(source, /import \{ hasHealthyLowerVolumeShipmentRun \} from '\.\/nc-coverage-summary\.mjs';/);
+    assert.match(source, /import \{[^}]*hasHealthyLowerVolumeShipmentRun[^}]*\} from '\.\/nc-coverage-summary\.mjs';/);
     assert.match(source, /hasHealthyLowerVolumeShipmentRun\(/);
     assert.doesNotMatch(source, /function hasHealthyLowerVolumeNcShipmentRun/);
   }

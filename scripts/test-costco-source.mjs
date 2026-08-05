@@ -86,8 +86,10 @@ try {
   for (const state of expansionEligibleStates) {
     const config = STATE_SOURCES.find((source) => source.id === state);
     assert.ok(config, `${state} expansion state should be active`);
-    assert.equal(config.sources.length, 1, `${state} expansion engine should be Costco-only`);
-    assert.equal(config.sources[0].kind, 'costco', `${state} expansion engine should only contain Costco`);
+    assert.ok(
+      config.strategy === 'costco_warehouse_inventory_watch' || config.sources.some((source) => source.kind === 'costco'),
+      `${state} expansion engine should invoke an in-state Costco lane`,
+    );
   }
 
   const bible = await BourbonBible.load(path.resolve('engine/out/bourbon-bible.json'));
@@ -121,6 +123,35 @@ try {
 
   const kyReport = await collectCostco({ id: 'KY', label: 'Kentucky distillery drops + Costco warehouse watch' }, bible);
   assert.equal(kyReport.signals.length, 0, 'out-of-stock Costco rows must not become signals');
+  assert.equal(kyReport.roadblocks.length, 0, 'a current negative warehouse observation is healthy zero inventory, not a source failure');
+
+  const undatedPositive = {
+    itemNumber: '1280805',
+    bottleName: 'Weller C.Y.P.B.',
+    status: 'available',
+    quantity: 2,
+    storeName: 'Costco Hoover',
+    storeNumber: '362',
+    city: 'Hoover',
+    state: 'AL',
+  };
+  await writeFile(observationsFile, JSON.stringify([undatedPositive], null, 2));
+  const undatedReport = await collectCostco({ id: 'AL', label: 'Alabama Costco watch' }, bible);
+  assert.equal(undatedReport.signals.length, 0, 'a bare undated observation array must fail closed instead of inheriting collection time');
+  assert.equal(undatedReport.roadblocks[0]?.status, 'invalid_timestamp');
+  assert.equal(undatedReport.sources[1]?.signalType, 'costco_observation_timestamp_invalid');
+
+  const explicitFeedTime = new Date().toISOString();
+  await writeFile(observationsFile, JSON.stringify({ generatedAt: explicitFeedTime, observations: [undatedPositive] }, null, 2));
+  const feedDatedReport = await collectCostco({ id: 'AL', label: 'Alabama Costco watch' }, bible);
+  assert.equal(feedDatedReport.signals.length, 1, 'an explicit valid feed timestamp may date an otherwise undated observation');
+  assert.equal(feedDatedReport.signals[0].observedAt, explicitFeedTime);
+  assert.equal(Number.isFinite(Date.parse(feedDatedReport.signals[0].fetchedAt)), true);
+
+  await writeFile(observationsFile, JSON.stringify({ generatedAt: 'not-a-timestamp', observations: [undatedPositive] }, null, 2));
+  const invalidFeedTimeReport = await collectCostco({ id: 'AL', label: 'Alabama Costco watch' }, bible);
+  assert.equal(invalidFeedTimeReport.signals.length, 0, 'an invalid feed timestamp must fail closed');
+  assert.equal(invalidFeedTimeReport.roadblocks[0]?.status, 'invalid_timestamp');
 
   console.log('Costco state-embedded source policy verified.');
 } finally {

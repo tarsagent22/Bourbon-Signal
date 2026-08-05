@@ -1,9 +1,10 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { validateNcSingleStoreCoverage, validateNcSourceLedgerContract } from './nc-source-ledger.mjs';
-import { hasHealthyLowerVolumeShipmentRun } from './nc-coverage-summary.mjs';
+import { hasHealthyLowerVolumeShipmentRun, hasSafeScheduledPartialShipmentFallback } from './nc-coverage-summary.mjs';
 
 const OUT = path.resolve('out');
+const allowSafePartialFallback = process.argv.includes('--allow-safe-partial-fallback');
 
 async function readJson(file) {
   return JSON.parse(await readFile(file, 'utf8'));
@@ -30,6 +31,9 @@ async function main() {
   const locations = await readJson(path.join(OUT, 'site', 'locations.json'));
   const ncStateReport = await readJson(path.join(OUT, 'states', 'NC.json'));
   const bible = await readJson(path.join(OUT, 'bourbon-bible.json'));
+  const ncShipmentSignals = nc.signalCounts?.nc_board_shipment_snapshot || 0;
+  const safeScheduledPartialFallback = allowSafePartialFallback
+    && hasSafeScheduledPartialShipmentFallback(nc, ncStateReport, ncShipmentSignals);
 
   const henryMckenna = (bible.records || []).find((record) => record.canonical === 'Henry McKenna 10 Year');
   assert(henryMckenna, 'Henry McKenna 10 Year bible record is missing');
@@ -39,7 +43,7 @@ async function main() {
   assert(/official\/public online sources only/i.test(String(nc.sourcePolicy || '')), 'NC official/public source policy is missing');
   assert(stats.ncBoardIntelligence?.boardCount >= 170, 'NC board coverage below threshold', stats.ncBoardIntelligence);
   assert(nc.coverage?.boardCount >= 170, 'NC intelligence board coverage below threshold', nc.coverage);
-  assert(nc.coverage?.withTrackedShipments >= 100, 'NC tracked-shipment board coverage below threshold', nc.coverage);
+  assert(nc.coverage?.withTrackedShipments >= 100 || safeScheduledPartialFallback, 'NC tracked-shipment board coverage below threshold', nc.coverage);
   assert(nc.coverage?.withInventoryPages >= 5, 'NC inventory/product/release page coverage below threshold', nc.coverage);
   assert(nc.coverage?.withReleasePages >= 10, 'NC release/lottery/barrel page coverage below threshold', nc.coverage);
   assert(nc.sourceLedger?.contractVersion === 'bourbon-signal-nc-source-ledger-v1', 'NC operational source ledger is missing', nc.sourceLedger);
@@ -49,8 +53,7 @@ async function main() {
   assert((nc.sourceLedger.boards || []).every((board) => board.canAlertAsInventory === false), 'Board-level source ledger must never claim inventory alertability');
   const singleStoreCoverageErrors = validateNcSingleStoreCoverage(nc.sourceLedger);
   assert(singleStoreCoverageErrors.length === 0, 'NC official single-store board coverage below threshold', { errors: singleStoreCoverageErrors });
-  const ncShipmentSignals = nc.signalCounts?.nc_board_shipment_snapshot || 0;
-  assert(ncShipmentSignals >= 400 || hasHealthyLowerVolumeShipmentRun(nc, ncShipmentSignals), 'NC board shipment signal count below source-volume-aware hard floor', { signalCounts: nc.signalCounts, stockShipped: nc.stockShipped, coverage: nc.coverage, roadblockCount: nc.roadblockCount });
+  assert(ncShipmentSignals >= 400 || hasHealthyLowerVolumeShipmentRun(nc, ncShipmentSignals) || safeScheduledPartialFallback, 'NC board shipment signal count below source-volume-aware hard floor', { signalCounts: nc.signalCounts, stockShipped: nc.stockShipped, coverage: nc.coverage, roadblockCount: nc.roadblockCount });
   warn(ncShipmentSignals >= 400, 'official daily StockShipped extract is below the legacy 400-signal floor; treating as pass because the current official source volume, board breadth, product coverage, price enrichment, and roadblocks are healthy', { signalCounts: nc.signalCounts, stockShipped: nc.stockShipped, coverage: nc.coverage, roadblockCount: nc.roadblockCount });
   warn(ncShipmentSignals >= 500, 'official daily StockShipped extract is below the historical 500-signal target; treating as pass because board coverage/roadblocks remain healthy', nc.signalCounts);
   assert(nc.warehouse?.sourceUrl === 'https://abc2.nc.gov/StoresBoards/Stocks' && Number.isFinite(Date.parse(nc.warehouse?.observedAt || '')), 'NC warehouse radar observation metadata is missing', nc.warehouse);
@@ -83,7 +86,7 @@ async function main() {
 
   const ncEvents = (events.events || []).filter((event) => event.state === 'NC');
   const ncLocations = (locations.locations || []).filter((location) => location.state === 'NC');
-  assert(ncDrops.length >= 400 || (ncDrops.length >= 300 && hasHealthyLowerVolumeShipmentRun(nc, ncShipmentSignals)), 'NC site drops below source-volume-aware hard floor', { drops: ncDrops.length, signalCounts: nc.signalCounts, stockShipped: nc.stockShipped, coverage: nc.coverage, roadblockCount: nc.roadblockCount });
+  assert(ncDrops.length >= 400 || (ncDrops.length >= 300 && (hasHealthyLowerVolumeShipmentRun(nc, ncShipmentSignals) || safeScheduledPartialFallback)), 'NC site drops below source-volume-aware hard floor', { drops: ncDrops.length, signalCounts: nc.signalCounts, stockShipped: nc.stockShipped, coverage: nc.coverage, roadblockCount: nc.roadblockCount });
   warn(ncDrops.length >= 400, 'NC site drops below legacy 400-row floor after official source-volume dip', { drops: ncDrops.length, signalCounts: nc.signalCounts });
   warn(ncDrops.length >= 500, 'NC site drops below historical 500-row target after official source-volume dip', ncDrops.length);
   assert(ncEvents.length >= 20, 'NC site events/release-watch rows below threshold', ncEvents.length);

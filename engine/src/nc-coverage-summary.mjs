@@ -29,6 +29,44 @@ export function hasHealthyLowerVolumeShipmentRun(nc, shipmentSignals, now = Date
     && Number(nc?.roadblockCount || 0) <= 1;
 }
 
+export function hasSafeScheduledPartialShipmentFallback(nc, stateReport, shipmentSignals, now = Date.now()) {
+  const stock = nc?.stockShipped || {};
+  const observedAt = Date.parse(stock.observedAt || '');
+  const observationAge = Number(now) - observedAt;
+  const signalCount = Number(shipmentSignals || 0);
+  const boardCount = Number(nc?.coverage?.boardCount || stock.boardCount || 0);
+  const trackedBoardCount = Number(nc?.coverage?.withTrackedShipments || 0);
+  const signals = Array.isArray(stateReport?.signals) ? stateReport.signals : [];
+  const retained = signals.filter((signal) => signal.sourceStale === true
+    || signal.stale === true
+    || signal.raw?.staleFallback === true);
+  const current = signals.filter((signal) => signal.sourceStale !== true
+    && signal.stale !== true
+    && signal.raw?.staleFallback !== true);
+  const retainedIsSafe = retained.length > 0 && retained.every((signal) => signal.canAlertAsInventory === false
+    && signal.canAlertAsWatch === false
+    && signal.alertable === false
+    && signal.sourceAvailabilityVerified === false);
+
+  return (stateReport?.partial === true || stateReport?.status === 'partial_useful_quality_fallback')
+    && stateReport?.stale === false
+    && current.length > 0
+    && retainedIsSafe
+    && stock.sourceUrl === NC_STOCK_SHIPPED_DATA_URL
+    && Number.isFinite(observedAt)
+    && observationAge >= -10 * 60 * 1000
+    && observationAge <= MAX_CURRENT_SHIPMENT_AGE_MS
+    && signalCount >= 200
+    && Number(stock.trackedSignalCount || 0) >= signalCount
+    && Number(stock.controlledDistributionSignalCount || 0) >= 100
+    && Number(stock.priceEnrichedSignalCount || 0) >= Math.floor(signalCount * 0.95)
+    && Number(stock.recordCount || 0) >= 50_000
+    && Number(stock.productCount || 0) >= 2_000
+    && boardCount >= 170
+    && trackedBoardCount >= Math.max(90, Math.ceil(boardCount * 0.5))
+    && Number(nc?.roadblockCount || 0) <= 1;
+}
+
 export function buildNcBoardCoverageSummary(activeOfficialLocations = [], ncIntelligenceRaw = null) {
   if (!ncIntelligenceRaw) return null;
 

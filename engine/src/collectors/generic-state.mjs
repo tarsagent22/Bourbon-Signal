@@ -420,7 +420,8 @@ export async function collectState(config, bible, options = {}) {
     cooldownMs: Number(process.env.BOURBON_SIGNAL_SOURCE_CIRCUIT_COOLDOWN_MS || 15 * 60_000),
   });
 
-  const hasCostcoSource = (config.sources || []).some((source) => source.kind === 'costco' || source.signalType === 'costco_warehouse_inventory');
+  const hasCostcoSource = config.strategy === 'costco_warehouse_inventory_watch'
+    || (config.sources || []).some((source) => source.kind === 'costco' || source.signalType === 'costco_warehouse_inventory');
   if (hasCostcoSource) {
     const costcoReport = await collectCostco(config, bible);
     signals.push(...(costcoReport.signals || []));

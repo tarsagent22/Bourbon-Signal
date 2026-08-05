@@ -575,6 +575,7 @@ async function main() {
     timeoutMs: Math.max(...runnable.map(stateTimeoutMs), STATE_TIMEOUT_MS) + 60_000,
     domainFor: (config) => config.id,
   });
+  const poolResultsByState = new Map(poolResults.map((result) => [result.task.id, result]));
   const collected = new Map(poolResults.map((result) => [result.task.id, result.status === 'fulfilled' ? result.value : null]));
   let nextMetrics = previousMetrics;
   const aggregateReports = await resolveAggregateStateReports({ configs: STATE_SOURCES, collected, statesOut: STATES_OUT, readReport: readJson });
@@ -589,12 +590,15 @@ async function main() {
     }
     if (wasRun) freshReports.push(report);
     if (attempted) {
+      const poolResult = poolResultsByState.get(config.id);
       nextMetrics = updateStateRunMetric(nextMetrics, {
         id: config.id,
         ok: wasRun && !report.stale && !/^failed_/.test(String(report.status || '')),
         contentHash: wasRun ? stableReportHash(report) : null,
         startedAt: wasRun ? report.startedAt : null,
         finishedAt: wasRun ? (report.finishedAt || new Date().toISOString()) : new Date().toISOString(),
+        attemptStartedAt: poolResult?.startedAt || null,
+        attemptFinishedAt: poolResult?.finishedAt || null,
       });
     }
     allReports.push(report);

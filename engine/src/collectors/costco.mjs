@@ -92,7 +92,7 @@ function matchBottle(rawName, bible, watchItem) {
   return null;
 }
 
-function normalizeObservation(row, bible, index, generatedAt, targetState) {
+function normalizeObservation(row, bible, index, generatedAt, targetState, fetchedAt) {
   const itemNumber = normalizedItemNumber(row.itemNumber || row.item_number || row.itemNo || row.sku);
   const watchItem = lookupWatchItem(row, index);
   const rawName = safeString(row.bottleName || row.productName || row.name || row.description || watchItem?.canonicalName, 180);
@@ -148,7 +148,7 @@ function normalizeObservation(row, bible, index, generatedAt, targetState) {
     stateCode: state,
     zip: safeString(row.zip || row.postalCode, 20),
     observedAt,
-    fetchedAt: generatedAt,
+    fetchedAt,
     canAlertAsInventory: true,
     canAlertAsWatch: true,
     dataLane: 'inventory',
@@ -172,18 +172,33 @@ export async function collectCostco(config, bible) {
   const observations = await readJson(observationsPath, []);
   const index = watchlistIndex(Array.isArray(watchlist) ? watchlist : []);
   const rows = Array.isArray(observations) ? observations : Array.isArray(observations?.observations) ? observations.observations : [];
-  const generatedAt = safeString(observations?.generatedAt, 80) || new Date().toISOString();
+  const rawGeneratedAt = Array.isArray(observations) ? null : safeString(observations?.generatedAt, 80);
+  const generatedAt = Number.isFinite(Date.parse(rawGeneratedAt || '')) ? rawGeneratedAt : null;
+  const fetchedAt = new Date().toISOString();
   const targetState = config.id ? String(config.id).toUpperCase() : null;
-  const signals = rows.map((row) => normalizeObservation(row, bible, index, generatedAt, targetState)).filter(Boolean).slice(0, 500);
+  const targetRows = rows.filter((row) => safeString(row.state || row.stateCode || row.warehouseState, 20)?.toUpperCase() === targetState);
+  const validTimestampTargetRows = targetRows.filter((row) => Number.isFinite(Date.parse(
+    row.observedAt || row.fetchedAt || row.updatedAt || generatedAt || '',
+  )));
+  const freshTargetRows = validTimestampTargetRows.filter((row) => isFreshObservation(
+    row.observedAt || row.fetchedAt || row.updatedAt,
+    generatedAt,
+  ));
+  const signals = rows.map((row) => normalizeObservation(row, bible, index, generatedAt, targetState, fetchedAt)).filter(Boolean).slice(0, 500);
   const roadblocks = [];
-  if (!rows.length) {
+  if (!freshTargetRows.length) {
+    const hasTargetHistory = targetRows.length > 0;
     roadblocks.push({
       state: config.id,
       source: 'Costco warehouse observation feed',
       url: observationsPath,
-      status: 'not_configured',
-      error: 'No Costco observations file found yet. Costco is wired into the engine, but it will not publish alerts until a verified warehouse/app observation feed is present.',
-      nextRoute: 'Populate COSTCO_OBSERVATIONS_FILE from the Costco app/warehouse inventory monitor using the item-number watchlist; keep Bourbon Signal alert copy/source semantics.'
+      status: !hasTargetHistory ? 'not_configured' : validTimestampTargetRows.length ? 'stale' : 'invalid_timestamp',
+      error: hasTargetHistory
+        ? validTimestampTargetRows.length
+          ? `Costco observations exist for ${config.id}, but none are within the ${maxObservationAgeHours()}-hour freshness window.`
+          : `Costco observations exist for ${config.id}, but neither the rows nor feed provide a valid source timestamp.`
+        : `No Costco warehouse observations are configured for ${config.id}.`,
+      nextRoute: 'Refresh COSTCO_OBSERVATIONS_FILE from the Costco app/warehouse inventory monitor using the item-number watchlist; keep Bourbon Signal alert copy/source semantics.'
     });
   }
   return {
@@ -202,15 +217,24 @@ export async function collectCostco(config, bible) {
         kind: 'json',
         ok: watchlist.length > 0,
         signalType: 'costco_item_watchlist',
-        matchedBottleCount: watchlist.length
+        matchedBottleCount: 0,
+        configuredItemCount: watchlist.length
       },
       {
         label: 'Costco warehouse observations',
         url: observationsPath,
         kind: 'json',
-        ok: rows.length > 0,
-        signalType: rows.length ? 'costco_warehouse_inventory_result' : 'costco_observation_feed_missing',
-        matchedBottleCount: signals.length
+        ok: freshTargetRows.length > 0,
+        signalType: signals.length
+          ? 'costco_warehouse_inventory_result'
+          : freshTargetRows.length
+            ? 'costco_warehouse_no_current_inventory'
+            : targetRows.length
+              ? validTimestampTargetRows.length ? 'costco_observation_feed_stale' : 'costco_observation_timestamp_invalid'
+              : 'costco_observation_feed_missing',
+        matchedBottleCount: signals.length,
+        observedRowCount: targetRows.length,
+        freshObservedRowCount: freshTargetRows.length
       }
     ],
     signals,
