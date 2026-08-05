@@ -15,6 +15,10 @@ on:
         description: "Optional comma-separated state ids to refresh"
         required: false
         default: ""
+      va_required_store_id:
+        description: "Optional Virginia ABC store id that must have fresh customer-visible inventory before targeted VA publication"
+        required: false
+        default: ""
       incident_key:
         description: "Immutable watchdog incident fingerprint for recovery deduplication"
         required: false
@@ -49,6 +53,7 @@ jobs:
       ENGINE_SNAPSHOT_ENCRYPTION_KEY: ${{ secrets.ENGINE_SNAPSHOT_ENCRYPTION_KEY }}
       BOURBON_SIGNAL_DISABLED_STATES: ${{ vars.BOURBON_SIGNAL_DISABLED_STATES }}
       BOURBON_SIGNAL_QUARANTINED_STATES: ${{ vars.BOURBON_SIGNAL_QUARANTINED_STATES }}
+      BOURBON_SIGNAL_VA_REQUIRED_STORE_ID: ${{ inputs.va_required_store_id || '' }}
     steps:
       - name: Checkout current production engine
         uses: actions/checkout@v4
@@ -61,6 +66,13 @@ jobs:
 
       - name: Install dependencies
         run: npm ci && npm --prefix engine ci
+
+      - name: Validate Virginia required-store dispatch
+        if: ${{ inputs.va_required_store_id != '' }}
+        env:
+          TARGET_STATES: ${{ inputs.states || '' }}
+        run: |
+          node -e "const states = String(process.env.TARGET_STATES || '').split(',').map((state) => state.trim().toUpperCase()).filter(Boolean); if (!states.includes('VA')) { console.error('va_required_store_id requires an explicit VA state target'); process.exit(1); }"
 
       - name: Preserve checked-in board shipment history bootstrap
         run: |

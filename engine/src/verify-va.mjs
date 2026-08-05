@@ -48,13 +48,27 @@ async function main() {
   const directPage403s = (state.roadblocks || []).filter((roadblock) => Number(roadblock.status) === 403 && /abc\.virginia\.gov\/products/i.test(String(roadblock.url || '')));
   const rateLimitRoadblocks = (state.roadblocks || []).filter((roadblock) => Number(roadblock.status) === 429);
   const rollingFreshnessRoadblocks = (state.roadblocks || []).filter((roadblock) => roadblock.source === 'Virginia ABC rolling inventory freshness');
-  const staleAlertableSignals = signals.filter((signal) => (signal.sourceStale || expiredInventoryIds.has(signal.sourceSignalId || signal.key)) && signal.canAlertAsInventory);
+  const staleAlertableSignals = signals.filter((signal) => (signal.stale || signal.sourceStale || expiredInventoryIds.has(signal.sourceSignalId || signal.key))
+    && (signal.alertable || signal.canAlertAsInventory || signal.canAlertAsWatch));
   const stateAlertableSignals = signals.filter((signal) => signal.alertable || signal.canAlertAsInventory || signal.canAlertAsWatch);
   const alertableDrops = vaDrops.filter((drop) => drop.alertable || drop.canAlertAsInventory || drop.canAlertAsWatch);
   const expiredAlertableDrops = alertableDrops.filter((drop) => expiredInventoryIds.has(drop.sourceSignalId || drop.sourceSignalKey || drop.key || drop.id));
   const eligibleAlertCandidates = (alerts.alerts || []).filter((candidate) => candidate.state === 'VA'
     && (candidate.eligibleForDelivery || candidate.eligibleForOnSite || candidate.eligibleForEmail || candidate.eligibleForSms));
   const supportedOriginStoreIds = new Set((state.precisionMetadata?.virginia?.supportedOriginStoreIds || []).map(String));
+  const verifiedPriorityStoreIds = new Set((state.precisionMetadata?.virginia?.verifiedPriorityStoreIds || []).map(String));
+  const rejectedPriorityStoreIds = (state.precisionMetadata?.virginia?.rejectedPriorityStoreIds || []).map(String);
+  const requiredTargetStoreId = String(process.env.BOURBON_SIGNAL_VA_REQUIRED_STORE_ID || '').trim();
+  const targetStoreSignals = signals.filter((signal) => String(signal.storeId || '') === '49'
+    && signal.locationPrecision === 'store_level'
+    && signal.stale !== true
+    && signal.sourceStale !== true
+    && !expiredInventoryIds.has(signal.sourceSignalId || signal.key));
+  const targetStoreDrops = vaDrops.filter((drop) => String(drop.storeId || '') === '49'
+    && drop.locationPrecision === 'store_level'
+    && drop.stale !== true
+    && drop.sourceStale !== true
+    && Number(drop.quantity || 0) > 0);
   const regularProductCoverage = new Map();
   for (const signal of signals) {
     if (signal.sourceStale || expiredInventoryIds.has(signal.sourceSignalId || signal.key) || signal.productLimitedCaveat !== false || !signal.storeId) continue;
@@ -74,7 +88,7 @@ async function main() {
     .filter((entry) => entry.unexpectedStoreIds.length);
   const allowSafeStaleFallback = process.argv.includes('--allow-safe-stale-fallback');
 
-  if (allowSafeStaleFallback && /^stale_/i.test(String(state.status || ''))) {
+  if (!requiredTargetStoreId && allowSafeStaleFallback && /^stale_/i.test(String(state.status || ''))) {
     assert(state.stale === true, 'VA degraded status must remain explicitly stale', { status: state.status, stale: state.stale });
     assert(Boolean(state.staleReason), 'VA degraded status must explain why the last trusted report was retained');
     assert(signals.length >= 700, 'VA retained signal count below safe degraded-lane threshold', signals.length);
@@ -102,10 +116,13 @@ async function main() {
   assert(productCodes.size >= 12, 'VA product-code coverage below expanded top-performer baseline', [...productCodes]);
   assert(!staleAlertableSignals.length, 'VA stale cache rows must never remain inventory-alertable', staleAlertableSignals.slice(0, 10));
   assert(!expiredAlertableDrops.length, 'VA public drops derived from expired inventory must remain non-alertable', expiredAlertableDrops.slice(0, 10));
-  if (!allowSafeStaleFallback) {
-    assert(!expiredInventorySignals.length, 'VA targeted recovery still contains inventory rows older than the 24-hour live window', expiredInventorySignals.slice(0, 10));
-  }
   assert(state.precisionMetadata?.virginia?.storeUniverseVerified === true && supportedOriginStoreIds.size >= 390, 'VA supported-store universe is not verified', state.precisionMetadata?.virginia || null);
+  assert(verifiedPriorityStoreIds.has('49') && !rejectedPriorityStoreIds.length, 'VA Ballston Store 49 official premises identity was not verified for first-priority probing', state.precisionMetadata?.virginia || null);
+  if (requiredTargetStoreId) {
+    assert(requiredTargetStoreId === '49', 'VA targeted recovery requested an unsupported exact-store publication gate', requiredTargetStoreId);
+    assert(targetStoreSignals.some((signal) => signal.productLimitedCaveat === false && Number(signal.quantity || 0) > 0 && signal.canAlertAsInventory === true), 'VA Ballston Store 49 has no fresh positive regular-product inventory proof', targetStoreSignals);
+    assert(targetStoreDrops.length > 0, 'VA Ballston Store 49 has no fresh customer-visible inventory card', targetStoreDrops);
+  }
   assert(regularProductCoverage.size >= 10, 'VA fresh regular-product coverage is incomplete', [...regularProductCoverage.keys()]);
   assert(!undercoveredRegularProducts.length, 'VA regular products do not cover the statewide supported-store floor', undercoveredRegularProducts);
   assert(!missingSupportedStores.length, 'VA regular products are missing supported store identities', missingSupportedStores);
@@ -114,8 +131,12 @@ async function main() {
   assert(!canonicalNames.has('1792 Full Proof') || !bad1792.length, 'VA 1792 Small Batch is being misidentified as 1792 Full Proof', bad1792.slice(0, 10));
   assert(!invalidOriginRoadblocks.length, 'VA has stale/invalid store-origin roadblocks', invalidOriginRoadblocks.slice(0, 10));
   assert(!rateLimitRoadblocks.length, 'VA still has unresolved source rate-limit roadblocks', rateLimitRoadblocks.slice(0, 10));
-  if (!allowSafeStaleFallback) {
-    assert(!rollingFreshnessRoadblocks.length, 'VA targeted recovery still has stale product partitions retained', rollingFreshnessRoadblocks);
+  if (!allowSafeStaleFallback && rollingFreshnessRoadblocks.length) {
+    assert(!staleAlertableSignals.length && !expiredAlertableDrops.length, 'VA retained product partitions must remain visible context only and never alertable', {
+      rollingFreshnessRoadblocks,
+      staleAlertableSignals: staleAlertableSignals.slice(0, 10),
+      expiredAlertableDrops: expiredAlertableDrops.slice(0, 10)
+    });
   }
   assert(directPage403s.length <= 4, 'VA has more direct product-page 403 roadblocks than expected', directPage403s.slice(0, 10));
 

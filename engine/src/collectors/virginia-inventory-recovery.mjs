@@ -33,6 +33,52 @@ export function minimumVirginiaSiteLocationCount(supportedOriginStoreCount) {
   return Math.min(supportedCount, Math.max(300, Math.ceil(supportedCount * 0.75)));
 }
 
+const VIRGINIA_PRIORITY_ORIGIN_IDENTITIES = new Map([
+  ['49', {
+    address: '881 North Quincy Street',
+    city: 'Arlington',
+    zip: '22203'
+  }]
+]);
+
+function normalizedVirginiaPremisesPart(value) {
+  return String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+}
+
+function virginiaPriorityIdentityMatches(store, expected) {
+  return normalizedVirginiaPremisesPart(store?.address) === normalizedVirginiaPremisesPart(expected.address)
+    && normalizedVirginiaPremisesPart(store?.city) === normalizedVirginiaPremisesPart(expected.city)
+    && String(store?.zip || '').match(/^\d{5}/)?.[0] === expected.zip;
+}
+
+export function planVirginiaOriginStores(stores, requestedPriorityStoreIds = ['49']) {
+  const original = Array.isArray(stores) ? stores : [];
+  const requested = [...new Set((requestedPriorityStoreIds || []).map((value) => String(value || '').trim()).filter(Boolean))];
+  const byId = new Map(original.map((store) => [String(store?.storeNumber || ''), store]));
+  const verifiedPriorityStoreIds = [];
+  const rejectedPriorityStoreIds = [];
+
+  for (const storeId of requested) {
+    const expected = VIRGINIA_PRIORITY_ORIGIN_IDENTITIES.get(storeId);
+    const store = byId.get(storeId);
+    if (!expected || !store || !virginiaPriorityIdentityMatches(store, expected)) {
+      rejectedPriorityStoreIds.push(storeId);
+      continue;
+    }
+    verifiedPriorityStoreIds.push(storeId);
+  }
+
+  const verified = new Set(verifiedPriorityStoreIds);
+  return {
+    stores: [
+      ...verifiedPriorityStoreIds.map((storeId) => byId.get(storeId)),
+      ...original.filter((store) => !verified.has(String(store?.storeNumber || '')))
+    ],
+    verifiedPriorityStoreIds,
+    rejectedPriorityStoreIds
+  };
+}
+
 export function virginiaProductCode(signal) {
   const directCode = signal?.productCode;
   if (directCode != null && String(directCode).trim()) return String(directCode).trim();
