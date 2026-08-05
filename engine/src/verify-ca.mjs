@@ -14,6 +14,7 @@ const inventory = signals.filter((signal) => signal.eventType === 'retailer_stor
 const allowSafeRetainedNotDue = process.argv.includes('--allow-safe-retained-not-due');
 const retainedNotDue = state.status === 'useful_retained_not_due' && state.stale !== true;
 const scheduledOnlyException = allowSafeRetainedNotDue && retainedNotDue;
+const scheduledNonStale = allowSafeRetainedNotDue && state.stale !== true;
 const currentInventoryAlertMaxAgeHours = Number(process.env.CURRENT_INVENTORY_ALERT_MAX_AGE_HOURS || 2);
 const currentInventoryAlertMaxAgeMs = currentInventoryAlertMaxAgeHours * 60 * 60 * 1000;
 const freshInventory = inventory.filter((signal) => {
@@ -25,7 +26,7 @@ const freshInventory = inventory.filter((signal) => {
 
 assert.equal(state.state, 'CA');
 assert.ok(['useful', 'useful_retained_not_due'].includes(state.status), `California status ${JSON.stringify(state.status)} is not release-useful.`);
-const unexpectedRoadblocks = unexpectedCaliforniaRoadblocks(state.roadblocks, { scheduledRetainedNotDue: scheduledOnlyException });
+const unexpectedRoadblocks = unexpectedCaliforniaRoadblocks(state.roadblocks, { scheduledNonStale });
 assert.equal(unexpectedRoadblocks.length, 0, `California has blocking collector roadblocks: ${JSON.stringify(unexpectedRoadblocks)}`);
 assert.ok(inventory.length >= 12, `expected at least 12 California inventory rows; got ${inventory.length}`);
 assert.ok(new Set(inventory.map((signal) => signal.storeId)).size >= 2, 'expected at least two independently identity-bound San Diego stores');

@@ -9,15 +9,15 @@ const costcoMissing = {
   status: 'not_configured',
 };
 
-test('California scheduled retained-not-due mode isolates only the missing auxiliary Costco feed', () => {
-  assert.deepEqual(unexpectedCaliforniaRoadblocks([costcoMissing], { scheduledRetainedNotDue: true }), []);
-  assert.deepEqual(unexpectedCaliforniaRoadblocks([costcoMissing], { scheduledRetainedNotDue: false }), [costcoMissing]);
+test('California scheduled non-stale mode isolates only the missing auxiliary Costco feed', () => {
+  assert.deepEqual(unexpectedCaliforniaRoadblocks([costcoMissing], { scheduledNonStale: true }), []);
+  assert.deepEqual(unexpectedCaliforniaRoadblocks([costcoMissing], { scheduledNonStale: false }), [costcoMissing]);
 
   for (const roadblock of [
     { ...costcoMissing, state: 'NV' },
     { ...costcoMissing, source: 'California Shopify inventory' },
     { ...costcoMissing, status: 'stale' },
   ]) {
-    assert.deepEqual(unexpectedCaliforniaRoadblocks([roadblock], { scheduledRetainedNotDue: true }), [roadblock]);
+    assert.deepEqual(unexpectedCaliforniaRoadblocks([roadblock], { scheduledNonStale: true }), [roadblock]);
   }
 });
