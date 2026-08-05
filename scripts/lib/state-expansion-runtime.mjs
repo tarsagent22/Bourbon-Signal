@@ -72,14 +72,14 @@ function stale(row) {
   return row?.stale === true || row?.sourceStale === true || row?.raw?.staleFallback === true;
 }
 
-function freshExactStore(row, stateCode, nowMs, maxAgeMs, minimumObservedAtMs) {
+function freshExactStore(row, stateCode, nowMs, maxAgeMs, minimumObservedAtMs, strictInventoryValidator) {
   if (String(row?.state || row?.stateCode || '').toUpperCase() !== stateCode) return false;
   if (!RETAILER_EVENT.test(String(row?.eventType || row?.type || ''))) return false;
   const sourceLabel = row?.sourceLabel || row?.source;
   const canonicalBottleId = row?.canonicalBottleId || row?.canonicalId || row?.bottleId;
   const storeAddress = row?.storeAddress || row?.store_address;
   const verifiedAvailability = row?.sourceAvailabilityVerified === true
-    && /^(?:in_stock|available|orderable)$/iu.test(String(row?.availabilityStatus || ''));
+    && /^(?:in_stock|available|orderable|binary_retailer_in_stock)$/iu.test(String(row?.availabilityStatus || ''));
   let sourceUrl;
   try { sourceUrl = new URL(row?.sourceUrl); } catch { return false; }
   if (sourceUrl.protocol !== 'https:' || !sourceUrl.hostname) return false;
@@ -87,6 +87,7 @@ function freshExactStore(row, stateCode, nowMs, maxAgeMs, minimumObservedAtMs) {
   if (!sourceLabel || !canonicalBottleId || !row?.merchantId || !row?.productId) return false;
   if (row?.canAlertAsInventory !== true && row?.eligibleForOnSite !== true) return false;
   if (!verifiedAvailability || stale(row)) return false;
+  if (strictInventoryValidator && strictInventoryValidator(row) !== true) return false;
   const observedAt = Date.parse(row?.observedAt || row?.signalAt || '');
   return Number.isFinite(observedAt) && observedAt >= minimumObservedAtMs
     && nowMs >= observedAt && nowMs - observedAt <= maxAgeMs;
@@ -102,12 +103,13 @@ export function calculateStateExpansionMetrics({
   nowMs = Date.now(),
   maxAgeMs = 12 * 60 * 60_000,
   minimumObservedAtMs = 0,
+  strictInventoryValidator = null,
 } = {}) {
   const state = normalizeStateCode(stateCode);
   const signals = rows(stateReport?.signals, 'signals').filter((row) => String(row?.state || row?.stateCode || '').toUpperCase() === state);
   const drops = rows(siteDrops, 'drops').filter((row) => String(row?.state || row?.stateCode || '').toUpperCase() === state);
-  const freshSignals = signals.filter((row) => freshExactStore(row, state, nowMs, maxAgeMs, minimumObservedAtMs));
-  const freshDrops = drops.filter((row) => freshExactStore(row, state, nowMs, maxAgeMs, minimumObservedAtMs));
+  const freshSignals = signals.filter((row) => freshExactStore(row, state, nowMs, maxAgeMs, minimumObservedAtMs, strictInventoryValidator));
+  const freshDrops = drops.filter((row) => freshExactStore(row, state, nowMs, maxAgeMs, minimumObservedAtMs, strictInventoryValidator));
   const liveStoreIds = new Set([...freshSignals, ...freshDrops].map((row) => row.storeId));
   const alertGradeStoreIds = new Set([...freshSignals, ...freshDrops]
     .filter((row) => row.canAlertAsInventory === true)

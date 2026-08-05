@@ -7,6 +7,17 @@ const ALL_AMERICAN_STORE_ID = 'all-american-liquor:all-american-liquor-mauldin';
 const ALL_AMERICAN_ADDRESS = '121 w butler rd mauldin sc 29662';
 const ALL_AMERICAN_MAX_AGE_MS = 2 * 60 * 60_000;
 const MAX_FUTURE_SKEW_MS = 5 * 60_000;
+const SC_CITYHIVE_MAX_AGE_MS = 6 * 60 * 60_000;
+const SC_CITYHIVE_MERCHANTS = new Map([
+  ...['61dc4ab6a1d5721307e9c20e', '61e1d04c823936166693c7f3', '61dc62fca1d5721d92e837cf', '61dc583152bc522be69a8b9e', '61b7517362f55f727e469da5'].map((id) => [id, { chain: 'greens-beverage', label: "Green's Beverage South Carolina CityHive store inventory", hosts: ['greensbeb2c6efe1.sites.cityhive.app', 'greensbeverages.com', 'www.greensbeverages.com'] }]),
+  ...['69930e7bed5bdd2a34c085c3', '699754a7b0035e3df3e7f3a4', '69977a118f10a026bd985189'].map((id) => [id, { chain: 'wine-bourbon-barn', label: 'Wine & Bourbon Barn CityHive store inventory', hosts: ['winebarnsc.com', 'www.winebarnsc.com'] }]),
+  ...['607f9d38b73eb4091ef97ff7', '607af19a07c9e57bbd8de002', '6060f7262c63853de749dda2'].map((id) => [id, { chain: 'odarbys-liquor-barn', label: "O'Darby's Liquor Barn South Carolina CityHive store inventory", hosts: ['odarbysliquorbarn.com', 'www.odarbysliquorbarn.com'] }]),
+  ['6144e1c2085a5f20a622a15f', { chain: 'beach-discount-beverages', label: 'Beach Discount Beverages South Carolina CityHive store inventory', hosts: ['beachdis0402bdcd.sites.cityhive.app', 'beachdiscountbeverages.com', 'www.beachdiscountbeverages.com'] }],
+  ['66c9e5c12556e329502b0e5e', { chain: 'palmetto-liquor', label: 'Palmetto Liquor South Carolina CityHive store inventory', hosts: ['palmettoliquor.com', 'www.palmettoliquor.com'] }],
+  ['620164924a3ea84d57c21d6f', { chain: 'dev-liquors', label: 'DEV Liquors South Carolina CityHive store inventory', hosts: ['devliquors.com', 'www.devliquors.com'] }],
+  ['67cf72208b17425acbba9e10', { chain: 'moss-creek-village-spirits', label: 'Moss Creek Village Spirits & Wine South Carolina CityHive store inventory', hosts: ['mosscreekvillagespiritsandwine.com', 'www.mosscreekvillagespiritsandwine.com'] }],
+  ['5ea832d3b62f75270c45a976', { chain: 'rollers-wine-and-spirits', label: 'Rollers Wine & Spirits South Carolina CityHive store inventory', hosts: ['rollerswineandspirits.com', 'www.rollerswineandspirits.com'] }],
+]);
 
 function normalizedIdentity(value = '') {
   return String(value).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
@@ -216,8 +227,65 @@ export function isSouthCarolinaSouthernSpiritsSignal(signal) {
     || storeId.startsWith('southern-spirits:');
 }
 
+export function isSouthCarolinaCityHiveInventory(signal, nowMs = Date.now()) {
+  const eventType = String(signal?.eventType || signal?.type || '');
+  const merchantId = String(signal?.merchantId || '').trim();
+  const source = SC_CITYHIVE_MERCHANTS.get(merchantId);
+  const productId = String(signal?.productId || '').trim();
+  const optionId = String(signal?.optionId || signal?.variantId || '').trim();
+  const observedAt = Date.parse(String(signal?.observedAt || signal?.lastConfirmedAt || ''));
+  const ageMs = nowMs - observedAt;
+  let sourceHost = '';
+  try {
+    const url = new URL(String(signal?.sourceUrl || ''));
+    if (url.protocol !== 'https:') return false;
+    sourceHost = url.hostname.toLowerCase();
+  } catch {
+    return false;
+  }
+  const rawOption = signal?.raw?.option;
+  const exactSourceBinding = rawOption
+    ? String(rawOption.merchant_id || '') === merchantId
+      && String(rawOption.product_id || '') === productId
+      && String(rawOption.option_id || '') === optionId
+    : String(signal?.sourceProductProofId || '') === productId
+      && String(signal?.variantId || '') === optionId;
+  const exactQuantity = signal?.quantityIsExact === true
+    && Number.isFinite(Number(signal?.quantity))
+    && Number(signal.quantity) > 0
+    && signal?.availabilityStatus === 'in_stock';
+  const binaryAvailability = signal?.quantityIsExact === false
+    && Number(signal?.quantity || 0) === 0
+    && signal?.availabilityStatus === 'binary_retailer_in_stock';
+  return Boolean(source)
+    && signal?.state === 'SC'
+    && (signal?.stateCode == null || signal.stateCode === 'SC')
+    && eventType === 'cityhive_store_inventory_result'
+    && signal?.sourceLabel === source.label
+    && signal?.sourceChain === source.chain
+    && (signal?.raw == null || signal.raw.chain === source.chain)
+    && source.hosts.includes(sourceHost)
+    && signal?.locationPrecision === 'store_level'
+    && signal?.storeId === `${source.chain}:${merchantId}`
+    && /,\s*SC\s+\d{5}/i.test(String(signal?.storeAddress || ''))
+    && Boolean(signal?.canonicalBottleId || signal?.canonicalId)
+    && productId.length > 0
+    && optionId.length > 0
+    && exactSourceBinding
+    && signal?.sourceAvailabilityVerified === true
+    && (exactQuantity || binaryAvailability)
+    && signal?.stale !== true
+    && signal?.sourceStale !== true
+    && Number.isFinite(observedAt)
+    && ageMs >= -MAX_FUTURE_SKEW_MS
+    && ageMs <= SC_CITYHIVE_MAX_AGE_MS;
+}
+
 export function hasSouthCarolinaPositiveInventoryEvidence(signal) {
   if (isSouthCarolinaAllAmericanSignal(signal)) return isSouthCarolinaAllAmericanInventory(signal);
   if (isSouthCarolinaSouthernSpiritsSignal(signal)) return isSouthCarolinaSouthernSpiritsInventory(signal);
+  if (signal?.eventType === 'cityhive_store_inventory_result' || /CityHive/i.test(String(signal?.sourceLabel || signal?.source || ''))) {
+    return isSouthCarolinaCityHiveInventory(signal);
+  }
   return Number(signal?.quantity || 0) > 0;
 }

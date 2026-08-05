@@ -17,6 +17,7 @@ import {
   verifyPhaseTransition,
 } from './lib/engine-expansion-speed.mjs';
 import { calculateStateExpansionMetrics } from './lib/state-expansion-runtime.mjs';
+import { isSouthCarolinaCityHiveInventory } from '../engine/src/south-carolina-retailer-policy.mjs';
 
 function completePacket(state = 'GA') {
   const packet = createTaskPacket({ state, objective: 'Expand exact-store inventory safely.' });
@@ -215,6 +216,53 @@ test('state metrics count safe on-site-only exact stores as live without upgradi
     freshExactStoreDrops: 1,
     alertableStaleRows: 0,
   });
+});
+
+test('state metrics accept proof-bearing binary retailer inventory without inventing quantity', () => {
+  const observedAt = new Date().toISOString();
+  const row = {
+    state: 'SC',
+    stateCode: 'SC',
+    eventType: 'cityhive_store_inventory_result',
+    sourceLabel: "Green's Beverage South Carolina CityHive store inventory",
+    sourceUrl: 'https://greensbeverages.com/shop/product/bulleit-bourbon/product-1?option-id=option-1',
+    sourceChain: 'greens-beverage',
+    canonicalBottleId: 'bb_test',
+    storeId: 'greens-beverage:61dc4ab6a1d5721307e9c20e',
+    storeName: 'Reviewed Store',
+    storeAddress: '1 Main St, Columbia, SC 29201',
+    merchantId: '61dc4ab6a1d5721307e9c20e',
+    productId: 'product-1',
+    variantId: 'option-1',
+    sourceProductProofId: 'product-1',
+    locationPrecision: 'store_level',
+    sourceAvailabilityVerified: true,
+    availabilityStatus: 'binary_retailer_in_stock',
+    quantity: 0,
+    quantityIsExact: false,
+    canAlertAsInventory: true,
+    observedAt,
+  };
+  const metrics = calculateStateExpansionMetrics({
+    stateCode: 'SC',
+    stateReport: { signals: [row] },
+    siteDrops: { drops: [row] },
+    minimumObservedAtMs: Date.parse(observedAt),
+    strictInventoryValidator: isSouthCarolinaCityHiveInventory,
+  });
+  assert.equal(metrics.liveStores, 1);
+  assert.equal(metrics.alertGradeStores, 1);
+  assert.equal(metrics.freshExactStoreDrops, 1);
+  const forged = calculateStateExpansionMetrics({
+    stateCode: 'SC',
+    stateReport: { signals: [{ ...row, sourceUrl: 'https://evil.example/product' }] },
+    siteDrops: { drops: [{ ...row, sourceUrl: 'https://evil.example/product' }] },
+    minimumObservedAtMs: Date.parse(observedAt),
+    strictInventoryValidator: isSouthCarolinaCityHiveInventory,
+  });
+  assert.equal(forged.liveStores, 0);
+  assert.equal(forged.alertGradeStores, 0);
+  assert.equal(forged.freshExactStoreDrops, 0);
 });
 
 test('writer lock is exclusive and released explicitly', async () => {

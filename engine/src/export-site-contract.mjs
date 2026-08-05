@@ -17,7 +17,7 @@ import { isMississippiRetailerInventory } from './mississippi-retailer-policy.mj
 import { isMetroRetailerInventory, isMetroRetailerSignalIdentity, metroRetailerArea } from './metro-retailer-policy.mjs';
 import { isTennesseeRetailerInventory, isTennesseeRetailerSignalIdentity } from './tennessee-retailer-policy.mjs';
 import { isSouthCarolinaDunesInventory, isSouthCarolinaDunesSignal } from './south-carolina-dunes-policy.mjs';
-import { hasSouthCarolinaPositiveInventoryEvidence, isSouthCarolinaAllAmericanInventory, isSouthCarolinaAllAmericanSignal, isSouthCarolinaSouthernSpiritsInventory, isSouthCarolinaSouthernSpiritsSignal } from './south-carolina-retailer-policy.mjs';
+import { hasSouthCarolinaPositiveInventoryEvidence, isSouthCarolinaAllAmericanInventory, isSouthCarolinaAllAmericanSignal, isSouthCarolinaCityHiveInventory, isSouthCarolinaSouthernSpiritsInventory, isSouthCarolinaSouthernSpiritsSignal } from './south-carolina-retailer-policy.mjs';
 import { canPublishTennesseePartialEvidenceFallback } from './tennessee-verification-policy.mjs';
 import { registeredDemandMetroStores } from './demand-metro-registry.mjs';
 import { demandMetroAreaLabel, demandMetroAreaMatchesFields } from './demand-metro-areas.mjs';
@@ -1462,8 +1462,13 @@ export function buildCurrentInventoryAlertsFromDrops(drops) {
         && drop.quantityIsExact === false
         && isFloridaRetailerInventory(drop);
       const southCarolinaInStoreBaseline = isSouthCarolinaAllAmericanInventory(drop);
+      const southCarolinaCityHiveBinaryBaseline = drop.state === 'SC'
+        && Number(drop.quantity || 0) === 0
+        && drop.quantityIsExact === false
+        && isSouthCarolinaCityHiveInventory(drop);
       const southCarolinaBinaryBaseline = isSouthCarolinaSouthernSpiritsInventory(drop)
-        || southCarolinaInStoreBaseline;
+        || southCarolinaInStoreBaseline
+        || southCarolinaCityHiveBinaryBaseline;
       const binaryRetailerOrderability = floridaBinaryBaseline || isSouthCarolinaSouthernSpiritsInventory(drop) || (
         (georgiaBaseline || metroBaseline || tennesseeBinaryBaseline)
         && drop.inventorySemantics === 'binary_retailer_orderable_no_exact_count'
@@ -1489,7 +1494,7 @@ export function buildCurrentInventoryAlertsFromDrops(drops) {
       changeType: 'current_inventory_signal',
       dedupeKey: stableId(['current_inventory_alert', drop.state, drop.canonicalId || drop.bottleName, drop.storeId || drop.locationName, drop.availabilityStatus || '', drop.quantity || 0]),
       matchKey: stableId([drop.state, drop.canonicalId || drop.bottleName, drop.storeId || drop.locationName || 'regional']),
-      gates: ['current_public_drop', 'store_level', southCarolinaInStoreBaseline
+      gates: ['current_public_drop', 'store_level', southCarolinaInStoreBaseline || southCarolinaCityHiveBinaryBaseline
         ? 'verified_binary_in_store_availability'
         : binaryRetailerOrderability || drop.state === 'CA' ? 'verified_binary_orderability' : 'positive_quantity'],
       blockers: [],
