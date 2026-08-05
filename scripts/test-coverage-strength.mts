@@ -29,6 +29,9 @@ const lifecycle = {
       publicStatus: "active",
       lifecycle: "store_inventory",
       coverageTier: "live_store_inventory",
+      peakCoverageStrength: "strong",
+      peakVerifiedSourceTargets: 30,
+      peakVerifiedSourceAreas: 6,
     },
   },
 } as const;
@@ -133,7 +136,9 @@ const attachmentOnlyContract = buildCoverageContract({
 const attachmentOnlyVirginia = attachmentOnlyContract.states.find((state) => state.code === "VA");
 assert.ok(attachmentOnlyVirginia);
 assert.equal(attachmentOnlyVirginia.coverageStatus, "available", "an active attached source may establish basic availability");
-assert.equal(attachmentOnlyVirginia.coverageStrength, "sparse", "source attachment without identity-bound observed evidence cannot be Strong");
+assert.equal(attachmentOnlyVirginia.coverageStrength, "strong", "verified peak breadth remains Strong when the current export has no observed rows");
+assert.equal(attachmentOnlyVirginia.scope.verifiedSourceTargets, 30, "durable peak target evidence remains available to audits");
+assert.equal(attachmentOnlyVirginia.scope.verifiedSourceAreas, 6, "durable peak area evidence remains available to audits");
 
 const mapSource = readFileSync(new URL("../src/components/coverage/CoverageMap.tsx", import.meta.url), "utf8");
 const explorerSource = readFileSync(new URL("../src/components/coverage/CoverageExplorer.tsx", import.meta.url), "utf8");
@@ -147,6 +152,7 @@ assert.match(mapSource, /aria-label="Strong coverage"/, "legend swatches must ex
 assert.match(explorerSource, /state\.coverageStrengthLabel/, "mobile selector and browse list must show the strength tier");
 assert.match(panelSource, /<CoverageSummary state=\{state\}/, "state panel must render the shared summary");
 assert.match(summarySource, /state\.coverageStrengthLabel/, "shared summary must lead with the honest strength tag");
+assert.doesNotMatch(summarySource, /inventoryMonitoredStores|Stores with current inventory signals/, "coverage summary must not display current state freshness");
 assert.match(cssSource, /data-coverage-strength="strong"/, "CSS must provide a distinct strong color");
 assert.match(cssSource, /data-coverage-strength="moderate"/, "CSS must provide a distinct moderate color");
 assert.match(cssSource, /data-coverage-strength="sparse"/, "CSS must provide a distinct sparse color");
