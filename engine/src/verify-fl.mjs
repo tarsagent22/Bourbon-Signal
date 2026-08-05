@@ -35,7 +35,7 @@ const safeRetainedInventory = staleFallbacks.filter((signal) => isExplicitSafeSt
   && signal.locationPrecision === 'store_level'
   && Boolean(signal.storeId)
   && Number(signal.quantity || 0) >= 0);
-const safeStaleFallbackMode = allowSafeStaleFallback && /^stale_useful(?:_quality_fallback)?$/.test(String(state.status || ''));
+const safeStaleFallbackMode = allowSafeStaleFallback && /^stale_/.test(String(state.status || ''));
 const coverageInventory = safeStaleFallbackMode ? safeRetainedInventory : trusted;
 const trustedStores = new Set(coverageInventory.map((signal) => signal.storeId));
 const trustedCities = new Set(coverageInventory.map((signal) => signal.city));
@@ -63,7 +63,7 @@ const minimumCityCount = allowSafeStaleFallback ? 15 : 24;
 const minimumSourceCount = allowSafeStaleFallback ? 5 : 8;
 
 const allowedStatus = allowSafeStaleFallback
-  ? ['useful', 'useful_retained_not_due'].includes(state.status) || /^stale_useful(?:_quality_fallback)?$/.test(String(state.status || ''))
+  ? ['useful', 'useful_retained_not_due'].includes(state.status) || safeStaleFallbackMode
   : state.status === 'useful';
 assert(allowedStatus, `Expected Florida useful, retained-not-due, or guarded stale-useful status; got ${state.status}`);
 if (safeStaleFallbackMode) {
