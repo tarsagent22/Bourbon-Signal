@@ -262,13 +262,14 @@ async function buildBourbonBible() {
   // Engine tiers drive alert priority, not the customer-facing rarity score. Apply
   // live engine data first, then broad inventory editorial metadata, then the most
   // deliberate curated profiles. Signal flags and aliases survive every merge.
+  const approvedBottles: BibleBottleInput[] = await listApprovedBottles().catch((error) => {
+    console.error("Approved Bottle Bible catalog unavailable", error);
+    return [];
+  });
   return mergeBottleCatalogSources([
     await readEngineBibleBottles(),
     readInventoryBibleBottles(),
-    await listApprovedBottles().catch((error) => {
-      console.error("Approved Bottle Bible catalog unavailable", error);
-      return [];
-    }),
+    approvedBottles,
     SEED_BOTTLES,
   ]).map((bottle): BibleBottle => {
     const inheritedTier = normalizeBottleScarcity({ availability: bottle.availability }).nationalTier;
