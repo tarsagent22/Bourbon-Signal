@@ -3,6 +3,7 @@ import { readSiteExport } from "@/lib/site-engine-contract";
 import { mergeBottleCatalogSources } from "@/lib/bottle-catalog-merge";
 import { getBottleStateScarcityOverrides } from "@/data/bottle-scarcity-overrides";
 import { mergeStateScarcityOverrides, normalizeBottleScarcity, type BottleScarcity, type ScarcityConfidence, type ScarcityTier } from "@/lib/bottle-scarcity";
+import { listApprovedBottles } from "@/lib/approved-catalog-service";
 
 export type AvailabilityTier = "common" | "regional" | "seasonal" | "limited" | "allocated" | "highly_allocated" | "unicorn";
 export type BuyerVerdict = "safe_to_pass" | "fair_buy" | "good_buy" | "grab_at_msrp" | "special_find" | "unknown";
@@ -261,9 +262,14 @@ async function buildBourbonBible() {
   // Engine tiers drive alert priority, not the customer-facing rarity score. Apply
   // live engine data first, then broad inventory editorial metadata, then the most
   // deliberate curated profiles. Signal flags and aliases survive every merge.
+  const approvedBottles: BibleBottleInput[] = await listApprovedBottles().catch((error) => {
+    console.error("Approved Bottle Bible catalog unavailable", error);
+    return [];
+  });
   return mergeBottleCatalogSources([
     await readEngineBibleBottles(),
     readInventoryBibleBottles(),
+    approvedBottles,
     SEED_BOTTLES,
   ]).map((bottle): BibleBottle => {
     const inheritedTier = normalizeBottleScarcity({ availability: bottle.availability }).nationalTier;
@@ -321,6 +327,11 @@ export async function getBourbonBible() {
       bourbonBibleInFlight = null;
     });
   return bourbonBibleInFlight;
+}
+
+export function clearBourbonBibleCache() {
+  bourbonBibleCache = null;
+  bourbonBibleInFlight = null;
 }
 
 export async function searchBourbonBible(query: string, limit = 8): Promise<BibleSearchResult[]> {

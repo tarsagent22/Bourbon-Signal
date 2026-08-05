@@ -7,6 +7,7 @@ import {
   demandMetroBoardGroupMatchesFields,
   parseDemandMetroAreaQuery,
 } from "@/lib/demand-metro-areas";
+import { listApprovedLocations } from "@/lib/approved-catalog-service";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -27,12 +28,21 @@ export async function GET(request: Request) {
   try {
     const storesPayload = await readSiteExport("stores");
     const exportPayload = storesPayload ?? await readSiteExport("locations");
-    const rawStores = Array.isArray(exportPayload?.stores)
+    const engineStores = Array.isArray(exportPayload?.stores)
       ? exportPayload.stores
       : Array.isArray(exportPayload?.locations)
         ? exportPayload.locations
         : [];
-    let stores = rawStores.map((store) => normalizeStoreForSite(store as Record<string, unknown>));
+    const approvedStores = await listApprovedLocations().catch((error) => {
+      console.error("[api/stores] Approved catalog unavailable:", error);
+      return [];
+    });
+    const storesById = new Map<string, Record<string, unknown>>();
+    for (const store of [...engineStores, ...approvedStores]) {
+      const record = store as Record<string, unknown>;
+      storesById.set(String(record.id || `${record.state}:${record.name}:${record.address || record.city}`), record);
+    }
+    let stores = [...storesById.values()].map((store) => normalizeStoreForSite(store));
 
     if (state) {
       stores = stores.filter((store) => {

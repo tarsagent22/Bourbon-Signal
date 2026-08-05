@@ -81,7 +81,7 @@ assert.equal(mergedEagleRare25[0].isSignalTracked, true, "engine tracking metada
 
 const bibleSource = readFileSync(new URL("../src/lib/bourbonBible.ts", import.meta.url), "utf8");
 assert.match(bibleSource, /signalBottle\("eagle-rare-12",[\s\S]*?"highly_allocated"/, "Eagle Rare 12 must retain its curated highly allocated profile");
-assert.match(bibleSource, /mergeBottleCatalogSources\(\[\s*await readEngineBibleBottles\(\),\s*readInventoryBibleBottles\(\),\s*SEED_BOTTLES,\s*\]\)/, "engine alert data must be applied before customer-facing inventory and curated rarity profiles");
+assert.match(bibleSource, /const approvedBottles: BibleBottleInput\[\] = await listApprovedBottles\(\)\.catch\([\s\S]*?mergeBottleCatalogSources\(\[\s*await readEngineBibleBottles\(\),\s*readInventoryBibleBottles\(\),\s*approvedBottles,\s*SEED_BOTTLES,\s*\]\)/, "engine alert data must remain lower authority than customer-facing inventory, approved additions, and curated rarity profiles");
 
 const routeSource = readFileSync(new URL("../src/app/api/bottle-check/route.ts", import.meta.url), "utf8");
 assert.match(routeSource, /resolveBottleScarcity/, "Bottle Check must resolve the selected market through evidence-backed scarcity records");

@@ -103,12 +103,12 @@ export default async function CompanyControlRoomPage() {
           <div className="cr-queue-grid">
             <article id="bottles" className="cr-queue-panel">
               <div className="cr-subheading"><div><p>Catalog</p><h3>Bottle review</h3></div><Link href="/admin/bottle-queue">Open full queue</Link></div>
-              <p className="cr-note top">Accept the suggested Bottle Bible match, confirm that you added the bottle, or dismiss an invalid entry.</p>
+              <p className="cr-note top">Match an existing Bottle Bible entry, add a reviewed bottle directly to the catalog, or dismiss an invalid entry.</p>
               <AdminBottleQueueClient embedded />
             </article>
             <article id="sightings" className="cr-queue-panel">
               <div className="cr-subheading"><div><p>Community</p><h3>Member sighting approvals</h3></div><Link href="/admin/sightings">Open full queue</Link></div>
-              <p className="cr-note top">Approve a valid sighting publicly or privately, or reject the whole submission.</p>
+              <p className="cr-note top">Approve a valid sighting publicly or privately, add any reviewed bottle/location to the catalog, or reject the whole submission.</p>
               <AdminSightingsClient embedded />
             </article>
           </div>

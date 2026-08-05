@@ -6,6 +6,7 @@ import { createCommunitySightingsRepository } from "@/lib/community-sightings-re
 import { isRewardsAdminEmail, reconcileMemberRewards, type SightingPhotoReviewStatus } from "@/lib/sighting-rewards";
 import { normalizeSightingsForRewards } from "@/lib/sighting-reward-tiers";
 import { needsSightingReview, reviewReasonLabels } from "@/lib/sighting-review";
+import { persistApprovedSightingCatalog } from "@/lib/approved-catalog-service";
 
 function normalizePrefs(input: unknown): SightingsPreferences {
   const source = (input && typeof input === "object" ? input : {}) as Record<string, unknown>;
@@ -114,6 +115,14 @@ export async function PATCH(req: NextRequest) {
   if (!sourceSightings.some((sighting) => sighting.id === sightingId)) {
     return NextResponse.json({ error: "Sighting not found" }, { status: 404 });
   }
+  const targetSighting = sourceSightings.find((sighting) => sighting.id === sightingId)!;
+  const catalogResult = resolveManualReview
+    ? await persistApprovedSightingCatalog(targetSighting, admin.adminUserId)
+    : { bottle: null, location: null };
+  if (catalogResult.bottle) {
+    const { clearBourbonBibleCache } = await import("@/lib/bourbonBible");
+    clearBourbonBibleCache();
+  }
 
   const nextSightings = sourceSightings.map((sighting) => {
     if (sighting.id !== sightingId) return sighting;
@@ -176,5 +185,6 @@ export async function PATCH(req: NextRequest) {
     ok: true,
     pendingReview: needsSightingReview(updatedSighting),
     sighting: updatedSighting,
+    catalogResult,
   });
 }

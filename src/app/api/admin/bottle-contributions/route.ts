@@ -3,6 +3,8 @@ import { auth, clerkClient } from "@clerk/nextjs/server";
 import { isRewardsAdminEmail } from "@/lib/sighting-rewards";
 import { readBottleContributionQueue, updateBottleContribution } from "@/lib/bottle-contributions";
 import { bottleContributionStatusForAction, isBottleContributionPending } from "@/lib/admin-review";
+import { upsertApprovedBottle } from "@/lib/approved-catalog-service";
+import type { ApprovedBottleAvailability, ApprovedBottleCategory } from "@/lib/approved-catalog";
 
 function primaryEmail(user: { emailAddresses?: unknown[]; primaryEmailAddressId?: unknown }) {
   const emails = Array.isArray(user.emailAddresses) ? user.emailAddresses as Array<Record<string, unknown>> : [];
@@ -36,6 +38,21 @@ export async function PATCH(req: NextRequest) {
   if (!id) return NextResponse.json({ error: "Missing contribution" }, { status: 400 });
   const status = bottleContributionStatusForAction(action);
   if (!status) return NextResponse.json({ error: "Invalid action" }, { status: 400 });
+  let catalogResult = null;
+  if (action === "confirm_added") {
+    const catalogBottle = payload.catalogBottle && typeof payload.catalogBottle === "object"
+      ? payload.catalogBottle as Record<string, unknown>
+      : null;
+    if (!catalogBottle) return NextResponse.json({ error: "Bottle catalog details are required" }, { status: 400 });
+    catalogResult = await upsertApprovedBottle({
+      canonicalName: String(catalogBottle.canonicalName || ""),
+      brand: String(catalogBottle.brand || ""),
+      category: String(catalogBottle.category || "") as ApprovedBottleCategory,
+      availability: String(catalogBottle.availability || "") as ApprovedBottleAvailability,
+    }, admin.adminUserId, "bottle_queue");
+    const { clearBourbonBibleCache } = await import("@/lib/bourbonBible");
+    clearBourbonBibleCache();
+  }
   const updated = await updateBottleContribution(id, {
     status,
     candidateBottleId: typeof payload.candidateBottleId === "string" ? payload.candidateBottleId : undefined,
@@ -46,5 +63,6 @@ export async function PATCH(req: NextRequest) {
     ok: true,
     pendingReview: isBottleContributionPending(updated.status),
     contribution: updated,
+    catalogResult,
   });
 }
