@@ -102,6 +102,16 @@ export function isSouthCarolinaAllAmericanSignal(signal) {
     || storeId.startsWith('all-american-liquor:');
 }
 
+export function hasSouthCarolinaAllAmericanRawSourceProof(signal) {
+  const productId = String(signal?.productId || '').trim();
+  const sku = String(signal?.sku || '').trim();
+  return signal?.raw?.chain === 'all-american-liquor'
+    && String(signal?.raw?.product?.id ?? '') === productId
+    && String(signal?.raw?.product?.sku ?? '') === sku
+    && signal?.raw?.product?.is_in_stock === true
+    && signal?.raw?.product?.is_on_backorder === false;
+}
+
 export function isSouthCarolinaSouthernSpiritsInventory(signal, nowMs = Date.now()) {
   const eventType = String(signal?.eventType || signal?.type || '');
   const sourceChain = String(signal?.sourceChain || signal?.raw?.chain || '');

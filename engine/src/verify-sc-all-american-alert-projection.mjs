@@ -1,6 +1,9 @@
 function projectionIdentity(row) {
+  const canonicalBottleId = String(row?.canonicalBottleId || '');
+  const canonicalId = String(row?.canonicalId || '');
+  if (canonicalBottleId && canonicalId && canonicalBottleId !== canonicalId) return null;
   const parts = [
-    String(row?.canonicalBottleId || row?.canonicalId || ''),
+    canonicalBottleId || canonicalId,
     String(row?.storeId || ''),
     String(row?.productId || ''),
     String(row?.sku || ''),
@@ -12,6 +15,7 @@ export function verifyAllAmericanAlertProjection({
   sourceDrops = [],
   sourceAlerts = [],
   sourceInventoryRows = sourceDrops,
+  expectedAdditionalChangeRows = null,
 } = {}) {
   const dropIdentities = new Set(sourceDrops.map(projectionIdentity));
   if (dropIdentities.has(null) || dropIdentities.size !== sourceDrops.length) {
@@ -39,9 +43,18 @@ export function verifyAllAmericanAlertProjection({
 
   const additionalChangeRows = sourceAlerts.filter((row) => !currentInventoryAlerts.includes(row));
   const additionalIdentities = additionalChangeRows.map(projectionIdentity);
+  const expectedRows = expectedAdditionalChangeRows ?? additionalChangeRows;
+  const expectedIdentities = expectedRows.map(projectionIdentity);
+  const expectedIdentitySet = new Set(expectedIdentities);
+  const additionalIdentitySet = new Set(additionalIdentities);
   if (additionalChangeRows.some((row) => !['new_signal', 'changed_signal'].includes(row?.changeType))
     || additionalIdentities.some((identity) => !identity || !inventoryIdentities.has(identity))
-    || new Set(additionalIdentities).size !== additionalIdentities.length) {
+    || additionalIdentitySet.size !== additionalIdentities.length
+    || expectedRows.some((row) => !['new_signal', 'changed_signal'].includes(row?.changeType))
+    || expectedIdentities.some((identity) => !identity || !inventoryIdentities.has(identity))
+    || expectedIdentitySet.size !== expectedIdentities.length
+    || additionalChangeRows.length !== expectedRows.length
+    || [...expectedIdentitySet].some((identity) => !additionalIdentitySet.has(identity))) {
     throw new Error('All American additional change projections are missing, duplicated, or unrelated to current source inventory');
   }
 

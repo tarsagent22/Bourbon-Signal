@@ -2,7 +2,12 @@ import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { isSouthCarolinaAllAmericanInventory } from './south-carolina-retailer-policy.mjs';
+import { buildAlerts } from './export-site-contract.mjs';
+import {
+  hasSouthCarolinaAllAmericanRawSourceProof,
+  isSouthCarolinaAllAmericanInventory,
+  isSouthCarolinaAllAmericanSignal,
+} from './south-carolina-retailer-policy.mjs';
 import { verifyAllAmericanAlertProjection } from './verify-sc-all-american-alert-projection.mjs';
 
 const ENGINE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
@@ -25,10 +30,6 @@ function values(payload, key) {
   return rows;
 }
 
-function sourceMatches(row) {
-  return String(row?.sourceLabel || row?.source || '') === ALL_AMERICAN_SOURCE;
-}
-
 function unique(rows, pick) {
   return new Set(rows.map(pick).filter(Boolean)).size;
 }
@@ -37,19 +38,32 @@ const report = await readJson(path.join(ENGINE_ROOT, 'out/states/SC.json'));
 const drops = values(await readJson(path.join(ENGINE_ROOT, 'out/site/drops.json')), 'drops');
 const alerts = values(await readJson(path.join(ENGINE_ROOT, 'out/site/alerts.json')), 'alerts');
 const stores = values(await readJson(path.join(ENGINE_ROOT, 'out/site/stores.json')), 'stores');
+const alertCandidates = values(await readJson(path.join(ENGINE_ROOT, 'out/alert-candidates.json')), 'candidates');
 
 if (report.state !== 'SC' || report.status !== 'useful') throw new Error(`SC report is not useful (${report.state || 'unknown'}:${report.status || 'unknown'})`);
-const sourceRows = (report.signals || []).filter((row) => row.eventType === 'retailer_store_inventory_result' && sourceMatches(row));
+const sourceRows = (report.signals || []).filter((row) =>
+  row.eventType === 'retailer_store_inventory_result'
+  && isSouthCarolinaAllAmericanSignal(row));
 if (!sourceRows.length) throw new Error('Forced live SC report produced no All American inventory rows');
-if (!sourceRows.every((row) => isSouthCarolinaAllAmericanInventory(row))) throw new Error('All American raw source rows failed exact identity, freshness, or binary-stock policy');
+if (!sourceRows.every((row) => isSouthCarolinaAllAmericanInventory(row)
+  && hasSouthCarolinaAllAmericanRawSourceProof(row))) {
+  throw new Error('All American raw source rows failed exact identity, raw proof, freshness, or binary-stock policy');
+}
 
 const stateDrops = drops.filter((row) => row.state === 'SC' && row.locationPrecision === 'store_level');
 const freshDrops = stateDrops.filter((row) => row.stale !== true && row.sourceStale !== true);
-const sourceDrops = freshDrops.filter(sourceMatches);
+const sourceDrops = drops.filter(isSouthCarolinaAllAmericanSignal);
 if (!sourceDrops.length) throw new Error('All American rows did not reach the customer drop contract');
-if (!sourceDrops.every((row) => isSouthCarolinaAllAmericanInventory(row) && row.eligibleForOnSite === true)) throw new Error('All American customer drops widened or lost reviewed policy');
+if (!sourceDrops.every((row) => row.state === 'SC'
+  && row.locationPrecision === 'store_level'
+  && row.stale !== true
+  && row.sourceStale !== true
+  && isSouthCarolinaAllAmericanInventory(row)
+  && row.eligibleForOnSite === true)) {
+  throw new Error('All American customer drops widened or lost reviewed policy');
+}
 
-const sourceAlerts = alerts.filter((row) => row.state === 'SC' && sourceMatches(row));
+const sourceAlerts = alerts.filter(isSouthCarolinaAllAmericanSignal);
 if (!sourceAlerts.every((row) => isSouthCarolinaAllAmericanInventory(row)
   && row.eligibleForOnSite === true
   && row.eligibleForEmail === false
@@ -58,13 +72,16 @@ if (!sourceAlerts.every((row) => isSouthCarolinaAllAmericanInventory(row)
   && !row.gates?.includes('verified_binary_orderability'))) {
   throw new Error('All American baseline alert projection is not on-site-only binary inventory');
 }
+const expectedAdditionalChangeRows = buildAlerts({ candidates: alertCandidates })
+  .filter(isSouthCarolinaAllAmericanSignal);
 const { currentInventoryAlerts, additionalChangeAlerts } = verifyAllAmericanAlertProjection({
   sourceDrops,
   sourceAlerts,
   sourceInventoryRows: sourceRows,
+  expectedAdditionalChangeRows,
 });
 
-const sourceStores = stores.filter((row) => row.state === 'SC' && sourceMatches(row));
+const sourceStores = stores.filter(isSouthCarolinaAllAmericanSignal);
 if (sourceStores.length !== 1
   || sourceStores[0].id !== ALL_AMERICAN_STORE_ID
   || sourceStores[0].address !== expectedAddress

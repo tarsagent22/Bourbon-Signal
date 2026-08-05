@@ -8,8 +8,10 @@ import { buildAlerts, buildCurrentInventoryAlertsFromDrops, buildDrops } from '.
 import { candidateFromChange, canonicalizeSignal } from '../src/operational-report.mjs';
 import { verifyAllAmericanAlertProjection } from '../src/verify-sc-all-american-alert-projection.mjs';
 import {
+  hasSouthCarolinaAllAmericanRawSourceProof,
   hasSouthCarolinaPositiveInventoryEvidence,
   isSouthCarolinaAllAmericanInventory,
+  isSouthCarolinaAllAmericanSignal,
 } from '../src/south-carolina-retailer-policy.mjs';
 
 const bible = await BourbonBible.load(new URL('../out/bourbon-bible.json', import.meta.url));
@@ -166,6 +168,7 @@ test('All American production verifier accepts safe source changes collapsed fro
       sourceDrops: [customerDrop],
       sourceAlerts: [current, safeCollapsedChange],
       sourceInventoryRows: [customerDrop, collapsedSourceRow],
+      expectedAdditionalChangeRows: [safeCollapsedChange],
     }),
     { currentInventoryAlerts: [current], additionalChangeAlerts: 1 },
   );
@@ -174,9 +177,58 @@ test('All American production verifier accepts safe source changes collapsed fro
       sourceDrops: [customerDrop],
       sourceAlerts: [current, safeCollapsedChange],
       sourceInventoryRows: [customerDrop],
+      expectedAdditionalChangeRows: [safeCollapsedChange],
     }),
     /unrelated to current source inventory/,
   );
+  assert.throws(
+    () => verifyAllAmericanAlertProjection({
+      sourceDrops: [customerDrop],
+      sourceAlerts: [current],
+      sourceInventoryRows: [customerDrop, collapsedSourceRow],
+      expectedAdditionalChangeRows: [safeCollapsedChange],
+    }),
+    /additional change projections/,
+  );
+  assert.throws(
+    () => verifyAllAmericanAlertProjection({
+      sourceDrops: [{ ...customerDrop, canonicalId: 'conflicting-bottle' }],
+      sourceAlerts: [{ ...current, canonicalId: 'conflicting-bottle' }],
+      sourceInventoryRows: [customerDrop, collapsedSourceRow],
+    }),
+    /missing or duplicate projection identities/,
+  );
+});
+
+test('All American production source proof requires the raw product binding', () => {
+  const row = signal();
+  assert.equal(hasSouthCarolinaAllAmericanRawSourceProof(row), true);
+  for (const mutate of [
+    (copy) => { delete copy.raw; },
+    (copy) => { delete copy.raw.product; },
+    (copy) => { copy.raw.chain = 'forged'; },
+    (copy) => { copy.raw.product.id = 9999; },
+    (copy) => { copy.raw.product.sku = 'forged'; },
+    (copy) => { copy.raw.product.is_in_stock = false; },
+    (copy) => { copy.raw.product.is_on_backorder = true; },
+  ]) {
+    const forged = structuredClone(row);
+    mutate(forged);
+    assert.equal(hasSouthCarolinaAllAmericanRawSourceProof(forged), false);
+  }
+});
+
+test('All American broad classifier catches malformed final-output identities', () => {
+  for (const mutate of [
+    (copy) => { copy.state = 'NC'; copy.stateCode = 'NC'; },
+    (copy) => { copy.sourceLabel = 'forged source'; },
+    (copy) => { copy.sourceChain = 'forged'; },
+  ]) {
+    const forged = signal();
+    mutate(forged);
+    assert.equal(isSouthCarolinaAllAmericanSignal(forged), true);
+    assert.equal(isSouthCarolinaAllAmericanInventory(forged), false);
+  }
 });
 
 test('All American first-run change survives the exported alert contract without widening delivery', () => {
