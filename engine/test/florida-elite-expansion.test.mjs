@@ -278,6 +278,9 @@ test('Florida verifier rejects evidence older than 90 minutes and alertable stal
     assert.equal(guardedFallback.status, 'stale_useful_quality_fallback');
     assert.equal(runVerifier(guardedFallback, ['--allow-safe-stale-fallback']).status, 0, 'scheduled mode accepts only fully normalized guarded stale fallback evidence');
     assert.notEqual(runVerifier(guardedFallback).status, 0, 'targeted mode still rejects guarded stale fallback evidence');
+    const reachableFallback = { ...guardedFallback, status: 'stale_reachable_needs_deeper_parser' };
+    assert.equal(runVerifier(reachableFallback, ['--allow-safe-stale-fallback']).status, 0, 'scheduled mode accepts a fully safe stale partition regardless of the retained diagnostic status suffix');
+    assert.notEqual(runVerifier(reachableFallback).status, 0, 'targeted mode still rejects a stale reachable fallback');
     const tooOldAt = new Date(Date.now() - 91 * 60_000).toISOString();
     assert.notEqual(runVerifier(makeFixture(tooOldAt)).status, 0, 'environment overrides cannot expand the 90-minute ceiling');
     const alertableFallback = makeFixture(freshAt, (signals) => {
