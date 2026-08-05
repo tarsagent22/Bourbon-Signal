@@ -66,6 +66,26 @@ test('generic simple-source lane uses standardized isolation and preserves succe
   assert.equal(report.roadblocks.some((roadblock) => roadblock.source === 'throwing fixture'), true);
 });
 
+test('Costco-only strategy invokes its collector even without a synthetic configured source', async () => {
+  const config = {
+    id: 'ZZ',
+    label: 'Fixture Costco state',
+    tier: 'test',
+    strategy: 'costco_warehouse_inventory_watch',
+    cadence: 'test',
+    value: 'fixture',
+    sources: [],
+    apiCandidates: [],
+  };
+
+  const report = await collectState(config, bible);
+
+  assert.equal(report.sources.some((source) => source.signalType === 'costco_item_watchlist'), true);
+  assert.equal(report.sources.some((source) => source.signalType === 'costco_observation_feed_missing'), true);
+  assert.equal(report.roadblocks.some((roadblock) => roadblock.source === 'Costco warehouse observation feed' && roadblock.status === 'not_configured'), true);
+  assert.equal(report.signals.length, 0);
+});
+
 test('generic API candidates use the same source runtime boundary as configured sources', async () => {
   const apiUrl = 'data:application/json,%5B%7B%22name%22%3A%22Fixture%20Bourbon%22%7D%5D';
   const config = {
@@ -157,6 +177,8 @@ test('representative multi-source California lane and run-level SLO use shared r
   assert.match(stateRunner, /source-run-history\.json/);
   const engineRunner = await readFile(new URL('../src/run.mjs', import.meta.url), 'utf8');
   assert.match(engineRunner, /runBoundedPool\(runnable/);
+  assert.match(engineRunner, /attemptStartedAt:\s*poolResult\?\.startedAt/);
+  assert.match(engineRunner, /attemptFinishedAt:\s*poolResult\?\.finishedAt/);
   assert.match(engineRunner, /source-slo-7d\.json/);
   assert.match(engineRunner, /appendSourceSloObservations/);
   assert.match(engineRunner, /buildSevenDaySourceSloReport/);

@@ -22,6 +22,7 @@ export async function runBoundedPool(tasks, worker, options = {}) {
         const eligibleIndex = pending.findIndex((item) => (domainActive.get(item.domain) || 0) < perDomain);
         if (eligibleIndex < 0) break;
         const [{ task, index, domain }] = pending.splice(eligibleIndex, 1);
+        const startedAt = new Date().toISOString();
         active += 1;
         domainActive.set(domain, (domainActive.get(domain) || 0) + 1);
         const controller = new AbortController();
@@ -33,8 +34,8 @@ export async function runBoundedPool(tasks, worker, options = {}) {
           }, timeoutMs);
         });
         Promise.race([Promise.resolve().then(() => worker(task, { signal: controller.signal, index })), timeout])
-          .then((value) => { results[index] = { status: 'fulfilled', value, task }; })
-          .catch((reason) => { results[index] = { status: 'rejected', reason, task }; })
+          .then((value) => { results[index] = { status: 'fulfilled', value, task, startedAt, finishedAt: new Date().toISOString() }; })
+          .catch((reason) => { results[index] = { status: 'rejected', reason, task, startedAt, finishedAt: new Date().toISOString() }; })
           .finally(() => {
             clearTimeout(timer);
             active -= 1;

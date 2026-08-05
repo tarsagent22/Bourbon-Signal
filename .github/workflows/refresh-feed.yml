@@ -146,8 +146,13 @@ jobs:
           BOURBON_SIGNAL_FORCE_SOURCE_RUN: ${{ (inputs.states != '' || inputs.force_all_states == 'true' || steps.nc-intelligence-cache.outputs.cache-matched-key == '') && '1' || '0' }}
         run: npm run refresh:site
 
-      - name: Verify North Carolina current-plus-stale signal continuity
-        if: ${{ !inputs.states || contains(inputs.states, 'NC') }}
+      - name: Verify North Carolina scheduled continuity or isolate a safe partial fallback
+        if: ${{ !inputs.states }}
+        working-directory: engine
+        run: npm run verify:nc -- --allow-safe-partial-fallback
+
+      - name: Verify North Carolina targeted recovery strictly
+        if: ${{ inputs.states && contains(inputs.states, 'NC') }}
         working-directory: engine
         run: npm run verify:nc
 

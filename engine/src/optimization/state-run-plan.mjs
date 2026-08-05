@@ -21,8 +21,8 @@ export function updateStateRunMetric(metrics = {}, result) {
   const previous = metrics[result.id] || {};
   const changed = Boolean(result.ok) && result.contentHash !== previous.contentHash;
   const failed = !result.ok;
-  const startedAt = Date.parse(result.startedAt || '');
-  const finishedAt = Date.parse(result.finishedAt || '');
+  const startedAt = Date.parse(result.attemptStartedAt || result.startedAt || '');
+  const finishedAt = Date.parse(result.attemptFinishedAt || result.finishedAt || '');
   const runtimeMs = Number.isFinite(startedAt) && Number.isFinite(finishedAt) && finishedAt >= startedAt
     ? finishedAt - startedAt
     : null;
