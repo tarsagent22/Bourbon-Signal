@@ -16,7 +16,7 @@ import { getStateLifecycle } from './state-lifecycle.mjs';
 import { appendChangeJournal } from './optimization/change-journal.mjs';
 import { hasPositiveInventoryEvidence } from './operational-candidate-policy.mjs';
 import { authoritativeSignalTimestamp, enforceArchivedSourceAlertPolicy } from './event-freshness.mjs';
-import { isSouthCarolinaAllAmericanSignal, isSouthCarolinaSouthernSpiritsInventory } from './south-carolina-retailer-policy.mjs';
+import { isSouthCarolinaAllAmericanInventory, isSouthCarolinaAllAmericanSignal, isSouthCarolinaSouthernSpiritsInventory } from './south-carolina-retailer-policy.mjs';
 
 const OUT = path.resolve('out');
 const HISTORY = path.join(OUT, 'history');
@@ -377,16 +377,29 @@ export function candidateFromChange(change, bootstrap = false) {
   if (process.env.BOURBON_SIGNAL_MANUAL_REFRESH === '1' || process.env.BOURBON_SIGNAL_ALERT_QUARANTINE === '1') {
     blockers.push('manual_refresh_quarantine');
   }
+  if (isSouthCarolinaAllAmericanSignal(sig) && !isSouthCarolinaAllAmericanInventory(sig)) {
+    blockers.push('all_american_exact_identity_unverified');
+  }
   const eligibleForDelivery = blockers.length === 0 && reliability.eligibleForDelivery;
   const signalAt = authoritativeSignalTimestamp(sig);
-  const southCarolinaBinaryBaseline = isSouthCarolinaSouthernSpiritsInventory(sig);
+  const southCarolinaAllAmericanBaseline = isSouthCarolinaAllAmericanInventory(sig);
+  const southCarolinaBinaryBaseline = isSouthCarolinaSouthernSpiritsInventory(sig) || southCarolinaAllAmericanBaseline;
+  const gates = [...(reliability.gates || [])];
+  if (southCarolinaAllAmericanBaseline && !gates.includes('verified_binary_in_store_availability')) {
+    gates.push('verified_binary_in_store_availability');
+  }
   return {
     id: stableId([change.type, sig.key, JSON.stringify(change.fields || [])]),
     changeType: change.type,
     action,
     score,
     state: sig.state,
+    stateCode: sig.stateCode,
     bottle: sig.canonicalName,
+    canonicalBottleId: sig.canonicalBottleId,
+    canonicalId: sig.canonicalId,
+    canonicalName: sig.canonicalName,
+    rawName: sig.rawName,
     tier: sig.tier,
     eventType: sig.eventType,
     sourceLabel: sig.sourceLabel,
@@ -394,6 +407,11 @@ export function candidateFromChange(change, bootstrap = false) {
     sourceChain: sig.sourceChain,
     merchantId: sig.merchantId,
     productId: sig.productId,
+    sku: sig.sku,
+    sourceProductProofId: sig.sourceProductProofId,
+    sourceProductProofSku: sig.sourceProductProofSku,
+    sourceProductInStock: sig.sourceProductInStock,
+    sourceProductBackordered: sig.sourceProductBackordered,
     productHandle: sig.productHandle,
     variantId: sig.variantId,
     variantAvailable: sig.variantAvailable,
@@ -403,19 +421,26 @@ export function candidateFromChange(change, bootstrap = false) {
     storeId: sig.storeId,
     storeAddress: sig.storeAddress,
     city: sig.city,
+    postalCode: sig.postalCode,
+    zip: sig.zip,
     quantity: sig.quantity,
+    storeQty: sig.storeQty,
     quantityIsExact: sig.quantityIsExact,
     quantitySemantics: sig.quantitySemantics,
     reportedQuantity: sig.reportedQuantity,
     availabilityStatus: sig.availabilityStatus,
     availabilityLabel: sig.availabilityLabel,
     availabilityValue: sig.availabilityValue,
+    sourceAvailabilityVerified: sig.sourceAvailabilityVerified,
+    orderabilityOfferVerified: sig.orderabilityOfferVerified,
     warehouseQty: sig.warehouseQty,
     price: sig.price,
     confidence: sig.confidence,
     signalAt,
+    observedAt: sig.observedAt,
     sampleOnly: Boolean(sig.sampleOnly),
     ...reliability,
+    gates,
     eligibleForDelivery,
     eligibleForEmail: southCarolinaBinaryBaseline ? false : undefined,
     eligibleForSms: southCarolinaBinaryBaseline ? false : undefined,
