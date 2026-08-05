@@ -8,10 +8,18 @@ function projectionIdentity(row) {
   return parts.every(Boolean) ? parts.join('|') : null;
 }
 
-export function verifyAllAmericanAlertProjection({ sourceDrops = [], sourceAlerts = [] } = {}) {
+export function verifyAllAmericanAlertProjection({
+  sourceDrops = [],
+  sourceAlerts = [],
+  sourceInventoryRows = sourceDrops,
+} = {}) {
   const dropIdentities = new Set(sourceDrops.map(projectionIdentity));
   if (dropIdentities.has(null) || dropIdentities.size !== sourceDrops.length) {
     throw new Error('All American customer drops have missing or duplicate projection identities');
+  }
+  const inventoryIdentities = new Set(sourceInventoryRows.map(projectionIdentity));
+  if (inventoryIdentities.has(null) || inventoryIdentities.size !== sourceInventoryRows.length) {
+    throw new Error('All American source inventory has missing or duplicate projection identities');
   }
 
   const currentInventoryAlerts = sourceAlerts.filter((row) =>
@@ -32,9 +40,9 @@ export function verifyAllAmericanAlertProjection({ sourceDrops = [], sourceAlert
   const additionalChangeRows = sourceAlerts.filter((row) => !currentInventoryAlerts.includes(row));
   const additionalIdentities = additionalChangeRows.map(projectionIdentity);
   if (additionalChangeRows.some((row) => !['new_signal', 'changed_signal'].includes(row?.changeType))
-    || additionalIdentities.some((identity) => !identity || !dropIdentities.has(identity))
+    || additionalIdentities.some((identity) => !identity || !inventoryIdentities.has(identity))
     || new Set(additionalIdentities).size !== additionalIdentities.length) {
-    throw new Error('All American additional change projections are missing, duplicated, or unrelated to current customer drops');
+    throw new Error('All American additional change projections are missing, duplicated, or unrelated to current source inventory');
   }
 
   return { currentInventoryAlerts, additionalChangeAlerts: additionalChangeRows.length };

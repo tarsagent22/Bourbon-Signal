@@ -138,6 +138,47 @@ test('All American production verifier accepts separate first-run change and cur
   );
 });
 
+test('All American production verifier accepts safe source changes collapsed from customer cards', () => {
+  const customerDrop = {
+    canonicalBottleId: 'bottle-1',
+    storeId: 'all-american-liquor:all-american-liquor-mauldin',
+    productId: 1216,
+    sku: '080686011408',
+  };
+  const collapsedSourceRow = {
+    ...customerDrop,
+    productId: 1241,
+    sku: '088004025731',
+  };
+  const current = {
+    ...customerDrop,
+    changeType: 'current_inventory_signal',
+    gates: ['current_public_drop', 'store_level', 'verified_binary_in_store_availability'],
+  };
+  const safeCollapsedChange = {
+    ...collapsedSourceRow,
+    changeType: 'changed_signal',
+    gates: ['store_level', 'verified_binary_in_store_availability'],
+  };
+
+  assert.deepEqual(
+    verifyAllAmericanAlertProjection({
+      sourceDrops: [customerDrop],
+      sourceAlerts: [current, safeCollapsedChange],
+      sourceInventoryRows: [customerDrop, collapsedSourceRow],
+    }),
+    { currentInventoryAlerts: [current], additionalChangeAlerts: 1 },
+  );
+  assert.throws(
+    () => verifyAllAmericanAlertProjection({
+      sourceDrops: [customerDrop],
+      sourceAlerts: [current, safeCollapsedChange],
+      sourceInventoryRows: [customerDrop],
+    }),
+    /unrelated to current source inventory/,
+  );
+});
+
 test('All American first-run change survives the exported alert contract without widening delivery', () => {
   const normalized = canonicalizeSignal(signal(), bible);
   const candidate = candidateFromChange({ type: 'new_signal', key: normalized.key, before: null, after: normalized });

@@ -58,7 +58,11 @@ if (!sourceAlerts.every((row) => isSouthCarolinaAllAmericanInventory(row)
   && !row.gates?.includes('verified_binary_orderability'))) {
   throw new Error('All American baseline alert projection is not on-site-only binary inventory');
 }
-const { currentInventoryAlerts, additionalChangeAlerts } = verifyAllAmericanAlertProjection({ sourceDrops, sourceAlerts });
+const { currentInventoryAlerts, additionalChangeAlerts } = verifyAllAmericanAlertProjection({
+  sourceDrops,
+  sourceAlerts,
+  sourceInventoryRows: sourceRows,
+});
 
 const sourceStores = stores.filter((row) => row.state === 'SC' && sourceMatches(row));
 if (sourceStores.length !== 1
