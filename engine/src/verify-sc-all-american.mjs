@@ -6,15 +6,15 @@ import { buildAlerts } from './export-site-contract.mjs';
 import {
   hasSouthCarolinaAllAmericanRawSourceProof,
   isSouthCarolinaAllAmericanInventory,
+  isSouthCarolinaAllAmericanLocation,
   isSouthCarolinaAllAmericanSignal,
+  isSouthCarolinaAllAmericanStoreExport,
 } from './south-carolina-retailer-policy.mjs';
 import { verifyAllAmericanAlertProjection } from './verify-sc-all-american-alert-projection.mjs';
 
 const ENGINE_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const REPO_ROOT = path.resolve(ENGINE_ROOT, '..');
-const ALL_AMERICAN_SOURCE = 'All American Liquor Mauldin WooCommerce in-store availability';
 const ALL_AMERICAN_STORE_ID = 'all-american-liquor:all-american-liquor-mauldin';
-const expectedAddress = '121 W Butler Rd, Mauldin, SC 29662';
 
 function argValue(name) {
   return process.argv.find((arg) => arg.startsWith(`--${name}=`))?.slice(name.length + 3) || null;
@@ -41,13 +41,19 @@ const stores = values(await readJson(path.join(ENGINE_ROOT, 'out/site/stores.jso
 const alertCandidates = values(await readJson(path.join(ENGINE_ROOT, 'out/alert-candidates.json')), 'candidates');
 
 if (report.state !== 'SC' || report.status !== 'useful') throw new Error(`SC report is not useful (${report.state || 'unknown'}:${report.status || 'unknown'})`);
-const sourceRows = (report.signals || []).filter((row) =>
-  row.eventType === 'retailer_store_inventory_result'
-  && isSouthCarolinaAllAmericanSignal(row));
+const allAmericanReportRows = (report.signals || []).filter(isSouthCarolinaAllAmericanSignal);
+const sourceRows = allAmericanReportRows.filter((row) => row.eventType === 'retailer_store_inventory_result');
+const sourceLocationRows = allAmericanReportRows.filter((row) => row.eventType === 'retailer_store_location');
+if (sourceRows.length + sourceLocationRows.length !== allAmericanReportRows.length) {
+  throw new Error('All American report contains an unrecognized or malformed event type');
+}
 if (!sourceRows.length) throw new Error('Forced live SC report produced no All American inventory rows');
 if (!sourceRows.every((row) => isSouthCarolinaAllAmericanInventory(row)
   && hasSouthCarolinaAllAmericanRawSourceProof(row))) {
   throw new Error('All American raw source rows failed exact identity, raw proof, freshness, or binary-stock policy');
+}
+if (sourceLocationRows.length !== 1 || !sourceLocationRows.every(isSouthCarolinaAllAmericanLocation)) {
+  throw new Error('All American source location row is missing or malformed');
 }
 
 const stateDrops = drops.filter((row) => row.state === 'SC' && row.locationPrecision === 'store_level');
@@ -82,10 +88,7 @@ const { currentInventoryAlerts, additionalChangeAlerts } = verifyAllAmericanAler
 });
 
 const sourceStores = stores.filter(isSouthCarolinaAllAmericanSignal);
-if (sourceStores.length !== 1
-  || sourceStores[0].id !== ALL_AMERICAN_STORE_ID
-  || sourceStores[0].address !== expectedAddress
-  || sourceStores[0].hasSignals !== true) {
+if (sourceStores.length !== 1 || !sourceStores.every(isSouthCarolinaAllAmericanStoreExport)) {
   throw new Error('All American exact store export is missing or ambiguous');
 }
 

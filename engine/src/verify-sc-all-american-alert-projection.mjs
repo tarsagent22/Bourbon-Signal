@@ -11,6 +11,12 @@ function projectionIdentity(row) {
   return parts.every(Boolean) ? parts.join('|') : null;
 }
 
+function changeProjectionIdentity(row) {
+  const identity = projectionIdentity(row);
+  const changeType = String(row?.changeType || '');
+  return identity && changeType ? `${identity}|${changeType}` : null;
+}
+
 export function verifyAllAmericanAlertProjection({
   sourceDrops = [],
   sourceAlerts = [],
@@ -45,14 +51,18 @@ export function verifyAllAmericanAlertProjection({
   const additionalIdentities = additionalChangeRows.map(projectionIdentity);
   const expectedRows = expectedAdditionalChangeRows ?? additionalChangeRows;
   const expectedIdentities = expectedRows.map(projectionIdentity);
-  const expectedIdentitySet = new Set(expectedIdentities);
-  const additionalIdentitySet = new Set(additionalIdentities);
+  const actualChangeIdentities = additionalChangeRows.map(changeProjectionIdentity);
+  const expectedChangeIdentities = expectedRows.map(changeProjectionIdentity);
+  const expectedIdentitySet = new Set(expectedChangeIdentities);
+  const additionalIdentitySet = new Set(actualChangeIdentities);
   if (additionalChangeRows.some((row) => !['new_signal', 'changed_signal'].includes(row?.changeType))
     || additionalIdentities.some((identity) => !identity || !inventoryIdentities.has(identity))
-    || additionalIdentitySet.size !== additionalIdentities.length
+    || actualChangeIdentities.some((identity) => !identity)
+    || additionalIdentitySet.size !== actualChangeIdentities.length
     || expectedRows.some((row) => !['new_signal', 'changed_signal'].includes(row?.changeType))
     || expectedIdentities.some((identity) => !identity || !inventoryIdentities.has(identity))
-    || expectedIdentitySet.size !== expectedIdentities.length
+    || expectedChangeIdentities.some((identity) => !identity)
+    || expectedIdentitySet.size !== expectedChangeIdentities.length
     || additionalChangeRows.length !== expectedRows.length
     || [...expectedIdentitySet].some((identity) => !additionalIdentitySet.has(identity))) {
     throw new Error('All American additional change projections are missing, duplicated, or unrelated to current source inventory');

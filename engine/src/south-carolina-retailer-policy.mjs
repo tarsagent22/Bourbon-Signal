@@ -91,7 +91,7 @@ export function isSouthCarolinaAllAmericanSignal(signal) {
   const sourceLabel = String(signal?.sourceLabel || signal?.source || '');
   const sourceChain = String(signal?.sourceChain || '');
   const rawChain = String(signal?.raw?.chain || '');
-  const storeId = String(signal?.storeId || '');
+  const storeId = String(signal?.storeId || signal?.sourceStoreId || signal?.id || '');
   return sourceLabel === ALL_AMERICAN_SOURCE
     || sourceLabel.toLowerCase().startsWith('all american liquor')
     || sourceChain.startsWith('all-american-liquor')
@@ -110,6 +110,48 @@ export function hasSouthCarolinaAllAmericanRawSourceProof(signal) {
     && String(signal?.raw?.product?.sku ?? '') === sku
     && signal?.raw?.product?.is_in_stock === true
     && signal?.raw?.product?.is_on_backorder === false;
+}
+
+export function isSouthCarolinaAllAmericanLocation(signal) {
+  const observedAt = Date.parse(String(signal?.observedAt || ''));
+  const ageMs = Date.now() - observedAt;
+  return signal?.state === 'SC'
+    && signal?.stateCode === 'SC'
+    && signal?.eventType === 'retailer_store_location'
+    && signal?.sourceLabel === ALL_AMERICAN_SOURCE
+    && signal?.sourceUrl === 'https://www.aalmauldin.com'
+    && signal?.locationPrecision === 'store_level'
+    && signal?.storeId === ALL_AMERICAN_STORE_ID
+    && signal?.storeName === 'All American Liquor'
+    && normalizedIdentity(signal?.storeAddress) === ALL_AMERICAN_ADDRESS
+    && signal?.city === 'Mauldin'
+    && String(signal?.postalCode || signal?.zip || '') === '29662'
+    && signal?.canAlertAsInventory === false
+    && signal?.canAlertAsWatch === false
+    && signal?.raw?.chain === 'all-american-liquor'
+    && signal?.raw?.store?.id === 'all-american-liquor-mauldin'
+    && signal?.raw?.store?.name === 'All American Liquor'
+    && normalizedIdentity(signal?.raw?.store?.address) === ALL_AMERICAN_ADDRESS
+    && signal?.raw?.store?.city === 'Mauldin'
+    && String(signal?.raw?.store?.zip || '') === '29662'
+    && Number.isFinite(observedAt)
+    && ageMs >= -MAX_FUTURE_SKEW_MS
+    && ageMs <= ALL_AMERICAN_MAX_AGE_MS;
+}
+
+export function isSouthCarolinaAllAmericanStoreExport(store) {
+  return store?.id === ALL_AMERICAN_STORE_ID
+    && store?.sourceStoreId === ALL_AMERICAN_STORE_ID
+    && store?.state === 'SC'
+    && store?.name === 'All American Liquor'
+    && normalizedIdentity(store?.address) === ALL_AMERICAN_ADDRESS
+    && store?.city === 'Mauldin'
+    && String(store?.zip || '') === '29662'
+    && store?.source === ALL_AMERICAN_SOURCE
+    && Number(store?.signalCount || 0) > 0
+    && store?.hasSignals === true
+    && store?.collectorAttached === true
+    && store?.sourceAvailabilityVerified === true;
 }
 
 export function isSouthCarolinaSouthernSpiritsInventory(signal, nowMs = Date.now()) {

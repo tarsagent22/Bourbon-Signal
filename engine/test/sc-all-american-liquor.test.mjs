@@ -11,7 +11,9 @@ import {
   hasSouthCarolinaAllAmericanRawSourceProof,
   hasSouthCarolinaPositiveInventoryEvidence,
   isSouthCarolinaAllAmericanInventory,
+  isSouthCarolinaAllAmericanLocation,
   isSouthCarolinaAllAmericanSignal,
+  isSouthCarolinaAllAmericanStoreExport,
 } from '../src/south-carolina-retailer-policy.mjs';
 
 const bible = await BourbonBible.load(new URL('../out/bourbon-bible.json', import.meta.url));
@@ -192,6 +194,15 @@ test('All American production verifier accepts safe source changes collapsed fro
   );
   assert.throws(
     () => verifyAllAmericanAlertProjection({
+      sourceDrops: [customerDrop],
+      sourceAlerts: [current, safeCollapsedChange],
+      sourceInventoryRows: [customerDrop, collapsedSourceRow],
+      expectedAdditionalChangeRows: [{ ...safeCollapsedChange, changeType: 'new_signal' }],
+    }),
+    /additional change projections/,
+  );
+  assert.throws(
+    () => verifyAllAmericanAlertProjection({
       sourceDrops: [{ ...customerDrop, canonicalId: 'conflicting-bottle' }],
       sourceAlerts: [{ ...current, canonicalId: 'conflicting-bottle' }],
       sourceInventoryRows: [customerDrop, collapsedSourceRow],
@@ -228,6 +239,56 @@ test('All American broad classifier catches malformed final-output identities', 
     mutate(forged);
     assert.equal(isSouthCarolinaAllAmericanSignal(forged), true);
     assert.equal(isSouthCarolinaAllAmericanInventory(forged), false);
+  }
+});
+
+test('All American location and exported store require the complete exact premise', () => {
+  const row = signal();
+  const location = {
+    ...row,
+    eventType: 'retailer_store_location',
+    sourceUrl: 'https://www.aalmauldin.com',
+    canAlertAsInventory: false,
+    canAlertAsWatch: false,
+    raw: {
+      chain: 'all-american-liquor',
+      store: {
+        id: 'all-american-liquor-mauldin',
+        name: 'All American Liquor',
+        address: '121 W Butler Rd, Mauldin, SC 29662',
+        city: 'Mauldin',
+        zip: '29662',
+      },
+    },
+  };
+  const store = {
+    id: row.storeId,
+    sourceStoreId: row.storeId,
+    state: 'SC',
+    name: row.storeName,
+    address: row.storeAddress,
+    city: row.city,
+    zip: row.zip,
+    source: row.sourceLabel,
+    signalCount: 1,
+    hasSignals: true,
+    collectorAttached: true,
+    sourceAvailabilityVerified: true,
+  };
+  assert.equal(isSouthCarolinaAllAmericanLocation(location), true);
+  assert.equal(isSouthCarolinaAllAmericanStoreExport(store), true);
+  for (const mutate of [
+    (copy) => { copy.state = 'NC'; },
+    (copy) => { copy.name = 'Forged Store'; },
+    (copy) => { copy.city = 'Greenville'; },
+    (copy) => { copy.zip = '99999'; },
+    (copy) => { copy.source = 'forged source'; },
+    (copy) => { copy.signalCount = 0; copy.hasSignals = false; },
+  ]) {
+    const forged = structuredClone(store);
+    mutate(forged);
+    assert.equal(isSouthCarolinaAllAmericanSignal(forged), true);
+    assert.equal(isSouthCarolinaAllAmericanStoreExport(forged), false);
   }
 });
 
