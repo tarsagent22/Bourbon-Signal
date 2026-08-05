@@ -1201,6 +1201,16 @@ const SC_CITYHIVE_SOURCES = [
   }
 ];
 const SC_CITYHIVE_MERCHANT_IDS = new Set(SC_CITYHIVE_SOURCES.flatMap((source) => source.merchantIds || []));
+// Keep this expansion inside the requested 10-15 additional-store boundary while
+// retaining the complete known-store directory. Two same-city O'Darby's branches
+// remain searchable but are not promoted into this inventory cohort.
+const SC_CITYHIVE_EXCLUDED_EXPANSION_MERCHANT_IDS = new Set([
+  '607f9bdbb73eb4091ef976e7',
+  '607f1c35f568f15818499db8',
+]);
+const SC_CITYHIVE_INVENTORY_MERCHANT_IDS = new Set(
+  [...SC_CITYHIVE_MERCHANT_IDS].filter((merchantId) => !SC_CITYHIVE_EXCLUDED_EXPANSION_MERCHANT_IDS.has(merchantId)),
+);
 const SC_DA_BROWN_BAG_BASE_URL = 'https://dabrownbag.com';
 const SC_DA_BROWN_BAG_SEARCH_TERMS = ['bourbon', 'whiskey', 'weller', 'buffalo', 'blanton', 'eagle rare', 'taylor', 'stagg', '1792', 'four roses', 'woodford', 'elijah craig', 'old forester', 'knob creek', 'maker', 'willett', 'michter'];
 const SC_DA_BROWN_BAG_STORE = {
@@ -3902,24 +3912,54 @@ function southCarolinaStoreLocationSignal(config, sourceLabel, sourceUrl, store,
 async function readSouthCarolinaCityHiveCache() {
   try {
     const cache = JSON.parse(await readFile(SC_CITYHIVE_ARTIFACT_PATH, 'utf8'));
-    const generatedMs = new Date(cache.generatedAt || 0).getTime();
-    const fresh = Number.isFinite(generatedMs) && Date.now() - generatedMs <= SC_CITYHIVE_CACHE_MAX_AGE_MS;
-    if (!fresh) return null;
+    if (!isFreshSouthCarolinaCityHiveCacheTimestamp(cache.generatedAt)) return null;
     const signals = Array.isArray(cache.signals) ? cache.signals : [];
     const roadblocks = Array.isArray(cache.roadblocks) ? cache.roadblocks : [];
     if (!signals.some((signal) => signal.eventType === 'cityhive_store_inventory_result')) return null;
+    if (!cachedSouthCarolinaCityHiveSignals({ ...cache, signals }, cache.generatedAt)
+      .some((signal) => signal.eventType === 'cityhive_store_inventory_result')) return null;
     return { ...cache, signals, roadblocks };
   } catch {
     return null;
   }
 }
 
-function cachedSouthCarolinaCityHiveSignals(cache, observedAt) {
-  return (cache?.signals || []).map((signal) => ({
-    ...signal,
-    observedAt: cache.generatedAt || signal.observedAt || observedAt,
-    raw: { ...(signal.raw || {}), cacheFallback: true, cacheGeneratedAt: cache.generatedAt, artifactPath: SC_CITYHIVE_ARTIFACT_PATH }
-  }));
+export function isFreshSouthCarolinaCityHiveCacheTimestamp(generatedAt, nowMs = Date.now()) {
+  const generatedMs = Date.parse(String(generatedAt || ''));
+  const ageMs = nowMs - generatedMs;
+  return Number.isFinite(generatedMs) && ageMs >= -5 * 60_000 && ageMs <= SC_CITYHIVE_CACHE_MAX_AGE_MS;
+}
+
+function southCarolinaCityHiveSignalMerchantId(signal) {
+  return String(signal?.raw?.merchant?.id || signal?.raw?.option?.merchant_id || signal?.storeId?.split(':').at(-1) || '');
+}
+
+export function cachedSouthCarolinaCityHiveSignals(cache, observedAt, { sourceStale = false } = {}) {
+  return (cache?.signals || [])
+    .filter((signal) => {
+      const merchantId = southCarolinaCityHiveSignalMerchantId(signal);
+      if (signal?.eventType === 'retailer_store_location') {
+        return SC_CITYHIVE_INVENTORY_MERCHANT_IDS.has(merchantId)
+          && signal?.raw?.chain
+          && String(signal?.raw?.merchant?.id || '') === merchantId
+          && signal?.storeId === `${signal.raw.chain}:${merchantId}`;
+      }
+      return SC_CITYHIVE_INVENTORY_MERCHANT_IDS.has(merchantId)
+        && Boolean(signal?.productId)
+        && Boolean(signal?.optionId)
+        && signal?.sourceAvailabilityVerified === true
+        && typeof signal?.quantityIsExact === 'boolean'
+        && Boolean(signal?.raw?.chain)
+        && String(signal?.raw?.option?.merchant_id || '') === merchantId
+        && String(signal?.raw?.option?.product_id || '') === String(signal.productId)
+        && String(signal?.raw?.option?.option_id || '') === String(signal.optionId);
+    })
+    .map((signal) => ({
+      ...signal,
+      observedAt: cache.generatedAt || signal.observedAt || observedAt,
+      ...(sourceStale ? { stale: true, sourceStale: true, canAlertAsInventory: false, canAlertAsWatch: false } : {}),
+      raw: { ...(signal.raw || {}), cacheFallback: true, cacheGeneratedAt: cache.generatedAt, artifactPath: SC_CITYHIVE_ARTIFACT_PATH }
+    }));
 }
 
 function southCarolinaCityHiveSignalChain(signal) {
@@ -5529,7 +5569,7 @@ async function collectSouthCarolinaCityHive(config, bible, observedAt) {
         ...summarizeRepeatedPlatformFailures(platformFailures, {
           state: config.id,
           source: 'South Carolina CityHive exact-store inventory platform',
-          configuredProbeCount: SC_CITYHIVE_SOURCES.reduce((count, source) => count + (source.merchantIds || []).length, 0),
+          configuredProbeCount: SC_CITYHIVE_INVENTORY_MERCHANT_IDS.size,
           nextRoute: 'Retry two representative configured first-party merchant pages at the next live cadence; do not bypass platform controls or broaden to marketplace/search evidence.',
         }),
       ],
@@ -5539,17 +5579,18 @@ async function collectSouthCarolinaCityHive(config, bible, observedAt) {
   const seenProductOptions = new Set();
   const seenStores = new Set();
   const platformFailures = [];
-  const configuredProbeCount = SC_CITYHIVE_SOURCES.reduce((count, source) => count + (source.merchantIds || []).length, 0);
+  const configuredProbeCount = SC_CITYHIVE_INVENTORY_MERCHANT_IDS.size;
   let reachablePageCount = 0;
   let globallyBlocked = false;
   for (const source of SC_CITYHIVE_SOURCES) {
     if (globallyBlocked) break;
     let sourceBlocked = false;
+    const sourceMerchantIds = new Set((source.merchantIds || []).filter((id) => SC_CITYHIVE_INVENTORY_MERCHANT_IDS.has(id)));
     // The bourbon page already carries the high-value watch terms. Keep the default
     // request matrix to one category per merchant; broad whiskey pagination caused
     // avoidable CityHive 429s without adding proportional alert-grade coverage.
     for (const seedUrl of source.urls.slice(0, 1)) {
-      for (const merchantId of source.merchantIds || []) {
+      for (const merchantId of sourceMerchantIds) {
         if (sourceBlocked) break;
         for (const url of cityHiveMerchantPageUrls(seedUrl, merchantId, SC_CITYHIVE_MAX_PAGES)) {
           const res = await curlTextFetch(url, { headers: { accept: 'text/html,*/*' }, timeoutMs: 36_000, maxBuffer: 8 * 1024 * 1024 });
@@ -5574,7 +5615,7 @@ async function collectSouthCarolinaCityHive(config, bible, observedAt) {
           const products = cityHiveProducts(blobs);
           for (const cfg of cityHiveMerchantConfigs(blobs)) {
             const merchant = cfg?.merchant || cfg;
-            if (!merchant?.id || !SC_CITYHIVE_MERCHANT_IDS.has(String(merchant.id)) || seenStores.has(`${source.id}|${merchant.id}`)) continue;
+            if (!merchant?.id || !sourceMerchantIds.has(String(merchant.id)) || seenStores.has(`${source.id}|${merchant.id}`)) continue;
             const a = cityHiveAddressParts(merchant.address || {});
             if ((a.state || '').toUpperCase() !== 'SC' && !/,\s*SC\s+\d{5}/i.test(a.fullAddress || '')) continue;
             seenStores.add(`${source.id}|${merchant.id}`);
@@ -5614,7 +5655,9 @@ async function collectSouthCarolinaCityHive(config, bible, observedAt) {
             for (const merchant of product.merchants || []) {
               for (const option of merchant.product_options || []) {
                 const optionMerchantId = String(option.merchant_id || '');
-                if (!SC_CITYHIVE_MERCHANT_IDS.has(optionMerchantId)) continue;
+                const productId = String(option.product_id || product.id || '').trim();
+                const optionId = String(option.option_id || '').trim();
+                if (!sourceMerchantIds.has(optionMerchantId) || !productId || !optionId) continue;
                 const fullAddress = option.full_address || '';
                 if (!/,\s*SC\s+\d{5}/i.test(fullAddress)) continue;
                 const rawName = option.option_display_data?.name || product.name || '';
@@ -5622,7 +5665,7 @@ async function collectSouthCarolinaCityHive(config, bible, observedAt) {
                 if (!isSouthCarolinaRetailerCandidate(candidateText)) continue;
                 const { reportedQuantity, binaryAvailability, quantity } = normalizeCityHiveReportedQuantity(option.quantity);
                 if (quantity <= 0) continue;
-                const key = `${source.id}|${optionMerchantId}|${option.product_id}|${option.option_id}`;
+                const key = `${source.id}|${optionMerchantId}|${productId}|${optionId}`;
                 if (seenProductOptions.has(key)) continue;
                 seenProductOptions.add(key);
                 const { match, record, unsafeReason } = cityHiveSafeBottleMatch(rawName, bible);
@@ -5632,10 +5675,16 @@ async function collectSouthCarolinaCityHive(config, bible, observedAt) {
                 const size = option.option_params?.size ? `${option.option_params.size.quantity}${option.option_params.size.measure || ''}` : null;
                 const price = Number(option.price || 0) || null;
                 signals.push({
-                  id: stableId([config.id, 'cityhive-store-inventory', source.id, optionMerchantId, option.product_id, option.option_id]),
+                  id: stableId([config.id, 'cityhive-store-inventory', source.id, optionMerchantId, productId, optionId]),
                   state: config.id,
                   sourceLabel: source.sourceLabel,
                   sourceUrl: option.product_url || url,
+                  sourceChain: source.id,
+                  merchantId: optionMerchantId,
+                  productId,
+                  optionId,
+                  variantId: optionId,
+                  sourceProductProofId: productId,
                   rawName,
                   canonicalBottleId: record.id,
                   canonicalName: record.canonical,
@@ -5652,10 +5701,12 @@ async function collectSouthCarolinaCityHive(config, bible, observedAt) {
                   zip,
                   lat: Number(option.coordinates?.[1]) || null,
                   lng: Number(option.coordinates?.[0]) || null,
-                  quantity,
+                  quantity: binaryAvailability ? 0 : quantity,
+                  quantityIsExact: !binaryAvailability,
                   price,
                   availabilityStatus: binaryAvailability ? 'binary_retailer_in_stock' : 'in_stock',
                   availabilityLabel: 'In stock',
+                  sourceAvailabilityVerified: true,
                   observedAt,
                   canAlertAsInventory: true,
                   canAlertAsWatch: true,
@@ -5685,7 +5736,7 @@ async function collectSouthCarolinaCityHive(config, bible, observedAt) {
   const liveRoadblocks = [...roadblocks];
   if (!liveInventoryProduced) {
     if (cache) {
-      signals.push(...cachedSouthCarolinaCityHiveSignals(cache, observedAt));
+      signals.push(...cachedSouthCarolinaCityHiveSignals(cache, observedAt, { sourceStale: true }));
     } else if (reachablePageCount > 0) {
       roadblocks.push({
         state: config.id,
@@ -5722,20 +5773,16 @@ async function collectSouthCarolinaDaBrownBag(config, bible, observedAt) {
   const signals = [southCarolinaStoreLocationSignal(config, 'Da Brown Bag Clover public inventory API', SC_DA_BROWN_BAG_BASE_URL, SC_DA_BROWN_BAG_STORE, observedAt, 'da-brown-bag')];
   const roadblocks = [];
   const seenItems = new Set();
+  const failures = [];
+  let successfulSearches = 0;
   let returnedRows = 0;
   for (const term of SC_DA_BROWN_BAG_SEARCH_TERMS) {
     const page = await fetchDaBrownBagSearch(term);
     if (!page.ok) {
-      roadblocks.push({
-        state: config.id,
-        source: 'Da Brown Bag Clover public inventory API',
-        url: page.url,
-        status: page.status || 0,
-        error: page.error || 'Da Brown Bag Clover search did not return parseable JSON.',
-        nextRoute: 'Retry public moo-clover search endpoints or inspect the WordPress route index for endpoint changes.'
-      });
+      failures.push(page);
       continue;
     }
+    successfulSearches += 1;
     returnedRows += page.items.length;
     for (const item of page.items) {
       if (!item?.uuid || seenItems.has(item.uuid)) continue;
@@ -5780,7 +5827,17 @@ async function collectSouthCarolinaDaBrownBag(config, bible, observedAt) {
     }
     await sleep(250);
   }
-  if (!signals.some((signal) => signal.eventType === 'retailer_store_inventory_result')) {
+  if (failures.length) {
+    roadblocks.push({
+      state: config.id,
+      source: 'Da Brown Bag Clover public inventory API',
+      url: failures[0].url,
+      status: failures[0].status || 0,
+      error: `Da Brown Bag searches failed for ${failures.length}/${SC_DA_BROWN_BAG_SEARCH_TERMS.length} terms; representative failure: ${failures[0].error || 'unparseable response'}.`,
+      nextRoute: 'Retry one representative public moo-clover search endpoint or inspect the WordPress route index for endpoint changes.'
+    });
+  }
+  if (successfulSearches > 0 && !signals.some((signal) => signal.eventType === 'retailer_store_inventory_result')) {
     roadblocks.push({
       state: config.id,
       source: 'Da Brown Bag Clover public inventory API',
@@ -6643,17 +6700,39 @@ async function collectSouthCarolinaAllAmerican(config, bible, observedAt) {
   return { signals, roadblocks };
 }
 
+export async function runIsolatedSouthCarolinaSourceLane({ name, source, run }, config) {
+  try {
+    return await run();
+  } catch (error) {
+    return {
+      signals: [],
+      roadblocks: [{
+        state: config.id,
+        source,
+        url: null,
+        status: 'source_exception',
+        error: `${name} source lane failed without stopping the remaining South Carolina sources: ${error instanceof Error ? error.message : String(error)}`,
+        nextRoute: `Retry only the ${name} source lane after inspecting its bounded failure.`,
+      }],
+    };
+  }
+}
+
 async function collectSouthCarolina(config, bible) {
   const observedAt = new Date().toISOString();
-  const cityHive = await collectSouthCarolinaCityHive(config, bible, observedAt);
-  const daBrownBag = await collectSouthCarolinaDaBrownBag(config, bible, observedAt);
-  const southernSpirits = await collectSouthCarolinaSouthernSpirits(config, bible, observedAt);
-  const dunes = await collectSouthCarolinaDunes(config, bible, observedAt);
-  const allAmerican = await collectSouthCarolinaAllAmerican(config, bible, observedAt);
-  const phase1Myrtle = await collectSouthCarolinaPhase1Myrtle(config, bible, observedAt);
+  const laneRun = await runBoundedSourceLanes([
+    { name: 'cityhive', domain: 'sc-cityhive-group', run: () => runIsolatedSouthCarolinaSourceLane({ name: 'cityhive', source: 'South Carolina CityHive exact-store inventory platform', run: () => collectSouthCarolinaCityHive(config, bible, observedAt) }, config) },
+    { name: 'da-brown-bag', domain: 'dabrownbag.com', run: () => runIsolatedSouthCarolinaSourceLane({ name: 'da-brown-bag', source: 'Da Brown Bag Clover public inventory API', run: () => collectSouthCarolinaDaBrownBag(config, bible, observedAt) }, config) },
+    { name: 'southern-spirits', domain: 'southernspirits.com', run: () => runIsolatedSouthCarolinaSourceLane({ name: 'southern-spirits', source: 'Southern Spirits Shopify products feed', run: () => collectSouthCarolinaSouthernSpirits(config, bible, observedAt) }, config) },
+    { name: 'dunes', domain: 'dunesliquor.com', run: () => runIsolatedSouthCarolinaSourceLane({ name: 'dunes', source: SC_DUNES_SOURCE_LABEL, run: () => collectSouthCarolinaDunes(config, bible, observedAt) }, config) },
+    { name: 'all-american', domain: 'aalmauldin.com', run: () => runIsolatedSouthCarolinaSourceLane({ name: 'all-american', source: SC_ALL_AMERICAN_SOURCE_LABEL, run: () => collectSouthCarolinaAllAmerican(config, bible, observedAt) }, config) },
+    { name: 'phase1-myrtle', domain: 'sc-myrtle-watch-group', run: () => runIsolatedSouthCarolinaSourceLane({ name: 'phase1-myrtle', source: 'South Carolina phase-one Myrtle Beach sources', run: () => collectSouthCarolinaPhase1Myrtle(config, bible, observedAt) }, config) },
+  ], { concurrency: 3 });
   return {
-    signals: [...cityHive.signals, ...daBrownBag.signals, ...southernSpirits.signals, ...dunes.signals, ...allAmerican.signals, ...phase1Myrtle.signals],
-    roadblocks: [...cityHive.roadblocks, ...daBrownBag.roadblocks, ...southernSpirits.roadblocks, ...dunes.roadblocks, ...allAmerican.roadblocks, ...phase1Myrtle.roadblocks]
+    signals: laneRun.results.flatMap((result) => result.value.signals || []),
+    roadblocks: laneRun.results.flatMap((result) => result.value.roadblocks || []),
+    sourceTimings: laneRun.timings,
+    sourceConcurrency: laneRun.concurrency,
   };
 }
 
@@ -8566,7 +8645,7 @@ export function legacyPrecisionRuntimeOptions(stateId, sourceRunnerOptions = {},
     .map((value) => value.trim().toUpperCase())
     .filter(Boolean)
     .includes(stateKey);
-  const defaultTimeoutMs = stateKey === 'VA' ? 1_140_000 : ['TN', 'FL'].includes(stateKey) ? 600_000 : ['AZ', 'GA', 'TX'].includes(stateKey) ? 300_000 : ['NY', 'CO'].includes(stateKey) ? 240_000 : 120_000;
+  const defaultTimeoutMs = stateKey === 'VA' ? 1_140_000 : ['TN', 'FL'].includes(stateKey) ? 600_000 : stateKey === 'SC' ? 420_000 : ['AZ', 'GA', 'TX'].includes(stateKey) ? 300_000 : ['NY', 'CO'].includes(stateKey) ? 240_000 : 120_000;
   const defaultMaxAttempts = ['VA', 'AZ', 'GA', 'NY', 'CO', 'TN', 'FL'].includes(stateKey) ? 1 : 2;
   return {
     ...sourceRunnerOptions,
