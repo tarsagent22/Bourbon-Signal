@@ -377,6 +377,9 @@ export function candidateFromChange(change, bootstrap = false) {
   if (process.env.BOURBON_SIGNAL_MANUAL_REFRESH === '1' || process.env.BOURBON_SIGNAL_ALERT_QUARANTINE === '1') {
     blockers.push('manual_refresh_quarantine');
   }
+  if (isSouthCarolinaAllAmericanSignal(sig) && !isSouthCarolinaAllAmericanInventory(sig)) {
+    blockers.push('all_american_exact_identity_unverified');
+  }
   const eligibleForDelivery = blockers.length === 0 && reliability.eligibleForDelivery;
   const signalAt = authoritativeSignalTimestamp(sig);
   const southCarolinaAllAmericanBaseline = isSouthCarolinaAllAmericanInventory(sig);

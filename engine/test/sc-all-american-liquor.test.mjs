@@ -196,7 +196,41 @@ test('All American exact identity rejects forged source, premise, product, stock
   }
 });
 
+test('All American forged identity cannot create exact-store rows, customer cards, alert evidence, or outbound alerts', () => {
+  const normalized = canonicalizeSignal(signal(), bible);
+  const record = { id: normalized.canonicalBottleId, canonical: normalized.canonicalName, tier: 'allocated', aliases: [] };
+  const lookup = { byId: new Map([[record.id, record]]), byName: new Map() };
+  const mutations = [
+    (copy) => { copy.sourceLabel = 'All American Liquor forged source'; },
+    (copy) => { copy.sourceChain = 'forged'; copy.raw.chain = 'forged'; },
+    (copy) => { copy.storeId = 'all-american-liquor:forged'; },
+    (copy) => { copy.storeAddress = '125 W Butler Rd, Mauldin, SC 29662'; },
+    (copy) => { copy.city = 'Greenville'; },
+    (copy) => { copy.postalCode = '29601'; copy.zip = '29601'; },
+    (copy) => { copy.productId = 9999; },
+    (copy) => { copy.sku = 'forged'; },
+    (copy) => { copy.sourceProductProofId = '9999'; },
+    (copy) => { copy.sourceProductProofSku = 'forged'; },
+  ];
+
+  for (const mutate of mutations) {
+    const forged = structuredClone(normalized);
+    mutate(forged);
+    assert.equal(isSouthCarolinaAllAmericanInventory(forged), false);
+    assert.equal(confidenceForSignal(forged).canAlertAsInventory, false);
+    assert.deepEqual(buildDrops([forged], lookup, [forged]), []);
+
+    const candidate = candidateFromChange({ type: 'new_signal', key: forged.key, before: null, after: forged });
+    assert.equal(candidate.eligibleForDelivery, false);
+    assert.deepEqual(buildAlerts({ candidates: [candidate] }), []);
+  }
+});
+
 test('All American parser fails closed for unavailable, backordered, unsafe-format, and ambiguous products', () => {
+  for (const malformed of [null, {}, [], 'denied', { name: {} }, product({ name: null }), product({ permalink: 'denied' })]) {
+    assert.doesNotThrow(() => buildSouthCarolinaAllAmericanSignal({ id: 'SC' }, malformed, bible, new Date().toISOString()));
+    assert.equal(buildSouthCarolinaAllAmericanSignal({ id: 'SC' }, malformed, bible, new Date().toISOString()), null);
+  }
   assert.equal(buildSouthCarolinaAllAmericanSignal({ id: 'SC' }, product({ is_in_stock: false }), bible, new Date().toISOString()), null);
   assert.equal(buildSouthCarolinaAllAmericanSignal({ id: 'SC' }, product({ is_on_backorder: true }), bible, new Date().toISOString()), null);
   assert.equal(buildSouthCarolinaAllAmericanSignal({ id: 'SC' }, product({ is_on_backorder: undefined }), bible, new Date().toISOString()), null);
@@ -217,6 +251,9 @@ test('All American cache rejects legacy inventory rows without the reviewed proo
   const row = buildSouthCarolinaAllAmericanSignal({ id: 'SC' }, product(), bible, generatedAt);
   assert.equal(isSouthCarolinaAllAmericanCacheUsable([row], generatedAt, nowMs), true);
   assert.equal(isSouthCarolinaAllAmericanCacheUsable([], generatedAt, nowMs), false);
+  assert.equal(isSouthCarolinaAllAmericanCacheUsable(null, generatedAt, nowMs), false);
+  assert.equal(isSouthCarolinaAllAmericanCacheUsable('HTTP 403 denied', generatedAt, nowMs), false);
+  assert.equal(isSouthCarolinaAllAmericanCacheUsable([{ status: 403, error: 'source denied' }], generatedAt, nowMs), false);
   assert.equal(isSouthCarolinaAllAmericanCacheUsable([row], '2026-08-04T21:06:00.000Z', nowMs), false);
   assert.equal(isSouthCarolinaAllAmericanCacheUsable([row], '2026-08-04T18:59:59.999Z', nowMs), false);
   for (const mutate of [
