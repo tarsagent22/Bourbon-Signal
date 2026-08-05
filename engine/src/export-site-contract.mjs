@@ -1252,7 +1252,7 @@ function alertChannelPolicy(candidate) {
   };
 }
 
-function buildAlerts(alerts) {
+export function buildAlerts(alerts) {
   return (alerts.candidates || [])
     .filter((c) => Boolean(c.eligibleForDelivery))
     .filter((c) => lifecycleAllowsInventoryAlert(c.state) || lifecycleAllowsWatchAlert(c.state))
@@ -1286,14 +1286,25 @@ function buildAlerts(alerts) {
     blockers: Array.isArray(c.blockers) ? c.blockers : [],
     cautions: Array.isArray(c.cautions) ? c.cautions : [],
     state: c.state,
+    stateCode: c.stateCode || c.state,
     bottle: c.bottle,
+    canonicalBottleId: c.canonicalBottleId || c.canonicalId || null,
+    canonicalId: c.canonicalId || c.canonicalBottleId || null,
+    canonicalName: c.canonicalName || c.bottle || null,
+    rawName: c.rawName || null,
     tier: c.tier,
     eventType: c.eventType,
     source: c.sourceLabel,
+    sourceLabel: c.sourceLabel,
     sourceUrl: c.sourceUrl,
     sourceChain: c.sourceChain || null,
     merchantId: c.merchantId || null,
     productId: c.productId || null,
+    sku: c.sku || null,
+    sourceProductProofId: c.sourceProductProofId || null,
+    sourceProductProofSku: c.sourceProductProofSku || null,
+    sourceProductInStock: c.sourceProductInStock ?? null,
+    sourceProductBackordered: c.sourceProductBackordered ?? null,
     productHandle: c.productHandle || null,
     variantId: c.variantId || null,
     variantAvailable: c.variantAvailable ?? null,
@@ -1303,15 +1314,21 @@ function buildAlerts(alerts) {
     storeId: c.storeId || null,
     storeAddress: c.storeAddress,
     city: c.city || null,
+    postalCode: c.postalCode || c.zip || null,
+    zip: c.zip || c.postalCode || null,
     quantity: c.quantity || 0,
+    storeQty: Number(c.storeQty ?? c.quantity ?? 0) || 0,
     quantityIsExact: typeof c.quantityIsExact === 'boolean' ? c.quantityIsExact : null,
     quantitySemantics: c.quantitySemantics || null,
     reportedQuantity: c.reportedQuantity ?? null,
     availabilityStatus: c.availabilityStatus,
     availabilityLabel: c.availabilityLabel,
+    sourceAvailabilityVerified: c.sourceAvailabilityVerified === true,
+    orderabilityOfferVerified: c.orderabilityOfferVerified === true,
     warehouseQty: c.warehouseQty || 0,
     price: c.price || 0,
     confidence: c.confidence,
+    observedAt: c.observedAt || c.signalAt || null,
     policyMode: c.policyMode,
     inventorySemantics: safeString(c.inventorySemantics, 700),
     reason: safeString(c.reason, 700),

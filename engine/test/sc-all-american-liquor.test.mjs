@@ -4,8 +4,8 @@ import test from 'node:test';
 import { BourbonBible } from '../src/core/bible.mjs';
 import { buildSouthCarolinaAllAmericanSignal, isSouthCarolinaAllAmericanCacheUsable } from '../src/collectors/precision-probes.mjs';
 import { confidenceForSignal } from '../src/confidence-policy.mjs';
-import { buildCurrentInventoryAlertsFromDrops, buildDrops } from '../src/export-site-contract.mjs';
-import { canonicalizeSignal } from '../src/operational-report.mjs';
+import { buildAlerts, buildCurrentInventoryAlertsFromDrops, buildDrops } from '../src/export-site-contract.mjs';
+import { candidateFromChange, canonicalizeSignal } from '../src/operational-report.mjs';
 import { verifyAllAmericanAlertProjection } from '../src/verify-sc-all-american-alert-projection.mjs';
 import {
   hasSouthCarolinaPositiveInventoryEvidence,
@@ -99,7 +99,7 @@ test('All American production verifier accepts separate first-run change and cur
   };
   const firstRunChange = {
     ...drop,
-    changeType: 'availability_increase',
+    changeType: 'new_signal',
     gates: ['verified_binary_in_store_availability'],
   };
 
@@ -122,6 +122,40 @@ test('All American production verifier accepts separate first-run change and cur
     }),
     /current on-site projection mismatch/,
   );
+  assert.throws(
+    () => verifyAllAmericanAlertProjection({
+      sourceDrops: [{ ...drop, productId: null }],
+      sourceAlerts: [{ ...current, productId: null }],
+    }),
+    /missing or duplicate projection identities/,
+  );
+  assert.throws(
+    () => verifyAllAmericanAlertProjection({
+      sourceDrops: [drop],
+      sourceAlerts: [current, { ...firstRunChange, changeType: 'missing_signal' }],
+    }),
+    /additional change projections/,
+  );
+});
+
+test('All American first-run change survives the exported alert contract without widening delivery', () => {
+  const normalized = canonicalizeSignal(signal(), bible);
+  const candidate = candidateFromChange({ type: 'new_signal', key: normalized.key, before: null, after: normalized });
+  assert.equal(candidate.eligibleForEmail, false);
+  assert.equal(candidate.eligibleForSms, false);
+  assert.ok(candidate.gates.includes('verified_binary_in_store_availability'));
+  assert.equal(candidate.canonicalBottleId, normalized.canonicalBottleId);
+  assert.equal(candidate.productId, normalized.productId);
+  assert.equal(candidate.sku, normalized.sku);
+
+  const [exported] = buildAlerts({ candidates: [candidate] });
+  assert.ok(exported);
+  assert.equal(isSouthCarolinaAllAmericanInventory(exported), true);
+  assert.equal(exported.eligibleForOnSite, true);
+  assert.equal(exported.eligibleForEmail, false);
+  assert.equal(exported.eligibleForSms, false);
+  assert.ok(exported.gates.includes('verified_binary_in_store_availability'));
+  assert.equal(exported.gates.includes('verified_binary_orderability'), false);
 });
 
 test('All American exact identity rejects forged source, premise, product, stock, and freshness bindings', () => {
