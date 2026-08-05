@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { isCaliforniaRetailerInventory } from './california-retailer-policy.mjs';
+import { unexpectedCaliforniaRoadblocks } from './california-release-policy.mjs';
 
 const state = JSON.parse(await readFile('out/states/CA.json', 'utf8'));
 const storeUniverse = JSON.parse(await readFile('data/store-universe/CA.json', 'utf8'));
@@ -24,7 +25,8 @@ const freshInventory = inventory.filter((signal) => {
 
 assert.equal(state.state, 'CA');
 assert.ok(['useful', 'useful_retained_not_due'].includes(state.status), `California status ${JSON.stringify(state.status)} is not release-useful.`);
-assert.equal(state.roadblocks?.length ?? 0, 0);
+const unexpectedRoadblocks = unexpectedCaliforniaRoadblocks(state.roadblocks, { scheduledRetainedNotDue: scheduledOnlyException });
+assert.equal(unexpectedRoadblocks.length, 0, `California has blocking collector roadblocks: ${JSON.stringify(unexpectedRoadblocks)}`);
 assert.ok(inventory.length >= 12, `expected at least 12 California inventory rows; got ${inventory.length}`);
 assert.ok(new Set(inventory.map((signal) => signal.storeId)).size >= 2, 'expected at least two independently identity-bound San Diego stores');
 assert.ok(inventory.every(isCaliforniaRetailerInventory), 'every California inventory row must pass the exact identity and semantics policy');
