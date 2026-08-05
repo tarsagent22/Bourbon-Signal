@@ -18,6 +18,12 @@ const NC_BOARD_WEBSITE_TIMEOUT_MS = Number(process.env.BOURBON_SIGNAL_NC_BOARD_W
 const NEW_HANOVER_BARREL_URL = 'https://www.newhanovercountyabc.com/barrels/';
 const NEW_HANOVER_WORDPRESS_POSTS_URL = 'https://www.newhanovercountyabc.com/wp-json/wp/v2/posts?search=barrel&per_page=100';
 const DURHAM_STRUCTURED_PRODUCTS_URL = 'https://www.durhamabc.com/4552233';
+const CUMBERLAND_HOME_URL = 'https://www.cumberlandabc.com/';
+const CUMBERLAND_UPDATES_URL = 'https://www.cumberlandabc.com/sales-special-orders-new-discontinued';
+const CUMBERLAND_STORE_LOCATIONS_URL = 'https://www.cumberlandabc.com/store-locations';
+const CUMBERLAND_WESTWOOD_URL = 'https://www.cumberlandabc.com/morganton-rd';
+const CUMBERLAND_PRODUCTS_URL = 'https://www.cumberlandabc.com/products';
+const CUMBERLAND_SPECIAL_ORDERS_URL = 'https://www.cumberlandabc.com/about-3';
 
 const STRICT_TRACKED_RE = /buffalo trace|blanton|eagle rare|weller|stagg|e\.?h\.?\s*taylor|colonel\s*taylor|old fitz|fitzgerald|willett|pappy|van winkle|blood oath|old carter|elmer t|rock hill|george t|william larue|thomas h|elijah craig\s+barrel proof|four roses\s+(limited|limited edition|single barrel\s+(?:OES|OBS))|michter'?s\s+10|henry\s+mckenna\s+(?:10|single\s+barrel|bottled[ -]?in[ -]?bond|bib)|booker'?s|baker'?s|little book|parker'?s\s+heritage|old forester\s+(?:birthday|president'?s choice)|russell'?s\s+reserve\s+(?:13|15)|1792\s+(?:sweet wheat|single barrel|full proof|bottled in bond|12\s*year)|heaven hill\s+(?:heritage|grain to glass|18|17|90th)|knob creek\s+(?:12|15|18)|woodford reserve\s+(?:double double|masters collection|barrel strength)|jack daniel'?s\s+(?:10|12|14)|remus repeal|holladay|shenk'?s|bomberger'?s/i;
 const STRICT_TRACKED_EXCLUDE_RE = /cream|liqueur|cordial|cocktail|ready[ -]?to[ -]?drink|rtd|vodka|gin|rum|tequila|mezcal|cognac|brandy|wine|beer|seltzer/i;
@@ -55,7 +61,12 @@ export const NC_STATIC_BOARD_TARGETS = [
   { boardName: 'New Hanover County ABC Board', urls: ['https://www.newhanovercountyabc.com/allocated-products/'], capability: 'allocated_product_release_page' },
   { boardName: 'Greensboro ABC Board', urls: ['https://www.greensboroabc.com/greensboro-abc-lottery/'], capability: 'lottery_page' },
   { boardName: 'Orange County ABC Board', urls: ['https://orangeabc.com/specialty-lottery/'], capability: 'lottery_page' },
-  { boardName: 'Cumberland County ABC Board', urls: ['https://www.cumberlandabc.com/about-3'], capability: 'special_order_and_allocation_page' },
+  {
+    boardName: 'Cumberland County ABC Board',
+    urls: [CUMBERLAND_HOME_URL, CUMBERLAND_UPDATES_URL, CUMBERLAND_STORE_LOCATIONS_URL, CUMBERLAND_WESTWOOD_URL, CUMBERLAND_PRODUCTS_URL, CUMBERLAND_SPECIAL_ORDERS_URL],
+    signalUrls: [CUMBERLAND_UPDATES_URL],
+    capability: 'product_updates_and_exact_store_directory',
+  },
   { boardName: 'Wayne County ABC Board', urls: ['https://wayneabc.com/allocation-policy/'], capability: 'allocation_policy' },
   { boardName: 'Weaverville ABC Board', urls: ['https://weaverville.ncabcboards.com/blog/', 'https://weaverville.ncabcboards.com/abc-policy-for-allocation-and-sale-of-special-liquors/'], capability: 'lottery_and_policy_posts' },
   { boardName: 'Concord ABC Board', urls: ['https://concordabcboard.com/preparing-for-bourbon-lottery/'], capability: 'lottery_page' }
@@ -436,13 +447,64 @@ export function ncBoardPageSourceIdentity(requestedUrl, finalUrl, reviewedSeedUr
   return { verified: true, reason: null };
 }
 
+export function ncWestwoodOfficialStoreIdentity(requestedUrl, finalUrl, html = '', reviewedSeedUrls = [CUMBERLAND_WESTWOOD_URL], directoryEvidence = {}) {
+  const sourceIdentity = ncBoardPageSourceIdentity(requestedUrl, finalUrl, reviewedSeedUrls);
+  if (!sourceIdentity.verified) return sourceIdentity;
+  let requested;
+  let final;
+  try {
+    requested = new URL(requestedUrl);
+    final = new URL(finalUrl);
+  } catch {
+    return { verified: false, reason: 'Cumberland Westwood identity requires the exact reviewed HTTPS route.' };
+  }
+  if (String(requestedUrl) !== CUMBERLAND_WESTWOOD_URL || String(finalUrl) !== CUMBERLAND_WESTWOOD_URL) {
+    return { verified: false, reason: 'Cumberland Westwood identity requires the exact reviewed HTTPS route without a same-origin redirect.' };
+  }
+  const directorySourceIdentity = ncBoardPageSourceIdentity(directoryEvidence.requestedUrl, directoryEvidence.finalUrl, reviewedSeedUrls);
+  if (!directorySourceIdentity.verified) {
+    return { verified: false, reason: 'Cumberland Westwood identity requires the exact reviewed first-party store-directory route.' };
+  }
+  let directoryRequested;
+  let directoryFinal;
+  try {
+    directoryRequested = new URL(directoryEvidence.requestedUrl);
+    directoryFinal = new URL(directoryEvidence.finalUrl);
+  } catch {
+    return { verified: false, reason: 'Cumberland Westwood identity requires the exact reviewed first-party store-directory route.' };
+  }
+  if (String(directoryEvidence.requestedUrl) !== CUMBERLAND_STORE_LOCATIONS_URL || String(directoryEvidence.finalUrl) !== CUMBERLAND_STORE_LOCATIONS_URL) {
+    return { verified: false, reason: 'Cumberland Westwood identity requires the exact reviewed first-party store-directory route.' };
+  }
+  const text = stripHtml(String(html || '')).replace(/&(?:#39|apos);/gi, "'").replace(/\s+/g, ' ').trim();
+  const westwoodAddressMatch = text.match(/(?:102\s+Westwood\s+Shopping\s+Cent(?:er|re)|Westwood\s+Shopping\s+Cent(?:er|re),?\s+Suite\s+102)/i);
+  const hasWestwoodAddress = Boolean(westwoodAddressMatch);
+  const hasStoreIdentity = /Morganton\s+Rd\.?\s+ABC|relocated\s+to\s+the\s+Westwood\s+Shopping\s+Cent(?:er|re)/i.test(text);
+  const westwoodAddressOffset = westwoodAddressMatch?.index ?? -1;
+  const westwoodAddressContext = westwoodAddressOffset >= 0
+    ? text.slice(Math.max(0, westwoodAddressOffset - 220), westwoodAddressOffset + westwoodAddressMatch[0].length + 220)
+    : '';
+  const contextWithoutReviewedLocality = westwoodAddressContext.replace(/Fayetteville\s*,?\s*NC\s+28314\b/gi, '');
+  const conflictingWestwoodLocality = /\b(?:AL|AK|AZ|AR|CA|CO|CT|DE|FL|GA|HI|ID|IL|IN|IA|KS|KY|LA|ME|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PA|RI|SC|SD|TN|TX|UT|VT|VA|WA|WV|WI|WY)\b|\b\d{5}\b/i.test(contextWithoutReviewedLocality);
+  const directoryText = stripHtml(String(directoryEvidence.html || '')).replace(/&(?:#39|apos);/gi, "'").replace(/\s+/g, ' ').trim();
+  const westwoodDirectoryEntry = directoryText.match(/Store\s*#\s*6\b[\s\S]{0,300}?(?=Store\s*#\s*\d+\b|$)/i)?.[0] || '';
+  const completeDirectoryAddress = /Morganton\s+Rd[\s\S]{0,120}102\s+Westwood\s+Shopping\s+Cent(?:er|re)[\s\S]{0,120}Fayetteville\s*,?\s*NC\s+28314\b/i.test(westwoodDirectoryEntry);
+  const directoryContextWithoutReviewedLocality = westwoodDirectoryEntry.replace(/Fayetteville\s*,?\s*NC\s+28314\b/gi, '');
+  const conflictingDirectoryLocality = /\b(?:AL|AK|AZ|AR|CA|CO|CT|DE|FL|GA|HI|ID|IL|IN|IA|KS|KY|LA|ME|MD|MA|MI|MN|MS|MO|MT|NE|NV|NH|NJ|NM|NY|NC|ND|OH|OK|OR|PA|RI|SC|SD|TN|TX|UT|VT|VA|WA|WV|WI|WY)\b|\b\d{5}\b/i.test(directoryContextWithoutReviewedLocality);
+  if (!hasWestwoodAddress || !hasStoreIdentity || conflictingWestwoodLocality || !completeDirectoryAddress || conflictingDirectoryLocality) {
+    return { verified: false, reason: 'Cumberland first-party page did not contain the reviewed Westwood store identity and complete Fayetteville address.' };
+  }
+  return { verified: true, reason: null };
+}
+
 export function ncGenericBoardWebsiteWatchEligibility() {
   return false;
 }
 
 export function ncBoardWebsiteSignalEligible(boardName, sourceUrl) {
-  const target = STATIC_BOARD_TARGETS.find((candidate) => boardKey(candidate.boardName) === boardKey(boardName));
-  return !target?.signalUrls || target.signalUrls.includes(sourceUrl);
+  const targets = STATIC_BOARD_TARGETS.filter((candidate) => boardKey(candidate.boardName) === boardKey(boardName));
+  if (!targets.length || targets.every((target) => !target.signalUrls)) return true;
+  return targets.some((target) => target.signalUrls?.includes(sourceUrl));
 }
 
 export function prioritizeNcBoardWebsiteTargets(boardValues, maxBoards = NC_BOARD_WEBSITE_MAX) {
@@ -466,10 +528,12 @@ export function prioritizeNcBoardWebsiteTargets(boardValues, maxBoards = NC_BOAR
     .slice(0, Math.max(0, Number(maxBoards) || 0));
 }
 
-function candidateUrlsForBoard(board) {
+export function candidateUrlsForBoard(board) {
   const urls = new Set();
-  const staticTarget = STATIC_BOARD_TARGETS.find((target) => boardKey(target.boardName) === boardKey(board.boardName));
-  for (const url of staticTarget?.urls || []) urls.add(url);
+  const staticTargets = STATIC_BOARD_TARGETS.filter((target) => boardKey(target.boardName) === boardKey(board.boardName));
+  for (const staticTarget of staticTargets) {
+    for (const url of staticTarget.urls || []) urls.add(url);
+  }
   if (board.website) {
     for (const p of CANDIDATE_PATHS) {
       try { urls.add(new URL(p, `${board.website}/`).toString()); } catch {}
@@ -936,6 +1000,13 @@ async function discoverBoardPages(board) {
 
   const urls = [...new Set([...seedUrls, ...discovered])].slice(0, NC_BOARD_WEBSITE_URL_MAX);
   const responses = await Promise.all(urls.map((url) => safeTextFetch(url, { referer: board.website || url, timeoutMs: NC_BOARD_WEBSITE_TIMEOUT_MS })));
+  const directoryIndex = urls.indexOf(CUMBERLAND_STORE_LOCATIONS_URL);
+  const directoryResponse = directoryIndex >= 0 ? responses[directoryIndex] : null;
+  const westwoodDirectoryEvidence = directoryResponse ? {
+    requestedUrl: CUMBERLAND_STORE_LOCATIONS_URL,
+    finalUrl: directoryResponse.url || CUMBERLAND_STORE_LOCATIONS_URL,
+    html: directoryResponse.ok ? directoryResponse.text : '',
+  } : {};
   for (let i = 0; i < responses.length; i += 1) {
     const url = urls[i];
     const res = responses[i];
@@ -944,8 +1015,12 @@ async function discoverBoardPages(board) {
     const text = stripHtml(res.text).replace(/\s+/g, ' ').trim();
     const links = verifiedResponse ? extractLinks(res.text, res.url || url).filter(interestingLink).slice(0, 30) : [];
     const caps = verifiedResponse ? pageCapability(url, text, links.map((l) => l.label).join(' ')) : [];
+    const westwoodIdentity = boardKey(board.boardName) === boardKey('Cumberland County ABC Board') && url === CUMBERLAND_WESTWOOD_URL
+      ? ncWestwoodOfficialStoreIdentity(url, res.url || url, res.text, seedUrls, westwoodDirectoryEvidence)
+      : null;
+    if (westwoodIdentity?.verified) caps.push('official_exact_store_directory_page');
     if (res.ok || links.length) {
-      reports.push({ boardName: board.boardName, url, finalUrl: res.url, ok: verifiedResponse, status: res.status, bytes: res.text.length, contentType: res.contentType, sourceIdentityVerified: sourceIdentity.verified, capabilities: caps, releaseLanguage: verifiedResponse && RELEASE_LANGUAGE_RE.test(text), strongReleaseLanguage: verifiedResponse && STRONG_RELEASE_LANGUAGE_RE.test(text), interestingLinks: links.slice(0, 12), textSample: verifiedResponse ? text.slice(0, 600) : '', error: res.error || sourceIdentity.reason || null });
+      reports.push({ boardName: board.boardName, url, finalUrl: res.url, ok: verifiedResponse, status: res.status, bytes: res.text.length, contentType: res.contentType, sourceIdentityVerified: sourceIdentity.verified, exactStoreIdentityVerified: westwoodIdentity?.verified ?? null, capabilities: [...new Set(caps)], releaseLanguage: verifiedResponse && RELEASE_LANGUAGE_RE.test(text), strongReleaseLanguage: verifiedResponse && STRONG_RELEASE_LANGUAGE_RE.test(text), interestingLinks: links.slice(0, 12), textSample: verifiedResponse ? text.slice(0, 600) : '', error: res.error || sourceIdentity.reason || westwoodIdentity?.reason || null });
     }
   }
   return reports;
@@ -968,7 +1043,7 @@ async function collectBoardWebsiteWatch(config, bible, signals, roadblocks, doss
       }
       for (const report of result.value) {
         reports.push(report);
-        board.officialPageReports.push({ url: report.url, finalUrl: report.finalUrl, status: report.status, sourceIdentityVerified: report.sourceIdentityVerified, capabilities: report.capabilities, releaseLanguage: report.releaseLanguage, strongReleaseLanguage: report.strongReleaseLanguage, matchedBottles: [] });
+        board.officialPageReports.push({ url: report.url, finalUrl: report.finalUrl, status: report.status, sourceIdentityVerified: report.sourceIdentityVerified, exactStoreIdentityVerified: report.exactStoreIdentityVerified, capabilities: report.capabilities, releaseLanguage: report.releaseLanguage, strongReleaseLanguage: report.strongReleaseLanguage, matchedBottles: [] });
         for (const capability of report.capabilities) addCapability(board, capability);
         const matched = strictBottleMentions(`${report.textSample} ${report.url}`, bible);
         board.officialPageReports[board.officialPageReports.length - 1].matchedBottles = matched.map((m) => m.canonical);
