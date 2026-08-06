@@ -104,7 +104,7 @@
     "test:demand-intelligence": "node --no-warnings --experimental-strip-types scripts/test-demand-intelligence.mts && node --no-warnings --experimental-strip-types scripts/test-search-capture-privacy.mts && node scripts/test-search-demand-report.mjs && node scripts/test-source-roi-demand.mjs",
     "test:growth-experiments": "node --no-warnings --experimental-strip-types scripts/test-growth-experiments.mts && node --no-warnings --experimental-strip-types scripts/test-release-radar-follow-experiment.mts",
     "test:member-activation": "node --no-warnings --experimental-strip-types scripts/test-member-activation.mts",
-    "test:member-welcome": "node --no-warnings --experimental-strip-types scripts/test-member-welcome.mts",
+    "test:member-welcome": "node --no-warnings --experimental-strip-types scripts/test-member-welcome.mts && node --no-warnings --experimental-strip-types scripts/test-welcome-local-preview.mts",
     "test:free-member-day-two-email": "tsx scripts/test-free-member-day-two-email.ts",
     "render:free-member-day-two-email": "tsx scripts/render-free-member-day-two-email.ts",
     "test:bottle-check-suggestions": "node --no-warnings --experimental-strip-types scripts/test-bottle-check-suggestions.mts",
