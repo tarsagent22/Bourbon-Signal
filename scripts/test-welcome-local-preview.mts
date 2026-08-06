@@ -12,10 +12,43 @@ import {
   type WelcomeLocalPreviewCandidateTarget,
   type WelcomeLocalPreviewRecord,
 } from "../src/lib/welcome-local-preview.ts";
+import {
+  welcomeStateSignalRows,
+  welcomeStateSignalsCanLoad,
+} from "../src/lib/welcome-state-signal-access.ts";
 
 const now = Date.parse("2026-08-05T20:00:00.000Z");
 assert.equal(welcomeLocalPreviewAccess({ createdAt: now - 60_000, record: null, now }), "eligible");
 assert.equal(welcomeLocalPreviewAccess({ createdAt: now - 25 * 60 * 60_000, record: null, now }), "ineligible");
+
+const ownedStateSignals = {
+  userId: "user_1",
+  stateCode: "VA",
+  rows: [{ id: "signal_1" }],
+};
+assert.equal(welcomeStateSignalsCanLoad("eligible"), true);
+for (const status of ["active", "expired", "ineligible", "loading", "error"] as const) {
+  assert.equal(welcomeStateSignalsCanLoad(status), false, `${status} must not load the generic state feed`);
+  assert.deepEqual(
+    welcomeStateSignalRows({ status, owner: ownedStateSignals, userId: "user_1", stateCode: "VA" }),
+    [],
+    `${status} must not render generic state-feed rows`,
+  );
+}
+assert.deepEqual(
+  welcomeStateSignalRows({ status: "eligible", owner: ownedStateSignals, userId: "user_1", stateCode: "VA" }),
+  ownedStateSignals.rows,
+);
+assert.deepEqual(
+  welcomeStateSignalRows({ status: "eligible", owner: ownedStateSignals, userId: "user_1", stateCode: "NC" }),
+  [],
+  "rows fetched for an old state must not flash after a state change",
+);
+assert.deepEqual(
+  welcomeStateSignalRows({ status: "eligible", owner: ownedStateSignals, userId: "user_2", stateCode: "VA" }),
+  [],
+  "rows fetched for an old account must not flash after an account change",
+);
 
 const activeRecord: WelcomeLocalPreviewRecord = {
   userId: "user_1",
@@ -358,6 +391,31 @@ assert.doesNotMatch(localTargetCardSource, /localPreview\.target\.areaLabel/);
 assert.doesNotMatch(localTargetCardSource, /localPreview\.target\.city/);
 assert.match(localTargetCardSource, /selectedTargetDetails/);
 assert.match(welcomeSource, /welcomeLocalPreviewTargetDetails/);
+assert.match(
+  welcomeSource,
+  /const canShowStateSignals = welcomeStateSignalsCanLoad\(localPreviewStatus\)/,
+  "state signal access must fail closed for active, expired, ineligible, loading, and error states",
+);
+assert.match(welcomeSource, /const drops = welcomeStateSignalRows\(\{/,
+  "rendered rows must be bound to the current user and state");
+const stateFeedLoadSource = welcomeSource.slice(
+  welcomeSource.indexOf("const loadDrops"),
+  welcomeSource.indexOf("const loadCoverage"),
+);
+assert.match(
+  stateFeedLoadSource,
+  /canShowStateSignals\s*&&\s*requestUserId\s*\?\s*fetch/,
+  "the browser must not request the state feed after the one-time preview expires",
+);
+const stateFeedRenderSource = welcomeSource.slice(
+  welcomeSource.indexOf('localPreviewStatus === "expired"'),
+  welcomeSource.indexOf('className={`${styles.section} ${styles.coverageSection}`}'),
+);
+assert.match(
+  stateFeedRenderSource,
+  /canShowStateSignals\s*\?\s*\([\s\S]*<SignalCards signals=\{drops\}/,
+  "fallback state cards must render only while the free preview is eligible",
+);
 assert.doesNotMatch(welcomeSource, /Date\.parse\(localPreview\.expiresAt\)\s*-\s*Date\.now\(\)/, "the client timer must use server-authoritative remainingMs");
 assert.match(
   welcomeSource,

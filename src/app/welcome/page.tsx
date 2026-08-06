@@ -39,6 +39,11 @@ import {
   welcomeLocalPreviewSignalLocation,
   welcomeLocalPreviewTargetDetails,
 } from "@/lib/welcome-local-preview";
+import {
+  welcomeStateSignalRows,
+  welcomeStateSignalsCanLoad,
+  type WelcomeStateSignalOwner,
+} from "@/lib/welcome-state-signal-access";
 import styles from "./welcome.module.css";
 
 interface DropsPreviewResponse {
@@ -236,7 +241,7 @@ export default function WelcomePage() {
   const [editingState, setEditingState] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"idle" | "saving" | "error">("idle");
   const [saveMessage, setSaveMessage] = useState("");
-  const [drops, setDrops] = useState<DropEvent[]>([]);
+  const [stateSignalOwner, setStateSignalOwner] = useState<WelcomeStateSignalOwner<DropEvent> | null>(null);
   const [dropsError, setDropsError] = useState("");
   const [degradedStateFallback, setDegradedStateFallback] = useState(false);
   const [coverageState, setCoverageState] = useState<CoverageState | null>(null);
@@ -267,6 +272,13 @@ export default function WelcomePage() {
     : null;
   const localPreviewStatus: LocalPreviewStatus = currentLocalPreviewState?.status
     || (isLoaded && !authenticatedUserId ? "ineligible" : "loading");
+  const canShowStateSignals = welcomeStateSignalsCanLoad(localPreviewStatus);
+  const drops = welcomeStateSignalRows({
+    status: localPreviewStatus,
+    owner: stateSignalOwner,
+    userId: authenticatedUserId,
+    stateCode: activeState,
+  });
   const localPreview = currentLocalPreviewState?.preview || null;
   const localPreviewRemainingMs = currentLocalPreviewState?.remainingMs || 0;
   const selectedTargetDetails = localPreview ? welcomeLocalPreviewTargetDetails(localPreview.target) : [];
@@ -388,19 +400,21 @@ export default function WelcomePage() {
   useEffect(() => {
     if (!activeState) return;
     const controller = new AbortController();
+    const requestUserId = authenticatedUserId;
+    const requestStateCode = activeState;
     setPreviewLoading(true);
-    setDrops([]);
+    setStateSignalOwner(null);
     setDropsError("");
     setCoverageState(null);
     setCoverageError("");
     setDegradedStateFallback(false);
 
-    const loadDrops = fetch(`/api/drops?state=${encodeURIComponent(activeState)}&limit=5`, {
+    const loadDrops = canShowStateSignals && requestUserId ? fetch(`/api/drops?state=${encodeURIComponent(requestStateCode)}&limit=5`, {
       signal: controller.signal,
     }).then(async (response) => ({
       response,
       payload: await response.json().catch(() => ({})) as DropsPreviewResponse,
-    }));
+    })) : Promise.resolve(null);
     const loadCoverage = fetch("/api/coverage", {
       signal: controller.signal,
     }).then(async (response) => ({
@@ -410,25 +424,29 @@ export default function WelcomePage() {
 
     void Promise.allSettled([loadDrops, loadCoverage])
       .then(([dropResult, coverageResult]) => {
-        if (controller.signal.aborted) return;
-        if (dropResult.status === "fulfilled" && dropResult.value.response.ok) {
+        if (controller.signal.aborted
+          || currentUserIdRef.current !== requestUserId
+          || currentStateCodeRef.current !== requestStateCode) return;
+        if (!canShowStateSignals) {
+          setStateSignalOwner(null);
+        } else if (dropResult.status === "fulfilled" && dropResult.value?.response.ok && requestUserId) {
           const previewDrops = Array.isArray(dropResult.value.payload.drops)
             ? dropResult.value.payload.drops.slice(0, 5)
             : [];
-          setDrops(previewDrops);
+          setStateSignalOwner({ userId: requestUserId, stateCode: requestStateCode, rows: previewDrops });
           setDegradedStateFallback(dropResult.value.payload.degradedStateFallback === true);
-          if (previewDrops.length && !freeValueRecordedFor.current.has(activeState)) {
-            freeValueRecordedFor.current.add(activeState);
+          if (previewDrops.length && !freeValueRecordedFor.current.has(requestStateCode)) {
+            freeValueRecordedFor.current.add(requestStateCode);
             void recordGrowthMilestone("free_value_reached", {
               surface: "welcome",
               kind: "welcome_state_signals",
-              market: activeState,
+              market: requestStateCode,
               precision: "state_preview",
             });
           }
         } else {
           setDropsError(
-            dropResult.status === "fulfilled"
+            dropResult.status === "fulfilled" && dropResult.value
               ? dropResult.value.payload.error || "Latest signals are temporarily unavailable."
               : "Latest signals are temporarily unavailable.",
           );
@@ -438,7 +456,7 @@ export default function WelcomePage() {
           && coverageResult.value.response.ok
           && Array.isArray(coverageResult.value.payload.states)) {
           setCoverageStates(coverageResult.value.payload.states);
-          const current = coverageResult.value.payload.states.find((state) => state.code === activeState) || null;
+          const current = coverageResult.value.payload.states.find((state) => state.code === requestStateCode) || null;
           setCoverageState(current);
           if (!current) setCoverageError("Coverage detail for this state is temporarily unavailable.");
         } else {
@@ -450,7 +468,7 @@ export default function WelcomePage() {
       });
 
     return () => controller.abort();
-  }, [activeState]);
+  }, [activeState, authenticatedUserId, canShowStateSignals]);
 
   async function saveHomeState() {
     if (!selectedState || localSearchStatus === "opening") return;
@@ -799,17 +817,19 @@ export default function WelcomePage() {
                         <Link href="/pricing?source=welcome-local-preview">View plans</Link>
                       </div>
                     ) : null}
-                    {previewLoading ? (
-                      <p className={styles.loading} aria-live="polite">Checking current signals and coverage…</p>
-                    ) : (
-                      <>
-                        <div className={styles.previewStatus}>
-                          <Radio size={15} aria-hidden="true" />
-                          <p>{previewMessage}</p>
-                        </div>
-                        {drops.length ? <SignalCards signals={drops} stateName={activeStateName} /> : null}
-                      </>
-                    )}
+                    {canShowStateSignals ? (
+                      previewLoading ? (
+                        <p className={styles.loading} aria-live="polite">Checking current signals and coverage…</p>
+                      ) : (
+                        <>
+                          <div className={styles.previewStatus}>
+                            <Radio size={15} aria-hidden="true" />
+                            <p>{previewMessage}</p>
+                          </div>
+                          {drops.length ? <SignalCards signals={drops} stateName={activeStateName} /> : null}
+                        </>
+                      )
+                    ) : null}
                   </>
                 )}
               </section>
