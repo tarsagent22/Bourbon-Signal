@@ -3,7 +3,7 @@ import type { FounderShippingStatus, FounderShippingSubmission } from "@/lib/fou
 
 export interface FounderShippingRecord extends FounderShippingSubmission {
   userId: string;
-  founderNumber: number;
+  founderNumber: number | null;
   accountEmail: string;
   status: FounderShippingStatus;
   carrier: string | null;
@@ -45,7 +45,9 @@ function nullableText(value: unknown) {
 function rowToRecord(row: FounderShippingRow): FounderShippingRecord {
   return {
     userId: text(row.user_id),
-    founderNumber: Number(row.founder_number) || 0,
+    founderNumber: Number.isInteger(Number(row.founder_number)) && Number(row.founder_number) > 0
+      ? Number(row.founder_number)
+      : null,
     accountEmail: text(row.account_email),
     recipientName: text(row.recipient_name),
     addressLine1: text(row.address_line1),
@@ -93,16 +95,26 @@ export class FounderShippingRepository {
     return rows[0] ? rowToRecord(rows[0]) : null;
   }
 
+  async attachFounderNumber(userId: string, founderNumber: number): Promise<FounderShippingRecord | null> {
+    const rows = await this.query.query(
+      `UPDATE founder_glass_shipping SET founder_number = $2, updated_at = NOW()
+       WHERE user_id = $1 AND founder_number IS NULL
+       RETURNING *`,
+      [userId, founderNumber],
+    ) as FounderShippingRow[];
+    return rows[0] ? rowToRecord(rows[0]) : null;
+  }
+
   async listForOwner(): Promise<FounderShippingRecord[]> {
     const rows = await this.query.query(
-      `SELECT * FROM founder_glass_shipping ORDER BY founder_number ASC LIMIT 1000`,
+      `SELECT * FROM founder_glass_shipping WHERE founder_number IS NOT NULL ORDER BY founder_number ASC LIMIT 1000`,
     ) as FounderShippingRow[];
     return rows.map(rowToRecord);
   }
 
   async upsertSubmission(input: {
     userId: string;
-    founderNumber: number;
+    founderNumber: number | null;
     accountEmail: string;
     submission: FounderShippingSubmission;
   }): Promise<FounderShippingRecord> {
@@ -113,7 +125,7 @@ export class FounderShippingRepository {
          city, state_code, postal_code, country_code, phone, status, submitted_at, updated_at
        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, 'US', $10, 'submitted', NOW(), NOW())
        ON CONFLICT (user_id) DO UPDATE SET
-         founder_number = EXCLUDED.founder_number,
+         founder_number = COALESCE(EXCLUDED.founder_number, founder_glass_shipping.founder_number),
          account_email = EXCLUDED.account_email,
          recipient_name = EXCLUDED.recipient_name,
          address_line1 = EXCLUDED.address_line1,
@@ -163,7 +175,7 @@ export class FounderShippingRepository {
            shipped_at = CASE WHEN $2 = 'shipped' THEN COALESCE(shipped_at, NOW()) ELSE NULL END,
            updated_at = NOW(),
            updated_by = $5
-       WHERE user_id = $1
+       WHERE user_id = $1 AND founder_number IS NOT NULL
        RETURNING *`,
       [input.userId, input.status, input.carrier, input.trackingNumber, input.updatedBy],
     ) as FounderShippingRow[];
@@ -179,6 +191,10 @@ export function createFounderShippingRepository(env: NodeJS.ProcessEnv = process
 
 export async function readFounderShippingForUser(userId: string) {
   return createFounderShippingRepository().readForUser(userId);
+}
+
+export async function attachFounderNumberToShippingProfile(userId: string, founderNumber: number) {
+  return createFounderShippingRepository().attachFounderNumber(userId, founderNumber);
 }
 
 export async function listFounderShippingForOwner() {

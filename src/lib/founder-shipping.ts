@@ -44,11 +44,23 @@ function metadataValue(metadata: unknown, key: string) {
   return record[key];
 }
 
-export function founderShippingEligibility(metadata: unknown) {
+export function memberShippingEligibility(metadata: unknown) {
+  const tier = resolveEffectiveMembershipTier(metadata);
   const number = founderNumber(metadataValue(metadata, "founderNumber"))
     || founderNumber(metadataValue(metadata, "memberNumber"));
-  const eligible = resolveEffectiveMembershipTier(metadata) === "bottled-in-bond" && number !== null;
-  return { eligible, founderNumber: eligible ? number : null };
+  const eligible = tier !== "free";
+  return {
+    eligible,
+    founderNumber: eligible && tier === "bottled-in-bond" ? number : null,
+  };
+}
+
+export function founderShippingEligibility(metadata: unknown) {
+  const eligibility = memberShippingEligibility(metadata);
+  return {
+    eligible: eligibility.eligible && eligibility.founderNumber !== null,
+    founderNumber: eligibility.founderNumber,
+  };
 }
 
 export function normalizeFounderShippingSubmission(input: Record<string, unknown>): FounderShippingValidation {
@@ -74,7 +86,7 @@ export function normalizeFounderShippingSubmission(input: Record<string, unknown
   if (city.length < 2) return { ok: false, error: "Enter the city." };
   if (!US_STATE_CODES.has(stateCode)) return { ok: false, error: "Choose a valid U.S. state or the District of Columbia." };
   if (!/^\d{5}(?:-\d{4})?$/.test(postalCode)) return { ok: false, error: "Enter a valid U.S. ZIP code." };
-  if (countryCode !== "US") return { ok: false, error: "Founder glass shipping is available in the United States only." };
+  if (countryCode !== "US") return { ok: false, error: "Shipping is available in the United States only." };
   if (!/^\d{10}$/.test(domesticPhone)) return { ok: false, error: "Enter a valid U.S. phone number." };
 
   return {

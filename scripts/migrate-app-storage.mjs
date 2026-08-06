@@ -133,7 +133,7 @@ const criticalColumnDefinitions = {
   'member_collection_legacy_backups.user_id': ['text', 'NO'],
   'member_collection_legacy_backups.payload': ['jsonb', 'NO'],
   'founder_glass_shipping.user_id': ['text', 'NO'],
-  'founder_glass_shipping.founder_number': ['integer', 'NO'],
+  'founder_glass_shipping.founder_number': ['integer', 'YES'],
   'founder_glass_shipping.phone': ['text', 'NO'],
   'founder_glass_shipping.country_code': ['character', 'NO'],
   'founder_glass_shipping.status': ['text', 'NO'],
@@ -148,7 +148,7 @@ const invalidDefinitions = Object.entries(criticalColumnDefinitions).flatMap(([c
 });
 const founderColumnDefinitions = {
   user_id: ['text', 'NO', null, null],
-  founder_number: ['integer', 'NO', null, null],
+  founder_number: ['integer', 'YES', null, null],
   account_email: ['text', 'NO', null, null],
   recipient_name: ['text', 'NO', null, null],
   address_line1: ['text', 'NO', null, null],
@@ -269,7 +269,7 @@ const constraintRows = await sql.query(`
 const availableConstraints = new Set(constraintRows.map((row) => row.conname));
 const missingConstraints = expectedConstraints.filter((constraint) => !availableConstraints.has(constraint));
 const expectedFounderConstraintDefinitions = {
-  founder_glass_shipping_founder_number_positive: 'CHECK((founder_number>0))',
+  founder_glass_shipping_founder_number_positive: 'CHECK(((founder_numberISNULL)OR(founder_number>0)))',
   founder_glass_shipping_country_us: "CHECK((country_code='US'::bpchar))",
   founder_glass_shipping_status_valid: "CHECK((status=ANY(ARRAY['submitted'::text,'confirmed'::text,'packed'::text,'shipped'::text])))",
 };
