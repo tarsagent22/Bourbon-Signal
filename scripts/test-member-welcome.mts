@@ -92,11 +92,10 @@ assert.ok(welcomeCoverageSection.indexOf("<CoverageMap") < welcomeCoverageSectio
 assert.match(coverageMapSource, /interactive = true/, "the reusable map remains interactive by default");
 assert.match(coverageMapSource, /role=\{interactive \? "button" : undefined\}/, "display mode removes fake button semantics");
 assert.match(coverageSummarySource, /coverageStrengthLabel/, "the shared summary shows the canonical coverage type");
-assert.match(coverageSummarySource, /state\.code === "NC"[\s\S]*state\.scope\.knownBoards[\s\S]*NC ABC boards monitored/, "the shared summary shows all canonical NC boards");
-assert.doesNotMatch(coverageSummarySource, /inventoryMonitoredStores|Stores with current inventory signals/, "the shared summary omits current state freshness");
-assert.equal((coverageSummarySource.match(/<dt>/g) || []).length, 1, "the shared summary keeps only durable NC board breadth");
-assert.match(coverageSummaryStyles, /grid-template-columns: repeat\(2, minmax\(0, 1fr\)\)[\s\S]{0,180}max-width: 540px/, "the shared summary stays compact");
-assert.doesNotMatch(coverageSummaryStyles, /@media[\s\S]*\.metrics\s*\{[\s\S]{0,80}grid-template-columns:\s*1fr/, "narrow screens retain the compact two-metric row");
+assert.match(coverageSummarySource, /coverageMonitoringFootprint\(state\)/, "the shared summary uses stale-inclusive monitoring-library breadth for every state");
+assert.doesNotMatch(coverageSummarySource, /inventoryMonitoredStores|Stores with current inventory signals|current signals/i, "the shared summary omits current state freshness");
+assert.equal((coverageSummarySource.match(/<dt>/g) || []).length, 1, "the shared summary keeps one durable monitoring-library count");
+assert.match(coverageSummaryStyles, /grid-template-columns:\s*minmax\(0, 1fr\)[\s\S]{0,100}max-width:\s*270px/, "the shared summary stays compact");
 assert.match(coverageSummarySource, /Shipment reports show board or area deliveries—not guaranteed shelf stock\./);
 assert.match(coveragePanelSource, /<CoverageSummary state=\{state\}/, "the full Coverage page uses the same summary component");
 assert.doesNotMatch(coveragePanelSource, /Update status|healthCopy|stateSummary|quickFacts|tracked shipment data|official local pages|stores listed|stores with current availability/i, "the full panel removes the verbose duplicate facts");

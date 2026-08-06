@@ -30,6 +30,7 @@ assert.match(backup, /ProtectedData.*CurrentUser/s, 'Windows protects the local 
 assert.match(backup, /gzipSync/);
 assert.match(backup, /retention/i);
 assert.match(backup, /['"]coverage_request_automation_jobs['"]/, 'encrypted backups include the durable coverage automation queue');
+assert.ok((backup.match(/['"]founder_glass_shipping['"]/g) || []).length >= 2, 'encrypted backups include and require private founder fulfillment records');
 assert.match(backup, /Number\.isInteger\(configuredRetention\)/);
 assert.match(backup, /isolationLevel:\s*['"]RepeatableRead['"]/);
 assert.match(backup, /JSON\.parse\(await readFile\(temporaryFile/);

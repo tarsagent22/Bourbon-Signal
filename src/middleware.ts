@@ -12,6 +12,7 @@ const isProtectedRoute = createRouteMatcher([
   "/events(.*)",
 
   "/finder(.*)",
+  "/founder-shipping(.*)",
   "/settings(.*)",
   "/welcome(.*)",
   "/api/alerts(.*)",
@@ -22,6 +23,7 @@ const isProtectedRoute = createRouteMatcher([
 
   "/api/locations(.*)",
   "/api/member-weekly-intelligence(.*)",
+  "/api/member/shipping(.*)",
   "/api/nc-intelligence(.*)",
   "/api/search-events(.*)",
   "/api/stores(.*)",

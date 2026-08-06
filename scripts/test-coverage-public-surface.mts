@@ -86,8 +86,8 @@ assert.match(model, /customerSummary|customerCanSee|customerCannotSee/, "plain c
 assert.match(panel, /customerCanSee \|\| state\.canSee/, "the panel renders the plain customer capabilities");
 assert.doesNotMatch(search, /Results describe monitoring coverage/i, "search explains what the customer gets rather than exposing monitoring terminology");
 assert.match(welcome, /CoverageSummary/, "Welcome uses the shared coverage summary");
-assert.match(summary, /NC ABC boards monitored/, "the shared summary distinguishes total NC board monitoring from fresh signals");
-assert.doesNotMatch(summary, /Stores with current inventory signals|inventoryMonitoredStores/, "the shared summary omits current freshness and inventory-health counts");
+assert.match(summary, /coverageMonitoringFootprint\(state\)/, "the shared summary shows stale-inclusive monitoring-library breadth for every state");
+assert.doesNotMatch(summary, /Stores with current inventory signals|inventoryMonitoredStores|current signals/i, "the shared summary omits current freshness and inventory-health counts");
 
 assert.match(panel, /How we check this area/, "coverage detail uses progressive disclosure");
 assert.match(panel, /What is not available yet/, "state drilldown states its limits");

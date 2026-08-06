@@ -1,9 +1,12 @@
 import Link from "next/link";
 import { auth, clerkClient } from "@clerk/nextjs/server";
+import { revalidatePath } from "next/cache";
 import { notFound, redirect } from "next/navigation";
 import { getCompanyControlRoomSnapshot } from "@/lib/company-control-room-server";
 import { companyMemberPrimaryEmail, isCompanyControlRoomOwnerEmail } from "@/lib/company-control-room";
 import { formatControlRoomDateTime } from "@/lib/control-room-time";
+import { normalizeFounderShippingStatus } from "@/lib/founder-shipping";
+import { listFounderShippingForOwner, updateFounderShippingFulfillment } from "@/lib/founder-shipping-repository";
 import AdminBottleQueueClient from "../bottle-queue/AdminBottleQueueClient";
 import AdminSightingsClient from "../sightings/AdminSightingsClient";
 
@@ -40,6 +43,34 @@ function Metric({ label, value, detail, accent = false }: { label: string; value
   );
 }
 
+function fulfillmentText(value: FormDataEntryValue | null, limit: number) {
+  return typeof value === "string" ? value.replace(/\s+/g, " ").trim().slice(0, limit) : "";
+}
+
+async function updateFounderGlassFulfillment(formData: FormData) {
+  "use server";
+  const { userId } = await auth();
+  if (!userId) redirect("/sign-in?redirect_url=/admin/control-room");
+  const client = await clerkClient();
+  const owner = await client.users.getUser(userId);
+  const ownerEmail = companyMemberPrimaryEmail(owner);
+  if (!isCompanyControlRoomOwnerEmail(ownerEmail)) notFound();
+
+  const shippingUserId = fulfillmentText(formData.get("userId"), 200);
+  const status = normalizeFounderShippingStatus(formData.get("status"));
+  if (!shippingUserId || !status) redirect("/admin/control-room#founder-glasses");
+  await updateFounderShippingFulfillment({
+    userId: shippingUserId,
+    status,
+    carrier: fulfillmentText(formData.get("carrier"), 80) || null,
+    trackingNumber: fulfillmentText(formData.get("trackingNumber"), 160) || null,
+    updatedBy: ownerEmail,
+  });
+  revalidatePath("/admin/control-room");
+  revalidatePath("/founder-shipping");
+  redirect("/admin/control-room#founder-glasses");
+}
+
 export default async function CompanyControlRoomPage() {
   const { userId } = await auth();
   if (!userId) redirect("/sign-in?redirect_url=/admin/control-room");
@@ -47,8 +78,12 @@ export default async function CompanyControlRoomPage() {
   const user = await client.users.getUser(userId);
   if (!isCompanyControlRoomOwnerEmail(companyMemberPrimaryEmail(user))) notFound();
 
-  const snapshot = await getCompanyControlRoomSnapshot();
+  const [snapshot, founderShipping] = await Promise.all([
+    getCompanyControlRoomSnapshot(),
+    listFounderShippingForOwner(),
+  ]);
   const { memberships, founder, revenue, audience, growth, lifecycle, demand, coverageDemand, experiments, retailer, engine, alerts, release, automation } = snapshot;
+  const founderShippingOpen = founderShipping.filter((record) => record.status !== "shipped").length;
   const deliveryCounts = alerts.counts as Record<string, number>;
   const stateExceptions = engine.failedStates + engine.degradedStates + engine.staleStates;
   const activeExperimentResult = experiments.aggregate.experiments.find((item) => item.experiment === experiments.activeExperiment);
@@ -72,6 +107,7 @@ export default async function CompanyControlRoomPage() {
 
         <nav className="cr-jump" aria-label="Control room sections">
           <a href="#actions">Your actions</a>
+          <a href="#founder-glasses">Founder glasses</a>
           <a href="#coverage-demand">Coverage demand</a>
           <a href="#business">Business</a>
           <a href="#product">Product</a>
@@ -98,6 +134,9 @@ export default async function CompanyControlRoomPage() {
             <Link href="#coverage-demand" className={coverageDemand.totalOpenRequests > 0 ? "needs-action" : ""}>
               <span>Coverage demand</span><strong>{coverageDemand.totalOpenRequests}</strong><small>{coverageDemand.totalOpenRequests > 0 ? "Review gaps" : "Clear"}</small>
             </Link>
+            <Link href="#founder-glasses" className={founderShippingOpen > 0 ? "needs-action" : ""}>
+              <span>Founder glasses</span><strong>{founderShippingOpen}</strong><small>{founderShippingOpen > 0 ? "In fulfillment" : "Clear"}</small>
+            </Link>
           </div>
 
           <div className="cr-queue-grid">
@@ -112,6 +151,47 @@ export default async function CompanyControlRoomPage() {
               <AdminSightingsClient embedded />
             </article>
           </div>
+        </section>
+
+        <section id="founder-glasses" className="cr-section">
+          <div className="cr-heading">
+            <div><p>Private fulfillment</p><h2>Founder glass fulfillment</h2></div>
+            <span>{founderShipping.length} submitted · {founderShippingOpen} not shipped</span>
+          </div>
+          {founderShipping.length ? (
+            <div className="cr-founder-list">
+              {founderShipping.map((record) => (
+                <details className="cr-founder-record" key={record.userId}>
+                  <summary>
+                    <span><strong>Founder No. {record.founderNumber}</strong><small>{record.recipientName}</small></span>
+                    <span className={`cr-founder-status ${record.status}`}>{record.status}</span>
+                  </summary>
+                  <div className="cr-founder-body">
+                    <div className="cr-founder-private">
+                      <p><strong>Account</strong><a href={`mailto:${record.accountEmail}`}>{record.accountEmail}</a></p>
+                      <address>
+                        <strong>{record.recipientName}</strong>
+                        <span>{record.addressLine1}</span>
+                        {record.addressLine2 ? <span>{record.addressLine2}</span> : null}
+                        <span>{record.city}, {record.stateCode} {record.postalCode}</span>
+                        <span>United States</span>
+                      </address>
+                      <p><strong>Phone</strong><a href={`tel:${record.phone}`}>{record.phone}</a></p>
+                      <p><strong>Submitted</strong><span>{formatControlRoomDateTime(record.submittedAt)}</span></p>
+                    </div>
+                    <form action={updateFounderGlassFulfillment} className="cr-founder-form">
+                      <input type="hidden" name="userId" value={record.userId} />
+                      <label><span>Status</span><select name="status" defaultValue={record.status}>{["submitted", "confirmed", "packed", "shipped"].map((status) => <option key={status} value={status}>{status}</option>)}</select></label>
+                      <label><span>Carrier</span><input name="carrier" maxLength={80} defaultValue={record.carrier || ""} placeholder="UPS, USPS, FedEx…" /></label>
+                      <label><span>Tracking number</span><input name="trackingNumber" maxLength={160} defaultValue={record.trackingNumber || ""} /></label>
+                      <button type="submit">Save fulfillment</button>
+                    </form>
+                  </div>
+                </details>
+              ))}
+            </div>
+          ) : <div className="cr-unavailable"><strong>No founder shipping submissions yet.</strong><p>Eligible founders will appear here after saving their private shipping form.</p></div>}
+          <p className="cr-note">Addresses and phone numbers stay collapsed by default and are available only in this owner-authorized fulfillment view.</p>
         </section>
 
         <section id="coverage-demand" className="cr-section">
@@ -401,7 +481,7 @@ const controlRoomCss = `
 .cr-checked{text-align:right}.cr-checked p{margin:10px 0 0;color:rgba(245,237,214,.45);font:11px/1.3 var(--font-jetbrains)}.cr-status{display:inline-flex;border:1px solid;border-radius:999px;padding:7px 10px;font:900 9px/1 var(--font-jetbrains);letter-spacing:.12em;text-transform:uppercase}.cr-status.good{border-color:rgba(115,201,135,.34);background:rgba(56,130,74,.13);color:#aee7ba}.cr-status.warn{border-color:rgba(220,166,55,.38);background:rgba(196,148,58,.12);color:#efd38f}.cr-status.bad{border-color:rgba(222,94,73,.36);background:rgba(154,50,35,.14);color:#f4aa9f}
 .cr-jump{position:sticky;top:0;z-index:5;display:flex;gap:7px;overflow:auto;padding:14px 0;background:linear-gradient(180deg,#0d0a07 72%,transparent)}.cr-jump a{border:1px solid rgba(245,237,214,.1);border-radius:999px;padding:9px 12px;color:rgba(245,237,214,.66);font:800 10px/1 var(--font-jetbrains);letter-spacing:.08em;text-decoration:none;text-transform:uppercase;white-space:nowrap;transition:transform 120ms ease,border-color 120ms ease,background 120ms ease}.cr-jump a:hover,.cr-jump a:focus-visible{outline:none;border-color:rgba(196,148,58,.55);background:rgba(196,148,58,.08);color:#f5edd6}.cr-jump a:active{transform:translateY(2px)}
 .cr-section{scroll-margin-top:62px;margin-top:22px;border:1px solid rgba(245,237,214,.1);background:linear-gradient(145deg,rgba(255,255,255,.042),rgba(255,255,255,.018));padding:24px;box-shadow:0 24px 80px rgba(0,0,0,.17)}.cr-priority{border-color:rgba(196,148,58,.28);box-shadow:0 28px 90px rgba(0,0,0,.28)}.cr-heading{display:flex;align-items:end;justify-content:space-between;gap:18px;margin-bottom:20px}.cr-heading h2{margin:7px 0 0;font:700 clamp(25px,3vw,35px)/1 var(--font-playfair);letter-spacing:-.025em}.cr-heading>span{color:rgba(245,237,214,.5);font:11px/1.3 var(--font-jetbrains)}
-.cr-attention-strip{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:18px}.cr-attention-strip>a,.cr-attention-strip>div{display:grid;grid-template-columns:1fr auto;gap:5px 14px;border:1px solid rgba(115,201,135,.18);border-radius:14px;background:rgba(56,130,74,.06);padding:13px 14px;color:#f5edd6;text-decoration:none}.cr-attention-strip .needs-action{border-color:rgba(220,166,55,.34);background:rgba(196,148,58,.1)}.cr-attention-strip span{color:rgba(245,237,214,.58);font-size:12px}.cr-attention-strip strong{grid-row:span 2;font:700 28px/1 var(--font-playfair)}.cr-attention-strip small{color:rgba(245,237,214,.42);font-size:10px}.cr-attention-strip a{transition:transform 120ms ease,border-color 120ms ease}.cr-attention-strip a:hover{border-color:rgba(196,148,58,.6)}.cr-attention-strip a:active{transform:translateY(2px)}
+.cr-attention-strip{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-bottom:18px}.cr-attention-strip>a,.cr-attention-strip>div{display:grid;grid-template-columns:1fr auto;gap:5px 14px;border:1px solid rgba(115,201,135,.18);border-radius:14px;background:rgba(56,130,74,.06);padding:13px 14px;color:#f5edd6;text-decoration:none}.cr-attention-strip .needs-action{border-color:rgba(220,166,55,.34);background:rgba(196,148,58,.1)}.cr-attention-strip span{color:rgba(245,237,214,.58);font-size:12px}.cr-attention-strip strong{grid-row:span 2;font:700 28px/1 var(--font-playfair)}.cr-attention-strip small{color:rgba(245,237,214,.42);font-size:10px}.cr-attention-strip a{transition:transform 120ms ease,border-color 120ms ease}.cr-attention-strip a:hover{border-color:rgba(196,148,58,.6)}.cr-attention-strip a:active{transform:translateY(2px)}
 .cr-queue-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.cr-queue-panel{min-width:0;border:1px solid rgba(245,237,214,.09);border-radius:18px;background:rgba(7,5,4,.42);padding:16px}.cr-subheading{display:flex;justify-content:space-between;align-items:end;gap:12px}.cr-subheading h3{margin:6px 0 0;font:700 25px/1 var(--font-playfair)}.cr-subheading a{color:#d9b768;font-size:11px}.cr-note{margin:15px 0 0;color:rgba(245,237,214,.47);font-size:12px;line-height:1.55}.cr-note.top{margin:9px 0 2px}
 .cr-metrics{display:grid;gap:1px;border:1px solid rgba(245,237,214,.08);background:rgba(245,237,214,.08)}.cr-metrics.four{grid-template-columns:repeat(4,minmax(0,1fr))}.cr-metric{min-height:142px;padding:18px;background:#15100c}.cr-metric.accent{background:linear-gradient(145deg,rgba(196,148,58,.18),#15100c 64%)}.cr-metric p{margin:0;color:rgba(245,237,214,.48);font:900 9px/1 var(--font-jetbrains);letter-spacing:.12em;text-transform:uppercase}.cr-metric strong{display:block;margin-top:17px;color:#f5edd6;font:700 clamp(27px,4vw,41px)/.95 var(--font-playfair);letter-spacing:-.035em;overflow-wrap:anywhere}.cr-metric span{display:block;margin-top:13px;color:rgba(245,237,214,.52);font-size:12px;line-height:1.45}
 .cr-details{margin-top:14px;border:1px solid rgba(245,237,214,.09);background:rgba(0,0,0,.12)}.cr-details>summary,.cr-contract>summary{cursor:pointer;list-style:none;padding:14px 16px;color:#d9b768;font:800 11px/1.3 var(--font-jetbrains);letter-spacing:.08em;text-transform:uppercase}.cr-details>summary::-webkit-details-marker,.cr-contract>summary::-webkit-details-marker{display:none}.cr-details>summary:after,.cr-contract>summary:after{content:'+';float:right}.cr-details[open]>summary:after,.cr-contract[open]>summary:after{content:'−'}.cr-detail-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;padding:0 14px 14px}.cr-list{margin:0;background:#15100c;padding:8px 14px}.cr-list div{display:flex;justify-content:space-between;gap:18px;padding:11px 0;border-bottom:1px solid rgba(245,237,214,.08)}.cr-list div:last-child{border:0}.cr-list dt{color:rgba(245,237,214,.56);font-size:12px}.cr-list dd{margin:0;text-align:right;font:800 12px/1.3 var(--font-jetbrains)}
@@ -410,9 +490,10 @@ const controlRoomCss = `
 .cr-engine-legend{display:flex;flex-wrap:wrap;gap:14px;margin:-5px 0 16px;color:rgba(245,237,214,.5);font:800 9px/1 var(--font-jetbrains);letter-spacing:.06em;text-transform:uppercase}.cr-engine-legend span{display:flex;align-items:center;gap:6px}.cr-engine-legend i,.cr-engine-health i{width:8px;height:8px;border-radius:50%;background:#73c987;box-shadow:0 0 0 3px rgba(115,201,135,.1)}.cr-engine-legend i.warning,.cr-engine-health.warning i{background:#dca637;box-shadow:0 0 0 3px rgba(220,166,55,.1)}.cr-engine-legend i.critical,.cr-engine-health.critical i{background:#de5e49;box-shadow:0 0 0 3px rgba(222,94,73,.11)}.cr-engine-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}.cr-engine-card{min-width:0;border:1px solid rgba(115,201,135,.18);border-left:3px solid #73c987;background:#15100c;padding:14px}.cr-engine-card.warning{border-color:rgba(220,166,55,.26);border-left-color:#dca637;background:linear-gradient(145deg,rgba(196,148,58,.09),#15100c 58%)}.cr-engine-card.critical{border-color:rgba(222,94,73,.28);border-left-color:#de5e49;background:linear-gradient(145deg,rgba(154,50,35,.12),#15100c 58%)}.cr-engine-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.cr-engine-card-head>div>span{color:#c4943a;font:900 9px/1 var(--font-jetbrains);letter-spacing:.12em}.cr-engine-card h3{margin:6px 0 0;font:700 20px/1 var(--font-playfair)}.cr-engine-health{display:flex;align-items:center;gap:6px;border:1px solid rgba(245,237,214,.1);border-radius:999px;padding:6px 8px;color:rgba(245,237,214,.66);font:900 8px/1 var(--font-jetbrains);letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}.cr-engine-card dl{margin:13px 0 0}.cr-engine-card dl div{display:grid;grid-template-columns:72px minmax(0,1fr);gap:10px;border-top:1px solid rgba(245,237,214,.07);padding:7px 0}.cr-engine-card dt{color:rgba(245,237,214,.4);font-size:10px}.cr-engine-card dd{margin:0;color:rgba(245,237,214,.72);font:700 10px/1.35 var(--font-jetbrains);overflow-wrap:anywhere;text-align:right;text-transform:capitalize}.cr-engine-issue,.cr-engine-clear{margin:10px 0 0;border-radius:7px;padding:8px 9px;font:700 9px/1.4 var(--font-jetbrains);text-transform:capitalize}.cr-engine-issue{background:rgba(220,166,55,.1);color:#efd38f}.cr-engine-card.critical .cr-engine-issue{background:rgba(222,94,73,.1);color:#f4aa9f}.cr-engine-clear{background:rgba(56,130,74,.09);color:#aee7ba}
 .cr-demand-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}.cr-demand-list article{min-width:0;border:1px solid rgba(245,237,214,.09);background:#15100c;padding:16px}.cr-demand-list article>div>span{color:#c4943a;font:900 9px/1 var(--font-jetbrains);letter-spacing:.1em;text-transform:uppercase}.cr-demand-list h3{margin:7px 0 0;font:700 22px/1.05 var(--font-playfair)}.cr-demand-list dl{margin:13px 0 0}.cr-demand-list dl div{display:flex;justify-content:space-between;gap:12px;border-top:1px solid rgba(245,237,214,.07);padding:8px 0}.cr-demand-list dt{color:rgba(245,237,214,.46);font-size:10px}.cr-demand-list dd{margin:0;color:rgba(245,237,214,.82);font:800 10px/1.3 var(--font-jetbrains);text-align:right}.cr-demand-list p{margin:10px 0 0;color:rgba(245,237,214,.57);font-size:11px;line-height:1.5}
 .cr-request-ledger{margin-top:16px}.cr-request-rows{padding:0 14px 14px}.cr-request-rows article{display:grid;grid-template-columns:minmax(180px,1.2fr) minmax(150px,1fr) auto auto;align-items:center;gap:16px;padding:13px 2px;border-top:1px solid rgba(245,237,214,.08)}.cr-request-person,.cr-request-target{display:grid;gap:4px;min-width:0}.cr-request-person strong,.cr-request-target strong{overflow:hidden;color:#f5edd6;font-size:12px;text-overflow:ellipsis;white-space:nowrap}.cr-request-person a,.cr-request-email{overflow:hidden;color:#d9b768;font-size:10px;text-overflow:ellipsis;white-space:nowrap}.cr-request-target span{color:#c4943a;font:850 8px/1 var(--font-jetbrains);letter-spacing:.09em;text-transform:uppercase}.cr-request-flags{display:flex;flex-wrap:wrap;gap:5px}.cr-request-flags span{border-radius:999px;background:rgba(245,237,214,.055);padding:5px 7px;color:rgba(245,237,214,.58);font:800 8px/1 var(--font-jetbrains);text-transform:uppercase}.cr-request-flags .email-yes{background:rgba(56,130,74,.15);color:#aee7ba}.cr-request-rows time{color:rgba(245,237,214,.4);font:9px/1.3 var(--font-jetbrains);text-align:right}
+.cr-founder-list{display:grid;gap:8px}.cr-founder-record{border:1px solid rgba(245,237,214,.09);background:#15100c}.cr-founder-record>summary{display:flex;align-items:center;justify-content:space-between;gap:18px;cursor:pointer;list-style:none;padding:14px 16px}.cr-founder-record>summary::-webkit-details-marker{display:none}.cr-founder-record>summary>span:first-child{display:grid;gap:4px}.cr-founder-record>summary strong{font-family:var(--font-playfair);font-size:18px}.cr-founder-record>summary small{color:rgba(245,237,214,.48)}.cr-founder-status{border:1px solid rgba(220,166,55,.3);border-radius:999px;padding:6px 8px;color:#efd38f;font:900 8px/1 var(--font-jetbrains);letter-spacing:.08em;text-transform:uppercase}.cr-founder-status.shipped{border-color:rgba(115,201,135,.3);color:#aee7ba}.cr-founder-body{display:grid;grid-template-columns:1fr 1.3fr;gap:14px;border-top:1px solid rgba(245,237,214,.08);padding:16px}.cr-founder-private{display:grid;gap:10px;border:1px solid rgba(245,237,214,.07);padding:13px}.cr-founder-private p,.cr-founder-private address{display:grid;gap:4px;margin:0;color:rgba(245,237,214,.68);font-size:11px;font-style:normal;line-height:1.45}.cr-founder-private p strong{color:rgba(245,237,214,.42);font:900 8px/1 var(--font-jetbrains);letter-spacing:.08em;text-transform:uppercase}.cr-founder-private a{color:#d9b768}.cr-founder-form{display:grid;grid-template-columns:1fr 1fr;gap:10px}.cr-founder-form label{display:grid;gap:6px}.cr-founder-form label:last-of-type{grid-column:1/-1}.cr-founder-form label>span{color:rgba(245,237,214,.5);font-size:10px}.cr-founder-form input,.cr-founder-form select{min-width:0;border:1px solid rgba(245,237,214,.14);border-radius:8px;background:#0d0a07;color:#f5edd6;padding:10px;font:11px var(--font-jetbrains)}.cr-founder-form button{grid-column:1/-1;border:0;border-radius:8px;background:#c4943a;color:#0d0a07;padding:11px;font-weight:900;cursor:pointer}
 .cr-background{padding-bottom:16px}.cr-background-item{border-top:1px solid rgba(245,237,214,.1)}.cr-background-item:last-child{border-bottom:1px solid rgba(245,237,214,.1)}.cr-background-item>summary{display:flex;align-items:center;justify-content:space-between;gap:16px;cursor:pointer;list-style:none;padding:15px 2px}.cr-background-item>summary::-webkit-details-marker{display:none}.cr-background-item>summary>span:first-child{display:grid;gap:5px}.cr-background-item>summary strong{font-size:14px}.cr-background-item>summary small{color:rgba(245,237,214,.44);font-size:11px}.cr-background-body{padding:2px 2px 17px;color:rgba(245,237,214,.64);font-size:13px;line-height:1.6}.cr-background-body>p{max-width:800px}.cr-list.compact{max-width:720px;margin-top:12px}.cr-contract{max-width:900px;margin-top:12px;border:1px solid rgba(245,237,214,.09);background:#15100c}.cr-contract dl{margin:0;padding:0 15px 10px}.cr-contract dl div{display:grid;grid-template-columns:130px 1fr;gap:16px;padding:10px 0;border-top:1px solid rgba(245,237,214,.07)}.cr-contract dt{color:#d9b768;font:900 9px/1.4 var(--font-jetbrains);letter-spacing:.08em;text-transform:uppercase}.cr-contract dd{margin:0;color:rgba(245,237,214,.62);font-size:12px}.cr-mini-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(245,237,214,.08);max-width:900px}.cr-mini-metrics .cr-metric{min-height:120px}.cr-unavailable{max-width:760px;border-left:2px solid rgba(220,166,55,.5);background:rgba(196,148,58,.07);padding:14px}.cr-unavailable p{margin:5px 0 0}
 .cr-tool-links{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:16px}.cr-tool-links a{display:flex;justify-content:space-between;gap:15px;border:1px solid rgba(245,237,214,.09);border-radius:12px;padding:15px;color:#f5edd6;text-decoration:none;font-size:13px;transition:transform 120ms ease,border-color 120ms ease,background 120ms ease}.cr-tool-links a span{color:#c4943a}.cr-tool-links a:hover,.cr-tool-links a:focus-visible{outline:none;border-color:rgba(196,148,58,.55);background:rgba(196,148,58,.07)}.cr-tool-links a:active{transform:translateY(2px)}.cr-footer{display:flex;justify-content:space-between;gap:20px;padding:20px 2px;color:rgba(245,237,214,.34);font:10px/1.4 var(--font-jetbrains)}.cr-footer a{color:rgba(245,237,214,.52)}
 @media(max-width:980px){.cr-queue-grid,.cr-demand-list{grid-template-columns:1fr}.cr-engine-grid,.cr-attention-strip,.cr-metrics.four{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:700px){.cr-engine-grid,.cr-attention-strip,.cr-detail-grid,.cr-delivery,.cr-mini-metrics,.cr-tool-links{grid-template-columns:1fr}.cr-shell{padding:18px 12px 45px}.cr-header{align-items:flex-start;display:grid}.cr-checked{text-align:left}.cr-section{padding:16px}.cr-heading{align-items:flex-start;display:grid}.cr-metrics.four{grid-template-columns:1fr}.cr-metric{min-height:124px}.cr-subheading{align-items:flex-start}.cr-lines div{display:grid}.cr-jump{margin-inline:-12px;padding-inline:12px}.cr-contract dl div{grid-template-columns:1fr;gap:5px}.cr-request-rows article{grid-template-columns:1fr;gap:9px}.cr-request-rows time{text-align:left}}
+@media(max-width:700px){.cr-engine-grid,.cr-attention-strip,.cr-detail-grid,.cr-delivery,.cr-mini-metrics,.cr-tool-links,.cr-founder-body,.cr-founder-form{grid-template-columns:1fr}.cr-shell{padding:18px 12px 45px}.cr-header{align-items:flex-start;display:grid}.cr-checked{text-align:left}.cr-section{padding:16px}.cr-heading{align-items:flex-start;display:grid}.cr-metrics.four{grid-template-columns:1fr}.cr-metric{min-height:124px}.cr-subheading{align-items:flex-start}.cr-lines div{display:grid}.cr-jump{margin-inline:-12px;padding-inline:12px}.cr-contract dl div{grid-template-columns:1fr;gap:5px}.cr-request-rows article{grid-template-columns:1fr;gap:9px}.cr-request-rows time{text-align:left}}
 @media(prefers-reduced-motion:reduce){.cr-jump a,.cr-attention-strip a,.cr-tool-links a{transition:none}}
 `;

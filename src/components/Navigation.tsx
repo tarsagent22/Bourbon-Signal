@@ -301,6 +301,29 @@ export default function Navigation() {
                       <div style={{ height: "1px", background: "rgba(255,255,255,0.06)", margin: "0 12px" }} />
 
                       {canManageBilling ? (
+                        <a
+                          href="/settings#shipping"
+                          onClick={() => setProfileOpen(false)}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            width: "100%",
+                            padding: "11px 16px",
+                            fontFamily: "var(--font-dm-sans)",
+                            fontSize: "13px",
+                            fontWeight: 600,
+                            color: "var(--color-text-secondary)",
+                            textDecoration: "none",
+                            transition: "color 150ms ease",
+                          }}
+                          onMouseEnter={(e) => (e.currentTarget.style.color = "var(--color-cream)")}
+                          onMouseLeave={(e) => (e.currentTarget.style.color = "var(--color-text-secondary)")}
+                        >
+                          Shipping information
+                        </a>
+                      ) : null}
+
+                      {canManageBilling ? (
                         <button
                           onClick={() => { setProfileOpen(false); void openBillingPortal(); }}
                           disabled={billingPending}
@@ -487,6 +510,22 @@ export default function Navigation() {
                   <div style={{ borderRadius: 999, border: "1px solid rgba(232,201,122,0.28)", background: "rgba(232,201,122,0.10)", color: "#E8C97A", padding: "6px 10px", fontFamily: "var(--font-jetbrains)", fontSize: "10px", fontWeight: 900, letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "8px" }}>
                     Founder {founderProfileNumber}
                   </div>
+                ) : null}
+                {canManageBilling ? (
+                  <a
+                    href="/settings#shipping"
+                    onClick={() => setMobileOpen(false)}
+                    style={{
+                      fontFamily: "var(--font-dm-sans)",
+                      fontSize: "13px",
+                      fontWeight: 700,
+                      color: "var(--color-accent-amber)",
+                      textDecoration: "none",
+                      marginBottom: "4px",
+                    }}
+                  >
+                    Shipping information
+                  </a>
                 ) : null}
                 {canManageBilling ? (
                   <button

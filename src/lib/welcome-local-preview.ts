@@ -389,3 +389,17 @@ export function buildWelcomeLocalPreviewSnapshot(input: {
     earlier: earlier.map((drop) => toWelcomeLocalPreviewSignal(drop)),
   };
 }
+
+export function retargetWelcomeLocalPreviewRecord(
+  existing: WelcomeLocalPreviewRecord,
+  snapshot: Pick<WelcomeLocalPreviewRecord, "target" | "recent" | "earlier">,
+): WelcomeLocalPreviewRecord {
+  return {
+    userId: existing.userId,
+    redeemedAt: existing.redeemedAt,
+    expiresAt: existing.expiresAt,
+    target: snapshot.target,
+    recent: snapshot.recent,
+    earlier: snapshot.earlier,
+  };
+}

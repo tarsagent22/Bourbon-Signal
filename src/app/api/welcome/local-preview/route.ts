@@ -5,6 +5,7 @@ import { getEntitlements } from "@/lib/entitlements";
 import {
   buildWelcomeLocalPreviewSnapshot,
   resolveWelcomeLocalPreviewTarget,
+  retargetWelcomeLocalPreviewRecord,
   toWelcomeLocalPreviewPayload,
   toWelcomeLocalPreviewTarget,
   WELCOME_LOCAL_PREVIEW_DURATION_MS,
@@ -17,6 +18,7 @@ import {
 import {
   claimWelcomeLocalPreview,
   readWelcomeLocalPreview,
+  replaceWelcomeLocalPreview,
 } from "@/lib/welcome-local-preview-repository";
 import { readWelcomeLocalPreviewInputs } from "@/lib/welcome-local-preview-server";
 
@@ -56,15 +58,15 @@ export async function POST(request: NextRequest) {
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: PRIVATE_HEADERS });
   try {
     const context = await accessContext(userId);
-    if (context.record) {
+    if (context.record && context.access !== "active") {
       return NextResponse.json({
         contractVersion: "bourbon-signal/welcome-local-preview@1",
         status: context.access,
-        remainingMs: context.access === "active" ? welcomeLocalPreviewRemainingMs(context.record, context.now) : 0,
-        preview: toWelcomeLocalPreviewPayload(context.record, context.access === "active"),
+        remainingMs: 0,
+        preview: toWelcomeLocalPreviewPayload(context.record, false),
       }, { headers: PRIVATE_HEADERS });
     }
-    if (context.access !== "eligible") {
+    if (!context.record && context.access !== "eligible") {
       return NextResponse.json({ error: "This one-time preview is only available to new free members." }, { status: 403, headers: PRIVATE_HEADERS });
     }
 
@@ -111,22 +113,29 @@ export async function POST(request: NextRequest) {
     }
 
     const now = new Date();
-    const preview: WelcomeLocalPreviewRecord = {
-      userId,
-      redeemedAt: now.toISOString(),
-      expiresAt: new Date(now.getTime() + WELCOME_LOCAL_PREVIEW_DURATION_MS).toISOString(),
+    const nextSnapshot = {
       target: toWelcomeLocalPreviewTarget(resolvedTarget),
       recent: snapshot.recent,
       earlier: snapshot.earlier,
     };
-    const claimed = await claimWelcomeLocalPreview(preview);
+    const preview: WelcomeLocalPreviewRecord = context.record && context.access === "active"
+      ? retargetWelcomeLocalPreviewRecord(context.record, nextSnapshot)
+      : {
+          userId,
+          redeemedAt: now.toISOString(),
+          expiresAt: new Date(now.getTime() + WELCOME_LOCAL_PREVIEW_DURATION_MS).toISOString(),
+          ...nextSnapshot,
+        };
+    const stored = context.record && context.access === "active"
+      ? await replaceWelcomeLocalPreview(preview)
+      : await claimWelcomeLocalPreview(preview);
     const responseNow = Date.now();
-    const status = welcomeLocalPreviewAccess({ createdAt: context.user.createdAt, record: claimed, now: responseNow });
+    const status = welcomeLocalPreviewAccess({ createdAt: context.user.createdAt, record: stored, now: responseNow });
     return NextResponse.json({
       contractVersion: "bourbon-signal/welcome-local-preview@1",
       status,
-      remainingMs: status === "active" ? welcomeLocalPreviewRemainingMs(claimed, responseNow) : 0,
-      preview: toWelcomeLocalPreviewPayload(claimed, status === "active"),
+      remainingMs: status === "active" ? welcomeLocalPreviewRemainingMs(stored, responseNow) : 0,
+      preview: toWelcomeLocalPreviewPayload(stored, status === "active"),
     }, { headers: PRIVATE_HEADERS });
   } catch {
     return NextResponse.json({ error: "Your local preview is temporarily unavailable." }, { status: 503, headers: PRIVATE_HEADERS });

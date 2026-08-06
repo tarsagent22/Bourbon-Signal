@@ -5,11 +5,12 @@ import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import { useAuth } from "@/lib/auth";
 import { isRetailerAdminEmail } from "@/lib/retailer-admin";
+import MemberShippingProfile from "@/components/MemberShippingProfile";
 
 // ─── Main page ─────────────────────────────────────────────────────────────────
 
 function SettingsPageContent() {
-  const { user, signOut } = useAuth();
+  const { user, signOut, memberTier } = useAuth();
 
   const userEmail =
     user?.emailAddresses?.find((address) => address.id === user.primaryEmailAddressId)?.emailAddress ||
@@ -146,6 +147,8 @@ function SettingsPageContent() {
             </button>
           </div>
         </div>
+
+        {memberTier !== "free" ? <MemberShippingProfile isFounder={memberTier === "bottled-in-bond"} /> : null}
 
         {canAdministerRetailers && (
           <div
