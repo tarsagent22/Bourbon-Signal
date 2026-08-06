@@ -77,8 +77,8 @@ assert.match(welcomeStyles, /\.signalSection[\s\S]*radial-gradient/, "Welcome se
 assert.match(welcomeStyles, /\.signalList li[\s\S]*border:[\s\S]*border-radius/, "signal previews should use restrained Drop Feed-style cards");
 assert.match(welcomeStyles, /\.exploreLinks a[\s\S]*border:[\s\S]*border-radius/, "Explore destinations should look actionable");
 assert.doesNotMatch(welcomeSource, /See pricing quietly|Compare Free, Standard, Barrel, and Founder/i);
-assert.match(welcomeSource, /Your free account/);
-assert.match(welcomeSource, /Free accounts do not include alerts\./, "free onboarding must state the entitlement boundary plainly");
+assert.match(welcomeSource, /Check out Bourbon Signal\./);
+assert.doesNotMatch(welcomeSource, /Your free account|Free accounts do not include alerts\./);
 const welcomeCoverageSection = welcomeSource.slice(
   welcomeSource.indexOf('aria-labelledby="coverage-depth-heading"'),
   welcomeSource.indexOf('aria-label="Optional coverage request"'),
@@ -104,14 +104,7 @@ assert.match(coveragePanelSource, /<CoverageSearch[\s\S]*Request coverage[\s\S]*
 assert.doesNotMatch(welcomeCoverageSection, /Updates:|healthLabel|data-health|temporarily limited|source updates|boards with recent signals/i, "the coverage summary omits negative or freshness-heavy messaging");
 assert.doesNotMatch(welcomeCoverageSection, /coverage explained|ABC boards with shipment information|Official shipment sources|Stores represented|Cities and towns represented|Areas represented|Stores eligible for paid alerts|These counts describe coverage/i, "the previous verbose metrics and explanation are removed");
 assert.doesNotMatch(welcomeSource, /Information available here|What you can do here|Stores listed|Stores with restock alerts/);
-assert.match(welcomeSource, /Your free account is a preview\./);
-assert.match(welcomeSource, /Paid unlocks the full feed, saved alert areas, bottle watchlists, and live alerts\./);
-assert.match(welcomeSource, /Plans start at \$2\.99\/month\./);
-assert.match(welcomeSource, /See paid options/);
-assert.match(welcomeStyles, /\.membershipAction\s*\{[\s\S]{0,500}border:[\s\S]{0,300}background:/, "the paid option should be visible without becoming a sales banner");
-assert.match(welcomeStyles, /\.membershipAction > a:focus-visible/, "the paid option needs an explicit keyboard focus treatment");
-assert.match(welcomeStyles, /\.membershipAction small\s*\{[\s\S]{0,160}rgba\(245, 237, 214, 0\.68\)[\s\S]{0,100}font: 11px/, "paid entitlement and price copy must remain readable at normal-text contrast");
-assert.ok(welcomeSource.indexOf("Choose where to go next") < welcomeSource.indexOf("Your free account is a preview."), "the upgrade option should follow visible free-account value");
+assert.doesNotMatch(welcomeSource, /Your free account is a preview|Paid unlocks the full feed|Plans start at|See paid options/);
 assert.match(requestFormSource, /variant.*welcome/);
 
 assert.match(pricingSource, /Continue with Free/);

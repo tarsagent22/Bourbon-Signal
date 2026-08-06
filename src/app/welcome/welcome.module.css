@@ -90,7 +90,6 @@
 .sectionHeading > a:focus-visible,
 .coverageMapLink:focus-visible,
 .exploreLinks a:focus-visible,
-.membershipAction > a:focus-visible,
 .localPreviewSearch input:focus-visible,
 .localPreviewSearch button:focus-visible,
 .localResults button:focus-visible,
@@ -506,29 +505,9 @@
 }
 
 .signalSource {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 12px;
-  margin-top: 12px;
-  padding-top: 11px;
-  border-top: 1px solid rgba(245, 237, 214, 0.065);
-}
-
-.signalSource span {
-  color: rgba(245, 237, 214, 0.34);
-  font: 800 8px/1 var(--font-jetbrains);
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.signalSource strong {
-  min-width: 0;
-  overflow: hidden;
+  margin: 5px 0 0 22px;
   color: rgba(245, 237, 214, 0.55);
-  font: 650 10px/1.3 var(--font-dm-sans);
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font: 600 10px/1.4 var(--font-dm-sans);
 }
 
 .coverageMapEmbed {
@@ -635,55 +614,6 @@
   font-size: 15px;
 }
 
-.membershipAction {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 18px;
-  margin-top: 22px;
-  padding: 18px;
-  border: 1px solid rgba(196, 148, 58, 0.2);
-  border-radius: 15px;
-  background: linear-gradient(135deg, rgba(196, 148, 58, 0.095), rgba(245, 237, 214, 0.025));
-}
-
-.membershipAction > div {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  color: rgba(232, 201, 122, 0.68);
-}
-
-.membershipAction span {
-  display: grid;
-  gap: 3px;
-}
-
-.membershipAction strong {
-  color: rgba(245, 237, 214, 0.78);
-  font: 750 12px/1.3 var(--font-dm-sans);
-}
-
-.membershipAction small {
-  color: rgba(245, 237, 214, 0.68);
-  font: 11px/1.45 var(--font-dm-sans);
-}
-
-.membershipAction > a {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  flex: 0 0 auto;
-  min-height: 40px;
-  padding: 0 14px;
-  border: 1px solid rgba(196, 148, 58, 0.28);
-  border-radius: 11px;
-  color: rgba(245, 237, 214, 0.82);
-  background: rgba(196, 148, 58, 0.08);
-  font: 800 11px/1 var(--font-dm-sans);
-  text-decoration: none;
-}
 
 @media (max-width: 640px) {
   .page {
@@ -750,14 +680,6 @@
     grid-column: auto;
   }
 
-  .membershipAction {
-    align-items: stretch;
-    flex-direction: column;
-  }
-
-  .membershipAction > a {
-    width: 100%;
-  }
 
   .chooserActions {
     align-items: stretch;

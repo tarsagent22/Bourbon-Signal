@@ -43,6 +43,8 @@ export interface WelcomeLocalPreviewSignal {
   raw_name?: string;
   display_location?: string;
   store_name?: string;
+  store_id?: string;
+  store_address?: string;
   board_name?: string;
   locationName?: string;
   store_city?: string;
@@ -117,6 +119,8 @@ export function toWelcomeLocalPreviewSignal(
     "raw_name",
     "display_location",
     "store_name",
+    "store_id",
+    "store_address",
     "board_name",
     "locationName",
     "store_city",
@@ -208,6 +212,45 @@ function token(value: unknown) {
     .replace(/[^a-z0-9]+/g, " ")
     .replace(/\s+/g, " ")
     .trim();
+}
+
+export function welcomeLocalPreviewSignalLocation(signal: WelcomeLocalPreviewSignal, stateName: string) {
+  const storeName = publicText(signal.store_name);
+  if (storeName) return storeName;
+  const storeId = publicText(signal.store_id);
+  if (storeId) return `${stateName}${stateName === "Virginia" ? " ABC" : ""} Store ${storeId}`;
+  return publicText(signal.board_name)
+    || publicText(signal.locationName)
+    || publicText(signal.display_location)
+    || publicText(signal.store_city)
+    || publicText(signal.store_county)
+    || stateName;
+}
+
+export function welcomeLocalPreviewSignalDetails(signal: WelcomeLocalPreviewSignal) {
+  const primary = token(welcomeLocalPreviewSignalLocation(signal, ""));
+  const values = [signal.store_address, signal.store_city, signal.store_county]
+    .map((value) => publicText(value))
+    .filter((value): value is string => Boolean(value));
+  const seen = new Set<string>();
+  return values.filter((value) => {
+    const key = token(value);
+    if (!key || key === primary || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
+}
+
+export function welcomeLocalPreviewTargetDetails(target: WelcomeLocalPreviewTarget) {
+  const label = token(target.label);
+  const candidates = target.address ? [target.address, target.areaLabel] : [target.city, target.areaLabel];
+  const seen = new Set<string>();
+  return candidates.filter((value): value is string => {
+    const key = token(value);
+    if (!key || key === label || seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  });
 }
 
 function dropState(drop: Record<string, unknown>) {
