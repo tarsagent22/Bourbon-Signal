@@ -6,15 +6,17 @@ import {
   ArrowUpRight,
   BellRing,
   CalendarDays,
+  ChevronDown,
   Clock3,
   LayoutDashboard,
+  LockKeyhole,
   Map as MapIcon,
   MapPin,
   Radio,
   Search,
   UsersRound,
 } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import Footer from "@/components/Footer";
 import Navigation from "@/components/Navigation";
 import {
@@ -24,10 +26,15 @@ import {
 import { CoverageSummary } from "@/components/coverage/CoverageSummary";
 import { useAreaPreferences } from "@/hooks/useAreaPreferences";
 import { useAuth } from "@/lib/auth";
-import type { CoverageContract, CoverageState } from "@/lib/coverage-model";
+import type { CoverageContract, CoverageSearchResult, CoverageState } from "@/lib/coverage-model";
 import { US_STATE_OPTIONS } from "@/lib/coverage-model";
 import type { DropEvent } from "@/lib/drops";
 import { recordGrowthMilestone } from "@/lib/growth-client";
+import type {
+  WelcomeLocalPreviewPayload,
+  WelcomeLocalPreviewRecord,
+  WelcomeLocalPreviewSignal,
+} from "@/lib/welcome-local-preview";
 import styles from "./welcome.module.css";
 
 interface DropsPreviewResponse {
@@ -43,6 +50,24 @@ interface CoverageDraftPreview {
   accountId?: string | null;
   stateCode?: string;
 }
+
+interface LocalPreviewResponse {
+  status?: "eligible" | "active" | "expired" | "ineligible";
+  remainingMs?: number;
+  preview?: WelcomeLocalPreviewPayload | null;
+  error?: string;
+}
+
+type LocalPreviewStatus = "loading" | "eligible" | "active" | "expired" | "ineligible" | "error";
+
+interface UserBoundLocalPreviewState {
+  userId: string;
+  status: LocalPreviewStatus;
+  preview: WelcomeLocalPreviewPayload | null;
+  remainingMs: number;
+}
+
+type SignalCardDrop = DropEvent | WelcomeLocalPreviewSignal;
 
 const STATE_NAMES = new Map<string, string>(US_STATE_OPTIONS.map((state) => [state.code, state.name]));
 const CoverageMap = dynamic(
@@ -125,7 +150,7 @@ function titleCase(value: string) {
   return value.replace(/\b[a-z]/g, (letter) => letter.toUpperCase());
 }
 
-function signalName(drop: DropEvent) {
+function signalName(drop: SignalCardDrop) {
   return cleanLabel(
     drop.brand_name
       || drop.tracked_brand_name
@@ -134,7 +159,7 @@ function signalName(drop: DropEvent) {
   ) || "Bourbon signal";
 }
 
-function signalLocation(drop: DropEvent, stateName: string) {
+function signalLocation(drop: SignalCardDrop, stateName: string) {
   return cleanLabel(
     drop.display_location
       || drop.store_name
@@ -145,10 +170,10 @@ function signalLocation(drop: DropEvent, stateName: string) {
   ) || stateName;
 }
 
-function signalSource(drop: DropEvent) {
+function signalSource(drop: SignalCardDrop) {
   const direct = cleanLabel(drop.source);
   if (direct) return titleCase(direct);
-  if (drop.sourceUrl) {
+  if ("sourceUrl" in drop && drop.sourceUrl) {
     try {
       return new URL(drop.sourceUrl).hostname.replace(/^www\./, "");
     } catch {
@@ -158,7 +183,7 @@ function signalSource(drop: DropEvent) {
   return "Bourbon Signal source";
 }
 
-function signalTime(drop: DropEvent) {
+function signalTime(drop: SignalCardDrop) {
   const raw = drop.last_confirmed_at || drop.observed_at || drop.event_at || drop.timestamp;
   const timestamp = Date.parse(raw || "");
   if (!Number.isFinite(timestamp)) return drop.historical ? "Historical signal" : "Update time unavailable";
@@ -170,6 +195,36 @@ function signalTime(drop: DropEvent) {
     minute: "2-digit",
   }).format(new Date(timestamp));
   return `${drop.historical ? "Historical" : "Updated"} ${formatted}`;
+}
+
+function localTargetStatus(status: WelcomeLocalPreviewRecord["target"]["status"]) {
+  if (status === "actively-monitored" || status === "covered") return "Actively monitored";
+  if (status === "partially-covered") return "Coverage available";
+  return "Listed, not monitored";
+}
+
+function SignalCards({ signals, stateName }: { signals: SignalCardDrop[]; stateName: string }) {
+  return (
+    <ol className={styles.signalList}>
+      {signals.map((drop, index) => (
+        <li key={`${drop.timestamp}-${("store_id" in drop && drop.store_id) || drop.board_name || index}`}>
+          <div className={styles.signalTopline}>
+            <span className={styles.signalBadge}>{cleanLabel(drop.signal_label || drop.rarity_tier) || "Eligible signal"}</span>
+            <span className={styles.signalTime}><Clock3 size={12} aria-hidden="true" />{signalTime(drop)}</span>
+          </div>
+          <h3>{signalName(drop)}</h3>
+          <div className={styles.signalLocation}>
+            <MapPin size={14} aria-hidden="true" />
+            <strong>{signalLocation(drop, stateName)}</strong>
+          </div>
+          <div className={styles.signalSource}>
+            <span>Source</span>
+            <strong>{signalSource(drop)}</strong>
+          </div>
+        </li>
+      ))}
+    </ol>
+  );
 }
 
 function statePreviewMessage(
@@ -196,6 +251,7 @@ function statePreviewMessage(
 export default function WelcomePage() {
   const { isLoaded, isSignedIn, user } = useAuth();
   const { prefs, ready: preferencesReady, savePreferences } = useAreaPreferences();
+  const authenticatedUserId = isLoaded && isSignedIn ? user?.id || null : null;
   const [selectedState, setSelectedState] = useState("");
   const [activeState, setActiveState] = useState("");
   const [editingState, setEditingState] = useState(false);
@@ -208,8 +264,31 @@ export default function WelcomePage() {
   const [coverageStates, setCoverageStates] = useState<CoverageState[]>([]);
   const [coverageError, setCoverageError] = useState("");
   const [previewLoading, setPreviewLoading] = useState(false);
+  const [localPreviewState, setLocalPreviewState] = useState<UserBoundLocalPreviewState | null>(null);
+  const [localQuery, setLocalQuery] = useState("");
+  const [localResults, setLocalResults] = useState<CoverageSearchResult[]>([]);
+  const [localSearchStatus, setLocalSearchStatus] = useState<"idle" | "searching" | "opening">("idle");
+  const [localMessage, setLocalMessage] = useState("");
+  const [showEarlierSignals, setShowEarlierSignals] = useState(false);
   const registrationRecorded = useRef(false);
   const freeValueRecordedFor = useRef(new Set<string>());
+  const currentUserIdRef = useRef<string | null>(authenticatedUserId);
+  const currentStateCodeRef = useRef(activeState);
+  const localPreviewGetControllerRef = useRef<AbortController | null>(null);
+  const localPreviewPostControllerRef = useRef<AbortController | null>(null);
+  const localSearchControllerRef = useRef<AbortController | null>(null);
+
+  currentUserIdRef.current = authenticatedUserId;
+  currentStateCodeRef.current = activeState;
+
+  const currentLocalPreviewState = authenticatedUserId
+    && localPreviewState?.userId === authenticatedUserId
+    ? localPreviewState
+    : null;
+  const localPreviewStatus: LocalPreviewStatus = currentLocalPreviewState?.status
+    || (isLoaded && !authenticatedUserId ? "ineligible" : "loading");
+  const localPreview = currentLocalPreviewState?.preview || null;
+  const localPreviewRemainingMs = currentLocalPreviewState?.remainingMs || 0;
 
   const persistedHomeState = prefs.memberProfile?.homeState || "";
   const activeStateName = STATE_NAMES.get(activeState) || activeState;
@@ -227,6 +306,84 @@ export default function WelcomePage() {
       else registrationRecorded.current = false;
     });
   }, [isLoaded, isSignedIn]);
+
+  useEffect(() => {
+    localPreviewGetControllerRef.current?.abort();
+    localPreviewPostControllerRef.current?.abort();
+    localSearchControllerRef.current?.abort();
+    localPreviewGetControllerRef.current = null;
+    localPreviewPostControllerRef.current = null;
+    localSearchControllerRef.current = null;
+    setLocalPreviewState(null);
+    setLocalQuery("");
+    setLocalResults([]);
+    setLocalSearchStatus("idle");
+    setLocalMessage("");
+    setShowEarlierSignals(false);
+    if (!isLoaded || !authenticatedUserId) return;
+
+    const requestUserId = authenticatedUserId;
+    const controller = new AbortController();
+    localPreviewGetControllerRef.current = controller;
+    setLocalPreviewState({ userId: requestUserId, status: "loading", preview: null, remainingMs: 0 });
+    void fetch("/api/welcome/local-preview", { signal: controller.signal, cache: "no-store" })
+      .then(async (response) => ({ response, payload: await response.json().catch(() => ({})) as LocalPreviewResponse }))
+      .then(({ response, payload }) => {
+        if (controller.signal.aborted || currentUserIdRef.current !== requestUserId) return;
+        if (!response.ok || !payload.status) throw new Error(payload.error || "Local preview unavailable.");
+        setLocalPreviewState({
+          userId: requestUserId,
+          status: payload.status,
+          preview: payload.preview || null,
+          remainingMs: Number.isFinite(payload.remainingMs) ? Math.max(0, payload.remainingMs || 0) : 0,
+        });
+      })
+      .catch(() => {
+        if (!controller.signal.aborted && currentUserIdRef.current === requestUserId) {
+          setLocalPreviewState({ userId: requestUserId, status: "error", preview: null, remainingMs: 0 });
+        }
+      })
+      .finally(() => {
+        if (localPreviewGetControllerRef.current === controller) localPreviewGetControllerRef.current = null;
+      });
+    return () => {
+      controller.abort();
+      localPreviewPostControllerRef.current?.abort();
+      localSearchControllerRef.current?.abort();
+    };
+  }, [authenticatedUserId, isLoaded]);
+
+  useEffect(() => {
+    if (!authenticatedUserId || localPreviewStatus !== "active" || !localPreview) return;
+    const expireCurrentPreview = () => {
+      setLocalPreviewState((current) => current?.userId === authenticatedUserId
+        ? {
+            ...current,
+            status: "expired",
+            preview: current.preview ? { ...current.preview, recent: [], earlier: [] } : null,
+            remainingMs: 0,
+          }
+        : current);
+      setShowEarlierSignals(false);
+    };
+    if (localPreviewRemainingMs <= 0) {
+      expireCurrentPreview();
+      return;
+    }
+    const timer = window.setTimeout(expireCurrentPreview, localPreviewRemainingMs);
+    return () => window.clearTimeout(timer);
+  }, [authenticatedUserId, localPreview, localPreviewRemainingMs, localPreviewStatus]);
+
+  useEffect(() => {
+    localSearchControllerRef.current?.abort();
+    localPreviewPostControllerRef.current?.abort();
+    localSearchControllerRef.current = null;
+    localPreviewPostControllerRef.current = null;
+    setLocalSearchStatus("idle");
+    setLocalQuery("");
+    setLocalResults([]);
+    setLocalMessage("");
+  }, [activeState]);
 
   useEffect(() => {
     if (!preferencesReady) return;
@@ -309,7 +466,7 @@ export default function WelcomePage() {
   }, [activeState]);
 
   async function saveHomeState() {
-    if (!selectedState) return;
+    if (!selectedState || localSearchStatus === "opening") return;
     setSaveStatus("saving");
     setSaveMessage("");
     try {
@@ -331,6 +488,101 @@ export default function WelcomePage() {
     } catch {
       setSaveStatus("error");
       setSaveMessage("We could not save your home state. Please try again.");
+    }
+  }
+
+  async function searchLocalPreview(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    const query = localQuery.replace(/\s+/g, " ").trim();
+    const requestUserId = currentUserIdRef.current;
+    const requestStateCode = currentStateCodeRef.current;
+    if (!requestStateCode || !query || !requestUserId || localPreviewStatus !== "eligible") return;
+    localSearchControllerRef.current?.abort();
+    const controller = new AbortController();
+    localSearchControllerRef.current = controller;
+    setLocalSearchStatus("searching");
+    setLocalMessage("");
+    setLocalResults([]);
+    try {
+      const response = await fetch("/api/coverage", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ state: requestStateCode, query }),
+        signal: controller.signal,
+      });
+      const payload = await response.json() as { results?: CoverageSearchResult[]; error?: string };
+      if (controller.signal.aborted
+        || currentUserIdRef.current !== requestUserId
+        || currentStateCodeRef.current !== requestStateCode) return;
+      if (!response.ok || !Array.isArray(payload.results)) throw new Error(payload.error || "Search unavailable.");
+      const results = payload.results.filter((result) => result.kind !== "unknown" && result.status !== "not-found").slice(0, 6);
+      setLocalResults(results);
+      if (!results.length) setLocalMessage("No listed match yet. Try a nearby board or city.");
+    } catch (error) {
+      if (!controller.signal.aborted
+        && currentUserIdRef.current === requestUserId
+        && currentStateCodeRef.current === requestStateCode) {
+        setLocalMessage(error instanceof Error ? error.message : "Search unavailable.");
+      }
+    } finally {
+      if (localSearchControllerRef.current === controller) localSearchControllerRef.current = null;
+      if (currentUserIdRef.current === requestUserId
+        && currentStateCodeRef.current === requestStateCode) setLocalSearchStatus("idle");
+    }
+  }
+
+  async function openLocalPreview(result: CoverageSearchResult) {
+    const requestUserId = currentUserIdRef.current;
+    const requestStateCode = currentStateCodeRef.current;
+    if (!result.canonicalTargetKey
+      || !requestUserId
+      || result.stateCode !== requestStateCode
+      || localPreviewStatus !== "eligible") return;
+    localPreviewPostControllerRef.current?.abort();
+    const controller = new AbortController();
+    localPreviewPostControllerRef.current = controller;
+    setLocalSearchStatus("opening");
+    setLocalMessage("");
+    try {
+      const response = await fetch("/api/welcome/local-preview", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          stateCode: result.stateCode,
+          label: result.label,
+          canonicalTargetKey: result.canonicalTargetKey,
+        }),
+        signal: controller.signal,
+      });
+      const payload = await response.json() as LocalPreviewResponse;
+      if (controller.signal.aborted
+        || currentUserIdRef.current !== requestUserId
+        || currentStateCodeRef.current !== requestStateCode) return;
+      if (!response.ok || !payload.status || !payload.preview) throw new Error(payload.error || "Preview unavailable.");
+      setLocalPreviewState({
+        userId: requestUserId,
+        status: payload.status,
+        preview: payload.preview,
+        remainingMs: Number.isFinite(payload.remainingMs) ? Math.max(0, payload.remainingMs || 0) : 0,
+      });
+      setLocalResults([]);
+      setShowEarlierSignals(false);
+      void recordGrowthMilestone("free_value_reached", {
+        surface: "welcome",
+        kind: "welcome_local_signal_preview",
+        market: payload.preview.target.stateCode,
+        precision: payload.preview.target.kind === "store" ? "store_area_preview" : "area_preview",
+      });
+    } catch (error) {
+      if (!controller.signal.aborted
+        && currentUserIdRef.current === requestUserId
+        && currentStateCodeRef.current === requestStateCode) {
+        setLocalMessage(error instanceof Error ? error.message : "Preview unavailable.");
+      }
+    } finally {
+      if (localPreviewPostControllerRef.current === controller) localPreviewPostControllerRef.current = null;
+      if (currentUserIdRef.current === requestUserId
+        && currentStateCodeRef.current === requestStateCode) setLocalSearchStatus("idle");
     }
   }
 
@@ -382,7 +634,7 @@ export default function WelcomePage() {
                 <button
                   type="button"
                   className={styles.primaryAction}
-                  disabled={!selectedState || saveStatus === "saving"}
+                  disabled={!selectedState || saveStatus === "saving" || localSearchStatus === "opening"}
                   onClick={saveHomeState}
                 >
                   {saveStatus === "saving" ? "Saving state…" : activeState ? "Save new home state" : "Show my state preview"}
@@ -429,35 +681,74 @@ export default function WelcomePage() {
                   ) : null}
                 </div>
 
-                {previewLoading ? (
-                  <p className={styles.loading} aria-live="polite">Checking current signals and coverage…</p>
-                ) : (
+                {localPreviewStatus === "eligible" ? (
+                  <div className={styles.localPreviewBox}>
+                    <div className={styles.localPreviewIntro}>
+                      <div><p>One-time local preview</p><h3>Make these signals local.</h3></div>
+                      <span>15 minutes</span>
+                    </div>
+                    <form className={styles.localPreviewSearch} onSubmit={searchLocalPreview}>
+                      <label htmlFor="welcome-local-search">ABC board, city, or store</label>
+                      <div>
+                        <input id="welcome-local-search" value={localQuery} maxLength={120} onChange={(event) => setLocalQuery(event.target.value)} placeholder="Try Arlington or Store 49" />
+                        <button type="submit" disabled={!localQuery.trim() || localSearchStatus !== "idle"}>{localSearchStatus === "searching" ? "Checking…" : "Find"}</button>
+                      </div>
+                    </form>
+                    {localResults.length ? (
+                      <div className={styles.localResults}>
+                        {localResults.map((result) => (
+                          <button key={result.canonicalTargetKey || result.label} type="button" disabled={localSearchStatus === "opening"} onClick={() => openLocalPreview(result)}>
+                            <span><strong>{result.label}</strong><small>{[result.city, result.address].filter(Boolean).join(" · ") || result.detail}</small></span>
+                            <em>Preview</em>
+                          </button>
+                        ))}
+                      </div>
+                    ) : null}
+                    <p className={styles.localPreviewNote}>{localMessage || "Choose once. The local preview stays open for 15 minutes."}</p>
+                  </div>
+                ) : null}
+
+                {localPreviewStatus === "active" && localPreview ? (
                   <>
+                    <div className={styles.localTargetCard}>
+                      <div>
+                        <span>{localTargetStatus(localPreview.target.status)}</span>
+                        <h3>{localPreview.target.label}</h3>
+                        <p>{[localPreview.target.city, localPreview.target.address].filter(Boolean).join(" · ")}</p>
+                      </div>
+                      <strong>{localPreview.target.areaLabel}</strong>
+                    </div>
                     <div className={styles.previewStatus}>
                       <Radio size={15} aria-hidden="true" />
-                      <p>{previewMessage}</p>
+                      <p>{localPreview.recent.length ? `Showing ${localPreview.recent.length} recent local ${localPreview.recent.length === 1 ? "signal" : "signals"}.` : "No recent signal is available here; earlier verified signals remain below."}</p>
                     </div>
-                    {drops.length ? (
-                      <ol className={styles.signalList}>
-                        {drops.map((drop, index) => (
-                          <li key={`${drop.timestamp}-${drop.store_id || drop.board_name || index}`}>
-                            <div className={styles.signalTopline}>
-                              <span className={styles.signalBadge}>{cleanLabel(drop.signal_label || drop.rarity_tier) || "Eligible signal"}</span>
-                              <span className={styles.signalTime}><Clock3 size={12} aria-hidden="true" />{signalTime(drop)}</span>
-                            </div>
-                            <h3>{signalName(drop)}</h3>
-                            <div className={styles.signalLocation}>
-                              <MapPin size={14} aria-hidden="true" />
-                              <strong>{signalLocation(drop, activeStateName)}</strong>
-                            </div>
-                            <div className={styles.signalSource}>
-                              <span>Source</span>
-                              <strong>{signalSource(drop)}</strong>
-                            </div>
-                          </li>
-                        ))}
-                      </ol>
+                    <SignalCards signals={showEarlierSignals ? [...localPreview.recent, ...localPreview.earlier] : localPreview.recent} stateName={STATE_NAMES.get(localPreview.target.stateCode) || localPreview.target.stateCode} />
+                    {localPreview.earlier.length ? (
+                      <button type="button" className={styles.seeEarlier} onClick={() => setShowEarlierSignals((current) => !current)}>
+                        {showEarlierSignals ? "Hide earlier signals" : "See earlier signals"}<ChevronDown size={15} aria-hidden="true" />
+                      </button>
                     ) : null}
+                  </>
+                ) : (
+                  <>
+                    {localPreviewStatus === "expired" && localPreview ? (
+                      <div className={styles.localPreviewExpired}>
+                        <LockKeyhole size={17} aria-hidden="true" />
+                        <span><strong>Local preview complete.</strong><small>{localPreview.target.areaLabel} stays available with paid access.</small></span>
+                        <Link href="/pricing?source=welcome-local-preview">View plans</Link>
+                      </div>
+                    ) : null}
+                    {previewLoading ? (
+                      <p className={styles.loading} aria-live="polite">Checking current signals and coverage…</p>
+                    ) : (
+                      <>
+                        <div className={styles.previewStatus}>
+                          <Radio size={15} aria-hidden="true" />
+                          <p>{previewMessage}</p>
+                        </div>
+                        {drops.length ? <SignalCards signals={drops} stateName={activeStateName} /> : null}
+                      </>
+                    )}
                   </>
                 )}
               </section>
