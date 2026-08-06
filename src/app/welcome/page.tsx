@@ -4,7 +4,6 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import {
   ArrowUpRight,
-  BellRing,
   CalendarDays,
   ChevronDown,
   Clock3,
@@ -16,7 +15,7 @@ import {
   Search,
   UsersRound,
 } from "lucide-react";
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { FormEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Footer from "@/components/Footer";
 import Navigation from "@/components/Navigation";
 import {
@@ -34,6 +33,11 @@ import type {
   WelcomeLocalPreviewPayload,
   WelcomeLocalPreviewRecord,
   WelcomeLocalPreviewSignal,
+} from "@/lib/welcome-local-preview";
+import {
+  welcomeLocalPreviewSignalDetails,
+  welcomeLocalPreviewSignalLocation,
+  welcomeLocalPreviewTargetDetails,
 } from "@/lib/welcome-local-preview";
 import styles from "./welcome.module.css";
 
@@ -70,6 +74,7 @@ interface UserBoundLocalPreviewState {
 type SignalCardDrop = DropEvent | WelcomeLocalPreviewSignal;
 
 const STATE_NAMES = new Map<string, string>(US_STATE_OPTIONS.map((state) => [state.code, state.name]));
+const LOCAL_SEARCH_DEBOUNCE_MS = 250;
 const CoverageMap = dynamic(
   () => import("@/components/coverage/CoverageMap").then((module) => module.CoverageMap),
   { ssr: false },
@@ -146,10 +151,6 @@ function cleanLabel(value: unknown) {
     : "";
 }
 
-function titleCase(value: string) {
-  return value.replace(/\b[a-z]/g, (letter) => letter.toUpperCase());
-}
-
 function signalName(drop: SignalCardDrop) {
   return cleanLabel(
     drop.brand_name
@@ -160,27 +161,11 @@ function signalName(drop: SignalCardDrop) {
 }
 
 function signalLocation(drop: SignalCardDrop, stateName: string) {
-  return cleanLabel(
-    drop.display_location
-      || drop.store_name
-      || drop.board_name
-      || drop.locationName
-      || drop.store_city
-      || drop.store_county,
-  ) || stateName;
+  return welcomeLocalPreviewSignalLocation(drop as WelcomeLocalPreviewSignal, stateName);
 }
 
-function signalSource(drop: SignalCardDrop) {
-  const direct = cleanLabel(drop.source);
-  if (direct) return titleCase(direct);
-  if ("sourceUrl" in drop && drop.sourceUrl) {
-    try {
-      return new URL(drop.sourceUrl).hostname.replace(/^www\./, "");
-    } catch {
-      // Fall through to a truthful generic source label.
-    }
-  }
-  return "Bourbon Signal source";
+function signalDetails(drop: SignalCardDrop) {
+  return welcomeLocalPreviewSignalDetails(drop as WelcomeLocalPreviewSignal);
 }
 
 function signalTime(drop: SignalCardDrop) {
@@ -217,10 +202,9 @@ function SignalCards({ signals, stateName }: { signals: SignalCardDrop[]; stateN
             <MapPin size={14} aria-hidden="true" />
             <strong>{signalLocation(drop, stateName)}</strong>
           </div>
-          <div className={styles.signalSource}>
-            <span>Source</span>
-            <strong>{signalSource(drop)}</strong>
-          </div>
+          {signalDetails(drop).length ? (
+            <p className={styles.signalSource}>{signalDetails(drop).join(" · ")}</p>
+          ) : null}
         </li>
       ))}
     </ol>
@@ -234,18 +218,13 @@ function statePreviewMessage(
   error: string,
   degradedStateFallback: boolean,
 ) {
-  if (error) return `Latest signals for ${stateName} are temporarily unavailable. Live coverage detail and the optional request form remain below.`;
+  if (error) return `Current signals for ${stateName} are temporarily unavailable.`;
   if (!drops.length && coverage?.coverageStatus === "not-available") {
-    return `Bourbon Signal does not currently have useful coverage in ${stateName}. No eligible state signals are available right now.`;
+    return `Bourbon Signal does not currently have useful coverage in ${stateName}.`;
   }
-  if (!drops.length) return `No eligible state signals are currently available in ${stateName}. Coverage may still be partial or source-specific.`;
-  if (degradedStateFallback) {
-    return `Showing ${drops.length} recent useful ${drops.length === 1 ? "signal" : "signals"} from the latest retained state data while a source recovers.`;
-  }
-  if (drops.length < 5) {
-    return `Showing the ${drops.length} latest eligible ${drops.length === 1 ? "signal" : "signals"} available in ${stateName}; fewer than five currently meet the feed rules.`;
-  }
-  return `Showing the five latest eligible signals available in ${stateName}.`;
+  if (!drops.length) return `No current signals are available in ${stateName}.`;
+  if (degradedStateFallback) return `Showing recent retained signals for ${stateName} while a source recovers.`;
+  return `Recent signals currently available in ${stateName}.`;
 }
 
 export default function WelcomePage() {
@@ -277,6 +256,7 @@ export default function WelcomePage() {
   const localPreviewGetControllerRef = useRef<AbortController | null>(null);
   const localPreviewPostControllerRef = useRef<AbortController | null>(null);
   const localSearchControllerRef = useRef<AbortController | null>(null);
+  const localSearchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   currentUserIdRef.current = authenticatedUserId;
   currentStateCodeRef.current = activeState;
@@ -289,6 +269,7 @@ export default function WelcomePage() {
     || (isLoaded && !authenticatedUserId ? "ineligible" : "loading");
   const localPreview = currentLocalPreviewState?.preview || null;
   const localPreviewRemainingMs = currentLocalPreviewState?.remainingMs || 0;
+  const selectedTargetDetails = localPreview ? welcomeLocalPreviewTargetDetails(localPreview.target) : [];
 
   const persistedHomeState = prefs.memberProfile?.homeState || "";
   const activeStateName = STATE_NAMES.get(activeState) || activeState;
@@ -311,9 +292,11 @@ export default function WelcomePage() {
     localPreviewGetControllerRef.current?.abort();
     localPreviewPostControllerRef.current?.abort();
     localSearchControllerRef.current?.abort();
+    if (localSearchDebounceRef.current) clearTimeout(localSearchDebounceRef.current);
     localPreviewGetControllerRef.current = null;
     localPreviewPostControllerRef.current = null;
     localSearchControllerRef.current = null;
+    localSearchDebounceRef.current = null;
     setLocalPreviewState(null);
     setLocalQuery("");
     setLocalResults([]);
@@ -350,6 +333,8 @@ export default function WelcomePage() {
       controller.abort();
       localPreviewPostControllerRef.current?.abort();
       localSearchControllerRef.current?.abort();
+      if (localSearchDebounceRef.current) clearTimeout(localSearchDebounceRef.current);
+      localSearchDebounceRef.current = null;
     };
   }, [authenticatedUserId, isLoaded]);
 
@@ -377,8 +362,10 @@ export default function WelcomePage() {
   useEffect(() => {
     localSearchControllerRef.current?.abort();
     localPreviewPostControllerRef.current?.abort();
+    if (localSearchDebounceRef.current) clearTimeout(localSearchDebounceRef.current);
     localSearchControllerRef.current = null;
     localPreviewPostControllerRef.current = null;
+    localSearchDebounceRef.current = null;
     setLocalSearchStatus("idle");
     setLocalQuery("");
     setLocalResults([]);
@@ -491,18 +478,25 @@ export default function WelcomePage() {
     }
   }
 
-  async function searchLocalPreview(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    const query = localQuery.replace(/\s+/g, " ").trim();
-    const requestUserId = currentUserIdRef.current;
-    const requestStateCode = currentStateCodeRef.current;
-    if (!requestStateCode || !query || !requestUserId || localPreviewStatus !== "eligible") return;
+  const runLocalPreviewSearch = useCallback(async (
+    rawQuery: string,
+    announceEmpty: boolean,
+    requestUserId: string | null,
+    requestStateCode: string,
+  ) => {
+    const query = rawQuery.replace(/\s+/g, " ").trim();
+    if (!requestStateCode
+      || query.length < 2
+      || !requestUserId
+      || localPreviewStatus !== "eligible"
+      || localPreviewPostControllerRef.current
+      || currentUserIdRef.current !== requestUserId
+      || currentStateCodeRef.current !== requestStateCode) return;
     localSearchControllerRef.current?.abort();
     const controller = new AbortController();
     localSearchControllerRef.current = controller;
     setLocalSearchStatus("searching");
     setLocalMessage("");
-    setLocalResults([]);
     try {
       const response = await fetch("/api/coverage", {
         method: "POST",
@@ -515,9 +509,21 @@ export default function WelcomePage() {
         || currentUserIdRef.current !== requestUserId
         || currentStateCodeRef.current !== requestStateCode) return;
       if (!response.ok || !Array.isArray(payload.results)) throw new Error(payload.error || "Search unavailable.");
-      const results = payload.results.filter((result) => result.kind !== "unknown" && result.status !== "not-found").slice(0, 6);
+      const queryToken = cleanLabel(query).toLowerCase();
+      const results = payload.results
+        .filter((result) => result.kind !== "unknown" && result.status !== "not-found")
+        .sort((left, right) => {
+          const rank = (result: CoverageSearchResult) => {
+            const label = cleanLabel(result.label).toLowerCase();
+            if (label === queryToken) return 0;
+            if (label.startsWith(queryToken)) return 1;
+            return 2;
+          };
+          return rank(left) - rank(right) || left.label.localeCompare(right.label);
+        })
+        .slice(0, 6);
       setLocalResults(results);
-      if (!results.length) setLocalMessage("No listed match yet. Try a nearby board or city.");
+      if (announceEmpty && !results.length) setLocalMessage("No listed match yet. Try a nearby board or city.");
     } catch (error) {
       if (!controller.signal.aborted
         && currentUserIdRef.current === requestUserId
@@ -525,10 +531,51 @@ export default function WelcomePage() {
         setLocalMessage(error instanceof Error ? error.message : "Search unavailable.");
       }
     } finally {
-      if (localSearchControllerRef.current === controller) localSearchControllerRef.current = null;
-      if (currentUserIdRef.current === requestUserId
-        && currentStateCodeRef.current === requestStateCode) setLocalSearchStatus("idle");
+      if (localSearchControllerRef.current === controller) {
+        localSearchControllerRef.current = null;
+        if (currentUserIdRef.current === requestUserId
+          && currentStateCodeRef.current === requestStateCode
+          && !localPreviewPostControllerRef.current) setLocalSearchStatus("idle");
+      }
     }
+  }, [localPreviewStatus]);
+
+  useEffect(() => {
+    if (localSearchDebounceRef.current) clearTimeout(localSearchDebounceRef.current);
+    localSearchControllerRef.current?.abort();
+    const query = localQuery.replace(/\s+/g, " ").trim();
+    const scheduledUserId = currentUserIdRef.current;
+    const scheduledStateCode = currentStateCodeRef.current;
+    setLocalResults([]);
+    setLocalMessage("");
+    if (localPreviewStatus !== "eligible"
+      || !activeState
+      || query.length < 2
+      || !scheduledUserId
+      || localPreviewPostControllerRef.current) {
+      if (!localPreviewPostControllerRef.current) setLocalSearchStatus("idle");
+      return;
+    }
+    localSearchDebounceRef.current = setTimeout(() => {
+      localSearchDebounceRef.current = null;
+      void runLocalPreviewSearch(query, false, scheduledUserId, scheduledStateCode);
+    }, LOCAL_SEARCH_DEBOUNCE_MS);
+    return () => {
+      if (localSearchDebounceRef.current) clearTimeout(localSearchDebounceRef.current);
+      localSearchDebounceRef.current = null;
+    };
+  }, [activeState, localPreviewStatus, localQuery, runLocalPreviewSearch]);
+
+  async function searchLocalPreview(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (localSearchDebounceRef.current) clearTimeout(localSearchDebounceRef.current);
+    localSearchDebounceRef.current = null;
+    await runLocalPreviewSearch(
+      localQuery,
+      true,
+      currentUserIdRef.current,
+      currentStateCodeRef.current,
+    );
   }
 
   async function openLocalPreview(result: CoverageSearchResult) {
@@ -537,8 +584,13 @@ export default function WelcomePage() {
     if (!result.canonicalTargetKey
       || !requestUserId
       || result.stateCode !== requestStateCode
-      || localPreviewStatus !== "eligible") return;
-    localPreviewPostControllerRef.current?.abort();
+      || localPreviewStatus !== "eligible"
+      || localPreviewPostControllerRef.current) return;
+    if (localSearchDebounceRef.current) clearTimeout(localSearchDebounceRef.current);
+    localSearchDebounceRef.current = null;
+    localSearchControllerRef.current?.abort();
+    localSearchControllerRef.current = null;
+    setLocalResults([]);
     const controller = new AbortController();
     localPreviewPostControllerRef.current = controller;
     setLocalSearchStatus("opening");
@@ -580,9 +632,11 @@ export default function WelcomePage() {
         setLocalMessage(error instanceof Error ? error.message : "Preview unavailable.");
       }
     } finally {
-      if (localPreviewPostControllerRef.current === controller) localPreviewPostControllerRef.current = null;
-      if (currentUserIdRef.current === requestUserId
-        && currentStateCodeRef.current === requestStateCode) setLocalSearchStatus("idle");
+      if (localPreviewPostControllerRef.current === controller) {
+        localPreviewPostControllerRef.current = null;
+        if (currentUserIdRef.current === requestUserId
+          && currentStateCodeRef.current === requestStateCode) setLocalSearchStatus("idle");
+      }
     }
   }
 
@@ -600,9 +654,9 @@ export default function WelcomePage() {
       <main className={styles.page}>
         <div className={styles.journey}>
           <header className={styles.hero}>
-            <p className={styles.eyebrow}>Your free account</p>
-            <h1>Start with bourbon signals close to home.</h1>
-            <p>Choose a home state to see five recent signals, current coverage, and where better coverage is needed. Free accounts do not include alerts.</p>
+            <p className={styles.eyebrow}>Welcome</p>
+            <h1>Check out Bourbon Signal.</h1>
+            <p>Choose a home state and start exploring.</p>
           </header>
 
           {!preferencesReady ? (
@@ -690,12 +744,20 @@ export default function WelcomePage() {
                     <form className={styles.localPreviewSearch} onSubmit={searchLocalPreview}>
                       <label htmlFor="welcome-local-search">ABC board, city, or store</label>
                       <div>
-                        <input id="welcome-local-search" value={localQuery} maxLength={120} onChange={(event) => setLocalQuery(event.target.value)} placeholder="Try Arlington or Store 49" />
-                        <button type="submit" disabled={!localQuery.trim() || localSearchStatus !== "idle"}>{localSearchStatus === "searching" ? "Checking…" : "Find"}</button>
+                        <input
+                          id="welcome-local-search"
+                          value={localQuery}
+                          maxLength={120}
+                          autoComplete="off"
+                          disabled={localSearchStatus === "opening"}
+                          onChange={(event) => setLocalQuery(event.target.value)}
+                          placeholder="Try Arlington or Store 49"
+                        />
+                        <button type="submit" disabled={localQuery.trim().length < 2 || localSearchStatus !== "idle"}>{localSearchStatus === "searching" ? "Checking…" : "Find"}</button>
                       </div>
                     </form>
                     {localResults.length ? (
-                      <div className={styles.localResults}>
+                      <div id="welcome-local-results" className={styles.localResults} aria-live="polite" aria-label="Matching locations">
                         {localResults.map((result) => (
                           <button key={result.canonicalTargetKey || result.label} type="button" disabled={localSearchStatus === "opening"} onClick={() => openLocalPreview(result)}>
                             <span><strong>{result.label}</strong><small>{[result.city, result.address].filter(Boolean).join(" · ") || result.detail}</small></span>
@@ -714,9 +776,8 @@ export default function WelcomePage() {
                       <div>
                         <span>{localTargetStatus(localPreview.target.status)}</span>
                         <h3>{localPreview.target.label}</h3>
-                        <p>{[localPreview.target.city, localPreview.target.address].filter(Boolean).join(" · ")}</p>
+                        {selectedTargetDetails.length ? <p>{selectedTargetDetails.join(" · ")}</p> : null}
                       </div>
-                      <strong>{localPreview.target.areaLabel}</strong>
                     </div>
                     <div className={styles.previewStatus}>
                       <Radio size={15} aria-hidden="true" />
@@ -811,10 +872,6 @@ export default function WelcomePage() {
                   <Link href={`/coverage?state=${encodeURIComponent(activeState)}`}><MapIcon aria-hidden="true" /><span><strong>Coverage Map</strong><small>See what information is available across the country.</small></span><ArrowUpRight aria-hidden="true" /></Link>
                   <Link href="/dashboard"><LayoutDashboard aria-hidden="true" /><span><strong>Dashboard</strong><small>Open your member workspace.</small></span><ArrowUpRight aria-hidden="true" /></Link>
                 </nav>
-                <div className={styles.membershipAction}>
-                  <div><BellRing size={18} aria-hidden="true" /><span><strong>Your free account is a preview.</strong><small>Paid unlocks the full feed, saved alert areas, bottle watchlists, and live alerts. Plans start at $2.99/month.</small></span></div>
-                  <Link href="/pricing?source=welcome">See paid options <ArrowUpRight size={14} aria-hidden="true" /></Link>
-                </div>
               </section>
             </>
           ) : null}

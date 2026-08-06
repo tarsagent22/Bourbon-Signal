@@ -6,6 +6,8 @@ import {
   toWelcomeLocalPreviewPayload,
   welcomeLocalPreviewAccess,
   welcomeLocalPreviewRemainingMs,
+  welcomeLocalPreviewSignalLocation,
+  welcomeLocalPreviewTargetDetails,
   welcomeLocalPreviewTargetScope,
   type WelcomeLocalPreviewCandidateTarget,
   type WelcomeLocalPreviewRecord,
@@ -37,6 +39,35 @@ const candidateTarget: WelcomeLocalPreviewCandidateTarget = {
   storeId: "49",
   targetScope: "store",
 };
+assert.equal(
+  welcomeLocalPreviewSignalLocation({
+    historical: false,
+    display_location: "Arlington (Arlington County Co.)",
+    board_name: "Arlington (Arlington County Co.)",
+    store_name: "Virginia ABC Store 378",
+    store_city: "Arlington",
+  }, "Virginia"),
+  "Virginia ABC Store 378",
+  "signal cards must prefer the specific store over a generic city or board display label",
+);
+assert.equal(
+  welcomeLocalPreviewSignalLocation({ historical: false, board_name: "Wake County ABC", locationName: "Generic area" }, "North Carolina"),
+  "Wake County ABC",
+  "board-level signals must identify the board",
+);
+assert.deepEqual(
+  welcomeLocalPreviewTargetDetails({
+    kind: "city",
+    stateCode: "VA",
+    label: "Arlington",
+    status: "covered",
+    city: "Arlington",
+    address: null,
+    areaLabel: "Arlington",
+  }),
+  [],
+  "a selected city repeated across label, city, and area must render only once",
+);
 assert.equal(welcomeLocalPreviewAccess({ createdAt: now - 60_000, record: activeRecord, now }), "active");
 assert.equal(welcomeLocalPreviewAccess({ createdAt: now - 60_000, record: { ...activeRecord, expiresAt: "2026-08-05T19:59:59.000Z" }, now }), "expired");
 assert.equal(welcomeLocalPreviewRemainingMs(activeRecord, now), 10 * 60_000, "remaining time is computed from server time");
@@ -245,6 +276,8 @@ const publicPayload = toWelcomeLocalPreviewPayload({
     historical: false,
     brand_name: "Safe bottle",
     store_name: "Safe store",
+    store_id: "49",
+    store_address: "881 North Quincy Street",
     source: "https://inventory.example.com/private/path?token=secret",
     sourceUrl: "https://inventory.example.com/private/path?token=secret",
     userId: "drop-user",
@@ -257,7 +290,7 @@ const publicPayload = toWelcomeLocalPreviewPayload({
 assert.deepEqual(Object.keys(publicPayload.target).sort(), ["address", "areaLabel", "city", "kind", "label", "stateCode", "status"]);
 assert.deepEqual(
   Object.keys(publicPayload.recent[0]).sort(),
-  ["brand_name", "historical", "source", "store_name", "timestamp"],
+  ["brand_name", "historical", "source", "store_address", "store_id", "store_name", "timestamp"],
   "preview drops must be serialized through an explicit public allowlist",
 );
 assert.equal(publicPayload.recent[0].source, "inventory.example.com", "a source URL may contribute only its public hostname label");
@@ -298,9 +331,33 @@ for (const phrase of [
   "ABC board, city, or store",
   "See earlier signals",
   "actively monitored",
+  "Check out Bourbon Signal",
   "/api/welcome/local-preview",
 ]) assert.match(welcomeSource, new RegExp(phrase.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"), "i"));
 assert.doesNotMatch(welcomeSource, /unlock the magic|hyperlocal intelligence|personalized hunting journey/i);
+assert.doesNotMatch(
+  welcomeSource,
+  /five recent signals|five latest eligible|fewer than five|Free accounts do not include alerts|Your free account is a preview|Plans start at/i,
+  "Welcome must not explain free-account allowances or paid feature quotas",
+);
+assert.match(welcomeSource, /LOCAL_SEARCH_DEBOUNCE_MS/);
+assert.match(welcomeSource, /setTimeout\(\(\) =>/);
+assert.match(welcomeSource, /const scheduledUserId = currentUserIdRef\.current/);
+assert.match(welcomeSource, /const scheduledStateCode = currentStateCodeRef\.current/);
+assert.match(welcomeSource, /runLocalPreviewSearch\(query, false, scheduledUserId, scheduledStateCode\)/, "typing must automatically request user- and state-bound suggestions");
+assert.match(welcomeSource, /aria-live="polite"/);
+assert.doesNotMatch(welcomeSource, /role="option"|role="listbox"/, "typeahead results must keep native button semantics unless a complete combobox is implemented");
+assert.match(welcomeSource, /disabled=\{localSearchStatus === "opening"\}/);
+assert.match(welcomeSource, /localQuery\.trim\(\)\.length < 2/, "manual search must expose the same two-character threshold as typeahead");
+assert.doesNotMatch(welcomeSource, /<span>Source<\/span>/, "technical source labels must not appear on customer cards");
+const localTargetCardSource = welcomeSource.slice(
+  welcomeSource.indexOf("className={styles.localTargetCard}"),
+  welcomeSource.indexOf("className={styles.previewStatus}", welcomeSource.indexOf("className={styles.localTargetCard}")),
+);
+assert.doesNotMatch(localTargetCardSource, /localPreview\.target\.areaLabel/);
+assert.doesNotMatch(localTargetCardSource, /localPreview\.target\.city/);
+assert.match(localTargetCardSource, /selectedTargetDetails/);
+assert.match(welcomeSource, /welcomeLocalPreviewTargetDetails/);
 assert.doesNotMatch(welcomeSource, /Date\.parse\(localPreview\.expiresAt\)\s*-\s*Date\.now\(\)/, "the client timer must use server-authoritative remainingMs");
 assert.match(
   welcomeSource,
@@ -318,6 +375,7 @@ const openPreviewSource = welcomeSource.slice(
 assert.match(openPreviewSource, /const requestUserId = currentUserIdRef\.current/);
 assert.match(openPreviewSource, /const requestStateCode = currentStateCodeRef\.current/);
 assert.match(openPreviewSource, /signal: controller\.signal/);
+assert.match(openPreviewSource, /localSearchControllerRef\.current\?\.abort\(\)/, "opening the one-time preview must cancel suggestion requests");
 assert.match(
   openPreviewSource,
   /currentUserIdRef\.current !== requestUserId/,
