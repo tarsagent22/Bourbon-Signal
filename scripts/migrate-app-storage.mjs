@@ -57,6 +57,7 @@ const schemaFiles = [
   '../src/lib/bottle-contribution-schema.sql',
   '../src/lib/approved-catalog-schema.sql',
   '../src/lib/welcome-local-preview-schema.sql',
+  '../src/lib/founder-shipping-schema.sql',
   '../src/lib/community-sightings-schema.sql',
   '../src/lib/retailer-schema.sql',
 ];
@@ -80,6 +81,7 @@ const expected = [
   'approved_catalog_bottles',
   'approved_catalog_locations',
   'welcome_signal_previews',
+  'founder_glass_shipping',
   'bottle_contributions',
   'community_sighting_votes',
   'community_sightings',
@@ -101,6 +103,7 @@ const requiredColumns = {
   approved_catalog_bottles: ['id', 'normalized_name', 'payload', 'approved_by'],
   approved_catalog_locations: ['id', 'normalized_key', 'payload', 'approved_by'],
   welcome_signal_previews: ['user_id', 'payload', 'redeemed_at', 'expires_at'],
+  founder_glass_shipping: ['user_id', 'founder_number', 'account_email', 'recipient_name', 'address_line1', 'address_line2', 'city', 'state_code', 'postal_code', 'phone', 'country_code', 'status', 'carrier', 'tracking_number', 'submitted_at', 'updated_at', 'shipped_at', 'updated_by'],
   bottle_contributions: ['id', 'status', 'payload'],
   community_sighting_votes: ['sighting_id', 'user_id', 'kind'],
   community_sightings: ['id', 'reporter_user_id', 'payload'],
@@ -112,7 +115,7 @@ const requiredColumns = {
   retailer_submissions: ['id', 'user_id', 'store_id', 'status', 'payload'],
 };
 const columnRows = await sql.query(`
-  SELECT table_name, column_name, data_type, is_nullable FROM information_schema.columns
+  SELECT table_name, column_name, data_type, is_nullable, character_maximum_length, column_default FROM information_schema.columns
   WHERE table_schema = 'public' AND table_name = ANY($1::text[])
 `, [expected]);
 const availableColumns = new Set(columnRows.map((row) => `${row.table_name}.${row.column_name}`));
@@ -129,6 +132,11 @@ const criticalColumnDefinitions = {
   'member_collection_bottles.updated_at': ['timestamp with time zone', 'NO'],
   'member_collection_legacy_backups.user_id': ['text', 'NO'],
   'member_collection_legacy_backups.payload': ['jsonb', 'NO'],
+  'founder_glass_shipping.user_id': ['text', 'NO'],
+  'founder_glass_shipping.founder_number': ['integer', 'NO'],
+  'founder_glass_shipping.phone': ['text', 'NO'],
+  'founder_glass_shipping.country_code': ['character', 'NO'],
+  'founder_glass_shipping.status': ['text', 'NO'],
 };
 const availableDefinitions = new Map(columnRows.map((row) => [
   `${row.table_name}.${row.column_name}`,
@@ -138,10 +146,44 @@ const invalidDefinitions = Object.entries(criticalColumnDefinitions).flatMap(([c
   const actual = availableDefinitions.get(column);
   return actual && actual[0] === expectedDefinition[0] && actual[1] === expectedDefinition[1] ? [] : [column];
 });
+const founderColumnDefinitions = {
+  user_id: ['text', 'NO', null, null],
+  founder_number: ['integer', 'NO', null, null],
+  account_email: ['text', 'NO', null, null],
+  recipient_name: ['text', 'NO', null, null],
+  address_line1: ['text', 'NO', null, null],
+  address_line2: ['text', 'YES', null, null],
+  city: ['text', 'NO', null, null],
+  state_code: ['character', 'NO', 2, null],
+  postal_code: ['text', 'NO', null, null],
+  country_code: ['character', 'NO', 2, "'US'::bpchar"],
+  phone: ['text', 'NO', null, null],
+  status: ['text', 'NO', null, "'submitted'::text"],
+  carrier: ['text', 'YES', null, null],
+  tracking_number: ['text', 'YES', null, null],
+  submitted_at: ['timestamp with time zone', 'NO', null, 'now()'],
+  updated_at: ['timestamp with time zone', 'NO', null, 'now()'],
+  shipped_at: ['timestamp with time zone', 'YES', null, null],
+  updated_by: ['text', 'YES', null, null],
+};
+const normalizeDefault = (value) => value === null || value === undefined ? null : String(value).replace(/\s+/g, '');
+const invalidFounderColumns = Object.entries(founderColumnDefinitions).flatMap(([column, definition]) => {
+  const actual = columnRows.find((row) => row.table_name === 'founder_glass_shipping' && row.column_name === column);
+  const [dataType, nullable, maximumLength, defaultValue] = definition;
+  return actual
+    && actual.data_type === dataType
+    && actual.is_nullable === nullable
+    && (actual.character_maximum_length === null ? null : Number(actual.character_maximum_length)) === maximumLength
+    && normalizeDefault(actual.column_default) === defaultValue
+    ? []
+    : [column];
+});
 const expectedIndexes = [
   'approved_catalog_bottles_updated_idx',
   'approved_catalog_locations_updated_idx',
   'welcome_signal_previews_expires_idx',
+  'founder_glass_shipping_founder_number_idx',
+  'founder_glass_shipping_status_idx',
   'bottle_contributions_updated_idx',
   'community_sightings_created_idx',
   'community_sighting_votes_sighting_idx',
@@ -155,6 +197,49 @@ const expectedIndexes = [
 const indexRows = await sql.query(`SELECT indexname FROM pg_indexes WHERE schemaname = 'public' AND indexname = ANY($1::text[])`, [expectedIndexes]);
 const availableIndexes = new Set(indexRows.map((row) => row.indexname));
 const missingIndexes = expectedIndexes.filter((index) => !availableIndexes.has(index));
+const normalizeCatalogColumns = (value) => {
+  if (Array.isArray(value)) return value;
+  if (typeof value !== 'string' || !/^\{.*\}$/.test(value)) return [];
+  const body = value.slice(1, -1);
+  return body ? body.split(',') : [];
+};
+const expectedFounderIndexes = {
+  founder_glass_shipping_founder_number_idx: { unique: true, columns: ['founder_number'] },
+  founder_glass_shipping_status_idx: { unique: false, columns: ['status', 'founder_number'] },
+};
+const founderIndexRows = await sql.query(`
+  SELECT i.relname AS indexname, t.relname AS table_name, x.indisunique, x.indisvalid,
+    (x.indpred IS NOT NULL) AS has_predicate,
+    (x.indexprs IS NOT NULL) AS has_expressions,
+    x.indnatts, x.indnkeyatts,
+    ARRAY(
+      SELECT a.attname
+      FROM unnest(x.indkey) WITH ORDINALITY AS key(attnum, position)
+      JOIN pg_attribute a ON a.attrelid = t.oid AND a.attnum = key.attnum
+      ORDER BY key.position
+    ) AS columns
+  FROM pg_index x
+  JOIN pg_class i ON i.oid = x.indexrelid
+  JOIN pg_class t ON t.oid = x.indrelid
+  JOIN pg_namespace n ON n.oid = t.relnamespace
+  WHERE n.nspname = 'public' AND i.relname = ANY($1::text[])
+`, [Object.keys(expectedFounderIndexes)]);
+const invalidFounderIndexes = Object.entries(expectedFounderIndexes).flatMap(([index, expectedDefinition]) => {
+  const actual = founderIndexRows.find((row) => row.indexname === index);
+  const columns = normalizeCatalogColumns(actual?.columns);
+  return actual
+    && actual.table_name === 'founder_glass_shipping'
+    && actual.indisunique === expectedDefinition.unique
+    && actual.indisvalid === true
+    && actual.has_predicate === false
+    && actual.has_expressions === false
+    && Number(actual.indnatts) === expectedDefinition.columns.length
+    && Number(actual.indnkeyatts) === expectedDefinition.columns.length
+    && columns.length === expectedDefinition.columns.length
+    && columns.every((column, position) => column === expectedDefinition.columns[position])
+    ? []
+    : [index];
+});
 const expectedConstraints = [
   'community_sighting_votes_pkey',
   'community_sighting_votes_sighting_id_fkey',
@@ -162,20 +247,60 @@ const expectedConstraints = [
   'member_collection_bottles_pkey',
   'member_collection_bottles_user_id_fkey',
   'member_collection_legacy_backups_pkey',
+  'founder_glass_shipping_pkey',
+  'founder_glass_shipping_founder_number_positive',
+  'founder_glass_shipping_country_us',
+  'founder_glass_shipping_status_valid',
   'retailer_submissions_store_id_fkey',
 ];
 const constraintRows = await sql.query(`
-  SELECT conname FROM pg_constraint
-  WHERE connamespace = 'public'::regnamespace AND conname = ANY($1::text[])
+  SELECT c.conname, t.relname AS table_name, c.contype, pg_get_constraintdef(c.oid) AS definition,
+    ARRAY(
+      SELECT a.attname
+      FROM unnest(c.conkey) WITH ORDINALITY AS key(attnum, position)
+      JOIN pg_attribute a ON a.attrelid = t.oid AND a.attnum = key.attnum
+      ORDER BY key.position
+    ) AS columns
+  FROM pg_constraint c
+  JOIN pg_class t ON t.oid = c.conrelid
+  JOIN pg_namespace n ON n.oid = t.relnamespace
+  WHERE n.nspname = 'public' AND c.conname = ANY($1::text[])
 `, [expectedConstraints]);
 const availableConstraints = new Set(constraintRows.map((row) => row.conname));
 const missingConstraints = expectedConstraints.filter((constraint) => !availableConstraints.has(constraint));
+const expectedFounderConstraintDefinitions = {
+  founder_glass_shipping_founder_number_positive: 'CHECK((founder_number>0))',
+  founder_glass_shipping_country_us: "CHECK((country_code='US'::bpchar))",
+  founder_glass_shipping_status_valid: "CHECK((status=ANY(ARRAY['submitted'::text,'confirmed'::text,'packed'::text,'shipped'::text])))",
+};
+const normalizeConstraintDefinition = (value) => String(value || '').replace(/\s+/g, '');
+const founderPrimaryKey = constraintRows.find((row) => row.conname === 'founder_glass_shipping_pkey' && row.table_name === 'founder_glass_shipping');
+const founderPrimaryKeyColumns = normalizeCatalogColumns(founderPrimaryKey?.columns);
+const invalidFounderPrimaryKey = founderPrimaryKey
+  && founderPrimaryKey.contype === 'p'
+  && founderPrimaryKeyColumns.length === 1
+  && founderPrimaryKeyColumns[0] === 'user_id'
+  ? []
+  : ['founder_glass_shipping_pkey'];
+const invalidFounderConstraints = Object.entries(expectedFounderConstraintDefinitions).flatMap(([constraint, expectedDefinition]) => {
+  const actual = constraintRows.find((row) => row.conname === constraint && row.table_name === 'founder_glass_shipping');
+  return actual
+    && actual.table_name === 'founder_glass_shipping'
+    && actual.contype === 'c'
+    && normalizeConstraintDefinition(actual.definition) === expectedDefinition
+    ? []
+    : [constraint];
+});
 const schemaProblems = [
   ...missing.map((table) => `table:${table}`),
   ...missingColumns.map((column) => `column:${column}`),
   ...invalidDefinitions.map((column) => `definition:${column}`),
+  ...invalidFounderColumns.map((column) => `founder-column-definition:${column}`),
   ...missingIndexes.map((index) => `index:${index}`),
+  ...invalidFounderIndexes.map((index) => `index-definition:${index}`),
   ...missingConstraints.map((constraint) => `constraint:${constraint}`),
+  ...invalidFounderPrimaryKey.map((constraint) => `primary-key-definition:${constraint}`),
+  ...invalidFounderConstraints.map((constraint) => `constraint-definition:${constraint}`),
 ];
 if (schemaProblems.length) {
   throw new Error(`Application storage schema is incomplete: ${schemaProblems.join(', ')}. Run npm run migrate:app-storage:apply.`);

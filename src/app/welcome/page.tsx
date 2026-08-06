@@ -40,6 +40,10 @@ import {
   welcomeLocalPreviewTargetDetails,
 } from "@/lib/welcome-local-preview";
 import {
+  welcomeLocalPreviewCanChooseTarget,
+  welcomeLocalSearchPlaceholder,
+} from "@/lib/welcome-onboarding";
+import {
   welcomeStateSignalRows,
   welcomeStateSignalsCanLoad,
   type WelcomeStateSignalOwner,
@@ -282,6 +286,8 @@ export default function WelcomePage() {
   const localPreview = currentLocalPreviewState?.preview || null;
   const localPreviewRemainingMs = currentLocalPreviewState?.remainingMs || 0;
   const selectedTargetDetails = localPreview ? welcomeLocalPreviewTargetDetails(localPreview.target) : [];
+  const canChooseLocalPreviewTarget = welcomeLocalPreviewCanChooseTarget(localPreviewStatus);
+  const localPreviewMatchesActiveState = Boolean(localPreview && localPreview.target.stateCode === activeState);
 
   const persistedHomeState = prefs.memberProfile?.homeState || "";
   const activeStateName = STATE_NAMES.get(activeState) || activeState;
@@ -289,6 +295,7 @@ export default function WelcomePage() {
     () => coverageState || (activeState ? fallbackCoverageState(activeState) : null),
     [activeState, coverageState],
   );
+  const localSearchPlaceholder = welcomeLocalSearchPlaceholder(coverageState || fallbackCoverageState(activeState));
 
   useEffect(() => {
     const registrationCompleted = new URLSearchParams(window.location.search).get("registration") === "1";
@@ -506,7 +513,7 @@ export default function WelcomePage() {
     if (!requestStateCode
       || query.length < 2
       || !requestUserId
-      || localPreviewStatus !== "eligible"
+      || !welcomeLocalPreviewCanChooseTarget(localPreviewStatus)
       || localPreviewPostControllerRef.current
       || currentUserIdRef.current !== requestUserId
       || currentStateCodeRef.current !== requestStateCode) return;
@@ -566,7 +573,7 @@ export default function WelcomePage() {
     const scheduledStateCode = currentStateCodeRef.current;
     setLocalResults([]);
     setLocalMessage("");
-    if (localPreviewStatus !== "eligible"
+    if (!canChooseLocalPreviewTarget
       || !activeState
       || query.length < 2
       || !scheduledUserId
@@ -582,7 +589,7 @@ export default function WelcomePage() {
       if (localSearchDebounceRef.current) clearTimeout(localSearchDebounceRef.current);
       localSearchDebounceRef.current = null;
     };
-  }, [activeState, localPreviewStatus, localQuery, runLocalPreviewSearch]);
+  }, [activeState, canChooseLocalPreviewTarget, localQuery, runLocalPreviewSearch]);
 
   async function searchLocalPreview(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -602,7 +609,7 @@ export default function WelcomePage() {
     if (!result.canonicalTargetKey
       || !requestUserId
       || result.stateCode !== requestStateCode
-      || localPreviewStatus !== "eligible"
+      || !canChooseLocalPreviewTarget
       || localPreviewPostControllerRef.current) return;
     if (localSearchDebounceRef.current) clearTimeout(localSearchDebounceRef.current);
     localSearchDebounceRef.current = null;
@@ -753,11 +760,14 @@ export default function WelcomePage() {
                   ) : null}
                 </div>
 
-                {localPreviewStatus === "eligible" ? (
+                {canChooseLocalPreviewTarget ? (
                   <div className={styles.localPreviewBox}>
                     <div className={styles.localPreviewIntro}>
-                      <div><p>One-time local preview</p><h3>Make these signals local.</h3></div>
-                      <span>15 minutes</span>
+                      <div>
+                        <p>{localPreviewStatus === "active" ? "Explore another location" : "One-time local preview"}</p>
+                        <h3>{localPreviewStatus === "active" ? `Explore ${activeStateName}.` : "Make these signals local."}</h3>
+                      </div>
+                      <span>{localPreviewStatus === "active" ? `${Math.max(1, Math.ceil(localPreviewRemainingMs / 60_000))} min left` : "15 minutes"}</span>
                     </div>
                     <form className={styles.localPreviewSearch} onSubmit={searchLocalPreview}>
                       <label htmlFor="welcome-local-search">ABC board, city, or store</label>
@@ -769,7 +779,7 @@ export default function WelcomePage() {
                           autoComplete="off"
                           disabled={localSearchStatus === "opening"}
                           onChange={(event) => setLocalQuery(event.target.value)}
-                          placeholder="Try Arlington or Store 49"
+                          placeholder={localSearchPlaceholder}
                         />
                         <button type="submit" disabled={localQuery.trim().length < 2 || localSearchStatus !== "idle"}>{localSearchStatus === "searching" ? "Checking…" : "Find"}</button>
                       </div>
@@ -779,16 +789,16 @@ export default function WelcomePage() {
                         {localResults.map((result) => (
                           <button key={result.canonicalTargetKey || result.label} type="button" disabled={localSearchStatus === "opening"} onClick={() => openLocalPreview(result)}>
                             <span><strong>{result.label}</strong><small>{[result.city, result.address].filter(Boolean).join(" · ") || result.detail}</small></span>
-                            <em>Preview</em>
+                            <em>{localPreviewStatus === "active" ? "Switch" : "Preview"}</em>
                           </button>
                         ))}
                       </div>
                     ) : null}
-                    <p className={styles.localPreviewNote}>{localMessage || "Choose once. The local preview stays open for 15 minutes."}</p>
+                    <p className={styles.localPreviewNote}>{localMessage || (localPreviewStatus === "active" ? "Switching locations does not restart the preview clock." : "Choose a location to start.")}</p>
                   </div>
                 ) : null}
 
-                {localPreviewStatus === "active" && localPreview ? (
+                {localPreviewStatus === "active" && localPreview && localPreviewMatchesActiveState ? (
                   <>
                     <div className={styles.localTargetCard}>
                       <div>

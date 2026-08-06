@@ -40,6 +40,21 @@ export class WelcomeLocalPreviewRepository {
     if (!existing) throw new Error("Unable to save the local signal preview.");
     return existing;
   }
+
+  async replaceActive(record: WelcomeLocalPreviewRecord): Promise<WelcomeLocalPreviewRecord> {
+    const storedRecord = toStoredWelcomeLocalPreviewRecord(record);
+    const rows = await this.query.query(
+      `UPDATE welcome_signal_previews
+       SET payload = $2::jsonb
+       WHERE user_id = $1 AND expires_at > NOW()
+       RETURNING payload`,
+      [storedRecord.userId, JSON.stringify(storedRecord)],
+    ) as Array<{ payload: WelcomeLocalPreviewRecord }>;
+    if (rows[0]?.payload) return rows[0].payload;
+    const existing = await this.read(storedRecord.userId);
+    if (!existing) throw new Error("Unable to update the local signal preview.");
+    return existing;
+  }
 }
 
 export function createWelcomeLocalPreviewRepository(env: NodeJS.ProcessEnv = process.env) {
@@ -54,4 +69,8 @@ export async function readWelcomeLocalPreview(userId: string) {
 
 export async function claimWelcomeLocalPreview(record: WelcomeLocalPreviewRecord) {
   return createWelcomeLocalPreviewRepository().claim(record);
+}
+
+export async function replaceWelcomeLocalPreview(record: WelcomeLocalPreviewRecord) {
+  return createWelcomeLocalPreviewRepository().replaceActive(record);
 }
