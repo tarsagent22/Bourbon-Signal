@@ -88,13 +88,25 @@ assert.match(middleware, /"\/founder-shipping\(\.\*\)"/);
 assert.match(middleware, /"\/api\/member\/shipping\(\.\*\)"/);
 assert.match(page, /redirect\("\/settings#shipping"\)/);
 assert.match(settings, /MemberShippingProfile/);
+assert.match(settings, />Manage account</);
+for (const section of ["personal", "membership", "shipping", "communications", "security"]) {
+  assert.match(settings, new RegExp(`(?:id=|href=)["']#?${section}["']`), `Manage Account exposes ${section}`);
+}
+assert.match(settings, /\/api\/billing-portal/);
+assert.match(settings, /\/dashboard\?section=alerts/);
+assert.match(settings, /user\.update\(/, "personal information uses Clerk's authenticated profile update");
+assert.doesNotMatch(settings, /Retailer administration|isRetailerAdminEmail|\/admin\/retailers/);
 assert.match(shippingPanel, /id="shipping"/);
 assert.match(shippingPanel, /name="phone"[\s\S]{0,160}required/);
 assert.match(shippingPanel, /United States only/);
 assert.doesNotMatch(shippingPanel, /deadline/i);
 assert.doesNotMatch(shippingPanel, /country[^\n]*<select|name="country"/i, "international destinations must not be selectable");
-assert.ok((navigation.match(/href="\/settings#shipping"/g) || []).length >= 2, "shipping profile is linked from desktop and mobile member navigation");
-assert.match(navigation, /canManageBilling[\s\S]*Shipping information/);
+assert.ok((navigation.match(/href="\/settings"/g) || []).length >= 2, "Manage Account is linked from desktop and mobile member navigation");
+assert.ok((navigation.match(/Manage Account/g) || []).length >= 2, "desktop and mobile account navigation use one consistent label");
+assert.doesNotMatch(navigation, /href="\/settings#shipping"|Shipping information|Manage billing/, "global account navigation stays consolidated");
+assert.match(shippingPanel, /Your shipping information is private and used only to fulfill Bourbon Signal products and member shipments\./);
+assert.match(shippingPanel, /fulfillment partners or carriers only when necessary for delivery/);
+assert.doesNotMatch(shippingPanel, /owner fulfillment view/);
 assert.match(shippingApi, /memberShippingEligibility/);
 assert.match(shippingApi, /status:\s*403/);
 assert.match(shippingApi, /saveFounderShippingSubmission/);

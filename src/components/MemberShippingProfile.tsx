@@ -30,7 +30,7 @@ function displayPhone(phone: string | undefined) {
     : phone;
 }
 
-export default function MemberShippingProfile({ isFounder }: { isFounder: boolean }) {
+export default function MemberShippingProfile() {
   const [data, setData] = useState<ShippingResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -81,11 +81,11 @@ export default function MemberShippingProfile({ isFounder }: { isFounder: boolea
 
   return (
     <section id="shipping" className={styles.card} aria-labelledby="shipping-heading">
-      <p className={styles.eyebrow}>Paid member profile</p>
+      <p className={styles.eyebrow}>Private fulfillment profile</p>
       <h2 id="shipping-heading">Shipping information</h2>
       <p className={styles.lede}>
-        Save the U.S. address and required phone number Bourbon Signal should use if we send you member items or gifts.
-        {isFounder ? " We’ll use this for your founder’s glass." : ""}
+        Your shipping information is private and used only to fulfill Bourbon Signal products and member shipments.
+        It is shared with fulfillment partners or carriers only when necessary for delivery.
       </p>
 
       {loading ? <p className={styles.loading} role="status">Loading shipping information…</p> : null}
@@ -137,7 +137,7 @@ export default function MemberShippingProfile({ isFounder }: { isFounder: boolea
           </label>
           <div className={styles.country}><span>Country</span><strong>United States only</strong></div>
           <button type="submit" disabled={saving}>{saving ? "Saving…" : record ? "Update shipping information" : "Save shipping information"}</button>
-          <p className={styles.privacy}>Your address and phone are private, visible only in the owner fulfillment view, and used only when Bourbon Signal ships something to you.</p>
+          <p className={styles.privacy}>United States shipping only. Phone is required for carrier or delivery questions.</p>
         </form>
       ) : null}
     </section>

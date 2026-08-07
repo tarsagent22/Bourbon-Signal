@@ -26,7 +26,7 @@ export default function Navigation() {
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
   const { isSignedIn, user, signIn, signUp, signOut, memberTier, entitlements, memberNumber } = useAuth();
-  const [billingPending, setBillingPending] = useState(false);
+
 
   // Close profile dropdown on outside click
   useEffect(() => {
@@ -48,22 +48,7 @@ export default function Navigation() {
 
   const userDisplayName = user?.firstName || user?.emailAddresses?.[0]?.emailAddress?.split("@")[0] || "Member";
   const isFounderMember = memberTier === "bottled-in-bond";
-  const canManageBilling = isSignedIn && memberTier !== "free";
   const canSeeControlRoomNav = mounted && isSignedIn && controlRoomNavVisibleForUser(user);
-
-  async function openBillingPortal() {
-    if (billingPending) return;
-    setBillingPending(true);
-    try {
-      const res = await fetch("/api/billing-portal", { method: "POST" });
-      const data = (await res.json().catch(() => ({}))) as { url?: string; error?: string };
-      if (!res.ok || !data.url) throw new Error(data.error || "Billing portal is unavailable.");
-      window.location.href = data.url;
-    } catch (error) {
-      window.alert(error instanceof Error ? error.message : "Billing portal is unavailable.");
-      setBillingPending(false);
-    }
-  }
   const founderProfileNumber = memberNumber ? `#${String(memberNumber).padStart(3, "0")}` : "#xxx";
   const availableNavLinks = navLinks.filter((link) => {
     if (link.href === "/dashboard") return entitlements.canAccessDashboard;
@@ -300,55 +285,26 @@ export default function Navigation() {
                       {/* Divider */}
                       <div style={{ height: "1px", background: "rgba(255,255,255,0.06)", margin: "0 12px" }} />
 
-                      {canManageBilling ? (
-                        <a
-                          href="/settings#shipping"
-                          onClick={() => setProfileOpen(false)}
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            width: "100%",
-                            padding: "11px 16px",
-                            fontFamily: "var(--font-dm-sans)",
-                            fontSize: "13px",
-                            fontWeight: 600,
-                            color: "var(--color-text-secondary)",
-                            textDecoration: "none",
-                            transition: "color 150ms ease",
-                          }}
-                          onMouseEnter={(e) => (e.currentTarget.style.color = "var(--color-cream)")}
-                          onMouseLeave={(e) => (e.currentTarget.style.color = "var(--color-text-secondary)")}
-                        >
-                          Shipping information
-                        </a>
-                      ) : null}
-
-                      {canManageBilling ? (
-                        <button
-                          onClick={() => { setProfileOpen(false); void openBillingPortal(); }}
-                          disabled={billingPending}
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            width: "100%",
-                            padding: "11px 16px",
-                            fontFamily: "var(--font-dm-sans)",
-                            fontSize: "13px",
-                            fontWeight: 600,
-                            color: "var(--color-text-secondary)",
-                            background: "none",
-                            border: "none",
-                            cursor: billingPending ? "default" : "pointer",
-                            textAlign: "left",
-                            transition: "color 150ms ease",
-                            opacity: billingPending ? 0.62 : 1,
-                          }}
-                          onMouseEnter={(e) => (e.currentTarget.style.color = "var(--color-cream)")}
-                          onMouseLeave={(e) => (e.currentTarget.style.color = "var(--color-text-secondary)")}
-                        >
-                          {billingPending ? "Opening billing…" : "Manage billing"}
-                        </button>
-                      ) : null}
+                      <a
+                        href="/settings"
+                        onClick={() => setProfileOpen(false)}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          width: "100%",
+                          padding: "11px 16px",
+                          fontFamily: "var(--font-dm-sans)",
+                          fontSize: "13px",
+                          fontWeight: 600,
+                          color: "var(--color-text-secondary)",
+                          textDecoration: "none",
+                          transition: "color 150ms ease",
+                        }}
+                        onMouseEnter={(e) => (e.currentTarget.style.color = "var(--color-cream)")}
+                        onMouseLeave={(e) => (e.currentTarget.style.color = "var(--color-text-secondary)")}
+                      >
+                        Manage Account
+                      </a>
 
                       {/* Sign out */}
                       <button
@@ -511,41 +467,20 @@ export default function Navigation() {
                     Founder {founderProfileNumber}
                   </div>
                 ) : null}
-                {canManageBilling ? (
-                  <a
-                    href="/settings#shipping"
-                    onClick={() => setMobileOpen(false)}
-                    style={{
-                      fontFamily: "var(--font-dm-sans)",
-                      fontSize: "13px",
-                      fontWeight: 700,
-                      color: "var(--color-accent-amber)",
-                      textDecoration: "none",
-                      marginBottom: "4px",
-                    }}
-                  >
-                    Shipping information
-                  </a>
-                ) : null}
-                {canManageBilling ? (
-                  <button
-                    onClick={() => { setMobileOpen(false); void openBillingPortal(); }}
-                    disabled={billingPending}
-                    style={{
-                      fontFamily: "var(--font-dm-sans)",
-                      fontSize: "13px",
-                      fontWeight: 700,
-                      color: "var(--color-accent-amber)",
-                      background: "none",
-                      border: "none",
-                      cursor: billingPending ? "default" : "pointer",
-                      marginBottom: "4px",
-                      opacity: billingPending ? 0.62 : 1,
-                    }}
-                  >
-                    {billingPending ? "Opening billing…" : "Manage billing"}
-                  </button>
-                ) : null}
+                <a
+                  href="/settings"
+                  onClick={() => setMobileOpen(false)}
+                  style={{
+                    fontFamily: "var(--font-dm-sans)",
+                    fontSize: "13px",
+                    fontWeight: 700,
+                    color: "var(--color-accent-amber)",
+                    textDecoration: "none",
+                    marginBottom: "4px",
+                  }}
+                >
+                  Manage Account
+                </a>
 
                 <button
                   onClick={() => { signOut(); setMobileOpen(false); }}

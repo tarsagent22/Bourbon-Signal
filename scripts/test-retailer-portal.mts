@@ -312,6 +312,8 @@ for (const file of [
   "src/app/retailers/portal/RetailerSignalForm.tsx",
   "src/app/retailers/portal/RetailerSignalTime.tsx",
   "src/app/admin/retailers/page.tsx",
+  "src/app/admin/retailers/actions.ts",
+  "src/components/admin/RetailerAdministration.tsx",
   "src/lib/retailer-notifications.ts",
   "src/lib/retailer-repository.ts",
   "src/lib/retailer-time-zone.ts",
@@ -497,7 +499,10 @@ assert.match(signalForm, /role="listbox"/);
 assert.match(signalForm, /name="title"/);
 assert.match(signalForm, />Submit signal<\/button>/);
 
-const admin = read("src/app/admin/retailers/page.tsx");
+const adminPage = read("src/app/admin/retailers/page.tsx");
+const adminActions = read("src/app/admin/retailers/actions.ts");
+const adminWorkspace = read("src/components/admin/RetailerAdministration.tsx");
+const admin = `${adminPage}\n${adminActions}\n${adminWorkspace}`;
 assert.match(admin, /isRetailerAdminEmail/);
 assert.doesNotMatch(admin, /isRewardsAdminEmail/);
 assert.match(admin, /verified/);
@@ -515,6 +520,9 @@ assert.match(admin, /submission\.status === "rejected" \? "removed" : "retailer 
 assert.match(admin, /submission\.kind === "other"/);
 assert.doesNotMatch(admin, /reviewSubmission|>Approve<\/button>|>Reject<\/button>|pending review/);
 assert.doesNotMatch(admin, /getUserList|unsafeMetadata/);
+assert.match(adminPage, /redirect\("\/admin\/control-room#retailers"\)/);
+assert.match(adminWorkspace, /Retailer access/);
+assert.match(adminWorkspace, /cr-retailer/);
 
 const dropFeed = read("src/components/sections/DropFeed.tsx");
 assert.match(dropFeed, /retailerSignalKind/);
@@ -525,9 +533,13 @@ assert.match(dropFeed, /tasting:/);
 assert.match(dropFeed, /drop:/);
 
 const settings = read("src/app/settings/page.tsx");
-assert.match(settings, /isRetailerAdminEmail/);
-assert.match(settings, /\/admin\/retailers/);
-assert.match(settings, /Retailer administration/);
+assert.doesNotMatch(settings, /isRetailerAdminEmail/);
+assert.doesNotMatch(settings, /\/admin\/retailers/);
+assert.doesNotMatch(settings, /Retailer administration/);
+const controlRoom = read("src/app/admin/control-room/page.tsx");
+assert.match(controlRoom, /RetailerAdministration/);
+assert.match(controlRoom, /id="retailers"/);
+assert.match(controlRoom, /href="#retailers"/);
 
 const publicSurface = [
   read("src/app/retailers/page.tsx"),
