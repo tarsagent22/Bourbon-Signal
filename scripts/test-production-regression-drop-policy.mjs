@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
-import { isDropExpectedInLiveFeed, liveDropTotalMeetsRegressionFloor, parseLiveDropTotal } from './production-regression-drop-policy.mjs';
+import { hiddenDegradedEngineStates, isDropExpectedInLiveFeed, liveDropTotalMeetsRegressionFloor, parseLiveDropTotal } from './production-regression-drop-policy.mjs';
 
 const now = Date.parse('2026-07-21T02:00:00.000Z');
 const inventory = {
@@ -77,6 +77,16 @@ assert.equal(liveDropTotalMeetsRegressionFloor({ localTotal: 9, liveTotal: 3, mi
 assert.equal(liveDropTotalMeetsRegressionFloor({ localTotal: 0, liveTotal: 0, minRatio: 0.4 }), true);
 assert.equal(liveDropTotalMeetsRegressionFloor({ localTotal: 1, liveTotal: null, minRatio: 0.4 }), false);
 
+const hiddenDegraded = hiddenDegradedEngineStates({
+  degradedStates: [
+    { state: 'GA', status: 'stale_reachable_needs_deeper_parser' },
+    { state: 'PA', status: 'stale_useful_retained_not_due_quality_fallback' },
+    { state: 'FL', status: 'failed' },
+  ],
+});
+assert.deepEqual([...hiddenDegraded].sort(), ['FL', 'GA'], 'the regression guard must mirror the public route by hiding non-useful degraded partitions');
+assert.equal(hiddenDegradedEngineStates(null).size, 0, 'missing health metadata must not silently suppress regression coverage');
+
 const verifierSource = readFileSync(new URL('./verify-production-engine-regression.mjs', import.meta.url), 'utf8');
 const dropRouteSource = readFileSync(new URL('../src/app/api/drops/route.ts', import.meta.url), 'utf8');
 const siteContractSource = readFileSync(new URL('../src/lib/site-engine-contract.ts', import.meta.url), 'utf8');
@@ -92,5 +102,6 @@ assert.match(verifierSource, /PRODUCTION_VERIFY_ATTEMPTS/, 'drop retries must st
 assert.match(verifierSource, /liveDropTotalMeetsRegressionFloor/, 'drop retries must use the same regression floor as final validation');
 assert.match(verifierSource, /minimumLiveTotal[\s\S]{0,160}liveDropTotalMeetsRegressionFloor/, 'final production validation must enforce the same ratio floor for small and large state partitions');
 assert.match(verifierSource, /liveTotal === null/, 'invalid live totals must fail closed');
+assert.match(verifierSource, /hiddenDegradedEngineStates\(localStats\.refreshHealth\)/, 'local regression expectations must mirror public suppression of non-useful degraded states');
 
 console.log('Production regression local drop-filter contracts passed.');
