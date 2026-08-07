@@ -22,7 +22,7 @@
     { "canonical": "Pappy Van Winkle 20 Year", "aliases": ["Pappy 20", "PVW 20"], "tier": "unicorn", "producer": "Buffalo Trace" },
     { "canonical": "Pappy Van Winkle 23 Year", "aliases": ["Pappy 23", "PVW 23"], "tier": "unicorn", "producer": "Buffalo Trace" },
     { "canonical": "Michter's 10 Year Bourbon", "aliases": ["Michters 10 Bourbon", "Michter's 10Y Single Barrel", "Michter's 10 Year Single Barrel Bourbon"], "tier": "allocated", "producer": "Michter's" },
-    { "canonical": "Michter's 10 Year Rye", "aliases": ["Michters 10 Rye", "Michter's 10Y Rye"], "tier": "allocated", "producer": "Michter's" },
+    { "canonical": "Michter's 10 Year Rye", "aliases": ["Michters 10 Rye", "Michter's 10Y Rye", "Michter's 10Y KS Rye", "Michter's 10Y KS Rye Whiskey", "Michter's 10 Year Rye Whiskey"], "tier": "allocated", "producer": "Michter's" },
     { "canonical": "Michter's 20 Year Bourbon", "aliases": ["Michters 20", "Michter's 20"], "tier": "unicorn", "producer": "Michter's" },
     { "canonical": "Russell's Reserve 13 Year", "aliases": ["Russells 13", "Russell's 13"], "tier": "unicorn", "producer": "Wild Turkey" },
     { "canonical": "Russell's Reserve Single Rickhouse", "aliases": ["Russells Single Rickhouse", "Russell's Reserve Rickhouse"], "tier": "unicorn", "producer": "Wild Turkey" },

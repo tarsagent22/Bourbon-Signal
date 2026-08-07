@@ -103,12 +103,15 @@ function compactStoreLabel(value: string) {
 }
 
 function compactQuantity(value: string) {
-  return gsmSafeSmsText(value).replace(/\s+reported$/i, "").trim();
+  return gsmSafeSmsText(value)
+    .replace(/\bbottles?\b/gi, (match) => match.toLowerCase() === "bottle" ? "btl" : "btls")
+    .replace(/\s+reported$/i, "")
+    .trim();
 }
 
 function compactTimestamp(value: string) {
   return gsmSafeSmsText(value)
-    .replace(/^within the last hour$/i, "<1 hr ago")
+    .replace(/^within the last hour$/i, "<1h")
     .replace(/^about\s+([0-9.]+)\s+hours?\s+ago$/i, "~$1 hrs ago")
     .replace(/^([0-9.]+)\s+hours?\s+ago$/i, "$1 hrs ago")
     .replace(/^within\s+([0-9.]+)\s+hours?$/i, "<$1 hrs ago")
@@ -128,10 +131,12 @@ function buildSms(input: SmsAlertCopyInput, compact: boolean, bottleLimit = inpu
   const timestamp = compactTimestamp(input.timestampLabel || "");
   const detail = [quantity, timestamp].filter(Boolean).join(" - ");
   const caveat = gsmSafeSmsText(input.sourceCaveat).replace(/\.*$/, ".");
-  const heading = allBottleNames.length === 1 ? "Fresh match" : "Matches";
+  const headings = allBottleNames.length === 1
+    ? ["Fresh match"]
+    : [input.locationScope === "board" ? "Current area matches" : "Current store stock"];
   const lines = [
     "Bourbon Signal",
-    heading,
+    ...headings,
     "",
     ...bottleNames,
     ...(overflow ? [`+${overflow} more matched bottles`] : []),
@@ -139,7 +144,7 @@ function buildSms(input: SmsAlertCopyInput, compact: boolean, bottleLimit = inpu
     ...(detail ? [detail] : []),
     "",
     caveat,
-    "Reply STOP to unsubscribe.",
+    "Reply STOP to opt out.",
   ];
   return lines.map((line) => line.replace(/[ \t]+/g, " ").trim()).join("\n").replace(/\n{3,}/g, "\n\n").trim();
 }
@@ -179,5 +184,5 @@ export function formatSmsAlert(input: SmsAlertCopyInput) {
   }, true, 1);
   return gsmSeptetLength(fallback) <= TWO_SEGMENT_GSM_SEPTET_BUDGET
     ? fallback
-    : "Bourbon Signal\nFresh match\n\nTracked bottle match\nSelected area\nRecent signal\n\nCheck Bourbon Signal before driving.\nReply STOP to unsubscribe.";
+    : "Bourbon Signal\nFresh match\n\nTracked bottle match\nSelected area\nRecent signal\n\nCheck Bourbon Signal before driving.\nReply STOP to opt out.";
 }

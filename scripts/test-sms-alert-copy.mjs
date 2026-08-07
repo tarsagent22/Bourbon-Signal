@@ -20,7 +20,7 @@ const grouped = formatSmsAlert({
   sourceCaveat: 'Verify before driving.',
 });
 
-assert.match(grouped, /^Bourbon Signal\nMatches\n\n/, `SMS should use a scannable multiline header: ${grouped}`);
+assert.match(grouped, /^Bourbon Signal\nCurrent store stock\n\n/, `grouped SMS must distinguish current store inventory from a claim that every listed bottle is new: ${grouped}`);
 assert.doesNotMatch(grouped, / @ /, `SMS should not compress the bottle and location into one dense line: ${grouped}`);
 
 for (const expected of [
@@ -35,7 +35,7 @@ for (const expected of [
 }
 assert.ok(gsmSeptetLength(grouped) <= 306, `expected the real grouped alert to fit two GSM segments, got ${gsmSeptetLength(grouped)} septets: ${grouped}`);
 assert.doesNotMatch(grouped, /\|/, 'extension-table separators should not unexpectedly add GSM septets');
-assert.match(grouped, /\n\nVerify before driving\.\nReply STOP to unsubscribe\.$/);
+assert.match(grouped, /\n\nVerify before driving\.\nReply STOP to opt out\.$/);
 assert.doesNotMatch(grouped, /within the la$/);
 
 const boardLevel = formatSmsAlert({
@@ -47,8 +47,19 @@ const boardLevel = formatSmsAlert({
   timestampLabel: 'within the last hour',
   sourceCaveat: 'Board-level signal; check source before driving.',
 });
-assert.match(boardLevel, /^Bourbon Signal\nFresh match\n\nHenry McKenna 10 Year Bottled-in-Bond\nMecklenburg County ABC, NC\n<1 hr ago\n\nBoard-level signal; check source before driving\.\nReply STOP to unsubscribe\.$/);
+assert.match(boardLevel, /^Bourbon Signal\nFresh match\n\nHenry McKenna 10 Year Bottled-in-Bond\nMecklenburg County ABC, NC\n<1h\n\nBoard-level signal; check source before driving\.\nReply STOP to opt out\.$/);
 assert.doesNotMatch(boardLevel, /2880/, 'board and warehouse aggregate quantities should not appear in customer SMS copy');
+
+const groupedBoardLevel = formatSmsAlert({
+  bottleNames: ['Bottle A', 'Bottle B'],
+  storeLabel: 'Mecklenburg County ABC',
+  state: 'NC',
+  locationScope: 'board',
+  timestampLabel: 'within the last hour',
+  sourceCaveat: 'Board-level signal; check source before driving.',
+});
+assert.match(groupedBoardLevel, /^Bourbon Signal\nCurrent area matches\n\n/, `grouped board alerts must not claim exact store stock: ${groupedBoardLevel}`);
+assert.doesNotMatch(groupedBoardLevel, /Current store stock/);
 
 const manyNames = Array.from({ length: 12 }, (_, index) => `Collector Bottle ${index + 1} Limited Edition Single Barrel Bourbon`);
 const oversized = formatSmsAlert({
@@ -61,7 +72,7 @@ const oversized = formatSmsAlert({
 });
 assert.match(oversized, /\+[0-9]+ more matched bottles/, `oversized groups should summarize overflow cleanly: ${oversized}`);
 assert.ok(gsmSeptetLength(oversized) <= 306, `even oversized grouped alerts must remain inside two GSM segments: ${gsmSeptetLength(oversized)} septets`);
-assert.match(oversized, /\n\nVerify before driving\.\nReply STOP to unsubscribe\.$/);
+assert.match(oversized, /\n\nVerify before driving\.\nReply STOP to opt out\.$/);
 
 assert.equal(isExactStoreSmsLocation({ locationPrecision: 'store_level', eventType: 'store_inventory' }), true);
 assert.equal(isExactStoreSmsLocation({ locationPrecision: 'store_level', eventType: 'store_inventory_aggregate' }), false, 'aggregate event evidence must override a contradictory store precision');
@@ -77,7 +88,7 @@ const irreduciblyLong = formatSmsAlert({
   sourceCaveat: 'Verify this unusually long source description before driving. '.repeat(20),
 });
 assert.ok(gsmSeptetLength(irreduciblyLong) <= 306, `irreducibly long fields must still fit two GSM segments: ${gsmSeptetLength(irreduciblyLong)}`);
-assert.match(irreduciblyLong, /Reply STOP to unsubscribe\.$/, 'length bounding must preserve the compliance footer');
+assert.match(irreduciblyLong, /Reply STOP to opt out\.$/, 'length bounding must preserve the compliance footer');
 assert.match(irreduciblyLong, /\.\.\./, 'long fields should be shortened intentionally rather than cutting the final message');
 assert.equal(isExactStoreSmsLocation({ locationPrecision: 'store_aggregate', actionabilityClass: 'store_inventory', eventType: 'store_inventory_aggregate' }), false, 'aggregate precision overrides misleading store event names');
 
@@ -91,7 +102,7 @@ const pathologicalState = formatSmsAlert({
   sourceCaveat: 'verify '.repeat(100),
 });
 assert.ok(gsmSeptetLength(pathologicalState) <= 306, `state input must be bounded before every fallback: ${gsmSeptetLength(pathologicalState)} septets`);
-assert.match(pathologicalState, /Reply STOP to unsubscribe\.$/);
+assert.match(pathologicalState, /Reply STOP to opt out\.$/);
 assert.equal(isExactStoreSmsLocation({ locationPrecision: 'board_county', eventType: 'store_delivery_snapshot' }), false, 'board precision cannot be upgraded by a store-like event type');
 assert.equal(isExactStoreSmsLocation({ eventType: 'store_inventory_aggregate' }), false, 'aggregate fallback events are not exact stores');
 
