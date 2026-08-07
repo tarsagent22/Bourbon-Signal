@@ -1,8 +1,8 @@
 import { readFile } from 'node:fs/promises';
 import { tennesseeSourceForId } from './collectors/tennessee-retailer-surfaces.mjs';
-import { isTennesseeRetailerSignalIdentity } from './tennessee-retailer-policy.mjs';
 import {
   evaluateTennesseeSnapshotEvidence,
+  isSafeStaleTennesseeInventoryRow,
   qualifyingTennesseeInventoryEvidence,
 } from './tennessee-verification-policy.mjs';
 
@@ -21,11 +21,10 @@ const locationsExport = await readJson('out/site/locations.json', { locations: [
 const dropsExport = await readJson('out/site/drops.json', { drops: [] });
 const allowFreshRetainedEvidence = process.argv.includes('--allow-fresh-retained-evidence');
 const allowScheduledPartialEvidence = process.argv.includes('--allow-scheduled-partial-evidence');
+const allowSafeStaleFallback = process.argv.includes('--allow-safe-stale-fallback');
 const targetedCohort = process.argv.includes('--targeted-cohort');
 
 assert(state, 'Missing out/states/TN.json; run node src/run-state.mjs TN first');
-assert(/^useful(?:_|$)/.test(String(state.status || '')), `Unexpected TN state status: ${state.status}`);
-assert(!state.stale, `TN must not be using stale fallback data: ${state.staleReason || 'stale=true'}`);
 
 const signals = state.signals || [];
 const cacheGeneratedAtMs = cache?.generatedAt ? new Date(cache.generatedAt).getTime() : 0;
@@ -63,14 +62,9 @@ const cityHiveDrops = tnDrops.filter((drop) => drop.type === 'cityhive_store_inv
 const retailerDrops = tnDrops.filter((drop) => drop.type === 'retailer_store_inventory_result');
 const inventoryDrops = [...cityHiveDrops, ...retailerDrops];
 const alertableDrops = qualifyingTennesseeInventoryEvidence(inventoryDrops);
-const retainedStaleInventoryDrops = inventoryDrops.filter((drop) =>
-  drop.sourceStale === true
-  && drop.alertable !== true
-  && drop.canAlertAsInventory !== true
-  && drop.canAlertAsWatch !== true
-  && Boolean(drop.staleSourceCaveat)
-  && isTennesseeRetailerSignalIdentity(drop)
-);
+const retainedStaleInventoryDrops = inventoryDrops.filter(isSafeStaleTennesseeInventoryRow);
+const stateInventorySignals = signals.filter((signal) => /^(?:cityhive_store_inventory_result|retailer_store_inventory_result)$/.test(String(signal.eventType || signal.type || '')));
+const safeStaleStateSignals = stateInventorySignals.filter(isSafeStaleTennesseeInventoryRow);
 const cityHiveAlertableDrops = alertableDrops.filter((drop) => drop.type === 'cityhive_store_inventory_result');
 const retailerAlertableDrops = alertableDrops.filter((drop) => drop.type === 'retailer_store_inventory_result');
 const dropSources = new Set(inventoryDrops.map((drop) => drop.source).filter(Boolean));
@@ -81,11 +75,23 @@ const snapshotEvidence = evaluateTennesseeSnapshotEvidence({
   stateReport: state,
   dropsPayload: dropsExport,
   allowFreshRetainedEvidence,
+  allowSafeStaleFallback,
   minimumStateRows: targetedCohort ? 60 : 1,
   minimumDropRows: targetedCohort ? 8 : 1,
 });
 
 assert(snapshotEvidence.ok, `TN generated snapshot evidence failed:\n- ${snapshotEvidence.failures.join('\n- ')}`);
+if (snapshotEvidence.staleFallbackMode) {
+  assert(Boolean(state.staleReason), 'TN safe stale fallback must explain why the last trusted report was retained');
+  assert(stateInventorySignals.length > 0, 'TN safe stale fallback must retain reviewed inventory context');
+  assert(safeStaleStateSignals.length === stateInventorySignals.length, 'TN safe stale fallback contains an unsafe or alertable state inventory row');
+  assert(retainedStaleInventoryDrops.length === inventoryDrops.length, 'TN safe stale fallback contains an unsafe or alertable public inventory row');
+  assert(alertableDrops.length === 0, 'TN safe stale fallback must export zero alertable inventory drops');
+  console.log(JSON.stringify({ status: 'ok', mode: 'scheduled-safe-stale-fallback', retainedStateRows: safeStaleStateSignals.length, retainedDrops: retainedStaleInventoryDrops.length }, null, 2));
+  process.exit(0);
+}
+assert(/^useful(?:_|$)/.test(String(state.status || '')), `Unexpected TN state status: ${state.status}`);
+assert(!state.stale, `TN must not be using stale fallback data: ${state.staleReason || 'stale=true'}`);
 if (targetedCohort) {
   assert(positiveCityHiveSignals.length >= 30, `Expected at least 30 current exact-store TN CityHive rows from the targeted cohort; got ${positiveCityHiveSignals.length}`);
   assert(positiveRetailerSignals.length >= 10, `Expected at least 10 current exact-store non-CityHive TN rows; got ${positiveRetailerSignals.length}`);

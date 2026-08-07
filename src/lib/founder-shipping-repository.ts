@@ -11,6 +11,11 @@ export interface FounderShippingRecord extends FounderShippingSubmission {
   submittedAt: string;
   updatedAt: string;
   shippedAt: string | null;
+  shipmentNotificationSentAt: string | null;
+  shipmentNotificationMessageId: string | null;
+  shipmentNotificationClaimedAt: string | null;
+  shipmentNotificationClaimToken: string | null;
+  shipmentNotificationIdempotencyKey: string | null;
 }
 
 interface FounderShippingRow {
@@ -31,6 +36,11 @@ interface FounderShippingRow {
   submitted_at?: unknown;
   updated_at?: unknown;
   shipped_at?: unknown;
+  shipment_notification_sent_at?: unknown;
+  shipment_notification_message_id?: unknown;
+  shipment_notification_claimed_at?: unknown;
+  shipment_notification_claim_token?: unknown;
+  shipment_notification_idempotency_key?: unknown;
 }
 
 function text(value: unknown) {
@@ -63,6 +73,11 @@ function rowToRecord(row: FounderShippingRow): FounderShippingRecord {
     submittedAt: text(row.submitted_at),
     updatedAt: text(row.updated_at),
     shippedAt: nullableText(row.shipped_at),
+    shipmentNotificationSentAt: nullableText(row.shipment_notification_sent_at),
+    shipmentNotificationMessageId: nullableText(row.shipment_notification_message_id),
+    shipmentNotificationClaimedAt: nullableText(row.shipment_notification_claimed_at),
+    shipmentNotificationClaimToken: nullableText(row.shipment_notification_claim_token),
+    shipmentNotificationIdempotencyKey: nullableText(row.shipment_notification_idempotency_key),
   };
 }
 
@@ -77,6 +92,13 @@ export class FounderShippingLockedError extends Error {
   constructor() {
     super("This shipping record is already packed or shipped.");
     this.name = "FounderShippingLockedError";
+  }
+}
+
+export class FounderShippingNotificationInFlightError extends Error {
+  constructor() {
+    super("A shipment email is currently being finalized. Wait a moment and save again.");
+    this.name = "FounderShippingNotificationInFlightError";
   }
 }
 
@@ -139,6 +161,11 @@ export class FounderShippingRepository {
          carrier = NULL,
          tracking_number = NULL,
          shipped_at = NULL,
+         shipment_notification_sent_at = NULL,
+         shipment_notification_message_id = NULL,
+         shipment_notification_claimed_at = NULL,
+         shipment_notification_claim_token = NULL,
+         shipment_notification_idempotency_key = NULL,
          updated_at = NOW(),
          updated_by = NULL
        WHERE founder_glass_shipping.status NOT IN ('packed', 'shipped')
@@ -172,12 +199,103 @@ export class FounderShippingRepository {
        SET status = $2,
            carrier = $3,
            tracking_number = $4,
-           shipped_at = CASE WHEN $2 = 'shipped' THEN COALESCE(shipped_at, NOW()) ELSE NULL END,
+           shipped_at = CASE
+             WHEN $2 <> 'shipped' THEN NULL
+             WHEN status <> 'shipped' OR carrier IS DISTINCT FROM $3 OR tracking_number IS DISTINCT FROM $4 THEN date_trunc('milliseconds', NOW())
+             ELSE COALESCE(shipped_at, date_trunc('milliseconds', NOW()))
+           END,
+           shipment_notification_sent_at = CASE
+             WHEN $2 = 'shipped' AND status = 'shipped' AND carrier IS NOT DISTINCT FROM $3 AND tracking_number IS NOT DISTINCT FROM $4
+               THEN shipment_notification_sent_at ELSE NULL
+           END,
+           shipment_notification_message_id = CASE
+             WHEN $2 = 'shipped' AND status = 'shipped' AND carrier IS NOT DISTINCT FROM $3 AND tracking_number IS NOT DISTINCT FROM $4
+               THEN shipment_notification_message_id ELSE NULL
+           END,
+           shipment_notification_claimed_at = CASE
+             WHEN $2 = 'shipped' AND status = 'shipped' AND carrier IS NOT DISTINCT FROM $3 AND tracking_number IS NOT DISTINCT FROM $4
+               THEN shipment_notification_claimed_at ELSE NULL
+           END,
+           shipment_notification_claim_token = CASE
+             WHEN $2 = 'shipped' AND status = 'shipped' AND carrier IS NOT DISTINCT FROM $3 AND tracking_number IS NOT DISTINCT FROM $4
+               THEN shipment_notification_claim_token ELSE NULL
+           END,
+           shipment_notification_idempotency_key = CASE
+             WHEN $2 = 'shipped' AND status = 'shipped' AND carrier IS NOT DISTINCT FROM $3 AND tracking_number IS NOT DISTINCT FROM $4
+               THEN shipment_notification_idempotency_key ELSE NULL
+           END,
            updated_at = NOW(),
            updated_by = $5
        WHERE user_id = $1 AND founder_number IS NOT NULL
+         AND (
+           shipment_notification_claimed_at IS NULL
+           OR shipment_notification_claimed_at < NOW() - INTERVAL '15 minutes'
+           OR ($2 = 'shipped' AND status = 'shipped' AND carrier IS NOT DISTINCT FROM $3 AND tracking_number IS NOT DISTINCT FROM $4)
+         )
        RETURNING *`,
       [input.userId, input.status, input.carrier, input.trackingNumber, input.updatedBy],
+    ) as FounderShippingRow[];
+    if (rows[0]) return rowToRecord(rows[0]);
+    const current = await this.readForUser(input.userId);
+    const claimedAtMs = current?.shipmentNotificationClaimedAt ? Date.parse(current.shipmentNotificationClaimedAt) : NaN;
+    if (Number.isFinite(claimedAtMs) && Date.now() - claimedAtMs < 15 * 60_000) {
+      throw new FounderShippingNotificationInFlightError();
+    }
+    return null;
+  }
+
+  async claimShipmentNotification(input: {
+    userId: string;
+    shippedAt: string;
+    carrier: string;
+    trackingNumber: string;
+    claimToken: string;
+    idempotencyKey: string;
+  }): Promise<FounderShippingRecord | null> {
+    const rows = await this.query.query(
+      `UPDATE founder_glass_shipping
+       SET shipment_notification_claimed_at = NOW(),
+           shipment_notification_claim_token = $5,
+           shipment_notification_idempotency_key = COALESCE(shipment_notification_idempotency_key, $6)
+       WHERE user_id = $1
+         AND status = 'shipped'
+         AND date_trunc('milliseconds', shipped_at) = date_trunc('milliseconds', $2::timestamptz)
+         AND carrier = $3
+         AND tracking_number = $4
+         AND shipment_notification_sent_at IS NULL
+         AND (shipment_notification_claimed_at IS NULL OR shipment_notification_claimed_at < NOW() - INTERVAL '15 minutes')
+         AND (shipment_notification_idempotency_key IS NULL OR shipment_notification_idempotency_key = $6)
+       RETURNING *`,
+      [input.userId, input.shippedAt, input.carrier, input.trackingNumber, input.claimToken, input.idempotencyKey],
+    ) as FounderShippingRow[];
+    return rows[0] ? rowToRecord(rows[0]) : null;
+  }
+
+  async releaseShipmentNotification(userId: string, claimToken: string): Promise<FounderShippingRecord | null> {
+    const rows = await this.query.query(
+      `UPDATE founder_glass_shipping
+       SET shipment_notification_claimed_at = NULL, shipment_notification_claim_token = NULL
+       WHERE user_id = $1 AND shipment_notification_claim_token = $2 AND shipment_notification_sent_at IS NULL
+       RETURNING *`,
+      [userId, claimToken],
+    ) as FounderShippingRow[];
+    return rows[0] ? rowToRecord(rows[0]) : null;
+  }
+
+  async markShipmentNotificationSent(userId: string, claimToken: string, messageId: string): Promise<FounderShippingRecord | null> {
+    const rows = await this.query.query(
+      `UPDATE founder_glass_shipping
+       SET shipment_notification_sent_at = NOW(),
+           shipment_notification_message_id = $3,
+           shipment_notification_claimed_at = NULL,
+           shipment_notification_claim_token = NULL,
+           updated_at = NOW()
+       WHERE user_id = $1
+         AND status = 'shipped'
+         AND shipment_notification_claim_token = $2
+         AND shipment_notification_sent_at IS NULL
+       RETURNING *`,
+      [userId, claimToken, messageId],
     ) as FounderShippingRow[];
     return rows[0] ? rowToRecord(rows[0]) : null;
   }
@@ -207,4 +325,16 @@ export async function saveFounderShippingSubmission(input: Parameters<FounderShi
 
 export async function updateFounderShippingFulfillment(input: Parameters<FounderShippingRepository["updateFulfillment"]>[0]) {
   return createFounderShippingRepository().updateFulfillment(input);
+}
+
+export async function claimFounderShipmentNotification(input: Parameters<FounderShippingRepository["claimShipmentNotification"]>[0]) {
+  return createFounderShippingRepository().claimShipmentNotification(input);
+}
+
+export async function releaseFounderShipmentNotification(userId: string, claimToken: string) {
+  return createFounderShippingRepository().releaseShipmentNotification(userId, claimToken);
+}
+
+export async function markFounderShipmentNotificationSent(userId: string, claimToken: string, messageId: string) {
+  return createFounderShippingRepository().markShipmentNotificationSent(userId, claimToken, messageId);
 }

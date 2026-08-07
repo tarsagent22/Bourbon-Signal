@@ -68,6 +68,7 @@ async function main() {
   const dropsPayload = await readJson(path.join(SITE_DIR, 'drops.json'));
   const alertsPayload = await readJson(path.join(SITE_DIR, 'alerts.json'));
   const allowFreshRetainedEvidence = process.argv.includes('--allow-fresh-retained-evidence');
+  const allowSafeStaleFallback = process.argv.includes('--allow-safe-stale-fallback');
   const structuralOnly = process.argv.includes('--structural-only');
 
   assert(DEMAND_METRO_AREAS.NC.label === 'Charlotte Metro ABC Boards', 'Charlotte Metro ABC Boards canonical label drifted.', failures);
@@ -120,6 +121,7 @@ async function main() {
         stateReport: tennesseeState,
         dropsPayload,
         allowFreshRetainedEvidence,
+        allowSafeStaleFallback,
       });
   if (!structuralOnly) {
     assert(tennesseeSnapshotEvidence.ok, `Tennessee generated contract evidence failed:\n- ${tennesseeSnapshotEvidence.failures.join('\n- ')}`, failures);
@@ -152,6 +154,7 @@ async function main() {
       tennesseeAlertableDrops: alertableTennessee.length,
       tennesseeSnapshotEvidence: tennesseeSnapshotEvidence.counts,
       allowFreshRetainedEvidence,
+      allowSafeStaleFallback,
       structuralOnly,
     },
   }, null, 2));

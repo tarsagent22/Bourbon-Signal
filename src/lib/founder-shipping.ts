@@ -2,6 +2,8 @@ import { resolveEffectiveMembershipTier } from "./entitlements.ts";
 
 export const FOUNDER_SHIPPING_STATUSES = ["submitted", "confirmed", "packed", "shipped"] as const;
 export type FounderShippingStatus = typeof FOUNDER_SHIPPING_STATUSES[number];
+export const FOUNDER_SHIPPING_CARRIERS = ["UPS", "USPS", "FedEx"] as const;
+export type FounderShippingCarrier = typeof FOUNDER_SHIPPING_CARRIERS[number];
 
 export interface FounderShippingAddress {
   recipientName: string;
@@ -18,6 +20,10 @@ export type FounderShippingSubmission = FounderShippingAddress;
 
 export type FounderShippingValidation =
   | { ok: true; value: FounderShippingAddress }
+  | { ok: false; error: string };
+
+export type FounderFulfillmentValidation =
+  | { ok: true; value: { status: FounderShippingStatus; carrier: FounderShippingCarrier | null; trackingNumber: string | null } }
   | { ok: false; error: string };
 
 export const FOUNDER_SHIPPING_STATE_CODES = [
@@ -108,4 +114,32 @@ export function normalizeFounderShippingStatus(value: unknown): FounderShippingS
   return FOUNDER_SHIPPING_STATUSES.includes(value as FounderShippingStatus)
     ? value as FounderShippingStatus
     : null;
+}
+
+export function normalizeFounderFulfillment(input: Record<string, unknown>): FounderFulfillmentValidation {
+  const status = normalizeFounderShippingStatus(input.status);
+  if (!status) return { ok: false, error: "Choose a valid fulfillment status." };
+  const carrierInput = text(input.carrier).toLowerCase();
+  const carrier = carrierInput === "ups" ? "UPS"
+    : carrierInput === "usps" ? "USPS"
+      : carrierInput === "fedex" ? "FedEx"
+        : null;
+  const trackingNumber = text(input.trackingNumber).replace(/\s+/g, "");
+  const hasShipmentDetails = Boolean(carrierInput || trackingNumber);
+  if (hasShipmentDetails && !carrier) return { ok: false, error: "Choose UPS, USPS, or FedEx." };
+  if (hasShipmentDetails && !trackingNumber) return { ok: false, error: "Enter the tracking number." };
+  if (trackingNumber && !/^[A-Za-z0-9-]{5,160}$/.test(trackingNumber)) return { ok: false, error: "Enter a valid tracking number." };
+  if (status === "shipped" && (!carrier || !trackingNumber)) {
+    return { ok: false, error: "Carrier and tracking number are required before marking this shipment shipped." };
+  }
+  return { ok: true, value: { status, carrier, trackingNumber: trackingNumber || null } };
+}
+
+export function founderShippingTrackingUrl(carrier: unknown, trackingNumber: unknown) {
+  const normalized = normalizeFounderFulfillment({ status: "shipped", carrier, trackingNumber });
+  if (!normalized.ok || !normalized.value.carrier || !normalized.value.trackingNumber) return null;
+  const number = encodeURIComponent(normalized.value.trackingNumber);
+  if (normalized.value.carrier === "UPS") return `https://www.ups.com/track?loc=en_US&tracknum=${number}`;
+  if (normalized.value.carrier === "USPS") return `https://tools.usps.com/go/TrackConfirmAction?tLabels=${number}`;
+  return `https://www.fedex.com/fedextrack/?trknbr=${number}`;
 }

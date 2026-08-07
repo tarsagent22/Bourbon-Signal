@@ -30,7 +30,7 @@ concurrency:
 
 permissions:
   contents: read
-  actions: read
+  actions: write
 
 jobs:
   collect-verify-publish:
@@ -244,7 +244,7 @@ jobs:
       - name: Verify demand metro generated evidence with fresh retained fallback
         if: ${{ !inputs.states }}
         working-directory: engine
-        run: npm run verify:demand-metros -- --allow-fresh-retained-evidence
+        run: npm run verify:demand-metros -- --allow-fresh-retained-evidence --allow-safe-stale-fallback
 
       - name: Verify demand metro generated evidence for targeted Tennessee
         if: ${{ inputs.states && contains(inputs.states, 'TN') }}
@@ -254,7 +254,7 @@ jobs:
       - name: Verify Tennessee generated contract with fresh retained fallback
         if: ${{ !inputs.states }}
         working-directory: engine
-        run: npm run verify:tn -- --allow-fresh-retained-evidence --allow-scheduled-partial-evidence
+        run: npm run verify:tn -- --allow-fresh-retained-evidence --allow-scheduled-partial-evidence --allow-safe-stale-fallback
 
       - name: Verify Tennessee generated contract for targeted recovery
         if: ${{ inputs.states && contains(inputs.states, 'TN') }}
@@ -266,9 +266,30 @@ jobs:
         run: npm run verify:state-isolation
 
       - name: Refuse publication from a stale main checkout
+        id: release-guard
+        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ github.token }}
-        run: node scripts/verify-release-lane.mjs --phase=publish
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          echo "sha_mismatch=false" >> "$GITHUB_OUTPUT"
+          current_main_sha="$(gh api "repos/${GITHUB_REPOSITORY}/git/ref/heads/main" --jq '.object.sha')"
+          if [[ "$current_main_sha" != "$GITHUB_SHA" ]]; then
+            echo "sha_mismatch=true" >> "$GITHUB_OUTPUT"
+          fi
+          node scripts/verify-release-lane.mjs --phase=publish
+
+      - name: Dispatch replacement refresh from current main
+        if: ${{ steps.release-guard.outputs.sha_mismatch == 'true' && !startsWith(inputs.incident_key, 'superseded-') }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          incident_key="superseded-${GITHUB_SHA:0:20}"
+          gh workflow run refresh-feed.yml --ref main -f force_all_states=true -f incident_key="$incident_key"
+
+      - name: Fail refresh rejected by release guard
+        if: steps.release-guard.outcome == 'failure'
+        run: exit 1
 
       - name: Publish and atomically activate encrypted snapshot
         id: publish

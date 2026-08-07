@@ -1,4 +1,5 @@
-import { isTennesseeRetailerInventory } from './tennessee-retailer-policy.mjs';
+import { isTennesseeRetailerInventory, isTennesseeRetailerSignalIdentity } from './tennessee-retailer-policy.mjs';
+import { isExplicitSafeStaleSignal } from './stale-signal-policy.mjs';
 
 export const TENNESSEE_RETAINED_EVIDENCE_MAX_AGE_MS = 12 * 60 * 60_000;
 
@@ -19,6 +20,15 @@ function stateReportExplicitlyAllowsFreshRetention(stateReport) {
       && /cache reuse/i.test(String(roadblock?.source || ''))
       && /cache-backed exact-store/i.test(String(roadblock?.error || ''));
   });
+}
+
+function isTennesseeInventoryRow(row) {
+  return /^(?:cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(String(row?.eventType || row?.type || ''));
+}
+
+export function isSafeStaleTennesseeInventoryRow(row) {
+  return isTennesseeRetailerSignalIdentity(row)
+    && isExplicitSafeStaleSignal(row);
 }
 
 export function qualifyingTennesseeInventoryEvidence(rows, {
@@ -60,6 +70,7 @@ export function evaluateTennesseeSnapshotEvidence({
   dropsPayload,
   now = new Date().toISOString(),
   allowFreshRetainedEvidence = false,
+  allowSafeStaleFallback = false,
   maxAgeMs = TENNESSEE_RETAINED_EVIDENCE_MAX_AGE_MS,
   minimumStateRows = 1,
   minimumDropRows = 1,
@@ -68,11 +79,15 @@ export function evaluateTennesseeSnapshotEvidence({
   const stateStartedAtMs = timestamp(stateReport?.startedAt);
   const stateFinishedAtMs = timestamp(stateReport?.finishedAt);
   const generatedAtMs = timestamp(dropsPayload?.generatedAt);
+  const staleFallbackMode = allowSafeStaleFallback
+    && stateReport?.stale === true
+    && /^stale_useful(?:_|$)/i.test(String(stateReport?.status || ''));
 
   if (!stateReport || stateReport.state !== 'TN') failures.push('Missing generated Tennessee state report.');
-  if (stateReport?.stale === true || /^stale_|^failed_/i.test(String(stateReport?.status || ''))) {
+  if (!staleFallbackMode && (stateReport?.stale === true || /^stale_|^failed_/i.test(String(stateReport?.status || '')))) {
     failures.push(`Tennessee state report is not current: ${stateReport?.status || 'missing status'}.`);
   }
+  if (staleFallbackMode && !stateReport?.staleReason) failures.push('Tennessee stale fallback is missing a stale reason.');
   if (stateStartedAtMs == null || stateFinishedAtMs == null) failures.push('Tennessee state report is missing valid run timestamps.');
   if (generatedAtMs == null) failures.push('Generated site drops are missing a valid generatedAt timestamp.');
   if (generatedAtMs != null && stateFinishedAtMs != null && generatedAtMs < stateFinishedAtMs) {
@@ -94,11 +109,19 @@ export function evaluateTennesseeSnapshotEvidence({
   const retainedEvidenceAllowed = allowFreshRetainedEvidence;
   const eligibleStateEvidence = retainedEvidenceAllowed ? stateEvidence : currentStateEvidence;
   const eligibleDropEvidence = retainedEvidenceAllowed ? dropEvidence : currentDropEvidence;
+  const staleStateRows = (Array.isArray(stateReport?.signals) ? stateReport.signals : []).filter(isTennesseeInventoryRow);
+  const staleDropRows = (Array.isArray(dropsPayload?.drops) ? dropsPayload.drops : [])
+    .filter((row) => String(row?.state || row?.stateCode || row?.state_code || '').toUpperCase() === 'TN')
+    .filter(isTennesseeInventoryRow);
 
-  if (eligibleStateEvidence.length < minimumStateRows) {
+  if (staleFallbackMode) {
+    if (!staleStateRows.length || !staleDropRows.length) failures.push('Tennessee stale fallback must retain reviewed inventory context.');
+    if (staleStateRows.some((row) => !isSafeStaleTennesseeInventoryRow(row))) failures.push('Tennessee state fallback contains an unsafe or alertable retained inventory row.');
+    if (staleDropRows.some((row) => !isSafeStaleTennesseeInventoryRow(row))) failures.push('Generated Tennessee fallback contains an unsafe or alertable public inventory row.');
+  } else if (eligibleStateEvidence.length < minimumStateRows) {
     failures.push(`Tennessee state report has ${eligibleStateEvidence.length} qualifying ${retainedEvidenceAllowed ? 'current/fresh-retained' : 'current'} inventory row(s); expected at least ${minimumStateRows}.`);
   }
-  if (eligibleDropEvidence.length < minimumDropRows) {
+  if (!staleFallbackMode && eligibleDropEvidence.length < minimumDropRows) {
     failures.push(`Generated Tennessee site partition has ${eligibleDropEvidence.length} qualifying ${retainedEvidenceAllowed ? 'current/fresh-retained' : 'current'} inventory row(s); expected at least ${minimumDropRows}.`);
   }
 
@@ -110,8 +133,11 @@ export function evaluateTennesseeSnapshotEvidence({
       currentStateEvidence: currentStateEvidence.length,
       dropEvidence: dropEvidence.length,
       currentDropEvidence: currentDropEvidence.length,
+      staleStateEvidence: staleStateRows.length,
+      staleDropEvidence: staleDropRows.length,
     },
     explicitlyAllowedRetention,
     retainedEvidenceAllowed,
+    staleFallbackMode,
   };
 }

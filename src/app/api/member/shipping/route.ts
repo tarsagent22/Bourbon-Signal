@@ -1,6 +1,6 @@
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
-import { memberShippingEligibility, normalizeFounderShippingSubmission } from "@/lib/founder-shipping";
+import { founderShippingTrackingUrl, memberShippingEligibility, normalizeFounderShippingSubmission } from "@/lib/founder-shipping";
 import {
   attachFounderNumberToShippingProfile,
   FounderShippingLockedError,
@@ -19,6 +19,7 @@ function primaryEmail(user: { emailAddresses?: Array<{ id?: string; emailAddress
 
 function memberShippingView(record: Awaited<ReturnType<typeof readFounderShippingForUser>>) {
   if (!record) return null;
+  const shipped = record.status === "shipped";
   return {
     recipientName: record.recipientName,
     addressLine1: record.addressLine1,
@@ -28,7 +29,9 @@ function memberShippingView(record: Awaited<ReturnType<typeof readFounderShippin
     postalCode: record.postalCode,
     phone: record.phone,
     status: record.status,
-    trackingNumber: record.trackingNumber,
+    carrier: shipped ? record.carrier : null,
+    trackingNumber: shipped ? record.trackingNumber : null,
+    trackingUrl: shipped ? founderShippingTrackingUrl(record.carrier, record.trackingNumber) : null,
   };
 }
 

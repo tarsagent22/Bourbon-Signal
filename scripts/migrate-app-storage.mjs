@@ -103,7 +103,7 @@ const requiredColumns = {
   approved_catalog_bottles: ['id', 'normalized_name', 'payload', 'approved_by'],
   approved_catalog_locations: ['id', 'normalized_key', 'payload', 'approved_by'],
   welcome_signal_previews: ['user_id', 'payload', 'redeemed_at', 'expires_at'],
-  founder_glass_shipping: ['user_id', 'founder_number', 'account_email', 'recipient_name', 'address_line1', 'address_line2', 'city', 'state_code', 'postal_code', 'phone', 'country_code', 'status', 'carrier', 'tracking_number', 'submitted_at', 'updated_at', 'shipped_at', 'updated_by'],
+  founder_glass_shipping: ['user_id', 'founder_number', 'account_email', 'recipient_name', 'address_line1', 'address_line2', 'city', 'state_code', 'postal_code', 'phone', 'country_code', 'status', 'carrier', 'tracking_number', 'submitted_at', 'updated_at', 'shipped_at', 'updated_by', 'shipment_notification_sent_at', 'shipment_notification_message_id', 'shipment_notification_claimed_at', 'shipment_notification_claim_token', 'shipment_notification_idempotency_key'],
   bottle_contributions: ['id', 'status', 'payload'],
   community_sighting_votes: ['sighting_id', 'user_id', 'kind'],
   community_sightings: ['id', 'reporter_user_id', 'payload'],
@@ -165,6 +165,11 @@ const founderColumnDefinitions = {
   updated_at: ['timestamp with time zone', 'NO', null, 'now()'],
   shipped_at: ['timestamp with time zone', 'YES', null, null],
   updated_by: ['text', 'YES', null, null],
+  shipment_notification_sent_at: ['timestamp with time zone', 'YES', null, null],
+  shipment_notification_message_id: ['text', 'YES', null, null],
+  shipment_notification_claimed_at: ['timestamp with time zone', 'YES', null, null],
+  shipment_notification_claim_token: ['text', 'YES', null, null],
+  shipment_notification_idempotency_key: ['text', 'YES', null, null],
 };
 const normalizeDefault = (value) => value === null || value === undefined ? null : String(value).replace(/\s+/g, '');
 const invalidFounderColumns = Object.entries(founderColumnDefinitions).flatMap(([column, definition]) => {
