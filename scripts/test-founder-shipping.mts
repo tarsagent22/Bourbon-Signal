@@ -1,7 +1,9 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import {
+  founderShippingTrackingUrl,
   memberShippingEligibility,
+  normalizeFounderFulfillment,
   normalizeFounderShippingSubmission,
 } from "../src/lib/founder-shipping.ts";
 
@@ -71,6 +73,21 @@ const oversized = normalizeFounderShippingSubmission({
 });
 assert.equal(oversized.ok, false, "over-limit delivery fields must be rejected rather than truncated");
 
+assert.deepEqual(normalizeFounderFulfillment({ status: "shipped", carrier: "ups", trackingNumber: " 1Z999 AA1 01 2345 6784 " }), {
+  ok: true,
+  value: { status: "shipped", carrier: "UPS", trackingNumber: "1Z999AA10123456784" },
+});
+assert.equal(normalizeFounderFulfillment({ status: "shipped", carrier: "", trackingNumber: "" }).ok, false, "shipped requires carrier and tracking");
+assert.equal(normalizeFounderFulfillment({ status: "shipped", carrier: "Other", trackingNumber: "123" }).ok, false, "unsupported carriers fail closed");
+assert.deepEqual(normalizeFounderFulfillment({ status: "packed", carrier: "", trackingNumber: "" }), {
+  ok: true,
+  value: { status: "packed", carrier: null, trackingNumber: null },
+});
+assert.equal(founderShippingTrackingUrl("UPS", "1Z999AA10123456784"), "https://www.ups.com/track?loc=en_US&tracknum=1Z999AA10123456784");
+assert.equal(founderShippingTrackingUrl("USPS", "9400111899223856928499"), "https://tools.usps.com/go/TrackConfirmAction?tLabels=9400111899223856928499");
+assert.equal(founderShippingTrackingUrl("FedEx", "123456789012"), "https://www.fedex.com/fedextrack/?trknbr=123456789012");
+assert.equal(founderShippingTrackingUrl(null, null), null);
+
 const page = read("src/app/founder-shipping/page.tsx");
 const settings = read("src/app/settings/page.tsx");
 const shippingPanel = read("src/components/MemberShippingProfile.tsx");
@@ -78,6 +95,8 @@ const shippingApi = read("src/app/api/member/shipping/route.ts");
 const navigation = read("src/components/Navigation.tsx");
 const schema = read("src/lib/founder-shipping-schema.sql");
 const repository = read("src/lib/founder-shipping-repository.ts");
+const notification = read("src/lib/founder-shipping-notification.tsx");
+const shippingEmail = read("src/components/emails/FounderGlassShippedEmail.tsx");
 const middleware = read("src/middleware.ts");
 const controlRoom = read("src/app/admin/control-room/page.tsx");
 const migration = read("scripts/migrate-app-storage.mjs");
@@ -112,11 +131,18 @@ assert.match(shippingApi, /status:\s*403/);
 assert.match(shippingApi, /saveFounderShippingSubmission/);
 assert.match(shippingApi, /attachFounderNumberToShippingProfile/, "opening the profile reconciles a newly assigned founder number");
 const shippingView = shippingApi.match(/function memberShippingView[\s\S]*?\n}\n\nasync function paidMemberContext/)?.[0] || "";
-assert.doesNotMatch(shippingView, /userId|accountEmail|founderNumber|countryCode|carrier|shippedAt/, "member API view excludes internal and unused operational fields");
+assert.doesNotMatch(shippingView, /userId|accountEmail|founderNumber|countryCode|shippedAt|notification/, "member API view excludes internal operational fields");
+assert.match(shippingView, /carrier/);
+assert.match(shippingView, /trackingUrl/);
+assert.match(shippingView, /const shipped = record\.status === ["']shipped["']/);
+assert.match(shippingView, /trackingNumber:\s*shipped\s*\?/);
+assert.match(shippingView, /trackingUrl:\s*shipped\s*\?/, "tracking details remain hidden until the shipment is shipped");
+assert.match(shippingPanel, /href=\{record\.trackingUrl\}/);
+assert.match(shippingPanel, /Track with \{record\.carrier\}/);
 assert.match(repository, /COALESCE\(EXCLUDED\.founder_number, founder_glass_shipping\.founder_number\)/, "paid profile updates preserve an existing founder link");
 
 assert.match(schema, /CREATE TABLE IF NOT EXISTS founder_(?:glass_)?shipping/);
-for (const column of ["user_id", "founder_number", "recipient_name", "address_line1", "city", "state_code", "postal_code", "phone", "country_code", "status", "tracking_number"]) {
+for (const column of ["user_id", "founder_number", "recipient_name", "address_line1", "city", "state_code", "postal_code", "phone", "country_code", "status", "tracking_number", "shipment_notification_sent_at", "shipment_notification_message_id", "shipment_notification_claimed_at", "shipment_notification_claim_token", "shipment_notification_idempotency_key"]) {
   assert.match(schema, new RegExp(`\\b${column}\\b`), `schema must include ${column}`);
 }
 assert.match(schema, /founder_number INTEGER(?:\s+CONSTRAINT|\s*,)/, "paid-member profiles may omit a founder number");
@@ -127,7 +153,17 @@ assert.match(schema, /CREATE UNIQUE INDEX IF NOT EXISTS founder_glass_shipping_f
 assert.match(repository, /founderNumber: number \| null/);
 assert.match(repository, /WHERE founder_number IS NOT NULL/, "founder fulfillment excludes non-founder paid-member profiles");
 assert.match(repository, /WHERE founder_glass_shipping\.status NOT IN \('packed', 'shipped'\)/, "packed or shipped addresses cannot be silently changed");
-assert.match(repository, /WHERE user_id = \$1 AND founder_number IS NOT NULL\s+RETURNING \*/, "fulfillment mutation cannot target paid non-founder profiles");
+assert.match(repository, /WHERE user_id = \$1 AND founder_number IS NOT NULL[\s\S]*shipment_notification_claimed_at IS NULL[\s\S]*RETURNING \*/, "fulfillment mutation cannot target paid non-founder profiles and fences in-flight notification claims");
+assert.match(repository, /claimShipmentNotification/);
+assert.match(repository, /releaseShipmentNotification/);
+assert.match(repository, /markShipmentNotificationSent/);
+assert.match(repository, /date_trunc\('milliseconds', NOW\(\)\)/, "shipment versions are persisted at JavaScript-safe timestamp precision");
+assert.match(repository, /date_trunc\('milliseconds', shipped_at\) = date_trunc\('milliseconds', \$2::timestamptz\)/, "notification claims fence on the same millisecond precision returned by Neon");
+assert.match(repository, /shipment_notification_claimed_at IS NULL OR shipment_notification_claimed_at < NOW\(\) - INTERVAL '15 minutes'/, "a stale claim may be retried without allowing concurrent sends");
+assert.match(repository, /shipment_notification_claimed_at IS NULL[\s\S]*shipment_notification_claimed_at < NOW\(\) - INTERVAL '15 minutes'[\s\S]*carrier IS NOT DISTINCT FROM \$3[\s\S]*tracking_number IS NOT DISTINCT FROM \$4/, "an active claim fences shipment changes while allowing an idempotent save");
+assert.match(repository, /FounderShippingNotificationInFlightError/, "an in-flight notification blocks conflicting fulfillment edits explicitly");
+assert.match(repository, /shipment_notification_claim_token = \$2[\s\S]*shipment_notification_sent_at IS NULL/, "release and mark mutations are fenced by the atomic claim token");
+assert.match(repository, /carrier IS DISTINCT FROM \$3 OR tracking_number IS DISTINCT FROM \$4[\s\S]*shipment_notification_idempotency_key[\s\S]*ELSE NULL/, "fulfillment changes reset every notification field");
 assert.match(repository, /UPDATE founder_glass_shipping SET founder_number = \$2[\s\S]*founder_number IS NULL/, "new founder numbers reconcile onto existing paid profiles");
 assert.match(repository, /\$1/);
 assert.doesNotMatch(repository, /unsafeMetadata|publicMetadata/, "shipping addresses must not be stored in Clerk metadata");
@@ -139,11 +175,27 @@ assert.match(controlRoom, /confirmed/);
 assert.match(controlRoom, /packed/);
 assert.match(controlRoom, /shipped/);
 assert.match(controlRoom, /trackingNumber/);
+assert.match(controlRoom, /normalizeFounderFulfillment/);
+assert.match(controlRoom, /sendFounderShipmentNotification/);
+assert.match(controlRoom, /client\.users\.getUser\(record\.userId\)/);
+assert.match(controlRoom, /companyMemberPrimaryEmail\(member\)/);
+assert.match(controlRoom, /Shipment email sent/);
+assert.match(notification, /idempotencyKey/);
+assert.match(notification, /FounderGlassShippedEmail/);
+assert.match(notification, /claimFounderShipmentNotification/);
+assert.match(notification, /releaseFounderShipmentNotification/);
+assert.match(notification, /markFounderShipmentNotificationSent/);
+assert.match(notification, /record\.shipmentNotificationIdempotencyKey \|\| shipmentIdempotencyKey\(record\)/, "retries reuse the persisted Resend idempotency key");
+assert.match(notification, /to:\s*\[currentPrimaryEmail\]/, "shipment email uses the current primary Clerk email passed at send time");
+assert.doesNotMatch(notification, /record\.accountEmail/, "shipment email never trusts the stored account email");
+assert.match(notification, /emails\.send\([\s\S]*\},\s*\{ idempotencyKey \}\)/, "Resend receives the stable shipment idempotency key");
+assert.match(shippingEmail, /Your founder glass is on the way/);
+assert.doesNotMatch(shippingEmail, /unsubscribe/i, "transactional shipment notices do not masquerade as marketing mail");
 assert.match(migration, /founder-shipping-schema\.sql/);
 assert.match(migration, /founder_glass_shipping:\s*\[/, "the migration verifier requires founder shipping columns");
 for (const column of [
   "user_id", "founder_number", "account_email", "recipient_name", "address_line1", "address_line2", "city", "state_code",
-  "postal_code", "phone", "country_code", "status", "carrier", "tracking_number", "submitted_at", "updated_at", "shipped_at", "updated_by",
+  "postal_code", "phone", "country_code", "status", "carrier", "tracking_number", "submitted_at", "updated_at", "shipped_at", "updated_by", "shipment_notification_sent_at", "shipment_notification_message_id", "shipment_notification_claimed_at", "shipment_notification_claim_token", "shipment_notification_idempotency_key",
 ]) {
   assert.match(migration, new RegExp(`founder_glass_shipping:[^\\n]*${column}`), `migration guard requires ${column}`);
   assert.match(migration, new RegExp(`\\n  ${column}: \\[`), `migration guard validates ${column} definition`);

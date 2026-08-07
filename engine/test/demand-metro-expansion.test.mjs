@@ -28,6 +28,7 @@ import {
 import { buildLocationBible } from '../src/location-bible.mjs';
 import { buildStores } from '../src/export-site-contract.mjs';
 import { confidenceForSignal } from '../src/confidence-policy.mjs';
+import { markSignalStaleNonAlertable } from '../src/stale-signal-policy.mjs';
 import {
   canPublishTennesseePartialEvidenceFallback,
   evaluateTennesseeSnapshotEvidence,
@@ -281,6 +282,50 @@ test('Tennessee snapshot evidence requires a current generated partition or expl
     ...base,
     dropsPayload: { ...base.dropsPayload, generatedAt: '2026-07-27T11:59:00.000Z' },
   }).ok, false);
+
+  const staleReason = 'quality guard preserved the previous report';
+  const safeStale = markSignalStaleNonAlertable(current, staleReason, now);
+  const { eventType, ...generatedFields } = safeStale;
+  const safeGeneratedStale = {
+    ...generatedFields,
+    type: eventType,
+    source: safeStale.sourceLabel,
+  };
+  const unrelatedGeneratedDrop = {
+    ...safeGeneratedStale,
+    state: 'GA',
+    stateCode: 'GA',
+    source: 'Unrelated Georgia retailer inventory',
+    sourceLabel: 'Unrelated Georgia retailer inventory',
+    sourceUrl: 'https://retailer.example/products/bourbon',
+    sourceChain: 'unrelated-georgia-retailer',
+    merchantId: 'ga-merchant',
+    storeId: 'ga-store',
+    storeName: 'Georgia Store',
+    storeAddress: '1 Peachtree St, Atlanta, GA 30303',
+    city: 'Atlanta',
+    postalCode: '30303',
+  };
+  const staleFallback = {
+    ...base,
+    stateReport: {
+      ...base.stateReport,
+      status: 'stale_useful_quality_fallback',
+      stale: true,
+      staleReason,
+      signals: [safeStale],
+    },
+    dropsPayload: { ...base.dropsPayload, drops: [unrelatedGeneratedDrop, safeGeneratedStale] },
+  };
+  assert.equal(evaluateTennesseeSnapshotEvidence(staleFallback).ok, false, 'strict targeted verification rejects stale Tennessee');
+  const scheduledFallback = evaluateTennesseeSnapshotEvidence({ ...staleFallback, allowSafeStaleFallback: true });
+  assert.equal(scheduledFallback.ok, true, 'scheduled publication accepts policy-marked Tennessee fallback rows in a mixed-state generated feed');
+  assert.equal(scheduledFallback.counts.staleDropEvidence, 1, 'generated fallback validation counts only the Tennessee partition');
+  assert.equal(evaluateTennesseeSnapshotEvidence({
+    ...staleFallback,
+    stateReport: { ...staleFallback.stateReport, signals: [{ ...safeStale, canAlertAsInventory: true }] },
+    allowSafeStaleFallback: true,
+  }).ok, false, 'scheduled fallback rejects any alertable retained Tennessee row');
 });
 
 test('Tennessee partial evidence fallback requires a healthy current state and a bounded live drop floor', () => {
@@ -442,6 +487,12 @@ test('lifecycle, collectors, verifiers, and CI expose all three demand-selected 
   assert.match(workflow, /verify:tn -- --targeted-cohort/);
   assert.match(workflow, /--allow-fresh-retained-evidence/);
   assert.match(workflow, /--allow-scheduled-partial-evidence/);
+  assert.match(workflow, /verify:demand-metros -- --allow-fresh-retained-evidence --allow-safe-stale-fallback/);
+  assert.match(workflow, /verify:tn -- --allow-fresh-retained-evidence --allow-scheduled-partial-evidence --allow-safe-stale-fallback/);
+  const targetedDemandStep = workflow.match(/- name: Verify demand metro generated evidence for targeted Tennessee[\s\S]*?(?=\n      - name:)/)?.[0] || '';
+  const targetedTnStep = workflow.match(/- name: Verify Tennessee generated contract for targeted recovery[\s\S]*?(?=\n      - name:)/)?.[0] || '';
+  assert.doesNotMatch(targetedDemandStep, /allow-safe-stale-fallback/);
+  assert.doesNotMatch(targetedTnStep, /allow-safe-stale-fallback/);
   assert.match(tnVerifier, /allowScheduledPartialEvidence/);
   assert.match(tnVerifier, /positiveCityHiveSignals\.length >= 30/);
   assert.match(tnVerifier, /positiveCityHiveSignals\.length >= 60/);

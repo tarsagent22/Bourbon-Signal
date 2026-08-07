@@ -13,7 +13,9 @@ type ShippingRecord = {
   postalCode: string;
   phone: string;
   status: "submitted" | "confirmed" | "packed" | "shipped";
+  carrier: "UPS" | "USPS" | "FedEx" | null;
   trackingNumber: string | null;
+  trackingUrl: string | null;
 };
 
 type ShippingResponse = {
@@ -96,6 +98,7 @@ export default function MemberShippingProfile() {
         <div className={styles.shipped}>
           <strong>{record.status === "shipped" ? "Your current item has shipped." : "Your current item is being prepared for shipping."}</strong>
           {record.trackingNumber ? <p>Tracking: {record.trackingNumber}</p> : null}
+          {record.trackingUrl && record.carrier ? <a className={styles.trackingLink} href={record.trackingUrl} target="_blank" rel="noreferrer">Track with {record.carrier}</a> : null}
           <p>The address is locked while fulfillment is underway.</p>
         </div>
       ) : null}

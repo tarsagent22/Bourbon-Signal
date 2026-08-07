@@ -46,6 +46,7 @@
 .error { background: rgba(173, 67, 55, .18); color: #f2b9b1; }
 .shipped { border: 1px solid rgba(216, 169, 106, .32); background: rgba(216, 169, 106, .1); }
 .shipped p { margin: 8px 0 0; color: var(--color-text-tertiary); }
+.trackingLink { display: inline-block; margin-top: 10px; color: var(--color-accent-amber); font-weight: 700; }
 
 .form {
   display: grid;

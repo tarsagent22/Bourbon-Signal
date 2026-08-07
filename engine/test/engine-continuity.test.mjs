@@ -38,7 +38,7 @@ test('scheduled refresh persists collector history, the actual scheduler state, 
   const refreshStep = workflow.match(/- name: Refresh all due customer-active states[\s\S]*?(?=\n      - name:)/)?.[0] || '';
   const diagnosticsStep = workflow.match(/- name: Preserve refresh diagnostics[\s\S]*$/)?.[0] || '';
   assert.match(workflow, /cron:\s*["']7,37 \* \* \* \*['"]/);
-  assert.match(workflow, /permissions:[\s\S]*?actions:\s*read/);
+  assert.match(workflow, /permissions:[\s\S]*?actions:\s*write/);
   assert.match(hydrationStep, /GH_TOKEN:[\s\S]*?hydrate-state-reports\.mjs/);
   assert.doesNotMatch(hydrationStep, /if:/, 'state report hydration must also protect scheduled runs from a cold or version-missed cache');
   assert.ok(workflow.indexOf('Hydrate complete state reports for recovery') < workflow.indexOf('Refresh all due customer-active states'), 'every refresh must hydrate a complete baseline before collection');
@@ -66,6 +66,8 @@ test('scheduled refresh persists collector history, the actual scheduler state, 
   const scheduledTennesseeStep = workflow.match(/- name: Verify Tennessee generated contract with fresh retained fallback[\s\S]*?(?=\n      - name:)/)?.[0] || '';
   assert.match(scheduledDemandMetroStep, /if:\s*\$\{\{ !inputs\.states \}\}/, 'unrelated targeted refreshes must not be blocked by the scheduled demand-metro fallback gate');
   assert.match(scheduledTennesseeStep, /if:\s*\$\{\{ !inputs\.states \}\}/, 'unrelated targeted refreshes must not be blocked by the scheduled Tennessee fallback gate');
+  assert.match(scheduledDemandMetroStep, /--allow-safe-stale-fallback/);
+  assert.match(scheduledTennesseeStep, /--allow-safe-stale-fallback/);
   const scheduledCaliforniaStep = workflow.match(/- name: Verify California scheduled lane or isolate a safe retained partition[\s\S]*?(?=\n      - name:)/)?.[0] || '';
   const targetedCaliforniaStep = workflow.match(/- name: Verify California targeted exact-store recovery[\s\S]*?(?=\n      - name:)/)?.[0] || '';
   assert.match(scheduledCaliforniaStep, /if:\s*\$\{\{ !inputs\.states \}\}[\s\S]*--allow-safe-retained-not-due/);
@@ -112,6 +114,18 @@ test('scheduled refresh persists collector history, the actual scheduler state, 
   assert.ok(workflowTimeoutMinutes >= 80, `refresh workflow timeout ${workflowTimeoutMinutes}m must cover 30m FWGS + 22m state run + installs, verification, publication, and rollback checks`);
   assert.doesNotMatch(workflow, /Refresh and gate the Texas candidate/);
   assert.match(workflow, /verify:production-engine[\s\S]*?--rollback/);
+  const releaseGuardStep = workflow.match(/- name: Refuse publication from a stale main checkout[\s\S]*?(?=\n      - name:)/)?.[0] || '';
+  const replacementStep = workflow.match(/- name: Dispatch replacement refresh from current main[\s\S]*?(?=\n      - name:)/)?.[0] || '';
+  assert.match(releaseGuardStep, /id:\s*release-guard/);
+  assert.match(releaseGuardStep, /continue-on-error:\s*true/);
+  assert.match(releaseGuardStep, /gh api [^\n]*git\/ref\/heads\/main/);
+  assert.match(releaseGuardStep, /sha_mismatch=false[\s\S]*current_main_sha[\s\S]*current_main_sha[^\n]*!=[^\n]*GITHUB_SHA[\s\S]*sha_mismatch=true/);
+  assert.match(replacementStep, /steps\.release-guard\.outputs\.sha_mismatch == 'true'/);
+  assert.match(replacementStep, /!startsWith\(inputs\.incident_key, 'superseded-'\)/);
+  assert.doesNotMatch(replacementStep, /steps\.release-guard\.outcome/, 'a non-SHA release guard failure must not dispatch a replacement');
+  assert.match(replacementStep, /gh workflow run refresh-feed\.yml --ref main/);
+  assert.match(replacementStep, /force_all_states=true/);
+  assert.match(workflow, /- name: Fail refresh rejected by release guard[\s\S]*steps\.release-guard\.outcome == 'failure'/);
   assert.match(workflow, /engine\/out\/snapshots/);
   for (const stepName of [
     'Refresh all due customer-active states',

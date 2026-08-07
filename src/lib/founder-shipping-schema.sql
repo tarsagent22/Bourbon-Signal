@@ -16,8 +16,19 @@ CREATE TABLE IF NOT EXISTS founder_glass_shipping (
   submitted_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   shipped_at TIMESTAMPTZ,
-  updated_by TEXT
+  updated_by TEXT,
+  shipment_notification_sent_at TIMESTAMPTZ,
+  shipment_notification_message_id TEXT,
+  shipment_notification_claimed_at TIMESTAMPTZ,
+  shipment_notification_claim_token TEXT,
+  shipment_notification_idempotency_key TEXT
 );
+
+ALTER TABLE founder_glass_shipping ADD COLUMN IF NOT EXISTS shipment_notification_sent_at TIMESTAMPTZ;
+ALTER TABLE founder_glass_shipping ADD COLUMN IF NOT EXISTS shipment_notification_message_id TEXT;
+ALTER TABLE founder_glass_shipping ADD COLUMN IF NOT EXISTS shipment_notification_claimed_at TIMESTAMPTZ;
+ALTER TABLE founder_glass_shipping ADD COLUMN IF NOT EXISTS shipment_notification_claim_token TEXT;
+ALTER TABLE founder_glass_shipping ADD COLUMN IF NOT EXISTS shipment_notification_idempotency_key TEXT;
 
 ALTER TABLE founder_glass_shipping ALTER COLUMN founder_number DROP NOT NULL;
 ALTER TABLE founder_glass_shipping DROP CONSTRAINT IF EXISTS founder_glass_shipping_founder_number_positive;
