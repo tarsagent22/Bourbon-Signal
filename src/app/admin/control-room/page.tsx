@@ -7,6 +7,9 @@ import { companyMemberPrimaryEmail, isCompanyControlRoomOwnerEmail } from "@/lib
 import { formatControlRoomDateTime } from "@/lib/control-room-time";
 import { normalizeFounderShippingStatus } from "@/lib/founder-shipping";
 import { listFounderShippingForOwner, updateFounderShippingFulfillment } from "@/lib/founder-shipping-repository";
+import { isRetailerAdminEmail } from "@/lib/retailer-admin";
+import { getRetailerRepository, type RetailerApplicationRecord } from "@/lib/retailer-repository";
+import RetailerAdministration from "@/components/admin/RetailerAdministration";
 import AdminBottleQueueClient from "../bottle-queue/AdminBottleQueueClient";
 import AdminSightingsClient from "../sightings/AdminSightingsClient";
 
@@ -47,6 +50,18 @@ function fulfillmentText(value: FormDataEntryValue | null, limit: number) {
   return typeof value === "string" ? value.replace(/\s+/g, " ").trim().slice(0, limit) : "";
 }
 
+async function listRetailerAdministration() {
+  const repository = getRetailerRepository();
+  const retailers: RetailerApplicationRecord[] = [];
+  for (let offset = 0; ; offset += 100) {
+    const page = await repository.listApplications(100, offset);
+    retailers.push(...page);
+    if (page.length < 100) break;
+  }
+  const submissions = await repository.listSubmissions();
+  return { retailers, submissions };
+}
+
 async function updateFounderGlassFulfillment(formData: FormData) {
   "use server";
   const { userId } = await auth();
@@ -76,11 +91,14 @@ export default async function CompanyControlRoomPage() {
   if (!userId) redirect("/sign-in?redirect_url=/admin/control-room");
   const client = await clerkClient();
   const user = await client.users.getUser(userId);
-  if (!isCompanyControlRoomOwnerEmail(companyMemberPrimaryEmail(user))) notFound();
+  const ownerEmail = companyMemberPrimaryEmail(user);
+  if (!isCompanyControlRoomOwnerEmail(ownerEmail)) notFound();
+  const canAdministerRetailers = isRetailerAdminEmail(ownerEmail);
 
-  const [snapshot, founderShipping] = await Promise.all([
+  const [snapshot, founderShipping, retailerAdministration] = await Promise.all([
     getCompanyControlRoomSnapshot(),
     listFounderShippingForOwner(),
+    canAdministerRetailers ? listRetailerAdministration() : Promise.resolve(null),
   ]);
   const { memberships, founder, revenue, audience, growth, lifecycle, demand, coverageDemand, experiments, retailer, engine, alerts, release, automation } = snapshot;
   const founderShippingOpen = founderShipping.filter((record) => record.status !== "shipped").length;
@@ -107,6 +125,7 @@ export default async function CompanyControlRoomPage() {
 
         <nav className="cr-jump" aria-label="Control room sections">
           <a href="#actions">Your actions</a>
+          {retailerAdministration ? <a href="#retailers">Retailers</a> : null}
           <a href="#founder-glasses">Founder glasses</a>
           <a href="#coverage-demand">Coverage demand</a>
           <a href="#business">Business</a>
@@ -122,9 +141,9 @@ export default async function CompanyControlRoomPage() {
             <span>Queues update immediately after each decision</span>
           </div>
           <div className="cr-attention-strip">
-            <Link href="/admin/retailers" className={Number(retailer.pendingApplications || 0) > 0 ? "needs-action" : ""}>
+            {retailerAdministration ? <Link href="#retailers" className={Number(retailer.pendingApplications || 0) > 0 ? "needs-action" : ""}>
               <span>Retailer applications</span><strong>{count(retailer.pendingApplications)}</strong><small>{Number(retailer.pendingApplications || 0) > 0 ? "Review pending" : "Clear"}</small>
-            </Link>
+            </Link> : <div><span>Retailer applications</span><strong>{count(retailer.pendingApplications)}</strong><small>Restricted</small></div>}
             <div className={memberships.counts.pastDue > 0 ? "needs-action" : ""}>
               <span>Past-due members</span><strong>{memberships.counts.pastDue}</strong><small>{memberships.counts.pastDue > 0 ? "Needs follow-up" : "Clear"}</small>
             </div>
@@ -152,6 +171,8 @@ export default async function CompanyControlRoomPage() {
             </article>
           </div>
         </section>
+
+        {retailerAdministration ? <div id="retailers" className="cr-anchor"><RetailerAdministration retailers={retailerAdministration.retailers} submissions={retailerAdministration.submissions} /></div> : null}
 
         <section id="founder-glasses" className="cr-section">
           <div className="cr-heading">
@@ -460,7 +481,7 @@ export default async function CompanyControlRoomPage() {
 
         <div className="cr-tool-links" aria-label="Detailed workspaces">
           <Link href="/admin/operations">Engine operations <span>→</span></Link>
-          <Link href="/admin/retailers">Retailer review <span>→</span></Link>
+          {retailerAdministration ? <Link href="#retailers">Retailer review <span>→</span></Link> : null}
           <Link href="/admin/sightings">Sighting review <span>→</span></Link>
           <Link href="/admin/bottle-queue">Bottle queue <span>→</span></Link>
         </div>
@@ -491,9 +512,10 @@ const controlRoomCss = `
 .cr-demand-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:14px}.cr-demand-list article{min-width:0;border:1px solid rgba(245,237,214,.09);background:#15100c;padding:16px}.cr-demand-list article>div>span{color:#c4943a;font:900 9px/1 var(--font-jetbrains);letter-spacing:.1em;text-transform:uppercase}.cr-demand-list h3{margin:7px 0 0;font:700 22px/1.05 var(--font-playfair)}.cr-demand-list dl{margin:13px 0 0}.cr-demand-list dl div{display:flex;justify-content:space-between;gap:12px;border-top:1px solid rgba(245,237,214,.07);padding:8px 0}.cr-demand-list dt{color:rgba(245,237,214,.46);font-size:10px}.cr-demand-list dd{margin:0;color:rgba(245,237,214,.82);font:800 10px/1.3 var(--font-jetbrains);text-align:right}.cr-demand-list p{margin:10px 0 0;color:rgba(245,237,214,.57);font-size:11px;line-height:1.5}
 .cr-request-ledger{margin-top:16px}.cr-request-rows{padding:0 14px 14px}.cr-request-rows article{display:grid;grid-template-columns:minmax(180px,1.2fr) minmax(150px,1fr) auto auto;align-items:center;gap:16px;padding:13px 2px;border-top:1px solid rgba(245,237,214,.08)}.cr-request-person,.cr-request-target{display:grid;gap:4px;min-width:0}.cr-request-person strong,.cr-request-target strong{overflow:hidden;color:#f5edd6;font-size:12px;text-overflow:ellipsis;white-space:nowrap}.cr-request-person a,.cr-request-email{overflow:hidden;color:#d9b768;font-size:10px;text-overflow:ellipsis;white-space:nowrap}.cr-request-target span{color:#c4943a;font:850 8px/1 var(--font-jetbrains);letter-spacing:.09em;text-transform:uppercase}.cr-request-flags{display:flex;flex-wrap:wrap;gap:5px}.cr-request-flags span{border-radius:999px;background:rgba(245,237,214,.055);padding:5px 7px;color:rgba(245,237,214,.58);font:800 8px/1 var(--font-jetbrains);text-transform:uppercase}.cr-request-flags .email-yes{background:rgba(56,130,74,.15);color:#aee7ba}.cr-request-rows time{color:rgba(245,237,214,.4);font:9px/1.3 var(--font-jetbrains);text-align:right}
 .cr-founder-list{display:grid;gap:8px}.cr-founder-record{border:1px solid rgba(245,237,214,.09);background:#15100c}.cr-founder-record>summary{display:flex;align-items:center;justify-content:space-between;gap:18px;cursor:pointer;list-style:none;padding:14px 16px}.cr-founder-record>summary::-webkit-details-marker{display:none}.cr-founder-record>summary>span:first-child{display:grid;gap:4px}.cr-founder-record>summary strong{font-family:var(--font-playfair);font-size:18px}.cr-founder-record>summary small{color:rgba(245,237,214,.48)}.cr-founder-status{border:1px solid rgba(220,166,55,.3);border-radius:999px;padding:6px 8px;color:#efd38f;font:900 8px/1 var(--font-jetbrains);letter-spacing:.08em;text-transform:uppercase}.cr-founder-status.shipped{border-color:rgba(115,201,135,.3);color:#aee7ba}.cr-founder-body{display:grid;grid-template-columns:1fr 1.3fr;gap:14px;border-top:1px solid rgba(245,237,214,.08);padding:16px}.cr-founder-private{display:grid;gap:10px;border:1px solid rgba(245,237,214,.07);padding:13px}.cr-founder-private p,.cr-founder-private address{display:grid;gap:4px;margin:0;color:rgba(245,237,214,.68);font-size:11px;font-style:normal;line-height:1.45}.cr-founder-private p strong{color:rgba(245,237,214,.42);font:900 8px/1 var(--font-jetbrains);letter-spacing:.08em;text-transform:uppercase}.cr-founder-private a{color:#d9b768}.cr-founder-form{display:grid;grid-template-columns:1fr 1fr;gap:10px}.cr-founder-form label{display:grid;gap:6px}.cr-founder-form label:last-of-type{grid-column:1/-1}.cr-founder-form label>span{color:rgba(245,237,214,.5);font-size:10px}.cr-founder-form input,.cr-founder-form select{min-width:0;border:1px solid rgba(245,237,214,.14);border-radius:8px;background:#0d0a07;color:#f5edd6;padding:10px;font:11px var(--font-jetbrains)}.cr-founder-form button{grid-column:1/-1;border:0;border-radius:8px;background:#c4943a;color:#0d0a07;padding:11px;font-weight:900;cursor:pointer}
+.cr-anchor{scroll-margin-top:62px}.cr-anchor>.cr-section{margin-top:22px}.cr-retailer-list{display:grid;gap:8px;margin-top:16px}.cr-retailer-record{border:1px solid rgba(245,237,214,.09);background:#15100c}.cr-retailer-record>summary{display:flex;align-items:center;justify-content:space-between;gap:18px;cursor:pointer;list-style:none;padding:15px 16px}.cr-retailer-record>summary::-webkit-details-marker{display:none}.cr-retailer-record>summary>span:first-child{display:grid;gap:4px;min-width:0}.cr-retailer-record>summary strong{overflow:hidden;font:700 18px/1.15 var(--font-playfair);text-overflow:ellipsis;white-space:nowrap}.cr-retailer-record>summary small{overflow:hidden;color:rgba(245,237,214,.48);font-size:10px;text-overflow:ellipsis;white-space:nowrap}.cr-retailer-status{border:1px solid rgba(220,166,55,.3);border-radius:999px;padding:6px 8px;color:#efd38f;font:900 8px/1 var(--font-jetbrains);letter-spacing:.08em;text-transform:uppercase}.cr-retailer-status.verified{border-color:rgba(115,201,135,.3);color:#aee7ba}.cr-retailer-status.rejected{border-color:rgba(222,94,73,.36);color:#f4aa9f}.cr-retailer-body{display:grid;grid-template-columns:1.25fr .9fr;gap:14px;border-top:1px solid rgba(245,237,214,.08);padding:16px}.cr-retailer-profile{border:1px solid rgba(245,237,214,.07);padding:5px 13px}.cr-retailer-profile dl{margin:0}.cr-retailer-profile dl div{display:grid;grid-template-columns:105px minmax(0,1fr);gap:12px;border-top:1px solid rgba(245,237,214,.07);padding:10px 0}.cr-retailer-profile dl div:first-child{border-top:0}.cr-retailer-profile dt{color:rgba(245,237,214,.4);font:900 8px/1.4 var(--font-jetbrains);letter-spacing:.07em;text-transform:uppercase}.cr-retailer-profile dd{margin:0;overflow-wrap:anywhere;color:rgba(245,237,214,.7);font-size:11px;line-height:1.45}.cr-retailer-actions{display:grid;align-content:start;gap:8px}.cr-retailer-actions form,.cr-retailer-remove form{display:grid;gap:8px}.cr-retailer-verify{border:1px solid rgba(115,201,135,.2);background:rgba(56,130,74,.06);padding:12px}.cr-retailer-actions label,.cr-retailer-remove label{color:rgba(245,237,214,.55);font-size:10px;line-height:1.45}.cr-retailer-actions input,.cr-retailer-actions select,.cr-retailer-remove input{min-width:0;border:1px solid rgba(245,237,214,.14);border-radius:7px;background:#0d0a07;color:#f5edd6;padding:9px;font:10px var(--font-jetbrains)}.cr-retailer-actions button,.cr-retailer-remove button{border:1px solid rgba(196,148,58,.28);border-radius:7px;background:rgba(196,148,58,.09);color:#e8cf93;padding:10px;font:850 10px/1 var(--font-jetbrains);cursor:pointer}.cr-retailer-actions button.danger,.cr-retailer-remove button.danger{border-color:rgba(222,94,73,.32);background:rgba(154,50,35,.11);color:#f4aa9f}.cr-retailer-decision-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}.cr-retailer-remove{border:1px solid rgba(222,94,73,.2);padding:10px}.cr-retailer-remove>summary{cursor:pointer;color:#f4aa9f;font-size:10px}.cr-retailer-remove form{margin-top:10px}.cr-retailer-submissions{border-top:1px solid rgba(245,237,214,.08);padding:16px}.cr-retailer-submissions h3{margin:0 0 10px;font:700 18px/1 var(--font-playfair)}.cr-retailer-submissions article{display:grid;grid-template-columns:1fr auto;gap:14px;border-top:1px solid rgba(245,237,214,.07);padding:11px 0}.cr-retailer-submissions article>div{display:grid;gap:4px}.cr-retailer-submissions article strong{font-size:12px}.cr-retailer-submissions article span{color:#d9b768;font:800 8px/1 var(--font-jetbrains);text-transform:uppercase}.cr-retailer-submissions article p{margin:0;color:rgba(245,237,214,.48);font-size:10px;line-height:1.45}.cr-retailer-submissions article details>summary{cursor:pointer;color:#f4aa9f;font-size:10px}.cr-retailer-submissions article form{margin-top:6px}
 .cr-background{padding-bottom:16px}.cr-background-item{border-top:1px solid rgba(245,237,214,.1)}.cr-background-item:last-child{border-bottom:1px solid rgba(245,237,214,.1)}.cr-background-item>summary{display:flex;align-items:center;justify-content:space-between;gap:16px;cursor:pointer;list-style:none;padding:15px 2px}.cr-background-item>summary::-webkit-details-marker{display:none}.cr-background-item>summary>span:first-child{display:grid;gap:5px}.cr-background-item>summary strong{font-size:14px}.cr-background-item>summary small{color:rgba(245,237,214,.44);font-size:11px}.cr-background-body{padding:2px 2px 17px;color:rgba(245,237,214,.64);font-size:13px;line-height:1.6}.cr-background-body>p{max-width:800px}.cr-list.compact{max-width:720px;margin-top:12px}.cr-contract{max-width:900px;margin-top:12px;border:1px solid rgba(245,237,214,.09);background:#15100c}.cr-contract dl{margin:0;padding:0 15px 10px}.cr-contract dl div{display:grid;grid-template-columns:130px 1fr;gap:16px;padding:10px 0;border-top:1px solid rgba(245,237,214,.07)}.cr-contract dt{color:#d9b768;font:900 9px/1.4 var(--font-jetbrains);letter-spacing:.08em;text-transform:uppercase}.cr-contract dd{margin:0;color:rgba(245,237,214,.62);font-size:12px}.cr-mini-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:rgba(245,237,214,.08);max-width:900px}.cr-mini-metrics .cr-metric{min-height:120px}.cr-unavailable{max-width:760px;border-left:2px solid rgba(220,166,55,.5);background:rgba(196,148,58,.07);padding:14px}.cr-unavailable p{margin:5px 0 0}
 .cr-tool-links{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:16px}.cr-tool-links a{display:flex;justify-content:space-between;gap:15px;border:1px solid rgba(245,237,214,.09);border-radius:12px;padding:15px;color:#f5edd6;text-decoration:none;font-size:13px;transition:transform 120ms ease,border-color 120ms ease,background 120ms ease}.cr-tool-links a span{color:#c4943a}.cr-tool-links a:hover,.cr-tool-links a:focus-visible{outline:none;border-color:rgba(196,148,58,.55);background:rgba(196,148,58,.07)}.cr-tool-links a:active{transform:translateY(2px)}.cr-footer{display:flex;justify-content:space-between;gap:20px;padding:20px 2px;color:rgba(245,237,214,.34);font:10px/1.4 var(--font-jetbrains)}.cr-footer a{color:rgba(245,237,214,.52)}
 @media(max-width:980px){.cr-queue-grid,.cr-demand-list{grid-template-columns:1fr}.cr-engine-grid,.cr-attention-strip,.cr-metrics.four{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:700px){.cr-engine-grid,.cr-attention-strip,.cr-detail-grid,.cr-delivery,.cr-mini-metrics,.cr-tool-links,.cr-founder-body,.cr-founder-form{grid-template-columns:1fr}.cr-shell{padding:18px 12px 45px}.cr-header{align-items:flex-start;display:grid}.cr-checked{text-align:left}.cr-section{padding:16px}.cr-heading{align-items:flex-start;display:grid}.cr-metrics.four{grid-template-columns:1fr}.cr-metric{min-height:124px}.cr-subheading{align-items:flex-start}.cr-lines div{display:grid}.cr-jump{margin-inline:-12px;padding-inline:12px}.cr-contract dl div{grid-template-columns:1fr;gap:5px}.cr-request-rows article{grid-template-columns:1fr;gap:9px}.cr-request-rows time{text-align:left}}
+@media(max-width:700px){.cr-engine-grid,.cr-attention-strip,.cr-detail-grid,.cr-delivery,.cr-mini-metrics,.cr-tool-links,.cr-founder-body,.cr-founder-form,.cr-retailer-body,.cr-retailer-decision-row,.cr-retailer-submissions article{grid-template-columns:1fr}.cr-shell{padding:18px 12px 45px}.cr-header{align-items:flex-start;display:grid}.cr-checked{text-align:left}.cr-section{padding:16px}.cr-heading{align-items:flex-start;display:grid}.cr-metrics.four{grid-template-columns:1fr}.cr-metric{min-height:124px}.cr-subheading{align-items:flex-start}.cr-lines div{display:grid}.cr-jump{margin-inline:-12px;padding-inline:12px}.cr-contract dl div{grid-template-columns:1fr;gap:5px}.cr-request-rows article{grid-template-columns:1fr;gap:9px}.cr-request-rows time{text-align:left}}
 @media(prefers-reduced-motion:reduce){.cr-jump a,.cr-attention-strip a,.cr-tool-links a{transition:none}}
 `;

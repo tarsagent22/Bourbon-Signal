@@ -1,182 +1,147 @@
 "use client";
 
-import Link from "next/link";
+import { useEffect, useState } from "react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
-import { useAuth } from "@/lib/auth";
-import { isRetailerAdminEmail } from "@/lib/retailer-admin";
 import MemberShippingProfile from "@/components/MemberShippingProfile";
+import { useAuth } from "@/lib/auth";
+import styles from "./settings.module.css";
 
-// ─── Main page ─────────────────────────────────────────────────────────────────
+const MEMBERSHIP_LABELS: Record<string, string> = {
+  free: "Free",
+  standard: "Standard Proof",
+  barrel: "Barrel Proof",
+  "bottled-in-bond": "Bottled in Bond Founder",
+};
 
 function SettingsPageContent() {
-  const { user, signOut, memberTier } = useAuth();
+  const { user, signOut, memberTier, memberNumber, entitlements } = useAuth();
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [profileSaving, setProfileSaving] = useState(false);
+  const [profileMessage, setProfileMessage] = useState("");
+  const [profileError, setProfileError] = useState("");
+  const [billingPending, setBillingPending] = useState(false);
+
+  useEffect(() => {
+    setFirstName(user?.firstName || "");
+    setLastName(user?.lastName || "");
+  }, [user?.firstName, user?.lastName]);
 
   const userEmail =
     user?.emailAddresses?.find((address) => address.id === user.primaryEmailAddressId)?.emailAddress ||
     user?.emailAddresses?.[0]?.emailAddress || "";
-  const canAdministerRetailers = isRetailerAdminEmail(userEmail);
+  const isPaid = memberTier !== "free";
+  const membershipLabel = MEMBERSHIP_LABELS[memberTier] || "Bourbon Signal member";
+  const founderNumber = memberNumber ? `#${String(memberNumber).padStart(3, "0")}` : null;
+
+  async function savePersonalInformation(event: React.FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!user || profileSaving) return;
+    setProfileSaving(true);
+    setProfileMessage("");
+    setProfileError("");
+    try {
+      await user.update({ firstName: firstName.trim(), lastName: lastName.trim() });
+      setProfileMessage("Personal information saved.");
+    } catch (error) {
+      setProfileError(error instanceof Error ? error.message : "Personal information could not be saved.");
+    } finally {
+      setProfileSaving(false);
+    }
+  }
+
+  async function openBillingPortal() {
+    if (billingPending) return;
+    setBillingPending(true);
+    try {
+      const response = await fetch("/api/billing-portal", { method: "POST" });
+      const payload = await response.json().catch(() => ({})) as { url?: string; error?: string };
+      if (!response.ok || !payload.url) throw new Error(payload.error || "Billing portal is unavailable.");
+      window.location.href = payload.url;
+    } catch (error) {
+      window.alert(error instanceof Error ? error.message : "Billing portal is unavailable.");
+      setBillingPending(false);
+    }
+  }
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "var(--color-bg-primary)",
-        paddingTop: "100px",
-        paddingBottom: "80px",
-      }}
-    >
-      <div style={{ maxWidth: 640, margin: "0 auto", padding: "0 clamp(20px, 5vw, 40px)" }}>
+    <main className={styles.shell}>
+      <div className={styles.frame}>
+        <header className={styles.header}>
+          <p className={styles.eyebrow}>Your Bourbon Signal profile</p>
+          <h1>Manage account</h1>
+          <p>Personal details, membership, shipping, communications, and account access in one place.</p>
+        </header>
 
-        {/* Page header */}
-        <div style={{ marginBottom: "40px" }}>
-          <p
-            style={{
-              fontFamily: "var(--font-dm-sans)",
-              fontSize: "11px",
-              fontWeight: 600,
-              letterSpacing: "0.15em",
-              color: "var(--color-accent-amber)",
-              textTransform: "uppercase",
-              marginBottom: "10px",
-            }}
-          >
-            Account
-          </p>
-          <h1
-            style={{
-              fontFamily: "var(--font-playfair)",
-              fontSize: "clamp(28px, 5vw, 36px)",
-              fontWeight: 700,
-              color: "var(--color-cream)",
-              lineHeight: 1.2,
-              marginBottom: "8px",
-            }}
-          >
-            Settings
-          </h1>
-          {userEmail && (
-            <p
-              style={{
-                fontFamily: "var(--font-dm-sans)",
-                fontSize: "14px",
-                color: "var(--color-text-tertiary)",
-              }}
-            >
-              {userEmail}
-            </p>
-          )}
-        </div>
+        <nav className={styles.sectionNav} aria-label="Account sections">
+          <a href="#personal">Personal</a>
+          <a href="#membership">Membership</a>
+          {isPaid ? <a href="#shipping">Shipping</a> : null}
+          <a href="#communications">Communications</a>
+          <a href="#security">Security</a>
+        </nav>
 
-        {/* ── Account ── */}
-        <div
-          style={{
-            background: "var(--color-card-bg)",
-            border: "1px solid var(--color-card-border)",
-            borderRadius: "12px",
-            padding: "28px",
-          }}
-        >
-          <h2
-            style={{
-              fontFamily: "var(--font-playfair)",
-              fontSize: "20px",
-              fontWeight: 700,
-              color: "var(--color-cream)",
-              marginBottom: "16px",
-            }}
-          >
-            Account
-          </h2>
+        <section id="personal" className={styles.card} aria-labelledby="personal-heading">
+          <div className={styles.cardHeading}>
+            <div><p>Profile</p><h2 id="personal-heading">Personal information</h2></div>
+            <span>Used across your member account</span>
+          </div>
+          <form className={styles.profileForm} onSubmit={savePersonalInformation}>
+            <label><span>First name</span><input value={firstName} onChange={(event) => setFirstName(event.target.value)} autoComplete="given-name" maxLength={80} /></label>
+            <label><span>Last name</span><input value={lastName} onChange={(event) => setLastName(event.target.value)} autoComplete="family-name" maxLength={80} /></label>
+            <label className={styles.full}><span>Email address</span><input value={userEmail} readOnly aria-readonly="true" /></label>
+            <p className={styles.fieldNote}>Your verified email is used for sign-in, account notices, and enabled Bourbon Signal communications.</p>
+            {profileMessage ? <p className={styles.success} role="status">{profileMessage}</p> : null}
+            {profileError ? <p className={styles.error} role="alert">{profileError}</p> : null}
+            <button className={styles.primaryButton} type="submit" disabled={profileSaving}>{profileSaving ? "Saving…" : "Save personal information"}</button>
+          </form>
+        </section>
 
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              flexWrap: "wrap",
-              gap: "12px",
-            }}
-          >
+        <section id="membership" className={styles.card} aria-labelledby="membership-heading">
+          <div className={styles.cardHeading}>
+            <div><p>Plan and billing</p><h2 id="membership-heading">Membership</h2></div>
+            <span>{membershipLabel}</span>
+          </div>
+          <div className={styles.membershipRow}>
             <div>
-              <p
-                style={{
-                  fontFamily: "var(--font-dm-sans)",
-                  fontSize: "13px",
-                  color: "var(--color-text-tertiary)",
-                  marginBottom: "4px",
-                }}
-              >
-                Signed in as
-              </p>
-              <p
-                style={{
-                  fontFamily: "var(--font-dm-sans)",
-                  fontSize: "14px",
-                  fontWeight: 500,
-                  color: "var(--color-text-primary)",
-                }}
-              >
-                {userEmail}
-              </p>
+              <strong>{membershipLabel}</strong>
+              {founderNumber ? <span>Founder {founderNumber}</span> : <span>{isPaid ? "Paid membership" : "Free membership"}</span>}
             </div>
-            <button
-              onClick={() => signOut()}
-              style={{
-                padding: "10px 20px",
-                borderRadius: "6px",
-                background: "transparent",
-                border: "1px solid rgba(255,255,255,0.12)",
-                color: "var(--color-text-secondary)",
-                fontFamily: "var(--font-dm-sans)",
-                fontSize: "13px",
-                fontWeight: 500,
-                cursor: "pointer",
-                transition: "all 150ms ease",
-              }}
-              onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = "rgba(255,255,255,0.25)";
-                e.currentTarget.style.color = "var(--color-text-primary)";
-              }}
-              onMouseLeave={(e) => {
-                e.currentTarget.style.borderColor = "rgba(255,255,255,0.12)";
-                e.currentTarget.style.color = "var(--color-text-secondary)";
-              }}
-            >
-              Sign Out
-            </button>
+            {isPaid ? (
+              <button className={styles.secondaryButton} type="button" onClick={() => void openBillingPortal()} disabled={billingPending}>
+                {billingPending ? "Opening billing…" : "Manage billing"}
+              </button>
+            ) : <a className={styles.secondaryLink} href="/pricing">View membership options</a>}
           </div>
-        </div>
+        </section>
 
-        {memberTier !== "free" ? <MemberShippingProfile isFounder={memberTier === "bottled-in-bond"} /> : null}
+        {isPaid ? <MemberShippingProfile /> : null}
 
-        {canAdministerRetailers && (
-          <div
-            style={{
-              marginTop: "20px",
-              background: "linear-gradient(135deg, rgba(212,146,11,0.12), rgba(20,16,12,0.96))",
-              border: "1px solid rgba(212,146,11,0.32)",
-              borderRadius: "12px",
-              padding: "28px",
-            }}
-          >
-            <p style={{ fontFamily: "var(--font-dm-sans)", fontSize: "10px", fontWeight: 700, letterSpacing: "0.16em", color: "var(--color-accent-amber)", textTransform: "uppercase", marginBottom: "8px" }}>Private access</p>
-            <h2 style={{ fontFamily: "var(--font-playfair)", fontSize: "20px", fontWeight: 700, color: "var(--color-cream)", marginBottom: "8px" }}>Retailer administration</h2>
-            <p style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", lineHeight: 1.6, color: "var(--color-text-tertiary)", marginBottom: "18px" }}>Approve or deny retailer access, review submitted updates, and remove retailer profiles or posts.</p>
-            <Link href="/admin/retailers" style={{ display: "inline-flex", padding: "10px 16px", borderRadius: "6px", background: "var(--color-accent-amber)", color: "#171109", fontFamily: "var(--font-dm-sans)", fontSize: "13px", fontWeight: 700, textDecoration: "none" }}>Open retailer admin</Link>
+        <section id="communications" className={styles.card} aria-labelledby="communications-heading">
+          <div className={styles.cardHeading}>
+            <div><p>Alerts and updates</p><h2 id="communications-heading">Notifications and communication</h2></div>
           </div>
-        )}
+          <p className={styles.cardCopy}>{entitlements.canAccessDashboard
+            ? "Manage on-site, email, weekly intelligence, SMS, and eligible member-sighting alert preferences from your alert setup."
+            : "Your current membership does not include configurable alert delivery. Email preference links remain available in eligible Bourbon Signal messages."}</p>
+          {entitlements.canAccessDashboard ? <a className={styles.secondaryLink} href="/dashboard?section=alerts">Manage notification preferences</a> : null}
+        </section>
+
+        <section id="security" className={styles.card} aria-labelledby="security-heading">
+          <div className={styles.cardHeading}>
+            <div><p>Account access</p><h2 id="security-heading">Security and account actions</h2></div>
+          </div>
+          <div className={styles.securityRow}>
+            <div><span>Signed in as</span><strong>{userEmail}</strong></div>
+            <button className={styles.secondaryButton} type="button" onClick={() => signOut()}>Sign out</button>
+          </div>
+        </section>
       </div>
-    </div>
+    </main>
   );
 }
 
 export default function SettingsPage() {
-  return (
-    <>
-      <Navigation />
-      <SettingsPageContent />
-      <Footer />
-    </>
-  );
+  return <><Navigation /><SettingsPageContent /><Footer /></>;
 }
