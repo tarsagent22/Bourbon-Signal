@@ -1,6 +1,8 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 
+import { isSafePennsylvaniaScheduledFallback } from './pennsylvania-fallback-policy.mjs';
+
 const OUT = path.resolve('out');
 const MAX_AGE_HOURS = Number(process.env.PA_STORE_INVENTORY_MAX_AGE_HOURS || 72);
 const ALLOW_SAFE_STALE_FALLBACK = process.argv.includes('--allow-safe-stale-fallback');
@@ -55,11 +57,11 @@ async function main() {
   const badDropCoordinates = exactDrops.filter((drop) => !coordinateInPennsylvania(drop.lat, drop.lng));
   const licenseeServiceCenterDrops = exactDrops.filter((drop) => /LICENSEE SERVICE CENTER/i.test(`${drop.storeName || ''} ${drop.locationName || ''}`));
   const licenseeServiceCenterAlerts = inventorySignals.filter((signal) => /LICENSEE SERVICE CENTER/i.test(`${signal.storeName || ''} ${signal.locationName || ''}`) && signal.canAlertAsInventory);
-  const safeFallback = ALLOW_SAFE_STALE_FALLBACK
-    && stateReport?.stale === true
-    && /^stale_useful_retained_/.test(String(stateReport?.status || ''))
-    && Boolean(String(stateReport?.staleReason || '').trim());
   const retainedSignals = Array.isArray(stateReport?.signals) ? stateReport.signals : [];
+  const safeFallback = isSafePennsylvaniaScheduledFallback({
+    allowSafeStaleFallback: ALLOW_SAFE_STALE_FALLBACK,
+    stateReport,
+  });
   const unsafeRetainedSignals = retainedSignals.filter((signal) => signal.stale !== true || signal.canAlertAsInventory || signal.canAlertAsWatch);
   const unsafeFallbackDrops = exactDrops.filter((drop) => drop.canAlertAsInventory || drop.canAlertAsWatch);
 
