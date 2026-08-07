@@ -133,13 +133,24 @@ function bottleKey(signal) {
   return signal.bottleId || stableId([signal.canonicalName || signal.rawName || 'unknown']);
 }
 
-function bibleLookup(records = []) {
+export function bibleLookup(records = []) {
   const byId = new Map();
   const byName = new Map();
+  const byExactName = new Map();
+  const ambiguousExactNames = new Set();
   const addName = (name, record) => {
+    const normalizedKey = normalizeBottleName(name).toLowerCase().replace(/\s+/g, ' ').trim();
+    if (normalizedKey && !ambiguousExactNames.has(normalizedKey)) {
+      const existing = byExactName.get(normalizedKey);
+      if (existing && existing.id !== record.id) {
+        byExactName.delete(normalizedKey);
+        ambiguousExactNames.add(normalizedKey);
+      } else {
+        byExactName.set(normalizedKey, record);
+      }
+    }
     const directKey = String(name || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
     const fingerprintKey = fingerprintName(name);
-    const normalizedKey = normalizeBottleName(name).toLowerCase();
     for (const key of [directKey, fingerprintKey, normalizedKey]) {
       if (key) byName.set(key, record);
     }
@@ -149,7 +160,7 @@ function bibleLookup(records = []) {
     if (record.normalizedKey) byName.set(record.normalizedKey, record);
     for (const name of [record.canonical, ...(record.aliases || [])]) addName(name, record);
   }
-  return { byId, byName };
+  return { byId, byName, byExactName };
 }
 
 function findBibleRecord(signal, bible) {
@@ -163,6 +174,11 @@ function findBibleRecord(signal, bible) {
     && (!signal.bottleId || String(signal.raw?.sourceMatchStatus || '').startsWith('source_name_kept:'))
     && !signal.canonicalBottleId;
   if ((['ID', 'IA', 'MD-MONTGOMERY', 'OH', 'UT'].includes(signal.state) && String(signal.raw?.sourceMatchStatus || signal.sourceMatchStatus || '').startsWith('source_name_kept:')) || isIowaUnmatchedDeliveryLead || isAggregateSourceNamedLead) return null;
+
+  const exactRawName = normalizeBottleName(String(signal.rawName || '')).toLowerCase().replace(/\s+/g, ' ').trim();
+  const exactRawRecord = exactRawName ? bible.byExactName?.get(exactRawName) : null;
+  if (exactRawRecord) return exactRawRecord;
+
   const id = signal.bottleId || signal.canonicalBottleId;
   if (id && bible.byId.has(id)) return bible.byId.get(id);
   for (const name of [signal.canonicalName, signal.rawName]) {
