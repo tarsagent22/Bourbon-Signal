@@ -94,11 +94,18 @@ if (!/Verify Pennsylvania scheduled lane or isolate a safe stale fallback/.test(
 }
 
 const paVerifier = read('engine/src/verify-pa.mjs');
-if (!/stateReport\?\.stale === true/.test(paVerifier)
-  || !/staleReason/.test(paVerifier)
+const paFallbackPolicy = read('engine/src/pennsylvania-fallback-policy.mjs');
+if (!/isSafePennsylvaniaScheduledFallback/.test(paVerifier)
   || !/unsafeRetainedSignals/.test(paVerifier)
-  || !/signal\.canAlertAsInventory \|\| signal\.canAlertAsWatch/.test(paVerifier)) {
-  fail('PA scheduled fallback must require explicit stale provenance and deny all retained alertability.');
+  || !/signal\.canAlertAsInventory \|\| signal\.canAlertAsWatch/.test(paVerifier)
+  || !/status === 'useful_retained_not_due' && stateReport\.stale === false/.test(paFallbackPolicy)
+  || !/stateReport\.stale === true/.test(paFallbackPolicy)
+  || !/staleReason/.test(paFallbackPolicy)
+  || !/staleFallbackAt/.test(paFallbackPolicy)
+  || !/signals\.every/.test(paFallbackPolicy)
+  || !/signal\.canAlertAsInventory !== true/.test(paFallbackPolicy)
+  || !/signal\.canAlertAsWatch !== true/.test(paFallbackPolicy)) {
+  fail('PA scheduled fallback must require explicit retained provenance and deny all retained alertability.');
 }
 
 const stateLifecycleConfig = JSON.parse(read('src/config/state-lifecycle.json'));
