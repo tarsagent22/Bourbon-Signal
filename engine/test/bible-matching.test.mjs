@@ -23,3 +23,10 @@ test('Mississippi release-watch bottles require exact curated aliases', async ()
   assert.equal(bible.match('Rare Perfection 9-Year-Old Kentucky Bourbon')?.record?.canonical, 'Rare Perfection 9 Year Bourbon');
   assert.equal(bible.match('ALLOCATED BOTTLES'), null);
 });
+
+test("Michter's 10 year rye source labels never collapse into the bourbon identity", async () => {
+  const bible = await BourbonBible.load();
+  assert.equal(bible.match("MICHTER'S 10Y KS RYE WHISKEY")?.record?.canonical, "Michter's 10 Year Rye");
+  assert.equal(bible.match("Michter's 10Y KS Rye")?.record?.canonical, "Michter's 10 Year Rye");
+  assert.equal(bible.match("Michter's 10Y Single Barrel")?.record?.canonical, "Michter's 10 Year Bourbon");
+});
