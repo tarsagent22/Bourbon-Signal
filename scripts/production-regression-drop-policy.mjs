@@ -20,6 +20,18 @@ export function liveDropTotalMeetsRegressionFloor({ localTotal, liveTotal, minRa
   return true;
 }
 
+export function hiddenDegradedEngineStates(refreshHealth) {
+  const degradedStates = Array.isArray(refreshHealth?.degradedStates)
+    ? refreshHealth.degradedStates
+    : [];
+  return new Set(
+    degradedStates
+      .filter((entry) => !String(entry?.status || '').toLowerCase().startsWith('stale_useful'))
+      .map((entry) => String(entry?.state || '').toUpperCase())
+      .filter(Boolean),
+  );
+}
+
 export function isDropExpectedInLiveFeed(drop, now = Date.now()) {
   const classification = resolveDropClassification(drop, classificationIndex);
   const classifiedDrop = {

@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { selectVerificationStates } from './production-verification-scope.mjs';
-import { isDropExpectedInLiveFeed, liveDropTotalMeetsRegressionFloor, parseLiveDropTotal } from './production-regression-drop-policy.mjs';
+import { hiddenDegradedEngineStates, isDropExpectedInLiveFeed, liveDropTotalMeetsRegressionFloor, parseLiveDropTotal } from './production-regression-drop-policy.mjs';
 
 const ROOT = process.cwd();
 const BASE_URL = process.env.BOURBON_SIGNAL_LIVE_BASE_URL || 'https://www.bourbonsignal.com';
@@ -37,13 +37,14 @@ function activeStates() {
   const cfg = readJson('src/config/state-lifecycle.json', {});
   return (cfg.activeStates || []).filter((state) => cfg.states?.[state]?.publicStatus === 'active');
 }
-function localDropsByState(nowMs = Date.now()) {
+function localDropsByState(localStats, nowMs = Date.now()) {
   const payload = readJson('engine/out/site/drops.json', { drops: [] });
+  const hiddenStates = hiddenDegradedEngineStates(localStats.refreshHealth);
   const map = new Map();
   for (const drop of payload.drops || []) {
     if (!isDropExpectedInLiveFeed(drop, nowMs)) continue;
     const state = String(drop.state || '').toUpperCase();
-    if (!state) continue;
+    if (!state || hiddenStates.has(state)) continue;
     map.set(state, (map.get(state) || 0) + 1);
   }
   return map;
@@ -51,7 +52,7 @@ function localDropsByState(nowMs = Date.now()) {
 
 async function main() {
   const localStats = readJson('engine/out/site/stats.json', {});
-  const localDropMap = localDropsByState();
+  const localDropMap = localDropsByState(localStats);
   const allStates = activeStates();
   const states = selectVerificationStates(allStates, process.env.BOURBON_SIGNAL_VERIFY_STATES || '');
   let liveStatsRes = null;
