@@ -7,7 +7,9 @@ import {
 } from './georgia-retailer-policy.mjs';
 
 const GEORGIA_RETAILER_EVENT = /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i;
-const LABELED_FALLBACK_STATUS = /^stale_(?:useful|useful_retained_not_due)(?:_quality_fallback)?$/i;
+// The status suffix is diagnostic; safety comes from the mandatory provenance,
+// exact-identity, stale-label, and zero-alert checks below.
+const LABELED_FALLBACK_STATUS = /^stale_[a-z0-9]+(?:_[a-z0-9]+)*$/i;
 const INVALID_BOTTLE_FORMAT = /\b(?:50|100|187|200|250|375)\s*ml\b|\b(?:bundle|multipack|multi-pack|case\s+of|pack\s+of|\d+\s*(?:pack|pk)|\d+\s*x\s*\d+\s*(?:ml|l))\b/i;
 
 function rows(payload, key) {

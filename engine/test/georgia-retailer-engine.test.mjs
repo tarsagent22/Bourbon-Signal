@@ -311,6 +311,21 @@ test('Georgia release policy allows only an explicitly labeled non-alerting last
   assert.equal(result.fallback, true);
   assert.equal(result.inventorySignals, 1);
   assert.equal(result.projectedDrops, 1);
+  const diagnosticFallback = verifyGeorgiaReleasePolicy({
+    state: { ...state, status: 'stale_reachable_needs_deeper_parser' },
+    siteDrops: [retainedDrop],
+    siteAlerts: [],
+    allowLabeledLastKnownFallback: true,
+    nowMs: Date.parse('2026-07-24T13:00:00.000Z'),
+  });
+  assert.equal(diagnosticFallback.fallback, true, 'a fully safe stale partition remains publishable across diagnostic status suffixes');
+  assert.throws(() => verifyGeorgiaReleasePolicy({
+    state: { ...state, status: 'stale_' },
+    siteDrops: [retainedDrop],
+    siteAlerts: [],
+    allowLabeledLastKnownFallback: true,
+    nowMs: Date.parse('2026-07-24T13:00:00.000Z'),
+  }), /explicit|label/i, 'a malformed fallback label still fails closed');
   assert.equal(isGeorgiaRetailerInventory(retainedSignal), false, 'the live-inventory predicate must continue to reject every retained row');
   assert.equal(retainedSignal.observedAt, observedAt, 'verification must not rewrite a retained observation timestamp');
   assert.equal(retainedSignal.stale, true, 'verification must never convert a stale row into a fresh row');
