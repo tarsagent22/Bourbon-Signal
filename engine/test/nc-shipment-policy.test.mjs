@@ -64,7 +64,8 @@ test('NC lower-volume shipment verification follows current official source brea
 
   assert.equal(hasHealthyLowerVolumeShipmentRun(healthy, 282, now), true);
   assert.equal(hasHealthyLowerVolumeShipmentRun(healthy, 249, now), false);
-  assert.equal(hasHealthyLowerVolumeShipmentRun({ ...healthy, roadblockCount: 2 }, 282, now), false);
+  assert.equal(hasHealthyLowerVolumeShipmentRun({ ...healthy, roadblockCount: 5 }, 282, now), true, 'isolated source failures stay within the verifier ceiling');
+  assert.equal(hasHealthyLowerVolumeShipmentRun({ ...healthy, roadblockCount: 6 }, 282, now), false, 'the shared verifier ceiling still fails closed');
   assert.equal(hasHealthyLowerVolumeShipmentRun({ ...healthy, stockShipped: { ...healthy.stockShipped, observedAt: '2026-07-30T12:00:00.000Z' } }, 282, now), false);
   assert.equal(hasHealthyLowerVolumeShipmentRun({ ...healthy, stockShipped: { ...healthy.stockShipped, sourceUrl: 'https://example.com/shipment.csv' } }, 282, now), false);
   assert.equal(hasHealthyLowerVolumeShipmentRun({ ...healthy, stockShipped: { ...healthy.stockShipped, priceEnrichedSignalCount: 100 } }, 282, now), false);
@@ -98,6 +99,8 @@ test('NC scheduled partial fallback accepts a current official volume dip only w
   const report = { status: 'partial_useful_quality_fallback', partial: true, stale: false, signals: [current, retained] };
 
   assert.equal(hasSafeScheduledPartialShipmentFallback(nc, report, 237, now), true);
+  assert.equal(hasSafeScheduledPartialShipmentFallback({ ...nc, roadblockCount: 5 }, report, 237, now), true, 'partial fallback uses the same isolated-roadblock ceiling');
+  assert.equal(hasSafeScheduledPartialShipmentFallback({ ...nc, roadblockCount: 6 }, report, 237, now), false, 'partial fallback rejects excessive roadblocks');
   assert.equal(hasHealthyLowerVolumeShipmentRun(nc, 237, now), false, 'strict lower-volume recovery remains blocked');
   assert.equal(hasSafeScheduledPartialShipmentFallback({ ...nc, coverage: { ...nc.coverage, withTrackedShipments: 80 } }, report, 237, now), false);
   assert.equal(hasSafeScheduledPartialShipmentFallback(nc, { ...report, stale: true }, 237, now), false);

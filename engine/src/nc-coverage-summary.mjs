@@ -8,6 +8,7 @@ function normalizeBoard(value = '') {
 
 const NC_STOCK_SHIPPED_DATA_URL = 'https://abc2.nc.gov/Search/StockShippedData';
 const MAX_CURRENT_SHIPMENT_AGE_MS = 36 * 60 * 60 * 1000;
+const MAX_ISOLATED_NC_ROADBLOCKS = 5;
 
 export function hasHealthyLowerVolumeShipmentRun(nc, shipmentSignals, now = Date.now()) {
   const stock = nc?.stockShipped || {};
@@ -26,7 +27,7 @@ export function hasHealthyLowerVolumeShipmentRun(nc, shipmentSignals, now = Date
     && Number(stock.productCount || 0) >= 2_000
     && Number(stock.boardCount || 0) >= 170
     && Number(nc?.coverage?.withTrackedShipments || 0) >= 100
-    && Number(nc?.roadblockCount || 0) <= 1;
+    && Number(nc?.roadblockCount || 0) <= MAX_ISOLATED_NC_ROADBLOCKS;
 }
 
 export function hasSafeScheduledPartialShipmentFallback(nc, stateReport, shipmentSignals, now = Date.now()) {
@@ -64,7 +65,7 @@ export function hasSafeScheduledPartialShipmentFallback(nc, stateReport, shipmen
     && Number(stock.productCount || 0) >= 2_000
     && boardCount >= 170
     && trackedBoardCount >= Math.max(90, Math.ceil(boardCount * 0.5))
-    && Number(nc?.roadblockCount || 0) <= 1;
+    && Number(nc?.roadblockCount || 0) <= MAX_ISOLATED_NC_ROADBLOCKS;
 }
 
 export function buildNcBoardCoverageSummary(activeOfficialLocations = [], ncIntelligenceRaw = null) {
