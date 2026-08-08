@@ -1,6 +1,10 @@
-import { mkdir, readFile, readdir, rm, stat, writeFile } from 'node:fs/promises';
+import { createHash, randomUUID } from 'node:crypto';
+import { createReadStream, createWriteStream } from 'node:fs';
+import { mkdir, readFile, readdir, rename, rm, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
+import { pipeline } from 'node:stream/promises';
+import { createGunzip, createGzip } from 'node:zlib';
 import { fingerprintName, normalizeBottleName, stableId } from './core/text.mjs';
 import { precisionRank } from './location-precision.mjs';
 import { buildLocationBible } from './location-bible.mjs';
@@ -80,6 +84,65 @@ async function exists(file) {
   try { await stat(file); return true; } catch { return false; }
 }
 
+function snapshotTimeFromFilename(file) {
+  const match = /^(\d{4}-\d{2}-\d{2})T(\d{2})-(\d{2})-(\d{2})-(\d{3})Z\.json(?:\.gz)?$/.exec(file);
+  if (!match) return null;
+  const iso = `${match[1]}T${match[2]}:${match[3]}:${match[4]}.${match[5]}Z`;
+  const ts = Date.parse(iso);
+  return Number.isFinite(ts) && new Date(ts).toISOString() === iso ? ts : null;
+}
+
+async function streamHash(stream) {
+  const hash = createHash('sha256');
+  for await (const chunk of stream) hash.update(chunk);
+  return hash.digest('hex');
+}
+
+async function archiveMatchesSource(fullPath, archivedPath) {
+  const [sourceHash, archiveHash] = await Promise.all([
+    streamHash(createReadStream(fullPath)),
+    streamHash(createReadStream(archivedPath).pipe(createGunzip())),
+  ]);
+  return sourceHash === archiveHash;
+}
+
+async function reconcileArchive(fullPath, archivedPath) {
+  if (!(await exists(archivedPath))) return false;
+  if (!(await exists(fullPath))) return true;
+  if (!(await archiveMatchesSource(fullPath, archivedPath))) {
+    throw new Error(`Snapshot archive does not match source: ${path.basename(fullPath)}`);
+  }
+  // A transient Windows lock may leave both valid copies. That is safe and the
+  // next run retries; never fail the site export after a verified archive exists.
+  await rm(fullPath, { force: true }).catch(() => {});
+  return true;
+}
+
+async function archiveSnapshot(fullPath) {
+  const archivedPath = `${fullPath}.gz`;
+  if (await reconcileArchive(fullPath, archivedPath)) return;
+  const tempPath = `${archivedPath}.${process.pid}.${randomUUID()}.tmp`;
+  try {
+    await pipeline(
+      createReadStream(fullPath),
+      createGzip({ level: 6 }),
+      createWriteStream(tempPath, { flags: 'wx' }),
+    );
+    try {
+      await rename(tempPath, archivedPath);
+    } catch (error) {
+      // Another same-process export may have won the atomic publish race.
+      if (!(await reconcileArchive(fullPath, archivedPath))) throw error;
+      await rm(tempPath, { force: true });
+      return;
+    }
+    await rm(fullPath, { force: true }).catch(() => {});
+  } catch (error) {
+    await rm(tempPath, { force: true });
+    throw error;
+  }
+}
+
 export async function recentSnapshots(days = HISTORY_DAYS, options = {}) {
   const snapshotsPath = options.snapshotsPath || SNAPSHOTS;
   const now = Number.isFinite(options.now) ? options.now : Date.now();
@@ -87,7 +150,8 @@ export async function recentSnapshots(days = HISTORY_DAYS, options = {}) {
   const cutoff = now - days * 24 * 60 * 60 * 1000;
   if (!(await exists(snapshotsPath))) return [];
 
-  const files = (await readdir(snapshotsPath)).filter((f) => f.endsWith('.json')).sort().reverse();
+  const directoryFiles = await readdir(snapshotsPath);
+  const files = directoryFiles.filter((f) => f.endsWith('.json')).sort().reverse();
   const snapshots = [];
   for (const file of files) {
     const fullPath = path.join(snapshotsPath, file);
@@ -99,7 +163,17 @@ export async function recentSnapshots(days = HISTORY_DAYS, options = {}) {
       await rm(fullPath, { force: true });
       continue;
     }
-    if (limit <= 0 || snapshots.length < limit) snapshots.push(data);
+    if (limit <= 0 || snapshots.length < limit) {
+      snapshots.push(data);
+    } else {
+      // Only the newest keep set is consumed on every export. Preserve the rest of
+      // the configured history window losslessly, but not at full JSON size.
+      await archiveSnapshot(fullPath);
+    }
+  }
+  for (const file of directoryFiles.filter((f) => f.endsWith('.json.gz'))) {
+    const ts = snapshotTimeFromFilename(file);
+    if (ts !== null && ts < cutoff) await rm(path.join(snapshotsPath, file), { force: true });
   }
   return snapshots;
 }
