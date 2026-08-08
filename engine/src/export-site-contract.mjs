@@ -17,7 +17,7 @@ import { isMississippiRetailerInventory } from './mississippi-retailer-policy.mj
 import { isMetroRetailerInventory, isMetroRetailerSignalIdentity, metroRetailerArea } from './metro-retailer-policy.mjs';
 import { isTennesseeRetailerInventory, isTennesseeRetailerSignalIdentity } from './tennessee-retailer-policy.mjs';
 import { isSouthCarolinaDunesInventory, isSouthCarolinaDunesSignal } from './south-carolina-dunes-policy.mjs';
-import { hasSouthCarolinaPositiveInventoryEvidence, isSouthCarolinaAllAmericanInventory, isSouthCarolinaAllAmericanSignal, isSouthCarolinaCityHiveInventory, isSouthCarolinaSouthernSpiritsInventory, isSouthCarolinaSouthernSpiritsSignal } from './south-carolina-retailer-policy.mjs';
+import { hasSouthCarolinaPositiveInventoryEvidence, isSouthCarolinaAllAmericanInventory, isSouthCarolinaAllAmericanSignal, isSouthCarolinaCityHiveInventory, isSouthCarolinaLiquorLibraryInventory, isSouthCarolinaLiquorLibrarySignal, isSouthCarolinaSouthernSpiritsInventory, isSouthCarolinaSouthernSpiritsSignal } from './south-carolina-retailer-policy.mjs';
 import { canPublishTennesseePartialEvidenceFallback } from './tennessee-verification-policy.mjs';
 import { registeredDemandMetroStores } from './demand-metro-registry.mjs';
 import { demandMetroAreaLabel, demandMetroAreaMatchesFields } from './demand-metro-areas.mjs';
@@ -221,6 +221,7 @@ function isSouthCarolinaAllowedRetailerSource(signal) {
 
 function isSouthCarolinaRetailerInventory(signal) {
   if (isSouthCarolinaDunesSignal(signal)) return isSouthCarolinaDunesInventory(signal);
+  if (isSouthCarolinaLiquorLibrarySignal(signal)) return isSouthCarolinaLiquorLibraryInventory(signal);
   return signal.state === 'SC'
     && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(String(signal.eventType || signal.type || ''))
     && isSouthCarolinaAllowedRetailerSource(signal)
@@ -288,7 +289,8 @@ export function publicSignal(signal, bible, freshness = null) {
   const staleFallback = signal.stale === true || signal.sourceStale === true || signal.raw?.staleFallback === true;
   const exactScRetailerIdentityAllowed = (!isSouthCarolinaSouthernSpiritsSignal(signal) || isSouthCarolinaSouthernSpiritsInventory(signal))
     && (!isSouthCarolinaDunesSignal(signal) || isSouthCarolinaDunesInventory(signal))
-    && (!isSouthCarolinaAllAmericanSignal(signal) || isSouthCarolinaAllAmericanInventory(signal));
+    && (!isSouthCarolinaAllAmericanSignal(signal) || isSouthCarolinaAllAmericanInventory(signal))
+    && (!isSouthCarolinaLiquorLibrarySignal(signal) || isSouthCarolinaLiquorLibraryInventory(signal));
   const policyCanAlertAsInventory = exactScRetailerIdentityAllowed && !staleFallback && (isCostcoWarehouseInventory
     ? Boolean(signal.canAlertAsInventory) && (Number(signal.quantity || signal.storeQty || 0) > 0 || (signal.sourceAvailabilityVerified === true && signal.availabilityStatus === 'in_stock'))
     : signal.state === 'AZ'
