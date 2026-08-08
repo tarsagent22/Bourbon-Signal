@@ -6650,19 +6650,20 @@ function phase1CatalogSignal(config, sourceLabel, sourceUrl, store, rawName, bib
 async function collectSouthCarolinaLiquorStoreNearMe(config, bible, observedAt) {
   const signals = [southCarolinaStoreLocationSignal(config, 'Liquor Store Near Me Myrtle Beach WooCommerce catalog', SC_LIQUOR_STORE_NEAR_ME_BASE_URL, SC_LIQUOR_STORE_NEAR_ME_STORE, observedAt, 'liquor-store-near-me-myrtle-beach')];
   const roadblocks = [];
+  const queryFailures = [];
   const seen = new Set();
   let returnedRows = 0;
   for (const term of SC_LIQUOR_STORE_NEAR_ME_TERMS) {
     const url = `${SC_LIQUOR_STORE_NEAR_ME_BASE_URL}/wp-json/wc/store/products?search=${encodeURIComponent(term)}&per_page=20`;
     const res = await textFetch(url, { headers: { accept: 'application/json,*/*' }, timeoutMs: 18_000 });
     if (!res.ok) {
-      roadblocks.push({ state: config.id, source: 'Liquor Store Near Me Myrtle Beach WooCommerce catalog', url, status: res.status || 0, error: res.error || `HTTP ${res.status}`, nextRoute: 'Retry the public WooCommerce Store API slowly; do not promote to inventory alerts without stock/price validation.' });
+      queryFailures.push({ url, status: res.status || 0, error: res.error || `HTTP ${res.status}` });
       await sleep(SC_PHASE1_DELAY_MS);
       continue;
     }
     let products = [];
     try { products = JSON.parse(res.text); } catch (error) {
-      roadblocks.push({ state: config.id, source: 'Liquor Store Near Me Myrtle Beach WooCommerce catalog', url, status: res.status || 0, error: error instanceof Error ? error.message : String(error), nextRoute: 'Inspect WooCommerce Store API response shape.' });
+      queryFailures.push({ url, status: res.status || 0, error: error instanceof Error ? error.message : String(error) });
       continue;
     }
     if (!Array.isArray(products)) continue;
@@ -6680,7 +6681,18 @@ async function collectSouthCarolinaLiquorStoreNearMe(config, bible, observedAt) 
     }
     await sleep(SC_PHASE1_DELAY_MS);
   }
-  if (signals.length <= 1) roadblocks.push({ state: config.id, source: 'Liquor Store Near Me Myrtle Beach WooCommerce catalog', url: `${SC_LIQUOR_STORE_NEAR_ME_BASE_URL}/wp-json/wc/store/products`, status: 'reachable_no_safe_catalog_rows', error: `WooCommerce product searches returned ${returnedRows} rows but no safe Bourbon Signal catalog matches.`, nextRoute: 'Inspect product names and keep this source watch-only until inventory semantics are verified.' });
+  if (queryFailures.length > 0) {
+    const representative = queryFailures[0];
+    roadblocks.push({
+      state: config.id,
+      source: 'Liquor Store Near Me Myrtle Beach WooCommerce catalog',
+      url: representative.url,
+      status: representative.status,
+      error: `WooCommerce catalog failed for ${queryFailures.length}/${SC_LIQUOR_STORE_NEAR_ME_TERMS.length} bounded terms; representative failure: ${representative.error}.`,
+      nextRoute: 'Retry one representative public WooCommerce Store API query slowly; do not promote to inventory alerts without stock/price validation.'
+    });
+  }
+  if (signals.length <= 1 && queryFailures.length < SC_LIQUOR_STORE_NEAR_ME_TERMS.length) roadblocks.push({ state: config.id, source: 'Liquor Store Near Me Myrtle Beach WooCommerce catalog', url: `${SC_LIQUOR_STORE_NEAR_ME_BASE_URL}/wp-json/wc/store/products`, status: 'reachable_no_safe_catalog_rows', error: `WooCommerce product searches returned ${returnedRows} rows but no safe Bourbon Signal catalog matches.`, nextRoute: 'Inspect product names and keep this source watch-only until inventory semantics are verified.' });
   return { signals, roadblocks };
 }
 

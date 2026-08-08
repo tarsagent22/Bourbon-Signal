@@ -34,6 +34,18 @@ function defaultNumber(constantName) {
   return Number(match[1]);
 }
 
+test('Myrtle catalog query failures are coalesced outside the bounded term loop', () => {
+  const section = collector.slice(
+    collector.indexOf('async function collectSouthCarolinaLiquorStoreNearMe'),
+    collector.indexOf('async function collectSouthCarolinaBurntBarrel')
+  );
+  assert.match(section, /const queryFailures = \[\]/);
+  const loop = section.slice(section.indexOf('for \(const term of SC_LIQUOR_STORE_NEAR_ME_TERMS\)'), section.indexOf('if \(queryFailures\.length > 0\)'));
+  assert.doesNotMatch(loop, /roadblocks\.push/);
+  assert.match(section, /WooCommerce catalog failed for \$\{queryFailures\.length\}\/\$\{SC_LIQUOR_STORE_NEAR_ME_TERMS\.length\} bounded terms/);
+  assert.match(section, /signals\.length <= 1 && queryFailures\.length < SC_LIQUOR_STORE_NEAR_ME_TERMS\.length/);
+});
+
 test('Myrtle Beach CityHive inventory refresh stays inside the public freshness window', () => {
   assert.ok(defaultHours('SC_CITYHIVE_CACHE_MAX_AGE_MS') <= 6, 'SC CityHive cache must refresh at least every six hours');
   assert.equal(defaultNumber('SC_CITYHIVE_MAX_PAGES'), 1, 'one well-covered CityHive category page per merchant avoids request amplification');
