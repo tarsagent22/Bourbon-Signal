@@ -1112,7 +1112,10 @@ const SC_CITYHIVE_SOURCES = [
       '61dc62fca1d5721d92e837cf',
       '61dc583152bc522be69a8b9e',
       '61b7517362f55f727e469da5'
-    ]
+    ],
+    apiKeyEnv: 'SC_CITYHIVE_GREENS_PUBLIC_API_KEY',
+    apiClientOrigin: 'app://sites.greensbeb2c6efe1',
+    apiClientOriginUrl: 'https://greensbeb2c6efe1.sites.cityhive.app/shop/'
   },
   {
     id: 'wine-bourbon-barn',
@@ -1127,7 +1130,10 @@ const SC_CITYHIVE_SOURCES = [
       '69930e7bed5bdd2a34c085c3',
       '699754a7b0035e3df3e7f3a4',
       '69977a118f10a026bd985189'
-    ]
+    ],
+    apiKeyEnv: 'SC_CITYHIVE_WINE_BARN_PUBLIC_API_KEY',
+    apiClientOrigin: 'app://sites.winebourdaefa4c4',
+    apiClientOriginUrl: 'https://winebarnsc.com/shop/'
   },
   {
     id: 'odarbys-liquor-barn',
@@ -1144,7 +1150,10 @@ const SC_CITYHIVE_SOURCES = [
       '607f1c35f568f15818499db8',
       '607af19a07c9e57bbd8de002',
       '6060f7262c63853de749dda2'
-    ]
+    ],
+    apiKeyEnv: 'SC_CITYHIVE_ODARBYS_PUBLIC_API_KEY',
+    apiClientOrigin: 'app://sites.odarbysmc00b45ea',
+    apiClientOriginUrl: 'https://odarbysliquorbarn.com/shop/'
   },
   {
     id: 'beach-discount-beverages',
@@ -1154,7 +1163,10 @@ const SC_CITYHIVE_SOURCES = [
     urls: [
       'https://beachdis0402bdcd.sites.cityhive.app/shop/?subtype=bourbon'
     ],
-    merchantIds: ['6144e1c2085a5f20a622a15f']
+    merchantIds: ['6144e1c2085a5f20a622a15f'],
+    apiKeyEnv: 'SC_CITYHIVE_BEACH_PUBLIC_API_KEY',
+    apiClientOrigin: 'app://sites.beachdis0402bdcd',
+    apiClientOriginUrl: 'https://beachdis0402bdcd.sites.cityhive.app/shop/'
   },
   {
     id: 'surf-beverage',
@@ -1164,7 +1176,10 @@ const SC_CITYHIVE_SOURCES = [
     urls: [
       'https://surfbeverages.com/shop/?subtype=bourbon'
     ],
-    merchantIds: ['6a0b27396d36df004b28a7ab']
+    merchantIds: ['6a0b27396d36df004b28a7ab'],
+    apiKeyEnv: 'SC_CITYHIVE_SURF_PUBLIC_API_KEY',
+    apiClientOrigin: 'app://sites.surfbeve26f69729',
+    apiClientOriginUrl: 'https://surfbeverages.com/shop/'
   },
   {
     id: 'palmetto-liquor',
@@ -1175,7 +1190,10 @@ const SC_CITYHIVE_SOURCES = [
       'https://palmettoliquor.com/shop/?subtype=bourbon',
       'https://palmettoliquor.com/shop/?subtype=whiskey'
     ],
-    merchantIds: ['66c9e5c12556e329502b0e5e']
+    merchantIds: ['66c9e5c12556e329502b0e5e'],
+    apiKeyEnv: 'SC_CITYHIVE_PALMETTO_PUBLIC_API_KEY',
+    apiClientOrigin: 'app://sites.palmetto82077234',
+    apiClientOriginUrl: 'https://palmettoliquor.com/shop/'
   },
   {
     id: 'dev-liquors',
@@ -1186,7 +1204,10 @@ const SC_CITYHIVE_SOURCES = [
       'https://devliquors.com/shop/?subtype=bourbon',
       'https://devliquors.com/shop/?subtype=whiskey'
     ],
-    merchantIds: ['620164924a3ea84d57c21d6f']
+    merchantIds: ['620164924a3ea84d57c21d6f'],
+    apiKeyEnv: 'SC_CITYHIVE_DEV_PUBLIC_API_KEY',
+    apiClientOrigin: 'app://sites.devliquoac24505f',
+    apiClientOriginUrl: 'https://devliquors.com/shop/'
   },
   {
     id: 'moss-creek-village-spirits',
@@ -1197,7 +1218,10 @@ const SC_CITYHIVE_SOURCES = [
       'https://www.mosscreekvillagespiritsandwine.com/shop/?subtype=bourbon',
       'https://www.mosscreekvillagespiritsandwine.com/shop/?subtype=whiskey'
     ],
-    merchantIds: ['67cf72208b17425acbba9e10']
+    merchantIds: ['67cf72208b17425acbba9e10'],
+    apiKeyEnv: 'SC_CITYHIVE_MOSS_CREEK_PUBLIC_API_KEY',
+    apiClientOrigin: 'app://sites.mosscree1be3913f',
+    apiClientOriginUrl: 'https://www.mosscreekvillagespiritsandwine.com/shop/'
   },
   {
     id: 'rollers-wine-and-spirits',
@@ -1208,7 +1232,10 @@ const SC_CITYHIVE_SOURCES = [
       'https://rollerswineandspirits.com/shop/?subtype=bourbon',
       'https://rollerswineandspirits.com/shop/?subtype=whiskey'
     ],
-    merchantIds: ['5ea832d3b62f75270c45a976']
+    merchantIds: ['5ea832d3b62f75270c45a976'],
+    apiKeyEnv: 'SC_CITYHIVE_ROLLERS_PUBLIC_API_KEY',
+    apiClientOrigin: 'app://sites.rollersw7f0c0c15',
+    apiClientOriginUrl: 'https://rollerswineandspirits.com/shop/'
   }
 ];
 const SC_CITYHIVE_MERCHANT_IDS = new Set(SC_CITYHIVE_SOURCES.flatMap((source) => source.merchantIds || []));
@@ -1244,6 +1271,58 @@ export function southCarolinaCityHiveBoundMerchantIds(products) {
     }
   }
   return [...merchantIds];
+}
+
+export function southCarolinaCityHiveApiEvidenceBlobs(payload, requestedMerchantId) {
+  const requested = typeof requestedMerchantId === 'string' ? requestedMerchantId.trim() : '';
+  const products = payload && typeof payload === 'object' && !Array.isArray(payload)
+    && payload.result === 0 && Array.isArray(payload.data?.products)
+    ? payload.data.products
+    : null;
+  if (!requested || !products) return [];
+  const matchingOptions = [];
+  const filteredProducts = [];
+  for (const product of products) {
+    if (!product || typeof product !== 'object' || Array.isArray(product)) continue;
+    const productId = typeof product.id === 'string' ? product.id.trim() : '';
+    if (!productId) continue;
+    const filteredMerchants = [];
+    for (const merchant of Array.isArray(product.merchants) ? product.merchants : []) {
+      if (!merchant || typeof merchant !== 'object' || Array.isArray(merchant)) continue;
+      const filteredOptions = [];
+      for (const option of Array.isArray(merchant.product_options) ? merchant.product_options : []) {
+        if (!option || typeof option !== 'object' || Array.isArray(option)) continue;
+        if (typeof option.merchant_id !== 'string' || option.merchant_id.trim() !== requested) continue;
+        if (typeof option.product_id !== 'string' || option.product_id.trim() !== productId) continue;
+        if (typeof option.option_id !== 'string' || !option.option_id.trim()) continue;
+        if (typeof option.full_address !== 'string' || !option.full_address.trim()) continue;
+        if (typeof option.merchant_name !== 'string' || !option.merchant_name.trim()) continue;
+        matchingOptions.push(option);
+        filteredOptions.push(option);
+      }
+      if (filteredOptions.length) filteredMerchants.push({ ...merchant, product_options: filteredOptions });
+    }
+    if (filteredMerchants.length) filteredProducts.push({ ...product, merchants: filteredMerchants });
+  }
+  if (!matchingOptions.length) return [];
+  const normalizePremise = (value) => value.toLowerCase().replace(/[^a-z0-9]+/gu, ' ').trim().replace(/\s+usa$/u, '');
+  const addresses = new Set(matchingOptions.map((option) => normalizePremise(option.full_address)));
+  const merchantNames = new Set(matchingOptions.map((option) => option.merchant_name.toLowerCase().replace(/[^a-z0-9]+/gu, ' ').trim()));
+  if (addresses.size !== 1 || merchantNames.size !== 1) return [];
+  const sample = matchingOptions[0];
+  return [
+    {
+      merchant_configs: [{
+        merchant: {
+          id: requested,
+          name: sample.merchant_name,
+          display_name: sample.merchant_name,
+          address: { full_address: sample.full_address },
+        },
+      }],
+    },
+    { products: filteredProducts },
+  ];
 }
 
 export function southCarolinaCityHiveMerchantEvidence(blobs, requestedMerchantId, limits = {}) {
@@ -5779,6 +5858,68 @@ async function collectArizona(config, bible, options = {}) {
   };
 }
 
+export async function fetchSouthCarolinaCityHivePublicApi(source, merchantId, options = {}) {
+  const apiKey = typeof source?.apiKeyEnv === 'string' ? String(process.env[source.apiKeyEnv] || '').trim() : '';
+  if (!apiKey || typeof source?.apiClientOrigin !== 'string' || typeof source?.apiClientOriginUrl !== 'string') return null;
+  const publicUrl = 'https://api.cityhive.net/api/v1/products/search.json';
+  const params = new URLSearchParams({
+    merchant_id: merchantId,
+    new_style: 'true',
+    text: 'bourbon',
+    api_key: apiKey,
+    sdk_guid: randomUUID(),
+    ch_request_guid: randomUUID(),
+    client_origin: source.apiClientOrigin,
+    client_origin_url: source.apiClientOriginUrl,
+    local: 'true',
+  });
+  const deadlineMs = Number.isFinite(options?.deadlineMs) ? Number(options.deadlineMs) : Date.now() + 36_000;
+  const remainingMs = Math.max(0, deadlineMs - Date.now());
+  if (remainingMs < 1_000) return { ok: false, status: 'cityhive_probe_deadline_exhausted', error: 'Shared CityHive probe deadline was exhausted before the API request.', publicUrl };
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), Math.min(18_000, remainingMs));
+  try {
+    const response = await fetch(`${publicUrl}?${params}`, {
+      headers: {
+        'user-agent': 'Mozilla/5.0 (BourbonSignal public retailer API)',
+        accept: 'application/json',
+      },
+      signal: controller.signal,
+    });
+    const text = await readBoundedSouthCarolinaDunesResponse(response, { url: publicUrl, maxBytes: 2 * 1024 * 1024 });
+    if (!response.ok) return { ok: false, status: response.status || 0, error: `Public CityHive API returned HTTP ${response.status || 0}.`, publicUrl };
+    const payload = JSON.parse(text);
+    const blobs = southCarolinaCityHiveApiEvidenceBlobs(payload, merchantId);
+    if (!blobs.length) return { ok: false, status: 'unrecognized_cityhive_api_payload', error: 'Public CityHive API response did not contain one exact merchant premise with complete product-option identity.', publicUrl };
+    return { ok: true, status: response.status, blobs, publicUrl };
+  } catch {
+    return { ok: false, status: 'cityhive_api_request_failed', error: 'Public CityHive API request failed or exceeded the bounded response contract.', publicUrl };
+  } finally {
+    clearTimeout(timeout);
+  }
+}
+
+function southCarolinaCityHiveEvidenceHasUsableInventory(evidence, bible, merchantId, sourceMerchantIds) {
+  if (!evidence?.authoritative || !Array.isArray(evidence.optionRecords)) return false;
+  for (const optionRecord of evidence.optionRecords) {
+    const option = optionRecord?.option;
+    const product = optionRecord?.product && typeof optionRecord.product === 'object' && !Array.isArray(optionRecord.product) ? optionRecord.product : {};
+    if (!option || typeof option !== 'object' || Array.isArray(option)) continue;
+    const optionMerchantId = typeof option.merchant_id === 'string' ? option.merchant_id.trim() : '';
+    const productId = typeof option.product_id === 'string' ? option.product_id.trim() : '';
+    const parentProductId = typeof product.id === 'string' ? product.id.trim() : '';
+    const optionId = typeof option.option_id === 'string' ? option.option_id.trim() : '';
+    if (optionMerchantId !== merchantId || !sourceMerchantIds.has(optionMerchantId) || !productId || !optionId || (parentProductId && parentProductId !== productId)) continue;
+    if (typeof option.full_address !== 'string' || !/,\s*SC\s+\d{5}/i.test(option.full_address)) continue;
+    const rawName = option.option_display_data?.name || option.product_name || product.name || '';
+    const candidateText = JSON.stringify({ name: rawName, productName: option.product_name || product.name, category: option.basic_category || product.basic_category, tags: option.product_tags, storeTags: option.store_specific_tags, props: option.additional_properties });
+    if (!isSouthCarolinaRetailerCandidate(candidateText)) continue;
+    if (normalizeCityHiveReportedQuantity(option.quantity).quantity <= 0) continue;
+    if (cityHiveSafeBottleMatch(rawName, bible).record) return true;
+  }
+  return false;
+}
+
 async function collectSouthCarolinaCityHive(config, bible, observedAt) {
   const signals = [];
   const roadblocks = [];
@@ -5815,7 +5956,7 @@ async function collectSouthCarolinaCityHive(config, bible, observedAt) {
   const seenStores = new Set();
   const platformFailures = [];
   const configuredProbeCount = SC_CITYHIVE_INVENTORY_MERCHANT_IDS.size;
-  let reachablePageCount = 0;
+  let reachablePayloadCount = 0;
   const completedMerchantIds = new Set();
   const failedProbeCounts = { myrtle: 0, statewide: 0 };
   const blockedPriorities = new Set();
@@ -5827,34 +5968,58 @@ async function collectSouthCarolinaCityHive(config, bible, observedAt) {
     if (blockedPriorities.has(probe.priority)) continue;
     if (blockedSourceKeys.has(`${probe.priority}|${source.id}`)) continue;
     const sourceMerchantIds = new Set((source.merchantIds || []).filter((id) => SC_CITYHIVE_INVENTORY_MERCHANT_IDS.has(id)));
-    const res = await curlTextFetch(url, { headers: { accept: 'text/html,*/*' }, timeoutMs: 36_000, maxBuffer: 8 * 1024 * 1024 });
-          if (!res.ok) {
-            const failure = {
-              state: config.id,
-              source: source.sourceLabel,
-              url,
-              status: res.status || 0,
-              error: res.error || `HTTP ${res.status}`,
-              nextRoute: 'Retry the selected South Carolina CityHive merchant-id page or inspect rendered/network calls for current product JSON shape.'
-            };
-            failedProbeCounts[probe.priority] += 1;
-            if (failedProbeCounts[probe.priority] >= 2) blockedPriorities.add(probe.priority);
-            if (isTerminalProbeFailure(res.status)) {
-              platformFailures.push(failure);
-              blockedSourceKeys.add(`${probe.priority}|${source.id}`);
-            } else roadblocks.push(failure);
-            continue;
-          }
-          reachablePageCount += 1;
-          const blobs = cityHiveJsonBlobs(res.text);
-          const evidence = southCarolinaCityHiveMerchantEvidence(blobs, merchantId);
+    const probeDeadlineMs = Date.now() + 36_000;
+    const apiAttempt = await fetchSouthCarolinaCityHivePublicApi(source, merchantId, { deadlineMs: probeDeadlineMs });
+    const apiEvidence = apiAttempt?.ok ? southCarolinaCityHiveMerchantEvidence(apiAttempt.blobs, merchantId) : null;
+    const useApiEvidence = southCarolinaCityHiveEvidenceHasUsableInventory(apiEvidence, bible, merchantId, sourceMerchantIds);
+    let evidenceUrl = useApiEvidence ? apiAttempt.publicUrl : url;
+    let blobs = useApiEvidence ? apiAttempt.blobs : null;
+    let evidence = useApiEvidence ? apiEvidence : null;
+    let transportFailure = apiAttempt && !apiAttempt.ok ? apiAttempt : null;
+    if (!blobs) {
+      const remainingMs = Math.max(0, probeDeadlineMs - Date.now());
+      const pageAttempt = remainingMs >= 1_000
+        ? await curlTextFetch(url, { headers: { accept: 'text/html,*/*' }, timeoutMs: remainingMs, maxBuffer: 8 * 1024 * 1024 })
+        : { ok: false, status: 0, error: 'Shared CityHive probe deadline was exhausted before the storefront fallback.' };
+      evidenceUrl = url;
+      if (pageAttempt.ok) {
+        blobs = cityHiveJsonBlobs(pageAttempt.text);
+      } else {
+        transportFailure = {
+          status: pageAttempt.status || 0,
+          error: [
+            apiAttempt ? `Public API: ${apiAttempt.error || apiAttempt.status}` : null,
+            `Storefront: ${pageAttempt.error || `HTTP ${pageAttempt.status}`}`,
+          ].filter(Boolean).join('; '),
+        };
+      }
+    }
+    if (!blobs) {
+      const failure = {
+        state: config.id,
+        source: source.sourceLabel,
+        url: evidenceUrl,
+        status: transportFailure?.status || 0,
+        error: transportFailure?.error || `HTTP ${transportFailure?.status || 0}`,
+        nextRoute: 'Retry the bounded public CityHive products API and selected first-party merchant page; keep exact merchant, premise, and product-option proof mandatory.'
+      };
+      failedProbeCounts[probe.priority] += 1;
+      if (failedProbeCounts[probe.priority] >= 2) blockedPriorities.add(probe.priority);
+      if (isTerminalProbeFailure(transportFailure?.status)) {
+        platformFailures.push(failure);
+        blockedSourceKeys.add(`${probe.priority}|${source.id}`);
+      } else roadblocks.push(failure);
+      continue;
+    }
+    reachablePayloadCount += 1;
+    evidence ||= southCarolinaCityHiveMerchantEvidence(blobs, merchantId);
           if (!evidence.authoritative) {
             failedProbeCounts[probe.priority] += 1;
             if (failedProbeCounts[probe.priority] >= 2) blockedPriorities.add(probe.priority);
             roadblocks.push({
               state: config.id,
               source: source.sourceLabel,
-              url,
+              url: evidenceUrl,
               status: 'unrecognized_cityhive_payload',
               error: `CityHive response did not bind product payload and merchant configuration to requested merchant ${merchantId}.`,
               nextRoute: 'Retry the exact merchant-id page at low cadence; do not infer completion from chain-wide configuration metadata.'
@@ -5912,9 +6077,9 @@ async function collectSouthCarolinaCityHive(config, bible, observedAt) {
             continue;
           }
 
-          for (const record of evidence.optionRecords) {
-                const option = record.option;
-                const product = record.product && typeof record.product === 'object' && !Array.isArray(record.product) ? record.product : {};
+          for (const optionRecord of evidence.optionRecords) {
+                const option = optionRecord.option;
+                const product = optionRecord.product && typeof optionRecord.product === 'object' && !Array.isArray(optionRecord.product) ? optionRecord.product : {};
                 const optionMerchantId = option.merchant_id.trim();
                 const productId = option.product_id.trim();
                 const parentProductId = typeof product.id === 'string' ? product.id.trim() : '';
@@ -5998,7 +6163,7 @@ async function collectSouthCarolinaCityHive(config, bible, observedAt) {
     completedMerchantIds: [...completedMerchantIds],
     observedAt,
   }));
-  if (!liveInventoryProduced && !cache && reachablePageCount > 0) {
+  if (!liveInventoryProduced && !cache && reachablePayloadCount > 0) {
     roadblocks.push({
       state: config.id,
       source: 'South Carolina CityHive retailer inventory pages',
