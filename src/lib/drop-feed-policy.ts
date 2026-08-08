@@ -29,3 +29,27 @@ export function dropFreshnessTime(drop: Record<string, unknown>) {
   if (isInventorySignal(drop) && Number.isFinite(confirmation)) return confirmation;
   return asTime(drop.timestamp ?? drop.displayAt ?? drop.event_at ?? drop.eventAt ?? drop.first_seen_at ?? drop.firstSeenAt ?? drop.last_confirmed_at ?? drop.lastConfirmedAt);
 }
+
+function firstText(...values: unknown[]) {
+  const value = values.find((candidate) => typeof candidate === "string" && candidate.trim());
+  return typeof value === "string" ? value : "";
+}
+
+function firstValidTimestamp(...values: unknown[]) {
+  const value = values.find((candidate) => Number.isFinite(asTime(candidate)));
+  return typeof value === "string" ? value : "";
+}
+
+export function dropDisplayTime(drop: Record<string, unknown>) {
+  const basis = firstText(drop.timestamp_basis, drop.timestampBasis) || "last_confirmed_at";
+  const eventTimes = [drop.event_at, drop.eventAt];
+  const firstSeenTimes = [drop.first_seen_at, drop.firstSeenAt];
+  const confirmationTimes = [drop.last_confirmed_at, drop.lastConfirmedAt];
+  const timestamps = [drop.timestamp, drop.displayAt];
+
+  const confirmedAt = firstValidTimestamp(...confirmationTimes);
+  if (isInventorySignal(drop) && confirmedAt) return confirmedAt;
+  if (basis === "source_event_at") return firstValidTimestamp(...eventTimes, ...firstSeenTimes, ...confirmationTimes, ...timestamps);
+  if (basis === "first_seen_at") return firstValidTimestamp(...firstSeenTimes, ...eventTimes, ...confirmationTimes, ...timestamps);
+  return firstValidTimestamp(...confirmationTimes, ...firstSeenTimes, ...eventTimes, ...timestamps);
+}

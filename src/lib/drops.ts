@@ -1,4 +1,5 @@
 import { getActiveEngineStateName } from "@/lib/activeStates";
+import { dropDisplayTime } from "@/lib/drop-feed-policy";
 import { getScheduledReleaseSignalCopy, isScheduledReleaseSignal } from "@/lib/scheduled-release-signals";
 
 export interface DropEvent {
@@ -252,16 +253,7 @@ export function formatDropTime(drop: Pick<DropEvent | GroupedDrop, "timestamp" |
   last_confirmed_at?: string;
   lastConfirmedAt?: string;
 }): string {
-  const basis = drop.timestamp_basis || drop.timestampBasis || "last_confirmed_at";
-  const eventAt = drop.event_at || drop.eventAt;
-  const firstSeenAt = drop.first_seen_at || drop.firstSeenAt;
-  const lastConfirmedAt = drop.last_confirmed_at || drop.lastConfirmedAt;
-
-  const latestSignalAt =
-    basis === "source_event_at" ? (eventAt || firstSeenAt || lastConfirmedAt || drop.timestamp) :
-    basis === "first_seen_at" ? (firstSeenAt || eventAt || lastConfirmedAt || drop.timestamp) :
-    lastConfirmedAt || firstSeenAt || eventAt || drop.timestamp;
-  return `Reported ${formatRelativeTime(latestSignalAt)}`;
+  return `Reported ${formatRelativeTime(dropDisplayTime(drop as Record<string, unknown>))}`;
 }
 
 export function cleanCountyName(board: string): string {
