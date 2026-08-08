@@ -290,6 +290,7 @@ test('Grand Strand store universe expands without overstating static storefronts
 
 test('targeted South Carolina expansion forces a complete bounded first-party source pass', () => {
   assert.match(refreshWorkflow, /BOURBON_SIGNAL_SC_FORCE_CITYHIVE_LIVE:[^\n]*contains\(inputs\.states, 'SC'\)[^\n]*'1'/);
+  assert.match(refreshWorkflow, /BOURBON_SIGNAL_SC_FORCE_PHASE1_LIVE:[^\n]*contains\(inputs\.states, 'SC'\)[^\n]*'1'/);
   assert.match(collector, /async function collectSouthCarolina[\s\S]*runBoundedSourceLanes\(\[/);
   assert.match(collector, /\{ name: 'cityhive', domain: 'sc-cityhive-group'/);
   assert.match(collector, /\{ name: 'all-american', domain: 'aalmauldin\.com'/);
