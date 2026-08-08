@@ -13,6 +13,7 @@ const SC_CITYHIVE_MERCHANTS = new Map([
   ...['69930e7bed5bdd2a34c085c3', '699754a7b0035e3df3e7f3a4', '69977a118f10a026bd985189'].map((id) => [id, { chain: 'wine-bourbon-barn', label: 'Wine & Bourbon Barn CityHive store inventory', hosts: ['winebarnsc.com', 'www.winebarnsc.com'] }]),
   ...['607f9d38b73eb4091ef97ff7', '607af19a07c9e57bbd8de002', '6060f7262c63853de749dda2'].map((id) => [id, { chain: 'odarbys-liquor-barn', label: "O'Darby's Liquor Barn South Carolina CityHive store inventory", hosts: ['odarbysliquorbarn.com', 'www.odarbysliquorbarn.com'] }]),
   ['6144e1c2085a5f20a622a15f', { chain: 'beach-discount-beverages', label: 'Beach Discount Beverages South Carolina CityHive store inventory', hosts: ['beachdis0402bdcd.sites.cityhive.app', 'beachdiscountbeverages.com', 'www.beachdiscountbeverages.com'] }],
+  ['6a0b27396d36df004b28a7ab', { chain: 'surf-beverage', label: 'Surf Beverage South Carolina CityHive store inventory', hosts: ['surfbeverages.com', 'www.surfbeverages.com', 'murrellsinletliquorstore.com', 'www.murrellsinletliquorstore.com'], premise: { name: 'Surf Beverage', address: '3140 US-17, Myrtle Beach, SC 29577, USA', city: 'Myrtle Beach', zip: '29577' } }],
   ['66c9e5c12556e329502b0e5e', { chain: 'palmetto-liquor', label: 'Palmetto Liquor South Carolina CityHive store inventory', hosts: ['palmettoliquor.com', 'www.palmettoliquor.com'] }],
   ['620164924a3ea84d57c21d6f', { chain: 'dev-liquors', label: 'DEV Liquors South Carolina CityHive store inventory', hosts: ['devliquors.com', 'www.devliquors.com'] }],
   ['67cf72208b17425acbba9e10', { chain: 'moss-creek-village-spirits', label: 'Moss Creek Village Spirits & Wine South Carolina CityHive store inventory', hosts: ['mosscreekvillagespiritsandwine.com', 'www.mosscreekvillagespiritsandwine.com'] }],
@@ -227,12 +228,53 @@ export function isSouthCarolinaSouthernSpiritsSignal(signal) {
     || storeId.startsWith('southern-spirits:');
 }
 
+function exactIdentityString(value) {
+  return typeof value === 'string' ? value.trim() : '';
+}
+
+function normalizedPremiseValue(value) {
+  return String(value || '').toLowerCase().replace(/[^a-z0-9]+/gu, ' ').trim();
+}
+
+function normalizedPremiseAddress(value) {
+  return normalizedPremiseValue(value).replace(/\s+usa$/u, '');
+}
+
+function matchesReviewedCityHivePremise(signal, source) {
+  if (!source?.premise) return true;
+  for (const field of ['storeName', 'locationName', 'city', 'postalCode', 'zip']) {
+    if (Object.prototype.hasOwnProperty.call(signal || {}, field) && signal[field] != null && typeof signal[field] !== 'string') return false;
+  }
+  const storeName = signal?.storeName ?? signal?.locationName;
+  const postalCode = signal?.postalCode ?? signal?.zip;
+  if (typeof storeName !== 'string' || typeof signal?.city !== 'string' || typeof postalCode !== 'string') return false;
+  for (const field of ['storeName', 'locationName']) {
+    if (typeof signal?.[field] === 'string' && normalizedPremiseValue(signal[field]) !== normalizedPremiseValue(source.premise.name)) return false;
+  }
+  for (const field of ['postalCode', 'zip']) {
+    if (typeof signal?.[field] === 'string' && signal[field].trim() !== source.premise.zip) return false;
+  }
+  return normalizedPremiseValue(storeName) === normalizedPremiseValue(source.premise.name)
+    && normalizedPremiseAddress(signal?.storeAddress) === normalizedPremiseAddress(source.premise.address)
+    && normalizedPremiseValue(signal.city) === normalizedPremiseValue(source.premise.city)
+    && postalCode.trim() === source.premise.zip;
+}
+
 export function isSouthCarolinaCityHiveInventory(signal, nowMs = Date.now()) {
-  const eventType = String(signal?.eventType || signal?.type || '');
-  const merchantId = String(signal?.merchantId || '').trim();
+  const rawEventType = signal?.eventType ?? signal?.type;
+  const eventType = exactIdentityString(rawEventType);
+  const canonicalBottleId = exactIdentityString(signal?.canonicalBottleId ?? signal?.canonicalId);
+  const merchantId = exactIdentityString(signal?.merchantId);
   const source = SC_CITYHIVE_MERCHANTS.get(merchantId);
-  const productId = String(signal?.productId || '').trim();
-  const optionId = String(signal?.optionId || signal?.variantId || '').trim();
+  const productId = exactIdentityString(signal?.productId);
+  const optionId = exactIdentityString(signal?.optionId ?? signal?.variantId);
+  const aliasesMatch = (fields, expected) => fields.every((field) => !Object.prototype.hasOwnProperty.call(signal || {}, field)
+    || signal[field] == null
+    || (typeof signal[field] === 'string' && exactIdentityString(signal[field]) === expected));
+  const identityAliasesValid = aliasesMatch(['eventType', 'type'], eventType)
+    && aliasesMatch(['canonicalBottleId', 'canonicalId'], canonicalBottleId)
+    && aliasesMatch(['optionId', 'variantId'], optionId)
+    && aliasesMatch(['productId', 'sourceProductProofId'], productId);
   const observedAt = Date.parse(String(signal?.observedAt || signal?.lastConfirmedAt || ''));
   const ageMs = nowMs - observedAt;
   let sourceHost = '';
@@ -243,13 +285,17 @@ export function isSouthCarolinaCityHiveInventory(signal, nowMs = Date.now()) {
   } catch {
     return false;
   }
-  const rawOption = signal?.raw?.option;
-  const exactSourceBinding = rawOption
-    ? String(rawOption.merchant_id || '') === merchantId
-      && String(rawOption.product_id || '') === productId
-      && String(rawOption.option_id || '') === optionId
-    : String(signal?.sourceProductProofId || '') === productId
-      && String(signal?.variantId || '') === optionId;
+  const rawContainer = signal?.raw;
+  const rawOptionPresent = rawContainer && typeof rawContainer === 'object' && !Array.isArray(rawContainer)
+    && Object.prototype.hasOwnProperty.call(rawContainer, 'option');
+  const rawOption = rawContainer?.option;
+  const exactSourceBinding = rawOptionPresent
+    ? Boolean(rawOption && typeof rawOption === 'object' && !Array.isArray(rawOption)
+      && exactIdentityString(rawOption.merchant_id) === merchantId
+      && exactIdentityString(rawOption.product_id) === productId
+      && exactIdentityString(rawOption.option_id) === optionId)
+    : exactIdentityString(signal?.sourceProductProofId) === productId
+      && exactIdentityString(signal?.variantId) === optionId;
   const exactQuantity = signal?.quantityIsExact === true
     && Number.isFinite(Number(signal?.quantity))
     && Number(signal.quantity) > 0
@@ -258,6 +304,7 @@ export function isSouthCarolinaCityHiveInventory(signal, nowMs = Date.now()) {
     && Number(signal?.quantity || 0) === 0
     && signal?.availabilityStatus === 'binary_retailer_in_stock';
   return Boolean(source)
+    && identityAliasesValid
     && signal?.state === 'SC'
     && (signal?.stateCode == null || signal.stateCode === 'SC')
     && eventType === 'cityhive_store_inventory_result'
@@ -267,8 +314,10 @@ export function isSouthCarolinaCityHiveInventory(signal, nowMs = Date.now()) {
     && source.hosts.includes(sourceHost)
     && signal?.locationPrecision === 'store_level'
     && signal?.storeId === `${source.chain}:${merchantId}`
-    && /,\s*SC\s+\d{5}/i.test(String(signal?.storeAddress || ''))
-    && Boolean(signal?.canonicalBottleId || signal?.canonicalId)
+    && typeof signal?.storeAddress === 'string'
+    && matchesReviewedCityHivePremise(signal, source)
+    && /,\s*SC\s+\d{5}/i.test(signal.storeAddress)
+    && typeof canonicalBottleId === 'string' && Boolean(canonicalBottleId.trim())
     && productId.length > 0
     && optionId.length > 0
     && exactSourceBinding
