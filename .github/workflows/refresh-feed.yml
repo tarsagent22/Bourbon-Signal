@@ -155,6 +155,7 @@ jobs:
           BOURBON_SIGNAL_TN_CITYHIVE_FORCE_ALL_SOURCES: ${{ contains(inputs.states, 'TN') && '1' || '0' }}
           BOURBON_SIGNAL_SC_FORCE_CITYHIVE_LIVE: ${{ contains(inputs.states, 'SC') && '1' || '0' }}
           BOURBON_SIGNAL_SC_FORCE_ALL_AMERICAN_LIVE: ${{ contains(inputs.states, 'SC') && '1' || '0' }}
+          BOURBON_SIGNAL_SC_FORCE_PHASE1_LIVE: ${{ contains(inputs.states, 'SC') && '1' || '0' }}
           BOURBON_SIGNAL_FORCE_SOURCE_RUN: ${{ (inputs.states != '' || inputs.force_all_states == 'true' || steps.nc-intelligence-cache.outputs.cache-matched-key == '') && '1' || '0' }}
           SC_CITYHIVE_SURF_PUBLIC_API_KEY: ${{ secrets.SC_CITYHIVE_SURF_PUBLIC_API_KEY }}
           SC_CITYHIVE_GREENS_PUBLIC_API_KEY: ${{ secrets.SC_CITYHIVE_GREENS_PUBLIC_API_KEY }}
