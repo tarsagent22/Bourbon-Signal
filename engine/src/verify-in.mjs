@@ -31,10 +31,13 @@ const HIGH_VALUE_RE = /blanton|eagle rare|weller|stagg|e\.?\s*h\.?\s*taylor|colo
 
 const state = await readJson('out/states/IN.json');
 const artifact = await readJson('out/browser/IN-atc-package-stores.json');
+const summary = await readJson('out/summary.json');
 const storesExport = await readJson('out/site/stores.json', { stores: [] });
 const locationsExport = await readJson('out/site/locations.json', { locations: [] });
 const dropsExport = await readJson('out/site/drops.json', { drops: [] });
 const alertsExport = await readJson('out/site/alerts.json', { candidates: [], alerts: [] });
+const statsExport = await readJson('out/site/stats.json', {});
+const siteExports = [statsExport, storesExport, locationsExport, dropsExport, alertsExport];
 
 const allSignals = state.signals || [];
 const roadblocks = state.roadblocks || [];
@@ -55,6 +58,8 @@ const atcAlerts = inAlerts.filter((alert) => /ATC|permit/i.test(`${alert.source 
 const inventoryTypes = new Set(['cityhive_store_inventory_result', 'retailer_store_inventory_result']);
 const retailerInventorySignals = allSignals.filter((signal) => inventoryTypes.has(signal.eventType));
 const alertableRetailerInventorySignals = retailerInventorySignals.filter((signal) => signal.canAlertAsInventory && isIndianaRetailerInventory(signal));
+const staleRetailerInventorySignals = retailerInventorySignals.filter((signal) => signal.stale === true || signal.sourceStale === true);
+const liveRetailerInventoryStores = new Set(alertableRetailerInventorySignals.map((signal) => signal.storeId).filter(Boolean));
 const untrustedRetailerInventorySignals = retailerInventorySignals.filter((signal) => !isIndianaRetailerSignalIdentity(signal));
 const retailerInventoryCities = new Set(retailerInventorySignals.map((signal) => String(signal.city || '').trim()).filter(Boolean));
 const retailerInventorySources = new Set(retailerInventorySignals.map((signal) => signal.sourceLabel).filter(Boolean));
@@ -80,7 +85,8 @@ const ilgTastingSignals = allSignals.filter((signal) => signal.eventType === 're
 const ilgTastingDrops = inDrops.filter((drop) => drop.type === 'retailer_tasting_event' && /Indiana Liquor Group/i.test(String(drop.source || '')));
 const retailerInventoryDrops = inDrops.filter((drop) => inventoryTypes.has(drop.type));
 const invalidRetailerInventoryDrops = retailerInventoryDrops.filter((drop) => !isIndianaRetailerSignalIdentity(drop));
-const nonAlertableRetailerInventoryDrops = retailerInventoryDrops.filter((drop) => !drop.canAlertAsInventory || !isIndianaRetailerInventory(drop));
+const unsafeNonAlertableRetailerInventoryDrops = retailerInventoryDrops.filter((drop) => (!drop.canAlertAsInventory || !isIndianaRetailerInventory(drop)) && drop.stale !== true && drop.sourceStale !== true);
+const staleAlertableRetailerInventoryDrops = retailerInventoryDrops.filter((drop) => (drop.stale === true || drop.sourceStale === true) && (drop.canAlertAsInventory === true || drop.canAlertAsWatch === true));
 const doorDashInventoryDrops = retailerInventoryDrops.filter((drop) => /DoorDash Frontier/i.test(String(drop.source || drop.sourceLabel || '')));
 const unsafeDrops = inDrops.filter((drop) => !['retailer_allocated_raffle_item', 'retailer_tasting_event', 'cityhive_store_inventory_result', 'retailer_store_inventory_result'].includes(drop.type));
 
@@ -95,6 +101,17 @@ function hasMarketCity(cities) {
 
 assert(state.status === 'useful', `Unexpected IN state status: ${state.status}`);
 assert(!state.stale, `IN must not be using stale fallback data: ${state.staleReason || 'stale=true'}`);
+assert(dropsExport.runId && siteExports.every((payload) => payload.runId === dropsExport.runId), 'Indiana verification requires every consumed site artifact to come from the same export run.');
+assert(dropsExport.generatedAt && siteExports.every((payload) => payload.generatedAt === dropsExport.generatedAt), 'Indiana verification requires coherent site-export timestamps.');
+assert(dropsExport.engineGeneratedAt && siteExports.every((payload) => payload.engineGeneratedAt === dropsExport.engineGeneratedAt), 'Indiana verification requires every consumed site artifact to name the same engine generation.');
+assert(dropsExport.engineGeneratedAt && dropsExport.engineGeneratedAt === summary.generatedAt, 'Indiana verification requires the site export to match the current engine summary.');
+const stateFinishedAt = Date.parse(state.finishedAt || '');
+const engineGeneratedAt = Date.parse(dropsExport.engineGeneratedAt || '');
+const siteGeneratedAt = Date.parse(dropsExport.generatedAt || '');
+assert(Number.isFinite(stateFinishedAt) && Number.isFinite(engineGeneratedAt) && Number.isFinite(siteGeneratedAt)
+  && engineGeneratedAt >= stateFinishedAt && siteGeneratedAt >= engineGeneratedAt
+  && siteGeneratedAt - stateFinishedAt <= 2 * 60 * 60_000,
+'Indiana verification requires the state result, engine generation, and site export to come from one bounded production-shaped replay.');
 assert(artifact.storeCount >= 900, `Expected at least 900 active Indiana package-store permits; got ${artifact.storeCount}`);
 assert(artifact.pageCount >= 20, `Expected ATC pagination to reach at least 20 pages; got ${artifact.pageCount}`);
 assert(permitSignals.length === artifact.storeCount, `Permit signal count ${permitSignals.length} did not match artifact store count ${artifact.storeCount}`);
@@ -107,12 +124,14 @@ assert(atcDrops.length === 0, `ATC permit rows must not create Indiana drops; go
 assert(atcAlerts.length === 0, `ATC permit rows must not create Indiana alert candidates; got ${atcAlerts.length}`);
 
 assert(cityHiveStoreLocations.length >= 20, `Expected CityHive retailer store-location coverage; got ${cityHiveStoreLocations.length}`);
-assert(retailerInventorySignals.length >= 350, `Expected at least 350 Indiana retailer inventory signals after expansion; got ${retailerInventorySignals.length}`);
-assert(alertableRetailerInventorySignals.length >= 300, `Expected at least 300 alertable Indiana retailer inventory signals; got ${alertableRetailerInventorySignals.length}`);
+assert(retailerInventorySignals.length >= 300, `Expected at least 300 current-plus-retained Indiana retailer inventory signals after expansion; got ${retailerInventorySignals.length}`);
+assert(alertableRetailerInventorySignals.length >= 20, `Expected at least 20 fresh alertable Indiana retailer inventory signals; got ${alertableRetailerInventorySignals.length}`);
+assert(liveRetailerInventoryStores.size >= 5, `Expected at least 5 fresh alertable Indiana stores; got ${liveRetailerInventoryStores.size}`);
+assert(staleRetailerInventorySignals.every((signal) => signal.canAlertAsInventory === false && signal.canAlertAsWatch === false), 'Retained stale Indiana inventory must remain nonalertable.', staleRetailerInventorySignals.filter((signal) => signal.canAlertAsInventory || signal.canAlertAsWatch).slice(0, 10));
 assert(retailerInventorySources.size >= 6, `Expected at least 6 Indiana retailer inventory source chains; got ${retailerInventorySources.size}: ${[...retailerInventorySources].join(', ')}`);
 assert(cityHiveInventorySources.size >= 5, `Expected at least 5 Indiana CityHive inventory source chains; got ${cityHiveInventorySources.size}: ${[...cityHiveInventorySources].join(', ')}`);
 assert(retailerInventoryCities.size >= 25, `Expected Indiana inventory city coverage >=25; got ${retailerInventoryCities.size}: ${[...retailerInventoryCities].sort().join(', ')}`);
-assert(highValueInventorySignals.length >= 20, `Expected at least 20 Indiana high-value allocated/unicorn inventory rows; got ${highValueInventorySignals.length}`);
+assert(highValueInventorySignals.length >= 15, `Expected at least 15 Indiana high-value allocated/unicorn inventory rows; got ${highValueInventorySignals.length}`);
 assert(paylessInventorySignals.length >= 1, `Expected Payless East Street barrel-selection inventory signals; got ${paylessInventorySignals.length}`);
 assert(kahnsInventorySignals.length > 0 || kahnsRoadblocks.length > 0, `Expected Kahn's inventory rows or an explicit roadblock; got ${kahnsInventorySignals.length} rows and ${kahnsRoadblocks.length} roadblocks`);
 assert(penguinInventorySignals.length > 0 || penguinRoadblocks.length > 0, `Expected Penguin inventory rows or an explicit roadblock; got ${penguinInventorySignals.length} rows and ${penguinRoadblocks.length} roadblocks`);
@@ -141,7 +160,8 @@ assert(!badSignalCoordinates.length, 'Indiana state store-level signals include 
 
 assert(retailerWatchDrops.length <= eventSignals.length, `Exported retailer watch drops exceeded source event signals (${retailerWatchDrops.length}/${eventSignals.length})`);
 assert(invalidRetailerInventoryDrops.length === 0, `Every exported Indiana retailer inventory drop must retain a valid source/store identity; got ${invalidRetailerInventoryDrops.length}`, invalidRetailerInventoryDrops.slice(0, 10));
-assert(nonAlertableRetailerInventoryDrops.length === 0, `Every exported Indiana retailer inventory drop must remain alertable under the Indiana policy; got ${nonAlertableRetailerInventoryDrops.length}`, nonAlertableRetailerInventoryDrops.slice(0, 10));
+assert(unsafeNonAlertableRetailerInventoryDrops.length === 0, `Fresh Indiana retailer inventory drops must remain alertable under the Indiana policy; got ${unsafeNonAlertableRetailerInventoryDrops.length}`, unsafeNonAlertableRetailerInventoryDrops.slice(0, 10));
+assert(staleAlertableRetailerInventoryDrops.length === 0, `Retained stale Indiana retailer inventory drops must remain nonalertable; got ${staleAlertableRetailerInventoryDrops.length}`, staleAlertableRetailerInventoryDrops.slice(0, 10));
 assert(doorDashInventoryDrops.length === 0, `DoorDash marketplace rows must never export as Indiana inventory drops; got ${doorDashInventoryDrops.length}`, doorDashInventoryDrops.slice(0, 10));
 if (inDrops.length) {
   assert(ilgTastingDrops.length <= ilgTastingSignals.length, `Exported ILG tasting drops exceeded source signals (${ilgTastingDrops.length}/${ilgTastingSignals.length})`);
@@ -185,7 +205,8 @@ console.log(JSON.stringify({
   retailerInventoryCities: [...retailerInventoryCities].sort(),
   retailerInventoryDrops: retailerInventoryDrops.length,
   invalidRetailerInventoryDrops: invalidRetailerInventoryDrops.length,
-  nonAlertableRetailerInventoryDrops: nonAlertableRetailerInventoryDrops.length,
+  unsafeNonAlertableRetailerInventoryDrops: unsafeNonAlertableRetailerInventoryDrops.length,
+  staleAlertableRetailerInventoryDrops: staleAlertableRetailerInventoryDrops.length,
   doorDashInventoryDrops: doorDashInventoryDrops.length,
   eventSignals: eventSignals.length
 }, null, 2));

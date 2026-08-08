@@ -1,0 +1,188 @@
+{
+  "contractVersion": "bourbon-signal-indiana-source-audit-v1",
+  "generatedAt": "2026-08-08T21:30:00.000Z",
+  "state": "IN",
+  "knownSourceUniverseComplete": true,
+  "discoveryPasses": [
+    {
+      "id": "platform-and-market-pass",
+      "method": "first-party platform and metro search",
+      "scope": "Indiana CityHive, BottleCapps, retailer-hosted commerce, and the largest uncovered metros"
+    },
+    {
+      "id": "directory-and-retailer-pass",
+      "method": "official directory and named-retailer verification",
+      "scope": "Indiana ATC, official retailer location pages, delegated marketplaces, and independent store sites"
+    }
+  ],
+  "sources": [
+    {
+      "sourceId": "indiana-atc-package-store-directory",
+      "sourceClass": "official_directory",
+      "outcome": "adopted",
+      "reasonCode": "statewide_directory_only",
+      "url": "https://mylicense.in.gov/everification/Search.aspx?facility=Y"
+    },
+    {
+      "sourceId": "big-red-cityhive",
+      "sourceClass": "first_party",
+      "outcome": "adopted",
+      "reasonCode": "exact_store_inventory",
+      "url": "https://bigredliquors.com/shop/?subtype=Bourbon"
+    },
+    {
+      "sourceId": "cap-n-cork-cityhive",
+      "sourceClass": "first_party",
+      "outcome": "adopted",
+      "reasonCode": "exact_store_inventory",
+      "url": "https://capncork.com/shop/?subtype=Bourbon"
+    },
+    {
+      "sourceId": "wise-guys-cityhive",
+      "sourceClass": "first_party",
+      "outcome": "adopted",
+      "reasonCode": "exact_store_inventory",
+      "url": "https://shop.wiseguysliquors.com/shop/?subtype=bourbon"
+    },
+    {
+      "sourceId": "belmont-beverage-cityhive",
+      "sourceClass": "first_party",
+      "outcome": "adopted",
+      "reasonCode": "exact_store_inventory",
+      "url": "https://belmontbev.com/shop?subtype=bourbon"
+    },
+    {
+      "sourceId": "cork-liquors-cityhive",
+      "sourceClass": "first_party",
+      "outcome": "adopted",
+      "reasonCode": "exact_store_inventory",
+      "url": "https://shop.corkliquor.com/spirits/bourbon"
+    },
+    {
+      "sourceId": "twenty-first-amendment-cityhive",
+      "sourceClass": "first_party",
+      "outcome": "adopted",
+      "reasonCode": "exact_store_inventory",
+      "url": "https://21stamendment.com/shop/?subtype=Bourbon"
+    },
+    {
+      "sourceId": "holiday-liquors-jasper-cityhive",
+      "sourceClass": "first_party",
+      "outcome": "adopted",
+      "reasonCode": "exact_store_inventory",
+      "url": "https://holidayl7c37e10a.sites.cityhive.app/shop/?subtype=Bourbon"
+    },
+    {
+      "sourceId": "gays-hops-n-schnapps-cityhive",
+      "sourceClass": "first_party",
+      "outcome": "adopted",
+      "reasonCode": "exact_store_inventory",
+      "url": "https://gayshopsb1eca398.sites.cityhive.app/shop/?subtype=Bourbon"
+    },
+    {
+      "sourceId": "vine-and-table-cityhive",
+      "sourceClass": "first_party",
+      "outcome": "adopted",
+      "reasonCode": "exact_store_probeable",
+      "url": "https://vinetabl687fd7df.sites.cityhive.app/shop/?subtype=Bourbon"
+    },
+    {
+      "sourceId": "kahns-public-api",
+      "sourceClass": "first_party",
+      "outcome": "adopted",
+      "reasonCode": "exact_store_inventory_or_roadblock",
+      "url": "https://www.kahnsfinewines.com/api/trpc/product.getAll"
+    },
+    {
+      "sourceId": "payless-east-street-barrel-selections",
+      "sourceClass": "first_party",
+      "outcome": "adopted",
+      "reasonCode": "exact_store_barrel_selection",
+      "url": "https://www.paylessliquors.info/barrel-selections"
+    },
+    {
+      "sourceId": "penguin-liquor-product-pages",
+      "sourceClass": "first_party",
+      "outcome": "adopted",
+      "reasonCode": "exact_store_binary_orderability",
+      "url": "https://www.penguinliquor.com/"
+    },
+    {
+      "sourceId": "target-redsky-indiana",
+      "sourceClass": "first_party",
+      "outcome": "adopted",
+      "reasonCode": "credential_gated_exact_store_fulfillment",
+      "url": "https://www.target.com/"
+    },
+    {
+      "sourceId": "costco-indiana-warehouse-watch",
+      "sourceClass": "first_party",
+      "outcome": "adopted",
+      "reasonCode": "exact_warehouse_watch",
+      "url": "https://www.costco.com/"
+    },
+    {
+      "sourceId": "bourbon-world-allocated-list",
+      "sourceClass": "first_party",
+      "outcome": "adopted",
+      "reasonCode": "aggregate_release_watch_only",
+      "url": "https://bourbonworld.net/"
+    },
+    {
+      "sourceId": "indiana-liquor-group-featured-products",
+      "sourceClass": "first_party",
+      "outcome": "viable_not_adopted",
+      "reasonCode": "product_specific_not_exact_store",
+      "url": "https://indianaliquor.com/featured-products/"
+    },
+    {
+      "sourceId": "frontier-liquors-bottlecapps",
+      "sourceClass": "first_party",
+      "outcome": "blocked",
+      "reasonCode": "source_policy_blocked_http_403",
+      "url": "https://www.frontierliquors.com/s-10457/c-2/buy-liquor/t-11/buy-bourbon-whiskey"
+    },
+    {
+      "sourceId": "frontier-liquors-doordash",
+      "sourceClass": "delegated_marketplace",
+      "outcome": "rejected",
+      "reasonCode": "marketplace_listing_not_inventory_authority",
+      "url": "https://www.doordash.com/convenience/store/frontier-liquors-evansville-26286224/"
+    },
+    {
+      "sourceId": "cityhive-destinations-indiana-filter",
+      "sourceClass": "delegated_marketplace",
+      "outcome": "rejected",
+      "reasonCode": "product_origin_filter_not_indiana_store",
+      "url": "https://destinations.cityhive.net/shop/?state=Indiana"
+    },
+    {
+      "sourceId": "anderson-beverage-outlet",
+      "sourceClass": "first_party",
+      "outcome": "rejected",
+      "reasonCode": "no_public_product_inventory",
+      "url": "https://www.andersonbeverageoutlet.com/"
+    },
+    {
+      "sourceId": "liquor-locker-evansville",
+      "sourceClass": "first_party",
+      "outcome": "rejected",
+      "reasonCode": "phone_order_only_no_product_inventory",
+      "url": "https://evansvilleliquorstore.com/delivery/"
+    },
+    {
+      "sourceId": "pay-less-kroger-anderson",
+      "sourceClass": "first_party",
+      "outcome": "viable_not_adopted",
+      "reasonCode": "public_store_identity_without_bounded_inventory_contract",
+      "url": "https://www.pay-less.com/stores/liquor/in/anderson"
+    },
+    {
+      "sourceId": "total-wine-indiana",
+      "sourceClass": "first_party",
+      "outcome": "blocked",
+      "reasonCode": "bot_protection_no_bypass",
+      "url": "https://www.totalwine.com/"
+    }
+  ]
+}

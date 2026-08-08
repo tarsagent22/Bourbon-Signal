@@ -8,6 +8,48 @@ export const INDIANA_CITYHIVE_PRIORITY_CITIES = [
   'martinsville', 'bedford', 'french lick', 'morgantown', 'trafalgar', 'jasper',
 ];
 
+// Public fast-retailer inventory ages out after 12 hours. Refresh the source
+// cache well before that boundary so a successful not-due state pass cannot
+// retain an artifact whose customer cards have already become stale.
+export const INDIANA_CITYHIVE_CACHE_MAX_AGE_MS = Math.min(
+  6 * 60 * 60_000,
+  Math.max(60 * 60_000, Number(process.env.BOURBON_SIGNAL_IN_CITYHIVE_CACHE_MAX_AGE_MS) || 6 * 60 * 60_000),
+);
+
+export const INDIANA_CITYHIVE_SOURCE_COHORT_SIZE = Math.min(
+  3,
+  Math.max(1, Number(process.env.BOURBON_SIGNAL_IN_CITYHIVE_SOURCE_COHORT_SIZE) || 3),
+);
+
+export function selectIndianaCityHiveSourceCohort(sources, observedAt, {
+  cohortSize = INDIANA_CITYHIVE_SOURCE_COHORT_SIZE,
+  rotationMs = 60 * 60_000,
+  forceAll = false,
+} = {}) {
+  if (!Array.isArray(sources) || !sources.length) return [];
+  if (forceAll) return [...sources];
+  const size = Math.max(1, Math.min(sources.length, Number(cohortSize) || 1));
+  const slot = Math.floor(Date.parse(String(observedAt || '')) / Math.max(1, Number(rotationMs) || 1));
+  // Add one offset after each full source-count of time slots so lower
+  // operator-selected cohort sizes cannot lock a three-hour cadence onto a
+  // permanent modulo subset of the provider universe.
+  const start = Number.isFinite(slot) ? (slot + Math.floor(slot / sources.length)) % sources.length : 0;
+  return Array.from({ length: size }, (_, index) => sources[(start + index) % sources.length]);
+}
+
+export function isIndianaCityHiveCacheUsable(cache, nowMs = Date.now(), maxAgeMs = INDIANA_CITYHIVE_CACHE_MAX_AGE_MS) {
+  const generatedMs = Date.parse(String(cache?.generatedAt || ''));
+  const ageMs = nowMs - generatedMs;
+  const signals = Array.isArray(cache?.signals) ? cache.signals : [];
+  return Number.isFinite(nowMs)
+    && Number.isFinite(maxAgeMs)
+    && maxAgeMs >= 0
+    && Number.isFinite(generatedMs)
+    && ageMs >= 0
+    && ageMs <= maxAgeMs
+    && signals.some((signal) => signal?.eventType === 'cityhive_store_inventory_result');
+}
+
 function normalizedMarket(value) {
   return String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').replace(/\s+/g, ' ').trim();
 }

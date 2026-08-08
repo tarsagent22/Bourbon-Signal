@@ -1,20 +1,29 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFile } from 'node:fs/promises';
 
 import {
+  INDIANA_CITYHIVE_CACHE_MAX_AGE_MS,
+  INDIANA_CITYHIVE_SOURCE_COHORT_SIZE,
   INDIANA_TARGET_STORES,
   indianaCityHivePriorityRank,
   isIndianaCityHivePriorityMarket,
   filterFreshIndianaTargetSignals,
   mergeIndianaTargetCacheSignals,
+  isIndianaCityHiveCacheUsable,
   parseIndianaTargetFulfillment,
   parseIndianaTargetSearchProducts,
+  selectIndianaCityHiveSourceCohort,
   shouldWriteIndianaTargetCache,
 } from '../src/collectors/indiana-retailer-surfaces.mjs';
+import { cachedIndianaCityHiveSignals, collectIndiana, legacyPrecisionRuntimeOptions, mergeIndianaCityHiveRetentionCaches, mergeMissingIndianaCityHiveCacheChains, precisionExistingSignalsForState, previousIndianaCityHiveCache } from '../src/collectors/precision-probes.mjs';
 import {
   isIndianaRetailerInventory,
   isIndianaRetailerSignalIdentity,
 } from '../src/indiana-retailer-policy.mjs';
+
+const INDIANA_SOURCE_OUTCOMES = new Set(['adopted', 'viable_not_adopted', 'rejected', 'blocked']);
+const INDIANA_SOURCE_CLASSES = new Set(['first_party', 'delegated_marketplace', 'official_directory', 'other_public']);
 
 const EXPECTED_TARGET_STORES = new Map([
   ['1530', ['Muncie', '3601 N Barr St, Muncie, IN 47303']],
@@ -46,6 +55,213 @@ test('Indiana CityHive branch expansion prioritizes every Gays Hops-N-Schnapps m
   }
   assert.equal(isIndianaCityHivePriorityMarket('Louisville, KY'), false);
   assert(indianaCityHivePriorityRank('Auburn') < indianaCityHivePriorityRank('unknown Indiana town'));
+});
+
+test('Indiana CityHive cache expires before customer inventory cards become stale', () => {
+  const now = Date.parse('2026-08-08T21:00:00.000Z');
+  const inventory = { eventType: 'cityhive_store_inventory_result' };
+  assert.ok(INDIANA_CITYHIVE_CACHE_MAX_AGE_MS <= 6 * 60 * 60_000);
+  assert.equal(isIndianaCityHiveCacheUsable({ generatedAt: '2026-08-08T15:00:00.000Z', signals: [inventory] }, now), true);
+  assert.equal(isIndianaCityHiveCacheUsable({ generatedAt: '2026-08-08T14:59:59.999Z', signals: [inventory] }, now), false);
+  assert.equal(isIndianaCityHiveCacheUsable({ generatedAt: '2026-08-08T21:00:00.001Z', signals: [inventory] }, now), false);
+  assert.equal(isIndianaCityHiveCacheUsable({ generatedAt: '2026-08-08T20:00:00.000Z', signals: [{ eventType: 'retailer_store_location' }] }, now), false);
+  assert.equal(isIndianaCityHiveCacheUsable({ generatedAt: 'invalid', signals: [inventory] }, now), false);
+});
+
+test('Indiana CityHive source cohorts rotate without starving providers at a three-hour cadence', () => {
+  const sources = Array.from({ length: 9 }, (_, index) => ({ id: `source-${index}` }));
+  const first = selectIndianaCityHiveSourceCohort(sources, '2026-08-08T20:00:00.000Z');
+  const second = selectIndianaCityHiveSourceCohort(sources, '2026-08-08T21:00:00.000Z');
+  assert.equal(INDIANA_CITYHIVE_SOURCE_COHORT_SIZE, 3);
+  assert.equal(first.length, 3);
+  assert.equal(second.length, 3);
+  assert.notDeepEqual(first, second);
+  assert.equal(selectIndianaCityHiveSourceCohort(sources, '2026-08-08T20:00:00.000Z', { forceAll: true }).length, 9);
+  for (const cohortSize of [1, 2, 3]) {
+    const threeHourCoverage = new Set();
+    for (let hour = 0; hour < 27; hour += 3) {
+      const observedAt = new Date(Date.parse('2026-08-08T00:00:00.000Z') + hour * 60 * 60_000).toISOString();
+      for (const source of selectIndianaCityHiveSourceCohort(sources, observedAt, { cohortSize })) threeHourCoverage.add(source.id);
+    }
+    assert.equal(threeHourCoverage.size, 9, `cohort size ${cohortSize} permanently starved a provider`);
+  }
+});
+
+test('Indiana CityHive fallback preserves source observation time and denies stale alerts', () => {
+  const cached = cachedIndianaCityHiveSignals({
+    generatedAt: '2026-08-08T21:00:00.000Z',
+    signals: [
+      { id: 'fresh', eventType: 'cityhive_store_inventory_result', observedAt: '2026-08-08T20:00:00.000Z', canAlertAsInventory: true, canAlertAsWatch: true, raw: { chain: 'big-red' } },
+      { id: 'old', eventType: 'cityhive_store_inventory_result', observedAt: '2026-08-08T08:59:59.999Z', canAlertAsInventory: true, canAlertAsWatch: true, raw: { chain: 'cap-n-cork' } },
+    ],
+  }, '2026-08-08T21:00:00.000Z');
+  assert.equal(cached[0].observedAt, '2026-08-08T20:00:00.000Z');
+  assert.equal(cached[0].canAlertAsInventory, true);
+  assert.equal(cached[1].observedAt, '2026-08-08T08:59:59.999Z');
+  assert.equal(cached[1].stale, true);
+  assert.equal(cached[1].sourceStale, true);
+  assert.equal(cached[1].canAlertAsInventory, false);
+  assert.equal(cached[1].canAlertAsWatch, false);
+});
+
+test('Indiana prior-state retention preserves its real timestamp and provenance', () => {
+  const cache = previousIndianaCityHiveCache([{
+    id: 'prior',
+    eventType: 'cityhive_store_inventory_result',
+    observedAt: '2026-08-08T20:00:00.000Z',
+    canAlertAsInventory: true,
+    raw: { chain: 'big-red' },
+  }]);
+  assert.equal(cache.generatedAt, '2026-08-08T20:00:00.000Z');
+  assert.equal(cache.cacheSource, 'previous_state_report');
+  const [retained] = cachedIndianaCityHiveSignals(cache, '2026-08-08T21:00:00.000Z');
+  assert.equal(retained.observedAt, '2026-08-08T20:00:00.000Z');
+  assert.equal(retained.raw.cacheSource, 'previous_state_report');
+  assert.equal(retained.raw.cacheGeneratedAt, '2026-08-08T20:00:00.000Z');
+  const unknown = previousIndianaCityHiveCache([{
+    id: 'unknown-time', eventType: 'cityhive_store_inventory_result', raw: { chain: 'big-red' },
+  }]);
+  assert.equal(unknown.generatedAt, null);
+  const [unknownRetained] = cachedIndianaCityHiveSignals(unknown, '2026-08-08T21:00:00.000Z');
+  assert.equal(unknownRetained.raw.cacheGeneratedAt, null);
+  assert.equal(unknownRetained.stale, true);
+  assert.equal(unknownRetained.canAlertAsInventory, false);
+  const inherited = previousIndianaCityHiveCache([{
+    id: 'inherited',
+    eventType: 'cityhive_store_inventory_result',
+    observedAt: '2026-08-08T19:00:00.000Z',
+    raw: { chain: 'big-red', cacheSource: 'durable-cityhive-cache', cacheGeneratedAt: '2026-08-08T19:30:00.000Z' },
+  }]);
+  assert.equal(inherited.generatedAt, '2026-08-08T19:30:00.000Z');
+  const [inheritedRetained] = cachedIndianaCityHiveSignals(inherited, '2026-08-08T21:00:00.000Z');
+  assert.equal(inheritedRetained.raw.cacheSource, 'durable-cityhive-cache');
+  assert.equal(inheritedRetained.raw.cacheGeneratedAt, '2026-08-08T19:30:00.000Z');
+  const mixed = previousIndianaCityHiveCache([
+    { id: 'known', eventType: 'cityhive_store_inventory_result', observedAt: '2026-08-08T20:00:00.000Z', raw: { chain: 'big-red' } },
+    { id: 'still-unknown', eventType: 'cityhive_store_inventory_result', raw: { chain: 'cap-n-cork' } },
+  ]);
+  assert.equal(mixed.generatedAt, '2026-08-08T20:00:00.000Z');
+  assert.equal(mixed.signals.find((signal) => signal.id === 'still-unknown').raw.retainedCacheGeneratedAt, null);
+  const projectedMixed = cachedIndianaCityHiveSignals(mixed, '2026-08-08T21:00:00.000Z');
+  assert.equal(projectedMixed.find((signal) => signal.id === 'still-unknown').raw.cacheGeneratedAt, null);
+});
+
+test('Indiana targeted refresh receives prior precision rows for partial source continuity', () => {
+  const current = [{ id: 'current' }];
+  const prior = [{ id: 'prior' }, { id: 'current', retained: true }];
+  const merged = precisionExistingSignalsForState('IN', current, {
+    'precision:in': { value: { signals: prior } },
+  });
+  assert.deepEqual(merged, [{ id: 'prior' }, { id: 'current' }]);
+  assert.equal(precisionExistingSignalsForState('OH', current, {}).length, 1);
+});
+
+test('Indiana disk cache overlays rather than replaces broader prior state evidence', () => {
+  const merged = mergeIndianaCityHiveRetentionCaches(
+    { generatedAt: '2026-08-08T21:00:00.000Z', signals: [{ id: 'shared', value: 'cache' }, { id: 'cache-only' }], roadblocks: [] },
+    { generatedAt: '2026-08-08T20:00:00.000Z', signals: [{ id: 'shared', value: 'prior' }, { id: 'prior-only' }], roadblocks: [] },
+    '2026-08-08T21:00:00.000Z',
+  );
+  assert.equal(merged.generatedAt, '2026-08-08T21:00:00.000Z');
+  assert.deepEqual(merged.signals, [{ id: 'shared', value: 'cache' }, { id: 'prior-only' }, { id: 'cache-only' }]);
+});
+
+test('Indiana partial refresh retains missing identities from a refreshed chain only as stale context', () => {
+  const signals = [{ id: 'current', eventType: 'cityhive_store_inventory_result', observedAt: '2026-08-08T21:00:00.000Z', canAlertAsInventory: true, raw: { chain: 'big-red' } }];
+  const added = mergeMissingIndianaCityHiveCacheChains(signals, {
+    generatedAt: '2026-08-08T20:00:00.000Z',
+    signals: [
+      { id: 'current', eventType: 'cityhive_store_inventory_result', observedAt: '2026-08-08T20:00:00.000Z', canAlertAsInventory: true, canAlertAsWatch: true, raw: { chain: 'big-red' } },
+      { id: 'missing', eventType: 'cityhive_store_inventory_result', observedAt: '2026-08-08T20:00:00.000Z', canAlertAsInventory: true, canAlertAsWatch: true, raw: { chain: 'big-red' } },
+    ],
+  }, '2026-08-08T21:00:00.000Z', { refreshedSourceIds: new Set(['big-red']) });
+  assert.equal(added, 1);
+  assert.equal(signals.length, 2);
+  assert.equal(signals[1].id, 'missing');
+  assert.equal(signals[1].stale, true);
+  assert.equal(signals[1].canAlertAsInventory, false);
+  assert.equal(signals[1].canAlertAsWatch, false);
+});
+
+test('Indiana zero-row completed source immediately demotes its retained inventory', () => {
+  const signals = [];
+  const added = mergeMissingIndianaCityHiveCacheChains(signals, {
+    generatedAt: '2026-08-08T20:00:00.000Z',
+    signals: [{
+      id: 'missing-after-refresh',
+      eventType: 'cityhive_store_inventory_result',
+      observedAt: '2026-08-08T20:00:00.000Z',
+      canAlertAsInventory: true,
+      canAlertAsWatch: true,
+      raw: { chain: 'big-red' },
+    }],
+  }, '2026-08-08T21:00:00.000Z', { refreshedSourceIds: new Set(['big-red']) });
+  assert.equal(added, 1);
+  assert.equal(signals[0].stale, true);
+  assert.equal(signals[0].sourceStale, true);
+  assert.equal(signals[0].canAlertAsInventory, false);
+  assert.equal(signals[0].canAlertAsWatch, false);
+});
+
+test('Indiana incomplete source retains missing cached identities without demoting them', () => {
+  const signals = [{
+    id: 'early-live-row', eventType: 'cityhive_store_inventory_result', observedAt: '2026-08-08T21:00:00.000Z',
+    canAlertAsInventory: true, canAlertAsWatch: true, raw: { chain: 'big-red' },
+  }];
+  const added = mergeMissingIndianaCityHiveCacheChains(signals, {
+    generatedAt: '2026-08-08T20:00:00.000Z',
+    signals: [{
+      id: 'unseen-after-429', eventType: 'cityhive_store_inventory_result', observedAt: '2026-08-08T20:00:00.000Z',
+      canAlertAsInventory: true, canAlertAsWatch: true, raw: { chain: 'big-red' },
+    }],
+  }, '2026-08-08T21:00:00.000Z', { refreshedSourceIds: new Set() });
+  assert.equal(added, 1);
+  assert.equal(signals[1].stale, undefined);
+  assert.equal(signals[1].canAlertAsInventory, true);
+  assert.equal(signals[1].canAlertAsWatch, true);
+});
+
+test('Indiana precision collector has one bounded deadline below the parent state watchdog', () => {
+  assert.deepEqual(legacyPrecisionRuntimeOptions('IN', {}, {}), { timeoutMs: 600_000, maxAttempts: 1 });
+});
+
+test('Indiana precision collector propagates runtime cancellation before network or cache work', async () => {
+  const controller = new AbortController();
+  controller.abort(new Error('stop Indiana precision'));
+  await assert.rejects(
+    collectIndiana({ id: 'IN' }, [], [], { signal: controller.signal }),
+    /stop Indiana precision/,
+  );
+});
+
+test('Indiana lawful-source audit is complete, stable, and machine-classifiable', async () => {
+  const audit = JSON.parse(await readFile(new URL('../data/source-atlas/IN.json', import.meta.url), 'utf8'));
+  assert.equal(audit.contractVersion, 'bourbon-signal-indiana-source-audit-v1');
+  assert.equal(audit.knownSourceUniverseComplete, true);
+  assert.equal(audit.discoveryPasses.length, 2);
+  assert.notEqual(audit.discoveryPasses[0].method, audit.discoveryPasses[1].method);
+  assert.ok(audit.sources.length >= 20);
+  assert.equal(new Set(audit.sources.map((source) => source.sourceId)).size, audit.sources.length);
+  for (const source of audit.sources) {
+    assert.match(source.sourceId, /^[a-z0-9]+(?:-[a-z0-9]+)*$/);
+    assert.ok(INDIANA_SOURCE_CLASSES.has(source.sourceClass), source.sourceId);
+    assert.ok(INDIANA_SOURCE_OUTCOMES.has(source.outcome), source.sourceId);
+    assert.match(source.reasonCode, /^[a-z0-9]+(?:_[a-z0-9]+)*$/, source.sourceId);
+  }
+});
+
+test('Indiana verifier distinguishes fresh alertable rows from stale nonalertable continuity', async () => {
+  const verifier = await readFile(new URL('../src/verify-in.mjs', import.meta.url), 'utf8');
+  const collector = await readFile(new URL('../src/collectors/precision-probes.mjs', import.meta.url), 'utf8');
+  assert.match(verifier, /liveRetailerInventoryStores\.size >= 5/);
+  assert.match(verifier, /staleRetailerInventorySignals\.every/);
+  assert.match(verifier, /staleAlertableRetailerInventoryDrops\.length === 0/);
+  assert.match(verifier, /siteExports\.every/);
+  assert.match(verifier, /dropsExport\.engineGeneratedAt === summary\.generatedAt/);
+  assert.match(verifier, /siteGeneratedAt - stateFinishedAt <= 2 \* 60 \* 60_000/);
+  assert.doesNotMatch(verifier, /alertableRetailerInventorySignals\.length >= 300/);
+  assert.match(collector, /sourceReachable && sourceComplete/);
+  assert.match(collector, /if \(signal\?\.aborted\) throw error/);
 });
 
 test('Target response parsers fail closed on malformed reachable payloads', () => {
