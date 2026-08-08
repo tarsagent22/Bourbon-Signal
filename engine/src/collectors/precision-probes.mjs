@@ -1224,9 +1224,9 @@ const SC_CITYHIVE_INVENTORY_MERCHANT_IDS = new Set(
 );
 const SC_CITYHIVE_MERCHANT_CHAIN = new Map(SC_CITYHIVE_SOURCES.flatMap((source) => source.merchantIds.map((merchantId) => [merchantId, source.id])));
 const SC_MYRTLE_CITYHIVE_MERCHANT_IDS = [
+  '6a0b27396d36df004b28a7ab',
   '61e1d04c823936166693c7f3',
   '6144e1c2085a5f20a622a15f',
-  '6a0b27396d36df004b28a7ab',
 ];
 const SC_MYRTLE_CITYHIVE_MERCHANT_PRIORITY = new Map(SC_MYRTLE_CITYHIVE_MERCHANT_IDS.map((id, index) => [id, index]));
 
