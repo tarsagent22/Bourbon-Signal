@@ -66,9 +66,11 @@ if (!sources.some((source) => /Green's Beverage/i.test(source))) throw new Error
 if (!sources.some((source) => /Wine & Bourbon Barn/i.test(source))) throw new Error('Missing Wine & Bourbon Barn CityHive inventory rows');
 if (myrtleInventory.length < 10) throw new Error(`Myrtle Beach inventory rows below threshold: ${myrtleInventory.length}`);
 if (myrtleFresh.length < 10) throw new Error(`Myrtle Beach fresh inventory rows below threshold: ${myrtleFresh.length}`);
-if (myrtleStores.length < 2) throw new Error(`Myrtle Beach inventory store coverage too low: ${myrtleStores.length}`);
+if (myrtleStores.length < 4) throw new Error(`Myrtle Beach inventory store coverage too low: ${myrtleStores.length}`);
 if (!myrtleSources.some((source) => /Green's Beverage/i.test(source))) throw new Error('Missing Green\'s Beverage Myrtle Beach inventory rows');
 if (!myrtleSources.some((source) => /Beach Discount Beverages/i.test(source))) throw new Error('Missing Beach Discount Beverages Myrtle Beach inventory rows');
+if (!myrtleSources.some((source) => /Surf Beverage/i.test(source))) throw new Error('Missing Surf Beverage Myrtle Beach inventory rows');
+if (!myrtleSources.some((source) => /Dunes Liquor/i.test(source))) throw new Error('Missing Dunes Liquor Myrtle Beach inventory rows');
 if (exportedMyrtleDrops.length < 5) throw new Error(`Myrtle Beach exported drops below threshold: ${exportedMyrtleDrops.length}`);
 // The bounded public feed may rank several same-city stores behind a stronger card.
 // Require one visible Myrtle store while proving multi-store breadth from the complete

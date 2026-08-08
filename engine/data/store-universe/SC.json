@@ -1,20 +1,22 @@
 {
-  "generatedAt": "2026-07-30T19:50:05.453Z",
+  "generatedAt": "2026-08-08T04:44:11Z",
   "state": "SC",
   "model": "Bourbon Signal national store universe v0.1",
   "caveat": "Known-store coverage is not equivalent to live bottle inventory. inventoryStatus separates directory-only, platform/probeable, live inventory, and alert-grade semantics.",
   "summary": {
     "seedCount": 10,
     "probedCount": 11,
-    "knownStoreCount": 22,
-    "currentStoreCount": 22,
+    "knownStoreCount": 32,
+    "currentStoreCount": 32,
     "probeDiscoveredStoreCount": 20,
     "directorySeedStoreCount": 0,
     "directoryUrlStoreCount": 0,
     "byStatus": {
-      "live-inventory": 22
+      "catalog-searchable": 2,
+      "live-inventory": 23,
+      "storefront-probeable": 7
     },
-    "cityCount": 13,
+    "cityCount": 15,
     "byCity": {
       "Columbia": 3,
       "Greenville": 2,
@@ -23,11 +25,13 @@
       "Landrum": 1,
       "Mauldin": 2,
       "Mount Pleasant": 1,
-      "Myrtle Beach": 3,
+      "Murrells Inlet": 1,
+      "Myrtle Beach": 10,
       "North Charleston": 1,
       "Rock Hill": 3,
       "Simpsonville": 1,
       "Summerville": 1,
+      "Surfside Beach": 2,
       "Taylors": 1
     },
     "promotableCityHiveSourceCount": 8,
@@ -407,6 +411,162 @@
       "ecommercePlatform": "integrated-cart-storefront",
       "sourceRuntimeId": "retailer:sc:dunes:6178",
       "key": "dunes-liquor-myrtle-beach-29572"
+    },
+    {
+      "id": "hurricane-liquor:4390-hwy-17-bypass",
+      "name": "Hurricane Liquor",
+      "address": "4390 Hwy 17 Bypass, Murrells Inlet, SC 29576",
+      "city": "Murrells Inlet",
+      "state": "SC",
+      "zip": "29576",
+      "sourceLabels": [
+        "Hurricane Liquor first-party storefront"
+      ],
+      "inventoryStatus": "storefront-probeable",
+      "discoverySource": "first-party-site",
+      "website": "https://hurricaneliquor.com/",
+      "key": "hurricane-liquor-4390-hwy-17-bypass"
+    },
+    {
+      "id": "burnt-barrel-wine-and-spirits:burnt-barrel-wine-and-spirits",
+      "name": "Burnt Barrel Wine & Spirits",
+      "address": "235 Village Center Blvd Unit 5, Myrtle Beach, SC 29579",
+      "city": "Myrtle Beach",
+      "state": "SC",
+      "zip": "29579",
+      "sourceLabels": [
+        "Burnt Barrel Wine & Spirits events watch"
+      ],
+      "inventoryStatus": "storefront-probeable",
+      "discoverySource": "configured-first-party-source",
+      "website": "https://burntbarrelwineandspirits.com/",
+      "key": "burnt-barrel-wine-and-spirits-burnt-barrel-wine-and-spirits"
+    },
+    {
+      "id": "gator-hole-spirits:1213-38th-ave-n",
+      "name": "Gator Hole Spirits II",
+      "address": "1213 38th Ave N, Myrtle Beach, SC 29577",
+      "city": "Myrtle Beach",
+      "state": "SC",
+      "zip": "29577",
+      "sourceLabels": [
+        "Gator Hole Spirits first-party locations"
+      ],
+      "inventoryStatus": "storefront-probeable",
+      "discoverySource": "first-party-site",
+      "website": "https://www.gatorholespirits.com/contact-us",
+      "key": "gator-hole-spirits-1213-38th-ave-n"
+    },
+    {
+      "id": "gator-hole-spirits:508a-n-kings-hwy",
+      "name": "Gator Hole Spirits III",
+      "address": "508A N Kings Hwy, Myrtle Beach, SC 29577",
+      "city": "Myrtle Beach",
+      "state": "SC",
+      "zip": "29577",
+      "sourceLabels": [
+        "Gator Hole Spirits first-party locations"
+      ],
+      "inventoryStatus": "storefront-probeable",
+      "discoverySource": "first-party-site",
+      "website": "https://www.gatorholespirits.com/contact-us",
+      "key": "gator-hole-spirits-508a-n-kings-hwy"
+    },
+    {
+      "id": "liquor-store-near-me-myrtle-beach:liquor-store-near-me-myrtle-beach",
+      "name": "Liquor Store Near Me Myrtle Beach",
+      "address": "4032 River Oaks Dr Ste 5, Myrtle Beach, SC 29579",
+      "city": "Myrtle Beach",
+      "state": "SC",
+      "zip": "29579",
+      "sourceLabels": [
+        "Liquor Store Near Me Myrtle Beach WooCommerce catalog"
+      ],
+      "inventoryStatus": "catalog-searchable",
+      "discoverySource": "configured-first-party-source",
+      "website": "https://liquorstorenearmemyrtlebeach.com/",
+      "key": "liquor-store-near-me-myrtle-beach-liquor-store-near-me-myrtle-beach",
+      "ecommercePlatform": "woocommerce"
+    },
+    {
+      "id": "myrtle-beach-liquor:2010-n-kings-hwy",
+      "name": "Myrtle Beach Liquor",
+      "address": "2010 N Kings Hwy, Myrtle Beach, SC 29577",
+      "city": "Myrtle Beach",
+      "state": "SC",
+      "zip": "29577",
+      "sourceLabels": [
+        "Myrtle Beach Liquor first-party storefront"
+      ],
+      "inventoryStatus": "storefront-probeable",
+      "discoverySource": "first-party-site",
+      "website": "https://myrtlebeachliquor.com/",
+      "key": "myrtle-beach-liquor-2010-n-kings-hwy"
+    },
+    {
+      "id": "owens-liquors:owens-liquors-myrtle-beach",
+      "name": "Owens Liquors",
+      "address": "8000 N Kings Hwy, Myrtle Beach, SC 29572",
+      "city": "Myrtle Beach",
+      "state": "SC",
+      "zip": "29572",
+      "sourceLabels": [
+        "Owens Liquors guarded CityHive discovery"
+      ],
+      "inventoryStatus": "catalog-searchable",
+      "discoverySource": "configured-first-party-source",
+      "website": "https://www.owensliquors.com/",
+      "key": "owens-liquors-owens-liquors-myrtle-beach",
+      "ecommercePlatform": "cityhive-guarded"
+    },
+    {
+      "id": "surf-beverage:6a0b27396d36df004b28a7ab",
+      "name": "Surf Beverage",
+      "address": "3140 US-17, Myrtle Beach, SC 29577, USA",
+      "city": "Myrtle Beach",
+      "state": "SC",
+      "zip": "29577",
+      "sourceLabels": [
+        "Surf Beverage CityHive store locator",
+        "Surf Beverage South Carolina CityHive store inventory"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "first-party-live-probe",
+      "website": "https://surfbeverages.com/",
+      "key": "surf-beverage-6a0b27396d36df004b28a7ab",
+      "lat": 33.6923324,
+      "lng": -78.9496482,
+      "ecommercePlatform": "cityhive"
+    },
+    {
+      "id": "ocean-liquors:1141-dick-pond-rd",
+      "name": "Ocean Liquors",
+      "address": "1141 Dick Pond Rd, Surfside Beach, SC 29575",
+      "city": "Surfside Beach",
+      "state": "SC",
+      "zip": "29575",
+      "sourceLabels": [
+        "Ocean Liquors first-party storefront"
+      ],
+      "inventoryStatus": "storefront-probeable",
+      "discoverySource": "first-party-site",
+      "website": "https://www.oceanliquorssurfside.com/",
+      "key": "ocean-liquors-1141-dick-pond-rd"
+    },
+    {
+      "id": "surfside-beach-liquors:2696-beaver-run-blvd",
+      "name": "Surfside Beach Liquors",
+      "address": "2696 Beaver Run Blvd Suite D, Surfside Beach, SC 29575",
+      "city": "Surfside Beach",
+      "state": "SC",
+      "zip": "29575",
+      "sourceLabels": [
+        "Surfside Beach Liquors first-party storefront"
+      ],
+      "inventoryStatus": "storefront-probeable",
+      "discoverySource": "first-party-site",
+      "website": "https://surfsidebeachliquors.com/",
+      "key": "surfside-beach-liquors-2696-beaver-run-blvd"
     }
   ]
 }

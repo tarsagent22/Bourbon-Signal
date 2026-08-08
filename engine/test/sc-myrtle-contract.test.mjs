@@ -3,8 +3,13 @@ import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import {
   cachedSouthCarolinaCityHiveSignals,
+  isAuthoritativeSouthCarolinaCityHiveMerchantPayload,
   isFreshSouthCarolinaCityHiveCacheTimestamp,
+  mergeSouthCarolinaCityHiveSignals,
   runIsolatedSouthCarolinaSourceLane,
+  southCarolinaCityHiveBoundMerchantIds,
+  southCarolinaCityHiveMerchantEvidence,
+  southCarolinaCityHiveProbePlan,
 } from '../src/collectors/precision-probes.mjs';
 import { buildCurrentInventoryAlertsFromDrops } from '../src/export-site-contract.mjs';
 import { isSouthCarolinaCityHiveInventory } from '../src/south-carolina-retailer-policy.mjs';
@@ -13,6 +18,7 @@ const collector = readFileSync(new URL('../src/collectors/precision-probes.mjs',
 const verifier = readFileSync(new URL('../src/verify-sc.mjs', import.meta.url), 'utf8');
 const refreshWorkflow = readFileSync(new URL('../../.github/workflows/refresh-feed.yml', import.meta.url), 'utf8');
 const liveProbe = readFileSync(new URL('../../scripts/run-state-expansion-live-probe.mjs', import.meta.url), 'utf8');
+const storeUniverse = JSON.parse(readFileSync(new URL('../data/store-universe/SC.json', import.meta.url), 'utf8'));
 
 function defaultHours(constantName) {
   const match = collector.match(new RegExp(`const ${constantName} = Number\\(process\\.env\\.[A-Z0-9_]+ \\|\\| (\\d+) \\* 60 \\* 60_000\\)`));
@@ -37,13 +43,127 @@ test('Myrtle Beach live inventory remains a South Carolina release contract', ()
   assert.match(collector, /id: 'beach-discount-beverages'[\s\S]*baseUrl: 'https:\/\/beachdiscountbeverages\.com'[\s\S]*https:\/\/beachdis0402bdcd\.sites\.cityhive\.app\/shop\/\?subtype=bourbon[\s\S]*merchantIds: \['6144e1c2085a5f20a622a15f'\]/);
   assert.match(collector, /id: 'greens-beverage'[\s\S]*https:\/\/greensbeb2c6efe1\.sites\.cityhive\.app\/shop\/\?subtype=bourbon/, "Green's should use the CityHive-hosted first-party storefront route that works from scheduled runners");
   assert.match(collector, /'61e1d04c823936166693c7f3'/, "Green's Myrtle Beach merchant must remain selected");
+  assert.match(collector, /id: 'surf-beverage'[\s\S]*https:\/\/surfbeverages\.com\/shop\/\?subtype=bourbon[\s\S]*merchantIds: \['6a0b27396d36df004b28a7ab'\]/);
   assert.match(verifier, /Myrtle Beach inventory rows below threshold/);
   assert.match(verifier, /Myrtle Beach fresh inventory rows below threshold/);
   assert.match(verifier, /Myrtle Beach inventory store coverage too low/);
   assert.match(verifier, /Myrtle Beach exported drops below threshold/);
   assert.match(verifier, /Myrtle Beach exported store coverage too low/);
-  assert.match(verifier, /myrtleStores\.length < 2/);
+  assert.match(verifier, /myrtleStores\.length < 4/);
+  assert.match(verifier, /Missing Surf Beverage Myrtle Beach inventory rows/);
   assert.match(verifier, /exportedMyrtleStores\.length < 1/);
+});
+
+test('Myrtle Beach merchants are probed first without widening the statewide CityHive request matrix', () => {
+  assert.deepEqual(southCarolinaCityHiveProbePlan(null), []);
+  assert.deepEqual(southCarolinaCityHiveProbePlan([{ merchantIds: null, urls: {} }]), []);
+  assert.deepEqual(southCarolinaCityHiveProbePlan([{ merchantIds: ['61e1d04c823936166693c7f3'], urls: ['', 'not-a-url', 'http://insecure.example'] }]), []);
+  const probes = southCarolinaCityHiveProbePlan();
+  const myrtle = probes.filter((probe) => probe.priority === 'myrtle');
+  assert.deepEqual(myrtle.map((probe) => probe.merchantId), [
+    '61e1d04c823936166693c7f3',
+    '6144e1c2085a5f20a622a15f',
+    '6a0b27396d36df004b28a7ab',
+  ]);
+  assert.ok(probes.every((probe) => probe.page === 1));
+  assert.ok(myrtle.every((probe) => new URL(probe.url).searchParams.get('merchant-id') === probe.merchantId));
+  assert.match(collector, /failedProbeCounts = \{ myrtle: 0, statewide: 0 \}/);
+  assert.match(collector, /blockedPriorities\.add\(probe\.priority\)/);
+  assert.match(collector, /blockedSourceKeys\.add\(`\$\{probe\.priority\}\|\$\{source\.id\}`\)/);
+  assert.match(collector, /typeof option\.full_address === 'string'/);
+  assert.match(collector, /parentProductId && parentProductId !== productId/);
+  assert.match(collector, /southCarolinaCityHiveMerchantEvidence\(blobs, merchantId\)/);
+  assert.match(collector, /completedMerchantIds\.add\(merchantId\)/);
+  assert.doesNotMatch(collector, /reachablePageCount \+= 1;\s*completedMerchantIds\.add/);
+  assert.match(collector, /completedMerchantIds\.size === configuredProbeCount[\s\S]*writeSouthCarolinaCityHiveCache/);
+});
+
+test('CityHive completion requires requested-merchant configuration and product payload proof', () => {
+  const merchantA = 'merchant-a';
+  const merchantB = 'merchant-b';
+  assert.equal(isAuthoritativeSouthCarolinaCityHiveMerchantPayload(null), false);
+  assert.equal(isAuthoritativeSouthCarolinaCityHiveMerchantPayload({ requestedMerchantId: { forged: true }, hasProductPayload: true, configuredMerchantIds: [merchantA], payloadMerchantIds: [merchantA] }), false);
+  assert.equal(isAuthoritativeSouthCarolinaCityHiveMerchantPayload({ requestedMerchantId: merchantA, hasProductPayload: true, configuredMerchantIds: null, payloadMerchantIds: [merchantA] }), false);
+  assert.equal(isAuthoritativeSouthCarolinaCityHiveMerchantPayload({ requestedMerchantId: merchantA, hasProductPayload: true, configuredMerchantIds: [merchantA], payloadMerchantIds: {} }), false);
+  assert.equal(isAuthoritativeSouthCarolinaCityHiveMerchantPayload({
+    requestedMerchantId: merchantA,
+    hasProductPayload: false,
+    configuredMerchantIds: [merchantA],
+    payloadMerchantIds: [merchantA],
+  }), false);
+  assert.equal(isAuthoritativeSouthCarolinaCityHiveMerchantPayload({
+    requestedMerchantId: merchantA,
+    hasProductPayload: true,
+    configuredMerchantIds: [merchantB],
+    payloadMerchantIds: [merchantB],
+  }), false);
+  assert.equal(isAuthoritativeSouthCarolinaCityHiveMerchantPayload({
+    requestedMerchantId: merchantA,
+    hasProductPayload: true,
+    configuredMerchantIds: [merchantA, merchantB],
+    payloadMerchantIds: [merchantB],
+  }), false);
+  assert.equal(isAuthoritativeSouthCarolinaCityHiveMerchantPayload({
+    requestedMerchantId: merchantA,
+    hasProductPayload: true,
+    configuredMerchantIds: [merchantA, merchantB],
+    payloadMerchantIds: [merchantA, merchantB],
+  }), true);
+});
+
+test('CityHive completion merchant extraction fails closed on malformed and incomplete option payloads', () => {
+  assert.deepEqual(southCarolinaCityHiveBoundMerchantIds(null), []);
+  assert.deepEqual(southCarolinaCityHiveBoundMerchantIds([{ merchants: {} }, { merchants: [{ product_options: {} }] }]), []);
+  assert.deepEqual(southCarolinaCityHiveBoundMerchantIds([{ merchants: [{ product_options: [null,
+    { merchant_id: { forged: true }, product_id: { forged: true }, option_id: { forged: true } },
+    { merchant_id: 'merchant-a', product_id: '', option_id: 'option-a' },
+    { merchant_id: 'merchant-b', product_id: 'product-b', option_id: '' },
+  ] }] }]), []);
+  assert.deepEqual(southCarolinaCityHiveBoundMerchantIds([{ merchants: [{ product_options: [null,
+    { merchant_id: 'merchant-a', product_id: 'product-a', option_id: 'option-a' },
+    { merchant_id: 'merchant-a', product_id: 'product-a', option_id: 'option-a' },
+  ] }] }]), ['merchant-a']);
+});
+
+test('South Carolina CityHive evidence traversal is bounded and preserves requested merchant page provenance', () => {
+  const merchantId = 'merchant-a';
+  const merchant = { id: merchantId, display_name: 'Surf Beverage', address: { state: 'SC', full_address: '3140 US-17, Myrtle Beach, SC 29577' } };
+  const option = { merchant_id: merchantId, product_id: 'product-a', option_id: 'option-a', full_address: '3140 US-17, Myrtle Beach, SC 29577' };
+  const product = { id: 'product-a', name: 'Buffalo Trace Bourbon', basic_category: 'Bourbon', product_options: [option] };
+  const evidence = southCarolinaCityHiveMerchantEvidence([{ merchant_configs: [merchant], payload: { products: [product] } }], merchantId, null);
+  assert.equal(evidence.authoritative, true);
+  assert.equal(evidence.merchants[0], merchant);
+  assert.equal(evidence.options[0], option);
+  assert.equal(evidence.optionRecords[0].product, product);
+  const merchantWrappedProduct = { id: 'product-a', name: 'Buffalo Trace Bourbon', basic_category: 'Bourbon', merchants: [{ product_options: [option] }] };
+  const wrappedEvidence = southCarolinaCityHiveMerchantEvidence([{ merchant_configs: [merchant], payload: { products: [merchantWrappedProduct] } }], merchantId);
+  assert.equal(wrappedEvidence.authoritative, true);
+  assert.equal(wrappedEvidence.optionRecords[0].product, merchantWrappedProduct);
+  assert.equal(southCarolinaCityHiveMerchantEvidence([{ merchant_configs: [merchant], payload: { products: [product] } }], merchantId).authoritative, true);
+  assert.equal(southCarolinaCityHiveMerchantEvidence([{ merchant_configs: [merchant], payload: { products: [{ ...product, id: 'other-product' }] } }], merchantId).authoritative, false);
+  assert.equal(southCarolinaCityHiveMerchantEvidence([{ merchant_configs: [merchant], payload: { products: [{ ...product, id: { forged: true } }] } }], merchantId).authoritative, false);
+  assert.equal(southCarolinaCityHiveMerchantEvidence([{ merchant_configs: [merchant], payload: { products: [{ id: 'product-a', metadata: { product_options: [option] } }] } }], merchantId).authoritative, false);
+  const mismatchedOption = { ...option, full_address: '100 Main St, Columbia, SC 29201' };
+  assert.equal(southCarolinaCityHiveMerchantEvidence([{ merchant_configs: [merchant], payload: { products: [{ product_options: [mismatchedOption] }] } }], merchantId).authoritative, false);
+  assert.equal(southCarolinaCityHiveMerchantEvidence([{ merchant_configs: [merchant] }, { payload: { products: [{ product_options: [option] }] } }], merchantId).authoritative, true);
+  const sparse = new Array(3);
+  sparse[2] = { merchant_configs: [merchant] };
+  assert.equal(southCarolinaCityHiveMerchantEvidence(sparse, merchantId).authoritative, false);
+  assert.equal(southCarolinaCityHiveMerchantEvidence([{ merchant_configs: [merchant], payload: { products: [{ product_options: [option] }] } }], 'merchant-b').authoritative, false);
+  assert.equal(southCarolinaCityHiveMerchantEvidence([{ merchant_configs: [merchant], payload: { products: [{ product_options: [option] }] } }], merchantId, { maxNodes: 1 }).truncated, true);
+});
+
+test('Grand Strand store universe expands without overstating static storefronts', () => {
+  const grandStrandCities = new Set(['Myrtle Beach', 'North Myrtle Beach', 'Surfside Beach', 'Murrells Inlet']);
+  const stores = storeUniverse.stores.filter((store) => grandStrandCities.has(store.city));
+  assert.ok(stores.length >= 13, `expected at least 13 Grand Strand stores, got ${stores.length}`);
+  const surf = stores.find((store) => store.id === 'surf-beverage:6a0b27396d36df004b28a7ab');
+  assert.equal(surf?.inventoryStatus, 'live-inventory');
+  for (const name of ['Myrtle Beach Liquor', 'Gator Hole Spirits II', 'Gator Hole Spirits III', 'Ocean Liquors', 'Hurricane Liquor', 'Surfside Beach Liquors']) {
+    const store = stores.find((row) => row.name === name);
+    assert.ok(store, `missing ${name}`);
+    assert.notEqual(store.inventoryStatus, 'live-inventory', `${name} must not be promoted without bottle-level availability`);
+  }
 });
 
 test('targeted South Carolina expansion forces a complete bounded first-party source pass', () => {
@@ -109,6 +229,105 @@ test('South Carolina CityHive policy rejects forged source, merchant, product, o
     { raw: undefined, variantId: valid.optionId, sourceProductProofId: 'forged' },
     { raw: { chain: 'greens-beverage', option: { merchant_id: valid.merchantId, product_id: 'forged', option_id: valid.optionId } } },
   ]) assert.equal(isSouthCarolinaCityHiveInventory({ ...valid, ...forged }), false);
+});
+
+test('Surf Beverage exact-store CityHive rows pass the South Carolina proof contract', () => {
+  const merchantId = '6a0b27396d36df004b28a7ab';
+  const productId = '5521cef065613100036c0000';
+  const optionId = '71749b184cecfd234aaf9a96879b65ae10b91c0e3d5ea5c3d9fe48e5a42c97f5';
+  const signal = validCityHiveSignal({
+    sourceLabel: 'Surf Beverage South Carolina CityHive store inventory',
+    sourceUrl: `https://surfbeverages.com/shop/product/buffalo-trace-bourbon/${productId}?option-id=${optionId}`,
+    sourceChain: 'surf-beverage',
+    merchantId,
+    productId,
+    optionId,
+    storeId: `surf-beverage:${merchantId}`,
+    storeName: 'Surf Beverage',
+    storeAddress: '3140 US-17, Myrtle Beach, SC 29577, USA',
+    city: 'Myrtle Beach',
+    postalCode: '29577',
+    zip: '29577',
+    raw: { chain: 'surf-beverage', option: { merchant_id: merchantId, product_id: productId, option_id: optionId } },
+  });
+  assert.equal(isSouthCarolinaCityHiveInventory(signal), true);
+  assert.equal(isSouthCarolinaCityHiveInventory({ ...signal, storeAddress: '3140 US-17, Myrtle Beach, SC 29577' }), true);
+  for (const forged of [
+    { storeName: 'Forged Surf Beverage' },
+    { storeAddress: '100 Main St, Columbia, SC 29201' },
+    { city: 'Columbia' },
+    { city: 'Myrtle Beach USA' },
+    { storeName: 'Surf Beverage USA' },
+    { postalCode: '29201', zip: '29201' },
+    { storeName: ['Surf Beverage'], locationName: ['Surf Beverage'] },
+    { city: ['Myrtle Beach'] },
+    { postalCode: ['29577'], zip: ['29577'] },
+    { storeName: 0, locationName: 'Surf Beverage' },
+    { postalCode: false, zip: '29577' },
+    { locationName: 'Forged Surf Beverage' },
+    { zip: '00000' },
+    { eventType: { forged: true } },
+    { canonicalBottleId: { forged: true } },
+    { type: 'forged_cityhive_event' },
+    { canonicalId: 'forged-bottle' },
+    { variantId: 'forged-option' },
+    { sourceProductProofId: 'forged-product' },
+    { productId: { forged: true }, optionId: { forged: true }, raw: { chain: 'surf-beverage', option: { merchant_id: merchantId, product_id: { forged: true }, option_id: { forged: true } } } },
+    { raw: { chain: 'surf-beverage', option: null }, sourceProductProofId: productId, variantId: optionId },
+  ]) assert.equal(isSouthCarolinaCityHiveInventory({ ...signal, ...forged }), false);
+});
+
+test('partial South Carolina CityHive success retains untouched cached merchants as stale non-alerting context', () => {
+  assert.deepEqual(mergeSouthCarolinaCityHiveSignals(null), []);
+  assert.deepEqual(mergeSouthCarolinaCityHiveSignals({ liveSignals: null, completedMerchantIds: [] }), []);
+  assert.deepEqual(mergeSouthCarolinaCityHiveSignals({ liveSignals: [null, undefined], completedMerchantIds: [] }), []);
+  const observedAt = new Date().toISOString();
+  const liveMerchantId = '61e1d04c823936166693c7f3';
+  const live = validCityHiveSignal({
+    observedAt,
+    id: 'test-greens-myrtle-live',
+    merchantId: liveMerchantId,
+    storeId: `greens-beverage:${liveMerchantId}`,
+    raw: { chain: 'greens-beverage', option: { merchant_id: liveMerchantId, product_id: '5521cef065613100036e0000', option_id: '4d23517a3d7cce00e2ed4044a2b7be75f5c9cb9f01366ef0efa59e03309fdd97' } },
+  });
+  const collision = mergeSouthCarolinaCityHiveSignals({
+    liveSignals: [{ id: live.id, storeId: live.storeId, eventType: 'cityhive_store_inventory_result' }],
+    cache: { generatedAt: observedAt, signals: [live] },
+    completedMerchantIds: [],
+    observedAt,
+  });
+  assert.equal(collision[0]?.sourceStale, true);
+  assert.equal(collision[0]?.productId, live.productId);
+  const spoofedChain = mergeSouthCarolinaCityHiveSignals({
+    liveSignals: [{ ...live, sourceChain: 'forged-chain', storeId: `forged-chain:${liveMerchantId}` }],
+    cache: { generatedAt: observedAt, signals: [live] },
+    completedMerchantIds: [],
+    observedAt,
+  });
+  assert.equal(spoofedChain[0]?.sourceStale, true);
+  assert.equal(spoofedChain[0]?.sourceChain, 'greens-beverage');
+  const surf = validCityHiveSignal({
+    observedAt,
+    sourceLabel: 'Surf Beverage South Carolina CityHive store inventory',
+    sourceUrl: 'https://surfbeverages.com/shop/product/buffalo-trace-bourbon/5521cef065613100036c0000?option-id=71749b184cecfd234aaf9a96879b65ae10b91c0e3d5ea5c3d9fe48e5a42c97f5',
+    sourceChain: 'surf-beverage', merchantId: '6a0b27396d36df004b28a7ab',
+    productId: '5521cef065613100036c0000', optionId: '71749b184cecfd234aaf9a96879b65ae10b91c0e3d5ea5c3d9fe48e5a42c97f5',
+    storeId: 'surf-beverage:6a0b27396d36df004b28a7ab', storeName: 'Surf Beverage',
+    storeAddress: '3140 US-17, Myrtle Beach, SC 29577, USA', city: 'Myrtle Beach', postalCode: '29577', zip: '29577',
+    raw: { chain: 'surf-beverage', option: { merchant_id: '6a0b27396d36df004b28a7ab', product_id: '5521cef065613100036c0000', option_id: '71749b184cecfd234aaf9a96879b65ae10b91c0e3d5ea5c3d9fe48e5a42c97f5' } },
+  });
+  const merged = mergeSouthCarolinaCityHiveSignals({
+    liveSignals: [live],
+    cache: { generatedAt: observedAt, signals: [live, surf] },
+    completedMerchantIds: [live.merchantId],
+    observedAt,
+  });
+  assert.equal(merged.length, 2);
+  assert.equal(merged.find((row) => row.merchantId === live.merchantId)?.sourceStale, undefined);
+  const retained = merged.find((row) => row.merchantId === surf.merchantId);
+  assert.equal(retained?.sourceStale, true);
+  assert.equal(retained?.canAlertAsInventory, false);
+  assert.equal(retained?.canAlertAsWatch, false);
 });
 
 test('South Carolina CityHive cache rejects future and legacy rows and demotes failed-live fallback', () => {

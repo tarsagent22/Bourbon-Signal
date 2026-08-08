@@ -352,7 +352,7 @@ const BASE_STATE_SOURCES = [
   },
   {
     id: 'SC', label: 'South Carolina retailer inventory mesh', tier: 'B', strategy: 'retailer_store_inventory', cadence: 'daily-60m',
-    value: 'South Carolina is a private retail market. Customer-facing value comes from whitelisted public retailer sources that expose store-level rows across major and secondary SC markets: Green\'s Beverage, Wine & Bourbon Barn, O\'Darby\'s, Beach Discount, Palmetto Liquor, DEV Liquors, Moss Creek, Rollers, Da Brown Bag Clover stock counts, Southern Spirits Shopify availability, and All American Liquor WooCommerce in-store availability. Official DOR ABL pages remain licensing/regulatory context only.',
+    value: 'South Carolina is a private retail market. Customer-facing value comes from whitelisted public retailer sources that expose store-level rows across major and secondary SC markets: Green\'s Beverage, Wine & Bourbon Barn, O\'Darby\'s, Beach Discount, Surf Beverage, Palmetto Liquor, DEV Liquors, Moss Creek, Rollers, Da Brown Bag Clover stock counts, Southern Spirits Shopify availability, and All American Liquor WooCommerce in-store availability. Official DOR ABL pages remain licensing/regulatory context only.',
     rareSignalTarget: false,
     sources: [
       { kind: 'html', url: 'https://dor.sc.gov/alcohol-beverage-licensing-abl/liquor-licensing', label: 'South Carolina liquor licensing' },
@@ -361,6 +361,7 @@ const BASE_STATE_SOURCES = [
       { kind: 'html', url: 'https://winebarnsc.com/shop/?subtype=bourbon', label: 'Wine & Bourbon Barn CityHive bourbon inventory', precisionOnly: true },
       { kind: 'html', url: 'https://odarbysliquorbarn.com/shop/?subtype=bourbon', label: "O'Darby's Liquor Barn CityHive bourbon inventory", precisionOnly: true },
       { kind: 'html', url: 'https://beachdiscountbeverages.com/shop/?subtype=bourbon', label: 'Beach Discount Beverages CityHive bourbon inventory', precisionOnly: true },
+      { kind: 'html', url: 'https://surfbeverages.com/shop/?subtype=bourbon', label: 'Surf Beverage Myrtle Beach CityHive bourbon inventory', precisionOnly: true },
       { kind: 'html', url: 'https://palmettoliquor.com/shop/?subtype=bourbon', label: 'Palmetto Liquor CityHive bourbon inventory', precisionOnly: true },
       { kind: 'html', url: 'https://devliquors.com/shop/?subtype=bourbon', label: 'DEV Liquors CityHive bourbon inventory', precisionOnly: true },
       { kind: 'html', url: 'https://www.mosscreekvillagespiritsandwine.com/shop/?subtype=bourbon', label: 'Moss Creek Village Spirits & Wine CityHive bourbon inventory', precisionOnly: true },
