@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { dropFreshnessTime, resolveDropLimit } from "../src/lib/drop-feed-policy.ts";
+import { dropDisplayTime, dropFreshnessTime, resolveDropLimit } from "../src/lib/drop-feed-policy.ts";
 import { scopedDropFeedHistoryEnabled } from "../src/lib/drop-feed-history.ts";
 import { resolveDropQuantitySemantics } from "../src/lib/drop-quantity-semantics.ts";
 import { isUserFacingDropSignal, MISSISSIPPI_ONSITE_SOURCE_PERMITS } from "../src/lib/drop-feed-visibility.ts";
@@ -37,6 +37,53 @@ assert.equal(dropFreshnessTime({
   timestamp: firstSeen,
   last_confirmed_at: lastConfirmed,
 }), Date.parse(firstSeen), "context events stay anchored to their public event timestamp");
+assert.equal(dropDisplayTime({
+  event_type: "cityhive_store_inventory_result",
+  timestamp_basis: "first_seen_at",
+  timestamp: firstSeen,
+  first_seen_at: firstSeen,
+  last_confirmed_at: lastConfirmed,
+}), lastConfirmed, "live inventory cards must display their latest confirmation instead of looking days old");
+assert.equal(dropDisplayTime({
+  event_type: "release_watch",
+  timestamp_basis: "first_seen_at",
+  timestamp: firstSeen,
+  first_seen_at: firstSeen,
+  last_confirmed_at: lastConfirmed,
+}), firstSeen, "context events must preserve their public first-seen basis");
+assert.equal(dropDisplayTime({
+  event_type: "release_watch",
+  timestampBasis: "source_event_at",
+  eventAt: firstSeen,
+  firstSeenAt: "",
+  lastConfirmedAt: lastConfirmed,
+}), firstSeen, "camel-case context events preserve their source-event basis");
+assert.equal(dropDisplayTime({
+  event_type: "release_watch",
+  timestamp_basis: "first_seen_at",
+  first_seen_at: "",
+  last_confirmed_at: lastConfirmed,
+}), lastConfirmed, "empty preferred timestamps must fall through to the next populated value");
+assert.equal(dropDisplayTime({
+  event_type: "cityhive_store_inventory_result",
+  timestamp_basis: "first_seen_at",
+  first_seen_at: firstSeen,
+  last_confirmed_at: "not-a-date",
+}), firstSeen, "an invalid inventory confirmation must not replace a valid first-seen display time");
+assert.equal(dropDisplayTime({
+  event_type: "release_watch",
+  timestamp_basis: "source_event_at",
+  event_at: "not-a-date",
+  eventAt: firstSeen,
+  first_seen_at: lastConfirmed,
+}), firstSeen, "an invalid snake-case event time must fall through to a valid camel-case alias");
+assert.equal(dropDisplayTime({
+  event_type: "cityhive_store_inventory_result",
+  timestampBasis: "first_seen_at",
+  last_confirmed_at: "",
+  lastConfirmedAt: lastConfirmed,
+  firstSeenAt: firstSeen,
+}), lastConfirmed, "inventory confirmation must use a valid camel-case alias when the snake-case field is empty");
 
 const singleStoreShipment = resolveDropQuantitySemantics({
   type: "nc_board_shipment_snapshot",
@@ -52,6 +99,7 @@ assert.match(siteContractSource, /quantity_shipped:\s*shipmentQuantity\s*\|\|\s*
 assert.match(siteContractSource, /store_equivalent_shipment"\)\s*\?\s*"board"/, "store-equivalent shipment availability must remain board-scoped");
 assert.match(siteContractSource, /isUserFacingDropSignal\(\{\s*\.\.\.drop,/s, "site normalization must preserve Mississippi feed-proof fields when recomputing visibility");
 const dropDomainSource = readFileSync(new URL("../src/lib/drops.ts", import.meta.url), "utf8");
+assert.match(dropDomainSource, /dropDisplayTime\(drop as Record<string, unknown>\)/, "customer card time must use the shared inventory-confirmation display policy");
 assert.match(dropDomainSource, /event\.quantity_in_stock\s*\?\?\s*event\.quantity_shipped\s*\?\?\s*event\.quantity/, "drop-domain filtering must retain normalized shipment rows");
 
 assert.deepEqual(getCoveredAreaOptionsForState(null), [], "all-state feed should not preload every configured area");
