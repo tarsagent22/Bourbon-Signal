@@ -5899,6 +5899,34 @@ export async function fetchSouthCarolinaCityHivePublicApi(source, merchantId, op
   }
 }
 
+export function resolveSouthCarolinaCityHiveProbePayload(input = {}) {
+  const apiAttempt = input.apiAttempt && typeof input.apiAttempt === 'object' ? input.apiAttempt : null;
+  const apiEvidence = input.apiEvidence && typeof input.apiEvidence === 'object' ? input.apiEvidence : null;
+  const pageAttempt = input.pageAttempt && typeof input.pageAttempt === 'object' ? input.pageAttempt : null;
+  const pageEvidence = input.pageEvidence && typeof input.pageEvidence === 'object' ? input.pageEvidence : null;
+  if (input.useApiEvidence === true && apiAttempt?.ok && apiEvidence?.authoritative) {
+    return { blobs: apiAttempt.blobs, evidence: apiEvidence, evidenceUrl: apiAttempt.publicUrl, transportFailure: null };
+  }
+  if (pageAttempt?.ok && Array.isArray(input.pageBlobs) && pageEvidence?.authoritative) {
+    return { blobs: input.pageBlobs, evidence: pageEvidence, evidenceUrl: input.pageUrl, transportFailure: null };
+  }
+  if (apiAttempt?.ok && apiEvidence?.authoritative) {
+    return { blobs: apiAttempt.blobs, evidence: apiEvidence, evidenceUrl: apiAttempt.publicUrl, transportFailure: null };
+  }
+  return {
+    blobs: null,
+    evidence: null,
+    evidenceUrl: input.pageUrl || apiAttempt?.publicUrl || null,
+    transportFailure: {
+      status: pageAttempt?.status || 0,
+      error: [
+        apiAttempt ? `Public API: ${apiAttempt.error || apiAttempt.status}` : null,
+        pageAttempt ? `Storefront: ${pageAttempt.error || `HTTP ${pageAttempt.status}`}` : null,
+      ].filter(Boolean).join('; ') || 'CityHive API and storefront evidence were unavailable.',
+    },
+  };
+}
+
 function southCarolinaCityHiveEvidenceHasUsableInventory(evidence, bible, merchantId, sourceMerchantIds) {
   if (!evidence?.authoritative || !Array.isArray(evidence.optionRecords)) return false;
   for (const optionRecord of evidence.optionRecords) {
@@ -5972,28 +6000,29 @@ async function collectSouthCarolinaCityHive(config, bible, observedAt) {
     const apiAttempt = await fetchSouthCarolinaCityHivePublicApi(source, merchantId, { deadlineMs: probeDeadlineMs });
     const apiEvidence = apiAttempt?.ok ? southCarolinaCityHiveMerchantEvidence(apiAttempt.blobs, merchantId) : null;
     const useApiEvidence = southCarolinaCityHiveEvidenceHasUsableInventory(apiEvidence, bible, merchantId, sourceMerchantIds);
-    let evidenceUrl = useApiEvidence ? apiAttempt.publicUrl : url;
-    let blobs = useApiEvidence ? apiAttempt.blobs : null;
-    let evidence = useApiEvidence ? apiEvidence : null;
-    let transportFailure = apiAttempt && !apiAttempt.ok ? apiAttempt : null;
-    if (!blobs) {
+    let pageAttempt = null;
+    let pageBlobs = null;
+    let pageEvidence = null;
+    if (!useApiEvidence) {
       const remainingMs = Math.max(0, probeDeadlineMs - Date.now());
-      const pageAttempt = remainingMs >= 1_000
+      pageAttempt = remainingMs >= 1_000
         ? await curlTextFetch(url, { headers: { accept: 'text/html,*/*' }, timeoutMs: remainingMs, maxBuffer: 8 * 1024 * 1024 })
         : { ok: false, status: 0, error: 'Shared CityHive probe deadline was exhausted before the storefront fallback.' };
-      evidenceUrl = url;
       if (pageAttempt.ok) {
-        blobs = cityHiveJsonBlobs(pageAttempt.text);
-      } else {
-        transportFailure = {
-          status: pageAttempt.status || 0,
-          error: [
-            apiAttempt ? `Public API: ${apiAttempt.error || apiAttempt.status}` : null,
-            `Storefront: ${pageAttempt.error || `HTTP ${pageAttempt.status}`}`,
-          ].filter(Boolean).join('; '),
-        };
+        pageBlobs = cityHiveJsonBlobs(pageAttempt.text);
+        pageEvidence = southCarolinaCityHiveMerchantEvidence(pageBlobs, merchantId);
       }
     }
+    const resolvedPayload = resolveSouthCarolinaCityHiveProbePayload({
+      apiAttempt,
+      apiEvidence,
+      useApiEvidence,
+      pageAttempt,
+      pageBlobs,
+      pageEvidence,
+      pageUrl: url,
+    });
+    let { evidenceUrl, blobs, evidence, transportFailure } = resolvedPayload;
     if (!blobs) {
       const failure = {
         state: config.id,

@@ -6,6 +6,7 @@ import {
   isAuthoritativeSouthCarolinaCityHiveMerchantPayload,
   isFreshSouthCarolinaCityHiveCacheTimestamp,
   mergeSouthCarolinaCityHiveSignals,
+  resolveSouthCarolinaCityHiveProbePayload,
   runIsolatedSouthCarolinaSourceLane,
   southCarolinaCityHiveApiEvidenceBlobs,
   southCarolinaCityHiveBoundMerchantIds,
@@ -179,6 +180,45 @@ test('CityHive public API fallback preserves exact merchant and product-option a
   assert.deepEqual(southCarolinaCityHiveApiEvidenceBlobs({ ...payload, result: 2 }, merchantId), []);
   assert.deepEqual(southCarolinaCityHiveApiEvidenceBlobs({ result: 0, data: { products: {} } }, merchantId), []);
   assert.doesNotMatch(collector, /for \(const record of evidence\.optionRecords\)/);
+});
+
+test('authoritative zero-relevant API completion survives a blocked storefront without inventing inventory', () => {
+  const apiBlobs = [{ merchant_configs: [] }, { products: [] }];
+  const apiEvidence = { authoritative: true, merchants: [{ id: 'merchant' }], optionRecords: [] };
+  const resolved = resolveSouthCarolinaCityHiveProbePayload({
+    apiAttempt: { ok: true, status: 200, publicUrl: 'https://api.cityhive.net/api/v1/products/search.json', blobs: apiBlobs },
+    apiEvidence,
+    useApiEvidence: false,
+    pageAttempt: { ok: false, status: 403, error: 'HTTP 403' },
+    pageUrl: 'https://retailer.example/shop/',
+  });
+  assert.equal(resolved.blobs, apiBlobs);
+  assert.equal(resolved.evidence, apiEvidence);
+  assert.equal(resolved.transportFailure, null);
+  assert.equal(resolved.evidenceUrl, 'https://api.cityhive.net/api/v1/products/search.json');
+
+  const malformedPage = resolveSouthCarolinaCityHiveProbePayload({
+    apiAttempt: { ok: true, status: 200, publicUrl: 'https://api.cityhive.net/api/v1/products/search.json', blobs: apiBlobs },
+    apiEvidence,
+    useApiEvidence: false,
+    pageAttempt: { ok: true, status: 200 },
+    pageBlobs: [{ malformed: true }],
+    pageEvidence: { authoritative: false },
+    pageUrl: 'https://retailer.example/shop/',
+  });
+  assert.equal(malformedPage.blobs, apiBlobs);
+  assert.equal(malformedPage.evidence, apiEvidence);
+  assert.equal(malformedPage.transportFailure, null);
+
+  const failed = resolveSouthCarolinaCityHiveProbePayload({
+    apiAttempt: { ok: true, status: 200, publicUrl: 'https://api.cityhive.net/api/v1/products/search.json', blobs: apiBlobs },
+    apiEvidence: { authoritative: false },
+    useApiEvidence: false,
+    pageAttempt: { ok: false, status: 403, error: 'HTTP 403' },
+    pageUrl: 'https://retailer.example/shop/',
+  });
+  assert.equal(failed.blobs, null);
+  assert.equal(failed.transportFailure.status, 403);
 });
 
 test('CityHive completion merchant extraction fails closed on malformed and incomplete option payloads', () => {
