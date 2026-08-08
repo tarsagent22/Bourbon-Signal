@@ -7,6 +7,7 @@ import {
   isFreshSouthCarolinaCityHiveCacheTimestamp,
   mergeSouthCarolinaCityHiveSignals,
   runIsolatedSouthCarolinaSourceLane,
+  southCarolinaCityHiveApiEvidenceBlobs,
   southCarolinaCityHiveBoundMerchantIds,
   southCarolinaCityHiveMerchantEvidence,
   southCarolinaCityHiveProbePlan,
@@ -43,7 +44,12 @@ test('Myrtle Beach live inventory remains a South Carolina release contract', ()
   assert.match(collector, /id: 'beach-discount-beverages'[\s\S]*baseUrl: 'https:\/\/beachdiscountbeverages\.com'[\s\S]*https:\/\/beachdis0402bdcd\.sites\.cityhive\.app\/shop\/\?subtype=bourbon[\s\S]*merchantIds: \['6144e1c2085a5f20a622a15f'\]/);
   assert.match(collector, /id: 'greens-beverage'[\s\S]*https:\/\/greensbeb2c6efe1\.sites\.cityhive\.app\/shop\/\?subtype=bourbon/, "Green's should use the CityHive-hosted first-party storefront route that works from scheduled runners");
   assert.match(collector, /'61e1d04c823936166693c7f3'/, "Green's Myrtle Beach merchant must remain selected");
-  assert.match(collector, /id: 'surf-beverage'[\s\S]*https:\/\/surfbeverages\.com\/shop\/\?subtype=bourbon[\s\S]*merchantIds: \['6a0b27396d36df004b28a7ab'\]/);
+  assert.match(collector, /id: 'surf-beverage'[\s\S]*https:\/\/surfbeverages\.com\/shop\/\?subtype=bourbon[\s\S]*merchantIds: \['6a0b27396d36df004b28a7ab'\][\s\S]*apiKeyEnv: 'SC_CITYHIVE_SURF_PUBLIC_API_KEY'/);
+  assert.match(collector, /id: 'greens-beverage'[\s\S]*apiKeyEnv: 'SC_CITYHIVE_GREENS_PUBLIC_API_KEY'/);
+  assert.match(collector, /id: 'beach-discount-beverages'[\s\S]*apiKeyEnv: 'SC_CITYHIVE_BEACH_PUBLIC_API_KEY'/);
+  assert.match(refreshWorkflow, /SC_CITYHIVE_SURF_PUBLIC_API_KEY: \$\{\{ secrets\.SC_CITYHIVE_SURF_PUBLIC_API_KEY \}\}/);
+  assert.match(refreshWorkflow, /SC_CITYHIVE_GREENS_PUBLIC_API_KEY: \$\{\{ secrets\.SC_CITYHIVE_GREENS_PUBLIC_API_KEY \}\}/);
+  assert.match(refreshWorkflow, /SC_CITYHIVE_BEACH_PUBLIC_API_KEY: \$\{\{ secrets\.SC_CITYHIVE_BEACH_PUBLIC_API_KEY \}\}/);
   assert.match(verifier, /Myrtle Beach inventory rows below threshold/);
   assert.match(verifier, /Myrtle Beach fresh inventory rows below threshold/);
   assert.match(verifier, /Myrtle Beach inventory store coverage too low/);
@@ -109,6 +115,70 @@ test('CityHive completion requires requested-merchant configuration and product 
     configuredMerchantIds: [merchantA, merchantB],
     payloadMerchantIds: [merchantA, merchantB],
   }), true);
+});
+
+test('CityHive public API fallback preserves exact merchant and product-option authority', () => {
+  const merchantId = '6a0b27396d36df004b28a7ab';
+  const option = {
+    merchant_id: merchantId,
+    merchant_name: 'Surf Beverage',
+    full_address: '3140 US-17, Myrtle Beach, SC 29577, USA',
+    product_id: 'product-1',
+    option_id: 'option-1',
+    quantity: 4,
+    option_display_data: { name: 'Booker’s Bourbon 750ml' },
+  };
+  const payload = {
+    result: 0,
+    data: {
+      products: [{ id: 'product-1', name: 'Booker’s Bourbon 750ml', merchants: [{ product_options: [option] }] }],
+    },
+  };
+  const evidence = southCarolinaCityHiveMerchantEvidence(
+    southCarolinaCityHiveApiEvidenceBlobs(payload, merchantId),
+    merchantId,
+  );
+  assert.equal(evidence.authoritative, true);
+  assert.equal(evidence.optionRecords.length, 1);
+  assert.equal(evidence.optionRecords[0].option, option);
+  const pollutedPayload = {
+    ...payload,
+    data: {
+      products: [{
+        ...payload.data.products[0],
+        merchants: [{ product_options: [
+          option,
+          { ...option, option_id: 'wrong-parent-option', product_id: 'different-product' },
+          { ...option, option_id: 'wrong-merchant-option', merchant_id: 'wrong-merchant' },
+        ] }],
+      }],
+    },
+  };
+  const filteredBlobs = southCarolinaCityHiveApiEvidenceBlobs(pollutedPayload, merchantId);
+  const filteredEvidence = southCarolinaCityHiveMerchantEvidence(filteredBlobs, merchantId);
+  assert.equal(filteredEvidence.authoritative, true);
+  assert.equal(filteredEvidence.optionRecords.length, 1);
+  assert.equal(filteredBlobs[1].products[0].merchants[0].product_options.length, 1);
+  const secondPremisePayload = {
+    ...payload,
+    data: {
+      products: [{
+        ...payload.data.products[0],
+        merchants: [{ product_options: [
+          option,
+          { ...option, option_id: 'other-premise-option', full_address: '999 Other Rd, Myrtle Beach, SC 29577, USA' },
+        ] }],
+      }],
+    },
+  };
+  assert.deepEqual(southCarolinaCityHiveApiEvidenceBlobs(secondPremisePayload, merchantId), []);
+  assert.equal(southCarolinaCityHiveMerchantEvidence(
+    southCarolinaCityHiveApiEvidenceBlobs(payload, 'wrong-merchant'),
+    'wrong-merchant',
+  ).authoritative, false);
+  assert.deepEqual(southCarolinaCityHiveApiEvidenceBlobs({ ...payload, result: 2 }, merchantId), []);
+  assert.deepEqual(southCarolinaCityHiveApiEvidenceBlobs({ result: 0, data: { products: {} } }, merchantId), []);
+  assert.doesNotMatch(collector, /for \(const record of evidence\.optionRecords\)/);
 });
 
 test('CityHive completion merchant extraction fails closed on malformed and incomplete option payloads', () => {
