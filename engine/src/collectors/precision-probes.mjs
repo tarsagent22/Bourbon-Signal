@@ -104,13 +104,17 @@ import { isMetroRetailerInventory } from '../metro-retailer-policy.mjs';
 import { isSouthCarolinaAllAmericanInventory, isSouthCarolinaLiquorLibraryInventory } from '../south-carolina-retailer-policy.mjs';
 import {
   buildIndianaTargetStoreLocationSignals,
+  INDIANA_CITYHIVE_CACHE_MAX_AGE_MS,
+  INDIANA_CITYHIVE_SOURCE_COHORT_SIZE,
   INDIANA_TARGET_STORES,
   filterFreshIndianaTargetSignals,
   indianaCityHivePriorityRank,
+  isIndianaCityHiveCacheUsable,
   isIndianaCityHivePriorityMarket,
   mergeIndianaTargetCacheSignals,
   parseIndianaTargetFulfillment,
   parseIndianaTargetSearchProducts,
+  selectIndianaCityHiveSourceCohort,
   shouldWriteIndianaTargetCache,
 } from './indiana-retailer-surfaces.mjs';
 import {
@@ -351,8 +355,8 @@ const INDIANA_LIQUOR_GROUP_EVENTS_URL = 'https://indianaliquor.com/our-events/';
 const IN_CITYHIVE_MAX_PAGES = Number(process.env.BOURBON_SIGNAL_IN_CITYHIVE_MAX_PAGES || 8);
 const IN_CITYHIVE_PER_STORE_MAX_PAGES = Number(process.env.BOURBON_SIGNAL_IN_CITYHIVE_PER_STORE_MAX_PAGES || 1);
 const IN_CITYHIVE_MAX_MERCHANTS_PER_SOURCE = Number(process.env.BOURBON_SIGNAL_IN_CITYHIVE_MAX_MERCHANTS_PER_SOURCE || 48);
-const IN_CITYHIVE_CACHE_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_IN_CITYHIVE_CACHE_MAX_AGE_MS || 24 * 60 * 60_000);
 const IN_CITYHIVE_LIVE_REFRESH_MIN_AGE_MS = Number(process.env.BOURBON_SIGNAL_IN_CITYHIVE_LIVE_REFRESH_MIN_AGE_MS || 45 * 60_000);
+const IN_CITYHIVE_RETAINED_FEED_MAX_AGE_MS = 12 * 60 * 60_000;
 const IN_CITYHIVE_PAGE_DELAY_MS = Number(process.env.BOURBON_SIGNAL_IN_CITYHIVE_PAGE_DELAY_MS || 1_250);
 const IN_CITYHIVE_SOURCE_DELAY_MS = Number(process.env.BOURBON_SIGNAL_IN_CITYHIVE_SOURCE_DELAY_MS || 2_500);
 
@@ -1943,11 +1947,12 @@ async function readIndianaAtcCache() {
   }
 }
 
-async function collectIndianaAtcPackageStores() {
+async function collectIndianaAtcPackageStores({ signal } = {}) {
+  signal?.throwIfAborted();
   const cached = await readIndianaAtcCache();
   if (process.env.BOURBON_SIGNAL_IN_FORCE_ATC_LIVE !== '1' && cached) return cached;
 
-  const first = await textFetch(IN_ATC_SEARCH_URL, { headers: { accept: 'text/html,*/*' } });
+  const first = await textFetch(IN_ATC_SEARCH_URL, { headers: { accept: 'text/html,*/*' }, signal });
   if (!first.ok) throw new Error(`Indiana ATC search page HTTP ${first.status}: ${first.error || first.text.slice(0, 120)}`);
   const cookie = first.rawSetCookie || '';
   const searchParams = new URLSearchParams();
@@ -1966,7 +1971,7 @@ async function collectIndianaAtcPackageStores() {
       const res = await fetch(url, {
         method: 'POST',
         redirect: 'follow',
-        signal: controller.signal,
+        signal: signal ? AbortSignal.any([controller.signal, signal]) : controller.signal,
         headers: {
           'user-agent': 'Mozilla/5.0 (BourbonSignal research)',
           accept: 'text/html,*/*',
@@ -1987,6 +1992,7 @@ async function collectIndianaAtcPackageStores() {
   const byPermit = new Map();
 
   for (let page = 1; page <= IN_ATC_MAX_PAGES; page++) {
+    signal?.throwIfAborted();
     const rows = parseIndianaAtcRows(pageHtml);
     pages.push({ page, rowCount: rows.length, firstPermit: rows[0]?.permitNumber || null, firstName: rows[0]?.name || null });
     for (const row of rows) byPermit.set(row.permitNumber, row);
@@ -1998,6 +2004,7 @@ async function collectIndianaAtcPackageStores() {
     pageParams.set('__EVENTTARGET', nextTarget);
     pageParams.set('__EVENTARGUMENT', '');
     await sleep(250);
+    signal?.throwIfAborted();
     pageHtml = (await post(IN_ATC_RESULTS_URL, pageParams, IN_ATC_RESULTS_URL)).text;
   }
 
@@ -2012,8 +2019,9 @@ async function collectIndianaAtcPackageStores() {
     pages,
     stores
   };
+  signal?.throwIfAborted();
   await mkdir(path.dirname(IN_ATC_ARTIFACT_PATH), { recursive: true });
-  await writeFile(IN_ATC_ARTIFACT_PATH, JSON.stringify(artifact, null, 2));
+  await writeFile(IN_ATC_ARTIFACT_PATH, JSON.stringify(artifact, null, 2), signal ? { signal } : undefined);
   return artifact;
 }
 
@@ -2435,14 +2443,15 @@ function isPenguinBourbonCandidate(product) {
   return include && (!excluded || /\bbourbon\b/i.test(text));
 }
 
-async function collectIndianaPenguinLiquor(config, bible, observedAt) {
+async function collectIndianaPenguinLiquor(config, bible, observedAt, { signal } = {}) {
   const signals = [];
   const roadblocks = [];
   const productUrls = new Set(IN_PENGUIN_SEED_PRODUCT_URLS);
   let categoryBlocked = false;
 
   for (const categoryUrl of IN_PENGUIN_CATEGORY_URLS) {
-    const res = await curlTextFetch(categoryUrl, { timeoutMs: 30_000 });
+    signal?.throwIfAborted();
+    const res = await curlTextFetch(categoryUrl, { timeoutMs: 30_000, signal });
     if (!res.ok) {
       roadblocks.push({
         state: config.id,
@@ -2467,7 +2476,8 @@ async function collectIndianaPenguinLiquor(config, bible, observedAt) {
   const seenProducts = new Set();
   let parsedPages = 0;
   for (const productUrl of categoryBlocked ? [] : [...productUrls].slice(0, IN_PENGUIN_MAX_PRODUCT_PAGES)) {
-    const res = await curlTextFetch(productUrl, { timeoutMs: 30_000 });
+    signal?.throwIfAborted();
+    const res = await curlTextFetch(productUrl, { timeoutMs: 30_000, signal });
     if (!res.ok) {
       roadblocks.push({
         state: config.id,
@@ -2522,6 +2532,7 @@ async function collectIndianaPenguinLiquor(config, bible, observedAt) {
       raw: { source: 'penguin_liquor_gotoliquorstore_product_page', retailerItemId: product.retailerItemId, product, quantitySemantics: 'in_stock_no_exact_count', matchGuard: unsafeReason }
     });
     await sleep(200);
+    signal?.throwIfAborted();
   }
 
   if (!signals.length && !categoryBlocked && !roadblocks.some((roadblock) => isTerminalProbeFailure(roadblock.status))) {
@@ -2589,11 +2600,12 @@ function isDoorDashBourbonCandidate(item) {
   return /\bbourbon\b/i.test(text);
 }
 
-async function collectIndianaDoorDashFrontier(config, bible, observedAt) {
+async function collectIndianaDoorDashFrontier(config, bible, observedAt, { signal } = {}) {
   const signals = [];
   const roadblocks = [];
   const store = IN_DOORDASH_FRONTIER_STORE;
-  const res = await curlTextFetch(store.url, { timeoutMs: 45_000, maxBuffer: 6 * 1024 * 1024 });
+  signal?.throwIfAborted();
+  const res = await curlTextFetch(store.url, { timeoutMs: 45_000, maxBuffer: 6 * 1024 * 1024, signal });
   if (!res.ok) {
     roadblocks.push({
       state: config.id,
@@ -2685,10 +2697,11 @@ function parsePaylessBarrelSelections(html) {
   return [...new Set(rows)];
 }
 
-async function collectIndianaPaylessBarrelSelections(config, bible, observedAt) {
+async function collectIndianaPaylessBarrelSelections(config, bible, observedAt, { signal } = {}) {
   const signals = [];
   const roadblocks = [];
-  const res = await textFetch(IN_PAYLESS_BARREL_SELECTIONS_URL, { headers: { accept: 'text/html,*/*' }, timeoutMs: 18_000 });
+  signal?.throwIfAborted();
+  const res = await textFetch(IN_PAYLESS_BARREL_SELECTIONS_URL, { headers: { accept: 'text/html,*/*' }, timeoutMs: 18_000, signal });
   if (!res.ok) {
     roadblocks.push({
       state: config.id,
@@ -2749,7 +2762,7 @@ async function collectIndianaPaylessBarrelSelections(config, bible, observedAt) 
   return { signals, roadblocks };
 }
 
-async function fetchKahnsProducts(pageIndex) {
+async function fetchKahnsProducts(pageIndex, { signal } = {}) {
   const input = {
     hasPromo: false,
     inStock: true,
@@ -2761,7 +2774,7 @@ async function fetchKahnsProducts(pageIndex) {
     categoryContext: { publicId: IN_KAHNS_SPIRITS_CATEGORY_PUBLIC_ID, slug: 'spirits' }
   };
   const url = `${IN_KAHNS_API_URL}?input=${encodeURIComponent(JSON.stringify({ json: input }))}`;
-  const res = await textFetch(url, { headers: { accept: 'application/json,*/*', 'x-trpc-source': 'rsc' }, timeoutMs: 24_000 });
+  const res = await textFetch(url, { headers: { accept: 'application/json,*/*', 'x-trpc-source': 'rsc' }, timeoutMs: 24_000, signal });
   if (!res.ok) return { ok: false, status: res.status, error: res.error || `HTTP ${res.status}`, url, products: [], count: 0 };
   try {
     const json = JSON.parse(res.text);
@@ -2772,14 +2785,15 @@ async function fetchKahnsProducts(pageIndex) {
   }
 }
 
-async function collectIndianaKahns(config, bible, observedAt) {
+async function collectIndianaKahns(config, bible, observedAt, { signal } = {}) {
   const signals = [];
   const roadblocks = [];
   let totalCount = 0;
   let requestFailed = false;
   const seenProducts = new Set();
   for (let pageIndex = 0; pageIndex < IN_KAHNS_MAX_PAGES; pageIndex++) {
-    const page = await fetchKahnsProducts(pageIndex);
+    signal?.throwIfAborted();
+    const page = await fetchKahnsProducts(pageIndex, { signal });
     if (!page.ok) {
       requestFailed = true;
       roadblocks.push({
@@ -2859,9 +2873,7 @@ async function collectIndianaKahns(config, bible, observedAt) {
 async function readIndianaCityHiveCache() {
   try {
     const cache = JSON.parse(await readFile(IN_CITYHIVE_ARTIFACT_PATH, 'utf8'));
-    const generatedMs = new Date(cache.generatedAt || 0).getTime();
-    const fresh = Number.isFinite(generatedMs) && Date.now() - generatedMs <= IN_CITYHIVE_CACHE_MAX_AGE_MS;
-    if (!fresh) return null;
+    if (!isIndianaCityHiveCacheUsable(cache)) return null;
     const signals = Array.isArray(cache.signals) ? cache.signals : [];
     const roadblocks = Array.isArray(cache.roadblocks) ? cache.roadblocks : [];
     if (!signals.some((signal) => signal.eventType === 'cityhive_store_inventory_result')) return null;
@@ -2871,7 +2883,8 @@ async function readIndianaCityHiveCache() {
   }
 }
 
-async function writeIndianaCityHiveCache(signals, roadblocks) {
+async function writeIndianaCityHiveCache(signals, roadblocks, signal) {
+  signal?.throwIfAborted();
   const nextPositiveCount = signals.filter((signal) => signal.eventType === 'cityhive_store_inventory_result').length;
   if (!nextPositiveCount) return;
   const nextChains = indianaCityHivePositiveInventoryChains(signals);
@@ -2885,7 +2898,7 @@ async function writeIndianaCityHiveCache(signals, roadblocks) {
   const payload = {
     generatedAt: new Date().toISOString(),
     source: 'Indiana CityHive retailer inventory cache',
-    cacheMaxAgeMs: IN_CITYHIVE_CACHE_MAX_AGE_MS,
+    cacheMaxAgeMs: INDIANA_CITYHIVE_CACHE_MAX_AGE_MS,
     sourceChainCount: nextChains.size,
     sourceChains: [...nextChains].sort(),
     signalCount: signals.length,
@@ -2894,16 +2907,65 @@ async function writeIndianaCityHiveCache(signals, roadblocks) {
     signals,
     roadblocks
   };
+  signal?.throwIfAborted();
   await mkdir(path.dirname(IN_CITYHIVE_ARTIFACT_PATH), { recursive: true });
-  await writeFile(IN_CITYHIVE_ARTIFACT_PATH, JSON.stringify(payload, null, 2));
+  await writeFile(IN_CITYHIVE_ARTIFACT_PATH, JSON.stringify(payload, null, 2), signal ? { signal } : undefined);
 }
 
-function cachedIndianaCityHiveSignals(cache, observedAt) {
+export function cachedIndianaCityHiveSignals(cache, observedAt) {
+  const nowMs = Date.parse(String(observedAt || ''));
   return (cache?.signals || []).map((signal) => ({
     ...signal,
-    observedAt: cache.generatedAt || signal.observedAt || observedAt,
-    raw: { ...(signal.raw || {}), cacheFallback: true, cacheGeneratedAt: cache.generatedAt, artifactPath: IN_CITYHIVE_ARTIFACT_PATH }
+    ...((!Number.isFinite(Date.parse(String(signal.observedAt || '')))
+      || !Number.isFinite(nowMs)
+      || nowMs - Date.parse(String(signal.observedAt || '')) > IN_CITYHIVE_RETAINED_FEED_MAX_AGE_MS)
+      ? { stale: true, sourceStale: true, canAlertAsInventory: false, canAlertAsWatch: false }
+      : {}),
+    raw: {
+      ...(signal.raw || {}),
+      cacheFallback: true,
+      cacheSource: signal.raw?.retentionSource || cache.cacheSource || IN_CITYHIVE_ARTIFACT_PATH,
+      cacheGeneratedAt: Object.hasOwn(signal.raw || {}, 'retainedCacheGeneratedAt')
+        ? signal.raw.retainedCacheGeneratedAt
+        : cache.generatedAt ?? null,
+    }
   }));
+}
+
+export function previousIndianaCityHiveCache(existingSignals) {
+  const retained = (existingSignals || []).filter((signal) => {
+    const chain = signal?.raw?.chain || signal?.sourceChain;
+    return IN_CITYHIVE_SOURCES.some((source) => source.id === chain)
+      && /cityhive|retailer_store_location/i.test(String(signal?.eventType || ''));
+  });
+  if (!retained.length) return null;
+  const generatedAt = retained
+    .map((signal) => signal.raw?.retainedCacheGeneratedAt ?? signal.raw?.cacheGeneratedAt ?? signal.observedAt)
+    .filter((value) => Number.isFinite(Date.parse(value || '')))
+    .sort((left, right) => Date.parse(right) - Date.parse(left))[0] || null;
+  const signals = retained.map((signal) => ({
+    ...signal,
+    raw: {
+      ...(signal.raw || {}),
+      retentionSource: signal.raw?.retentionSource || signal.raw?.cacheSource || 'previous_state_report',
+      retainedCacheGeneratedAt: [signal.raw?.retainedCacheGeneratedAt, signal.raw?.cacheGeneratedAt, signal.observedAt]
+        .find((value) => Number.isFinite(Date.parse(value || ''))) || null,
+    },
+  }));
+  return { generatedAt, cacheSource: 'previous_state_report', signals, roadblocks: [] };
+}
+
+export function mergeIndianaCityHiveRetentionCaches(cache, previousCache, observedAt) {
+  const signals = [...new Map([
+    ...(previousCache?.signals || []),
+    ...(cache?.signals || []),
+  ].map((signal) => [signal.id, signal])).values()];
+  if (!signals.length) return null;
+  return {
+    generatedAt: cache ? cache.generatedAt : previousCache ? previousCache.generatedAt : observedAt,
+    signals,
+    roadblocks: [...(previousCache?.roadblocks || []), ...(cache?.roadblocks || [])],
+  };
 }
 
 function indianaCityHiveSignalChain(signal) {
@@ -2920,19 +2982,18 @@ function indianaCityHivePositiveInventoryChains(signals = []) {
     .filter(Boolean));
 }
 
-function mergeMissingIndianaCityHiveCacheChains(signals, cache, observedAt) {
+export function mergeMissingIndianaCityHiveCacheChains(signals, cache, observedAt, { refreshedSourceIds = new Set() } = {}) {
   if (!cache) return 0;
-  const liveChains = new Set(signals
-    .filter((signal) => /cityhive|retailer_store_location/i.test(String(signal.eventType || '')))
-    .map(indianaCityHiveSignalChain)
-    .filter(Boolean));
-  if (!liveChains.size) return 0;
+  const staleChains = new Set(refreshedSourceIds);
+  const liveIds = new Set(signals.map((signal) => signal.id).filter(Boolean));
   const cached = cachedIndianaCityHiveSignals(cache, observedAt);
   let added = 0;
   for (const signal of cached) {
     const chain = indianaCityHiveSignalChain(signal);
-    if (!chain || liveChains.has(chain)) continue;
-    signals.push(signal);
+    if (!chain || liveIds.has(signal.id)) continue;
+    signals.push(staleChains.has(chain)
+      ? { ...signal, stale: true, sourceStale: true, canAlertAsInventory: false, canAlertAsWatch: false }
+      : signal);
     added += 1;
   }
   return added;
@@ -3020,10 +3081,13 @@ async function writeTennesseeCityHiveCache(signals, roadblocks, { previous, sele
   await writeTennesseeCityHiveArtifact(payload, signal);
 }
 
-async function collectIndianaCityHive(config, bible, observedAt) {
+async function collectIndianaCityHive(config, bible, observedAt, existingSignals = [], { signal } = {}) {
+  signal?.throwIfAborted();
   const signals = [];
   const roadblocks = [];
   const cache = await readIndianaCityHiveCache();
+  const previousCache = previousIndianaCityHiveCache(existingSignals);
+  const retainedCache = mergeIndianaCityHiveRetentionCaches(cache, previousCache, observedAt);
   const cacheAgeMs = cache?.generatedAt ? Date.now() - new Date(cache.generatedAt).getTime() : Infinity;
   if (process.env.BOURBON_SIGNAL_IN_FORCE_CITYHIVE_LIVE !== '1' && cache && Number.isFinite(cacheAgeMs) && cacheAgeMs >= 0 && cacheAgeMs < IN_CITYHIVE_LIVE_REFRESH_MIN_AGE_MS) {
     const cachedSignals = cachedIndianaCityHiveSignals(cache, observedAt);
@@ -3040,19 +3104,28 @@ async function collectIndianaCityHive(config, bible, observedAt) {
   const seenPageFirstProducts = new Set();
   const seenProductOptions = new Set();
   const seenStores = new Set();
+  const selectedSources = selectIndianaCityHiveSourceCohort(IN_CITYHIVE_SOURCES, observedAt, {
+    cohortSize: INDIANA_CITYHIVE_SOURCE_COHORT_SIZE,
+    forceAll: process.env.BOURBON_SIGNAL_IN_CITYHIVE_FORCE_ALL_SOURCES === '1',
+  });
+  let providerRateLimited = false;
+  const refreshedSourceIds = new Set();
 
-  for (const source of IN_CITYHIVE_SOURCES) {
+  for (const source of selectedSources) {
     let sourceBlocked = false;
     let sourceReachable = false;
+    let sourceComplete = true;
     for (const seedUrl of source.urls) {
       if (sourceBlocked) break;
       const crawlUrls = cityHivePageUrls(seedUrl);
       const seenCrawlUrls = new Set(crawlUrls);
       let merchantPagesQueued = false;
       for (let crawlIndex = 0; crawlIndex < crawlUrls.length; crawlIndex++) {
+        signal?.throwIfAborted();
         const url = crawlUrls[crawlIndex];
-        const res = await textFetch(url, { headers: { accept: 'text/html,*/*' }, timeoutMs: 24_000 });
+        const res = await textFetch(url, { headers: { accept: 'text/html,*/*' }, timeoutMs: 24_000, signal });
         if (!res.ok) {
+          sourceComplete = false;
           roadblocks.push({
             state: config.id,
             source: source.sourceLabel,
@@ -3061,6 +3134,7 @@ async function collectIndianaCityHive(config, bible, observedAt) {
             error: res.error || `HTTP ${res.status}`,
             nextRoute: 'Retry the CityHive page or inspect rendered/network calls for current product JSON shape.'
           });
+          if (Number(res.status) === 429) providerRateLimited = true;
           if (isTerminalProbeFailure(res.status)) sourceBlocked = true;
           break;
         }
@@ -3176,6 +3250,7 @@ async function collectIndianaCityHive(config, bible, observedAt) {
           }
         }
         await sleep(IN_CITYHIVE_PAGE_DELAY_MS);
+        signal?.throwIfAborted();
       }
     }
     if (sourceReachable && !signals.some((signal) => signal.raw?.chain === source.id && signal.eventType === 'cityhive_store_inventory_result')) {
@@ -3188,19 +3263,21 @@ async function collectIndianaCityHive(config, bible, observedAt) {
         nextRoute: 'Retry at the next low-cadence refresh; do not promote catalog-only, out-of-stock, or unsafe bottle matches.'
       });
     }
+    if (sourceReachable && sourceComplete) refreshedSourceIds.add(source.id);
     await sleep(IN_CITYHIVE_SOURCE_DELAY_MS);
+    signal?.throwIfAborted();
+    if (providerRateLimited) break;
   }
 
   const liveInventoryProduced = signals.some((signal) => signal.eventType === 'cityhive_store_inventory_result');
-  const liveSignals = [...signals];
   const liveRoadblocks = [...roadblocks];
-  if (liveInventoryProduced) {
-    mergeMissingIndianaCityHiveCacheChains(signals, cache, observedAt);
+  if (retainedCache && (liveInventoryProduced || refreshedSourceIds.size)) {
+    mergeMissingIndianaCityHiveCacheChains(signals, retainedCache, observedAt, { refreshedSourceIds });
   }
 
   if (!signals.some((signal) => signal.eventType === 'cityhive_store_inventory_result')) {
-    if (cache) {
-      signals.push(...cachedIndianaCityHiveSignals(cache, observedAt));
+    if (retainedCache) {
+      signals.push(...cachedIndianaCityHiveSignals(retainedCache, observedAt));
     } else if (!roadblocks.length) {
       roadblocks.push({
         state: config.id,
@@ -3212,7 +3289,7 @@ async function collectIndianaCityHive(config, bible, observedAt) {
       });
     }
   }
-  if (liveInventoryProduced) await writeIndianaCityHiveCache(liveSignals, liveRoadblocks);
+  if (liveInventoryProduced) await writeIndianaCityHiveCache(signals, liveRoadblocks, signal);
   const reconciled = reconcileCityHiveRateLimitsWithCache({
     roadblocks,
     sources: IN_CITYHIVE_SOURCES,
@@ -3235,7 +3312,8 @@ async function readIndianaTargetCache() {
   }
 }
 
-async function writeIndianaTargetCache(signals, roadblocks) {
+async function writeIndianaTargetCache(signals, roadblocks, signal) {
+  signal?.throwIfAborted();
   const payload = {
     generatedAt: new Date().toISOString(),
     source: 'Target Indiana RedSky store fulfillment cache',
@@ -3246,7 +3324,7 @@ async function writeIndianaTargetCache(signals, roadblocks) {
     roadblocks,
   };
   await mkdir(path.dirname(IN_TARGET_ARTIFACT_PATH), { recursive: true });
-  await writeFile(IN_TARGET_ARTIFACT_PATH, JSON.stringify(payload, null, 2));
+  await writeFile(IN_TARGET_ARTIFACT_PATH, JSON.stringify(payload, null, 2), signal ? { signal } : undefined);
 }
 
 function cachedIndianaTargetSignals(cache) {
@@ -3256,7 +3334,8 @@ function cachedIndianaTargetSignals(cache) {
   }));
 }
 
-async function collectIndianaTarget(config, bible, observedAt) {
+async function collectIndianaTarget(config, bible, observedAt, { signal } = {}) {
+  signal?.throwIfAborted();
   const locationSignals = buildIndianaTargetStoreLocationSignals(observedAt);
   const signals = [];
   const roadblocks = [];
@@ -3292,7 +3371,7 @@ async function collectIndianaTarget(config, bible, observedAt) {
     visitor_id: visitorId,
   });
   const searchUrl = `https://redsky.target.com/redsky_aggregations/v1/web/plp_search_v2?${searchParams}`;
-  const search = await textFetch(searchUrl, { headers: { accept: 'application/json', 'user-agent': 'Mozilla/5.0' }, timeoutMs: 25_000 });
+  const search = await textFetch(searchUrl, { headers: { accept: 'application/json', 'user-agent': 'Mozilla/5.0' }, timeoutMs: 25_000, signal });
   if (!search.ok) {
     if (cache) signals.push(...cachedIndianaTargetSignals(cache));
     roadblocks.push({
@@ -3326,6 +3405,7 @@ async function collectIndianaTarget(config, bible, observedAt) {
     let attemptedRequests = 0;
     let storeComplete = true;
     for (const product of products.slice(0, IN_TARGET_PRODUCT_LIMIT)) {
+      signal?.throwIfAborted();
       const rawName = htmlToText(product?.item?.product_description?.title || '');
       const { match, record, unsafeReason } = cityHiveSafeBottleMatch(rawName, bible);
       if (!record || !product?.tcin || product?.item?.is_alcoholic_beverage !== true) continue;
@@ -3341,7 +3421,7 @@ async function collectIndianaTarget(config, bible, observedAt) {
         visitor_id: visitorId,
       });
       const requestUrl = `https://redsky.target.com/redsky_aggregations/v1/web/product_fulfillment_v1?${params}`;
-      const res = await textFetch(requestUrl, { headers: { accept: 'application/json', 'user-agent': 'Mozilla/5.0' }, timeoutMs: 20_000 });
+      const res = await textFetch(requestUrl, { headers: { accept: 'application/json', 'user-agent': 'Mozilla/5.0' }, timeoutMs: 20_000, signal });
       if (!res.ok) {
         storeComplete = false;
         roadblocks.push({
@@ -3429,12 +3509,13 @@ async function collectIndianaTarget(config, bible, observedAt) {
     if (attemptedRequests > 0 && storeComplete) completedStoreIds.add(primaryStoreId);
   }
 
+  signal?.throwIfAborted();
   const liveSignalCount = signals.length;
   if (cache) {
     const merged = mergeIndianaTargetCacheSignals(signals, cachedIndianaTargetSignals(cache), { completedStoreIds });
     signals.splice(0, signals.length, ...merged);
   }
-  if (shouldWriteIndianaTargetCache(liveSignalCount, completedStoreIds)) await writeIndianaTargetCache(signals, roadblocks);
+  if (shouldWriteIndianaTargetCache(liveSignalCount, completedStoreIds)) await writeIndianaTargetCache(signals, roadblocks, signal);
   if (!signals.length) {
     roadblocks.push({
       state: config.id,
@@ -9195,7 +9276,7 @@ async function collectPrecisionProbesDirect(config, bible, existingSignals = [],
   if (config.id === 'AL') return collectAlabama(config, bible);
   if (config.id === 'NC') return collectNorthCarolinaIntelligence(config, bible, collectNcStoreInventory);
   if (config.id === 'IL') return collectIllinois(config, bible);
-  if (config.id === 'IN') return collectIndiana(config, bible);
+  if (config.id === 'IN') return collectIndiana(config, bible, existingSignals, options);
   if (config.id === 'TN') return collectTennessee(config, bible, options);
   if (config.id === 'AZ') return collectArizona(config, bible, options);
   if (config.id === 'CA') return collectCalifornia(config, bible, options);
@@ -9220,8 +9301,8 @@ export function legacyPrecisionRuntimeOptions(stateId, sourceRunnerOptions = {},
     .map((value) => value.trim().toUpperCase())
     .filter(Boolean)
     .includes(stateKey);
-  const defaultTimeoutMs = stateKey === 'VA' ? 1_140_000 : ['TN', 'FL'].includes(stateKey) ? 600_000 : stateKey === 'SC' ? 420_000 : ['AZ', 'GA', 'TX'].includes(stateKey) ? 300_000 : ['NY', 'CO'].includes(stateKey) ? 240_000 : 120_000;
-  const defaultMaxAttempts = ['VA', 'AZ', 'GA', 'NY', 'CO', 'TN', 'FL'].includes(stateKey) ? 1 : 2;
+  const defaultTimeoutMs = stateKey === 'VA' ? 1_140_000 : ['IN', 'TN', 'FL'].includes(stateKey) ? 600_000 : stateKey === 'SC' ? 420_000 : ['AZ', 'GA', 'TX'].includes(stateKey) ? 300_000 : ['NY', 'CO'].includes(stateKey) ? 240_000 : 120_000;
+  const defaultMaxAttempts = ['VA', 'AZ', 'GA', 'NY', 'CO', 'IN', 'TN', 'FL'].includes(stateKey) ? 1 : 2;
   return {
     ...sourceRunnerOptions,
     ...(stateKey === 'VA' || explicitlyTargeted ? { schedule: false } : {}),
@@ -9246,7 +9327,7 @@ function eligibleMetroPreviousPrecisionResults(previousResults, stateId) {
 }
 
 export function precisionExistingSignalsForState(stateId, existingSignals = [], previousSourceResults = {}) {
-  if (stateId !== 'FL') return existingSignals;
+  if (!['FL', 'IN'].includes(stateId)) return existingSignals;
   const previousSignals = previousSourceResults?.[legacyPrecisionSourceId(stateId)]?.value?.signals;
   if (!Array.isArray(previousSignals)) return existingSignals;
   return [...new Map([...previousSignals, ...existingSignals].map((signal) => [signal.id, signal])).values()];
@@ -9497,11 +9578,13 @@ async function collectIllinois(config, bible) {
   return { signals, roadblocks };
 }
 
-async function collectIndiana(config, bible) {
+export async function collectIndiana(config, bible, existingSignals = [], options = {}) {
   const signals = [], roadblocks = [];
   const observedAt = new Date().toISOString();
+  const { signal } = options;
   try {
-    const artifact = await collectIndianaAtcPackageStores();
+    signal?.throwIfAborted();
+    const artifact = await collectIndianaAtcPackageStores({ signal });
     const atcObservedAt = artifact.generatedAt || observedAt;
 
     for (const store of artifact.stores || []) {
@@ -9533,7 +9616,8 @@ async function collectIndiana(config, bible) {
         raw: { permit: store, artifactPath: IN_ATC_ARTIFACT_PATH }
       });
     }
-    const bourbonWorld = await textFetch(IN_BOURBON_WORLD_URL, { headers: { accept: 'text/html,*/*' } });
+    signal?.throwIfAborted();
+    const bourbonWorld = await textFetch(IN_BOURBON_WORLD_URL, { headers: { accept: 'text/html,*/*' }, signal });
     if (bourbonWorld.ok) {
       const allocatedItems = parseIndianaBourbonWorldAllocated(bourbonWorld.text)
         .filter((item) => RARE_RE.test(item.rawName) || /van winkle|blanton|buffalo trace/i.test(item.rawName));
@@ -9587,7 +9671,8 @@ async function collectIndiana(config, bible) {
       });
     }
 
-    const ilgEvents = await textFetch(INDIANA_LIQUOR_GROUP_EVENTS_URL, { headers: { accept: 'text/html,*/*' } });
+    signal?.throwIfAborted();
+    const ilgEvents = await textFetch(INDIANA_LIQUOR_GROUP_EVENTS_URL, { headers: { accept: 'text/html,*/*' }, signal });
     if (ilgEvents.ok) {
       for (const event of parseIndianaLiquorGroupEvents(ilgEvents.text, observedAt)) {
         const matchName = indianaLiquorGroupBottleMatchName(event.rawName);
@@ -9635,30 +9720,37 @@ async function collectIndiana(config, bible) {
       });
     }
 
-    const kahns = await collectIndianaKahns(config, bible, observedAt);
+    const kahns = await collectIndianaKahns(config, bible, observedAt, options);
+    signal?.throwIfAborted();
     signals.push(...kahns.signals);
     roadblocks.push(...kahns.roadblocks);
 
-    const payless = await collectIndianaPaylessBarrelSelections(config, bible, observedAt);
+    const payless = await collectIndianaPaylessBarrelSelections(config, bible, observedAt, options);
+    signal?.throwIfAborted();
     signals.push(...payless.signals);
     roadblocks.push(...payless.roadblocks);
 
-    const penguin = await collectIndianaPenguinLiquor(config, bible, observedAt);
+    const penguin = await collectIndianaPenguinLiquor(config, bible, observedAt, options);
+    signal?.throwIfAborted();
     signals.push(...penguin.signals);
     roadblocks.push(...penguin.roadblocks);
 
-    const doorDashFrontier = await collectIndianaDoorDashFrontier(config, bible, observedAt);
+    const doorDashFrontier = await collectIndianaDoorDashFrontier(config, bible, observedAt, options);
+    signal?.throwIfAborted();
     signals.push(...doorDashFrontier.signals);
     roadblocks.push(...doorDashFrontier.roadblocks);
 
-    const cityHive = await collectIndianaCityHive(config, bible, observedAt);
+    const cityHive = await collectIndianaCityHive(config, bible, observedAt, existingSignals, options);
+    signal?.throwIfAborted();
     signals.push(...cityHive.signals);
     roadblocks.push(...cityHive.roadblocks);
 
-    const target = await collectIndianaTarget(config, bible, observedAt);
+    const target = await collectIndianaTarget(config, bible, observedAt, options);
+    signal?.throwIfAborted();
     signals.push(...target.signals);
     roadblocks.push(...target.roadblocks);
   } catch (error) {
+    if (signal?.aborted) throw error;
     roadblocks.push({
       state: config.id,
       source: 'Indiana ATC public facility permit search',
