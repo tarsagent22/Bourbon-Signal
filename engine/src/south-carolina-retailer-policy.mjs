@@ -8,6 +8,10 @@ const ALL_AMERICAN_ADDRESS = '121 w butler rd mauldin sc 29662';
 const ALL_AMERICAN_MAX_AGE_MS = 2 * 60 * 60_000;
 const MAX_FUTURE_SKEW_MS = 5 * 60_000;
 const SC_CITYHIVE_MAX_AGE_MS = 6 * 60 * 60_000;
+const LIQUOR_LIBRARY_SOURCE = 'Liquor Library North Myrtle Beach Square exact-store inventory';
+const LIQUOR_LIBRARY_STORE_ID = 'liquor-library:45SNB155S1XMP';
+const LIQUOR_LIBRARY_MAX_AGE_MS = 2 * 60 * 60_000;
+const LIQUOR_LIBRARY_ADDRESS = '270 hwy 17 n north myrtle beach sc 29582';
 const SC_CITYHIVE_MERCHANTS = new Map([
   ...['61dc4ab6a1d5721307e9c20e', '61e1d04c823936166693c7f3', '61dc62fca1d5721d92e837cf', '61dc583152bc522be69a8b9e', '61b7517362f55f727e469da5'].map((id) => [id, { chain: 'greens-beverage', label: "Green's Beverage South Carolina CityHive store inventory", hosts: ['greensbeb2c6efe1.sites.cityhive.app', 'greensbeverages.com', 'www.greensbeverages.com'] }]),
   ...['69930e7bed5bdd2a34c085c3', '699754a7b0035e3df3e7f3a4', '69977a118f10a026bd985189'].map((id) => [id, { chain: 'wine-bourbon-barn', label: 'Wine & Bourbon Barn CityHive store inventory', hosts: ['winebarnsc.com', 'www.winebarnsc.com'] }]),
@@ -22,6 +26,106 @@ const SC_CITYHIVE_MERCHANTS = new Map([
 
 function normalizedIdentity(value = '') {
   return String(value).toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+}
+
+function exactLiquorLibraryProductUrl(signal) {
+  try {
+    const url = new URL(String(signal?.sourceUrl || ''));
+    return url.protocol === 'https:'
+      && url.hostname === 'www.yourliquorlibrary.com'
+      && new RegExp(`^/product/[a-z0-9-]+/${String(signal?.siteProductId || '')}$`).test(url.pathname)
+      && !url.search
+      && !url.hash;
+  } catch {
+    return false;
+  }
+}
+
+export function isSouthCarolinaLiquorLibraryInventory(signal, nowMs = Date.now()) {
+  const square = signal?.raw?.square;
+  const product = square?.product;
+  const variation = square?.variation;
+  const observedAt = Date.parse(String(signal?.observedAt || signal?.lastConfirmedAt || ''));
+  const ageMs = nowMs - observedAt;
+  const quantity = Number(signal?.quantity);
+  const productId = typeof signal?.productId === 'string' ? signal.productId.trim() : '';
+  const siteProductId = typeof signal?.siteProductId === 'string' ? signal.siteProductId.trim() : '';
+  const variationId = typeof signal?.variationId === 'string' ? signal.variationId.trim() : '';
+  const sku = typeof signal?.sku === 'string' ? signal.sku.trim() : '';
+  return signal?.state === 'SC'
+    && signal?.stateCode === 'SC'
+    && signal?.eventType === 'retailer_store_inventory_result'
+    && signal?.sourceLabel === LIQUOR_LIBRARY_SOURCE
+    && signal?.sourceChain === 'liquor-library'
+    && signal?.locationPrecision === 'store_level'
+    && signal?.storeId === LIQUOR_LIBRARY_STORE_ID
+    && signal?.storeName === 'Liquor Library'
+    && signal?.locationName === 'Liquor Library'
+    && normalizedIdentity(signal?.storeAddress) === LIQUOR_LIBRARY_ADDRESS
+    && signal?.city === 'North Myrtle Beach'
+    && String(signal?.postalCode || '') === '29582'
+    && String(signal?.zip || '') === '29582'
+    && signal?.ownerId === '137158697'
+    && signal?.siteId === '561680787436279681'
+    && signal?.merchantId === 'X9C89EYCA4KCD'
+    && signal?.locationId === '45SNB155S1XMP'
+    && signal?.categoryId === 'MGSXQOL6DSLH2PEGGDELCZO2'
+    && /^[A-Z0-9]{10,40}$/.test(productId)
+    && /^\d{1,12}$/.test(siteProductId)
+    && /^[A-Z0-9]{10,40}$/.test(variationId)
+    && Boolean(sku)
+    && sku.length <= 64
+    && signal?.sourceProductProofId === productId
+    && Boolean(String(signal?.canonicalBottleId || '').trim())
+    && Boolean(String(signal?.rawName || '').trim())
+    && exactLiquorLibraryProductUrl(signal)
+    && Number.isInteger(quantity)
+    && quantity > 0
+    && quantity <= 10_000
+    && signal?.storeQty === quantity
+    && signal?.quantityIsExact === true
+    && signal?.quantitySemantics === 'exact_square_single_location_inventory'
+    && Number.isFinite(Number(signal?.price))
+    && Number(signal.price) > 0
+    && signal?.availabilityStatus === 'in_stock'
+    && signal?.sourceAvailabilityVerified === true
+    && signal?.orderabilityOfferVerified === true
+    && signal?.canAlertAsInventory === true
+    && signal?.canAlertAsWatch === true
+    && signal?.stale !== true
+    && signal?.sourceStale !== true
+    && signal?.raw?.chain === 'liquor-library'
+    && square?.ownerId === signal.ownerId
+    && square?.siteId === signal.siteId
+    && square?.merchantId === signal.merchantId
+    && square?.locationId === signal.locationId
+    && square?.categoryId === signal.categoryId
+    && product?.id === productId
+    && product?.siteProductId === siteProductId
+    && product?.quantity === quantity
+    && product?.price === signal.price
+    && product?.sourceUrl === signal.sourceUrl
+    && variation?.id === variationId
+    && variation?.sku === sku
+    && variation?.productId === productId
+    && variation?.siteProductId === siteProductId
+    && variation?.quantity === quantity
+    && variation?.price === signal.price
+    && variation?.inventoryTrackingEnabled === true
+    && variation?.pickupEnabled === true
+    && Number.isFinite(observedAt)
+    && ageMs >= -MAX_FUTURE_SKEW_MS
+    && ageMs <= LIQUOR_LIBRARY_MAX_AGE_MS;
+}
+
+export function isSouthCarolinaLiquorLibrarySignal(signal) {
+  let host = '';
+  try { host = new URL(String(signal?.sourceUrl || '')).hostname.toLowerCase(); } catch {}
+  return signal?.sourceLabel === LIQUOR_LIBRARY_SOURCE
+    || signal?.sourceChain === 'liquor-library'
+    || signal?.raw?.chain === 'liquor-library'
+    || signal?.storeId === LIQUOR_LIBRARY_STORE_ID
+    || host === 'www.yourliquorlibrary.com';
 }
 
 function exactProductUrl(signal, handle) {

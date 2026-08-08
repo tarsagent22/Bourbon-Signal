@@ -395,6 +395,25 @@
       "key": "all-american-liquor-mauldin-29662"
     },
     {
+      "id": "liquor-library:45SNB155S1XMP",
+      "name": "Liquor Library",
+      "address": "270 Hwy 17 N, North Myrtle Beach, SC 29582",
+      "city": "North Myrtle Beach",
+      "state": "SC",
+      "zip": "29582",
+      "lat": 33.831432,
+      "lng": -78.675438,
+      "sourceLabels": [
+        "Liquor Library North Myrtle Beach Square exact-store inventory"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "first-party-live-probe",
+      "website": "https://www.yourliquorlibrary.com/shop/whisky/2",
+      "ecommercePlatform": "square-online",
+      "sourceRuntimeId": "retailer:sc:liquor-library:45SNB155S1XMP",
+      "key": "liquor-library-north-myrtle-beach-29582"
+    },
+    {
       "id": "dunes-liquor:dunes-liquor-myrtle-beach",
       "name": "Dunes Liquor",
       "address": "980 Cipriana Drive, Unit A5-B, Myrtle Beach, SC 29572",
