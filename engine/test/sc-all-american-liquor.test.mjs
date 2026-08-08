@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
 import { BourbonBible } from '../src/core/bible.mjs';
@@ -17,6 +18,7 @@ import {
 } from '../src/south-carolina-retailer-policy.mjs';
 
 const bible = await BourbonBible.load(new URL('../out/bourbon-bible.json', import.meta.url));
+const allAmericanVerifierSource = readFileSync(new URL('../src/verify-sc-all-american.mjs', import.meta.url), 'utf8');
 
 function product(overrides = {}) {
   return {
@@ -140,6 +142,22 @@ test('All American production verifier accepts separate first-run change and cur
     }),
     /additional change projections/,
   );
+});
+
+test('All American production verifier accepts healthy exact source rows suppressed by the customer relevance layer', () => {
+  const suppressedSourceRow = {
+    canonicalBottleId: 'regular-bottle',
+    storeId: 'all-american-liquor:all-american-liquor-mauldin',
+    productId: 1216,
+    sku: '080686011408',
+  };
+  assert.deepEqual(verifyAllAmericanAlertProjection({
+    sourceDrops: [],
+    sourceAlerts: [],
+    sourceInventoryRows: [suppressedSourceRow],
+    expectedAdditionalChangeRows: [],
+  }), { currentInventoryAlerts: [], additionalChangeAlerts: 0 });
+  assert.doesNotMatch(allAmericanVerifierSource, /if \(!sourceDrops\.length\) throw/);
 });
 
 test('All American production verifier accepts safe source changes collapsed from customer cards', () => {

@@ -61,9 +61,9 @@ test('Myrtle Beach merchants are probed first without widening the statewide Cit
   const probes = southCarolinaCityHiveProbePlan();
   const myrtle = probes.filter((probe) => probe.priority === 'myrtle');
   assert.deepEqual(myrtle.map((probe) => probe.merchantId), [
+    '6a0b27396d36df004b28a7ab',
     '61e1d04c823936166693c7f3',
     '6144e1c2085a5f20a622a15f',
-    '6a0b27396d36df004b28a7ab',
   ]);
   assert.ok(probes.every((probe) => probe.page === 1));
   assert.ok(myrtle.every((probe) => new URL(probe.url).searchParams.get('merchant-id') === probe.merchantId));
