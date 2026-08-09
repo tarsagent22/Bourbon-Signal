@@ -29,7 +29,8 @@ export const STATE_LIFECYCLE_CONFIG = {
     "UT",
     "NY",
     "CO",
-    "MS"
+    "MS",
+    "WV"
   ],
   "reliabilityPolicy": {
     "schemaVersion": 1,
@@ -805,15 +806,81 @@ export const STATE_LIFECYCLE_CONFIG = {
     "WV": {
       "customerLabel": "West Virginia",
       "sourceLabel": "West Virginia ABCA official barrel-selection updates and licensed-store directory",
-      "publicStatus": "research_only",
+      "publicStatus": "active",
       "lifecycle": "official_barrel_selection_updates",
       "coverageTier": "shipment_drop_intelligence",
       "refinementLevel": "statewide",
       "inventoryAlertable": false,
       "watchAlertable": false,
-      "shadowEligible": true,
+      "shadowEligible": false,
       "customerSummary": "Official West Virginia barrel-selection updates plus searchable licensed-store information. Retailers may be able to order listed selections, but these updates do not confirm shelf stock or enable restock alerts.",
-      "promotionStage": "shadow"
+      "promotionStage": "active",
+      "promotionEvidence": {
+        "shadowRuns": 3,
+        "canaryRuns": 2,
+        "verifiedAt": "2026-08-09T23:04:01.524Z",
+        "shadowArtifact": "engine/data/state-evidence/WV/shadow-runs.json",
+        "canaryArtifact": "engine/data/state-evidence/WV/canary-runs.json",
+        "canaryPreviewUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/31340717144",
+        "verticalSliceManifest": "engine/data/state-integration/WV.json",
+        "fixtureContract": "engine/data/state-fixtures/WV.json",
+        "immutableEvidence": {
+          "schemaVersion": 1,
+          "state": "WV",
+          "generatedAt": "2026-08-09T23:02:23.125Z",
+          "sourceConfigHash": "3598ddc1306bea8722ae34fb1896c8fd5a9a37a39e0c3a565dd11a20f588b37d",
+          "previewUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/31340717144",
+          "shadowRuns": [
+            {
+              "runId": "31340713953",
+              "status": "success",
+              "generatedAt": "2026-08-09T22:58:22.362Z",
+              "artifactHash": "9361ae9aebe18195d805d615bdc6ea298a52f3331a64370152d5096b5ec86738"
+            },
+            {
+              "runId": "31340715521",
+              "status": "success",
+              "generatedAt": "2026-08-09T22:58:37.763Z",
+              "artifactHash": "096129a4dfd8dc553a952336ee811b0ea4ea7bf41e78afb696b70656d7a48102"
+            },
+            {
+              "runId": "31340761817",
+              "status": "success",
+              "generatedAt": "2026-08-09T22:59:31.649Z",
+              "artifactHash": "dac0cf23696885930f7ad4f0b7edcf484fb636a15a88b6c5482f9d042782a722"
+            }
+          ],
+          "canaryRuns": [
+            {
+              "runId": "31340716341",
+              "status": "success",
+              "generatedAt": "2026-08-09T22:58:35Z",
+              "artifactHash": "071ac5a79fc40f901e7732b8d8b1be5f2c8c1f9c4ad2b4328e89eedcd55db578"
+            },
+            {
+              "runId": "31340717144",
+              "status": "success",
+              "generatedAt": "2026-08-09T22:59:07Z",
+              "artifactHash": "98cdf4230d8346d73ee47e80e2f4c770acfdd3b320febf7d3976d7559791b871"
+            }
+          ],
+          "provenance": {
+            "status": "success",
+            "repository": "tarsagent22/Bourbon-Signal",
+            "workflowFile": ".github/workflows/state-promotion-provenance.yml",
+            "workflowName": "Verify state promotion provenance",
+            "workflowRunId": "31340869174",
+            "workflowRunAttempt": "1",
+            "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/31340869174",
+            "commitSha": "2cfb3d0d3f89951b2c2225ed328f0f1f4f1d4a57",
+            "artifactId": "9045776522",
+            "artifactName": "state-promotion-provenance-WV-31340869174",
+            "artifactDigest": "1e585e3687de42944eb60a82d92813b3b845615cd763784c596001a1b1d80e21",
+            "bundleDigest": "882e9c04606ab8d440d7f03cd017b720095e4f77d2d72ebda06f3f190e2174ea",
+            "generatedAt": "2026-08-09T23:02:23.125Z"
+          }
+        }
+      }
     },
     "WA": {
       "customerLabel": "Washington",
