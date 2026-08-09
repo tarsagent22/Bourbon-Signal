@@ -1,11 +1,15 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useUser } from "@clerk/nextjs";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
+import FounderGlassClaimDialog from "@/components/FounderGlassClaimDialog";
+import { shouldOfferFounderGlassClaim, type CheckoutSyncPayload } from "@/lib/founder-glass-claim";
+
+const ALERTS_WELCOME_URL = "/alerts?welcome=1&from=checkout";
 
 function SuccessContent() {
   const router = useRouter();
@@ -13,10 +17,22 @@ function SuccessContent() {
   const sessionId = searchParams.get("session_id");
   const { user, isLoaded } = useUser();
   const [activationStatus, setActivationStatus] = useState<"idle" | "syncing" | "active" | "error">("idle");
+  const [showFounderGlassPrompt, setShowFounderGlassPrompt] = useState(false);
+  const syncStartedRef = useRef(false);
+  const mountedRef = useRef(true);
+  const redirectTimerRef = useRef<number | null>(null);
 
   useEffect(() => {
-    if (!sessionId || !isLoaded || !user || activationStatus !== "idle") return;
-    let cancelled = false;
+    mountedRef.current = true;
+    return () => {
+      mountedRef.current = false;
+      if (redirectTimerRef.current !== null) window.clearTimeout(redirectTimerRef.current);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!sessionId || !isLoaded || !user || syncStartedRef.current) return;
+    syncStartedRef.current = true;
     setActivationStatus("syncing");
     fetch("/api/checkout/sync", {
       method: "POST",
@@ -24,20 +40,26 @@ function SuccessContent() {
       body: JSON.stringify({ sessionId }),
     })
       .then(async (res) => {
+        const payload = await res.json().catch(() => ({})) as CheckoutSyncPayload;
         if (!res.ok) throw new Error("Could not activate membership");
-        if (user) await user.reload();
-        if (!cancelled) {
-          setActivationStatus("active");
-          window.setTimeout(() => router.push("/alerts?welcome=1&from=checkout"), 2200);
+        await user.reload().catch(() => undefined);
+        if (!mountedRef.current) return;
+        setActivationStatus("active");
+        if (shouldOfferFounderGlassClaim(payload)) {
+          setShowFounderGlassPrompt(true);
+          return;
         }
+        redirectTimerRef.current = window.setTimeout(() => router.push(ALERTS_WELCOME_URL), 2200);
       })
       .catch(() => {
-        if (!cancelled) setActivationStatus("error");
+        if (mountedRef.current) setActivationStatus("error");
       });
-    return () => {
-      cancelled = true;
-    };
-  }, [activationStatus, isLoaded, router, sessionId, user]);
+  }, [isLoaded, router, sessionId, user]);
+
+  function dismissFounderGlassPrompt() {
+    setShowFounderGlassPrompt(false);
+    router.push(ALERTS_WELCOME_URL);
+  }
 
   return (
     <div
@@ -156,7 +178,7 @@ function SuccessContent() {
 
         {/* CTA */}
         <Link
-          href="/alerts?welcome=1&from=checkout"
+          href={ALERTS_WELCOME_URL}
           style={{
             display: "inline-block",
             background: "linear-gradient(135deg, #C4943A 0%, #D4A44A 100%)",
@@ -186,6 +208,7 @@ function SuccessContent() {
           Set Up Alerts →
         </Link>
       </div>
+      {showFounderGlassPrompt ? <FounderGlassClaimDialog onDismiss={dismissFounderGlassPrompt} /> : null}
     </div>
   );
 }
