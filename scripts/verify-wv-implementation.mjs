@@ -11,7 +11,14 @@ const stateSources = await readFile(new URL('../engine/src/state-sources.mjs', i
 const exporter = await readFile(new URL('../engine/src/export-site-contract.mjs', import.meta.url), 'utf8');
 const feedVisibility = await readFile(new URL('../src/lib/drop-feed-visibility.ts', import.meta.url), 'utf8');
 
-assert.ok(lifecycle.activeStates.includes('WV'), 'WV must be customer-active.');
+if (lifecycle.states.WV?.publicStatus === 'active') {
+  assert.ok(lifecycle.activeStates.includes('WV'), 'Active WV must be present in activeStates.');
+  assert.ok(lifecycle.states.WV?.promotionEvidence?.immutableEvidence, 'Active WV requires immutable promotion evidence.');
+} else {
+  assert.equal(lifecycle.states.WV?.publicStatus, 'research_only');
+  assert.equal(lifecycle.activeStates.includes('WV'), false);
+  assert.equal(lifecycle.states.WV?.shadowEligible, true);
+}
 assert.equal(lifecycle.states.WV?.lifecycle, 'official_barrel_selection_updates');
 assert.equal(lifecycle.states.WV?.coverageTier, 'shipment_drop_intelligence');
 assert.equal(lifecycle.states.WV?.inventoryAlertable, false);
