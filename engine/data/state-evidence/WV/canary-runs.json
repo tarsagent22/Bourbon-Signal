@@ -3,31 +3,31 @@
   "state": "WV",
   "runs": [
     {
-      "runId": "31339373623",
+      "runId": "31340716341",
       "status": "success",
-      "observedAt": "2026-08-09T22:26:39Z",
-      "artifactHash": "56571bde9dff5e4342323a0149c7ba75830a72f1f6dc6139342965f54b07b9dc",
+      "observedAt": "2026-08-09T22:58:35Z",
+      "artifactHash": "071ac5a79fc40f901e7732b8d8b1be5f2c8c1f9c4ad2b4328e89eedcd55db578",
       "github": {
-        "workflowRunId": "31339373623",
-        "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/31339373623",
-        "headSha": "449c350dd883b89f22d13273dbe942725b988927",
-        "artifactId": "9045337109",
-        "artifactName": "state-expansion-canary-WV-31339373623",
-        "artifactDigest": "sha256:56571bde9dff5e4342323a0149c7ba75830a72f1f6dc6139342965f54b07b9dc"
+        "workflowRunId": "31340716341",
+        "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/31340716341",
+        "headSha": "7454ded48559be581343e6d73fffa93a647c236d",
+        "artifactId": "9045732555",
+        "artifactName": "state-expansion-canary-WV-31340716341",
+        "artifactDigest": "sha256:071ac5a79fc40f901e7732b8d8b1be5f2c8c1f9c4ad2b4328e89eedcd55db578"
       }
     },
     {
-      "runId": "31339405898",
+      "runId": "31340717144",
       "status": "success",
-      "observedAt": "2026-08-09T22:27:23Z",
-      "artifactHash": "14e0bd01c9785f5807f468a2f2c43a97bb16cf387150ae92fd7ff20979e415c6",
+      "observedAt": "2026-08-09T22:59:07Z",
+      "artifactHash": "98cdf4230d8346d73ee47e80e2f4c770acfdd3b320febf7d3976d7559791b871",
       "github": {
-        "workflowRunId": "31339405898",
-        "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/31339405898",
-        "headSha": "449c350dd883b89f22d13273dbe942725b988927",
-        "artifactId": "9045346795",
-        "artifactName": "state-expansion-canary-WV-31339405898",
-        "artifactDigest": "sha256:14e0bd01c9785f5807f468a2f2c43a97bb16cf387150ae92fd7ff20979e415c6"
+        "workflowRunId": "31340717144",
+        "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/31340717144",
+        "headSha": "7454ded48559be581343e6d73fffa93a647c236d",
+        "artifactId": "9045738596",
+        "artifactName": "state-expansion-canary-WV-31340717144",
+        "artifactDigest": "sha256:98cdf4230d8346d73ee47e80e2f4c770acfdd3b320febf7d3976d7559791b871"
       }
     }
   ]

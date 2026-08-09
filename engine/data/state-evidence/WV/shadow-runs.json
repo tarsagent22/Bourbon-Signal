@@ -3,57 +3,57 @@
   "state": "WV",
   "runs": [
     {
-      "runId": "31339245142",
+      "runId": "31340713953",
       "status": "success",
-      "observedAt": "2026-08-09T22:23:07.005Z",
+      "observedAt": "2026-08-09T22:58:22.362Z",
       "exactStoreCoverageRatio": 0.967741935483871,
       "falsePositiveRate": 0,
       "staleRowCount": 0,
       "alertCandidateCount": 0,
-      "artifactHash": "a132b3f88142b61da6996c30fbe54bddf04a0ba9f62eed82a0798514fb5dcac1",
+      "artifactHash": "9361ae9aebe18195d805d615bdc6ea298a52f3331a64370152d5096b5ec86738",
       "github": {
-        "workflowRunId": "31339245142",
-        "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/31339245142",
-        "headSha": "449c350dd883b89f22d13273dbe942725b988927",
-        "artifactId": "9045291886",
-        "artifactName": "state-expansion-shadow-31339245142",
-        "artifactDigest": "sha256:a132b3f88142b61da6996c30fbe54bddf04a0ba9f62eed82a0798514fb5dcac1"
+        "workflowRunId": "31340713953",
+        "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/31340713953",
+        "headSha": "7454ded48559be581343e6d73fffa93a647c236d",
+        "artifactId": "9045730298",
+        "artifactName": "state-expansion-shadow-31340713953",
+        "artifactDigest": "sha256:9361ae9aebe18195d805d615bdc6ea298a52f3331a64370152d5096b5ec86738"
       }
     },
     {
-      "runId": "31339265701",
+      "runId": "31340715521",
       "status": "success",
-      "observedAt": "2026-08-09T22:23:39.389Z",
+      "observedAt": "2026-08-09T22:58:37.763Z",
       "exactStoreCoverageRatio": 0.967741935483871,
       "falsePositiveRate": 0,
       "staleRowCount": 0,
       "alertCandidateCount": 0,
-      "artifactHash": "9f8ee3f3eef975ef526bca8827b5ab82a821f13e22852a43a7ade91341dc9778",
+      "artifactHash": "096129a4dfd8dc553a952336ee811b0ea4ea7bf41e78afb696b70656d7a48102",
       "github": {
-        "workflowRunId": "31339265701",
-        "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/31339265701",
-        "headSha": "449c350dd883b89f22d13273dbe942725b988927",
-        "artifactId": "9045298680",
-        "artifactName": "state-expansion-shadow-31339265701",
-        "artifactDigest": "sha256:9f8ee3f3eef975ef526bca8827b5ab82a821f13e22852a43a7ade91341dc9778"
+        "workflowRunId": "31340715521",
+        "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/31340715521",
+        "headSha": "7454ded48559be581343e6d73fffa93a647c236d",
+        "artifactId": "9045733036",
+        "artifactName": "state-expansion-shadow-31340715521",
+        "artifactDigest": "sha256:096129a4dfd8dc553a952336ee811b0ea4ea7bf41e78afb696b70656d7a48102"
       }
     },
     {
-      "runId": "31339280807",
+      "runId": "31340761817",
       "status": "success",
-      "observedAt": "2026-08-09T22:24:00.197Z",
+      "observedAt": "2026-08-09T22:59:31.649Z",
       "exactStoreCoverageRatio": 0.967741935483871,
       "falsePositiveRate": 0,
       "staleRowCount": 0,
       "alertCandidateCount": 0,
-      "artifactHash": "2e1380cde64a69c43383e3cd7bf904d659091c89b85d14f197a15942fe13dd7f",
+      "artifactHash": "dac0cf23696885930f7ad4f0b7edcf484fb636a15a88b6c5482f9d042782a722",
       "github": {
-        "workflowRunId": "31339280807",
-        "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/31339280807",
-        "headSha": "449c350dd883b89f22d13273dbe942725b988927",
-        "artifactId": "9045303051",
-        "artifactName": "state-expansion-shadow-31339280807",
-        "artifactDigest": "sha256:2e1380cde64a69c43383e3cd7bf904d659091c89b85d14f197a15942fe13dd7f"
+        "workflowRunId": "31340761817",
+        "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/31340761817",
+        "headSha": "7454ded48559be581343e6d73fffa93a647c236d",
+        "artifactId": "9045743100",
+        "artifactName": "state-expansion-shadow-31340761817",
+        "artifactDigest": "sha256:dac0cf23696885930f7ad4f0b7edcf484fb636a15a88b6c5482f9d042782a722"
       }
     }
   ]
