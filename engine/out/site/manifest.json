@@ -14,7 +14,15 @@
     "alerts": "alerts.json",
     "stateQuality": "state-quality.json",
     "historicalTrends": "historical-trends.json",
-    "ncIntelligence": "nc-intelligence.json"
+    "ncIntelligence": "nc-intelligence.json",
+    "bottles.json": {
+      "sha256": "2c794d58c87acdf8f86fb81fb7ce423807c7973cd7594eb4708e4906688c9054",
+      "bytes": 129559
+    },
+    "stats.json": {
+      "sha256": "cbc33812fbfadaa02f05060a5b9da6766f4b0930d2091cc5ffcd64954db2c6b6",
+      "bytes": 81483
+    }
   },
   "historyDays": 30,
   "snapshotCount": 38,

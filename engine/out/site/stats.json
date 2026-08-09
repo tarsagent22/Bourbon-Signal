@@ -8,7 +8,7 @@
   "historicalSignalCount": 246355,
   "historyDays": 30,
   "snapshotCount": 38,
-  "bottleCount": 175,
+  "bottleCount": 169,
   "bibleRecordCount": 169,
   "storeCount": 3986,
   "locationCount": 5678,
@@ -410,17 +410,17 @@
         "refinementLevel": "region_city_store",
         "customerAreaLabel": null,
         "areaOptions": [
-          "Northwest / DeSoto–Memphis fringe",
+          "Northwest / DeSoto\u2013Memphis fringe",
           "North Central / Oxford",
-          "Northeast / Tupelo–Golden Triangle",
-          "Delta / Greenville–Clarksdale–Greenwood",
-          "Central / Jackson–Madison–Rankin",
+          "Northeast / Tupelo\u2013Golden Triangle",
+          "Delta / Greenville\u2013Clarksdale\u2013Greenwood",
+          "Central / Jackson\u2013Madison\u2013Rankin",
           "East Central / Meridian",
-          "Pine Belt / Hattiesburg–Laurel",
-          "Gulf Coast / Gulfport–Biloxi–Pascagoula",
-          "Southwest / Natchez–Brookhaven–McComb–Vicksburg"
+          "Pine Belt / Hattiesburg\u2013Laurel",
+          "Gulf Coast / Gulfport\u2013Biloxi\u2013Pascagoula",
+          "Southwest / Natchez\u2013Brookhaven\u2013McComb\u2013Vicksburg"
         ],
-        "customerSummary": "Sparse exact-store Mississippi retailer inventory across DeSoto County, the Jackson–Madison area, and an identity-bound Tupelo merchant cohort, plus conservative non-inventory release-watch evidence. Exact-store binary orderability is visible on-site only when freshly observed; marketplace controls do not claim exact bottle counts, pickup, delivery, or guaranteed fulfillment, release-watch evidence stays nonalertable, outbound alerts remain disabled, and customers should verify before driving.",
+        "customerSummary": "Sparse exact-store Mississippi retailer inventory across DeSoto County, the Jackson\u2013Madison area, and an identity-bound Tupelo merchant cohort, plus conservative non-inventory release-watch evidence. Exact-store binary orderability is visible on-site only when freshly observed; marketplace controls do not claim exact bottle counts, pickup, delivery, or guaranteed fulfillment, release-watch evidence stays nonalertable, outbound alerts remain disabled, and customers should verify before driving.",
         "coverageTier": "sparse_live_store_inventory"
       },
       {
@@ -459,9 +459,9 @@
         "customerAreaLabel": null,
         "areaOptions": [
           "Las Vegas Valley",
-          "Reno–Sparks"
+          "Reno\u2013Sparks"
         ],
-        "customerSummary": "First-party retailer store availability and pickup orderability across Las Vegas Valley and Reno–Sparks. Binary availability is not an exact shelf count; verify before driving. Costco remains a separate warehouse watch lane.",
+        "customerSummary": "First-party retailer store availability and pickup orderability across Las Vegas Valley and Reno\u2013Sparks. Binary availability is not an exact shelf count; verify before driving. Costco remains a separate warehouse watch lane.",
         "coverageTier": "live_store_inventory"
       },
       {

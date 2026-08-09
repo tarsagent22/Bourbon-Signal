@@ -1,6 +1,6 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "count": 175,
+  "count": 169,
   "bottles": [
     {
       "id": "bb_3bccb93448bf8456",
@@ -3050,7 +3050,7 @@
         "Maker Mark Private Selection Cask Strength Bourbon",
         "Maker's Mark Private Selection",
         "Makers Mark BSAM Private Selection Cask Strength Bourbon",
-        "Maker’s Mark Private Selection"
+        "Maker\u2019s Mark Private Selection"
       ],
       "tier": "limited",
       "producer": "Maker's Mark",
@@ -3944,7 +3944,7 @@
         "Belle Meade Bourbon Reserve 750mL"
       ],
       "tier": "standard",
-      "producer": "Nelson’s Green Brier Distillery",
+      "producer": "Nelson\u2019s Green Brier Distillery",
       "signalCount": 3,
       "stateCount": 3,
       "inventorySignalCount": 1,
@@ -4459,140 +4459,6 @@
       "bestConfidence": 0,
       "states": [],
       "latestObservedAt": null
-    },
-    {
-      "id": "bb_1799afb0fab6e7bd",
-      "canonical_id": "bb_1799afb0fab6e7bd",
-      "canonical_name": "Ezra Brooks Stave Finish Spice & Clove",
-      "canonical_key": "ezra brooks stave finish spice and clove",
-      "name": "Ezra Brooks Stave Finish Spice & Clove",
-      "aliases": [
-        "Ezra Brooks Stave Finish Spice & Clove"
-      ],
-      "tier": "limited",
-      "producer": "Lux Row Distillers",
-      "signalCount": 1,
-      "stateCount": 1,
-      "inventorySignalCount": 0,
-      "watchSignalCount": 0,
-      "bestLocationPrecision": "statewide_catalog",
-      "bestConfidence": 0.38,
-      "states": [
-        "WV"
-      ],
-      "latestObservedAt": "2026-08-09T23:04:26.714Z"
-    },
-    {
-      "id": "bb_559a7cf41c33d4be",
-      "canonical_id": "bb_559a7cf41c33d4be",
-      "canonical_name": "Rebel Full Proof Selection",
-      "canonical_key": "rebel full proof selection",
-      "name": "Rebel Full Proof Selection",
-      "aliases": [
-        "Rebel Full Proof Selection"
-      ],
-      "tier": "limited",
-      "producer": "Lux Row Distillers",
-      "signalCount": 1,
-      "stateCount": 1,
-      "inventorySignalCount": 0,
-      "watchSignalCount": 0,
-      "bestLocationPrecision": "statewide_catalog",
-      "bestConfidence": 0.38,
-      "states": [
-        "WV"
-      ],
-      "latestObservedAt": "2026-08-09T23:04:26.714Z"
-    },
-    {
-      "id": "bb_1c4d78c9fee9f02c",
-      "canonical_id": "bb_1c4d78c9fee9f02c",
-      "canonical_name": "Rebel Stave Finish Collection Rich Mocha",
-      "canonical_key": "rebel stave finish collection rich mocha",
-      "name": "Rebel Stave Finish Collection Rich Mocha",
-      "aliases": [
-        "Rebel Stave Finish Collection Rich Mocha"
-      ],
-      "tier": "limited",
-      "producer": "Lux Row Distillers",
-      "signalCount": 1,
-      "stateCount": 1,
-      "inventorySignalCount": 0,
-      "watchSignalCount": 0,
-      "bestLocationPrecision": "statewide_catalog",
-      "bestConfidence": 0.38,
-      "states": [
-        "WV"
-      ],
-      "latestObservedAt": "2026-08-09T23:04:26.714Z"
-    },
-    {
-      "id": "bb_8bda260568e33158",
-      "canonical_id": "bb_8bda260568e33158",
-      "canonical_name": "Wilderness Trail Rye Green Label Private Selection",
-      "canonical_key": "wilderness trail rye green label private selection",
-      "name": "Wilderness Trail Rye Green Label Private Selection",
-      "aliases": [
-        "Wilderness Trail Rye Green Label Private Selection"
-      ],
-      "tier": "limited",
-      "producer": "Wilderness Trail Distillery",
-      "signalCount": 1,
-      "stateCount": 1,
-      "inventorySignalCount": 0,
-      "watchSignalCount": 0,
-      "bestLocationPrecision": "statewide_catalog",
-      "bestConfidence": 0.38,
-      "states": [
-        "WV"
-      ],
-      "latestObservedAt": "2026-08-09T23:04:26.714Z"
-    },
-    {
-      "id": "bb_fe273b9c6f6657b6",
-      "canonical_id": "bb_fe273b9c6f6657b6",
-      "canonical_name": "Yellowstone Handpicked 109 Proof",
-      "canonical_key": "yellowstone handpicked 109 proof",
-      "name": "Yellowstone Handpicked 109 Proof",
-      "aliases": [
-        "Yellowstone Handpicked 109 Proof",
-        "Yellowstone Handpicked 109 proof"
-      ],
-      "tier": "limited",
-      "producer": "Limestone Branch",
-      "signalCount": 1,
-      "stateCount": 1,
-      "inventorySignalCount": 0,
-      "watchSignalCount": 0,
-      "bestLocationPrecision": "statewide_catalog",
-      "bestConfidence": 0.38,
-      "states": [
-        "WV"
-      ],
-      "latestObservedAt": "2026-08-09T23:04:26.714Z"
-    },
-    {
-      "id": "bb_1f9b7313bdf4f9e6",
-      "canonical_id": "bb_1f9b7313bdf4f9e6",
-      "canonical_name": "Yellowstone Handpicked 119 Proof",
-      "canonical_key": "yellowstone handpicked 119 proof",
-      "name": "Yellowstone Handpicked 119 Proof",
-      "aliases": [
-        "Yellowstone Handpicked 119 Proof",
-        "Yellowstone Handpicked 119 proof"
-      ],
-      "tier": "limited",
-      "producer": "Limestone Branch",
-      "signalCount": 1,
-      "stateCount": 1,
-      "inventorySignalCount": 0,
-      "watchSignalCount": 0,
-      "bestLocationPrecision": "statewide_catalog",
-      "bestConfidence": 0.38,
-      "states": [
-        "WV"
-      ],
-      "latestObservedAt": "2026-08-09T23:04:26.714Z"
     }
   ],
   "runId": "a7401de0a51cca45",
