@@ -33,7 +33,7 @@ import {
 } from './florida-retailer-surfaces.mjs';
 import {
   buildFloridaExpansionStoreLocationSignals,
-  collectFloridaAbcExpansionFromPayload,
+  collectFloridaAbcExpansion,
   collectFloridaPrimo,
   collectFloridaShipmentShopify,
   collectFloridaTivoli,
@@ -4922,16 +4922,16 @@ async function collectFloridaShopifyRetailers(config, bible, observedAt, options
 }
 
 async function collectFloridaAbc(config, bible, observedAt, options = {}) {
-  const signals = [];
-  const res = await textFetch(FLORIDA_ABC_SEARCHSPRING_URL, { headers: { accept: 'application/json,*/*' }, timeoutMs: 25_000, maxBytes: 4 * 1024 * 1024, redirect: 'manual', signal: options.signal });
-  if (!res.ok) return { signals, roadblocks: [{ state: 'FL', source: 'ABC Fine Wine & Spirits Searchspring bourbon catalog', url: FLORIDA_ABC_SEARCHSPRING_URL, status: res.status || 0, error: res.error || `HTTP ${res.status}`, nextRoute: 'Retry the public retailer search endpoint.' }] };
-  let rows = [];
-  try { rows = JSON.parse(res.text)?.results || []; } catch {}
-  signals.push(...collectFloridaAbcExpansionFromPayload({
-    payload: res.text,
+  const exactStoreResult = await collectFloridaAbcExpansion({
     observedAt,
     matchBottle: (rawName) => cityHiveSafeBottleMatch(rawName, bible),
-  }));
+    fetchText: textFetch,
+    signal: options.signal,
+  });
+  if (exactStoreResult.roadblocks.length) return exactStoreResult;
+  const signals = [...exactStoreResult.signals];
+  let rows = [];
+  try { rows = JSON.parse(exactStoreResult.inventoryPayload)?.results || []; } catch {}
   for (const row of rows) {
     if (!/^(?:1|true)$/i.test(String(row.ss_in_stock || ''))) continue;
     const rawName = htmlToText(row.name || '');

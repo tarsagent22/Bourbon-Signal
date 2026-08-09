@@ -121,6 +121,17 @@ function floridaExpansionIdentityIsValid(identity, signal, sourceStrictHostname)
     const rawChildSku = signal.raw?.childSku == null ? childSku : String(signal.raw.childSku);
     const rawStoreNumber = signal.raw?.storeNumber == null ? storeNumber : String(signal.raw.storeNumber);
     const rawControlStoreId = signal.raw?.controlStoreId == null ? controlStoreId : String(signal.raw.controlStoreId);
+    const latitude = Number(signal.lat);
+    const longitude = Number(signal.lng);
+    const rawOfficialIdentityPresent = signal.raw && ['officialAddress', 'officialCity', 'officialZip', 'officialLatitude', 'officialLongitude']
+      .some((field) => Object.hasOwn(signal.raw, field));
+    const rawOfficialIdentityValid = !rawOfficialIdentityPresent || (
+      String(signal.raw.officialAddress || '') === target.officialAddress
+      && String(signal.raw.officialCity || '') === target.city
+      && String(signal.raw.officialZip || '') === target.zip
+      && String(signal.raw.officialLatitude || '') === target.officialLatitude
+      && String(signal.raw.officialLongitude || '') === target.officialLongitude
+    );
     return Boolean(productPath)
       && /^\d+$/.test(productId) && Number(productId) > 0
       && productPath[1] === productId
@@ -135,6 +146,9 @@ function floridaExpansionIdentityIsValid(identity, signal, sourceStrictHostname)
       && rawStoreNumber === storeNumber
       && childSku === `${productId}-${target.storeNumber}`
       && rawChildSku === childSku
+      && Number.isFinite(latitude) && latitude === target.lat
+      && Number.isFinite(longitude) && longitude === target.lng
+      && rawOfficialIdentityValid
       && (signal.variantAvailable === true || signal.raw?.variantAvailable === true);
   }
   if (quantity !== 0
