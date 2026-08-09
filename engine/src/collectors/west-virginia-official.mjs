@@ -38,13 +38,16 @@ export function parseWestVirginiaBarrelSelections(html, {
   observedAt = new Date().toISOString(),
   currentYear = new Date(observedAt).getUTCFullYear(),
 } = {}) {
+  const rawHtml = String(html || '');
+  const hasCompleteSectionEnd = /Ask your local retailer or call the Spirits Department for more information![\s\S]{0,300}<h[1-6][^>]*>\s*Corazon Single Barrel[\s\S]*?<\/h[1-6]>/iu.test(rawHtml);
+  if (!hasCompleteSectionEnd) return [];
   const text = htmlText(html);
   const heading = /New\s+(\d{4})\s+discounts?\s+for\s+limited\s+barrel\s+selections?/iu.exec(text);
   if (!heading || Number(heading[1]) !== Number(currentYear)) return [];
 
   const start = heading.index + heading[0].length;
   const tail = text.slice(start);
-  const boundary = /(?:Corazon\s+Single\s+Barrel|\b20\d{2}\s+historical\s+selections?|\bArchived\b|\bPrior\s+year\b)/iu.exec(tail);
+  const boundary = /Ask your local retailer or call the Spirits Department for more information!/iu.exec(tail);
   if (!boundary) return [];
   const section = tail.slice(0, boundary.index);
   const rows = [];

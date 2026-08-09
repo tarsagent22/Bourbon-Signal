@@ -25,8 +25,10 @@ const fixtureHtml = `
     <ul>
       <li>28276 - Wilderness Trail Rye Green Label Private Selection - $61.25</li>
       <li>28285 - Myers's Rum Single Barrel - $35.67</li>
-      <li>28286 - Corazon Tequila Single Barrel selections</li>
+      <li>24276 - Corazon de Agave Reposado WV Tequila Lovers</li>
     </ul>
+    <p>Ask your local retailer or call the Spirits Department for more information!</p>
+    <h2>Corazon Single Barrel Reposado Tequila-still available to order!</h2>
     <h2>2025 historical selections</h2>
     <p>28111 - Maker's Mark Private Selection - $49.99</p>
   </main>
@@ -57,6 +59,16 @@ test('WV official parser keeps only current whiskey selections and never implies
 test('WV official parser rejects truncated or collapsed current-year responses', () => {
   assert.equal(parseWestVirginiaBarrelSelections('<h2>New 2026 discounts for limited barrel selections:</h2><p>28204 - Ezra Brooks Stave Finish Spice &amp; Clove</p>', { currentYear: 2026 }).length, 0);
   assert.equal(parseWestVirginiaBarrelSelections('<h2>New 2026 discounts for limited barrel selections:</h2><p>28204 - Ezra Brooks Stave Finish Spice &amp; Clove</p><h2>Corazon Single Barrel</h2>', { currentYear: 2026 }).length, 0);
+  const sevenRowsThenTruncatedCorazon = `<h2>New 2026 discounts for limited barrel selections:</h2>${[
+    '28204 - Ezra Brooks Stave Finish Spice & Clove',
+    '28206 - Rebel Full Proof Selection',
+    '23911 - Yellowstone Handpicked 109 Proof',
+    '26665 - Yellowstone Handpicked 119 Proof',
+    '28208 - Rebel Stave Finish Collection Rich Mocha',
+    '28276 - Wilderness Trail Rye Green Label Private Selection',
+    '27600 - Myers Rum Single Barrel',
+  ].map((row) => `<p>${row}</p>`).join('')}<p>24276 - Corazon Single Barrel`;
+  assert.equal(parseWestVirginiaBarrelSelections(sevenRowsThenTruncatedCorazon, { currentYear: 2026 }).length, 0);
 });
 
 test('WV directory publishes every active official premise as searchable, directory-only, and non-alertable', async () => {

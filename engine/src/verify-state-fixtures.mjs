@@ -342,7 +342,7 @@ function evaluateCase(item, { state, bible, registeredHosts, candidateActive = f
       '29998 - Myers Rum Single Barrel',
       '29999 - Corazon Tequila Single Barrel',
     ];
-    const html = `<h2>New 2026 discounts for limited barrel selections:</h2>${sourceRows.map((row) => `<p>${row}</p>`).join('')}<h2>Corazon Single Barrel</h2>`;
+    const html = `<h2>New 2026 discounts for limited barrel selections:</h2>${sourceRows.map((row) => `<p>${row}</p>`).join('')}<p>Ask your local retailer or call the Spirits Department for more information!</p><h2>Corazon Single Barrel Reposado Tequila-still available to order!</h2>`;
     const rows = enrichWestVirginiaBarrelSelections(parseWestVirginiaBarrelSelections(html, { observedAt, currentYear: 2026 }), bible)
       .filter((row) => Number(row.stockNumber) >= 28204 && Number(row.stockNumber) < 28204 + names.length);
     if (item.kind === 'positive_bottle_match') {
