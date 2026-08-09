@@ -6,6 +6,7 @@ import {
   normalizeFounderFulfillment,
   normalizeFounderShippingSubmission,
 } from "../src/lib/founder-shipping.ts";
+import { shouldOfferFounderGlassClaim } from "../src/lib/founder-glass-claim.ts";
 
 function read(path: string) {
   return readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
@@ -23,6 +24,11 @@ assert.deepEqual(memberShippingEligibility({ ...founderMetadata, membershipStatu
 assert.deepEqual(memberShippingEligibility({ tier: "standard", membershipStatus: "active" }), { eligible: true, founderNumber: null });
 assert.deepEqual(memberShippingEligibility({ tier: "barrel", membershipStatus: "active" }), { eligible: true, founderNumber: null });
 assert.deepEqual(memberShippingEligibility({ tier: "free", membershipStatus: "free" }), { eligible: false, founderNumber: null });
+
+assert.equal(shouldOfferFounderGlassClaim({ ok: true, tier: "bottled-in-bond", plan: "bib_lifetime" }), true);
+assert.equal(shouldOfferFounderGlassClaim({ ok: true, tier: "barrel", plan: "barrel_monthly" }), false);
+assert.equal(shouldOfferFounderGlassClaim({ ok: true, tier: "bottled-in-bond", plan: "barrel_monthly" }), false);
+assert.equal(shouldOfferFounderGlassClaim({ ok: false, tier: "bottled-in-bond", plan: "bib_lifetime" }), false);
 
 const valid = normalizeFounderShippingSubmission({
   recipientName: "  Chandler   Todd ",
@@ -90,6 +96,8 @@ assert.equal(founderShippingTrackingUrl(null, null), null);
 
 const page = read("src/app/founder-shipping/page.tsx");
 const settings = read("src/app/settings/page.tsx");
+const successPage = read("src/app/success/page.tsx");
+const founderClaimDialog = read("src/components/FounderGlassClaimDialog.tsx");
 const shippingPanel = read("src/components/MemberShippingProfile.tsx");
 const shippingApi = read("src/app/api/member/shipping/route.ts");
 const navigation = read("src/components/Navigation.tsx");
@@ -106,6 +114,17 @@ const packageJson = read("package.json");
 assert.match(middleware, /"\/founder-shipping\(\.\*\)"/);
 assert.match(middleware, /"\/api\/member\/shipping\(\.\*\)"/);
 assert.match(page, /redirect\("\/settings#shipping"\)/);
+assert.match(successPage, /shouldOfferFounderGlassClaim\(payload\)/, "the prompt decision uses the verified checkout-sync payload");
+assert.match(successPage, /syncStartedRef/, "checkout activation runs once rather than canceling itself when status changes");
+assert.match(successPage, /await user\.reload\(\)\.catch\(/, "a transient Clerk reload failure cannot suppress a verified Founder claim prompt");
+assert.match(successPage, /FounderGlassClaimDialog/);
+assert.match(founderClaimDialog, /role="dialog"/);
+assert.match(founderClaimDialog, /aria-modal="true"/);
+assert.match(founderClaimDialog, /Want to claim your one-of-a-kind Founder(?:&apos;|’|'|\u2019)s glass\?/);
+assert.match(founderClaimDialog, /href="\/settings#shipping"/);
+assert.match(founderClaimDialog, /Enter shipping information/);
+assert.match(founderClaimDialog, /Set up alerts instead/);
+assert.doesNotMatch(founderClaimDialog, /name=["'](?:address|addressLine|postalCode|phone)|<input|<textarea|<select/, "the popup routes to the private profile rather than collecting PII itself");
 assert.match(settings, /MemberShippingProfile/);
 assert.match(settings, />Manage account</);
 for (const section of ["personal", "membership", "shipping", "communications", "security"]) {

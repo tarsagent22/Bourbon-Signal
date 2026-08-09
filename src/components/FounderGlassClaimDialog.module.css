@@ -1,0 +1,148 @@
+.dialog {
+  width: min(440px, calc(100vw - 32px));
+  margin: auto;
+  padding: 34px 30px 28px;
+  border: 1px solid rgba(196, 148, 58, 0.38);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 50% 0%, rgba(196, 148, 58, 0.13), transparent 42%),
+    #18130f;
+  color: var(--color-cream);
+  text-align: center;
+  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.68);
+}
+
+.dialog::backdrop {
+  background: rgba(8, 6, 4, 0.78);
+  backdrop-filter: blur(5px);
+}
+
+.closeButton {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-size: 27px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.closeButton:hover,
+.closeButton:focus-visible {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--color-cream);
+  outline: 1px solid rgba(196, 148, 58, 0.45);
+}
+
+.eyebrow {
+  margin: 0 0 18px;
+  color: #d4a44a;
+  font-family: var(--font-dm-sans);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.glassMark {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  margin: 0 auto 18px;
+  place-items: center;
+  border: 1px solid rgba(196, 148, 58, 0.3);
+  border-radius: 50%;
+  background: rgba(196, 148, 58, 0.1);
+}
+
+.glassMark svg {
+  width: 39px;
+  height: 39px;
+  fill: none;
+  stroke: #e8dcc6;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.glassMark .glassOutline {
+  fill: rgba(232, 220, 198, 0.04);
+}
+
+.glassMark .bourbonFill {
+  fill: #c4943a;
+  stroke: none;
+}
+
+.dialog h2 {
+  margin: 0;
+  font-family: var(--font-playfair);
+  font-size: clamp(25px, 6vw, 33px);
+  line-height: 1.15;
+}
+
+.description {
+  margin: 16px auto 24px;
+  color: var(--color-text-secondary);
+  font-family: var(--font-dm-sans);
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.primaryAction {
+  display: block;
+  width: 100%;
+  padding: 14px 18px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #c4943a 0%, #d4a44a 100%);
+  color: #1a1510;
+  font-family: var(--font-dm-sans);
+  font-size: 15px;
+  font-weight: 800;
+  text-decoration: none;
+  box-shadow: 0 4px 20px rgba(196, 148, 58, 0.24);
+}
+
+.primaryAction:hover,
+.primaryAction:focus-visible {
+  box-shadow: 0 7px 26px rgba(196, 148, 58, 0.4);
+  outline: 2px solid #f0cf86;
+  outline-offset: 2px;
+}
+
+.secondaryAction {
+  margin-top: 15px;
+  padding: 7px 10px;
+  border: 0;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-family: var(--font-dm-sans);
+  font-size: 14px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.secondaryAction:hover,
+.secondaryAction:focus-visible {
+  color: var(--color-cream);
+}
+
+.note {
+  margin: 18px 0 0;
+  color: var(--color-text-tertiary);
+  font-family: var(--font-dm-sans);
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+@media (max-width: 520px) {
+  .dialog {
+    padding: 30px 22px 24px;
+  }
+}
