@@ -61,16 +61,17 @@
   },
   "evidence": {
     "shadow": {
-      "status": "not_run",
-      "runs": 0,
-      "artifact": null,
-      "reason": "Workflow-issued shadow evidence will be collected after atomic draft-PR admission."
+      "status": "success",
+      "runs": 3,
+      "artifact": "engine/data/state-evidence/WV/shadow-runs.json",
+      "reason": "Three GitHub Actions shadow runs returned 186 signals, 180 directory-only exact premises, zero alert candidates, and no roadblocks."
     },
     "canary": {
-      "status": "not_run",
-      "runs": 0,
-      "artifact": null,
-      "reason": "Workflow-issued canary evidence will be collected after atomic draft-PR admission."
+      "status": "success",
+      "runs": 2,
+      "artifact": "engine/data/state-evidence/WV/canary-runs.json",
+      "previewUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/31339405898",
+      "reason": "Two isolated GitHub Actions canary runs exported six non-alertable official-selection cards while production publication and alert delivery stayed disabled."
     },
     "production": {
       "status": "not_deployed",

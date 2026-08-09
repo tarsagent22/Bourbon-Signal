@@ -1,0 +1,60 @@
+{
+  "schemaVersion": 1,
+  "state": "WV",
+  "runs": [
+    {
+      "runId": "31339245142",
+      "status": "success",
+      "observedAt": "2026-08-09T22:23:07.005Z",
+      "exactStoreCoverageRatio": 0.967741935483871,
+      "falsePositiveRate": 0,
+      "staleRowCount": 0,
+      "alertCandidateCount": 0,
+      "artifactHash": "a132b3f88142b61da6996c30fbe54bddf04a0ba9f62eed82a0798514fb5dcac1",
+      "github": {
+        "workflowRunId": "31339245142",
+        "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/31339245142",
+        "headSha": "449c350dd883b89f22d13273dbe942725b988927",
+        "artifactId": "9045291886",
+        "artifactName": "state-expansion-shadow-31339245142",
+        "artifactDigest": "sha256:a132b3f88142b61da6996c30fbe54bddf04a0ba9f62eed82a0798514fb5dcac1"
+      }
+    },
+    {
+      "runId": "31339265701",
+      "status": "success",
+      "observedAt": "2026-08-09T22:23:39.389Z",
+      "exactStoreCoverageRatio": 0.967741935483871,
+      "falsePositiveRate": 0,
+      "staleRowCount": 0,
+      "alertCandidateCount": 0,
+      "artifactHash": "9f8ee3f3eef975ef526bca8827b5ab82a821f13e22852a43a7ade91341dc9778",
+      "github": {
+        "workflowRunId": "31339265701",
+        "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/31339265701",
+        "headSha": "449c350dd883b89f22d13273dbe942725b988927",
+        "artifactId": "9045298680",
+        "artifactName": "state-expansion-shadow-31339265701",
+        "artifactDigest": "sha256:9f8ee3f3eef975ef526bca8827b5ab82a821f13e22852a43a7ade91341dc9778"
+      }
+    },
+    {
+      "runId": "31339280807",
+      "status": "success",
+      "observedAt": "2026-08-09T22:24:00.197Z",
+      "exactStoreCoverageRatio": 0.967741935483871,
+      "falsePositiveRate": 0,
+      "staleRowCount": 0,
+      "alertCandidateCount": 0,
+      "artifactHash": "2e1380cde64a69c43383e3cd7bf904d659091c89b85d14f197a15942fe13dd7f",
+      "github": {
+        "workflowRunId": "31339280807",
+        "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/31339280807",
+        "headSha": "449c350dd883b89f22d13273dbe942725b988927",
+        "artifactId": "9045303051",
+        "artifactName": "state-expansion-shadow-31339280807",
+        "artifactDigest": "sha256:2e1380cde64a69c43383e3cd7bf904d659091c89b85d14f197a15942fe13dd7f"
+      }
+    }
+  ]
+}
