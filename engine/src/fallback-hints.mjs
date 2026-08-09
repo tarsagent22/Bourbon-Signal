@@ -102,22 +102,7 @@
       nextRoute: 'Discover latest dated price-book PDFs, extract text, normalize rows, and mark new/changed products.'
     }
   ],
-  WV: [
-    {
-      url: 'https://abca.wv.gov/wv-bourbon-whiskey-barrel-picks-0',
-      label: 'WV bourbon and whiskey barrel picks',
-      type: 'barrel_pick_signal',
-      text: 'WV ABCA barrel-pick page tracks latest barrel pick programs and 2025 selections. Search index mentions Whistle Pig Six Year single barrel rye and routine updates.',
-      nextRoute: 'Track barrel-pick page changes and product names; WV public search has no strong store-inventory depth.'
-    },
-    {
-      url: 'https://abca.wv.gov/page/spirits',
-      label: 'WV ABCA spirits page',
-      type: 'official_search_index_signal',
-      text: 'WV ABCA spirits page links barrel picks and spirits forms. Product search appears public but may be brittle from server-side fetch.',
-      nextRoute: 'Use browser or ASP.NET form emulation for liquorsearch.aspx; fall back to barrel-pick page for reliable public signals.'
-    }
-  ],
+
   MS: [
     {
       url: 'https://tap.dor.ms.gov/_/',

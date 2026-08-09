@@ -11,6 +11,12 @@ import { summarizeSourceResult } from '../sources/source-result.mjs';
 import { runSourceAdapters } from '../sources/source-runner.mjs';
 import { SourceCircuitBreaker } from '../sources/circuit-breaker.mjs';
 import { applyNcBoardShipmentPolicy } from './north-carolina-intelligence.mjs';
+import {
+  enrichWestVirginiaBarrelSelections,
+  parseWestVirginiaBarrelSelections,
+  westVirginiaDirectorySignals,
+  westVirginiaDirectorySourceReport,
+} from './west-virginia-official.mjs';
 
 export function isRetainedNotDueReport(sourceResults = [], signals = []) {
   return sourceResults.length > 0
@@ -284,6 +290,35 @@ async function collectConfiguredSource(config, source, sourceId, bible, fetcher,
     if (!response || Number(response.status || 0) === 0) throw new TransientSourceError(message, { status: response?.status ?? 0 });
     throw sourceErrorForHttp(response.status, message);
   }
+  if (config.id === 'WV' && source.id === 'wv-abca-barrel-selections') {
+    const observedAt = new Date().toISOString();
+    const parsed = parseWestVirginiaBarrelSelections(response.text, { observedAt });
+    if (!parsed.length) {
+      throw new MalformedSourceError('West Virginia ABCA returned no current-year whiskey barrel selections', { status: response.status });
+    }
+    const sourceSignals = enrichWestVirginiaBarrelSelections(parsed, bible)
+      .map((row) => ({ ...row, sourceRuntimeId: sourceId }));
+    return {
+      signals: sourceSignals,
+      roadblocks: [],
+      sourceReport: {
+        sourceRuntimeId: sourceId,
+        label: source.label,
+        url: source.url,
+        ok: true,
+        status: response.status,
+        contentType: response.contentType,
+        bytes: response.bytes,
+        elapsedMs: response.elapsedMs,
+        signalType: 'barrel_pick_signal',
+        matchedBottleCount: sourceSignals.filter((row) => row.canonicalBottleId).length,
+        selectionCount: sourceSignals.length,
+        pdfLinkCount: 0,
+        documentLinkCount: 0,
+        error: null,
+      },
+    };
+  }
   const contentIsJson = source.requiresJson || String(response.contentType || '').includes('json') || source.kind === 'json' || response.text.trim().startsWith('[') || response.text.trim().startsWith('{');
   const json = contentIsJson ? tryParseJson(response.text) : null;
   if (contentIsJson && !json) {
@@ -419,6 +454,12 @@ export async function collectState(config, bible, options = {}) {
     failureThreshold: Number(process.env.BOURBON_SIGNAL_SOURCE_CIRCUIT_FAILURES || 3),
     cooldownMs: Number(process.env.BOURBON_SIGNAL_SOURCE_CIRCUIT_COOLDOWN_MS || 15 * 60_000),
   });
+
+  if (config.id === 'WV') {
+    const directorySignals = westVirginiaDirectorySignals({ observedAt: startedAt });
+    signals.push(...directorySignals);
+    sourceReports.push(westVirginiaDirectorySourceReport(directorySignals));
+  }
 
   const hasCostcoSource = config.strategy === 'costco_warehouse_inventory_watch'
     || (config.sources || []).some((source) => source.kind === 'costco' || source.signalType === 'costco_warehouse_inventory');

@@ -15,6 +15,11 @@ import { isMetroRetailerInventory } from './metro-retailer-policy.mjs';
 import { MISSISSIPPI_RETAILER_SOURCES } from './collectors/mississippi-retailer-surfaces.mjs';
 import { buildMississippiRetailerSignal } from './collectors/mississippi-retailer-collector.mjs';
 import { isMississippiRetailerInventory } from './mississippi-retailer-policy.mjs';
+import {
+  enrichWestVirginiaBarrelSelections,
+  parseWestVirginiaBarrelSelections,
+  westVirginiaDirectorySignals,
+} from './collectors/west-virginia-official.mjs';
 
 const REQUIRED_KINDS = Object.freeze([
   'positive_bottle_match',
@@ -320,6 +325,41 @@ function evaluateCase(item, { state, bible, registeredHosts, candidateActive = f
   const input = item.input || {};
   if (state === 'NY' || state === 'CO') return evaluateMetroCase(item, { state, bible, registeredHosts, candidateActive });
   if (state === 'MS') return evaluateMississippiCase(item, { bible, registeredHosts, candidateActive });
+  if (state === 'WV') {
+    const names = Array.isArray(input.rawNames) ? input.rawNames.map(String) : [String(input.rawName || 'Yellowstone Handpicked 109 Proof')];
+    const observedAt = input.fetchedAt || '2026-08-09T20:00:00.000Z';
+    const html = `<h2>New 2026 discounts for limited barrel selections:</h2>${names.map((name, index) => `<p>${28204 + index} - ${name}</p>`).join('')}`;
+    const rows = enrichWestVirginiaBarrelSelections(parseWestVirginiaBarrelSelections(html, { observedAt, currentYear: 2026 }), bible);
+    if (item.kind === 'positive_bottle_match') {
+      const row = rows[0];
+      return { canonicalName: row?.canonicalName || null, tier: row?.tier || null, customerVisible: Boolean(row?.canonicalBottleId), alertable: false };
+    }
+    if (['ordinary_vs_rare_negative', 'rye_cream_liqueur_rtd_exclusion', 'size_or_multipack_exclusion'].includes(item.kind)) {
+      return { rareMatch: rows.some((row) => RARE_TIERS.has(String(row.tier || '').toLowerCase())), alertable: false };
+    }
+    if (item.kind === 'availability_semantics') {
+      const row = rows[0];
+      return {
+        quantity: row?.quantity ?? null,
+        exactShelfQuantity: false,
+        canAlertAsInventory: row?.canAlertAsInventory === true,
+        canAlertAsWatch: row?.canAlertAsWatch === true,
+      };
+    }
+    if (item.kind === 'store_identity') {
+      const row = westVirginiaDirectorySignals({ observedAt })[0];
+      return { storeId: row?.storeId || null, storeAddress: row?.storeAddress || null, fabricateIdentity: false };
+    }
+    if (item.kind === 'timestamp_freshness') {
+      const row = rows[0];
+      return { preserveOriginalTimestamp: row?.observedAt === input.fetchedAt, futureTimestampAllowed: false, staleRowsAlertable: false };
+    }
+    if (item.kind === 'source_specific_sentinel') {
+      let host = '';
+      try { host = new URL(input.sourceUrl).hostname.toLowerCase(); } catch {}
+      return { officialHost: registeredHosts.has(host), allowlistedHosts: [...registeredHosts].sort() };
+    }
+  }
   const alertable = lifecycleAllowsInventoryAlert(state) || lifecycleAllowsWatchAlert(state);
   const names = Array.isArray(input.rawNames) ? input.rawNames.map(String) : [String(input.rawName || 'Eagle Rare 10 Year')];
   const productionSignals = state === 'UT' ? names.map((name, index) => utahProductionSignal(name, input, bible, index)) : [];

@@ -1362,6 +1362,48 @@
       "sourceStates": [
         "MS"
       ]
+    },
+    {
+      "canonical": "Ezra Brooks Stave Finish Spice & Clove",
+      "aliases": ["Ezra Brooks Stave Finish Spice & Clove"],
+      "tier": "limited",
+      "producer": "Lux Row Distillers",
+      "sourceStates": ["WV"]
+    },
+    {
+      "canonical": "Rebel Full Proof Selection",
+      "aliases": ["Rebel Full Proof Selection"],
+      "tier": "limited",
+      "producer": "Lux Row Distillers",
+      "sourceStates": ["WV"]
+    },
+    {
+      "canonical": "Yellowstone Handpicked 109 Proof",
+      "aliases": ["Yellowstone Handpicked 109 proof"],
+      "tier": "limited",
+      "producer": "Limestone Branch",
+      "sourceStates": ["WV"]
+    },
+    {
+      "canonical": "Yellowstone Handpicked 119 Proof",
+      "aliases": ["Yellowstone Handpicked 119 proof"],
+      "tier": "limited",
+      "producer": "Limestone Branch",
+      "sourceStates": ["WV"]
+    },
+    {
+      "canonical": "Rebel Stave Finish Collection Rich Mocha",
+      "aliases": ["Rebel Stave Finish Collection Rich Mocha"],
+      "tier": "limited",
+      "producer": "Lux Row Distillers",
+      "sourceStates": ["WV"]
+    },
+    {
+      "canonical": "Wilderness Trail Rye Green Label Private Selection",
+      "aliases": ["Wilderness Trail Rye Green Label Private Selection"],
+      "tier": "limited",
+      "producer": "Wilderness Trail Distillery",
+      "sourceStates": ["WV"]
     }
   ],
   "verifiedAliasNotes": [

@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "state": "WV",
+  "lifecycle": {
+    "customerLabel": "West Virginia",
+    "publicStatus": "active",
+    "coverageTier": "shipment_drop_intelligence",
+    "refinementLevel": "statewide"
+  },
+  "collector": {
+    "sourceIds": ["wv-abca-barrel-selections", "wv-abca-active-retail-liquor-directory"],
+    "registration": "engine/src/state-sources.mjs registers the current official ABCA barrel-selection page, while the collector adds the reviewed active-license directory as searchable, directory-only premises."
+  },
+  "storeIdentity": {
+    "mode": "official_license_directory_only",
+    "addressRequired": true,
+    "proof": "Each searchable premise is bound to an active ABCA retail-liquor license number, business name, official address text, and city. Directory identity never becomes inventory identity."
+  },
+  "sourceSemantics": {
+    "availability": "The official barrel-selection page proves only that West Virginia retailers may be able to order a current listed selection. It does not confirm any store has shelf stock, pickup, delivery, or quantity.",
+    "inventoryAlertable": false,
+    "watchAlertable": false
+  },
+  "customerPaths": {
+    "stateFilter": {
+      "status": "verified",
+      "assertion": "Lifecycle-backed state controls expose West Virginia only after promotion evidence activates the state."
+    },
+    "areaFilter": {
+      "status": "not_applicable",
+      "reason": "The official update is statewide and does not claim county, city, or store inventory."
+    },
+    "preferences": {
+      "status": "verified",
+      "assertion": "Lifecycle-backed preference normalization retains the West Virginia state selection after promotion."
+    },
+    "dashboard": {
+      "status": "verified",
+      "assertion": "The dashboard uses the same lifecycle-backed state option and non-inventory coverage summary."
+    },
+    "dropFeedApi": {
+      "status": "verified",
+      "assertion": "The customer feed accepts the exact WV state filter and exposes only current official selection rows with an explicit not-live-shelf-inventory caveat."
+    },
+    "finder": {
+      "status": "verified",
+      "assertion": "The location export includes all 180 reviewed active ABCA license premises as searchable directory-only identities."
+    },
+    "alerts": {
+      "status": "verified",
+      "assertion": "Lifecycle, canonicalization, export, and customer visibility keep every WV row false for inventory, watch, email, SMS, and delivery eligibility."
+    },
+    "monitoring": {
+      "status": "verified",
+      "assertion": "The source report records useful current rows only when the current-year official section parses; missing or stale headings fail closed."
+    },
+    "export": {
+      "status": "verified",
+      "assertion": "Export preserves six source-stock identities as on-site-only official updates and 180 directory premises without creating exact-store inventory or alerts."
+    }
+  },
+  "evidence": {
+    "shadow": {
+      "status": "not_run",
+      "runs": 0,
+      "artifact": null,
+      "reason": "Workflow-issued shadow evidence will be collected after atomic draft-PR admission."
+    },
+    "canary": {
+      "status": "not_run",
+      "runs": 0,
+      "artifact": null,
+      "reason": "Workflow-issued canary evidence will be collected after atomic draft-PR admission."
+    },
+    "production": {
+      "status": "not_deployed",
+      "url": null,
+      "assertion": "This manifest does not claim production deployment.",
+      "reason": "Production activation requires immutable promotion provenance, guarded merge, targeted refresh, and canonical verification."
+    }
+  }
+}

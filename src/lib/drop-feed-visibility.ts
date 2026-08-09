@@ -36,6 +36,7 @@ export type UserFacingDropSignal = {
   permitNumber?: string;
   storeId?: string;
   sourceAvailabilityVerified?: boolean;
+  availabilityStatus?: string;
   premisesVerified?: boolean;
   stale?: boolean;
   sourceStale?: boolean;
@@ -86,8 +87,27 @@ export function isUserFacingDropSignal(drop: UserFacingDropSignal) {
     && drop.eligibleForSms === false
     && drop.inventorySemantics === "binary_retailer_orderable_no_exact_count"
     && !canAlert;
+  const isWestVirginiaOfficialBarrelSelection = state === "WV"
+    && type === "barrel_pick_signal"
+    && precision === "statewide_catalog"
+    && String(drop.sourceRuntimeId ?? "") === "wv:configured:wv-abca-barrel-selections"
+    && drop.availabilityStatus === "official_retailer_ordering_intelligence"
+    && drop.sourceAvailabilityVerified === false
+    && drop.stale !== true
+    && drop.sourceStale !== true
+    && drop.source_stale !== true
+    && drop.eligibleForOnSite === true
+    && drop.eligibleForDropFeed === true
+    && drop.canAlertAsWatch === false
+    && drop.can_alert_as_watch !== true
+    && drop.eligibleForWatch === false
+    && drop.eligibleForDelivery === false
+    && drop.eligibleForEmail === false
+    && drop.eligibleForSms === false
+    && !canAlert;
 
   if (!type) return false;
+  if (isWestVirginiaOfficialBarrelSelection) return true;
   if (type.includes("out_of_stock") || type.includes("out-of-stock")) return false;
   if (type.includes("lottery")) return false;
   if (type === "alabc_limited_release_store_drop") return precision === "store_level";

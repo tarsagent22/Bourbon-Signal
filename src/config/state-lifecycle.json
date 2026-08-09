@@ -800,6 +800,19 @@
         }
       }
     },
+    "WV": {
+      "customerLabel": "West Virginia",
+      "sourceLabel": "West Virginia ABCA official barrel-selection updates and licensed-store directory",
+      "publicStatus": "research_only",
+      "lifecycle": "official_barrel_selection_updates",
+      "coverageTier": "shipment_drop_intelligence",
+      "refinementLevel": "statewide",
+      "inventoryAlertable": false,
+      "watchAlertable": false,
+      "shadowEligible": true,
+      "customerSummary": "Official West Virginia barrel-selection updates plus searchable licensed-store information. Retailers may be able to order listed selections, but these updates do not confirm shelf stock or enable restock alerts.",
+      "promotionStage": "shadow"
+    },
     "WA": {
       "customerLabel": "Washington",
       "sourceLabel": "Washington Costco warehouse bourbon watch",

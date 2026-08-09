@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 1,
+  "state": "WV",
+  "sourceSentinelRequired": true,
+  "cases": [
+    {
+      "id": "wv-current-official-selection-positive",
+      "kind": "positive_bottle_match",
+      "input": { "rawName": "Yellowstone Handpicked 109 Proof" },
+      "expected": {
+        "canonicalName": "Yellowstone Handpicked 109 Proof",
+        "tier": "limited",
+        "customerVisible": true,
+        "alertable": false
+      }
+    },
+    {
+      "id": "wv-ordinary-selection-not-rare",
+      "kind": "ordinary_vs_rare_negative",
+      "input": { "rawName": "Wild Turkey 101 Bourbon" },
+      "expected": { "rareMatch": false, "alertable": false }
+    },
+    {
+      "id": "wv-non-whiskey-exclusions",
+      "kind": "rye_cream_liqueur_rtd_exclusion",
+      "input": {
+        "rawNames": [
+          "Bourbon Cream Liqueur",
+          "Whiskey Ready-to-Drink Cocktail",
+          "Cabernet Wine Aged in Bourbon Barrels"
+        ]
+      },
+      "expected": { "rareMatch": false, "alertable": false }
+    },
+    {
+      "id": "wv-small-format-and-multipack-exclusion",
+      "kind": "size_or_multipack_exclusion",
+      "input": {
+        "rawNames": [
+          "Yellowstone Handpicked 375ml",
+          "Yellowstone Handpicked 3 pack"
+        ]
+      },
+      "expected": { "rareMatch": false, "alertable": false }
+    },
+    {
+      "id": "wv-statewide-ordering-not-inventory",
+      "kind": "availability_semantics",
+      "input": { "rawName": "Yellowstone Handpicked 109 Proof" },
+      "expected": {
+        "quantity": null,
+        "exactShelfQuantity": false,
+        "canAlertAsInventory": false,
+        "canAlertAsWatch": false
+      }
+    },
+    {
+      "id": "wv-official-directory-identity",
+      "kind": "store_identity",
+      "input": { "rawName": "Yellowstone Handpicked 109 Proof" },
+      "expected": {
+        "storeId": "wv-abca-13-b-211-002995",
+        "storeAddress": "ROUTE 12 NORTH",
+        "fabricateIdentity": false
+      }
+    },
+    {
+      "id": "wv-source-observation-time",
+      "kind": "timestamp_freshness",
+      "input": {
+        "rawName": "Yellowstone Handpicked 109 Proof",
+        "fetchedAt": "2026-08-09T20:00:00.000Z",
+        "nowAt": "2026-08-09T21:00:00.000Z"
+      },
+      "expected": {
+        "preserveOriginalTimestamp": true,
+        "futureTimestampAllowed": false,
+        "staleRowsAlertable": false
+      }
+    },
+    {
+      "id": "wv-official-host-sentinel",
+      "kind": "source_specific_sentinel",
+      "input": { "sourceUrl": "https://abca.wv.gov/spirits/wv-bourbon-whiskey-barrel-picks" },
+      "expected": {
+        "officialHost": true,
+        "allowlistedHosts": ["abca.wv.gov"]
+      }
+    }
+  ]
+}
