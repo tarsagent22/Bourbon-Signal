@@ -34,16 +34,20 @@ function sameHttpsHost(value, store) {
 }
 
 function hidden(tag) {
+  const classes = attribute(tag, 'class').split(/\s+/u).filter(Boolean);
   return /<input\b[^>]*\btype\s*=\s*["']?hidden\b/iu.test(tag)
     || /\s(?:hidden|disabled)(?:\s|=|>)/iu.test(tag)
     || /aria-hidden\s*=\s*["']?true/iu.test(tag)
     || /style\s*=\s*["'][^"']*(?:display\s*:\s*none|visibility\s*:\s*hidden)/iu.test(tag)
-    || /class\s*=\s*["'][^"']*\b(?:hidden|d-none|sr-only)\b/iu.test(tag);
+    || classes.some((value) => ['hidden', 'd-none', 'sr-only'].includes(value.toLowerCase()));
 }
 
 function hiddenAncestor(html, index) {
   const stack = [];
-  for (const match of String(html || '').slice(0, index).matchAll(/<\/?(div|li|article|section|ul|ol)\b[^>]*>/giu)) {
+  const prefix = String(html || '').slice(0, index)
+    .replace(/<!--[\s\S]*?-->/gu, (value) => ' '.repeat(value.length))
+    .replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1>/giu, (value) => ' '.repeat(value.length));
+  for (const match of prefix.matchAll(/<\/?(div|li|article|section|ul|ol)\b[^>]*>/giu)) {
     const tag = match[0];
     const name = match[1].toLowerCase();
     if (/^<\//u.test(tag)) {
@@ -111,9 +115,10 @@ function displayedMerchantIdentity(block, productId, store) {
   let product;
   try { product = JSON.parse(assignment); } catch { return false; }
   if (String(product.productId || '') !== String(productId)) return false;
-  const identity = plainText(product.storeDisplayName).match(/\((\d+)\)\(([^,()]+),\s*(\d{5})\)\s*$/u);
+  const identity = plainText(product.storeDisplayName).match(/\(([^()]*)\)\(([^,()]+),\s*(\d{5})\)\s*$/u);
+  const displayedMerchantId = identity?.[1]?.match(/(?:^|-\s*)(\d+)\s*$/u)?.[1] || '';
   return Boolean(identity)
-    && identity[1] === String(store.merchantId)
+    && displayedMerchantId === String(store.merchantId)
     && plainText(identity[2]).toLowerCase() === plainText(store.city).toLowerCase()
     && identity[3] === String(store.zip);
 }

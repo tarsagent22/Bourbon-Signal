@@ -487,7 +487,7 @@ export function publicSignal(signal, bible, freshness = null) {
     shipmentStoreEquivalent: signal.shipmentStoreEquivalent === true,
     quantityIsExact: typeof signal.quantityIsExact === 'boolean' ? signal.quantityIsExact : null,
     quantitySemantics: signal.quantitySemantics || signal.raw?.quantitySemantics || null,
-    reportedQuantity: ['GA', 'TN', 'NY', 'CO', 'VA'].includes(signal.state) && Number.isFinite(Number(signal.reportedQuantity ?? (isMetroInventory && signal.quantityIsExact === true ? signal.storeQty : null)))
+    reportedQuantity: ['FL', 'GA', 'TN', 'NY', 'CO', 'VA'].includes(signal.state) && Number.isFinite(Number(signal.reportedQuantity ?? (isMetroInventory && signal.quantityIsExact === true ? signal.storeQty : null)))
       ? Number(signal.reportedQuantity ?? signal.storeQty)
       : null,
     availabilityStatus: isMsSparseOnSiteInventory ? (signal.availabilityStatus || 'orderable') : signal.availabilityStatus,
@@ -499,6 +499,8 @@ export function publicSignal(signal, bible, freshness = null) {
     orderabilityOfferVerified: signal.orderabilityOfferVerified === true || signal.raw?.orderabilityOfferVerified === true,
     premisesVerified: signal.premisesVerified === true || signal.raw?.premisesVerified === true,
     integratedCartVerified: signal.integratedCartVerified === true || signal.raw?.integratedCartVerified === true,
+    controlStoreId: signal.controlStoreId || signal.raw?.controlStoreId || null,
+    orderFormVerified: signal.orderFormVerified === true || signal.raw?.orderFormVerified === true,
     runtimeStoreId: signal.runtimeStoreId || signal.raw?.runtimeStoreId || null,
     fulfillmentGuaranteed: signal.fulfillmentGuaranteed === true || signal.raw?.fulfillmentGuaranteed === true,
     warehouseQty: signal.warehouseQty || 0,
@@ -561,6 +563,7 @@ export function publicSignal(signal, bible, freshness = null) {
           ? 'Aggregate availability intelligence only; not exact per-store shelf inventory.'
           : 'Informational/watch data only; not live shelf inventory.',
     inventorySemantics: safeString(inventorySemantics, 700),
+    sourceInventorySemantics: safeString(signal.sourceInventorySemantics || signal.inventorySemantics, 200),
     evidence: safeString(signal.evidence, 700)
   };
 }
