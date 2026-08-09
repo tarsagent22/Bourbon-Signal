@@ -507,6 +507,8 @@ const IN_CITYHIVE_SOURCES = [
     ]
   }
 ];
+const IN_CITYHIVE_RARE_PRIORITY_SOURCE_IDS = Object.freeze(['big-red', 'cap-n-cork', 'belmont-beverage']);
+const IN_CITYHIVE_RARE_PRIORITY_SLOTS = 1;
 
 const TN_CITYHIVE_ARTIFACT_PATH = 'out/browser/TN-cityhive-retailer-inventory.json';
 const TN_CITYHIVE_MAX_PAGES = Number(process.env.BOURBON_SIGNAL_TN_CITYHIVE_MAX_PAGES || 2);
@@ -517,6 +519,14 @@ const TN_CITYHIVE_CACHE_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_TN_CITYHI
 const TN_CITYHIVE_PAGE_DELAY_MS = Number(process.env.BOURBON_SIGNAL_TN_CITYHIVE_PAGE_DELAY_MS || 1_200);
 const TN_CITYHIVE_SOURCE_DELAY_MS = Number(process.env.BOURBON_SIGNAL_TN_CITYHIVE_SOURCE_DELAY_MS || 2_000);
 const TN_CITYHIVE_SOURCE_COHORT_SIZE = Math.max(1, Math.min(8, Number(process.env.BOURBON_SIGNAL_TN_CITYHIVE_SOURCE_COHORT_SIZE) || 4));
+const TN_CITYHIVE_RARE_PRIORITY_SOURCE_IDS = Object.freeze([
+  'corkdorks',
+  'busters-liquors',
+  'kimbrough-wines',
+  'frugal-macdoogal',
+  'happy-ours-wine-and-spirits',
+]);
+const TN_CITYHIVE_RARE_PRIORITY_SLOTS = 2;
 
 
 const TN_COOL_SPRINGS_BASE_URL = 'https://shop.coolspringswine.com/s/1000-1057/';
@@ -3105,6 +3115,8 @@ async function collectIndianaCityHive(config, bible, observedAt, existingSignals
     : selectIndianaCityHiveSourceCohort(IN_CITYHIVE_SOURCES, observedAt, {
         cohortSize: INDIANA_CITYHIVE_SOURCE_COHORT_SIZE,
         forceAll: process.env.BOURBON_SIGNAL_IN_CITYHIVE_FORCE_ALL_SOURCES === '1',
+        prioritySourceIds: IN_CITYHIVE_RARE_PRIORITY_SOURCE_IDS,
+        prioritySlots: IN_CITYHIVE_RARE_PRIORITY_SLOTS,
       });
   let providerRateLimited = false;
   const refreshedSourceIds = new Set();
@@ -3569,6 +3581,8 @@ async function collectTennesseeCityHive(config, bible, observedAt, options = {})
     cohortSize: TN_CITYHIVE_SOURCE_COHORT_SIZE,
     forceAll: forceAllSources,
     requestedSourceIds,
+    prioritySourceIds: TN_CITYHIVE_RARE_PRIORITY_SOURCE_IDS,
+    prioritySlots: TN_CITYHIVE_RARE_PRIORITY_SLOTS,
   });
   if (requestedSourceIds.size && !selectedSources.length) {
     roadblocks.push({

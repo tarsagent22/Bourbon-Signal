@@ -147,6 +147,32 @@ test('Indiana CityHive source cohorts rotate without starving providers at a thr
   }
 });
 
+test('Indiana source cohort reserves a rotating rare-yield slot without starving exploration', () => {
+  const sources = ['big-red', 'cap-n-cork', 'belmont-beverage', 'wise-guys', 'cork-liquors', '21st-amendment']
+    .map((id) => ({ id }));
+  const prioritySourceIds = ['big-red', 'cap-n-cork', 'belmont-beverage'];
+  const selected = selectIndianaCityHiveSourceCohort(sources, '2026-08-09T16:00:00.000Z', {
+    cohortSize: 3,
+    prioritySourceIds,
+    prioritySlots: 1,
+  });
+  assert.equal(selected.length, 3);
+  assert.equal(prioritySourceIds.includes(selected[0].id), true);
+  assert.equal(selected.slice(1).some((source) => !prioritySourceIds.includes(source.id)), true);
+  assert.equal(new Set(selected.map((source) => source.id)).size, 3);
+
+  const explored = new Set();
+  for (let hour = 0; hour < 36; hour += 3) {
+    const observedAt = new Date(Date.parse('2026-08-09T00:00:00.000Z') + hour * 60 * 60_000).toISOString();
+    for (const source of selectIndianaCityHiveSourceCohort(sources, observedAt, {
+      cohortSize: 3,
+      prioritySourceIds,
+      prioritySlots: 1,
+    })) explored.add(source.id);
+  }
+  assert.deepEqual(explored, new Set(sources.map((source) => source.id)));
+});
+
 test('Indiana targeted CityHive source selection is bounded and fails closed on unknown providers', () => {
   const sources = [{ id: 'big-red' }, { id: 'cap-n-cork' }, { id: 'wise-guys' }];
   assert.deepEqual(selectIndianaCityHiveRequestedSources(sources, 'big-red, wise-guys'), [sources[0], sources[2]]);

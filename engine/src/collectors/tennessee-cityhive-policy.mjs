@@ -46,15 +46,25 @@ export function selectTennesseeCityHiveSourceCohort(sources = [], {
   cohortSize = 4,
   forceAll = false,
   requestedSourceIds = new Set(),
+  prioritySourceIds = [],
+  prioritySlots = 0,
 } = {}) {
   const requested = requestedSourceIds instanceof Set ? requestedSourceIds : new Set(requestedSourceIds || []);
   if (requested.size) return sources.filter((source) => requested.has(source.id));
   if (forceAll) return [...sources];
   const attemptAt = tennesseeCityHiveSourceAttemptAt(cache);
   const indexed = sources.map((source, index) => ({ source, index, attemptedAt: attemptAt.get(source.id) || 0 }));
-  indexed.sort((left, right) => left.attemptedAt - right.attemptedAt || left.index - right.index);
+  const oldestFirst = (left, right) => left.attemptedAt - right.attemptedAt || left.index - right.index;
+  indexed.sort(oldestFirst);
   const size = Math.max(1, Math.min(sources.length, Number(cohortSize) || 1));
-  return indexed.slice(0, size).map((entry) => entry.source);
+  const priorityIds = new Set((prioritySourceIds || []).map((value) => String(value || '')).filter(Boolean));
+  const exploitSize = Math.max(0, Math.min(size, priorityIds.size, Number(prioritySlots) || 0));
+  const exploited = indexed.filter((entry) => priorityIds.has(entry.source.id)).sort(oldestFirst).slice(0, exploitSize);
+  const exploitedIds = new Set(exploited.map((entry) => entry.source.id));
+  const nonPriority = indexed.filter((entry) => !priorityIds.has(entry.source.id));
+  const remainingPriority = indexed.filter((entry) => priorityIds.has(entry.source.id) && !exploitedIds.has(entry.source.id));
+  const explored = [...nonPriority, ...remainingPriority].slice(0, size - exploited.length);
+  return [...exploited, ...explored].map((entry) => entry.source);
 }
 
 export function mergeTennesseeCityHiveCacheSignals({

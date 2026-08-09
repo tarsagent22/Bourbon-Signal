@@ -25,6 +25,8 @@ export function selectIndianaCityHiveSourceCohort(sources, observedAt, {
   cohortSize = INDIANA_CITYHIVE_SOURCE_COHORT_SIZE,
   rotationMs = 60 * 60_000,
   forceAll = false,
+  prioritySourceIds = [],
+  prioritySlots = 0,
 } = {}) {
   if (!Array.isArray(sources) || !sources.length) return [];
   if (forceAll) return [...sources];
@@ -34,7 +36,18 @@ export function selectIndianaCityHiveSourceCohort(sources, observedAt, {
   // operator-selected cohort sizes cannot lock a three-hour cadence onto a
   // permanent modulo subset of the provider universe.
   const start = Number.isFinite(slot) ? (slot + Math.floor(slot / sources.length)) % sources.length : 0;
-  return Array.from({ length: size }, (_, index) => sources[(start + index) % sources.length]);
+  const rotated = Array.from({ length: sources.length }, (_, index) => sources[(start + index) % sources.length]);
+  const priorityIds = new Set((prioritySourceIds || []).map((value) => String(value || '')).filter(Boolean));
+  const priority = sources.filter((source) => priorityIds.has(String(source?.id || '')));
+  const exploitSize = Math.max(0, Math.min(size, priority.length, Number(prioritySlots) || 0));
+  const priorityStart = priority.length && Number.isFinite(slot)
+    ? (slot + Math.floor(slot / priority.length)) % priority.length
+    : 0;
+  const exploited = Array.from({ length: exploitSize }, (_, index) => priority[(priorityStart + index) % priority.length]);
+  const exploitedIds = new Set(exploited.map((source) => source.id));
+  const nonPriority = rotated.filter((source) => !priorityIds.has(String(source?.id || '')) && !exploitedIds.has(source.id));
+  const remainingPriority = rotated.filter((source) => priorityIds.has(String(source?.id || '')) && !exploitedIds.has(source.id));
+  return [...exploited, ...nonPriority, ...remainingPriority].slice(0, size);
 }
 
 export function selectIndianaCityHiveRequestedSources(sources, sourceIds) {
