@@ -1,6 +1,7 @@
 import { FLORIDA_LUEKENS_STORES, FLORIDA_TAMPA_TARGET_STORE_IDS } from './collectors/florida-tampa-surfaces.mjs';
 import { FLORIDA_CITYHIVE_SOURCES } from './collectors/florida-retailer-surfaces.mjs';
 import { pensacolaProductUrl, pensacolaVariantPickupUrl, PENSACOLA_SHOPIFY_SOURCE, PENSACOLA_SHOPIFY_STORES } from './collectors/florida-pensacola-surfaces.mjs';
+import { FLORIDA_EXPANSION_STORE_TARGETS } from './collectors/florida-15-20-expansion.mjs';
 
 const TARGET_FLORIDA_STORE_IDS = new Set(['649', '650', '1518', '1760', '2376', ...FLORIDA_TAMPA_TARGET_STORE_IDS]);
 
@@ -60,13 +61,91 @@ const FLORIDA_RETAILER_IDENTITIES = new Map([
   }],
 ]);
 
+for (const target of FLORIDA_EXPANSION_STORE_TARGETS.filter((store) => store.platform !== 'cityhive')) {
+  const hostname = new URL(target.baseUrl).hostname.toLowerCase();
+  const identity = FLORIDA_RETAILER_IDENTITIES.get(target.sourceLabel) || {
+    chain: target.sourceChain,
+    hostname: hostname.replace(/^www\./i, ''),
+    strictHostname: hostname,
+    merchants: new Set(),
+    stores: new Set(),
+    storeAddresses: new Map(),
+    expansionStores: new Map(),
+  };
+  identity.merchants.add(target.merchantId);
+  identity.stores.add(target.storeId);
+  identity.storeAddresses.set(target.storeId, target.address);
+  identity.expansionStores.set(target.storeId, target);
+  FLORIDA_RETAILER_IDENTITIES.set(target.sourceLabel, identity);
+}
+
+function floridaExpansionIdentityIsValid(identity, signal, sourceStrictHostname) {
+  const target = identity?.expansionStores?.get(String(signal.storeId || ''));
+  if (!target || sourceStrictHostname !== identity.strictHostname) return false;
+  let sourceUrl = null;
+  try { sourceUrl = new URL(String(signal.sourceUrl || '')); } catch { return false; }
+  const merchantId = String(signal.merchantId || signal.raw?.merchantId || '');
+  const chain = String(signal.sourceChain || signal.raw?.chain || '');
+  const postalCode = String(signal.postalCode || signal.zip || '');
+  if (sourceUrl.protocol !== 'https:'
+    || merchantId !== target.merchantId
+    || chain !== target.sourceChain
+    || String(signal.storeName || signal.locationName || '') !== target.name
+    || String(signal.storeAddress || '') !== target.address
+    || String(signal.city || '') !== target.city
+    || postalCode !== target.zip) return false;
+
+  const quantity = Number(signal.quantity ?? 0);
+  const reportedValue = signal.reportedQuantity ?? signal.raw?.reportedQuantity;
+  const reportedQuantity = reportedValue == null ? null : Number(reportedValue);
+  const sourceInventorySemantics = String(signal.sourceInventorySemantics || signal.inventorySemantics || '');
+  if (target.platform === 'primo') {
+    return /^\/products\/[a-z0-9][a-z0-9-]*$/i.test(sourceUrl.pathname)
+      && Number.isInteger(quantity)
+      && quantity > 0
+      && signal.quantityIsExact === true
+      && Number.isInteger(reportedQuantity)
+      && reportedQuantity === quantity
+      && sourceInventorySemantics === 'exact_retailer_reported_quantity';
+  }
+  if (quantity !== 0
+    || signal.quantityIsExact !== false
+    || (reportedQuantity !== null && reportedQuantity !== 0)) return false;
+  if (target.platform === 'shopify') {
+    return /^\/products\/[a-z0-9][a-z0-9-]*$/i.test(sourceUrl.pathname)
+      && Boolean(signal.productId)
+      && Boolean(signal.variantId)
+      && (signal.variantAvailable === true || signal.raw?.variantAvailable === true)
+      && sourceInventorySemantics === 'binary_exact_premises_shipment_orderable_no_shelf_count';
+  }
+  if (target.platform === 'gotoliquorstore') {
+    return /^\/p\/[^/]+\/\d+\/?$/i.test(sourceUrl.pathname)
+      && signal.pickupOfferVerified === true
+      && signal.premisesVerified === true
+      && String(signal.controlStoreId || signal.raw?.controlStoreId || '') === target.controlStoreId
+      && sourceInventorySemantics === 'binary_exact_premises_pickup_orderable_no_shelf_count';
+  }
+  if (target.platform === 'tivoli') {
+    return sourceUrl.href === target.productUrl
+      && String(signal.productId || '') !== ''
+      && signal.premisesVerified === true
+      && (signal.orderFormVerified === true || signal.raw?.orderFormVerified === true)
+      && sourceInventorySemantics === 'binary_exact_premises_shipment_orderable_no_shelf_count';
+  }
+  return false;
+}
+
 export function isFloridaRetailerSignalIdentity(signal) {
   const source = String(signal.sourceLabel || signal.source || '');
   const merchantId = String(signal.merchantId || signal.raw?.merchantId || '');
   const chain = String(signal.sourceChain || signal.raw?.chain || '');
   const storeId = String(signal.storeId || '');
   let sourceHostname = '';
-  try { sourceHostname = new URL(String(signal.sourceUrl || '')).hostname.replace(/^www\./i, '').toLowerCase(); } catch {}
+  let sourceStrictHostname = '';
+  try {
+    sourceStrictHostname = new URL(String(signal.sourceUrl || '')).hostname.toLowerCase();
+    sourceHostname = sourceStrictHostname.replace(/^www\./i, '');
+  } catch {}
 
   if (source === 'Target Florida RedSky store fulfillment') {
     return chain === 'target'
@@ -116,7 +195,8 @@ export function isFloridaRetailerSignalIdentity(signal) {
       signal.pickupOfferVerified === true
       && signal.premisesVerified === true
       && signal.sourceProductBinding === pensacolaVariantPickupUrl(signal.variantId)
-    )));
+    ))
+    && (!identity.expansionStores || floridaExpansionIdentityIsValid(identity, signal, sourceStrictHostname)));
 }
 
 export function isFloridaRetailerInventory(signal) {

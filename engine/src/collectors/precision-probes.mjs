@@ -32,6 +32,13 @@ import {
   registeredFloridaStore,
 } from './florida-retailer-surfaces.mjs';
 import {
+  buildFloridaExpansionStoreLocationSignals,
+  collectFloridaGoToLiquorStore,
+  collectFloridaPrimo,
+  collectFloridaShipmentShopify,
+  collectFloridaTivoli,
+} from './florida-15-20-expansion.mjs';
+import {
   buildPensacolaShopifyStoreLocationSignals,
   isUsefulPensacolaShopifyFormat,
   parsePensacolaShopifyCollectionLinks,
@@ -1709,22 +1716,29 @@ export async function curlTextFetch(url, options = {}) {
   const timeoutMs = Number(options.timeoutMs || process.env.BOURBON_SIGNAL_PRECISION_FETCH_TIMEOUT_MS || 25_000);
   const timeoutSeconds = String(Math.max(1, Math.ceil(timeoutMs / 1000)));
   const marker = '\n__BOURBON_SIGNAL_HTTP_STATUS__:';
+  const urlMarker = '\n__BOURBON_SIGNAL_EFFECTIVE_URL__:';
   const args = [
     ...(options.followRedirects === false ? [] : ['-L']),
     '--max-time', timeoutSeconds,
     '-sS',
     '-A', options.userAgent || PENGUIN_BROWSER_UA
   ];
+  if (options.maxBytes) args.push('--max-filesize', String(options.maxBytes));
+  if (options.method && String(options.method).toUpperCase() !== 'GET') args.push('-X', String(options.method).toUpperCase());
+  if (options.cookieJar) args.push('-c', String(options.cookieJar), '-b', String(options.cookieJar));
   const headers = { accept: 'text/html,application/xhtml+xml,*/*', 'accept-language': 'en-US,en;q=0.9', ...(options.headers || {}) };
   for (const [name, value] of Object.entries(headers)) args.push('-H', `${name}: ${value}`);
-  args.push('-w', `${marker}%{http_code}`, url);
+  args.push('-w', `${marker}%{http_code}${urlMarker}%{url_effective}`, url);
   try {
     const runExecFile = options.execFileAsync || execFileAsync;
     const { stdout } = await runExecFile(options.command || 'curl', args, { maxBuffer: options.maxBuffer || 3 * 1024 * 1024, windowsHide: true, signal: options.signal });
     const splitAt = stdout.lastIndexOf(marker);
     const text = splitAt >= 0 ? stdout.slice(0, splitAt) : stdout;
-    const status = splitAt >= 0 ? Number(stdout.slice(splitAt + marker.length).trim()) || 0 : 0;
-    return { ok: status >= 200 && status < 300, status, url, contentType: '', rawSetCookie: '', text, error: status >= 200 && status < 300 ? null : `HTTP ${status || 'unknown'}` };
+    const metadata = splitAt >= 0 ? stdout.slice(splitAt + marker.length) : '';
+    const effectiveSplitAt = metadata.lastIndexOf(urlMarker);
+    const status = Number((effectiveSplitAt >= 0 ? metadata.slice(0, effectiveSplitAt) : metadata).trim()) || 0;
+    const effectiveUrl = effectiveSplitAt >= 0 ? metadata.slice(effectiveSplitAt + urlMarker.length).trim() : url;
+    return { ok: status >= 200 && status < 300, status, url: effectiveUrl || url, contentType: '', rawSetCookie: '', text, error: status >= 200 && status < 300 ? null : `HTTP ${status || 'unknown'}` };
   } catch (error) {
     if (options.signal?.aborted) throw error;
     return { ok: false, status: 0, url, contentType: '', rawSetCookie: '', text: error?.stdout || '', error: error instanceof Error ? error.message : String(error) };
@@ -4952,7 +4966,7 @@ async function collectFloridaCityHive(config, bible, observedAt, options = {}) {
       const url = new URL(source.categoryUrl);
       url.searchParams.set('merchant-id', store.id);
       const res = await textFetch(url.href, {
-        headers: { accept: 'text/html,*/*', 'user-agent': 'Mozilla/5.0' },
+        headers: { accept: 'text/html,*/*', 'user-agent': PENGUIN_BROWSER_UA },
         timeoutMs: 24_000,
         signal: options.signal,
       });
@@ -5414,6 +5428,7 @@ async function collectFlorida(config, bible, existingSignals = [], options = {})
     ...buildFloridaConfiguredStoreLocationSignals(observedAt),
     ...buildFloridaStandaloneStoreLocationSignals(observedAt),
     ...buildPensacolaShopifyStoreLocationSignals(observedAt),
+    ...buildFloridaExpansionStoreLocationSignals(observedAt),
   ];
   const laneRun = await runBoundedSourceLanes([
     { name: 'mdp', domain: 'mdp-florida', run: ({ signal }) => collectFloridaMdp(config, bible, observedAt, { ...options, signal }) },
@@ -5424,6 +5439,10 @@ async function collectFlorida(config, bible, existingSignals = [], options = {})
     { name: 'pensacola-shopify', domain: 'pensacolaliquors.com', run: ({ signal }) => collectFloridaPensacolaShopify(config, bible, observedAt, { ...options, signal }) },
     { name: 'gaspars', domain: 'gasparsliquorshoppe.com', run: ({ signal }) => collectFloridaGaspars(config, bible, observedAt, { ...options, signal }) },
     { name: 'liquor-depot', domain: 'liquordepottampa.com', run: ({ signal }) => collectFloridaLiquorDepot(config, bible, observedAt, { ...options, signal }) },
+    { name: 'primo', domain: 'primoliquors.com', run: ({ signal }) => collectFloridaPrimo({ observedAt, matchBottle: (rawName) => cityHiveSafeBottleMatch(rawName, bible), fetchText: textFetch, sleep: (ms) => sleepWithSignal(ms, signal), signal }) },
+    { name: 'shipment-shopify', domain: 'florida-expansion-shopify-group', run: ({ signal }) => collectFloridaShipmentShopify({ observedAt, matchBottle: (rawName) => cityHiveSafeBottleMatch(rawName, bible), fetchText: textFetch, sleep: (ms) => sleepWithSignal(ms, signal), signal }) },
+    { name: 'gotoliquorstore', domain: 'florida-expansion-gotoliquorstore-group', run: ({ signal }) => collectFloridaGoToLiquorStore({ observedAt, matchBottle: (rawName) => cityHiveSafeBottleMatch(rawName, bible), fetchText: curlTextFetch, sleep: (ms) => sleepWithSignal(ms, signal), signal }) },
+    { name: 'tivoli', domain: 'tivoliliquors.com', run: ({ signal }) => collectFloridaTivoli({ observedAt, matchBottle: (rawName) => cityHiveSafeBottleMatch(rawName, bible), fetchText: textFetch, signal }) },
   ], {
     concurrency: options.sourceConcurrency ?? FL_SOURCE_CONCURRENCY,
     signal: options.signal,
@@ -5453,9 +5472,13 @@ async function collectFlorida(config, bible, existingSignals = [], options = {})
   cityHive.roadblocks.splice(0, cityHive.roadblocks.length, ...reconciledCityHive.roadblocks);
   const gaspars = lanes.get('gaspars');
   const liquorDepot = lanes.get('liquor-depot');
+  const primo = lanes.get('primo');
+  const shipmentShopify = lanes.get('shipment-shopify');
+  const goToLiquorStore = lanes.get('gotoliquorstore');
+  const tivoli = lanes.get('tivoli');
   return {
-    signals: [...configuredLocations, ...mdp.signals, ...targetSignals, ...shopify.signals, ...abc.signals, ...cityHive.signals, ...pensacolaShopify.signals, ...gaspars.signals, ...liquorDepot.signals],
-    roadblocks: [...mdp.roadblocks, ...target.roadblocks, ...shopify.roadblocks, ...abc.roadblocks, ...cityHive.roadblocks, ...pensacolaShopify.roadblocks, ...gaspars.roadblocks, ...liquorDepot.roadblocks],
+    signals: [...configuredLocations, ...mdp.signals, ...targetSignals, ...shopify.signals, ...abc.signals, ...cityHive.signals, ...pensacolaShopify.signals, ...gaspars.signals, ...liquorDepot.signals, ...primo.signals, ...shipmentShopify.signals, ...goToLiquorStore.signals, ...tivoli.signals],
+    roadblocks: [...mdp.roadblocks, ...target.roadblocks, ...shopify.roadblocks, ...abc.roadblocks, ...cityHive.roadblocks, ...pensacolaShopify.roadblocks, ...gaspars.roadblocks, ...liquorDepot.roadblocks, ...primo.roadblocks, ...shipmentShopify.roadblocks, ...goToLiquorStore.roadblocks, ...tivoli.roadblocks],
     metadata: {
       sourceConcurrency: laneRun.concurrency,
       sourceTimings: laneRun.timings,

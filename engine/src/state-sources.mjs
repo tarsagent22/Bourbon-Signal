@@ -2,6 +2,12 @@ import { CUSTOMER_ACTIVE_STATE_IDS as CONFIG_CUSTOMER_ACTIVE_STATE_IDS } from '.
 import { costcoSourceForState } from './costco-eligibility.mjs';
 import { GEORGIA_CITYHIVE_SOURCES, GEORGIA_GOTOLIQUOR_STORES, GEORGIA_LIGHTSPEED_STORES } from './collectors/georgia-retailer-surfaces.mjs';
 import { FLORIDA_CITYHIVE_SOURCES } from './collectors/florida-retailer-surfaces.mjs';
+import {
+  FLORIDA_GOTOLIQUOR_STORES,
+  FLORIDA_PRIMO_SOURCE,
+  FLORIDA_SHIPMENT_SHOPIFY_SOURCES,
+  FLORIDA_TIVOLI_SOURCE,
+} from './collectors/florida-15-20-expansion.mjs';
 import { COLORADO_RETAILER_SOURCES, NEW_YORK_RETAILER_SOURCES } from './collectors/metro-retailer-surfaces.mjs';
 import { MISSISSIPPI_RETAILER_SOURCES } from './collectors/mississippi-retailer-surfaces.mjs';
 
@@ -493,6 +499,10 @@ const BASE_STATE_SOURCES = [
       { name: "Jensen's Liquors Shopify pickup inventory", label: "Jensen's Liquors Shopify pickup inventory", url: 'https://jensensliquors.com/collections/american-bourbons', precisionOnly: true },
       { name: 'Total Wine Florida store inventory discovery', label: 'Total Wine Florida store inventory discovery', url: 'https://www.totalwine.com/store-finder/browse/FL', precisionOnly: true },
       ...FLORIDA_CITYHIVE_SOURCES.map((source) => ({ name: source.sourceLabel, label: source.sourceLabel, url: source.categoryUrl, precisionOnly: true })),
+      { name: FLORIDA_PRIMO_SOURCE.sourceLabel, label: FLORIDA_PRIMO_SOURCE.sourceLabel, url: FLORIDA_PRIMO_SOURCE.productsUrl, precisionOnly: true },
+      ...FLORIDA_SHIPMENT_SHOPIFY_SOURCES.map((source) => ({ name: source.sourceLabel, label: source.sourceLabel, url: source.productsUrl, precisionOnly: true })),
+      ...FLORIDA_GOTOLIQUOR_STORES.map((source) => ({ name: source.sourceLabel, label: source.sourceLabel, url: source.categoryUrl, precisionOnly: true })),
+      { name: FLORIDA_TIVOLI_SOURCE.sourceLabel, label: FLORIDA_TIVOLI_SOURCE.sourceLabel, url: FLORIDA_TIVOLI_SOURCE.productUrl, precisionOnly: true },
       { name: 'Florida Plaza Liquors bourbon catalog', label: 'Florida Plaza Liquors bourbon catalog', url: 'https://www.floridaplazaliquors.com/s-11422/c-2/buy-liquor/t-11/buy-bourbon-whiskey' },
       { name: 'Liquor Depot Tampa online quantity watch', label: 'Liquor Depot Tampa online quantity watch', url: 'https://www.liquordepottampa.com/shop-picks', precisionOnly: true },
       { name: "Gaspar's Liquor Shoppe Lightspeed store inventory", label: "Gaspar's Liquor Shoppe Lightspeed store inventory", url: 'https://www.gasparsliquorshoppe.com/bourbon/', precisionOnly: true }
