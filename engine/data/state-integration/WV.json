@@ -13,6 +13,7 @@
   },
   "storeIdentity": {
     "mode": "official_license_directory_only",
+    "expectedKnownStores": 180,
     "addressRequired": true,
     "proof": "Each searchable premise is bound to an active ABCA retail-liquor license number, business name, official address text, and city. Directory identity never becomes inventory identity."
   },

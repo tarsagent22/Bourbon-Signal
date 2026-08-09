@@ -2,6 +2,7 @@
   "schemaVersion": 1,
   "state": "WV",
   "generatedAt": "2026-08-09T21:25:07.543Z",
+  "storeUniverse": "data/store-universe/WV.json",
   "drops": [
     {
       "id": "6f5801aeaf0f1742",

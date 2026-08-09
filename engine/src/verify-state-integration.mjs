@@ -130,6 +130,11 @@ export function verifyStateIntegration({ state, config, manifest, fixtures, site
   }
 
   const locations = asArray(site?.locations?.locations || site?.locations?.stores);
+  const expectedKnownStores = Number(manifest?.storeIdentity?.expectedKnownStores || 0);
+  const knownStoreLocations = locations.filter((row) => stateOf(row) === normalized && String(row?.locationType || row?.type || '').toLowerCase() === 'store');
+  if (expectedKnownStores > 0 && knownStoreLocations.length !== expectedKnownStores) {
+    failures.push(`${normalized}: Finder/map expected ${expectedKnownStores} known stores, found ${knownStoreLocations.length}.`);
+  }
   const hasFinderIdentity = locations.some((row) => stateOf(row) === normalized && (hasText(row.address) || hasText(row.storeAddress) || hasText(row.id) || hasText(row.storeId)));
   if (manifest?.customerPaths?.finder?.status === 'verified' && !hasFinderIdentity && asArray(stateDrops?.drops).some((row) => row.locationPrecision === 'store_level')) {
     failures.push(`${normalized}: Finder/map has no matching store or address identity.`);
