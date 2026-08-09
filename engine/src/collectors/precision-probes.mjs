@@ -108,12 +108,12 @@ import {
   INDIANA_CITYHIVE_SOURCE_COHORT_SIZE,
   INDIANA_TARGET_STORES,
   filterFreshIndianaTargetSignals,
-  indianaCityHivePriorityRank,
   isIndianaCityHiveCacheUsable,
-  isIndianaCityHivePriorityMarket,
   mergeIndianaTargetCacheSignals,
   parseIndianaTargetFulfillment,
   parseIndianaTargetSearchProducts,
+  selectIndianaCityHivePriorityMerchants,
+  selectIndianaCityHiveRequestedSources,
   selectIndianaCityHiveSourceCohort,
   shouldWriteIndianaTargetCache,
 } from './indiana-retailer-surfaces.mjs';
@@ -2255,11 +2255,6 @@ function cityHiveAddressParts(address = {}) {
   };
 }
 
-function cityHivePriorityRank(merchant) {
-  const text = `${merchant.name || ''} ${merchant.city || ''} ${merchant.address || ''}`;
-  return indianaCityHivePriorityRank(text);
-}
-
 function cityHivePriorityMerchants(blobs, source) {
   const merchants = [];
   const seen = new Set();
@@ -2270,13 +2265,9 @@ function cityHivePriorityMerchants(blobs, source) {
     seen.add(merchant.id);
     const a = cityHiveAddressParts(merchant.address || {});
     if ((a.state || '').toUpperCase() && (a.state || '').toUpperCase() !== 'IN') continue;
-    const haystack = `${merchant.display_name || merchant.name || ''} ${a.fullAddress || ''} ${a.city || ''}`;
-    if (!isIndianaCityHivePriorityMarket(haystack)) continue;
     merchants.push({ id: merchant.id, name: merchant.display_name || merchant.name, city: a.city, address: a.fullAddress, sourceId: source.id, ordinal: ordinal++ });
   }
-  return merchants
-    .sort((a, b) => cityHivePriorityRank(a) - cityHivePriorityRank(b) || a.ordinal - b.ordinal)
-    .slice(0, IN_CITYHIVE_MAX_MERCHANTS_PER_SOURCE);
+  return selectIndianaCityHivePriorityMerchants(merchants, { baseLimit: IN_CITYHIVE_MAX_MERCHANTS_PER_SOURCE });
 }
 
 export function isFloridaCityHiveAddressAllowed(source, address = {}) {
@@ -3104,10 +3095,16 @@ async function collectIndianaCityHive(config, bible, observedAt, existingSignals
   const seenPageFirstProducts = new Set();
   const seenProductOptions = new Set();
   const seenStores = new Set();
-  const selectedSources = selectIndianaCityHiveSourceCohort(IN_CITYHIVE_SOURCES, observedAt, {
-    cohortSize: INDIANA_CITYHIVE_SOURCE_COHORT_SIZE,
-    forceAll: process.env.BOURBON_SIGNAL_IN_CITYHIVE_FORCE_ALL_SOURCES === '1',
-  });
+  const requestedSources = selectIndianaCityHiveRequestedSources(
+    IN_CITYHIVE_SOURCES,
+    process.env.BOURBON_SIGNAL_IN_CITYHIVE_SOURCE_IDS,
+  );
+  const selectedSources = requestedSources.length
+    ? requestedSources
+    : selectIndianaCityHiveSourceCohort(IN_CITYHIVE_SOURCES, observedAt, {
+        cohortSize: INDIANA_CITYHIVE_SOURCE_COHORT_SIZE,
+        forceAll: process.env.BOURBON_SIGNAL_IN_CITYHIVE_FORCE_ALL_SOURCES === '1',
+      });
   let providerRateLimited = false;
   const refreshedSourceIds = new Set();
 

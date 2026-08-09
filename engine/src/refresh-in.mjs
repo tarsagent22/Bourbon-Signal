@@ -1,7 +1,16 @@
 import { spawn } from 'node:child_process';
 
 const steps = [
-  { label: 'Indiana state collection', command: ['src/run.mjs', '--states=IN'], env: { BOURBON_SIGNAL_BROWSER_PREFLIGHT: '0' } },
+  {
+    label: 'Indiana state collection',
+    command: ['src/run.mjs', '--states=IN'],
+    env: {
+      BOURBON_SIGNAL_BROWSER_PREFLIGHT: '0',
+      BOURBON_SIGNAL_FORCE_SOURCE_RUN: '1',
+      BOURBON_SIGNAL_IN_FORCE_CITYHIVE_LIVE: '1',
+      BOURBON_SIGNAL_IN_CITYHIVE_SOURCE_IDS: 'big-red',
+    },
+  },
   { label: 'Aggregate state reports', command: ['src/aggregate-state-reports.mjs'] },
   { label: 'Operational snapshot', command: ['src/operational-report.mjs'] },
   { label: 'Site export', command: ['--max-old-space-size=16384', 'src/export-site-contract.mjs'] },

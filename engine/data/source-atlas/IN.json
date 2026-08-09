@@ -1,6 +1,6 @@
 {
-  "contractVersion": "bourbon-signal-indiana-source-audit-v1",
-  "generatedAt": "2026-08-08T21:30:00.000Z",
+  "contractVersion": "bourbon-signal-indiana-source-audit-v2",
+  "generatedAt": "2026-08-09T03:18:34.000Z",
   "state": "IN",
   "knownSourceUniverseComplete": true,
   "discoveryPasses": [
@@ -13,8 +13,47 @@
       "id": "directory-and-retailer-pass",
       "method": "official directory and named-retailer verification",
       "scope": "Indiana ATC, official retailer location pages, delegated marketplaces, and independent store sites"
+    },
+    {
+      "id": "hunter-demand-expansion-pass-2026-08-08",
+      "method": "production-artifact baseline, bounded market/platform discovery, and exact CityHive merchant-page probes",
+      "scope": "25 candidate stores/platforms across Bloomington, Terre Haute, Indianapolis, Evansville, Lafayette, Northwest Indiana, Fort Wayne, and southern Indiana; 20 live-proven Big Red stores selected"
     }
   ],
+  "inventoryExpansion": {
+    "baselineRunId": 31284654025,
+    "baselineFreshInventoryStores": 72,
+    "targetCount": 20,
+    "proofObservedAt": "2026-08-09T03:18:34.000Z",
+    "proofSummary": "Twenty-three never-probed Big Red merchant pages returned HTTP 200 with 522 positive exact-store bourbon options. The release selects the 20 highest-demand stores and leaves French Lick, Morgantown, and Trafalgar as reviewed backups.",
+    "targets": [
+      { "merchantId": "5e92525978e8f13c2cb1e15c", "name": "Big Red #105 - Bloomington", "city": "Bloomington", "address": "1255 S College Mall Rd, Bloomington, IN 47401, USA" },
+      { "merchantId": "5e92525778e8f13c2cb1e158", "name": "Big Red #104 - Bloomington", "city": "Bloomington", "address": "3207 E 3rd St, Bloomington, IN 47401, USA" },
+      { "merchantId": "5e92506878e8f13c2cb1e154", "name": "Big Red #103 - Bloomington", "city": "Bloomington", "address": "1870 S Walnut St, Bloomington, IN 47401, USA" },
+      { "merchantId": "5e92547478e8f13c2cb1e1a8", "name": "Big Red #126 - Bloomington", "city": "Bloomington", "address": "713 W 17th St, Bloomington, IN 47404, USA" },
+      { "merchantId": "5e92547178e8f13c2cb1e1a4", "name": "Big Red #125 - Bloomington", "city": "Bloomington", "address": "2205 N Walnut St, Bloomington, IN 47404, USA" },
+      { "merchantId": "5e92445578e8f13c2cb1e14c", "name": "Big Red #101 - 15th and College - Bloomington", "city": "Bloomington", "address": "1110 N College Ave, Bloomington, IN 47404, USA" },
+      { "merchantId": "5e92506478e8f13c2cb1e150", "name": "Big Red #102 - The Big Store - Bloomington", "city": "Bloomington", "address": "418 N College Ave, Bloomington, IN 47404, USA" },
+      { "merchantId": "5e92545478e8f13c2cb1e17c", "name": "Big Red #114 - Bloomington", "city": "Bloomington", "address": "2501 S Leonard Springs Rd, Bloomington, IN 47403, USA" },
+      { "merchantId": "5e92545778e8f13c2cb1e180", "name": "Big Red #115 - Bloomington", "city": "Bloomington", "address": "2401 W 3rd St, Bloomington, IN 47404, USA" },
+      { "merchantId": "5e92546e78e8f13c2cb1e1a0", "name": "Big Red #124 - W. Terre Haute", "city": "West Terre Haute", "address": "400 National Ave, West Terre Haute, IN 47885, USA" },
+      { "merchantId": "5e92546b78e8f13c2cb1e19c", "name": "Big Red #122 - Terre Haute", "city": "Terre Haute", "address": "2500 Maple Ave, Terre Haute, IN 47804, USA" },
+      { "merchantId": "5e92544c78e8f13c2cb1e170", "name": "Big Red #110 - Terre Haute", "city": "Terre Haute", "address": "1701 S 3rd St, Terre Haute, IN 47802, USA" },
+      { "merchantId": "5e92544e78e8f13c2cb1e174", "name": "Big Red #111 - Terre Haute", "city": "Terre Haute", "address": "2655 Wabash Ave, Terre Haute, IN 47803, USA" },
+      { "merchantId": "5e92545178e8f13c2cb1e178", "name": "Big Red #112 - Terre Haute", "city": "Terre Haute", "address": "4791 S 7th St, Terre Haute, IN 47802, USA" },
+      { "merchantId": "5e92546678e8f13c2cb1e194", "name": "Big Red #120 - Terre Haute", "city": "Terre Haute", "address": "1011 N 3rd St, Terre Haute, IN 47807, USA" },
+      { "merchantId": "5e92546878e8f13c2cb1e198", "name": "Big Red #121 - Terre Haute", "city": "Terre Haute", "address": "226 N 13th St, Terre Haute, IN 47807, USA" },
+      { "merchantId": "5e9254c478e8f13c2cb1e214", "name": "Big Red #230 - Martinsville", "city": "Martinsville", "address": "1631 E Morgan St, Martinsville, IN 46151, USA" },
+      { "merchantId": "5e9254c178e8f13c2cb1e210", "name": "Big Red #229 - Martinsville", "city": "Martinsville", "address": "2194 Burton Ln, Martinsville, IN 46151, USA" },
+      { "merchantId": "5e92545e78e8f13c2cb1e188", "name": "Big Red #117 - Martinsville", "city": "Martinsville", "address": "490 Morton Ave, Martinsville, IN 46151, USA" },
+      { "merchantId": "5e92545b78e8f13c2cb1e184", "name": "Big Red #116 - Bedford", "city": "Bedford", "address": "3307 16th St, Bedford, IN 47421, USA" }
+    ],
+    "reviewedBackups": [
+      { "merchantId": "5e92546078e8f13c2cb1e18c", "city": "French Lick", "disposition": "live_proven_backup_lower_demand" },
+      { "merchantId": "6286c31c6094f9534f4a0dda", "city": "Morgantown", "disposition": "live_proven_backup_lower_demand" },
+      { "merchantId": "6286c459e9d5b22702570b9c", "city": "Trafalgar", "disposition": "live_proven_backup_lower_demand" }
+    ]
+  },
   "sources": [
     {
       "sourceId": "indiana-atc-package-store-directory",
@@ -176,6 +215,48 @@
       "outcome": "viable_not_adopted",
       "reasonCode": "public_store_identity_without_bounded_inventory_contract",
       "url": "https://www.pay-less.com/stores/liquor/in/anderson"
+    },
+    {
+      "sourceId": "chillys-liquors-cityhive",
+      "sourceClass": "first_party",
+      "outcome": "viable_not_adopted",
+      "reasonCode": "single_exact_store_live_surface_not_needed_for_twenty_store_cohort",
+      "url": "https://chillysliquor.com/shop/?subtype=Bourbon"
+    },
+    {
+      "sourceId": "ridge-liquors-woocommerce",
+      "sourceClass": "first_party",
+      "outcome": "viable_not_adopted",
+      "reasonCode": "reachable_store_api_no_current_bourbon_rows",
+      "url": "https://riverridgeliquors.com/wp-json/wc/store/v1/products?search=bourbon&per_page=20"
+    },
+    {
+      "sourceId": "sv-liquors-northern-indiana",
+      "sourceClass": "first_party",
+      "outcome": "rejected",
+      "reasonCode": "eleven_store_directory_without_public_product_inventory",
+      "url": "https://www.svliquors.com/find-your-store"
+    },
+    {
+      "sourceId": "mega-liquor-indiana-bottlecapps",
+      "sourceClass": "first_party",
+      "outcome": "blocked",
+      "reasonCode": "app_only_no_public_storefront_or_exact_inventory_binding",
+      "url": "https://play.google.com/store/apps/details?id=com.cta.megaliquor"
+    },
+    {
+      "sourceId": "high-spirits-cityhive-search-result",
+      "sourceClass": "other_public",
+      "outcome": "rejected",
+      "reasonCode": "same_name_cross_state_identity_mismatch",
+      "url": "https://play.google.com/store/apps/details?id=net.cityhive.store.highspirits"
+    },
+    {
+      "sourceId": "crown-liquors-indiana",
+      "sourceClass": "first_party",
+      "outcome": "viable_not_adopted",
+      "reasonCode": "redirects_to_existing_big_red_cityhive_authority",
+      "url": "https://crownliquors.net/"
     },
     {
       "sourceId": "total-wine-indiana",
