@@ -84,7 +84,7 @@
     "blockedNativeStorefrontsRequested": false
   },
   "implementationFilesSha256": {
-    "engine/data/bourbon-bible-additions.json": "30a6efdb43027b982d74db69d060558f213730b14e2c8da6c7c21cc13e5dde10",
+    "engine/data/bourbon-bible-additions.json": "88cc5671d0daac36b8f2de2005c2257023568a94023fd851fe17a2d0b3a499ec",
     "engine/data/mississippi-retailer-registry.json": "dfc4d6dd18c69489e595919c04c18f5eebd27d3895e6dee7d83f161e6b489a9b",
     "engine/data/research-dispositions/MS.json": "62482c15c088982cf79024ccb3ca19f6d88f1298321927f3e9e7196cfd3dce4b",
     "engine/data/source-atlas/MS.json": "a924186ec416c1130d9420b0f7520e6c144078041ba82c1b8ea53aee84bf966a",
@@ -96,7 +96,7 @@
     "engine/src/discovery/source-atlas.mjs": "1da5fea3dba0345ad044eba80480ccfb24986c9a89f3aa847aad1b6804aec9f8",
     "engine/src/mississippi-retailer-policy.mjs": "7a2c8c31b949b81c5cab9fc252190d6a6500a33bc414fed9654baeb464c1436f",
     "engine/src/operational-report.mjs": "0c7fd09f8abd612884d2fea1e2be0b074f0e2f8310728a4baf1fc47c95fba7c2",
-    "engine/src/state-sources.mjs": "5da4548a62af7fed822706570656ac9f95d8d52e823282049cec25dff544f9ca",
+    "engine/src/state-sources.mjs": "bfded7e5b393fc68e0960f7cb3110ae0d47b20702a2728936c841af2c33f4f7f",
     "engine/src/verify-ms.mjs": "fa20ef6aed6d71624085a539540f5da779a0c0814be28e6b1cfa9b796cd647d7",
     "engine/test/bible-matching.test.mjs": "5f33f5848eb0efe427e4e1e58420f80f41a73b4a0afd191ca3bf3299e82d3830",
     "engine/test/mississippi-package-directory.test.mjs": "eab7671a2684a541197b68c36241230f739a587c2208a5039514d9aaad188cb5",
@@ -105,11 +105,11 @@
     "engine/test/fixtures/ms/tupelo2go/maya.html": "781a7b20dd051e9736f8822fc25d1446e86989558754973e2a3ac001176c0faf",
     "engine/test/fixtures/ms/tupelo2go/bogarts.html": "3b8f8d65ea5c7741c481f8a1f9f15318d4a6e3f7ca569c049d293cc791129752",
     "scripts/test-coverage-contract.mts": "d16eeb8210d275ebf4282dc974ec6f326b1be1d5612d50857246db8caff51a03",
-    "src/config/state-lifecycle.json": "3f3318e88abff8934821041a4fb8dce2558c2eb77e5d3ef9512f95dcbea9f71f",
-    "src/config/stateLifecycle.ts": "ed4af664f64f3cbf9f0fb5fde55c58777cb5c180265e0dbb1afd36e86b1a465f",
+    "src/config/state-lifecycle.json": "2de967e322879abd73a2a0c98c91e045d1145afba25a3f3067844a66bfeecdc8",
+    "src/config/stateLifecycle.ts": "009c7088c5d160247e7c18fb77b15423539a1c5b43a3bc40143f4c5dbda7ccec",
     "engine/src/generate-mississippi-foundation.mjs": "4c5698404c663a88a1fd1d4dffdfd86da4711b5a58f9eef35f1c9f401ded98c5"
   },
-  "implementationDigest": "321960b52f2a0599379393a493694a9df23031e1911de7589efdb8b3e1da70b8",
+  "implementationDigest": "d8eb2a373f774dec121f8ad560b84ee2c9d21142652adfa087fc7a7a4a850bb2",
   "verificationCommands": [
     "npm --prefix engine run test:ms",
     "npm --prefix engine run verify:ms",

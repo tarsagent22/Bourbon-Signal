@@ -73,6 +73,37 @@
       "previewUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/31339405898",
       "reason": "Two isolated GitHub Actions canary runs exported six non-alertable official-selection cards while production publication and alert delivery stayed disabled."
     },
+    "immutablePromotionEvidence": {
+      "schemaVersion": 1,
+      "state": "WV",
+      "generatedAt": "2026-08-09T22:33:21.122Z",
+      "sourceConfigHash": "39de54a5f13acca76f1029a602440128715e6139517636ddeef27d4ab3be94c2",
+      "previewUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/31339405898",
+      "shadowRuns": [
+        { "runId": "31339245142", "status": "success", "generatedAt": "2026-08-09T22:23:07.005Z", "artifactHash": "a132b3f88142b61da6996c30fbe54bddf04a0ba9f62eed82a0798514fb5dcac1" },
+        { "runId": "31339265701", "status": "success", "generatedAt": "2026-08-09T22:23:39.389Z", "artifactHash": "9f8ee3f3eef975ef526bca8827b5ab82a821f13e22852a43a7ade91341dc9778" },
+        { "runId": "31339280807", "status": "success", "generatedAt": "2026-08-09T22:24:00.197Z", "artifactHash": "2e1380cde64a69c43383e3cd7bf904d659091c89b85d14f197a15942fe13dd7f" }
+      ],
+      "canaryRuns": [
+        { "runId": "31339373623", "status": "success", "generatedAt": "2026-08-09T22:26:39Z", "artifactHash": "56571bde9dff5e4342323a0149c7ba75830a72f1f6dc6139342965f54b07b9dc" },
+        { "runId": "31339405898", "status": "success", "generatedAt": "2026-08-09T22:27:23Z", "artifactHash": "14e0bd01c9785f5807f468a2f2c43a97bb16cf387150ae92fd7ff20979e415c6" }
+      ],
+      "provenance": {
+        "status": "success",
+        "repository": "tarsagent22/Bourbon-Signal",
+        "workflowFile": ".github/workflows/state-promotion-provenance.yml",
+        "workflowName": "Verify state promotion provenance",
+        "workflowRunId": "31339656288",
+        "workflowRunAttempt": "1",
+        "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/31339656288",
+        "commitSha": "c04e5536e659cd0e619726fdb54d490ba682d557",
+        "artifactId": "9045426670",
+        "artifactName": "state-promotion-provenance-WV-31339656288",
+        "artifactDigest": "a1d5e41033019cdbda5ea37c415ccf6cbfd5f78e3fe7b774b0725e2d52dabac3",
+        "bundleDigest": "e3ff989f4508751effe5f9c42279741a6e42382ae1eba356fc775f7eba803358",
+        "generatedAt": "2026-08-09T22:33:21.122Z"
+      }
+    },
     "production": {
       "status": "not_deployed",
       "url": null,
