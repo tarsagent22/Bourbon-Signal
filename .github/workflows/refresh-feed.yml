@@ -245,6 +245,11 @@ jobs:
         working-directory: engine
         run: npm run verify:fl
 
+      - name: Verify Florida frozen 15-store inventory expansion
+        if: ${{ !inputs.states || inputs.force_all_states == 'true' || contains(inputs.states, 'FL') }}
+        working-directory: engine
+        run: npm run verify:fl:15-20
+
       - name: Verify no unproven state promotion entered the customer path
         working-directory: engine
         run: npm run verify:state-integration -- --all-active

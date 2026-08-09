@@ -33,10 +33,11 @@ import {
 } from './florida-retailer-surfaces.mjs';
 import {
   buildFloridaExpansionStoreLocationSignals,
-  collectFloridaGoToLiquorStore,
+  collectFloridaAbcExpansionFromPayload,
   collectFloridaPrimo,
   collectFloridaShipmentShopify,
   collectFloridaTivoli,
+  FLORIDA_ABC_SEARCHSPRING_URL,
 } from './florida-15-20-expansion.mjs';
 import {
   buildPensacolaShopifyStoreLocationSignals,
@@ -995,7 +996,6 @@ const FL_SHOPIFY_RETAILERS = [
     store: { id: 'jensens-liquors:1646-sw-27th', name: "Jensen's Liquors - SW 27th Ave", address: '1646 SW 27th Ave, Miami, FL 33145', city: 'Miami', zip: '33145' }
   }
 ];
-const FL_ABC_SEARCHSPRING_URL = 'https://api.searchspring.net/api/search/search.json?siteId=p16j4k&q=bourbon&resultsFormat=native&resultsPerPage=100';
 const FL_TARGET_KEY = process.env.BOURBON_SIGNAL_TARGET_REDSKY_KEY || AZ_TARGET_KEY;
 const FL_TARGET_STORES = new Map([
   ['649', { name: 'Target East Colonial', address: '718 Maguire Blvd, Orlando, FL 32803', city: 'Orlando', zip: '32803' }],
@@ -4923,10 +4923,15 @@ async function collectFloridaShopifyRetailers(config, bible, observedAt, options
 
 async function collectFloridaAbc(config, bible, observedAt, options = {}) {
   const signals = [];
-  const res = await textFetch(FL_ABC_SEARCHSPRING_URL, { headers: { accept: 'application/json,*/*' }, timeoutMs: 25_000, signal: options.signal });
-  if (!res.ok) return { signals, roadblocks: [{ state: 'FL', source: 'ABC Fine Wine & Spirits Searchspring bourbon catalog', url: FL_ABC_SEARCHSPRING_URL, status: res.status || 0, error: res.error || `HTTP ${res.status}`, nextRoute: 'Retry the public retailer search endpoint.' }] };
+  const res = await textFetch(FLORIDA_ABC_SEARCHSPRING_URL, { headers: { accept: 'application/json,*/*' }, timeoutMs: 25_000, maxBytes: 4 * 1024 * 1024, redirect: 'manual', signal: options.signal });
+  if (!res.ok) return { signals, roadblocks: [{ state: 'FL', source: 'ABC Fine Wine & Spirits Searchspring bourbon catalog', url: FLORIDA_ABC_SEARCHSPRING_URL, status: res.status || 0, error: res.error || `HTTP ${res.status}`, nextRoute: 'Retry the public retailer search endpoint.' }] };
   let rows = [];
   try { rows = JSON.parse(res.text)?.results || []; } catch {}
+  signals.push(...collectFloridaAbcExpansionFromPayload({
+    payload: res.text,
+    observedAt,
+    matchBottle: (rawName) => cityHiveSafeBottleMatch(rawName, bible),
+  }));
   for (const row of rows) {
     if (!/^(?:1|true)$/i.test(String(row.ss_in_stock || ''))) continue;
     const rawName = htmlToText(row.name || '');
@@ -4935,7 +4940,7 @@ async function collectFloridaAbc(config, bible, observedAt, options = {}) {
     const price = Number(row.custom_zone_5_sale_price || row.custom_zone_5_list_price || row.price || 0) || null;
     signals.push(floridaRetailerWatch(config, record, match, { label: 'ABC Fine Wine & Spirits Searchspring bourbon availability', url: row.url ? new URL(row.url, 'https://abcfws.com').href : 'https://abcfws.com/spirits/shop-by-type/bourbon/', chain: 'abc-fine-wine-spirits', merchantId: 'abc-searchspring-p16j4k', retailer: 'ABC Fine Wine & Spirits', rawName, price, sku: row.sku, observedAt }));
   }
-  return { signals, roadblocks: signals.length ? [] : [{ state: 'FL', source: 'ABC Fine Wine & Spirits Searchspring bourbon catalog', url: FL_ABC_SEARCHSPRING_URL, status: 'reachable_no_safe_inventory_rows', error: 'No safely matched in-stock allocated bourbon rows.', nextRoute: 'Keep catalog discovery active; require exact-store fulfillment before inventory alerting.' }] };
+  return { signals, roadblocks: signals.length ? [] : [{ state: 'FL', source: 'ABC Fine Wine & Spirits Searchspring bourbon catalog', url: FLORIDA_ABC_SEARCHSPRING_URL, status: 'reachable_no_safe_inventory_rows', error: 'No safely matched in-stock allocated bourbon rows.', nextRoute: 'Keep catalog discovery active; require exact-store fulfillment before inventory alerting.' }] };
 }
 
 function floridaFirstPartyProductUrl(value, source) {
@@ -5441,7 +5446,6 @@ async function collectFlorida(config, bible, existingSignals = [], options = {})
     { name: 'liquor-depot', domain: 'liquordepottampa.com', run: ({ signal }) => collectFloridaLiquorDepot(config, bible, observedAt, { ...options, signal }) },
     { name: 'primo', domain: 'primoliquors.com', run: ({ signal }) => collectFloridaPrimo({ observedAt, matchBottle: (rawName) => cityHiveSafeBottleMatch(rawName, bible), fetchText: textFetch, sleep: (ms) => sleepWithSignal(ms, signal), signal }) },
     { name: 'shipment-shopify', domain: 'florida-expansion-shopify-group', run: ({ signal }) => collectFloridaShipmentShopify({ observedAt, matchBottle: (rawName) => cityHiveSafeBottleMatch(rawName, bible), fetchText: textFetch, sleep: (ms) => sleepWithSignal(ms, signal), signal }) },
-    { name: 'gotoliquorstore', domain: 'florida-expansion-gotoliquorstore-group', run: ({ signal }) => collectFloridaGoToLiquorStore({ observedAt, matchBottle: (rawName) => cityHiveSafeBottleMatch(rawName, bible), fetchText: curlTextFetch, sleep: (ms) => sleepWithSignal(ms, signal), signal }) },
     { name: 'tivoli', domain: 'tivoliliquors.com', run: ({ signal }) => collectFloridaTivoli({ observedAt, matchBottle: (rawName) => cityHiveSafeBottleMatch(rawName, bible), fetchText: textFetch, signal }) },
   ], {
     concurrency: options.sourceConcurrency ?? FL_SOURCE_CONCURRENCY,
@@ -5474,11 +5478,10 @@ async function collectFlorida(config, bible, existingSignals = [], options = {})
   const liquorDepot = lanes.get('liquor-depot');
   const primo = lanes.get('primo');
   const shipmentShopify = lanes.get('shipment-shopify');
-  const goToLiquorStore = lanes.get('gotoliquorstore');
   const tivoli = lanes.get('tivoli');
   return {
-    signals: [...configuredLocations, ...mdp.signals, ...targetSignals, ...shopify.signals, ...abc.signals, ...cityHive.signals, ...pensacolaShopify.signals, ...gaspars.signals, ...liquorDepot.signals, ...primo.signals, ...shipmentShopify.signals, ...goToLiquorStore.signals, ...tivoli.signals],
-    roadblocks: [...mdp.roadblocks, ...target.roadblocks, ...shopify.roadblocks, ...abc.roadblocks, ...cityHive.roadblocks, ...pensacolaShopify.roadblocks, ...gaspars.roadblocks, ...liquorDepot.roadblocks, ...primo.roadblocks, ...shipmentShopify.roadblocks, ...goToLiquorStore.roadblocks, ...tivoli.roadblocks],
+    signals: [...configuredLocations, ...mdp.signals, ...targetSignals, ...shopify.signals, ...abc.signals, ...cityHive.signals, ...pensacolaShopify.signals, ...gaspars.signals, ...liquorDepot.signals, ...primo.signals, ...shipmentShopify.signals, ...tivoli.signals],
+    roadblocks: [...mdp.roadblocks, ...target.roadblocks, ...shopify.roadblocks, ...abc.roadblocks, ...cityHive.roadblocks, ...pensacolaShopify.roadblocks, ...gaspars.roadblocks, ...liquorDepot.roadblocks, ...primo.roadblocks, ...shipmentShopify.roadblocks, ...tivoli.roadblocks],
     metadata: {
       sourceConcurrency: laneRun.concurrency,
       sourceTimings: laneRun.timings,

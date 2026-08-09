@@ -99,14 +99,43 @@ function floridaExpansionIdentityIsValid(identity, signal, sourceStrictHostname)
   const reportedValue = signal.reportedQuantity ?? signal.raw?.reportedQuantity;
   const reportedQuantity = reportedValue == null ? null : Number(reportedValue);
   const sourceInventorySemantics = String(signal.sourceInventorySemantics || signal.inventorySemantics || '');
-  if (target.platform === 'primo') {
-    return /^\/products\/[a-z0-9][a-z0-9-]*$/i.test(sourceUrl.pathname)
-      && Number.isInteger(quantity)
+  if (target.platform === 'primo' || target.platform === 'abc-searchspring') {
+    const exactQuantityValid = Number.isInteger(quantity)
       && quantity > 0
       && signal.quantityIsExact === true
       && Number.isInteger(reportedQuantity)
       && reportedQuantity === quantity
       && sourceInventorySemantics === 'exact_retailer_reported_quantity';
+    if (!exactQuantityValid) return false;
+    if (target.platform === 'primo') return /^\/products\/[a-z0-9][a-z0-9-]*$/i.test(sourceUrl.pathname);
+    const productPath = sourceUrl.pathname.match(/^\/[a-z0-9][a-z0-9-]*\/(\d+)\/?$/i);
+    const productId = String(signal.productId || '');
+    const variantId = String(signal.variantId || '');
+    const optionValueId = String(signal.optionValueId || '');
+    const childSku = String(signal.childSku || '');
+    const storeNumber = String(signal.storeNumber || '');
+    const controlStoreId = String(signal.controlStoreId || '');
+    const rawProductId = signal.raw?.productId == null ? productId : String(signal.raw.productId);
+    const rawVariantId = signal.raw?.variantId == null ? variantId : String(signal.raw.variantId);
+    const rawOptionValueId = signal.raw?.optionValueId == null ? optionValueId : String(signal.raw.optionValueId);
+    const rawChildSku = signal.raw?.childSku == null ? childSku : String(signal.raw.childSku);
+    const rawStoreNumber = signal.raw?.storeNumber == null ? storeNumber : String(signal.raw.storeNumber);
+    const rawControlStoreId = signal.raw?.controlStoreId == null ? controlStoreId : String(signal.raw.controlStoreId);
+    return Boolean(productPath)
+      && /^\d+$/.test(productId) && Number(productId) > 0
+      && productPath[1] === productId
+      && rawProductId === productId
+      && /^\d+$/.test(variantId) && Number(variantId) > 0
+      && /^\d+$/.test(optionValueId) && Number(optionValueId) > 0
+      && rawVariantId === variantId
+      && rawOptionValueId === optionValueId
+      && controlStoreId === target.storeNumber
+      && rawControlStoreId === controlStoreId
+      && storeNumber === target.storeNumber
+      && rawStoreNumber === storeNumber
+      && childSku === `${productId}-${target.storeNumber}`
+      && rawChildSku === childSku
+      && (signal.variantAvailable === true || signal.raw?.variantAvailable === true);
   }
   if (quantity !== 0
     || signal.quantityIsExact !== false
