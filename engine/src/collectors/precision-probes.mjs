@@ -9,6 +9,7 @@ import { stableId, stripHtml, titleCase } from '../core/text.mjs';
 import { runBoundedSourceLanes } from '../core/bounded-source-pool.mjs';
 import { collectNorthCarolinaIntelligence } from './north-carolina-intelligence.mjs';
 import { freshCityHivePositiveSignals, normalizeCityHiveReportedQuantity, oldestSourceEvidenceCohort, reconcileCityHiveRateLimitsWithCache, rotatingSourceCohort } from './cityhive-hardening.mjs';
+import { buildCityHiveRareProbeUrls } from './cityhive-rare-probes.mjs';
 import { attachConfiguredStoreIdentity, configuredStoreId, isTerminalProbeFailure, summarizeRepeatedPlatformFailures } from './probe-hardening.mjs';
 import { createSourceAdapter } from '../sources/source-adapter.mjs';
 import { MalformedSourceError, sourceErrorForHttp, TransientSourceError } from '../sources/source-error.mjs';
@@ -5498,14 +5499,23 @@ async function collectGeorgiaCityHive(config, bible, observedAt, options = {}) {
   const signals = [];
   const roadblocks = [];
   const seenOptions = new Set();
+  const seenStoreLocations = new Set();
   for (const source of GEORGIA_CITYHIVE_SOURCES) {
     options.signal?.throwIfAborted();
     let sourceInventoryCount = 0;
     let reachableCount = 0;
+    let sourceBlocked = false;
     for (const store of source.merchants.values()) {
       options.signal?.throwIfAborted();
-      const url = new URL(source.categoryUrl);
-      url.searchParams.set('merchant-id', store.id);
+      if (sourceBlocked) break;
+      const probeUrls = buildCityHiveRareProbeUrls({
+        state: 'GA',
+        sourceId: source.id,
+        categoryUrl: source.categoryUrl,
+        merchantId: store.id,
+      });
+      for (const probeUrl of probeUrls) {
+      const url = new URL(probeUrl);
       const res = await textFetch(url.href, { headers: { accept: 'text/html,*/*' }, timeoutMs: 24_000, signal: options.signal });
       if (!res.ok) {
         roadblocks.push({
@@ -5518,11 +5528,15 @@ async function collectGeorgiaCityHive(config, bible, observedAt, options = {}) {
             ? 'Stop this first-party CityHive source for the run and retry at the next bounded cadence; do not bypass retailer controls.'
             : 'Retry the exact first-party CityHive merchant page at low cadence; do not use marketplace or bypass routes.',
         });
-        if (res.status === 429) break;
-        continue;
+        if (res.status === 429) sourceBlocked = true;
+        break;
       }
       reachableCount += 1;
-      signals.push(georgiaStoreLocator(config, source, store, observedAt));
+      const storeKey = `${source.id}:${store.id}`;
+      if (!seenStoreLocations.has(storeKey)) {
+        seenStoreLocations.add(storeKey);
+        signals.push(georgiaStoreLocator(config, source, store, observedAt));
+      }
       const blobs = cityHiveJsonBlobs(res.text);
       for (const product of cityHiveProducts(blobs)) {
         for (const productMerchant of product?.merchants || []) {
@@ -5606,6 +5620,7 @@ async function collectGeorgiaCityHive(config, bible, observedAt, options = {}) {
         }
       }
       await sleepWithSignal(GA_CITYHIVE_PAGE_DELAY_MS, options.signal);
+      }
     }
     if (reachableCount > 0 && sourceInventoryCount === 0) {
       roadblocks.push({
