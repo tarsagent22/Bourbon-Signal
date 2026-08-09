@@ -32,14 +32,13 @@ import { nevadaAreaMatchesFields } from "@/lib/nevada-area";
 import { newYorkAreaMatchesFields, SUPPORTED_NEW_YORK_AREAS } from "@/lib/new-york-area";
 import { coloradoAreaMatchesFields } from "@/lib/colorado-area";
 import { getScheduledReleaseSignalCopy } from "@/lib/scheduled-release-signals";
+import { compareDropFeedNewestFirst } from "@/lib/drop-feed-policy";
 import {
   CHARLOTTE_METRO_BOARD_GROUP,
   demandMetroAreaMatchesFields,
   demandMetroBoardGroupMatchesFields,
 } from "@/lib/demand-metro-areas";
 
-
-type DropSortMode = "newest" | "nearby" | "rarity" | "az";
 
 interface DropsResponse {
   drops: DropEvent[];
@@ -434,21 +433,6 @@ function areaMenuLabel(state?: string | null, baseLabel?: string | null, kind?: 
   return formatNcAbcAreaMenuLabel(label);
 }
 
-function getDropRarityRank(drop: GroupedDrop) {
-  return drop.rarity_tier === "unicorn" ? 4 : drop.rarity_tier === "highly_allocated" ? 3 : drop.rarity_tier === "allocated" ? 2 : drop.rarity_tier === "limited" ? 1 : 0;
-}
-
-function distanceMiles(a?: { lat: number; lng: number } | null, b?: { lat?: number; lng?: number }) {
-  if (!a || b?.lat == null || b?.lng == null) return Number.POSITIVE_INFINITY;
-  const r = 3958.8;
-  const dLat = ((b.lat - a.lat) * Math.PI) / 180;
-  const dLng = ((b.lng - a.lng) * Math.PI) / 180;
-  const lat1 = (a.lat * Math.PI) / 180;
-  const lat2 = (b.lat * Math.PI) / 180;
-  const sinLat = Math.sin(dLat / 2);
-  const sinLng = Math.sin(dLng / 2);
-  return 2 * r * Math.asin(Math.sqrt(sinLat * sinLat + Math.cos(lat1) * Math.cos(lat2) * sinLng * sinLng));
-}
 
 function latestSignalRows(drops: DropEvent[], limit: number = 20, excludeIds: Set<string> = new Set()): GroupedDrop[] {
   const rows: GroupedDrop[] = [];
@@ -470,7 +454,7 @@ function latestSignalRows(drops: DropEvent[], limit: number = 20, excludeIds: Se
     });
   }
   return rows
-    .sort((a, b) => +new Date(b.timestamp) - +new Date(a.timestamp))
+    .sort(compareDropFeedNewestFirst)
     .slice(0, limit);
 }
 
@@ -1513,9 +1497,6 @@ export default function DropFeed() {
     return normalizeStateCodeParam(new URLSearchParams(window.location.search).get("state"));
   });
   const [countyFilter, setCountyFilter] = useState("ALL");
-  const [sortMode, setSortMode] = useState<DropSortMode>("newest");
-  const [nearMe, setNearMe] = useState<{ lat: number; lng: number } | null>(null);
-  const [nearMeStatus, setNearMeStatus] = useState<string | null>(null);
   const [visibleDropCount, setVisibleDropCount] = useState(() => (isSignedIn ? 10 : 7));
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [nextDropOffset, setNextDropOffset] = useState(0);
@@ -1581,7 +1562,7 @@ export default function DropFeed() {
         const pageDrops = json.drops;
         sourceDrops = [...sourceDrops, ...pageDrops];
         newGrouped = [...newGrouped, ...latestSignalRows(pageDrops, 50, seenIds)]
-          .sort((a, b) => +new Date(b.timestamp) - +new Date(a.timestamp))
+          .sort(compareDropFeedNewestFirst)
           .slice(0, 50);
 
         nextOffset = (json.offset ?? nextOffset) + (json.limit ?? pageDrops.length);
@@ -1625,7 +1606,7 @@ export default function DropFeed() {
 
   useEffect(() => {
     setVisibleDropCount(isFreeUser ? 7 : 10);
-  }, [isFreeUser, hasSelectedStates, preferredStates.join("|"), feedStateParam, activeTiers, bottleSearch, countyFilter, sortMode]);
+  }, [isFreeUser, hasSelectedStates, preferredStates.join("|"), feedStateParam, activeTiers, bottleSearch, countyFilter]);
 
 
   useEffect(() => {
@@ -1644,28 +1625,6 @@ export default function DropFeed() {
     };
   }, [fetchDrops]);
 
-  const storeCoordinateLookup = new Map<string, { lat: number; lng: number }>();
-  for (const store of stores) {
-    if (store.lat == null || store.lng == null) continue;
-    const keys = [store.address, store.displayLabel, store.name]
-      .map(normalizeFilterText)
-      .filter(Boolean);
-    for (const key of keys) storeCoordinateLookup.set(key, { lat: store.lat, lng: store.lng });
-  }
-
-  const getDropDistance = (drop: GroupedDrop) => {
-    if (!nearMe) return Number.POSITIVE_INFINITY;
-    const keys = [drop.store_address, drop.locations[0]?.address, drop.locations[0]?.label]
-      .map(normalizeFilterText)
-      .filter(Boolean);
-    let best = Number.POSITIVE_INFINITY;
-    for (const [storeKey, coords] of storeCoordinateLookup.entries()) {
-      if (!keys.some((key) => key && (storeKey.includes(key) || key.includes(storeKey)))) continue;
-      best = Math.min(best, distanceMiles(nearMe, coords));
-    }
-    return best;
-  };
-
   const matchesActiveFeedFilters = (drop: GroupedDrop) => {
     // State filtering via URL signal links or the feed state selector.
     if (feedStateParam && drop.state && drop.state !== feedStateParam) return false;
@@ -1675,7 +1634,6 @@ export default function DropFeed() {
     const bottleNeedle = canUseBottleSearch ? normalizeFilterText(bottleSearch) : "";
     if (bottleNeedle && !normalizeFilterText(drop.displayName).includes(bottleNeedle)) return false;
     if (canUseDropFeedFilters && countyFilter !== "ALL" && !dropAreaMatchesFilter(drop, countyFilter)) return false;
-    if (canUseDropFeedFilters && sortMode === "nearby" && nearMe && getDropDistance(drop) === Number.POSITIVE_INFINITY) return false;
     return true;
   };
 
@@ -1856,12 +1814,7 @@ export default function DropFeed() {
       ))
       .filter((drop) => matchesActiveFeedFilters(drop) && matchesSavedAreaPreferences(drop))
     : [];
-  const finalFeed = [...memberSightingRows, ...filteredByArea].sort((a, b) => {
-    if (sortMode === "az") return a.displayName.localeCompare(b.displayName) || +new Date(b.timestamp) - +new Date(a.timestamp);
-    if (sortMode === "rarity") return getDropRarityRank(b) - getDropRarityRank(a) || +new Date(b.timestamp) - +new Date(a.timestamp);
-    if (sortMode === "nearby" && nearMe) return getDropDistance(a) - getDropDistance(b) || +new Date(b.timestamp) - +new Date(a.timestamp);
-    return +new Date(b.timestamp) - +new Date(a.timestamp);
-  });
+  const finalFeed = [...memberSightingRows, ...filteredByArea].sort(compareDropFeedNewestFirst);
   const selectedStateLabel = feedStateParam ? AVAILABLE_STATES.find((state) => state.code === feedStateParam)?.name || feedStateParam : null;
   const tickerLastRefreshed = engineStats.engineGeneratedAt || engineStats.lastUpdated || engineStats.generatedAt || data?.lastUpdated;
   const isKentuckyFeed = feedStateParam === "KY";
@@ -1924,11 +1877,6 @@ export default function DropFeed() {
     { value: "ALL", label: `All ${areaDropdownLabel.toLowerCase()}` },
     ...countyOptions.map((area) => ({ value: area.value, label: area.label })),
   ];
-  const viewMenuOptions: DropdownOption[] = [
-    { value: "newest", label: "Newest" },
-    { value: "rarity", label: "Rarity" },
-    { value: "az", label: "A–Z" },
-  ];
 
   const fetchOlderDrops = async () => {
     if (!isSignedIn || isLoadingMore) return;
@@ -1982,7 +1930,7 @@ export default function DropFeed() {
       setGrouped((prev) => {
         const currentIds = new Set(prev.map((drop) => drop.id));
         const nextGrouped = accumulated.filter((drop) => !currentIds.has(drop.id));
-        return [...prev, ...nextGrouped].sort((a, b) => +new Date(b.timestamp) - +new Date(a.timestamp));
+        return [...prev, ...nextGrouped].sort(compareDropFeedNewestFirst);
       });
       if (accumulatedMatchingCount > 0) {
         setVisibleDropCount((prev) => prev + Math.min(10, accumulatedMatchingCount));
@@ -2007,8 +1955,7 @@ export default function DropFeed() {
     (canUseBottleSearch && bottleSearch.trim()) ||
     (canUseDropFeedFilters && countyFilter !== "ALL") ||
     (canUseStateFilter && stateDropdownValue !== "ALL") ||
-    (canUseDropFeedFilters && activeTiers.size > 0) ||
-    (canUseDropFeedFilters && sortMode !== "newest")
+    (canUseDropFeedFilters && activeTiers.size > 0)
   );
 
   const clearFeedFilters = () => {
@@ -2017,30 +1964,6 @@ export default function DropFeed() {
     setUrlStateFilter(null);
     setSelectedStates([]);
     setActiveTiers(new Set());
-    setSortMode("newest");
-    setNearMeStatus(null);
-  };
-
-  const activateNearMe = () => {
-    if (nearMe) {
-      setSortMode("nearby");
-      setNearMeStatus("Sorting exact-store signals near you.");
-      return;
-    }
-    if (typeof navigator === "undefined" || !navigator.geolocation) {
-      setNearMeStatus("Location is not available in this browser. Try county filtering instead.");
-      return;
-    }
-    setNearMeStatus("Finding your location…");
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setNearMe({ lat: position.coords.latitude, lng: position.coords.longitude });
-        setSortMode("nearby");
-        setNearMeStatus("Showing mappable store-level signals closest to you first.");
-      },
-      () => setNearMeStatus("Could not use location. Try a county filter instead."),
-      { enableHighAccuracy: false, timeout: 8000 }
-    );
   };
 
   const handleSignalReport = (drop: GroupedDrop, kind: SignalReportKind) => {
@@ -2359,32 +2282,7 @@ export default function DropFeed() {
           background: rgba(196,148,58,0.12);
           color: var(--color-cream);
         }
-        .dropfeed-near-me {
-          height: 39px;
-          border-radius: 11px;
-          border: 1px solid rgba(196,148,58,0.22);
-          background: rgba(196,148,58,0.08);
-          color: rgba(245,237,214,0.78);
-          font-family: var(--font-dm-sans);
-          font-size: 13px;
-          font-weight: 800;
-          padding: 0 12px;
-          cursor: pointer;
-          white-space: nowrap;
-        }
-        .dropfeed-near-me.active,
-        .dropfeed-near-me:hover {
-          background: rgba(196,148,58,0.16);
-          color: var(--color-cream);
-          border-color: rgba(196,148,58,0.42);
-        }
-        .dropfeed-location-status {
-          margin: -2px 0 10px;
-          color: rgba(245,237,214,0.45);
-          font-family: var(--font-dm-sans);
-          font-size: 12px;
-          line-height: 1.45;
-        }
+
         .dropfeed-result-line {
           display: flex;
           align-items: flex-start;
@@ -2413,8 +2311,7 @@ export default function DropFeed() {
           .dropfeed-refine-search { grid-column: 1 / -1; }
           .dropfeed-refine-field span { font-size: 8px; margin-bottom: 5px; }
           .dropfeed-refine-field input,
-          .bourbon-menu-trigger,
-          .dropfeed-near-me { font-size: 12px; padding: 9px 8px; height: 38px; }
+          .bourbon-menu-trigger { font-size: 12px; padding: 9px 8px; height: 38px; }
           .bourbon-menu.dropfeed-area-menu .bourbon-menu-panel {
             left: 0;
             right: 0;
@@ -2538,23 +2435,10 @@ export default function DropFeed() {
               onChange={setCountyFilter}
               className="dropfeed-area-menu"
             />
-            <BourbonDropdown
-              label="View"
-              value={sortMode === "nearby" ? "newest" : sortMode}
-              options={viewMenuOptions}
-              onChange={(value) => setSortMode(value as DropSortMode)}
-              className="dropfeed-refine-sort"
-            />
-            <div className="dropfeed-refine-field dropfeed-near-me-field">
-              <button type="button" className={`dropfeed-near-me ${sortMode === "nearby" ? "active" : ""}`} onClick={activateNearMe}>
-                Use my location
-              </button>
-            </div>
             </>
             ) : null}
           </motion.div>
           ) : null}
-          {nearMeStatus ? <div className="dropfeed-location-status">{nearMeStatus}</div> : null}
 
           {/* Filters row: Tier filter pills */}
           {canUseDropFeedFilters ? (

@@ -40,6 +40,55 @@ function firstValidTimestamp(...values: unknown[]) {
   return typeof value === "string" ? value : "";
 }
 
+function isScheduledReleaseSignal(drop: Record<string, unknown>) {
+  if (drop.scheduled_release === true || drop.scheduledRelease === true) return true;
+  const eventType = firstText(drop.event_type, drop.eventType, drop.type).toLowerCase();
+  const category = firstText(drop.signal_category, drop.signalCategory).toLowerCase();
+  const label = firstText(drop.signal_label, drop.signalLabel).toLowerCase();
+  const caveat = firstText(drop.inventoryCaveat).toLowerCase();
+  if (eventType === "alabc_limited_release_store_drop") return true;
+  if (category === "release_watch" && /scheduled|abc release|limited release/.test(label)) return true;
+  return /scheduled release|limited release/.test(label) && /not live shelf inventory|release intelligence/.test(caveat);
+}
+
+function stableDropIdentity(drop: Record<string, unknown>) {
+  return [
+    drop.id,
+    drop.signal_id,
+    drop.signalId,
+    drop.event_id,
+    drop.eventId,
+    drop.canonical_id,
+    drop.canonicalId,
+    drop.bottle_id,
+    drop.bottleId,
+    drop.brand_name,
+    drop.brandName,
+    drop.raw_name,
+    drop.rawName,
+    drop.state,
+    drop.state_code,
+    drop.store_id,
+    drop.storeId,
+    drop.store_address,
+    drop.storeAddress,
+    drop.store_name,
+    drop.storeName,
+    drop.source_url,
+    drop.sourceUrl,
+    drop.releaseDate,
+    drop.eventDate,
+    drop.timestamp,
+    drop.displayAt,
+    drop.event_at,
+    drop.eventAt,
+    drop.first_seen_at,
+    drop.firstSeenAt,
+    drop.last_confirmed_at,
+    drop.lastConfirmedAt,
+  ].map((value) => String(value ?? "").trim().toLowerCase()).join("|");
+}
+
 export function dropDisplayTime(drop: Record<string, unknown>) {
   const basis = firstText(drop.timestamp_basis, drop.timestampBasis) || "last_confirmed_at";
   const eventTimes = [drop.event_at, drop.eventAt];
@@ -47,9 +96,24 @@ export function dropDisplayTime(drop: Record<string, unknown>) {
   const confirmationTimes = [drop.last_confirmed_at, drop.lastConfirmedAt];
   const timestamps = [drop.timestamp, drop.displayAt];
 
+  const scheduledAt = firstValidTimestamp(drop.releaseDate, drop.eventDate, drop.startsAt, ...eventTimes);
+  if (isScheduledReleaseSignal(drop)) return scheduledAt;
   const confirmedAt = firstValidTimestamp(...confirmationTimes);
   if (isInventorySignal(drop) && confirmedAt) return confirmedAt;
   if (basis === "source_event_at") return firstValidTimestamp(...eventTimes, ...firstSeenTimes, ...confirmationTimes, ...timestamps);
   if (basis === "first_seen_at") return firstValidTimestamp(...firstSeenTimes, ...eventTimes, ...confirmationTimes, ...timestamps);
   return firstValidTimestamp(...confirmationTimes, ...firstSeenTimes, ...eventTimes, ...timestamps);
+}
+
+export function compareDropFeedNewestFirst(left: unknown, right: unknown) {
+  const leftDrop = left && typeof left === "object" ? left as Record<string, unknown> : {};
+  const rightDrop = right && typeof right === "object" ? right as Record<string, unknown> : {};
+  const leftTime = asTime(dropDisplayTime(leftDrop));
+  const rightTime = asTime(dropDisplayTime(rightDrop));
+  const sortableLeftTime = Number.isFinite(leftTime) ? leftTime : Number.NEGATIVE_INFINITY;
+  const sortableRightTime = Number.isFinite(rightTime) ? rightTime : Number.NEGATIVE_INFINITY;
+  if (sortableRightTime !== sortableLeftTime) return sortableRightTime > sortableLeftTime ? 1 : -1;
+  const leftIdentity = stableDropIdentity(leftDrop);
+  const rightIdentity = stableDropIdentity(rightDrop);
+  return leftIdentity < rightIdentity ? -1 : leftIdentity > rightIdentity ? 1 : 0;
 }

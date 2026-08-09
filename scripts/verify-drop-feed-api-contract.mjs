@@ -1,3 +1,5 @@
+import { dropDisplayTime } from '../src/lib/drop-feed-policy.ts';
+
 const baseUrl = process.env.DROP_FEED_BASE_URL || process.env.BASE_URL || 'http://127.0.0.1:3000';
 const failures = [];
 
@@ -45,6 +47,11 @@ function dropTime(drop) {
 function observedTime(drop) {
   const time = Date.parse(drop.observed_at || drop.observedAt || '');
   return Number.isFinite(time) ? time : NaN;
+}
+
+function customerVisibleTime(drop) {
+  const time = Date.parse(dropDisplayTime(drop));
+  return Number.isFinite(time) ? time : Number.NEGATIVE_INFINITY;
 }
 
 function maxPublicAgeMs(drop) {
@@ -128,12 +135,11 @@ const defaultFalseRare = (defaultFeed.drops || []).filter(looksLikeFalseFourRose
 if (defaultFalseRare.length > 0) {
   fail('/api/drops default feed should not show standard Four Roses rows as rare drops.');
 }
-const defaultBottleKeys = (defaultFeed.drops || [])
-  .map((drop) => String(drop.canonicalId || drop.canonical_id || drop.bottleName || drop.rawName || '').toLowerCase())
-  .filter(Boolean);
-const uniqueDefaultBottleKeys = new Set(defaultBottleKeys);
-if (defaultBottleKeys.length >= 7 && uniqueDefaultBottleKeys.size < 5) {
-  fail(`/api/drops default preview should be diversified across bottles; saw only ${uniqueDefaultBottleKeys.size} unique bottles in ${defaultBottleKeys.length} cards.`);
+const chronologicalInversion = (defaultFeed.drops || []).findIndex((drop, index, rows) => (
+  index > 0 && customerVisibleTime(drop) > customerVisibleTime(rows[index - 1])
+));
+if (chronologicalInversion >= 0) {
+  fail(`/api/drops default preview must stay newest-to-oldest by the same time shown on each card; inversion found at row ${chronologicalInversion + 1}.`);
 }
 
 const unicornFeed = await getJson('/api/drops?tier=unicorn&limit=7');

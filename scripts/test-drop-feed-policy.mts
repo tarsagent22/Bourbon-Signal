@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
-import { dropDisplayTime, dropFreshnessTime, resolveDropLimit } from "../src/lib/drop-feed-policy.ts";
+import { compareDropFeedNewestFirst, dropDisplayTime, dropFreshnessTime, resolveDropLimit } from "../src/lib/drop-feed-policy.ts";
 import { scopedDropFeedHistoryEnabled } from "../src/lib/drop-feed-history.ts";
 import { resolveDropQuantitySemantics } from "../src/lib/drop-quantity-semantics.ts";
 import { isUserFacingDropSignal, MISSISSIPPI_ONSITE_SOURCE_PERMITS } from "../src/lib/drop-feed-visibility.ts";
@@ -85,6 +85,53 @@ assert.equal(dropDisplayTime({
   firstSeenAt: firstSeen,
 }), lastConfirmed, "inventory confirmation must use a valid camel-case alias when the snake-case field is empty");
 
+const chronologicalFeed = [
+  { id: "equal-b", timestamp: "2026-08-08T15:00:00.000Z" },
+  { id: "invalid-z", timestamp: "not-a-date" },
+  { id: "older-exact-store", timestamp: "2026-08-08T16:00:00.000Z", exact_store: true },
+  {
+    id: "scheduled-release",
+    event_type: "alabc_limited_release_store_drop",
+    location_precision: "store_level",
+    releaseDate: "2026-08-08T16:30:00.000Z",
+    timestamp: "2026-08-01T12:00:00.000Z",
+    last_confirmed_at: "2026-08-08T19:00:00.000Z",
+  },
+  {
+    id: "scheduled-undated",
+    event_type: "alabc_limited_release_store_drop",
+    location_precision: "store_level",
+    timestamp: "2026-08-01T12:00:00.000Z",
+    last_confirmed_at: "2026-08-08T20:00:00.000Z",
+  },
+  { id: "newer-board", timestamp: "2026-08-08T17:00:00.000Z", exact_store: false },
+  {
+    id: "newest-confirmed-inventory",
+    event_type: "cityhive_store_inventory_result",
+    timestamp_basis: "first_seen_at",
+    timestamp: "2026-08-01T12:00:00.000Z",
+    first_seen_at: "2026-08-01T12:00:00.000Z",
+    last_confirmed_at: "2026-08-08T18:00:00.000Z",
+  },
+  { id: "invalid-a", timestamp: "also-not-a-date" },
+  { id: "equal-a", timestamp: "2026-08-08T15:00:00.000Z" },
+].sort(compareDropFeedNewestFirst);
+assert.deepEqual(
+  chronologicalFeed.map((drop) => drop.id),
+  [
+    "newest-confirmed-inventory",
+    "newer-board",
+    "scheduled-release",
+    "older-exact-store",
+    "equal-a",
+    "equal-b",
+    "invalid-a",
+    "invalid-z",
+    "scheduled-undated",
+  ],
+  "Drop Feed order must follow the customer-visible signal time with stable ties and invalid dates last",
+);
+
 const singleStoreShipment = resolveDropQuantitySemantics({
   type: "nc_board_shipment_snapshot",
   quantity: null,
@@ -110,7 +157,11 @@ assert.equal(coveredAreaLabelsMatch("North Charleston", "Charleston"), false, "C
 assert.equal(coveredAreaLabelsMatch("Mecklenburg ABC Board", "Mecklenburg"), true, "board suffix normalization must remain supported");
 const dropFeedSource = readFileSync(new URL("../src/components/sections/DropFeed.tsx", import.meta.url), "utf8");
 assert.match(dropFeedSource, /getCoveredAreaOptionsForState\(selectedState\)/, "DropFeed must merge configured covered areas for the selected state");
+assert.match(dropFeedSource, /compareDropFeedNewestFirst/, "the client must preserve the shared customer-visible chronology policy");
+assert.doesNotMatch(dropFeedSource, /type DropSortMode|viewMenuOptions|Use my location/, "the Drop Feed must not expose nonchronological sort modes");
 const dropsRouteSource = readFileSync(new URL("../src/app/api/drops/route.ts", import.meta.url), "utf8");
+assert.match(dropsRouteSource, /compareDropFeedNewestFirst/, "the API must sort with the shared customer-visible chronology policy");
+assert.doesNotMatch(dropsRouteSource, /diversifyDrops/, "bottle variety must not reorder the chronological feed");
 assert.match(dropsRouteSource, /scopedDropFeedHistoryEnabled\(\{[\s\S]*state,[\s\S]*area: appliedAreaFilter \? areaQuery : undefined,[\s\S]*store,[\s\S]*bottle/,
   "history must activate only for state, applied area, entitled store, or entitled bottle filters");
 assert.match(dropsRouteSource, /isPublicDropFeedEligible\(drop,\s*\{\s*degradedStateCodes:/,

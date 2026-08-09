@@ -5,7 +5,7 @@ import { normalizeDropForSite, readSiteExportResults, siteExportHeaders } from "
 import { normalizeStateCodeParam } from "@/lib/location-normalization";
 import { decodeDropCursor, DropCursorSnapshotError, paginateDrops } from "@/lib/drop-cursor";
 import { dropFeedCacheHeaders } from "@/lib/api-cache-contract";
-import { dropFreshnessTime, resolveDropLimit } from "@/lib/drop-feed-policy";
+import { compareDropFeedNewestFirst, dropFreshnessTime, resolveDropLimit } from "@/lib/drop-feed-policy";
 import { isFreshPublicDrop, isPublicDropFeedEligible, publicDropRarityTier, publicEvidenceStateCode } from "@/lib/public-drop-evidence";
 import { historicalDropFeedEnabled, scopedDropFeedHistoryEnabled, selectDropFeedHistory } from "@/lib/drop-feed-history";
 import { readCachedPublicRetailerSubmissions } from "@/lib/retailer-public-submissions";
@@ -127,51 +127,6 @@ function isEngineFresh(statsPayload: Record<string, unknown> | null | undefined,
   return Date.now() - timestamp <= MAX_ENGINE_AGE_MS;
 }
 
-function dropDiversityKey(drop: Record<string, unknown>) {
-  // Bottle IDs can diverge across retailer/source-specific records for the same
-  // customer-visible bottle. The broad feed should diversify by what the member
-  // sees first: bottle name, then IDs only as a fallback.
-  return normalizedDropText(
-    drop.brand_name ??
-    drop.tracked_brand_name ??
-    drop.canonical_name ??
-    drop.raw_name ??
-    drop.canonical_id ??
-    drop.bottle_id
-  ) || String(drop.id ?? drop.timestamp ?? "unknown-drop");
-}
-
-function diversifyDrops<T extends Record<string, unknown>>(drops: T[]) {
-  const groups = new Map<string, T[]>();
-  for (const drop of drops) {
-    const key = dropDiversityKey(drop);
-    const group = groups.get(key);
-    if (group) group.push(drop);
-    else groups.set(key, [drop]);
-  }
-
-  const orderedGroups = Array.from(groups.values())
-    .sort((a, b) => {
-      const aTimestamp = +new Date(String(a[0]?.timestamp ?? ""));
-      const bTimestamp = +new Date(String(b[0]?.timestamp ?? ""));
-      return (Number.isFinite(bTimestamp) ? bTimestamp : 0) - (Number.isFinite(aTimestamp) ? aTimestamp : 0);
-    });
-
-  const diversified: T[] = [];
-  let index = 0;
-  while (diversified.length < drops.length) {
-    let added = false;
-    for (const group of orderedGroups) {
-      if (group[index]) {
-        diversified.push(group[index]);
-        added = true;
-      }
-    }
-    if (!added) break;
-    index += 1;
-  }
-  return diversified;
-}
 
 async function publicRetailerSubmissions() {
   try {
@@ -417,24 +372,12 @@ export async function GET(request: Request) {
       });
     }
 
-    drops.sort((a, b) => {
-      const aState = String(a.state ?? a.state_code ?? "").toUpperCase();
-      const bState = String(b.state ?? b.state_code ?? "").toUpperCase();
-      if (aState === "PA" && bState === "PA" && Boolean(b.exact_store) !== Boolean(a.exact_store)) {
-        return Boolean(b.exact_store) ? 1 : -1;
-      }
-      const timeDelta = +new Date(String(b.timestamp)) - +new Date(String(a.timestamp));
-      if (timeDelta) return timeDelta;
-      if (Boolean(b.exact_store) !== Boolean(a.exact_store)) return Boolean(b.exact_store) ? 1 : -1;
-      return Number(b.quantity_in_stock || 0) - Number(a.quantity_in_stock || 0);
-    });
+    drops.sort(compareDropFeedNewestFirst);
 
     const total = drops.length;
-    const shouldDiversify = !bottle && !store;
-    const displayDrops = shouldDiversify ? diversifyDrops(drops as Record<string, unknown>[]) : drops;
     const engineSnapshot = String(dropResult.snapshotId || exportPayload?.generatedAt || engineRunTimestamp(statsPayload, exportPayload?.generatedAt));
     const snapshot = `${engineSnapshot}:classification:${classificationIndex.version}:retailer:${retailerFeedSnapshot(retailerSubmissions)}:history:${historicalMode ? 1 : 0}`;
-    const page = paginateDrops(displayDrops, { limit, offset, cursor: requestedCursor, snapshot });
+    const page = paginateDrops(drops, { limit, offset, cursor: requestedCursor, snapshot });
     const pagedDrops = page.items;
 
     return NextResponse.json(
