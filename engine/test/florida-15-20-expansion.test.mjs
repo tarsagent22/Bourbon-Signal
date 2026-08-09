@@ -6,6 +6,8 @@ import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import test from 'node:test';
 
+import * as floridaExpansion from '../src/collectors/florida-15-20-expansion.mjs';
+
 import {
   buildFloridaExpansionStoreLocationSignals,
   collectFloridaAbcExpansionFromPayload,
@@ -28,7 +30,6 @@ import {
 } from '../src/collectors/florida-15-20-expansion.mjs';
 import { isFloridaRetailerInventory } from '../src/florida-retailer-policy.mjs';
 import { buildCurrentInventoryAlertsFromDrops, publicSignal } from '../src/export-site-contract.mjs';
-import { curlTextFetch } from '../src/collectors/precision-probes.mjs';
 import { ALL_STATE_SOURCES } from '../src/state-sources.mjs';
 
 const observedAt = new Date().toISOString();
@@ -99,15 +100,15 @@ function tivoliFixture({
     </form>`;
 }
 
-test('frozen Florida expansion registry is exactly 15 unique exact-store identities with no Target entries', () => {
+test('frozen Florida expansion registry is exactly 126 ABC stores plus the existing 10 non-ABC identities', () => {
   assert.equal(FLORIDA_PRIMO_STORES.size, 5);
   assert.equal(FLORIDA_EXPANSION_CITYHIVE_TARGETS.length, 0);
   assert.equal(FLORIDA_SHIPMENT_SHOPIFY_SOURCES.length, 4);
   assert.equal(FLORIDA_GOTOLIQUOR_STORES.length, 0);
-  assert.equal(FLORIDA_ABC_STORES.length, 5);
+  assert.equal(FLORIDA_ABC_STORES.length, 126);
   assert.ok(FLORIDA_TIVOLI_SOURCE);
-  assert.equal(FLORIDA_EXPANSION_STORE_TARGETS.length, 15);
-  assert.equal(new Set(FLORIDA_EXPANSION_STORE_TARGETS.map((store) => store.storeId)).size, 15);
+  assert.equal(FLORIDA_EXPANSION_STORE_TARGETS.length, 136);
+  assert.equal(new Set(FLORIDA_EXPANSION_STORE_TARGETS.map((store) => store.storeId)).size, 136);
   assert.ok(FLORIDA_EXPANSION_STORE_TARGETS.every((store) => store.state === 'FL' && /, FL \d{5}(?:, USA)?$/.test(store.address)));
   assert.ok(FLORIDA_EXPANSION_STORE_TARGETS.every((store) => store.platform !== 'target' && store.sourceChain !== 'target'));
   assert.ok(!FLORIDA_EXPANSION_STORE_TARGETS.some((store) => /9720 Camberley/i.test(store.address)));
@@ -124,6 +125,60 @@ test('frozen Florida expansion registry is exactly 15 unique exact-store identit
     { code: 'bayview-sunrise', name: 'Primo Bayview Sunrise', address: '2541 E Sunrise Blvd, Fort Lauderdale, FL 33304' },
     { code: 'southeast', name: 'Primo Southeast', address: '200 SW Davie Blvd, Fort Lauderdale, FL 33315' },
   ]);
+
+  assert.equal(floridaExpansion.FLORIDA_ABC_STORE_REGISTRY_SHA256, 'd56369e11b4883b59d7dcadd4de48f4388bbc489b2549b8c3016744ab717e1cc');
+  assert.ok(Object.isFrozen(FLORIDA_ABC_STORES));
+  assert.ok(FLORIDA_ABC_STORES.every((store) => Object.isFrozen(store)));
+  assert.ok(FLORIDA_ABC_STORES.every((store) => store.active === true
+    && store.officialAddress
+    && store.city
+    && store.state === 'FL'
+    && /^\d{5}$/.test(store.zip)
+    && Number.isFinite(store.lat)
+    && Number.isFinite(store.lng)));
+});
+
+function officialDirectoryRow(store) {
+  return {
+    store_code: Number(store.storeNumber),
+    name: store.name,
+    address: store.officialAddress,
+    city: store.city,
+    state: store.state,
+    zip: store.zip,
+    latitude: store.officialLatitude,
+    longitude: store.officialLongitude,
+    is_active: store.active,
+  };
+}
+
+function directoryResponses(stores = FLORIDA_ABC_STORES) {
+  const querySlices = [stores.slice(0, 50), stores.slice(50, 100), stores.slice(100, 122), stores.slice(122)];
+  return floridaExpansion.FLORIDA_ABC_DIRECTORY_QUERIES.map((query, index) => ({
+    query,
+    payload: JSON.stringify({ retailLocations: querySlices[index].map(officialDirectoryRow) }),
+  }));
+}
+
+test('ABC official directory validation is pinned to four queries and fails closed on partial or drifted identities', () => {
+  assert.deepEqual(floridaExpansion.FLORIDA_ABC_DIRECTORY_QUERIES, ['Pensacola', 'West Palm Beach', 'Gainesville', 'Tampa']);
+  assert.deepEqual(floridaExpansion.FLORIDA_ABC_DIRECTORY_URLS, floridaExpansion.FLORIDA_ABC_DIRECTORY_QUERIES.map((query) => `https://abc.irishtitan.cloud/api/retail-locations?search=${encodeURIComponent(query)}&radius=1000`));
+  assert.deepEqual(floridaExpansion.validateFloridaAbcDirectoryResponses(directoryResponses()), FLORIDA_ABC_STORES);
+
+  const partial = directoryResponses(FLORIDA_ABC_STORES.slice(1));
+  assert.throws(() => floridaExpansion.validateFloridaAbcDirectoryResponses(partial), /missing|126|universe/i);
+  const inactive = directoryResponses();
+  inactive[0] = { ...inactive[0], payload: JSON.stringify({ retailLocations: [{ ...officialDirectoryRow(FLORIDA_ABC_STORES[0]), is_active: false }, ...FLORIDA_ABC_STORES.slice(1, 50).map(officialDirectoryRow)] }) };
+  assert.throws(() => floridaExpansion.validateFloridaAbcDirectoryResponses(inactive), /inactive/i);
+  const mismatch = directoryResponses();
+  mismatch[0] = { ...mismatch[0], payload: JSON.stringify({ retailLocations: [{ ...officialDirectoryRow(FLORIDA_ABC_STORES[0]), city: 'FORGED' }, ...FLORIDA_ABC_STORES.slice(1, 50).map(officialDirectoryRow)] }) };
+  assert.throws(() => floridaExpansion.validateFloridaAbcDirectoryResponses(mismatch), /identity|mismatch/i);
+  const duplicate = directoryResponses();
+  duplicate[0] = { ...duplicate[0], payload: JSON.stringify({ retailLocations: [officialDirectoryRow(FLORIDA_ABC_STORES[0]), officialDirectoryRow(FLORIDA_ABC_STORES[0]), ...FLORIDA_ABC_STORES.slice(1, 50).map(officialDirectoryRow)] }) };
+  assert.throws(() => floridaExpansion.validateFloridaAbcDirectoryResponses(duplicate), /duplicate/i);
+  const extra = directoryResponses();
+  extra[3] = { ...extra[3], payload: JSON.stringify({ retailLocations: [...FLORIDA_ABC_STORES.slice(122).map(officialDirectoryRow), { ...officialDirectoryRow(FLORIDA_ABC_STORES.at(-1)), store_code: 999 }] }) };
+  assert.throws(() => floridaExpansion.validateFloridaAbcDirectoryResponses(extra), /extra|unexpected|universe/i);
 });
 
 test('Primo parser binds one products page to same-host product URLs and exact configured positive stock only', () => {
@@ -213,6 +268,7 @@ test('Shopify pagination is source-bounded and a 429 stops and fails the source 
 });
 
 test('curl transport reports the effective URL and enforces redirect, size, method, and cookie options', async () => {
+  const { curlTextFetch } = await import('../src/collectors/precision-probes.mjs');
   let capturedArgs = [];
   const result = await curlTextFetch('https://retailer.example/category', {
     followRedirects: false,
@@ -264,25 +320,32 @@ test('single-premises Shopify signals keep stable IDs and shipment/orderable non
 
 test('ABC Searchspring parser binds exact store name, child SKU, integer inventory, variant, option, and product URL', () => {
   const rows = parseFloridaAbcSearchspringInventory(abcFixture(), matchedBottle);
-  assert.equal(rows.length, 5);
+  assert.equal(rows.length, 126);
   assert.deepEqual(rows.map((row) => row.target.storeId), FLORIDA_ABC_STORES.map((store) => store.storeId));
   assert.ok(rows.every((row) => row.quantityIsExact && Number.isInteger(row.quantity) && row.quantity > 0));
   assert.ok(rows.every((row) => row.childSku === `${row.productId}-${row.storeNumber}`));
   assert.ok(rows.every((row) => row.productUrl === 'https://www.abcfws.com/1792-small-batch-bourbon/760505'));
 
   const wrongName = abcFixture({ mutateLocation: (locations) => { locations['3'].value = 'Forged Store'; } });
-  assert.equal(parseFloridaAbcSearchspringInventory(wrongName, matchedBottle).length, 4);
+  assert.deepEqual(parseFloridaAbcSearchspringInventory(wrongName, matchedBottle), []);
   const fractional = abcFixture({ mutateLocation: (locations) => { locations['4'].inventory_level = 1.5; } });
-  assert.equal(parseFloridaAbcSearchspringInventory(fractional, matchedBottle).length, 4);
+  assert.equal(parseFloridaAbcSearchspringInventory(fractional, matchedBottle).length, 125);
   const wrongSku = abcFixture({ mutateLocation: (locations) => { locations['5'].child_sku = 'forged-5'; } });
-  assert.equal(parseFloridaAbcSearchspringInventory(wrongSku, matchedBottle).length, 4);
+  assert.equal(parseFloridaAbcSearchspringInventory(wrongSku, matchedBottle).length, 125);
+  const missingStore = abcFixture({ mutateLocation: (locations) => { delete locations['3']; } });
+  assert.deepEqual(parseFloridaAbcSearchspringInventory(missingStore, matchedBottle), []);
+  const extraStore = abcFixture({ mutateLocation: (locations) => { locations['999'] = { ...locations['3'], value: 'Forged Store' }; } });
+  assert.deepEqual(parseFloridaAbcSearchspringInventory(extraStore, matchedBottle), []);
   assert.deepEqual(parseFloridaAbcSearchspringInventory('{bad json}', matchedBottle), []);
 
   const signals = collectFloridaAbcExpansionFromPayload({ payload: abcFixture(), observedAt, matchBottle: matchedBottle });
-  assert.equal(new Set(signals.map((signal) => signal.storeId)).size, 5);
+  assert.equal(new Set(signals.map((signal) => signal.storeId)).size, 126);
   assert.ok(signals.every((signal) => signal.quantityIsExact && signal.reportedQuantity === signal.quantity));
+  assert.ok(signals.every((signal) => Number.isFinite(signal.lat) && Number.isFinite(signal.lng)));
   const signal = signals[0];
   assert.equal(isFloridaRetailerInventory(signal), true);
+  assert.equal(isFloridaRetailerInventory({ ...signal, lat: signal.lat + 0.001 }), false);
+  assert.equal(isFloridaRetailerInventory({ ...signal, raw: { ...signal.raw, officialAddress: 'FORGED' } }), false);
   assert.equal(isFloridaRetailerInventory({ ...signal, variantId: 'forged' }), false);
   assert.equal(isFloridaRetailerInventory({ ...signal, variantId: '0', raw: { ...signal.raw, variantId: '0' } }), false);
   assert.equal(isFloridaRetailerInventory({ ...signal, optionValueId: 'forged' }), false);
@@ -291,6 +354,46 @@ test('ABC Searchspring parser binds exact store name, child SKU, integer invento
   assert.equal(isFloridaRetailerInventory({ ...signal, raw: { ...signal.raw, productId: '999999' } }), false);
   assert.equal(isFloridaRetailerInventory({ ...signal, raw: { ...signal.raw, variantId: '999999' } }), false);
   assert.equal(isFloridaRetailerInventory({ ...signal, raw: { ...signal.raw, childSku: 'forged', storeNumber: '999' } }), false);
+});
+
+test('ABC live expansion uses exactly four official-directory requests and one Searchspring request', async () => {
+  assert.equal(typeof floridaExpansion.collectFloridaAbcExpansion, 'function');
+  const responses = new Map(directoryResponses().map(({ query, payload }) => [
+    `https://abc.irishtitan.cloud/api/retail-locations?search=${encodeURIComponent(query)}&radius=1000`,
+    payload,
+  ]));
+  responses.set(floridaExpansion.FLORIDA_ABC_SEARCHSPRING_URL, abcFixture());
+  const requested = [];
+  const result = await floridaExpansion.collectFloridaAbcExpansion({
+    observedAt,
+    matchBottle: matchedBottle,
+    fetchText: async (url) => {
+      requested.push(url);
+      return responses.has(url)
+        ? { ok: true, status: 200, url, text: responses.get(url) }
+        : { ok: false, status: 404, url, text: '', error: 'fixture miss' };
+    },
+  });
+  assert.deepEqual(requested, [...floridaExpansion.FLORIDA_ABC_DIRECTORY_URLS, floridaExpansion.FLORIDA_ABC_SEARCHSPRING_URL]);
+  assert.equal(result.roadblocks.length, 0);
+  assert.equal(new Set(result.signals.map((signal) => signal.storeId)).size, 126);
+  assert.ok(result.signals.every(isFloridaRetailerInventory));
+
+  const driftedResponses = new Map(responses);
+  const drifted = directoryResponses(FLORIDA_ABC_STORES.slice(1));
+  driftedResponses.set(floridaExpansion.FLORIDA_ABC_DIRECTORY_URLS[0], drifted[0].payload);
+  const driftRequests = [];
+  const failed = await floridaExpansion.collectFloridaAbcExpansion({
+    observedAt,
+    matchBottle: matchedBottle,
+    fetchText: async (url) => {
+      driftRequests.push(url);
+      return { ok: true, status: 200, url, text: driftedResponses.get(url) };
+    },
+  });
+  assert.deepEqual(failed.signals, []);
+  assert.ok(failed.roadblocks.length > 0);
+  assert.equal(driftRequests.includes(floridaExpansion.FLORIDA_ABC_SEARCHSPRING_URL), false);
 });
 
 test('Tivoli monitor requires canonical product, exact store schema/address, visible same-host POST cart form, and title', () => {
@@ -381,12 +484,19 @@ function productionSignal(target, index) {
     common.storeNumber = target.storeNumber;
     common.controlStoreId = target.storeNumber;
     common.variantAvailable = true;
+    common.lat = target.lat;
+    common.lng = target.lng;
     Object.assign(common.raw, {
       variantAvailable: true,
       controlStoreId: target.storeNumber,
       optionValueId: common.optionValueId,
       childSku: common.childSku,
       storeNumber: target.storeNumber,
+      officialAddress: target.officialAddress,
+      officialCity: target.city,
+      officialZip: target.zip,
+      officialLatitude: target.officialLatitude,
+      officialLongitude: target.officialLongitude,
     });
   }
   if (target.platform === 'gotoliquorstore') {
@@ -403,7 +513,7 @@ function productionSignal(target, index) {
   return common;
 }
 
-test('all 15 frozen identities qualify centrally and targeted verifier rejects a missing or forged cohort store', () => {
+test('all 136 frozen identities qualify centrally and immutable verifier rejects a missing or forged cohort store', () => {
   const inventory = FLORIDA_EXPANSION_STORE_TARGETS.map(productionSignal);
   assert.ok(inventory.every(isFloridaRetailerInventory));
   const firstPrimo = inventory.find((row) => row.storeId === 'primo-liquors:southwest-ranches');
@@ -419,7 +529,7 @@ test('all 15 frozen identities qualify centrally and targeted verifier rejects a
   assert.deepEqual(rejectedPublicDrops, [], 'public export must preserve the proof needed to replay Florida policy');
   assert.ok(publicDrops.every((drop) => buildCurrentInventoryAlertsFromDrops([drop]).length === 1), 'all expansion drops must survive current-inventory alert projection');
   const locations = buildFloridaExpansionStoreLocationSignals(observedAt);
-  assert.equal(locations.length, 15);
+  assert.equal(locations.length, 136);
   assert.ok(locations.every((row) => row.eventType === 'retailer_store_location' && row.canAlertAsInventory === false));
 
   const dir = mkdtempSync(join(tmpdir(), 'bs-fl-15-20-'));
@@ -439,7 +549,7 @@ test('all 15 frozen identities qualify centrally and targeted verifier rejects a
   try {
     const success = run([...locations, ...inventory]);
     assert.equal(success.status, 0, success.stderr || success.stdout);
-    assert.match(success.stdout, /"stores"\s*:\s*15/);
+    assert.match(success.stdout, /"stores"\s*:\s*136/);
     assert.notEqual(run([...locations, ...inventory.slice(1)]).status, 0);
     assert.notEqual(run([...locations, ...inventory.map((row, index) => index === 0 ? { ...row, sourceUrl: 'https://evil.example/products/forged' } : row)]).status, 0);
     assert.notEqual(run([...locations, ...inventory], { inventoryStoreIds: [...immutableBaseline.inventoryStoreIds, inventory[0].storeId] }).status, 0);
@@ -455,8 +565,17 @@ test('frozen request budget is explicit and bounded', () => {
     primoProductsPages: 1,
     primoProductPages: 8,
     shipmentShopifyPages: 12,
+    abcDirectoryQueries: 4,
     abcSearchspringPages: 1,
     tivoliProductPages: 1,
-    maximumRequests: 23,
+    maximumRequests: 27,
   });
+});
+
+test('Florida immutable verification is reusable and every workflow entry path runs it', async () => {
+  const verifier = await import('../src/verification/florida-expansion-verifier.mjs');
+  assert.equal(typeof verifier.verifyFloridaExpansionArtifact, 'function');
+  const workflow = readFileSync(new URL('../../.github/workflows/refresh-feed.yml', import.meta.url), 'utf8');
+  const step = workflow.match(/- name: Verify Florida immutable full-store expansion[\s\S]*?run: npm run verify:fl:15-20/)?.[0] || '';
+  assert.match(step, /if:\s*\$\{\{ !inputs\.states \|\| inputs\.force_all_states == 'true' \|\| contains\(inputs\.states, 'FL'\) \}\}/);
 });

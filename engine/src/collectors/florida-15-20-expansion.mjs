@@ -1,4 +1,6 @@
 import { mkdtemp, rm } from 'node:fs/promises';
+import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -127,33 +129,65 @@ function goToStore({ id, chain, name, hostname, categoryUrl, merchantId, control
 export const FLORIDA_GOTOLIQUOR_STORES = Object.freeze([]);
 
 export const FLORIDA_ABC_SEARCHSPRING_URL = 'https://api.searchspring.net/api/search/search.json?siteId=p16j4k&q=bourbon&resultsFormat=native&resultsPerPage=100';
+export const FLORIDA_ABC_DIRECTORY_QUERIES = Object.freeze(['Pensacola', 'West Palm Beach', 'Gainesville', 'Tampa']);
+export const FLORIDA_ABC_DIRECTORY_URLS = Object.freeze(FLORIDA_ABC_DIRECTORY_QUERIES.map((query) => `https://abc.irishtitan.cloud/api/retail-locations?search=${encodeURIComponent(query)}&radius=1000`));
 
-function abcStore({ number, name, address, city, zip }) {
+const FLORIDA_ABC_STORE_REGISTRY = JSON.parse(readFileSync(new URL('../../data/florida-abc-store-registry.json', import.meta.url), 'utf8'));
+export const FLORIDA_ABC_STORE_REGISTRY_SHA256 = 'd56369e11b4883b59d7dcadd4de48f4388bbc489b2549b8c3016744ab717e1cc';
+
+function canonicalAbcRegistryRows(rows) {
+  if (!Array.isArray(rows)) return [];
+  return rows.map((row) => ({
+    storeCode: String(row.storeCode),
+    name: String(row.name),
+    address: String(row.address),
+    city: String(row.city),
+    state: String(row.state),
+    zip: String(row.zip),
+    lat: String(row.lat),
+    lng: String(row.lng),
+    active: row.active === true,
+  }));
+}
+
+const abcRegistryRows = canonicalAbcRegistryRows(FLORIDA_ABC_STORE_REGISTRY.stores);
+const abcRegistryDigest = createHash('sha256').update(JSON.stringify(abcRegistryRows)).digest('hex');
+if (FLORIDA_ABC_STORE_REGISTRY.contractVersion !== 'bourbon-signal/florida-abc-store-registry@1'
+  || FLORIDA_ABC_STORE_REGISTRY.sha256 !== FLORIDA_ABC_STORE_REGISTRY_SHA256
+  || abcRegistryDigest !== FLORIDA_ABC_STORE_REGISTRY_SHA256
+  || abcRegistryRows.length !== 126
+  || new Set(abcRegistryRows.map((row) => row.storeCode)).size !== 126) {
+  throw new Error('Immutable Florida ABC exact-store registry contract mismatch.');
+}
+
+function abcStore({ storeCode, name, address: officialAddress, city, state, zip, lat: officialLatitude, lng: officialLongitude, active }) {
+  const address = `${officialAddress.replace(/,\s*$/u, '')}, ${city}, ${state} ${zip}`;
   return exactStore({
-    id: `abc-fine-wine-spirits-${number}`,
+    id: `abc-fine-wine-spirits-${storeCode}`,
     platform: 'abc-searchspring',
     sourceLabel: 'ABC Fine Wine & Spirits exact-store Searchspring inventory',
     sourceChain: 'abc-fine-wine-spirits',
-    merchantId: `abc-store-${number}`,
-    storeId: `abc-fine-wine-spirits:${number}`,
+    merchantId: `abc-store-${storeCode}`,
+    storeId: `abc-fine-wine-spirits:${storeCode}`,
     name,
     address,
     city,
+    state,
     zip,
     hostname: 'www.abcfws.com',
     baseUrl: 'https://www.abcfws.com',
     searchUrl: FLORIDA_ABC_SEARCHSPRING_URL,
-    storeNumber: String(Number(number)),
+    storeNumber: storeCode,
+    officialAddress,
+    officialLatitude,
+    officialLongitude,
+    lat: Number(officialLatitude),
+    lng: Number(officialLongitude),
+    active,
   });
 }
 
-export const FLORIDA_ABC_STORES = Object.freeze([
-  abcStore({ number: '003', name: 'ABC #003 - OBT', address: '5895 S Orange Blossom Trl, Orlando, FL 32839', city: 'Orlando', zip: '32839' }),
-  abcStore({ number: '004', name: 'ABC #004 - Lake Buena Vista', address: '11951 S Apopka Vineland Rd, Orlando, FL 32836', city: 'Orlando', zip: '32836' }),
-  abcStore({ number: '005', name: 'ABC #005 - Disney West', address: '3187 Black Lake Rd, Kissimmee, FL 34747', city: 'Kissimmee', zip: '34747' }),
-  abcStore({ number: '014', name: 'ABC #014 - Winter Park', address: '401 N Orlando Ave, Winter Park, FL 32789', city: 'Winter Park', zip: '32789' }),
-  abcStore({ number: '053', name: 'ABC #053 - South Lakeland', address: '4319 Florida Ave S, Lakeland, FL 33813', city: 'Lakeland', zip: '33813' }),
-]);
+export const FLORIDA_ABC_STORES = Object.freeze(abcRegistryRows.map(abcStore));
 
 export const FLORIDA_TIVOLI_SOURCE = exactStore({
   id: 'tivoli-south-liquors', platform: 'tivoli', sourceLabel: 'Tivoli South Liquors targeted first-party orderability',
@@ -327,10 +361,102 @@ export function parseFloridaShipmentShopifyProducts(payload, candidateSource) {
   return rows.filter((row) => row.productId);
 }
 
+const FLORIDA_ABC_STORE_BY_NUMBER = new Map(FLORIDA_ABC_STORES.map((store) => [store.storeNumber, store]));
+
+function officialDirectoryIdentity(row) {
+  return {
+    storeNumber: String(Number(row?.store_code)),
+    name: String(row?.name || ''),
+    officialAddress: String(row?.address || ''),
+    city: String(row?.city || ''),
+    state: String(row?.state || ''),
+    zip: String(row?.zip || ''),
+    officialLatitude: String(row?.latitude || ''),
+    officialLongitude: String(row?.longitude || ''),
+    active: row?.is_active === true,
+  };
+}
+
+function directoryIdentityMismatch(store, identity) {
+  return identity.name !== store.name
+    || identity.officialAddress !== store.officialAddress
+    || identity.city !== store.city
+    || identity.state !== store.state
+    || identity.zip !== store.zip
+    || identity.officialLatitude !== store.officialLatitude
+    || identity.officialLongitude !== store.officialLongitude;
+}
+
+export function validateFloridaAbcDirectoryResponses(responses) {
+  if (!Array.isArray(responses) || responses.length !== FLORIDA_ABC_DIRECTORY_QUERIES.length) {
+    throw new Error(`Florida ABC official directory is partial; expected exactly ${FLORIDA_ABC_DIRECTORY_QUERIES.length} query responses.`);
+  }
+  const observed = new Map();
+  for (let index = 0; index < responses.length; index += 1) {
+    const response = responses[index];
+    const expectedQuery = FLORIDA_ABC_DIRECTORY_QUERIES[index];
+    if (response?.query !== expectedQuery) throw new Error(`Florida ABC official directory query mismatch at ${expectedQuery}.`);
+    const parsed = parseJson(response?.payload);
+    const rows = parsed?.retailLocations;
+    if (!Array.isArray(rows) || !rows.length) throw new Error(`Florida ABC official directory query ${expectedQuery} returned a partial payload.`);
+    const queryStoreNumbers = new Set();
+    for (const row of rows) {
+      const identity = officialDirectoryIdentity(row);
+      if (!/^\d+$/u.test(identity.storeNumber) || identity.storeNumber === '0') throw new Error(`Florida ABC official directory query ${expectedQuery} returned an invalid store code.`);
+      if (queryStoreNumbers.has(identity.storeNumber)) throw new Error(`Florida ABC official directory query ${expectedQuery} returned duplicate store code ${identity.storeNumber}.`);
+      queryStoreNumbers.add(identity.storeNumber);
+      const store = FLORIDA_ABC_STORE_BY_NUMBER.get(identity.storeNumber);
+      if (!store) throw new Error(`Florida ABC official directory returned unexpected extra store code ${identity.storeNumber}.`);
+      if (!identity.active) throw new Error(`Florida ABC official directory returned inactive store code ${identity.storeNumber}.`);
+      if (directoryIdentityMismatch(store, identity)) throw new Error(`Florida ABC official directory identity mismatch for store code ${identity.storeNumber}.`);
+      const previous = observed.get(identity.storeNumber);
+      if (previous && directoryIdentityMismatch(store, previous)) throw new Error(`Florida ABC official directory returned a mismatched duplicate for store code ${identity.storeNumber}.`);
+      observed.set(identity.storeNumber, identity);
+    }
+  }
+  const missing = FLORIDA_ABC_STORES.filter((store) => !observed.has(store.storeNumber));
+  if (observed.size !== FLORIDA_ABC_STORES.length || missing.length) {
+    throw new Error(`Florida ABC official directory universe mismatch; expected 126 active stores and observed ${observed.size}. Missing: ${missing.map((store) => store.storeNumber).join(', ')}`);
+  }
+  return FLORIDA_ABC_STORES;
+}
+
+function searchspringLocationStoreNumber(value) {
+  const match = String(value || '').match(/^ABC\s+#0*(\d+)\b/iu);
+  return match ? String(Number(match[1])) : null;
+}
+
+function validateFloridaAbcSearchspringUniverse(results) {
+  const observed = new Set();
+  for (const product of results) {
+    const availability = Array.isArray(product?.ss_location_availability)
+      ? product.ss_location_availability.map((value) => String(Number(value)))
+      : [];
+    if (!availability.length && product?.ss_locations == null) continue;
+    if (availability.some((storeNumber) => !/^\d+$/u.test(storeNumber) || storeNumber === '0')
+      || new Set(availability).size !== availability.length) return false;
+    const locations = parseJson(decodeHtml(product?.ss_locations));
+    if (!locations || Array.isArray(locations) || typeof locations !== 'object') return false;
+    const locationNumbers = Object.keys(locations).map((value) => String(Number(value)));
+    if (locationNumbers.some((storeNumber) => !/^\d+$/u.test(storeNumber) || storeNumber === '0')
+      || new Set(locationNumbers).size !== locationNumbers.length
+      || new Set(availability).size !== locationNumbers.length
+      || locationNumbers.some((storeNumber) => !availability.includes(storeNumber))) return false;
+    for (const [rawStoreNumber, location] of Object.entries(locations)) {
+      const storeNumber = String(Number(rawStoreNumber));
+      if (!FLORIDA_ABC_STORE_BY_NUMBER.has(storeNumber)
+        || searchspringLocationStoreNumber(location?.value) !== storeNumber) return false;
+      observed.add(storeNumber);
+    }
+  }
+  return observed.size === FLORIDA_ABC_STORES.length
+    && FLORIDA_ABC_STORES.every((store) => observed.has(store.storeNumber));
+}
+
 export function parseFloridaAbcSearchspringInventory(payload, matchBottle) {
   if (typeof matchBottle !== 'function') return [];
   const results = parseJson(payload)?.results;
-  if (!Array.isArray(results)) return [];
+  if (!Array.isArray(results) || !validateFloridaAbcSearchspringUniverse(results)) return [];
   const rows = [];
   for (const product of results.slice(0, 100)) {
     if (!/^(?:1|true)$/iu.test(String(product?.ss_in_stock || ''))) continue;
@@ -352,7 +478,7 @@ export function parseFloridaAbcSearchspringInventory(payload, matchBottle) {
       const optionValueId = Number(location?.option_value_id);
       const price = Number(location?.calculated_price ?? location?.price);
       if (!availableStores.has(store.storeNumber)
-        || String(location?.value || '') !== store.name
+        || searchspringLocationStoreNumber(location?.value) !== store.storeNumber
         || String(location?.child_sku || '') !== `${sku}-${store.storeNumber}`
         || !Number.isInteger(quantity) || quantity <= 0
         || !Number.isInteger(variantId) || variantId <= 0
@@ -383,6 +509,49 @@ export function parseFloridaAbcSearchspringInventory(payload, matchBottle) {
 export function collectFloridaAbcExpansionFromPayload({ payload, observedAt, matchBottle } = {}) {
   return parseFloridaAbcSearchspringInventory(payload, matchBottle)
     .map((row) => expansionInventorySignal(row.target, row, { record: row.record, match: row.match }, observedAt));
+}
+
+function abcRoadblock(url, response, error, nextRoute) {
+  return {
+    state: 'FL',
+    source: 'ABC Fine Wine & Spirits immutable full-store expansion',
+    url,
+    status: response?.status || 'failed_closed',
+    error: response?.error || error,
+    nextRoute,
+  };
+}
+
+export async function collectFloridaAbcExpansion({ observedAt, matchBottle, fetchText, signal } = {}) {
+  if (typeof fetchText !== 'function' || typeof matchBottle !== 'function') {
+    return { signals: [], roadblocks: [abcRoadblock(FLORIDA_ABC_DIRECTORY_URLS[0], null, 'Missing bounded ABC collector dependencies.', 'Keep this source closed until its exact-store validation dependencies are available.')] };
+  }
+  const directoryResponses = [];
+  for (let index = 0; index < FLORIDA_ABC_DIRECTORY_URLS.length; index += 1) {
+    const url = FLORIDA_ABC_DIRECTORY_URLS[index];
+    const response = await fetchText(url, { headers: { accept: 'application/json,*/*' }, timeoutMs: 25_000, maxBytes: 2 * 1024 * 1024, redirect: 'manual', signal });
+    if (!response?.ok) {
+      return { signals: [], roadblocks: [abcRoadblock(url, response, `HTTP ${response?.status || 0}`, 'Retry the same four-query official-directory contract without widening the request set.')] };
+    }
+    directoryResponses.push({ query: FLORIDA_ABC_DIRECTORY_QUERIES[index], payload: response.text });
+  }
+  try {
+    validateFloridaAbcDirectoryResponses(directoryResponses);
+  } catch (error) {
+    return { signals: [], roadblocks: [abcRoadblock(FLORIDA_ABC_DIRECTORY_URLS.at(-1), null, error instanceof Error ? error.message : String(error), 'Review the immutable registry against the official directory; do not publish a partial or drifted store universe.')] };
+  }
+
+  const inventoryResponse = await fetchText(FLORIDA_ABC_SEARCHSPRING_URL, { headers: { accept: 'application/json,*/*' }, timeoutMs: 25_000, maxBytes: 4 * 1024 * 1024, redirect: 'manual', signal });
+  if (!inventoryResponse?.ok) {
+    return { signals: [], roadblocks: [abcRoadblock(FLORIDA_ABC_SEARCHSPRING_URL, inventoryResponse, `HTTP ${inventoryResponse?.status || 0}`, 'Retry the single bounded Searchspring bourbon request.')] };
+  }
+  const signals = collectFloridaAbcExpansionFromPayload({ payload: inventoryResponse.text, observedAt, matchBottle });
+  const coveredStores = new Set(signals.map((row) => row.storeId));
+  if (coveredStores.size !== FLORIDA_ABC_STORES.length
+    || FLORIDA_ABC_STORES.some((store) => !coveredStores.has(store.storeId))) {
+    return { signals: [], roadblocks: [abcRoadblock(FLORIDA_ABC_SEARCHSPRING_URL, inventoryResponse, `Searchspring inventory universe produced policy-qualified rows for ${coveredStores.size} of 126 immutable stores.`, 'Keep the ABC expansion closed until one bounded payload intersects all 126 reviewed store codes.')] };
+  }
+  return { signals, roadblocks: [], inventoryPayload: inventoryResponse.text };
 }
 
 export function parseFloridaGoToLiquorStoreProducts(html, candidateStore) {
@@ -565,6 +734,8 @@ function expansionInventorySignal(target, product, matched, observedAt) {
     city: target.city,
     postalCode: target.zip,
     zip: target.zip,
+    lat: Number.isFinite(target.lat) ? target.lat : null,
+    lng: Number.isFinite(target.lng) ? target.lng : null,
     quantity: Number(product.quantity || 0),
     quantityIsExact: exactQuantity,
     reportedQuantity: exactQuantity ? Number(product.quantity) : 0,
@@ -610,6 +781,11 @@ function expansionInventorySignal(target, product, matched, observedAt) {
     signal.controlStoreId = target.storeNumber;
     signal.raw.variantAvailable = true;
     signal.raw.controlStoreId = target.storeNumber;
+    signal.raw.officialAddress = target.officialAddress;
+    signal.raw.officialCity = target.city;
+    signal.raw.officialZip = target.zip;
+    signal.raw.officialLatitude = target.officialLatitude;
+    signal.raw.officialLongitude = target.officialLongitude;
   }
   if (target.platform === 'gotoliquorstore') {
     signal.pickupOfferVerified = true;
@@ -827,13 +1003,27 @@ export function buildFloridaExpansionStoreLocationSignals(observedAt) {
     city: store.city,
     postalCode: store.zip,
     zip: store.zip,
+    lat: Number.isFinite(store.lat) ? store.lat : null,
+    lng: Number.isFinite(store.lng) ? store.lng : null,
     quantity: 0,
     observedAt,
     canAlertAsInventory: false,
     canAlertAsWatch: false,
     inventorySemantics: 'Reviewed first-party Florida retailer identity only; this stable directory row is not bottle inventory.',
     evidence: `${store.name} is registered at ${store.address} for this exact first-party source.`,
-    raw: { chain: store.sourceChain, merchantId: store.merchantId, configuredStoreIdentity: true, platform: store.platform },
+    raw: {
+      chain: store.sourceChain,
+      merchantId: store.merchantId,
+      configuredStoreIdentity: true,
+      platform: store.platform,
+      ...(store.platform === 'abc-searchspring' ? {
+        officialAddress: store.officialAddress,
+        officialCity: store.city,
+        officialZip: store.zip,
+        officialLatitude: store.officialLatitude,
+        officialLongitude: store.officialLongitude,
+      } : {}),
+    },
   }));
 }
 
@@ -841,14 +1031,16 @@ export function floridaExpansionRequestBudget() {
   const primoProductsPages = FLORIDA_PRIMO_SOURCE.maxProductsPages;
   const primoProductPages = FLORIDA_PRIMO_SOURCE.maxProductPages;
   const shipmentShopifyPages = FLORIDA_SHIPMENT_SHOPIFY_SOURCES.reduce((sum, source) => sum + source.maxPages, 0);
+  const abcDirectoryQueries = FLORIDA_ABC_DIRECTORY_URLS.length;
   const abcSearchspringPages = 1;
   const tivoliProductPages = 1;
   return {
     primoProductsPages,
     primoProductPages,
     shipmentShopifyPages,
+    abcDirectoryQueries,
     abcSearchspringPages,
     tivoliProductPages,
-    maximumRequests: primoProductsPages + primoProductPages + shipmentShopifyPages + abcSearchspringPages + tivoliProductPages,
+    maximumRequests: primoProductsPages + primoProductPages + shipmentShopifyPages + abcDirectoryQueries + abcSearchspringPages + tivoliProductPages,
   };
 }
