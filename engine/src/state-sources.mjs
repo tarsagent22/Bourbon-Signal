@@ -3,6 +3,7 @@ import { costcoSourceForState } from './costco-eligibility.mjs';
 import { GEORGIA_CITYHIVE_SOURCES, GEORGIA_GOTOLIQUOR_STORES, GEORGIA_LIGHTSPEED_STORES } from './collectors/georgia-retailer-surfaces.mjs';
 import { FLORIDA_CITYHIVE_SOURCES } from './collectors/florida-retailer-surfaces.mjs';
 import {
+  FLORIDA_ABC_STORES,
   FLORIDA_GOTOLIQUOR_STORES,
   FLORIDA_PRIMO_SOURCE,
   FLORIDA_SHIPMENT_SHOPIFY_SOURCES,
@@ -501,6 +502,7 @@ const BASE_STATE_SOURCES = [
       ...FLORIDA_CITYHIVE_SOURCES.map((source) => ({ name: source.sourceLabel, label: source.sourceLabel, url: source.categoryUrl, precisionOnly: true })),
       { name: FLORIDA_PRIMO_SOURCE.sourceLabel, label: FLORIDA_PRIMO_SOURCE.sourceLabel, url: FLORIDA_PRIMO_SOURCE.productsUrl, precisionOnly: true },
       ...FLORIDA_SHIPMENT_SHOPIFY_SOURCES.map((source) => ({ name: source.sourceLabel, label: source.sourceLabel, url: source.productsUrl, precisionOnly: true })),
+      ...FLORIDA_ABC_STORES.slice(0, 1).map((source) => ({ name: source.sourceLabel, label: source.sourceLabel, url: source.searchUrl, precisionOnly: true })),
       ...FLORIDA_GOTOLIQUOR_STORES.map((source) => ({ name: source.sourceLabel, label: source.sourceLabel, url: source.categoryUrl, precisionOnly: true })),
       { name: FLORIDA_TIVOLI_SOURCE.sourceLabel, label: FLORIDA_TIVOLI_SOURCE.sourceLabel, url: FLORIDA_TIVOLI_SOURCE.productUrl, precisionOnly: true },
       { name: 'Florida Plaza Liquors bourbon catalog', label: 'Florida Plaza Liquors bourbon catalog', url: 'https://www.floridaplazaliquors.com/s-11422/c-2/buy-liquor/t-11/buy-bourbon-whiskey' },

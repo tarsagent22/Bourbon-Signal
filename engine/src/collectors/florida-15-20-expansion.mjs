@@ -124,33 +124,35 @@ function goToStore({ id, chain, name, hostname, categoryUrl, merchantId, control
   });
 }
 
-export const FLORIDA_GOTOLIQUOR_STORES = Object.freeze([
-  goToStore({
-    id: 'in-and-out-liquors', chain: 'in-and-out-liquors', name: 'In and Out Liquors', hostname: 'www.inandoutliquors.com',
-    categoryUrl: 'https://www.inandoutliquors.com/c/spirits/whiskey/19', merchantId: '848869', controlStoreId: '639',
-    address: '1775 N Wickham Rd, Melbourne, FL 32935', city: 'Melbourne', zip: '32935',
-  }),
-  goToStore({
-    id: 'beneva-liquor-tobacco', chain: 'beneva-liquor-tobacco', name: 'Beneva Liquor & Tobacco', hostname: 'www.benevaliquor.com',
-    categoryUrl: 'https://www.benevaliquor.com/c/spirits/whiskey/19', merchantId: '496304', controlStoreId: '1281',
-    address: '1295 S Beneva Rd, Sarasota, FL 34232', city: 'Sarasota', zip: '34232',
-  }),
-  goToStore({
-    id: 'liquor-and-more-chasers', chain: 'liquor-and-more-chasers', name: 'Liquor And More (Chasers Liquor)', hostname: 'www.liquormore.com',
-    categoryUrl: 'https://www.liquormore.com/c/spirits/whiskey/19', merchantId: '708694', controlStoreId: '904',
-    address: '5104 North W Street, Pensacola, FL 32505', city: 'Pensacola', zip: '32505',
-  }),
-  goToStore({
-    id: 'paramount-liquors-pensacola', chain: 'paramount-liquors-pensacola', name: 'Paramount Liquors', hostname: 'www.paramountliquorsfl.com',
-    categoryUrl: 'https://www.paramountliquorsfl.com/c/spirits/whiskey/19', merchantId: '856949', controlStoreId: '1386',
-    address: '2105 E Olive Rd, Pensacola, FL 32514', city: 'Pensacola', zip: '32514',
-  }),
-  goToStore({
-    id: 'liquor-and-more-stars-n-stripes', chain: 'liquor-and-more-stars-n-stripes', name: 'Liquor And More (Stars n Stripes Liquor & Fine Wine)', hostname: 'www.liquormore.com',
-    categoryUrl: 'https://www.liquormore.com/c/spirits/whiskey/19', merchantId: '580491', controlStoreId: '910',
-    address: '109 Racetrack Road Northeast, Fort Walton Beach, FL 32547', city: 'Fort Walton Beach', zip: '32547',
-    switchStoreUrl: 'https://www.liquormore.com/ShoppingCart/SwitchStore?storeId=910',
-  }),
+export const FLORIDA_GOTOLIQUOR_STORES = Object.freeze([]);
+
+export const FLORIDA_ABC_SEARCHSPRING_URL = 'https://api.searchspring.net/api/search/search.json?siteId=p16j4k&q=bourbon&resultsFormat=native&resultsPerPage=100';
+
+function abcStore({ number, name, address, city, zip }) {
+  return exactStore({
+    id: `abc-fine-wine-spirits-${number}`,
+    platform: 'abc-searchspring',
+    sourceLabel: 'ABC Fine Wine & Spirits exact-store Searchspring inventory',
+    sourceChain: 'abc-fine-wine-spirits',
+    merchantId: `abc-store-${number}`,
+    storeId: `abc-fine-wine-spirits:${number}`,
+    name,
+    address,
+    city,
+    zip,
+    hostname: 'www.abcfws.com',
+    baseUrl: 'https://www.abcfws.com',
+    searchUrl: FLORIDA_ABC_SEARCHSPRING_URL,
+    storeNumber: String(Number(number)),
+  });
+}
+
+export const FLORIDA_ABC_STORES = Object.freeze([
+  abcStore({ number: '003', name: 'ABC #003 - OBT', address: '5895 S Orange Blossom Trl, Orlando, FL 32839', city: 'Orlando', zip: '32839' }),
+  abcStore({ number: '004', name: 'ABC #004 - Lake Buena Vista', address: '11951 S Apopka Vineland Rd, Orlando, FL 32836', city: 'Orlando', zip: '32836' }),
+  abcStore({ number: '005', name: 'ABC #005 - Disney West', address: '3187 Black Lake Rd, Kissimmee, FL 34747', city: 'Kissimmee', zip: '34747' }),
+  abcStore({ number: '014', name: 'ABC #014 - Winter Park', address: '401 N Orlando Ave, Winter Park, FL 32789', city: 'Winter Park', zip: '32789' }),
+  abcStore({ number: '053', name: 'ABC #053 - South Lakeland', address: '4319 Florida Ave S, Lakeland, FL 33813', city: 'Lakeland', zip: '33813' }),
 ]);
 
 export const FLORIDA_TIVOLI_SOURCE = exactStore({
@@ -167,7 +169,7 @@ export const FLORIDA_EXPANSION_STORE_TARGETS = Object.freeze([
   ...FLORIDA_PRIMO_STORES.values(),
   ...FLORIDA_EXPANSION_CITYHIVE_TARGETS,
   ...FLORIDA_SHIPMENT_SHOPIFY_SOURCES,
-  ...FLORIDA_GOTOLIQUOR_STORES,
+  ...FLORIDA_ABC_STORES,
   FLORIDA_TIVOLI_SOURCE,
 ]);
 
@@ -325,6 +327,64 @@ export function parseFloridaShipmentShopifyProducts(payload, candidateSource) {
   return rows.filter((row) => row.productId);
 }
 
+export function parseFloridaAbcSearchspringInventory(payload, matchBottle) {
+  if (typeof matchBottle !== 'function') return [];
+  const results = parseJson(payload)?.results;
+  if (!Array.isArray(results)) return [];
+  const rows = [];
+  for (const product of results.slice(0, 100)) {
+    if (!/^(?:1|true)$/iu.test(String(product?.ss_in_stock || ''))) continue;
+    const rawName = plainText(product?.name);
+    if (!rawName || !isFloridaExpansionBourbonCandidate(rawName) || !isUsefulFloridaExpansionBottleFormat(rawName)) continue;
+    const match = matchBottle(rawName);
+    if (!match?.record) continue;
+    const sku = String(product?.sku || '').trim();
+    const productUrl = exactHttpsUrl(product?.url, 'https://www.abcfws.com', 'www.abcfws.com');
+    const availableStores = new Set(Array.isArray(product?.ss_location_availability)
+      ? product.ss_location_availability.map((value) => String(Number(value)))
+      : []);
+    const locations = parseJson(decodeHtml(product?.ss_locations));
+    if (!sku || !productUrl || !locations || Array.isArray(locations) || typeof locations !== 'object') continue;
+    for (const store of FLORIDA_ABC_STORES) {
+      const location = locations[store.storeNumber];
+      const quantity = Number(location?.inventory_level);
+      const variantId = Number(location?.id);
+      const optionValueId = Number(location?.option_value_id);
+      const price = Number(location?.calculated_price ?? location?.price);
+      if (!availableStores.has(store.storeNumber)
+        || String(location?.value || '') !== store.name
+        || String(location?.child_sku || '') !== `${sku}-${store.storeNumber}`
+        || !Number.isInteger(quantity) || quantity <= 0
+        || !Number.isInteger(variantId) || variantId <= 0
+        || !Number.isInteger(optionValueId) || optionValueId <= 0
+        || !Number.isFinite(price) || price <= 0) continue;
+      rows.push({
+        target: store,
+        record: match.record,
+        match: match.match,
+        rawName,
+        productUrl: productUrl.href,
+        productId: sku,
+        variantId: String(variantId),
+        optionValueId: String(optionValueId),
+        childSku: `${sku}-${store.storeNumber}`,
+        quantity,
+        quantityIsExact: true,
+        price,
+        sourceAvailabilityVerified: true,
+        variantAvailable: true,
+        storeNumber: store.storeNumber,
+      });
+    }
+  }
+  return rows;
+}
+
+export function collectFloridaAbcExpansionFromPayload({ payload, observedAt, matchBottle } = {}) {
+  return parseFloridaAbcSearchspringInventory(payload, matchBottle)
+    .map((row) => expansionInventorySignal(row.target, row, { record: row.record, match: row.match }, observedAt));
+}
+
 export function parseFloridaGoToLiquorStoreProducts(html, candidateStore) {
   const store = FLORIDA_GOTOLIQUOR_STORES.find((entry) => entry.id === candidateStore?.id
     && entry.merchantId === candidateStore.merchantId
@@ -473,7 +533,9 @@ function expansionInventorySignal(target, product, matched, observedAt) {
     ? 'Primo exact-store stock map'
     : target.platform === 'shopify'
       ? 'first-party Shopify shipment orderability'
-      : target.platform === 'gotoliquorstore'
+      : target.platform === 'abc-searchspring'
+        ? 'ABC Searchspring exact-store inventory payload'
+        : target.platform === 'gotoliquorstore'
         ? 'visible store-bound Add to Cart control'
         : 'targeted first-party product order form';
   const signal = {
@@ -486,6 +548,9 @@ function expansionInventorySignal(target, product, matched, observedAt) {
     merchantId: target.merchantId,
     productId: product.productId,
     variantId: product.variantId || null,
+    optionValueId: product.optionValueId || null,
+    childSku: product.childSku || null,
+    storeNumber: product.storeNumber || null,
     rawName: product.rawName,
     canonicalBottleId: record.id,
     canonicalName: record.canonical,
@@ -527,6 +592,9 @@ function expansionInventorySignal(target, product, matched, observedAt) {
       merchantId: target.merchantId,
       productId: product.productId,
       variantId: product.variantId || null,
+      optionValueId: product.optionValueId || null,
+      childSku: product.childSku || null,
+      storeNumber: product.storeNumber || null,
       reportedQuantity: exactQuantity ? Number(product.quantity) : 0,
       sourceAvailabilityVerified: true,
       configuredStoreIdentity: true,
@@ -536,6 +604,12 @@ function expansionInventorySignal(target, product, matched, observedAt) {
   if (target.platform === 'shopify') {
     signal.variantAvailable = true;
     signal.raw.variantAvailable = true;
+  }
+  if (target.platform === 'abc-searchspring') {
+    signal.variantAvailable = true;
+    signal.controlStoreId = target.storeNumber;
+    signal.raw.variantAvailable = true;
+    signal.raw.controlStoreId = target.storeNumber;
   }
   if (target.platform === 'gotoliquorstore') {
     signal.pickupOfferVerified = true;
@@ -767,16 +841,14 @@ export function floridaExpansionRequestBudget() {
   const primoProductsPages = FLORIDA_PRIMO_SOURCE.maxProductsPages;
   const primoProductPages = FLORIDA_PRIMO_SOURCE.maxProductPages;
   const shipmentShopifyPages = FLORIDA_SHIPMENT_SHOPIFY_SOURCES.reduce((sum, source) => sum + source.maxPages, 0);
-  const goToLiquorStorePages = FLORIDA_GOTOLIQUOR_STORES.length;
-  const goToLiquorStoreSwitches = FLORIDA_GOTOLIQUOR_STORES.filter((store) => store.switchStoreUrl).length;
+  const abcSearchspringPages = 1;
   const tivoliProductPages = 1;
   return {
     primoProductsPages,
     primoProductPages,
     shipmentShopifyPages,
-    goToLiquorStorePages,
-    goToLiquorStoreSwitches,
+    abcSearchspringPages,
     tivoliProductPages,
-    maximumRequests: primoProductsPages + primoProductPages + shipmentShopifyPages + goToLiquorStorePages + goToLiquorStoreSwitches + tivoliProductPages,
+    maximumRequests: primoProductsPages + primoProductPages + shipmentShopifyPages + abcSearchspringPages + tivoliProductPages,
   };
 }

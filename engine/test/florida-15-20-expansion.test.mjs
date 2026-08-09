@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -8,8 +8,9 @@ import test from 'node:test';
 
 import {
   buildFloridaExpansionStoreLocationSignals,
-  collectFloridaGoToLiquorStore,
+  collectFloridaAbcExpansionFromPayload,
   collectFloridaShipmentShopifySource,
+  FLORIDA_ABC_STORES,
   FLORIDA_EXPANSION_CITYHIVE_TARGETS,
   FLORIDA_EXPANSION_STORE_TARGETS,
   FLORIDA_GOTOLIQUOR_STORES,
@@ -19,7 +20,7 @@ import {
   FLORIDA_TIVOLI_SOURCE,
   floridaExpansionRequestBudget,
   isUsefulFloridaExpansionBottleFormat,
-  parseFloridaGoToLiquorStoreProducts,
+  parseFloridaAbcSearchspringInventory,
   parseFloridaShipmentShopifyProducts,
   parsePrimoProductStock,
   parsePrimoProductsJson,
@@ -31,9 +32,10 @@ import { curlTextFetch } from '../src/collectors/precision-probes.mjs';
 import { ALL_STATE_SOURCES } from '../src/state-sources.mjs';
 
 const observedAt = new Date().toISOString();
+const immutableBaseline = JSON.parse(readFileSync(new URL('../data/florida-15-20-baseline.json', import.meta.url), 'utf8'));
 
 function matchedBottle(name) {
-  if (!/Buffalo Trace|Bulleit Bourbon|Wild Turkey Bourbon Longbranch|Eagle Rare 12 Year|Heaven Hill Grain to Glass/i.test(name)) {
+  if (!/Buffalo Trace|Bulleit Bourbon|Wild Turkey Bourbon Longbranch|Eagle Rare 12 Year|Heaven Hill Grain to Glass|1792 Small Batch/i.test(name)) {
     return { match: null, record: null, unsafeReason: 'fixture_no_match' };
   }
   return {
@@ -43,20 +45,24 @@ function matchedBottle(name) {
   };
 }
 
-function goToFixture(store, { controlStoreId = store.controlStoreId, merchantId = store.merchantId, title = 'Buffalo Trace Bourbon 750ml' } = {}) {
-  const displayedIdentity = store.id === 'in-and-out-liquors'
-    ? `${store.name} (${store.city} - ${merchantId})(${store.city}, ${store.zip})`
-    : merchantId === store.name
-      ? `${merchantId}(${store.city}, ${store.zip})`
-      : `${store.name} (${merchantId})(${store.city}, ${store.zip})`;
-  return `
-    <div class="item-box overflow-hidden">
-    <div class="product-item">
-      <script>var product_1138 = ${JSON.stringify({ productId: '1138', storeDisplayName: displayedIdentity })};</script>
-      <a href="${store.baseUrl}/p/buffalo-trace-bourbon/1138">${title}</a>
-      <button onclick="Cart.GaAddtoCart(product_1138, 1); Cart.addproducttocart_list(1138, ${controlStoreId}, 1, this, false);">Add to Cart</button>
-      <span>$31.99</span>
-    </div></div>`;
+function abcFixture({ mutateLocation } = {}) {
+  const locations = Object.fromEntries(FLORIDA_ABC_STORES.map((store, index) => [store.storeNumber, {
+    value: store.name,
+    child_sku: `760505-${store.storeNumber}`,
+    inventory_level: index + 1,
+    id: 6000 + index,
+    option_value_id: 7000 + index,
+    calculated_price: 34.99 + index,
+  }]));
+  if (mutateLocation) mutateLocation(locations);
+  return JSON.stringify({ results: [{
+    name: '1792 Small Batch Bourbon 750ml',
+    sku: '760505',
+    url: '/1792-small-batch-bourbon/760505',
+    ss_in_stock: '1',
+    ss_location_availability: FLORIDA_ABC_STORES.map((store) => Number(store.storeNumber)),
+    ss_locations: JSON.stringify(locations).replace(/"/g, '&quot;'),
+  }] });
 }
 
 function tivoliFixture({
@@ -97,7 +103,8 @@ test('frozen Florida expansion registry is exactly 15 unique exact-store identit
   assert.equal(FLORIDA_PRIMO_STORES.size, 5);
   assert.equal(FLORIDA_EXPANSION_CITYHIVE_TARGETS.length, 0);
   assert.equal(FLORIDA_SHIPMENT_SHOPIFY_SOURCES.length, 4);
-  assert.equal(FLORIDA_GOTOLIQUOR_STORES.length, 5);
+  assert.equal(FLORIDA_GOTOLIQUOR_STORES.length, 0);
+  assert.equal(FLORIDA_ABC_STORES.length, 5);
   assert.ok(FLORIDA_TIVOLI_SOURCE);
   assert.equal(FLORIDA_EXPANSION_STORE_TARGETS.length, 15);
   assert.equal(new Set(FLORIDA_EXPANSION_STORE_TARGETS.map((store) => store.storeId)).size, 15);
@@ -255,44 +262,35 @@ test('single-premises Shopify signals keep stable IDs and shipment/orderable non
   assert.match(first.signals[0].evidence, /not a shelf count/i);
 });
 
-test('GoToLiquorStore parser requires displayed merchant identity and configured cart control agreement', () => {
-  for (const store of FLORIDA_GOTOLIQUOR_STORES) {
-    const rows = parseFloridaGoToLiquorStoreProducts(goToFixture(store), store);
-    assert.equal(rows.length, 1);
-    assert.equal(rows[0].quantity, 0);
-    assert.equal(rows[0].quantityIsExact, false);
-    assert.equal(rows[0].productUrl.startsWith(store.baseUrl), true);
-    assert.deepEqual(parseFloridaGoToLiquorStoreProducts(goToFixture(store, { controlStoreId: '9999' }), store), []);
-    assert.deepEqual(parseFloridaGoToLiquorStoreProducts(goToFixture(store, { merchantId: '999999' }), store), []);
-    assert.deepEqual(parseFloridaGoToLiquorStoreProducts(goToFixture(store, { title: 'Buffalo Trace Candle 750ml' }), store), []);
-  }
-});
+test('ABC Searchspring parser binds exact store name, child SKU, integer inventory, variant, option, and product URL', () => {
+  const rows = parseFloridaAbcSearchspringInventory(abcFixture(), matchedBottle);
+  assert.equal(rows.length, 5);
+  assert.deepEqual(rows.map((row) => row.target.storeId), FLORIDA_ABC_STORES.map((store) => store.storeId));
+  assert.ok(rows.every((row) => row.quantityIsExact && Number.isInteger(row.quantity) && row.quantity > 0));
+  assert.ok(rows.every((row) => row.childSku === `${row.productId}-${row.storeNumber}`));
+  assert.ok(rows.every((row) => row.productUrl === 'https://www.abcfws.com/1792-small-batch-bourbon/760505'));
 
-test('GoToLiquorStore switch session is cookie-bound, redirect-free, and counted in the request budget', async () => {
-  const calls = [];
-  const result = await collectFloridaGoToLiquorStore({
-    observedAt,
-    matchBottle: matchedBottle,
-    sleep: async () => {},
-    fetchText: async (url, options) => {
-      calls.push({ url, options });
-      const switched = FLORIDA_GOTOLIQUOR_STORES.find((store) => store.switchStoreUrl === url);
-      if (switched) return { ok: true, status: 200, url, text: JSON.stringify({ success: true, storeUrl: switched.baseUrl }) };
-      const store = FLORIDA_GOTOLIQUOR_STORES.find((entry) => entry.categoryUrl === url
-        && (entry.switchStoreUrl ? Boolean(options.cookieJar) : !options.cookieJar));
-      return { ok: true, status: 200, url, text: goToFixture(store) };
-    },
-  });
-  assert.equal(result.requestCount, 6);
-  assert.equal(new Set(result.signals.map((row) => row.storeId)).size, 5);
-  const switchCall = calls.find((call) => call.url.includes('/ShoppingCart/SwitchStore'));
-  assert.equal(switchCall.options.method, 'POST');
-  assert.equal(switchCall.options.followRedirects, false);
-  assert.equal(switchCall.options.maxBytes, 64 * 1024);
-  const switchedCategory = calls.find((call) => call.url.endsWith('/c/spirits/whiskey/19') && call.options.cookieJar);
-  assert.equal(switchedCategory.options.followRedirects, false);
-  assert.equal(switchedCategory.options.maxBytes, 8 * 1024 * 1024);
-  assert.equal(switchedCategory.options.cookieJar, switchCall.options.cookieJar);
+  const wrongName = abcFixture({ mutateLocation: (locations) => { locations['3'].value = 'Forged Store'; } });
+  assert.equal(parseFloridaAbcSearchspringInventory(wrongName, matchedBottle).length, 4);
+  const fractional = abcFixture({ mutateLocation: (locations) => { locations['4'].inventory_level = 1.5; } });
+  assert.equal(parseFloridaAbcSearchspringInventory(fractional, matchedBottle).length, 4);
+  const wrongSku = abcFixture({ mutateLocation: (locations) => { locations['5'].child_sku = 'forged-5'; } });
+  assert.equal(parseFloridaAbcSearchspringInventory(wrongSku, matchedBottle).length, 4);
+  assert.deepEqual(parseFloridaAbcSearchspringInventory('{bad json}', matchedBottle), []);
+
+  const signals = collectFloridaAbcExpansionFromPayload({ payload: abcFixture(), observedAt, matchBottle: matchedBottle });
+  assert.equal(new Set(signals.map((signal) => signal.storeId)).size, 5);
+  assert.ok(signals.every((signal) => signal.quantityIsExact && signal.reportedQuantity === signal.quantity));
+  const signal = signals[0];
+  assert.equal(isFloridaRetailerInventory(signal), true);
+  assert.equal(isFloridaRetailerInventory({ ...signal, variantId: 'forged' }), false);
+  assert.equal(isFloridaRetailerInventory({ ...signal, variantId: '0', raw: { ...signal.raw, variantId: '0' } }), false);
+  assert.equal(isFloridaRetailerInventory({ ...signal, optionValueId: 'forged' }), false);
+  assert.equal(isFloridaRetailerInventory({ ...signal, optionValueId: undefined }), false);
+  assert.equal(isFloridaRetailerInventory({ ...signal, sourceUrl: 'https://www.abcfws.com/different-product/999999' }), false);
+  assert.equal(isFloridaRetailerInventory({ ...signal, raw: { ...signal.raw, productId: '999999' } }), false);
+  assert.equal(isFloridaRetailerInventory({ ...signal, raw: { ...signal.raw, variantId: '999999' } }), false);
+  assert.equal(isFloridaRetailerInventory({ ...signal, raw: { ...signal.raw, childSku: 'forged', storeNumber: '999' } }), false);
 });
 
 test('Tivoli monitor requires canonical product, exact store schema/address, visible same-host POST cart form, and title', () => {
@@ -320,10 +318,12 @@ test('Tivoli monitor requires canonical product, exact store schema/address, vis
 });
 
 function productionSignal(target, index) {
-  const sourceUrl = target.platform === 'gotoliquorstore'
-    ? `${target.baseUrl}/p/buffalo-trace-bourbon/${1100 + index}`
-    : target.productUrl || new URL(`/products/buffalo-trace-${index}`, target.baseUrl).href;
-  const exactQuantity = target.platform === 'primo' || target.platform === 'cityhive';
+  const sourceUrl = target.platform === 'abc-searchspring'
+    ? 'https://www.abcfws.com/1792-small-batch-bourbon/760505'
+    : target.platform === 'gotoliquorstore'
+      ? `${target.baseUrl}/p/buffalo-trace-bourbon/${1100 + index}`
+      : target.productUrl || new URL(`/products/buffalo-trace-${index}`, target.baseUrl).href;
+  const exactQuantity = target.platform === 'primo' || target.platform === 'cityhive' || target.platform === 'abc-searchspring';
   const reportedQuantity = exactQuantity ? 2 : 0;
   const common = {
     id: `fl-expansion-${index}`,
@@ -373,6 +373,22 @@ function productionSignal(target, index) {
     common.variantAvailable = true;
     common.raw.variantAvailable = true;
   }
+  if (target.platform === 'abc-searchspring') {
+    common.productId = '760505';
+    common.variantId = String(6000 + index);
+    common.optionValueId = String(7000 + index);
+    common.childSku = `760505-${target.storeNumber}`;
+    common.storeNumber = target.storeNumber;
+    common.controlStoreId = target.storeNumber;
+    common.variantAvailable = true;
+    Object.assign(common.raw, {
+      variantAvailable: true,
+      controlStoreId: target.storeNumber,
+      optionValueId: common.optionValueId,
+      childSku: common.childSku,
+      storeNumber: target.storeNumber,
+    });
+  }
   if (target.platform === 'gotoliquorstore') {
     common.pickupOfferVerified = true;
     common.controlStoreId = target.controlStoreId;
@@ -410,9 +426,10 @@ test('all 15 frozen identities qualify centrally and targeted verifier rejects a
   const statePath = join(dir, 'FL.json');
   const baselinePath = join(dir, 'FL-baseline.json');
   const verifierPath = fileURLToPath(new URL('../src/verify-fl-15-20-expansion.mjs', import.meta.url));
-  const run = (signals, baselineSignals = [{ eventType: 'retailer_store_location', storeId: 'pensacola-liquors:pace-blvd' }]) => {
+  const run = (signals, baselineOverrides = {}) => {
+    const baselineContract = { ...immutableBaseline, ...baselineOverrides };
     writeFileSync(statePath, JSON.stringify({ state: 'FL', status: 'useful', stale: false, generatedAt: observedAt, signals }));
-    writeFileSync(baselinePath, JSON.stringify({ state: 'FL', status: 'useful', stale: false, generatedAt: observedAt, signals: baselineSignals }));
+    writeFileSync(baselinePath, JSON.stringify(baselineContract));
     return spawnSync(process.execPath, [verifierPath], {
       cwd: fileURLToPath(new URL('..', import.meta.url)),
       encoding: 'utf8',
@@ -425,7 +442,9 @@ test('all 15 frozen identities qualify centrally and targeted verifier rejects a
     assert.match(success.stdout, /"stores"\s*:\s*15/);
     assert.notEqual(run([...locations, ...inventory.slice(1)]).status, 0);
     assert.notEqual(run([...locations, ...inventory.map((row, index) => index === 0 ? { ...row, sourceUrl: 'https://evil.example/products/forged' } : row)]).status, 0);
-    assert.notEqual(run([...locations, ...inventory], [inventory[0]]).status, 0);
+    assert.notEqual(run([...locations, ...inventory], { inventoryStoreIds: [...immutableBaseline.inventoryStoreIds, inventory[0].storeId] }).status, 0);
+    assert.notEqual(run([...locations, ...inventory], { inventoryStoreIdsSha256: '0'.repeat(64) }).status, 0);
+    assert.notEqual(run([...locations, ...inventory], { inventoryStoreIds: undefined }).status, 0);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
@@ -436,9 +455,8 @@ test('frozen request budget is explicit and bounded', () => {
     primoProductsPages: 1,
     primoProductPages: 8,
     shipmentShopifyPages: 12,
-    goToLiquorStorePages: 5,
-    goToLiquorStoreSwitches: 1,
+    abcSearchspringPages: 1,
     tivoliProductPages: 1,
-    maximumRequests: 28,
+    maximumRequests: 23,
   });
 });

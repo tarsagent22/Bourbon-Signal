@@ -1,24 +1,29 @@
 import { readFile } from 'node:fs/promises';
+import { createHash } from 'node:crypto';
 
 import { FLORIDA_EXPANSION_STORE_TARGETS } from './collectors/florida-15-20-expansion.mjs';
 import { isFloridaRetailerInventory } from './florida-retailer-policy.mjs';
+
+const EXPECTED_BASELINE_STORE_IDS_SHA256 = '947b15aeb247b25ff09e8e98f475a552a605c6eee1f83c39e1b09dce40b2fcfb';
 
 function assert(condition, message, sample = null) {
   if (!condition) throw new Error(`${message}${sample ? `\n${JSON.stringify(sample, null, 2).slice(0, 2500)}` : ''}`);
 }
 
 const statePath = process.env.BOURBON_SIGNAL_FL_15_20_VERIFY_FILE || process.env.BOURBON_SIGNAL_FL_VERIFY_FILE || 'out/states/FL.json';
-const baselinePath = process.env.BOURBON_SIGNAL_FL_15_20_BASELINE_FILE;
-assert(baselinePath, 'BOURBON_SIGNAL_FL_15_20_BASELINE_FILE is required so the expansion is measured against an immutable pre-change Florida artifact.');
+const baselinePath = process.env.BOURBON_SIGNAL_FL_15_20_BASELINE_FILE || 'data/florida-15-20-baseline.json';
 const state = JSON.parse(await readFile(statePath, 'utf8'));
 const baseline = JSON.parse(await readFile(baselinePath, 'utf8'));
 const now = Date.now();
 const maxInventoryAgeMs = Math.min(90 * 60_000, Math.max(15 * 60_000, Number(process.env.BOURBON_SIGNAL_FL_MAX_INVENTORY_AGE_MS) || 90 * 60_000));
 const targetByStoreId = new Map(FLORIDA_EXPANSION_STORE_TARGETS.map((store) => [store.storeId, store]));
-const baselineInventoryStoreIds = new Set((baseline.signals || [])
-  .filter((signal) => /^(?:retailer|cityhive)_store_inventory_result$/i.test(String(signal.eventType || '')))
-  .map((signal) => String(signal.storeId || ''))
-  .filter(Boolean));
+const baselineContractIds = Array.isArray(baseline.inventoryStoreIds) ? baseline.inventoryStoreIds.map(String).sort() : null;
+assert(baseline.contractVersion === 'bourbon-signal/florida-expansion-baseline@1', 'Invalid immutable Florida expansion baseline contract version.');
+assert(baselineContractIds, 'Immutable Florida expansion baseline must contain inventoryStoreIds.');
+assert(baseline.inventoryStoreIdsSha256 === EXPECTED_BASELINE_STORE_IDS_SHA256, 'Immutable Florida expansion baseline does not match the pinned pre-expansion digest.');
+const baselineDigest = createHash('sha256').update(baselineContractIds.join('\n')).digest('hex');
+assert(baselineDigest === baseline.inventoryStoreIdsSha256, 'Immutable Florida expansion baseline store-ID digest mismatch.');
+const baselineInventoryStoreIds = new Set(baselineContractIds);
 const alreadyLive = FLORIDA_EXPANSION_STORE_TARGETS.filter((store) => baselineInventoryStoreIds.has(store.storeId));
 const inventory = (state.signals || []).filter((signal) => targetByStoreId.has(String(signal.storeId || ''))
   && /^(?:retailer|cityhive)_store_inventory_result$/i.test(String(signal.eventType || '')));
