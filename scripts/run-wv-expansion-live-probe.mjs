@@ -24,18 +24,10 @@ function run(command, args, options = {}) {
   if (result.status !== 0) throw new Error(`${command} ${args.join(' ')} exited ${result.status}`);
 }
 
-let reusableLiveProbe = false;
-try {
-  const priorReport = JSON.parse(await readFile(path.join(engine, 'out', 'states', 'WV.json'), 'utf8'));
-  const priorDrops = JSON.parse(await readFile(path.join(engine, 'out', 'site', 'drops.json'), 'utf8'));
-  const observedAt = Math.max(...priorReport.signals.filter((row) => row.eventType === 'barrel_pick_signal').map((row) => Date.parse(row.observedAt || '')));
-  reusableLiveProbe = priorReport.status === 'useful'
-    && Date.now() - observedAt <= 10 * 60_000
-    && (priorDrops.drops || priorDrops).filter((row) => row.state === 'WV').length === 6;
-} catch {}
-
-if (!reusableLiveProbe) {
-  run(process.execPath, ['src/build-bible.mjs'], { cwd: engine, timeout: 5 * 60_000 });
+const lifecycle = JSON.parse(await readFile(path.join(root, 'src', 'config', 'state-lifecycle.json'), 'utf8'));
+const active = lifecycle.states?.WV?.publicStatus === 'active' && lifecycle.activeStates?.includes('WV');
+run(process.execPath, ['src/build-bible.mjs'], { cwd: engine, timeout: 5 * 60_000 });
+if (active) {
   run(process.execPath, ['src/refresh-site.mjs'], {
     cwd: engine,
     timeout: 30 * 60_000,
@@ -48,10 +40,18 @@ if (!reusableLiveProbe) {
       BOURBON_SIGNAL_AUTO_DEPLOY: '0',
     },
   });
+} else {
+  run(process.execPath, ['src/run-state.mjs', 'WV'], {
+    cwd: engine,
+    timeout: 5 * 60_000,
+    env: { BOURBON_SIGNAL_FORCE_SOURCE_RUN: '1' },
+  });
 }
 
 const report = JSON.parse(await readFile(path.join(engine, 'out', 'states', 'WV.json'), 'utf8'));
-const siteDropsPayload = JSON.parse(await readFile(path.join(engine, 'out', 'site', 'drops.json'), 'utf8'));
+const siteDropsPayload = JSON.parse(await readFile(active
+  ? path.join(engine, 'out', 'site', 'drops.json')
+  : path.join(engine, 'data', 'canary-inputs', 'WV.json'), 'utf8'));
 const siteDrops = (siteDropsPayload.drops || siteDropsPayload).filter((row) => row.state === 'WV');
 const barrelSignals = report.signals.filter((row) => row.eventType === 'barrel_pick_signal');
 const directorySignals = report.signals.filter((row) => row.eventType === 'retailer_store_location');
