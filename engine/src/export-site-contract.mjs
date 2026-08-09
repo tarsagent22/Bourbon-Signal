@@ -311,11 +311,22 @@ function isCostcoWarehouseInventorySignal(signal) {
     && /^costco_warehouse_inventory_result$/i.test(String(signal.eventType || signal.type || ''));
 }
 
+function isWestVirginiaOfficialBarrelSelectionSignal(signal) {
+  return signal.state === 'WV'
+    && String(signal.eventType || signal.type || '').toLowerCase() === 'barrel_pick_signal'
+    && signal.sourceRuntimeId === 'wv:configured:wv-abca-barrel-selections'
+    && signal.availabilityStatus === 'official_retailer_ordering_intelligence'
+    && signal.sourceAvailabilityVerified === false
+    && signal.canAlertAsInventory === false
+    && signal.canAlertAsWatch === false;
+}
+
 export function publicSignal(signal, bible, freshness = null) {
   const bibleRecord = findBibleRecord(signal, bible);
   const preferRetailerName = ['IN', 'IL', 'TN', 'SC', 'AZ', 'GA', 'NY', 'CO'].includes(signal.state) && /^(cityhive_store_inventory|retailer_store_inventory)/i.test(String(signal.eventType || ''));
   const isCostcoWarehouseInventory = isCostcoWarehouseInventorySignal(signal);
   const isKyOfficialDistillery = isKentuckyOfficialDistillerySignal(signal);
+  const isWvOfficialBarrelSelection = isWestVirginiaOfficialBarrelSelectionSignal(signal);
   const preferOfficialSourceName = preferRetailerName || isKentuckyOfficialDistilleryReleaseWatchSignal(signal) || (signal.state === 'NC' && /High Point ABC public Power BI/i.test(String(signal.sourceLabel || signal.source || '')));
   const canonicalName = preferOfficialSourceName ? (signal.rawName || signal.canonicalName || bibleRecord?.canonical || null) : (bibleRecord?.canonical || signal.canonicalName || signal.rawName || null);
   const canonicalId = preferOfficialSourceName ? stableId([signal.state, signal.sourceLabel || signal.sourceUrl, signal.rawName || signal.canonicalName || 'unknown']) : (bibleRecord?.id || bottleKey(signal));
@@ -513,12 +524,12 @@ export function publicSignal(signal, bible, freshness = null) {
     canAlertAsInventory,
     canAlertAsWatch,
     alertable: staleFallback ? false : undefined,
-    eligibleForOnSite: isMsSparseOnSiteInventory || canAlertAsInventory || canAlertAsWatch,
-    eligibleForDropFeed: isMsSparseOnSiteInventory ? true : undefined,
-    eligibleForWatch: isMsSparseOnSiteInventory ? false : undefined,
-    eligibleForDelivery: isMsSparseOnSiteInventory ? false : (canAlertAsInventory || canAlertAsWatch),
-    eligibleForEmail: isMsSparseOnSiteInventory || isScSouthernBinaryInventory ? false : undefined,
-    eligibleForSms: isMsSparseOnSiteInventory || isScSouthernBinaryInventory ? false : undefined,
+    eligibleForOnSite: isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || canAlertAsInventory || canAlertAsWatch,
+    eligibleForDropFeed: isMsSparseOnSiteInventory || isWvOfficialBarrelSelection ? true : undefined,
+    eligibleForWatch: isMsSparseOnSiteInventory || isWvOfficialBarrelSelection ? false : undefined,
+    eligibleForDelivery: isMsSparseOnSiteInventory || isWvOfficialBarrelSelection ? false : (canAlertAsInventory || canAlertAsWatch),
+    eligibleForEmail: isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isScSouthernBinaryInventory ? false : undefined,
+    eligibleForSms: isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isScSouthernBinaryInventory ? false : undefined,
     raw: staleFallback ? {
       lastKnownAvailabilityStatus: signal.raw?.lastKnownAvailabilityStatus || null,
       lastKnownAvailabilityLabel: signal.raw?.lastKnownAvailabilityLabel || null,
@@ -548,6 +559,8 @@ export function publicSignal(signal, bible, freshness = null) {
     informationalOnly: dataLane === 'informational',
     inventoryCaveat: isCostcoWarehouseInventory
       ? 'Costco warehouse signal. Fast-moving bottles can disappear quickly; verify with the warehouse/app before driving.'
+      : isWvOfficialBarrelSelection
+        ? 'Official statewide retailer-ordering intelligence only; not live shelf inventory. Contact a licensed retailer to confirm availability before driving.'
       : isKentuckyDistilleryDrop(signal)
         ? 'Official distillery gift-shop availability. This is a distillery drop/pickup lead, not retailer store inventory; limits and same-day sellouts can apply.'
       : isKyOfficialDistillery
@@ -830,6 +843,7 @@ function dropPriority(signal) {
   if (type === 'nc_statewide_warehouse_stock') return 58;
   if (signal.state === 'PA' && type === 'store_inventory_aggregate') return 56;
   if (isMississippiSparseOnSiteInventory(signal)) return 49;
+  if (isWestVirginiaOfficialBarrelSelectionSignal(signal)) return 25;
   if (signalCanAlertAsInventory(signal)) return 50;
   if (signal.state === 'MD-MONTGOMERY' && type === 'county_inventory_aggregate') return 32;
   if (signal.state === 'UT' && type === 'board_inventory_aggregate') return 31;
@@ -850,6 +864,12 @@ function isUserFacingDropSignal(signal) {
   const canAlert = signalCanAlertAsInventory(signal);
 
   if (!type) return false;
+  if (isWestVirginiaOfficialBarrelSelectionSignal(signal)) {
+    return signal.sourceAvailabilityVerified === false
+      && signal.stale !== true
+      && signal.sourceStale !== true
+      && Boolean(signal.canonicalBottleId);
+  }
   if (isSouthCarolinaDunesSignal(signal)) return isSouthCarolinaDunesInventory(signal);
   if (isSouthCarolinaSouthernSpiritsSignal(signal)) return isSouthCarolinaSouthernSpiritsInventory(signal);
   if (type.includes('out_of_stock') || type.includes('out-of-stock')) return false;

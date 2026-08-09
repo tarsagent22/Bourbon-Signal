@@ -76,6 +76,16 @@ assert.ok(generatedCatalog.records.length >= 1_000, "the generated Drop Feed art
 assert.ok(generatedIndex.byId.size >= 1_000, "the generated classification index must retain canonical bottle identity");
 assert.ok(generatedIndexMs < 250, `the generated classification index must remain fast enough for a cold request (received ${generatedIndexMs.toFixed(1)}ms)`);
 
+const westVirginiaEzra = resolveDropClassification({
+  bottle_id: "bb_1799afb0fab6e7bd",
+  bottle_name: "Ezra Brooks Stave Finish Spice & Clove",
+  state: "WV",
+  rarity_tier: "limited",
+}, generatedIndex);
+assert.equal(westVirginiaEzra.bottleId, "ezra-brooks-stave-finish-spice-and-clove", "the official WV source identity must resolve to the reviewed canonical bottle");
+assert.equal(westVirginiaEzra.tier, "limited", "the current WV special release must remain visible without changing its national tier");
+assert.equal(westVirginiaEzra.source, "state_override", "WV special-release evidence must remain state-scoped");
+
 const virginia = resolveDropClassification({
   canonicalId: "weller-12-year",
   canonicalName: "Weller 12 Year",

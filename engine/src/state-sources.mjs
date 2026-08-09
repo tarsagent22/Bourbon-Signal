@@ -230,11 +230,10 @@ const BASE_STATE_SOURCES = [
     apiCandidates: []
   },
   {
-    id: 'WV', label: 'West Virginia ABCA', tier: 'C', strategy: 'product_search_and_barrel_pick_watch', cadence: 'daily-weekly',
-    value: 'Product search/new products and barrel picks. No obvious live store inventory.',
+    id: 'WV', label: 'West Virginia official barrel selections', tier: 'C', strategy: 'barrel_pick_watch', cadence: 'Daily',
+    value: 'Current official barrel-selection updates plus the active licensed-store directory. Updates are not store shelf confirmation and remain non-alertable.', rareSignalTarget: true,
     sources: [
-      { kind: 'html', url: 'https://www.wvabca.com/liquorsearch.aspx', label: 'WV ABCA liquor search' },
-      { kind: 'html', url: 'https://abca.wv.gov/wv-bourbon-whiskey-barrel-picks-0', label: 'WV barrel picks' }
+      { id: 'wv-abca-barrel-selections', name: 'WV ABCA current barrel selections', label: 'WV ABCA current barrel selections', url: 'https://abca.wv.gov/spirits/wv-bourbon-whiskey-barrel-picks' }
     ],
     apiCandidates: []
   },

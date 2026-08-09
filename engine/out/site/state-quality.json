@@ -2,8 +2,8 @@
   "schemaVersion": 2,
   "generatedAt": "2026-07-16T22:59:25.184Z",
   "summary": {
-    "stateCount": 28,
-    "releaseEligibleStates": 11,
+    "stateCount": 29,
+    "releaseEligibleStates": 12,
     "releaseBlockedStates": 17,
     "averageScore": 46,
     "weakestStates": [
@@ -929,6 +929,38 @@
         "sourceCount": 0,
         "roadblockCount": 0,
         "freshestObservedAt": null,
+        "status": "useful"
+      }
+    },
+    {
+      "state": "WV",
+      "coverageTier": "shipment_drop_intelligence",
+      "score": 69,
+      "threshold": 50,
+      "releaseEligible": true,
+      "freshnessHours": 0,
+      "dimensions": {
+        "freshness": 20,
+        "volume": 15,
+        "precision": 16,
+        "alerts": 0,
+        "sourceDiversity": 8,
+        "reliability": 10
+      },
+      "weaknesses": [
+        "no_alert_candidates",
+        "single_source_dependency"
+      ],
+      "input": {
+        "state": "WV",
+        "coverageTier": "shipment_drop_intelligence",
+        "signalCount": 186,
+        "dropCount": 6,
+        "storeLevelDropCount": 0,
+        "alertCandidateCount": 0,
+        "sourceCount": 1,
+        "roadblockCount": 0,
+        "freshestObservedAt": "2026-08-09T23:04:26.714Z",
         "status": "useful"
       }
     }

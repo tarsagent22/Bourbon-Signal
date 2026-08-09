@@ -15,10 +15,21 @@ test('canary preview adds only the candidate partition and prevents candidate al
     base,
     state: 'ZZ',
     candidateDrops: [{ state: 'ZZ', id: 'zz-1', storeId: 'store-zz', storeName: 'ZZ Store', storeAddress: '2 Main St', city: 'Testville', zip: '00000' }],
+    candidateLocations: [{ state: 'ZZ', id: 'directory-zz', name: 'Directory Store', address: '3 Main St', city: 'Testville', disposition: 'directory_only', canAlertAsInventory: false }],
   });
   assert.equal(preview.drops.drops.length, 2);
   assert.deepEqual(preview.stateIndex.states.map((entry) => entry.state), ['AA', 'ZZ']);
   assert.equal(preview.alerts.alerts.some((alert) => alert.state === 'ZZ'), false);
   assert.ok(preview.locations.locations.some((location) => location.state === 'ZZ' && location.storeId === 'store-zz'));
+  assert.ok(preview.locations.locations.some((location) => location.state === 'ZZ' && location.storeId === 'directory-zz' && location.disposition === 'directory_only'));
   assert.equal(preview.previewPolicy.alertDeliveryEnabled, false);
+});
+
+test('canary preview rejects directory locations from another state', () => {
+  assert.throws(() => buildCanaryPreviewPayload({
+    base: { drops: { drops: [] }, stateIndex: { states: [] }, alerts: { alerts: [] }, stats: {}, locations: { locations: [] } },
+    state: 'ZZ',
+    candidateDrops: [],
+    candidateLocations: [{ state: 'YY', id: 'forged', name: 'Forged Store', address: '1 Wrong State Rd' }],
+  }), /locations must all use the requested state/i);
 });
