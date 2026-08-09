@@ -4,6 +4,7 @@ import { readFile } from 'node:fs/promises';
 
 import {
   INDIANA_CITYHIVE_CACHE_MAX_AGE_MS,
+  INDIANA_CITYHIVE_EXPANSION_TARGETS,
   INDIANA_CITYHIVE_SOURCE_COHORT_SIZE,
   INDIANA_TARGET_STORES,
   indianaCityHivePriorityRank,
@@ -13,6 +14,8 @@ import {
   isIndianaCityHiveCacheUsable,
   parseIndianaTargetFulfillment,
   parseIndianaTargetSearchProducts,
+  selectIndianaCityHivePriorityMerchants,
+  selectIndianaCityHiveRequestedSources,
   selectIndianaCityHiveSourceCohort,
   shouldWriteIndianaTargetCache,
 } from '../src/collectors/indiana-retailer-surfaces.mjs';
@@ -37,6 +40,29 @@ const EXPECTED_TARGET_STORES = new Map([
   ['3309', ['West Lafayette', '300 W State St, Ste 100, West Lafayette, IN 47906']],
 ]);
 
+const EXPECTED_BIG_RED_EXPANSION_MERCHANTS = new Map([
+  ['5e92525978e8f13c2cb1e15c', ['Bloomington', '1255 S College Mall Rd, Bloomington, IN 47401, USA']],
+  ['5e92525778e8f13c2cb1e158', ['Bloomington', '3207 E 3rd St, Bloomington, IN 47401, USA']],
+  ['5e92506878e8f13c2cb1e154', ['Bloomington', '1870 S Walnut St, Bloomington, IN 47401, USA']],
+  ['5e92547478e8f13c2cb1e1a8', ['Bloomington', '713 W 17th St, Bloomington, IN 47404, USA']],
+  ['5e92547178e8f13c2cb1e1a4', ['Bloomington', '2205 N Walnut St, Bloomington, IN 47404, USA']],
+  ['5e92445578e8f13c2cb1e14c', ['Bloomington', '1110 N College Ave, Bloomington, IN 47404, USA']],
+  ['5e92506478e8f13c2cb1e150', ['Bloomington', '418 N College Ave, Bloomington, IN 47404, USA']],
+  ['5e92545478e8f13c2cb1e17c', ['Bloomington', '2501 S Leonard Springs Rd, Bloomington, IN 47403, USA']],
+  ['5e92545778e8f13c2cb1e180', ['Bloomington', '2401 W 3rd St, Bloomington, IN 47404, USA']],
+  ['5e92546e78e8f13c2cb1e1a0', ['West Terre Haute', '400 National Ave, West Terre Haute, IN 47885, USA']],
+  ['5e92546b78e8f13c2cb1e19c', ['Terre Haute', '2500 Maple Ave, Terre Haute, IN 47804, USA']],
+  ['5e92544c78e8f13c2cb1e170', ['Terre Haute', '1701 S 3rd St, Terre Haute, IN 47802, USA']],
+  ['5e92544e78e8f13c2cb1e174', ['Terre Haute', '2655 Wabash Ave, Terre Haute, IN 47803, USA']],
+  ['5e92545178e8f13c2cb1e178', ['Terre Haute', '4791 S 7th St, Terre Haute, IN 47802, USA']],
+  ['5e92546678e8f13c2cb1e194', ['Terre Haute', '1011 N 3rd St, Terre Haute, IN 47807, USA']],
+  ['5e92546878e8f13c2cb1e198', ['Terre Haute', '226 N 13th St, Terre Haute, IN 47807, USA']],
+  ['5e9254c478e8f13c2cb1e214', ['Martinsville', '1631 E Morgan St, Martinsville, IN 46151, USA']],
+  ['5e9254c178e8f13c2cb1e210', ['Martinsville', '2194 Burton Ln, Martinsville, IN 46151, USA']],
+  ['5e92545e78e8f13c2cb1e188', ['Martinsville', '490 Morton Ave, Martinsville, IN 46151, USA']],
+  ['5e92545b78e8f13c2cb1e184', ['Bedford', '3307 16th St, Bedford, IN 47421, USA']],
+]);
+
 test('Indiana Target registry binds official store IDs to exact Indiana addresses', () => {
   assert.equal(INDIANA_TARGET_STORES.size, EXPECTED_TARGET_STORES.size);
   for (const [id, [city, address]] of EXPECTED_TARGET_STORES) {
@@ -55,6 +81,40 @@ test('Indiana CityHive branch expansion prioritizes every Gays Hops-N-Schnapps m
   }
   assert.equal(isIndianaCityHivePriorityMarket('Louisville, KY'), false);
   assert(indianaCityHivePriorityRank('Auburn') < indianaCityHivePriorityRank('unknown Indiana town'));
+});
+
+test('Indiana CityHive expansion appends exactly 20 live-proven Big Red merchants beyond the base cohort', () => {
+  assert.equal(INDIANA_CITYHIVE_EXPANSION_TARGETS.length, 20);
+  assert.equal(new Set(INDIANA_CITYHIVE_EXPANSION_TARGETS.map((store) => store.merchantId)).size, 20);
+  for (const store of INDIANA_CITYHIVE_EXPANSION_TARGETS) {
+    const expected = EXPECTED_BIG_RED_EXPANSION_MERCHANTS.get(store.merchantId);
+    assert.ok(expected, `unexpected expansion merchant ${store.merchantId}`);
+    assert.deepEqual([store.city, store.address], expected);
+  }
+
+  const base = Array.from({ length: 48 }, (_, index) => ({
+    id: `base-${index}`,
+    name: `Base store ${index}`,
+    city: 'Auburn',
+    address: `${index + 1} Main St, Auburn, IN 46706`,
+    ordinal: index,
+  }));
+  const expansion = INDIANA_CITYHIVE_EXPANSION_TARGETS.map((store, index) => ({
+    id: store.merchantId,
+    name: store.name,
+    city: store.city,
+    address: store.address,
+    ordinal: base.length + index,
+  }));
+  const excluded = [
+    { id: 'french-lick', name: 'French Lick candidate', city: 'French Lick', address: '1 Main St, French Lick, IN', ordinal: 68 },
+    { id: 'morgantown', name: 'Morgantown candidate', city: 'Morgantown', address: '2 Main St, Morgantown, IN', ordinal: 69 },
+    { id: 'trafalgar', name: 'Trafalgar candidate', city: 'Trafalgar', address: '3 Main St, Trafalgar, IN', ordinal: 70 },
+  ];
+  const selected = selectIndianaCityHivePriorityMerchants([...base, ...expansion, ...excluded], { baseLimit: 48 });
+  assert.equal(selected.length, 68);
+  assert.deepEqual(new Set(selected.slice(48).map((store) => store.id)), new Set(EXPECTED_BIG_RED_EXPANSION_MERCHANTS.keys()));
+  assert.equal(selected.some((store) => excluded.some((candidate) => candidate.id === store.id)), false);
 });
 
 test('Indiana CityHive cache expires before customer inventory cards become stale', () => {
@@ -85,6 +145,24 @@ test('Indiana CityHive source cohorts rotate without starving providers at a thr
     }
     assert.equal(threeHourCoverage.size, 9, `cohort size ${cohortSize} permanently starved a provider`);
   }
+});
+
+test('Indiana targeted CityHive source selection is bounded and fails closed on unknown providers', () => {
+  const sources = [{ id: 'big-red' }, { id: 'cap-n-cork' }, { id: 'wise-guys' }];
+  assert.deepEqual(selectIndianaCityHiveRequestedSources(sources, 'big-red, wise-guys'), [sources[0], sources[2]]);
+  assert.deepEqual(selectIndianaCityHiveRequestedSources(sources, ''), []);
+  assert.throws(() => selectIndianaCityHiveRequestedSources(sources, 'big-red,unknown-source'), /Unknown Indiana CityHive source id/);
+});
+
+test('targeted Indiana publication forces a live Big Red-only CityHive pass', async () => {
+  const workflow = await readFile(new URL('../../.github/workflows/refresh-feed.yml', import.meta.url), 'utf8');
+  const standaloneRefresh = await readFile(new URL('../src/refresh-in.mjs', import.meta.url), 'utf8');
+  assert.match(workflow, /BOURBON_SIGNAL_IN_FORCE_CITYHIVE_LIVE:\s*\$\{\{ contains\(inputs\.states, 'IN'\) && '1' \|\| '0' \}\}/);
+  assert.match(workflow, /BOURBON_SIGNAL_IN_CITYHIVE_SOURCE_IDS:\s*\$\{\{ contains\(inputs\.states, 'IN'\) && 'big-red' \|\| '' \}\}/);
+  assert.match(workflow, /Verify targeted Indiana inventory expansion[\s\S]*?contains\(inputs\.states, 'IN'\)[\s\S]*?npm run verify:in/);
+  assert.match(standaloneRefresh, /BOURBON_SIGNAL_IN_FORCE_CITYHIVE_LIVE:\s*'1'/);
+  assert.match(standaloneRefresh, /BOURBON_SIGNAL_IN_CITYHIVE_SOURCE_IDS:\s*'big-red'/);
+  assert.match(standaloneRefresh, /BOURBON_SIGNAL_FORCE_SOURCE_RUN:\s*'1'/);
 });
 
 test('Indiana CityHive fallback preserves source observation time and denies stale alerts', () => {
@@ -236,11 +314,18 @@ test('Indiana precision collector propagates runtime cancellation before network
 
 test('Indiana lawful-source audit is complete, stable, and machine-classifiable', async () => {
   const audit = JSON.parse(await readFile(new URL('../data/source-atlas/IN.json', import.meta.url), 'utf8'));
-  assert.equal(audit.contractVersion, 'bourbon-signal-indiana-source-audit-v1');
+  assert.equal(audit.contractVersion, 'bourbon-signal-indiana-source-audit-v2');
   assert.equal(audit.knownSourceUniverseComplete, true);
-  assert.equal(audit.discoveryPasses.length, 2);
-  assert.notEqual(audit.discoveryPasses[0].method, audit.discoveryPasses[1].method);
-  assert.ok(audit.sources.length >= 20);
+  assert.equal(audit.discoveryPasses.length, 3);
+  assert.equal(new Set(audit.discoveryPasses.map((pass) => pass.method)).size, audit.discoveryPasses.length);
+  assert.equal(audit.inventoryExpansion.baselineFreshInventoryStores, 72);
+  assert.equal(audit.inventoryExpansion.targetCount, 20);
+  assert.equal(audit.inventoryExpansion.targets.length, 20);
+  assert.deepEqual(
+    new Set(audit.inventoryExpansion.targets.map((store) => store.merchantId)),
+    new Set(INDIANA_CITYHIVE_EXPANSION_TARGETS.map((store) => store.merchantId)),
+  );
+  assert.ok(audit.sources.length >= 25);
   assert.equal(new Set(audit.sources.map((source) => source.sourceId)).size, audit.sources.length);
   for (const source of audit.sources) {
     assert.match(source.sourceId, /^[a-z0-9]+(?:-[a-z0-9]+)*$/);
@@ -254,6 +339,8 @@ test('Indiana verifier distinguishes fresh alertable rows from stale nonalertabl
   const verifier = await readFile(new URL('../src/verify-in.mjs', import.meta.url), 'utf8');
   const collector = await readFile(new URL('../src/collectors/precision-probes.mjs', import.meta.url), 'utf8');
   assert.match(verifier, /liveRetailerInventoryStores\.size >= 5/);
+  assert.match(verifier, /expansionTargetInventoryStores\.size === 20/);
+  assert.match(verifier, /observedAtMs >= stateStartedAt/);
   assert.match(verifier, /staleRetailerInventorySignals\.every/);
   assert.match(verifier, /staleAlertableRetailerInventoryDrops\.length === 0/);
   assert.match(verifier, /siteExports\.every/);

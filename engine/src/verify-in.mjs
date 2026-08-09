@@ -1,5 +1,5 @@
 import { readFile } from 'node:fs/promises';
-import { INDIANA_TARGET_STORES } from './collectors/indiana-retailer-surfaces.mjs';
+import { INDIANA_CITYHIVE_EXPANSION_TARGETS, INDIANA_TARGET_STORES } from './collectors/indiana-retailer-surfaces.mjs';
 import { isIndianaRetailerInventory, isIndianaRetailerSignalIdentity } from './indiana-retailer-policy.mjs';
 
 async function readJson(file, fallback) {
@@ -40,6 +40,8 @@ const statsExport = await readJson('out/site/stats.json', {});
 const siteExports = [statsExport, storesExport, locationsExport, dropsExport, alertsExport];
 
 const allSignals = state.signals || [];
+const stateStartedAt = Date.parse(state.startedAt || '');
+const stateFinishedAt = Date.parse(state.finishedAt || '');
 const roadblocks = state.roadblocks || [];
 const permitSignals = allSignals.filter((signal) => signal.eventType === 'licensed_package_store_location');
 const permitNumbers = new Set(permitSignals.map((signal) => signal.storeId).filter(Boolean));
@@ -60,6 +62,15 @@ const retailerInventorySignals = allSignals.filter((signal) => inventoryTypes.ha
 const alertableRetailerInventorySignals = retailerInventorySignals.filter((signal) => signal.canAlertAsInventory && isIndianaRetailerInventory(signal));
 const staleRetailerInventorySignals = retailerInventorySignals.filter((signal) => signal.stale === true || signal.sourceStale === true);
 const liveRetailerInventoryStores = new Set(alertableRetailerInventorySignals.map((signal) => signal.storeId).filter(Boolean));
+const expansionTargetStoreIds = new Set(INDIANA_CITYHIVE_EXPANSION_TARGETS.map((target) => `big-red:${target.merchantId}`));
+const expansionTargetInventorySignals = alertableRetailerInventorySignals.filter((signal) => {
+  if (!expansionTargetStoreIds.has(String(signal.storeId))) return false;
+  const observedAtMs = Date.parse(signal.inventoryCheckedAt || signal.observedAt || signal.lastConfirmedAt || signal.sourceEventAt || '');
+  return Number.isFinite(stateStartedAt) && Number.isFinite(stateFinishedAt) && Number.isFinite(observedAtMs)
+    && observedAtMs >= stateStartedAt && observedAtMs <= stateFinishedAt + 5 * 60_000;
+});
+const expansionTargetInventoryStores = new Set(expansionTargetInventorySignals.map((signal) => String(signal.storeId)));
+const missingExpansionTargets = INDIANA_CITYHIVE_EXPANSION_TARGETS.filter((target) => !expansionTargetInventoryStores.has(`big-red:${target.merchantId}`));
 const untrustedRetailerInventorySignals = retailerInventorySignals.filter((signal) => !isIndianaRetailerSignalIdentity(signal));
 const retailerInventoryCities = new Set(retailerInventorySignals.map((signal) => String(signal.city || '').trim()).filter(Boolean));
 const retailerInventorySources = new Set(retailerInventorySignals.map((signal) => signal.sourceLabel).filter(Boolean));
@@ -105,7 +116,6 @@ assert(dropsExport.runId && siteExports.every((payload) => payload.runId === dro
 assert(dropsExport.generatedAt && siteExports.every((payload) => payload.generatedAt === dropsExport.generatedAt), 'Indiana verification requires coherent site-export timestamps.');
 assert(dropsExport.engineGeneratedAt && siteExports.every((payload) => payload.engineGeneratedAt === dropsExport.engineGeneratedAt), 'Indiana verification requires every consumed site artifact to name the same engine generation.');
 assert(dropsExport.engineGeneratedAt && dropsExport.engineGeneratedAt === summary.generatedAt, 'Indiana verification requires the site export to match the current engine summary.');
-const stateFinishedAt = Date.parse(state.finishedAt || '');
 const engineGeneratedAt = Date.parse(dropsExport.engineGeneratedAt || '');
 const siteGeneratedAt = Date.parse(dropsExport.generatedAt || '');
 assert(Number.isFinite(stateFinishedAt) && Number.isFinite(engineGeneratedAt) && Number.isFinite(siteGeneratedAt)
@@ -127,6 +137,9 @@ assert(cityHiveStoreLocations.length >= 20, `Expected CityHive retailer store-lo
 assert(retailerInventorySignals.length >= 300, `Expected at least 300 current-plus-retained Indiana retailer inventory signals after expansion; got ${retailerInventorySignals.length}`);
 assert(alertableRetailerInventorySignals.length >= 20, `Expected at least 20 fresh alertable Indiana retailer inventory signals; got ${alertableRetailerInventorySignals.length}`);
 assert(liveRetailerInventoryStores.size >= 5, `Expected at least 5 fresh alertable Indiana stores; got ${liveRetailerInventoryStores.size}`);
+assert(INDIANA_CITYHIVE_EXPANSION_TARGETS.length === 20, `Expected exactly 20 Indiana CityHive expansion targets; got ${INDIANA_CITYHIVE_EXPANSION_TARGETS.length}`);
+assert(expansionTargetInventoryStores.size === 20, `Expected current alertable inventory from all 20 Indiana expansion stores; got ${expansionTargetInventoryStores.size}`, missingExpansionTargets);
+assert(expansionTargetInventorySignals.length >= 20, `Expected at least one current inventory row per Indiana expansion store; got ${expansionTargetInventorySignals.length}`);
 assert(staleRetailerInventorySignals.every((signal) => signal.canAlertAsInventory === false && signal.canAlertAsWatch === false), 'Retained stale Indiana inventory must remain nonalertable.', staleRetailerInventorySignals.filter((signal) => signal.canAlertAsInventory || signal.canAlertAsWatch).slice(0, 10));
 assert(retailerInventorySources.size >= 6, `Expected at least 6 Indiana retailer inventory source chains; got ${retailerInventorySources.size}: ${[...retailerInventorySources].join(', ')}`);
 assert(cityHiveInventorySources.size >= 5, `Expected at least 5 Indiana CityHive inventory source chains; got ${cityHiveInventorySources.size}: ${[...cityHiveInventorySources].join(', ')}`);
@@ -185,6 +198,9 @@ console.log(JSON.stringify({
   cityHiveStoreLocations: cityHiveStoreLocations.length,
   retailerInventorySignals: retailerInventorySignals.length,
   alertableRetailerInventorySignals: alertableRetailerInventorySignals.length,
+  liveRetailerInventoryStores: liveRetailerInventoryStores.size,
+  expansionTargetInventorySignals: expansionTargetInventorySignals.length,
+  expansionTargetInventoryStores: expansionTargetInventoryStores.size,
   retailerInventorySources: [...retailerInventorySources].sort(),
   cityHiveInventorySources: [...cityHiveInventorySources].sort(),
   cityHiveInventorySignals: cityHiveInventorySignals.length,

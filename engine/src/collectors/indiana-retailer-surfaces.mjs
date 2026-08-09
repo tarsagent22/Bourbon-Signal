@@ -37,6 +37,20 @@ export function selectIndianaCityHiveSourceCohort(sources, observedAt, {
   return Array.from({ length: size }, (_, index) => sources[(start + index) % sources.length]);
 }
 
+export function selectIndianaCityHiveRequestedSources(sources, sourceIds) {
+  if (!Array.isArray(sources) || !sources.length) return [];
+  const requestedIds = [...new Set(String(sourceIds || '')
+    .split(',')
+    .map((value) => value.trim())
+    .filter(Boolean))];
+  if (!requestedIds.length) return [];
+  const knownIds = new Set(sources.map((source) => String(source?.id || '')));
+  const unknownIds = requestedIds.filter((id) => !knownIds.has(id));
+  if (unknownIds.length) throw new Error(`Unknown Indiana CityHive source id(s): ${unknownIds.join(', ')}`);
+  const requestedSet = new Set(requestedIds);
+  return sources.filter((source) => requestedSet.has(String(source.id)));
+}
+
 export function isIndianaCityHiveCacheUsable(cache, nowMs = Date.now(), maxAgeMs = INDIANA_CITYHIVE_CACHE_MAX_AGE_MS) {
   const generatedMs = Date.parse(String(cache?.generatedAt || ''));
   const ageMs = nowMs - generatedMs;
@@ -62,6 +76,46 @@ export function indianaCityHivePriorityRank(value) {
 
 export function isIndianaCityHivePriorityMarket(value) {
   return indianaCityHivePriorityRank(value) < INDIANA_CITYHIVE_PRIORITY_CITIES.length;
+}
+
+export const INDIANA_CITYHIVE_EXPANSION_TARGETS = Object.freeze([
+  { merchantId: '5e92525978e8f13c2cb1e15c', name: 'Big Red #105 - Bloomington', city: 'Bloomington', address: '1255 S College Mall Rd, Bloomington, IN 47401, USA' },
+  { merchantId: '5e92525778e8f13c2cb1e158', name: 'Big Red #104 - Bloomington', city: 'Bloomington', address: '3207 E 3rd St, Bloomington, IN 47401, USA' },
+  { merchantId: '5e92506878e8f13c2cb1e154', name: 'Big Red #103 - Bloomington', city: 'Bloomington', address: '1870 S Walnut St, Bloomington, IN 47401, USA' },
+  { merchantId: '5e92547478e8f13c2cb1e1a8', name: 'Big Red #126 - Bloomington', city: 'Bloomington', address: '713 W 17th St, Bloomington, IN 47404, USA' },
+  { merchantId: '5e92547178e8f13c2cb1e1a4', name: 'Big Red #125 - Bloomington', city: 'Bloomington', address: '2205 N Walnut St, Bloomington, IN 47404, USA' },
+  { merchantId: '5e92445578e8f13c2cb1e14c', name: 'Big Red #101 - 15th and College - Bloomington', city: 'Bloomington', address: '1110 N College Ave, Bloomington, IN 47404, USA' },
+  { merchantId: '5e92506478e8f13c2cb1e150', name: 'Big Red #102 - The Big Store - Bloomington', city: 'Bloomington', address: '418 N College Ave, Bloomington, IN 47404, USA' },
+  { merchantId: '5e92545478e8f13c2cb1e17c', name: 'Big Red #114 - Bloomington', city: 'Bloomington', address: '2501 S Leonard Springs Rd, Bloomington, IN 47403, USA' },
+  { merchantId: '5e92545778e8f13c2cb1e180', name: 'Big Red #115 - Bloomington', city: 'Bloomington', address: '2401 W 3rd St, Bloomington, IN 47404, USA' },
+  { merchantId: '5e92546e78e8f13c2cb1e1a0', name: 'Big Red #124 - W. Terre Haute', city: 'West Terre Haute', address: '400 National Ave, West Terre Haute, IN 47885, USA' },
+  { merchantId: '5e92546b78e8f13c2cb1e19c', name: 'Big Red #122 - Terre Haute', city: 'Terre Haute', address: '2500 Maple Ave, Terre Haute, IN 47804, USA' },
+  { merchantId: '5e92544c78e8f13c2cb1e170', name: 'Big Red #110 - Terre Haute', city: 'Terre Haute', address: '1701 S 3rd St, Terre Haute, IN 47802, USA' },
+  { merchantId: '5e92544e78e8f13c2cb1e174', name: 'Big Red #111 - Terre Haute', city: 'Terre Haute', address: '2655 Wabash Ave, Terre Haute, IN 47803, USA' },
+  { merchantId: '5e92545178e8f13c2cb1e178', name: 'Big Red #112 - Terre Haute', city: 'Terre Haute', address: '4791 S 7th St, Terre Haute, IN 47802, USA' },
+  { merchantId: '5e92546678e8f13c2cb1e194', name: 'Big Red #120 - Terre Haute', city: 'Terre Haute', address: '1011 N 3rd St, Terre Haute, IN 47807, USA' },
+  { merchantId: '5e92546878e8f13c2cb1e198', name: 'Big Red #121 - Terre Haute', city: 'Terre Haute', address: '226 N 13th St, Terre Haute, IN 47807, USA' },
+  { merchantId: '5e9254c478e8f13c2cb1e214', name: 'Big Red #230 - Martinsville', city: 'Martinsville', address: '1631 E Morgan St, Martinsville, IN 46151, USA' },
+  { merchantId: '5e9254c178e8f13c2cb1e210', name: 'Big Red #229 - Martinsville', city: 'Martinsville', address: '2194 Burton Ln, Martinsville, IN 46151, USA' },
+  { merchantId: '5e92545e78e8f13c2cb1e188', name: 'Big Red #117 - Martinsville', city: 'Martinsville', address: '490 Morton Ave, Martinsville, IN 46151, USA' },
+  { merchantId: '5e92545b78e8f13c2cb1e184', name: 'Big Red #116 - Bedford', city: 'Bedford', address: '3307 16th St, Bedford, IN 47421, USA' },
+].map(Object.freeze));
+
+const INDIANA_CITYHIVE_EXPANSION_TARGET_IDS = new Set(
+  INDIANA_CITYHIVE_EXPANSION_TARGETS.map((store) => store.merchantId),
+);
+
+export function selectIndianaCityHivePriorityMerchants(merchants, { baseLimit = 48 } = {}) {
+  if (!Array.isArray(merchants) || !merchants.length) return [];
+  const ranked = merchants
+    .filter((merchant) => merchant?.id && isIndianaCityHivePriorityMarket(`${merchant.name || ''} ${merchant.city || ''} ${merchant.address || ''}`))
+    .sort((a, b) => indianaCityHivePriorityRank(`${a.name || ''} ${a.city || ''} ${a.address || ''}`)
+      - indianaCityHivePriorityRank(`${b.name || ''} ${b.city || ''} ${b.address || ''}`)
+      || Number(a.ordinal || 0) - Number(b.ordinal || 0));
+  const base = ranked.slice(0, Math.max(0, Number(baseLimit) || 0));
+  const selectedIds = new Set(base.map((merchant) => String(merchant.id)));
+  const expansion = ranked.filter((merchant) => INDIANA_CITYHIVE_EXPANSION_TARGET_IDS.has(String(merchant.id)) && !selectedIds.has(String(merchant.id)));
+  return [...base, ...expansion];
 }
 
 export const INDIANA_TARGET_STORES = new Map([
