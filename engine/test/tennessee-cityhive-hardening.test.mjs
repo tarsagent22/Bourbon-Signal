@@ -6,12 +6,35 @@ import {
   reconcileCityHiveRateLimitsWithCache,
   rotatingSourceCohort,
 } from '../src/collectors/cityhive-hardening.mjs';
+import { selectTennesseeCityHiveSourceCohort } from '../src/collectors/tennessee-cityhive-policy.mjs';
 
 test('Tennessee CityHive cohorts rotate without hammering the full source universe', () => {
   const sources = ['a', 'b', 'c', 'd', 'e'];
   assert.deepEqual(rotatingSourceCohort(sources, '1970-01-01T00:00:00.000Z', 2, 60 * 60_000), ['a', 'b']);
   assert.deepEqual(rotatingSourceCohort(sources, '1970-01-01T01:00:00.000Z', 2, 60 * 60_000), ['c', 'd']);
   assert.equal(new Set(rotatingSourceCohort(sources, '1970-01-01T02:00:00.000Z', 8, 60 * 60_000)).size, 5);
+});
+
+test('Tennessee source cohort reserves rare-yield slots while preserving oldest-first exploration', () => {
+  const sources = ['corkdorks', 'busters-liquors', 'frugal-macdoogal', 'untried-a', 'untried-b', 'untried-c']
+    .map((id) => ({ id }));
+  const cache = {
+    sourceAttemptAt: {
+      corkdorks: '2026-08-09T15:00:00.000Z',
+      'busters-liquors': '2026-08-09T15:30:00.000Z',
+      'frugal-macdoogal': '2026-08-09T14:00:00.000Z',
+    },
+  };
+  const selected = selectTennesseeCityHiveSourceCohort(sources, {
+    cache,
+    cohortSize: 4,
+    prioritySourceIds: ['corkdorks', 'busters-liquors', 'frugal-macdoogal'],
+    prioritySlots: 2,
+  });
+  assert.equal(selected.length, 4);
+  assert.deepEqual(selected.slice(0, 2).map((source) => source.id), ['frugal-macdoogal', 'corkdorks']);
+  assert.deepEqual(selected.slice(2).map((source) => source.id), ['untried-a', 'untried-b']);
+  assert.equal(new Set(selected.map((source) => source.id)).size, 4);
 });
 
 test('CityHive quantity 100 is binary availability rather than an exact shelf count', () => {
