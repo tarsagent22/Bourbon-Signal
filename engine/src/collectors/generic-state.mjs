@@ -456,7 +456,7 @@ export async function collectState(config, bible, options = {}) {
   });
 
   if (config.id === 'WV') {
-    const directorySignals = westVirginiaDirectorySignals({ observedAt: startedAt });
+    const directorySignals = westVirginiaDirectorySignals({ nowAt: startedAt });
     signals.push(...directorySignals);
     sourceReports.push(westVirginiaDirectorySourceReport(directorySignals));
   }

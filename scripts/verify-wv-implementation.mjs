@@ -28,10 +28,12 @@ assert.match(stateSources, /wv-abca-barrel-selections/);
 assert.match(exporter, /isWestVirginiaOfficialBarrelSelectionSignal/);
 assert.match(feedVisibility, /isWestVirginiaOfficialBarrelSelection/);
 
-const directorySignals = westVirginiaDirectorySignals({ observedAt: '2026-08-09T20:00:00.000Z' });
+const directorySignals = westVirginiaDirectorySignals({ nowAt: '2026-08-09T21:00:00.000Z' });
 assert.equal(directorySignals.length, 180);
 assert.equal(directorySignals.filter((row) => row.canAlertAsInventory || row.canAlertAsWatch).length, 0);
 assert.equal(new Set(directorySignals.map((row) => row.storeId)).size, 180);
+assert.equal(new Set(directorySignals.map((row) => row.observedAt)).size, 1);
+assert.ok(directorySignals.every((row) => row.raw.snapshotCapturedAt === row.observedAt && row.stale === false));
 
 const staleFixture = '<h2>New 2025 discounts for limited barrel selections:</h2><p>28204 - Ezra Brooks Stave Finish Spice &amp; Clove</p>';
 assert.equal(parseWestVirginiaBarrelSelections(staleFixture, { currentYear: 2026 }).length, 0);

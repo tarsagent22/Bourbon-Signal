@@ -1,10 +1,16 @@
 import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 
 import { stableId } from '../core/text.mjs';
 
 const DIRECTORY_SOURCE_URL = 'https://www.wvabca.com/licensesearch.aspx';
 const BARREL_SOURCE_URL = 'https://abca.wv.gov/spirits/wv-bourbon-whiskey-barrel-picks';
 const directory = JSON.parse(readFileSync(new URL('../../data/store-universe/WV.json', import.meta.url), 'utf8'));
+const DIRECTORY_FRESHNESS_MS = 24 * 60 * 60_000;
+const directoryStoreDigest = createHash('sha256').update(JSON.stringify(directory.stores)).digest('hex');
+if (directoryStoreDigest !== directory.source?.storeDigest) {
+  throw new Error('West Virginia ABCA directory snapshot failed its normalized-store digest contract.');
+}
 
 function cleanText(value) {
   return String(value || '').replace(/\s+/g, ' ').trim();
@@ -39,12 +45,15 @@ export function parseWestVirginiaBarrelSelections(html, {
   const start = heading.index + heading[0].length;
   const tail = text.slice(start);
   const boundary = /(?:Corazon\s+Single\s+Barrel|\b20\d{2}\s+historical\s+selections?|\bArchived\b|\bPrior\s+year\b)/iu.exec(tail);
-  const section = boundary ? tail.slice(0, boundary.index) : tail;
+  if (!boundary) return [];
+  const section = tail.slice(0, boundary.index);
   const rows = [];
+  let sectionStockRows = 0;
 
   for (const line of section.split(/\n+/u)) {
     const match = /^\s*(\d{5})\s*-\s*(.+?)(?:\s*-\s*\$([\d,.]+))?\s*$/u.exec(line);
     if (!match) continue;
+    sectionStockRows += 1;
     const productName = cleanText(match[2]).split(/\s*:\s*/u, 1)[0];
     if (!productName
       || /\b(?:rum|tequila|vodka|gin|cream|liqueur|ready[ -]to[ -]drink|rtd|cocktail|wine|beer|multipack|multi-pack|pack of \d+)\b/iu.test(productName)
@@ -91,7 +100,8 @@ export function parseWestVirginiaBarrelSelections(html, {
     });
   }
 
-  return [...new Map(rows.map((row) => [row.stockNumber, row])).values()];
+  const uniqueRows = [...new Map(rows.map((row) => [row.stockNumber, row])).values()];
+  return sectionStockRows >= 7 && uniqueRows.length >= 6 ? uniqueRows : [];
 }
 
 export function enrichWestVirginiaBarrelSelections(rows, bible) {
@@ -112,7 +122,10 @@ export function enrichWestVirginiaBarrelSelections(rows, bible) {
   });
 }
 
-export function westVirginiaDirectorySignals({ observedAt = new Date().toISOString() } = {}) {
+export function westVirginiaDirectorySignals({ nowAt = new Date().toISOString() } = {}) {
+  const capturedAt = directory.source.capturedAt;
+  const ageMs = Date.parse(nowAt) - Date.parse(capturedAt);
+  const stale = !Number.isFinite(ageMs) || ageMs < 0 || ageMs > DIRECTORY_FRESHNESS_MS;
   return directory.stores.map((store) => ({
     id: stableId(['WV', store.id, 'retailer_store_location']),
     state: 'WV',
@@ -135,16 +148,18 @@ export function westVirginiaDirectorySignals({ observedAt = new Date().toISOStri
     sourceAvailabilityVerified: false,
     canAlertAsInventory: false,
     canAlertAsWatch: false,
-    observedAt,
-    fetchedAt: observedAt,
-    stale: false,
-    readableSummary: `${store.name} is an active licensed West Virginia retail liquor premise. Store information does not confirm current bottle availability.`,
+    observedAt: capturedAt,
+    fetchedAt: capturedAt,
+    stale,
+    readableSummary: `${store.name} appeared in the West Virginia ABCA active-license directory captured ${capturedAt.slice(0, 10)}. Store information does not confirm current bottle availability.`,
     raw: {
       officialLicenseNumber: store.licenseNumber,
       directoryOnly: true,
       searchable: true,
       sourceRuntimeNonAlertable: true,
+      snapshotCapturedAt: capturedAt,
       sourceDigest: directory.source.sourceDigest,
+      storeDigest: directory.source.storeDigest,
     },
   }));
 }
@@ -155,8 +170,8 @@ export function westVirginiaDirectorySourceReport(signals) {
     label: 'West Virginia ABCA active Retail Liquor Stores directory',
     url: DIRECTORY_SOURCE_URL,
     ok: signals.length === directory.storeCount && signals.length > 0,
-    status: 200,
-    contentType: 'official-directory',
+    status: null,
+    contentType: 'reviewed-official-directory-snapshot',
     bytes: JSON.stringify(directory).length,
     elapsedMs: 0,
     signalType: 'retailer_store_location',
@@ -166,6 +181,9 @@ export function westVirginiaDirectorySourceReport(signals) {
     documentLinkCount: 0,
     error: null,
     directoryOnly: true,
+    snapshotCapturedAt: directory.source.capturedAt,
+    stale: signals.some((signal) => signal.stale === true),
+    staticSnapshot: true,
   };
 }
 

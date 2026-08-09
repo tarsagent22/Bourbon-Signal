@@ -25,7 +25,7 @@ const fixtureHtml = `
     <ul>
       <li>28276 - Wilderness Trail Rye Green Label Private Selection - $61.25</li>
       <li>28285 - Myers's Rum Single Barrel - $35.67</li>
-      <li>Corazon Tequila Single Barrel selections</li>
+      <li>28286 - Corazon Tequila Single Barrel selections</li>
     </ul>
     <h2>2025 historical selections</h2>
     <p>28111 - Maker's Mark Private Selection - $49.99</p>
@@ -54,9 +54,15 @@ test('WV official parser keeps only current whiskey selections and never implies
   }
 });
 
+test('WV official parser rejects truncated or collapsed current-year responses', () => {
+  assert.equal(parseWestVirginiaBarrelSelections('<h2>New 2026 discounts for limited barrel selections:</h2><p>28204 - Ezra Brooks Stave Finish Spice &amp; Clove</p>', { currentYear: 2026 }).length, 0);
+  assert.equal(parseWestVirginiaBarrelSelections('<h2>New 2026 discounts for limited barrel selections:</h2><p>28204 - Ezra Brooks Stave Finish Spice &amp; Clove</p><h2>Corazon Single Barrel</h2>', { currentYear: 2026 }).length, 0);
+});
+
 test('WV directory publishes every active official premise as searchable, directory-only, and non-alertable', async () => {
   const universe = JSON.parse(await readFile(new URL('../data/store-universe/WV.json', import.meta.url), 'utf8'));
-  const rows = westVirginiaDirectorySignals({ observedAt: '2026-08-09T20:00:00.000Z' });
+  const rows = westVirginiaDirectorySignals({ nowAt: '2026-08-09T21:00:00.000Z' });
+  const expiredSnapshotRows = westVirginiaDirectorySignals({ nowAt: '2026-08-11T21:00:00.000Z' });
 
   assert.equal(universe.storeCount, 180);
   assert.equal(rows.length, universe.storeCount);
@@ -70,8 +76,12 @@ test('WV directory publishes every active official premise as searchable, direct
     assert.equal(row.sourceAvailabilityVerified, false);
     assert.equal(row.canAlertAsInventory, false);
     assert.equal(row.canAlertAsWatch, false);
+    assert.equal(row.observedAt, universe.source.capturedAt);
+    assert.equal(row.stale, false);
     assert.equal(row.raw.directoryOnly, true);
+    assert.equal(row.raw.storeDigest, universe.source.storeDigest);
   }
+  assert.ok(expiredSnapshotRows.every((row) => row.observedAt === universe.source.capturedAt && row.stale === true));
 });
 
 test('WV official selection rows reach the customer feed only as non-alertable ordering intelligence', async () => {

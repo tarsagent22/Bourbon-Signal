@@ -328,8 +328,23 @@ function evaluateCase(item, { state, bible, registeredHosts, candidateActive = f
   if (state === 'WV') {
     const names = Array.isArray(input.rawNames) ? input.rawNames.map(String) : [String(input.rawName || 'Yellowstone Handpicked 109 Proof')];
     const observedAt = input.fetchedAt || '2026-08-09T20:00:00.000Z';
-    const html = `<h2>New 2026 discounts for limited barrel selections:</h2>${names.map((name, index) => `<p>${28204 + index} - ${name}</p>`).join('')}`;
-    const rows = enrichWestVirginiaBarrelSelections(parseWestVirginiaBarrelSelections(html, { observedAt, currentYear: 2026 }), bible);
+    const filler = [
+      'Ezra Brooks Stave Finish Spice & Clove',
+      'Rebel Full Proof Selection',
+      'Yellowstone Handpicked 109 Proof',
+      'Yellowstone Handpicked 119 Proof',
+      'Rebel Stave Finish Collection Rich Mocha',
+      'Wilderness Trail Rye Green Label Private Selection',
+    ];
+    const sourceRows = [
+      ...names.map((name, index) => `${28204 + index} - ${name}`),
+      ...filler.map((name, index) => `${29000 + index} - ${name}`),
+      '29998 - Myers Rum Single Barrel',
+      '29999 - Corazon Tequila Single Barrel',
+    ];
+    const html = `<h2>New 2026 discounts for limited barrel selections:</h2>${sourceRows.map((row) => `<p>${row}</p>`).join('')}<h2>Corazon Single Barrel</h2>`;
+    const rows = enrichWestVirginiaBarrelSelections(parseWestVirginiaBarrelSelections(html, { observedAt, currentYear: 2026 }), bible)
+      .filter((row) => Number(row.stockNumber) >= 28204 && Number(row.stockNumber) < 28204 + names.length);
     if (item.kind === 'positive_bottle_match') {
       const row = rows[0];
       return { canonicalName: row?.canonicalName || null, tier: row?.tier || null, customerVisible: Boolean(row?.canonicalBottleId), alertable: false };
@@ -347,7 +362,7 @@ function evaluateCase(item, { state, bible, registeredHosts, candidateActive = f
       };
     }
     if (item.kind === 'store_identity') {
-      const row = westVirginiaDirectorySignals({ observedAt })[0];
+      const row = westVirginiaDirectorySignals({ nowAt: observedAt })[0];
       return { storeId: row?.storeId || null, storeAddress: row?.storeAddress || null, fabricateIdentity: false };
     }
     if (item.kind === 'timestamp_freshness') {

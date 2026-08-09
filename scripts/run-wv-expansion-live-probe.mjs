@@ -64,6 +64,10 @@ assert.equal(siteDrops.length, 6);
 assert.equal(siteDrops.filter((row) => row.canAlertAsInventory || row.canAlertAsWatch || row.eligibleForDelivery || row.eligibleForEmail || row.eligibleForSms).length, 0);
 assert.equal(siteDrops.filter((row) => row.sourceStale || row.stale).length, 0);
 assert.ok(siteDrops.every((row) => /not live shelf inventory/i.test(row.inventoryCaveat || '')));
+const liveIdentities = barrelSignals.map((row) => `${row.canonicalBottleId}|${row.canonicalName}`).sort();
+const canaryIdentities = siteDrops.map((row) => `${row.canonicalBottleId}|${row.canonicalName}`).sort();
+assert.deepEqual(canaryIdentities, liveIdentities, 'The customer canary must match the exact live official selection identities.');
+assert.ok(barrelSignals.every((row) => Date.now() - Date.parse(row.observedAt || '') <= 15 * 60_000), 'Live official selection observations must be current.');
 
 const metrics = calculateStateExpansionMetrics({
   stateCode: 'WV',
