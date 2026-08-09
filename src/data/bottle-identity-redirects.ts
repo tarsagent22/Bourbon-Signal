@@ -25,6 +25,7 @@ export const BOTTLE_IDENTITY_REDIRECTS: Readonly<Record<string, string>> = {
   "michters-25-year-kentucky-straight-bourbon": "michters-25y-bourbon",
   "bb_4e7a2ea067e741fd": "new-riff-8-year-bourbon",
   "bb_705e46cbfe42ad32": "new-riff-8-year-bourbon",
+  "bb_1799afb0fab6e7bd": "ezra-brooks-stave-finish-spice-and-clove",
   "elijah-craig-barrel-proof-small-batch": "elijah-craig-barrel-proof",
   "rock-hill-farms-bourbon": "rock-hill-farms",
   "pappy-van-winkles-family-reserve-15y": "pappy-van-winkle-15",

@@ -50,6 +50,11 @@ export const BOTTLE_SCARCITY_SOURCE_REGISTRY = {
     label: "NABCA Control State Directory",
     url: "https://www.nabca.org/control-state-directory-and-info",
   },
+  "official-wv-abca-current-barrel-selections": {
+    type: "official_state",
+    label: "West Virginia ABCA Current Barrel Selections",
+    url: "https://abca.wv.gov/spirits/wv-bourbon-whiskey-barrel-picks",
+  },
 } as const;
 
 /**
@@ -109,6 +114,18 @@ export const ALABAMA_ALLOCATED_PRODUCT_MATCHES: Readonly<Record<string, string>>
 };
 
 export const BOTTLE_STATE_SCARCITY_OVERRIDES: Record<string, StateScarcityOverride[]> = {
+  "ezra-brooks-stave-finish-spice-and-clove": [{
+    jurisdiction: "WV",
+    tier: "limited",
+    confidence: "medium",
+    reason: "West Virginia ABCA's current barrel-selection page lists this exact state-specific expression. The listing establishes a limited special release in West Virginia, not shelf availability or store quantity.",
+    officialAllocationStatus: "special_release",
+    verifiedOpportunityCount: 0,
+    coverageDenominator: 0,
+    evidenceWindow: { start: "2026-01-01", end: "2026-08-09" },
+    sourceIds: ["official-wv-abca-current-barrel-selections"],
+    lastReviewedAt: "2026-08-09",
+  }],
   "weller-12-year": [{
     jurisdiction: "VA",
     tier: "highly_allocated",
