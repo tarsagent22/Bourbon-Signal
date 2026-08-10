@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { hasSouthCarolinaPositiveInventoryEvidence } from './south-carolina-retailer-policy.mjs';
@@ -16,6 +17,7 @@ const dropsExport = await readJson('out/site/drops.json', { drops: [] });
 const storesExport = await readJson('out/site/stores.json', { stores: [] });
 const locationsExport = await readJson('out/site/locations.json', { locations: [] });
 const score = await readJson('out/quality/sc-user-reach-score.json', null);
+const inventoryBaseline = await readJson('data/south-carolina-inventory-baseline.json', null);
 
 if (!state) throw new Error('Missing out/states/SC.json');
 const summaryState = (summary.states || []).find((row) => row.state === 'SC');
@@ -56,6 +58,38 @@ const myrtleFresh = myrtleInventory.filter((row) => {
 });
 const exportedMyrtleDrops = exportedDrops.filter((row) => norm(row.city || row.store_city) === 'myrtle beach');
 const exportedMyrtleStores = unique(exportedMyrtleDrops.map((row) => `${row.storeName || row.store_name || row.locationName || row.storeId}|${row.storeAddress || row.store_address || ''}`));
+
+if (!inventoryBaseline || inventoryBaseline.contractVersion !== 'bourbon-signal/sc-inventory-baseline@1') throw new Error('Missing immutable South Carolina inventory baseline');
+if (inventoryBaseline.storeCount !== 20 || inventoryBaseline.stores?.length !== 20) throw new Error(`South Carolina inventory baseline store count drifted: ${inventoryBaseline.storeCount}`);
+const baselineCanonical = inventoryBaseline.stores.map((row) => `${row.storeId}|${row.storeName}|${row.storeAddress}`).join('\n');
+const baselineDigest = createHash('sha256').update(baselineCanonical).digest('hex');
+if (baselineDigest !== '3a018509578df19765f5751777dfcde5f1d2de63cded8ec7f56f659b83cf7a89' || inventoryBaseline.canonicalSha256 !== baselineDigest) throw new Error(`South Carolina inventory baseline digest drifted: ${baselineDigest}`);
+const currentStateInventoryRows = stateSignals
+  .filter((row) => inventoryTypes.has(row.eventType || row.type || '') && row.canAlertAsInventory && hasSouthCarolinaPositiveInventoryEvidence(row));
+const currentStateInventoryStores = new Set(currentStateInventoryRows.map((row) => row.storeId).filter(Boolean));
+const currentRowsByStoreId = new Map();
+for (const row of currentStateInventoryRows) {
+  const storeId = String(row.storeId || '');
+  if (!storeId) continue;
+  if (!currentRowsByStoreId.has(storeId)) currentRowsByStoreId.set(storeId, []);
+  currentRowsByStoreId.get(storeId).push(row);
+}
+const missingBaselineStores = inventoryBaseline.stores.map((row) => row.storeId).filter((storeId) => !currentStateInventoryStores.has(storeId));
+if (missingBaselineStores.length) throw new Error(`South Carolina inventory baseline stores were lost: ${missingBaselineStores.join(', ')}`);
+const baselineIdentityMismatches = inventoryBaseline.stores.flatMap((baselineStore) =>
+  (currentRowsByStoreId.get(baselineStore.storeId) || [])
+    .filter((row) => norm(row.storeName || row.locationName) !== norm(baselineStore.storeName)
+      || norm(row.storeAddress) !== norm(baselineStore.storeAddress))
+    .map((row) => ({
+      storeId: baselineStore.storeId,
+      expected: `${baselineStore.storeName}|${baselineStore.storeAddress}`,
+      actual: `${row.storeName || row.locationName}|${row.storeAddress}`,
+    })));
+if (baselineIdentityMismatches.length) throw new Error(`South Carolina inventory baseline identity drifted: ${JSON.stringify(baselineIdentityMismatches)}`);
+for (const storeId of ['odarbys-liquor-barn:607f9bdbb73eb4091ef976e7', 'odarbys-liquor-barn:607f1c35f568f15818499db8']) {
+  if (!currentStateInventoryStores.has(storeId)) throw new Error(`Missing reviewed South Carolina expansion store: ${storeId}`);
+}
+if (currentStateInventoryStores.size < 22) throw new Error(`South Carolina inventory expansion below 22-store floor: ${currentStateInventoryStores.size}`);
 
 if (alertable.length < 60) throw new Error(`SC alertable inventory rows below 90+ threshold: ${alertable.length}`);
 if (fresh.length < 55) throw new Error(`SC fresh inventory rows below threshold: ${fresh.length}`);

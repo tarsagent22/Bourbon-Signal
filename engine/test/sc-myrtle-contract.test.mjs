@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import {
@@ -21,6 +22,7 @@ const verifier = readFileSync(new URL('../src/verify-sc.mjs', import.meta.url), 
 const refreshWorkflow = readFileSync(new URL('../../.github/workflows/refresh-feed.yml', import.meta.url), 'utf8');
 const liveProbe = readFileSync(new URL('../../scripts/run-state-expansion-live-probe.mjs', import.meta.url), 'utf8');
 const storeUniverse = JSON.parse(readFileSync(new URL('../data/store-universe/SC.json', import.meta.url), 'utf8'));
+const inventoryBaseline = JSON.parse(readFileSync(new URL('../data/south-carolina-inventory-baseline.json', import.meta.url), 'utf8'));
 
 function defaultHours(constantName) {
   const match = collector.match(new RegExp(`const ${constantName} = Number\\(process\\.env\\.[A-Z0-9_]+ \\|\\| (\\d+) \\* 60 \\* 60_000\\)`));
@@ -49,6 +51,14 @@ test('Myrtle catalog query failures are coalesced outside the bounded term loop'
 test('Myrtle Beach CityHive inventory refresh stays inside the public freshness window', () => {
   assert.ok(defaultHours('SC_CITYHIVE_CACHE_MAX_AGE_MS') <= 6, 'SC CityHive cache must refresh at least every six hours');
   assert.equal(defaultNumber('SC_CITYHIVE_MAX_PAGES'), 1, 'one well-covered CityHive category page per merchant avoids request amplification');
+});
+
+test('South Carolina expansion pins the complete 20-store production baseline and 22-store release floor', () => {
+  assert.equal(inventoryBaseline.storeCount, 20);
+  assert.equal(new Set(inventoryBaseline.stores.map((row) => row.storeId)).size, 20);
+  const canonical = inventoryBaseline.stores.map((row) => `${row.storeId}|${row.storeName}|${row.storeAddress}`).join('\n');
+  assert.equal(createHash('sha256').update(canonical).digest('hex'), '3a018509578df19765f5751777dfcde5f1d2de63cded8ec7f56f659b83cf7a89');
+  assert.match(verifier, /South Carolina inventory expansion below 22-store floor/);
 });
 
 test('Myrtle Beach live inventory remains a South Carolina release contract', () => {
@@ -298,7 +308,7 @@ test('targeted South Carolina expansion forces a complete bounded first-party so
   assert.match(liveProbe, /state !== 'FL' && state !== 'SC'/);
   assert.match(liveProbe, /BOURBON_SIGNAL_SC_FORCE_CITYHIVE_LIVE: state === 'SC' \? '1'/);
   assert.match(liveProbe, /state === 'SC'[\s\S]*score-sc-user-reach\.mjs/);
-  assert.match(collector, /SC_CITYHIVE_EXCLUDED_EXPANSION_MERCHANT_IDS/);
+  assert.match(collector, /SC_CITYHIVE_EXCLUDED_EXPANSION_MERCHANT_IDS = new Set\(\)/);
   assert.match(collector, /cachedSouthCarolinaCityHiveSignals[\s\S]*SC_CITYHIVE_INVENTORY_MERCHANT_IDS\.has/);
   assert.match(collector, /Da Brown Bag searches failed for \$\{failures\.length\}/);
   assert.doesNotMatch(verifier, /Missing Da Brown Bag Clover inventory rows/);
@@ -321,10 +331,43 @@ function validCityHiveSignal(overrides = {}) {
     quantity: 0, quantityIsExact: false, availabilityStatus: 'binary_retailer_in_stock',
     sourceAvailabilityVerified: true, canAlertAsInventory: true, canAlertAsWatch: true,
     observedAt: new Date().toISOString(),
-    raw: { chain: 'greens-beverage', option: { merchant_id: merchantId, product_id: productId, option_id: optionId } },
+    raw: { chain: 'greens-beverage', reportedQuantity: 100, binaryAvailability: true, option: { merchant_id: merchantId, merchant_name: "Green's Beverage", full_address: '400 Assembly St, Columbia, SC 29201', quantity: 100, product_id: productId, option_id: optionId } },
     ...overrides,
   };
 }
+
+test("reviewed O'Darby's Heckle and Riverchase merchants pass exact premise and quantity policy", () => {
+  for (const store of [
+    { merchantId: '607f9bdbb73eb4091ef976e7', name: "O'Darby's Heckle", address: '1740 Heckle Blvd, Rock Hill, SC 29732, USA' },
+    { merchantId: '607f1c35f568f15818499db8', name: "O'Darby's Riverchase", address: '1421 Riverchase Blvd, Rock Hill, SC 29732, USA' },
+  ]) {
+    const productId = '56c26aa075627570b0070000';
+    const optionId = '616cdd37627f3bf97233606fd49ef7d88342fab27f82fe39106de468fbe3cd47';
+    const signal = validCityHiveSignal({
+      sourceLabel: "O'Darby's Liquor Barn South Carolina CityHive store inventory",
+      sourceUrl: `https://odarbysliquorbarn.com/shop/product/angels-envy-kentucky-straight-bourbon-whiskey/${productId}?option-id=${optionId}`,
+      sourceChain: 'odarbys-liquor-barn', merchantId: store.merchantId, productId, optionId,
+      storeId: `odarbys-liquor-barn:${store.merchantId}`, storeName: store.name, locationName: store.name,
+      storeAddress: store.address, city: 'Rock Hill', postalCode: '29732', zip: '29732',
+      quantity: 7, quantityIsExact: true, availabilityStatus: 'in_stock',
+      raw: { chain: 'odarbys-liquor-barn', reportedQuantity: 7, binaryAvailability: false, product: { id: productId }, option: { merchant_id: store.merchantId, merchant_name: store.name, full_address: store.address, quantity: 7, product_id: productId, option_id: optionId } },
+    });
+    assert.equal(isSouthCarolinaCityHiveInventory(signal), true);
+    assert.equal(isSouthCarolinaCityHiveInventory({ ...signal, storeAddress: '100 Main St, Rock Hill, SC 29732' }), false);
+    assert.equal(isSouthCarolinaCityHiveInventory({ ...signal, quantity: 0 }), false);
+    const rawOverride = (option, raw = {}) => ({ ...signal, raw: { ...signal.raw, ...raw, option: { ...signal.raw.option, ...option } } });
+    assert.equal(isSouthCarolinaCityHiveInventory(rawOverride({ full_address: '100 Main St, Rock Hill, SC 29732' })), false);
+    assert.equal(isSouthCarolinaCityHiveInventory(rawOverride({ merchant_name: 'Forged Store' })), false);
+    assert.equal(isSouthCarolinaCityHiveInventory(rawOverride({ quantity: 8 })), false);
+    assert.equal(isSouthCarolinaCityHiveInventory(rawOverride({ quantity: '7' })), false);
+    assert.equal(isSouthCarolinaCityHiveInventory(rawOverride({ quantity: true })), false);
+    assert.equal(isSouthCarolinaCityHiveInventory(rawOverride({ quantity: 7.5 }, { reportedQuantity: 7.5 })), false);
+    assert.equal(isSouthCarolinaCityHiveInventory(rawOverride({ quantity: 1000 }, { reportedQuantity: 1000, binaryAvailability: true })), false);
+    assert.equal(isSouthCarolinaCityHiveInventory({ ...signal, quantity: '7' }), false);
+    assert.equal(isSouthCarolinaCityHiveInventory({ ...signal, quantity: true }), false);
+    assert.equal(isSouthCarolinaCityHiveInventory({ ...signal, quantity: 7.5, raw: { ...signal.raw, reportedQuantity: 7.5, option: { ...signal.raw.option, quantity: 7.5 } } }), false);
+  }
+});
 
 test('South Carolina CityHive policy rejects forged source, merchant, product, option, host, and quantity bindings', () => {
   const valid = validCityHiveSignal();
@@ -371,7 +414,7 @@ test('Surf Beverage exact-store CityHive rows pass the South Carolina proof cont
     city: 'Myrtle Beach',
     postalCode: '29577',
     zip: '29577',
-    raw: { chain: 'surf-beverage', option: { merchant_id: merchantId, product_id: productId, option_id: optionId } },
+    raw: { chain: 'surf-beverage', reportedQuantity: 100, binaryAvailability: true, option: { merchant_id: merchantId, merchant_name: 'Surf Beverage', full_address: '3140 US-17, Myrtle Beach, SC 29577, USA', quantity: 100, product_id: productId, option_id: optionId } },
   });
   assert.equal(isSouthCarolinaCityHiveInventory(signal), true);
   assert.equal(isSouthCarolinaCityHiveInventory({ ...signal, storeAddress: '3140 US-17, Myrtle Beach, SC 29577' }), true);

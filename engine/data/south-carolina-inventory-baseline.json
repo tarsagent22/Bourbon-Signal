@@ -1,0 +1,109 @@
+{
+  "contractVersion": "bourbon-signal/sc-inventory-baseline@1",
+  "sourceRunId": "31343784376",
+  "sourceSnapshotId": "5da41d2ff0faef26",
+  "storeCount": 20,
+  "canonicalSha256": "3a018509578df19765f5751777dfcde5f1d2de63cded8ec7f56f659b83cf7a89",
+  "stores": [
+    {
+      "storeId": "all-american-liquor:all-american-liquor-mauldin",
+      "storeName": "All American Liquor",
+      "storeAddress": "121 W Butler Rd, Mauldin, SC 29662"
+    },
+    {
+      "storeId": "beach-discount-beverages:6144e1c2085a5f20a622a15f",
+      "storeName": "Beach Discount Beverage",
+      "storeAddress": "2204 N Kings Hwy, Myrtle Beach, SC 29577, USA"
+    },
+    {
+      "storeId": "dev-liquors:620164924a3ea84d57c21d6f",
+      "storeName": "DEV Liquors - Summerville",
+      "storeAddress": "9730 Dorchester Rd 202 a, Summerville, SC 29485, USA"
+    },
+    {
+      "storeId": "dunes-liquor:dunes-liquor-myrtle-beach",
+      "storeName": "Dunes Liquor",
+      "storeAddress": "980 Cipriana Drive, Unit A5-B, Myrtle Beach, SC 29572"
+    },
+    {
+      "storeId": "greens-beverage:61b7517362f55f727e469da5",
+      "storeName": "Green's Beverage - Assembly Street SC",
+      "storeAddress": "400 Assembly St, Columbia, SC 29201, USA"
+    },
+    {
+      "storeId": "greens-beverage:61dc583152bc522be69a8b9e",
+      "storeName": "Green's Beverage - Garners Ferry SC",
+      "storeAddress": "6800 Garners Ferry Rd, Columbia, SC 29209, USA"
+    },
+    {
+      "storeId": "greens-beverage:61dc62fca1d5721d92e837cf",
+      "storeName": "Green's Beverage - Greenville SC",
+      "storeAddress": "445 Congaree Rd, Greenville, SC 29607, USA"
+    },
+    {
+      "storeId": "greens-beverage:61e1d04c823936166693c7f3",
+      "storeName": "Green's Beverage - Myrtle Beach SC",
+      "storeAddress": "2850 N Kings Hwy, Myrtle Beach, SC 29577, USA"
+    },
+    {
+      "storeId": "liquor-library:45SNB155S1XMP",
+      "storeName": "Liquor Library",
+      "storeAddress": "270 Hwy 17 N, North Myrtle Beach, SC 29582"
+    },
+    {
+      "storeId": "moss-creek-village-spirits:67cf72208b17425acbba9e10",
+      "storeName": "Moss Creek Village Spirits & Wine",
+      "storeAddress": "1541 Fording Island Rd, Hilton Head Island, SC 29926, USA"
+    },
+    {
+      "storeId": "odarbys-liquor-barn:6060f7262c63853de749dda2",
+      "storeName": "O'Darby's Landrum",
+      "storeAddress": "127 Fairwinds Dr, Landrum, SC 29356, USA"
+    },
+    {
+      "storeId": "odarbys-liquor-barn:607af19a07c9e57bbd8de002",
+      "storeName": "O'Darby's Taylors",
+      "storeAddress": "5115 Wade Hampton Blvd, Taylors, SC 29687, USA"
+    },
+    {
+      "storeId": "odarbys-liquor-barn:607f9d38b73eb4091ef97ff7",
+      "storeName": "O'Darby's Galleria",
+      "storeAddress": "2350 Dave Lyle Blvd, Rock Hill, SC 29730, USA"
+    },
+    {
+      "storeId": "palmetto-liquor:66c9e5c12556e329502b0e5e",
+      "storeName": "Palmetto Liquor & Wine",
+      "storeAddress": "869 Houston Northcutt Blvd, Mt Pleasant, SC 29464, USA"
+    },
+    {
+      "storeId": "rollers-wine-and-spirits:5ea832d3b62f75270c45a976",
+      "storeName": "Rollers Wine & Spirits",
+      "storeAddress": "9 Palmetto Bay Rd, Hilton Head Island, SC 29928, USA"
+    },
+    {
+      "storeId": "southern-spirits:southern-spirits-indian-land",
+      "storeName": "Southern Spirits",
+      "storeAddress": "9989 Charlotte Hwy, Indian Land, SC 29707"
+    },
+    {
+      "storeId": "surf-beverage:6a0b27396d36df004b28a7ab",
+      "storeName": "Surf Beverage",
+      "storeAddress": "3140 US-17, Myrtle Beach, SC 29577, USA"
+    },
+    {
+      "storeId": "wine-bourbon-barn:69930e7bed5bdd2a34c085c3",
+      "storeName": "Wine & Bourbon Barn - SVL",
+      "storeAddress": "30 Ray E Talley Ct, Simpsonville, SC 29680, USA"
+    },
+    {
+      "storeId": "wine-bourbon-barn:699754a7b0035e3df3e7f3a4",
+      "storeName": "Wine & Bourbon Barn - MLD",
+      "storeAddress": "437 N Main St, Mauldin, SC 29662, USA"
+    },
+    {
+      "storeId": "wine-bourbon-barn:69977a118f10a026bd985189",
+      "storeName": "Wine & Bourbon Barn - GVL",
+      "storeAddress": "1050 N Pleasantburg Dr, Greenville, SC 29607, USA"
+    }
+  ]
+}
