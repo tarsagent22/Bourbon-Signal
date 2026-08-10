@@ -1,0 +1,914 @@
+{
+  "contractVersion": "bourbon-signal/florida-star-expansion-baseline@1",
+  "sourceRunId": "31388093435",
+  "sourceArtifactId": "9063329531",
+  "sourceArtifactName": "inventory-refresh-31388093435",
+  "generatedAt": "2026-08-10T12:15:33.716Z",
+  "inventoryStoreIds": [
+    "a1a-liquor-naples:collier-blvd",
+    "abc-fine-wine-spirits:105",
+    "abc-fine-wine-spirits:106",
+    "abc-fine-wine-spirits:107",
+    "abc-fine-wine-spirits:111",
+    "abc-fine-wine-spirits:112",
+    "abc-fine-wine-spirits:113",
+    "abc-fine-wine-spirits:114",
+    "abc-fine-wine-spirits:118",
+    "abc-fine-wine-spirits:123",
+    "abc-fine-wine-spirits:128",
+    "abc-fine-wine-spirits:131",
+    "abc-fine-wine-spirits:132",
+    "abc-fine-wine-spirits:133",
+    "abc-fine-wine-spirits:134",
+    "abc-fine-wine-spirits:136",
+    "abc-fine-wine-spirits:137",
+    "abc-fine-wine-spirits:138",
+    "abc-fine-wine-spirits:139",
+    "abc-fine-wine-spirits:14",
+    "abc-fine-wine-spirits:140",
+    "abc-fine-wine-spirits:142",
+    "abc-fine-wine-spirits:143",
+    "abc-fine-wine-spirits:144",
+    "abc-fine-wine-spirits:145",
+    "abc-fine-wine-spirits:147",
+    "abc-fine-wine-spirits:148",
+    "abc-fine-wine-spirits:149",
+    "abc-fine-wine-spirits:150",
+    "abc-fine-wine-spirits:151",
+    "abc-fine-wine-spirits:152",
+    "abc-fine-wine-spirits:153",
+    "abc-fine-wine-spirits:154",
+    "abc-fine-wine-spirits:155",
+    "abc-fine-wine-spirits:157",
+    "abc-fine-wine-spirits:158",
+    "abc-fine-wine-spirits:159",
+    "abc-fine-wine-spirits:16",
+    "abc-fine-wine-spirits:160",
+    "abc-fine-wine-spirits:161",
+    "abc-fine-wine-spirits:162",
+    "abc-fine-wine-spirits:163",
+    "abc-fine-wine-spirits:164",
+    "abc-fine-wine-spirits:165",
+    "abc-fine-wine-spirits:167",
+    "abc-fine-wine-spirits:17",
+    "abc-fine-wine-spirits:172",
+    "abc-fine-wine-spirits:173",
+    "abc-fine-wine-spirits:174",
+    "abc-fine-wine-spirits:175",
+    "abc-fine-wine-spirits:18",
+    "abc-fine-wine-spirits:181",
+    "abc-fine-wine-spirits:182",
+    "abc-fine-wine-spirits:185",
+    "abc-fine-wine-spirits:187",
+    "abc-fine-wine-spirits:189",
+    "abc-fine-wine-spirits:19",
+    "abc-fine-wine-spirits:190",
+    "abc-fine-wine-spirits:191",
+    "abc-fine-wine-spirits:192",
+    "abc-fine-wine-spirits:193",
+    "abc-fine-wine-spirits:194",
+    "abc-fine-wine-spirits:195",
+    "abc-fine-wine-spirits:196",
+    "abc-fine-wine-spirits:197",
+    "abc-fine-wine-spirits:199",
+    "abc-fine-wine-spirits:20",
+    "abc-fine-wine-spirits:200",
+    "abc-fine-wine-spirits:201",
+    "abc-fine-wine-spirits:203",
+    "abc-fine-wine-spirits:204",
+    "abc-fine-wine-spirits:207",
+    "abc-fine-wine-spirits:209",
+    "abc-fine-wine-spirits:210",
+    "abc-fine-wine-spirits:211",
+    "abc-fine-wine-spirits:212",
+    "abc-fine-wine-spirits:215",
+    "abc-fine-wine-spirits:217",
+    "abc-fine-wine-spirits:218",
+    "abc-fine-wine-spirits:23",
+    "abc-fine-wine-spirits:25",
+    "abc-fine-wine-spirits:27",
+    "abc-fine-wine-spirits:28",
+    "abc-fine-wine-spirits:3",
+    "abc-fine-wine-spirits:32",
+    "abc-fine-wine-spirits:35",
+    "abc-fine-wine-spirits:38",
+    "abc-fine-wine-spirits:4",
+    "abc-fine-wine-spirits:40",
+    "abc-fine-wine-spirits:41",
+    "abc-fine-wine-spirits:42",
+    "abc-fine-wine-spirits:43",
+    "abc-fine-wine-spirits:46",
+    "abc-fine-wine-spirits:49",
+    "abc-fine-wine-spirits:5",
+    "abc-fine-wine-spirits:50",
+    "abc-fine-wine-spirits:52",
+    "abc-fine-wine-spirits:53",
+    "abc-fine-wine-spirits:54",
+    "abc-fine-wine-spirits:55",
+    "abc-fine-wine-spirits:56",
+    "abc-fine-wine-spirits:59",
+    "abc-fine-wine-spirits:6",
+    "abc-fine-wine-spirits:60",
+    "abc-fine-wine-spirits:63",
+    "abc-fine-wine-spirits:64",
+    "abc-fine-wine-spirits:65",
+    "abc-fine-wine-spirits:69",
+    "abc-fine-wine-spirits:71",
+    "abc-fine-wine-spirits:72",
+    "abc-fine-wine-spirits:73",
+    "abc-fine-wine-spirits:74",
+    "abc-fine-wine-spirits:75",
+    "abc-fine-wine-spirits:76",
+    "abc-fine-wine-spirits:77",
+    "abc-fine-wine-spirits:79",
+    "abc-fine-wine-spirits:80",
+    "abc-fine-wine-spirits:81",
+    "abc-fine-wine-spirits:85",
+    "abc-fine-wine-spirits:86",
+    "abc-fine-wine-spirits:91",
+    "abc-fine-wine-spirits:92",
+    "abc-fine-wine-spirits:94",
+    "abc-fine-wine-spirits:95",
+    "abc-fine-wine-spirits:96",
+    "abc-fine-wine-spirits:98",
+    "abc-fine-wine-spirits:99",
+    "balm-liquor:690be4c9ff35540f65da977b",
+    "beach-liquors:5d8b3f9382d8295acf449835",
+    "beach-liquors:5e6fa03673a2e156b67594fb",
+    "beach-liquors:5e6fa1ad58ba0e239a46eef6",
+    "beach-liquors:65c1586ceeb7b43bca2dab71",
+    "big-daddys-liquors:5d4c3678c9bb183d498c2c50",
+    "big-daddys-liquors:5d4c3679c9bb183d498c2c54",
+    "big-daddys-liquors:5d4c367bc9bb183d498c2c58",
+    "big-daddys-liquors:5d4c367cc9bb183d498c2c5c",
+    "big-daddys-liquors:5d4c367ec9bb183d498c2c60",
+    "big-daddys-liquors:5d4c367fc9bb183d498c2c64",
+    "big-daddys-liquors:5d4c3681c9bb183d498c2c68",
+    "big-daddys-liquors:5d4c3683c9bb183d498c2c6c",
+    "big-daddys-liquors:5d4c3684c9bb183d498c2c70",
+    "big-daddys-liquors:5d4c3686c9bb183d498c2c74",
+    "big-daddys-liquors:5d4c3689c9bb183d498c2c7c",
+    "big-daddys-liquors:5dd70f603c329d1aac8d32e1",
+    "big-daddys-liquors:64134e2fd49c702a732e124d",
+    "bottle-n-brew-jacksonville:sunbeam-rd",
+    "bourbon-barn-gainesville:68ac9741700b9b25a87e0f3b",
+    "gaspars-liquor-shoppe:tampa-56th",
+    "golden-ox-liquors:5bd75df8e87474659683893b",
+    "golden-ox-liquors:5bff10401859dd0f29367fd0",
+    "golden-ox-liquors:5c5c8696e2b6475f65dd8abf",
+    "greygoose-liquors:walnut-hill",
+    "jensens-liquors:1646-sw-27th",
+    "luekens:clearwater",
+    "luekens:dunedin",
+    "luekens:east-lake",
+    "luekens:kennedy-tampa",
+    "luekens:midtown-tampa",
+    "luekens:oldsmar",
+    "luekens:seminole",
+    "luekens:tarpon",
+    "mdp-liquor-kissimmee:4636-w-irlo-bronson",
+    "my-florida-liquors:5f52751f5e156626139b87aa",
+    "my-florida-liquors:5f58f60980eb420def3fd51b",
+    "my-florida-liquors:5f58f6a9f6a57131c1c4c46e",
+    "my-florida-liquors:5f58f7024918d869fb9662d3",
+    "ocean-wine-spirits:5d2fd529e7648c5a75c92a60",
+    "ocean-wine-spirits:62c490c21dec3125d5e11303",
+    "paradise-fubar-liquors:691f7f979c3eeb27a9a25f7d",
+    "paradise-fubar-liquors:691f8374054a225be5c82459",
+    "pensacola-liquors:pace-blvd",
+    "primo-liquors:bayview-sunrise",
+    "primo-liquors:davie",
+    "primo-liquors:fort-lauderdale",
+    "primo-liquors:southeast",
+    "primo-liquors:southwest-ranches",
+    "sarasota-liquor-locker:fruitville-rd",
+    "sarasota-wine-liquors:625d92134d905117662abd0f",
+    "sunshine-food-spirits:68cb1b32de882540d44d64e1",
+    "tivoli-south-liquors:miami"
+  ],
+  "inventoryStoreIdsSha256": "608c32a62b1c603b0c723991036f339372052c0284241735fd8338ad5c64067a",
+  "minimumNetNewStores": 20,
+  "inventoryPremises": [
+    {
+      "storeId": "a1a-liquor-naples:collier-blvd",
+      "address": "12555 Collier Blvd Unit 1, Naples, FL 34116"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:105",
+      "address": "8470 37TH ST E, SARASOTA, FL 34243"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:106",
+      "address": "1741 S. TAMIAMI TRAIL, VENICE, FL 34293"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:107",
+      "address": "11868 STATE ROAD 54, ODESSA, FL 33556"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:111",
+      "address": "11720 STATE ROAD 64 E, BRADENTON, FL 34212"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:112",
+      "address": "6612 NEWBERRY RD. W., GAINESVILLE, FL 32605"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:113",
+      "address": "4925 MOCCASIN WALLOW RD, PALMETTO, FL 34221"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:114",
+      "address": "8601 BOYNTON BEACH BLVD, BOYNTON BEACH, FL 33472"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:118",
+      "address": "4111 NE SILVER SPRINGS BLVD., OCALA, FL 34470"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:123",
+      "address": "555 N. ORLANDO AVE, COCOA BEACH, FL 32931"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:128",
+      "address": "14248 US HWY 19 N., HUDSON, FL 34667"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:131",
+      "address": "1400 S. WOODLAND BLVD., DELAND, FL 32720"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:132",
+      "address": "3110 W GANDY BLVD, TAMPA, FL 33611"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:133",
+      "address": "3555 13TH STREET, ST CLOUD, FL 34769"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:134",
+      "address": "3300 N JOHN YOUNG PKWY, KISSIMMEE, FL 34741"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:136",
+      "address": "776 W STATE ROAD 436, ALTAMONTE SPRINGS, FL 32714"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:137",
+      "address": "980 RINEHART RD, LAKE MARY, FL 32746"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:138",
+      "address": "1845 BRUCE B DOWNS BLVD., WESLEY CHAPEL, FL 33544"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:139",
+      "address": "5607 SEVEN MILE DRIVE, WILDWOOD, FL 34785"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:14",
+      "address": "1855 EAST WINTER PARK ROAD, ORLANDO, FL 32803"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:140",
+      "address": "5810 MANATEE AVE. W., BRADENTON, FL 34209"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:142",
+      "address": "1198 DUNLAWTON AVE, PORT ORANGE, FL 32127"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:143",
+      "address": "6307 14TH ST. W., BRADENTON, FL 34207"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:144",
+      "address": "4250 TAMIAMI TRAIL, PORT CHARLOTTE, FL 33952"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:145",
+      "address": "2726 S. ORANGE AVE., ORLANDO, FL 32806"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:147",
+      "address": "2322 S. SEMORAN BLVD., ORLANDO, FL 32822"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:148",
+      "address": "2311 U S HWY 27 NORTH, SEBRING, FL 33870"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:149",
+      "address": "3333 EDGEWATER DR., ORLANDO, FL 32804"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:150",
+      "address": "1808 US 27, LEESBURG, FL 34748"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:151",
+      "address": "822 US HWY 19 S.E., CRYSTAL RIVER, FL 34429"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:152",
+      "address": "2720 BEE RIDGE ROAD, SARASOTA, FL 34239"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:153",
+      "address": "1795 W. MAIN ST., INVERNESS, FL 34450"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:154",
+      "address": "865 N, US-27/441, LADY LAKE, FL 32159"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:155",
+      "address": "6020 N ATLANTIC AVE, CAPE CANAVERAL, FL 32920"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:157",
+      "address": "1350 NE 23RD STREET, POMPANO BEACH, FL 33062"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:158",
+      "address": "725 BALD EAGLE DRIVE, MARCO ISLAND, FL 34145"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:159",
+      "address": "4120 COMMERCIAL WAY, SPRING HILL, FL 34606"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:16",
+      "address": "4110 WINTER GARDEN VINELAND ROAD, WINTER GARDEN, FL 34787"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:160",
+      "address": "1540 SE FEDERAL HWY, STUART, FL 34994"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:161",
+      "address": "2755 EAST TAMIAMI TRAIL, NAPLES, FL 34112"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:162",
+      "address": "1260 W INDIANTOWN ROAD, JUPITER, FL 33458"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:163",
+      "address": "750 S ALAFAYA TRL, ORLANDO, FL 32828"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:164",
+      "address": "10798 PINES BLVD, PEMBROKE PINES, FL 33026"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:165",
+      "address": "6180 W ATLANTIC AVE, DELRAY BEACH, FL 33484"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:167",
+      "address": "5852 SOUTH STATE ROAD 7, LAKE WORTH, FL 33449"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:17",
+      "address": "55 INTERLACHEN RD, MELBOURNE, FL 32940"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:172",
+      "address": "474574 SR 200, FERNANDINA BEACH, FL 32034"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:173",
+      "address": "2621 CESERY BLVD., JACKSONVILLE, FL 32211"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:174",
+      "address": "259 HARPER LN., ST. JOHNS, FL 32259"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:175",
+      "address": "4838 GATE PARKWAY NORTH, JACKSONVILLE, FL 32246"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:18",
+      "address": "1426 S. HWY A1A, SATELLITE BEACH, FL 32937"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:181",
+      "address": "140 REGISTRY BLVD, ST AUGUSTINE, FL 32092"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:182",
+      "address": "1811 EASTWEST PARKWAY, FLEMING ISLAND, FL 32003"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:185",
+      "address": "9436 SAN JOSE BLVD., JACKSONVILLE, FL 32257"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:187",
+      "address": "608 BEACH BLVD., JACKSONVILLE BEACH, FL 32250"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:189",
+      "address": "1143 LANE AVE. S., JACKSONVILLE, FL 32205"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:19",
+      "address": "3015 W. KENNEDY BLVD., TAMPA, FL 33609"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:190",
+      "address": "1790 US 1 SOUTH, ST. AUGUSTINE, FL 32084"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:191",
+      "address": "295 ROYAL PALM DR., ATLANTIC BEACH, FL 32233"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:192",
+      "address": "426 BLANDING BLVD., ORANGE PARK, FL 32073"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:193",
+      "address": "963 DUNN AVE., JACKSONVILLE, FL 32218"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:194",
+      "address": "6313 ROOSEVELT BLVD., JACKSONVILLE, FL 32244"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:195",
+      "address": "175 VILLAGE MAIN STREET, PONTE VEDRA BEACH, FL 32082"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:196",
+      "address": "1491 US HWY 90 W, LAKE CITY, FL 32055"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:197",
+      "address": "224 PALM COAST PKWY NE, PALM COAST, FL 32137"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:199",
+      "address": "5052 BAYOU BOULEVARD, PENSACOLA, FL 32503"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:20",
+      "address": "300 N. MIRAMAR AVE, INDIALANTIC, FL 32903"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:200",
+      "address": "34715 EMERALD COAST PARKWAY, DESTIN, FL 32541"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:201",
+      "address": "4155 NORTHLAKE BLVD, PALM BEACH GARDENS, FL 33410"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:203",
+      "address": "8315 MIKAJACK AVENUE, NAVARRE, FL 32566"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:204",
+      "address": "11999 SOUTHERN BLVD., ROYAL PALM BEACH, FL 33411"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:207",
+      "address": "3355 NORTH FEDERAL HIGHWAY, OAKLAND PARK, FL 33306"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:209",
+      "address": "9894 GLADES RD, BOCA RATON, FL 33434"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:210",
+      "address": "1930 THOMASVILLE RD, TALLAHASSEE, FL 32303"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:211",
+      "address": "6998 N. FEDERAL HWY, BOCA RATON, FL 33487"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:212",
+      "address": "12620 SW 120TH ST, MIAMI, FL 33186"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:215",
+      "address": "5454 THOMASVILLE ROAD, TALLAHASSEE, FL 32312"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:217",
+      "address": "3005 APALACHEE PKWY, TALLAHASSEE, FL 32301"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:218",
+      "address": "11699 PANAMA CITY BEACH PRKW, PANAMA CITY BEACH, FL 32407"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:23",
+      "address": "725 S. YONGE ST, ORMOND BEACH, FL 32174"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:25",
+      "address": "399 N. SEMORAN BLVD., WINTER PARK, FL 32792"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:27",
+      "address": "2360 HIGHWAY 44, NEW SMYRNA BEACH, FL 32168"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:28",
+      "address": "19065 US HIGHWAY 441, MT DORA, FL 32757"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:3",
+      "address": "5895 S. ORANGE BLSM TRAIL, ORLANDO, FL 32839"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:32",
+      "address": "12254 NARCOOSSEE RD, ORLANDO, FL 32832"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:35",
+      "address": "3535 4TH ST. N., ST. PETE, FL 33704"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:38",
+      "address": "11153 PARK BLVD, SEMINOLE, FL 33772"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:4",
+      "address": "11951 SO. APOPKA-VINELAND RD, ORLANDO, FL 32836"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:40",
+      "address": "2091 SW GATLIN BLVD, PORT ST. LUCIE, FL 34953"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:41",
+      "address": "3332 S. ATLANTIC AVE., DAYTONA BEACH SHORES, FL 32118"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:42",
+      "address": "602 21ST STREET, VERO BEACH, FL 32960"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:43",
+      "address": "5905 20TH STREET, VERO BEACH, FL 32966"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:46",
+      "address": "4250 AIDAN LANE, NORTH PORT, FL 34287"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:49",
+      "address": "2855 66TH STREET NORTH, ST. PETE, FL 33710"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:5",
+      "address": "3187 BLACK LAKE ROAD, KISSIMMEE, FL 34747"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:50",
+      "address": "2611 NORTH FLAMINGO ROAD, SUNRISE, FL 33323"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:52",
+      "address": "10835 WEST COLONIAL DRIVE, OCOEE, FL 34761"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:53",
+      "address": "4319 SO. FLORIDA AVE, LAKELAND, FL 33813"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:54",
+      "address": "8050 NW 36TH ST, DORAL, FL 33166"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:55",
+      "address": "1395 EAST HIGHWAY 50, CLERMONT, FL 34711"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:56",
+      "address": "16941 MIRAMAR PARKWAY, MIRAMAR, FL 33027"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:59",
+      "address": "23231 US HWY 27, LAKE WALES, FL 33853"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:6",
+      "address": "4980 BABCOCK ST. N.E., PALM BAY, FL 32905"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:60",
+      "address": "901 SE 17TH STREET, FORT LAUDERDALE, FL 33316"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:63",
+      "address": "701 US HWY 17-92 W., HAINES CITY, FL 33844"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:64",
+      "address": "424 E.MERRITT ISLAND CSWY, MERRITT ISLAND, FL 32952"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:65",
+      "address": "2527 REID ST., PALATKA, FL 32177"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:69",
+      "address": "1239 S. WASHINGTON AVE., TITUSVILLE, FL 32780"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:71",
+      "address": "401 N. ORLANDO AVE., WINTER PARK, FL 32789"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:72",
+      "address": "204 107TH AVE., TREASURE ISLAND, FL 33706"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:73",
+      "address": "11280 SR 82, FORT MYERS, FL 33905"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:74",
+      "address": "21700 S TAMIAMI TRAIL, ESTERO, FL 33928"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:75",
+      "address": "14725 S TAMIAMI TRAIL, FORT MYERS, FL 33912"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:76",
+      "address": "10981 SAXUM DRIVE, FORT MYERS, FL 33908"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:77",
+      "address": "1756 MISSOURI AVE N, LARGO, FL 33770"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:79",
+      "address": "5820 N W 34TH BLVD, GAINESVILLE, FL 32653"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:80",
+      "address": "14806 E COLONIAL DRIVE, ORLANDO, FL 32826"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:81",
+      "address": "801 OVIEDO MALL BOULEVARD, OVIEDO, FL 32765"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:85",
+      "address": "1405 E. BRANDON BLVD, BRANDON, FL 33511"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:86",
+      "address": "6178 N. US HIGHWAY 41, APOLLO BEACH, FL 33572"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:91",
+      "address": "3319 S. DIXIE HWY, WEST PALM BEACH, FL 33405"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:92",
+      "address": "2595 S.W. COLLEGE RD, OCALA, FL 34471"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:94",
+      "address": "11615 W. HILLSBOROUGH AVE., TAMPA, FL 33635"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:95",
+      "address": "14729 N.DALE MABRY HWY, TAMPA, FL 33618"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:96",
+      "address": "1513 SW PINE ISLAND RD., CAPE CORAL, FL 33991"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:98",
+      "address": "2220 DEL PRADO BLVD., CAPE CORAL, FL 33990"
+    },
+    {
+      "storeId": "abc-fine-wine-spirits:99",
+      "address": "1000 CROSSPOINT DR., NAPLES, FL 34110"
+    },
+    {
+      "storeId": "balm-liquor:690be4c9ff35540f65da977b",
+      "address": "12302 Balm Riverview Rd, Riverview, FL 33569, USA"
+    },
+    {
+      "storeId": "beach-liquors:5d8b3f9382d8295acf449835",
+      "address": "247 Miracle Strip Pkwy SE, Fort Walton Beach, FL 32548, USA"
+    },
+    {
+      "storeId": "beach-liquors:5e6fa03673a2e156b67594fb",
+      "address": "1336 N Ferdon Blvd, Crestview, FL 32536, USA"
+    },
+    {
+      "storeId": "beach-liquors:5e6fa1ad58ba0e239a46eef6",
+      "address": "1257 Airport Rd, Destin, FL 32541, USA"
+    },
+    {
+      "storeId": "beach-liquors:65c1586ceeb7b43bca2dab71",
+      "address": "16 Via De Luna Dr, Gulf Breeze, FL 32561, USA"
+    },
+    {
+      "storeId": "big-daddys-liquors:5d4c3678c9bb183d498c2c50",
+      "address": "330 Southern Blvd, West Palm Beach, FL 33405, USA"
+    },
+    {
+      "storeId": "big-daddys-liquors:5d4c3679c9bb183d498c2c54",
+      "address": "2500 E Atlantic Blvd, Pompano Beach, FL 33062, USA"
+    },
+    {
+      "storeId": "big-daddys-liquors:5d4c367bc9bb183d498c2c58",
+      "address": "5450 N State Rd 7, Fort Lauderdale, FL 33309, USA"
+    },
+    {
+      "storeId": "big-daddys-liquors:5d4c367cc9bb183d498c2c5c",
+      "address": "959 FL-84, Fort Lauderdale, FL 33315, USA"
+    },
+    {
+      "storeId": "big-daddys-liquors:5d4c367ec9bb183d498c2c60",
+      "address": "2505 N University Dr BUILDING A, Hollywood, FL 33024, USA"
+    },
+    {
+      "storeId": "big-daddys-liquors:5d4c367fc9bb183d498c2c64",
+      "address": "7003 Taft St, Pembroke Pines, FL 33024, USA"
+    },
+    {
+      "storeId": "big-daddys-liquors:5d4c3681c9bb183d498c2c68",
+      "address": "4 N Federal Hwy, Hallandale Beach, FL 33009, USA"
+    },
+    {
+      "storeId": "big-daddys-liquors:5d4c3683c9bb183d498c2c6c",
+      "address": "13185 Biscayne Blvd, North Miami, FL 33181, USA"
+    },
+    {
+      "storeId": "big-daddys-liquors:5d4c3684c9bb183d498c2c70",
+      "address": "9494 Harding Ave, Surfside, FL 33154, USA"
+    },
+    {
+      "storeId": "big-daddys-liquors:5d4c3686c9bb183d498c2c74",
+      "address": "1550 W 84th St, Hialeah, FL 33014, USA"
+    },
+    {
+      "storeId": "big-daddys-liquors:5d4c3689c9bb183d498c2c7c",
+      "address": "2988 SW 27th Ave, Miami, FL 33133, USA"
+    },
+    {
+      "storeId": "big-daddys-liquors:5dd70f603c329d1aac8d32e1",
+      "address": "12776 SW 88th St, Miami, FL 33186, USA"
+    },
+    {
+      "storeId": "big-daddys-liquors:64134e2fd49c702a732e124d",
+      "address": "11225 Miramar Pkwy #245, Miramar, FL 33025, USA"
+    },
+    {
+      "storeId": "bottle-n-brew-jacksonville:sunbeam-rd",
+      "address": "5050 Sunbeam Rd Suite 1, Jacksonville, FL 32257"
+    },
+    {
+      "storeId": "bourbon-barn-gainesville:68ac9741700b9b25a87e0f3b",
+      "address": "2331 NW 13th St, Gainesville, FL 32609, USA"
+    },
+    {
+      "storeId": "gaspars-liquor-shoppe:tampa-56th",
+      "address": "8448 N 56th St, Tampa, FL 33617"
+    },
+    {
+      "storeId": "golden-ox-liquors:5bd75df8e87474659683893b",
+      "address": "240 Citrus Tower Blvd, Clermont, FL 34711, USA"
+    },
+    {
+      "storeId": "golden-ox-liquors:5bff10401859dd0f29367fd0",
+      "address": "7965 FL-50 #1200, Groveland, FL 34736, USA"
+    },
+    {
+      "storeId": "golden-ox-liquors:5c5c8696e2b6475f65dd8abf",
+      "address": "7903 Normandy Blvd, Jacksonville, FL 32221, USA"
+    },
+    {
+      "storeId": "greygoose-liquors:walnut-hill",
+      "address": "11330 FL-97, Walnut Hill, FL 32568"
+    },
+    {
+      "storeId": "jensens-liquors:1646-sw-27th",
+      "address": "1646 SW 27th Ave, Miami, FL 33145"
+    },
+    {
+      "storeId": "luekens:clearwater",
+      "address": "23025 US Highway 19 North, Clearwater, FL 33765"
+    },
+    {
+      "storeId": "luekens:dunedin",
+      "address": "1410 Main Street, Dunedin, FL 34698"
+    },
+    {
+      "storeId": "luekens:east-lake",
+      "address": "36249 E Lake Rd, Palm Harbor, FL 34685"
+    },
+    {
+      "storeId": "luekens:kennedy-tampa",
+      "address": "4643 West Kennedy Boulevard, Tampa, FL 33609"
+    },
+    {
+      "storeId": "luekens:midtown-tampa",
+      "address": "236 North Dale Mabry Highway, Tampa, FL 33609"
+    },
+    {
+      "storeId": "luekens:oldsmar",
+      "address": "3163 Curlew Road, Oldsmar, FL 34677"
+    },
+    {
+      "storeId": "luekens:seminole",
+      "address": "6950 Seminole Boulevard, Seminole, FL 33772"
+    },
+    {
+      "storeId": "luekens:tarpon",
+      "address": "41522 US Highway 19 North, Tarpon Springs, FL 34689"
+    },
+    {
+      "storeId": "mdp-liquor-kissimmee:4636-w-irlo-bronson",
+      "address": "4636 W Irlo Bronson Memorial Hwy, Kissimmee, FL 34746"
+    },
+    {
+      "storeId": "my-florida-liquors:5f52751f5e156626139b87aa",
+      "address": "8305 Champions Gate Blvd, Davenport, FL 33896, USA"
+    },
+    {
+      "storeId": "my-florida-liquors:5f58f60980eb420def3fd51b",
+      "address": "14904 E Orange Lake Blvd, Kissimmee, FL 34747, USA"
+    },
+    {
+      "storeId": "my-florida-liquors:5f58f6a9f6a57131c1c4c46e",
+      "address": "3230 Rolling Oaks Blvd, Kissimmee, FL 34747, USA"
+    },
+    {
+      "storeId": "my-florida-liquors:5f58f7024918d869fb9662d3",
+      "address": "833 Cypress Pkwy, Kissimmee, FL 34759, USA"
+    },
+    {
+      "storeId": "ocean-wine-spirits:5d2fd529e7648c5a75c92a60",
+      "address": "2901 E Las Olas Blvd, Fort Lauderdale, FL 33316, USA"
+    },
+    {
+      "storeId": "ocean-wine-spirits:62c490c21dec3125d5e11303",
+      "address": "2780 E Oakland Park Blvd, Fort Lauderdale, FL 33306, USA"
+    },
+    {
+      "storeId": "paradise-fubar-liquors:691f7f979c3eeb27a9a25f7d",
+      "address": "15928 W State Rd 84, Sunrise, FL 33326, USA"
+    },
+    {
+      "storeId": "paradise-fubar-liquors:691f8374054a225be5c82459",
+      "address": "4469 Mobile Hwy, Pensacola, FL 32506, USA"
+    },
+    {
+      "storeId": "pensacola-liquors:pace-blvd",
+      "address": "1800 North Pace Boulevard, Pensacola, FL 32505"
+    },
+    {
+      "storeId": "primo-liquors:bayview-sunrise",
+      "address": "2541 E Sunrise Blvd, Fort Lauderdale, FL 33304"
+    },
+    {
+      "storeId": "primo-liquors:davie",
+      "address": "5993 Stirling Rd, Davie, FL 33314"
+    },
+    {
+      "storeId": "primo-liquors:fort-lauderdale",
+      "address": "700 S Federal Hwy, Fort Lauderdale, FL 33316"
+    },
+    {
+      "storeId": "primo-liquors:southeast",
+      "address": "200 SW Davie Blvd, Fort Lauderdale, FL 33315"
+    },
+    {
+      "storeId": "primo-liquors:southwest-ranches",
+      "address": "4815 SW 148th Ave, Southwest Ranches, FL 33330"
+    },
+    {
+      "storeId": "sarasota-liquor-locker:fruitville-rd",
+      "address": "5403 Fruitville Rd, Sarasota, FL 34232"
+    },
+    {
+      "storeId": "sarasota-wine-liquors:625d92134d905117662abd0f",
+      "address": "4055 Cattlemen Rd, Sarasota, FL 34233, USA"
+    },
+    {
+      "storeId": "sunshine-food-spirits:68cb1b32de882540d44d64e1",
+      "address": "800 Chestnut St, Clearwater, FL 33756, USA"
+    },
+    {
+      "storeId": "tivoli-south-liquors:miami",
+      "address": "244 SW 107th Ave, Miami, FL 33174"
+    }
+  ],
+  "inventoryPremisesSha256": "1bfcac588e3ad40361125f67b6fc4a557e72eef8189d16001545bd40b3c44571"
+}

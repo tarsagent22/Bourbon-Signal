@@ -1,10 +1,50 @@
+import { createHash } from 'node:crypto';
+import { readFileSync } from 'node:fs';
+
 import { stableId } from '../core/text.mjs';
 
 function stores(rows) {
-  return new Map(rows.map(([id, name, address, city, zip]) => [id, { id, name, address, city, zip }]));
+  return new Map(rows.map(([id, name, address, city, zip, lat, lng]) => {
+    const store = { id, name, address, city, zip };
+    if (Number.isFinite(lat) && Number.isFinite(lng)) Object.assign(store, { lat, lng });
+    return [id, Object.freeze(store)];
+  }));
 }
 
-export const FLORIDA_CITYHIVE_SOURCES = [
+const FLORIDA_STAR_LIQUORS_REGISTRY = JSON.parse(readFileSync(new URL('../../data/florida-star-liquors-store-registry.json', import.meta.url), 'utf8'));
+export const FLORIDA_STAR_LIQUORS_REGISTRY_SHA256 = '88a77fc4eeccc115f8c8d7004a285db284b28723654dc5a371ccfcdf15ae76e8';
+
+const starRegistryRows = (FLORIDA_STAR_LIQUORS_REGISTRY.stores || []).map((row) => ({
+  id: String(row.id),
+  name: String(row.name),
+  address: String(row.address),
+  city: String(row.city),
+  zip: String(row.zip),
+  lat: Number(row.lat),
+  lng: Number(row.lng),
+}));
+const starRegistryDigest = createHash('sha256').update(JSON.stringify(starRegistryRows)).digest('hex');
+if (FLORIDA_STAR_LIQUORS_REGISTRY.contractVersion !== 'bourbon-signal/florida-star-liquors-store-registry@1'
+  || FLORIDA_STAR_LIQUORS_REGISTRY.sha256 !== FLORIDA_STAR_LIQUORS_REGISTRY_SHA256
+  || starRegistryDigest !== FLORIDA_STAR_LIQUORS_REGISTRY_SHA256
+  || starRegistryRows.length !== 24
+  || new Set(starRegistryRows.map((row) => row.id)).size !== 24
+  || new Set(starRegistryRows.map((row) => row.address)).size !== 24
+  || starRegistryRows.some((row) => !/, FL \d{5}, USA$/u.test(row.address) || !Number.isFinite(row.lat) || !Number.isFinite(row.lng))) {
+  throw new Error('Immutable Florida Star Liquors exact-store registry contract mismatch.');
+}
+
+export const FLORIDA_STAR_LIQUORS_SOURCE = Object.freeze({
+  id: 'star-liquors',
+  chainName: 'Star Liquors',
+  sourceLabel: 'Star Liquors Florida CityHive store inventory',
+  baseUrl: 'https://starlq.com',
+  categoryUrl: 'https://starlq.com/shop/?subtype=Bourbon',
+  strictInventoryContract: true,
+  merchants: stores(starRegistryRows.map((row) => [row.id, row.name, row.address, row.city, row.zip, row.lat, row.lng])),
+});
+
+export const FLORIDA_CITYHIVE_SOURCES = Object.freeze([
   {
     id: 'my-florida-liquors',
     chainName: '1001 Liquors / My Florida Liquors',
@@ -129,7 +169,8 @@ export const FLORIDA_CITYHIVE_SOURCES = [
       ['68ac9741700b9b25a87e0f3b', 'The Bourbon Barn', '2331 NW 13th St, Gainesville, FL 32609, USA', 'Gainesville', '32609'],
     ]),
   },
-];
+  FLORIDA_STAR_LIQUORS_SOURCE,
+]);
 
 export function registeredFloridaStore(sourceId, merchantId) {
   return FLORIDA_CITYHIVE_SOURCES.find((source) => source.id === sourceId)?.merchants.get(String(merchantId)) || null;

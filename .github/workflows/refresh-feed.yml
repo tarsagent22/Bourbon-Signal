@@ -250,6 +250,11 @@ jobs:
         working-directory: engine
         run: npm run verify:fl:15-20
 
+      - name: Verify Florida Star Liquors 20-store expansion
+        if: ${{ !inputs.states || inputs.force_all_states == 'true' || contains(inputs.states, 'FL') }}
+        working-directory: engine
+        run: npm run verify:fl:star-expansion
+
       - name: Verify no unproven state promotion entered the customer path
         working-directory: engine
         run: npm run verify:state-integration -- --all-active

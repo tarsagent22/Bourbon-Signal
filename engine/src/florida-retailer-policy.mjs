@@ -10,7 +10,9 @@ const FLORIDA_CITYHIVE_IDENTITIES = new Map(FLORIDA_CITYHIVE_SOURCES.map((source
   {
     chain: source.id,
     hostname: new URL(source.baseUrl).hostname.replace(/^www\./i, '').toLowerCase(),
+    origin: new URL(source.baseUrl).origin,
     stores: source.merchants,
+    strictInventoryContract: source.strictInventoryContract === true,
   },
 ]));
 
@@ -179,6 +181,52 @@ function floridaExpansionIdentityIsValid(identity, signal, sourceStrictHostname)
   return false;
 }
 
+function strictCityHiveInventoryIsValid(signal, identity, store, sourceHostname) {
+  if (!identity.strictInventoryContract) return true;
+  let sourceUrl = null;
+  try { sourceUrl = new URL(String(signal.sourceUrl || '')); } catch { return false; }
+  const merchantId = String(signal.merchantId || signal.raw?.merchantId || '');
+  const productId = String(signal.productId || '');
+  const variantId = String(signal.variantId || '');
+  const reportedQuantity = Number(signal.reportedQuantity ?? signal.raw?.reportedQuantity ?? 0);
+  const quantity = Number(signal.quantity || 0);
+  const option = signal.raw?.option;
+  const semantics = String(signal.inventorySemantics || '');
+  const pathSegments = sourceUrl.pathname.split('/').filter(Boolean);
+  const sourceProductId = pathSegments.at(-1) || '';
+  const sourceQueryEntries = [...sourceUrl.searchParams.entries()];
+  const binaryAvailability = reportedQuantity >= 100;
+  const quantityContractValid = Number.isInteger(reportedQuantity)
+    && reportedQuantity > 0
+    && (binaryAvailability
+      ? quantity === 1 && signal.quantityIsExact === false && semantics === 'binary_retailer_orderable_no_exact_count'
+      : quantity === reportedQuantity && signal.quantityIsExact === true && semantics === 'exact_retailer_reported_quantity');
+  return sourceUrl.protocol === 'https:'
+    && sourceHostname === identity.hostname
+    && sourceUrl.origin === identity.origin
+    && sourceUrl.username === ''
+    && sourceUrl.password === ''
+    && /^\/shop\/product\/[a-z0-9][a-z0-9-]*\/[a-z0-9][a-z0-9-]*\/?$/i.test(sourceUrl.pathname)
+    && Boolean(productId && variantId)
+    && /^[a-z0-9][a-z0-9-]*$/i.test(productId)
+    && /^[a-z0-9][a-z0-9-]*$/i.test(variantId)
+    && sourceProductId === productId
+    && sourceQueryEntries.length === 1
+    && sourceQueryEntries[0][0] === 'option-id'
+    && sourceQueryEntries[0][1] === variantId
+    && sourceUrl.search === `?option-id=${encodeURIComponent(variantId)}`
+    && quantityContractValid
+    && String(signal.raw?.chain || '') === identity.chain
+    && String(signal.raw?.merchantId || '') === merchantId
+    && Boolean(String(signal.raw?.product?.id || ''))
+    && String(option?.merchant_id || '') === merchantId
+    && String(option?.product_id || '') === productId
+    && String(option?.option_id || '') === variantId
+    && String(option?.full_address || '') === store.address
+    && Number(option?.quantity) === reportedQuantity
+    && String(option?.product_url || '') === sourceUrl.href;
+}
+
 export function isFloridaRetailerSignalIdentity(signal) {
   const source = String(signal.sourceLabel || signal.source || '');
   const merchantId = String(signal.merchantId || signal.raw?.merchantId || '');
@@ -215,7 +263,8 @@ export function isFloridaRetailerSignalIdentity(signal) {
       && chain === cityHiveIdentity.chain
       && sourceHostname === cityHiveIdentity.hostname
       && storeId === `${chain}:${merchantId}`
-      && String(signal.storeAddress || '') === store.address);
+      && String(signal.storeAddress || '') === store.address
+      && strictCityHiveInventoryIsValid(signal, cityHiveIdentity, store, sourceHostname));
   }
 
   const identity = FLORIDA_RETAILER_IDENTITIES.get(source);
