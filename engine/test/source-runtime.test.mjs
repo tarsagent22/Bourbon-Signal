@@ -70,6 +70,25 @@ test('throwing, timed out, malformed, and collapsed sources cannot stop healthy 
   assert.equal(indexed.collapse.value.signals.length, 10);
 });
 
+test('per-adapter runtime budgets override the shared defaults without widening sibling sources', async () => {
+  assert.throws(() => adapter('bad-timeout', async () => ({ signals: [] }), { timeoutMs: 'not-a-number' }), /timeoutMs.*finite numeric/i);
+  assert.throws(() => adapter('bad-attempts', async () => ({ signals: [] }), { maxAttempts: Number.NaN }), /maxAttempts.*finite numeric/i);
+  const results = (await runSourceAdapters([
+    adapter('extended-once', async () => {
+      await new Promise((resolve) => setTimeout(resolve, 1_100));
+      return { signals: [{ id: 'extended-success' }] };
+    }, { timeoutMs: 1_500, maxAttempts: 1 }),
+    adapter('default-timeout', async (_context, { signal }) => new Promise((_resolve, reject) => {
+      signal.addEventListener('abort', () => reject(signal.reason), { once: true });
+    }), { maxAttempts: 1 }),
+  ], {}, { timeoutMs: 5, maxAttempts: 3, retryDelayMs: 0 })).results;
+  const indexed = byId(results);
+  assert.equal(indexed['extended-once'].status, 'success');
+  assert.equal(indexed['extended-once'].attemptCount, 1);
+  assert.equal(indexed['default-timeout'].status, 'timeout');
+  assert.equal(indexed['default-timeout'].attemptCount, 1);
+});
+
 test('only transient errors receive a bounded retry', async () => {
   const attempts = { transient: 0, malformed: 0 };
   const { results } = await runSourceAdapters([

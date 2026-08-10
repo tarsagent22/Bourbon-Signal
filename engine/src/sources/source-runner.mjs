@@ -101,6 +101,11 @@ export async function runSourceAdapters(adapters, context = {}, options = {}) {
     ? { sourceId: adapter.id, decision: 'scheduler_disabled' }
     : schedulingDecision(adapter, options, scheduledAt));
   const tasks = list.map((adapter, index) => ({ adapter, index, schedule: schedules[index], id: adapter.id, domain: adapter.domain }));
+  const poolTaskTimeoutMs = Math.max(...list.map((adapter) => {
+    const attempts = adapter.maxAttempts ?? maxAttempts;
+    const attemptTimeoutMs = adapter.timeoutMs ?? timeoutMs;
+    return attemptTimeoutMs * attempts + retryDelayMs * attempts + 1_000;
+  }));
 
   const poolResults = await runBoundedPool(tasks, async (task, { signal }) => {
     const { adapter, schedule } = task;
@@ -120,14 +125,16 @@ export async function runSourceAdapters(adapters, context = {}, options = {}) {
     }
 
     const startedAt = nowIso(now);
+    const adapterTimeoutMs = adapter.timeoutMs ?? timeoutMs;
+    const adapterMaxAttempts = adapter.maxAttempts ?? maxAttempts;
     let attemptCount = 0;
     let lastError = null;
     const attempts = [];
-    while (attemptCount < maxAttempts) {
+    while (attemptCount < adapterMaxAttempts) {
       attemptCount += 1;
       const attemptStartedAt = nowIso(now);
       try {
-        const candidate = validateSourceValue(adapter, await executeWithTimeout(adapter, context, signal, attemptCount, timeoutMs));
+        const candidate = validateSourceValue(adapter, await executeWithTimeout(adapter, context, signal, attemptCount, adapterTimeoutMs));
         const collapsed = collapseError(adapter, previous, candidate);
         if (collapsed) throw collapsed;
         const attemptFinishedAt = nowIso(now);
@@ -162,7 +169,7 @@ export async function runSourceAdapters(adapters, context = {}, options = {}) {
             message: lastError.message,
           },
         });
-        if (!lastError.transient || attemptCount >= maxAttempts) break;
+        if (!lastError.transient || attemptCount >= adapterMaxAttempts) break;
         await sleep(retryDelayMs * attemptCount);
       }
     }
@@ -181,7 +188,7 @@ export async function runSourceAdapters(adapters, context = {}, options = {}) {
   }, {
     concurrency: Math.max(1, Math.floor(Number(options.concurrency ?? 4))),
     perDomain: Math.max(1, Math.floor(Number(options.perDomain ?? 1))),
-    timeoutMs: timeoutMs * maxAttempts + retryDelayMs * maxAttempts + 1_000,
+    timeoutMs: poolTaskTimeoutMs,
     domainFor: (task) => task.domain,
   });
 

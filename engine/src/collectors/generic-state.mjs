@@ -280,6 +280,13 @@ function configuredSourceId(config, source) {
   return `${String(config.id || 'state').toLowerCase()}:${sourceKind}:${String(identity).toLowerCase()}`;
 }
 
+export function configuredSourceRuntimeOptions(config, source) {
+  if (config?.id === 'WV' && source?.id === 'wv-abca-recent-purchases') {
+    return { timeoutMs: 60_000, maxAttempts: 1 };
+  }
+  return {};
+}
+
 async function collectConfiguredSource(config, source, sourceId, bible, fetcher, signal) {
   if (config.id === 'WV' && source.id === 'wv-abca-recent-purchases') {
     return collectWestVirginiaRecentPurchases(bible, { signal });
@@ -507,6 +514,7 @@ export async function collectState(config, bible, options = {}) {
       id: sourceId,
       label: source.label,
       url: source.url,
+      ...configuredSourceRuntimeOptions(config, source),
       execute: (_context, { signal }) => collectConfiguredSource(config, source, sourceId, bible, fetcher, signal),
       validate: (value) => Array.isArray(value?.signals) && value?.sourceReport ? true : 'Configured source result is malformed',
       recordCount: (value) => value.signals.length,
