@@ -89,7 +89,11 @@ export function buildLocationBible(signals = [], officialLocations = []) {
     if (activeStateIds.has(location.state)) locations.push(makeLocation(location));
   }
 
-  const activeOfficialLocations = officialLocations.filter((location) => activeStateIds.has(location.state));
+  // West Virginia's current 180-license directory signals are the sole Finder
+  // authority. Retained generic location caches can contain older purchase-derived
+  // rows and must never be merged back into the WV store universe.
+  const activeOfficialLocations = officialLocations.filter((location) =>
+    activeStateIds.has(location.state) && String(location.state || '').toUpperCase() !== 'WV');
   // Always keep NC county-board scaffolding in the site location bible. Official
   // store/board feeds can fluctuate and may attach signals to many records, but
   // the customer-facing finder still needs stable no-signal board locations for
