@@ -255,6 +255,11 @@ jobs:
         working-directory: engine
         run: npm run verify:fl:star-expansion
 
+      - name: Verify targeted West Virginia exact-store recent-purchase expansion
+        if: ${{ inputs.states && contains(inputs.states, 'WV') }}
+        working-directory: engine
+        run: npm run verify:wv
+
       - name: Verify no unproven state promotion entered the customer path
         working-directory: engine
         run: npm run verify:state-integration -- --all-active

@@ -805,15 +805,15 @@ export const STATE_LIFECYCLE_CONFIG = {
     },
     "WV": {
       "customerLabel": "West Virginia",
-      "sourceLabel": "West Virginia ABCA official barrel-selection updates and licensed-store directory",
+      "sourceLabel": "West Virginia ABCA exact-store recent purchases, barrel-selection updates, and licensed-store directory",
       "publicStatus": "active",
-      "lifecycle": "official_barrel_selection_updates",
+      "lifecycle": "exact_store_recent_purchase_and_barrel_updates",
       "coverageTier": "shipment_drop_intelligence",
-      "refinementLevel": "statewide",
+      "refinementLevel": "exact_store",
       "inventoryAlertable": false,
       "watchAlertable": false,
       "shadowEligible": false,
-      "customerSummary": "Official West Virginia barrel-selection updates plus searchable licensed-store information. Retailers may be able to order listed selections, but these updates do not confirm shelf stock or enable restock alerts.",
+      "customerSummary": "Exact-store West Virginia retailer purchase leads from WVABCA's trailing three-month window, plus official barrel-selection updates and searchable licensed stores. Purchase leads are call-first shipment intelligence, not live shelf inventory or quantity, and do not enable restock alerts.",
       "promotionStage": "active",
       "promotionEvidence": {
         "shadowRuns": 3,
@@ -821,15 +821,15 @@ export const STATE_LIFECYCLE_CONFIG = {
         "verifiedAt": "2026-08-09T23:04:01.524Z",
         "shadowArtifact": "engine/data/state-evidence/WV/shadow-runs.json",
         "canaryArtifact": "engine/data/state-evidence/WV/canary-runs.json",
-        "canaryPreviewUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/31340717144",
+        "canaryPreviewUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/31412815445",
         "verticalSliceManifest": "engine/data/state-integration/WV.json",
         "fixtureContract": "engine/data/state-fixtures/WV.json",
         "immutableEvidence": {
           "schemaVersion": 1,
           "state": "WV",
-          "generatedAt": "2026-08-09T23:02:23.125Z",
-          "sourceConfigHash": "3598ddc1306bea8722ae34fb1896c8fd5a9a37a39e0c3a565dd11a20f588b37d",
-          "previewUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/31340717144",
+          "generatedAt": "2026-08-10T17:12:18.600Z",
+          "sourceConfigHash": "4dc171003c4a0a197cafc5931a4a384e1eb1cdebf39cb102e439c994965e1c39",
+          "previewUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/31412815445",
           "shadowRuns": [
             {
               "runId": "31340713953",
@@ -869,15 +869,15 @@ export const STATE_LIFECYCLE_CONFIG = {
             "repository": "tarsagent22/Bourbon-Signal",
             "workflowFile": ".github/workflows/state-promotion-provenance.yml",
             "workflowName": "Verify state promotion provenance",
-            "workflowRunId": "31340869174",
+            "workflowRunId": "31412815445",
             "workflowRunAttempt": "1",
-            "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/31340869174",
-            "commitSha": "2cfb3d0d3f89951b2c2225ed328f0f1f4f1d4a57",
-            "artifactId": "9045776522",
-            "artifactName": "state-promotion-provenance-WV-31340869174",
-            "artifactDigest": "1e585e3687de42944eb60a82d92813b3b845615cd763784c596001a1b1d80e21",
-            "bundleDigest": "882e9c04606ab8d440d7f03cd017b720095e4f77d2d72ebda06f3f190e2174ea",
-            "generatedAt": "2026-08-09T23:02:23.125Z"
+            "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/31412815445",
+            "commitSha": "8c3ca57cdd920ce49afbeedbee2f94b923498344",
+            "artifactId": "9072244209",
+            "artifactName": "state-promotion-provenance-WV-31412815445",
+            "artifactDigest": "fbeef1072df5e9c44570e926af5384cd68368ca1328de87e722d1a242f71276b",
+            "bundleDigest": "64b2e1c16d47f2a8c279ba2f3339f31f398cfe013fdbe15d70f57adf45b5ae22",
+            "generatedAt": "2026-08-10T17:12:18.600Z"
           }
         }
       }

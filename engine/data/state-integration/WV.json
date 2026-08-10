@@ -5,23 +5,24 @@
     "customerLabel": "West Virginia",
     "publicStatus": "active",
     "coverageTier": "shipment_drop_intelligence",
-    "refinementLevel": "statewide"
+    "refinementLevel": "exact_store"
   },
   "collector": {
     "sourceIds": [
+      "wv-abca-recent-purchases",
       "wv-abca-barrel-selections",
       "wv-abca-active-retail-liquor-directory"
     ],
-    "registration": "engine/src/state-sources.mjs registers the current official ABCA barrel-selection page, while the collector adds the reviewed active-license directory as searchable, directory-only premises."
+    "registration": "engine/src/state-sources.mjs registers the public WVABCA Liquor Search recent-purchase route and current barrel-selection page, while the collector adds the reviewed active-license directory as searchable, directory-only premises."
   },
   "storeIdentity": {
-    "mode": "official_license_directory_only",
+    "mode": "official_api_store_number_plus_license_directory",
     "expectedKnownStores": 180,
     "addressRequired": true,
-    "proof": "Each searchable premise is bound to an active ABCA retail-liquor license number, business name, official address text, and city. Directory identity never becomes inventory identity."
+    "proof": "Directory premises remain bound to active ABCA license identities. Recent-purchase rows use WVABCA's own StoreNumber, DBA, street, city, and phone as exact source identity; directory linkage is optional and never fabricated when legal-name or address forms differ."
   },
   "sourceSemantics": {
-    "availability": "The official barrel-selection page proves only that West Virginia retailers may be able to order a current listed selection. It does not confirm any store has shelf stock, pickup, delivery, or quantity.",
+    "availability": "WVABCA Liquor Search proves that an exact retailer purchased a named product within the trailing three-month window. It publishes no purchase date, quantity, current shelf stock, pickup, or delivery. Barrel selections remain statewide ordering intelligence only.",
     "inventoryAlertable": false,
     "watchAlertable": false
   },
@@ -32,7 +33,7 @@
     },
     "areaFilter": {
       "status": "not_applicable",
-      "reason": "The official update is statewide and does not claim county, city, or store inventory."
+      "reason": "Recent-purchase rows identify exact stores and cities, but the release does not add a separate customer area taxonomy."
     },
     "preferences": {
       "status": "verified",
@@ -44,7 +45,7 @@
     },
     "dropFeedApi": {
       "status": "verified",
-      "assertion": "The customer feed accepts the exact WV state filter and exposes only current official selection rows with an explicit not-live-shelf-inventory caveat."
+      "assertion": "The customer feed accepts the exact WV state filter and exposes exact-store recent-purchase leads plus official selection rows with explicit call-first, not-live-shelf-inventory caveats."
     },
     "finder": {
       "status": "verified",
@@ -56,11 +57,11 @@
     },
     "monitoring": {
       "status": "verified",
-      "assertion": "The source report records useful current rows only when the current-year official section parses; missing or stale headings fail closed."
+      "assertion": "The source report records exact-store purchase rows only when the runtime key, pinned product identities, start/end canaries, request budget, and response-shape checks pass. Missing, empty-throttled, collapsed, or malformed runs fail closed while the barrel parser remains independently isolated."
     },
     "export": {
       "status": "verified",
-      "assertion": "Export preserves six source-stock identities as on-site-only official updates and 180 directory premises without creating exact-store inventory or alerts."
+      "assertion": "Export preserves exact-store purchase-window identities as on-site-only shipment leads, six official selection identities, and 180 directory premises without creating live inventory, quantity, watch, email, SMS, or delivery alerts."
     }
   },
   "evidence": {
@@ -80,9 +81,9 @@
     "immutablePromotionEvidence": {
       "schemaVersion": 1,
       "state": "WV",
-      "generatedAt": "2026-08-09T23:02:23.125Z",
-      "sourceConfigHash": "3598ddc1306bea8722ae34fb1896c8fd5a9a37a39e0c3a565dd11a20f588b37d",
-      "previewUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/31340717144",
+      "generatedAt": "2026-08-10T17:12:18.600Z",
+      "sourceConfigHash": "4dc171003c4a0a197cafc5931a4a384e1eb1cdebf39cb102e439c994965e1c39",
+      "previewUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/31412815445",
       "shadowRuns": [
         {
           "runId": "31340713953",
@@ -122,15 +123,15 @@
         "repository": "tarsagent22/Bourbon-Signal",
         "workflowFile": ".github/workflows/state-promotion-provenance.yml",
         "workflowName": "Verify state promotion provenance",
-        "workflowRunId": "31340869174",
+        "workflowRunId": "31412815445",
         "workflowRunAttempt": "1",
-        "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/31340869174",
-        "commitSha": "2cfb3d0d3f89951b2c2225ed328f0f1f4f1d4a57",
-        "artifactId": "9045776522",
-        "artifactName": "state-promotion-provenance-WV-31340869174",
-        "artifactDigest": "1e585e3687de42944eb60a82d92813b3b845615cd763784c596001a1b1d80e21",
-        "bundleDigest": "882e9c04606ab8d440d7f03cd017b720095e4f77d2d72ebda06f3f190e2174ea",
-        "generatedAt": "2026-08-09T23:02:23.125Z"
+        "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/31412815445",
+        "commitSha": "8c3ca57cdd920ce49afbeedbee2f94b923498344",
+        "artifactId": "9072244209",
+        "artifactName": "state-promotion-provenance-WV-31412815445",
+        "artifactDigest": "fbeef1072df5e9c44570e926af5384cd68368ca1328de87e722d1a242f71276b",
+        "bundleDigest": "64b2e1c16d47f2a8c279ba2f3339f31f398cfe013fdbe15d70f57adf45b5ae22",
+        "generatedAt": "2026-08-10T17:12:18.600Z"
       }
     },
     "production": {

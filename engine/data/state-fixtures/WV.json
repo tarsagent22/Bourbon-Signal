@@ -84,7 +84,7 @@
       "input": { "sourceUrl": "https://abca.wv.gov/spirits/wv-bourbon-whiskey-barrel-picks" },
       "expected": {
         "officialHost": true,
-        "allowlistedHosts": ["abca.wv.gov"]
+        "allowlistedHosts": ["abca.wv.gov", "www.wvabca.com"]
       }
     }
   ]

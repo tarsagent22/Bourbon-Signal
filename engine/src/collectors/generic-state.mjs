@@ -12,6 +12,7 @@ import { runSourceAdapters } from '../sources/source-runner.mjs';
 import { SourceCircuitBreaker } from '../sources/circuit-breaker.mjs';
 import { applyNcBoardShipmentPolicy } from './north-carolina-intelligence.mjs';
 import {
+  collectWestVirginiaRecentPurchases,
   enrichWestVirginiaBarrelSelections,
   parseWestVirginiaBarrelSelections,
   westVirginiaDirectorySignals,
@@ -280,6 +281,9 @@ function configuredSourceId(config, source) {
 }
 
 async function collectConfiguredSource(config, source, sourceId, bible, fetcher, signal) {
+  if (config.id === 'WV' && source.id === 'wv-abca-recent-purchases') {
+    return collectWestVirginiaRecentPurchases(bible, { signal });
+  }
   const response = await fetcher(source.url, {
     politeDelayMs: source.sourceRuntimeKind === 'api' ? 250 : 300,
     ...(source.sourceRuntimeKind === 'api' ? { headers: { accept: 'application/json,*/*' } } : {}),
@@ -506,6 +510,8 @@ export async function collectState(config, bible, options = {}) {
       execute: (_context, { signal }) => collectConfiguredSource(config, source, sourceId, bible, fetcher, signal),
       validate: (value) => Array.isArray(value?.signals) && value?.sourceReport ? true : 'Configured source result is malformed',
       recordCount: (value) => value.signals.length,
+      collapse: source.collapse,
+      scheduleMetrics: source.scheduleMetrics,
       metadata: { stateId: config.id, lane: source.sourceRuntimeKind || 'configured' },
     }));
   }
