@@ -81,9 +81,9 @@
     "immutablePromotionEvidence": {
       "schemaVersion": 1,
       "state": "WV",
-      "generatedAt": "2026-08-09T23:02:23.125Z",
-      "sourceConfigHash": "3598ddc1306bea8722ae34fb1896c8fd5a9a37a39e0c3a565dd11a20f588b37d",
-      "previewUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/31340717144",
+      "generatedAt": "2026-08-10T16:41:44.835Z",
+      "sourceConfigHash": "4dc171003c4a0a197cafc5931a4a384e1eb1cdebf39cb102e439c994965e1c39",
+      "previewUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/31410229625",
       "shadowRuns": [
         {
           "runId": "31340713953",
@@ -123,15 +123,15 @@
         "repository": "tarsagent22/Bourbon-Signal",
         "workflowFile": ".github/workflows/state-promotion-provenance.yml",
         "workflowName": "Verify state promotion provenance",
-        "workflowRunId": "31340869174",
+        "workflowRunId": "31410229625",
         "workflowRunAttempt": "1",
-        "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/31340869174",
-        "commitSha": "2cfb3d0d3f89951b2c2225ed328f0f1f4f1d4a57",
-        "artifactId": "9045776522",
-        "artifactName": "state-promotion-provenance-WV-31340869174",
-        "artifactDigest": "1e585e3687de42944eb60a82d92813b3b845615cd763784c596001a1b1d80e21",
-        "bundleDigest": "882e9c04606ab8d440d7f03cd017b720095e4f77d2d72ebda06f3f190e2174ea",
-        "generatedAt": "2026-08-09T23:02:23.125Z"
+        "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/31410229625",
+        "commitSha": "791c756578d00b4f2c26c20bebb9bd4c28874734",
+        "artifactId": "9071263304",
+        "artifactName": "state-promotion-provenance-WV-31410229625",
+        "artifactDigest": "2c8c74d25140a71cd61839499100e34a32580cc2b0d62c07128a59827359ba50",
+        "bundleDigest": "287901209dc7c8875cb59a35d144cabe8fd028a393bf4fb6ac1c727a60e3a9fe",
+        "generatedAt": "2026-08-10T16:41:44.835Z"
       }
     },
     "production": {
