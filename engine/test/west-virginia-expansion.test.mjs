@@ -4,9 +4,12 @@ import { readFile } from 'node:fs/promises';
 
 import {
   collectWestVirginiaRecentPurchases,
+  digestWestVirginiaCaBundle,
   enrichWestVirginiaBarrelSelections,
   parseWestVirginiaBarrelSelections,
+  parseWestVirginiaCurlResponse,
   parseWestVirginiaLiquorSearchApiKey,
+  WEST_VIRGINIA_CA_BUNDLE_SHA256,
   WEST_VIRGINIA_RECENT_PURCHASE_WATCHLIST,
   westVirginiaDirectorySignals,
   westVirginiaRecentPurchaseSignal,
@@ -194,6 +197,41 @@ test('WV Liquor Search key parser accepts only the public runtime key assignment
   assert.equal(parseWestVirginiaLiquorSearchApiKey(liquorSearchHtml), 'public-runtime-key');
   assert.equal(parseWestVirginiaLiquorSearchApiKey('<script>var other = "secret"</script>'), null);
   assert.equal(parseWestVirginiaLiquorSearchApiKey("var APIKey = '';"), null);
+});
+
+test('WV source-scoped CA bundle is immutable and contains only the pinned RapidSSL chain', async () => {
+  const bundle = await readFile(new URL('../data/certificates/wvabca-rapidssl-chain.pem', import.meta.url));
+  const pem = bundle.toString('utf8');
+  assert.equal(digestWestVirginiaCaBundle(bundle), WEST_VIRGINIA_CA_BUNDLE_SHA256);
+  assert.equal(digestWestVirginiaCaBundle(pem.replaceAll(String.fromCharCode(10), String.fromCharCode(13, 10))), WEST_VIRGINIA_CA_BUNDLE_SHA256);
+  assert.equal((pem.match(/-----BEGIN CERTIFICATE-----/gu) || []).length, 2);
+});
+
+test('WV curl response parser derives the final HTTP status when Linux omits the write-out marker', () => {
+  const crlf = String.fromCharCode(13, 10);
+  const parsed = parseWestVirginiaCurlResponse([
+    `HTTP/1.1 200 Connection established${crlf}${crlf}`,
+    `HTTP/2 200${crlf}content-type: application/json${crlf}set-cookie: WVSession=abc; Path=/${crlf}${crlf}`,
+    '[{"StoreNumber":624}]',
+  ].join(''));
+  assert.deepEqual(parsed, {
+    status: 200,
+    text: '[{"StoreNumber":624}]',
+    setCookie: 'WVSession=abc',
+  });
+});
+
+test('WV curl response parser ignores a proxy CONNECT handshake without an origin response', () => {
+  const lf = String.fromCharCode(10);
+  const parsed = parseWestVirginiaCurlResponse(`HTTP/1.1 200 Connection established${lf}${lf}${lf}__BOURBON_SIGNAL_WV_HTTP_STATUS__:000`);
+  assert.equal(parsed.status, 0);
+});
+
+test('WV curl response parser prefers the explicit curl status marker when present', () => {
+  const lf = String.fromCharCode(10);
+  const parsed = parseWestVirginiaCurlResponse(`HTTP/2 200${lf}content-type: application/json${lf}${lf}[]${lf}__BOURBON_SIGNAL_WV_HTTP_STATUS__:204`);
+  assert.equal(parsed.status, 204);
+  assert.equal(parsed.text, '[]');
 });
 
 test('WV recent-purchase watchlist pins only live-verified official products within a nine-request budget', () => {
