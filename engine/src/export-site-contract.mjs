@@ -747,7 +747,7 @@ function buildBottles(signals, bible, bibleRecords = []) {
 }
 
 export function buildStores(signals) {
-  const storeSignals = signals.filter((s) => s.locationPrecision === 'store_level' && (s.storeName || s.locationName || s.storeAddress));
+  const storeSignals = signals.filter((s) => s.locationProjectionDisabled !== true && s.locationPrecision === 'store_level' && (s.storeName || s.locationName || s.storeAddress));
   const inventorySignals = storeSignals.filter((signal) => signal.sourceAvailabilityVerified === true && (signalCanAlertAsInventory(signal) || isMississippiSparseOnSiteInventory(signal)));
   const sameStore = (left, right) => {
     if (left.storeId && right.storeId) return String(left.storeId) === String(right.storeId);

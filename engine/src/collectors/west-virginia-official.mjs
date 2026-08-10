@@ -319,17 +319,28 @@ export async function collectWestVirginiaRecentPurchases(bible, {
     return added;
   };
   const canaryWithSize = { ...startingProduct, bottleSize: Number(canary.bottleSize) };
-  productResults.push({ productId: Number(startingProduct.ProductID), bottleSize: Number(canary.bottleSize), storeCount: startingCanaryStores.length, signalCount: addRows(startingCanaryStores, canaryWithSize) });
+  const canarySignalCount = addRows(startingCanaryStores, canaryWithSize);
+  if (canarySignalCount !== startingCanaryStores.length || canarySignalCount === 0) {
+    throw new MalformedSourceError(`West Virginia ABCA canary produced ${canarySignalCount} valid signals from ${startingCanaryStores.length} retailer rows`);
+  }
+  productResults.push({ productId: Number(startingProduct.ProductID), bottleSize: Number(canary.bottleSize), storeCount: startingCanaryStores.length, signalCount: canarySignalCount });
 
   for (const watch of watches.slice(1)) {
     const product = await search(watch);
     if (!product) throw new MalformedSourceError(`West Virginia ABCA known product ${watch.expectedProductId} returned an empty catalog result; possible silent throttle`);
     const productStores = await stores(product, watch);
+    if (!productStores.length) {
+      throw new MalformedSourceError(`West Virginia ABCA known product ${watch.expectedProductId} returned an empty retailer result; possible silent throttle`);
+    }
+    const signalCount = addRows(productStores, { ...product, bottleSize: Number(watch.bottleSize) });
+    if (signalCount !== productStores.length || signalCount === 0) {
+      throw new MalformedSourceError(`West Virginia ABCA known product ${watch.expectedProductId} produced ${signalCount} valid signals from ${productStores.length} retailer rows`);
+    }
     productResults.push({
       productId: Number(product.ProductID),
       bottleSize: Number(watch.bottleSize),
       storeCount: productStores.length,
-      signalCount: addRows(productStores, { ...product, bottleSize: Number(watch.bottleSize) }),
+      signalCount,
     });
   }
 

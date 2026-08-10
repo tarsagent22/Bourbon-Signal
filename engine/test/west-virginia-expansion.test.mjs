@@ -12,7 +12,7 @@ import {
   westVirginiaRecentPurchaseSignal,
 } from '../src/collectors/west-virginia-official.mjs';
 import { BourbonBible } from '../src/core/bible.mjs';
-import { buildDrops, bibleLookup } from '../src/export-site-contract.mjs';
+import { buildDrops, buildStores, bibleLookup } from '../src/export-site-contract.mjs';
 import { buildLocationBible } from '../src/location-bible.mjs';
 import { derivePublicDropEvidence } from '../../src/lib/public-drop-evidence.ts';
 
@@ -251,9 +251,13 @@ test('WV purchase signals do not duplicate the licensed-store Finder universe', 
     bottle: { id: 'buffalo-trace', canonical: 'Buffalo Trace', tier: 'allocated', confidence: 0.99 },
   });
   const locations = buildLocationBible([...directorySignals, purchaseSignal]);
+  const stores = buildStores([...directorySignals, purchaseSignal]);
   const westVirginiaStores = locations.filter((location) => location.state === 'WV' && location.type === 'store');
+  const westVirginiaStoreExport = stores.filter((store) => store.state === 'WV');
   assert.equal(westVirginiaStores.length, 180);
+  assert.equal(westVirginiaStoreExport.length, 180);
   assert.equal(westVirginiaStores.some((location) => String(location.id).startsWith('wvabca-store-')), false);
+  assert.equal(westVirginiaStoreExport.some((store) => String(store.id).startsWith('wvabca-store-')), false);
 });
 
 test('WV purchase Drop Feed dedupe preserves separate branches sharing a DBA', async () => {
@@ -319,6 +323,34 @@ test('WV recent-purchase collector fails closed on silent empty-array throttling
       minimumCanaryStores: 2,
     }),
     /ending canary.*empty|silent throttle/i,
+  );
+});
+
+test('WV recent-purchase collector rejects an empty non-canary watched product', async () => {
+  const blantonCatalog = [{ ProductID: 10150, ProductName: "Blanton's Gold Bourbon", BottleSize: '750' }];
+  const request = async (url, options = {}) => {
+    if (url === 'https://www.wvabca.com/liquorsearch.aspx') return { ok: true, status: 200, text: liquorSearchHtml };
+    const body = JSON.parse(options.body);
+    if (url.endsWith('/GetProductNameSearch')) {
+      return { ok: true, status: 200, text: JSON.stringify(body.ProductName.includes("Blanton") ? blantonCatalog : buffaloCatalog) };
+    }
+    if (url.endsWith('/GetStoresWithProduct')) {
+      return { ok: true, status: 200, text: JSON.stringify(Number(body.productID) === 10150 ? [] : buffaloStores) };
+    }
+    throw new Error(`Unexpected URL ${url}`);
+  };
+  const bible = { scanText: (name) => [{ id: name.includes("Blanton") ? 'blantons-gold' : 'buffalo-trace', canonical: name, tier: 'allocated', confidence: 0.99 }] };
+  await assert.rejects(
+    collectWestVirginiaRecentPurchases(bible, {
+      request,
+      sleep: async () => {},
+      watchlist: [
+        { query: 'Buffalo Trace Kentucky Straight Bourbon Whiskey', expectedProductId: 827, bottleSize: 750 },
+        { query: "Blanton's Gold Bourbon", expectedProductId: 10150, bottleSize: 750 },
+      ],
+      minimumCanaryStores: 2,
+    }),
+    /known product 10150.*empty.*retailer|silent throttle/i,
   );
 });
 

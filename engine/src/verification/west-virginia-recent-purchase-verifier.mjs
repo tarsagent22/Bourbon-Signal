@@ -4,6 +4,7 @@ const MINIMUM_PURCHASE_SIGNALS = 20;
 const MINIMUM_PURCHASE_STORES = 20;
 const MINIMUM_CANARY_STORES = 20;
 const MAXIMUM_REQUESTS = 9;
+const EXPECTED_PRODUCTS = new Set([827, 10150, 734]);
 const DIRECTORY_STORE_COUNT = 180;
 const BARREL_SELECTION_COUNT = 6;
 
@@ -66,9 +67,20 @@ export function verifyWestVirginiaRecentPurchaseArtifact(state) {
   invariant(signals.every(validPurchaseSignal), 'one or more purchase signals violate exact-premise or non-inventory semantics.');
   invariant(new Set(signals.map((signal) => signal.id)).size === signals.length, 'purchase signal IDs are not unique.');
 
+  const productResults = Array.isArray(source.productResults) ? source.productResults : [];
+  invariant(productResults.length === EXPECTED_PRODUCTS.size, 'watched product result count drifted.');
+  for (const productId of EXPECTED_PRODUCTS) {
+    const result = productResults.find((row) => Number(row?.productId) === productId && Number(row?.bottleSize) === 750);
+    invariant(result && Number(result.storeCount) > 0 && Number(result.signalCount) === Number(result.storeCount), `watched product ${productId} is empty or partially rejected.`);
+    const artifactCount = signals.filter((signal) => Number(signal?.raw?.officialProductId) === productId).length;
+    invariant(artifactCount === Number(result.signalCount), `watched product ${productId} signal count does not match the artifact.`);
+  }
+  invariant(productResults.reduce((sum, row) => sum + Number(row?.signalCount || 0), 0) === signals.length, 'watched product totals do not match the artifact.');
+
   const stores = new Set(signals.map((signal) => signal.storeId));
   const bottles = new Set(signals.map((signal) => signal.canonicalBottleId));
   invariant(stores.size >= MINIMUM_PURCHASE_STORES, `only ${stores.size} recent-purchase stores were produced.`);
+  invariant(bottles.size === EXPECTED_PRODUCTS.size, 'artifact does not contain every watched bottle identity.');
   invariant(Number(source.recentPurchaseSignalCount) === signals.length, 'source signal count does not match the artifact.');
   invariant(Number(source.locationCount) === stores.size, 'source location count does not match the artifact.');
   invariant(Number(source.matchedBottleCount) === bottles.size, 'source bottle count does not match the artifact.');

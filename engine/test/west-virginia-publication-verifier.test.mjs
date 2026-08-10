@@ -41,6 +41,20 @@ function purchaseSignal(index, overrides = {}) {
 
 function validArtifact() {
   const purchaseSignals = Array.from({ length: 20 }, (_, index) => purchaseSignal(index));
+  const productGroups = [
+    { productId: 827, count: 10 },
+    { productId: 10150, count: 5 },
+    { productId: 734, count: 5 },
+  ];
+  let offset = 0;
+  for (const group of productGroups) {
+    for (const signal of purchaseSignals.slice(offset, offset + group.count)) {
+      signal.raw.officialProductId = group.productId;
+      signal.canonicalBottleId = `bottle-${group.productId}`;
+      signal.canonicalName = `Bottle ${group.productId}`;
+    }
+    offset += group.count;
+  }
   return {
     state: 'WV',
     status: 'useful',
@@ -55,9 +69,14 @@ function validArtifact() {
       ok: true,
       status: 200,
       signalType: 'wv_abca_retailer_recent_purchase_window',
-      matchedBottleCount: 1,
+      matchedBottleCount: 3,
       locationCount: 20,
       recentPurchaseSignalCount: 20,
+      productResults: [
+        { productId: 827, bottleSize: 750, storeCount: 10, signalCount: 10 },
+        { productId: 10150, bottleSize: 750, storeCount: 5, signalCount: 5 },
+        { productId: 734, bottleSize: 750, storeCount: 5, signalCount: 5 },
+      ],
       requestCount: 9,
       maximumRequests: 9,
       canaryStoreCount: 155,
@@ -77,7 +96,7 @@ test('WV publication verifier accepts a current exact-store non-inventory purcha
     state: 'WV',
     recentPurchaseSignalCount: 20,
     recentPurchaseStoreCount: 20,
-    matchedBottleCount: 1,
+    matchedBottleCount: 3,
     directoryStoreCount: 180,
     barrelSelectionCount: 6,
     requestCount: 9,
@@ -93,6 +112,11 @@ test('WV publication verifier rejects missing source output and silent canary co
   const collapsed = validArtifact();
   collapsed.sources[0].canaryStoreCount = 0;
   assert.throws(() => verifyWestVirginiaRecentPurchaseArtifact(collapsed), /canary/i);
+
+  const partialProduct = validArtifact();
+  partialProduct.sources[0].productResults[1].storeCount = 0;
+  partialProduct.sources[0].productResults[1].signalCount = 0;
+  assert.throws(() => verifyWestVirginiaRecentPurchaseArtifact(partialProduct), /watched product/i);
 });
 
 test('WV publication verifier rejects any live-inventory, quantity, alert, or premise-identity overclaim', () => {
