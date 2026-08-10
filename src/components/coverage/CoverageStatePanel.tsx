@@ -46,6 +46,11 @@ export function CoverageStatePanel({ state }: CoverageStatePanelProps) {
       </div>
       <CoverageSummary state={state} />
 
+      <section className={styles.coverageExplanation} aria-label={`${state.name} coverage explanation`}>
+        <span>What we cover</span>
+        <p>{state.coverageExplanation}</p>
+      </section>
+
       <CoverageSearch stateCode={state.code} stateName={state.name} />
 
       {!requestOpen ? (

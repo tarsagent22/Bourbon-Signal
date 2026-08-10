@@ -260,6 +260,27 @@
   letter-spacing: -0.035em;
 }
 
+.coverageExplanation {
+  max-width: 46ch;
+  margin-top: 18px;
+  padding-left: 13px;
+  border-left: 2px solid rgba(216, 168, 79, 0.5);
+}
+
+.coverageExplanation span {
+  display: block;
+  color: var(--coverage-amber);
+  font: 800 9px/1 var(--font-jetbrains);
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.coverageExplanation p {
+  margin: 8px 0 0;
+  color: rgba(245, 237, 214, 0.72);
+  font: 13px/1.55 var(--font-dm-sans);
+}
+
 .resultStatus {
   display: inline-flex;
   border: 1px solid rgba(216, 168, 79, 0.32);
