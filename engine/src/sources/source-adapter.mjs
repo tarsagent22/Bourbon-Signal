@@ -21,12 +21,20 @@ export function createSourceAdapter(definition = {}) {
   if (definition.recordCount != null && typeof definition.recordCount !== 'function') throw new TypeError(`Source adapter ${id} recordCount must be a function`);
   const minBaseline = Math.max(1, Number(definition.collapse?.minBaseline ?? 1));
   const minRatio = Math.min(1, Math.max(0, Number(definition.collapse?.minRatio ?? 0.5)));
+  const rawTimeoutMs = definition.timeoutMs == null ? null : Number(definition.timeoutMs);
+  const rawMaxAttempts = definition.maxAttempts == null ? null : Number(definition.maxAttempts);
+  if (rawTimeoutMs != null && !Number.isFinite(rawTimeoutMs)) throw new TypeError(`Source adapter ${id} timeoutMs must be a finite numeric value`);
+  if (rawMaxAttempts != null && !Number.isFinite(rawMaxAttempts)) throw new TypeError(`Source adapter ${id} maxAttempts must be a finite numeric value`);
+  const timeoutMs = rawTimeoutMs == null ? null : Math.min(120_000, Math.max(1, rawTimeoutMs));
+  const maxAttempts = rawMaxAttempts == null ? null : Math.min(3, Math.max(1, Math.floor(rawMaxAttempts)));
   return Object.freeze({
     contractVersion: 'bourbon-signal-source-adapter-v1',
     id,
     label: String(definition.label || id),
     url: definition.url ? String(definition.url) : null,
     domain: String(definition.domain || sourceDomain(definition.url, id)),
+    timeoutMs,
+    maxAttempts,
     execute,
     validate: definition.validate || null,
     recordCount: definition.recordCount || defaultRecordCount,

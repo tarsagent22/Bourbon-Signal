@@ -14,6 +14,8 @@ import {
   westVirginiaDirectorySignals,
   westVirginiaRecentPurchaseSignal,
 } from '../src/collectors/west-virginia-official.mjs';
+import { configuredSourceRuntimeOptions } from '../src/collectors/generic-state.mjs';
+import { STATE_SOURCES } from '../src/state-sources.mjs';
 import { BourbonBible } from '../src/core/bible.mjs';
 import { buildDrops, buildStores, bibleLookup } from '../src/export-site-contract.mjs';
 import { buildLocationBible } from '../src/location-bible.mjs';
@@ -241,6 +243,12 @@ test('WV recent-purchase watchlist pins only live-verified official products wit
     { query: "Booker's Bourbon", expectedProductId: 734, bottleSize: 750 },
   ]);
   assert.equal(2 * WEST_VIRGINIA_RECENT_PURCHASE_WATCHLIST.length + 3, 9);
+});
+
+test('WV recent-purchase source gets one bounded extended runtime attempt', () => {
+  const config = STATE_SOURCES.find((entry) => entry.id === 'WV');
+  const source = config.sources.find((entry) => entry.id === 'wv-abca-recent-purchases');
+  assert.deepEqual(configuredSourceRuntimeOptions(config, source), { timeoutMs: 60_000, maxAttempts: 1 });
 });
 
 test('WV recent-purchase rows preserve official store identity without claiming live inventory', () => {
