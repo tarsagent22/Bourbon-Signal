@@ -50,7 +50,7 @@ function abcFixture({ mutateLocation } = {}) {
   const locations = Object.fromEntries(FLORIDA_ABC_STORES.map((store, index) => [store.storeNumber, {
     value: store.name,
     child_sku: `760505-${store.storeNumber}`,
-    inventory_level: index + 1,
+    inventory_level: (index % 98) + 1,
     id: 6000 + index,
     option_value_id: 7000 + index,
     calculated_price: 34.99 + index,
@@ -330,6 +330,11 @@ test('ABC Searchspring parser binds exact store name, child SKU, integer invento
   assert.deepEqual(parseFloridaAbcSearchspringInventory(wrongName, matchedBottle), []);
   const fractional = abcFixture({ mutateLocation: (locations) => { locations['4'].inventory_level = 1.5; } });
   assert.equal(parseFloridaAbcSearchspringInventory(fractional, matchedBottle).length, 125);
+  const highQuantityAnomaly = abcFixture({ mutateLocation: (locations) => {
+    locations['94'].inventory_level = 124;
+    locations['94'].calculated_price = 2.99;
+  } });
+  assert.equal(parseFloridaAbcSearchspringInventory(highQuantityAnomaly, matchedBottle).length, 125);
   const wrongSku = abcFixture({ mutateLocation: (locations) => { locations['5'].child_sku = 'forged-5'; } });
   assert.equal(parseFloridaAbcSearchspringInventory(wrongSku, matchedBottle).length, 125);
   const missingStore = abcFixture({ mutateLocation: (locations) => { delete locations['3']; } });
@@ -521,6 +526,9 @@ test('all 136 frozen identities qualify centrally and immutable verifier rejects
   assert.equal(isFloridaRetailerInventory({ ...firstPrimo, merchantId: secondPrimo.merchantId, raw: { ...firstPrimo.raw, merchantId: secondPrimo.merchantId } }), false);
   assert.equal(isFloridaRetailerInventory({ ...firstPrimo, sourceUrl: firstPrimo.sourceUrl.replace('https://', 'http://') }), false);
   assert.equal(isFloridaRetailerInventory({ ...firstPrimo, quantity: 1.5, reportedQuantity: 1.5, raw: { ...firstPrimo.raw, reportedQuantity: 1.5 } }), false);
+  assert.equal(isFloridaRetailerInventory({ ...firstPrimo, quantity: 124, reportedQuantity: 124, raw: { ...firstPrimo.raw, reportedQuantity: 124 } }), true);
+  const firstAbc = inventory.find((row) => row.sourceChain === 'abc-fine-wine-spirits');
+  assert.equal(isFloridaRetailerInventory({ ...firstAbc, quantity: 124, reportedQuantity: 124, raw: { ...firstAbc.raw, reportedQuantity: 124 } }), false);
 
   const bibleRecord = { id: 'buffalo-trace-bourbon', canonical: 'Buffalo Trace Bourbon', tier: 'allocated', aliases: [] };
   const bible = { byId: new Map([[bibleRecord.id, bibleRecord]]), byName: new Map(), byExactName: new Map() };
