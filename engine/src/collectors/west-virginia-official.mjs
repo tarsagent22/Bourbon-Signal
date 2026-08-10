@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { createHash } from 'node:crypto';
+import { createHash, createHmac } from 'node:crypto';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 
@@ -10,6 +10,7 @@ const DIRECTORY_SOURCE_URL = 'https://www.wvabca.com/licensesearch.aspx';
 const BARREL_SOURCE_URL = 'https://abca.wv.gov/spirits/wv-bourbon-whiskey-barrel-picks';
 const LIQUOR_SEARCH_SOURCE_URL = 'https://www.wvabca.com/liquorsearch.aspx';
 const LIQUOR_SEARCH_API_BASE_URL = 'https://api.wvabca.com/API.svc';
+const LIQUOR_SEARCH_GATEWAY_URL = 'https://www.bourbonsignal.com/api/source/wvabca';
 const LIQUOR_SEARCH_SOURCE_RUNTIME_ID = 'wv:configured:wv-abca-recent-purchases';
 const LIQUOR_SEARCH_MAX_BYTES = 4 * 1024 * 1024;
 const LIQUOR_SEARCH_DEFAULT_DELAY_MS = 500;
@@ -201,6 +202,100 @@ function parseApiArray(response, label) {
   return payload;
 }
 
+async function defaultWestVirginiaGatewayRequest({ signal } = {}) {
+  const key = process.env.ENGINE_SNAPSHOT_ENCRYPTION_KEY || '';
+  if (!key) throw new TransientSourceError('West Virginia ABCA gateway credential is not configured');
+  const token = createHmac('sha256', key).update('bourbon-signal/wvabca-gateway@1').digest('hex');
+  const response = await fetch(LIQUOR_SEARCH_GATEWAY_URL, {
+    headers: { accept: 'application/json', authorization: `Bearer ${token}`, 'user-agent': 'BourbonSignalEngineWvabcaFallback/1.0' },
+    signal: signal || AbortSignal.timeout(30_000),
+  });
+  const contentLength = Number(response.headers.get('content-length'));
+  if (Number.isFinite(contentLength) && contentLength > LIQUOR_SEARCH_MAX_BYTES) {
+    throw new MalformedSourceError('West Virginia ABCA gateway response exceeded the byte limit');
+  }
+  const text = await readWestVirginiaGatewayResponse(response);
+  if (!response.ok) throw new TransientSourceError(`West Virginia ABCA gateway returned HTTP ${response.status}`, { status: response.status });
+  try { return JSON.parse(text); } catch { throw new MalformedSourceError('West Virginia ABCA gateway returned malformed JSON', { status: response.status }); }
+}
+
+export async function readWestVirginiaGatewayResponse(response, maximumBytes = LIQUOR_SEARCH_MAX_BYTES) {
+  if (!response.body) {
+    const text = await response.text();
+    if (Buffer.byteLength(text, 'utf8') > maximumBytes) throw new MalformedSourceError('West Virginia ABCA gateway response exceeded the byte limit');
+    return text;
+  }
+  const reader = response.body.getReader();
+  const chunks = [];
+  let bytes = 0;
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      bytes += value.byteLength;
+      if (bytes > maximumBytes) {
+        await reader.cancel();
+        throw new MalformedSourceError('West Virginia ABCA gateway response exceeded the byte limit');
+      }
+      chunks.push(Buffer.from(value));
+    }
+  } finally {
+    reader.releaseLock();
+  }
+  return Buffer.concat(chunks, bytes).toString('utf8');
+}
+
+export function validateWestVirginiaGatewayPayload(value, { now = Date.now() } = {}) {
+  if (!value || typeof value !== 'object' || Array.isArray(value)
+    || value.contractVersion !== 'bourbon-signal/wvabca-gateway@1'
+    || Number(value.requestCount) !== 9
+    || !Array.isArray(value.products)
+    || value.products.length !== WEST_VIRGINIA_RECENT_PURCHASE_WATCHLIST.length) {
+    throw new MalformedSourceError('West Virginia ABCA gateway contract was malformed');
+  }
+  const observedMs = Date.parse(value.observedAt || '');
+  if (!Number.isFinite(observedMs) || observedMs > now + 5 * 60_000 || now - observedMs > 20 * 60_000) {
+    throw new MalformedSourceError('West Virginia ABCA gateway observation was stale or invalid');
+  }
+  const canaryStoreCount = Number(value.canaryStoreCount);
+  const endingCanaryStoreCount = Number(value.endingCanaryStoreCount);
+  if (!Number.isInteger(canaryStoreCount) || !Number.isInteger(endingCanaryStoreCount)
+    || canaryStoreCount < 20 || endingCanaryStoreCount < 20) {
+    throw new MalformedSourceError('West Virginia ABCA gateway canary collapsed');
+  }
+  if (endingCanaryStoreCount < Math.ceil(canaryStoreCount * 0.8)) {
+    throw new MalformedSourceError('West Virginia ABCA gateway ending canary collapsed');
+  }
+  const products = WEST_VIRGINIA_RECENT_PURCHASE_WATCHLIST.map((watch) => {
+    const item = value.products.find((row) => Number(row?.expectedProductId) === Number(watch.expectedProductId)
+      && Number(row?.bottleSize) === Number(watch.bottleSize));
+    if (!item || !item.product || Number(item.product.ProductID) !== Number(watch.expectedProductId)
+      || !bottleSizes(item.product.BottleSize).includes(Number(watch.bottleSize))
+      || !Array.isArray(item.stores) || !item.stores.length) {
+      throw new MalformedSourceError(`West Virginia ABCA gateway product ${watch.expectedProductId} was incomplete`);
+    }
+    return item;
+  });
+  if (products[0].stores.length !== canaryStoreCount) {
+    throw new MalformedSourceError('West Virginia ABCA gateway starting canary count did not match its store rows');
+  }
+  return { ...value, products };
+}
+
+function gatewayRows(payload, method, requestBody) {
+  if (method === 'GetProductNameSearch') {
+    const watch = WEST_VIRGINIA_RECENT_PURCHASE_WATCHLIST.find((item) => item.query === requestBody.ProductName);
+    const item = watch && payload.products.find((row) => Number(row.expectedProductId) === Number(watch.expectedProductId));
+    return item ? [item.product] : [];
+  }
+  if (method === 'GetStoresWithProduct') {
+    const item = payload.products.find((row) => Number(row.expectedProductId) === Number(requestBody.productID)
+      && Number(row.bottleSize) === Number(requestBody.bottleSize));
+    return item?.stores || [];
+  }
+  throw new MalformedSourceError(`West Virginia ABCA gateway method ${method} is not allowlisted`);
+}
+
 function bottleSizes(value) {
   return String(value || '').split(',').map((size) => Number(String(size).trim())).filter(Number.isFinite);
 }
@@ -291,6 +386,8 @@ export function westVirginiaRecentPurchaseSignal(row, {
 export async function collectWestVirginiaRecentPurchases(bible, {
   observedAt = new Date().toISOString(),
   request = defaultWestVirginiaLiquorSearchRequest,
+  gatewayRequest = defaultWestVirginiaGatewayRequest,
+  allowGateway = request === defaultWestVirginiaLiquorSearchRequest,
   sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms)),
   delayMs = LIQUOR_SEARCH_DEFAULT_DELAY_MS,
   watchlist = WEST_VIRGINIA_RECENT_PURCHASE_WATCHLIST,
@@ -304,6 +401,9 @@ export async function collectWestVirginiaRecentPurchases(bible, {
     throw new MalformedSourceError('West Virginia ABCA canary requires an expected product ID and bottle size');
   }
   let requestCount = 0;
+  let gatewayPayload = null;
+  let gatewayUsed = false;
+  let signalObservedAt = observedAt;
   let cookie = '';
   const page = await request(LIQUOR_SEARCH_SOURCE_URL, { signal });
   requestCount += 1;
@@ -313,6 +413,7 @@ export async function collectWestVirginiaRecentPurchases(bible, {
   if (!apiKey) throw new MalformedSourceError('West Virginia ABCA Liquor Search did not expose its public runtime key', { status: page.status });
 
   const apiPost = async (method, payload) => {
+    if (gatewayPayload) return gatewayRows(gatewayPayload, method, payload);
     if (requestCount >= 2 * watches.length + 3) throw new MalformedSourceError('West Virginia ABCA recent-purchase request budget exceeded');
     signal?.throwIfAborted?.();
     await sleep(Math.max(0, Number(delayMs) || 0));
@@ -330,6 +431,14 @@ export async function collectWestVirginiaRecentPurchases(bible, {
     });
     requestCount += 1;
     if (response?.setCookie) cookie = [cookie, firstCookie(response.setCookie)].filter(Boolean).join('; ');
+    if (allowGateway && requestCount === 2 && method === 'GetProductNameSearch' && payload.ProductName === canary.query
+      && !response?.ok && Number(response?.status || 0) === 0
+      && /failed to connect|timeout was reached|timed out/iu.test(String(response?.error || ''))) {
+      gatewayPayload = validateWestVirginiaGatewayPayload(await gatewayRequest({ signal }));
+      gatewayUsed = true;
+      signalObservedAt = gatewayPayload.observedAt;
+      return gatewayRows(gatewayPayload, method, payload);
+    }
     return parseApiArray(response, `West Virginia ABCA ${method}`);
   };
 
@@ -357,7 +466,7 @@ export async function collectWestVirginiaRecentPurchases(bible, {
     let added = 0;
     for (const row of rows) {
       if (Number(row?.ProductID) !== Number(product.ProductID) || Number(row?.BottleSize) !== Number(product.bottleSize)) continue;
-      const candidate = westVirginiaRecentPurchaseSignal(row, { observedAt, bottle });
+      const candidate = westVirginiaRecentPurchaseSignal(row, { observedAt: signalObservedAt, bottle });
       if (!candidate) continue;
       signals.push(candidate);
       added += 1;
@@ -418,9 +527,13 @@ export async function collectWestVirginiaRecentPurchases(bible, {
       matchedBottleCount: new Set(dedupedSignals.map((row) => row.canonicalBottleId)).size,
       locationCount: new Set(dedupedSignals.map((row) => row.storeId)).size,
       recentPurchaseSignalCount: dedupedSignals.length,
-      requestCount,
-      maximumRequests: 2 * watches.length + 3,
-      canaryStoreCount: endingCanaryStores.length,
+      requestCount: gatewayUsed ? Number(gatewayPayload.requestCount) + requestCount : requestCount,
+      maximumRequests: gatewayUsed ? 2 * watches.length + 5 : 2 * watches.length + 3,
+      canaryStoreCount: gatewayUsed ? Number(gatewayPayload.endingCanaryStoreCount) : endingCanaryStores.length,
+      gatewayUsed,
+      gatewayRequestCount: gatewayUsed ? Number(gatewayPayload.requestCount) : 0,
+      gatewayObservedAt: gatewayUsed ? gatewayPayload.observedAt : null,
+      transportRequestCount: requestCount,
       productResults,
       purchaseWindowDays: 90,
       sourceAvailabilityVerified: false,

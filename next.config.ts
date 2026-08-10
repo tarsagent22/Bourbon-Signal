@@ -33,6 +33,9 @@ const nextConfig: NextConfig = {
   // an unrelated parent package-lock.json, which otherwise triggers noisy local
   // build warnings and can make build output less reproducible.
   outputFileTracingRoot: process.cwd(),
+  outputFileTracingIncludes: {
+    "/api/source/wvabca": ["./engine/data/certificates/wvabca-rapidssl-chain.pem"],
+  },
   images: {
     remotePatterns: [
       {
@@ -85,8 +88,12 @@ const nextConfig: NextConfig = {
         ],
       },
       {
+        source: "/api/source/wvabca",
+        headers: [...SECURITY_HEADERS],
+      },
+      {
         // Keep HTML dynamic, but stop forcing every asset onto a short cache leash.
-        source: "/((?!_next/static|_next/image|favicon.ico).*)",
+        source: "/((?!_next/static|_next/image|favicon.ico|api/source/wvabca).*)",
         headers: [
           {
             key: "Cache-Control",
