@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { spawn } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
 
 import { stableId } from '../core/text.mjs';
 import { MalformedSourceError, TransientSourceError } from '../sources/source-error.mjs';
@@ -12,6 +13,17 @@ const LIQUOR_SEARCH_API_BASE_URL = 'https://api.wvabca.com/API.svc';
 const LIQUOR_SEARCH_SOURCE_RUNTIME_ID = 'wv:configured:wv-abca-recent-purchases';
 const LIQUOR_SEARCH_MAX_BYTES = 4 * 1024 * 1024;
 const LIQUOR_SEARCH_DEFAULT_DELAY_MS = 500;
+export const WEST_VIRGINIA_CA_BUNDLE_SHA256 = '1696cf3547c5d0c74aa8bd1067c83b0fbbf805e9f5b7224a49a5780c09873d58';
+const WEST_VIRGINIA_CA_BUNDLE_PATH = fileURLToPath(new URL('../../data/certificates/wvabca-rapidssl-chain.pem', import.meta.url));
+export function digestWestVirginiaCaBundle(value) {
+  const canonical = String(Buffer.isBuffer(value) ? value.toString('utf8') : value || '')
+    .replaceAll(String.fromCharCode(13, 10), String.fromCharCode(10));
+  return createHash('sha256').update(canonical, 'utf8').digest('hex');
+}
+const westVirginiaCaBundleDigest = digestWestVirginiaCaBundle(readFileSync(WEST_VIRGINIA_CA_BUNDLE_PATH));
+if (westVirginiaCaBundleDigest !== WEST_VIRGINIA_CA_BUNDLE_SHA256) {
+  throw new Error('West Virginia ABCA source-scoped CA bundle failed its pinned digest contract.');
+}
 export const WEST_VIRGINIA_RECENT_PURCHASE_WATCHLIST = Object.freeze([
   Object.freeze({ query: 'Buffalo Trace Kentucky Straight Bourbon Whiskey', expectedProductId: 827, bottleSize: 750 }),
   Object.freeze({ query: "Blanton's Gold Bourbon", expectedProductId: 10150, bottleSize: 750 }),
@@ -58,12 +70,49 @@ function assertLiquorSearchUrl(value) {
   return url.href;
 }
 
+const WEST_VIRGINIA_CURL_STATUS_MARKER = `${String.fromCharCode(10)}__BOURBON_SIGNAL_WV_HTTP_STATUS__:`;
+
+export function parseWestVirginiaCurlResponse(value) {
+  const raw = String(value || '');
+  const markerAt = raw.lastIndexOf(WEST_VIRGINIA_CURL_STATUS_MARKER);
+  const markerStatus = Number(markerAt >= 0
+    ? raw.slice(markerAt + WEST_VIRGINIA_CURL_STATUS_MARKER.length).trim()
+    : 0) || 0;
+  const response = markerAt >= 0 ? raw.slice(0, markerAt) : raw;
+  const responseLines = response.replaceAll(String.fromCharCode(13), '').split(String.fromCharCode(10));
+  const statusLines = responseLines.map((line) => {
+    const match = /^HTTP\/\S+\s+(\d{3})/iu.exec(line);
+    return match && !/\bconnection\s+established\b/iu.test(line)
+      ? { line, status: Number(match[1]) }
+      : null;
+  }).filter(Boolean);
+  const finalStatusLine = statusLines.at(-1) || null;
+  const status = markerStatus || finalStatusLine?.status || 0;
+  const headerStart = finalStatusLine ? response.lastIndexOf(finalStatusLine.line) : 0;
+  const crlfSeparator = String.fromCharCode(13, 10, 13, 10);
+  const lfSeparator = String.fromCharCode(10, 10);
+  const crlfEnd = response.indexOf(crlfSeparator, headerStart);
+  const lfEnd = response.indexOf(lfSeparator, headerStart);
+  const usesCrlf = crlfEnd >= 0 && (lfEnd < 0 || crlfEnd <= lfEnd);
+  const separator = usesCrlf ? crlfSeparator : lfSeparator;
+  const headerEnd = usesCrlf ? crlfEnd : lfEnd;
+  const headerText = headerEnd >= 0 ? response.slice(headerStart, headerEnd) : '';
+  const text = headerEnd >= 0 ? response.slice(headerEnd + separator.length) : response;
+  const setCookie = headerText.replaceAll(String.fromCharCode(13), '').split(String.fromCharCode(10))
+    .filter((line) => /^set-cookie:/iu.test(line))
+    .map((line) => firstCookie(line.replace(/^set-cookie:\s*/iu, '')))
+    .filter(Boolean)
+    .join('; ');
+  return { status, text, setCookie };
+}
+
 async function defaultWestVirginiaLiquorSearchRequest(url, options = {}) {
   const safeUrl = assertLiquorSearchUrl(url);
-  const marker = '\n__BOURBON_SIGNAL_WV_HTTP_STATUS__:';
+  const marker = WEST_VIRGINIA_CURL_STATUS_MARKER;
   const args = [
     '--proto', '=https',
     '--tlsv1.2',
+    '--cacert', WEST_VIRGINIA_CA_BUNDLE_PATH,
     '--max-time', '25',
     '--max-filesize', String(LIQUOR_SEARCH_MAX_BYTES),
     '-sS',
@@ -107,22 +156,8 @@ async function defaultWestVirginiaLiquorSearchRequest(url, options = {}) {
     child.on('close', (code) => {
       if (settled) return;
       settled = true;
-      const raw = stdout.toString('utf8');
-      const markerAt = raw.lastIndexOf(marker);
-      const status = Number(markerAt >= 0 ? raw.slice(markerAt + marker.length).trim() : 0) || 0;
-      const response = markerAt >= 0 ? raw.slice(0, markerAt) : raw;
-      const crlfSeparator = String.fromCharCode(13, 10, 13, 10);
-      const lfSeparator = String.fromCharCode(10, 10);
-      const usesCrlf = response.indexOf(crlfSeparator) >= 0;
-      const separator = usesCrlf ? crlfSeparator : lfSeparator;
-      const headerEnd = response.indexOf(separator);
-      const headerText = headerEnd >= 0 ? response.slice(0, headerEnd) : '';
-      const text = headerEnd >= 0 ? response.slice(headerEnd + separator.length) : response;
-      const setCookie = headerText.replaceAll(String.fromCharCode(13), '').split(String.fromCharCode(10))
-        .filter((line) => /^set-cookie:/iu.test(line))
-        .map((line) => firstCookie(line.replace(/^set-cookie:\s*/iu, '')))
-        .filter(Boolean)
-        .join('; ');
+      const parsed = parseWestVirginiaCurlResponse(stdout.toString('utf8'));
+      const { status, text, setCookie } = parsed;
       if (code !== 0 && !status) {
         const message = stderr.toString('utf8').trim().slice(0, 500) || `curl exited ${code}`;
         resolve({ ok: false, status: 0, text, setCookie, error: message });
