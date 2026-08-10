@@ -16,6 +16,8 @@ const SC_CITYHIVE_MERCHANTS = new Map([
   ...['61dc4ab6a1d5721307e9c20e', '61e1d04c823936166693c7f3', '61dc62fca1d5721d92e837cf', '61dc583152bc522be69a8b9e', '61b7517362f55f727e469da5'].map((id) => [id, { chain: 'greens-beverage', label: "Green's Beverage South Carolina CityHive store inventory", hosts: ['greensbeb2c6efe1.sites.cityhive.app', 'greensbeverages.com', 'www.greensbeverages.com'] }]),
   ...['69930e7bed5bdd2a34c085c3', '699754a7b0035e3df3e7f3a4', '69977a118f10a026bd985189'].map((id) => [id, { chain: 'wine-bourbon-barn', label: 'Wine & Bourbon Barn CityHive store inventory', hosts: ['winebarnsc.com', 'www.winebarnsc.com'] }]),
   ...['607f9d38b73eb4091ef97ff7', '607af19a07c9e57bbd8de002', '6060f7262c63853de749dda2'].map((id) => [id, { chain: 'odarbys-liquor-barn', label: "O'Darby's Liquor Barn South Carolina CityHive store inventory", hosts: ['odarbysliquorbarn.com', 'www.odarbysliquorbarn.com'] }]),
+  ['607f9bdbb73eb4091ef976e7', { chain: 'odarbys-liquor-barn', label: "O'Darby's Liquor Barn South Carolina CityHive store inventory", hosts: ['odarbysliquorbarn.com', 'www.odarbysliquorbarn.com'], premise: { name: "O'Darby's Heckle", address: '1740 Heckle Blvd, Rock Hill, SC 29732, USA', city: 'Rock Hill', zip: '29732' } }],
+  ['607f1c35f568f15818499db8', { chain: 'odarbys-liquor-barn', label: "O'Darby's Liquor Barn South Carolina CityHive store inventory", hosts: ['odarbysliquorbarn.com', 'www.odarbysliquorbarn.com'], premise: { name: "O'Darby's Riverchase", address: '1421 Riverchase Blvd, Rock Hill, SC 29732, USA', city: 'Rock Hill', zip: '29732' } }],
   ['6144e1c2085a5f20a622a15f', { chain: 'beach-discount-beverages', label: 'Beach Discount Beverages South Carolina CityHive store inventory', hosts: ['beachdis0402bdcd.sites.cityhive.app', 'beachdiscountbeverages.com', 'www.beachdiscountbeverages.com'] }],
   ['6a0b27396d36df004b28a7ab', { chain: 'surf-beverage', label: 'Surf Beverage South Carolina CityHive store inventory', hosts: ['surfbeverages.com', 'www.surfbeverages.com', 'murrellsinletliquorstore.com', 'www.murrellsinletliquorstore.com'], premise: { name: 'Surf Beverage', address: '3140 US-17, Myrtle Beach, SC 29577, USA', city: 'Myrtle Beach', zip: '29577' } }],
   ['66c9e5c12556e329502b0e5e', { chain: 'palmetto-liquor', label: 'Palmetto Liquor South Carolina CityHive store inventory', hosts: ['palmettoliquor.com', 'www.palmettoliquor.com'] }],
@@ -401,12 +403,32 @@ export function isSouthCarolinaCityHiveInventory(signal, nowMs = Date.now()) {
     : exactIdentityString(signal?.sourceProductProofId) === productId
       && exactIdentityString(signal?.variantId) === optionId;
   const exactQuantity = signal?.quantityIsExact === true
-    && Number.isFinite(Number(signal?.quantity))
-    && Number(signal.quantity) > 0
+    && typeof signal?.quantity === 'number'
+    && Number.isInteger(signal.quantity)
+    && signal.quantity > 0
+    && signal.quantity < 100
     && signal?.availabilityStatus === 'in_stock';
   const binaryAvailability = signal?.quantityIsExact === false
-    && Number(signal?.quantity || 0) === 0
+    && signal?.quantity === 0
     && signal?.availabilityStatus === 'binary_retailer_in_stock';
+  const rawQuantity = rawOption?.quantity;
+  const rawQuantityValid = typeof rawQuantity === 'number'
+    && Number.isInteger(rawQuantity)
+    && rawQuantity > 0
+    && rawQuantity <= 999;
+  const rawBinaryAvailability = rawQuantityValid && rawQuantity >= 100;
+  const rawPremiseValid = !rawOptionPresent || Boolean(
+    typeof rawOption?.full_address === 'string'
+    && normalizedPremiseAddress(rawOption.full_address) === normalizedPremiseAddress(signal?.storeAddress)
+    && (!source?.premise || (typeof rawOption?.merchant_name === 'string'
+      && normalizedPremiseValue(rawOption.merchant_name) === normalizedPremiseValue(source.premise.name)))
+    && (!source?.premise || normalizedPremiseAddress(rawOption.full_address) === normalizedPremiseAddress(source.premise.address)));
+  const rawQuantityBinding = !rawOptionPresent || Boolean(rawQuantityValid
+    && rawContainer.reportedQuantity === rawQuantity
+    && rawContainer.binaryAvailability === rawBinaryAvailability
+    && (rawBinaryAvailability
+      ? binaryAvailability
+      : exactQuantity && signal.quantity === rawQuantity));
   return Boolean(source)
     && identityAliasesValid
     && signal?.state === 'SC'
@@ -425,6 +447,8 @@ export function isSouthCarolinaCityHiveInventory(signal, nowMs = Date.now()) {
     && productId.length > 0
     && optionId.length > 0
     && exactSourceBinding
+    && rawPremiseValid
+    && rawQuantityBinding
     && signal?.sourceAvailabilityVerified === true
     && (exactQuantity || binaryAvailability)
     && signal?.stale !== true

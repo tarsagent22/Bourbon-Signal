@@ -1265,13 +1265,11 @@ const SC_CITYHIVE_SOURCES = [
   }
 ];
 const SC_CITYHIVE_MERCHANT_IDS = new Set(SC_CITYHIVE_SOURCES.flatMap((source) => source.merchantIds || []));
-// Keep this expansion inside the requested 10-15 additional-store boundary while
-// retaining the complete known-store directory. Two same-city O'Darby's branches
-// remain searchable but are not promoted into this inventory cohort.
-const SC_CITYHIVE_EXCLUDED_EXPANSION_MERCHANT_IDS = new Set([
-  '607f9bdbb73eb4091ef976e7',
-  '607f1c35f568f15818499db8',
-]);
+// Keep the reviewed CityHive merchant universe explicit. The two Rock Hill
+// O'Darby's branches were previously withheld; current first-party pages now bind
+// both exact premises to positive bottle-level quantities, so no reviewed merchant
+// remains excluded from the bounded inventory cohort.
+const SC_CITYHIVE_EXCLUDED_EXPANSION_MERCHANT_IDS = new Set();
 const SC_CITYHIVE_INVENTORY_MERCHANT_IDS = new Set(
   [...SC_CITYHIVE_MERCHANT_IDS].filter((merchantId) => !SC_CITYHIVE_EXCLUDED_EXPANSION_MERCHANT_IDS.has(merchantId)),
 );
