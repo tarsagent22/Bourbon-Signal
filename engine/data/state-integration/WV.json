@@ -81,9 +81,9 @@
     "immutablePromotionEvidence": {
       "schemaVersion": 1,
       "state": "WV",
-      "generatedAt": "2026-08-10T16:59:48.752Z",
+      "generatedAt": "2026-08-10T17:12:18.600Z",
       "sourceConfigHash": "4dc171003c4a0a197cafc5931a4a384e1eb1cdebf39cb102e439c994965e1c39",
-      "previewUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/31411749844",
+      "previewUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/31412815445",
       "shadowRuns": [
         {
           "runId": "31340713953",
@@ -123,15 +123,15 @@
         "repository": "tarsagent22/Bourbon-Signal",
         "workflowFile": ".github/workflows/state-promotion-provenance.yml",
         "workflowName": "Verify state promotion provenance",
-        "workflowRunId": "31411749844",
+        "workflowRunId": "31412815445",
         "workflowRunAttempt": "1",
-        "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/31411749844",
-        "commitSha": "5566ab87b594ffd4e26cc04e70d53045c1b5bc33",
-        "artifactId": "9071848496",
-        "artifactName": "state-promotion-provenance-WV-31411749844",
-        "artifactDigest": "f8021a9347b660d0485cdc6cf9dfea67946693f52444b004fa728e9bf185a5ee",
-        "bundleDigest": "9b1be53492219ada9cdaeb6f3842c9f1c67fee1c1b4a18a7cffc390afc693ec5",
-        "generatedAt": "2026-08-10T16:59:48.752Z"
+        "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/31412815445",
+        "commitSha": "8c3ca57cdd920ce49afbeedbee2f94b923498344",
+        "artifactId": "9072244209",
+        "artifactName": "state-promotion-provenance-WV-31412815445",
+        "artifactDigest": "fbeef1072df5e9c44570e926af5384cd68368ca1328de87e722d1a242f71276b",
+        "bundleDigest": "64b2e1c16d47f2a8c279ba2f3339f31f398cfe013fdbe15d70f57adf45b5ae22",
+        "generatedAt": "2026-08-10T17:12:18.600Z"
       }
     },
     "production": {
