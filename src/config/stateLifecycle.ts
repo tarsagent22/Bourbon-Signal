@@ -821,7 +821,7 @@ export const STATE_LIFECYCLE_CONFIG = {
         "verifiedAt": "2026-08-09T23:04:01.524Z",
         "shadowArtifact": "engine/data/state-evidence/WV/shadow-runs.json",
         "canaryArtifact": "engine/data/state-evidence/WV/canary-runs.json",
-        "canaryPreviewUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/31340717144",
+        "canaryPreviewUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/31410229625",
         "verticalSliceManifest": "engine/data/state-integration/WV.json",
         "fixtureContract": "engine/data/state-fixtures/WV.json",
         "immutableEvidence": {

@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
   "state": "WV",
-  "generatedAt": "2026-08-10T16:40:07.106Z",
+  "generatedAt": "2026-08-10T16:57:14.482Z",
   "storeUniverse": "data/store-universe/WV.json",
   "drops": [
     {
@@ -27,6 +27,8 @@
       "tier": "allocated",
       "producer": "Buffalo Trace",
       "type": "wv_abca_retailer_recent_purchase_window",
+      "signalCategory": "shipment_lead",
+      "signalLabel": "Recent WVABCA retailer purchase",
       "source": "West Virginia ABCA recent retailer purchases",
       "sourceLabel": "West Virginia ABCA recent retailer purchases",
       "sourceUrl": "https://www.wvabca.com/liquorsearch.aspx",
@@ -132,6 +134,8 @@
       "tier": "unicorn",
       "producer": "Buffalo Trace",
       "type": "wv_abca_retailer_recent_purchase_window",
+      "signalCategory": "shipment_lead",
+      "signalLabel": "Recent WVABCA retailer purchase",
       "source": "West Virginia ABCA recent retailer purchases",
       "sourceLabel": "West Virginia ABCA recent retailer purchases",
       "sourceUrl": "https://www.wvabca.com/liquorsearch.aspx",
@@ -238,6 +242,8 @@
       "tier": "limited",
       "producer": "Jim Beam",
       "type": "wv_abca_retailer_recent_purchase_window",
+      "signalCategory": "shipment_lead",
+      "signalLabel": "Recent WVABCA retailer purchase",
       "source": "West Virginia ABCA recent retailer purchases",
       "sourceLabel": "West Virginia ABCA recent retailer purchases",
       "sourceUrl": "https://www.wvabca.com/liquorsearch.aspx",

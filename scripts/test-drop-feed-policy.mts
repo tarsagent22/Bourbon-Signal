@@ -5,7 +5,7 @@ import { scopedDropFeedHistoryEnabled } from "../src/lib/drop-feed-history.ts";
 import { resolveDropQuantitySemantics } from "../src/lib/drop-quantity-semantics.ts";
 import { isUserFacingDropSignal, MISSISSIPPI_ONSITE_SOURCE_PERMITS } from "../src/lib/drop-feed-visibility.ts";
 import { coveredAreaLabelsMatch, getCoveredAreaOptionsForState } from "../src/lib/feed-area-options.ts";
-import { isPublicDropFeedEligible, normalizePublicDropEvidenceInput } from "../src/lib/public-drop-evidence.ts";
+import { derivePublicDropEvidence, isPublicDropFeedEligible, normalizePublicDropEvidenceInput } from "../src/lib/public-drop-evidence.ts";
 
 assert.equal(resolveDropLimit("40", false, 7), 40);
 assert.equal(resolveDropLimit("200", false, 7), 200, "paid watchlist requests must remain compatible");
@@ -145,6 +145,9 @@ assert.match(siteContractSource, /resolveDropQuantitySemantics\(drop\)/, "site n
 assert.match(siteContractSource, /quantity_shipped:\s*shipmentQuantity\s*\|\|\s*undefined/, "site normalization must export shipped units separately");
 assert.match(siteContractSource, /store_equivalent_shipment"\)\s*\?\s*"board"/, "store-equivalent shipment availability must remain board-scoped");
 assert.match(siteContractSource, /isUserFacingDropSignal\(\{\s*\.\.\.drop,/s, "site normalization must preserve Mississippi feed-proof fields when recomputing visibility");
+assert.match(siteContractSource, /wv_abca_retailer_recent_purchase_window"\) return "shipment_lead"/, "site normalization must preserve WV purchase rows as shipment leads");
+assert.match(siteContractSource, /isWestVirginiaRecentPurchase \? "store_purchase_window"/, "WV recent purchases must keep a non-inventory availability scope");
+assert.match(siteContractSource, /isWestVirginiaRecentPurchase \? "official_recent_purchase"/, "WV recent purchases must keep official purchase confidence semantics");
 const dropDomainSource = readFileSync(new URL("../src/lib/drops.ts", import.meta.url), "utf8");
 assert.match(dropDomainSource, /dropDisplayTime\(drop as Record<string, unknown>\)/, "customer card time must use the shared inventory-confirmation display policy");
 assert.match(dropDomainSource, /event\.quantity_in_stock\s*\?\?\s*event\.quantity_shipped\s*\?\?\s*event\.quantity/, "drop-domain filtering must retain normalized shipment rows");
@@ -207,6 +210,33 @@ const rawAliasCandidate = normalizePublicDropEvidenceInput({
 assert.equal(rawAliasCandidate.state, "AZ", "the pure evidence normalizer accepts raw engine state aliases");
 assert.equal(rawAliasCandidate.quantity, undefined, "a missing primary quantity remains absent so quantity_in_stock remains usable");
 assert.equal(isPublicDropFeedEligible(rawAliasCandidate), true, "raw engine aliases normalize to the same eligible public-evidence shape");
+
+const westVirginiaCanary = JSON.parse(readFileSync(new URL("../engine/data/canary-inputs/WV.json", import.meta.url), "utf8")) as { drops: Array<Record<string, unknown>> };
+const westVirginiaRecentPurchase = westVirginiaCanary.drops.find((drop) => drop.type === "wv_abca_retailer_recent_purchase_window");
+assert.ok(westVirginiaRecentPurchase, "WV canary must include a recent-purchase row");
+assert.equal(isUserFacingDropSignal(westVirginiaRecentPurchase), true, "identity-bound WV recent purchases must survive the app visibility gate");
+assert.equal(isPublicDropFeedEligible(westVirginiaRecentPurchase), true, "WV recent purchases must reach the default API feed");
+const westVirginiaEvidence = derivePublicDropEvidence([westVirginiaRecentPurchase], westVirginiaRecentPurchase.observedAt).get("WV");
+assert.ok(westVirginiaEvidence, "WV recent purchases must establish public update evidence");
+assert.equal(westVirginiaEvidence?.freshPublicSignalCount, 1);
+assert.equal(westVirginiaEvidence?.freshPublicUpdateSignalCount, 1);
+assert.equal(westVirginiaEvidence?.freshPublicUpdateStores, 1);
+assert.equal(westVirginiaEvidence?.observedInventoryStores.length, 0, "WV purchase leads must not count as observed inventory");
+assert.equal(westVirginiaEvidence?.currentInventoryStores.length, 0, "WV purchase leads must not count as current inventory");
+for (const [label, mutation] of [
+  ["wrong runtime", { sourceRuntimeId: "wv:configured:fake" }],
+  ["wrong premise namespace", { storeId: "wv-store-624" }],
+  ["missing premise proof", { premisesVerified: false }],
+  ["inventory claim", { sourceAvailabilityVerified: true }],
+  ["quantity claim", { quantity: 1 }],
+  ["exact quantity claim", { quantityIsExact: true }],
+  ["stale source", { sourceStale: true }],
+  ["inventory alert", { canAlertAsInventory: true }],
+  ["watch alert", { canAlertAsWatch: true }],
+  ["delivery eligibility", { eligibleForDelivery: true }],
+] as const) {
+  assert.equal(isUserFacingDropSignal({ ...westVirginiaRecentPurchase, ...mutation }), false, `WV recent-purchase visibility must fail closed for ${label}`);
+}
 
 const mississippiRegistry = JSON.parse(readFileSync(new URL("../engine/data/mississippi-retailer-registry.json", import.meta.url), "utf8")) as { stores: Array<Record<string, unknown>> };
 const expectedMississippiSources = new Map(

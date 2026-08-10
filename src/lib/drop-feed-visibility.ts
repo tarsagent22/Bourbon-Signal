@@ -33,8 +33,14 @@ export type UserFacingDropSignal = {
   canAlertAsWatch?: boolean;
   can_alert_as_watch?: boolean;
   sourceRuntimeId?: string;
+  sourceUrl?: string;
+  productId?: string | number;
+  storeNumber?: string | number;
   permitNumber?: string;
   storeId?: string;
+  storeName?: string;
+  storeAddress?: string;
+  city?: string;
   sourceAvailabilityVerified?: boolean;
   availabilityStatus?: string;
   premisesVerified?: boolean;
@@ -105,8 +111,39 @@ export function isUserFacingDropSignal(drop: UserFacingDropSignal) {
     && drop.eligibleForEmail === false
     && drop.eligibleForSms === false
     && !canAlert;
+  const storeNumber = String(drop.storeNumber ?? "");
+  const isWestVirginiaRecentPurchase = state === "WV"
+    && type === "wv_abca_retailer_recent_purchase_window"
+    && precision === "store_level"
+    && String(drop.sourceRuntimeId ?? "") === "wv:configured:wv-abca-recent-purchases"
+    && drop.sourceUrl === "https://www.wvabca.com/liquorsearch.aspx"
+    && /^\d+$/.test(String(drop.productId ?? ""))
+    && /^\d+$/.test(storeNumber)
+    && drop.storeId === `wvabca-store-${storeNumber}`
+    && Boolean(String(drop.storeName ?? "").trim())
+    && Boolean(String(drop.storeAddress ?? "").trim())
+    && Boolean(String(drop.city ?? "").trim())
+    && drop.availabilityStatus === "recent_purchase_window"
+    && quantity === 0
+    && drop.quantityIsExact === false
+    && drop.sourceAvailabilityVerified === false
+    && drop.premisesVerified === true
+    && drop.stale !== true
+    && drop.sourceStale !== true
+    && drop.source_stale !== true
+    && drop.eligibleForOnSite === true
+    && drop.eligibleForDropFeed === true
+    && drop.canAlertAsWatch === false
+    && drop.can_alert_as_watch !== true
+    && drop.eligibleForWatch === false
+    && drop.eligibleForDelivery === false
+    && drop.eligibleForEmail === false
+    && drop.eligibleForSms === false
+    && drop.inventorySemantics === "WVABCA reports that this retailer purchased the bottle within the last three months; this is a call-first purchase lead, not live shelf inventory."
+    && !canAlert;
 
   if (!type) return false;
+  if (type === "wv_abca_retailer_recent_purchase_window") return isWestVirginiaRecentPurchase;
   if (isWestVirginiaOfficialBarrelSelection) return true;
   if (type.includes("out_of_stock") || type.includes("out-of-stock")) return false;
   if (type.includes("lottery")) return false;

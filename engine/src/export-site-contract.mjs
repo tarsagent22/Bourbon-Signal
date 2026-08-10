@@ -458,6 +458,8 @@ export function publicSignal(signal, bible, freshness = null) {
     tier: exportedTier(signal, bibleRecord),
     producer: preferOfficialSourceName ? null : (signal.producer || bibleRecord?.producer || null),
     type: signal.eventType,
+    signalCategory: signal.signalCategory || null,
+    signalLabel: signal.signalLabel || null,
     source: signal.sourceLabel,
     sourceLabel: signal.sourceLabel,
     sourceUrl: signal.sourceUrl,

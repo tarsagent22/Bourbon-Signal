@@ -297,6 +297,7 @@ export function normalizeDropForSite(drop: JsonRecord) {
   const staleSourceCaveat = asString(drop.staleSourceCaveat) || "Last-known source availability; verify with the store before driving.";
   const canAlertAsInventory = (asBoolean(drop.canAlertAsInventory) || asBoolean(drop.can_alert_as_inventory)) && exactStoreDetails && !sourceStale;
   const type = firstNonEmptyString(drop.type, drop.event_type) || "signal";
+  const isWestVirginiaRecentPurchase = state === "WV" && type.toLowerCase() === "wv_abca_retailer_recent_purchase_window";
   const signalLabel = getPublicSignalLabel(type, locationPrecision, visibilityQuantity, canAlertAsInventory);
   const isStoreInventory = isStoreLevelInventory(type, locationPrecision, canAlertAsInventory) && exactStoreDetails;
   const sourceLocationName = firstNonEmptyString(drop.locationName, drop.display_location);
@@ -354,8 +355,8 @@ export function normalizeDropForSite(drop: JsonRecord) {
     state_code: state,
     source: firstNonEmptyString(drop.source, drop.sourceName, drop.source_name) || "engine-site-export",
     exact_store: locationPrecision === "store_level" && exactStoreDetails,
-    availability_scope: sourceStale && isStoreInventory ? "stale_store_context" : isStoreInventory ? "store_reported" : isDistilleryDrop(type, locationPrecision) ? "distillery" : (locationPrecision === "board_county" || locationPrecision === "store_equivalent_shipment") ? "board" : locationPrecision === "board_warehouse" ? "warehouse" : "page",
-    confidence_tier: sourceStale && isStoreInventory ? "stale_store_context" : isStoreInventory ? "source_reported_store" : isDistilleryDrop(type, locationPrecision) ? "official_distillery_drop" : (type === "nc_board_shipment_snapshot" || type === "nc_statewide_warehouse_stock") ? "online_positive" : "listing_only",
+    availability_scope: sourceStale && isStoreInventory ? "stale_store_context" : isStoreInventory ? "store_reported" : isWestVirginiaRecentPurchase ? "store_purchase_window" : isDistilleryDrop(type, locationPrecision) ? "distillery" : (locationPrecision === "board_county" || locationPrecision === "store_equivalent_shipment") ? "board" : locationPrecision === "board_warehouse" ? "warehouse" : "page",
+    confidence_tier: sourceStale && isStoreInventory ? "stale_store_context" : isStoreInventory ? "source_reported_store" : isWestVirginiaRecentPurchase ? "official_recent_purchase" : isDistilleryDrop(type, locationPrecision) ? "official_distillery_drop" : (type === "nc_board_shipment_snapshot" || type === "nc_statewide_warehouse_stock") ? "online_positive" : "listing_only",
     location_precision: locationPrecision,
     can_alert_as_inventory: canAlertAsInventory,
     signal_label: sourceStale && isStoreInventory ? "Last-known store availability" : signalLabel,
@@ -388,6 +389,7 @@ function getPublicSignalCategory(type: string, locationPrecision: string, quanti
   if (normalized === "retailer_tasting_event") return "retailer_watch";
   if (normalized === "alabc_limited_release_store_drop") return "release_watch";
   if (normalized === "store_delivery_snapshot") return "delivery";
+  if (normalized === "wv_abca_retailer_recent_purchase_window") return "shipment_lead";
   if (normalized === "store_allocation_snapshot") return "delivery";
   if (normalized === "county_inventory_aggregate") return "warehouse";
   if (normalized === "board_inventory_aggregate") return "warehouse";
@@ -408,6 +410,7 @@ function getPublicSignalLabel(type: string, locationPrecision: string, quantity:
   if (normalized === "retailer_allocated_raffle_item") return "Retailer allocated watch";
   if (normalized === "retailer_tasting_event") return "Retailer tasting watch";
   if (normalized === "alabc_limited_release_store_drop") return "Scheduled ABC release";
+  if (normalized === "wv_abca_retailer_recent_purchase_window") return "Recent WVABCA purchase";
   if (category === "delivery") return "Bottle shipment";
   if (normalized === "county_inventory_aggregate") return "County aggregate lead";
   if (normalized === "board_inventory_aggregate") return "State aggregate lead";
