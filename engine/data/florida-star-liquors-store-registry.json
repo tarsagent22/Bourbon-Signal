@@ -1,0 +1,223 @@
+{
+  "contractVersion": "bourbon-signal/florida-star-liquors-store-registry@1",
+  "sourceUrl": "https://starlq.com/shop/?subtype=Bourbon",
+  "sha256": "88a77fc4eeccc115f8c8d7004a285db284b28723654dc5a371ccfcdf15ae76e8",
+  "stores": [
+    {
+      "id": "68c815d46cc06126022d7735",
+      "name": "Ibis Liquors",
+      "address": "10130 Northlake Blvd # 200, West Palm Beach, FL 33412, USA",
+      "city": "West Palm Beach",
+      "zip": "33412",
+      "lat": 26.8103777,
+      "lng": -80.19944540000002
+    },
+    {
+      "id": "68c816abb7775a3a4f4ff2af",
+      "name": "Star Liquors IV",
+      "address": "10650 Forest Hill Blvd, Wellington, FL 33414, USA",
+      "city": "Wellington",
+      "zip": "33414",
+      "lat": 26.6499423,
+      "lng": -80.21593179999999
+    },
+    {
+      "id": "68c816e9eb925925ef6cda1c",
+      "name": "A1A Discount Beverage #4",
+      "address": "109 E Boynton Beach Blvd a, Boynton Beach, FL 33435, USA",
+      "city": "Boynton Beach",
+      "zip": "33435",
+      "lat": 26.5292093,
+      "lng": -80.0635113
+    },
+    {
+      "id": "68c817486cc06125fa2d7cf9",
+      "name": "Star Liquors 42",
+      "address": "10909 N Military Trl, Palm Beach Gardens, FL 33418, USA",
+      "city": "Palm Beach Gardens",
+      "zip": "33418",
+      "lat": 26.8391637,
+      "lng": -80.10619249999999
+    },
+    {
+      "id": "68c81782588846423305738e",
+      "name": "Star Liquors",
+      "address": "11924 Forest Hill Blvd Suite 16, Wellington, FL 33414, USA",
+      "city": "Wellington",
+      "zip": "33414",
+      "lat": 26.6515925,
+      "lng": -80.2349785
+    },
+    {
+      "id": "68c817ffff9fe73538b1de50",
+      "name": "Star Wine & Spirits V",
+      "address": "11951 U.S. Rte 1, North Palm Beach, FL 33408, USA",
+      "city": "North Palm Beach",
+      "zip": "33408",
+      "lat": 26.851315,
+      "lng": -80.0599127
+    },
+    {
+      "id": "68c81838f022e429aba78217",
+      "name": "Star Liquors 41",
+      "address": "1285 W Palmetto Park Rd, Boca Raton, FL 33486, USA",
+      "city": "Boca Raton",
+      "zip": "33486",
+      "lat": 26.3531625,
+      "lng": -80.11129849999999
+    },
+    {
+      "id": "68c818806cc06125f32d85c0",
+      "name": "Star Liquors VII",
+      "address": "1920 Lake Worth Rd, Lake Worth Beach, FL 33461, USA",
+      "city": "Lake Worth Beach",
+      "zip": "33461",
+      "lat": 26.6181925,
+      "lng": -80.07213689999999
+    },
+    {
+      "id": "68c81970ff9fe725e2b1fa33",
+      "name": "Star Wine & Spirits 14",
+      "address": "22125 Powerline Rd, Boca Raton, FL 33433, USA",
+      "city": "Boca Raton",
+      "zip": "33433",
+      "lat": 26.3484548,
+      "lng": -80.154415
+    },
+    {
+      "id": "68c81e4e08b78c29b5b2ddba",
+      "name": "Liquor Village 2",
+      "address": "6230 W Indiantown Rd, Jupiter, FL 33458, USA",
+      "city": "Jupiter",
+      "zip": "33458",
+      "lat": 26.9335403,
+      "lng": -80.1299588
+    },
+    {
+      "id": "68c81e8db7775a25fe502014",
+      "name": "Star Wine & Spirits 21",
+      "address": "6566 FL-7, Coconut Creek, FL 33073, USA",
+      "city": "Coconut Creek",
+      "zip": "33073",
+      "lat": 26.310762,
+      "lng": -80.200408
+    },
+    {
+      "id": "68c81ecc08b78c29bcb2e574",
+      "name": "A&S Discount Beverage",
+      "address": "7134 S Military Trl, Greenacres, FL 33463, USA",
+      "city": "Greenacres",
+      "zip": "33463",
+      "lat": 26.5702421,
+      "lng": -80.1128767
+    },
+    {
+      "id": "68c81f9108b78c29bcb2e82f",
+      "name": "Liquor Village",
+      "address": "9260 W Indiantown Rd #3, Jupiter, FL 33478, USA",
+      "city": "Jupiter",
+      "zip": "33478",
+      "lat": 26.9372473,
+      "lng": -80.17981669999999
+    },
+    {
+      "id": "68c82022fd9d4050d99d95a8",
+      "name": "Star Liquors 20",
+      "address": "940 S Military Trl, West Palm Beach, FL 33406, USA",
+      "city": "West Palm Beach",
+      "zip": "33406",
+      "lat": 26.6634751,
+      "lng": -80.110655
+    },
+    {
+      "id": "68c8206beb925956bb6cca53",
+      "name": "Star Wine & Spirits",
+      "address": "97 U.S. Rte 1, Jupiter, FL 33477, USA",
+      "city": "Jupiter",
+      "zip": "33477",
+      "lat": 26.9327727,
+      "lng": -80.0776291
+    },
+    {
+      "id": "68c820c40731f7527f6a570c",
+      "name": "Garden Wine & Spirits 2",
+      "address": "9850 FL A1AAlt, Palm Beach Gardens, FL 33410, USA",
+      "city": "Palm Beach Gardens",
+      "zip": "33410",
+      "lat": 26.8218807,
+      "lng": -80.0824112
+    },
+    {
+      "id": "68c821110731f7527f6a5b3a",
+      "name": "Star Wine & Spirits X",
+      "address": "9858 Clint Moore Rd C131, Boca Raton, FL 33496, USA",
+      "city": "Boca Raton",
+      "zip": "33496",
+      "lat": 26.407396,
+      "lng": -80.202142
+    },
+    {
+      "id": "68c81f3db7775a4d24500544",
+      "name": "Star Liquors 2",
+      "address": "8983 Okeechobee Blvd #218, West Palm Beach, FL 33411, USA",
+      "city": "West Palm Beach",
+      "zip": "33411",
+      "lat": 26.710395,
+      "lng": -80.18293299999999
+    },
+    {
+      "id": "5faf2ba87617d9240cf50ab0",
+      "name": "Liquor Hub Boca Raton",
+      "address": "21643 FL-7, Boca Raton, FL 33428, USA",
+      "city": "Boca Raton",
+      "zip": "33428",
+      "lat": 26.3546359,
+      "lng": -80.2047448
+    },
+    {
+      "id": "64f382eba3ad6f2b570aae01",
+      "name": "Liquor Warehouse - West Palm",
+      "address": "2539 N Military Trl, West Palm Beach, FL 33409, USA",
+      "city": "West Palm Beach",
+      "zip": "33409",
+      "lat": 26.7148928,
+      "lng": -80.11129849999999
+    },
+    {
+      "id": "6a1040ca09b6ec2cbd4ec3ec",
+      "name": "Star Wine & Spirits XXV",
+      "address": "7431 W Atlantic Ave, Delray Beach, FL 33446, USA",
+      "city": "Delray Beach",
+      "zip": "33446",
+      "lat": 26.4542837,
+      "lng": -80.1630488
+    },
+    {
+      "id": "68c81a9beb92593e406ccd67",
+      "name": "Star Liquors 22",
+      "address": "2885 N Military Trl suite j, West Palm Beach, FL 33409, USA",
+      "city": "West Palm Beach",
+      "zip": "33409",
+      "lat": 26.7199961,
+      "lng": -80.1118762
+    },
+    {
+      "id": "68c81c8a884daf29b979686c",
+      "name": "Star Wine & Spirits 15",
+      "address": "5000 N University Dr, Lauderhill, FL 33351, USA",
+      "city": "Lauderhill",
+      "zip": "33351",
+      "lat": 26.1884744,
+      "lng": -80.2514352
+    },
+    {
+      "id": "68c81dca51aa4225f85ea1c8",
+      "name": "Star Liquors 3",
+      "address": "5899 SE Federal Hwy, Stuart, FL 34997, USA",
+      "city": "Stuart",
+      "zip": "34997",
+      "lat": 27.1332538,
+      "lng": -80.203614
+    }
+  ]
+}

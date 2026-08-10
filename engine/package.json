@@ -29,6 +29,7 @@
     "test:fl:abc-full-store": "node --test test/florida-abc-full-store-expansion.test.mjs",
     "test:fl:15-20": "npm run test:fl:abc-full-store && node --test test/florida-15-20-expansion.test.mjs",
     "verify:fl:15-20": "node src/verify-fl-15-20-expansion.mjs",
+    "verify:fl:star-expansion": "node src/verify-fl-star-expansion.mjs",
     "test:ga": "node --test test/georgia-retailer-engine.test.mjs",
     "test:demand-metros": "node --test test/demand-metro-expansion.test.mjs",
     "test:ny-co": "node --test test/ny-co-retailer-engine.test.mjs",

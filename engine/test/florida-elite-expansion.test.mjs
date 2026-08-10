@@ -40,8 +40,8 @@ test('Florida standalone retailer directory identities survive transient invento
 
 test('Florida CityHive registry materially expands exact-store coverage across underserved regions', () => {
   const stores = FLORIDA_CITYHIVE_SOURCES.flatMap((source) => [...source.merchants.values()].map((store) => ({ ...store, sourceId: source.id })));
-  assert.equal(FLORIDA_CITYHIVE_SOURCES.length, 10);
-  assert.equal(stores.length, 34);
+  assert.equal(FLORIDA_CITYHIVE_SOURCES.length, 11);
+  assert.equal(stores.length, 58);
   assert.equal(new Set(stores.map((store) => `${store.sourceId}:${store.id}`)).size, stores.length);
   for (const city of ['Jacksonville', 'West Palm Beach', 'Fort Lauderdale', 'Sarasota', 'Gainesville', 'Fort Walton Beach', 'Panama City Beach', 'Destin']) {
     assert.ok(stores.some((store) => store.city === city), `missing an exact configured store in ${city}`);
@@ -55,7 +55,7 @@ test('Florida CityHive registry materially expands exact-store coverage across u
 test('configured Florida store-locator rows are useful directory evidence but never inventory alerts', () => {
   const observedAt = '2026-07-29T23:00:00.000Z';
   const signals = buildFloridaConfiguredStoreLocationSignals(observedAt);
-  assert.equal(signals.length, 34);
+  assert.equal(signals.length, 58);
   assert.ok(signals.every((signal) => signal.eventType === 'retailer_store_location'));
   assert.ok(signals.every((signal) => signal.canAlertAsInventory === false && signal.canAlertAsWatch === false));
   assert.ok(signals.every((signal) => signal.storeAddress && signal.postalCode));
@@ -172,15 +172,18 @@ test('Florida verifier rejects evidence older than 90 minutes and alertable stal
     for (const source of FLORIDA_CITYHIVE_SOURCES) {
       for (const store of source.merchants.values()) {
         index += 1;
+        const productId = `product-${index}`;
+        const variantId = `variant-${index}`;
+        const sourceUrl = new URL(`/shop/product/buffalo-trace-bourbon/${productId}?option-id=${variantId}`, source.baseUrl).href;
         inventory.push({
           id: `fixture-${index}`,
           state: 'FL',
           sourceLabel: source.sourceLabel,
-          sourceUrl: new URL(`/shop/product/fixture-${index}`, source.baseUrl).href,
+          sourceUrl,
           sourceChain: source.id,
           merchantId: store.id,
-          productId: `product-${index}`,
-          variantId: `variant-${index}`,
+          productId,
+          variantId,
           rawName: 'Buffalo Trace Bourbon 750ml',
           canonicalBottleId: 'buffalo-trace-bourbon',
           canonicalName: 'Buffalo Trace Bourbon',
@@ -193,12 +196,30 @@ test('Florida verifier rejects evidence older than 90 minutes and alertable stal
           stateCode: 'FL',
           postalCode: store.zip,
           quantity: 1,
+          quantityIsExact: true,
+          reportedQuantity: 1,
           availabilityStatus: 'in_stock',
           sourceAvailabilityVerified: true,
           canAlertAsInventory: true,
           canAlertAsWatch: true,
+          inventorySemantics: 'exact_retailer_reported_quantity',
           observedAt,
-          raw: { chain: source.id, merchantId: store.id, reportedQuantity: 1, sourceAvailabilityVerified: true },
+          raw: {
+            chain: source.id,
+            merchantId: store.id,
+            reportedQuantity: 1,
+            sourceAvailabilityVerified: true,
+            configuredStoreIdentity: true,
+            product: { id: productId },
+            option: {
+              merchant_id: store.id,
+              product_id: productId,
+              option_id: variantId,
+              full_address: store.address,
+              quantity: 1,
+              product_url: sourceUrl,
+            },
+          },
         });
       }
     }
