@@ -106,13 +106,17 @@ export function parseWestVirginiaCurlResponse(value) {
   return { status, text, setCookie };
 }
 
-async function defaultWestVirginiaLiquorSearchRequest(url, options = {}) {
+export function westVirginiaCurlTransportArgs(url, options = {}) {
   const safeUrl = assertLiquorSearchUrl(url);
   const marker = WEST_VIRGINIA_CURL_STATUS_MARKER;
   const args = [
     '--proto', '=https',
+    '--ipv4',
+    '--http1.1',
     '--tlsv1.2',
+    '--tls-max', '1.2',
     '--cacert', WEST_VIRGINIA_CA_BUNDLE_PATH,
+    '--connect-timeout', '10',
     '--max-time', '25',
     '--max-filesize', String(LIQUOR_SEARCH_MAX_BYTES),
     '-sS',
@@ -130,6 +134,12 @@ async function defaultWestVirginiaLiquorSearchRequest(url, options = {}) {
   for (const [name, value] of Object.entries(headers)) args.push('-H', `${name}: ${value}`);
   if (options.body != null) args.push('--data-binary', '@-');
   args.push('-w', `${marker}%{http_code}`, safeUrl);
+  return args;
+}
+
+async function defaultWestVirginiaLiquorSearchRequest(url, options = {}) {
+  const safeUrl = assertLiquorSearchUrl(url);
+  const args = westVirginiaCurlTransportArgs(safeUrl, options);
 
   return new Promise((resolve, reject) => {
     let stdout = Buffer.alloc(0);
@@ -178,7 +188,8 @@ export function parseWestVirginiaLiquorSearchApiKey(html) {
 function parseApiArray(response, label) {
   if (!response?.ok) {
     const status = Number(response?.status || 0);
-    const message = `${label} returned HTTP ${status}`;
+    const detail = cleanText(response?.error).slice(0, 300);
+    const message = `${label} returned HTTP ${status}${detail ? `: ${detail}` : ''}`;
     if (!status || status === 408 || status === 425 || status === 429 || status >= 500) throw new TransientSourceError(message, { status });
     throw new MalformedSourceError(message, { status });
   }

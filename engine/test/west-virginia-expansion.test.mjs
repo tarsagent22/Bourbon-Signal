@@ -11,6 +11,7 @@ import {
   parseWestVirginiaLiquorSearchApiKey,
   WEST_VIRGINIA_CA_BUNDLE_SHA256,
   WEST_VIRGINIA_RECENT_PURCHASE_WATCHLIST,
+  westVirginiaCurlTransportArgs,
   westVirginiaDirectorySignals,
   westVirginiaRecentPurchaseSignal,
 } from '../src/collectors/west-virginia-official.mjs';
@@ -209,6 +210,20 @@ test('WV source-scoped CA bundle is immutable and contains only the pinned Rapid
   assert.equal((pem.match(/-----BEGIN CERTIFICATE-----/gu) || []).length, 2);
 });
 
+test('WV curl transport is pinned to the legacy WCF network profile without disabling TLS checks', () => {
+  const args = westVirginiaCurlTransportArgs('https://api.wvabca.com/API.svc/GetProductNameSearch', {
+    method: 'POST',
+    body: '{}',
+  });
+  assert.ok(args.includes('--ipv4'));
+  assert.ok(args.includes('--http1.1'));
+  assert.deepEqual(args.slice(args.indexOf('--tls-max'), args.indexOf('--tls-max') + 2), ['--tls-max', '1.2']);
+  assert.deepEqual(args.slice(args.indexOf('--connect-timeout'), args.indexOf('--connect-timeout') + 2), ['--connect-timeout', '10']);
+  assert.ok(args.includes('--cacert'));
+  assert.equal(args.includes('-k'), false);
+  assert.equal(args.includes('--insecure'), false);
+});
+
 test('WV curl response parser derives the final HTTP status when Linux omits the write-out marker', () => {
   const crlf = String.fromCharCode(13, 10);
   const parsed = parseWestVirginiaCurlResponse([
@@ -314,6 +329,20 @@ test('WV purchase Drop Feed dedupe preserves separate branches sharing a DBA', a
   const second = westVirginiaRecentPurchaseSignal({ ...buffaloStores[0], StoreName: 'The Loft', StoreNumber: 507, StreetAddress1: '999 Other St' }, { observedAt: '2026-08-10T16:00:00.000Z', bottle });
   const drops = buildDrops([first, second], lookup, [first, second]);
   assert.deepEqual(drops.map((drop) => drop.storeId).sort(), ['wvabca-store-506', 'wvabca-store-507']);
+});
+
+test('WV recent-purchase collector preserves sanitized curl failure detail', async () => {
+  await assert.rejects(
+    collectWestVirginiaRecentPurchases({ scanText: () => [] }, {
+      observedAt: '2026-08-10T16:00:00.000Z',
+      sleep: async () => {},
+      watchlist: [WEST_VIRGINIA_RECENT_PURCHASE_WATCHLIST[0]],
+      request: async (url) => url === 'https://www.wvabca.com/liquorsearch.aspx'
+        ? { ok: true, status: 200, text: liquorSearchHtml }
+        : { ok: false, status: 0, text: '', error: 'Operation timed out after 25001 milliseconds with 0 bytes received' },
+    }),
+    /Operation timed out after 25001 milliseconds/i,
+  );
 });
 
 test('WV recent-purchase collector keeps one session, stays bounded, and proves the canary at both ends', async () => {
