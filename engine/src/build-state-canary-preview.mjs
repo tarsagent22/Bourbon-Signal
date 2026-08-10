@@ -6,14 +6,18 @@ import { pathToFileURL } from 'node:url';
 function asArray(value) { return Array.isArray(value) ? value : []; }
 function clone(value) { return structuredClone(value || {}); }
 
-export function buildCanaryPreviewPayload({ base, state, candidateDrops, candidateGeneratedAt = null }) {
+export function buildCanaryPreviewPayload({ base, state, candidateDrops, candidateLocations = [], candidateGeneratedAt = null }) {
   const normalizedState = String(state || '').toUpperCase();
   const candidateRows = asArray(candidateDrops);
   if (!normalizedState || candidateRows.some((row) => String(row?.state || '').toUpperCase() !== normalizedState)) {
     throw new Error('Candidate preview drops must all use the requested state.');
   }
+  const explicitCandidateLocations = asArray(candidateLocations);
+  if (explicitCandidateLocations.some((row) => String(row?.state || '').toUpperCase() !== normalizedState)) {
+    throw new Error('Candidate preview locations must all use the requested state.');
+  }
   const drops = clone(base?.drops);
-  drops.drops = [...asArray(drops.drops), ...candidateRows];
+  drops.drops = [...asArray(drops.drops).filter((row) => String(row?.state || '').toUpperCase() !== normalizedState), ...candidateRows];
   drops.count = drops.drops.length;
   const stateIndex = clone(base?.stateIndex);
   const states = asArray(stateIndex.states).filter((entry) => entry.state !== normalizedState);
@@ -37,7 +41,7 @@ export function buildCanaryPreviewPayload({ base, state, candidateDrops, candida
   stats.stateCount = coverageStates.length;
   const locations = clone(base?.locations);
   const locationRows = asArray(locations.locations || locations.stores);
-  const candidateLocations = candidateRows
+  const dropLocations = candidateRows
     .filter((row) => row?.storeId && row?.storeAddress)
     .map((row) => ({
       id: row.storeId,
@@ -52,9 +56,27 @@ export function buildCanaryPreviewPayload({ base, state, candidateDrops, candida
       lat: row.lat ?? null,
       lng: row.lng ?? null,
     }));
+  const directoryLocations = explicitCandidateLocations.map((row) => {
+    const storeId = String(row?.storeId || row?.id || '').trim();
+    const storeName = String(row?.storeName || row?.name || '').trim();
+    const storeAddress = String(row?.storeAddress || row?.address || '').trim();
+    if (!storeId || !storeName || !storeAddress) throw new Error('Candidate preview locations require stable id, name, and address fields.');
+    return {
+      ...clone(row),
+      id: storeId,
+      storeId,
+      name: storeName,
+      storeName,
+      address: storeAddress,
+      storeAddress,
+      state: normalizedState,
+      type: row?.type || 'store',
+      locationType: row?.locationType || row?.type || 'store',
+    };
+  });
   const mergedLocations = locationRows.filter((row) => String(row?.state || '').toUpperCase() !== normalizedState);
   const seenLocationIds = new Set(mergedLocations.map((row) => String(row?.storeId || row?.id || '')));
-  for (const row of candidateLocations) {
+  for (const row of [...directoryLocations, ...dropLocations]) {
     if (seenLocationIds.has(row.storeId)) continue;
     seenLocationIds.add(row.storeId);
     mergedLocations.push(row);
@@ -85,7 +107,7 @@ async function readJson(file, fallback = {}) {
   try { return JSON.parse(await readFile(file, 'utf8')); } catch { return fallback; }
 }
 
-export async function buildStateCanaryPreview({ state, candidateDrops, candidateGeneratedAt = null, lifecycleConfig = null, siteDir = path.resolve('out', 'site'), outDir = path.resolve('out', 'canary', String(state || '').toUpperCase()) } = {}) {
+export async function buildStateCanaryPreview({ state, candidateDrops, candidateLocations = [], candidateGeneratedAt = null, lifecycleConfig = null, siteDir = path.resolve('out', 'site'), outDir = path.resolve('out', 'canary', String(state || '').toUpperCase()) } = {}) {
   const base = {
     manifest: await readJson(path.join(siteDir, 'manifest.json')),
     drops: await readJson(path.join(siteDir, 'drops.json'), { drops: [] }),
@@ -94,7 +116,7 @@ export async function buildStateCanaryPreview({ state, candidateDrops, candidate
     stats: await readJson(path.join(siteDir, 'stats.json'), {}),
     locations: await readJson(path.join(siteDir, 'locations.json'), { locations: [] }),
   };
-  const preview = buildCanaryPreviewPayload({ base, state, candidateDrops, candidateGeneratedAt });
+  const preview = buildCanaryPreviewPayload({ base, state, candidateDrops, candidateLocations, candidateGeneratedAt });
   const lifecyclePreview = lifecycleConfig ? clone(lifecycleConfig) : null;
   if (lifecyclePreview?.states?.[preview.stateDrops.state]) {
     lifecyclePreview.activeStates = Array.from(new Set([...(lifecyclePreview.activeStates || []), preview.stateDrops.state]));
@@ -134,8 +156,20 @@ async function main() {
   const payload = await readJson(path.resolve(candidateFile), []);
   if (!Number.isFinite(Date.parse(String(payload?.generatedAt || '')))) throw new Error('Candidate preview payload requires a valid generatedAt timestamp.');
   const candidateDrops = asArray(payload?.drops || payload);
+  const normalizedState = String(state).toUpperCase();
+  const storeUniverseFile = String(payload?.storeUniverse || '');
+  let candidateLocations = asArray(payload?.locations);
+  if (storeUniverseFile) {
+    const expectedStoreUniverse = `data/store-universe/${normalizedState}.json`;
+    if (storeUniverseFile !== expectedStoreUniverse) throw new Error(`Candidate store universe must be ${expectedStoreUniverse}.`);
+    const storeUniverse = await readJson(path.resolve(storeUniverseFile), null);
+    if (String(storeUniverse?.state || '').toUpperCase() !== normalizedState || !Array.isArray(storeUniverse?.stores) || storeUniverse.storeCount !== storeUniverse.stores.length) {
+      throw new Error('Candidate store universe is missing, malformed, or count-inconsistent.');
+    }
+    candidateLocations = storeUniverse.stores;
+  }
   const lifecycleConfig = await readJson(path.resolve(argValue('--config') || path.join('..', 'src', 'config', 'state-lifecycle.json')), null);
-  const result = await buildStateCanaryPreview({ state, candidateDrops, candidateGeneratedAt: payload.generatedAt, lifecycleConfig, siteDir: path.resolve(argValue('--site-dir') || path.join('out', 'site')), outDir: path.resolve(argValue('--out-dir') || path.join('out', 'canary', state, 'site')) });
+  const result = await buildStateCanaryPreview({ state, candidateDrops, candidateLocations, candidateGeneratedAt: payload.generatedAt, lifecycleConfig, siteDir: path.resolve(argValue('--site-dir') || path.join('out', 'site')), outDir: path.resolve(argValue('--out-dir') || path.join('out', 'canary', state, 'site')) });
   console.log(JSON.stringify({ state, outDir: result.outDir, alertsDisabled: true, productionSnapshotTouched: false, productionDeploymentEnabled: false }, null, 2));
 }
 

@@ -407,6 +407,11 @@
       "state": "WI",
       "file": "states/WI/drops.json",
       "count": 0
+    },
+    {
+      "state": "WV",
+      "file": "states/WV/drops.json",
+      "count": 6
     }
   ]
 }

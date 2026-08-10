@@ -1357,7 +1357,7 @@
       "targetScopes": [
         "statewide"
       ],
-      "lifecycleStage": "discovery",
+      "lifecycleStage": "active",
       "sourceClassesSought": [
         "official_control_board",
         "official_catalog",

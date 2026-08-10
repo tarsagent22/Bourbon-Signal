@@ -3,18 +3,18 @@
   "runId": "a7401de0a51cca45",
   "generatedAt": "2026-07-16T22:59:25.184Z",
   "engineGeneratedAt": "2026-07-16T22:57:36.743Z",
-  "stateCount": 28,
-  "signalCount": 54080,
+  "stateCount": 29,
+  "signalCount": 54266,
   "historicalSignalCount": 246355,
   "historyDays": 30,
   "snapshotCount": 38,
-  "bottleCount": 169,
+  "bottleCount": 175,
   "bibleRecordCount": 169,
-  "storeCount": 3806,
-  "locationCount": 5496,
-  "officialLocationCount": 1329,
+  "storeCount": 3986,
+  "locationCount": 5678,
+  "officialLocationCount": 1509,
   "preloadedLocationCount": 1485,
-  "dropCount": 4758,
+  "dropCount": 4764,
   "eventCount": 3278,
   "historicalTrendCount": 100,
   "alertCandidateCount": 555,
@@ -78,7 +78,7 @@
       "live_store_inventory": 12,
       "store_delivery_leads": 1,
       "store_availability_status": 1,
-      "shipment_drop_intelligence": 1,
+      "shipment_drop_intelligence": 2,
       "aggregate_inventory_watch": 2,
       "distillery_release_watch": 1,
       "retailer_warehouse_inventory": 7
@@ -410,17 +410,17 @@
         "refinementLevel": "region_city_store",
         "customerAreaLabel": null,
         "areaOptions": [
-          "Northwest / DeSoto\u2013Memphis fringe",
+          "Northwest / DeSoto–Memphis fringe",
           "North Central / Oxford",
-          "Northeast / Tupelo\u2013Golden Triangle",
-          "Delta / Greenville\u2013Clarksdale\u2013Greenwood",
-          "Central / Jackson\u2013Madison\u2013Rankin",
+          "Northeast / Tupelo–Golden Triangle",
+          "Delta / Greenville–Clarksdale–Greenwood",
+          "Central / Jackson–Madison–Rankin",
           "East Central / Meridian",
-          "Pine Belt / Hattiesburg\u2013Laurel",
-          "Gulf Coast / Gulfport\u2013Biloxi\u2013Pascagoula",
-          "Southwest / Natchez\u2013Brookhaven\u2013McComb\u2013Vicksburg"
+          "Pine Belt / Hattiesburg–Laurel",
+          "Gulf Coast / Gulfport–Biloxi–Pascagoula",
+          "Southwest / Natchez–Brookhaven–McComb–Vicksburg"
         ],
-        "customerSummary": "Sparse exact-store Mississippi retailer inventory across DeSoto County, the Jackson\u2013Madison area, and an identity-bound Tupelo merchant cohort, plus conservative non-inventory release-watch evidence. Exact-store binary orderability is visible on-site only when freshly observed; marketplace controls do not claim exact bottle counts, pickup, delivery, or guaranteed fulfillment, release-watch evidence stays nonalertable, outbound alerts remain disabled, and customers should verify before driving.",
+        "customerSummary": "Sparse exact-store Mississippi retailer inventory across DeSoto County, the Jackson–Madison area, and an identity-bound Tupelo merchant cohort, plus conservative non-inventory release-watch evidence. Exact-store binary orderability is visible on-site only when freshly observed; marketplace controls do not claim exact bottle counts, pickup, delivery, or guaranteed fulfillment, release-watch evidence stays nonalertable, outbound alerts remain disabled, and customers should verify before driving.",
         "coverageTier": "sparse_live_store_inventory"
       },
       {
@@ -459,9 +459,9 @@
         "customerAreaLabel": null,
         "areaOptions": [
           "Las Vegas Valley",
-          "Reno\u2013Sparks"
+          "Reno–Sparks"
         ],
-        "customerSummary": "First-party retailer store availability and pickup orderability across Las Vegas Valley and Reno\u2013Sparks. Binary availability is not an exact shelf count; verify before driving. Costco remains a separate warehouse watch lane.",
+        "customerSummary": "First-party retailer store availability and pickup orderability across Las Vegas Valley and Reno–Sparks. Binary availability is not an exact shelf count; verify before driving. Costco remains a separate warehouse watch lane.",
         "coverageTier": "live_store_inventory"
       },
       {
@@ -677,21 +677,40 @@
         "areaOptions": [],
         "customerSummary": "Costco warehouse bourbon signals for Wisconsin warehouses where verified. Costco is treated as an in-state retailer source with fast-moving inventory caveats.",
         "coverageTier": "retailer_warehouse_inventory"
+      },
+      {
+        "state": "WV",
+        "label": "West Virginia",
+        "sourceLabel": "West Virginia ABCA official barrel-selection updates and licensed-store directory",
+        "tier": "C",
+        "status": "useful",
+        "publicStatus": "active",
+        "lifecycle": "official_barrel_selection_updates",
+        "signalCount": 186,
+        "roadblockCount": 0,
+        "targetLocationPrecision": "statewide_catalog",
+        "bestLocationPrecision": "store_level",
+        "strategy": "barrel_pick_watch",
+        "refinementLevel": "statewide",
+        "customerAreaLabel": null,
+        "areaOptions": [],
+        "customerSummary": "Official West Virginia barrel-selection updates plus searchable licensed-store information. Retailers may be able to order listed selections, but these updates do not confirm shelf stock or enable restock alerts.",
+        "coverageTier": "shipment_drop_intelligence"
       }
     ],
-    "stateCount": 28
+    "stateCount": 29
   },
   "stateQuality": {
-    "stateCount": 25,
-    "releaseEligibleStates": 11,
-    "releaseBlockedStates": 14,
-    "averageScore": 49,
+    "stateCount": 29,
+    "releaseEligibleStates": 12,
+    "releaseBlockedStates": 17,
+    "averageScore": 46,
     "weakestStates": [
       "VA",
       "SC",
       "AZ",
-      "GA",
-      "MI"
+      "CO",
+      "GA"
     ]
   },
   "southeastReadiness": {
