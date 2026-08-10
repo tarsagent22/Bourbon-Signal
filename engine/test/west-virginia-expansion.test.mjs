@@ -9,6 +9,7 @@ import {
   parseWestVirginiaBarrelSelections,
   parseWestVirginiaCurlResponse,
   parseWestVirginiaLiquorSearchApiKey,
+  validateWestVirginiaGatewayPayload,
   WEST_VIRGINIA_CA_BUNDLE_SHA256,
   WEST_VIRGINIA_RECENT_PURCHASE_WATCHLIST,
   westVirginiaCurlTransportArgs,
@@ -329,6 +330,69 @@ test('WV purchase Drop Feed dedupe preserves separate branches sharing a DBA', a
   const second = westVirginiaRecentPurchaseSignal({ ...buffaloStores[0], StoreName: 'The Loft', StoreNumber: 507, StreetAddress1: '999 Other St' }, { observedAt: '2026-08-10T16:00:00.000Z', bottle });
   const drops = buildDrops([first, second], lookup, [first, second]);
   assert.deepEqual(drops.map((drop) => drop.storeId).sort(), ['wvabca-store-506', 'wvabca-store-507']);
+});
+
+test('WV recent-purchase collector uses a fresh fixed gateway after a direct API connect failure', async () => {
+  const gatewayObservedAt = new Date().toISOString();
+  const products = WEST_VIRGINIA_RECENT_PURCHASE_WATCHLIST.map((watch, productIndex) => ({
+    expectedProductId: watch.expectedProductId,
+    bottleSize: watch.bottleSize,
+    product: { ProductID: watch.expectedProductId, ProductName: watch.query, BottleSize: String(watch.bottleSize) },
+    stores: Array.from({ length: productIndex === 0 ? 25 : 20 }, (_, index) => ({
+      StoreNumber: 1_000 + productIndex * 100 + index,
+      StoreName: `Gateway Store ${productIndex}-${index}`,
+      StreetAddress1: `${index + 1} Main St`,
+      City: 'Charleston,WV',
+      PhoneNumber: '304-555-0100',
+      ProductID: watch.expectedProductId,
+      BottleSize: watch.bottleSize,
+      ProductName: watch.query,
+    })),
+  }));
+  const gatewayPayload = {
+    contractVersion: 'bourbon-signal/wvabca-gateway@1',
+    observedAt: gatewayObservedAt,
+    requestCount: 9,
+    canaryStoreCount: 25,
+    endingCanaryStoreCount: 20,
+    products,
+  };
+  let directApiCalls = 0;
+  const result = await collectWestVirginiaRecentPurchases({
+    scanText: (text) => [{ id: `bottle-${text}`, canonical: text }],
+  }, {
+    observedAt: '2026-08-10T16:05:00.000Z',
+    sleep: async () => {},
+    allowGateway: true,
+    request: async (url) => {
+      if (url === 'https://www.wvabca.com/liquorsearch.aspx') return { ok: true, status: 200, text: liquorSearchHtml };
+      directApiCalls += 1;
+      return { ok: false, status: 0, text: '', error: 'curl: (28) Failed to connect to api.wvabca.com port 443 after 10002 ms: Timeout was reached' };
+    },
+    gatewayRequest: async () => gatewayPayload,
+  });
+  assert.equal(directApiCalls, 1);
+  assert.equal(result.signals.length, 65);
+  assert.ok(result.signals.every((signal) => signal.observedAt === gatewayObservedAt));
+  assert.equal(result.sourceReport.gatewayUsed, true);
+  assert.equal(result.sourceReport.requestCount, 11);
+  assert.equal(result.sourceReport.maximumRequests, 11);
+  assert.equal(result.sourceReport.gatewayRequestCount, 9);
+  assert.equal(result.sourceReport.canaryStoreCount, 20);
+  assert.equal(result.sourceReport.transportRequestCount, 2);
+
+  assert.throws(
+    () => validateWestVirginiaGatewayPayload({ ...gatewayPayload, endingCanaryStoreCount: undefined }),
+    /canary.*collapsed/i,
+  );
+  assert.throws(
+    () => validateWestVirginiaGatewayPayload({ ...gatewayPayload, canaryStoreCount: 154, endingCanaryStoreCount: 123 }),
+    /canary.*collapsed/i,
+  );
+  assert.throws(
+    () => validateWestVirginiaGatewayPayload({ ...gatewayPayload, observedAt: '2026-08-10T15:00:00.000Z' }, { now: Date.parse('2026-08-10T16:05:00.000Z') }),
+    /stale/i,
+  );
 });
 
 test('WV recent-purchase collector preserves sanitized curl failure detail', async () => {

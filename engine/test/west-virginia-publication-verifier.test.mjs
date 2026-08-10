@@ -79,6 +79,9 @@ function validArtifact() {
       ],
       requestCount: 9,
       maximumRequests: 9,
+      gatewayUsed: false,
+      gatewayRequestCount: 0,
+      transportRequestCount: 9,
       canaryStoreCount: 155,
       purchaseWindowDays: 90,
       sourceAvailabilityVerified: false,
@@ -102,6 +105,52 @@ test('WV publication verifier accepts a current exact-store non-inventory purcha
     requestCount: 9,
     canaryStoreCount: 155,
   });
+});
+
+test('WV publication verifier accepts bounded gateway accounting and rejects hidden transport attempts', () => {
+  const artifact = validArtifact();
+  const gatewayObservedAt = '2026-08-10T16:00:00.000Z';
+  Object.assign(artifact.sources[0], {
+    gatewayUsed: true,
+    gatewayRequestCount: 9,
+    transportRequestCount: 2,
+    requestCount: 11,
+    maximumRequests: 11,
+    gatewayObservedAt,
+  });
+  for (const signal of artifact.signals.filter((row) => row.sourceRuntimeId === 'wv:configured:wv-abca-recent-purchases')) signal.observedAt = gatewayObservedAt;
+  const now = Date.parse('2026-08-10T16:05:00.000Z');
+  assert.equal(verifyWestVirginiaRecentPurchaseArtifact(artifact, { now }).requestCount, 11);
+
+  for (const mutation of [
+    (source) => { source.transportRequestCount = 3; },
+    (source) => { source.gatewayRequestCount = 8; },
+    (source) => { source.requestCount = 10; },
+    (source) => { source.maximumRequests = 9; },
+    (source) => { source.gatewayObservedAt = '2026-08-10T15:00:00.000Z'; },
+  ]) {
+    const invalid = structuredClone(artifact);
+    mutation(invalid.sources[0]);
+    assert.throws(() => verifyWestVirginiaRecentPurchaseArtifact(invalid, { now }), /request|gateway observation/i);
+  }
+
+  const mismatched = structuredClone(artifact);
+  mismatched.signals[0].observedAt = '2026-08-10T15:59:59.000Z';
+  assert.throws(() => verifyWestVirginiaRecentPurchaseArtifact(mismatched, { now }), /timestamps/i);
+});
+
+test('WV publication verifier rejects incomplete direct request accounting', () => {
+  for (const mutation of [
+    (source) => { source.gatewayUsed = undefined; },
+    (source) => { source.requestCount = 8; },
+    (source) => { source.gatewayRequestCount = 1; },
+    (source) => { source.gatewayRequestCount = null; },
+    (source) => { source.transportRequestCount = 8; },
+  ]) {
+    const invalid = validArtifact();
+    mutation(invalid.sources[0]);
+    assert.throws(() => verifyWestVirginiaRecentPurchaseArtifact(invalid), /request|transport mode/i);
+  }
 });
 
 test('WV publication verifier rejects missing source output and silent canary collapse', () => {

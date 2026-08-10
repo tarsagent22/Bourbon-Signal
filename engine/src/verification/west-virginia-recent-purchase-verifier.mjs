@@ -3,7 +3,9 @@ const EVENT_TYPE = 'wv_abca_retailer_recent_purchase_window';
 const MINIMUM_PURCHASE_SIGNALS = 20;
 const MINIMUM_PURCHASE_STORES = 20;
 const MINIMUM_CANARY_STORES = 20;
-const MAXIMUM_REQUESTS = 9;
+const MAXIMUM_DIRECT_REQUESTS = 9;
+const MAXIMUM_GATEWAY_REQUESTS = 11;
+const MAXIMUM_GATEWAY_AGE_MS = 20 * 60_000;
 const EXPECTED_PRODUCTS = new Set([827, 10150, 734]);
 const DIRECTORY_STORE_COUNT = 180;
 const BARREL_SELECTION_COUNT = 6;
@@ -46,7 +48,7 @@ function validPurchaseSignal(signal) {
     && signal.raw?.premisesVerified === true;
 }
 
-export function verifyWestVirginiaRecentPurchaseArtifact(state) {
+export function verifyWestVirginiaRecentPurchaseArtifact(state, { now = Date.now() } = {}) {
   invariant(state?.state === 'WV', 'state report must be WV.');
   invariant(state?.stale !== true && !String(state?.status || '').startsWith('stale_'), 'state report is stale.');
   invariant(!String(state?.status || '').startsWith('failed_'), 'state report failed.');
@@ -55,14 +57,32 @@ export function verifyWestVirginiaRecentPurchaseArtifact(state) {
   invariant(source, 'required source report is missing.');
   invariant(source.ok === true && Number(source.status) === 200 && !source.error, 'source report is not a successful HTTP 200 result.');
   invariant(source.signalType === EVENT_TYPE, 'source report signal type drifted.');
-  invariant(Number(source.requestCount) <= MAXIMUM_REQUESTS, 'source request budget exceeded.');
-  invariant(Number(source.maximumRequests) === MAXIMUM_REQUESTS, 'source maximum request contract drifted.');
+  invariant(Number.isInteger(source.requestCount) && Number.isInteger(source.maximumRequests)
+    && Number.isInteger(source.gatewayRequestCount) && Number.isInteger(source.transportRequestCount), 'source request accounting must use explicit integers.');
+  const maximumRequests = source.gatewayUsed === true ? MAXIMUM_GATEWAY_REQUESTS : MAXIMUM_DIRECT_REQUESTS;
+  invariant(Number(source.requestCount) <= maximumRequests, 'source request budget exceeded.');
+  invariant(Number(source.maximumRequests) === maximumRequests, 'source maximum request contract drifted.');
+  if (source.gatewayUsed === true) {
+    invariant(Number(source.gatewayRequestCount) === MAXIMUM_DIRECT_REQUESTS, 'gateway request count drifted.');
+    invariant(Number(source.transportRequestCount) === 2, 'pre-gateway transport request count drifted.');
+    invariant(Number(source.requestCount) === Number(source.gatewayRequestCount) + Number(source.transportRequestCount), 'gateway request accounting is incomplete.');
+  } else {
+    invariant(source.gatewayUsed === false, 'direct transport mode was not declared.');
+    invariant(Number(source.requestCount) === MAXIMUM_DIRECT_REQUESTS, 'direct request count drifted.');
+    invariant(Number(source.gatewayRequestCount) === 0, 'direct mode reported gateway requests.');
+    invariant(Number(source.transportRequestCount) === MAXIMUM_DIRECT_REQUESTS, 'direct transport request count drifted.');
+  }
   invariant(Number(source.canaryStoreCount) >= MINIMUM_CANARY_STORES, 'source canary store count collapsed.');
   invariant(source.purchaseWindowDays === 90, 'source purchase window drifted.');
   invariant(source.sourceAvailabilityVerified === false, 'source report overclaims live inventory.');
   invariant(source.canAlertAsInventory === false && source.canAlertAsWatch === false, 'source report overclaims alert eligibility.');
 
   const signals = (state.signals || []).filter(recentPurchaseSignal);
+  if (source.gatewayUsed === true) {
+    const observedMs = Date.parse(source.gatewayObservedAt || '');
+    invariant(Number.isFinite(observedMs) && observedMs <= now + 5 * 60_000 && now - observedMs <= MAXIMUM_GATEWAY_AGE_MS, 'gateway observation is stale or invalid.');
+    invariant(signals.every((signal) => signal.observedAt === source.gatewayObservedAt), 'gateway signal timestamps do not match the source observation.');
+  }
   invariant(signals.length >= MINIMUM_PURCHASE_SIGNALS, `only ${signals.length} recent-purchase signals were produced.`);
   invariant(signals.every(validPurchaseSignal), 'one or more purchase signals violate exact-premise or non-inventory semantics.');
   invariant(new Set(signals.map((signal) => signal.id)).size === signals.length, 'purchase signal IDs are not unique.');

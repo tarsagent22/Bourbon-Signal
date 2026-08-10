@@ -11,6 +11,9 @@ const lifecycle = JSON.parse(await readFile(new URL('../src/config/state-lifecyc
 const stateSources = await readFile(new URL('../engine/src/state-sources.mjs', import.meta.url), 'utf8');
 const exporter = await readFile(new URL('../engine/src/export-site-contract.mjs', import.meta.url), 'utf8');
 const feedVisibility = await readFile(new URL('../src/lib/drop-feed-visibility.ts', import.meta.url), 'utf8');
+const gatewayRoute = await readFile(new URL('../src/app/api/source/wvabca/route.ts', import.meta.url), 'utf8');
+const gatewaySource = await readFile(new URL('../src/lib/wvabca-source-gateway.ts', import.meta.url), 'utf8');
+const nextConfig = await readFile(new URL('../next.config.ts', import.meta.url), 'utf8');
 
 if (lifecycle.states.WV?.publicStatus === 'active') {
   assert.ok(lifecycle.activeStates.includes('WV'), 'Active WV must be present in activeStates.');
@@ -33,6 +36,14 @@ assert.match(exporter, /isWestVirginiaRecentPurchaseSignal/);
 assert.match(exporter, /isWestVirginiaOfficialBarrelSelectionSignal/);
 assert.match(feedVisibility, /isWestVirginiaRecentPurchase/);
 assert.match(feedVisibility, /isWestVirginiaOfficialBarrelSelection/);
+assert.match(gatewayRoute, /authorizeWvabcaGateway[\s\S]*readCachedWvabcaGatewayPayload/);
+assert.match(gatewayRoute, /authorization !== "authorized"/);
+assert.match(gatewaySource, /ENGINE_SNAPSHOT_ENCRYPTION_KEY/);
+assert.match(gatewaySource, /createHmac\("sha256", key\)\.update\(AUTH_LABEL\)/);
+assert.match(gatewaySource, /\^Bearer\\s\+\(\[a-f0-9\]\{64\}\)\$/i);
+assert.match(gatewayRoute, /private, no-store/);
+assert.match(nextConfig, /api\/source\/wvabca/);
+assert.match(nextConfig, /favicon\.ico\|api\/source\/wvabca/);
 
 const directorySignals = westVirginiaDirectorySignals({ nowAt: '2026-08-09T21:00:00.000Z' });
 assert.equal(directorySignals.length, 180);
