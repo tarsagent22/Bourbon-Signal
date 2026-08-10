@@ -321,12 +321,29 @@ function isWestVirginiaOfficialBarrelSelectionSignal(signal) {
     && signal.canAlertAsWatch === false;
 }
 
+function isWestVirginiaRecentPurchaseSignal(signal) {
+  return signal.state === 'WV'
+    && String(signal.eventType || signal.type || '').toLowerCase() === 'wv_abca_retailer_recent_purchase_window'
+    && signal.sourceRuntimeId === 'wv:configured:wv-abca-recent-purchases'
+    && signal.locationPrecision === 'store_level'
+    && Boolean(signal.storeId)
+    && Boolean(signal.storeName)
+    && Boolean(signal.storeAddress)
+    && signal.premisesVerified === true
+    && signal.availabilityStatus === 'recent_purchase_window'
+    && signal.sourceAvailabilityVerified === false
+    && signal.quantityIsExact === false
+    && signal.canAlertAsInventory === false
+    && signal.canAlertAsWatch === false;
+}
+
 export function publicSignal(signal, bible, freshness = null) {
   const bibleRecord = findBibleRecord(signal, bible);
   const preferRetailerName = ['IN', 'IL', 'TN', 'SC', 'AZ', 'GA', 'NY', 'CO'].includes(signal.state) && /^(cityhive_store_inventory|retailer_store_inventory)/i.test(String(signal.eventType || ''));
   const isCostcoWarehouseInventory = isCostcoWarehouseInventorySignal(signal);
   const isKyOfficialDistillery = isKentuckyOfficialDistillerySignal(signal);
   const isWvOfficialBarrelSelection = isWestVirginiaOfficialBarrelSelectionSignal(signal);
+  const isWvRecentPurchase = isWestVirginiaRecentPurchaseSignal(signal);
   const preferOfficialSourceName = preferRetailerName || isKentuckyOfficialDistilleryReleaseWatchSignal(signal) || (signal.state === 'NC' && /High Point ABC public Power BI/i.test(String(signal.sourceLabel || signal.source || '')));
   const canonicalName = preferOfficialSourceName ? (signal.rawName || signal.canonicalName || bibleRecord?.canonical || null) : (bibleRecord?.canonical || signal.canonicalName || signal.rawName || null);
   const canonicalId = preferOfficialSourceName ? stableId([signal.state, signal.sourceLabel || signal.sourceUrl, signal.rawName || signal.canonicalName || 'unknown']) : (bibleRecord?.id || bottleKey(signal));
@@ -524,12 +541,12 @@ export function publicSignal(signal, bible, freshness = null) {
     canAlertAsInventory,
     canAlertAsWatch,
     alertable: staleFallback ? false : undefined,
-    eligibleForOnSite: isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || canAlertAsInventory || canAlertAsWatch,
-    eligibleForDropFeed: isMsSparseOnSiteInventory || isWvOfficialBarrelSelection ? true : undefined,
-    eligibleForWatch: isMsSparseOnSiteInventory || isWvOfficialBarrelSelection ? false : undefined,
-    eligibleForDelivery: isMsSparseOnSiteInventory || isWvOfficialBarrelSelection ? false : (canAlertAsInventory || canAlertAsWatch),
-    eligibleForEmail: isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isScSouthernBinaryInventory ? false : undefined,
-    eligibleForSms: isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isScSouthernBinaryInventory ? false : undefined,
+    eligibleForOnSite: isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase || canAlertAsInventory || canAlertAsWatch,
+    eligibleForDropFeed: isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase ? true : undefined,
+    eligibleForWatch: isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase ? false : undefined,
+    eligibleForDelivery: isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase ? false : (canAlertAsInventory || canAlertAsWatch),
+    eligibleForEmail: isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase || isScSouthernBinaryInventory ? false : undefined,
+    eligibleForSms: isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase || isScSouthernBinaryInventory ? false : undefined,
     raw: staleFallback ? {
       lastKnownAvailabilityStatus: signal.raw?.lastKnownAvailabilityStatus || null,
       lastKnownAvailabilityLabel: signal.raw?.lastKnownAvailabilityLabel || null,
@@ -561,6 +578,8 @@ export function publicSignal(signal, bible, freshness = null) {
       ? 'Costco warehouse signal. Fast-moving bottles can disappear quickly; verify with the warehouse/app before driving.'
       : isWvOfficialBarrelSelection
         ? 'Official statewide retailer-ordering intelligence only; not live shelf inventory. Contact a licensed retailer to confirm availability before driving.'
+      : isWvRecentPurchase
+        ? 'WVABCA reports a retailer purchase within the last three months, not current shelf inventory or quantity. Call the exact store before driving.'
       : isKentuckyDistilleryDrop(signal)
         ? 'Official distillery gift-shop availability. This is a distillery drop/pickup lead, not retailer store inventory; limits and same-day sellouts can apply.'
       : isKyOfficialDistillery
@@ -843,6 +862,7 @@ function dropPriority(signal) {
   if (type === 'nc_statewide_warehouse_stock') return 58;
   if (signal.state === 'PA' && type === 'store_inventory_aggregate') return 56;
   if (isMississippiSparseOnSiteInventory(signal)) return 49;
+  if (isWestVirginiaRecentPurchaseSignal(signal)) return 46;
   if (isWestVirginiaOfficialBarrelSelectionSignal(signal)) return 25;
   if (signalCanAlertAsInventory(signal)) return 50;
   if (signal.state === 'MD-MONTGOMERY' && type === 'county_inventory_aggregate') return 32;
@@ -865,6 +885,12 @@ function isUserFacingDropSignal(signal) {
 
   if (!type) return false;
   if (isWestVirginiaOfficialBarrelSelectionSignal(signal)) {
+    return signal.sourceAvailabilityVerified === false
+      && signal.stale !== true
+      && signal.sourceStale !== true
+      && Boolean(signal.canonicalBottleId);
+  }
+  if (isWestVirginiaRecentPurchaseSignal(signal)) {
     return signal.sourceAvailabilityVerified === false
       && signal.stale !== true
       && signal.sourceStale !== true
@@ -1040,7 +1066,7 @@ export function buildDrops(signals, bible, currentSignals = []) {
     })
     .map((signal) => publicSignal(signal, bible, freshnessIndex.get(signalFreshnessKey(signal))))
     .filter((drop) => isCustomerDropTier(drop))
-    .filter((drop, index, drops) => drops.findIndex((x) => [x.state, x.type, x.canonicalId, x.sourceUrl, x.locationName, x.quantity, x.availabilityStatus, x.price].join('|') === [drop.state, drop.type, drop.canonicalId, drop.sourceUrl, drop.locationName, drop.quantity, drop.availabilityStatus, drop.price].join('|')) === index)
+    .filter((drop, index, drops) => drops.findIndex((x) => [x.state, x.type, x.canonicalId, x.sourceUrl, x.storeId, x.locationName, x.storeAddress, x.quantity, x.availabilityStatus, x.price].join('|') === [drop.state, drop.type, drop.canonicalId, drop.sourceUrl, drop.storeId, drop.locationName, drop.storeAddress, drop.quantity, drop.availabilityStatus, drop.price].join('|')) === index)
     .slice(0, 10000);
 }
 

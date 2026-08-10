@@ -137,6 +137,7 @@ export function buildLocationBible(signals = [], officialLocations = []) {
 
   const groupedSignals = new Map();
   for (const signal of signals) {
+    if (signal.locationProjectionDisabled === true) continue;
     const isStore = signal.locationPrecision === 'store_level' && (signal.storeName || signal.locationName || signal.storeAddress);
     const isBoard = !isStore && (signal.locationName || signal.county || signal.city);
     if (!isStore && !isBoard) continue;

@@ -3,12 +3,17 @@ import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 
 import {
+  collectWestVirginiaRecentPurchases,
   enrichWestVirginiaBarrelSelections,
   parseWestVirginiaBarrelSelections,
+  parseWestVirginiaLiquorSearchApiKey,
+  WEST_VIRGINIA_RECENT_PURCHASE_WATCHLIST,
   westVirginiaDirectorySignals,
+  westVirginiaRecentPurchaseSignal,
 } from '../src/collectors/west-virginia-official.mjs';
 import { BourbonBible } from '../src/core/bible.mjs';
-import { bibleLookup, buildDrops } from '../src/export-site-contract.mjs';
+import { buildDrops, bibleLookup } from '../src/export-site-contract.mjs';
+import { buildLocationBible } from '../src/location-bible.mjs';
 import { derivePublicDropEvidence } from '../../src/lib/public-drop-evidence.ts';
 
 const fixtureHtml = `
@@ -143,7 +148,199 @@ test('WV lifecycle remains shadow-only until provenance activates statewide offi
     assert.equal(entry.shadowEligible, true);
   }
   assert.equal(entry.coverageTier, 'shipment_drop_intelligence');
-  assert.equal(entry.refinementLevel, 'statewide');
+  assert.equal(entry.refinementLevel, 'exact_store');
+  assert.match(entry.customerSummary, /exact-store.*purchase/i);
   assert.match(entry.customerSummary, /official.*barrel[- ]selection/i);
   assert.match(entry.customerSummary, /not.*shelf/i);
+});
+
+const liquorSearchHtml = `
+  <script>
+    var APIKey = 'public-runtime-key';
+  </script>
+`;
+
+const buffaloCatalog = [{
+  BottleSize: ' 750, 1750',
+  ConfigID: 907,
+  ProductID: 827,
+  ProductName: 'Buffalo Trace Kentucky Straight Bourbon Whiskey',
+}];
+
+const buffaloStores = [
+  {
+    BottleSize: 750,
+    City: 'Martinsburg',
+    PhoneNumber: '(304) 263-3111',
+    ProductID: 827,
+    ProductName: 'Buffalo Trace Kentucky Straight Bourbon Whiskey',
+    StoreName: '7-eleven #10670',
+    StoreNumber: 624,
+    StreetAddress1: '1015 N. Queen St.',
+  },
+  {
+    BottleSize: 750,
+    City: 'Morgantown',
+    PhoneNumber: '(304) 296-2035',
+    ProductID: 827,
+    ProductName: 'Buffalo Trace Kentucky Straight Bourbon Whiskey',
+    StoreName: 'Ashebrooke Liquor Outlet',
+    StoreNumber: 544,
+    StreetAddress1: '300 Beechhurst Avenue',
+  },
+];
+
+test('WV Liquor Search key parser accepts only the public runtime key assignment', () => {
+  assert.equal(parseWestVirginiaLiquorSearchApiKey(liquorSearchHtml), 'public-runtime-key');
+  assert.equal(parseWestVirginiaLiquorSearchApiKey('<script>var other = "secret"</script>'), null);
+  assert.equal(parseWestVirginiaLiquorSearchApiKey("var APIKey = '';"), null);
+});
+
+test('WV recent-purchase watchlist pins only live-verified official products within a nine-request budget', () => {
+  assert.deepEqual(WEST_VIRGINIA_RECENT_PURCHASE_WATCHLIST, [
+    { query: 'Buffalo Trace Kentucky Straight Bourbon Whiskey', expectedProductId: 827, bottleSize: 750 },
+    { query: "Blanton's Gold Bourbon", expectedProductId: 10150, bottleSize: 750 },
+    { query: "Booker's Bourbon", expectedProductId: 734, bottleSize: 750 },
+  ]);
+  assert.equal(2 * WEST_VIRGINIA_RECENT_PURCHASE_WATCHLIST.length + 3, 9);
+});
+
+test('WV recent-purchase rows preserve official store identity without claiming live inventory', () => {
+  const signal = westVirginiaRecentPurchaseSignal(buffaloStores[0], {
+    observedAt: '2026-08-10T16:00:00.000Z',
+    bottle: { id: 'buffalo-trace', canonical: 'Buffalo Trace', tier: 'allocated', confidence: 0.99 },
+  });
+
+  assert.equal(signal.storeId, 'wvabca-store-624');
+  assert.equal(signal.storeNumber, '624');
+  assert.equal(signal.storeName, '7-eleven #10670');
+  assert.equal(signal.storeAddress, '1015 N. Queen St., Martinsburg, WV');
+  assert.equal(signal.locationPrecision, 'store_level');
+  assert.equal(signal.locationProjectionDisabled, true);
+  assert.equal(signal.premisesVerified, true);
+  assert.equal(signal.eventType, 'wv_abca_retailer_recent_purchase_window');
+  assert.equal(signal.availabilityStatus, 'recent_purchase_window');
+  assert.equal(signal.quantity, 0);
+  assert.equal(signal.quantityIsExact, false);
+  assert.equal(signal.sourceAvailabilityVerified, false);
+  assert.equal(signal.canAlertAsInventory, false);
+  assert.equal(signal.canAlertAsWatch, false);
+  assert.equal(signal.raw.purchaseWindowDays, 90);
+  assert.equal(signal.raw.noLiveInventory, true);
+  assert.match(signal.readableSummary, /purchased.*within the last three months/i);
+  assert.match(signal.readableSummary, /call.*store/i);
+});
+
+test('WV recent-purchase city normalization removes comma-suffixed state text', () => {
+  const signal = westVirginiaRecentPurchaseSignal({
+    ...buffaloStores[0],
+    City: 'THOMAS,WV',
+    StreetAddress1: '123 Capitol St',
+  }, {
+    observedAt: '2026-08-10T16:00:00.000Z',
+    bottle: { id: 'buffalo-trace', canonical: 'Buffalo Trace', tier: 'allocated', confidence: 0.99 },
+  });
+  assert.equal(signal.city, 'THOMAS');
+  assert.equal(signal.storeAddress, '123 Capitol St, THOMAS, WV');
+});
+
+test('WV purchase signals do not duplicate the licensed-store Finder universe', () => {
+  const directorySignals = westVirginiaDirectorySignals({ observedAt: '2026-08-10T16:00:00.000Z' });
+  const purchaseSignal = westVirginiaRecentPurchaseSignal(buffaloStores[0], {
+    observedAt: '2026-08-10T16:00:00.000Z',
+    bottle: { id: 'buffalo-trace', canonical: 'Buffalo Trace', tier: 'allocated', confidence: 0.99 },
+  });
+  const locations = buildLocationBible([...directorySignals, purchaseSignal]);
+  const westVirginiaStores = locations.filter((location) => location.state === 'WV' && location.type === 'store');
+  assert.equal(westVirginiaStores.length, 180);
+  assert.equal(westVirginiaStores.some((location) => String(location.id).startsWith('wvabca-store-')), false);
+});
+
+test('WV purchase Drop Feed dedupe preserves separate branches sharing a DBA', async () => {
+  const bibleData = JSON.parse(await readFile(new URL('../out/bourbon-bible.json', import.meta.url), 'utf8'));
+  const lookup = bibleLookup(bibleData.records);
+  const bottle = { id: 'bb_91e42d9de5250566', canonical: 'Buffalo Trace Bourbon', tier: 'allocated', confidence: 0.99 };
+  const first = westVirginiaRecentPurchaseSignal({ ...buffaloStores[0], StoreName: 'The Loft', StoreNumber: 506 }, { observedAt: '2026-08-10T16:00:00.000Z', bottle });
+  const second = westVirginiaRecentPurchaseSignal({ ...buffaloStores[0], StoreName: 'The Loft', StoreNumber: 507, StreetAddress1: '999 Other St' }, { observedAt: '2026-08-10T16:00:00.000Z', bottle });
+  const drops = buildDrops([first, second], lookup, [first, second]);
+  assert.deepEqual(drops.map((drop) => drop.storeId).sort(), ['wvabca-store-506', 'wvabca-store-507']);
+});
+
+test('WV recent-purchase collector keeps one session, stays bounded, and proves the canary at both ends', async () => {
+  const calls = [];
+  const request = async (url, options = {}) => {
+    calls.push({ url, ...options, body: options.body ? JSON.parse(options.body) : null });
+    if (url === 'https://www.wvabca.com/liquorsearch.aspx') {
+      return { ok: true, status: 200, text: liquorSearchHtml, setCookie: 'ASP.NET_SessionId=abc123; path=/; secure' };
+    }
+    const body = JSON.parse(options.body);
+    assert.match(options.headers.cookie, /ASP\.NET_SessionId=abc123/);
+    assert.equal(body.APIKey, 'public-runtime-key');
+    if (url.endsWith('/GetProductNameSearch')) return { ok: true, status: 200, text: JSON.stringify(buffaloCatalog) };
+    if (url.endsWith('/GetStoresWithProduct')) return { ok: true, status: 200, text: JSON.stringify(buffaloStores) };
+    throw new Error(`Unexpected URL ${url}`);
+  };
+  const bible = { scanText: () => [{ id: 'buffalo-trace', canonical: 'Buffalo Trace', tier: 'allocated', confidence: 0.99 }] };
+  const result = await collectWestVirginiaRecentPurchases(bible, {
+    observedAt: '2026-08-10T16:00:00.000Z',
+    request,
+    sleep: async () => {},
+    watchlist: [{ query: 'Buffalo Trace Kentucky Straight Bourbon Whiskey', expectedProductId: 827, bottleSize: 750 }],
+    minimumCanaryStores: 2,
+  });
+
+  assert.equal(result.signals.length, 2);
+  assert.equal(result.sourceReport.requestCount, 5);
+  assert.equal(result.sourceReport.canaryStoreCount, 2);
+  assert.equal(calls.filter((call) => call.url.endsWith('/GetProductNameSearch')).length, 2);
+  assert.equal(calls.filter((call) => call.url.endsWith('/GetStoresWithProduct')).length, 2);
+  assert.ok(calls.length <= result.sourceReport.maximumRequests);
+});
+
+test('WV recent-purchase collector fails closed on silent empty-array throttling', async () => {
+  let catalogCalls = 0;
+  const request = async (url, options = {}) => {
+    if (url === 'https://www.wvabca.com/liquorsearch.aspx') return { ok: true, status: 200, text: liquorSearchHtml };
+    JSON.parse(options.body);
+    if (url.endsWith('/GetProductNameSearch')) {
+      catalogCalls += 1;
+      return { ok: true, status: 200, text: JSON.stringify(catalogCalls === 1 ? buffaloCatalog : []) };
+    }
+    if (url.endsWith('/GetStoresWithProduct')) return { ok: true, status: 200, text: JSON.stringify(buffaloStores) };
+    throw new Error(`Unexpected URL ${url}`);
+  };
+  const bible = { scanText: () => [{ id: 'buffalo-trace', canonical: 'Buffalo Trace', tier: 'allocated', confidence: 0.99 }] };
+
+  await assert.rejects(
+    collectWestVirginiaRecentPurchases(bible, {
+      request,
+      sleep: async () => {},
+      watchlist: [{ query: 'Buffalo Trace Kentucky Straight Bourbon Whiskey', expectedProductId: 827, bottleSize: 750 }],
+      minimumCanaryStores: 2,
+    }),
+    /ending canary.*empty|silent throttle/i,
+  );
+});
+
+test('WV recent-purchase signals reach the onsite feed as call-first purchase leads, never inventory or delivery alerts', async () => {
+  const bibleData = JSON.parse(await readFile(new URL('../out/bourbon-bible.json', import.meta.url), 'utf8'));
+  const bible = new BourbonBible(bibleData.records);
+  const lookup = bibleLookup(bibleData.records);
+  const bottle = bible.scanText(buffaloStores[0].ProductName)[0];
+  const signal = westVirginiaRecentPurchaseSignal(buffaloStores[0], {
+    observedAt: '2026-08-10T16:00:00.000Z',
+    bottle,
+  });
+  const drops = buildDrops([signal], lookup, [signal]);
+
+  assert.equal(drops.length, 1);
+  assert.equal(drops[0].storeId, 'wvabca-store-624');
+  assert.equal(drops[0].eligibleForOnSite, true);
+  assert.equal(drops[0].eligibleForDropFeed, true);
+  assert.equal(drops[0].eligibleForDelivery, false);
+  assert.equal(drops[0].eligibleForEmail, false);
+  assert.equal(drops[0].eligibleForSms, false);
+  assert.equal(drops[0].canAlertAsInventory, false);
+  assert.equal(drops[0].canAlertAsWatch, false);
+  assert.match(drops[0].inventorySemantics, /purchased.*three months/i);
 });
