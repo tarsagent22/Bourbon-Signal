@@ -102,6 +102,7 @@ function floridaExpansionIdentityIsValid(identity, signal, sourceStrictHostname)
   if (target.platform === 'primo' || target.platform === 'abc-searchspring') {
     const exactQuantityValid = Number.isInteger(quantity)
       && quantity > 0
+      && (target.platform !== 'abc-searchspring' || quantity < 100)
       && signal.quantityIsExact === true
       && Number.isInteger(reportedQuantity)
       && reportedQuantity === quantity

@@ -480,7 +480,7 @@ export function parseFloridaAbcSearchspringInventory(payload, matchBottle) {
       if (!availableStores.has(store.storeNumber)
         || searchspringLocationStoreNumber(location?.value) !== store.storeNumber
         || String(location?.child_sku || '') !== `${sku}-${store.storeNumber}`
-        || !Number.isInteger(quantity) || quantity <= 0
+        || !Number.isInteger(quantity) || quantity <= 0 || quantity >= 100
         || !Number.isInteger(variantId) || variantId <= 0
         || !Number.isInteger(optionValueId) || optionValueId <= 0
         || !Number.isFinite(price) || price <= 0) continue;

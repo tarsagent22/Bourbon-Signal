@@ -42,7 +42,7 @@ function inventoryPayload({ mutateLocations, mutateAvailability } = {}) {
   const locations = Object.fromEntries(expansion.FLORIDA_ABC_STORES.map((store, index) => [store.storeNumber, {
     value: store.name,
     child_sku: `599102-${store.storeNumber}`,
-    inventory_level: index + 1,
+    inventory_level: (index % 98) + 1,
     id: 6000 + index,
     option_value_id: 7000 + index,
     calculated_price: 34.99,
