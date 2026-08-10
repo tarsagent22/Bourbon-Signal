@@ -819,15 +819,15 @@
         "verifiedAt": "2026-08-09T23:04:01.524Z",
         "shadowArtifact": "engine/data/state-evidence/WV/shadow-runs.json",
         "canaryArtifact": "engine/data/state-evidence/WV/canary-runs.json",
-        "canaryPreviewUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/31410229625",
+        "canaryPreviewUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/31411749844",
         "verticalSliceManifest": "engine/data/state-integration/WV.json",
         "fixtureContract": "engine/data/state-fixtures/WV.json",
         "immutableEvidence": {
           "schemaVersion": 1,
           "state": "WV",
-          "generatedAt": "2026-08-10T16:41:44.835Z",
+          "generatedAt": "2026-08-10T16:59:48.752Z",
           "sourceConfigHash": "4dc171003c4a0a197cafc5931a4a384e1eb1cdebf39cb102e439c994965e1c39",
-          "previewUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/31410229625",
+          "previewUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/31411749844",
           "shadowRuns": [
             {
               "runId": "31340713953",
@@ -867,15 +867,15 @@
             "repository": "tarsagent22/Bourbon-Signal",
             "workflowFile": ".github/workflows/state-promotion-provenance.yml",
             "workflowName": "Verify state promotion provenance",
-            "workflowRunId": "31410229625",
+            "workflowRunId": "31411749844",
             "workflowRunAttempt": "1",
-            "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/31410229625",
-            "commitSha": "791c756578d00b4f2c26c20bebb9bd4c28874734",
-            "artifactId": "9071263304",
-            "artifactName": "state-promotion-provenance-WV-31410229625",
-            "artifactDigest": "2c8c74d25140a71cd61839499100e34a32580cc2b0d62c07128a59827359ba50",
-            "bundleDigest": "287901209dc7c8875cb59a35d144cabe8fd028a393bf4fb6ac1c727a60e3a9fe",
-            "generatedAt": "2026-08-10T16:41:44.835Z"
+            "workflowRunUrl": "https://github.com/tarsagent22/Bourbon-Signal/actions/runs/31411749844",
+            "commitSha": "5566ab87b594ffd4e26cc04e70d53045c1b5bc33",
+            "artifactId": "9071848496",
+            "artifactName": "state-promotion-provenance-WV-31411749844",
+            "artifactDigest": "f8021a9347b660d0485cdc6cf9dfea67946693f52444b004fa728e9bf185a5ee",
+            "bundleDigest": "9b1be53492219ada9cdaeb6f3842c9f1c67fee1c1b4a18a7cffc390afc693ec5",
+            "generatedAt": "2026-08-10T16:59:48.752Z"
           }
         }
       }
