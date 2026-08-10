@@ -312,7 +312,17 @@ test('WV purchase signals do not duplicate the licensed-store Finder universe', 
     observedAt: '2026-08-10T16:00:00.000Z',
     bottle: { id: 'buffalo-trace', canonical: 'Buffalo Trace', tier: 'allocated', confidence: 0.99 },
   });
-  const locations = buildLocationBible([...directorySignals, purchaseSignal]);
+  const staleCachedPurchaseLocations = Array.from({ length: 160 }, (_, index) => ({
+    id: `wvabca-store-${index + 1}`,
+    state: 'WV',
+    type: 'store',
+    name: `Stale purchase store ${index + 1}`,
+    address: `${index + 1} Old Cache Rd, Charleston, WV`,
+    city: 'Charleston',
+    source: 'WV ABCA liquor search',
+    sourceUrl: 'https://www.wvabca.com/liquorsearch.aspx',
+  }));
+  const locations = buildLocationBible([...directorySignals, purchaseSignal], staleCachedPurchaseLocations);
   const stores = buildStores([...directorySignals, purchaseSignal]);
   const westVirginiaStores = locations.filter((location) => location.state === 'WV' && location.type === 'store');
   const westVirginiaStoreExport = stores.filter((store) => store.state === 'WV');
