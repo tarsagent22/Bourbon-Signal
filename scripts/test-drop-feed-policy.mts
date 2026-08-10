@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { compareDropFeedNewestFirst, dropDisplayTime, dropFreshnessTime, resolveDropLimit } from "../src/lib/drop-feed-policy.ts";
 import { scopedDropFeedHistoryEnabled } from "../src/lib/drop-feed-history.ts";
 import { resolveDropQuantitySemantics } from "../src/lib/drop-quantity-semantics.ts";
-import { isUserFacingDropSignal, MISSISSIPPI_ONSITE_SOURCE_PERMITS } from "../src/lib/drop-feed-visibility.ts";
+import { isStoreDirectoryAnnotationSignal, isUserFacingDropSignal, MISSISSIPPI_ONSITE_SOURCE_PERMITS } from "../src/lib/drop-feed-visibility.ts";
 import { coveredAreaLabelsMatch, getCoveredAreaOptionsForState } from "../src/lib/feed-area-options.ts";
 import { derivePublicDropEvidence, isPublicDropFeedEligible, normalizePublicDropEvidenceInput } from "../src/lib/public-drop-evidence.ts";
 
@@ -163,6 +163,8 @@ assert.match(dropFeedSource, /getCoveredAreaOptionsForState\(selectedState\)/, "
 assert.match(dropFeedSource, /compareDropFeedNewestFirst/, "the client must preserve the shared customer-visible chronology policy");
 assert.doesNotMatch(dropFeedSource, /type DropSortMode|viewMenuOptions|Use my location/, "the Drop Feed must not expose nonchronological sort modes");
 const dropsRouteSource = readFileSync(new URL("../src/app/api/drops/route.ts", import.meta.url), "utf8");
+const locationsRouteSource = readFileSync(new URL("../src/app/api/locations/route.ts", import.meta.url), "utf8");
+assert.match(locationsRouteSource, /isStoreDirectoryAnnotationSignal\(drop\)/, "Finder annotation must use the strict source-aware visibility gate");
 assert.match(dropsRouteSource, /compareDropFeedNewestFirst/, "the API must sort with the shared customer-visible chronology policy");
 assert.doesNotMatch(dropsRouteSource, /diversifyDrops/, "bottle variety must not reorder the chronological feed");
 assert.match(dropsRouteSource, /scopedDropFeedHistoryEnabled\(\{[\s\S]*state,[\s\S]*area: appliedAreaFilter \? areaQuery : undefined,[\s\S]*store,[\s\S]*bottle/,
@@ -215,6 +217,8 @@ const westVirginiaCanary = JSON.parse(readFileSync(new URL("../engine/data/canar
 const westVirginiaRecentPurchase = westVirginiaCanary.drops.find((drop) => drop.type === "wv_abca_retailer_recent_purchase_window");
 assert.ok(westVirginiaRecentPurchase, "WV canary must include a recent-purchase row");
 assert.equal(isUserFacingDropSignal(westVirginiaRecentPurchase), true, "identity-bound WV recent purchases must survive the app visibility gate");
+assert.equal(isStoreDirectoryAnnotationSignal(westVirginiaRecentPurchase), false, "WV purchase leads must not fuzzily annotate licensed Finder stores");
+assert.equal(isStoreDirectoryAnnotationSignal(defaultFeedCandidate), true, "normal exact-store inventory must still annotate its Finder identity");
 assert.equal(isPublicDropFeedEligible(westVirginiaRecentPurchase), true, "WV recent purchases must reach the default API feed");
 const westVirginiaEvidence = derivePublicDropEvidence([westVirginiaRecentPurchase], westVirginiaRecentPurchase.observedAt).get("WV");
 assert.ok(westVirginiaEvidence, "WV recent purchases must establish public update evidence");

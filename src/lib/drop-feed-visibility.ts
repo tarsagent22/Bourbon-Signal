@@ -63,6 +63,12 @@ function asNumber(value: unknown, fallback = 0) {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
+export function isStoreDirectoryAnnotationSignal(drop: UserFacingDropSignal) {
+  const type = String(drop.type ?? drop.event_type ?? "").toLowerCase();
+  if (type === "wv_abca_retailer_recent_purchase_window") return false;
+  return isUserFacingDropSignal(drop);
+}
+
 export function isUserFacingDropSignal(drop: UserFacingDropSignal) {
   const type = String(drop.type ?? drop.event_type ?? "").toLowerCase();
   const state = String(drop.state ?? drop.stateCode ?? drop.state_code ?? "").toUpperCase();

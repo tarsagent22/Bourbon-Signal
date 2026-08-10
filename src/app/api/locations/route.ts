@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { readSiteExport, readBundledSiteExport, siteExportHeaders, listStates, normalizeStoreForSite, normalizeDropForSite, isUserFacingDropSignal } from "@/lib/site-engine-contract";
+import { readSiteExport, readBundledSiteExport, siteExportHeaders, listStates, normalizeStoreForSite, normalizeDropForSite } from "@/lib/site-engine-contract";
+import { isStoreDirectoryAnnotationSignal } from "@/lib/drop-feed-visibility";
 import { californiaAreaMatchesFields, parseCaliforniaAreaQuery } from "@/lib/california-area";
 import { nevadaAreaMatchesFields, parseNevadaAreaQuery } from "@/lib/nevada-area";
 import { mergeStoreDirectoryPayloads } from "@/lib/store-directory";
@@ -75,7 +76,7 @@ function dropMatchesLocationValues(drop: ActionableDropLocation, location: Recor
 }
 
 function hasActionableLocationDrop(drop: Record<string, unknown>) {
-  if (!isUserFacingDropSignal(drop)) return false;
+  if (!isStoreDirectoryAnnotationSignal(drop)) return false;
   const dropState = String(drop.state ?? drop.state_code ?? "").toUpperCase();
   const eventType = String(drop.event_type ?? "");
   const scope = String(drop.availability_scope ?? "");
