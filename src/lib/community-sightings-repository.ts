@@ -27,6 +27,55 @@ export class CommunitySightingsRepository {
     return rows.map((row) => row.payload);
   }
 
+  async listSightingsFeed(currentUserId: string, limit = 60): Promise<{ sightings: MemberSighting[]; totalSightings: number }> {
+    void currentUserId;
+    const rows = await this.query.query(
+      `WITH recent AS MATERIALIZED (
+         SELECT payload, created_at
+         FROM community_sightings
+         ORDER BY created_at DESC
+         LIMIT $1
+       ), totals AS (
+         SELECT COUNT(*)::int AS total_count FROM community_sightings
+       )
+       SELECT recent.payload, totals.total_count
+       FROM recent CROSS JOIN totals
+       ORDER BY recent.created_at DESC`,
+      [Math.max(1, Math.min(limit, 1000))],
+    ) as Array<{ payload: MemberSighting; total_count: number }>;
+    return {
+      sightings: rows.map((row) => row.payload),
+      totalSightings: Number(rows[0]?.total_count) || 0,
+    };
+  }
+
+  async listVotesForSightings(sightingIds: string[]): Promise<DurableSightingVote[]> {
+    const uniqueIds = [...new Set(sightingIds.filter(Boolean))];
+    if (!uniqueIds.length) return [];
+    const rows = await this.query.query(
+      `SELECT sighting_id, user_id, kind, created_at
+       FROM community_sighting_votes
+       WHERE sighting_id = ANY($1::text[])`,
+      [uniqueIds],
+    ) as Array<{ sighting_id: string; user_id: string; kind: SightingVoteKind; created_at: string | Date }>;
+    return rows.map((row) => ({
+      sightingId: row.sighting_id,
+      userId: row.user_id,
+      kind: row.kind,
+      createdAt: new Date(row.created_at).toISOString(),
+    }));
+  }
+
+  async countSightingsByIds(ids: string[]): Promise<number> {
+    const uniqueIds = [...new Set(ids.filter(Boolean))];
+    if (!uniqueIds.length) return 0;
+    const rows = await this.query.query(
+      `SELECT COUNT(*)::int AS count FROM community_sightings WHERE id = ANY($1::text[])`,
+      [uniqueIds],
+    ) as Array<{ count: number }>;
+    return Number(rows[0]?.count) || 0;
+  }
+
   async listSightingsForReporter(reporterUserId: string): Promise<MemberSighting[]> {
     const rows = await this.query.query(
       `SELECT payload FROM community_sightings WHERE reporter_user_id = $1 ORDER BY created_at DESC`,

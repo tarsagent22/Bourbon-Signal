@@ -12,6 +12,8 @@ import {
   bottleCheckActionAccess,
   buildBottleCheckCollectionEntry,
   countBottleCheckAlertAreas,
+  findBottleCheckCollectionEntry,
+  formatBottleCheckCollectionRating,
   type BottleCheckActionAccess,
 } from "@/lib/bottle-check-dossier";
 
@@ -127,6 +129,30 @@ function dedupeSuggestions(suggestions: NonNullable<BottleResult["bottle"]>[]) {
   return Array.from(byKey.values());
 }
 
+function findCachedSuggestionPrefix(
+  cache: Map<string, NonNullable<BottleResult["bottle"]>[]>,
+  query: string,
+) {
+  const normalizedQuery = normalizeBottleKey(query);
+  const exact = cache.get(normalizedQuery);
+  if (exact) return exact;
+  const prefix = Array.from(cache.keys())
+    .filter((key) => key.length >= 2 && normalizedQuery.startsWith(key))
+    .sort((left, right) => right.length - left.length)[0];
+  if (!prefix) return [];
+  return (cache.get(prefix) || []).filter((suggestion) => {
+    const searchable = normalizeBottleKey([suggestion.canonicalName, ...(suggestion.aliases || [])].join(" "));
+    return normalizedQuery.split(" ").every((word) => searchable.includes(word));
+  });
+}
+
+function hasDecisiveBottleSuggestion(suggestions: NonNullable<BottleResult["bottle"]>[]) {
+  return suggestions.some((suggestion) => {
+    const scored = suggestion as NonNullable<BottleResult["bottle"]> & { matchScore?: number; matchReason?: string };
+    return (scored.matchReason === "exact" || scored.matchReason === "alias") && (scored.matchScore || 0) >= 110;
+  });
+}
+
 function formatDate(value: string | null | undefined) {
   if (!value) return "No signal yet";
   const time = Date.parse(value);
@@ -169,6 +195,8 @@ export default function BottleCheckPage() {
   const [suggestionsLoading, setSuggestionsLoading] = useState(false);
   const [suggestionSession, setSuggestionSession] = useState(0);
   const suggestionRequestVersion = useRef(0);
+  const suggestionCache = useRef(new Map<string, NonNullable<BottleResult["bottle"]>[]>());
+  const authoritativeSuggestionCache = useRef(new Set<string>());
   const pendingValueResult = useRef(false);
   const freeValueRecorded = useRef(false);
   const [valueResultVersion, setValueResultVersion] = useState(0);
@@ -183,8 +211,9 @@ export default function BottleCheckPage() {
 
   function openSuggestionMenu() {
     suggestionRequestVersion.current += 1;
-    setLiveSuggestions([]);
-    setSuggestionsLoading(query.trim().length >= 2);
+    const cached = findCachedSuggestionPrefix(suggestionCache.current, query);
+    setLiveSuggestions(cached);
+    setSuggestionsLoading(query.trim().length >= 2 && !suggestionCache.current.has(normalizeBottleKey(query)));
     setSuggestionsOpen(true);
     setSuggestionSession((current) => current + 1);
   }
@@ -198,8 +227,9 @@ export default function BottleCheckPage() {
 
   function updateSuggestionQuery(value: string) {
     suggestionRequestVersion.current += 1;
-    setLiveSuggestions([]);
-    setSuggestionsLoading(value.trim().length >= 2);
+    const cached = findCachedSuggestionPrefix(suggestionCache.current, value);
+    setLiveSuggestions(cached);
+    setSuggestionsLoading(value.trim().length >= 2 && !suggestionCache.current.has(normalizeBottleKey(value)));
     setSuggestionsOpen(true);
     setQuery(value);
   }
@@ -307,30 +337,69 @@ export default function BottleCheckPage() {
       return;
     }
 
+    const queryKey = normalizeBottleKey(q);
     const requestVersion = ++suggestionRequestVersion.current;
+    const exactCached = suggestionCache.current.get(queryKey);
+    const cachedNeedsAuthority = Boolean(
+      exactCached
+      && !authoritativeSuggestionCache.current.has(queryKey)
+      && (!exactCached.length || (queryKey.includes(" ") && !hasDecisiveBottleSuggestion(exactCached))),
+    );
+    if (exactCached) {
+      setLiveSuggestions(exactCached);
+      setSuggestionsLoading(false);
+      if (!cachedNeedsAuthority) return;
+    }
+    const prefixSuggestions = exactCached || findCachedSuggestionPrefix(suggestionCache.current, q);
+    if (prefixSuggestions.length) setLiveSuggestions(prefixSuggestions);
+
     const controller = new AbortController();
-    setSuggestionsLoading(true);
+    if (!exactCached) setSuggestionsLoading(true);
     const timer = window.setTimeout(async () => {
       try {
-        const res = await fetch(`/api/bottle-check?q=${encodeURIComponent(q)}&state=${encodeURIComponent(state)}&intent=suggest`, { signal: controller.signal });
-        if (requestVersion !== suggestionRequestVersion.current) return;
-        if (!res.ok) {
-          setLiveSuggestions([]);
-          return;
+        let suggestions = exactCached;
+        if (!suggestions) {
+          const res = await fetch(`/api/bottle-check?q=${encodeURIComponent(q)}&state=${encodeURIComponent(state)}&intent=suggest`, { signal: controller.signal });
+          if (requestVersion !== suggestionRequestVersion.current) return;
+          if (!res.ok) {
+            setLiveSuggestions([]);
+            return;
+          }
+          const data = (await res.json()) as BottleResult;
+          if (requestVersion !== suggestionRequestVersion.current) return;
+          suggestions = dedupeSuggestions([data.bottle, ...(data.suggestions || [])]
+            .filter((suggestion): suggestion is NonNullable<BottleResult["bottle"]> => Boolean(suggestion))
+            .filter((suggestion, index, array) => array.findIndex((item) => item.id === suggestion.id) === index))
+            .slice(0, 6);
+          suggestionCache.current.set(queryKey, suggestions);
+          setLiveSuggestions(suggestions);
+          setSuggestionsLoading(false);
         }
-        const data = (await res.json()) as BottleResult;
+
+        const needsAuthority = !authoritativeSuggestionCache.current.has(queryKey)
+          && (!suggestions.length || (queryKey.includes(" ") && !hasDecisiveBottleSuggestion(suggestions)));
+        if (!needsAuthority || requestVersion !== suggestionRequestVersion.current) return;
+        const authoritativeRes = await fetch(`/api/bottle-check?q=${encodeURIComponent(q)}&state=${encodeURIComponent(state)}&intent=suggest-authoritative`, { signal: controller.signal });
+        if (!authoritativeRes.ok || requestVersion !== suggestionRequestVersion.current) return;
+        const authoritativeData = (await authoritativeRes.json()) as BottleResult;
         if (requestVersion !== suggestionRequestVersion.current) return;
-        const suggestions = dedupeSuggestions([data.bottle, ...(data.suggestions || [])]
-          .filter((suggestion): suggestion is NonNullable<BottleResult["bottle"]> => Boolean(suggestion))
-          .filter((suggestion, index, array) => array.findIndex((item) => item.id === suggestion.id) === index))
+        const authoritativeSuggestions = dedupeSuggestions([authoritativeData.bottle, ...(authoritativeData.suggestions || [])]
+          .filter((suggestion): suggestion is NonNullable<BottleResult["bottle"]> => Boolean(suggestion)))
           .slice(0, 6);
-        setLiveSuggestions(suggestions);
+        authoritativeSuggestionCache.current.add(queryKey);
+        suggestionCache.current.set(queryKey, authoritativeSuggestions);
+        setLiveSuggestions(authoritativeSuggestions);
       } catch (error) {
-        if ((error as Error).name !== "AbortError" && requestVersion === suggestionRequestVersion.current) setLiveSuggestions([]);
+        if (
+          (error as Error).name !== "AbortError"
+          && requestVersion === suggestionRequestVersion.current
+          && !prefixSuggestions.length
+          && !(suggestionCache.current.get(queryKey)?.length)
+        ) setLiveSuggestions([]);
       } finally {
         if (requestVersion === suggestionRequestVersion.current) setSuggestionsLoading(false);
       }
-    }, 100);
+    }, 40);
 
     return () => {
       window.clearTimeout(timer);
@@ -347,7 +416,9 @@ export default function BottleCheckPage() {
   const isTracked = Boolean(bottleKey && (savedBottleKeys.includes(bottleKey) || savedBottleNames.includes(bottleKey)));
   const collectionEntries = prefs.collectionPreferences.bottles;
   const collectionBottleKey = bottle ? normalizeBottleKey(bottle.canonicalName) : "";
-  const isInCollection = Boolean(collectionBottleKey && collectionEntries.some((entry) => normalizeBottleKey(entry.canonicalKey) === collectionBottleKey));
+  const collectionEntry = findBottleCheckCollectionEntry(collectionEntries, bottle);
+  const isInCollection = Boolean(collectionEntry);
+  const collectionRatingCopy = formatBottleCheckCollectionRating(collectionEntry);
   const trackedBottleCount = new Set([...savedBottleKeys, ...savedBottleNames]).size;
   const currentAlertAreaCount = countBottleCheckAlertAreas(prefs.areaPreferences);
   const requestedNewAreaCount = trackingStates.filter((selectedState) => !prefs.areaPreferences.states.includes(selectedState)).length;
@@ -756,33 +827,33 @@ export default function BottleCheckPage() {
 
                 <div className="bc-bottle-actions" aria-label="Bottle actions">
                   <div>
-                    <strong>Save this bottle</strong>
-                    <p>Add it to your collection now and rate it later from the member dashboard.</p>
+                    <strong>{isInCollection ? "In your collection" : "Save this bottle"}</strong>
+                    <p>{collectionRatingCopy || "Add it to your collection now and rate it later from the member dashboard."}</p>
                     {collectionError ? <small className="bc-track-error" role="alert">{collectionError}</small> : null}
                     <div role="status" aria-live="polite">
                       {effectiveCollectionSaveState === "saved" ? <small className="bc-track-success">Added to your collection.</small> : null}
                       {effectiveCollectionSaveState === "pending" ? <small className="bc-track-pending">Saved on this device. Retry now, or it will sync automatically when your collection reloads online.</small> : null}
                     </div>
                   </div>
-                  <button
-                    type="button"
-                    onClick={addBottleToCollection}
-                    disabled={savingCollection || prefsLoading || (collectionActionAccess.allowed && isInCollection && effectiveCollectionSaveState !== "pending" && effectiveCollectionSaveState !== "conflict")}
-                  >
-                    {!isSignedIn
-                      ? "Sign in to add"
-                      : prefsLoading
-                        ? "Loading..."
-                        : savingCollection
-                          ? "Adding..."
-                          : effectiveCollectionSaveState === "pending"
-                            ? "Retry sync"
-                            : effectiveCollectionSaveState === "conflict"
-                              ? "Retry save"
-                              : collectionActionAccess.allowed && isInCollection
-                                ? "In collection"
+                  {!isInCollection || effectiveCollectionSaveState === "pending" || effectiveCollectionSaveState === "conflict" ? (
+                    <button
+                      type="button"
+                      onClick={addBottleToCollection}
+                      disabled={savingCollection || prefsLoading}
+                    >
+                      {!isSignedIn
+                        ? "Sign in to add"
+                        : prefsLoading
+                          ? "Loading..."
+                          : savingCollection
+                            ? "Adding..."
+                            : effectiveCollectionSaveState === "pending"
+                              ? "Retry sync"
+                              : effectiveCollectionSaveState === "conflict"
+                                ? "Retry save"
                                 : "Add to collection"}
-                  </button>
+                    </button>
+                  ) : null}
                 </div>
 
                 <div className="bc-track-box">

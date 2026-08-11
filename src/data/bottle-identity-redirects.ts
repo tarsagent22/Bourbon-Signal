@@ -17,6 +17,8 @@ export const BOTTLE_IDENTITY_REDIRECTS: Readonly<Record<string, string>> = {
   "bb_18013da36d2e4da4": "e-h-taylor-jr-barrel-proof-bourbon",
   "bb_8c124ba38652152c": "old-fitzgerald-8y-bottled-in-bond-decanter-2023",
   "bb_3566c2a0088ec99a": "elijah-craig-18-year",
+  "eagle-rare-10y": "eagle-rare-10",
+  "eagle-rare-10-year": "eagle-rare-10",
   "bb_b7ca7cc4ab428ba8": "henry-mckenna-10-year",
   "bb_78043ec3da926c43": "makers-mark-cellar-aged",
   "bb_ab29607e7117c93f": "michters-10y-ks-rye-whiskey",

@@ -1,7 +1,42 @@
 import type { TierEntitlements } from "./entitlements.ts";
 import type { CollectionBottlePreference } from "./member-collection.ts";
+import { canonicalBottleId } from "../data/bottle-identity-redirects.ts";
 
 export type BottleCheckAction = "track" | "collection";
+
+export function findBottleCheckCollectionEntry(
+  entries: CollectionBottlePreference[],
+  bottle: { id: string; canonicalName: string } | null | undefined,
+) {
+  if (!bottle) return null;
+  const bottleKeys = bottleIdentityKeys(bottle.id, bottle.canonicalName);
+  return entries.find((entry) => [...bottleIdentityKeys(entry.bottleId, entry.canonicalKey, entry.bottleName)]
+    .some((key) => bottleKeys.has(key))) || null;
+}
+
+export function formatBottleCheckCollectionRating(entry: CollectionBottlePreference | null | undefined) {
+  if (!entry) return null;
+  if (!Number.isFinite(entry.rating) || entry.rating <= 0) {
+    return "This bottle is in your collection, but you haven’t rated it yet.";
+  }
+  const score = (Math.max(0, Math.min(100, entry.rating)) / 10).toFixed(1).replace(/\.0$/, "");
+  return `You rated this bottle ${score}/10.`;
+}
+
+function normalizeBottleIdentity(value: string) {
+  return value.toLowerCase().replace(/&/g, " and ").replace(/[^a-z0-9]+/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function bottleIdentityKeys(...values: string[]) {
+  const keys = new Set<string>();
+  for (const value of values) {
+    for (const candidate of [value, canonicalBottleId(value)]) {
+      const normalized = normalizeBottleIdentity(candidate);
+      if (normalized) keys.add(normalized);
+    }
+  }
+  return keys;
+}
 
 export type ShelfPriceAssessment = {
   tone: "near" | "moderate" | "high";

@@ -166,9 +166,10 @@ export default function SightingsClient() {
   const isLimitedFeedPreview = authLoaded && isSignedIn && entitlements.tier === "free" && entitlements.sightingsPreviewLimit !== null;
   const optimisticMemberAccess = !authLoaded || canReadSightings;
   const canEditSightings = authLoaded && isSignedIn && canSubmitSightings;
+  const [feedLimit, setFeedLimit] = useState(60);
   const { bottles } = useBottles(activeTab === "submit" && optimisticMemberAccess);
   const { stores, loading: storesLoading, error: storesError, reload: reloadStores } = useStores(activeTab === "submit" && authLoaded && isSignedIn && canSubmitSightings);
-  const { sightings, states, addSighting, voteSighting, uploadSightingPhoto, saving, loading, previewLimit, totalSightings } = useSightings(authLoaded && isSignedIn && canReadSightings, { includePreferences: false });
+  const { sightings, states, addSighting, voteSighting, uploadSightingPhoto, saving, loading, previewLimit, totalSightings } = useSightings(authLoaded && isSignedIn && canReadSightings, { includePreferences: false, includeRewards: false, feedLimit });
 
   const [sightingType, setSightingType] = useState<SightingType>("seen_in_store");
   const [stateFilter, setStateFilter] = useState("ALL");
@@ -569,6 +570,7 @@ export default function SightingsClient() {
               );
             })}</div>
             {isLimitedFeedPreview && totalSightings > filteredSightings.length ? <div className="sighting-empty-panel" style={{ textAlign: "center" }}><strong>Upgrade to see every sighting</strong><span>Free members can preview the two newest reports. Standard Proof and above unlock the full member sightings feed.</span><a href="/pricing" className="sighting-submit" style={{ width: "fit-content", margin: "14px auto 0", textDecoration: "none" }}>Upgrade to see more</a></div> : null}
+            {!isLimitedFeedPreview && sightings.length < totalSightings && feedLimit < 1_000 ? <div className="sighting-empty-panel" style={{ textAlign: "center" }}><button type="button" className="sighting-submit" style={{ width: "fit-content", margin: "0 auto" }} onClick={() => setFeedLimit((current) => Math.min(current + 60, 1_000))}>Load more sightings</button></div> : null}
             {!loading && filteredSightings.length === 0 ? <div className="sighting-empty-panel"><strong>{stateFilter === "ALL" ? "No member sightings yet." : `No ${stateFilter} sightings yet.`}</strong><span>When a member reports a bottle, it will appear here newest-first with its source caveat and voting. Be the first to add useful field intel.</span></div> : null}
           </section>
         )}

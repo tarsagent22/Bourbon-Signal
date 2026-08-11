@@ -7,6 +7,7 @@ import { getEntitlements } from "@/lib/entitlements";
 import { getMemberTasteScore } from "@/lib/member-taste-score";
 import { getRarityProfile } from "@/lib/bottle-rarity-score";
 import { getPublicScarcityLabel, getScarcityBadges, normalizeBottleScarcity, resolveBottleScarcity, scarcityTierToAvailability, type ScarcityTier } from "@/lib/bottle-scarcity";
+import { searchFastBottleSuggestions } from "@/lib/bottle-suggestion-index";
 
 
 const FREE_BOTTLE_CHECK_LIMIT = 3;
@@ -229,6 +230,32 @@ export async function GET(request: Request) {
   const id = url.searchParams.get("id") || "";
   const state = (url.searchParams.get("state") || "NC").toUpperCase();
   const intent = url.searchParams.get("intent") || "suggest";
+
+  if (intent === "suggest" || intent === "suggest-authoritative") {
+    const suggestionRows: BibleBottle[] = intent === "suggest-authoritative"
+      ? await searchBourbonBible(query, 8)
+      : searchFastBottleSuggestions(query, 8);
+    const suggestions = dedupeBottleSuggestions(suggestionRows);
+    const bottle = suggestions[0] || null;
+    const scoredBottle = bottle as (BibleBottle & { matchScore?: number }) | null;
+    const matchScore = scoredBottle && typeof scoredBottle.matchScore === "number" ? scoredBottle.matchScore : 0;
+    return NextResponse.json(
+      {
+        query,
+        bottle: bottle ? userFacingBottle(bottle) : null,
+        suggestions: suggestions.map(userFacingBottle),
+        showSuggestions: !bottle || matchScore < 95,
+        usage: null,
+      },
+      {
+        headers: {
+          ...siteExportHeaders("local-export"),
+          "Cache-Control": "public, max-age=300, s-maxage=86400, stale-while-revalidate=604800",
+        },
+      },
+    );
+  }
+
   const usageGate = await consumeFreeBottleCheckIfNeeded(intent);
   if (usageGate.limited) {
     return NextResponse.json({ bottle: null, suggestions: [], message: "Free includes 3 Bottle Checks. Upgrade for unlimited Bottle Check access.", usage: usageGate.usage }, { status: 403, headers: siteExportHeaders("local-export") });
@@ -247,21 +274,6 @@ export async function GET(request: Request) {
   }
   const suggestions = dedupeBottleSuggestions(suggestionRows).slice(0, 8);
 
-  if (intent === "suggest") {
-    const matchScore = bottle && typeof (bottle as BibleBottle & { matchScore?: number }).matchScore === "number"
-      ? (bottle as BibleBottle & { matchScore: number }).matchScore
-      : 0;
-    return NextResponse.json(
-      {
-        query,
-        bottle: bottle ? userFacingBottle(bottle) : null,
-        suggestions: suggestions.map(userFacingBottle),
-        showSuggestions: !bottle || matchScore < 95,
-        usage: usageGate.usage,
-      },
-      { headers: siteExportHeaders("local-export") }
-    );
-  }
 
   if (!bottle) {
     captureSearchEvent({

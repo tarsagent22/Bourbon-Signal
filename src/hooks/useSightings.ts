@@ -29,9 +29,14 @@ interface SightingsFeedResponse {
 
 interface UseSightingsOptions {
   includePreferences?: boolean;
+  includeRewards?: boolean;
+  feedLimit?: number;
 }
 
-export function useSightings(enabled: boolean = true, { includePreferences = true }: UseSightingsOptions = {}) {
+export function useSightings(
+  enabled: boolean = true,
+  { includePreferences = true, includeRewards = true, feedLimit = 60 }: UseSightingsOptions = {},
+) {
   const [preferences, setPreferences] = useState<SightingsPreferences>(EMPTY_SIGHTINGS_PREFERENCES);
   const [rawPreferences, setRawPreferences] = useState<PreferencesResponse | null>(null);
   const [sightings, setSightings] = useState<MemberSighting[]>([]);
@@ -54,7 +59,10 @@ export function useSightings(enabled: boolean = true, { includePreferences = tru
   }, []);
 
   const refreshSightings = useCallback(async () => {
-    const res = await fetch("/api/sightings");
+    const params = new URLSearchParams();
+    if (!includeRewards) params.set("rewards", "0");
+    params.set("limit", String(Math.max(1, Math.min(feedLimit, 1_000))));
+    const res = await fetch(`/api/sightings?${params.toString()}`);
     if (!res.ok) throw new Error("Unable to load sightings");
     const data = (await res.json()) as SightingsFeedResponse;
     setSightings(data.sightings || []);
@@ -63,7 +71,7 @@ export function useSightings(enabled: boolean = true, { includePreferences = tru
     setPreviewLimit(typeof data.previewLimit === "number" ? data.previewLimit : null);
     setTotalSightings(typeof data.totalSightings === "number" ? data.totalSightings : (data.sightings || []).length);
     return data;
-  }, []);
+  }, [feedLimit, includeRewards]);
 
   const refresh = useCallback(async () => {
     if (!enabled) {

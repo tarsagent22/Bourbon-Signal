@@ -9,6 +9,7 @@ import { memberSightingTierForAvailability, normalizeSightingsForRewards } from 
 import { isLikelyDuplicateSighting, sanitizeManualSightingField } from "@/lib/sighting-review";
 import { getQaPreviewTierFromRequest, isQaPreviewRequest } from "@/lib/preview-qa";
 import { addBottleContribution } from "@/lib/bottle-contributions";
+import { COMMUNITY_SIGHTINGS_DURABLE_CUTOVER } from "@/data/community-sightings-cutover";
 
 function normalizeSightingType(value: unknown): SightingType {
   return value === "online_social" ? "online_social" : "seen_in_store";
@@ -153,23 +154,30 @@ function rewardsNeedPersistence(existing: unknown, next: unknown) {
   return JSON.stringify(existing ?? null) !== JSON.stringify(next ?? null);
 }
 
-async function getAggregateSightings(currentUserId: string) {
+async function getAggregateSightings(
+  currentUserId: string,
+  { includeOwned = false, requireLegacy = false, limit = 60 }: { includeOwned?: boolean; requireLegacy?: boolean; limit?: number } = {},
+) {
   const repository = createCommunitySightingsRepository();
-  const [legacy, durableSightings, durableVotes, durableOwned] = await Promise.all([
-    readCachedLegacyCommunitySnapshot(),
-    repository.listSightings(),
-    repository.listVotes(),
-    repository.listSightingsForReporter(currentUserId),
+  const legacy = requireLegacy || !COMMUNITY_SIGHTINGS_DURABLE_CUTOVER.completed
+    ? await readCachedLegacyCommunitySnapshot()
+    : null;
+  const legacyIds = [...new Set((legacy?.sightings || []).map((sighting) => sighting.id))];
+  const [durableFeed, durableOwned, durableLegacyOverlap] = await Promise.all([
+    repository.listSightingsFeed(currentUserId, limit),
+    includeOwned ? repository.listSightingsForReporter(currentUserId) : Promise.resolve([]),
+    repository.countSightingsByIds(legacyIds),
   ]);
-  const counts = voteCounts([...legacy.votes, ...durableVotes], currentUserId);
+  const durableVotes = await repository.listVotesForSightings(durableFeed.sightings.map((sighting) => sighting.id));
+  const combinedCounts = voteCounts([...(legacy?.votes || []), ...durableVotes], currentUserId);
   const sightingsById = new Map<string, MemberSighting>();
-  const reportersById = new Map<string, LegacyReporter>(legacy.reporters.map((reporter) => [reporter.id, reporter]));
-  for (const sighting of legacy.sightings) sightingsById.set(sighting.id, sighting);
-  for (const sighting of durableSightings) sightingsById.set(sighting.id, sighting);
+  const reportersById = new Map<string, LegacyReporter>((legacy?.reporters || []).map((reporter) => [reporter.id, reporter]));
+  for (const sighting of legacy?.sightings || []) sightingsById.set(sighting.id, sighting);
+  for (const sighting of durableFeed.sightings) sightingsById.set(sighting.id, sighting);
   const sightings: MemberSighting[] = [];
   for (const sighting of sightingsById.values()) {
     const owner = sighting.reporterUserId ? reportersById.get(sighting.reporterUserId) : undefined;
-    const row = counts.get(sighting.id) || { upCount: 0, downCount: 0, myVote: null };
+    const row = combinedCounts.get(sighting.id) || { upCount: 0, downCount: 0, myVote: null };
     sightings.push({
       ...sighting,
       reporterDisplayName: owner?.displayName || sighting.reporterDisplayName || "Member",
@@ -182,10 +190,13 @@ async function getAggregateSightings(currentUserId: string) {
       myVote: row.myVote,
     });
   }
+  const sortedSightings = sightings
+    .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))
+    .slice(0, Math.max(1, Math.min(limit, 1_000)));
   return {
-    sightings: sightings.sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt)),
-    durableSightings,
+    sightings: sortedSightings,
     durableOwned,
+    totalSightings: durableFeed.totalSightings + legacyIds.length - durableLegacyOverlap,
   };
 }
 
@@ -204,30 +215,36 @@ export async function GET(req: NextRequest) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const client = await clerkClient();
-  const [user, aggregate] = await Promise.all([
-    client.users.getUser(userId),
-    getAggregateSightings(userId),
-  ]);
+  const user = await client.users.getUser(userId);
   const entitlements = getEntitlements(user.publicMetadata);
   if (!entitlements.canReadSightings) {
     return NextResponse.json({ error: "Member Sightings are included with Standard Proof and above." }, { status: 403 });
   }
+
+  const url = new URL(req.url);
+  const includeRewards = url.searchParams.get("rewards") !== "0";
+  const requestedLimit = Number(url.searchParams.get("limit") || 60);
+  const feedLimit = Number.isFinite(requestedLimit) ? Math.max(1, Math.min(Math.floor(requestedLimit), 1_000)) : 60;
+  const aggregate = await getAggregateSightings(userId, { includeOwned: includeRewards, limit: feedLimit });
+
   const allSightings = aggregate.sightings;
   const previewLimit = entitlements.sightingsPreviewLimit;
   const sightings = previewLimit === null ? allSightings : allSightings.slice(0, previewLimit);
-  const publicMetadata = (user.publicMetadata && typeof user.publicMetadata === "object" ? user.publicMetadata : {}) as Record<string, unknown>;
-  const privateMetadata = (user.privateMetadata && typeof user.privateMetadata === "object" ? user.privateMetadata : {}) as Record<string, unknown>;
-  const prefs = normalizePrefs(publicMetadata.sightingsPreferences);
-  const durableOwned = aggregate.durableOwned;
-  const ownedSightings = dedupeSightings([...prefs.submittedSightings, ...durableOwned]);
-  const rewardSightings = normalizeSightingsForRewards(ownedSightings, await getBourbonBible());
-  const nextRewards = reconcileMemberRewards(rewardSightings, privateMetadata.memberRewards);
-  if (rewardsNeedPersistence(privateMetadata.memberRewards, nextRewards)) {
-    after(() => persistMemberRewardsBestEffort(client, userId, nextRewards));
+  let rewards: MemberRewardsSummary | null = null;
+  if (includeRewards) {
+    const publicMetadata = (user.publicMetadata && typeof user.publicMetadata === "object" ? user.publicMetadata : {}) as Record<string, unknown>;
+    const privateMetadata = (user.privateMetadata && typeof user.privateMetadata === "object" ? user.privateMetadata : {}) as Record<string, unknown>;
+    const prefs = normalizePrefs(publicMetadata.sightingsPreferences);
+    const ownedSightings = dedupeSightings([...prefs.submittedSightings, ...aggregate.durableOwned]);
+    const rewardSightings = normalizeSightingsForRewards(ownedSightings, await getBourbonBible());
+    const nextRewards = reconcileMemberRewards(rewardSightings, privateMetadata.memberRewards);
+    if (rewardsNeedPersistence(privateMetadata.memberRewards, nextRewards)) {
+      after(() => persistMemberRewardsBestEffort(client, userId, nextRewards));
+    }
+    rewards = summarizeMemberRewards(rewardSightings, nextRewards);
   }
-  const rewards: MemberRewardsSummary = summarizeMemberRewards(rewardSightings, nextRewards);
   const states = Array.from(new Set(sightings.map((sighting) => sighting.storeState).filter(Boolean))).sort();
-  return NextResponse.json({ sightings, states, rewards, previewLimit, totalSightings: allSightings.length });
+  return NextResponse.json({ sightings, states, rewards, previewLimit, totalSightings: aggregate.totalSightings });
 }
 
 export async function POST(req: NextRequest) {
@@ -304,6 +321,8 @@ export async function POST(req: NextRequest) {
     source: "custom",
     sightingType: normalizeSightingType(payload.sightingType),
     reporterUserId: userId,
+    reporterDisplayName: typeof user.firstName === "string" ? user.firstName : "Member",
+    reporterBadges: rewardBadgeLabels((user.privateMetadata && typeof user.privateMetadata === "object" ? user.privateMetadata : {}) as Record<string, unknown>),
     storeTimeZone: typeof payload.storeTimeZone === "string" ? payload.storeTimeZone.slice(0, 80) : undefined,
     rewardState: {},
     reviewState: (needsBottleReview || needsStoreReview) ? {
@@ -376,13 +395,16 @@ export async function PATCH(req: NextRequest) {
   const vote = payload.vote === "down" ? "down" : payload.vote === "up" ? "up" : null;
   if (!sightingId || !vote) return NextResponse.json({ error: "Invalid vote" }, { status: 400 });
 
-  const aggregate = await getAggregateSightings(userId);
-  const target = aggregate.sightings.find((sighting) => sighting.id === sightingId);
+  const repository = createCommunitySightingsRepository();
+  let target = await repository.getSighting(sightingId);
+  if (!target) {
+    const aggregate = await getAggregateSightings(userId, { requireLegacy: true, limit: 1_000 });
+    target = aggregate.sightings.find((sighting) => sighting.id === sightingId) || null;
+  }
   if (!target) return NextResponse.json({ error: "Sighting not found" }, { status: 404 });
   // Historical regression marker: poster cannot vote is intentionally not enforced now;
   // voting is a lightweight helpful/not-helpful reaction and admins often test their own sightings.
 
-  const repository = createCommunitySightingsRepository();
   if (!(await repository.getSighting(sightingId))) {
     if (!target.reporterUserId || !/^[-_a-zA-Z0-9]{1,160}$/.test(target.id)) return NextResponse.json({ error: "Invalid legacy sighting" }, { status: 409 });
     const client = await clerkClient();
