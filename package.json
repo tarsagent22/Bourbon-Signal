@@ -13,6 +13,8 @@
     "migrate:clerk-collections": "tsx scripts/migrate-clerk-collections.mts",
     "migrate:clerk-collections:apply": "tsx scripts/migrate-clerk-collections.mts --apply",
     "migrate:clerk-collections:clear": "tsx scripts/migrate-clerk-collections.mts --clear",
+    "migrate:community-sightings": "tsx scripts/migrate-community-sightings-to-neon.ts",
+    "migrate:community-sightings:apply": "tsx scripts/migrate-community-sightings-to-neon.ts --apply",
     "backup:neon-local": "node scripts/backup-neon-local.mjs",
     "start": "next start",
     "lint": "next lint",
