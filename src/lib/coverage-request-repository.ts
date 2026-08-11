@@ -544,22 +544,39 @@ export class CoverageRequestRepository {
     return Boolean(rows[0]?.job_key);
   }
 
-  async closeForOwner(
+  async updateStatusForOwner(
     requestId: string,
-    closedBy: string,
+    status: CoverageRequestStatus,
+    changedBy: string,
     now = new Date().toISOString(),
-  ): Promise<{ requestId: string; jobsStopped: number } | null> {
-    if (!requestId || requestId.length > 200 || !closedBy || closedBy.length > 320) return null;
+  ): Promise<{
+    requestId: string;
+    previousStatus: CoverageRequestStatus;
+    status: CoverageRequestStatus;
+    changed: boolean;
+    jobsStopped: number;
+    jobsQueued: number;
+  } | null> {
+    if (!requestId || requestId.length > 200 || !REQUEST_STATUSES.has(status) || !changedBy || changedBy.length > 320) return null;
     const rows = await this.database.query(`
       WITH automation_lock AS (
         SELECT pg_advisory_xact_lock(hashtextextended('coverage-request-automation', 0))
       ), notification_lock AS (
         SELECT pg_advisory_xact_lock(hashtextextended('coverage-request-automation-notification', 0))
-      ), eligible_request AS (
-        SELECT request.id
+        FROM automation_lock
+      ), owner_status_change AS (
+        SELECT
+          request.id,
+          request.status AS previous_status,
+          request.target_type,
+          request.state_code,
+          request.area_key,
+          request.store_id,
+          request.canonical_target_key,
+          request.baseline_coverage_fingerprint,
+          'Status changed from ' || request.status || ' to ' || $2::text || ' by ' || $3::text || '.' AS audit_note
         FROM coverage_requests AS request, automation_lock, notification_lock
         WHERE request.id = $1
-          AND request.status IN ('requested', 'on_radar')
       ), stopped_jobs AS (
         UPDATE coverage_request_automation_jobs AS job
         SET
@@ -570,44 +587,158 @@ export class CoverageRequestRepository {
           notification_token = NULL,
           retry_history = COALESCE(job.retry_history, '[]'::jsonb)
             || jsonb_build_array(jsonb_build_object(
-              'event', 'closed_by_owner',
-              'closedBy', $2,
-              'closedAt', $3::timestamptz,
-              'previousStatus', job.status,
+              'event', 'status_changed_by_owner',
+              'changedBy', $3::text,
+              'changedAt', $4::timestamptz,
+              'previousRequestStatus', owner_status_change.previous_status,
+              'nextRequestStatus', $2::text,
+              'previousJobStatus', job.status,
               'taskId', job.task_id,
               'terminalResult', job.terminal_result
             )),
-          updated_at = $3::timestamptz
-        FROM eligible_request
-        WHERE job.coverage_request_id = eligible_request.id
+          updated_at = $4::timestamptz
+        FROM owner_status_change
+        WHERE job.coverage_request_id = owner_status_change.id
+          AND $2::text <> 'requested'
+          AND $2::text IS DISTINCT FROM owner_status_change.previous_status
           AND job.status IN ('queued', 'claimed', 'running', 'notification_pending')
         RETURNING job.job_key
-      ), closed_request AS (
+      ), requeued_jobs AS (
+        INSERT INTO coverage_request_automation_jobs (
+          job_key,
+          coverage_request_id,
+          request_version,
+          target_type,
+          state_code,
+          area_key,
+          store_id,
+          canonical_target_key,
+          baseline_coverage_fingerprint,
+          status,
+          retry_history,
+          created_at,
+          updated_at
+        )
+        SELECT
+          'coverage-request:' || owner_status_change.id || ':'
+            || SUBSTRING(MD5(owner_status_change.baseline_coverage_fingerprint) FROM 1 FOR 16),
+          owner_status_change.id,
+          $4::timestamptz,
+          owner_status_change.target_type,
+          owner_status_change.state_code,
+          owner_status_change.area_key,
+          owner_status_change.store_id,
+          owner_status_change.canonical_target_key,
+          owner_status_change.baseline_coverage_fingerprint,
+          'queued',
+          jsonb_build_array(jsonb_build_object(
+            'event', 'reopened_by_owner',
+            'changedBy', $3::text,
+            'reopenedAt', $4::timestamptz,
+            'previousRequestStatus', owner_status_change.previous_status
+          )),
+          $4::timestamptz,
+          $4::timestamptz
+        FROM owner_status_change
+        WHERE $2::text = 'requested'
+          AND $2::text IS DISTINCT FROM owner_status_change.previous_status
+        ON CONFLICT (coverage_request_id, baseline_coverage_fingerprint) DO UPDATE
+        SET
+          request_version = EXCLUDED.request_version,
+          target_type = EXCLUDED.target_type,
+          state_code = EXCLUDED.state_code,
+          area_key = EXCLUDED.area_key,
+          store_id = EXCLUDED.store_id,
+          canonical_target_key = EXCLUDED.canonical_target_key,
+          status = 'queued',
+          lease_token = NULL,
+          lease_expires_at = NULL,
+          task_id = NULL,
+          terminal_result = NULL,
+          outcome = NULL,
+          notification_token = NULL,
+          notification_attempted_at = NULL,
+          notification_platform_message_id = NULL,
+          retry_history = COALESCE(coverage_request_automation_jobs.retry_history, '[]'::jsonb)
+            || EXCLUDED.retry_history,
+          updated_at = EXCLUDED.updated_at
+        WHERE coverage_request_automation_jobs.status IN ('failed', 'notified')
+        RETURNING job_key
+      ), current_active_jobs AS (
+        SELECT job.job_key
+        FROM coverage_request_automation_jobs AS job
+        JOIN owner_status_change ON owner_status_change.id = job.coverage_request_id
+        WHERE $2::text = 'requested'
+          AND $2::text IS DISTINCT FROM owner_status_change.previous_status
+          AND job.baseline_coverage_fingerprint = owner_status_change.baseline_coverage_fingerprint
+          AND job.status IN ('queued', 'claimed', 'running')
+      ), updated_request AS (
         UPDATE coverage_requests AS request
         SET
-          status = 'closed',
+          status = $2::text,
           review_notes = CASE
-            WHEN NULLIF(request.review_notes, '') IS NULL THEN 'Closed manually by ' || $2 || '.'
-            WHEN char_length(request.review_notes) + char_length($2) + 22 <= 1000
-              THEN request.review_notes || E'\nClosed manually by ' || $2 || '.'
+            WHEN $2::text = owner_status_change.previous_status THEN request.review_notes
+            WHEN NULLIF(request.review_notes, '') IS NULL THEN owner_status_change.audit_note
+            WHEN char_length(request.review_notes) + char_length(owner_status_change.audit_note) + 1 <= 1000
+              THEN request.review_notes || E'\n' || owner_status_change.audit_note
             ELSE request.review_notes
           END,
-          updated_at = $3::timestamptz
-        FROM eligible_request
+          updated_at = CASE
+            WHEN $2::text = owner_status_change.previous_status THEN request.updated_at
+            ELSE $4::timestamptz
+          END
+        FROM owner_status_change
         CROSS JOIN (SELECT COUNT(*)::int AS jobs_stopped FROM stopped_jobs) AS stopped
-        WHERE request.id = eligible_request.id
-        RETURNING request.id
+        CROSS JOIN (SELECT COUNT(*)::int AS jobs_queued FROM requeued_jobs) AS queued
+        CROSS JOIN (SELECT COUNT(*)::int AS active_jobs FROM current_active_jobs) AS active
+        WHERE request.id = owner_status_change.id
+          AND (
+            $2::text <> 'requested'
+            OR $2::text = owner_status_change.previous_status
+            OR queued.jobs_queued > 0
+            OR active.active_jobs > 0
+          )
+        RETURNING request.id, request.status
       )
       SELECT
-        closed_request.id AS request_id,
-        (SELECT COUNT(*)::int FROM stopped_jobs) AS jobs_stopped
-      FROM closed_request
-    `, [requestId, closedBy, now]) as Array<{ request_id?: unknown; jobs_stopped?: unknown }>;
-    if (!rows[0]?.request_id) return null;
+        updated_request.id AS request_id,
+        owner_status_change.previous_status,
+        updated_request.status,
+        (owner_status_change.previous_status IS DISTINCT FROM updated_request.status) AS changed,
+        (SELECT COUNT(*)::int FROM stopped_jobs) AS jobs_stopped,
+        (SELECT COUNT(*)::int FROM requeued_jobs) AS jobs_queued
+      FROM updated_request
+      JOIN owner_status_change ON owner_status_change.id = updated_request.id
+    `, [requestId, status, changedBy, now]) as Array<{
+      request_id?: unknown;
+      previous_status?: unknown;
+      status?: unknown;
+      changed?: unknown;
+      jobs_stopped?: unknown;
+      jobs_queued?: unknown;
+    }>;
+    const row = rows[0];
+    if (!row?.request_id || !REQUEST_STATUSES.has(row.status as CoverageRequestStatus)) return null;
+    const previousStatus = REQUEST_STATUSES.has(row.previous_status as CoverageRequestStatus)
+      ? row.previous_status as CoverageRequestStatus
+      : row.status as CoverageRequestStatus;
     return {
-      requestId: asString(rows[0].request_id),
-      jobsStopped: Number(rows[0].jobs_stopped || 0),
+      requestId: asString(row.request_id),
+      previousStatus,
+      status: row.status as CoverageRequestStatus,
+      changed: Boolean(row.changed),
+      jobsStopped: Number(row.jobs_stopped || 0),
+      jobsQueued: Number(row.jobs_queued || 0),
     };
+  }
+
+  async closeForOwner(
+    requestId: string,
+    closedBy: string,
+    now = new Date().toISOString(),
+  ): Promise<{ requestId: string; jobsStopped: number } | null> {
+    const result = await this.updateStatusForOwner(requestId, "closed", closedBy, now);
+    return result ? { requestId: result.requestId, jobsStopped: result.jobsStopped } : null;
   }
 
   async listDemandForOwner(limit = 10_000): Promise<OwnerCoverageRequestRow[]> {
