@@ -1,4 +1,3 @@
-#!/usr/bin/env node
 import { createClerkClient } from "@clerk/backend";
 import { createCommunitySightingsRepository } from "../src/lib/community-sightings-repository";
 import type { MemberSighting, SightingVote, SightingsPreferences } from "../src/lib/sightings";

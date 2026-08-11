@@ -1449,7 +1449,7 @@ export default function DropFeed() {
   const canUseDropFeedFilters = entitlements.canUseDropFeedFilters;
   const canUseBottleSearch = entitlements.canUseBottleSearch;
   const canReadSightings = entitlements.canReadSightings;
-  const { sightings, reportsBySignalId, addSignalReport, voteSighting } = useSightings(isSignedIn && canReadSightings);
+  const { sightings, reportsBySignalId, addSignalReport, voteSighting } = useSightings(isSignedIn && canReadSightings, { feedLimit: 1_000 });
   const { stores } = useStores();
   const { stats: engineStats } = useStats();
   const [memberCount, setMemberCount] = useState<number | undefined>(undefined);

@@ -5,6 +5,8 @@ const read = (path) => readFileSync(path, "utf8");
 const route = read("src/app/api/sightings/route.ts");
 const client = read("src/app/sightings/SightingsClient.tsx");
 const hook = read("src/hooks/useSightings.ts");
+const dropFeed = read("src/components/sections/DropFeed.tsx");
+const packageJson = JSON.parse(read("package.json"));
 
 const repository = read("src/lib/community-sightings-repository.ts");
 const migration = read("scripts/migrate-community-sightings-to-neon.ts");
@@ -35,6 +37,12 @@ assert.match(client, /Load more sightings/);
 assert.match(client, /sightings\.length < totalSightings && feedLimit < 1_000/, "load more should stop cleanly at the advertised ceiling");
 assert.match(client, /setFeedLimit\(\(current\) => Math\.min\(current \+ 60, 1_000\)\)/);
 assert.match(hook, /params\.set\("limit", String\(Math\.max\(1, Math\.min\(feedLimit, 1_000\)\)\)\)/);
+assert.match(dropFeed, /useSightings\(isSignedIn && canReadSightings, \{ feedLimit: 1_000 \}\)/,
+  "DropFeed client-side filters must retain the established 1,000-row completeness window");
+assert.equal(packageJson.scripts["migrate:community-sightings"], "tsx scripts/migrate-community-sightings-to-neon.ts");
+assert.equal(packageJson.scripts["migrate:community-sightings:apply"], "tsx scripts/migrate-community-sightings-to-neon.ts --apply");
+assert.doesNotMatch(migration, /^#!\/usr\/bin\/env node/m,
+  "the TypeScript migration must not advertise unsupported direct Node execution");
 assert.match(migration, /process\.argv\.includes\("--apply"\)/);
 assert.match(migration, /insertSightingIfAbsent/);
 assert.match(migration, /setVote/);
