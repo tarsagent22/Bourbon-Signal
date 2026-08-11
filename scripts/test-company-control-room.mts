@@ -162,8 +162,25 @@ assert.match(page, /RetailerAdministration/);
 assert.match(page, /id="retailers"/);
 assert.match(page, /isRetailerAdminEmail/);
 assert.match(page, /href="#retailers"/);
+assert.match(page, /async function closeCoverageRequest\(formData: FormData\)[\s\S]*"use server"[\s\S]*await auth\(\)[\s\S]*isCompanyControlRoomOwnerEmail/,
+  "coverage request closure must re-authorize the owner inside its server action");
+assert.match(page, /formData\.get\("confirmed"\)[\s\S]*=== "yes"/,
+  "coverage request closure must require deliberate confirmation on the server");
+assert.match(page, /getCoverageRequestRepository\(\)\.closeForOwner/);
+assert.match(page, /invalidateCompanyControlRoomSnapshot\(\)[\s\S]*revalidatePath\("\/admin\/control-room"\)/,
+  "a successful close must invalidate both module and route caches");
+assert.match(page, /coverageClosedConfirmed[\s\S]*recentRequests\.some[\s\S]*request\.status === "closed"/,
+  "success feedback must be tied to a refreshed durable closed row");
+assert.doesNotMatch(page, /coverageAction|coverageJobsStopped/,
+  "free-form URL flags must not manufacture close success");
+assert.match(page, /name="requestId"[\s\S]*name="confirmed"[\s\S]*required[\s\S]*Close request/,
+  "open request rows must expose a deliberate close control");
 assert.doesNotMatch(page, /RESEND_API_KEY|CLERK_SECRET_KEY|STRIPE_SECRET_KEY|BLOB_READ_WRITE_TOKEN/);
 assert.match(server, /getCollectionsForUsers/, "Control Room demand must read durable member collections");
+assert.match(server, /export function invalidateCompanyControlRoomSnapshot\(\)[\s\S]*controlRoomCacheGeneration \+= 1[\s\S]*controlRoomCache = null[\s\S]*controlRoomInFlight = null/,
+  "owner writes need an explicit snapshot invalidation seam");
+assert.match(server, /generation === controlRoomCacheGeneration[\s\S]*controlRoomInFlight === request/,
+  "an invalidated in-flight load must not repopulate or clear a newer cache request");
 assert.match(server, /collectionSource:\s*durableCollections \? "neon"/, "Control Room must label its collection demand source");
 assert.match(layout, /index:\s*false/);
 assert.match(layout, /follow:\s*false/);

@@ -140,6 +140,9 @@ class RecordingExecutor {
 
   async query(text: string, params: unknown[] = []) {
     this.calls.push({ text, params });
+    if (text.includes("UPDATE coverage_requests AS request") && text.includes("closed_request")) {
+      return [{ request_id: String(params[0]), jobs_stopped: 2 }];
+    }
     if (text.includes("pg_advisory_xact_lock")) return [];
     if (text.includes("INSERT INTO coverage_requests")) {
       if (this.forceRateLimit) return [{ outcome: "rate_limited" }];
@@ -187,6 +190,10 @@ assert.equal((await repository.listForUser("user-a")).length, 1);
 assert.equal((await repository.listForUser("user-b")).length, 1);
 
 const upsertSql = executor.calls.find((call) => call.text.includes("INSERT INTO coverage_requests"))?.text || "";
+const firstUpsertIndex = executor.calls.findIndex((call) => call.text.includes("INSERT INTO coverage_requests"));
+const firstAutomationLockIndex = executor.calls.findIndex((call) => call.text.includes("hashtextextended('coverage-request-automation', 0)"));
+assert.ok(firstAutomationLockIndex >= 0 && firstAutomationLockIndex < firstUpsertIndex,
+  "member upserts must serialize through the automation lock before request and job writes");
 assert.match(upsertSql, /ON CONFLICT\s*\(\s*user_id\s*,\s*canonical_target_key\s*\)/i);
 assert.match(upsertSql, /INTERVAL\s+'24 hours'/i, "rate limiting is bounded in the durable account store");
 assert.match(upsertSql, /COUNT\(\*\)[\s\S]*<\s*8/i, "new targets are capped per account and window");
@@ -195,6 +202,12 @@ assert.doesNotMatch(upsertSql, /INSERT INTO\s+(?:stores|locations)\b/i, "manual 
 for (const call of executor.calls.filter((entry) => entry.text.includes("WHERE user_id = $1"))) {
   assert.equal(call.params[0], call.params[0], "own-request reads carry the authenticated user parameter");
 }
+
+const closeNow = "2026-07-23T12:06:30.000Z";
+const closeResult = await repository.closeForOwner("00112233-4455-4667-8899-aabbccddeeff", "owner@example.com", closeNow);
+assert.deepEqual(closeResult, { requestId: "00112233-4455-4667-8899-aabbccddeeff", jobsStopped: 2 });
+const closeCall = executor.calls.find((call) => call.text.includes("closed_request"));
+assert.deepEqual(closeCall?.params, ["00112233-4455-4667-8899-aabbccddeeff", "owner@example.com", closeNow]);
 
 executor.forceRateLimit = true;
 await assert.rejects(
@@ -216,6 +229,28 @@ assert.doesNotMatch(schema, /\bip(?:_address)?\b|user_agent|analytics_id/i, "cov
 const ownerLedgerSource = repositorySource.slice(repositorySource.indexOf("listDemandForOwner"));
 assert.match(ownerLedgerSource, /WHERE status IN \('requested', 'on_radar'\)[\s\S]*LIMIT \$1/, "all open demand is selected before the owner row bound");
 assert.match(ownerLedgerSource, /WHERE status IN \('improved', 'closed'\)[\s\S]*LIMIT 40/, "the owner ledger also includes bounded recent history");
+assert.match(repositorySource, /async closeForOwner\([\s\S]*pg_advisory_xact_lock\(hashtextextended\('coverage-request-automation', 0\)\)[\s\S]*pg_advisory_xact_lock\(hashtextextended\('coverage-request-automation-notification', 0\)\)/,
+  "owner close must serialize against automation and notification claims");
+const ownerCloseSource = repositorySource.slice(repositorySource.indexOf("async closeForOwner"), repositorySource.indexOf("async listDemandForOwner"));
+assert.ok(
+  ownerCloseSource.indexOf("UPDATE coverage_request_automation_jobs") < ownerCloseSource.indexOf("UPDATE coverage_requests AS request"),
+  "owner close must lock jobs before requests, matching automation completion order",
+);
+assert.match(ownerCloseSource, /UPDATE coverage_requests AS request[\s\S]*status = 'closed'[\s\S]*WHERE request\.id = eligible_request\.id/,
+  "only an exact eligible open request ID may be closed");
+assert.match(ownerCloseSource, /UPDATE coverage_request_automation_jobs[\s\S]*status = 'failed'[\s\S]*outcome = 'blocked'[\s\S]*job\.status IN \('queued', 'claimed', 'running', 'notification_pending'\)/,
+  "closing must terminate only automation states that have not entered delivery");
+assert.doesNotMatch(ownerCloseSource, /job\.status IN \([^)]*(?:notification_sending|delivery_uncertain)/,
+  "in-flight and uncertain delivery evidence must not be rewritten as stopped");
+assert.match(ownerCloseSource, /retry_history[\s\S]*'event', 'closed_by_owner'/,
+  "owner closure evidence remains durable in job history");
+assert.match(repositorySource, /ON CONFLICT \(coverage_request_id, baseline_coverage_fingerprint\)[\s\S]*'event', 'reopened_by_member'[\s\S]*WHERE coverage_request_automation_jobs\.status = 'failed'[\s\S]*outcome = 'blocked'/,
+  "a later explicit member request safely requeues a manually blocked job while retaining history");
+const completionSource = repositorySource.slice(repositorySource.indexOf("async completeAutomationTask"), repositorySource.indexOf("async retryAutomationJob"));
+assert.match(completionSource, /pg_advisory_xact_lock\(hashtextextended\('coverage-request-automation', 0\)\)[\s\S]*FROM coverage_requests AS request, writer_lock/,
+  "task completion must share the serialization lock used by member reopen and owner close");
+assert.match(repositorySource, /\[requestId, closedBy, now\]/,
+  "owner close inputs must remain parameterized");
 
 const route = read("src/app/api/coverage/requests/route.ts");
 assert.match(route, /await auth\(\)/, "GET and POST use Clerk auth");
