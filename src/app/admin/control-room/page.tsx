@@ -8,6 +8,7 @@ import { formatControlRoomDateTime } from "@/lib/control-room-time";
 import { FOUNDER_SHIPPING_CARRIERS, normalizeFounderFulfillment } from "@/lib/founder-shipping";
 import { sendFounderShipmentNotification } from "@/lib/founder-shipping-notification";
 import { FounderShippingNotificationInFlightError, listFounderShippingForOwner, updateFounderShippingFulfillment } from "@/lib/founder-shipping-repository";
+import { getReferralRepository } from "@/lib/referral-repository";
 import { isRetailerAdminEmail } from "@/lib/retailer-admin";
 import { getCoverageRequestRepository } from "@/lib/coverage-request-repository";
 import type { CoverageRequestStatus } from "@/lib/coverage-request";
@@ -128,7 +129,11 @@ async function updateFounderGlassFulfillment(formData: FormData) {
     }
     throw error;
   }
-  if (record?.status === "shipped" && !record.shipmentNotificationSentAt) {
+  if (record && record.status !== "submitted") {
+    const referralStatus = record.status === "confirmed" ? "address_confirmed" : record.status;
+    await getReferralRepository().updateGlassFulfillment(record.userId, referralStatus);
+  }
+  if (record?.status === "shipped" && record.founderNumber && !record.shipmentNotificationSentAt) {
     try {
       const member = await client.users.getUser(record.userId);
       const recipientEmail = companyMemberPrimaryEmail(member);
@@ -247,7 +252,7 @@ export default async function CompanyControlRoomPage({ searchParams }: { searchP
 
         <section id="founder-glasses" className="cr-section">
           <div className="cr-heading">
-            <div><p>Private fulfillment</p><h2>Founder glass fulfillment</h2></div>
+            <div><p>Private fulfillment</p><h2>Founder and referral glass fulfillment</h2></div>
             <span>{founderShipping.length} submitted · {founderShippingOpen} not shipped</span>
           </div>
           {fulfillmentError ? <p className="cr-founder-error" role="alert">{fulfillmentError}</p> : null}
@@ -256,7 +261,7 @@ export default async function CompanyControlRoomPage({ searchParams }: { searchP
               {founderShipping.map((record) => (
                 <details className="cr-founder-record" key={record.userId}>
                   <summary>
-                    <span><strong>Founder No. {record.founderNumber}</strong><small>{record.recipientName}</small></span>
+                    <span><strong>{record.founderNumber ? `Founder No. ${record.founderNumber}` : `Referral glasses ×${record.referralGlassQuantity}`}</strong><small>{record.recipientName}</small></span>
                     <span className={`cr-founder-status ${record.status}`}>{record.status}</span>
                   </summary>
                   <div className="cr-founder-body">

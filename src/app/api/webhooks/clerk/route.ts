@@ -6,6 +6,7 @@ import { createNewsletterContact, normalizeNewsletterEmail } from "@/lib/newslet
 import { notifyRetailerAccountCreated } from "@/lib/retailer-notifications";
 import { getRetailerRepository } from "@/lib/retailer-repository";
 import { normalizeRetailerApplication } from "@/lib/retailer-portal";
+import { claimReferralAtSignup } from "@/lib/referral-service";
 
 export const dynamic = "force-dynamic";
 
@@ -67,8 +68,8 @@ export async function POST(req: NextRequest) {
   }
 
   const user = event.data || {};
-  if (user.id) {
-    const client = await clerkClient();
+  const client = user.id ? await clerkClient() : null;
+  if (user.id && client) {
     const currentUser = await client.users.getUser(user.id);
     const privateMetadata = currentUser.privateMetadata as Record<string, unknown>;
     const registration = mergeGrowthMilestoneMetadata(
@@ -85,6 +86,13 @@ export async function POST(req: NextRequest) {
 
   const unsafeMetadata = user.unsafe_metadata || user.unsafeMetadata || {};
   if (unsafeMetadata.accountType !== "retailer") {
+    if (user.id && client) {
+      await claimReferralAtSignup({
+        userId: user.id,
+        email,
+        referralCode: unsafeMetadata.referralCode,
+      });
+    }
     await createNewsletterContact(email);
     return NextResponse.json({ ok: true, emailAdded: true });
   }

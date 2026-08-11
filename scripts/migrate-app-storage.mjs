@@ -58,6 +58,7 @@ const schemaFiles = [
   '../src/lib/approved-catalog-schema.sql',
   '../src/lib/welcome-local-preview-schema.sql',
   '../src/lib/founder-shipping-schema.sql',
+  '../src/lib/referral-schema.sql',
   '../src/lib/community-sightings-schema.sql',
   '../src/lib/retailer-schema.sql',
 ];
@@ -82,6 +83,11 @@ const expected = [
   'approved_catalog_locations',
   'welcome_signal_previews',
   'founder_glass_shipping',
+  'member_referral_codes',
+  'member_referral_eligibility_events',
+  'member_referrals',
+  'member_referral_point_ledger',
+  'member_referral_glass_rewards',
   'bottle_contributions',
   'community_sighting_votes',
   'community_sightings',
@@ -104,6 +110,11 @@ const requiredColumns = {
   approved_catalog_locations: ['id', 'normalized_key', 'payload', 'approved_by'],
   welcome_signal_previews: ['user_id', 'payload', 'redeemed_at', 'expires_at'],
   founder_glass_shipping: ['user_id', 'founder_number', 'account_email', 'recipient_name', 'address_line1', 'address_line2', 'city', 'state_code', 'postal_code', 'phone', 'country_code', 'status', 'carrier', 'tracking_number', 'submitted_at', 'updated_at', 'shipped_at', 'updated_by', 'shipment_notification_sent_at', 'shipment_notification_message_id', 'shipment_notification_claimed_at', 'shipment_notification_claim_token', 'shipment_notification_idempotency_key'],
+  member_referral_codes: ['referrer_user_id', 'code', 'email_hash', 'created_at', 'updated_at'],
+  member_referral_eligibility_events: ['source_event_id', 'referred_user_id', 'tier', 'created_at'],
+  member_referrals: ['referred_user_id', 'referrer_user_id', 'referral_code', 'referred_email_hash', 'highest_tier', 'awarded_points', 'attributed_at', 'updated_at'],
+  member_referral_point_ledger: ['id', 'event_key', 'referrer_user_id', 'referred_user_id', 'tier', 'reason', 'points', 'source_event_id', 'created_at'],
+  member_referral_glass_rewards: ['referred_user_id', 'referrer_user_id', 'status', 'earned_at', 'address_confirmed_at', 'shipped_at', 'updated_at'],
   bottle_contributions: ['id', 'status', 'payload'],
   community_sighting_votes: ['sighting_id', 'user_id', 'kind'],
   community_sightings: ['id', 'reporter_user_id', 'payload'],
@@ -189,6 +200,10 @@ const expectedIndexes = [
   'welcome_signal_previews_expires_idx',
   'founder_glass_shipping_founder_number_idx',
   'founder_glass_shipping_status_idx',
+  'member_referrals_referrer_idx',
+  'member_referral_eligibility_events_user_idx',
+  'member_referral_point_ledger_referrer_idx',
+  'member_referral_glass_rewards_referrer_idx',
   'bottle_contributions_updated_idx',
   'community_sightings_created_idx',
   'community_sighting_votes_sighting_idx',
@@ -256,6 +271,21 @@ const expectedConstraints = [
   'founder_glass_shipping_founder_number_positive',
   'founder_glass_shipping_country_us',
   'founder_glass_shipping_status_valid',
+  'member_referral_codes_pkey',
+  'member_referral_codes_code_key',
+  'member_referrals_pkey',
+  'member_referrals_referrer_user_id_fkey',
+  'member_referrals_highest_tier_valid',
+  'member_referrals_awarded_points_valid',
+  'member_referral_eligibility_events_pkey',
+  'member_referral_eligibility_tier_valid',
+  'member_referral_point_ledger_pkey',
+  'member_referral_point_ledger_event_key_key',
+  'member_referral_point_tier_valid',
+  'member_referral_point_reason_valid',
+  'member_referral_point_value_valid',
+  'member_referral_glass_rewards_pkey',
+  'member_referral_glass_status_valid',
   'retailer_submissions_store_id_fkey',
 ];
 const constraintRows = await sql.query(`
@@ -273,6 +303,37 @@ const constraintRows = await sql.query(`
 `, [expectedConstraints]);
 const availableConstraints = new Set(constraintRows.map((row) => row.conname));
 const missingConstraints = expectedConstraints.filter((constraint) => !availableConstraints.has(constraint));
+const expectedReferralConstraintShapes = {
+  member_referral_codes_pkey: ['member_referral_codes', 'p', ['referrer_user_id'], []],
+  member_referral_codes_code_key: ['member_referral_codes', 'u', ['code'], []],
+  member_referrals_pkey: ['member_referrals', 'p', ['referred_user_id'], []],
+  member_referrals_referrer_user_id_fkey: ['member_referrals', 'f', ['referrer_user_id'], ['REFERENCESmember_referral_codes(referrer_user_id)']],
+  member_referrals_highest_tier_valid: ['member_referrals', 'c', ['highest_tier'], ["'free'", "'standard'", "'barrel'", "'bottled-in-bond'"]],
+  member_referrals_awarded_points_valid: ['member_referrals', 'c', ['awarded_points'], ['awarded_points>=0', 'awarded_points<=15']],
+  member_referral_eligibility_events_pkey: ['member_referral_eligibility_events', 'p', ['source_event_id'], []],
+  member_referral_eligibility_tier_valid: ['member_referral_eligibility_events', 'c', ['tier'], ["'free'", "'standard'", "'barrel'", "'bottled-in-bond'"]],
+  member_referral_point_ledger_pkey: ['member_referral_point_ledger', 'p', ['id'], []],
+  member_referral_point_ledger_event_key_key: ['member_referral_point_ledger', 'u', ['event_key'], []],
+  member_referral_point_tier_valid: ['member_referral_point_ledger', 'c', ['tier'], ["'free'", "'standard'", "'barrel'", "'bottled-in-bond'"]],
+  member_referral_point_reason_valid: ['member_referral_point_ledger', 'c', ['reason'], ["'referral_free'", "'referral_standard'", "'referral_barrel'", "'referral_founder'"]],
+  member_referral_point_value_valid: ['member_referral_point_ledger', 'c', ['points'], ['points>0', 'points<=15']],
+  member_referral_glass_rewards_pkey: ['member_referral_glass_rewards', 'p', ['referred_user_id'], []],
+  member_referral_glass_status_valid: ['member_referral_glass_rewards', 'c', ['status'], ["'address_required'", "'address_confirmed'", "'packed'", "'shipped'"]],
+};
+const normalizeReferralDefinition = (value) => String(value || '').replace(/\s+|::text|::bpchar|\(|\)/g, '').toLowerCase();
+const invalidReferralConstraints = Object.entries(expectedReferralConstraintShapes).flatMap(([name, shape]) => {
+  const [table, type, columns, fragments] = shape;
+  const actual = constraintRows.find((row) => row.conname === name);
+  const actualColumns = normalizeCatalogColumns(actual?.columns);
+  const definition = normalizeReferralDefinition(actual?.definition);
+  const valid = actual
+    && actual.table_name === table
+    && actual.contype === type
+    && actualColumns.length === columns.length
+    && actualColumns.every((column, index) => column === columns[index])
+    && fragments.every((fragment) => definition.includes(normalizeReferralDefinition(fragment)));
+  return valid ? [] : [name];
+});
 const expectedFounderConstraintDefinitions = {
   founder_glass_shipping_founder_number_positive: 'CHECK(((founder_numberISNULL)OR(founder_number>0)))',
   founder_glass_shipping_country_us: "CHECK((country_code='US'::bpchar))",
@@ -296,6 +357,43 @@ const invalidFounderConstraints = Object.entries(expectedFounderConstraintDefini
     ? []
     : [constraint];
 });
+const expectedReferralFunctions = {
+  referral_tier_rank: {
+    arguments: 'value text',
+    result: 'integer',
+    fragments: ["WHEN 'free' THEN 0", "WHEN 'bottled-in-bond' THEN 3"],
+  },
+  reconcile_member_referral_reward: {
+    arguments: 'p_referred_user_id text, p_next_tier text, p_source_event_id text',
+    result: 'TABLE(points_awarded integer, target_points integer, founder_glass_earned boolean)',
+    fragments: ['INSERT INTO member_referral_eligibility_events', 'FOR UPDATE', 'free_points_awarded >= 5', 'ON CONFLICT (event_key) DO NOTHING'],
+  },
+  claim_member_referral: {
+    arguments: 'p_referred_user_id text, p_referral_code text, p_referred_email_hash text',
+    result: 'TABLE(claim_status text, points_awarded integer)',
+    fragments: ['code = UPPER(p_referral_code)', 'code_row.email_hash = p_referred_email_hash', 'reconcile_member_referral_reward'],
+  },
+};
+const referralFunctionRows = await sql.query(`
+  SELECT p.proname,
+    pg_get_function_identity_arguments(p.oid) AS arguments,
+    pg_get_function_result(p.oid) AS result,
+    pg_get_functiondef(p.oid) AS definition
+  FROM pg_proc p
+  JOIN pg_namespace n ON n.oid = p.pronamespace
+  WHERE n.nspname = 'public' AND p.proname = ANY($1::text[])
+`, [Object.keys(expectedReferralFunctions)]);
+const normalizeFunctionText = (value) => String(value || '').replace(/\s+/g, ' ').trim().toLowerCase();
+const invalidReferralFunctions = Object.entries(expectedReferralFunctions).flatMap(([name, expectedFunction]) => {
+  const matches = referralFunctionRows.filter((row) => row.proname === name && normalizeFunctionText(row.arguments) === normalizeFunctionText(expectedFunction.arguments));
+  if (matches.length !== 1) return [name];
+  const actual = matches[0];
+  const definition = normalizeFunctionText(actual.definition);
+  return normalizeFunctionText(actual.result) === normalizeFunctionText(expectedFunction.result)
+    && expectedFunction.fragments.every((fragment) => definition.includes(normalizeFunctionText(fragment)))
+    ? []
+    : [name];
+});
 const schemaProblems = [
   ...missing.map((table) => `table:${table}`),
   ...missingColumns.map((column) => `column:${column}`),
@@ -306,6 +404,8 @@ const schemaProblems = [
   ...missingConstraints.map((constraint) => `constraint:${constraint}`),
   ...invalidFounderPrimaryKey.map((constraint) => `primary-key-definition:${constraint}`),
   ...invalidFounderConstraints.map((constraint) => `constraint-definition:${constraint}`),
+  ...invalidReferralConstraints.map((name) => `constraint-definition:${name}`),
+  ...invalidReferralFunctions.map((name) => `function-definition:${name}`),
 ];
 if (schemaProblems.length) {
   throw new Error(`Application storage schema is incomplete: ${schemaProblems.join(', ')}. Run npm run migrate:app-storage:apply.`);

@@ -4,6 +4,7 @@ import type { FounderShippingStatus, FounderShippingSubmission } from "@/lib/fou
 export interface FounderShippingRecord extends FounderShippingSubmission {
   userId: string;
   founderNumber: number | null;
+  referralGlassQuantity: number;
   accountEmail: string;
   status: FounderShippingStatus;
   carrier: string | null;
@@ -21,6 +22,7 @@ export interface FounderShippingRecord extends FounderShippingSubmission {
 interface FounderShippingRow {
   user_id?: unknown;
   founder_number?: unknown;
+  referral_glass_quantity?: unknown;
   account_email?: unknown;
   recipient_name?: unknown;
   address_line1?: unknown;
@@ -58,6 +60,7 @@ function rowToRecord(row: FounderShippingRow): FounderShippingRecord {
     founderNumber: Number.isInteger(Number(row.founder_number)) && Number(row.founder_number) > 0
       ? Number(row.founder_number)
       : null,
+    referralGlassQuantity: Number.isInteger(Number(row.referral_glass_quantity)) ? Number(row.referral_glass_quantity) : 0,
     accountEmail: text(row.account_email),
     recipientName: text(row.recipient_name),
     addressLine1: text(row.address_line1),
@@ -129,7 +132,17 @@ export class FounderShippingRepository {
 
   async listForOwner(): Promise<FounderShippingRecord[]> {
     const rows = await this.query.query(
-      `SELECT * FROM founder_glass_shipping WHERE founder_number IS NOT NULL ORDER BY founder_number ASC LIMIT 1000`,
+      `SELECT shipping.*, COALESCE(rewards.glass_quantity, 0)::INTEGER AS referral_glass_quantity
+       FROM founder_glass_shipping shipping
+       LEFT JOIN (
+         SELECT referrer_user_id, COUNT(*) AS glass_quantity
+         FROM member_referral_glass_rewards
+         WHERE status IN ('address_confirmed', 'packed')
+         GROUP BY referrer_user_id
+       ) rewards ON rewards.referrer_user_id = shipping.user_id
+       WHERE shipping.founder_number IS NOT NULL OR COALESCE(rewards.glass_quantity, 0) > 0
+       ORDER BY shipping.founder_number ASC NULLS LAST, shipping.submitted_at ASC
+       LIMIT 1000`,
     ) as FounderShippingRow[];
     return rows.map(rowToRecord);
   }
@@ -169,6 +182,11 @@ export class FounderShippingRepository {
          updated_at = NOW(),
          updated_by = NULL
        WHERE founder_glass_shipping.status NOT IN ('packed', 'shipped')
+          OR EXISTS (
+            SELECT 1 FROM member_referral_glass_rewards rewards
+            WHERE rewards.referrer_user_id = founder_glass_shipping.user_id
+              AND rewards.status = 'address_required'
+          )
        RETURNING *`,
       [
         input.userId,
@@ -226,9 +244,17 @@ export class FounderShippingRepository {
            END,
            updated_at = NOW(),
            updated_by = $5
-       WHERE user_id = $1 AND founder_number IS NOT NULL
-         AND (
-           shipment_notification_claimed_at IS NULL
+       WHERE user_id = $1
+          AND (
+            founder_number IS NOT NULL
+            OR EXISTS (
+              SELECT 1 FROM member_referral_glass_rewards rewards
+              WHERE rewards.referrer_user_id = founder_glass_shipping.user_id
+                AND rewards.status <> 'address_required'
+            )
+          )
+          AND (
+            shipment_notification_claimed_at IS NULL
            OR shipment_notification_claimed_at < NOW() - INTERVAL '15 minutes'
            OR ($2 = 'shipped' AND status = 'shipped' AND carrier IS NOT DISTINCT FROM $3 AND tracking_number IS NOT DISTINCT FROM $4)
          )

@@ -4,6 +4,7 @@ import Stripe from "stripe";
 import { isMembershipAccessActive, type BillingPlanId } from "@/lib/entitlements";
 import { getPlanByPriceId, LAUNCH_BILLING_PLANS, type LaunchBillingPlan } from "@/lib/stripe-plans";
 import { activateMembership } from "@/lib/membership-server";
+import { reconcileReferredMembership } from "@/lib/referral-service";
 
 export const dynamic = "force-dynamic";
 
@@ -73,6 +74,9 @@ export async function POST(req: NextRequest) {
     stripeSubscriptionId: stringValue(session.subscription),
     status: membershipStatus,
   });
+  if (stringValue(session.metadata?.purchase_type) !== "gift") {
+    await reconcileReferredMembership({ userId: checkoutUserId, tier: plan.tier, sourceEventId: `checkout-sync:${session.id}` });
+  }
 
   return NextResponse.json({ ok: true, tier: plan.tier, plan: plan.id });
 }

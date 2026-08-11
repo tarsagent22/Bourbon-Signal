@@ -7,6 +7,7 @@ import {
   readFounderShippingForUser,
   saveFounderShippingSubmission,
 } from "@/lib/founder-shipping-repository";
+import { getReferralRepository } from "@/lib/referral-repository";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -35,15 +36,15 @@ function memberShippingView(record: Awaited<ReturnType<typeof readFounderShippin
   };
 }
 
-async function paidMemberContext() {
+async function memberShippingContext() {
   const { userId } = await auth();
   if (!userId) return { error: NextResponse.json({ error: "Account required" }, { status: 401 }) } as const;
 
   const client = await clerkClient();
   const user = await client.users.getUser(userId);
   const eligibility = memberShippingEligibility(user.publicMetadata);
-  if (!eligibility.eligible) {
-    return { error: NextResponse.json({ error: "Paid membership required" }, { status: 403 }) } as const;
+  if (!eligibility.eligible && !(await getReferralRepository().hasGlassRewards(userId))) {
+    return { error: NextResponse.json({ error: "Paid membership or an earned referral glass is required" }, { status: 403 }) } as const;
   }
 
   const accountEmail = primaryEmail(user);
@@ -55,7 +56,7 @@ async function paidMemberContext() {
 }
 
 export async function GET() {
-  const context = await paidMemberContext();
+  const context = await memberShippingContext();
   if ("error" in context) return context.error;
 
   if (context.eligibility.founderNumber) {
@@ -72,7 +73,7 @@ export async function GET() {
 }
 
 export async function POST(request: Request) {
-  const context = await paidMemberContext();
+  const context = await memberShippingContext();
   if ("error" in context) return context.error;
 
   const body = await request.json().catch(() => null);

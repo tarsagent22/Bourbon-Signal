@@ -53,6 +53,7 @@
     "test:sms-alerts": "node scripts/verify-sms-alert-delivery.mjs && node --experimental-strip-types scripts/test-sms-alert-copy.mjs",
     "test:alert-delivery-policy": "node scripts/verify-alert-delivery-policy.mjs && node --experimental-strip-types scripts/test-alert-run-safety.mts",
     "test:sighting-rewards": "node --experimental-strip-types scripts/test-sighting-rewards.mjs",
+    "test:referrals": "tsx --test scripts/test-referrals.ts",
     "test:sighting-manual-review": "node --experimental-strip-types scripts/test-sighting-manual-review.mjs",
     "test:sighting-votes": "node scripts/test-sighting-votes.mjs",
     "test:costco-source": "node scripts/test-costco-source.mjs",

@@ -4,6 +4,7 @@ import Stripe from "stripe";
 import { isMembershipAccessActive, normalizeMembershipTier, type BillingPlanId } from "@/lib/entitlements";
 import { getPlanByPriceId, LAUNCH_BILLING_PLANS, type LaunchBillingPlan } from "@/lib/stripe-plans";
 import { activateMembership, downgradeMembershipForSubscription, findUserByEmailAddress, findUserByStripeCustomerId, suspendMembershipForSubscription } from "@/lib/membership-server";
+import { reconcileReferredMembership } from "@/lib/referral-service";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +19,10 @@ function getWebhookSecret() {
 
 function stringValue(value: unknown) {
   return typeof value === "string" ? value : null;
+}
+
+function isReferralEligiblePurchase(metadata: Stripe.Metadata | null | undefined) {
+  return stringValue(metadata?.purchase_type) !== "gift";
 }
 
 function checkoutEmail(session: Stripe.Checkout.Session) {
@@ -90,6 +95,9 @@ export async function POST(req: NextRequest) {
         stripeSubscriptionId: subscriptionId,
         status: membershipStatus,
       });
+      if (isReferralEligiblePurchase(session.metadata)) {
+        await reconcileReferredMembership({ userId, tier: plan.tier, sourceEventId: event.id });
+      }
     }
   }
 
@@ -109,6 +117,9 @@ export async function POST(req: NextRequest) {
         stripeSubscriptionId: subscription.id,
         status: subscription.status,
       });
+      if (isReferralEligiblePurchase(subscription.metadata)) {
+        await reconcileReferredMembership({ userId, tier: plan.tier, sourceEventId: event.id });
+      }
     } else if (customerId && !isMembershipAccessActive(plan?.tier, subscription.status, plan?.id)) {
       await suspendMembershipForSubscription(customerId, subscription.id, subscription.status);
     }
