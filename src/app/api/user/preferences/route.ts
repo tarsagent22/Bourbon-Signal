@@ -51,6 +51,7 @@ import {
   getMemberCollectionRepository,
   MemberCollectionConflictError,
 } from "@/lib/member-collection-repository";
+import { countDistinctTrackedBottles } from "@/lib/bottle-check-dossier";
 
 export type { CollectionBottlePreference } from "@/lib/member-collection";
 
@@ -437,8 +438,35 @@ export async function POST(req: NextRequest) {
     const payload = (await req.json().catch(() => ({}))) as Partial<UserAlertPreferences>;
     const attemptedAlertWrite = payload.areaPreferences !== undefined || payload.notificationPreferences !== undefined || payload.alertMode !== undefined || payload.bottleAlertPreferences !== undefined;
     const entitlements = getEntitlements(getQaPreviewTierFromRequest(req));
+    if (payload.collectionPreferences !== undefined && !entitlements.canUseCollection) {
+      return NextResponse.json({ error: "Collection is included with Barrel Proof and Founder memberships.", qaPreview: true, qaTier: entitlements.tier }, { status: 403 });
+    }
     if (attemptedAlertWrite && entitlements.alertAreaLimit === 0) {
       return NextResponse.json({ error: "Alert setup is included with Standard Proof and above.", qaPreview: true, qaTier: entitlements.tier }, { status: 403 });
+    }
+    if (typeof entitlements.alertAreaLimit === "number" && payload.areaPreferences !== undefined) {
+      const requestedAreas = normalizeAreaPreferences(payload.areaPreferences);
+      const limitedAreas = trimAreaPreferencesToLimit(requestedAreas, entitlements.alertAreaLimit);
+      if (JSON.stringify(limitedAreas) !== JSON.stringify(requestedAreas)) {
+        return NextResponse.json({
+          error: "This alert-area selection exceeds your membership limit. Upgrade to add more markets.",
+          code: "alert_area_limit_reached",
+          qaPreview: true,
+          qaTier: entitlements.tier,
+        }, { status: 403 });
+      }
+    }
+    if (typeof entitlements.trackedBottleLimit === "number" && payload.bottleAlertPreferences !== undefined) {
+      const requestedBottles = normalizeBottleAlertPreferences(payload.bottleAlertPreferences);
+      const requestedBottleCount = countDistinctTrackedBottles(requestedBottles);
+      if (requestedBottleCount > entitlements.trackedBottleLimit) {
+        return NextResponse.json({
+          error: "This tracked-bottle selection exceeds your membership limit. Upgrade to track more bottles.",
+          code: "tracked_bottle_limit_reached",
+          qaPreview: true,
+          qaTier: entitlements.tier,
+        }, { status: 403 });
+      }
     }
     try {
       return NextResponse.json(buildQaPreviewResponse(req, payload));
@@ -521,8 +549,32 @@ export async function POST(req: NextRequest) {
   const entitlements = getEntitlements(user.publicMetadata);
   const attemptedAlertWrite = payload.areaPreferences !== undefined || payload.notificationPreferences !== undefined || payload.alertMode !== undefined || payload.bottleAlertPreferences !== undefined;
 
+  if (payload.collectionPreferences !== undefined && !entitlements.canUseCollection) {
+    return NextResponse.json({ error: "Collection is included with Barrel Proof and Founder memberships." }, { status: 403 });
+  }
+
   if (attemptedAlertWrite && entitlements.alertAreaLimit === 0) {
     return NextResponse.json({ error: "Alert setup is included with Standard Proof and above." }, { status: 403 });
+  }
+
+  if (typeof entitlements.alertAreaLimit === "number" && payload.areaPreferences !== undefined) {
+    const limitedAreas = trimAreaPreferencesToLimit(areaPreferences, entitlements.alertAreaLimit);
+    if (JSON.stringify(limitedAreas) !== JSON.stringify(areaPreferences)) {
+      return NextResponse.json({
+        error: "This alert-area selection exceeds your membership limit. Upgrade to add more markets.",
+        code: "alert_area_limit_reached",
+      }, { status: 403 });
+    }
+  }
+
+  if (typeof entitlements.trackedBottleLimit === "number" && payload.bottleAlertPreferences !== undefined) {
+    const requestedBottleCount = countDistinctTrackedBottles(bottleAlertPreferences);
+    if (requestedBottleCount > entitlements.trackedBottleLimit) {
+      return NextResponse.json({
+        error: "This tracked-bottle selection exceeds your membership limit. Upgrade to track more bottles.",
+        code: "tracked_bottle_limit_reached",
+      }, { status: 403 });
+    }
   }
 
   if (!entitlements.canReceiveSmsAlerts) {

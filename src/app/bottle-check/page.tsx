@@ -7,13 +7,24 @@ import { AVAILABLE_STATES } from "@/lib/statePreferences";
 import { useAreaPreferences } from "@/hooks/useAreaPreferences";
 import { useAuth } from "@/lib/auth";
 import { recordGrowthMilestone } from "@/lib/growth-client";
+import {
+  assessShelfPrice,
+  bottleCheckActionAccess,
+  buildBottleCheckCollectionEntry,
+  countBottleCheckAlertAreas,
+  type BottleCheckActionAccess,
+} from "@/lib/bottle-check-dossier";
 
 interface BottleResult {
   bottle: {
     id: string;
     canonicalName: string;
     brand: string;
+    producer?: string;
     category: string;
+    proof?: number;
+    ageStatement?: string | null;
+    msrp?: number | null;
     availability: "common" | "regional" | "seasonal" | "limited" | "allocated" | "highly_allocated" | "unicorn";
     nationalTier: "regular" | "limited" | "allocated" | "highly_allocated" | "unicorn";
     nationalConfidence: "high" | "medium" | "low";
@@ -70,6 +81,10 @@ interface BottleResult {
   message?: string;
   usage?: { used: number; limit: number; remaining: number } | null;
 }
+
+type UpgradePrompt = Exclude<BottleCheckActionAccess, { allowed: true }> & {
+  action: "track" | "collection";
+};
 
 const activeStates = AVAILABLE_STATES.filter((state) => state.active);
 
@@ -130,7 +145,7 @@ export default function BottleCheckPage() {
   const { isLoaded, isSignedIn, signIn, entitlements } = useAuth();
   const bottleCheckLimit = entitlements.bottleCheckLimit;
   const isFreeBottleCheck = bottleCheckLimit !== null;
-  const { prefs, loading: prefsLoading, savePreferences } = useAreaPreferences();
+  const { prefs, loading: prefsLoading, savePreferences, collectionSyncState } = useAreaPreferences();
   const [query, setQuery] = useState("");
   const [submittedQuery, setSubmittedQuery] = useState("");
   const [submittedState, setSubmittedState] = useState("NC");
@@ -142,6 +157,12 @@ export default function BottleCheckPage() {
   const [savingTrack, setSavingTrack] = useState(false);
   const [trackError, setTrackError] = useState<string | null>(null);
   const [trackSaved, setTrackSaved] = useState(false);
+  const [shelfPrice, setShelfPrice] = useState("");
+  const [savingCollection, setSavingCollection] = useState(false);
+  const [collectionError, setCollectionError] = useState<string | null>(null);
+  const [collectionSaveState, setCollectionSaveState] = useState<"idle" | "saved" | "pending" | "conflict">("idle");
+  const [upgradePrompt, setUpgradePrompt] = useState<UpgradePrompt | null>(null);
+  const upgradeDialogRef = useRef<HTMLDialogElement>(null);
   const [freeChecksUsed, setFreeChecksUsed] = useState(0);
   const [liveSuggestions, setLiveSuggestions] = useState<NonNullable<BottleResult["bottle"]>[]>([]);
   const [suggestionsOpen, setSuggestionsOpen] = useState(false);
@@ -205,6 +226,13 @@ export default function BottleCheckPage() {
   }, []);
 
   useEffect(() => {
+    const dialog = upgradeDialogRef.current;
+    if (!dialog) return;
+    if (upgradePrompt && !dialog.open) dialog.showModal();
+    if (!upgradePrompt && dialog.open) dialog.close();
+  }, [upgradePrompt]);
+
+  useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const handoffQuery = params.get("q")?.trim() || "";
     const handoffState = params.get("state")?.toUpperCase() || "";
@@ -231,6 +259,9 @@ export default function BottleCheckPage() {
         setResult(data);
         setHasSearched(true);
         if (res.ok && data.bottle) {
+          setShelfPrice("");
+          setCollectionError(null);
+          setCollectionSaveState("idle");
           pendingValueResult.current = true;
           setValueResultVersion((version) => version + 1);
         }
@@ -314,9 +345,26 @@ export default function BottleCheckPage() {
   const savedBottleKeys = prefs.bottleAlertPreferences.bottleKeys.map(normalizeBottleKey);
   const savedBottleNames = prefs.bottleAlertPreferences.bottleNames.map(normalizeBottleKey);
   const isTracked = Boolean(bottleKey && (savedBottleKeys.includes(bottleKey) || savedBottleNames.includes(bottleKey)));
+  const collectionEntries = prefs.collectionPreferences.bottles;
+  const collectionBottleKey = bottle ? normalizeBottleKey(bottle.canonicalName) : "";
+  const isInCollection = Boolean(collectionBottleKey && collectionEntries.some((entry) => normalizeBottleKey(entry.canonicalKey) === collectionBottleKey));
+  const trackedBottleCount = new Set([...savedBottleKeys, ...savedBottleNames]).size;
+  const currentAlertAreaCount = countBottleCheckAlertAreas(prefs.areaPreferences);
+  const requestedNewAreaCount = trackingStates.filter((selectedState) => !prefs.areaPreferences.states.includes(selectedState)).length;
+  const trackActionAccess = bottleCheckActionAccess("track", entitlements, {
+    trackedBottleCount,
+    currentAlertAreaCount,
+    requestedNewAreaCount,
+    alreadyTracked: isTracked,
+  });
+  const collectionActionAccess = bottleCheckActionAccess("collection", entitlements);
+  const effectiveCollectionSaveState = collectionSaveState === "idle"
+    ? (isInCollection ? collectionSyncState : "idle")
+    : collectionSaveState;
   const canTrack = Boolean(bottle && signal?.canTrack);
   const isRegular = signal?.marketTier === "regular";
-  const canSaveAlertFromBottleCheck = entitlements.trackedBottleLimit !== 0;
+  const parsedShelfPrice = shelfPrice.trim() ? Number(shelfPrice) : null;
+  const shelfPriceAssessment = assessShelfPrice(bottle?.msrp, parsedShelfPrice);
   const resultStateCode = signal?.state || submittedState;
   const resultStateName = activeStates.find((item) => item.code === resultStateCode)?.name || resultStateCode;
   const classificationIsUnderReview = signal?.classificationSource === "national_baseline"
@@ -379,16 +427,20 @@ export default function BottleCheckPage() {
     });
   }
 
+  function requireBottleCheckAction(action: "track" | "collection") {
+    const access = action === "track" ? trackActionAccess : collectionActionAccess;
+    if (access.allowed) return true;
+    setUpgradePrompt({ ...access, action });
+    return false;
+  }
+
   async function trackBottle() {
     if (!bottle || !canTrack) return;
     if (!isSignedIn) {
       signIn();
       return;
     }
-    if (!canSaveAlertFromBottleCheck) {
-      window.location.href = "/pricing";
-      return;
-    }
+    if (!requireBottleCheckAction("track")) return;
     if (prefsLoading) {
       setTrackError("Loading your saved preferences. Try again in a second.");
       return;
@@ -415,6 +467,56 @@ export default function BottleCheckPage() {
       setTrackError(error instanceof Error ? error.message : "Could not save this bottle yet.");
     } finally {
       setSavingTrack(false);
+    }
+  }
+
+  async function addBottleToCollection() {
+    if (!bottle) return;
+    if (!isSignedIn) {
+      signIn();
+      return;
+    }
+    if (!requireBottleCheckAction("collection")) return;
+    if (prefsLoading) {
+      setCollectionError("Loading your saved collection. Try again in a second.");
+      return;
+    }
+    if (isInCollection && effectiveCollectionSaveState !== "pending" && effectiveCollectionSaveState !== "conflict") return;
+
+    setSavingCollection(true);
+    setCollectionError(null);
+    setCollectionSaveState("idle");
+    try {
+      const retryExistingCollection = effectiveCollectionSaveState === "pending" || effectiveCollectionSaveState === "conflict";
+      const collectionPreferences = retryExistingCollection
+        ? prefs.collectionPreferences
+        : {
+            bottles: [
+              ...collectionEntries.filter((entry) => normalizeBottleKey(entry.canonicalKey) !== collectionBottleKey),
+              buildBottleCheckCollectionEntry({
+                bottleId: bottle.id,
+                bottleName: bottle.canonicalName,
+                canonicalKey: collectionBottleKey,
+              }),
+            ],
+            version: prefs.collectionPreferences.version ?? 0,
+          };
+      const saveResult = await savePreferences({ collectionPreferences });
+      if (saveResult?.status === "conflict") {
+        setCollectionSaveState("conflict");
+        setCollectionError("Your collection changed on another device. Retry to save this bottle with the latest version.");
+        return;
+      }
+      if (saveResult?.status === "pending") {
+        setCollectionSaveState("pending");
+        return;
+      }
+      setCollectionSaveState("saved");
+    } catch (error) {
+      setCollectionSaveState("idle");
+      setCollectionError(error instanceof Error ? error.message : "Could not add this bottle to your collection yet.");
+    } finally {
+      setSavingCollection(false);
     }
   }
 
@@ -555,6 +657,61 @@ export default function BottleCheckPage() {
                 <h2>{bottle.canonicalName}</h2>
                 <p className="bc-summary">{bottle.summary}</p>
 
+                <section className="bc-dossier-section" aria-labelledby="bottle-facts-heading">
+                  <div className="bc-section-heading">
+                    <span>Bottle dossier</span>
+                    <h3 id="bottle-facts-heading">Bottle facts</h3>
+                  </div>
+                  <dl className="bc-fact-grid">
+                    <div><dt>MSRP</dt><dd>{typeof bottle.msrp === "number" ? `$${bottle.msrp.toFixed(2)}` : "Not listed"}</dd></div>
+                    <div><dt>Proof</dt><dd>{typeof bottle.proof === "number" ? bottle.proof : "Not listed"}</dd></div>
+                    <div><dt>Age</dt><dd>{bottle.ageStatement || "Not stated"}</dd></div>
+                    <div><dt>Producer</dt><dd>{bottle.producer || "Not listed"}</dd></div>
+                    <div><dt>Type</dt><dd>{bottle.category.replace(/_/g, " ")}</dd></div>
+                    <div><dt>Release pattern</dt><dd>{bottle.releaseCadence}</dd></div>
+                  </dl>
+                </section>
+
+                <section className="bc-price-check" aria-labelledby="shelf-price-heading">
+                  <div className="bc-section-heading">
+                    <span>Price read</span>
+                    <h3 id="shelf-price-heading">Shelf price</h3>
+                  </div>
+                  {typeof bottle.msrp === "number" ? (
+                    <>
+                      <label htmlFor="shelf-price-input">What price are you looking at?</label>
+                      <div className="bc-price-input-wrap">
+                        <span aria-hidden="true">$</span>
+                        <input
+                          id="shelf-price-input"
+                          type="number"
+                          min="0.01"
+                          max="99999"
+                          step="0.01"
+                          inputMode="decimal"
+                          value={shelfPrice}
+                          onChange={(event) => setShelfPrice(event.target.value)}
+                          placeholder={bottle.msrp.toFixed(2)}
+                        />
+                      </div>
+                      {shelfPriceAssessment ? (
+                        <div className={`bc-price-read ${shelfPriceAssessment.tone}`} role="status" aria-live="polite">
+                          <div>
+                            <strong>{shelfPriceAssessment.label}</strong>
+                            <span>{shelfPriceAssessment.premiumPercent > 0 ? "+" : ""}{Number(shelfPriceAssessment.premiumPercent.toFixed(2))}% vs. MSRP</span>
+                          </div>
+                          <p>{shelfPriceAssessment.detail}</p>
+                        </div>
+                      ) : (
+                        <p className="bc-price-help">Enter the shelf price to compare it with the MSRP listed in Bottle Check.</p>
+                      )}
+                      <small>This is a retail price comparison, not a live inventory or secondary-market estimate.</small>
+                    </>
+                  ) : (
+                    <p className="bc-price-help">Bottle Check does not list an MSRP for this bottle yet, so it will not calculate a comparison.</p>
+                  )}
+                </section>
+
                 {signal ? (
                   <div className={`bc-score ${scoreTone(signal.rarityScore)}`}>
                     <div>
@@ -597,14 +754,44 @@ export default function BottleCheckPage() {
                   <small>{classificationIsUnderReview ? "Purchase guidance is withheld until this classification has enough evidence." : bottle.guidance}</small>
                 </div>
 
+                <div className="bc-bottle-actions" aria-label="Bottle actions">
+                  <div>
+                    <strong>Save this bottle</strong>
+                    <p>Add it to your collection now and rate it later from the member dashboard.</p>
+                    {collectionError ? <small className="bc-track-error" role="alert">{collectionError}</small> : null}
+                    <div role="status" aria-live="polite">
+                      {effectiveCollectionSaveState === "saved" ? <small className="bc-track-success">Added to your collection.</small> : null}
+                      {effectiveCollectionSaveState === "pending" ? <small className="bc-track-pending">Saved on this device. Retry now, or it will sync automatically when your collection reloads online.</small> : null}
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={addBottleToCollection}
+                    disabled={savingCollection || prefsLoading || (collectionActionAccess.allowed && isInCollection && effectiveCollectionSaveState !== "pending" && effectiveCollectionSaveState !== "conflict")}
+                  >
+                    {!isSignedIn
+                      ? "Sign in to add"
+                      : prefsLoading
+                        ? "Loading..."
+                        : savingCollection
+                          ? "Adding..."
+                          : effectiveCollectionSaveState === "pending"
+                            ? "Retry sync"
+                            : effectiveCollectionSaveState === "conflict"
+                              ? "Retry save"
+                              : collectionActionAccess.allowed && isInCollection
+                                ? "In collection"
+                                : "Add to collection"}
+                  </button>
+                </div>
+
                 <div className="bc-track-box">
                   {isRegular ? (
                     <p><strong>No alert settings for regularly available bottles in this market.</strong> Bottle Check can still help you evaluate it, but everyday shelf bottles stay out of alert/watchlist noise.</p>
                   ) : canTrack ? (
-                    canSaveAlertFromBottleCheck ? (
                     <>
                       <div className="bc-track-content">
-                        <p><strong>Track this bottle</strong> saves it to your account-level alert preferences so future inbox/email alerts can use it.</p>
+                        <p><strong>Track this bottle</strong> saves it to your alert preferences for selected markets.</p>
                         <div className="bc-market-picker" aria-label="Choose markets to track this bottle">
                           {activeStates.map((item) => (
                             <button
@@ -617,23 +804,24 @@ export default function BottleCheckPage() {
                             </button>
                           ))}
                         </div>
-                        <small>
-                          Saves selected markets now. Use the dashboard afterward for board, city, or store-level territory refinement.
-                        </small>
-                        {trackError ? <small className="bc-track-error">{trackError}</small> : null}
-                        {trackSaved ? <small className="bc-track-success">Saved to your alert preferences.</small> : null}
-                      </div>
-                      <button type="button" onClick={trackBottle} disabled={savingTrack || prefsLoading || isTracked}>{!isSignedIn ? "Sign in to track" : prefsLoading ? "Loading..." : savingTrack ? "Saving..." : isTracked ? "Tracked" : "Track in my market"}</button>
-                    </>
-                    ) : (
-                      <>
-                        <div className="bc-track-content">
-                          <p><strong>Get alerted when this drops in your area.</strong> Bottle Check can tell you whether a bottle is worth chasing; paid members can save it for inbox and email alerts.</p>
-                          <small>Standard starts with 5 alert areas and 15 tracked bottles. Barrel and Founder are built for heavier hunting.</small>
+                        <small>Saves selected markets now. Use the dashboard afterward for board, city, or store-level territory refinement.</small>
+                        {trackError ? <small className="bc-track-error" role="alert">{trackError}</small> : null}
+                        <div role="status" aria-live="polite">
+                          {trackSaved ? <small className="bc-track-success">Saved to your alert preferences.</small> : null}
                         </div>
-                        <button type="button" onClick={() => { window.location.href = "/pricing"; }}>View memberships</button>
-                      </>
-                    )
+                      </div>
+                      <button type="button" onClick={trackBottle} disabled={savingTrack || prefsLoading || (trackActionAccess.allowed && isTracked)}>
+                        {!isSignedIn
+                          ? "Sign in to track"
+                          : prefsLoading
+                            ? "Loading..."
+                            : savingTrack
+                              ? "Saving..."
+                              : trackActionAccess.allowed && isTracked
+                                ? "Tracked"
+                                : "Track this bottle"}
+                      </button>
+                    </>
                   ) : (
                     <p><strong>Alerts are not enabled for this bottle yet.</strong> {signal?.trackDisabledReason || "This bottle is still being evaluated for future alert support."}</p>
                   )}
@@ -668,6 +856,32 @@ export default function BottleCheckPage() {
           )}
         </section>
       </main>
+      <dialog
+        ref={upgradeDialogRef}
+        className="bc-upgrade-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="bc-upgrade-title"
+        aria-describedby="bc-upgrade-description"
+        onCancel={(event) => {
+          event.preventDefault();
+          setUpgradePrompt(null);
+        }}
+        onClose={() => setUpgradePrompt(null)}
+      >
+        {upgradePrompt ? (
+          <>
+            <button type="button" className="bc-dialog-close" aria-label="Close upgrade note" onClick={() => setUpgradePrompt(null)}>×</button>
+            <span className="bc-dialog-kicker">{upgradePrompt.requiredTier}</span>
+            <h2 id="bc-upgrade-title">{upgradePrompt.title}</h2>
+            <p id="bc-upgrade-description">{upgradePrompt.description}</p>
+            <div className="bc-dialog-actions">
+              <a href={`/pricing?source=bottle-check&action=${upgradePrompt.action}`}>View membership options</a>
+              <button type="button" onClick={() => setUpgradePrompt(null)}>Not now</button>
+            </div>
+          </>
+        ) : null}
+      </dialog>
       <Footer />
     </>
   );
@@ -697,8 +911,8 @@ const bottleCheckCss = `
 .bc-live-suggestions span { min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .bc-live-suggestions .bc-tier { flex-shrink:0; min-width:0; max-width:42vw; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
 .bc-suggestion-loading { padding:12px; color:var(--color-text-secondary); font:700 13px/1.3 var(--font-dm-sans); }
-.bc-search-card > button, .bc-track-box > button { height:48px; border:none; border-radius:14px; background:linear-gradient(135deg, #C4943A 0%, #D4A44A 100%); color:#14100C; padding:0 18px; font:900 14px/1 var(--font-dm-sans); cursor:pointer; flex-shrink:0; }
-.bc-track-box > button:disabled { cursor:default; opacity:.72; }
+.bc-search-card > button, .bc-track-box > button, .bc-bottle-actions > button { height:48px; border:none; border-radius:14px; background:linear-gradient(135deg, #C4943A 0%, #D4A44A 100%); color:#14100C; padding:0 18px; font:900 14px/1 var(--font-dm-sans); cursor:pointer; flex-shrink:0; }
+.bc-track-box > button:disabled, .bc-bottle-actions > button:disabled { cursor:default; opacity:.72; }
 .bc-panel { margin-top:22px; border-top:1px solid var(--boundary-subtle); padding:24px 4px; background:transparent; color:var(--color-text-secondary); font:14px/1.7 var(--font-dm-sans); }
 .bc-panel strong { color:var(--color-cream); display:block; font:700 22px/1.2 var(--font-playfair); margin-bottom:8px; }
 .bc-result-grid { display:grid; grid-template-columns:minmax(0, 1.35fr) minmax(320px, .85fr); gap:16px; margin-top:18px; }
@@ -711,6 +925,29 @@ const bottleCheckCss = `
 .bc-confidence { color:var(--color-text-tertiary); font:800 11px/1 var(--font-dm-sans); letter-spacing:.08em; text-transform:uppercase; }
 .bc-verdict-card h2 { margin:18px 0 0; font:700 clamp(32px, 5vw, 56px)/.98 var(--font-playfair); letter-spacing:-.035em; color:var(--color-cream); }
 .bc-summary { margin:14px 0 0; color:var(--color-text-secondary); font:16px/1.7 var(--font-dm-sans); }
+.bc-dossier-section, .bc-price-check { margin-top:22px; border:1px solid rgba(245,237,214,.085); border-radius:18px; padding:18px; background:rgba(0,0,0,.15); }
+.bc-section-heading { display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:14px; }
+.bc-section-heading span { color:var(--color-accent-amber); font:900 10px/1 var(--font-jetbrains); letter-spacing:.11em; text-transform:uppercase; }
+.bc-section-heading h3 { margin:0; color:var(--color-cream); font:800 17px/1 var(--font-dm-sans); }
+.bc-fact-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:9px; margin:0; }
+.bc-fact-grid div { min-width:0; border-radius:13px; padding:12px; background:rgba(255,255,255,.035); }
+.bc-fact-grid dt { color:var(--color-text-tertiary); font:900 9px/1 var(--font-dm-sans); letter-spacing:.09em; text-transform:uppercase; }
+.bc-fact-grid dd { margin:7px 0 0; color:var(--color-cream); font:800 14px/1.3 var(--font-dm-sans); text-transform:capitalize; overflow-wrap:anywhere; }
+.bc-price-check > label { display:block; margin-bottom:8px; color:var(--color-text-secondary); font:700 12px/1.3 var(--font-dm-sans); }
+.bc-price-input-wrap { position:relative; width:min(240px,100%); }
+.bc-price-input-wrap > span { position:absolute; left:14px; top:50%; transform:translateY(-50%); color:var(--color-accent-amber); font:800 16px/1 var(--font-dm-sans); pointer-events:none; }
+.bc-price-input-wrap input { width:100%; height:48px; box-sizing:border-box; border:1px solid rgba(196,148,58,.32); border-radius:13px; background:rgba(13,11,8,.68); color:var(--color-cream); padding:0 14px 0 30px; font:800 16px/1 var(--font-dm-sans); outline:none; }
+.bc-price-input-wrap input:focus { border-color:rgba(212,164,74,.78); box-shadow:0 0 0 3px rgba(212,164,74,.12); }
+.bc-price-read { display:grid; grid-template-columns:minmax(130px,.55fr) minmax(0,1fr); gap:14px; align-items:center; margin-top:12px; border-radius:14px; padding:14px; background:rgba(255,255,255,.035); }
+.bc-price-read strong, .bc-price-read span { display:block; }
+.bc-price-read strong { color:var(--color-cream); font:900 15px/1.2 var(--font-dm-sans); }
+.bc-price-read span { margin-top:5px; color:var(--color-text-tertiary); font:800 10px/1 var(--font-dm-sans); letter-spacing:.07em; text-transform:uppercase; }
+.bc-price-read p { margin:0; color:var(--color-text-secondary); font:13px/1.5 var(--font-dm-sans); }
+.bc-price-read.near { border-left:3px solid #79b890; }
+.bc-price-read.moderate { border-left:3px solid var(--color-accent-amber); }
+.bc-price-read.high { border-left:3px solid #d4875c; }
+.bc-price-help { margin:0; color:var(--color-text-secondary); font:13px/1.55 var(--font-dm-sans); }
+.bc-price-check > small { display:block; margin-top:10px; color:var(--color-text-tertiary); font:11px/1.45 var(--font-dm-sans); }
 .bc-score { margin-top:22px; display:grid; grid-template-columns:150px minmax(0,1fr); gap:16px; align-items:center; border-radius:18px; padding:20px; background:linear-gradient(135deg, rgba(0,0,0,.22), rgba(196,148,58,.065)); }
 .bc-score span { display:block; color:var(--color-text-tertiary); font:900 11px/1 var(--font-dm-sans); letter-spacing:.10em; text-transform:uppercase; }
 .bc-score strong { display:block; margin-top:8px; font:800 54px/.85 var(--font-playfair); color:var(--color-cream); }
@@ -736,6 +973,13 @@ const bottleCheckCss = `
 .bc-guidance h3, .bc-detail-card h3, .bc-recent h4, .bc-suggestions h4 { margin:0; color:var(--color-cream); font:800 15px/1 var(--font-dm-sans); letter-spacing:.04em; text-transform:uppercase; }
 .bc-guidance p { margin:10px 0 0; color:var(--color-text-primary); font:16px/1.7 var(--font-dm-sans); }
 .bc-guidance small { display:block; margin-top:8px; color:var(--color-text-tertiary); font:13px/1.6 var(--font-dm-sans); }
+.bc-bottle-actions { margin-top:22px; display:flex; justify-content:space-between; align-items:center; gap:16px; border:1px solid rgba(245,237,214,.08); border-radius:16px; padding:16px; background:rgba(255,255,255,.025); }
+.bc-bottle-actions strong { display:block; color:var(--color-cream); font:800 14px/1.2 var(--font-dm-sans); }
+.bc-bottle-actions p { margin:6px 0 0; color:var(--color-text-secondary); font:12px/1.5 var(--font-dm-sans); }
+.bc-bottle-actions small { display:block; margin-top:6px; font:12px/1.4 var(--font-dm-sans); }
+.bc-track-error { color:#ffb4a8; }
+.bc-track-success { color:#9AD4B1; }
+.bc-track-pending { color:var(--color-accent-amber); }
 .bc-track-box { margin-top:22px; border-top:1px solid var(--boundary-accent); background:rgba(196,148,58,.045); padding:16px 4px 0; display:flex; justify-content:space-between; gap:16px; align-items:center; }
 .bc-track-box p { margin:0; color:var(--color-text-secondary); font:13px/1.65 var(--font-dm-sans); }
 .bc-track-box strong { color:var(--color-cream); }
@@ -757,6 +1001,16 @@ const bottleCheckCss = `
 .bc-sighting strong { display:block; color:var(--color-cream); font:800 13px/1.25 var(--font-dm-sans); }
 .bc-sighting span, .bc-recent p { display:block; margin-top:5px; color:var(--color-text-secondary); font:12px/1.5 var(--font-dm-sans); }
 .bc-suggestions button { text-align:left; border:1px solid rgba(245,237,214,.09); border-radius:12px; background:rgba(255,255,255,.03); color:var(--color-text-primary); padding:10px 12px; font:700 13px/1.2 var(--font-dm-sans); cursor:pointer; }
-@media (max-width: 900px) { .bc-search-card, .bc-result-grid, .bc-score, .bc-member-taste-score, .bc-track-box { grid-template-columns:1fr; flex-direction:column; align-items:stretch; } .bc-field, .bc-field.grow, .bc-field.state { width:100%; max-width:100%; } .bc-search-card > button, .bc-track-box > button { width:100%; } .bc-stat-grid { grid-template-columns:1fr; } }
-@media (max-width: 520px) { .bc-hero, .bc-shell { width:calc(100% - 28px); } .bc-hero { padding-top:42px; } .bc-hero h1 { font-size:clamp(42px, 12vw, 56px); line-height:.96; } .bc-search-card { padding:14px; border-radius:22px; } .bc-live-suggestions button { grid-template-columns:minmax(0,1fr); align-items:start; gap:6px; padding:11px 12px; } .bc-live-suggestions .bc-tier { justify-self:start; max-width:100%; } .bc-classification-context { grid-template-columns:1fr; } .bc-classification-context > p, .bc-release-badges { grid-column:1; } }
+.bc-upgrade-dialog { position:relative; width:min(480px,calc(100% - 32px)); box-sizing:border-box; border:1px solid rgba(196,148,58,.32); border-radius:24px; padding:30px; background:linear-gradient(180deg,#211a13,#14110d); color:var(--color-text-primary); box-shadow:0 30px 90px rgba(0,0,0,.68); }
+.bc-upgrade-dialog::backdrop { background:rgba(5,4,3,.76); backdrop-filter:blur(5px); }
+.bc-dialog-close { position:absolute; top:12px; right:12px; width:36px; height:36px; border:1px solid rgba(245,237,214,.12); border-radius:999px; background:rgba(255,255,255,.04); color:var(--color-text-secondary); font:800 22px/1 var(--font-dm-sans); cursor:pointer; }
+.bc-dialog-kicker { display:block; color:var(--color-accent-amber); font:900 10px/1 var(--font-jetbrains); letter-spacing:.11em; text-transform:uppercase; }
+.bc-upgrade-dialog h2 { margin:12px 36px 0 0; color:var(--color-cream); font:700 30px/1.08 var(--font-playfair); }
+.bc-upgrade-dialog p { margin:14px 0 0; color:var(--color-text-secondary); font:14px/1.65 var(--font-dm-sans); }
+.bc-dialog-actions { display:flex; align-items:center; gap:10px; margin-top:22px; }
+.bc-dialog-actions a, .bc-dialog-actions button { min-height:46px; display:inline-flex; align-items:center; justify-content:center; box-sizing:border-box; border-radius:13px; padding:0 16px; font:900 13px/1 var(--font-dm-sans); text-decoration:none; cursor:pointer; }
+.bc-dialog-actions a { border:0; background:linear-gradient(135deg,#C4943A,#D4A44A); color:#14100C; }
+.bc-dialog-actions button { border:1px solid rgba(245,237,214,.12); background:transparent; color:var(--color-text-secondary); }
+@media (max-width: 900px) { .bc-search-card, .bc-result-grid, .bc-score, .bc-member-taste-score, .bc-track-box, .bc-bottle-actions { grid-template-columns:1fr; flex-direction:column; align-items:stretch; } .bc-field, .bc-field.grow, .bc-field.state { width:100%; max-width:100%; } .bc-search-card > button, .bc-track-box > button, .bc-bottle-actions > button { width:100%; } .bc-stat-grid { grid-template-columns:1fr; } }
+@media (max-width: 520px) { .bc-hero, .bc-shell { width:calc(100% - 28px); } .bc-hero { padding-top:42px; } .bc-hero h1 { font-size:clamp(42px, 12vw, 56px); line-height:.96; } .bc-search-card { padding:14px; border-radius:22px; } .bc-live-suggestions button { grid-template-columns:minmax(0,1fr); align-items:start; gap:6px; padding:11px 12px; } .bc-live-suggestions .bc-tier { justify-self:start; max-width:100%; } .bc-classification-context, .bc-fact-grid, .bc-price-read { grid-template-columns:1fr; } .bc-classification-context > p, .bc-release-badges { grid-column:1; } .bc-dialog-actions { align-items:stretch; flex-direction:column; } .bc-dialog-actions a, .bc-dialog-actions button { width:100%; } }
 `;

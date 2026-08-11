@@ -91,6 +91,7 @@ export function useAreaPreferences() {
     qaPreview ? QA_PREVIEW_PREFERENCES : getCachedAreaPreferences(userId) ?? EMPTY_PREFS
   ));
   const [loading, setLoading] = useState(false);
+  const [collectionSyncState, setCollectionSyncState] = useState<"idle" | "pending" | "conflict">("idle");
   const [resolvedFor, setResolvedFor] = useState<PreferenceResolution>(() => {
     if (qaPreview) return "preview";
     if (userId && getCachedAreaPreferences(userId)) return "signed-in";
@@ -107,12 +108,14 @@ export function useAreaPreferences() {
     const requestedUserId = userId;
     if (!requestedUserId) {
       setPrefs(EMPTY_PREFS);
+      setCollectionSyncState("idle");
       setResolvedFor(isLoaded && !isSignedIn ? "signed-out" : null);
       return;
     }
     setLoading(true);
     setResolvedFor(null);
     const pendingBeforeRequest = await readPendingCollection(requestedUserId);
+    setCollectionSyncState(pendingBeforeRequest?.blockedByConflict ? "conflict" : pendingBeforeRequest ? "pending" : "idle");
     if (pendingBeforeRequest && activeUserIdRef.current === requestedUserId) {
       setPrefs((current) => ({ ...current, collectionPreferences: pendingBeforeRequest.collectionPreferences }));
     }
@@ -147,13 +150,17 @@ export function useAreaPreferences() {
               if (!response.ok) throw new Error("pending_collection_sync_failed");
               return await response.json() as UserAlertPreferences;
             });
-            if (synced) data = synced;
+            if (synced) {
+              data = synced;
+              setCollectionSyncState("idle");
+            }
           } catch {
             // Keep the device copy visible and retry after the next successful preferences load/save.
             data = {
               ...data,
               collectionPreferences: conflictPreferences || pending.collectionPreferences,
             };
+            setCollectionSyncState(conflictPreferences || pending.blockedByConflict ? "conflict" : "pending");
           }
         }
         if (activeUserIdRef.current === requestedUserId) {
@@ -175,6 +182,7 @@ export function useAreaPreferences() {
     if (qaPreview) {
       clearCachedAreaPreferences();
       setPrefs(QA_PREVIEW_PREFERENCES);
+      setCollectionSyncState("idle");
       setLoading(false);
       setResolvedFor("preview");
       return;
@@ -188,6 +196,7 @@ export function useAreaPreferences() {
     }
     if (!userId) {
       setPrefs(EMPTY_PREFS);
+      setCollectionSyncState("idle");
       setLoading(false);
       setResolvedFor("signed-out");
       return;
@@ -198,6 +207,11 @@ export function useAreaPreferences() {
       setPrefs(cached);
       setLoading(false);
       setResolvedFor("signed-in");
+      void readPendingCollection(userId).then((pending) => {
+        if (activeUserIdRef.current === userId) {
+          setCollectionSyncState(pending?.blockedByConflict ? "conflict" : pending ? "pending" : "idle");
+        }
+      });
       return;
     }
 
@@ -244,7 +258,10 @@ export function useAreaPreferences() {
       body: JSON.stringify(requestPatch),
     }).catch(() => null);
     if (!res) {
-      if (collectionWrite && pendingWrite) return { status: "pending" as const };
+      if (collectionWrite && pendingWrite) {
+        setCollectionSyncState("pending");
+        return { status: "pending" as const };
+      }
       if (requestedUserId) clearCachedAreaPreferences(requestedUserId);
       if (activeUserIdRef.current === requestedUserId) await fetchPrefs();
       throw new Error("Failed to save preferences");
@@ -261,10 +278,12 @@ export function useAreaPreferences() {
         setCachedAreaPreferences(requestedUserId, conflictedPreferences);
         if (activeUserIdRef.current === requestedUserId) setPrefs(conflictedPreferences);
       } else await markPendingCollectionConflict(requestedUserId, pendingWrite.operationId);
+      setCollectionSyncState("conflict");
       return { status: "conflict" as const };
     }
     if (!res.ok) {
       if (collectionWrite && pendingWrite && (res.status >= 500 || res.status === 408 || res.status === 429)) {
+        setCollectionSyncState("pending");
         return { status: "pending" as const };
       }
       if (collectionWrite && requestedUserId && pendingWrite) {
@@ -276,6 +295,7 @@ export function useAreaPreferences() {
     }
     const saved = await res.json().catch(() => null) as UserAlertPreferences | null;
     if (collectionWrite && requestedUserId && pendingWrite) await clearPendingCollection(requestedUserId, pendingWrite.operationId);
+    if (collectionWrite) setCollectionSyncState("idle");
     if (activeUserIdRef.current !== requestedUserId) return { status: "synced" as const };
     if (saved && requestedUserId) {
       setCachedAreaPreferences(requestedUserId, saved);
@@ -286,5 +306,5 @@ export function useAreaPreferences() {
     return { status: "synced" as const };
   }, [fetchPrefs, prefs, qaPreview, userId]);
 
-  return { prefs, loading, ready, savePreferences };
+  return { prefs, loading, ready, savePreferences, collectionSyncState };
 }
