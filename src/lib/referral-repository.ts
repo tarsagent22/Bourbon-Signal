@@ -45,10 +45,16 @@ export function hashReferralEmail(email: string, secret: string) {
     .digest("hex");
 }
 
-export function referralHashSecret(env: NodeJS.ProcessEnv = process.env) {
-  const secret = env.REFERRAL_HASH_SECRET?.trim();
-  if (!secret) throw new Error("Referral security is not configured.");
-  return secret;
+export function referralHashSecret(env: Readonly<Record<string, string | undefined>> = process.env) {
+  const dedicated = env.REFERRAL_HASH_SECRET?.trim();
+  if (dedicated) return dedicated;
+  const clerkWebhookSecret = env.CLERK_WEBHOOK_SECRET?.trim();
+  if (clerkWebhookSecret) {
+    return createHmac("sha256", clerkWebhookSecret)
+      .update("bourbon-signal/referral-email-hash/v1")
+      .digest("hex");
+  }
+  throw new Error("REFERRAL_HASH_SECRET or CLERK_WEBHOOK_SECRET is required");
 }
 
 export class ReferralRepository {

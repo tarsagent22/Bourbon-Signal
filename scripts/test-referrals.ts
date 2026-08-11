@@ -10,6 +10,7 @@ import {
   ReferralRepository,
   generateReferralCode,
   hashReferralEmail,
+  referralHashSecret,
 } from "../src/lib/referral-repository.ts";
 import {
   claimReferralAtSignup,
@@ -124,6 +125,14 @@ test("generates non-ambiguous referral codes and hashes normalized emails", () =
     hashReferralEmail("member@example.com", "secret-value"),
     hashReferralEmail("member@example.com", "different-secret"),
   );
+});
+
+test("derives a domain-separated referral hash key from the existing Clerk webhook secret", () => {
+  assert.equal(referralHashSecret({ REFERRAL_HASH_SECRET: "dedicated" }), "dedicated");
+  const derived = referralHashSecret({ CLERK_WEBHOOK_SECRET: "clerk-secret" });
+  assert.match(derived, /^[a-f0-9]{64}$/);
+  assert.notEqual(derived, "clerk-secret");
+  assert.throws(() => referralHashSecret({}), /required/);
 });
 
 test("repository calls atomic claim and tier reconciliation functions", async () => {
