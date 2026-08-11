@@ -93,6 +93,7 @@ function rowToAutomationJob(row: CoverageAutomationJobRow): CoverageAutomationJo
 }
 
 const USER_LOCK_SQL = "SELECT pg_advisory_xact_lock(hashtextextended($1, 0))";
+const AUTOMATION_LOCK_SQL = "SELECT pg_advisory_xact_lock(hashtextextended('coverage-request-automation', 0))";
 const REQUEST_STATUSES = new Set<CoverageRequestStatus>(["requested", "on_radar", "improved", "closed"]);
 
 function asString(value: unknown) {
@@ -162,8 +163,9 @@ export class CoverageRequestRepository {
   ): Promise<MemberCoverageRequest> {
     if (!userId) throw new Error("A user id is required to request coverage.");
     const id = randomUUID();
-    const [, result] = await this.database.transaction((transaction) => [
+    const [, , result] = await this.database.transaction((transaction) => [
       transaction.query(USER_LOCK_SQL, [userId]),
+      transaction.query(AUTOMATION_LOCK_SQL),
       transaction.query(`
         WITH recent_requests AS (
           SELECT COUNT(*)::int AS request_count
@@ -223,7 +225,33 @@ export class CoverageRequestRepository {
             'queued', requested_at, updated_at
           FROM upserted
           WHERE status = 'requested'
-          ON CONFLICT (coverage_request_id, baseline_coverage_fingerprint) DO NOTHING
+          ON CONFLICT (coverage_request_id, baseline_coverage_fingerprint)
+          DO UPDATE SET
+            request_version = EXCLUDED.request_version,
+            target_type = EXCLUDED.target_type,
+            state_code = EXCLUDED.state_code,
+            area_key = EXCLUDED.area_key,
+            store_id = EXCLUDED.store_id,
+            canonical_target_key = EXCLUDED.canonical_target_key,
+            status = 'queued',
+            lease_token = NULL,
+            lease_expires_at = NULL,
+            task_id = NULL,
+            terminal_result = NULL,
+            outcome = NULL,
+            notification_token = NULL,
+            notification_attempted_at = NULL,
+            notification_platform_message_id = NULL,
+            retry_history = COALESCE(coverage_request_automation_jobs.retry_history, '[]'::jsonb)
+              || jsonb_build_array(jsonb_build_object(
+                'event', 'reopened_by_member',
+                'previousStatus', coverage_request_automation_jobs.status,
+                'previousOutcome', coverage_request_automation_jobs.outcome,
+                'reopenedAt', EXCLUDED.updated_at
+              )),
+            updated_at = EXCLUDED.updated_at
+          WHERE coverage_request_automation_jobs.status = 'failed'
+            AND coverage_request_automation_jobs.outcome = 'blocked'
           RETURNING job_key
         )
         SELECT 'upserted' AS outcome, to_jsonb(upserted) AS request,
@@ -328,14 +356,16 @@ export class CoverageRequestRepository {
   ): Promise<CoverageAutomationJob | null> {
     const outcome = String(terminalResult.outcome || "");
     const rows = await this.database.query(`
-      WITH completed AS (
+      WITH writer_lock AS (
+        SELECT pg_advisory_xact_lock(hashtextextended('coverage-request-automation', 0))
+      ), completed AS (
         UPDATE coverage_request_automation_jobs AS job
         SET
           status = 'notification_pending',
           terminal_result = $3::jsonb,
           outcome = $4,
           updated_at = $5::timestamptz
-        FROM coverage_requests AS request
+        FROM coverage_requests AS request, writer_lock
         WHERE job.job_key = $1
           AND job.task_id = $2
           AND job.status = 'running'
@@ -512,6 +542,72 @@ export class CoverageRequestRepository {
       LIMIT 1
     `, [jobKey, taskId]) as Array<{ job_key?: unknown }>;
     return Boolean(rows[0]?.job_key);
+  }
+
+  async closeForOwner(
+    requestId: string,
+    closedBy: string,
+    now = new Date().toISOString(),
+  ): Promise<{ requestId: string; jobsStopped: number } | null> {
+    if (!requestId || requestId.length > 200 || !closedBy || closedBy.length > 320) return null;
+    const rows = await this.database.query(`
+      WITH automation_lock AS (
+        SELECT pg_advisory_xact_lock(hashtextextended('coverage-request-automation', 0))
+      ), notification_lock AS (
+        SELECT pg_advisory_xact_lock(hashtextextended('coverage-request-automation-notification', 0))
+      ), eligible_request AS (
+        SELECT request.id
+        FROM coverage_requests AS request, automation_lock, notification_lock
+        WHERE request.id = $1
+          AND request.status IN ('requested', 'on_radar')
+      ), stopped_jobs AS (
+        UPDATE coverage_request_automation_jobs AS job
+        SET
+          status = 'failed',
+          outcome = 'blocked',
+          lease_token = NULL,
+          lease_expires_at = NULL,
+          notification_token = NULL,
+          retry_history = COALESCE(job.retry_history, '[]'::jsonb)
+            || jsonb_build_array(jsonb_build_object(
+              'event', 'closed_by_owner',
+              'closedBy', $2,
+              'closedAt', $3::timestamptz,
+              'previousStatus', job.status,
+              'taskId', job.task_id,
+              'terminalResult', job.terminal_result
+            )),
+          updated_at = $3::timestamptz
+        FROM eligible_request
+        WHERE job.coverage_request_id = eligible_request.id
+          AND job.status IN ('queued', 'claimed', 'running', 'notification_pending')
+        RETURNING job.job_key
+      ), closed_request AS (
+        UPDATE coverage_requests AS request
+        SET
+          status = 'closed',
+          review_notes = CASE
+            WHEN NULLIF(request.review_notes, '') IS NULL THEN 'Closed manually by ' || $2 || '.'
+            WHEN char_length(request.review_notes) + char_length($2) + 22 <= 1000
+              THEN request.review_notes || E'\nClosed manually by ' || $2 || '.'
+            ELSE request.review_notes
+          END,
+          updated_at = $3::timestamptz
+        FROM eligible_request
+        CROSS JOIN (SELECT COUNT(*)::int AS jobs_stopped FROM stopped_jobs) AS stopped
+        WHERE request.id = eligible_request.id
+        RETURNING request.id
+      )
+      SELECT
+        closed_request.id AS request_id,
+        (SELECT COUNT(*)::int FROM stopped_jobs) AS jobs_stopped
+      FROM closed_request
+    `, [requestId, closedBy, now]) as Array<{ request_id?: unknown; jobs_stopped?: unknown }>;
+    if (!rows[0]?.request_id) return null;
+    return {
+      requestId: asString(rows[0].request_id),
+      jobsStopped: Number(rows[0].jobs_stopped || 0),
+    };
   }
 
   async listDemandForOwner(limit = 10_000): Promise<OwnerCoverageRequestRow[]> {

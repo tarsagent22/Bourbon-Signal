@@ -305,7 +305,8 @@ assert.match(repository, /request\.updated_at = job\.request_version/);
 assert.match(repository, /job\.task_id = \$2/);
 assert.match(repository, /notification_pending/);
 assert.match(repository, /delivery_uncertain/);
-assert.match(repository, /ON CONFLICT \(coverage_request_id, baseline_coverage_fingerprint\) DO NOTHING/);
+assert.match(repository, /ON CONFLICT \(coverage_request_id, baseline_coverage_fingerprint\)[\s\S]*DO UPDATE SET[\s\S]*WHERE coverage_request_automation_jobs\.status = 'failed'[\s\S]*coverage_request_automation_jobs\.outcome = 'blocked'/,
+  "duplicate jobs only requeue after an explicit member reopen of a blocked failure");
 assert.match(repository, /retryAutomationJob/);
 assert.match(repository, /retry_history/);
 assert.match(repository, /status = 'claimed' AND job\.lease_expires_at <= \$2::timestamptz/);

@@ -317,18 +317,29 @@ async function loadCompanyControlRoomSnapshot() {
 const CONTROL_ROOM_CACHE_TTL_MS = 20_000;
 let controlRoomCache: { expiresAt: number; value: Awaited<ReturnType<typeof loadCompanyControlRoomSnapshot>> } | null = null;
 let controlRoomInFlight: Promise<Awaited<ReturnType<typeof loadCompanyControlRoomSnapshot>>> | null = null;
+let controlRoomCacheGeneration = 0;
+
+export function invalidateCompanyControlRoomSnapshot() {
+  controlRoomCacheGeneration += 1;
+  controlRoomCache = null;
+  controlRoomInFlight = null;
+}
 
 export async function getCompanyControlRoomSnapshot() {
   const now = Date.now();
   if (controlRoomCache && controlRoomCache.expiresAt > now) return controlRoomCache.value;
   if (controlRoomInFlight) return controlRoomInFlight;
-  controlRoomInFlight = loadCompanyControlRoomSnapshot()
+  const generation = controlRoomCacheGeneration;
+  const request = loadCompanyControlRoomSnapshot()
     .then((value) => {
-      controlRoomCache = { value, expiresAt: Date.now() + CONTROL_ROOM_CACHE_TTL_MS };
+      if (generation === controlRoomCacheGeneration) {
+        controlRoomCache = { value, expiresAt: Date.now() + CONTROL_ROOM_CACHE_TTL_MS };
+      }
       return value;
     })
     .finally(() => {
-      controlRoomInFlight = null;
+      if (controlRoomInFlight === request) controlRoomInFlight = null;
     });
-  return controlRoomInFlight;
+  controlRoomInFlight = request;
+  return request;
 }
