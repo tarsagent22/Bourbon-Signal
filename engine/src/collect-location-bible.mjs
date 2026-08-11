@@ -1,6 +1,12 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { stableId } from './core/text.mjs';
+import {
+  assertCredibleVirginiaOfficialLocations,
+  parseArcgisFeaturesPayload,
+  replaceRefreshedOfficialLocations,
+  virginiaOfficialStoreIdentity,
+} from './location-identities.mjs';
 
 const OUT_FILE = path.resolve('out/location-bible-official.json');
 const USER_AGENT = 'BourbonSignalLocationBible/0.1 (+https://bourbonsignal.com)';
@@ -80,9 +86,10 @@ function makeLocation(input) {
   const address = clean(input.address);
   const city = clean(input.city);
   const county = clean(input.county);
-  const id = stableId(['official-location', state, type, name, address, city, county, input.source]);
+  const id = clean(input.id) || stableId(['official-location', state, type, name, address, city, county, input.source]);
   return {
     id,
+    sourceStoreId: clean(input.sourceStoreId),
     state,
     type,
     locationType: type,
@@ -144,16 +151,21 @@ async function postForm(url, body) {
 }
 
 function parseFeatures(text) {
-  const json = JSON.parse(text);
-  return Array.isArray(json.features) ? json.features : [];
+  return parseArcgisFeaturesPayload(text);
 }
 
 function parseVirginiaArcgis(text, source) {
-  return parseFeatures(text).map(({ attributes: a }) => makeLocation({
-    state: 'VA', type: 'store', name: a.LandmkName, address: a.Address, city: a.City, county: a.FIPSname, zip: a.Zip,
-    lat: a.Y, lng: a.X, source: source.source, sourceUrl: source.sourceUrl,
-    notes: `Official Virginia ABC store point${a.Phone && a.Phone !== '-' ? `; phone ${a.Phone}` : ''}.`
-  })).filter((l) => l.name && /abc/i.test(l.name));
+  const locations = parseFeatures(text).map(({ attributes: a }) => {
+    const identity = virginiaOfficialStoreIdentity(a.LandmkName);
+    return makeLocation({
+      id: identity?.id,
+      sourceStoreId: identity?.sourceStoreId,
+      state: 'VA', type: 'store', name: a.LandmkName, address: a.Address, city: a.City, county: a.FIPSname, zip: a.Zip,
+      lat: a.Y, lng: a.X, source: source.source, sourceUrl: source.sourceUrl,
+      notes: `Official Virginia ABC store point${a.Phone && a.Phone !== '-' ? `; phone ${a.Phone}` : ''}.`
+    });
+  }).filter((l) => l.name && /abc/i.test(l.name));
+  return assertCredibleVirginiaOfficialLocations(locations);
 }
 
 function parseOregonArcgis(text, source) {
@@ -362,10 +374,15 @@ async function main() {
   // when an official directory is temporarily unavailable, then let successfully
   // refreshed rows replace matching identities. This prevents a targeted engine
   // refresh from making known boards, cities, or stores disappear from Finder.
-  const byId = new Map();
-  for (const location of previous.locations || []) if (location.id) byId.set(location.id, location);
-  for (const location of collected) if (location.id) byId.set(location.id, location);
-  const locations = [...byId.values()].sort((a, b) => String(a.state).localeCompare(String(b.state)) || String(a.name).localeCompare(String(b.name)));
+  const refreshedSources = freshReports
+    .filter((report) => report.status === 'ok')
+    .map((report) => SOURCES.find((source) => source.id === report.id)?.source)
+    .filter(Boolean);
+  const locations = replaceRefreshedOfficialLocations({
+    previous: previous.locations || [],
+    collected,
+    refreshedSources,
+  }).sort((a, b) => String(a.state).localeCompare(String(b.state)) || String(a.name).localeCompare(String(b.name)));
 
   const reportById = new Map((previous.sourceReports || []).map((report) => [report.id, report]));
   for (const report of freshReports) reportById.set(report.id, report);

@@ -33,6 +33,7 @@ import { newYorkAreaMatchesFields, SUPPORTED_NEW_YORK_AREAS } from "@/lib/new-yo
 import { coloradoAreaMatchesFields } from "@/lib/colorado-area";
 import { getScheduledReleaseSignalCopy } from "@/lib/scheduled-release-signals";
 import { compareDropFeedNewestFirst } from "@/lib/drop-feed-policy";
+import { coverageAreaOption } from "@/lib/coverage-location-aliases";
 import {
   CHARLOTTE_METRO_BOARD_GROUP,
   demandMetroAreaMatchesFields,
@@ -427,6 +428,7 @@ function areaMenuLabel(state?: string | null, baseLabel?: string | null, kind?: 
   const stateCode = String(state || "").toUpperCase();
   const label = displayLocationLabel(baseLabel, stateCode);
   if (!label) return "";
+  if (stateCode === "VA") return coverageAreaOption(stateCode, label).label;
   if (stateCode !== "NC") return label;
   if (label === CHARLOTTE_METRO_BOARD_GROUP) return label;
   if (/warehouse/i.test(label)) return "";

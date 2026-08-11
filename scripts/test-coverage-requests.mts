@@ -9,6 +9,12 @@ import {
   CoverageRequestRepository,
 } from "../src/lib/coverage-request-repository.ts";
 import { sanitizeCoverageAnalyticsEvent } from "../src/lib/coverage-analytics.ts";
+import {
+  coverageAreaOption,
+  inspectCoverageRequestStoreAliasPayload,
+  resolveCoverageRequestStoreAlias,
+  resolveCoverageRequestStoreAliasPayload,
+} from "../src/lib/coverage-location-aliases.ts";
 
 function read(path: string) {
   return readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
@@ -71,6 +77,186 @@ const manualStore = normalizeCoverageRequestTarget(
 assert.equal(manualStore.storeId, null, "manual fallback never creates or claims a public store id");
 assert.equal(manualStore.canonicalTargetKey, "store:OR:manual:portland:rose-city-spirits");
 assert.doesNotMatch(manualStore.canonicalTargetKey, /123|example-street/i, "manual address is not part of the canonical key");
+
+const ballstonArea = coverageAreaOption("VA", "Arlington");
+assert.deepEqual(ballstonArea, {
+  value: "Arlington",
+  label: "Arlington (Ballston)",
+  searchText: "Arlington Ballston",
+});
+assert.deepEqual(coverageAreaOption("VA", "Richmond"), {
+  value: "Richmond",
+  label: "Richmond",
+  searchText: "Richmond",
+});
+
+const ballstonStoreAlias = resolveCoverageRequestStoreAlias({
+  stateCode: "VA",
+  targetType: "store",
+  areaLabel: "Ballston",
+  storeName: "Virginia ABC Store 49",
+  address: "881 N Quincy St",
+});
+assert.equal(ballstonStoreAlias?.storeId, "49");
+assert.equal(ballstonStoreAlias?.sourceStoreId, "49");
+assert.equal(ballstonStoreAlias?.canonicalCity, "Arlington");
+assert.equal(ballstonStoreAlias?.displayArea, "Ballston");
+const canonicalBallstonStore = normalizeCoverageRequestTarget(
+  { targetType: "store", stateCode: "VA", storeId: ballstonStoreAlias?.storeId },
+  {
+    baselineCoverageFingerprint: "coverage-v1|VA|deep",
+    matchedStore: {
+      id: "49",
+      name: "Virginia ABC Store 49",
+      city: "Arlington",
+      address: "881 N Quincy St",
+    },
+  },
+);
+assert.equal(canonicalBallstonStore.storeId, "49");
+assert.equal(canonicalBallstonStore.canonicalTargetKey, "store:VA:49");
+assert.equal(resolveCoverageRequestStoreAlias({
+  stateCode: "VA",
+  targetType: "store",
+  areaLabel: "Ballston",
+  storeName: "Virginia ABC Store 48",
+}), null, "a neighborhood alone never rewrites a different store");
+assert.equal(resolveCoverageRequestStoreAlias({
+  stateCode: "VA",
+  targetType: "city",
+  areaLabel: "Ballston",
+}), null, "a city request never silently becomes a store request");
+assert.equal(resolveCoverageRequestStoreAlias({
+  stateCode: "VA",
+  targetType: "store",
+  areaLabel: "Ballston",
+  storeName: "ABC Store 49",
+  address: "N Quincy St",
+}), null, "a numberless partial street never claims Store 49");
+assert.equal(resolveCoverageRequestStoreAlias({
+  stateCode: "VA",
+  targetType: "store",
+  storeName: "ABC Store 49",
+  address: "881 North Quincy Street, Arlington, VA 22203",
+})?.storeId, "49", "the complete official address resolves without a separate area");
+assert.equal(resolveCoverageRequestStoreAlias({
+  stateCode: "VA",
+  targetType: "store",
+  areaLabel: "Alexandria",
+  storeName: "ABC Store 49",
+  address: "881 North Quincy Street, Arlington, VA 22203",
+}), null, "a conflicting city prevents alias resolution even with the official address");
+assert.equal(resolveCoverageRequestStoreAliasPayload({
+  stateCode: "VA",
+  targetType: "store",
+  areaLabel: "Ballston",
+  manualCity: "Alexandria",
+  storeName: "Virginia ABC Store 49",
+  manualStoreName: "Virginia ABC Store 49",
+  manualAddress: "881 North Quincy Street",
+}), null, "conflicting duplicate area fields fail closed");
+assert.equal(resolveCoverageRequestStoreAliasPayload({
+  stateCode: "VA",
+  targetType: "store",
+  areaLabel: "Ballston",
+  manualCity: "Ballston",
+  storeName: "Virginia ABC Store 49",
+  manualStoreName: "Virginia ABC Store 48",
+  manualAddress: "881 North Quincy Street",
+}), null, "conflicting duplicate store fields fail closed");
+assert.equal(resolveCoverageRequestStoreAliasPayload({
+  stateCode: "VA",
+  targetType: "store",
+  manualCity: "Ballston",
+  manualStoreName: "Virginia ABC Store 49",
+  manualAddress: "881 North Quincy Street, Arlington, VA 22203",
+  storeAddress: "881 North Quincy Street, Arlington, VA 22203",
+  address: "1 Main Street",
+}), null, "conflicting duplicate address fields fail closed");
+assert.equal(resolveCoverageRequestStoreAliasPayload({
+  stateCode: "VA",
+  targetType: "store",
+  manualCounty: "Fairfax County",
+  manualCity: "Ballston",
+  manualStoreName: "Virginia ABC Store 49",
+  manualAddress: "881 North Quincy Street, Arlington, VA 22203",
+}), null, "a conflicting county prevents Store 49 alias resolution");
+assert.equal(resolveCoverageRequestStoreAliasPayload({
+  stateCode: "VA",
+  targetType: "store",
+  manualCounty: "Arlington County",
+  manualCity: "Ballston",
+  manualStoreName: "Virginia ABC Store 49",
+  manualAddress: "881 North Quincy Street, Arlington, VA 22203",
+})?.storeId, "49", "the official county remains compatible with the Store 49 alias");
+assert.equal(resolveCoverageRequestStoreAlias({
+  stateCode: "VA",
+  targetType: "store",
+  storeName: "ABC Store 049",
+  address: "881 North Quincy Street, Arlington, VA 22203",
+})?.storeId, "49", "the official zero-padded directory name resolves");
+assert.equal(resolveCoverageRequestStoreAlias({
+  stateCode: "VA",
+  targetType: "store",
+  storeName: "ABC Store 49",
+  address: "881 North Quincy Street",
+}), null, "a street-only address without a matching area is incomplete");
+assert.deepEqual(inspectCoverageRequestStoreAliasPayload({
+  stateCode: "VA",
+  targetType: "store",
+  storeId: "49",
+  manualCity: "Alexandria",
+  manualStoreName: "Virginia ABC Store 49",
+}), { status: "conflict" }, "explicit Store 49 IDs do not bypass conflicting locations");
+assert.deepEqual(inspectCoverageRequestStoreAliasPayload({
+  stateCode: "VA",
+  targetType: "store",
+  manualCity: "Ballston",
+  manualStoreName: "Virginia ABC Store 49",
+  areaLabel: "Alexandria",
+}), { status: "conflict" }, "conflicting duplicate fields are distinguishable from unmatched requests");
+assert.deepEqual(inspectCoverageRequestStoreAliasPayload({
+  stateCode: "VA",
+  targetType: "store",
+  manualCity: "Ballston",
+  manualStoreName: "Virginia ABC Store 48",
+  manualAddress: "881 North Quincy Street",
+}), { status: "conflict" }, "the exact Ballston premises rejects a contradictory store name");
+assert.deepEqual(inspectCoverageRequestStoreAliasPayload({
+  stateCode: "VA",
+  targetType: "store",
+  manualStoreName: "Virginia ABC Store 48",
+  manualAddress: "881 North Quincy Street, Arlington, VA 22203",
+}), { status: "conflict" }, "the full official address rejects a contradictory store name");
+assert.deepEqual(inspectCoverageRequestStoreAliasPayload({
+  stateCode: "VA",
+  targetType: "store",
+  manualCity: "Ballston",
+  manualStoreName: "Virginia ABC Store 48",
+}), { status: "unmatched" }, "a neighborhood alone does not claim another Arlington store");
+assert.deepEqual(inspectCoverageRequestStoreAliasPayload({
+  stateCode: "VA",
+  targetType: "store",
+  manualCity: "Richmond",
+  manualStoreName: "Richmond Spirits",
+}), { status: "unmatched" }, "unrelated manual requests remain valid unmatched requests");
+const explicitStoreInspection = inspectCoverageRequestStoreAliasPayload({
+  stateCode: "VA",
+  targetType: "store",
+  storeId: "49",
+});
+assert.equal(explicitStoreInspection.status, "matched");
+if (explicitStoreInspection.status === "matched") assert.equal(explicitStoreInspection.alias.storeId, "49");
+
+const coverageRequestRouteSource = read("src/app/api/coverage/requests/route.ts");
+assert.match(coverageRequestRouteSource, /inspectCoverageRequestStoreAliasPayload/, "request intake inspects reviewed store aliases before loading current context");
+assert.match(coverageRequestRouteSource, /inspection\.status === "conflict"[\s\S]*CoverageRequestValidationError/, "conflicting request identities are rejected rather than saved as manual targets");
+assert.match(coverageRequestRouteSource, /storeId:\s*resolvedStoreId/, "request normalization receives the canonical resolved store id");
+const dashboardSource = read("src/app/dashboard/page.tsx");
+assert.match(dashboardSource, /coverageAreaOption\(activeState, city\)/, "dashboard renders and searches reviewed area aliases without changing preference values");
+assert.match(dashboardSource, /coverageAreaOption\(activeState, item\)\.label/, "dashboard selection summary displays reviewed aliases while retaining canonical values");
+const dropFeedSource = read("src/components/sections/DropFeed.tsx");
+assert.match(dropFeedSource, /coverageAreaOption\(stateCode, label\)\.label/, "Drop Feed area labels expose reviewed neighborhood aliases without changing filter values");
 
 assert.throws(
   () => normalizeCoverageRequestTarget({ targetType: "state", stateCode: "XX" }, { baselineCoverageFingerprint: "x" }),

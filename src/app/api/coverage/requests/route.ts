@@ -4,6 +4,7 @@ import {
   CoverageRequestValidationError,
   normalizeCoverageRequestTarget,
 } from "@/lib/coverage-request";
+import { inspectCoverageRequestStoreAliasPayload } from "@/lib/coverage-location-aliases";
 import {
   CoverageRequestRateLimitError,
   getCoverageRequestRepository,
@@ -37,8 +38,18 @@ export async function POST(request: NextRequest) {
   try {
     const stateCode = typeof body.stateCode === "string" ? body.stateCode.trim().toUpperCase() : "";
     const storeId = typeof body.storeId === "string" ? body.storeId.trim() : "";
-    const context = await readCurrentCoverageRequestContext(stateCode, storeId);
-    const target = normalizeCoverageRequestTarget(body, {
+    const inspection = inspectCoverageRequestStoreAliasPayload({
+      ...body,
+      stateCode,
+      targetType: body.targetType,
+      storeId,
+    });
+    if (inspection.status === "conflict") {
+      throw new CoverageRequestValidationError("Coverage request details conflict with the selected store.");
+    }
+    const resolvedStoreId = inspection.status === "matched" ? inspection.alias.storeId : storeId;
+    const context = await readCurrentCoverageRequestContext(stateCode, resolvedStoreId);
+    const target = normalizeCoverageRequestTarget({ ...body, storeId: resolvedStoreId }, {
       baselineCoverageFingerprint: context.state?.fingerprint || "",
       matchedStore: context.matchedStore,
     });

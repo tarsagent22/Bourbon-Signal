@@ -47,6 +47,7 @@ import {
   demandMetroBoardGroupMatchesFields,
 } from "@/lib/demand-metro-areas";
 import { NC_ABC_BOARD_OPTIONS, ncAbcBoardPreferencesMatch } from "@/lib/nc-abc-boards";
+import { coverageAreaOption } from "@/lib/coverage-location-aliases";
 
 const EMPTY_PREFS: AreaPreferences = {
   states: [],
@@ -2925,7 +2926,9 @@ function PaidMemberDashboard() {
                     : citiesByState[activeState] ?? [];
               const cityPrefs = activeState === "GA" ? localPrefs.gaAreas : activeState === "TN" ? localPrefs.tnAreas : activeState === "IA" ? localPrefs.iaCities : activeState === "ID" ? localPrefs.idCities : activeState === "VA" ? localPrefs.vaCities : activeState === "OH" ? localPrefs.ohCities : activeState === "SC" ? localPrefs.scAreas : activeState === "CA" ? localPrefs.caAreas : activeState === "NV" ? localPrefs.nvAreas : activeState === "NY" ? localPrefs.nyAreas : activeState === "CO" ? localPrefs.coAreas : activeState === "PA" ? localPrefs.paCounties : [];
               const filteredNcBoards = ncBoards.filter((board) => !territorySearch.trim() || board.toLowerCase().includes(territorySearch.toLowerCase()));
-              const filteredCities = cityOptions.filter((city) => !territorySearch.trim() || city.toLowerCase().includes(territorySearch.toLowerCase()));
+              const filteredCities = cityOptions
+                .map((city) => coverageAreaOption(activeState, city))
+                .filter((option) => !territorySearch.trim() || option.searchText.toLowerCase().includes(territorySearch.toLowerCase()));
 
               return (
                 <div style={{ display: "grid", gap: "18px" }}>
@@ -3047,7 +3050,8 @@ function PaidMemberDashboard() {
                         {isCityRefinable ? (
                           <div style={{ display: "grid", gap: "12px" }}>
                             <div style={{ maxHeight: "360px", overflowY: "auto", display: "grid", gap: "8px" }}>
-                              {filteredCities.map((city) => {
+                              {filteredCities.map((areaOption) => {
+                                const city = areaOption.value;
                                 const active = cityPrefs.includes(city);
                                 const selectionKey = getStoreSelectionKey(activeState, city);
                                 const selection = storeSelections[selectionKey];
@@ -3055,7 +3059,7 @@ function PaidMemberDashboard() {
                                 return (
                                   <div key={city} style={{ borderRadius: "16px", border: active ? "1px solid rgba(196,148,58,0.24)" : "1px solid rgba(255,255,255,0.08)", background: active ? "rgba(196,148,58,0.07)" : "rgba(255,255,255,0.02)", padding: "10px", display: "grid", gap: "8px" }}>
                                     <button onClick={() => updateStateDetail(activeState, city)} style={{ width: "100%", padding: "10px 12px", borderRadius: "12px", border: "none", background: "transparent", color: active ? "var(--color-cream)" : "var(--color-text-secondary)", textAlign: "left", cursor: "pointer", fontFamily: "var(--font-dm-sans)", fontSize: "13px", fontWeight: 700 }}>
-                                      {active ? "✓ " : ""}{city}
+                                      {active ? "✓ " : ""}{areaOption.label}
                                     </button>
                                     {active && isStoreRefinable && cityStores.length > 0 ? (
                                       <div style={{ display: "grid", gap: "8px", padding: "0 4px 4px" }}>
@@ -3109,7 +3113,7 @@ function PaidMemberDashboard() {
                         {selectedDetails.length > 0 ? (
                           <div style={{ display: "flex", flexWrap: "wrap", gap: "8px" }}>
                             {selectedDetails.slice(0, 12).map((item) => (
-                              <span key={item} style={{ borderRadius: "999px", border: "1px solid rgba(196,148,58,0.18)", background: "rgba(196,148,58,0.08)", color: "var(--color-text-secondary)", padding: "7px 10px", fontFamily: "var(--font-dm-sans)", fontSize: "12px" }}>{item}</span>
+                              <span key={item} style={{ borderRadius: "999px", border: "1px solid rgba(196,148,58,0.18)", background: "rgba(196,148,58,0.08)", color: "var(--color-text-secondary)", padding: "7px 10px", fontFamily: "var(--font-dm-sans)", fontSize: "12px" }}>{coverageAreaOption(activeState, item).label}</span>
                             ))}
                             {selectedDetails.length > 12 ? <span style={{ color: "var(--color-text-tertiary)", fontSize: "12px", alignSelf: "center" }}>+{selectedDetails.length - 12} more</span> : null}
                           </div>
