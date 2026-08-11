@@ -181,6 +181,7 @@ export interface CoverageState {
   freshness: CoverageFreshnessEvidence;
   canSee: string[];
   cannotSee: string[];
+  coverageExplanation: string;
   customerSummary?: string;
   customerCanSee?: string[];
   customerCannotSee?: string[];
@@ -911,6 +912,41 @@ function summaryCopy(
   return "We do not have a reliable way to check this area yet.";
 }
 
+function coverageExplanationCopy(
+  updateLabel: CoverageUpdateLabel | null,
+  capabilities: CoverageCapabilities,
+  coverageAvailable: boolean,
+  scope: CoverageScopeCounts,
+) {
+  const storeCount = scope.searchableStores;
+  const listedStores = `${storeCount.toLocaleString("en-US")} listed ${storeCount === 1 ? "store" : "stores"}`;
+
+  if (capabilities.currentBottleAvailability) {
+    return storeCount > 0
+      ? `See current bottle availability at selected locations among ${listedStores}. Availability can change quickly, so confirm before driving.`
+      : "See current bottle availability at selected stores. Availability can change quickly, so confirm before driving.";
+  }
+
+  if (capabilities.publicUpdates) {
+    const updateCopy = updateLabel === "Shipments and releases"
+      ? "See recent shipment and release updates for this state."
+      : "See official bottle and release updates for this state.";
+    return storeCount > 0
+      ? `Search ${listedStores} and see updates when available. These updates do not confirm what is currently on the shelf.`
+      : `${updateCopy} These updates do not confirm what is currently on the shelf.`;
+  }
+
+  if (storeCount > 0) {
+    return `Search ${listedStores}. We do not currently show bottle availability for this state.`;
+  }
+
+  if (coverageAvailable) {
+    return "We check selected places in this state, but there is no current bottle update to show right now.";
+  }
+
+  return "We do not have reliable coverage for this state yet.";
+}
+
 const EMPTY_DROP_EVIDENCE: StatePublicDropEvidence = {
   observedInventoryStores: [],
   currentInventoryStores: [],
@@ -1166,6 +1202,7 @@ function buildState(args: {
       || "Current source-backed coverage is available at the precision shown here.";
   const sourceLabel = cleanText(row?.sourceLabel || lifecycleEntry?.sourceLabel, 180) || null;
   const customerSummary = summaryCopy(publicUpdate, capabilities, coverageStatusValue === "available", sourceLabel);
+  const coverageExplanation = coverageExplanationCopy(publicUpdate, capabilities, coverageStatusValue === "available", scope);
   const copy = visibilityCopy(
     args.code,
     tier,
@@ -1214,6 +1251,7 @@ function buildState(args: {
     freshness,
     canSee: copy.canSee,
     cannotSee: copy.cannotSee,
+    coverageExplanation,
     customerSummary,
     customerCanSee: customerCopy.canSee,
     customerCannotSee: customerCopy.cannotSee,

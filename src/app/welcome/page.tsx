@@ -150,6 +150,7 @@ function fallbackCoverageState(code: string): CoverageState {
     },
     canSee: [],
     cannotSee: [],
+    coverageExplanation: "We do not have reliable coverage for this state yet.",
     fingerprint: `coverage-v2|${code}|unavailable`,
   };
 }

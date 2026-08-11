@@ -72,6 +72,12 @@ assert.doesNotMatch(explorer, /state\.healthLabel/, "the state list omits update
 assert.match(explorer, /<h1>Check coverage <em>near you\.<\/em><\/h1>/, "the hero leads with the member question");
 assert.match(panel, /CoverageSummary/, "the selected-state panel uses the shared concise summary");
 assert.match(summary, /coverageStrengthLabel/, "the shared summary leads with the same honest strength tier");
+assert.match(panel, /What we cover/, "the selected-state panel labels its plain coverage explanation");
+assert.match(panel, /state\.coverageExplanation/, "the state panel renders only the dedicated plain-language explanation");
+assert.doesNotMatch(panel, /customerSummary|state\.summary/, "the public explanation has no raw source-copy fallback");
+assert.ok(panel.indexOf("<CoverageSummary") < panel.indexOf("What we cover"), "the explanation follows the coverage metric");
+assert.ok(panel.indexOf("What we cover") < panel.indexOf("<CoverageSearch"), "the explanation appears before local search");
+assert.match(styles, /\.coverageExplanation\b/, "the explanation has dedicated responsive styling");
 assert.doesNotMatch(explorer + panel + map, /Intelligence only|Deep coverage|Active coverage|Focused coverage/i, "coverage categories use direct customer-facing language");
 assert.match(explorer, /<select/, "mobile users get a direct state selector");
 assert.ok(explorer.indexOf("<CoverageMap") < explorer.indexOf("<CoverageStatePanel"), "the map remains the front-facing feature on every layout");

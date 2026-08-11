@@ -81,6 +81,8 @@ assert.equal(new Set(contract.states.map((state) => state.code)).size, 51, "stat
 assert.ok(contract.states.some((state) => state.code === "DC" && state.name === "District of Columbia"));
 assert.ok(contract.states.every((state) => ["deep", "active", "focused", "intelligence", "not-active"].includes(state.capability)));
 assert.ok(contract.states.every((state) => ["current", "intermittent", "temporarily-limited", "no-recent-update"].includes(state.health)));
+assert.ok(contract.states.every((state) => Boolean(state.coverageExplanation?.trim())), "every state has a plain customer-facing coverage explanation");
+assert.ok(contract.states.every((state) => !/(?:probeable|alert-grade|source runtime|coverage tier|refinement level|shipment_drop|catalog watch|retailer inventory|first-party|exact-store|mesh|hardening|browser extraction|nonalertable)/i.test(state.coverageExplanation || "")), "state explanations do not expose internal coverage vocabulary");
 assert.ok(contract.states.every((state) => state.layers.known >= state.layers.probeable));
 assert.ok(contract.states.every((state) => state.layers.probeable >= state.layers.live));
 assert.ok(contract.states.every((state) => state.layers.live >= state.layers.alertGrade));
