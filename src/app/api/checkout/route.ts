@@ -6,6 +6,7 @@ import { getStripePriceId, LAUNCH_BILLING_PLANS } from "@/lib/stripe-plans";
 import { CHECKOUT_ENABLED } from "@/lib/site-mode";
 import { countFounderMemberships, type FounderAllocationUser } from "@/lib/founder-allocation";
 import { activateMembership } from "@/lib/membership-server";
+import { reconcileReferredMembership } from "@/lib/referral-service";
 import { mergeGrowthMilestoneMetadata, normalizeCheckoutSource } from "@/lib/growth-events";
 import {
   buildJulySaleSessionFields,
@@ -198,6 +199,9 @@ export async function POST(req: NextRequest) {
         stripeSubscriptionId: subscriptionId,
         status: membershipStatus,
       });
+      if (stringValue(reusableSession.metadata?.purchase_type) !== "gift") {
+        await reconcileReferredMembership({ userId, tier: plan.tier, sourceEventId: `checkout-recovery:${reusableSession.id}` });
+      }
       return NextResponse.json({ url: `${appUrl(req)}/success?session_id=${reusableSession.id}`, recovered: true });
     }
 

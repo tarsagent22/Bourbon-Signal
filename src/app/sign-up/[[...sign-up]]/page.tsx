@@ -5,6 +5,7 @@ import { useSearchParams } from "next/navigation";
 import { SignUp } from "@clerk/nextjs";
 import { normalizeGrowthAttribution, resolveSignUpRedirect } from "@/lib/growth-events";
 import { recordGrowthMilestone } from "@/lib/growth-client";
+import { normalizeReferralCode } from "@/lib/referrals";
 
 const DEFAULT_ONBOARDING_REDIRECT = "/welcome";
 
@@ -16,6 +17,7 @@ function withoutRegistrationMarker(path: string) {
 
 export default function SignUpPage() {
   const searchParams = useSearchParams();
+  const referralCode = normalizeReferralCode(searchParams.get("ref"));
   const paidIntent = searchParams.get("intent") === "paid";
   const redirectUrl = resolveSignUpRedirect(searchParams.get("redirect_url"), searchParams.get("intent"));
   const signInRedirectUrl = withoutRegistrationMarker(redirectUrl);
@@ -128,9 +130,9 @@ export default function SignUpPage() {
             </span>
           </div>
           {!paidIntent || redirectUrl === DEFAULT_ONBOARDING_REDIRECT ? (
-            <SignUp forceRedirectUrl="/welcome?registration=1" signInForceRedirectUrl="/welcome" signInUrl="/sign-in?redirect_url=%2Fwelcome" />
+            <SignUp unsafeMetadata={referralCode ? { referralCode } : undefined} forceRedirectUrl="/welcome?registration=1" signInForceRedirectUrl="/welcome" signInUrl="/sign-in?redirect_url=%2Fwelcome" />
           ) : (
-            <SignUp forceRedirectUrl={redirectUrl} signInForceRedirectUrl={signInRedirectUrl} signInUrl={`/sign-in?redirect_url=${encodedSignInRedirect}&signup_intent=paid`} />
+            <SignUp unsafeMetadata={referralCode ? { referralCode } : undefined} forceRedirectUrl={redirectUrl} signInForceRedirectUrl={signInRedirectUrl} signInUrl={`/sign-in?redirect_url=${encodedSignInRedirect}&signup_intent=paid`} />
           )}
         </>
       ) : (

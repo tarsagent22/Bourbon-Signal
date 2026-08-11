@@ -22,16 +22,26 @@ function SettingsPageContent() {
   const [profileMessage, setProfileMessage] = useState("");
   const [profileError, setProfileError] = useState("");
   const [billingPending, setBillingPending] = useState(false);
+  const [hasReferralGlass, setHasReferralGlass] = useState(false);
 
   useEffect(() => {
     setFirstName(user?.firstName || "");
     setLastName(user?.lastName || "");
   }, [user?.firstName, user?.lastName]);
 
+  useEffect(() => {
+    if (!user) return;
+    void fetch("/api/referrals/me", { cache: "no-store" })
+      .then((response) => response.ok ? response.json() : null)
+      .then((payload) => setHasReferralGlass(Number(payload?.founderGlassesEarned || 0) > 0))
+      .catch(() => undefined);
+  }, [user]);
+
   const userEmail =
     user?.emailAddresses?.find((address) => address.id === user.primaryEmailAddressId)?.emailAddress ||
     user?.emailAddresses?.[0]?.emailAddress || "";
   const isPaid = memberTier !== "free";
+  const canSaveShipping = isPaid || hasReferralGlass;
   const membershipLabel = MEMBERSHIP_LABELS[memberTier] || "Bourbon Signal member";
   const founderNumber = memberNumber ? `#${String(memberNumber).padStart(3, "0")}` : null;
 
@@ -77,7 +87,7 @@ function SettingsPageContent() {
         <nav className={styles.sectionNav} aria-label="Account sections">
           <a href="#personal">Personal</a>
           <a href="#membership">Membership</a>
-          {isPaid ? <a href="#shipping">Shipping</a> : null}
+          {canSaveShipping ? <a href="#shipping">Shipping</a> : null}
           <a href="#communications">Communications</a>
           <a href="#security">Security</a>
         </nav>
@@ -116,7 +126,7 @@ function SettingsPageContent() {
           </div>
         </section>
 
-        {isPaid ? <MemberShippingProfile /> : null}
+        {canSaveShipping ? <MemberShippingProfile /> : null}
 
         <section id="communications" className={styles.card} aria-labelledby="communications-heading">
           <div className={styles.cardHeading}>
