@@ -162,23 +162,37 @@ assert.match(page, /RetailerAdministration/);
 assert.match(page, /id="retailers"/);
 assert.match(page, /isRetailerAdminEmail/);
 assert.match(page, /href="#retailers"/);
-assert.match(page, /async function closeCoverageRequest\(formData: FormData\)[\s\S]*"use server"[\s\S]*await auth\(\)[\s\S]*isCompanyControlRoomOwnerEmail/,
-  "coverage request closure must re-authorize the owner inside its server action");
-assert.match(page, /formData\.get\("confirmed"\)[\s\S]*=== "yes"/,
-  "coverage request closure must require deliberate confirmation on the server");
-assert.match(page, /getCoverageRequestRepository\(\)\.closeForOwner/);
+assert.match(page, /async function updateCoverageRequestStatus\(formData: FormData\)[\s\S]*"use server"[\s\S]*await auth\(\)[\s\S]*isCompanyControlRoomOwnerEmail/,
+  "coverage request state changes must re-authorize the owner inside the server action");
+assert.match(page, /COVERAGE_REQUEST_STATUS_OPTIONS[\s\S]*requested[\s\S]*on_radar[\s\S]*improved[\s\S]*closed/,
+  "the owner workflow exposes every durable request state");
+assert.match(page, /getCoverageRequestRepository\(\)\.updateStatusForOwner/);
+assert.match(page, /try \{[\s\S]*updateStatusForOwner\(requestId, status, ownerEmail\)[\s\S]*catch \(error\)[\s\S]*coverageError/,
+  "database failures must return an owner-visible error instead of crashing the whole Control Room");
 assert.match(page, /invalidateCompanyControlRoomSnapshot\(\)[\s\S]*revalidatePath\("\/admin\/control-room"\)/,
-  "a successful close must invalidate both module and route caches");
-assert.match(page, /coverageClosedConfirmed[\s\S]*recentRequests\.some[\s\S]*request\.status === "closed"/,
-  "success feedback must be tied to a refreshed durable closed row");
-assert.doesNotMatch(page, /coverageAction|coverageJobsStopped/,
-  "free-form URL flags must not manufacture close success");
-assert.match(page, /name="requestId"[\s\S]*name="confirmed"[\s\S]*required[\s\S]*Close request/,
-  "open request rows must expose a deliberate close control");
+  "a successful state change must invalidate both module and route caches");
+assert.match(page, /getCompanyControlRoomSnapshot\(\{ forceFresh: Boolean\(coverageUpdatedId\) \}\)/,
+  "a redirected mutation result must bypass process-local snapshot caches on whichever instance serves it");
+assert.match(page, /coverageChanged[\s\S]*result\.changed[\s\S]*coverageStatusUpdatedConfirmed/,
+  "feedback must distinguish an actual move from saving an unchanged state");
+assert.match(page, /coverageStatusUpdatedConfirmed[\s\S]*recentRequests\.some[\s\S]*request\.status === coverageUpdatedStatus/,
+  "success feedback must be tied to a refreshed row in the requested durable state");
+assert.doesNotMatch(page, /coverageAction|coverageJobsStopped|name="confirmed"|Confirm closure|Close request|cr-close-request/,
+  "the state workflow must not retain the old destructive popover and checkbox ceremony");
+assert.match(page, /cr-request-state-folders[\s\S]*COVERAGE_REQUEST_STATUS_OPTIONS\.map[\s\S]*<details[\s\S]*cr-request-state-folder/,
+  "individual requests are grouped into collapsible folders for each state");
+assert.match(page, /<form action=\{updateCoverageRequestStatus\}[\s\S]*name="requestId"[\s\S]*name="status"[\s\S]*<button type="submit" aria-label=\{`Save status for \$\{request\.targetLabel\}`\}>Save<\/button>/,
+  "every request row exposes a compact, request-labeled status selector");
+assert.match(page, /cr-request-state-folder>summary:focus-visible\{outline:2px solid/,
+  "state folders retain a visible keyboard focus indicator");
+assert.match(page, /cr-request-status-form select[^{]*\{[^}]*font:800 11px[\s\S]*cr-request-status-form button[^{]*\{[^}]*min-height:40px/,
+  "state controls remain legible and touchable");
 assert.doesNotMatch(page, /RESEND_API_KEY|CLERK_SECRET_KEY|STRIPE_SECRET_KEY|BLOB_READ_WRITE_TOKEN/);
 assert.match(server, /getCollectionsForUsers/, "Control Room demand must read durable member collections");
+assert.match(server, /if \(options\.forceFresh\) \{[\s\S]*controlRoomCacheGeneration \+= 1[\s\S]*controlRoomCache = null[\s\S]*controlRoomInFlight = null[\s\S]*loadCompanyControlRoomSnapshot\(\)/,
+  "a forced snapshot supersedes older in-flight loads before reading the database");
 assert.match(server, /export function invalidateCompanyControlRoomSnapshot\(\)[\s\S]*controlRoomCacheGeneration \+= 1[\s\S]*controlRoomCache = null[\s\S]*controlRoomInFlight = null/,
-  "owner writes need an explicit snapshot invalidation seam");
+  "the owner Control Room exposes an explicit snapshot invalidation hook");
 assert.match(server, /generation === controlRoomCacheGeneration[\s\S]*controlRoomInFlight === request/,
   "an invalidated in-flight load must not repopulate or clear a newer cache request");
 assert.match(server, /collectionSource:\s*durableCollections \? "neon"/, "Control Room must label its collection demand source");

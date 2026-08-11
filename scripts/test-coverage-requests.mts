@@ -140,8 +140,15 @@ class RecordingExecutor {
 
   async query(text: string, params: unknown[] = []) {
     this.calls.push({ text, params });
-    if (text.includes("UPDATE coverage_requests AS request") && text.includes("closed_request")) {
-      return [{ request_id: String(params[0]), jobs_stopped: 2 }];
+    if (text.includes("UPDATE coverage_requests AS request") && text.includes("owner_status_change")) {
+      return [{
+        request_id: String(params[0]),
+        previous_status: "closed",
+        status: String(params[1]),
+        changed: true,
+        jobs_stopped: params[1] === "requested" ? 0 : 2,
+        jobs_queued: params[1] === "requested" ? 1 : 0,
+      }];
     }
     if (text.includes("pg_advisory_xact_lock")) return [];
     if (text.includes("INSERT INTO coverage_requests")) {
@@ -203,11 +210,23 @@ for (const call of executor.calls.filter((entry) => entry.text.includes("WHERE u
   assert.equal(call.params[0], call.params[0], "own-request reads carry the authenticated user parameter");
 }
 
-const closeNow = "2026-07-23T12:06:30.000Z";
-const closeResult = await repository.closeForOwner("00112233-4455-4667-8899-aabbccddeeff", "owner@example.com", closeNow);
-assert.deepEqual(closeResult, { requestId: "00112233-4455-4667-8899-aabbccddeeff", jobsStopped: 2 });
-const closeCall = executor.calls.find((call) => call.text.includes("closed_request"));
-assert.deepEqual(closeCall?.params, ["00112233-4455-4667-8899-aabbccddeeff", "owner@example.com", closeNow]);
+const statusNow = "2026-07-23T12:06:30.000Z";
+const statusResult = await repository.updateStatusForOwner(
+  "00112233-4455-4667-8899-aabbccddeeff",
+  "requested",
+  "owner@example.com",
+  statusNow,
+);
+assert.deepEqual(statusResult, {
+  requestId: "00112233-4455-4667-8899-aabbccddeeff",
+  previousStatus: "closed",
+  status: "requested",
+  changed: true,
+  jobsStopped: 0,
+  jobsQueued: 1,
+});
+const statusCall = executor.calls.find((call) => call.text.includes("owner_status_change"));
+assert.deepEqual(statusCall?.params, ["00112233-4455-4667-8899-aabbccddeeff", "requested", "owner@example.com", statusNow]);
 
 executor.forceRateLimit = true;
 await assert.rejects(
@@ -229,28 +248,44 @@ assert.doesNotMatch(schema, /\bip(?:_address)?\b|user_agent|analytics_id/i, "cov
 const ownerLedgerSource = repositorySource.slice(repositorySource.indexOf("listDemandForOwner"));
 assert.match(ownerLedgerSource, /WHERE status IN \('requested', 'on_radar'\)[\s\S]*LIMIT \$1/, "all open demand is selected before the owner row bound");
 assert.match(ownerLedgerSource, /WHERE status IN \('improved', 'closed'\)[\s\S]*LIMIT 40/, "the owner ledger also includes bounded recent history");
-assert.match(repositorySource, /async closeForOwner\([\s\S]*pg_advisory_xact_lock\(hashtextextended\('coverage-request-automation', 0\)\)[\s\S]*pg_advisory_xact_lock\(hashtextextended\('coverage-request-automation-notification', 0\)\)/,
-  "owner close must serialize against automation and notification claims");
-const ownerCloseSource = repositorySource.slice(repositorySource.indexOf("async closeForOwner"), repositorySource.indexOf("async listDemandForOwner"));
+assert.match(repositorySource, /async updateStatusForOwner\([\s\S]*pg_advisory_xact_lock\(hashtextextended\('coverage-request-automation', 0\)\)[\s\S]*pg_advisory_xact_lock\(hashtextextended\('coverage-request-automation-notification', 0\)\)/,
+  "owner status changes must serialize against automation and notification claims");
+const ownerStatusSource = repositorySource.slice(repositorySource.indexOf("async updateStatusForOwner"), repositorySource.indexOf("async listDemandForOwner"));
 assert.ok(
-  ownerCloseSource.indexOf("UPDATE coverage_request_automation_jobs") < ownerCloseSource.indexOf("UPDATE coverage_requests AS request"),
-  "owner close must lock jobs before requests, matching automation completion order",
+  ownerStatusSource.indexOf("UPDATE coverage_request_automation_jobs") < ownerStatusSource.indexOf("UPDATE coverage_requests AS request"),
+  "owner status changes must lock jobs before requests, matching automation completion order",
 );
-assert.match(ownerCloseSource, /UPDATE coverage_requests AS request[\s\S]*status = 'closed'[\s\S]*WHERE request\.id = eligible_request\.id/,
-  "only an exact eligible open request ID may be closed");
-assert.match(ownerCloseSource, /UPDATE coverage_request_automation_jobs[\s\S]*status = 'failed'[\s\S]*outcome = 'blocked'[\s\S]*job\.status IN \('queued', 'claimed', 'running', 'notification_pending'\)/,
-  "closing must terminate only automation states that have not entered delivery");
-assert.doesNotMatch(ownerCloseSource, /job\.status IN \([^)]*(?:notification_sending|delivery_uncertain)/,
+assert.match(ownerStatusSource, /UPDATE coverage_requests AS request[\s\S]*status = \$2::text[\s\S]*WHERE request\.id = owner_status_change\.id/,
+  "an exact request ID may be moved to any validated status");
+assert.match(ownerStatusSource, /\$2::text/,
+  "the status parameter has an explicit PostgreSQL type");
+assert.match(ownerStatusSource, /\$3::text/,
+  "the owner identity parameter has an explicit PostgreSQL type instead of crashing inference");
+assert.match(ownerStatusSource, /UPDATE coverage_request_automation_jobs[\s\S]*status = 'failed'[\s\S]*outcome = 'blocked'[\s\S]*job\.status IN \('queued', 'claimed', 'running', 'notification_pending'\)/,
+  "non-requested owner states terminate only automation that has not entered delivery");
+const stoppedJobsSource = ownerStatusSource.slice(ownerStatusSource.indexOf("stopped_jobs AS"), ownerStatusSource.indexOf("requeued_jobs AS"));
+assert.doesNotMatch(stoppedJobsSource, /job\.status IN \([^)]*(?:notification_sending|delivery_uncertain)/,
   "in-flight and uncertain delivery evidence must not be rewritten as stopped");
-assert.match(ownerCloseSource, /retry_history[\s\S]*'event', 'closed_by_owner'/,
-  "owner closure evidence remains durable in job history");
+assert.match(ownerStatusSource, /retry_history[\s\S]*'event', 'status_changed_by_owner'/,
+  "owner state-change evidence remains durable in job history");
+assert.match(ownerStatusSource, /INSERT INTO coverage_request_automation_jobs[\s\S]*baseline_coverage_fingerprint[\s\S]*FROM owner_status_change[\s\S]*ON CONFLICT \(coverage_request_id, baseline_coverage_fingerprint\)[\s\S]*WHERE coverage_request_automation_jobs\.status IN \('failed', 'notified'\)/,
+  "moving to requested creates or safely resets exactly the current-baseline job");
+assert.match(ownerStatusSource, /job\.baseline_coverage_fingerprint = owner_status_change\.baseline_coverage_fingerprint/,
+  "existing active work may justify reopening only when it belongs to the current baseline");
+assert.match(ownerStatusSource, /current_active_jobs AS \([\s\S]*job\.status IN \('queued', 'claimed', 'running'\)/,
+  "only runnable current-generation work may satisfy a transition to requested");
+const currentActiveJobsSource = ownerStatusSource.slice(ownerStatusSource.indexOf("current_active_jobs AS"), ownerStatusSource.indexOf("updated_request AS"));
+assert.doesNotMatch(currentActiveJobsSource, /notification_pending|notification_sending|delivery_uncertain/,
+  "delivery-stage jobs cannot masquerade as runnable reopened coverage work");
+assert.match(ownerStatusSource, /updated_request AS \([\s\S]*queued\.jobs_queued > 0[\s\S]*active\.active_jobs > 0/,
+  "a transition to requested is committed only when current work was queued or is already runnable");
 assert.match(repositorySource, /ON CONFLICT \(coverage_request_id, baseline_coverage_fingerprint\)[\s\S]*'event', 'reopened_by_member'[\s\S]*WHERE coverage_request_automation_jobs\.status = 'failed'[\s\S]*outcome = 'blocked'/,
   "a later explicit member request safely requeues a manually blocked job while retaining history");
 const completionSource = repositorySource.slice(repositorySource.indexOf("async completeAutomationTask"), repositorySource.indexOf("async retryAutomationJob"));
 assert.match(completionSource, /pg_advisory_xact_lock\(hashtextextended\('coverage-request-automation', 0\)\)[\s\S]*FROM coverage_requests AS request, writer_lock/,
-  "task completion must share the serialization lock used by member reopen and owner close");
-assert.match(repositorySource, /\[requestId, closedBy, now\]/,
-  "owner close inputs must remain parameterized");
+  "task completion must share the serialization lock used by member reopen and owner state changes");
+assert.match(repositorySource, /\[requestId, status, changedBy, now\]/,
+  "owner status inputs must remain parameterized");
 
 const route = read("src/app/api/coverage/requests/route.ts");
 assert.match(route, /await auth\(\)/, "GET and POST use Clerk auth");

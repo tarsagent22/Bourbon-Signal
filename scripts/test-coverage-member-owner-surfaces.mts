@@ -151,7 +151,7 @@ assert.match(ownerPage, /Coverage demand/, "coverage demand is in owner attentio
 assert.match(ownerPage, /id="coverage-demand"/, "the owner queue has a direct section target");
 assert.match(ownerPage, /uniqueRequesters[\s\S]*paidRequesters[\s\S]*freeRequesters/, "queue renders aggregate requester mix");
 const coverageSection = ownerPage.slice(ownerPage.indexOf('id="coverage-demand"'), ownerPage.indexOf('id="business"'));
-assert.match(coverageSection, /Recent individual requests/);
+assert.match(coverageSection, /cr-request-state-folders[\s\S]*COVERAGE_REQUEST_STATUS_OPTIONS\.map[\s\S]*cr-request-status-form/, "owner requests are grouped by state and remain directly manageable");
 assert.match(coverageSection, /requesterEmail/);
 assert.match(coverageSection, /request\.requesterEmail[\s\S]*request\.notificationEnabled[\s\S]*mailto:/, "opted-in members keep an email action even when Clerk has no display name");
 assert.match(ownerPage, /Email updates:/);

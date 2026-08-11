@@ -325,7 +325,25 @@ export function invalidateCompanyControlRoomSnapshot() {
   controlRoomInFlight = null;
 }
 
-export async function getCompanyControlRoomSnapshot() {
+export async function getCompanyControlRoomSnapshot(options: { forceFresh?: boolean } = {}) {
+  if (options.forceFresh) {
+    controlRoomCacheGeneration += 1;
+    const generation = controlRoomCacheGeneration;
+    controlRoomCache = null;
+    controlRoomInFlight = null;
+    const request = loadCompanyControlRoomSnapshot()
+      .then((value) => {
+        if (generation === controlRoomCacheGeneration) {
+          controlRoomCache = { value, expiresAt: Date.now() + CONTROL_ROOM_CACHE_TTL_MS };
+        }
+        return value;
+      })
+      .finally(() => {
+        if (controlRoomInFlight === request) controlRoomInFlight = null;
+      });
+    controlRoomInFlight = request;
+    return request;
+  }
   const now = Date.now();
   if (controlRoomCache && controlRoomCache.expiresAt > now) return controlRoomCache.value;
   if (controlRoomInFlight) return controlRoomInFlight;
