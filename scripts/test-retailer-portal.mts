@@ -464,7 +464,7 @@ const signalTime = read("src/app/retailers/portal/RetailerSignalTime.tsx");
 assert.match(signalTime, /Intl\.DateTimeFormat/);
 assert.match(signalTime, /dateStyle: "medium"/);
 const bottleCheckApi = read("src/app/api/bottle-check/route.ts");
-const suggestBranchIndex = bottleCheckApi.indexOf('if (intent === "suggest")');
+const suggestBranchIndex = bottleCheckApi.indexOf('if (intent === "suggest" || intent === "suggest-authoritative")');
 const suggestBranchEnd = bottleCheckApi.indexOf("if (!bottle)", suggestBranchIndex);
 const localSignalIndex = bottleCheckApi.indexOf("const localSignal = await getLocalSignal");
 assert.ok(suggestBranchIndex >= 0 && suggestBranchEnd > suggestBranchIndex && localSignalIndex > suggestBranchEnd, "Suggest branch must return before local scoring");

@@ -193,6 +193,17 @@ function scoreBottleMatch(bottle: BibleBottle, query: string): { score: number; 
   return { score: 0, reason: "fuzzy" };
 }
 
+export function searchSeedBourbonBible(query: string, limit = 8): BibleSearchResult[] {
+  const boundedLimit = Math.max(1, Math.min(Math.floor(limit), 25));
+  return SEED_BOTTLES
+    .map((input) => ({ ...input, ...normalizeBottleScarcity(input) } as BibleBottle))
+    .map((bottle) => ({ bottle, ...scoreBottleMatch(bottle, query) }))
+    .filter((result) => result.score > 0)
+    .sort((left, right) => right.score - left.score || left.bottle.canonicalName.localeCompare(right.bottle.canonicalName))
+    .slice(0, boundedLimit)
+    .map(({ bottle, score, reason }) => ({ ...bottle, matchScore: score, matchReason: reason }));
+}
+
 
 function tierFromEngine(value: unknown): AvailabilityTier {
   const tier = String(value || "").toLowerCase();

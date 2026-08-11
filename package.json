@@ -111,6 +111,7 @@
     "render:free-member-day-two-email": "tsx scripts/render-free-member-day-two-email.ts",
     "test:bottle-check-suggestions": "node --no-warnings --experimental-strip-types scripts/test-bottle-check-suggestions.mts",
     "test:bottle-check-dossier": "node --no-warnings --experimental-strip-types scripts/test-bottle-check-dossier.mts",
+    "test:member-experience-performance": "tsx scripts/test-member-experience-performance.mts",
     "test:bottle-rarity-score": "node --no-warnings --experimental-strip-types scripts/test-bottle-rarity-score.mts",
     "test:bottle-scarcity": "node --no-warnings --experimental-strip-types scripts/test-bottle-scarcity-classification.mts && node --no-warnings --experimental-strip-types scripts/test-bottle-scarcity-integration.mts && npm run audit:bottle-scarcity",
     "audit:bottle-scarcity": "tsx scripts/audit-bottle-scarcity.mts",

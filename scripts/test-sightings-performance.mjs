@@ -4,91 +4,50 @@ import { readFileSync } from "node:fs";
 const read = (path) => readFileSync(path, "utf8");
 const route = read("src/app/api/sightings/route.ts");
 const client = read("src/app/sightings/SightingsClient.tsx");
-const dashboard = read("src/app/dashboard/page.tsx");
+const hook = read("src/hooks/useSightings.ts");
+
 const repository = read("src/lib/community-sightings-repository.ts");
+const migration = read("scripts/migrate-community-sightings-to-neon.ts");
 
-assert.doesNotMatch(
-  route,
-  /unstable_cache/,
-  "Clerk server helpers read request headers and must not execute inside a Next persistent-cache scope",
-);
-assert.match(
-  route,
-  /const LEGACY_COMMUNITY_CACHE_TTL_MS = 5 \* 60 \* 1_000;/,
-  "legacy community metadata should use a bounded five-minute warm-instance cache",
-);
-assert.match(
-  repository,
-  /listSightingsForReporter\(reporterUserId: string\)[\s\S]*?WHERE reporter_user_id = \$1[\s\S]*?ORDER BY created_at DESC/,
-  "reward reconciliation must have an exhaustive owner-scoped durable query instead of the capped public feed",
-);
-assert.match(
-  route,
-  /let legacyCommunityInFlight: Promise<LegacyCommunitySnapshot> \| null = null;/,
-  "concurrent cache misses should share one Clerk pagination request",
-);
-assert.match(
-  route,
-  /async function getAggregateSightings[\s\S]*?readCachedLegacyCommunitySnapshot\(\)[\s\S]*?repository\.listSightings\(\)[\s\S]*?repository\.listVotes\(\)/,
-  "the feed should combine the cached legacy snapshot with fresh durable sightings and votes",
-);
+assert.doesNotMatch(route, /unstable_cache|cache\(/, "Clerk request helpers must not run inside Next persistent-cache scope");
+assert.match(route, /LEGACY_COMMUNITY_CACHE_TTL_MS\s*=\s*5 \* 60 \* 1_000/, "legacy fallback actions should retain a bounded warm-instance cache");
+assert.match(route, /if \(legacyCommunityInFlight\) return legacyCommunityInFlight/, "concurrent legacy fallback actions should share in-flight work");
+assert.match(repository, /listSightingsForReporter[\s\S]*reporter_user_id = \$1/, "reward reconciliation should query exhaustive durable owner history");
+assert.match(repository, /WITH recent AS MATERIALIZED[\s\S]*LIMIT \$1[\s\S]*SELECT recent\.payload/, "the initial feed should materialize its bounded page before follow-up work");
+assert.doesNotMatch(repository, /LEFT JOIN LATERAL/, "the feed query must not aggregate every historical vote before LIMIT");
+assert.match(repository, /listVotesForSightings[\s\S]*sighting_id = ANY\(\$1::text\[\]\)/, "votes should be loaded only for visible sighting IDs");
+assert.match(repository, /countSightingsByIds[\s\S]*id = ANY\(\$1::text\[\]\)/, "legacy fallback totals should count durable overlap by indexed IDs");
 
-const getHandler = route.match(/export async function GET\(req: NextRequest\) \{([\s\S]*?)\r?\n\}\r?\n\r?\nexport async function POST/);
-assert.ok(getHandler, "GET handler should remain discoverable");
-const getBody = getHandler[1];
-assert.doesNotMatch(
-  getBody,
-  /createCommunitySightingsRepository\(\)\.listSightings\(\)/,
-  "GET must reuse the durable sightings already loaded for the feed instead of querying them again for rewards",
-);
-assert.match(
-  getBody,
-  /after\(\(\) => persistMemberRewardsBestEffort\(client, userId, nextRewards\)\)/,
-  "GET should defer one-time reward migrations until after the response",
-);
-assert.doesNotMatch(
-  getBody,
-  /await persistMemberRewardsBestEffort/,
-  "GET reward migration must never block feed hydration on a Clerk write",
-);
+const getStart = route.indexOf("export async function GET");
+const postStart = route.indexOf("export async function POST");
+const getBody = route.slice(getStart, postStart);
+assert.match(getBody, /const includeRewards = url\.searchParams\.get\("rewards"\) !== "0"/);
+assert.match(getBody, /getAggregateSightings\(userId, \{ includeOwned: includeRewards, limit: feedLimit \}\)/);
+assert.match(route, /COMMUNITY_SIGHTINGS_DURABLE_CUTOVER\.completed/,
+  "the GET cutover must be gated by an explicit verified migration marker");
+assert.match(route, /Math\.min\(limit, 1_000\)/,
+  "the aggregate should honor the advertised load-more ceiling");
+assert.match(getBody, /if \(includeRewards\) \{[\s\S]*getBourbonBible\(\)/, "feed-only calls should skip reward catalog work");
 
-assert.match(
-  client,
-  /useState<"submit" \| "feed">\("feed"\)/,
-  "ordinary visits should open the lightweight Feed tab instead of eagerly constructing the submission form",
-);
-assert.match(
-  client,
-  /useBottles\(activeTab === "submit" && optimisticMemberAccess\)/,
-  "the bottle catalog should load only when the member opens the Submit tab",
-);
-assert.match(
-  client,
-  /useStores\(activeTab === "submit" && authLoaded && isSignedIn && canSubmitSightings\)/,
-  "the large exact-store directory should load only when the member opens the Submit tab",
-);
-assert.match(
-  client,
-  /useSightings\(authLoaded && isSignedIn && canReadSightings, \{ includePreferences: false \}\)/,
-  "the Sightings page should not block feed hydration on unrelated signal-report preferences",
-);
-assert.match(
-  client,
-  /if \(tab === "submit" \|\| bottle \|\| bottleId \|\| store\) setActiveTab\("submit"\)/,
-  "deep links that prefill a bottle or store should still open the submission form",
-);
-assert.match(
-  dashboard,
-  /href="\/sightings\?tab=submit"/,
-  "the dashboard submission CTA should preserve its submit-form intent",
-);
+assert.match(client, /const \[feedLimit, setFeedLimit\] = useState\(60\)/);
+assert.match(client, /includePreferences: false, includeRewards: false, feedLimit/);
+assert.match(client, /Load more sightings/);
+assert.match(client, /sightings\.length < totalSightings && feedLimit < 1_000/, "load more should stop cleanly at the advertised ceiling");
+assert.match(client, /setFeedLimit\(\(current\) => Math\.min\(current \+ 60, 1_000\)\)/);
+assert.match(hook, /params\.set\("limit", String\(Math\.max\(1, Math\.min\(feedLimit, 1_000\)\)\)\)/);
+assert.match(migration, /process\.argv\.includes\("--apply"\)/);
+assert.match(migration, /insertSightingIfAbsent/);
+assert.match(migration, /setVote/);
 
-const patchHandler = route.match(/export async function PATCH\(req: NextRequest\) \{([\s\S]*?)\r?\n\}/);
-assert.ok(patchHandler, "could not isolate the Member Sightings PATCH handler");
-assert.match(
-  patchHandler[1],
-  /client\.users\.getUser\(target\.reporterUserId\)[\s\S]*submittedSightings\.find\([\s\S]*repository\.insertSightingIfAbsent/,
-  "legacy migration must re-read the owner's current moderation state before persisting a cached row",
-);
+assert.match(route, /after\(\(\) => persistMemberRewardsBestEffort/, "reward persistence should remain post-response");
+const persistedSightingIndex = route.indexOf("const savedSighting = await repository.insertSighting(sighting);");
+const deferredRewardIndex = route.indexOf("after(async () =>", persistedSightingIndex);
+assert.ok(persistedSightingIndex >= 0 && deferredRewardIndex > persistedSightingIndex,
+  "POST must persist the sighting before deferred reward work");
+assert.doesNotMatch(route, /await client\.users\.updateUserMetadata\(userId, \{ privateMetadata: \{ memberRewards: nextRewards \} \}\)/, "reward persistence should not block a request inline");
+assert.match(route, /let target = await repository\.getSighting\(sightingId\)/,
+  "voting should resolve durable sightings directly regardless of feed page");
+assert.match(route, /getAggregateSightings\(userId, \{ requireLegacy: true, limit: 1_000 \}\)/,
+  "legacy vote fallback should remain explicit behind the durable lookup");
 
-console.log("Member Sightings performance contract passed.");
+console.log("Sightings performance contracts passed.");
