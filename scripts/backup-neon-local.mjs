@@ -79,7 +79,7 @@ const SIGNAL_POINT_REQUIRED_CONSTRAINT_SHAPES = {
   ],
   signal_point_ledger_economic_balance: ['points=balance_delta-debt_delta'],
   signal_point_reward_generation_nonnegative: ['generation>=0'],
-  signal_point_reward_reconciled_generation_valid: ['reconciled_generation>=-1'],
+  signal_point_reward_reconciled_generation_valid: ["reconciled_generation>='-1'"],
   signal_reward_fulfillment_shipping_snapshot_valid: ["fulfillment_type='digital'", 'shipping_addressisnull', "fulfillment_type='physical'", "jsonb_typeofshipping_address='object'"],
   signal_reward_fulfillment_tracking_pair: ['carrierisnull', 'tracking_numberisnull', 'carrierisnotnull', 'tracking_numberisnotnull'],
 };

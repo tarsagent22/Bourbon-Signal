@@ -439,7 +439,7 @@ const expectedSignalConstraintShapes = {
   signal_point_accounts_balance_nonnegative: ['signal_point_accounts', ['balance>=0']],
   signal_point_accounts_debt_nonnegative: ['signal_point_accounts', ['debt>=0']],
   signal_point_reward_generation_nonnegative: ['signal_point_reward_generations', ['generation>=0']],
-  signal_point_reward_reconciled_generation_valid: ['signal_point_reward_generations', ['reconciled_generation>=-1']],
+  signal_point_reward_reconciled_generation_valid: ['signal_point_reward_generations', ["reconciled_generation>='-1'"]],
   signal_point_source_balance_nonnegative: ['signal_point_source_balances', ['points>=0']],
   signal_point_source_balance_revision_nonnegative: ['signal_point_source_balances', ['revision>=0']],
   signal_point_ledger_sign_matches_kind: ['signal_point_ledger', [
