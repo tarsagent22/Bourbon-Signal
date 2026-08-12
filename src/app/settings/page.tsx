@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
 import MemberShippingProfile from "@/components/MemberShippingProfile";
+import MemberReferralLink from "@/components/MemberReferralLink";
 import { useAuth } from "@/lib/auth";
 import styles from "./settings.module.css";
 
@@ -87,6 +88,7 @@ function SettingsPageContent() {
         <nav className={styles.sectionNav} aria-label="Account sections">
           <a href="#personal">Personal</a>
           <a href="#membership">Membership</a>
+          <a href="#referrals">Referral link</a>
           {canSaveShipping ? <a href="#shipping">Shipping</a> : null}
           <a href="#communications">Communications</a>
           <a href="#security">Security</a>
@@ -124,6 +126,13 @@ function SettingsPageContent() {
               </button>
             ) : <a className={styles.secondaryLink} href="/pricing">View membership options</a>}
           </div>
+        </section>
+
+        <section id="referrals" className={styles.card} aria-labelledby="referrals-heading">
+          <div className={styles.cardHeading}>
+            <div><p>Share Bourbon Signal</p><h2 id="referrals-heading">Referral link</h2></div>
+          </div>
+          <MemberReferralLink />
         </section>
 
         {canSaveShipping ? <MemberShippingProfile /> : null}

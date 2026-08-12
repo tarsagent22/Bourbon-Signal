@@ -247,17 +247,19 @@ test("signup, Clerk, Stripe, and member API are wired to the referral service", 
   assert.match(read("src/app/admin/control-room/page.tsx"), /Referral glasses/);
 });
 
-test("member referral page exposes sharing, totals, tier values, and Founder glasses", () => {
-  const page = read("src/app/referrals/page.tsx");
+test("member referral link appears only in Manage Account and Member Points", () => {
+  const component = read("src/components/MemberReferralLink.tsx");
+  const settings = read("src/app/settings/page.tsx");
+  const dashboard = read("src/app/dashboard/page.tsx");
+  const referralsPage = read("src/app/referrals/page.tsx");
   const navigation = read("src/components/Navigation.tsx");
-  assert.match(page, /\/api\/referrals\/me/);
-  assert.match(page, /navigator\.clipboard\.writeText/);
-  assert.match(page, /totalPoints/);
-  assert.match(page, /founderGlassesEarned/);
-  assert.match(page, /Free[\s\S]*1 point/);
-  assert.match(page, /Standard[\s\S]*5 points/);
-  assert.match(page, /Barrel[\s\S]*10 points/);
-  assert.match(page, /Founder[\s\S]*15 points/);
-  assert.match(navigation, /Referrals/);
-  assert.match(navigation, /\/referrals/);
+  assert.match(component, /\/api\/referrals\/me/);
+  assert.match(component, /navigator\.clipboard\.writeText/);
+  assert.match(component, /Eligible referrals can earn you member points and other rewards/);
+  assert.match(settings, /<MemberReferralLink/);
+  assert.match(settings, /id="referrals"/);
+  assert.match(dashboard, /<MemberReferralLink compact/);
+  assert.match(referralsPage, /redirect\("\/settings#referrals"\)/);
+  assert.doesNotMatch(navigation, /label: "Referrals"/);
+  assert.doesNotMatch(component, /totalPoints|founderGlassesEarned|freePointsAwarded/);
 });

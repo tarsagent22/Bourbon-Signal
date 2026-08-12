@@ -12,7 +12,6 @@ import { controlRoomNavVisibleForUser } from "@/lib/control-room-nav-access";
 const navLinks = [
   { label: "Feed", href: "/#drops" },
   { label: "Dashboard", href: "/dashboard" },
-  { label: "Referrals", href: "/referrals" },
   { label: "Sightings", href: "/sightings" },
   { label: "Bottle Check", href: "/bottle-check" },
   { label: "Coverage", href: "/coverage" },
@@ -53,7 +52,6 @@ export default function Navigation() {
   const founderProfileNumber = memberNumber ? `#${String(memberNumber).padStart(3, "0")}` : "#xxx";
   const availableNavLinks = navLinks.filter((link) => {
     if (link.href === "/dashboard") return entitlements.canAccessDashboard;
-    if (link.href === "/referrals") return mounted && isSignedIn;
     return true;
   });
   const visibleNavLinks = memberTier === "bottled-in-bond"
