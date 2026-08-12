@@ -91,8 +91,9 @@ assert.equal(resolveEffectiveMembershipTier(giftMembership, new Date("2027-08-11
 assert.equal(resolveEffectiveMembershipTier({ ...giftMembership, giftPreviousMembership: { tier: "barrel", plan: "barrel_monthly", status: "active" } }, new Date("2027-08-11T12:00:00.000Z")), "barrel", "expiry exposes newer paid access through the safe overlay");
 assert.equal(resolveEffectiveMembershipTier({ ...giftMembership, plan: "standard_monthly" }, new Date("2028-01-01T00:00:00.000Z")), "standard", "an old gift expiry must not override newer paid access");
 assert.equal(resolveGiftDeliveryMode(false, {} as NodeJS.ProcessEnv), "dry_run");
-assert.equal(resolveGiftDeliveryMode(true, { GIFT_EMAIL_DELIVERY_ENABLED: "1" } as NodeJS.ProcessEnv), "blocked");
-assert.equal(resolveGiftDeliveryMode(true, { GIFT_EMAIL_DELIVERY_ENABLED: "1", RESEND_API_KEY: "re_test" } as NodeJS.ProcessEnv), "live");
+assert.equal(resolveGiftDeliveryMode(true, { GIFT_EMAIL_DELIVERY_ENABLED: "0", RESEND_API_KEY: "re_test" } as NodeJS.ProcessEnv), "blocked");
+assert.equal(resolveGiftDeliveryMode(true, {} as NodeJS.ProcessEnv), "blocked");
+assert.equal(resolveGiftDeliveryMode(true, { RESEND_API_KEY: "re_test" } as NodeJS.ProcessEnv), "live");
 assert.deepEqual(directFounderRevocationMetadata("2026-08-12T12:00:00.000Z"), {
   tier: "free",
   plan: "free",
@@ -106,6 +107,11 @@ assert.deepEqual(directFounderRevocationMetadata("2026-08-12T12:00:00.000Z"), {
   memberNumber: null,
   membershipUpdatedAt: "2026-08-12T12:00:00.000Z",
 }, "direct Founder revocation must fail closed and clear every Founder authority marker");
+
+const stripeFallbackTokenEnv = { STRIPE_WEBHOOK_SECRET: "whsec_existing-production-secret-123456789" } as NodeJS.ProcessEnv;
+assert.deepEqual(giftRedemptionKeys(stripeFallbackTokenEnv).map((key) => key.version), ["v1"],
+  "gift redemption must use the existing stable Stripe webhook secret when no dedicated gift key is configured");
+assert.equal(giftRedemptionToken("gift_fallback", stripeFallbackTokenEnv), giftRedemptionToken("gift_fallback", stripeFallbackTokenEnv));
 
 const rotatedTokenEnv = {
   GIFT_REDEMPTION_KEY_VERSION: "v2",

@@ -4,7 +4,7 @@ type GiftRedemptionKey = { version: string; secret: string };
 
 export function giftRedemptionKeys(env: NodeJS.ProcessEnv = process.env): GiftRedemptionKey[] {
   const version = env.GIFT_REDEMPTION_KEY_VERSION?.trim() || "v1";
-  const secret = env.GIFT_REDEMPTION_HASH_SECRET?.trim();
+  const secret = env.GIFT_REDEMPTION_HASH_SECRET?.trim() || env.STRIPE_WEBHOOK_SECRET?.trim();
   if (!secret || secret.length < 32) throw new Error("Gift redemption hashing is not configured.");
   const keys = [{ version, secret }];
   const previousVersion = env.GIFT_REDEMPTION_PREVIOUS_KEY_VERSION?.trim();
