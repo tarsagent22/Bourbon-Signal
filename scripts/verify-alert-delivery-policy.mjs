@@ -16,7 +16,7 @@ const route = read('src/app/api/alerts/deliver/route.ts');
 const vercel = read('vercel.json');
 
 for (const phrase of [
-  'isPaidTier(publicMetadata)',
+  'isServerPaidTier(publicMetadata)',
   'skippedFreeUsers',
   'paidUsersConsidered',
   'hasSavedAreaPreferences(areaPrefs)',
@@ -48,7 +48,7 @@ for (const phrase of [
   if (!delivery.includes(phrase)) fail(`Alert delivery policy missing: ${phrase}`);
 }
 
-if (!/if \(!isPaidTier\(publicMetadata\)\) \{[\s\S]*?continue;/.test(delivery)) {
+if (!/if \(!await isServerPaidTier\(publicMetadata\)\) \{[\s\S]*?continue;/.test(delivery)) {
   fail('Free users must be skipped before alert matching or channel delivery.');
 }
 
@@ -82,6 +82,11 @@ if (!/!dryRun\s*&&\s*!baselineOnSiteOnly\s*&&\s*!baselineEmailOnly\s*&&\s*!basel
 
 if (!route.includes('ALERT_MONITOR_ONLY') || !route.includes('monitorOnly')) {
   fail('Scheduled alert delivery must support an explicit monitor-only mode that forces dry-run execution.');
+}
+
+if (!/const alertExecutionIsReadOnly = dryRun \|\| queueMode === "shadow" \|\| monitorOnly \|\| testEmail \|\| baselineModeCount > 0;/.test(route)
+  || !/const giftMaintenanceDue = scheduledRun[\s\S]*?!alertExecutionIsReadOnly[\s\S]*?resolveGiftDeliveryMode\(true\) === "live"/.test(route)) {
+  fail('Dry-run, shadow, monitor, test, and baseline alert requests must not invoke gift mutation workers.');
 }
 
 if (!/const dryRun = options\.dryRun === true \|\| requestedQueueMode === "shadow"/.test(delivery)) {

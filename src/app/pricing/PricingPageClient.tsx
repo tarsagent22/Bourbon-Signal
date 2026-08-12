@@ -166,7 +166,7 @@ function PricingPageContent({ julySaleEnabled }: { julySaleEnabled: boolean }) {
                 Monthly
               </button>
               <button type="button" data-active={billingCycle === "annual"} onClick={() => setBillingCycle("annual")}>
-                Annual <span>Save up to 30%</span>
+                Annual <span>Save 17%</span>
               </button>
             </div>
           </ScrollReveal>
@@ -215,7 +215,7 @@ function PricingPageContent({ julySaleEnabled }: { julySaleEnabled: boolean }) {
             <p>July sale — 15% off</p>
             <div>
               <strong>15% off annual memberships and Founder lifetime through July 31 at 11 PM ET; applied automatically.</strong>
-              <span>Standard annual $21.24 · Barrel annual $42.49 · Founder lifetime $42.49 one time</span>
+              <span>Standard annual $25.50 · Barrel annual $51 · Founder lifetime $42.50 one time</span>
             </div>
             <em>The discount applies to the first annual payment; annual plans renew at the regular price. Founder remains a one-time payment.</em>
           </section>
@@ -298,6 +298,10 @@ function PricingPageContent({ julySaleEnabled }: { julySaleEnabled: boolean }) {
         </section>
 
         <FAQ variant="pricing" founderSpotsRemaining={founderSpots?.remaining ?? null} />
+        <section className="pricing-gift-cta">
+          <div><p>BUYING FOR SOMEONE ELSE?</p><h2>Give them a year of better bourbon hunting—or a lifetime Founder spot.</h2></div>
+          <a href="/gift">Gift Bourbon Signal</a>
+        </section>
       </motion.main>
       <Footer />
     </>
@@ -379,6 +383,7 @@ const pricingCss = `
 .pricing-actions button:hover:not(:disabled), .pricing-actions button:focus-visible:not(:disabled) { transform:translateY(-1px); outline:none; border-color:rgba(245,237,214,.62); }
 .pricing-actions button:disabled { cursor:default; opacity:.58; }
 .pricing-error { width:min(760px, calc(100% - 40px)); margin:20px auto 0; color:#ffb4a8; text-align:center; font:800 13px/1.5 var(--font-dm-sans); }
+.pricing-gift-cta{width:min(940px,calc(100% - 40px));margin:52px auto 0;display:flex;align-items:center;justify-content:space-between;gap:24px;border:1px solid rgba(196,148,58,.34);border-radius:22px;padding:24px;background:linear-gradient(135deg,rgba(196,148,58,.16),rgba(255,255,255,.025))}.pricing-gift-cta p{margin:0;color:var(--color-accent-amber);font:900 10px/1 var(--font-jetbrains);letter-spacing:.15em}.pricing-gift-cta h2{max-width:650px;margin:9px 0 0;color:var(--color-cream);font:700 clamp(22px,3vw,34px)/1.08 var(--font-playfair)}.pricing-gift-cta a{flex:0 0 auto;border-radius:13px;padding:14px 18px;color:#17110b;background:linear-gradient(135deg,#c4943a,#d4a44a);font:900 13px/1 var(--font-dm-sans);text-decoration:none}@media(max-width:700px){.pricing-gift-cta{align-items:stretch;flex-direction:column}.pricing-gift-cta a{text-align:center}}
 .comparison-wrap { width:min(1040px, calc(100% - 40px)); margin:56px auto 0; border:1px solid rgba(245,237,214,.08); border-radius:26px; padding:24px; background:rgba(255,255,255,.026); box-shadow:0 24px 80px rgba(0,0,0,.22); }
 .comparison-heading { display:flex; align-items:end; justify-content:space-between; gap:18px; margin-bottom:18px; }
 .comparison-heading h2 { margin:0; color:var(--color-cream); font:700 clamp(26px, 3vw, 38px)/1 var(--font-playfair); letter-spacing:-.03em; }

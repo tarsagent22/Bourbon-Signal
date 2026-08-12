@@ -19,6 +19,7 @@ import {
   resolveFreeMemberDayTwoDeliveryMode,
   type FreeMemberDayTwoUser,
 } from "@/lib/free-member-day-two";
+import { resolveServerEffectiveMembershipTier } from "@/lib/server-entitlements";
 
 const FREE_MEMBER_DAY_TWO_FROM = "Chandler from Bourbon Signal <chandler@bourbonsignal.com>";
 type UnknownRecord = Record<string, unknown>;
@@ -77,9 +78,23 @@ function deliveryMetadata(user: any) {
   return record(record(user.privateMetadata).freeMemberDayTwoDelivery);
 }
 
+async function toDurableCandidateUser(user: any) {
+  const candidate = toCandidateUser(user);
+  const tier = await resolveServerEffectiveMembershipTier(candidate.publicMetadata);
+  return {
+    ...candidate,
+    publicMetadata: {
+      ...candidate.publicMetadata,
+      tier,
+      membershipTier: tier,
+      membershipStatus: tier === "free" ? "free" : candidate.publicMetadata?.membershipStatus,
+    },
+  };
+}
+
 async function reserveDelivery(client: Awaited<ReturnType<typeof clerkClient>>, user: any, now: string) {
   const current = await client.users.getUser(user.id);
-  const currentCandidate = toCandidateUser(current);
+  const currentCandidate = await toDurableCandidateUser(current);
   const status = evaluateFreeMemberDayTwoCandidate({ user: currentCandidate, now });
   if (status !== "eligible") return false;
   await client.users.updateUserMetadata(user.id, {
@@ -152,7 +167,7 @@ export async function runFreeMemberDayTwoDelivery(input: { requestLive?: boolean
   for (const user of users) {
     summary.membersConsidered += 1;
     try {
-      const candidate = toCandidateUser(user);
+      const candidate = await toDurableCandidateUser(user);
       const status = evaluateFreeMemberDayTwoCandidate({
         user: candidate,
         now,
@@ -187,7 +202,7 @@ export async function runFreeMemberDayTwoDelivery(input: { requestLive?: boolean
         continue;
       }
       const refreshed = await client.users.getUser(user.id);
-      if (evaluateFreeMemberDayTwoCandidate({ user: toCandidateUser(refreshed), now }) !== "skipped_reserved") {
+      if (evaluateFreeMemberDayTwoCandidate({ user: await toDurableCandidateUser(refreshed), now }) !== "skipped_reserved") {
         summary.skipped.skipped_pre_send_recheck = (summary.skipped.skipped_pre_send_recheck || 0) + 1;
         continue;
       }

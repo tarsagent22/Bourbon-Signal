@@ -2,9 +2,11 @@ import { NextRequest, NextResponse } from "next/server";
 import { clerkClient } from "@clerk/nextjs/server";
 import Stripe from "stripe";
 import { isMembershipAccessActive, normalizeMembershipTier, type BillingPlanId } from "@/lib/entitlements";
-import { getPlanByPriceId, LAUNCH_BILLING_PLANS, type LaunchBillingPlan } from "@/lib/stripe-plans";
+import { getCheckoutPlanByPriceId, getPlanByPriceId, LAUNCH_BILLING_PLANS, type LaunchBillingPlan } from "@/lib/stripe-plans";
 import { activateMembership, downgradeMembershipForSubscription, findUserByEmailAddress, findUserByStripeCustomerId, suspendMembershipForSubscription } from "@/lib/membership-server";
 import { reconcileReferredMembership } from "@/lib/referral-service";
+import { isGiftPurchase } from "@/lib/gifts";
+import { handleDirectFounderStripeEvent, handleGiftStripeEvent } from "@/lib/gift-stripe-webhook";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +24,8 @@ function stringValue(value: unknown) {
 }
 
 function isReferralEligiblePurchase(metadata: Stripe.Metadata | null | undefined) {
-  return stringValue(metadata?.purchase_type) !== "gift";
+  if (metadata?.purchase_type === "gift" || metadata?.referral_eligible === "false") return false;
+  return !isGiftPurchase(metadata);
 }
 
 function checkoutEmail(session: Stripe.Checkout.Session) {
@@ -35,11 +38,11 @@ function planFromMetadata(planId: string | null): LaunchBillingPlan | null {
 
 async function planFromCheckoutSession(stripe: Stripe, session: Stripe.Checkout.Session) {
   const metadataPlan = planFromMetadata(stringValue(session.metadata?.plan));
-  if (metadataPlan) return metadataPlan;
-
   const lineItems = await stripe.checkout.sessions.listLineItems(session.id, { limit: 5 });
+  if (lineItems.has_more || lineItems.data.length !== 1 || lineItems.data[0]?.quantity !== 1) return null;
   const priceId = lineItems.data[0]?.price?.id;
-  return getPlanByPriceId(priceId);
+  const pricePlan = getCheckoutPlanByPriceId(priceId);
+  return metadataPlan && pricePlan?.id === metadataPlan.id ? metadataPlan : null;
 }
 
 async function planFromSubscription(subscription: Stripe.Subscription) {
@@ -75,6 +78,13 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Invalid Stripe signature" }, { status: 400 });
   }
 
+  if (await handleGiftStripeEvent(stripe, event)) {
+    return NextResponse.json({ received: true });
+  }
+  if (await handleDirectFounderStripeEvent(stripe, event)) {
+    return NextResponse.json({ received: true });
+  }
+
   if (event.type === "checkout.session.completed") {
     const session = event.data.object as Stripe.Checkout.Session;
     const plan = await planFromCheckoutSession(stripe, session);
@@ -87,13 +97,21 @@ export async function POST(req: NextRequest) {
       const subscription = await stripe.subscriptions.retrieve(subscriptionId);
       membershipStatus = subscription.status;
     }
-    if (userId && plan && isMembershipAccessActive(plan.tier, membershipStatus, plan.id)) {
+    if (userId && plan && (session.payment_status === "paid" || session.payment_status === "no_payment_required")
+      && isMembershipAccessActive(plan.tier, membershipStatus, plan.id)) {
+      const paymentIntentId = stringValue(session.payment_intent);
+      let chargeId: string | null = null;
+      if (paymentIntentId) chargeId = stringValue((await stripe.paymentIntents.retrieve(paymentIntentId)).latest_charge);
       await activateMembership(userId, {
         tier: plan.tier,
         plan: plan.id,
         stripeCustomerId: stringValue(session.customer),
         stripeSubscriptionId: subscriptionId,
         status: membershipStatus,
+        founderCheckoutAttemptId: stringValue(session.metadata?.founder_checkout_attempt_id),
+        checkoutSessionId: session.id,
+        stripePaymentIntentId: paymentIntentId,
+        stripeChargeId: chargeId,
       });
       if (isReferralEligiblePurchase(session.metadata)) {
         await reconcileReferredMembership({ userId, tier: plan.tier, sourceEventId: event.id });
@@ -147,10 +165,14 @@ export async function POST(req: NextRequest) {
     const user = customerId ? await findUserByStripeCustomerId(customerId) : null;
     if (user && normalizeMembershipTier(user.publicMetadata?.tier) !== "free") {
       const client = await clerkClient();
+      const currentPlan = stringValue(user.publicMetadata?.plan) || stringValue(user.publicMetadata?.billingPlan);
+      const previous = user.publicMetadata?.giftPreviousMembership && typeof user.publicMetadata.giftPreviousMembership === "object"
+        ? user.publicMetadata.giftPreviousMembership as Record<string, unknown> : null;
       await client.users.updateUserMetadata(user.id, {
         publicMetadata: {
           ...user.publicMetadata,
           membershipStatus: "active",
+          ...(currentPlan?.startsWith("gift_") && previous ? { giftPreviousMembership: { ...previous, status: "active" } } : {}),
           membershipUpdatedAt: new Date().toISOString(),
         },
         privateMetadata: {

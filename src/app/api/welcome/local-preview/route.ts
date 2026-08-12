@@ -1,7 +1,7 @@
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { searchCurrentCoverageTargets } from "@/lib/coverage-server";
-import { getEntitlements } from "@/lib/entitlements";
+import { getServerEntitlements } from "@/lib/server-entitlements";
 import {
   buildWelcomeLocalPreviewSnapshot,
   resolveWelcomeLocalPreviewTarget,
@@ -30,7 +30,7 @@ async function accessContext(userId: string) {
     readWelcomeLocalPreview(userId),
   ]);
   const now = Date.now();
-  const entitlements = getEntitlements(user.publicMetadata || null);
+  const entitlements = await getServerEntitlements(user.publicMetadata || null);
   const access = entitlements.tier === "free"
     ? welcomeLocalPreviewAccess({ createdAt: user.createdAt, record, now })
     : "ineligible";

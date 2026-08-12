@@ -5,9 +5,9 @@ const ELIGIBLE_JULY_SALE_PLANS = new Set([
 ]);
 
 const JULY_SALE_BASE_PRICE_CENTS: Record<string, number> = {
-  standard_annual: 2499,
-  barrel_annual: 4999,
-  bib_lifetime: 4999,
+  standard_annual: 3000,
+  barrel_annual: 6000,
+  bib_lifetime: 5000,
 };
 
 export const JULY_SALE_PERCENT_OFF = 15;

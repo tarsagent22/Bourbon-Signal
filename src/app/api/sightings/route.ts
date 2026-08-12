@@ -4,6 +4,7 @@ import { getBourbonBible, searchBourbonBible, normalizeBottleKey as normalizeBib
 import { canonicalizeLegacySighting, makeSightingId, normalizeBottleKey, type MemberSighting, type SightingType, type SightingVote, type SightingVoteKind, type SightingsPreferences } from "@/lib/sightings";
 import { createCommunitySightingsRepository, type DurableSightingVote } from "@/lib/community-sightings-repository";
 import { getEntitlements } from "@/lib/entitlements";
+import { getServerEntitlements } from "@/lib/server-entitlements";
 import { reconcileMemberRewards, summarizeMemberRewards, type MemberRewardsSummary } from "@/lib/sighting-rewards";
 import { memberSightingTierForAvailability, normalizeSightingsForRewards } from "@/lib/sighting-reward-tiers";
 import { isLikelyDuplicateSighting, sanitizeManualSightingField } from "@/lib/sighting-review";
@@ -203,7 +204,7 @@ async function getAggregateSightings(
 async function requireSightingsEntitlements(userId: string) {
   const client = await clerkClient();
   const user = await client.users.getUser(userId);
-  return getEntitlements(user.publicMetadata);
+  return getServerEntitlements(user.publicMetadata);
 }
 
 export async function GET(req: NextRequest) {
@@ -216,7 +217,7 @@ export async function GET(req: NextRequest) {
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const client = await clerkClient();
   const user = await client.users.getUser(userId);
-  const entitlements = getEntitlements(user.publicMetadata);
+  const entitlements = await getServerEntitlements(user.publicMetadata);
   if (!entitlements.canReadSightings) {
     return NextResponse.json({ error: "Member Sightings are included with Standard Proof and above." }, { status: 403 });
   }

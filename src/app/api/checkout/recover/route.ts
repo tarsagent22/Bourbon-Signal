@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import Stripe from "stripe";
 import { isMembershipAccessActive, type BillingPlanId } from "@/lib/entitlements";
-import { getPlanByPriceId, LAUNCH_BILLING_PLANS, type LaunchBillingPlan } from "@/lib/stripe-plans";
+import { getCheckoutPlanByPriceId, LAUNCH_BILLING_PLANS, type LaunchBillingPlan } from "@/lib/stripe-plans";
 import { activateMembership } from "@/lib/membership-server";
 import { reconcileReferredMembership } from "@/lib/referral-service";
 
@@ -23,11 +23,11 @@ function planFromMetadata(planId: string | null): LaunchBillingPlan | null {
 
 async function planFromCheckoutSession(stripe: Stripe, session: Stripe.Checkout.Session) {
   const metadataPlan = planFromMetadata(stringValue(session.metadata?.plan));
-  if (metadataPlan) return metadataPlan;
-
   const lineItems = await stripe.checkout.sessions.listLineItems(session.id, { limit: 5 });
+  if (lineItems.has_more || lineItems.data.length !== 1 || lineItems.data[0]?.quantity !== 1) return null;
   const priceId = lineItems.data[0]?.price?.id;
-  return getPlanByPriceId(priceId);
+  const pricePlan = getCheckoutPlanByPriceId(priceId);
+  return metadataPlan && pricePlan?.id === metadataPlan.id ? metadataPlan : null;
 }
 
 function checkoutEmail(session: Stripe.Checkout.Session) {
@@ -58,6 +58,7 @@ export async function POST() {
 
   const sessions = await stripe.checkout.sessions.list({ limit: 100 });
   for (const session of sessions.data) {
+    if (stringValue(session.metadata?.purchase_type) === "gift") continue;
     if (session.status !== "complete" || (session.payment_status !== "paid" && session.payment_status !== "no_payment_required")) continue;
     const checkoutUserId = stringValue(session.metadata?.userId) || stringValue(session.client_reference_id);
     const emailMatches = checkoutEmail(session) === email;
@@ -74,12 +75,18 @@ export async function POST() {
       if (!isMembershipAccessActive(plan.tier, membershipStatus, plan.id)) continue;
     }
 
+    const paymentIntentId = stringValue(session.payment_intent);
+    const chargeId = paymentIntentId ? stringValue((await stripe.paymentIntents.retrieve(paymentIntentId)).latest_charge) : null;
     await activateMembership(userId, {
       tier: plan.tier,
       plan: plan.id,
       stripeCustomerId: stringValue(session.customer),
       stripeSubscriptionId: stringValue(session.subscription),
       status: membershipStatus,
+      founderCheckoutAttemptId: stringValue(session.metadata?.founder_checkout_attempt_id),
+      checkoutSessionId: session.id,
+      stripePaymentIntentId: paymentIntentId,
+      stripeChargeId: chargeId,
     });
     if (stringValue(session.metadata?.purchase_type) !== "gift") {
       await reconcileReferredMembership({ userId, tier: plan.tier, sourceEventId: `checkout-recovery:${session.id}` });

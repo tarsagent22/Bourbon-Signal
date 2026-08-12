@@ -184,13 +184,42 @@ export function isMembershipAccessActive(tier: unknown, status: unknown, plan?: 
   return normalizedTier === "bottled-in-bond" && (plan === "bib_lifetime" || plan === "founder") && normalizedStatus !== "canceled" && normalizedStatus !== "unpaid" && normalizedStatus !== "past_due" && normalizedStatus !== "incomplete_expired";
 }
 
-export function resolveEffectiveMembershipTier(input: unknown): MembershipTier {
+function giftAccessIsCurrent(input: unknown, now: Date) {
+  const plan = metadataValue(input, "plan") ?? metadataValue(input, "billingPlan");
+  if (plan !== "gift_standard_annual" && plan !== "gift_barrel_annual") return true;
+  const expiresAt = metadataValue(input, "giftAccessExpiresAt");
+  if (typeof expiresAt !== "string") return false;
+  const timestamp = Date.parse(expiresAt);
+  return Number.isFinite(timestamp) && timestamp > now.getTime();
+}
+
+export function resolvePreviousMembershipTierAfterGift(input: unknown) {
+  const previous = metadataValue(input, "giftPreviousMembership");
+  if (!previous || typeof previous !== "object") return "free" as MembershipTier;
+  const record = previous as Record<string, unknown>;
+  const tier = normalizeMembershipTier(record.tier);
+  return isMembershipAccessActive(tier, record.status, record.plan) ? tier : "free";
+}
+
+export function resolvePreviousMembershipTierAfterDirectFounder(input: unknown) {
+  const previous = metadataValue(input, "directFounderPreviousMembership");
+  if (!previous || typeof previous !== "object") return "free" as MembershipTier;
+  const record = previous as Record<string, unknown>;
+  const tier = normalizeMembershipTier(record.tier);
+  return isMembershipAccessActive(tier, record.status, record.plan) ? tier : "free";
+}
+
+export function resolveEffectiveMembershipTier(input: unknown, now = new Date()): MembershipTier {
   if (input && typeof input === "object") {
     const rawTier = metadataValue(input, "tier") ?? metadataValue(input, "membershipTier");
     const rawPlan = metadataValue(input, "plan") ?? metadataValue(input, "billingPlan");
     const status = metadataValue(input, "membershipStatus");
     const tier = normalizeMembershipTier(rawTier);
-    return isMembershipAccessActive(tier, status, rawPlan) ? tier : "free";
+    if (isMembershipAccessActive(tier, status, rawPlan) && giftAccessIsCurrent(input, now)) return tier;
+    if ((rawPlan === "gift_standard_annual" || rawPlan === "gift_barrel_annual") && !giftAccessIsCurrent(input, now)) {
+      return resolvePreviousMembershipTierAfterGift(input);
+    }
+    return "free";
   }
   return normalizeMembershipTier(input);
 }

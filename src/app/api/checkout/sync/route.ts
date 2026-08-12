@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import Stripe from "stripe";
 import { isMembershipAccessActive, type BillingPlanId } from "@/lib/entitlements";
-import { getPlanByPriceId, LAUNCH_BILLING_PLANS, type LaunchBillingPlan } from "@/lib/stripe-plans";
+import { getCheckoutPlanByPriceId, LAUNCH_BILLING_PLANS, type LaunchBillingPlan } from "@/lib/stripe-plans";
 import { activateMembership } from "@/lib/membership-server";
 import { reconcileReferredMembership } from "@/lib/referral-service";
 
@@ -23,11 +23,11 @@ function planFromMetadata(planId: string | null): LaunchBillingPlan | null {
 
 async function planFromCheckoutSession(stripe: Stripe, session: Stripe.Checkout.Session) {
   const metadataPlan = planFromMetadata(stringValue(session.metadata?.plan));
-  if (metadataPlan) return metadataPlan;
-
   const lineItems = await stripe.checkout.sessions.listLineItems(session.id, { limit: 5 });
+  if (lineItems.has_more || lineItems.data.length !== 1 || lineItems.data[0]?.quantity !== 1) return null;
   const priceId = lineItems.data[0]?.price?.id;
-  return getPlanByPriceId(priceId);
+  const pricePlan = getCheckoutPlanByPriceId(priceId);
+  return metadataPlan && pricePlan?.id === metadataPlan.id ? metadataPlan : null;
 }
 
 export async function POST(req: NextRequest) {
@@ -44,6 +44,9 @@ export async function POST(req: NextRequest) {
   }
 
   const session = await stripe.checkout.sessions.retrieve(sessionId);
+  if (stringValue(session.metadata?.purchase_type) === "gift") {
+    return NextResponse.json({ error: "Gift checkout cannot activate the purchaser." }, { status: 403 });
+  }
   const checkoutUserId = stringValue(session.metadata?.userId) || stringValue(session.client_reference_id);
   if (!checkoutUserId || session.metadata?.source !== "bourbon_signal_launch") {
     return NextResponse.json({ error: "Checkout session is not a Bourbon Signal membership checkout" }, { status: 403 });
@@ -57,6 +60,10 @@ export async function POST(req: NextRequest) {
 
   const plan = await planFromCheckoutSession(stripe, session);
   if (!plan) return NextResponse.json({ error: "Could not match checkout to a membership plan" }, { status: 422 });
+  if (plan.id === "bib_lifetime" && (!stringValue(session.metadata?.founder_checkout_attempt_id)
+    || session.mode !== "payment" || session.metadata?.tier !== "bottled-in-bond")) {
+    return NextResponse.json({ error: "Founder checkout authority is incomplete" }, { status: 422 });
+  }
 
   let membershipStatus = "active";
   if (plan.id !== "bib_lifetime" && session.subscription) {
@@ -67,12 +74,18 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  const paymentIntentId = stringValue(session.payment_intent);
+  const chargeId = paymentIntentId ? stringValue((await stripe.paymentIntents.retrieve(paymentIntentId)).latest_charge) : null;
   await activateMembership(checkoutUserId, {
     tier: plan.tier,
     plan: plan.id,
     stripeCustomerId: stringValue(session.customer),
     stripeSubscriptionId: stringValue(session.subscription),
     status: membershipStatus,
+    founderCheckoutAttemptId: stringValue(session.metadata?.founder_checkout_attempt_id),
+    checkoutSessionId: session.id,
+    stripePaymentIntentId: paymentIntentId,
+    stripeChargeId: chargeId,
   });
   if (stringValue(session.metadata?.purchase_type) !== "gift") {
     await reconcileReferredMembership({ userId: checkoutUserId, tier: plan.tier, sourceEventId: `checkout-sync:${session.id}` });

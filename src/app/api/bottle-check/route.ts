@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { getBottleById, normalizeBottleKey, searchBourbonBible, type AvailabilityTier, type BibleBottle } from "@/lib/bourbonBible";
 import { captureSearchEvent } from "@/lib/search-capture";
 import { normalizeDropForSite, readSiteExport, siteExportHeaders } from "@/lib/site-engine-contract";
-import { getEntitlements } from "@/lib/entitlements";
+import { getServerEntitlements } from "@/lib/server-entitlements";
 import { getMemberTasteScore } from "@/lib/member-taste-score";
 import { getRarityProfile } from "@/lib/bottle-rarity-score";
 import { getPublicScarcityLabel, getScarcityBadges, normalizeBottleScarcity, resolveBottleScarcity, scarcityTierToAvailability, type ScarcityTier } from "@/lib/bottle-scarcity";
@@ -26,7 +26,7 @@ async function consumeFreeBottleCheckIfNeeded(intent: string) {
   if (!userId) return { limited: false as const, usage: null as null | { used: number; limit: number; remaining: number } };
   const client = await clerkClient();
   const user = await client.users.getUser(userId);
-  const entitlements = getEntitlements(user.publicMetadata);
+  const entitlements = await getServerEntitlements(user.publicMetadata);
   if (entitlements.bottleCheckLimit === null) return { limited: false as const, usage: null as null | { used: number; limit: number; remaining: number } };
   const limit = entitlements.bottleCheckLimit ?? FREE_BOTTLE_CHECK_LIMIT;
   const current = normalizeUsage(user.publicMetadata?.bottleCheckUsage);
