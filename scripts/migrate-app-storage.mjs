@@ -59,6 +59,7 @@ const schemaFiles = [
   '../src/lib/welcome-local-preview-schema.sql',
   '../src/lib/founder-shipping-schema.sql',
   '../src/lib/referral-schema.sql',
+  '../src/lib/signal-points-schema.sql',
   '../src/lib/gift-schema.sql',
   '../src/lib/community-sightings-schema.sql',
   '../src/lib/retailer-schema.sql',
@@ -98,6 +99,16 @@ const expected = [
   'member_referrals',
   'member_referral_point_ledger',
   'member_referral_glass_rewards',
+  'member_referral_scale_migrations',
+  'signal_point_accounts',
+  'signal_point_reward_generations',
+  'signal_point_source_balances',
+  'signal_point_ledger',
+  'signal_point_migrations',
+  'signal_reward_catalog',
+  'signal_reward_redemptions',
+  'signal_reward_redemption_events',
+  'signal_reward_fulfillments',
   'bottle_contributions',
   'community_sighting_votes',
   'community_sightings',
@@ -134,6 +145,16 @@ const requiredColumns = {
   member_referrals: ['referred_user_id', 'referrer_user_id', 'referral_code', 'referred_email_hash', 'highest_tier', 'awarded_points', 'attributed_at', 'updated_at'],
   member_referral_point_ledger: ['id', 'event_key', 'referrer_user_id', 'referred_user_id', 'tier', 'reason', 'points', 'source_event_id', 'created_at'],
   member_referral_glass_rewards: ['referred_user_id', 'referrer_user_id', 'status', 'earned_at', 'address_confirmed_at', 'shipped_at', 'updated_at'],
+  member_referral_scale_migrations: ['migration_key', 'completed_at'],
+  signal_point_accounts: ['user_id', 'balance', 'debt', 'created_at', 'updated_at'],
+  signal_point_reward_generations: ['user_id', 'generation', 'reconciled_generation', 'updated_at'],
+  signal_point_source_balances: ['user_id', 'source_key', 'points', 'revision', 'updated_at'],
+  signal_point_ledger: ['id', 'user_id', 'idempotency_key', 'entry_kind', 'points', 'balance_delta', 'debt_delta', 'source_type', 'source_key', 'redemption_id', 'metadata', 'created_at'],
+  signal_point_migrations: ['migration_key', 'completed_at', 'details'],
+  signal_reward_catalog: ['item_key', 'catalog_version', 'name', 'points_cost', 'fulfillment_type', 'inventory_remaining', 'option_snapshot', 'active', 'created_at', 'updated_at'],
+  signal_reward_redemptions: ['id', 'user_id', 'idempotency_key', 'item_key', 'catalog_version', 'item_snapshot', 'details', 'points_spent', 'status', 'account_email', 'created_at', 'updated_at', 'canceled_at'],
+  signal_reward_redemption_events: ['id', 'redemption_id', 'from_status', 'to_status', 'actor_id', 'actor_role', 'metadata', 'created_at'],
+  signal_reward_fulfillments: ['redemption_id', 'fulfillment_type', 'shipping_profile_user_id', 'shipping_address', 'owner_notes', 'carrier', 'tracking_number', 'created_at', 'updated_at'],
   bottle_contributions: ['id', 'status', 'payload'],
   community_sighting_votes: ['sighting_id', 'user_id', 'kind'],
   community_sightings: ['id', 'reporter_user_id', 'payload'],
@@ -229,6 +250,9 @@ const expectedIndexes = [
   'member_referral_eligibility_events_user_idx',
   'member_referral_point_ledger_referrer_idx',
   'member_referral_glass_rewards_referrer_idx',
+  'signal_point_ledger_user_created_idx',
+  'signal_reward_redemptions_user_created_idx',
+  'signal_reward_redemptions_status_created_idx',
   'bottle_contributions_updated_idx',
   'community_sightings_created_idx',
   'community_sighting_votes_sighting_idx',
@@ -324,6 +348,45 @@ const expectedConstraints = [
   'member_referral_point_value_valid',
   'member_referral_glass_rewards_pkey',
   'member_referral_glass_status_valid',
+  'member_referral_scale_migrations_pkey',
+  'signal_point_accounts_pkey',
+  'signal_point_accounts_balance_nonnegative',
+  'signal_point_accounts_debt_nonnegative',
+  'signal_point_reward_generations_pkey',
+  'signal_point_reward_generation_nonnegative',
+  'signal_point_reward_reconciled_generation_valid',
+  'signal_point_source_balances_pkey',
+  'signal_point_source_balances_user_id_fkey',
+  'signal_point_source_balance_nonnegative',
+  'signal_point_source_balance_revision_nonnegative',
+  'signal_point_ledger_pkey',
+  'signal_point_ledger_user_id_fkey',
+  'signal_point_ledger_redemption_id_fkey',
+  'signal_point_ledger_user_id_idempotency_key_key',
+  'signal_point_ledger_kind_valid',
+  'signal_point_ledger_points_nonzero',
+  'signal_point_ledger_sign_matches_kind',
+  'signal_point_ledger_economic_balance',
+  'signal_point_migrations_pkey',
+  'signal_reward_catalog_pkey',
+  'signal_reward_catalog_version_positive',
+  'signal_reward_catalog_cost_positive',
+  'signal_reward_catalog_fulfillment_valid',
+  'signal_reward_catalog_inventory_nonnegative',
+  'signal_reward_redemptions_pkey',
+  'signal_reward_redemptions_user_id_fkey',
+  'signal_reward_redemptions_item_key_fkey',
+  'signal_reward_redemptions_user_id_idempotency_key_key',
+  'signal_reward_redemption_points_positive',
+  'signal_reward_redemption_status_valid',
+  'signal_reward_redemption_events_pkey',
+  'signal_reward_redemption_events_redemption_id_fkey',
+  'signal_reward_event_actor_role_valid',
+  'signal_reward_fulfillments_pkey',
+  'signal_reward_fulfillments_redemption_id_fkey',
+  'signal_reward_fulfillment_type_valid',
+  'signal_reward_fulfillment_shipping_snapshot_valid',
+  'signal_reward_fulfillment_tracking_pair',
   'retailer_submissions_store_id_fkey',
 ];
 const constraintRows = await sql.query(`
@@ -347,14 +410,14 @@ const expectedReferralConstraintShapes = {
   member_referrals_pkey: ['member_referrals', 'p', ['referred_user_id'], []],
   member_referrals_referrer_user_id_fkey: ['member_referrals', 'f', ['referrer_user_id'], ['REFERENCESmember_referral_codes(referrer_user_id)']],
   member_referrals_highest_tier_valid: ['member_referrals', 'c', ['highest_tier'], ["'free'", "'standard'", "'barrel'", "'bottled-in-bond'"]],
-  member_referrals_awarded_points_valid: ['member_referrals', 'c', ['awarded_points'], ['awarded_points>=0', 'awarded_points<=15']],
+  member_referrals_awarded_points_valid: ['member_referrals', 'c', ['awarded_points'], ['awarded_points>=0', 'awarded_points<=150']],
   member_referral_eligibility_events_pkey: ['member_referral_eligibility_events', 'p', ['source_event_id'], []],
   member_referral_eligibility_tier_valid: ['member_referral_eligibility_events', 'c', ['tier'], ["'free'", "'standard'", "'barrel'", "'bottled-in-bond'"]],
   member_referral_point_ledger_pkey: ['member_referral_point_ledger', 'p', ['id'], []],
   member_referral_point_ledger_event_key_key: ['member_referral_point_ledger', 'u', ['event_key'], []],
   member_referral_point_tier_valid: ['member_referral_point_ledger', 'c', ['tier'], ["'free'", "'standard'", "'barrel'", "'bottled-in-bond'"]],
   member_referral_point_reason_valid: ['member_referral_point_ledger', 'c', ['reason'], ["'referral_free'", "'referral_standard'", "'referral_barrel'", "'referral_founder'"]],
-  member_referral_point_value_valid: ['member_referral_point_ledger', 'c', ['points'], ['points>0', 'points<=15']],
+  member_referral_point_value_valid: ['member_referral_point_ledger', 'c', ['points'], ['points>0', 'points<=150']],
   member_referral_glass_rewards_pkey: ['member_referral_glass_rewards', 'p', ['referred_user_id'], []],
   member_referral_glass_status_valid: ['member_referral_glass_rewards', 'c', ['status'], ["'address_required'", "'address_confirmed'", "'packed'", "'shipped'"]],
 };
@@ -371,6 +434,28 @@ const invalidReferralConstraints = Object.entries(expectedReferralConstraintShap
     && actualColumns.every((column, index) => column === columns[index])
     && fragments.every((fragment) => definition.includes(normalizeReferralDefinition(fragment)));
   return valid ? [] : [name];
+});
+const expectedSignalConstraintShapes = {
+  signal_point_accounts_balance_nonnegative: ['signal_point_accounts', ['balance>=0']],
+  signal_point_accounts_debt_nonnegative: ['signal_point_accounts', ['debt>=0']],
+  signal_point_reward_generation_nonnegative: ['signal_point_reward_generations', ['generation>=0']],
+  signal_point_reward_reconciled_generation_valid: ['signal_point_reward_generations', ['reconciled_generation>=-1']],
+  signal_point_source_balance_nonnegative: ['signal_point_source_balances', ['points>=0']],
+  signal_point_source_balance_revision_nonnegative: ['signal_point_source_balances', ['revision>=0']],
+  signal_point_ledger_sign_matches_kind: ['signal_point_ledger', [
+    "entry_kind=anyarray'credit','migration_credit','cancellation_credit'", 'points>0', 'balance_delta>=0', 'debt_delta<=0',
+    "entry_kind=anyarray'debit','migration_debit','redemption_debit'", 'points<0', 'balance_delta<=0', 'debt_delta>=0',
+  ]],
+  signal_point_ledger_economic_balance: ['signal_point_ledger', ['points=balance_delta-debt_delta']],
+  signal_reward_fulfillment_shipping_snapshot_valid: ['signal_reward_fulfillments', ["fulfillment_type='digital'", 'shipping_addressisnull', "fulfillment_type='physical'", "jsonb_typeofshipping_address='object'"]],
+  signal_reward_fulfillment_tracking_pair: ['signal_reward_fulfillments', ['carrierisnull', 'tracking_numberisnull', 'carrierisnotnull', 'tracking_numberisnotnull']],
+};
+const normalizeSignalDefinition = (value) => String(value || '').replace(/\s+|::text|::bpchar|\(|\)|\[|\]/g, '').toLowerCase();
+const invalidSignalConstraints = Object.entries(expectedSignalConstraintShapes).flatMap(([name, shape]) => {
+  const [table, fragments] = shape;
+  const actual = constraintRows.find((row) => row.conname === name && row.table_name === table);
+  const definition = normalizeSignalDefinition(actual?.definition);
+  return actual && actual.contype === 'c' && fragments.every((fragment) => definition.includes(normalizeSignalDefinition(fragment))) ? [] : [name];
 });
 const expectedFounderConstraintDefinitions = {
   founder_glass_shipping_founder_number_positive: 'CHECK(((founder_numberISNULL)OR(founder_number>0)))',
@@ -404,12 +489,52 @@ const expectedReferralFunctions = {
   reconcile_member_referral_reward: {
     arguments: 'p_referred_user_id text, p_next_tier text, p_source_event_id text',
     result: 'TABLE(points_awarded integer, target_points integer, founder_glass_earned boolean)',
-    fragments: ['INSERT INTO member_referral_eligibility_events', 'FOR UPDATE', 'free_points_awarded >= 5', 'ON CONFLICT (event_key) DO NOTHING'],
+    fragments: ['INSERT INTO member_referral_eligibility_events', 'FOR UPDATE', 'free_points_awarded >= 50', 'ON CONFLICT (event_key) DO NOTHING'],
   },
   claim_member_referral: {
     arguments: 'p_referred_user_id text, p_referral_code text, p_referred_email_hash text',
     result: 'TABLE(claim_status text, points_awarded integer)',
     fragments: ['code = UPPER(p_referral_code)', 'code_row.email_hash = p_referred_email_hash', 'reconcile_member_referral_reward'],
+  },
+  reject_signal_point_ledger_mutation: {
+    arguments: '',
+    result: 'trigger',
+    fragments: ['Signal Points ledger is append-only'],
+  },
+  reject_signal_reward_fulfillment_snapshot_mutation: {
+    arguments: '',
+    result: 'trigger',
+    fragments: ['shipping_address IS DISTINCT FROM OLD.shipping_address', 'Signal reward fulfillment snapshot is immutable'],
+  },
+  credit_signal_points: {
+    arguments: 'p_user_id text, p_points integer, p_idempotency_key text, p_source_type text, p_metadata jsonb',
+    result: 'integer',
+    fragments: ['FOR UPDATE', 'debt_repaid', 'balance_delta', 'debt_delta', 'creditRequest', 'Signal Points credit idempotency key conflict'],
+  },
+  reconcile_signal_point_source: {
+    arguments: 'p_user_id text, p_source_key text, p_target_points integer, p_idempotency_key text, p_metadata jsonb',
+    result: 'integer',
+    fragments: ['signal_point_source_balances', 'migration_credit', 'migration_debit', 'debt_created', 'debt_repaid'],
+  },
+  next_community_sighting_reward_generation: {
+    arguments: 'p_user_id text',
+    result: 'bigint',
+    fragments: ['signal_point_reward_generations', 'generation+1'],
+  },
+  reconcile_signal_point_source_set: {
+    arguments: 'p_user_id text, p_source_prefix text, p_generation bigint, p_targets jsonb, p_idempotency_key text, p_metadata jsonb',
+    result: 'TABLE(balance integer, debt integer, applied boolean, generation bigint)',
+    fragments: ['reconciled_generation', 'jsonb_array_elements', 'omittedFromSourceSet', 'reconcile_signal_point_source'],
+  },
+  reserve_signal_reward: {
+    arguments: 'p_redemption_id text, p_user_id text, p_tier text, p_item_key text, p_idempotency_key text, p_details jsonb, p_account_email text, p_shipping_confirmed boolean',
+    result: 'TABLE(redemption_id text, redemption_status text, balance integer)',
+    fragments: ['FOR UPDATE', 'idempotency key conflict', 'shipping_snapshot', 'inventory_remaining', 'redemption_debit'],
+  },
+  transition_signal_reward_redemption: {
+    arguments: 'p_redemption_id text, p_actor_id text, p_next_status text, p_actor_role text, p_metadata jsonb',
+    result: 'TABLE(redemption_id text, redemption_status text, balance integer)',
+    fragments: ['Invalid redemption transition', 'cancellation_credit', 'inventory_remaining', 'Carrier and tracking data are required'],
   },
 };
 const referralFunctionRows = await sql.query(`
@@ -432,6 +557,23 @@ const invalidReferralFunctions = Object.entries(expectedReferralFunctions).flatM
     ? []
     : [name];
 });
+const signalTriggerRows = await sql.query(`
+  SELECT trigger_row.tgname, pg_get_triggerdef(trigger_row.oid) AS definition
+  FROM pg_trigger trigger_row
+  JOIN pg_class table_row ON table_row.oid=trigger_row.tgrelid
+  JOIN pg_namespace namespace_row ON namespace_row.oid=table_row.relnamespace
+  WHERE namespace_row.nspname='public' AND NOT trigger_row.tgisinternal
+    AND trigger_row.tgname=ANY($1::text[])
+`, [['signal_point_ledger_append_only', 'signal_reward_fulfillments_immutable_snapshot']]);
+const expectedSignalTriggers = {
+  signal_point_ledger_append_only: ['BEFORE', 'UPDATE', 'DELETE', 'signal_point_ledger', 'reject_signal_point_ledger_mutation'],
+  signal_reward_fulfillments_immutable_snapshot: ['BEFORE UPDATE', 'signal_reward_fulfillments', 'reject_signal_reward_fulfillment_snapshot_mutation'],
+};
+const invalidSignalTriggers = Object.entries(expectedSignalTriggers).flatMap(([name, fragments]) => {
+  const actual = signalTriggerRows.find((row) => row.tgname === name);
+  const definition = normalizeFunctionText(actual?.definition);
+  return actual && fragments.every((fragment) => definition.includes(normalizeFunctionText(fragment))) ? [] : [name];
+});
 const schemaProblems = [
   ...missing.map((table) => `table:${table}`),
   ...missingColumns.map((column) => `column:${column}`),
@@ -443,7 +585,9 @@ const schemaProblems = [
   ...invalidFounderPrimaryKey.map((constraint) => `primary-key-definition:${constraint}`),
   ...invalidFounderConstraints.map((constraint) => `constraint-definition:${constraint}`),
   ...invalidReferralConstraints.map((name) => `constraint-definition:${name}`),
+  ...invalidSignalConstraints.map((name) => `constraint-definition:${name}`),
   ...invalidReferralFunctions.map((name) => `function-definition:${name}`),
+  ...invalidSignalTriggers.map((name) => `trigger-definition:${name}`),
 ];
 if (schemaProblems.length) {
   throw new Error(`Application storage schema is incomplete: ${schemaProblems.join(', ')}. Run npm run migrate:app-storage:apply.`);

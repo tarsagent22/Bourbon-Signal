@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS member_referrals (
   highest_tier TEXT NOT NULL DEFAULT 'free' CONSTRAINT member_referrals_highest_tier_valid
     CHECK (highest_tier IN ('free', 'standard', 'barrel', 'bottled-in-bond')),
   awarded_points INTEGER NOT NULL DEFAULT 0 CONSTRAINT member_referrals_awarded_points_valid
-    CHECK (awarded_points >= 0 AND awarded_points <= 15),
+    CHECK (awarded_points >= 0 AND awarded_points <= 150),
   attributed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS member_referral_point_ledger (
     CHECK (tier IN ('free', 'standard', 'barrel', 'bottled-in-bond')),
   reason TEXT NOT NULL CONSTRAINT member_referral_point_reason_valid
     CHECK (reason IN ('referral_free', 'referral_standard', 'referral_barrel', 'referral_founder')),
-  points INTEGER NOT NULL CONSTRAINT member_referral_point_value_valid CHECK (points > 0 AND points <= 15),
+  points INTEGER NOT NULL CONSTRAINT member_referral_point_value_valid CHECK (points > 0 AND points <= 150),
   source_event_id TEXT,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -60,6 +60,24 @@ CREATE INDEX IF NOT EXISTS member_referral_point_ledger_referrer_idx
   ON member_referral_point_ledger (referrer_user_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS member_referral_glass_rewards_referrer_idx
   ON member_referral_glass_rewards (referrer_user_id, earned_at DESC);
+
+CREATE TABLE IF NOT EXISTS member_referral_scale_migrations (
+  migration_key TEXT PRIMARY KEY,
+  completed_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+ALTER TABLE member_referrals DROP CONSTRAINT IF EXISTS member_referrals_awarded_points_valid;
+ALTER TABLE member_referral_point_ledger DROP CONSTRAINT IF EXISTS member_referral_point_value_valid;
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM member_referral_scale_migrations WHERE migration_key = 'signal-points-10x-v1') THEN
+    UPDATE member_referrals SET awarded_points = awarded_points * 10;
+    UPDATE member_referral_point_ledger SET points = points * 10;
+    INSERT INTO member_referral_scale_migrations (migration_key) VALUES ('signal-points-10x-v1');
+  END IF;
+END $$;
+ALTER TABLE member_referrals ADD CONSTRAINT member_referrals_awarded_points_valid CHECK (awarded_points >= 0 AND awarded_points <= 150);
+ALTER TABLE member_referral_point_ledger ADD CONSTRAINT member_referral_point_value_valid CHECK (points > 0 AND points <= 150);
 
 CREATE OR REPLACE FUNCTION referral_tier_rank(value TEXT)
 RETURNS INTEGER
@@ -89,7 +107,6 @@ DECLARE
   free_points_awarded INTEGER;
   point_delta INTEGER;
   inserted_points INTEGER;
-  glass_user_id TEXT;
   effective_tier TEXT;
 BEGIN
   IF referral_tier_rank(p_next_tier) < 0 THEN
@@ -127,13 +144,13 @@ BEGIN
     AND reason = 'referral_free';
 
   desired_points := CASE effective_tier
-    WHEN 'free' THEN 1
-    WHEN 'standard' THEN 5
-    WHEN 'barrel' THEN 10
-    WHEN 'bottled-in-bond' THEN 15
+    WHEN 'free' THEN 10
+    WHEN 'standard' THEN 50
+    WHEN 'barrel' THEN 100
+    WHEN 'bottled-in-bond' THEN 150
   END;
 
-  IF effective_tier = 'free' AND free_points_awarded >= 5 THEN
+  IF effective_tier = 'free' AND free_points_awarded >= 50 THEN
     desired_points := referral_row.awarded_points;
   END IF;
   desired_points := GREATEST(desired_points, referral_row.awarded_points);
@@ -172,15 +189,8 @@ BEGIN
       updated_at = NOW()
   WHERE referred_user_id = p_referred_user_id;
 
-  glass_user_id := NULL;
-  IF effective_tier = 'bottled-in-bond' THEN
-    INSERT INTO member_referral_glass_rewards (referred_user_id, referrer_user_id)
-    VALUES (p_referred_user_id, referral_row.referrer_user_id)
-    ON CONFLICT (referred_user_id) DO NOTHING
-    RETURNING referred_user_id INTO glass_user_id;
-  END IF;
-
-  RETURN QUERY SELECT inserted_points, desired_points, glass_user_id IS NOT NULL;
+  -- Existing glass rows remain durable liabilities. New Bottled-in-Bond referrals earn points only.
+  RETURN QUERY SELECT inserted_points, desired_points, FALSE;
 END;
 $$;
 

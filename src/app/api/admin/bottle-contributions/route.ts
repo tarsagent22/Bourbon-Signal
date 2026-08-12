@@ -1,37 +1,20 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth, clerkClient } from "@clerk/nextjs/server";
-import { isRewardsAdminEmail } from "@/lib/sighting-rewards";
+import { requireOwnerApiAccess } from "@/lib/owner-auth";
 import { readBottleContributionQueue, updateBottleContribution } from "@/lib/bottle-contributions";
 import { bottleContributionStatusForAction, isBottleContributionPending } from "@/lib/admin-review";
 import { upsertApprovedBottle } from "@/lib/approved-catalog-service";
 import type { ApprovedBottleAvailability, ApprovedBottleCategory } from "@/lib/approved-catalog";
 
-function primaryEmail(user: { emailAddresses?: unknown[]; primaryEmailAddressId?: unknown }) {
-  const emails = Array.isArray(user.emailAddresses) ? user.emailAddresses as Array<Record<string, unknown>> : [];
-  const primaryId = typeof user.primaryEmailAddressId === "string" ? user.primaryEmailAddressId : "";
-  const primary = emails.find((email) => email.id === primaryId) || emails[0];
-  return typeof primary?.emailAddress === "string" ? primary.emailAddress : "";
-}
-
-async function requireAdmin() {
-  const { userId } = await auth();
-  if (!userId) return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
-  const client = await clerkClient();
-  const user = await client.users.getUser(userId);
-  if (!isRewardsAdminEmail(primaryEmail(user))) return { error: NextResponse.json({ error: "Admin only" }, { status: 403 }) };
-  return { client, adminUserId: userId };
-}
-
 export async function GET() {
-  const admin = await requireAdmin();
-  if (admin.error) return admin.error;
+  const owner = await requireOwnerApiAccess({ forbidden: "Admin only" });
+  if (owner.error) return owner.error;
   const queue = await readBottleContributionQueue();
   return NextResponse.json({ ok: true, queue, contributions: queue.contributions });
 }
 
 export async function PATCH(req: NextRequest) {
-  const admin = await requireAdmin();
-  if (admin.error) return admin.error;
+  const owner = await requireOwnerApiAccess({ forbidden: "Admin only" });
+  if (owner.error) return owner.error;
   const payload = (await req.json().catch(() => ({}))) as Record<string, unknown>;
   const id = typeof payload.id === "string" ? payload.id : "";
   const action = typeof payload.action === "string" ? payload.action : "";
@@ -49,7 +32,7 @@ export async function PATCH(req: NextRequest) {
       brand: String(catalogBottle.brand || ""),
       category: String(catalogBottle.category || "") as ApprovedBottleCategory,
       availability: String(catalogBottle.availability || "") as ApprovedBottleAvailability,
-    }, admin.adminUserId, "bottle_queue");
+    }, owner.userId, "bottle_queue");
     const { clearBourbonBibleCache } = await import("@/lib/bourbonBible");
     clearBourbonBibleCache();
   }

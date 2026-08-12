@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import MemberReferralLink from "@/components/MemberReferralLink";
+import SignalPointsPanel from "@/components/SignalPointsPanel";
 import { motion } from "framer-motion";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
@@ -2144,7 +2144,7 @@ function PaidMemberDashboard() {
     { key: "alerts", label: "Alerts", eyebrow: "Alert setup", summary: "Choose what Bourbon Signal should notify you about.", status: localPrefs.states.length ? `${localPrefs.states.length} markets` : "Not set" },
     { key: "collection", label: "My Collection", eyebrow: "Taste profile", summary: "Keep track of bottles you own or have tasted, ratings, tasting cues, and notes.", status: canUseCollection ? (prefsLoading ? "Loading" : `${collectionEntries.length} saved`) : "Demo" },
     { key: "recommendations", label: "Recommended Bottles", eyebrow: "Bourbon DNA", summary: "See bottle ideas shaped by your collection and local signal context.", status: canUseRecommendations ? (!collectionEntries.length ? "Needs ratings" : preparedDashboardSections.has("recommendations") && collectionRecommendationInsights.length ? `${collectionRecommendationInsights.length} ideas` : "Ready") : "Demo" },
-    { key: "memberPoints", label: "Member Points", eyebrow: "Sightings rewards", summary: "Track points, badges, streaks, and what to do next.", status: memberRewards ? `${memberRewards.points} pts` : "Loading" },
+    { key: "memberPoints", label: "Member Points", eyebrow: "Signal Points rewards", summary: "Track your unified balance, catalog, redemptions, badges, and streaks.", status: memberRewards ? "View balance" : "Loading" },
   ]), [canUseCollection, canUseRecommendations, collectionEntries.length, collectionRecommendationInsights.length, localPrefs.states.length, memberRewards, prefsLoading, preparedDashboardSections]);
 
   const prepareDashboardSection = (section: DashboardSection) => {
@@ -3844,19 +3844,19 @@ function PaidMemberDashboard() {
           >
             {memberRewards ? (
               <div className="member-points-drawer-content">
+                <SignalPointsPanel />
                 <section className="member-rewards-dashboard-card" aria-label="Member Points and badge progress">
                   <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: "10px", fontWeight: 850, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(232,201,122,0.78)" }}>Member Points</div>
-                  <div style={{ marginTop: "8px", fontFamily: "var(--font-playfair)", fontSize: "clamp(26px, 5vw, 34px)", color: "var(--color-cream)", lineHeight: 1.05 }}>Your community signal board</div>
+                  <div style={{ marginTop: "8px", fontFamily: "var(--font-playfair)", fontSize: "clamp(26px, 5vw, 34px)", color: "var(--color-cream)", lineHeight: 1.05 }}>Sighting achievements</div>
                   <div className="member-rewards-dashboard-grid">
-                    <div className="member-rewards-dashboard-stat"><strong>{memberRewards.points}</strong><span>Total points</span></div>
+                    <div className="member-rewards-dashboard-stat"><strong>{memberRewards.eligibleSightings}</strong><span>Eligible sightings</span></div>
                     <div className="member-rewards-dashboard-stat"><strong>{memberRewards.currentWeeklyStreak}</strong><span>Week streak</span></div>
                     <div className="member-rewards-dashboard-stat"><strong>{memberRewards.badges.length}</strong><span>Badges earned</span></div>
                   </div>
                   <div className="member-points-next-action">
                     <strong>Every valid sighting earns points</strong>
-                    <span>Posting points: limited or unclassified +1 · allocated +2 · unicorn +3. Badges and maintained streaks can add bonus points; removed or rejected reports lose their posting points.</span>
+                    <span>Posting points: limited or unclassified +10 · allocated +20 · unicorn +30. Badges and maintained streaks add 10 points; removed or rejected reports are reconciled.</span>
                   </div>
-                  <MemberReferralLink compact />
                   {(() => {
                     const nextBadge = memberRewards.badgeProgress.find((item) => !item.earned);
                     return nextBadge ? (

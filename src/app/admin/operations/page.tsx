@@ -1,17 +1,9 @@
-import { auth, clerkClient } from "@clerk/nextjs/server";
-import { notFound, redirect } from "next/navigation";
-import { isRewardsAdminEmail } from "@/lib/sighting-rewards";
+import { requireOwnerPageAccess } from "@/lib/owner-auth";
 import { buildOpsHealth, readAlertDeliveryHeartbeat } from "@/lib/ops-health";
 import { readSiteExport } from "@/lib/site-engine-contract";
+import SignalPointRewardQueue from "@/components/admin/SignalPointRewardQueue";
 
 export const dynamic = "force-dynamic";
-
-function primaryEmail(user: { emailAddresses?: unknown[]; primaryEmailAddressId?: unknown }) {
-  const emails = Array.isArray(user.emailAddresses) ? user.emailAddresses as Array<Record<string, unknown>> : [];
-  const primaryId = typeof user.primaryEmailAddressId === "string" ? user.primaryEmailAddressId : "";
-  const primary = emails.find((email) => email.id === primaryId) || emails[0];
-  return typeof primary?.emailAddress === "string" ? primary.emailAddress : "";
-}
 
 function statusTone(status: string) {
   if (["healthy", "monitoring", "ok"].includes(status)) return "border-emerald-700/50 bg-emerald-950/30 text-emerald-200";
@@ -20,10 +12,7 @@ function statusTone(status: string) {
 }
 
 export default async function OperationsPage() {
-  const { userId } = await auth();
-  if (!userId) redirect("/sign-in?redirect_url=/admin/operations");
-  const user = await (await clerkClient()).users.getUser(userId);
-  if (!isRewardsAdminEmail(primaryEmail(user))) notFound();
+  await requireOwnerPageAccess("/admin/operations");
 
   const stats = await readSiteExport("stats") as Record<string, unknown> | null;
   const heartbeat = await readAlertDeliveryHeartbeat();
@@ -98,6 +87,7 @@ export default async function OperationsPage() {
             </dl>
           </article>
         </section>
+        <SignalPointRewardQueue />
       </div>
     </main>
   );

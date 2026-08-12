@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
-import { auth, clerkClient } from "@clerk/nextjs/server";
+import { clerkClient } from "@clerk/nextjs/server";
 import { getBourbonBible } from "@/lib/bourbonBible";
 import type { MemberSighting, SightingsPreferences } from "@/lib/sightings";
 import { createCommunitySightingsRepository } from "@/lib/community-sightings-repository";
-import { isRewardsAdminEmail, reconcileMemberRewards, type SightingPhotoReviewStatus } from "@/lib/sighting-rewards";
+import { reconcileMemberRewards, type SightingPhotoReviewStatus } from "@/lib/sighting-rewards";
+import { requireOwnerApiAccess, verifiedPrimaryClerkEmail } from "@/lib/owner-auth";
 import { normalizeSightingsForRewards } from "@/lib/sighting-reward-tiers";
 import { needsSightingReview, reviewReasonLabels } from "@/lib/sighting-review";
 import { persistApprovedSightingCatalog } from "@/lib/approved-catalog-service";
+import { createSignalPointsRepository } from "@/lib/signal-points-repository";
 
 function normalizePrefs(input: unknown): SightingsPreferences {
   const source = (input && typeof input === "object" ? input : {}) as Record<string, unknown>;
@@ -19,22 +21,6 @@ function normalizePrefs(input: unknown): SightingsPreferences {
 
 function dedupeSightings(items: MemberSighting[]) {
   return [...new Map(items.map((item) => [item.id, item])).values()];
-}
-
-function primaryEmail(user: { emailAddresses?: unknown[]; primaryEmailAddressId?: unknown }) {
-  const emails = Array.isArray(user.emailAddresses) ? user.emailAddresses as Array<Record<string, unknown>> : [];
-  const primaryId = typeof user.primaryEmailAddressId === "string" ? user.primaryEmailAddressId : "";
-  const primary = emails.find((email) => email.id === primaryId) || emails[0];
-  return typeof primary?.emailAddress === "string" ? primary.emailAddress : "";
-}
-
-async function requireAdmin() {
-  const { userId } = await auth();
-  if (!userId) return { error: NextResponse.json({ error: "Unauthorized" }, { status: 401 }) };
-  const client = await clerkClient();
-  const user = await client.users.getUser(userId);
-  if (!isRewardsAdminEmail(primaryEmail(user))) return { error: NextResponse.json({ error: "Admin only" }, { status: 403 }) };
-  return { client, adminUserId: userId };
 }
 
 async function listAllUsers(client: Awaited<ReturnType<typeof clerkClient>>, pageSize = 100, maxUsers = 1000) {
@@ -50,8 +36,9 @@ async function listAllUsers(client: Awaited<ReturnType<typeof clerkClient>>, pag
 }
 
 export async function GET() {
-  const admin = await requireAdmin();
-  if (admin.error) return admin.error;
+  const adminAccess = await requireOwnerApiAccess({ forbidden: "Admin only" });
+  if (adminAccess.error) return adminAccess.error;
+  const admin = { client: adminAccess.client, adminUserId: adminAccess.userId };
   const users = await listAllUsers(admin.client);
   const usersById = new Map(users.map((user) => [user.id, user]));
   const legacySightings = users.flatMap((user) => {
@@ -68,7 +55,7 @@ export async function GET() {
       const user = sighting.reporterUserId ? usersById.get(sighting.reporterUserId) : undefined;
       return {
         ...sighting,
-        reporterEmail: user ? primaryEmail(user) : "",
+        reporterEmail: user ? verifiedPrimaryClerkEmail(user) : "",
         reporterName: user ? ([user.firstName, user.lastName].filter(Boolean).join(" ") || "Member") : "Member",
         reviewReasons: reviewReasonLabels(sighting.reviewState),
       };
@@ -78,8 +65,9 @@ export async function GET() {
 }
 
 export async function PATCH(req: NextRequest) {
-  const admin = await requireAdmin();
-  if (admin.error) return admin.error;
+  const adminAccess = await requireOwnerApiAccess({ forbidden: "Admin only" });
+  if (adminAccess.error) return adminAccess.error;
+  const admin = { client: adminAccess.client, adminUserId: adminAccess.userId };
   const payload = (await req.json().catch(() => ({}))) as { reporterUserId?: string; sightingId?: string; action?: string; reason?: string };
   const reporterUserId = String(payload.reporterUserId || "");
   const sightingId = String(payload.sightingId || "");
@@ -161,24 +149,28 @@ export async function PATCH(req: NextRequest) {
   });
   const updatedSighting = nextSightings.find((item) => item.id === sightingId);
   if (!updatedSighting) return NextResponse.json({ error: "Sighting not found" }, { status: 404 });
+  const signalPoints = createSignalPointsRepository();
   if (durableTarget) {
-    await repository.updateSighting(updatedSighting);
+    const mutation = await repository.updateSighting(updatedSighting);
     const durableOwned = await repository.listSightingsForReporter(reporterUserId);
     const legacyOwned = prefs.submittedSightings.map((sighting) => ({ ...sighting, reporterUserId }));
     const rewardSightings = normalizeSightingsForRewards(dedupeSightings([...legacyOwned, ...durableOwned]), await getBourbonBible());
     const nextRewards = reconcileMemberRewards(rewardSightings, privateMetadata.memberRewards, now);
+    await signalPoints.reconcileClerkRewards(reporterUserId, nextRewards, mutation.rewardGeneration);
     await admin.client.users.updateUserMetadata(reporterUserId, { privateMetadata: { memberRewards: nextRewards } }).catch((error) => {
-      console.error("Sighting review saved, but reward reconciliation failed", error);
+      console.error("Sighting points reconciled, but the Clerk projection failed", error);
     });
   } else {
+    const rewardGeneration = await signalPoints.nextRewardGeneration(reporterUserId);
     const nextPrefs = { ...prefs, submittedSightings: nextSightings };
     const durableOwned = await repository.listSightingsForReporter(reporterUserId);
     const legacyOwned = nextSightings.map((sighting) => ({ ...sighting, reporterUserId }));
     const rewardSightings = normalizeSightingsForRewards(dedupeSightings([...legacyOwned, ...durableOwned]), await getBourbonBible());
     const nextRewards = reconcileMemberRewards(rewardSightings, privateMetadata.memberRewards, now);
+    await signalPoints.reconcileClerkRewards(reporterUserId, nextRewards, rewardGeneration);
     await admin.client.users.updateUserMetadata(reporterUserId, { publicMetadata: { sightingsPreferences: nextPrefs } });
     await admin.client.users.updateUserMetadata(reporterUserId, { privateMetadata: { memberRewards: nextRewards } }).catch((error) => {
-      console.error("Sighting review saved, but reward reconciliation failed", error);
+      console.error("Sighting points reconciled, but the Clerk projection failed", error);
     });
   }
   return NextResponse.json({

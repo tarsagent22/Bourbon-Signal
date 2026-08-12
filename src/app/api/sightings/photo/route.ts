@@ -7,6 +7,7 @@ import { canonicalizeLegacySighting, type MemberSighting, type SightingsPreferen
 import { createCommunitySightingsRepository } from "@/lib/community-sightings-repository";
 import { reconcileMemberRewards } from "@/lib/sighting-rewards";
 import { normalizeSightingsForRewards } from "@/lib/sighting-reward-tiers";
+import { createSignalPointsRepository } from "@/lib/signal-points-repository";
 import {
   ALLOWED_SIGHTING_PHOTO_TYPES,
   MAX_SIGHTING_PHOTO_BYTES,
@@ -45,7 +46,7 @@ async function getOwnedSighting(sightingId: string, userId: string) {
   const legacy = prefs.submittedSightings.find((sighting) => sighting.id === sightingId);
   if (!legacy || !/^[-_a-zA-Z0-9]{1,160}$/.test(legacy.id)) return null;
   const target = await repository.insertSightingIfAbsent(canonicalizeLegacySighting(legacy, userId));
-  return { repository, target };
+  return { repository, target: target.sighting };
 }
 
 export async function POST(req: NextRequest) {
@@ -119,8 +120,8 @@ export async function PATCH(req: NextRequest) {
       publicUrl: uploaded.url,
     };
     const previousUrl = owned.target.rewardState?.photoProof?.url || null;
-    const updatedTarget = await owned.repository.replacePhotoProof(sightingId, userId, previousUrl, photoProof);
-    if (!updatedTarget) {
+    const mutation = await owned.repository.replacePhotoProof(sightingId, userId, previousUrl, photoProof);
+    if (!mutation) {
       await del(uploaded.url, { token }).catch(() => undefined);
       return NextResponse.json({ error: "Photo changed in another request. Please retry." }, { status: 409 });
     }
@@ -134,8 +135,9 @@ export async function PATCH(req: NextRequest) {
     const legacyOwned = prefs.submittedSightings.map((sighting) => ({ ...sighting, reporterUserId: userId }));
     const rewardSightings = normalizeSightingsForRewards(dedupeSightings([...legacyOwned, ...durableOwned]), await getBourbonBible());
     const nextRewards = reconcileMemberRewards(rewardSightings, privateMetadata.memberRewards);
+    await createSignalPointsRepository().reconcileClerkRewards(userId, nextRewards, mutation.rewardGeneration);
     await client.users.updateUserMetadata(userId, { privateMetadata: { memberRewards: nextRewards } }).catch((error) => {
-      console.error("Sighting photo persisted, but reward reconciliation failed", error);
+      console.error("Sighting points reconciled, but the Clerk projection failed", error);
     });
 
     if (previousUrl && previousUrl !== uploaded.url) {

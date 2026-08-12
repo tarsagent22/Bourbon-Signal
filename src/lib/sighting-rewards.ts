@@ -88,9 +88,9 @@ export function isEligibleRewardsTier(tier?: MemberSighting["rarityTier"]) {
 }
 
 export function basePointsForSighting(sighting: Pick<MemberSighting, "rarityTier">) {
-  if (sighting.rarityTier === "unicorn") return 3;
-  if (sighting.rarityTier === "allocated") return 2;
-  return 1;
+  if (sighting.rarityTier === "unicorn") return 30;
+  if (sighting.rarityTier === "allocated") return 20;
+  return 10;
 }
 
 export function communityVerified(upCount = 0, downCount = 0) {
@@ -172,7 +172,7 @@ function normalizeRewards(input: unknown): MemberRewardsProfile {
   const source = (input && typeof input === "object" ? input : {}) as Partial<MemberRewardsProfile>;
   return {
     points: typeof source.points === "number" && Number.isFinite(source.points) ? source.points : 0,
-    ledger: Array.isArray(source.ledger) ? source.ledger.filter((entry): entry is MemberRewardLedgerEntry => Boolean(entry && typeof entry === "object" && entry.id)).slice(0, 1000) : [],
+    ledger: Array.isArray(source.ledger) ? source.ledger.filter((entry): entry is MemberRewardLedgerEntry => Boolean(entry && typeof entry === "object" && entry.id)) : [],
     badges: Array.isArray(source.badges) ? source.badges.filter((badge): badge is MemberBadgeAward => Boolean(badge && typeof badge === "object" && badge.id)).map(normalizeBadgeAward).slice(0, 200) : [],
     currentWeeklyStreak: typeof source.currentWeeklyStreak === "number" ? source.currentWeeklyStreak : 0,
     longestWeeklyStreak: typeof source.longestWeeklyStreak === "number" ? source.longestWeeklyStreak : 0,
@@ -181,7 +181,7 @@ function normalizeRewards(input: unknown): MemberRewardsProfile {
 }
 
 function badgeAward(id: string, label: string, earnedAt: string, tier?: BadgeTier): MemberBadgeAward {
-  return { id, label, tier, earnedAt, pointsAwarded: 1 };
+  return { id, label, tier, earnedAt, pointsAwarded: 10 };
 }
 
 export function summarizeMemberRewards(sightings: MemberSighting[], existing?: unknown): MemberRewardsSummary {
@@ -227,7 +227,7 @@ export function summarizeMemberRewards(sightings: MemberSighting[], existing?: u
   };
 }
 
-const MANAGED_REWARD_REASONS = new Set(["badge", "badge_v2", "streak_maintained", "streak_maintained_v2"]);
+const MANAGED_REWARD_REASONS = new Set(["badge", "badge_v2", "badge_v3", "streak_maintained", "streak_maintained_v2", "streak_maintained_v3"]);
 
 function isManagedRewardEntry(entry: MemberRewardLedgerEntry) {
   return entry.reason.startsWith("sighting_") || MANAGED_REWARD_REASONS.has(entry.reason);
@@ -250,7 +250,7 @@ function addLedger(rewards: MemberRewardsProfile, entry: Omit<MemberRewardLedger
     return;
   }
   const id = `${entry.reason}:${entry.sightingId || entry.badgeId || "member"}`;
-  rewards.ledger = [{ id, createdAt, ...entry }, ...rewards.ledger].slice(0, 1000);
+  rewards.ledger = [{ id, createdAt, ...entry }, ...rewards.ledger];
   rewards.points += entry.points;
 }
 
@@ -273,11 +273,11 @@ function updateWeeklyStreak(rewards: MemberRewardsProfile, activeSightings: Memb
     current = weeks[index] === expectedKey ? current + 1 : 1;
     longest = Math.max(longest, current);
     if (current >= 2) {
-      streakBonusPoints += 1;
+      streakBonusPoints += 10;
       addLedger(rewards, {
         badgeId: `streak_week_${weeks[index]}`,
-        reason: "streak_maintained_v2",
-        points: 1,
+        reason: "streak_maintained_v3",
+        points: 10,
         createdAt: `${weeks[index]}T00:00:00.000Z`,
       });
     }
@@ -292,7 +292,7 @@ function updateWeeklyStreak(rewards: MemberRewardsProfile, activeSightings: Memb
 function reconcileSightingBasePoints(rewards: MemberRewardsProfile, sighting: MemberSighting) {
   addLedger(rewards, {
     sightingId: sighting.id,
-    reason: "sighting_base_v3",
+    reason: "sighting_base_v4",
     points: basePointsForSighting(sighting),
     createdAt: sighting.createdAt,
   });
@@ -317,7 +317,7 @@ export function reconcileMemberRewards(sightings: MemberSighting[], existing?: u
     const previous = previousBadges.get(award.id);
     const nextAward = previous ? { ...award, earnedAt: previous.earnedAt } : award;
     rewards.badges = [nextAward, ...rewards.badges].slice(0, 200);
-    addLedger(rewards, { badgeId: nextAward.id, reason: "badge_v2", points: nextAward.pointsAwarded, createdAt: nextAward.earnedAt });
+    addLedger(rewards, { badgeId: nextAward.id, reason: "badge_v3", points: nextAward.pointsAwarded, createdAt: nextAward.earnedAt });
   };
 
   awardIf(summary.eligibleSightings >= 1, badgeAward("first_sighting", "First Sighting", now));

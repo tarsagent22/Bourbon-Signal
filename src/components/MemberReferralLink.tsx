@@ -45,7 +45,7 @@ export default function MemberReferralLink({ compact = false }: MemberReferralLi
     <div className={`member-referral-link${compact ? " compact" : ""}`}>
       <div className="member-referral-copy">
         <strong>Your referral link</strong>
-        <span>Share Bourbon Signal with friends. Eligible referrals can earn you member points and other rewards.</span>
+        <span>Share Bourbon Signal with friends. Eligible referrals earn Signal Points; new referrals do not automatically earn glass entitlements.</span>
       </div>
       {referralLink ? (
         <div className="member-referral-action">
