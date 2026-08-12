@@ -1,4 +1,3 @@
-import "server-only";
 import {
   getEntitlements,
   resolveEffectiveMembershipTier,
@@ -7,7 +6,10 @@ import {
   type MembershipTier,
   type TierEntitlements,
 } from "@/lib/entitlements";
-import { createGiftRepository } from "@/lib/gift-repository";
+
+async function createGiftRepository() {
+  return (await import("@/lib/gift-repository")).createGiftRepository();
+}
 
 function metadataValue(input: unknown, key: string) {
   if (!input || typeof input !== "object") return undefined;
@@ -29,7 +31,7 @@ export async function resolveServerEffectiveMembershipTier(input: unknown, now =
   const directFounderVersion = stringValue(metadataValue(input, "directFounderEntitlementVersion"));
 
   if (giftOrderId) {
-    const repository = createGiftRepository();
+    const repository = await createGiftRepository();
     try {
       if (await repository.giftOwnsEffectiveAccess(giftOrderId, giftVersion, now)) {
         return resolveEffectiveMembershipTier(input, now);
@@ -50,7 +52,7 @@ export async function resolveServerEffectiveMembershipTier(input: unknown, now =
   }
 
   if (directFounderAttemptId) {
-    const repository = createGiftRepository();
+    const repository = await createGiftRepository();
     try {
       if (await repository.directFounderOwnsEffectiveAccess(directFounderAttemptId, directFounderVersion)) {
         return resolveEffectiveMembershipTier(input, now);
