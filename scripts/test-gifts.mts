@@ -12,6 +12,7 @@ import { resolveGiftDeliveryMode } from "../src/lib/gift-delivery-policy.ts";
 import { DIRECT_STRIPE_PRICE_IDS, LAUNCH_BILLING_PLANS, getCheckoutPlanByPriceId, getPlanByPriceId, validateDirectStripePrice } from "../src/lib/stripe-plans.ts";
 import { resolveEffectiveMembershipTier } from "../src/lib/entitlements.ts";
 import { giftRedemptionKeys, giftRedemptionToken, giftRedemptionTokenHash } from "../src/lib/gift-tokens.ts";
+import { directFounderRevocationMetadata } from "../src/lib/direct-founder-revocation.ts";
 
 function read(path: string) {
   return readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
@@ -92,6 +93,19 @@ assert.equal(resolveEffectiveMembershipTier({ ...giftMembership, plan: "standard
 assert.equal(resolveGiftDeliveryMode(false, {} as NodeJS.ProcessEnv), "dry_run");
 assert.equal(resolveGiftDeliveryMode(true, { GIFT_EMAIL_DELIVERY_ENABLED: "1" } as NodeJS.ProcessEnv), "blocked");
 assert.equal(resolveGiftDeliveryMode(true, { GIFT_EMAIL_DELIVERY_ENABLED: "1", RESEND_API_KEY: "re_test" } as NodeJS.ProcessEnv), "live");
+assert.deepEqual(directFounderRevocationMetadata("2026-08-12T12:00:00.000Z"), {
+  tier: "free",
+  plan: "free",
+  membershipTier: "free",
+  billingPlan: "free",
+  membershipStatus: "free",
+  directFounderCheckoutAttemptId: null,
+  directFounderEntitlementVersion: null,
+  directFounderPreviousMembership: null,
+  founderNumber: null,
+  memberNumber: null,
+  membershipUpdatedAt: "2026-08-12T12:00:00.000Z",
+}, "direct Founder revocation must fail closed and clear every Founder authority marker");
 
 const rotatedTokenEnv = {
   GIFT_REDEMPTION_KEY_VERSION: "v2",
@@ -130,6 +144,8 @@ assert.match(schema, /abandon_adverse_gift_claim[\s\S]*status = 'abandoned'[\s\S
 assert.match(schema, /record_gift_dispute[\s\S]*p_state = 'won'[\s\S]*adverse_reconciled_at = NULL/i, "won disputes must remain pending until exact entitlement restoration succeeds");
 assert.match(schema, /authorize_gift_activation[\s\S]*status = 'activation_started'[\s\S]*refunded_at IS NULL[\s\S]*disputed_at IS NULL/i, "Clerk activation must be preceded by a durable adverse-state fence");
 assert.match(schema, /authorize_gift_delivery_send[\s\S]*payment_status = 'funded'[\s\S]*refunded_at IS NULL[\s\S]*disputed_at IS NULL[\s\S]*redeemed_at IS NULL/i);
+assert.match(schema, /revoke_founder_gift_reservation[\s\S]*SELECT orders\.funded_at INTO order_funded_at[\s\S]*FOR UPDATE[\s\S]*order_funded_at IS NOT NULL THEN RETURN NULL/i,
+  "a successfully funded Founder gift number must never be revoked or recycled");
 
 const repository = read("src/lib/gift-repository.ts");
 assert.match(read("src/lib/gift-tokens.ts"), /createHmac\(["']sha256["']/);
@@ -197,7 +213,9 @@ assert.match(membershipServer, /giftOrderId:\s*null/, "a later direct Stripe mem
 assert.match(membershipServer, /findDirectFounderOwnershipForUser/,
   "duplicate Founder activation must recover the exact durable ownership markers");
 assert.match(membershipServer, /directFounderPreviousMembership/,
-  "direct Founder revocation and won disputes must preserve lower-plan fallback");
+  "direct Founder activation must retain a snapshot for diagnostics and won-dispute reactivation");
+assert.match(membershipServer, /revokeDirectFounderMembershipIfCurrent[\s\S]*directFounderRevocationMetadata\(\)/,
+  "direct Founder revocation must use the fail-closed metadata policy instead of restoring a stale snapshot");
 assert.match(membershipServer, /reactivateGiftMembershipIfEligible[\s\S]*giftOwnsEffectiveAccess[\s\S]*activateGiftMembership[\s\S]*giftAccessStartsAt[\s\S]*giftAccessExpiresAt/,
   "won gift disputes must restore the exact still-valid entitlement version and dates");
 assert.match(membershipServer, /clerkAlreadyFounder\s*&&\s*!existingDirectAttemptId[\s\S]*tier:\s*"free"/,
@@ -251,7 +269,8 @@ assert.deepEqual(vercel.crons, [
   { path: "/api/alerts/deliver?cron=v3", schedule: "*/5 * * * *" },
   { path: "/api/member-weekly-intelligence/deliver?cron=v1", schedule: "0 14 * * 4" },
   { path: "/api/free-member-day-two/deliver?live=1&cron=v1", schedule: "0 * * * *" },
-], "gifting must preserve every existing lifecycle cron");
+  { path: "/api/gifts/deliver?live=1&cron=v1", schedule: "0 * * * *" },
+], "live gift delivery and reconciliation must have an independent hourly cron while preserving existing lifecycle crons");
 const alertDelivery = read("src/app/api/alerts/deliver/route.ts");
 assert.match(alertDelivery, /runGiftDelivery\(\{ requestLive: true \}\)/);
 assert.match(alertDelivery, /runGiftExpiryReconciliation/);

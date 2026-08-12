@@ -6,6 +6,7 @@ import type { GiftOrderRecord } from "@/lib/gift-repository";
 import { createGiftRepository } from "@/lib/gift-repository";
 import { reconcileAllFounderReservationAuthority } from "@/lib/founder-reservations";
 import { resolveServerEffectiveMembershipTier } from "@/lib/server-entitlements";
+import { directFounderRevocationMetadata } from "@/lib/direct-founder-revocation";
 
 type ClerkMembershipUser = {
   id: string;
@@ -308,21 +309,8 @@ export async function revokeDirectFounderMembershipIfCurrent(attemptId: string) 
   if (!userId) return true;
   const user = await (await clerkClient()).users.getUser(userId);
   if (stringValue(user.publicMetadata?.directFounderCheckoutAttemptId) !== attemptId) return true;
-  const previous = user.publicMetadata?.directFounderPreviousMembership
-    && typeof user.publicMetadata.directFounderPreviousMembership === "object"
-    ? user.publicMetadata.directFounderPreviousMembership as Record<string, unknown> : {};
-  const tier = normalizeMembershipTier(previous.tier);
-  const plan = stringValue(previous.plan) || "free";
-  const status = stringValue(previous.status) || "free";
   await (await clerkClient()).users.updateUserMetadata(userId, {
-    publicMetadata: {
-      tier,
-      plan,
-      membershipTier: tier,
-      billingPlan: plan,
-      membershipStatus: status,
-      membershipUpdatedAt: new Date().toISOString(),
-    },
+    publicMetadata: directFounderRevocationMetadata(),
   });
   return true;
 }

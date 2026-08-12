@@ -280,8 +280,11 @@ $$;
 
 CREATE OR REPLACE FUNCTION revoke_founder_gift_reservation(p_gift_order_id TEXT)
 RETURNS INTEGER LANGUAGE plpgsql AS $$
-DECLARE released INTEGER;
+DECLARE released INTEGER; order_funded_at TIMESTAMPTZ;
 BEGIN
+  SELECT orders.funded_at INTO order_funded_at
+  FROM gift_orders orders WHERE orders.id = p_gift_order_id FOR UPDATE;
+  IF NOT FOUND OR order_funded_at IS NOT NULL THEN RETURN NULL; END IF;
   PERFORM pg_advisory_xact_lock(hashtext('bourbon-signal-founder-spots-v1'));
   UPDATE founder_spot_reservations SET status = 'revoked',
     source_id = 'revoked:' || founder_number || ':' || md5(source_id || clock_timestamp()::TEXT),

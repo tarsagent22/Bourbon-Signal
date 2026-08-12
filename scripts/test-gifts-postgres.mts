@@ -59,6 +59,23 @@ async function insertFundedOrder(id: string, recipientEmail: string, tokenHash: 
     params: [...orderValues(id, recipientEmail), tokenHash, entitlement] }]);
 }
 
+async function insertAndFundFounderOrder(id: string, recipientEmail: string) {
+  await transaction([{ text: `INSERT INTO gift_orders
+    (id,purchaser_request_id,purchaser_user_id,purchaser_email,recipient_email,recipient_name,gift_plan,gift_tier,delivery_mode)
+    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`,
+    params: orderValues(id, recipientEmail, "founder_lifetime_gift", "bottled-in-bond") }]);
+  const claim = await transaction([{ text: "SELECT * FROM claim_founder_gift_checkout($1,$2,$3)", params: [id, `buyer-${id}`, `claim-${id}`] }]);
+  const founderNumber = Number((claim[1] as Array<Record<string, unknown>>)[0]?.founder_number);
+  const checkoutSessionId = `cs-${id}`;
+  await transaction([{ text: `UPDATE gift_orders SET stripe_checkout_session_id=$2,payment_status='checkout_open',
+    checkout_claim_token=NULL,checkout_claimed_at=NULL WHERE id=$1`, params: [id, checkoutSessionId] }]);
+  const funded = await transaction([{ text: "SELECT * FROM fund_gift_order($1,$2,$3,$4,$5,$6,$7,$8)", params: [
+    id, `evt-fund-${id}`, checkoutSessionId, `pi-${id}`, `ch-${id}`, `hash-${id}`, "v1", 0,
+  ] }]);
+  assert.equal((funded[1] as Array<Record<string, unknown>>)[0]?.newly_funded, true);
+  return founderNumber;
+}
+
 try {
   await sql.query(`CREATE SCHEMA "${schemaName}"`);
   const schema = await readFile(new URL("../src/lib/gift-schema.sql", import.meta.url), "utf8");
@@ -75,6 +92,38 @@ try {
   ])));
   const founderNumbers = founderClaims.map((result) => Number((result[1] as Array<Record<string, unknown>>)[0]?.founder_number));
   assert.equal(new Set(founderNumbers).size, 2, "concurrent Founder gift claims must reserve distinct numbers");
+
+  const abandonedFounderId = "gift_00000000-0000-4000-8000-000000000003";
+  await transaction([{ text: `INSERT INTO gift_orders (id,purchaser_request_id,purchaser_user_id,purchaser_email,recipient_email,recipient_name,gift_plan,gift_tier,delivery_mode)
+    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)`, params: orderValues(abandonedFounderId, "abandoned-founder@example.test", "founder_lifetime_gift", "bottled-in-bond") }]);
+  const abandonedClaim = await transaction([{ text: "SELECT * FROM claim_founder_gift_checkout($1,$2,$3)", params: [abandonedFounderId, `buyer-${abandonedFounderId}`, "claim-abandoned-founder"] }]);
+  const abandonedFounderNumber = Number((abandonedClaim[1] as Array<Record<string, unknown>>)[0]?.founder_number);
+  const abandonedRelease = await transaction([{ text: "SELECT revoke_founder_gift_reservation($1) AS founder_number", params: [abandonedFounderId] }]);
+  assert.equal((abandonedRelease[1] as Array<Record<string, unknown>>)[0]?.founder_number, abandonedFounderNumber,
+    "an unfunded abandoned Founder gift may release its reservation");
+  const abandonedReservation = await transaction([{ text: "SELECT status,gift_order_id FROM founder_spot_reservations WHERE founder_number=$1", params: [abandonedFounderNumber] }]);
+  assert.deepEqual(abandonedReservation[1], [{ status: "revoked", gift_order_id: null }]);
+
+  const refundedFounderId = "gift_00000000-0000-4000-8000-000000000004";
+  const refundedFounderNumber = await insertAndFundFounderOrder(refundedFounderId, "refunded-founder@example.test");
+  const fundedRelease = await transaction([{ text: "SELECT revoke_founder_gift_reservation($1) AS founder_number", params: [refundedFounderId] }]);
+  assert.equal((fundedRelease[1] as Array<Record<string, unknown>>)[0]?.founder_number, null,
+    "a funded Founder gift cannot be explicitly revoked before redemption");
+  await transaction([{ text: "SELECT id FROM record_gift_refund($1,$2,$3,TRUE,$4,$5,$6)", params: [refundedFounderId, "evt-refunded-founder", "refund_full", "full", 5000, 5000] }]);
+  const refundedFounderReservation = await transaction([{ text: `SELECT reservations.status,reservations.gift_order_id,orders.funded_at IS NOT NULL AS funded
+    FROM founder_spot_reservations reservations JOIN gift_orders orders ON orders.id=reservations.gift_order_id
+    WHERE reservations.founder_number=$1`, params: [refundedFounderNumber] }]);
+  assert.deepEqual(refundedFounderReservation[1], [{ status: "reserved", gift_order_id: refundedFounderId, funded: true }],
+    "a funded Founder number remains permanently consumed after a pre-redemption refund");
+
+  const disputedFounderId = "gift_00000000-0000-4000-8000-000000000005";
+  const disputedFounderNumber = await insertAndFundFounderOrder(disputedFounderId, "disputed-founder@example.test");
+  await transaction([{ text: "SELECT id FROM record_gift_dispute($1,$2,$3)", params: [disputedFounderId, "evt-disputed-founder", "open"] }]);
+  const disputedFounderReservation = await transaction([{ text: `SELECT reservations.status,reservations.gift_order_id,orders.funded_at IS NOT NULL AS funded
+    FROM founder_spot_reservations reservations JOIN gift_orders orders ON orders.id=reservations.gift_order_id
+    WHERE reservations.founder_number=$1`, params: [disputedFounderNumber] }]);
+  assert.deepEqual(disputedFounderReservation[1], [{ status: "reserved", gift_order_id: disputedFounderId, funded: true }],
+    "a funded Founder number remains permanently consumed after a pre-redemption dispute");
 
   const directAttempts = ["founder_attempt_a", "founder_attempt_b"];
   const directClaims = await Promise.all(directAttempts.map((attempt) => transaction([
@@ -200,7 +249,7 @@ try {
   const unauthorizedDelivery = await transaction([{ text: "SELECT id FROM authorize_gift_delivery_send($1,$2)", params: [deliveryRaceId, "delivery-claim"] }]);
   assert.equal((unauthorizedDelivery[1] as Array<Record<string, unknown>>).length, 0, "delivery authorization must fail after an adverse race");
 
-  console.log("Gift Postgres concurrency, repeat-redemption, fencing, ordering, and refund tests passed.");
+  console.log("Gift Postgres concurrency, Founder consumption, repeat-redemption, fencing, ordering, and refund tests passed.");
 } finally {
   await sql.query(`DROP SCHEMA IF EXISTS "${schemaName}" CASCADE`);
 }
