@@ -65,7 +65,7 @@ assert.match(releaseRadar?.answer || "", /public and separate from live shelf-in
 assert.doesNotMatch(releaseRadar?.answer || "", /Daily Briefing|additional homepage stories/);
 
 const founder = pricingFaqs.find((item) => item.question.includes("Founder membership"));
-assert.match(founder?.answer || "", /one-time \$49\.99 purchase/);
+assert.match(founder?.answer || "", /one-time \$50 purchase/);
 assert.match(founder?.answer || "", /72 of 100 Founder spots remain/);
 
 const founderWithoutCount = getFaqItems("pricing", { founderSpotsRemaining: null })
