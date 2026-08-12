@@ -291,7 +291,10 @@ assert.match(alertDelivery, /giftMaintenanceDue = scheduledRun[\s\S]*!alertExecu
   "shared alert dry-run and monitor requests must never enter gift mutation workers");
 
 const giftPage = read("src/app/gift/page.tsx");
-for (const phrase of ["Standard Proof", "$30", "Barrel Proof", "$60", "Founder lifetime", "$50", "exactly one year from redemption", "does not renew", "numbered Founder glass", "Recipient name", "Recipient email", "Optional message", "Send now", "Schedule delivery", "IANA timezone"]) assert.ok(giftPage.includes(phrase), `gift page missing: ${phrase}`);
+for (const phrase of ["Standard Proof", "$30", "Barrel Proof", "$60", "Bottled-in-Bond", "$50", "Annual gifts begin when redeemed and never renew", "beginning when the gift is redeemed", "No subscription or renewal", "numbered Founder glass", "The Founder number is reserved after payment and claimed when the gift is redeemed", "Gift details", "Recipient name", "Recipient email", "Optional message", "Send now", "Schedule delivery", "IANA timezone"]) assert.ok(giftPage.includes(phrase), `gift page missing: ${phrase}`);
+assert.doesNotMatch(giftPage, /Founder lifetime|Who is it for\?|reserved when payment is funded/);
+assert.match(giftPage, /gift-cards\{[^}]*border:0/);
+assert.match(giftPage, /gift-card-name i/);
 assert.match(giftPage, /\/api\/gifts\/orders/);
 assert.match(giftPage, /\/api\/gifts\/checkout/);
 const redemptionPage = read("src/app/gift/redeem/[token]/page.tsx");
