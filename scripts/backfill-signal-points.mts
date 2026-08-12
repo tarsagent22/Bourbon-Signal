@@ -1,6 +1,12 @@
 import { createHash } from "node:crypto";
 import { createClerkClient } from "@clerk/backend";
-import { createSignalPointsRepository, normalizedClerkRewardPoints, SIGNAL_POINTS_CLERK_METADATA_V1_VERIFIED_COMPLETE } from "../src/lib/signal-points-repository.ts";
+import * as signalPointsModule from "../src/lib/signal-points-repository.ts";
+
+const repositoryExports = ("default" in signalPointsModule
+  ? { ...signalPointsModule, ...(signalPointsModule.default as object) }
+  : signalPointsModule) as typeof import("../src/lib/signal-points-repository.ts");
+const { createSignalPointsRepository, normalizedClerkRewardPoints } = repositoryExports;
+const VERIFIED_COMPLETE_MARKER = "signal_points_clerk_metadata_v1_verified_complete";
 
 const apply = process.argv.includes("--apply");
 const pageSizeArgument = process.argv.find((argument) => argument.startsWith("--page-size="));
@@ -28,7 +34,7 @@ const summary = {
   mismatched: 0,
   firstPass: { scanned: 0, snapshotHash: "" },
   secondPass: { scanned: 0, snapshotHash: "", matchesFirstPass: false },
-  verifiedMarker: SIGNAL_POINTS_CLERK_METADATA_V1_VERIFIED_COMPLETE,
+  verifiedMarker: VERIFIED_COMPLETE_MARKER,
   markedComplete: false,
   errors: [] as Array<{ userId: string; message: string }>,
 };
