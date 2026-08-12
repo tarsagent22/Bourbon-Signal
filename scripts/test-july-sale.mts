@@ -30,8 +30,9 @@ assert.equal(isJulySaleActive(new Date("2026-07-31T23:00:00-04:00")), false);
 assert.equal(resolveJulySaleCouponId(" AdDCc6jD ", new Date("2026-07-21T12:00:00-04:00")), "AdDCc6jD");
 assert.equal(resolveJulySaleCouponId("", new Date("2026-07-21T12:00:00-04:00")), null);
 assert.equal(resolveJulySaleCouponId("AdDCc6jD", new Date("2026-07-31T23:30:00-04:00")), null);
-assert.equal(discountedCents(2499), 2124);
-assert.equal(discountedCents(4999), 4249);
+assert.equal(discountedCents(3000), 2550);
+assert.equal(discountedCents(6000), 5100);
+assert.equal(discountedCents(5000), 4250);
 
 const saleNow = new Date("2026-07-21T12:00:00-04:00");
 assert.deepEqual(julySaleCheckoutConfig("standard_annual", " AdDCc6jD ", saleNow), {
@@ -124,8 +125,9 @@ for (const phrase of [
   "first annual payment",
   "renew at the regular price",
   "Founder remains a one-time payment",
-  "$21.24",
-  "$42.49",
+  "$25.50",
+  "$51",
+  "$42.50",
 ]) {
   assert.ok(pricingPage.includes(phrase), `pricing page missing sale language: ${phrase}`);
 }

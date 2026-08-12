@@ -2,7 +2,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { clerkClient } from "@clerk/nextjs/server";
 import { PaidDropAlertEmail } from "@/components/emails/PaidDropAlertEmail";
 import { ALERT_FROM, ALERT_REPLY_TO, getResendClient } from "@/lib/email-alerts";
-import { isPaidTier } from "@/lib/entitlements";
+import { isServerPaidTier } from "@/lib/server-entitlements";
 import { buildAlertId, normalizeNotificationPreferences, type EmailAlertMode, type MemberAlertRecord, type SmsAlertMode } from "@/lib/notification-preferences";
 import { readSiteExport, readSiteExportResult } from "@/lib/site-engine-contract";
 import { alertFreshnessIsDeliverable, evaluateAlertSnapshotSafety, resolveAlertFreshnessCapHours, signalFreshnessHoursAt } from "@/lib/alert-run-safety";
@@ -1105,7 +1105,7 @@ export async function deliverPreferenceAlerts(req: Request, options: {
 
       const publicMetadata = (user.publicMetadata && typeof user.publicMetadata === "object" ? user.publicMetadata : {}) as Record<string, unknown>;
       const privateMetadata = (user.privateMetadata && typeof user.privateMetadata === "object" ? user.privateMetadata : {}) as Record<string, unknown>;
-      if (!isPaidTier(publicMetadata)) {
+      if (!await isServerPaidTier(publicMetadata)) {
         summary.skippedFreeUsers += 1;
         continue;
       }

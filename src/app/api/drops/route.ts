@@ -1,4 +1,4 @@
-import { getEntitlements } from "@/lib/entitlements";
+import { getServerEntitlements } from "@/lib/server-entitlements";
 import { NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { normalizeDropForSite, readSiteExportResults, siteExportHeaders } from "@/lib/site-engine-contract";
@@ -141,7 +141,7 @@ export async function GET(request: Request) {
   const { userId } = await auth();
   const isSignedIn = Boolean(userId);
   const user = userId ? await (await clerkClient()).users.getUser(userId) : null;
-  const entitlements = getEntitlements(user?.publicMetadata || null);
+  const entitlements = await getServerEntitlements(user?.publicMetadata || null);
   const isFreeAccess = !isSignedIn || entitlements.tier === "free";
   const previewLimit = entitlements.feedPreviewLimit ?? ANONYMOUS_DROP_PREVIEW_LIMIT;
   const limit = resolveDropLimit(url.searchParams.get("limit"), isFreeAccess, previewLimit);

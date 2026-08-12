@@ -24,6 +24,15 @@ const TABLES = [
   'coverage_requests',
   'engine_snapshots',
   'founder_glass_shipping',
+  'gift_orders',
+  'gift_order_events',
+  'founder_spot_reservations',
+  'founder_reconciliation_state',
+  'gift_redemption_recipients',
+  'gift_recipient_locks',
+  'gift_payment_attempts',
+  'direct_founder_checkout_reservations',
+  'direct_founder_checkout_events',
   'member_collection_bottles',
   'member_collection_legacy_backups',
   'member_collection_state',
@@ -42,6 +51,17 @@ const TABLES = [
   'retailer_regulator_authorities',
   'retailer_stores',
   'retailer_submissions',
+];
+const GIFT_TABLES = [
+  'gift_orders',
+  'gift_order_events',
+  'founder_spot_reservations',
+  'founder_reconciliation_state',
+  'gift_redemption_recipients',
+  'gift_recipient_locks',
+  'gift_payment_attempts',
+  'direct_founder_checkout_reservations',
+  'direct_founder_checkout_events',
 ];
 const REQUIRED_TABLES = [
   'bottle_contributions',
@@ -143,7 +163,12 @@ async function main() {
     WHERE table_schema = 'public' AND table_name = ANY($1::text[])
   `, [TABLES]);
   const existing = new Set(existingRows.map((row) => row.table_name));
-  const missingRequired = REQUIRED_TABLES.filter((table) => !existing.has(table));
+  // A safety backup must be possible before the gift migration creates its first table. Once any
+  // gift table exists, treat the migration as started and require the complete post-migration set.
+  const requiredForObservedSchema = GIFT_TABLES.some((table) => existing.has(table))
+    ? [...REQUIRED_TABLES, ...GIFT_TABLES]
+    : REQUIRED_TABLES;
+  const missingRequired = requiredForObservedSchema.filter((table) => !existing.has(table));
   if (missingRequired.length) {
     throw new Error(`Refusing incomplete backup; required tables are missing: ${missingRequired.join(', ')}`);
   }

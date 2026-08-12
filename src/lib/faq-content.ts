@@ -107,7 +107,7 @@ function pricingFaqItems(options: FaqOptions): FaqItem[] {
     {
       question: "What is the Bottled in Bond Founder membership?",
       answer:
-        `Bottled in Bond is Bourbon Signal’s lifetime Founder membership: a one-time $49.99 purchase with no recurring subscription fee. It includes current and future paid product features, unlimited alert areas and bottle tracking, the highest SMS allowance, Founder recognition and member number, early access to new tools, and a numbered Founder’s glass. ${founderAvailability}`,
+        `Bottled in Bond is Bourbon Signal’s lifetime Founder membership: a one-time $50 purchase with no recurring subscription fee. It includes current and future paid product features, unlimited alert areas and bottle tracking, the highest SMS allowance, Founder recognition and member number, early access to new tools, and a numbered Founder’s glass. ${founderAvailability}`,
     },
     {
       question: "Can I cancel or change my membership?",

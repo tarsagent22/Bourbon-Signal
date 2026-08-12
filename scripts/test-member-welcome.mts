@@ -156,7 +156,7 @@ assert.match(pricingSource, /Limited lifetime offer/);
 for (const plan of ["standard_monthly", "standard_annual", "barrel_monthly", "barrel_annual", "bib_lifetime"]) {
   assert.ok(pricingTruthSource.includes(plan), `pricing must preserve checkout plan ${plan}`);
 }
-for (const price of ["$2.99", "$24.99", "$4.99", "$49.99"]) {
+for (const price of ["$3", "$30", "$6", "$60", "$50"]) {
   assert.ok(pricingTruthSource.includes(price), `pricing must preserve approved price ${price}`);
 }
 assert.match(pricingSource, /canceledPlan[\s\S]*\/welcome/, "a canceled paid signup choosing Free must complete Welcome");

@@ -19,7 +19,7 @@ assert.equal(FREE_MEMBER_DAY_TWO_CAMPAIGN_ID, "free-member-day-two-v1");
 assert.equal(FREE_MEMBER_DAY_TWO_SUBJECT, "Welcome to the Bourbon Signal community");
 assert.equal(FREE_MEMBER_DAY_TWO_LIVE_SEND_SUPPORTED, true, "approved V1 must support guarded live delivery");
 assert.deepEqual(CORE_PAID_MEMBERSHIP_PLANS.map((plan) => plan.tier), ["standard", "barrel"]);
-assert.deepEqual(CORE_PAID_MEMBERSHIP_PLANS.map((plan) => [plan.monthlyPrice, plan.annualPrice]), [["$2.99", "$24.99"], ["$4.99", "$49.99"]]);
+assert.deepEqual(CORE_PAID_MEMBERSHIP_PLANS.map((plan) => [plan.monthlyPrice, plan.annualPrice]), [["$3", "$30"], ["$6", "$60"]]);
 assert.equal(PAID_MEMBERSHIP_PLANS.length, 3, "pricing page keeps the separate conditional Founder offer");
 
 const config = buildFreeMemberDayTwoConfig({
@@ -117,7 +117,7 @@ for (const required of [
   "{{unsubscribeUrl}}",
   "Bourbon Signal is intended for users 21+",
 ]) assert.ok(visibleHtml.includes(required), `email must include: ${required}`);
-for (const forbidden of ["Standard Proof", "Barrel Proof", "$2.99", "$4.99", "MEMBERSHIP OPTIONS", "July", "sale", "Founder", "founder", "spots remaining", "guaranteed in stock", "drive now", "Hey Casey,"]) {
+for (const forbidden of ["Standard Proof", "Barrel Proof", "$3", "$6", "MEMBERSHIP OPTIONS", "July", "sale", "Founder", "founder", "spots remaining", "guaranteed in stock", "drive now", "Hey Casey,"]) {
   assert.ok(!html.includes(forbidden), `evergreen email must omit: ${forbidden}`);
 }
 assert.match(html, /pricing\?source=day2_free_followup/);

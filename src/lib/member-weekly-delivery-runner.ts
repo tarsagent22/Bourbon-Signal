@@ -1,7 +1,7 @@
 import type { MemberWeeklyIntelligence } from "./member-weekly-intelligence.ts";
 import type { MemberWeeklyServerUser } from "./member-weekly-server.ts";
 import type { MemberWeeklyDryRun } from "./member-weekly-email.ts";
-import { isPaidTier } from "./entitlements.ts";
+import { isServerPaidTier } from "./server-entitlements.ts";
 import { normalizeNotificationPreferences } from "./notification-preferences.ts";
 import {
   explicitOptIn,
@@ -51,11 +51,11 @@ export interface MemberWeeklyDeliveryRunResult {
   results: Array<{ memberId: string; status: MemberWeeklyMemberResultStatus }>;
 }
 
-function currentMemberBlockStatus(user: MemberWeeklyServerUser): MemberWeeklyMemberResultStatus | null {
+async function currentMemberBlockStatus(user: MemberWeeklyServerUser): Promise<MemberWeeklyMemberResultStatus | null> {
   const publicMetadata = user.publicMetadata || {};
   const privateMetadata = user.privateMetadata || {};
   const weeklyPreference = normalizeNotificationPreferences(publicMetadata.notificationPreferences).weeklyIntelligence;
-  if (!isPaidTier(publicMetadata)) return "skipped_ineligible_member";
+  if (!await isServerPaidTier(publicMetadata)) return "skipped_ineligible_member";
   if (masterUnsubscribed(publicMetadata, privateMetadata)) return "skipped_master_unsubscribed";
   if (explicitOptIn(weeklyPreference)) return null;
   return weeklyPreference.unsubscribedAt
@@ -99,7 +99,7 @@ export async function executeMemberWeeklyDeliveryRun(input: {
     for (const user of batch) {
       summary.membersConsidered += 1;
       try {
-        const initialBlockStatus = currentMemberBlockStatus(user);
+        const initialBlockStatus = await currentMemberBlockStatus(user);
         if (initialBlockStatus) {
           summary.results.push({ memberId: user.id, status: initialBlockStatus });
           continue;
@@ -125,7 +125,7 @@ export async function executeMemberWeeklyDeliveryRun(input: {
         }
 
         const currentBeforeReservation = await input.dependencies.refreshUser(user.id);
-        const preReservationBlockStatus = currentMemberBlockStatus(currentBeforeReservation);
+        const preReservationBlockStatus = await currentMemberBlockStatus(currentBeforeReservation);
         if (preReservationBlockStatus) {
           summary.results.push({ memberId: user.id, status: preReservationBlockStatus });
           continue;
@@ -151,7 +151,7 @@ export async function executeMemberWeeklyDeliveryRun(input: {
           continue;
         }
         const currentBeforeSend = await input.dependencies.refreshUser(user.id);
-        const preSendBlockStatus = currentMemberBlockStatus(currentBeforeSend);
+        const preSendBlockStatus = await currentMemberBlockStatus(currentBeforeSend);
         if (preSendBlockStatus) {
           summary.results.push({ memberId: user.id, status: preSendBlockStatus });
           continue;

@@ -10,7 +10,8 @@ import {
 } from "@/lib/notification-preferences";
 import { ACTIVE_ENGINE_STATE_CODES } from "@/lib/activeStates";
 import type { MemberSighting, SignalReport, SignalReportKind, SightingVote, SightingVoteKind, SightingType, SightingsPreferences } from "@/lib/sightings";
-import { getEntitlements } from "@/lib/entitlements";
+import { getEntitlements, type TierEntitlements } from "@/lib/entitlements";
+import { getServerEntitlements } from "@/lib/server-entitlements";
 import { getQaPreviewTierFromRequest, isQaPreviewRequest, QA_PREVIEW_PREFERENCES } from "@/lib/preview-qa";
 import { normalizeCaliforniaAreas } from "@/lib/california-area";
 import { normalizeNevadaAreas } from "@/lib/nevada-area";
@@ -290,12 +291,12 @@ function normalizeSightingsPreferences(input: unknown): SightingsPreferences {
 function buildResponseFromMetadata(
   user: Awaited<ReturnType<Awaited<ReturnType<typeof clerkClient>>["users"]["getUser"]>>,
   collectionPreferences: UserAlertPreferences["collectionPreferences"] = EMPTY_COLLECTION_PREFERENCES,
+  entitlements: TierEntitlements = getEntitlements(user.publicMetadata),
 ): UserAlertPreferences {
   const areaPreferences = normalizeAreaPreferences(user.publicMetadata?.areaPreferences);
   const notificationPreferences = normalizeNotificationPreferences(user.publicMetadata?.notificationPreferences);
   const alertMode = normalizeAlertMode(user.publicMetadata?.alertMode);
   const bottleAlertPreferences = normalizeBottleAlertPreferences(user.publicMetadata?.bottleAlertPreferences);
-  const entitlements = getEntitlements(user.publicMetadata);
   return {
     areaPreferences,
     notificationPreferences,
@@ -430,7 +431,7 @@ export async function GET(req: NextRequest) {
   if (!collection) {
     return NextResponse.json({ error: "Collection storage is temporarily unavailable." }, { status: 503 });
   }
-  return NextResponse.json(buildResponseFromMetadata(user, collection));
+  return NextResponse.json(buildResponseFromMetadata(user, collection, await getServerEntitlements(user.publicMetadata)));
 }
 
 export async function POST(req: NextRequest) {
@@ -487,7 +488,8 @@ export async function POST(req: NextRequest) {
   if (!durableCollection) {
     return NextResponse.json({ error: "Collection storage is temporarily unavailable." }, { status: 503 });
   }
-  const existing = buildResponseFromMetadata(user, durableCollection);
+  const durableEntitlements = await getServerEntitlements(user.publicMetadata);
+  const existing = buildResponseFromMetadata(user, durableCollection, durableEntitlements);
 
   let areaPreferences = normalizeAreaPreferences(payload.areaPreferences ?? existing.areaPreferences ?? EMPTY_AREA_PREFERENCES);
   let notificationPreferences = existing.notificationPreferences ?? getDefaultNotificationPreferences();
@@ -546,7 +548,7 @@ export async function POST(req: NextRequest) {
       throw error;
     }
   }
-  const entitlements = getEntitlements(user.publicMetadata);
+  const entitlements = durableEntitlements;
   const attemptedAlertWrite = payload.areaPreferences !== undefined || payload.notificationPreferences !== undefined || payload.alertMode !== undefined || payload.bottleAlertPreferences !== undefined;
 
   if (payload.collectionPreferences !== undefined && !entitlements.canUseCollection) {

@@ -47,11 +47,11 @@ const OWNER_EMAILS = new Set([
 const RETAILER_ROLES = new Set(["retailer", "vendor"]);
 
 const PLAN_PRICES_CENTS: Record<BillingPlanId, { amount: number; interval: "month" | "year" | "lifetime" }> = {
-  standard_monthly: { amount: 299, interval: "month" },
-  standard_annual: { amount: 2499, interval: "year" },
-  barrel_monthly: { amount: 499, interval: "month" },
-  barrel_annual: { amount: 4999, interval: "year" },
-  bib_lifetime: { amount: 4999, interval: "lifetime" },
+  standard_monthly: { amount: 300, interval: "month" },
+  standard_annual: { amount: 3000, interval: "year" },
+  barrel_monthly: { amount: 600, interval: "month" },
+  barrel_annual: { amount: 6000, interval: "year" },
+  bib_lifetime: { amount: 5000, interval: "lifetime" },
 };
 
 type Metadata = Record<string, unknown>;

@@ -1,13 +1,17 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import Stripe from "stripe";
-import { FOUNDER_SPOT_LIMIT, normalizeBillingPlan, resolveEffectiveMembershipTier, type BillingPlanId, type MembershipTier } from "@/lib/entitlements";
-import { getStripePriceId, LAUNCH_BILLING_PLANS } from "@/lib/stripe-plans";
+import { randomUUID } from "node:crypto";
+import { FOUNDER_SPOT_LIMIT, normalizeBillingPlan, type BillingPlanId, type MembershipTier } from "@/lib/entitlements";
+import { getStripePriceId, LAUNCH_BILLING_PLANS, validateDirectStripePrice } from "@/lib/stripe-plans";
 import { CHECKOUT_ENABLED } from "@/lib/site-mode";
-import { countFounderMemberships, type FounderAllocationUser } from "@/lib/founder-allocation";
+import { countFounderMemberships } from "@/lib/founder-allocation";
+import { reconcileAllFounderReservationAuthority } from "@/lib/founder-reservations";
+import { createGiftRepository, type GiftRepository } from "@/lib/gift-repository";
 import { activateMembership } from "@/lib/membership-server";
 import { reconcileReferredMembership } from "@/lib/referral-service";
 import { mergeGrowthMilestoneMetadata, normalizeCheckoutSource } from "@/lib/growth-events";
+import { resolveServerEffectiveMembershipTier } from "@/lib/server-entitlements";
 import {
   buildJulySaleSessionFields,
   julySaleCheckoutConfig,
@@ -39,9 +43,8 @@ function appUrl(req: NextRequest) {
 
 async function founderSpotsSold() {
   const client = await clerkClient();
-  const result = await client.users.getUserList({ limit: 500 });
-  const users = (Array.isArray(result) ? result : result.data) as FounderAllocationUser[];
-  return countFounderMemberships(users);
+  const { users, availability } = await reconcileAllFounderReservationAuthority(client);
+  return Math.max(countFounderMemberships(users), availability.claimed);
 }
 
 function stringValue(value: unknown) {
@@ -69,9 +72,9 @@ async function recordCheckoutStarted(
 }
 
 async function checkoutSessionMatchesPlan(stripe: Stripe, session: Stripe.Checkout.Session, planId: BillingPlanId, priceId: string) {
-  if (session.metadata?.plan === planId) return true;
   const lineItems = await stripe.checkout.sessions.listLineItems(session.id, { limit: 5 });
-  return lineItems.data.some((item) => item.price?.id === priceId);
+  return session.metadata?.plan === planId && !lineItems.has_more && lineItems.data.length === 1
+    && lineItems.data[0]?.price?.id === priceId && lineItems.data[0]?.quantity === 1;
 }
 
 async function findReusableCheckoutSession(stripe: Stripe, userId: string, planId: BillingPlanId, priceId: string) {
@@ -149,16 +152,21 @@ export async function POST(req: NextRequest) {
     );
   }
 
+  const giftRepository = createGiftRepository();
+  let existingFounderCheckout = planId === "bib_lifetime"
+    ? await giftRepository.findLiveDirectFounderCheckout(userId)
+    : null;
   if (planId === "bib_lifetime") {
     const sold = await founderSpotsSold();
-    if (sold >= FOUNDER_SPOT_LIMIT) {
+    existingFounderCheckout ||= await giftRepository.findLiveDirectFounderCheckout(userId);
+    if (sold >= FOUNDER_SPOT_LIMIT && !existingFounderCheckout) {
       return NextResponse.json({ error: "Bottled-in-Bond Founder memberships are sold out." }, { status: 409 });
     }
   }
 
   const client = await clerkClient();
   const user = await client.users.getUser(userId);
-  const currentTier = resolveEffectiveMembershipTier(user.publicMetadata);
+  const currentTier = await resolveServerEffectiveMembershipTier(user.publicMetadata);
   if (TIER_RANK[currentTier] >= TIER_RANK[plan.tier]) {
     return NextResponse.json({ error: "Your current Bourbon Signal membership already includes this level." }, { status: 409 });
   }
@@ -180,7 +188,21 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  const reusableSession = await findReusableCheckoutSession(stripe, userId, planId, priceId);
+  try {
+    const configuredPrice = await stripe.prices.retrieve(priceId, { expand: ["product"] });
+    const priceError = validateDirectStripePrice(configuredPrice, plan, process.env.NODE_ENV === "production");
+    if (priceError) {
+      console.error("Direct membership price validation failed:", priceError);
+      return NextResponse.json({ error: "Checkout is temporarily unavailable. You have not been charged." }, { status: 503 });
+    }
+  } catch (error) {
+    console.error("Unable to validate direct membership price:", error);
+    return NextResponse.json({ error: "Checkout is temporarily unavailable. You have not been charged." }, { status: 503 });
+  }
+
+  const reusableSession = planId === "bib_lifetime"
+    ? null
+    : await findReusableCheckoutSession(stripe, userId, planId, priceId);
   const skipCompletedRecovery = hasCanceledFreeMembershipHold(user.publicMetadata);
   if (reusableSession) {
     await recordCheckoutStarted(client, userId, user.privateMetadata as Record<string, unknown>);
@@ -198,6 +220,9 @@ export async function POST(req: NextRequest) {
         stripeCustomerId: stringValue(reusableSession.customer),
         stripeSubscriptionId: subscriptionId,
         status: membershipStatus,
+        founderCheckoutAttemptId: stringValue(reusableSession.metadata?.founder_checkout_attempt_id),
+        checkoutSessionId: reusableSession.id,
+        stripePaymentIntentId: stringValue(reusableSession.payment_intent),
       });
       if (stringValue(reusableSession.metadata?.purchase_type) !== "gift") {
         await reconcileReferredMembership({ userId, tier: plan.tier, sourceEventId: `checkout-recovery:${reusableSession.id}` });
@@ -233,12 +258,58 @@ export async function POST(req: NextRequest) {
   const email = user.emailAddresses.find((item) => item.id === user.primaryEmailAddressId)?.emailAddress || user.emailAddresses[0]?.emailAddress;
   const origin = appUrl(req);
 
+  let founderAttemptId = planId === "bib_lifetime" ? `founder_${randomUUID()}` : null;
+  let founderReservation: Awaited<ReturnType<GiftRepository["reserveDirectFounder"]>> = null;
+  if (founderAttemptId) {
+    try {
+      founderReservation = await giftRepository.reserveDirectFounder(userId, founderAttemptId);
+      if (!founderReservation) throw new Error("Founder reservation unavailable");
+      founderAttemptId = founderReservation.attemptId;
+      if (founderReservation.checkoutSessionId) {
+        const existingSession = await stripe.checkout.sessions.retrieve(founderReservation.checkoutSessionId);
+        if (!await checkoutSessionMatchesPlan(stripe, existingSession, planId, priceId)
+          || stringValue(existingSession.metadata?.founder_checkout_attempt_id) !== founderAttemptId
+          || stringValue(existingSession.metadata?.founder_entitlement_version) !== founderReservation.entitlementVersion) {
+          throw new Error("Existing Founder checkout authority mismatch");
+        }
+        if (existingSession.status === "open" && existingSession.url
+          && (!existingSession.expires_at || existingSession.expires_at > Math.floor(Date.now() / 1000))) {
+          await recordCheckoutStarted(client, userId, user.privateMetadata as Record<string, unknown>);
+          return NextResponse.json({ url: existingSession.url, reused: true });
+        }
+        if (existingSession.status === "complete"
+          && (existingSession.payment_status === "paid" || existingSession.payment_status === "no_payment_required")) {
+          await activateMembership(userId, {
+            tier: plan.tier, plan: plan.id, status: "lifetime",
+            stripeCustomerId: stringValue(existingSession.customer),
+            founderCheckoutAttemptId: founderAttemptId,
+            checkoutSessionId: existingSession.id,
+            stripePaymentIntentId: stringValue(existingSession.payment_intent),
+          });
+          await giftRepository.markDirectFounderActivationReconciled(founderAttemptId);
+          return NextResponse.json({ url: `${appUrl(req)}/success?session_id=${existingSession.id}`, recovered: true });
+        }
+        await giftRepository.releaseDirectFounderReservation(userId, founderAttemptId, existingSession.id);
+        founderAttemptId = `founder_${randomUUID()}`;
+        founderReservation = await giftRepository.reserveDirectFounder(userId, founderAttemptId);
+        if (!founderReservation) throw new Error("Founder reservation unavailable");
+        founderAttemptId = founderReservation.attemptId;
+      }
+    } catch {
+      return NextResponse.json({ error: "Bottled-in-Bond Founder memberships are sold out." }, { status: 409 });
+    }
+  }
+
   const metadata = {
     userId,
     tier: plan.tier,
     plan: plan.id,
     source: "bourbon_signal_launch",
     attributionSurface: source,
+    ...(founderReservation ? {
+      founder_checkout_attempt_id: founderReservation.attemptId,
+      founder_entitlement_version: founderReservation.entitlementVersion,
+    } : {}),
   };
 
   const sessionConfig: Stripe.Checkout.SessionCreateParams = {
@@ -258,7 +329,23 @@ export async function POST(req: NextRequest) {
     sessionConfig.payment_intent_data = { metadata };
   }
 
-  const session = await stripe.checkout.sessions.create(sessionConfig);
+  let session: Stripe.Checkout.Session;
+  try {
+    session = await stripe.checkout.sessions.create(sessionConfig, founderAttemptId
+      ? { idempotencyKey: `direct-founder-checkout-${founderAttemptId}` }
+      : undefined);
+    if (founderAttemptId) {
+      const attached = await giftRepository.attachDirectFounderCheckout(userId, founderAttemptId, session.id);
+      if (!attached) {
+        await stripe.checkout.sessions.expire(session.id);
+        await giftRepository.releaseDirectFounderReservation(userId, founderAttemptId, session.id);
+        return NextResponse.json({ error: "Founder checkout is temporarily unavailable. You have not been charged." }, { status: 503 });
+      }
+    }
+  } catch (error) {
+    if (founderAttemptId) await giftRepository.releaseDirectFounderReservation(userId, founderAttemptId).catch(() => undefined);
+    throw error;
+  }
   await recordCheckoutStarted(client, userId, user.privateMetadata as Record<string, unknown>);
   return NextResponse.json({ url: session.url });
 }

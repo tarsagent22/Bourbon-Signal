@@ -1,6 +1,10 @@
 import { NextRequest, NextResponse } from "next/server";
 import { assertAlertDeliveryAuthorized, deliverPreferenceAlerts, sendOperationalTestAlertEmail } from "@/lib/alert-delivery";
 import { writeAlertDeliveryHeartbeat } from "@/lib/ops-health";
+import { resolveGiftDeliveryMode, runGiftDelivery } from "@/lib/gift-delivery";
+import { runGiftAdverseReconciliation, runGiftExpiryReconciliation } from "@/lib/gift-expiry";
+import { runDirectFounderActivationReconciliation, runGiftActivationReconciliation } from "@/lib/gift-activation";
+import { runLatePaymentRefundReconciliation } from "@/lib/gift-refunds";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -41,7 +45,33 @@ async function runDelivery(req: NextRequest) {
     const deliveryResult = testEmail
       ? await sendOperationalTestAlertEmail(req)
       : await deliverPreferenceAlerts(req, { dryRun, baselineOnSiteOnly, baselineEmailOnly, baselineSmsOnly, queueMode });
-    const result = { ...deliveryResult, monitorOnly };
+    const alertExecutionIsReadOnly = dryRun || queueMode === "shadow" || monitorOnly || testEmail || baselineModeCount > 0;
+    const giftMaintenanceDue = scheduledRun
+      && !alertExecutionIsReadOnly
+      && resolveGiftDeliveryMode(true) === "live"
+      && new Date().getUTCMinutes() % 15 === 0;
+    const giftMaintenance = giftMaintenanceDue
+      ? await Promise.allSettled([
+          runGiftDelivery({ requestLive: true }),
+          runGiftExpiryReconciliation(100),
+          runGiftAdverseReconciliation(100),
+          runGiftActivationReconciliation(50),
+          runDirectFounderActivationReconciliation(50),
+          runLatePaymentRefundReconciliation(100),
+        ])
+      : [];
+    const result = {
+      ...deliveryResult,
+      monitorOnly,
+      ...(giftMaintenanceDue ? {
+        giftDelivery: giftMaintenance[0]?.status === "fulfilled" ? giftMaintenance[0].value : { ok: false, isolatedFailure: true },
+        giftExpiry: giftMaintenance[1]?.status === "fulfilled" ? giftMaintenance[1].value : { ok: false, isolatedFailure: true },
+        giftAdverse: giftMaintenance[2]?.status === "fulfilled" ? giftMaintenance[2].value : { ok: false, isolatedFailure: true },
+        giftActivation: giftMaintenance[3]?.status === "fulfilled" ? giftMaintenance[3].value : { ok: false, isolatedFailure: true },
+        directFounderActivation: giftMaintenance[4]?.status === "fulfilled" ? giftMaintenance[4].value : { ok: false, isolatedFailure: true },
+        latePaymentRefunds: giftMaintenance[5]?.status === "fulfilled" ? giftMaintenance[5].value : { ok: false, isolatedFailure: true },
+      } : {}),
+    };
     if (heartbeatEligible) {
       await writeAlertDeliveryHeartbeat({ startedAt, result: result as unknown as Record<string, unknown> })
         .catch((error) => console.warn("Alert delivery heartbeat write failed", error));

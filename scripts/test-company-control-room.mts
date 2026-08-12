@@ -67,9 +67,9 @@ assert.deepEqual(summary.counts, {
   pastDue: 1,
   campaignEligibleFree: 2,
 });
-assert.equal(summary.estimatedMonthlyRecurringCents, 716);
-assert.equal(summary.estimatedAnnualRecurringCents, 8587);
-assert.equal(summary.estimatedLifetimeGrossCents, 4999);
+assert.equal(summary.estimatedMonthlyRecurringCents, 800);
+assert.equal(summary.estimatedAnnualRecurringCents, 9600);
+assert.equal(summary.estimatedLifetimeGrossCents, 5000);
 assert.equal("emails" in summary, false);
 
 const demandUsers = [

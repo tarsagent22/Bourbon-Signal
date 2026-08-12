@@ -1,6 +1,7 @@
 "use client";
 
 const footerLinks = [
+  { label: "Gift Bourbon Signal", href: "/gift" },
   { label: "FAQ", href: "/#faq" },
   { label: "Release Radar", href: "/release-radar" },
   { label: "Privacy", href: "/legal/privacy" },

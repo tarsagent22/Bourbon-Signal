@@ -6,7 +6,7 @@ import {
   type RecommendationFeedbackSignal,
 } from "@/lib/bourbon-recommendations";
 import { getRecommendationFeedbackRepository } from "@/lib/recommendation-feedback-repository";
-import { getEntitlements } from "@/lib/entitlements";
+import { getServerEntitlements } from "@/lib/server-entitlements";
 
 export type BourbonDnaFeedbackSignal = RecommendationFeedbackSignal;
 export type BourbonDnaFeedbackEntry = RecommendationFeedbackEntry;
@@ -21,7 +21,7 @@ async function requireRecommendationAccess() {
 
   const client = await clerkClient();
   const user = await client.users.getUser(userId);
-  if (!getEntitlements(user.publicMetadata).canUseRecommendations) {
+  if (!(await getServerEntitlements(user.publicMetadata)).canUseRecommendations) {
     return { response: NextResponse.json({ error: "Recommendations require Barrel Proof or Bottled in Bond." }, { status: 403 }) };
   }
   return { userId, user, client };

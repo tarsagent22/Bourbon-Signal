@@ -22,20 +22,20 @@ The first implementation pass should define a single membership/entitlement cont
 - During the 3 Bottle Checks, show a conversion CTA such as `Get alerted when this drops in your area.`
 - Read-only/limited surfaces should be explicit, not silently broken.
 
-### Standard — `$4.99/mo` or `$39.99/yr`
+### Standard — `$3/mo` or `$30/yr`
 - 5 alert areas.
 - 15 tracked bottles.
 - State-only filters.
 - Full Bottle Check.
 - Read and submit Member Sightings.
 
-### Barrel — `$4.99/mo` or `$49.99/yr`
+### Barrel — `$6/mo` or `$60/yr`
 - Effectively unlimited alert areas and tracked bottles.
 - Advanced filters.
 - Sightings alerts included at launch, with honest copy that participation improves coverage over time.
 - Early/beta access.
 
-### Bottled-in-Bond Founder — `$49.99` one-time lifetime
+### Bottled-in-Bond Founder — `$50` one-time lifetime
 - Lifetime access to all current and future paid member features.
 - Capped at 100 total spots; after all 100 sell, no more will ever be available.
 - Founder-style positioning and optional numbered goodies.

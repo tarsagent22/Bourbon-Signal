@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
-import { buildMemberWeeklyDeliveryConfig } from "../src/lib/member-weekly-delivery.ts";
-import { executeMemberWeeklyDeliveryRun } from "../src/lib/member-weekly-delivery-runner.ts";
+import memberWeeklyDeliveryModule from "../src/lib/member-weekly-delivery.ts";
+import memberWeeklyDeliveryRunnerModule from "../src/lib/member-weekly-delivery-runner.ts";
+
+const { buildMemberWeeklyDeliveryConfig } = memberWeeklyDeliveryModule;
+const { executeMemberWeeklyDeliveryRun } = memberWeeklyDeliveryRunnerModule;
 
 const now = "2026-07-16T14:00:00.000Z";
 const optedIn = { emailEnabled: true, optedInAt: "2026-07-01T12:00:00.000Z", unsubscribedAt: null };

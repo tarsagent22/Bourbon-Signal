@@ -8,6 +8,7 @@ import {
   saveFounderShippingSubmission,
 } from "@/lib/founder-shipping-repository";
 import { getReferralRepository } from "@/lib/referral-repository";
+import { resolveServerEffectiveMembershipTier } from "@/lib/server-entitlements";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -42,7 +43,15 @@ async function memberShippingContext() {
 
   const client = await clerkClient();
   const user = await client.users.getUser(userId);
-  const eligibility = memberShippingEligibility(user.publicMetadata);
+  const durableTier = await resolveServerEffectiveMembershipTier(user.publicMetadata);
+  const eligibility = memberShippingEligibility({
+    tier: durableTier,
+    membershipTier: durableTier,
+    membershipStatus: durableTier === "free" ? "canceled" : "active",
+    plan: durableTier === "free" ? "free" : user.publicMetadata.plan,
+    founderNumber: user.publicMetadata.founderNumber,
+    memberNumber: user.publicMetadata.memberNumber,
+  });
   if (!eligibility.eligible && !(await getReferralRepository().hasGlassRewards(userId))) {
     return { error: NextResponse.json({ error: "Paid membership or an earned referral glass is required" }, { status: 403 }) } as const;
   }
