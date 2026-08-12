@@ -7,6 +7,86 @@ import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { neon } from '@neondatabase/serverless';
 
+const SIGNAL_POINT_TABLES = [
+  'member_referral_scale_migrations',
+  'signal_point_accounts',
+  'signal_point_reward_generations',
+  'signal_point_source_balances',
+  'signal_point_ledger',
+  'signal_point_migrations',
+  'signal_reward_catalog',
+  'signal_reward_redemptions',
+  'signal_reward_redemption_events',
+  'signal_reward_fulfillments',
+];
+const SIGNAL_POINT_REQUIRED_COLUMNS = {
+  member_referral_scale_migrations: ['migration_key', 'completed_at'],
+  signal_point_accounts: ['user_id', 'balance', 'debt', 'created_at', 'updated_at'],
+  signal_point_reward_generations: ['user_id', 'generation', 'reconciled_generation', 'updated_at'],
+  signal_point_source_balances: ['user_id', 'source_key', 'points', 'revision', 'updated_at'],
+  signal_point_ledger: ['id', 'user_id', 'idempotency_key', 'entry_kind', 'points', 'balance_delta', 'debt_delta', 'source_type', 'source_key', 'redemption_id', 'metadata', 'created_at'],
+  signal_point_migrations: ['migration_key', 'completed_at', 'details'],
+  signal_reward_catalog: ['item_key', 'catalog_version', 'name', 'points_cost', 'fulfillment_type', 'inventory_remaining', 'option_snapshot', 'active', 'created_at', 'updated_at'],
+  signal_reward_redemptions: ['id', 'user_id', 'idempotency_key', 'item_key', 'catalog_version', 'item_snapshot', 'details', 'points_spent', 'status', 'account_email', 'created_at', 'updated_at', 'canceled_at'],
+  signal_reward_redemption_events: ['id', 'redemption_id', 'from_status', 'to_status', 'actor_id', 'actor_role', 'metadata', 'created_at'],
+  signal_reward_fulfillments: ['redemption_id', 'fulfillment_type', 'shipping_profile_user_id', 'shipping_address', 'owner_notes', 'carrier', 'tracking_number', 'created_at', 'updated_at'],
+};
+const SIGNAL_POINT_REQUIRED_CONSTRAINTS = [
+  'member_referral_scale_migrations_pkey',
+  'signal_point_accounts_pkey',
+  'signal_point_accounts_balance_nonnegative',
+  'signal_point_accounts_debt_nonnegative',
+  'signal_point_reward_generations_pkey',
+  'signal_point_reward_generation_nonnegative',
+  'signal_point_reward_reconciled_generation_valid',
+  'signal_point_source_balances_pkey',
+  'signal_point_source_balances_user_id_fkey',
+  'signal_point_source_balance_nonnegative',
+  'signal_point_source_balance_revision_nonnegative',
+  'signal_point_ledger_pkey',
+  'signal_point_ledger_user_id_fkey',
+  'signal_point_ledger_redemption_id_fkey',
+  'signal_point_ledger_user_id_idempotency_key_key',
+  'signal_point_ledger_kind_valid',
+  'signal_point_ledger_points_nonzero',
+  'signal_point_ledger_sign_matches_kind',
+  'signal_point_ledger_economic_balance',
+  'signal_point_migrations_pkey',
+  'signal_reward_catalog_pkey',
+  'signal_reward_catalog_version_positive',
+  'signal_reward_catalog_cost_positive',
+  'signal_reward_catalog_fulfillment_valid',
+  'signal_reward_catalog_inventory_nonnegative',
+  'signal_reward_redemptions_pkey',
+  'signal_reward_redemptions_user_id_fkey',
+  'signal_reward_redemptions_item_key_fkey',
+  'signal_reward_redemptions_user_id_idempotency_key_key',
+  'signal_reward_redemption_points_positive',
+  'signal_reward_redemption_status_valid',
+  'signal_reward_redemption_events_pkey',
+  'signal_reward_redemption_events_redemption_id_fkey',
+  'signal_reward_event_actor_role_valid',
+  'signal_reward_fulfillments_pkey',
+  'signal_reward_fulfillments_redemption_id_fkey',
+  'signal_reward_fulfillment_type_valid',
+  'signal_reward_fulfillment_shipping_snapshot_valid',
+  'signal_reward_fulfillment_tracking_pair',
+];
+const SIGNAL_POINT_REQUIRED_CONSTRAINT_SHAPES = {
+  signal_point_ledger_sign_matches_kind: [
+    "entry_kind=anyarray'credit','migration_credit','cancellation_credit'", 'points>0', 'balance_delta>=0', 'debt_delta<=0',
+    "entry_kind=anyarray'debit','migration_debit','redemption_debit'", 'points<0', 'balance_delta<=0', 'debt_delta>=0',
+  ],
+  signal_point_ledger_economic_balance: ['points=balance_delta-debt_delta'],
+  signal_point_reward_generation_nonnegative: ['generation>=0'],
+  signal_point_reward_reconciled_generation_valid: ["reconciled_generation>='-1'"],
+  signal_reward_fulfillment_shipping_snapshot_valid: ["fulfillment_type='digital'", 'shipping_addressisnull', "fulfillment_type='physical'", "jsonb_typeofshipping_address='object'"],
+  signal_reward_fulfillment_tracking_pair: ['carrierisnull', 'tracking_numberisnull', 'carrierisnotnull', 'tracking_numberisnotnull'],
+};
+const SIGNAL_POINT_REQUIRED_TRIGGERS = {
+  signal_point_ledger_append_only: ['before', 'update', 'delete', 'signal_point_ledger', 'reject_signal_point_ledger_mutation'],
+  signal_reward_fulfillments_immutable_snapshot: ['before update', 'signal_reward_fulfillments', 'reject_signal_reward_fulfillment_snapshot_mutation'],
+};
 const TABLES = [
   'alert_baselines',
   'alert_candidates',
@@ -41,6 +121,7 @@ const TABLES = [
   'member_referral_glass_rewards',
   'member_referral_point_ledger',
   'member_referrals',
+  ...SIGNAL_POINT_TABLES,
   'retailer_acquisition_migrations',
   'retailer_applications',
   'retailer_prospect_approval_packets',
@@ -165,12 +246,50 @@ async function main() {
   const existing = new Set(existingRows.map((row) => row.table_name));
   // A safety backup must be possible before the gift migration creates its first table. Once any
   // gift table exists, treat the migration as started and require the complete post-migration set.
-  const requiredForObservedSchema = GIFT_TABLES.some((table) => existing.has(table))
+  const giftRequiredForObservedSchema = GIFT_TABLES.some((table) => existing.has(table))
     ? [...REQUIRED_TABLES, ...GIFT_TABLES]
     : REQUIRED_TABLES;
+  // Signal Points tables are optional for a pre-migration safety backup. Once any appears,
+  // a post-migration backup requires the complete unified ledger and rewards set.
+  const requiredForObservedSchema = SIGNAL_POINT_TABLES.some((table) => existing.has(table))
+    ? [...giftRequiredForObservedSchema, ...SIGNAL_POINT_TABLES]
+    : giftRequiredForObservedSchema;
   const missingRequired = requiredForObservedSchema.filter((table) => !existing.has(table));
   if (missingRequired.length) {
     throw new Error(`Refusing incomplete backup; required tables are missing: ${missingRequired.join(', ')}`);
+  }
+  if (SIGNAL_POINT_TABLES.some((table) => existing.has(table))) {
+    const [columnRows, constraintRows, triggerRows] = await Promise.all([
+      sql.query(`SELECT table_name,column_name FROM information_schema.columns
+        WHERE table_schema='public' AND table_name=ANY($1::text[])`, [SIGNAL_POINT_TABLES]),
+      sql.query(`SELECT constraint_row.conname,pg_get_constraintdef(constraint_row.oid) AS definition FROM pg_constraint constraint_row
+        JOIN pg_class table_row ON table_row.oid=constraint_row.conrelid
+        JOIN pg_namespace namespace_row ON namespace_row.oid=table_row.relnamespace
+        WHERE namespace_row.nspname='public' AND table_row.relname=ANY($1::text[])`, [SIGNAL_POINT_TABLES]),
+      sql.query(`SELECT trigger_row.tgname,pg_get_triggerdef(trigger_row.oid) AS definition FROM pg_trigger trigger_row
+        JOIN pg_class table_row ON table_row.oid=trigger_row.tgrelid
+        JOIN pg_namespace namespace_row ON namespace_row.oid=table_row.relnamespace
+        WHERE namespace_row.nspname='public' AND table_row.relname=ANY($1::text[]) AND NOT trigger_row.tgisinternal`, [SIGNAL_POINT_TABLES]),
+    ]);
+    const observedColumns = new Set(columnRows.map((row) => `${row.table_name}.${row.column_name}`));
+    const missingColumns = Object.entries(SIGNAL_POINT_REQUIRED_COLUMNS).flatMap(([table, columns]) =>
+      columns.filter((column) => !observedColumns.has(`${table}.${column}`)).map((column) => `${table}.${column}`));
+    const observedConstraints = new Set(constraintRows.map((row) => row.conname));
+    const missingConstraints = SIGNAL_POINT_REQUIRED_CONSTRAINTS.filter((constraint) => !observedConstraints.has(constraint));
+    const normalizeDefinition = (value) => String(value || '').replace(/\s+|::text|::bpchar|\(|\)|\[|\]/g, '').toLowerCase();
+    const invalidConstraintShapes = Object.entries(SIGNAL_POINT_REQUIRED_CONSTRAINT_SHAPES).flatMap(([name, fragments]) => {
+      const row = constraintRows.find((constraint) => constraint.conname === name);
+      const definition = normalizeDefinition(row?.definition);
+      return row && fragments.every((fragment) => definition.includes(normalizeDefinition(fragment))) ? [] : [name];
+    });
+    const invalidTriggers = Object.entries(SIGNAL_POINT_REQUIRED_TRIGGERS).flatMap(([name, fragments]) => {
+      const row = triggerRows.find((trigger) => trigger.tgname === name);
+      const definition = String(row?.definition || '').replace(/\s+/g, ' ').toLowerCase();
+      return row && fragments.every((fragment) => definition.includes(fragment)) ? [] : [name];
+    });
+    if (missingColumns.length || missingConstraints.length || invalidConstraintShapes.length || invalidTriggers.length) {
+      throw new Error(`Refusing incomplete Signal Points backup; missing columns: ${missingColumns.join(', ') || 'none'}; missing constraints: ${missingConstraints.join(', ') || 'none'}; invalid constraint shapes: ${invalidConstraintShapes.join(', ') || 'none'}; invalid triggers: ${invalidTriggers.join(', ') || 'none'}`);
+    }
   }
   const selectedTables = TABLES.filter((table) => existing.has(table));
   const snapshot = await sql.transaction((transaction) => selectedTables.flatMap((table) => [

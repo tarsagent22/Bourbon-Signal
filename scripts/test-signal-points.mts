@@ -1,0 +1,228 @@
+import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import test from "node:test";
+import {
+  SIGNAL_REWARD_CATALOG,
+  canRedeemSignalPoints,
+  isLegalRedemptionTransition,
+  normalizeRedemptionDetails,
+} from "../src/lib/signal-points.ts";
+import { clerkRewardSourceTargets, normalizedClerkRewardPoints, SignalPointsRepository } from "../src/lib/signal-points-repository.ts";
+
+const read = (path: string) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
+
+test("launch catalog has the confirmed versioned prices and fulfillment kinds", () => {
+  assert.deepEqual(Object.fromEntries(SIGNAL_REWARD_CATALOG.map((item) => [item.key, item.points])), {
+    sticker_pack: 75,
+    coaster_set: 200,
+    rocks_glass: 400,
+    glencairn: 450,
+    bourbon_shipping_gift_card_25: 650,
+    tshirt: 700,
+    rocks_glass_pair: 750,
+    glencairn_pair: 850,
+    hoodie: 1200,
+  });
+  assert.ok(SIGNAL_REWARD_CATALOG.every((item) => item.catalogVersion === 1));
+  assert.equal(SIGNAL_REWARD_CATALOG.find((item) => item.key === "bourbon_shipping_gift_card_25")?.fulfillmentType, "digital");
+  assert.ok(SIGNAL_REWARD_CATALOG.filter((item) => item.fulfillmentType === "physical").every((item) => item.usShippingIncluded));
+});
+
+test("only paid memberships may redeem while Free can accumulate", () => {
+  assert.equal(canRedeemSignalPoints("free"), false);
+  for (const tier of ["standard", "barrel", "bottled-in-bond"] as const) assert.equal(canRedeemSignalPoints(tier), true);
+});
+
+test("Clerk sighting balances migrate 10x once and normalized rewards remain exact", () => {
+  assert.equal(normalizedClerkRewardPoints({ points: 8, ledger: [{ id: "old", reason: "sighting_base_v3", points: 3 }] }), 80);
+  assert.equal(normalizedClerkRewardPoints({ points: 80, ledger: [{ id: "new", reason: "sighting_base_v4", points: 30 }] }), 80);
+  assert.equal(normalizedClerkRewardPoints({
+    points: 34,
+    ledger: [
+      { id: "old", reason: "sighting_base_v3", points: 3 },
+      { id: "new", reason: "sighting_base_v4", points: 30 },
+      { id: "legacy-badge", reason: "badge_v2", points: 1 },
+    ],
+  }), 70, "legacy entries are scaled individually when a profile also contains normalized entries");
+});
+
+test("Clerk reward entries become independent durable sources for concurrent sightings and corrections", () => {
+  const first = clerkRewardSourceTargets({ points: 20, ledger: [
+    { id: "sighting_base_v4:sighting-a", sightingId: "sighting-a", reason: "sighting_base_v4", points: 10 },
+    { id: "badge_v3:first_sighting", badgeId: "first_sighting", reason: "badge_v3", points: 10 },
+  ] });
+  const concurrent = clerkRewardSourceTargets({ points: 20, ledger: [
+    { id: "sighting_base_v4:sighting-b", sightingId: "sighting-b", reason: "sighting_base_v4", points: 10 },
+    { id: "badge_v3:first_sighting", badgeId: "first_sighting", reason: "badge_v3", points: 10 },
+  ] });
+  assert.notEqual(first.find((source) => source.metadata.sightingId === "sighting-a")?.sourceKey, concurrent.find((source) => source.metadata.sightingId === "sighting-b")?.sourceKey);
+  assert.equal(first.find((source) => source.metadata.badgeId === "first_sighting")?.sourceKey, concurrent.find((source) => source.metadata.badgeId === "first_sighting")?.sourceKey);
+  assert.equal(clerkRewardSourceTargets({ points: 10, ledger: [
+    { id: "sighting_base_v4:sighting-a", sightingId: "sighting-a", reason: "sighting_base_v4", points: 10, revokedAt: "2026-08-12T12:00:00.000Z" },
+    { id: "sighting_base_v4:sighting-b", sightingId: "sighting-b", reason: "sighting_base_v4", points: 10 },
+  ] }).find((source) => source.metadata.sightingId === "sighting-a")?.targetPoints, 0, "removal explicitly zeros only the removed sighting source");
+  assert.equal(clerkRewardSourceTargets({ points: 30, ledger: [
+    { id: "sighting_base_v4:sighting-b", sightingId: "sighting-b", reason: "sighting_base_v4", points: 30 },
+  ] }).find((source) => source.metadata.sightingId === "sighting-b")?.targetPoints, 30, "rarity updates reuse the sighting source key with a new target");
+});
+
+test("sighting mutation routes reconcile one complete generation-guarded source set", () => {
+  const repository = read("src/lib/signal-points-repository.ts");
+  assert.match(repository, /reconcile_signal_point_source_set/);
+  assert.doesNotMatch(repository, /for \(const source of clerkRewardSourceTargets/);
+  const communityRepository = read("src/lib/community-sightings-repository.ts");
+  assert.match(communityRepository, /rewardGeneration/);
+  for (const path of ["src/app/api/sightings/route.ts", "src/app/api/sightings/photo/route.ts", "src/app/api/admin/sightings/route.ts"]) {
+    assert.match(read(path), /reconcileClerkRewards\([^;]*rewardGeneration/);
+  }
+});
+
+test("member cutover gate fails closed and has only an explicit non-production override", async () => {
+  const closed = new SignalPointsRepository({ query: async () => [] });
+  await assert.rejects(closed.assertCutoverVerified(), /not verified complete/i);
+  const open = new SignalPointsRepository({ query: async () => [{ verified: 1 }] });
+  await open.assertCutoverVerified();
+  const localOverride = new SignalPointsRepository({ query: async () => { throw new Error("should not query"); } }, { allowUnverifiedCutover: true });
+  await localOverride.assertCutoverVerified();
+  const repository = read("src/lib/signal-points-repository.ts");
+  assert.match(repository, /SIGNAL_POINTS_ALLOW_UNVERIFIED_CUTOVER/);
+  assert.match(repository, /NODE_ENV\s*===\s*["']production["'][\s\S]*forbidden in production/i);
+});
+
+test("glass engraving is short, validated, and priced per glass", () => {
+  assert.deepEqual(normalizeRedemptionDetails("rocks_glass", { glassStyle: "standard" }), { ok: true, details: { glassStyle: "standard" }, surchargePoints: 0 });
+  assert.deepEqual(normalizeRedemptionDetails("glencairn", { glassStyle: "personal", engravingText: "C.T. 2026" }), {
+    ok: true, details: { glassStyle: "personal", engravingText: "C.T. 2026" }, surchargePoints: 125,
+  });
+  assert.equal(normalizeRedemptionDetails("rocks_glass_pair", { glassStyle: "personal", engravingText: "BOURBON SIGNAL MEMBER NAME IS TOO LONG" }).ok, false);
+  assert.equal(normalizeRedemptionDetails("glencairn_pair", { glassStyle: "personal", engravingText: "CAB" }).surchargePoints, 250);
+});
+
+test("apparel and gift card details are explicit and validated", () => {
+  assert.equal(normalizeRedemptionDetails("tshirt", { size: "XL", color: "black" }).ok, true);
+  assert.equal(normalizeRedemptionDetails("hoodie", { size: "", color: "black" }).ok, false);
+  assert.equal(normalizeRedemptionDetails("bourbon_shipping_gift_card_25", { age21Attested: false, accountEmail: "member@example.com" }).ok, false);
+  assert.equal(normalizeRedemptionDetails("bourbon_shipping_gift_card_25", { age21Attested: true, accountEmail: "member@example.com" }).ok, true);
+});
+
+test("redemption state machine allows only forward fulfillment transitions and pre-fulfillment cancellation", () => {
+  for (const [from, to] of [
+    ["reserved", "details_required"], ["reserved", "submitted"], ["details_required", "submitted"],
+    ["submitted", "approved"], ["approved", "packed"], ["approved", "digital_fulfillment"],
+    ["packed", "shipped"], ["shipped", "delivered"], ["digital_fulfillment", "delivered"],
+    ["reserved", "canceled"], ["details_required", "canceled"], ["submitted", "canceled"], ["approved", "canceled"],
+  ] as const) assert.equal(isLegalRedemptionTransition(from, to), true, `${from} -> ${to}`);
+  for (const [from, to] of [["packed", "canceled"], ["shipped", "canceled"], ["delivered", "approved"], ["canceled", "submitted"]] as const) {
+    assert.equal(isLegalRedemptionTransition(from, to), false, `${from} -/-> ${to}`);
+  }
+});
+
+test("schema, migration, encrypted backup, APIs, drawer, and owner queue are wired", () => {
+  const schema = read("src/lib/signal-points-schema.sql");
+  for (const token of ["signal_point_accounts", "signal_point_reward_generations", "signal_point_ledger", "signal_reward_catalog", "signal_reward_redemptions", "signal_reward_redemption_events", "signal_reward_fulfillments", "reserve_signal_reward", "transition_signal_reward_redemption"]) assert.match(schema, new RegExp(token));
+  assert.match(schema, /ON CONFLICT\s*\(user_id,\s*idempotency_key\)/i);
+  assert.match(schema, /FOR UPDATE/i);
+  assert.match(schema, /inventory_remaining\s+IS\s+NULL\s+OR\s+(?:catalog_row\.)?inventory_remaining\s*>\s*0/i);
+  assert.match(schema, /cancellation_credit/i);
+  assert.match(schema, /member_referral_point_ledger/i);
+  assert.match(schema, /signal_points_clerk_metadata_v1/i);
+  assert.match(schema, /CREATE TRIGGER[\s\S]*signal_point_ledger[\s\S]*(UPDATE|DELETE)/i);
+  assert.match(schema, /debt\s+INTEGER[\s\S]*CHECK\s*\(debt\s*>=\s*0\)/i);
+  assert.match(schema, /balance_delta/i);
+  assert.match(schema, /debt_delta/i);
+  assert.match(schema, /signal_point_ledger_sign_matches_kind/i);
+  assert.match(schema, /signal_point_ledger_economic_balance/i);
+  assert.match(schema, /entry_kind\s+IN\s*\('credit','migration_credit','cancellation_credit'\)[\s\S]*balance_delta\s*>=\s*0[\s\S]*debt_delta\s*<=\s*0/i);
+  assert.match(schema, /entry_kind\s+IN\s*\('debit','migration_debit','redemption_debit'\)[\s\S]*balance_delta\s*<=\s*0[\s\S]*debt_delta\s*>=\s*0/i);
+  assert.match(schema, /shipping_address\s+JSONB/i);
+  assert.match(schema, /signal_reward_fulfillment_tracking_pair/i);
+  assert.match(schema, /CREATE TRIGGER\s+signal_reward_fulfillments_immutable_snapshot\s+BEFORE UPDATE/i);
+  assert.match(schema, /shipping_address\s+IS DISTINCT FROM\s+OLD\.shipping_address/i);
+  assert.match(schema, /Signal reward fulfillment snapshot is immutable/i);
+  assert.match(schema, /Signal Points credit idempotency key conflict/i);
+  assert.match(schema, /signal_points_clerk_metadata_v1_required/i);
+  assert.match(schema, /signal_points_clerk_metadata_v1_verified_complete/i);
+  assert.match(schema, /p_next_status='shipped'[\s\S]*carrier[\s\S]*tracking/i);
+  assert.match(schema, /roll-forward/i);
+  assert.match(schema, /referral-ledger-adjustment-9x:/);
+  assert.match(schema, /imported\.points\*10=referrals\.points/);
+
+  const migration = read("scripts/migrate-app-storage.mjs");
+  assert.match(migration, /signal-points-schema\.sql/);
+  for (const table of ["signal_point_accounts", "signal_point_reward_generations", "signal_point_ledger", "signal_reward_catalog", "signal_reward_redemptions", "signal_reward_redemption_events", "signal_reward_fulfillments"]) assert.match(migration, new RegExp(table));
+  assert.match(migration, /expectedSignalConstraintShapes/);
+  assert.match(migration, /signal_point_ledger_sign_matches_kind[\s\S]*balance_delta>=0[\s\S]*debt_delta<=0/i);
+  assert.match(migration, /signal_reward_fulfillments_immutable_snapshot/);
+
+  const backup = read("scripts/backup-neon-local.mjs");
+  assert.match(backup, /SIGNAL_POINT_TABLES/);
+  assert.match(backup, /pre-migration/i);
+  assert.match(backup, /post-migration/i);
+  for (const table of ["signal_point_accounts", "signal_point_reward_generations", "signal_point_ledger", "signal_reward_catalog", "signal_reward_redemptions", "signal_reward_redemption_events", "signal_reward_fulfillments"]) assert.match(backup, new RegExp(`'${table}'`));
+  assert.match(backup, /SIGNAL_POINT_REQUIRED_COLUMNS/);
+  assert.match(backup, /SIGNAL_POINT_REQUIRED_CONSTRAINTS/);
+  assert.match(backup, /pg_get_constraintdef/i);
+  assert.match(backup, /SIGNAL_POINT_REQUIRED_CONSTRAINT_SHAPES/);
+  assert.match(backup, /signal_reward_fulfillments_immutable_snapshot/);
+
+  const backfill = read("scripts/backfill-signal-points.mts");
+  assert.match(backfill, /getUserList/);
+  assert.match(backfill, /orderBy:\s*["']\+created_at["']/);
+  assert.match(backfill, /page\.totalCount/);
+  assert.match(backfill, /--apply/);
+  assert.match(backfill, /dryRun/);
+  for (const count of ["scanned", "reconciled", "verified", "mismatched"]) assert.match(backfill, new RegExp(count));
+  assert.match(backfill, /firstPass/i);
+  assert.match(backfill, /secondPass/i);
+  assert.match(backfill, /snapshotHash/i);
+  assert.match(backfill, /signal_points_clerk_metadata_v1_verified_complete/i);
+  assert.match(read("package.json"), /backfill:signal-points/);
+  assert.match(read("package.json"), /verify:ci[\s\S]*test:signal-points/);
+
+  const memberRoute = read("src/app/api/signal-points/route.ts");
+  const redemptionRoute = read("src/app/api/signal-points/redemptions/route.ts");
+  const adminRoute = read("src/app/api/admin/signal-points/route.ts");
+  assert.match(memberRoute, /auth\(\)/); assert.match(memberRoute, /503/); assert.match(memberRoute, /assertCutoverVerified/);
+  assert.doesNotMatch(memberRoute, /privateMetadata|reconcileClerkRewards/);
+  assert.doesNotMatch(redemptionRoute, /privateMetadata|reconcileClerkRewards/);
+  assert.match(redemptionRoute, /auth\(\)/); assert.match(redemptionRoute, /verified/i); assert.match(redemptionRoute, /shipping/i); assert.match(redemptionRoute, /503/); assert.match(redemptionRoute, /assertCutoverVerified/);
+  assert.match(adminRoute, /requireOwnerApiAccess/);
+  const operationsPage = read("src/app/admin/operations/page.tsx");
+  assert.match(operationsPage, /requireOwnerPageAccess/);
+  const ownerAuth = read("src/lib/owner-auth.ts");
+  assert.match(ownerAuth, /status:\s*401/); assert.match(ownerAuth, /status:\s*403/);
+  assert.match(ownerAuth, /primaryEmailAddressId/);
+  assert.match(ownerAuth, /verification[^\n]*status[^\n]*verified/i);
+  assert.doesNotMatch(ownerAuth, /emailAddresses\?\.\[0\]|emails\[0\]/);
+  for (const path of ["src/app/api/admin/sightings/route.ts", "src/app/api/admin/bottle-contributions/route.ts"]) {
+    const source = read(path);
+    assert.match(source, /requireOwnerApiAccess/);
+    assert.doesNotMatch(source, /function primaryEmail|function requireAdmin/);
+  }
+  for (const path of ["src/app/admin/sightings/page.tsx", "src/app/admin/bottle-queue/page.tsx"]) assert.match(read(path), /requireOwnerPageAccess/);
+  const panel = read("src/components/SignalPointsPanel.tsx");
+  assert.match(panel, /Paid membership required/);
+  assert.match(panel, /useRef/);
+  assert.match(panel, /redemptionIntent/i);
+  assert.match(panel, /body:\s*JSON\.stringify\([^\n]*idempotencyKey:\s*redemptionIntentKey\(\)/);
+  assert.match(read("src/app/dashboard/page.tsx"), /<SignalPointsPanel/);
+  assert.doesNotMatch(read("src/components/Navigation.tsx"), /label:\s*["']Rewards["']/);
+  assert.match(read("src/app/admin/operations/page.tsx"), /SignalPointRewardQueue/);
+  const ownerQueue = read("src/components/admin/SignalPointRewardQueue.tsx");
+  assert.match(ownerQueue, /carrier/i);
+  assert.match(ownerQueue, /trackingNumber/);
+});
+
+test("sighting reward projections write PostgreSQL before Clerk", () => {
+  for (const path of [
+    "src/app/api/sightings/route.ts",
+    "src/app/api/sightings/photo/route.ts",
+    "src/app/api/admin/sightings/route.ts",
+  ]) {
+    const source = read(path);
+    assert.match(source, /await (?:createSignalPointsRepository\(\)|signalPoints)\.reconcileClerkRewards\([^;]+;[\s\S]{0,220}await [^;]*users\.updateUserMetadata/, `${path} writes PostgreSQL before its Clerk projection`);
+    assert.doesNotMatch(source, /await [^;]*users\.updateUserMetadata[\s\S]{0,220}await createSignalPointsRepository\(\)\.reconcileClerkRewards/, `${path} has no Clerk-first reward projection`);
+  }
+  const memberSightings = read("src/app/api/sightings/route.ts");
+  assert.doesNotMatch(memberSightings, /after\(async \(\) => \{[\s\S]{0,300}persistMemberRewardsBestEffort/, "new sightings commit PostgreSQL points before returning success");
+});

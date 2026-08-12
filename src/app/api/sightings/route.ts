@@ -11,6 +11,7 @@ import { isLikelyDuplicateSighting, sanitizeManualSightingField } from "@/lib/si
 import { getQaPreviewTierFromRequest, isQaPreviewRequest } from "@/lib/preview-qa";
 import { addBottleContribution } from "@/lib/bottle-contributions";
 import { COMMUNITY_SIGHTINGS_DURABLE_CUTOVER } from "@/data/community-sightings-cutover";
+import { createSignalPointsRepository } from "@/lib/signal-points-repository";
 
 function normalizeSightingType(value: unknown): SightingType {
   return value === "online_social" ? "online_social" : "seen_in_store";
@@ -145,9 +146,10 @@ async function readCachedLegacyCommunitySnapshot() {
   return legacyCommunityInFlight;
 }
 
-async function persistMemberRewardsBestEffort(client: Awaited<ReturnType<typeof clerkClient>>, userId: string, memberRewards: unknown) {
+async function persistMemberRewardsBestEffort(client: Awaited<ReturnType<typeof clerkClient>>, userId: string, memberRewards: unknown, rewardGeneration: number) {
+  await createSignalPointsRepository().reconcileClerkRewards(userId, memberRewards, rewardGeneration);
   await client.users.updateUserMetadata(userId, { privateMetadata: { memberRewards } }).catch((error) => {
-    console.error("Sighting rewards reconciliation skipped", error);
+    console.error("Durable sighting rewards reconciled, but Clerk projection failed", error);
   });
 }
 
@@ -226,6 +228,7 @@ export async function GET(req: NextRequest) {
   const includeRewards = url.searchParams.get("rewards") !== "0";
   const requestedLimit = Number(url.searchParams.get("limit") || 60);
   const feedLimit = Number.isFinite(requestedLimit) ? Math.max(1, Math.min(Math.floor(requestedLimit), 1_000)) : 60;
+  const rewardGeneration = includeRewards ? await createSignalPointsRepository().readRewardGeneration(userId) : 0;
   const aggregate = await getAggregateSightings(userId, { includeOwned: includeRewards, limit: feedLimit });
 
   const allSightings = aggregate.sightings;
@@ -240,7 +243,7 @@ export async function GET(req: NextRequest) {
     const rewardSightings = normalizeSightingsForRewards(ownedSightings, await getBourbonBible());
     const nextRewards = reconcileMemberRewards(rewardSightings, privateMetadata.memberRewards);
     if (rewardsNeedPersistence(privateMetadata.memberRewards, nextRewards)) {
-      after(() => persistMemberRewardsBestEffort(client, userId, nextRewards));
+      await persistMemberRewardsBestEffort(client, userId, nextRewards, rewardGeneration);
     }
     rewards = summarizeMemberRewards(rewardSightings, nextRewards);
   }
@@ -340,6 +343,7 @@ export async function POST(req: NextRequest) {
     createdAt: new Date().toISOString(),
   };
   const repository = createCommunitySightingsRepository();
+  const observedRewardGeneration = await createSignalPointsRepository().readRewardGeneration(userId);
   const durableSightings = await repository.listSightingsForReporter(userId);
   const ownedSightings = dedupeSightings([...prefs.submittedSightings, ...durableSightings]);
   const rewardCatalog = await getBourbonBible();
@@ -349,19 +353,20 @@ export async function POST(req: NextRequest) {
   if (duplicate) {
     const nextRewards = reconcileMemberRewards(rewardSightings, privateMetadata.memberRewards);
     if (rewardsNeedPersistence(privateMetadata.memberRewards, nextRewards)) {
-      after(() => persistMemberRewardsBestEffort(client, userId, nextRewards));
+      after(() => persistMemberRewardsBestEffort(client, userId, nextRewards, observedRewardGeneration));
     }
     const rewards: MemberRewardsSummary = summarizeMemberRewards(rewardSightings, nextRewards);
     return NextResponse.json({ ok: true, created: false, duplicate: true, sighting: duplicate, rewards });
   }
 
   const savedSighting = await repository.insertSighting(sighting);
-  const nextOwnedSightings = [savedSighting, ...ownedSightings];
+  const authoritativeSightings = await repository.listSightingsForReporter(userId);
+  const nextOwnedSightings = dedupeSightings([...prefs.submittedSightings, ...authoritativeSightings]);
   const nextRewardSightings = normalizeSightingsForRewards(nextOwnedSightings, rewardCatalog);
   const nextRewards = reconcileMemberRewards(nextRewardSightings, privateMetadata.memberRewards);
+  await persistMemberRewardsBestEffort(client, userId, nextRewards, savedSighting.rewardGeneration);
   after(async () => {
     try {
-      await persistMemberRewardsBestEffort(client, userId, nextRewards);
       if (needsBottleReview) {
         await addBottleContribution({
           rawName: sanitizeManualSightingField(reviewInput.manualBottleName || bottleName, 140),
@@ -376,7 +381,7 @@ export async function POST(req: NextRequest) {
     }
   });
   const rewards: MemberRewardsSummary = summarizeMemberRewards(nextRewardSightings, nextRewards);
-  return NextResponse.json({ ok: true, created: true, sighting: savedSighting, rewards });
+  return NextResponse.json({ ok: true, created: true, sighting: savedSighting.sighting, rewards });
 }
 
 export async function PATCH(req: NextRequest) {
@@ -433,11 +438,13 @@ export async function PATCH(req: NextRequest) {
       const ownedSightings = dedupeSightings([...ownerPrefs.submittedSightings, ...durableOwned]);
       const rewardSightings = normalizeSightingsForRewards(ownedSightings, await getBourbonBible());
       const nextOwnerRewards = reconcileMemberRewards(rewardSightings, ownerPrivateMetadata.memberRewards);
+      await createSignalPointsRepository().reconcileClerkRewards(updatedTarget.reporterUserId, nextOwnerRewards, voteResult.rewardGeneration);
       await client.users.updateUserMetadata(updatedTarget.reporterUserId, { privateMetadata: { ...ownerPrivateMetadata, memberRewards: nextOwnerRewards } });
       rewards = summarizeMemberRewards(rewardSightings, nextOwnerRewards);
     }
   } catch (error) {
-    console.error("Sighting vote persisted, but reward reconciliation failed", error);
+    console.error("Sighting vote persisted, but durable reward reconciliation failed", error);
+    return NextResponse.json({ error: "Sighting vote saved, but Signal Points reconciliation is temporarily unavailable." }, { status: 503 });
   }
   return NextResponse.json({ ok: true, sighting: updatedTarget, rewards });
 }

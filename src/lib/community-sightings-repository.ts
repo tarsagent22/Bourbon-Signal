@@ -8,6 +8,11 @@ export interface DurableSightingVote {
   createdAt: string;
 }
 
+export interface SightingMutationResult {
+  sighting: MemberSighting;
+  rewardGeneration: number;
+}
+
 function connectionString(env: NodeJS.ProcessEnv = process.env) {
   return env.BOURBON_QUEUE_DATABASE_URL || env.BOURBON_QUEUE_DATABASE_URL_UNPOOLED || env.DATABASE_URL || null;
 }
@@ -89,60 +94,83 @@ export class CommunitySightingsRepository {
     return rows[0]?.payload || null;
   }
 
-  async insertSighting(sighting: MemberSighting): Promise<MemberSighting> {
+  async insertSighting(sighting: MemberSighting): Promise<SightingMutationResult> {
     const rows = await this.query.query(
-      `INSERT INTO community_sightings (id, reporter_user_id, payload, created_at)
-       VALUES ($1, $2, $3::jsonb, $4::timestamptz)
-       RETURNING payload`,
+      `WITH inserted AS MATERIALIZED (
+         INSERT INTO community_sightings (id, reporter_user_id, payload, created_at)
+         VALUES ($1, $2, $3::jsonb, $4::timestamptz)
+         RETURNING payload,reporter_user_id
+       ), generation AS MATERIALIZED (
+         SELECT next_community_sighting_reward_generation(reporter_user_id) AS reward_generation FROM inserted
+       )
+       SELECT inserted.payload,generation.reward_generation FROM inserted CROSS JOIN generation`,
       [sighting.id, sighting.reporterUserId, JSON.stringify(sighting), sighting.createdAt],
-    ) as Array<{ payload: MemberSighting }>;
+    ) as Array<{ payload: MemberSighting; reward_generation: string | number }>;
     if (!rows[0]) throw new Error("Unable to persist member sighting.");
-    return rows[0].payload;
+    return { sighting: rows[0].payload, rewardGeneration: Number(rows[0].reward_generation) };
   }
 
-  async insertSightingIfAbsent(sighting: MemberSighting): Promise<MemberSighting> {
+  async insertSightingIfAbsent(sighting: MemberSighting): Promise<SightingMutationResult> {
     const rows = await this.query.query(
-      `INSERT INTO community_sightings (id, reporter_user_id, payload, created_at)
-       VALUES ($1, $2, $3::jsonb, $4::timestamptz)
-       ON CONFLICT (id) DO NOTHING
-       RETURNING payload`,
+      `WITH inserted AS MATERIALIZED (
+         INSERT INTO community_sightings (id, reporter_user_id, payload, created_at)
+         VALUES ($1, $2, $3::jsonb, $4::timestamptz)
+         ON CONFLICT (id) DO NOTHING
+         RETURNING payload,reporter_user_id
+       ), bumped AS MATERIALIZED (
+         SELECT next_community_sighting_reward_generation(reporter_user_id) AS reward_generation FROM inserted
+       ), selected AS (
+         SELECT inserted.payload,bumped.reward_generation FROM inserted CROSS JOIN bumped
+         UNION ALL
+         SELECT stored.payload,COALESCE(generations.generation,0) AS reward_generation
+         FROM community_sightings stored
+         LEFT JOIN signal_point_reward_generations generations ON generations.user_id=stored.reporter_user_id
+         WHERE stored.id=$1 AND NOT EXISTS (SELECT 1 FROM inserted)
+       ) SELECT payload,reward_generation FROM selected LIMIT 1`,
       [sighting.id, sighting.reporterUserId, JSON.stringify(sighting), sighting.createdAt],
-    ) as Array<{ payload: MemberSighting }>;
-    const stored = rows[0]?.payload || await this.getSighting(sighting.id);
-    if (!stored || stored.reporterUserId !== sighting.reporterUserId) throw new Error("Sighting ownership conflict.");
-    return stored;
+    ) as Array<{ payload: MemberSighting; reward_generation: string | number }>;
+    const stored = rows[0];
+    if (!stored || stored.payload.reporterUserId !== sighting.reporterUserId) throw new Error("Sighting ownership conflict.");
+    return { sighting: stored.payload, rewardGeneration: Number(stored.reward_generation) };
   }
 
-  async updateSighting(sighting: MemberSighting): Promise<MemberSighting> {
+  async updateSighting(sighting: MemberSighting): Promise<SightingMutationResult> {
     const rows = await this.query.query(
-      `WITH locked AS (SELECT pg_advisory_xact_lock(hashtext($1)))
-       UPDATE community_sightings
-       SET payload = jsonb_set(
-         jsonb_set(
-           jsonb_set($2::jsonb, '{upCount}', COALESCE(payload->'upCount', '0'::jsonb), true),
-           '{downCount}', COALESCE(payload->'downCount', '0'::jsonb), true
-         ),
-         '{rewardState,helpfulAt}',
-         COALESCE(payload#>'{rewardState,helpfulAt}', 'null'::jsonb),
-         true
-       ), updated_at = NOW()
-       FROM locked WHERE id = $1 RETURNING community_sightings.payload`,
+      `WITH locked AS MATERIALIZED (SELECT pg_advisory_xact_lock(hashtext($1))), updated AS MATERIALIZED (
+         UPDATE community_sightings
+         SET payload = jsonb_set(
+           jsonb_set(
+             jsonb_set($2::jsonb, '{upCount}', COALESCE(payload->'upCount', '0'::jsonb), true),
+             '{downCount}', COALESCE(payload->'downCount', '0'::jsonb), true
+           ),
+           '{rewardState,helpfulAt}',
+           COALESCE(payload#>'{rewardState,helpfulAt}', 'null'::jsonb),
+           true
+         ), updated_at = NOW()
+         FROM locked WHERE id = $1 RETURNING community_sightings.payload,community_sightings.reporter_user_id
+       ), generation AS MATERIALIZED (
+         SELECT next_community_sighting_reward_generation(reporter_user_id) AS reward_generation FROM updated
+       ) SELECT updated.payload,generation.reward_generation FROM updated CROSS JOIN generation`,
       [sighting.id, JSON.stringify(sighting)],
-    ) as Array<{ payload: MemberSighting }>;
+    ) as Array<{ payload: MemberSighting; reward_generation: string | number }>;
     if (!rows[0]) throw new Error("Member sighting not found.");
-    return rows[0].payload;
+    return { sighting: rows[0].payload, rewardGeneration: Number(rows[0].reward_generation) };
   }
 
-  async replacePhotoProof(sightingId: string, ownerUserId: string, expectedPreviousUrl: string | null, photoProof: NonNullable<NonNullable<MemberSighting["rewardState"]>["photoProof"]>): Promise<MemberSighting | null> {
+  async replacePhotoProof(sightingId: string, ownerUserId: string, expectedPreviousUrl: string | null, photoProof: NonNullable<NonNullable<MemberSighting["rewardState"]>["photoProof"]>): Promise<SightingMutationResult | null> {
     const rows = await this.query.query(
-      `UPDATE community_sightings
-       SET payload = jsonb_set(payload, '{rewardState,photoProof}', $4::jsonb, true), updated_at = NOW()
-       WHERE id = $1 AND reporter_user_id = $2
-         AND (payload#>>'{rewardState,photoProof,url}') IS NOT DISTINCT FROM $3
-       RETURNING payload`,
+      `WITH updated AS MATERIALIZED (
+         UPDATE community_sightings
+         SET payload = jsonb_set(payload, '{rewardState,photoProof}', $4::jsonb, true), updated_at = NOW()
+         WHERE id = $1 AND reporter_user_id = $2
+           AND (payload#>>'{rewardState,photoProof,url}') IS NOT DISTINCT FROM $3
+         RETURNING payload,reporter_user_id
+       ), generation AS MATERIALIZED (
+         SELECT next_community_sighting_reward_generation(reporter_user_id) AS reward_generation FROM updated
+       ) SELECT updated.payload,generation.reward_generation FROM updated CROSS JOIN generation`,
       [sightingId, ownerUserId, expectedPreviousUrl, JSON.stringify(photoProof)],
-    ) as Array<{ payload: MemberSighting }>;
-    return rows[0]?.payload || null;
+    ) as Array<{ payload: MemberSighting; reward_generation: string | number }>;
+    return rows[0] ? { sighting: rows[0].payload, rewardGeneration: Number(rows[0].reward_generation) } : null;
   }
 
   async listVotes(): Promise<DurableSightingVote[]> {
@@ -173,7 +201,7 @@ export class CommunitySightingsRepository {
     );
   }
 
-  async toggleVote(sightingId: string, userId: string, kind: SightingVoteKind): Promise<{ kind: SightingVoteKind | null; upCount: number; downCount: number; sighting: MemberSighting }> {
+  async toggleVote(sightingId: string, userId: string, kind: SightingVoteKind): Promise<{ kind: SightingVoteKind | null; upCount: number; downCount: number; sighting: MemberSighting; rewardGeneration: number }> {
     const [, voteRows] = await this.query.transaction((tx) => [
       tx.query(`SELECT pg_advisory_xact_lock(hashtextextended($1, 0))`, [sightingId]),
       tx.query(
@@ -213,15 +241,17 @@ export class CommunitySightingsRepository {
              || jsonb_build_object('communityVerified', outcome.up_count >= 3 AND outcome.up_count - outcome.down_count >= 3),
            updated_at = NOW()
          FROM outcome WHERE id = $1
-         RETURNING payload, outcome.next_kind, outcome.up_count, outcome.down_count
-       ) SELECT payload, next_kind, up_count, down_count FROM updated`,
+         RETURNING payload,reporter_user_id,outcome.next_kind,outcome.up_count,outcome.down_count
+       ), generation AS MATERIALIZED (
+         SELECT next_community_sighting_reward_generation(reporter_user_id) AS reward_generation FROM updated
+       ) SELECT payload,next_kind,up_count,down_count,reward_generation FROM updated CROSS JOIN generation`,
       [sightingId, userId, kind],
       ),
     ], { isolationLevel: "ReadCommitted" });
-    const rows = voteRows as Array<{ payload: MemberSighting; next_kind: SightingVoteKind | null; up_count: number; down_count: number }>;
+    const rows = voteRows as Array<{ payload: MemberSighting; next_kind: SightingVoteKind | null; up_count: number; down_count: number; reward_generation: string | number }>;
     const row = rows[0];
     if (!row) throw new Error("Sighting not found");
-    return { kind: row.next_kind, upCount: Number(row.up_count), downCount: Number(row.down_count), sighting: row.payload };
+    return { kind: row.next_kind, upCount: Number(row.up_count), downCount: Number(row.down_count), sighting: row.payload, rewardGeneration: Number(row.reward_generation) };
   }
 }
 

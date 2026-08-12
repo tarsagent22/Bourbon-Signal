@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { normalizeMembershipTier } from "@/lib/entitlements";
 import { getReferralRepository } from "@/lib/referral-repository";
 import { ensureMemberReferralCode } from "@/lib/referral-service";
+import { createSignalPointsRepository } from "@/lib/signal-points-repository";
 
 export const dynamic = "force-dynamic";
 
@@ -10,14 +11,6 @@ function primaryEmail(user: Awaited<ReturnType<Awaited<ReturnType<typeof clerkCl
   return user.emailAddresses.find((item) => item.id === user.primaryEmailAddressId)?.emailAddress
     || user.emailAddresses[0]?.emailAddress
     || "";
-}
-
-function sightingPoints(privateMetadata: Record<string, unknown>) {
-  const rewards = privateMetadata.memberRewards && typeof privateMetadata.memberRewards === "object"
-    ? privateMetadata.memberRewards as Record<string, unknown>
-    : {};
-  const points = Number(rewards.points || 0);
-  return Number.isFinite(points) && points > 0 ? Math.floor(points) : 0;
 }
 
 export async function GET(req: NextRequest) {
@@ -35,7 +28,9 @@ export async function GET(req: NextRequest) {
     if (!summary) throw new Error("Referral profile was not created");
 
     const tier = normalizeMembershipTier(user.publicMetadata?.tier || user.publicMetadata?.membershipTier);
-    const communityPoints = sightingPoints(user.privateMetadata as Record<string, unknown>);
+    const signalPoints = createSignalPointsRepository();
+    const unified = await signalPoints.readMember(userId);
+    const communityPoints = Math.max(0, unified.balance - summary.referralPoints);
     const origin = process.env.NEXT_PUBLIC_APP_URL || req.nextUrl.origin;
 
     return NextResponse.json({
@@ -43,7 +38,7 @@ export async function GET(req: NextRequest) {
       referralLink: `${origin.replace(/\/$/, "")}/r/${code}`,
       referralPoints: summary.referralPoints,
       communityPoints,
-      totalPoints: summary.referralPoints + communityPoints,
+      totalPoints: unified.balance,
       freePointsAwarded: summary.freePointsAwarded,
       referrals: {
         total: summary.totalReferrals,

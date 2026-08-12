@@ -29,52 +29,52 @@ test("normalizes valid referral codes and rejects malformed input", () => {
 });
 
 test("maps the highest referred membership tier to its total point value", () => {
-  assert.equal(referralPointsForTier("free"), 1);
-  assert.equal(referralPointsForTier("standard"), 5);
-  assert.equal(referralPointsForTier("barrel"), 10);
-  assert.equal(referralPointsForTier("bottled-in-bond"), 15);
+  assert.equal(referralPointsForTier("free"), 10);
+  assert.equal(referralPointsForTier("standard"), 50);
+  assert.equal(referralPointsForTier("barrel"), 100);
+  assert.equal(referralPointsForTier("bottled-in-bond"), 150);
 });
 
 test("awards only the difference as a referral upgrades", () => {
   assert.deepEqual(calculateReferralAward({ previousAwardedPoints: 0, nextTier: "free", freePointsAlreadyAwarded: 0 }), {
-    points: 1,
-    targetPoints: 1,
-    earnsFounderGlass: false,
-  });
-  assert.deepEqual(calculateReferralAward({ previousAwardedPoints: 1, nextTier: "standard", freePointsAlreadyAwarded: 1 }), {
-    points: 4,
-    targetPoints: 5,
-    earnsFounderGlass: false,
-  });
-  assert.deepEqual(calculateReferralAward({ previousAwardedPoints: 5, nextTier: "barrel", freePointsAlreadyAwarded: 1 }), {
-    points: 5,
+    points: 10,
     targetPoints: 10,
     earnsFounderGlass: false,
   });
-  assert.deepEqual(calculateReferralAward({ previousAwardedPoints: 10, nextTier: "bottled-in-bond", freePointsAlreadyAwarded: 1 }), {
-    points: 5,
-    targetPoints: 15,
-    earnsFounderGlass: true,
+  assert.deepEqual(calculateReferralAward({ previousAwardedPoints: 10, nextTier: "standard", freePointsAlreadyAwarded: 10 }), {
+    points: 40,
+    targetPoints: 50,
+    earnsFounderGlass: false,
+  });
+  assert.deepEqual(calculateReferralAward({ previousAwardedPoints: 50, nextTier: "barrel", freePointsAlreadyAwarded: 10 }), {
+    points: 50,
+    targetPoints: 100,
+    earnsFounderGlass: false,
+  });
+  assert.deepEqual(calculateReferralAward({ previousAwardedPoints: 100, nextTier: "bottled-in-bond", freePointsAlreadyAwarded: 10 }), {
+    points: 50,
+    targetPoints: 150,
+    earnsFounderGlass: false,
   });
 });
 
 test("caps Free-only points without reducing a later paid conversion", () => {
-  assert.deepEqual(calculateReferralAward({ previousAwardedPoints: 0, nextTier: "free", freePointsAlreadyAwarded: 5 }), {
+  assert.deepEqual(calculateReferralAward({ previousAwardedPoints: 0, nextTier: "free", freePointsAlreadyAwarded: 50 }), {
     points: 0,
     targetPoints: 0,
     earnsFounderGlass: false,
   });
-  assert.deepEqual(calculateReferralAward({ previousAwardedPoints: 0, nextTier: "standard", freePointsAlreadyAwarded: 5 }), {
-    points: 5,
-    targetPoints: 5,
+  assert.deepEqual(calculateReferralAward({ previousAwardedPoints: 0, nextTier: "standard", freePointsAlreadyAwarded: 50 }), {
+    points: 50,
+    targetPoints: 50,
     earnsFounderGlass: false,
   });
 });
 
-test("never issues duplicate points or Founder glasses at the same tier", () => {
-  assert.deepEqual(calculateReferralAward({ previousAwardedPoints: 15, nextTier: "bottled-in-bond", freePointsAlreadyAwarded: 5 }), {
+test("never issues duplicate points or new referral glasses at the same tier", () => {
+  assert.deepEqual(calculateReferralAward({ previousAwardedPoints: 150, nextTier: "bottled-in-bond", freePointsAlreadyAwarded: 50 }), {
     points: 0,
-    targetPoints: 15,
+    targetPoints: 150,
     earnsFounderGlass: false,
   });
 });
@@ -94,8 +94,9 @@ test("durable referral schema enforces attribution, event, cap, and glass invari
   assert.match(schema, /INSERT INTO member_referral_eligibility_events/i);
   assert.match(schema, /ORDER BY referral_tier_rank\(tier\) DESC/i);
   assert.match(schema, /FOR UPDATE/i);
-  assert.match(schema, /free_points_awarded\s*>=\s*5/i);
+  assert.match(schema, /free_points_awarded\s*>=\s*50/i);
   assert.match(schema, /ON CONFLICT \(referred_user_id\) DO NOTHING/i);
+  assert.doesNotMatch(schema, /INSERT INTO member_referral_glass_rewards[\s\S]*effective_tier/i);
 });
 
 test("app storage migration and encrypted backup enforce referral durability", () => {
@@ -255,10 +256,11 @@ test("member referral link appears only in Manage Account and Member Points", ()
   const navigation = read("src/components/Navigation.tsx");
   assert.match(component, /\/api\/referrals\/me/);
   assert.match(component, /navigator\.clipboard\.writeText/);
-  assert.match(component, /Eligible referrals can earn you member points and other rewards/);
+  assert.match(component, /Eligible referrals earn Signal Points/);
   assert.match(settings, /<MemberReferralLink/);
   assert.match(settings, /id="referrals"/);
-  assert.match(dashboard, /<MemberReferralLink compact/);
+  assert.match(dashboard, /<SignalPointsPanel/);
+  assert.match(read("src/components/SignalPointsPanel.tsx"), /<MemberReferralLink compact/);
   assert.match(referralsPage, /redirect\("\/settings#referrals"\)/);
   assert.doesNotMatch(navigation, /label: "Referrals"/);
   assert.doesNotMatch(component, /totalPoints|founderGlassesEarned|freePointsAwarded/);
