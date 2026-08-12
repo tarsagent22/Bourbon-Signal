@@ -45,7 +45,7 @@ async function transaction(statements: Array<{ text: string; params?: unknown[] 
   return sql.transaction((tx) => [
     tx.query(searchPath),
     ...statements.map((statement) => tx.query(statement.text, statement.params || [])),
-  ], { isolationLevel: "Serializable" });
+  ], { isolationLevel: "ReadCommitted" });
 }
 
 function orderValues(id: string, recipientEmail: string, plan = "standard_annual_gift", tier = "standard") {

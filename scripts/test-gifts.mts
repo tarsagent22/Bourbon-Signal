@@ -144,6 +144,10 @@ assert.match(schema, /abandon_adverse_gift_claim[\s\S]*status = 'abandoned'[\s\S
 assert.match(schema, /record_gift_dispute[\s\S]*p_state = 'won'[\s\S]*adverse_reconciled_at = NULL/i, "won disputes must remain pending until exact entitlement restoration succeeds");
 assert.match(schema, /authorize_gift_activation[\s\S]*status = 'activation_started'[\s\S]*refunded_at IS NULL[\s\S]*disputed_at IS NULL/i, "Clerk activation must be preceded by a durable adverse-state fence");
 assert.match(schema, /authorize_gift_delivery_send[\s\S]*payment_status = 'funded'[\s\S]*refunded_at IS NULL[\s\S]*disputed_at IS NULL[\s\S]*redeemed_at IS NULL/i);
+assert.match(schema, /claim_direct_founder_checkout[\s\S]*requested_attempt_id := p_attempt_id[\s\S]*INTO existing_attempt_id, allocated, version[\s\S]*reserve_founder_spot\('direct', 'direct-checkout:' \|\| requested_attempt_id/,
+  "a first direct Founder checkout must preserve its requested attempt ID while probing for an existing live attempt");
+assert.match(schema, /complete_direct_founder_checkout[\s\S]*UPDATE founder_spot_reservations AS spots[\s\S]*spots\.founder_number = target\.founder_number[\s\S]*spots\.status = 'reserved'/,
+  "direct Founder payment completion must qualify reservation columns against PL/pgSQL output names");
 assert.match(schema, /revoke_founder_gift_reservation[\s\S]*SELECT orders\.funded_at INTO order_funded_at[\s\S]*FOR UPDATE[\s\S]*order_funded_at IS NOT NULL THEN RETURN NULL/i,
   "a successfully funded Founder gift number must never be revoked or recycled");
 

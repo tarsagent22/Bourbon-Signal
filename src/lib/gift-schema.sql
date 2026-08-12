@@ -343,7 +343,7 @@ $$;
 
 CREATE OR REPLACE FUNCTION claim_direct_founder_checkout(p_attempt_id TEXT, p_user_id TEXT)
 RETURNS TABLE(attempt_id TEXT, founder_number INTEGER, entitlement_version TEXT) LANGUAGE plpgsql AS $$
-DECLARE allocated INTEGER; version TEXT; requested_attempt_id TEXT; returned_attempt_id TEXT;
+DECLARE allocated INTEGER; version TEXT; requested_attempt_id TEXT; existing_attempt_id TEXT; returned_attempt_id TEXT;
 BEGIN
   requested_attempt_id := p_attempt_id;
   IF NOT EXISTS (
@@ -352,21 +352,21 @@ BEGIN
   ) THEN RAISE EXCEPTION 'Founder authority reconciliation is not ready'; END IF;
   PERFORM pg_advisory_xact_lock(hashtext('direct-founder-user:' || p_user_id));
   SELECT reservations.attempt_id, reservations.founder_number, reservations.entitlement_version
-    INTO p_attempt_id, allocated, version
+    INTO existing_attempt_id, allocated, version
   FROM direct_founder_checkout_reservations reservations
   WHERE reservations.user_id = p_user_id AND (
-    reservations.attempt_id = p_attempt_id OR reservations.status IN ('creating','open')
+    reservations.attempt_id = requested_attempt_id OR reservations.status IN ('creating','open')
   )
-  ORDER BY (reservations.attempt_id = p_attempt_id) DESC, reservations.created_at
+  ORDER BY (reservations.attempt_id = requested_attempt_id) DESC, reservations.created_at
   LIMIT 1;
-  IF allocated IS NOT NULL THEN RETURN QUERY SELECT p_attempt_id, allocated, version; RETURN; END IF;
+  IF allocated IS NOT NULL THEN RETURN QUERY SELECT existing_attempt_id, allocated, version; RETURN; END IF;
   IF EXISTS (SELECT 1 FROM founder_spot_reservations WHERE user_id = p_user_id AND status = 'assigned') THEN
     RAISE EXCEPTION 'Founder membership is already assigned';
   END IF;
-  allocated := reserve_founder_spot('direct', 'direct-checkout:' || p_attempt_id, p_user_id, NULL);
-  version := md5(p_attempt_id || ':' || p_user_id || ':' || clock_timestamp()::TEXT);
+  allocated := reserve_founder_spot('direct', 'direct-checkout:' || requested_attempt_id, p_user_id, NULL);
+  version := md5(requested_attempt_id || ':' || p_user_id || ':' || clock_timestamp()::TEXT);
   INSERT INTO direct_founder_checkout_reservations (attempt_id, user_id, founder_number, entitlement_version)
-  VALUES (p_attempt_id, p_user_id, allocated, version)
+  VALUES (requested_attempt_id, p_user_id, allocated, version)
   ON CONFLICT (user_id) WHERE status IN ('creating','open') DO UPDATE
     SET updated_at = direct_founder_checkout_reservations.updated_at
   RETURNING direct_founder_checkout_reservations.attempt_id,
@@ -430,10 +430,10 @@ BEGIN
     stripe_payment_intent_id = COALESCE(p_payment_intent_id, stripe_payment_intent_id),
     stripe_charge_id = COALESCE(p_charge_id, stripe_charge_id), updated_at = NOW()
   WHERE attempt_id = p_attempt_id;
-  UPDATE founder_spot_reservations SET source_type = 'direct', source_id = 'direct-checkout:' || p_attempt_id,
-    gift_order_id = NULL, status = 'assigned', assigned_at = COALESCE(assigned_at, NOW()), updated_at = NOW()
-  WHERE founder_number = target.founder_number AND user_id = p_user_id
-    AND (status = 'reserved' OR (status = 'assigned' AND NOT EXISTS (
+  UPDATE founder_spot_reservations AS spots SET source_type = 'direct', source_id = 'direct-checkout:' || p_attempt_id,
+    gift_order_id = NULL, status = 'assigned', assigned_at = COALESCE(spots.assigned_at, NOW()), updated_at = NOW()
+  WHERE spots.founder_number = target.founder_number AND spots.user_id = p_user_id
+    AND (spots.status = 'reserved' OR (spots.status = 'assigned' AND NOT EXISTS (
       SELECT 1 FROM direct_founder_checkout_reservations other
       WHERE other.user_id = p_user_id AND other.attempt_id <> p_attempt_id
         AND other.status IN ('paid','refunded','disputed')
