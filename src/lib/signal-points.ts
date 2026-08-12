@@ -7,7 +7,7 @@ export const SIGNAL_REDEMPTION_STATES = [
 export type SignalRedemptionState = typeof SIGNAL_REDEMPTION_STATES[number];
 export type SignalRewardKey =
   | "sticker_pack" | "coaster_set" | "rocks_glass" | "glencairn"
-  | "bourbon_shipping_gift_card_25" | "tshirt" | "rocks_glass_pair"
+  | "bourbon_shipping_gift_card_100" | "tshirt" | "rocks_glass_pair"
   | "glencairn_pair" | "hoodie";
 
 export interface SignalRewardCatalogItem {
@@ -28,7 +28,7 @@ export const SIGNAL_REWARD_CATALOG: SignalRewardCatalogItem[] = [
   { key: "coaster_set", name: "Bourbon Signal coaster set", points: 200, catalogVersion: 1, fulfillmentType: "physical", usShippingIncluded: true },
   { key: "rocks_glass", name: "Bourbon Signal rocks glass", points: 400, catalogVersion: 1, fulfillmentType: "physical", usShippingIncluded: true, glassQuantity: 1, engravingPointsPerGlass: 125 },
   { key: "glencairn", name: "Bourbon Signal Glencairn", points: 450, catalogVersion: 1, fulfillmentType: "physical", usShippingIncluded: true, glassQuantity: 1, engravingPointsPerGlass: 125 },
-  { key: "bourbon_shipping_gift_card_25", name: "$25 bourbon-shipping partner gift card", points: 650, catalogVersion: 1, fulfillmentType: "digital", usShippingIncluded: false },
+  { key: "bourbon_shipping_gift_card_100", name: "$100 bourbon-shipping partner gift card", points: 2600, catalogVersion: 1, fulfillmentType: "digital", usShippingIncluded: false },
   { key: "tshirt", name: "Bourbon Signal T-shirt", points: 700, catalogVersion: 1, fulfillmentType: "physical", usShippingIncluded: true, apparel: true },
   { key: "rocks_glass_pair", name: "Pair of Bourbon Signal rocks glasses", points: 750, catalogVersion: 1, fulfillmentType: "physical", usShippingIncluded: true, glassQuantity: 2, engravingPointsPerGlass: 125 },
   { key: "glencairn_pair", name: "Pair of Bourbon Signal Glencairns", points: 850, catalogVersion: 1, fulfillmentType: "physical", usShippingIncluded: true, glassQuantity: 2, engravingPointsPerGlass: 125 },

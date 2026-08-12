@@ -94,8 +94,20 @@ try {
       VALUES('legacy-referrer','legacy-spend','debit',-6,-1,5,'test','{}'::jsonb)` },
   ]);
   const signalSchema = await readFile(new URL("../src/lib/signal-points-schema.sql", import.meta.url), "utf8");
+  await transaction([{ text: `INSERT INTO signal_reward_catalog(item_key,catalog_version,name,points_cost,fulfillment_type,option_snapshot,active)
+    VALUES('bourbon_shipping_gift_card_25',1,'$25 bourbon-shipping partner gift card',650,'digital','{"ownerFulfillment":true,"requiresAge21Attestation":true}'::jsonb,TRUE)
+    ON CONFLICT(item_key) DO UPDATE SET active=TRUE` }]);
+  await transaction([{ text: "UPDATE signal_reward_catalog SET active=FALSE WHERE item_key='sticker_pack'" }]);
   await transaction(splitSql(signalSchema).map((text) => ({ text })));
   await transaction(splitSql(signalSchema).map((text) => ({ text })));
+  const giftCardRollover = await transaction([{ text: `SELECT item_key,points_cost,active FROM signal_reward_catalog
+    WHERE item_key IN ('bourbon_shipping_gift_card_25','bourbon_shipping_gift_card_100') ORDER BY item_key` }]);
+  assert.deepEqual(giftCardRollover[1], [
+    { item_key: "bourbon_shipping_gift_card_100", points_cost: 2600, active: true },
+    { item_key: "bourbon_shipping_gift_card_25", points_cost: 650, active: false },
+  ], "gift card rollover preserves the retired historical SKU while activating $100 at four times the points");
+  const reactivatedCurrentSku = await transaction([{ text: "SELECT active FROM signal_reward_catalog WHERE item_key='sticker_pack'" }]);
+  assert.equal(row(reactivatedCurrentSku).active, true, "schema reapplication reactivates current catalog SKUs");
   const adjustedReferral = await transaction([{ text: `SELECT balance,debt,
     (SELECT COUNT(*) FROM signal_point_ledger WHERE user_id=$1 AND idempotency_key=$2) AS adjustment_count,
     (SELECT points FROM signal_point_ledger WHERE user_id=$1 AND idempotency_key=$2) AS adjustment_points
