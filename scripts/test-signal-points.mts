@@ -17,14 +17,15 @@ test("launch catalog has the confirmed versioned prices and fulfillment kinds", 
     coaster_set: 200,
     rocks_glass: 400,
     glencairn: 450,
-    bourbon_shipping_gift_card_25: 650,
+    bourbon_shipping_gift_card_100: 2600,
     tshirt: 700,
     rocks_glass_pair: 750,
     glencairn_pair: 850,
     hoodie: 1200,
   });
   assert.ok(SIGNAL_REWARD_CATALOG.every((item) => item.catalogVersion === 1));
-  assert.equal(SIGNAL_REWARD_CATALOG.find((item) => item.key === "bourbon_shipping_gift_card_25")?.fulfillmentType, "digital");
+  assert.equal(SIGNAL_REWARD_CATALOG.find((item) => item.key === "bourbon_shipping_gift_card_100")?.fulfillmentType, "digital");
+  assert.equal(SIGNAL_REWARD_CATALOG.some((item) => item.key === "bourbon_shipping_gift_card_25"), false);
   assert.ok(SIGNAL_REWARD_CATALOG.filter((item) => item.fulfillmentType === "physical").every((item) => item.usShippingIncluded));
 });
 
@@ -101,8 +102,11 @@ test("glass engraving is short, validated, and priced per glass", () => {
 test("apparel and gift card details are explicit and validated", () => {
   assert.equal(normalizeRedemptionDetails("tshirt", { size: "XL", color: "black" }).ok, true);
   assert.equal(normalizeRedemptionDetails("hoodie", { size: "", color: "black" }).ok, false);
-  assert.equal(normalizeRedemptionDetails("bourbon_shipping_gift_card_25", { age21Attested: false, accountEmail: "member@example.com" }).ok, false);
-  assert.equal(normalizeRedemptionDetails("bourbon_shipping_gift_card_25", { age21Attested: true, accountEmail: "member@example.com" }).ok, true);
+  assert.equal(normalizeRedemptionDetails("bourbon_shipping_gift_card_100", { age21Attested: false, accountEmail: "member@example.com" }).ok, false);
+  assert.equal(normalizeRedemptionDetails("bourbon_shipping_gift_card_100", { age21Attested: true, accountEmail: "member@example.com" }).ok, true);
+  const schema = read("src/lib/signal-points-schema.sql");
+  assert.match(schema, /bourbon_shipping_gift_card_100[^\n]*2600/);
+  assert.match(schema, /UPDATE signal_reward_catalog SET active=FALSE[\s\S]*item_key='bourbon_shipping_gift_card_25'/i);
 });
 
 test("redemption state machine allows only forward fulfillment transitions and pre-fulfillment cancellation", () => {
