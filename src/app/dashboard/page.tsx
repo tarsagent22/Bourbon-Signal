@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import MemberReferralLink from "@/components/MemberReferralLink";
 import { motion } from "framer-motion";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
@@ -3855,6 +3856,7 @@ function PaidMemberDashboard() {
                     <strong>Every valid sighting earns points</strong>
                     <span>Posting points: limited or unclassified +1 · allocated +2 · unicorn +3. Badges and maintained streaks can add bonus points; removed or rejected reports lose their posting points.</span>
                   </div>
+                  <MemberReferralLink compact />
                   {(() => {
                     const nextBadge = memberRewards.badgeProgress.find((item) => !item.earned);
                     return nextBadge ? (
