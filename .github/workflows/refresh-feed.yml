@@ -115,6 +115,7 @@ jobs:
             inventory-browser-state-${{ runner.os }}-
 
       - name: Restore last published site contract
+        id: published-site-cache
         uses: actions/cache/restore@v4
         with:
           path: engine/out/site
@@ -132,6 +133,13 @@ jobs:
           GH_TOKEN: ${{ github.token }}
           BOURBON_SIGNAL_RUN_STATES: ${{ inputs.states || '' }}
         run: node scripts/hydrate-state-reports.mjs
+
+      - name: Preserve last-published state partitions for scheduled verifier isolation
+        if: ${{ !inputs.states }}
+        working-directory: engine
+        env:
+          BOURBON_SIGNAL_LAST_PUBLISHED_CACHE_KEY: ${{ steps.published-site-cache.outputs.cache-matched-key }}
+        run: node src/scheduled-state-verification.mjs prepare
 
       - name: Verify expansion capacity and reliability policy
         working-directory: engine
@@ -174,21 +182,22 @@ jobs:
       - name: Verify North Carolina scheduled continuity or isolate a safe partial fallback
         if: ${{ !inputs.states }}
         working-directory: engine
-        run: npm run verify:nc -- --allow-safe-partial-fallback
+        run: node src/scheduled-state-verification.mjs verify --state=NC -- npm run verify:nc -- --allow-safe-partial-fallback
 
       - name: Verify North Carolina targeted recovery strictly
         if: ${{ inputs.states && contains(inputs.states, 'NC') }}
         working-directory: engine
         run: npm run verify:nc
 
-      - name: Verify North Carolina official directory publication
-        if: ${{ !inputs.states || contains(inputs.states, 'NC') }}
+      - name: Verify North Carolina scheduled official directory or isolate its partition
+        if: ${{ !inputs.states }}
+        working-directory: engine
+        run: node src/scheduled-state-verification.mjs verify --state=NC -- npm run verify:nc-directory
+
+      - name: Verify North Carolina targeted official directory strictly
+        if: ${{ inputs.states && contains(inputs.states, 'NC') }}
         working-directory: engine
         run: npm run verify:nc-directory
-
-      - name: Verify coherent site contract
-        working-directory: engine
-        run: npm run verify:site
 
       - name: Verify targeted Indiana inventory expansion
         if: ${{ inputs.states && contains(inputs.states, 'IN') }}
@@ -208,7 +217,7 @@ jobs:
       - name: Verify Georgia scheduled lane or isolate an explicit last-known fallback
         if: ${{ !inputs.states }}
         working-directory: engine
-        run: npm run verify:ga -- --allow-labeled-last-known-fallback
+        run: node src/scheduled-state-verification.mjs verify --state=GA -- npm run verify:ga -- --allow-labeled-last-known-fallback
 
       - name: Verify Georgia targeted private-retailer recovery
         if: ${{ inputs.states && contains(inputs.states, 'GA') }}
@@ -218,7 +227,7 @@ jobs:
       - name: Verify Virginia scheduled lane or isolate a safe stale fallback
         if: ${{ !inputs.states }}
         working-directory: engine
-        run: npm run verify:va -- --allow-safe-stale-fallback
+        run: node src/scheduled-state-verification.mjs verify --state=VA -- npm run verify:va -- --allow-safe-stale-fallback
 
       - name: Verify Virginia targeted statewide live inventory recovery
         if: ${{ inputs.states && contains(inputs.states, 'VA') }}
@@ -228,7 +237,7 @@ jobs:
       - name: Verify Pennsylvania scheduled lane or isolate a safe stale fallback
         if: ${{ !inputs.states }}
         working-directory: engine
-        run: npm run verify:pa -- --allow-safe-stale-fallback
+        run: node src/scheduled-state-verification.mjs verify --state=PA -- npm run verify:pa -- --allow-safe-stale-fallback
 
       - name: Verify Pennsylvania targeted exact-store recovery
         if: ${{ inputs.states && contains(inputs.states, 'PA') }}
@@ -238,20 +247,30 @@ jobs:
       - name: Verify Florida scheduled lane with guarded current inventory and safe fallback
         if: ${{ !inputs.states }}
         working-directory: engine
-        run: npm run verify:fl -- --allow-safe-stale-fallback
+        run: node src/scheduled-state-verification.mjs verify --state=FL -- npm run verify:fl -- --allow-safe-stale-fallback
 
       - name: Verify Florida targeted statewide exact-store expansion
         if: ${{ inputs.states && contains(inputs.states, 'FL') }}
         working-directory: engine
         run: npm run verify:fl
 
-      - name: Verify Florida immutable full-store expansion
-        if: ${{ !inputs.states || inputs.force_all_states == 'true' || contains(inputs.states, 'FL') }}
+      - name: Verify Florida scheduled immutable full-store expansion or isolate its partition
+        if: ${{ !inputs.states }}
+        working-directory: engine
+        run: node src/scheduled-state-verification.mjs verify --state=FL -- npm run verify:fl:15-20
+
+      - name: Verify Florida targeted immutable full-store expansion strictly
+        if: ${{ inputs.states && contains(inputs.states, 'FL') }}
         working-directory: engine
         run: npm run verify:fl:15-20
 
-      - name: Verify Florida Star Liquors 20-store expansion
-        if: ${{ !inputs.states || inputs.force_all_states == 'true' || contains(inputs.states, 'FL') }}
+      - name: Verify Florida scheduled Star Liquors expansion or isolate its partition
+        if: ${{ !inputs.states }}
+        working-directory: engine
+        run: node src/scheduled-state-verification.mjs verify --state=FL -- npm run verify:fl:star-expansion
+
+      - name: Verify Florida targeted Star Liquors expansion strictly
+        if: ${{ inputs.states && contains(inputs.states, 'FL') }}
         working-directory: engine
         run: npm run verify:fl:star-expansion
 
@@ -260,24 +279,20 @@ jobs:
         working-directory: engine
         run: npm run verify:wv
 
-      - name: Verify no unproven state promotion entered the customer path
-        working-directory: engine
-        run: npm run verify:state-integration -- --all-active
-
       - name: Verify California scheduled lane or isolate a safe retained partition
         if: ${{ !inputs.states }}
         working-directory: engine
-        run: npm run verify:ca -- --allow-safe-retained-not-due
+        run: node src/scheduled-state-verification.mjs verify --state=CA -- npm run verify:ca -- --allow-safe-retained-not-due
 
       - name: Verify California targeted exact-store recovery
         if: ${{ inputs.states && contains(inputs.states, 'CA') }}
         working-directory: engine
         run: npm run verify:ca
 
-      - name: Verify demand metro generated evidence with fresh retained fallback
+      - name: Verify demand metro structure independently of state freshness
         if: ${{ !inputs.states }}
         working-directory: engine
-        run: npm run verify:demand-metros -- --allow-fresh-retained-evidence --allow-safe-stale-fallback
+        run: npm run verify:demand-metros -- --structural-only
 
       - name: Verify demand metro generated evidence for targeted Tennessee
         if: ${{ inputs.states && contains(inputs.states, 'TN') }}
@@ -287,12 +302,25 @@ jobs:
       - name: Verify Tennessee generated contract with fresh retained fallback
         if: ${{ !inputs.states }}
         working-directory: engine
-        run: npm run verify:tn -- --allow-fresh-retained-evidence --allow-scheduled-partial-evidence --allow-safe-stale-fallback
+        run: node src/scheduled-state-verification.mjs verify --state=TN -- npm run verify:tn -- --allow-fresh-retained-evidence --allow-scheduled-partial-evidence --allow-safe-stale-fallback
 
       - name: Verify Tennessee generated contract for targeted recovery
         if: ${{ inputs.states && contains(inputs.states, 'TN') }}
         working-directory: engine
         run: npm run verify:tn -- --targeted-cohort
+
+      - name: Replace failed scheduled states with last-published stale partitions
+        if: ${{ !inputs.states }}
+        working-directory: engine
+        run: node src/scheduled-state-verification.mjs apply
+
+      - name: Verify coherent site contract unconditionally
+        working-directory: engine
+        run: npm run verify:site
+
+      - name: Verify no unproven state promotion entered the customer path
+        working-directory: engine
+        run: npm run verify:state-integration -- --all-active
 
       - name: Verify degraded state isolation before publication
         working-directory: engine
@@ -404,6 +432,7 @@ jobs:
           if-no-files-found: warn
           path: |
             engine/out/site-refresh-status.json
+            engine/out/scheduled-state-verification.json
             engine/out/reliability-status.json
             engine/out/source-health.json
             engine/out/operational-report.json

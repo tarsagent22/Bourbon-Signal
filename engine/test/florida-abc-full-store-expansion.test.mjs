@@ -259,10 +259,12 @@ test('immutable verifier requires current policy-qualified rows for all 126 ABC 
   assert.throws(() => verifyFloridaExpansionArtifact({ state: { ...state, signals: inventory.map((row, index) => index === 10 ? { ...row, lat: row.lat + 0.001 } : row) }, baseline: immutableBaseline, now: Date.now() }), /136|missing|identity/i);
 });
 
-test('scheduled, force-all, and targeted Florida workflow paths share the immutable verifier gate', async () => {
+test('scheduled Florida immutable verification isolates its partition while targeted recovery stays strict', async () => {
   const verifier = await import('../src/verification/florida-expansion-verifier.mjs');
   assert.equal(typeof verifier.verifyFloridaExpansionArtifact, 'function');
   const workflow = readFileSync(new URL('../../.github/workflows/refresh-feed.yml', import.meta.url), 'utf8');
-  const step = workflow.match(/- name: Verify Florida immutable full-store expansion[\s\S]*?run: npm run verify:fl:15-20/)?.[0] || '';
-  assert.match(step, /if:\s*\$\{\{ !inputs\.states \|\| inputs\.force_all_states == 'true' \|\| contains\(inputs\.states, 'FL'\) \}\}/);
+  const scheduled = workflow.match(/- name: Verify Florida scheduled immutable full-store expansion or isolate its partition[\s\S]*?(?=\n      - name:)/)?.[0] || '';
+  const targeted = workflow.match(/- name: Verify Florida targeted immutable full-store expansion strictly[\s\S]*?(?=\n      - name:)/)?.[0] || '';
+  assert.match(scheduled, /if:\s*\$\{\{ !inputs\.states \}\}[\s\S]*scheduled-state-verification\.mjs verify --state=FL -- npm run verify:fl:15-20/);
+  assert.match(targeted, /if:\s*\$\{\{ inputs\.states && contains\(inputs\.states, 'FL'\) \}\}[\s\S]*run: npm run verify:fl:15-20/);
 });

@@ -79,11 +79,36 @@ test('reported failure counts must agree with the labeled state list', () => {
 test('scheduled workflow contains California retained-not-due exceptions but keeps targeted recovery strict', async () => {
   const workflow = await readFile(new URL('../../.github/workflows/refresh-feed.yml', import.meta.url), 'utf8');
   assert.match(workflow, /Verify California scheduled lane or isolate a safe retained partition/);
-  assert.match(workflow, /verify:ca -- --allow-safe-retained-not-due/);
+  assert.match(workflow, /scheduled-state-verification\.mjs verify --state=CA -- npm run verify:ca -- --allow-safe-retained-not-due/);
   assert.match(workflow, /Verify California targeted exact-store recovery/);
   assert.match(workflow, /npm run verify:ca\s*$/m);
   assert.match(workflow, /Verify degraded state isolation before publication/);
   assert.match(workflow, /verify:state-isolation/);
+});
+
+test('scheduled workflow isolates state verifier failures before unconditional release gates while targeted runs stay strict', async () => {
+  const workflow = await readFile(new URL('../../.github/workflows/refresh-feed.yml', import.meta.url), 'utf8');
+  const prepare = workflow.indexOf('scheduled-state-verification.mjs prepare');
+  const refresh = workflow.indexOf('run: npm run refresh:site');
+  const apply = workflow.indexOf('scheduled-state-verification.mjs apply');
+  const coherence = workflow.indexOf('Verify coherent site contract unconditionally');
+  const integration = workflow.indexOf('Verify no unproven state promotion entered the customer path');
+  const isolation = workflow.indexOf('Verify degraded state isolation before publication');
+  const release = workflow.indexOf('Refuse publication from a stale main checkout');
+  const publish = workflow.indexOf('Publish and atomically activate encrypted snapshot');
+
+  assert.ok(prepare > 0 && prepare < refresh, 'the last-published contract must be preserved before candidate export');
+  assert.ok(refresh < apply && apply < coherence && coherence < integration && integration < isolation && isolation < release && release < publish,
+    'fallback regeneration must precede every unconditional global, coherence, isolation, release, and publication gate');
+  for (const state of ['NC', 'GA', 'VA', 'PA', 'FL', 'CA', 'TN']) {
+    assert.match(workflow, new RegExp(`scheduled-state-verification\\.mjs verify --state=${state} -- npm run verify:`), `${state} scheduled verification must use the isolated wrapper`);
+  }
+  assert.match(workflow, /Verify Florida scheduled immutable full-store expansion or isolate its partition[\s\S]{0,300}--state=FL -- npm run verify:fl:15-20/);
+  assert.match(workflow, /Verify Florida targeted immutable full-store expansion strictly[\s\S]{0,260}inputs\.states && contains\(inputs\.states, 'FL'\)[\s\S]{0,180}run: npm run verify:fl:15-20/);
+  assert.match(workflow, /Verify North Carolina targeted recovery strictly[\s\S]{0,260}run: npm run verify:nc\s*$/m);
+  assert.match(workflow, /engine\/out\/scheduled-state-verification\.json/, 'the failed-state ledger must be retained in refresh diagnostics');
+  assert.doesNotMatch(workflow.slice(apply, publish), /continue-on-error:\s*true[\s\S]*Verify (?:coherent|no unproven|degraded)/,
+    'global publication gates must remain fatal');
 });
 
 test('California verifier exposes an explicit safe scheduled mode without weakening targeted mode', async () => {
