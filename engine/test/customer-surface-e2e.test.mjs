@@ -14,6 +14,34 @@ test('checked-in site outputs preserve representative customer and alert-safety 
   assert.equal(Object.keys(result.classes).length, 5);
 });
 
+test('event and announcement rows remain visible but cannot directly request delivery', () => {
+  const drops = {
+    drops: [
+      {
+        id: 'store-inventory', state: 'VA', bottleName: 'Store bottle', observedAt: '2026-08-13T12:00:00Z',
+        locationPrecision: 'store_level', storeId: 'VA-1', canAlertAsInventory: true,
+      },
+      {
+        id: 'nc-shipment', state: 'NC', bottleName: 'Board bottle', observedAt: '2026-08-13T12:00:00Z',
+        type: 'nc_board_shipment_snapshot', locationPrecision: 'board_warehouse', eligibleForDropFeed: true,
+      },
+    ],
+  };
+  const events = {
+    events: [
+      {
+        eventId: 'lottery', state: 'VA', title: 'Lottery', category: 'lottery', canAlertAsWatch: true,
+        eligibleForDelivery: true, eligibleForEmail: true, eligibleForSms: true,
+      },
+      {
+        eventId: 'barrel-pick', state: 'KY', title: 'Barrel pick', category: 'barrel_pick', canAlertAsWatch: true,
+        eligibleForDelivery: true, eligibleForEmail: true, eligibleForSms: true,
+      },
+    ],
+  };
+  assert.equal(verifyCustomerSurfaceClasses({ drops, events }).ok, true);
+});
+
 test('a fully healthy publication does not require a stale fallback representative', () => {
   const drops = {
     drops: [
