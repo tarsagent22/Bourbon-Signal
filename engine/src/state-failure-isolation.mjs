@@ -78,7 +78,12 @@ export function assessStateFailureIsolation({ stateCoverage = null, refreshHealt
       issues.push(`Degraded state ${state} is not explicitly labeled degraded in the published state contract.`);
       unsafeStateIds.add(state);
     }
-    if (alertingStates.has(state)) {
+    const requiresAlertSuppression = operating
+      ? operating.health === 'blocked'
+        || operating.freshness?.status === 'stale'
+        || (operating.fallback?.status && operating.fallback.status !== 'none')
+      : isLabeledDegraded(coverage);
+    if (requiresAlertSuppression && alertingStates.has(state)) {
       issues.push(`Degraded state ${state} still has an eligible alert candidate.`);
       unsafeStateIds.add(state);
     }

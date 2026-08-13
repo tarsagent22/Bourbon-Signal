@@ -37,7 +37,7 @@ test('degraded states remain visible but cannot emit alert candidates or poison 
   assert.deepEqual(result.healthyStateIds, ['CA']);
 });
 
-test('a degraded state with an alert candidate fails closed without implicating healthy states', () => {
+test('a stale or fallback-backed degraded state with an alert candidate fails closed without implicating healthy states', () => {
   const result = assessStateFailureIsolation(fixture({
     alerts: [{ state: 'OH', eligibleForDelivery: true }],
   }));
@@ -45,6 +45,23 @@ test('a degraded state with an alert candidate fails closed without implicating 
   assert.deepEqual(result.unsafeStateIds, ['OH']);
   assert.match(result.issues[0], /degraded state OH.*alert/i);
   assert.deepEqual(result.healthyStateIds, ['CA']);
+});
+
+test('a fresh anomaly-only degraded state may retain independently validated alerts', () => {
+  const result = assessStateFailureIsolation({
+    stateCoverage: { states: [{ state: 'VA', status: 'useful', stale: false }] },
+    refreshHealth: {
+      degradedStateCount: 1,
+      staleStateCount: 0,
+      failedStateCount: 0,
+      states: [{ state: 'VA', health: 'degraded', freshness: { status: 'fresh' }, fallback: { status: 'none' } }],
+      degradedStates: [{ state: 'VA', status: 'degraded', stale: false, staleReason: 'significant_drop_count_collapse' }],
+    },
+    alerts: [{ state: 'VA', eligibleForDelivery: true }],
+  });
+  assert.equal(result.ok, true);
+  assert.deepEqual(result.degradedStateIds, ['VA']);
+  assert.deepEqual(result.unsafeStateIds, []);
 });
 
 test('every degraded state must remain represented in the published state contract', () => {
