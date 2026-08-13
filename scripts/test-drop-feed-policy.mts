@@ -188,7 +188,60 @@ const defaultFeedCandidate = {
   canAlertAsInventory: true,
 };
 assert.equal(isPublicDropFeedEligible(defaultFeedCandidate), true, "a limited customer-feed store row is eligible for both surfaces");
-assert.equal(isPublicDropFeedEligible({ ...defaultFeedCandidate, tier: "standard" }), false, "a row hidden by the default Drop Feed cannot establish Coverage evidence");
+assert.equal(isPublicDropFeedEligible({ ...defaultFeedCandidate, tier: "standard" }), false, "a standard inventory row hidden by the default Drop Feed cannot establish Coverage evidence");
+const coreNcBoardShipment = {
+  state: "NC",
+  type: "nc_board_shipment_snapshot",
+  source: "NC ABC Stock Shipped Data",
+  tier: "core",
+  rarity_tier: "core",
+  locationPrecision: "board_county",
+  locationName: "Triad Municipal ABC Board",
+  quantity_shipped: 480,
+  boardShipmentQuantity: 480,
+  eligibleForOnSite: true,
+  eligibleForDropFeed: true,
+  eligibleForWatch: false,
+  canAlertAsInventory: false,
+  canAlertAsWatch: false,
+  eligibleForDelivery: false,
+  eligibleForEmail: false,
+  eligibleForSms: false,
+  inventorySemantics: "Board-level shipment intelligence; exact store and shelf status remain unknown.",
+};
+assert.equal(isPublicDropFeedEligible(coreNcBoardShipment), true,
+  "recognized NC board shipments must remain on the Drop Feed even when app classification labels the bottle core");
+assert.equal(isPublicDropFeedEligible({ ...coreNcBoardShipment, eligibleForDropFeed: false }), false,
+  "core NC board shipments still fail closed when the engine did not explicitly approve Drop Feed visibility");
+for (const [label, mutation] of [
+  ["watch eligibility", { eligibleForWatch: true }],
+  ["watch alert policy", { canAlertAsWatch: true }],
+  ["delivery eligibility", { eligibleForDelivery: true }],
+  ["delivery alias", { deliveryEligible: true }],
+  ["email eligibility", { eligibleForEmail: true }],
+  ["SMS eligibility", { eligibleForSms: true }],
+  ["inventory alert policy", { canAlertAsInventory: true }],
+  ["inventory alert alias", { can_alert_as_inventory: true }],
+] as const) {
+  assert.equal(isPublicDropFeedEligible({ ...coreNcBoardShipment, ...mutation }), false,
+    `core NC board shipments must fail closed for ${label}`);
+}
+for (const key of [
+  "eligibleForWatch",
+  "canAlertAsInventory",
+  "canAlertAsWatch",
+  "eligibleForDelivery",
+  "eligibleForEmail",
+  "eligibleForSms",
+] as const) {
+  const missing = { ...coreNcBoardShipment } as Record<string, unknown>;
+  delete missing[key];
+  assert.equal(isPublicDropFeedEligible(missing), false, `core NC board shipments require explicit false ${key}`);
+  assert.equal(isPublicDropFeedEligible({ ...coreNcBoardShipment, [key]: null }), false,
+    `core NC board shipments reject null ${key}`);
+}
+assert.equal(isPublicDropFeedEligible({ ...coreNcBoardShipment, can_alert_as_watch: true }), false,
+  "core NC board shipments reject snake-case watch alert policy");
 assert.equal(isPublicDropFeedEligible({
   ...defaultFeedCandidate,
   state: "NC",

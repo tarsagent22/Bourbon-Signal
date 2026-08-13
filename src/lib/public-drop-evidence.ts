@@ -324,7 +324,19 @@ export function isPublicDropFeedEligible(
   const retailer = isVerifiedRetailerDrop(drop);
   if (!retailer && !isUserFacingDropSignal(drop)) return false;
   if (isBlockedWarehouseDrop(drop)) return false;
-  return retailer || (DROP_FEED_TIERS.has(publicDropRarityTier(drop)) && !isKnownFalseRareMatch(drop));
+  const explicitNcBoardShipment = state === "NC"
+    && text(drop.type ?? drop.event_type, 120).toLowerCase() === "nc_board_shipment_snapshot"
+    && input.eligibleForDropFeed === true
+    && input.eligibleForWatch === false
+    && input.canAlertAsInventory === false
+    && input.canAlertAsWatch === false
+    && input.eligibleForDelivery === false
+    && input.eligibleForEmail === false
+    && input.eligibleForSms === false
+    && input.can_alert_as_inventory !== true
+    && input.can_alert_as_watch !== true
+    && input.deliveryEligible !== true;
+  return retailer || explicitNcBoardShipment || (DROP_FEED_TIERS.has(publicDropRarityTier(drop)) && !isKnownFalseRareMatch(drop));
 }
 
 function inventoryLike(drop: PublicDropEvidenceInput) {
