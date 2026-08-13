@@ -60,6 +60,7 @@ export function projectCustomerSurfaces(row, { kind = 'drop', fallback = false }
   const deliveryRequested = requested(row, ['eligibleForDelivery', 'deliveryEligible']);
   const emailRequested = requested(row, ['eligibleForEmail', 'emailEligible']);
   const smsRequested = requested(row, ['eligibleForSms', 'smsEligible']);
+  const directDeliveryAllowed = kind !== 'event';
 
   return Object.freeze({
     contractVersion: CUSTOMER_SURFACE_CONTRACT_VERSION,
@@ -69,9 +70,9 @@ export function projectCustomerSurfaces(row, { kind = 'drop', fallback = false }
     coverage: visible,
     watch,
     inventory,
-    delivery: stored && complete && alertSafe && deliveryRequested,
-    email: stored && complete && alertSafe && deliveryRequested && emailRequested,
-    sms: stored && complete && alertSafe && deliveryRequested && smsRequested,
+    delivery: stored && complete && directDeliveryAllowed && alertSafe && deliveryRequested,
+    email: stored && complete && directDeliveryAllowed && alertSafe && deliveryRequested && emailRequested,
+    sms: stored && complete && directDeliveryAllowed && alertSafe && deliveryRequested && smsRequested,
     event: visible && event,
     stale,
     alertSafe,
