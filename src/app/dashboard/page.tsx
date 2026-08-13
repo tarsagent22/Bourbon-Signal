@@ -846,6 +846,8 @@ function PaidMemberDashboard() {
   const { drops: ncDrops } = useDrops({ limit: 500, state: "NC" });
   const { stats: engineStats } = useStats();
   const { isSignedIn, signIn, entitlements, user } = useAuth();
+  const primaryEmail = user?.emailAddresses.find((address) => address.id === user.primaryEmailAddressId)?.emailAddress.trim().toLowerCase() || "";
+  const hasPointsExperiencePreview = primaryEmail === "chandlertodd22@gmail.com";
   const isFreeTier = entitlements.tier === "free";
   const canAccessDashboard = entitlements.canAccessDashboard;
   const canUseAdvancedFilters = entitlements.canUseAdvancedFilters;
@@ -3844,7 +3846,15 @@ function PaidMemberDashboard() {
           >
             {memberRewards ? (
               <div className="member-points-drawer-content">
-                <SignalPointsPanel />
+                <SignalPointsPanel
+                  preview={hasPointsExperiencePreview}
+                  rewards={memberRewards}
+                  badgeIconFor={badgeIconFor}
+                  badgeLabelFor={badgeLabelFor}
+                  badgeDescriptionFor={badgeDescriptionFor}
+                  badgeBaseKey={badgeBaseKey}
+                />
+                {!hasPointsExperiencePreview ? <>
                 <section className="member-rewards-dashboard-card" aria-label="Member Points and badge progress">
                   <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: "10px", fontWeight: 850, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(232,201,122,0.78)" }}>Member Points</div>
                   <div style={{ marginTop: "8px", fontFamily: "var(--font-playfair)", fontSize: "clamp(26px, 5vw, 34px)", color: "var(--color-cream)", lineHeight: 1.05 }}>Sighting achievements</div>
@@ -3912,6 +3922,7 @@ function PaidMemberDashboard() {
                     })}
                   </div>
                 </section>
+                </> : null}
               </div>
             ) : (
               <div className="dashboard-loading-panel">

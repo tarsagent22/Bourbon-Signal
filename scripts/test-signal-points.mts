@@ -209,7 +209,15 @@ test("schema, migration, encrypted backup, APIs, drawer, and owner queue are wir
   assert.match(panel, /useRef/);
   assert.match(panel, /redemptionIntent/i);
   assert.match(panel, /body:\s*JSON\.stringify\([^\n]*idempotencyKey:\s*redemptionIntentKey\(\)/);
-  assert.match(read("src/app/dashboard/page.tsx"), /<SignalPointsPanel/);
+  assert.match(panel, /PreviewTab/);
+  assert.match(panel, /overview[\s\S]*rewards[\s\S]*badges[\s\S]*history/);
+  assert.match(panel, /prefers-reduced-motion/);
+  const dashboard = read("src/app/dashboard/page.tsx");
+  assert.match(dashboard, /primaryEmailAddressId/);
+  assert.match(dashboard, /primaryEmail\s*===\s*["']chandlertodd22@gmail\.com["']/);
+  assert.match(dashboard, /preview=\{hasPointsExperiencePreview\}/);
+  assert.match(dashboard, /!hasPointsExperiencePreview/);
+  assert.match(dashboard, /<SignalPointsPanel/);
   assert.doesNotMatch(read("src/components/Navigation.tsx"), /label:\s*["']Rewards["']/);
   assert.match(read("src/app/admin/operations/page.tsx"), /SignalPointRewardQueue/);
   const ownerQueue = read("src/components/admin/SignalPointRewardQueue.tsx");
