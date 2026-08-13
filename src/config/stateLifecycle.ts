@@ -426,6 +426,7 @@ export const STATE_LIFECYCLE_CONFIG = {
         "Hilton Head Island",
         "Bluffton",
         "Indian Land",
+        "Fort Mill",
         "Rock Hill"
       ],
       "customerSummary": "Whitelisted public South Carolina retailer inventory rows with verify-before-driving caveats. DOR ABL pages remain licensing/regulatory context only. Costco warehouse bourbon signals are included alongside South Carolina retailer inventory where verified."

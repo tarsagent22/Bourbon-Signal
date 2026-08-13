@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto';
 import { stableId } from '../core/text.mjs';
 
 export const DISCOUNT_LIQUOR_SOURCE = Object.freeze({
@@ -12,6 +13,10 @@ export const DISCOUNT_LIQUOR_SOURCE = Object.freeze({
   categoryUrl: 'https://discountliquorfm.square.site/s/shop',
   apiBaseUrl: 'https://cdn5.editmysite.com/app/store/api/v28/editor/users/151282621/sites/741520739911976347',
   sourceLabel: 'Discount Liquor Fort Mill Square exact-store inventory',
+  catalogContract: Object.freeze({
+    total: 181,
+    productIdsSha256: '6de8f9aebfdae0ac1174c225e833f9aabfeea2aaef538606b334ef466b81dafb',
+  }),
   store: Object.freeze({
     id: 'LEG9F5YDP0ZS2',
     name: 'Discount Liquor',
@@ -170,11 +175,22 @@ export function parseDiscountLiquorCatalogPage(payload, options = {}) {
   const accepted = products.map(parseDiscountLiquorCatalogProduct).filter(Boolean);
   return {
     products: accepted,
+    productIds: products.map((product) => exactString(product?.id)),
     rejectedCount: products.length - accepted.length,
     total: pagination.total,
     totalPages: pagination.total_pages,
     page: expectedPage,
   };
+}
+
+export function verifyDiscountLiquorCatalogCompleteness(productIds, contract = DISCOUNT_LIQUOR_SOURCE.catalogContract) {
+  if (!Array.isArray(productIds)
+    || !Number.isInteger(contract?.total)
+    || productIds.length !== contract.total
+    || productIds.some((id) => !/^[A-Z0-9]{10,40}$/.test(id))
+    || new Set(productIds).size !== productIds.length) return false;
+  const digest = createHash('sha256').update([...productIds].sort().join('\n')).digest('hex');
+  return digest === contract.productIdsSha256;
 }
 
 export function parseDiscountLiquorSkuPayload(payload, product) {
@@ -413,6 +429,7 @@ export async function collectDiscountLiquorInventory(config, bible, observedAt, 
   const matchBottle = options.matchBottle || (() => ({ match: null, record: null }));
   const delayMs = Math.max(0, Math.min(2_000, Number(options.delayMs) || 250));
   const roadblocks = [];
+  const catalogContract = options.catalogContract || source.catalogContract;
   if (config?.id !== 'SC' || typeof fetchJson !== 'function') {
     return {
       signals: [],
@@ -442,6 +459,7 @@ export async function collectDiscountLiquorInventory(config, bible, observedAt, 
 
   const signals = [discountLiquorLocationSignal(config, observedAt)];
   const seen = new Map();
+  const catalogProductIds = [];
   let expectedTotal = null;
   let expectedTotalPages = null;
   let catalogComplete = true;
@@ -468,6 +486,7 @@ export async function collectDiscountLiquorInventory(config, bible, observedAt, 
       expectedTotal = parsed.total;
       expectedTotalPages = parsed.totalPages;
     }
+    catalogProductIds.push(...parsed.productIds);
     for (const product of parsed.products) {
       const prior = seen.get(product.productId);
       if (prior) {
@@ -484,6 +503,10 @@ export async function collectDiscountLiquorInventory(config, bible, observedAt, 
     if (page < expectedTotalPages && delayMs > 0) await sleepFn(delayMs);
   }
   if (!catalogComplete) return { signals, roadblocks };
+  if (!verifyDiscountLiquorCatalogCompleteness(catalogProductIds, catalogContract)) {
+    roadblocks.push({ state: 'SC', source: source.sourceLabel, url: source.categoryUrl, status: 'catalog_contract_changed', error: 'The reviewed Square whisky catalog identity set changed; no inventory was emitted.', nextRoute: 'Review the complete current catalog and update the pinned identity contract before collecting inventory.' });
+    return { signals, roadblocks };
+  }
 
   const matchedCandidates = [...seen.values()]
     .map((product) => ({ product, bottleMatch: matchBottle(product.rawName, bible) }))

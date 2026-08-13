@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 
@@ -12,6 +13,7 @@ const exportContract = readFileSync(new URL('../src/export-site-contract.mjs', i
 const refreshWorkflow = readFileSync(new URL('../../.github/workflows/refresh-feed.yml', import.meta.url), 'utf8');
 const packageJson = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
 const storeUniverse = JSON.parse(readFileSync(new URL('../data/store-universe/SC.json', import.meta.url), 'utf8'));
+const stateLifecycle = JSON.parse(readFileSync(new URL('../../src/config/state-lifecycle.json', import.meta.url), 'utf8'));
 
 test('Discount Liquor is registered as an exact-store Square inventory source', () => {
   assert.match(collector, /from '\.\/south-carolina-discount-square\.mjs'/);
@@ -22,6 +24,7 @@ test('Discount Liquor is registered as an exact-store Square inventory source', 
   assert.equal(store.address, '400 N Dobys Bridge Rd, Fort Mill, SC 29715');
   assert.equal(store.inventoryStatus, 'live-inventory');
   assert.equal(store.ecommercePlatform, 'square-online');
+  assert.ok(stateLifecycle.states.SC.areaOptions.includes('Fort Mill'), 'Fort Mill must be selectable for SC customer area preferences');
 });
 
 function validLocationPayload() {
@@ -110,6 +113,7 @@ test('Discount Liquor catalog parser preserves only exact positive tracked inven
   const parsed = square.parseDiscountLiquorCatalogPage(validCatalogPayload(), { expectedPage: 1, maxPages: 7 });
   assert.equal(parsed.totalPages, 1);
   assert.equal(parsed.rejectedCount, 0);
+  assert.deepEqual(parsed.productIds, ['HLFF7E35EROYOBUG4I5TJERF']);
   assert.deepEqual(parsed.products, [{
     productId: 'HLFF7E35EROYOBUG4I5TJERF',
     siteProductId: '11',
@@ -150,6 +154,18 @@ test('Discount Liquor catalog parser preserves only exact positive tracked inven
     { ...validCatalogPayload(), meta: { pagination: { total: 1, count: 2, per_page: 100, current_page: 1, total_pages: 1 } } },
     { ...validCatalogPayload(), meta: { pagination: { total: 200, count: 1, per_page: 100, current_page: 1, total_pages: 1 } } },
   ]) assert.equal(square.parseDiscountLiquorCatalogPage(malformed, { expectedPage: 1, maxPages: 7 }), null);
+});
+
+test('Discount Liquor catalog completeness detects interior and excluded-row subtraction', () => {
+  const ids = ['AAAAAAAAAAAAAAAA', 'BBBBBBBBBBBBBBBB', 'CCCCCCCCCCCCCCCC'];
+  const contract = {
+    total: ids.length,
+    productIdsSha256: createHash('sha256').update([...ids].sort().join('\n')).digest('hex'),
+  };
+  assert.equal(square.verifyDiscountLiquorCatalogCompleteness(ids, contract), true);
+  assert.equal(square.verifyDiscountLiquorCatalogCompleteness([ids[0], ids[2]], contract), false);
+  assert.equal(square.verifyDiscountLiquorCatalogCompleteness([ids[0], ids[2], 'DDDDDDDDDDDDDDDD'], contract), false);
+  assert.equal(square.verifyDiscountLiquorCatalogCompleteness([ids[0], ids[2], ids[2]], contract), false);
 });
 
 function validSkuPayload(product, overrides = {}) {
@@ -357,6 +373,10 @@ test('Discount Liquor collector verifies location then walks only bounded advert
     fetchJson,
     sleepFn: async () => {},
     matchBottle: (name) => ({ match: { confidence: 0.92 }, record: { id: name.includes('EAGLE') ? 'eagle-rare-10' : 'four-roses-obsv', canonical: name, tier: 'allocated' } }),
+    catalogContract: {
+      total: 101,
+      productIdsSha256: createHash('sha256').update([validCatalogProduct(), ...rejectedFillers, second].map((row) => row.id).sort().join('\n')).digest('hex'),
+    },
   });
   assert.equal(requests.length, 5);
   assert.match(requests[1], /per_page=100/);
@@ -415,6 +435,31 @@ test('Discount Liquor collector publishes no partial inventory when a later cata
   assert.equal(result.signals.filter((row) => row.eventType === 'retailer_store_inventory_result').length, 0);
   assert.equal(requests.some((url) => url.includes('/skus')), false);
   assert.ok(result.roadblocks.some((row) => row.status === 'malformed_catalog'));
+});
+
+test('Discount Liquor collector publishes no inventory after interior catalog identity loss', async () => {
+  const rows = [
+    validCatalogProduct(),
+    validCatalogProduct({ id: 'BBBBBBBBBBBBBBBB', square_id: 'BBBBBBBBBBBBBBBB', site_product_id: '12', absolute_site_link: 'https://discountliquorfm.square.site/product/second/12' }),
+  ];
+  const contract = {
+    total: rows.length,
+    productIdsSha256: createHash('sha256').update(rows.map((row) => row.id).sort().join('\n')).digest('hex'),
+  };
+  const substituted = [
+    rows[0],
+    validCatalogProduct({ id: 'CCCCCCCCCCCCCCCC', square_id: 'CCCCCCCCCCCCCCCC', site_product_id: '13', absolute_site_link: 'https://discountliquorfm.square.site/product/replacement/13' }),
+  ];
+  const result = await square.collectDiscountLiquorInventory({ id: 'SC' }, {}, '2026-08-08T15:00:00.000Z', {
+    fetchJson: async (url) => url.includes('/store-locations?')
+      ? { ok: true, status: 200, payload: validLocationPayload() }
+      : { ok: true, status: 200, payload: validCatalogPayload(substituted) },
+    sleepFn: async () => {},
+    matchBottle: () => ({ match: { confidence: 0.95 }, record: { id: 'four-roses-obsv', canonical: 'Four Roses OBSV Single Barrel', tier: 'limited' } }),
+    catalogContract: contract,
+  });
+  assert.equal(result.signals.filter((row) => row.eventType === 'retailer_store_inventory_result').length, 0);
+  assert.ok(result.roadblocks.some((row) => row.status === 'catalog_contract_changed'));
 });
 
 test('Discount Liquor is isolated, fresh, forced live for targeted SC, and policy-gated on export', () => {
