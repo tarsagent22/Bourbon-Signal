@@ -30,6 +30,7 @@ import { detectDropCollapseFallbacks, mergeHistoricalBoardShipmentDrops, mergePa
 import { buildNcBoardCoverageSummary } from './nc-coverage-summary.mjs';
 import { buildNcSourceLedger, enrichNcSingleStoreShipmentSignals } from './nc-source-ledger.mjs';
 import { authoritativeSignalTimestamp, enforceArchivedSourceAlertPolicy } from './event-freshness.mjs';
+import { buildStateOperatingContract } from './state-operating-contract.mjs';
 
 const OUT = path.resolve('out');
 const SNAPSHOTS = path.join(OUT, 'history', 'snapshots');
@@ -1988,6 +1989,7 @@ async function main() {
   const previousEvents = await readJson(path.join(PREVIOUS_SITE_OUT, 'events.json'), []);
   const bootstrapDrops = await readJson(path.join(OUT, 'historical-bootstrap', 'drops.json'), []);
   const previousStateQuality = await readJson(path.join(PREVIOUS_SITE_OUT, 'state-quality.json'), null);
+  const previousStateHealth = await readJson(path.join(PREVIOUS_SITE_OUT, 'state-health.json'), null);
   const detectedFallbackStateIds = detectDropCollapseFallbacks(previousStateQuality, currentDrops, summary.attemptedStateIds || []);
   const tennesseeStateReport = detectedFallbackStateIds.includes('TN')
     ? await readJson(path.join(OUT, 'states', 'TN.json'), null)
@@ -2154,6 +2156,35 @@ async function main() {
   const historicalSignalCount = Math.max(historicalSignals.length, Number(previousStats.historicalSignalCount || 0));
   const ncBoardCoverageSummary = buildNcBoardCoverageSummary(locations, ncIntelligenceRaw);
   const ncSourceLedger = buildNcSourceLedger(locations, ncIntelligenceRaw);
+  const stateReports = (await Promise.all([...activeStateIds]
+    .sort()
+    .map((state) => readJson(path.join(OUT, 'states', `${state}.json`), null))))
+    .filter(Boolean);
+  const scheduledVerification = await readJson(path.join(OUT, 'scheduled-state-verification.json'), null);
+  const operatingInput = {
+    activeStateIds,
+    summary,
+    stateCoverage,
+    drops,
+    quality: stateQuality,
+    previousQuality: previousStateQuality,
+    stateReports,
+    scheduledVerification,
+    previous: previousStateHealth,
+    generatedAt,
+    previousPublishedAt: previousStats.generatedAt || null,
+  };
+  let stateOperating = buildStateOperatingContract({ ...operatingInput, alerts: cappedAlertCandidates });
+  const nonAlertableStateIds = new Set(stateOperating.states
+    .filter((state) => state.health === 'blocked' || state.fallback?.status !== 'none')
+    .map((state) => state.state));
+  const publishedAlertCandidates = cappedAlertCandidates.filter((candidate) => !nonAlertableStateIds.has(String(candidate.state).toUpperCase()));
+  if (publishedAlertCandidates.length !== cappedAlertCandidates.length) {
+    stateOperating = buildStateOperatingContract({ ...operatingInput, alerts: publishedAlertCandidates });
+  }
+  stateOperating = attachRunIdentity(stateOperating, runIdentity);
+  const operatingHealthCounts = stateOperating.summary.healthCounts;
+  const operatingDegradedStates = stateOperating.states.filter((state) => state.health !== 'healthy');
   const stats = {
     contractVersion: CONTRACT_VERSION,
     ...runIdentity,
@@ -2171,23 +2202,25 @@ async function main() {
     dropCount: drops.length,
     eventCount: events.length,
     historicalTrendCount: historicalTrends.length,
-    alertCandidateCount: cappedAlertCandidates.length,
+    alertCandidateCount: publishedAlertCandidates.length,
     roadblockCount: summary.roadblockCount || 0,
     refreshHealth: {
-      degradedStateCount: summary.degradedStateCount || 0,
-      staleStateCount: summary.staleStateCount || 0,
-      failedStateCount: summary.failedStateCount || 0,
-      degradedStates: activeSummaryStates
-        .filter((state) => state.stale || /^failed_/.test(String(state.status || '')))
-        .map((state) => ({
-          state: state.state,
-          label: state.label,
-          status: state.status,
-          stale: Boolean(state.stale),
-          staleReason: state.staleReason || null,
-          previousFinishedAt: state.previousFinishedAt || null,
-          staleFallbackAt: state.staleFallbackAt || null
-        }))
+      contractVersion: stateOperating.contractVersion,
+      degradedStateCount: operatingHealthCounts.degraded + operatingHealthCounts.stale_useful + operatingHealthCounts.blocked,
+      staleStateCount: operatingHealthCounts.stale_useful,
+      failedStateCount: operatingHealthCounts.blocked,
+      healthCounts: operatingHealthCounts,
+      retryStateIds: stateOperating.summary.retryStateIds,
+      blockedStateIds: stateOperating.summary.blockedStateIds,
+      states: stateOperating.states,
+      degradedStates: operatingDegradedStates.map((state) => ({
+        state: state.state,
+        status: state.health,
+        stale: state.health === 'stale_useful',
+        staleReason: state.fallback.reason || state.anomalyCodes.join(', ') || null,
+        previousFinishedAt: state.collection.lastSuccessAt,
+        staleFallbackAt: state.lastPublicationAt,
+      }))
     },
     statesAtTargetPrecision: activeSummaryStates.filter((state) => precisionRank(state.bestLocationPrecision || 'blocked') >= precisionRank(state.targetLocationPrecision || 'blocked')).length,
     rareStatesVerified: Array.isArray(rare.states) ? rare.states.filter((s) => s.status === 'verified_3_rare_signals').length : null,
@@ -2212,6 +2245,7 @@ async function main() {
       stateDrops: 'states/index.json',
       events: 'events.json',
       alerts: 'alerts.json',
+      stateHealth: 'state-health.json',
       stateQuality: 'state-quality.json',
       historicalTrends: 'historical-trends.json',
       ncIntelligence: 'nc-intelligence.json'
@@ -2224,7 +2258,7 @@ async function main() {
       location: Object.keys(locations[0] || {}),
       drop: Object.keys(drops[0] || {}),
       event: Object.keys(events[0] || {}),
-      alert: Object.keys(cappedAlertCandidates[0] || {}),
+      alert: Object.keys(publishedAlertCandidates[0] || {}),
       historicalTrend: Object.keys(historicalTrends[0] || {})
     }
   };
@@ -2250,7 +2284,8 @@ async function main() {
     locations: attachRunIdentity({ contractVersion: CONTRACT_VERSION, count: locations.length, locations }, runIdentity),
     drops: attachRunIdentity({ contractVersion: CONTRACT_VERSION, count: drops.length, drops }, runIdentity),
     events: attachRunIdentity({ contractVersion: CONTRACT_VERSION, count: events.length, events }, runIdentity),
-    alerts: attachRunIdentity({ contractVersion: CONTRACT_VERSION, count: cappedAlertCandidates.length, alerts: cappedAlertCandidates }, runIdentity),
+    alerts: attachRunIdentity({ contractVersion: CONTRACT_VERSION, count: publishedAlertCandidates.length, alerts: publishedAlertCandidates }, runIdentity),
+    stateHealth: stateOperating,
     stateQuality,
     historicalTrends: attachRunIdentity({ contractVersion: CONTRACT_VERSION, historyDays: HISTORY_DAYS, count: historicalTrends.length, trends: historicalTrends }, runIdentity),
     stateIndex: stateDropPartitions.index,
@@ -2275,11 +2310,12 @@ async function main() {
   await writeFile(path.join(SITE_OUT, 'drops.json'), JSON.stringify(artifactPayloads.drops, null, 2));
   await writeFile(path.join(SITE_OUT, 'events.json'), JSON.stringify(artifactPayloads.events, null, 2));
   await writeFile(path.join(SITE_OUT, 'alerts.json'), JSON.stringify(artifactPayloads.alerts, null, 2));
+  await writeFile(path.join(SITE_OUT, 'state-health.json'), JSON.stringify(artifactPayloads.stateHealth, null, 2));
   await writeFile(path.join(SITE_OUT, 'state-quality.json'), JSON.stringify(artifactPayloads.stateQuality, null, 2));
   await writeFile(path.join(SITE_OUT, 'historical-trends.json'), JSON.stringify(artifactPayloads.historicalTrends, null, 2));
   if (artifactPayloads.ncIntelligence) await writeFile(path.join(SITE_OUT, 'nc-intelligence.json'), JSON.stringify(artifactPayloads.ncIntelligence, null, 2));
 
-  console.log(`Site contract export: ${bottles.length} bottles, ${stores.length} stores, ${locations.length} locations, ${drops.length} drops, ${events.length} events, ${cappedAlertCandidates.length} alert candidates -> out/site/`);
+  console.log(`Site contract export: ${bottles.length} bottles, ${stores.length} stores, ${locations.length} locations, ${drops.length} drops, ${events.length} events, ${publishedAlertCandidates.length} alert candidates -> out/site/`);
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {

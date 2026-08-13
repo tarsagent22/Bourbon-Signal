@@ -28,7 +28,7 @@ function walkValues(value, visitor, pathParts = []) {
 
 const manifest = readJson('manifest.json');
 const hasStatePartitions = typeof manifest.files?.stateDrops === 'string';
-const required = ['manifest.json', 'stats.json', 'bottles.json', 'stores.json', 'locations.json', 'drops.json', 'events.json', 'alerts.json', 'state-quality.json'];
+const required = ['manifest.json', 'stats.json', 'bottles.json', 'stores.json', 'locations.json', 'drops.json', 'events.json', 'alerts.json', 'state-health.json', 'state-quality.json'];
 if (hasStatePartitions) required.push(manifest.files.stateDrops);
 for (const file of required) {
   try {
@@ -41,7 +41,10 @@ for (const file of required) {
 
 for (const file of readdirSync(siteDir).filter((name) => name.endsWith('.json'))) {
   const payload = readJson(file);
-  if (payload.contractVersion && payload.contractVersion !== 'bourbon-signal-site-v0.1') {
+  const expectedVersion = file === 'state-health.json'
+    ? 'bourbon-signal-state-operating-v1'
+    : 'bourbon-signal-site-v0.1';
+  if (payload.contractVersion && payload.contractVersion !== expectedVersion) {
     fail(`${file} has unsupported contractVersion ${payload.contractVersion}`);
   }
   walkValues(payload, (node, parts) => {
@@ -53,6 +56,7 @@ for (const file of readdirSync(siteDir).filter((name) => name.endsWith('.json'))
 }
 
 const stats = readJson('stats.json');
+const stateHealth = readJson('state-health.json');
 const stateQuality = readJson('state-quality.json');
 const lifecycleConfig = JSON.parse(readFileSync(path.join(root, '..', 'src', 'config', 'state-lifecycle.json'), 'utf8'));
 const grandfatheredStates = new Set(lifecycleConfig.reliabilityPolicy?.grandfatheredActiveStates || []);
@@ -79,6 +83,18 @@ for (const state of coverageStates) {
   if (!activeStates.has(code)) fail(`stats.stateCoverage.states contains non-active state ${code}.`);
 }
 const qualityStateIds = new Set((stateQuality.states || []).map((state) => String(state.state).toUpperCase()));
+const healthStateIds = new Set((stateHealth.states || []).map((state) => String(state.state).toUpperCase()));
+for (const expected of activeStates) {
+  if (!healthStateIds.has(expected)) fail(`state-health.json missing active state ${expected}.`);
+}
+if (stateHealth.summary?.stateCount !== activeStates.size) {
+  fail(`state-health.json summary should contain ${activeStates.size} states, got ${stateHealth.summary?.stateCount}.`);
+}
+for (const state of stateHealth.states || []) {
+  if (!['healthy', 'stale_useful', 'degraded', 'blocked'].includes(state.health)) fail(`${state.state} has invalid operating health ${state.health}.`);
+  if (!Array.isArray(state.anomalyCodes)) fail(`${state.state} operating anomalyCodes must be an array.`);
+  if (!state.collection || !state.freshness || !state.fallback || !state.recoveryAction) fail(`${state.state} operating record is incomplete.`);
+}
 for (const expected of activeStates) {
   if (!qualityStateIds.has(expected)) fail(`state-quality.json missing active state ${expected}.`);
 }

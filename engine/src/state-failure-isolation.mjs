@@ -19,6 +19,8 @@ function isLabeledDegraded(row = {}) {
 export function assessStateFailureIsolation({ stateCoverage = null, refreshHealth = null, alerts = [] } = {}) {
   const coverageRows = rows(stateCoverage, 'states');
   const coverageByState = new Map(coverageRows.map((row) => [stateId(row?.state), row]));
+  const operatingRows = rows(refreshHealth?.states, 'states');
+  const operatingByState = new Map(operatingRows.map((row) => [stateId(row?.state), row]));
   const reportedDegraded = rows(refreshHealth?.degradedStates, 'states');
   const degradedStateIds = new Set(
     reportedDegraded.map((row) => stateId(row?.state)).filter(Boolean),
@@ -54,7 +56,7 @@ export function assessStateFailureIsolation({ stateCoverage = null, refreshHealt
   const labeledCounts = {
     degraded: reportedDegraded.length,
     stale: reportedDegraded.filter((row) => row?.stale === true || /^stale_/.test(String(row?.status || '').toLowerCase())).length,
-    failed: reportedDegraded.filter((row) => /^failed_/.test(String(row?.status || '').toLowerCase())).length,
+    failed: reportedDegraded.filter((row) => /^(?:failed_|blocked$)/.test(String(row?.status || '').toLowerCase())).length,
   };
   for (const kind of ['degraded', 'stale', 'failed']) {
     if (typeof reportedCountValues[kind] !== 'number' || !Number.isInteger(reportedCounts[kind]) || reportedCounts[kind] < 0) {
@@ -71,7 +73,8 @@ export function assessStateFailureIsolation({ stateCoverage = null, refreshHealt
       unsafeStateIds.add(state);
       continue;
     }
-    if (!isLabeledDegraded(coverage)) {
+    const operating = operatingByState.get(state);
+    if (!isLabeledDegraded(coverage) && !operating?.health?.match(/^(?:stale_useful|degraded|blocked)$/)) {
       issues.push(`Degraded state ${state} is not explicitly labeled degraded in the published state contract.`);
       unsafeStateIds.add(state);
     }
