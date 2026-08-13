@@ -1981,6 +1981,10 @@ async function main() {
   const bottles = buildBottles(signals, bible, biblePayload.records || []);
   const currentStores = buildStores(signals);
   const currentLocations = buildLocationBible(signals, activeOfficialLocations);
+  const currentWvLocationIds = new Set(currentLocations
+    .filter((location) => String(location?.state || location?.state_code || '').toUpperCase() === 'WV'
+      && (location?.type === 'store' || location?.locationType === 'store'))
+    .map((location) => String(location.id)));
   const candidateDrops = buildDrops(historicalSignals, bible, signals);
   const currentDrops = buildDrops(signals, bible, signals);
   const previousLocations = await readJson(path.join(PREVIOUS_SITE_OUT, 'locations.json'), []);
@@ -2034,7 +2038,7 @@ async function main() {
     attemptedStateIds: summary.attemptedStateIds || [],
     fallbackStateIds: summary.fallbackStateIds || [],
     isSafeRetainedLocation: (location) => String(location?.state || location?.state_code || '').toUpperCase() !== 'WV'
-      || String(location?.id || '').startsWith('wv-abca-'),
+      || currentWvLocationIds.has(String(location?.id)),
   });
   const stores = mergePartialRefreshStores({
     previousStores,
