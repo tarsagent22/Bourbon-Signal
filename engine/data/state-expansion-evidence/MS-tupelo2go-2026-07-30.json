@@ -105,11 +105,11 @@
     "engine/test/fixtures/ms/tupelo2go/maya.html": "781a7b20dd051e9736f8822fc25d1446e86989558754973e2a3ac001176c0faf",
     "engine/test/fixtures/ms/tupelo2go/bogarts.html": "3b8f8d65ea5c7741c481f8a1f9f15318d4a6e3f7ca569c049d293cc791129752",
     "scripts/test-coverage-contract.mts": "892b5af65e854553a49c77c1cfffcbe6d943c352f2d6f0fce1710fa9daa395be",
-    "src/config/state-lifecycle.json": "06145b356b7a5e7c04e3e52eedd4260f624b30f5c5f7e59cc9002a26c255fdbc",
-    "src/config/stateLifecycle.ts": "cbee0b7a53aa4de878472716af6b978df2c2ae5cf9530d30ad67cb07627631c4",
+    "src/config/state-lifecycle.json": "281501566e2bb8538be0af456dbdd11a6fed083dfe341e18a9fd43e5d67c51ed",
+    "src/config/stateLifecycle.ts": "cb8149d7e657209ee87a0b2d40b23364b76a17f69a837e0484f65c184ad14b58",
     "engine/src/generate-mississippi-foundation.mjs": "4c5698404c663a88a1fd1d4dffdfd86da4711b5a58f9eef35f1c9f401ded98c5"
   },
-  "implementationDigest": "93d15429586da25a9d4c2bf9cec6d29ac73ab119564be8909dd9bca51f163375",
+  "implementationDigest": "0986672c1d7bf3446423368d1fa4099165c42dfff1369ed394b0a06ca2a30fb5",
   "verificationCommands": [
     "npm --prefix engine run test:ms",
     "npm --prefix engine run verify:ms",
