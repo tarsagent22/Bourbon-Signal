@@ -76,6 +76,22 @@ test('reported failure counts must agree with the labeled state list', () => {
   assert.match(result.issues.join(' '), /count/i);
 });
 
+test('the operating contract can explicitly label a blocked state without rewriting legacy coverage status', () => {
+  const result = assessStateFailureIsolation({
+    stateCoverage: { states: [{ state: 'CA', status: 'useful' }] },
+    refreshHealth: {
+      degradedStateCount: 1,
+      staleStateCount: 0,
+      failedStateCount: 1,
+      states: [{ state: 'CA', health: 'blocked' }],
+      degradedStates: [{ state: 'CA', status: 'blocked', stale: false }],
+    },
+    alerts: [],
+  });
+  assert.equal(result.ok, true);
+  assert.deepEqual(result.degradedStateIds, ['CA']);
+});
+
 test('scheduled workflow contains California retained-not-due exceptions but keeps targeted recovery strict', async () => {
   const workflow = await readFile(new URL('../../.github/workflows/refresh-feed.yml', import.meta.url), 'utf8');
   assert.match(workflow, /Verify California scheduled lane or isolate a safe retained partition/);

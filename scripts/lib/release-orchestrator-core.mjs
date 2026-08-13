@@ -9,6 +9,7 @@ export const REQUIRED_SITE_EXPORT_FILES = [
   'locations.json',
   'manifest.json',
   'nc-intelligence.json',
+  'state-health.json',
   'stats.json',
   'store-identity.json',
   'stores.json',

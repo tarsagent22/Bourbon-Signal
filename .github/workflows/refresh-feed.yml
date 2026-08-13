@@ -23,6 +23,10 @@ on:
         description: "Immutable watchdog incident fingerprint for recovery deduplication"
         required: false
         default: ""
+      recovery_attempt:
+        description: "Internal bounded state-contract recovery attempt (maximum 2)"
+        required: false
+        default: "0"
 
 concurrency:
   group: production-inventory-refresh
@@ -314,6 +318,14 @@ jobs:
         working-directory: engine
         run: node src/scheduled-state-verification.mjs apply
 
+      - name: Plan one targeted recovery for transient failed states
+        id: recovery-plan
+        if: ${{ !inputs.states }}
+        working-directory: engine
+        env:
+          RECOVERY_ATTEMPT: ${{ inputs.recovery_attempt || '0' }}
+        run: node src/plan-state-recovery.mjs --contract=out/site/state-health.json --verification-ledger=out/scheduled-state-verification.json --attempt="$RECOVERY_ATTEMPT" --max-attempts=2 --github-output="$GITHUB_OUTPUT" > out/state-recovery-plan.json
+
       - name: Verify coherent site contract unconditionally
         working-directory: engine
         run: npm run verify:site
@@ -385,6 +397,15 @@ jobs:
             exit 1
           fi
 
+      - name: Dispatch isolated recovery from current main
+        if: ${{ success() && steps.recovery-plan.outputs.has_recovery == 'true' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TARGET_STATES: ${{ steps.recovery-plan.outputs.states }}
+          NEXT_ATTEMPT: ${{ steps.recovery-plan.outputs.next_attempt }}
+        run: |
+          gh workflow run refresh-feed.yml --ref main -f states="$TARGET_STATES" -f recovery_attempt="$NEXT_ATTEMPT" -f incident_key="state-contract-${GITHUB_RUN_ID}-${NEXT_ATTEMPT}"
+
       - name: Save verified collector state
         if: success()
         uses: actions/cache/save@v4
@@ -433,6 +454,7 @@ jobs:
           path: |
             engine/out/site-refresh-status.json
             engine/out/scheduled-state-verification.json
+            engine/out/state-recovery-plan.json
             engine/out/reliability-status.json
             engine/out/source-health.json
             engine/out/operational-report.json
@@ -442,6 +464,7 @@ jobs:
             engine/out/source-usefulness-roi.md
             engine/out/nc-board-intelligence.json
             engine/out/site/stats.json
+            engine/out/site/state-health.json
             engine/out/optimization/source-run-history.json
             engine/out/optimization/georgia-retailer-activation.json
             engine/out/optimization/state-run-metrics.json

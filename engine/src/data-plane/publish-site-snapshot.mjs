@@ -32,19 +32,27 @@ export async function collectSiteFiles(siteDir) {
   return result;
 }
 
-export function siteSnapshotMetadata({ stats, appCommit, engineCommit, collectionRunId }) {
-  const states = Array.isArray(stats?.stateCoverage?.states) ? stats.stateCoverage.states : [];
+export function siteSnapshotMetadata({ stats, stateHealth, appCommit, engineCommit, collectionRunId }) {
+  const operatingStates = Array.isArray(stateHealth?.states) ? stateHealth.states : [];
+  const coverageStates = Array.isArray(stats?.stateCoverage?.states) ? stats.stateCoverage.states : [];
   return {
     generatedAt: stats?.generatedAt,
     appCommit,
     engineCommit,
     collectionRunId,
-    stateHealth: Object.fromEntries(states.map((state) => [state.state, {
-      status: state.status || state.publicStatus || 'unknown',
-      signalCount: Number(state.signalCount || 0),
-      coverageTier: state.coverageTier || null,
-      bestLocationPrecision: state.bestLocationPrecision || null,
-    }])),
+    stateHealth: operatingStates.length
+      ? Object.fromEntries(operatingStates.map((state) => [state.state, {
+          health: state.health || 'blocked',
+          signalCount: Number(state.signalCount || 0),
+          customerVisibleDropCount: Number(state.customerVisibleDropCount || 0),
+          alertCandidateCount: Number(state.alertCandidateCount || 0),
+          recoveryAction: state.recoveryAction || 'manual_validation_required',
+        }]))
+      : Object.fromEntries(coverageStates.map((state) => [state.state, {
+          status: state.status || state.publicStatus || 'unknown',
+          health: state.status || state.publicStatus || 'unknown',
+          signalCount: Number(state.signalCount || 0),
+        }])),
   };
 }
 
@@ -94,10 +102,12 @@ export async function runPublisher(argv = process.argv.slice(2)) {
   }
   const files = await collectSiteFiles(options.siteDir);
   const stats = JSON.parse(files['stats.json'] || '{}');
+  const stateHealth = JSON.parse(files['state-health.json'] || 'null');
   const projectRoot = path.resolve(options.siteDir, '..', '..', '..');
   const provenance = await deriveGitProvenance(projectRoot);
   const metadata = siteSnapshotMetadata({
     stats,
+    stateHealth,
     ...provenance,
     collectionRunId: process.env.BOURBON_SIGNAL_COLLECTION_RUN_ID || stats.engineGeneratedAt || stats.generatedAt,
   });

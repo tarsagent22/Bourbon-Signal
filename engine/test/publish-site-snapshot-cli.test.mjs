@@ -11,10 +11,11 @@ test('publisher recursively collects only declared JSON snapshot files', async (
   try {
     await mkdir(path.join(root, 'states', 'NC'), { recursive: true });
     await writeFile(path.join(root, 'stats.json'), '{"generatedAt":"2026-07-10T12:33:49.778Z"}');
+    await writeFile(path.join(root, 'state-health.json'), '{"states":[]}');
     await writeFile(path.join(root, 'states', 'NC', 'drops.json'), '{"drops":[]}');
     await writeFile(path.join(root, 'ignore.txt'), 'secret');
     const files = await collectSiteFiles(root);
-    assert.deepEqual(Object.keys(files), ['states/NC/drops.json', 'stats.json']);
+    assert.deepEqual(Object.keys(files), ['state-health.json', 'states/NC/drops.json', 'stats.json']);
   } finally {
     await rm(root, { recursive: true, force: true });
   }
@@ -62,4 +63,19 @@ test('publisher metadata binds collection, app, engine, and state health provena
   assert.equal(metadata.appCommit, 'app123');
   assert.equal(metadata.stateHealth.NC.signalCount, 10);
   assert.equal(metadata.stateHealth.NC.status, 'live');
+
+  const operatingMetadata = siteSnapshotMetadata({
+    stats: { generatedAt: '2026-07-10T12:33:49.778Z' },
+    stateHealth: { states: [{ state: 'NC', health: 'stale_useful', signalCount: 9, customerVisibleDropCount: 4, alertCandidateCount: 0, recoveryAction: 'retry_state_collection' }] },
+    appCommit: 'app123',
+    engineCommit: 'engine123',
+    collectionRunId: 'run123',
+  });
+  assert.deepEqual(operatingMetadata.stateHealth.NC, {
+    health: 'stale_useful',
+    signalCount: 9,
+    customerVisibleDropCount: 4,
+    alertCandidateCount: 0,
+    recoveryAction: 'retry_state_collection',
+  });
 });

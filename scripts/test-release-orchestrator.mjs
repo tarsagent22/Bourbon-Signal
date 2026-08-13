@@ -53,13 +53,14 @@ assert.equal(evaluateLiveHealth({ ok: false, cron: { status: 'stale', expectedSc
 assert.equal(parseDeploymentUrl('Production: https://bourbon-signal-abc.vercel.app [1m]'), 'https://bourbon-signal-abc.vercel.app');
 assert.equal(parseDeploymentId('id\t\tdpl_1234567890'), 'dpl_1234567890');
 
-const exportFiles = ['alerts.json', 'bottles.json', 'drops.json', 'events.json', 'historical-trends.json', 'locations.json', 'manifest.json', 'nc-intelligence.json', 'stats.json', 'store-identity.json', 'stores.json'];
+const exportFiles = ['alerts.json', 'bottles.json', 'drops.json', 'events.json', 'historical-trends.json', 'locations.json', 'manifest.json', 'nc-intelligence.json', 'state-health.json', 'stats.json', 'store-identity.json', 'stores.json'];
 assert.doesNotThrow(() => assertExportFileSet(exportFiles));
 assert.throws(() => assertExportFileSet([...exportFiles, 'debug.json']), /Unexpected site export files/);
 assert.throws(() => assertExportFileSet(exportFiles.filter((file) => file !== 'alerts.json')), /Missing site export files/);
 assert.doesNotThrow(() => assertChangedExportPaths([
   'engine/out/site/alerts.json',
   'engine/out/site/state-quality.json',
+  'engine/out/site/state-health.json',
   'engine/out/site/states/index.json',
   'engine/out/site/states/MD-MONTGOMERY/drops.json',
 ]));

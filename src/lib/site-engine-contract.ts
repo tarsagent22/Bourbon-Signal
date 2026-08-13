@@ -15,7 +15,7 @@ export { isUserFacingDropSignal } from "@/lib/drop-feed-visibility";
 const SITE_EXPORT_DIR = join(process.cwd(), "engine", "out", "site");
 const CONTRACT_VERSION = "bourbon-signal-site-v0.1";
 
-export type SiteExportName = "alerts" | "bottles" | "drops" | "events" | "locations" | "nc-intelligence" | "stats" | "stores";
+export type SiteExportName = "alerts" | "bottles" | "drops" | "events" | "locations" | "nc-intelligence" | "state-health" | "stats" | "stores";
 type JsonRecord = Record<string, unknown>;
 export type SiteExportSource = "remote-snapshot" | "local-export" | "cache-fallback" | "empty-fallback";
 
@@ -37,7 +37,10 @@ export interface SiteExportResult {
 }
 
 function validatePayload(name: SiteExportName, payload: JsonRecord | null) {
-  if (payload && payload.contractVersion !== CONTRACT_VERSION) {
+  const supportedVersion = name === "state-health"
+    ? "bourbon-signal-state-operating-v1"
+    : CONTRACT_VERSION;
+  if (payload && payload.contractVersion !== supportedVersion) {
     throw new Error(`Unsupported ${name} contract version: ${String(payload.contractVersion ?? "missing")}`);
   }
   return payload;

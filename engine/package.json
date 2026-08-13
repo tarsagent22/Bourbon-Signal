@@ -89,6 +89,9 @@
     "canary:state": "node src/build-state-canary-preview.mjs",
     "promote:state": "node src/promote-state.mjs",
     "drill:recovery": "node src/run-recovery-drill.mjs",
+    "plan:state-recovery": "node src/plan-state-recovery.mjs",
+    "verify:state-operating": "node --test test/state-operating-contract.test.mjs test/state-recovery-plan.test.mjs test/customer-surface-e2e.test.mjs",
+    "verify:customer-surfaces": "node src/verify-customer-surface-classes.mjs --site-dir=out/site",
     "verify:pa:automation": "node src/verify-pa-automation.mjs && node src/test-fwgs-artifact-policy.mjs",
     "store:identity": "node src/build-store-identity.mjs"
   },

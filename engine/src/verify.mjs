@@ -34,7 +34,7 @@ async function ohlqBrowserUnavailable(out) {
 async function main() {
   const out = path.resolve('out');
   const required = ['bourbon-bible.json', 'bourbon-bible-report.md', 'summary.json', 'signals.json', 'readable.md', 'roadblocks.md', 'rare-signals.json', 'rare-signals.md', 'current-snapshot.json', 'diff.json', 'diff.md', 'alert-candidates.json', 'alert-candidates.md', 'confidence-policy.json'];
-  const siteRequired = ['manifest.json', 'stats.json', 'bottles.json', 'stores.json', 'locations.json', 'drops.json', 'alerts.json', 'nc-intelligence.json'];
+  const siteRequired = ['manifest.json', 'stats.json', 'bottles.json', 'stores.json', 'locations.json', 'drops.json', 'alerts.json', 'state-health.json', 'nc-intelligence.json'];
   const missing = [];
   for (const file of required) if (!(await exists(path.join(out, file)))) missing.push(file);
   for (const file of siteRequired) if (!(await exists(path.join(out, 'site', file)))) missing.push(`site/${file}`);
@@ -50,6 +50,7 @@ async function main() {
   const siteBottles = await readJson(path.join(out, 'site', 'bottles.json'));
   const siteLocations = await readJson(path.join(out, 'site', 'locations.json'));
   const siteDrops = await readJson(path.join(out, 'site', 'drops.json'));
+  const stateHealth = await readJson(path.join(out, 'site', 'state-health.json'));
   const ncIntelligence = await readJson(path.join(out, 'site', 'nc-intelligence.json'));
   const activeStateIds = new Set(STATE_SOURCES.map((s) => s.id));
 
@@ -73,6 +74,7 @@ async function main() {
   if (!Array.isArray(siteLocations.locations) || siteLocations.locations.length < 800) throw new Error('site/locations.json has invalid or too-small shape');
   if (!siteLocations.locations.some((location) => location.searchable && !location.hasSignals)) throw new Error('site/locations.json should include preloaded searchable no-signal locations');
   if (!Array.isArray(siteDrops.drops)) throw new Error('site/drops.json has invalid shape');
+  if (stateHealth.contractVersion !== 'bourbon-signal-state-operating-v1' || stateHealth.states?.length !== STATE_SOURCES.length) throw new Error('site/state-health.json has invalid or incomplete shape');
   if (siteStats.ncBoardIntelligence?.boardCount < 170) throw new Error('NC board intelligence coverage is missing or too small in site stats');
   if (siteStats.ncBoardIntelligence?.boardsWithTrackedShipments < 100) throw new Error('NC tracked shipment board coverage is below threshold');
   if (siteStats.ncBoardIntelligence?.boardsWithInventoryPages < 5) throw new Error('NC inventory/release page coverage is below threshold');
