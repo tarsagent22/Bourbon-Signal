@@ -38,7 +38,7 @@
     { "canonical": "Elijah Craig 21-Year-Old Single Barrel", "aliases": ["Elijah Craig 21 Year Old Single Barrel", "Elijah Craig 21 Year Single Barrel", "Elijah Craig 21", "EC21"], "tier": "unicorn", "producer": "Heaven Hill" },
     { "canonical": "Heaven Hill Heritage Collection", "aliases": ["HH Heritage", "Heaven Hill 17", "Heaven Hill 18", "Heaven Hill Heritage Collection 22 Year", "Heaven Hill Heritage Collection 22-Year-Old Kentucky Straight Bourbon"], "tier": "unicorn", "producer": "Heaven Hill" },
     { "canonical": "Heaven Hill Grain to Glass Third Edition Wheated Bourbon", "aliases": ["Heaven Hill Grain to Glass 3rd Edition Wheated Bourbon", "Heaven Hill Grain to Glass 3rd Ed Wheated Bbn", "Heaven Hill Grain to Glass 2026 Wheated Bourbon"], "tier": "allocated", "producer": "Heaven Hill" },
-    { "canonical": "Old Fitzgerald Bottled-in-Bond", "aliases": ["Old Fitzgerald BIB", "Old Fitz", "Old Fitz BIB"], "tier": "unicorn", "producer": "Heaven Hill" },
+    { "canonical": "Old Fitzgerald Bottled-in-Bond", "aliases": ["Old Fitzgerald BIB", "Old Fitz", "Old Fitz BIB", "Old Fitzgerald BIB 10Y Spring 26 Decanter .75L"], "tier": "unicorn", "producer": "Heaven Hill" },
     { "canonical": "Parker's Heritage Collection", "aliases": ["Parkers Heritage", "Parker Heritage"], "tier": "unicorn", "producer": "Heaven Hill" },
     { "canonical": "Henry McKenna 10 Year", "aliases": ["Henry McKenna 10", "McKenna 10", "Henry McKenna Single Barrel", "Henry McKenna Single Barrel 10 Year", "Henry McKenna Bottled-in-Bond", "Henry McKenna BIB"], "tier": "allocated", "producer": "Heaven Hill" },
     { "canonical": "Booker's Bourbon", "aliases": ["Bookers", "Booker's Batch"], "tier": "limited", "producer": "Jim Beam" },
