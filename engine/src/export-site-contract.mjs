@@ -2033,6 +2033,8 @@ async function main() {
     partialRefresh: summary.partialRefresh === true,
     attemptedStateIds: summary.attemptedStateIds || [],
     fallbackStateIds: summary.fallbackStateIds || [],
+    isSafeRetainedLocation: (location) => String(location?.state || location?.state_code || '').toUpperCase() !== 'WV'
+      || String(location?.id || '').startsWith('wv-abca-'),
   });
   const stores = mergePartialRefreshStores({
     previousStores,

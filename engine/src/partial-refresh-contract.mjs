@@ -139,6 +139,7 @@ export function mergePartialRefreshLocations({
   partialRefresh = false,
   attemptedStateIds = [],
   fallbackStateIds = [],
+  isSafeRetainedLocation = () => true,
 } = {}) {
   const locationRowsOf = (value) => Array.isArray(value) ? value : Array.isArray(value?.locations) ? value.locations : [];
   const currentRows = locationRowsOf(currentLocations);
@@ -153,7 +154,7 @@ export function mergePartialRefreshLocations({
   const seen = new Set(merged.map(locationIdentity));
 
   for (const location of locationRowsOf(previousLocations)) {
-    if (attemptedStates.has(stateOf(location))) continue;
+    if (attemptedStates.has(stateOf(location)) || !isSafeRetainedLocation(location)) continue;
     const key = locationIdentity(location);
     if (seen.has(key)) continue;
     seen.add(key);
@@ -161,7 +162,7 @@ export function mergePartialRefreshLocations({
   }
   for (const location of currentRows) {
     if (attemptedStates.has(stateOf(location))) continue;
-    if (fallbackStates.has(stateOf(location))) continue;
+    if (fallbackStates.has(stateOf(location)) || !isSafeRetainedLocation(location)) continue;
     const key = locationIdentity(location);
     if (seen.has(key)) continue;
     seen.add(key);

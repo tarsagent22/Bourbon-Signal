@@ -18,6 +18,8 @@ test('partial refresh preserves untouched location coverage while current attemp
         { id: 'nc-board', state: 'NC', name: 'Dunn ABC Board', signalCount: 6 },
         { id: 'ga-store', state: 'GA', name: 'Old Georgia Store', signalCount: 1 },
         { id: 'md-store', state: 'MD-MONTGOMERY', name: 'Montgomery ABS', signalCount: 2 },
+        { id: 'wv-abca-licensed', state: 'WV', type: 'store', name: 'Licensed WV store' },
+        { id: 'wvabca-store-624', state: 'WV', type: 'store', name: 'Purchase-derived WV store' },
       ],
     },
     currentLocations: [
@@ -26,8 +28,9 @@ test('partial refresh preserves untouched location coverage while current attemp
     ],
     partialRefresh: true,
     attemptedStateIds: ['GA'],
+    isSafeRetainedLocation: (location) => location.state !== 'WV' || String(location.id).startsWith('wv-abca-'),
   });
-  assert.deepEqual(merged.map((location) => location.id), ['ga-store', 'nc-board', 'md-store', 'nc-scaffold']);
+  assert.deepEqual(merged.map((location) => location.id), ['ga-store', 'nc-board', 'md-store', 'wv-abca-licensed', 'nc-scaffold']);
   assert.equal(merged.find((location) => location.id === 'ga-store')?.name, 'Current Georgia Store');
 });
 
