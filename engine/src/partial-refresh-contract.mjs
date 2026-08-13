@@ -3,6 +3,10 @@ import { markSignalStaleNonAlertable } from './stale-signal-policy.mjs';
 function retainedDrop(drop, reason) {
   return {
     ...markSignalStaleNonAlertable(drop, reason),
+    eligibleForDelivery: false,
+    deliveryEligible: false,
+    eligibleForEmail: false,
+    eligibleForSms: false,
     staleSourceCaveat: typeof drop?.staleSourceCaveat === 'string' && drop.staleSourceCaveat.trim()
       ? drop.staleSourceCaveat
       : 'Last-known source evidence only; current availability is stale and not alertable. Verify directly before driving.',
@@ -57,13 +61,19 @@ function dropEventTime(drop) {
 function informationalBoardShipmentDrop(drop) {
   return {
     ...drop,
+    eligibleForOnSite: true,
+    eligibleForDropFeed: true,
+    eligibleForWatch: false,
     canAlertAsInventory: false,
     canAlertAsWatch: false,
     alertable: false,
     eligibleForDelivery: false,
     deliveryEligible: false,
+    eligibleForEmail: false,
+    eligibleForSms: false,
     dataLane: 'informational',
     informationalOnly: true,
+    availabilityScope: 'board',
   };
 }
 
@@ -128,12 +138,16 @@ export function mergePartialRefreshLocations({
   currentLocations = [],
   partialRefresh = false,
   attemptedStateIds = [],
+  fallbackStateIds = [],
 } = {}) {
   const locationRowsOf = (value) => Array.isArray(value) ? value : Array.isArray(value?.locations) ? value.locations : [];
   const currentRows = locationRowsOf(currentLocations);
-  if (!partialRefresh) return currentRows;
+  const fallbackStates = new Set((fallbackStateIds || []).map((state) => String(state || '').toUpperCase()));
+  if (!partialRefresh && !fallbackStates.size) return currentRows;
 
-  const attemptedStates = new Set((attemptedStateIds || []).map((state) => String(state || '').toUpperCase()));
+  const attemptedStates = new Set((attemptedStateIds || [])
+    .map((state) => String(state || '').toUpperCase())
+    .filter((state) => !fallbackStates.has(state)));
   const stateOf = (location) => String(location?.state || location?.state_code || '').toUpperCase();
   const merged = currentRows.filter((location) => attemptedStates.has(stateOf(location)));
   const seen = new Set(merged.map(locationIdentity));
@@ -147,12 +161,83 @@ export function mergePartialRefreshLocations({
   }
   for (const location of currentRows) {
     if (attemptedStates.has(stateOf(location))) continue;
+    if (fallbackStates.has(stateOf(location))) continue;
     const key = locationIdentity(location);
     if (seen.has(key)) continue;
     seen.add(key);
     merged.push(location);
   }
   return merged;
+}
+
+function storeIdentity(store) {
+  return store?.id || [
+    String(store?.state || store?.state_code || '').toUpperCase(),
+    String(store?.sourceStoreId || store?.storeId || '').toLowerCase(),
+    String(store?.name || store?.storeName || '').toLowerCase(),
+    String(store?.address || store?.storeAddress || '').toLowerCase(),
+  ].join('|');
+}
+
+export function mergePartialRefreshStores({
+  previousStores = [],
+  currentStores = [],
+  partialRefresh = false,
+  attemptedStateIds = [],
+  fallbackStateIds = [],
+} = {}) {
+  const storeRowsOf = (value) => Array.isArray(value) ? value : Array.isArray(value?.stores) ? value.stores : [];
+  const currentRows = storeRowsOf(currentStores);
+  const fallbackStates = new Set((fallbackStateIds || []).map((state) => String(state || '').toUpperCase()));
+  if (!partialRefresh && !fallbackStates.size) return currentRows;
+  const stateOf = (store) => String(store?.state || store?.state_code || '').toUpperCase();
+  const attemptedStates = new Set((attemptedStateIds || [])
+    .map((state) => String(state || '').toUpperCase())
+    .filter((state) => !fallbackStates.has(state)));
+  const merged = currentRows.filter((store) => attemptedStates.has(stateOf(store)));
+  const seen = new Set(merged.map(storeIdentity));
+  for (const store of storeRowsOf(previousStores)) {
+    if (attemptedStates.has(stateOf(store))) continue;
+    const key = storeIdentity(store);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    merged.push(store);
+  }
+  for (const store of currentRows) {
+    if (attemptedStates.has(stateOf(store)) || fallbackStates.has(stateOf(store))) continue;
+    const key = storeIdentity(store);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    merged.push(store);
+  }
+  return merged;
+}
+
+function retainedEvent(event, reason) {
+  return {
+    ...markSignalStaleNonAlertable(event, reason),
+    canAlertAsInventory: false,
+    canAlertAsWatch: false,
+    eligibleForDelivery: false,
+    deliveryEligible: false,
+    eligibleForEmail: false,
+    eligibleForSms: false,
+    actionability: 'context_only',
+    eventStatus: 'stale_fallback',
+    staleSourceCaveat: 'Last-known event evidence only; the state verifier failed and this event is not current or alertable.',
+  };
+}
+
+export function mergeScheduledFallbackEvents({ previousEvents = [], currentEvents = [], fallbackStateIds = [] } = {}) {
+  const eventRowsOf = (value) => Array.isArray(value) ? value : Array.isArray(value?.events) ? value.events : [];
+  const fallbackStates = new Set((fallbackStateIds || []).map((state) => String(state || '').toUpperCase()));
+  if (!fallbackStates.size) return eventRowsOf(currentEvents);
+  const stateOf = (event) => String(event?.state || event?.state_code || '').toUpperCase();
+  const healthy = eventRowsOf(currentEvents).filter((event) => !fallbackStates.has(stateOf(event)));
+  const retained = eventRowsOf(previousEvents)
+    .filter((event) => fallbackStates.has(stateOf(event)))
+    .map((event) => retainedEvent(event, 'scheduled_state_verification_failed'));
+  return [...healthy, ...retained];
 }
 
 export function mergePartialRefreshDrops({ previousDrops = [], currentDrops = [], partialRefresh = false, attemptedStateIds = [], fallbackStateIds = [], partialFallbackStateIds = [], isSafePartialRetainedRow = () => true } = {}) {

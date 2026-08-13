@@ -59,14 +59,15 @@ test('scheduled refresh persists collector history, the actual scheduler state, 
   assert.doesNotMatch(targetedPennsylvaniaStep, /allow-safe-stale-fallback/, 'PA-targeted recovery must remain strict');
   const scheduledNcQualityStep = workflow.match(/- name: Verify North Carolina scheduled continuity or isolate a safe partial fallback[\s\S]*?(?=\n      - name:)/)?.[0] || '';
   const targetedNcQualityStep = workflow.match(/- name: Verify North Carolina targeted recovery strictly[\s\S]*?(?=\n      - name:)/)?.[0] || '';
-  assert.match(scheduledNcQualityStep, /if:\s*\$\{\{ !inputs\.states \}\}[\s\S]*run: npm run verify:nc -- --allow-safe-partial-fallback/);
+  assert.match(scheduledNcQualityStep, /if:\s*\$\{\{ !inputs\.states \}\}[\s\S]*scheduled-state-verification\.mjs verify --state=NC -- npm run verify:nc -- --allow-safe-partial-fallback/);
   assert.match(targetedNcQualityStep, /inputs\.states && contains\(inputs\.states, 'NC'\)[\s\S]*run: npm run verify:nc/);
   assert.doesNotMatch(targetedNcQualityStep, /allow-safe-partial-fallback/, 'NC-targeted recovery must remain strict');
-  const scheduledDemandMetroStep = workflow.match(/- name: Verify demand metro generated evidence with fresh retained fallback[\s\S]*?(?=\n      - name:)/)?.[0] || '';
+  const scheduledDemandMetroStep = workflow.match(/- name: Verify demand metro structure independently of state freshness[\s\S]*?(?=\n      - name:)/)?.[0] || '';
   const scheduledTennesseeStep = workflow.match(/- name: Verify Tennessee generated contract with fresh retained fallback[\s\S]*?(?=\n      - name:)/)?.[0] || '';
   assert.match(scheduledDemandMetroStep, /if:\s*\$\{\{ !inputs\.states \}\}/, 'unrelated targeted refreshes must not be blocked by the scheduled demand-metro fallback gate');
   assert.match(scheduledTennesseeStep, /if:\s*\$\{\{ !inputs\.states \}\}/, 'unrelated targeted refreshes must not be blocked by the scheduled Tennessee fallback gate');
-  assert.match(scheduledDemandMetroStep, /--allow-safe-stale-fallback/);
+  assert.match(scheduledDemandMetroStep, /--structural-only/);
+  assert.doesNotMatch(scheduledDemandMetroStep, /allow-safe-stale-fallback|allow-fresh-retained-evidence/, 'cross-state freshness must not be reintroduced through the structural metro verifier');
   assert.match(scheduledTennesseeStep, /--allow-safe-stale-fallback/);
   const scheduledCaliforniaStep = workflow.match(/- name: Verify California scheduled lane or isolate a safe retained partition[\s\S]*?(?=\n      - name:)/)?.[0] || '';
   const targetedCaliforniaStep = workflow.match(/- name: Verify California targeted exact-store recovery[\s\S]*?(?=\n      - name:)/)?.[0] || '';
@@ -140,8 +141,10 @@ test('scheduled refresh persists collector history, the actual scheduler state, 
   }
   const exporter = await readFile(new URL('../src/export-site-contract.mjs', import.meta.url), 'utf8');
   assert.match(exporter, /buildStateQualityInputs\(\{ stateCoverage, drops: currentDrops,/);
-  assert.match(exporter, /const previousLocations = await readJson\(path\.join\(SITE_OUT, 'locations\.json'\), \[\]\)/);
-  assert.match(exporter, /const locations = mergePartialRefreshLocations\(\{[\s\S]*partialRefresh: summary\.partialRefresh === true,[\s\S]*attemptedStateIds: summary\.attemptedStateIds/);
+  assert.match(exporter, /const PREVIOUS_SITE_OUT = process\.env\.BOURBON_SIGNAL_PREVIOUS_SITE_DIR[\s\S]*?: SITE_OUT/);
+  assert.match(exporter, /const previousLocations = await readJson\(path\.join\(PREVIOUS_SITE_OUT, 'locations\.json'\), \[\]\)/);
+  assert.match(exporter, /const locations = mergePartialRefreshLocations\(\{[\s\S]*attemptedStateIds: summary\.attemptedStateIds[\s\S]*fallbackStateIds: summary\.fallbackStateIds/);
+  assert.match(exporter, /const stores = mergePartialRefreshStores\(\{[\s\S]*attemptedStateIds: summary\.attemptedStateIds[\s\S]*fallbackStateIds: summary\.fallbackStateIds/);
   assert.match(exporter, /buildNcBoardCoverageSummary\(locations, ncIntelligenceRaw\)/);
   assert.match(exporter, /buildNcSourceLedger\(locations, ncIntelligenceRaw\)/);
   assert.match(exporter, /const freshRunDrops = selectFreshRunDrops\(\{ drops: currentDrops, freshStateIds: summary\.freshStateIds \}\)/);

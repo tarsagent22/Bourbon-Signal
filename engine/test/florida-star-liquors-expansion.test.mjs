@@ -118,12 +118,14 @@ test('Star Liquors policy requires exact merchant, address, product, and positiv
   assert.equal(isFloridaRetailerInventory({ ...binary, quantity: 100 }), false);
 });
 
-test('Florida publication paths run the immutable Star expansion verifier', () => {
+test('Florida Star verification isolates scheduled failure while targeted recovery stays strict', () => {
   const packageJson = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
   assert.equal(packageJson.scripts['verify:fl:star-expansion'], 'node src/verify-fl-star-expansion.mjs');
   const workflow = readFileSync(new URL('../../.github/workflows/refresh-feed.yml', import.meta.url), 'utf8');
-  const step = workflow.match(/- name: Verify Florida Star Liquors 20-store expansion[\s\S]*?run: npm run verify:fl:star-expansion/)?.[0] || '';
-  assert.match(step, /if:\s*\$\{\{ !inputs\.states \|\| inputs\.force_all_states == 'true' \|\| contains\(inputs\.states, 'FL'\) \}\}/);
+  const scheduled = workflow.match(/- name: Verify Florida scheduled Star Liquors expansion or isolate its partition[\s\S]*?(?=\n      - name:)/)?.[0] || '';
+  const targeted = workflow.match(/- name: Verify Florida targeted Star Liquors expansion strictly[\s\S]*?(?=\n      - name:)/)?.[0] || '';
+  assert.match(scheduled, /if:\s*\$\{\{ !inputs\.states \}\}[\s\S]*scheduled-state-verification\.mjs verify --state=FL -- npm run verify:fl:star-expansion/);
+  assert.match(targeted, /if:\s*\$\{\{ inputs\.states && contains\(inputs\.states, 'FL'\) \}\}[\s\S]*run: npm run verify:fl:star-expansion/);
 });
 
 test('production verifier requires at least 20 Star stores and preserves all 180 baseline stores', () => {

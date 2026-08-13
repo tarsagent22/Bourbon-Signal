@@ -26,7 +26,7 @@ import { canPublishTennesseePartialEvidenceFallback } from './tennessee-verifica
 import { registeredDemandMetroStores } from './demand-metro-registry.mjs';
 import { demandMetroAreaLabel, demandMetroAreaMatchesFields } from './demand-metro-areas.mjs';
 import { attachRunIdentity, verifyRunCoherence } from './site-run-coherence.mjs';
-import { detectDropCollapseFallbacks, mergeHistoricalBoardShipmentDrops, mergePartialRefreshDrops, mergePartialRefreshLocations, selectFreshRunDrops } from './partial-refresh-contract.mjs';
+import { detectDropCollapseFallbacks, mergeHistoricalBoardShipmentDrops, mergePartialRefreshDrops, mergePartialRefreshLocations, mergePartialRefreshStores, mergeScheduledFallbackEvents, selectFreshRunDrops } from './partial-refresh-contract.mjs';
 import { buildNcBoardCoverageSummary } from './nc-coverage-summary.mjs';
 import { buildNcSourceLedger, enrichNcSingleStoreShipmentSignals } from './nc-source-ledger.mjs';
 import { authoritativeSignalTimestamp, enforceArchivedSourceAlertPolicy } from './event-freshness.mjs';
@@ -34,6 +34,9 @@ import { authoritativeSignalTimestamp, enforceArchivedSourceAlertPolicy } from '
 const OUT = path.resolve('out');
 const SNAPSHOTS = path.join(OUT, 'history', 'snapshots');
 const SITE_OUT = path.join(OUT, 'site');
+const PREVIOUS_SITE_OUT = process.env.BOURBON_SIGNAL_PREVIOUS_SITE_DIR
+  ? path.resolve(process.env.BOURBON_SIGNAL_PREVIOUS_SITE_DIR)
+  : SITE_OUT;
 const CONTRACT_VERSION = 'bourbon-signal-site-v0.1';
 const HISTORY_DAYS = Number(process.env.BOURBON_SIGNAL_HISTORY_DAYS || 30);
 const HISTORY_SNAPSHOT_LIMIT = Number(process.env.BOURBON_SIGNAL_HISTORY_SNAPSHOT_LIMIT || 40);
@@ -339,6 +342,8 @@ function isWestVirginiaRecentPurchaseSignal(signal) {
 
 export function publicSignal(signal, bible, freshness = null) {
   const bibleRecord = findBibleRecord(signal, bible);
+  const isNcBoardShipment = signal.state === 'NC'
+    && String(signal.eventType || signal.type || '').toLowerCase() === 'nc_board_shipment_snapshot';
   const preferRetailerName = ['IN', 'IL', 'TN', 'SC', 'AZ', 'GA', 'NY', 'CO'].includes(signal.state) && /^(cityhive_store_inventory|retailer_store_inventory)/i.test(String(signal.eventType || ''));
   const isCostcoWarehouseInventory = isCostcoWarehouseInventorySignal(signal);
   const isKyOfficialDistillery = isKentuckyOfficialDistillerySignal(signal);
@@ -367,7 +372,9 @@ export function publicSignal(signal, bible, freshness = null) {
     && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(String(signal.eventType || signal.type || ''));
   const isMetroRetailerEvent = ['NY', 'CO'].includes(signal.state)
     && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(String(signal.eventType || signal.type || ''));
-  const inventorySemantics = isCostcoWarehouseInventory
+  const inventorySemantics = isNcBoardShipment
+    ? (signal.inventorySemantics || 'Official NC ABC board-level shipment units; this is a shipment to the local board, not exact store shelf inventory or current availability.')
+    : isCostcoWarehouseInventory
     ? 'Costco warehouse/app availability is retailer-published availability, not a reservation or guaranteed shelf hold. Treat as a fast-moving warehouse signal and verify before driving.'
     : isTnRetailerInventory
       ? signal.inventorySemantics
@@ -471,6 +478,7 @@ export function publicSignal(signal, bible, freshness = null) {
     sourceProductBinding: signal.sourceProductBinding || signal.raw?.productBinding || null,
     productHandle: signal.productHandle || signal.raw?.product?.handle || null,
     productCode: signal.productCode || null,
+    ncCode: signal.ncCode || signal.raw?.ncCode || signal.raw?.NCCODE || null,
     sku: signal.sku || signal.raw?.sku || null,
     sourceProductProofId: signal.sourceProductProofId || null,
     sourceProductProofSku: signal.sourceProductProofSku || null,
@@ -513,10 +521,14 @@ export function publicSignal(signal, bible, freshness = null) {
     lng: signal.lng,
     quantity: signal.quantity || signal.storeQty || 0,
     storeQty: Number(signal.storeQty ?? signal.quantity ?? 0) || 0,
-    boardShipmentQuantity: signal.boardShipmentQuantity ?? null,
+    boardShipmentQuantity: isNcBoardShipment
+      ? (Number(signal.boardShipmentQuantity ?? signal.quantity ?? 0) || 0)
+      : (signal.boardShipmentQuantity ?? null),
     shipmentStoreEquivalent: signal.shipmentStoreEquivalent === true,
     quantityIsExact: typeof signal.quantityIsExact === 'boolean' ? signal.quantityIsExact : null,
-    quantitySemantics: signal.quantitySemantics || signal.raw?.quantitySemantics || null,
+    quantitySemantics: isNcBoardShipment
+      ? (signal.quantitySemantics || signal.raw?.quantitySemantics || 'board_shipment_units_not_store_inventory')
+      : (signal.quantitySemantics || signal.raw?.quantitySemantics || null),
     reportedQuantity: ['FL', 'GA', 'TN', 'NY', 'CO', 'VA'].includes(signal.state) && Number.isFinite(Number(signal.reportedQuantity ?? (isMetroInventory && signal.quantityIsExact === true ? signal.storeQty : null)))
       ? Number(signal.reportedQuantity ?? signal.storeQty)
       : null,
@@ -543,12 +555,12 @@ export function publicSignal(signal, bible, freshness = null) {
     canAlertAsInventory,
     canAlertAsWatch,
     alertable: staleFallback ? false : undefined,
-    eligibleForOnSite: isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase || canAlertAsInventory || canAlertAsWatch,
-    eligibleForDropFeed: isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase ? true : undefined,
-    eligibleForWatch: isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase ? false : undefined,
-    eligibleForDelivery: isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase ? false : (canAlertAsInventory || canAlertAsWatch),
-    eligibleForEmail: isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase || isScSouthernBinaryInventory ? false : undefined,
-    eligibleForSms: isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase || isScSouthernBinaryInventory ? false : undefined,
+    eligibleForOnSite: isNcBoardShipment || isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase || canAlertAsInventory || canAlertAsWatch,
+    eligibleForDropFeed: isNcBoardShipment || isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase ? true : undefined,
+    eligibleForWatch: isNcBoardShipment || isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase ? false : undefined,
+    eligibleForDelivery: isNcBoardShipment || isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase ? false : (canAlertAsInventory || canAlertAsWatch),
+    eligibleForEmail: isNcBoardShipment || isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase || isScSouthernBinaryInventory ? false : undefined,
+    eligibleForSms: isNcBoardShipment || isMsSparseOnSiteInventory || isWvOfficialBarrelSelection || isWvRecentPurchase || isScSouthernBinaryInventory ? false : undefined,
     raw: staleFallback ? {
       lastKnownAvailabilityStatus: signal.raw?.lastKnownAvailabilityStatus || null,
       lastKnownAvailabilityLabel: signal.raw?.lastKnownAvailabilityLabel || null,
@@ -576,8 +588,11 @@ export function publicSignal(signal, bible, freshness = null) {
         : null),
     dataLane,
     informationalOnly: dataLane === 'informational',
+    availabilityScope: isNcBoardShipment ? 'board' : undefined,
     inventoryCaveat: isCostcoWarehouseInventory
       ? 'Costco warehouse signal. Fast-moving bottles can disappear quickly; verify with the warehouse/app before driving.'
+      : isNcBoardShipment
+        ? 'Official NC ABC board shipment. Units were shipped to the named local board; this does not prove an exact store, shelf quantity, or current availability.'
       : isWvOfficialBarrelSelection
         ? 'Official statewide retailer-ordering intelligence only; not live shelf inventory. Contact a licensed retailer to confirm availability before driving.'
       : isWvRecentPurchase
@@ -1012,7 +1027,11 @@ function isSafePublicSignal(signal) {
     const name = String(signal.rawName || signal.canonicalName || '').replace(/\s+/g, ' ').trim();
     if (/^BAKER'?S$/i.test(name) || String(signal.ncCode || '').trim() === '27006') return false;
   }
-  if (signal.state === 'NC' && (type === 'nc_board_shipment_snapshot' || type === 'nc_statewide_warehouse_stock')) {
+  if (signal.state === 'NC' && type === 'nc_board_shipment_snapshot') {
+    const name = String(signal.rawName || signal.canonicalName || '');
+    return !NC_STRICT_SIGNAL_EXCLUDE_RE.test(name);
+  }
+  if (signal.state === 'NC' && type === 'nc_statewide_warehouse_stock') {
     const name = String(signal.rawName || signal.canonicalName || '');
     return NC_STRICT_SIGNAL_RE.test(name) && !NC_STRICT_SIGNAL_EXCLUDE_RE.test(name);
   }
@@ -1068,7 +1087,7 @@ export function buildDrops(signals, bible, currentSignals = []) {
     })
     .map((signal) => publicSignal(signal, bible, freshnessIndex.get(signalFreshnessKey(signal))))
     .filter((drop) => isCustomerDropTier(drop))
-    .filter((drop, index, drops) => drops.findIndex((x) => [x.state, x.type, x.canonicalId, x.sourceUrl, x.storeId, x.locationName, x.storeAddress, x.quantity, x.availabilityStatus, x.price].join('|') === [drop.state, drop.type, drop.canonicalId, drop.sourceUrl, drop.storeId, drop.locationName, drop.storeAddress, drop.quantity, drop.availabilityStatus, drop.price].join('|')) === index)
+    .filter((drop, index, drops) => drops.findIndex((x) => [x.state, x.type, x.canonicalId, x.ncCode, x.sourceUrl, x.storeId, x.locationName, x.storeAddress, x.quantity, x.availabilityStatus, x.price].join('|') === [drop.state, drop.type, drop.canonicalId, drop.ncCode, drop.sourceUrl, drop.storeId, drop.locationName, drop.storeAddress, drop.quantity, drop.availabilityStatus, drop.price].join('|')) === index)
     .slice(0, 10000);
 }
 
@@ -1959,14 +1978,16 @@ async function main() {
     .filter((signal) => activeStateIds.has(signal.state))
     .map(enforceArchivedSourceAlertPolicy);
   const bottles = buildBottles(signals, bible, biblePayload.records || []);
-  const stores = buildStores(signals);
+  const currentStores = buildStores(signals);
   const currentLocations = buildLocationBible(signals, activeOfficialLocations);
   const candidateDrops = buildDrops(historicalSignals, bible, signals);
   const currentDrops = buildDrops(signals, bible, signals);
-  const previousLocations = await readJson(path.join(SITE_OUT, 'locations.json'), []);
-  const previousDrops = await readJson(path.join(SITE_OUT, 'drops.json'), []);
+  const previousLocations = await readJson(path.join(PREVIOUS_SITE_OUT, 'locations.json'), []);
+  const previousStores = await readJson(path.join(PREVIOUS_SITE_OUT, 'stores.json'), []);
+  const previousDrops = await readJson(path.join(PREVIOUS_SITE_OUT, 'drops.json'), []);
+  const previousEvents = await readJson(path.join(PREVIOUS_SITE_OUT, 'events.json'), []);
   const bootstrapDrops = await readJson(path.join(OUT, 'historical-bootstrap', 'drops.json'), []);
-  const previousStateQuality = await readJson(path.join(SITE_OUT, 'state-quality.json'), null);
+  const previousStateQuality = await readJson(path.join(PREVIOUS_SITE_OUT, 'state-quality.json'), null);
   const detectedFallbackStateIds = detectDropCollapseFallbacks(previousStateQuality, currentDrops, summary.attemptedStateIds || []);
   const tennesseeStateReport = detectedFallbackStateIds.includes('TN')
     ? await readJson(path.join(OUT, 'states', 'TN.json'), null)
@@ -2009,6 +2030,14 @@ async function main() {
     currentLocations,
     partialRefresh: summary.partialRefresh === true,
     attemptedStateIds: summary.attemptedStateIds || [],
+    fallbackStateIds: summary.fallbackStateIds || [],
+  });
+  const stores = mergePartialRefreshStores({
+    previousStores,
+    currentStores,
+    partialRefresh: summary.partialRefresh === true,
+    attemptedStateIds: summary.attemptedStateIds || [],
+    fallbackStateIds: summary.fallbackStateIds || [],
   });
   const drops = mergeHistoricalBoardShipmentDrops({
     currentDrops: refreshedDrops,
@@ -2017,7 +2046,11 @@ async function main() {
     bootstrapDrops,
     historyDays: HISTORY_DAYS,
   });
-  const events = buildEvents(historicalSignals, bible);
+  const events = mergeScheduledFallbackEvents({
+    previousEvents,
+    currentEvents: buildEvents(historicalSignals, bible),
+    fallbackStateIds: summary.fallbackStateIds || [],
+  });
   const alertableCurrentDrops = freshRunDrops.filter((drop) => !fallbackStateIds.has(String(drop.state || drop.state_code || '').toUpperCase()));
   const freshReportedAlertCandidates = selectFreshRunDrops({ drops: alerts.candidates, freshStateIds: summary.freshStateIds });
   const reportedAlertCandidates = buildAlerts({ candidates: freshReportedAlertCandidates.filter((candidate) => activeStateIds.has(candidate.state) && !fallbackStateIds.has(String(candidate.state).toUpperCase())) });
@@ -2035,7 +2068,7 @@ async function main() {
     generatedAt,
     engineGeneratedAt,
   };
-  const previousStats = await readJson(path.join(SITE_OUT, 'stats.json'), {});
+  const previousStats = await readJson(path.join(PREVIOUS_SITE_OUT, 'stats.json'), {});
   const summaryStatesById = new Map((summary.states || []).filter((state) => activeStateIds.has(state.state)).map((state) => [state.state, state]));
   const activeSummaryStates = [...activeStateIds].map((stateId) => summaryStatesById.get(stateId) || {
     state: stateId,

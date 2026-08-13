@@ -580,10 +580,12 @@ test('frozen request budget is explicit and bounded', () => {
   });
 });
 
-test('Florida immutable verification is reusable and every workflow entry path runs it', async () => {
+test('Florida immutable verification is reusable, isolated on schedule, and strict when targeted', async () => {
   const verifier = await import('../src/verification/florida-expansion-verifier.mjs');
   assert.equal(typeof verifier.verifyFloridaExpansionArtifact, 'function');
   const workflow = readFileSync(new URL('../../.github/workflows/refresh-feed.yml', import.meta.url), 'utf8');
-  const step = workflow.match(/- name: Verify Florida immutable full-store expansion[\s\S]*?run: npm run verify:fl:15-20/)?.[0] || '';
-  assert.match(step, /if:\s*\$\{\{ !inputs\.states \|\| inputs\.force_all_states == 'true' \|\| contains\(inputs\.states, 'FL'\) \}\}/);
+  const scheduled = workflow.match(/- name: Verify Florida scheduled immutable full-store expansion or isolate its partition[\s\S]*?(?=\n      - name:)/)?.[0] || '';
+  const targeted = workflow.match(/- name: Verify Florida targeted immutable full-store expansion strictly[\s\S]*?(?=\n      - name:)/)?.[0] || '';
+  assert.match(scheduled, /if:\s*\$\{\{ !inputs\.states \}\}[\s\S]*scheduled-state-verification\.mjs verify --state=FL -- npm run verify:fl:15-20/);
+  assert.match(targeted, /if:\s*\$\{\{ inputs\.states && contains\(inputs\.states, 'FL'\) \}\}[\s\S]*run: npm run verify:fl:15-20/);
 });

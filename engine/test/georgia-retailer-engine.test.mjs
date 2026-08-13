@@ -462,7 +462,8 @@ test('Georgia precision, exporter, verifier, and publication workflow are guarde
   assert.match(workflow, /engine\/out\/optimization\/georgia-retailer-activation\.json/);
   assert.match(workflow, /Verify Georgia scheduled lane or isolate an explicit last-known fallback[\s\S]{0,240}!inputs\.states[\s\S]{0,240}--allow-labeled-last-known-fallback/);
   assert.match(workflow, /Verify Georgia targeted private-retailer recovery[\s\S]{0,240}inputs\.states && contains\(inputs\.states, 'GA'\)[\s\S]{0,180}run: npm run verify:ga/);
-  assert.ok(workflow.indexOf('Verify coherent site contract') < workflow.indexOf('Verify Georgia scheduled lane or isolate an explicit last-known fallback'));
+  assert.ok(workflow.indexOf('Verify Georgia scheduled lane or isolate an explicit last-known fallback') < workflow.indexOf('Replace failed scheduled states with last-published stale partitions'));
+  assert.ok(workflow.indexOf('Replace failed scheduled states with last-published stale partitions') < workflow.indexOf('Verify coherent site contract unconditionally'));
   assert.ok(workflow.indexOf('Verify Georgia targeted private-retailer recovery') < workflow.indexOf('Publish and atomically activate encrypted snapshot'));
 
   const runEngine = readFileSync(new URL('../src/run.mjs', import.meta.url), 'utf8');
