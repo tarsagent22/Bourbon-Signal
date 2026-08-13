@@ -110,7 +110,7 @@ import {
   verifyMetroShopifyFulfillmentPolicy,
 } from './metro-retailer-surfaces.mjs';
 import { isMetroRetailerInventory } from '../metro-retailer-policy.mjs';
-import { isSouthCarolinaAllAmericanInventory, isSouthCarolinaLiquorLibraryInventory } from '../south-carolina-retailer-policy.mjs';
+import { isSouthCarolinaAllAmericanInventory, isSouthCarolinaDiscountLiquorInventory, isSouthCarolinaLiquorLibraryInventory } from '../south-carolina-retailer-policy.mjs';
 import {
   buildIndianaTargetStoreLocationSignals,
   INDIANA_CITYHIVE_CACHE_MAX_AGE_MS,
@@ -145,6 +145,7 @@ import {
 import { loadOhioInventoryRecoverySeed, seedOhioInventoryCacheSignals } from './ohio-inventory-recovery.mjs';
 import { collectMississippiRetailers } from './mississippi-retailer-collector.mjs';
 import { collectLiquorLibraryInventory, LIQUOR_LIBRARY_SOURCE } from './south-carolina-square.mjs';
+import { collectDiscountLiquorInventory, DISCOUNT_LIQUOR_SOURCE } from './south-carolina-discount-square.mjs';
 
 const require = createRequire(import.meta.url);
 const { PDFParse } = require('pdf-parse');
@@ -1123,6 +1124,9 @@ const SC_DUNES_STORE = { id: 'dunes-liquor-myrtle-beach', name: 'Dunes Liquor', 
 const SC_LIQUOR_LIBRARY_ARTIFACT_PATH = 'out/browser/SC-liquor-library-square-inventory.json';
 const SC_LIQUOR_LIBRARY_CACHE_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_SC_LIQUOR_LIBRARY_CACHE_MAX_AGE_MS || 2 * 60 * 60_000);
 const SC_LIQUOR_LIBRARY_JSON_MAX_BYTES = 2 * 1_024 * 1_024;
+const SC_DISCOUNT_LIQUOR_ARTIFACT_PATH = 'out/browser/SC-discount-liquor-square-inventory.json';
+const SC_DISCOUNT_LIQUOR_CACHE_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_SC_DISCOUNT_LIQUOR_CACHE_MAX_AGE_MS || 2 * 60 * 60_000);
+const SC_DISCOUNT_LIQUOR_JSON_MAX_BYTES = 2 * 1_024 * 1_024;
 const SC_CITYHIVE_SOURCES = [
   {
     id: 'greens-beverage',
@@ -7355,6 +7359,65 @@ async function collectSouthCarolinaLiquorLibrary(config, bible, observedAt) {
   return result;
 }
 
+async function southCarolinaDiscountLiquorJsonFetch(url) {
+  const res = await textFetch(url, { headers: { accept: 'application/json' }, timeoutMs: 24_000, maxBytes: SC_DISCOUNT_LIQUOR_JSON_MAX_BYTES });
+  const body = String(res.text || '');
+  if (!res.ok) return { ok: false, status: res.status || 0, error: res.error || `HTTP ${res.status}`, payload: null };
+  if (Buffer.byteLength(body, 'utf8') > SC_DISCOUNT_LIQUOR_JSON_MAX_BYTES) {
+    return { ok: false, status: res.status || 0, error: `Square JSON response exceeded ${SC_DISCOUNT_LIQUOR_JSON_MAX_BYTES} bytes.`, payload: null };
+  }
+  try {
+    return { ok: true, status: res.status, error: null, payload: JSON.parse(body) };
+  } catch (error) {
+    return { ok: false, status: res.status || 0, error: error instanceof Error ? error.message : String(error), payload: null };
+  }
+}
+
+function isReusableSouthCarolinaDiscountLiquorCache(payload, nowMs = Date.now()) {
+  const generatedMs = Date.parse(String(payload?.generatedAt || ''));
+  const ageMs = nowMs - generatedMs;
+  if (!Array.isArray(payload?.signals)
+    || !Number.isFinite(generatedMs)
+    || ageMs < -5 * 60_000
+    || ageMs > SC_DISCOUNT_LIQUOR_CACHE_MAX_AGE_MS) return false;
+  const inventory = payload.signals.filter((signal) => signal?.eventType === 'retailer_store_inventory_result');
+  const locations = payload.signals.filter((signal) => signal?.eventType === 'retailer_store_location');
+  return inventory.length > 0
+    && locations.length === 1
+    && locations[0]?.storeId === `discount-liquor-fort-mill:${DISCOUNT_LIQUOR_SOURCE.locationId}`
+    && locations[0]?.storeAddress === DISCOUNT_LIQUOR_SOURCE.store.address
+    && inventory.every((signal) => isSouthCarolinaDiscountLiquorInventory(signal, nowMs));
+}
+
+async function collectSouthCarolinaDiscountLiquor(config, bible, observedAt) {
+  if (process.env.BOURBON_SIGNAL_SC_FORCE_DISCOUNT_LIQUOR_LIVE !== '1') {
+    try {
+      const cached = JSON.parse(await readFile(SC_DISCOUNT_LIQUOR_ARTIFACT_PATH, 'utf8'));
+      if (isReusableSouthCarolinaDiscountLiquorCache(cached)) {
+        return {
+          signals: cached.signals.map((signal) => ({ ...signal, fetchedAt: observedAt, raw: { ...(signal.raw || {}), cacheFallback: true, cacheGeneratedAt: cached.generatedAt } })),
+          roadblocks: cached.roadblocks || [],
+        };
+      }
+    } catch {}
+  }
+  const result = await collectDiscountLiquorInventory(config, bible, observedAt, {
+    fetchJson: southCarolinaDiscountLiquorJsonFetch,
+    sleepFn: sleep,
+    matchBottle: (rawName) => cityHiveSafeBottleMatch(rawName, bible),
+  });
+  const inventory = result.signals.filter((signal) => signal?.eventType === 'retailer_store_inventory_result');
+  if (inventory.length > 0 && result.roadblocks.length === 0) {
+    try {
+      await mkdir(path.dirname(SC_DISCOUNT_LIQUOR_ARTIFACT_PATH), { recursive: true });
+      await writeFile(SC_DISCOUNT_LIQUOR_ARTIFACT_PATH, JSON.stringify({ generatedAt: observedAt, signals: result.signals, roadblocks: [] }, null, 2));
+    } catch (error) {
+      result.roadblocks.push({ state: config.id, source: DISCOUNT_LIQUOR_SOURCE.sourceLabel, url: DISCOUNT_LIQUOR_SOURCE.categoryUrl, status: 'cache_write_failed', error: error instanceof Error ? error.message : String(error), nextRoute: 'Serve this verified live result and retry cache persistence on the next run.' });
+    }
+  }
+  return result;
+}
+
 async function collectSouthCarolinaAllAmerican(config, bible, observedAt) {
   try {
     const cached = JSON.parse(await readFile(SC_ALL_AMERICAN_ARTIFACT_PATH, 'utf8'));
@@ -7431,6 +7494,7 @@ async function collectSouthCarolina(config, bible) {
     { name: 'southern-spirits', domain: 'southernspirits.com', run: () => runIsolatedSouthCarolinaSourceLane({ name: 'southern-spirits', source: 'Southern Spirits Shopify products feed', run: () => collectSouthCarolinaSouthernSpirits(config, bible, observedAt) }, config) },
     { name: 'dunes', domain: 'dunesliquor.com', run: () => runIsolatedSouthCarolinaSourceLane({ name: 'dunes', source: SC_DUNES_SOURCE_LABEL, run: () => collectSouthCarolinaDunes(config, bible, observedAt) }, config) },
     { name: 'liquor-library', domain: 'editmysite.com', run: () => runIsolatedSouthCarolinaSourceLane({ name: 'liquor-library', source: LIQUOR_LIBRARY_SOURCE.sourceLabel, run: () => collectSouthCarolinaLiquorLibrary(config, bible, observedAt) }, config) },
+    { name: 'discount-liquor-fort-mill', domain: 'editmysite.com', run: () => runIsolatedSouthCarolinaSourceLane({ name: 'discount-liquor-fort-mill', source: DISCOUNT_LIQUOR_SOURCE.sourceLabel, run: () => collectSouthCarolinaDiscountLiquor(config, bible, observedAt) }, config) },
     { name: 'all-american', domain: 'aalmauldin.com', run: () => runIsolatedSouthCarolinaSourceLane({ name: 'all-american', source: SC_ALL_AMERICAN_SOURCE_LABEL, run: () => collectSouthCarolinaAllAmerican(config, bible, observedAt) }, config) },
     { name: 'phase1-myrtle', domain: 'sc-myrtle-watch-group', run: () => runIsolatedSouthCarolinaSourceLane({ name: 'phase1-myrtle', source: 'South Carolina phase-one Myrtle Beach sources', run: () => collectSouthCarolinaPhase1Myrtle(config, bible, observedAt) }, config) },
   ], { concurrency: 3 });

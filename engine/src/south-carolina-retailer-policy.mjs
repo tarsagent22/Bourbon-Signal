@@ -12,6 +12,10 @@ const LIQUOR_LIBRARY_SOURCE = 'Liquor Library North Myrtle Beach Square exact-st
 const LIQUOR_LIBRARY_STORE_ID = 'liquor-library:45SNB155S1XMP';
 const LIQUOR_LIBRARY_MAX_AGE_MS = 2 * 60 * 60_000;
 const LIQUOR_LIBRARY_ADDRESS = '270 hwy 17 n north myrtle beach sc 29582';
+const DISCOUNT_LIQUOR_SOURCE = 'Discount Liquor Fort Mill Square exact-store inventory';
+const DISCOUNT_LIQUOR_STORE_ID = 'discount-liquor-fort-mill:LEG9F5YDP0ZS2';
+const DISCOUNT_LIQUOR_MAX_AGE_MS = 2 * 60 * 60_000;
+const DISCOUNT_LIQUOR_ADDRESS = '400 n dobys bridge rd fort mill sc 29715';
 const SC_CITYHIVE_MERCHANTS = new Map([
   ...['61dc4ab6a1d5721307e9c20e', '61e1d04c823936166693c7f3', '61dc62fca1d5721d92e837cf', '61dc583152bc522be69a8b9e', '61b7517362f55f727e469da5'].map((id) => [id, { chain: 'greens-beverage', label: "Green's Beverage South Carolina CityHive store inventory", hosts: ['greensbeb2c6efe1.sites.cityhive.app', 'greensbeverages.com', 'www.greensbeverages.com'] }]),
   ...['69930e7bed5bdd2a34c085c3', '699754a7b0035e3df3e7f3a4', '69977a118f10a026bd985189'].map((id) => [id, { chain: 'wine-bourbon-barn', label: 'Wine & Bourbon Barn CityHive store inventory', hosts: ['winebarnsc.com', 'www.winebarnsc.com'] }]),
@@ -128,6 +132,106 @@ export function isSouthCarolinaLiquorLibrarySignal(signal) {
     || signal?.raw?.chain === 'liquor-library'
     || signal?.storeId === LIQUOR_LIBRARY_STORE_ID
     || host === 'www.yourliquorlibrary.com';
+}
+
+function exactDiscountLiquorProductUrl(signal) {
+  try {
+    const url = new URL(String(signal?.sourceUrl || ''));
+    return url.protocol === 'https:'
+      && url.hostname === 'discountliquorfm.square.site'
+      && new RegExp(`^/product/[a-z0-9-]+/${String(signal?.siteProductId || '')}$`).test(url.pathname)
+      && !url.search
+      && !url.hash;
+  } catch {
+    return false;
+  }
+}
+
+export function isSouthCarolinaDiscountLiquorInventory(signal, nowMs = Date.now()) {
+  const square = signal?.raw?.square;
+  const product = square?.product;
+  const variation = square?.variation;
+  const observedAt = Date.parse(String(signal?.observedAt || signal?.lastConfirmedAt || ''));
+  const ageMs = nowMs - observedAt;
+  const quantity = Number(signal?.quantity);
+  const productId = typeof signal?.productId === 'string' ? signal.productId.trim() : '';
+  const siteProductId = typeof signal?.siteProductId === 'string' ? signal.siteProductId.trim() : '';
+  const variationId = typeof signal?.variationId === 'string' ? signal.variationId.trim() : '';
+  const sku = signal?.sku == null ? null : (typeof signal.sku === 'string' ? signal.sku.trim() : false);
+  return signal?.state === 'SC'
+    && signal?.stateCode === 'SC'
+    && signal?.eventType === 'retailer_store_inventory_result'
+    && signal?.sourceLabel === DISCOUNT_LIQUOR_SOURCE
+    && signal?.sourceChain === 'discount-liquor-fort-mill'
+    && signal?.locationPrecision === 'store_level'
+    && signal?.storeId === DISCOUNT_LIQUOR_STORE_ID
+    && signal?.storeName === 'Discount Liquor'
+    && signal?.locationName === 'Discount Liquor'
+    && normalizedIdentity(signal?.storeAddress) === DISCOUNT_LIQUOR_ADDRESS
+    && signal?.city === 'Fort Mill'
+    && String(signal?.postalCode || '') === '29715'
+    && String(signal?.zip || '') === '29715'
+    && signal?.ownerId === '151282621'
+    && signal?.siteId === '741520739911976347'
+    && signal?.merchantId === 'ML2FQ6NA8B53W'
+    && signal?.locationId === 'LEG9F5YDP0ZS2'
+    && signal?.categoryId === '4FQJPWZXRPCDSABLO3WBCNT5'
+    && /^[A-Z0-9]{10,40}$/.test(productId)
+    && /^\d{1,12}$/.test(siteProductId)
+    && /^[A-Z0-9]{10,40}$/.test(variationId)
+    && sku !== false
+    && (sku == null || sku.length <= 64)
+    && signal?.sourceProductProofId === productId
+    && Boolean(String(signal?.canonicalBottleId || '').trim())
+    && Boolean(String(signal?.rawName || '').trim())
+    && exactDiscountLiquorProductUrl(signal)
+    && Number.isInteger(quantity)
+    && quantity > 0
+    && quantity <= 10_000
+    && signal?.storeQty === quantity
+    && signal?.quantityIsExact === true
+    && signal?.quantitySemantics === 'exact_square_single_location_inventory'
+    && Number.isFinite(Number(signal?.price))
+    && Number(signal.price) > 0
+    && signal?.availabilityStatus === 'in_stock'
+    && signal?.sourceAvailabilityVerified === true
+    && signal?.orderabilityOfferVerified === true
+    && signal?.canAlertAsInventory === true
+    && signal?.canAlertAsWatch === true
+    && signal?.stale !== true
+    && signal?.sourceStale !== true
+    && signal?.raw?.chain === 'discount-liquor-fort-mill'
+    && square?.ownerId === signal.ownerId
+    && square?.siteId === signal.siteId
+    && square?.merchantId === signal.merchantId
+    && square?.locationId === signal.locationId
+    && square?.categoryId === signal.categoryId
+    && product?.id === productId
+    && product?.siteProductId === siteProductId
+    && product?.quantity === quantity
+    && product?.price === signal.price
+    && product?.sourceUrl === signal.sourceUrl
+    && variation?.id === variationId
+    && variation?.sku === sku
+    && variation?.productId === productId
+    && variation?.siteProductId === siteProductId
+    && variation?.quantity === quantity
+    && variation?.price === signal.price
+    && variation?.inventoryTrackingEnabled === true
+    && variation?.pickupEnabled === true
+    && Number.isFinite(observedAt)
+    && ageMs >= -MAX_FUTURE_SKEW_MS
+    && ageMs <= DISCOUNT_LIQUOR_MAX_AGE_MS;
+}
+
+export function isSouthCarolinaDiscountLiquorSignal(signal) {
+  let host = '';
+  try { host = new URL(String(signal?.sourceUrl || '')).hostname.toLowerCase(); } catch {}
+  return signal?.sourceLabel === DISCOUNT_LIQUOR_SOURCE
+    || signal?.sourceChain === 'discount-liquor-fort-mill'
+    || signal?.raw?.chain === 'discount-liquor-fort-mill'
+    || signal?.storeId === DISCOUNT_LIQUOR_STORE_ID
+    || host === 'discountliquorfm.square.site';
 }
 
 function exactProductUrl(signal, handle) {

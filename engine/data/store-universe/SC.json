@@ -6,19 +6,20 @@
   "summary": {
     "seedCount": 10,
     "probedCount": 11,
-    "knownStoreCount": 32,
-    "currentStoreCount": 32,
+    "knownStoreCount": 33,
+    "currentStoreCount": 33,
     "probeDiscoveredStoreCount": 20,
     "directorySeedStoreCount": 0,
     "directoryUrlStoreCount": 0,
     "byStatus": {
       "catalog-searchable": 2,
-      "live-inventory": 23,
+      "live-inventory": 24,
       "storefront-probeable": 7
     },
-    "cityCount": 15,
+    "cityCount": 16,
     "byCity": {
       "Columbia": 3,
+      "Fort Mill": 1,
       "Greenville": 2,
       "Hilton Head Island": 2,
       "Indian Land": 1,
@@ -90,6 +91,25 @@
       "website": "https://www.greensbeverages.com/shop/?subtype=bourbon",
       "ecommercePlatform": "cityhive",
       "key": "green-s-beverage-piney-grove-sc-columbia-29212"
+    },
+    {
+      "id": "discount-liquor-fort-mill:LEG9F5YDP0ZS2",
+      "name": "Discount Liquor",
+      "address": "400 N Dobys Bridge Rd, Fort Mill, SC 29715",
+      "city": "Fort Mill",
+      "state": "SC",
+      "zip": "29715",
+      "lat": 35.006664,
+      "lng": -80.931076,
+      "sourceLabels": [
+        "Discount Liquor Fort Mill Square exact-store inventory"
+      ],
+      "inventoryStatus": "live-inventory",
+      "discoverySource": "first-party-live-probe",
+      "website": "https://discountliquorfm.square.site/s/shop",
+      "ecommercePlatform": "square-online",
+      "sourceRuntimeId": "retailer:sc:discount-liquor-fort-mill:LEG9F5YDP0ZS2",
+      "key": "discount-liquor-fort-mill-29715"
     },
     {
       "id": "greens-beverage:61dc62fca1d5721d92e837cf",
