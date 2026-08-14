@@ -35,7 +35,7 @@
       "profileSafetyHash": null
     },
     {
-      "jobId": "a7e40e29f603",
+      "jobId": "bb9c16064777",
       "name": "Bourbon Signal silent demand and source scout",
       "schedule": "15 2 * * *",
       "deliver": "telegram:-5461081025",
@@ -46,8 +46,14 @@
       "provider": "openai-codex",
       "model": "gpt-5.6-luna",
       "reasoning": "xhigh",
-      "safetyHash": "d8ee657a558123bbdce68f876a2825839cffa10e16e806b29a6502e995cd69ff",
-      "profileSafetyHash": null
+      "safetyHash": "53dddd7ca3f2d7b0f86196508673036f579798883d03a797cca1fd69996bfbb8",
+      "profileSafetyHash": null,
+      "enabledToolsets": [
+        "file",
+        "terminal",
+        "web"
+      ],
+      "baseUrl": null
     },
     {
       "jobId": "bf9e05209184",
@@ -56,21 +62,6 @@
       "deliver": "telegram:-5461081025",
       "noAgent": true,
       "script": "bourbon_signal_bottle_queue_check.py",
-      "workdir": "C:\\c\\Users\\chand\\projects\\Bourbon-Signal-autonomous",
-      "active": true,
-      "provider": null,
-      "model": null,
-      "reasoning": null,
-      "safetyHash": null,
-      "profileSafetyHash": null
-    },
-    {
-      "jobId": "00f56edff2e9",
-      "name": "Bourbon Signal silent Release Radar scout",
-      "schedule": "15 1 * * *",
-      "deliver": "telegram:-5461081025",
-      "noAgent": true,
-      "script": "bourbon_signal_release_radar_leads.py",
       "workdir": "C:\\c\\Users\\chand\\projects\\Bourbon-Signal-autonomous",
       "active": true,
       "provider": null,
@@ -176,21 +167,6 @@
       "deliver": "local",
       "noAgent": true,
       "script": "bourbon_signal_coverage_request_agent.py",
-      "workdir": "C:\\c\\Users\\chand\\projects\\Bourbon-Signal-autonomous",
-      "active": true,
-      "provider": null,
-      "model": null,
-      "reasoning": null,
-      "safetyHash": null,
-      "profileSafetyHash": null
-    },
-    {
-      "jobId": "0ee6b2c9fb07",
-      "name": "Bourbon Signal guarded Release Radar publisher",
-      "schedule": "*/15 * * * *",
-      "deliver": "telegram:-5461081025",
-      "noAgent": true,
-      "script": "bourbon_signal_release_radar_publisher.py",
       "workdir": "C:\\c\\Users\\chand\\projects\\Bourbon-Signal-autonomous",
       "active": true,
       "provider": null,

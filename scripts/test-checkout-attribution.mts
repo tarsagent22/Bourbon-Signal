@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 import { normalizeCheckoutSource } from "../src/lib/growth-events.ts";
 
 assert.equal(normalizeCheckoutSource("drop_feed"), "drop_feed");
-assert.equal(normalizeCheckoutSource("release-radar"), "release_radar");
+assert.equal(normalizeCheckoutSource("release-radar"), "unknown");
 assert.equal(normalizeCheckoutSource("https://evil.example/?email=x@example.com"), "unknown");
 const checkoutRoute = readFileSync("src/app/api/checkout/route.ts", "utf8");
 const syncRoute = readFileSync("src/app/api/checkout/sync/route.ts", "utf8");

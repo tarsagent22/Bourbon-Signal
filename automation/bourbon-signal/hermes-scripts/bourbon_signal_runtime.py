@@ -103,45 +103,6 @@ def resolve_repo(env: dict[str, str] | None = None) -> Path:
     )
 
 
-def release_radar_change_summary(payload: dict) -> str | None:
-    summary = payload.get("summary") if isinstance(payload, dict) else {}
-    summary = summary if isinstance(summary, dict) else {}
-    new_count = int(summary.get("new") or 0)
-    changed_count = int(summary.get("materiallyChanged") or 0)
-    if new_count <= 0 and changed_count <= 0:
-        return None
-    total = int(summary.get("total") or 0)
-    queued = int(summary.get("queuedForSemanticReview") or 0)
-    parts = []
-    if new_count:
-        parts.append(f"{new_count} new lead{'s' if new_count != 1 else ''}")
-    if changed_count:
-        parts.append(f"{changed_count} materially changed lead{'s' if changed_count != 1 else ''}")
-    return (
-        f"Release Radar lead collector: {' and '.join(parts)} require{'s' if len(parts) == 1 and parts[0].startswith('1 ') else ''} review "
-        f"({total} retained; {queued} queued); nothing was published or alerted."
-    )
-
-
-def nc_radar_change_summary(payload: dict) -> str | None:
-    summary = payload.get("summary") if isinstance(payload, dict) else {}
-    summary = summary if isinstance(summary, dict) else {}
-    changed = int(summary.get("materiallyChanged") or 0)
-    failures = int(summary.get("reviewFailures") or 0)
-    expired = int(summary.get("newlyExpired") or 0)
-    if changed <= 0 and failures <= 0 and expired <= 0:
-        return None
-    parts = []
-    if changed:
-        parts.append(f"{changed} official source change{'s' if changed != 1 else ''}")
-    if failures:
-        parts.append(f"{failures} repeated source failure{'s' if failures != 1 else ''}")
-    if expired:
-        parts.append(f"{expired} newly closed opportunit{'ies' if expired != 1 else 'y'}")
-    queued = int(summary.get("queuedForSemanticReview") or 0)
-    return f"NC Release Radar monitor: {', '.join(parts)} ({queued} queued for review); nothing was auto-published or alerted."
-
-
 def source_candidate_telemetry(previous: dict | None, current: dict | None) -> dict:
     fields = ("state", "source", "sourceAuthority", "coverageTier", "runnerReachability")
 

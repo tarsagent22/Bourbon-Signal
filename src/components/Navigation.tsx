@@ -19,7 +19,7 @@ const navLinks = [
 
 export default function Navigation() {
   const pathname = usePathname();
-  const isGlassPage = pathname === "/bottle-check" || pathname === "/coverage" || pathname === "/sightings" || pathname === "/pricing" || pathname.startsWith("/release-radar");
+  const isGlassPage = pathname === "/bottle-check" || pathname === "/coverage" || pathname === "/sightings" || pathname === "/pricing";
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mounted, setMounted] = useState(false);

@@ -13,9 +13,7 @@ const surfaceForPath = (path: string) => path === "/"
       ? "welcome"
       : path.startsWith("/dashboard")
         ? "dashboard"
-        : path.startsWith("/release-radar")
-          ? "release_radar"
-          : path.startsWith("/bottle-check")
+        : path.startsWith("/bottle-check")
             ? "bottle_check"
             : path.startsWith("/pricing")
               ? "pricing"

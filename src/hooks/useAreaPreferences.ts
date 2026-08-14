@@ -41,7 +41,7 @@ const EMPTY_PREFS: UserAlertPreferences = {
   alertMode: "anything_notable",
   bottleAlertPreferences: { bottleNames: [], bottleKeys: [] },
   collectionPreferences: { bottles: [] },
-  radarPreferences: { followedReleases: [] },
+
   memberProfile: { homeState: null, homeStateSelectedAt: null },
 };
 

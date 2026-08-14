@@ -42,8 +42,8 @@ function prepared(id: string) {
       eyebrow: "Your weekly intelligence",
       headline: "One signal",
       introduction: "A brief.",
-      sections: [{ kind: "radar" as const, title: "Radar", items: [{ id: "item", title: "Release", summary: "Soon", meta: "2026-07-18" }] }],
-      primaryAction: { kind: "radar" as const, label: "Open Radar", href: "/release-radar" },
+      sections: [{ kind: "coverage" as const, title: "Coverage notes", items: [{ id: "coverage-VA", title: "Virginia", summary: "Coverage changed.", meta: "Official source" }] }],
+      primaryAction: { kind: "coverage" as const, label: "Review your saved markets", href: "/dashboard?section=alerts" },
       isEmpty: false,
     },
     dryRun: {

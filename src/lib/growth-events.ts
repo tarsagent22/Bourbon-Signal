@@ -17,10 +17,8 @@ export const GROWTH_EVENT_NAMES = [
   "retailer_first_signal_live",
   "experiment_exposure",
   "experiment_metric",
-  "radar_release_followed",
-  "radar_bottle_tracked",
-  "radar_market_handoff",
-  "radar_calendar_exported",
+
+
 ] as const;
 
 export type GrowthEventName = typeof GROWTH_EVENT_NAMES[number];
@@ -40,7 +38,6 @@ export type GrowthSurface =
   | "welcome"
   | "dashboard"
   | "drop_feed"
-  | "release_radar"
   | "bottle_check"
   | "pricing"
   | "retailer"
@@ -51,7 +48,7 @@ export interface GrowthAttribution {
   referrerHost: string;
 }
 
-const SURFACES = new Set<GrowthSurface>(["homepage", "sign_up", "welcome", "dashboard", "drop_feed", "release_radar", "bottle_check", "pricing", "retailer", "unknown"]);
+const SURFACES = new Set<GrowthSurface>(["homepage", "sign_up", "welcome", "dashboard", "drop_feed", "bottle_check", "pricing", "retailer", "unknown"]);
 const EVENT_NAMES = new Set<string>(GROWTH_EVENT_NAMES);
 const MAX_VALUE_LENGTH = 80;
 const TRACKED_ACQUISITION_CAMPAIGN_ALIASES = new Map([

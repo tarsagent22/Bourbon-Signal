@@ -449,10 +449,10 @@ assert.match(
   /setLocalPreviewState\(\{\s*userId: requestUserId/,
   "accepted POST state must retain its authenticated owner",
 );
-const activeStateEffectSource = welcomeSource.slice(
-  welcomeSource.indexOf("useEffect(() => {\n    localSearchControllerRef.current?.abort();"),
-  welcomeSource.indexOf("useEffect(() => {\n    if (!preferencesReady)"),
-);
+const activeStateEffectStart = welcomeSource.indexOf("localSearchControllerRef.current?.abort();");
+const activeStateEffectEnd = welcomeSource.indexOf("if (!preferencesReady)", activeStateEffectStart);
+assert.ok(activeStateEffectStart >= 0 && activeStateEffectEnd > activeStateEffectStart, "active-state cleanup effect must remain discoverable across line-ending styles");
+const activeStateEffectSource = welcomeSource.slice(activeStateEffectStart, activeStateEffectEnd);
 assert.match(activeStateEffectSource, /localSearchControllerRef\.current\?\.abort\(\)/);
 assert.match(activeStateEffectSource, /localPreviewPostControllerRef\.current\?\.abort\(\)/);
 const saveHomeStateSource = welcomeSource.slice(

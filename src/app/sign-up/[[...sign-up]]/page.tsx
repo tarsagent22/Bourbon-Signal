@@ -126,7 +126,7 @@ export default function SignUpPage() {
             <span>
               {isCoverageRequestRedirect
                 ? "Create your free account to send this coverage request. No payment or card required."
-                : "No card required. Start with seven recent Drop Feed signals, three Bottle Checks, public Release Radar, and Member Sightings."}
+                : "No card required. Start with seven recent Drop Feed signals, three Bottle Checks, the Coverage Map, and Member Sightings."}
             </span>
           </div>
           {!paidIntent || redirectUrl === DEFAULT_ONBOARDING_REDIRECT ? (

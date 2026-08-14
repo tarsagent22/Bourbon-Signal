@@ -37,7 +37,7 @@ if (packageJson.name !== 'bourbon-signal') {
 if (!packageJson.scripts?.['test:ops']) {
   fail('package.json should expose test:ops for workflow guardrails.');
 }
-for (const scriptName of ['watchdog:alerts', 'test:alert-copy-contract', 'verify:production-engine', 'ops:source-roi', 'ops:signal-calendar', 'ops:bottle-queue', 'generate:state-lifecycle-types', 'verify:state-lifecycle-drift', 'test:state-user-path', 'ops:radar-leads', 'ops:radar-nc-monitor', 'ops:source-expansion', 'ops:automation-cost', 'ops:operator-outcomes', 'verify:automation', 'test:agent-cost-automation']) {
+for (const scriptName of ['watchdog:alerts', 'test:alert-copy-contract', 'verify:production-engine', 'ops:source-roi', 'ops:signal-calendar', 'ops:bottle-queue', 'generate:state-lifecycle-types', 'verify:state-lifecycle-drift', 'test:state-user-path', 'ops:source-expansion', 'ops:automation-cost', 'ops:operator-outcomes', 'verify:automation', 'test:agent-cost-automation']) {
   if (!packageJson.scripts?.[scriptName]) fail(`package.json should expose ${scriptName} for Bourbon Signal self-improvement loops.`);
 }
 
@@ -235,7 +235,7 @@ if (!/CHECKOUT_ENABLED|site-mode/.test(checkoutRoute)) {
 expectNoModuleScopeStripe('src/app/api/webhooks/stripe/route.ts');
 
 const alertDelivery = read('src/lib/alert-delivery.ts');
-for (const requiredFile of ['scripts/bourbon-signal-alert-watchdog.mjs', 'scripts/verify-alert-copy-contract.mjs', 'scripts/verify-production-engine-regression.mjs', 'scripts/verify-automation-registry.mjs', 'automation/bourbon-signal/automation-registry.json', 'automation/bourbon-signal/automation-registry.schema.json', 'automation/bourbon-signal/automation-cost-report.mjs', 'automation/bourbon-signal/operator-outcomes.mjs', 'automation/bourbon-signal/operator-run.schema.json', 'automation/bourbon-signal/autonomous-operator-prompt.md', 'automation/bourbon-signal/autonomy-threshold-contract.json', 'automation/bourbon-signal/source-expansion-collector.mjs', 'automation/bourbon-signal/release-radar-lead-collector.mjs', 'engine/src/build-store-identity.mjs', 'automation/bourbon-signal/source-roi-ranker.mjs', 'automation/bourbon-signal/bottle-queue-autoprocess.mjs', 'automation/bourbon-signal/signal-calendar-prototype.mjs']) {
+for (const requiredFile of ['scripts/bourbon-signal-alert-watchdog.mjs', 'scripts/verify-alert-copy-contract.mjs', 'scripts/verify-production-engine-regression.mjs', 'scripts/verify-automation-registry.mjs', 'automation/bourbon-signal/automation-registry.json', 'automation/bourbon-signal/automation-registry.schema.json', 'automation/bourbon-signal/automation-cost-report.mjs', 'automation/bourbon-signal/operator-outcomes.mjs', 'automation/bourbon-signal/operator-run.schema.json', 'automation/bourbon-signal/autonomous-operator-prompt.md', 'automation/bourbon-signal/autonomy-threshold-contract.json', 'automation/bourbon-signal/source-expansion-collector.mjs', 'engine/src/build-store-identity.mjs', 'automation/bourbon-signal/source-roi-ranker.mjs', 'automation/bourbon-signal/bottle-queue-autoprocess.mjs', 'automation/bourbon-signal/signal-calendar-prototype.mjs']) {
   expectFile(requiredFile);
 }
 const automationRegistry = JSON.parse(read('automation/bourbon-signal/automation-registry.json'));
@@ -281,17 +281,6 @@ for (const phrase of ['aggregateOnly: true', 'containsPrompts: false', 'contains
 const sourceExpansionCollector = read('automation/bourbon-signal/source-expansion-collector.mjs');
 for (const phrase of ['MAX_STATES_PER_RUN', 'state-source-discovery.mjs', 'state-source-probe.mjs', 'canPromote: false', 'canPublish: false']) {
   if (!sourceExpansionCollector.includes(phrase)) fail(`Source expansion collector is missing bounded deterministic contract: ${phrase}`);
-}
-const radarLeadCollector = read('automation/bourbon-signal/release-radar-lead-collector.mjs');
-for (const phrase of ['MAX_QUERIES', 'canPublish: false', 'canCreatePullRequest: false', 'canCreateAlerts: false', 'announcement_only']) {
-  if (!radarLeadCollector.includes(phrase)) fail(`Release Radar lead collector must remain non-publishing: ${phrase}`);
-}
-const ncRadarMonitor = read('automation/bourbon-signal/nc-release-radar-monitor.mts');
-for (const phrase of ['MAX_RESPONSE_BYTES', 'redirect: "manual"', 'readBoundedText', 'isIP(host) !== 0', 'sources.length > 40', 'canPublish: false', 'canCreatePullRequest: false', 'canCreateAlerts: false', 'runtime_date_boundary', 'consecutiveFailures >= 2', 'lastFailureQueuedAt', 'deferredForSemanticReview']) {
-  if (!ncRadarMonitor.includes(phrase)) fail(`NC Release Radar monitor is missing bounded review/expiration behavior: ${phrase}`);
-}
-if (ncRadarMonitor.indexOf('writeJsonAtomically(reportPath, report)') > ncRadarMonitor.indexOf('writeJsonAtomically(statePath, report.state)')) {
-  fail('NC Release Radar monitor must persist review evidence before advancing source state.');
 }
 const alertCopyContract = read('scripts/verify-alert-copy-contract.mjs');
 for (const phrase of ['address unavailable; check source before driving', 'Board-level signal; check source before driving', 'Reply STOP to unsubscribe']) {

@@ -146,18 +146,6 @@ When Chandler approves an improvement from the weekly brief:
 9. Verify production.
 10. Summarize what changed, how it was verified, and remaining risk.
 
-## Release Radar Silent Scout
-
-Command:
-
-```bash
-npm run ops:radar-scout -- --input=path/to/candidates.json --draft-pr=path/to/draft.md
-```
-
-The scout accepts local structured candidate data, writes a machine-readable review artifact, and can prepare a draft pull-request body. It is silent unless `--print` is supplied. It does not fetch live sources, change public Radar data, open a pull request, or run on a schedule. Every candidate remains `announcement_only`, is ineligible for alert-grade availability, and requires human review.
-
-Candidate input uses `{ "candidates": [...] }`. Each candidate can include `title`, `kind`, `sourceUrl`, `sourceType`, `datePrecision`, `startDate`, market codes, canonical bottle relations, and related Radar slugs. Missing or invalid evidence is preserved as a review issue rather than promoted.
-
 ## Script-first automation registry and cost telemetry
 
 `automation-registry.json` is the canonical checked-in inventory for every active GitHub workflow and known Bourbon Signal Hermes job. It declares the owner layer, execution class, expected frequency, agent model, bounded external API class, mutation/deployment capabilities, silence policy, kill switch, and artifact output. Verify it whenever a workflow or job changes:
@@ -168,7 +156,7 @@ npm run verify:automation
 
 `npm run ops:automation-cost -- --input path/to/sanitized-run-events.json --apply` reduces known-job run counters into an aggregate-only cost report. It accepts only registered job IDs and keeps deterministic and agent classes separate. Prompts, member data, raw searches, URLs, timestamps, and tool logs are not copied into the report. The owner Control Room reads only a similarly sanitized `BOURBON_SIGNAL_AUTOMATION_COST_REPORT` JSON value; absent or invalid telemetry is shown as unavailable.
 
-## Token-free source and Radar collection
+## Token-free source collection
 
 The source-expansion collector is a bounded wrapper around engine discovery and probe artifacts. It does not activate a state, change lifecycle config, publish a snapshot, or send an alert:
 
@@ -178,17 +166,6 @@ npm run ops:source-expansion -- --states=CO,MA --execute --apply
 ```
 
 `--execute` calls the engine's `discover:sources` and `probe:sources` commands after they are available; each run is capped at five states. Its report is an input to source ROI and the existing canonical findings system, not a separate operator backlog.
-
-Release Radar has an equally constrained lead lane:
-
-```bash
-npm run ops:radar-leads -- --input path/to/search-results.json --apply
-npm run ops:radar-leads -- --execute --apply
-npm run ops:radar-nc-monitor -- --apply --print
-npm run ops:radar-scout -- --lead-ledger automation/bourbon-signal/reports/release-radar-leads-latest.json
-```
-
-The collector uses direct Brave only with `--execute` and `BRAVE_SEARCH_API_KEY`, caps query count, deduplicates canonical HTTPS URLs, and writes unverified announcement-only leads. The NC monitor rechecks every official board/state source in the NC guide plus every primary source attached to a published NC Radar record. It stores only bounded fingerprints and date/status markers, quietly establishes the first baseline, queues material changes for semantic review, and escalates a source only after two consecutive failures. It cannot publish, open a PR, create alerts, or treat an announcement as inventory. Exact NC events and lotteries cross a runtime closing boundary automatically; historical records remain citable while upcoming and ICS surfaces stop presenting them as actionable.
 
 ## Autonomous expansion threshold
 
@@ -206,11 +183,10 @@ Do not include in these automations unless Chandler separately asks:
 - Pricing/legal changes without approval
 - Alert-readiness scoring
 - Treating catalog/watch/shipment data as live inventory
-- Turning the live Release Radar source monitor or draft scout into an unreviewed automatic publisher
 
 ## Structured operator backbone
 
-Daily reliability, weekly engine, and source ROI JSON reports also contain a bounded canonical `findings` array. Radar findings, the aggregate-only company scorecard, the exact-section daily company brief, the weekly strategy review, GitHub backlog operations, and the single-objective lock/branch policy are documented in [`docs/OPERATOR_BACKBONE.md`](../../docs/OPERATOR_BACKBONE.md).
+Daily reliability, weekly engine, and source ROI JSON reports also contain a bounded canonical `findings` array. The aggregate-only company scorecard, exact-section daily company brief, weekly strategy review, GitHub backlog operations, and single-objective lock/branch policy are documented in [`docs/OPERATOR_BACKBONE.md`](../../docs/OPERATOR_BACKBONE.md).
 
 Live scorecard reads use only `COMPANY_SCORECARD_READ_SECRET` and an exact HTTPS origin allowlist. They never fall back to `CRON_SECRET`. The documented `ops:scorecard:fetch` and cron commands reject HTTP, paths, redirects, and unlisted hosts before attaching credentials.
 

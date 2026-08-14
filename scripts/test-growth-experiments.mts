@@ -30,7 +30,7 @@ const experiment: ExperimentDefinition = {
   rollbackRule: "Restore control if completion regresses.",
 };
 
-assert.equal(EXPERIMENT_REGISTRY.length, 1);
+assert.equal(EXPERIMENT_REGISTRY.length, 0);
 assert.equal(GROWTH_EVENT_NAMES.includes("experiment_exposure"), true);
 assert.equal(GROWTH_EVENT_NAMES.includes("experiment_metric"), true);
 assert.deepEqual(sanitizeGrowthEvent("experiment_exposure", {
@@ -38,7 +38,7 @@ assert.deepEqual(sanitizeGrowthEvent("experiment_exposure", {
   variant: "control",
   surface: "bottle_check",
 }), { experiment: experiment.id, variant: "control", surface: "bottle_check" });
-assert.equal(getActiveExperiment()?.surface, "release_radar");
+assert.equal(getActiveExperiment(), null);
 assert.equal(validateExperimentRegistry([experiment]).ok, true);
 assert.equal(validateExperimentRegistry([{ ...experiment, surface: "pricing" as never }]).ok, false);
 assert.equal(validateExperimentRegistry([{ ...experiment, primaryMetric: "email_clicked", allowedMetrics: ["email_clicked"] }]).ok, false);

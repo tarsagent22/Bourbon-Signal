@@ -7,8 +7,6 @@ import { buildAutomationCostReport, sanitizeAutomationRun } from '../automation/
 import { summarizeOperatorOutcomes } from '../automation/bourbon-signal/operator-outcomes.mjs';
 import { classifyBottleQueueItem, processBottleQueue } from '../automation/bourbon-signal/bottle-queue-autoprocess.mjs';
 import { buildSourceExpansionCollection, engineStageInvocation, resolveScheduledStates, stagesForCollectionMode, summarizeStageOutput } from '../automation/bourbon-signal/source-expansion-collector.mjs';
-import { collectReleaseRadarLeads, queryPlan } from '../automation/bourbon-signal/release-radar-lead-collector.mjs';
-import { buildNcRadarSourceRegistry, monitorNcRadarSources } from '../automation/bourbon-signal/nc-release-radar-monitor.mts';
 import { classifyExpansionAutonomy } from '../automation/bourbon-signal/autonomy-threshold.mjs';
 import { expansionPromotionGate, rankSourceInvestments } from '../automation/bourbon-signal/source-roi-core.mjs';
 import { buildDailyCompanyBrief, buildWeeklyStrategyReview } from './lib/operator-briefs.mjs';
@@ -71,14 +69,8 @@ assert.deepEqual(cadence.analysisAgentPolicy, { provider: 'openai-codex', model:
 assert.equal(hermesSnapshot.timezone, 'America/New_York');
 assert.equal(hermesByName.get('Bourbon Signal hourly known-source probe')?.schedule, '40 */3 * * *');
 assert.equal(hermesByName.get('Bourbon Signal deterministic state source collector')?.schedule, '15 */6 * * *');
-assert.equal(hermesByName.get('Bourbon Signal silent demand and source scout')?.schedule, '15 2 * * *');
 assert.equal(hermesByName.get('Bourbon Signal autonomous company operator')?.schedule, '5 22 * * *');
-assert.equal(hermesByName.get('Bourbon Signal silent Release Radar scout')?.schedule, '15 1 * * *');
-assert.ok(cronRunsPerDay(hermesByName.get('Bourbon Signal silent Release Radar scout')?.schedule) > 0);
-assert.ok(
-  cronHour(hermesByName.get('Bourbon Signal silent Release Radar scout')?.schedule) < cronHour(hermesByName.get('Bourbon Signal autonomous company operator')?.schedule),
-  'the fresh Radar ledger must exist before the overnight operator selects an objective',
-);
+assert.equal(hermesByName.get('Bourbon Signal silent demand and source scout')?.jobId, 'bb9c16064777');
 assert.equal(hermesByName.get('Bourbon Signal morning scorecard aggregation')?.schedule, '0 5 * * *');
 assert.equal(hermesByName.get('Bourbon Signal daily company brief')?.schedule, '30 5 * * *');
 const codingOperator = hermesByName.get('Bourbon Signal autonomous company operator');
@@ -167,21 +159,21 @@ assert.deepEqual(sanitizeAutomationRun({ jobId: 'hermes-daily-operator', status:
 
 const outcome = summarizeOperatorOutcomes([
   {
-    runId: '2026-07-18T10:00:00Z-aaaaaaaa', objectiveId: 'radar-alabama', outcome: 'completed', startedObjective: true,
+    runId: '2026-07-18T10:00:00Z-aaaaaaaa', objectiveId: 'product-alert-copy', outcome: 'completed', startedObjective: true,
     findingsQualified: 3, merged: true, deployed: true, productionVerified: true,
-    releaseRadarPublished: 1, engineExpansionsCompleted: 0, coverageDelta: 0,
+    engineExpansionsCompleted: 0, coverageDelta: 0,
     discoveryToCompletionHours: 4,
   },
   {
     runId: '2026-07-19T10:00:00Z-bbbbbbbb', objectiveId: 'engine-va', outcome: 'continued', startedObjective: true,
     findingsQualified: 2, merged: false, deployed: false, productionVerified: false,
-    releaseRadarPublished: 0, engineExpansionsCompleted: 0, coverageDelta: 0,
+    engineExpansionsCompleted: 0, coverageDelta: 0,
     discoveryToCompletionHours: null,
   },
   {
     runId: '2026-07-20T10:00:00Z-cccccccc', objectiveId: 'engine-va', outcome: 'completed', startedObjective: false,
     findingsQualified: 1, merged: true, deployed: true, productionVerified: true,
-    releaseRadarPublished: 0, engineExpansionsCompleted: 1, coverageDelta: 12,
+    engineExpansionsCompleted: 1, coverageDelta: 12,
     discoveryToCompletionHours: 8,
   },
 ], '2026-07-20T11:00:00Z');
@@ -189,7 +181,6 @@ assert.equal(outcome.metrics.qualifiedFindings, 6);
 assert.equal(outcome.metrics.objectivesCompleted, 2);
 assert.equal(outcome.metrics.objectiveCompletionRate, 1);
 assert.equal(outcome.metrics.productionReleases, 2);
-assert.equal(outcome.metrics.releaseRadarPublications, 1);
 assert.equal(outcome.metrics.engineExpansionsCompleted, 1);
 assert.equal(outcome.metrics.coverageDelta, 12);
 assert.equal(outcome.metrics.continuedRuns, 1);
@@ -234,236 +225,6 @@ const probeOnlyCollection = await buildSourceExpansionCollection({
 assert.equal(probeOnlyCollection.collectionMode, 'probe');
 assert.deepEqual(probeOnlyCollection.stages.map((stage) => stage.stage), ['probe']);
 assert.equal(probeOnlyCollection.canPublish, false);
-
-const radarQueries = queryPlan(undefined, '2026-07-18T01:15:00.000Z');
-assert.equal(radarQueries.length, 8);
-assert.ok(radarQueries[0].includes('abc.nc.gov') && radarQueries[0].includes('2026'), 'NC official sources must be searched first');
-assert.ok(radarQueries.some((query) => query.includes('North Carolina') && query.includes('lottery')));
-
-const leadCollection = await collectReleaseRadarLeads({
-  results: [
-    { title: 'Official new release', url: 'https://distillery.example/releases?utm_source=brave', description: 'A <strong>bourbon release</strong> announcement.' },
-    { title: 'Official new release duplicate', url: 'https://distillery.example/releases', description: 'Duplicate bourbon release.' },
-    { title: 'Retail license handbook', url: 'https://agency.gov/license-guidelines', description: 'Rules for wine permits and restaurant licenses.' },
-    { title: 'Unsafe', url: 'http://unsafe.example/release', description: 'Ignore.' },
-  ],
-  existingLedger: { leads: [] },
-  generatedAt: '2026-07-16T12:00:00.000Z',
-});
-assert.equal(leadCollection.canPublish, false);
-assert.equal(leadCollection.leads.length, 1);
-assert.equal(leadCollection.leads[0].status, 'new');
-assert.equal(leadCollection.leads[0].url, 'https://distillery.example/releases');
-assert.equal(leadCollection.leads[0].availabilitySemantics, 'announcement_only');
-assert.equal(leadCollection.leads[0].sourceTier, 'first_party_candidate');
-assert.equal(leadCollection.reviewQueue.length, 1);
-assert.equal(leadCollection.reviewQueue[0].url, 'https://distillery.example/releases');
-assert.equal(leadCollection.summary.queuedForSemanticReview, 1);
-assert.equal(leadCollection.summary.new, 1);
-const repeatedLeadCollection = await collectReleaseRadarLeads({
-  results: [
-    { title: 'Official new release', url: 'https://distillery.example/releases', description: 'Seen again.' },
-  ],
-  existingLedger: leadCollection,
-  generatedAt: '2026-07-17T12:00:00.000Z',
-});
-assert.equal(repeatedLeadCollection.summary.new, 0, 'repeat observations must not be reported as newly discovered leads');
-
-const ncRegistry = buildNcRadarSourceRegistry();
-assert.ok(ncRegistry.length >= 15, 'the NC monitor must cover board guidance plus published NC event sources');
-assert.ok(ncRegistry.some((source) => source.url === 'https://wakeabc.com/lottery/'));
-assert.ok(ncRegistry.some((source) => source.url === 'https://www.greensboroabc.com/about/events/'));
-assert.ok(ncRegistry.some((source) => source.trackedSlugs.includes('durham-abc-annual-bourbon-lottery-2026-watch')));
-
-const monitorSources = [{ id: 'wake-lottery', label: 'Wake lottery', url: 'https://wakeabc.com/lottery/', sourceType: 'state', trackedSlugs: [] }];
-const baselineMonitor = await monitorNcRadarSources({
-  sources: monitorSources,
-  previousState: { sources: {} },
-  generatedAt: '2026-07-21T12:00:00.000Z',
-  fetchImpl: async () => new Response('<html><title>Wake Lottery</title><body>The bourbon lottery is currently closed. Check back for 2026 updates.</body></html>', { status: 200, headers: { 'content-type': 'text/html' } }),
-});
-assert.equal(baselineMonitor.summary.baselined, 1);
-assert.equal(baselineMonitor.summary.materiallyChanged, 0, 'the first observation establishes a quiet baseline');
-assert.equal(baselineMonitor.canPublish, false);
-assert.equal(baselineMonitor.canCreateAlerts, false);
-const changedMonitor = await monitorNcRadarSources({
-  sources: monitorSources,
-  previousState: baselineMonitor.state,
-  generatedAt: '2026-07-22T12:00:00.000Z',
-  fetchImpl: async () => new Response('<html><title>Wake Lottery</title><body>Registration is now open July 22 through July 26, 2026 for the bourbon lottery.</body></html>', { status: 200, headers: { 'content-type': 'text/html' } }),
-});
-assert.equal(changedMonitor.summary.materiallyChanged, 1);
-assert.equal(changedMonitor.reviewQueue[0].kind, 'material_change');
-assert.match(changedMonitor.reviewQueue[0].summary, /semantic review/i);
-assert.equal(changedMonitor.findings.length, 1, 'material official-source changes must flow into the canonical review backlog');
-const firstFailure = await monitorNcRadarSources({
-  sources: monitorSources,
-  previousState: baselineMonitor.state,
-  generatedAt: '2026-07-22T12:00:00.000Z',
-  fetchImpl: async () => new Response('unavailable', { status: 503 }),
-});
-assert.equal(firstFailure.summary.reviewFailures, 0, 'one transient source failure must not page the operator');
-const repeatedFailure = await monitorNcRadarSources({
-  sources: monitorSources,
-  previousState: firstFailure.state,
-  generatedAt: '2026-07-23T12:00:00.000Z',
-  fetchImpl: async () => new Response('unavailable', { status: 503 }),
-});
-assert.equal(repeatedFailure.summary.reviewFailures, 1, 'two consecutive failures must enter review');
-assert.equal(repeatedFailure.reviewQueue[0].kind, 'source_failure');
-
-let redirectFetches = 0;
-const offHostRedirect = await monitorNcRadarSources({
-  sources: monitorSources,
-  previousState: { sources: {} },
-  generatedAt: '2026-07-21T12:00:00.000Z',
-  fetchImpl: async () => {
-    redirectFetches += 1;
-    return new Response(null, { status: 302, headers: { location: 'http://169.254.169.254/latest/meta-data' } });
-  },
-});
-assert.equal(offHostRedirect.summary.failed, 1);
-assert.equal(redirectFetches, 1, 'off-host redirect destinations must be rejected before a second request');
-let literalIpFetches = 0;
-const literalIpSource = [{ id: 'literal-ip', label: 'Invalid literal IP', url: 'https://[fc00::1]/lottery', sourceType: 'state', trackedSlugs: [] }];
-const literalIpMonitor = await monitorNcRadarSources({
-  sources: literalIpSource,
-  previousState: { sources: {} },
-  generatedAt: '2026-07-21T12:00:00.000Z',
-  fetchImpl: async () => {
-    literalIpFetches += 1;
-    return new Response('unexpected', { status: 200 });
-  },
-});
-assert.equal(literalIpMonitor.summary.failed, 1);
-assert.equal(literalIpFetches, 0, 'literal IP sources, including IPv6 private ranges, must be rejected before fetch');
-const oversizedBody = new ReadableStream({
-  start(controller) {
-    controller.enqueue(new Uint8Array(2_000_001));
-    controller.close();
-  },
-});
-const oversizedMonitor = await monitorNcRadarSources({
-  sources: monitorSources,
-  previousState: { sources: {} },
-  generatedAt: '2026-07-21T12:00:00.000Z',
-  fetchImpl: async () => new Response(oversizedBody, { status: 200, headers: { 'content-type': 'text/html' } }),
-});
-assert.equal(oversizedMonitor.summary.failed, 1, 'chunked responses must be bounded even without Content-Length');
-const expiredNcEntry = {
-  slug: 'already-closed-nc-event', title: 'Already closed event', states: ['North Carolina'], kind: 'event', calendar: true,
-  startDate: '2026-07-01', endDate: '2026-07-01', sources: [{ label: 'Official', url: 'https://wakeabc.com/lottery/', type: 'state' }],
-};
-const quietExpiryBaseline = await monitorNcRadarSources({
-  sources: monitorSources,
-  previousState: { sources: {} },
-  generatedAt: '2026-07-21T12:00:00.000Z',
-  entries: [expiredNcEntry],
-  fetchImpl: async () => new Response('<html><body>Lottery status</body></html>', { status: 200, headers: { 'content-type': 'text/html' } }),
-});
-assert.equal(quietExpiryBaseline.summary.newlyExpired, 0, 'preexisting closed opportunities must be absorbed by the quiet first baseline');
-assert.deepEqual(quietExpiryBaseline.state.expiredSlugs, ['already-closed-nc-event']);
-const overflowSources = Array.from({ length: 10 }, (_, index) => ({
-  id: `source-${index}`, label: `Official source ${index}`, url: `https://example.com/source-${index}`, sourceType: 'state', trackedSlugs: [],
-}));
-const overflowBaseline = await monitorNcRadarSources({
-  sources: overflowSources,
-  previousState: { sources: {} },
-  generatedAt: '2026-07-21T12:00:00.000Z',
-  entries: [],
-  fetchImpl: async () => new Response('<html><body>Lottery registration is closed for 2026.</body></html>', { status: 200, headers: { 'content-type': 'text/html' } }),
-});
-const overflowChanged = await monitorNcRadarSources({
-  sources: overflowSources,
-  previousState: overflowBaseline.state,
-  generatedAt: '2026-07-22T12:00:00.000Z',
-  entries: [],
-  fetchImpl: async () => new Response('<html><body>Lottery registration is now open for 2026.</body></html>', { status: 200, headers: { 'content-type': 'text/html' } }),
-});
-assert.equal(overflowChanged.findings.length, 8);
-assert.equal(overflowChanged.summary.deferredForSemanticReview, 2);
-const overflowDrained = await monitorNcRadarSources({
-  sources: overflowSources,
-  previousState: overflowChanged.state,
-  generatedAt: '2026-07-23T12:00:00.000Z',
-  entries: [],
-  fetchImpl: async () => new Response('<html><body>Lottery registration is now open for 2026.</body></html>', { status: 200, headers: { 'content-type': 'text/html' } }),
-});
-assert.equal(overflowDrained.findings.length, 2, 'deferred material changes must remain observable on the next run');
-assert.equal(overflowDrained.summary.deferredForSemanticReview, 0);
-const failureOne = await monitorNcRadarSources({
-  sources: overflowSources, previousState: overflowBaseline.state, generatedAt: '2026-07-22T12:00:00.000Z', entries: [],
-  fetchImpl: async () => new Response('unavailable', { status: 503 }),
-});
-const failureTwo = await monitorNcRadarSources({
-  sources: overflowSources, previousState: failureOne.state, generatedAt: '2026-07-23T12:00:00.000Z', entries: [],
-  fetchImpl: async () => new Response('unavailable', { status: 503 }),
-});
-const failureThree = await monitorNcRadarSources({
-  sources: overflowSources, previousState: failureTwo.state, generatedAt: '2026-07-24T12:00:00.000Z', entries: [],
-  fetchImpl: async () => new Response('unavailable', { status: 503 }),
-});
-const reviewedFailureSources = new Set([...failureTwo.findings, ...failureThree.findings].map((finding) => finding.sourceKey.split(':')[1]));
-assert.equal(reviewedFailureSources.size, 10, 'persistent source-failure overflow must rotate so no official source is starved');
-
-const refreshedAnnualLead = await collectReleaseRadarLeads({
-  results: [{
-    title: 'Official annual lottery',
-    url: 'https://agency.gov/annual-lottery',
-    description: 'Registration for the bourbon lottery runs August 3-23, 2026.',
-  }],
-  existingLedger: { leads: [{
-    id: 'old-annual', title: 'Official annual lottery', source: 'agency.gov', url: 'https://agency.gov/annual-lottery',
-    summary: 'Registration for the bourbon lottery ran August 3-23, 2025.', status: 'dismissed', reviewedAt: '2025-08-24T00:00:00Z',
-    firstSeenAt: '2025-01-01T00:00:00Z', lastSeenAt: '2025-01-01T00:00:00Z', observations: 1,
-  }] },
-  generatedAt: '2026-07-18T12:00:00.000Z',
-});
-assert.equal(refreshedAnnualLead.leads[0].status, 'changed', 'material date changes on reused official URLs must reopen review');
-assert.equal(refreshedAnnualLead.leads[0].publicationStatus, 'not_published');
-assert.equal(refreshedAnnualLead.leads[0].reviewedAt, undefined);
-assert.equal(refreshedAnnualLead.reviewQueue[0].url, 'https://agency.gov/annual-lottery');
-assert.equal(refreshedAnnualLead.summary.materiallyChanged, 1);
-
-const unchangedReopenedLead = await collectReleaseRadarLeads({
-  results: [{ title: 'Official annual lottery', url: 'https://agency.gov/annual-lottery', description: 'Registration for the bourbon lottery runs August 3-23, 2026.' }],
-  existingLedger: { leads: [{ ...refreshedAnnualLead.leads[0], publicationStatus: 'draft' }] },
-  generatedAt: '2026-07-19T12:00:00.000Z',
-});
-assert.equal(unchangedReopenedLead.leads[0].publicationStatus, 'not_published', 'every retained lead must preserve an explicit non-publication state');
-const explicitlyPublishedLead = await collectReleaseRadarLeads({
-  existingLedger: { leads: [{ ...refreshedAnnualLead.leads[0], publicationStatus: 'published' }] },
-  generatedAt: '2026-07-19T12:00:00.000Z',
-});
-assert.equal(explicitlyPublishedLead.leads.length, 0, 'only the explicit published state may leave the research ledger');
-
-const retainedAnnualLead = await collectReleaseRadarLeads({
-  existingLedger: { leads: [{
-    id: 'retained-annual', title: 'Official annual bourbon lottery', source: 'agency.gov', url: 'https://agency.gov/annual-lottery-retained',
-    summary: 'The 2025 bourbon lottery is closed.', status: 'retain_unverified', publicationStatus: 'not_published', reviewedAt: '2026-07-18T00:00:00Z',
-    recheckAfter: '2026-08-01T00:00:00Z', firstSeenAt: '2025-01-01T00:00:00Z', lastSeenAt: '2026-07-18T00:00:00Z', observations: 2,
-  }] },
-  generatedAt: '2026-07-19T12:00:00.000Z',
-});
-assert.equal(retainedAnnualLead.leads[0].id, 'retained-annual', 'scheduled reusable annual sources must survive until recheck');
-assert.equal(retainedAnnualLead.reviewQueue.length, 0);
-const dueAnnualLead = await collectReleaseRadarLeads({
-  existingLedger: retainedAnnualLead,
-  generatedAt: '2026-08-01T00:00:00.000Z',
-});
-assert.equal(dueAnnualLead.leads[0].id, 'retained-annual');
-assert.equal(dueAnnualLead.reviewQueue[0].id, 'retained-annual', 'a reusable annual source must enter review when its recheck becomes due');
-
-const saturatedLedger = await collectReleaseRadarLeads({
-  results: [{ title: 'New bourbon lottery', url: 'https://distillery.example/new-lottery', description: 'New bourbon lottery opens in 2026.' }],
-  existingLedger: { leads: Array.from({ length: 120 }, (_, index) => ({
-    id: `dismissed-${index}`, title: `Dismissed bourbon lottery ${index}`, source: `agency${index}.gov`, url: `https://agency${index}.gov/lottery`,
-    summary: 'Past bourbon lottery from 2026.', status: 'dismissed', reviewedAt: '2026-01-01T00:00:00Z', firstSeenAt: '2026-01-01T00:00:00Z', lastSeenAt: '2026-01-01T00:00:00Z', observations: 1,
-  })) },
-  generatedAt: '2026-07-18T12:00:00.000Z',
-});
-assert.ok(saturatedLedger.leads.some((lead) => lead.url === 'https://distillery.example/new-lottery'), 'terminal records cannot evict a fresh candidate');
-assert.equal(saturatedLedger.reviewQueue[0].url, 'https://distillery.example/new-lottery');
 
 const safeAutonomy = classifyExpansionAutonomy({
   sourceAuthority: 'official', termsStatus: 'clear', authentication: 'none', identity: 'exact_store', availabilitySemantics: 'honest', verticalSlice: 'complete', shadowRuns: 3, canaryRuns: 2, withinBudget: true, reversible: true, outboundChange: false, pricingOrEntitlementChange: false, legalUncertainty: false,

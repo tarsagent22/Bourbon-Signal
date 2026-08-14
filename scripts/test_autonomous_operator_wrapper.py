@@ -53,7 +53,6 @@ def run_artifact(objective_id: str, outcome: str, *, started: bool, complete: bo
         "deploymentId": "dpl_fixture" if complete else None,
         "productionChecks": ["https://bourbonsignal.com/"] if complete else [],
         "findingsQualified": 1,
-        "releaseRadarPublished": 0,
         "engineExpansionsCompleted": 0,
         "coverageDelta": 0,
         "discoveryToCompletionHours": 2 if complete else None,

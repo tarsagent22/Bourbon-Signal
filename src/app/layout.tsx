@@ -12,7 +12,7 @@ import GrowthAnalytics from "@/components/analytics/GrowthAnalytics";
 import LifecycleTimeZoneCapture from "@/components/LifecycleTimeZoneCapture";
 
 const siteTitle = "Bourbon Signal — Premium Bourbon Drop Alerts";
-const siteDescription = "Premium source-backed bourbon drop alerts, live inventory signals, Release Radar, Bottle Check, and member tools for covered control and retailer markets.";
+const siteDescription = "Premium source-backed bourbon drop alerts, live inventory signals, Bottle Check, and member tools for covered control and retailer markets.";
 
 export const metadata: Metadata = {
   title: {
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
   authors: [{ name: "Bourbon Signal" }],
   creator: "Bourbon Signal",
   publisher: "Bourbon Signal",
-  keywords: ["bourbon alerts", "allocated bourbon", "bourbon drops", "ABC store inventory", "bourbon hunting", "Bottle Check", "Release Radar"],
+  keywords: ["bourbon alerts", "allocated bourbon", "bourbon drops", "ABC store inventory", "bourbon hunting", "Bottle Check"],
   metadataBase: new URL("https://www.bourbonsignal.com"),
   alternates: { canonical: "https://www.bourbonsignal.com" },
   category: "technology",

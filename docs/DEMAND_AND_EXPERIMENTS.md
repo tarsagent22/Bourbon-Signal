@@ -21,40 +21,28 @@ Member-preference and experiment output retain a minimum distinct-subject cohort
 
 `npm run ops:demand -- --since=24h` builds the search aggregate manually. It does not install a cron or send anything. `npm run ops:source-roi` consumes the latest aggregate if available and adds canonical-bottle plus approved-state demand to the existing source value/repair score. Without that file, source ROI remains operational-only.
 
-## Active experiment
+## Experiment status
 
-The registry is `EXPERIMENT_REGISTRY` in `src/lib/growth-experiments.ts`. Exactly one low-risk experiment is active: authenticated Release Radar members receive a stable 50/50 assignment between the control CTA, “Follow release,” and the restrained variant, “Follow this release.”
+The registry is `EXPERIMENT_REGISTRY` in `src/lib/growth-experiments.ts`. It is currently empty, so no experiment is active and no production assignment, exposure, or conversion write is generated. The retired release-follow experiment and its authenticated API endpoint have been removed.
 
-- Baseline: the current authenticated-member “Follow release” control establishes the completion rate.
-- Hypothesis: naming the object as “this release” increases successful follows without changing product behavior.
-- Primary metric: `release_follow_completed`, recorded only after the existing preference save succeeds.
-- Minimum sample: 100 unique exposures per variant.
-- Decision floor: at least 5% relative lift and 95% confidence.
-- Stop rule: decide after both variants reach the sample and confidence floors, or stop after 28 days as inconclusive.
-- Rollback rule: enable the kill switch and restore control wording if follow-save failures increase, the wording misleads members, or any privacy invariant fails.
+The reusable framework still validates that any future reviewed experiment has at most one active definition, exactly two positive-weight variants, an allowlisted on-site surface, an allowlisted primary metric, explicit baseline and decision rules, and no email, SMS, pricing, entitlement, or legal scope.
 
-Registry validation requires at most one active experiment, exactly two positive-weight variants, an allowlisted on-site surface, an allowlisted primary metric, explicit baseline and decision rules, and no email, SMS, pricing, entitlement, or legal scope.
+## Assignment and privacy guardrails
 
-## Assignment and storage
+For a future active experiment, assignment hashes the experiment ID and an authenticated subject key into one of 10,000 buckets. The subject key stays server-side and is not stored in experiment metadata, logged, or returned in aggregate output. Owners and retailer/vendor accounts remain ineligible.
 
-Assignment hashes the experiment ID and authenticated Clerk subject key into one of 10,000 buckets. The key stays server-side and is never stored in experiment metadata, logged, or returned in API and Control Room output. Repeated assignment for the same experiment and subject is stable. Owners and retailer/vendor accounts are ineligible.
+Event builders fail closed unless a reviewed registry entry is active, the hostname is exactly `bourbonsignal.com` or `www.bourbonsignal.com`, and neither `GROWTH_EXPERIMENTS_KILL_SWITCH` nor `NEXT_PUBLIC_GROWTH_EXPERIMENTS_KILL_SWITCH` is enabled. Preview, local, test, killed, and empty-registry execution emits no experiment telemetry.
 
-Exposure and conversion writes are accepted only through the authenticated `/api/experiments/release-radar-follow` endpoint. Each user has one bounded Clerk private-metadata record per experiment: variant plus `exposed` and `converted` booleans. Repeated writes update that same record. The record contains no timestamp, URL, page path, raw query, or event history.
+## Decision contract
 
-The endpoint emits nothing unless the registry entry is active, the hostname is exactly `bourbonsignal.com` or `www.bourbonsignal.com`, and neither `GROWTH_EXPERIMENTS_KILL_SWITCH` nor `NEXT_PUBLIC_GROWTH_EXPERIMENTS_KILL_SWITCH` is enabled. Preview, local, test, and killed execution creates no assignment or write. No email, SMS, or customer message is sent.
-
-## Control Room and decision contract
-
-The owner Control Room reads one deduplicated record per eligible Clerk user and excludes owners and retailer/vendor accounts before aggregation. It suppresses variants below five exposures and never includes Clerk IDs, email addresses, per-user rows, timestamps, or raw history.
-
-A result stays `inconclusive` until every variant reaches 100 unique exposures. The higher conversion rate becomes `winner` and the lower becomes `loser` only when relative lift is at least 5% and a two-proportion z-test reaches 95% confidence (`|z| >= 1.96`). Otherwise both remain `inconclusive`.
+The aggregation framework deduplicates eligible subjects before reporting and suppresses variants below five exposures. A result stays `inconclusive` until every variant reaches its configured sample floor. A higher conversion rate becomes `winner` only when it also clears the configured relative-lift threshold and a two-proportion z-test reaches 95% confidence (`|z| >= 1.96`).
 
 ## Safe operation checklist
 
-1. Keep only one reviewed registry definition active and run `npm run test:growth-experiments`.
-2. Confirm the change remains wording-only and available only to eligible authenticated members.
-3. Confirm the server and browser-visible kill switches both disable assignment and writes.
+1. Keep the registry empty until a separately reviewed on-site experiment is approved.
+2. Before activation, run `npm run test:growth-experiments` and verify the surface, metric, sample, stop, rollback, privacy, and kill-switch contracts.
+3. Confirm the experiment introduces no email, SMS, pricing, entitlement, or legal scope.
 4. Observe only cohort-suppressed, identity-free aggregates in the owner Control Room.
-5. Set the kill switch immediately for an operational or privacy rollback; change the registry status to `stopped` after the decision.
+5. Use the kill switch immediately for an operational or privacy rollback.
 
-This repository work activates the on-site CTA experiment in code. It does not send messages, deploy, push, or change live schedules.
+The current repository state retires the prior experiment in code. It does not send messages, deploy, push, or change live schedules.

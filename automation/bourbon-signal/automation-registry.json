@@ -372,71 +372,6 @@
       "delivery": "main_chat"
     },
     {
-      "id": "hermes-release-radar",
-      "platform": "hermes_job",
-      "hermesJobId": "00f56edff2e9",
-      "active": true,
-      "ownerLayer": "deterministic",
-      "executionClass": "script_only",
-      "frequency": "daily at 01:15 Eastern",
-      "agent": {
-        "provider": null,
-        "model": null,
-        "reasoning": null
-      },
-      "externalApi": {
-        "classes": [
-          "brave_search",
-          "official_nc_source_http"
-        ],
-        "maxRequestsPerRun": 40
-      },
-      "customerMutation": "none",
-      "promotionDeployment": "none",
-      "silencePolicy": "compact_exception_only",
-      "killSwitch": "cron_pause:00f56edff2e9",
-      "artifacts": [
-        "release_radar_lead_ledger",
-        "release_radar_scout",
-        "nc_release_radar_source_state",
-        "nc_release_radar_monitor"
-      ],
-      "delivery": "ops_chat"
-    },
-    {
-      "id": "hermes-release-radar-publisher",
-      "platform": "hermes_job",
-      "hermesJobId": "0ee6b2c9fb07",
-      "active": true,
-      "ownerLayer": "deterministic",
-      "executionClass": "script_only",
-      "frequency": "every 15 minutes",
-      "agent": {
-        "provider": null,
-        "model": null,
-        "reasoning": null
-      },
-      "externalApi": {
-        "classes": [
-          "local_kanban",
-          "primary_source_http",
-          "github",
-          "canonical_production"
-        ],
-        "maxRequestsPerRun": 12
-      },
-      "customerMutation": "internal_state",
-      "promotionDeployment": "guarded_recovery_dispatch",
-      "silencePolicy": "compact_exception_only",
-      "killSwitch": "cron_pause:0ee6b2c9fb07",
-      "artifacts": [
-        "release_radar_publication_task",
-        "release_radar_publication_state",
-        "engine_ops_publication_outcome"
-      ],
-      "delivery": "ops_chat"
-    },
-    {
       "id": "hermes-bottle-queue",
       "platform": "hermes_job",
       "hermesJobId": "bf9e05209184",
@@ -498,7 +433,7 @@
     {
       "id": "hermes-source-scout",
       "platform": "hermes_job",
-      "hermesJobId": "a7e40e29f603",
+      "hermesJobId": "bb9c16064777",
       "active": true,
       "ownerLayer": "operator",
       "executionClass": "script_then_agent",
@@ -518,7 +453,7 @@
       "customerMutation": "none",
       "promotionDeployment": "none",
       "silencePolicy": "report_output",
-      "killSwitch": "cron_pause:a7e40e29f603",
+      "killSwitch": "cron_pause:bb9c16064777",
       "artifacts": [
         "source_expansion_collector",
         "source_roi"

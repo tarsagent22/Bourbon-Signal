@@ -4,7 +4,7 @@ export const FINDING_CONTRACT_VERSION = 'bourbon-signal/finding@1';
 export const MAX_FINDINGS_PER_REPORT = 8;
 export const FINDING_BODY_MARKER = '<!-- bourbon-signal-finding:v1 -->';
 
-const SOURCES = new Set(['daily-reliability', 'weekly-engine-brief', 'source-roi', 'release-radar', 'company-scorecard']);
+const SOURCES = new Set(['daily-reliability', 'weekly-engine-brief', 'source-roi', 'company-scorecard']);
 const AREAS = new Set(['company', 'product', 'data', 'shipping', 'decision']);
 const SEVERITIES = new Set(['critical', 'high', 'medium', 'low']);
 const STATUSES = new Set(['backlog', 'selected', 'in-progress', 'blocked', 'resolved', 'dismissed']);

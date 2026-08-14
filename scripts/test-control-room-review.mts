@@ -53,7 +53,7 @@ const controlRoom = readFileSync(new URL("../src/app/admin/control-room/page.tsx
 assert.ok(controlRoom.indexOf('id="actions"') < controlRoom.indexOf('id="business"'), "owner actions must precede business metrics");
 assert.match(controlRoom, /<AdminBottleQueueClient embedded \/>/);
 assert.match(controlRoom, /What is running in the background/);
-assert.match(controlRoom, /Runs automatically on eligible Release Radar traffic/);
+assert.doesNotMatch(controlRoom, /Release Radar wording test|eligible Release Radar traffic/);
 assert.match(controlRoom, /Automation reporting is not connected/);
 assert.doesNotMatch(controlRoom, /<h2>Automation mix<\/h2>/);
 

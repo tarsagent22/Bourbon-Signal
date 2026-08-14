@@ -11,9 +11,8 @@ All Hermes schedules use `America/New_York`. GitHub Actions cron expressions are
 | Known-source direct probe | Hourly at :40 | Script-only | Official `.gov` evidence only; silent success; ops error; 40-request global cap |
 | Shadow evidence | 01:15, 05:15, 09:15, 13:15, 17:15, 21:15 UTC | GitHub script-only | GitHub artifacts/errors |
 | Browser probe | 05:50 and 17:50 UTC | GitHub script-only | GitHub artifacts/errors |
-| Semantic source review | 02:00 and 14:00 Eastern | Luna/xhigh | Ops chat for material decisions |
+| Semantic demand and source review | 02:15 Eastern | Agent, read-only | Ops chat only for new actionable source-expansion priorities; Release Radar excluded |
 | Autonomous implementation operator | 02:45 and 14:45 Eastern | GPT-5.6 Sol/low in isolated `bourbonbot` profile | Ops chat for completed work, continuation, or material blockers |
-| Release Radar lead collection | 04:15 Eastern | Script-only | Ops only for new leads/errors; consumed by brief |
 | Weekly strategy review | Friday 03:30 Eastern | Luna/xhigh | Main chat |
 | Morning scorecard aggregation | 05:00 Eastern | Script-only | Silent success; ops chat error |
 | Company briefing | 05:30 Eastern | Luna/xhigh | Main chat |
@@ -27,13 +26,12 @@ The 05:15 Eastern briefing cutoff includes all completed morning artifacts. Cont
 - Known-source probes never invoke Brave or a browser, accept only official `.gov` evidence, and count redirects against the global budget.
 - Browser probing is restricted to the existing HTTPS registry allowlist and six pages per run.
 - Discovery, probes, shadow, and browser jobs cannot publish, promote states, or deliver inventory alerts.
-- Semantic review does not edit code. It creates bounded, deduplicated operator findings.
 - Only the isolated operator worktree may implement one selected objective per run.
 - All Hermes jobs use the dedicated `C:\\c\\Users\\chand\\projects\\Bourbon-Signal-autonomous` clone; interactive branches cannot block or be overwritten by scheduled work.
 - The coding shift is a profile-wrapped no-agent cron job: the `bourbonbot` profile pins GPT-5.6 Sol with `agent.reasoning_effort: low`, while non-coding semantic and briefing jobs retain their own model policy.
 - An existing objective lock is resumed before any new selection. Temporary blockers preserve the branch, worktree, lock, and continuation state.
 - An unattended coding shift ends at one CI-verified draft PR and a preserved objective lock. Safe merge, deployment, custom-domain verification, and objective release are serialized daytime actions after current-main reconciliation.
-- Every coding shift must validate and aggregate `operator-run-latest.json`; `operator-outcomes-latest.json` tracks qualified findings, starts, completions, merged PRs, production releases, Radar publications, engine expansions, coverage delta, blocked/continued/failed runs, and discovery-to-completion time.
+- Every coding shift must validate and aggregate `operator-run-latest.json`; `operator-outcomes-latest.json` tracks qualified findings, starts, completions, merged PRs, production releases, engine expansions, coverage delta, blocked/continued/failed runs, and discovery-to-completion time.
 - Existing lifecycle, fixture, shadow, canary, provenance, public-eligibility, and alert-eligibility gates remain mandatory.
 - Routine deterministic success is silent. The autonomous coding operator emits only a short owner-facing completion/continuation/error summary; raw agent transcripts, diffs, ANSI color codes, and internal objective JSON are never delivered to chat. The ops chat receives material changes, failures, and drift; the main chat receives owner briefs and decisions.
 - Deterministic wrappers resolve the repository from `BOURBON_SIGNAL_REPO`, the current directory, or a trusted live cron `workdir`; they no longer assume Hermes executes attached scripts from the job workdir.

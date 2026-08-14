@@ -15,7 +15,6 @@ import {
 } from './lib/operator-findings.mjs';
 import {
   findingsFromDailyReliability,
-  findingsFromRadar,
   findingsFromSourceRoi,
   findingsFromWeeklyEngineBrief,
 } from './lib/finding-adapters.mjs';
@@ -179,10 +178,6 @@ const adapterOutputs = [
     generatedAt: observedAt,
     top: manyIssues.map((_, index) => ({ state: 'NC', source: `source-${index}`, score: 100 - index, recommendation: index % 2 ? 'monitor' : 'repair_high_value_source', alerts: 2, storeLevel: 3, roadblocks: 1, topIssues: ['blocked'] })),
   }),
-  findingsFromRadar({
-    updatedAt: observedAt,
-    reportedStories: manyIssues.map((_, index) => ({ title: `Story ${index}`, source: 'Official source', url: `https://example.com/${index}`, firstReportedAt: '2026-07-15', status: index % 2 ? 'member-hidden' : 'reported' })),
-  }),
 ];
 for (const output of adapterOutputs) {
   assert.ok(output.length <= MAX_FINDINGS_PER_REPORT, 'every producer must emit a bounded finding set');
@@ -300,7 +295,6 @@ try {
   assert.equal(weeklyFromGithub.objective.findingId, activeFinding.id, 'weekly review retains the one active objective from the canonical GitHub backlog');
   assert.equal(weeklyFromGithub.findings.some((item) => item.id === activeFinding.id), true, 'bounded weekly findings retain the active objective');
   assert.match(run('automation/bourbon-signal/company-scorecard.mts', [`--input=${snapshotFile}`, `--at=${observedAt}`]), /"mode": "dry-run"/);
-  assert.match(run('automation/bourbon-signal/radar-findings.mjs'), /"mode": "dry-run"/);
   assert.match(run('scripts/operator-findings.mjs', ['validate', `--file=${findingsFile}`]), /"ok": true/);
   assert.match(run('scripts/operator-objective.mjs', ['select', `--file=${findingsFile}`, `--lock=${lockFile}`, `--at=${observedAt}`]), /"mode": "dry-run"/);
   assert.match(run('scripts/operator-objective.mjs', ['select', `--file=${rankedFindingsFile}`, `--lock=${lockFile}`, `--at=${observedAt}`]), /"mode": "dry-run"/);

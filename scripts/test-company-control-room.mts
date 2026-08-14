@@ -91,13 +91,12 @@ assert.equal(demand.bottles[0].memberCount, 5);
 assert.equal(JSON.stringify(demand).includes("demand-0"), false);
 
 const emptyExperimentAggregate = buildOwnerExperimentAggregate();
-assert.equal(emptyExperimentAggregate.activeExperiment, "release-radar-follow-cta-copy");
-assert.equal(emptyExperimentAggregate.registryCount, 1);
+assert.equal(emptyExperimentAggregate.activeExperiment, null);
+assert.equal(emptyExperimentAggregate.registryCount, 0);
 assert.equal(emptyExperimentAggregate.killSwitchEnabled, false);
-assert.equal(emptyExperimentAggregate.activeDefinition?.primaryMetric, "release_follow_completed");
+assert.equal(emptyExperimentAggregate.activeDefinition, null);
 assert.deepEqual(emptyExperimentAggregate.aggregate.privacy, { minCohortSize: 5, containsPii: false, containsRawHistory: false });
-assert.equal(emptyExperimentAggregate.aggregate.experiments.length, 1);
-assert.ok(emptyExperimentAggregate.aggregate.experiments[0].variants.every((variant) => variant.suppressed));
+assert.equal(emptyExperimentAggregate.aggregate.experiments.length, 0);
 
 assert.deepEqual(extractEngineControlRoomMetrics({
   signalCount: 27014,
@@ -148,7 +147,7 @@ assert.match(page, /notFound\(\)/);
 assert.match(page, /isCompanyControlRoomOwnerEmail/);
 assert.match(page, /force-dynamic/);
 assert.match(page, /Demand-weighted investment/);
-assert.match(page, /Controlled experiments/);
+assert.doesNotMatch(page, /Controlled experiments|Release Radar wording test/);
 assert.match(page, /State engine health/);
 assert.match(page, /#state-engines/);
 assert.match(page, /cr-engine-health/);
@@ -157,7 +156,7 @@ assert.match(page, /Collection demand is temporarily unavailable/);
 assert.match(page, /role="alert"/);
 assert.match(page, /Tagged member cohort · 30 days/);
 assert.match(page, /Anonymous campaign visitors are measured in Vercel Web Analytics\./);
-assert.match(page, /Unique authenticated members only/);
+
 assert.match(page, /RetailerAdministration/);
 assert.match(page, /id="retailers"/);
 assert.match(page, /isRetailerAdminEmail/);

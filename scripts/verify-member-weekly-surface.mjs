@@ -28,11 +28,14 @@ for (const phrase of [
   "candidateMatchesBottlePrefs",
   "candidatePassesFreshEmailGuardrails",
   'readSiteExportResults(["alerts", "stats"])',
-  "radarEntries",
   "stateCoverage",
 ]) {
   assert.ok(server.includes(phrase), `weekly source adapter must reuse ${phrase}`);
 }
+assert.equal(/radar|release-radar/i.test(server), false, "weekly delivery adapter must not retain a retired Radar path");
+const intelligence = read("src/lib/member-weekly-intelligence.ts");
+assert.equal(/radar|release-radar/i.test(intelligence), false, "weekly intelligence composition must not retain a retired Radar section");
+assert.equal(/radar|release-radar/i.test(email), false, "weekly email copy must not mention the retired product");
 for (const phrase of ["deliveryAreaMatched: true", "deliveryMatchFields", "candidate.storeCity", "candidate.storeCounty", "candidate.boardName", "candidate.storeId"]) {
   assert.ok(server.includes(phrase), `weekly source adapter must preserve canonical delivery matching via ${phrase}`);
 }

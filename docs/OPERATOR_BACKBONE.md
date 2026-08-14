@@ -6,7 +6,7 @@ This backbone turns existing aggregate operating signals into a bounded GitHub I
 
 - Every new command defaults to dry-run.
 - GitHub issue creation, edits, closing, and reopening require `--apply`.
-- Writing a scorecard, daily brief, weekly review, or Radar finding report requires `--apply`.
+- Writing a scorecard, daily brief, or weekly review requires `--apply`.
 - Claiming an objective requires `--apply`, a clean base worktree, a canonical GitHub issue number, and an isolated `--worktree`. Dry-runs never edit GitHub or git state.
 - No command sends messages, deploys code, changes a schedule, or writes production data.
 - The scorecard selects aggregate counters from the Control Room snapshot. It never carries email addresses, user IDs, or per-member records.
@@ -20,7 +20,7 @@ Upsert recurrence is observational only. For an existing issue it refreshes the 
 Required fields:
 
 - `id`: `bsf-` plus 16 lowercase hexadecimal characters
-- `source`: `daily-reliability`, `weekly-engine-brief`, `source-roi`, `release-radar`, or `company-scorecard`
+- `source`: `daily-reliability`, `weekly-engine-brief`, `source-roi`, or `company-scorecard`
 - `sourceKey`: stable identity within that source
 - `area`: `company`, `product`, `data`, `shipping`, or `decision`
 - `severity`: `critical`, `high`, `medium`, or `low`
@@ -47,15 +47,6 @@ The existing commands retain their current reports and now add a top-level, boun
 - `npm run ops:daily`
 - `npm run ops:weekly`
 - `npm run ops:source-roi`
-
-Radar scouting has an isolated adapter:
-
-```bash
-npm run ops:radar-findings
-npm run ops:radar-findings -- --apply
-```
-
-Only stories in the scouting ledger with status `reported` become findings. The adapter never changes Release Radar content or publishes a story.
 
 ## Company scorecard
 
@@ -97,7 +88,7 @@ npm run operator:weekly-review -- --scorecard path/to/scorecard.json --findings 
 npm run operator:weekly-review -- --scorecard path/to/scorecard.json --github-backlog path/to/operator-findings-read.json
 ```
 
-`--github-backlog` accepts the canonical JSON emitted by `operator:findings read` and is the preferred brief input after GitHub lifecycle changes. It preserves the one selected or in-progress objective even when that finding falls below the normal eight-item rank cutoff. `--github-backlog` and `--findings` are mutually exclusive. When both are omitted, the generators read the latest daily reliability, weekly engine, source ROI, and Radar reports. Missing finding reports are allowed; the scorecard is required.
+`--github-backlog` accepts the canonical JSON emitted by `operator:findings read` and is the preferred brief input after GitHub lifecycle changes. It preserves the one selected or in-progress objective even when that finding falls below the normal eight-item rank cutoff. `--github-backlog` and `--findings` are mutually exclusive. When both are omitted, the generators read the latest daily reliability, weekly engine, and source ROI reports. Missing finding reports are allowed; the scorecard is required.
 
 ## GitHub backlog commands
 
@@ -145,6 +136,6 @@ The operator test covers contract rejection, stable IDs, bounded adapters, issue
 
 ## Script-first expansion inputs
 
-The source expansion collector, Radar lead ledger, automation registry, and automation-cost report are deterministic input producers. They do not create a second backlog: source ROI converts bounded expansion candidates into the existing canonical finding contract. The daily and weekly records carry only a compact context index (scorecard statuses, bounded finding IDs, and selected objective), so an optional Terra review can reason over an artifact instead of raw discovery output.
+The source expansion collector, automation registry, and automation-cost report are deterministic input producers. They do not create a second backlog: source ROI converts bounded expansion candidates into the existing canonical finding contract. The daily and weekly records carry only a compact context index (scorecard statuses, bounded finding IDs, and selected objective), so an optional Terra review can reason over an artifact instead of raw discovery output.
 
 The autonomous activation threshold is checked separately from ROI ranking. `safe_autonomous` requires public official/first-party evidence, clear terms, no authentication, exact source/store identity, honest semantics, a complete vertical slice, three shadow runs, two canary runs, headroom, reversibility, and no communication/pricing/entitlement/legal policy change. Every other condition is `approval_required`; neither a collector nor a brief may override that lane.

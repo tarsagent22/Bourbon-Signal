@@ -4,7 +4,7 @@ export const USER_PREFERENCE_METADATA_FIELDS = [
   "alertMode",
   "bottleAlertPreferences",
   "collectionPreferences",
-  "radarPreferences",
+
   "sightingsPreferences",
   "memberProfile",
 ] as const;

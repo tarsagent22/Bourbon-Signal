@@ -65,11 +65,6 @@ function productFaqItems(): FaqItem[] {
         "Search a bottle to see its rarity, MSRP, Hunt Score, practical buying guidance, and recent signal history. When local evidence is available, Bottle Check also shows recent locations and activity over the last 30 and 90 days. Bottles with enough member ratings may display a community taste score. Paid members can add uncommon bottles to their watchlist directly from Bottle Check. Free accounts include three checks; paid plans include unlimited checks.",
     },
     {
-      question: "What is Release Radar?",
-      answer:
-        "Release Radar is Bourbon Signal’s source-backed home for upcoming bottle releases, official lottery windows, distillery events, release briefings, and state guides. Exact confirmed dates appear on the calendar, while broader or uncertain timing stays clearly labeled as a release window. Release Radar is public and separate from live shelf-inventory signals.",
-    },
-    {
       question: "How do My Collection and recommendations work?",
       answer:
         "My Collection lets Barrel Proof and Bottled in Bond members save bottles they own or have tasted, score them from 1.0 to 10.0, add tasting cues, and keep private notes. If a bottle is missing from the catalog, you can save it while Bourbon Signal works to match it to an official record. Those ratings build your Bourbon DNA—an evolving view of the flavors, proof ranges, mash bills, and bottle styles you prefer. Recommended Bottles combines that taste profile with recent local signal context. Recommendations improve after you rate several bottles, but they are suggestions—not guarantees that a bottle is locally available.",
@@ -92,7 +87,7 @@ function pricingFaqItems(options: FaqOptions): FaqItem[] {
     {
       question: "What can I do as a free member?",
       answer:
-        "A free account includes a preview of the latest Drop Feed signals, up to three Bottle Checks, public Release Radar access, and access to Member Sightings. You can submit sightings, help other hunters, and earn Member Points and badges. A paid membership unlocks the full feed, saved alert areas and bottle watchlists, live notification delivery, and additional dashboard tools. My Collection and personalized bottle recommendations begin with Barrel Proof.",
+        "A free account includes a preview of the latest Drop Feed signals, up to three Bottle Checks, the Coverage Map, and access to Member Sightings. You can submit sightings, help other hunters, and earn Member Points and badges. A paid membership unlocks the full feed, saved alert areas and bottle watchlists, live notification delivery, and additional dashboard tools. My Collection and personalized bottle recommendations begin with Barrel Proof.",
     },
     {
       question: "What is the difference between Standard Proof and Barrel Proof?",
@@ -117,7 +112,7 @@ function pricingFaqItems(options: FaqOptions): FaqItem[] {
     {
       question: "Which features are available in each plan?",
       answer:
-        "Free is designed for trying the feed, Bottle Check, Release Radar, and community sightings. Standard Proof unlocks the full feed, unlimited Bottle Checks, saved alerts, bottle tracking, and notification delivery. Barrel Proof adds unlimited alert preferences, My Collection, Bourbon DNA, recommendations, and Member Sighting alerts. Bottled in Bond includes the complete paid product as a lifetime Founder membership. The plan cards above show the current prices and exact limits.",
+        "Free is designed for trying the feed, Bottle Check, the Coverage Map, and community sightings. Standard Proof unlocks the full feed, unlimited Bottle Checks, saved alerts, bottle tracking, and notification delivery. Barrel Proof adds unlimited alert preferences, My Collection, Bourbon DNA, recommendations, and Member Sighting alerts. Bottled in Bond includes the complete paid product as a lifetime Founder membership. The plan cards above show the current prices and exact limits.",
     },
   ];
 }

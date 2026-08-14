@@ -1,5 +1,5 @@
 export type ExperimentStatus = "draft" | "active" | "stopped";
-export type ExperimentSurface = "homepage" | "drop_feed" | "release_radar" | "bottle_check" | "welcome" | "alerts" | "dashboard";
+export type ExperimentSurface = "homepage" | "drop_feed" | "bottle_check" | "welcome" | "alerts" | "dashboard";
 export type ExperimentVariantResult = "winner" | "loser" | "inconclusive";
 
 export interface ExperimentDefinition {
@@ -36,33 +36,10 @@ export interface ExperimentTelemetryEvent {
 }
 
 export const EXPERIMENT_KILL_SWITCH_ENV = "GROWTH_EXPERIMENTS_KILL_SWITCH";
-export const RELEASE_RADAR_FOLLOW_EXPERIMENT_ID = "release-radar-follow-cta-copy";
-export const RELEASE_RADAR_FOLLOW_CTA_LABELS = {
-  control: "Follow release",
-  this_release: "Follow this release",
-} as const;
-
-export const EXPERIMENT_REGISTRY: readonly ExperimentDefinition[] = [{
-  id: RELEASE_RADAR_FOLLOW_EXPERIMENT_ID,
-  status: "active",
-  owner: "growth",
-  surface: "release_radar",
-  baseline: "Current authenticated-member CTA: Follow release; the control cohort establishes the baseline completion rate.",
-  hypothesis: "For authenticated members who can follow a release, naming the object as Follow this release will increase completed release follows without changing product behavior.",
-  variants: [
-    { key: "control", weight: 1 },
-    { key: "this_release", weight: 1 },
-  ],
-  primaryMetric: "release_follow_completed",
-  allowedMetrics: ["release_follow_completed"],
-  minSampleSizePerVariant: 100,
-  minRelativeLift: 0.05,
-  stopRule: "Stop after both variants reach 100 unique exposures and the primary metric reaches 95% confidence, or after 28 days as inconclusive.",
-  rollbackRule: "Enable the kill switch and restore the control wording if follow-save failures increase, the CTA is misleading, or any privacy invariant fails.",
-}];
+export const EXPERIMENT_REGISTRY: readonly ExperimentDefinition[] = [];
 
 const PRODUCTION_HOSTS = new Set(["bourbonsignal.com", "www.bourbonsignal.com"]);
-const ALLOWED_SURFACES = new Set<ExperimentSurface>(["homepage", "drop_feed", "release_radar", "bottle_check", "welcome", "alerts", "dashboard"]);
+const ALLOWED_SURFACES = new Set<ExperimentSurface>(["homepage", "drop_feed", "bottle_check", "welcome", "alerts", "dashboard"]);
 const SAFE_KEY = /^[a-z0-9][a-z0-9_-]{0,79}$/;
 const FORBIDDEN_SCOPE = /(?:^|[^a-z0-9])(?:email|sms|pricing|entitlements?|legal)(?=$|[^a-z0-9])/i;
 
@@ -155,11 +132,6 @@ export function assignActiveExperiment(
   return experiment ? assignExperiment(experiment, subjectKey) : null;
 }
 
-export function releaseRadarFollowCtaLabel(variant: string) {
-  return variant === "this_release"
-    ? RELEASE_RADAR_FOLLOW_CTA_LABELS.this_release
-    : RELEASE_RADAR_FOLLOW_CTA_LABELS.control;
-}
 
 export function isExperimentProductionHost(hostname: string) {
   return PRODUCTION_HOSTS.has(hostname.trim().toLowerCase());
