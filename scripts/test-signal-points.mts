@@ -234,8 +234,16 @@ test("schema, migration, encrypted backup, APIs, drawer, and owner queue are wir
   assert.match(panel, /BADGE_POINTS_AWARD/);
   assert.match(panel, /WEEKLY_STREAK_POINTS_AWARD/);
   assert.match(panel, /REFERRAL_POINTS_BY_TIER/);
-  assert.match(panel, /first five Free referral awards/i);
-  assert.match(panel, /only the difference is added/i);
+  assert.match(panel, /EARNING_GROUPS/);
+  assert.match(panel, /Post an eligible bottle sighting/);
+  assert.match(panel, /Post an allocated-bottle sighting/);
+  assert.doesNotMatch(panel, /Post an unclassified sighting/i);
+  assert.match(panel, /If a bottle’s classification changes, the award adjusts automatically/);
+  assert.match(panel, /bonuses are added to points earned from qualifying sightings/i);
+  assert.match(panel, /One eligible sighting in each consecutive week maintains a streak/i);
+  assert.match(panel, /Total points earned from one referral as their membership changes/i);
+  assert.match(panel, /Free referral awards are limited to the first five/i);
+  assert.match(panel, /only the difference between tiers/i);
   assert.match(panel, /role="dialog"[\s\S]*points-guide-title/);
   assert.match(panel, /points-compact-head/);
   assert.match(panel, /position:sticky/);
