@@ -2142,12 +2142,12 @@ function PaidMemberDashboard() {
     canReceiveSightingsAlerts,
   }), [alertMode, canReceiveSightingsAlerts, canUseCollection, collectionEntries.length, entitlements.tier, localPrefs, notificationPrefs, watchedBottleOptions.length]);
 
-  const dashboardSections = useMemo<Array<{ key: DashboardSection; label: string; eyebrow: string; summary: string; status: string }>>(() => ([
+  const dashboardSections = useMemo<Array<{ key: DashboardSection; label: string; eyebrow: string; summary: string; status: string | null }>>(() => ([
     { key: "alerts", label: "Alerts", eyebrow: "Alert setup", summary: "Choose what Bourbon Signal should notify you about.", status: localPrefs.states.length ? `${localPrefs.states.length} markets` : "Not set" },
     { key: "collection", label: "My Collection", eyebrow: "Taste profile", summary: "Keep track of bottles you own or have tasted, ratings, tasting cues, and notes.", status: canUseCollection ? (prefsLoading ? "Loading" : `${collectionEntries.length} saved`) : "Demo" },
     { key: "recommendations", label: "Recommended Bottles", eyebrow: "Bourbon DNA", summary: "See bottle ideas shaped by your collection and local signal context.", status: canUseRecommendations ? (!collectionEntries.length ? "Needs ratings" : preparedDashboardSections.has("recommendations") && collectionRecommendationInsights.length ? `${collectionRecommendationInsights.length} ideas` : "Ready") : "Demo" },
-    { key: "memberPoints", label: "Member Points", eyebrow: "Signal Points rewards", summary: "Track your unified balance, catalog, redemptions, badges, and streaks.", status: memberRewards ? "View balance" : "Loading" },
-  ]), [canUseCollection, canUseRecommendations, collectionEntries.length, collectionRecommendationInsights.length, localPrefs.states.length, memberRewards, prefsLoading, preparedDashboardSections]);
+    { key: "memberPoints", label: "Member Points", eyebrow: "Signal Points rewards", summary: "Track your unified balance, catalog, redemptions, badges, and streaks.", status: hasPointsExperiencePreview ? null : memberRewards ? "View balance" : "Loading" },
+  ]), [canUseCollection, canUseRecommendations, collectionEntries.length, collectionRecommendationInsights.length, hasPointsExperiencePreview, localPrefs.states.length, memberRewards, prefsLoading, preparedDashboardSections]);
 
   const prepareDashboardSection = (section: DashboardSection) => {
     if (section === "alerts") return;
@@ -2183,7 +2183,7 @@ function PaidMemberDashboard() {
           <span className="section-eyebrow">{section.eyebrow}</span>
           <span className="section-title-row">
             <span className="section-title">{section.label}</span>
-            <span className="section-status">{section.status}</span>
+            {section.status ? <span className="section-status">{section.status}</span> : null}
           </span>
           <span className="section-summary">{section.summary}</span>
         </span>
