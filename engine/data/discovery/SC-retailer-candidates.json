@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-07-30T19:50:05.453Z",
+  "generatedAt": "2026-08-13T23:16:00.245Z",
   "state": "SC",
   "method": "Brave-first regional discovery followed by one-pass public endpoint probes; no anti-bot bypass",
   "semantics": {
@@ -8,6 +8,28 @@
     "release-watch": "Retailer publishes allocated events, arrivals, raffles, or barrel-pick posts",
     "directory-only": "Authoritative store identity without bottle-level availability"
   },
+  "sourceCandidates": [
+    {
+      "sourceId": "discount-liquor-fort-mill-square",
+      "sourceClass": "first_party",
+      "outcome": "adopted",
+      "reasonCode": "exact_store_positive_inventory"
+    },
+    {
+      "sourceId": "park-and-blow-abc-square",
+      "sourceClass": "first_party",
+      "outcome": "viable_not_adopted",
+      "reasonCode": "insufficient_current_bottle_yield"
+    },
+    {
+      "sourceId": "st-pitt-liquor-square",
+      "sourceClass": "first_party",
+      "outcome": "rejected",
+      "reasonCode": "exact_premise_and_yield_unproven"
+    }
+  ],
+  "knownSourceUniverseComplete": true,
+  "secondPass": "completed",
   "retailers": [
     {"name":"Dunes Liquor","city":"Myrtle Beach","address":"980 Cipriana Drive, Unit A5-B, Myrtle Beach, SC 29572","platform":"integrated-cart storefront","status":"live-inventory","notes":"Runtime store 6178; exact positive INSTOREQTY, IsOutOfStock=false, positive price, SKU, full-bottle format, and public cart controls. Bounded 2026-07-30 probe emitted 13 current rows across 12 canonical bottles."},
     {"name":"All American Liquor","city":"Mauldin","address":"121 W Butler Rd, Mauldin, SC 29662","platform":"WooCommerce Store API","status":"live-inventory","notes":"Explicit is_in_stock; in-store/wholesale only; exact quantity unavailable"},
@@ -21,6 +43,10 @@
     {"name":"Rollers Wine & Spirits","city":"Hilton Head Island","platform":"CityHive","status":"live-inventory"},
     {"name":"Da Brown Bag","city":"Mount Pleasant","platform":"Clover API","status":"live-inventory"},
     {"name":"Southern Spirits","city":"Indian Land","platform":"Shopify","status":"live-inventory"},
+    {"name":"Liquor Library","city":"North Myrtle Beach","address":"270 Hwy 17 N, North Myrtle Beach, SC 29582","platform":"Square Online","status":"live-inventory","notes":"Single reviewed pickup location; public product and SKU routes expose exact positive location inventory."},
+    {"name":"Discount Liquor","city":"Fort Mill","address":"400 N Dobys Bridge Rd, Fort Mill, SC 29715","platform":"Square Online","status":"live-inventory","notes":"Adopted 2026-08-13 after a forced first-party probe proved one exact pickup premise and four Bottle Bible-matched current inventory rows."},
+    {"name":"Park & Blow ABC","city":"North Charleston","platform":"Square Online","status":"probeable-catalog","notes":"Public storefront was reviewed in the second Square discovery pass, but it did not provide enough current Bottle Bible-matched exact-store inventory to adopt."},
+    {"name":"St. Pitt Liquor","city":"Charleston area","platform":"Square Online","status":"probeable-catalog","notes":"Public storefront was reviewed in the second Square discovery pass, but exact premise and useful current bourbon yield did not satisfy adoption gates."},
     {"name":"Trolley Spirits","city":"Summerville","platform":"GoToLiquorStore","status":"probeable-catalog","notes":"Explicit stock controls observed in rendered pages, but direct collector requests became challenge-protected"},
     {"name":"Tina's Beverage","city":"Aiken","address":"2160 University Pkwy, Aiken, SC","platform":"GoToLiquorStore","status":"probeable-catalog","notes":"Store id 1296; public routes became unavailable during validation"},
     {"name":"Taste Liquors","city":"Columbia","address":"2722 N Lake Dr, Columbia, SC","platform":"Magento","status":"probeable-catalog","notes":"Rare product pages persist; catalog presence is not current stock"},

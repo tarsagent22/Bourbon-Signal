@@ -16,7 +16,7 @@ import { getStateLifecycle } from './state-lifecycle.mjs';
 import { appendChangeJournal } from './optimization/change-journal.mjs';
 import { hasPositiveInventoryEvidence } from './operational-candidate-policy.mjs';
 import { authoritativeSignalTimestamp, enforceArchivedSourceAlertPolicy } from './event-freshness.mjs';
-import { isSouthCarolinaAllAmericanInventory, isSouthCarolinaAllAmericanSignal, isSouthCarolinaSouthernSpiritsInventory } from './south-carolina-retailer-policy.mjs';
+import { isSouthCarolinaAllAmericanInventory, isSouthCarolinaAllAmericanSignal, isSouthCarolinaDiscountLiquorSignal, isSouthCarolinaSouthernSpiritsInventory } from './south-carolina-retailer-policy.mjs';
 
 const OUT = path.resolve('out');
 const HISTORY = path.join(OUT, 'history');
@@ -99,8 +99,13 @@ export function canonicalizeSignal(signal, bible) {
     sourceChain: signal.sourceChain || signal.raw?.chain || null,
     sourceRuntimeId: signal.sourceRuntimeId || signal.raw?.sourceRuntimeId || null,
     leafSourceRuntimeId: signal.leafSourceRuntimeId || signal.raw?.leafSourceRuntimeId || null,
+    ownerId: signal.ownerId || signal.raw?.ownerId || null,
+    siteId: signal.siteId || signal.raw?.siteId || null,
     merchantId: signal.merchantId || signal.raw?.merchantId || signal.raw?.option?.merchant_id || null,
+    locationId: signal.locationId || signal.raw?.locationId || null,
+    categoryId: signal.categoryId || signal.raw?.categoryId || null,
     productId: signal.productId || signal.raw?.productId || signal.raw?.product?.id || signal.raw?.option?.product_id || null,
+    siteProductId: signal.siteProductId || signal.raw?.siteProductId || null,
     productHandle: signal.productHandle || signal.raw?.product?.handle || null,
     sourceProductBinding: signal.sourceProductBinding || signal.raw?.productBinding || null,
     productCode: signal.productCode || signal.raw?.product?.code || String(signal.sourceUrl || '').match(/productCode=([^&]+)/)?.[1] || null,
@@ -113,6 +118,7 @@ export function canonicalizeSignal(signal, bible) {
       ? signal.productLimitedCaveat
       : typeof signal.raw?.product?.limitedCaveat === 'boolean' ? signal.raw.product.limitedCaveat : null,
     variantId: signal.variantId || signal.raw?.variantId || signal.raw?.variant?.id || signal.raw?.option?.option_id || null,
+    variationId: signal.variationId || signal.raw?.variationId || signal.raw?.variation?.id || null,
     variantAvailable: signal.variantAvailable ?? signal.raw?.variant?.available ?? null,
     observedAt: observedAt(signal),
     firstSeenAt: signal.firstSeenAt || null,
@@ -135,6 +141,7 @@ export function canonicalizeSignal(signal, bible) {
     city: signal.city || null,
     county: signal.county || null,
     regionId: signal.regionId || null,
+    postalCode: signal.postalCode || signal.storeZip || signal.zip || signal.raw?.postalCode || null,
     zip: signal.zip || signal.storeZip || signal.raw?.zip || signal.raw?.Zip || null,
     lat: optionalNumber(signal.lat, signal.latitude, signal.raw?.lat, signal.raw?.latitude, signal.raw?.Latitude),
     lng: optionalNumber(signal.lng, signal.lon, signal.longitude, signal.raw?.lng, signal.raw?.lon, signal.raw?.longitude, signal.raw?.Longitude),
@@ -199,6 +206,34 @@ export function canonicalizeSignal(signal, bible) {
         sku: signal.raw?.product?.sku ?? null,
         is_in_stock: signal.raw?.product?.is_in_stock ?? null,
         is_on_backorder: signal.raw?.product?.is_on_backorder ?? null,
+      },
+    } : isSouthCarolinaDiscountLiquorSignal(signal) ? {
+      chain: signal.raw?.chain || null,
+      square: {
+        ownerId: signal.raw?.square?.ownerId ?? null,
+        siteId: signal.raw?.square?.siteId ?? null,
+        merchantId: signal.raw?.square?.merchantId ?? null,
+        locationId: signal.raw?.square?.locationId ?? null,
+        categoryId: signal.raw?.square?.categoryId ?? null,
+        product: {
+          id: signal.raw?.square?.product?.id ?? null,
+          siteProductId: signal.raw?.square?.product?.siteProductId ?? null,
+          rawName: signal.raw?.square?.product?.rawName ?? null,
+          canonicalBottleId: signal.raw?.square?.product?.canonicalBottleId ?? null,
+          quantity: signal.raw?.square?.product?.quantity ?? null,
+          price: signal.raw?.square?.product?.price ?? null,
+          sourceUrl: signal.raw?.square?.product?.sourceUrl ?? null,
+        },
+        variation: {
+          id: signal.raw?.square?.variation?.id ?? null,
+          sku: signal.raw?.square?.variation?.sku ?? null,
+          productId: signal.raw?.square?.variation?.productId ?? null,
+          siteProductId: signal.raw?.square?.variation?.siteProductId ?? null,
+          quantity: signal.raw?.square?.variation?.quantity ?? null,
+          price: signal.raw?.square?.variation?.price ?? null,
+          inventoryTrackingEnabled: signal.raw?.square?.variation?.inventoryTrackingEnabled === true,
+          pickupEnabled: signal.raw?.square?.variation?.pickupEnabled === true,
+        },
       },
     } : undefined
   };
