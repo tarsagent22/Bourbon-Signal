@@ -2,7 +2,6 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import SignalPointsPanel from "@/components/SignalPointsPanel";
 import { motion } from "framer-motion";
 import Navigation from "@/components/Navigation";
 import Footer from "@/components/Footer";
@@ -14,7 +13,6 @@ import { useWatchlistStore } from "@/lib/watchlist";
 import { useAuth } from "@/lib/auth";
 import { useAreaPreferences } from "@/hooks/useAreaPreferences";
 import { useStats } from "@/lib/useEngineData";
-import { useSightings } from "@/hooks/useSightings";
 import type { Bottle } from "@/data/bottles";
 import type { AlertMode, AreaPreferences, UserAlertPreferencePatch, UserAlertPreferences } from "@/app/api/user/preferences/route";
 import { canonicalBottleKey, dropMatchesBottle } from "@/lib/bottleIdentity";
@@ -163,61 +161,7 @@ interface BourbonDnaSummary {
   summary: string;
 }
 
-const BADGE_ICON_BY_KEY: Record<string, string | null> = {
-  first_sighting: "/badge-icons/first-sighting.png",
-  helpful_neighbor: "/badge-icons/helpful-neighbor-fit.png",
-  photo_finish: "/badge-icons/photo-finish-fit.png",
-  spotter: "/badge-icons/spotter-bronze-fit.png",
-  unicorn_hunter: "/badge-icons/unicorn-hunter-bronze-fit.png",
-  sharp_eye: "/badge-icons/sharp-eye.png",
-  local_scout: "/badge-icons/local-scout.png",
-  weekend_warrior: "/badge-icons/weekend-warrior.png",
-  clean_signal: "/badge-icons/clean-signal.png",
-  streak: "/badge-icons/streak.png",
-};
-
-const BADGE_ICON_BY_ID: Record<string, string> = {
-  spotter_bronze: "/badge-icons/spotter-bronze-fit.png",
-  spotter_silver: "/badge-icons/spotter-silver-fit.png",
-  spotter_diamond: "/badge-icons/spotter-diamond-fit.png",
-  unicorn_hunter_bronze: "/badge-icons/unicorn-hunter-bronze-fit.png",
-  unicorn_hunter_silver: "/badge-icons/unicorn-hunter-silver-fit.png",
-  unicorn_hunter_diamond: "/badge-icons/unicorn-hunter-diamond-fit.png",
-};
-
-const BADGE_DESCRIPTIONS: Record<string, string> = {
-  first_sighting: "Post your first eligible field report.",
-  helpful_neighbor: "Earn 3 upvotes on a sighting that helped another member.",
-  photo_finish: "Post a sighting with an optional photo attached.",
-  spotter: "Build a track record of useful sightings.",
-  unicorn_hunter: "Find the rare bottles people chase.",
-  sharp_eye: "Post sightings other members find helpful.",
-  local_scout: "Become reliable in your home area.",
-  weekend_warrior: "Contribute when weekend hunting heats up.",
-  clean_signal: "Sustain a high-quality reporting record.",
-  streak: "Keep useful sightings coming week after week.",
-};
-
-function badgeBaseKey(id: string) {
-  const baseKey = id.replace(/_(bronze|silver|gold|platinum|diamond)$/u, "");
-  return baseKey === "verified_scout" ? "helpful_neighbor" : baseKey;
-}
-
-function badgeIconFor(id: string) {
-  return BADGE_ICON_BY_ID[id] || BADGE_ICON_BY_KEY[badgeBaseKey(id)] || null;
-}
-
-function badgeLabelFor(id: string, label: string) {
-  if (badgeBaseKey(id) === "helpful_neighbor") return "Helpful Neighbor";
-  return label.replace(/Verified Scout/gi, "Helpful Neighbor").replace(/verified/gi, "helpful");
-}
-
-function badgeDescriptionFor(id: string) {
-  return BADGE_DESCRIPTIONS[badgeBaseKey(id)] || "Keep contributing useful community signal.";
-}
-
-type DashboardSection = "alerts" | "collection" | "recommendations" | "memberPoints";
-
+type DashboardSection = "alerts" | "collection" | "recommendations";
 
 type SignalStrengthLevel = "low" | "building" | "focused" | "strong" | "precision";
 type SignalDimensionState = "empty" | "partial" | "active" | "strong" | "locked";
@@ -846,8 +790,6 @@ function PaidMemberDashboard() {
   const { drops: ncDrops } = useDrops({ limit: 500, state: "NC" });
   const { stats: engineStats } = useStats();
   const { isSignedIn, signIn, entitlements, user } = useAuth();
-  const primaryEmail = user?.emailAddresses.find((address) => address.id === user.primaryEmailAddressId)?.emailAddress.trim().toLowerCase() || "";
-  const hasPointsExperiencePreview = primaryEmail === "chandlertodd22@gmail.com";
   const isFreeTier = entitlements.tier === "free";
   const canAccessDashboard = entitlements.canAccessDashboard;
   const canUseAdvancedFilters = entitlements.canUseAdvancedFilters;
@@ -860,7 +802,7 @@ function PaidMemberDashboard() {
   const { prefs, loading: prefsLoading, savePreferences } = useAreaPreferences();
   const needsHomeStateActivation = isFreeTier && isSignedIn && !prefsLoading && !prefs.memberProfile?.homeState;
   const { watchedBottles, addBottle, removeBottle } = useWatchlistStore();
-  const { rewards: memberRewards } = useSightings(isSignedIn && canAccessDashboard);
+
 
   const [mounted, setMounted] = useState(false);
   const [bottleQuery, setBottleQuery] = useState("");
@@ -881,7 +823,7 @@ function PaidMemberDashboard() {
   const [activeDashboardSection, setActiveDashboardSection] = useState<DashboardSection | null>(() => {
     if (typeof window === "undefined") return null;
     const section = new URLSearchParams(window.location.search).get("section");
-    return section === "alerts" || section === "collection" || section === "recommendations" || section === "memberPoints" ? section : null;
+    return section === "alerts" || section === "collection" || section === "recommendations" ? section : null;
   });
   const [preparedDashboardSections, setPreparedDashboardSections] = useState<Set<DashboardSection>>(new Set(["alerts"]));
   const territoryDropdownRef = useRef<HTMLDivElement | null>(null);
@@ -2146,8 +2088,7 @@ function PaidMemberDashboard() {
     { key: "alerts", label: "Alerts", eyebrow: "Alert setup", summary: "Choose what Bourbon Signal should notify you about.", status: localPrefs.states.length ? `${localPrefs.states.length} markets` : "Not set" },
     { key: "collection", label: "My Collection", eyebrow: "Taste profile", summary: "Keep track of bottles you own or have tasted, ratings, tasting cues, and notes.", status: canUseCollection ? (prefsLoading ? "Loading" : `${collectionEntries.length} saved`) : "Demo" },
     { key: "recommendations", label: "Recommended Bottles", eyebrow: "Bourbon DNA", summary: "See bottle ideas shaped by your collection and local signal context.", status: canUseRecommendations ? (!collectionEntries.length ? "Needs ratings" : preparedDashboardSections.has("recommendations") && collectionRecommendationInsights.length ? `${collectionRecommendationInsights.length} ideas` : "Ready") : "Demo" },
-    { key: "memberPoints", label: "Member Points", eyebrow: "Signal Points rewards", summary: "Track your unified balance, catalog, redemptions, badges, and streaks.", status: hasPointsExperiencePreview ? null : memberRewards ? "View balance" : "Loading" },
-  ]), [canUseCollection, canUseRecommendations, collectionEntries.length, collectionRecommendationInsights.length, hasPointsExperiencePreview, localPrefs.states.length, memberRewards, prefsLoading, preparedDashboardSections]);
+  ]), [canUseCollection, canUseRecommendations, collectionEntries.length, collectionRecommendationInsights.length, localPrefs.states.length, prefsLoading, preparedDashboardSections]);
 
   const prepareDashboardSection = (section: DashboardSection) => {
     if (section === "alerts") return;
@@ -2338,57 +2279,6 @@ function PaidMemberDashboard() {
             gap: 0;
             min-width: 0;
           }
-          .member-rewards-dashboard-card {
-            border: 1px solid rgba(196,148,58,0.16);
-            border-radius: 24px;
-            background: linear-gradient(145deg, rgba(24,17,11,0.94), rgba(8,7,5,0.98));
-            box-shadow: 0 24px 64px rgba(0,0,0,0.26), inset 0 1px 0 rgba(245,237,214,0.04);
-            padding: 18px;
-            margin: 0 0 18px;
-          }
-          .member-rewards-dashboard-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 14px; }
-          .member-rewards-dashboard-stat { border: 1px solid rgba(245,237,214,0.075); border-radius: 15px; background: rgba(245,237,214,0.035); padding: 12px; }
-          .member-rewards-dashboard-stat strong { display: block; font-family: var(--font-playfair); font-size: 27px; line-height: 1; color: var(--color-cream); }
-          .member-rewards-dashboard-stat span { display: block; margin-top: 5px; font-family: var(--font-jetbrains); font-size: 9px; text-transform: uppercase; letter-spacing: 0.1em; color: rgba(245,237,214,0.48); }
-          .member-badge-progress-list { display: grid; gap: 10px; margin-top: 15px; }
-          .member-badge-progress-row { display: grid; grid-template-columns: 50px minmax(0, 1fr); align-items: center; gap: 11px; border: 1px solid rgba(245,237,214,0.075); border-radius: 17px; background: rgba(5,4,3,0.22); padding: 9px; }
-          .member-badge-icon { width: 48px; height: 48px; border-radius: 999px; object-fit: contain; border: 0; background: transparent; box-shadow: none; }
-          .member-badge-fallback { width: 48px; height: 48px; display: grid; place-items: center; border: 1px solid rgba(196,148,58,0.28); border-radius: 999px; background: radial-gradient(circle, rgba(196,148,58,0.16), rgba(5,4,3,0.36)); color: rgba(232,201,122,0.88); font-size: 20px; }
-          .member-badge-progress-copy { min-width: 0; display: grid; gap: 6px; }
-          .member-badge-progress-title { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; font-family: var(--font-dm-sans); color: rgba(245,237,214,0.88); font-size: 13px; font-weight: 850; }
-          .member-badge-progress-title span:last-child { font-family: var(--font-jetbrains); color: rgba(232,201,122,0.82); font-size: 10px; font-weight: 850; white-space: nowrap; }
-          .member-badge-progress-copy p { margin: 0; font-family: var(--font-dm-sans); color: rgba(245,237,214,0.52); font-size: 12px; line-height: 1.35; }
-          .member-badge-progress-bar { height: 7px; border-radius: 99px; background: rgba(245,237,214,0.08); overflow: hidden; }
-          .member-badge-progress-bar span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, rgba(196,148,58,0.72), rgba(232,201,122,0.86)); }
-          .member-points-next-action { border: 1px solid rgba(196,148,58,0.18); border-radius: 18px; background: linear-gradient(145deg, rgba(196,148,58,0.075), rgba(245,237,214,0.025)); padding: 14px; display: grid; gap: 6px; margin-top: 14px; }
-          .member-points-next-action strong { font-family: var(--font-dm-sans); color: var(--color-cream); font-size: 14px; }
-          .member-points-next-action span { font-family: var(--font-dm-sans); color: rgba(245,237,214,0.58); font-size: 12px; line-height: 1.45; }
-          .member-badge-card-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
-          .member-badge-card { position: relative; border: 1px solid rgba(245,237,214,0.075); border-radius: 18px; background: rgba(5,4,3,0.22); padding: 12px; display: grid; gap: 8px; min-width: 0; overflow: hidden; }
-          .member-badge-card[data-earned="false"] { opacity: 0.54; background: rgba(5,4,3,0.14); border-style: dashed; }
-          .member-badge-card[data-earned="false"] img { filter: grayscale(1) saturate(.25); opacity: .5; }
-          .member-badge-card[data-earned="true"] { border-color: rgba(196,148,58,0.22); background: linear-gradient(145deg, rgba(196,148,58,0.07), rgba(5,4,3,0.24)); }
-          .member-badge-card img { width: 54px; height: 54px; border-radius: 999px; object-fit: contain; border: 0; background: transparent; }
-          .member-badge-card strong { font-family: var(--font-dm-sans); color: rgba(245,237,214,0.9); font-size: 13px; }
-          .member-badge-card span { font-family: var(--font-dm-sans); color: rgba(245,237,214,0.52); font-size: 12px; line-height: 1.4; }
-          .member-badge-status { width: fit-content; border-radius: 999px; border: 1px solid rgba(245,237,214,0.1); padding: 4px 7px; font-family: var(--font-jetbrains)!important; font-size: 9px!important; font-weight: 900; letter-spacing: .09em; text-transform: uppercase; color: rgba(245,237,214,0.45)!important; }
-          .member-badge-card[data-earned="true"] .member-badge-status { border-color: rgba(83,211,146,0.24); background: rgba(83,211,146,0.08); color: rgba(198,255,222,0.86)!important; }
-          .member-points-drawer-content { display: grid; gap: 14px; }
-          .member-points-drawer-content .member-rewards-dashboard-card { margin: 0; }
-          .member-points-how-it-works { border: 1px solid rgba(245,237,214,0.08); border-radius: 22px; background: rgba(245,237,214,0.032); padding: 18px; display: grid; gap: 16px; }
-          .member-points-how-copy { display: grid; gap: 7px; }
-          .member-points-how-copy span { font-family: var(--font-jetbrains); font-size: 10px; font-weight: 850; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(232,201,122,0.78); }
-          .member-points-how-copy h3 { margin: 0; font-family: var(--font-playfair); font-size: clamp(24px, 4vw, 31px); line-height: 1.04; color: var(--color-cream); }
-          .member-points-how-copy p { margin: 0; max-width: 58ch; font-family: var(--font-dm-sans); font-size: 13px; line-height: 1.65; color: rgba(245,237,214,0.66); }
-          .member-points-rules-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
-          .member-points-rules-grid div { border: 1px solid rgba(196,148,58,0.14); border-radius: 15px; background: rgba(196,148,58,0.045); padding: 12px; display: grid; gap: 5px; }
-          .member-points-rules-grid strong { font-family: var(--font-dm-sans); color: var(--color-cream); font-size: 13px; }
-          .member-points-rules-grid span { font-family: var(--font-dm-sans); color: rgba(245,237,214,0.58); font-size: 12px; line-height: 1.45; }
-          .member-points-badges { border-top: 1px solid rgba(245,237,214,0.075); padding-top: 14px; }
-          .member-points-badges h4 { margin: 0 0 10px; font-family: var(--font-dm-sans); color: var(--color-cream); font-size: 14px; }
-          .member-points-badges ul { margin: 0; padding-left: 18px; display: grid; gap: 8px; }
-          .member-points-badges li { font-family: var(--font-dm-sans); color: rgba(245,237,214,0.62); font-size: 12px; line-height: 1.5; }
-          .member-points-badges li strong { color: rgba(245,237,214,0.86); }
 
           .signal-strength-card {
             position: relative;
@@ -2829,13 +2719,7 @@ function PaidMemberDashboard() {
             .dashboard-section-button[data-active="true"] { border-bottom-left-radius: 0; border-bottom-right-radius: 0; margin-bottom: 0; }
             .dashboard-drawer-shell { border-radius: 18px; margin-bottom: 12px; }
             .dashboard-drawer-shell[data-attached="true"] { border-radius: 0 0 18px 18px; }
-            .member-points-rules-grid { grid-template-columns: 1fr; }
-            .member-badge-progress-row { grid-template-columns: 46px minmax(0,1fr); }
-            .member-badge-icon { width: 44px; height: 44px; }
-            .member-badge-card-grid { grid-template-columns: 1fr; }
-            .member-rewards-dashboard-grid { gap: 8px; }
-            .member-rewards-dashboard-stat { padding: 11px 9px; }
-            .member-rewards-dashboard-stat strong { font-size: 25px; }
+
             .section-eyebrow { font-size: 9px; }
             .section-title { font-size: 19px; font-family: var(--font-dm-sans); font-weight: 850; letter-spacing: -0.01em; }
             .section-summary { font-size: 12px; line-height: 1.45; }
@@ -3831,105 +3715,6 @@ function PaidMemberDashboard() {
 
               {collectionError ? <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "#D77A61" }}>{collectionError}</p> : null}
             </div>
-          </StepShell>
-          ) : null}
-
-          {renderSectionButton("memberPoints")}
-
-          {activeDashboardSection === "memberPoints" ? (
-          <StepShell
-            step="Member Points"
-            title="Badges, streaks, and sighting progress"
-            subtitle="A quick read on what you’ve earned and what counts next."
-            hideHeader
-            attached
-          >
-            {memberRewards ? (
-              <div className="member-points-drawer-content">
-                <SignalPointsPanel
-                  preview={hasPointsExperiencePreview}
-                  rewards={memberRewards}
-                  badgeIconFor={badgeIconFor}
-                  badgeLabelFor={badgeLabelFor}
-                  badgeDescriptionFor={badgeDescriptionFor}
-                  badgeBaseKey={badgeBaseKey}
-                />
-                {!hasPointsExperiencePreview ? <>
-                <section className="member-rewards-dashboard-card" aria-label="Member Points and badge progress">
-                  <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: "10px", fontWeight: 850, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(232,201,122,0.78)" }}>Member Points</div>
-                  <div style={{ marginTop: "8px", fontFamily: "var(--font-playfair)", fontSize: "clamp(26px, 5vw, 34px)", color: "var(--color-cream)", lineHeight: 1.05 }}>Sighting achievements</div>
-                  <div className="member-rewards-dashboard-grid">
-                    <div className="member-rewards-dashboard-stat"><strong>{memberRewards.eligibleSightings}</strong><span>Eligible sightings</span></div>
-                    <div className="member-rewards-dashboard-stat"><strong>{memberRewards.currentWeeklyStreak}</strong><span>Week streak</span></div>
-                    <div className="member-rewards-dashboard-stat"><strong>{memberRewards.badges.length}</strong><span>Badges earned</span></div>
-                  </div>
-                  <div className="member-points-next-action">
-                    <strong>Every valid sighting earns points</strong>
-                    <span>Posting points: limited or unclassified +10 · allocated +20 · unicorn +30. Badges and maintained streaks add 10 points; removed or rejected reports are reconciled.</span>
-                  </div>
-                  {(() => {
-                    const nextBadge = memberRewards.badgeProgress.find((item) => !item.earned);
-                    return nextBadge ? (
-                      <div className="member-points-next-action">
-                        <strong>Next up: {badgeLabelFor(nextBadge.id, nextBadge.label)}{nextBadge.tier ? ` · ${nextBadge.tier}` : ""}</strong>
-                        <span>{badgeDescriptionFor(nextBadge.id)} You’re at {nextBadge.current}/{nextBadge.target}.</span>
-                      </div>
-                    ) : (
-                      <div className="member-points-next-action"><strong>Everything visible is earned.</strong><span>Keep adding useful sightings to build your next tier as new badges unlock.</span></div>
-                    );
-                  })()}
-                  <div className="member-badge-progress-list">
-                    {memberRewards.badgeProgress.filter((item) => !item.earned).slice(0, 4).map((item) => (
-                      <div className="member-badge-progress-row" key={item.id}>
-                        {badgeIconFor(item.id) ? <img className="member-badge-icon" src={badgeIconFor(item.id) || undefined} alt="" loading="lazy" /> : <span className="member-badge-fallback">🥃</span>}
-                        <div className="member-badge-progress-copy">
-                          <div className="member-badge-progress-title"><span>{badgeLabelFor(item.id, item.label)}{item.tier ? ` · ${item.tier}` : ""}</span><span>{item.current}/{item.target}</span></div>
-                          <p>{badgeDescriptionFor(item.id)}</p>
-                          <div className="member-badge-progress-bar"><span style={{ width: `${Math.min(100, Math.round((item.current / item.target) * 100))}%` }} /></div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                  <Link href="/sightings?tab=submit" style={{ display: "inline-flex", marginTop: 14, color: "rgba(232,201,122,0.86)", fontFamily: "var(--font-dm-sans)", fontSize: 13, fontWeight: 800, textDecoration: "none" }}>Post a member sighting →</Link>
-                </section>
-
-                <section className="member-points-badges" aria-label="Badge collection">
-                  <h4>Badge collection</h4>
-                  <div className="member-badge-card-grid">
-                    {[
-                      { id: "first_sighting", label: "First Sighting" },
-                      { id: "helpful_neighbor", label: "Helpful Neighbor" },
-                      { id: "photo_finish", label: "Photo Finish" },
-                      { id: "spotter", label: "Spotter" },
-                      { id: "unicorn_hunter", label: "Unicorn Hunter" },
-                      { id: "sharp_eye", label: "Sharp Eye" },
-                      { id: "local_scout", label: "Local Scout" },
-                      { id: "weekend_warrior", label: "Weekend Warrior" },
-                      { id: "clean_signal", label: "Clean Signal" },
-                      { id: "streak", label: "Streak" },
-                    ].map((badge) => {
-                      const badgeProgress = memberRewards.badgeProgress.filter((item) => badgeBaseKey(item.id) === badge.id);
-                      const earned = memberRewards.badges.some((item) => badgeBaseKey(item.id) === badge.id) || badgeProgress.some((item) => item.earned);
-                      const nextProgress = badgeProgress.find((item) => !item.earned) || badgeProgress[0];
-                      return (
-                      <div className="member-badge-card" data-earned={earned} key={badge.id}>
-                        {badgeIconFor(badge.id) ? <img src={badgeIconFor(badge.id) || undefined} alt="" loading="lazy" /> : null}
-                        <span className="member-badge-status">{earned ? "Earned" : nextProgress ? `Locked · ${nextProgress.current}/${nextProgress.target}` : "Locked"}</span>
-                        <strong>{badge.label}</strong>
-                        <span>{badgeDescriptionFor(badge.id)}</span>
-                      </div>
-                    );
-                    })}
-                  </div>
-                </section>
-                </> : null}
-              </div>
-            ) : (
-              <div className="dashboard-loading-panel">
-                <strong>Loading member points</strong>
-                <span>Your points and badge progress will show here once sightings load.</span>
-              </div>
-            )}
           </StepShell>
           ) : null}
 

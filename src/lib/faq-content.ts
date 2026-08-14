@@ -55,9 +55,9 @@ function productFaqItems(): FaqItem[] {
         "Approved retailers can report bottle availability directly to Bourbon Signal and publish scheduled drops, barrel picks, tastings, and lotteries. These cards are visually distinct and labeled “Verified retailer” so they are not confused with Member Sightings or broader market intelligence. “Available now” reports automatically expire after 24 hours unless the retailer updates them, and retailers can mark inventory sold out sooner. Availability can still change before you arrive, so verify before making a long trip.",
     },
     {
-      question: "What are Member Sightings and Member Points?",
+      question: "What are Member Sightings?",
       answer:
-        "Signed-in members can report bottles seen in stores, available inventory, sold-out conditions, and other useful local observations. Photos are optional, and community voting helps identify useful reports. Helpful contributions earn Member Points, badges, and weekly streak progress. Member Sightings remain clearly labeled as community reports rather than official or verified-retailer inventory. Barrel Proof and Bottled in Bond members can also receive alerts when sightings match their selected bottles and markets.",
+        "Signed-in members can report bottles seen in stores, available inventory, sold-out conditions, and other useful local observations. Photos are optional, and community voting helps identify useful reports. Member Sightings remain clearly labeled as community reports rather than official or verified-retailer inventory. Barrel Proof and Bottled in Bond members can also receive alerts when sightings match their selected bottles and markets.",
     },
     {
       question: "How does Bottle Check work?",
@@ -87,7 +87,7 @@ function pricingFaqItems(options: FaqOptions): FaqItem[] {
     {
       question: "What can I do as a free member?",
       answer:
-        "A free account includes a preview of the latest Drop Feed signals, up to three Bottle Checks, the Coverage Map, and access to Member Sightings. You can submit sightings, help other hunters, and earn Member Points and badges. A paid membership unlocks the full feed, saved alert areas and bottle watchlists, live notification delivery, and additional dashboard tools. My Collection and personalized bottle recommendations begin with Barrel Proof.",
+        "A free account includes a preview of the latest Drop Feed signals, up to three Bottle Checks, the Coverage Map, and access to Member Sightings. You can submit sightings and help other hunters. A paid membership unlocks the full feed, saved alert areas and bottle watchlists, live notification delivery, and additional dashboard tools. My Collection and personalized bottle recommendations begin with Barrel Proof.",
     },
     {
       question: "What is the difference between Standard Proof and Barrel Proof?",

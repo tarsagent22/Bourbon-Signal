@@ -102,14 +102,13 @@ for (const required of [
   "Drop Feed",
   "Member Sightings",
   "Bottle Checker",
-  "Points and badges",
+  "Coverage Map",
   "Upgraded memberships can add",
   "Personalized alerts",
   "Full drop feed and filters",
   "Saved watchlists",
   "Your collection",
   "DNA and bottle recommendations",
-  "Point redemption",
   "Compare membership options",
   "Request coverage",
   "join the Bourbon Signal Facebook group",
@@ -117,7 +116,7 @@ for (const required of [
   "{{unsubscribeUrl}}",
   "Bourbon Signal is intended for users 21+",
 ]) assert.ok(visibleHtml.includes(required), `email must include: ${required}`);
-for (const forbidden of ["Standard Proof", "Barrel Proof", "$3", "$6", "MEMBERSHIP OPTIONS", "July", "sale", "Founder", "founder", "spots remaining", "guaranteed in stock", "drive now", "Hey Casey,"]) {
+for (const forbidden of ["Standard Proof", "Barrel Proof", "$3", "$6", "MEMBERSHIP OPTIONS", "July", "sale", "Founder", "founder", "spots remaining", "guaranteed in stock", "drive now", "Hey Casey,", "Points and badges", "Point redemption", "Signal Points", "redeem points"]) {
   assert.ok(!html.includes(forbidden), `evergreen email must omit: ${forbidden}`);
 }
 assert.match(html, /pricing\?source=day2_free_followup/);

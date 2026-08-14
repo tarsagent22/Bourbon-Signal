@@ -18,14 +18,13 @@ export interface FreeMemberDayTwoEmailProps {
   baseUrl?: string;
 }
 
-const FREE_FEATURES = ["Drop Feed", "Member Sightings.", "Bottle Checker", "Points and badges"];
+const FREE_FEATURES = ["Drop Feed", "Member Sightings", "Bottle Checker", "Coverage Map"];
 const UPGRADE_FEATURES = [
   "Personalized alerts",
   "Full drop feed and filters",
   "Saved watchlists",
   "Your collection",
   "DNA and bottle recommendations",
-  "Point redemption",
 ];
 
 export function FreeMemberDayTwoEmail({

@@ -5,7 +5,8 @@ import { canonicalizeLegacySighting, makeSightingId, normalizeBottleKey, type Me
 import { createCommunitySightingsRepository, type DurableSightingVote } from "@/lib/community-sightings-repository";
 import { getEntitlements } from "@/lib/entitlements";
 import { getServerEntitlements } from "@/lib/server-entitlements";
-import { reconcileMemberRewards, summarizeMemberRewards, type MemberRewardsSummary } from "@/lib/sighting-rewards";
+import { isRewardsAdminEmail, reconcileMemberRewards, summarizeMemberRewards, type MemberRewardsSummary } from "@/lib/sighting-rewards";
+import { verifiedPrimaryClerkEmail } from "@/lib/owner-auth";
 import { memberSightingTierForAvailability, normalizeSightingsForRewards } from "@/lib/sighting-reward-tiers";
 import { isLikelyDuplicateSighting, sanitizeManualSightingField } from "@/lib/sighting-review";
 import { getQaPreviewTierFromRequest, isQaPreviewRequest } from "@/lib/preview-qa";
@@ -19,6 +20,12 @@ function normalizeSightingType(value: unknown): SightingType {
 
 function normalizeRarityTier(value: unknown): MemberSighting["rarityTier"] {
   return value === "unicorn" || value === "allocated" || value === "limited" ? value : "limited";
+}
+
+function visibleSightingForRequester(sighting: MemberSighting, ownerPointsPreview: boolean) {
+  if (ownerPointsPreview) return sighting;
+  const { rewardState: _rewardState, reporterBadges: _reporterBadges, ...visible } = sighting;
+  return visible;
 }
 
 
@@ -219,13 +226,14 @@ export async function GET(req: NextRequest) {
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
   const client = await clerkClient();
   const user = await client.users.getUser(userId);
+  const ownerPointsPreview = isRewardsAdminEmail(verifiedPrimaryClerkEmail(user));
   const entitlements = await getServerEntitlements(user.publicMetadata);
   if (!entitlements.canReadSightings) {
     return NextResponse.json({ error: "Member Sightings are included with Standard Proof and above." }, { status: 403 });
   }
 
   const url = new URL(req.url);
-  const includeRewards = url.searchParams.get("rewards") !== "0";
+  const includeRewards = ownerPointsPreview && url.searchParams.get("rewards") !== "0";
   const requestedLimit = Number(url.searchParams.get("limit") || 60);
   const feedLimit = Number.isFinite(requestedLimit) ? Math.max(1, Math.min(Math.floor(requestedLimit), 1_000)) : 60;
   const rewardGeneration = includeRewards ? await createSignalPointsRepository().readRewardGeneration(userId) : 0;
@@ -233,7 +241,8 @@ export async function GET(req: NextRequest) {
 
   const allSightings = aggregate.sightings;
   const previewLimit = entitlements.sightingsPreviewLimit;
-  const sightings = previewLimit === null ? allSightings : allSightings.slice(0, previewLimit);
+  const sightings = (previewLimit === null ? allSightings : allSightings.slice(0, previewLimit))
+    .map((sighting) => visibleSightingForRequester(sighting, ownerPointsPreview));
   let rewards: MemberRewardsSummary | null = null;
   if (includeRewards) {
     const publicMetadata = (user.publicMetadata && typeof user.publicMetadata === "object" ? user.publicMetadata : {}) as Record<string, unknown>;
@@ -248,7 +257,13 @@ export async function GET(req: NextRequest) {
     rewards = summarizeMemberRewards(rewardSightings, nextRewards);
   }
   const states = Array.from(new Set(sightings.map((sighting) => sighting.storeState).filter(Boolean))).sort();
-  return NextResponse.json({ sightings, states, rewards, previewLimit, totalSightings: aggregate.totalSightings });
+  return NextResponse.json({
+    sightings,
+    states,
+    ...(ownerPointsPreview ? { rewards } : {}),
+    previewLimit,
+    totalSightings: aggregate.totalSightings,
+  });
 }
 
 export async function POST(req: NextRequest) {
@@ -307,6 +322,7 @@ export async function POST(req: NextRequest) {
 
   const client = await clerkClient();
   const user = await client.users.getUser(userId);
+  const ownerPointsPreview = isRewardsAdminEmail(verifiedPrimaryClerkEmail(user));
   const prefs = normalizePrefs(user.publicMetadata?.sightingsPreferences);
   const sighting: MemberSighting = {
     id: makeSightingId(),
@@ -356,7 +372,13 @@ export async function POST(req: NextRequest) {
       after(() => persistMemberRewardsBestEffort(client, userId, nextRewards, observedRewardGeneration));
     }
     const rewards: MemberRewardsSummary = summarizeMemberRewards(rewardSightings, nextRewards);
-    return NextResponse.json({ ok: true, created: false, duplicate: true, sighting: duplicate, rewards });
+    return NextResponse.json({
+      ok: true,
+      created: false,
+      duplicate: true,
+      sighting: visibleSightingForRequester(duplicate, ownerPointsPreview),
+      ...(ownerPointsPreview ? { rewards } : {}),
+    });
   }
 
   const savedSighting = await repository.insertSighting(sighting);
@@ -381,7 +403,12 @@ export async function POST(req: NextRequest) {
     }
   });
   const rewards: MemberRewardsSummary = summarizeMemberRewards(nextRewardSightings, nextRewards);
-  return NextResponse.json({ ok: true, created: true, sighting: savedSighting.sighting, rewards });
+  return NextResponse.json({
+    ok: true,
+    created: true,
+    sighting: visibleSightingForRequester(savedSighting.sighting, ownerPointsPreview),
+    ...(ownerPointsPreview ? { rewards } : {}),
+  });
 }
 
 export async function PATCH(req: NextRequest) {
@@ -396,6 +423,8 @@ export async function PATCH(req: NextRequest) {
   if (!entitlements.canReadSightings) {
     return NextResponse.json({ error: "Member Sightings are included with Standard Proof and above." }, { status: 403 });
   }
+  const requester = await (await clerkClient()).users.getUser(userId);
+  const ownerPointsPreview = isRewardsAdminEmail(verifiedPrimaryClerkEmail(requester));
   const payload = (await req.json().catch(() => ({}))) as { sightingId?: string; vote?: SightingVoteKind };
   const sightingId = String(payload.sightingId || "").slice(0, 160);
   const vote = payload.vote === "down" ? "down" : payload.vote === "up" ? "up" : null;
@@ -444,7 +473,11 @@ export async function PATCH(req: NextRequest) {
     }
   } catch (error) {
     console.error("Sighting vote persisted, but durable reward reconciliation failed", error);
-    return NextResponse.json({ error: "Sighting vote saved, but Signal Points reconciliation is temporarily unavailable." }, { status: 503 });
+    return NextResponse.json({ error: "Sighting vote saved, but account reconciliation is temporarily unavailable." }, { status: 503 });
   }
-  return NextResponse.json({ ok: true, sighting: updatedTarget, rewards });
+  return NextResponse.json({
+    ok: true,
+    sighting: visibleSightingForRequester(updatedTarget, ownerPointsPreview),
+    ...(ownerPointsPreview ? { rewards } : {}),
+  });
 }

@@ -1,10 +1,11 @@
 import { randomUUID } from "node:crypto";
-import { auth, clerkClient } from "@clerk/nextjs/server";
+import { clerkClient } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { readFounderShippingForUser } from "@/lib/founder-shipping-repository";
 import { canRedeemSignalPoints, normalizeRedemptionDetails, rewardCatalogItem } from "@/lib/signal-points";
 import { createSignalPointsRepository } from "@/lib/signal-points-repository";
 import { resolveServerEffectiveMembershipTier } from "@/lib/server-entitlements";
+import { requireOwnerApiAccess } from "@/lib/owner-auth";
 
 const PRIVATE_HEADERS = { "Cache-Control": "private, no-store" };
 function verifiedPrimaryEmail(user: Awaited<ReturnType<Awaited<ReturnType<typeof clerkClient>>["users"]["getUser"]>>) {
@@ -13,8 +14,9 @@ function verifiedPrimaryEmail(user: Awaited<ReturnType<Awaited<ReturnType<typeof
 }
 
 export async function POST(request: NextRequest) {
-  const { userId } = await auth();
-  if (!userId) return NextResponse.json({ error: "Account required" }, { status: 401, headers: PRIVATE_HEADERS });
+  const owner = await requireOwnerApiAccess({ unauthorized: "Account required", forbidden: "Not found" });
+  if (owner.error) return owner.error;
+  const { userId } = owner;
   try {
     const payload = await request.json().catch(() => ({})) as Record<string, unknown>;
     const user = await (await clerkClient()).users.getUser(userId);
@@ -50,8 +52,9 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
-  const { userId } = await auth();
-  if (!userId) return NextResponse.json({ error: "Account required" }, { status: 401, headers: PRIVATE_HEADERS });
+  const owner = await requireOwnerApiAccess({ unauthorized: "Account required", forbidden: "Not found" });
+  if (owner.error) return owner.error;
+  const { userId } = owner;
   try {
     const payload = await request.json().catch(() => ({})) as Record<string, unknown>;
     if (payload.action !== "cancel" || typeof payload.redemptionId !== "string") return NextResponse.json({ error: "Invalid redemption action." }, { status: 400, headers: PRIVATE_HEADERS });
