@@ -249,6 +249,8 @@ test('Discount Liquor signal and policy bind exact Square stock to the reviewed 
   assert.equal(signal.pickupOfferVerified, true);
   assert.equal(signal.orderabilityOfferVerified, true);
   assert.equal(signal.raw.square.product.id, product.productId);
+  assert.equal(signal.raw.square.product.rawName, signal.rawName);
+  assert.equal(signal.raw.square.product.canonicalBottleId, signal.canonicalBottleId);
   assert.equal(signal.variationId, product.variationId);
   assert.equal(signal.sku, product.sku);
   assert.equal(signal.raw.square.variation.id, product.variationId);
@@ -290,6 +292,8 @@ test('Discount Liquor signal and policy bind exact Square stock to the reviewed 
     { orderabilityOfferVerified: false },
     { raw: { ...signal.raw, square: { ...signal.raw.square, merchantId: 'forged' } } },
     { raw: { ...signal.raw, square: { ...signal.raw.square, variation: { ...signal.raw.square.variation, id: 'FORGEDVARIATION00000000' } } } },
+    { canonicalBottleId: 'forged-bottle-id' },
+    { rawName: 'Forged Bottle Name' },
   ]) assert.equal(scPolicy.isSouthCarolinaDiscountLiquorInventory({ ...signal, ...forged }, Date.parse(observedAt) + 60_000), false);
   assert.equal(scPolicy.isSouthCarolinaDiscountLiquorInventory(signal, Date.parse(observedAt) + 2 * 60 * 60_000 + 1), false);
 });
@@ -308,6 +312,8 @@ test('Discount Liquor normalized event aliases cannot bypass exact Square export
   const normalized = operational.canonicalizeSignal(signal, emptyBible);
   assert.equal(normalized.premisesVerified, true);
   assert.equal(normalized.pickupOfferVerified, true);
+  assert.equal(normalized.raw.square.product.rawName, signal.rawName);
+  assert.equal(normalized.raw.square.product.canonicalBottleId, signal.canonicalBottleId);
   assert.equal(normalized.canAlertAsInventory, true);
   const valid = exportSite.publicSignal(normalized, emptyBible);
   assert.equal(valid.canAlertAsInventory, true);

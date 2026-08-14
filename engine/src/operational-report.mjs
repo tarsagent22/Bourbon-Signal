@@ -218,6 +218,8 @@ export function canonicalizeSignal(signal, bible) {
         product: {
           id: signal.raw?.square?.product?.id ?? null,
           siteProductId: signal.raw?.square?.product?.siteProductId ?? null,
+          rawName: signal.raw?.square?.product?.rawName ?? null,
+          canonicalBottleId: signal.raw?.square?.product?.canonicalBottleId ?? null,
           quantity: signal.raw?.square?.product?.quantity ?? null,
           price: signal.raw?.square?.product?.price ?? null,
           sourceUrl: signal.raw?.square?.product?.sourceUrl ?? null,

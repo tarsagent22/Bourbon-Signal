@@ -210,6 +210,8 @@ export function isSouthCarolinaDiscountLiquorInventory(signal, nowMs = Date.now(
     && square?.categoryId === signal.categoryId
     && product?.id === productId
     && product?.siteProductId === siteProductId
+    && product?.rawName === signal.rawName
+    && product?.canonicalBottleId === signal.canonicalBottleId
     && product?.quantity === quantity
     && product?.price === signal.price
     && product?.sourceUrl === signal.sourceUrl

@@ -341,6 +341,8 @@ export function buildDiscountLiquorSignal(config, product, bottleMatch, observed
         product: {
           id: product.productId,
           siteProductId: product.siteProductId,
+          rawName: product.rawName,
+          canonicalBottleId: record.id,
           quantity: product.quantity,
           price: product.price,
           sourceUrl: product.sourceUrl,
