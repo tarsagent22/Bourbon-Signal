@@ -11,7 +11,7 @@ import { isMetroRetailerInventory, isMetroRetailerSignalIdentity } from './metro
 import { isMississippiRetailerInventory, isMississippiRetailerSignalIdentity } from './mississippi-retailer-policy.mjs';
 import { isTennesseeRetailerInventory, isTennesseeRetailerSignalIdentity } from './tennessee-retailer-policy.mjs';
 import { isSouthCarolinaDunesInventory, isSouthCarolinaDunesSignal } from './south-carolina-dunes-policy.mjs';
-import { isSouthCarolinaAllAmericanInventory, isSouthCarolinaAllAmericanSignal, isSouthCarolinaSouthernSpiritsInventory, isSouthCarolinaSouthernSpiritsSignal } from './south-carolina-retailer-policy.mjs';
+import { isSouthCarolinaAllAmericanInventory, isSouthCarolinaAllAmericanSignal, isSouthCarolinaDiscountLiquorInventory, isSouthCarolinaDiscountLiquorSignal, isSouthCarolinaSouthernSpiritsInventory, isSouthCarolinaSouthernSpiritsSignal } from './south-carolina-retailer-policy.mjs';
 import { lifecycleAllowsInventoryAlert, lifecycleAllowsWatchAlert } from './state-lifecycle.mjs';
 
 export const STATE_CONFIDENCE_POLICY = {
@@ -113,7 +113,7 @@ const TEXAS_CITYHIVE_POLICY = {
 
 const SOUTH_CAROLINA_RETAILER_POLICY = {
   maxAlertMode: 'alert_retailer_store_inventory_caveat',
-  inventorySemantics: 'South Carolina is a private retail market. Whitelisted public retailer sources (CityHive merchant-id pages, Da Brown Bag Clover, Southern Spirits Shopify, and identity-bound Dunes Liquor runtime-store inventory) can expose store-level retailer-published bottle availability; alert with a verify-before-driving caveat and preserve exact quantity semantics from the source.',
+  inventorySemantics: 'South Carolina is a private retail market. Whitelisted public retailer sources (CityHive merchant-id pages, Da Brown Bag Clover, Southern Spirits Shopify, Discount Liquor Square Online, and identity-bound Dunes Liquor runtime-store inventory) can expose store-level retailer-published bottle availability; alert with a verify-before-driving caveat and preserve exact quantity semantics from the source.',
   defaultCadence: 'daily-60m'
 };
 
@@ -193,7 +193,8 @@ function policyForSignal(signal, nowMs = Date.now()) {
     && /^(cityhive_store_inventory|retailer_store_inventory)/i.test(eventType)
     && (/CityHive|Green's Beverage|Wine & Bourbon Barn|Da Brown Bag|Clover|Southern Spirits|Shopify/i.test(source)
       || isSouthCarolinaDunesInventory(signal, nowMs)
-      || isSouthCarolinaAllAmericanInventory(signal, nowMs))) return SOUTH_CAROLINA_RETAILER_POLICY;
+      || isSouthCarolinaAllAmericanInventory(signal, nowMs)
+      || isSouthCarolinaDiscountLiquorInventory(signal, nowMs))) return SOUTH_CAROLINA_RETAILER_POLICY;
   if (signal.state === 'AZ'
     && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(eventType)
     && isArizonaRetailerSignalIdentity(signal)) return ARIZONA_RETAILER_POLICY;
@@ -276,6 +277,9 @@ export function confidenceForSignal(signal, { nowMs = Date.now() } = {}) {
   const southCarolinaAllAmericanEvent = /^(cityhive_store_inventory|retailer_store_inventory)/i.test(eventType)
     && isSouthCarolinaAllAmericanSignal(signal);
   const southCarolinaAllAmericanAllowed = !southCarolinaAllAmericanEvent || isSouthCarolinaAllAmericanInventory(signal, nowMs);
+  const southCarolinaDiscountLiquorEvent = /^(cityhive_store_inventory|retailer_store_inventory)/i.test(eventType)
+    && isSouthCarolinaDiscountLiquorSignal(signal);
+  const southCarolinaDiscountLiquorAllowed = !southCarolinaDiscountLiquorEvent || isSouthCarolinaDiscountLiquorInventory(signal, nowMs);
   const mississippiRetailerEvent = signal.state === 'MS' && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(eventType);
   const mississippiInventoryAllowed = !mississippiRetailerEvent
     || (isMississippiRetailerInventory(signal) && lifecycleAllowsInventoryAlert('MS'));
@@ -296,7 +300,7 @@ export function confidenceForSignal(signal, { nowMs = Date.now() } = {}) {
     policyMode: policy.maxAlertMode,
     inventorySemantics: policy.inventorySemantics,
     locationValue: locationValue(signal),
-    canAlertAsInventory: !runtimeAlertBlocked && texasInventoryAllowed && indianaInventoryAllowed && georgiaInventoryAllowed && tennesseeInventoryAllowed && californiaInventoryAllowed && nevadaInventoryAllowed && metroInventoryAllowed && southCarolinaDunesAllowed && southCarolinaSouthernSpiritsAllowed && southCarolinaAllAmericanAllowed && mississippiInventoryAllowed && !isDistilleryLane && hasPositiveInventory && !inventoryBlockedBySemantics && rank >= 6 && confidence >= 0.72,
-    canAlertAsWatch: !runtimeAlertBlocked && indianaWatchAllowed && georgiaWatchAllowed && tennesseeWatchAllowed && californiaWatchAllowed && nevadaWatchAllowed && metroWatchAllowed && southCarolinaDunesAllowed && southCarolinaSouthernSpiritsAllowed && southCarolinaAllAmericanAllowed && mississippiWatchAllowed && !isSampleOnly && !watchBlockedBySemantics && confidence >= 0.5 && policy.maxAlertMode !== 'policy_only'
+    canAlertAsInventory: !runtimeAlertBlocked && texasInventoryAllowed && indianaInventoryAllowed && georgiaInventoryAllowed && tennesseeInventoryAllowed && californiaInventoryAllowed && nevadaInventoryAllowed && metroInventoryAllowed && southCarolinaDunesAllowed && southCarolinaSouthernSpiritsAllowed && southCarolinaAllAmericanAllowed && southCarolinaDiscountLiquorAllowed && mississippiInventoryAllowed && !isDistilleryLane && hasPositiveInventory && !inventoryBlockedBySemantics && rank >= 6 && confidence >= 0.72,
+    canAlertAsWatch: !runtimeAlertBlocked && indianaWatchAllowed && georgiaWatchAllowed && tennesseeWatchAllowed && californiaWatchAllowed && nevadaWatchAllowed && metroWatchAllowed && southCarolinaDunesAllowed && southCarolinaSouthernSpiritsAllowed && southCarolinaAllAmericanAllowed && southCarolinaDiscountLiquorAllowed && mississippiWatchAllowed && !isSampleOnly && !watchBlockedBySemantics && confidence >= 0.5 && policy.maxAlertMode !== 'policy_only'
   };
 }

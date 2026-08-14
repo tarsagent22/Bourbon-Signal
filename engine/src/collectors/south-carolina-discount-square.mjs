@@ -310,6 +310,8 @@ export function buildDiscountLiquorSignal(config, product, bottleMatch, observed
     availabilityStatus: 'in_stock',
     availabilityLabel: `Square reports ${product.quantity} in stock for pickup`,
     sourceAvailabilityVerified: true,
+    premisesVerified: true,
+    pickupOfferVerified: true,
     orderabilityOfferVerified: true,
     locationPrecision: 'store_level',
     locationName: source.store.name,

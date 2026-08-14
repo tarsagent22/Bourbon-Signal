@@ -59,7 +59,10 @@ const sourceLabels = unique(alertableInventoryRows.map((row) => row.sourceLabel 
 const storeKeys = unique(alertableInventoryRows.map((row) => `${row.storeName || row.locationName || row.storeId}|${row.storeAddress || ''}`));
 const cityKeys = unique(alertableInventoryRows.map((row) => norm(row.city))).sort();
 const highValueRows = alertableInventoryRows.filter((row) => /blanton|eagle rare|weller|stagg|taylor|van winkle|buffalo trace|michter|willett|old fitz|elmer|rock hill|booker|baker|blood oath|four roses|1792|russell|woodford|wild turkey|elijah craig|old forester|green river|bardstown|knob creek|bulleit|maker|yellowstone|penelope|jack daniel/i.test(String(row.rawName || row.bottleName || row.canonicalName || '')));
-const exactCountRows = alertableInventoryRows.filter((row) => Number(row.quantity || 0) > 1 && !/listed_available_no_exact_count/i.test(String(row.raw?.quantitySemantics || row.quantitySemantics || '')) && /CityHive|Clover|Green's Beverage|Wine & Bourbon Barn|Da Brown Bag/i.test(String(row.sourceLabel || row.source || '')));
+const exactCountRows = alertableInventoryRows.filter((row) => Number(row.quantity || 0) > 1
+  && !/listed_available_no_exact_count/i.test(String(row.raw?.quantitySemantics || row.quantitySemantics || ''))
+  && (/CityHive|Clover|Green's Beverage|Wine & Bourbon Barn|Da Brown Bag|Discount Liquor|Square exact-store inventory/i.test(String(row.sourceLabel || row.source || ''))
+    || row.quantityIsExact === true));
 
 const inventoryByCity = new Map();
 for (const row of alertableInventoryRows) {

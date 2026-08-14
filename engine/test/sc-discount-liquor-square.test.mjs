@@ -7,9 +7,11 @@ const square = await import('../src/collectors/south-carolina-discount-square.mj
 const precision = await import('../src/collectors/precision-probes.mjs');
 const scPolicy = await import('../src/south-carolina-retailer-policy.mjs');
 const exportSite = await import('../src/export-site-contract.mjs');
+const operational = await import('../src/operational-report.mjs');
 const collector = readFileSync(new URL('../src/collectors/precision-probes.mjs', import.meta.url), 'utf8');
 const sources = readFileSync(new URL('../src/state-sources.mjs', import.meta.url), 'utf8');
 const exportContract = readFileSync(new URL('../src/export-site-contract.mjs', import.meta.url), 'utf8');
+const scoreContract = readFileSync(new URL('../src/score-sc-user-reach.mjs', import.meta.url), 'utf8');
 const refreshWorkflow = readFileSync(new URL('../../.github/workflows/refresh-feed.yml', import.meta.url), 'utf8');
 const packageJson = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
 const storeUniverse = JSON.parse(readFileSync(new URL('../data/store-universe/SC.json', import.meta.url), 'utf8'));
@@ -25,6 +27,7 @@ test('Discount Liquor is registered as an exact-store Square inventory source', 
   assert.equal(store.inventoryStatus, 'live-inventory');
   assert.equal(store.ecommercePlatform, 'square-online');
   assert.ok(stateLifecycle.states.SC.areaOptions.includes('Fort Mill'), 'Fort Mill must be selectable for SC customer area preferences');
+  assert.match(scoreContract, /Discount Liquor\|Square exact-store inventory/, 'SC usefulness scoring must count the reviewed Square exact quantities');
 });
 
 function validLocationPayload() {
@@ -242,6 +245,8 @@ test('Discount Liquor signal and policy bind exact Square stock to the reviewed 
   assert.equal(signal.quantityIsExact, true);
   assert.equal(signal.quantitySemantics, 'exact_square_single_location_inventory');
   assert.equal(signal.storeId, 'discount-liquor-fort-mill:LEG9F5YDP0ZS2');
+  assert.equal(signal.premisesVerified, true);
+  assert.equal(signal.pickupOfferVerified, true);
   assert.equal(signal.orderabilityOfferVerified, true);
   assert.equal(signal.raw.square.product.id, product.productId);
   assert.equal(signal.variationId, product.variationId);
@@ -280,6 +285,8 @@ test('Discount Liquor signal and policy bind exact Square stock to the reviewed 
     { storeQty: 8 },
     { quantityIsExact: false },
     { sourceAvailabilityVerified: false },
+    { premisesVerified: false },
+    { pickupOfferVerified: false },
     { orderabilityOfferVerified: false },
     { raw: { ...signal.raw, square: { ...signal.raw.square, merchantId: 'forged' } } },
     { raw: { ...signal.raw, square: { ...signal.raw.square, variation: { ...signal.raw.square.variation, id: 'FORGEDVARIATION00000000' } } } },
@@ -297,8 +304,12 @@ test('Discount Liquor normalized event aliases cannot bypass exact Square export
     { match: { confidence: 0.96 }, record: { id: 'four-roses-single-barrel-obsv', canonical: 'Four Roses OBSV Single Barrel', tier: 'limited' } },
     observedAt,
   );
-  const emptyBible = { byId: new Map(), byName: new Map(), byNormalized: new Map() };
-  const valid = exportSite.publicSignal(signal, emptyBible);
+  const emptyBible = { byId: new Map(), byName: new Map(), byNormalized: new Map(), match: () => null };
+  const normalized = operational.canonicalizeSignal(signal, emptyBible);
+  assert.equal(normalized.premisesVerified, true);
+  assert.equal(normalized.pickupOfferVerified, true);
+  assert.equal(normalized.canAlertAsInventory, true);
+  const valid = exportSite.publicSignal(normalized, emptyBible);
   assert.equal(valid.canAlertAsInventory, true);
   const forgedAlias = exportSite.publicSignal({ ...signal, eventType: 'store_inventory_result', raw: { chain: 'discount-liquor-fort-mill' } }, emptyBible);
   assert.equal(forgedAlias.canAlertAsInventory, false);

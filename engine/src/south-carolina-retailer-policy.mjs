@@ -195,6 +195,8 @@ export function isSouthCarolinaDiscountLiquorInventory(signal, nowMs = Date.now(
     && Number(signal.price) > 0
     && signal?.availabilityStatus === 'in_stock'
     && signal?.sourceAvailabilityVerified === true
+    && signal?.premisesVerified === true
+    && signal?.pickupOfferVerified === true
     && signal?.orderabilityOfferVerified === true
     && signal?.canAlertAsInventory === true
     && signal?.canAlertAsWatch === true
