@@ -8,6 +8,8 @@ import {
   normalizeRedemptionDetails,
 } from "../src/lib/signal-points.ts";
 import { clerkRewardSourceTargets, normalizedClerkRewardPoints, SignalPointsRepository } from "../src/lib/signal-points-repository.ts";
+import { REFERRAL_POINTS_BY_TIER } from "../src/lib/referrals.ts";
+import { BADGE_POINTS_AWARD, SIGHTING_POINTS_BY_RARITY, WEEKLY_STREAK_POINTS_AWARD } from "../src/lib/sighting-rewards.ts";
 
 const read = (path: string) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 
@@ -32,6 +34,13 @@ test("launch catalog has the confirmed versioned prices and fulfillment kinds", 
 test("only paid memberships may redeem while Free can accumulate", () => {
   assert.equal(canRedeemSignalPoints("free"), false);
   for (const tier of ["standard", "barrel", "bottled-in-bond"] as const) assert.equal(canRedeemSignalPoints(tier), true);
+});
+
+test("member earning values stay authoritative", () => {
+  assert.deepEqual(SIGHTING_POINTS_BY_RARITY, { unclassified: 10, limited: 10, allocated: 20, unicorn: 30 });
+  assert.equal(BADGE_POINTS_AWARD, 10);
+  assert.equal(WEEKLY_STREAK_POINTS_AWARD, 10);
+  assert.deepEqual(REFERRAL_POINTS_BY_TIER, { free: 10, standard: 50, barrel: 100, "bottled-in-bond": 150 });
 });
 
 test("Clerk sighting balances migrate 10x once and normalized rewards remain exact", () => {
@@ -219,6 +228,20 @@ test("schema, migration, encrypted backup, APIs, drawer, and owner queue are wir
   assert.match(panel, /data-distance/);
   assert.match(panel, /points-shimmer/);
   assert.match(panel, /REWARD_MARKS/);
+  assert.match(panel, /How to earn points/);
+  assert.match(panel, /Every way to earn Signal Points/);
+  assert.match(panel, /SIGHTING_POINTS_BY_RARITY/);
+  assert.match(panel, /BADGE_POINTS_AWARD/);
+  assert.match(panel, /WEEKLY_STREAK_POINTS_AWARD/);
+  assert.match(panel, /REFERRAL_POINTS_BY_TIER/);
+  assert.match(panel, /first five Free referral awards/i);
+  assert.match(panel, /only the difference is added/i);
+  assert.match(panel, /role="dialog"[\s\S]*points-guide-title/);
+  assert.match(panel, /points-compact-head/);
+  assert.match(panel, /position:sticky/);
+  assert.match(panel, /badgeCards[\s\S]*sort/);
+  assert.match(panel, /data-progress/);
+  assert.doesNotMatch(panel, /<section className="points-earn-strip"/);
   const dashboard = read("src/app/dashboard/page.tsx");
   assert.match(dashboard, /primaryEmailAddressId/);
   assert.match(dashboard, /primaryEmail\s*===\s*["']chandlertodd22@gmail\.com["']/);

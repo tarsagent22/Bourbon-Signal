@@ -78,6 +78,9 @@ export interface MemberRewardsSummary {
 }
 
 export const ADMIN_EMAILS = new Set(["chandler@bourbonsignal.com", "chandlertodd22@gmail.com"]);
+export const SIGHTING_POINTS_BY_RARITY = { unclassified: 10, limited: 10, allocated: 20, unicorn: 30 } as const;
+export const BADGE_POINTS_AWARD = 10;
+export const WEEKLY_STREAK_POINTS_AWARD = 10;
 
 export function isRewardsAdminEmail(email?: string | null) {
   return Boolean(email && ADMIN_EMAILS.has(email.trim().toLowerCase()));
@@ -88,9 +91,10 @@ export function isEligibleRewardsTier(tier?: MemberSighting["rarityTier"]) {
 }
 
 export function basePointsForSighting(sighting: Pick<MemberSighting, "rarityTier">) {
-  if (sighting.rarityTier === "unicorn") return 30;
-  if (sighting.rarityTier === "allocated") return 20;
-  return 10;
+  if (sighting.rarityTier === "unicorn") return SIGHTING_POINTS_BY_RARITY.unicorn;
+  if (sighting.rarityTier === "allocated") return SIGHTING_POINTS_BY_RARITY.allocated;
+  if (sighting.rarityTier === "limited") return SIGHTING_POINTS_BY_RARITY.limited;
+  return SIGHTING_POINTS_BY_RARITY.unclassified;
 }
 
 export function communityVerified(upCount = 0, downCount = 0) {
@@ -181,7 +185,7 @@ function normalizeRewards(input: unknown): MemberRewardsProfile {
 }
 
 function badgeAward(id: string, label: string, earnedAt: string, tier?: BadgeTier): MemberBadgeAward {
-  return { id, label, tier, earnedAt, pointsAwarded: 10 };
+  return { id, label, tier, earnedAt, pointsAwarded: BADGE_POINTS_AWARD };
 }
 
 export function summarizeMemberRewards(sightings: MemberSighting[], existing?: unknown): MemberRewardsSummary {
@@ -273,11 +277,11 @@ function updateWeeklyStreak(rewards: MemberRewardsProfile, activeSightings: Memb
     current = weeks[index] === expectedKey ? current + 1 : 1;
     longest = Math.max(longest, current);
     if (current >= 2) {
-      streakBonusPoints += 10;
+      streakBonusPoints += WEEKLY_STREAK_POINTS_AWARD;
       addLedger(rewards, {
         badgeId: `streak_week_${weeks[index]}`,
         reason: "streak_maintained_v3",
-        points: 10,
+        points: WEEKLY_STREAK_POINTS_AWARD,
         createdAt: `${weeks[index]}T00:00:00.000Z`,
       });
     }
