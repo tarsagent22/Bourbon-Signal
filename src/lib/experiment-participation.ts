@@ -1,5 +1,4 @@
 import {
-  releaseRadarFollowCtaLabel,
   type ExperimentAssignment,
   type ExperimentDefinition,
 } from "./growth-experiments.ts";
@@ -123,6 +122,6 @@ export function buildExperimentApiResponse(experiment: ExperimentDefinition, ass
   return {
     enabled: true as const,
     variant: assignment.variant,
-    ctaLabel: releaseRadarFollowCtaLabel(assignment.variant),
+    ctaLabel: assignment.variant,
   };
 }

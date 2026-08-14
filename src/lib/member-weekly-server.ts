@@ -11,10 +11,8 @@ import {
   buildMemberWeeklyIntelligence,
   type MemberWeeklyAlertCandidate,
   type MemberWeeklyCoverageCandidate,
-  type MemberWeeklyRadarCandidate,
   type MemberWeeklySavedArea,
   type MemberWeeklyTrackedBottle,
-  weeklyRadarFollowsFromPreferences,
 } from "@/lib/member-weekly-intelligence";
 import {
   buildWeeklyIntelligenceDryRun,
@@ -23,7 +21,6 @@ import {
 } from "@/lib/member-weekly-email";
 import { normalizeMemberWeeklyDeliveryLedger } from "@/lib/member-weekly-delivery";
 import { normalizeNotificationPreferences } from "@/lib/notification-preferences";
-import { radarEntries, radarPath } from "@/lib/release-radar";
 import { readSiteExportResults } from "@/lib/site-engine-contract";
 
 type UnknownRecord = Record<string, unknown>;
@@ -188,28 +185,6 @@ function adaptAlertCandidates(input: {
     });
 }
 
-const STATE_CODE_BY_NAME = new Map(
-  Object.entries(ACTIVE_ENGINE_STATE_NAMES).map(([code, name]) => [name.toLowerCase(), code])
-);
-
-function radarStateCode(value: string) {
-  if (value.toLowerCase() === "nationwide") return "NATIONWIDE";
-  return STATE_CODE_BY_NAME.get(value.toLowerCase()) || value.toUpperCase();
-}
-
-function adaptRadarCandidates(): MemberWeeklyRadarCandidate[] {
-  return radarEntries.map((entry) => ({
-    id: `${entry.kind}-${entry.slug}`,
-    slug: entry.slug,
-    title: entry.title,
-    summary: entry.summary,
-    stateCodes: entry.states.map(radarStateCode),
-    bottleKeys: entry.bottle ? [normalizedBottleKey(entry.bottle)] : [],
-    startDate: entry.startDate,
-    endDate: entry.endDate,
-    href: radarPath(entry),
-  }));
-}
 
 function adaptCoverageCandidates(statsPayload: UnknownRecord | null): MemberWeeklyCoverageCandidate[] {
   const stateCoverage = record(statsPayload?.stateCoverage);
@@ -293,11 +268,9 @@ export function buildWeeklyIntelligencePreviewFromSources(input: {
       savedAreas: savedAreasFromMetadata(publicMetadata),
       trackedBottles: trackedBottlesFromMetadata(publicMetadata),
       alertMode: publicMetadata.alertMode === "specific_bottles" ? "specific_bottles" : "anything_notable",
-      followedRadarReleases: weeklyRadarFollowsFromPreferences(publicMetadata.radarPreferences),
     },
     now: input.now,
     alerts: adaptAlertCandidates({ candidates, publicMetadata, snapshotSafe: input.sources.alertsFresh }),
-    radar: adaptRadarCandidates(),
     coverage: adaptCoverageCandidates(input.sources.statsPayload),
   });
   const recipient = primaryEmail(input.user);

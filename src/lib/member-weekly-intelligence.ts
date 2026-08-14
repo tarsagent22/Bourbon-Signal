@@ -1,6 +1,4 @@
-import { normalizeRadarPreferences } from "./release-radar-preferences.ts";
-
-export type MemberWeeklySectionKind = "alerts" | "radar" | "coverage";
+export type MemberWeeklySectionKind = "alerts" | "coverage";
 
 export interface MemberWeeklySavedArea {
   stateCode: string;
@@ -12,10 +10,6 @@ export interface MemberWeeklyTrackedBottle {
   name: string;
 }
 
-export interface MemberWeeklyRadarFollow {
-  releaseSlug: string;
-  marketCodes: string[];
-}
 
 export interface MemberWeeklyProfile {
   id: string;
@@ -23,7 +17,7 @@ export interface MemberWeeklyProfile {
   savedAreas: MemberWeeklySavedArea[];
   trackedBottles: MemberWeeklyTrackedBottle[];
   alertMode: "specific_bottles" | "anything_notable";
-  followedRadarReleases?: MemberWeeklyRadarFollow[];
+
 }
 
 export interface MemberWeeklyAlertCandidate {
@@ -45,17 +39,6 @@ export interface MemberWeeklyAlertCandidate {
   detail?: string;
 }
 
-export interface MemberWeeklyRadarCandidate {
-  id: string;
-  slug: string;
-  title: string;
-  summary: string;
-  stateCodes: string[];
-  bottleKeys: string[];
-  startDate: string;
-  endDate?: string;
-  href: string;
-}
 
 export interface MemberWeeklyCoverageCandidate {
   stateCode: string;
@@ -70,7 +53,7 @@ export interface MemberWeeklyIntelligenceInput {
   member: MemberWeeklyProfile;
   now: string;
   alerts: MemberWeeklyAlertCandidate[];
-  radar: MemberWeeklyRadarCandidate[];
+
   coverage: MemberWeeklyCoverageCandidate[];
 }
 
@@ -106,7 +89,7 @@ export interface MemberWeeklyIntelligence {
 }
 
 const DAY_MS = 24 * 60 * 60 * 1000;
-const RADAR_HORIZON_DAYS = 28;
+
 const MAX_SECTION_ITEMS = 3;
 
 function normalizedText(value: string) {
@@ -122,11 +105,6 @@ function normalizedState(value: string) {
   return value.trim().toUpperCase();
 }
 
-export function weeklyRadarFollowsFromPreferences(input: unknown): MemberWeeklyRadarFollow[] {
-  return normalizeRadarPreferences(input).followedReleases
-    .map((follow) => ({ releaseSlug: follow.releaseSlug, marketCodes: [...follow.marketCodes].sort() }))
-    .sort((left, right) => left.releaseSlug.localeCompare(right.releaseSlug));
-}
 
 function parsedTime(value: string) {
   const timestamp = Date.parse(value);
@@ -203,39 +181,6 @@ function eligibleAlerts(input: MemberWeeklyIntelligenceInput) {
   }).slice(0, MAX_SECTION_ITEMS);
 }
 
-function radarMatchesMember(candidate: MemberWeeklyRadarCandidate, member: MemberWeeklyProfile) {
-  const followed = member.followedRadarReleases || [];
-  if (followed.some((follow) => follow.releaseSlug === candidate.slug)) return true;
-  const savedStates = new Set([
-    ...member.savedAreas.map((area) => normalizedState(area.stateCode)),
-    ...followed.flatMap((follow) => follow.marketCodes.map(normalizedState)),
-  ]);
-  const stateMatch = candidate.stateCodes.some((state) => {
-    const normalized = normalizedState(state);
-    return normalized === "NATIONWIDE" ? savedStates.size > 0 : savedStates.has(normalized);
-  });
-  const candidateBottleKeys = candidate.bottleKeys.map(normalizedText).filter(Boolean);
-  const title = normalizedText(candidate.title);
-  const bottleMatch = member.trackedBottles.some((bottle) => {
-    const wanted = normalizedText(bottle.key || bottle.name);
-    return Boolean(wanted) && (candidateBottleKeys.some((key) => key === wanted || key.includes(wanted) || wanted.includes(key)) || title.includes(wanted));
-  });
-  return stateMatch || bottleMatch;
-}
-
-function relevantRadar(input: MemberWeeklyIntelligenceInput) {
-  const weekStart = parsedTime(`${memberWeekKey(input.now)}T00:00:00.000Z`);
-  const horizon = weekStart + RADAR_HORIZON_DAYS * DAY_MS;
-  return input.radar
-    .filter((candidate) => radarMatchesMember(candidate, input.member))
-    .filter((candidate) => {
-      const start = parsedTime(`${candidate.startDate}T00:00:00.000Z`);
-      const end = parsedTime(`${candidate.endDate || candidate.startDate}T23:59:59.999Z`);
-      return Number.isFinite(start) && Number.isFinite(end) && end >= weekStart && start <= horizon;
-    })
-    .sort((left, right) => left.startDate.localeCompare(right.startDate) || left.id.localeCompare(right.id))
-    .slice(0, MAX_SECTION_ITEMS);
-}
 
 function relevantCoverage(input: MemberWeeklyIntelligenceInput) {
   const savedStates = new Set(input.member.savedAreas.map((area) => normalizedState(area.stateCode)));
@@ -258,20 +203,6 @@ function alertSection(alerts: MemberWeeklyAlertCandidate[]): MemberWeeklySection
   };
 }
 
-function radarSection(radar: MemberWeeklyRadarCandidate[]): MemberWeeklySection {
-  return {
-    kind: "radar",
-    title: "On your Radar",
-    items: radar.map((candidate) => ({
-      id: candidate.id,
-      title: candidate.title,
-      summary: candidate.summary,
-      meta: candidate.endDate && candidate.endDate !== candidate.startDate
-        ? `${candidate.startDate}–${candidate.endDate}`
-        : candidate.startDate,
-    })),
-  };
-}
 
 function coverageSection(coverage: MemberWeeklyCoverageCandidate[]): MemberWeeklySection {
   return {
@@ -293,20 +224,17 @@ function primaryActionFor(input: MemberWeeklyIntelligenceInput, sections: Member
     const firstAlert = eligibleAlerts(input)[0];
     return { kind: "alerts", label: "Review the fresh signal", href: firstAlert?.href || "/dashboard?section=alerts" };
   }
-  if (first.kind === "radar") {
-    const firstRadar = relevantRadar(input)[0];
-    return { kind: "radar", label: "Open this week’s Radar", href: firstRadar?.href || "/release-radar" };
-  }
+
   return { kind: "coverage", label: "Review your saved markets", href: "/dashboard?section=alerts" };
 }
 
 export function buildMemberWeeklyIntelligence(input: MemberWeeklyIntelligenceInput): MemberWeeklyIntelligence {
   const alerts = eligibleAlerts(input);
-  const radar = relevantRadar(input);
+
   const coverage = relevantCoverage(input);
   const sections: MemberWeeklySection[] = [];
   if (alerts.length) sections.push(alertSection(alerts));
-  if (radar.length) sections.push(radarSection(radar));
+
   if (coverage.length) sections.push(coverageSection(coverage));
   const itemCount = sections.reduce((total, section) => total + section.items.length, 0);
 

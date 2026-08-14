@@ -45,6 +45,12 @@ const nextConfig: NextConfig = {
     ],
     formats: ["image/avif", "image/webp"],
   },
+  async redirects() {
+    return [
+      { source: "/release-radar", destination: "/", permanent: true },
+      { source: "/release-radar/:path*", destination: "/", permanent: true },
+    ];
+  },
   async headers() {
     return [
       {

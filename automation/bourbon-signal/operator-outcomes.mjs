@@ -58,7 +58,6 @@ export function summarizeOperatorOutcomes(runs, generatedAt = new Date().toISOSt
       objectiveCompletionRate: objectiveIds.size ? Number((completedIds.size / objectiveIds.size).toFixed(3)) : null,
       pullRequestsMerged: completionRows.filter((run) => run.merged).length,
       productionReleases: completionRows.filter((run) => run.productionVerified).length,
-      releaseRadarPublications: completionRows.reduce((sum, run) => sum + run.releaseRadarPublished, 0),
       engineExpansionsCompleted: completionRows.reduce((sum, run) => sum + run.engineExpansionsCompleted, 0),
       coverageDelta: completionRows.reduce((sum, run) => sum + run.coverageDelta, 0),
       continuedRuns: rows.filter((run) => run.outcome === 'continued').length,
@@ -92,7 +91,6 @@ export async function recordOperatorOutcome(argv = process.argv.slice(2)) {
   }
   if (run.outcome !== 'completed' && run.discoveryToCompletionHours !== null) throw new Error('Only completed objectives may report discovery-to-completion time.');
   if (run.outcome === 'no_qualified_work' && run.objectiveId !== null) throw new Error('A no-work run cannot claim an objective.');
-  if (run.releaseRadarPublished > 0 && run.lane !== 'release_radar') throw new Error('Radar publications require the release_radar lane.');
   if (run.engineExpansionsCompleted > 0 && run.lane !== 'engine_expansion') throw new Error('Engine expansions require the engine_expansion lane.');
   const history = await json(historyFile, { contractVersion: 'bourbon-signal/operator-run-history@1', runs: [] });
   if (history.contractVersion !== 'bourbon-signal/operator-run-history@1' || !Array.isArray(history.runs)) throw new Error('Operator run history is invalid.');

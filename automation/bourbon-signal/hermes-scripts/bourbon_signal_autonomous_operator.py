@@ -95,10 +95,7 @@ def owner_summary(artifact: dict) -> str:
             f"- Pull request: #{artifact['prNumber']} merged",
             "- Production: verified",
         ]
-        release_count = int(artifact.get("releaseRadarPublished") or 0)
         expansion_count = int(artifact.get("engineExpansionsCompleted") or 0)
-        if release_count:
-            lines.append(f"- Release Radar items published: {release_count}")
         if expansion_count:
             lines.append(f"- Engine expansions completed: {expansion_count}")
         return "\n".join(lines)
@@ -522,7 +519,6 @@ def failure_artifact(repo: Path, run_id: str, started_at: str, objective: dict |
         "deploymentId": None,
         "productionChecks": [],
         "findingsQualified": 0,
-        "releaseRadarPublished": 0,
         "engineExpansionsCompleted": 0,
         "coverageDelta": 0,
         "discoveryToCompletionHours": None,
@@ -589,7 +585,6 @@ def validate_transition(repo: Path, initial: dict | None) -> tuple[dict, dict | 
             or artifact.get("mergeCommitSha") is not None \
             or artifact.get("deploymentId") is not None \
             or artifact.get("productionChecks") \
-            or int(artifact.get("releaseRadarPublished") or 0) > 0 \
             or int(artifact.get("engineExpansionsCompleted") or 0) > 0 \
             or int(artifact.get("coverageDelta") or 0) > 0:
         raise RuntimeError("Draft-only automation may not claim a merge, deployment, publication, expansion, or production verification.")

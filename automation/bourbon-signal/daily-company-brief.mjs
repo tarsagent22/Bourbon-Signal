@@ -12,8 +12,6 @@ const DEFAULT_FINDING_REPORTS = [
   'daily-reliability-latest.json',
   'weekly-engine-brief-latest.json',
   'source-roi-latest.json',
-  'radar-findings-latest.json',
-  'nc-release-radar-monitor-latest.json',
 ].map((file) => path.join(REPORT_DIR, file));
 
 export async function generateDailyCompanyBrief(argv = process.argv.slice(2)) {

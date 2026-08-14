@@ -8,7 +8,7 @@
     "contractVersion", "runId", "startedAt", "completedAt", "objectiveId",
     "lane", "outcome", "startedObjective", "resumedObjective", "prNumber",
     "merged", "deployed", "productionVerified", "mergeCommitSha", "deploymentId", "productionChecks", "findingsQualified",
-    "releaseRadarPublished", "engineExpansionsCompleted", "coverageDelta",
+    "engineExpansionsCompleted", "coverageDelta",
     "discoveryToCompletionHours", "blocker"
   ],
   "properties": {
@@ -17,7 +17,7 @@
     "startedAt": { "type": "string", "format": "date-time" },
     "completedAt": { "type": "string", "format": "date-time" },
     "objectiveId": { "type": ["string", "null"], "maxLength": 120 },
-    "lane": { "enum": ["release_radar", "engine_expansion", "product", "reliability", "security", "none"] },
+    "lane": { "enum": ["engine_expansion", "product", "reliability", "security", "none"] },
     "outcome": { "enum": ["completed", "continued", "blocked", "no_qualified_work", "failed"] },
     "startedObjective": { "type": "boolean" },
     "resumedObjective": { "type": "boolean" },
@@ -29,7 +29,6 @@
     "deploymentId": { "type": ["string", "null"], "minLength": 3, "maxLength": 200 },
     "productionChecks": { "type": "array", "maxItems": 5, "items": { "type": "string", "pattern": "^https://(www\\.)?bourbonsignal\\.com(/|$)" } },
     "findingsQualified": { "type": "integer", "minimum": 0, "maximum": 10000 },
-    "releaseRadarPublished": { "type": "integer", "minimum": 0, "maximum": 100 },
     "engineExpansionsCompleted": { "type": "integer", "minimum": 0, "maximum": 100 },
     "coverageDelta": { "type": "integer", "minimum": 0, "maximum": 1000000 },
     "discoveryToCompletionHours": { "type": ["number", "null"], "minimum": 0, "maximum": 100000 },

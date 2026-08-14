@@ -3,7 +3,6 @@
 const footerLinks = [
   { label: "Gift Bourbon Signal", href: "/gift" },
   { label: "FAQ", href: "/#faq" },
-  { label: "Release Radar", href: "/release-radar" },
   { label: "Privacy", href: "/legal/privacy" },
   { label: "Terms", href: "/legal/terms" },
   { label: "Disclaimer", href: "/legal/disclaimer" },

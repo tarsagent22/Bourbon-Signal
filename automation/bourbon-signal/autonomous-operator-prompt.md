@@ -33,8 +33,6 @@ Do not stop at a plan, local patch, or passing local test when a safe draft PR c
 
 For source expansion, prepare the complete vertical slice through tests and draft preview: source authority and terms, collector, canonical bottle/store identity, location precision, fixture, shadow/canary evidence, lifecycle/public eligibility, alert eligibility, and monitoring. Production deployment and live verification remain daytime release steps. Never equate an orderable page with quantity or an announcement with shelf inventory.
 
-For Release Radar, prepare a draft only from accessible first-party evidence supporting a future exact date or bounded window, event/bottle identity, geography, rules, official URL, retrieval timestamp, and high confidence. Do not publish or reconcile the lead as released until the daytime release is merged and verified.
-
 ## Owner gates
 
 Stop and request Chandler only for pricing, payment/entitlement behavior, authentication policy, legal/terms uncertainty, irreversible data changes, new customer outreach or notifications, secrets/permissions, or genuinely ambiguous material customer impact. Do not weaken tests, evidence, freshness, authority, location, alert, or deployment gates to finish.

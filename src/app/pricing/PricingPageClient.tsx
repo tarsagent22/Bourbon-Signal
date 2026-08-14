@@ -181,7 +181,7 @@ function PricingPageContent({ julySaleEnabled }: { julySaleEnabled: boolean }) {
             <ul>
               <li>7 recent Drop Feed signals</li>
               <li>3 Bottle Checks</li>
-              <li>Release Radar and Member Sightings</li>
+              <li>Coverage Map and Member Sightings</li>
             </ul>
             <button type="button" onClick={() => router.push(isSignedIn ? "/welcome" : "/sign-up")}>
               {isSignedIn ? "Continue with Free" : "Create Free Account"}

@@ -13,8 +13,6 @@
     "browserProbe": 2,
     "semanticReview": 1,
     "implementationOperator": 1,
-    "releaseRadar": 1,
-    "releaseRadarPublisher": 96,
     "scorecardAggregation": 1,
     "neonEncryptedBackup": 1,
     "morningBrief": 1,
@@ -23,9 +21,9 @@
   },
   "expectedTotals": {
     "expansionDeterministicRunsPerDay": 20,
-    "deterministicRunsPerDay": 603.0333333333333,
+    "deterministicRunsPerDay": 506.0333333333333,
     "agenticRunsPerWeek": 22,
-    "deterministicRunSharePercentApprox": 99.48
+    "deterministicRunSharePercentApprox": 99.38
   },
   "codingAgentPolicy": {
     "profile": "bourbonbot",

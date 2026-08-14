@@ -73,7 +73,6 @@ function validMilestoneContext(milestone: DurableGrowthMilestone, body: Record<s
   }
   if (milestone === "free_value_reached") {
     if (safe.surface === "bottle_check" && (!safe.kind || safe.kind === "bottle_check")) return safe;
-    if (safe.surface === "release_radar" && ["calendar_filter", "calendar_navigation"].includes(safe.kind || "")) return safe;
     const market = safe.market?.toUpperCase();
     if (safe.surface === "welcome" && safe.kind === "welcome_state_signals" && market && HOME_STATE_MARKETS.has(market)) return safe;
     if (safe.surface === "drop_feed" && safe.kind === "state_feed" && market && HOME_STATE_MARKETS.has(market)) return safe;

@@ -18,22 +18,6 @@ import { normalizeNevadaAreas } from "@/lib/nevada-area";
 import { normalizeNewYorkAreas } from "@/lib/new-york-area";
 import { normalizeColoradoAreas } from "@/lib/colorado-area";
 import { deriveMemberActivation, mergeActivationMilestones, type ActivationMilestone } from "@/lib/member-activation";
-import { classifyCompanyMember } from "@/lib/company-control-room";
-import { recordExperimentConversion } from "@/lib/experiment-participation";
-import {
-  RELEASE_RADAR_FOLLOW_EXPERIMENT_ID,
-  assignActiveExperiment,
-  getActiveExperiment,
-  isExperimentKillSwitchEnabled,
-  isExperimentProductionHost,
-} from "@/lib/growth-experiments";
-import { radarEntries } from "@/lib/release-radar";
-import {
-  EMPTY_RADAR_PREFERENCES,
-  hasNewRadarFollow,
-  normalizeRadarPreferences,
-  type RadarPreferences,
-} from "@/lib/release-radar-preferences";
 import { buildSuppliedPreferenceMetadataPatch } from "@/lib/user-preference-patch";
 import { normalizeDemandMetroAreas, normalizeNcBoardPreferences } from "@/lib/demand-metro-areas";
 import {
@@ -88,7 +72,6 @@ export interface UserAlertPreferences {
     bottles: CollectionBottlePreference[];
     version?: number;
   };
-  radarPreferences: RadarPreferences;
   sightingsPreferences?: SightingsPreferences;
   memberProfile: MemberProfilePreferences;
   activation?: ReturnType<typeof deriveMemberActivation>;
@@ -303,7 +286,6 @@ function buildResponseFromMetadata(
     alertMode,
     bottleAlertPreferences,
     collectionPreferences,
-    radarPreferences: normalizeRadarPreferences(user.publicMetadata?.radarPreferences),
     sightingsPreferences: normalizeSightingsPreferences(user.publicMetadata?.sightingsPreferences),
     memberProfile: normalizeMemberProfilePreferences(user.publicMetadata?.memberProfile),
     activation: deriveMemberActivation({
@@ -340,7 +322,6 @@ function buildQaPreviewResponse(req: NextRequest, payload: Partial<UserAlertPref
   const alertMode = payload.alertMode === undefined ? QA_PREVIEW_PREFERENCES.alertMode : normalizeAlertMode(payload.alertMode);
   let bottleAlertPreferences = normalizeBottleAlertPreferences(payload.bottleAlertPreferences ?? QA_PREVIEW_PREFERENCES.bottleAlertPreferences);
   const collectionPreferences = normalizeCollectionPreferences(payload.collectionPreferences ?? QA_PREVIEW_PREFERENCES.collectionPreferences);
-  const radarPreferences = normalizeRadarPreferences(payload.radarPreferences ?? QA_PREVIEW_PREFERENCES.radarPreferences);
   const sightingsPreferences = normalizeSightingsPreferences(payload.sightingsPreferences ?? QA_PREVIEW_PREFERENCES.sightingsPreferences);
   const memberProfile = payload.memberProfile === undefined
     ? EMPTY_MEMBER_PROFILE_PREFERENCES
@@ -390,34 +371,9 @@ function buildQaPreviewResponse(req: NextRequest, payload: Partial<UserAlertPref
     alertMode,
     bottleAlertPreferences,
     collectionPreferences,
-    radarPreferences,
     sightingsPreferences,
     memberProfile,
   };
-}
-
-function buildFollowExperimentMetadataPatch(
-  req: NextRequest,
-  user: Parameters<typeof classifyCompanyMember>[0],
-  current: RadarPreferences,
-  next: RadarPreferences,
-) {
-  const eligibleFollow = (releaseSlug: string, marketCode: string) => {
-    const entry = radarEntries.find((candidate) => candidate.slug === releaseSlug);
-    if (!entry?.followEligibility.release) return false;
-    return entry.markets.some((market) => market.code === marketCode)
-      || (entry.markets.some((market) => market.code === "US") && ACTIVE_ENGINE_STATE_CODES.includes(marketCode));
-  };
-  if (!hasNewRadarFollow(current, next, eligibleFollow)
-    || isExperimentKillSwitchEnabled()
-    || !isExperimentProductionHost(req.nextUrl.hostname)) return {};
-  const experiment = getActiveExperiment();
-  if (!experiment || experiment.id !== RELEASE_RADAR_FOLLOW_EXPERIMENT_ID) return {};
-  const member = classifyCompanyMember(user);
-  if (member.isOwner || member.isRetailer || !user.id) return {};
-  const assignment = assignActiveExperiment(user.id);
-  if (!assignment) return {};
-  return recordExperimentConversion(user.privateMetadata || {}, experiment, assignment).privateMetadataPatch;
 }
 
 export async function GET(req: NextRequest) {
@@ -535,7 +491,6 @@ export async function POST(req: NextRequest) {
   const alertMode = payload.alertMode === undefined ? existing.alertMode : normalizeAlertMode(payload.alertMode);
   let bottleAlertPreferences = normalizeBottleAlertPreferences(payload.bottleAlertPreferences ?? existing.bottleAlertPreferences ?? EMPTY_BOTTLE_ALERT_PREFERENCES);
   let collectionPreferences = normalizeCollectionPreferences(payload.collectionPreferences ?? existing.collectionPreferences ?? EMPTY_COLLECTION_PREFERENCES, existing.collectionPreferences.version || 0);
-  const radarPreferences = normalizeRadarPreferences(payload.radarPreferences ?? existing.radarPreferences ?? EMPTY_RADAR_PREFERENCES);
   const sightingsPreferences = normalizeSightingsPreferences(payload.sightingsPreferences ?? existing.sightingsPreferences ?? EMPTY_SIGHTINGS_PREFERENCES);
   let memberProfile = existing.memberProfile;
   if (payload.memberProfile !== undefined) {
@@ -658,20 +613,11 @@ export async function POST(req: NextRequest) {
     alertMode,
     bottleAlertPreferences,
     collectionPreferences,
-    radarPreferences,
     sightingsPreferences,
     memberProfile,
   });
   delete publicMetadataPatch.collectionPreferences;
-  const experimentMetadataPatch = payload.radarPreferences === undefined
-    ? {}
-    : buildFollowExperimentMetadataPatch(req, user, existing.radarPreferences, radarPreferences);
-  if (Object.keys(experimentMetadataPatch).length > 0) {
-    await client.users.updateUserMetadata(userId, {
-      publicMetadata: publicMetadataPatch,
-      privateMetadata: experimentMetadataPatch,
-    });
-  } else if (Object.keys(publicMetadataPatch).length > 0) {
+  if (Object.keys(publicMetadataPatch).length > 0) {
     await client.users.updateUserMetadata(userId, { publicMetadata: publicMetadataPatch });
   }
 
@@ -684,5 +630,5 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ ok: true, areaPreferences, notificationPreferences, alertMode, bottleAlertPreferences, collectionPreferences, radarPreferences, sightingsPreferences, memberProfile });
+  return NextResponse.json({ ok: true, areaPreferences, notificationPreferences, alertMode, bottleAlertPreferences, collectionPreferences, sightingsPreferences, memberProfile });
 }

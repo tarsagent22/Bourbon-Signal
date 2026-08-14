@@ -10,7 +10,7 @@ const homePage = await readFile(new URL("../src/app/page.tsx", import.meta.url),
 const pricingPage = await readFile(new URL("../src/app/pricing/PricingPageClient.tsx", import.meta.url), "utf8");
 
 const productFaqs = getFaqItems("product");
-assert.equal(productFaqs.length, 10);
+assert.equal(productFaqs.length, 9);
 assert.deepEqual(productFaqs.map((item) => item.question), [
   "What is Bourbon Signal?",
   "Where is Bourbon Signal coverage available?",
@@ -19,7 +19,6 @@ assert.deepEqual(productFaqs.map((item) => item.question), [
   "What are verified retailer signals?",
   "What are Member Sightings and Member Points?",
   "How does Bottle Check work?",
-  "What is Release Radar?",
   "How do My Collection and recommendations work?",
   "Why doesn’t every state have the same store-level detail?",
 ]);
@@ -59,10 +58,8 @@ assert.match(alertLimits?.answer || "", new RegExp(`up to ${TIER_ENTITLEMENTS.ba
 assert.match(alertLimits?.answer || "", new RegExp(`up to ${TIER_ENTITLEMENTS["bottled-in-bond"].smsDailyLimit} SMS alerts per day`));
 assert.doesNotMatch(alertLimits?.answer || "", /25 SMS alerts per day/);
 
-const releaseRadar = productFaqs.find((item) => item.question === "What is Release Radar?");
-assert.match(releaseRadar?.answer || "", /exact confirmed dates/i);
-assert.match(releaseRadar?.answer || "", /public and separate from live shelf-inventory signals/i);
-assert.doesNotMatch(releaseRadar?.answer || "", /Daily Briefing|additional homepage stories/);
+assert.doesNotMatch(JSON.stringify([...productFaqs, ...pricingFaqs]), /Release Radar|release-radar/);
+assert.match(free.answer, /Coverage Map/);
 
 const founder = pricingFaqs.find((item) => item.question.includes("Founder membership"));
 assert.match(founder?.answer || "", /one-time \$50 purchase/);

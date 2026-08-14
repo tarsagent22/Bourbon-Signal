@@ -173,15 +173,13 @@ export default async function CompanyControlRoomPage({ searchParams }: { searchP
     listFounderShippingForOwner(),
     canAdministerRetailers ? listRetailerAdministration() : Promise.resolve(null),
   ]);
-  const { memberships, founder, revenue, audience, growth, lifecycle, demand, coverageDemand, experiments, retailer, engine, alerts, release, automation } = snapshot;
+  const { memberships, founder, revenue, audience, growth, lifecycle, demand, coverageDemand, retailer, engine, alerts, release, automation } = snapshot;
   const coverageStatusUpdatedConfirmed = Boolean(coverageUpdatedId && coverageUpdatedStatus && coverageDemand.recentRequests.some(
     (request) => request.id === coverageUpdatedId && request.status === coverageUpdatedStatus,
   ));
   const founderShippingOpen = founderShipping.filter((record) => record.status !== "shipped").length;
   const deliveryCounts = alerts.counts as Record<string, number>;
   const stateExceptions = engine.failedStates + engine.degradedStates + engine.staleStates;
-  const activeExperimentResult = experiments.aggregate.experiments.find((item) => item.experiment === experiments.activeExperiment);
-  const experimentReportable = activeExperimentResult?.variants.some((variant) => !variant.suppressed) === true;
 
   return (
     <main className="cr-shell">
@@ -548,27 +546,6 @@ export default async function CompanyControlRoomPage({ searchParams }: { searchP
             <span>Collapsed unless it produces a decision</span>
           </div>
 
-          <details className="cr-background-item">
-            <summary>
-              <span><strong>Release Radar wording test</strong><small>Controlled experiments</small></span>
-              <span className={`cr-status ${experiments.killSwitchEnabled ? "bad" : "warn"}`}>{experiments.killSwitchEnabled ? "Paused" : experimentReportable ? "Collecting" : "Too little data"}</span>
-            </summary>
-            <div className="cr-background-body">
-              <p>Runs automatically on eligible Release Radar traffic. It compares “Follow release” with “Follow this release” to learn whether clearer wording causes more completed follows.</p>
-              <p><strong>Current usefulness:</strong> {experimentReportable ? "At least one cohort is reportable, but the test has not produced a winner yet." : "Both cohorts are below the five-member privacy floor, so there is no decision to make yet."}</p>
-              {activeExperimentResult ? <dl className="cr-list compact">
-                {activeExperimentResult.variants.map((variant) => <div key={variant.variant}><dt>{variant.variant.replaceAll("_", " ")}</dt><dd>{variant.suppressed ? "Below privacy floor" : `${variant.metrics?.[activeExperimentResult.primaryMetric] ?? 0} follows / ${variant.exposures} exposures`}</dd></div>)}
-              </dl> : null}
-              {experiments.activeDefinition ? <details className="cr-contract"><summary>Experiment rules</summary><dl>
-                <div><dt>Baseline</dt><dd>{experiments.activeDefinition.baseline}</dd></div>
-                <div><dt>Hypothesis</dt><dd>{experiments.activeDefinition.hypothesis}</dd></div>
-                <div><dt>Primary metric</dt><dd>{experiments.activeDefinition.primaryMetric} · minimum {experiments.activeDefinition.minSampleSizePerVariant} per variant</dd></div>
-                <div><dt>Stop rule</dt><dd>{experiments.activeDefinition.stopRule}</dd></div>
-                <div><dt>Rollback rule</dt><dd>{experiments.activeDefinition.rollbackRule}</dd></div>
-              </dl></details> : null}
-              <p className="cr-note">Unique authenticated members only; owners and retailer accounts are excluded.</p>
-            </div>
-          </details>
 
           <details className="cr-background-item">
             <summary>

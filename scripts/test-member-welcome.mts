@@ -65,9 +65,10 @@ assert.match(requestFormSource, /<details[\s\S]*Add county, city, or store detai
 assert.doesNotMatch(welcomeSource, /go deeper/i, "coverage copy must avoid the rejected phrasing");
 assert.doesNotMatch(requestFormSource, /go deeper/i, "embedded request copy must avoid the rejected phrasing");
 assert.match(welcomeSource, /Choose where to go next/);
-for (const destination of ["/bottle-check", "/release-radar", "#drops", "/sightings", "/coverage", "/dashboard"]) {
+for (const destination of ["/bottle-check", "#drops", "/sightings", "/coverage", "/dashboard"]) {
   assert.ok(welcomeSource.includes(destination), `Welcome explore section must include ${destination}`);
 }
+assert.doesNotMatch(welcomeSource, /Release Radar|CalendarDays|\/release-radar/);
 assert.doesNotMatch(welcomeSource, /window\.location\.href\s*=\s*`\/\?state=/, "state confirmation must not navigate away from Welcome");
 assert.match(welcomeSource, /recordGrowthMilestone\("onboarding_state_selected"/);
 assert.match(welcomeSource, /recordGrowthMilestone\("free_value_reached"/);
@@ -114,7 +115,6 @@ assert.match(pricingSource, /comparison-table/);
 assert.match(pricingSource, /role="table"/);
 for (const feature of [
   "Drop Feed access",
-  "Release Radar",
   "Bottle Checks",
   "Member Sightings",
   "SMS, email, and on-site alerts",

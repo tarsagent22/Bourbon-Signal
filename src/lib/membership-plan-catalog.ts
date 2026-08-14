@@ -82,7 +82,6 @@ export const CHECKOUT_PLAN_TIERS: Record<BillingPlanId, MembershipTier> = {
 
 export const MEMBERSHIP_COMPARISON_ROWS = [
   ["Drop Feed access", "Limited", "Full · state only", "Full · advanced", "Full · advanced"],
-  ["Release Radar", "Full", "Full", "Full", "Full"],
   ["Bottle Checks", "3", "Unlimited", "Unlimited", "Unlimited"],
   ["Member Sightings", "Limited", "✓", "✓", "✓"],
   ["SMS, email, and on-site alerts", "—", "✓", "✓", "✓"],

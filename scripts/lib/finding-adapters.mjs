@@ -122,22 +122,3 @@ export function findingsFromSourceRoi(report) {
   });
   return bounded([...sourceFindings, ...expansionFindings]);
 }
-
-export function findingsFromRadar(report) {
-  const pending = (report?.reportedStories || []).filter((story) => story.status === 'reported');
-  return bounded(pending.map((story) => buildFinding({
-    source: 'release-radar',
-    sourceKey: key(story.url || story.title),
-    area: 'product',
-    severity: 'low',
-    title: text(`Review Radar placement: ${story.title}`, 120),
-    summary: text(`${story.title} is in the Radar scouting ledger but has no recorded product placement.`, 500),
-    evidence: evidence([story.source, story.url]),
-    recommendedAction: 'Decide whether to place, defer, or dismiss the story; do not publish from this finding automatically.',
-    impact: 2,
-    urgency: 2,
-    confidence: 0.9,
-    effort: 1,
-    observedAt: report.updatedAt,
-  })));
-}

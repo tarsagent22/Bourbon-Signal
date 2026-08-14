@@ -85,13 +85,6 @@ summary = runtime.failure_summary(
     "",
 )
 assert summary == "Error: Cannot find module 'collector.mjs'"
-
-assert runtime.release_radar_change_summary({
-    "summary": {"new": 0, "materiallyChanged": 1, "total": 46, "queuedForSemanticReview": 12}
-}) == "Release Radar lead collector: 1 materially changed lead requires review (46 retained; 12 queued); nothing was published or alerted."
-assert runtime.release_radar_change_summary({
-    "summary": {"new": 0, "materiallyChanged": 0, "total": 46, "queuedForSemanticReview": 0}
-}) is None
 telemetry = runtime.source_candidate_telemetry(
     {
         "expansionCandidates": [{"state": "NC", "source": "A", "coverageTier": "probeable", "runnerReachability": 1}],

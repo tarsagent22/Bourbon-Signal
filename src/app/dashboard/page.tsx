@@ -3360,7 +3360,7 @@ function PaidMemberDashboard() {
                         title="Weekly intelligence email"
                         description={notificationPrefs.weeklyIntelligence.emailEnabled
                           ? "Email is opted in. The owner-controlled delivery pilot remains inactive until it is separately authorized."
-                          : "Opt in to a separate weekly brief built from saved markets, tracked bottles, Radar, fresh eligible alerts, and coverage. Opt-in alone does not activate the delivery pilot."}
+                          : "Opt in to a separate weekly brief built from saved markets, tracked bottles, fresh eligible alerts, and coverage. Opt-in alone does not activate the delivery pilot."}
                         checked={notificationPrefs.weeklyIntelligence.emailEnabled}
                         onCheckedChange={(checked) => {
                           setWeeklyIntelligenceAction({

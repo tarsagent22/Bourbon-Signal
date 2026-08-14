@@ -4,7 +4,6 @@ import Link from "next/link";
 import dynamic from "next/dynamic";
 import {
   ArrowUpRight,
-  CalendarDays,
   ChevronDown,
   Clock3,
   LayoutDashboard,
@@ -898,7 +897,6 @@ export default function WelcomePage() {
                 <nav className={styles.exploreLinks} aria-label="Explore Bourbon Signal">
                   <Link className={styles.explorePrimary} href="/bottle-check"><Search aria-hidden="true" /><span><strong>Bottle Check</strong><small>Look up rarity, value, and recent evidence.</small></span><ArrowUpRight aria-hidden="true" /></Link>
                   <Link href={`/?state=${encodeURIComponent(activeState)}#drops`}><Radio aria-hidden="true" /><span><strong>Drop Feed</strong><small>Open the broader state feed.</small></span><ArrowUpRight aria-hidden="true" /></Link>
-                  <Link href="/release-radar"><CalendarDays aria-hidden="true" /><span><strong>Release Radar</strong><small>Track public releases and calendars.</small></span><ArrowUpRight aria-hidden="true" /></Link>
                   <Link href="/sightings"><UsersRound aria-hidden="true" /><span><strong>Member Sightings</strong><small>Read recent community reports.</small></span><ArrowUpRight aria-hidden="true" /></Link>
                   <Link href={`/coverage?state=${encodeURIComponent(activeState)}`}><MapIcon aria-hidden="true" /><span><strong>Coverage Map</strong><small>See what information is available across the country.</small></span><ArrowUpRight aria-hidden="true" /></Link>
                   <Link href="/dashboard"><LayoutDashboard aria-hidden="true" /><span><strong>Dashboard</strong><small>Open your member workspace.</small></span><ArrowUpRight aria-hidden="true" /></Link>

@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import {
   GROWTH_EVENT_NAMES,
   canonicalTrackedAcquisitionCampaign,
@@ -17,7 +17,7 @@ assert.deepEqual(normalizeGrowthAttribution({
   utm_campaign: "July Launch",
   referrer: "https://example.com/story?email=member@example.com",
 }), {
-  surface: "release_radar",
+  surface: "unknown",
   campaign: "newsletter:email:july-launch",
   referrerHost: "example.com",
 });
@@ -74,17 +74,7 @@ assert.deepEqual(sanitizeGrowthEvent("free_value_reached", {
 assert.equal(sanitizeGrowthEvent("registration_completed", { provider_id: "user_123" }), null);
 assert.equal(sanitizeGrowthEvent("onboarding_state_selected", { exact_location: "123 Main Street" }), null);
 assert.equal(sanitizeGrowthEvent("free_value_reached", { url: "/?state=VA#drops" }), null);
-assert.deepEqual(sanitizeGrowthEvent("radar_release_followed", {
-  surface: "release_radar",
-  kind: "release",
-  market: "va",
-  verification: "official",
-}), {
-  surface: "release_radar",
-  kind: "release",
-  market: "va",
-  verification: "official",
-});
+assert.equal(sanitizeGrowthEvent("radar_release_followed", { surface: "unknown" }), null);
 assert.equal(sanitizeGrowthEvent("radar_bottle_tracked", { bottle_name: "Private bottle query" }), null, "Radar analytics must reject bottle names");
 assert.equal(sanitizeGrowthEvent("radar_market_handoff", { market: "VA", release_slug: "secret-slug" }), null, "Radar analytics must reject release identifiers");
 assert.deepEqual(
@@ -115,7 +105,7 @@ const growthClient = readFileSync("src/lib/growth-client.ts", "utf8");
 const growthAnalytics = readFileSync("src/components/analytics/GrowthAnalytics.tsx", "utf8");
 const bottleCheck = readFileSync("src/app/bottle-check/page.tsx", "utf8");
 const dropFeed = readFileSync("src/components/sections/DropFeed.tsx", "utf8");
-const releaseRadar = readFileSync("src/components/release-radar/CalendarExplorer.tsx", "utf8");
+assert.equal(existsSync("src/components/release-radar/CalendarExplorer.tsx"), false);
 const checkoutContinue = readFileSync("src/app/checkout/continue/page.tsx", "utf8");
 const dashboard = readFileSync("src/app/dashboard/page.tsx", "utf8");
 const paidAcquisitionReport = readFileSync("scripts/report-paid-acquisition.mts", "utf8");
@@ -146,8 +136,7 @@ assert.match(dropFeed, /IntersectionObserver[\s\S]*!isSignedIn[\s\S]*!feedResult
 assert.match(dropFeed, /ref=\{feedResultsRef\}[\s\S]*height:\s*"1px"/, "Drop Feed value visibility must use a reachable top-of-results sentinel on tall layouts");
 assert.match(dropFeed, /You have seen the latest seven signals\./);
 assert.match(dropFeed, /Standard Proof unlocks the full state feed and alerts for the bottles and areas you choose\./);
-assert.match(releaseRadar, /onChange=[\s\S]*recordExploration\("calendar_filter"\)/, "Release Radar value must require an explicit interaction");
-assert.match(releaseRadar, /!isSignedIn \|\| entitlements\.tier !== "free"/, "anonymous Radar exploration must not count as free-member activation");
+assert.doesNotMatch(attributionRoute, /release_radar|calendar_filter|calendar_navigation/);
 assert.match(checkoutContinue, /registrationCompleted[\s\S]*recordGrowthMilestone\("registration_completed", \{ surface: "sign_up" \}\)/, "paid signup continuation must persist registration and first-touch before Stripe");
 assert.match(dashboard, /needsHomeStateActivation[\s\S]*href=\{needsHomeStateActivation \? "\/welcome" : "\/pricing\?source=dashboard"\}[\s\S]*See signals near you/, "free members without a home state must get a first-value CTA before an upgrade CTA");
 console.log("Growth event contract passed.");

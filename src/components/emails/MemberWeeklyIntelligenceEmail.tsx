@@ -64,7 +64,7 @@ export function MemberWeeklyIntelligenceEmail({
             ) : null}
 
             <Text style={footer}>
-              This preview is deterministic and based on your saved markets, tracked bottles, current Radar, eligible alert signal, and coverage notes. Inventory can move quickly; verify before driving.
+              This preview is deterministic and based on your saved markets, tracked bottles, eligible alert signal, and coverage notes. Inventory can move quickly; verify before driving.
             </Text>
             <Text style={footer}>
               Weekly intelligence is separate from real-time alerts. <Link href={unsubscribeUrl} style={footerLink}>Unsubscribe from this weekly brief</Link>.

@@ -2,7 +2,6 @@ import assert from "node:assert/strict";
 import {
   buildMemberWeeklyIntelligence,
   memberWeekKey,
-  weeklyRadarFollowsFromPreferences,
   type MemberWeeklyIntelligenceInput,
 } from "../src/lib/member-weekly-intelligence.ts";
 import {
@@ -47,7 +46,6 @@ const input: MemberWeeklyIntelligenceInput = {
       { key: "blanton s single barrel", name: "Blanton's Single Barrel" },
     ],
     alertMode: "specific_bottles",
-    followedRadarReleases: [],
   },
   now,
   alerts: [
@@ -138,49 +136,6 @@ const input: MemberWeeklyIntelligenceInput = {
       href: "/dashboard?section=alerts",
     },
   ],
-  radar: [
-    {
-      id: "radar-va",
-      slug: "virginia",
-      title: "Virginia ABC rare whiskey lottery",
-      summary: "Entry closes this week.",
-      stateCodes: ["VA"],
-      bottleKeys: [],
-      startDate: "2026-07-12",
-      endDate: "2026-07-16",
-      href: "/release-radar/lotteries/virginia",
-    },
-    {
-      id: "radar-bottle",
-      slug: "weller",
-      title: "Weller Antique 107 release watch",
-      summary: "Distribution begins soon.",
-      stateCodes: ["NATIONWIDE"],
-      bottleKeys: ["weller antique 107"],
-      startDate: "2026-07-18",
-      href: "/release-radar/releases/weller",
-    },
-    {
-      id: "radar-unrelated",
-      slug: "kentucky",
-      title: "Kentucky tasting",
-      summary: "An unrelated event.",
-      stateCodes: ["KY"],
-      bottleKeys: [],
-      startDate: "2026-07-18",
-      href: "/release-radar/events/kentucky",
-    },
-    {
-      id: "radar-nationwide",
-      slug: "national",
-      title: "National bourbon release window",
-      summary: "Relevant in every saved market.",
-      stateCodes: ["NATIONWIDE"],
-      bottleKeys: [],
-      startDate: "2026-07-19",
-      href: "/release-radar/releases/national",
-    },
-  ],
   coverage: [
     {
       stateCode: "NC",
@@ -212,10 +167,9 @@ const input: MemberWeeklyIntelligenceInput = {
 const report = buildMemberWeeklyIntelligence(input);
 assert.equal(report.weekKey, "2026-07-13");
 assert.equal(report.isEmpty, false);
-assert.deepEqual(report.sections.map((section) => section.kind), ["alerts", "radar", "coverage"]);
+assert.deepEqual(report.sections.map((section) => section.kind), ["alerts", "coverage"]);
 assert.deepEqual(report.sections[0]?.items.map((item) => item.id), ["alert-z", "alert-canonical-city-match"], "canonical delivery-area acceptance survives a lossy display label");
-assert.deepEqual(report.sections[1]?.items.map((item) => item.id), ["radar-va", "radar-bottle", "radar-nationwide"], "Radar treats NATIONWIDE as a saved-market wildcard");
-assert.deepEqual(report.sections[2]?.items.map((item) => item.id), ["coverage-NC"], "coverage only includes notable saved-market changes");
+assert.deepEqual(report.sections[1]?.items.map((item) => item.id), ["coverage-NC"], "coverage only includes notable saved-market changes");
 assert.deepEqual(report.primaryAction, {
   kind: "alerts",
   label: "Review the fresh signal",
@@ -226,7 +180,6 @@ assert.equal(Object.hasOwn(report, "actions"), false, "the report exposes exactl
 const reordered = buildMemberWeeklyIntelligence({
   ...input,
   alerts: [...input.alerts].reverse(),
-  radar: [...input.radar].reverse(),
   coverage: [...input.coverage].reverse(),
 });
 assert.deepEqual(reordered, report, "composition and ordering are deterministic");
@@ -235,7 +188,6 @@ const empty = buildMemberWeeklyIntelligence({
   member: { id: "member_empty", savedAreas: [], trackedBottles: [], alertMode: "specific_bottles" },
   now,
   alerts: input.alerts,
-  radar: input.radar,
   coverage: input.coverage,
 });
 assert.equal(empty.isEmpty, true);
@@ -271,7 +223,6 @@ const routineDedupe = buildMemberWeeklyIntelligence({
     repeatedRoutineBottle("ecbp-richmond", "Richmond ABC"),
     repeatedRoutineBottle("ecbp-norfolk", "Norfolk ABC"),
   ],
-  radar: [],
   coverage: [],
 });
 assert.deepEqual(routineDedupe.sections[0]?.items.map((item) => item.id), ["ecbp-norfolk"], "routine bottles appear once even when several saved locations match");
@@ -283,7 +234,6 @@ const allocatedRepeats = buildMemberWeeklyIntelligence({
     { ...repeatedRoutineBottle("allocated-one", "Raleigh ABC"), rarityTier: "allocated" },
     { ...repeatedRoutineBottle("allocated-two", "Richmond ABC"), rarityTier: "allocated" },
   ],
-  radar: [],
   coverage: [],
 });
 assert.equal(allocatedRepeats.sections[0]?.items.length, 2, "allocated bottles may retain distinct location matches");
@@ -295,72 +245,9 @@ const watchedRepeats = buildMemberWeeklyIntelligence({
     repeatedRoutineBottle("watched-one", "Raleigh ABC"),
     repeatedRoutineBottle("watched-two", "Richmond ABC"),
   ],
-  radar: [],
   coverage: [],
 });
 assert.equal(watchedRepeats.sections[0]?.items.length, 2, "watchlisted bottles may retain distinct location matches");
-
-const persistedRadarFollows = weeklyRadarFollowsFromPreferences({
-  followedReleases: [
-    { releaseSlug: "followed-release", marketCodes: ["va", "VA"], followedAt: "2026-07-15T12:00:00.000Z", email: "must-not-flow@example.com" },
-    { releaseSlug: "another-release", marketCodes: ["KY"], followedAt: "2026-07-14T12:00:00.000Z" },
-  ],
-});
-assert.deepEqual(persistedRadarFollows, [
-  { releaseSlug: "another-release", marketCodes: ["KY"] },
-  { releaseSlug: "followed-release", marketCodes: ["VA"] },
-], "persisted follows become a deterministic slug-and-market-only weekly profile");
-assert.doesNotMatch(JSON.stringify(persistedRadarFollows), /email|@/, "weekly Radar matching must not carry PII");
-
-const followedRadar = buildMemberWeeklyIntelligence({
-  member: {
-    id: "member_radar",
-    savedAreas: [],
-    trackedBottles: [],
-    alertMode: "specific_bottles",
-    followedRadarReleases: persistedRadarFollows,
-  },
-  now,
-  alerts: [],
-  radar: [
-    {
-      id: "radar-exact-follow",
-      slug: "followed-release",
-      title: "An exact followed release",
-      summary: "The member explicitly followed this release.",
-      stateCodes: ["NC"],
-      bottleKeys: [],
-      startDate: "2026-07-18",
-      href: "/release-radar/releases/followed-release",
-    },
-    {
-      id: "radar-selected-market",
-      slug: "virginia-market-release",
-      title: "A release in the selected Radar market",
-      summary: "The member selected Virginia while following Radar releases.",
-      stateCodes: ["VA"],
-      bottleKeys: [],
-      startDate: "2026-07-19",
-      href: "/release-radar/releases/virginia-market-release",
-    },
-    {
-      id: "radar-unmatched",
-      slug: "unmatched-release",
-      title: "An unrelated release",
-      summary: "No exact follow, bottle, or selected market match.",
-      stateCodes: ["NC"],
-      bottleKeys: [],
-      startDate: "2026-07-20",
-      href: "/release-radar/releases/unmatched-release",
-    },
-  ],
-  coverage: [],
-});
-assert.deepEqual(followedRadar.sections[0]?.items.map((item) => item.id), [
-  "radar-exact-follow",
-  "radar-selected-market",
-], "exact followed slugs and persisted Radar markets both match On your Radar");
-assert.equal(followedRadar.sections[0]?.title, "On your Radar");
 
 const defaultNotifications = getDefaultNotificationPreferences();
 assert.equal(defaultNotifications.weeklyIntelligence.emailEnabled, false, "weekly intelligence is a separate, default-off opt-in");
