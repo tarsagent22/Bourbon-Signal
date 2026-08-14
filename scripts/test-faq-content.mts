@@ -17,7 +17,7 @@ assert.deepEqual(productFaqs.map((item) => item.question), [
   "What do the different feed signals mean—and is availability guaranteed?",
   "How do Bourbon Signal alerts work?",
   "What are verified retailer signals?",
-  "What are Member Sightings and Member Points?",
+  "What are Member Sightings?",
   "How does Bottle Check work?",
   "How do My Collection and recommendations work?",
   "Why doesn’t every state have the same store-level detail?",

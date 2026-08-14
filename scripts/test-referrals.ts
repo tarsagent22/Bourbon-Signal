@@ -248,7 +248,7 @@ test("signup, Clerk, Stripe, and member API are wired to the referral service", 
   assert.match(read("src/app/admin/control-room/page.tsx"), /Referral glasses/);
 });
 
-test("member referral link appears only in Manage Account and Member Points", () => {
+test("member referral link stays useful without exposing the private points program", () => {
   const component = read("src/components/MemberReferralLink.tsx");
   const settings = read("src/app/settings/page.tsx");
   const dashboard = read("src/app/dashboard/page.tsx");
@@ -256,12 +256,15 @@ test("member referral link appears only in Manage Account and Member Points", ()
   const navigation = read("src/components/Navigation.tsx");
   assert.match(component, /\/api\/referrals\/me/);
   assert.match(component, /navigator\.clipboard\.writeText/);
-  assert.match(component, /Eligible referrals earn Signal Points/);
+  assert.match(component, /Share Bourbon Signal with friends using your personal link/);
+  assert.doesNotMatch(component, /Signal Points|rewards|redeem/i);
   assert.match(settings, /<MemberReferralLink/);
   assert.match(settings, /id="referrals"/);
-  assert.match(dashboard, /<SignalPointsPanel/);
+  assert.doesNotMatch(dashboard, /SignalPointsPanel|Signal Points|memberPoints/);
+  assert.match(read("src/app/admin/control-room/page.tsx"), /<SignalPointsPanel preview/);
   assert.match(read("src/components/SignalPointsPanel.tsx"), /<MemberReferralLink compact/);
   assert.match(referralsPage, /redirect\("\/settings#referrals"\)/);
   assert.doesNotMatch(navigation, /label: "Referrals"/);
   assert.doesNotMatch(component, /totalPoints|founderGlassesEarned|freePointsAwarded/);
+  assert.doesNotMatch(read("src/app/api/referrals/me/route.ts"), /referralPoints|communityPoints|totalPoints|freePointsAwarded|redemptionEligible/);
 });

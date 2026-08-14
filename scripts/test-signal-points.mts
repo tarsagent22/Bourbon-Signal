@@ -195,10 +195,10 @@ test("schema, migration, encrypted backup, APIs, drawer, and owner queue are wir
   const memberRoute = read("src/app/api/signal-points/route.ts");
   const redemptionRoute = read("src/app/api/signal-points/redemptions/route.ts");
   const adminRoute = read("src/app/api/admin/signal-points/route.ts");
-  assert.match(memberRoute, /auth\(\)/); assert.match(memberRoute, /503/); assert.match(memberRoute, /assertCutoverVerified/);
+  assert.match(memberRoute, /requireOwnerApiAccess/); assert.match(memberRoute, /503/); assert.match(memberRoute, /assertCutoverVerified/);
   assert.doesNotMatch(memberRoute, /privateMetadata|reconcileClerkRewards/);
   assert.doesNotMatch(redemptionRoute, /privateMetadata|reconcileClerkRewards/);
-  assert.match(redemptionRoute, /auth\(\)/); assert.match(redemptionRoute, /verified/i); assert.match(redemptionRoute, /shipping/i); assert.match(redemptionRoute, /503/); assert.match(redemptionRoute, /assertCutoverVerified/);
+  assert.match(redemptionRoute, /requireOwnerApiAccess/); assert.match(redemptionRoute, /verified/i); assert.match(redemptionRoute, /shipping/i); assert.match(redemptionRoute, /503/); assert.match(redemptionRoute, /assertCutoverVerified/);
   assert.match(adminRoute, /requireOwnerApiAccess/);
   const operationsPage = read("src/app/admin/operations/page.tsx");
   assert.match(operationsPage, /requireOwnerPageAccess/);
@@ -251,14 +251,28 @@ test("schema, migration, encrypted backup, APIs, drawer, and owner queue are wir
   assert.match(panel, /data-progress/);
   assert.doesNotMatch(panel, /<section className="points-earn-strip"/);
   const dashboard = read("src/app/dashboard/page.tsx");
-  assert.match(dashboard, /primaryEmailAddressId/);
-  assert.match(dashboard, /primaryEmail\s*===\s*["']chandlertodd22@gmail\.com["']/);
-  assert.match(dashboard, /preview=\{hasPointsExperiencePreview\}/);
-  assert.match(dashboard, /hasPointsExperiencePreview\s*\?\s*null\s*:\s*memberRewards\s*\?\s*["']View balance["']/);
-  assert.match(dashboard, /section\.status\s*\?\s*<span className=["']section-status["']/);
-  assert.match(dashboard, /!hasPointsExperiencePreview/);
-  assert.match(dashboard, /<SignalPointsPanel/);
+  assert.doesNotMatch(dashboard, /SignalPointsPanel|Member Points|Signal Points|memberPoints|rewards|redemption/i);
+  const controlRoom = read("src/app/admin/control-room/page.tsx");
+  assert.match(controlRoom, /isCompanyControlRoomOwnerEmail/);
+  assert.match(controlRoom, /notFound\(\)/);
+  assert.match(controlRoom, /<SignalPointsPanel preview/);
+  assert.match(controlRoom, /Private product preview/);
   assert.doesNotMatch(read("src/components/Navigation.tsx"), /label:\s*["']Rewards["']/);
+
+  const referrals = read("src/app/api/referrals/me/route.ts");
+  for (const field of ["referralPoints", "communityPoints", "totalPoints", "freePointsAwarded", "redemptionEligible"]) assert.doesNotMatch(referrals, new RegExp(field));
+  assert.doesNotMatch(referrals, /signal-points-repository/);
+  assert.doesNotMatch(read("src/components/MemberReferralLink.tsx"), /Signal Points|points?\b|rewards?|redeem|redemption/i);
+  assert.doesNotMatch(read("src/components/emails/FreeMemberDayTwoEmail.tsx"), /Points and badges|Point redemption/i);
+  assert.doesNotMatch(read("src/lib/faq-content.ts"), /Member Points|earn Member Points|Point redemption|reward catalog/i);
+
+  const sightingsRoute = read("src/app/api/sightings/route.ts");
+  assert.match(sightingsRoute, /isRewardsAdminEmail\(verifiedPrimaryClerkEmail\(user\)\)/);
+  assert.match(sightingsRoute, /ownerPointsPreview\s*&&\s*url\.searchParams\.get\(["']rewards["']\)\s*!==\s*["']0["']/);
+  assert.match(sightingsRoute, /visibleSightingForRequester/);
+  assert.match(sightingsRoute, /ownerPointsPreview\s*\?\s*\{ rewards \}\s*:\s*\{\}/);
+  assert.doesNotMatch(sightingsRoute, /Signal Points reconciliation is temporarily unavailable/);
+
   assert.match(read("src/app/admin/operations/page.tsx"), /SignalPointRewardQueue/);
   const ownerQueue = read("src/components/admin/SignalPointRewardQueue.tsx");
   assert.match(ownerQueue, /carrier/i);

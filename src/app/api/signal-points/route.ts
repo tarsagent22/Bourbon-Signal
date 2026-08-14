@@ -1,5 +1,5 @@
-import { auth, clerkClient } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
+import { requireOwnerApiAccess } from "@/lib/owner-auth";
 import { createSignalPointsRepository } from "@/lib/signal-points-repository";
 import { resolveServerEffectiveMembershipTier } from "@/lib/server-entitlements";
 import { readFounderShippingForUser } from "@/lib/founder-shipping-repository";
@@ -8,10 +8,10 @@ export const dynamic = "force-dynamic";
 const PRIVATE_HEADERS = { "Cache-Control": "private, no-store" };
 
 export async function GET() {
-  const { userId } = await auth();
-  if (!userId) return NextResponse.json({ error: "Account required" }, { status: 401, headers: PRIVATE_HEADERS });
+  const owner = await requireOwnerApiAccess({ unauthorized: "Account required", forbidden: "Not found" });
+  if (owner.error) return owner.error;
   try {
-    const user = await (await clerkClient()).users.getUser(userId);
+    const { user, userId } = owner;
     const repository = createSignalPointsRepository();
     await repository.assertCutoverVerified();
     const tier = await resolveServerEffectiveMembershipTier(user.publicMetadata);

@@ -16,6 +16,7 @@ import { getRetailerRepository, type RetailerApplicationRecord } from "@/lib/ret
 import RetailerAdministration from "@/components/admin/RetailerAdministration";
 import AdminBottleQueueClient from "../bottle-queue/AdminBottleQueueClient";
 import AdminSightingsClient from "../sightings/AdminSightingsClient";
+import SignalPointsPanel from "@/components/SignalPointsPanel";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -201,6 +202,7 @@ export default async function CompanyControlRoomPage({ searchParams }: { searchP
           <a href="#actions">Your actions</a>
           {retailerAdministration ? <a href="#retailers">Retailers</a> : null}
           <a href="#founder-glasses">Founder glasses</a>
+          <a href="#signal-points">Signal Points</a>
           <a href="#coverage-demand">Coverage demand</a>
           <a href="#business">Business</a>
           <a href="#product">Product</a>
@@ -208,6 +210,14 @@ export default async function CompanyControlRoomPage({ searchParams }: { searchP
           <a href="#state-engines">State engines</a>
           <a href="#background">Background</a>
         </nav>
+
+        <section id="signal-points" className="cr-section">
+          <div className="cr-heading">
+            <div><p>Private product preview</p><h2>Signal Points</h2></div>
+            <span>Visible only inside the owner control room</span>
+          </div>
+          <SignalPointsPanel preview />
+        </section>
 
         <section id="actions" className="cr-section cr-priority">
           <div className="cr-heading">
