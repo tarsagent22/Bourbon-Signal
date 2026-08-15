@@ -27,7 +27,7 @@ function inventory(index: number) {
     DeliveryAvailable: false, PickupAvailable: true, Latitude: 40, Longitude: -82,
     Address1: `${index} Main St`, Address2: null, City: "Columbus", State: "OH", Zip: "43215",
     I: "availability-bucket", Distance: index, LastModified: "2026-08-15T14:55:00Z",
-    PhoneNumber: "5555555555", EcommerceUrls: [], Url: "https://www.ohlq.com/locations", Price: 49.99, LimitOne: false,
+    PhoneNumber: "5555555555", EcommerceUrls: [{ Url: "https://www.ohlq.com/locations", Label: "Shop" }], Url: "https://www.ohlq.com/locations", Price: 49.99, LimitOne: false,
   };
 }
 
@@ -57,6 +57,7 @@ test("OHLQ worker artifact strips local browser metadata and preserves complete 
   assert.equal("cdpUrl" in normalized.artifact, false);
   assert.equal(normalized.artifact.products.length, 10);
   assert.equal(normalized.artifact.summary.inventoryRowCount, 500);
+  assert.equal("EcommerceUrls" in normalized.artifact.products[0].inventories[0], false);
   assert.match(ohlqWorkerArtifactDigest(normalized.artifact), /^[a-f0-9]{64}$/);
 });
 

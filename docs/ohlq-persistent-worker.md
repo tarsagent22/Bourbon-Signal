@@ -9,7 +9,7 @@ The OHLQ worker is a deterministic browser collector. It makes no OpenAI or othe
 - Cookies, CSRF values, browser storage, request headers, and profile paths are never uploaded.
 - Only a bounded, schema-validated set of first-party OHLQ product and Ohio store-availability fields can cross the ingestion boundary.
 - Uploads require a bearer capability validated by its pinned SHA-256 digest, a fresh Ed25519 signature, a deterministic upload ID, a fresh artifact, at least 10 successful products, and at least 500 store rows.
-- Blob objects are AES-256-GCM encrypted before entering the repository's public Vercel Blob store; the authenticated API is the only plaintext read path.
+- The signed upload body is gzip-compressed on the wire with strict compressed and expanded size limits; encrypted Blob payloads are compressed before AES-256-GCM encryption to keep storage bounded.
 - Artifacts, upload receipts, and freshness manifests are immutable; the reader selects the newest reverse-epoch manifest, so an older concurrent upload cannot replace newer evidence.
 - Production revalidates the content digest and freshness before atomically replacing the cached OHLQ browser artifact.
 - Missing, stale, partial, blocked, or malformed artifacts leave the prior non-alertable fallback unchanged.
