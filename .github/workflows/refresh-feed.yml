@@ -149,6 +149,12 @@ jobs:
         working-directory: engine
         run: npm run verify:reliability
 
+      - name: Hydrate authenticated persistent OHLQ artifact
+        env:
+          OHLQ_WORKER_ARTIFACT_SECRET: ${{ secrets.OHLQ_WORKER_ARTIFACT_SECRET }}
+          OHLQ_WORKER_TARGET_STATES: ${{ inputs.states || '' }}
+        run: node scripts/fetch-ohlq-worker-artifact.mjs
+
       - name: Refresh North Carolina official board and store directory
         if: ${{ !inputs.states || contains(inputs.states, 'NC') }}
         working-directory: engine

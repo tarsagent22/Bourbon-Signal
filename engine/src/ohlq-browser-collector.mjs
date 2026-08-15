@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { BrowserPage, ensureBrowserCdp, getOrCreateTarget, killBrowserCdp } from './core/browser-session.mjs';
+import { ohlqBlockedReason, ohlqResultIsAccessBlocked } from './sources/ohlq-access-policy.mjs';
 
 const DEFAULT_CDP = process.env.OHLQ_CDP_URL || process.env.BROWSER_CDP_URL || 'http://127.0.0.1:18800';
 const PRODUCTS_FILE = process.env.OHLQ_PRODUCTS_FILE || 'data/ohlq-products.json';
@@ -24,10 +25,6 @@ async function readJson(file, fallback = null) {
   try { return JSON.parse(await readFile(file, 'utf8')); } catch { return fallback; }
 }
 
-function blockedReason(value = '') {
-  const text = String(value || '').toLowerCase();
-  return /cloudflare|access denied|restrict access|forbidden|rate limit|error 1015|temporarily banned|\b403\b|\b429\b/.test(text);
-}
 
 async function activeCooldown() {
   if (process.env.OHLQ_IGNORE_COOLDOWN === '1') return null;
@@ -256,19 +253,26 @@ async function main() {
     }
     for (const product of products) {
       console.log(`OHLQ ${product.name}`);
+      let accessBlocked = false;
       try {
         const result = await collectProduct(page, product);
         results.push(result);
-        if (!result.ok && (result.status === 403 || result.status === 429 || blockedReason(result.error) || blockedReason(result.title))) {
+        if (!result.ok && ohlqResultIsAccessBlocked(result)) {
           blockSignals.push({ productName: result.productName, pageUrl: result.pageUrl, status: result.status, error: result.error || result.title || 'blocked' });
+          accessBlocked = true;
         }
         console.log(`  ${result.ok ? 'ok' : 'blocked'}: sku=${normalizeSku(result.sku) || 'none'}, stores=${result.inventoryCount || 0}, status=${result.status}`);
       } catch (error) {
-        const blocked = blockedReason(error.message);
+        const blocked = ohlqBlockedReason(error.message);
         const failed = { ok: false, productName: product.name, pageUrl: product.pageUrl, sku: product.sku || null, status: 0, error: error.message, inventories: [] };
         results.push(failed);
         if (blocked) blockSignals.push({ productName: product.name, pageUrl: product.pageUrl, status: 0, error: error.message });
+        accessBlocked = blocked;
         console.log(`  error: ${error.message}`);
+      }
+      if (accessBlocked) {
+        console.log('  stopping OHLQ collection after the first access block; cooldown will be recorded.');
+        break;
       }
       await sleep(jitteredDelay());
     }
