@@ -1,4 +1,4 @@
-import { createHmac, createHash, timingSafeEqual } from "node:crypto";
+import { createHash, createHmac, createPrivateKey, sign as cryptoSign, timingSafeEqual, verify as cryptoVerify } from "node:crypto";
 
 export const OHLQ_WORKER_CONTRACT = "bourbon-signal/ohlq-worker-artifact@1";
 export const OHLQ_WORKER_MAX_BODY_BYTES = 4 * 1024 * 1024;
@@ -204,8 +204,29 @@ export function ohlqWorkerArtifactDigest(value: unknown) {
   return createHash("sha256").update(JSON.stringify(value)).digest("hex");
 }
 
-export function ohlqWorkerSignature(secret: string, timestamp: string, body: string) {
-  return createHmac("sha256", secret).update(`${timestamp}\n${body}`).digest("base64url");
+const OHLQ_WORKER_BEARER_SHA256 = "ad4fe35d2453898e3cc3263b4e2b981aa3c63969825a9a9c0b6fa9ed1ec8e940";
+const OHLQ_WORKER_SIGNING_PUBLIC_KEY = `-----BEGIN PUBLIC KEY-----
+MCowBQYDK2VwAyEA9OgKjMJEtwg3r4or1aa5qmv+GuEzQ+f1Ul20lt+wNOg=
+-----END PUBLIC KEY-----`;
+const ED25519_PKCS8_PREFIX = Buffer.from("302e020100300506032b657004220420", "hex");
+
+export function getOhlqWorkerArtifactSecret(env: NodeJS.ProcessEnv = process.env) {
+  if (typeof env.OHLQ_WORKER_ARTIFACT_SECRET === "string" && env.OHLQ_WORKER_ARTIFACT_SECRET.length >= 32) return env.OHLQ_WORKER_ARTIFACT_SECRET;
+  if (typeof env.CRON_SECRET !== "string" || env.CRON_SECRET.length < 32) return undefined;
+  return createHmac("sha256", env.CRON_SECRET).update("bourbon-signal/ohlq-worker-capability@1").digest("base64url");
+}
+
+export function deriveOhlqWorkerSigningPrivateKey(env: NodeJS.ProcessEnv = process.env) {
+  if (env.OHLQ_WORKER_SIGNING_PRIVATE_KEY) {
+    return createPrivateKey({ key: Buffer.from(env.OHLQ_WORKER_SIGNING_PRIVATE_KEY, "base64url"), format: "der", type: "pkcs8" });
+  }
+  if (typeof env.CRON_SECRET !== "string" || env.CRON_SECRET.length < 32) throw new Error("OHLQ worker signing key is not configured.");
+  const seed = createHmac("sha256", env.CRON_SECRET).update("bourbon-signal/ohlq-worker-ed25519-seed@1").digest();
+  return createPrivateKey({ key: Buffer.concat([ED25519_PKCS8_PREFIX, seed]), format: "der", type: "pkcs8" });
+}
+
+export function ohlqWorkerSignature(privateKey: Parameters<typeof cryptoSign>[2], timestamp: string, body: string) {
+  return cryptoSign(null, Buffer.from(`${timestamp}\n${body}`), privateKey).toString("base64url");
 }
 
 function constantTimeEqual(left: string, right: string) {
@@ -214,21 +235,25 @@ function constantTimeEqual(left: string, right: string) {
   return a.length === b.length && timingSafeEqual(a, b);
 }
 
-export function getOhlqWorkerArtifactSecret(env: NodeJS.ProcessEnv = process.env) {
-  if (typeof env.OHLQ_WORKER_ARTIFACT_SECRET === "string" && env.OHLQ_WORKER_ARTIFACT_SECRET.length >= 32) return env.OHLQ_WORKER_ARTIFACT_SECRET;
-  if (typeof env.CRON_SECRET !== "string" || env.CRON_SECRET.length < 32) return undefined;
-  return createHmac("sha256", env.CRON_SECRET).update("bourbon-signal/ohlq-worker-capability@1").digest("base64url");
+export function authorizeOhlqWorkerBearer(header: string | null, expectedDigest = OHLQ_WORKER_BEARER_SHA256) {
+  if (!header?.startsWith("Bearer ")) return false;
+  const suppliedDigest = createHash("sha256").update(header.slice(7)).digest("hex");
+  return constantTimeEqual(suppliedDigest, expectedDigest);
 }
 
-export function authorizeOhlqWorkerBearer(header: string | null, secret = getOhlqWorkerArtifactSecret()) {
-  return Boolean(secret && secret.length >= 32 && header?.startsWith("Bearer ") && constantTimeEqual(header.slice(7), secret));
-}
-
-export function verifyOhlqWorkerUploadSignature(input: { body: string; timestamp: string | null; signature: string | null; secret?: string; now?: number }) {
-  const secret = input.secret ?? getOhlqWorkerArtifactSecret();
-  if (!secret || secret.length < 32 || !input.timestamp || !input.signature) return false;
+export function verifyOhlqWorkerUploadSignature(input: { body: string; timestamp: string | null; signature: string | null; publicKey?: Parameters<typeof cryptoVerify>[2]; now?: number }) {
+  if (!input.timestamp || !input.signature) return false;
   const timestampMs = Date.parse(input.timestamp);
   const now = input.now ?? Date.now();
   if (!Number.isFinite(timestampMs) || Math.abs(now - timestampMs) > MAX_CLOCK_SKEW_MS) return false;
-  return constantTimeEqual(input.signature, ohlqWorkerSignature(secret, input.timestamp, input.body));
+  try {
+    return cryptoVerify(
+      null,
+      Buffer.from(`${input.timestamp}\n${input.body}`),
+      input.publicKey ?? OHLQ_WORKER_SIGNING_PUBLIC_KEY,
+      Buffer.from(input.signature, "base64url"),
+    );
+  } catch {
+    return false;
+  }
 }

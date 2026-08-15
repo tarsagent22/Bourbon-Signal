@@ -145,7 +145,7 @@ async function uploadArtifact(rawArtifact) {
       : undefined
   );
   if (!secret || secret.length < 32) throw new Error('OHLQ worker artifact credential is not configured.');
-  const { sanitizeOhlqWorkerEnvelope } = await import('../src/lib/ohlq-worker-artifact.ts');
+  const { deriveOhlqWorkerSigningPrivateKey, ohlqWorkerSignature, sanitizeOhlqWorkerEnvelope } = await import('../src/lib/ohlq-worker-artifact.ts');
   const envelope = sanitizeOhlqWorkerEnvelope({
     contractVersion: CONTRACT,
     uploadId: deterministicOhlqUploadId(rawArtifact),
@@ -154,7 +154,7 @@ async function uploadArtifact(rawArtifact) {
   });
   const body = JSON.stringify(envelope);
   const timestamp = new Date().toISOString();
-  const signature = createHmac('sha256', secret).update(`${timestamp}\n${body}`).digest('base64url');
+  const signature = ohlqWorkerSignature(deriveOhlqWorkerSigningPrivateKey(process.env), timestamp, body);
   const response = await fetch(API_URL, {
     method: 'POST',
     headers: {

@@ -8,7 +8,7 @@ The OHLQ worker is a deterministic browser collector. It makes no OpenAI or othe
 - A human may complete OHLQ's normal security verification in the dedicated browser profile when OHLQ requires it.
 - Cookies, CSRF values, browser storage, request headers, and profile paths are never uploaded.
 - Only a bounded, schema-validated set of first-party OHLQ product and Ohio store-availability fields can cross the ingestion boundary.
-- Uploads require a dedicated 32+ character bearer secret, a timestamped HMAC signature, a unique upload ID, a fresh artifact, at least 10 successful products, and at least 500 store rows.
+- Uploads require a bearer capability validated by its pinned SHA-256 digest, a fresh Ed25519 signature, a deterministic upload ID, a fresh artifact, at least 10 successful products, and at least 500 store rows.
 - Blob objects are AES-256-GCM encrypted before entering the repository's public Vercel Blob store; the authenticated API is the only plaintext read path.
 - Artifacts, upload receipts, and freshness manifests are immutable; the reader selects the newest reverse-epoch manifest, so an older concurrent upload cannot replace newer evidence.
 - Production revalidates the content digest and freshness before atomically replacing the cached OHLQ browser artifact.
@@ -24,11 +24,11 @@ It contains the Chrome profile, local cooldown, last collected artifact, lock, a
 
 ## Required configuration
 
-The artifact capability is `HMAC-SHA256(CRON_SECRET, "bourbon-signal/ohlq-worker-capability@1")` unless an explicit `OHLQ_WORKER_ARTIFACT_SECRET` override is present. This keeps the worker capability separate without exposing the broader root credential.
+The bearer capability is `HMAC-SHA256(CRON_SECRET, "bourbon-signal/ohlq-worker-capability@1")`. Production stores only its SHA-256 digest. Upload bodies are signed with a deterministic Ed25519 key derived locally from `CRON_SECRET` (or supplied explicitly as `OHLQ_WORKER_SIGNING_PRIVATE_KEY`); production stores only the public key.
 
-- Vercel derives the capability from its existing `CRON_SECRET`.
-- The local worker can derive it from the existing local `CRON_SECRET` or use the explicit override.
-- GitHub Actions receives only the derived capability as `OHLQ_WORKER_ARTIFACT_SECRET`, never the root credential.
+- The local worker derives the bearer and signing key from the existing local `CRON_SECRET`.
+- GitHub Actions receives only the bearer capability as `OHLQ_WORKER_ARTIFACT_SECRET`.
+- Vercel needs no shared worker credential; its existing `CRON_SECRET` is used only to encrypt Blob objects at rest.
 
 The worker endpoint defaults to `https://www.bourbonsignal.com/api/source/ohlq/artifact`.
 

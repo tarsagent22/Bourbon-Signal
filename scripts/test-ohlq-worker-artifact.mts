@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
+import { createHash, generateKeyPairSync } from "node:crypto";
 import path from "node:path";
 import test from "node:test";
 
@@ -107,12 +108,14 @@ test("OHLQ upload authentication requires a complete bearer and fresh body signa
   assert.equal(derived, getOhlqWorkerArtifactSecret({ CRON_SECRET: secret }));
   const body = JSON.stringify(envelope());
   const timestamp = new Date(now).toISOString();
-  const signature = ohlqWorkerSignature(secret, timestamp, body);
-  assert.equal(authorizeOhlqWorkerBearer(`Bearer ${secret}`, secret), true);
-  assert.equal(authorizeOhlqWorkerBearer(secret, secret), false);
-  assert.equal(verifyOhlqWorkerUploadSignature({ body, timestamp, signature, secret, now }), true);
-  assert.equal(verifyOhlqWorkerUploadSignature({ body: `${body} `, timestamp, signature, secret, now }), false);
-  assert.equal(verifyOhlqWorkerUploadSignature({ body, timestamp: "2026-08-15T14:00:00Z", signature, secret, now }), false);
+  const { privateKey, publicKey } = generateKeyPairSync("ed25519");
+  const signature = ohlqWorkerSignature(privateKey, timestamp, body);
+  const expectedDigest = createHash("sha256").update(secret).digest("hex");
+  assert.equal(authorizeOhlqWorkerBearer(`Bearer ${secret}`, expectedDigest), true);
+  assert.equal(authorizeOhlqWorkerBearer(secret, expectedDigest), false);
+  assert.equal(verifyOhlqWorkerUploadSignature({ body, timestamp, signature, publicKey, now }), true);
+  assert.equal(verifyOhlqWorkerUploadSignature({ body: `${body} `, timestamp, signature, publicKey, now }), false);
+  assert.equal(verifyOhlqWorkerUploadSignature({ body, timestamp: "2026-08-15T14:00:00Z", signature, publicKey, now }), false);
 });
 
 test("OHLQ blob storage encrypts public objects and rejects tampering", () => {
