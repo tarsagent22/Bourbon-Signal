@@ -5,6 +5,7 @@ import path from 'node:path';
 import test from 'node:test';
 
 import { collectCostco } from '../src/collectors/costco.mjs';
+import { isActiveCustomerStateRow } from '../src/export-site-contract.mjs';
 import { ALL_STATE_SOURCES, CUSTOMER_ACTIVE_STATE_IDS, STATE_SOURCES } from '../src/state-sources.mjs';
 import { STATE_LIFECYCLE_CONFIG } from '../src/state-lifecycle.mjs';
 
@@ -42,6 +43,15 @@ test('five Costco-only states are honest research-only blocked lifecycle entries
     assert.equal(research.strategy, 'costco_warehouse_inventory_watch');
     assert.ok(research.sources.some((source) => source.kind === 'costco'));
   }
+});
+
+test('site retention rejects inactive states across current and legacy row shapes', () => {
+  const active = new Set(['AL', 'GA']);
+  assert.equal(isActiveCustomerStateRow({ state: 'AL' }, active), true);
+  assert.equal(isActiveCustomerStateRow({ state_code: 'ga' }, active), true);
+  assert.equal(isActiveCustomerStateRow({ state: 'MI' }, active), false);
+  assert.equal(isActiveCustomerStateRow({ state_code: 'MN' }, active), false);
+  assert.equal(isActiveCustomerStateRow({}, active), false);
 });
 
 test('Costco runtime distinguishes fresh monitored zero inventory from missing, stale, and invalid observations', async () => {

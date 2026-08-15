@@ -58,6 +58,10 @@ const NC_GREENSBORO_STORE_EXCLUDE_RE = /john\s+d\s+taylor|old\s+taylor|taylor\s+
 const SITE_ACTIVE_STATE_IDS = CUSTOMER_ACTIVE_STATE_IDS;
 const CUSTOMER_DROP_TIERS = new Set(['unicorn', 'allocated', 'limited']);
 
+export function isActiveCustomerStateRow(row, activeStateIds = SITE_ACTIVE_STATE_IDS) {
+  return activeStateIds.has(String(row?.state || row?.state_code || '').toUpperCase());
+}
+
 function normalizedDropText(value) {
   return String(value || '')
     .toLowerCase()
@@ -2064,26 +2068,26 @@ async function main() {
     fallbackStateIds: summary.fallbackStateIds || [],
     isSafeRetainedLocation: (location) => String(location?.state || location?.state_code || '').toUpperCase() !== 'WV'
       || currentWvLocationIds.has(String(location?.id)),
-  });
+  }).filter((location) => isActiveCustomerStateRow(location, activeStateIds));
   const stores = mergePartialRefreshStores({
     previousStores,
     currentStores,
     partialRefresh: summary.partialRefresh === true,
     attemptedStateIds: summary.attemptedStateIds || [],
     fallbackStateIds: summary.fallbackStateIds || [],
-  });
+  }).filter((store) => isActiveCustomerStateRow(store, activeStateIds));
   const drops = mergeHistoricalBoardShipmentDrops({
     currentDrops: refreshedDrops,
     currentSourceDrops: freshRunDrops,
     previousDrops,
     bootstrapDrops,
     historyDays: HISTORY_DAYS,
-  });
+  }).filter((drop) => isActiveCustomerStateRow(drop, activeStateIds));
   const events = mergeScheduledFallbackEvents({
     previousEvents,
     currentEvents: buildEvents(historicalSignals, bible),
     fallbackStateIds: summary.fallbackStateIds || [],
-  });
+  }).filter((event) => isActiveCustomerStateRow(event, activeStateIds));
   const alertableCurrentDrops = freshRunDrops.filter((drop) => !fallbackStateIds.has(String(drop.state || drop.state_code || '').toUpperCase()));
   const freshReportedAlertCandidates = selectFreshRunDrops({ drops: alerts.candidates, freshStateIds: summary.freshStateIds });
   const reportedAlertCandidates = buildAlerts({ candidates: freshReportedAlertCandidates.filter((candidate) => activeStateIds.has(candidate.state) && !fallbackStateIds.has(String(candidate.state).toUpperCase())) });
