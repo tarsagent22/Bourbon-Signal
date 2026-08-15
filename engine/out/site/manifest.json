@@ -329,21 +329,6 @@
       "count": 9
     },
     {
-      "state": "MI",
-      "file": "states/MI/drops.json",
-      "count": 0
-    },
-    {
-      "state": "MN",
-      "file": "states/MN/drops.json",
-      "count": 0
-    },
-    {
-      "state": "MO",
-      "file": "states/MO/drops.json",
-      "count": 0
-    },
-    {
       "state": "MS",
       "file": "states/MS/drops.json",
       "count": 0
@@ -396,16 +381,6 @@
     {
       "state": "VA",
       "file": "states/VA/drops.json",
-      "count": 0
-    },
-    {
-      "state": "WA",
-      "file": "states/WA/drops.json",
-      "count": 0
-    },
-    {
-      "state": "WI",
-      "file": "states/WI/drops.json",
       "count": 0
     },
     {

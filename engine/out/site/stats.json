@@ -3,15 +3,15 @@
   "runId": "a7401de0a51cca45",
   "generatedAt": "2026-07-16T22:59:25.184Z",
   "engineGeneratedAt": "2026-07-16T22:57:36.743Z",
-  "stateCount": 29,
-  "signalCount": 54266,
+  "stateCount": 24,
+  "signalCount": 54264,
   "historicalSignalCount": 246355,
   "historyDays": 30,
   "snapshotCount": 38,
   "bottleCount": 175,
   "bibleRecordCount": 169,
   "storeCount": 3986,
-  "locationCount": 5678,
+  "locationCount": 5677,
   "officialLocationCount": 1509,
   "preloadedLocationCount": 1485,
   "dropCount": 4764,
@@ -71,7 +71,7 @@
       }
     ]
   },
-  "statesAtTargetPrecision": 25,
+  "statesAtTargetPrecision": 24,
   "rareStatesVerified": 20,
   "stateCoverage": {
     "counts": {
@@ -81,7 +81,7 @@
       "shipment_drop_intelligence": 2,
       "aggregate_inventory_watch": 2,
       "distillery_release_watch": 1,
-      "retailer_warehouse_inventory": 7
+      "retailer_warehouse_inventory": 2
     },
     "states": [
       {
@@ -338,63 +338,6 @@
         "coverageTier": "aggregate_inventory_watch"
       },
       {
-        "state": "MI",
-        "label": "Michigan",
-        "sourceLabel": "Michigan Costco warehouse bourbon watch",
-        "tier": "B",
-        "status": "useful",
-        "publicStatus": "active",
-        "lifecycle": "costco_warehouse_inventory_watch",
-        "signalCount": 2,
-        "roadblockCount": 0,
-        "targetLocationPrecision": "statewide_catalog",
-        "bestLocationPrecision": "statewide_catalog",
-        "strategy": "costco_warehouse_inventory_watch",
-        "refinementLevel": "warehouse",
-        "customerAreaLabel": null,
-        "areaOptions": [],
-        "customerSummary": "Costco warehouse bourbon signals for Michigan warehouses where verified. Costco is treated as an in-state retailer source with fast-moving inventory caveats.",
-        "coverageTier": "retailer_warehouse_inventory"
-      },
-      {
-        "state": "MN",
-        "label": "Minnesota",
-        "sourceLabel": "Minnesota Costco warehouse bourbon watch",
-        "tier": "B",
-        "status": "useful",
-        "publicStatus": "active",
-        "lifecycle": "costco_warehouse_inventory_watch",
-        "signalCount": 0,
-        "roadblockCount": 0,
-        "targetLocationPrecision": null,
-        "bestLocationPrecision": "blocked",
-        "strategy": "costco_warehouse_inventory_watch",
-        "refinementLevel": "warehouse",
-        "customerAreaLabel": null,
-        "areaOptions": [],
-        "customerSummary": "Costco warehouse bourbon signals for Minnesota warehouses where verified. Costco is treated as an in-state retailer source with fast-moving inventory caveats.",
-        "coverageTier": "retailer_warehouse_inventory"
-      },
-      {
-        "state": "MO",
-        "label": "Missouri",
-        "sourceLabel": "Missouri Costco warehouse bourbon watch",
-        "tier": "B",
-        "status": "useful",
-        "publicStatus": "active",
-        "lifecycle": "costco_warehouse_inventory_watch",
-        "signalCount": 0,
-        "roadblockCount": 0,
-        "targetLocationPrecision": null,
-        "bestLocationPrecision": "blocked",
-        "strategy": "costco_warehouse_inventory_watch",
-        "refinementLevel": "warehouse",
-        "customerAreaLabel": null,
-        "areaOptions": [],
-        "customerSummary": "Costco warehouse bourbon signals for Missouri warehouses where verified. Costco is treated as an in-state retailer source with fast-moving inventory caveats.",
-        "coverageTier": "retailer_warehouse_inventory"
-      },
-      {
         "state": "MS",
         "label": "Mississippi",
         "sourceLabel": "Mississippi exact-store retailer inventory",
@@ -641,44 +584,6 @@
         "coverageTier": "live_store_inventory"
       },
       {
-        "state": "WA",
-        "label": "Washington",
-        "sourceLabel": "Washington Costco warehouse bourbon watch",
-        "tier": "B",
-        "status": "useful",
-        "publicStatus": "active",
-        "lifecycle": "costco_warehouse_inventory_watch",
-        "signalCount": 0,
-        "roadblockCount": 0,
-        "targetLocationPrecision": null,
-        "bestLocationPrecision": "blocked",
-        "strategy": "costco_warehouse_inventory_watch",
-        "refinementLevel": "warehouse",
-        "customerAreaLabel": null,
-        "areaOptions": [],
-        "customerSummary": "Costco warehouse bourbon signals for Washington warehouses where verified. Costco is treated as an in-state retailer source with fast-moving inventory caveats.",
-        "coverageTier": "retailer_warehouse_inventory"
-      },
-      {
-        "state": "WI",
-        "label": "Wisconsin",
-        "sourceLabel": "Wisconsin Costco warehouse bourbon watch",
-        "tier": "B",
-        "status": "useful",
-        "publicStatus": "active",
-        "lifecycle": "costco_warehouse_inventory_watch",
-        "signalCount": 0,
-        "roadblockCount": 0,
-        "targetLocationPrecision": null,
-        "bestLocationPrecision": "blocked",
-        "strategy": "costco_warehouse_inventory_watch",
-        "refinementLevel": "warehouse",
-        "customerAreaLabel": null,
-        "areaOptions": [],
-        "customerSummary": "Costco warehouse bourbon signals for Wisconsin warehouses where verified. Costco is treated as an in-state retailer source with fast-moving inventory caveats.",
-        "coverageTier": "retailer_warehouse_inventory"
-      },
-      {
         "state": "WV",
         "label": "West Virginia",
         "sourceLabel": "West Virginia ABCA official barrel-selection updates and licensed-store directory",
@@ -698,13 +603,13 @@
         "coverageTier": "shipment_drop_intelligence"
       }
     ],
-    "stateCount": 29
+    "stateCount": 24
   },
   "stateQuality": {
-    "stateCount": 29,
+    "stateCount": 24,
     "releaseEligibleStates": 12,
-    "releaseBlockedStates": 17,
-    "averageScore": 46,
+    "releaseBlockedStates": 12,
+    "averageScore": 54,
     "weakestStates": [
       "VA",
       "SC",
