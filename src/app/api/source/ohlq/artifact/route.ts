@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from "next/server";
 import {
   OHLQ_WORKER_MAX_BODY_BYTES,
   authorizeOhlqWorkerBearer,
-  getOhlqWorkerArtifactSecret,
   verifyOhlqWorkerUploadSignature,
 } from "@/lib/ohlq-worker-artifact";
 import { readLatestOhlqWorkerEnvelope, storeOhlqWorkerEnvelope } from "@/lib/ohlq-worker-artifact-store";
@@ -15,8 +14,6 @@ export const maxDuration = 60;
 const PRIVATE_HEADERS = { "Cache-Control": "private, no-store" };
 
 function unauthorized(request: NextRequest) {
-  const configured = Boolean(getOhlqWorkerArtifactSecret());
-  if (!configured) return NextResponse.json({ error: "OHLQ worker artifact credential is not configured." }, { status: 503, headers: PRIVATE_HEADERS });
   if (!authorizeOhlqWorkerBearer(request.headers.get("authorization"))) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: PRIVATE_HEADERS });
   }
