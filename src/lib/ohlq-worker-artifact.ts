@@ -159,7 +159,7 @@ export function sanitizeOhlqWorkerEnvelope(value: unknown, options: { now?: numb
   const input = record(value, "request body");
   if (input.contractVersion !== OHLQ_WORKER_CONTRACT) throw new Error("Unsupported OHLQ worker artifact contract.");
   const uploadId = boundedString(input.uploadId, "uploadId", 36, true)!;
-  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(uploadId)) throw new Error("uploadId must be a UUID v4.");
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[45][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(uploadId)) throw new Error("uploadId must be a UUID v4 or v5.");
   if (input.cooldown != null) throw new Error("A blocked/cooldown OHLQ artifact cannot be accepted.");
   assertNoSensitiveKeys(input);
   const artifactInput = record(input.artifact, "artifact");
