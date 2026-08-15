@@ -1,5 +1,9 @@
 import { readFile } from 'node:fs/promises';
-import { isFloridaRetailerInventory, isFloridaRetailerSignalIdentity } from './florida-retailer-policy.mjs';
+import {
+  isFloridaRetailerInventory,
+  isFloridaRetailerOutOfStockObservation,
+  isFloridaRetailerSignalIdentity,
+} from './florida-retailer-policy.mjs';
 import { isExplicitSafeStaleSignal } from './florida-safe-stale-policy.mjs';
 import { PENSACOLA_SHOPIFY_SOURCE, PENSACOLA_SHOPIFY_STORES } from './collectors/florida-pensacola-surfaces.mjs';
 
@@ -42,17 +46,8 @@ const trustedCities = new Set(coverageInventory.map((signal) => signal.city));
 const pensacolaShopify = trusted.filter((signal) => signal.sourceLabel === PENSACOLA_SHOPIFY_SOURCE.sourceLabel);
 const configuredLocations = signals.filter((signal) => signal.eventType === 'retailer_store_location' && signal.raw?.configuredStoreIdentity === true);
 const unsafe = activeInventory.filter((signal) => !isFresh(signal)
-  || !isFloridaRetailerSignalIdentity(signal)
-  || signal.state !== 'FL'
-  || signal.stateCode !== 'FL'
-  || !/,\s*FL\s+\d{5}/i.test(signal.storeAddress || '')
-  || signal.locationPrecision !== 'store_level'
-  || !signal.storeId
-  || Number(signal.quantity || 0) < 0
-  || (Number(signal.raw?.reportedQuantity || 0) >= 100 && Number(signal.quantity || 0) > 1)
-  || signal.sourceAvailabilityVerified !== true
-  || signal.canAlertAsInventory !== true
-  || signal.availabilityStatus !== 'in_stock');
+  || (!isFloridaRetailerInventory(signal) && !isFloridaRetailerOutOfStockObservation(signal))
+  || (Number(signal.raw?.reportedQuantity || 0) >= 100 && Number(signal.quantity || 0) > 1));
 const unsafeFallbacks = staleFallbacks.filter((signal) => signal.canAlertAsInventory === true
   || signal.canAlertAsWatch === true
   || signal.sourceAvailabilityVerified === true

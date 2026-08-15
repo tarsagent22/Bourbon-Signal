@@ -6,7 +6,7 @@ import {
   FLORIDA_STAR_LIQUORS_REGISTRY_SHA256,
   FLORIDA_STAR_LIQUORS_SOURCE,
 } from '../src/collectors/florida-retailer-surfaces.mjs';
-import { isFloridaRetailerInventory } from '../src/florida-retailer-policy.mjs';
+import { isFloridaRetailerInventory, isFloridaRetailerOutOfStockObservation } from '../src/florida-retailer-policy.mjs';
 import { FLORIDA_STAR_EXPANSION_MINIMUM_NET_NEW_STORES, verifyFloridaStarExpansionArtifact } from '../src/verification/florida-star-expansion-verifier.mjs';
 
 const observedAt = new Date().toISOString();
@@ -136,10 +136,25 @@ test('production verifier requires at least 20 Star stores and preserves all 180
   assert.deepEqual(retained.map((signal) => signal.storeId).sort(), [...baseline.inventoryStoreIds].sort());
   assert.ok(retained.every(isFloridaRetailerInventory));
   const star = [...FLORIDA_STAR_LIQUORS_SOURCE.merchants.values()].map(starSignal);
-  const state = { state: 'FL', status: 'useful', stale: false, generatedAt: observedAt, signals: [...retained, ...star] };
+  const retainedWithZero = retained.map((signal) => signal.storeId === 'primo-liquors:southeast' ? {
+    ...signal,
+    quantity: 0,
+    quantityIsExact: true,
+    reportedQuantity: 0,
+    availabilityStatus: 'out_of_stock',
+    sourceAvailabilityVerified: true,
+    premisesVerified: true,
+    canAlertAsInventory: false,
+    canAlertAsWatch: false,
+    inventorySemantics: 'exact_retailer_reported_quantity',
+    raw: { ...signal.raw, chain: 'primo-liquors', reportedQuantity: 0 },
+  } : signal);
+  assert.ok(retainedWithZero.some(isFloridaRetailerOutOfStockObservation));
+  const state = { state: 'FL', status: 'useful', stale: false, generatedAt: observedAt, signals: [...retainedWithZero, ...star] };
   const summary = verifyFloridaStarExpansionArtifact({ state, baseline, now: Date.now() });
   assert.equal(summary.baselineStores, 180);
-  assert.equal(summary.currentStores, 204);
+  assert.equal(summary.currentStores, 203);
+  assert.equal(summary.observedStores, 204);
   assert.equal(summary.netNewStores, 24);
   assert.equal(summary.starStores, 24);
   assert.equal(summary.removedStores, 0);

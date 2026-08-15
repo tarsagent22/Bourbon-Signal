@@ -4,7 +4,7 @@ import {
   FLORIDA_STAR_LIQUORS_REGISTRY_SHA256,
   FLORIDA_STAR_LIQUORS_SOURCE,
 } from '../collectors/florida-retailer-surfaces.mjs';
-import { isFloridaRetailerInventory } from '../florida-retailer-policy.mjs';
+import { isFloridaRetailerInventory, isFloridaRetailerOutOfStockObservation } from '../florida-retailer-policy.mjs';
 
 export const FLORIDA_STAR_EXPANSION_BASELINE_STORE_IDS_SHA256 = '608c32a62b1c603b0c723991036f339372052c0284241735fd8338ad5c64067a';
 export const FLORIDA_STAR_EXPANSION_BASELINE_PREMISES_SHA256 = '1bfcac588e3ad40361125f67b6fc4a557e72eef8189d16001545bd40b3c44571';
@@ -70,16 +70,24 @@ export function verifyFloridaStarExpansionArtifact({ state, baseline, now = Date
   assert(!starStores.some((store) => baselineAddressSet.has(normalizedPremise(store.address))), 'Star Liquors registry overlaps a baseline physical premise.');
 
   assert(state?.state === 'FL' && state?.status === 'useful' && state?.stale !== true, `Expected a fresh useful Florida state report; got state=${state?.state}, status=${state?.status}, stale=${state?.stale}.`);
-  const liveSignals = (state.signals || []).filter((signal) => freshLiveSignal(signal, nowMs, maximumAgeMs) && isFloridaRetailerInventory(signal));
-  const currentStoreIds = new Set(liveSignals.map((signal) => String(signal.storeId)));
-  const retainedBaselineStoreIds = new Set(liveSignals
+  const inventorySignals = (state.signals || []).filter((signal) => freshLiveSignal(signal, nowMs, maximumAgeMs) && isFloridaRetailerInventory(signal));
+  const observedSignals = (state.signals || []).filter((signal) => {
+    const observedAt = new Date(signal?.observedAt || 0).getTime();
+    return Number.isFinite(observedAt)
+      && observedAt <= nowMs
+      && nowMs - observedAt <= maximumAgeMs
+      && (isFloridaRetailerInventory(signal) || isFloridaRetailerOutOfStockObservation(signal));
+  });
+  const currentStoreIds = new Set(inventorySignals.map((signal) => String(signal.storeId)));
+  const observedStoreIds = new Set(observedSignals.map((signal) => String(signal.storeId)));
+  const retainedBaselineStoreIds = new Set(observedSignals
     .filter((signal) => baselineIdSet.has(String(signal.storeId))
       && normalizedPremise(signal.storeAddress) === baselinePremiseByStoreId.get(String(signal.storeId)))
     .map((signal) => String(signal.storeId)));
   const removed = baselineIds.filter((storeId) => !retainedBaselineStoreIds.has(storeId));
   assert(!removed.length, `Florida expansion removed ${removed.length} immutable baseline store(s).`, removed);
 
-  const freshTrustedStarSignals = liveSignals.filter((signal) => starStoreIds.has(String(signal.storeId)) && isFloridaRetailerInventory(signal));
+  const freshTrustedStarSignals = inventorySignals.filter((signal) => starStoreIds.has(String(signal.storeId)) && isFloridaRetailerInventory(signal));
   const trustedStarStoreIds = new Set(freshTrustedStarSignals.map((signal) => String(signal.storeId)));
   assert(trustedStarStoreIds.size >= FLORIDA_STAR_EXPANSION_MINIMUM_NET_NEW_STORES, `Expected fresh trusted inventory from at least ${FLORIDA_STAR_EXPANSION_MINIMUM_NET_NEW_STORES} Star Liquors stores; got ${trustedStarStoreIds.size}.`);
 
@@ -91,10 +99,12 @@ export function verifyFloridaStarExpansionArtifact({ state, baseline, now = Date
     stateStatus: state.status,
     baselineStores: baselineIdSet.size,
     currentStores: currentStoreIds.size,
+    observedStores: observedStoreIds.size,
     netNewStores: netNewStoreIds.length,
     starStores: trustedStarStoreIds.size,
     removedStores: removed.length,
-    inventorySignals: liveSignals.length,
+    inventorySignals: inventorySignals.length,
+    observedStoreSignals: observedSignals.length,
     starInventorySignals: freshTrustedStarSignals.length,
     maximumAgeMinutes: maximumAgeMs / 60_000,
     baselineStoreIdsSha256: FLORIDA_STAR_EXPANSION_BASELINE_STORE_IDS_SHA256,
