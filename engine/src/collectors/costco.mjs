@@ -83,6 +83,20 @@ function lookupWatchItem(row, index) {
   return index.byName.get(name) || null;
 }
 
+function isValidMonitoredObservation(row, index, generatedAt, targetState) {
+  const state = safeString(row.state || row.stateCode || row.warehouseState, 20)?.toUpperCase();
+  if (!state || state !== targetState || !isCostcoSpiritsEligibleState(state)) return false;
+  const observedAt = row.observedAt || row.fetchedAt || row.updatedAt || generatedAt;
+  if (!isFreshObservation(observedAt, generatedAt)) return false;
+  if (!lookupWatchItem(row, index)) return false;
+  const storeNumber = safeString(row.storeNumber || row.warehouseNumber || row.locationNumber || row.storeId || row.retailerLocationId, 80);
+  const storeName = safeString(row.storeName || row.warehouseName || (row.city || row.warehouseCity ? `Costco ${row.city || row.warehouseCity}` : null), 160);
+  if (!storeNumber || !storeName || sourceReliability(row).level === 'unverified_observation') return false;
+  const quantity = toNumber(row.quantity ?? row.qty ?? row.stock ?? row.onHand ?? row.on_hand);
+  const status = normalizeStatus(row.status || row.availability || row.availabilityStatus, quantity);
+  return status === 'in_stock' || status === 'out_of_stock';
+}
+
 function matchBottle(rawName, bible, watchItem) {
   const candidates = [rawName, watchItem?.canonicalName, ...(watchItem?.aliases || [])].filter(Boolean);
   for (const candidate of candidates) {
@@ -184,19 +198,29 @@ export async function collectCostco(config, bible) {
     row.observedAt || row.fetchedAt || row.updatedAt,
     generatedAt,
   ));
-  const signals = rows.map((row) => normalizeObservation(row, bible, index, generatedAt, targetState, fetchedAt)).filter(Boolean).slice(0, 500);
+  const validFreshTargetRows = freshTargetRows.filter((row) => isValidMonitoredObservation(row, index, generatedAt, targetState));
+  const signals = validFreshTargetRows.map((row) => normalizeObservation(row, bible, index, generatedAt, targetState, fetchedAt)).filter(Boolean).slice(0, 500);
   const roadblocks = [];
-  if (!freshTargetRows.length) {
+  if (!validFreshTargetRows.length) {
     const hasTargetHistory = targetRows.length > 0;
+    const status = !hasTargetHistory
+      ? 'not_configured'
+      : !validTimestampTargetRows.length
+        ? 'invalid_timestamp'
+        : !freshTargetRows.length
+          ? 'stale'
+          : 'invalid_observation';
     roadblocks.push({
       state: config.id,
       source: 'Costco warehouse observation feed',
       url: observationsPath,
-      status: !hasTargetHistory ? 'not_configured' : validTimestampTargetRows.length ? 'stale' : 'invalid_timestamp',
+      status,
       error: hasTargetHistory
-        ? validTimestampTargetRows.length
-          ? `Costco observations exist for ${config.id}, but none are within the ${maxObservationAgeHours()}-hour freshness window.`
-          : `Costco observations exist for ${config.id}, but neither the rows nor feed provide a valid source timestamp.`
+        ? !validTimestampTargetRows.length
+          ? `Costco observations exist for ${config.id}, but neither the rows nor feed provide a valid source timestamp.`
+          : !freshTargetRows.length
+            ? `Costco observations exist for ${config.id}, but none are within the ${maxObservationAgeHours()}-hour freshness window.`
+            : `Fresh Costco rows exist for ${config.id}, but none bind a monitored item, warehouse identity, source, and valid availability status.`
         : `No Costco warehouse observations are configured for ${config.id}.`,
       nextRoute: 'Refresh COSTCO_OBSERVATIONS_FILE from the Costco app/warehouse inventory monitor using the item-number watchlist; keep Bourbon Signal alert copy/source semantics.'
     });
@@ -216,6 +240,7 @@ export async function collectCostco(config, bible) {
         url: watchlistPath,
         kind: 'json',
         ok: watchlist.length > 0,
+        reachabilityEligible: false,
         signalType: 'costco_item_watchlist',
         matchedBottleCount: 0,
         configuredItemCount: watchlist.length
@@ -224,21 +249,37 @@ export async function collectCostco(config, bible) {
         label: 'Costco warehouse observations',
         url: observationsPath,
         kind: 'json',
-        ok: freshTargetRows.length > 0,
+        ok: validFreshTargetRows.length > 0,
+        reachabilityEligible: true,
+        signalProducingEligible: signals.length > 0,
+        zeroOutputExpected: validFreshTargetRows.length > 0 && signals.length === 0,
         signalType: signals.length
           ? 'costco_warehouse_inventory_result'
-          : freshTargetRows.length
+          : validFreshTargetRows.length
             ? 'costco_warehouse_no_current_inventory'
             : targetRows.length
-              ? validTimestampTargetRows.length ? 'costco_observation_feed_stale' : 'costco_observation_timestamp_invalid'
+              ? !validTimestampTargetRows.length
+                ? 'costco_observation_timestamp_invalid'
+                : !freshTargetRows.length
+                  ? 'costco_observation_feed_stale'
+                  : 'costco_observation_invalid'
               : 'costco_observation_feed_missing',
         matchedBottleCount: signals.length,
         observedRowCount: targetRows.length,
-        freshObservedRowCount: freshTargetRows.length
+        freshObservedRowCount: freshTargetRows.length,
+        validFreshObservedRowCount: validFreshTargetRows.length
       }
     ],
     signals,
     roadblocks,
-    status: signals.length ? 'signals_normalized' : 'watchlist_ready_no_current_inventory'
+    status: signals.length
+      ? 'signals_normalized'
+      : validFreshTargetRows.length
+        ? 'monitored_no_current_inventory'
+        : !targetRows.length
+          ? 'observation_feed_missing'
+          : !validTimestampTargetRows.length || freshTargetRows.length
+            ? 'observation_feed_invalid'
+            : 'observation_feed_stale'
   };
 }

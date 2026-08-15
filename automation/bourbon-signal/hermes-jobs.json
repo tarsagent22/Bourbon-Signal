@@ -40,7 +40,7 @@
       "schedule": "15 2 * * *",
       "deliver": "telegram:-5461081025",
       "noAgent": false,
-      "script": null,
+      "script": "resolve-source-scout-input.mjs",
       "workdir": "C:\\c\\Users\\chand\\projects\\Bourbon-Signal-autonomous",
       "active": true,
       "provider": "openai-codex",

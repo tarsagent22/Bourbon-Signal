@@ -32,16 +32,12 @@ const BASE_STATE_SOURCES = [
   {
     id: 'OH', label: 'Ohio OHLQ', tier: 'A', strategy: 'inventory_locator', cadence: '15-60m',
     value: 'OHLQ catalog and store availability; strong bourbon-hunter value when availability map is accessible.',
-    sources: [
-      { kind: 'html', url: 'https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american', label: 'OHLQ bourbon catalog' },
-      { kind: 'html', url: 'https://www.ohlq.com/about-ohlq/frequently-asked-questions', label: 'OHLQ inventory FAQ' },
-      { kind: 'html', url: 'https://www.ohlq.com/', label: 'OHLQ release homepage' }
-    ],
-    apiCandidates: [
-      'https://www.ohlq.com/api/search?keyword=bourbon',
-      'https://www.ohlq.com/api/products?productsubtype=bourbon&producttype=american',
-      'https://www.ohlq.com/api/product-availability/{sku}?isExclusive=false&sortByAvailability=true&sku={sku}'
-    ]
+    precisionSource: {
+      label: 'Ohio OHLQ precision collector',
+      url: 'https://www.ohlq.com/liquor/whiskey?productsubtype=bourbon&producttype=american',
+    },
+    sources: [],
+    apiCandidates: []
   },
   {
     id: 'OR', label: 'Oregon OLCC / Oregon Liquor Search', tier: 'A', strategy: 'inventory_locator', cadence: 'paused',
@@ -113,10 +109,7 @@ const BASE_STATE_SOURCES = [
       { kind: 'html', url: 'https://www.finewineandgoodspirits.com/faq', label: 'FWGS FAQ' },
       { kind: 'html', url: 'https://www.lcb.pa.gov/pages/search.aspx', label: 'PLCB search portal' }
     ],
-    apiCandidates: [
-      'https://www.finewineandgoodspirits.com/ccstoreui/v1/search?Ntt=bourbon',
-      'https://www.apps.lcb.pa.gov/webapp/Product_Management/psi_ProductDefault_Inter.asp'
-    ]
+    apiCandidates: []
   },
   {
     id: 'ID', label: 'Idaho State Liquor Division', tier: 'B', strategy: 'catalog_limited_release_watch', cadence: 'daily',
@@ -513,7 +506,6 @@ const BASE_STATE_SOURCES = [
       ...FLORIDA_ABC_STORES.slice(0, 1).map((source) => ({ name: source.sourceLabel, label: source.sourceLabel, url: source.searchUrl, precisionOnly: true })),
       ...FLORIDA_GOTOLIQUOR_STORES.map((source) => ({ name: source.sourceLabel, label: source.sourceLabel, url: source.categoryUrl, precisionOnly: true })),
       { name: FLORIDA_TIVOLI_SOURCE.sourceLabel, label: FLORIDA_TIVOLI_SOURCE.sourceLabel, url: FLORIDA_TIVOLI_SOURCE.productUrl, precisionOnly: true },
-      { name: 'Florida Plaza Liquors bourbon catalog', label: 'Florida Plaza Liquors bourbon catalog', url: 'https://www.floridaplazaliquors.com/s-11422/c-2/buy-liquor/t-11/buy-bourbon-whiskey' },
       { name: 'Liquor Depot Tampa online quantity watch', label: 'Liquor Depot Tampa online quantity watch', url: 'https://www.liquordepottampa.com/shop-picks', precisionOnly: true },
       { name: "Gaspar's Liquor Shoppe Lightspeed store inventory", label: "Gaspar's Liquor Shoppe Lightspeed store inventory", url: 'https://www.gasparsliquorshoppe.com/bourbon/', precisionOnly: true }
     ],

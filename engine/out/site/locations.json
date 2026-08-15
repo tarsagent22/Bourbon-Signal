@@ -1,6 +1,6 @@
 {
   "contractVersion": "bourbon-signal-site-v0.1",
-  "count": 5678,
+  "count": 5677,
   "locations": [
     {
       "id": "7e4332f37178b757",
@@ -58033,30 +58033,6 @@
       "lastSignalAt": "2026-07-16T22:53:18.196Z",
       "lastVerifiedAt": null,
       "notes": "Montgomery ABS product search/postback exposes county product rows and HAL/allocated flags. Store-level modal rows remain separate and should only alert as store inventory when extracted."
-    },
-    {
-      "id": "59cfc4e1b0979d96",
-      "state": "MI",
-      "type": "area",
-      "locationType": "area",
-      "name": "Michigan Costco warehouse bourbon watch",
-      "address": null,
-      "city": null,
-      "county": null,
-      "zip": null,
-      "lat": null,
-      "lng": null,
-      "precision": "statewide_catalog",
-      "source": "Michigan MLCC retail price changes PDF",
-      "sourceUrl": "https://www.michigan.gov/lara/-/media/Project/Websites/lara/lcc/Price-Book/2-1-26-RETAIL-PRICE-CHANGES-PDF.pdf",
-      "inventoryCapability": "statewide_catalog",
-      "searchable": true,
-      "collectorAttached": true,
-      "hasSignals": true,
-      "signalCount": 2,
-      "lastSignalAt": "2026-07-16T22:54:43.880Z",
-      "lastVerifiedAt": null,
-      "notes": "Michigan MLCC price book/new item lists are wholesale/catalog intelligence, not consumer store inventory."
     },
     {
       "id": "ecba2215b3495b41",

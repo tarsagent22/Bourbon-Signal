@@ -668,6 +668,25 @@ function signalFreshnessKey(signal) {
   ].map((value) => String(value).toLowerCase().trim()).join('|');
 }
 
+function isGeorgiaRetailerProjectionSignal(signal) {
+  return signal?.state === 'GA'
+    && /^(retailer_store_inventory_result|cityhive_store_inventory_result)$/i.test(String(signal.eventType || signal.type || ''))
+    && signal.locationPrecision === 'store_level';
+}
+
+function currentProjectionKey(signal) {
+  return [
+    signalFreshnessKey(signal),
+    signal.observedAt || signal.fetchedAt || '',
+    signal.stale === true,
+    signal.sourceStale === true,
+    signal.raw?.staleFallback === true,
+    signal.sourceAvailabilityVerified === true,
+    signal.canAlertAsInventory === true,
+    signal.canAlertAsWatch === true,
+  ].join('|');
+}
+
 function validSourceEventAt(value, fetchedAt = null) {
   const ts = Date.parse(value || '');
   if (!Number.isFinite(ts)) return null;
@@ -1050,6 +1069,9 @@ export function buildDrops(signals, bible, currentSignals = []) {
   const seenSourceIds = new Set();
   const freshnessIndex = buildFreshnessIndex(signals, currentSignals);
   const currentKeys = new Set(currentSignals.map(signalFreshnessKey));
+  const currentGeorgiaRetailerKeys = new Set((currentSignals || [])
+    .filter(isGeorgiaRetailerProjectionSignal)
+    .map(currentProjectionKey));
   const currentIowaLeadSourceIds = new Set((currentSignals || [])
     .filter((signal) => signal.state === 'IA' && /^(store_delivery_snapshot|store_allocation_snapshot)$/i.test(String(signal.eventType || '')))
     .map((signal) => signal.key || signal.id || signal.sourceSignalId)
@@ -1061,6 +1083,7 @@ export function buildDrops(signals, bible, currentSignals = []) {
   const seenAggregateLeadIds = new Set();
   return signals
     .filter((s) => isSafePublicSignal(s))
+    .filter((s) => !isGeorgiaRetailerProjectionSignal(s) || currentGeorgiaRetailerKeys.has(currentProjectionKey(s)))
     .filter((s) => isFreshCurrentInventorySignal(s, currentKeys))
     .filter((s) => {
       if (s.state !== 'IA' || !/^(store_delivery_snapshot|store_allocation_snapshot)$/i.test(String(s.eventType || ''))) return true;

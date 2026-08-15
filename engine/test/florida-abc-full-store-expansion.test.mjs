@@ -255,7 +255,26 @@ test('immutable verifier requires current policy-qualified rows for all 126 ABC 
   assert.equal(summary.stores, 136);
   assert.equal(summary.abcStores, 126);
   assert.equal(summary.nonAbcStores, 10);
+
+  const primoIndex = inventory.findIndex((signal) => signal.storeId === 'primo-liquors:southeast');
+  const exactZero = {
+    ...inventory[primoIndex],
+    quantity: 0,
+    reportedQuantity: 0,
+    availabilityStatus: 'out_of_stock',
+    canAlertAsInventory: false,
+    canAlertAsWatch: false,
+    raw: { ...inventory[primoIndex].raw, reportedQuantity: 0 },
+  };
+  const observed = inventory.with(primoIndex, exactZero);
+  assert.equal(observed.filter(isFloridaRetailerInventory).length, 135);
+  const observedSummary = verifyFloridaExpansionArtifact({ state: { ...state, signals: observed }, baseline: immutableBaseline, now: Date.now() });
+  assert.equal(observedSummary.stores, 136);
+  assert.equal(observedSummary.inventorySignals, 135);
+  assert.equal(observedSummary.netNewLiveStores, 135);
   assert.throws(() => verifyFloridaExpansionArtifact({ state: { ...state, signals: inventory.slice(1) }, baseline: immutableBaseline, now: Date.now() }), /136|missing/i);
+  assert.throws(() => verifyFloridaExpansionArtifact({ state: { ...state, signals: observed.with(primoIndex, { ...exactZero, observedAt: '2026-08-01T00:00:00.000Z' }) }, baseline: immutableBaseline, now: Date.now() }), /136|missing/i);
+  assert.throws(() => verifyFloridaExpansionArtifact({ state: { ...state, signals: observed.with(primoIndex, { ...exactZero, reportedQuantity: 1, raw: { ...exactZero.raw, reportedQuantity: 1 } }) }, baseline: immutableBaseline, now: Date.now() }), /136|missing/i);
   assert.throws(() => verifyFloridaExpansionArtifact({ state: { ...state, signals: inventory.map((row, index) => index === 10 ? { ...row, lat: row.lat + 0.001 } : row) }, baseline: immutableBaseline, now: Date.now() }), /136|missing|identity/i);
 });
 

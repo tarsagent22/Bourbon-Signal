@@ -83,7 +83,7 @@
     "ops:automation-cost": "node automation/bourbon-signal/automation-cost-report.mjs",
     "ops:operator-outcomes": "node automation/bourbon-signal/operator-outcomes.mjs",
     "verify:automation": "node scripts/verify-automation-registry.mjs",
-    "test:agent-cost-automation": "node --no-warnings --experimental-strip-types scripts/test-agent-cost-automation.mjs",
+    "test:agent-cost-automation": "node --no-warnings --experimental-strip-types scripts/test-agent-cost-automation.mjs && node scripts/test-source-scout-input.mjs",
     "watchdog:alerts": "node scripts/bourbon-signal-alert-watchdog.mjs --quiet",
     "watchdog:engine": "node scripts/production-engine-watchdog.mjs",
     "test:production-engine-watchdog": "node scripts/test-production-engine-watchdog.mjs",

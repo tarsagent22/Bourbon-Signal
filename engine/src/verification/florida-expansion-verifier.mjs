@@ -5,7 +5,7 @@ import {
   FLORIDA_ABC_STORE_REGISTRY_SHA256,
   FLORIDA_EXPANSION_STORE_TARGETS,
 } from '../collectors/florida-15-20-expansion.mjs';
-import { isFloridaRetailerInventory } from '../florida-retailer-policy.mjs';
+import { isFloridaRetailerInventory, isFloridaRetailerOutOfStockObservation } from '../florida-retailer-policy.mjs';
 
 export const FLORIDA_EXPANSION_BASELINE_STORE_IDS_SHA256 = '947b15aeb247b25ff09e8e98f475a552a605c6eee1f83c39e1b09dce40b2fcfb';
 export const FLORIDA_EXPANSION_TARGET_STORE_COUNT = 136;
@@ -55,34 +55,37 @@ export function verifyFloridaExpansionArtifact({ state, baseline, now = Date.now
 
   const inventory = (state?.signals || []).filter((signal) => targetByStoreId.has(String(signal.storeId || ''))
     && /^(?:retailer|cityhive)_store_inventory_result$/i.test(String(signal.eventType || '')));
-  const freshTrusted = inventory.filter((signal) => {
+  const freshObserved = inventory.filter((signal) => {
     const observedAt = new Date(signal.observedAt || 0).getTime();
     return Number.isFinite(observedAt)
       && observedAt <= nowMs
       && nowMs - observedAt <= maximumAgeMs
-      && isFloridaRetailerInventory(signal);
+      && (isFloridaRetailerInventory(signal) || isFloridaRetailerOutOfStockObservation(signal));
   });
-  const trustedStoreIds = new Set(freshTrusted.map((signal) => signal.storeId));
-  const missing = FLORIDA_EXPANSION_STORE_TARGETS.filter((store) => !trustedStoreIds.has(store.storeId));
-  const identityMismatches = freshTrusted.filter((signal) => signalIdentityMismatch(signal, targetByStoreId.get(signal.storeId)));
-  assert(trustedStoreIds.size === FLORIDA_EXPANSION_TARGET_STORE_COUNT, `Expected fresh trusted inventory from all ${FLORIDA_EXPANSION_TARGET_STORE_COUNT} frozen Florida expansion stores; got ${trustedStoreIds.size}.`, missing);
+  const freshTrustedInventory = freshObserved.filter(isFloridaRetailerInventory);
+  const observedStoreIds = new Set(freshObserved.map((signal) => signal.storeId));
+  const liveInventoryStoreIds = new Set(freshTrustedInventory.map((signal) => signal.storeId));
+  const missing = FLORIDA_EXPANSION_STORE_TARGETS.filter((store) => !observedStoreIds.has(store.storeId));
+  const identityMismatches = freshObserved.filter((signal) => signalIdentityMismatch(signal, targetByStoreId.get(signal.storeId)));
+  assert(observedStoreIds.size === FLORIDA_EXPANSION_TARGET_STORE_COUNT, `Expected fresh trusted observation from all ${FLORIDA_EXPANSION_TARGET_STORE_COUNT} frozen Florida expansion stores; got ${observedStoreIds.size}.`, missing);
   assert(!missing.length, 'Florida expansion state report is missing a frozen exact-store identity.', missing);
   assert(!identityMismatches.length, 'Florida expansion state report contains an identity mismatch.', identityMismatches);
 
   return {
     status: 'ok',
     stateStatus: state.status,
-    stores: trustedStoreIds.size,
-    abcStores: new Set(freshTrusted.filter((signal) => String(signal.storeId || '').startsWith('abc-fine-wine-spirits:')).map((signal) => signal.storeId)).size,
-    nonAbcStores: new Set(freshTrusted.filter((signal) => !String(signal.storeId || '').startsWith('abc-fine-wine-spirits:')).map((signal) => signal.storeId)).size,
-    inventorySignals: freshTrusted.length,
+    stores: observedStoreIds.size,
+    abcStores: new Set(freshObserved.filter((signal) => String(signal.storeId || '').startsWith('abc-fine-wine-spirits:')).map((signal) => signal.storeId)).size,
+    nonAbcStores: new Set(freshObserved.filter((signal) => !String(signal.storeId || '').startsWith('abc-fine-wine-spirits:')).map((signal) => signal.storeId)).size,
+    inventorySignals: freshTrustedInventory.length,
+    outOfStockObservations: freshObserved.length - freshTrustedInventory.length,
     baselineInventoryStores: baselineInventoryStoreIds.size,
-    netNewLiveStores: trustedStoreIds.size,
+    netNewLiveStores: liveInventoryStoreIds.size,
     abcRegistrySha256: FLORIDA_ABC_STORE_REGISTRY_SHA256,
     platforms: Object.fromEntries([...new Set(FLORIDA_EXPANSION_STORE_TARGETS.map((store) => store.platform))]
       .sort()
       .map((platform) => [platform, new Set(FLORIDA_EXPANSION_STORE_TARGETS.filter((store) => store.platform === platform).map((store) => store.storeId)).size])),
-    storeIds: [...trustedStoreIds].sort(),
+    storeIds: [...observedStoreIds].sort(),
     maximumAgeMinutes: maximumAgeMs / 60_000,
   };
 }

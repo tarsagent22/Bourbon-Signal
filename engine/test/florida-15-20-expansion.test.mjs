@@ -181,7 +181,7 @@ test('ABC official directory validation is pinned to four queries and fails clos
   assert.throws(() => floridaExpansion.validateFloridaAbcDirectoryResponses(extra), /extra|unexpected|universe/i);
 });
 
-test('Primo parser binds one products page to same-host product URLs and exact configured positive stock only', () => {
+test('Primo parser preserves exact configured zero stock while rejecting invalid quantities and identities', () => {
   const products = parsePrimoProductsJson(JSON.stringify({ products: [
     { id: 1, title: 'Buffalo Trace 750ml', handle: 'buffalo-trace-750ml', variants: [{ id: 11, title: 'Default Title', available: true, price: '29.99' }] },
     { id: 2, title: 'Buffalo Trace Candle 750ml', handle: 'buffalo-trace-candle', variants: [{ id: 22, available: true }] },
@@ -200,11 +200,14 @@ test('Primo parser binds one products page to same-host product URLs and exact c
       davie: { quantity: 6, address: '5993 Stirling Rd, Davie, FL 33314' },
       weston: 8,
       'fort-lauderdale': 0,
-      'bayview-sunrise': 1.5,
+      southeast: '',
+      'bayview-sunrise': null,
+      'unknown-store': 3,
     })}</script>`);
   assert.deepEqual(objectRows, [
     { store: FLORIDA_PRIMO_STORES.get('southwest-ranches'), quantity: 11 },
     { store: FLORIDA_PRIMO_STORES.get('davie'), quantity: 6 },
+    { store: FLORIDA_PRIMO_STORES.get('fort-lauderdale'), quantity: 0 },
   ]);
 
   const legacyRows = parsePrimoProductStock(`
@@ -214,7 +217,41 @@ test('Primo parser binds one products page to same-host product URLs and exact c
       { code: 'weston', quantity: 4, address: '2390 Weston Rd, Weston, FL 33326' },
     ])}</script>`);
   assert.deepEqual(legacyRows, [{ store: FLORIDA_PRIMO_STORES.get('southeast'), quantity: 2 }]);
+  assert.deepEqual(parsePrimoProductStock(`<script data-primo-product-stock>${JSON.stringify({ southeast: '0x10' })}</script>`), []);
   assert.deepEqual(parsePrimoProductStock('<script data-primo-product-stock>{bad json}</script>'), []);
+});
+
+test('Primo exact zero stock becomes non-alertable out-of-stock evidence', async () => {
+  const productUrl = 'https://primoliquors.com/products/buffalo-trace-750ml';
+  const result = await floridaExpansion.collectFloridaPrimo({
+    observedAt,
+    matchBottle: matchedBottle,
+    sleep: async () => {},
+    fetchText: async (url) => ({
+      ok: true,
+      status: 200,
+      url,
+      text: url === FLORIDA_PRIMO_SOURCE.productsUrl
+        ? JSON.stringify({ products: [{ id: 1, title: 'Buffalo Trace 750ml', handle: 'buffalo-trace-750ml', variants: [{ id: 11, title: 'Default Title', available: true, price: '29.99' }] }] })
+        : `<script data-primo-product-stock type="application/json">${JSON.stringify({
+          'southwest-ranches': 4,
+          southeast: { quantity: 0, address: FLORIDA_PRIMO_STORES.get('southeast').address },
+        })}</script>`,
+    }),
+  });
+
+  assert.equal(result.roadblocks.length, 0);
+  assert.equal(result.signals.length, 2);
+  const zero = result.signals.find((signal) => signal.storeId === 'primo-liquors:southeast');
+  assert.equal(zero.sourceUrl, productUrl);
+  assert.equal(zero.quantity, 0);
+  assert.equal(zero.reportedQuantity, 0);
+  assert.equal(zero.quantityIsExact, true);
+  assert.equal(zero.availabilityStatus, 'out_of_stock');
+  assert.equal(zero.canAlertAsInventory, false);
+  assert.equal(zero.canAlertAsWatch, false);
+  assert.equal(isFloridaRetailerInventory(zero), false);
+  assert.deepEqual(buildCurrentInventoryAlertsFromDrops([zero]), []);
 });
 
 test('single-premises Shopify shipment parsers reject unavailable, non-bottle, mini, multipack, and forged-host rows', () => {

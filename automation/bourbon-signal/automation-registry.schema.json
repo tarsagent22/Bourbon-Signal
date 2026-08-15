@@ -27,6 +27,7 @@
         "active": { "const": true },
         "ownerLayer": { "enum": ["deterministic", "sensor", "operator", "brief"] },
         "executionClass": { "enum": ["script_only", "script_then_agent", "agent"] },
+        "script": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]*\\.mjs$" },
         "frequency": { "type": "string", "minLength": 3, "maxLength": 80 },
         "delivery": { "enum": ["local", "main_chat", "ops_chat", "github_only"] },
         "agent": {

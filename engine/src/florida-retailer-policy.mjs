@@ -103,7 +103,7 @@ function floridaExpansionIdentityIsValid(identity, signal, sourceStrictHostname)
   const sourceInventorySemantics = String(signal.sourceInventorySemantics || signal.inventorySemantics || '');
   if (target.platform === 'primo' || target.platform === 'abc-searchspring') {
     const exactQuantityValid = Number.isInteger(quantity)
-      && quantity > 0
+      && quantity >= 0
       && (target.platform !== 'abc-searchspring' || quantity < 100)
       && signal.quantityIsExact === true
       && Number.isInteger(reportedQuantity)
@@ -300,6 +300,27 @@ export function isFloridaRetailerInventory(signal) {
     && signal.canAlertAsInventory === true
     && signal.sourceAvailabilityVerified === true
     && signal.availabilityStatus === 'in_stock'
+    && (signal.quantityIsExact !== true || Number(signal.quantity) > 0)
+    && Boolean(signal.storeId)
+    && /,\s*FL\s+\d{5}/i.test(String(signal.storeAddress || ''));
+}
+
+export function isFloridaRetailerOutOfStockObservation(signal) {
+  const reportedQuantity = Number(signal.reportedQuantity ?? signal.raw?.reportedQuantity);
+  return signal.state === 'FL'
+    && String(signal.sourceChain || signal.raw?.chain || '') === 'primo-liquors'
+    && /^(retailer_store_inventory_result|cityhive_store_inventory_result)$/i.test(String(signal.eventType || signal.type || ''))
+    && isFloridaRetailerSignalIdentity(signal)
+    && signal.locationPrecision === 'store_level'
+    && signal.quantityIsExact === true
+    && Number(signal.quantity) === 0
+    && reportedQuantity === 0
+    && signal.inventorySemantics === 'exact_retailer_reported_quantity'
+    && signal.sourceAvailabilityVerified === true
+    && signal.premisesVerified === true
+    && signal.availabilityStatus === 'out_of_stock'
+    && signal.canAlertAsInventory === false
+    && signal.canAlertAsWatch === false
     && Boolean(signal.storeId)
     && /,\s*FL\s+\d{5}/i.test(String(signal.storeAddress || ''));
 }

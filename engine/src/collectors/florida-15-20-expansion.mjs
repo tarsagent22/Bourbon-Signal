@@ -324,8 +324,13 @@ export function parsePrimoProductStock(html) {
   const seen = new Set();
   for (const candidate of candidates) {
     const store = FLORIDA_PRIMO_STORES.get(candidate.code);
-    const quantity = Number(candidate.quantity);
-    if (!store || seen.has(candidate.code) || !Number.isInteger(quantity) || quantity <= 0) continue;
+    const rawQuantity = candidate.quantity;
+    const normalizedQuantity = typeof rawQuantity === 'number' || typeof rawQuantity === 'string'
+      ? String(rawQuantity).trim()
+      : '';
+    if (!/^(?:0|[1-9]\d*)$/u.test(normalizedQuantity)) continue;
+    const quantity = Number(normalizedQuantity);
+    if (!store || seen.has(candidate.code) || !Number.isInteger(quantity) || quantity < 0) continue;
     if (candidate.address != null && String(candidate.address) !== store.address) continue;
     seen.add(candidate.code);
     rows.push({ store, quantity });
@@ -698,6 +703,7 @@ function expansionInventorySignal(target, product, matched, observedAt) {
   const { match, record, unsafeReason } = matched || {};
   if (!record) return null;
   const exactQuantity = product.quantityIsExact === true;
+  const exactOutOfStock = exactQuantity && Number(product.quantity) === 0;
   const sourceKind = target.platform === 'primo'
     ? 'Primo exact-store stock map'
     : target.platform === 'shopify'
@@ -740,21 +746,25 @@ function expansionInventorySignal(target, product, matched, observedAt) {
     quantityIsExact: exactQuantity,
     reportedQuantity: exactQuantity ? Number(product.quantity) : 0,
     price: product.price ?? null,
-    availabilityStatus: 'in_stock',
-    availabilityLabel: exactQuantity
+    availabilityStatus: exactOutOfStock ? 'out_of_stock' : 'in_stock',
+    availabilityLabel: exactOutOfStock
+      ? 'Retailer reports out of stock'
+      : exactQuantity
       ? `Retailer reports ${Number(product.quantity)} available`
       : 'Retailer reports shipment/orderable; exact shelf count is not published',
     sourceAvailabilityVerified: true,
     premisesVerified: true,
     observedAt,
-    canAlertAsInventory: true,
-    canAlertAsWatch: true,
+    canAlertAsInventory: !exactOutOfStock,
+    canAlertAsWatch: !exactOutOfStock,
     inventorySemantics: exactQuantity
       ? 'exact_retailer_reported_quantity'
       : target.platform === 'gotoliquorstore'
         ? 'binary_exact_premises_pickup_orderable_no_shelf_count'
         : 'binary_exact_premises_shipment_orderable_no_shelf_count',
-    evidence: exactQuantity
+    evidence: exactOutOfStock
+      ? `${target.name} reports 0 of ${product.rawName} at ${target.address}; this is fresh out-of-stock evidence and cannot alert.`
+      : exactQuantity
       ? `${target.name} reports ${Number(product.quantity)} of ${product.rawName} at ${target.address}. Verify before driving.`
       : `${target.name} publishes ${product.rawName} as shipment/orderable from its configured premises at ${target.address}; this is not a shelf count. Verify directly with the retailer.`,
     raw: {

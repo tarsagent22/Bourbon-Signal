@@ -7,7 +7,7 @@ import {
   FLORIDA_STAR_LIQUORS_SOURCE,
 } from '../src/collectors/florida-retailer-surfaces.mjs';
 import { isFloridaRetailerInventory } from '../src/florida-retailer-policy.mjs';
-import { verifyFloridaStarExpansionArtifact } from '../src/verification/florida-star-expansion-verifier.mjs';
+import { FLORIDA_STAR_EXPANSION_MINIMUM_NET_NEW_STORES, verifyFloridaStarExpansionArtifact } from '../src/verification/florida-star-expansion-verifier.mjs';
 
 const observedAt = new Date().toISOString();
 const baseline = JSON.parse(readFileSync(new URL('../data/florida-star-expansion-baseline.json', import.meta.url), 'utf8'));
@@ -129,6 +129,7 @@ test('Florida Star verification isolates scheduled failure while targeted recove
 });
 
 test('production verifier requires at least 20 Star stores and preserves all 180 baseline stores', () => {
+  assert.equal(FLORIDA_STAR_EXPANSION_MINIMUM_NET_NEW_STORES, 20, 'Star expansion remains positive-inventory-only at its frozen target');
   const policyFixture = JSON.parse(readFileSync(new URL('./fixtures/florida-star-baseline-policy-signals.json', import.meta.url), 'utf8'));
   assert.equal(policyFixture.contractVersion, 'bourbon-signal/florida-star-baseline-policy-signals@1');
   const retained = policyFixture.signals.map((signal) => ({ ...signal, observedAt }));
@@ -167,6 +168,12 @@ test('production verifier requires at least 20 Star stores and preserves all 180
 
   assert.throws(() => verifyFloridaStarExpansionArtifact({
     state: { ...state, signals: [...retained, ...star.slice(0, 19)] },
+    baseline,
+    now: Date.now(),
+  }), /at least 20|got 19/i);
+  const zeroStar = { ...star[19], quantity: 0, reportedQuantity: 0, availabilityStatus: 'out_of_stock', canAlertAsInventory: false, canAlertAsWatch: false, raw: { ...star[19].raw, reportedQuantity: 0 } };
+  assert.throws(() => verifyFloridaStarExpansionArtifact({
+    state: { ...state, signals: [...retained, ...star.slice(0, 19), zeroStar] },
     baseline,
     now: Date.now(),
   }), /at least 20|got 19/i);

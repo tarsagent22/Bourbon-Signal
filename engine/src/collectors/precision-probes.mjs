@@ -9368,7 +9368,8 @@ const LEGACY_PRECISION_RUNTIME_STATES = new Set([
 ]);
 
 function precisionRuntimeUrl(config) {
-  return (config.sources || []).find((source) => source.precisionOnly && source.url)?.url
+  return config.precisionSource?.url
+    || (config.sources || []).find((source) => source.precisionOnly && source.url)?.url
     || config.sources?.[0]?.url
     || null;
 }

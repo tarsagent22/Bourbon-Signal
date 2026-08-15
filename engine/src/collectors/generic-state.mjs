@@ -10,6 +10,10 @@ import { MalformedSourceError, sourceErrorForHttp, TransientSourceError } from '
 import { summarizeSourceResult } from '../sources/source-result.mjs';
 import { runSourceAdapters } from '../sources/source-runner.mjs';
 import { SourceCircuitBreaker } from '../sources/circuit-breaker.mjs';
+import {
+  sourceReportCountsTowardReachability,
+  sourceReportProvesMonitoredNoInventory,
+} from '../sources/source-report-semantics.mjs';
 import { applyNcBoardShipmentPolicy } from './north-carolina-intelligence.mjs';
 import {
   collectWestVirginiaRecentPurchases,
@@ -491,23 +495,7 @@ export async function collectState(config, bible, options = {}) {
     sourceRuntimeKind: 'api',
   }));
   for (const source of [...(config.sources || []), ...apiCandidates]) {
-    if (source.precisionOnly) {
-      sourceReports.push({
-        label: source.label,
-        url: source.url,
-        ok: true,
-        status: 0,
-        contentType: 'precision-probe-only',
-        bytes: 0,
-        elapsedMs: 0,
-        signalType: 'skipped_precision_probe_only',
-        matchedBottleCount: 0,
-        pdfLinkCount: 0,
-        documentLinkCount: 0,
-        error: null
-      });
-      continue;
-    }
+    if (source.precisionOnly) continue;
     const sourceId = configuredSourceId(config, source);
     configuredSources.push({ source, sourceId });
     configuredAdapters.push(createSourceAdapter({
@@ -636,6 +624,8 @@ export async function collectState(config, bible, options = {}) {
 
   const dedupedSignals = [...new Map(signals.map((signal) => [signal.id, config.id === 'NC' && signal.eventType === 'nc_board_shipment_snapshot' ? applyNcBoardShipmentPolicy(signal) : signal])).values()];
   const retainedNotDue = isRetainedNotDueReport(sourceResults, dedupedSignals);
+  const reachableSourceReports = sourceReports.filter(sourceReportCountsTowardReachability);
+  const monitoredNoCurrentInventory = reachableSourceReports.some(sourceReportProvesMonitoredNoInventory);
   const finishedAt = new Date().toISOString();
   const sourceLastGoodTimes = sourceResults.map((result) => Date.parse(result.lastGoodAt || '')).filter(Number.isFinite);
   const lastGoodAt = sourceResults.length
@@ -663,9 +653,11 @@ export async function collectState(config, bible, options = {}) {
     staleFallbackAt: precisionProbe.staleFallbackAt || null,
     previousFinishedAt: precisionProbe.previousFinishedAt || null,
     status: precisionProbe.stale
-      ? `stale_${sourceReports.some((s) => s.ok && (s.matchedBottleCount > 0 || s.pdfLinkCount > 0 || s.documentLinkCount > 0)) ? 'useful' : sourceReports.some((s) => s.ok) ? 'reachable_needs_deeper_parser' : 'blocked'}`
+      ? `stale_${reachableSourceReports.some((s) => s.matchedBottleCount > 0 || s.pdfLinkCount > 0 || s.documentLinkCount > 0) ? 'useful' : reachableSourceReports.length ? 'reachable_needs_deeper_parser' : 'blocked'}`
       : retainedNotDue
         ? 'useful_retained_not_due'
-        : sourceReports.some((s) => s.ok && (s.matchedBottleCount > 0 || s.pdfLinkCount > 0 || s.documentLinkCount > 0)) ? 'useful' : sourceReports.some((s) => s.ok) ? 'reachable_needs_deeper_parser' : 'blocked'
+        : monitoredNoCurrentInventory
+          ? 'monitored_no_current_inventory'
+          : reachableSourceReports.some((s) => s.matchedBottleCount > 0 || s.pdfLinkCount > 0 || s.documentLinkCount > 0) ? 'useful' : reachableSourceReports.length ? 'reachable_needs_deeper_parser' : 'blocked'
   };
 }
