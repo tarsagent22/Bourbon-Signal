@@ -3,6 +3,7 @@ import { spawn } from 'node:child_process';
 import { mkdir, open, readFile, rename, rm, stat, writeFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
+import { gzipSync } from 'node:zlib';
 
 import { classifyOhlqBrowserState, deterministicOhlqUploadId, resolveOhlqWorkerPaths } from './lib/ohlq-worker-runtime.mjs';
 
@@ -160,10 +161,11 @@ async function uploadArtifact(rawArtifact) {
     headers: {
       authorization: `Bearer ${secret}`,
       'content-type': 'application/json',
+      'content-encoding': 'gzip',
       'x-ohlq-timestamp': timestamp,
       'x-ohlq-signature': signature,
     },
-    body,
+    body: gzipSync(body, { level: 9 }),
     signal: AbortSignal.timeout(60_000),
   });
   const text = await response.text();

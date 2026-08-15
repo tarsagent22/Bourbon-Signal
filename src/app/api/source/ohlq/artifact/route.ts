@@ -1,7 +1,9 @@
+import { gunzipSync } from "node:zlib";
 import { NextRequest, NextResponse } from "next/server";
 
 import {
   OHLQ_WORKER_MAX_BODY_BYTES,
+  OHLQ_WORKER_MAX_COMPRESSED_BYTES,
   authorizeOhlqWorkerBearer,
   verifyOhlqWorkerUploadSignature,
 } from "@/lib/ohlq-worker-artifact";
@@ -38,11 +40,20 @@ export async function POST(request: NextRequest) {
   if (request.nextUrl.search) return NextResponse.json({ error: "This endpoint accepts no query parameters." }, { status: 400, headers: PRIVATE_HEADERS });
   const denied = unauthorized(request);
   if (denied) return denied;
+  const compressed = request.headers.get("content-encoding")?.toLowerCase() === "gzip";
   const declaredLength = Number(request.headers.get("content-length"));
-  if (Number.isFinite(declaredLength) && declaredLength > OHLQ_WORKER_MAX_BODY_BYTES) {
+  const wireLimit = compressed ? OHLQ_WORKER_MAX_COMPRESSED_BYTES : OHLQ_WORKER_MAX_BODY_BYTES;
+  if (Number.isFinite(declaredLength) && declaredLength > wireLimit) {
     return NextResponse.json({ error: "OHLQ worker artifact is too large." }, { status: 413, headers: PRIVATE_HEADERS });
   }
-  const body = await request.text();
+  let body: string;
+  try {
+    const wireBody = Buffer.from(await request.arrayBuffer());
+    if (wireBody.length > wireLimit) throw new Error("wire body exceeds limit");
+    body = compressed ? gunzipSync(wireBody, { maxOutputLength: OHLQ_WORKER_MAX_BODY_BYTES }).toString("utf8") : wireBody.toString("utf8");
+  } catch {
+    return NextResponse.json({ error: "OHLQ worker artifact encoding is invalid." }, { status: 400, headers: PRIVATE_HEADERS });
+  }
   if (Buffer.byteLength(body) > OHLQ_WORKER_MAX_BODY_BYTES) {
     return NextResponse.json({ error: "OHLQ worker artifact is too large." }, { status: 413, headers: PRIVATE_HEADERS });
   }

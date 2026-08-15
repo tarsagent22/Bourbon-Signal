@@ -1,7 +1,8 @@
 import { createHash, createHmac, createPrivateKey, sign as cryptoSign, timingSafeEqual, verify as cryptoVerify } from "node:crypto";
 
 export const OHLQ_WORKER_CONTRACT = "bourbon-signal/ohlq-worker-artifact@1";
-export const OHLQ_WORKER_MAX_BODY_BYTES = 4 * 1024 * 1024;
+export const OHLQ_WORKER_MAX_BODY_BYTES = 12 * 1024 * 1024;
+export const OHLQ_WORKER_MAX_COMPRESSED_BYTES = 2 * 1024 * 1024;
 export const OHLQ_WORKER_MAX_AGE_MS = 20 * 60_000;
 const MAX_CLOCK_SKEW_MS = 5 * 60_000;
 const MIN_OK_PRODUCTS = 10;
@@ -16,7 +17,7 @@ const PRODUCT_KEYS = [
 const INVENTORY_KEYS = [
   "AgencyId", "AgencyName", "VariantCode", "LocationTypes", "DeliveryAvailable", "PickupAvailable",
   "Latitude", "Longitude", "Address1", "Address2", "City", "State", "Zip", "I", "Distance",
-  "LastModified", "PhoneNumber", "EcommerceUrls", "Url", "Price", "LimitOne",
+  "LastModified", "PhoneNumber", "Url", "Price", "LimitOne",
 ] as const;
 const FORBIDDEN_KEY = /^(?:authorization|cookie|cookies|csrf|csrfToken|headers|profileDir|requestVerificationToken|storageState|token)$/i;
 
@@ -97,9 +98,6 @@ function sanitizeInventory(value: unknown, productIndex: number, rowIndex: numbe
       const state = boundedString(input[key], `${key}`, 2, true)!.toUpperCase();
       if (state !== "OH") throw new Error("OHLQ inventory row is outside Ohio.");
       output[key] = state;
-    } else if (key === "EcommerceUrls") {
-      if (!Array.isArray(input[key]) || input[key].length > 20) throw new Error(`${key} is invalid.`);
-      output[key] = input[key].map((entry, index) => ohlqUrl(entry, `${key}[${index}]`));
     } else if (key === "LocationTypes") {
       if (!Array.isArray(input[key]) || input[key].length > 20) throw new Error(`${key} is invalid.`);
       output[key] = input[key].map((entry, index) => boundedString(entry, `${key}[${index}]`, 100, true));
