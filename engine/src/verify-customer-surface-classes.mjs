@@ -33,7 +33,10 @@ export function verifyCustomerSurfaceClasses({ drops, events } = {}) {
     && /board_shipment/iu.test(String(row.type || row.eventType || '')), 'North Carolina board shipment');
   const announcement = requireRepresentative(eventRows, (row) => /lottery|announcement|scheduled_release/iu.test(String(row.category || row.eventType || row.type || '')), 'announcement or lottery');
   const event = requireRepresentative(eventRows, (row) => /barrel_pick|event/iu.test(String(row.category || row.eventType || row.type || '')), 'event');
-  const staleFallback = dropRows.find((row) => projectCustomerSurfaces(row).stale) || null;
+  const staleFallback = dropRows.find((row) => {
+    const projection = projectCustomerSurfaces(row);
+    return projection.stale && projection.onSite && projection.feed && projection.coverage;
+  }) || null;
 
   requireSurfaces('exact-store inventory', projectCustomerSurfaces(exactStore), {
     stored: true, onSite: true, feed: true, coverage: true, inventory: true,

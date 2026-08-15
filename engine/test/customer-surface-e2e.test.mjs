@@ -53,6 +53,10 @@ test('a fully healthy publication does not require a stale fallback representati
         id: 'nc-shipment', state: 'NC', bottleName: 'Board bottle', observedAt: '2026-08-13T12:00:00Z',
         type: 'nc_board_shipment_snapshot', locationPrecision: 'board_warehouse', eligibleForDropFeed: true,
       },
+      {
+        id: 'hidden-stale', state: 'GA', bottleName: 'Hidden stale row', observedAt: '2026-08-01T12:00:00Z',
+        stale: true, eligibleForOnSite: false, eligibleForDropFeed: false,
+      },
     ],
   };
   const events = {
