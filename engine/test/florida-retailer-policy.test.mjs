@@ -143,7 +143,6 @@ test('Florida registry includes the second-wave retailer discovery sources', () 
   const labels = florida.sources.map((source) => source.label || source.name);
   for (const expected of [
     '1001 Liquors / My Florida Liquors CityHive store inventory',
-    'Florida Plaza Liquors bourbon catalog',
     'Liquor Depot Tampa online quantity watch',
     'Paradise Liquors & Wine Florida CityHive store inventory',
     "Gaspar's Liquor Shoppe Lightspeed store inventory",

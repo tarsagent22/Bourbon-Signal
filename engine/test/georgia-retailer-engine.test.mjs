@@ -24,7 +24,7 @@ import { getStateLifecycle } from '../src/state-lifecycle.mjs';
 import { ALL_STATE_SOURCES } from '../src/state-sources.mjs';
 import { suppressGeorgiaActivationBaseline } from '../src/georgia-activation-policy.mjs';
 import { verifyGeorgiaReleasePolicy } from '../src/georgia-release-policy.mjs';
-import { publicSignal } from '../src/export-site-contract.mjs';
+import { buildDrops, publicSignal } from '../src/export-site-contract.mjs';
 
 const cityHiveSource = GEORGIA_CITYHIVE_SOURCES?.find((source) => source.id === 'tower-wine-spirits');
 const goToStore = GEORGIA_GOTOLIQUOR_STORES?.find((store) => store.id === '1071');
@@ -63,6 +63,44 @@ function binarySignal(store, overrides = {}) {
     ...overrides,
   };
 }
+
+function exactCityHiveSignal(overrides = {}) {
+  const merchant = cityHiveSource.merchants.get('66cde7d80f43792960cbe63e');
+  const productId = 'cityhive-option-product-id';
+  return binarySignal({
+    sourceLabel: cityHiveSource.sourceLabel,
+    baseUrl: cityHiveSource.baseUrl,
+    chain: cityHiveSource.id,
+    merchantId: merchant.id,
+    storeId: `${cityHiveSource.id}:${merchant.id}`,
+    name: merchant.name,
+    address: merchant.address,
+    city: merchant.city,
+    postalCode: merchant.postalCode || merchant.zip,
+  }, {
+    eventType: 'cityhive_store_inventory_result',
+    sourceUrl: `${cityHiveSource.baseUrl}/shop/product/buffalo-trace`,
+    quantity: 4,
+    quantityIsExact: true,
+    reportedQuantity: 4,
+    inventorySemantics: 'exact_retailer_reported_quantity',
+    productId,
+    raw: {
+      chain: cityHiveSource.id,
+      merchantId: merchant.id,
+      reportedQuantity: 4,
+      product: { id: 'cityhive-parent-product-id' },
+      option: { product_id: productId, merchant_id: merchant.id, quantity: 4 },
+    },
+    ...overrides,
+  });
+}
+
+const bible = {
+  byId: new Map([['buffalo-trace-bourbon', { id: 'buffalo-trace-bourbon', canonical: 'Buffalo Trace Bourbon', tier: 'allocated' }]]),
+  byName: new Map(),
+  byExactName: new Map(),
+};
 
 test('Georgia surface registry contains only the configured exact first-party identities', () => {
   assert.equal(GEORGIA_CITYHIVE_SOURCES.length, 17);
@@ -406,6 +444,27 @@ test('Georgia release policy keeps normal and targeted verification fresh-only',
     allowLabeledLastKnownFallback: true,
     nowMs: Date.parse('2026-07-24T13:00:00.000Z'),
   }), /exact|identity/i, 'fallback rows must preserve exact retailer and premises identity');
+});
+
+test('Georgia current inventory projection prefers the current signal over its historical twin', () => {
+  const historical = exactCityHiveSignal({ id: 'ga-historical-twin', observedAt: new Date(Date.now() - 60 * 60_000).toISOString() });
+  const current = exactCityHiveSignal({ id: 'ga-historical-twin', observedAt: new Date().toISOString() });
+  const drops = buildDrops([historical, current], bible, [current]);
+
+  assert.equal(drops.length, 1);
+  assert.equal(drops[0].observedAt, current.observedAt);
+  assert.notEqual(drops[0].stale, true);
+  assert.notEqual(drops[0].sourceStale, true);
+});
+
+test('Georgia stale-only historical retailer inventory does not enter current drop projection', () => {
+  const stale = markSignalStaleNonAlertable(
+    exactCityHiveSignal({ id: 'ga-stale-only', observedAt: new Date(Date.now() - 60 * 60_000).toISOString() }),
+    'Historical-only Georgia retailer observation.',
+    '2026-08-02T12:00:00.000Z',
+  );
+
+  assert.deepEqual(buildDrops([stale], bible, []), []);
 });
 
 test('Georgia lifecycle and registry expose retailer inventory within the authoritative active-state set', () => {

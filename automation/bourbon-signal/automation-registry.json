@@ -435,8 +435,9 @@
       "platform": "hermes_job",
       "hermesJobId": "bb9c16064777",
       "active": true,
-      "ownerLayer": "operator",
+      "ownerLayer": "sensor",
       "executionClass": "script_then_agent",
+      "script": "resolve-source-scout-input.mjs",
       "frequency": "daily semantic review at 02:15 Eastern",
       "agent": {
         "provider": "openai-codex",
@@ -445,8 +446,7 @@
       },
       "externalApi": {
         "classes": [
-          "github",
-          "bounded_operator_artifacts"
+          "github_artifact_read"
         ],
         "maxRequestsPerRun": 10
       },
@@ -455,6 +455,7 @@
       "silencePolicy": "report_output",
       "killSwitch": "cron_pause:bb9c16064777",
       "artifacts": [
+        "source_scout_input_manifest",
         "source_expansion_collector",
         "source_roi"
       ],

@@ -62,6 +62,32 @@ test('not-due and quarantined diagnostics do not count as fabricated success', (
   assert.equal(report.excludedSampleCount, 2);
 });
 
+test('Ohio precision stale fallback remains an eligible SLO failure', () => {
+  const history = appendSourceSloObservations(null, [{
+    sourceId: 'precision:oh',
+    sourceMetadata: { stateId: 'OH' },
+    status: 'stale_fallback',
+    stale: true,
+    alertable: false,
+    attemptCount: 1,
+    startedAt: '2026-07-15T11:59:00.000Z',
+    finishedAt: NOW,
+  }], { now: NOW });
+  const report = buildSevenDaySourceSloReport(history, { now: NOW });
+
+  assert.equal(report.observedSampleCount, 1);
+  assert.equal(report.successfulSampleCount, 0);
+  assert.equal(report.availabilityRatio, 0);
+  assert.equal(report.excludedSampleCount, 0);
+  assert.deepEqual(report.sources.find((source) => source.sourceId === 'precision:oh'), {
+    sourceId: 'precision:oh',
+    observedSampleCount: 1,
+    successfulSampleCount: 0,
+    availabilityRatio: 0,
+    stateId: 'OH',
+  });
+});
+
 test('failed quarantined probes stay outside the SLO denominator', () => {
   const history = appendSourceSloObservations(null, [
     {

@@ -96,6 +96,7 @@ export function verifyAutomationRegistry(registry, { workflowPaths = activeWorkf
         if (entry.executionClass !== 'script_only' && (liveJob.provider !== entry.agent.provider || liveJob.model !== entry.agent.model || liveJob.reasoning !== entry.agent.reasoning)) {
           fail(failures, `${prefix} agent model/reasoning drifted from the scheduler snapshot.`);
         }
+        if (entry.script && liveJob.script !== entry.script) fail(failures, `${prefix} script drifted from the scheduler metadata.`);
       }
       hermesIds.add(entry.hermesJobId);
     } else fail(failures, `${prefix} has an invalid platform.`);

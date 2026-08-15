@@ -5,6 +5,10 @@ import { bestPrecision, LOCATION_PROFILES } from './location-precision.mjs';
 import { customerStateLabel, getStateLifecycle, sourceStateLabel } from './state-lifecycle.mjs';
 import { confidenceForSignal } from './confidence-policy.mjs';
 import { summarizeRoadblocks } from './roadblock-health.mjs';
+import {
+  sourceReportCountsTowardReachability,
+  sourceReportCountsTowardSignalProduction,
+} from './sources/source-report-semantics.mjs';
 
 const OUT = path.resolve('out');
 const STATES_OUT = path.join(OUT, 'states');
@@ -19,7 +23,7 @@ async function readJson(file, fallback = null) {
 
 function sourceSignalProducing(source = {}) {
   return Boolean(
-    source.ok && (
+    sourceReportCountsTowardSignalProduction(source) && (
       Number(source.matchedBottleCount || 0) > 0
       || Number(source.pdfLinkCount || 0) > 0
       || Number(source.documentLinkCount || 0) > 0
@@ -46,7 +50,7 @@ function stateSummary(report) {
     staleFallbackAt: report.staleFallbackAt || null,
     previousFinishedAt: report.previousFinishedAt || null,
     sourceCount: sources.length,
-    reachableSourceCount: sources.filter((s) => s.ok).length,
+    reachableSourceCount: sources.filter(sourceReportCountsTowardReachability).length,
     signalProducingSourceCount: sources.filter(sourceSignalProducing).length,
     signalCount: signals.length,
     storeLevelSignalCount: signals.filter((s) => s.locationPrecision === 'store_level').length,

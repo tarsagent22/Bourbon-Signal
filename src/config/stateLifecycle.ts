@@ -20,12 +20,7 @@ export const STATE_LIFECYCLE_CONFIG = {
     "FL",
     "TX",
     "GA",
-    "MI",
-    "MN",
-    "MO",
     "NV",
-    "WA",
-    "WI",
     "UT",
     "NY",
     "CO",
@@ -64,12 +59,7 @@ export const STATE_LIFECYCLE_CONFIG = {
       "FL",
       "TX",
       "GA",
-      "MI",
-      "MN",
-      "MO",
       "NV",
-      "WA",
-      "WI",
       "MS"
     ],
     "stateExpectedRunMs": {
@@ -567,29 +557,38 @@ export const STATE_LIFECYCLE_CONFIG = {
     "MI": {
       "customerLabel": "Michigan",
       "sourceLabel": "Michigan Costco warehouse bourbon watch",
-      "publicStatus": "active",
-      "lifecycle": "costco_warehouse_inventory_watch",
-      "coverageTier": "retailer_warehouse_inventory",
+      "publicStatus": "research_only",
+      "shadowEligible": true,
+      "lifecycle": "blocked_costco_inventory_research",
+      "coverageTier": "blocked",
       "refinementLevel": "warehouse",
-      "customerSummary": "Costco warehouse bourbon signals for Michigan warehouses where verified. Costco is treated as an in-state retailer source with fast-moving inventory caveats."
+      "inventoryAlertable": false,
+      "watchAlertable": false,
+      "customerSummary": "Research-only: Michigan has Costco warehouse research configuration but no recurring verified observations, so customer coverage and alerts remain blocked."
     },
     "MN": {
       "customerLabel": "Minnesota",
       "sourceLabel": "Minnesota Costco warehouse bourbon watch",
-      "publicStatus": "active",
-      "lifecycle": "costco_warehouse_inventory_watch",
-      "coverageTier": "retailer_warehouse_inventory",
+      "publicStatus": "research_only",
+      "shadowEligible": true,
+      "lifecycle": "blocked_costco_inventory_research",
+      "coverageTier": "blocked",
       "refinementLevel": "warehouse",
-      "customerSummary": "Costco warehouse bourbon signals for Minnesota warehouses where verified. Costco is treated as an in-state retailer source with fast-moving inventory caveats."
+      "inventoryAlertable": false,
+      "watchAlertable": false,
+      "customerSummary": "Research-only: Minnesota has Costco warehouse research configuration but no recurring verified observations, so customer coverage and alerts remain blocked."
     },
     "MO": {
       "customerLabel": "Missouri",
       "sourceLabel": "Missouri Costco warehouse bourbon watch",
-      "publicStatus": "active",
-      "lifecycle": "costco_warehouse_inventory_watch",
-      "coverageTier": "retailer_warehouse_inventory",
+      "publicStatus": "research_only",
+      "shadowEligible": true,
+      "lifecycle": "blocked_costco_inventory_research",
+      "coverageTier": "blocked",
       "refinementLevel": "warehouse",
-      "customerSummary": "Costco warehouse bourbon signals for Missouri warehouses where verified. Costco is treated as an in-state retailer source with fast-moving inventory caveats."
+      "inventoryAlertable": false,
+      "watchAlertable": false,
+      "customerSummary": "Research-only: Missouri has Costco warehouse research configuration but no recurring verified observations, so customer coverage and alerts remain blocked."
     },
     "MS": {
       "customerLabel": "Mississippi",
@@ -886,20 +885,26 @@ export const STATE_LIFECYCLE_CONFIG = {
     "WA": {
       "customerLabel": "Washington",
       "sourceLabel": "Washington Costco warehouse bourbon watch",
-      "publicStatus": "active",
-      "lifecycle": "costco_warehouse_inventory_watch",
-      "coverageTier": "retailer_warehouse_inventory",
+      "publicStatus": "research_only",
+      "shadowEligible": true,
+      "lifecycle": "blocked_costco_inventory_research",
+      "coverageTier": "blocked",
       "refinementLevel": "warehouse",
-      "customerSummary": "Costco warehouse bourbon signals for Washington warehouses where verified. Costco is treated as an in-state retailer source with fast-moving inventory caveats."
+      "inventoryAlertable": false,
+      "watchAlertable": false,
+      "customerSummary": "Research-only: Washington has Costco warehouse research configuration but no recurring verified observations, so customer coverage and alerts remain blocked."
     },
     "WI": {
       "customerLabel": "Wisconsin",
       "sourceLabel": "Wisconsin Costco warehouse bourbon watch",
-      "publicStatus": "active",
-      "lifecycle": "costco_warehouse_inventory_watch",
-      "coverageTier": "retailer_warehouse_inventory",
+      "publicStatus": "research_only",
+      "shadowEligible": true,
+      "lifecycle": "blocked_costco_inventory_research",
+      "coverageTier": "blocked",
       "refinementLevel": "warehouse",
-      "customerSummary": "Costco warehouse bourbon signals for Wisconsin warehouses where verified. Costco is treated as an in-state retailer source with fast-moving inventory caveats."
+      "inventoryAlertable": false,
+      "watchAlertable": false,
+      "customerSummary": "Research-only: Wisconsin has Costco warehouse research configuration but no recurring verified observations, so customer coverage and alerts remain blocked."
     }
   }
 } as const;

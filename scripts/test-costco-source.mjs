@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import { BourbonBible } from '../engine/src/core/bible.mjs';
 import { collectCostco } from '../engine/src/collectors/costco.mjs';
-import { CUSTOMER_ACTIVE_STATE_IDS, STATE_SOURCES } from '../engine/src/state-sources.mjs';
+import { ALL_STATE_SOURCES, CUSTOMER_ACTIVE_STATE_IDS, STATE_SOURCES } from '../engine/src/state-sources.mjs';
 
 const tmp = await mkdtemp(path.join(tmpdir(), 'costco-source-'));
 const observationsFile = path.join(tmp, 'costco-observations.json');
@@ -65,25 +65,32 @@ try {
   assert.ok(!activeIds.includes('US-COSTCO'), 'Costco must not be a customer-facing pseudo-state');
 
   const originalEligibleStates = ['AL', 'IA', 'IL', 'IN', 'KY', 'SC'];
-  const expansionEligibleStates = ['AZ', 'CA', 'FL', 'GA', 'MI', 'MN', 'MO', 'NV', 'WA', 'WI'];
-  const eligibleStates = [...originalEligibleStates, ...expansionEligibleStates];
+  const activeExpansionEligibleStates = ['AZ', 'CA', 'FL', 'GA', 'NV'];
+  const researchOnlyEligibleStates = ['MI', 'MN', 'MO', 'WA', 'WI'];
+  const eligibleStates = [...originalEligibleStates, ...activeExpansionEligibleStates, ...researchOnlyEligibleStates];
   const ineligibleActiveStates = ['NC', 'VA', 'PA', 'ID', 'TN', 'MD-MONTGOMERY'];
   const warehouses = JSON.parse(await readFile(path.resolve('engine/data/costco-warehouses.json'), 'utf8')).warehouses;
   assert.ok(warehouses.length >= 20, 'Costco probe list should cover a useful multi-state warehouse set');
   for (const state of eligibleStates) {
     assert.ok(warehouses.some((warehouse) => warehouse.state === state), `${state} should have at least one Costco probe warehouse`);
   }
-  for (const state of eligibleStates) {
+  for (const state of [...originalEligibleStates, ...activeExpansionEligibleStates]) {
     const config = STATE_SOURCES.find((source) => source.id === state);
     assert.ok(config, `${state} should be active`);
     assert.ok(config.sources.some((source) => source.kind === 'costco'), `${state} should include Costco as an in-state source`);
+  }
+  for (const state of researchOnlyEligibleStates) {
+    assert.ok(!STATE_SOURCES.some((source) => source.id === state), `${state} must not be customer-active without recurring Costco observations`);
+    const config = ALL_STATE_SOURCES.find((source) => source.id === state);
+    assert.ok(config, `${state} should retain research configuration`);
+    assert.ok(config.sources.some((source) => source.kind === 'costco'), `${state} research configuration should retain Costco`);
   }
   for (const state of ineligibleActiveStates) {
     const config = STATE_SOURCES.find((source) => source.id === state);
     assert.ok(config, `${state} should be active`);
     assert.ok(!config.sources.some((source) => source.kind === 'costco'), `${state} should not include Costco spirits source`);
   }
-  for (const state of expansionEligibleStates) {
+  for (const state of activeExpansionEligibleStates) {
     const config = STATE_SOURCES.find((source) => source.id === state);
     assert.ok(config, `${state} expansion state should be active`);
     assert.ok(
