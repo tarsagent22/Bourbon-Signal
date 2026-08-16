@@ -7549,7 +7549,14 @@ async function collectTexas(config, bible, existingSignals = []) {
       ? texasTwinMerchantCohort(observedAt, { signals: existingSignals })
       : TX_CITYHIVE_MERCHANT_COHORTS[source.id];
     const sourceSeedUrls = merchantCohort?.length
-      ? merchantCohort.map((merchantId) => `${source.baseUrl}/shop/?subtype=bourbon&merchant-id=${merchantId}`)
+      ? merchantCohort.flatMap((merchantId) => source.id === 'twin-liquors'
+        ? buildCityHiveRareProbeUrls({
+            state: 'TX',
+            sourceId: source.id,
+            categoryUrl: `${source.baseUrl}/shop/?subtype=bourbon`,
+            merchantId,
+          })
+        : [`${source.baseUrl}/shop/?subtype=bourbon&merchant-id=${merchantId}`])
       : source.urls;
     for (const seedUrl of sourceSeedUrls) {
       for (const url of cityHivePageUrls(seedUrl, TX_CITYHIVE_MAX_PAGES)) {
