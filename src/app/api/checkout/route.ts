@@ -12,6 +12,9 @@ import { activateMembership } from "@/lib/membership-server";
 import { reconcileReferredMembership } from "@/lib/referral-service";
 import { mergeGrowthMilestoneMetadata, normalizeCheckoutSource } from "@/lib/growth-events";
 import { resolveServerEffectiveMembershipTier } from "@/lib/server-entitlements";
+import { hasActiveGiftMembership, membershipTrialEligibility, MONTHLY_MEMBERSHIP_TRIAL_DAYS } from "@/lib/membership-trial";
+import { getMembershipTrialRepository } from "@/lib/membership-trial-repository";
+import { enforceMembershipSubscriptionActivation } from "@/lib/membership-trial-stripe";
 import {
   buildJulySaleSessionFields,
   julySaleCheckoutConfig,
@@ -71,18 +74,25 @@ async function recordCheckoutStarted(
   }
 }
 
-async function checkoutSessionMatchesPlan(stripe: Stripe, session: Stripe.Checkout.Session, planId: BillingPlanId, priceId: string) {
+async function checkoutSessionMatchesPlan(
+  stripe: Stripe,
+  session: Stripe.Checkout.Session,
+  planId: BillingPlanId,
+  priceId: string,
+  trialExpected = false,
+) {
   const lineItems = await stripe.checkout.sessions.listLineItems(session.id, { limit: 5 });
-  return session.metadata?.plan === planId && !lineItems.has_more && lineItems.data.length === 1
+  const sessionHasTrial = session.metadata?.trial_offer === "monthly_7_day_v1";
+  return session.metadata?.plan === planId && sessionHasTrial === trialExpected && !lineItems.has_more && lineItems.data.length === 1
     && lineItems.data[0]?.price?.id === priceId && lineItems.data[0]?.quantity === 1;
 }
 
-async function findReusableCheckoutSession(stripe: Stripe, userId: string, planId: BillingPlanId, priceId: string) {
+async function findReusableCheckoutSession(stripe: Stripe, userId: string, planId: BillingPlanId, priceId: string, trialExpected: boolean) {
   const sessions = await stripe.checkout.sessions.list({ limit: 100 });
   for (const session of sessions.data) {
     const sessionUserId = stringValue(session.metadata?.userId) || stringValue(session.client_reference_id);
     if (sessionUserId !== userId) continue;
-    if (!(await checkoutSessionMatchesPlan(stripe, session, planId, priceId))) continue;
+    if (!(await checkoutSessionMatchesPlan(stripe, session, planId, priceId, trialExpected))) continue;
 
     if (session.status === "complete" && (session.payment_status === "paid" || session.payment_status === "no_payment_required")) {
       return session;
@@ -126,6 +136,7 @@ export async function POST(req: NextRequest) {
     plan?: string;
     source?: string;
     expectedPromotion?: string;
+    trialOfferExpected?: boolean;
   };
   const source = normalizeCheckoutSource(body.source);
   const planId = normalizeBillingPlan(body.plan);
@@ -167,6 +178,29 @@ export async function POST(req: NextRequest) {
   const client = await clerkClient();
   const user = await client.users.getUser(userId);
   const currentTier = await resolveServerEffectiveMembershipTier(user.publicMetadata);
+  if (hasActiveGiftMembership(user.publicMetadata as Record<string, unknown>)) {
+    return NextResponse.json({ error: "Your active gift membership already includes paid access. Choose a plan after the gift period ends." }, { status: 409 });
+  }
+  let trialEligibility = membershipTrialEligibility(
+    planId,
+    user.publicMetadata as Record<string, unknown>,
+    user.privateMetadata as Record<string, unknown>,
+  );
+  if (trialEligibility.eligible) {
+    try {
+      const durableClaim = await getMembershipTrialRepository().findByUserId(userId);
+      if (durableClaim) trialEligibility = { eligible: false, reason: "trial_used" };
+    } catch (error) {
+      console.error("membership trial eligibility storage failed", { userId, error });
+      return NextResponse.json({ error: "Checkout is temporarily unavailable. You have not been charged." }, { status: 503 });
+    }
+  }
+  if (body.trialOfferExpected && !trialEligibility.eligible) {
+    return NextResponse.json(
+      { error: "The trial is not available for this account. Return to pricing to choose a paid plan." },
+      { status: 409 },
+    );
+  }
   if (TIER_RANK[currentTier] >= TIER_RANK[plan.tier]) {
     return NextResponse.json({ error: "Your current Bourbon Signal membership already includes this level." }, { status: 409 });
   }
@@ -202,7 +236,7 @@ export async function POST(req: NextRequest) {
 
   const reusableSession = planId === "bib_lifetime"
     ? null
-    : await findReusableCheckoutSession(stripe, userId, planId, priceId);
+    : await findReusableCheckoutSession(stripe, userId, planId, priceId, trialEligibility.eligible);
   const skipCompletedRecovery = hasCanceledFreeMembershipHold(user.publicMetadata);
   if (reusableSession) {
     await recordCheckoutStarted(client, userId, user.privateMetadata as Record<string, unknown>);
@@ -210,9 +244,16 @@ export async function POST(req: NextRequest) {
     if (completedPaidSession && !skipCompletedRecovery) {
       let membershipStatus = "active";
       const subscriptionId = stringValue(reusableSession.subscription);
+      let subscription: Stripe.Subscription | null = null;
       if (planId !== "bib_lifetime" && subscriptionId) {
-        const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+        subscription = await stripe.subscriptions.retrieve(subscriptionId);
         membershipStatus = subscription.status;
+      }
+      if (subscription) {
+        const enforcement = await enforceMembershipSubscriptionActivation({ stripe, userId, subscription, plan });
+        if (!enforcement.accepted) {
+          return NextResponse.json({ error: "This checkout can no longer activate membership." }, { status: 409 });
+        }
       }
       await activateMembership(userId, {
         tier: plan.tier,
@@ -306,6 +347,7 @@ export async function POST(req: NextRequest) {
     plan: plan.id,
     source: "bourbon_signal_launch",
     attributionSurface: source,
+    trial_offer: trialEligibility.eligible ? "monthly_7_day_v1" : "none",
     ...(founderReservation ? {
       founder_checkout_attempt_id: founderReservation.attemptId,
       founder_entitlement_version: founderReservation.entitlementVersion,
@@ -324,7 +366,13 @@ export async function POST(req: NextRequest) {
   };
 
   if (plan.stripeMode === "subscription") {
-    sessionConfig.subscription_data = { metadata };
+    sessionConfig.subscription_data = {
+      metadata,
+      ...(trialEligibility.eligible ? {
+        trial_period_days: MONTHLY_MEMBERSHIP_TRIAL_DAYS,
+        trial_settings: { end_behavior: { missing_payment_method: "cancel" } },
+      } : {}),
+    };
   } else {
     sessionConfig.payment_intent_data = { metadata };
   }

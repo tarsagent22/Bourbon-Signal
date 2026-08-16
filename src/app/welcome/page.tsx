@@ -258,6 +258,7 @@ export default function WelcomePage() {
   const [localSearchStatus, setLocalSearchStatus] = useState<"idle" | "searching" | "opening">("idle");
   const [localMessage, setLocalMessage] = useState("");
   const [showEarlierSignals, setShowEarlierSignals] = useState(false);
+  const [barrelTrialEligible, setBarrelTrialEligible] = useState<boolean | null>(null);
   const registrationRecorded = useRef(false);
   const freeValueRecordedFor = useRef(new Set<string>());
   const currentUserIdRef = useRef<string | null>(authenticatedUserId);
@@ -306,6 +307,21 @@ export default function WelcomePage() {
       else registrationRecorded.current = false;
     });
   }, [isLoaded, isSignedIn]);
+
+  useEffect(() => {
+    if (!authenticatedUserId) {
+      setBarrelTrialEligible(null);
+      return;
+    }
+    const controller = new AbortController();
+    void fetch("/api/membership-trial", { signal: controller.signal, cache: "no-store" })
+      .then(async (response) => response.ok ? response.json() : null)
+      .then((payload: { barrelMonthly?: { eligible?: boolean } } | null) => {
+        if (!controller.signal.aborted) setBarrelTrialEligible(payload?.barrelMonthly?.eligible === true);
+      })
+      .catch(() => { if (!controller.signal.aborted) setBarrelTrialEligible(false); });
+    return () => controller.abort();
+  }, [authenticatedUserId]);
 
   useEffect(() => {
     localPreviewGetControllerRef.current?.abort();
@@ -884,10 +900,25 @@ export default function WelcomePage() {
                 </section>
               ) : null}
 
+              {barrelTrialEligible === true ? (
+                <section className={`${styles.section} ${styles.trialSection}`} aria-labelledby="membership-next-step-heading">
+                  <div className={styles.trialCard}>
+                    <div>
+                      <p className={styles.stepLabel}>Unlock the full signal</p>
+                      <h2 id="membership-next-step-heading">Try Barrel Proof free for 7 days</h2>
+                      <span>$6/month after 7 days</span>
+                    </div>
+                    <Link href="/checkout/continue?plan=barrel_monthly&source=welcome-trial&trialOffer=1&registration=1">
+                      Start 7-day free trial<ArrowUpRight size={16} aria-hidden="true" />
+                    </Link>
+                  </div>
+                </section>
+              ) : null}
+
               <section className={`${styles.section} ${styles.exploreSection}`} aria-labelledby="explore-heading">
                 <div className={styles.sectionHeading}>
                   <div className={styles.headingGroup}>
-                    <span className={styles.landmark} aria-hidden="true">04</span>
+                    <span className={styles.landmark} aria-hidden="true">05</span>
                     <div>
                       <p className={styles.stepLabel}>Keep exploring</p>
                       <h2 id="explore-heading">Choose where to go next</h2>
@@ -895,11 +926,11 @@ export default function WelcomePage() {
                   </div>
                 </div>
                 <nav className={styles.exploreLinks} aria-label="Explore Bourbon Signal">
-                  <Link className={styles.explorePrimary} href="/bottle-check"><Search aria-hidden="true" /><span><strong>Bottle Check</strong><small>Look up rarity, value, and recent evidence.</small></span><ArrowUpRight aria-hidden="true" /></Link>
-                  <Link href={`/?state=${encodeURIComponent(activeState)}#drops`}><Radio aria-hidden="true" /><span><strong>Drop Feed</strong><small>Open the broader state feed.</small></span><ArrowUpRight aria-hidden="true" /></Link>
-                  <Link href="/sightings"><UsersRound aria-hidden="true" /><span><strong>Member Sightings</strong><small>Read recent community reports.</small></span><ArrowUpRight aria-hidden="true" /></Link>
-                  <Link href={`/coverage?state=${encodeURIComponent(activeState)}`}><MapIcon aria-hidden="true" /><span><strong>Coverage Map</strong><small>See what information is available across the country.</small></span><ArrowUpRight aria-hidden="true" /></Link>
+                  <Link className={styles.explorePrimary} href="/sightings"><UsersRound aria-hidden="true" /><span><strong>Member Sightings</strong><small>Read recent community reports.</small></span><ArrowUpRight aria-hidden="true" /></Link>
                   <Link href="/dashboard"><LayoutDashboard aria-hidden="true" /><span><strong>Dashboard</strong><small>Open your member workspace.</small></span><ArrowUpRight aria-hidden="true" /></Link>
+                  <Link href="/bottle-check"><Search aria-hidden="true" /><span><strong>Bottle Check</strong><small>Rarity, proof, producer, and release details.</small></span><ArrowUpRight aria-hidden="true" /></Link>
+                  <Link href={`/?state=${encodeURIComponent(activeState)}#drops`}><Radio aria-hidden="true" /><span><strong>Drop Feed</strong><small>Open the broader state feed.</small></span><ArrowUpRight aria-hidden="true" /></Link>
+                  <Link href={`/coverage?state=${encodeURIComponent(activeState)}`}><MapIcon aria-hidden="true" /><span><strong>Coverage Map</strong><small>See what information is available across the country.</small></span><ArrowUpRight aria-hidden="true" /></Link>
                 </nav>
               </section>
             </>

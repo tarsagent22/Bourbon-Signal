@@ -250,7 +250,8 @@ test("signup, Clerk, Stripe, and member API are wired to the referral service", 
 
 test("member referral link stays useful without exposing the private points program", () => {
   const component = read("src/components/MemberReferralLink.tsx");
-  const settings = read("src/app/settings/page.tsx");
+  const settings = read("src/app/settings/SettingsPageClient.tsx");
+  const settingsServer = read("src/app/settings/page.tsx");
   const dashboard = read("src/app/dashboard/page.tsx");
   const referralsPage = read("src/app/referrals/page.tsx");
   const navigation = read("src/components/Navigation.tsx");
@@ -260,6 +261,8 @@ test("member referral link stays useful without exposing the private points prog
   assert.doesNotMatch(component, /Signal Points|rewards|redeem/i);
   assert.match(settings, /<MemberReferralLink/);
   assert.match(settings, /id="referrals"/);
+  assert.doesNotMatch(settings, /Signal Points|SignalPointsPanel/);
+  assert.match(settingsServer, /\/account\/signal-points/);
   assert.doesNotMatch(dashboard, /SignalPointsPanel|Signal Points|memberPoints/);
   assert.match(read("src/app/admin/control-room/page.tsx"), /<SignalPointsPanel preview/);
   assert.match(read("src/components/SignalPointsPanel.tsx"), /<MemberReferralLink compact/);

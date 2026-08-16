@@ -35,6 +35,7 @@ function ContinueCheckoutContent() {
     ? "july_sale_2026"
     : undefined;
   const registrationCompleted = searchParams.get("registration") === "1";
+  const trialOfferExpected = searchParams.get("trialOffer") === "1";
 
   useEffect(() => {
     if (!plan) {
@@ -47,7 +48,8 @@ function ContinueCheckoutContent() {
       const promotionQuery = expectedPromotion
         ? `&expectedPromotion=${encodeURIComponent(expectedPromotion)}`
         : "";
-      const continueUrl = `/checkout/continue?plan=${plan}&source=${encodeURIComponent(source)}${promotionQuery}&registration=1`;
+      const trialQuery = trialOfferExpected ? "&trialOffer=1" : "";
+      const continueUrl = `/checkout/continue?plan=${plan}&source=${encodeURIComponent(source)}${promotionQuery}${trialQuery}&registration=1`;
       router.replace(`/sign-up?intent=paid&redirect_url=${encodeURIComponent(continueUrl)}`);
       return;
     }
@@ -63,10 +65,24 @@ function ContinueCheckoutContent() {
         if (shouldRecordRegistration) {
           await recordGrowthMilestone("registration_completed", { surface: "sign_up" });
         }
+        if (trialOfferExpected && (plan === "standard_monthly" || plan === "barrel_monthly")) {
+          const eligibilityResponse = await fetch("/api/membership-trial", { cache: "no-store" });
+          const eligibility = await eligibilityResponse.json() as {
+            standardMonthly?: { eligible?: boolean };
+            barrelMonthly?: { eligible?: boolean };
+            error?: string;
+          };
+          const eligible = plan === "standard_monthly"
+            ? eligibility.standardMonthly?.eligible === true
+            : eligibility.barrelMonthly?.eligible === true;
+          if (!eligibilityResponse.ok || !eligible) {
+            throw new Error(eligibility.error || "This trial is not available for this account. Return to pricing to choose a regular plan.");
+          }
+        }
         const res = await fetch("/api/checkout", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ plan, source, expectedPromotion }),
+          body: JSON.stringify({ plan, source, expectedPromotion, trialOfferExpected }),
         });
         const data = (await res.json()) as { url?: string; error?: string };
         if (!res.ok || !data.url) throw new Error(data.error || "Checkout is not available.");
@@ -81,7 +97,7 @@ function ContinueCheckoutContent() {
     return () => {
       cancelled = true;
     };
-  }, [expectedPromotion, isLoaded, isSignedIn, plan, registrationCompleted, router, source]);
+  }, [expectedPromotion, isLoaded, isSignedIn, plan, registrationCompleted, router, source, trialOfferExpected]);
 
   return (
     <main

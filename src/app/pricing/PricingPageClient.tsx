@@ -32,9 +32,10 @@ const checkoutPlanTiers = CHECKOUT_PLAN_TIERS;
 const paidTiers = PAID_MEMBERSHIP_PLANS;
 const comparisonRows = MEMBERSHIP_COMPARISON_ROWS;
 
-function checkoutContinueUrl(plan: PaidPlanId, source = "unknown", expectedPromotion?: string) {
+function checkoutContinueUrl(plan: PaidPlanId, source = "unknown", expectedPromotion?: string, trialExpected = false) {
   const promotion = expectedPromotion ? `&expectedPromotion=${encodeURIComponent(expectedPromotion)}` : "";
-  return `/checkout/continue?plan=${plan}&source=${encodeURIComponent(source)}${promotion}&registration=1`;
+  const trial = trialExpected ? "&trialOffer=1" : "";
+  return `/checkout/continue?plan=${plan}&source=${encodeURIComponent(source)}${promotion}${trial}&registration=1`;
 }
 
 
@@ -48,6 +49,7 @@ function PricingPageContent({ julySaleEnabled }: { julySaleEnabled: boolean }) {
   const checkoutInFlight = useRef(false);
   const [error, setError] = useState<string | null>(null);
   const [founderSpots, setFounderSpots] = useState<{ limit: number; remaining: number | null } | null>(null);
+  const [trialEligibility, setTrialEligibility] = useState<Record<string, { eligible?: boolean }> | null>(null);
 
   const currentTierRank = tierRank[memberTier];
   const checkoutValue = searchParams.get("checkout");
@@ -70,6 +72,35 @@ function PricingPageContent({ julySaleEnabled }: { julySaleEnabled: boolean }) {
       .catch(() => undefined);
     return () => { cancelled = true; };
   }, []);
+
+  useEffect(() => {
+    if (!isLoaded) return;
+    if (!isSignedIn) {
+      setTrialEligibility({ standardMonthly: { eligible: true }, barrelMonthly: { eligible: true } });
+      return;
+    }
+    let cancelled = false;
+    fetch("/api/membership-trial", { cache: "no-store" })
+      .then((res) => res.ok ? res.json() : null)
+      .then((data: Record<string, { eligible?: boolean }> | null) => {
+        if (!cancelled) setTrialEligibility(data || {});
+      })
+      .catch(() => { if (!cancelled) setTrialEligibility({}); });
+    return () => { cancelled = true; };
+  }, [isLoaded, isSignedIn]);
+
+  function planHasTrial(plan: PaidPlanId | null) {
+    if (plan !== "standard_monthly" && plan !== "barrel_monthly") return false;
+    if (!isLoaded || !isSignedIn) return true;
+    if (plan === "standard_monthly") return trialEligibility?.standardMonthly?.eligible === true;
+    return trialEligibility?.barrelMonthly?.eligible === true;
+  }
+
+  function trialPriceCopy(plan: PaidPlanId | null) {
+    if (plan === "standard_monthly") return "7 days free, then $3/month";
+    if (plan === "barrel_monthly") return "7 days free, then $6/month";
+    return "";
+  }
 
   function selectedPlan(tier: PricingTier): PaidPlanId | null {
     if (tier.plan) return tier.plan;
@@ -103,7 +134,7 @@ function PricingPageContent({ julySaleEnabled }: { julySaleEnabled: boolean }) {
       ? "july_sale_2026"
       : undefined;
     if (!isSignedIn) {
-      router.push(`/sign-up?intent=paid&redirect_url=${encodeURIComponent(checkoutContinueUrl(plan, source, expectedPromotion))}`);
+      router.push(`/sign-up?intent=paid&redirect_url=${encodeURIComponent(checkoutContinueUrl(plan, source, expectedPromotion, planHasTrial(plan)))}`);
       return;
     }
     if (checkoutInFlight.current) return;
@@ -118,6 +149,7 @@ function PricingPageContent({ julySaleEnabled }: { julySaleEnabled: boolean }) {
           plan,
           source,
           expectedPromotion,
+          trialOfferExpected: planHasTrial(plan),
         }),
       });
       const data = (await res.json()) as { url?: string; error?: string };
@@ -142,6 +174,7 @@ function PricingPageContent({ julySaleEnabled }: { julySaleEnabled: boolean }) {
     if (tierRank[tier.tier] < currentTierRank) return "Included";
     if (tier.tier === memberTier) return "Current plan";
     if (plan !== null && pendingPlan === plan) return "Opening checkout…";
+    if (planHasTrial(plan)) return "Start 7-day free trial";
     if (!isSignedIn) return tier.tier === "bottled-in-bond" ? "Create account & claim spot" : "Create account & join";
     if (tier.tier === "bottled-in-bond") return "Claim lifetime spot";
     return `Choose ${tier.name}`;
@@ -166,7 +199,7 @@ function PricingPageContent({ julySaleEnabled }: { julySaleEnabled: boolean }) {
                 Monthly
               </button>
               <button type="button" data-active={billingCycle === "annual"} onClick={() => setBillingCycle("annual")}>
-                Annual <span>Save 17%</span>
+                Annual <span>2 months free</span>
               </button>
             </div>
           </ScrollReveal>
@@ -175,11 +208,11 @@ function PricingPageContent({ julySaleEnabled }: { julySaleEnabled: boolean }) {
         {isLoaded && (!isSignedIn || memberTier === "free") ? (
           <section className="free-preview-strip" aria-label="Continue with free access">
             <div>
-              <p>Free · $0 · no card required</p>
+              <p>Free · $0</p>
               <h2>{isSignedIn ? "Your free account is active. Keep exploring without paying." : "Start free. Browse the signal before you pay."}</h2>
             </div>
             <ul>
-              <li>7 recent Drop Feed signals</li>
+              <li>Limited Drop Feed access</li>
               <li>3 Bottle Checks</li>
               <li>Coverage Map and Member Sightings</li>
             </ul>
@@ -234,7 +267,7 @@ function PricingPageContent({ julySaleEnabled }: { julySaleEnabled: boolean }) {
                 className={`pricing-card ${tier.accent} ${tier.featured ? "featured" : ""} ${current ? "current" : ""}`}
                 whileHover={{ y: -4, transition: { duration: 0.25 } }}
               >
-                {tier.tier === "standard" ? <div className="pricing-ribbon">Recommended · Standard Proof</div> : null}
+                {tier.tier === "barrel" ? <div className="pricing-ribbon">Recommended · Barrel Proof</div> : null}
                 {tier.tier === "bottled-in-bond" ? <div className="pricing-ribbon">Limited lifetime offer · 100 spots</div> : null}
                 {tier.tier === "bottled-in-bond" ? (
                   <div className="founder-spots-meter" aria-label="Bottled in Bond founder spots remaining">
@@ -251,6 +284,7 @@ function PricingPageContent({ julySaleEnabled }: { julySaleEnabled: boolean }) {
                     <div className="sale-price-line"><del>{price.price}</del><strong>{price.salePrice}</strong></div>
                   ) : <strong>{price.price}</strong>}
                   <span>{price.cadence}</span>
+                  {planHasTrial(plan) ? <small>{trialPriceCopy(plan)}</small> : null}
                   {price.salePrice ? <small>15% off · applied automatically at checkout</small> : null}
                 </div>
                 <p className="pricing-description">{tier.description}</p>

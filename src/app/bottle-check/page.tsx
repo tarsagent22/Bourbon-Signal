@@ -598,7 +598,9 @@ export default function BottleCheckPage() {
         <style>{bottleCheckCss}</style>
 
         <section className="bc-hero">
-          <h1>Standing in the aisle? See how rare it is in your area.</h1>
+          <p className="bc-kicker">One search. The bottle intelligence that matters.</p>
+          <h1>Know the bottle before you buy it.</h1>
+          <p className="bc-hero-copy">See rarity, market and shipment signals, proof, age, producer, and release context in one clear read.</p>
         </section>
 
         <section className="bc-shell">
@@ -962,7 +964,9 @@ const bottleCheckCss = `
 .bottle-check-page { min-height: 100vh; padding-top: 96px; overflow-x:hidden; background: radial-gradient(circle at 48% 0%, rgba(196,148,58,0.14), transparent 34%), radial-gradient(circle at 82% 28%, rgba(184,115,51,0.08), transparent 30%), var(--color-bg-primary); color: var(--color-text-primary); }
 .bc-hero, .bc-shell { width: min(1180px, calc(100% - 40px)); margin: 0 auto; box-sizing:border-box; }
 .bc-hero { padding: 54px 0 26px; }
+.bc-kicker { margin:0 0 14px; color:var(--color-accent-amber); font:900 11px/1 var(--font-jetbrains); letter-spacing:.15em; text-transform:uppercase; }
 .bc-hero h1 { max-width: 920px; font-family: var(--font-playfair); font-size: clamp(42px, 7vw, 78px); line-height: .94; letter-spacing: -.045em; margin: 0; overflow-wrap:break-word; }
+.bc-hero-copy { max-width:720px; margin:20px 0 0; color:var(--color-text-secondary); font:16px/1.6 var(--font-dm-sans); }
 .bc-shell { padding: 10px 0 78px; }
 .bc-search-card { display:flex; align-items:flex-end; gap:12px; width:100%; max-width:100%; box-sizing:border-box; padding:18px; border-radius:var(--radius-feature); background:linear-gradient(180deg, var(--surface-raised), var(--surface-soft)); box-shadow:0 24px 72px rgba(0,0,0,.22), inset 0 1px 0 rgba(255,255,255,.045); }
 .bc-field { display:grid; gap:8px; min-width:0; max-width:100%; }

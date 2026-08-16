@@ -33,7 +33,6 @@ export const PAID_MEMBERSHIP_PLANS: PaidMembershipPlan[] = [
       "Unlimited Bottle Checks and full Member Sightings",
     ],
     accent: "standard",
-    featured: true,
     evergreenEmailEligible: true,
   },
   {
@@ -51,6 +50,7 @@ export const PAID_MEMBERSHIP_PLANS: PaidMembershipPlan[] = [
       "Collection tools and recommendations",
     ],
     accent: "barrel",
+    featured: true,
     evergreenEmailEligible: true,
   },
   {
@@ -59,9 +59,9 @@ export const PAID_MEMBERSHIP_PLANS: PaidMembershipPlan[] = [
     eyebrow: "Limited Founder Offer",
     oneTimePrice: "$50",
     plan: "bib_lifetime",
-    description: "Get the complete Barrel Proof experience for one payment while founder spots remain.",
+    description: "Everything in Barrel Proof, with one lifetime payment.",
     features: [
-      "Lifetime access to all current and future features",
+      "Everything in Barrel Proof",
       "Numbered Founder’s glass",
       "Founder badge & number on profile",
     ],
@@ -90,8 +90,6 @@ export const MEMBERSHIP_COMPARISON_ROWS = [
   ["Sightings alerts", "—", "—", "✓", "✓"],
   ["My Collection", "—", "—", "✓", "✓"],
   ["Recommended Bottles", "—", "—", "✓", "✓"],
-  ["Lifetime future features", "—", "—", "—", "✓"],
   ["Founder badge + number", "—", "—", "—", "✓"],
   ["Numbered Founder’s glass", "—", "—", "—", "✓"],
-  ["Founder-only benefits", "—", "—", "—", "✓"],
 ] as const;
