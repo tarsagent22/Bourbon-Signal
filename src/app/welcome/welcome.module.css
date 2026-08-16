@@ -554,7 +554,6 @@
   align-items: center;
   justify-content: space-between;
   gap: 24px;
-  border: 1px solid rgba(196, 148, 58, 0.34);
   border-radius: 22px;
   padding: 24px;
   background: linear-gradient(135deg, rgba(196, 148, 58, 0.16), rgba(245, 237, 214, 0.025));
@@ -562,7 +561,7 @@
 }
 
 .trialCard h2 {
-  margin: 8px 0 0;
+  margin: 0;
   color: rgba(245, 237, 214, 0.96);
   font: 700 clamp(26px, 3vw, 38px)/1.05 var(--font-playfair);
   letter-spacing: -0.03em;

@@ -6,6 +6,7 @@ import {
   canRedeemSignalPoints,
   isLegalRedemptionTransition,
   normalizeRedemptionDetails,
+  rewardCatalogItem,
 } from "../src/lib/signal-points.ts";
 import { clerkRewardSourceTargets, normalizedClerkRewardPoints, SignalPointsRepository } from "../src/lib/signal-points-repository.ts";
 import { REFERRAL_POINTS_BY_TIER } from "../src/lib/referrals.ts";
@@ -16,14 +17,9 @@ const read = (path: string) => readFileSync(new URL(`../${path}`, import.meta.ur
 test("launch catalog has the confirmed versioned prices and fulfillment kinds", () => {
   assert.deepEqual(Object.fromEntries(SIGNAL_REWARD_CATALOG.map((item) => [item.key, item.points])), {
     sticker_pack: 75,
-    coaster_set: 200,
     rocks_glass: 400,
     glencairn: 450,
     bourbon_shipping_gift_card_100: 2600,
-    tshirt: 700,
-    rocks_glass_pair: 750,
-    glencairn_pair: 850,
-    hoodie: 1200,
   });
   assert.ok(SIGNAL_REWARD_CATALOG.every((item) => item.catalogVersion === 1));
   assert.equal(SIGNAL_REWARD_CATALOG.find((item) => item.key === "bourbon_shipping_gift_card_100")?.fulfillmentType, "digital");
@@ -104,18 +100,20 @@ test("glass engraving is short, validated, and priced per glass", () => {
   assert.deepEqual(normalizeRedemptionDetails("glencairn", { glassStyle: "personal", engravingText: "C.T. 2026" }), {
     ok: true, details: { glassStyle: "personal", engravingText: "C.T. 2026" }, surchargePoints: 125,
   });
-  assert.equal(normalizeRedemptionDetails("rocks_glass_pair", { glassStyle: "personal", engravingText: "BOURBON SIGNAL MEMBER NAME IS TOO LONG" }).ok, false);
-  assert.equal(normalizeRedemptionDetails("glencairn_pair", { glassStyle: "personal", engravingText: "CAB" }).surchargePoints, 250);
+  assert.equal(normalizeRedemptionDetails("rocks_glass", { glassStyle: "personal", engravingText: "BOURBON SIGNAL MEMBER NAME IS TOO LONG" }).ok, false);
 });
 
-test("apparel and gift card details are explicit and validated", () => {
-  assert.equal(normalizeRedemptionDetails("tshirt", { size: "XL", color: "black" }).ok, true);
-  assert.equal(normalizeRedemptionDetails("hoodie", { size: "", color: "black" }).ok, false);
+test("the reduced catalog keeps only stickers, two glasses, and the gift card", () => {
+  assert.deepEqual(SIGNAL_REWARD_CATALOG.map((item) => item.key), ["sticker_pack", "rocks_glass", "glencairn", "bourbon_shipping_gift_card_100"]);
+  assert.equal(rewardCatalogItem("tshirt")?.key, "tshirt", "retired definitions remain available only for safe idempotent retries");
+  assert.equal(rewardCatalogItem("bourbon_shipping_gift_card_25")?.key, "bourbon_shipping_gift_card_25", "the retired gift card remains retry-safe");
   assert.equal(normalizeRedemptionDetails("bourbon_shipping_gift_card_100", { age21Attested: false, accountEmail: "member@example.com" }).ok, false);
   assert.equal(normalizeRedemptionDetails("bourbon_shipping_gift_card_100", { age21Attested: true, accountEmail: "member@example.com" }).ok, true);
   const schema = read("src/lib/signal-points-schema.sql");
+  assert.match(read("src/lib/signal-points-repository.ts"), /INSERT INTO signal_point_accounts\(user_id\)[\s\S]*ON CONFLICT\(user_id\) DO NOTHING/, "new members receive a zero-balance account before their first read");
   assert.match(schema, /bourbon_shipping_gift_card_100[^\n]*2600/);
   assert.match(schema, /UPDATE signal_reward_catalog SET active=FALSE[\s\S]*item_key='bourbon_shipping_gift_card_25'/i);
+  for (const retired of ["coaster_set", "tshirt", "rocks_glass_pair", "glencairn_pair", "hoodie"]) assert.match(schema, new RegExp(retired));
 });
 
 test("redemption state machine allows only forward fulfillment transitions and pre-fulfillment cancellation", () => {
@@ -195,10 +193,10 @@ test("schema, migration, encrypted backup, APIs, drawer, and owner queue are wir
   const memberRoute = read("src/app/api/signal-points/route.ts");
   const redemptionRoute = read("src/app/api/signal-points/redemptions/route.ts");
   const adminRoute = read("src/app/api/admin/signal-points/route.ts");
-  assert.match(memberRoute, /requireOwnerApiAccess/); assert.match(memberRoute, /503/); assert.match(memberRoute, /assertCutoverVerified/);
+  assert.match(memberRoute, /requireSignalPointsApiAccess/); assert.match(memberRoute, /503/); assert.match(memberRoute, /assertCutoverVerified/);
   assert.doesNotMatch(memberRoute, /privateMetadata|reconcileClerkRewards/);
   assert.doesNotMatch(redemptionRoute, /privateMetadata|reconcileClerkRewards/);
-  assert.match(redemptionRoute, /requireOwnerApiAccess/); assert.match(redemptionRoute, /verified/i); assert.match(redemptionRoute, /shipping/i); assert.match(redemptionRoute, /503/); assert.match(redemptionRoute, /assertCutoverVerified/);
+  assert.match(redemptionRoute, /requireSignalPointsApiAccess/); assert.match(redemptionRoute, /verified/i); assert.match(redemptionRoute, /shipping/i); assert.match(redemptionRoute, /503/); assert.match(redemptionRoute, /assertCutoverVerified/);
   assert.match(adminRoute, /requireOwnerApiAccess/);
   const operationsPage = read("src/app/admin/operations/page.tsx");
   assert.match(operationsPage, /requireOwnerPageAccess/);

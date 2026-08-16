@@ -163,6 +163,7 @@ export class SignalPointsRepository {
 
   async readMember(userId: string) {
     await this.assertCutoverVerified();
+    await this.query.query("INSERT INTO signal_point_accounts(user_id) VALUES($1) ON CONFLICT(user_id) DO NOTHING", [userId]);
     const [accountRows, catalogRows, redemptionRows] = await Promise.all([
       this.query.query("SELECT balance,debt FROM signal_point_accounts WHERE user_id=$1", [userId]),
       this.query.query("SELECT * FROM signal_reward_catalog WHERE active=TRUE ORDER BY points_cost,item_key"),

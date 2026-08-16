@@ -192,14 +192,9 @@ CREATE TABLE IF NOT EXISTS signal_point_migrations (
 INSERT INTO signal_reward_catalog (item_key,catalog_version,name,points_cost,fulfillment_type,option_snapshot)
 VALUES
   ('sticker_pack',1,'Bourbon Signal sticker pack',75,'physical','{"usShippingIncluded":true}'::jsonb),
-  ('coaster_set',1,'Bourbon Signal coaster set',200,'physical','{"usShippingIncluded":true}'::jsonb),
   ('rocks_glass',1,'Bourbon Signal rocks glass',400,'physical','{"usShippingIncluded":true,"glassQuantity":1,"engravingPointsPerGlass":125}'::jsonb),
   ('glencairn',1,'Bourbon Signal Glencairn',450,'physical','{"usShippingIncluded":true,"glassQuantity":1,"engravingPointsPerGlass":125}'::jsonb),
-  ('bourbon_shipping_gift_card_100',1,'$100 bourbon-shipping partner gift card',2600,'digital','{"ownerFulfillment":true,"requiresAge21Attestation":true,"denominationUsd":100}'::jsonb),
-  ('tshirt',1,'Bourbon Signal T-shirt',700,'physical','{"usShippingIncluded":true,"apparel":true}'::jsonb),
-  ('rocks_glass_pair',1,'Pair of Bourbon Signal rocks glasses',750,'physical','{"usShippingIncluded":true,"glassQuantity":2,"engravingPointsPerGlass":125}'::jsonb),
-  ('glencairn_pair',1,'Pair of Bourbon Signal Glencairns',850,'physical','{"usShippingIncluded":true,"glassQuantity":2,"engravingPointsPerGlass":125}'::jsonb),
-  ('hoodie',1,'Bourbon Signal hoodie',1200,'physical','{"usShippingIncluded":true,"apparel":true}'::jsonb)
+  ('bourbon_shipping_gift_card_100',1,'$100 bourbon-shipping partner gift card',2600,'digital','{"ownerFulfillment":true,"requiresAge21Attestation":true,"denominationUsd":100}'::jsonb)
 ON CONFLICT (item_key) DO UPDATE SET
   catalog_version=EXCLUDED.catalog_version,name=EXCLUDED.name,points_cost=EXCLUDED.points_cost,
   fulfillment_type=EXCLUDED.fulfillment_type,option_snapshot=EXCLUDED.option_snapshot,active=TRUE,updated_at=NOW();
@@ -207,6 +202,10 @@ ON CONFLICT (item_key) DO UPDATE SET
 -- Preserve the retired SKU for immutable historical redemption foreign keys and snapshots.
 UPDATE signal_reward_catalog SET active=FALSE,updated_at=NOW()
 WHERE item_key='bourbon_shipping_gift_card_25' AND active=TRUE;
+
+-- Retain historical rows for immutable redemption snapshots, but keep the live catalog focused.
+UPDATE signal_reward_catalog SET active=FALSE,updated_at=NOW()
+WHERE item_key IN ('coaster_set','tshirt','rocks_glass_pair','glencairn_pair','hoodie') AND active=TRUE;
 
 CREATE OR REPLACE FUNCTION reject_signal_point_ledger_mutation()
 RETURNS TRIGGER LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'Signal Points ledger is append-only'; END $$;
