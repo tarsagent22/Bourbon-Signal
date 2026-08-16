@@ -21,14 +21,29 @@ test('Texas rotates a bounded Twin Liquors cohort across every configured mercha
   const epoch = Date.parse('2026-08-15T00:00:00Z');
   const cohorts = Array.from({ length: 7 }, (_, slot) => texasTwinMerchantCohort(
     new Date(epoch + slot * 30 * 60_000).toISOString(),
-    {},
+    { env: {} },
   ));
   assert.ok(cohorts.every((cohort) => cohort.length === 4));
   assert.equal(new Set(cohorts.flat()).size, 28);
   assert.notDeepEqual(cohorts[0], cohorts[1]);
   assert.deepEqual(
-    texasTwinMerchantCohort('2026-08-15T00:05:00Z', {}),
-    texasTwinMerchantCohort('2026-08-15T00:25:00Z', {}),
+    texasTwinMerchantCohort('2026-08-15T00:05:00Z', { env: {} }),
+    texasTwinMerchantCohort('2026-08-15T00:25:00Z', { env: {} }),
+  );
+});
+
+test('Texas prioritizes the merchants with the oldest retained evidence', () => {
+  const allMerchants = Array.from({ length: 7 }, (_, slot) => texasTwinMerchantCohort(
+    new Date(Date.parse('2026-08-15T00:00:00Z') + slot * 30 * 60_000).toISOString(),
+    { env: {} },
+  )).flat();
+  const signals = allMerchants.map((merchantId, index) => ({
+    merchantId,
+    observedAt: index < 4 ? '2026-08-01T00:00:00Z' : '2026-08-15T00:00:00Z',
+  }));
+  assert.deepEqual(
+    texasTwinMerchantCohort('2026-08-16T00:00:00Z', { signals, env: {} }),
+    allMerchants.slice(0, 4),
   );
 });
 
