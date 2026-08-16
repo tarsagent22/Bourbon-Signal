@@ -1053,8 +1053,13 @@ const TX_TWIN_MERCHANT_IDS = [
   '5af17c15c8852b44f5995fe6', '5af17bddc8852b44f5995faf', '5af17b9fc8852b44f5995f5f', '5af17bd1c8852b44f5995f91',
   '5af17c17c8852b44f5995feb', '5af17c3ac8852b44f5995ffa', '5af17bdcc8852b44f5995faa', '5af17a75c8852b44f5995ea6'
 ];
-export function texasTwinMerchantCohort(observedAt, env = process.env) {
+export function texasTwinMerchantCohort(observedAt, { signals = [], env = process.env } = {}) {
   const { twinMaxMerchants } = texasCityHiveRequestLimits(env);
+  const knownMerchants = new Set(TX_TWIN_MERCHANT_IDS);
+  const priorEvidence = (signals || []).filter((signal) => knownMerchants.has(String(signal?.merchantId || signal?.raw?.merchantId || '')));
+  if (priorEvidence.length) {
+    return oldestSourceEvidenceCohort(TX_TWIN_MERCHANT_IDS, priorEvidence, twinMaxMerchants, (merchantId) => merchantId);
+  }
   return rotatingSourceCohort(TX_TWIN_MERCHANT_IDS, observedAt, twinMaxMerchants, 30 * 60_000);
 }
 const TX_CITYHIVE_MERCHANT_COHORTS = {
@@ -7534,14 +7539,14 @@ function specsProductNameFromText(text, fallbackUrl) {
   return title.replace(/•.*$/, '').replace(/\bSpec’s Wines.*$/i, '').trim();
 }
 
-async function collectTexas(config, bible) {
+async function collectTexas(config, bible, existingSignals = []) {
   const observedAt = new Date().toISOString();
   const signals = [];
   const roadblocks = [];
 
   sourceLoop: for (const source of TX_CITYHIVE_SOURCES) {
     const merchantCohort = source.id === 'twin-liquors'
-      ? texasTwinMerchantCohort(observedAt)
+      ? texasTwinMerchantCohort(observedAt, { signals: existingSignals })
       : TX_CITYHIVE_MERCHANT_COHORTS[source.id];
     const sourceSeedUrls = merchantCohort?.length
       ? merchantCohort.map((merchantId) => `${source.baseUrl}/shop/?subtype=bourbon&merchant-id=${merchantId}`)
@@ -9405,7 +9410,7 @@ async function collectPrecisionProbesDirect(config, bible, existingSignals = [],
   if (config.id === 'GA') return collectGeorgia(config, bible, options);
   if (config.id === 'NY' || config.id === 'CO') return collectMetroRetailers(config, bible, options);
   if (config.id === 'SC') return collectSouthCarolina(config, bible);
-  if (config.id === 'TX') return collectTexas(config, bible);
+  if (config.id === 'TX') return collectTexas(config, bible, existingSignals);
   if (config.id === 'VA') return collectVirginia(config, bible, options);
   if (config.id === 'PA') return collectPennsylvania(config, bible);
   if (config.id === 'MD-MONTGOMERY') return collectMontgomery(config, bible);
