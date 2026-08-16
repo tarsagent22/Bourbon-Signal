@@ -544,6 +544,51 @@
   text-transform: uppercase;
 }
 
+.trialSection {
+  padding-top: 18px;
+  padding-bottom: 18px;
+}
+
+.trialCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  border: 1px solid rgba(196, 148, 58, 0.34);
+  border-radius: 22px;
+  padding: 24px;
+  background: linear-gradient(135deg, rgba(196, 148, 58, 0.16), rgba(245, 237, 214, 0.025));
+  box-shadow: 0 22px 70px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.trialCard h2 {
+  margin: 8px 0 0;
+  color: rgba(245, 237, 214, 0.96);
+  font: 700 clamp(26px, 3vw, 38px)/1.05 var(--font-playfair);
+  letter-spacing: -0.03em;
+}
+
+.trialCard span {
+  display: block;
+  margin-top: 9px;
+  color: rgba(245, 237, 214, 0.58);
+  font: 800 13px/1.4 var(--font-dm-sans);
+}
+
+.trialCard > a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  border-radius: 13px;
+  padding: 14px 17px;
+  color: #17110b;
+  background: linear-gradient(135deg, #c4943a, #d4a44a);
+  font: 900 13px/1 var(--font-dm-sans);
+  text-decoration: none;
+}
+
 .exploreLinks {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -678,6 +723,16 @@
 
   .exploreLinks .explorePrimary {
     grid-column: auto;
+  }
+
+  .trialCard {
+    align-items: stretch;
+    flex-direction: column;
+    padding: 20px;
+  }
+
+  .trialCard > a {
+    width: 100%;
   }
 
 

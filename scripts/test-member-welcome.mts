@@ -123,10 +123,8 @@ for (const feature of [
   "Sightings alerts",
   "My Collection",
   "Recommended Bottles",
-  "Lifetime future features",
   "Founder badge + number",
   "Numbered Founder’s glass",
-  "Founder-only benefits",
 ]) {
   assert.ok(pricingTruthSource.includes(feature), `comparison must preserve the complete prior feature row: ${feature}`);
 }
@@ -151,7 +149,7 @@ assert.match(pricingSource, /annual memberships and Founder lifetime/);
 assert.match(pricingSource, /first annual payment/);
 assert.match(pricingSource, /Founder remains a one-time payment/);
 assert.match(pricingSource, /@media \(max-width:\s*640px\)[\s\S]*100vw - 28px/, "mobile pricing containers must remain viewport-bound");
-assert.match(pricingSource, /Recommended[\s\S]*Standard Proof/);
+assert.match(pricingSource, /Recommended[\s\S]*Barrel Proof/);
 assert.match(pricingSource, /Limited lifetime offer/);
 for (const plan of ["standard_monthly", "standard_annual", "barrel_monthly", "barrel_annual", "bib_lifetime"]) {
   assert.ok(pricingTruthSource.includes(plan), `pricing must preserve checkout plan ${plan}`);

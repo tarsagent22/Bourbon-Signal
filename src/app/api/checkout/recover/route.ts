@@ -5,6 +5,7 @@ import { isMembershipAccessActive, type BillingPlanId } from "@/lib/entitlements
 import { getCheckoutPlanByPriceId, LAUNCH_BILLING_PLANS, type LaunchBillingPlan } from "@/lib/stripe-plans";
 import { activateMembership } from "@/lib/membership-server";
 import { reconcileReferredMembership } from "@/lib/referral-service";
+import { enforceMembershipSubscriptionActivation } from "@/lib/membership-trial-stripe";
 
 export const dynamic = "force-dynamic";
 
@@ -69,10 +70,15 @@ export async function POST() {
     if (!plan) continue;
 
     let membershipStatus = "active";
+    let subscription: Stripe.Subscription | null = null;
     if (plan.id !== "bib_lifetime" && session.subscription) {
-      const subscription = await stripe.subscriptions.retrieve(String(session.subscription));
+      subscription = await stripe.subscriptions.retrieve(String(session.subscription));
       membershipStatus = subscription.status;
       if (!isMembershipAccessActive(plan.tier, membershipStatus, plan.id)) continue;
+    }
+    if (subscription) {
+      const enforcement = await enforceMembershipSubscriptionActivation({ stripe, userId, subscription, plan });
+      if (!enforcement.accepted) continue;
     }
 
     const paymentIntentId = stringValue(session.payment_intent);

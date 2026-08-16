@@ -7,6 +7,8 @@ import { activateMembership, downgradeMembershipForSubscription, findUserByEmail
 import { reconcileReferredMembership } from "@/lib/referral-service";
 import { isGiftPurchase } from "@/lib/gifts";
 import { handleDirectFounderStripeEvent, handleGiftStripeEvent } from "@/lib/gift-stripe-webhook";
+import { getMembershipTrialRepository } from "@/lib/membership-trial-repository";
+import { enforceMembershipSubscriptionActivation, isManagedMembershipTrial } from "@/lib/membership-trial-stripe";
 
 export const dynamic = "force-dynamic";
 
@@ -52,6 +54,15 @@ async function planFromSubscription(subscription: Stripe.Subscription) {
   return planFromMetadata(stringValue(subscription.metadata?.plan));
 }
 
+async function retrieveCurrentSubscription(stripe: Stripe, subscriptionId: string) {
+  try {
+    return await stripe.subscriptions.retrieve(subscriptionId);
+  } catch (error) {
+    if (error instanceof Stripe.errors.StripeInvalidRequestError && error.code === "resource_missing") return null;
+    throw error;
+  }
+}
+
 async function emailFromStripeCustomer(stripe: Stripe, customerId: string | null) {
   if (!customerId) return "";
   const customer = await stripe.customers.retrieve(customerId);
@@ -93,12 +104,24 @@ export async function POST(req: NextRequest) {
     const userId = metadataUserId || emailMatchedUser?.id || null;
     let membershipStatus = "active";
     const subscriptionId = stringValue(session.subscription);
+    let subscription: Stripe.Subscription | null = null;
     if (plan && plan.id !== "bib_lifetime" && subscriptionId) {
-      const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+      subscription = await retrieveCurrentSubscription(stripe, subscriptionId);
+      if (!subscription) return NextResponse.json({ received: true });
       membershipStatus = subscription.status;
     }
     if (userId && plan && (session.payment_status === "paid" || session.payment_status === "no_payment_required")
       && isMembershipAccessActive(plan.tier, membershipStatus, plan.id)) {
+      if (subscription) {
+        const enforcement = await enforceMembershipSubscriptionActivation({
+          stripe,
+          userId,
+          subscription,
+          plan,
+          observedAt: new Date(event.created * 1000).toISOString(),
+        });
+        if (!enforcement.accepted) return NextResponse.json({ received: true });
+      }
       const paymentIntentId = stringValue(session.payment_intent);
       let chargeId: string | null = null;
       if (paymentIntentId) chargeId = stringValue((await stripe.paymentIntents.retrieve(paymentIntentId)).latest_charge);
@@ -120,13 +143,23 @@ export async function POST(req: NextRequest) {
   }
 
   if (event.type === "customer.subscription.created" || event.type === "customer.subscription.updated") {
-    const subscription = event.data.object as Stripe.Subscription;
+    const eventSubscription = event.data.object as Stripe.Subscription;
+    const subscription = await retrieveCurrentSubscription(stripe, eventSubscription.id);
+    if (!subscription) return NextResponse.json({ received: true });
     const customerId = stringValue(subscription.customer);
     const metadataUserId = stringValue(subscription.metadata?.userId);
     const existingUser = !metadataUserId && customerId ? await findUserByStripeCustomerId(customerId) : null;
     const emailMatchedUser = !metadataUserId && !existingUser ? await findUserByEmailAddress(await emailFromStripeCustomer(stripe, customerId)) : null;
     const userId = metadataUserId || existingUser?.id || emailMatchedUser?.id || null;
     const plan = await planFromSubscription(subscription);
+    const eventAt = new Date(event.created * 1000).toISOString();
+    if (userId && plan) {
+      const enforcement = await enforceMembershipSubscriptionActivation({ stripe, userId, subscription, plan, observedAt: eventAt });
+      if (!enforcement.accepted) return NextResponse.json({ received: true });
+    }
+    if (isManagedMembershipTrial(subscription, plan) && ["canceled", "unpaid", "incomplete_expired"].includes(subscription.status)) {
+      await getMembershipTrialRepository().markCanceled(subscription.id, eventAt);
+    }
     if (userId && plan && isMembershipAccessActive(plan.tier, subscription.status, plan.id)) {
       await activateMembership(userId, {
         tier: plan.tier,
@@ -139,14 +172,23 @@ export async function POST(req: NextRequest) {
         await reconcileReferredMembership({ userId, tier: plan.tier, sourceEventId: event.id });
       }
     } else if (customerId && !isMembershipAccessActive(plan?.tier, subscription.status, plan?.id)) {
-      await suspendMembershipForSubscription(customerId, subscription.id, subscription.status);
+      await suspendMembershipForSubscription(customerId, subscription.id, subscription.status, userId);
     }
   }
 
   if (event.type === "customer.subscription.deleted") {
     const subscription = event.data.object as Stripe.Subscription;
     const customerId = stringValue(subscription.customer);
-    if (customerId) await downgradeMembershipForSubscription(customerId, subscription.id);
+    const metadataUserId = stringValue(subscription.metadata?.userId);
+    if (subscription.metadata?.trial_offer === "monthly_7_day_v1") {
+      if (!metadataUserId) return NextResponse.json({ received: true });
+      const durableClaim = await getMembershipTrialRepository().findByUserId(metadataUserId);
+      if (durableClaim && durableClaim.subscriptionId !== subscription.id) {
+        return NextResponse.json({ received: true });
+      }
+      await getMembershipTrialRepository().markCanceled(subscription.id, new Date(event.created * 1000).toISOString());
+    }
+    if (customerId) await downgradeMembershipForSubscription(customerId, subscription.id, metadataUserId);
   }
 
   if (event.type === "invoice.payment_failed") {

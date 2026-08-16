@@ -7,6 +7,7 @@ import { createGiftRepository } from "@/lib/gift-repository";
 import { reconcileAllFounderReservationAuthority } from "@/lib/founder-reservations";
 import { resolveServerEffectiveMembershipTier } from "@/lib/server-entitlements";
 import { directFounderRevocationMetadata } from "@/lib/direct-founder-revocation";
+import { hasActiveGiftMembership, membershipTrialMetadata } from "@/lib/membership-trial";
 
 type ClerkMembershipUser = {
   id: string;
@@ -101,9 +102,15 @@ export async function activateMembership(userId: string, input: {
   const user = await client.users.getUser(userId);
   const now = new Date().toISOString();
   const status = input.status || "active";
+  const trialMetadata = membershipTrialMetadata({
+    status,
+    plan: input.plan,
+    subscriptionId: input.stripeSubscriptionId,
+    existingPrivateMetadata: user.privateMetadata,
+    now,
+  });
   const activeGiftOrderId = stringValue(user.publicMetadata?.giftOrderId);
-  const activeGiftPlan = stringValue(user.publicMetadata?.plan) || stringValue(user.publicMetadata?.billingPlan);
-  if (activeGiftOrderId && activeGiftPlan?.startsWith("gift_") && input.plan !== "bib_lifetime") {
+  if (activeGiftOrderId && hasActiveGiftMembership(user.publicMetadata as Record<string, unknown>) && input.plan !== "bib_lifetime") {
     await client.users.updateUserMetadata(userId, {
       publicMetadata: {
         ...user.publicMetadata,
@@ -117,6 +124,7 @@ export async function activateMembership(userId: string, input: {
         stripeMembershipStatus: status,
         stripeMembershipUpdatedAt: now,
         activation: mergeGrowthMilestoneMetadata(user.privateMetadata || {}, "membership_activated", now).activation,
+        ...trialMetadata,
       },
     });
     return;
@@ -178,6 +186,7 @@ export async function activateMembership(userId: string, input: {
         stripeMembershipStatus: status,
         stripeMembershipUpdatedAt: now,
         activation: mergeGrowthMilestoneMetadata(user.privateMetadata || {}, "membership_activated", now).activation,
+        ...trialMetadata,
       },
     });
   } catch (error) {
@@ -335,11 +344,21 @@ export async function reactivateDirectFounderMembership(attemptId: string) {
 }
 
 
-export async function suspendMembershipForSubscription(customerId: string, subscriptionId: string, status = "past_due") {
-  const user = await findUserByStripeCustomerId(customerId);
+export async function suspendMembershipForSubscription(customerId: string, subscriptionId: string, status = "past_due", knownUserId?: string | null) {
+  const user = knownUserId
+    ? await (await clerkClient()).users.getUser(knownUserId)
+    : await findUserByStripeCustomerId(customerId);
   if (!user) return;
   const existingPlan = stringValue(user.publicMetadata?.plan) || stringValue(user.publicMetadata?.billingPlan);
   const existingTier = normalizeMembershipTier(user.publicMetadata?.tier || user.publicMetadata?.membershipTier);
+  const now = new Date().toISOString();
+  const trialMetadata = membershipTrialMetadata({
+    status,
+    plan: existingPlan as BillingPlanId,
+    subscriptionId,
+    existingPrivateMetadata: user.privateMetadata,
+    now,
+  });
   const storedSubscriptionId = stringValue(user.privateMetadata?.stripeSubscriptionId);
   if (storedSubscriptionId && storedSubscriptionId !== subscriptionId) return;
   if (existingPlan?.startsWith("gift_")) {
@@ -348,7 +367,7 @@ export async function suspendMembershipForSubscription(customerId: string, subsc
     const client = await clerkClient();
     await client.users.updateUserMetadata(user.id, {
       publicMetadata: { ...user.publicMetadata, giftPreviousMembership: { ...previous, status }, membershipUpdatedAt: new Date().toISOString() },
-      privateMetadata: { ...user.privateMetadata, stripeMembershipStatus: status },
+      privateMetadata: { ...user.privateMetadata, stripeMembershipStatus: status, ...trialMetadata },
     });
     return;
   }
@@ -364,15 +383,26 @@ export async function suspendMembershipForSubscription(customerId: string, subsc
     privateMetadata: {
       ...user.privateMetadata,
       stripeMembershipStatus: status,
+      ...trialMetadata,
     },
   });
 }
 
-export async function downgradeMembershipForSubscription(customerId: string, subscriptionId: string) {
-  const user = await findUserByStripeCustomerId(customerId);
+export async function downgradeMembershipForSubscription(customerId: string, subscriptionId: string, knownUserId?: string | null) {
+  const user = knownUserId
+    ? await (await clerkClient()).users.getUser(knownUserId)
+    : await findUserByStripeCustomerId(customerId);
   if (!user) return;
   const existingPlan = stringValue(user.publicMetadata?.plan) || stringValue(user.publicMetadata?.billingPlan);
   const existingTier = normalizeMembershipTier(user.publicMetadata?.tier || user.publicMetadata?.membershipTier);
+  const now = new Date().toISOString();
+  const trialMetadata = membershipTrialMetadata({
+    status: "canceled",
+    plan: existingPlan as BillingPlanId,
+    subscriptionId,
+    existingPrivateMetadata: user.privateMetadata,
+    now,
+  });
   const storedSubscriptionId = stringValue(user.privateMetadata?.stripeSubscriptionId);
   if (storedSubscriptionId && storedSubscriptionId !== subscriptionId) return;
   if (existingPlan?.startsWith("gift_")) {
@@ -381,7 +411,7 @@ export async function downgradeMembershipForSubscription(customerId: string, sub
     const client = await clerkClient();
     await client.users.updateUserMetadata(user.id, {
       publicMetadata: { ...user.publicMetadata, giftPreviousMembership: { ...previous, status: "canceled" }, membershipUpdatedAt: new Date().toISOString() },
-      privateMetadata: { ...user.privateMetadata, stripeMembershipStatus: "canceled" },
+      privateMetadata: { ...user.privateMetadata, stripeMembershipStatus: "canceled", ...trialMetadata },
     });
     return;
   }
@@ -398,7 +428,9 @@ export async function downgradeMembershipForSubscription(customerId: string, sub
       membershipUpdatedAt: new Date().toISOString(),
     },
     privateMetadata: {
+      ...user.privateMetadata,
       stripeMembershipStatus: "canceled",
+      ...trialMetadata,
     },
   });
 }
