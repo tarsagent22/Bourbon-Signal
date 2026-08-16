@@ -249,7 +249,7 @@ test("schema, migration, encrypted backup, APIs, drawer, and owner queue are wir
   assert.match(panel, /data-progress/);
   assert.doesNotMatch(panel, /<section className="points-earn-strip"/);
   const dashboard = read("src/app/dashboard/page.tsx");
-  assert.doesNotMatch(dashboard, /SignalPointsPanel|Member Points|Signal Points|memberPoints|rewards|redemption/i);
+  assert.match(dashboard, /id="signal-points"[\s\S]*<SignalPointsPanel preview/);
   const controlRoom = read("src/app/admin/control-room/page.tsx");
   assert.match(controlRoom, /isCompanyControlRoomOwnerEmail/);
   assert.match(controlRoom, /notFound\(\)/);
