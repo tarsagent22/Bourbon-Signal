@@ -20,6 +20,7 @@ import { getDisplayName, isRealDropEvent, type DropEvent } from "@/lib/drops";
 import { LiquidToggle } from "@/components/LiquidToggle";
 import { NotificationChannelCard } from "@/components/dashboard/NotificationChannelCard";
 import { CoverageRequestsCard } from "@/components/dashboard/CoverageRequestsCard";
+import SignalPointsPanel from "@/components/SignalPointsPanel";
 import {
   getDefaultNotificationPreferences,
   type NotificationPreferences,
@@ -2754,6 +2755,10 @@ function PaidMemberDashboard() {
               </div>
             ))}
           </div>
+
+          <section id="signal-points" style={{ margin: "0 0 18px" }}>
+            <SignalPointsPanel preview />
+          </section>
 
           {renderSectionButton("alerts")}
 
