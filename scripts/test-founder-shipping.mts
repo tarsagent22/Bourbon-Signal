@@ -95,7 +95,7 @@ assert.equal(founderShippingTrackingUrl("FedEx", "123456789012"), "https://www.f
 assert.equal(founderShippingTrackingUrl(null, null), null);
 
 const page = read("src/app/founder-shipping/page.tsx");
-const settings = read("src/app/settings/page.tsx");
+const settings = read("src/app/settings/SettingsPageClient.tsx");
 const successPage = read("src/app/success/page.tsx");
 const founderClaimDialog = read("src/components/FounderGlassClaimDialog.tsx");
 const shippingPanel = read("src/components/MemberShippingProfile.tsx");
