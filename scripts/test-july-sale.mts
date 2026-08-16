@@ -116,9 +116,9 @@ const pricingServerPage = readFileSync("src/app/pricing/page.tsx", "utf8");
 assert.match(pricingServerPage, /isJulySaleReadyForCustomers/, "pricing promotion must use a server-authoritative Stripe readiness check");
 const pricingPage = readFileSync("src/app/pricing/PricingPageClient.tsx", "utf8");
 assert.match(pricingPage, /const expectedPromotion = julySaleActive/, "eligible pricing checkout should declare that the customer expects the sale");
-assert.match(pricingPage, /checkoutContinueUrl\(plan, source, expectedPromotion\)/, "sale intent must survive sign-up redirect");
+assert.match(pricingPage, /checkoutContinueUrl\(plan, source, expectedPromotion, planHasTrial\(plan\)\)/, "sale and trial intent must survive sign-up redirect");
 const continuePage = readFileSync("src/app/checkout/continue/page.tsx", "utf8");
-assert.match(continuePage, /JSON\.stringify\(\{ plan, source, expectedPromotion \}\)/, "continued checkout must send sale intent to the API");
+assert.match(continuePage, /JSON\.stringify\(\{ plan, source, expectedPromotion, trialOfferExpected \}\)/, "continued checkout must send sale and trial intent to the API");
 for (const phrase of [
   "July sale — 15% off",
   "15% off annual memberships and Founder lifetime through July 31 at 11 PM ET; applied automatically.",
