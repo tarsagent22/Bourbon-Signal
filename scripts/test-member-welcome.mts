@@ -13,8 +13,9 @@ assert.equal(
 assert.equal(resolveSignUpRedirect("/dashboard", "paid"), "/welcome", "paid intent cannot bless an arbitrary internal route");
 assert.equal(contextualProductHref("pricing", "drop_feed"), "/pricing?source=drop_feed");
 
-const [authSource, signInSource, signUpSource, welcomeSource, pricingSource, pricingCatalogSource, dashboardSource, middlewareSource, requestFormSource, preferencesHookSource] = await Promise.all([
+const [authSource, layoutSource, signInSource, signUpSource, welcomeSource, pricingSource, pricingCatalogSource, dashboardSource, middlewareSource, requestFormSource, preferencesHookSource] = await Promise.all([
   readFile(new URL("../src/lib/auth.ts", import.meta.url), "utf8"),
+  readFile(new URL("../src/app/layout.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/app/sign-in/[[...sign-in]]/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/app/sign-up/[[...sign-up]]/page.tsx", import.meta.url), "utf8"),
   readFile(new URL("../src/app/welcome/page.tsx", import.meta.url), "utf8"),
@@ -43,6 +44,8 @@ assert.match(signUpSource, /No card required/);
 assert.match(signUpSource, /recordGrowthMilestone\("signup_started"/);
 assert.match(signUpSource, /if \(!confirmedAge \|\| signupStartedRecorded\.current\) return;[\s\S]*recordGrowthMilestone\("signup_started"/, "signup start must begin only after the age gate reveals the account form");
 assert.match(signUpSource, /intent=paid|paidIntent/, "paid-plan signup must preserve an explicit checkout intent through sign-in");
+assert.match(signUpSource, /fallbackRedirectUrl="\/welcome\?registration=1"/, "generic account creation must retain a Welcome fallback even when Clerk cannot use the forced destination");
+assert.match(layoutSource, /signUpFallbackRedirectUrl="\/welcome\?registration=1"/, "every Clerk signup entry point must default to Welcome");
 
 assert.match(welcomeSource, /US_STATE_OPTIONS/, "Welcome must offer the nationwide state list");
 assert.match(welcomeSource, /memberProfile/);
@@ -119,7 +122,7 @@ for (const feature of [
   "Member Sightings",
   "SMS, email, and on-site alerts",
   "Alert preference limits",
-  "Signal Strength meter",
+  "Signal Points redemption",
   "Sightings alerts",
   "My Collection",
   "Recommended Bottles",
@@ -142,6 +145,9 @@ for (const viewportWidth of [320, 375, 390]) {
 assert.match(pricingSource, /\.july-sale-banner\s*\{[^}]*grid-template-areas:/, "desktop sale copy must use bounded named grid areas");
 assert.doesNotMatch(pricingSource, /grid-template-columns:auto 1fr auto/, "sale disclaimer must not squeeze the offer into an intrinsic three-column layout");
 const founderCardSource = pricingCatalogSource.slice(pricingCatalogSource.indexOf('tier: "bottled-in-bond"'), pricingCatalogSource.indexOf("export const CORE_PAID_MEMBERSHIP_PLANS"));
+assert.doesNotMatch(pricingCatalogSource, /Signal Strength meter/);
+assert.match(pricingCatalogSource, /Redeem Signal Points for member rewards/);
+assert.doesNotMatch(founderCardSource, /description:\s*"Everything in Barrel Proof/);
 assert.ok(founderCardSource.indexOf("Numbered Founder’s glass") < founderCardSource.indexOf("Founder badge & number on profile"), "the numbered glass should precede the profile badge in the Founder card");
 assert.doesNotMatch(pricingSource, /compact-differences/);
 assert.match(pricingSource, /July sale — 15% off/);

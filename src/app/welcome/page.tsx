@@ -904,7 +904,6 @@ export default function WelcomePage() {
                 <section className={`${styles.section} ${styles.trialSection}`} aria-labelledby="membership-next-step-heading">
                   <div className={styles.trialCard}>
                     <div>
-                      <p className={styles.stepLabel}>Unlock the full signal</p>
                       <h2 id="membership-next-step-heading">Try Barrel Proof free for 7 days</h2>
                       <span>$6/month after 7 days</span>
                     </div>
@@ -918,7 +917,7 @@ export default function WelcomePage() {
               <section className={`${styles.section} ${styles.exploreSection}`} aria-labelledby="explore-heading">
                 <div className={styles.sectionHeading}>
                   <div className={styles.headingGroup}>
-                    <span className={styles.landmark} aria-hidden="true">05</span>
+                    <span className={styles.landmark} aria-hidden="true">04</span>
                     <div>
                       <p className={styles.stepLabel}>Keep exploring</p>
                       <h2 id="explore-heading">Choose where to go next</h2>

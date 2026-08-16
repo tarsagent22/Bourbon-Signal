@@ -81,6 +81,7 @@ export default function RootLayout({
   return (
     <ClerkProvider
       proxyUrl="https://bourbonsignal.com/api/clerk-proxy"
+      signUpFallbackRedirectUrl="/welcome?registration=1"
       appearance={{
         theme: dark,
         variables: {

@@ -130,9 +130,9 @@ export default function SignUpPage() {
             </span>
           </div>
           {!paidIntent || redirectUrl === DEFAULT_ONBOARDING_REDIRECT ? (
-            <SignUp unsafeMetadata={referralCode ? { referralCode } : undefined} forceRedirectUrl="/welcome?registration=1" signInForceRedirectUrl="/welcome" signInUrl="/sign-in?redirect_url=%2Fwelcome" />
+            <SignUp unsafeMetadata={referralCode ? { referralCode } : undefined} forceRedirectUrl="/welcome?registration=1" fallbackRedirectUrl="/welcome?registration=1" signInForceRedirectUrl="/welcome" signInUrl="/sign-in?redirect_url=%2Fwelcome" />
           ) : (
-            <SignUp unsafeMetadata={referralCode ? { referralCode } : undefined} forceRedirectUrl={redirectUrl} signInForceRedirectUrl={signInRedirectUrl} signInUrl={`/sign-in?redirect_url=${encodedSignInRedirect}&signup_intent=paid`} />
+            <SignUp unsafeMetadata={referralCode ? { referralCode } : undefined} forceRedirectUrl={redirectUrl} fallbackRedirectUrl={redirectUrl} signInForceRedirectUrl={signInRedirectUrl} signInUrl={`/sign-in?redirect_url=${encodedSignInRedirect}&signup_intent=paid`} />
           )}
         </>
       ) : (

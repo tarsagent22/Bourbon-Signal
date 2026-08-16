@@ -8,11 +8,11 @@ const [route, settingsServer, settingsClient, pointsApi, redemptionsApi] = await
   readFile(new URL("../src/app/api/signal-points/route.ts", import.meta.url), "utf8"),
   readFile(new URL("../src/app/api/signal-points/redemptions/route.ts", import.meta.url), "utf8"),
 ]);
-assert.match(route, /requireOwnerPageAccess/);
+assert.match(route, /requireSignalPointsPageAccess/);
 assert.match(route, /<SignalPointsPanel preview/);
-assert.match(settingsServer, /isRewardsAdminEmail/);
+assert.match(settingsServer, /if \(userId\)/);
 assert.match(settingsServer, /\/account\/signal-points/);
 assert.doesNotMatch(settingsClient, /Signal Points|SignalPointsPanel/, "ordinary account client bundle must not reveal the private preview");
-assert.match(pointsApi, /requireOwnerApiAccess/);
-assert.match(redemptionsApi, /requireOwnerApiAccess/);
+assert.match(pointsApi, /requireSignalPointsApiAccess/);
+assert.match(redemptionsApi, /requireSignalPointsApiAccess/);
 console.log("Owner Signal Points preview contract passed.");

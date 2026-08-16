@@ -140,12 +140,12 @@ try {
   assert.deepEqual(row(canceled), { balance: 100, credits: "1" }, "cancellation restores points exactly once");
   await assert.rejects(transaction([{ text: "SELECT * FROM transition_signal_reward_redemption($1,$2,$3,$4,$5::jsonb)", params: [redemptionId, "retry-member", "approved", "owner", "{}"] }]));
 
-  await transaction([{ text: "UPDATE signal_reward_catalog SET inventory_remaining=1 WHERE item_key='coaster_set'" }]);
+  await transaction([{ text: "UPDATE signal_reward_catalog SET inventory_remaining=1 WHERE item_key='rocks_glass'" }]);
   for (const user of ["inventory-a", "inventory-b"]) {
     await transaction([{ text: "SELECT credit_signal_points($1,$2,$3,$4,$5::jsonb)", params: [user, 500, `seed-${user}`, "test", "{}"] }]);
     await seedShipping(user);
   }
-  const inventory = await Promise.allSettled(["inventory-a", "inventory-b"].map((user) => transaction([{ text: "SELECT * FROM reserve_signal_reward($1,$2,$3,$4,$5,$6::jsonb,$7,$8)", params: [randomUUID(), user, "standard", "coaster_set", `claim-${user}`, "{}", `${user}@example.com`, true] }])));
+  const inventory = await Promise.allSettled(["inventory-a", "inventory-b"].map((user) => transaction([{ text: "SELECT * FROM reserve_signal_reward($1,$2,$3,$4,$5,$6::jsonb,$7,$8)", params: [randomUUID(), user, "standard", "rocks_glass", `claim-${user}`, '{"glassStyle":"standard"}', `${user}@example.com`, true] }])));
   assert.equal(inventory.filter((attempt) => attempt.status === "fulfilled").length, 1, "only one member claims the final inventory item");
 
   for (const target of [80, 120, 80]) {

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { requireOwnerApiAccess } from "@/lib/owner-auth";
+import { requireSignalPointsApiAccess } from "@/lib/owner-auth";
 import { createSignalPointsRepository } from "@/lib/signal-points-repository";
 import { resolveServerEffectiveMembershipTier } from "@/lib/server-entitlements";
 import { readFounderShippingForUser } from "@/lib/founder-shipping-repository";
@@ -8,10 +8,10 @@ export const dynamic = "force-dynamic";
 const PRIVATE_HEADERS = { "Cache-Control": "private, no-store" };
 
 export async function GET() {
-  const owner = await requireOwnerApiAccess({ unauthorized: "Account required", forbidden: "Not found" });
-  if (owner.error) return owner.error;
+  const access = await requireSignalPointsApiAccess({ unauthorized: "Account required", forbidden: "Not found" });
+  if (access.error) return access.error;
   try {
-    const { user, userId } = owner;
+    const { user, userId } = access;
     const repository = createSignalPointsRepository();
     await repository.assertCutoverVerified();
     const tier = await resolveServerEffectiveMembershipTier(user.publicMetadata);

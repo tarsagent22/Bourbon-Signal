@@ -5,7 +5,7 @@ import { readFounderShippingForUser } from "@/lib/founder-shipping-repository";
 import { canRedeemSignalPoints, normalizeRedemptionDetails, rewardCatalogItem } from "@/lib/signal-points";
 import { createSignalPointsRepository } from "@/lib/signal-points-repository";
 import { resolveServerEffectiveMembershipTier } from "@/lib/server-entitlements";
-import { requireOwnerApiAccess } from "@/lib/owner-auth";
+import { requireSignalPointsApiAccess } from "@/lib/owner-auth";
 
 const PRIVATE_HEADERS = { "Cache-Control": "private, no-store" };
 function verifiedPrimaryEmail(user: Awaited<ReturnType<Awaited<ReturnType<typeof clerkClient>>["users"]["getUser"]>>) {
@@ -14,9 +14,9 @@ function verifiedPrimaryEmail(user: Awaited<ReturnType<Awaited<ReturnType<typeof
 }
 
 export async function POST(request: NextRequest) {
-  const owner = await requireOwnerApiAccess({ unauthorized: "Account required", forbidden: "Not found" });
-  if (owner.error) return owner.error;
-  const { userId } = owner;
+  const access = await requireSignalPointsApiAccess({ unauthorized: "Account required", forbidden: "Not found" });
+  if (access.error) return access.error;
+  const { userId } = access;
   try {
     const payload = await request.json().catch(() => ({})) as Record<string, unknown>;
     const user = await (await clerkClient()).users.getUser(userId);
@@ -52,9 +52,9 @@ export async function POST(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
-  const owner = await requireOwnerApiAccess({ unauthorized: "Account required", forbidden: "Not found" });
-  if (owner.error) return owner.error;
-  const { userId } = owner;
+  const access = await requireSignalPointsApiAccess({ unauthorized: "Account required", forbidden: "Not found" });
+  if (access.error) return access.error;
+  const { userId } = access;
   try {
     const payload = await request.json().catch(() => ({})) as Record<string, unknown>;
     if (payload.action !== "cancel" || typeof payload.redemptionId !== "string") return NextResponse.json({ error: "Invalid redemption action." }, { status: 400, headers: PRIVATE_HEADERS });
