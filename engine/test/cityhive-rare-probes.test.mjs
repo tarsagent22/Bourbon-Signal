@@ -11,13 +11,16 @@ const EXPECTED_POLICY = {
   GA: {
     '74-package': ['Weller', 'Old Fitzgerald', "Blanton's"],
   },
+  TX: {
+    'twin-liquors': ['1792', 'Buffalo Trace'],
+  },
 };
 
 test('rare CityHive probes are restricted to reviewed high-yield source and brand cohorts', () => {
   assert.deepEqual(CITYHIVE_RARE_BRAND_PROBE_POLICY, EXPECTED_POLICY);
 
   for (const [state, sources] of Object.entries(CITYHIVE_RARE_BRAND_PROBE_POLICY)) {
-    assert.equal(state, 'GA');
+    assert.ok(['GA', 'TX'].includes(state));
     for (const [sourceId, brands] of Object.entries(sources)) {
       assert.ok(sourceId);
       assert.ok(brands.length >= 2 && brands.length <= 4, `${state}/${sourceId} must remain bounded`);
@@ -51,6 +54,21 @@ test('rare CityHive probe URLs preserve the first-party category and bind every 
     assert.equal(url.searchParams.has('search'), false);
     assert.equal(url.searchParams.has('q'), false);
     assert.equal(url.searchParams.has('skip'), false);
+  }
+});
+
+test('Texas Twin probes remain bounded to one baseline and two reviewed brand requests', () => {
+  const urls = buildCityHiveRareProbeUrls({
+    state: 'TX',
+    sourceId: 'twin-liquors',
+    categoryUrl: 'https://twinliquors.com/shop/?subtype=bourbon',
+    merchantId: '5af17b54c8852b44f5995f46',
+  }).map((value) => new URL(value));
+  assert.equal(urls.length, 3);
+  assert.deepEqual(urls.slice(1).map((url) => url.searchParams.get('brands')), ['1792', 'Buffalo Trace']);
+  for (const url of urls) {
+    assert.equal(url.hostname, 'twinliquors.com');
+    assert.equal(url.searchParams.get('merchant-id'), '5af17b54c8852b44f5995f46');
   }
 });
 

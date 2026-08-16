@@ -11,6 +11,9 @@ export const CITYHIVE_RARE_BRAND_PROBE_POLICY = freezePolicy({
   GA: {
     '74-package': ['Weller', 'Old Fitzgerald', "Blanton's"],
   },
+  TX: {
+    'twin-liquors': ['1792', 'Buffalo Trace'],
+  },
 });
 
 function exactMerchantCategoryUrl(categoryUrl, merchantId) {
