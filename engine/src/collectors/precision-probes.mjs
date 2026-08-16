@@ -1043,7 +1043,7 @@ export function texasCityHiveRequestLimits(env = process.env) {
     twinMaxMerchants: Math.max(1, Math.min(40, Number(env.BOURBON_SIGNAL_TX_TWIN_MAX_MERCHANTS) || 4)),
   };
 }
-const { maxPages: TX_CITYHIVE_MAX_PAGES, twinMaxMerchants: TX_TWIN_MAX_MERCHANTS } = texasCityHiveRequestLimits();
+const { maxPages: TX_CITYHIVE_MAX_PAGES } = texasCityHiveRequestLimits();
 const TX_TWIN_MERCHANT_IDS = [
   '5af17b54c8852b44f5995f46', '5af17b52c8852b44f5995f41', '5ada5b59db109f209fb1b63d', '546ba9ef3932330002910100',
   '5af17ad1c8852b44f5995ed8', '5ada111597465774e9268c20', '5af17bacc8852b44f5995f78', '5af17be2c8852b44f5995fb9',
@@ -1053,8 +1053,11 @@ const TX_TWIN_MERCHANT_IDS = [
   '5af17c15c8852b44f5995fe6', '5af17bddc8852b44f5995faf', '5af17b9fc8852b44f5995f5f', '5af17bd1c8852b44f5995f91',
   '5af17c17c8852b44f5995feb', '5af17c3ac8852b44f5995ffa', '5af17bdcc8852b44f5995faa', '5af17a75c8852b44f5995ea6'
 ];
+export function texasTwinMerchantCohort(observedAt, env = process.env) {
+  const { twinMaxMerchants } = texasCityHiveRequestLimits(env);
+  return rotatingSourceCohort(TX_TWIN_MERCHANT_IDS, observedAt, twinMaxMerchants, 30 * 60_000);
+}
 const TX_CITYHIVE_MERCHANT_COHORTS = {
-  'twin-liquors': TX_TWIN_MERCHANT_IDS.slice(0, TX_TWIN_MAX_MERCHANTS),
   'wb-liquors': [
     '6060f687e17e773238490ddc', '648cb54bb2fadf2a86856f05', '648cb5866b21332a821b5706', '648cb5d720a8582a9053eb3d', '648cb664132b1b2a7f0caedf',
     '648cb6df0a94182aaa3a337e', '648cb72079337d2ad1af6945', '648cb7920c3b492a993d9cdb', '648cb7cf711b392a9607244a', '648cb80ff3e7a62aa5fdca9c',
@@ -7537,7 +7540,9 @@ async function collectTexas(config, bible) {
   const roadblocks = [];
 
   sourceLoop: for (const source of TX_CITYHIVE_SOURCES) {
-    const merchantCohort = TX_CITYHIVE_MERCHANT_COHORTS[source.id];
+    const merchantCohort = source.id === 'twin-liquors'
+      ? texasTwinMerchantCohort(observedAt)
+      : TX_CITYHIVE_MERCHANT_COHORTS[source.id];
     const sourceSeedUrls = merchantCohort?.length
       ? merchantCohort.map((merchantId) => `${source.baseUrl}/shop/?subtype=bourbon&merchant-id=${merchantId}`)
       : source.urls;
@@ -9418,9 +9423,15 @@ export function legacyPrecisionRuntimeOptions(stateId, sourceRunnerOptions = {},
     .includes(stateKey);
   const defaultTimeoutMs = stateKey === 'VA' ? 1_140_000 : ['IN', 'TN', 'FL'].includes(stateKey) ? 600_000 : stateKey === 'SC' ? 420_000 : ['AZ', 'GA', 'TX'].includes(stateKey) ? 300_000 : ['NY', 'CO'].includes(stateKey) ? 240_000 : 120_000;
   const defaultMaxAttempts = ['VA', 'AZ', 'GA', 'NY', 'CO', 'IN', 'TN', 'FL'].includes(stateKey) ? 1 : 2;
+  const texasCadence = stateKey === 'TX' ? 30 * 60_000 : null;
   return {
     ...sourceRunnerOptions,
     ...(stateKey === 'VA' || explicitlyTargeted ? { schedule: false } : {}),
+    ...(texasCadence ? {
+      baseCadenceMs: sourceRunnerOptions.baseCadenceMs ?? texasCadence,
+      minCadenceMs: sourceRunnerOptions.minCadenceMs ?? texasCadence,
+      maxCadenceMs: sourceRunnerOptions.maxCadenceMs ?? texasCadence,
+    } : {}),
     timeoutMs: sourceRunnerOptions.timeoutMs ?? Number(stateTimeout || env.BOURBON_SIGNAL_LEGACY_PRECISION_TIMEOUT_MS || defaultTimeoutMs),
     maxAttempts: sourceRunnerOptions.maxAttempts ?? Number(stateAttempts || env.BOURBON_SIGNAL_LEGACY_PRECISION_ATTEMPTS || defaultMaxAttempts),
   };

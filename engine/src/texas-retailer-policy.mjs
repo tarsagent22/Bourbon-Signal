@@ -1,6 +1,6 @@
 const TEXAS_RETAILER_IDENTITIES = new Map([
   ['Twin Liquors CityHive store inventory', { chain: 'twin-liquors', hostname: 'twinliquors.com', merchantPattern: /^[0-9a-f]{24}$/i }],
-  ['Zipps Liquor CityHive store inventory', { chain: 'zipps-liquor', hostname: 'zippsliquor.com', merchantPattern: /^[0-9a-f]{24}$/i }],
+  ['Zipps Liquor CityHive store inventory', { chain: 'zipps-liquor', hostname: 'shop.zippsliquor.com', merchantPattern: /^[0-9a-f]{24}$/i }],
   ['Pelican Liquor McKinney CityHive store inventory', { chain: 'pelican-liquor', hostname: 'pelicanliquor.com', merchantPattern: /^[0-9a-f]{24}$/i }],
   ['Tipsy Liquor Round Rock CityHive store inventory', { chain: 'tipsy-liquor-round-rock', hostname: 'tipsyliquorroundrock.com', merchantPattern: /^[0-9a-f]{24}$/i }],
   ['WB Liquors & Wine Texas CityHive store inventory', { chain: 'wb-liquors', hostname: 'wbliquors.com', merchantPattern: /^[0-9a-f]{24}$/i }],
