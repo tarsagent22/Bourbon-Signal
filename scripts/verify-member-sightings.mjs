@@ -87,9 +87,10 @@ if (/User submitted/.test(dropFeed)) fail('Drop feed should label member sightin
 if (/Member report/.test(dropFeed)) fail('Drop feed should not show the redundant Member report tag for member sightings.');
 
 const dashboard = read('src/app/dashboard/page.tsx');
-for (const phrase of ['Personal signal brief', 'Saved markets', 'Tracked bottles', 'Recent matching drops']) {
-  if (!dashboard.includes(phrase)) fail(`Dashboard should include personalized brief item: ${phrase}`);
+for (const phrase of ['Your radar', 'Markets', 'Tracked bottles', 'Recent matches', 'View all matches']) {
+  if (!dashboard.includes(phrase)) fail(`Dashboard should include the compact member briefing item: ${phrase}`);
 }
+if (dashboard.includes('personal-signal-brief')) fail('Dashboard should not repeat radar totals in a second statistics strip.');
 
 const adminSightings = read('src/app/admin/sightings/AdminSightingsClient.tsx');
 for (const phrase of ['Approve & publish', 'Approve, keep photo private', 'pendingReview', 'Approved and published', 'navigator.vibrate', 'embedded']) {
