@@ -196,36 +196,33 @@ function countAlertAreas(areaPrefs: AreaPreferences) {
   }, 0);
 }
 
-interface AlertSetupCardProps {
+interface RadarSummaryCardProps {
   marketCount: number;
   trackedBottleCount: number;
+  recentMatchCount: number;
   alertMode: AlertMode;
   deliveryChannelCount: number;
   onManageAlerts: () => void;
 }
 
-function AlertSetupCard({ marketCount, trackedBottleCount, alertMode, deliveryChannelCount, onManageAlerts }: AlertSetupCardProps) {
-  const marketSummary = marketCount ? `${marketCount} market${marketCount === 1 ? "" : "s"}` : "No markets";
-  const bottleSummary = alertMode === "anything_notable"
-    ? "Anything notable"
-    : trackedBottleCount
-      ? `${trackedBottleCount} bottle${trackedBottleCount === 1 ? "" : "s"}`
-      : "No bottles";
-  const deliverySummary = deliveryChannelCount
-    ? `${deliveryChannelCount} channel${deliveryChannelCount === 1 ? "" : "s"}`
-    : "No delivery";
+function RadarSummaryCard({ marketCount, trackedBottleCount, recentMatchCount, alertMode, deliveryChannelCount, onManageAlerts }: RadarSummaryCardProps) {
+  const marketSummary = `${marketCount} market${marketCount === 1 ? "" : "s"}`;
+  const bottleSummary = `${trackedBottleCount} bottle${trackedBottleCount === 1 ? "" : "s"}`;
+  const matchSummary = `${recentMatchCount} recent match${recentMatchCount === 1 ? "" : "es"}`;
+  const alertModeSummary = alertMode === "anything_notable" ? "Anything notable" : "Specific bottles";
+  const deliverySummary = `${deliveryChannelCount} channel${deliveryChannelCount === 1 ? "" : "s"}`;
 
   return (
-    <section className="alert-setup-card" aria-labelledby="alert-setup-title">
-      <div className="alert-setup-copy">
-        <span className="alert-setup-eyebrow">Alert setup</span>
-        <h2 id="alert-setup-title">Your alerts, at a glance</h2>
-        <p>Choose the markets, bottles, and delivery channels Bourbon Signal should watch for you.</p>
-        <button type="button" className="alert-setup-cta" onClick={onManageAlerts}>Manage alerts</button>
+    <section className="radar-summary-card" aria-labelledby="radar-summary-title">
+      <div className="radar-summary-copy">
+        <span className="radar-summary-eyebrow">Your radar</span>
+        <h2 id="radar-summary-title">{matchSummary} across {marketSummary}</h2>
+        <button type="button" className="radar-summary-cta" onClick={onManageAlerts}>Manage alerts</button>
       </div>
-      <dl className="alert-setup-summary" aria-label="Current alert setup">
+      <dl className="radar-summary-metrics" aria-label="Current radar setup">
         <div><dt>Markets</dt><dd>{marketSummary}</dd></div>
-        <div><dt>Bottles</dt><dd>{bottleSummary}</dd></div>
+        <div><dt>Tracked bottles</dt><dd>{bottleSummary}</dd></div>
+        <div><dt>Alert mode</dt><dd>{alertModeSummary}</dd></div>
         <div><dt>Delivery</dt><dd>{deliverySummary}</dd></div>
       </dl>
     </section>
@@ -1229,24 +1226,35 @@ function PaidMemberDashboard() {
   }, [stores]);
 
   const watchlistSignals = useMemo(() => {
-    if (!mounted || watchedBottleOptions.length === 0) return [] as Array<{ bottle: string; location: string; timestamp: string; state: string }>;
+    if (!mounted || localPrefs.states.length === 0) return [] as Array<{ bottle: string; location: string; timestamp: string; state: string; href: string }>;
 
-    const matched = recentDrops.filter((drop) =>
-      watchedBottleOptions.some((option) =>
+    const matched = recentDrops
+      .filter((drop) => isRealDropEvent(drop))
+      .filter((drop) => dropMatchesAreaPreferences(drop, localPrefs))
+      .filter((drop) => alertMode === "anything_notable" || watchedBottleOptions.some((option) =>
         option.bottleIds.some((id) => {
           const bottle = bottles.find((candidate) => candidate.id === id);
           return bottle ? dropMatchesBottle(drop, bottle) : false;
         })
-      )
-    );
+      ))
+      .sort((left, right) => {
+      const rightTime = Date.parse(right.timestamp || right.observed_at || right.event_at || right.first_seen_at || "") || 0;
+      const leftTime = Date.parse(left.timestamp || left.observed_at || left.event_at || left.first_seen_at || "") || 0;
+      return rightTime - leftTime;
+    });
 
-    return matched.slice(0, 6).map((drop) => ({
-      bottle: getDisplayName(drop),
-      location: drop.store_address || drop.board_name || drop.store_city || "Drop location",
-      timestamp: drop.timestamp,
-      state: drop.state || drop.state_code || "NC",
-    }));
-  }, [mounted, watchedBottleOptions, recentDrops, bottles]);
+    return matched.map((drop) => {
+      const bottle = getDisplayName(drop);
+      const state = drop.state || drop.state_code || "";
+      return {
+        bottle,
+        location: drop.store_address || drop.board_name || drop.store_city || "Drop location",
+        timestamp: drop.timestamp || drop.observed_at || drop.event_at || drop.first_seen_at || "",
+        state,
+        href: finderSignalHref(bottle, state),
+      };
+    });
+  }, [alertMode, bottles, localPrefs, mounted, recentDrops, watchedBottleOptions]);
 
   const recommendationMarketSummary = useMemo(() => {
     const recommendedCount = collectionRecommendationInsights.length;
@@ -1936,14 +1944,13 @@ function PaidMemberDashboard() {
     notificationPrefs.onSite.enabled,
     notificationPrefs.email.enabled,
     notificationPrefs.sms.enabled,
-    notificationPrefs.sightings?.enabled,
   ].filter(Boolean).length, [notificationPrefs]);
 
   const dashboardSections = useMemo<Array<{ key: DashboardSection; label: string; eyebrow: string; summary: string; status: string | null }>>(() => ([
-    { key: "alerts", label: "Alerts", eyebrow: "Alert setup", summary: "Choose what Bourbon Signal should notify you about.", status: localPrefs.states.length ? `${localPrefs.states.length} markets` : "Not set" },
+    { key: "alerts", label: "Alerts", eyebrow: "Alert setup", summary: `${alertMode === "anything_notable" ? "Anything notable" : "Specific bottles"} · ${alertDeliveryChannelCount} delivery channel${alertDeliveryChannelCount === 1 ? "" : "s"}.`, status: localPrefs.states.length ? `${localPrefs.states.length} market${localPrefs.states.length === 1 ? "" : "s"}` : "Not set" },
     { key: "collection", label: "My Collection", eyebrow: "Taste profile", summary: "Keep track of bottles you own or have tasted, ratings, tasting cues, and notes.", status: canUseCollection ? (prefsLoading ? "Loading" : `${collectionEntries.length} saved`) : "Demo" },
     { key: "recommendations", label: "Recommended Bottles", eyebrow: "Bourbon DNA", summary: "See bottle ideas shaped by your collection and local signal context.", status: canUseRecommendations ? (!collectionEntries.length ? "Needs ratings" : preparedDashboardSections.has("recommendations") && collectionRecommendationInsights.length ? `${collectionRecommendationInsights.length} ideas` : "Ready") : "Demo" },
-  ]), [canUseCollection, canUseRecommendations, collectionEntries.length, collectionRecommendationInsights.length, localPrefs.states.length, prefsLoading, preparedDashboardSections]);
+  ]), [alertDeliveryChannelCount, alertMode, canUseCollection, canUseRecommendations, collectionEntries.length, collectionRecommendationInsights.length, localPrefs.states.length, prefsLoading, preparedDashboardSections]);
 
   const prepareDashboardSection = (section: DashboardSection) => {
     if (section === "alerts") return;
@@ -1988,11 +1995,7 @@ function PaidMemberDashboard() {
           <span className="section-summary">{section.summary}</span>
         </span>
         <span className="section-arrow" aria-hidden="true">
-          <span className="section-chevron-stack">
-            <span />
-            <span />
-            <span />
-          </span>
+          <span className="section-chevron" />
         </span>
       </button>
     );
@@ -2028,8 +2031,8 @@ function PaidMemberDashboard() {
       >
         <section
           style={{
-            paddingTop: "118px",
-            paddingBottom: "28px",
+            paddingTop: "104px",
+            paddingBottom: "18px",
             position: "relative",
             overflow: "hidden",
           }}
@@ -2056,31 +2059,31 @@ function PaidMemberDashboard() {
               <h1
                 style={{
                   fontFamily: "var(--font-playfair)",
-                  fontSize: "clamp(42px, 6vw, 68px)",
-                  lineHeight: 0.96,
+                  fontSize: "clamp(36px, 5vw, 50px)",
+                  lineHeight: 1,
                   color: "var(--color-text-primary)",
                   maxWidth: 760,
                   margin: "0 auto",
                   letterSpacing: "-0.02em",
                 }}
               >
-                Member Dashboard
+                Your dashboard
               </h1>
             </ScrollReveal>
             <ScrollReveal delay={140}>
               <p
                 style={{
-                  margin: "20px auto 0",
-                  maxWidth: 680,
+                  margin: "12px auto 0",
+                  maxWidth: 620,
                   fontFamily: "var(--font-dm-sans)",
-                  fontSize: "16px",
-                  lineHeight: 1.8,
+                  fontSize: "14px",
+                  lineHeight: 1.55,
                   color: "var(--color-text-secondary)",
                 }}
               >
                 {isFreeTier
-                  ? "Explore the real member workspace. Free access includes 7 recent signals, 3 Bottle Checks, and Member Sightings; upgrade when you want saved alerts, the full feed, and advanced hunting tools."
-                  : "Set your alerts, rate bottles you own or have tasted, and get recommendations based on what you like."}
+                  ? "See the latest signals near you, then upgrade when you want saved alerts and the full feed."
+                  : `${watchlistSignals.length} recent match${watchlistSignals.length === 1 ? "" : "es"} across ${localPrefs.states.length} saved market${localPrefs.states.length === 1 ? "" : "s"}.`}
               </p>
             </ScrollReveal>
             {isFreeTier ? (
@@ -2098,15 +2101,6 @@ function PaidMemberDashboard() {
             max-width: 820px;
             margin: 0 auto;
             padding: 0 clamp(16px, 5vw, 36px) 82px;
-          }
-          .personal-signal-stat {
-            min-width: 0;
-            padding: 8px 14px;
-            border-left: 1px solid var(--boundary-subtle);
-          }
-          .personal-signal-stat:first-child {
-            border-left: 0;
-            padding-left: 2px;
           }
           .dashboard-hero-upgrade {
             display: inline-flex;
@@ -2139,31 +2133,42 @@ function PaidMemberDashboard() {
             min-width: 0;
           }
 
-          .alert-setup-card {
+          .radar-summary-card {
             position: relative;
             overflow: hidden;
-            margin-bottom: 12px;
+            margin-bottom: 14px;
             border-radius: var(--radius-feature);
-            background: radial-gradient(circle at 82% 10%, rgba(196,148,58,0.12), transparent 42%), linear-gradient(145deg, rgba(24,17,11,0.96), rgba(8,7,5,0.98));
-            box-shadow: 0 24px 64px rgba(0,0,0,0.26), inset 0 1px 0 rgba(245,237,214,0.04);
-            padding: clamp(20px, 3.2vw, 28px);
+            background: radial-gradient(circle at 82% 10%, rgba(196,148,58,0.10), transparent 42%), linear-gradient(145deg, rgba(24,17,11,0.94), rgba(8,7,5,0.98));
+            box-shadow: 0 20px 54px rgba(0,0,0,0.24), inset 0 1px 0 rgba(245,237,214,0.04);
+            padding: clamp(18px, 2.8vw, 24px);
             display: grid;
-            grid-template-columns: minmax(0, 1.2fr) minmax(260px, 0.8fr);
+            grid-template-columns: minmax(0, 0.9fr) minmax(300px, 1.1fr);
             align-items: center;
-            gap: clamp(22px, 4vw, 44px);
+            gap: clamp(18px, 3vw, 34px);
           }
-          .alert-setup-copy { display: grid; justify-items: start; gap: 10px; min-width: 0; }
-          .alert-setup-eyebrow { font-family: var(--font-jetbrains); font-size: 10px; font-weight: 850; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(232,201,122,0.78); }
-          .alert-setup-copy h2 { margin: 0; font-family: var(--font-playfair); font-size: clamp(30px, 4vw, 44px); line-height: 0.98; letter-spacing: -0.025em; color: var(--color-cream); }
-          .alert-setup-copy p { max-width: 48ch; margin: 0; font-family: var(--font-dm-sans); font-size: 14px; line-height: 1.6; color: rgba(245,237,214,0.62); }
-          .alert-setup-cta { min-height: 42px; margin-top: 3px; border: 1px solid rgba(232,201,122,0.42); border-radius: 999px; background: linear-gradient(135deg, rgba(196,148,58,0.95), rgba(232,201,122,0.92)); color: #100c08; padding: 11px 16px; font-family: var(--font-dm-sans); font-size: 13px; font-weight: 900; cursor: pointer; box-shadow: 0 12px 30px rgba(196,148,58,0.16), inset 0 1px 0 rgba(255,255,255,0.22); transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease; }
-          .alert-setup-cta:hover,
-          .alert-setup-cta:focus-visible { transform: translateY(-1px); filter: brightness(1.04); box-shadow: 0 16px 38px rgba(196,148,58,0.22), inset 0 1px 0 rgba(255,255,255,0.26); outline: none; }
-          .alert-setup-summary { display: grid; gap: 0; margin: 0; }
-          .alert-setup-summary div { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; border-bottom: 1px solid var(--boundary-subtle); padding: 12px 2px; }
-          .alert-setup-summary div:last-child { border-bottom: 0; }
-          .alert-setup-summary dt { font-family: var(--font-jetbrains); font-size: 9px; font-weight: 850; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(245,237,214,0.44); }
-          .alert-setup-summary dd { margin: 0; font-family: var(--font-dm-sans); font-size: 13px; font-weight: 800; color: var(--color-cream); text-align: right; }
+          .radar-summary-copy { display: grid; justify-items: start; gap: 9px; min-width: 0; }
+          .radar-summary-eyebrow { font-family: var(--font-jetbrains); font-size: 9px; font-weight: 850; letter-spacing: 0.13em; text-transform: uppercase; color: rgba(232,201,122,0.78); }
+          .radar-summary-copy h2 { margin: 0; max-width: 19ch; font-family: var(--font-playfair); font-size: clamp(25px, 3vw, 34px); line-height: 1.02; letter-spacing: -0.02em; color: var(--color-cream); }
+          .radar-summary-cta { min-height: 38px; margin-top: 2px; border: 1px solid rgba(232,201,122,0.38); border-radius: 999px; background: rgba(196,148,58,0.12); color: var(--color-accent-amber); padding: 9px 14px; font-family: var(--font-dm-sans); font-size: 12px; font-weight: 900; cursor: pointer; transition: transform 180ms ease, background 180ms ease; }
+          .radar-summary-cta:hover { transform: translateY(-1px); background: rgba(196,148,58,0.18); }
+          .radar-summary-cta:focus-visible { transform: translateY(-1px); background: rgba(196,148,58,0.18); outline: 2px solid var(--color-accent-amber); outline-offset: 3px; }
+          .radar-summary-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 18px; margin: 0; }
+          .radar-summary-metrics div { display: grid; gap: 4px; border-bottom: 1px solid var(--boundary-subtle); padding: 10px 2px; }
+          .radar-summary-metrics div:nth-last-child(-n + 2) { border-bottom: 0; }
+          .radar-summary-metrics dt { font-family: var(--font-jetbrains); font-size: 8px; font-weight: 850; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(245,237,214,0.44); }
+          .radar-summary-metrics dd { margin: 0; font-family: var(--font-dm-sans); font-size: 12px; font-weight: 800; color: var(--color-cream); }
+          .recent-matches { margin: 0 0 14px; padding: 16px 2px 4px; border-top: 1px solid var(--boundary-subtle); }
+          .recent-matches header { display: flex; justify-content: space-between; align-items: baseline; gap: 14px; margin-bottom: 8px; }
+          .recent-matches h2 { margin: 0; font-family: var(--font-playfair); font-size: 24px; color: var(--color-cream); }
+          .recent-matches header a { color: var(--color-accent-amber); font-family: var(--font-dm-sans); font-size: 12px; font-weight: 800; text-decoration: none; }
+          .recent-match-list { display: grid; }
+          .recent-match-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 14px; padding: 12px 2px; border-bottom: 1px solid var(--boundary-subtle); color: inherit; text-decoration: none; }
+          .recent-match-row strong { font-family: var(--font-dm-sans); font-size: 13px; color: var(--color-cream); }
+          .recent-match-row span { font-family: var(--font-dm-sans); font-size: 12px; color: var(--color-text-secondary); }
+          .recent-match-row time { grid-row: 1 / span 2; grid-column: 2; align-self: center; font-family: var(--font-jetbrains); font-size: 9px; color: var(--color-text-tertiary); white-space: nowrap; }
+          .recent-matches-empty { margin: 0; padding: 12px 2px 16px; font-family: var(--font-dm-sans); font-size: 13px; color: var(--color-text-secondary); }
+          .dashboard-quick-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; margin: 18px 0 12px; }
+          .dashboard-quick-actions a { display: inline-flex; align-items: center; justify-content: space-between; min-height: 44px; border-bottom: 1px solid var(--boundary-accent); border-radius: var(--radius-control); background: var(--surface-soft); color: var(--color-cream); padding: 11px 14px; font-family: var(--font-dm-sans); font-size: 12px; font-weight: 850; text-decoration: none; }
 
           .dashboard-section-button {
             width: 100%;
@@ -2265,29 +2270,18 @@ function PaidMemberDashboard() {
             place-items: center;
             flex: 0 0 auto;
           }
-          .section-chevron-stack {
-            position: relative;
-            width: 17px;
-            height: 18px;
+          .section-chevron {
+            width: 11px;
+            height: 11px;
             display: block;
-            transform-origin: 50% 50%;
+            border-right: 2px solid rgba(245,237,214,0.88);
+            border-bottom: 2px solid rgba(245,237,214,0.88);
+            transform: rotate(45deg);
+            transform-origin: 60% 60%;
             transition: transform 220ms ease;
           }
-          .section-chevron-stack span {
-            position: absolute;
-            left: 50%;
-            width: 12px;
-            height: 12px;
-            border-right: 2px solid rgba(245,237,214,0.9);
-            border-bottom: 2px solid rgba(245,237,214,0.9);
-            transform: translateX(-50%) rotate(45deg);
-            filter: drop-shadow(0 0 6px rgba(196,148,58,0.18));
-          }
-          .section-chevron-stack span:nth-child(1) { top: -1px; opacity: 0.42; }
-          .section-chevron-stack span:nth-child(2) { top: 5px; opacity: 0.72; }
-          .section-chevron-stack span:nth-child(3) { top: 11px; opacity: 1; }
-          .dashboard-section-button[data-active="true"] .section-chevron-stack {
-            transform: rotate(180deg);
+          .dashboard-section-button[data-active="true"] .section-chevron {
+            transform: rotate(225deg);
           }
           .dashboard-drawer-shell {
             width: 100%;
@@ -2341,36 +2335,52 @@ function PaidMemberDashboard() {
             .section-summary { font-size: 12px; line-height: 1.45; }
             .section-arrow { width: 32px; height: 32px; }
             .section-status { font-size: 9px; }
-            .alert-setup-card { grid-template-columns: 1fr; border-radius: 22px; padding: 18px 16px; gap: 16px; }
-            .alert-setup-copy h2 { font-size: 30px; }
-            .alert-setup-copy p { font-size: 13px; line-height: 1.5; }
-            .alert-setup-cta { width: 100%; }
-            .alert-setup-summary div { padding: 10px 2px; }
+            .radar-summary-card { grid-template-columns: 1fr; border-radius: 20px; padding: 16px; gap: 12px; }
+            .radar-summary-copy h2 { max-width: none; font-size: 25px; }
+            .radar-summary-cta { width: 100%; }
+            .radar-summary-metrics { gap: 0 12px; }
+            .radar-summary-metrics div { padding: 9px 2px; }
+            .recent-matches { padding-top: 14px; }
+            .dashboard-quick-actions { grid-template-columns: 1fr; }
           }
         `}</style>
 
         <div id="dashboard-workspace" className="dashboard-shell">
           <div className="dashboard-workspace">
 
-          <AlertSetupCard
+          <RadarSummaryCard
             marketCount={localPrefs.states.length}
             trackedBottleCount={watchedBottleOptions.length}
+            recentMatchCount={watchlistSignals.length}
             alertMode={alertMode}
             deliveryChannelCount={alertDeliveryChannelCount}
             onManageAlerts={() => openDashboardSection("alerts")}
           />
-          <div className="personal-signal-brief" aria-label="Personal signal brief" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "10px", margin: "12px 0 18px" }}>
-            {[{ label: "Saved markets", value: localPrefs.states.length ? `${localPrefs.states.length}` : "0" }, { label: "Tracked bottles", value: watchedBottleOptions.length ? `${watchedBottleOptions.length}` : "0" }, { label: "Recent matching drops", value: watchlistSignals.length ? `${watchlistSignals.length}` : "0" }].map((item) => (
-              <div key={item.label} className="personal-signal-stat">
-                <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: "9px", letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(245,237,214,0.48)" }}>{item.label}</div>
-                <strong style={{ display: "block", marginTop: "5px", fontFamily: "var(--font-playfair)", color: "var(--color-cream)", fontSize: "22px" }}>{item.value}</strong>
-              </div>
-            ))}
-          </div>
 
-          <section id="signal-points" style={{ margin: "0 0 18px" }}>
-            <SignalPointsPanel preview />
+          <section className="recent-matches" aria-labelledby="recent-matches-title">
+            <header>
+              <h2 id="recent-matches-title">Recent matches</h2>
+              <Link href="/#drops">View all matches →</Link>
+            </header>
+            {watchlistSignals.length > 0 ? (
+              <div className="recent-match-list">
+                {watchlistSignals.slice(0, 3).map((signal) => (
+                  <Link className="recent-match-row" href={signal.href} key={`${signal.bottle}-${signal.location}-${signal.timestamp}`}>
+                    <strong>{signal.bottle}</strong>
+                    <span>{signal.state ? `${signal.state} · ` : ""}{signal.location}</span>
+                    <time dateTime={signal.timestamp}>{formatShortDate(signal.timestamp)}</time>
+                  </Link>
+                ))}
+              </div>
+            ) : (
+              <p className="recent-matches-empty">No recent matches yet. Add bottles to your watchlist or broaden your saved markets.</p>
+            )}
           </section>
+
+          <nav className="dashboard-quick-actions" aria-label="Dashboard quick actions">
+            <Link href="/sightings?tab=submit">Post a sighting <span aria-hidden="true">→</span></Link>
+            <Link href="/#drops">Find bottles <span aria-hidden="true">→</span></Link>
+          </nav>
 
           {renderSectionButton("alerts")}
 
@@ -3316,6 +3326,10 @@ function PaidMemberDashboard() {
             </div>
           </StepShell>
           ) : null}
+
+          <section id="signal-points" style={{ margin: "0 0 18px" }}>
+            <SignalPointsPanel preview compact />
+          </section>
 
           <CoverageRequestsCard emptyMode="compact" />
           </div>

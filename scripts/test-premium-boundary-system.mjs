@@ -11,6 +11,7 @@ const files = {
   coverageSummary: "src/components/coverage/CoverageSummary.module.css",
   bottleCheck: "src/app/bottle-check/page.tsx",
   dashboard: "src/app/dashboard/page.tsx",
+  signalPoints: "src/components/SignalPointsPanel.tsx",
   sightings: "src/app/sightings/SightingsClient.tsx",
   dropFeed: "src/components/sections/DropFeed.tsx",
   weekly: "src/components/dashboard/WeeklyIntelligenceCard.module.css",
@@ -80,9 +81,29 @@ for (const selector of [".bc-search-card", ".bc-panel", ".bc-verdict-card, .bc-d
   assertNoFullBorder(sources.bottleCheck, selector);
 }
 
-for (const selector of [".alert-setup-card", ".dashboard-section-button"]) {
+for (const selector of [".radar-summary-card", ".dashboard-section-button"]) {
   assertNoFullBorder(sources.dashboard, selector);
 }
+
+for (const phrase of ["Your radar", "Tracked bottles", "Alert mode", "Recent matches", "View all matches", "Post a sighting"]) {
+  assert.ok(sources.dashboard.includes(phrase), `Dashboard should include the member-priority surface: ${phrase}`);
+}
+assert.equal(sources.dashboard.includes("personal-signal-brief"), false, "Dashboard should not repeat market, bottle, and match totals in a second statistics strip");
+assert.ok(sources.dashboard.includes('<SignalPointsPanel preview compact />'), "Dashboard should use the compact rewards summary");
+assert.ok(sources.signalPoints.includes("compact?: boolean"), "Signal Points should expose an explicit compact dashboard mode");
+assert.ok(sources.signalPoints.includes("points-dashboard-summary"), "Compact Signal Points should render a dedicated dashboard summary");
+assert.ok(sources.dashboard.includes(".filter((drop) => isRealDropEvent(drop))"), "Recent matches should include only real member-facing drops");
+assert.ok(sources.dashboard.includes(".filter((drop) => dropMatchesAreaPreferences(drop, localPrefs))"), "Recent matches should honor saved markets");
+assert.ok(sources.dashboard.includes('alertMode === "anything_notable" ||'), "Anything-notable mode should show qualifying market signal without requiring a bottle match");
+assert.equal(sources.dashboard.includes("watchedBottleOptions.length === 0) return"), false, "Anything-notable mode should not become empty when the member has no bottle watchlist");
+assert.ok(sources.dashboard.includes("if (!mounted || localPrefs.states.length === 0) return"), "Recent matches should stay empty until the member saves a market");
+const deliveryCounter = sources.dashboard.match(/const alertDeliveryChannelCount = useMemo\(\(\) => \[([^\]]+)\]/s)?.[1] || "";
+assert.equal(deliveryCounter.includes("sightings"), false, "Member sightings are an alert topic, not a delivery channel");
+assert.ok(sources.signalPoints.includes("!data.redemptionEligible"), "Compact rewards should explain redemption eligibility for free members");
+assert.ok(sources.dashboard.includes('<Link href="/#drops">View all matches'), "View all matches should open the complete Drop Feed rather than one bottle filter");
+assert.ok(sources.dashboard.indexOf('<nav className="dashboard-quick-actions"') < sources.dashboard.indexOf('renderSectionButton("alerts")'), "Quick actions should stay in the briefing above expandable drawers");
+assert.ok(sources.dashboard.indexOf('renderSectionButton("alerts")') < sources.dashboard.indexOf('<SignalPointsPanel preview compact />'), "Alerts should appear before dashboard rewards");
+assert.ok(sources.dashboard.indexOf('renderSectionButton("collection")') < sources.dashboard.indexOf('<SignalPointsPanel preview compact />'), "Collection should appear before dashboard rewards");
 
 for (const selector of [".sighting-feed-shell", ".sighting-card", ".sighting-empty-panel"]) {
   assertNoFullBorder(sources.sightings, selector);
