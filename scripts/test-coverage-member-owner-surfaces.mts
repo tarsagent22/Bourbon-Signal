@@ -132,7 +132,7 @@ assert.match(memberStyles, /:focus-visible/, "member request links have visible 
 assert.match(dashboard, /import \{ CoverageRequestsCard \}/);
 assert.ok((dashboard.match(/<CoverageRequestsCard\s+emptyMode="compact"/g) || []).length >= 2, "paid and free dashboards use a compact empty coverage link");
 assert.match(dashboard, /<CoverageRequestsCard emptyMode="compact" marketLabel=\{confirmedAlertPrefs \? dashboardMarketSummary : undefined\}/, "paid dashboard personalizes coverage guidance only after the saved market is confirmed");
-assert.ok(dashboard.lastIndexOf("<CoverageRequestsCard") > dashboard.indexOf('renderSectionButton("memberPoints")'), "paid request history sits below primary dashboard tools");
+assert.ok(dashboard.lastIndexOf("<CoverageRequestsCard") > dashboard.indexOf('expanded={activeDashboardSection === "memberPoints"}'), "paid request history sits below the Signal Points accordion");
 assert.match(explorer, /<CoverageRequestsCard emptyMode="hidden"/, "the public page hides duplicate request history until a request exists");
 assert.match(memberCard, /useAuth/, "the public request-status card stays hidden for signed-out visitors");
 assert.match(memberCard, /user\?\.id/, "request status reloads on Clerk account changes");

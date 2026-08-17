@@ -249,7 +249,8 @@ test("schema, migration, encrypted backup, APIs, drawer, and owner queue are wir
   assert.match(panel, /data-progress/);
   assert.doesNotMatch(panel, /<section className="points-earn-strip"/);
   const dashboard = read("src/app/dashboard/page.tsx");
-  assert.match(dashboard, /id="signal-points"[\s\S]*<SignalPointsPanel preview/);
+  assert.match(dashboard, /<SignalPointsPanel[\s\S]*preview[\s\S]*compact[\s\S]*expanded=/);
+  assert.match(panel, /id="signal-points"[\s\S]*id="dashboard-section-memberPoints"/);
   const controlRoom = read("src/app/admin/control-room/page.tsx");
   assert.match(controlRoom, /isCompanyControlRoomOwnerEmail/);
   assert.match(controlRoom, /notFound\(\)/);

@@ -22,6 +22,8 @@ type EarningGroup = { title: string; intro?: string; note: string; rows: Earning
 type SignalPointsPanelProps = {
   preview?: boolean;
   compact?: boolean;
+  expanded?: boolean;
+  onToggle?: () => void;
   rewards?: MemberRewardsSummary | null;
   badgeIconFor?: (id: string) => string | null;
   badgeLabelFor?: (id: string, label: string) => string;
@@ -96,6 +98,7 @@ function DefaultLoading() {
 export default function SignalPointsPanel(props: SignalPointsPanelProps) {
   const [data, setData] = useState<Payload | null>(null);
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<CatalogItem | null>(null);
   const [details, setDetails] = useState<Record<string, unknown>>({ glassStyle: "standard", size: "M", color: "black", age21Attested: false });
   const [confirmSavedAddress, setConfirmSavedAddress] = useState(false);
@@ -107,12 +110,15 @@ export default function SignalPointsPanel(props: SignalPointsPanelProps) {
   const redemptionIntent = useRef<{ signature: string; idempotencyKey: string } | null>(null);
 
   const load = useCallback(async () => {
+    setLoading(true);
+    setError("");
     try {
       const response = await fetch("/api/signal-points", { cache: "no-store" });
       const payload = await response.json().catch(() => ({})) as Payload;
       if (!response.ok) throw new Error(payload.error || "Signal Points unavailable");
       setData(payload); setError("");
     } catch (reason) { setError(reason instanceof Error ? reason.message : "Signal Points unavailable"); }
+    finally { setLoading(false); }
   }, []);
   useEffect(() => { void load(); }, [load]);
   useEffect(() => {
@@ -177,39 +183,67 @@ export default function SignalPointsPanel(props: SignalPointsPanelProps) {
     setDetails({ glassStyle: "standard", size: "M", color: "black", age21Attested: false });
   }
 
-  if (!data) return error ? <div className="signal-points-loading">{error}</div> : <DefaultLoading />;
-
   if (props.compact) {
-    const rewardStatus = !data.redemptionEligible
+    const rewardStatus = !data
+      ? error || "Checking your points and rewards."
+      : !data.redemptionEligible
       ? "Keep earning · paid membership required to redeem"
       : availableReward
         ? `${availableReward.name} available`
         : nextReward
           ? `${countLabel(Math.max(0, nextReward.points - data.balance), "point")} to ${nextReward.name}`
           : "Every active reward is within reach";
-    const compactActionLabel = data.redemptionEligible && availableReward
+    const compactActionLabel = data?.redemptionEligible && availableReward
       ? "View available reward"
       : "View rewards";
     return (
-      <section className="points-dashboard-summary" aria-label="Signal Points summary">
-        <div>
-          <span>Signal Points</span>
-          <strong>{countLabel(data.balance, "point")}</strong>
-          <small>{rewardStatus}</small>
+      <section id="signal-points" className="signal-points-accordion" aria-label="Signal Points">
+        <button
+          id="dashboard-section-memberPoints"
+          type="button"
+          className="dashboard-section-button"
+          data-active={props.expanded}
+          aria-expanded={props.expanded}
+          aria-controls="signal-points-accordion-panel"
+          onClick={() => props.onToggle?.()}
+        >
+          <span className="section-copy">
+            <span className="section-eyebrow">Rewards</span>
+            <span className="section-title-row">
+              <span className="section-title">Signal Points</span>
+              <span className="section-status">{data ? countLabel(data.balance, "point") : loading ? "Loading" : error ? "Unavailable" : "Loading"}</span>
+            </span>
+            <span className="section-summary">{rewardStatus}</span>
+          </span>
+          <span className="section-arrow" aria-hidden="true"><span className="section-chevron" /></span>
+        </button>
+        <div id="signal-points-accordion-panel" className="signal-points-accordion-panel" role="region" aria-labelledby="dashboard-section-memberPoints" hidden={!props.expanded}>
+            {data ? (
+              <div className="signal-points-accordion-detail">
+                <span>Available balance</span>
+                <strong>{countLabel(data.balance, "point")}</strong>
+                <p>{rewardStatus}</p>
+                <Link href="/account/signal-points">{compactActionLabel} <span aria-hidden="true">→</span></Link>
+              </div>
+            ) : error ? (
+              <div className="signal-points-accordion-detail"><p>{error}</p><button type="button" disabled={loading} onClick={() => void load()}>{loading ? "Trying again…" : "Try again"}</button></div>
+            ) : <DefaultLoading />}
         </div>
-        <Link href="/account/signal-points">{compactActionLabel} <span aria-hidden="true">→</span></Link>
         <style jsx>{`
-          .points-dashboard-summary { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 18px 2px; border-top: 1px solid rgba(196,148,58,.22); border-bottom: 1px solid rgba(245,237,214,.08); background: linear-gradient(90deg,rgba(196,148,58,.06),transparent 72%); }
-          .points-dashboard-summary > div { display: grid; gap: 4px; min-width: 0; }
-          .points-dashboard-summary > div > span { font: 850 9px/1 var(--font-jetbrains); letter-spacing: .14em; text-transform: uppercase; color: rgba(232,201,122,.72); }
-          .points-dashboard-summary strong { font: 800 21px/1.2 var(--font-dm-sans); color: var(--color-cream); }
-          .points-dashboard-summary small { font: 12px/1.45 var(--font-dm-sans); color: rgba(245,237,214,.55); }
-          .points-dashboard-summary > a { display: inline-flex; align-items: center; gap: 10px; flex: 0 0 auto; color: var(--color-accent-amber); font: 800 12px/1 var(--font-dm-sans); text-decoration: none; }
-          @media (max-width: 520px) { .points-dashboard-summary { align-items: flex-end; } .points-dashboard-summary strong { font-size: 18px; } }
+          .signal-points-accordion { margin: 0; }
+          .signal-points-accordion-panel { border-radius: 0 0 var(--radius-feature) var(--radius-feature); border-bottom: 1px solid var(--boundary-accent); background: linear-gradient(145deg, rgba(25,18,11,.9), rgba(12,9,7,.96)); padding: 18px; }
+          .signal-points-accordion-detail { display: grid; gap: 8px; justify-items: start; }
+          .signal-points-accordion-detail > span { font: 850 9px/1 var(--font-jetbrains); letter-spacing: .13em; text-transform: uppercase; color: rgba(232,201,122,.72); }
+          .signal-points-accordion-detail > strong { font: 800 24px/1.1 var(--font-dm-sans); color: var(--color-cream); }
+          .signal-points-accordion-detail p { margin: 0; font: 12px/1.5 var(--font-dm-sans); color: var(--color-text-secondary); }
+          .signal-points-accordion-detail a, .signal-points-accordion-detail button { display: inline-flex; align-items: center; min-height: 38px; margin-top: 4px; border: 1px solid rgba(232,201,122,.34); border-radius: 999px; background: rgba(196,148,58,.12); color: var(--color-accent-amber); padding: 9px 14px; font: 850 12px/1 var(--font-dm-sans); text-decoration: none; cursor: pointer; }
+          .signal-points-accordion-detail a:focus-visible, .signal-points-accordion-detail button:focus-visible { outline: 2px solid var(--color-accent-amber); outline-offset: 3px; }
         `}</style>
       </section>
     );
   }
+
+  if (!data) return error ? <div className="signal-points-loading">{error}</div> : <DefaultLoading />;
 
   const redemptionModal = selected ? <div className="signal-modal" role="dialog" aria-modal="true" aria-label={`Redeem ${selected.name}`}><form onSubmit={(event) => { event.preventDefault(); void redeem(); }}><h3>{selected.name}</h3><p>{selectedCost} Signal Points</p>
     {glassQuantity ? <><label>Glass choice<select value={String(details.glassStyle)} onChange={(event) => setDetails((current) => ({ ...current, glassStyle: event.target.value }))}><option value="standard">Standard Bourbon Signal mark</option><option value="personal">Personal engraving (+125 per glass)</option></select></label>{details.glassStyle === "personal" ? <label>Engraving (1–18 characters)<input maxLength={18} required value={String(details.engravingText || "")} onChange={(event) => setDetails((current) => ({ ...current, engravingText: event.target.value }))} /></label> : null}</> : null}

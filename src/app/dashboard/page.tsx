@@ -161,7 +161,7 @@ interface BourbonDnaSummary {
   summary: string;
 }
 
-type DashboardSection = "alerts" | "collection" | "recommendations";
+type DashboardSection = "alerts" | "collection" | "recommendations" | "memberPoints";
 
 function countAlertAreas(areaPrefs: AreaPreferences) {
   return areaPrefs.states.reduce((count, state) => {
@@ -3491,9 +3491,12 @@ function PaidMemberDashboard() {
           </StepShell>
           ) : null}
 
-          <section id="signal-points" style={{ margin: "0 0 18px" }}>
-            <SignalPointsPanel preview compact />
-          </section>
+          <SignalPointsPanel
+            preview
+            compact
+            expanded={activeDashboardSection === "memberPoints"}
+            onToggle={() => toggleDashboardSection("memberPoints")}
+          />
 
           <CoverageRequestsCard emptyMode="compact" marketLabel={confirmedAlertPrefs ? dashboardMarketSummary : undefined} />
           </div>
