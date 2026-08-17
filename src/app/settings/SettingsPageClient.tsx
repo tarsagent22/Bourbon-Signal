@@ -144,7 +144,7 @@ function SettingsPageContent({ ownerPreview }: { ownerPreview?: ReactNode }) {
             <div><p>Alerts and updates</p><h2 id="communications-heading">Notifications and communication</h2></div>
           </div>
           <p className={styles.cardCopy}>{entitlements.canAccessDashboard
-            ? "Manage on-site, email, weekly intelligence, SMS, and eligible member-sighting alert preferences from your alert setup."
+            ? "Manage on-site, email, SMS, and eligible member-sighting alert preferences from your alert setup."
             : "Your current membership does not include configurable alert delivery. Email preference links remain available in eligible Bourbon Signal messages."}</p>
           {entitlements.canAccessDashboard ? <a className={styles.secondaryLink} href="/dashboard?section=alerts">Manage notification preferences</a> : null}
         </section>

@@ -24,7 +24,6 @@ import SignalPointsPanel from "@/components/SignalPointsPanel";
 import {
   getDefaultNotificationPreferences,
   type NotificationPreferences,
-  type WeeklyIntelligencePreferenceActionRequest,
 } from "@/lib/notification-preferences";
 import { getPopularBottlePool } from "@/lib/bottleSuggestions";
 import { ENGINE_COVERED_STATE_CODES } from "@/lib/statePreferences";
@@ -164,29 +163,6 @@ interface BourbonDnaSummary {
 
 type DashboardSection = "alerts" | "collection" | "recommendations";
 
-type SignalStrengthLevel = "low" | "building" | "focused" | "strong" | "precision";
-type SignalDimensionState = "empty" | "partial" | "active" | "strong" | "locked";
-
-interface SignalStrengthDimension {
-  label: string;
-  status: string;
-  state: SignalDimensionState;
-  helper: string;
-}
-
-interface SignalStrengthModel {
-  score: number;
-  level: SignalStrengthLevel;
-  modeLabel?: string;
-  meterLabel: string;
-  headline: string;
-  body: string;
-  ctaLabel: string;
-  ctaHref?: string;
-  ctaSection?: DashboardSection;
-  dimensions: SignalStrengthDimension[];
-}
-
 function countAlertAreas(areaPrefs: AreaPreferences) {
   return areaPrefs.states.reduce((count, state) => {
     const detailCount = state === "NC"
@@ -195,178 +171,63 @@ function countAlertAreas(areaPrefs: AreaPreferences) {
         ? areaPrefs.gaAreas.length
         : state === "TN"
           ? areaPrefs.tnAreas.length
-      : state === "VA"
-        ? areaPrefs.vaCities.length
-        : state === "OH"
-          ? areaPrefs.ohCities.length
-          : state === "IA"
-            ? areaPrefs.iaCities.length
-            : state === "ID"
-              ? areaPrefs.idCities.length
-              : state === "SC"
-                ? areaPrefs.scAreas.length
-                : state === "CA"
-                  ? areaPrefs.caAreas.length
-                  : state === "NV"
-                    ? areaPrefs.nvAreas.length
-                    : state === "NY"
-                      ? areaPrefs.nyAreas.length
-                      : state === "CO"
-                        ? areaPrefs.coAreas.length
-                        : state === "PA"
-                          ? areaPrefs.paCounties.length + areaPrefs.paStores.length
-                          : 0;
+          : state === "VA"
+            ? areaPrefs.vaCities.length
+            : state === "OH"
+              ? areaPrefs.ohCities.length
+              : state === "IA"
+                ? areaPrefs.iaCities.length
+                : state === "ID"
+                  ? areaPrefs.idCities.length
+                  : state === "SC"
+                    ? areaPrefs.scAreas.length
+                    : state === "CA"
+                      ? areaPrefs.caAreas.length
+                      : state === "NV"
+                        ? areaPrefs.nvAreas.length
+                        : state === "NY"
+                          ? areaPrefs.nyAreas.length
+                          : state === "CO"
+                            ? areaPrefs.coAreas.length
+                            : state === "PA"
+                              ? areaPrefs.paCounties.length + areaPrefs.paStores.length
+                              : 0;
     return count + Math.max(1, detailCount);
   }, 0);
 }
 
-function signalLevel(score: number): SignalStrengthLevel {
-  if (score >= 88) return "precision";
-  if (score >= 72) return "strong";
-  if (score >= 52) return "focused";
-  if (score >= 28) return "building";
-  return "low";
-}
-
-function signalLevelLabel(level: SignalStrengthLevel) {
-  if (level === "precision") return "Precision";
-  if (level === "strong") return "Strong";
-  if (level === "focused") return "Focused";
-  if (level === "building") return "Building";
-  return "Low";
-}
-
-function buildSignalStrengthModel({
-  tier,
-  areaPrefs,
-  trackedBottleCount,
-  collectionCount,
-  alertMode,
-  notificationPrefs,
-  canUseCollection,
-  canReceiveSightingsAlerts,
-}: {
-  tier: string;
-  areaPrefs: AreaPreferences;
+interface AlertSetupCardProps {
+  marketCount: number;
   trackedBottleCount: number;
-  collectionCount: number;
   alertMode: AlertMode;
-  notificationPrefs: NotificationPreferences;
-  canUseCollection: boolean;
-  canReceiveSightingsAlerts: boolean;
-}): SignalStrengthModel {
-  const freeAccess = tier === "free";
-  const areaCount = countAlertAreas(areaPrefs);
-  const hasState = areaPrefs.states.length > 0;
-  const hasSpecificArea = areaCount > areaPrefs.states.length;
-  const hasBottleFocus = trackedBottleCount > 0;
-  const channels = [notificationPrefs.onSite.enabled, notificationPrefs.email.enabled, notificationPrefs.sms.enabled, notificationPrefs.sightings?.enabled].filter(Boolean).length;
-
-  if (freeAccess) {
-    const freeScore = Math.min(10, 4 + (hasState ? 2 : 0) + (hasSpecificArea ? 2 : 0) + (hasBottleFocus ? 2 : 0));
-    return {
-      score: freeScore,
-      level: "low",
-      modeLabel: "Free access",
-      meterLabel: "Low",
-      headline: "Public signal alive",
-      body: "Saving markets, bottles, and alerts improves your signal strength.",
-      ctaLabel: "Unlock my signal",
-      ctaHref: "/pricing",
-      dimensions: [],
-    };
-  }
-
-  const marketScore = hasState ? Math.min(38, 20 + Math.min(18, Math.max(0, areaCount - areaPrefs.states.length) * 6)) : 0;
-  const bottleScore = alertMode === "anything_notable" ? 10 : Math.min(26, trackedBottleCount === 0 ? 0 : 12 + trackedBottleCount * 3);
-  const alertScore = Math.min(26, channels * 8 + (notificationPrefs.sms.verified ? 4 : 0));
-  const collectionScore = canUseCollection ? Math.min(10, collectionCount * 2) : 0;
-  const score = Math.max(0, Math.min(100, marketScore + bottleScore + alertScore + collectionScore));
-  const level = signalLevel(score);
-
-  const missingMarket = !hasState;
-  const missingBottles = alertMode === "specific_bottles" && !hasBottleFocus;
-  const weakBottleFocus = alertMode === "anything_notable" || trackedBottleCount < 3;
-  const missingAlerts = channels === 0;
-  const canTuneCollection = canUseCollection && collectionCount < 3;
-
-  const nextSection: DashboardSection = missingMarket || missingBottles || weakBottleFocus || missingAlerts ? "alerts" : canTuneCollection ? "collection" : "alerts";
-  const isBarrelOrFounder = tier === "barrel" || tier === "bottled-in-bond";
-  const tierLabel = tier === "bottled-in-bond" ? "Bottled in Bond" : tier === "barrel" ? "Barrel Proof" : tier === "standard" ? "Standard Proof" : undefined;
-  const paidDimensions: SignalStrengthDimension[] = [
-    { label: "Markets", status: !hasState ? "Not set" : hasSpecificArea ? "Focused" : "Active", state: !hasState ? "empty" : hasSpecificArea ? "strong" : "active", helper: !hasState ? "Choose a market." : hasSpecificArea ? `${areaCount} areas contributing.` : `${areaPrefs.states.length} market${areaPrefs.states.length === 1 ? "" : "s"} contributing.` },
-    { label: "Bottles", status: alertMode === "anything_notable" ? "Broad" : hasBottleFocus ? "Focused" : "Not set", state: alertMode === "anything_notable" ? "partial" : hasBottleFocus ? "active" : "empty", helper: alertMode === "anything_notable" ? "Broad signal." : hasBottleFocus ? `${trackedBottleCount} bottle${trackedBottleCount === 1 ? "" : "s"} sharpening it.` : "Add bottle focus." },
-    { label: "Alerts", status: channels > 1 ? "Active" : channels === 1 ? "Basic" : "Inactive", state: channels > 1 ? "strong" : channels === 1 ? "partial" : "empty", helper: channels > 1 ? `${channels} channels contributing.` : channels === 1 ? "One channel contributing." : "Turn on delivery." },
-  ];
-
-  if (isBarrelOrFounder) {
-    paidDimensions.push({ label: "Taste Profile", status: collectionCount >= 5 ? "Strong" : collectionCount > 0 ? "Learning" : "Empty", state: collectionCount >= 5 ? "strong" : collectionCount > 0 ? "active" : "empty", helper: collectionCount > 0 ? `${collectionCount} bottle${collectionCount === 1 ? "" : "s"} in your profile.` : "Rate bottles to personalize." });
-  }
-  if (tier === "bottled-in-bond" && canReceiveSightingsAlerts) {
-    paidDimensions.push({ label: "Sightings", status: notificationPrefs.sightings?.enabled ? "Active" : "Available", state: notificationPrefs.sightings?.enabled ? "active" : "partial", helper: notificationPrefs.sightings?.enabled ? "Member reports included." : "Optional member report signal." });
-  } else if (tier === "barrel" && canReceiveSightingsAlerts) {
-    paidDimensions.push({ label: "Sightings", status: notificationPrefs.sightings?.enabled ? "Active" : "Available", state: notificationPrefs.sightings?.enabled ? "active" : "partial", helper: notificationPrefs.sightings?.enabled ? "Member reports included." : "Add sightings when useful." });
-  }
-
-  return {
-    score,
-    level,
-    modeLabel: tierLabel,
-    meterLabel: signalLevelLabel(level),
-    headline: tier === "bottled-in-bond" ? "Founder calibration" : tier === "barrel" ? "Personal calibration" : level === "precision" ? "High-confidence signal" : level === "strong" ? "Tuned signal" : level === "focused" ? "Sharpening signal" : level === "building" ? "Calibration building" : "Needs more context",
-    body: "Saving markets, bottles, and alerts improves your signal strength.",
-    ctaLabel: "Build my signal",
-    ctaSection: nextSection,
-    dimensions: paidDimensions,
-  };
+  deliveryChannelCount: number;
+  onManageAlerts: () => void;
 }
 
-function SignalStrengthCard({ model, onSectionSelect }: { model: SignalStrengthModel; onSectionSelect: (section: DashboardSection) => void }) {
-  const isFreeAccess = model.modeLabel === "Free access";
-  const activeTicks = isFreeAccess ? Math.max(3, Math.min(6, Math.round((model.score / 100) * 73))) : Math.max(8, Math.round((model.score / 100) * 73));
-  const cta = model.ctaHref ? (
-    <Link className="signal-strength-cta" href={model.ctaHref}>{model.ctaLabel}</Link>
-  ) : (
-    <button type="button" className="signal-strength-cta" onClick={() => model.ctaSection && onSectionSelect(model.ctaSection)}>{model.ctaLabel}</button>
-  );
+function AlertSetupCard({ marketCount, trackedBottleCount, alertMode, deliveryChannelCount, onManageAlerts }: AlertSetupCardProps) {
+  const marketSummary = marketCount ? `${marketCount} market${marketCount === 1 ? "" : "s"}` : "No markets";
+  const bottleSummary = alertMode === "anything_notable"
+    ? "Anything notable"
+    : trackedBottleCount
+      ? `${trackedBottleCount} bottle${trackedBottleCount === 1 ? "" : "s"}`
+      : "No bottles";
+  const deliverySummary = deliveryChannelCount
+    ? `${deliveryChannelCount} channel${deliveryChannelCount === 1 ? "" : "s"}`
+    : "No delivery";
 
   return (
-    <section className="signal-strength-card" data-free-access={isFreeAccess ? "true" : "false"} aria-label="Signal Strength">
-      <div className="signal-strength-copy">
-        <p>{model.body}</p>
-        {cta}
+    <section className="alert-setup-card" aria-labelledby="alert-setup-title">
+      <div className="alert-setup-copy">
+        <span className="alert-setup-eyebrow">Alert setup</span>
+        <h2 id="alert-setup-title">Your alerts, at a glance</h2>
+        <p>Choose the markets, bottles, and delivery channels Bourbon Signal should watch for you.</p>
+        <button type="button" className="alert-setup-cta" onClick={onManageAlerts}>Manage alerts</button>
       </div>
-
-      <div className="signal-meter" aria-hidden="true">
-        <div className="signal-meter-label">Signal Strength</div>
-        <div className="signal-meter-arc">
-          {Array.from({ length: 73 }).map((_, index) => (
-            <span
-              key={index}
-              className={index < activeTicks ? "active" : ""}
-              style={{ transform: `rotate(${-90 + index * 2.5}deg)` }}
-            />
-          ))}
-        </div>
-        <div className="signal-meter-core">
-          <div className="signal-meter-score">{model.meterLabel}</div>
-        </div>
-      </div>
-
-      {model.dimensions.length ? (
-        <div className="signal-strength-dimensions">
-          {model.dimensions.map((dimension) => (
-            <div key={dimension.label} className="signal-dimension" data-state={dimension.state}>
-              <div className="signal-dimension-top">
-                <span>{dimension.label}</span>
-                <strong>{dimension.status}</strong>
-              </div>
-              <div className="signal-dimension-rail" />
-              <p>{dimension.helper}</p>
-            </div>
-          ))}
-        </div>
-      ) : null}
+      <dl className="alert-setup-summary" aria-label="Current alert setup">
+        <div><dt>Markets</dt><dd>{marketSummary}</dd></div>
+        <div><dt>Bottles</dt><dd>{bottleSummary}</dd></div>
+        <div><dt>Delivery</dt><dd>{deliverySummary}</dd></div>
+      </dl>
     </section>
   );
 }
@@ -811,7 +672,6 @@ function PaidMemberDashboard() {
   const [savingLocations, setSavingLocations] = useState(false);
   const [savedLocations, setSavedLocations] = useState(false);
   const [notificationPrefs, setNotificationPrefs] = useState<NotificationPreferences>(getDefaultNotificationPreferences());
-  const [weeklyIntelligenceAction, setWeeklyIntelligenceAction] = useState<WeeklyIntelligencePreferenceActionRequest | null>(null);
   const [alertMode, setAlertMode] = useState<AlertMode>("anything_notable");
   const [savedNotifications, setSavedNotifications] = useState(false);
   const [collapsedStates, setCollapsedStates] = useState<Record<string, boolean>>({});
@@ -867,7 +727,6 @@ function PaidMemberDashboard() {
       setLoadedSignedOutDefaults(false);
       setLocalPrefs(prefs.areaPreferences);
       setNotificationPrefs(prefs.notificationPreferences);
-      setWeeklyIntelligenceAction(null);
       setAlertMode(prefs.alertMode ?? "anything_notable");
       return;
     }
@@ -2051,7 +1910,6 @@ function PaidMemberDashboard() {
         email: notificationPrefs.email,
         sms: notificationPrefs.sms,
         sightings: notificationPrefs.sightings,
-        ...(weeklyIntelligenceAction ? { weeklyIntelligence: weeklyIntelligenceAction } : {}),
       },
       alertMode,
       bottleAlertPreferences: {
@@ -2074,16 +1932,12 @@ function PaidMemberDashboard() {
       .finally(() => setSavingLocations(false));
   };
 
-  const signalStrengthModel = useMemo(() => buildSignalStrengthModel({
-    tier: entitlements.tier,
-    areaPrefs: localPrefs,
-    trackedBottleCount: watchedBottleOptions.length,
-    collectionCount: collectionEntries.length,
-    alertMode,
-    notificationPrefs,
-    canUseCollection,
-    canReceiveSightingsAlerts,
-  }), [alertMode, canReceiveSightingsAlerts, canUseCollection, collectionEntries.length, entitlements.tier, localPrefs, notificationPrefs, watchedBottleOptions.length]);
+  const alertDeliveryChannelCount = useMemo(() => [
+    notificationPrefs.onSite.enabled,
+    notificationPrefs.email.enabled,
+    notificationPrefs.sms.enabled,
+    notificationPrefs.sightings?.enabled,
+  ].filter(Boolean).length, [notificationPrefs]);
 
   const dashboardSections = useMemo<Array<{ key: DashboardSection; label: string; eyebrow: string; summary: string; status: string | null }>>(() => ([
     { key: "alerts", label: "Alerts", eyebrow: "Alert setup", summary: "Choose what Bourbon Signal should notify you about.", status: localPrefs.states.length ? `${localPrefs.states.length} markets` : "Not set" },
@@ -2104,7 +1958,11 @@ function PaidMemberDashboard() {
   const openDashboardSection = (section: DashboardSection) => {
     prepareDashboardSection(section);
     setActiveDashboardSection(section);
-    window.setTimeout(() => document.getElementById("dashboard-workspace")?.scrollIntoView({ behavior: "smooth", block: "start" }), 40);
+    window.setTimeout(() => {
+      const sectionButton = document.getElementById(`dashboard-section-${section}`);
+      sectionButton?.scrollIntoView({ behavior: "smooth", block: "start" });
+      sectionButton?.focus({ preventScroll: true });
+    }, 40);
   };
 
   const toggleDashboardSection = (section: DashboardSection) => {
@@ -2120,7 +1978,7 @@ function PaidMemberDashboard() {
     if (!section) return null;
     const active = activeDashboardSection === sectionKey;
     return (
-      <button key={`section-${section.key}`} type="button" className="dashboard-section-button" data-active={active} onClick={() => toggleDashboardSection(section.key)}>
+      <button id={`dashboard-section-${section.key}`} key={`section-${section.key}`} type="button" className="dashboard-section-button" data-active={active} onClick={() => toggleDashboardSection(section.key)}>
         <span className="section-copy">
           <span className="section-eyebrow">{section.eyebrow}</span>
           <span className="section-title-row">
@@ -2281,274 +2139,31 @@ function PaidMemberDashboard() {
             min-width: 0;
           }
 
-          .signal-strength-card {
+          .alert-setup-card {
             position: relative;
             overflow: hidden;
-            min-height: 316px;
-            margin-bottom: 18px;
+            margin-bottom: 12px;
             border-radius: var(--radius-feature);
-            background:
-              radial-gradient(ellipse 560px 220px at 68% 18%, rgba(196,148,58,0.105), transparent 58%),
-              linear-gradient(145deg, rgba(24,17,11,0.97), rgba(8,7,5,0.99));
-            box-shadow: 0 28px 72px rgba(0,0,0,0.30), inset 0 1px 0 rgba(245,237,214,0.045);
+            background: radial-gradient(circle at 82% 10%, rgba(196,148,58,0.12), transparent 42%), linear-gradient(145deg, rgba(24,17,11,0.96), rgba(8,7,5,0.98));
+            box-shadow: 0 24px 64px rgba(0,0,0,0.26), inset 0 1px 0 rgba(245,237,214,0.04);
             padding: clamp(20px, 3.2vw, 28px);
             display: grid;
-            grid-template-columns: minmax(0, 0.72fr) minmax(330px, 1.36fr);
-            gap: clamp(18px, 3vw, 28px);
-            isolation: isolate;
-          }
-          .signal-strength-card::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            pointer-events: none;
-            background:
-              linear-gradient(90deg, rgba(245,237,214,0.035), transparent 18%, transparent 82%, rgba(196,148,58,0.035)),
-              radial-gradient(ellipse 500px 92px at 64% 79%, rgba(232,201,122,0.07), transparent 70%);
-            opacity: 0.85;
-            z-index: -1;
-          }
-          .signal-strength-card::after {
-            content: "";
-            position: absolute;
-            left: 18px;
-            right: 18px;
-            top: 14px;
-            height: 1px;
-            pointer-events: none;
-            background: linear-gradient(90deg, transparent, rgba(232,201,122,0.18), transparent);
-          }
-          .signal-strength-copy {
-            position: relative;
-            z-index: 2;
-            min-width: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            justify-content: center;
-            gap: 13px;
-          }
-          .signal-strength-eyebrow {
-            font-family: var(--font-jetbrains);
-            font-size: 10px;
-            font-weight: 850;
-            letter-spacing: 0.105em;
-            text-transform: uppercase;
-            color: rgba(232,201,122,0.78);
-          }
-          .signal-strength-heading-row {
-            display: flex;
+            grid-template-columns: minmax(0, 1.2fr) minmax(260px, 0.8fr);
             align-items: center;
-            flex-wrap: wrap;
-            gap: 10px;
+            gap: clamp(22px, 4vw, 44px);
           }
-          .signal-strength-heading-row h2 {
-            margin: 0;
-            font-family: var(--font-playfair);
-            font-size: clamp(36px, 5.6vw, 58px);
-            line-height: 0.9;
-            letter-spacing: -0.035em;
-            color: var(--color-cream);
-            text-shadow: 0 0 26px rgba(196,148,58,0.14);
-          }
-          .signal-strength-heading-row span {
-            border-radius: 999px;
-            border: 1px solid rgba(196,148,58,0.28);
-            background: rgba(196,148,58,0.095);
-            padding: 6px 9px 5px;
-            font-family: var(--font-jetbrains);
-            font-size: 9px;
-            font-weight: 850;
-            letter-spacing: 0.07em;
-            text-transform: uppercase;
-            color: rgba(232,201,122,0.86);
-            white-space: nowrap;
-          }
-          .signal-strength-copy p {
-            max-width: 37ch;
-            margin: 0;
-            font-family: var(--font-dm-sans);
-            font-size: 14px;
-            line-height: 1.55;
-            color: rgba(245,237,214,0.62);
-          }
-          .signal-strength-cta {
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-            min-height: 42px;
-            margin-top: 3px;
-            border-radius: 999px;
-            border: 1px solid rgba(232,201,122,0.42);
-            background: linear-gradient(135deg, rgba(196,148,58,0.95), rgba(232,201,122,0.92));
-            color: #100c08;
-            padding: 11px 16px;
-            font-family: var(--font-dm-sans);
-            font-size: 13px;
-            font-weight: 900;
-            text-decoration: none;
-            cursor: pointer;
-            box-shadow: 0 12px 30px rgba(196,148,58,0.16), inset 0 1px 0 rgba(255,255,255,0.22);
-            transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
-          }
-          .signal-strength-cta:hover,
-          .signal-strength-cta:focus-visible {
-            transform: translateY(-1px);
-            filter: brightness(1.04);
-            box-shadow: 0 16px 38px rgba(196,148,58,0.22), inset 0 1px 0 rgba(255,255,255,0.26);
-            outline: none;
-          }
-          .signal-meter {
-            position: relative;
-            z-index: 1;
-            min-height: 238px;
-            grid-column: 2;
-            grid-row: 1;
-            align-self: center;
-            display: grid;
-            align-content: center;
-            justify-items: center;
-          }
-          .signal-meter-label {
-            position: absolute;
-            top: 18px;
-            left: 50%;
-            z-index: 3;
-            transform: translateX(-50%);
-            width: min(360px, 88%);
-            text-align: center;
-            font-family: var(--font-playfair);
-            font-size: clamp(26px, 3.2vw, 38px);
-            font-weight: 800;
-            line-height: 0.95;
-            letter-spacing: -0.025em;
-            color: rgba(245,237,214,0.92);
-            text-shadow: 0 0 24px rgba(196,148,58,0.18);
-          }
-          .signal-meter-arc {
-            position: relative;
-            width: min(112%, 560px);
-            aspect-ratio: 2 / 1;
-            margin-top: 0;
-            filter: drop-shadow(0 0 14px rgba(196,148,58,0.08));
-          }
-          .signal-meter-arc span {
-            position: absolute;
-            left: 50%;
-            bottom: 0;
-            width: 1.8px;
-            height: clamp(82px, 13vw, 132px);
-            border-radius: 999px;
-            transform-origin: 50% 100%;
-            background: linear-gradient(180deg, rgba(245,237,214,0.13), rgba(245,237,214,0.026));
-            opacity: 0.34;
-            box-shadow: none;
-          }
-          .signal-meter-arc span.active {
-            background: linear-gradient(180deg, rgba(252,226,162,0.92), rgba(196,148,58,0.24));
-            opacity: 0.94;
-            box-shadow: 0 0 8px rgba(232,201,122,0.30), 0 0 18px rgba(196,148,58,0.12);
-          }
-          .signal-meter-core {
-            position: absolute;
-            left: 50%;
-            bottom: 8px;
-            transform: translateX(-50%);
-            width: min(260px, 72%);
-            display: grid;
-            place-items: center;
-            text-align: center;
-            gap: 2px;
-          }
-          .signal-meter-core::before {
-            content: "";
-            position: absolute;
-            width: 142px;
-            height: 142px;
-            border-radius: 50%;
-            background: radial-gradient(circle, rgba(196,148,58,0.14), rgba(196,148,58,0.035) 48%, transparent 72%);
-            filter: blur(0.2px);
-            z-index: -1;
-          }
-          .signal-meter-score {
-            font-family: var(--font-playfair);
-            font-size: clamp(32px, 4.2vw, 50px);
-            line-height: 0.92;
-            letter-spacing: -0.055em;
-            color: var(--color-cream);
-            text-wrap: balance;
-            max-width: 100%;
-          }
-          .signal-strength-card[data-free-access="true"] .signal-meter-arc span.active {
-            opacity: 0.82;
-            box-shadow: 0 0 7px rgba(232,201,122,0.24), 0 0 14px rgba(196,148,58,0.08);
-          }
-          .signal-strength-dimensions {
-            grid-column: 1 / -1;
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 8px;
-          }
-          .signal-dimension {
-            min-width: 0;
-            border-top: 1px solid var(--boundary-subtle);
-            background: transparent;
-            padding: 12px 2px 4px;
-          }
-          .signal-dimension[data-state="active"],
-          .signal-dimension[data-state="strong"] {
-            border-top-color: var(--boundary-accent);
-          }
-          .signal-dimension[data-state="locked"] {
-            opacity: 0.66;
-          }
-          .signal-dimension-top {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-          }
-          .signal-dimension-top span {
-            font-family: var(--font-jetbrains);
-            font-size: 9px;
-            font-weight: 850;
-            letter-spacing: 0.075em;
-            text-transform: uppercase;
-            color: rgba(245,237,214,0.44);
-          }
-          .signal-dimension-top strong {
-            font-family: var(--font-dm-sans);
-            font-size: 12px;
-            color: var(--color-cream);
-            white-space: nowrap;
-          }
-          .signal-dimension-rail {
-            position: relative;
-            overflow: hidden;
-            height: 2px;
-            margin-top: 9px;
-            border-radius: 999px;
-            background: rgba(245,237,214,0.055);
-          }
-          .signal-dimension-rail::after {
-            content: "";
-            position: absolute;
-            inset: 0 auto 0 0;
-            width: 16%;
-            border-radius: inherit;
-            background: rgba(245,237,214,0.18);
-          }
-          .signal-dimension[data-state="partial"] .signal-dimension-rail::after { width: 42%; background: rgba(196,148,58,0.38); }
-          .signal-dimension[data-state="active"] .signal-dimension-rail::after { width: 68%; background: rgba(232,201,122,0.55); }
-          .signal-dimension[data-state="strong"] .signal-dimension-rail::after { width: 92%; background: rgba(252,226,162,0.72); box-shadow: 0 0 12px rgba(232,201,122,0.18); }
-
-          .signal-dimension p {
-            margin: 6px 0 0;
-            font-family: var(--font-dm-sans);
-            font-size: 11px;
-            line-height: 1.35;
-            color: rgba(245,237,214,0.48);
-          }
+          .alert-setup-copy { display: grid; justify-items: start; gap: 10px; min-width: 0; }
+          .alert-setup-eyebrow { font-family: var(--font-jetbrains); font-size: 10px; font-weight: 850; letter-spacing: 0.12em; text-transform: uppercase; color: rgba(232,201,122,0.78); }
+          .alert-setup-copy h2 { margin: 0; font-family: var(--font-playfair); font-size: clamp(30px, 4vw, 44px); line-height: 0.98; letter-spacing: -0.025em; color: var(--color-cream); }
+          .alert-setup-copy p { max-width: 48ch; margin: 0; font-family: var(--font-dm-sans); font-size: 14px; line-height: 1.6; color: rgba(245,237,214,0.62); }
+          .alert-setup-cta { min-height: 42px; margin-top: 3px; border: 1px solid rgba(232,201,122,0.42); border-radius: 999px; background: linear-gradient(135deg, rgba(196,148,58,0.95), rgba(232,201,122,0.92)); color: #100c08; padding: 11px 16px; font-family: var(--font-dm-sans); font-size: 13px; font-weight: 900; cursor: pointer; box-shadow: 0 12px 30px rgba(196,148,58,0.16), inset 0 1px 0 rgba(255,255,255,0.22); transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease; }
+          .alert-setup-cta:hover,
+          .alert-setup-cta:focus-visible { transform: translateY(-1px); filter: brightness(1.04); box-shadow: 0 16px 38px rgba(196,148,58,0.22), inset 0 1px 0 rgba(255,255,255,0.26); outline: none; }
+          .alert-setup-summary { display: grid; gap: 0; margin: 0; }
+          .alert-setup-summary div { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; border-bottom: 1px solid var(--boundary-subtle); padding: 12px 2px; }
+          .alert-setup-summary div:last-child { border-bottom: 0; }
+          .alert-setup-summary dt { font-family: var(--font-jetbrains); font-size: 9px; font-weight: 850; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(245,237,214,0.44); }
+          .alert-setup-summary dd { margin: 0; font-family: var(--font-dm-sans); font-size: 13px; font-weight: 800; color: var(--color-cream); text-align: right; }
 
           .dashboard-section-button {
             width: 100%;
@@ -2726,27 +2341,24 @@ function PaidMemberDashboard() {
             .section-summary { font-size: 12px; line-height: 1.45; }
             .section-arrow { width: 32px; height: 32px; }
             .section-status { font-size: 9px; }
-            .signal-strength-card { grid-template-columns: 1fr; min-height: 0; border-radius: 22px; padding: 16px 15px 15px; gap: 13px; }
-            .signal-strength-copy { align-items: flex-start; text-align: left; gap: 10px; }
-            .signal-strength-heading-row h2 { font-size: clamp(32px, 10vw, 44px); }
-            .signal-strength-copy p { max-width: 31ch; font-size: 13px; line-height: 1.5; }
-            .signal-strength-cta { width: 100%; margin-top: 2px; }
-            .signal-meter { grid-column: 1; grid-row: auto; min-height: 242px; order: -1; margin: -2px -4px -6px; }
-            .signal-meter-label { top: 34px; font-size: clamp(30px, 9vw, 38px); }
-            .signal-meter-arc { width: min(108%, 390px); }
-            .signal-meter-arc span { height: 88px; width: 1.38px; }
-            .signal-meter-core { bottom: 4px; width: min(230px, 72%); }
-            .signal-meter-score { font-size: clamp(32px, 10vw, 44px); }
-            .signal-strength-dimensions { grid-template-columns: 1fr; gap: 7px; }
-            .signal-dimension { padding: 10px; }
-            .signal-dimension p { display: none; }
+            .alert-setup-card { grid-template-columns: 1fr; border-radius: 22px; padding: 18px 16px; gap: 16px; }
+            .alert-setup-copy h2 { font-size: 30px; }
+            .alert-setup-copy p { font-size: 13px; line-height: 1.5; }
+            .alert-setup-cta { width: 100%; }
+            .alert-setup-summary div { padding: 10px 2px; }
           }
         `}</style>
 
         <div id="dashboard-workspace" className="dashboard-shell">
           <div className="dashboard-workspace">
 
-          <SignalStrengthCard model={signalStrengthModel} onSectionSelect={openDashboardSection} />
+          <AlertSetupCard
+            marketCount={localPrefs.states.length}
+            trackedBottleCount={watchedBottleOptions.length}
+            alertMode={alertMode}
+            deliveryChannelCount={alertDeliveryChannelCount}
+            onManageAlerts={() => openDashboardSection("alerts")}
+          />
           <div className="personal-signal-brief" aria-label="Personal signal brief" style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "10px", margin: "12px 0 18px" }}>
             {[{ label: "Saved markets", value: localPrefs.states.length ? `${localPrefs.states.length}` : "0" }, { label: "Tracked bottles", value: watchedBottleOptions.length ? `${watchedBottleOptions.length}` : "0" }, { label: "Recent matching drops", value: watchlistSignals.length ? `${watchlistSignals.length}` : "0" }].map((item) => (
               <div key={item.label} className="personal-signal-stat">
@@ -3243,24 +2855,6 @@ function PaidMemberDashboard() {
                             email: { ...prev.email, enabled: checked },
                           }))
                         }
-                      />
-
-                      <NotificationChannelCard
-                        title="Weekly intelligence email"
-                        description={notificationPrefs.weeklyIntelligence.emailEnabled
-                          ? "Email is opted in. The owner-controlled delivery pilot remains inactive until it is separately authorized."
-                          : "Opt in to a separate weekly brief built from saved markets, tracked bottles, fresh eligible alerts, and coverage. Opt-in alone does not activate the delivery pilot."}
-                        checked={notificationPrefs.weeklyIntelligence.emailEnabled}
-                        onCheckedChange={(checked) => {
-                          setWeeklyIntelligenceAction({
-                            action: checked ? "subscribe" : "unsubscribe",
-                            expectedVersion: notificationPrefs.weeklyIntelligence.version,
-                          });
-                          setNotificationPrefs((prev) => ({
-                            ...prev,
-                            weeklyIntelligence: { ...prev.weeklyIntelligence, emailEnabled: checked },
-                          }));
-                        }}
                       />
 
                       <div style={{ width: "100%", borderRadius: "18px", border: smsActive ? "1px solid rgba(196,148,58,0.34)" : "1px solid rgba(255,255,255,0.08)", background: smsActive ? "linear-gradient(180deg, rgba(47,33,18,0.98) 0%, rgba(24,18,12,0.98) 100%)" : "linear-gradient(180deg, rgba(20,16,12,0.92) 0%, rgba(14,11,8,0.92) 100%)", boxShadow: smsActive ? "inset 0 1px 0 rgba(239,192,80,0.12), 0 0 28px rgba(212,146,11,0.12)" : "inset 0 1px 0 rgba(255,255,255,0.03)", padding: "18px", display: "grid", gap: "12px", position: "relative", overflow: "hidden" }}>
