@@ -233,7 +233,7 @@ export async function GET(req: NextRequest) {
   }
 
   const url = new URL(req.url);
-  const includeRewards = ownerPointsPreview && url.searchParams.get("rewards") !== "0";
+  const includeRewards = url.searchParams.get("rewards") !== "0";
   const requestedLimit = Number(url.searchParams.get("limit") || 60);
   const feedLimit = Number.isFinite(requestedLimit) ? Math.max(1, Math.min(Math.floor(requestedLimit), 1_000)) : 60;
   const rewardGeneration = includeRewards ? await createSignalPointsRepository().readRewardGeneration(userId) : 0;
@@ -260,7 +260,7 @@ export async function GET(req: NextRequest) {
   return NextResponse.json({
     sightings,
     states,
-    ...(ownerPointsPreview ? { rewards } : {}),
+    ...(includeRewards ? { rewards } : {}),
     previewLimit,
     totalSightings: aggregate.totalSightings,
   });

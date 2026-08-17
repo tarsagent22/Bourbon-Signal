@@ -12,6 +12,7 @@ import { useDrops } from "@/hooks/useDrops";
 import { useWatchlistStore } from "@/lib/watchlist";
 import { useAuth } from "@/lib/auth";
 import { useAreaPreferences } from "@/hooks/useAreaPreferences";
+import { useSightings } from "@/hooks/useSightings";
 import { useStats } from "@/lib/useEngineData";
 import type { Bottle } from "@/data/bottles";
 import type { AlertMode, AreaPreferences, UserAlertPreferencePatch, UserAlertPreferences } from "@/app/api/user/preferences/route";
@@ -159,6 +160,59 @@ interface BourbonDnaSummary {
   favoriteMashBills: string[];
   nextLearningPrompt?: string;
   summary: string;
+}
+
+const BADGE_ICON_BY_KEY: Record<string, string> = {
+  first_sighting: "/badge-icons/first-sighting.png",
+  helpful_neighbor: "/badge-icons/helpful-neighbor-fit.png",
+  photo_finish: "/badge-icons/photo-finish-fit.png",
+  spotter: "/badge-icons/spotter-bronze-fit.png",
+  unicorn_hunter: "/badge-icons/unicorn-hunter-bronze-fit.png",
+  sharp_eye: "/badge-icons/sharp-eye.png",
+  local_scout: "/badge-icons/local-scout.png",
+  weekend_warrior: "/badge-icons/weekend-warrior.png",
+  clean_signal: "/badge-icons/clean-signal.png",
+  streak: "/badge-icons/streak.png",
+};
+
+const BADGE_ICON_BY_ID: Record<string, string> = {
+  spotter_bronze: "/badge-icons/spotter-bronze-fit.png",
+  spotter_silver: "/badge-icons/spotter-silver-fit.png",
+  spotter_diamond: "/badge-icons/spotter-diamond-fit.png",
+  unicorn_hunter_bronze: "/badge-icons/unicorn-hunter-bronze-fit.png",
+  unicorn_hunter_silver: "/badge-icons/unicorn-hunter-silver-fit.png",
+  unicorn_hunter_diamond: "/badge-icons/unicorn-hunter-diamond-fit.png",
+};
+
+const BADGE_DESCRIPTIONS: Record<string, string> = {
+  first_sighting: "Post your first eligible field report.",
+  helpful_neighbor: "Earn 3 upvotes on a sighting that helped another member.",
+  photo_finish: "Post a sighting with an optional photo attached.",
+  spotter: "Build a track record of useful sightings.",
+  unicorn_hunter: "Find the rare bottles people chase.",
+  sharp_eye: "Post sightings other members find helpful.",
+  local_scout: "Become reliable in your home area.",
+  weekend_warrior: "Contribute when weekend hunting heats up.",
+  clean_signal: "Sustain a high-quality reporting record.",
+  streak: "Keep useful sightings coming week after week.",
+};
+
+function badgeBaseKey(id: string) {
+  const baseKey = id.replace(/_(bronze|silver|gold|platinum|diamond)$/u, "");
+  return baseKey === "verified_scout" ? "helpful_neighbor" : baseKey;
+}
+
+function badgeIconFor(id: string) {
+  return BADGE_ICON_BY_ID[id] || BADGE_ICON_BY_KEY[badgeBaseKey(id)] || null;
+}
+
+function badgeLabelFor(id: string, label: string) {
+  if (badgeBaseKey(id) === "helpful_neighbor") return "Helpful Neighbor";
+  return label.replace(/Verified Scout/gi, "Helpful Neighbor").replace(/verified/gi, "helpful");
+}
+
+function badgeDescriptionFor(id: string) {
+  return BADGE_DESCRIPTIONS[badgeBaseKey(id)] || "Keep contributing useful community signal.";
 }
 
 type DashboardSection = "alerts" | "collection" | "recommendations" | "memberPoints";
@@ -707,7 +761,17 @@ function PaidMemberDashboard() {
   const [activeDashboardSection, setActiveDashboardSection] = useState<DashboardSection | null>(() => {
     if (typeof window === "undefined") return null;
     const section = new URLSearchParams(window.location.search).get("section");
-    return section === "alerts" || section === "collection" || section === "recommendations" ? section : null;
+    return section === "alerts" || section === "collection" || section === "recommendations" || section === "memberPoints" ? section : null;
+  });
+  const {
+    rewards: memberRewards,
+    loading: memberRewardsLoading,
+    error: memberRewardsError,
+    refresh: refreshMemberRewards,
+  } = useSightings(isSignedIn && canAccessDashboard && activeDashboardSection === "memberPoints", {
+    includePreferences: false,
+    includeRewards: true,
+    feedLimit: 1,
   });
   const [preparedDashboardSections, setPreparedDashboardSections] = useState<Set<DashboardSection>>(new Set(["alerts"]));
   const territoryDropdownRef = useRef<HTMLDivElement | null>(null);
@@ -3496,6 +3560,14 @@ function PaidMemberDashboard() {
             compact
             expanded={activeDashboardSection === "memberPoints"}
             onToggle={() => toggleDashboardSection("memberPoints")}
+            rewards={memberRewards}
+            rewardsLoading={memberRewardsLoading}
+            rewardsError={memberRewardsError}
+            onRetryRewards={() => void refreshMemberRewards()}
+            badgeIconFor={badgeIconFor}
+            badgeLabelFor={badgeLabelFor}
+            badgeDescriptionFor={badgeDescriptionFor}
+            badgeBaseKey={badgeBaseKey}
           />
 
           <CoverageRequestsCard emptyMode="compact" marketLabel={confirmedAlertPrefs ? dashboardMarketSummary : undefined} />

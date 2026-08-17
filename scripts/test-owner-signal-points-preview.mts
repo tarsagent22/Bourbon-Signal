@@ -11,10 +11,15 @@ const [route, dashboard, panel, settingsServer, settingsClient, pointsApi, redem
   readFile(new URL("../src/app/api/signal-points/redemptions/route.ts", import.meta.url), "utf8"),
 ]);
 assert.match(route, /requireSignalPointsPageAccess/);
-assert.match(route, /<SignalPointsPanel preview/);
+assert.match(route, /redirect\("\/dashboard\?section=memberPoints"\)/);
 assert.match(dashboard, /import SignalPointsPanel/);
 assert.match(dashboard, /<SignalPointsPanel[\s\S]*preview[\s\S]*compact[\s\S]*expanded=/);
-assert.match(panel, /id="signal-points"[\s\S]*id="dashboard-section-memberPoints"/);
+assert.match(dashboard, /rewards=\{memberRewards\}[\s\S]*badgeIconFor=\{badgeIconFor\}/);
+assert.match(panel, /id="signal-points"/);
+assert.match(panel, /id="dashboard-section-memberPoints"/);
+assert.match(panel, /previewExperience[\s\S]*points-tabs/);
+assert.match(panel, /props\.rewards \? <>[\s\S]*: badgeCollection\}/);
+assert.doesNotMatch(panel, /href="\/account\/signal-points"/);
 assert.doesNotMatch(settingsServer, /Signal Points|signal-points|ownerPreview/);
 assert.doesNotMatch(settingsClient, /Signal Points|SignalPointsPanel/);
 assert.match(pointsApi, /requireSignalPointsApiAccess/);

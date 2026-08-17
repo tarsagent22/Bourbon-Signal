@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import test from "node:test";
 import {
   SIGNAL_REWARD_CATALOG,
@@ -218,6 +218,13 @@ test("schema, migration, encrypted backup, APIs, drawer, and owner queue are wir
   assert.match(panel, /body:\s*JSON\.stringify\([^\n]*idempotencyKey:\s*redemptionIntentKey\(\)/);
   assert.match(panel, /PreviewTab/);
   assert.match(panel, /overview[\s\S]*rewards[\s\S]*badges[\s\S]*history/);
+  assert.match(panel, /role="tablist"/);
+  assert.match(panel, /aria-controls=\{`signal-points-panel-\$\{item\}`\}/);
+  assert.match(panel, /handleTabKeyDown/);
+  assert.match(panel, /role="tabpanel"/);
+  assert.match(panel, /hidden=\{tab !== "overview"\}[\s\S]*hidden=\{tab !== "rewards"\}[\s\S]*hidden=\{tab !== "badges"\}[\s\S]*hidden=\{tab !== "history"\}/);
+  assert.match(panel, /props\.compact && !props\.rewards && !props\.rewardsError/);
+  assert.match(panel, /props\.rewardsError \? \([\s\S]*badgeCollection/);
   assert.match(panel, /prefers-reduced-motion/);
   assert.match(panel, /showAllRewards/);
   assert.match(panel, /slice\(0, 4\)/);
@@ -246,11 +253,22 @@ test("schema, migration, encrypted backup, APIs, drawer, and owner queue are wir
   assert.match(panel, /points-compact-head/);
   assert.match(panel, /position:sticky/);
   assert.match(panel, /badgeCards[\s\S]*sort/);
+  assert.match(panel, /badgeIcon\(badge\.iconId\)/);
   assert.match(panel, /data-progress/);
   assert.doesNotMatch(panel, /<section className="points-earn-strip"/);
   const dashboard = read("src/app/dashboard/page.tsx");
   assert.match(dashboard, /<SignalPointsPanel[\s\S]*preview[\s\S]*compact[\s\S]*expanded=/);
-  assert.match(panel, /id="signal-points"[\s\S]*id="dashboard-section-memberPoints"/);
+  assert.match(dashboard, /useSightings\(isSignedIn && canAccessDashboard && activeDashboardSection === "memberPoints"/);
+  assert.match(dashboard, /rewards=\{memberRewards\}/);
+  assert.match(dashboard, /badgeIconFor=\{badgeIconFor\}/);
+  assert.match(panel, /id="signal-points"/);
+  assert.match(panel, /id="dashboard-section-memberPoints"/);
+  assert.match(panel, /props\.compact[\s\S]*points-tabs/);
+  assert.doesNotMatch(panel, /href="\/account\/signal-points"/);
+  for (const icon of ["first-sighting.png", "helpful-neighbor-fit.png", "photo-finish-fit.png", "spotter-bronze-fit.png", "spotter-silver-fit.png", "spotter-diamond-fit.png", "unicorn-hunter-bronze-fit.png", "unicorn-hunter-silver-fit.png", "unicorn-hunter-diamond-fit.png", "sharp-eye.png", "local-scout.png", "weekend-warrior.png", "clean-signal.png", "streak.png"]) {
+    assert.equal(existsSync(new URL(`../public/badge-icons/${icon}`, import.meta.url)), true, `${icon} should be available to the dashboard badge collection`);
+  }
+  assert.match(read("src/app/account/signal-points/page.tsx"), /redirect\("\/dashboard\?section=memberPoints"\)/);
   const controlRoom = read("src/app/admin/control-room/page.tsx");
   assert.match(controlRoom, /isCompanyControlRoomOwnerEmail/);
   assert.match(controlRoom, /notFound\(\)/);
@@ -267,9 +285,11 @@ test("schema, migration, encrypted backup, APIs, drawer, and owner queue are wir
 
   const sightingsRoute = read("src/app/api/sightings/route.ts");
   assert.match(sightingsRoute, /isRewardsAdminEmail\(verifiedPrimaryClerkEmail\(user\)\)/);
-  assert.match(sightingsRoute, /ownerPointsPreview\s*&&\s*url\.searchParams\.get\(["']rewards["']\)\s*!==\s*["']0["']/);
+  assert.match(sightingsRoute, /const includeRewards = url\.searchParams\.get\(["']rewards["']\)\s*!==\s*["']0["']/);
   assert.match(sightingsRoute, /visibleSightingForRequester/);
-  assert.match(sightingsRoute, /ownerPointsPreview\s*\?\s*\{ rewards \}\s*:\s*\{\}/);
+  assert.match(sightingsRoute, /\.\.\.\(includeRewards\s*\?\s*\{ rewards \}\s*:\s*\{\}\)/);
+  assert.match(dashboard, /includePreferences:\s*false[\s\S]*includeRewards:\s*true[\s\S]*feedLimit:\s*1/);
+  assert.match(dashboard, /rewardsLoading=\{memberRewardsLoading\}[\s\S]*rewardsError=\{memberRewardsError\}/);
   assert.doesNotMatch(sightingsRoute, /Signal Points reconciliation is temporarily unavailable/);
 
   assert.match(read("src/app/admin/operations/page.tsx"), /SignalPointRewardQueue/);
