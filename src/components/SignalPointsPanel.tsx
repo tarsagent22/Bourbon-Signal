@@ -21,6 +21,7 @@ type EarningGroup = { title: string; intro?: string; note: string; rows: Earning
 
 type SignalPointsPanelProps = {
   preview?: boolean;
+  compact?: boolean;
   rewards?: MemberRewardsSummary | null;
   badgeIconFor?: (id: string) => string | null;
   badgeLabelFor?: (id: string, label: string) => string;
@@ -177,6 +178,35 @@ export default function SignalPointsPanel(props: SignalPointsPanelProps) {
   }
 
   if (!data) return error ? <div className="signal-points-loading">{error}</div> : <DefaultLoading />;
+
+  if (props.compact) {
+    const rewardStatus = !data.redemptionEligible
+      ? "Keep earning · paid membership required to redeem"
+      : availableReward
+        ? `${availableReward.name} available`
+        : nextReward
+          ? `${countLabel(Math.max(0, nextReward.points - data.balance), "point")} to ${nextReward.name}`
+          : "Every active reward is within reach";
+    return (
+      <section className="points-dashboard-summary" aria-label="Signal Points summary">
+        <div>
+          <span>Signal Points</span>
+          <strong>{countLabel(data.balance, "point")}</strong>
+          <small>{rewardStatus}</small>
+        </div>
+        <Link href="/account/signal-points">View rewards <span aria-hidden="true">→</span></Link>
+        <style jsx>{`
+          .points-dashboard-summary { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 18px 2px; border-top: 1px solid rgba(196,148,58,.22); border-bottom: 1px solid rgba(245,237,214,.08); background: linear-gradient(90deg,rgba(196,148,58,.06),transparent 72%); }
+          .points-dashboard-summary > div { display: grid; gap: 4px; min-width: 0; }
+          .points-dashboard-summary > div > span { font: 850 9px/1 var(--font-jetbrains); letter-spacing: .14em; text-transform: uppercase; color: rgba(232,201,122,.72); }
+          .points-dashboard-summary strong { font: 800 21px/1.2 var(--font-dm-sans); color: var(--color-cream); }
+          .points-dashboard-summary small { font: 12px/1.45 var(--font-dm-sans); color: rgba(245,237,214,.55); }
+          .points-dashboard-summary > a { display: inline-flex; align-items: center; gap: 10px; flex: 0 0 auto; color: var(--color-accent-amber); font: 800 12px/1 var(--font-dm-sans); text-decoration: none; }
+          @media (max-width: 520px) { .points-dashboard-summary { align-items: flex-end; } .points-dashboard-summary strong { font-size: 18px; } }
+        `}</style>
+      </section>
+    );
+  }
 
   const redemptionModal = selected ? <div className="signal-modal" role="dialog" aria-modal="true" aria-label={`Redeem ${selected.name}`}><form onSubmit={(event) => { event.preventDefault(); void redeem(); }}><h3>{selected.name}</h3><p>{selectedCost} Signal Points</p>
     {glassQuantity ? <><label>Glass choice<select value={String(details.glassStyle)} onChange={(event) => setDetails((current) => ({ ...current, glassStyle: event.target.value }))}><option value="standard">Standard Bourbon Signal mark</option><option value="personal">Personal engraving (+125 per glass)</option></select></label>{details.glassStyle === "personal" ? <label>Engraving (1–18 characters)<input maxLength={18} required value={String(details.engravingText || "")} onChange={(event) => setDetails((current) => ({ ...current, engravingText: event.target.value }))} /></label> : null}</> : null}
