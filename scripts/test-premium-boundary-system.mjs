@@ -122,8 +122,9 @@ assert.ok(sources.areaPreferences.includes("preferenceError") && sources.areaPre
 const deliveryLabels = sources.dashboard.match(/const enabledDeliveryLabels = useMemo\(\(\) => \[([^\]]+)\]/s)?.[1] || "";
 assert.equal(deliveryLabels.includes("sightings"), false, "Member sightings are an alert topic, not a delivery channel");
 assert.ok(sources.signalPoints.includes("!data.redemptionEligible"), "Compact rewards should explain redemption eligibility for free members");
-assert.ok(sources.signalPoints.includes("compactActionLabel"), "Compact rewards should distinguish an available reward from the generic catalog");
-assert.ok(sources.signalPoints.includes('"View available reward"'), "Compact rewards should not promise direct redemption when the CTA opens the rewards overview");
+assert.ok(sources.signalPoints.includes("compactRewardStatus") && sources.signalPoints.includes("availableReward"), "The collapsed Points summary should distinguish an available reward from the generic catalog");
+assert.ok(sources.signalPoints.includes("previewExperience") && sources.signalPoints.includes("{previewExperience}"), "The complete Points experience should render inside the dashboard accordion");
+assert.equal(sources.signalPoints.includes('href="/account/signal-points"'), false, "The Points accordion should not send members to a separate account page");
 assert.ok(sources.dashboard.includes('<Link className="dashboard-action-primary" href="/#drops">Browse Drop Feed'), "Browse Drop Feed should be the primary next action for a quiet new-member dashboard");
 assert.ok(sources.dashboard.indexOf('<nav className="dashboard-quick-actions"') < sources.dashboard.indexOf('renderSectionButton("alerts")'), "Quick actions should stay in the briefing above expandable drawers");
 const pointsAccordionIndex = sources.dashboard.indexOf('expanded={activeDashboardSection === "memberPoints"}');
