@@ -80,7 +80,7 @@ for (const selector of [".bc-search-card", ".bc-panel", ".bc-verdict-card, .bc-d
   assertNoFullBorder(sources.bottleCheck, selector);
 }
 
-for (const selector of [".signal-strength-card", ".signal-dimension", ".dashboard-section-button"]) {
+for (const selector of [".alert-setup-card", ".dashboard-section-button"]) {
   assertNoFullBorder(sources.dashboard, selector);
 }
 

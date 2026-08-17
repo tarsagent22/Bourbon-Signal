@@ -2143,7 +2143,6 @@ function PaidMemberDashboard() {
             position: relative;
             overflow: hidden;
             margin-bottom: 12px;
-            border: 1px solid rgba(196,148,58,0.16);
             border-radius: var(--radius-feature);
             background: radial-gradient(circle at 82% 10%, rgba(196,148,58,0.12), transparent 42%), linear-gradient(145deg, rgba(24,17,11,0.96), rgba(8,7,5,0.98));
             box-shadow: 0 24px 64px rgba(0,0,0,0.26), inset 0 1px 0 rgba(245,237,214,0.04);
