@@ -15,7 +15,7 @@ import { useAreaPreferences } from "@/hooks/useAreaPreferences";
 import { useStats } from "@/lib/useEngineData";
 import type { Bottle } from "@/data/bottles";
 import type { AlertMode, AreaPreferences, UserAlertPreferencePatch, UserAlertPreferences } from "@/app/api/user/preferences/route";
-import { canonicalBottleKey, dropMatchesBottle } from "@/lib/bottleIdentity";
+import { canonicalBottleKey, dropMatchesBottle, getDropIdentityKeys } from "@/lib/bottleIdentity";
 import { getDisplayName, isRealDropEvent, type DropEvent } from "@/lib/drops";
 import { LiquidToggle } from "@/components/LiquidToggle";
 import { NotificationChannelCard } from "@/components/dashboard/NotificationChannelCard";
@@ -197,33 +197,41 @@ function countAlertAreas(areaPrefs: AreaPreferences) {
 }
 
 interface RadarSummaryCardProps {
-  marketCount: number;
+  marketSummary: string;
+  hasSavedMarket: boolean;
   trackedBottleCount: number;
-  recentMatchCount: number;
+  hasAlertCriteria: boolean;
   alertMode: AlertMode;
-  deliveryChannelCount: number;
+  deliveryLabels: string[];
+  loading: boolean;
+  error: boolean;
   onManageAlerts: () => void;
 }
 
-function RadarSummaryCard({ marketCount, trackedBottleCount, recentMatchCount, alertMode, deliveryChannelCount, onManageAlerts }: RadarSummaryCardProps) {
-  const marketSummary = `${marketCount} market${marketCount === 1 ? "" : "s"}`;
+function RadarSummaryCard({ marketSummary, hasSavedMarket, trackedBottleCount, hasAlertCriteria, alertMode, deliveryLabels, loading, error, onManageAlerts }: RadarSummaryCardProps) {
   const bottleSummary = `${trackedBottleCount} bottle${trackedBottleCount === 1 ? "" : "s"}`;
-  const matchSummary = `${recentMatchCount} recent match${recentMatchCount === 1 ? "" : "es"}`;
-  const alertModeSummary = alertMode === "anything_notable" ? "Anything notable" : "Specific bottles";
-  const deliverySummary = `${deliveryChannelCount} channel${deliveryChannelCount === 1 ? "" : "s"}`;
+  const alertModeSummary = alertMode === "anything_notable" ? "All notable drops" : "Specific bottles";
+  const deliverySummary = deliveryLabels.length ? deliveryLabels.join(", ") : "Off";
+  const alertsActive = hasSavedMarket && hasAlertCriteria && deliveryLabels.length > 0;
+  const setupSummary = !hasSavedMarket
+    ? "Save a market to start seeing local matches."
+    : !hasAlertCriteria
+      ? "Choose at least one bottle for specific-bottle alerts."
+      : `Watching ${marketSummary} for ${alertModeSummary.toLowerCase()}.`;
 
   return (
     <section className="radar-summary-card" aria-labelledby="radar-summary-title">
       <div className="radar-summary-copy">
         <span className="radar-summary-eyebrow">Your radar</span>
-        <h2 id="radar-summary-title">{matchSummary} across {marketSummary}</h2>
+        <h2 id="radar-summary-title">{error ? "Saved setup is temporarily unavailable." : loading ? "Loading your saved setup" : alertsActive ? "Your alerts are active" : "Finish your alert setup"}</h2>
+        <p>{error ? "Your saved settings were not changed. Try refreshing this page." : loading ? "Checking your saved markets, watchlist, and delivery channels." : setupSummary}</p>
         <button type="button" className="radar-summary-cta" onClick={onManageAlerts}>Manage alerts</button>
       </div>
       <dl className="radar-summary-metrics" aria-label="Current radar setup">
-        <div><dt>Markets</dt><dd>{marketSummary}</dd></div>
-        <div><dt>Tracked bottles</dt><dd>{bottleSummary}</dd></div>
-        <div><dt>Alert mode</dt><dd>{alertModeSummary}</dd></div>
-        <div><dt>Delivery</dt><dd>{deliverySummary}</dd></div>
+        <div><dt>Market</dt><dd>{loading || error ? "—" : marketSummary}</dd></div>
+        <div><dt>Watchlist</dt><dd>{loading || error ? "—" : bottleSummary}</dd></div>
+        <div><dt>Alerts</dt><dd>{loading || error ? "—" : alertModeSummary}</dd></div>
+        <div><dt>Delivery</dt><dd>{loading || error ? "—" : deliverySummary}</dd></div>
       </dl>
     </section>
   );
@@ -327,6 +335,23 @@ function canonicalizeLocationName(value: string) {
 
 function normalizePreferenceBottleKey(value: string) {
   return value.toLowerCase().replace(/&/g, " and ").replace(/[^a-z0-9]+/g, " ").replace(/\s+/g, " ").trim();
+}
+
+function preferenceBottleIdentityKeys(values: Array<string | null | undefined>) {
+  const keys = new Set<string>();
+  for (const value of values) {
+    if (!value) continue;
+    const normalized = normalizePreferenceBottleKey(value);
+    const canonical = canonicalBottleKey(value);
+    keys.add(value);
+    if (normalized) keys.add(normalized);
+    if (canonical) keys.add(canonical);
+  }
+  return keys;
+}
+
+function preferenceWasRemoved(value: string, removedKeys: Set<string>) {
+  return [...preferenceBottleIdentityKeys([value])].some((key) => removedKeys.has(key));
 }
 
 function normalizeLocationText(value: string) {
@@ -645,7 +670,7 @@ export default function DashboardPage() {
 function PaidMemberDashboard() {
   const { bottles, loading } = useBottles();
   const { stores } = useStores();
-  const { drops: recentDrops } = useDrops({ limit: 120 });
+  const { drops: recentDrops, loading: recentDropsLoading, error: recentDropsError } = useDrops({ limit: 120 });
   const { drops: ncDrops } = useDrops({ limit: 500, state: "NC" });
   const { stats: engineStats } = useStats();
   const { isSignedIn, signIn, entitlements, user } = useAuth();
@@ -658,7 +683,7 @@ function PaidMemberDashboard() {
   const canUseRecommendations = entitlements.canUseRecommendations;
   const canReceiveSightingsAlerts = entitlements.canReceiveSightingsAlerts;
   const feedbackUserId = isSignedIn ? user?.id || null : null;
-  const { prefs, loading: prefsLoading, savePreferences } = useAreaPreferences();
+  const { prefs, confirmedPrefs: confirmedAlertPrefs, loading: prefsLoading, preferenceError, savePreferences } = useAreaPreferences();
   const needsHomeStateActivation = isFreeTier && isSignedIn && !prefsLoading && !prefs.memberProfile?.homeState;
   const { watchedBottles, addBottle, removeBottle } = useWatchlistStore();
 
@@ -667,6 +692,7 @@ function PaidMemberDashboard() {
   const [bottleQuery, setBottleQuery] = useState("");
   const [localPrefs, setLocalPrefs] = useState<AreaPreferences>(EMPTY_PREFS);
   const [savingLocations, setSavingLocations] = useState(false);
+  const [removedBottlePreferenceKeys, setRemovedBottlePreferenceKeys] = useState<Set<string>>(() => new Set());
   const [savedLocations, setSavedLocations] = useState(false);
   const [notificationPrefs, setNotificationPrefs] = useState<NotificationPreferences>(getDefaultNotificationPreferences());
   const [alertMode, setAlertMode] = useState<AlertMode>("anything_notable");
@@ -717,6 +743,10 @@ function PaidMemberDashboard() {
   useEffect(() => {
     setMounted(true);
   }, []);
+
+  useEffect(() => {
+    setRemovedBottlePreferenceKeys(new Set());
+  }, [user?.id]);
 
   useEffect(() => {
     if (!mounted) return;
@@ -1163,9 +1193,9 @@ function PaidMemberDashboard() {
   }, [alertBottleLibraryOptions, selectedCanonicalKeys]);
 
   useEffect(() => {
-    if (!mounted || !isSignedIn || alertBottleLibraryOptions.length === 0) return;
-    const savedNames = prefs.bottleAlertPreferences.bottleNames.map(normalizePreferenceBottleKey).filter(Boolean);
-    const savedKeys = prefs.bottleAlertPreferences.bottleKeys.map(normalizePreferenceBottleKey).filter(Boolean);
+    if (!mounted || !isSignedIn || !confirmedAlertPrefs || alertBottleLibraryOptions.length === 0) return;
+    const savedNames = confirmedAlertPrefs.bottleAlertPreferences.bottleNames.map(normalizePreferenceBottleKey).filter(Boolean);
+    const savedKeys = confirmedAlertPrefs.bottleAlertPreferences.bottleKeys.map(normalizePreferenceBottleKey).filter(Boolean);
     const savedSignature = [...savedNames, ...savedKeys].sort().join("|");
     if (!savedSignature || hydratedBottlePrefsKeyRef.current === savedSignature) return;
 
@@ -1174,12 +1204,19 @@ function PaidMemberDashboard() {
       const optionKeys = [option.canonicalKey, option.label, option.bottle.name, ...(option.bottle.search_aliases || [])]
         .filter(Boolean)
         .map((value) => normalizePreferenceBottleKey(String(value)));
-      return optionKeys.some((key) => savedSet.has(key));
+      const optionWasRemoved = [...preferenceBottleIdentityKeys([
+        option.canonicalKey,
+        option.label,
+        option.bottle.id,
+        option.bottle.name,
+        ...(option.bottle.search_aliases || []),
+      ])].some((key) => removedBottlePreferenceKeys.has(key));
+      return !optionWasRemoved && optionKeys.some((key) => savedSet.has(key));
     });
 
     matchingOptions.forEach((option) => option.bottleIds.forEach((id) => addBottle(id)));
     hydratedBottlePrefsKeyRef.current = savedSignature;
-  }, [addBottle, alertBottleLibraryOptions, isSignedIn, mounted, prefs.bottleAlertPreferences.bottleKeys, prefs.bottleAlertPreferences.bottleNames]);
+  }, [addBottle, alertBottleLibraryOptions, confirmedAlertPrefs, isSignedIn, mounted, removedBottlePreferenceKeys]);
 
   const ncBoards = useMemo(() => [
     CHARLOTTE_METRO_BOARD_GROUP,
@@ -1225,17 +1262,38 @@ function PaidMemberDashboard() {
     return grouped;
   }, [stores]);
 
+  const dashboardPrefs = confirmedAlertPrefs ?? prefs;
+  const savedAreaPrefs = dashboardPrefs.areaPreferences;
+  const savedAlertMode = dashboardPrefs.alertMode ?? "anything_notable";
+  const savedBottleIdentityKeys = useMemo(() => {
+    const keys = new Set<string>();
+    for (const value of [...dashboardPrefs.bottleAlertPreferences.bottleNames, ...dashboardPrefs.bottleAlertPreferences.bottleKeys]) {
+      const normalized = normalizePreferenceBottleKey(value);
+      const canonical = canonicalBottleKey(value);
+      if (value) keys.add(value);
+      if (normalized) keys.add(normalized);
+      if (canonical) keys.add(canonical);
+    }
+    return keys;
+  }, [dashboardPrefs.bottleAlertPreferences.bottleKeys, dashboardPrefs.bottleAlertPreferences.bottleNames]);
+  const savedTrackedBottleCount = new Set(
+    (dashboardPrefs.bottleAlertPreferences.bottleKeys.length
+      ? dashboardPrefs.bottleAlertPreferences.bottleKeys
+      : dashboardPrefs.bottleAlertPreferences.bottleNames)
+      .map(normalizePreferenceBottleKey)
+      .filter(Boolean),
+  ).size;
+
   const watchlistSignals = useMemo(() => {
-    if (!mounted || localPrefs.states.length === 0) return [] as Array<{ bottle: string; location: string; timestamp: string; state: string; href: string }>;
+    if (!mounted || savedAreaPrefs.states.length === 0) return [] as Array<{ bottle: string; location: string; timestamp: string; state: string; href: string }>;
 
     const matched = recentDrops
       .filter((drop) => isRealDropEvent(drop))
-      .filter((drop) => dropMatchesAreaPreferences(drop, localPrefs))
-      .filter((drop) => alertMode === "anything_notable" || watchedBottleOptions.some((option) =>
-        option.bottleIds.some((id) => {
-          const bottle = bottles.find((candidate) => candidate.id === id);
-          return bottle ? dropMatchesBottle(drop, bottle) : false;
-        })
+      .filter((drop) => dropMatchesAreaPreferences(drop, savedAreaPrefs))
+      .filter((drop) => savedAlertMode === "anything_notable" || getDropIdentityKeys(drop).some((key) =>
+        savedBottleIdentityKeys.has(key)
+        || savedBottleIdentityKeys.has(normalizePreferenceBottleKey(key))
+        || savedBottleIdentityKeys.has(canonicalBottleKey(key))
       ))
       .sort((left, right) => {
       const rightTime = Date.parse(right.timestamp || right.observed_at || right.event_at || right.first_seen_at || "") || 0;
@@ -1254,7 +1312,7 @@ function PaidMemberDashboard() {
         href: finderSignalHref(bottle, state),
       };
     });
-  }, [alertMode, bottles, localPrefs, mounted, recentDrops, watchedBottleOptions]);
+  }, [mounted, recentDrops, savedAlertMode, savedAreaPrefs, savedBottleIdentityKeys]);
 
   const recommendationMarketSummary = useMemo(() => {
     const recommendedCount = collectionRecommendationInsights.length;
@@ -1380,11 +1438,33 @@ function PaidMemberDashboard() {
 
   const addBottleOption = (option: BottleOption) => {
     option.bottleIds.forEach((id) => addBottle(id));
+    const restoredKeys = preferenceBottleIdentityKeys([
+      option.canonicalKey,
+      option.label,
+      option.bottle.id,
+      option.bottle.canonical_id,
+      option.bottle.canonical_key,
+      option.bottle.name,
+      ...(option.bottle.aliases || []),
+      ...(option.bottle.search_aliases || []),
+    ]);
+    setRemovedBottlePreferenceKeys((current) => new Set([...current].filter((key) => !restoredKeys.has(key))));
     setBottleQuery("");
   };
 
   const removeBottleOption = (option: BottleOption) => {
     option.bottleIds.forEach((id) => removeBottle(id));
+    const removedKeys = preferenceBottleIdentityKeys([
+      option.canonicalKey,
+      option.label,
+      option.bottle.id,
+      option.bottle.canonical_id,
+      option.bottle.canonical_key,
+      option.bottle.name,
+      ...(option.bottle.aliases || []),
+      ...(option.bottle.search_aliases || []),
+    ]);
+    setRemovedBottlePreferenceKeys((current) => new Set([...current, ...removedKeys]));
   };
   const alertAreaCount = (areaPrefs: AreaPreferences) => countAlertAreas(areaPrefs);
 
@@ -1559,7 +1639,7 @@ function PaidMemberDashboard() {
       signIn();
       return;
     }
-    if (prefsLoading) {
+    if (prefsLoading || !confirmedAlertPrefs || preferenceError) {
       setCollectionError("Loading your saved preferences. Try again in a second.");
       return;
     }
@@ -1577,8 +1657,14 @@ function PaidMemberDashboard() {
           await savePreferences({
             alertMode: "specific_bottles",
             bottleAlertPreferences: {
-              bottleNames: Array.from(new Set([...watchedBottleOptions.map((watched) => watched.label), option.label])),
-              bottleKeys: Array.from(new Set([...Array.from(selectedCanonicalKeys), option.canonicalKey])),
+              bottleNames: Array.from(new Set([
+                ...confirmedAlertPrefs.bottleAlertPreferences.bottleNames,
+                option.label,
+              ])),
+              bottleKeys: Array.from(new Set([
+                ...confirmedAlertPrefs.bottleAlertPreferences.bottleKeys,
+                option.canonicalKey,
+              ])),
             },
           });
         },
@@ -1897,6 +1983,10 @@ function PaidMemberDashboard() {
   }, [territoryDropdown]);
 
   const handleSaveAlertSetup = async () => {
+    if (!confirmedAlertPrefs || preferenceError) {
+      setCollectionError("Wait for your saved alert setup to finish loading, then try again.");
+      return;
+    }
     if (typeof alertAreaLimit === "number" && alertAreaCount(localPrefs) > alertAreaLimit) {
       setCollectionError(`Standard Proof includes up to ${alertAreaLimit} alert areas. Remove one area before saving.`);
       return;
@@ -1911,6 +2001,24 @@ function PaidMemberDashboard() {
     }
     setSavingLocations(true);
     setCollectionError(null);
+    const persistedBottlePreferences = confirmedAlertPrefs.bottleAlertPreferences;
+    const preservedBottleNames = persistedBottlePreferences.bottleNames.filter((name) => !preferenceWasRemoved(name, removedBottlePreferenceKeys));
+    const preservedBottleKeys = persistedBottlePreferences.bottleKeys.filter((key) => !preferenceWasRemoved(key, removedBottlePreferenceKeys));
+    const activeWatchedBottleOptions = watchedBottleOptions.filter((option) => ![
+      ...preferenceBottleIdentityKeys([
+        option.canonicalKey,
+        option.label,
+        option.bottle.id,
+        option.bottle.name,
+        ...(option.bottle.search_aliases || []),
+      ]),
+    ].some((key) => removedBottlePreferenceKeys.has(key)));
+    const selectedBottleNames = activeWatchedBottleOptions.map((option) => option.label);
+    const selectedBottleKeys = activeWatchedBottleOptions.map((option) => option.canonicalKey);
+    const nextBottleNames = Array.from(new Map(
+      [...preservedBottleNames, ...selectedBottleNames].map((name) => [normalizePreferenceBottleKey(name), name]),
+    ).values());
+    const nextBottleKeys = Array.from(new Set([...preservedBottleKeys, ...selectedBottleKeys]));
     const nextPrefs: UserAlertPreferencePatch = {
       areaPreferences: localPrefs,
       notificationPreferences: {
@@ -1921,12 +2029,13 @@ function PaidMemberDashboard() {
       },
       alertMode,
       bottleAlertPreferences: {
-        bottleNames: watchedBottleOptions.map((option) => option.label),
-        bottleKeys: Array.from(selectedCanonicalKeys),
+        bottleNames: nextBottleNames,
+        bottleKeys: nextBottleKeys,
       },
     };
     void savePreferences(nextPrefs)
       .then(() => {
+        setRemovedBottlePreferenceKeys(new Set());
         setSavedLocations(true);
         setSavedNotifications(true);
         setTimeout(() => setSavedLocations(false), 1600);
@@ -1940,17 +2049,41 @@ function PaidMemberDashboard() {
       .finally(() => setSavingLocations(false));
   };
 
-  const alertDeliveryChannelCount = useMemo(() => [
-    notificationPrefs.onSite.enabled,
-    notificationPrefs.email.enabled,
-    notificationPrefs.sms.enabled,
-  ].filter(Boolean).length, [notificationPrefs]);
+  const enabledDeliveryLabels = useMemo(() => [
+    dashboardPrefs.notificationPreferences.onSite.enabled ? "On-site" : null,
+    dashboardPrefs.notificationPreferences.email.enabled ? "Email" : null,
+    dashboardPrefs.notificationPreferences.sms.enabled ? "SMS" : null,
+  ].filter((label): label is string => Boolean(label)), [dashboardPrefs.notificationPreferences]);
+
+  const dashboardMarketSummary = useMemo(() => {
+    const labels = savedAreaPrefs.states.map((state) => makeStateLabel(state));
+    if (!labels.length) return "No market saved";
+    if (labels.length === 1) return labels[0];
+    return `${labels[0]} + ${labels.length - 1} more`;
+  }, [savedAreaPrefs.states]);
+
+  const dashboardAlertModeSummary = savedAlertMode === "anything_notable" ? "All notable drops" : "Specific bottles";
+  const dashboardDeliverySummary = enabledDeliveryLabels.length ? enabledDeliveryLabels.join(", ") : "Delivery off";
+  const dashboardPreferencesPending = prefsLoading || savingLocations || !confirmedAlertPrefs;
+  const dashboardPreferencesUnavailable = Boolean(preferenceError);
+  const hasSavedMarket = savedAreaPrefs.states.length > 0;
+  const needsSavedBottleSelection = savedAlertMode === "specific_bottles" && savedTrackedBottleCount === 0;
 
   const dashboardSections = useMemo<Array<{ key: DashboardSection; label: string; eyebrow: string; summary: string; status: string | null }>>(() => ([
-    { key: "alerts", label: "Alerts", eyebrow: "Alert setup", summary: `${alertMode === "anything_notable" ? "Anything notable" : "Specific bottles"} · ${alertDeliveryChannelCount} delivery channel${alertDeliveryChannelCount === 1 ? "" : "s"}.`, status: localPrefs.states.length ? `${localPrefs.states.length} market${localPrefs.states.length === 1 ? "" : "s"}` : "Not set" },
-    { key: "collection", label: "My Collection", eyebrow: "Taste profile", summary: "Keep track of bottles you own or have tasted, ratings, tasting cues, and notes.", status: canUseCollection ? (prefsLoading ? "Loading" : `${collectionEntries.length} saved`) : "Demo" },
-    { key: "recommendations", label: "Recommended Bottles", eyebrow: "Bourbon DNA", summary: "See bottle ideas shaped by your collection and local signal context.", status: canUseRecommendations ? (!collectionEntries.length ? "Needs ratings" : preparedDashboardSections.has("recommendations") && collectionRecommendationInsights.length ? `${collectionRecommendationInsights.length} ideas` : "Ready") : "Demo" },
-  ]), [alertDeliveryChannelCount, alertMode, canUseCollection, canUseRecommendations, collectionEntries.length, collectionRecommendationInsights.length, localPrefs.states.length, prefsLoading, preparedDashboardSections]);
+    {
+      key: "alerts",
+      label: "Alerts",
+      eyebrow: "Alert setup",
+      summary: dashboardPreferencesUnavailable
+        ? "Saved setup unavailable."
+        : dashboardPreferencesPending
+          ? "Loading saved setup."
+          : `${dashboardAlertModeSummary} · ${dashboardDeliverySummary}.`,
+      status: dashboardPreferencesUnavailable || dashboardPreferencesPending ? null : dashboardMarketSummary,
+    },
+    { key: "collection", label: "My Collection", eyebrow: "Taste profile", summary: collectionEntries.length ? `${collectionEntries.length} saved bottle${collectionEntries.length === 1 ? " is" : "s are"} shaping your recommendations.` : "Save bottles you own or have tasted to improve your recommendations.", status: canUseCollection ? (prefsLoading ? "Loading" : `${collectionEntries.length} saved`) : "Demo" },
+    { key: "recommendations", label: "Bottle Recommendations", eyebrow: "Based on your taste", summary: "Bottle ideas shaped by your ratings and fresh local signals.", status: canUseRecommendations ? (!collectionEntries.length ? "Needs ratings" : preparedDashboardSections.has("recommendations") && collectionRecommendationInsights.length ? `${collectionRecommendationInsights.length} ideas` : "View ideas") : "Demo" },
+  ]), [canUseCollection, canUseRecommendations, collectionEntries.length, collectionRecommendationInsights.length, dashboardAlertModeSummary, dashboardDeliverySummary, dashboardMarketSummary, dashboardPreferencesPending, dashboardPreferencesUnavailable, prefsLoading, preparedDashboardSections]);
 
   const prepareDashboardSection = (section: DashboardSection) => {
     if (section === "alerts") return;
@@ -2031,8 +2164,8 @@ function PaidMemberDashboard() {
       >
         <section
           style={{
-            paddingTop: "104px",
-            paddingBottom: "18px",
+            paddingTop: "96px",
+            paddingBottom: "14px",
             position: "relative",
             overflow: "hidden",
           }}
@@ -2083,7 +2216,7 @@ function PaidMemberDashboard() {
               >
                 {isFreeTier
                   ? "See the latest signals near you, then upgrade when you want saved alerts and the full feed."
-                  : `${watchlistSignals.length} recent match${watchlistSignals.length === 1 ? "" : "es"} across ${localPrefs.states.length} saved market${localPrefs.states.length === 1 ? "" : "s"}.`}
+                  : "Your alerts, bottles, and local signals in one place."}
               </p>
             </ScrollReveal>
             {isFreeTier ? (
@@ -2100,7 +2233,7 @@ function PaidMemberDashboard() {
           .dashboard-shell {
             max-width: 820px;
             margin: 0 auto;
-            padding: 0 clamp(16px, 5vw, 36px) 82px;
+            padding: 0 clamp(16px, 5vw, 36px) calc(32px + env(safe-area-inset-bottom));
           }
           .dashboard-hero-upgrade {
             display: inline-flex;
@@ -2149,6 +2282,7 @@ function PaidMemberDashboard() {
           .radar-summary-copy { display: grid; justify-items: start; gap: 9px; min-width: 0; }
           .radar-summary-eyebrow { font-family: var(--font-jetbrains); font-size: 9px; font-weight: 850; letter-spacing: 0.13em; text-transform: uppercase; color: rgba(232,201,122,0.78); }
           .radar-summary-copy h2 { margin: 0; max-width: 19ch; font-family: var(--font-playfair); font-size: clamp(25px, 3vw, 34px); line-height: 1.02; letter-spacing: -0.02em; color: var(--color-cream); }
+          .radar-summary-copy p { margin: 0; max-width: 34ch; font-family: var(--font-dm-sans); font-size: 12px; line-height: 1.5; color: var(--color-text-secondary); }
           .radar-summary-cta { min-height: 38px; margin-top: 2px; border: 1px solid rgba(232,201,122,0.38); border-radius: 999px; background: rgba(196,148,58,0.12); color: var(--color-accent-amber); padding: 9px 14px; font-family: var(--font-dm-sans); font-size: 12px; font-weight: 900; cursor: pointer; transition: transform 180ms ease, background 180ms ease; }
           .radar-summary-cta:hover { transform: translateY(-1px); background: rgba(196,148,58,0.18); }
           .radar-summary-cta:focus-visible { transform: translateY(-1px); background: rgba(196,148,58,0.18); outline: 2px solid var(--color-accent-amber); outline-offset: 3px; }
@@ -2160,15 +2294,19 @@ function PaidMemberDashboard() {
           .recent-matches { margin: 0 0 14px; padding: 16px 2px 4px; border-top: 1px solid var(--boundary-subtle); }
           .recent-matches header { display: flex; justify-content: space-between; align-items: baseline; gap: 14px; margin-bottom: 8px; }
           .recent-matches h2 { margin: 0; font-family: var(--font-playfair); font-size: 24px; color: var(--color-cream); }
-          .recent-matches header a { color: var(--color-accent-amber); font-family: var(--font-dm-sans); font-size: 12px; font-weight: 800; text-decoration: none; }
+          .recent-matches header > span { color: var(--color-text-tertiary); font-family: var(--font-jetbrains); font-size: 9px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
           .recent-match-list { display: grid; }
           .recent-match-row { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 6px 14px; padding: 12px 2px; border-bottom: 1px solid var(--boundary-subtle); color: inherit; text-decoration: none; }
           .recent-match-row strong { font-family: var(--font-dm-sans); font-size: 13px; color: var(--color-cream); }
           .recent-match-row span { font-family: var(--font-dm-sans); font-size: 12px; color: var(--color-text-secondary); }
           .recent-match-row time { grid-row: 1 / span 2; grid-column: 2; align-self: center; font-family: var(--font-jetbrains); font-size: 9px; color: var(--color-text-tertiary); white-space: nowrap; }
-          .recent-matches-empty { margin: 0; padding: 12px 2px 16px; font-family: var(--font-dm-sans); font-size: 13px; color: var(--color-text-secondary); }
-          .dashboard-quick-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; margin: 18px 0 12px; }
+          .recent-matches-empty { display: grid; gap: 5px; padding: 12px 2px 16px; }
+          .recent-matches-empty strong { font-family: var(--font-dm-sans); font-size: 13px; color: var(--color-cream); }
+          .recent-matches-empty span { font-family: var(--font-dm-sans); font-size: 12px; line-height: 1.5; color: var(--color-text-secondary); }
+          .dashboard-quick-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; margin: 14px 0 10px; }
           .dashboard-quick-actions a { display: inline-flex; align-items: center; justify-content: space-between; min-height: 44px; border-bottom: 1px solid var(--boundary-accent); border-radius: var(--radius-control); background: var(--surface-soft); color: var(--color-cream); padding: 11px 14px; font-family: var(--font-dm-sans); font-size: 12px; font-weight: 850; text-decoration: none; }
+          .dashboard-quick-actions .dashboard-action-primary { background: linear-gradient(135deg, rgba(196,148,58,0.96), rgba(232,201,122,0.9)); color: #100c08; border-bottom-color: rgba(245,237,214,0.5); }
+          .dashboard-quick-actions a:focus-visible { outline: 2px solid var(--color-accent-amber); outline-offset: 3px; }
 
           .dashboard-section-button {
             width: 100%;
@@ -2349,20 +2487,43 @@ function PaidMemberDashboard() {
           <div className="dashboard-workspace">
 
           <RadarSummaryCard
-            marketCount={localPrefs.states.length}
-            trackedBottleCount={watchedBottleOptions.length}
-            recentMatchCount={watchlistSignals.length}
-            alertMode={alertMode}
-            deliveryChannelCount={alertDeliveryChannelCount}
+            marketSummary={dashboardMarketSummary}
+            hasSavedMarket={savedAreaPrefs.states.length > 0}
+            trackedBottleCount={savedTrackedBottleCount}
+            hasAlertCriteria={!needsSavedBottleSelection}
+            alertMode={savedAlertMode}
+            deliveryLabels={enabledDeliveryLabels}
+            loading={prefsLoading || savingLocations || !confirmedAlertPrefs}
+            error={Boolean(preferenceError)}
             onManageAlerts={() => openDashboardSection("alerts")}
           />
 
           <section className="recent-matches" aria-labelledby="recent-matches-title">
             <header>
-              <h2 id="recent-matches-title">Recent matches</h2>
-              <Link href="/#drops">View all matches →</Link>
+              <h2 id="recent-matches-title">Latest matches</h2>
+              {!preferenceError && confirmedAlertPrefs && !prefsLoading && !savingLocations && watchlistSignals.length > 0 ? <span>{watchlistSignals.length} match{watchlistSignals.length === 1 ? "" : "es"}</span> : null}
             </header>
-            {watchlistSignals.length > 0 ? (
+            {preferenceError ? (
+              <div className="recent-matches-empty" role="status">
+                <strong>Saved setup is temporarily unavailable.</strong>
+                <span>We cannot confirm your latest matches until your settings reload.</span>
+              </div>
+            ) : prefsLoading || savingLocations || !confirmedAlertPrefs ? (
+              <div className="recent-matches-empty" role="status">
+                <strong>Checking your saved setup…</strong>
+                <span>Loading your markets, watchlist, and delivery choices.</span>
+              </div>
+            ) : recentDropsLoading ? (
+              <div className="recent-matches-empty" role="status">
+                <strong>Checking your saved markets…</strong>
+                <span>Loading the latest qualifying signals.</span>
+              </div>
+            ) : recentDropsError ? (
+              <div className="recent-matches-empty" role="status">
+                <strong>Matches are temporarily unavailable.</strong>
+                <span>Your saved alert setup has not changed.</span>
+              </div>
+            ) : watchlistSignals.length > 0 ? (
               <div className="recent-match-list">
                 {watchlistSignals.slice(0, 3).map((signal) => (
                   <Link className="recent-match-row" href={signal.href} key={`${signal.bottle}-${signal.location}-${signal.timestamp}`}>
@@ -2373,13 +2534,16 @@ function PaidMemberDashboard() {
                 ))}
               </div>
             ) : (
-              <p className="recent-matches-empty">No recent matches yet. Add bottles to your watchlist or broaden your saved markets.</p>
+              <div className="recent-matches-empty">
+                <strong>{!hasSavedMarket ? "Save a market to start seeing local matches." : needsSavedBottleSelection ? "Choose a bottle to start seeing specific matches." : "No matching signals in your saved market right now."}</strong>
+                <span>{!hasSavedMarket ? "Choose a state or local area in Alerts." : needsSavedBottleSelection ? "Your saved alert mode only watches bottles you choose." : enabledDeliveryLabels.length ? "Your alerts are active. The next qualifying signal will appear here." : "Your market is saved. Turn on a delivery channel in Alerts."}</span>
+              </div>
             )}
           </section>
 
           <nav className="dashboard-quick-actions" aria-label="Dashboard quick actions">
+            <Link className="dashboard-action-primary" href="/#drops">Browse Drop Feed <span aria-hidden="true">→</span></Link>
             <Link href="/sightings?tab=submit">Post a sighting <span aria-hidden="true">→</span></Link>
-            <Link href="/#drops">Find bottles <span aria-hidden="true">→</span></Link>
           </nav>
 
           {renderSectionButton("alerts")}
@@ -2924,7 +3088,7 @@ function PaidMemberDashboard() {
               <div style={{ display: "flex", justifyContent: "flex-start" }}>
                 <button
                   onClick={handleSaveAlertSetup}
-                  disabled={savingLocations}
+                  disabled={savingLocations || prefsLoading || !confirmedAlertPrefs || Boolean(preferenceError)}
                   style={{
                     padding: "12px 18px",
                     borderRadius: "12px",
@@ -3331,7 +3495,7 @@ function PaidMemberDashboard() {
             <SignalPointsPanel preview compact />
           </section>
 
-          <CoverageRequestsCard emptyMode="compact" />
+          <CoverageRequestsCard emptyMode="compact" marketLabel={confirmedAlertPrefs ? dashboardMarketSummary : undefined} />
           </div>
         </div>
       </motion.main>

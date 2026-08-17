@@ -20,7 +20,7 @@ function targetLabel(request: MemberCoverageRequest) {
 
 export type CoverageRequestsEmptyMode = "compact" | "hidden";
 
-export function CoverageRequestsCard({ emptyMode = "compact" }: { emptyMode?: CoverageRequestsEmptyMode }) {
+export function CoverageRequestsCard({ emptyMode = "compact", marketLabel }: { emptyMode?: CoverageRequestsEmptyMode; marketLabel?: string }) {
   const { isLoaded, isSignedIn, user } = useAuth();
   const accountId = user?.id || null;
   const [requests, setRequests] = useState<MemberCoverageRequest[]>([]);
@@ -78,7 +78,10 @@ export function CoverageRequestsCard({ emptyMode = "compact" }: { emptyMode?: Co
     if (emptyMode === "hidden") return null;
     return (
       <Link className={styles.compactLink} href="/coverage">
-        <span><strong>Check coverage near you</strong><small>Search your state, city, or regular store.</small></span>
+        <span>
+          <strong>{marketLabel && marketLabel !== "No market saved" ? `Coverage in ${marketLabel}` : "Check coverage near you"}</strong>
+          <small>{marketLabel && marketLabel !== "No market saved" ? "See current sources and signal activity for your saved market." : "Search your state, city, or regular store."}</small>
+        </span>
         <span aria-hidden="true">→</span>
       </Link>
     );

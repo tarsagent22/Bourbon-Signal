@@ -187,6 +187,9 @@ export default function SignalPointsPanel(props: SignalPointsPanelProps) {
         : nextReward
           ? `${countLabel(Math.max(0, nextReward.points - data.balance), "point")} to ${nextReward.name}`
           : "Every active reward is within reach";
+    const compactActionLabel = data.redemptionEligible && availableReward
+      ? "View available reward"
+      : "View rewards";
     return (
       <section className="points-dashboard-summary" aria-label="Signal Points summary">
         <div>
@@ -194,7 +197,7 @@ export default function SignalPointsPanel(props: SignalPointsPanelProps) {
           <strong>{countLabel(data.balance, "point")}</strong>
           <small>{rewardStatus}</small>
         </div>
-        <Link href="/account/signal-points">View rewards <span aria-hidden="true">→</span></Link>
+        <Link href="/account/signal-points">{compactActionLabel} <span aria-hidden="true">→</span></Link>
         <style jsx>{`
           .points-dashboard-summary { display: flex; align-items: center; justify-content: space-between; gap: 18px; padding: 18px 2px; border-top: 1px solid rgba(196,148,58,.22); border-bottom: 1px solid rgba(245,237,214,.08); background: linear-gradient(90deg,rgba(196,148,58,.06),transparent 72%); }
           .points-dashboard-summary > div { display: grid; gap: 4px; min-width: 0; }

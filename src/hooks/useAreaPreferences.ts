@@ -90,7 +90,13 @@ export function useAreaPreferences() {
   const [prefs, setPrefs] = useState<UserAlertPreferences>(() => (
     qaPreview ? QA_PREVIEW_PREFERENCES : getCachedAreaPreferences(userId) ?? EMPTY_PREFS
   ));
+  const [confirmedPrefs, setConfirmedPrefs] = useState<UserAlertPreferences | null>(() => (
+    qaPreview
+      ? QA_PREVIEW_PREFERENCES
+      : getCachedAreaPreferences(userId) ?? (isLoaded && !isSignedIn ? EMPTY_PREFS : null)
+  ));
   const [loading, setLoading] = useState(false);
+  const [preferenceError, setPreferenceError] = useState<string | null>(null);
   const [collectionSyncState, setCollectionSyncState] = useState<"idle" | "pending" | "conflict">("idle");
   const [resolvedFor, setResolvedFor] = useState<PreferenceResolution>(() => {
     if (qaPreview) return "preview";
@@ -101,18 +107,23 @@ export function useAreaPreferences() {
 
   const fetchPrefs = useCallback(async () => {
     if (qaPreview) {
+      setPreferenceError(null);
       setPrefs(QA_PREVIEW_PREFERENCES);
+      setConfirmedPrefs(QA_PREVIEW_PREFERENCES);
       setResolvedFor("preview");
       return;
     }
     const requestedUserId = userId;
     if (!requestedUserId) {
+      setPreferenceError(null);
       setPrefs(EMPTY_PREFS);
+      setConfirmedPrefs(isLoaded && !isSignedIn ? EMPTY_PREFS : null);
       setCollectionSyncState("idle");
       setResolvedFor(isLoaded && !isSignedIn ? "signed-out" : null);
       return;
     }
     setLoading(true);
+    setPreferenceError(null);
     setResolvedFor(null);
     const pendingBeforeRequest = await readPendingCollection(requestedUserId);
     setCollectionSyncState(pendingBeforeRequest?.blockedByConflict ? "conflict" : pendingBeforeRequest ? "pending" : "idle");
@@ -121,7 +132,8 @@ export function useAreaPreferences() {
     }
     try {
       const res = await fetch("/api/user/preferences");
-      if (res.ok) {
+      if (!res.ok) throw new Error("Failed to load saved preferences");
+      {
         let data: UserAlertPreferences = await res.json();
         const pending = pendingBeforeRequest;
         if (pending) {
@@ -166,9 +178,13 @@ export function useAreaPreferences() {
         if (activeUserIdRef.current === requestedUserId) {
           setCachedAreaPreferences(requestedUserId, data);
           setPrefs(data);
+          setConfirmedPrefs(data);
         }
       }
     } catch {
+      if (activeUserIdRef.current === requestedUserId) {
+        setPreferenceError("Failed to load saved preferences");
+      }
       // Preserve the last confirmed or device-cached preferences during an outage.
     } finally {
       if (activeUserIdRef.current === requestedUserId) {
@@ -181,7 +197,9 @@ export function useAreaPreferences() {
   useEffect(() => {
     if (qaPreview) {
       clearCachedAreaPreferences();
+      setPreferenceError(null);
       setPrefs(QA_PREVIEW_PREFERENCES);
+      setConfirmedPrefs(QA_PREVIEW_PREFERENCES);
       setCollectionSyncState("idle");
       setLoading(false);
       setResolvedFor("preview");
@@ -190,12 +208,16 @@ export function useAreaPreferences() {
 
     invalidateAreaPreferencesCacheForUser(userId);
     if (!isLoaded) {
+      setPreferenceError(null);
+      setConfirmedPrefs(null);
       setLoading(false);
       setResolvedFor(null);
       return;
     }
     if (!userId) {
+      setPreferenceError(null);
       setPrefs(EMPTY_PREFS);
+      setConfirmedPrefs(EMPTY_PREFS);
       setCollectionSyncState("idle");
       setLoading(false);
       setResolvedFor("signed-out");
@@ -204,7 +226,9 @@ export function useAreaPreferences() {
 
     const cached = getCachedAreaPreferences(userId);
     if (cached) {
+      setPreferenceError(null);
       setPrefs(cached);
+      setConfirmedPrefs(cached);
       setLoading(false);
       setResolvedFor("signed-in");
       void readPendingCollection(userId).then((pending) => {
@@ -216,6 +240,7 @@ export function useAreaPreferences() {
     }
 
     setPrefs(EMPTY_PREFS);
+    setConfirmedPrefs(null);
     setResolvedFor(null);
     void fetchPrefs();
   }, [fetchPrefs, isLoaded, qaPreview, userId]);
@@ -243,8 +268,11 @@ export function useAreaPreferences() {
       : newPrefs;
     const merged = mergePreferencePatch(base, requestPatch);
     setPrefs((current) => mergePreferencePatch(current, requestPatch));
-    if (requestedUserId) setCachedAreaPreferences(requestedUserId, merged);
-    if (qaPreview) return { status: "synced" as const };
+    if (requestedUserId && requestPatch.collectionPreferences) setCachedAreaPreferences(requestedUserId, merged);
+    if (qaPreview) {
+      setConfirmedPrefs(merged);
+      return { status: "synced" as const };
+    }
 
     const collectionWrite = Boolean(requestedUserId && requestPatch.collectionPreferences);
     let pendingWrite = null as Awaited<ReturnType<typeof writePendingCollection>>;
@@ -300,11 +328,13 @@ export function useAreaPreferences() {
     if (saved && requestedUserId) {
       setCachedAreaPreferences(requestedUserId, saved);
       setPrefs(saved);
+      setConfirmedPrefs(saved);
     } else {
       setPrefs(merged);
+      setConfirmedPrefs(merged);
     }
     return { status: "synced" as const };
   }, [fetchPrefs, prefs, qaPreview, userId]);
 
-  return { prefs, loading, ready, savePreferences, collectionSyncState };
+  return { prefs, confirmedPrefs, loading, ready, preferenceError, savePreferences, collectionSyncState };
 }
