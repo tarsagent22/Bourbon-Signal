@@ -96,9 +96,14 @@ assert.equal(sources.dashboard.includes('`${watchlistSignals.length} recent matc
 assert.ok(sources.dashboard.includes("No matching signals in your saved market right now."), "The configured empty state should acknowledge a quiet market without telling members with a watchlist to add bottles");
 assert.ok(sources.dashboard.includes("dashboardMarketSummary"), "Dashboard should identify the member's saved market rather than only showing a count");
 assert.ok(sources.dashboard.includes("enabledDeliveryLabels"), "Dashboard should identify enabled delivery channels rather than only showing a count");
-assert.ok(sources.dashboard.includes('<SignalPointsPanel preview compact />'), "Dashboard should use the compact rewards summary");
+assert.ok(sources.dashboard.includes('<SignalPointsPanel') && sources.dashboard.includes('expanded={activeDashboardSection === "memberPoints"}') && sources.dashboard.includes('onToggle={() => toggleDashboardSection("memberPoints")}'), "Dashboard should place Signal Points in the shared single-open accordion flow");
 assert.ok(sources.signalPoints.includes("compact?: boolean"), "Signal Points should expose an explicit compact dashboard mode");
-assert.ok(sources.signalPoints.includes("points-dashboard-summary"), "Compact Signal Points should render a dedicated dashboard summary");
+assert.ok(sources.dashboard.includes('type DashboardSection = "alerts" | "collection" | "recommendations" | "memberPoints"'), "Signal Points should participate in the dashboard accordion state");
+assert.ok(sources.signalPoints.includes('id="dashboard-section-memberPoints"') && sources.signalPoints.includes('className="dashboard-section-button"') && sources.signalPoints.includes('aria-expanded={props.expanded}'), "Compact Signal Points should use the same accessible accordion row as the other dashboard sections");
+assert.ok(sources.signalPoints.includes('id="signal-points-accordion-panel"') && sources.signalPoints.includes('hidden={!props.expanded}'), "The controlled Signal Points panel should remain mounted so aria-controls always resolves");
+assert.ok(sources.signalPoints.includes('const [loading, setLoading]') && sources.signalPoints.includes('setError("")') && sources.signalPoints.includes('disabled={loading}'), "Signal Points retry should expose a real loading state and prevent concurrent retries");
+assert.ok(sources.signalPoints.includes('className="section-status"') && sources.signalPoints.includes('countLabel(data.balance, "point")'), "The collapsed Signal Points row should show the member's current point balance");
+assert.equal(sources.signalPoints.includes("points-dashboard-summary"), false, "The old split Signal Points summary should not remain on the dashboard");
 assert.ok(sources.dashboard.includes(".filter((drop) => isRealDropEvent(drop))"), "Latest matches should include only real member-facing drops");
 assert.ok(sources.dashboard.includes(".filter((drop) => dropMatchesAreaPreferences(drop, savedAreaPrefs))"), "Latest matches should honor persisted saved markets rather than unsaved form edits");
 assert.ok(sources.dashboard.includes('savedAlertMode === "anything_notable" ||'), "Anything-notable mode should show qualifying market signal without requiring a bottle match");
@@ -121,8 +126,9 @@ assert.ok(sources.signalPoints.includes("compactActionLabel"), "Compact rewards 
 assert.ok(sources.signalPoints.includes('"View available reward"'), "Compact rewards should not promise direct redemption when the CTA opens the rewards overview");
 assert.ok(sources.dashboard.includes('<Link className="dashboard-action-primary" href="/#drops">Browse Drop Feed'), "Browse Drop Feed should be the primary next action for a quiet new-member dashboard");
 assert.ok(sources.dashboard.indexOf('<nav className="dashboard-quick-actions"') < sources.dashboard.indexOf('renderSectionButton("alerts")'), "Quick actions should stay in the briefing above expandable drawers");
-assert.ok(sources.dashboard.indexOf('renderSectionButton("alerts")') < sources.dashboard.indexOf('<SignalPointsPanel preview compact />'), "Alerts should appear before dashboard rewards");
-assert.ok(sources.dashboard.indexOf('renderSectionButton("collection")') < sources.dashboard.indexOf('<SignalPointsPanel preview compact />'), "Collection should appear before dashboard rewards");
+const pointsAccordionIndex = sources.dashboard.indexOf('expanded={activeDashboardSection === "memberPoints"}');
+assert.ok(sources.dashboard.indexOf('renderSectionButton("alerts")') < pointsAccordionIndex, "Alerts should appear before dashboard rewards");
+assert.ok(sources.dashboard.indexOf('renderSectionButton("collection")') < pointsAccordionIndex, "Collection should appear before dashboard rewards");
 
 for (const selector of [".sighting-feed-shell", ".sighting-card", ".sighting-empty-panel"]) {
   assertNoFullBorder(sources.sightings, selector);
