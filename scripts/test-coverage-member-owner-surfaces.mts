@@ -126,10 +126,12 @@ for (const label of ["Requested", "On our radar", "Coverage improved", "Closed"]
 }
 assert.match(memberCard, /aria-live=/, "status loading and errors are announced");
 assert.match(memberCard, /emptyMode/, "request history supports compact and hidden empty states");
+assert.match(memberCard, /marketLabel/, "compact coverage guidance can name the member's saved market");
 assert.match(memberStyles, /@media\s*\(max-width:\s*640px\)/, "member request status is responsive");
 assert.match(memberStyles, /:focus-visible/, "member request links have visible focus");
 assert.match(dashboard, /import \{ CoverageRequestsCard \}/);
-assert.ok((dashboard.match(/<CoverageRequestsCard\s+emptyMode="compact"\s*\/>/g) || []).length >= 2, "paid and free dashboards use a compact empty coverage link");
+assert.ok((dashboard.match(/<CoverageRequestsCard\s+emptyMode="compact"/g) || []).length >= 2, "paid and free dashboards use a compact empty coverage link");
+assert.match(dashboard, /<CoverageRequestsCard emptyMode="compact" marketLabel=\{confirmedAlertPrefs \? dashboardMarketSummary : undefined\}/, "paid dashboard personalizes coverage guidance only after the saved market is confirmed");
 assert.ok(dashboard.lastIndexOf("<CoverageRequestsCard") > dashboard.indexOf('renderSectionButton("memberPoints")'), "paid request history sits below primary dashboard tools");
 assert.match(explorer, /<CoverageRequestsCard emptyMode="hidden"/, "the public page hides duplicate request history until a request exists");
 assert.match(memberCard, /useAuth/, "the public request-status card stays hidden for signed-out visitors");

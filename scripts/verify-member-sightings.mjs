@@ -87,9 +87,10 @@ if (/User submitted/.test(dropFeed)) fail('Drop feed should label member sightin
 if (/Member report/.test(dropFeed)) fail('Drop feed should not show the redundant Member report tag for member sightings.');
 
 const dashboard = read('src/app/dashboard/page.tsx');
-for (const phrase of ['Your radar', 'Markets', 'Tracked bottles', 'Recent matches', 'View all matches']) {
-  if (!dashboard.includes(phrase)) fail(`Dashboard should include the compact member briefing item: ${phrase}`);
+for (const phrase of ['Your radar', 'Your alerts are active', 'Watchlist', 'Latest matches', 'Browse Drop Feed']) {
+  if (!dashboard.includes(phrase)) fail(`Dashboard should include the newcomer briefing item: ${phrase}`);
 }
+if (dashboard.includes('View all matches')) fail('Dashboard should use one plain Drop Feed action rather than a zero-state View all matches link.');
 if (dashboard.includes('personal-signal-brief')) fail('Dashboard should not repeat radar totals in a second statistics strip.');
 
 const adminSightings = read('src/app/admin/sightings/AdminSightingsClient.tsx');
