@@ -1,12 +1,13 @@
 import { timingSafeEqual } from "node:crypto";
 import { getEntitlements } from "./entitlements";
 import { masterUnsubscribed } from "./member-weekly-delivery";
+import { membershipTrialEligibility } from "./membership-trial";
 
-export const FREE_MEMBER_DAY_TWO_CAMPAIGN_ID = "free-member-day-two-v1";
-export const FREE_MEMBER_DAY_TWO_SUBJECT = "Welcome to the Bourbon Signal community";
-export const FREE_MEMBER_DAY_TWO_PREHEADER = "Unlock the full feed and alerts—or tell us where you want better coverage.";
-// Copy approved after a one-recipient Resend inbox test. Runtime flags, suppression,
-// current eligibility, and idempotency still gate every live provider call.
+export const FREE_MEMBER_DAY_TWO_CAMPAIGN_ID = "free-member-day-two-trial-v2";
+export const FREE_MEMBER_DAY_TWO_SUBJECT = "Try Bourbon Signal free for 7 days";
+export const FREE_MEMBER_DAY_TWO_PREHEADER = "Try the full Drop Feed, personalized alerts, watchlists, and member tools free for 7 days.";
+// Copy approved after Gmail-draft review and local desktop/mobile rendering. Runtime flags,
+// suppression, current eligibility, and idempotency still gate every live provider call.
 export const FREE_MEMBER_DAY_TWO_LIVE_SEND_SUPPORTED = true;
 
 export interface FreeMemberDayTwoUser {
@@ -36,7 +37,7 @@ export type FreeMemberDayTwoCandidateStatus =
   | "skipped_not_free"
   | "skipped_operational_account"
   | "skipped_disabled_account"
-  | "skipped_missing_timezone"
+  | "skipped_trial_or_paid_history"
   | "skipped_unsubscribed"
   | "skipped_already_delivered"
   | "skipped_reserved"
@@ -74,39 +75,12 @@ export function resolveFreeMemberDayTwoDeliveryMode(input: { requestLive: boolea
   return { mode: "live" as const, reason: null };
 }
 
-function localParts(timestamp: string | number | Date, timeZone: string) {
-  const date = new Date(timestamp);
-  if (!Number.isFinite(date.getTime())) return null;
-  try {
-    const values = Object.fromEntries(new Intl.DateTimeFormat("en-US", {
-      timeZone,
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-      hour: "2-digit",
-      hourCycle: "h23",
-    }).formatToParts(date).filter((part) => part.type !== "literal").map((part) => [part.type, part.value]));
-    return { year: Number(values.year), month: Number(values.month), day: Number(values.day), hour: Number(values.hour) };
-  } catch {
-    return null;
-  }
-}
-
-export function isFreeMemberDayTwoWindow(input: { createdAt: string | number | Date; now: string | number | Date; timeZone: string }) {
-  const created = localParts(input.createdAt, input.timeZone);
-  const now = localParts(input.now, input.timeZone);
-  if (!created || !now || now.hour !== 19) return false;
-  const nextDate = new Date(Date.UTC(created.year, created.month - 1, created.day + 1));
-  return now.year === nextDate.getUTCFullYear()
-    && now.month === nextDate.getUTCMonth() + 1
-    && now.day === nextDate.getUTCDate();
-}
-
-export function freeMemberDayTwoTimeZone(user: FreeMemberDayTwoUser) {
-  const privateMetadata = record(user.privateMetadata);
-  const candidate = typeof privateMetadata.lifecycleTimeZone === "string" ? privateMetadata.lifecycleTimeZone.trim() : "";
-  if (!candidate || !localParts(new Date(), candidate)) return null;
-  return candidate;
+export function isFreeMemberDayTwoWindow(input: { createdAt: string | number | Date; now: string | number | Date }) {
+  const createdAt = new Date(input.createdAt).getTime();
+  const now = new Date(input.now).getTime();
+  if (!Number.isFinite(createdAt) || !Number.isFinite(now)) return false;
+  const ageMs = now - createdAt;
+  return ageMs >= 24 * 60 * 60_000 && ageMs < 48 * 60 * 60_000;
 }
 
 export function evaluateFreeMemberDayTwoCandidate(input: {
@@ -118,6 +92,9 @@ export function evaluateFreeMemberDayTwoCandidate(input: {
   const privateMetadata = record(input.user.privateMetadata);
   const unsafeMetadata = record(input.user.unsafeMetadata);
   if (getEntitlements(publicMetadata).tier !== "free") return "skipped_not_free";
+  if (!membershipTrialEligibility("standard_monthly", publicMetadata, privateMetadata).eligible) {
+    return "skipped_trial_or_paid_history";
+  }
   if (input.user.banned || input.user.locked) return "skipped_disabled_account";
   const accountType = String(unsafeMetadata.accountType || publicMetadata.accountType || "").toLowerCase();
   const role = String(publicMetadata.role || unsafeMetadata.role || "").toLowerCase();
@@ -127,19 +104,16 @@ export function evaluateFreeMemberDayTwoCandidate(input: {
   if (masterUnsubscribed(publicMetadata, privateMetadata)) return "skipped_unsubscribed";
   const delivery = record(privateMetadata.freeMemberDayTwoDelivery);
   if (delivery.status === "delivered" || typeof delivery.deliveredAt === "string") return "skipped_already_delivered";
+  if (!isFreeMemberDayTwoWindow({
+    createdAt: input.user.createdAt,
+    now: input.now,
+  })) return "skipped_not_due";
   if (delivery.status === "reserved" && typeof delivery.reservedAt === "string") {
     const reservedAt = Date.parse(delivery.reservedAt);
     const now = Date.parse(input.now);
     const ttl = (input.reservationTtlMinutes ?? 10) * 60_000;
     if (Number.isFinite(reservedAt) && Number.isFinite(now) && now - reservedAt < ttl) return "skipped_reserved";
   }
-  const timeZone = freeMemberDayTwoTimeZone(input.user);
-  if (!timeZone) return "skipped_missing_timezone";
-  if (!isFreeMemberDayTwoWindow({
-    createdAt: input.user.createdAt,
-    now: input.now,
-    timeZone,
-  })) return "skipped_not_due";
   return "eligible";
 }
 
