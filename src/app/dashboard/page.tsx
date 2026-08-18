@@ -48,6 +48,7 @@ import {
 } from "@/lib/demand-metro-areas";
 import { NC_ABC_BOARD_OPTIONS, ncAbcBoardPreferencesMatch } from "@/lib/nc-abc-boards";
 import { coverageAreaOption } from "@/lib/coverage-location-aliases";
+import { buildAlertSetupGuidance } from "@/lib/alert-setup-guidance";
 
 const EMPTY_PREFS: AreaPreferences = {
   states: [],
@@ -251,6 +252,7 @@ function countAlertAreas(areaPrefs: AreaPreferences) {
 }
 
 interface RadarSummaryCardProps {
+  selectedStates: string[];
   marketSummary: string;
   hasSavedMarket: boolean;
   trackedBottleCount: number;
@@ -262,11 +264,12 @@ interface RadarSummaryCardProps {
   onManageAlerts: () => void;
 }
 
-function RadarSummaryCard({ marketSummary, hasSavedMarket, trackedBottleCount, hasAlertCriteria, alertMode, deliveryLabels, loading, error, onManageAlerts }: RadarSummaryCardProps) {
+function RadarSummaryCard({ selectedStates, marketSummary, hasSavedMarket, trackedBottleCount, hasAlertCriteria, alertMode, deliveryLabels, loading, error, onManageAlerts }: RadarSummaryCardProps) {
   const bottleSummary = `${trackedBottleCount} bottle${trackedBottleCount === 1 ? "" : "s"}`;
   const alertModeSummary = alertMode === "anything_notable" ? "All notable drops" : "Specific bottles";
   const deliverySummary = deliveryLabels.length ? deliveryLabels.join(", ") : "Off";
   const alertsActive = hasSavedMarket && hasAlertCriteria && deliveryLabels.length > 0;
+  const guidance = buildAlertSetupGuidance({ states: selectedStates, alertMode, trackedBottleCount, enabledChannelCount: deliveryLabels.length });
   const setupSummary = !hasSavedMarket
     ? "Save a market to start seeing local matches."
     : !hasAlertCriteria
@@ -280,6 +283,7 @@ function RadarSummaryCard({ marketSummary, hasSavedMarket, trackedBottleCount, h
         <h2 id="radar-summary-title">{error ? "Saved setup is temporarily unavailable." : loading ? "Loading your saved setup" : alertsActive ? "Your alerts are active" : "Finish your alert setup"}</h2>
         <p>{error ? "Your saved settings were not changed. Try refreshing this page." : loading ? "Checking your saved markets, watchlist, and delivery channels." : setupSummary}</p>
         <button type="button" className="radar-summary-cta" onClick={onManageAlerts}>Manage alerts</button>
+        {!loading && !error ? <div className={`radar-summary-guidance ${guidance.tone}`}><strong>{guidance.title}</strong><span>{guidance.message}</span></div> : null}
       </div>
       <dl className="radar-summary-metrics" aria-label="Current radar setup">
         <div><dt>Market</dt><dd>{loading || error ? "—" : marketSummary}</dd></div>
@@ -2350,6 +2354,10 @@ function PaidMemberDashboard() {
           .radar-summary-cta { min-height: 38px; margin-top: 2px; border: 1px solid rgba(232,201,122,0.38); border-radius: 999px; background: rgba(196,148,58,0.12); color: var(--color-accent-amber); padding: 9px 14px; font-family: var(--font-dm-sans); font-size: 12px; font-weight: 900; cursor: pointer; transition: transform 180ms ease, background 180ms ease; }
           .radar-summary-cta:hover { transform: translateY(-1px); background: rgba(196,148,58,0.18); }
           .radar-summary-cta:focus-visible { transform: translateY(-1px); background: rgba(196,148,58,0.18); outline: 2px solid var(--color-accent-amber); outline-offset: 3px; }
+          .radar-summary-guidance { display: grid; gap: 4px; margin-top: 3px; border-left: 2px solid rgba(196,148,58,.58); padding: 9px 11px; background: rgba(196,148,58,.07); }
+          .radar-summary-guidance strong { color: var(--color-cream); font-size: 11px; }
+          .radar-summary-guidance span { color: var(--color-text-tertiary); font-size: 10px; line-height: 1.5; }
+          .radar-summary-guidance.ready { border-left-color: rgba(115,201,135,.58); background: rgba(56,130,74,.07); }
           .radar-summary-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0 18px; margin: 0; }
           .radar-summary-metrics div { display: grid; gap: 4px; border-bottom: 1px solid var(--boundary-subtle); padding: 10px 2px; }
           .radar-summary-metrics div:nth-last-child(-n + 2) { border-bottom: 0; }
@@ -2551,6 +2559,7 @@ function PaidMemberDashboard() {
           <div className="dashboard-workspace">
 
           <RadarSummaryCard
+            selectedStates={savedAreaPrefs.states}
             marketSummary={dashboardMarketSummary}
             hasSavedMarket={savedAreaPrefs.states.length > 0}
             trackedBottleCount={savedTrackedBottleCount}

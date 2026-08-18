@@ -26,6 +26,7 @@ import { readAutomationCostAggregateFromEnvironment, type AutomationCostTotals }
 import { readCurrentCoverageContract } from "@/lib/coverage-server";
 import { readCoverageDemandForOwner } from "@/lib/coverage-demand-server";
 import { getMemberCollectionRepository } from "@/lib/member-collection-repository";
+import { buildPaidMemberRetentionSnapshot } from "@/lib/member-retention";
 
 interface RevenueSnapshot {
   source: "stripe" | "unavailable";
@@ -257,6 +258,7 @@ async function loadCompanyControlRoomSnapshot() {
   });
   const engineMetrics = extractEngineControlRoomMetrics(stats);
   const campaignNow = new Date();
+  const retention = buildPaidMemberRetentionSnapshot(users, campaignNow.toISOString());
   const [revenue, audience, retailer, coverageDemand] = await Promise.all([
     readStripeRevenue(),
     readAudience(users),
@@ -282,6 +284,7 @@ async function loadCompanyControlRoomSnapshot() {
     audience,
     growth,
     lifecycle,
+    retention,
     demand,
     coverageDemand,
     experiments,

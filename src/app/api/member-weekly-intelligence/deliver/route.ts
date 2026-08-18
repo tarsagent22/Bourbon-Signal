@@ -14,8 +14,9 @@ async function run(request: NextRequest) {
     return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401, headers: PRIVATE_HEADERS });
   }
   const requestLive = request.nextUrl.searchParams.get("live") === "1";
+  const rescueOnly = request.nextUrl.searchParams.get("rescue") === "1";
   try {
-    const result = await runMemberWeeklyDelivery({ requestLive });
+    const result = await runMemberWeeklyDelivery({ requestLive, rescueOnly });
     return NextResponse.json(result, {
       status: result.mode === "blocked" ? 409 : result.ok ? 200 : 500,
       headers: PRIVATE_HEADERS,

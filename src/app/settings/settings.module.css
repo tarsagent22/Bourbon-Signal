@@ -100,6 +100,25 @@
 .membershipRow span, .securityRow span { color: var(--color-text-tertiary); font-size: 12px; }
 .securityRow strong { overflow-wrap: anywhere; color: var(--color-text-primary); font-size: 13px; }
 
+.billingHelp { display: grid; gap: 18px; margin-top: 22px; padding-top: 22px; border-top: 1px solid rgba(245, 237, 214, .1); }
+.billingEyebrow { margin: 0 0 7px; color: var(--color-accent-amber); font: 800 9px/1 var(--font-jetbrains); letter-spacing: .12em; text-transform: uppercase; }
+.billingHelp h3 { margin: 0; color: var(--color-cream); font: 700 22px/1.1 var(--font-playfair); }
+.billingHelp > div:first-child > p:last-child { margin: 8px 0 0; color: var(--color-text-tertiary); font-size: 12px; line-height: 1.55; }
+.billingHelp fieldset { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 0; padding: 0; border: 0; }
+.billingHelp legend { grid-column: 1/-1; margin-bottom: 7px; color: var(--color-text-secondary); font-size: 11px; font-weight: 800; }
+.billingHelp fieldset label { display: flex; align-items: center; gap: 9px; min-height: 42px; padding: 9px 11px; border: 1px solid rgba(245, 237, 214, .1); border-radius: 8px; background: rgba(255,255,255,.025); color: var(--color-text-secondary); font-size: 12px; cursor: pointer; }
+.billingHelp fieldset label:has(input:checked) { border-color: rgba(196,148,58,.65); background: rgba(196,148,58,.1); color: var(--color-cream); }
+.billingHelp input { accent-color: var(--color-accent-amber); }
+.retentionDetails { display: grid; gap: 7px; color: var(--color-text-secondary); font-size: 12px; font-weight: 700; }
+.retentionDetails small { color: var(--color-text-tertiary); font-weight: 500; }
+.retentionDetails textarea { width: 100%; resize: vertical; padding: 12px; border: 1px solid rgba(221,184,130,.22); border-radius: 8px; background: #100d0b; color: #fff9f1; font: inherit; }
+.retentionDetails textarea:focus { outline: 2px solid var(--color-accent-amber); outline-offset: 2px; }
+.billingChoices { display: flex; flex-wrap: wrap; gap: 9px; align-items: center; }
+.billingChoices .primaryButton { width: auto; padding: 0 16px; }
+.billingTextButton { min-height: 44px; padding: 0 8px; border: 0; background: transparent; color: var(--color-text-secondary); font: 800 12px/1 var(--font-dm-sans); text-decoration: underline; cursor: pointer; }
+.billingTextButton:disabled { opacity: .62; cursor: default; }
+.billingNote { margin: -4px 0 0; color: var(--color-text-tertiary); font-size: 10px; line-height: 1.55; }
+
 @media (max-width: 620px) {
   .shell { padding: 92px 16px 64px; }
   .sectionNav { margin-inline: -16px; padding-inline: 16px; }
@@ -108,4 +127,7 @@
   .cardHeading, .membershipRow, .securityRow { align-items: flex-start; display: grid; }
   .cardHeading > span { text-align: left; }
   .secondaryButton, .secondaryLink { width: 100%; }
+  .billingHelp fieldset { grid-template-columns: 1fr; }
+  .billingChoices { display: grid; }
+  .billingChoices .primaryButton { width: 100%; }
 }

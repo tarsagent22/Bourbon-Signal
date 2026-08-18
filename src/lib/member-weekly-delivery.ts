@@ -29,6 +29,7 @@ export interface MemberWeeklyDeliveryConfig {
   minSendIntervalMs: number;
   batchPauseMs: number;
   reservationTtlMinutes: number;
+  memberCooldownHours: number;
 }
 
 export interface MemberWeeklyDeliveryLedgerEntry {
@@ -39,6 +40,7 @@ export interface MemberWeeklyDeliveryLedgerEntry {
   reservedAt: string;
   deliveredAt: string | null;
   providerMessageId: string | null;
+  purpose?: "rescue";
 }
 
 function record(value: unknown): UnknownRecord {
@@ -71,6 +73,7 @@ export function buildMemberWeeklyDeliveryConfig(env: NodeJS.ProcessEnv = process
     minSendIntervalMs: boundedInteger(env.WEEKLY_INTELLIGENCE_MIN_SEND_INTERVAL_MS, 600, 0, 60_000),
     batchPauseMs: boundedInteger(env.WEEKLY_INTELLIGENCE_BATCH_PAUSE_MS, 1_000, 0, 60_000),
     reservationTtlMinutes: boundedInteger(env.WEEKLY_INTELLIGENCE_RESERVATION_TTL_MINUTES, 1_440, 5, 10_080),
+    memberCooldownHours: boundedInteger(env.WEEKLY_INTELLIGENCE_MEMBER_COOLDOWN_HOURS, 144, 24, 336),
   };
 }
 
@@ -102,6 +105,22 @@ export function isMemberWeeklyDeliveryWindowOpen(now: string, config: MemberWeek
     const weekday = WEEKDAY_INDEX[parts.find((part) => part.type === "weekday")?.value || ""];
     const hour = Number(parts.find((part) => part.type === "hour")?.value);
     return weekday === config.deliveryWeekday && Number.isInteger(hour) && hour >= config.startHour && hour < config.endHour;
+  } catch {
+    return false;
+  }
+}
+
+export function isPaidMemberRescueWindowOpen(now: string, config: MemberWeeklyDeliveryConfig) {
+  const timestamp = Date.parse(now);
+  if (!Number.isFinite(timestamp) || config.endHour <= config.startHour) return false;
+  try {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone: config.timeZone,
+      hour: "numeric",
+      hourCycle: "h23",
+    }).formatToParts(new Date(timestamp));
+    const hour = Number(parts.find((part) => part.type === "hour")?.value);
+    return Number.isInteger(hour) && hour >= config.startHour && hour < config.endHour;
   } catch {
     return false;
   }
@@ -147,6 +166,7 @@ export function normalizeMemberWeeklyDeliveryLedger(input: unknown): MemberWeekl
       reservedAt,
       deliveredAt: text(row.deliveredAt) || null,
       providerMessageId: text(row.providerMessageId) || null,
+      ...(row.purpose === "rescue" ? { purpose: "rescue" as const } : {}),
     } satisfies MemberWeeklyDeliveryLedgerEntry];
   });
   return normalized
@@ -169,6 +189,12 @@ export function memberWeekReservationActive(entry: MemberWeeklyDeliveryLedgerEnt
   return Number.isFinite(reservedAt) && Number.isFinite(nowTime) && nowTime - reservedAt < ttlMinutes * 60_000;
 }
 
+export function memberDeliveryCooldownActive(deliveredAt: unknown, now: string, cooldownHours: number) {
+  const delivered = Date.parse(text(deliveredAt));
+  const current = Date.parse(now);
+  return Number.isFinite(delivered) && Number.isFinite(current) && current - delivered < cooldownHours * 60 * 60_000;
+}
+
 function safeEqual(left: string, right: string) {
   const leftBuffer = Buffer.from(left);
   const rightBuffer = Buffer.from(right);
@@ -176,10 +202,12 @@ function safeEqual(left: string, right: string) {
 }
 
 export function assertMemberWeeklyDeliveryAuthorized(request: Request, env: NodeJS.ProcessEnv = process.env) {
-  const expected = env.WEEKLY_INTELLIGENCE_DELIVERY_SECRET || env.CRON_SECRET || "";
+  const expected = [env.WEEKLY_INTELLIGENCE_DELIVERY_SECRET, env.CRON_SECRET]
+    .map((value) => value?.trim() || "")
+    .filter(Boolean);
   const authorization = request.headers.get("authorization") || "";
   const supplied = authorization.startsWith("Bearer ")
     ? authorization.slice("Bearer ".length).trim()
     : request.headers.get("x-weekly-delivery-secret")?.trim() || "";
-  if (!expected || !supplied || !safeEqual(expected, supplied)) throw new Error("Unauthorized weekly delivery request");
+  if (!expected.length || !supplied || !expected.some((secret) => safeEqual(secret, supplied))) throw new Error("Unauthorized weekly delivery request");
 }

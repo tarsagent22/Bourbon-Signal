@@ -67,6 +67,7 @@ export interface CompanyMemberUser {
   privateMetadata?: Metadata;
   unsafeMetadata?: Metadata;
   createdAt?: string | number | Date;
+  lastSignInAt?: string | number | Date | null;
 }
 
 export interface GrowthFunnelWindow {

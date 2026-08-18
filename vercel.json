@@ -18,6 +18,10 @@
       "schedule": "0 14 * * 4"
     },
     {
+      "path": "/api/member-weekly-intelligence/deliver?rescue=1&live=1&cron=retention-v1",
+      "schedule": "0 14 * * *"
+    },
+    {
       "path": "/api/free-member-day-two/deliver?live=1&cron=v1",
       "schedule": "0 * * * *"
     },

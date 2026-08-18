@@ -2,7 +2,7 @@
 
 Weekly member intelligence has an owner-controlled delivery pipeline at `GET|POST /api/member-weekly-intelligence/deliver`. The route requires `Authorization: Bearer $WEEKLY_INTELLIGENCE_DELIVERY_SECRET` (or `CRON_SECRET`) and is dry-run unless the request includes `?live=1`.
 
-The checked-in Vercel cron runs Thursdays at `14:00 UTC` using `?cron=v1` without `live=1`, so it only audits the cohort. It cannot send email.
+The Thursday `14:00 UTC` cron using `?cron=v1` remains a dry-run audit. A separate daily `14:00 UTC` paid-member rescue cron requests live mode. That rescue route still fails closed unless every live-send flag, explicit member opt-in, provider suppression check, local daytime window, and route secret passes.
 
 ## Live authorization
 
@@ -20,7 +20,7 @@ The kill switch is active by default. Missing flags always fail closed. To autho
 
 ## Cohort and safety policy
 
-The runner enumerates Clerk users in bounded pages, sorts by stable member ID, and then applies active-paid-member eligibility, timestamped weekly opt-in, topic unsubscribe, Clerk master email suppression, Resend audience unsubscribe state, valid recipient, non-empty brief, and per-member-week dedupe checks. It composes all members from one pinned source bundle per run. A newsletter unsubscribe is POST-only and also records master suppression on the matching Clerk account.
+The weekly audit enumerates oldest-first; rescue enumerates newest-first so first-week members cannot be starved by the bounded scan. The runner then sorts by stable member ID and applies active-paid-member eligibility, timestamped weekly opt-in, topic unsubscribe, Clerk master email suppression, Resend audience unsubscribe state, valid recipient, non-empty brief, and dedupe checks. It composes all members from one pinned source bundle per run. A newsletter unsubscribe is POST-only and also records master suppression on the matching Clerk account.
 
 Defaults are 25 emails per run, 1,000 enumerated members, batches of 25, 600 ms between sends, and 1 second between batches. Configure them with:
 
@@ -29,12 +29,13 @@ Defaults are 25 emails per run, 1,000 enumerated members, batches of 25, 600 ms 
 - `WEEKLY_INTELLIGENCE_BATCH_SIZE`
 - `WEEKLY_INTELLIGENCE_MIN_SEND_INTERVAL_MS`
 - `WEEKLY_INTELLIGENCE_BATCH_PAUSE_MS`
+- `WEEKLY_INTELLIGENCE_MEMBER_COOLDOWN_HOURS` (default `144`)
 - `WEEKLY_INTELLIGENCE_DELIVERY_TIME_ZONE`
 - `WEEKLY_INTELLIGENCE_DELIVERY_WEEKDAY` (`0` Sunday through `6` Saturday)
 - `WEEKLY_INTELLIGENCE_DELIVERY_START_HOUR`
 - `WEEKLY_INTELLIGENCE_DELIVERY_END_HOUR`
 
-Before a live provider call, the runner writes a `reserved` entry to `privateMetadata.weeklyIntelligenceDelivery.deliveries`. It uses the member-week hash as the Resend idempotency key and changes that entry to `delivered` only after provider success. Dry-runs never write the ledger.
+Before a live provider call, the runner writes a `reserved` entry to `privateMetadata.weeklyIntelligenceDelivery.deliveries`. Weekly delivery uses the member-week hash as the Resend idempotency key. Rescue uses a one-time purpose-specific key, and all member lifecycle sends share a rolling six-day cooldown so a week boundary cannot produce back-to-back mail. The ledger changes an entry to `delivered` only after provider success. Dry-runs never write the ledger.
 
 ## Unsubscribe behavior
 

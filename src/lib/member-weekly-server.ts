@@ -27,6 +27,8 @@ type UnknownRecord = Record<string, unknown>;
 
 export interface MemberWeeklyServerUser {
   id: string;
+  createdAt?: string | number | Date;
+  lastSignInAt?: string | number | Date | null;
   firstName?: string | null;
   primaryEmailAddressId?: string | null;
   emailAddresses?: Array<{ id: string; emailAddress: string }>;
