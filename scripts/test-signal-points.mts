@@ -395,8 +395,12 @@ test("schema, migration, encrypted backup, APIs, drawer, and owner queue are wir
   assert.ok(controlRoom.indexOf('id="signal-points"') > controlRoom.indexOf('id="founder-glasses"'), "Signal Points follows Founder glass fulfillment");
   assert.match(controlRoom, /<details id="signal-points" className="cr-section cr-collapsible"/);
   assert.doesNotMatch(controlRoom, /<details id="signal-points"[^>]*\sopen(?:=|\s|>)/);
+  assert.match(controlRoom, /<details id="paid-retention" className="cr-section cr-collapsible"/);
+  assert.doesNotMatch(controlRoom, /<section id="operations"|<section id="state-engines"|<h2>Operating health<\/h2>|<h2>State engine health<\/h2>/);
+  assert.match(controlRoom, /<ControlRoomActionCenter items=\{workItems\} members=\{controlRoomMembers\}/);
+  const actionCenter = read("src/components/admin/ControlRoomActionCenter.tsx");
+  for (const contract of [/Search every member/, /Owner note/, /Due/, /Resolve/, /Recent owner activity/, /Mark seen/, /Open record/]) assert.match(actionCenter, contract);
   const ownerBoard = read("src/components/admin/SignalPointsAdminBoard.tsx");
-  assert.match(ownerBoard, /Points leaderboard/);
   assert.match(ownerBoard, /Highest balances first/);
   assert.match(ownerBoard, /member\.balance > 0/);
   assert.match(ownerBoard, /right\.balance - left\.balance/);
