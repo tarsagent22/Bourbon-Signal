@@ -15,9 +15,9 @@ import {
 import { CORE_PAID_MEMBERSHIP_PLANS, PAID_MEMBERSHIP_PLANS } from "../src/lib/membership-plan-catalog.ts";
 
 async function main() {
-assert.equal(FREE_MEMBER_DAY_TWO_CAMPAIGN_ID, "free-member-day-two-v1");
-assert.equal(FREE_MEMBER_DAY_TWO_SUBJECT, "Welcome to the Bourbon Signal community");
-assert.equal(FREE_MEMBER_DAY_TWO_LIVE_SEND_SUPPORTED, true, "approved V1 must support guarded live delivery");
+assert.equal(FREE_MEMBER_DAY_TWO_CAMPAIGN_ID, "free-member-day-two-trial-v2");
+assert.equal(FREE_MEMBER_DAY_TWO_SUBJECT, "Try Bourbon Signal free for 7 days");
+assert.equal(FREE_MEMBER_DAY_TWO_LIVE_SEND_SUPPORTED, true, "approved trial email must support guarded live delivery");
 assert.deepEqual(CORE_PAID_MEMBERSHIP_PLANS.map((plan) => plan.tier), ["standard", "barrel"]);
 assert.deepEqual(CORE_PAID_MEMBERSHIP_PLANS.map((plan) => [plan.monthlyPrice, plan.annualPrice]), [["$3", "$30"], ["$6", "$60"]]);
 assert.equal(PAID_MEMBERSHIP_PLANS.length, 3, "pricing page keeps the separate conditional Founder offer");
@@ -47,45 +47,46 @@ assert.throws(() => assertFreeMemberDayTwoDeliveryAuthorized(new Request("https:
 
 assert.equal(isFreeMemberDayTwoWindow({
   createdAt: "2026-08-03T14:30:00.000Z",
-  now: "2026-08-04T23:10:00.000Z",
-  timeZone: "America/New_York",
-}), true, "the exact 7 PM local hour on the calendar day after signup is eligible");
+  now: "2026-08-04T14:29:59.999Z",
+}), false, "delivery must not begin before the account is 24 hours old");
 assert.equal(isFreeMemberDayTwoWindow({
   createdAt: "2026-08-03T14:30:00.000Z",
-  now: "2026-08-05T00:10:00.000Z",
-  timeZone: "America/New_York",
-}), false, "delivery must fail closed after the 7 PM local hour");
+  now: "2026-08-04T14:30:00.000Z",
+}), true, "the account becomes eligible exactly 24 hours after signup");
 assert.equal(isFreeMemberDayTwoWindow({
   createdAt: "2026-08-03T14:30:00.000Z",
-  now: "2026-08-04T22:59:00.000Z",
-  timeZone: "America/New_York",
-}), false, "delivery must not begin before 7 PM local");
+  now: "2026-08-05T14:29:59.999Z",
+}), true, "the bounded retry window remains open until the account is 48 hours old");
 assert.equal(isFreeMemberDayTwoWindow({
   createdAt: "2026-08-03T14:30:00.000Z",
-  now: "2026-08-05T04:01:00.000Z",
-  timeZone: "America/New_York",
-}), false, "delivery must not spill into another local day");
+  now: "2026-08-05T14:30:00.000Z",
+}), false, "delivery must fail closed once the bounded retry window ends");
 assert.equal(isFreeMemberDayTwoWindow({
-  createdAt: "2026-08-03T14:30:00.000Z",
-  now: "2026-08-04T23:10:00.000Z",
-  timeZone: "Not/AZone",
-}), false, "invalid timezones fail closed");
+  createdAt: "not-a-date",
+  now: "2026-08-04T14:30:00.000Z",
+}), false, "invalid timestamps fail closed");
 
 const freeUser = {
   id: "user_free",
   createdAt: "2026-08-03T14:30:00.000Z",
   firstName: "Casey",
   publicMetadata: { tier: "free" },
-  privateMetadata: { lifecycleTimeZone: "America/New_York" },
+  privateMetadata: {},
   unsafeMetadata: {},
 };
 assert.equal(evaluateFreeMemberDayTwoCandidate({ user: freeUser, now: "2026-08-04T23:10:00.000Z" }), "eligible");
-assert.equal(evaluateFreeMemberDayTwoCandidate({ user: { ...freeUser, privateMetadata: {} }, now: "2026-08-04T23:10:00.000Z" }), "skipped_missing_timezone");
 assert.equal(evaluateFreeMemberDayTwoCandidate({ user: { ...freeUser, banned: true }, now: "2026-08-04T23:10:00.000Z" }), "skipped_disabled_account");
 assert.equal(evaluateFreeMemberDayTwoCandidate({ user: { ...freeUser, publicMetadata: { tier: "standard", membershipStatus: "active" } }, now: "2026-08-04T23:10:00.000Z" }), "skipped_not_free");
+assert.equal(evaluateFreeMemberDayTwoCandidate({ user: { ...freeUser, publicMetadata: { tier: "barrel", membershipStatus: "trialing" } }, now: "2026-08-04T23:10:00.000Z" }), "skipped_not_free");
+assert.equal(evaluateFreeMemberDayTwoCandidate({ user: { ...freeUser, privateMetadata: { membershipTrialStartedAt: "2026-08-04T12:00:00.000Z" } }, now: "2026-08-04T23:10:00.000Z" }), "skipped_trial_or_paid_history");
+assert.equal(evaluateFreeMemberDayTwoCandidate({ user: { ...freeUser, privateMetadata: { stripeSubscriptionId: "sub_prior" } }, now: "2026-08-04T23:10:00.000Z" }), "skipped_trial_or_paid_history");
 assert.equal(evaluateFreeMemberDayTwoCandidate({ user: { ...freeUser, unsafeMetadata: { accountType: "retailer" } }, now: "2026-08-04T23:10:00.000Z" }), "skipped_operational_account");
-assert.equal(evaluateFreeMemberDayTwoCandidate({ user: { ...freeUser, privateMetadata: { lifecycleTimeZone: "America/New_York", emailSuppression: { suppressed: true } } }, now: "2026-08-04T23:10:00.000Z" }), "skipped_unsubscribed");
-assert.equal(evaluateFreeMemberDayTwoCandidate({ user: { ...freeUser, privateMetadata: { lifecycleTimeZone: "America/New_York", freeMemberDayTwoDelivery: { status: "delivered", deliveredAt: "2026-08-05T00:00:00.000Z" } } }, now: "2026-08-04T23:10:00.000Z" }), "skipped_already_delivered");
+assert.equal(evaluateFreeMemberDayTwoCandidate({ user: { ...freeUser, privateMetadata: { emailSuppression: { suppressed: true } } }, now: "2026-08-04T23:10:00.000Z" }), "skipped_unsubscribed");
+assert.equal(evaluateFreeMemberDayTwoCandidate({ user: { ...freeUser, privateMetadata: { freeMemberDayTwoDelivery: { campaignId: "free-member-day-two-v1", status: "delivered", deliveredAt: "2026-08-05T00:00:00.000Z" } } }, now: "2026-08-04T23:10:00.000Z" }), "skipped_already_delivered", "the replacement campaign must not resend to recipients of the retired welcome email");
+assert.equal(evaluateFreeMemberDayTwoCandidate({
+  user: { ...freeUser, privateMetadata: { freeMemberDayTwoDelivery: { status: "reserved", reservedAt: "2026-08-05T14:29:59.900Z" } } },
+  now: "2026-08-05T14:30:00.000Z",
+}), "skipped_not_due", "an active reservation must not bypass the 48-hour delivery boundary");
 
 const html = await render(FreeMemberDayTwoEmail({
   firstName: "Casey",
@@ -95,32 +96,33 @@ const html = await render(FreeMemberDayTwoEmail({
 const visibleHtml = html.replaceAll("<!-- -->", "");
 for (const required of [
   "BOURBON SIGNAL",
-  "Make Bourbon Signal work harder for you",
+  "YOUR FIRST WEEK",
+  "Try the full experience for 7 days",
   "Chandler here",
-  "Pappy",
-  "BTAC",
-  "Drop Feed",
+  "Your free account",
+  "Drop Feed preview",
   "Member Sightings",
   "Bottle Checker",
   "Coverage Map",
-  "Upgraded memberships can add",
-  "Personalized alerts",
-  "Full drop feed and filters",
-  "Saved watchlists",
-  "Your collection",
-  "DNA and bottle recommendations",
-  "Compare membership options",
+  "Signal Points",
+  "STANDARD PROOF",
+  "BARREL PROOF",
+  "7 days free, then $3/month",
+  "7 days free, then $6/month",
+  "available once per account on monthly plans",
+  "Annual and lifetime plans do not include a trial",
+  "Start a 7-day free trial",
   "Request coverage",
   "join the Bourbon Signal Facebook group",
   "follow Bourbon Signal on Instagram",
   "{{unsubscribeUrl}}",
   "Bourbon Signal is intended for users 21+",
 ]) assert.ok(visibleHtml.includes(required), `email must include: ${required}`);
-for (const forbidden of ["Standard Proof", "Barrel Proof", "$3", "$6", "MEMBERSHIP OPTIONS", "July", "sale", "Founder", "founder", "spots remaining", "guaranteed in stock", "drive now", "Hey Casey,", "Points and badges", "Point redemption", "Signal Points", "redeem points"]) {
-  assert.ok(!html.includes(forbidden), `evergreen email must omit: ${forbidden}`);
+for (const forbidden of ["Welcome to the Bourbon Signal community", "Make Bourbon Signal work harder for you", "Compare membership options", "card required", "July", "sale", "Founder", "founder", "spots remaining", "guaranteed in stock", "drive now", "Hey Casey,"]) {
+  assert.ok(!html.includes(forbidden), `approved trial email must omit: ${forbidden}`);
 }
-assert.match(html, /pricing\?source=day2_free_followup/);
-assert.match(html, /coverage\?source=day2_free_followup/);
+assert.match(html, /pricing\?source=day2_trial/);
+assert.match(html, /coverage\?source=day2_trial/);
 assert.match(html, /https:\/\/www\.facebook\.com\/share\/g\/1BTYhwxSwC\//);
 assert.match(html, /https:\/\/www\.instagram\.com\/bourbonsignal/);
 assert.match(html, /background-color:#15100c/i, "email must use a native dark shell");
@@ -144,12 +146,16 @@ assert.doesNotMatch(pricingSource, /monthlyPrice:\s*"\$2\.99"/, "pricing and ema
 assert.match(routeSource, /assertFreeMemberDayTwoDeliveryAuthorized/);
 assert.match(middlewareSource, /\/api\/free-member-day-two\/deliver/);
 const vercelConfig = JSON.parse(vercelSource) as { crons?: Array<{ path?: string; schedule?: string }> };
-assert.ok(vercelConfig.crons?.some((cron) => cron.path === "/api/free-member-day-two/deliver?live=1&cron=v1" && cron.schedule === "0 * * * *"), "approved Day-2 delivery must run hourly so each IANA timezone receives the email during its 7 PM hour");
+assert.ok(vercelConfig.crons?.some((cron) => cron.path === "/api/free-member-day-two/deliver?live=1&cron=v1" && cron.schedule === "0 * * * *"), "approved 24-hour lifecycle delivery must run hourly");
 assert.match(layoutSource, /LifecycleTimeZoneCapture/);
 for (const invariant of ["useUser", "Intl.DateTimeFormat", "/api/user/time-zone", "sessionStorage", "response.ok"]) {
   assert.match(timeZoneCaptureSource, new RegExp(invariant.replaceAll("/", "\\/")), `global timezone capture must include ${invariant}`);
 }
 assert.match(serverSource, /FREE_MEMBER_DAY_TWO_LIVE_SEND_SUPPORTED/);
+assert.match(serverSource, /Chandler from Bourbon Signal <chandler@bourbonsignal\.com>/);
+assert.match(serverSource, /getMembershipTrialRepository/);
+assert.match(serverSource, /findByUserId/);
+assert.match(serverSource, /const preSendNow = input\.now \|\| new Date\(\)\.toISOString\(\)/, "live delivery must use a fresh timestamp for the immediate pre-send eligibility check");
 assert.match(serverSource, /recipientMasterSubscription/);
 assert.match(serverSource, /idempotencyKey/);
 assert.match(serverSource, /List-Unsubscribe/);

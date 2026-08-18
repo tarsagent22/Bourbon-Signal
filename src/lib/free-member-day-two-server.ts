@@ -20,6 +20,7 @@ import {
   type FreeMemberDayTwoUser,
 } from "@/lib/free-member-day-two";
 import { resolveServerEffectiveMembershipTier } from "@/lib/server-entitlements";
+import { getMembershipTrialRepository } from "@/lib/membership-trial-repository";
 
 const FREE_MEMBER_DAY_TWO_FROM = "Chandler from Bourbon Signal <chandler@bourbonsignal.com>";
 type UnknownRecord = Record<string, unknown>;
@@ -78,6 +79,14 @@ function deliveryMetadata(user: any) {
   return record(record(user.privateMetadata).freeMemberDayTwoDelivery);
 }
 
+async function durableTrialHistory(userId: string): Promise<"clear" | "used" | "unavailable"> {
+  try {
+    return await getMembershipTrialRepository().findByUserId(userId) ? "used" : "clear";
+  } catch {
+    return "unavailable";
+  }
+}
+
 async function toDurableCandidateUser(user: any) {
   const candidate = toCandidateUser(user);
   const tier = await resolveServerEffectiveMembershipTier(candidate.publicMetadata);
@@ -97,6 +106,7 @@ async function reserveDelivery(client: Awaited<ReturnType<typeof clerkClient>>, 
   const currentCandidate = await toDurableCandidateUser(current);
   const status = evaluateFreeMemberDayTwoCandidate({ user: currentCandidate, now });
   if (status !== "eligible") return false;
+  if (await durableTrialHistory(user.id) !== "clear") return false;
   await client.users.updateUserMetadata(user.id, {
     privateMetadata: {
       freeMemberDayTwoDelivery: {
@@ -177,6 +187,12 @@ export async function runFreeMemberDayTwoDelivery(input: { requestLive?: boolean
         summary.skipped[status] = (summary.skipped[status] || 0) + 1;
         continue;
       }
+      const trialHistory = await durableTrialHistory(user.id);
+      if (trialHistory !== "clear") {
+        const key = trialHistory === "used" ? "skipped_trial_or_paid_history" : "skipped_trial_history_unavailable";
+        summary.skipped[key] = (summary.skipped[key] || 0) + 1;
+        continue;
+      }
       const recipient = primaryEmail(user);
       if (!recipient) {
         summary.skipped.skipped_invalid_recipient = (summary.skipped.skipped_invalid_recipient || 0) + 1;
@@ -202,8 +218,14 @@ export async function runFreeMemberDayTwoDelivery(input: { requestLive?: boolean
         continue;
       }
       const refreshed = await client.users.getUser(user.id);
-      if (evaluateFreeMemberDayTwoCandidate({ user: await toDurableCandidateUser(refreshed), now }) !== "skipped_reserved") {
+      const preSendNow = input.now || new Date().toISOString();
+      if (evaluateFreeMemberDayTwoCandidate({ user: await toDurableCandidateUser(refreshed), now: preSendNow }) !== "skipped_reserved") {
         summary.skipped.skipped_pre_send_recheck = (summary.skipped.skipped_pre_send_recheck || 0) + 1;
+        continue;
+      }
+      if (await durableTrialHistory(user.id) !== "clear") {
+        await markDeliveryFailed(client, user.id, preSendNow).catch(() => undefined);
+        summary.skipped.skipped_pre_send_trial_or_paid_history = (summary.skipped.skipped_pre_send_trial_or_paid_history || 0) + 1;
         continue;
       }
       const refreshedRecipient = primaryEmail(refreshed);
@@ -232,10 +254,10 @@ export async function runFreeMemberDayTwoDelivery(input: { requestLive?: boolean
           },
         }, { idempotencyKey });
         if (result.error) throw new Error(result.error.message);
-        await markDelivered(client, user.id, now, result.data?.id || idempotencyKey);
+        await markDelivered(client, user.id, preSendNow, result.data?.id || idempotencyKey);
         summary.sent += 1;
       } catch (error) {
-        await markDeliveryFailed(client, user.id, now).catch(() => undefined);
+        await markDeliveryFailed(client, user.id, preSendNow).catch(() => undefined);
         throw error;
       }
     } catch {
