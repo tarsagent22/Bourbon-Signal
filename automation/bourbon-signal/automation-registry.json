@@ -58,6 +58,36 @@
       "delivery": "github_only"
     },
     {
+      "id": "github-app-storage-migration",
+      "platform": "github_workflow",
+      "workflowPath": ".github/workflows/app-storage-migration.yml",
+      "active": true,
+      "ownerLayer": "deterministic",
+      "executionClass": "script_only",
+      "frequency": "manual confirmed production schema migration only",
+      "agent": {
+        "provider": null,
+        "model": null,
+        "reasoning": null
+      },
+      "externalApi": {
+        "classes": [
+          "vercel_environment",
+          "postgresql"
+        ],
+        "maxRequestsPerRun": 20
+      },
+      "customerMutation": "internal_state",
+      "promotionDeployment": "operator_only",
+      "silencePolicy": "report_output",
+      "killSwitch": "workflow_dispatch_confirmation",
+      "artifacts": [
+        "application_storage_schema",
+        "signal_reward_catalog_v2"
+      ],
+      "delivery": "github_only"
+    },
+    {
       "id": "github-refresh-feed",
       "platform": "github_workflow",
       "workflowPath": ".github/workflows/refresh-feed.yml",

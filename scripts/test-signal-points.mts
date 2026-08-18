@@ -10,7 +10,7 @@ import {
 } from "../src/lib/signal-points.ts";
 import { clerkRewardSourceTargets, normalizedClerkRewardPoints, SignalPointsRepository } from "../src/lib/signal-points-repository.ts";
 import { REFERRAL_POINTS_BY_TIER } from "../src/lib/referrals.ts";
-import { BADGE_POINTS_AWARD, SIGHTING_POINTS_BY_RARITY, WEEKLY_STREAK_POINTS_AWARD } from "../src/lib/sighting-rewards.ts";
+import { BADGE_DESCRIPTIONS, BADGE_POINTS_AWARD, SIGHTING_POINTS_BY_RARITY, WEEKLY_STREAK_POINTS_AWARD, summarizeMemberRewards } from "../src/lib/sighting-rewards.ts";
 
 const read = (path: string) => readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
 
@@ -21,10 +21,50 @@ test("launch catalog has the confirmed versioned prices and fulfillment kinds", 
     glencairn: 450,
     bourbon_shipping_gift_card_100: 2600,
   });
-  assert.ok(SIGNAL_REWARD_CATALOG.every((item) => item.catalogVersion === 1));
+  assert.ok(SIGNAL_REWARD_CATALOG.filter((item) => item.key !== "bourbon_shipping_gift_card_100").every((item) => item.catalogVersion === 1));
+  assert.equal(SIGNAL_REWARD_CATALOG.find((item) => item.key === "bourbon_shipping_gift_card_100")?.catalogVersion, 2);
+  assert.equal(SIGNAL_REWARD_CATALOG.find((item) => item.key === "bourbon_shipping_gift_card_100")?.name, "$100 Caskers gift card");
   assert.equal(SIGNAL_REWARD_CATALOG.find((item) => item.key === "bourbon_shipping_gift_card_100")?.fulfillmentType, "digital");
   assert.equal(SIGNAL_REWARD_CATALOG.some((item) => item.key === "bourbon_shipping_gift_card_25"), false);
   assert.ok(SIGNAL_REWARD_CATALOG.filter((item) => item.fulfillmentType === "physical").every((item) => item.usShippingIncluded));
+});
+
+test("every visible badge explains exactly how its progress is earned", () => {
+  assert.deepEqual(Object.keys(BADGE_DESCRIPTIONS).sort(), [
+    "clean_signal", "first_sighting", "helpful_neighbor", "local_scout", "photo_finish",
+    "sharp_eye", "spotter", "streak", "unicorn_hunter", "weekend_warrior",
+  ]);
+  for (const description of Object.values(BADGE_DESCRIPTIONS)) {
+    assert.ok(description.length >= 35, `badge description must be specific: ${description}`);
+    assert.doesNotMatch(description, /keep contributing|useful community signal|rare bottles people chase|become reliable|heats up/i);
+  }
+  assert.match(BADGE_DESCRIPTIONS.unicorn_hunter, /unicorn-tier sightings[\s\S]*1, 5, and 15/i);
+  assert.match(BADGE_DESCRIPTIONS.sharp_eye, /3 upvotes[\s\S]*net score of at least 3[\s\S]*5, 25, and 75/i);
+});
+
+test("Local Scout counts only sightings with a recorded state and city", () => {
+  const sighting = (id: string, storeState?: string, storeCity?: string) => ({
+    id, createdAt: "2026-08-17T18:00:00.000Z", rarityTier: "allocated", storeState, storeCity,
+    rewardState: {}, upCount: 0, downCount: 0,
+  });
+  const summary = summarizeMemberRewards([
+    ...Array.from({ length: 5 }, (_, index) => sighting(`missing-${index}`)),
+    ...Array.from({ length: 5 }, (_, index) => sighting(`richmond-${index}`, "VA", "Richmond")),
+  ] as never[]);
+  assert.equal(summary.badgeProgress.find((badge) => badge.id === "local_scout_bronze")?.current, 5);
+});
+
+test("the Caskers reward exposes shipping restrictions and the official source", () => {
+  const panel = read("src/components/SignalPointsPanel.tsx");
+  for (const state of ["Alabama", "Alaska", "Arkansas", "Delaware", "Hawaii", "Mississippi", "Oregon", "South Dakota", "Utah", "Virginia", "West Virginia", "Massachusetts", "Minnesota", "Texas"]) {
+    assert.match(panel, new RegExp(state));
+  }
+  assert.match(panel, /Texas \(only certain ZIP codes\)/);
+  assert.match(panel, /https:\/\/www\.caskers\.com\/caskers-egift-card\//);
+  assert.match(panel, /e-gift cards can currently be used only in:[\s\S]*AZ, CA, CO[\s\S]*TX, VA, and WA/);
+  assert.match(panel, /https:\/\/faq\.caskers\.com\/en\/articles\/8799200-where-can-you-ship-products/);
+  assert.match(panel, /role="dialog"[\s\S]*Caskers shipping restrictions/);
+  assert.doesNotMatch(panel, /Complete earlier progress to unlock\./, "locked badges still explain how to earn them");
 });
 
 test("only paid memberships may redeem while Free can accumulate", () => {

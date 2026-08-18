@@ -48,6 +48,7 @@ import {
 } from "@/lib/demand-metro-areas";
 import { NC_ABC_BOARD_OPTIONS, ncAbcBoardPreferencesMatch } from "@/lib/nc-abc-boards";
 import { coverageAreaOption } from "@/lib/coverage-location-aliases";
+import { BADGE_DESCRIPTIONS } from "@/lib/sighting-rewards";
 import { buildAlertSetupGuidance } from "@/lib/alert-setup-guidance";
 
 const EMPTY_PREFS: AreaPreferences = {
@@ -185,19 +186,6 @@ const BADGE_ICON_BY_ID: Record<string, string> = {
   unicorn_hunter_diamond: "/badge-icons/unicorn-hunter-diamond-fit.png",
 };
 
-const BADGE_DESCRIPTIONS: Record<string, string> = {
-  first_sighting: "Post your first eligible field report.",
-  helpful_neighbor: "Earn 3 upvotes on a sighting that helped another member.",
-  photo_finish: "Post a sighting with an optional photo attached.",
-  spotter: "Build a track record of useful sightings.",
-  unicorn_hunter: "Find the rare bottles people chase.",
-  sharp_eye: "Post sightings other members find helpful.",
-  local_scout: "Become reliable in your home area.",
-  weekend_warrior: "Contribute when weekend hunting heats up.",
-  clean_signal: "Sustain a high-quality reporting record.",
-  streak: "Keep useful sightings coming week after week.",
-};
-
 function badgeBaseKey(id: string) {
   const baseKey = id.replace(/_(bronze|silver|gold|platinum|diamond)$/u, "");
   return baseKey === "verified_scout" ? "helpful_neighbor" : baseKey;
@@ -213,7 +201,7 @@ function badgeLabelFor(id: string, label: string) {
 }
 
 function badgeDescriptionFor(id: string) {
-  return BADGE_DESCRIPTIONS[badgeBaseKey(id)] || "Keep contributing useful community signal.";
+  return BADGE_DESCRIPTIONS[badgeBaseKey(id) as keyof typeof BADGE_DESCRIPTIONS] || "Badge requirements are not available.";
 }
 
 type DashboardSection = "alerts" | "collection" | "recommendations" | "memberPoints";

@@ -14,7 +14,7 @@ export interface SignalRewardCatalogItem {
   key: SignalRewardKey;
   name: string;
   points: number;
-  catalogVersion: 1;
+  catalogVersion: 1 | 2;
   fulfillmentType: "physical" | "digital";
   usShippingIncluded: boolean;
   glassQuantity?: 1 | 2;
@@ -27,7 +27,7 @@ export const SIGNAL_REWARD_CATALOG: SignalRewardCatalogItem[] = [
   { key: "sticker_pack", name: "Bourbon Signal sticker pack", points: 75, catalogVersion: 1, fulfillmentType: "physical", usShippingIncluded: true },
   { key: "rocks_glass", name: "Bourbon Signal rocks glass", points: 400, catalogVersion: 1, fulfillmentType: "physical", usShippingIncluded: true, glassQuantity: 1, engravingPointsPerGlass: 125 },
   { key: "glencairn", name: "Bourbon Signal Glencairn", points: 450, catalogVersion: 1, fulfillmentType: "physical", usShippingIncluded: true, glassQuantity: 1, engravingPointsPerGlass: 125 },
-  { key: "bourbon_shipping_gift_card_100", name: "$100 bourbon-shipping partner gift card", points: 2600, catalogVersion: 1, fulfillmentType: "digital", usShippingIncluded: false },
+  { key: "bourbon_shipping_gift_card_100", name: "$100 Caskers gift card", points: 2600, catalogVersion: 2, fulfillmentType: "digital", usShippingIncluded: false },
 ];
 
 // Hidden, inactive rewards stay recognizable so a lost-response retry can return
