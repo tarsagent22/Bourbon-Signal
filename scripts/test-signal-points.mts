@@ -119,6 +119,32 @@ test("catalog sync memo retries after a transient serverless write failure", asy
   assert.equal(attempts, 2, "a failed write is retried once while a successful write remains memoized");
 });
 
+test("owner Signal Points reads include every account and every selected reward", async () => {
+  const calls: string[] = [];
+  const repository = new SignalPointsRepository({ query: async (sql) => {
+    calls.push(sql);
+    if (/FROM signal_point_migrations/i.test(sql)) return [{ verified: 1 }];
+    if (/FROM signal_point_accounts accounts/i.test(sql)) return [{
+      user_id: "member-1", balance: 375, debt: 25, redemption_count: 2, last_redemption_at: "2026-08-18T12:00:00.000Z",
+    }];
+    if (/FROM signal_reward_redemptions redemptions/i.test(sql)) return [{
+      id: "redemption-1", user_id: "member-1", account_email: "member@example.com", item_key: "sticker_pack",
+      item_snapshot: { name: "Bourbon Signal sticker pack" }, details: {}, points_spent: 75, status: "delivered",
+      created_at: "2026-08-18T12:00:00.000Z", updated_at: "2026-08-18T13:00:00.000Z", fulfillment_type: "physical",
+      shipping_profile_user_id: "member-1", shipping_address: null, carrier: "USPS", tracking_number: "TRACKED",
+    }];
+    return [];
+  } });
+  assert.deepEqual(await repository.listOwnerMemberBalances(), [{
+    userId: "member-1", balance: 375, debt: 25, redemptionCount: 2, lastRedemptionAt: "2026-08-18T12:00:00.000Z",
+  }]);
+  assert.equal((await repository.listOwnerRedemptions())[0]?.status, "delivered", "completed selections remain visible to the owner");
+  const memberSql = calls.find((sql) => /FROM signal_point_accounts accounts/i.test(sql)) || "";
+  assert.match(memberSql, /LEFT JOIN[\s\S]*signal_reward_redemptions/i);
+  const redemptionSql = calls.find((sql) => /FROM signal_reward_redemptions redemptions/i.test(sql)) || "";
+  assert.doesNotMatch(redemptionSql, /NOT IN\s*\(\s*'delivered'[\s\S]*'canceled'/i, "owner history cannot hide completed or canceled selections");
+});
+
 test("only paid memberships may redeem while Free can accumulate", () => {
   assert.equal(canRedeemSignalPoints("free"), false);
   for (const tier of ["standard", "barrel", "bottled-in-bond"] as const) assert.equal(canRedeemSignalPoints(tier), true);
@@ -364,8 +390,25 @@ test("schema, migration, encrypted backup, APIs, drawer, and owner queue are wir
   const controlRoom = read("src/app/admin/control-room/page.tsx");
   assert.match(controlRoom, /isCompanyControlRoomOwnerEmail/);
   assert.match(controlRoom, /notFound\(\)/);
-  assert.match(controlRoom, /<SignalPointsPanel preview/);
-  assert.match(controlRoom, /Private product preview/);
+  assert.match(controlRoom, /<SignalPointsAdminBoard/);
+  assert.doesNotMatch(controlRoom, /<SignalPointsPanel preview/);
+  const ownerBoard = read("src/components/admin/SignalPointsAdminBoard.tsx");
+  assert.match(ownerBoard, /All member balances/);
+  assert.match(ownerBoard, /Reward redemptions/);
+  assert.match(ownerBoard, /Search members/);
+  assert.match(ownerBoard, /No rewards have been selected yet/);
+  assert.match(ownerBoard, /\/api\/admin\/signal-points\?view=board/);
+  assert.match(ownerBoard, /item\.carrier[\s\S]*item\.trackingNumber/);
+  assert.match(ownerBoard, /item\.status === "reserved"[\s\S]*submitted[\s\S]*canceled/);
+  assert.match(adminRoute, /searchParams\.get\("view"\)/);
+  assert.match(adminRoute, /listOwnerQueue/);
+  assert.match(adminRoute, /listOwnerMemberBalances/);
+  assert.match(adminRoute, /listOwnerRedemptions/);
+  assert.match(adminRoute, /getUserList/);
+  assert.match(adminRoute, /linkedUserIds/);
+  assert.match(adminRoute, /Former member/);
+  assert.match(adminRoute, /members/);
+  assert.match(adminRoute, /redemptions/);
   assert.doesNotMatch(read("src/components/Navigation.tsx"), /label:\s*["']Rewards["']/);
 
   const referrals = read("src/app/api/referrals/me/route.ts");
