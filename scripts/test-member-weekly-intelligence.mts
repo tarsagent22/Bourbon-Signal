@@ -15,6 +15,8 @@ import {
   assertMemberWeeklyDeliveryAuthorized,
   buildMemberWeeklyDeliveryConfig,
   isMemberWeeklyDeliveryWindowOpen,
+  isPaidMemberRescueWindowOpen,
+  memberDeliveryCooldownActive,
   memberWeekReservationActive,
   normalizeMemberWeeklyDeliveryLedger,
   resolveMemberWeeklyDeliveryMode,
@@ -190,9 +192,16 @@ const empty = buildMemberWeeklyIntelligence({
   alerts: input.alerts,
   coverage: input.coverage,
 });
-assert.equal(empty.isEmpty, true);
-assert.deepEqual(empty.sections, []);
-assert.equal(empty.primaryAction, null, "empty weeks may remain silent");
+assert.equal(empty.isEmpty, false, "paid members without a market receive a setup rescue instead of silence");
+assert.deepEqual(empty.sections.map((section) => section.kind), ["setup"]);
+assert.match(empty.sections[0]?.items[0]?.summary || "", /no market is saved yet/i);
+assert.deepEqual(empty.primaryAction, { kind: "setup", label: "Improve your alert setup", href: "/dashboard?section=alerts" });
+
+const configuredQuietWeek = buildMemberWeeklyIntelligence({ ...input, alerts: [], coverage: [] });
+assert.equal(configuredQuietWeek.isEmpty, false, "a configured paid radar still receives a useful status brief when no exact match is ready");
+assert.deepEqual(configuredQuietWeek.sections.map((section) => section.kind), ["setup"]);
+assert.match(configuredQuietWeek.sections[0]?.items[0]?.summary || "", /exact-bottle watchlists can be quiet/i);
+assert.deepEqual(configuredQuietWeek.primaryAction, { kind: "setup", label: "Improve your alert setup", href: "/dashboard?section=alerts" });
 
 const broad = buildMemberWeeklyIntelligence({
   ...input,
@@ -327,7 +336,7 @@ assert.equal(buildWeeklyIntelligenceDryRun({
   suppression: { suppressed: false, deliveredMemberWeeks: [weekDedupeKey] },
   killSwitchActive: false,
 }).status, "skipped_member_week_duplicate");
-assert.equal(buildWeeklyIntelligenceDryRun({ ...dryRunBase, report: empty, killSwitchActive: false }).status, "skipped_empty_week");
+assert.equal(buildWeeklyIntelligenceDryRun({ ...dryRunBase, report: { ...empty, isEmpty: true, sections: [], itemCount: 0, primaryAction: null }, killSwitchActive: false }).status, "skipped_empty_week", "the sender still fails closed if a composer returns no member value");
 assert.equal(buildWeeklyIntelligenceDryRun({ ...dryRunBase, killSwitchActive: true }).status, "blocked_kill_switch");
 assert.equal(buildWeeklyIntelligenceDryRun({
   ...dryRunBase,
@@ -369,6 +378,10 @@ assert.equal(deliveryConfig.maxEmailsPerRun, 20);
 assert.equal(deliveryConfig.batchSize, 5);
 assert.equal(isMemberWeeklyDeliveryWindowOpen("2026-07-16T14:00:00.000Z", deliveryConfig), true, "Thursday 10am Eastern is inside the configured weekly window");
 assert.equal(isMemberWeeklyDeliveryWindowOpen("2026-07-17T14:00:00.000Z", deliveryConfig), false, "live delivery is cadence-gated to the configured weekday");
+assert.equal(isPaidMemberRescueWindowOpen("2026-08-17T14:00:00.000Z", deliveryConfig), true, "paid rescue may run daily inside the member-local delivery window");
+assert.equal(memberDeliveryCooldownActive("2026-08-16T14:00:00.000Z", "2026-08-17T14:00:00.000Z", 144), true, "recent lifecycle delivery blocks another member email");
+assert.equal(memberDeliveryCooldownActive("2026-08-10T14:00:00.000Z", "2026-08-17T14:00:00.000Z", 144), false, "the rolling cooldown opens again after six days");
+assert.equal(isPaidMemberRescueWindowOpen("2026-07-17T02:00:00.000Z", deliveryConfig), false, "paid rescue remains blocked overnight");
 assert.equal(resolveMemberWeeklyDeliveryMode({ requestLive: false, config: deliveryConfig }).mode, "dry_run", "dry-run is the default even when flags are enabled");
 assert.equal(resolveMemberWeeklyDeliveryMode({ requestLive: true, config: deliveryConfig }).mode, "live");
 assert.equal(resolveMemberWeeklyDeliveryMode({ requestLive: true, config: buildMemberWeeklyDeliveryConfig({ ...deliveryEnv, WEEKLY_INTELLIGENCE_EMAIL_KILL_SWITCH: "1" }) }).reason, "kill_switch");
@@ -383,6 +396,10 @@ assert.doesNotThrow(() => assertMemberWeeklyDeliveryAuthorized(
   new Request("https://example.com/api/member-weekly-intelligence/deliver", { headers: { authorization: "Bearer owner-secret" } }),
   { WEEKLY_INTELLIGENCE_DELIVERY_SECRET: "owner-secret" } as NodeJS.ProcessEnv,
 ));
+assert.doesNotThrow(() => assertMemberWeeklyDeliveryAuthorized(
+  new Request("https://example.com/api/member-weekly-intelligence/deliver", { headers: { authorization: "Bearer vercel-cron-secret" } }),
+  { WEEKLY_INTELLIGENCE_DELIVERY_SECRET: "manual-secret", CRON_SECRET: "vercel-cron-secret" } as NodeJS.ProcessEnv,
+), "Vercel cron remains authorized when a separate manual delivery secret also exists");
 assert.throws(() => assertMemberWeeklyDeliveryAuthorized(
   new Request("https://example.com/api/member-weekly-intelligence/deliver", { headers: { authorization: "Bearer wrong" } }),
   { WEEKLY_INTELLIGENCE_DELIVERY_SECRET: "owner-secret" } as NodeJS.ProcessEnv,

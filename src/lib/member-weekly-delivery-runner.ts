@@ -5,6 +5,7 @@ import { isServerPaidTier } from "./server-entitlements.ts";
 import { normalizeNotificationPreferences } from "./notification-preferences.ts";
 import {
   explicitOptIn,
+  isPaidMemberRescueWindowOpen,
   isMemberWeeklyDeliveryWindowOpen,
   masterUnsubscribed,
   resolveMemberWeeklyDeliveryMode,
@@ -71,9 +72,12 @@ export async function executeMemberWeeklyDeliveryRun(input: {
   requestLive: boolean;
   config: MemberWeeklyDeliveryConfig;
   dependencies: MemberWeeklyDeliveryRunnerDependencies;
+  deliveryPurpose?: "weekly" | "rescue";
 }): Promise<MemberWeeklyDeliveryRunResult> {
   const modeDecision = resolveMemberWeeklyDeliveryMode({ requestLive: input.requestLive, config: input.config });
-  const windowOpen = isMemberWeeklyDeliveryWindowOpen(input.now, input.config);
+  const windowOpen = input.deliveryPurpose === "rescue"
+    ? isPaidMemberRescueWindowOpen(input.now, input.config)
+    : isMemberWeeklyDeliveryWindowOpen(input.now, input.config);
   const users = [...input.users]
     .sort((left, right) => left.id.localeCompare(right.id))
     .slice(0, input.config.maxMembersPerRun);
@@ -132,14 +136,16 @@ export async function executeMemberWeeklyDeliveryRun(input: {
         }
 
         const reservedAt = new Date(input.now).toISOString();
+        const rescue = input.deliveryPurpose === "rescue";
         const reservation: MemberWeeklyDeliveryLedgerEntry = {
           memberId: user.id,
-          weekKey: prepared.report.weekKey,
-          dedupeKey: prepared.dryRun.dedupeKey,
+          weekKey: rescue ? "rescue-v1" : prepared.report.weekKey,
+          dedupeKey: rescue ? `member-rescue-v1-${user.id}` : prepared.dryRun.dedupeKey,
           status: "reserved",
           reservedAt,
           deliveredAt: null,
           providerMessageId: null,
+          ...(rescue ? { purpose: "rescue" as const } : {}),
         };
         const reserved = await input.dependencies.reserveMemberWeek(currentBeforeReservation, reservation);
         if (!reserved) {
@@ -156,7 +162,7 @@ export async function executeMemberWeeklyDeliveryRun(input: {
           summary.results.push({ memberId: user.id, status: preSendBlockStatus });
           continue;
         }
-        const sent = await input.dependencies.send(prepared, { idempotencyKey: `member-weekly-${reservation.dedupeKey}` });
+        const sent = await input.dependencies.send(prepared, { idempotencyKey: rescue ? reservation.dedupeKey : `member-weekly-${reservation.dedupeKey}` });
         await input.dependencies.markMemberWeekDelivered(user, {
           ...reservation,
           status: "delivered",

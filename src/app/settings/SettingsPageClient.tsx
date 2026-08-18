@@ -23,6 +23,10 @@ function SettingsPageContent({ ownerPreview }: { ownerPreview?: ReactNode }) {
   const [profileMessage, setProfileMessage] = useState("");
   const [profileError, setProfileError] = useState("");
   const [billingPending, setBillingPending] = useState(false);
+  const [billingHelpOpen, setBillingHelpOpen] = useState(false);
+  const [retentionReason, setRetentionReason] = useState("");
+  const [retentionDetails, setRetentionDetails] = useState("");
+  const [retentionMessage, setRetentionMessage] = useState("");
   const [hasReferralGlass, setHasReferralGlass] = useState(false);
 
   useEffect(() => {
@@ -62,10 +66,29 @@ function SettingsPageContent({ ownerPreview }: { ownerPreview?: ReactNode }) {
     }
   }
 
-  async function openBillingPortal() {
+  async function saveRetentionFeedback(nextStep: "manage_alerts" | "lower_cost_plan" | "billing_portal" | "stay") {
+    if (!retentionReason) return;
+    const response = await fetch("/api/member-retention/feedback", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ reason: retentionReason, details: retentionDetails, nextStep }),
+    });
+    if (!response.ok) {
+      const payload = await response.json().catch(() => ({})) as { error?: string };
+      throw new Error(payload.error || "Your feedback could not be saved.");
+    }
+  }
+
+  async function openBillingPortal(nextStep: "lower_cost_plan" | "billing_portal") {
     if (billingPending) return;
     setBillingPending(true);
+    setRetentionMessage("");
     try {
+      try {
+        await saveRetentionFeedback(nextStep);
+      } catch {
+        // Optional feedback must never block access to plan changes or cancellation.
+      }
       const response = await fetch("/api/billing-portal", { method: "POST" });
       const payload = await response.json().catch(() => ({})) as { url?: string; error?: string };
       if (!response.ok || !payload.url) throw new Error(payload.error || "Billing portal is unavailable.");
@@ -121,11 +144,47 @@ function SettingsPageContent({ ownerPreview }: { ownerPreview?: ReactNode }) {
               {founderNumber ? <span>Founder {founderNumber}</span> : <span>{isPaid ? "Paid membership" : "Free membership"}</span>}
             </div>
             {isPaid ? (
-              <button className={styles.secondaryButton} type="button" onClick={() => void openBillingPortal()} disabled={billingPending}>
-                {billingPending ? "Opening billing…" : "Manage billing"}
+              <button className={styles.secondaryButton} type="button" onClick={() => setBillingHelpOpen((open) => !open)} aria-expanded={billingHelpOpen} aria-controls="billing-help">
+                Manage billing
               </button>
             ) : <a className={styles.secondaryLink} href="/pricing">View membership options</a>}
           </div>
+          {isPaid && billingHelpOpen ? (
+            <div id="billing-help" className={styles.billingHelp}>
+              <div>
+                <p className={styles.billingEyebrow}>Before you change your plan</p>
+                <h3>What would make your membership more useful?</h3>
+                <p>This is optional. Your answer helps us improve paid-member value and does not change your membership by itself.</p>
+              </div>
+              <fieldset>
+                <legend>Choose the closest reason</legend>
+                {[
+                  ["too_few_alerts", "Too few relevant alerts"],
+                  ["local_coverage", "Not enough coverage near me"],
+                  ["price", "The price is not working for me"],
+                  ["temporary_break", "I only need a temporary break"],
+                  ["technical_issue", "Something did not work as expected"],
+                  ["other", "Something else"],
+                ].map(([value, label]) => (
+                  <label key={value}><input type="radio" name="retention-reason" value={value} checked={retentionReason === value} onChange={(event) => setRetentionReason(event.target.value)} /><span>{label}</span></label>
+                ))}
+              </fieldset>
+              <label className={styles.retentionDetails}><span>Anything else? <small>Optional</small></span><textarea value={retentionDetails} onChange={(event) => setRetentionDetails(event.target.value)} maxLength={500} rows={3} /></label>
+              {retentionMessage ? <p className={styles.error} role="alert">{retentionMessage}</p> : null}
+              <div className={styles.billingChoices}>
+                <a className={styles.primaryButton} href="/dashboard?section=alerts" onClick={(event) => {
+                  if (!retentionReason) return;
+                  event.preventDefault();
+                  void saveRetentionFeedback("manage_alerts")
+                    .then(() => { window.location.href = "/dashboard?section=alerts"; })
+                    .catch((error) => setRetentionMessage(error instanceof Error ? error.message : "Your feedback could not be saved."));
+                }}>Improve my alerts</a>
+                <button className={styles.secondaryButton} type="button" onClick={() => void openBillingPortal("lower_cost_plan")} disabled={billingPending}>{billingPending ? "Opening billing…" : "Review a lower-cost plan"}</button>
+                <button className={styles.billingTextButton} type="button" onClick={() => void openBillingPortal("billing_portal")} disabled={billingPending}>Continue to billing</button>
+              </div>
+              <p className={styles.billingNote}>Stripe handles plan changes and cancellation securely. Cancellation stops the next renewal; paid access continues through the current billing period.</p>
+            </div>
+          ) : null}
         </section>
 
         <section id="referrals" className={styles.card} aria-labelledby="referrals-heading">

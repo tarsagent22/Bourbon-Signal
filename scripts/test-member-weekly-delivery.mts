@@ -127,6 +127,32 @@ assert.deepEqual(delivered, ["member_a", "member_c"], "the ledger is marked only
 assert.ok(sleepDurations.includes(config.minSendIntervalMs), "live sends are rate limited");
 assert.ok(sleepDurations.includes(config.batchPauseMs), "live sends pause between batches");
 
+let rescueReservation: { weekKey: string; dedupeKey: string; purpose?: "rescue" } | null = null;
+let rescueIdempotencyKey = "";
+const rescue = await executeMemberWeeklyDeliveryRun({
+  users: [user("member_rescue")],
+  now,
+  requestLive: true,
+  config: { ...config, maxEmailsPerRun: 10 },
+  deliveryPurpose: "rescue",
+  dependencies: {
+    prepare: async (member) => prepared(member.id),
+    refreshUser: async (memberId) => user(memberId),
+    recipientMasterUnsubscribed: async () => false,
+    reserveMemberWeek: async (_member, entry) => { rescueReservation = entry; return true; },
+    send: async (_delivery, input) => { rescueIdempotencyKey = input.idempotencyKey; return { messageId: "fake-rescue" }; },
+    markMemberWeekDelivered: async () => undefined,
+    sleep: async () => undefined,
+  },
+});
+assert.equal(rescue.sent, 1);
+assert.deepEqual(rescueReservation && { weekKey: rescueReservation.weekKey, dedupeKey: rescueReservation.dedupeKey, purpose: rescueReservation.purpose }, {
+  weekKey: "rescue-v1",
+  dedupeKey: "member-rescue-v1-member_rescue",
+  purpose: "rescue",
+}, "rescue uses a purpose-specific one-time ledger key");
+assert.equal(rescueIdempotencyKey, "member-rescue-v1-member_rescue");
+
 let currentRaceUser = user("member_race");
 let raceSendCalls = 0;
 const unsubscribeDuringRun = await executeMemberWeeklyDeliveryRun({

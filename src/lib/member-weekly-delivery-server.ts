@@ -5,6 +5,7 @@ import { ALERT_REPLY_TO, getResendClient } from "@/lib/email-alerts";
 import { NEWSLETTER_AUDIENCE_ID } from "@/lib/newsletter";
 import {
   buildMemberWeeklyDeliveryConfig,
+  memberDeliveryCooldownActive,
   memberWeekReservationActive,
   normalizeMemberWeeklyDeliveryLedger,
   upsertMemberWeeklyDeliveryLedger,
@@ -16,6 +17,7 @@ import {
   loadMemberWeeklySourceBundle,
   type MemberWeeklyServerUser,
 } from "@/lib/member-weekly-server";
+import { classifyPaidMemberRetention, paidMemberRescueEligible } from "@/lib/member-retention";
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -52,14 +54,16 @@ async function enumerateSubscribersDeterministically(
   client: Awaited<ReturnType<typeof clerkClient>>,
   batchSize: number,
   maxMembersPerRun: number,
+  newestFirst = false,
 ) {
   const users: MemberWeeklyServerUser[] = [];
+  const order = newestFirst ? { orderBy: "-created_at" as const } : { orderBy: "+created_at" as const };
   let offset = 0;
   while (users.length < maxMembersPerRun) {
     const page = await client.users.getUserList({
       limit: Math.min(batchSize, maxMembersPerRun - users.length),
       offset,
-      orderBy: "+created_at",
+      ...order,
     });
     users.push(...page.data);
     offset += page.data.length;
@@ -76,9 +80,11 @@ async function reserveMemberWeek(
   client: Awaited<ReturnType<typeof clerkClient>>,
   entry: MemberWeeklyDeliveryLedgerEntry,
   reservationTtlMinutes: number,
+  memberCooldownHours: number,
 ) {
   const user = await client.users.getUser(entry.memberId);
   const existingDelivery = deliveryMetadata(user);
+  if (memberDeliveryCooldownActive(existingDelivery.lastDeliveredAt, entry.reservedAt, memberCooldownHours)) return false;
   const legacyDeliveredMemberWeeks = legacyDeliveredDedupeKeys(existingDelivery.deliveredMemberWeeks);
   if (legacyDeliveredMemberWeeks.includes(entry.dedupeKey)) return false;
   const ledger = normalizeMemberWeeklyDeliveryLedger(existingDelivery);
@@ -117,12 +123,19 @@ export async function runMemberWeeklyDelivery(input: {
   requestLive?: boolean;
   now?: string;
   env?: NodeJS.ProcessEnv;
+  rescueOnly?: boolean;
 } = {}) {
   const env = input.env || process.env;
   const now = input.now || new Date().toISOString();
   const config = buildMemberWeeklyDeliveryConfig(env);
   const client = await clerkClient();
-  const users = await enumerateSubscribersDeterministically(client, config.batchSize, config.maxMembersPerRun);
+  const enumeratedUsers = await enumerateSubscribersDeterministically(client, config.batchSize, config.maxMembersPerRun, input.rescueOnly === true);
+  const users = input.rescueOnly
+    ? enumeratedUsers.filter((user) => {
+      const row = classifyPaidMemberRetention({ ...user, publicMetadata: user.publicMetadata || {}, privateMetadata: user.privateMetadata || {} }, now);
+      return row ? paidMemberRescueEligible(row, record(user.publicMetadata).notificationPreferences) : false;
+    })
+    : enumeratedUsers;
   const sources = await loadMemberWeeklySourceBundle(now);
   const appUrl = env.NEXT_PUBLIC_APP_URL || "https://www.bourbonsignal.com";
 
@@ -131,17 +144,18 @@ export async function runMemberWeeklyDelivery(input: {
     now,
     requestLive: input.requestLive === true,
     config,
+    deliveryPurpose: input.rescueOnly ? "rescue" : "weekly",
     dependencies: {
       prepare: async (user) => buildWeeklyIntelligencePreviewFromSources({ user, sources, now, appUrl }),
       refreshUser: async (memberId) => client.users.getUser(memberId),
       recipientMasterUnsubscribed,
-      reserveMemberWeek: async (_user, entry) => reserveMemberWeek(client, entry, config.reservationTtlMinutes),
+      reserveMemberWeek: async (_user, entry) => reserveMemberWeek(client, entry, config.reservationTtlMinutes, config.memberCooldownHours),
       send: async (prepared, { idempotencyKey }) => {
         const result = await getResendClient().emails.send({
           from: MEMBER_WEEKLY_FROM,
           to: [prepared.recipient],
           replyTo: ALERT_REPLY_TO,
-          subject: `Your Bourbon Signal week of ${prepared.report.weekKey}`,
+          subject: input.rescueOnly ? "Let’s improve your Bourbon Signal alerts" : `Your Bourbon Signal week of ${prepared.report.weekKey}`,
           react: MemberWeeklyIntelligenceEmail({
             report: prepared.report,
             unsubscribeUrl: prepared.unsubscribeUrl,
