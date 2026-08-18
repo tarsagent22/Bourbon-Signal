@@ -256,7 +256,42 @@ try {
   const shipment = await transaction([{ text: "SELECT carrier,tracking_number FROM signal_reward_fulfillments WHERE redemption_id=$1", params: [shippingRedemptionId] }]);
   assert.deepEqual(row(shipment), { carrier: "UPS", tracking_number: "1ZTEST" }, "shipped transition atomically saves carrier and tracking");
 
-  console.log("Signal Points Postgres debt, concurrency, retry, cancellation, transition, shipping snapshot, and inventory tests passed.");
+  await transaction([{ text: "SELECT credit_signal_points($1,$2,$3,$4,$5::jsonb)", params: ["membership-credit-member", 1000, "membership-credit-seed", "test", "{}"] }]);
+  await assert.rejects(transaction([{ text: "SELECT * FROM reserve_signal_reward($1,$2,$3,$4,$5,$6::jsonb,$7,$8)", params: [randomUUID(), "membership-credit-member", "standard", "barrel_membership_credit_month", "wrong-tier", "{}", "membership@example.com", true] }]), /tier mismatch/i);
+  const membershipAttempts = await Promise.allSettled(["membership-a", "membership-b"].map((key) => transaction([{
+    text: "SELECT * FROM reserve_signal_reward($1,$2,$3,$4,$5,$6::jsonb,$7,$8)",
+    params: [randomUUID(), "membership-credit-member", "standard", "standard_membership_credit_month", key, "{}", "membership@example.com", true],
+  }])));
+  assert.equal(membershipAttempts.filter((attempt) => attempt.status === "fulfilled").length, 2, "concurrent retries converge on one recoverable redemption");
+  const successfulMembershipAttempt = membershipAttempts.find((attempt): attempt is PromiseFulfilledResult<unknown[][]> => attempt.status === "fulfilled");
+  assert.ok(successfulMembershipAttempt);
+  const membershipRedemptionId = row(successfulMembershipAttempt.value).redemption_id as string;
+  assert.equal(new Set(membershipAttempts.map((attempt) => row((attempt as PromiseFulfilledResult<unknown[][]>).value).redemption_id)).size, 1, "concurrent retries return the same redemption id");
+  await assert.rejects(transaction([{ text: "SELECT * FROM transition_signal_reward_redemption($1,$2,$3,$4,$5::jsonb)", params: [membershipRedemptionId, "owner", "approved", "owner", "{}"] }]), /fulfilled automatically/i);
+  await transaction([{ text: "SELECT * FROM prepare_signal_membership_credit_fulfillment($1,$2,$3::jsonb)", params: [membershipRedemptionId, "system", '{"test":true}'] }]);
+  await transaction([{ text: "SELECT * FROM prepare_signal_membership_credit_fulfillment($1,$2,$3::jsonb)", params: [membershipRedemptionId, "system", '{"test":true}'] }]);
+  await assert.rejects(transaction([{ text: "SELECT * FROM transition_signal_reward_redemption($1,$2,$3,$4,$5::jsonb)", params: [membershipRedemptionId, "membership-credit-member", "canceled", "member", "{}"] }]), /invalid redemption transition/i);
+  await transaction([{ text: "SELECT * FROM complete_signal_membership_credit_fulfillment($1,$2,$3,$4::jsonb)", params: [membershipRedemptionId, "system", "cbtxn_membership", '{"test":true}'] }]);
+  await transaction([{ text: "SELECT * FROM complete_signal_membership_credit_fulfillment($1,$2,$3,$4::jsonb)", params: [membershipRedemptionId, "system", "cbtxn_membership", '{"test":true}'] }]);
+  await assert.rejects(transaction([{ text: "SELECT * FROM complete_signal_membership_credit_fulfillment($1,$2,$3,$4::jsonb)", params: [membershipRedemptionId, "system", "cbtxn_conflict", '{}'] }]), /provider reference conflict/i);
+  const membershipState = await transaction([{ text: `SELECT accounts.balance,redemptions.status,fulfillments.owner_notes,
+    (SELECT COUNT(*) FROM signal_reward_redemption_events WHERE redemption_id=$2) AS events
+    FROM signal_point_accounts accounts
+    JOIN signal_reward_redemptions redemptions ON redemptions.user_id=accounts.user_id AND redemptions.id=$2
+    JOIN signal_reward_fulfillments fulfillments ON fulfillments.redemption_id=redemptions.id
+    WHERE accounts.user_id=$1`, params: ["membership-credit-member", membershipRedemptionId] }]);
+  assert.deepEqual(row(membershipState), { balance: 850, status: "delivered", owner_notes: "Stripe credit: cbtxn_membership", events: "4" }, "membership credit fulfillment is durable, exactly-once, and fully audited");
+  await assert.rejects(transaction([{ text: "SELECT * FROM reserve_signal_reward($1,$2,$3,$4,$5,$6::jsonb,$7,$8)", params: [randomUUID(), "membership-credit-member", "standard", "standard_membership_credit_month", "second-this-year", "{}", "membership@example.com", true] }]), /last 12 months/i);
+
+  await transaction([{ text: "SELECT credit_signal_points($1,$2,$3,$4,$5::jsonb)", params: ["membership-cancel-member", 400, "membership-cancel-seed", "test", "{}"] }]);
+  const canceledMembershipId = randomUUID();
+  await transaction([{ text: "SELECT * FROM reserve_signal_reward($1,$2,$3,$4,$5,$6::jsonb,$7,$8)", params: [canceledMembershipId, "membership-cancel-member", "standard", "standard_membership_credit_month", "membership-cancel", "{}", "membership-cancel@example.com", true] }]);
+  await transaction([{ text: "SELECT * FROM transition_signal_reward_redemption($1,$2,$3,$4,$5::jsonb)", params: [canceledMembershipId, "membership-cancel-member", "canceled", "member", "{}"] }]);
+  await transaction([{ text: "SELECT * FROM reserve_signal_reward($1,$2,$3,$4,$5,$6::jsonb,$7,$8)", params: [randomUUID(), "membership-cancel-member", "standard", "standard_membership_credit_month", "membership-after-cancel", "{}", "membership-cancel@example.com", true] }]);
+  const membershipCancelState = await transaction([{ text: "SELECT balance FROM signal_point_accounts WHERE user_id=$1", params: ["membership-cancel-member"] }]);
+  assert.equal(row(membershipCancelState).balance, 250, "a pre-fulfillment cancellation restores points and does not consume the annual reward window");
+
+  console.log("Signal Points Postgres debt, concurrency, retry, cancellation, transition, membership credit, shipping snapshot, and inventory tests passed.");
 } finally {
   await sql.query(`DROP SCHEMA IF EXISTS "${schemaName}" CASCADE`).finally(() => pool.end());
 }

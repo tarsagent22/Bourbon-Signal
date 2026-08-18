@@ -3,6 +3,7 @@ import { requireSignalPointsApiAccess } from "@/lib/owner-auth";
 import { createSignalPointsRepository } from "@/lib/signal-points-repository";
 import { resolveServerEffectiveMembershipTier } from "@/lib/server-entitlements";
 import { readFounderShippingForUser } from "@/lib/founder-shipping-repository";
+import { membershipCreditCatalogForTier } from "@/lib/signal-points-membership-credit";
 
 export const dynamic = "force-dynamic";
 const PRIVATE_HEADERS = { "Cache-Control": "private, no-store" };
@@ -18,6 +19,7 @@ export async function GET() {
     const [summary, shipping] = await Promise.all([repository.readMember(userId), readFounderShippingForUser(userId)]);
     return NextResponse.json({
       ...summary,
+      catalog: membershipCreditCatalogForTier(summary.catalog, tier),
       tier,
       redemptionEligible: tier !== "free",
       shippingProfile: shipping ? { recipientName: shipping.recipientName, city: shipping.city, stateCode: shipping.stateCode, postalCode: shipping.postalCode } : null,

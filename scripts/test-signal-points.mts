@@ -17,11 +17,15 @@ const read = (path: string) => readFileSync(new URL(`../${path}`, import.meta.ur
 test("launch catalog has the confirmed versioned prices and fulfillment kinds", () => {
   assert.deepEqual(Object.fromEntries(SIGNAL_REWARD_CATALOG.map((item) => [item.key, item.points])), {
     sticker_pack: 75,
+    standard_membership_credit_month: 150,
+    barrel_membership_credit_month: 250,
     rocks_glass: 400,
     glencairn: 450,
     bourbon_shipping_gift_card_100: 2600,
   });
-  assert.ok(SIGNAL_REWARD_CATALOG.filter((item) => item.key !== "bourbon_shipping_gift_card_100").every((item) => item.catalogVersion === 1));
+  assert.ok(SIGNAL_REWARD_CATALOG.filter((item) => !["bourbon_shipping_gift_card_100", "standard_membership_credit_month", "barrel_membership_credit_month"].includes(item.key)).every((item) => item.catalogVersion === 1));
+  assert.equal(SIGNAL_REWARD_CATALOG.find((item) => item.key === "standard_membership_credit_month")?.catalogVersion, 3);
+  assert.equal(SIGNAL_REWARD_CATALOG.find((item) => item.key === "barrel_membership_credit_month")?.catalogVersion, 3);
   assert.equal(SIGNAL_REWARD_CATALOG.find((item) => item.key === "bourbon_shipping_gift_card_100")?.catalogVersion, 2);
   assert.equal(SIGNAL_REWARD_CATALOG.find((item) => item.key === "bourbon_shipping_gift_card_100")?.name, "$100 Caskers gift card");
   assert.equal(SIGNAL_REWARD_CATALOG.find((item) => item.key === "bourbon_shipping_gift_card_100")?.fulfillmentType, "digital");
@@ -82,6 +86,8 @@ test("the current reward catalog advances monotonically before member and owner 
   assert.ok(calls[0].params?.includes(2));
   const expectedOptions: Record<string, Record<string, unknown>> = {
     sticker_pack: { usShippingIncluded: true },
+    standard_membership_credit_month: { automaticFulfillment: true, membershipCredit: true, eligibleTier: "standard", creditCents: 300, rollingLimitDays: 365 },
+    barrel_membership_credit_month: { automaticFulfillment: true, membershipCredit: true, eligibleTier: "barrel", creditCents: 600, rollingLimitDays: 365 },
     rocks_glass: { usShippingIncluded: true, glassQuantity: 1, engravingPointsPerGlass: 125 },
     glencairn: { usShippingIncluded: true, glassQuantity: 1, engravingPointsPerGlass: 125 },
     bourbon_shipping_gift_card_100: { ownerFulfillment: true, requiresAge21Attestation: true, denominationUsd: 100, partner: "Caskers" },
@@ -94,6 +100,8 @@ test("the current reward catalog advances monotonically before member and owner 
   }
   for (const expectedSqlRow of [
     `('sticker_pack',1,'Bourbon Signal sticker pack',75,'physical','{"usShippingIncluded":true}'::jsonb)`,
+    `('standard_membership_credit_month',3,'One month on us — Standard Proof',150,'digital','{"automaticFulfillment":true,"membershipCredit":true,"eligibleTier":"standard","creditCents":300,"rollingLimitDays":365}'::jsonb)`,
+    `('barrel_membership_credit_month',3,'One month on us — Barrel Proof',250,'digital','{"automaticFulfillment":true,"membershipCredit":true,"eligibleTier":"barrel","creditCents":600,"rollingLimitDays":365}'::jsonb)`,
     `('rocks_glass',1,'Bourbon Signal rocks glass',400,'physical','{"usShippingIncluded":true,"glassQuantity":1,"engravingPointsPerGlass":125}'::jsonb)`,
     `('glencairn',1,'Bourbon Signal Glencairn',450,'physical','{"usShippingIncluded":true,"glassQuantity":1,"engravingPointsPerGlass":125}'::jsonb)`,
     `('bourbon_shipping_gift_card_100',2,'$100 Caskers gift card',2600,'digital','{"ownerFulfillment":true,"requiresAge21Attestation":true,"denominationUsd":100,"partner":"Caskers"}'::jsonb)`,
@@ -221,8 +229,8 @@ test("glass engraving is short, validated, and priced per glass", () => {
   assert.equal(normalizeRedemptionDetails("rocks_glass", { glassStyle: "personal", engravingText: "BOURBON SIGNAL MEMBER NAME IS TOO LONG" }).ok, false);
 });
 
-test("the reduced catalog keeps only stickers, two glasses, and the gift card", () => {
-  assert.deepEqual(SIGNAL_REWARD_CATALOG.map((item) => item.key), ["sticker_pack", "rocks_glass", "glencairn", "bourbon_shipping_gift_card_100"]);
+test("the reduced catalog keeps accessible membership credits, stickers, two glasses, and the gift card", () => {
+  assert.deepEqual(SIGNAL_REWARD_CATALOG.map((item) => item.key), ["sticker_pack", "standard_membership_credit_month", "barrel_membership_credit_month", "rocks_glass", "glencairn", "bourbon_shipping_gift_card_100"]);
   assert.equal(rewardCatalogItem("tshirt")?.key, "tshirt", "retired definitions remain available only for safe idempotent retries");
   assert.equal(rewardCatalogItem("bourbon_shipping_gift_card_25")?.key, "bourbon_shipping_gift_card_25", "the retired gift card remains retry-safe");
   assert.equal(normalizeRedemptionDetails("bourbon_shipping_gift_card_100", { age21Attested: false, accountEmail: "member@example.com" }).ok, false);
@@ -313,7 +321,8 @@ test("schema, migration, encrypted backup, APIs, drawer, and owner queue are wir
   const adminRoute = read("src/app/api/admin/signal-points/route.ts");
   assert.match(memberRoute, /requireSignalPointsApiAccess/); assert.match(memberRoute, /503/); assert.match(memberRoute, /assertCutoverVerified/);
   assert.doesNotMatch(memberRoute, /privateMetadata|reconcileClerkRewards/);
-  assert.doesNotMatch(redemptionRoute, /privateMetadata|reconcileClerkRewards/);
+  assert.doesNotMatch(redemptionRoute, /reconcileClerkRewards/);
+  assert.match(redemptionRoute, /membershipCreditEligibility\([\s\S]*privateMetadata/);
   assert.match(redemptionRoute, /requireSignalPointsApiAccess/); assert.match(redemptionRoute, /verified/i); assert.match(redemptionRoute, /shipping/i); assert.match(redemptionRoute, /503/); assert.match(redemptionRoute, /assertCutoverVerified/);
   assert.match(adminRoute, /requireOwnerApiAccess/);
   const operationsPage = read("src/app/admin/operations/page.tsx");

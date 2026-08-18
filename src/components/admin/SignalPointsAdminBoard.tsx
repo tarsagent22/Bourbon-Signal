@@ -77,6 +77,7 @@ function rewardName(item: RedemptionRow) {
 }
 
 function fulfillmentChoices(item: RedemptionRow) {
+  if (["standard_membership_credit_month", "barrel_membership_credit_month"].includes(item.itemKey)) return [];
   if (item.status === "reserved" || item.status === "details_required") return ["submitted", "canceled"];
   if (item.status === "submitted") return ["approved", "canceled"];
   if (item.status === "approved") return [item.fulfillmentType === "digital" ? "digital_fulfillment" : "packed", "canceled"];

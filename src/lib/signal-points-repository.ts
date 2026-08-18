@@ -7,6 +7,7 @@ export interface SignalPointsQuery { query(text: string, params?: unknown[]): Pr
 
 export const SIGNAL_POINTS_CLERK_METADATA_V1_REQUIRED = "signal_points_clerk_metadata_v1_required";
 export const SIGNAL_POINTS_CLERK_METADATA_V1_VERIFIED_COMPLETE = "signal_points_clerk_metadata_v1_verified_complete";
+export const SIGNAL_POINTS_MEMBERSHIP_CREDIT_V3_READY = "signal_points_membership_credit_v3_ready";
 const CLERK_REWARD_SOURCE_PREFIX = "signal_points_clerk_metadata_v1";
 
 const text = (value: unknown) => typeof value === "string" ? value : value instanceof Date ? value.toISOString() : String(value || "");
@@ -15,6 +16,8 @@ const json = (value: unknown) => value && typeof value === "object" ? value as R
 
 const CURRENT_REWARD_CATALOG = [
   { key: "sticker_pack", version: 1, name: "Bourbon Signal sticker pack", points: 75, fulfillmentType: "physical", options: { usShippingIncluded: true } },
+  { key: "standard_membership_credit_month", version: 3, name: "One month on us — Standard Proof", points: 150, fulfillmentType: "digital", options: { automaticFulfillment: true, membershipCredit: true, eligibleTier: "standard", creditCents: 300, rollingLimitDays: 365 } },
+  { key: "barrel_membership_credit_month", version: 3, name: "One month on us — Barrel Proof", points: 250, fulfillmentType: "digital", options: { automaticFulfillment: true, membershipCredit: true, eligibleTier: "barrel", creditCents: 600, rollingLimitDays: 365 } },
   { key: "rocks_glass", version: 1, name: "Bourbon Signal rocks glass", points: 400, fulfillmentType: "physical", options: { usShippingIncluded: true, glassQuantity: 1, engravingPointsPerGlass: 125 } },
   { key: "glencairn", version: 1, name: "Bourbon Signal Glencairn", points: 450, fulfillmentType: "physical", options: { usShippingIncluded: true, glassQuantity: 1, engravingPointsPerGlass: 125 } },
   { key: "bourbon_shipping_gift_card_100", version: 2, name: "$100 Caskers gift card", points: 2600, fulfillmentType: "digital", options: { ownerFulfillment: true, requiresAge21Attestation: true, denominationUsd: 100, partner: "Caskers" } },
@@ -29,7 +32,9 @@ export async function syncCurrentSignalRewardCatalog(query: SignalPointsQuery) {
     item.key, item.version, item.name, item.points, item.fulfillmentType, JSON.stringify(item.options),
   ]);
   await query.query(`INSERT INTO signal_reward_catalog (item_key,catalog_version,name,points_cost,fulfillment_type,option_snapshot)
-    VALUES ${values}
+    SELECT pending.* FROM (VALUES ${values}) AS pending(item_key,catalog_version,name,points_cost,fulfillment_type,option_snapshot)
+    WHERE pending.item_key NOT IN ('standard_membership_credit_month','barrel_membership_credit_month')
+      OR EXISTS (SELECT 1 FROM signal_point_migrations WHERE migration_key='signal_points_membership_credit_v3_ready')
     ON CONFLICT (item_key) DO UPDATE SET
       catalog_version=EXCLUDED.catalog_version,name=EXCLUDED.name,points_cost=EXCLUDED.points_cost,
       fulfillment_type=EXCLUDED.fulfillment_type,option_snapshot=EXCLUDED.option_snapshot,updated_at=NOW()
@@ -139,6 +144,18 @@ export class SignalPointsRepository {
     if (!rows[0]) throw new Error("Signal Points cutover is not verified complete.");
   }
 
+  async assertMembershipCreditReady() {
+    const rows = await this.query.query(
+      `SELECT 1 AS ready FROM signal_point_migrations
+       WHERE migration_key=$1
+         AND to_regprocedure('prepare_signal_membership_credit_fulfillment(text,text,jsonb)') IS NOT NULL
+         AND to_regprocedure('complete_signal_membership_credit_fulfillment(text,text,text,jsonb)') IS NOT NULL
+       LIMIT 1`,
+      [SIGNAL_POINTS_MEMBERSHIP_CREDIT_V3_READY],
+    ) as Array<Record<string, unknown>>;
+    if (!rows[0]) throw new Error("Membership credit fulfillment is not ready.");
+  }
+
   async nextRewardGeneration(userId: string) {
     const rows = await this.query.query(
       "SELECT next_community_sighting_reward_generation($1) AS generation",
@@ -210,7 +227,10 @@ export class SignalPointsRepository {
     await this.query.query("INSERT INTO signal_point_accounts(user_id) VALUES($1) ON CONFLICT(user_id) DO NOTHING", [userId]);
     const [accountRows, catalogRows, redemptionRows] = await Promise.all([
       this.query.query("SELECT balance,debt FROM signal_point_accounts WHERE user_id=$1", [userId]),
-      this.query.query("SELECT * FROM signal_reward_catalog WHERE active=TRUE ORDER BY points_cost,item_key"),
+      this.query.query(`SELECT * FROM signal_reward_catalog WHERE active=TRUE
+        AND (item_key NOT IN ('standard_membership_credit_month','barrel_membership_credit_month')
+          OR EXISTS (SELECT 1 FROM signal_point_migrations WHERE migration_key='signal_points_membership_credit_v3_ready'))
+        ORDER BY points_cost,item_key`),
       this.query.query("SELECT id,item_key,item_snapshot,details,points_spent,status,created_at,updated_at FROM signal_reward_redemptions WHERE user_id=$1 ORDER BY created_at DESC LIMIT 50", [userId]),
     ]) as [Array<Record<string, unknown>>, Array<Record<string, unknown>>, Array<Record<string, unknown>>];
     if (!accountRows[0]) throw new Error("Signal Points account is unavailable.");
@@ -235,6 +255,22 @@ export class SignalPointsRepository {
       input.id, input.userId, input.tier, input.itemKey, input.idempotencyKey, JSON.stringify(input.details), input.accountEmail, input.shippingConfirmed,
     ]) as Array<Record<string, unknown>>;
     if (!rows[0]) throw new Error("Reward reservation did not complete.");
+    return { redemptionId: text(rows[0].redemption_id), status: text(rows[0].redemption_status), balance: number(rows[0].balance) };
+  }
+
+  async prepareMembershipCreditFulfillment(input: { redemptionId: string; actorId: string; metadata?: Record<string, unknown> }) {
+    const rows = await this.query.query("SELECT * FROM prepare_signal_membership_credit_fulfillment($1,$2,$3::jsonb)", [
+      input.redemptionId, input.actorId, JSON.stringify(input.metadata || {}),
+    ]) as Array<Record<string, unknown>>;
+    if (!rows[0]) throw new Error("Membership credit fulfillment preparation did not complete.");
+    return { redemptionId: text(rows[0].redemption_id), status: text(rows[0].redemption_status), balance: number(rows[0].balance) };
+  }
+
+  async completeMembershipCreditFulfillment(input: { redemptionId: string; actorId: string; providerReference: string; metadata?: Record<string, unknown> }) {
+    const rows = await this.query.query("SELECT * FROM complete_signal_membership_credit_fulfillment($1,$2,$3,$4::jsonb)", [
+      input.redemptionId, input.actorId, input.providerReference, JSON.stringify(input.metadata || {}),
+    ]) as Array<Record<string, unknown>>;
+    if (!rows[0]) throw new Error("Membership credit fulfillment completion did not complete.");
     return { redemptionId: text(rows[0].redemption_id), status: text(rows[0].redemption_status), balance: number(rows[0].balance) };
   }
 

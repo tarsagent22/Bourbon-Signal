@@ -7,6 +7,7 @@ export const SIGNAL_REDEMPTION_STATES = [
 export type SignalRedemptionState = typeof SIGNAL_REDEMPTION_STATES[number];
 export type SignalRewardKey =
   | "sticker_pack" | "coaster_set" | "rocks_glass" | "glencairn"
+  | "standard_membership_credit_month" | "barrel_membership_credit_month"
   | "bourbon_shipping_gift_card_25" | "bourbon_shipping_gift_card_100" | "tshirt" | "rocks_glass_pair"
   | "glencairn_pair" | "hoodie";
 
@@ -14,17 +15,21 @@ export interface SignalRewardCatalogItem {
   key: SignalRewardKey;
   name: string;
   points: number;
-  catalogVersion: 1 | 2;
+  catalogVersion: 1 | 2 | 3;
   fulfillmentType: "physical" | "digital";
   usShippingIncluded: boolean;
   glassQuantity?: 1 | 2;
   engravingPointsPerGlass?: 125;
   apparel?: boolean;
+  membershipCreditCents?: 300 | 600;
+  eligibleTier?: "standard" | "barrel";
   inventoryRemaining?: number | null;
 }
 
 export const SIGNAL_REWARD_CATALOG: SignalRewardCatalogItem[] = [
   { key: "sticker_pack", name: "Bourbon Signal sticker pack", points: 75, catalogVersion: 1, fulfillmentType: "physical", usShippingIncluded: true },
+  { key: "standard_membership_credit_month", name: "One month on us — Standard Proof", points: 150, catalogVersion: 3, fulfillmentType: "digital", usShippingIncluded: false, membershipCreditCents: 300, eligibleTier: "standard" },
+  { key: "barrel_membership_credit_month", name: "One month on us — Barrel Proof", points: 250, catalogVersion: 3, fulfillmentType: "digital", usShippingIncluded: false, membershipCreditCents: 600, eligibleTier: "barrel" },
   { key: "rocks_glass", name: "Bourbon Signal rocks glass", points: 400, catalogVersion: 1, fulfillmentType: "physical", usShippingIncluded: true, glassQuantity: 1, engravingPointsPerGlass: 125 },
   { key: "glencairn", name: "Bourbon Signal Glencairn", points: 450, catalogVersion: 1, fulfillmentType: "physical", usShippingIncluded: true, glassQuantity: 1, engravingPointsPerGlass: 125 },
   { key: "bourbon_shipping_gift_card_100", name: "$100 Caskers gift card", points: 2600, catalogVersion: 2, fulfillmentType: "digital", usShippingIncluded: false },
@@ -75,6 +80,7 @@ export function normalizeRedemptionDetails(key: unknown, input: Record<string, u
     if (!SIGNAL_APPAREL_COLORS.includes(color as typeof SIGNAL_APPAREL_COLORS[number])) return { ok: false, error: "Choose an apparel color.", surchargePoints: 0 };
     return { ok: true, details: { size, color }, surchargePoints: 0 };
   }
+  if (item.membershipCreditCents) return { ok: true, details: {}, surchargePoints: 0 };
   if (item.fulfillmentType === "digital") {
     const accountEmail = text(input.accountEmail).toLowerCase();
     if (input.age21Attested !== true) return { ok: false, error: "Confirm that you are 21 or older.", surchargePoints: 0 };
