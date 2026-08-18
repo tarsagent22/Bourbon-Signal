@@ -22,6 +22,7 @@ assert.equal(verifyCampaignClickToken(token, secret, new Date("2026-11-19T00:00:
 assert.throws(() => createCampaignClickToken({ campaignId: "x", recipientId: "y", destination: "trial", expiresAt: "2026-11-18T20:00:00.000Z" }, "short"));
 
 const route = readFileSync("src/app/api/campaign/click/route.ts", "utf8");
+assert.match(route, /NEWSLETTER_UNSUBSCRIBE_SECRET\s*\|\|\s*process\.env\.RESEND_API_KEY/);
 assert.match(route, /recordCampaignClick/);
 assert.match(route, /NextResponse\.redirect/);
 assert.match(route, /Cache-Control/);
