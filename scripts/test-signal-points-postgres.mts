@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { randomUUID } from "node:crypto";
 import { readFile } from "node:fs/promises";
-import { neon } from "@neondatabase/serverless";
+import { Pool } from "pg";
 
 const connectionString = process.env.SIGNAL_POINTS_TEST_DATABASE_URL?.trim();
 if (!connectionString) {
@@ -21,11 +21,24 @@ function splitSql(source: string) {
   if (current.trim()) statements.push(current.trim()); return statements;
 }
 
-const sql = neon(connectionString);
+const pool = new Pool({ connectionString, max: 4 });
+const sql = { query: async (text: string, params?: unknown[]) => (await pool.query(text, params)).rows };
 const schemaName = `signal_points_test_${randomUUID().replaceAll("-", "")}`;
 const searchPath = `SET LOCAL search_path TO "${schemaName}", public`;
 async function transaction(statements: Array<{ text: string; params?: unknown[] }>) {
-  return sql.transaction((tx) => [tx.query(searchPath), ...statements.map((statement) => tx.query(statement.text, statement.params || []))], { isolationLevel: "ReadCommitted" });
+  const client = await pool.connect();
+  try {
+    await client.query("BEGIN ISOLATION LEVEL READ COMMITTED");
+    const results: unknown[][] = [(await client.query(searchPath)).rows];
+    for (const statement of statements) results.push((await client.query(statement.text, statement.params)).rows);
+    await client.query("COMMIT");
+    return results;
+  } catch (error) {
+    await client.query("ROLLBACK").catch(() => {});
+    throw error;
+  } finally {
+    client.release();
+  }
 }
 const row = (result: unknown[][], index = 1) => result[index][0] as Record<string, unknown>;
 async function seedShipping(userId: string) {
@@ -106,8 +119,9 @@ try {
     { item_key: "bourbon_shipping_gift_card_100", points_cost: 2600, active: true },
     { item_key: "bourbon_shipping_gift_card_25", points_cost: 650, active: false },
   ], "gift card rollover preserves the retired historical SKU while activating $100 at four times the points");
-  const reactivatedCurrentSku = await transaction([{ text: "SELECT active FROM signal_reward_catalog WHERE item_key='sticker_pack'" }]);
-  assert.equal(row(reactivatedCurrentSku).active, true, "schema reapplication reactivates current catalog SKUs");
+  const preservedEmergencyDisable = await transaction([{ text: "SELECT active FROM signal_reward_catalog WHERE item_key='sticker_pack'" }]);
+  assert.equal(row(preservedEmergencyDisable).active, false, "schema reapplication preserves an emergency-disabled current SKU");
+  await transaction([{ text: "UPDATE signal_reward_catalog SET active=TRUE WHERE item_key='sticker_pack'" }]);
   const adjustedReferral = await transaction([{ text: `SELECT balance,debt,
     (SELECT COUNT(*) FROM signal_point_ledger WHERE user_id=$1 AND idempotency_key=$2) AS adjustment_count,
     (SELECT points FROM signal_point_ledger WHERE user_id=$1 AND idempotency_key=$2) AS adjustment_points
@@ -244,5 +258,5 @@ try {
 
   console.log("Signal Points Postgres debt, concurrency, retry, cancellation, transition, shipping snapshot, and inventory tests passed.");
 } finally {
-  await sql.query(`DROP SCHEMA IF EXISTS "${schemaName}" CASCADE`);
+  await sql.query(`DROP SCHEMA IF EXISTS "${schemaName}" CASCADE`).finally(() => pool.end());
 }
