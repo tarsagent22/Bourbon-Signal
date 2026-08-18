@@ -90,8 +90,8 @@ function usefulDetails(details: Record<string, unknown>) {
 }
 
 export default function SignalPointsAdminBoard() {
+  const [active, setActive] = useState(false);
   const [data, setData] = useState<OwnerPayload | null>(null);
-  const [query, setQuery] = useState("");
   const [error, setError] = useState("");
   const [saving, setSaving] = useState("");
   const [shipments, setShipments] = useState<Record<string, { carrier: string; trackingNumber: string }>>({});
@@ -108,13 +108,20 @@ export default function SignalPointsAdminBoard() {
     }
   }, []);
 
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => {
+    const disclosure = document.getElementById("signal-points");
+    if (!(disclosure instanceof HTMLDetailsElement)) { setActive(true); return; }
+    const sync = () => setActive(disclosure.open);
+    sync();
+    disclosure.addEventListener("toggle", sync);
+    return () => disclosure.removeEventListener("toggle", sync);
+  }, []);
 
-  const members = useMemo(() => {
-    const needle = query.trim().toLowerCase();
-    if (!needle) return data?.members || [];
-    return (data?.members || []).filter((member) => `${member.name} ${member.email} ${member.tier}`.toLowerCase().includes(needle));
-  }, [data, query]);
+  useEffect(() => { if (active) void load(); }, [active, load]);
+
+  const members = useMemo(() => [...(data?.members || [])]
+    .filter((member) => member.balance > 0)
+    .sort((left, right) => right.balance - left.balance || left.name.localeCompare(right.name)), [data]);
 
   const redemptions = useMemo(() => [...(data?.redemptions || [])].sort((left, right) => {
     const leftOpen = !CLOSED.has(left.status);
@@ -150,32 +157,23 @@ export default function SignalPointsAdminBoard() {
       <style>{styles}</style>
       {error ? <p className="spa-error" role="alert">{error}</p> : null}
       {data ? <>
-        <div className="spa-summary" aria-label="Signal Points summary">
-          <article><span>Members</span><strong>{number.format(data.summary.totalMembers)}</strong><small>Every member account</small></article>
-          <article><span>Points outstanding</span><strong>{number.format(data.summary.totalPoints)}</strong><small>Across all balances</small></article>
-          <article><span>Members with points</span><strong>{number.format(data.summary.membersWithPoints)}</strong><small>Balance above zero</small></article>
-          <article className={data.summary.openRedemptionCount ? "attention" : ""}><span>Open redemptions</span><strong>{number.format(data.summary.openRedemptionCount)}</strong><small>{number.format(data.summary.redemptionCount)} selected overall</small></article>
-        </div>
-
-        <section className="spa-section" aria-labelledby="spa-members-title">
-          <div className="spa-section-head">
-            <div><p>Member ledger</p><h3 id="spa-members-title">All member balances</h3></div>
-            <label><span className="sr-only">Search members</span><input type="search" value={query} onChange={(event) => setQuery(event.target.value)} placeholder="Search members" /></label>
+        <section className="spa-section spa-leaderboard-section" aria-labelledby="spa-members-title">
+          <div className="spa-section-head spa-leaderboard-head">
+            <div><p>Member rankings</p><h3 id="spa-members-title">Points leaderboard</h3></div>
+            <span>{number.format(members.length)} earners · {number.format(data.summary.totalPoints)} points</span>
           </div>
-          <p className="spa-note">Includes members with a zero balance. Operational owner and retailer accounts are excluded.</p>
-          <div className="spa-table-wrap" role="region" aria-label="All member Signal Points balances" tabIndex={0}>
-            <table>
-              <thead><tr><th>Member</th><th>Membership</th><th className="numeric">Points</th><th className="numeric">Debt</th><th>Reward selections</th></tr></thead>
-              <tbody>{members.map((member) => <tr key={member.userId}>
-                <td><strong>{member.name}</strong>{member.email ? <a href={`mailto:${member.email}`}>{member.email}</a> : <small>No email available</small>}</td>
-                <td><span className={`spa-tier ${member.tier}`}>{tierLabel(member.tier)}</span></td>
-                <td className="numeric points">{number.format(member.balance)}</td>
-                <td className={`numeric ${member.debt ? "debt" : ""}`}>{number.format(member.debt)}</td>
-                <td>{member.redemptionCount ? <><strong>{number.format(member.redemptionCount)}</strong><small>Latest {dateTime(member.lastRedemptionAt)}</small></> : <span className="muted">None</span>}</td>
-              </tr>)}</tbody>
-            </table>
-            {!members.length ? <p className="spa-empty">No members match that search.</p> : null}
-          </div>
+          <p className="spa-note">Highest balances first. Members appear after earning their first point.</p>
+          {members.length ? <ol className="spa-leaderboard" aria-label="Signal Points leaderboard">
+            {members.map((member, index) => <li className={index < 3 ? `top-${index + 1}` : ""} key={member.userId}>
+              <span className="spa-rank" aria-label={`Rank ${index + 1}`}>{index + 1}</span>
+              <span className="spa-member">
+                <strong>{member.name}</strong>
+                <small>{member.email || tierLabel(member.tier)}</small>
+              </span>
+              <span className={`spa-tier ${member.tier}`}>{tierLabel(member.tier)}</span>
+              <span className="spa-score"><strong>{number.format(member.balance)}</strong><small>points</small></span>
+            </li>)}
+          </ol> : <div className="spa-empty"><strong>No members have earned points yet.</strong><p>The leaderboard will appear after the first qualifying activity.</p></div>}
         </section>
 
         <section className="spa-section" aria-labelledby="spa-redemptions-title">
@@ -221,12 +219,11 @@ export default function SignalPointsAdminBoard() {
 }
 
 const styles = `
-  .spa-board{display:grid;gap:18px}.spa-loading,.spa-error,.spa-empty{border:1px solid #3b3328;background:#15120f;padding:18px;color:#b9ad9b}.spa-error{border-color:#7a312b;color:#f0aaa1}
-  .spa-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}.spa-summary article{display:grid;gap:5px;border:1px solid #332c23;background:#13110e;padding:14px}.spa-summary article.attention{border-color:#7b5a29;background:#1b160f}.spa-summary span,.spa-summary small{color:#998e7d;font-size:11px}.spa-summary strong{font-family:var(--font-fraunces),serif;font-size:27px;color:#f2e7d5}
-  .spa-section{border:1px solid #332c23;background:#11100d;padding:16px}.spa-section-head{display:flex;align-items:end;justify-content:space-between;gap:16px;margin-bottom:8px}.spa-section-head p{margin:0 0 3px;color:#a9854e;font-size:10px;text-transform:uppercase;letter-spacing:.13em}.spa-section-head h3{margin:0;font-family:var(--font-fraunces),serif;font-size:22px;color:#f1e5d3}.spa-section-head>span{color:#a49a8b;font-size:12px}.spa-section-head input,.spa-tracking input{min-width:230px;border:1px solid #443a2e;background:#0c0b09;color:#f2e7d5;padding:10px 12px}.spa-note{margin:0 0 12px;color:#918878;font-size:12px}
-  .spa-table-wrap{max-height:520px;overflow:auto;border:1px solid #29231c}.spa-table-wrap table{width:100%;border-collapse:collapse;min-width:720px}.spa-table-wrap th{position:sticky;top:0;z-index:1;background:#191510;color:#a99d8b;text-align:left;font-size:10px;text-transform:uppercase;letter-spacing:.1em}.spa-table-wrap th,.spa-table-wrap td{padding:11px 12px;border-bottom:1px solid #29231c}.spa-table-wrap td{color:#d7cdbc;font-size:12px}.spa-table-wrap td strong{display:block;color:#f0e5d4}.spa-table-wrap td a,.spa-redemption a{color:#bb9863;text-decoration:none}.spa-table-wrap td small{display:block;color:#837b70;margin-top:3px}.spa-table-wrap .numeric{text-align:right;font-variant-numeric:tabular-nums}.spa-table-wrap .points{font-weight:700;color:#e5bd7d}.spa-table-wrap .debt{color:#e39b91}.spa-tier,.spa-status{display:inline-flex;border:1px solid #433a2e;padding:3px 7px;font-size:9px;text-transform:uppercase;letter-spacing:.08em;color:#bfb3a0}.spa-tier.barrel,.spa-tier.bottled-in-bond{border-color:#765529;color:#e4bd7f}.spa-tier.standard{border-color:#4f625f;color:#aed0ca}.muted{color:#777064}
-  .spa-redemptions{display:grid;gap:9px}.spa-redemption{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;border:1px solid #332c23;padding:14px;background:#15120f}.spa-redemption.open{border-left:3px solid #a97b3f}.spa-redemption.closed{opacity:.76}.spa-redemption-title{display:flex;align-items:center;gap:9px;flex-wrap:wrap}.spa-redemption-title strong{color:#f0e5d4}.spa-redemption-main>p{margin:5px 0 0;color:#958b7b;font-size:11px}.spa-status.delivered{border-color:#426656;color:#a9d0ba}.spa-status.canceled{border-color:#62413c;color:#d5a39b}.spa-redemption details{margin-top:10px;color:#aba08f;font-size:11px}.spa-redemption summary{cursor:pointer;color:#c1a574}.spa-redemption dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin:9px 0}.spa-redemption dl div{border:1px solid #2e281f;padding:7px}.spa-redemption dt{color:#766f64;text-transform:capitalize}.spa-redemption dd{margin:2px 0 0;color:#d4cab9}.spa-redemption address{font-style:normal;line-height:1.55;color:#c8bdac}.spa-actions{display:grid;align-content:center;justify-items:end;gap:8px}.spa-actions>div{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:6px}.spa-actions button{border:1px solid #71532b;background:#21190f;color:#e7c38b;padding:8px 10px;font-size:10px;text-transform:capitalize;cursor:pointer}.spa-actions button:disabled{opacity:.45;cursor:not-allowed}.spa-tracking{display:grid!important;grid-template-columns:1fr 1fr}.spa-tracking input{min-width:140px;padding:8px}
-  .spa-empty strong{color:#e0d3c0}.spa-empty p{margin:5px 0 0}.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
-  @media(max-width:900px){.spa-summary{grid-template-columns:repeat(2,minmax(0,1fr))}.spa-redemption{grid-template-columns:1fr}.spa-actions{justify-items:start}.spa-actions>div{justify-content:flex-start}}
-  @media(max-width:600px){.spa-summary{grid-template-columns:1fr 1fr}.spa-section{padding:12px}.spa-section-head{align-items:stretch;flex-direction:column}.spa-section-head input{width:100%;min-width:0}.spa-redemption dl{grid-template-columns:1fr}.spa-tracking{grid-template-columns:1fr!important;width:100%}.spa-tracking input{width:100%;min-width:0}}
+  .spa-board{display:grid;gap:14px;min-width:0}.spa-loading,.spa-error,.spa-empty{border:1px solid #3b3328;background:#15120f;padding:16px;color:#b9ad9b}.spa-error{border-color:#7a312b;color:#f0aaa1}
+  .spa-section{min-width:0;border:1px solid #332c23;background:#11100d;padding:16px}.spa-section-head{display:flex;align-items:end;justify-content:space-between;gap:16px;margin-bottom:8px}.spa-section-head p{margin:0 0 4px;color:#a9854e;font-size:9px;text-transform:uppercase;letter-spacing:.14em}.spa-section-head h3{margin:0;font-family:var(--font-fraunces),serif;font-size:22px;color:#f1e5d3}.spa-section-head>span{color:#a49a8b;font-size:11px}.spa-note{margin:0 0 12px;color:#918878;font-size:11px;line-height:1.45}
+  .spa-leaderboard{display:grid;gap:6px;margin:0;padding:0;list-style:none}.spa-leaderboard li{display:grid;grid-template-columns:38px minmax(0,1fr) auto 92px;align-items:center;gap:12px;min-width:0;border:1px solid #2f2921;background:#15120f;padding:11px 13px}.spa-leaderboard li.top-1{border-color:#8b6731;background:linear-gradient(90deg,rgba(170,123,54,.17),#15120f 42%)}.spa-leaderboard li.top-2{border-color:#5e584e}.spa-leaderboard li.top-3{border-color:#604b36}.spa-rank{display:grid;place-items:center;width:30px;height:30px;border:1px solid #4b4235;border-radius:999px;color:#b8ab98;font:800 11px/1 var(--font-jetbrains)}.top-1 .spa-rank{border-color:#b58947;background:#3a2a15;color:#f3cc8e}.top-2 .spa-rank{border-color:#817c73;color:#ddd7cd}.top-3 .spa-rank{border-color:#886448;color:#d9ac88}.spa-member{display:grid;gap:3px;min-width:0}.spa-member strong,.spa-score strong{color:#f0e5d4}.spa-member strong,.spa-member small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.spa-member small{color:#9c8f7c;font-size:10px}.spa-score{display:grid;justify-items:end}.spa-score strong{font:700 22px/1 var(--font-fraunces),serif;font-variant-numeric:tabular-nums}.spa-score small{margin-top:3px;color:#9a8e7c;font-size:8px;text-transform:uppercase;letter-spacing:.12em}.spa-tier,.spa-status{display:inline-flex;border:1px solid #433a2e;padding:3px 7px;font-size:8px;text-transform:uppercase;letter-spacing:.08em;color:#bfb3a0}.spa-tier.barrel,.spa-tier.bottled-in-bond{border-color:#765529;color:#e4bd7f}.spa-tier.standard{border-color:#4f625f;color:#aed0ca}
+  .spa-redemptions{display:grid;gap:8px}.spa-redemption{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:16px;border:1px solid #332c23;padding:13px;background:#15120f}.spa-redemption.open{border-left:3px solid #a97b3f}.spa-redemption.closed{opacity:.76}.spa-redemption-title{display:flex;align-items:center;gap:9px;flex-wrap:wrap}.spa-redemption-title strong{color:#f0e5d4}.spa-redemption a{color:#bb9863;text-decoration:none;overflow-wrap:anywhere}.spa-redemption-main>p{margin:5px 0 0;color:#958b7b;font-size:11px}.spa-status.delivered{border-color:#426656;color:#a9d0ba}.spa-status.canceled{border-color:#62413c;color:#d5a39b}.spa-redemption details{margin-top:10px;color:#aba08f;font-size:11px}.spa-redemption summary{cursor:pointer;color:#c1a574}.spa-redemption dl{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin:9px 0}.spa-redemption dl div{border:1px solid #2e281f;padding:7px}.spa-redemption dt{color:#766f64;text-transform:capitalize}.spa-redemption dd{margin:2px 0 0;color:#d4cab9}.spa-redemption address{font-style:normal;line-height:1.55;color:#c8bdac}.spa-actions{display:grid;align-content:center;justify-items:end;gap:8px}.spa-actions>div{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:6px}.spa-actions button{border:1px solid #71532b;background:#21190f;color:#e7c38b;padding:8px 10px;font-size:10px;text-transform:capitalize;cursor:pointer}.spa-actions button:disabled{opacity:.45;cursor:not-allowed}.spa-tracking{display:grid!important;grid-template-columns:1fr 1fr}.spa-tracking input{min-width:140px;border:1px solid #443a2e;background:#0c0b09;color:#f2e7d5;padding:8px}
+  .spa-empty strong{color:#e0d3c0}.spa-empty p{margin:5px 0 0;line-height:1.45}
+  @media(max-width:900px){.spa-redemption{grid-template-columns:1fr}.spa-actions{justify-items:start}.spa-actions>div{justify-content:flex-start}}
+  @media(max-width:600px){.spa-section{padding:12px}.spa-section-head{align-items:flex-start;flex-direction:column;gap:6px}.spa-leaderboard li{grid-template-columns:34px minmax(0,1fr) 72px;gap:9px;padding:10px}.spa-leaderboard .spa-tier{display:none}.spa-rank{width:27px;height:27px}.spa-score strong{font-size:20px}.spa-redemption dl{grid-template-columns:1fr}.spa-tracking{grid-template-columns:1fr!important;width:100%}.spa-tracking input{width:100%;min-width:0}}
 `;
