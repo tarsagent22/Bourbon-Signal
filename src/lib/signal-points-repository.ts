@@ -247,6 +247,39 @@ export class SignalPointsRepository {
     return { redemptionId: text(rows[0].redemption_id), status: text(rows[0].redemption_status), balance: number(rows[0].balance) };
   }
 
+  async listOwnerMemberBalances() {
+    await this.assertCutoverVerified();
+    const rows = await this.query.query(`SELECT accounts.user_id,accounts.balance,accounts.debt,
+      COUNT(redemptions.id)::integer AS redemption_count,MAX(redemptions.created_at) AS last_redemption_at
+      FROM signal_point_accounts accounts
+      LEFT JOIN signal_reward_redemptions redemptions ON redemptions.user_id=accounts.user_id
+      GROUP BY accounts.user_id,accounts.balance,accounts.debt
+      ORDER BY accounts.balance DESC,accounts.user_id ASC`) as Array<Record<string, unknown>>;
+    return rows.map((row) => ({
+      userId: text(row.user_id), balance: number(row.balance), debt: number(row.debt),
+      redemptionCount: number(row.redemption_count), lastRedemptionAt: text(row.last_redemption_at) || null,
+    }));
+  }
+
+  async listOwnerRedemptions() {
+    await this.assertCutoverVerified();
+    await this.ensureCatalog();
+    const rows = await this.query.query(`SELECT redemptions.id,redemptions.user_id,redemptions.account_email,redemptions.item_key,
+      redemptions.item_snapshot,redemptions.details,redemptions.points_spent,redemptions.status,redemptions.created_at,redemptions.updated_at,
+      fulfillments.fulfillment_type,fulfillments.shipping_profile_user_id,fulfillments.shipping_address,fulfillments.carrier,fulfillments.tracking_number
+      FROM signal_reward_redemptions redemptions
+      LEFT JOIN signal_reward_fulfillments fulfillments ON fulfillments.redemption_id=redemptions.id
+      ORDER BY redemptions.created_at DESC`) as Array<Record<string, unknown>>;
+    return rows.map((row) => ({
+      id: text(row.id), userId: text(row.user_id), accountEmail: text(row.account_email), itemKey: text(row.item_key),
+      itemSnapshot: json(row.item_snapshot), details: json(row.details), pointsSpent: number(row.points_spent), status: text(row.status),
+      createdAt: text(row.created_at), updatedAt: text(row.updated_at), fulfillmentType: text(row.fulfillment_type),
+      shippingProfileUserId: text(row.shipping_profile_user_id) || null, carrier: text(row.carrier) || null,
+      trackingNumber: text(row.tracking_number) || null,
+      shippingAddress: row.shipping_address && typeof row.shipping_address === "object" ? json(row.shipping_address) : null,
+    }));
+  }
+
   async listOwnerQueue() {
     await this.ensureCatalog();
     const rows = await this.query.query(`SELECT redemptions.id,redemptions.user_id,redemptions.account_email,redemptions.item_key,
