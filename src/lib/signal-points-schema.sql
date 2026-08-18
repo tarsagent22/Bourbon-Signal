@@ -192,6 +192,8 @@ CREATE TABLE IF NOT EXISTS signal_point_migrations (
 INSERT INTO signal_reward_catalog (item_key,catalog_version,name,points_cost,fulfillment_type,option_snapshot)
 VALUES
   ('sticker_pack',1,'Bourbon Signal sticker pack',75,'physical','{"usShippingIncluded":true}'::jsonb),
+  ('standard_membership_credit_month',3,'One month on us — Standard Proof',150,'digital','{"automaticFulfillment":true,"membershipCredit":true,"eligibleTier":"standard","creditCents":300,"rollingLimitDays":365}'::jsonb),
+  ('barrel_membership_credit_month',3,'One month on us — Barrel Proof',250,'digital','{"automaticFulfillment":true,"membershipCredit":true,"eligibleTier":"barrel","creditCents":600,"rollingLimitDays":365}'::jsonb),
   ('rocks_glass',1,'Bourbon Signal rocks glass',400,'physical','{"usShippingIncluded":true,"glassQuantity":1,"engravingPointsPerGlass":125}'::jsonb),
   ('glencairn',1,'Bourbon Signal Glencairn',450,'physical','{"usShippingIncluded":true,"glassQuantity":1,"engravingPointsPerGlass":125}'::jsonb),
   ('bourbon_shipping_gift_card_100',2,'$100 Caskers gift card',2600,'digital','{"ownerFulfillment":true,"requiresAge21Attestation":true,"denominationUsd":100,"partner":"Caskers"}'::jsonb)
@@ -369,6 +371,24 @@ BEGIN
   END IF;
   SELECT * INTO catalog_row FROM signal_reward_catalog WHERE item_key=p_item_key AND active=TRUE FOR UPDATE;
   IF NOT FOUND THEN RAISE EXCEPTION 'Reward is unavailable'; END IF;
+  IF p_item_key IN ('standard_membership_credit_month','barrel_membership_credit_month') THEN
+    IF (p_item_key='standard_membership_credit_month' AND p_tier<>'standard')
+      OR (p_item_key='barrel_membership_credit_month' AND p_tier<>'barrel') THEN
+      RAISE EXCEPTION 'Membership credit tier mismatch';
+    END IF;
+    SELECT * INTO existing_row FROM signal_reward_redemptions
+    WHERE user_id=p_user_id
+      AND item_key IN ('standard_membership_credit_month','barrel_membership_credit_month')
+      AND status<>'canceled'
+      AND created_at > NOW() - INTERVAL '1 year'
+    ORDER BY created_at DESC LIMIT 1;
+    IF FOUND THEN
+      IF existing_row.item_key=p_item_key AND existing_row.status IN ('submitted','approved','digital_fulfillment') THEN
+        RETURN QUERY SELECT existing_row.id,existing_row.status,account_row.balance; RETURN;
+      END IF;
+      RAISE EXCEPTION 'Membership credit already redeemed within the last 12 months';
+    END IF;
+  END IF;
   glass_count := COALESCE((catalog_row.option_snapshot->>'glassQuantity')::INTEGER,0);
   total_cost := catalog_row.points_cost + CASE WHEN p_details->>'glassStyle'='personal' THEN glass_count*125 ELSE 0 END;
   IF account_row.balance < total_cost THEN RAISE EXCEPTION 'Not enough Signal Points'; END IF;
@@ -403,6 +423,10 @@ BEGIN
   SELECT * INTO redemption_row FROM signal_reward_redemptions WHERE id=p_redemption_id FOR UPDATE;
   IF NOT FOUND THEN RAISE EXCEPTION 'Redemption not found'; END IF;
   IF p_actor_role='member' AND redemption_row.user_id<>p_actor_id THEN RAISE EXCEPTION 'Redemption owner mismatch'; END IF;
+  IF redemption_row.item_key IN ('standard_membership_credit_month','barrel_membership_credit_month')
+    AND p_next_status IN ('approved','digital_fulfillment','delivered') AND p_actor_role<>'system' THEN
+    RAISE EXCEPTION 'Membership credits are fulfilled automatically';
+  END IF;
   SELECT signal_point_accounts.balance,signal_point_accounts.debt INTO current_balance,current_debt FROM signal_point_accounts WHERE user_id=redemption_row.user_id FOR UPDATE;
   IF redemption_row.status=p_next_status THEN RETURN QUERY SELECT redemption_row.id,redemption_row.status,current_balance; RETURN; END IF;
   legal := CASE redemption_row.status
@@ -446,6 +470,49 @@ BEGIN
   RETURN QUERY SELECT redemption_row.id,p_next_status,current_balance;
 END $$;
 
+CREATE OR REPLACE FUNCTION prepare_signal_membership_credit_fulfillment(p_redemption_id TEXT,p_actor_id TEXT,p_metadata JSONB DEFAULT '{}'::jsonb)
+RETURNS TABLE(redemption_id TEXT,redemption_status TEXT,balance INTEGER) LANGUAGE plpgsql AS $$
+DECLARE redemption_row signal_reward_redemptions%ROWTYPE; account_balance INTEGER;
+BEGIN
+  SELECT * INTO redemption_row FROM signal_reward_redemptions WHERE id=p_redemption_id FOR UPDATE;
+  IF NOT FOUND THEN RAISE EXCEPTION 'Redemption not found'; END IF;
+  IF redemption_row.item_key NOT IN ('standard_membership_credit_month','barrel_membership_credit_month') THEN RAISE EXCEPTION 'Membership credit redemption required'; END IF;
+  IF redemption_row.status='submitted' THEN
+    PERFORM transition_signal_reward_redemption(redemption_row.id,p_actor_id,'approved','system',COALESCE(p_metadata,'{}'::jsonb));
+    SELECT * INTO redemption_row FROM signal_reward_redemptions WHERE id=p_redemption_id;
+  END IF;
+  IF redemption_row.status='approved' THEN
+    PERFORM transition_signal_reward_redemption(redemption_row.id,p_actor_id,'digital_fulfillment','system',COALESCE(p_metadata,'{}'::jsonb));
+    SELECT * INTO redemption_row FROM signal_reward_redemptions WHERE id=p_redemption_id;
+  END IF;
+  IF redemption_row.status NOT IN ('digital_fulfillment','delivered') THEN RAISE EXCEPTION 'Membership credit redemption cannot be fulfilled from status %',redemption_row.status; END IF;
+  SELECT signal_point_accounts.balance INTO account_balance FROM signal_point_accounts WHERE user_id=redemption_row.user_id;
+  RETURN QUERY SELECT redemption_row.id,redemption_row.status,account_balance;
+END $$;
+
+CREATE OR REPLACE FUNCTION complete_signal_membership_credit_fulfillment(p_redemption_id TEXT,p_actor_id TEXT,p_provider_reference TEXT,p_metadata JSONB DEFAULT '{}'::jsonb)
+RETURNS TABLE(redemption_id TEXT,redemption_status TEXT,balance INTEGER) LANGUAGE plpgsql AS $$
+DECLARE redemption_row signal_reward_redemptions%ROWTYPE; fulfillment_row signal_reward_fulfillments%ROWTYPE; account_balance INTEGER; expected_note TEXT;
+BEGIN
+  IF COALESCE(TRIM(p_provider_reference),'')='' THEN RAISE EXCEPTION 'Membership credit provider reference is required'; END IF;
+  expected_note := 'Stripe credit: '||TRIM(p_provider_reference);
+  SELECT * INTO redemption_row FROM signal_reward_redemptions WHERE id=p_redemption_id FOR UPDATE;
+  IF NOT FOUND THEN RAISE EXCEPTION 'Redemption not found'; END IF;
+  IF redemption_row.item_key NOT IN ('standard_membership_credit_month','barrel_membership_credit_month') THEN RAISE EXCEPTION 'Membership credit redemption required'; END IF;
+  SELECT * INTO fulfillment_row FROM signal_reward_fulfillments WHERE signal_reward_fulfillments.redemption_id=p_redemption_id FOR UPDATE;
+  IF NOT FOUND OR fulfillment_row.fulfillment_type<>'digital' THEN RAISE EXCEPTION 'Digital membership credit fulfillment is unavailable'; END IF;
+  IF COALESCE(fulfillment_row.owner_notes,'')<>'' AND fulfillment_row.owner_notes<>expected_note THEN RAISE EXCEPTION 'Membership credit provider reference conflict'; END IF;
+  IF redemption_row.status='delivered' THEN
+    SELECT signal_point_accounts.balance INTO account_balance FROM signal_point_accounts WHERE user_id=redemption_row.user_id;
+    RETURN QUERY SELECT redemption_row.id,redemption_row.status,account_balance; RETURN;
+  END IF;
+  IF redemption_row.status<>'digital_fulfillment' THEN RAISE EXCEPTION 'Membership credit is not ready for completion'; END IF;
+  UPDATE signal_reward_fulfillments SET owner_notes=expected_note,updated_at=NOW() WHERE signal_reward_fulfillments.redemption_id=p_redemption_id;
+  PERFORM transition_signal_reward_redemption(redemption_row.id,p_actor_id,'delivered','system',COALESCE(p_metadata,'{}'::jsonb)||jsonb_build_object('provider','stripe','providerReference',TRIM(p_provider_reference)));
+  SELECT signal_point_accounts.balance INTO account_balance FROM signal_point_accounts WHERE user_id=redemption_row.user_id;
+  RETURN QUERY SELECT redemption_row.id,'delivered'::TEXT,account_balance;
+END $$;
+
 DO $$
 BEGIN
   IF to_regclass('member_referral_point_ledger') IS NOT NULL THEN
@@ -470,6 +537,7 @@ BEGIN
   -- signal_points_clerk_metadata_v1_verified_complete is intentionally written only after the verified two-pass backfill.
   INSERT INTO signal_point_migrations(migration_key,details) VALUES('signal_points_debt_fulfillment_v2','{"rollForwardOnly":true}'::jsonb) ON CONFLICT(migration_key) DO NOTHING;
   INSERT INTO signal_point_migrations(migration_key,details) VALUES('signal_points_referral_ledger_10x_adjustment_v1','{"mode":"append-only-9x-adjustment"}'::jsonb) ON CONFLICT(migration_key) DO NOTHING;
+  INSERT INTO signal_point_migrations(migration_key,details) VALUES('signal_points_membership_credit_v3_ready','{"mode":"stripe-customer-balance","rollingLimitDays":365}'::jsonb) ON CONFLICT(migration_key) DO NOTHING;
 END $$;
 
 CREATE OR REPLACE FUNCTION mirror_referral_signal_points() RETURNS TRIGGER LANGUAGE plpgsql AS $$

@@ -56,7 +56,7 @@
     "test:alert-delivery-policy": "node scripts/verify-alert-delivery-policy.mjs && node --experimental-strip-types scripts/test-alert-run-safety.mts",
     "test:sighting-rewards": "node --experimental-strip-types scripts/test-sighting-rewards.mjs",
     "test:referrals": "tsx --test scripts/test-referrals.ts",
-    "test:signal-points": "node --no-warnings --experimental-strip-types --test scripts/test-signal-points.mts && node --no-warnings --experimental-strip-types scripts/test-signal-points-postgres.mts",
+    "test:signal-points": "node --no-warnings --experimental-strip-types --test scripts/test-signal-points.mts && node --no-warnings --experimental-strip-types --test scripts/test-signal-points-membership-credit.mts && node --no-warnings --experimental-strip-types scripts/test-signal-points-postgres.mts",
     "test:campaign-click-tracking": "node --no-warnings --experimental-strip-types scripts/test-campaign-click-tracking.mts",
     "test:public-acquisition-ctas": "node --no-warnings --experimental-strip-types scripts/test-public-acquisition-ctas.mts",
     "test:signal-points:postgres": "node --no-warnings --experimental-strip-types scripts/test-signal-points-postgres.mts",
