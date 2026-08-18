@@ -6,6 +6,7 @@ import MemberReferralLink from "@/components/MemberReferralLink";
 import { REFERRAL_POINTS_BY_TIER } from "@/lib/referrals";
 import {
   BADGE_POINTS_AWARD,
+  badgeDescription as defaultBadgeDescription,
   SIGHTING_POINTS_BY_RARITY,
   WEEKLY_STREAK_POINTS_AWARD,
   type MemberRewardsSummary,
@@ -109,7 +110,10 @@ export default function SignalPointsPanel(props: SignalPointsPanelProps) {
   const [tab, setTab] = useState<PreviewTab>("overview");
   const [showAllRewards, setShowAllRewards] = useState(false);
   const [showEarningGuide, setShowEarningGuide] = useState(false);
+  const [showCaskersRestrictions, setShowCaskersRestrictions] = useState(false);
   const earningGuideButton = useRef<HTMLButtonElement | null>(null);
+  const caskersRestrictionsButton = useRef<HTMLButtonElement | null>(null);
+  const caskersRestrictionsDialog = useRef<HTMLElement | null>(null);
   const tabRefs = useRef<Partial<Record<PreviewTab, HTMLButtonElement>>>({});
   const redemptionIntent = useRef<{ signature: string; idempotencyKey: string } | null>(null);
 
@@ -135,6 +139,31 @@ export default function SignalPointsPanel(props: SignalPointsPanelProps) {
     document.addEventListener("keydown", onKeyDown);
     return () => document.removeEventListener("keydown", onKeyDown);
   }, [showEarningGuide]);
+  useEffect(() => {
+    if (!showCaskersRestrictions) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const dialog = caskersRestrictionsDialog.current;
+    const focusable = () => Array.from(dialog?.querySelectorAll<HTMLElement>("a[href], button:not([disabled]), [tabindex]:not([tabindex='-1'])") || []);
+    window.setTimeout(() => focusable()[0]?.focus(), 0);
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        setShowCaskersRestrictions(false);
+        window.setTimeout(() => caskersRestrictionsButton.current?.focus(), 0);
+        return;
+      }
+      if (event.key !== "Tab") return;
+      const controls = focusable();
+      if (!controls.length) return;
+      const first = controls[0];
+      const last = controls[controls.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    };
+    document.addEventListener("keydown", onKeyDown);
+    return () => { document.body.style.overflow = previousOverflow; document.removeEventListener("keydown", onKeyDown); };
+  }, [showCaskersRestrictions]);
 
   const nextReward = useMemo(() => data?.catalog.find((item) => item.points > data.balance && item.inventoryRemaining !== 0) || null, [data]);
   const availableReward = useMemo(() => data?.catalog.find((item) => data.redemptionEligible && item.points <= data.balance && item.inventoryRemaining !== 0) || null, [data]);
@@ -246,10 +275,33 @@ export default function SignalPointsPanel(props: SignalPointsPanelProps) {
 
   if (!data) return error ? <div className="signal-points-loading">{error}</div> : <DefaultLoading />;
 
-  const redemptionModal = selected ? <div className="signal-modal" role="dialog" aria-modal="true" aria-label={`Redeem ${selected.name}`}><form onSubmit={(event) => { event.preventDefault(); void redeem(); }}><h3>{selected.name}</h3><p>{selectedCost} Signal Points</p>
+  const closeCaskersRestrictions = () => {
+    setShowCaskersRestrictions(false);
+    window.setTimeout(() => caskersRestrictionsButton.current?.focus(), 0);
+  };
+  const caskersRestrictionsModal = showCaskersRestrictions ? (
+    <div className="caskers-restrictions-backdrop" role="presentation" onMouseDown={(event) => { if (event.target === event.currentTarget) closeCaskersRestrictions(); }}>
+      <section ref={caskersRestrictionsDialog} className="caskers-restrictions-modal" role="dialog" aria-modal="true" aria-labelledby="caskers-restrictions-title">
+        <header><div><span className="points-kicker">Reward details</span><h3 id="caskers-restrictions-title">Caskers shipping restrictions</h3></div><button type="button" aria-label="Close Caskers shipping restrictions" onClick={closeCaskersRestrictions}>×</button></header>
+        <p><strong>Before redeeming:</strong> Caskers publishes separate eligibility rules for its e-gift cards and for product delivery.</p>
+        <p>Caskers e-gift cards can currently be used only in: <strong>AZ, CA, CO, CT, DC, FL, IL, IN, KY, LA, MD, ME, MI, MN, MO, NC, ND, NE, NH, NJ, NM, NV, NY, OH, OK, OR, PA, RI, SC, TN, TX, VA, and WA.</strong></p>
+        <a href="https://www.caskers.com/caskers-egift-card/" target="_blank" rel="noreferrer">View Caskers e-gift card eligibility →</a>
+        <div className="caskers-restrictions-divider" />
+        <p>Caskers says products cannot be shipped to:</p>
+        <p><strong>Alabama, Alaska, Arkansas, Delaware, Hawaii, Mississippi, Oregon, South Dakota, Utah, Virginia, and West Virginia.</strong></p>
+        <p>Product delivery is limited in <strong>Massachusetts, Minnesota, and Texas (only certain ZIP codes).</strong></p>
+        <p>Confirm your delivery ZIP code with Caskers before redeeming because availability can change.</p>
+        <a href="https://faq.caskers.com/en/articles/8799200-where-can-you-ship-products" target="_blank" rel="noreferrer">View Caskers product shipping information →</a>
+        <button className="caskers-restrictions-done" type="button" onClick={closeCaskersRestrictions}>Done</button>
+      </section>
+    </div>
+  ) : null;
+
+  const redemptionModal = selected && !showCaskersRestrictions ? <div className="signal-modal" role="dialog" aria-modal="true" aria-label={`Redeem ${selected.name}`}><form onSubmit={(event) => { event.preventDefault(); void redeem(); }}><h3>{selected.name}</h3><p>{selectedCost} Signal Points</p>
     {glassQuantity ? <><label>Glass choice<select value={String(details.glassStyle)} onChange={(event) => setDetails((current) => ({ ...current, glassStyle: event.target.value }))}><option value="standard">Standard Bourbon Signal mark</option><option value="personal">Personal engraving (+125 per glass)</option></select></label>{details.glassStyle === "personal" ? <label>Engraving (1–18 characters)<input maxLength={18} required value={String(details.engravingText || "")} onChange={(event) => setDetails((current) => ({ ...current, engravingText: event.target.value }))} /></label> : null}</> : null}
     {selected.options.apparel ? <><label>Size<select value={String(details.size)} onChange={(event) => setDetails((current) => ({ ...current, size: event.target.value }))}>{["S","M","L","XL","2XL","3XL"].map((size) => <option key={size}>{size}</option>)}</select></label><label>Color<select value={String(details.color)} onChange={(event) => setDetails((current) => ({ ...current, color: event.target.value }))}>{["black","charcoal","cream"].map((color) => <option key={color}>{color}</option>)}</select></label></> : null}
     {selected.fulfillmentType === "digital" ? <label className="signal-check"><input type="checkbox" checked={details.age21Attested === true} onChange={(event) => setDetails((current) => ({ ...current, age21Attested: event.target.checked, accountEmail: "verified-account" }))} />I attest that I am 21 or older. This gift card is manually fulfilled by the owner to my verified account email.</label> : <label className="signal-check"><input type="checkbox" checked={confirmSavedAddress} onChange={(event) => setConfirmSavedAddress(event.target.checked)} />Confirm saved address: {data.shippingProfile ? `${data.shippingProfile.recipientName}, ${data.shippingProfile.city}, ${data.shippingProfile.stateCode} ${data.shippingProfile.postalCode}` : "No saved shipping profile—add one in account settings first."}</label>}
+    {selected.key === "bourbon_shipping_gift_card_100" ? <button ref={caskersRestrictionsButton} className="caskers-restrictions-link" type="button" onClick={() => setShowCaskersRestrictions(true)}>Check Caskers shipping restrictions</button> : null}
     <div className="signal-modal-actions"><button type="button" onClick={() => { redemptionIntent.current = null; setSelected(null); }}>Back</button><button type="submit" disabled={saving || selectedCost > data.balance || (selected.fulfillmentType === "physical" && (!data.shippingProfile || !confirmSavedAddress))}>{saving ? "Reserving…" : `Confirm ${selectedCost} pts`}</button></div>
   </form></div> : null;
 
@@ -262,11 +314,13 @@ export default function SignalPointsPanel(props: SignalPointsPanelProps) {
       <MemberReferralLink compact />
       <div className="signal-catalog"><h4>Reward catalog</h4><div>{data.catalog.map((item) => {
         const disabled = !data.redemptionEligible || data.balance < item.points || item.inventoryRemaining === 0;
-        return <article key={item.key}><strong>{item.name}</strong><span>{item.points} pts{item.fulfillmentType === "physical" ? " · U.S. shipping included" : " · digital, owner fulfilled"}</span><button type="button" disabled={disabled} onClick={() => selectReward(item)}>{item.inventoryRemaining === 0 ? "Out of stock" : !data.redemptionEligible ? "Paid membership required" : data.balance < item.points ? `${item.points - data.balance} pts to go` : "Redeem"}</button></article>;
+        return <article key={item.key}><strong>{item.name}</strong><span>{item.points} pts{item.fulfillmentType === "physical" ? " · U.S. shipping included" : " · digital, owner fulfilled"}</span>{item.key === "bourbon_shipping_gift_card_100" ? <button ref={caskersRestrictionsButton} className="caskers-restrictions-link" type="button" onClick={() => setShowCaskersRestrictions(true)}>Shipping restrictions</button> : null}<button type="button" disabled={disabled} onClick={() => selectReward(item)}>{item.inventoryRemaining === 0 ? "Out of stock" : !data.redemptionEligible ? "Paid membership required" : data.balance < item.points ? `${item.points - data.balance} pts to go` : "Redeem"}</button></article>;
       })}</div></div>
       <div className="signal-history"><h4>Redemption history</h4>{data.redemptions.length ? data.redemptions.map((item) => <div key={item.id}><span><strong>{String(item.itemSnapshot.name || item.itemKey)}</strong><small>{item.pointsSpent} pts · {item.status.replaceAll("_", " ")}</small></span>{["reserved", "details_required", "submitted", "approved"].includes(item.status) ? <button disabled={saving} type="button" onClick={() => void cancel(item.id)}>Cancel</button> : null}</div>) : <p>No redemptions yet.</p>}</div>
       {error ? <p role="alert" className="signal-error">{error}</p> : null}
       {redemptionModal}
+      {caskersRestrictionsModal}
+      <CaskersRestrictionStyles />
       <LegacyStyles />
     </section>
   );
@@ -275,7 +329,7 @@ export default function SignalPointsPanel(props: SignalPointsPanelProps) {
   const nextBadge = props.rewards?.badgeProgress.find((item) => !item.earned) || null;
   const badgeKey = props.badgeBaseKey || ((id: string) => id.replace(/_(bronze|silver|gold|platinum|diamond)$/u, ""));
   const badgeLabel = props.badgeLabelFor || ((_id: string, label: string) => label);
-  const badgeDescription = props.badgeDescriptionFor || (() => "Keep contributing useful community signal.");
+  const badgeDescription = props.badgeDescriptionFor || defaultBadgeDescription;
   const badgeIcon = props.badgeIconFor || (() => null);
   const visibleCatalog = showAllRewards ? orderedCatalog : orderedCatalog.slice(0, 4);
   const badgeCards = BADGES.map((badge) => {
@@ -290,7 +344,7 @@ export default function SignalPointsPanel(props: SignalPointsPanelProps) {
   const achievementProgress = nextBadge ? Math.min(100, Math.round((nextBadge.current / nextBadge.target) * 100)) : 100;
   const badgeCollection = <>
     <div className="points-section-heading badge-heading"><div><span className="points-kicker">Collection</span><h3>Badges</h3></div></div>
-    <div className="preview-badge-grid">{badgeCards.map((badge) => <article key={badge.id} data-earned={badge.earned} data-progress={badge.inProgress}><div className="badge-art">{badgeIcon(badge.iconId) ? <img src={badgeIcon(badge.iconId) || undefined} alt="" /> : <div className="reward-mark">★</div>}</div><span>{badge.earned ? "Earned" : badge.next ? `${badge.next.current} / ${badge.next.target}` : "Locked"}</span><strong>{badge.label}</strong><small>{badge.earned || badge.inProgress ? badgeDescription(badge.id) : "Complete earlier progress to unlock."}</small></article>)}</div>
+    <div className="preview-badge-grid">{badgeCards.map((badge) => <article key={badge.id} data-earned={badge.earned} data-progress={badge.inProgress}><div className="badge-art">{badgeIcon(badge.iconId) ? <img src={badgeIcon(badge.iconId) || undefined} alt="" /> : <div className="reward-mark">★</div>}</div><span>{badge.earned ? "Earned" : badge.next ? `${badge.next.current} / ${badge.next.target}` : "Locked"}</span><strong>{badge.label}</strong><small>{badgeDescription(badge.id)}</small></article>)}</div>
   </>;
   const closeEarningGuide = () => {
     setShowEarningGuide(false);
@@ -380,7 +434,7 @@ export default function SignalPointsPanel(props: SignalPointsPanelProps) {
         const disabled = !ready;
         const percent = Math.min(100, Math.round((data.balance / item.points) * 100));
         const status = soldOut ? "Sold out" : !data.redemptionEligible ? "Paid plan required" : enoughPoints ? "Ready now" : `${countLabel(item.points - data.balance, "point")} away`;
-        return <article key={item.key} data-ready={ready} data-distance={index > 1 ? "far" : "near"}><div className="reward-mark">{REWARD_MARKS[item.key] || "BS"}</div><div className="preview-reward-copy"><span>{status}</span><strong>{item.name}</strong><small>{countLabel(item.points, "point")}</small><div className="points-progress"><span style={{ width: `${percent}%` }} /></div></div><button type="button" disabled={disabled} onClick={() => selectReward(item)}>{soldOut ? "Sold out" : !data.redemptionEligible ? "Paid plan" : enoughPoints ? "Redeem" : "Locked"}</button></article>;
+        return <article key={item.key} data-ready={ready} data-distance={index > 1 ? "far" : "near"}><div className="reward-mark">{REWARD_MARKS[item.key] || "BS"}</div><div className="preview-reward-copy"><span>{status}</span><strong>{item.name}</strong><small>{countLabel(item.points, "point")}</small>{item.key === "bourbon_shipping_gift_card_100" ? <button ref={caskersRestrictionsButton} className="caskers-restrictions-link" type="button" onClick={() => setShowCaskersRestrictions(true)}>Shipping restrictions</button> : null}<div className="points-progress"><span style={{ width: `${percent}%` }} /></div></div><button type="button" disabled={disabled} onClick={() => selectReward(item)}>{soldOut ? "Sold out" : !data.redemptionEligible ? "Paid plan" : enoughPoints ? "Redeem" : "Locked"}</button></article>;
       })}</div>{data.catalog.length > 4 ? <button className="points-show-all" type="button" aria-expanded={showAllRewards} onClick={() => setShowAllRewards((current) => !current)}>{showAllRewards ? "Show fewer rewards" : `Show all ${data.catalog.length} rewards`} <span>{showAllRewards ? "↑" : "↓"}</span></button> : null}</div>
 
       <div id="signal-points-panel-badges" className="points-tab-panel" role="tabpanel" aria-labelledby="signal-points-tab-badges" tabIndex={0} hidden={tab !== "badges"}>
@@ -400,6 +454,8 @@ export default function SignalPointsPanel(props: SignalPointsPanelProps) {
       {error ? <p role="alert" className="signal-error">{error}</p> : null}
       {earningGuide}
       {redemptionModal}
+      {caskersRestrictionsModal}
+      <CaskersRestrictionStyles />
       <PreviewStyles />
     </section>
   );
@@ -414,6 +470,25 @@ export default function SignalPointsPanel(props: SignalPointsPanelProps) {
       <AccordionStyles />
     </section>
   );
+}
+
+function CaskersRestrictionStyles() {
+  return <style jsx global>{`
+    .caskers-restrictions-link{width:max-content!important;min-height:0!important;border:0!important;background:transparent!important;padding:2px 0!important;color:#e8c97a!important;font:800 11px/1.35 var(--font-dm-sans)!important;text-align:left!important;text-decoration:underline!important;text-underline-offset:3px!important;cursor:pointer!important}
+    .caskers-restrictions-backdrop{position:fixed;inset:0;z-index:1200;display:grid;place-items:center;background:rgba(0,0,0,.82);padding:18px}
+    .caskers-restrictions-modal{width:min(520px,100%);max-height:min(720px,calc(100vh - 36px));overflow:auto;display:grid;gap:14px;border:1px solid rgba(232,201,122,.28);border-radius:22px;background:linear-gradient(145deg,#20160f,#100d0a);padding:24px;box-shadow:0 28px 90px rgba(0,0,0,.58)}
+    .caskers-restrictions-modal header{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;border-bottom:1px solid rgba(232,201,122,.12);padding-bottom:15px}
+    .caskers-restrictions-modal h3{margin:6px 0 0;color:#f5edd6;font:700 25px/1.15 var(--font-playfair)}
+    .caskers-restrictions-modal .points-kicker{font:850 9px/1 var(--font-jetbrains);letter-spacing:.14em;text-transform:uppercase;color:rgba(232,201,122,.72)}
+    .caskers-restrictions-modal header>button{display:grid;place-items:center;width:36px;height:36px;flex:0 0 auto;border:1px solid rgba(232,201,122,.2);border-radius:999px;background:rgba(245,237,214,.05);color:#f5edd6;font:22px/1 Arial;cursor:pointer}
+    .caskers-restrictions-modal p{margin:0;color:rgba(245,237,214,.7);font:13px/1.65 var(--font-dm-sans)}
+    .caskers-restrictions-modal p strong{color:rgba(245,237,214,.94)}
+    .caskers-restrictions-modal a{width:max-content;max-width:100%;color:#e8c97a;font:800 12px/1.4 var(--font-dm-sans);text-underline-offset:3px}
+    .caskers-restrictions-divider{height:1px;background:rgba(232,201,122,.14);margin:2px 0}
+    .caskers-restrictions-modal .caskers-restrictions-done{min-height:42px;border:1px solid rgba(232,201,122,.38);border-radius:11px;background:#c4943a;color:#100d0a;padding:11px 18px;font:900 12px/1 var(--font-dm-sans);cursor:pointer}
+    .caskers-restrictions-modal button:focus-visible,.caskers-restrictions-modal a:focus-visible,.caskers-restrictions-link:focus-visible{outline:2px solid #e8c97a;outline-offset:3px}
+    @media(max-width:520px){.caskers-restrictions-modal{padding:20px 17px;border-radius:18px}.caskers-restrictions-modal h3{font-size:22px}}
+  `}</style>;
 }
 
 function AccordionStyles() {

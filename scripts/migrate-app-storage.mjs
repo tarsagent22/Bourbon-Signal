@@ -577,6 +577,19 @@ const invalidSignalTriggers = Object.entries(expectedSignalTriggers).flatMap(([n
   const definition = normalizeFunctionText(actual?.definition);
   return actual && fragments.every((fragment) => definition.includes(normalizeFunctionText(fragment))) ? [] : [name];
 });
+const caskersCatalogRows = found.has('signal_reward_catalog') ? await sql.query(`
+  SELECT catalog_version,name,points_cost,fulfillment_type,option_snapshot
+  FROM signal_reward_catalog WHERE item_key='bourbon_shipping_gift_card_100'
+`) : [];
+const caskersCatalog = caskersCatalogRows[0];
+const invalidSignalCatalog = caskersCatalog
+  && Number(caskersCatalog.catalog_version) === 2
+  && caskersCatalog.name === '$100 Caskers gift card'
+  && Number(caskersCatalog.points_cost) === 2600
+  && caskersCatalog.fulfillment_type === 'digital'
+  && caskersCatalog.option_snapshot?.partner === 'Caskers'
+  ? []
+  : ['bourbon_shipping_gift_card_100'];
 const schemaProblems = [
   ...missing.map((table) => `table:${table}`),
   ...missingColumns.map((column) => `column:${column}`),
@@ -591,6 +604,7 @@ const schemaProblems = [
   ...invalidSignalConstraints.map((name) => `constraint-definition:${name}`),
   ...invalidReferralFunctions.map((name) => `function-definition:${name}`),
   ...invalidSignalTriggers.map((name) => `trigger-definition:${name}`),
+  ...invalidSignalCatalog.map((name) => `catalog-definition:${name}`),
 ];
 if (schemaProblems.length) {
   throw new Error(`Application storage schema is incomplete: ${schemaProblems.join(', ')}. Run npm run migrate:app-storage:apply.`);

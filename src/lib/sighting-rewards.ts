@@ -82,6 +82,24 @@ export const SIGHTING_POINTS_BY_RARITY = { unclassified: 10, limited: 10, alloca
 export const BADGE_POINTS_AWARD = 10;
 export const WEEKLY_STREAK_POINTS_AWARD = 10;
 
+export const BADGE_DESCRIPTIONS = {
+  first_sighting: "Post 1 eligible bottle sighting that remains active.",
+  helpful_neighbor: "Post 1 active sighting that receives at least 3 upvotes and maintains a net score of at least 3.",
+  photo_finish: "Attach a photo to 1 sighting that remains active and is not rejected.",
+  spotter: "Post eligible bottle sightings. Badge tiers unlock at 5, 25, and 50 sightings.",
+  unicorn_hunter: "Post unicorn-tier sightings. Badge tiers unlock at 1, 5, and 15 unicorn sightings.",
+  sharp_eye: "Post active sightings that each receive at least 3 upvotes and maintain a net score of at least 3. Badge tiers unlock at 5, 25, and 75 helpful sightings.",
+  local_scout: "Post eligible sightings with the same recorded state and city. Badge tiers unlock at 5, 15, and 40 sightings in one location.",
+  weekend_warrior: "Post during separate weekend weeks, from Friday at 5 p.m. local time through Sunday. Badge tiers unlock at 3, 8, 20, and 40 weekends.",
+  clean_signal: "Post eligible sightings that remain active. Badge tiers unlock at 10, 25, and 50 active sightings.",
+  streak: "Post at least 1 eligible sighting in consecutive weeks. Badge tiers unlock at 2, 4, and 8 weeks.",
+} as const;
+
+export function badgeDescription(id: string) {
+  const key = id.replace(/_(bronze|silver|gold|platinum|diamond)$/u, "") as keyof typeof BADGE_DESCRIPTIONS;
+  return BADGE_DESCRIPTIONS[key] || "Badge requirements are not available.";
+}
+
 export function isRewardsAdminEmail(email?: string | null) {
   return Boolean(email && ADMIN_EMAILS.has(email.trim().toLowerCase()));
 }
@@ -152,7 +170,7 @@ export function isWeekendWarriorWindow(dateValue: string, timeZone?: string) {
 function areaKey(sighting: MemberSighting) {
   const state = (sighting.storeState || "").toUpperCase();
   const city = (sighting.storeCity || "").toLowerCase().trim();
-  return [state, city].filter(Boolean).join(":") || state || "unknown";
+  return state && city ? `${state}:${city}` : null;
 }
 
 function tierProgress(id: string, label: string, current: number, thresholds: Array<[BadgeTier, number]>, awards: MemberBadgeAward[]): BadgeProgress[] {
@@ -200,7 +218,10 @@ export function summarizeMemberRewards(sightings: MemberSighting[], existing?: u
   const unicornSightings = eligible.filter((sighting) => sighting.rarityTier === "unicorn");
   const weekendWeeks = new Set(eligible.filter((sighting) => isWeekendWarriorWindow(sighting.createdAt, sighting.storeTimeZone)).map((sighting) => localWeekKey(sighting.createdAt, sighting.storeTimeZone)).filter(Boolean));
   const areaCounts = new Map<string, number>();
-  for (const sighting of eligible) areaCounts.set(areaKey(sighting), (areaCounts.get(areaKey(sighting)) || 0) + 1);
+  for (const sighting of eligible) {
+    const key = areaKey(sighting);
+    if (key) areaCounts.set(key, (areaCounts.get(key) || 0) + 1);
+  }
   const bestAreaCount = Math.max(0, ...Array.from(areaCounts.values()));
 
   const progress: BadgeProgress[] = [
