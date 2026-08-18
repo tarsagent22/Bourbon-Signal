@@ -5,7 +5,7 @@ export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
   const token = new URL(request.url).searchParams.get("t") || "";
-  const secret = process.env.NEWSLETTER_UNSUBSCRIBE_SECRET || "";
+  const secret = process.env.NEWSLETTER_UNSUBSCRIBE_SECRET || process.env.RESEND_API_KEY || "";
   const payload = secret ? verifyCampaignClickToken(token, secret) : null;
   if (!payload || payload.campaignId !== "free-trial-points-pilot-v1") {
     return NextResponse.json({ error: "This campaign link is invalid or expired." }, { status: 400, headers: { "Cache-Control": "private, no-store" } });
