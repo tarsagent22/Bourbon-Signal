@@ -3,7 +3,7 @@ import { auth, clerkClient } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { notFound, redirect } from "next/navigation";
 import { getCompanyControlRoomSnapshot, invalidateCompanyControlRoomSnapshot } from "@/lib/company-control-room-server";
-import { companyMemberPrimaryEmail, isCompanyControlRoomOwnerEmail } from "@/lib/company-control-room";
+import { companyMemberPrimaryEmail, classifyCompanyMember, isCompanyControlRoomOwnerEmail } from "@/lib/company-control-room";
 import { formatControlRoomDateTime } from "@/lib/control-room-time";
 import { FOUNDER_SHIPPING_CARRIERS, normalizeFounderFulfillment } from "@/lib/founder-shipping";
 import { sendFounderShipmentNotification } from "@/lib/founder-shipping-notification";
@@ -17,6 +17,7 @@ import RetailerAdministration from "@/components/admin/RetailerAdministration";
 import AdminBottleQueueClient from "../bottle-queue/AdminBottleQueueClient";
 import AdminSightingsClient from "../sightings/AdminSightingsClient";
 import SignalPointsAdminBoard from "@/components/admin/SignalPointsAdminBoard";
+import ControlRoomActionCenter, { type ControlRoomMember, type ControlRoomWorkItem } from "@/components/admin/ControlRoomActionCenter";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -169,18 +170,30 @@ export default async function CompanyControlRoomPage({ searchParams }: { searchP
   if (!isCompanyControlRoomOwnerEmail(ownerEmail)) notFound();
   const canAdministerRetailers = isRetailerAdminEmail(ownerEmail);
 
-  const [snapshot, founderShipping, retailerAdministration] = await Promise.all([
+  const [snapshot, founderShipping, retailerAdministration, memberPage] = await Promise.all([
     getCompanyControlRoomSnapshot({ forceFresh: Boolean(coverageUpdatedId) }),
     listFounderShippingForOwner(),
     canAdministerRetailers ? listRetailerAdministration() : Promise.resolve(null),
+    client.users.getUserList({ limit: 500 }),
   ]);
   const { memberships, founder, revenue, audience, growth, lifecycle, retention, demand, coverageDemand, retailer, engine, alerts, release, automation } = snapshot;
   const coverageStatusUpdatedConfirmed = Boolean(coverageUpdatedId && coverageUpdatedStatus && coverageDemand.recentRequests.some(
     (request) => request.id === coverageUpdatedId && request.status === coverageUpdatedStatus,
   ));
   const founderShippingOpen = founderShipping.filter((record) => record.status !== "shipped").length;
-  const deliveryCounts = alerts.counts as Record<string, number>;
-  const stateExceptions = engine.failedStates + engine.degradedStates + engine.staleStates;
+  const controlRoomMembers: ControlRoomMember[] = memberPage.data.flatMap((member) => {
+    const classified = classifyCompanyMember(member);
+    if (classified.isOwner || classified.isRetailer || !classified.email) return [];
+    return [{ id: member.id, name: [member.firstName, member.lastName].filter(Boolean).join(" ") || classified.email.split("@")[0], email: classified.email, tier: classified.effectiveTier, status: classified.status }];
+  });
+  const workItems: ControlRoomWorkItem[] = [
+    ...controlRoomMembers.filter((member) => member.status === "past_due").map((member) => ({ key: `past-due:${member.id}`, title: member.name, detail: "Paid membership is past due and needs account follow-up.", kind: "membership", priority: "urgent" as const, href: "#paid-retention", email: member.email })),
+    ...retention.attention.map((member) => ({ key: `retention:${member.memberId}:${member.stage}`, title: member.name, detail: member.recommendedAction, kind: "retention", priority: member.stage === "rescue_due" ? "high" as const : "normal" as const, href: "#paid-retention", email: member.email })),
+    ...coverageDemand.recentRequests.filter((request) => request.status === "requested").map((request) => ({ key: `coverage:${request.id}`, title: request.targetLabel, detail: `${request.targetType} coverage requested in ${request.stateCode}.`, kind: "coverage", priority: "normal" as const, href: "#coverage-demand", email: request.requesterEmail || undefined })),
+    ...founderShipping.filter((record) => record.status !== "shipped").map((record) => ({ key: `founder:${record.userId}`, title: record.recipientName, detail: `${record.founderNumber ? `Founder No. ${record.founderNumber}` : "Referral glasses"} · ${record.status}`, kind: "fulfillment", priority: record.status === "submitted" ? "high" as const : "normal" as const, href: "#founder-glasses", email: record.accountEmail })),
+    ...engine.stateEngines.filter((row) => row.health !== "healthy").map((row) => ({ key: `engine:${row.state}:${row.status}`, title: `${row.label} engine`, detail: row.issue || `${row.status.replaceAll("_", " ")} requires review.`, kind: "engine", priority: row.health === "critical" ? "urgent" as const : "high" as const, href: "/admin/operations" })),
+    ...(retailerAdministration && Number(retailer.pendingApplications || 0) > 0 ? [{ key: "retailer:pending", title: `${retailer.pendingApplications} retailer application(s)`, detail: "Pending retailer identities need an owner decision.", kind: "retailer", priority: "high" as const, href: "#retailers" }] : []),
+  ];
 
   return (
     <main className="cr-shell">
@@ -207,8 +220,6 @@ export default async function CompanyControlRoomPage({ searchParams }: { searchP
           <a href="#paid-retention">Paid retention</a>
           <a href="#business">Business</a>
           <a href="#product">Product</a>
-          <a href="#operations">Operations</a>
-          <a href="#state-engines">State engines</a>
           <a href="#background">Background</a>
         </nav>
 
@@ -217,26 +228,7 @@ export default async function CompanyControlRoomPage({ searchParams }: { searchP
             <div><p>Start here</p><h2>Needs your attention</h2></div>
             <span>Queues update immediately after each decision</span>
           </div>
-          <div className="cr-attention-strip">
-            {retailerAdministration ? <Link href="#retailers" className={Number(retailer.pendingApplications || 0) > 0 ? "needs-action" : ""}>
-              <span>Retailer applications</span><strong>{count(retailer.pendingApplications)}</strong><small>{Number(retailer.pendingApplications || 0) > 0 ? "Review pending" : "Clear"}</small>
-            </Link> : <div><span>Retailer applications</span><strong>{count(retailer.pendingApplications)}</strong><small>Restricted</small></div>}
-            <div className={memberships.counts.pastDue > 0 ? "needs-action" : ""}>
-              <span>Past-due members</span><strong>{memberships.counts.pastDue}</strong><small>{memberships.counts.pastDue > 0 ? "Needs follow-up" : "Clear"}</small>
-            </div>
-            <Link href="#paid-retention" className={retention.attention.length > 0 ? "needs-action" : ""}>
-              <span>Paid retention</span><strong>{retention.attention.length}</strong><small>{retention.attention.length > 0 ? "Review members" : "Clear"}</small>
-            </Link>
-            <Link href="/admin/operations" className={stateExceptions > 0 ? "needs-action" : ""}>
-              <span>Engine exceptions</span><strong>{stateExceptions}</strong><small>{stateExceptions > 0 ? "Inspect states" : "Clear"}</small>
-            </Link>
-            <Link href="#coverage-demand" className={coverageDemand.totalOpenRequests > 0 ? "needs-action" : ""}>
-              <span>Coverage demand</span><strong>{coverageDemand.totalOpenRequests}</strong><small>{coverageDemand.totalOpenRequests > 0 ? "Review gaps" : "Clear"}</small>
-            </Link>
-            <Link href="#founder-glasses" className={founderShippingOpen > 0 ? "needs-action" : ""}>
-              <span>Founder glasses</span><strong>{founderShippingOpen}</strong><small>{founderShippingOpen > 0 ? "In fulfillment" : "Clear"}</small>
-            </Link>
-          </div>
+          <ControlRoomActionCenter items={workItems} members={controlRoomMembers} />
 
           <div className="cr-queue-grid">
             <article id="bottles" className="cr-queue-panel">
@@ -405,11 +397,12 @@ export default async function CompanyControlRoomPage({ searchParams }: { searchP
           )}
         </section>
 
-        <section id="paid-retention" className="cr-section">
-          <div className="cr-heading">
-            <div><p>Recurring member value</p><h2>Paid-member retention</h2></div>
-            <span>{retention.counts.recurringPaid} active recurring members</span>
-          </div>
+        <details id="paid-retention" className="cr-section cr-collapsible">
+          <summary className="cr-collapsible-summary">
+            <span><p>Recurring member value</p><h2>Paid-member retention</h2></span>
+            <span className="cr-collapsible-meta">{retention.attention.length} need attention · {retention.counts.recurringPaid} recurring <b aria-hidden="true">⌄</b></span>
+          </summary>
+          <div className="cr-collapsible-body">
           <div className="cr-metrics four">
             <Metric label="Needs attention" value={retention.attention.length} detail="Setup gaps or 72+ hours without first value" accent={retention.attention.length > 0} />
             <Metric label="Rescue due" value={retention.counts.rescueDue} detail="Setup complete · no first alert after 72 hours" />
@@ -434,7 +427,8 @@ export default async function CompanyControlRoomPage({ searchParams }: { searchP
             </div>
           ) : <div className="cr-unavailable"><strong>No paid-member rescue is due.</strong><p>All current recurring members have reached first alert value, are still inside the monitored window, or completed setup less than 24 hours ago.</p></div>}
           <p className="cr-note">This queue prioritizes recurring Standard and Barrel members. It never sends email by itself and excludes founders, free members, retailers, and owners.</p>
-        </section>
+          </div>
+        </details>
 
         <section id="business" className="cr-section">
           <div className="cr-heading">
@@ -529,60 +523,6 @@ export default async function CompanyControlRoomPage({ searchParams }: { searchP
               </dl>
             </div>
           </details>
-        </section>
-
-        <section id="operations" className="cr-section">
-          <div className="cr-heading">
-            <div><p>Data and delivery</p><h2>Operating health</h2></div>
-            <span className={`cr-status ${statusTone(alerts.status)}`}>{alerts.status.replaceAll("_", " ")}</span>
-          </div>
-          <div className="cr-metrics four">
-            <Metric label="State exceptions" value={stateExceptions} detail={`${engine.failedStates} failed · ${engine.degradedStates} degraded · ${engine.staleStates} stale`} accent={stateExceptions > 0} />
-            <Metric label="Store records" value={count(engine.stores)} detail="Source-backed locations" />
-            <Metric label="Users matched" value={count(deliveryCounts.usersMatched ?? 0)} detail="Most recent alert run" />
-            <Metric label="Alerts created" value={count(deliveryCounts.onSiteAlertsCreated ?? 0)} detail={`${count(deliveryCounts.emailsSent ?? 0)} emails · ${count(deliveryCounts.smsSent ?? 0)} SMS`} />
-          </div>
-          <div className="cr-delivery">
-            <div><span>On-site</span><strong>{alerts.onSiteEnabled ? "Enabled" : "Off"}</strong></div>
-            <div><span>Email</span><strong>{alerts.emailEnabled ? "Enabled" : "Off"}</strong></div>
-            <div><span>SMS</span><strong>{alerts.smsEnabled ? "Enabled" : "Off"}</strong></div>
-            <div><span>Last run</span><strong>{alerts.ageMinutes ?? "—"} min ago</strong></div>
-          </div>
-          <div className="cr-lines">
-            <div><span>Engine generated</span><strong>{formatControlRoomDateTime(engine.generatedAt)}</strong></div>
-            <div><span>Alert monitor completed</span><strong>{formatControlRoomDateTime(alerts.lastRunAt)}</strong></div>
-          </div>
-        </section>
-
-        <section id="state-engines" className="cr-section">
-          <div className="cr-heading">
-            <div><p>Per-state containment</p><h2>State engine health</h2></div>
-            <span>Problems first · healthy states continue publishing</span>
-          </div>
-          <div className="cr-engine-legend" aria-label="State engine health legend">
-            <span><i className="healthy" aria-hidden="true" />Healthy</span>
-            <span><i className="warning" aria-hidden="true" />Needs attention</span>
-            <span><i className="critical" aria-hidden="true" />Failed or blocked</span>
-          </div>
-          <div className="cr-engine-grid">
-            {engine.stateEngines.map((stateEngine) => (
-              <article key={stateEngine.state} className={`cr-engine-card ${stateEngine.health}`}>
-                <div className="cr-engine-card-head">
-                  <div><span>{stateEngine.state}</span><h3>{stateEngine.label}</h3></div>
-                  <span className={`cr-engine-health ${stateEngine.health}`} role="status" aria-label={`${stateEngine.label} engine ${stateEngine.health}`}>
-                    <i aria-hidden="true" />{stateEngine.health}
-                  </span>
-                </div>
-                <dl>
-                  <div><dt>Signals</dt><dd>{count(stateEngine.signalCount)}</dd></div>
-                  <div><dt>Precision</dt><dd>{stateEngine.bestLocationPrecision?.replaceAll("_", " ") || "Not available"}</dd></div>
-                  <div><dt>Source</dt><dd>{stateEngine.sourceLabel || "Source unavailable"}</dd></div>
-                  <div><dt>Status</dt><dd>{stateEngine.status.replaceAll("_", " ")}</dd></div>
-                </dl>
-                {stateEngine.issue ? <p className="cr-engine-issue">{stateEngine.issue}</p> : <p className="cr-engine-clear">No current engine exception.</p>}
-              </article>
-            ))}
-          </div>
         </section>
 
         <section id="background" className="cr-section cr-background">
