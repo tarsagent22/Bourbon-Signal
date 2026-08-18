@@ -1,7 +1,6 @@
 "use client";
 
 import ScrollReveal from "../ScrollReveal";
-import Button from "../Button";
 
 export default function FinalCTA() {
   return (
@@ -43,13 +42,27 @@ export default function FinalCTA() {
               color: "var(--color-text-secondary)",
             }}
           >
-            Tester access is open while we validate live signal quality.
+            Start with a 7-day free trial.
           </p>
         </ScrollReveal>
 
         <ScrollReveal delay={200}>
           <div className="flex flex-col items-center gap-4">
-            <Button variant="primary">Create Account</Button>
+            <a
+              href="/pricing?source=homepage-final-try-free"
+              className="inline-flex items-center justify-center rounded-lg font-medium transition-all duration-250"
+              style={{
+                background: "linear-gradient(135deg, #C4943A 0%, #D4A44A 100%)",
+                color: "#0D0B0E",
+                padding: "14px 28px",
+                fontSize: "15px",
+                fontFamily: "var(--font-dm-sans)",
+                fontWeight: 600,
+                textDecoration: "none",
+              }}
+            >
+              Try free
+            </a>
             <p
               style={{
                 fontFamily: "var(--font-dm-sans)",
@@ -57,7 +70,7 @@ export default function FinalCTA() {
                 color: "var(--color-text-tertiary)",
               }}
             >
-              Pricing is intentionally hidden until hard launch.
+              Plans start at $3/month after the trial.
             </p>
           </div>
         </ScrollReveal>
