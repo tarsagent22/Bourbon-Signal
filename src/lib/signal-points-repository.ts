@@ -13,6 +13,42 @@ const text = (value: unknown) => typeof value === "string" ? value : value insta
 const number = (value: unknown) => Number.isFinite(Number(value)) ? Number(value) : 0;
 const json = (value: unknown) => value && typeof value === "object" ? value as Record<string, unknown> : {};
 
+const CURRENT_REWARD_CATALOG = [
+  { key: "sticker_pack", version: 1, name: "Bourbon Signal sticker pack", points: 75, fulfillmentType: "physical", options: { usShippingIncluded: true } },
+  { key: "rocks_glass", version: 1, name: "Bourbon Signal rocks glass", points: 400, fulfillmentType: "physical", options: { usShippingIncluded: true, glassQuantity: 1, engravingPointsPerGlass: 125 } },
+  { key: "glencairn", version: 1, name: "Bourbon Signal Glencairn", points: 450, fulfillmentType: "physical", options: { usShippingIncluded: true, glassQuantity: 1, engravingPointsPerGlass: 125 } },
+  { key: "bourbon_shipping_gift_card_100", version: 2, name: "$100 Caskers gift card", points: 2600, fulfillmentType: "digital", options: { ownerFulfillment: true, requiresAge21Attestation: true, denominationUsd: 100, partner: "Caskers" } },
+] as const;
+
+export async function syncCurrentSignalRewardCatalog(query: SignalPointsQuery) {
+  const values = CURRENT_REWARD_CATALOG.map((_, index) => {
+    const start = index * 6;
+    return `($${start + 1},$${start + 2},$${start + 3},$${start + 4},$${start + 5},$${start + 6}::jsonb)`;
+  }).join(",");
+  const params = CURRENT_REWARD_CATALOG.flatMap((item) => [
+    item.key, item.version, item.name, item.points, item.fulfillmentType, JSON.stringify(item.options),
+  ]);
+  await query.query(`INSERT INTO signal_reward_catalog (item_key,catalog_version,name,points_cost,fulfillment_type,option_snapshot)
+    VALUES ${values}
+    ON CONFLICT (item_key) DO UPDATE SET
+      catalog_version=EXCLUDED.catalog_version,name=EXCLUDED.name,points_cost=EXCLUDED.points_cost,
+      fulfillment_type=EXCLUDED.fulfillment_type,option_snapshot=EXCLUDED.option_snapshot,updated_at=NOW()
+    WHERE signal_reward_catalog.catalog_version < EXCLUDED.catalog_version`, params);
+}
+
+export function createSignalRewardCatalogSyncMemo() {
+  let sync: Promise<void> | null = null;
+  return (query: SignalPointsQuery) => {
+    if (!sync) sync = syncCurrentSignalRewardCatalog(query).catch((error) => {
+      sync = null;
+      throw error;
+    });
+    return sync;
+  };
+}
+
+const syncRuntimeCatalog = createSignalRewardCatalogSyncMemo();
+
 export function normalizedClerkRewardPoints(input: unknown) {
   const profile = json(input);
   const ledger = Array.isArray(profile.ledger) ? profile.ledger.map(json).filter((entry) => !entry.revokedAt) : [];
@@ -82,9 +118,16 @@ function allowUnverifiedCutover(env: NodeJS.ProcessEnv) {
 export class SignalPointsRepository {
   private readonly query: SignalPointsQuery;
   private readonly bypassCutover: boolean;
+  private readonly useRuntimeCatalogCache: boolean;
+  private readonly syncCatalog = createSignalRewardCatalogSyncMemo();
   constructor(input: string | SignalPointsQuery, options: { allowUnverifiedCutover?: boolean } = {}) {
     this.query = typeof input === "string" ? neon(input) as unknown as SignalPointsQuery : input;
     this.bypassCutover = options.allowUnverifiedCutover === true;
+    this.useRuntimeCatalogCache = typeof input === "string";
+  }
+
+  private ensureCatalog() {
+    return this.useRuntimeCatalogCache ? syncRuntimeCatalog(this.query) : this.syncCatalog(this.query);
   }
 
   async assertCutoverVerified() {
@@ -163,6 +206,7 @@ export class SignalPointsRepository {
 
   async readMember(userId: string) {
     await this.assertCutoverVerified();
+    await this.ensureCatalog();
     await this.query.query("INSERT INTO signal_point_accounts(user_id) VALUES($1) ON CONFLICT(user_id) DO NOTHING", [userId]);
     const [accountRows, catalogRows, redemptionRows] = await Promise.all([
       this.query.query("SELECT balance,debt FROM signal_point_accounts WHERE user_id=$1", [userId]),
@@ -186,6 +230,7 @@ export class SignalPointsRepository {
 
   async reserve(input: { id: string; userId: string; tier: MembershipTier; itemKey: string; idempotencyKey: string; details: Record<string, unknown>; accountEmail: string; shippingConfirmed: boolean }) {
     await this.assertCutoverVerified();
+    await this.ensureCatalog();
     const rows = await this.query.query("SELECT * FROM reserve_signal_reward($1,$2,$3,$4,$5,$6::jsonb,$7,$8)", [
       input.id, input.userId, input.tier, input.itemKey, input.idempotencyKey, JSON.stringify(input.details), input.accountEmail, input.shippingConfirmed,
     ]) as Array<Record<string, unknown>>;
@@ -203,6 +248,7 @@ export class SignalPointsRepository {
   }
 
   async listOwnerQueue() {
+    await this.ensureCatalog();
     const rows = await this.query.query(`SELECT redemptions.id,redemptions.user_id,redemptions.account_email,redemptions.item_key,
       redemptions.item_snapshot,redemptions.details,redemptions.points_spent,redemptions.status,redemptions.created_at,
       fulfillments.fulfillment_type,fulfillments.shipping_profile_user_id,fulfillments.shipping_address,fulfillments.carrier,fulfillments.tracking_number

@@ -8,7 +8,7 @@ import {
   normalizeRedemptionDetails,
   rewardCatalogItem,
 } from "../src/lib/signal-points.ts";
-import { clerkRewardSourceTargets, normalizedClerkRewardPoints, SignalPointsRepository } from "../src/lib/signal-points-repository.ts";
+import { clerkRewardSourceTargets, createSignalRewardCatalogSyncMemo, normalizedClerkRewardPoints, SignalPointsRepository, syncCurrentSignalRewardCatalog } from "../src/lib/signal-points-repository.ts";
 import { REFERRAL_POINTS_BY_TIER } from "../src/lib/referrals.ts";
 import { BADGE_DESCRIPTIONS, BADGE_POINTS_AWARD, SIGHTING_POINTS_BY_RARITY, WEEKLY_STREAK_POINTS_AWARD, summarizeMemberRewards } from "../src/lib/sighting-rewards.ts";
 
@@ -65,6 +65,58 @@ test("the Caskers reward exposes shipping restrictions and the official source",
   assert.match(panel, /https:\/\/faq\.caskers\.com\/en\/articles\/8799200-where-can-you-ship-products/);
   assert.match(panel, /role="dialog"[\s\S]*Caskers shipping restrictions/);
   assert.doesNotMatch(panel, /Complete earlier progress to unlock\./, "locked badges still explain how to earn them");
+});
+
+test("the current reward catalog advances monotonically before member and owner reads", async () => {
+  const calls: Array<{ sql: string; params?: unknown[] }> = [];
+  await syncCurrentSignalRewardCatalog({ query: async (sql, params) => { calls.push({ sql, params }); return []; } });
+  assert.equal(calls.length, 1);
+  assert.match(calls[0].sql, /INSERT INTO signal_reward_catalog[\s\S]*ON CONFLICT[\s\S]*catalog_version\s*<\s*EXCLUDED\.catalog_version/i);
+  assert.doesNotMatch(calls[0].sql, /active\s*=\s*TRUE/i, "runtime sync preserves owner emergency disables");
+  const schema = read("src/lib/signal-points-schema.sql");
+  const catalogUpsert = schema.match(/INSERT INTO signal_reward_catalog[\s\S]*?WHERE signal_reward_catalog\.catalog_version < EXCLUDED\.catalog_version;/i)?.[0] || "";
+  assert.match(catalogUpsert, /catalog_version < EXCLUDED\.catalog_version/i);
+  assert.doesNotMatch(catalogUpsert, /active\s*=\s*TRUE/i, "canonical migrations also preserve emergency disables");
+  assert.ok(calls[0].params?.includes("bourbon_shipping_gift_card_100"));
+  assert.ok(calls[0].params?.includes("$100 Caskers gift card"));
+  assert.ok(calls[0].params?.includes(2));
+  const expectedOptions: Record<string, Record<string, unknown>> = {
+    sticker_pack: { usShippingIncluded: true },
+    rocks_glass: { usShippingIncluded: true, glassQuantity: 1, engravingPointsPerGlass: 125 },
+    glencairn: { usShippingIncluded: true, glassQuantity: 1, engravingPointsPerGlass: 125 },
+    bourbon_shipping_gift_card_100: { ownerFulfillment: true, requiresAge21Attestation: true, denominationUsd: 100, partner: "Caskers" },
+  };
+  const storedRows = Array.from({ length: (calls[0].params?.length || 0) / 6 }, (_, index) => calls[0].params?.slice(index * 6, index * 6 + 6));
+  for (const item of SIGNAL_REWARD_CATALOG) {
+    const row = storedRows.find((candidate) => candidate?.[0] === item.key);
+    assert.deepEqual(row?.slice(0, 5), [item.key, item.catalogVersion, item.name, item.points, item.fulfillmentType]);
+    assert.deepEqual(JSON.parse(String(row?.[5])), expectedOptions[item.key]);
+  }
+  for (const expectedSqlRow of [
+    `('sticker_pack',1,'Bourbon Signal sticker pack',75,'physical','{"usShippingIncluded":true}'::jsonb)`,
+    `('rocks_glass',1,'Bourbon Signal rocks glass',400,'physical','{"usShippingIncluded":true,"glassQuantity":1,"engravingPointsPerGlass":125}'::jsonb)`,
+    `('glencairn',1,'Bourbon Signal Glencairn',450,'physical','{"usShippingIncluded":true,"glassQuantity":1,"engravingPointsPerGlass":125}'::jsonb)`,
+    `('bourbon_shipping_gift_card_100',2,'$100 Caskers gift card',2600,'digital','{"ownerFulfillment":true,"requiresAge21Attestation":true,"denominationUsd":100,"partner":"Caskers"}'::jsonb)`,
+  ]) assert.ok(schema.includes(expectedSqlRow), `canonical SQL catalog row drifted: ${expectedSqlRow}`);
+  assert.match(String(calls[0].params?.find((value) => typeof value === "string" && value.startsWith("{") && value.includes("Caskers"))), /"partner":"Caskers"/);
+  const repository = read("src/lib/signal-points-repository.ts");
+  for (const method of ["readMember", "reserve", "listOwnerQueue"]) {
+    assert.match(repository, new RegExp(`async ${method}\\([\\s\\S]*?await this\\.ensureCatalog\\(\\)`));
+  }
+});
+
+test("catalog sync memo retries after a transient serverless write failure", async () => {
+  const memo = createSignalRewardCatalogSyncMemo();
+  let attempts = 0;
+  const query = { query: async () => {
+    attempts += 1;
+    if (attempts === 1) throw new Error("transient database failure");
+    return [];
+  } };
+  await assert.rejects(memo(query), /transient database failure/);
+  await memo(query);
+  await memo(query);
+  assert.equal(attempts, 2, "a failed write is retried once while a successful write remains memoized");
 });
 
 test("only paid memberships may redeem while Free can accumulate", () => {

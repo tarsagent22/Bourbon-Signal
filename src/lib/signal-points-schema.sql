@@ -197,7 +197,8 @@ VALUES
   ('bourbon_shipping_gift_card_100',2,'$100 Caskers gift card',2600,'digital','{"ownerFulfillment":true,"requiresAge21Attestation":true,"denominationUsd":100,"partner":"Caskers"}'::jsonb)
 ON CONFLICT (item_key) DO UPDATE SET
   catalog_version=EXCLUDED.catalog_version,name=EXCLUDED.name,points_cost=EXCLUDED.points_cost,
-  fulfillment_type=EXCLUDED.fulfillment_type,option_snapshot=EXCLUDED.option_snapshot,active=TRUE,updated_at=NOW();
+  fulfillment_type=EXCLUDED.fulfillment_type,option_snapshot=EXCLUDED.option_snapshot,updated_at=NOW()
+WHERE signal_reward_catalog.catalog_version < EXCLUDED.catalog_version;
 
 -- Preserve the retired SKU for immutable historical redemption foreign keys and snapshots.
 UPDATE signal_reward_catalog SET active=FALSE,updated_at=NOW()

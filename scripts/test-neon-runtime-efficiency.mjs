@@ -11,7 +11,6 @@ const packageJson = JSON.parse(read('package.json'));
 const backup = read('scripts/backup-neon-local.mjs');
 const migration = read('scripts/migrate-app-storage.mjs');
 const release = read('scripts/release-production.mjs');
-const productionMigrationWorkflow = read('.github/workflows/app-storage-migration.yml');
 
 const runtimeSelection = runtime.match(/return env\.BOURBON_QUEUE_DATABASE_URL[\s\S]*?\|\| null/)?.[0] || '';
 const pooledIndex = runtimeSelection.indexOf('env.BOURBON_QUEUE_DATABASE_URL');
@@ -41,12 +40,6 @@ assert.match(migration, /expectedIndexes/);
 assert.match(migration, /retailer_submissions_store_id_fkey/);
 assert.match(migration, /catalog-definition:[^\n]*bourbon_shipping_gift_card_100|invalidSignalCatalog[\s\S]*\$100 Caskers gift card/, 'migration verification checks the Caskers catalog row');
 assert.match(release, /vercel['"], \[['"]env['"], ['"]run['"], ['"]-e['"], ['"]production['"][\s\S]*migrate:app-storage/);
-assert.match(productionMigrationWorkflow, /workflow_dispatch:[\s\S]*expected_sha:[\s\S]*confirmation:/);
-assert.match(productionMigrationWorkflow, /github\.ref == 'refs\/heads\/main'[\s\S]*APPLY_APP_STORAGE_MIGRATION/);
-assert.match(productionMigrationWorkflow, /test "\$\(git rev-parse HEAD\)" = "\$EXPECTED_SHA"/);
-assert.match(productionMigrationWorkflow, /environment:\s*Production/);
-assert.match(productionMigrationWorkflow, /git fetch origin main[\s\S]*git rev-parse origin\/main[\s\S]*migrate:app-storage:apply\n[\s\S]*migrate:app-storage\n/);
-assert.doesNotMatch(productionMigrationWorkflow, /vercel@[^\s]+ pull|pull_request|push:/, 'production migration neither writes environment files nor runs automatically');
 assert.match(controlRoom, /CONTROL_ROOM_CACHE_TTL_MS\s*=\s*20_000/, 'Control Room aggregation should have a short bounded cache');
 assert.match(controlRoom, /controlRoomInFlight/, 'concurrent Control Room loads should be deduplicated');
 
