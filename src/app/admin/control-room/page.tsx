@@ -3,7 +3,7 @@ import { auth, clerkClient } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { notFound, redirect } from "next/navigation";
 import { getCompanyControlRoomSnapshot, invalidateCompanyControlRoomSnapshot } from "@/lib/company-control-room-server";
-import { companyMemberPrimaryEmail, classifyCompanyMember, isCompanyControlRoomOwnerEmail } from "@/lib/company-control-room";
+import { companyMemberPrimaryEmail, isCompanyControlRoomOwnerEmail } from "@/lib/company-control-room";
 import { formatControlRoomDateTime } from "@/lib/control-room-time";
 import { FOUNDER_SHIPPING_CARRIERS, normalizeFounderFulfillment } from "@/lib/founder-shipping";
 import { sendFounderShipmentNotification } from "@/lib/founder-shipping-notification";
@@ -17,7 +17,6 @@ import RetailerAdministration from "@/components/admin/RetailerAdministration";
 import AdminBottleQueueClient from "../bottle-queue/AdminBottleQueueClient";
 import AdminSightingsClient from "../sightings/AdminSightingsClient";
 import SignalPointsAdminBoard from "@/components/admin/SignalPointsAdminBoard";
-import ControlRoomActionCenter, { type ControlRoomMember, type ControlRoomWorkItem } from "@/components/admin/ControlRoomActionCenter";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -170,30 +169,16 @@ export default async function CompanyControlRoomPage({ searchParams }: { searchP
   if (!isCompanyControlRoomOwnerEmail(ownerEmail)) notFound();
   const canAdministerRetailers = isRetailerAdminEmail(ownerEmail);
 
-  const [snapshot, founderShipping, retailerAdministration, memberPage] = await Promise.all([
+  const [snapshot, founderShipping, retailerAdministration] = await Promise.all([
     getCompanyControlRoomSnapshot({ forceFresh: Boolean(coverageUpdatedId) }),
     listFounderShippingForOwner(),
     canAdministerRetailers ? listRetailerAdministration() : Promise.resolve(null),
-    client.users.getUserList({ limit: 500 }),
   ]);
   const { memberships, founder, revenue, audience, growth, lifecycle, retention, demand, coverageDemand, retailer, engine, alerts, release, automation } = snapshot;
   const coverageStatusUpdatedConfirmed = Boolean(coverageUpdatedId && coverageUpdatedStatus && coverageDemand.recentRequests.some(
     (request) => request.id === coverageUpdatedId && request.status === coverageUpdatedStatus,
   ));
   const founderShippingOpen = founderShipping.filter((record) => record.status !== "shipped").length;
-  const controlRoomMembers: ControlRoomMember[] = memberPage.data.flatMap((member) => {
-    const classified = classifyCompanyMember(member);
-    if (classified.isOwner || classified.isRetailer || !classified.email) return [];
-    return [{ id: member.id, name: [member.firstName, member.lastName].filter(Boolean).join(" ") || classified.email.split("@")[0], email: classified.email, tier: classified.effectiveTier, status: classified.status }];
-  });
-  const workItems: ControlRoomWorkItem[] = [
-    ...controlRoomMembers.filter((member) => member.status === "past_due").map((member) => ({ key: `past-due:${member.id}`, title: member.name, detail: "Paid membership is past due and needs account follow-up.", kind: "membership", priority: "urgent" as const, href: "#paid-retention", email: member.email })),
-    ...retention.attention.map((member) => ({ key: `retention:${member.memberId}:${member.stage}`, title: member.name, detail: member.recommendedAction, kind: "retention", priority: member.stage === "rescue_due" ? "high" as const : "normal" as const, href: "#paid-retention", email: member.email })),
-    ...coverageDemand.recentRequests.filter((request) => request.status === "requested").map((request) => ({ key: `coverage:${request.id}`, title: request.targetLabel, detail: `${request.targetType} coverage requested in ${request.stateCode}.`, kind: "coverage", priority: "normal" as const, href: "#coverage-demand", email: request.requesterEmail || undefined })),
-    ...founderShipping.filter((record) => record.status !== "shipped").map((record) => ({ key: `founder:${record.userId}`, title: record.recipientName, detail: `${record.founderNumber ? `Founder No. ${record.founderNumber}` : "Referral glasses"} · ${record.status}`, kind: "fulfillment", priority: record.status === "submitted" ? "high" as const : "normal" as const, href: "#founder-glasses", email: record.accountEmail })),
-    ...engine.stateEngines.filter((row) => row.health !== "healthy").map((row) => ({ key: `engine:${row.state}:${row.status}`, title: `${row.label} engine`, detail: row.issue || `${row.status.replaceAll("_", " ")} requires review.`, kind: "engine", priority: row.health === "critical" ? "urgent" as const : "high" as const, href: "/admin/operations" })),
-    ...(retailerAdministration && Number(retailer.pendingApplications || 0) > 0 ? [{ key: "retailer:pending", title: `${retailer.pendingApplications} retailer application(s)`, detail: "Pending retailer identities need an owner decision.", kind: "retailer", priority: "high" as const, href: "#retailers" }] : []),
-  ];
 
   return (
     <main className="cr-shell">
@@ -228,7 +213,23 @@ export default async function CompanyControlRoomPage({ searchParams }: { searchP
             <div><p>Start here</p><h2>Needs your attention</h2></div>
             <span>Queues update immediately after each decision</span>
           </div>
-          <ControlRoomActionCenter items={workItems} members={controlRoomMembers} />
+          <div className="cr-attention-strip">
+            {retailerAdministration ? <Link href="#retailers" className={Number(retailer.pendingApplications || 0) > 0 ? "needs-action" : "is-clear"}>
+              <span>Retailer requests</span><strong>{count(retailer.pendingApplications)}</strong><small>{Number(retailer.pendingApplications || 0) > 0 ? "Review" : "Clear"}</small>
+            </Link> : <div className="is-clear"><span>Retailer requests</span><strong>—</strong><small>Restricted</small></div>}
+            <Link href="#paid-retention" className={memberships.counts.pastDue > 0 ? "needs-action" : "is-clear"}>
+              <span>Payment problems</span><strong>{memberships.counts.pastDue}</strong><small>{memberships.counts.pastDue > 0 ? "Review members" : "Clear"}</small>
+            </Link>
+            <Link href="#paid-retention" className={retention.attention.length > 0 ? "needs-action" : "is-clear"}>
+              <span>Members needing help</span><strong>{retention.attention.length}</strong><small>{retention.attention.length > 0 ? "Review members" : "Clear"}</small>
+            </Link>
+            <Link href="#coverage-demand" className={coverageDemand.totalOpenRequests > 0 ? "needs-action" : "is-clear"}>
+              <span>Coverage requests</span><strong>{coverageDemand.totalOpenRequests}</strong><small>{coverageDemand.totalOpenRequests > 0 ? "Review requests" : "Clear"}</small>
+            </Link>
+            <Link href="#founder-glasses" className={founderShippingOpen > 0 ? "needs-action" : "is-clear"}>
+              <span>Glasses to ship</span><strong>{founderShippingOpen}</strong><small>{founderShippingOpen > 0 ? "Review orders" : "Clear"}</small>
+            </Link>
+          </div>
 
           <div className="cr-queue-grid">
             <article id="bottles" className="cr-queue-panel">
@@ -399,8 +400,8 @@ export default async function CompanyControlRoomPage({ searchParams }: { searchP
 
         <details id="paid-retention" className="cr-section cr-collapsible">
           <summary className="cr-collapsible-summary">
-            <span><p>Recurring member value</p><h2>Paid-member retention</h2></span>
-            <span className="cr-collapsible-meta">{retention.attention.length} need attention · {retention.counts.recurringPaid} recurring <b aria-hidden="true">⌄</b></span>
+            <span><p>Member follow-up</p><h2>Paid-member retention</h2></span>
+            <span className="cr-collapsible-meta">{retention.attention.length} need review · {retention.counts.recurringPaid} recurring <b aria-hidden="true">⌄</b></span>
           </summary>
           <div className="cr-collapsible-body">
           <div className="cr-metrics four">
@@ -575,7 +576,7 @@ const controlRoomCss = `
 .cr-jump{position:sticky;top:0;z-index:5;display:flex;gap:7px;overflow:auto;padding:14px 0;background:linear-gradient(180deg,#0d0a07 72%,transparent)}.cr-jump a{border:1px solid rgba(245,237,214,.1);border-radius:999px;padding:9px 12px;color:rgba(245,237,214,.66);font:800 10px/1 var(--font-jetbrains);letter-spacing:.08em;text-decoration:none;text-transform:uppercase;white-space:nowrap;transition:transform 120ms ease,border-color 120ms ease,background 120ms ease}.cr-jump a:hover,.cr-jump a:focus-visible{outline:none;border-color:rgba(196,148,58,.55);background:rgba(196,148,58,.08);color:#f5edd6}.cr-jump a:active{transform:translateY(2px)}
 .cr-section{scroll-margin-top:62px;margin-top:22px;border:1px solid rgba(245,237,214,.1);background:linear-gradient(145deg,rgba(255,255,255,.042),rgba(255,255,255,.018));padding:24px;box-shadow:0 24px 80px rgba(0,0,0,.17)}.cr-priority{border-color:rgba(196,148,58,.28);box-shadow:0 28px 90px rgba(0,0,0,.28)}.cr-heading{display:flex;align-items:end;justify-content:space-between;gap:18px;margin-bottom:20px}.cr-heading h2{margin:7px 0 0;font:700 clamp(25px,3vw,35px)/1 var(--font-playfair);letter-spacing:-.025em}.cr-heading>span{color:rgba(245,237,214,.5);font:11px/1.3 var(--font-jetbrains)}
 .cr-collapsible{padding:0;overflow:hidden}.cr-collapsible-summary{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:19px 22px;cursor:pointer;list-style:none}.cr-collapsible-summary::-webkit-details-marker{display:none}.cr-collapsible-summary p{margin:0;color:#c4943a;font:900 9px/1 var(--font-jetbrains);letter-spacing:.16em;text-transform:uppercase}.cr-collapsible-summary h2{margin:7px 0 0;font:700 clamp(22px,3vw,30px)/1 var(--font-playfair);letter-spacing:-.025em}.cr-collapsible-meta{display:flex;align-items:center;gap:12px;color:rgba(245,237,214,.5);font:10px/1.3 var(--font-jetbrains)}.cr-collapsible-meta b{display:grid;place-items:center;width:28px;height:28px;border:1px solid rgba(196,148,58,.35);border-radius:999px;color:#d9b768;font-size:16px;transition:transform 160ms ease}.cr-collapsible[open]>.cr-collapsible-summary{border-bottom:1px solid rgba(245,237,214,.1)}.cr-collapsible[open]>.cr-collapsible-summary .cr-collapsible-meta b{transform:rotate(180deg)}.cr-collapsible-body{padding:18px 22px 22px}
-.cr-attention-strip{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-bottom:18px}.cr-attention-strip>a,.cr-attention-strip>div{display:grid;grid-template-columns:1fr auto;gap:5px 14px;border:1px solid rgba(115,201,135,.18);border-radius:14px;background:rgba(56,130,74,.06);padding:13px 14px;color:#f5edd6;text-decoration:none}.cr-attention-strip .needs-action{border-color:rgba(220,166,55,.34);background:rgba(196,148,58,.1)}.cr-attention-strip span{color:rgba(245,237,214,.58);font-size:12px}.cr-attention-strip strong{grid-row:span 2;font:700 28px/1 var(--font-playfair)}.cr-attention-strip small{color:rgba(245,237,214,.42);font-size:10px}.cr-attention-strip a{transition:transform 120ms ease,border-color 120ms ease}.cr-attention-strip a:hover{border-color:rgba(196,148,58,.6)}.cr-attention-strip a:active{transform:translateY(2px)}
+.cr-attention-strip{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-bottom:18px}.cr-attention-strip>a,.cr-attention-strip>div{display:grid;grid-template-columns:1fr auto;gap:5px 14px;border:1px solid rgba(115,201,135,.18);border-radius:14px;background:rgba(56,130,74,.06);padding:13px 14px;color:#f5edd6;text-decoration:none}.cr-attention-strip .needs-action{border-color:rgba(220,166,55,.34);background:rgba(196,148,58,.1)}.cr-attention-strip .is-clear{opacity:.42;filter:saturate(.45)}.cr-attention-strip .is-clear:hover,.cr-attention-strip .is-clear:focus-visible{opacity:.72}.cr-attention-strip span{color:rgba(245,237,214,.58);font-size:12px}.cr-attention-strip strong{grid-row:span 2;font:700 28px/1 var(--font-playfair)}.cr-attention-strip small{color:rgba(245,237,214,.42);font-size:10px}.cr-attention-strip a{transition:transform 120ms ease,border-color 120ms ease}.cr-attention-strip a:hover{border-color:rgba(196,148,58,.6)}.cr-attention-strip a:active{transform:translateY(2px)}
 .cr-queue-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.cr-queue-panel{min-width:0;border:1px solid rgba(245,237,214,.09);border-radius:18px;background:rgba(7,5,4,.42);padding:16px}.cr-subheading{display:flex;justify-content:space-between;align-items:end;gap:12px}.cr-subheading h3{margin:6px 0 0;font:700 25px/1 var(--font-playfair)}.cr-subheading a{color:#d9b768;font-size:11px}.cr-note{margin:15px 0 0;color:rgba(245,237,214,.47);font-size:12px;line-height:1.55}.cr-note.top{margin:9px 0 2px}
 .cr-metrics{display:grid;gap:1px;border:1px solid rgba(245,237,214,.08);background:rgba(245,237,214,.08)}.cr-metrics.four{grid-template-columns:repeat(4,minmax(0,1fr))}.cr-metric{min-height:142px;padding:18px;background:#15100c}.cr-metric.accent{background:linear-gradient(145deg,rgba(196,148,58,.18),#15100c 64%)}.cr-metric p{margin:0;color:rgba(245,237,214,.48);font:900 9px/1 var(--font-jetbrains);letter-spacing:.12em;text-transform:uppercase}.cr-metric strong{display:block;margin-top:17px;color:#f5edd6;font:700 clamp(27px,4vw,41px)/.95 var(--font-playfair);letter-spacing:-.035em;overflow-wrap:anywhere}.cr-metric span{display:block;margin-top:13px;color:rgba(245,237,214,.52);font-size:12px;line-height:1.45}
 .cr-details{margin-top:14px;border:1px solid rgba(245,237,214,.09);background:rgba(0,0,0,.12)}.cr-details>summary,.cr-contract>summary{cursor:pointer;list-style:none;padding:14px 16px;color:#d9b768;font:800 11px/1.3 var(--font-jetbrains);letter-spacing:.08em;text-transform:uppercase}.cr-details>summary::-webkit-details-marker,.cr-contract>summary::-webkit-details-marker{display:none}.cr-details>summary:after,.cr-contract>summary:after{content:'+';float:right}.cr-details[open]>summary:after,.cr-contract[open]>summary:after{content:'−'}.cr-detail-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;padding:0 14px 14px}.cr-list{margin:0;background:#15100c;padding:8px 14px}.cr-list div{display:flex;justify-content:space-between;gap:18px;padding:11px 0;border-bottom:1px solid rgba(245,237,214,.08)}.cr-list div:last-child{border:0}.cr-list dt{color:rgba(245,237,214,.56);font-size:12px}.cr-list dd{margin:0;text-align:right;font:800 12px/1.3 var(--font-jetbrains)}
