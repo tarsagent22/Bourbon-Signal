@@ -25,7 +25,7 @@ export default function Navigation() {
   const [mounted, setMounted] = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
-  const { isSignedIn, user, signIn, signUp, signOut, memberTier, entitlements, memberNumber } = useAuth();
+  const { isSignedIn, user, signIn, signOut, memberTier, entitlements, memberNumber } = useAuth();
 
 
   // Close profile dropdown on outside click
@@ -360,11 +360,7 @@ export default function Navigation() {
                 Sign In
               </a>
               <a
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  signUp();
-                }}
+                href="/pricing?source=site-nav-desktop-try-free"
                 style={{
                   fontFamily: "var(--font-dm-sans)",
                   fontSize: "14px",
@@ -383,7 +379,7 @@ export default function Navigation() {
                   (e.currentTarget.style.opacity = "1")
                 }
               >
-                Create Account
+                Try free
               </a>
             </>
           )}
@@ -517,12 +513,8 @@ export default function Navigation() {
                   Sign In
                 </a>
                 <a
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    signUp();
-                    setMobileOpen(false);
-                  }}
+                  href="/pricing?source=site-nav-mobile-try-free"
+                  onClick={() => setMobileOpen(false)}
                   style={{
                     fontFamily: "var(--font-dm-sans)",
                     fontSize: "16px",
@@ -534,7 +526,7 @@ export default function Navigation() {
                     background: "linear-gradient(135deg, #C4943A 0%, #D4A44A 100%)",
                   }}
                 >
-                  Create Account
+                  Try free
                 </a>
               </>
             )}

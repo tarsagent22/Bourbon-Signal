@@ -8,7 +8,7 @@ import { useAuth } from "@/lib/auth";
 
 export default function HeroSection() {
   const ref = useRef(null);
-  const { isSignedIn, signUp } = useAuth();
+  const { isSignedIn } = useAuth();
 
   return (
     <section
@@ -175,11 +175,7 @@ export default function HeroSection() {
               style={{ marginBottom: "16px" }}
             >
               <a
-                href="#"
-                onClick={(e) => {
-                  e.preventDefault();
-                  signUp();
-                }}
+                href="/pricing?source=homepage-hero-try-free"
                 className="flex items-center gap-2"
                 style={{
                   fontFamily: "var(--font-dm-sans)",
@@ -195,7 +191,7 @@ export default function HeroSection() {
                   boxShadow: "0 4px 16px rgba(196, 135, 10, 0.3)",
                 }}
               >
-                Create Account
+                Try free
                 <ArrowRight size={16} />
               </a>
             </div>
