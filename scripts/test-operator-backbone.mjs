@@ -111,6 +111,52 @@ assert.equal(ghCalls.some((args) => args[0] === 'issue' && args[1] === 'close'),
 const statusEdit = ghCalls.findLast((args) => args[0] === 'issue' && args[1] === 'edit');
 assert.deepEqual(statusEdit.slice(statusEdit.indexOf('--remove-label'), statusEdit.indexOf('--remove-label') + 2), ['--remove-label', 'status:backlog']);
 
+const staleIssue = {
+  number: 42,
+  title: `[Finding] ${lowerRank.title}`,
+  body: renderFindingIssueBody(lowerRank),
+  state: 'OPEN',
+  labels: ['operator-finding', `area:${lowerRank.area}`, `severity:${lowerRank.severity}`, 'status:backlog'].map((name) => ({ name })),
+  url: 'https://github.invalid/issues/42',
+};
+const reconcileCalls = [];
+const reconcileService = createFindingService({
+  runGh: async (args) => {
+    reconcileCalls.push(args);
+    if (args[0] === 'issue' && args[1] === 'list') return [existingIssue, staleIssue];
+    return { ok: true };
+  },
+});
+const reconcileDryRun = await reconcileService.reconcile({
+  findings: [finding],
+  resolvedIds: [lowerRank.id],
+  source: finding.source,
+  repo: 'owner/repo',
+  apply: false,
+});
+assert.deepEqual(reconcileDryRun.actions.map((action) => [action.action, action.finding.id]), [
+  ['noop', finding.id],
+  ['resolve-explicit', lowerRank.id],
+]);
+assert.equal(reconcileCalls.some((args) => ['edit', 'close'].includes(args[1])), false, 'reconciliation dry-run must not mutate GitHub');
+await assert.rejects(
+  reconcileService.reconcile({ findings: [finding], resolvedIds: [lowerRank.id], source: finding.source, repo: 'owner/repo', apply: true }),
+  /requires the shared release-lane lease/,
+);
+
+const activeStaleIssue = {
+  ...staleIssue,
+  body: renderFindingIssueBody({ ...lowerRank, status: 'in-progress' }),
+  labels: ['operator-finding', `area:${lowerRank.area}`, `severity:${lowerRank.severity}`, 'status:in-progress'].map((name) => ({ name })),
+};
+const activeReconcileService = createFindingService({
+  runGh: async (args) => args[0] === 'issue' && args[1] === 'list' ? [existingIssue, activeStaleIssue] : { ok: true },
+});
+await assert.rejects(
+  activeReconcileService.reconcile({ findings: [finding], resolvedIds: [lowerRank.id], source: finding.source, repo: 'owner/repo' }),
+  /cannot be automatically resolved from status in-progress/,
+);
+
 const recurringObservation = {
   ...finding,
   area: 'shipping',

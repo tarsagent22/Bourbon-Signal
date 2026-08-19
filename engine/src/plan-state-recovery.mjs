@@ -23,10 +23,13 @@ export async function runStateRecoveryPlanner(argv = process.argv.slice(2)) {
   const ledgerPath = option(argv, '--verification-ledger');
   const ledger = ledgerPath ? await readJson(path.resolve(ledgerPath), { failures: [] }) : null;
   const explicit = option(argv, '--states');
+  const ledgerFailureStateIds = ledger
+    ? (ledger.failures || []).flatMap((failure) => failure.states || [])
+    : [];
   const failedStateIds = explicit
     ? explicit.split(',')
-    : ledger
-      ? (ledger.failures || []).flatMap((failure) => failure.states || [])
+    : ledgerFailureStateIds.length
+      ? ledgerFailureStateIds
       : null;
   const plan = buildStateRecoveryPlan(contract, {
     failedStateIds,

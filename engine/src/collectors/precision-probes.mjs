@@ -229,7 +229,8 @@ const BINNYS_BOURBON_URL = `${BINNYS_BASE_URL}/spirits?refinementList%5BproductV
 const BINNYS_MAX_BOURBON_PAGES = Number(process.env.BOURBON_SIGNAL_BINNYS_MAX_BOURBON_PAGES || 10);
 const BINNYS_HITS_PER_PAGE = Number(process.env.BOURBON_SIGNAL_BINNYS_HITS_PER_PAGE || 100);
 const BINNYS_STRICT_WATCH_RE = /blanton|eagle rare|weller|stagg|e\.?h\.?\s*taylor|colonel\s*taylor|buffalo trace|old fitz|fitzgerald|willett|michter|baker'?s?|booker'?s?|van winkle|pappy|elmer|rock hill|blood oath|four roses\s+(limited|limited edition)|elijah craig[^\n]{0,50}barrel proof|russell'?s?\s+reserve|old forester[^\n]{0,40}birthday|heaven hill[^\n]{0,40}(grain|heritage|bottled in bond)|1792[^\n]{0,40}(full proof|sweet wheat|12 year|bottled in bond)|knob creek[^\n]{0,40}(12|15|18)|wild turkey[^\n]{0,40}(master|limited|70th)|little book|parker'?s/i;
-const BINNYS_EXCLUDE_RE = /vodka|gin|rum|tequila|liqueur|cordial|wine|beer|seltzer|cocktail|ready to drink|cream|coffee|syrup|bitters|barrel aged stout|flavored whiskey(?![^\n]{0,40}bourbon)/i;
+const BINNYS_EXCLUDE_CLASSIFICATION_RE = /\b(?:vodka|gin|rum|tequila|liqueur|cordial|wine|beer|seltzer|cocktail|ready to drink|cream|coffee|syrup|bitters|barrel aged stout)\b|\bflavored whiskey\b/i;
+const BINNYS_EXCLUDE_PRODUCT_NAME_RE = /\b(?:bourbon cream|cream liqueur|ready[ -]to[ -]drink|canned cocktail|bourbon cocktail|bourbon syrup|bourbon bitters)\b/i;
 
 const AL_ABC_BASE_URL = 'https://alabcboard.gov';
 const AL_MONTHLY_RELEASE_URL = `${AL_ABC_BASE_URL}/stores/events/limited-release-programs/monthly`;
@@ -9514,10 +9515,26 @@ function binnysProductName(hit) {
   return hit.productName || hit.shortDescription || hit.name || hit.objectID || '';
 }
 
-function binnysProductRelevant(hit) {
-  const text = `${binnysProductName(hit)} ${hit.productBrandName || ''} ${hit.productType || ''} ${hit.productVarietal || ''} ${hit.area || ''} ${(hit.designations || []).join(' ')} ${hit.productDescriptionLong || ''}`;
-  if (BINNYS_EXCLUDE_RE.test(text) && !/bourbon|straight bourbon|american whiskey|rye whiskey|blanton|eagle rare|weller|stagg|taylor|buffalo trace/i.test(text)) return false;
-  return BINNYS_STRICT_WATCH_RE.test(text);
+export function binnysProductRelevant(hit) {
+  const productName = binnysProductName(hit);
+  const classification = `${hit.productType || ''} ${hit.productVarietal || ''}`;
+  const identityText = `${productName} ${hit.productBrandName || ''} ${classification} ${hit.area || ''} ${(hit.designations || []).join(' ')}`;
+  if (BINNYS_EXCLUDE_CLASSIFICATION_RE.test(classification) || BINNYS_EXCLUDE_PRODUCT_NAME_RE.test(productName)) return false;
+  return BINNYS_STRICT_WATCH_RE.test(identityText);
+}
+
+const BINNYS_ALERT_GRADE_SCANNED_CANONICAL_RE = /^(?:Elijah Craig Barrel Proof|Old Forester Birthday Bourbon|Blood Oath|Little Book|Parker'?s Heritage|Knob Creek (?:12|15|18) Year|Russell'?s Reserve (?:13|15) Year|Four Roses Limited Edition)/i;
+
+export function binnysBottleMatch(rawName, bible) {
+  const direct = bottleMatch(rawName, bible);
+  if (direct.record) return direct;
+  const scanned = bible.scanText(rawName)
+    .filter((record) => BINNYS_ALERT_GRADE_SCANNED_CANONICAL_RE.test(String(record?.canonical || '')));
+  if (scanned.length !== 1) return { match: null, record: null };
+  return {
+    match: { record: scanned[0], confidence: 0.9, method: 'unique-alert-grade-bible-scan' },
+    record: scanned[0],
+  };
 }
 
 function binnysQuantity(row = {}) {
@@ -9632,7 +9649,7 @@ async function collectIllinois(config, bible) {
   let inventoryRows = 0;
   for (const hit of productMap.values()) {
     const rawName = binnysProductName(hit);
-    const { match, record } = bottleMatch(rawName, bible);
+    const { match, record } = binnysBottleMatch(rawName, bible);
     if (!record) continue;
     matchedProducts += 1;
     const rows = Array.isArray(hit.storesPriceAndInventory) ? hit.storesPriceAndInventory : [];

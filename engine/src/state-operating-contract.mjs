@@ -5,6 +5,7 @@ import {
   missingCustomerFields,
   projectCustomerSurfaces,
 } from './customer-surface-policy.mjs';
+import { lifecycleExpectsCustomerVisibleDrops } from './state-lifecycle.mjs';
 
 export const STATE_OPERATING_CONTRACT_VERSION = 'bourbon-signal-state-operating-v1';
 
@@ -174,7 +175,9 @@ export function buildStateOperatingContract({
     const previousDropCount = finite(baseline?.customerVisibleDropCount ?? previousQualityState.input?.dropCount ?? previousQualityState.dropCount);
 
     if (collectionSucceeded(collectionStatus) && signalCount === 0) anomalies.push('unexpected_zero_valid_output');
-    if (signalCount > 0 && visibleDrops.length === 0) anomalies.push('unexpected_zero_customer_visible_output');
+    if (signalCount > 0 && visibleDrops.length === 0 && lifecycleExpectsCustomerVisibleDrops(state)) {
+      anomalies.push('unexpected_zero_customer_visible_output');
+    }
     if (attempted.has(state) && fallback.status === 'none' && previousDropCount >= 5 && visibleDrops.length < Math.ceil(previousDropCount * 0.5)) {
       anomalies.push('significant_drop_count_collapse');
     }
