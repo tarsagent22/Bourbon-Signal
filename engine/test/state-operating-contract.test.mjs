@@ -101,3 +101,30 @@ test('unexpected zero and healthy collection without publication advance remain 
   assert.ok(byState.get('HH').anomalyCodes.includes('healthy_collection_publication_not_advanced'));
   assert.equal(byState.get('HH').recoveryAction, 'rerun_export_only');
 });
+
+test('aggregate-information states are not degraded solely because they have no customer drop rows', () => {
+  const contract = buildStateOperatingContract({
+    activeStateIds: ['MD-MONTGOMERY', 'UT'],
+    generatedAt,
+    summary: {
+      attemptedStateIds: ['MD-MONTGOMERY', 'UT'],
+      states: [
+        state('MD-MONTGOMERY', { signalCount: 489 }),
+        state('UT', { signalCount: 61 }),
+      ],
+    },
+    stateCoverage: {
+      states: [
+        state('MD-MONTGOMERY', { signalCount: 489 }),
+        state('UT', { signalCount: 61 }),
+      ],
+    },
+    drops: [],
+  });
+
+  for (const row of contract.states) {
+    assert.equal(row.health, 'healthy');
+    assert.ok(!row.anomalyCodes.includes('unexpected_zero_customer_visible_output'));
+    assert.equal(row.recoveryAction, 'none');
+  }
+});

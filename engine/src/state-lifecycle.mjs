@@ -21,6 +21,12 @@ export function lifecycleAllowsWatchAlert(state) {
   return Boolean(lifecycle && lifecycle.publicStatus === 'active' && lifecycle.watchAlertable !== false);
 }
 
+export function lifecycleExpectsCustomerVisibleDrops(state) {
+  const lifecycle = getStateLifecycle(state);
+  if (!lifecycle || lifecycle.publicStatus !== 'active') return true;
+  return lifecycle.coverageTier !== 'aggregate_inventory_watch';
+}
+
 export function customerStateLabel(state, fallback = state) {
   return getStateLifecycle(state)?.customerLabel || fallback || state;
 }

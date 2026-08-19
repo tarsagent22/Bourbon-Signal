@@ -1,8 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { readFile } from 'node:fs/promises';
+import { mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import os from 'node:os';
+import path from 'node:path';
 
 import { buildStateRecoveryPlan } from '../src/state-recovery-plan.mjs';
+import { runStateRecoveryPlanner } from '../src/plan-state-recovery.mjs';
 
 const contract = {
   contractVersion: 'bourbon-signal-state-operating-v1',
@@ -39,6 +42,24 @@ test('stale fallback without explicit transient evidence is not automatically re
   const plan = buildStateRecoveryPlan(ambiguous, { failedStateIds: ['BB'], attempt: 0 });
   assert.deepEqual(plan.retryStateIds, []);
   assert.deepEqual(plan.skipped, [{ state: 'BB', reason: 'not_transient_or_degraded' }]);
+});
+
+test('an empty scheduled verifier ledger does not suppress operating-contract recovery targets', async (t) => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'bs-state-recovery-plan-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const contractPath = path.join(root, 'state-health.json');
+  const ledgerPath = path.join(root, 'scheduled-state-verification.json');
+  await writeFile(contractPath, JSON.stringify(contract));
+  await writeFile(ledgerPath, JSON.stringify({ failures: [] }));
+
+  const plan = await runStateRecoveryPlanner([
+    `--contract=${contractPath}`,
+    `--verification-ledger=${ledgerPath}`,
+    '--attempt=0',
+  ]);
+
+  assert.deepEqual(plan.requestedStateIds, ['AA', 'BB']);
+  assert.deepEqual(plan.retryStateIds, ['AA', 'BB']);
 });
 
 test('the shared refresh workflow plans recovery after fallback and dispatches one state-only run after production verification', async () => {

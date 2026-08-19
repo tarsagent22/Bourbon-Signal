@@ -6,6 +6,7 @@ import path from 'node:path';
 
 import {
   prepareScheduledStateVerification,
+  recordOperatingContractFailures,
   runScheduledStateVerifier,
   stageScheduledVerificationFallbacks,
 } from '../src/scheduled-state-verification.mjs';
@@ -176,4 +177,35 @@ test('fallback staging fails closed when the failed state has no coherent last-p
     stageScheduledVerificationFallbacks({ ...files, runId }),
     /GA: last-published state partition is missing/,
   );
+});
+
+test('generic operating-contract anomalies enter the isolation ledger before global verification', async (t) => {
+  const files = await fixture();
+  t.after(() => rm(files.root, { recursive: true, force: true }));
+  const runId = 'generic-contract-run';
+  const contractPath = path.join(files.root, 'state-health.json');
+  await prepareScheduledStateVerification({ ...files, runId, cacheKey: 'inventory-published-site-Windows-baseline' });
+  await writeJson(contractPath, {
+    contractVersion: 'bourbon-signal-state-operating-v1',
+    states: [
+      {
+        state: 'FL',
+        health: 'degraded',
+        recoveryAction: 'retry_state_collection',
+        anomalyCodes: ['unexpected_zero_customer_visible_output'],
+      },
+      {
+        state: 'NC',
+        health: 'healthy',
+        recoveryAction: 'none',
+        anomalyCodes: [],
+      },
+    ],
+  });
+
+  const result = await recordOperatingContractFailures({ contractPath, ledgerPath: files.ledgerPath, runId });
+  assert.deepEqual(result.recordedStateIds, ['FL']);
+  const ledger = JSON.parse(await readFile(files.ledgerPath, 'utf8'));
+  assert.deepEqual(ledger.failures.map((failure) => failure.states), [['FL']]);
+  assert.match(ledger.failures[0].error, /unexpected_zero_customer_visible_output/);
 });

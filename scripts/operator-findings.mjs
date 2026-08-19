@@ -96,6 +96,17 @@ export async function main(argv = process.argv.slice(2), dependencies = {}) {
     return printable;
   }
 
+  if (command === 'reconcile') {
+    const findings = await readFindings(option(argv, 'file'));
+    const source = option(argv, 'source');
+    const resolvedIds = String(option(argv, 'resolved-ids') || '').split(',').map((id) => id.trim()).filter(Boolean);
+    if (!source) throw new Error('reconcile requires --source.');
+    const result = await service.reconcile({ findings, resolvedIds, source, repo, apply });
+    const printable = printableActions(result);
+    console.log(JSON.stringify(printable, null, 2));
+    return printable;
+  }
+
   if (command === 'update') {
     const id = option(argv, 'id');
     const status = option(argv, 'status');
@@ -106,7 +117,7 @@ export async function main(argv = process.argv.slice(2), dependencies = {}) {
     return printable;
   }
 
-  throw new Error('Usage: operator-findings.mjs validate --file FILE | read [--repo OWNER/REPO] | rank [--file FILE] | upsert --file FILE [--apply] | update --id ID --status STATUS [--apply]');
+  throw new Error('Usage: operator-findings.mjs validate --file FILE | read [--repo OWNER/REPO] | rank [--file FILE] | upsert --file FILE [--apply] | reconcile --file FILE --source SOURCE [--resolved-ids ID,ID] [--apply] | update --id ID --status STATUS [--apply]');
 }
 
 const invoked = process.argv[1] ? pathToFileURL(path.resolve(process.argv[1])).href : '';

@@ -320,6 +320,11 @@ jobs:
         working-directory: engine
         run: npm run verify:tn -- --targeted-cohort
 
+      - name: Reconcile generic state operating anomalies before publication
+        if: ${{ !inputs.states }}
+        working-directory: engine
+        run: node src/scheduled-state-verification.mjs reconcile --contract=out/site/state-health.json
+
       - name: Replace failed scheduled states with last-published stale partitions
         if: ${{ !inputs.states }}
         working-directory: engine

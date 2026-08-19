@@ -212,6 +212,43 @@ export function summaryWithScheduledVerificationFallbacks(summary, ledger, now =
   };
 }
 
+const GENERIC_ISOLATION_ANOMALIES = new Set([
+  'unexpected_zero_valid_output',
+  'unexpected_zero_customer_visible_output',
+  'significant_drop_count_collapse',
+]);
+
+export async function recordOperatingContractFailures({
+  contractPath = path.join(DEFAULT_SITE_DIR, 'state-health.json'),
+  ledgerPath = DEFAULT_LEDGER_PATH,
+  runId = scheduledVerificationRunId(),
+  now = new Date().toISOString(),
+} = {}) {
+  const ledger = await requireLedger(ledgerPath, runId);
+  const contract = await readJson(contractPath, null);
+  if (!contract || !Array.isArray(contract.states)) {
+    throw new Error(`State operating contract is missing or invalid: ${contractPath}.`);
+  }
+  const existing = new Set(ledger.failures.flatMap((failure) => failure.states || []));
+  const records = contract.states.filter((record) => record?.recoveryAction === 'retry_state_collection'
+    && record.health !== 'blocked'
+    && (record.anomalyCodes || []).some((code) => GENERIC_ISOLATION_ANOMALIES.has(code))
+    && !existing.has(String(record.state).toUpperCase()));
+  for (const record of records) {
+    const state = String(record.state).toUpperCase();
+    const anomalyCodes = (record.anomalyCodes || []).filter((code) => GENERIC_ISOLATION_ANOMALIES.has(code));
+    ledger.failures.push({
+      states: [state],
+      command: 'generic state operating contract',
+      exitCode: 1,
+      error: anomalyCodes.join(', '),
+      failedAt: now,
+    });
+  }
+  if (records.length) await atomicWriteJson(ledgerPath, ledger);
+  return { recordedStateIds: records.map((record) => String(record.state).toUpperCase()).sort() };
+}
+
 export async function stageScheduledVerificationFallbacks({
   summaryPath = DEFAULT_SUMMARY_PATH,
   previousSiteDir = DEFAULT_PREVIOUS_SITE_DIR,
@@ -282,7 +319,17 @@ async function cli() {
     }
     return;
   }
-  throw new Error('Usage: scheduled-state-verification.mjs prepare | verify --state=XX -- <command> [args...] | apply');
+  if (mode === 'reconcile') {
+    const contractPath = optionValue(args, '--contract') || path.join(DEFAULT_SITE_DIR, 'state-health.json');
+    const result = await recordOperatingContractFailures({ contractPath });
+    if (result.recordedStateIds.length) {
+      console.warn(`State operating contract isolated anomalous partitions: ${result.recordedStateIds.join(', ')}.`);
+    } else {
+      console.log('State operating contract found no additional partitions requiring isolation.');
+    }
+    return;
+  }
+  throw new Error('Usage: scheduled-state-verification.mjs prepare | verify --state=XX -- <command> [args...] | reconcile [--contract=path] | apply');
 }
 
 if (process.argv[1] && import.meta.url === pathToFileURL(path.resolve(process.argv[1])).href) {

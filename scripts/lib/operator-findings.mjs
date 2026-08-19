@@ -182,7 +182,7 @@ export function parseFindingIssueBody(body) {
   return finding;
 }
 
-export function createFindingService({ runGh }) {
+export function createFindingService({ runGh, hasReleaseLaneLease = () => Boolean(process.env.BOURBON_SIGNAL_RELEASE_LANE_LEASE_ID) }) {
   if (typeof runGh !== 'function') throw new Error('runGh is required');
 
   async function read({ repo, state = 'all' }) {
@@ -285,7 +285,56 @@ export function createFindingService({ runGh }) {
     return { mode: apply ? 'apply' : 'dry-run', action };
   }
 
-  return { read, upsert, update };
+  async function reconcile({ findings, resolvedIds = [], source, repo, apply = false }) {
+    if (apply && !hasReleaseLaneLease()) {
+      throw new Error('Applied finding reconciliation requires the shared release-lane lease.');
+    }
+    if (!SOURCES.has(source)) throw new Error(`Invalid reconciliation source: ${source}`);
+    if (!Array.isArray(findings) || findings.some((finding) => finding.source !== source)) {
+      throw new Error('Reconciliation findings must all belong to the authoritative source.');
+    }
+    if (!Array.isArray(resolvedIds)) throw new Error('Reconciliation resolvedIds must be an array.');
+
+    const upsertResult = await upsert({ findings, repo, apply });
+    const observedIds = new Set(findings.map((finding) => finding.id));
+    const requestedResolutions = new Set(resolvedIds.map(clean).filter(Boolean));
+    for (const id of requestedResolutions) {
+      if (observedIds.has(id)) throw new Error(`Finding ${id} cannot be both observed and explicitly resolved.`);
+    }
+    const existing = await read({ repo });
+    const byId = new Map(existing.map((entry) => [entry.finding.id, entry]));
+    const resolutionActions = [];
+    for (const id of requestedResolutions) {
+      const entry = byId.get(id);
+      if (!entry || entry.finding.source !== source) {
+        throw new Error(`Explicitly resolved finding is missing from source ${source}: ${id}`);
+      }
+      if (entry.finding.status !== 'backlog') {
+        throw new Error(`Finding ${id} cannot be automatically resolved from status ${entry.finding.status}.`);
+      }
+      resolutionActions.push({
+        action: 'resolve-explicit',
+        issueNumber: entry.issue.number,
+        finding: { ...entry.finding, status: 'resolved' },
+      });
+    }
+
+    if (apply) {
+      for (const action of resolutionActions) {
+        await update({
+          id: action.finding.id,
+          status: 'resolved',
+          repo,
+          apply: true,
+          expectedStatuses: ['backlog'],
+          expectedIssueNumber: action.issueNumber,
+        });
+      }
+    }
+    return { mode: apply ? 'apply' : 'dry-run', actions: [...upsertResult.actions, ...resolutionActions] };
+  }
+
+  return { read, reconcile, upsert, update };
 }
 
 export const findingEnums = {
