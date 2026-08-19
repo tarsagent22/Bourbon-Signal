@@ -157,6 +157,7 @@ export default function SignalPointsAdminBoard() {
     <div className="spa-board">
       <style>{styles}</style>
       {error ? <p className="spa-error" role="alert">{error}</p> : null}
+      <p className="spa-note"><a href="/api/admin/signal-points/membership-credit-v3">Activate membership-credit rewards</a></p>
       {data ? <>
         <section className="spa-section spa-leaderboard-section" aria-labelledby="spa-members-title">
           <div className="spa-section-head spa-leaderboard-head">
