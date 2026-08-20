@@ -8,9 +8,7 @@ from collections import Counter
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-import psycopg
-
-from bourbon_signal_runtime import load_env
+from bourbon_signal_runtime import hermes_home, load_env
 
 
 COMPLETION_LANE_NAME = "Bourbon Signal coverage request completion lane"
@@ -77,6 +75,8 @@ def summarize_scheduler() -> dict:
 
 
 def query_payload(database_url: str) -> dict:
+    import psycopg
+
     request_query = """
         SELECT target_type, state_code, area_label, store_name, status, requested_at, updated_at
         FROM coverage_requests
