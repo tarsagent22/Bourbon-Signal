@@ -86,6 +86,7 @@ for (const invariant of [
   "durableTrialClearUserIds",
   "x-low-coverage-timestamp",
   "x-low-coverage-signature",
+  "randomBytes(16)",
   "offset += 20",
   "Provider history exceeded the safe pagination bound",
   "emailBinding(row.email)",
@@ -110,6 +111,8 @@ assert.match(clickSchemaSource, /DROP CONSTRAINT IF EXISTS campaign_email_clicks
 assert.match(preflightSource, /assertFreeMemberDayTwoDeliveryAuthorized/);
 assert.match(preflightSource, /createHmac\("sha256", secret\)/);
 assert.match(preflightSource, /5 \* 60_000/);
+assert.match(preflightSource, /consumeCampaignPreflightNonce/);
+assert.match(clickSource, /ON CONFLICT \(nonce_hash\) DO NOTHING/);
 assert.match(preflightSource, /getMembershipTrialRepository/);
 assert.match(preflightSource, /stripe\.customers\.list/);
 assert.match(preflightSource, /stripe\.subscriptions\.list/);

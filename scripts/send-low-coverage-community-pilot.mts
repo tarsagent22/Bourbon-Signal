@@ -1,4 +1,4 @@
-import { createHash, createHmac } from "node:crypto";
+import { createHash, createHmac, randomBytes } from "node:crypto";
 import { render } from "@react-email/render";
 const loadedEmail = await import("../src/components/emails/LowCoverageCommunityEmail.tsx");
 const emailModule = { ...loadedEmail, ...((loadedEmail as { default?: object }).default || {}) } as typeof loadedEmail;
@@ -94,7 +94,7 @@ async function durableTrialClearUserIds(userIds: string[]) {
   const clear = new Set<string>();
   for (let offset = 0; offset < userIds.length; offset += 20) {
     const batch = userIds.slice(offset, offset + 20);
-    const rawBody = JSON.stringify({ userIds: batch });
+    const rawBody = JSON.stringify({ userIds: batch, nonce: randomBytes(16).toString("hex") });
     const timestamp = String(Date.now());
     const signature = createHmac("sha256", clerkSecret).update(`${timestamp}.${rawBody}`).digest("hex");
     const payload = await api(`${siteUrl}/api/ops/low-coverage-community-preflight`, {

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { clerkClient } from "@clerk/nextjs/server";
 import Stripe from "stripe";
-import { prepareCampaignClickSchema } from "@/lib/campaign-click-tracking";
+import { consumeCampaignPreflightNonce, prepareCampaignClickSchema } from "@/lib/campaign-click-tracking";
 import { assertFreeMemberDayTwoDeliveryAuthorized } from "@/lib/free-member-day-two";
 import { getMembershipTrialRepository } from "@/lib/membership-trial-repository";
 
@@ -25,21 +25,34 @@ function validSignedRequest(request: Request, rawBody: string) {
 export async function POST(request: Request) {
   const rawBody = await request.text();
   let authorized = false;
+  let signedAuthorization = false;
   try {
     assertFreeMemberDayTwoDeliveryAuthorized(request);
     authorized = true;
   } catch {
-    authorized = validSignedRequest(request, rawBody);
+    signedAuthorization = validSignedRequest(request, rawBody);
+    authorized = signedAuthorization;
   }
   if (!authorized) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: { "Cache-Control": "private, no-store" } });
   }
 
-  const body = (() => { try { return JSON.parse(rawBody) as { userIds?: unknown }; } catch { return null; } })();
+  const body = (() => { try { return JSON.parse(rawBody) as { userIds?: unknown; nonce?: unknown }; } catch { return null; } })();
   const rawUserIds = Array.isArray(body?.userIds) ? body.userIds : [];
   const userIds = Array.from(new Set(rawUserIds.filter((value): value is string => typeof value === "string" && /^user_[A-Za-z0-9]+$/.test(value))));
   if (!userIds.length || userIds.length > 20 || userIds.length !== rawUserIds.length) {
     return NextResponse.json({ error: "Expected 1 to 20 valid, unique user IDs." }, { status: 400, headers: { "Cache-Control": "private, no-store" } });
+  }
+  if (signedAuthorization) {
+    const nonce = typeof body?.nonce === "string" && /^[a-f0-9]{32}$/.test(body.nonce) ? body.nonce : "";
+    if (!nonce) return NextResponse.json({ error: "A valid signed nonce is required." }, { status: 400, headers: { "Cache-Control": "private, no-store" } });
+    try {
+      if (!await consumeCampaignPreflightNonce(nonce)) {
+        return NextResponse.json({ error: "This signed request was already consumed." }, { status: 409, headers: { "Cache-Control": "private, no-store" } });
+      }
+    } catch {
+      return NextResponse.json({ error: "Signed request replay protection is unavailable." }, { status: 503, headers: { "Cache-Control": "private, no-store" } });
+    }
   }
 
   try {
