@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { campaignClickDestination, recordCampaignClick, verifyCampaignClickToken } from "@/lib/campaign-click-tracking";
 
 export const dynamic = "force-dynamic";
-const ALLOWED_CAMPAIGNS = new Set(["free-trial-points-pilot-v1", "low-coverage-community-pilot-v1"]);
+const ALLOWED_CAMPAIGNS = new Set(["free-trial-points-pilot-v1", "low-coverage-community-pilot-v1", "missing-state-community-pilot-v1"]);
 
 export async function GET(request: Request) {
   const token = new URL(request.url).searchParams.get("t") || "";

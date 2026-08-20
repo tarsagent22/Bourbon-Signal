@@ -259,6 +259,7 @@ export default function WelcomePage() {
   const [localMessage, setLocalMessage] = useState("");
   const [showEarlierSignals, setShowEarlierSignals] = useState(false);
   const [barrelTrialEligible, setBarrelTrialEligible] = useState<boolean | null>(null);
+  const [legacySetupMode, setLegacySetupMode] = useState(false);
   const registrationRecorded = useRef(false);
   const freeValueRecordedFor = useRef(new Set<string>());
   const currentUserIdRef = useRef<string | null>(authenticatedUserId);
@@ -297,6 +298,10 @@ export default function WelcomePage() {
     [activeState, coverageState],
   );
   const localSearchPlaceholder = welcomeLocalSearchPlaceholder(coverageState || fallbackCoverageState(activeState));
+
+  useEffect(() => {
+    setLegacySetupMode(new URLSearchParams(window.location.search).get("legacy") === "1");
+  }, []);
 
   useEffect(() => {
     const registrationCompleted = new URLSearchParams(window.location.search).get("registration") === "1";
@@ -695,9 +700,9 @@ export default function WelcomePage() {
       <main className={styles.page}>
         <div className={styles.journey}>
           <header className={styles.hero}>
-            <p className={styles.eyebrow}>Welcome</p>
-            <h1>Check out Bourbon Signal.</h1>
-            <p>Choose a home state and start exploring.</p>
+            <p className={styles.eyebrow}>{legacySetupMode ? "MEMBER SETUP" : "Welcome"}</p>
+            <h1>{legacySetupMode ? "Finish setting up Bourbon Signal." : "Check out Bourbon Signal."}</h1>
+            <p>{legacySetupMode ? "Tell us where you hunt so we can show what is available and learn where coverage should grow." : "Choose a home state and start exploring."}</p>
           </header>
 
           {!preferencesReady ? (
@@ -899,6 +904,17 @@ export default function WelcomePage() {
                   />
                 </section>
               ) : null}
+
+              <section className={`${styles.section} ${styles.rewardsSection}`} aria-labelledby="welcome-sightings-rewards-heading">
+                <div className={styles.rewardsCard}>
+                  <div>
+                    <p className={styles.stepLabel}>Member Sightings + Signal Points</p>
+                    <h2 id="welcome-sightings-rewards-heading">Help nearby hunters and earn rewards.</h2>
+                    <p>Eligible Member Sightings earn 10–30 Signal Points based on rarity, with additional badge and streak opportunities. Use your points in our growing rewards catalog as new redemption options are added.</p>
+                  </div>
+                  <Link href="/sightings?source=welcome-setup">Explore Member Sightings<ArrowUpRight size={16} aria-hidden="true" /></Link>
+                </div>
+              </section>
 
               {barrelTrialEligible === true ? (
                 <section className={`${styles.section} ${styles.trialSection}`} aria-labelledby="membership-next-step-heading">
