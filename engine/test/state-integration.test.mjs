@@ -76,4 +76,20 @@ test('integration verifier requires executable fixtures, bound evidence, partiti
   const tampered = structuredClone(integrationManifest);
   tampered.collector.sourceIds.push('zz:unbound');
   assert.match(verifyStateIntegration({ state: 'ZZ', config, manifest: tampered, fixtures: fixtures(), site, sourceFiles: {} }).failures.join('\n'), /does not bind/i);
+
+  const extension = structuredClone(integrationManifest);
+  extension.collector.sourceIds.push('zz:new-retailer');
+  extension.evidence.sourceExtension = {
+    classification: 'active_state_source_extension',
+    activationSourceConfigHash: integrationManifest.evidence.immutablePromotionEvidence.sourceConfigHash,
+    activationCollector: structuredClone(integrationManifest.collector),
+    addedSourceIds: ['zz:new-retailer'],
+  };
+  const extensionResult = verifyStateIntegration({ state: 'ZZ', config, manifest: extension, fixtures: fixtures(), site, sourceFiles: {} });
+  assert.equal(extensionResult.ok, true, extensionResult.failures.join('\n'));
+  extension.evidence.sourceExtension.activationSourceConfigHash = 'f'.repeat(64);
+  assert.match(verifyStateIntegration({ state: 'ZZ', config, manifest: extension, fixtures: fixtures(), site, sourceFiles: {} }).failures.join('\n'), /historical activation hash/i);
+  extension.evidence.sourceExtension.activationSourceConfigHash = integrationManifest.evidence.immutablePromotionEvidence.sourceConfigHash;
+  extension.sourceSemantics.availability = 'forged';
+  assert.match(verifyStateIntegration({ state: 'ZZ', config, manifest: extension, fixtures: fixtures(), site, sourceFiles: {} }).failures.join('\n'), /historical activation hash/i);
 });

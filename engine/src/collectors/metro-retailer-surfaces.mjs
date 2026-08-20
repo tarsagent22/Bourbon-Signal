@@ -114,6 +114,46 @@ export const NEW_YORK_RETAILER_SOURCES = Object.freeze([
       store('westbury-liquors:5ea0871ad98f77272c3fd8f3', 'Westbury Liquors', '5ea0871ad98f77272c3fd8f3', '1250 Old Country Rd, Westbury, NY 11590, USA', 'Westbury', 'NY', '11590'),
     ],
   }),
+  cityHiveSource({
+    id: 'bottlerocket',
+    chainName: 'Bottlerocket Wine & Spirit',
+    baseUrl: 'https://bottlerocket.com',
+    stateCode: 'NY',
+    area: 'New York City',
+    stores: [
+      store('bottlerocket:54e418706133350003070000', 'Bottlerocket Wine & Spirit', '54e418706133350003070000', '5 West 19th Street, New York, NY 10011', 'New York', 'NY', '10011'),
+    ],
+  }),
+  cityHiveSource({
+    id: 'crossroads-wines',
+    chainName: 'Crossroads Wine & Spirits',
+    baseUrl: 'https://crossroadswines.com',
+    stateCode: 'NY',
+    area: 'New York City',
+    stores: [
+      store('crossroads-wines:5976911fd05b4302c4d0acf6', 'Crossroads Wine & Spirits', '5976911fd05b4302c4d0acf6', '52 West 14th Street, New York, NY 10011', 'New York', 'NY', '10011'),
+    ],
+  }),
+  cityHiveSource({
+    id: 'liquor-village-nyc',
+    chainName: 'Liquor Village NYC',
+    baseUrl: 'https://liquorvillagenyc.com',
+    stateCode: 'NY',
+    area: 'New York City',
+    stores: [
+      store('liquor-village-nyc:5f80ae70731b2e3f4d1b505e', 'Liquor Village NYC', '5f80ae70731b2e3f4d1b505e', '7106 18th Avenue, Brooklyn, NY 11204', 'Brooklyn', 'NY', '11204'),
+    ],
+  }),
+  cityHiveSource({
+    id: 'pikes-liquors',
+    chainName: "Pike's Wine & Liquor",
+    baseUrl: 'https://pikesliquors.com',
+    stateCode: 'NY',
+    area: 'Nassau County',
+    stores: [
+      store('pikes-liquors:5b43c01932c489387055db3c', "Pike's Wine & Liquor", '5b43c01932c489387055db3c', '645 Hempstead Turnpike, Elmont, NY 11003', 'Elmont', 'NY', '11003'),
+    ],
+  }),
 ]);
 
 export const COLORADO_RETAILER_SOURCES = Object.freeze([

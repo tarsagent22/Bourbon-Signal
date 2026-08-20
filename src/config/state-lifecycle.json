@@ -701,7 +701,7 @@
       "lifecycle": "retailer_store_inventory",
       "coverageTier": "live_store_inventory",
       "refinementLevel": "city",
-      "customerSummary": "Verified first-party retailer store inventory in New York City and at reviewed Nassau County premises in Garden City, Wantagh, and Westbury. This area-scoped coverage does not imply statewide New York availability; verify before driving.",
+      "customerSummary": "Verified first-party retailer store inventory in New York City and at reviewed Nassau County premises in Elmont, Garden City, Wantagh, and Westbury. This area-scoped coverage does not imply statewide New York availability; verify before driving.",
       "promotionStage": "active",
       "shadowEligible": true,
       "promotionEvidence": {
