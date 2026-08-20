@@ -23,12 +23,11 @@ const clerkSecret = process.env.CLERK_SECRET_KEY?.trim() || "";
 const resendSecret = process.env.RESEND_API_KEY?.trim() || "";
 const audienceId = process.env.RESEND_DIGEST_AUDIENCE_ID?.trim() || "5ae51e44-6c4d-4312-ae1b-f353dc723899";
 const signingSecret = (process.env.NEWSLETTER_UNSUBSCRIBE_SECRET || resendSecret).trim();
-const deliverySecret = (process.env.FREE_MEMBER_DAY_TWO_DELIVERY_SECRET || process.env.CRON_SECRET || "").trim();
 const exclusionSource = process.env.LOW_COVERAGE_COMMUNITY_EXCLUDED_EMAILS?.trim() || "";
 const PERMANENT_EXCLUDED_EMAIL_HASHES = new Set([
   "65aa7743dd52c4850305bbd6b6c4f8fef933aca1083dbcc6aee6592ef874420e",
 ]);
-if (!clerkSecret || !resendSecret || !audienceId || signingSecret.length < 32 || !deliverySecret) throw new Error("Campaign provider configuration is incomplete.");
+if (!clerkSecret || !resendSecret || !audienceId || signingSecret.length < 32) throw new Error("Campaign provider configuration is incomplete.");
 if (APPLY && !exclusionSource) throw new Error("LOW_COVERAGE_COMMUNITY_EXCLUDED_EMAILS is required for apply mode.");
 const excludedEmails = new Set(exclusionSource.split(",").map((email) => email.trim().toLowerCase()).filter(Boolean));
 const siteUrl = "https://www.bourbonsignal.com";
@@ -95,10 +94,13 @@ async function durableTrialClearUserIds(userIds: string[]) {
   const clear = new Set<string>();
   for (let offset = 0; offset < userIds.length; offset += 20) {
     const batch = userIds.slice(offset, offset + 20);
+    const rawBody = JSON.stringify({ userIds: batch });
+    const timestamp = String(Date.now());
+    const signature = createHmac("sha256", clerkSecret).update(`${timestamp}.${rawBody}`).digest("hex");
     const payload = await api(`${siteUrl}/api/ops/low-coverage-community-preflight`, {
       method: "POST",
-      headers: { Authorization: `Bearer ${deliverySecret}`, "Content-Type": "application/json", "User-Agent": "BourbonSignal/1.0" },
-      body: JSON.stringify({ userIds: batch }),
+      headers: { "Content-Type": "application/json", "User-Agent": "BourbonSignal/1.0", "x-low-coverage-timestamp": timestamp, "x-low-coverage-signature": signature },
+      body: rawBody,
     });
     const batchClear = Array.isArray(payload?.clearUserIds) ? payload.clearUserIds.filter((value: unknown): value is string => typeof value === "string") : [];
     if (batchClear.some((userId: string) => !batch.includes(userId))) throw new Error("Durable eligibility returned an unexpected user.");

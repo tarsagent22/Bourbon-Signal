@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { createHmac, timingSafeEqual } from "node:crypto";
 import { clerkClient } from "@clerk/nextjs/server";
 import Stripe from "stripe";
 import { prepareCampaignClickSchema } from "@/lib/campaign-click-tracking";
@@ -11,14 +12,30 @@ function text(value: unknown) {
   return typeof value === "string" && value.trim() ? value.trim() : null;
 }
 
+function validSignedRequest(request: Request, rawBody: string) {
+  const secret = process.env.CLERK_SECRET_KEY?.trim() || "";
+  const timestamp = request.headers.get("x-low-coverage-timestamp")?.trim() || "";
+  const supplied = request.headers.get("x-low-coverage-signature")?.trim() || "";
+  const timestampMs = Number(timestamp);
+  if (!secret || !/^\d{13}$/.test(timestamp) || !/^[a-f0-9]{64}$/.test(supplied) || !Number.isFinite(timestampMs) || Math.abs(Date.now() - timestampMs) > 5 * 60_000) return false;
+  const expected = createHmac("sha256", secret).update(`${timestamp}.${rawBody}`).digest("hex");
+  return timingSafeEqual(Buffer.from(expected), Buffer.from(supplied));
+}
+
 export async function POST(request: Request) {
+  const rawBody = await request.text();
+  let authorized = false;
   try {
     assertFreeMemberDayTwoDeliveryAuthorized(request);
+    authorized = true;
   } catch {
+    authorized = validSignedRequest(request, rawBody);
+  }
+  if (!authorized) {
     return NextResponse.json({ error: "Unauthorized" }, { status: 401, headers: { "Cache-Control": "private, no-store" } });
   }
 
-  const body = await request.json().catch(() => null) as { userIds?: unknown } | null;
+  const body = (() => { try { return JSON.parse(rawBody) as { userIds?: unknown }; } catch { return null; } })();
   const rawUserIds = Array.isArray(body?.userIds) ? body.userIds : [];
   const userIds = Array.from(new Set(rawUserIds.filter((value): value is string => typeof value === "string" && /^user_[A-Za-z0-9]+$/.test(value))));
   if (!userIds.length || userIds.length > 20 || userIds.length !== rawUserIds.length) {
