@@ -1,7 +1,7 @@
 import { createHmac, timingSafeEqual } from "node:crypto";
 import { neon } from "@neondatabase/serverless";
 
-export type CampaignClickDestination = "points" | "trial";
+export type CampaignClickDestination = "points" | "trial" | "coverage" | "sightings";
 export interface CampaignClickPayload {
   version: 1;
   campaignId: string;
@@ -13,6 +13,8 @@ export interface CampaignClickPayload {
 const DESTINATIONS: Record<CampaignClickDestination, string> = {
   points: "https://www.bourbonsignal.com/dashboard?section=memberPoints&utm_source=bourbon_signal&utm_medium=email&utm_campaign=free_trial_points_pilot_v1",
   trial: "https://www.bourbonsignal.com/pricing?source=free_trial_points_pilot_v1&utm_source=bourbon_signal&utm_medium=email&utm_campaign=free_trial_points_pilot_v1",
+  coverage: "https://www.bourbonsignal.com/coverage?source=low_coverage_community_pilot_v1&utm_source=bourbon_signal&utm_medium=email&utm_campaign=low_coverage_community_pilot_v1",
+  sightings: "https://www.bourbonsignal.com/dashboard?section=sightings&source=low_coverage_community_pilot_v1&utm_source=bourbon_signal&utm_medium=email&utm_campaign=low_coverage_community_pilot_v1",
 };
 
 function validSecret(secret: string) {
@@ -63,10 +65,47 @@ export function campaignClickDestination(destination: CampaignClickDestination) 
   return DESTINATIONS[destination];
 }
 
+let destinationSchemaPromise: Promise<void> | null = null;
+
+async function ensureCampaignClickDestinationSchema(connectionString: string) {
+  if (!destinationSchemaPromise) {
+    const schemaSql = neon(connectionString);
+    destinationSchemaPromise = schemaSql.query(`
+      DO $migration$
+      DECLARE destination_constraint TEXT;
+      BEGIN
+        PERFORM pg_advisory_xact_lock(2026082001);
+        SELECT pg_get_constraintdef(oid)
+        INTO destination_constraint
+        FROM pg_constraint
+        WHERE conrelid = 'campaign_email_clicks'::regclass
+          AND conname = 'campaign_email_clicks_destination_check';
+        IF destination_constraint IS NULL OR destination_constraint NOT LIKE '%coverage%' THEN
+          ALTER TABLE campaign_email_clicks DROP CONSTRAINT IF EXISTS campaign_email_clicks_destination_check;
+          ALTER TABLE campaign_email_clicks
+            ADD CONSTRAINT campaign_email_clicks_destination_check
+            CHECK (destination IN ('points', 'trial', 'coverage', 'sightings'));
+        END IF;
+      END $migration$;
+    `).then(() => undefined).catch((error) => {
+      destinationSchemaPromise = null;
+      throw error;
+    });
+  }
+  await destinationSchemaPromise;
+}
+
+export async function prepareCampaignClickSchema(env: NodeJS.ProcessEnv = process.env) {
+  const connectionString = env.BOURBON_QUEUE_DATABASE_URL || env.BOURBON_QUEUE_DATABASE_URL_UNPOOLED || env.DATABASE_URL;
+  if (!connectionString) throw new Error("Campaign click database is not configured.");
+  await ensureCampaignClickDestinationSchema(connectionString);
+}
+
 export async function recordCampaignClick(payload: CampaignClickPayload, env: NodeJS.ProcessEnv = process.env) {
   const connectionString = env.BOURBON_QUEUE_DATABASE_URL || env.BOURBON_QUEUE_DATABASE_URL_UNPOOLED || env.DATABASE_URL;
   if (!connectionString) throw new Error("Campaign click database is not configured.");
   const sql = neon(connectionString);
+  await ensureCampaignClickDestinationSchema(connectionString);
   await sql.query(
     `INSERT INTO campaign_email_clicks (campaign_id, recipient_hash, destination, first_clicked_at, last_clicked_at, click_count)
      VALUES ($1, $2, $3, NOW(), NOW(), 1)
