@@ -61,6 +61,7 @@ export default clerkMiddleware(async (auth, request) => {
   if (url.pathname === "/api/alerts/manual-send") return NextResponse.next();
   if (url.pathname === "/api/member-weekly-intelligence/deliver") return NextResponse.next();
   if (url.pathname === "/api/free-member-day-two/deliver") return NextResponse.next();
+  if (url.pathname === "/api/ops/low-coverage-community-preflight") return NextResponse.next();
 
   if (url.pathname === "/api/member-weekly-intelligence/unsubscribe") return NextResponse.next();
   if (url.pathname === "/api/webhooks/stripe") return NextResponse.next();
