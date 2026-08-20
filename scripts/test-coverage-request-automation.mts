@@ -9,6 +9,9 @@ import {
   buildEngineOpsMessage,
   assertAuthorityCapabilityAbsent,
   assertAuthorityCapabilityAbsentFromGit,
+  bindAuthorityCapability,
+  persistAuthorityCapability,
+  persistVerifiedAuthorityCapability,
   normalizeJob,
   normalizeTaskTerminalResult,
   normalizeTerminalResult,
@@ -68,6 +71,24 @@ mkdirSync(authorityDirectory, { recursive: true });
 const authorityJobKey = `coverage-request:authority-test:${process.pid}:${Date.now()}:NY`;
 const authorityFile = path.join(authorityDirectory, `${createHash("sha256").update(authorityJobKey).digest("hex")}.json`);
 writeFileSync(authorityFile, JSON.stringify({ jobKey: authorityJobKey, authorityCapability: capability }));
+const authorityTaskId = "t_authoritytest";
+await persistVerifiedAuthorityCapability(authorityJobKey, authorityTaskId, capability);
+assert.deepEqual(JSON.parse(readFileSync(authorityFile, "utf8")), {
+  jobKey: authorityJobKey,
+  authorityCapability: capability,
+  taskId: authorityTaskId,
+}, "legacy authority files are upgraded and bound to the verified task");
+await persistVerifiedAuthorityCapability(authorityJobKey, authorityTaskId, capability);
+await persistAuthorityCapability(authorityJobKey, capability);
+assert.equal(JSON.parse(readFileSync(authorityFile, "utf8")).taskId, authorityTaskId, "idempotent create retries preserve an existing task binding");
+await assert.rejects(() => persistAuthorityCapability(authorityJobKey, "b".repeat(43)), /conflicts/i);
+await assert.rejects(() => bindAuthorityCapability(authorityJobKey, "t_different"), /different task/i);
+await assert.rejects(() => persistVerifiedAuthorityCapability(authorityJobKey, authorityTaskId, "b".repeat(43)), /conflicts/i);
+const retryJobKey = `${authorityJobKey}:retry`;
+const retryFile = path.join(authorityDirectory, `${createHash("sha256").update(retryJobKey).digest("hex")}.json`);
+await persistVerifiedAuthorityCapability(retryJobKey, "t_retry", capability);
+assert.equal(JSON.parse(readFileSync(retryFile, "utf8")).taskId, "t_retry", "missing retry authority files are created and bound atomically");
+rmSync(retryFile, { force: true });
 await assertAuthorityCapabilityAbsent(authorityJobKey, ["safe title", "safe body"]);
 await assert.rejects(() => assertAuthorityCapabilityAbsent(authorityJobKey, [`leaked ${capability}`]), /must not appear/i);
 const { execFileSync } = await import("node:child_process");
