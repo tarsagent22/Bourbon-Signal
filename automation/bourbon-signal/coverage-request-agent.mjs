@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { mkdir, open, readFile, stat, unlink, writeFile } from 'node:fs/promises';
+import { mkdir, open, readFile, rename, stat, unlink, writeFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
@@ -398,18 +398,73 @@ function authorityCapabilityPath(jobKey) {
   return path.join(hostHermesHome(), 'automation', 'coverage-authority', `${suffix}.json`);
 }
 
-async function persistAuthorityCapability(jobKey, authorityCapability) {
-  cleanText(authorityCapability, 'authorityCapability', 43, /^[a-zA-Z0-9_-]{43}$/);
+async function writeAuthorityRecord(target, record) {
+  const temporary = `${target}.${process.pid}.${Date.now()}.tmp`;
+  try {
+    await writeFile(temporary, `${JSON.stringify(record)}\n`, { encoding: 'utf8', mode: 0o600, flag: 'wx' });
+    await rename(temporary, target);
+  } finally {
+    try { await unlink(temporary); } catch (error) { if (error?.code !== 'ENOENT') throw error; }
+  }
+}
+
+export async function persistAuthorityCapability(jobKey, authorityCapability) {
+  const normalizedCapability = cleanText(authorityCapability, 'authorityCapability', 43, /^[a-zA-Z0-9_-]{43}$/);
   const target = authorityCapabilityPath(jobKey);
   await mkdir(path.dirname(target), { recursive: true });
-  await writeFile(target, `${JSON.stringify({ jobKey, authorityCapability })}\n`, { encoding: 'utf8', mode: 0o600 });
+  try {
+    const existing = normalizeAuthorityRecord(parseJson(await readFile(target, 'utf8'), 'Authority capability file'));
+    if (existing.jobKey !== jobKey || existing.authorityCapability !== normalizedCapability) {
+      throw new Error('Existing authority capability conflicts with the claimed job.');
+    }
+    return existing;
+  } catch (error) {
+    if (error?.code !== 'ENOENT') throw error;
+  }
+  const created = { jobKey, authorityCapability: normalizedCapability, taskId: null };
+  await writeAuthorityRecord(target, created);
+  return created;
+}
+
+function normalizeAuthorityRecord(value) {
+  const keys = Object.prototype.hasOwnProperty.call(value || {}, 'taskId')
+    ? ['jobKey', 'authorityCapability', 'taskId']
+    : ['jobKey', 'authorityCapability'];
+  const record = strictObject(value, 'authority capability file', keys);
+  const jobKey = cleanText(record.jobKey, 'authority jobKey', 340, /^[a-zA-Z0-9:|._/@+-]+$/);
+  const authorityCapability = cleanText(record.authorityCapability, 'authorityCapability', 43, /^[a-zA-Z0-9_-]{43}$/);
+  const taskId = record.taskId == null ? null : cleanText(record.taskId, 'authority taskId', 82, /^t_[a-zA-Z0-9]+$/);
+  return { jobKey, authorityCapability, taskId };
+}
+
+export async function bindAuthorityCapability(jobKey, taskId) {
+  const target = authorityCapabilityPath(jobKey);
+  const record = normalizeAuthorityRecord(parseJson(await readFile(target, 'utf8'), 'Authority capability file'));
+  if (record.jobKey !== jobKey) throw new Error('Authority capability file is bound to the wrong job.');
+  const boundTaskId = cleanText(taskId, 'taskId', 82, /^t_[a-zA-Z0-9]+$/);
+  if (record.taskId && record.taskId !== boundTaskId) throw new Error('Authority capability file is bound to a different task.');
+  await writeAuthorityRecord(target, { ...record, taskId: boundTaskId });
 }
 
 async function loadAuthorityCapability(jobKey) {
   const value = parseJson(await readFile(authorityCapabilityPath(jobKey), 'utf8'), 'Authority capability file');
-  const record = strictObject(value, 'authority capability file', ['jobKey', 'authorityCapability']);
+  const record = normalizeAuthorityRecord(value);
   if (record.jobKey !== jobKey) throw new Error('Authority capability file is bound to the wrong job.');
-  return cleanText(record.authorityCapability, 'authorityCapability', 43, /^[a-zA-Z0-9_-]{43}$/);
+  return record.authorityCapability;
+}
+
+export async function persistVerifiedAuthorityCapability(jobKey, taskId, suppliedAuthorityCapability = null) {
+  if (suppliedAuthorityCapability !== null) {
+    const supplied = cleanText(suppliedAuthorityCapability, 'authorityCapability', 43, /^[a-zA-Z0-9_-]{43}$/);
+    try {
+      const existing = await loadAuthorityCapability(jobKey);
+      if (existing !== supplied) throw new Error('Supplied authority capability conflicts with the protected record.');
+    } catch (error) {
+      if (error?.code !== 'ENOENT') throw error;
+      await persistAuthorityCapability(jobKey, supplied);
+    }
+  }
+  await bindAuthorityCapability(jobKey, taskId);
 }
 
 async function removeAuthorityCapability(jobKey) {
@@ -514,6 +569,7 @@ async function createTask(config, job, authorityCapability) {
   const parsed = parseJson(output, 'Kanban create');
   const taskId = String(parsed.id || parsed.task?.id || '');
   if (!/^t_[a-zA-Z0-9]+$/.test(taskId)) throw new Error('Kanban create did not return a valid task id.');
+  await bindAuthorityCapability(job.jobKey, taskId);
   return taskId;
 }
 
@@ -574,6 +630,7 @@ async function processJob(config) {
     return true;
   }
   if (job.status !== 'running' || !job.taskId) return false;
+  await bindAuthorityCapability(job.jobKey, job.taskId);
   let task;
   try {
     task = readTask(config, job.taskId);
@@ -621,7 +678,7 @@ export async function verifyAuthority(jobKey, taskId = process.env.HERMES_KANBAN
   cleanText(taskId, 'taskId', 82, /^t_[a-zA-Z0-9]+$/);
   const result = await post({ baseUrl: DEFAULT_BASE_URL }, null, { action: 'verify_authority', jobKey, taskId, authorityCapability }, { allowConflict: true });
   if (result.status !== 200 || result.payload.authorized !== true) throw new Error('Coverage automation release authority was not verified.');
-  if (suppliedAuthorityCapability !== null) await persistAuthorityCapability(jobKey, authorityCapability);
+  await persistVerifiedAuthorityCapability(jobKey, taskId, suppliedAuthorityCapability);
   return true;
 }
 
