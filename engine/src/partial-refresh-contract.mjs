@@ -229,16 +229,45 @@ function retainedEvent(event, reason) {
   };
 }
 
-export function mergeScheduledFallbackEvents({ previousEvents = [], currentEvents = [], fallbackStateIds = [] } = {}) {
+function eventIdentity(event) {
+  return event?.eventId || event?.id || [
+    String(event?.state || event?.state_code || '').toUpperCase(),
+    event?.category,
+    event?.sourceUrl,
+    event?.eventDate,
+    event?.title,
+  ].join('|');
+}
+
+export function mergeScheduledFallbackEvents({
+  previousEvents = [],
+  currentEvents = [],
+  fallbackStateIds = [],
+  partialRefresh = false,
+  attemptedStateIds = [],
+} = {}) {
   const eventRowsOf = (value) => Array.isArray(value) ? value : Array.isArray(value?.events) ? value.events : [];
   const fallbackStates = new Set((fallbackStateIds || []).map((state) => String(state || '').toUpperCase()));
-  if (!fallbackStates.size) return eventRowsOf(currentEvents);
+  const attemptedStates = new Set((attemptedStateIds || []).map((state) => String(state || '').toUpperCase()));
+  if (!partialRefresh && !fallbackStates.size) return eventRowsOf(currentEvents);
   const stateOf = (event) => String(event?.state || event?.state_code || '').toUpperCase();
-  const healthy = eventRowsOf(currentEvents).filter((event) => !fallbackStates.has(stateOf(event)));
-  const retained = eventRowsOf(previousEvents)
-    .filter((event) => fallbackStates.has(stateOf(event)))
-    .map((event) => retainedEvent(event, 'scheduled_state_verification_failed'));
-  return [...healthy, ...retained];
+  const merged = eventRowsOf(currentEvents).filter((event) => !fallbackStates.has(stateOf(event))
+    && (!partialRefresh || attemptedStates.has(stateOf(event))));
+  const seen = new Set(merged.map(eventIdentity));
+
+  for (const event of eventRowsOf(previousEvents)) {
+    const state = stateOf(event);
+    if (!partialRefresh && !fallbackStates.has(state)) continue;
+    if (partialRefresh && attemptedStates.has(state) && !fallbackStates.has(state)) continue;
+    const retained = fallbackStates.has(state)
+      ? retainedEvent(event, 'scheduled_state_verification_failed')
+      : event;
+    const key = eventIdentity(retained);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    merged.push(retained);
+  }
+  return merged;
 }
 
 export function mergePartialRefreshDrops({ previousDrops = [], currentDrops = [], partialRefresh = false, attemptedStateIds = [], fallbackStateIds = [], partialFallbackStateIds = [], isSafePartialRetainedRow = () => true } = {}) {

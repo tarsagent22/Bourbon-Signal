@@ -32,7 +32,9 @@ import { buildNcSourceLedger, enrichNcSingleStoreShipmentSignals } from './nc-so
 import { authoritativeSignalTimestamp, enforceArchivedSourceAlertPolicy } from './event-freshness.mjs';
 import { buildStateOperatingContract } from './state-operating-contract.mjs';
 
-const OUT = path.resolve('out');
+const OUT = process.env.BOURBON_SIGNAL_OUT_DIR
+  ? path.resolve(process.env.BOURBON_SIGNAL_OUT_DIR)
+  : path.resolve('out');
 const SNAPSHOTS = path.join(OUT, 'history', 'snapshots');
 const SITE_OUT = path.join(OUT, 'site');
 const PREVIOUS_SITE_OUT = process.env.BOURBON_SIGNAL_PREVIOUS_SITE_DIR
@@ -2087,6 +2089,8 @@ async function main() {
     previousEvents,
     currentEvents: buildEvents(historicalSignals, bible),
     fallbackStateIds: summary.fallbackStateIds || [],
+    partialRefresh: summary.partialRefresh === true,
+    attemptedStateIds: summary.attemptedStateIds || [],
   }).filter((event) => isActiveCustomerStateRow(event, activeStateIds));
   const alertableCurrentDrops = freshRunDrops.filter((drop) => !fallbackStateIds.has(String(drop.state || drop.state_code || '').toUpperCase()));
   const freshReportedAlertCandidates = selectFreshRunDrops({ drops: alerts.candidates, freshStateIds: summary.freshStateIds });
