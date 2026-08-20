@@ -31,3 +31,80 @@ export function firstAlertCreatedMetadata(metadata: Record<string, unknown>, com
   if (!committed) return metadata;
   return mergeActivationMilestones(metadata, ["first_alert_created"], at);
 }
+
+export type ActivationStepKey = "area" | "watchlist" | "channel";
+
+const ACTIVATION_STEPS: Array<{ key: ActivationStepKey; label: string }> = [
+  { key: "area", label: "Save an alert area" },
+  { key: "watchlist", label: "Choose what to watch" },
+  { key: "channel", label: "Enable an alert channel" },
+];
+
+export function buildActivationChecklist(remaining: string[], complete: boolean) {
+  const remainingSteps = new Set(remaining);
+  const items = ACTIVATION_STEPS.map((item) => ({ ...item, complete: !remainingSteps.has(item.key) }));
+  return {
+    complete,
+    completedCount: items.filter((item) => item.complete).length,
+    total: items.length,
+    nextHref: "/dashboard?section=alerts",
+    items,
+  };
+}
+
+export function buildAlertEmptyState({
+  tab,
+  activationComplete,
+  loadFailed,
+}: {
+  tab: "unread" | "all" | "archived";
+  activationComplete: boolean | null;
+  loadFailed: boolean;
+}) {
+  if (loadFailed) {
+    return {
+      title: "Alerts unavailable",
+      body: "We couldn’t load your alert inbox. Try again before assuming there are no new matches.",
+      actionLabel: "Try again",
+      actionHref: "/alerts",
+    };
+  }
+  if (activationComplete === null) {
+    return {
+      title: "Setup status unavailable",
+      body: "We couldn’t confirm your saved alert setup. Review it before waiting for matches.",
+      actionLabel: "Review alert setup",
+      actionHref: "/dashboard?section=alerts",
+    };
+  }
+  if (tab === "archived") {
+    return {
+      title: "No archived alerts",
+      body: "Alerts you archive will stay available here.",
+      actionLabel: "Review alert setup",
+      actionHref: "/dashboard?section=alerts",
+    };
+  }
+  if (!activationComplete) {
+    return {
+      title: "Finish alert setup",
+      body: "Save an area, choose what to watch, and turn on a notification channel before matches can reach you.",
+      actionLabel: "Finish setup",
+      actionHref: "/dashboard?section=alerts",
+    };
+  }
+  if (tab === "unread") {
+    return {
+      title: "You’re caught up",
+      body: "Your signal is active. New matches in your saved area will appear here.",
+      actionLabel: "Review alert setup",
+      actionHref: "/dashboard?section=alerts",
+    };
+  }
+  return {
+    title: "No current alerts",
+    body: "Your signal is active. Archived alerts remain available under Archived.",
+    actionLabel: "Review alert setup",
+    actionHref: "/dashboard?section=alerts",
+  };
+}

@@ -54,6 +54,7 @@ export function useMemberAlerts(polling = false) {
   const { isSignedIn, memberTier } = useAuth();
   const [data, setData] = useState<AlertsResponse>(EMPTY_RESPONSE);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const seenAlertIds = useRef<Set<string>>(new Set());
   const hasLoadedRef = useRef(false);
   const inFlightRef = useRef(false);
@@ -65,6 +66,7 @@ export function useMemberAlerts(polling = false) {
   const fetchAlerts = useCallback(async (options: { background?: boolean } = {}) => {
     if (!isPaidOrTester) {
       setData(EMPTY_RESPONSE);
+      setError(null);
       hasLoadedRef.current = false;
       return EMPTY_RESPONSE;
     }
@@ -97,7 +99,11 @@ export function useMemberAlerts(polling = false) {
       seenAlertIds.current = new Set(nextUnreadIds);
       hasLoadedRef.current = true;
       setData(payload);
+      setError(null);
       return payload;
+    } catch (cause) {
+      setError("Alerts could not be loaded.");
+      throw cause;
     } finally {
       inFlightRef.current = false;
       if (!background) setLoading(false);
@@ -149,10 +155,11 @@ export function useMemberAlerts(polling = false) {
     alertDeliveryEnabled: data.alertDeliveryEnabled === true,
     alertPolicyNote: data.alertPolicyNote || "",
     loading,
+    error,
     isEligible,
     refresh: fetchAlerts,
     markRead: (alertId: string) => mutate("mark_read", alertId),
     markAllRead: () => mutate("mark_all_read"),
     archive: (alertId: string) => mutate("archive", alertId),
-  }), [data, loading, isEligible, fetchAlerts, mutate]);
+  }), [data, loading, error, isEligible, fetchAlerts, mutate]);
 }
