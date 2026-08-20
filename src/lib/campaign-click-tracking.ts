@@ -1,4 +1,4 @@
-import { createHmac, timingSafeEqual } from "node:crypto";
+import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 import { neon } from "@neondatabase/serverless";
 
 export type CampaignClickDestination = "points" | "trial" | "coverage" | "sightings";
@@ -99,6 +99,26 @@ export async function prepareCampaignClickSchema(env: NodeJS.ProcessEnv = proces
   const connectionString = env.BOURBON_QUEUE_DATABASE_URL || env.BOURBON_QUEUE_DATABASE_URL_UNPOOLED || env.DATABASE_URL;
   if (!connectionString) throw new Error("Campaign click database is not configured.");
   await ensureCampaignClickDestinationSchema(connectionString);
+}
+
+export async function consumeCampaignPreflightNonce(nonce: string, env: NodeJS.ProcessEnv = process.env) {
+  const connectionString = env.BOURBON_QUEUE_DATABASE_URL || env.BOURBON_QUEUE_DATABASE_URL_UNPOOLED || env.DATABASE_URL;
+  if (!connectionString) throw new Error("Campaign preflight database is not configured.");
+  const sql = neon(connectionString);
+  await sql.query(`CREATE TABLE IF NOT EXISTS campaign_preflight_nonces (
+    nonce_hash TEXT PRIMARY KEY,
+    expires_at TIMESTAMPTZ NOT NULL
+  )`);
+  await sql.query(`DELETE FROM campaign_preflight_nonces WHERE expires_at < NOW()`);
+  const nonceHash = createHash("sha256").update(nonce).digest("hex");
+  const inserted = await sql.query(
+    `INSERT INTO campaign_preflight_nonces (nonce_hash, expires_at)
+     VALUES ($1, NOW() + INTERVAL '5 minutes')
+     ON CONFLICT (nonce_hash) DO NOTHING
+     RETURNING nonce_hash`,
+    [nonceHash],
+  );
+  return inserted.length === 1;
 }
 
 export async function recordCampaignClick(payload: CampaignClickPayload, env: NodeJS.ProcessEnv = process.env) {
