@@ -104,6 +104,30 @@ export function verifyStateIntegration({ state, config, manifest, fixtures, site
     const immutable = manifest?.evidence?.immutablePromotionEvidence;
     if (!object(immutable)) failures.push(`${normalized}: active promoted state is missing immutable promotion evidence.`);
     else {
+      const extension = manifest?.evidence?.sourceExtension;
+      const addedSourceIds = asArray(extension?.addedSourceIds);
+      const activationCollector = extension?.activationCollector;
+      const activationSourceIds = asArray(activationCollector?.sourceIds);
+      const currentSourceIds = asArray(manifest?.collector?.sourceIds);
+      const expectedCurrentSourceIds = [...activationSourceIds, ...addedSourceIds];
+      const activationSourceConfig = JSON.stringify({
+        lifecycle: manifest.lifecycle,
+        collector: activationCollector,
+        storeIdentity: manifest.storeIdentity,
+        sourceSemantics: manifest.sourceSemantics,
+        customerPaths: manifest.customerPaths,
+      });
+      const activationSourceConfigHash = createHash('sha256').update(activationSourceConfig).digest('hex');
+      const activeStateSourceExtension = extension?.classification === 'active_state_source_extension'
+        && extension?.activationSourceConfigHash === immutable.sourceConfigHash
+        && object(activationCollector)
+        && activationSourceConfigHash === immutable.sourceConfigHash
+        && addedSourceIds.length > 0
+        && new Set(expectedCurrentSourceIds).size === expectedCurrentSourceIds.length
+        && JSON.stringify(currentSourceIds) === JSON.stringify(expectedCurrentSourceIds);
+      if (extension?.classification === 'active_state_source_extension' && !activeStateSourceExtension) {
+        failures.push(`${normalized}: active-state source extension does not bind its historical activation hash and added source IDs.`);
+      }
       const sourceConfig = JSON.stringify({
         lifecycle: manifest.lifecycle,
         collector: manifest.collector,
@@ -112,7 +136,7 @@ export function verifyStateIntegration({ state, config, manifest, fixtures, site
         customerPaths: manifest.customerPaths,
       });
       const sourceConfigHash = createHash('sha256').update(sourceConfig).digest('hex');
-      if (immutable.sourceConfigHash !== sourceConfigHash) failures.push(`${normalized}: immutable promotion evidence does not bind the current source configuration.`);
+      if (!activeStateSourceExtension && immutable.sourceConfigHash !== sourceConfigHash) failures.push(`${normalized}: immutable promotion evidence does not bind the current source configuration.`);
       if (JSON.stringify(lifecycle?.promotionEvidence?.immutableEvidence || null) !== JSON.stringify(immutable)) failures.push(`${normalized}: lifecycle promotion evidence drifted from the vertical-slice manifest.`);
     }
   }

@@ -14,9 +14,13 @@
       "metro:ny:flatiron-wines",
       "metro:ny:wine-gallery",
       "metro:ny:cherrywood-wine",
-      "metro:ny:westbury-liquors"
+      "metro:ny:westbury-liquors",
+      "metro:ny:bottlerocket",
+      "metro:ny:crossroads-wines",
+      "metro:ny:liquor-village-nyc",
+      "metro:ny:pikes-liquors"
     ],
-    "registration": "engine/src/state-sources.mjs and engine/src/collectors/precision-probes.mjs register six bounded, isolated New York City and Nassau County first-party retailer sources behind the legacy precision runtime."
+    "registration": "engine/src/state-sources.mjs and engine/src/collectors/precision-probes.mjs register ten bounded, isolated New York City and Nassau County first-party retailer sources behind the legacy precision runtime."
   },
   "storeIdentity": {
     "mode": "exact_allowlisted_merchant_and_premises",
@@ -82,10 +86,32 @@
       "verifiedAt": "2026-07-31T18:27:03.000Z"
     },
     "production": {
-      "status": "not_deployed",
-      "url": null,
-      "assertion": "This manifest documents implemented engine contracts only and does not claim production deployment.",
-      "reason": "Production promotion and website wiring were outside the authorized engine-only scope."
+      "status": "deployed",
+      "url": "https://bourbonsignal.com/coverage?state=NY",
+      "assertion": "New York is already customer-active under the existing exact-store inventory, freshness, alert, publication, and rollback gates.",
+      "reason": "This change is an ordinary active-state source extension, not a first activation or trust-semantics promotion."
+    },
+    "sourceExtension": {
+      "classification": "active_state_source_extension",
+      "activationSourceConfigHash": "6ba73fd702ea71835154fac8f02dc7963017aadacce12a874a002ef4f9435f17",
+      "activationCollector": {
+        "sourceIds": [
+          "metro:ny:cellar-53",
+          "metro:ny:broadway-spirits",
+          "metro:ny:flatiron-wines",
+          "metro:ny:wine-gallery",
+          "metro:ny:cherrywood-wine",
+          "metro:ny:westbury-liquors"
+        ],
+        "registration": "engine/src/state-sources.mjs and engine/src/collectors/precision-probes.mjs register six bounded, isolated New York City and Nassau County first-party retailer sources behind the legacy precision runtime."
+      },
+      "addedSourceIds": [
+        "metro:ny:bottlerocket",
+        "metro:ny:crossroads-wines",
+        "metro:ny:liquor-village-nyc",
+        "metro:ny:pikes-liquors"
+      ],
+      "assertion": "Historical shadow/canary evidence remains immutable activation proof; current source growth is verified through bounded live source checks, state quality gates, and targeted production publication."
     },
     "immutablePromotionEvidence": {
       "schemaVersion": 1,

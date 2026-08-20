@@ -116,9 +116,13 @@
       "expected": {
         "officialHost": true,
         "allowlistedHosts": [
+          "bottlerocket.com",
           "cellar53wine.com",
           "cherrywoodwine.com",
+          "crossroadswines.com",
+          "liquorvillagenyc.com",
           "nyc.flatiron-wines.com",
+          "pikesliquors.com",
           "westburyliquors.com",
           "winegalleryonline.com",
           "www.broadwayspirits.com"
