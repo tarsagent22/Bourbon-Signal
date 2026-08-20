@@ -10,6 +10,7 @@ import PreviewTierSwitcher from "@/components/PreviewTierSwitcher";
 import { LiquidToggleFilter } from "@/components/LiquidToggle";
 import GrowthAnalytics from "@/components/analytics/GrowthAnalytics";
 import LifecycleTimeZoneCapture from "@/components/LifecycleTimeZoneCapture";
+import LegacyMemberSetupPrompt from "@/components/LegacyMemberSetupPrompt";
 
 const siteTitle = "Bourbon Signal — Premium Bourbon Drop Alerts";
 const siteDescription = "Premium source-backed bourbon drop alerts, live inventory signals, Bottle Check, and member tools for covered control and retailer markets.";
@@ -186,6 +187,7 @@ export default function RootLayout({
         <body style={{ fontFamily: "var(--font-dm-sans)" }}>
           <LiquidToggleFilter />
           <LifecycleTimeZoneCapture />
+          <LegacyMemberSetupPrompt />
           {children}
           <PreviewTierSwitcher />
           <ToastContainer />

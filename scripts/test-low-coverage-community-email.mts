@@ -106,7 +106,7 @@ assert.match(clickSource, /"coverage"/);
 assert.match(clickSource, /"sightings"/);
 assert.match(clickSource, /prepareCampaignClickSchema/);
 assert.match(clickRouteSource, /low-coverage-community-pilot-v1/);
-assert.match(clickSchemaSource, /CHECK \(destination IN \('points', 'trial', 'coverage', 'sightings'\)\)/);
+assert.match(clickSchemaSource, /CHECK \(destination IN \('points', 'trial', 'coverage', 'sightings', 'setup'\)\)/);
 assert.match(clickSchemaSource, /DROP CONSTRAINT IF EXISTS campaign_email_clicks_destination_check/);
 assert.match(preflightSource, /assertFreeMemberDayTwoDeliveryAuthorized/);
 assert.match(preflightSource, /createHmac\("sha256", secret\)/);

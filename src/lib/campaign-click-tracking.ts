@@ -1,7 +1,7 @@
 import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 import { neon } from "@neondatabase/serverless";
 
-export type CampaignClickDestination = "points" | "trial" | "coverage" | "sightings";
+export type CampaignClickDestination = "points" | "trial" | "coverage" | "sightings" | "setup";
 export interface CampaignClickPayload {
   version: 1;
   campaignId: string;
@@ -15,6 +15,7 @@ const DESTINATIONS: Record<CampaignClickDestination, string> = {
   trial: "https://www.bourbonsignal.com/pricing?source=free_trial_points_pilot_v1&utm_source=bourbon_signal&utm_medium=email&utm_campaign=free_trial_points_pilot_v1",
   coverage: "https://www.bourbonsignal.com/coverage?source=low_coverage_community_pilot_v1&utm_source=bourbon_signal&utm_medium=email&utm_campaign=low_coverage_community_pilot_v1",
   sightings: "https://www.bourbonsignal.com/dashboard?section=sightings&source=low_coverage_community_pilot_v1&utm_source=bourbon_signal&utm_medium=email&utm_campaign=low_coverage_community_pilot_v1",
+  setup: "https://www.bourbonsignal.com/welcome?legacy=1&source=where-you-hunt-email&utm_source=bourbon_signal&utm_medium=email&utm_campaign=missing_state_community_pilot_v1",
 };
 
 function validSecret(secret: string) {
@@ -62,6 +63,9 @@ export function verifyCampaignClickToken(token: string, secret: string, now = ne
 }
 
 export function campaignClickDestination(destination: CampaignClickDestination) {
+  switch (destination) {
+    case "setup": return DESTINATIONS.setup;
+  }
   return DESTINATIONS[destination];
 }
 
@@ -80,11 +84,11 @@ async function ensureCampaignClickDestinationSchema(connectionString: string) {
         FROM pg_constraint
         WHERE conrelid = 'campaign_email_clicks'::regclass
           AND conname = 'campaign_email_clicks_destination_check';
-        IF destination_constraint IS NULL OR destination_constraint NOT LIKE '%coverage%' THEN
+        IF destination_constraint IS NULL OR destination_constraint NOT LIKE '%setup%' THEN
           ALTER TABLE campaign_email_clicks DROP CONSTRAINT IF EXISTS campaign_email_clicks_destination_check;
           ALTER TABLE campaign_email_clicks
             ADD CONSTRAINT campaign_email_clicks_destination_check
-            CHECK (destination IN ('points', 'trial', 'coverage', 'sightings'));
+            CHECK (destination IN ('points', 'trial', 'coverage', 'sightings', 'setup'));
         END IF;
       END $migration$;
     `).then(() => undefined).catch((error) => {

@@ -544,6 +544,50 @@
   text-transform: uppercase;
 }
 
+.rewardsSection {
+  padding-top: 18px;
+  padding-bottom: 18px;
+}
+
+.rewardsCard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  border: 1px solid rgba(196, 148, 58, 0.2);
+  border-radius: 22px;
+  padding: 24px;
+  background: linear-gradient(135deg, rgba(196, 148, 58, 0.11), rgba(245, 237, 214, 0.025));
+}
+
+.rewardsCard h2 {
+  margin: 7px 0 0;
+  color: rgba(245, 237, 214, 0.96);
+  font: 700 clamp(25px, 3vw, 36px)/1.08 var(--font-playfair);
+  letter-spacing: -0.03em;
+}
+
+.rewardsCard div > p:last-child {
+  max-width: 650px;
+  margin: 12px 0 0;
+  color: rgba(245, 237, 214, 0.62);
+  font: 600 13px/1.65 var(--font-dm-sans);
+}
+
+.rewardsCard > a {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  flex: 0 0 auto;
+  border-radius: 13px;
+  padding: 14px 17px;
+  color: #17110b;
+  background: linear-gradient(135deg, #c4943a, #d4a44a);
+  font: 900 13px/1 var(--font-dm-sans);
+  text-decoration: none;
+}
+
 .trialSection {
   padding-top: 18px;
   padding-bottom: 18px;
@@ -724,13 +768,15 @@
     grid-column: auto;
   }
 
-  .trialCard {
+  .trialCard,
+  .rewardsCard {
     align-items: stretch;
     flex-direction: column;
     padding: 20px;
   }
 
-  .trialCard > a {
+  .trialCard > a,
+  .rewardsCard > a {
     width: 100%;
   }
 

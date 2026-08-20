@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS campaign_email_clicks (
   campaign_id TEXT NOT NULL,
   recipient_hash TEXT NOT NULL,
-  destination TEXT NOT NULL CHECK (destination IN ('points', 'trial', 'coverage', 'sightings')),
+  destination TEXT NOT NULL CHECK (destination IN ('points', 'trial', 'coverage', 'sightings', 'setup')),
   first_clicked_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   last_clicked_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   click_count INTEGER NOT NULL DEFAULT 1 CHECK (click_count > 0),
@@ -17,11 +17,11 @@ BEGIN
   WHERE conrelid = 'campaign_email_clicks'::regclass
     AND conname = 'campaign_email_clicks_destination_check';
 
-  IF destination_constraint IS NULL OR destination_constraint NOT LIKE '%coverage%' THEN
+  IF destination_constraint IS NULL OR destination_constraint NOT LIKE '%setup%' THEN
     ALTER TABLE campaign_email_clicks DROP CONSTRAINT IF EXISTS campaign_email_clicks_destination_check;
     ALTER TABLE campaign_email_clicks
       ADD CONSTRAINT campaign_email_clicks_destination_check
-      CHECK (destination IN ('points', 'trial', 'coverage', 'sightings'));
+      CHECK (destination IN ('points', 'trial', 'coverage', 'sightings', 'setup'));
   END IF;
 END $migration$;
 

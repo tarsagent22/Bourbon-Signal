@@ -621,10 +621,29 @@ export async function POST(req: NextRequest) {
     await client.users.updateUserMetadata(userId, { publicMetadata: publicMetadataPatch });
   }
 
-  if (milestones.length > 0) {
+  const setupCompleted = payload.memberProfile !== undefined
+    && typeof memberProfile.homeState === "string"
+    && memberProfile.homeState.length > 0
+    && typeof memberProfile.homeStateSelectedAt === "string"
+    && memberProfile.homeStateSelectedAt.length > 0;
+  if (milestones.length > 0 || setupCompleted) {
     try {
-      const milestoneMetadata = mergeActivationMilestones((user.privateMetadata || {}) as Record<string, unknown>, milestones, new Date().toISOString());
-      await client.users.updateUserMetadata(userId, { privateMetadata: { activation: milestoneMetadata.activation } });
+      const recordedAt = new Date().toISOString();
+      const privateMetadataPatch: Record<string, unknown> = {};
+      if (milestones.length > 0) {
+        const milestoneMetadata = mergeActivationMilestones((user.privateMetadata || {}) as Record<string, unknown>, milestones, recordedAt);
+        privateMetadataPatch.activation = milestoneMetadata.activation;
+      }
+      if (setupCompleted) {
+        privateMetadataPatch.legacySetupPrompt = {
+          ...((user.privateMetadata as Record<string, unknown> | null | undefined)?.legacySetupPrompt
+            && typeof (user.privateMetadata as Record<string, unknown>).legacySetupPrompt === "object"
+            ? (user.privateMetadata as Record<string, unknown>).legacySetupPrompt as Record<string, unknown>
+            : {}),
+          completedAt: recordedAt,
+        };
+      }
+      await client.users.updateUserMetadata(userId, { privateMetadata: privateMetadataPatch });
     } catch (error) {
       console.warn("preference activation milestone update failed", error instanceof Error ? error.message : "unknown error");
     }
