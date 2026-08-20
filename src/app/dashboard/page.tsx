@@ -21,6 +21,7 @@ import { getDisplayName, isRealDropEvent, type DropEvent } from "@/lib/drops";
 import { LiquidToggle } from "@/components/LiquidToggle";
 import { NotificationChannelCard } from "@/components/dashboard/NotificationChannelCard";
 import { CoverageRequestsCard } from "@/components/dashboard/CoverageRequestsCard";
+import { ActivationChecklist } from "@/components/onboarding/ActivationChecklist";
 import SignalPointsPanel from "@/components/SignalPointsPanel";
 import {
   getDefaultNotificationPreferences,
@@ -2617,6 +2618,12 @@ function PaidMemberDashboard() {
             subtitle="Choose the state first, then refine to the board, city, or store level in the same place. Your current selections stay visible below."
             attached
           >
+            {confirmedAlertPrefs?.activation?.eligible ? (
+              <ActivationChecklist
+                remaining={confirmedAlertPrefs.activation.remaining}
+                complete={confirmedAlertPrefs.activation.complete}
+              />
+            ) : null}
             {(() => {
               const selectedStates = localPrefs.states;
               const activeState = selectedStates.includes(activeTerritoryState) ? activeTerritoryState : selectedStates[0] || activeTerritoryState;

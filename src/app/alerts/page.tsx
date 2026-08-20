@@ -6,6 +6,7 @@ import { useMemberAlerts } from "@/hooks/useMemberAlerts";
 import { useMemo, useEffect, useState } from "react";
 import { useAuth } from "@/lib/auth";
 import { ActivationChecklist } from "@/components/onboarding/ActivationChecklist";
+import { AlertEmptyState } from "@/components/onboarding/AlertEmptyState";
 
 const tabs = [
   { key: "unread", label: "Unread" },
@@ -16,15 +17,27 @@ const tabs = [
 export default function AlertsPage() {
   const [tab, setTab] = useState<(typeof tabs)[number]["key"]>("unread");
   const [activation, setActivation] = useState<{ eligible: boolean; complete: boolean; remaining: string[] } | null>(null);
+  const [activationStatus, setActivationStatus] = useState<"loading" | "ready" | "error">("loading");
   const { isSignedIn } = useAuth();
-  const { alerts, unreadCount, loading, isEligible, markRead, markAllRead, archive } = useMemberAlerts(false);
+  const { alerts, unreadCount, loading, error: alertError, isEligible, markRead, markAllRead, archive } = useMemberAlerts(false);
 
   useEffect(() => {
     if (!isEligible) return;
+    setActivationStatus("loading");
     void fetch("/api/user/preferences", { cache: "no-store" })
-      .then((response) => response.ok ? response.json() : null)
-      .then((payload) => setActivation(payload?.activation || null))
-      .catch(() => undefined);
+      .then((response) => {
+        if (!response.ok) throw new Error("Failed to load alert setup");
+        return response.json();
+      })
+      .then((payload) => {
+        if (!payload?.activation) throw new Error("Alert setup was unavailable");
+        setActivation(payload.activation);
+        setActivationStatus("ready");
+      })
+      .catch(() => {
+        setActivation(null);
+        setActivationStatus("error");
+      });
   }, [isEligible]);
 
   const visibleAlerts = useMemo(() => {
@@ -95,14 +108,14 @@ export default function AlertsPage() {
               })}
             </div>
 
-            {loading ? (
+            {loading || activationStatus === "loading" ? (
               <div style={{ color: "var(--color-text-secondary)", fontFamily: "var(--font-dm-sans)" }}>Loading alerts…</div>
             ) : visibleAlerts.length === 0 ? (
-              <div style={{ borderRadius: "18px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", padding: "22px", fontFamily: "var(--font-dm-sans)", color: "var(--color-text-secondary)", lineHeight: 1.8 }}>
-                {tab === "archived"
-                  ? "No archived alerts yet."
-                  : "No alerts yet. Once a watched bottle hits your saved territory, it will show up here."}
-              </div>
+              <AlertEmptyState
+                tab={tab}
+                activationComplete={activationStatus === "ready" ? activation?.complete === true : null}
+                loadFailed={Boolean(alertError)}
+              />
             ) : (
               <div style={{ display: "grid", gap: "14px" }}>
                 {visibleAlerts.map((alert) => (

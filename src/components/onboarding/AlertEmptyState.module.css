@@ -1,0 +1,59 @@
+.empty {
+  position: relative;
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+  min-height: 180px;
+  padding: 25px;
+  overflow: hidden;
+  border: 1px solid rgba(196, 148, 58, 0.16);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 100% 0, rgba(196, 148, 58, 0.13), transparent 42%),
+    rgba(255, 255, 255, 0.025);
+}
+
+.kicker {
+  margin: 0;
+  color: var(--color-accent-amber);
+  font-family: var(--font-jetbrains);
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.empty h2 {
+  margin: 2px 0 0;
+  color: var(--color-cream);
+  font-family: var(--font-playfair);
+  font-size: clamp(25px, 4vw, 34px);
+  line-height: 1.1;
+}
+
+.body {
+  max-width: 58ch;
+  margin: 2px 0 6px;
+  color: var(--color-text-secondary);
+  font-family: var(--font-dm-sans);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.action {
+  color: var(--color-accent-amber);
+  font-family: var(--font-dm-sans);
+  font-size: 13px;
+  font-weight: 750;
+  text-decoration: none;
+  text-underline-offset: 4px;
+}
+
+.action:hover {
+  text-decoration: underline;
+}
+
+.action:focus-visible {
+  border-radius: 4px;
+  outline: 2px solid var(--color-accent-amber);
+  outline-offset: 4px;
+}

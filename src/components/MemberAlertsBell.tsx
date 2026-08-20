@@ -9,7 +9,7 @@ import { useMemberAlerts } from "@/hooks/useMemberAlerts";
 export default function MemberAlertsBell() {
   const [open, setOpen] = useState(false);
   const [isMobileViewport, setIsMobileViewport] = useState(false);
-  const { alerts, unreadCount, isEligible, loading, markRead, markAllRead, archive } = useMemberAlerts(open);
+  const { alerts, unreadCount, isEligible, loading, error, markRead, markAllRead, archive } = useMemberAlerts(open);
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 767px)");
@@ -123,9 +123,13 @@ export default function MemberAlertsBell() {
                 <div style={{ padding: "14px", fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)" }}>
                   Loading alerts…
                 </div>
+              ) : error ? (
+                <div role="status" style={{ padding: "16px", borderRadius: "12px", background: "rgba(255,255,255,0.03)", color: "var(--color-text-secondary)", fontFamily: "var(--font-dm-sans)", fontSize: "13px", lineHeight: 1.7 }}>
+                  Alerts are unavailable right now. Open the full inbox to try again.
+                </div>
               ) : recentAlerts.length === 0 ? (
                 <div style={{ padding: "16px", borderRadius: "12px", background: "rgba(255,255,255,0.03)", color: "var(--color-text-secondary)", fontFamily: "var(--font-dm-sans)", fontSize: "13px", lineHeight: 1.7 }}>
-                  No alerts yet. Once a watched bottle hits your saved territory, it will land here.
+                  No current alerts. New matches in your saved area will land here.
                 </div>
               ) : (
                 recentAlerts.map((alert) => (
