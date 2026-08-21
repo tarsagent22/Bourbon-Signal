@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { createSignalFeedHandler } from "../src/lib/signals/signal-route.ts";
+import { sortDropsByCanonicalSignalOrder } from "../src/lib/signals/signal-contract.ts";
 import { decodeDropCursor } from "../src/lib/drop-cursor.ts";
 import { createSignalApiClient } from "../src/lib/signals/signal-api-client.ts";
 import { buildSignalMemberProfile } from "../src/lib/signals/signal-api-contract.ts";
@@ -62,6 +63,7 @@ const secondPayload = await second.json();
 assert.deepEqual(secondPayload.signals.map((signal: { id: string }) => signal.id), ["trusted_source:drop-2", "member:member-2"]);
 assert.equal(new Set([...firstPayload.signals, ...secondPayload.signals].map((signal: { id: string }) => signal.id)).size, 4, "adjacent pages must not duplicate Signals");
 assert.ok(sourceRequests.some((value) => new URL(value).searchParams.has("cursor")), "the combined cursor must preserve the drop snapshot");
+assert.ok(sourceRequests.some((value) => new URL(value).pathname === "/api/drops" && new URL(value).searchParams.get("signalOrder") === "canonical"), "the combined feed must request drops in canonical display order");
 assert.ok(sourceRequests.some((value) => Number(new URL(value).searchParams.get("limit") || 0) >= 3), "member pagination must advance its own consumed offset");
 
 const third = await handler(new Request(`https://www.bourbonsignal.com/api/v1/signals?limit=2&cursor=${encodeURIComponent(secondPayload.nextCursor)}`, { headers: { Authorization: "Bearer mobile-token" } }));
@@ -70,6 +72,31 @@ const thirdPayload = await third.json();
 assert.deepEqual(thirdPayload.signals.map((signal: { id: string }) => signal.id), ["trusted_source:drop-3", "member:member-3"]);
 assert.equal(thirdPayload.nextCursor, null);
 assert.equal(thirdPayload.hasMore, false);
+
+const scheduledDrops = [
+  { id: "release-later-event", canonical_name: "Later Event", event_type: "scheduled_release", event_at: "2026-09-02T12:00:00.000Z", created_at: "2026-08-20T08:00:00.000Z", observed_at: "2026-09-02T12:00:00.000Z", state: "NC" },
+  { id: "release-newer-report", canonical_name: "Newer Report", event_type: "scheduled_release", event_at: "2026-09-01T12:00:00.000Z", created_at: "2026-08-21T08:00:00.000Z", observed_at: "2026-09-01T12:00:00.000Z", state: "NC" },
+];
+const scheduledHandler = createSignalFeedHandler({
+  getDrops: async (request) => {
+    const url = new URL(request.url);
+    const decoded = decodeDropCursor(url.searchParams.get("cursor"));
+    const offset = decoded?.offset ?? Number(url.searchParams.get("offset") || 0);
+    const limit = Number(url.searchParams.get("limit") || 40);
+    const ordered = url.searchParams.get("signalOrder") === "canonical"
+      ? sortDropsByCanonicalSignalOrder([...scheduledDrops])
+      : scheduledDrops;
+    const items = ordered.slice(offset, offset + limit);
+    return Response.json({ drops: items, total: ordered.length, snapshot: "scheduled-snapshot", hasMore: offset + items.length < ordered.length });
+  },
+  getSightings: async () => Response.json({ sightings: [], totalSightings: 0 }),
+});
+const scheduledFirst = await scheduledHandler(new Request("https://www.bourbonsignal.com/api/v1/signals?limit=1"));
+const scheduledFirstPayload = await scheduledFirst.json();
+const scheduledSecond = await scheduledHandler(new Request(`https://www.bourbonsignal.com/api/v1/signals?limit=1&cursor=${encodeURIComponent(scheduledFirstPayload.nextCursor)}`));
+const scheduledIds = [...scheduledFirstPayload.signals, ...(await scheduledSecond.json()).signals].map((signal: { id: string }) => signal.id);
+assert.deepEqual(scheduledIds, ["release_source:release-newer-report", "release_source:release-later-event"], "scheduled drops must paginate once each in canonical displayed-time order");
+assert.equal(new Set(scheduledIds).size, scheduledIds.length, "scheduled drop pages must not duplicate a consumed row");
 
 const invalid = await handler(new Request("https://www.bourbonsignal.com/api/v1/signals?limit=2&cursor=not-a-cursor"));
 assert.equal(invalid.status, 400);
@@ -114,6 +141,23 @@ const degraded = await degradedHandler(new Request("https://www.bourbonsignal.co
 const degradedPayload = await degraded.json();
 assert.equal(degradedPayload.degraded, true);
 assert.equal(degradedPayload.nextCursor, null, "a partial-source page must not issue a cursor that can reorder recovered source data");
+
+const accountPreviewHandler = createSignalFeedHandler({
+  getDrops: async () => Response.json({
+    drops: drops.slice(0, 2),
+    total: drops.length,
+    snapshot: "preview-drop-snapshot",
+    hasMore: true,
+    previewLocked: false,
+    requiresAccountForFullFeed: true,
+  }),
+  getSightings: async () => Response.json({ sightings: sightings.slice(0, 2), totalSightings: sightings.length }),
+});
+const accountPreview = await accountPreviewHandler(new Request("https://www.bourbonsignal.com/api/v1/signals?limit=1"));
+const accountPreviewPayload = await accountPreview.json();
+assert.equal(accountPreviewPayload.access.requiresAccountForFullFeed, true);
+assert.equal(accountPreviewPayload.hasMore, false, "account-limited feeds must not advertise an unusable continuation");
+assert.equal(accountPreviewPayload.nextCursor, null, "account-limited feeds must not issue a continuation cursor");
 
 function memberFeedHandler(items: Array<Record<string, unknown>>) {
   return createSignalFeedHandler({

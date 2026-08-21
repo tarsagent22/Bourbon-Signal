@@ -6,6 +6,7 @@ import { normalizeStateCodeParam } from "@/lib/location-normalization";
 import { decodeDropCursor, DropCursorSnapshotError, paginateDrops } from "@/lib/drop-cursor";
 import { dropFeedCacheHeaders } from "@/lib/api-cache-contract";
 import { compareDropFeedNewestFirst, dropFreshnessTime, resolveDropLimit } from "@/lib/drop-feed-policy";
+import { sortDropsByCanonicalSignalOrder } from "@/lib/signals/signal-contract";
 import { isFreshPublicDrop, isPublicDropFeedEligible, publicDropRarityTier, publicEvidenceStateCode } from "@/lib/public-drop-evidence";
 import { historicalDropFeedEnabled, scopedDropFeedHistoryEnabled, selectDropFeedHistory } from "@/lib/drop-feed-history";
 import { readCachedPublicRetailerSubmissions } from "@/lib/retailer-public-submissions";
@@ -149,6 +150,7 @@ export async function GET(request: Request) {
   const requestedCursor = isFreeAccess ? null : url.searchParams.get("cursor");
   const requestedSignalId = String(url.searchParams.get("signalId") || "").slice(0, 240);
   const requestedSignalSource = String(url.searchParams.get("signalSource") || "");
+  const canonicalSignalOrder = url.searchParams.get("signalOrder") === "canonical";
   if (requestedSignalId && !/^[A-Za-z0-9._:-]{1,240}$/.test(requestedSignalId)) {
     return NextResponse.json({ drops: [], error: "Invalid signalId" }, { status: 400 });
   }
@@ -387,11 +389,13 @@ export async function GET(request: Request) {
       });
     }
 
-    drops.sort(compareDropFeedNewestFirst);
+    drops = canonicalSignalOrder
+      ? sortDropsByCanonicalSignalOrder(drops)
+      : drops.sort(compareDropFeedNewestFirst);
 
     const total = drops.length;
     const engineSnapshot = String(dropResult.snapshotId || exportPayload?.generatedAt || engineRunTimestamp(statsPayload, exportPayload?.generatedAt));
-    const snapshot = `${engineSnapshot}:classification:${classificationIndex.version}:retailer:${retailerFeedSnapshot(retailerSubmissions)}:history:${historicalMode ? 1 : 0}`;
+    const snapshot = `${engineSnapshot}:classification:${classificationIndex.version}:retailer:${retailerFeedSnapshot(retailerSubmissions)}:history:${historicalMode ? 1 : 0}:signalOrder:${canonicalSignalOrder ? 1 : 0}`;
     const page = paginateDrops(drops, { limit, offset, cursor: requestedCursor, snapshot });
     const pagedDrops = page.items;
 

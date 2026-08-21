@@ -85,6 +85,7 @@ function sourceRequest(request: Request, path: string, options: { limit: number;
   url.searchParams.set("limit", String(options.limit));
   if (options.cursor) url.searchParams.set("cursor", options.cursor);
   else if (options.offset) url.searchParams.set("offset", String(options.offset));
+  if (path === "/api/drops") url.searchParams.set("signalOrder", "canonical");
   if (path === "/api/sightings") {
     url.searchParams.set("rewards", "0");
     if (options.memberBoundary) {
@@ -176,9 +177,11 @@ export function createSignalFeedHandler({ getDrops, getSightings }: { getDrops: 
       && Number(sightingsPayload.totalSightings || 0) > rawSightings.length;
     const consumed = returnedBySource(signals);
     const accessPreviewLocked = Boolean(dropsPayload.previewLocked) || memberPreviewLocked;
+    const requiresAccountForFullFeed = Boolean(dropsPayload.requiresAccountForFullFeed) || memberPreviewLocked;
+    const continuationLocked = accessPreviewLocked || requiresAccountForFullFeed;
     const dropsHaveMore = dropStatus === "ready" && (Boolean(dropsPayload.hasMore) || drops.length > consumed.drops);
     const membersHaveMore = memberStatus === "ready" && memberSignals.length > consumed.members;
-    const hasMore = !accessPreviewLocked && dropStatus === "ready" && memberStatus === "ready" && signals.length > 0 && (dropsHaveMore || membersHaveMore);
+    const hasMore = !continuationLocked && dropStatus === "ready" && memberStatus === "ready" && signals.length > 0 && (dropsHaveMore || membersHaveMore);
     let nextMemberBoundary = cursor?.memberBoundary || null;
     if (consumed.members > 0) {
       for (let index = signals.length - 1; index >= 0; index -= 1) {
@@ -209,7 +212,7 @@ export function createSignalFeedHandler({ getDrops, getSightings }: { getDrops: 
       },
       access: {
         previewLocked: accessPreviewLocked,
-        requiresAccountForFullFeed: Boolean(dropsPayload.requiresAccountForFullFeed) || memberPreviewLocked,
+        requiresAccountForFullFeed,
         memberSignalsAvailable: memberStatus === "ready",
       },
       degraded: dropStatus === "unavailable" || memberStatus === "unavailable",

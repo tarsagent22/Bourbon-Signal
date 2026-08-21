@@ -343,6 +343,18 @@ export function normalizeMemberSightingSignal(sighting: MemberSighting): Canonic
   };
 }
 
+export function compareCanonicalSignalsNewestFirst(left: CanonicalSignal, right: CanonicalSignal) {
+  const difference = Date.parse(right.timing.displayAt) - Date.parse(left.timing.displayAt);
+  return Number.isFinite(difference) && difference !== 0 ? difference : left.id.localeCompare(right.id);
+}
+
+export function sortDropsByCanonicalSignalOrder<T extends Record<string, unknown>>(drops: T[]) {
+  return drops
+    .map((drop) => ({ drop, signal: normalizeDropSignal(drop) }))
+    .sort((left, right) => compareCanonicalSignalsNewestFirst(left.signal, right.signal))
+    .map(({ drop }) => drop);
+}
+
 export function buildCanonicalSignalFeed({
   drops,
   memberSightings,
@@ -356,10 +368,7 @@ export function buildCanonicalSignalFeed({
 }): CanonicalSignalFeed {
   const byId = new Map<string, CanonicalSignal>();
   for (const signal of [...drops, ...memberSightings]) byId.set(signal.id, signal);
-  const signals = [...byId.values()].sort((left, right) => {
-    const difference = Date.parse(right.timing.displayAt) - Date.parse(left.timing.displayAt);
-    return Number.isFinite(difference) && difference !== 0 ? difference : left.id.localeCompare(right.id);
-  });
+  const signals = [...byId.values()].sort(compareCanonicalSignalsNewestFirst);
   return {
     contractVersion: SIGNAL_CONTRACT_VERSION,
     signals,
