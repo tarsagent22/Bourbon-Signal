@@ -149,10 +149,10 @@ def main() -> int:
         owner_pid = current.get("pid")
         if not isinstance(owner_pid, int) or owner_pid <= 0:
             raise RuntimeError("Inherited release-lane lease has no valid owner process.")
-        try:
-            os.kill(owner_pid, 0)
-        except OSError as error:
-            raise RuntimeError("Inherited release-lane lease owner is no longer active.") from error
+        # The authenticated loopback broker below is the authoritative liveness
+        # proof. os.kill(pid, 0) is not a reliable probe on Windows and can raise
+        # a CPython SystemError for a healthy parent process. The broker both
+        # proves the lock owner is active and requires the non-forgeable token.
         try:
             expires_at = datetime.fromisoformat(str(current.get("expiresAt") or "").replace("Z", "+00:00"))
         except ValueError as error:

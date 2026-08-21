@@ -27,6 +27,8 @@ with tempfile.TemporaryDirectory() as temp:
     parent_spawn = source.index("return subprocess.run(arguments, cwd=repo, env=environment", source.index("register_objective_repository(repo, operator)"))
     assert source.index("register_objective_repository(repo, operator)") < parent_spawn
     assert "BOURBON_SIGNAL_RELEASE_LANE_VALIDATED" in source
+    assert "os.kill(owner_pid, 0)" not in source
+    assert "assert_broker(inheritance_token)" in source
     isolated_script.write_text(source.replace(canonical_line, f"    host_root = Path({str(repo / 'hermes')!r})"), encoding="utf-8")
     spec = spec_from_file_location("release_lane_lock_isolated", isolated_script)
     module = module_from_spec(spec)
