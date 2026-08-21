@@ -13,7 +13,7 @@ export default function HeroSection() {
   return (
     <section
       ref={ref}
-      className="relative flex items-end justify-center overflow-hidden"
+      className="home-hero relative flex items-end justify-center overflow-hidden"
       style={{
         height: "100vh",
         minHeight: "720px",
@@ -21,6 +21,11 @@ export default function HeroSection() {
         backgroundColor: "#090806",
       }}
     >
+      <style jsx>{`
+        @media(max-width:767px){
+          .home-hero{height:78svh!important;min-height:580px!important;max-height:720px!important}
+        }
+      `}</style>
       {/* Hero background image */}
       <div
         className="absolute inset-0"

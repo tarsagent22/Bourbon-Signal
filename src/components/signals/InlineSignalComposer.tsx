@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ChevronDown, MapPin, Plus, Send } from "lucide-react";
+import { ArrowRight, MapPin, Plus, Send } from "lucide-react";
 import { useStores, type Store } from "@/hooks/useStores";
 import { buildSightingStoreSearchIndex, searchSightingStoreIndex } from "@/lib/sighting-store-search";
 import { formatStoreAddress, makeSightingId, normalizeBottleKey, type MemberSighting, type SightingType } from "@/lib/sightings";
@@ -141,10 +141,11 @@ export default function InlineSignalComposer({
   return (
     <section className={`inline-signal-composer ${open ? "open" : ""}`} aria-label="Post a Signal">
       <style>{`
-        .inline-signal-composer{margin:0 0 16px;border:1px solid rgba(196,148,58,.2);border-radius:17px;background:linear-gradient(135deg,rgba(196,148,58,.09),rgba(14,10,7,.8) 58%);overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.025)}
-        .inline-signal-launch{width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;border:0;background:transparent;color:var(--color-cream);padding:14px 15px;cursor:pointer;text-align:left}
-        .inline-signal-launch-copy{display:flex;align-items:center;gap:11px;min-width:0}.inline-signal-launch-icon{display:grid;place-items:center;width:34px;height:34px;flex:0 0 auto;border-radius:11px;background:rgba(196,148,58,.14);color:rgba(232,201,122,.96)}
-        .inline-signal-launch strong{display:block;font-family:var(--font-dm-sans);font-size:14px;font-weight:850}.inline-signal-launch span span{display:block;margin-top:2px;color:rgba(245,237,214,.5);font-size:12px;line-height:1.35}
+        .inline-signal-composer{margin:0 0 22px;border:1px solid rgba(196,148,58,.26);border-radius:15px;background:linear-gradient(115deg,rgba(196,148,58,.105),rgba(14,10,7,.88) 60%);overflow:hidden;box-shadow:inset 0 1px 0 rgba(255,255,255,.03),0 10px 28px rgba(0,0,0,.12)}
+        .inline-signal-launch{width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;border:0;background:transparent;color:var(--color-cream);padding:13px 14px;cursor:pointer;text-align:left}
+        .inline-signal-launch-copy{display:flex;align-items:center;gap:11px;min-width:0}.inline-signal-launch-icon{display:grid;place-items:center;width:36px;height:36px;flex:0 0 auto;border:1px solid rgba(232,201,122,.25);border-radius:999px;background:rgba(196,148,58,.14);color:rgba(232,201,122,.96)}
+        .inline-signal-launch strong{display:block;font-family:var(--font-dm-sans);font-size:14px;font-weight:850}.inline-signal-launch-copy>span:last-child>span{display:block;margin-top:2px;color:rgba(245,237,214,.54);font-size:12px;line-height:1.35}
+        .inline-signal-launch-action{display:inline-flex;align-items:center;gap:5px;flex:0 0 auto;color:rgba(232,201,122,.82);font:800 11px var(--font-dm-sans);letter-spacing:.02em}
         .inline-signal-form{display:grid;gap:12px;padding:2px 15px 15px;border-top:1px solid rgba(245,237,214,.06)}
         .inline-signal-field{display:grid;gap:6px}.inline-signal-field>span{font-family:var(--font-jetbrains);font-size:9px;font-weight:850;letter-spacing:.09em;text-transform:uppercase;color:rgba(245,237,214,.42)}
         .inline-signal-input{width:100%;min-width:0;border:1px solid rgba(245,237,214,.11);border-radius:11px;background:rgba(7,5,4,.48);color:var(--color-cream);font:600 13px var(--font-dm-sans);padding:11px 12px;outline:none}.inline-signal-input:focus{border-color:rgba(196,148,58,.36)}
@@ -168,8 +169,8 @@ export default function InlineSignalComposer({
         }}
         aria-expanded={open}
       >
-        <span className="inline-signal-launch-copy"><span className="inline-signal-launch-icon"><Plus size={17} /></span><span><strong>Post a Signal</strong><span>Share a bottle sighting with the community.</span></span></span>
-        <ChevronDown size={17} style={{ transform: open ? "rotate(180deg)" : "none", transition: "transform .18s ease" }} />
+        <span className="inline-signal-launch-copy"><span className="inline-signal-launch-icon"><Plus size={16} /></span><span><strong>Post a Signal</strong><span>Share a bottle you found.</span></span></span>
+        <span className="inline-signal-launch-action">{open ? "Close" : <><span>Open</span><ArrowRight size={14} /></>}</span>
       </button>
       {open ? (
         <div className="inline-signal-form">
