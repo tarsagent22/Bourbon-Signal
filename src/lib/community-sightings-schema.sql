@@ -8,6 +8,17 @@ CREATE TABLE IF NOT EXISTS community_sightings (
 CREATE INDEX IF NOT EXISTS community_sightings_created_idx ON community_sightings (created_at DESC);
 CREATE INDEX IF NOT EXISTS community_sightings_reporter_created_idx ON community_sightings (reporter_user_id, created_at DESC);
 
+CREATE TABLE IF NOT EXISTS community_sighting_idempotency (
+  binding_id TEXT PRIMARY KEY,
+  reporter_user_id TEXT NOT NULL,
+  request_fingerprint TEXT NOT NULL,
+  sighting_id TEXT,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS community_sighting_idempotency_reporter_idx
+  ON community_sighting_idempotency (reporter_user_id, created_at DESC);
+
 CREATE TABLE IF NOT EXISTS signal_point_reward_generations (
   user_id TEXT PRIMARY KEY,
   generation BIGINT NOT NULL DEFAULT 0 CONSTRAINT signal_point_reward_generation_nonnegative CHECK (generation >= 0),

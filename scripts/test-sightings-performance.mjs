@@ -49,7 +49,7 @@ assert.match(migration, /insertSightingIfAbsent/);
 assert.match(migration, /setVote/);
 
 assert.match(route, /after\(\(\) => persistMemberRewardsBestEffort/, "reward persistence should remain post-response");
-const persistedSightingIndex = route.indexOf("const savedSighting = await repository.insertSighting(sighting);");
+const persistedSightingIndex = route.indexOf("const savedSighting = idempotencyKey ? await repository.insertSightingIfAbsent(sighting) : await repository.insertSighting(sighting);");
 const deferredRewardIndex = route.indexOf("after(async () =>", persistedSightingIndex);
 assert.ok(persistedSightingIndex >= 0 && deferredRewardIndex > persistedSightingIndex,
   "POST must persist the sighting before deferred reward work");

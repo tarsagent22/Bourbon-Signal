@@ -147,6 +147,14 @@ export async function GET(request: Request) {
   const limit = resolveDropLimit(url.searchParams.get("limit"), isFreeAccess, previewLimit);
   const offset = isFreeAccess ? 0 : Math.max(0, Number(url.searchParams.get("offset") ?? "0") || 0);
   const requestedCursor = isFreeAccess ? null : url.searchParams.get("cursor");
+  const requestedSignalId = String(url.searchParams.get("signalId") || "").slice(0, 240);
+  const requestedSignalSource = String(url.searchParams.get("signalSource") || "");
+  if (requestedSignalId && !/^[A-Za-z0-9._:-]{1,240}$/.test(requestedSignalId)) {
+    return NextResponse.json({ drops: [], error: "Invalid signalId" }, { status: 400 });
+  }
+  if (requestedSignalSource && !["retailer", "trusted_source", "release_source"].includes(requestedSignalSource)) {
+    return NextResponse.json({ drops: [], error: "Invalid signalSource" }, { status: 400 });
+  }
   if (requestedCursor && !decodeDropCursor(requestedCursor)) {
     return NextResponse.json(
       { drops: [], total: 0, limit, offset: 0, hasMore: false, nextCursor: null, error: "Invalid cursor" },
@@ -326,6 +334,13 @@ export async function GET(request: Request) {
 
     if (include !== "all" || historicalMode) {
       drops = applyPublicDropFilters(drops, { filterDegradedStates: true });
+    }
+    if (requestedSignalId) {
+      drops = drops.filter((drop) => {
+        const record = drop as unknown as Record<string, unknown>;
+        const storedId = String(record.id ?? record.eventId ?? record.canonical_id ?? record.canonicalId ?? "");
+        return storedId === requestedSignalId || Boolean(requestedSignalSource && storedId === `${requestedSignalSource}:${requestedSignalId}`);
+      });
     }
 
     if (state) {

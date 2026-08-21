@@ -98,6 +98,7 @@ const TABLES = [
   'bourbon_recommendation_feedback',
   'bourbon_recommendation_feedback_state',
   'clerk_alert_metadata_backups',
+  'community_sighting_idempotency',
   'community_sighting_votes',
   'community_sightings',
   'coverage_request_automation_jobs',

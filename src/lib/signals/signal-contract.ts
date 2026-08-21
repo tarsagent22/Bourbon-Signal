@@ -18,6 +18,11 @@ export interface CanonicalSignal {
     type: SignalSourceType;
     label: string;
     reportMode?: "seen_in_store" | "reported_online";
+    actor?: {
+      kind: "founder" | "member";
+      number: number;
+      label: string;
+    };
   };
   bottle: {
     id?: string;
@@ -296,8 +301,9 @@ export function normalizeMemberSightingSignal(sighting: MemberSighting): Canonic
     kind: "availability",
     source: {
       type: "member",
-      label: "Member",
+      label: sighting.reporterPublicIdentity?.label || "Member",
       reportMode: sighting.sightingType === "online_social" ? "reported_online" : "seen_in_store",
+      ...(sighting.reporterPublicIdentity ? { actor: sighting.reporterPublicIdentity } : {}),
     },
     bottle: { ...(sighting.bottleId ? { id: sighting.bottleId } : {}), name: sighting.bottleName || "Unknown bottle" },
     location: {
