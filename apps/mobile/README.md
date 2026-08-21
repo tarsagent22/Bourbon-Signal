@@ -35,8 +35,18 @@ npm start
 ```bash
 npm run verify
 npx eas-cli build --profile development --platform android
-npx eas-cli build --profile development --platform ios
+npx eas-cli build --profile development-simulator --platform ios
 ```
+
+The simulator profile proves the iOS native compile without Apple signing, but its artifact runs only in an iOS Simulator. Installing Bourbon Signal on a physical iPhone, using TestFlight, or submitting to the App Store requires an active Apple Developer Program membership and an authorized Apple team.
+
+After a development binary with `expo-updates` is installed, compatible TypeScript, JavaScript, style, and bundled-asset changes can be published without another native build:
+
+```bash
+npx eas-cli update --channel development --environment development --message "Describe the preview"
+```
+
+Native dependencies, permissions, app identifiers, and other native configuration changes still require a new EAS Build. `runtimeVersion` follows the app version so an incompatible update cannot be delivered to a different binary version.
 
 The app IDs are `com.bourbonsignal.app` on Android and iOS. EAS environment variables must provide the same public Clerk key and API URL; no Clerk secret belongs in a mobile build.
 
