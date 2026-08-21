@@ -13,7 +13,7 @@ export default function HeroSection() {
   return (
     <section
       ref={ref}
-      className="home-hero relative flex items-end justify-center overflow-hidden"
+      className={`home-hero ${isSignedIn ? "signed-in" : ""} relative flex items-end justify-center overflow-hidden`}
       style={{
         height: "100vh",
         minHeight: "720px",
@@ -24,6 +24,7 @@ export default function HeroSection() {
       <style jsx>{`
         @media(max-width:767px){
           .home-hero{height:78svh!important;min-height:580px!important;max-height:720px!important}
+          .home-hero.signed-in{height:60svh!important;min-height:480px!important;max-height:560px!important}
           .home-hero-content h1{font-size:32px!important;line-height:1.08!important;max-width:320px!important;white-space:normal!important}
           .home-hero-content p{font-size:15px!important;line-height:1.5!important;max-width:330px!important}
           .home-hero-features{display:none!important}
