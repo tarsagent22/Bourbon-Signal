@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
-import { ChevronDown, ThumbsDown, ThumbsUp } from "lucide-react";
+import { ChevronDown, SlidersHorizontal, ThumbsDown, ThumbsUp } from "lucide-react";
 import CountyLink from "@/components/CountyLink";
 import {
   type DropEvent,
@@ -78,6 +78,12 @@ async function fetchDropFeedPage(url: string, signal?: AbortSignal, forceRefresh
 }
 
 const KENTUCKY_RELEASE_WATCH_SOURCE_COUNT = 8;
+const FEED_TIER_LABELS: Record<string, string> = {
+  unicorn: "Unicorn",
+  highly_allocated: "Highly Allocated",
+  allocated: "Allocated",
+  limited: "Limited",
+};
 
 const RETAILER_SIGNAL_CARDS = {
   drop: { label: "Bottle availability", border: "rgba(52,211,153,0.38)", background: "linear-gradient(115deg, rgba(16,185,129,0.14), rgba(9,9,9,0.94) 48%)" },
@@ -126,45 +132,23 @@ function retailerCardAppearance(drop: GroupedDrop) {
 const tickerNumberFormatter = new Intl.NumberFormat("en-US");
 
 function formatTickerNumber(value?: number) {
-  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) return "—";
+  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) return null;
   return tickerNumberFormatter.format(value);
 }
 
-function SignalTicker({
-  totalSignals,
-  liveSignals,
-  storesMonitored,
+function SignalSummary({
   memberCount,
   lastRefreshed,
-  reduceMotion,
 }: {
-  totalSignals?: number;
-  liveSignals?: number;
-  storesMonitored?: number;
   memberCount?: number;
   lastRefreshed?: string;
-  reduceMotion: boolean;
 }) {
-  const refreshedText = lastRefreshed ? formatRelativeTime(lastRefreshed) : "pending";
-  const items = [
-    { label: "Total signals detected", value: formatTickerNumber(totalSignals) },
-    { label: "Live signals", value: formatTickerNumber(liveSignals) },
-    { label: "Stores monitored", value: formatTickerNumber(storesMonitored) },
-    { label: "Member Count", value: formatTickerNumber(memberCount) },
-    { label: "Last refreshed", value: refreshedText },
-  ];
-  const tapeItems = [...items, ...items];
-
+  const members = formatTickerNumber(memberCount);
   return (
-    <div className="signal-ticker" role="status" aria-label="Bourbon Signal market tape">
-      <div className={`signal-ticker-track ${reduceMotion ? "reduced" : ""}`}>
-        {tapeItems.map((item, index) => (
-          <span className="signal-ticker-item" key={`${item.label}-${index}`} aria-hidden={index >= items.length}>
-            <span className="signal-ticker-label">{item.label}</span>
-            <span className="signal-ticker-value">{item.value}</span>
-          </span>
-        ))}
-      </div>
+    <div className="signal-summary" role="status" aria-label="Signals activity summary">
+      {members ? <span>{members} members</span> : null}
+      {members && lastRefreshed ? <span aria-hidden="true">·</span> : null}
+      {lastRefreshed ? <span>Updated {formatRelativeTime(lastRefreshed)}</span> : null}
     </div>
   );
 }
@@ -1456,6 +1440,7 @@ export default function DropFeed() {
   const { stores } = useStores();
   const { stats: engineStats } = useStats();
   const [memberCount, setMemberCount] = useState<number | undefined>(undefined);
+  const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -1864,11 +1849,11 @@ export default function DropFeed() {
   const stateFilterSummary = !hasSelectedStates || preferredStates.length === 0
     ? "Showing all covered states"
     : `Showing ${preferredStates.map((code) => AVAILABLE_STATES.find((state) => state.code === code)?.name || code).join(", ")}`;
-  const stateDropdownValue = !hasSelectedStates || preferredStates.length === 0
+  const stateDropdownValue = urlStateFilter || (!hasSelectedStates || preferredStates.length === 0
     ? "ALL"
     : preferredStates.length === 1
       ? preferredStates[0]
-      : "MULTI";
+      : "MULTI");
   const stateMenuOptions: DropdownOption[] = [
     { value: "ALL", label: "All states" },
     ...(stateDropdownValue === "MULTI" ? [{ value: "MULTI", label: "Multiple" }] : []),
@@ -1960,6 +1945,15 @@ export default function DropFeed() {
     (canUseStateFilter && stateDropdownValue !== "ALL") ||
     (canUseDropFeedFilters && activeTiers.size > 0)
   );
+  const activeMobileFilterLabels = [
+    canUseStateFilter && stateDropdownValue !== "ALL"
+      ? stateMenuOptions.find((option) => option.value === stateDropdownValue)?.label || "Selected states"
+      : null,
+    canUseDropFeedFilters && countyFilter !== "ALL"
+      ? areaMenuOptions.find((option) => option.value === countyFilter)?.label || countyFilter
+      : null,
+    ...Array.from(activeTiers).map((tier) => FEED_TIER_LABELS[tier] || tier),
+  ].filter((label): label is string => Boolean(label));
 
   const clearFeedFilters = () => {
     setBottleSearch("");
@@ -2007,77 +2001,19 @@ export default function DropFeed() {
           0%, 100% { background-position: 0% 50%; }
           50% { background-position: 100% 50%; }
         }
-        @keyframes signalTape {
-          0% { transform: translate3d(0, 0, 0); }
-          100% { transform: translate3d(-50%, 0, 0); }
-        }
-        .signal-ticker {
-          position: relative;
-          width: 100%;
-          margin: 12px 0 0;
-          overflow: hidden;
-          border-block: 1px solid var(--boundary-accent);
-          background: linear-gradient(90deg, transparent, rgba(27,18,12,0.72) 48%, transparent);
-        }
-        .dropfeed-signal-card {
-          border: 0;
-        }
-        .signal-ticker::before,
-        .signal-ticker::after {
-          content: "";
-          position: absolute;
-          top: 0;
-          bottom: 0;
-          z-index: 2;
-          width: 42px;
-          pointer-events: none;
-        }
-        .signal-ticker::before {
-          left: 0;
-          background: linear-gradient(90deg, rgba(10,7,5,1), transparent);
-        }
-        .signal-ticker::after {
-          right: 0;
-          background: linear-gradient(270deg, rgba(10,7,5,1), transparent);
-        }
-        .signal-ticker-track {
-          display: inline-flex;
-          width: max-content;
+        .signal-summary {
+          display: flex;
           align-items: center;
-          gap: 0;
-          padding: 8px 0;
-          animation: signalTape 28s linear infinite;
-          will-change: transform;
-        }
-        .signal-ticker:hover .signal-ticker-track { animation-play-state: paused; }
-        .signal-ticker-track.reduced { animation: none; transform: none; }
-        .signal-ticker-item {
-          display: inline-flex;
-          align-items: baseline;
-          gap: 8px;
-          padding: 0 18px;
-          white-space: nowrap;
-          border-right: 1px solid rgba(196,148,58,0.2);
-        }
-        .signal-ticker-label {
-          font-family: var(--font-jetbrains);
-          font-size: 9px;
-          font-weight: 900;
-          letter-spacing: 0.11em;
-          text-transform: uppercase;
+          flex-wrap: wrap;
+          gap: 7px;
+          margin-top: 8px;
           color: rgba(245,237,214,0.46);
-        }
-        .signal-ticker-value {
-          font-family: var(--font-jetbrains);
+          font-family: var(--font-dm-sans);
           font-size: 12px;
-          font-weight: 900;
-          letter-spacing: 0.03em;
-          color: rgba(232,201,122,0.98);
-          text-shadow: 0 0 18px rgba(196,148,58,0.2);
+          font-weight: 600;
         }
-        @media (prefers-reduced-motion: reduce) {
-          .signal-ticker-track { animation: none; transform: none; }
-        }
+        .signal-summary span:first-child { color: rgba(245,237,214,0.68); }
+        .dropfeed-signal-card { border: 0; }
         .dropfeed-card-stack {
           display: grid;
           grid-template-columns: minmax(0, 1fr);
@@ -2093,7 +2029,7 @@ export default function DropFeed() {
           #drops { padding-top: 18px !important; }
           .dropfeed-shell { padding-left: 18px !important; padding-right: 18px !important; }
           .dropfeed-title { font-size: 34px !important; letter-spacing: -0.03em !important; }
-          .dropfeed-subcopy { font-size: 14px !important; line-height: 1.45 !important; max-width: 30ch; }
+          .dropfeed-subcopy { font-size: 14px !important; line-height: 1.45 !important; max-width: 42ch; }
           .dropfeed-nudge { display:none; }
           .dropfeed-filter-row {
             display: grid !important;
@@ -2199,6 +2135,10 @@ export default function DropFeed() {
           background: rgba(166,157,132,0.07);
           border-color: rgba(166,157,132,0.18) !important;
         }
+        .dropfeed-search-row { margin-bottom: 8px; }
+        .dropfeed-mobile-filter-toggle,
+        .dropfeed-active-filter-chips { display: none; }
+        .dropfeed-secondary-filters { display: block; }
         .dropfeed-refine-grid {
           display: grid;
           grid-template-columns: minmax(112px, 0.95fr) minmax(150px, 1.2fr) minmax(96px, 0.75fr) minmax(126px, 0.9fr);
@@ -2310,6 +2250,19 @@ export default function DropFeed() {
           white-space: nowrap;
         }
         @media (max-width: 767px) {
+          .dropfeed-mobile-filter-toggle { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 2px 0 10px; }
+          .dropfeed-mobile-filter-toggle > button {
+            display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 38px;
+            border: 1px solid rgba(196,148,58,.2); border-radius: 999px; background: rgba(196,148,58,.07);
+            color: rgba(245,237,214,.78); padding: 8px 13px; font: 750 12px var(--font-dm-sans); cursor: pointer;
+          }
+          .dropfeed-mobile-filter-count { display: grid; place-items: center; min-width: 19px; height: 19px; border-radius: 999px; background: rgba(196,148,58,.22); color: #e8c97a; font-size: 10px; }
+          .dropfeed-secondary-filters { display: none; margin-bottom: 6px; }
+          .dropfeed-secondary-filters.open { display: block; }
+          .dropfeed-active-filter-chips { display: flex; align-items: center; gap: 6px; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+          .dropfeed-active-filter-chips::-webkit-scrollbar { display: none; }
+          .dropfeed-active-filter-chip { flex: 0 0 auto; border: 1px solid rgba(196,148,58,.16); border-radius: 999px; background: rgba(196,148,58,.055); color: rgba(232,201,122,.74); padding: 6px 9px; font: 700 10px var(--font-dm-sans); white-space: nowrap; }
+          .dropfeed-active-filter-chips .dropfeed-clear-filters { flex: 0 0 auto; }
           .dropfeed-refine-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
           .dropfeed-refine-search { grid-column: 1 / -1; }
           .dropfeed-refine-field span { font-size: 8px; margin-bottom: 5px; }
@@ -2377,19 +2330,15 @@ export default function DropFeed() {
                   margin: 0,
                 }}
               >
-                Signal Feed
+                Signals
               </h2>
+              <p className="dropfeed-subcopy" style={{ margin: "7px 0 0", color: "rgba(245,237,214,.54)", fontFamily: "var(--font-dm-sans)", fontSize: "13px", lineHeight: 1.5 }}>
+                Live bourbon activity from members, retailers, and trusted sources.
+              </p>
             </div>
           </motion.div>
 
-          <SignalTicker
-            totalSignals={engineStats.historicalSignalCount ?? engineStats.signalCount}
-            liveSignals={engineStats.signalCount}
-            storesMonitored={engineStats.total_stores}
-            memberCount={memberCount}
-            lastRefreshed={tickerLastRefreshed}
-            reduceMotion={Boolean(shouldReduceMotion)}
-          />
+          <SignalSummary memberCount={memberCount} lastRefreshed={tickerLastRefreshed} />
 
           {/* Divider */}
           <div style={{ margin: "12px 0 14px", borderBottom: "1px solid rgba(196, 148, 58, 0.16)" }} />
@@ -2403,7 +2352,31 @@ export default function DropFeed() {
             defaultState={feedStateParam}
           />
 
-          {(canUseStateFilter || canUseBottleSearch || canUseDropFeedFilters) ? (
+          {canUseBottleSearch ? (
+            <motion.div className="dropfeed-search-row" initial={false} whileInView={{ opacity: 1, y: 0 }} viewport={{ once: true }}>
+              <label className="dropfeed-refine-field dropfeed-refine-search">
+                <input value={bottleSearch} onChange={(event) => setBottleSearch(event.target.value)} placeholder="Search a bottle…" aria-label="Search bottle" />
+              </label>
+            </motion.div>
+          ) : null}
+
+          {(canUseStateFilter || canUseDropFeedFilters) ? (
+            <div className="dropfeed-mobile-filter-toggle">
+              <button type="button" onClick={() => setMobileFiltersOpen((current) => !current)} aria-expanded={mobileFiltersOpen} aria-controls="signal-secondary-filters">
+                <SlidersHorizontal size={14} /> Filters
+                {activeMobileFilterLabels.length ? <span className="dropfeed-mobile-filter-count">{activeMobileFilterLabels.length}</span> : null}
+              </button>
+              {activeMobileFilterLabels.length ? (
+                <div className="dropfeed-active-filter-chips" aria-label="Active filters">
+                  {activeMobileFilterLabels.map((label) => <span className="dropfeed-active-filter-chip" key={label}>{label}</span>)}
+                  <button type="button" className="dropfeed-clear-filters" onClick={clearFeedFilters}>Clear</button>
+                </div>
+              ) : null}
+            </div>
+          ) : null}
+
+          <div id="signal-secondary-filters" className={`dropfeed-secondary-filters ${mobileFiltersOpen ? "open" : ""}`}>
+          {(canUseStateFilter || canUseDropFeedFilters) ? (
           <motion.div
             className="dropfeed-refine-grid"
             initial={shouldReduceMotion ? false : { opacity: 0, y: 14 }}
@@ -2411,16 +2384,6 @@ export default function DropFeed() {
             viewport={{ once: true, margin: "-70px" }}
             transition={{ duration: 0.6, delay: 0.04, ease: [0.25, 0.1, 0.25, 1] }}
           >
-            {canUseBottleSearch ? (
-            <label className="dropfeed-refine-field dropfeed-refine-search">
-              <input
-                value={bottleSearch}
-                onChange={(event) => setBottleSearch(event.target.value)}
-                placeholder="Search a bottle…"
-                aria-label="Search bottle"
-              />
-            </label>
-            ) : null}
             {canUseStateFilter ? (
             <BourbonDropdown
               label="State"
@@ -2464,7 +2427,7 @@ export default function DropFeed() {
           >
             {/* Tier filter pills */}
             {[
-              { tier: "all", label: "All drops", activeBg: "rgba(245,237,214,0.14)", activeColor: "var(--color-cream)", inactiveBg: "transparent", inactiveColor: "rgba(245,237,214,0.42)" },
+              { tier: "all", label: "All signals", activeBg: "rgba(245,237,214,0.14)", activeColor: "var(--color-cream)", inactiveBg: "transparent", inactiveColor: "rgba(245,237,214,0.42)" },
               { tier: "unicorn", label: "Unicorn", activeBg: "rgba(196,148,58,0.18)", activeColor: "#E8C97A", inactiveBg: "transparent", inactiveColor: "rgba(196,148,58,0.46)" },
               { tier: "highly_allocated", label: "Highly Allocated", activeBg: "rgba(216,154,56,0.18)", activeColor: "#F0BD69", inactiveBg: "transparent", inactiveColor: "rgba(216,154,56,0.48)" },
               { tier: "allocated", label: "Allocated", activeBg: "rgba(184,115,51,0.16)", activeColor: "#D4943A", inactiveBg: "transparent", inactiveColor: "rgba(184,115,51,0.44)" },
@@ -2516,6 +2479,7 @@ export default function DropFeed() {
             })}
           </motion.div>
           ) : null}
+          </div>
 
           {data && (
             <>
@@ -2523,7 +2487,7 @@ export default function DropFeed() {
                 <span>
                   {isKentuckyFeed
                     ? `${finalFeed.length} current gift-shop pickup ${finalFeed.length === 1 ? "lead" : "leads"} · ${KENTUCKY_RELEASE_WATCH_SOURCE_COUNT} official release-watch sources`
-                    : `${displayedGrouped.length} visible · ${data.total} matching signals${data.lastUpdated ? ` · refreshed ${formatRelativeTime(data.lastUpdated)}` : ""}`}
+                    : `${displayedGrouped.length} visible · ${data.total} matching signals`}
                 </span>
                 {hasActiveFeedFilters ? <button type="button" className="dropfeed-clear-filters" onClick={clearFeedFilters}>Clear filters</button> : null}
               </div>
