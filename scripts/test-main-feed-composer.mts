@@ -44,5 +44,8 @@ assert.doesNotMatch(composer, /scout/i);
 assert.match(hero, /home-hero/);
 assert.match(hero, /@media\(max-width:767px\)/);
 assert.match(hero, /height:78svh/);
+assert.match(hero, /home-hero-features/);
+assert.match(hero, /home-hero-features\{display:none/);
+assert.match(hero, /white-space:normal/);
 
 console.log("Main Signal Feed composer contract passed.");

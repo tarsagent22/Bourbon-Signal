@@ -24,6 +24,9 @@ export default function HeroSection() {
       <style jsx>{`
         @media(max-width:767px){
           .home-hero{height:78svh!important;min-height:580px!important;max-height:720px!important}
+          .home-hero-content h1{font-size:32px!important;line-height:1.08!important;max-width:320px!important;white-space:normal!important}
+          .home-hero-content p{font-size:15px!important;line-height:1.5!important;max-width:330px!important}
+          .home-hero-features{display:none!important}
         }
       `}</style>
       {/* Hero background image */}
@@ -70,7 +73,7 @@ export default function HeroSection() {
 
       {/* Content overlay — vertically centered */}
       <div
-        className="absolute z-[3] px-6 sm:px-12 md:px-24 lg:px-32 max-w-[900px] mx-auto"
+        className="home-hero-content absolute z-[3] px-6 sm:px-12 md:px-24 lg:px-32 max-w-[900px] mx-auto"
         style={{
           top: "50%",
           left: "50%",
@@ -121,7 +124,7 @@ export default function HeroSection() {
 
         <ScrollReveal delay={125}>
           <div
-            className="flex flex-wrap items-center justify-center"
+            className="home-hero-features flex flex-wrap items-center justify-center"
             style={{
               marginBottom: "18px",
               gap: "10px",
