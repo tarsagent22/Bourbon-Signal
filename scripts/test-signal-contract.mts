@@ -183,7 +183,7 @@ const scopedHandler = createSignalFeedHandler({
     lastUpdated: "2026-08-20T20:00:00.000Z",
   }),
   getSightings: async (request) => {
-    assert.equal(new URL(request.url).searchParams.get("limit"), "2");
+    assert.equal(new URL(request.url).searchParams.get("limit"), "3");
     return Response.json({
     sightings: [
       { ...memberSightingInput, id: "sighting-new", storeState: "NC", createdAt: "2026-08-20T21:00:00.000Z" },
@@ -199,7 +199,9 @@ assert.equal(scopedResponse.status, 200);
 const scopedPayload = await scopedResponse.json();
 assert.deepEqual(scopedPayload.signals.map((signal: { id: string }) => signal.id), ["member:sighting-new", "trusted_source:drop-new"]);
 assert.equal(scopedPayload.total, 2, "limit must apply to the combined feed, not independently to each source");
-assert.equal(scopedPayload.pagination, undefined, "v1 must not claim continuation until mixed-source cursors are implemented");
+assert.equal(typeof scopedPayload.nextCursor, "string", "a full combined page must expose continuation without changing legacy limit behavior");
+assert.equal(scopedPayload.hasMore, true);
+assert.equal(scopedPayload.pagination, undefined, "v1 uses one opaque nextCursor rather than exposing source offsets");
 
 let unsupportedCalled = false;
 const unsupportedHandler = createSignalFeedHandler({

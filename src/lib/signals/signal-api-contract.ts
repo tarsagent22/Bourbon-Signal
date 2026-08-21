@@ -5,6 +5,8 @@ export const SIGNAL_API_ERROR_VERSION = "bourbon-signal/api-error@1" as const;
 
 export type SignalApiErrorCode =
   | "INVALID_REQUEST"
+  | "INVALID_CURSOR"
+  | "CURSOR_RESET_REQUIRED"
   | "IDEMPOTENCY_KEY_REQUIRED"
   | "UNAUTHORIZED"
   | "FORBIDDEN"
@@ -58,6 +60,51 @@ export interface SignalCreateResponse {
 export interface SignalDetailResponse {
   contractVersion: typeof SIGNAL_API_VERSION;
   signal: CanonicalSignal;
+}
+
+export interface SignalMemberProfileResponse {
+  contractVersion: typeof SIGNAL_API_VERSION;
+  profile: {
+    identity: PublicSignalIdentity | null;
+    membership: {
+      tier: "free" | "standard" | "barrel" | "bottled-in-bond";
+      label: string;
+      paid: boolean;
+      hasBetaAccess: boolean;
+    };
+    entitlements: {
+      fullFeed: boolean;
+      canSubmitSignals: boolean;
+    };
+  };
+}
+
+export function buildSignalMemberProfile(
+  metadata: unknown,
+  access: {
+    tier: SignalMemberProfileResponse["profile"]["membership"]["tier"];
+    label: string;
+    hasBetaAccess: boolean;
+    feedPreviewLimit: number | null;
+    canSubmitSightings: boolean;
+  },
+): SignalMemberProfileResponse {
+  return {
+    contractVersion: SIGNAL_API_VERSION,
+    profile: {
+      identity: publicSignalIdentityFromMetadata(metadata) || null,
+      membership: {
+        tier: access.tier,
+        label: access.label,
+        paid: access.tier !== "free",
+        hasBetaAccess: access.hasBetaAccess,
+      },
+      entitlements: {
+        fullFeed: access.feedPreviewLimit === null,
+        canSubmitSignals: access.canSubmitSightings,
+      },
+    },
+  };
 }
 
 export interface SignalActionResponse {

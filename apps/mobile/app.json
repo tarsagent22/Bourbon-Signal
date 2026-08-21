@@ -1,0 +1,53 @@
+{
+  "expo": {
+    "name": "Bourbon Signal",
+    "slug": "bourbon-signal",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "scheme": "bourbonsignal",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.bourbonsignal.app",
+      "config": {
+        "usesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.bourbonsignal.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#0B0A09",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": true
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-secure-store",
+      "expo-dev-client",
+      "@clerk/expo"
+    ],
+    "experiments": {
+      "typedRoutes": true
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "693a1966-5bfc-4f25-9fe4-e39c009ec04a"
+      }
+    },
+    "owner": "bourbon-signal",
+    "runtimeVersion": {
+      "policy": "appVersion"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/693a1966-5bfc-4f25-9fe4-e39c009ec04a"
+    }
+  }
+}

@@ -25,7 +25,9 @@ const postStart = route.indexOf("export async function POST");
 const getBody = route.slice(getStart, postStart);
 assert.match(getBody, /const includeRewards = url\.searchParams\.get\("rewards"\) !== "0"/);
 assert.match(getBody, /visibleSightingForRequester\(sighting, ownerPointsPreview\)/, "private sighting fields must still require verified owner identity");
-assert.match(getBody, /getAggregateSightings\(userId, \{ includeOwned: includeRewards, limit: feedLimit \}\)/);
+assert.match(getBody, /getAggregateSightings\(userId, \{ includeOwned: includeRewards, limit: feedLimit, before \}\)/);
+assert.match(getBody, /canUseMemberSightingBoundary\(entitlements\.sightingsPreviewLimit, before\)/, "preview access must not enumerate older windows with forged boundaries");
+assert.match(repository, /created_at < \$2::timestamptz OR \(created_at = \$2::timestamptz AND id > \$3::text\)/, "native continuation should use a stable member keyset instead of a growing offset");
 assert.match(route, /COMMUNITY_SIGHTINGS_DURABLE_CUTOVER\.completed/,
   "the GET cutover must be gated by an explicit verified migration marker");
 assert.match(route, /Math\.min\(limit, 1_000\)/,

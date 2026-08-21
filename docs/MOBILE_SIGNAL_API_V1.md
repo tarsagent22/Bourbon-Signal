@@ -12,9 +12,20 @@ This is the transport boundary for the future native client. The current web app
 
 ### List Signals
 
-`GET /api/v1/signals?limit=60`
+`GET /api/v1/signals?limit=60&cursor=<opaque>`
 
-The initial list contract accepts only `limit` (1-100) and returns the canonical `bourbon-signal/signal@1` feed contract. Cursor pagination and server-side filters remain a later additive extension; clients should not assume undocumented parameters.
+- `limit` remains optional and accepts 1-100, preserving existing callers.
+- A full authenticated page returns `hasMore` and an opaque `nextCursor`.
+- Pass `nextCursor` back unchanged; clients must not decode or construct it.
+- `400 INVALID_CURSOR` means the cursor is malformed.
+- `409 CURSOR_RESET_REQUIRED` means the feed changed during pagination; clear the list and refresh from page one.
+- Signed-out preview responses do not offer continuation beyond the preview boundary.
+
+### Read member state
+
+`GET /api/v1/me/profile`
+
+Requires a Clerk session cookie or bearer session token. Returns only the privacy-safe `Founder #N` / `Member #N` identity when available, authoritative membership tier/label, and the two app-critical entitlement flags (`fullFeed` and `canSubmitSignals`). It never returns email, name, Clerk ID, or internal member IDs.
 
 ### Read one Signal
 
