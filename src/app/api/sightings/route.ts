@@ -5,6 +5,7 @@ import { canonicalizeLegacySighting, makeSightingId, normalizeBottleKey, type Me
 import { createCommunitySightingsRepository, type DurableSightingVote } from "@/lib/community-sightings-repository";
 import { getEntitlements } from "@/lib/entitlements";
 import { getServerEntitlements } from "@/lib/server-entitlements";
+import { canUseMemberSightingBoundary } from "@/lib/signals/sighting-pagination-policy";
 import { isRewardsAdminEmail, reconcileMemberRewards, summarizeMemberRewards, type MemberRewardsSummary } from "@/lib/sighting-rewards";
 import { verifiedPrimaryClerkEmail } from "@/lib/owner-auth";
 import { memberSightingTierForAvailability, normalizeSightingsForRewards } from "@/lib/sighting-reward-tiers";
@@ -169,7 +170,7 @@ function rewardsNeedPersistence(existing: unknown, next: unknown) {
 
 async function getAggregateSightings(
   currentUserId: string,
-  { includeOwned = false, requireLegacy = false, limit = 60 }: { includeOwned?: boolean; requireLegacy?: boolean; limit?: number } = {},
+  { includeOwned = false, requireLegacy = false, limit = 60, before = null }: { includeOwned?: boolean; requireLegacy?: boolean; limit?: number; before?: { createdAt: string; id: string } | null } = {},
 ) {
   const repository = createCommunitySightingsRepository();
   const legacy = requireLegacy || !COMMUNITY_SIGHTINGS_DURABLE_CUTOVER.completed
@@ -177,7 +178,7 @@ async function getAggregateSightings(
     : null;
   const legacyIds = [...new Set((legacy?.sightings || []).map((sighting) => sighting.id))];
   const [durableFeed, durableOwned, durableLegacyOverlap] = await Promise.all([
-    repository.listSightingsFeed(currentUserId, limit),
+    repository.listSightingsFeed(currentUserId, limit, before),
     includeOwned ? repository.listSightingsForReporter(currentUserId) : Promise.resolve([]),
     repository.countSightingsByIds(legacyIds),
   ]);
@@ -185,7 +186,10 @@ async function getAggregateSightings(
   const combinedCounts = voteCounts([...(legacy?.votes || []), ...durableVotes], currentUserId);
   const sightingsById = new Map<string, MemberSighting>();
   const reportersById = new Map<string, LegacyReporter>((legacy?.reporters || []).map((reporter) => [reporter.id, reporter]));
-  for (const sighting of legacy?.sightings || []) sightingsById.set(sighting.id, sighting);
+  const eligibleLegacySightings = (legacy?.sightings || []).filter((sighting) => !before
+    || sighting.createdAt < before.createdAt
+    || (sighting.createdAt === before.createdAt && sighting.id > before.id));
+  for (const sighting of eligibleLegacySightings) sightingsById.set(sighting.id, sighting);
   for (const sighting of durableFeed.sightings) sightingsById.set(sighting.id, sighting);
   const sightings: MemberSighting[] = [];
   for (const sighting of sightingsById.values()) {
@@ -204,7 +208,10 @@ async function getAggregateSightings(
     });
   }
   const sortedSightings = sightings
-    .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt))
+    .sort((a, b) => {
+      const timeDifference = +new Date(b.createdAt) - +new Date(a.createdAt);
+      return timeDifference || a.id.localeCompare(b.id);
+    })
     .slice(0, Math.max(1, Math.min(limit, 1_000)));
   return {
     sightings: sortedSightings,
@@ -254,8 +261,22 @@ export async function GET(req: NextRequest) {
   }
   const requestedLimit = Number(url.searchParams.get("limit") || 60);
   const feedLimit = Number.isFinite(requestedLimit) ? Math.max(1, Math.min(Math.floor(requestedLimit), 1_000)) : 60;
+  const beforeCreatedAt = url.searchParams.get("beforeCreatedAt");
+  const beforeId = url.searchParams.get("beforeId");
+  if (Boolean(beforeCreatedAt) !== Boolean(beforeId)
+    || (beforeCreatedAt && !Number.isFinite(Date.parse(beforeCreatedAt)))
+    || (beforeId && !/^[A-Za-z0-9._:-]{1,160}$/.test(beforeId))) {
+    return NextResponse.json({ error: "Invalid member Signal boundary" }, { status: 400 });
+  }
+  const before = beforeCreatedAt && beforeId ? { createdAt: beforeCreatedAt, id: beforeId } : null;
+  if (!canUseMemberSightingBoundary(entitlements.sightingsPreviewLimit, before)) {
+    return NextResponse.json(
+      { error: "Full Signal access is required to continue this feed." },
+      { status: 403, headers: { "Cache-Control": "private, no-store" } },
+    );
+  }
   const rewardGeneration = includeRewards ? await createSignalPointsRepository().readRewardGeneration(userId) : 0;
-  const aggregate = await getAggregateSightings(userId, { includeOwned: includeRewards, limit: feedLimit });
+  const aggregate = await getAggregateSightings(userId, { includeOwned: includeRewards, limit: feedLimit, before });
 
   const allSightings = aggregate.sightings;
   const previewLimit = entitlements.sightingsPreviewLimit;

@@ -40,21 +40,26 @@ export class CommunitySightingsRepository {
     return rows.map((row) => row.payload);
   }
 
-  async listSightingsFeed(currentUserId: string, limit = 60): Promise<{ sightings: MemberSighting[]; totalSightings: number }> {
+  async listSightingsFeed(
+    currentUserId: string,
+    limit = 60,
+    before: { createdAt: string; id: string } | null = null,
+  ): Promise<{ sightings: MemberSighting[]; totalSightings: number }> {
     void currentUserId;
     const rows = await this.query.query(
       `WITH recent AS MATERIALIZED (
-         SELECT payload, created_at
+         SELECT payload, created_at, id
          FROM community_sightings
-         ORDER BY created_at DESC
+         WHERE ($2::timestamptz IS NULL OR created_at < $2::timestamptz OR (created_at = $2::timestamptz AND id > $3::text))
+         ORDER BY created_at DESC, id ASC
          LIMIT $1
        ), totals AS (
          SELECT COUNT(*)::int AS total_count FROM community_sightings
        )
        SELECT recent.payload, totals.total_count
        FROM recent CROSS JOIN totals
-       ORDER BY recent.created_at DESC`,
-      [Math.max(1, Math.min(limit, 1000))],
+       ORDER BY recent.created_at DESC, recent.id ASC`,
+      [Math.max(1, Math.min(limit, 1000)), before?.createdAt || null, before?.id || null],
     ) as Array<{ payload: MemberSighting; total_count: number }>;
     return {
       sightings: rows.map((row) => row.payload),

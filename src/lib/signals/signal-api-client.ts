@@ -6,8 +6,14 @@ import {
   type SignalCreateInput,
   type SignalCreateResponse,
   type SignalDetailResponse,
+  type SignalMemberProfileResponse,
 } from "./signal-api-contract.ts";
 import type { CanonicalSignalFeed } from "./signal-contract.ts";
+
+export interface SignalFeedPage extends CanonicalSignalFeed {
+  nextCursor: string | null;
+  hasMore: boolean;
+}
 
 export class SignalApiClientError extends Error {
   readonly code: string;
@@ -57,8 +63,13 @@ export function createSignalApiClient({
   }
 
   return {
-    listSignals({ limit = 40 }: { limit?: number } = {}) {
-      return request<CanonicalSignalFeed>(`/api/v1/signals?limit=${encodeURIComponent(String(limit))}`);
+    listSignals({ limit = 40, cursor }: { limit?: number; cursor?: string | null } = {}) {
+      const params = new URLSearchParams({ limit: String(limit) });
+      if (cursor) params.set("cursor", cursor);
+      return request<SignalFeedPage>(`/api/v1/signals?${params.toString()}`);
+    },
+    getMemberProfile() {
+      return request<SignalMemberProfileResponse>("/api/v1/me/profile");
     },
     getSignal(signalId: string) {
       return request<SignalDetailResponse>(`/api/v1/signals/${encodeURIComponent(signalId)}`);
