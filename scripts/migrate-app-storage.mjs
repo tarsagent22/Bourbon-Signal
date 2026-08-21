@@ -113,6 +113,7 @@ const expected = [
   'membership_trial_claims',
   'bottle_contributions',
   'community_sighting_votes',
+  'community_sighting_idempotency',
   'community_sightings',
   'member_collection_bottles',
   'member_collection_legacy_backups',
@@ -160,6 +161,7 @@ const requiredColumns = {
   membership_trial_claims: ['user_id', 'subscription_id', 'plan', 'source', 'checkout_session_id', 'trial_ends_at', 'metadata', 'status', 'started_at', 'converted_at', 'canceled_at', 'created_at', 'updated_at'],
   bottle_contributions: ['id', 'status', 'payload'],
   community_sighting_votes: ['sighting_id', 'user_id', 'kind'],
+  community_sighting_idempotency: ['binding_id', 'reporter_user_id', 'request_fingerprint', 'sighting_id', 'created_at', 'updated_at'],
   community_sightings: ['id', 'reporter_user_id', 'payload'],
   member_collection_bottles: ['user_id', 'canonical_key', 'rating', 'payload'],
   member_collection_legacy_backups: ['user_id', 'payload'],
@@ -258,6 +260,7 @@ const expectedIndexes = [
   'signal_reward_redemptions_status_created_idx',
   'bottle_contributions_updated_idx',
   'community_sightings_created_idx',
+  'community_sighting_idempotency_reporter_idx',
   'community_sighting_votes_sighting_idx',
   'member_collection_bottles_canonical_rating_idx',
   'member_collection_bottles_user_updated_idx',
@@ -313,6 +316,7 @@ const invalidFounderIndexes = Object.entries(expectedFounderIndexes).flatMap(([i
     : [index];
 });
 const expectedConstraints = [
+  'community_sighting_idempotency_pkey',
   'community_sighting_votes_pkey',
   'community_sighting_votes_sighting_id_fkey',
   'member_collection_state_pkey',

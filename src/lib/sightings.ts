@@ -52,6 +52,12 @@ export interface MemberSighting {
   reviewState?: SightingReviewState;
   reporterDisplayName?: string;
   reporterBadges?: string[];
+  reporterPublicIdentity?: {
+    kind: "founder" | "member";
+    number: number;
+    label: string;
+  };
+  idempotencyFingerprint?: string;
 }
 
 export interface SignalReport {
@@ -95,6 +101,12 @@ export function canonicalizeLegacySighting(input: MemberSighting, ownerUserId: s
   const review = input.reviewState;
   const reward = input.rewardState;
   const photo = reward?.photoProof;
+  const publicIdentity = input.reporterPublicIdentity;
+  const safePublicIdentity = publicIdentity
+    && (publicIdentity.kind === "founder" || publicIdentity.kind === "member")
+    && Number.isSafeInteger(publicIdentity.number) && publicIdentity.number > 0
+    ? { kind: publicIdentity.kind, number: publicIdentity.number, label: `${publicIdentity.kind === "founder" ? "Founder" : "Member"} #${publicIdentity.number}` }
+    : undefined;
   return {
     id: String(input.id).slice(0, 160), bottleName: String(input.bottleName || "Unknown bottle").slice(0, 180),
     bottleId: input.bottleId ? String(input.bottleId).slice(0, 180) : undefined, rarityTier: input.rarityTier,
@@ -105,6 +117,7 @@ export function canonicalizeLegacySighting(input: MemberSighting, ownerUserId: s
     price: typeof input.price === "number" && Number.isFinite(input.price) ? input.price : null,
     notes: input.notes ? String(input.notes).slice(0, 1000) : undefined, source: input.source, sightingType: input.sightingType,
     reporterUserId: ownerUserId, createdAt, storeTimeZone: input.storeTimeZone ? String(input.storeTimeZone).slice(0, 80) : undefined,
+    reporterPublicIdentity: safePublicIdentity,
     rewardState: reward ? {
       removedAt: reward.removedAt ? String(reward.removedAt).slice(0, 40) : undefined,
       rejectedAt: reward.rejectedAt ? String(reward.rejectedAt).slice(0, 40) : undefined,

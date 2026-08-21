@@ -13,6 +13,8 @@ import { getQaPreviewTierFromRequest, isQaPreviewRequest } from "@/lib/preview-q
 import { addBottleContribution } from "@/lib/bottle-contributions";
 import { COMMUNITY_SIGHTINGS_DURABLE_CUTOVER } from "@/data/community-sightings-cutover";
 import { createSignalPointsRepository } from "@/lib/signal-points-repository";
+import { publicSignalIdentityFromMetadata } from "@/lib/signals/signal-api-contract";
+import { idempotentSightingFingerprint, idempotentSightingId, sameIdempotentSighting } from "@/lib/signals/signal-api-idempotency";
 
 function normalizeSightingType(value: unknown): SightingType {
   return value === "online_social" ? "online_social" : "seen_in_store";
@@ -23,8 +25,9 @@ function normalizeRarityTier(value: unknown): MemberSighting["rarityTier"] {
 }
 
 function visibleSightingForRequester(sighting: MemberSighting, ownerPointsPreview: boolean) {
-  if (ownerPointsPreview) return sighting;
-  const { rewardState: _rewardState, reporterBadges: _reporterBadges, ...visible } = sighting;
+  const { idempotencyFingerprint: _idempotencyFingerprint, ...safeSighting } = sighting;
+  if (ownerPointsPreview) return safeSighting;
+  const { rewardState: _rewardState, reporterBadges: _reporterBadges, ...visible } = safeSighting;
   return visible;
 }
 
@@ -234,6 +237,21 @@ export async function GET(req: NextRequest) {
 
   const url = new URL(req.url);
   const includeRewards = url.searchParams.get("rewards") !== "0";
+  const requestedSightingId = String(url.searchParams.get("sightingId") || "").slice(0, 160);
+  if (requestedSightingId) {
+    if (!/^[A-Za-z0-9._:-]{1,160}$/.test(requestedSightingId)) return NextResponse.json({ error: "Invalid sightingId" }, { status: 400 });
+    const repository = createCommunitySightingsRepository();
+    const stored = await repository.getSighting(requestedSightingId);
+    if (!stored) return NextResponse.json({ sightings: [], states: [], previewLimit: entitlements.sightingsPreviewLimit, totalSightings: 0 });
+    const counts = voteCounts(await repository.listVotesForSightings([requestedSightingId]), userId).get(requestedSightingId);
+    const sighting = visibleSightingForRequester({
+      ...stored,
+      upCount: counts?.upCount || 0,
+      downCount: counts?.downCount || 0,
+      myVote: counts?.myVote || null,
+    }, ownerPointsPreview);
+    return NextResponse.json({ sightings: [sighting], states: sighting.storeState ? [sighting.storeState] : [], previewLimit: entitlements.sightingsPreviewLimit, totalSightings: 1 });
+  }
   const requestedLimit = Number(url.searchParams.get("limit") || 60);
   const feedLimit = Number.isFinite(requestedLimit) ? Math.max(1, Math.min(Math.floor(requestedLimit), 1_000)) : 60;
   const rewardGeneration = includeRewards ? await createSignalPointsRepository().readRewardGeneration(userId) : 0;
@@ -294,6 +312,9 @@ export async function POST(req: NextRequest) {
   }
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  const rawIdempotencyKey = req.headers.get("Idempotency-Key");
+  const idempotencyKey = rawIdempotencyKey && /^[A-Za-z0-9._:-]{8,120}$/.test(rawIdempotencyKey.trim()) ? rawIdempotencyKey.trim() : null;
+  if (rawIdempotencyKey && !idempotencyKey) return NextResponse.json({ error: "Invalid Idempotency-Key" }, { status: 400 });
   const entitlements = await requireSightingsEntitlements(userId);
   if (!entitlements.canSubmitSightings) {
     return NextResponse.json({ error: "Submitting Member Sightings is included with Standard Proof and above." }, { status: 403 });
@@ -325,7 +346,7 @@ export async function POST(req: NextRequest) {
   const ownerPointsPreview = isRewardsAdminEmail(verifiedPrimaryClerkEmail(user));
   const prefs = normalizePrefs(user.publicMetadata?.sightingsPreferences);
   const sighting: MemberSighting = {
-    id: makeSightingId(),
+    id: idempotencyKey ? idempotentSightingId(userId, idempotencyKey) : makeSightingId(),
     bottleName,
     bottleId,
     rarityTier,
@@ -343,6 +364,8 @@ export async function POST(req: NextRequest) {
     reporterUserId: userId,
     reporterDisplayName: typeof user.firstName === "string" ? user.firstName : "Member",
     reporterBadges: rewardBadgeLabels((user.privateMetadata && typeof user.privateMetadata === "object" ? user.privateMetadata : {}) as Record<string, unknown>),
+    reporterPublicIdentity: publicSignalIdentityFromMetadata(user.publicMetadata),
+    idempotencyFingerprint: idempotencyKey ? idempotentSightingFingerprint({ ...payload, reporterUserId: userId }) : undefined,
     storeTimeZone: typeof payload.storeTimeZone === "string" ? payload.storeTimeZone.slice(0, 80) : undefined,
     rewardState: {},
     reviewState: (needsBottleReview || needsStoreReview) ? {
@@ -359,6 +382,27 @@ export async function POST(req: NextRequest) {
     createdAt: new Date().toISOString(),
   };
   const repository = createCommunitySightingsRepository();
+  const requestFingerprint = sighting.idempotencyFingerprint;
+  if (idempotencyKey) {
+    if (!requestFingerprint) return NextResponse.json({ error: "Unable to bind Idempotency-Key" }, { status: 500 });
+    const binding = await repository.reserveIdempotency(sighting.id, userId, requestFingerprint);
+    if (binding.reporterUserId !== userId || binding.requestFingerprint !== requestFingerprint) {
+      return NextResponse.json({ error: "Idempotency key was already used for a different Signal." }, { status: 409 });
+    }
+    if (binding.sightingId) {
+      const bound = await repository.getSighting(binding.sightingId);
+      if (!bound) return NextResponse.json({ error: "The saved Signal is temporarily unavailable." }, { status: 503 });
+      return NextResponse.json({ ok: true, created: false, duplicate: true, sighting: visibleSightingForRequester(bound, ownerPointsPreview) });
+    }
+    const existing = await repository.getSighting(sighting.id);
+    if (existing) {
+      if (!sameIdempotentSighting(existing, sighting)) {
+        return NextResponse.json({ error: "Idempotency key was already used for a different Signal." }, { status: 409 });
+      }
+      await repository.completeIdempotency(sighting.id, userId, requestFingerprint, existing.id);
+      return NextResponse.json({ ok: true, created: false, duplicate: true, sighting: visibleSightingForRequester(existing, ownerPointsPreview) });
+    }
+  }
   const observedRewardGeneration = await createSignalPointsRepository().readRewardGeneration(userId);
   const durableSightings = await repository.listSightingsForReporter(userId);
   const ownedSightings = dedupeSightings([...prefs.submittedSightings, ...durableSightings]);
@@ -367,6 +411,7 @@ export async function POST(req: NextRequest) {
   const privateMetadata = (user.privateMetadata && typeof user.privateMetadata === "object" ? user.privateMetadata : {}) as Record<string, unknown>;
   const duplicate = ownedSightings.find((existing) => isLikelyDuplicateSighting(existing, sighting));
   if (duplicate) {
+    if (idempotencyKey && requestFingerprint) await repository.completeIdempotency(sighting.id, userId, requestFingerprint, duplicate.id);
     const nextRewards = reconcileMemberRewards(rewardSightings, privateMetadata.memberRewards);
     if (rewardsNeedPersistence(privateMetadata.memberRewards, nextRewards)) {
       after(() => persistMemberRewardsBestEffort(client, userId, nextRewards, observedRewardGeneration));
@@ -381,7 +426,23 @@ export async function POST(req: NextRequest) {
     });
   }
 
-  const savedSighting = await repository.insertSighting(sighting);
+  if (idempotencyKey && requestFingerprint) {
+    const binding = await repository.reserveIdempotency(sighting.id, userId, requestFingerprint);
+    if (binding.sightingId) {
+      const bound = await repository.getSighting(binding.sightingId);
+      if (!bound) return NextResponse.json({ error: "The saved Signal is temporarily unavailable." }, { status: 503 });
+      return NextResponse.json({ ok: true, created: false, duplicate: true, sighting: visibleSightingForRequester(bound, ownerPointsPreview) });
+    }
+  }
+  const savedSighting = idempotencyKey ? await repository.insertSightingIfAbsent(sighting) : await repository.insertSighting(sighting);
+  if (!sameIdempotentSighting(savedSighting.sighting, sighting)) {
+    return NextResponse.json({ error: "Idempotency key was already used for a different Signal." }, { status: 409 });
+  }
+  if (savedSighting.created === false) {
+    if (idempotencyKey && requestFingerprint) await repository.completeIdempotency(sighting.id, userId, requestFingerprint, savedSighting.sighting.id);
+    return NextResponse.json({ ok: true, created: false, duplicate: true, sighting: visibleSightingForRequester(savedSighting.sighting, ownerPointsPreview) });
+  }
+  if (idempotencyKey && requestFingerprint) await repository.completeIdempotency(sighting.id, userId, requestFingerprint, savedSighting.sighting.id);
   const authoritativeSightings = await repository.listSightingsForReporter(userId);
   const nextOwnedSightings = dedupeSightings([...prefs.submittedSightings, ...authoritativeSightings]);
   const nextRewardSightings = normalizeSightingsForRewards(nextOwnedSightings, rewardCatalog);
@@ -425,7 +486,7 @@ export async function PATCH(req: NextRequest) {
   }
   const requester = await (await clerkClient()).users.getUser(userId);
   const ownerPointsPreview = isRewardsAdminEmail(verifiedPrimaryClerkEmail(requester));
-  const payload = (await req.json().catch(() => ({}))) as { sightingId?: string; vote?: SightingVoteKind };
+  const payload = (await req.json().catch(() => ({}))) as { sightingId?: string; vote?: SightingVoteKind; active?: boolean };
   const sightingId = String(payload.sightingId || "").slice(0, 160);
   const vote = payload.vote === "down" ? "down" : payload.vote === "up" ? "up" : null;
   if (!sightingId || !vote) return NextResponse.json({ error: "Invalid vote" }, { status: 400 });
@@ -452,7 +513,9 @@ export async function PATCH(req: NextRequest) {
   if (!(await repository.getVote(sightingId, userId)) && target.myVote) {
     await repository.setVote(sightingId, userId, target.myVote);
   }
-  const voteResult = await repository.toggleVote(sightingId, userId, vote);
+  const voteResult = typeof payload.active === "boolean"
+    ? await repository.setVoteState(sightingId, userId, vote, payload.active)
+    : await repository.toggleVote(sightingId, userId, vote);
   const updatedTarget: MemberSighting = { ...voteResult.sighting, myVote: voteResult.kind };
 
   let rewards: MemberRewardsSummary | undefined;

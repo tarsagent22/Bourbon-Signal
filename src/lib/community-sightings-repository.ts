@@ -11,6 +11,14 @@ export interface DurableSightingVote {
 export interface SightingMutationResult {
   sighting: MemberSighting;
   rewardGeneration: number;
+  created?: boolean;
+}
+
+export interface SightingIdempotencyBinding {
+  bindingId: string;
+  reporterUserId: string;
+  requestFingerprint: string;
+  sightingId: string | null;
 }
 
 function connectionString(env: NodeJS.ProcessEnv = process.env) {
@@ -94,6 +102,33 @@ export class CommunitySightingsRepository {
     return rows[0]?.payload || null;
   }
 
+  async reserveIdempotency(bindingId: string, reporterUserId: string, requestFingerprint: string): Promise<SightingIdempotencyBinding> {
+    const rows = await this.query.query(
+      `INSERT INTO community_sighting_idempotency (binding_id, reporter_user_id, request_fingerprint)
+       VALUES ($1, $2, $3)
+       ON CONFLICT (binding_id) DO UPDATE SET binding_id = community_sighting_idempotency.binding_id
+       RETURNING binding_id, reporter_user_id, request_fingerprint, sighting_id`,
+      [bindingId, reporterUserId, requestFingerprint],
+    ) as Array<{ binding_id: string; reporter_user_id: string; request_fingerprint: string; sighting_id: string | null }>;
+    const row = rows[0];
+    if (!row) throw new Error("Unable to reserve Signal idempotency key.");
+    return { bindingId: row.binding_id, reporterUserId: row.reporter_user_id, requestFingerprint: row.request_fingerprint, sightingId: row.sighting_id };
+  }
+
+  async completeIdempotency(bindingId: string, reporterUserId: string, requestFingerprint: string, sightingId: string): Promise<SightingIdempotencyBinding> {
+    const rows = await this.query.query(
+      `UPDATE community_sighting_idempotency
+       SET sighting_id = COALESCE(sighting_id, $4), updated_at = NOW()
+       WHERE binding_id = $1 AND reporter_user_id = $2 AND request_fingerprint = $3
+         AND (sighting_id IS NULL OR sighting_id = $4)
+       RETURNING binding_id, reporter_user_id, request_fingerprint, sighting_id`,
+      [bindingId, reporterUserId, requestFingerprint, sightingId],
+    ) as Array<{ binding_id: string; reporter_user_id: string; request_fingerprint: string; sighting_id: string | null }>;
+    const row = rows[0];
+    if (!row?.sighting_id) throw new Error("Signal idempotency binding conflict.");
+    return { bindingId: row.binding_id, reporterUserId: row.reporter_user_id, requestFingerprint: row.request_fingerprint, sightingId: row.sighting_id };
+  }
+
   async insertSighting(sighting: MemberSighting): Promise<SightingMutationResult> {
     const rows = await this.query.query(
       `WITH inserted AS MATERIALIZED (
@@ -112,26 +147,23 @@ export class CommunitySightingsRepository {
 
   async insertSightingIfAbsent(sighting: MemberSighting): Promise<SightingMutationResult> {
     const rows = await this.query.query(
-      `WITH inserted AS MATERIALIZED (
+      `WITH stored AS MATERIALIZED (
          INSERT INTO community_sightings (id, reporter_user_id, payload, created_at)
          VALUES ($1, $2, $3::jsonb, $4::timestamptz)
-         ON CONFLICT (id) DO NOTHING
-         RETURNING payload,reporter_user_id
+         ON CONFLICT (id) DO UPDATE SET id = community_sightings.id
+         RETURNING payload,reporter_user_id,(xmax = 0) AS created
        ), bumped AS MATERIALIZED (
-         SELECT next_community_sighting_reward_generation(reporter_user_id) AS reward_generation FROM inserted
-       ), selected AS (
-         SELECT inserted.payload,bumped.reward_generation FROM inserted CROSS JOIN bumped
-         UNION ALL
-         SELECT stored.payload,COALESCE(generations.generation,0) AS reward_generation
-         FROM community_sightings stored
-         LEFT JOIN signal_point_reward_generations generations ON generations.user_id=stored.reporter_user_id
-         WHERE stored.id=$1 AND NOT EXISTS (SELECT 1 FROM inserted)
-       ) SELECT payload,reward_generation FROM selected LIMIT 1`,
+         SELECT next_community_sighting_reward_generation(reporter_user_id) AS reward_generation FROM stored WHERE created
+       )
+       SELECT stored.payload,COALESCE(bumped.reward_generation,generations.generation,0) AS reward_generation,stored.created
+       FROM stored
+       LEFT JOIN bumped ON TRUE
+       LEFT JOIN signal_point_reward_generations generations ON generations.user_id=stored.reporter_user_id`,
       [sighting.id, sighting.reporterUserId, JSON.stringify(sighting), sighting.createdAt],
-    ) as Array<{ payload: MemberSighting; reward_generation: string | number }>;
+    ) as Array<{ payload: MemberSighting; reward_generation: string | number; created: boolean }>;
     const stored = rows[0];
     if (!stored || stored.payload.reporterUserId !== sighting.reporterUserId) throw new Error("Sighting ownership conflict.");
-    return { sighting: stored.payload, rewardGeneration: Number(stored.reward_generation) };
+    return { sighting: stored.payload, rewardGeneration: Number(stored.reward_generation), created: stored.created };
   }
 
   async updateSighting(sighting: MemberSighting): Promise<SightingMutationResult> {
@@ -199,6 +231,63 @@ export class CommunitySightingsRepository {
        ON CONFLICT (sighting_id, user_id) DO UPDATE SET kind = EXCLUDED.kind, created_at = NOW()`,
       [sightingId, userId, kind],
     );
+  }
+
+  async setVoteState(sightingId: string, userId: string, kind: SightingVoteKind, active: boolean): Promise<{ kind: SightingVoteKind | null; upCount: number; downCount: number; sighting: MemberSighting; rewardGeneration: number }> {
+    const [, voteRows] = await this.query.transaction((tx) => [
+      tx.query(`SELECT pg_advisory_xact_lock(hashtextextended($1, 0))`, [sightingId]),
+      tx.query(
+      `WITH locked AS MATERIALIZED (
+         SELECT pg_advisory_xact_lock(hashtextextended($1, 0))
+       ), prior AS MATERIALIZED (
+         SELECT v.kind FROM community_sighting_votes v, locked
+         WHERE v.sighting_id = $1 AND v.user_id = $2
+       ), before_counts AS MATERIALIZED (
+         SELECT COUNT(*) FILTER (WHERE v.kind = 'up')::int AS up_count,
+                COUNT(*) FILTER (WHERE v.kind = 'down')::int AS down_count
+         FROM community_sighting_votes v, locked WHERE v.sighting_id = $1
+       ), removed AS (
+         DELETE FROM community_sighting_votes v
+         WHERE v.sighting_id = $1 AND v.user_id = $2 AND $4 = FALSE
+           AND EXISTS (SELECT 1 FROM prior WHERE kind = $3)
+         RETURNING v.kind
+       ), saved AS (
+         INSERT INTO community_sighting_votes (sighting_id, user_id, kind)
+         SELECT $1, $2, $3 WHERE $4 = TRUE
+           AND NOT EXISTS (SELECT 1 FROM prior WHERE kind = $3)
+         ON CONFLICT (sighting_id, user_id) DO UPDATE SET kind = EXCLUDED.kind, created_at = NOW()
+         RETURNING kind
+       ), outcome AS MATERIALIZED (
+         SELECT COALESCE((SELECT kind FROM saved LIMIT 1),
+             CASE WHEN NOT EXISTS (SELECT 1 FROM removed) THEN (SELECT kind FROM prior LIMIT 1) END) AS next_kind,
+           GREATEST(0, before_counts.up_count - CASE WHEN (SELECT kind FROM prior) = 'up' THEN 1 ELSE 0 END + CASE WHEN (SELECT kind FROM saved) = 'up' THEN 1 ELSE 0 END
+             + CASE WHEN NOT EXISTS (SELECT 1 FROM removed) AND NOT EXISTS (SELECT 1 FROM saved) AND (SELECT kind FROM prior) = 'up' THEN 1 ELSE 0 END)::int AS up_count,
+           GREATEST(0, before_counts.down_count - CASE WHEN (SELECT kind FROM prior) = 'down' THEN 1 ELSE 0 END + CASE WHEN (SELECT kind FROM saved) = 'down' THEN 1 ELSE 0 END
+             + CASE WHEN NOT EXISTS (SELECT 1 FROM removed) AND NOT EXISTS (SELECT 1 FROM saved) AND (SELECT kind FROM prior) = 'down' THEN 1 ELSE 0 END)::int AS down_count
+         FROM before_counts
+       ), updated AS (
+         UPDATE community_sightings SET
+           payload = jsonb_set(jsonb_set(jsonb_set(
+             payload, '{rewardState}',
+             CASE WHEN outcome.up_count >= 3 AND outcome.up_count - outcome.down_count >= 3
+               THEN jsonb_set(COALESCE(payload->'rewardState', '{}'::jsonb), '{helpfulAt}', to_jsonb(COALESCE(payload->'rewardState'->>'helpfulAt', NOW()::text)), true)
+               ELSE COALESCE(payload->'rewardState', '{}'::jsonb) - 'helpfulAt' END, true),
+             '{upCount}', to_jsonb(outcome.up_count), true),
+             '{downCount}', to_jsonb(outcome.down_count), true)
+             || jsonb_build_object('communityVerified', outcome.up_count >= 3 AND outcome.up_count - outcome.down_count >= 3),
+           updated_at = NOW()
+         FROM outcome WHERE id = $1
+         RETURNING payload,reporter_user_id,outcome.next_kind,outcome.up_count,outcome.down_count
+       ), generation AS MATERIALIZED (
+         SELECT next_community_sighting_reward_generation(reporter_user_id) AS reward_generation FROM updated
+       ) SELECT payload,next_kind,up_count,down_count,reward_generation FROM updated CROSS JOIN generation`,
+      [sightingId, userId, kind, active],
+      ),
+    ], { isolationLevel: "ReadCommitted" });
+    const rows = voteRows as Array<{ payload: MemberSighting; next_kind: SightingVoteKind | null; up_count: number; down_count: number; reward_generation: string | number }>;
+    const row = rows[0];
+    if (!row) throw new Error("Sighting not found");
+    return { kind: row.next_kind, upCount: Number(row.up_count), downCount: Number(row.down_count), sighting: row.payload, rewardGeneration: Number(row.reward_generation) };
   }
 
   async toggleVote(sightingId: string, userId: string, kind: SightingVoteKind): Promise<{ kind: SightingVoteKind | null; upCount: number; downCount: number; sighting: MemberSighting; rewardGeneration: number }> {
