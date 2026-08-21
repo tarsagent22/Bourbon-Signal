@@ -126,30 +126,29 @@ function retailerCardAppearance(drop: GroupedDrop) {
 const tickerNumberFormatter = new Intl.NumberFormat("en-US");
 
 function formatTickerNumber(value?: number) {
-  if (typeof value !== "number" || !Number.isFinite(value) || value <= 0) return "—";
+  if (typeof value !== "number" || !Number.isFinite(value) || value < 0) return "—";
   return tickerNumberFormatter.format(value);
 }
 
 function SignalTicker({
-  totalSignals,
-  liveSignals,
+  observationsProcessed,
+  currentObservations,
   storesMonitored,
   memberCount,
   lastRefreshed,
   reduceMotion,
 }: {
-  totalSignals?: number;
-  liveSignals?: number;
+  observationsProcessed?: number;
+  currentObservations?: number;
   storesMonitored?: number;
   memberCount?: number;
   lastRefreshed?: string;
   reduceMotion: boolean;
 }) {
-  const [tickerPaused, setTickerPaused] = useState(false);
   const refreshedText = lastRefreshed ? formatRelativeTime(lastRefreshed) : "pending";
   const items = [
-    { label: "Total signals detected", value: formatTickerNumber(totalSignals) },
-    { label: "Live signals", value: formatTickerNumber(liveSignals) },
+    { label: "Observations processed", value: formatTickerNumber(observationsProcessed) },
+    { label: "Current observations", value: formatTickerNumber(currentObservations) },
     { label: "Stores monitored", value: formatTickerNumber(storesMonitored) },
     { label: "Member Count", value: formatTickerNumber(memberCount) },
     { label: "Last refreshed", value: refreshedText },
@@ -158,18 +157,8 @@ function SignalTicker({
   const visibleItems = reduceMotion ? items : tapeItems;
 
   return (
-    <div className="signal-ticker" role="status" aria-label="Bourbon Signal market tape">
-      {!reduceMotion ? (
-        <button
-          type="button"
-          className="signal-ticker-toggle"
-          aria-pressed={tickerPaused}
-          onClick={() => setTickerPaused((current) => !current)}
-        >
-          {tickerPaused ? "Play" : "Pause"}
-        </button>
-      ) : null}
-      <div className={`signal-ticker-track ${reduceMotion ? "reduced" : tickerPaused ? "paused" : ""}`}>
+    <div className="signal-ticker" role="status" tabIndex={0} aria-label="Bourbon Signal market tape. Focus to pause.">
+      <div className={`signal-ticker-track ${reduceMotion ? "reduced" : ""}`}>
         {visibleItems.map((item, index) => (
           <span className="signal-ticker-item" key={`${item.label}-${index}`} aria-hidden={!reduceMotion && index >= items.length}>
             <span className="signal-ticker-label">{item.label}</span>
@@ -2029,7 +2018,6 @@ export default function DropFeed() {
           width: 100%;
           margin: 12px 0 0;
           overflow: hidden;
-          border-block: 1px solid var(--boundary-accent);
           background: linear-gradient(90deg, transparent, rgba(27,18,12,0.72) 48%, transparent);
         }
         .dropfeed-signal-card { border: 0; }
@@ -2061,25 +2049,8 @@ export default function DropFeed() {
           will-change: transform;
         }
         .signal-ticker:hover .signal-ticker-track { animation-play-state: paused; }
-        .signal-ticker:focus-within .signal-ticker-track,
-        .signal-ticker-track.paused { animation-play-state: paused; }
-        .signal-ticker-toggle {
-          position: absolute;
-          top: 50%;
-          right: 5px;
-          z-index: 3;
-          transform: translateY(-50%);
-          border: 1px solid rgba(196,148,58,.22);
-          border-radius: 999px;
-          background: rgba(10,7,5,.92);
-          color: rgba(232,201,122,.78);
-          padding: 4px 8px;
-          font: 800 9px var(--font-jetbrains);
-          letter-spacing: .04em;
-          text-transform: uppercase;
-          cursor: pointer;
-        }
-        .signal-ticker-toggle:focus-visible { outline: 2px solid rgba(232,201,122,.75); outline-offset: 2px; }
+        .signal-ticker:focus .signal-ticker-track { animation-play-state: paused; }
+
         .signal-ticker-track.reduced {
           display: flex;
           width: 100%;
@@ -2424,16 +2395,13 @@ export default function DropFeed() {
           </motion.div>
 
           <SignalTicker
-            totalSignals={engineStats.historicalSignalCount ?? engineStats.signalCount}
-            liveSignals={engineStats.signalCount}
+            observationsProcessed={engineStats.historicalSignalCount ?? engineStats.signalCount}
+            currentObservations={data?.total}
             storesMonitored={engineStats.total_stores}
             memberCount={memberCount}
             lastRefreshed={tickerLastRefreshed}
             reduceMotion={Boolean(shouldReduceMotion)}
           />
-
-          {/* Divider */}
-          <div style={{ margin: "12px 0 14px", borderBottom: "1px solid rgba(196, 148, 58, 0.16)" }} />
 
           <InlineSignalComposer
             isSignedIn={isSignedIn}
@@ -2564,7 +2532,7 @@ export default function DropFeed() {
                 <span>
                   {isKentuckyFeed
                     ? `${finalFeed.length} current gift-shop pickup ${finalFeed.length === 1 ? "lead" : "leads"} · ${KENTUCKY_RELEASE_WATCH_SOURCE_COUNT} official release-watch sources`
-                    : `${displayedGrouped.length} visible · ${data.total} matching signals`}
+                    : `Showing ${displayedGrouped.length} ${hasActiveFeedFilters ? "filtered " : ""}signal cards`}
                 </span>
                 {hasActiveFeedFilters ? <button type="button" className="dropfeed-clear-filters" onClick={clearFeedFilters}>Clear filters</button> : null}
               </div>
