@@ -32,6 +32,13 @@
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "693a1966-5bfc-4f25-9fe4-e39c009ec04a"
+      }
+    },
+    "owner": "bourbon-signal"
   }
 }
