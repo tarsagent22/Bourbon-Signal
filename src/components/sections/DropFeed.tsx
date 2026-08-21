@@ -2099,10 +2099,11 @@ export default function DropFeed() {
           color: rgba(245,237,214,0.88) !important;
         }
         @media (max-width: 767px) {
-          #drops { padding-top: 18px !important; }
+          #drops { padding-top: 32px !important; }
           .dropfeed-shell { padding-left: 18px !important; padding-right: 18px !important; }
           .dropfeed-title { font-size: 34px !important; letter-spacing: -0.03em !important; }
           .dropfeed-subcopy { font-size: 14px !important; line-height: 1.45 !important; max-width: 42ch; }
+          .signal-ticker { margin-top: 18px; margin-bottom: 18px; }
           .dropfeed-nudge { display:none; }
           .dropfeed-filter-row {
             display: grid !important;
@@ -2323,7 +2324,9 @@ export default function DropFeed() {
           .dropfeed-refine-search { grid-column: 1 / -1; }
           .dropfeed-refine-field span { font-size: 8px; margin-bottom: 5px; }
           .dropfeed-refine-field input,
-          .bourbon-menu-trigger { font-size: 12px; padding: 9px 8px; height: 38px; }
+          .bourbon-menu-trigger { padding: 9px 8px; height: 40px; }
+          .dropfeed-refine-field input { font-size: 16px; }
+          .bourbon-menu-trigger { font-size: 13px; }
           .bourbon-menu.dropfeed-area-menu .bourbon-menu-panel {
             left: 0;
             right: 0;
