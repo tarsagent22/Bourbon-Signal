@@ -20,6 +20,7 @@ import { AVAILABLE_STATES, useStatePreferences } from "@/lib/statePreferences";
 import { useAuth } from "@/lib/auth";
 import { useAreaPreferences } from "@/hooks/useAreaPreferences";
 import { useSightings } from "@/hooks/useSightings";
+import InlineSignalComposer from "@/components/signals/InlineSignalComposer";
 import { useStores, type Store } from "@/hooks/useStores";
 import { useStats } from "@/lib/useEngineData";
 import { recordGrowthMilestone } from "@/lib/growth-client";
@@ -1445,13 +1446,13 @@ export default function DropFeed() {
     hasSelectedStates,
     setSelectedStates,
   } = useStatePreferences();
-  const { isSignedIn, entitlements } = useAuth();
+  const { isSignedIn, entitlements, signIn } = useAuth();
   const { prefs } = useAreaPreferences();
   const canUseStateFilter = entitlements.canUseStateFilter;
   const canUseDropFeedFilters = entitlements.canUseDropFeedFilters;
   const canUseBottleSearch = entitlements.canUseBottleSearch;
   const canReadSightings = entitlements.canReadSightings;
-  const { sightings, reportsBySignalId, addSignalReport, voteSighting } = useSightings(isSignedIn && canReadSightings, { feedLimit: 1_000 });
+  const { sightings, reportsBySignalId, addSignalReport, addSighting, voteSighting, saving: sightingSaving } = useSightings(isSignedIn && canReadSightings, { feedLimit: 1_000 });
   const { stores } = useStores();
   const { stats: engineStats } = useStats();
   const [memberCount, setMemberCount] = useState<number | undefined>(undefined);
@@ -2376,7 +2377,7 @@ export default function DropFeed() {
                   margin: 0,
                 }}
               >
-                Live Drop Feed
+                Signal Feed
               </h2>
             </div>
           </motion.div>
@@ -2392,6 +2393,15 @@ export default function DropFeed() {
 
           {/* Divider */}
           <div style={{ margin: "12px 0 14px", borderBottom: "1px solid rgba(196, 148, 58, 0.16)" }} />
+
+          <InlineSignalComposer
+            isSignedIn={isSignedIn}
+            canSubmit={entitlements.canSubmitSightings}
+            signIn={signIn}
+            addSighting={addSighting}
+            saving={sightingSaving}
+            defaultState={feedStateParam}
+          />
 
           {(canUseStateFilter || canUseBottleSearch || canUseDropFeedFilters) ? (
           <motion.div
