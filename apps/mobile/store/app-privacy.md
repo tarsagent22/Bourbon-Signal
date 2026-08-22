@@ -8,7 +8,7 @@ This is the working inventory for Apple’s App Privacy questionnaire. It is not
 - **Advertising:** None.
 - **Device permissions:** No camera, photo library, contacts, microphone, Bluetooth, or device-location permission is requested by this release.
 - **Payments:** No checkout, external-purchase link, StoreKit purchase, or payment-card collection occurs in the app. Effective subscription status is read from the server for access control.
-- **Persistence:** Clerk session tokens use Expo Secure Store. The app does not persist email addresses, Clerk IDs, database IDs, Signal records, or payment details in its own storage.
+- **Persistence:** Clerk session tokens plus the non-secret idempotency key and SHA-256 fingerprint for a pending sighting draft use Expo Secure Store. The fingerprint is used only to bind retries to the same request; raw draft fields are not stored. Radar preferences, collection bottles, Signal Points, alerts, sighting content, and payment details remain server-authoritative and are not persisted by the app.
 
 ## Conservative App Privacy answers
 
@@ -22,7 +22,7 @@ This is the working inventory for Apple’s App Privacy questionnaire. It is not
 | Usage Data | No first-party mobile analytics in this release | — | — | The app does not include a mobile analytics package. Reassess if one is added. |
 | Location | No device location | — | — | Store locations shown in Signals are product content, not the member’s device location. |
 | User Content — Customer Support | Yes, when the member chooses to contact support or request deletion | Yes | App Functionality; Account Management | The app opens a member-composed email to Bourbon Signal support. The resulting support/deletion request is linked to the sender so ownership can be verified and the request completed. |
-| User Content — Other User Content | No collection through this release | — | — | The thin slice reads Signals but does not provide a native Signal submission composer. |
+| User Content — Other User Content | Yes, when a member posts a Signal | Yes | App Functionality | A member can submit bottle, retailer, address, price, quantity, and optional notes. These fields are attached to the authenticated account for moderation, attribution, duplicate prevention, and community display. |
 | Financial Info | No | — | — | Stripe processes website billing; the mobile app receives entitlement state only. |
 
 ## Third-party SDK inventory

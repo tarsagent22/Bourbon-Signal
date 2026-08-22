@@ -76,6 +76,7 @@ test("the current reward catalog advances monotonically before member and owner 
   await syncCurrentSignalRewardCatalog({ query: async (sql, params) => { calls.push({ sql, params }); return []; } });
   assert.equal(calls.length, 1);
   assert.match(calls[0].sql, /INSERT INTO signal_reward_catalog[\s\S]*ON CONFLICT[\s\S]*catalog_version\s*<\s*EXCLUDED\.catalog_version/i);
+  assert.match(calls[0].sql, /::text[\s\S]*::integer[\s\S]*::text[\s\S]*::integer[\s\S]*::text[\s\S]*::jsonb/, "runtime catalog parameters must retain the database column types through the VALUES relation");
   assert.doesNotMatch(calls[0].sql, /active\s*=\s*TRUE/i, "runtime sync preserves owner emergency disables");
   const schema = read("src/lib/signal-points-schema.sql");
   const catalogUpsert = schema.match(/INSERT INTO signal_reward_catalog[\s\S]*?WHERE signal_reward_catalog\.catalog_version < EXCLUDED\.catalog_version;/i)?.[0] || "";

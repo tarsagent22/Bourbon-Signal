@@ -2,15 +2,13 @@
 
 ## Reviewer summary
 
-Bourbon Signal is a focused native companion for existing members. It presents a canonical Signal Feed, exact Signal details, and privacy-safe membership state. It is not a web wrapper.
-
-The first App Store candidate is **consumption-only**:
+Bourbon Signal is a focused native companion for existing members. It presents the canonical Signal Feed and exact Signal details, plus distinct Radar, Post, Cellar, and HQ destinations backed by the same server-authoritative member account. It is not a web wrapper.
 
 - no in-app purchase;
 - no external checkout link or payment steering;
 - no account registration inside the app;
 - no push notification, camera, location, or background-tracking permission;
-- no user-generated-content composer in the native thin slice.
+- manual Signal posting is available only to entitled members and uses durable idempotency plus server review for manually entered bottles or stores.
 
 Existing website subscribers sign in and receive server-authoritative access from the same account. Availability can change and the UI tells members to confirm with the retailer.
 
@@ -23,12 +21,15 @@ Reviewer path:
 1. Open Bourbon Signal.
 2. Sign in with the App Review account.
 3. Complete the supplied verification factor if the account requires one. Configure the review account so Apple can complete this without contacting a private individual.
-4. Review the Signals tab and open a Signal detail.
-5. Open Account to see effective membership, Support, Privacy policy, Request account deletion, and Sign out.
+4. Review the Signals tab, open a Signal detail, and continue loading the feed.
+5. Open Radar to see saved alert markets, watched bottles, alert channels, and the alert inbox.
+6. Open Post and review the required bottle/store fields. A submitted review Signal affects production community data, so Apple should not submit a test sighting unless coordinated with Bourbon Signal.
+7. Open Cellar to see the review account's collection.
+8. Open HQ to see membership, Signal Points, rewards, Support, Privacy policy, Request account deletion, and Sign out.
 
 ## Account deletion
 
-The app is sign-in-only and does not create accounts. A signed-in member can still initiate deletion from **Account → Request account deletion**. This opens a pre-addressed request to `support@bourbonsignal.com`. Support verifies ownership, removes the account from active systems, and confirms any billing, fraud-prevention, dispute, or legal records that must be retained. Subscription cancellation and account deletion are separate actions.
+The app is sign-in-only and does not create accounts. A signed-in member can still initiate deletion from **HQ → Request account deletion**. This opens a pre-addressed request to `support@bourbonsignal.com`. Support verifies ownership, removes the account from active systems, and confirms any billing, fraud-prevention, dispute, or legal records that must be retained. Subscription cancellation and account deletion are separate actions.
 
 ## Encryption
 

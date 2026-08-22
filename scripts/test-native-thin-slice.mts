@@ -219,13 +219,29 @@ const tieIds = [...tieFirstPayload.signals, ...(await tieSecond.json()).signals]
 assert.deepEqual(tieIds, ["member:tie-a", "member:tie-b", "member:tie-c"], "member keyset tie-breaking must match canonical Signal ordering");
 
 assert.equal(existsSync("src/app/api/v1/me/profile/route.ts"), true, "the app needs a minimal authenticated member-state endpoint");
+const memberPreferencesRoute = readFileSync("src/app/api/user/preferences/route.ts", "utf8");
+assert.match(memberPreferencesRoute, /canUseCollection: entitlements\.canUseCollection/, "the preferences response must expose the canonical collection entitlement to native clients");
 assert.equal(existsSync("apps/mobile/app.json"), true, "the Expo shell must exist");
 assert.equal(existsSync("apps/mobile/app/_layout.tsx"), true, "the Expo Router root must exist");
 assert.equal(existsSync("apps/mobile/app/(app)/(tabs)/index.tsx"), true, "the authenticated feed route must exist");
 assert.equal(existsSync("apps/mobile/app/(app)/signal/[id].tsx"), true, "the Signal detail route must exist");
-assert.equal(existsSync("apps/mobile/app/(app)/(tabs)/account.tsx"), true, "the minimal account route must exist");
+for (const route of ["radar", "post", "cellar", "hq"]) {
+  assert.equal(existsSync(`apps/mobile/app/(app)/(tabs)/${route}.tsx`), true, `the native ${route} route must exist`);
+}
+assert.equal(existsSync("apps/mobile/app/(app)/(tabs)/account.tsx"), false, "HQ must replace the duplicate account tab");
+const mobileApiHook = readFileSync("apps/mobile/src/hooks/useMobileApi.ts", "utf8");
+assert.match(mobileApiHook, /const getTokenRef = useRef\(getToken\)/, "Clerk token callback churn must not recreate the API client");
+assert.match(mobileApiHook, /getToken: \(\) => getTokenRef\.current\(\)/, "the stable API client must call Clerk's latest token callback");
+const mobileApiClient = readFileSync("apps/mobile/src/api/client.ts", "utf8");
+assert.match(mobileApiClient, /recentReads\.get\(key\)/, "native GET requests must have a circuit breaker against remount storms");
+for (const route of ["index", "radar", "post", "cellar"]) {
+  assert.doesNotMatch(readFileSync(`apps/mobile/app/(app)/(tabs)/${route}.tsx`, "utf8"), /await signOut\(/, `native ${route} data errors must not destroy the member session`);
+}
 const mobilePackage = JSON.parse(readFileSync("apps/mobile/package.json", "utf8"));
 assert.ok(mobilePackage.dependencies["@clerk/expo"]);
+assert.ok(mobilePackage.dependencies["@expo/vector-icons"]);
+assert.ok(mobilePackage.dependencies["expo-crypto"]);
+assert.ok(mobilePackage.dependencies["expo-font"]);
 assert.ok(mobilePackage.dependencies["expo-secure-store"]);
 assert.ok(mobilePackage.scripts.typecheck);
 

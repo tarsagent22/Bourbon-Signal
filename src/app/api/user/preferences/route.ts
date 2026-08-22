@@ -61,6 +61,9 @@ export interface AreaPreferences {
 export type AlertMode = "specific_bottles" | "anything_notable";
 
 export interface UserAlertPreferences {
+  entitlements?: {
+    canUseCollection: boolean;
+  };
   areaPreferences: AreaPreferences;
   notificationPreferences: NotificationPreferences;
   alertMode: AlertMode;
@@ -281,6 +284,9 @@ function buildResponseFromMetadata(
   const alertMode = normalizeAlertMode(user.publicMetadata?.alertMode);
   const bottleAlertPreferences = normalizeBottleAlertPreferences(user.publicMetadata?.bottleAlertPreferences);
   return {
+    entitlements: {
+      canUseCollection: entitlements.canUseCollection,
+    },
     areaPreferences,
     notificationPreferences,
     alertMode,
