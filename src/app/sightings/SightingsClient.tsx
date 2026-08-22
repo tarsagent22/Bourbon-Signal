@@ -8,6 +8,7 @@ import type { Bottle } from "@/data/bottles";
 import { useBottles } from "@/hooks/useBottles";
 import { useStores, type Store } from "@/hooks/useStores";
 import { buildSightingStoreSearchIndex, searchSightingStoreIndex } from "@/lib/sighting-store-search";
+import { sightingsTabUrl } from "@/lib/member-navigation";
 import { useSightings } from "@/hooks/useSightings";
 import { formatStoreAddress, makeSightingId, normalizeBottleKey, sightingTypeLabel, type MemberSighting, type SightingType } from "@/lib/sightings";
 
@@ -196,6 +197,12 @@ export default function SightingsClient() {
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [bottleCheckMatches, setBottleCheckMatches] = useState<Bottle[]>([]);
 
+  const selectTab = (tab: "submit" | "feed") => {
+    setActiveTab(tab);
+    window.history.replaceState(window.history.state, "", sightingsTabUrl(window.location.href, tab));
+    window.dispatchEvent(new Event("member-navigation-change"));
+  };
+
   useEffect(() => {
     const searchParams = new URLSearchParams(window.location.search);
     const tab = searchParams.get("tab");
@@ -372,7 +379,7 @@ export default function SightingsClient() {
       setManualStoreState("");
       setManualStoreZip("");
       setManualBottleConfirmed(false);
-      setActiveTab("feed");
+      selectTab("feed");
     } catch (error) {
       setSubmitError(error instanceof Error ? error.message : "Unable to save sighting. Please try again.");
     }
@@ -482,8 +489,8 @@ export default function SightingsClient() {
 
 
         <div className="sighting-mode-shell">
-          <button type="button" className={`sighting-tab ${activeTab === "submit" ? "active" : ""}`} onClick={() => setActiveTab("submit")}>Submit</button>
-          <button type="button" className={`sighting-tab ${activeTab === "feed" ? "active" : ""}`} onClick={() => setActiveTab("feed")}>Feed</button>
+          <button type="button" className={`sighting-tab ${activeTab === "submit" ? "active" : ""}`} onClick={() => selectTab("submit")}>Submit</button>
+          <button type="button" className={`sighting-tab ${activeTab === "feed" ? "active" : ""}`} onClick={() => selectTab("feed")}>Feed</button>
         </div>
 
         {activeTab === "submit" ? (

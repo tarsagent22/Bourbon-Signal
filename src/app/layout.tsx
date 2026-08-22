@@ -79,9 +79,13 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const clerkProxyUrl = process.env.VERCEL_ENV === "production"
+    ? "https://bourbonsignal.com/api/clerk-proxy"
+    : undefined;
+
   return (
     <ClerkProvider
-      proxyUrl="https://bourbonsignal.com/api/clerk-proxy"
+      proxyUrl={clerkProxyUrl}
       signUpFallbackRedirectUrl="/welcome?registration=1"
       appearance={{
         theme: dark,

@@ -6,5 +6,5 @@ export const revalidate = 0;
 
 export default async function SignalPointsLegacyPage() {
   await requireSignalPointsPageAccess("/account/signal-points");
-  redirect("/dashboard?section=memberPoints");
+  redirect("/hq#signal-points");
 }

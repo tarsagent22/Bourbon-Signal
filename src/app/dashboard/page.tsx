@@ -29,6 +29,7 @@ import {
 } from "@/lib/notification-preferences";
 import { getPopularBottlePool } from "@/lib/bottleSuggestions";
 import { ENGINE_COVERED_STATE_CODES } from "@/lib/statePreferences";
+import { dashboardDestinationCopy, dashboardSectionUrl } from "@/lib/member-navigation";
 import { getActiveEngineStateAreaLabel, getActiveEngineStateAreaOptions, getActiveEngineStateName } from "@/lib/activeStates";
 import { buildUserTasteProfile, createBourbonDnaProfile, scoreBourbonDnaMatch } from "@/lib/bourbon-dna";
 import {
@@ -49,7 +50,12 @@ import {
 } from "@/lib/demand-metro-areas";
 import { NC_ABC_BOARD_OPTIONS, ncAbcBoardPreferencesMatch } from "@/lib/nc-abc-boards";
 import { coverageAreaOption } from "@/lib/coverage-location-aliases";
-import { BADGE_DESCRIPTIONS } from "@/lib/sighting-rewards";
+import {
+  signalPointsBadgeBaseKey as badgeBaseKey,
+  signalPointsBadgeDescription as badgeDescriptionFor,
+  signalPointsBadgeIcon as badgeIconFor,
+  signalPointsBadgeLabel as badgeLabelFor,
+} from "@/lib/signal-points-badge-presentation";
 import { buildAlertSetupGuidance } from "@/lib/alert-setup-guidance";
 
 const EMPTY_PREFS: AreaPreferences = {
@@ -163,46 +169,6 @@ interface BourbonDnaSummary {
   favoriteMashBills: string[];
   nextLearningPrompt?: string;
   summary: string;
-}
-
-const BADGE_ICON_BY_KEY: Record<string, string> = {
-  first_sighting: "/badge-icons/first-sighting.png",
-  helpful_neighbor: "/badge-icons/helpful-neighbor-fit.png",
-  photo_finish: "/badge-icons/photo-finish-fit.png",
-  spotter: "/badge-icons/spotter-bronze-fit.png",
-  unicorn_hunter: "/badge-icons/unicorn-hunter-bronze-fit.png",
-  sharp_eye: "/badge-icons/sharp-eye.png",
-  local_scout: "/badge-icons/local-scout.png",
-  weekend_warrior: "/badge-icons/weekend-warrior.png",
-  clean_signal: "/badge-icons/clean-signal.png",
-  streak: "/badge-icons/streak.png",
-};
-
-const BADGE_ICON_BY_ID: Record<string, string> = {
-  spotter_bronze: "/badge-icons/spotter-bronze-fit.png",
-  spotter_silver: "/badge-icons/spotter-silver-fit.png",
-  spotter_diamond: "/badge-icons/spotter-diamond-fit.png",
-  unicorn_hunter_bronze: "/badge-icons/unicorn-hunter-bronze-fit.png",
-  unicorn_hunter_silver: "/badge-icons/unicorn-hunter-silver-fit.png",
-  unicorn_hunter_diamond: "/badge-icons/unicorn-hunter-diamond-fit.png",
-};
-
-function badgeBaseKey(id: string) {
-  const baseKey = id.replace(/_(bronze|silver|gold|platinum|diamond)$/u, "");
-  return baseKey === "verified_scout" ? "helpful_neighbor" : baseKey;
-}
-
-function badgeIconFor(id: string) {
-  return BADGE_ICON_BY_ID[id] || BADGE_ICON_BY_KEY[badgeBaseKey(id)] || null;
-}
-
-function badgeLabelFor(id: string, label: string) {
-  if (badgeBaseKey(id) === "helpful_neighbor") return "Helpful Neighbor";
-  return label.replace(/Verified Scout/gi, "Helpful Neighbor").replace(/verified/gi, "helpful");
-}
-
-function badgeDescriptionFor(id: string) {
-  return BADGE_DESCRIPTIONS[badgeBaseKey(id) as keyof typeof BADGE_DESCRIPTIONS] || "Badge requirements are not available.";
 }
 
 type DashboardSection = "alerts" | "collection" | "recommendations" | "memberPoints";
@@ -751,11 +717,7 @@ function PaidMemberDashboard() {
   const [territoryDropdown, setTerritoryDropdown] = useState<TerritoryDropdownState | null>(null);
   const [territorySearch, setTerritorySearch] = useState("");
   const [activeTerritoryState, setActiveTerritoryState] = useState<string>("NC");
-  const [activeDashboardSection, setActiveDashboardSection] = useState<DashboardSection | null>(() => {
-    if (typeof window === "undefined") return null;
-    const section = new URLSearchParams(window.location.search).get("section");
-    return section === "alerts" || section === "collection" || section === "recommendations" || section === "memberPoints" ? section : null;
-  });
+  const [activeDashboardSection, setActiveDashboardSection] = useState<DashboardSection | null>(null);
   const {
     rewards: memberRewards,
     loading: memberRewardsLoading,
@@ -767,6 +729,12 @@ function PaidMemberDashboard() {
     feedLimit: 1,
   });
   const [preparedDashboardSections, setPreparedDashboardSections] = useState<Set<DashboardSection>>(new Set(["alerts"]));
+  useEffect(() => {
+    const section = new URLSearchParams(window.location.search).get("section");
+    if (section !== "alerts" && section !== "collection" && section !== "recommendations" && section !== "memberPoints") return;
+    setActiveDashboardSection(section);
+    setPreparedDashboardSections((current) => new Set(current).add(section));
+  }, []);
   const territoryDropdownRef = useRef<HTMLDivElement | null>(null);
   const hydratedBottlePrefsKeyRef = useRef("");
   const [collectionBottleQuery, setCollectionBottleQuery] = useState("");
@@ -2123,6 +2091,7 @@ function PaidMemberDashboard() {
   const dashboardDeliverySummary = enabledDeliveryLabels.length ? enabledDeliveryLabels.join(", ") : "Delivery off";
   const dashboardPreferencesPending = prefsLoading || savingLocations || !confirmedAlertPrefs;
   const dashboardPreferencesUnavailable = Boolean(preferenceError);
+  const dashboardViewCopy = dashboardDestinationCopy(activeDashboardSection);
   const hasSavedMarket = savedAreaPrefs.states.length > 0;
   const needsSavedBottleSelection = savedAlertMode === "specific_bottles" && savedTrackedBottleCount === 0;
 
@@ -2152,9 +2121,15 @@ function PaidMemberDashboard() {
     });
   };
 
+  const syncDashboardSectionInUrl = (section: DashboardSection | null) => {
+    window.history.replaceState(window.history.state, "", dashboardSectionUrl(window.location.href, section));
+    window.dispatchEvent(new Event("member-navigation-change"));
+  };
+
   const openDashboardSection = (section: DashboardSection) => {
     prepareDashboardSection(section);
     setActiveDashboardSection(section);
+    syncDashboardSectionInUrl(section);
     window.setTimeout(() => {
       const sectionButton = document.getElementById(`dashboard-section-${section}`);
       sectionButton?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -2163,11 +2138,10 @@ function PaidMemberDashboard() {
   };
 
   const toggleDashboardSection = (section: DashboardSection) => {
-    setActiveDashboardSection((current) => {
-      const next = current === section ? null : section;
-      if (next) prepareDashboardSection(next);
-      return next;
-    });
+    const next = activeDashboardSection === section ? null : section;
+    if (next) prepareDashboardSection(next);
+    setActiveDashboardSection(next);
+    syncDashboardSectionInUrl(next);
   };
 
   const renderSectionButton = (sectionKey: DashboardSection) => {
@@ -2245,6 +2219,11 @@ function PaidMemberDashboard() {
               position: "relative",
             }}
           >
+            <ScrollReveal delay={40}>
+              <div style={{ marginBottom: 10, fontFamily: "var(--font-jetbrains)", fontSize: 10, fontWeight: 850, letterSpacing: "0.14em", textTransform: "uppercase", color: "rgba(232,201,122,0.72)" }}>
+                {dashboardViewCopy.eyebrow}
+              </div>
+            </ScrollReveal>
             <ScrollReveal delay={80}>
               <h1
                 style={{
@@ -2257,7 +2236,7 @@ function PaidMemberDashboard() {
                   letterSpacing: "-0.02em",
                 }}
               >
-                Your dashboard
+                {dashboardViewCopy.title}
               </h1>
             </ScrollReveal>
             <ScrollReveal delay={140}>
@@ -2273,7 +2252,7 @@ function PaidMemberDashboard() {
               >
                 {isFreeTier
                   ? "See the latest signals near you, then upgrade when you want saved alerts and the full feed."
-                  : "Your alerts, bottles, and local signals in one place."}
+                  : dashboardViewCopy.summary}
               </p>
             </ScrollReveal>
             {isFreeTier ? (
@@ -3461,7 +3440,7 @@ function PaidMemberDashboard() {
                       <span style={{ fontFamily: "var(--font-dm-sans)", color: "var(--color-text-tertiary)", fontSize: "12px" }}>
                         {recommendationQuickStart.ratedBottleCount}/{recommendationQuickStart.target} bottles added
                       </span>
-                      <button type="button" onClick={() => { prepareDashboardSection("collection"); setActiveDashboardSection("collection"); }} style={{ border: "1px solid rgba(196,148,58,0.26)", borderRadius: "999px", background: "rgba(196,148,58,0.10)", color: "var(--color-accent-amber)", padding: "7px 10px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", fontWeight: 800, cursor: "pointer" }}>
+                      <button type="button" onClick={() => { openDashboardSection("collection"); }} style={{ border: "1px solid rgba(196,148,58,0.26)", borderRadius: "999px", background: "rgba(196,148,58,0.10)", color: "var(--color-accent-amber)", padding: "7px 10px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", fontWeight: 800, cursor: "pointer" }}>
                         Add bottles
                       </button>
                     </div>
@@ -3510,8 +3489,7 @@ function PaidMemberDashboard() {
                               void submitDnaFeedback(insight, signal);
                               if (signal === "already_own") {
                                 stageCollectionBottle(insight.option);
-                                prepareDashboardSection("collection");
-                                setActiveDashboardSection("collection");
+                                openDashboardSection("collection");
                               }
                             };
                             return (
@@ -3532,7 +3510,7 @@ function PaidMemberDashboard() {
                         <button type="button" onClick={() => setRecommendationVisibleCount(4)} style={{ border: "1px solid rgba(255,255,255,0.09)", borderRadius: "999px", background: "rgba(255,255,255,0.025)", color: "var(--color-text-secondary)", padding: "9px 12px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", fontWeight: 800, cursor: "pointer" }}>Show fewer</button>
                       ) : null}
 
-                      <button type="button" onClick={() => { prepareDashboardSection("collection"); setActiveDashboardSection("collection"); }} style={{ border: "1px solid rgba(255,255,255,0.09)", borderRadius: "999px", background: "rgba(255,255,255,0.025)", color: "var(--color-text-secondary)", padding: "9px 12px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", fontWeight: 800, cursor: "pointer" }}>Add more bottles</button>
+                      <button type="button" onClick={() => { openDashboardSection("collection"); }} style={{ border: "1px solid rgba(255,255,255,0.09)", borderRadius: "999px", background: "rgba(255,255,255,0.025)", color: "var(--color-text-secondary)", padding: "9px 12px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", fontWeight: 800, cursor: "pointer" }}>Add more bottles</button>
                       {dnaFeedbackEntries.length > 0 ? (
                         <button type="button" disabled={resettingDnaFeedback} onClick={() => { void resetDnaFeedback(); }} style={{ border: 0, background: "transparent", color: "var(--color-text-tertiary)", padding: "9px 4px", fontFamily: "var(--font-dm-sans)", fontSize: "11px", cursor: resettingDnaFeedback ? "progress" : "pointer", textDecoration: "underline", textUnderlineOffset: "3px" }}>{resettingDnaFeedback ? "Resetting…" : "Reset hidden bottles"}</button>
                       ) : null}

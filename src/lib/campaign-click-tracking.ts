@@ -11,7 +11,7 @@ export interface CampaignClickPayload {
 }
 
 const DESTINATIONS: Record<CampaignClickDestination, string> = {
-  points: "https://www.bourbonsignal.com/dashboard?section=memberPoints&utm_source=bourbon_signal&utm_medium=email&utm_campaign=free_trial_points_pilot_v1",
+  points: "https://www.bourbonsignal.com/hq?utm_source=bourbon_signal&utm_medium=email&utm_campaign=free_trial_points_pilot_v1#signal-points",
   trial: "https://www.bourbonsignal.com/pricing?source=free_trial_points_pilot_v1&utm_source=bourbon_signal&utm_medium=email&utm_campaign=free_trial_points_pilot_v1",
   coverage: "https://www.bourbonsignal.com/coverage?source=low_coverage_community_pilot_v1&utm_source=bourbon_signal&utm_medium=email&utm_campaign=low_coverage_community_pilot_v1",
   sightings: "https://www.bourbonsignal.com/dashboard?section=sightings&source=low_coverage_community_pilot_v1&utm_source=bourbon_signal&utm_medium=email&utm_campaign=low_coverage_community_pilot_v1",

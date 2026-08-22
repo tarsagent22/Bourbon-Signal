@@ -58,7 +58,7 @@ export default function LegacyMemberSetupPrompt() {
   );
 }
 
-const wrap: React.CSSProperties = { position: "fixed", zIndex: 80, right: 18, bottom: 18, width: "min(430px, calc(100vw - 36px))", display: "grid", gridTemplateColumns: "42px minmax(0,1fr)", gap: 12, padding: "18px 18px 16px", border: "1px solid rgba(212,146,11,.42)", borderRadius: 16, background: "linear-gradient(145deg, rgba(28,22,15,.98), rgba(15,12,9,.99))", boxShadow: "0 22px 65px rgba(0,0,0,.55)", color: "#f7f0e0" };
+const wrap: React.CSSProperties = { position: "fixed", zIndex: 80, right: 18, bottom: "calc(18px + var(--member-mobile-navigation-inset, 0px))", width: "min(430px, calc(100vw - 36px))", display: "grid", gridTemplateColumns: "42px minmax(0,1fr)", gap: 12, padding: "18px 18px 16px", border: "1px solid rgba(212,146,11,.42)", borderRadius: 16, background: "linear-gradient(145deg, rgba(28,22,15,.98), rgba(15,12,9,.99))", boxShadow: "0 22px 65px rgba(0,0,0,.55)", color: "#f7f0e0" };
 const close: React.CSSProperties = { position: "absolute", top: 9, right: 9, display: "grid", placeItems: "center", width: 29, height: 29, padding: 0, border: 0, borderRadius: 8, background: "transparent", color: "#aa9d88", cursor: "pointer" };
 const icon: React.CSSProperties = { display: "grid", placeItems: "center", width: 42, height: 42, borderRadius: 12, background: "rgba(212,146,11,.14)", color: "#e1a93c" };
 const copy: React.CSSProperties = { display: "grid", gap: 5, paddingRight: 24 };

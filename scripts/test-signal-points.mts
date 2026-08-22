@@ -395,7 +395,7 @@ test("schema, migration, encrypted backup, APIs, drawer, and owner queue are wir
   for (const icon of ["first-sighting.png", "helpful-neighbor-fit.png", "photo-finish-fit.png", "spotter-bronze-fit.png", "spotter-silver-fit.png", "spotter-diamond-fit.png", "unicorn-hunter-bronze-fit.png", "unicorn-hunter-silver-fit.png", "unicorn-hunter-diamond-fit.png", "sharp-eye.png", "local-scout.png", "weekend-warrior.png", "clean-signal.png", "streak.png"]) {
     assert.equal(existsSync(new URL(`../public/badge-icons/${icon}`, import.meta.url)), true, `${icon} should be available to the dashboard badge collection`);
   }
-  assert.match(read("src/app/account/signal-points/page.tsx"), /redirect\("\/dashboard\?section=memberPoints"\)/);
+  assert.match(read("src/app/account/signal-points/page.tsx"), /redirect\("\/hq#signal-points"\)/);
   const controlRoom = read("src/app/admin/control-room/page.tsx");
   assert.match(controlRoom, /isCompanyControlRoomOwnerEmail/);
   assert.match(controlRoom, /notFound\(\)/);

@@ -51,7 +51,7 @@ export default function PreviewTierSwitcher() {
         .qa-tier-switcher {
           position: fixed;
           right: 18px;
-          bottom: 18px;
+          bottom: calc(18px + var(--member-mobile-navigation-inset, 0px));
           z-index: 9999;
           display: grid;
           gap: 10px;
@@ -122,7 +122,7 @@ export default function PreviewTierSwitcher() {
           .qa-tier-switcher {
             left: 14px;
             right: 14px;
-            bottom: 12px;
+            bottom: calc(12px + var(--member-mobile-navigation-inset, 0px));
             width: auto;
           }
           .qa-tier-options button {

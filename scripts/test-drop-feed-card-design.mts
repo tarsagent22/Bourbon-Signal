@@ -3,7 +3,7 @@ import { readFileSync } from "node:fs";
 
 const feedSource = readFileSync(new URL("../src/components/sections/DropFeed.tsx", import.meta.url), "utf8");
 const dropsSource = readFileSync(new URL("../src/lib/drops.ts", import.meta.url), "utf8");
-const homeSource = readFileSync(new URL("../src/app/page.tsx", import.meta.url), "utf8");
+const homeSource = readFileSync(new URL("../src/app/HomeClient.tsx", import.meta.url), "utf8");
 
 const mobileCard = feedSource.match(/className="md:hidden dropfeed-signal-card"[\s\S]*?\n\s*>/)?.[0] || "";
 const desktopCard = feedSource.match(/className="hidden md:flex[^\"]*dropfeed-signal-card[^\"]*"[\s\S]*?\n\s*>/)?.[0] || "";

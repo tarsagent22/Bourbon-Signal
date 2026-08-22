@@ -330,7 +330,9 @@ assert.match(middleware, /url\.pathname\.startsWith\("\/admin"\)[\s\S]*new URL\(
 assert.match(middleware, /hostname === "bourbonsignal\.com" && url\.pathname\.startsWith\("\/api\/clerk-proxy"\)[\s\S]*NextResponse\.next\(\)/);
 
 const layout = read("src/app/layout.tsx");
-assert.match(layout, /proxyUrl="https:\/\/bourbonsignal\.com\/api\/clerk-proxy"/);
+assert.match(layout, /process\.env\.VERCEL_ENV === "production"/);
+assert.match(layout, /"https:\/\/bourbonsignal\.com\/api\/clerk-proxy"/);
+assert.match(layout, /proxyUrl=\{clerkProxyUrl\}/);
 
 const proxy = read("src/app/api/clerk-proxy/[...path]/route.ts");
 assert.match(proxy, /APEX_HOST = "bourbonsignal\.com"/);

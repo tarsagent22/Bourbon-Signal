@@ -11,7 +11,7 @@ const [route, dashboard, panel, settingsServer, settingsClient, pointsApi, redem
   readFile(new URL("../src/app/api/signal-points/redemptions/route.ts", import.meta.url), "utf8"),
 ]);
 assert.match(route, /requireSignalPointsPageAccess/);
-assert.match(route, /redirect\("\/dashboard\?section=memberPoints"\)/);
+assert.match(route, /redirect\("\/hq#signal-points"\)/);
 assert.match(dashboard, /import SignalPointsPanel/);
 assert.match(dashboard, /<SignalPointsPanel[\s\S]*preview[\s\S]*compact[\s\S]*expanded=/);
 assert.match(dashboard, /rewards=\{memberRewards\}[\s\S]*badgeIconFor=\{badgeIconFor\}/);

@@ -3,19 +3,25 @@
 import { useState, useEffect, useRef } from "react";
 import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
-import { Menu, X } from "lucide-react";
+import { CircleUserRound, Menu, Plus, Radar, Radio, Wine, X } from "lucide-react";
 import WatchlistDropdown from "@/components/WatchlistDropdown";
 import MemberAlertsBell from "@/components/MemberAlertsBell";
 import { useAuth } from "@/lib/auth";
 import { controlRoomNavVisibleForUser } from "@/lib/control-room-nav-access";
+import {
+  MEMBER_NAVIGATION_LINKS,
+  PUBLIC_NAVIGATION_LINKS,
+  memberNavigationActiveKey,
+  type MemberNavigationKey,
+} from "@/lib/member-navigation";
 
-const navLinks = [
-  { label: "Feed", href: "/#drops" },
-  { label: "Dashboard", href: "/dashboard" },
-  { label: "Sightings", href: "/sightings" },
-  { label: "Bottle Check", href: "/bottle-check" },
-  { label: "Coverage", href: "/coverage" },
-];
+const MEMBER_NAVIGATION_ICONS = {
+  signals: Radio,
+  radar: Radar,
+  post: Plus,
+  cellar: Wine,
+  hq: CircleUserRound,
+} satisfies Record<MemberNavigationKey, typeof Radio>;
 
 export default function Navigation() {
   const pathname = usePathname();
@@ -23,9 +29,10 @@ export default function Navigation() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [currentSearch, setCurrentSearch] = useState("");
   const [profileOpen, setProfileOpen] = useState(false);
   const profileRef = useRef<HTMLDivElement>(null);
-  const { isSignedIn, user, signIn, signOut, memberTier, entitlements, memberNumber } = useAuth();
+  const { isLoaded, isSignedIn, user, signIn, signOut, memberTier, entitlements, memberNumber } = useAuth();
 
 
   // Close profile dropdown on outside click
@@ -41,22 +48,53 @@ export default function Navigation() {
 
   useEffect(() => {
     setMounted(true);
+    setCurrentSearch(window.location.search);
     const handleScroll = () => setScrolled(window.scrollY > 50);
+    const handleNavigation = () => setCurrentSearch(window.location.search);
     window.addEventListener("scroll", handleScroll, { passive: true });
-    return () => window.removeEventListener("scroll", handleScroll);
+    window.addEventListener("popstate", handleNavigation);
+    window.addEventListener("member-navigation-change", handleNavigation);
+    return () => {
+      window.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("popstate", handleNavigation);
+      window.removeEventListener("member-navigation-change", handleNavigation);
+    };
   }, []);
+
+  useEffect(() => {
+    if (!mounted || !isSignedIn) {
+      document.body.classList.remove("has-member-mobile-navigation");
+      return;
+    }
+    document.body.classList.add("has-member-mobile-navigation");
+    return () => document.body.classList.remove("has-member-mobile-navigation");
+  }, [isSignedIn, mounted]);
 
   const userDisplayName = user?.firstName || user?.emailAddresses?.[0]?.emailAddress?.split("@")[0] || "Member";
   const isFounderMember = memberTier === "bottled-in-bond";
   const canSeeControlRoomNav = mounted && isSignedIn && controlRoomNavVisibleForUser(user);
   const founderProfileNumber = memberNumber ? `#${String(memberNumber).padStart(3, "0")}` : "#xxx";
-  const availableNavLinks = navLinks.filter((link) => {
+  const availablePublicNavLinks = PUBLIC_NAVIGATION_LINKS.filter((link) => {
     if (link.href === "/dashboard") return entitlements.canAccessDashboard;
     return true;
   });
-  const visibleNavLinks = memberTier === "bottled-in-bond"
-    ? availableNavLinks
-    : [...availableNavLinks, { label: isSignedIn ? "Upgrade" : "Pricing", href: "/pricing" }];
+  const visibleNavLinks = !isLoaded
+    ? []
+    : isSignedIn
+      ? MEMBER_NAVIGATION_LINKS
+      : memberTier === "bottled-in-bond"
+        ? availablePublicNavLinks
+        : [...availablePublicNavLinks, { label: "Pricing", href: "/pricing" }];
+  const mobileOverlayLinks = !isLoaded
+    ? []
+    : isSignedIn
+      ? [
+          { label: "Bottle Check", href: "/bottle-check" },
+          { label: "Coverage", href: "/coverage" },
+          ...(memberTier === "bottled-in-bond" ? [] : [{ label: "Upgrade", href: "/pricing" }]),
+        ]
+      : visibleNavLinks;
+  const activeMemberNavigationKey = mounted ? memberNavigationActiveKey(pathname, currentSearch) : null;
 
   return (
     <>
@@ -111,33 +149,45 @@ export default function Navigation() {
             gap: "clamp(14px, 1.8vw, 26px)",
           }}
         >
-          {visibleNavLinks.map((link) => (
-            <a
-              key={link.label}
-              href={link.href}
-              className="relative group"
-              style={{
-                fontFamily: "var(--font-dm-sans)",
-                fontSize: "clamp(12px, 0.9vw, 14px)",
-                fontWeight: 500,
-                color: "var(--color-text-secondary)",
-                textDecoration: "none",
-                transition: "color 300ms ease",
-              }}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.color = "var(--color-text-primary)")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.color = "var(--color-text-secondary)")
-              }
-            >
-              {link.label}
-              <span
-                className="absolute bottom-[-4px] left-0 h-[2px] w-0 group-hover:w-full transition-all duration-300"
-                style={{ backgroundColor: "var(--color-accent-amber)" }}
-              />
-            </a>
-          ))}
+          {visibleNavLinks.map((link) => {
+            const memberKey = "key" in link ? link.key : null;
+            if (!memberKey) {
+              return (
+                <a
+                  key={link.label}
+                  href={link.href}
+                  className="relative group"
+                  style={{
+                    fontFamily: "var(--font-dm-sans)",
+                    fontSize: "clamp(12px, 0.9vw, 14px)",
+                    fontWeight: 500,
+                    color: "var(--color-text-secondary)",
+                    textDecoration: "none",
+                    transition: "color 300ms ease",
+                  }}
+                  onMouseEnter={(event) => (event.currentTarget.style.color = "var(--color-text-primary)")}
+                  onMouseLeave={(event) => (event.currentTarget.style.color = "var(--color-text-secondary)")}
+                >
+                  {link.label}
+                  <span className="absolute bottom-[-4px] left-0 h-[2px] w-0 group-hover:w-full transition-all duration-300" style={{ backgroundColor: "var(--color-accent-amber)" }} />
+                </a>
+              );
+            }
+            const active = memberKey === activeMemberNavigationKey;
+            const emphasized = "emphasis" in link && link.emphasis;
+            return (
+              <a
+                key={link.label}
+                href={link.href}
+                aria-current={active ? "page" : undefined}
+                className={`relative group member-navigation-link ${emphasized ? "member-navigation-post" : ""}`}
+                data-active={active}
+              >
+                {link.label}
+                {!emphasized ? <span className="member-navigation-underline" aria-hidden /> : null}
+              </a>
+            );
+          })}
           {canSeeControlRoomNav ? (
             <a
               href="/admin/control-room"
@@ -170,7 +220,7 @@ export default function Navigation() {
             right: "clamp(42px, 5vw, 96px)",
           }}
         >
-          {mounted && isSignedIn ? (
+          {mounted && isLoaded ? (isSignedIn ? (
             <>
               <MemberAlertsBell />
 
@@ -178,6 +228,7 @@ export default function Navigation() {
               <div ref={profileRef} style={{ position: "relative" }}>
                 {/* Avatar button */}
                 <button
+                  className="member-profile-trigger"
                   onClick={() => setProfileOpen((o) => !o)}
                   style={{
                     width: "34px",
@@ -196,7 +247,6 @@ export default function Navigation() {
                     transition: "all 200ms ease",
                     flexShrink: 0,
                     padding: 0,
-                    outline: "none",
                   }}
                   onMouseEnter={(e) => {
                     if (!profileOpen) {
@@ -382,7 +432,8 @@ export default function Navigation() {
                 Try free
               </a>
             </>
-          )}
+          )
+          ) : null}
         </div>
 
         {/* Mobile right controls */}
@@ -390,8 +441,8 @@ export default function Navigation() {
           className="flex md:hidden items-center gap-[10px]"
           style={{ marginRight: "4px", flexShrink: 0 }}
         >
-          {mounted && isSignedIn ? <MemberAlertsBell /> : null}
-          <button
+          {mounted && isLoaded && isSignedIn ? <MemberAlertsBell /> : null}
+          {mounted && isLoaded ? <button
             className="cursor-pointer"
             onClick={() => setMobileOpen(true)}
             style={{
@@ -408,7 +459,7 @@ export default function Navigation() {
             aria-label="Open navigation menu"
           >
             <Menu size={28} strokeWidth={2.25} />
-          </button>
+          </button> : null}
         </div>
         </div>
       </motion.nav>
@@ -435,7 +486,7 @@ export default function Navigation() {
             >
               <X size={28} />
             </button>
-            {visibleNavLinks.map((link) => (
+            {mobileOverlayLinks.map((link) => (
               <a
                 key={link.label}
                 href={link.href}
@@ -533,6 +584,137 @@ export default function Navigation() {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {mounted && isSignedIn ? (
+        <nav className="member-mobile-navigation" aria-label="Member navigation">
+          {MEMBER_NAVIGATION_LINKS.map((link) => {
+            const Icon = MEMBER_NAVIGATION_ICONS[link.key];
+            const active = activeMemberNavigationKey === link.key;
+            return (
+              <a
+                key={link.key}
+                href={link.href}
+                className={link.emphasis ? "member-mobile-link member-navigation-post" : "member-mobile-link"}
+                data-active={active}
+                aria-current={active ? "page" : undefined}
+              >
+                <span className="member-mobile-icon" aria-hidden><Icon size={link.emphasis ? 21 : 19} strokeWidth={link.emphasis ? 2.7 : 2} /></span>
+                <span>{link.label}</span>
+              </a>
+            );
+          })}
+        </nav>
+      ) : null}
+
+      <style jsx global>{`
+        .member-navigation-link {
+          position: relative;
+          display: inline-flex;
+          align-items: center;
+          min-height: 38px;
+          font-family: var(--font-dm-sans);
+          font-size: clamp(12px, 0.9vw, 14px);
+          font-weight: 600;
+          color: var(--color-text-secondary);
+          text-decoration: none;
+          transition: color 180ms ease, background 180ms ease, border-color 180ms ease;
+        }
+        .member-navigation-link:hover,
+        .member-navigation-link[data-active="true"] { color: var(--color-cream); }
+        .member-navigation-link:focus-visible {
+          color: var(--color-cream);
+          outline: 2px solid var(--color-accent-amber);
+          outline-offset: 4px;
+          border-radius: 4px;
+        }
+        .member-navigation-underline {
+          position: absolute;
+          left: 0;
+          right: 0;
+          bottom: 2px;
+          height: 1px;
+          background: var(--color-accent-amber);
+          opacity: 0;
+          transform: scaleX(0.55);
+          transition: opacity 180ms ease, transform 180ms ease;
+        }
+        .member-navigation-link:hover .member-navigation-underline,
+        .member-navigation-link:focus-visible .member-navigation-underline,
+        .member-navigation-link[data-active="true"] .member-navigation-underline { opacity: 1; transform: scaleX(1); }
+        .member-navigation-link.member-navigation-post {
+          min-height: 34px;
+          border: 1px solid rgba(232,201,122,0.38);
+          border-radius: 999px;
+          background: rgba(196,148,58,0.12);
+          padding: 7px 14px;
+          color: var(--color-accent-amber);
+          font-weight: 850;
+        }
+        .member-navigation-link.member-navigation-post:hover,
+        .member-navigation-link.member-navigation-post:focus-visible,
+        .member-navigation-link.member-navigation-post[data-active="true"] {
+          border-color: rgba(232,201,122,0.65);
+          background: rgba(196,148,58,0.2);
+          color: var(--color-cream);
+        }
+        .member-profile-trigger:focus-visible {
+          outline: 2px solid var(--color-accent-amber);
+          outline-offset: 4px;
+        }
+        .member-mobile-navigation { display: none; }
+        @media (max-width: 767px) {
+          body.has-member-mobile-navigation {
+            --member-mobile-navigation-inset: calc(72px + env(safe-area-inset-bottom));
+            padding-bottom: var(--member-mobile-navigation-inset);
+          }
+          .member-mobile-navigation {
+            position: fixed;
+            z-index: 55;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: grid;
+            grid-template-columns: repeat(5, minmax(0, 1fr));
+            min-height: calc(64px + env(safe-area-inset-bottom));
+            border-top: 1px solid rgba(245,237,214,0.09);
+            background: rgba(10,8,6,0.96);
+            box-shadow: 0 -14px 34px rgba(0,0,0,0.34);
+            padding: 4px 6px env(safe-area-inset-bottom);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+          }
+          .member-mobile-link {
+            min-width: 0;
+            min-height: 56px;
+            display: grid;
+            place-content: center;
+            justify-items: center;
+            gap: 3px;
+            border-radius: 12px;
+            color: rgba(245,237,214,0.64);
+            font-family: var(--font-dm-sans);
+            font-size: 10px;
+            font-weight: 750;
+            line-height: 1;
+            text-decoration: none;
+            -webkit-tap-highlight-color: transparent;
+          }
+          .member-mobile-link[data-active="true"] { color: var(--color-cream); }
+          .member-mobile-link:focus-visible { outline: 2px solid var(--color-accent-amber); outline-offset: -2px; }
+          .member-mobile-icon { min-height: 24px; display: grid; place-items: center; }
+          .member-mobile-link.member-navigation-post { color: var(--color-accent-amber); }
+          .member-mobile-link.member-navigation-post .member-mobile-icon {
+            width: 38px;
+            height: 38px;
+            margin-top: -12px;
+            border: 1px solid rgba(245,237,214,0.28);
+            border-radius: 999px;
+            background: linear-gradient(135deg, #C4943A, #E8C97A);
+            box-shadow: 0 8px 22px rgba(0,0,0,0.35);
+            color: #100c08;
+          }
+        }
+      `}</style>
     </>
   );
 }

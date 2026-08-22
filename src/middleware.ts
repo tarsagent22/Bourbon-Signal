@@ -1,12 +1,14 @@
 import { NextResponse } from "next/server";
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
 import { resolveClerkRecoveryUrl } from "@/lib/clerk-recovery-host";
+import { legacySignalPointsUrl } from "@/lib/member-navigation";
 
 const isProtectedRoute = createRouteMatcher([
   "/alerts(.*)",
   "/admin(.*)",
   "/bottle-check(.*)",
   "/dashboard(.*)",
+  "/hq(.*)",
   "/retailers/onboarding(.*)",
   "/retailers/portal(.*)",
   "/events(.*)",
@@ -56,6 +58,10 @@ export default clerkMiddleware(async (auth, request) => {
     url.hostname = "www.bourbonsignal.com";
     url.port = "";
     return NextResponse.redirect(url, 308);
+  }
+  if (url.pathname === "/dashboard" && url.searchParams.get("section") === "memberPoints") {
+    const hqUrl = new URL(legacySignalPointsUrl(request.url), request.url);
+    return NextResponse.redirect(hqUrl, 308);
   }
   if (url.pathname === "/api/alerts/deliver") return NextResponse.next();
   if (url.pathname === "/api/alerts/manual-send") return NextResponse.next();
