@@ -2,7 +2,7 @@
   "expo": {
     "name": "Bourbon Signal",
     "slug": "bourbon-signal",
-    "version": "0.1.0",
+    "version": "1.0.0",
     "orientation": "portrait",
     "scheme": "bourbonsignal",
     "icon": "./assets/icon.png",
@@ -31,7 +31,16 @@
       "expo-router",
       "expo-secure-store",
       "expo-dev-client",
-      "@clerk/expo"
+      "@clerk/expo",
+      [
+        "expo-splash-screen",
+        {
+          "backgroundColor": "#0B0A09",
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 190,
+          "resizeMode": "contain"
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
@@ -47,7 +56,9 @@
       "policy": "appVersion"
     },
     "updates": {
-      "url": "https://u.expo.dev/693a1966-5bfc-4f25-9fe4-e39c009ec04a"
+      "url": "https://u.expo.dev/693a1966-5bfc-4f25-9fe4-e39c009ec04a",
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 0
     }
   }
 }

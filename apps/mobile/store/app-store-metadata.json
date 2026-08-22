@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "bourbon-signal/app-store-metadata@1",
+  "locale": "en-US",
+  "name": "Bourbon Signal",
+  "subtitle": "Fresh bourbon intelligence",
+  "promotionalText": "See timely bourbon availability Signals from trusted sources and members, with exact details when the evidence supports them.",
+  "description": "Bourbon Signal gives existing members a focused, trustworthy view of timely bourbon availability intelligence.\n\nUse the native Signal Feed to:\n• Review recent availability and release Signals\n• Open exact Signal details, including retailer, timing, price, quantity, and source context when available\n• See whether a Signal is retailer-reported, source-backed, or member-observed\n• Check your effective membership and feed access\n\nAvailability changes quickly. Bourbon Signal presents the strongest current evidence available, but inventory should always be confirmed with the retailer before travel or purchase.\n\nThis first native release is a consumption-only companion for existing Bourbon Signal accounts. It does not sell subscriptions or direct members to an external checkout.",
+  "keywords": "bourbon,whiskey,availability,retailers,bottles,releases,inventory,rare whiskey",
+  "primaryCategory": "FOOD_AND_DRINK",
+  "secondaryCategory": "LIFESTYLE",
+  "privacyPolicyUrl": "https://www.bourbonsignal.com/legal/privacy",
+  "supportUrl": "https://www.bourbonsignal.com/support",
+  "marketingUrl": "https://www.bourbonsignal.com",
+  "copyright": "2026 Todd Digital Ventures LLC",
+  "contentRights": "Bourbon Signal owns or is authorized to use the submitted app artwork, copy, and product content.",
+  "ageRatingNote": "The service is intended for adults age 21 and older and contains alcohol-related product information. Complete Apple's current age-rating questionnaire honestly; do not hard-code a rating in automation.",
+  "reviewContact": "Enter the organization-controlled review contact directly in App Store Connect; do not commit private contact details here.",
+  "reviewAccount": "Create a dedicated least-privilege review account after App Store Connect access exists. Store credentials only in App Store Connect review information."
+}

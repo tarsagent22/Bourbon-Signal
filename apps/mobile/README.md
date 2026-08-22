@@ -8,6 +8,7 @@ Lean Expo SDK 57 development client for the first native product slice.
 - Bearer-authenticated Signal Feed with opaque cursor pagination
 - Exact Signal detail
 - Privacy-safe membership/account state
+- In-app support, privacy policy, and account-deletion request paths
 - Sign-out and cursor/session recovery
 
 Camera, push, barcode scanning, native billing, editable profiles, badges, and social mechanics are intentionally deferred.
@@ -48,6 +49,8 @@ npx eas-cli update --channel development --environment development --message "De
 
 Native dependencies, permissions, app identifiers, and other native configuration changes still require a new EAS Build. `runtimeVersion` follows the app version so an incompatible update cannot be delivered to a different binary version.
 
-The app IDs are `com.bourbonsignal.app` on Android and iOS. EAS environment variables must provide the same public Clerk key and API URL; no Clerk secret belongs in a mobile build.
+The app IDs are `com.bourbonsignal.app` on Android and iOS. EAS `development`, `preview`, and `production` environments provide the same two public Clerk/API runtime values; no Clerk secret belongs in a mobile build. The production store candidate uses app version `1.0.0`, remote build-number auto-increment, and the `production` OTA channel.
+
+The version-controlled `store/` directory contains App Store copy, conservative privacy answers, review notes, a real-device screenshot specification, and the post-enrollment release checklist. Run `npm run verify:release-readiness` to validate the machine-checkable parts of that package. App Store Connect IDs, reviewer credentials, Apple signing material, and real TestFlight screenshots are intentionally absent until the organization account is approved.
 
 The app never stores user IDs, email addresses, or database identifiers in its own persistence. Clerk tokens use the official Expo secure token cache. The sign-in flow completes password, email/phone code, TOTP, backup-code, and Device Trust challenges; the production Clerk instance must keep `email_code` or another supported code factor enabled.
