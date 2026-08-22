@@ -72,12 +72,19 @@ for (const [name, expected] of Object.entries(brandManifest.assets)) {
   assert.deepEqual([actual.width, actual.height], [expected.width, expected.height], `${name} dimensions do not match the brand manifest`);
 }
 
-const account = read("app/(app)/(tabs)/account.tsx");
-assert.match(account, /Privacy policy/);
-assert.match(account, /Request account deletion/);
-assert.match(account, /Support/);
-assert.match(account, /Linking\.openURL/);
-assert.match(account, /ScrollView/, "account controls must remain reachable on compact screens and with larger text");
+const hq = read("app/(app)/(tabs)/hq.tsx");
+assert.match(hq, /Privacy policy/);
+assert.match(hq, /Request account deletion/);
+assert.match(hq, /Support/);
+assert.match(hq, /Linking\.openURL/);
+assert.match(hq, /ScrollView/, "HQ account controls must remain reachable on compact screens and with larger text");
+assert.equal(existsSync(resolve(root, "app/(app)/(tabs)/account.tsx")), false, "HQ must replace the duplicate Account tab");
+
+const tabs = read("app/(app)/(tabs)/_layout.tsx");
+for (const route of ["index", "radar", "post", "cellar", "hq"]) assert.match(tabs, new RegExp(`name=[\"']${route}[\"']`), `missing native ${route} tab`);
+const memberTabContract = read("src/navigation/member-tabs.ts");
+assert.match(memberTabContract, /bottle-soda-classic-outline/);
+assert.doesNotMatch(memberTabContract, /wine-glass/);
 
 const icon = readFileSync(resolve(root, "assets/icon.png"));
 const templateIcon = readFileSync(resolve(root, "assets/template-icon.sha256"), "utf8").trim();

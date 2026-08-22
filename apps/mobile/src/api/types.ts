@@ -48,3 +48,95 @@ export interface MemberProfile {
     entitlements: { fullFeed: boolean; canSubmitSignals: boolean };
   };
 }
+
+export interface MemberCollectionBottle {
+  bottleId: string;
+  bottleName: string;
+  canonicalKey: string;
+  rating: number;
+  tasteTags?: string[];
+  wouldBuyAgain?: boolean;
+  notes?: string;
+  addedAt: string;
+  updatedAt: string;
+}
+
+export interface MemberPreferences {
+  entitlements?: { canUseCollection?: boolean; alertAreaLimit?: number | null; trackedBottleLimit?: number | null };
+  areaPreferences: { states: string[]; [key: string]: unknown };
+  notificationPreferences: {
+    onSite: { enabled: boolean };
+    email: { enabled: boolean; mode: string };
+    sms: { enabled: boolean; available: boolean; verified: boolean; mode: string };
+    sightings: { enabled: boolean };
+    weeklyIntelligence?: { emailEnabled: boolean };
+  };
+  alertMode: string;
+  bottleAlertPreferences: { bottleNames: string[]; bottleKeys: string[] };
+  collectionPreferences: { bottles: MemberCollectionBottle[]; version: number };
+}
+
+export interface MemberAlert {
+  id: string;
+  bottleName: string;
+  state: string;
+  storeLabel: string;
+  matchedArea: string;
+  priorityClass: "major" | "standard";
+  createdAt: string;
+  readAt: string | null;
+  archivedAt: string | null;
+}
+
+export interface MemberAlertsResponse {
+  alerts: MemberAlert[];
+  unreadCount: number;
+}
+
+export interface SignalRewardItem {
+  key: string;
+  name: string;
+  points: number;
+  fulfillmentType: string;
+  inventoryRemaining?: number | null;
+}
+
+export interface SignalPointsSummary {
+  balance: number;
+  debt: number;
+  catalog: SignalRewardItem[];
+  redemptions: Array<{ id: string; itemKey: string; pointsSpent: number; status: string; createdAt: string; updatedAt: string }>;
+  tier: MemberProfile["profile"]["membership"]["tier"];
+  redemptionEligible: boolean;
+}
+
+export interface SightingSubmission {
+  bottleName: string;
+  bottleId?: string;
+  storeId: string;
+  storeName: string;
+  storeAddress: string;
+  storeCity: string;
+  storeState: string;
+  storeZip?: string;
+  quantityEstimate?: string;
+  price?: number | null;
+  notes?: string;
+  sightingType?: "seen_in_store" | "online_social";
+  reviewState?: {
+    needsBottleReview?: boolean;
+    manualBottleName?: string;
+    needsStoreReview?: boolean;
+    manualStoreName?: string;
+    manualStoreCity?: string;
+    manualStoreState?: string;
+    manualStoreZip?: string;
+  };
+}
+
+export interface SightingSubmissionResponse {
+  ok: true;
+  created: boolean;
+  duplicate?: boolean;
+  sighting: { id: string; bottleName?: string; storeName?: string };
+}

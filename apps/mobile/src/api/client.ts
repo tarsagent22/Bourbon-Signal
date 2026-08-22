@@ -1,4 +1,13 @@
-import type { MemberProfile, Signal, SignalFeedPage } from "./types";
+import type {
+  MemberAlertsResponse,
+  MemberPreferences,
+  MemberProfile,
+  SightingSubmission,
+  SightingSubmissionResponse,
+  Signal,
+  SignalFeedPage,
+  SignalPointsSummary,
+} from "./types";
 
 export class MobileApiError extends Error {
   constructor(
@@ -13,6 +22,12 @@ export class MobileApiError extends Error {
   }
 }
 
+type RequestOptions = {
+  method?: "GET" | "POST" | "PATCH";
+  body?: unknown;
+  headers?: Record<string, string>;
+};
+
 export function createMobileApi({
   baseUrl = process.env.EXPO_PUBLIC_API_URL || "https://www.bourbonsignal.com",
   getToken,
@@ -22,19 +37,25 @@ export function createMobileApi({
   getToken: () => Promise<string | null>;
   fetcher?: typeof fetch;
 }) {
-  async function request<T>(path: string): Promise<T> {
+  async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
     const token = await getToken();
-    const headers = new Headers({ Accept: "application/json" });
+    const headers = new Headers({ Accept: "application/json", ...options.headers });
     if (token) headers.set("Authorization", `Bearer ${token}`);
-    const response = await fetcher(new Request(new URL(path, baseUrl), { headers }));
+    if (options.body !== undefined) headers.set("Content-Type", "application/json");
+    const response = await fetcher(new Request(new URL(path, baseUrl), {
+      method: options.method || "GET",
+      headers,
+      body: options.body === undefined ? undefined : JSON.stringify(options.body),
+    }));
     const payload = await response.json().catch(() => ({})) as Record<string, unknown>;
     if (!response.ok) {
-      const error = (payload.error || {}) as Record<string, unknown>;
+      const structured = payload.error && typeof payload.error === "object" ? payload.error as Record<string, unknown> : null;
+      const scalarMessage = typeof payload.error === "string" ? payload.error : null;
       throw new MobileApiError(
-        typeof error.message === "string" ? error.message : "Bourbon Signal is temporarily unavailable.",
+        scalarMessage || (typeof structured?.message === "string" ? structured.message : "Bourbon Signal is temporarily unavailable."),
         response.status,
-        typeof error.code === "string" ? error.code : "UNKNOWN_ERROR",
-        error.retryable === true,
+        typeof structured?.code === "string" ? structured.code : typeof payload.code === "string" ? payload.code : "UNKNOWN_ERROR",
+        structured?.retryable === true,
         payload.resetCursor === true,
       );
     }
@@ -52,6 +73,22 @@ export function createMobileApi({
     },
     getMemberProfile() {
       return request<MemberProfile>("/api/v1/me/profile");
+    },
+    getMemberPreferences() {
+      return request<MemberPreferences>("/api/user/preferences");
+    },
+    getMemberAlerts() {
+      return request<MemberAlertsResponse>("/api/alerts");
+    },
+    getSignalPoints() {
+      return request<SignalPointsSummary>("/api/signal-points");
+    },
+    submitSighting(payload: SightingSubmission, idempotencyKey: string) {
+      return request<SightingSubmissionResponse>("/api/sightings", {
+        method: "POST",
+        body: payload,
+        headers: { "Idempotency-Key": idempotencyKey },
+      });
     },
   };
 }
