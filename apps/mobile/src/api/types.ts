@@ -76,6 +76,10 @@ export interface MemberPreferences {
   collectionPreferences: { bottles: MemberCollectionBottle[]; version: number };
 }
 
+export interface MemberPreferencesPatch {
+  collectionPreferences?: MemberPreferences["collectionPreferences"];
+}
+
 export interface MemberAlert {
   id: string;
   bottleName: string;
@@ -97,7 +101,7 @@ export interface SignalRewardItem {
   key: string;
   name: string;
   points: number;
-  fulfillmentType: string;
+  fulfillmentType: "physical" | "digital";
   inventoryRemaining?: number | null;
 }
 

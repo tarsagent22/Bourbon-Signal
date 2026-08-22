@@ -75,6 +75,113 @@ test("submits a durable sighting with JSON and a stable idempotency key", async 
   assert.equal((await captured[0]?.json())?.bottleName, "Example Bourbon");
 });
 
+test("saves a partial member preference patch without placing writes in the read cooldown", async () => {
+  const captured: Request[] = [];
+  const api = createMobileApi({
+    baseUrl: "https://example.test",
+    getToken: async () => "session-token",
+    fetcher: async (request) => {
+      captured.push(new Request(request));
+      return Response.json({ collectionPreferences: { bottles: [], version: captured.length } });
+    },
+  });
+
+  await api.updateMemberPreferences({ collectionPreferences: { bottles: [], version: 4 } });
+  await api.updateMemberPreferences({ collectionPreferences: { bottles: [], version: 5 } });
+
+  assert.equal(captured.length, 2);
+  assert.ok(captured.every((request) => request.method === "POST"));
+  assert.deepEqual(await captured[0].json(), { collectionPreferences: { bottles: [], version: 4 } });
+});
+
+test("invalidates the cached preference read after a successful write", async () => {
+  const requests: Request[] = [];
+  const api = createMobileApi({
+    baseUrl: "https://example.test",
+    getToken: async () => "session-token",
+    readCooldownMs: 30_000,
+    fetcher: async (request) => {
+      const captured = new Request(request);
+      requests.push(captured);
+      return Response.json({ collectionPreferences: { bottles: [], version: requests.length } });
+    },
+  });
+
+  const before = await api.getMemberPreferences();
+  await api.updateMemberPreferences({ collectionPreferences: { bottles: [], version: before.collectionPreferences.version } });
+  const after = await api.getMemberPreferences();
+
+  assert.equal(requests.length, 3, "the read after a mutation must reach the server instead of returning stale cached preferences");
+  assert.equal(after.collectionPreferences.version, 3);
+});
+
+test("isolates cached authenticated reads when the bearer session changes", async () => {
+  let token = "member-a";
+  const requests: Request[] = [];
+  const api = createMobileApi({
+    baseUrl: "https://example.test",
+    getToken: async () => token,
+    readCooldownMs: 30_000,
+    fetcher: async (request) => {
+      const captured = new Request(request);
+      requests.push(captured);
+      return Response.json({ profile: { identity: { label: captured.headers.get("authorization") } } });
+    },
+  });
+
+  const first = await api.getMemberProfile();
+  token = "member-b";
+  const second = await api.getMemberProfile();
+
+  assert.equal(requests.length, 2);
+  assert.equal(first.profile.identity?.label, "Bearer member-a");
+  assert.equal(second.profile.identity?.label, "Bearer member-b");
+});
+
+test("a forced refresh bypasses a cached account failure", async () => {
+  let healthy = false;
+  let requests = 0;
+  const api = createMobileApi({
+    getToken: async () => "session-token",
+    readCooldownMs: 30_000,
+    fetcher: async () => {
+      requests += 1;
+      return healthy ? Response.json({ collectionPreferences: { bottles: [], version: 2 } }) : Response.json({ error: "Unavailable" }, { status: 503 });
+    },
+  });
+
+  await assert.rejects(api.getMemberPreferences());
+  healthy = true;
+  await assert.rejects(api.getMemberPreferences());
+  const refreshed = await api.getMemberPreferences({ fresh: true });
+
+  assert.equal(requests, 2);
+  assert.equal(refreshed.collectionPreferences.version, 2);
+});
+
+test("a forced refresh bypasses a cached success", async () => {
+  let version = 1;
+  let requests = 0;
+  const api = createMobileApi({
+    getToken: async () => "session-token",
+    readCooldownMs: 30_000,
+    fetcher: async () => {
+      requests += 1;
+      return Response.json({ collectionPreferences: { bottles: [], version } });
+    },
+  });
+
+  const first = await api.getMemberPreferences();
+  version = 2;
+  const cached = await api.getMemberPreferences();
+  const refreshed = await api.getMemberPreferences({ fresh: true });
+
+  assert.equal(first.collectionPreferences.version, 1);
+  assert.equal(cached.collectionPreferences.version, 1);
+  assert.equal(refreshed.collectionPreferences.version, 2);
+  assert.equal(requests, 2);
+});
+
 test("preserves legacy string API errors instead of replacing them with a generic message", async () => {
   const api = createMobileApi({
     getToken: async () => "session-token",

@@ -40,7 +40,7 @@ export default function SignalFeedScreen() {
     setLoading(true);
     setError("");
     try {
-      const page = await api.listSignals({ limit: 30, cursor: refresh ? null : cursor });
+      const page = await api.listSignals({ limit: 30, cursor: refresh ? null : cursor, fresh: refresh });
       setSignals((current) => {
         const next = refresh ? page.signals : [...current, ...page.signals];
         return [...new Map(next.map((signal) => [signal.id, signal])).values()];
