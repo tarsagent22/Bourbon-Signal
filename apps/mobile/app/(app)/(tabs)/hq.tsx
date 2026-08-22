@@ -1,10 +1,9 @@
-import { useAuth } from "@clerk/expo";
 import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Linking, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { MobileApiError } from "../../../src/api/client";
 import type { MemberProfile, SignalPointsSummary } from "../../../src/api/types";
 import { DataRow, ErrorState, MemberCard, ScreenIntro, SectionTitle, memberScreenStyles } from "../../../src/components/MemberScreen";
-import { useMobileApi } from "../../../src/hooks/useMobileApi";
+import { useMobileApi, useStableSignOut } from "../../../src/hooks/useMobileApi";
 import { colors } from "../../../src/theme";
 
 const WEB = "https://www.bourbonsignal.com";
@@ -12,7 +11,7 @@ const ACCOUNT_DELETION_URL = "mailto:support@bourbonsignal.com?subject=Bourbon%2
 
 export default function HqScreen() {
   const api = useMobileApi();
-  const { signOut } = useAuth();
+  const signOut = useStableSignOut();
   const [profile, setProfile] = useState<MemberProfile["profile"] | null>(null);
   const [points, setPoints] = useState<SignalPointsSummary | null>(null);
   const [profileError, setProfileError] = useState("");

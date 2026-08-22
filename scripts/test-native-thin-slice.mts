@@ -229,6 +229,10 @@ for (const route of ["radar", "post", "cellar", "hq"]) {
   assert.equal(existsSync(`apps/mobile/app/(app)/(tabs)/${route}.tsx`), true, `the native ${route} route must exist`);
 }
 assert.equal(existsSync("apps/mobile/app/(app)/(tabs)/account.tsx"), false, "HQ must replace the duplicate account tab");
+const mobileApiHook = readFileSync("apps/mobile/src/hooks/useMobileApi.ts", "utf8");
+assert.match(mobileApiHook, /const getTokenRef = useRef\(getToken\)/, "Clerk token callback churn must not recreate the API client");
+assert.match(mobileApiHook, /getToken: \(\) => getTokenRef\.current\(\)/, "the stable API client must call Clerk's latest token callback");
+assert.match(mobileApiHook, /const signOutRef = useRef\(signOut\)/, "Clerk sign-out callback churn must not retrigger screen loaders");
 const mobilePackage = JSON.parse(readFileSync("apps/mobile/package.json", "utf8"));
 assert.ok(mobilePackage.dependencies["@clerk/expo"]);
 assert.ok(mobilePackage.dependencies["@expo/vector-icons"]);

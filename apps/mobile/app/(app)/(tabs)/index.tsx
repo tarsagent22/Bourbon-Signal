@@ -1,15 +1,14 @@
-import { useAuth } from "@clerk/expo";
 import { router } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { ActivityIndicator, FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
 import { MobileApiError } from "../../../src/api/client";
 import type { MemberProfile, Signal, SignalFeedPage } from "../../../src/api/types";
 import { SignalCard } from "../../../src/components/SignalCard";
-import { useMobileApi } from "../../../src/hooks/useMobileApi";
+import { useMobileApi, useStableSignOut } from "../../../src/hooks/useMobileApi";
 import { colors } from "../../../src/theme";
 
 export default function SignalFeedScreen() {
-  const { signOut } = useAuth();
+  const signOut = useStableSignOut();
   const api = useMobileApi();
   const [signals, setSignals] = useState<Signal[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);

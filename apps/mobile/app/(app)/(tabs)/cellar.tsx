@@ -1,15 +1,14 @@
-import { useAuth } from "@clerk/expo";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { MobileApiError } from "../../../src/api/client";
 import type { MemberCollectionBottle, MemberPreferences } from "../../../src/api/types";
 import { EmptyState, ErrorState, LoadingState, MemberCard, ScreenIntro, SectionTitle, memberScreenStyles } from "../../../src/components/MemberScreen";
-import { useMobileApi } from "../../../src/hooks/useMobileApi";
+import { useMobileApi, useStableSignOut } from "../../../src/hooks/useMobileApi";
 import { colors } from "../../../src/theme";
 
 export default function CellarScreen() {
   const api = useMobileApi();
-  const { signOut } = useAuth();
+  const signOut = useStableSignOut();
   const [preferences, setPreferences] = useState<MemberPreferences | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");

@@ -1,4 +1,3 @@
-import { useAuth } from "@clerk/expo";
 import * as Crypto from "expo-crypto";
 import * as SecureStore from "expo-secure-store";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -6,13 +5,13 @@ import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollVie
 import { MobileApiError } from "../../../src/api/client";
 import type { MemberProfile, SightingSubmission } from "../../../src/api/types";
 import { MemberCard, ScreenIntro, memberScreenStyles } from "../../../src/components/MemberScreen";
-import { useMobileApi } from "../../../src/hooks/useMobileApi";
+import { useMobileApi, useStableSignOut } from "../../../src/hooks/useMobileApi";
 import { buildManualStoreId, createSightingIdempotencyKey, parseSightingDraftBinding, serializeSightingDraftBinding, SIGHTING_IDEMPOTENCY_STORAGE_KEY, type SightingDraftBinding } from "../../../src/sightings/manual-sighting";
 import { colors } from "../../../src/theme";
 
 export default function PostScreen() {
   const api = useMobileApi();
-  const { signOut } = useAuth();
+  const signOut = useStableSignOut();
   const [profile, setProfile] = useState<MemberProfile["profile"] | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [bottleName, setBottleName] = useState("");
