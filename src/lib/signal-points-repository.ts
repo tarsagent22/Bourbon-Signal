@@ -26,7 +26,7 @@ const CURRENT_REWARD_CATALOG = [
 export async function syncCurrentSignalRewardCatalog(query: SignalPointsQuery) {
   const values = CURRENT_REWARD_CATALOG.map((_, index) => {
     const start = index * 6;
-    return `($${start + 1},$${start + 2},$${start + 3},$${start + 4},$${start + 5},$${start + 6}::jsonb)`;
+    return `($${start + 1}::text,$${start + 2}::integer,$${start + 3}::text,$${start + 4}::integer,$${start + 5}::text,$${start + 6}::jsonb)`;
   }).join(",");
   const params = CURRENT_REWARD_CATALOG.flatMap((item) => [
     item.key, item.version, item.name, item.points, item.fulfillmentType, JSON.stringify(item.options),
