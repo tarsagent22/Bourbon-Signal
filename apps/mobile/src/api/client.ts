@@ -1,6 +1,7 @@
 import type {
   MemberAlertsResponse,
   MemberPreferences,
+  MemberPreferencesPatch,
   MemberProfile,
   SightingSubmission,
   SightingSubmissionResponse,
@@ -26,6 +27,7 @@ type RequestOptions = {
   method?: "GET" | "POST" | "PATCH";
   body?: unknown;
   headers?: Record<string, string>;
+  fresh?: boolean;
 };
 
 export function createMobileApi({
@@ -41,8 +43,8 @@ export function createMobileApi({
 }) {
   const recentReads = new Map<string, { expiresAt: number; promise: Promise<unknown> }>();
 
-  async function performRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
-    const token = await getToken();
+  async function performRequest<T>(path: string, options: RequestOptions = {}, suppliedToken?: string | null): Promise<T> {
+    const token = suppliedToken === undefined ? await getToken() : suppliedToken;
     const headers = new Headers({ Accept: "application/json", ...options.headers });
     if (token) headers.set("Authorization", `Bearer ${token}`);
     if (options.body !== undefined) headers.set("Content-Type", "application/json");
@@ -66,37 +68,47 @@ export function createMobileApi({
     return payload as T;
   }
 
-  function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-    if (options.method && options.method !== "GET") return performRequest<T>(path, options);
-    const key = `GET ${path}`;
+  async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
+    const token = await getToken();
+    if (options.method && options.method !== "GET") {
+      const payload = await performRequest<T>(path, options, token);
+      for (const key of recentReads.keys()) {
+        if (key.endsWith(` ${path}`)) recentReads.delete(key);
+      }
+      return payload;
+    }
+    const key = `GET ${token || "anonymous"} ${path}`;
     const now = Date.now();
     const recent = recentReads.get(key);
-    if (recent && recent.expiresAt > now) return recent.promise as Promise<T>;
-    const promise = performRequest<T>(path, options);
+    if (!options.fresh && recent && recent.expiresAt > now) return recent.promise as Promise<T>;
+    const promise = performRequest<T>(path, options, token);
     recentReads.set(key, { expiresAt: now + readCooldownMs, promise });
     return promise;
   }
 
   return {
-    listSignals({ limit = 30, cursor }: { limit?: number; cursor?: string | null } = {}) {
+    listSignals({ limit = 30, cursor, fresh = false }: { limit?: number; cursor?: string | null; fresh?: boolean } = {}) {
       const params = new URLSearchParams({ limit: String(limit) });
       if (cursor) params.set("cursor", cursor);
-      return request<SignalFeedPage>(`/api/v1/signals?${params.toString()}`);
+      return request<SignalFeedPage>(`/api/v1/signals?${params.toString()}`, { fresh });
     },
     getSignal(id: string) {
       return request<{ contractVersion: "bourbon-signal/mobile-api@1"; signal: Signal }>(`/api/v1/signals/${encodeURIComponent(id)}`);
     },
-    getMemberProfile() {
-      return request<MemberProfile>("/api/v1/me/profile");
+    getMemberProfile({ fresh = false }: { fresh?: boolean } = {}) {
+      return request<MemberProfile>("/api/v1/me/profile", { fresh });
     },
-    getMemberPreferences() {
-      return request<MemberPreferences>("/api/user/preferences");
+    getMemberPreferences({ fresh = false }: { fresh?: boolean } = {}) {
+      return request<MemberPreferences>("/api/user/preferences", { fresh });
     },
-    getMemberAlerts() {
-      return request<MemberAlertsResponse>("/api/alerts");
+    updateMemberPreferences(patch: MemberPreferencesPatch) {
+      return request<MemberPreferences>("/api/user/preferences", { method: "POST", body: patch });
     },
-    getSignalPoints() {
-      return request<SignalPointsSummary>("/api/signal-points");
+    getMemberAlerts({ fresh = false }: { fresh?: boolean } = {}) {
+      return request<MemberAlertsResponse>("/api/alerts", { fresh });
+    },
+    getSignalPoints({ fresh = false }: { fresh?: boolean } = {}) {
+      return request<SignalPointsSummary>("/api/signal-points", { fresh });
     },
     submitSighting(payload: SightingSubmission, idempotencyKey: string) {
       return request<SightingSubmissionResponse>("/api/sightings", {
