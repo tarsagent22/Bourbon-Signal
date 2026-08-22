@@ -7,7 +7,7 @@ const footerLinks = [
   { label: "Terms", href: "/legal/terms" },
   { label: "Disclaimer", href: "/legal/disclaimer" },
   { label: "Retailer Login", href: "/retailers/login" },
-  { label: "Support", href: "mailto:support@bourbonsignal.com?subject=Bourbon%20Signal%20Support" },
+  { label: "Support", href: "/support" },
 ];
 
 const socialLinks = [

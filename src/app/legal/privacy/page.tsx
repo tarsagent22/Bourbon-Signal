@@ -10,8 +10,8 @@ export default function PrivacyPage() {
   return (
     <LegalPage
       title="Privacy Policy"
-      updated="June 24, 2026"
-      intro="This Privacy Policy explains how Bourbon Signal, operated by Todd Digital Ventures LLC, collects and uses information when you visit the site, create an account, subscribe, save preferences, or receive alerts."
+      updated="August 21, 2026"
+      intro="This Privacy Policy explains how Bourbon Signal, operated by Todd Digital Ventures LLC, collects and uses information when you visit the website, use the mobile app, create an account, subscribe, save preferences, contact support, or receive alerts."
       sections={[
         {
           heading: "1. Information we collect",

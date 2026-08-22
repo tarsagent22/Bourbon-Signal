@@ -28,5 +28,8 @@
       "environment": "production",
       "channel": "production"
     }
+  },
+  "submit": {
+    "production": {}
   }
 }

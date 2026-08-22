@@ -1,0 +1,45 @@
+{
+  "schemaVersion": "bourbon-signal/native-brand-assets@1",
+  "source": {
+    "path": "public/icon-512.png",
+    "sha256": "9fbe13ad5789c61aceecbea4572d10176c02794c07e239b591744f7a7eb38690"
+  },
+  "assets": {
+    "icon.png": {
+      "sha256": "92ff1635f2f7c188894a33eb15f69552cf60e9867c4fbb6d4302ab98a4e0297f",
+      "width": 1024,
+      "height": 1024,
+      "mode": "RGB"
+    },
+    "splash-icon.png": {
+      "sha256": "9fbe13ad5789c61aceecbea4572d10176c02794c07e239b591744f7a7eb38690",
+      "width": 512,
+      "height": 512,
+      "mode": "RGBA"
+    },
+    "android-icon-background.png": {
+      "sha256": "58409486902f69d63a484ae69315d22253b49d3410059f399b3d674013c3c8f4",
+      "width": 512,
+      "height": 512,
+      "mode": "RGBA"
+    },
+    "android-icon-foreground.png": {
+      "sha256": "3da459dd264dbb75c6e7b0ab4a8279e5defd1480f1c445a1ccedf347ff4d969b",
+      "width": 512,
+      "height": 512,
+      "mode": "RGBA"
+    },
+    "android-icon-monochrome.png": {
+      "sha256": "ee2f3a5893287f8f6a0316b51357119f64d0d26287b14d6736cfbabede91401f",
+      "width": 432,
+      "height": 432,
+      "mode": "RGBA"
+    },
+    "favicon.png": {
+      "sha256": "69592e0b668a6d6168ee595ee27d24b7337da877b39da3ed28d273270293df71",
+      "width": 48,
+      "height": 48,
+      "mode": "RGBA"
+    }
+  }
+}

@@ -13,5 +13,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     { url: `${origin}/legal/terms`, changeFrequency: "monthly", priority: 0.35 },
     { url: `${origin}/legal/refunds`, changeFrequency: "monthly", priority: 0.3 },
     { url: `${origin}/legal/disclaimer`, changeFrequency: "monthly", priority: 0.3 },
+    { url: `${origin}/support`, changeFrequency: "monthly", priority: 0.45 },
   ];
 }

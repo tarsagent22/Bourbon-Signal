@@ -10,10 +10,11 @@
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
     "test": "tsx --test src/api/client.test.ts",
+    "verify:release-readiness": "node scripts/test-release-readiness.mjs",
     "verify:native-deps": "npm ls react-native-worklets react-native-reanimated expo-modules-core --all",
     "export:android": "expo export --platform android --output-dir dist/android",
     "export:ios": "expo export --platform ios --output-dir dist/ios",
-    "verify": "npm run verify:native-deps && npm run typecheck && npm test && npm run export:android && npm run export:ios"
+    "verify": "npm run verify:native-deps && npm run typecheck && npm test && npm run verify:release-readiness && npm run export:android && npm run export:ios"
   },
   "dependencies": {
     "@clerk/expo": "^4.5.2",
@@ -23,6 +24,7 @@
     "expo-linking": "~57.0.7",
     "expo-router": "~57.0.15",
     "expo-secure-store": "~57.0.1",
+    "expo-splash-screen": "~57.0.7",
     "expo-status-bar": "~57.0.1",
     "expo-updates": "~57.0.16",
     "react": "19.2.3",

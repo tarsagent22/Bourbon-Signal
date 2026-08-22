@@ -1,0 +1,43 @@
+# App Review notes
+
+## Reviewer summary
+
+Bourbon Signal is a focused native companion for existing members. It presents a canonical Signal Feed, exact Signal details, and privacy-safe membership state. It is not a web wrapper.
+
+The first App Store candidate is **consumption-only**:
+
+- no in-app purchase;
+- no external checkout link or payment steering;
+- no account registration inside the app;
+- no push notification, camera, location, or background-tracking permission;
+- no user-generated-content composer in the native thin slice.
+
+Existing website subscribers sign in and receive server-authoritative access from the same account. Availability can change and the UI tells members to confirm with the retailer.
+
+## Review access
+
+Before submission, create a dedicated review account with stable full-feed access and no owner/admin privileges. Enter its credentials only in App Store Connect’s App Review Information. Never commit or paste them into repository files, CI logs, EAS variables, issue bodies, or PR comments.
+
+Reviewer path:
+
+1. Open Bourbon Signal.
+2. Sign in with the App Review account.
+3. Complete the supplied verification factor if the account requires one. Configure the review account so Apple can complete this without contacting a private individual.
+4. Review the Signals tab and open a Signal detail.
+5. Open Account to see effective membership, Support, Privacy policy, Request account deletion, and Sign out.
+
+## Account deletion
+
+The app is sign-in-only and does not create accounts. A signed-in member can still initiate deletion from **Account → Request account deletion**. This opens a pre-addressed request to `support@bourbonsignal.com`. Support verifies ownership, removes the account from active systems, and confirms any billing, fraud-prevention, dispute, or legal records that must be retained. Subscription cancellation and account deletion are separate actions.
+
+## Encryption
+
+The app uses standard HTTPS/TLS and secure authentication. Expo configuration declares `usesNonExemptEncryption: false`. Reconfirm the export-compliance answer against the final signed binary.
+
+## Contact and URLs
+
+- Support: https://www.bourbonsignal.com/support
+- Privacy: https://www.bourbonsignal.com/legal/privacy
+- Marketing: https://www.bourbonsignal.com
+
+Private review-contact details must be entered directly in App Store Connect after enrollment approval.
