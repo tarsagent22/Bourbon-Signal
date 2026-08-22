@@ -3,12 +3,12 @@ import { RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native
 import { MobileApiError } from "../../../src/api/client";
 import type { MemberCollectionBottle, MemberPreferences } from "../../../src/api/types";
 import { EmptyState, ErrorState, LoadingState, MemberCard, ScreenIntro, SectionTitle, memberScreenStyles } from "../../../src/components/MemberScreen";
-import { useMobileApi, useStableSignOut } from "../../../src/hooks/useMobileApi";
+import { useMobileApi } from "../../../src/hooks/useMobileApi";
 import { colors } from "../../../src/theme";
 
 export default function CellarScreen() {
   const api = useMobileApi();
-  const signOut = useStableSignOut();
+
   const [preferences, setPreferences] = useState<MemberPreferences | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -19,12 +19,11 @@ export default function CellarScreen() {
     try {
       setPreferences(await api.getMemberPreferences());
     } catch (caught) {
-      if (caught instanceof MobileApiError && caught.status === 401) await signOut();
-      else setError(caught instanceof Error ? caught.message : "Your Cellar is temporarily unavailable.");
+      setError(caught instanceof MobileApiError && caught.status === 401 ? "Your session could not be verified. Return to Signals and retry." : caught instanceof Error ? caught.message : "Your Cellar is temporarily unavailable.");
     } finally {
       setLoading(false);
     }
-  }, [api, signOut]);
+  }, [api]);
 
   useEffect(() => { void load(); }, [load]);
   const canUseCollection = preferences?.entitlements?.canUseCollection === true;

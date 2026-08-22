@@ -4,11 +4,10 @@ import { ActivityIndicator, FlatList, Pressable, RefreshControl, StyleSheet, Tex
 import { MobileApiError } from "../../../src/api/client";
 import type { MemberProfile, Signal, SignalFeedPage } from "../../../src/api/types";
 import { SignalCard } from "../../../src/components/SignalCard";
-import { useMobileApi, useStableSignOut } from "../../../src/hooks/useMobileApi";
+import { useMobileApi } from "../../../src/hooks/useMobileApi";
 import { colors } from "../../../src/theme";
 
 export default function SignalFeedScreen() {
-  const signOut = useStableSignOut();
   const api = useMobileApi();
   const [signals, setSignals] = useState<Signal[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
@@ -21,21 +20,19 @@ export default function SignalFeedScreen() {
   const [profile, setProfile] = useState<MemberProfile["profile"] | null>(null);
   const requestInFlight = useRef(false);
 
-  const handleError = useCallback(async (caught: unknown) => {
+  const handleError = useCallback((caught: unknown) => {
     const apiError = caught instanceof MobileApiError ? caught : null;
-    if (apiError?.status === 401) await signOut();
-    else setError(apiError?.message || "Signals are temporarily unavailable.");
-  }, [signOut]);
+    setError(apiError?.status === 401 ? "Your session could not be verified. Return to the login screen and retry." : apiError?.message || "Signals are temporarily unavailable.");
+  }, []);
 
   const loadProfile = useCallback(async () => {
     setProfileError("");
     try {
       setProfile((await api.getMemberProfile()).profile);
     } catch (caught) {
-      if (caught instanceof MobileApiError && caught.status === 401) await signOut();
-      else setProfileError(caught instanceof Error ? caught.message : "Membership details are temporarily unavailable.");
+      setProfileError(caught instanceof MobileApiError && caught.status === 401 ? "Your session could not be verified. Return to the login screen and retry." : caught instanceof Error ? caught.message : "Membership details are temporarily unavailable.");
     }
-  }, [api, signOut]);
+  }, [api]);
 
   const load = useCallback(async (refresh = false) => {
     if (requestInFlight.current || (!refresh && !hasMore)) return;

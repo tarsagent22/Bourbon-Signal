@@ -1,16 +1,15 @@
-import { useAuth } from "@clerk/expo";
 import { Stack, useLocalSearchParams } from "expo-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-native";
-import { createMobileApi, MobileApiError } from "../../../src/api/client";
+import { MobileApiError } from "../../../src/api/client";
 import type { Signal } from "../../../src/api/types";
 import { presentSignal } from "../../../src/api/presentation";
+import { useMobileApi } from "../../../src/hooks/useMobileApi";
 import { colors } from "../../../src/theme";
 
 export default function SignalDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { getToken } = useAuth();
-  const api = useMemo(() => createMobileApi({ getToken }), [getToken]);
+  const api = useMobileApi();
   const [signal, setSignal] = useState<Signal | null>(null);
   const [error, setError] = useState("");
   useEffect(() => { let active = true; if (!id) return; api.getSignal(id).then((result) => { if (active) setSignal(result.signal); }).catch((caught) => { if (active) setError(caught instanceof MobileApiError ? caught.message : "This Signal is temporarily unavailable."); }); return () => { active = false; }; }, [api, id]);

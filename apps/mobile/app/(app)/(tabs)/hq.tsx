@@ -1,9 +1,10 @@
+import { useAuth } from "@clerk/expo";
 import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Linking, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { MobileApiError } from "../../../src/api/client";
 import type { MemberProfile, SignalPointsSummary } from "../../../src/api/types";
 import { DataRow, ErrorState, MemberCard, ScreenIntro, SectionTitle, memberScreenStyles } from "../../../src/components/MemberScreen";
-import { useMobileApi, useStableSignOut } from "../../../src/hooks/useMobileApi";
+import { useMobileApi } from "../../../src/hooks/useMobileApi";
 import { colors } from "../../../src/theme";
 
 const WEB = "https://www.bourbonsignal.com";
@@ -11,7 +12,7 @@ const ACCOUNT_DELETION_URL = "mailto:support@bourbonsignal.com?subject=Bourbon%2
 
 export default function HqScreen() {
   const api = useMobileApi();
-  const signOut = useStableSignOut();
+  const { signOut } = useAuth();
   const [profile, setProfile] = useState<MemberProfile["profile"] | null>(null);
   const [points, setPoints] = useState<SignalPointsSummary | null>(null);
   const [profileError, setProfileError] = useState("");
@@ -25,13 +26,11 @@ export default function HqScreen() {
     setPointsError("");
     const [profileResult, pointsResult] = await Promise.allSettled([api.getMemberProfile(), api.getSignalPoints()]);
     if (profileResult.status === "fulfilled") setProfile(profileResult.value.profile);
-    else if (profileResult.reason instanceof MobileApiError && profileResult.reason.status === 401) await signOut();
-    else setProfileError(profileResult.reason instanceof Error ? profileResult.reason.message : "Membership details are temporarily unavailable.");
+    else setProfileError(profileResult.reason instanceof MobileApiError && profileResult.reason.status === 401 ? "Your session could not be verified. Return to Signals and retry." : profileResult.reason instanceof Error ? profileResult.reason.message : "Membership details are temporarily unavailable.");
     if (pointsResult.status === "fulfilled") setPoints(pointsResult.value);
-    else if (pointsResult.reason instanceof MobileApiError && pointsResult.reason.status === 401) await signOut();
-    else setPointsError(pointsResult.reason instanceof Error ? pointsResult.reason.message : "Signal Points are temporarily unavailable.");
+    else setPointsError(pointsResult.reason instanceof MobileApiError && pointsResult.reason.status === 401 ? "Your session could not be verified. Return to Signals and retry." : pointsResult.reason instanceof Error ? pointsResult.reason.message : "Signal Points are temporarily unavailable.");
     setLoading(false);
-  }, [api, signOut]);
+  }, [api]);
 
   useEffect(() => { void load(); }, [load]);
 

@@ -32,12 +32,16 @@ export function createMobileApi({
   baseUrl = process.env.EXPO_PUBLIC_API_URL || "https://www.bourbonsignal.com",
   getToken,
   fetcher = fetch,
+  readCooldownMs = 10_000,
 }: {
   baseUrl?: string;
   getToken: () => Promise<string | null>;
   fetcher?: typeof fetch;
+  readCooldownMs?: number;
 }) {
-  async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
+  const recentReads = new Map<string, { expiresAt: number; promise: Promise<unknown> }>();
+
+  async function performRequest<T>(path: string, options: RequestOptions = {}): Promise<T> {
     const token = await getToken();
     const headers = new Headers({ Accept: "application/json", ...options.headers });
     if (token) headers.set("Authorization", `Bearer ${token}`);
@@ -60,6 +64,17 @@ export function createMobileApi({
       );
     }
     return payload as T;
+  }
+
+  function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
+    if (options.method && options.method !== "GET") return performRequest<T>(path, options);
+    const key = `GET ${path}`;
+    const now = Date.now();
+    const recent = recentReads.get(key);
+    if (recent && recent.expiresAt > now) return recent.promise as Promise<T>;
+    const promise = performRequest<T>(path, options);
+    recentReads.set(key, { expiresAt: now + readCooldownMs, promise });
+    return promise;
   }
 
   return {

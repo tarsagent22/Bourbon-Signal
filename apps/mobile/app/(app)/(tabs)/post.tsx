@@ -5,13 +5,13 @@ import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollVie
 import { MobileApiError } from "../../../src/api/client";
 import type { MemberProfile, SightingSubmission } from "../../../src/api/types";
 import { MemberCard, ScreenIntro, memberScreenStyles } from "../../../src/components/MemberScreen";
-import { useMobileApi, useStableSignOut } from "../../../src/hooks/useMobileApi";
+import { useMobileApi } from "../../../src/hooks/useMobileApi";
 import { buildManualStoreId, createSightingIdempotencyKey, parseSightingDraftBinding, serializeSightingDraftBinding, SIGHTING_IDEMPOTENCY_STORAGE_KEY, type SightingDraftBinding } from "../../../src/sightings/manual-sighting";
 import { colors } from "../../../src/theme";
 
 export default function PostScreen() {
   const api = useMobileApi();
-  const signOut = useStableSignOut();
+
   const [profile, setProfile] = useState<MemberProfile["profile"] | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [bottleName, setBottleName] = useState("");
@@ -33,12 +33,11 @@ export default function PostScreen() {
     api.getMemberProfile()
       .then((result) => { if (active) setProfile(result.profile); })
       .catch(async (caught) => {
-        if (caught instanceof MobileApiError && caught.status === 401) await signOut();
-        else if (active) setError(caught instanceof Error ? caught.message : "Posting access is temporarily unavailable.");
+        if (active) setError(caught instanceof MobileApiError && caught.status === 401 ? "Your session could not be verified. Return to Signals and retry." : caught instanceof Error ? caught.message : "Posting access is temporarily unavailable.");
       })
       .finally(() => { if (active) setLoadingProfile(false); });
     return () => { active = false; };
-  }, [api, signOut]);
+  }, [api]);
 
   useEffect(() => {
     let active = true;
@@ -117,8 +116,7 @@ export default function PostScreen() {
         setError("Signal saved, but secure draft protection could not prepare the next post. Restart the app before posting again.");
       }
     } catch (caught) {
-      if (caught instanceof MobileApiError && caught.status === 401) await signOut();
-      else setError(caught instanceof Error ? caught.message : "Your Signal could not be posted.");
+      setError(caught instanceof MobileApiError && caught.status === 401 ? "Your session could not be verified. Return to Signals and retry." : caught instanceof Error ? caught.message : "Your Signal could not be posted.");
     } finally {
       setSubmitting(false);
     }

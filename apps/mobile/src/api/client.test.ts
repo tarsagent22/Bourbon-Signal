@@ -83,6 +83,23 @@ test("preserves legacy string API errors instead of replacing them with a generi
   await assert.rejects(api.getMemberPreferences(), (error: unknown) => error instanceof MobileApiError && error.message === "Collection storage is temporarily unavailable.");
 });
 
+test("coalesces repeated account reads during a render loop, including failures", async () => {
+  let requests = 0;
+  const api = createMobileApi({
+    getToken: async () => "session-token",
+    readCooldownMs: 30_000,
+    fetcher: async () => {
+      requests += 1;
+      return Response.json({ error: "Temporarily unavailable." }, { status: 503 });
+    },
+  });
+  const attempts = await Promise.allSettled(Array.from({ length: 50 }, () => api.getSignalPoints()));
+  assert.equal(requests, 1, "a remount loop must not amplify one failed endpoint into repeated network traffic");
+  assert.ok(attempts.every((attempt) => attempt.status === "rejected"));
+  await assert.rejects(api.getSignalPoints());
+  assert.equal(requests, 1, "the failure cooldown must protect the backend after the first request settles");
+});
+
 test("presents the canonical Signal transport shape without legacy field assumptions", () => {
   const presented = presentSignal({
     contractVersion: "bourbon-signal/signal@1",

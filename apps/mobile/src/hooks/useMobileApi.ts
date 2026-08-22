@@ -1,5 +1,5 @@
 import { useAuth } from "@clerk/expo";
-import { useCallback, useRef } from "react";
+import { useRef } from "react";
 import { createMobileApi } from "../api/client";
 
 export function useMobileApi() {
@@ -12,11 +12,4 @@ export function useMobileApi() {
     apiRef.current = createMobileApi({ getToken: () => getTokenRef.current() });
   }
   return apiRef.current;
-}
-
-export function useStableSignOut() {
-  const { signOut } = useAuth();
-  const signOutRef = useRef(signOut);
-  signOutRef.current = signOut;
-  return useCallback(() => signOutRef.current(), []);
 }

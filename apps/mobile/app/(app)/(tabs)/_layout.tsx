@@ -27,6 +27,8 @@ export default function TabsLayout() {
         tabBarInactiveTintColor: colors.muted,
         tabBarLabelStyle: { fontSize: 11, fontWeight: "700" },
         tabBarHideOnKeyboard: true,
+        lazy: true,
+        freezeOnBlur: true,
       }}
     >
       <Tabs.Screen name="index" options={{ title: "Signals", headerTitle: "Bourbon Signal", tabBarIcon: icon("index") }} />

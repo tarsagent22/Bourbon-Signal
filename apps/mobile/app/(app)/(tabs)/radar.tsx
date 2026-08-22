@@ -3,12 +3,12 @@ import { RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native
 import { MobileApiError } from "../../../src/api/client";
 import type { MemberAlertsResponse, MemberPreferences } from "../../../src/api/types";
 import { DataRow, EmptyState, ErrorState, LoadingState, MemberCard, ScreenIntro, SectionTitle, memberScreenStyles } from "../../../src/components/MemberScreen";
-import { useMobileApi, useStableSignOut } from "../../../src/hooks/useMobileApi";
+import { useMobileApi } from "../../../src/hooks/useMobileApi";
 import { colors } from "../../../src/theme";
 
 export default function RadarScreen() {
   const api = useMobileApi();
-  const signOut = useStableSignOut();
+
   const [preferences, setPreferences] = useState<MemberPreferences | null>(null);
   const [alerts, setAlerts] = useState<MemberAlertsResponse | null>(null);
   const [loading, setLoading] = useState(true);
@@ -22,12 +22,11 @@ export default function RadarScreen() {
       setPreferences(nextPreferences);
       setAlerts(nextAlerts);
     } catch (caught) {
-      if (caught instanceof MobileApiError && caught.status === 401) await signOut();
-      else setError(caught instanceof Error ? caught.message : "Radar is temporarily unavailable.");
+      setError(caught instanceof MobileApiError && caught.status === 401 ? "Your session could not be verified. Return to Signals and retry." : caught instanceof Error ? caught.message : "Radar is temporarily unavailable.");
     } finally {
       setLoading(false);
     }
-  }, [api, signOut]);
+  }, [api]);
 
   useEffect(() => { void load(); }, [load]);
 

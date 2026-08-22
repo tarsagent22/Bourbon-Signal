@@ -232,7 +232,11 @@ assert.equal(existsSync("apps/mobile/app/(app)/(tabs)/account.tsx"), false, "HQ 
 const mobileApiHook = readFileSync("apps/mobile/src/hooks/useMobileApi.ts", "utf8");
 assert.match(mobileApiHook, /const getTokenRef = useRef\(getToken\)/, "Clerk token callback churn must not recreate the API client");
 assert.match(mobileApiHook, /getToken: \(\) => getTokenRef\.current\(\)/, "the stable API client must call Clerk's latest token callback");
-assert.match(mobileApiHook, /const signOutRef = useRef\(signOut\)/, "Clerk sign-out callback churn must not retrigger screen loaders");
+const mobileApiClient = readFileSync("apps/mobile/src/api/client.ts", "utf8");
+assert.match(mobileApiClient, /recentReads\.get\(key\)/, "native GET requests must have a circuit breaker against remount storms");
+for (const route of ["index", "radar", "post", "cellar"]) {
+  assert.doesNotMatch(readFileSync(`apps/mobile/app/(app)/(tabs)/${route}.tsx`, "utf8"), /await signOut\(/, `native ${route} data errors must not destroy the member session`);
+}
 const mobilePackage = JSON.parse(readFileSync("apps/mobile/package.json", "utf8"));
 assert.ok(mobilePackage.dependencies["@clerk/expo"]);
 assert.ok(mobilePackage.dependencies["@expo/vector-icons"]);
