@@ -30,14 +30,24 @@ export interface Signal {
   actions: Array<"watch_bottle" | "watch_store" | "confirm" | "correct" | "helpful" | "report">;
 }
 
+export interface MarketSummary {
+  state: string;
+  areaLabel: string;
+  signalCount: number;
+  bottleNames: string[];
+}
+
 export interface SignalFeedPage {
   contractVersion: "bourbon-signal/signal@1";
+  view: "market" | "community" | "all";
   signals: Signal[];
+  marketSummaries: MarketSummary[];
   total: number;
   nextCursor: string | null;
   hasMore: boolean;
   degraded: boolean;
-  access: { previewLocked: boolean; requiresAccountForFullFeed: boolean; memberSignalsAvailable: boolean };
+  lastUpdated?: string;
+  access: { previewLocked: boolean; requiresAccountForFullFeed: boolean; memberSignalsAvailable: boolean; marketDetailsLocked: boolean };
 }
 
 export interface MemberProfile {

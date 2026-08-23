@@ -87,8 +87,9 @@ export function createMobileApi({
   }
 
   return {
-    listSignals({ limit = 30, cursor, fresh = false }: { limit?: number; cursor?: string | null; fresh?: boolean } = {}) {
+    listSignals({ view, limit = 30, cursor, fresh = false }: { view?: "all" | "market" | "community"; limit?: number; cursor?: string | null; fresh?: boolean } = {}) {
       const params = new URLSearchParams({ limit: String(limit) });
+      if (view && view !== "all") params.set("view", view);
       if (cursor) params.set("cursor", cursor);
       return request<SignalFeedPage>(`/api/v1/signals?${params.toString()}`, { fresh });
     },

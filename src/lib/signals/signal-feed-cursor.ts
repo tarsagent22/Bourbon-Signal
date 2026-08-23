@@ -1,7 +1,14 @@
+export type SignalFeedView = "all" | "market" | "community";
+
 export interface SignalFeedCursorPayload {
+  view: SignalFeedView;
   dropsOffset: number;
   dropSnapshot: string | null;
   memberBoundary: { createdAt: string; id: string } | null;
+}
+
+function safeView(value: unknown): value is SignalFeedView {
+  return value === "all" || value === "market" || value === "community";
 }
 
 function safeOffset(value: unknown) {
@@ -24,11 +31,12 @@ function safeMemberBoundary(value: unknown): value is { createdAt: string; id: s
 }
 
 export function encodeSignalFeedCursor(payload: SignalFeedCursorPayload) {
-  if (!safeOffset(payload.dropsOffset) || !safeSnapshot(payload.dropSnapshot) || !safeMemberBoundary(payload.memberBoundary)) {
+  if (!safeView(payload.view) || !safeOffset(payload.dropsOffset) || !safeSnapshot(payload.dropSnapshot) || !safeMemberBoundary(payload.memberBoundary)) {
     throw new Error("Invalid Signal feed cursor payload");
   }
   return Buffer.from(JSON.stringify({
-    v: 2,
+    v: 3,
+    fv: payload.view,
     d: payload.dropsOffset,
     ds: payload.dropSnapshot,
     mb: payload.memberBoundary,
@@ -39,8 +47,10 @@ export function decodeSignalFeedCursor(value: string | null | undefined): Signal
   if (!value) return null;
   try {
     const parsed = JSON.parse(Buffer.from(value, "base64url").toString("utf8")) as Record<string, unknown>;
-    if (parsed.v !== 2 || !safeOffset(parsed.d) || !safeSnapshot(parsed.ds) || !safeMemberBoundary(parsed.mb)) return null;
+    const view = parsed.v === 2 ? "all" : parsed.fv;
+    if ((parsed.v !== 2 && parsed.v !== 3) || !safeView(view) || !safeOffset(parsed.d) || !safeSnapshot(parsed.ds) || !safeMemberBoundary(parsed.mb)) return null;
     return {
+      view,
       dropsOffset: Number(parsed.d),
       dropSnapshot: parsed.ds as string | null,
       memberBoundary: parsed.mb as SignalFeedCursorPayload["memberBoundary"],

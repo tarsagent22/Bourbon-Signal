@@ -30,7 +30,7 @@ export default function SignInScreen() {
 
   if (!authLoaded && authTimedOut) return <View style={styles.configuration}><Text style={styles.title}>Member access unavailable</Text><Text style={styles.subtitle}>The secure sign-in service could not start. Check your connection and reopen the app.</Text></View>;
   if (!authLoaded) return <View style={styles.center}><ActivityIndicator color={colors.accent} /></View>;
-  if (isSignedIn) return <Redirect href="/(app)" />;
+  if (isSignedIn) return <Redirect href="/(app)/(tabs)" />;
 
   async function finalizeIfComplete() {
     if (signIn.status !== "complete") return false;

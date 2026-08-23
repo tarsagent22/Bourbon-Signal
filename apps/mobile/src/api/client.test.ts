@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import { createMobileApi, MobileApiError } from "./client";
-import { presentSignal } from "./presentation";
+import type { Signal } from "./types";
+import { presentSignal, relativeSignalTime, signalAccessibilityLabel } from "./presentation";
 
-test("sends bearer auth and opaque cursor without inspecting it", async () => {
+test("sends the selected feed view, bearer auth, and opaque cursor without inspecting it", async () => {
   const requests: Request[] = [];
   const api = createMobileApi({
     baseUrl: "https://example.test",
@@ -13,9 +14,24 @@ test("sends bearer auth and opaque cursor without inspecting it", async () => {
       return Response.json({ signals: [], nextCursor: null, hasMore: false });
     },
   });
-  await api.listSignals({ limit: 20, cursor: "opaque/cursor+value" });
+  await api.listSignals({ view: "community", limit: 20, cursor: "opaque/cursor+value" });
   assert.equal(requests[0].headers.get("authorization"), "Bearer session-token");
   assert.equal(new URL(requests[0].url).searchParams.get("cursor"), "opaque/cursor+value");
+  assert.equal(new URL(requests[0].url).searchParams.get("view"), "community");
+});
+
+test("preserves the combined-feed default for callers that omit a view", async () => {
+  let request: Request | null = null;
+  const api = createMobileApi({
+    baseUrl: "https://example.test",
+    getToken: async () => "session-token",
+    fetcher: async (input) => {
+      request = new Request(input);
+      return Response.json({ signals: [], nextCursor: null, hasMore: false });
+    },
+  });
+  await api.listSignals();
+  assert.equal(new URL(request!.url).searchParams.get("view"), null);
 });
 
 test("preserves cursor reset errors for a clean feed refresh", async () => {
@@ -207,23 +223,47 @@ test("coalesces repeated account reads during a render loop, including failures"
   assert.equal(requests, 1, "the failure cooldown must protect the backend after the first request settles");
 });
 
+test("formats Signal age for quick scanning", () => {
+  const now = new Date("2026-08-23T12:00:00.000Z");
+  assert.equal(relativeSignalTime("2026-08-23T11:48:00.000Z", now), "12m");
+  assert.equal(relativeSignalTime("2026-08-23T09:30:00.000Z", now), "2h");
+  assert.equal(relativeSignalTime("2026-08-20T12:00:00.000Z", now), "3d");
+});
+
 test("presents the canonical Signal transport shape without legacy field assumptions", () => {
-  const presented = presentSignal({
-    contractVersion: "bourbon-signal/signal@1",
+  const signal = {
+    contractVersion: "bourbon-signal/signal@1" as const,
     id: "member:example",
-    kind: "availability",
-    source: { type: "member", label: "Member #19", actor: { kind: "member", number: 19, label: "Member #19" } },
+    kind: "availability" as const,
+    source: { type: "member" as const, label: "Member #19", actor: { kind: "member" as const, number: 19, label: "Member #19" } },
     bottle: { id: "bottle-1", name: "Example Bourbon" },
-    location: { scope: "exact_store", label: "Bottle Shop", state: "NC", store: { name: "Bottle Shop", address: "1 Main St", city: "Raleigh", state: "NC" } },
+    location: { scope: "exact_store" as const, label: "Bottle Shop", state: "NC", store: { name: "Bottle Shop", address: "1 Main St", city: "Raleigh", state: "NC" } },
     timing: { reportedAt: "2026-08-21T12:00:00.000Z", displayAt: "2026-08-21T12:00:00.000Z" },
     evidence: { summary: "Two bottles on the shelf", photo: false, corroborationCount: 0, helpfulCount: 2, retailerReported: false, sourceBacked: false },
-    strength: "more_activity",
-    availability: { status: "reported", quantity: 2, quantityLabel: "2 bottles", price: 69.99, caveat: "Availability can change." },
+    strength: "more_activity" as const,
+    availability: { status: "reported" as const, quantity: 2, quantityLabel: "2 bottles", price: 69.99, caveat: "Availability can change." },
     alertEligibility: { inventory: false, watch: true },
-    actions: ["watch_bottle", "report"],
-  });
+    actions: ["watch_bottle", "report"] as Signal["actions"],
+  };
+  const presented = presentSignal(signal);
   assert.equal(presented.location, "Bottle Shop · Raleigh · NC");
   assert.equal(presented.price, "$69.99");
   assert.equal(presented.quantity, "2 bottles");
   assert.equal(presented.summary, "Two bottles on the shelf");
+  const accessibility = signalAccessibilityLabel(signal, new Date("2026-08-23T12:00:00.000Z"));
+  for (const detail of ["Example Bourbon", "Bottle Shop", "Member sighting", "$69.99", "2 bottles", "Two bottles on the shelf", "Member #19", "2d"]) {
+    assert.match(accessibility, new RegExp(detail.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+  }
+
+  const release: Signal = {
+    ...signal,
+    id: "release:example",
+    kind: "release",
+    source: { type: "trusted_source", label: "State board" },
+    location: { scope: "state", label: "", state: "" },
+  };
+  const releaseAccessibility = signalAccessibilityLabel(release, new Date("2026-08-23T12:00:00.000Z"));
+  assert.match(releaseAccessibility, /Location not specified/);
+  assert.match(releaseAccessibility, /Release/);
+  assert.doesNotMatch(releaseAccessibility, /Reported/);
 });
