@@ -6,6 +6,7 @@ import { decodeDropCursor } from "../src/lib/drop-cursor.ts";
 import { createSignalApiClient } from "../src/lib/signals/signal-api-client.ts";
 import { buildSignalMemberProfile } from "../src/lib/signals/signal-api-contract.ts";
 import { canUseMemberSightingBoundary } from "../src/lib/signals/sighting-pagination-policy.ts";
+import { buildWeeklyMarketSummaries } from "../src/lib/signals/signal-market-summary.ts";
 
 const drops = [
   { id: "drop-1", canonical_name: "Bottle 1", observed_at: "2026-08-21T12:00:00.000Z", state: "NC" },
@@ -17,6 +18,66 @@ const sightings = [
   { id: "member-2", bottleName: "Member Bottle 2", storeId: "store-2", storeName: "Store 2", storeAddress: "2 Main St", storeState: "NC", source: "custom", createdAt: "2026-08-21T09:00:00.000Z" },
   { id: "member-3", bottleName: "Member Bottle 3", storeId: "store-3", storeName: "Store 3", storeAddress: "3 Main St", storeState: "NC", source: "custom", createdAt: "2026-08-21T07:00:00.000Z" },
 ] as const;
+
+const weeklySummaries = buildWeeklyMarketSummaries([
+  { id: "nc-1", canonical_name: "Eagle Rare 10 Year", state: "NC", observed_at: "2026-08-22T12:00:00.000Z" },
+  { id: "nc-2", canonical_name: "Russell's Reserve 13", state: "NC", observed_at: "2026-08-21T12:00:00.000Z" },
+  { id: "nc-3", canonical_name: "Eagle Rare 10 Year", state: "NC", observed_at: "2026-08-20T12:00:00.000Z" },
+  { id: "sc-1", canonical_name: "Blanton's", state: "SC", observed_at: "2026-08-19T12:00:00.000Z" },
+  { id: "old", canonical_name: "Old Bottle", state: "VA", observed_at: "2026-08-01T12:00:00.000Z" },
+], { now: "2026-08-23T00:00:00.000Z", stateLabels: { NC: "North Carolina", SC: "South Carolina", VA: "Virginia" } });
+assert.deepEqual(weeklySummaries, [
+  { state: "NC", areaLabel: "North Carolina", signalCount: 3, bottleNames: ["Eagle Rare 10 Year", "Russell's Reserve 13"] },
+  { state: "SC", areaLabel: "South Carolina", signalCount: 1, bottleNames: ["Blanton's"] },
+]);
+
+let freeMarketSightingsCalled = false;
+const freeMarketHandler = createSignalFeedHandler({
+  getDrops: async () => Response.json({
+    drops: [{ ...drops[0], store_name: "Locked Store", store_address: "1 Secret St" }],
+    total: 25,
+    requiresAccountForFullFeed: true,
+    previewLocked: true,
+    marketSummaries: weeklySummaries,
+    lastUpdated: "2026-08-23T00:00:00.000Z",
+  }),
+  getSightings: async () => { freeMarketSightingsCalled = true; return Response.json({ sightings }); },
+});
+const freeMarket = await freeMarketHandler(new Request("https://www.bourbonsignal.com/api/v1/signals?view=market"));
+const freeMarketPayload = await freeMarket.json();
+assert.deepEqual(freeMarketPayload.signals, [], "free Market responses must not send exact rows to the client");
+assert.deepEqual(freeMarketPayload.marketSummaries, weeklySummaries);
+assert.equal(freeMarketPayload.access.marketDetailsLocked, true);
+assert.equal(JSON.stringify(freeMarketPayload).includes("Locked Store"), false);
+assert.equal(freeMarketSightingsCalled, false, "Market view must not fetch Community sightings");
+
+const freeCombinedPayload = await (await freeMarketHandler(new Request("https://www.bourbonsignal.com/api/v1/signals"))).json();
+assert.ok(freeCombinedPayload.signals.every((signal: { source: { type: string } }) => signal.source.type === "member"), "legacy combined view must retain Community while suppressing locked Market rows");
+assert.equal(JSON.stringify(freeCombinedPayload).includes("Locked Store"), false, "legacy combined view must not leak locked exact Market details");
+assert.equal(freeCombinedPayload.access.marketDetailsLocked, true);
+
+let paidMarketSightingsCalled = false;
+const paidMarketHandler = createSignalFeedHandler({
+  getDrops: async () => Response.json({ drops, total: drops.length, snapshot: "paid-market", requiresAccountForFullFeed: false, hasMore: false }),
+  getSightings: async () => { paidMarketSightingsCalled = true; return Response.json({ sightings }); },
+});
+const paidMarketPayload = await (await paidMarketHandler(new Request("https://www.bourbonsignal.com/api/v1/signals?view=market"))).json();
+assert.ok(paidMarketPayload.signals.every((signal: { source: { type: string } }) => signal.source.type !== "member"));
+assert.equal(paidMarketPayload.access.marketDetailsLocked, false);
+assert.equal(paidMarketSightingsCalled, false);
+
+let communityDropsCalled = false;
+const communityHandler = createSignalFeedHandler({
+  getDrops: async () => { communityDropsCalled = true; return Response.json({ drops }); },
+  getSightings: async () => Response.json({ sightings, totalSightings: sightings.length, previewLimit: null }),
+});
+const communityPayload = await (await communityHandler(new Request("https://www.bourbonsignal.com/api/v1/signals?view=community"))).json();
+assert.ok(communityPayload.signals.every((signal: { source: { type: string } }) => signal.source.type === "member"));
+assert.equal(communityPayload.access.marketDetailsLocked, false);
+assert.equal(communityDropsCalled, false, "Community view must not fetch locked Market rows");
+
+const unsupportedView = await communityHandler(new Request("https://www.bourbonsignal.com/api/v1/signals?view=social"));
+assert.equal(unsupportedView.status, 400);
 
 const sourceRequests: string[] = [];
 const handler = createSignalFeedHandler({
@@ -56,6 +117,9 @@ const firstPayload = await first.json();
 assert.deepEqual(firstPayload.signals.map((signal: { id: string }) => signal.id), ["trusted_source:drop-1", "member:member-1"]);
 assert.equal(typeof firstPayload.nextCursor, "string", "a full authenticated page must return an opaque cursor");
 assert.equal(firstPayload.hasMore, true);
+const crossViewCursor = await handler(new Request(`https://www.bourbonsignal.com/api/v1/signals?view=community&limit=2&cursor=${encodeURIComponent(firstPayload.nextCursor)}`));
+assert.equal(crossViewCursor.status, 400, "a cursor must not be reusable across feed views");
+assert.equal((await crossViewCursor.json()).error.code, "INVALID_CURSOR");
 
 const second = await handler(new Request(`https://www.bourbonsignal.com/api/v1/signals?limit=2&cursor=${encodeURIComponent(firstPayload.nextCursor)}`, { headers: { Authorization: "Bearer mobile-token" } }));
 assert.equal(second.status, 200);
@@ -222,6 +286,8 @@ assert.equal(existsSync("src/app/api/v1/me/profile/route.ts"), true, "the app ne
 const memberPreferencesRoute = readFileSync("src/app/api/user/preferences/route.ts", "utf8");
 assert.match(memberPreferencesRoute, /canUseCollection: entitlements\.canUseCollection/, "the preferences response must expose the canonical collection entitlement to native clients");
 assert.equal(existsSync("apps/mobile/app.json"), true, "the Expo shell must exist");
+const nativeSignIn = readFileSync("apps/mobile/app/index.tsx", "utf8");
+assert.match(nativeSignIn, /<Redirect href="\/\(app\)\/\(tabs\)" \/>/, "signed-in members must land on the actual tab navigator route");
 assert.equal(existsSync("apps/mobile/app/_layout.tsx"), true, "the Expo Router root must exist");
 assert.equal(existsSync("apps/mobile/app/(app)/(tabs)/index.tsx"), true, "the authenticated feed route must exist");
 assert.equal(existsSync("apps/mobile/app/(app)/signal/[id].tsx"), true, "the Signal detail route must exist");
@@ -234,6 +300,14 @@ assert.match(mobileApiHook, /const getTokenRef = useRef\(getToken\)/, "Clerk tok
 assert.match(mobileApiHook, /getToken: \(\) => getTokenRef\.current\(\)/, "the stable API client must call Clerk's latest token callback");
 const mobileApiClient = readFileSync("apps/mobile/src/api/client.ts", "utf8");
 assert.match(mobileApiClient, /recentReads\.get\(key\)/, "native GET requests must have a circuit breaker against remount storms");
+const nativeSignalFeed = readFileSync("apps/mobile/app/(app)/(tabs)/index.tsx", "utf8");
+assert.match(nativeSignalFeed, /radio-tower/);
+assert.match(nativeSignalFeed, /account-group-outline/);
+assert.match(nativeSignalFeed, />Market</);
+assert.match(nativeSignalFeed, />Community</);
+assert.match(nativeSignalFeed, /requestInFlightRef\.current/, "feed requests need a synchronous in-flight guard so refresh and pagination cannot race");
+assert.doesNotMatch(nativeSignalFeed, /LIVE MEMBER INTELLIGENCE/);
+assert.doesNotMatch(nativeSignalFeed, /[\u{1F300}-\u{1FAFF}]/u, "the segmented control must use designed vector icons, not emoji");
 for (const route of ["index", "radar", "post", "cellar"]) {
   assert.doesNotMatch(readFileSync(`apps/mobile/app/(app)/(tabs)/${route}.tsx`, "utf8"), /await signOut\(/, `native ${route} data errors must not destroy the member session`);
 }
