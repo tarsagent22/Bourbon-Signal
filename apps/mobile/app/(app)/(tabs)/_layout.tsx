@@ -9,7 +9,7 @@ const byRoute = new Map(MEMBER_TABS.map((tab) => [tab.route, tab]));
 function icon(route: "index" | "radar" | "post" | "cellar" | "hq") {
   const definition = byRoute.get(route)!;
   return ({ color, size }: { color: ColorValue; size: number }) => (
-    <MaterialCommunityIcons color={color as string} name={definition.icon as never} size={route === "post" ? size + 5 : size} />
+    <MaterialCommunityIcons color={color as string} name={definition.icon as never} size={size} />
   );
 }
 
@@ -19,13 +19,13 @@ export default function TabsLayout() {
       screenOptions={{
         headerStyle: { backgroundColor: colors.surface },
         headerTintColor: colors.text,
-        headerTitleStyle: { fontWeight: "800" },
+        headerTitleStyle: { fontWeight: "700" },
         headerShadowVisible: false,
         sceneStyle: { backgroundColor: colors.background },
-        tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.border, paddingTop: 5 },
+        tabBarStyle: { backgroundColor: colors.surface, borderTopColor: colors.border, paddingTop: 4 },
         tabBarActiveTintColor: colors.accent,
         tabBarInactiveTintColor: colors.muted,
-        tabBarLabelStyle: { fontSize: 11, fontWeight: "700" },
+        tabBarLabelStyle: { fontSize: 11, fontWeight: "600" },
         tabBarHideOnKeyboard: true,
         lazy: true,
         freezeOnBlur: true,

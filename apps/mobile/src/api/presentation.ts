@@ -18,8 +18,18 @@ export function relativeSignalTime(value: string, now = new Date()) {
   const hours = Math.floor(minutes / 60);
   if (hours < 24) return `${hours}h`;
   const days = Math.floor(hours / 24);
-  if (days < 7) return `${days}d`;
+  if (days < 14) return `${days}d`;
   return new Date(observed).toLocaleDateString(undefined, { month: "short", day: "numeric" });
+}
+
+export function signalAccessibilityTime(value: string, now = new Date()) {
+  const relative = relativeSignalTime(value, now);
+  if (relative === "Now") return "Now";
+  const match = relative.match(/^(\d+)([mhd])$/);
+  if (!match) return relative;
+  const amount = Number(match[1]);
+  const unit = match[2] === "m" ? "minute" : match[2] === "h" ? "hour" : "day";
+  return `${amount} ${unit}${amount === 1 ? "" : "s"} ago`;
 }
 
 export function presentSignal(signal: Signal) {
@@ -41,6 +51,22 @@ export function presentSignal(signal: Signal) {
   };
 }
 
+export function signalCardStatusLabel(signal: Signal) {
+  if (signal.source.type === "member") return "Member sighting";
+  if (signal.kind === "release") return "Release";
+  if (signal.kind === "event") return "Event";
+  if (signal.availability?.status === "available_now" && (signal.evidence.retailerReported || signal.source.type === "retailer")) return "Retailer reports available";
+  if (signal.availability) return statusLabels[signal.availability.status];
+  if (signal.evidence.retailerReported) return "Retailer reported";
+  return "Reported";
+}
+
+export function signalCardSummary(signal: Signal) {
+  return signal.source.type === "member" || signal.kind === "release" || signal.kind === "event"
+    ? signal.evidence.summary || ""
+    : "";
+}
+
 export function signalStatusLabel(signal: Signal, availability = presentSignal(signal).availability) {
   if (signal.source.type === "member") return "Member sighting";
   if (signal.kind === "release") return "Release";
@@ -54,19 +80,17 @@ export function signalLocationLabel(signal: Signal, location = presentSignal(sig
 
 export function signalAccessibilityLabel(signal: Signal, now = new Date()) {
   const presented = presentSignal(signal);
-  const status = signalStatusLabel(signal, presented.availability);
+  const status = signalCardStatusLabel(signal);
   const location = signalLocationLabel(signal, presented.location);
-  const source = signal.source.actor?.label || signal.source.label;
-  const trust = signal.source.type === "member" ? "Community report" : signal.source.type === "retailer" ? "Retailer reported" : signal.evidence.sourceBacked ? "Source backed" : "";
+  const source = signal.source.type === "member" ? signal.source.actor?.label || signal.source.label : "";
   return [
     signal.bottle.name,
     location,
     status,
-    relativeSignalTime(signal.timing.displayAt, now),
+    signalAccessibilityTime(signal.timing.displayAt, now),
     presented.price,
     presented.quantity,
-    presented.summary,
+    signalCardSummary(signal),
     source,
-    trust,
   ].filter(Boolean).join(", ");
 }

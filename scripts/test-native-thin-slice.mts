@@ -307,7 +307,18 @@ assert.match(nativeSignalFeed, />Market</);
 assert.match(nativeSignalFeed, />Community</);
 assert.match(nativeSignalFeed, /requestInFlightRef\.current/, "feed requests need a synchronous in-flight guard so refresh and pagination cannot race");
 assert.doesNotMatch(nativeSignalFeed, /LIVE MEMBER INTELLIGENCE/);
+assert.doesNotMatch(nativeSignalFeed, /updatedLabel|styles\.updated/, "feed freshness belongs to each card, not a detached header label");
 assert.doesNotMatch(nativeSignalFeed, /[\u{1F300}-\u{1FAFF}]/u, "the segmented control must use designed vector icons, not emoji");
+const nativeSignalCard = readFileSync("apps/mobile/src/components/SignalCard.tsx", "utf8");
+assert.match(nativeSignalCard, /signalCardStatusLabel/, "cards must reduce machine availability labels to concise member-facing states");
+assert.match(nativeSignalCard, /signalCardSummary/, "cards must keep member notes while suppressing technical Market evidence prose");
+assert.match(nativeSignalCard, /statusDot/, "availability should use a restrained indicator instead of an oversized banner");
+assert.match(nativeSignalCard, /metaRow/, "price and quantity need a compact inventory row");
+assert.doesNotMatch(nativeSignalCard, /statusPill|chevron-right|trustRow|presented\.summary/, "cards must not restore redundant banners, chevrons, provenance rows, or raw evidence summaries");
+const memberTabsSource = readFileSync("apps/mobile/src/navigation/member-tabs.ts", "utf8");
+const tabsLayoutSource = readFileSync("apps/mobile/app/(app)/(tabs)/_layout.tsx", "utf8");
+assert.match(memberTabsSource, /icon: "plus-circle-outline"/, "Post should use a restrained outlined icon");
+assert.doesNotMatch(tabsLayoutSource, /size \+ 5/, "Post should not visually overpower the primary feed");
 for (const route of ["index", "radar", "post", "cellar"]) {
   assert.doesNotMatch(readFileSync(`apps/mobile/app/(app)/(tabs)/${route}.tsx`, "utf8"), /await signOut\(/, `native ${route} data errors must not destroy the member session`);
 }
