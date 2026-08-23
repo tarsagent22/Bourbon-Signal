@@ -4,9 +4,9 @@ import { readFile, writeFile } from "node:fs/promises";
 const outputUrl = new URL("../src/data/drop-feed-classification.generated.json", import.meta.url);
 const compareCodeUnits = (left: string, right: string) => left < right ? -1 : left > right ? 1 : 0;
 const bibleModule = await import("../src/lib/bourbonBible.ts");
-const { getBourbonBible } = (bibleModule.default || bibleModule) as typeof import("../src/lib/bourbonBible.ts");
+const { getStaticBourbonBible } = (bibleModule.default || bibleModule) as typeof import("../src/lib/bourbonBible.ts");
 
-const bible = await getBourbonBible();
+const bible = await getStaticBourbonBible();
 const records = bible
   .map((bottle) => ({
     id: bottle.id,

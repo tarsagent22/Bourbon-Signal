@@ -181,6 +181,7 @@ const generatorSource = readFileSync(new URL("./generate-drop-feed-classificatio
 
 assert.doesNotMatch(generatorSource, /localeCompare/, "generated classification order must not depend on host locale");
 assert.match(generatorSource, /compareCodeUnits/, "generated classification order must use a byte-stable comparator");
+assert.match(generatorSource, /getStaticBourbonBible/, "generated classification must exclude machine-local durable catalog records");
 assert.match(apiSource, /DROP_FEED_CLASSIFICATION_TIERS/, "API filters must share the canonical feed tier set");
 assert.match(apiSource, /resolveDropClassification/, "API must resolve classifications before returning cards");
 assert.match(apiSource, /classification_source/, "API cards must preserve whether the tier came from state or national evidence");
