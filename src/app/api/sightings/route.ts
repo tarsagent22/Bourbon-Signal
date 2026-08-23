@@ -2,7 +2,7 @@ import { after, NextRequest, NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { getBourbonBible, searchBourbonBible, normalizeBottleKey as normalizeBibleBottleKey, type BibleBottle } from "@/lib/bourbonBible";
 import { canonicalizeLegacySighting, makeSightingId, normalizeBottleKey, type MemberSighting, type SightingType, type SightingVote, type SightingVoteKind, type SightingsPreferences } from "@/lib/sightings";
-import { createCommunitySightingsRepository, type DurableSightingVote } from "@/lib/community-sightings-repository";
+import { createCommunitySightingsRepository, type DurableSightingVote, type SightingFeedFilters } from "@/lib/community-sightings-repository";
 import { getEntitlements } from "@/lib/entitlements";
 import { getServerEntitlements } from "@/lib/server-entitlements";
 import { canUseMemberSightingBoundary } from "@/lib/signals/sighting-pagination-policy";
@@ -15,6 +15,7 @@ import { addBottleContribution } from "@/lib/bottle-contributions";
 import { COMMUNITY_SIGHTINGS_DURABLE_CUTOVER } from "@/data/community-sightings-cutover";
 import { createSignalPointsRepository } from "@/lib/signal-points-repository";
 import { publicSignalIdentityFromMetadata } from "@/lib/signals/signal-api-contract";
+import { normalizeSignalRarities } from "@/lib/signals/signal-feed-filters";
 import { idempotentSightingFingerprint, idempotentSightingId, sameIdempotentSighting } from "@/lib/signals/signal-api-idempotency";
 
 function normalizeSightingType(value: unknown): SightingType {
@@ -170,7 +171,7 @@ function rewardsNeedPersistence(existing: unknown, next: unknown) {
 
 async function getAggregateSightings(
   currentUserId: string,
-  { includeOwned = false, requireLegacy = false, limit = 60, before = null }: { includeOwned?: boolean; requireLegacy?: boolean; limit?: number; before?: { createdAt: string; id: string } | null } = {},
+  { includeOwned = false, requireLegacy = false, limit = 60, before = null, filters = {} }: { includeOwned?: boolean; requireLegacy?: boolean; limit?: number; before?: { createdAt: string; id: string } | null; filters?: SightingFeedFilters } = {},
 ) {
   const repository = createCommunitySightingsRepository();
   const legacy = requireLegacy || !COMMUNITY_SIGHTINGS_DURABLE_CUTOVER.completed
@@ -178,7 +179,7 @@ async function getAggregateSightings(
     : null;
   const legacyIds = [...new Set((legacy?.sightings || []).map((sighting) => sighting.id))];
   const [durableFeed, durableOwned, durableLegacyOverlap] = await Promise.all([
-    repository.listSightingsFeed(currentUserId, limit, before),
+    repository.listSightingsFeed(currentUserId, limit, before, filters),
     includeOwned ? repository.listSightingsForReporter(currentUserId) : Promise.resolve([]),
     repository.countSightingsByIds(legacyIds),
   ]);
@@ -186,9 +187,18 @@ async function getAggregateSightings(
   const combinedCounts = voteCounts([...(legacy?.votes || []), ...durableVotes], currentUserId);
   const sightingsById = new Map<string, MemberSighting>();
   const reportersById = new Map<string, LegacyReporter>((legacy?.reporters || []).map((reporter) => [reporter.id, reporter]));
-  const eligibleLegacySightings = (legacy?.sightings || []).filter((sighting) => !before
-    || sighting.createdAt < before.createdAt
-    || (sighting.createdAt === before.createdAt && sighting.id > before.id));
+  const filterStates = new Set(filters.states || []);
+  const filterRarities = new Set(filters.rarities || []);
+  const filterBottle = filters.bottle?.trim().toLowerCase() || "";
+  const filterSince = filters.since ? Date.parse(filters.since) : Number.NaN;
+  const eligibleLegacySightings = (legacy?.sightings || []).filter((sighting) => {
+    const beforeMatch = !before || sighting.createdAt < before.createdAt || (sighting.createdAt === before.createdAt && sighting.id > before.id);
+    const stateMatch = !filterStates.size || filterStates.has(String(sighting.storeState || "").toUpperCase());
+    const rarityMatch = !filterRarities.size || filterRarities.has(String(sighting.rarityTier || ""));
+    const bottleMatch = !filterBottle || String(sighting.bottleName || "").toLowerCase().includes(filterBottle);
+    const sinceMatch = !Number.isFinite(filterSince) || Date.parse(sighting.createdAt) >= filterSince;
+    return beforeMatch && stateMatch && rarityMatch && bottleMatch && sinceMatch;
+  });
   for (const sighting of eligibleLegacySightings) sightingsById.set(sighting.id, sighting);
   for (const sighting of durableFeed.sightings) sightingsById.set(sighting.id, sighting);
   const sightings: MemberSighting[] = [];
@@ -261,6 +271,24 @@ export async function GET(req: NextRequest) {
   }
   const requestedLimit = Number(url.searchParams.get("limit") || 60);
   const feedLimit = Number.isFinite(requestedLimit) ? Math.max(1, Math.min(Math.floor(requestedLimit), 1_000)) : 60;
+  const requestedState = (url.searchParams.get("state") || "").trim().toUpperCase();
+  const requestedBottle = (url.searchParams.get("bottle") || "").replace(/\s+/g, " ").trim();
+  const requestedSince = url.searchParams.get("since");
+  let requestedRarities: string[];
+  try {
+    requestedRarities = normalizeSignalRarities(url.searchParams.getAll("tiers"));
+  } catch (error) {
+    return NextResponse.json({ error: error instanceof Error ? error.message : "Invalid rarity filter" }, { status: 400 });
+  }
+  if (requestedState && !/^[A-Z]{2}$/.test(requestedState)) return NextResponse.json({ error: "Invalid state filter" }, { status: 400 });
+  if (requestedBottle.length > 100) return NextResponse.json({ error: "Invalid bottle filter" }, { status: 400 });
+  if (requestedSince && !Number.isFinite(Date.parse(requestedSince))) return NextResponse.json({ error: "Invalid since timestamp" }, { status: 400 });
+  const feedFilters: SightingFeedFilters = {
+    states: requestedState ? [requestedState] : [],
+    rarities: requestedRarities,
+    bottle: requestedBottle || null,
+    since: requestedSince || null,
+  };
   const beforeCreatedAt = url.searchParams.get("beforeCreatedAt");
   const beforeId = url.searchParams.get("beforeId");
   if (Boolean(beforeCreatedAt) !== Boolean(beforeId)
@@ -276,7 +304,7 @@ export async function GET(req: NextRequest) {
     );
   }
   const rewardGeneration = includeRewards ? await createSignalPointsRepository().readRewardGeneration(userId) : 0;
-  const aggregate = await getAggregateSightings(userId, { includeOwned: includeRewards, limit: feedLimit, before });
+  const aggregate = await getAggregateSightings(userId, { includeOwned: includeRewards, limit: feedLimit, before, filters: feedFilters });
 
   const allSightings = aggregate.sightings;
   const previewLimit = entitlements.sightingsPreviewLimit;

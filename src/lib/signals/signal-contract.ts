@@ -1,6 +1,7 @@
 import type { MemberSighting } from "../sightings.ts";
 import { isScheduledReleaseSignal, scheduledReleaseDateValue, type ScheduledReleaseInput } from "../scheduled-release-signals.ts";
 import { dropDisplayTime } from "../drop-feed-policy.ts";
+import { isSignalRarityTier, type SignalRarityTier } from "./signal-feed-filters.ts";
 
 export const SIGNAL_CONTRACT_VERSION = "bourbon-signal/signal@1" as const;
 
@@ -27,6 +28,7 @@ export interface CanonicalSignal {
   bottle: {
     id?: string;
     name: string;
+    rarity?: SignalRarityTier;
   };
   location: {
     scope: SignalLocationScope;
@@ -113,6 +115,14 @@ function prefixedId(prefix: SignalSourceType, rawId: string) {
 function normalizeState(value: unknown) {
   const normalized = text(value)?.toUpperCase();
   return normalized && /^[A-Z]{2}$/.test(normalized) ? normalized : undefined;
+}
+
+function signalRarity(...values: unknown[]) {
+  for (const value of values) {
+    const normalized = typeof value === "string" ? value.trim().toLowerCase().replace(/[\s-]+/g, "_") : "";
+    if (isSignalRarityTier(normalized)) return normalized;
+  }
+  return undefined;
 }
 
 function scheduledReleaseInput(drop: Record<string, unknown>): ScheduledReleaseInput {
@@ -251,7 +261,11 @@ export function normalizeDropSignal(input: Record<string, unknown>): CanonicalSi
     id: prefixedId(type, rawId),
     kind,
     source: { type, label },
-    bottle: { ...(bottleId ? { id: bottleId } : {}), name: bottleName },
+    bottle: {
+      ...(bottleId ? { id: bottleId } : {}),
+      name: bottleName,
+      ...(signalRarity(input.rarity_tier, input.tier, input.national_tier) ? { rarity: signalRarity(input.rarity_tier, input.tier, input.national_tier) } : {}),
+    },
     location: {
       scope,
       ...(locationLabel ? { label: locationLabel } : {}),
@@ -305,7 +319,11 @@ export function normalizeMemberSightingSignal(sighting: MemberSighting): Canonic
       reportMode: sighting.sightingType === "online_social" ? "reported_online" : "seen_in_store",
       ...(sighting.reporterPublicIdentity ? { actor: sighting.reporterPublicIdentity } : {}),
     },
-    bottle: { ...(sighting.bottleId ? { id: sighting.bottleId } : {}), name: sighting.bottleName || "Unknown bottle" },
+    bottle: {
+      ...(sighting.bottleId ? { id: sighting.bottleId } : {}),
+      name: sighting.bottleName || "Unknown bottle",
+      ...(signalRarity(sighting.rarityTier) ? { rarity: signalRarity(sighting.rarityTier) } : {}),
+    },
     location: {
       scope: "exact_store",
       label: sighting.storeName,

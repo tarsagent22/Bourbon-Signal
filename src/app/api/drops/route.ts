@@ -5,7 +5,7 @@ import { normalizeDropForSite, readSiteExportResults, siteExportHeaders } from "
 import { normalizeStateCodeParam } from "@/lib/location-normalization";
 import { decodeDropCursor, DropCursorSnapshotError, paginateDrops } from "@/lib/drop-cursor";
 import { dropFeedCacheHeaders } from "@/lib/api-cache-contract";
-import { compareDropFeedNewestFirst, dropFreshnessTime, resolveDropLimit } from "@/lib/drop-feed-policy";
+import { compareDropFeedNewestFirst, dropDisplayTime, dropFreshnessTime, resolveDropLimit } from "@/lib/drop-feed-policy";
 import { sortDropsByCanonicalSignalOrder } from "@/lib/signals/signal-contract";
 import { isFreshPublicDrop, isPublicDropFeedEligible, publicDropRarityTier, publicEvidenceStateCode } from "@/lib/public-drop-evidence";
 import { ACTIVE_ENGINE_STATE_NAMES } from "@/lib/activeStates";
@@ -206,6 +206,11 @@ export async function GET(request: Request) {
   const include = entitlements.canUseAdvancedFilters ? url.searchParams.get("include")?.toLowerCase().trim() : undefined;
 
   const tierFilter = parseTierFilter(url);
+  const rawSince = url.searchParams.get("since");
+  const since = rawSince ? Date.parse(rawSince) : Number.NaN;
+  if (rawSince && !Number.isFinite(since)) {
+    return NextResponse.json({ drops: [], total: 0, error: "Invalid since timestamp" }, { status: 400 });
+  }
   const scopedFilterHistory = scopedDropFeedHistoryEnabled({
     state,
     area: appliedAreaFilter ? areaQuery : undefined,
@@ -353,6 +358,9 @@ export async function GET(request: Request) {
 
     if (state) {
       drops = drops.filter((drop) => String(drop.state ?? drop.state_code ?? "").toUpperCase() === state);
+    }
+    if (Number.isFinite(since)) {
+      drops = drops.filter((drop) => Date.parse(dropDisplayTime(drop)) >= since);
     }
     drops = applyRequestedAreaFilter(drops);
 

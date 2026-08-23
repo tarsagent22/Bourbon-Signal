@@ -20,6 +20,30 @@ test("sends the selected feed view, bearer auth, and opaque cursor without inspe
   assert.equal(new URL(requests[0].url).searchParams.get("view"), "community");
 });
 
+test("serializes normalized Signal filters for server-side pagination", async () => {
+  let captured: Request | null = null;
+  const api = createMobileApi({
+    baseUrl: "https://example.test",
+    getToken: async () => "session-token",
+    fetcher: async (request) => {
+      captured = new Request(request);
+      return Response.json({ signals: [], nextCursor: null, hasMore: false });
+    },
+  });
+  await api.listSignals({
+    view: "market",
+    rarities: ["unicorn", "allocated"],
+    state: "nc",
+    freshness: "7d",
+    bottle: "  Weller  ",
+  });
+  const params = new URL(captured!.url).searchParams;
+  assert.equal(params.get("tiers"), "allocated,unicorn");
+  assert.equal(params.get("state"), "NC");
+  assert.equal(params.get("freshness"), "7d");
+  assert.equal(params.get("bottle"), "Weller");
+});
+
 test("preserves the combined-feed default for callers that omit a view", async () => {
   let request: Request | null = null;
   const api = createMobileApi({

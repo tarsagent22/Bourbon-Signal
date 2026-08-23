@@ -9,6 +9,7 @@ import type {
   SignalFeedPage,
   SignalPointsSummary,
 } from "./types";
+import type { SignalFreshness, SignalRarity } from "../signals/feed-filters";
 
 export class MobileApiError extends Error {
   constructor(
@@ -87,10 +88,17 @@ export function createMobileApi({
   }
 
   return {
-    listSignals({ view, limit = 30, cursor, fresh = false }: { view?: "all" | "market" | "community"; limit?: number; cursor?: string | null; fresh?: boolean } = {}) {
+    listSignals({ view, limit = 30, cursor, fresh = false, rarities = [], state, freshness, bottle }: { view?: "all" | "market" | "community"; limit?: number; cursor?: string | null; fresh?: boolean; rarities?: SignalRarity[]; state?: string; freshness?: SignalFreshness; bottle?: string } = {}) {
       const params = new URLSearchParams({ limit: String(limit) });
       if (view && view !== "all") params.set("view", view);
       if (cursor) params.set("cursor", cursor);
+      const normalizedRarities = [...new Set(rarities)].sort();
+      if (normalizedRarities.length) params.set("tiers", normalizedRarities.join(","));
+      const normalizedState = state?.trim().toUpperCase();
+      if (normalizedState) params.set("state", normalizedState);
+      if (freshness) params.set("freshness", freshness);
+      const normalizedBottle = bottle?.replace(/\s+/g, " ").trim();
+      if (normalizedBottle) params.set("bottle", normalizedBottle);
       return request<SignalFeedPage>(`/api/v1/signals?${params.toString()}`, { fresh });
     },
     getSignal(id: string) {

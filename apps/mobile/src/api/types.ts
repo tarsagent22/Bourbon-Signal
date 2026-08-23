@@ -8,7 +8,7 @@ export interface Signal {
     reportMode?: "seen_in_store" | "reported_online";
     actor?: { kind: "founder" | "member"; number: number; label: string };
   };
-  bottle: { id?: string; name: string };
+  bottle: { id?: string; name: string; rarity?: "limited" | "allocated" | "highly_allocated" | "unicorn" };
   location: {
     scope: "exact_store" | "area" | "board" | "state" | "online" | "unknown";
     label?: string;

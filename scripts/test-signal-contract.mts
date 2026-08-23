@@ -246,7 +246,23 @@ const malformedMemberHandler = createSignalFeedHandler({
 const malformedMemberResponse = await malformedMemberHandler(new Request("https://www.bourbonsignal.com/api/v1/signals"));
 assert.equal(malformedMemberResponse.status, 503, "invalid optional member fields must fail the source closed");
 
-const filteredResponse = await unsupportedHandler(new Request("https://www.bourbonsignal.com/api/v1/signals?state=NC"));
-assert.equal(filteredResponse.status, 400, "v1 must not expose filters before unified entitlement enforcement exists");
+const filterCalls: string[] = [];
+const filterHandler = createSignalFeedHandler({
+  getDrops: async (request) => { filterCalls.push(request.url); return Response.json({ drops: [], total: 0, snapshot: "filters", hasMore: false }); },
+  getSightings: async (request) => { filterCalls.push(request.url); return Response.json({ sightings: [], totalSightings: 0, previewLimit: null }); },
+});
+const filteredResponse = await filterHandler(new Request("https://www.bourbonsignal.com/api/v1/signals?state=nc&tiers=allocated,unicorn&freshness=24h&bottle=Weller"));
+assert.equal(filteredResponse.status, 200, "v1 filters should delegate to the entitlement-aware source routes");
+assert.equal(filterCalls.length, 2);
+for (const call of filterCalls) {
+  const params = new URL(call).searchParams;
+  assert.equal(params.get("state"), "NC");
+  assert.equal(params.get("tiers"), "allocated,unicorn");
+  assert.equal(params.get("bottle"), "Weller");
+  assert.ok(params.get("since"));
+}
+const unsupportedFilter = await filterHandler(new Request("https://www.bourbonsignal.com/api/v1/signals?store=secret"));
+assert.equal(unsupportedFilter.status, 400, "unapproved source filters must still fail closed");
+assert.equal(filterCalls.length, 2, "unsupported filters must fail before source access");
 
 console.log("Canonical Signal v1 contract passed.");

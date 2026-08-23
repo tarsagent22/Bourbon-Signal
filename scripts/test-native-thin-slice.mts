@@ -76,6 +76,31 @@ assert.ok(communityPayload.signals.every((signal: { source: { type: string } }) 
 assert.equal(communityPayload.access.marketDetailsLocked, false);
 assert.equal(communityDropsCalled, false, "Community view must not fetch locked Market rows");
 
+const filterSourceRequests: string[] = [];
+const filteredHandler = createSignalFeedHandler({
+  getDrops: async (request) => {
+    filterSourceRequests.push(request.url);
+    return Response.json({ drops: [{ ...drops[0], tier: "allocated" }], total: 1, snapshot: "filtered", hasMore: true });
+  },
+  getSightings: async (request) => {
+    filterSourceRequests.push(request.url);
+    return Response.json({ sightings: [{ ...sightings[0], rarityTier: "allocated" }], totalSightings: 2 });
+  },
+});
+const filteredResponse = await filteredHandler(new Request("https://www.bourbonsignal.com/api/v1/signals?limit=1&tiers=unicorn,allocated&state=nc&freshness=7d&bottle=Weller"));
+assert.equal(filteredResponse.status, 200);
+const filteredPayload = await filteredResponse.json();
+assert.equal(filteredPayload.signals[0].bottle.rarity, "allocated");
+for (const sourceUrl of filterSourceRequests) {
+  const params = new URL(sourceUrl).searchParams;
+  assert.equal(params.get("tiers"), "allocated,unicorn");
+  assert.equal(params.get("state"), "NC");
+  assert.equal(params.get("bottle"), "Weller");
+  assert.ok(params.get("since"), "freshness must be evaluated before source pagination");
+}
+const changedFilterCursor = await filteredHandler(new Request(`https://www.bourbonsignal.com/api/v1/signals?limit=1&tiers=limited&cursor=${encodeURIComponent(filteredPayload.nextCursor)}`));
+assert.equal(changedFilterCursor.status, 400, "a cursor must not be reusable with another filter lens");
+
 const unsupportedView = await communityHandler(new Request("https://www.bourbonsignal.com/api/v1/signals?view=social"));
 assert.equal(unsupportedView.status, 400);
 
@@ -301,6 +326,8 @@ assert.match(mobileApiHook, /getToken: \(\) => getTokenRef\.current\(\)/, "the s
 const mobileApiClient = readFileSync("apps/mobile/src/api/client.ts", "utf8");
 assert.match(mobileApiClient, /recentReads\.get\(key\)/, "native GET requests must have a circuit breaker against remount storms");
 const nativeSignalFeed = readFileSync("apps/mobile/app/(app)/(tabs)/index.tsx", "utf8");
+const dropRouteSource = readFileSync("src/app/api/drops/route.ts", "utf8");
+assert.match(dropRouteSource, /Date\.parse\(dropDisplayTime\(drop\)\) >= since/, "Signal freshness filters must use the same displayed timestamp as Signal ordering");
 assert.match(nativeSignalFeed, /radio-tower/);
 assert.match(nativeSignalFeed, /account-group-outline/);
 assert.match(nativeSignalFeed, />Market</);
@@ -311,6 +338,10 @@ assert.doesNotMatch(nativeSignalFeed, /updatedLabel|styles\.updated/, "feed fres
 assert.doesNotMatch(nativeSignalFeed, /segmentSelected:\s*\{[^}]*borderColor/, "the selected mode should rely on fill and icon color instead of a nested border");
 assert.doesNotMatch(nativeSignalFeed, /segment:\s*\{[^}]*borderColor:\s*"transparent"/, "segments should not reserve an inner border");
 assert.doesNotMatch(nativeSignalFeed, /[\u{1F300}-\u{1FAFF}]/u, "the segmented control must use designed vector icons, not emoji");
+assert.match(nativeSignalFeed, /rarityOptionsForView\(view\)/, "rarity filters must remain immediately visible and respect each source schema");
+assert.match(nativeSignalFeed, /horizontal/, "rarity chips should scroll instead of wrapping into multiple rows");
+assert.match(nativeSignalFeed, /<Modal/, "lower-frequency filters should use one compact native sheet");
+assert.match(nativeSignalFeed, /activeFilterCount/, "the compact filter control must expose its active state");
 const nativeSignalCard = readFileSync("apps/mobile/src/components/SignalCard.tsx", "utf8");
 assert.match(nativeSignalCard, /signalCardStatusLabel/, "cards must reduce machine availability labels to concise member-facing states");
 assert.match(nativeSignalCard, /signalCardSummary/, "cards must keep member notes while suppressing technical Market evidence prose");
