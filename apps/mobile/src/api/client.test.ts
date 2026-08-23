@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createMobileApi, MobileApiError } from "./client";
 import type { Signal } from "./types";
-import { presentSignal, relativeSignalTime, signalAccessibilityLabel, signalAccessibilityTime, signalCardStatusLabel, signalCardSummary } from "./presentation";
+import { presentSignal, relativeSignalTime, signalAccessibilityLabel, signalAccessibilityTime, signalAvailabilityIsCurrent, signalAvailabilityRefreshAt, signalCardStatusLabel, signalCardSummary } from "./presentation";
 
 test("sends the selected feed view, bearer auth, and opaque cursor without inspecting it", async () => {
   const requests: Request[] = [];
@@ -253,10 +253,33 @@ test("presents the canonical Signal transport shape without legacy field assumpt
   assert.equal(presented.price, "$69.99");
   assert.equal(presented.quantity, "2 bottles");
   assert.equal(presented.summary, "Two bottles on the shelf");
+  assert.equal(signalCardStatusLabel(signal), "Member #19");
   const accessibility = signalAccessibilityLabel(signal, new Date("2026-08-23T12:00:00.000Z"));
-  for (const detail of ["Example Bourbon", "Bottle Shop", "Member sighting", "$69.99", "2 bottles", "Two bottles on the shelf", "Member #19", "2 days ago"]) {
+  for (const detail of ["Example Bourbon", "Bottle Shop", "$69.99", "2 bottles", "Two bottles on the shelf", "Member #19", "2 days ago"]) {
     assert.match(accessibility, new RegExp(detail.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   }
+  assert.doesNotMatch(accessibility, /Member sighting/);
+
+  const founder: Signal = {
+    ...signal,
+    id: "member:founder",
+    source: { type: "member", label: "Founder #4", actor: { kind: "founder", number: 4, label: "Founder #4" } },
+  };
+  assert.equal(signalCardStatusLabel(founder), "Founder #4");
+  assert.equal(signalCardStatusLabel({
+    ...signal,
+    id: "member:legacy",
+    source: { type: "member", label: "Member" },
+  }), "Community report");
+
+  const numericQuantity: Signal = {
+    ...signal,
+    id: "member:numeric-quantity",
+    availability: { ...signal.availability!, quantity: undefined, quantityLabel: "4" },
+  };
+  assert.equal(presentSignal(numericQuantity).quantity, "4 bottles");
+  assert.equal(presentSignal({ ...numericQuantity, availability: { ...numericQuantity.availability!, quantityLabel: "1" } }).quantity, "1 bottle");
+  assert.equal(presentSignal({ ...signal, availability: { status: "reported", price: 69.99 } }).quantity, "Count not provided");
 
   const release: Signal = {
     ...signal,
@@ -277,7 +300,7 @@ test("presents the canonical Signal transport shape without legacy field assumpt
     evidence: {
       ...signal.evidence,
       summary: "Embeds a positive CityHive option bound to merchant 101 and product 9001.",
-      retailerReported: true,
+      retailerReported: false,
       sourceBacked: true,
     },
     availability: {
@@ -287,7 +310,40 @@ test("presents the canonical Signal transport shape without legacy field assumpt
       caveat: "Availability can change.",
     },
   };
-  assert.equal(signalCardStatusLabel(market), "Retailer reports available");
+  const now = new Date("2026-08-23T12:00:00.000Z");
+  assert.equal(signalCardStatusLabel(market, now), "Reported available");
+  const freshMarket: Signal = {
+    ...market,
+    timing: { ...market.timing, displayAt: "2026-08-23T11:00:00.000Z" },
+  };
+  assert.equal(signalCardStatusLabel(freshMarket, now), "Retailer reports available");
+  assert.equal(signalAvailabilityIsCurrent(freshMarket, now), true);
+  assert.equal(signalAvailabilityRefreshAt(freshMarket, now), Date.parse("2026-08-24T11:00:00.000Z"));
+
+  const explicitlyActiveMarket: Signal = {
+    ...market,
+    timing: { ...market.timing, displayAt: "2026-08-21T12:00:00.000Z", expiresAt: "2026-08-23T13:00:00.000Z" },
+  };
+  assert.equal(signalAvailabilityIsCurrent(explicitlyActiveMarket, now), true);
+  assert.equal(signalCardStatusLabel(explicitlyActiveMarket, now), "Retailer reports available");
+  assert.equal(signalAvailabilityRefreshAt(explicitlyActiveMarket, now), Date.parse("2026-08-23T13:00:00.000Z"));
+
+  const expiredMarket: Signal = {
+    ...market,
+    timing: { ...market.timing, displayAt: "2026-08-23T11:00:00.000Z", expiresAt: "2026-08-23T11:30:00.000Z" },
+  };
+  assert.equal(signalAvailabilityIsCurrent(expiredMarket, now), false);
+  assert.equal(signalCardStatusLabel(expiredMarket, now), "Reported available");
+  assert.equal(signalAvailabilityRefreshAt(expiredMarket, now), null);
+
+  const upcomingMarket: Signal = {
+    ...market,
+    timing: { ...market.timing, displayAt: "2026-08-23T13:00:00.000Z", expiresAt: "2026-08-23T14:00:00.000Z" },
+  };
+  assert.equal(signalAvailabilityIsCurrent(upcomingMarket, now), false);
+  assert.equal(signalCardStatusLabel(upcomingMarket, now), "Upcoming");
+  assert.equal(signalAvailabilityRefreshAt(upcomingMarket, now), Date.parse("2026-08-23T13:00:00.000Z"));
+  assert.equal(presentSignal(market).quantity, "Count not published");
   assert.equal(signalCardSummary(market), "");
   assert.equal(signalCardSummary(signal), "Two bottles on the shelf");
   assert.equal(signalCardSummary({
@@ -296,7 +352,8 @@ test("presents the canonical Signal transport shape without legacy field assumpt
     kind: "release",
     evidence: { ...market.evidence, summary: "Bottle release opens Friday morning." },
   }), "Bottle release opens Friday morning.");
-  const marketAccessibility = signalAccessibilityLabel(market, new Date("2026-08-23T12:00:00.000Z"));
-  assert.match(marketAccessibility, /Retailer reports available/);
-  assert.doesNotMatch(marketAccessibility, /CityHive|Source backed|exact count is not published/);
+  const marketAccessibility = signalAccessibilityLabel(market, now);
+  assert.match(marketAccessibility, /Reported available/);
+  assert.match(marketAccessibility, /Count not published/);
+  assert.doesNotMatch(marketAccessibility, /CityHive|Source backed|exact count is not published|Available now/);
 });
