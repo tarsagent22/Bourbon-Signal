@@ -8,6 +8,8 @@ import { dropFeedCacheHeaders } from "@/lib/api-cache-contract";
 import { compareDropFeedNewestFirst, dropFreshnessTime, resolveDropLimit } from "@/lib/drop-feed-policy";
 import { sortDropsByCanonicalSignalOrder } from "@/lib/signals/signal-contract";
 import { isFreshPublicDrop, isPublicDropFeedEligible, publicDropRarityTier, publicEvidenceStateCode } from "@/lib/public-drop-evidence";
+import { ACTIVE_ENGINE_STATE_NAMES } from "@/lib/activeStates";
+import { buildWeeklyMarketSummaries } from "@/lib/signals/signal-market-summary";
 import { historicalDropFeedEnabled, scopedDropFeedHistoryEnabled, selectDropFeedHistory } from "@/lib/drop-feed-history";
 import { readCachedPublicRetailerSubmissions } from "@/lib/retailer-public-submissions";
 import dropFeedClassification from "@/data/drop-feed-classification.generated.json";
@@ -245,6 +247,10 @@ export async function GET(request: Request) {
       });
     let drops = [...normalizedDrops];
     const degradedStates = degradedEngineStates(statsPayload);
+    const marketSummaries = buildWeeklyMarketSummaries(
+      normalizedDrops.filter((drop) => isPublicDropFeedEligible(drop, { degradedStateCodes: degradedStates })) as Array<Record<string, unknown>>,
+      { stateLabels: ACTIVE_ENGINE_STATE_NAMES },
+    );
     const engineFresh = isEngineFresh(statsPayload, exportPayload?.generatedAt);
     // The normal customer feed must never retry around the same degraded-state
     // gate used by Coverage; otherwise it can display rows Coverage rejects.
@@ -410,6 +416,7 @@ export async function GET(request: Request) {
         nextCursor: isFreeAccess ? null : page.nextCursor,
         snapshot,
         hasMore: !isFreeAccess && page.hasMore,
+        marketSummaries,
         previewLocked: isFreeAccess && total > pagedDrops.length,
         requiresAccountForFullFeed: isFreeAccess,
         lastUpdated: engineRunTimestamp(statsPayload, exportPayload?.generatedAt),
