@@ -15,7 +15,7 @@ assert.doesNotMatch(route, /unstable_cache|cache\(/, "Clerk request helpers must
 assert.match(route, /LEGACY_COMMUNITY_CACHE_TTL_MS\s*=\s*5 \* 60 \* 1_000/, "legacy fallback actions should retain a bounded warm-instance cache");
 assert.match(route, /if \(legacyCommunityInFlight\) return legacyCommunityInFlight/, "concurrent legacy fallback actions should share in-flight work");
 assert.match(repository, /listSightingsForReporter[\s\S]*reporter_user_id = \$1/, "reward reconciliation should query exhaustive durable owner history");
-assert.match(repository, /WITH recent AS MATERIALIZED[\s\S]*LIMIT \$1[\s\S]*SELECT recent\.payload/, "the initial feed should materialize its bounded page before follow-up work");
+assert.match(repository, /WITH filtered AS MATERIALIZED[\s\S]*WHERE \(cardinality\(\$4::text\[\]\)[\s\S]*recent AS MATERIALIZED[\s\S]*FROM filtered[\s\S]*LIMIT \$1[\s\S]*SELECT recent\.payload/, "the feed must apply server filters before materializing its bounded page");
 assert.doesNotMatch(repository, /LEFT JOIN LATERAL/, "the feed query must not aggregate every historical vote before LIMIT");
 assert.match(repository, /listVotesForSightings[\s\S]*sighting_id = ANY\(\$1::text\[\]\)/, "votes should be loaded only for visible sighting IDs");
 assert.match(repository, /countSightingsByIds[\s\S]*id = ANY\(\$1::text\[\]\)/, "legacy fallback totals should count durable overlap by indexed IDs");
@@ -25,7 +25,7 @@ const postStart = route.indexOf("export async function POST");
 const getBody = route.slice(getStart, postStart);
 assert.match(getBody, /const includeRewards = url\.searchParams\.get\("rewards"\) !== "0"/);
 assert.match(getBody, /visibleSightingForRequester\(sighting, ownerPointsPreview\)/, "private sighting fields must still require verified owner identity");
-assert.match(getBody, /getAggregateSightings\(userId, \{ includeOwned: includeRewards, limit: feedLimit, before \}\)/);
+assert.match(getBody, /getAggregateSightings\(userId, \{ includeOwned: includeRewards, limit: feedLimit, before, filters: feedFilters \}\)/);
 assert.match(getBody, /canUseMemberSightingBoundary\(entitlements\.sightingsPreviewLimit, before\)/, "preview access must not enumerate older windows with forged boundaries");
 assert.match(repository, /created_at < \$2::timestamptz OR \(created_at = \$2::timestamptz AND id > \$3::text\)/, "native continuation should use a stable member keyset instead of a growing offset");
 assert.match(route, /COMMUNITY_SIGHTINGS_DURABLE_CUTOVER\.completed/,

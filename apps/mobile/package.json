@@ -9,7 +9,7 @@
     "ios": "expo run:ios",
     "web": "expo start --web",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test src/api/client.test.ts src/interactions/member-interactions.test.ts src/navigation/member-tabs.test.ts src/sightings/manual-sighting.test.ts",
+    "test": "tsx --test src/api/client.test.ts src/interactions/member-interactions.test.ts src/navigation/member-tabs.test.ts src/sightings/manual-sighting.test.ts src/signals/feed-filters.test.ts",
     "verify:release-readiness": "node scripts/test-release-readiness.mjs",
     "verify:native-deps": "npm ls react-native-worklets react-native-reanimated expo-modules-core --all",
     "export:android": "expo export --platform android --output-dir dist/android",

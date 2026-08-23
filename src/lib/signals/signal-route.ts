@@ -9,6 +9,7 @@ import type { MemberSighting } from "../sightings.ts";
 import { encodeDropCursor } from "../drop-cursor.ts";
 import { decodeSignalFeedCursor, encodeSignalFeedCursor } from "./signal-feed-cursor.ts";
 import type { SignalFeedView } from "./signal-feed-cursor.ts";
+import { parseSignalFeedFilters, sameSignalFeedFilters, signalFilterSince, type SignalFeedFilters } from "./signal-feed-filters.ts";
 import { SIGNAL_API_ERROR_VERSION } from "./signal-api-contract.ts";
 import type { MarketSummary } from "./signal-market-summary.ts";
 
@@ -37,7 +38,7 @@ type LegacySightingsPayload = {
   previewLimit?: number | null;
 };
 
-const SUPPORTED_QUERY_KEYS = new Set(["limit", "cursor", "view"]);
+const SUPPORTED_QUERY_KEYS = new Set(["limit", "cursor", "view", "tiers", "state", "freshness", "bottle"]);
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === "object" && !Array.isArray(value));
@@ -99,11 +100,15 @@ function unavailableResponse() {
   return new Response(null, { status: 503 });
 }
 
-function sourceRequest(request: Request, path: string, options: { limit: number; offset?: number; cursor?: string | null; memberBoundary?: { createdAt: string; id: string } | null }) {
+function sourceRequest(request: Request, path: string, options: { limit: number; offset?: number; cursor?: string | null; memberBoundary?: { createdAt: string; id: string } | null; filters: SignalFeedFilters; since: string | null }) {
   const url = new URL(path, request.url);
   url.searchParams.set("limit", String(options.limit));
   if (options.cursor) url.searchParams.set("cursor", options.cursor);
   else if (options.offset) url.searchParams.set("offset", String(options.offset));
+  if (options.filters.rarities.length) url.searchParams.set("tiers", options.filters.rarities.join(","));
+  if (options.filters.state) url.searchParams.set("state", options.filters.state);
+  if (options.filters.bottle) url.searchParams.set("bottle", options.filters.bottle);
+  if (options.since) url.searchParams.set("since", options.since);
   if (path === "/api/drops") url.searchParams.set("signalOrder", "canonical");
   if (path === "/api/sightings") {
     url.searchParams.set("rewards", "0");
@@ -154,6 +159,12 @@ export function createSignalFeedHandler({ getDrops, getSightings }: { getDrops: 
       return Response.json({ error: "view must be market or community" }, { status: 400, headers: PRIVATE_SIGNAL_HEADERS });
     }
     const view: SignalFeedView = requestedView === "market" || requestedView === "community" ? requestedView : "all";
+    let filters: SignalFeedFilters;
+    try {
+      filters = parseSignalFeedFilters(url);
+    } catch (error) {
+      return Response.json({ error: error instanceof Error ? error.message : "Invalid Signal filters" }, { status: 400, headers: PRIVATE_SIGNAL_HEADERS });
+    }
 
     const rawLimit = url.searchParams.get("limit") || "40";
     const parsedLimit = Number(rawLimit);
@@ -165,6 +176,9 @@ export function createSignalFeedHandler({ getDrops, getSightings }: { getDrops: 
     const cursor = requestedCursor ? decodeSignalFeedCursor(requestedCursor) : null;
     if (requestedCursor && !cursor) return cursorError(400, "INVALID_CURSOR", "Signal cursor is invalid.");
     if (cursor && cursor.view !== view) return cursorError(400, "INVALID_CURSOR", "Signal cursor does not match this feed view.");
+    if (cursor && !sameSignalFeedFilters(cursor.filters, filters)) return cursorError(400, "INVALID_CURSOR", "Signal cursor does not match these feed filters.");
+    const asOf = cursor?.asOf || new Date().toISOString();
+    const since = signalFilterSince(filters, asOf);
     const dropsOffset = cursor?.dropsOffset || 0;
     const sourcePageSize = parsedLimit + 1;
     const dropCursor = cursor?.dropSnapshot
@@ -174,10 +188,10 @@ export function createSignalFeedHandler({ getDrops, getSightings }: { getDrops: 
     const [dropsResult, sightingsResult] = await Promise.allSettled([
       view === "community"
         ? Promise.resolve(Response.json({ drops: [], total: 0, snapshot: "community-view", hasMore: false }))
-        : getDrops(sourceRequest(request, "/api/drops", { limit: sourcePageSize, offset: dropsOffset, cursor: dropCursor })),
+        : getDrops(sourceRequest(request, "/api/drops", { limit: sourcePageSize, offset: dropsOffset, cursor: dropCursor, filters, since })),
       view === "market"
         ? Promise.resolve(Response.json({ sightings: [], totalSightings: 0, previewLimit: null }))
-        : getSightings(sourceRequest(request, "/api/sightings", { limit: sourcePageSize, memberBoundary: cursor?.memberBoundary || null })),
+        : getSightings(sourceRequest(request, "/api/sightings", { limit: sourcePageSize, memberBoundary: cursor?.memberBoundary || null, filters, since })),
     ]);
     const dropsResponse = dropsResult.status === "fulfilled" ? dropsResult.value : unavailableResponse();
     const sightingsResponse = sightingsResult.status === "fulfilled" ? sightingsResult.value : unavailableResponse();
@@ -255,6 +269,8 @@ export function createSignalFeedHandler({ getDrops, getSightings }: { getDrops: 
       dropsOffset: dropsOffset + consumed.drops,
       dropSnapshot: dropsPayload.snapshot || cursor?.dropSnapshot || null,
       memberBoundary: nextMemberBoundary,
+      filters,
+      asOf,
     }) : null;
 
     return Response.json({

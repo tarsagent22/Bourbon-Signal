@@ -25,6 +25,13 @@ function connectionString(env: NodeJS.ProcessEnv = process.env) {
   return env.BOURBON_QUEUE_DATABASE_URL || env.BOURBON_QUEUE_DATABASE_URL_UNPOOLED || env.DATABASE_URL || null;
 }
 
+export interface SightingFeedFilters {
+  states?: string[];
+  rarities?: string[];
+  bottle?: string | null;
+  since?: string | null;
+}
+
 export class CommunitySightingsRepository {
   private readonly query;
 
@@ -44,22 +51,34 @@ export class CommunitySightingsRepository {
     currentUserId: string,
     limit = 60,
     before: { createdAt: string; id: string } | null = null,
+    filters: SightingFeedFilters = {},
   ): Promise<{ sightings: MemberSighting[]; totalSightings: number }> {
     void currentUserId;
+    const states = [...new Set((filters.states || []).map((state) => state.toUpperCase()).filter((state) => /^[A-Z]{2}$/.test(state)))];
+    const rarities = [...new Set(filters.rarities || [])];
+    const bottle = filters.bottle?.trim().toLowerCase() || null;
+    const since = filters.since || null;
     const rows = await this.query.query(
-      `WITH recent AS MATERIALIZED (
+      `WITH filtered AS MATERIALIZED (
          SELECT payload, created_at, id
          FROM community_sightings
+         WHERE (cardinality($4::text[]) = 0 OR UPPER(payload->>'storeState') = ANY($4::text[]))
+           AND (cardinality($5::text[]) = 0 OR payload->>'rarityTier' = ANY($5::text[]))
+           AND ($6::text IS NULL OR LOWER(payload->>'bottleName') LIKE '%' || $6::text || '%')
+           AND ($7::timestamptz IS NULL OR created_at >= $7::timestamptz)
+       ), recent AS MATERIALIZED (
+         SELECT payload, created_at, id
+         FROM filtered
          WHERE ($2::timestamptz IS NULL OR created_at < $2::timestamptz OR (created_at = $2::timestamptz AND id > $3::text))
          ORDER BY created_at DESC, id ASC
          LIMIT $1
        ), totals AS (
-         SELECT COUNT(*)::int AS total_count FROM community_sightings
+         SELECT COUNT(*)::int AS total_count FROM filtered
        )
        SELECT recent.payload, totals.total_count
        FROM recent CROSS JOIN totals
        ORDER BY recent.created_at DESC, recent.id ASC`,
-      [Math.max(1, Math.min(limit, 1000)), before?.createdAt || null, before?.id || null],
+      [Math.max(1, Math.min(limit, 1000)), before?.createdAt || null, before?.id || null, states, rarities, bottle, since],
     ) as Array<{ payload: MemberSighting; total_count: number }>;
     return {
       sightings: rows.map((row) => row.payload),
