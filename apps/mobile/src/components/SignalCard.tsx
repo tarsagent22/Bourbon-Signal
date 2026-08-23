@@ -1,9 +1,12 @@
+import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import type { Signal } from "../api/types";
 import {
   presentSignal,
   relativeSignalTime,
   signalAccessibilityLabel,
+  signalAvailabilityIsCurrent,
+  signalAvailabilityRefreshAt,
   signalCardStatusLabel,
   signalCardSummary,
   signalLocationLabel,
@@ -11,18 +14,38 @@ import {
 import { colors } from "../theme";
 
 export function SignalCard({ signal, onPress }: { signal: Signal; onPress: () => void }) {
+  const [now, setNow] = useState(() => new Date());
+
+  useEffect(() => {
+    const refreshAt = signalAvailabilityRefreshAt(signal, now);
+    if (!refreshAt) return undefined;
+
+    let timer: ReturnType<typeof setTimeout>;
+    const scheduleRefresh = () => {
+      const remaining = refreshAt - Date.now();
+      if (remaining <= 0) {
+        setNow(new Date());
+        return;
+      }
+      timer = setTimeout(scheduleRefresh, Math.min(remaining + 50, 2_147_483_647));
+    };
+    scheduleRefresh();
+    return () => clearTimeout(timer);
+  }, [signal.id, signal.timing.displayAt, signal.timing.expiresAt, signal.availability?.status, now]);
+
   const presented = presentSignal(signal);
-  const status = signalCardStatusLabel(signal);
+  const status = signalCardStatusLabel(signal, now);
   const summary = signalCardSummary(signal);
   const location = signalLocationLabel(signal, presented.location);
-  const availableNow = signal.availability?.status === "available_now";
-  const upcoming = signal.availability?.status === "upcoming"
+  const availableNow = signal.source.type !== "member" && signalAvailabilityIsCurrent(signal, now);
+  const upcoming = status === "Upcoming"
+    || signal.availability?.status === "upcoming"
     || (!signal.availability && (signal.kind === "release" || signal.kind === "event"));
 
   return (
     <Pressable
       accessibilityHint="Opens Signal details"
-      accessibilityLabel={signalAccessibilityLabel(signal)}
+      accessibilityLabel={signalAccessibilityLabel(signal, now)}
       accessibilityRole="button"
       onPress={onPress}
       style={({ pressed }) => [styles.card, pressed && styles.pressed]}
@@ -32,7 +55,7 @@ export function SignalCard({ signal, onPress }: { signal: Signal; onPress: () =>
           <View style={[styles.statusDot, availableNow && styles.availableDot, upcoming && styles.upcomingDot]} />
           <Text style={[styles.status, availableNow && styles.availableStatus]}>{status}</Text>
         </View>
-        <Text style={styles.time}>{relativeSignalTime(signal.timing.displayAt)}</Text>
+        <Text style={styles.time}>{relativeSignalTime(signal.timing.displayAt, now)}</Text>
       </View>
 
       <Text numberOfLines={2} style={styles.bottle}>{signal.bottle.name}</Text>
