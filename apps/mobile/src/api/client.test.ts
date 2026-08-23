@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createMobileApi, MobileApiError } from "./client";
 import type { Signal } from "./types";
-import { presentSignal, relativeSignalTime, signalAccessibilityLabel } from "./presentation";
+import { presentSignal, relativeSignalTime, signalAccessibilityLabel, signalAccessibilityTime, signalCardStatusLabel, signalCardSummary } from "./presentation";
 
 test("sends the selected feed view, bearer auth, and opaque cursor without inspecting it", async () => {
   const requests: Request[] = [];
@@ -228,6 +228,9 @@ test("formats Signal age for quick scanning", () => {
   assert.equal(relativeSignalTime("2026-08-23T11:48:00.000Z", now), "12m");
   assert.equal(relativeSignalTime("2026-08-23T09:30:00.000Z", now), "2h");
   assert.equal(relativeSignalTime("2026-08-20T12:00:00.000Z", now), "3d");
+  assert.equal(relativeSignalTime("2026-08-15T12:00:00.000Z", now), "8d");
+  assert.notEqual(relativeSignalTime("2026-08-09T12:00:00.000Z", now), "14d");
+  assert.equal(signalAccessibilityTime("2026-08-15T12:00:00.000Z", now), "8 days ago");
 });
 
 test("presents the canonical Signal transport shape without legacy field assumptions", () => {
@@ -251,7 +254,7 @@ test("presents the canonical Signal transport shape without legacy field assumpt
   assert.equal(presented.quantity, "2 bottles");
   assert.equal(presented.summary, "Two bottles on the shelf");
   const accessibility = signalAccessibilityLabel(signal, new Date("2026-08-23T12:00:00.000Z"));
-  for (const detail of ["Example Bourbon", "Bottle Shop", "Member sighting", "$69.99", "2 bottles", "Two bottles on the shelf", "Member #19", "2d"]) {
+  for (const detail of ["Example Bourbon", "Bottle Shop", "Member sighting", "$69.99", "2 bottles", "Two bottles on the shelf", "Member #19", "2 days ago"]) {
     assert.match(accessibility, new RegExp(detail.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   }
 
@@ -266,4 +269,34 @@ test("presents the canonical Signal transport shape without legacy field assumpt
   assert.match(releaseAccessibility, /Location not specified/);
   assert.match(releaseAccessibility, /Release/);
   assert.doesNotMatch(releaseAccessibility, /Reported/);
+
+  const market: Signal = {
+    ...signal,
+    id: "market:example",
+    source: { type: "trusted_source", label: "CityHive inventory" },
+    evidence: {
+      ...signal.evidence,
+      summary: "Embeds a positive CityHive option bound to merchant 101 and product 9001.",
+      retailerReported: true,
+      sourceBacked: true,
+    },
+    availability: {
+      status: "available_now",
+      price: 63.99,
+      label: "Retailer reports orderable availability; exact count is not published",
+      caveat: "Availability can change.",
+    },
+  };
+  assert.equal(signalCardStatusLabel(market), "Retailer reports available");
+  assert.equal(signalCardSummary(market), "");
+  assert.equal(signalCardSummary(signal), "Two bottles on the shelf");
+  assert.equal(signalCardSummary({
+    ...market,
+    id: "release:trusted",
+    kind: "release",
+    evidence: { ...market.evidence, summary: "Bottle release opens Friday morning." },
+  }), "Bottle release opens Friday morning.");
+  const marketAccessibility = signalAccessibilityLabel(market, new Date("2026-08-23T12:00:00.000Z"));
+  assert.match(marketAccessibility, /Retailer reports available/);
+  assert.doesNotMatch(marketAccessibility, /CityHive|Source backed|exact count is not published/);
 });

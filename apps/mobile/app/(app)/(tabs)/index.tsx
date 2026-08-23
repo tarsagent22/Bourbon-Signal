@@ -3,7 +3,6 @@ import { router } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from "react-native";
 import { MobileApiError } from "../../../src/api/client";
-import { relativeSignalTime } from "../../../src/api/presentation";
 import type { MarketSummary, MemberProfile, Signal, SignalFeedPage } from "../../../src/api/types";
 import { MarketSummaryCard } from "../../../src/components/MarketSummaryCard";
 import { SignalCard } from "../../../src/components/SignalCard";
@@ -38,7 +37,6 @@ export default function SignalFeedScreen() {
   const [loaded, setLoaded] = useState(false);
   const [error, setError] = useState("");
   const [profileError, setProfileError] = useState("");
-  const [lastUpdated, setLastUpdated] = useState("");
   const [access, setAccess] = useState<SignalFeedPage["access"] | null>(null);
   const [profile, setProfile] = useState<MemberProfile["profile"] | null>(null);
   const requestSequence = useRef(0);
@@ -80,7 +78,6 @@ export default function SignalFeedScreen() {
       setCursor(page.nextCursor);
       setHasMore(page.hasMore);
       setAccess(page.access);
-      setLastUpdated(page.lastUpdated || "");
       setLoaded(true);
     } catch (caught) {
       if (requestId !== requestSequence.current) return;
@@ -110,7 +107,6 @@ export default function SignalFeedScreen() {
     setCursor(null);
     setHasMore(true);
     setAccess(null);
-    setLastUpdated("");
     setError("");
     setLoaded(false);
     setLoading(false);
@@ -122,7 +118,6 @@ export default function SignalFeedScreen() {
   const marketLocked = view === "market" && Boolean(access?.marketDetailsLocked);
   const paidAccessMismatch = Boolean(profile?.membership.paid && marketLocked);
   const hasSummaryCards = marketLocked && marketSummaries.length > 0;
-  const updatedLabel = lastUpdated ? relativeSignalTime(lastUpdated) : "";
 
   const header = (
     <View style={styles.header}>
@@ -147,14 +142,11 @@ export default function SignalFeedScreen() {
         </Pressable>
       </View>
 
-      <View style={styles.contextRow}>
-        <Text style={styles.contextText}>{view === "community"
-          ? "Sightings shared by Bourbon Signal members."
-          : marketLocked
-            ? "Weekly activity across active markets."
-            : "Exact store, board, shipment, and release Signals."}</Text>
-        {updatedLabel ? <Text style={styles.updated}>{updatedLabel}</Text> : null}
-      </View>
+      <Text style={styles.contextText}>{view === "community"
+        ? "Member-reported bottle sightings."
+        : marketLocked
+          ? "Weekly market activity."
+          : "Exact locations and reported availability."}</Text>
 
       {profileError ? (
         <Pressable accessibilityRole="button" onPress={() => loadProfile(true)} style={styles.inlineError}>
@@ -216,18 +208,16 @@ export default function SignalFeedScreen() {
 }
 
 const styles = StyleSheet.create({
-  list: { padding: 16, paddingTop: 12, paddingBottom: 36 },
-  gap: { height: 12 },
-  header: { gap: 12, marginBottom: 14 },
-  segmentedControl: { flexDirection: "row", padding: 4, borderRadius: 16, backgroundColor: colors.surface, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth },
-  segment: { flex: 1, minHeight: 46, borderRadius: 12, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8 },
-  segmentSelected: { backgroundColor: colors.surfaceRaised },
+  list: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 64 },
+  gap: { height: 10 },
+  header: { gap: 10, marginBottom: 12 },
+  segmentedControl: { flexDirection: "row", padding: 3, borderRadius: 14, backgroundColor: colors.surface, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth },
+  segment: { flex: 1, minHeight: 44, borderRadius: 11, borderColor: "transparent", borderWidth: StyleSheet.hairlineWidth, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 7 },
+  segmentSelected: { backgroundColor: "#211910", borderColor: colors.accentPressed },
   segmentPressed: { opacity: 0.78 },
-  segmentLabel: { color: colors.muted, fontSize: 14, fontWeight: "800" },
+  segmentLabel: { color: colors.muted, fontSize: 13, fontWeight: "700" },
   segmentLabelSelected: { color: colors.text },
-  contextRow: { minHeight: 24, flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 12, paddingHorizontal: 2 },
-  contextText: { flex: 1, color: colors.muted, fontSize: 12, lineHeight: 18 },
-  updated: { color: colors.muted, fontSize: 11, fontWeight: "700" },
+  contextText: { color: colors.muted, fontSize: 12, lineHeight: 17, paddingHorizontal: 2 },
   inlineError: { borderRadius: 12, borderColor: colors.danger, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 12, paddingVertical: 10, backgroundColor: colors.surface },
   inlineErrorText: { color: colors.danger, fontSize: 12, lineHeight: 17 },
   summaryList: { gap: 12 },
@@ -237,9 +227,9 @@ const styles = StyleSheet.create({
   unlockTitle: { color: colors.text, fontSize: 14, fontWeight: "800" },
   unlockText: { color: colors.muted, fontSize: 11, lineHeight: 16 },
   skeletonList: { gap: 12 },
-  skeletonCard: { height: 166, borderRadius: 18, backgroundColor: colors.surface, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth, padding: 16, gap: 14 },
-  skeletonTop: { width: 92, height: 24, borderRadius: 12, backgroundColor: colors.surfaceRaised },
-  skeletonTitle: { width: "68%", height: 22, borderRadius: 8, backgroundColor: colors.surfaceRaised },
+  skeletonCard: { height: 132, borderRadius: 16, backgroundColor: colors.surface, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth, padding: 14, gap: 11 },
+  skeletonTop: { width: 80, height: 15, borderRadius: 8, backgroundColor: colors.surfaceRaised },
+  skeletonTitle: { width: "68%", height: 20, borderRadius: 7, backgroundColor: colors.surfaceRaised },
   skeletonLine: { width: "84%", height: 14, borderRadius: 7, backgroundColor: colors.surfaceRaised },
   skeletonShort: { width: "45%", height: 12, borderRadius: 6, backgroundColor: colors.surfaceRaised },
   message: { alignItems: "center", gap: 12, padding: 28 },
