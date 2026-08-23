@@ -177,7 +177,11 @@ const dropsSource = readFileSync(new URL("../src/lib/drops.ts", import.meta.url)
 const feedSource = readFileSync(new URL("../src/components/sections/DropFeed.tsx", import.meta.url), "utf8");
 const retailerSource = readFileSync(new URL("../src/lib/retailer-signal-feed.ts", import.meta.url), "utf8");
 const packageSource = readFileSync(new URL("../package.json", import.meta.url), "utf8");
+const generatorSource = readFileSync(new URL("./generate-drop-feed-classification.mts", import.meta.url), "utf8");
 
+assert.doesNotMatch(generatorSource, /localeCompare/, "generated classification order must not depend on host locale");
+assert.match(generatorSource, /compareCodeUnits/, "generated classification order must use a byte-stable comparator");
+assert.match(generatorSource, /getStaticBourbonBible/, "generated classification must exclude machine-local durable catalog records");
 assert.match(apiSource, /DROP_FEED_CLASSIFICATION_TIERS/, "API filters must share the canonical feed tier set");
 assert.match(apiSource, /resolveDropClassification/, "API must resolve classifications before returning cards");
 assert.match(apiSource, /classification_source/, "API cards must preserve whether the tier came from state or national evidence");

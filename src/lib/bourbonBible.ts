@@ -269,14 +269,16 @@ const BOURBON_BIBLE_CACHE_TTL_MS = 60_000;
 let bourbonBibleCache: { value: BibleBottle[]; expiresAt: number } | null = null;
 let bourbonBibleInFlight: Promise<BibleBottle[]> | null = null;
 
-async function buildBourbonBible() {
+async function buildBourbonBible({ includeApprovedCatalog = true }: { includeApprovedCatalog?: boolean } = {}) {
   // Engine tiers drive alert priority, not the customer-facing rarity score. Apply
   // live engine data first, then broad inventory editorial metadata, then the most
   // deliberate curated profiles. Signal flags and aliases survive every merge.
-  const approvedBottles: BibleBottleInput[] = await listApprovedBottles().catch((error) => {
-    console.error("Approved Bottle Bible catalog unavailable", error);
-    return [];
-  });
+  const approvedBottles: BibleBottleInput[] = includeApprovedCatalog
+    ? await listApprovedBottles().catch((error) => {
+      console.error("Approved Bottle Bible catalog unavailable", error);
+      return [];
+    })
+    : [];
   return mergeBottleCatalogSources([
     await readEngineBibleBottles(),
     readInventoryBibleBottles(),
@@ -323,6 +325,10 @@ async function buildBourbonBible() {
       ...scarcity,
     };
   });
+}
+
+export async function getStaticBourbonBible() {
+  return buildBourbonBible({ includeApprovedCatalog: false });
 }
 
 export async function getBourbonBible() {
