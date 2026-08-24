@@ -92,7 +92,7 @@ const virginia = resolveDropClassification({
   state: "VA",
   tier: "unicorn",
 }, index);
-assert.equal(virginia.tier, "highly_allocated", "state classification must outrank the signal's legacy tier");
+assert.equal(virginia.tier, "unicorn", "state classification must outrank the signal's legacy tier and normalize it");
 assert.equal(virginia.source, "state_override");
 assert.equal(virginia.state, "VA");
 assert.equal(virginia.nationalTier, "allocated");
@@ -139,7 +139,7 @@ const groupedStates = groupDrops([
 assert.equal(groupedStates.length, 2, "same-bottle signals from different states must never share a card group");
 assert.deepEqual(
   groupedStates.map((drop) => [drop.state, drop.rarity_tier, drop.classificationState]).sort(),
-  [["NC", "allocated", "NC"], ["VA", "highly_allocated", "VA"]],
+  [["NC", "allocated", "NC"], ["VA", "unicorn", "VA"]],
   "each state card must retain its own resolved classification",
 );
 assert.equal(northCarolina.state, "NC");
@@ -150,7 +150,7 @@ const aliasMatch = resolveDropClassification({
   tier: "limited",
 }, index);
 assert.equal(aliasMatch.bottleId, "weller-12-year", "aliases must resolve before state evidence attaches");
-assert.equal(aliasMatch.tier, "highly_allocated");
+assert.equal(aliasMatch.tier, "unicorn");
 
 const signalFallback = resolveDropClassification({
   rawName: "Unknown Fixture Bottle",
@@ -168,7 +168,7 @@ const regular = resolveDropClassification({
 assert.equal(regular.tier, "regular", "the resolver may identify a regular bottle so the public eligibility gate can exclude it");
 assert.equal(regular.source, "national_baseline");
 assert.equal(TIER_CONFIG.regular, undefined, "the Drop Feed must not expose a Regular presentation");
-assert.deepEqual(DROP_FEED_CLASSIFICATION_TIERS, ["unicorn", "highly_allocated", "allocated", "limited"]);
+assert.deepEqual(DROP_FEED_CLASSIFICATION_TIERS, ["unicorn", "allocated", "limited"]);
 assert.equal(DROP_FEED_CLASSIFICATION_TIERS.includes("regular" as never), false, "Regular must not become a Drop Feed filter tier");
 
 const apiSource = readFileSync(new URL("../src/app/api/drops/route.ts", import.meta.url), "utf8");
@@ -188,12 +188,12 @@ assert.match(apiSource, /classification_source/, "API cards must preserve whethe
 assert.doesNotMatch(apiSource, /retailerTierForAvailability|submission\.availability/, "free-form retailer availability text must never control scarcity classification");
 assert.match(apiSource, /classification:\$\{classificationIndex\.version\}/, "pagination snapshots must include the classification version");
 assert.match(evidenceSource, /"unicorn", "highly_allocated", "allocated", "limited"/, "Highly Allocated must be eligible while Regular remains excluded");
-assert.match(dropsSource, /highly_allocated:[\s\S]*?label: "HIGHLY ALLOCATED"/, "shared card tier config must include the concise Highly Allocated label");
-assert.match(retailerSource, /"highly_allocated"/, "verified retailer cards must preserve Highly Allocated instead of collapsing it into Unicorn");
+assert.match(dropsSource, /highly_allocated:[\s\S]*?label: "UNICORN"/, "legacy card data must render as Unicorn");
+assert.match(apiSource, /tier === "highly_allocated" \? "unicorn"/, "legacy API filters and records must normalize to Unicorn");
 assert.match(feedSource, /TIER_CARD_HIGHLIGHTS[\s\S]*?highly_allocated:/, "Signal Cards must have a dedicated Highly Allocated highlight");
 assert.match(feedSource, /classificationSource === "state_override"[\s\S]*?in \$\{stateLabel\}/, "expanded cards must explain state-specific classifications");
 assert.match(feedSource, /National classification used because no \$\{stateLabel\} classification is available\./, "expanded cards must explain national fallback only in details");
-assert.match(feedSource, /tier: "unicorn"[\s\S]*?tier: "highly_allocated"[\s\S]*?tier: "allocated"[\s\S]*?tier: "limited"/, "Highly Allocated filter must appear between Unicorn and Allocated");
+assert.doesNotMatch(feedSource, /tier: "highly_allocated", label:/, "Highly Allocated must not remain a customer-facing filter");
 assert.doesNotMatch(feedSource, /tier: "regular"/, "Drop Feed must not add a Regular filter");
 assert.match(packageSource, /"test:drop-feed-classification"/, "the classification contract must be exposed as a package script");
 

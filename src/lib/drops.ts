@@ -367,7 +367,10 @@ export function groupDrops(drops: DropEvent[], limit: number = 20): GroupedDrop[
     return deduped;
   };
 
-  for (const event of drops) {
+  for (const rawEvent of drops) {
+    const event: DropEvent = rawEvent.rarity_tier === "highly_allocated"
+      ? { ...rawEvent, rarity_tier: "unicorn" }
+      : rawEvent;
     if (!isRealDropEvent(event)) continue;
     const displayName = getDisplayName(event);
     if (displayName === "Unknown Bottle") continue;
@@ -604,12 +607,12 @@ export const TIER_CONFIG: Record<string, { label: string; borderColor: string; p
     },
   },
   highly_allocated: {
-    label: "HIGHLY ALLOCATED",
-    borderColor: "#D89A38",
+    label: "UNICORN",
+    borderColor: "#61446E",
     pillStyle: {
-      background: "linear-gradient(135deg, rgba(216,154,56,0.24), rgba(239,184,92,0.14))",
-      border: "1px solid rgba(232,166,64,0.48)",
-      color: "#F0BD69",
+      background: "#211925",
+      border: "1px solid #61446E",
+      color: "#C9B8CF",
       fontFamily: "var(--font-dm-sans)",
       fontSize: "9px",
       fontWeight: 700,

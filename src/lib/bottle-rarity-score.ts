@@ -11,7 +11,7 @@ const RARITY_PROFILES: Record<RarityTier, RarityProfile> = {
   seasonal: { score: 45, label: "Seasonal bottle" },
   limited: { score: 58, label: "Limited release" },
   allocated: { score: 72, label: "Allocated bottle" },
-  highly_allocated: { score: 86, label: "Extremely hard to find" },
+  highly_allocated: { score: 100, label: "Unicorn bottle" },
   unicorn: { score: 100, label: "Unicorn bottle" },
 };
 

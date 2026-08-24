@@ -6,9 +6,9 @@ export interface Signal {
     type: "member" | "retailer" | "trusted_source" | "release_source";
     label: string;
     reportMode?: "seen_in_store" | "reported_online";
-    actor?: { kind: "founder" | "member"; number: number; label: string };
+    actor?: { kind: "founder" | "member"; number: number; label: string; displayName?: string };
   };
-  bottle: { id?: string; name: string; rarity?: "limited" | "allocated" | "highly_allocated" | "unicorn" };
+  bottle: { id?: string; name: string; rarity?: "limited" | "allocated" | "unicorn" };
   location: {
     scope: "exact_store" | "area" | "board" | "state" | "online" | "unknown";
     label?: string;
@@ -54,9 +54,23 @@ export interface MemberProfile {
   contractVersion: "bourbon-signal/mobile-api@1";
   profile: {
     identity: { kind: "founder" | "member"; number: number; label: string } | null;
+    displayName: string;
+    customDisplayName: string | null;
+    feedAreas: {
+      states: Array<{
+        code: string;
+        label: string;
+        areaLabel: "Board" | "City";
+        options: Array<{ value: string; label: string }>;
+      }>;
+    };
     membership: { tier: "free" | "standard" | "barrel" | "bottled-in-bond"; label: string; paid: boolean; hasBetaAccess: boolean };
     entitlements: { fullFeed: boolean; canSubmitSignals: boolean };
   };
+}
+
+export interface MemberProfilePatch {
+  displayName: string | null;
 }
 
 export interface MemberCollectionBottle {

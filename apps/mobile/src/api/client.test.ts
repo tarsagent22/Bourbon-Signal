@@ -34,14 +34,50 @@ test("serializes normalized Signal filters for server-side pagination", async ()
     view: "market",
     rarities: ["unicorn", "allocated"],
     state: "nc",
+    area: "  Raleigh  ",
     freshness: "7d",
     bottle: "  Weller  ",
   });
   const params = new URL(captured!.url).searchParams;
   assert.equal(params.get("tiers"), "allocated,unicorn");
   assert.equal(params.get("state"), "NC");
+  assert.equal(params.get("area"), "Raleigh");
   assert.equal(params.get("freshness"), "7d");
   assert.equal(params.get("bottle"), "Weller");
+});
+
+test("updates the public Community display name through the member profile endpoint", async () => {
+  let captured: Request | null = null;
+  const api = createMobileApi({
+    baseUrl: "https://example.test",
+    getToken: async () => "session-token",
+    fetcher: async (request) => {
+      captured = new Request(request);
+      return Response.json({ profile: { displayName: "Chandler T." } });
+    },
+  });
+  await api.updateMemberProfile({ displayName: " Chandler T. " });
+  assert.equal(captured!.method, "PATCH");
+  assert.equal(new URL(captured!.url).pathname, "/api/v1/me/profile");
+  assert.deepEqual(await captured!.json(), { displayName: " Chandler T. " });
+});
+
+test("loads distinct sorted city options from the canonical store catalog", async () => {
+  let captured = "";
+  const api = createMobileApi({
+    baseUrl: "https://example.test",
+    getToken: async () => "session-token",
+    fetcher: async (request) => {
+      captured = new Request(request).url;
+      return Response.json({ stores: [{ city: "Richmond" }, { city: "richmond" }, { city: "Norfolk" }, { city: "" }] });
+    },
+  });
+
+  assert.deepEqual(await api.getSignalAreaOptions("va"), [
+    { value: "Norfolk", label: "Norfolk" },
+    { value: "Richmond", label: "Richmond" },
+  ]);
+  assert.equal(new URL(captured).searchParams.get("state"), "VA");
 });
 
 test("preserves the combined-feed default for callers that omit a view", async () => {
@@ -249,10 +285,10 @@ test("coalesces repeated account reads during a render loop, including failures"
 
 test("formats Signal age for quick scanning", () => {
   const now = new Date("2026-08-23T12:00:00.000Z");
-  assert.equal(relativeSignalTime("2026-08-23T11:48:00.000Z", now), "12m");
-  assert.equal(relativeSignalTime("2026-08-23T09:30:00.000Z", now), "2h");
-  assert.equal(relativeSignalTime("2026-08-20T12:00:00.000Z", now), "3d");
-  assert.equal(relativeSignalTime("2026-08-15T12:00:00.000Z", now), "8d");
+  assert.equal(relativeSignalTime("2026-08-23T11:48:00.000Z", now), "12m ago");
+  assert.equal(relativeSignalTime("2026-08-23T09:30:00.000Z", now), "2h ago");
+  assert.equal(relativeSignalTime("2026-08-20T12:00:00.000Z", now), "3d ago");
+  assert.equal(relativeSignalTime("2026-08-15T12:00:00.000Z", now), "8d ago");
   assert.notEqual(relativeSignalTime("2026-08-09T12:00:00.000Z", now), "14d");
   assert.equal(signalAccessibilityTime("2026-08-15T12:00:00.000Z", now), "8 days ago");
 });
@@ -275,11 +311,12 @@ test("presents the canonical Signal transport shape without legacy field assumpt
   const presented = presentSignal(signal);
   assert.equal(presented.location, "Bottle Shop · Raleigh · NC");
   assert.equal(presented.price, "$69.99");
-  assert.equal(presented.quantity, "2 bottles");
+  assert.equal(presented.quantity, "2 reported");
   assert.equal(presented.summary, "Two bottles on the shelf");
+  assert.equal(presented.reporter, "Member #19");
   assert.equal(signalCardStatusLabel(signal), "Member #19");
   const accessibility = signalAccessibilityLabel(signal, new Date("2026-08-23T12:00:00.000Z"));
-  for (const detail of ["Example Bourbon", "Bottle Shop", "$69.99", "2 bottles", "Two bottles on the shelf", "Member #19", "2 days ago"]) {
+  for (const detail of ["Example Bourbon", "Bottle Shop", "$69.99", "2 reported", "Two bottles on the shelf", "Member #19", "2 days ago"]) {
     assert.match(accessibility, new RegExp(detail.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   }
   assert.doesNotMatch(accessibility, /Member sighting/);
@@ -301,9 +338,9 @@ test("presents the canonical Signal transport shape without legacy field assumpt
     id: "member:numeric-quantity",
     availability: { ...signal.availability!, quantity: undefined, quantityLabel: "4" },
   };
-  assert.equal(presentSignal(numericQuantity).quantity, "4 bottles");
-  assert.equal(presentSignal({ ...numericQuantity, availability: { ...numericQuantity.availability!, quantityLabel: "1" } }).quantity, "1 bottle");
-  assert.equal(presentSignal({ ...signal, availability: { status: "reported", price: 69.99 } }).quantity, "Count not provided");
+  assert.equal(presentSignal(numericQuantity).quantity, "4 reported");
+  assert.equal(presentSignal({ ...numericQuantity, availability: { ...numericQuantity.availability!, quantityLabel: "1" } }).quantity, "1 reported");
+  assert.equal(presentSignal({ ...signal, availability: { status: "reported", price: 69.99 } }).quantity, "Quantity unknown");
 
   const release: Signal = {
     ...signal,
@@ -367,7 +404,9 @@ test("presents the canonical Signal transport shape without legacy field assumpt
   assert.equal(signalAvailabilityIsCurrent(upcomingMarket, now), false);
   assert.equal(signalCardStatusLabel(upcomingMarket, now), "Upcoming");
   assert.equal(signalAvailabilityRefreshAt(upcomingMarket, now), Date.parse("2026-08-23T13:00:00.000Z"));
-  assert.equal(presentSignal(market).quantity, "Count not published");
+  assert.equal(presentSignal(market).quantity, "Quantity unknown");
+  assert.equal(presentSignal({ ...market, availability: { ...market.availability!, price: 0 } }).price, "Price unknown");
+  assert.equal(presentSignal({ ...market, availability: { ...market.availability!, price: undefined } }).price, "Price unknown");
   assert.equal(signalCardSummary(market), "");
   assert.equal(signalCardSummary(signal), "Two bottles on the shelf");
   assert.equal(signalCardSummary({
@@ -378,6 +417,6 @@ test("presents the canonical Signal transport shape without legacy field assumpt
   }), "Bottle release opens Friday morning.");
   const marketAccessibility = signalAccessibilityLabel(market, now);
   assert.match(marketAccessibility, /Reported available/);
-  assert.match(marketAccessibility, /Count not published/);
+  assert.match(marketAccessibility, /Quantity unknown/);
   assert.doesNotMatch(marketAccessibility, /CityHive|Source backed|exact count is not published|Available now/);
 });

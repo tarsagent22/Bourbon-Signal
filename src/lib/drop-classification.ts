@@ -8,7 +8,7 @@ import {
   type ScarcityTier,
 } from "./bottle-scarcity";
 
-export const DROP_FEED_CLASSIFICATION_TIERS = ["unicorn", "highly_allocated", "allocated", "limited"] as const;
+export const DROP_FEED_CLASSIFICATION_TIERS = ["unicorn", "allocated", "limited"] as const;
 
 export type DropFeedClassificationTier = (typeof DROP_FEED_CLASSIFICATION_TIERS)[number];
 export type DropClassificationSource = "state_override" | "national_baseline" | "signal";
@@ -61,7 +61,7 @@ function signalTier(drop: DropClassificationInput) {
   const raw = text(drop.rarity_tier ?? drop.tier)
     .toLowerCase()
     .replace(/[\s-]+/g, "_");
-  return (SCARCITY_TIERS as readonly string[]).includes(raw) ? raw : raw || "unknown";
+  return raw === "highly_allocated" ? "unicorn" : (SCARCITY_TIERS as readonly string[]).includes(raw) ? raw : raw || "unknown";
 }
 
 function addName(index: DropClassificationIndex, value: unknown, bottle: DropClassificationBottle) {
@@ -169,10 +169,10 @@ export function resolveDropClassification(
 
   const resolved = resolveBottleScarcity(bottle, state || undefined);
   return {
-    tier: resolved.marketTier,
+    tier: resolved.marketTier === "highly_allocated" ? "unicorn" : resolved.marketTier,
     source: resolved.classificationSource,
     state,
     bottleId: bottle.id,
-    nationalTier: resolved.nationalTier,
+    nationalTier: resolved.nationalTier === "highly_allocated" ? "unicorn" : resolved.nationalTier,
   };
 }

@@ -14,12 +14,12 @@ const tiers = [
 ] as const;
 
 const scores = tiers.map((tier) => getRarityProfile(tier).score);
-assert.deepEqual(scores, [20, 35, 45, 58, 72, 86, 100], "rarity tiers must map to stable, intuitive score anchors");
+assert.deepEqual(scores, [20, 35, 45, 58, 72, 100, 100], "legacy Highly Allocated analytics must normalize to the Unicorn anchor");
 for (let index = 1; index < scores.length; index += 1) {
-  assert.ok(scores[index] > scores[index - 1], `${tiers[index]} must always outrank ${tiers[index - 1]}`);
+  assert.ok(scores[index] >= scores[index - 1], `${tiers[index]} must never rank below ${tiers[index - 1]}`);
 }
 assert.equal(getRarityProfile("unicorn").label, "Unicorn bottle");
-assert.equal(getRarityProfile("highly_allocated").label, "Extremely hard to find");
+assert.equal(getRarityProfile("highly_allocated").label, "Unicorn bottle");
 assert.equal(getRarityProfile("allocated").label, "Allocated bottle");
 assert.deepEqual(getRarityProfile("not_a_tier" as never), { score: 20, label: "Rarity not yet classified" }, "malformed catalog tiers must fail safely instead of crashing or implying rarity");
 
@@ -30,7 +30,7 @@ assert.equal(getRarityProfile("common", "NC").score, 20, "ordinary shelf bottles
 assert.equal(getRarityProfile("unicorn", "NC").score, 100, "national unicorns remain bounded at the rarity scale maximum");
 const northCarolinaScores = tiers.map((tier) => getRarityProfile(tier, "NC").score);
 for (let index = 1; index < northCarolinaScores.length; index += 1) {
-  assert.ok(northCarolinaScores[index] > northCarolinaScores[index - 1], `${tiers[index]} must still outrank ${tiers[index - 1]} after state adjustment`);
+  assert.ok(northCarolinaScores[index] >= northCarolinaScores[index - 1], `${tiers[index]} must not rank below ${tiers[index - 1]} after state adjustment`);
 }
 
 const inventory = JSON.parse(readFileSync(new URL("../src/data/bourbonBibleInventory.json", import.meta.url), "utf8")) as Array<Record<string, unknown>>;
@@ -38,7 +38,7 @@ const eagleRare25 = inventory.find((bottle) => bottle.id === "eagle-rare-25y");
 assert.ok(eagleRare25, "Eagle Rare 25 must remain in the Bottle Check catalog");
 assert.equal(eagleRare25.availability, "unicorn", "Eagle Rare 25 must be classified as a unicorn, not merely allocated");
 assert.equal(eagleRare25.buyerVerdict, "special_find", "Eagle Rare 25 must use the top rarity guidance tier");
-assert.ok(getRarityProfile("unicorn").score > getRarityProfile("highly_allocated").score, "Eagle Rare 25 must outrank Eagle Rare 12's highly allocated tier");
+assert.equal(getRarityProfile("unicorn").score, getRarityProfile("highly_allocated").score, "legacy Highly Allocated scores must map to Unicorn");
 
 const mergedEagleRare12 = mergeBottleCatalogSources([
   [{ id: "engine-er12", canonicalName: "Eagle Rare 12 Year", availability: "unicorn", aliases: ["ER12"], isSignalTracked: true, isAlertEligible: true }],

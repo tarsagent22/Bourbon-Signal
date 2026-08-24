@@ -12,6 +12,7 @@ import type { SignalFeedView } from "./signal-feed-cursor.ts";
 import { parseSignalFeedFilters, sameSignalFeedFilters, signalFilterSince, type SignalFeedFilters } from "./signal-feed-filters.ts";
 import { SIGNAL_API_ERROR_VERSION } from "./signal-api-contract.ts";
 import type { MarketSummary } from "./signal-market-summary.ts";
+import { buildDropFeedAreaRequest } from "../feed-area-options.ts";
 
 export const PRIVATE_SIGNAL_HEADERS = {
   "Cache-Control": "private, no-store",
@@ -38,7 +39,7 @@ type LegacySightingsPayload = {
   previewLimit?: number | null;
 };
 
-const SUPPORTED_QUERY_KEYS = new Set(["limit", "cursor", "view", "tiers", "state", "freshness", "bottle"]);
+const SUPPORTED_QUERY_KEYS = new Set(["limit", "cursor", "view", "tiers", "state", "area", "freshness", "bottle"]);
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value && typeof value === "object" && !Array.isArray(value));
@@ -107,6 +108,14 @@ function sourceRequest(request: Request, path: string, options: { limit: number;
   else if (options.offset) url.searchParams.set("offset", String(options.offset));
   if (options.filters.rarities.length) url.searchParams.set("tiers", options.filters.rarities.join(","));
   if (options.filters.state) url.searchParams.set("state", options.filters.state);
+  if (options.filters.area) {
+    if (path === "/api/drops") {
+      const areaRequest = buildDropFeedAreaRequest(options.filters.state, options.filters.area);
+      if (areaRequest) url.searchParams.set(areaRequest.key, areaRequest.value);
+    } else {
+      url.searchParams.set("area", options.filters.area);
+    }
+  }
   if (options.filters.bottle) url.searchParams.set("bottle", options.filters.bottle);
   if (options.since) url.searchParams.set("since", options.since);
   if (path === "/api/drops") url.searchParams.set("signalOrder", "canonical");

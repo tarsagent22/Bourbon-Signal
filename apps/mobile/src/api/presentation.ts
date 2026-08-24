@@ -14,18 +14,18 @@ export function relativeSignalTime(value: string, now = new Date()) {
   const elapsed = Math.max(0, current - observed);
   const minutes = Math.floor(elapsed / 60_000);
   if (minutes < 1) return "Now";
-  if (minutes < 60) return `${minutes}m`;
+  if (minutes < 60) return `${minutes}m ago`;
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours}h`;
+  if (hours < 24) return `${hours}h ago`;
   const days = Math.floor(hours / 24);
-  if (days < 14) return `${days}d`;
+  if (days < 14) return `${days}d ago`;
   return new Date(observed).toLocaleDateString(undefined, { month: "short", day: "numeric" });
 }
 
 export function signalAccessibilityTime(value: string, now = new Date()) {
   const relative = relativeSignalTime(value, now);
   if (relative === "Now") return "Now";
-  const match = relative.match(/^(\d+)([mhd])$/);
+  const match = relative.match(/^(\d+)([mhd])(?: ago)?$/);
   if (!match) return relative;
   const amount = Number(match[1]);
   const unit = match[2] === "m" ? "minute" : match[2] === "h" ? "hour" : "day";
@@ -34,17 +34,18 @@ export function signalAccessibilityTime(value: string, now = new Date()) {
 
 function normalizedQuantityLabel(signal: Signal) {
   const raw = signal.availability?.quantityLabel?.trim() || "";
-  if (/^\d+$/.test(raw)) {
-    const count = Number(raw);
-    return `${raw} bottle${count === 1 ? "" : "s"}`;
+  const counted = raw.match(/^(\d+)(?:\s+bottles?)?$/i);
+  if (counted) {
+    const count = Number(counted[1]);
+    return `${count} reported`;
   }
-  if (raw) return raw;
+  if (raw) return `Reported: ${raw}`;
   if (typeof signal.availability?.quantity === "number") {
     const count = signal.availability.quantity;
-    return `${count} bottle${count === 1 ? "" : "s"}`;
+    return `${count} reported`;
   }
   if (signal.availability?.status === "available_now" || signal.availability?.status === "reported") {
-    return signal.source.type === "member" ? "Count not provided" : "Count not published";
+    return "Quantity unknown";
   }
   return "";
 }
@@ -87,17 +88,49 @@ export function presentSignal(signal: Signal) {
   const store = signal.location.store;
   const location = [store?.name || signal.location.label, store?.city, store?.state || signal.location.state].filter(Boolean).join(" · ");
   const address = [store?.address, store?.city, store?.state || signal.location.state, store?.zip].filter(Boolean).join(" · ");
-  const price = typeof signal.availability?.price === "number" ? `$${signal.availability.price.toFixed(2)}` : "";
+  const rawPrice = signal.availability?.price;
+  const price = signal.availability
+    ? typeof rawPrice === "number" && Number.isFinite(rawPrice) && rawPrice > 0 ? `$${rawPrice.toFixed(2)}` : "Price unknown"
+    : "";
   const quantity = normalizedQuantityLabel(signal);
+  const reporter = signal.source.type === "member"
+    ? signal.source.actor?.displayName || signal.source.actor?.label || signal.source.label
+    : "";
   return {
     location,
     address,
     price,
     quantity,
+    reporter,
     availability: signal.availability?.label || (signal.availability ? statusLabels[signal.availability.status] : ""),
     summary: signal.evidence.summary || "",
     caveat: signal.availability?.caveat || "",
     observed: signal.timing.displayAt,
+  };
+}
+
+export function signalReporterAttribution(signal: Signal) {
+  const reporter = presentSignal(signal).reporter;
+  return reporter ? `Reported by ${reporter}` : "";
+}
+
+export function signalCardAppearance(signal: Signal) {
+  const community = signal.source.type === "member";
+  const base = community
+    ? { surface: "#1A1B1D", keyline: "#3E4146", accent: "#B8BDC5", secondaryText: "#A9ADB4" }
+    : { surface: "#1F1A14", keyline: "#57442D", accent: "#D3A258", secondaryText: "#B9A78D" };
+  const rarity = signal.bottle.rarity || "limited";
+  const rarityAppearance = rarity === "unicorn"
+    ? { surface: "#211925", keyline: "#61446E", accent: "#D8B5E2", secondaryText: "#C9B8CF" }
+    : rarity === "allocated"
+      ? community
+        ? { surface: "#211A16", keyline: "#745033", accent: "#D79B60", secondaryText: "#BEA48D" }
+        : { surface: "#261A10", keyline: "#82562F", accent: "#E0A461", secondaryText: "#C7A682" }
+      : base;
+  return {
+    sourceLabel: community ? "COMMUNITY" : "MARKET",
+    rarityLabel: rarity === "unicorn" ? "UNICORN" : rarity === "allocated" ? "ALLOCATED" : "LIMITED",
+    ...rarityAppearance,
   };
 }
 
@@ -144,6 +177,7 @@ export function signalAccessibilityLabel(signal: Signal, now = new Date()) {
     signal.bottle.name,
     location,
     status,
+    signalReporterAttribution(signal),
     signalAccessibilityTime(signal.timing.displayAt, now),
     presented.price,
     presented.quantity,

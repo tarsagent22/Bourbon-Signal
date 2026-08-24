@@ -26,7 +26,7 @@ function asComposerBottle(value: unknown): Bottle | null {
     canonical_name: name,
     aliases: Array.isArray(item.aliases) ? item.aliases.map(String) : [],
     distillery: String(item.producer || item.distillery || ""),
-    tier: availability === "unicorn" ? "unicorn" : availability === "allocated" || availability === "highly_allocated" ? "allocated" : "limited",
+    tier: availability === "unicorn" || availability === "highly_allocated" ? "unicorn" : availability === "allocated" ? "allocated" : "limited",
     msrp: typeof item.msrp === "number" && Number.isFinite(item.msrp) ? item.msrp : 0,
   };
 }

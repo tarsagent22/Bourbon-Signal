@@ -3,14 +3,55 @@ import { router } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { FlatList, Modal, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { MobileApiError } from "../../../src/api/client";
-import type { MarketSummary, MemberProfile, Signal, SignalFeedPage } from "../../../src/api/types";
-import { MarketSummaryCard } from "../../../src/components/MarketSummaryCard";
+import type { MemberProfile, Signal, SignalFeedPage } from "../../../src/api/types";
 import { SignalCard } from "../../../src/components/SignalCard";
 import { useMobileApi } from "../../../src/hooks/useMobileApi";
-import { DEFAULT_SIGNAL_FILTERS, activeFilterCount, filterSummary, normalizedFilters, rarityOptionsForView, toggleRarity, type SignalFeedFilters } from "../../../src/signals/feed-filters";
+import { DEFAULT_SIGNAL_FILTERS, activeFilterCount, areaOptionsForState, areaSelectorLabel, filterSummary, normalizedFilters, rarityOptionsForView, toggleRarity, type SignalFeedFilters } from "../../../src/signals/feed-filters";
 import { colors } from "../../../src/theme";
 
 type FeedView = "market" | "community";
+
+function OptionChooser({
+  label,
+  value,
+  placeholder,
+  options,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  placeholder: string;
+  options: Array<{ value: string; label: string }>;
+  onChange: (value: string) => void;
+}) {
+  const [expanded, setExpanded] = useState(false);
+  const selectedLabel = options.find((option) => option.value === value)?.label || placeholder;
+  return <View style={styles.fieldGroup}>
+    <Text style={styles.fieldLabel}>{label.toUpperCase()}</Text>
+    <Pressable
+      accessibilityLabel={`${label}, ${selectedLabel}`}
+      accessibilityRole="button"
+      accessibilityState={{ expanded }}
+      onPress={() => setExpanded((current) => !current)}
+      style={({ pressed }) => [styles.chooserButton, pressed && styles.segmentPressed]}
+    >
+      <Text style={[styles.chooserValue, !value && styles.chooserPlaceholder]}>{selectedLabel}</Text>
+      <MaterialCommunityIcons color={colors.muted} name={expanded ? "chevron-up" : "chevron-down"} size={20} />
+    </Pressable>
+    {expanded ? <ScrollView nestedScrollEnabled style={styles.chooserOptions}>
+      {[{ value: "", label: placeholder }, ...options].map((option) => {
+        const selected = option.value === value;
+        return <Pressable
+          key={option.value || "__all"}
+          accessibilityRole="radio"
+          accessibilityState={{ checked: selected }}
+          onPress={() => { onChange(option.value); setExpanded(false); }}
+          style={({ pressed }) => [styles.chooserOption, selected && styles.chooserOptionSelected, pressed && styles.segmentPressed]}
+        ><Text style={[styles.chooserOptionText, selected && styles.rarityChipTextSelected]}>{option.label}</Text></Pressable>;
+      })}
+    </ScrollView> : null}
+  </View>;
+}
 
 function FeedSkeleton() {
   return (
@@ -31,7 +72,6 @@ export default function SignalFeedScreen() {
   const api = useMobileApi();
   const [view, setView] = useState<FeedView>("market");
   const [signals, setSignals] = useState<Signal[]>([]);
-  const [marketSummaries, setMarketSummaries] = useState<MarketSummary[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -46,7 +86,17 @@ export default function SignalFeedScreen() {
   });
   const [filterOpen, setFilterOpen] = useState(false);
   const [draftFilters, setDraftFilters] = useState<SignalFeedFilters>({ ...DEFAULT_SIGNAL_FILTERS });
+  const [remoteAreaState, setRemoteAreaState] = useState("");
+  const [remoteAreaOptions, setRemoteAreaOptions] = useState<Array<{ value: string; label: string }>>([]);
+  const [areaOptionsLoading, setAreaOptionsLoading] = useState(false);
+  const [areaOptionsError, setAreaOptionsError] = useState("");
   const filters = filtersByView[view];
+  const areaDirectory = profile?.feedAreas;
+  const stateOptions = areaDirectory?.states.filter((state) => /^[A-Z]{2}$/.test(state.code)).map((state) => ({ value: state.code, label: `${state.label} (${state.code})` })) || [];
+  const staticDraftAreaOptions = areaOptionsForState(areaDirectory, draftFilters.state);
+  const draftAreaOptions = draftFilters.state !== "NC" && remoteAreaState === draftFilters.state && remoteAreaOptions.length
+    ? remoteAreaOptions
+    : staticDraftAreaOptions;
   const requestSequence = useRef(0);
   const requestInFlightRef = useRef<"refresh" | "page" | null>(null);
 
@@ -82,7 +132,6 @@ export default function SignalFeedScreen() {
         const next = refresh ? page.signals : [...current, ...page.signals];
         return [...new Map(next.map((signal) => [signal.id, signal])).values()];
       });
-      setMarketSummaries(page.marketSummaries || []);
       setCursor(page.nextCursor);
       setHasMore(page.hasMore);
       setAccess(page.access);
@@ -111,7 +160,6 @@ export default function SignalFeedScreen() {
     requestInFlightRef.current = null;
     setView(next);
     setSignals([]);
-    setMarketSummaries([]);
     setCursor(null);
     setHasMore(true);
     setAccess(null);
@@ -121,19 +169,18 @@ export default function SignalFeedScreen() {
   }, [view]);
 
   const applyFilters = useCallback((next: SignalFeedFilters) => {
-    const normalized = normalizedFilters(next);
+    const normalized = normalizedFilters(next, areaDirectory);
     requestSequence.current += 1;
     requestInFlightRef.current = null;
     setFiltersByView((current) => ({ ...current, [view]: normalized }));
     setSignals([]);
-    setMarketSummaries([]);
     setCursor(null);
     setHasMore(true);
     setAccess(null);
     setError("");
     setLoaded(false);
     setLoading(false);
-  }, [view]);
+  }, [areaDirectory, view]);
 
   const openFilters = useCallback(() => {
     setDraftFilters({ ...filters, rarities: [...filters.rarities] });
@@ -142,11 +189,29 @@ export default function SignalFeedScreen() {
 
   useEffect(() => { void loadProfile(); }, [loadProfile]);
   useEffect(() => { if (!loaded && !loading && !error) void load(true); }, [error, load, loaded, loading]);
+  useEffect(() => {
+    if (!filterOpen || !draftFilters.state || draftFilters.state === "NC") {
+      setAreaOptionsLoading(false);
+      setAreaOptionsError("");
+      return;
+    }
+    let current = true;
+    setAreaOptionsLoading(true);
+    setAreaOptionsError("");
+    void api.getSignalAreaOptions(draftFilters.state).then((options) => {
+      if (!current) return;
+      setRemoteAreaState(draftFilters.state);
+      setRemoteAreaOptions(options);
+      if (!options.length && !staticDraftAreaOptions.length) setAreaOptionsError("No city options are available for this state yet.");
+    }).catch(() => {
+      if (current && !staticDraftAreaOptions.length) setAreaOptionsError("City options are temporarily unavailable.");
+    }).finally(() => { if (current) setAreaOptionsLoading(false); });
+    return () => { current = false; };
+  }, [api, draftFilters.state, filterOpen, staticDraftAreaOptions.length]);
 
   const marketLocked = view === "market" && Boolean(access?.marketDetailsLocked);
   const paidAccessMismatch = Boolean(profile?.membership.paid && marketLocked);
   const canUseFilters = view === "community" || access?.marketDetailsLocked === false;
-  const hasSummaryCards = marketLocked && marketSummaries.length > 0;
 
   const header = (
     <View style={styles.header}>
@@ -178,7 +243,7 @@ export default function SignalFeedScreen() {
             : marketLocked
               ? "Weekly market activity."
               : "Exact locations and reported availability."}</Text>
-          {filterSummary(filters) ? <Text style={styles.filterSummary}>{filterSummary(filters)}</Text> : null}
+          {filterSummary(filters, areaDirectory) ? <Text style={styles.filterSummary}>{filterSummary(filters, areaDirectory)}</Text> : null}
         </View>
         {canUseFilters ? <Pressable accessibilityRole="button" accessibilityLabel="Open Signal filters" onPress={openFilters} style={({ pressed }) => [styles.filterButton, pressed && styles.segmentPressed]}>
           <MaterialCommunityIcons color={colors.accent} name="tune-variant" size={18} />
@@ -222,22 +287,6 @@ export default function SignalFeedScreen() {
           <Text accessibilityRole="alert" style={styles.inlineErrorText}>Paid access was not recognized. Refresh or sign in again.</Text>
         </View>
       ) : null}
-
-      {hasSummaryCards ? (
-        <View style={styles.summaryList}>
-          {marketSummaries.map((summary) => <MarketSummaryCard key={summary.state} summary={summary} />)}
-          <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/(tabs)/hq")} style={({ pressed }) => [styles.unlockCard, pressed && styles.segmentPressed]}>
-            <View style={styles.unlockIcon}>
-              <MaterialCommunityIcons color={colors.accent} name="lock-open-outline" size={20} />
-            </View>
-            <View style={styles.unlockCopy}>
-              <Text style={styles.unlockTitle}>Unlock the exact locations</Text>
-              <Text style={styles.unlockText}>Paid membership includes exact stores, boards, shipment details, and alerts.</Text>
-            </View>
-            <MaterialCommunityIcons color={colors.muted} name="chevron-right" size={22} />
-          </Pressable>
-        </View>
-      ) : null}
     </View>
   );
 
@@ -257,9 +306,7 @@ export default function SignalFeedScreen() {
         ? <FeedSkeleton />
         : error
           ? <View style={styles.message}><Text accessibilityRole="alert" style={styles.error}>{error}</Text><Pressable accessibilityRole="button" onPress={() => load(true)} style={styles.retryTarget}><Text style={styles.retry}>Try again</Text></Pressable></View>
-          : hasSummaryCards
-            ? null
-            : <Text style={styles.empty}>{view === "community" ? "No member sightings yet." : "No fresh Market Signals are available right now."}</Text>}
+          : <Text style={styles.empty}>{view === "community" ? "No member sightings yet." : "No fresh Market Signals are available right now."}</Text>}
       ListFooterComponent={loaded && loading
         ? <View style={styles.footer}><Text style={styles.loadingText}>Loading…</Text></View>
         : error && signals.length
@@ -283,19 +330,24 @@ export default function SignalFeedScreen() {
             </Pressable>
           </View>
 
-          <View style={styles.fieldGroup}>
-            <Text style={styles.fieldLabel}>STATE</Text>
-            <TextInput
-              autoCapitalize="characters"
-              autoCorrect={false}
-              maxLength={2}
-              onChangeText={(state) => setDraftFilters((current) => ({ ...current, state }))}
-              placeholder="Any state"
-              placeholderTextColor={colors.muted}
-              style={styles.filterInput}
-              value={draftFilters.state}
-            />
-          </View>
+          <ScrollView contentContainerStyle={styles.filterBody} keyboardShouldPersistTaps="handled">
+          <OptionChooser
+            label="State"
+            value={draftFilters.state}
+            placeholder="Any state"
+            options={stateOptions}
+            onChange={(state) => setDraftFilters((current) => ({ ...current, state, area: "" }))}
+          />
+
+          {draftFilters.state && draftAreaOptions.length ? <OptionChooser
+            label={areaDirectory?.states.find((state) => state.code === draftFilters.state)?.areaLabel || areaSelectorLabel(draftFilters.state)}
+            value={draftFilters.area}
+            placeholder={`Any ${areaSelectorLabel(draftFilters.state).toLowerCase()}`}
+            options={draftAreaOptions}
+            onChange={(area) => setDraftFilters((current) => ({ ...current, area }))}
+          /> : null}
+          {draftFilters.state && draftFilters.state !== "NC" && areaOptionsLoading ? <Text style={styles.areaOptionNote}>Loading cities…</Text> : null}
+          {draftFilters.state && areaOptionsError ? <Text accessibilityRole="alert" style={styles.areaOptionError}>{areaOptionsError}</Text> : null}
 
           <View style={styles.fieldGroup}>
             <Text style={styles.fieldLabel}>FRESHNESS</Text>
@@ -324,9 +376,10 @@ export default function SignalFeedScreen() {
               value={draftFilters.bottle}
             />
           </View>
+          </ScrollView>
 
           <View style={styles.sheetActions}>
-            <Pressable accessibilityRole="button" onPress={() => setDraftFilters((current) => ({ ...current, state: "", freshness: null, bottle: "" }))} style={({ pressed }) => [styles.clearButton, pressed && styles.segmentPressed]}><Text style={styles.clearButtonText}>Reset details</Text></Pressable>
+            <Pressable accessibilityRole="button" onPress={() => setDraftFilters({ ...DEFAULT_SIGNAL_FILTERS })} style={({ pressed }) => [styles.clearButton, pressed && styles.segmentPressed]}><Text style={styles.clearButtonText}>Clear all</Text></Pressable>
             <Pressable accessibilityRole="button" onPress={() => { setFilterOpen(false); applyFilters(draftFilters); }} style={({ pressed }) => [styles.applyButton, pressed && styles.segmentPressed]}><Text style={styles.applyButtonText}>Show Signals</Text></Pressable>
           </View>
         </View>
@@ -382,14 +435,24 @@ const styles = StyleSheet.create({
   end: { color: colors.muted, textAlign: "center", padding: 24, fontSize: 12 },
   modalRoot: { flex: 1, justifyContent: "flex-end" },
   modalBackdrop: { ...StyleSheet.absoluteFill, backgroundColor: "rgba(0,0,0,.62)" },
-  filterSheet: { borderTopLeftRadius: 24, borderTopRightRadius: 24, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface, paddingHorizontal: 18, paddingTop: 10, paddingBottom: 28, gap: 20 },
+  filterSheet: { maxHeight: "92%", borderTopLeftRadius: 24, borderTopRightRadius: 24, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface, paddingHorizontal: 18, paddingTop: 10, paddingBottom: 28, gap: 16 },
   sheetHandle: { width: 42, height: 4, borderRadius: 2, backgroundColor: colors.border, alignSelf: "center" },
   sheetTitleRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   sheetTitle: { color: colors.text, fontSize: 19, fontWeight: "800" },
   sheetSubtitle: { color: colors.muted, fontSize: 12, marginTop: 3 },
   closeButton: { width: 44, height: 44, alignItems: "center", justifyContent: "center" },
   fieldGroup: { gap: 8 },
+  filterBody: { gap: 18, paddingBottom: 4 },
   fieldLabel: { color: colors.muted, fontSize: 10, letterSpacing: 1.1, fontWeight: "800" },
+  chooserButton: { minHeight: 48, borderRadius: 13, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.background, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10 },
+  chooserValue: { color: colors.text, fontSize: 15, fontWeight: "600", flex: 1 },
+  chooserPlaceholder: { color: colors.muted, fontWeight: "500" },
+  chooserOptions: { maxHeight: 190, borderRadius: 13, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.background },
+  chooserOption: { minHeight: 44, justifyContent: "center", paddingHorizontal: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
+  chooserOptionSelected: { backgroundColor: "#2A1F13" },
+  chooserOptionText: { color: colors.muted, fontSize: 13, fontWeight: "600" },
+  areaOptionNote: { color: colors.muted, fontSize: 12, lineHeight: 17 },
+  areaOptionError: { color: colors.danger, fontSize: 12, lineHeight: 17 },
   filterInput: { minHeight: 48, borderRadius: 13, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.background, color: colors.text, fontSize: 16, paddingHorizontal: 14 },
   freshnessRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   sheetChoice: { minHeight: 38, justifyContent: "center", paddingHorizontal: 12, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.background },
