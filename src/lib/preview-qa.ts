@@ -26,6 +26,7 @@ export const QA_PREVIEW_PREFERENCES = {
   },
   notificationPreferences: {
     onSite: { enabled: true },
+    push: { enabled: false },
     email: { enabled: true, mode: "major_only" as const },
     sms: { enabled: false, available: true, mode: "major_only" as const, verified: false },
     sightings: { enabled: false },

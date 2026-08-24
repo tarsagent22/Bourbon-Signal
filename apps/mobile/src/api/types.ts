@@ -85,22 +85,55 @@ export interface MemberCollectionBottle {
   updatedAt: string;
 }
 
+export interface RadarAreaPreferences {
+  states: string[];
+  ncBoards: string[];
+  gaAreas: string[];
+  tnAreas: string[];
+  vaCities: string[];
+  ohCities: string[];
+  iaCities: string[];
+  idCities: string[];
+  scAreas: string[];
+  caAreas: string[];
+  nvAreas: string[];
+  nyAreas: string[];
+  coAreas: string[];
+  paCounties: string[];
+  paStores: string[];
+}
+
 export interface MemberPreferences {
-  entitlements?: { canUseCollection?: boolean; alertAreaLimit?: number | null; trackedBottleLimit?: number | null };
-  areaPreferences: { states: string[]; [key: string]: unknown };
+  entitlements?: {
+    canUseCollection?: boolean;
+    alertAreaLimit?: number | null;
+    trackedBottleLimit?: number | null;
+    canReceiveSmsAlerts?: boolean;
+  };
+  areaPreferences: RadarAreaPreferences;
   notificationPreferences: {
     onSite: { enabled: boolean };
-    email: { enabled: boolean; mode: string };
-    sms: { enabled: boolean; available: boolean; verified: boolean; mode: string };
+    push: { enabled: boolean };
+    email: { enabled: boolean; mode: "all" | "major_only" };
+    sms: { enabled: boolean; available: boolean; verified: boolean; mode: "major_only" | "specific_bottles"; phone?: string };
     sightings: { enabled: boolean };
-    weeklyIntelligence?: { emailEnabled: boolean };
   };
-  alertMode: string;
+  alertMode: "specific_bottles" | "anything_notable";
   bottleAlertPreferences: { bottleNames: string[]; bottleKeys: string[] };
   collectionPreferences: { bottles: MemberCollectionBottle[]; version: number };
 }
 
 export interface MemberPreferencesPatch {
+  areaPreferences?: RadarAreaPreferences;
+  notificationPreferences?: {
+    onSite?: Partial<MemberPreferences["notificationPreferences"]["onSite"]>;
+    push?: Partial<MemberPreferences["notificationPreferences"]["push"]>;
+    email?: Partial<MemberPreferences["notificationPreferences"]["email"]>;
+    sms?: Partial<MemberPreferences["notificationPreferences"]["sms"]>;
+    sightings?: Partial<MemberPreferences["notificationPreferences"]["sightings"]>;
+  };
+  alertMode?: MemberPreferences["alertMode"];
+  bottleAlertPreferences?: MemberPreferences["bottleAlertPreferences"];
   collectionPreferences?: MemberPreferences["collectionPreferences"];
 }
 
@@ -110,7 +143,13 @@ export interface MemberAlert {
   state: string;
   storeLabel: string;
   matchedArea: string;
+  eventType: string;
+  rarityTier: "limited" | "allocated" | "unicorn" | null;
+  quantity: number | null;
+  score: number;
   priorityClass: "major" | "standard";
+  signalAt?: string;
+  freshnessLimitHours?: number;
   createdAt: string;
   readAt: string | null;
   archivedAt: string | null;
@@ -119,6 +158,15 @@ export interface MemberAlert {
 export interface MemberAlertsResponse {
   alerts: MemberAlert[];
   unreadCount: number;
+}
+
+export interface RadarBottleOption { id: string; name: string; rarity?: "limited" | "allocated" | "unicorn" }
+
+export interface PushDeviceStatus {
+  supported: boolean;
+  enabled: boolean;
+  registeredDeviceCount: number;
+  currentDeviceRegistered?: boolean;
 }
 
 export interface SignalRewardItem {

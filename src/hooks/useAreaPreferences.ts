@@ -54,6 +54,7 @@ function mergePreferencePatch(base: UserAlertPreferences, patch: UserAlertPrefer
     ? {
         ...base.notificationPreferences,
         ...(notificationPatch.onSite ? { onSite: { ...base.notificationPreferences.onSite, ...notificationPatch.onSite } } : {}),
+        ...(notificationPatch.push ? { push: { ...base.notificationPreferences.push, ...notificationPatch.push } } : {}),
         ...(notificationPatch.email ? { email: { ...base.notificationPreferences.email, ...notificationPatch.email } } : {}),
         ...(notificationPatch.sms ? { sms: { ...base.notificationPreferences.sms, ...notificationPatch.sms } } : {}),
         ...(notificationPatch.sightings ? { sightings: { ...base.notificationPreferences.sightings, ...notificationPatch.sightings } } : {}),

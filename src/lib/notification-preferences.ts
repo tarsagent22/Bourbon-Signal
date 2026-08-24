@@ -19,6 +19,9 @@ export interface NotificationPreferences {
   onSite: {
     enabled: boolean;
   };
+  push: {
+    enabled: boolean;
+  };
   email: {
     enabled: boolean;
     mode: EmailAlertMode;
@@ -38,6 +41,7 @@ export interface NotificationPreferences {
 
 export interface NotificationPreferencesPatch {
   onSite?: Partial<NotificationPreferences["onSite"]>;
+  push?: Partial<NotificationPreferences["push"]>;
   email?: Partial<NotificationPreferences["email"]>;
   sms?: Partial<NotificationPreferences["sms"]>;
   sightings?: Partial<NotificationPreferences["sightings"]>;
@@ -84,6 +88,7 @@ export interface MemberAlertRecord {
 
 const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
   onSite: { enabled: true },
+  push: { enabled: false },
   email: { enabled: false, mode: "major_only" },
   sms: { enabled: false, available: true, mode: "major_only", verified: false },
   sightings: { enabled: false },
@@ -97,6 +102,7 @@ export function getDefaultNotificationPreferences(): NotificationPreferences {
 export function normalizeNotificationPreferences(input: unknown): NotificationPreferences {
   const source = (input && typeof input === "object" ? input : {}) as Record<string, unknown>;
   const onSite = (source.onSite && typeof source.onSite === "object" ? source.onSite : {}) as Record<string, unknown>;
+  const push = (source.push && typeof source.push === "object" ? source.push : {}) as Record<string, unknown>;
   const email = (source.email && typeof source.email === "object" ? source.email : {}) as Record<string, unknown>;
   const sms = (source.sms && typeof source.sms === "object" ? source.sms : {}) as Record<string, unknown>;
   const sightings = (source.sightings && typeof source.sightings === "object" ? source.sightings : {}) as Record<string, unknown>;
@@ -117,6 +123,9 @@ export function normalizeNotificationPreferences(input: unknown): NotificationPr
   return {
     onSite: {
       enabled: typeof onSite.enabled === "boolean" ? onSite.enabled : DEFAULT_NOTIFICATION_PREFERENCES.onSite.enabled,
+    },
+    push: {
+      enabled: typeof push.enabled === "boolean" ? push.enabled : DEFAULT_NOTIFICATION_PREFERENCES.push.enabled,
     },
     email: {
       // Daily roundup was never shipped. Disable legacy selections rather than
@@ -203,6 +212,7 @@ export function applyNotificationPreferencesPatch(input: {
   const merged = {
     ...existing,
     onSite: { ...existing.onSite, ...(nestedRecord(source.onSite) || {}) },
+    push: { ...existing.push, ...(nestedRecord(source.push) || {}) },
     email: { ...existing.email, ...(nestedRecord(source.email) || {}) },
     sms: { ...existing.sms, ...(nestedRecord(source.sms) || {}) },
     sightings: { ...existing.sightings, ...(nestedRecord(source.sightings) || {}) },
@@ -212,6 +222,7 @@ export function applyNotificationPreferencesPatch(input: {
   const metadataPatch: NotificationPreferencesMetadataPatch = {};
 
   if (supplied(source, "onSite")) metadataPatch.onSite = preferences.onSite;
+  if (supplied(source, "push")) metadataPatch.push = preferences.push;
   if (supplied(source, "email")) metadataPatch.email = preferences.email;
   if (supplied(source, "sms")) metadataPatch.sms = preferences.sms;
   if (supplied(source, "sightings")) metadataPatch.sightings = preferences.sightings;

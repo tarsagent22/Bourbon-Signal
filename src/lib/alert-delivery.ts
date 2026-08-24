@@ -18,6 +18,7 @@ import { nevadaAreaMatchesFields, normalizeNevadaAreas } from "@/lib/nevada-area
 import { matchedNewYorkArea, newYorkAreaMatchesFields, normalizeNewYorkAreas, SUPPORTED_NEW_YORK_AREAS } from "@/lib/new-york-area";
 import { coloradoAreaMatchesFields, normalizeColoradoAreas } from "@/lib/colorado-area";
 import { firstAlertCreatedMetadata } from "@/lib/member-activation";
+import { buildExpoPushMessages, enabledPushTokens, sendExpoPushMessages } from "@/lib/push-devices";
 import {
   CHARLOTTE_METRO_BOARD_GROUP,
   demandMetroAreaMatchesFields,
@@ -972,10 +973,13 @@ export async function deliverPreferenceAlerts(req: Request, options: {
     skippedFreeUsers: 0,
     skippedNoAreaPreferences: 0,
     usersWithOnSiteEnabled: 0,
+    usersWithPushEnabled: 0,
     usersWithEmailEnabled: 0,
     usersWithSmsEnabled: 0,
     usersMatched: 0,
     onSiteAlertsCreated: 0,
+    pushNotificationsSent: 0,
+    pushNotificationsWouldSend: 0,
     emailsSent: 0,
     emailsWouldSend: 0,
     smsSent: 0,
@@ -1172,8 +1176,9 @@ export async function deliverPreferenceAlerts(req: Request, options: {
       if (notificationPrefs.onSite.enabled) {
         summary.usersWithOnSiteEnabled += 1;
       }
+      if (notificationPrefs.push.enabled) summary.usersWithPushEnabled += 1;
 
-      if (notificationPrefs.onSite.enabled && !baselineEmailOnly && !baselineSmsOnly && (dryRun || ALERT_ONSITE_DELIVERY_ENABLED)) {
+      if ((notificationPrefs.onSite.enabled || notificationPrefs.push.enabled) && !baselineEmailOnly && !baselineSmsOnly && (dryRun || ALERT_ONSITE_DELIVERY_ENABLED)) {
         const existingOnSiteDedupe = new Set((alertInbox.recent || []).map((alert) => alert.dedupeKey));
         const onSiteBaseline = new Set(deliveryMetadata.onSiteBaselineDedupeKeys || []);
         const draftOnSiteAlerts = matchingPreferenceCandidates
@@ -1201,6 +1206,9 @@ export async function deliverPreferenceAlerts(req: Request, options: {
         }
 
         if (newOnSiteAlerts.length) summary.onSiteAlertsCreated += newOnSiteAlerts.length;
+        if (dryRun && notificationPrefs.push.enabled) {
+          summary.pushNotificationsWouldSend += newOnSiteAlerts.flatMap((alert) => buildExpoPushMessages(enabledPushTokens(privateMetadata.pushDevices), alert)).length;
+        }
       }
 
       let newRecords: DeliveryRecord[] = [];
@@ -1523,6 +1531,17 @@ export async function deliverPreferenceAlerts(req: Request, options: {
             }
           }
           if (onSiteInboxWritten) createdRealAlert = true;
+          if (onSiteInboxWritten && notificationPrefs.push.enabled) {
+            const messages = newOnSiteAlerts.flatMap((alert) => buildExpoPushMessages(enabledPushTokens(privateMetadata.pushDevices), alert));
+            if (messages.length) {
+              try {
+                const result = await sendExpoPushMessages(messages);
+                summary.pushNotificationsSent += result.accepted;
+              } catch (error) {
+                summary.errors.push({ userId, message: `push delivery failed: ${error instanceof Error ? error.message : String(error)}` });
+              }
+            }
+          }
           for (const queuedCandidate of onSiteQueueCandidates) {
             if (onSiteInboxWritten && queueRepository) {
               await queueRepository.markDelivered(queuedCandidate.id, `clerk:${userId}:${queuedCandidate.id}`, now);
