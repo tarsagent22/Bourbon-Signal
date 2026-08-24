@@ -7,6 +7,34 @@ import {
   normalizeMemberSightingSignal,
 } from "../src/lib/signals/signal-contract.ts";
 import { createSignalFeedHandler } from "../src/lib/signals/signal-route.ts";
+import { SIGNAL_RARITY_TIERS, normalizeSignalRarities, parseSignalFeedFilters } from "../src/lib/signals/signal-feed-filters.ts";
+import { decodeSignalFeedCursor, encodeSignalFeedCursor } from "../src/lib/signals/signal-feed-cursor.ts";
+
+assert.deepEqual(SIGNAL_RARITY_TIERS, ["limited", "allocated", "unicorn"]);
+assert.deepEqual(normalizeSignalRarities(["highly_allocated"]), ["unicorn"], "legacy Highly Allocated filters migrate to Unicorn");
+assert.equal(parseSignalFeedFilters(new URL("https://example.test?state=VA&area=Raleigh")).area, "Raleigh");
+assert.throws(() => parseSignalFeedFilters(new URL("https://example.test?state=VA&area=%25")), /area is not supported/);
+const areaCursor = encodeSignalFeedCursor({
+  view: "market",
+  dropsOffset: 4,
+  dropSnapshot: "snapshot-1",
+  memberBoundary: null,
+  filters: parseSignalFeedFilters(new URL("https://example.test?state=NC&area=Wake%20County%20ABC&tiers=allocated")),
+  asOf: "2026-08-23T12:00:00.000Z",
+});
+assert.equal(decodeSignalFeedCursor(areaCursor)?.filters.area, "Wake County ABC");
+const legacyRarityCursor = Buffer.from(JSON.stringify({
+  v: 4,
+  fv: "market",
+  d: 0,
+  ds: null,
+  mb: null,
+  f: { rarities: ["highly_allocated"], state: null, freshness: null, bottle: null },
+  at: "2026-08-23T12:00:00.000Z",
+})).toString("base64url");
+assert.deepEqual(decodeSignalFeedCursor(legacyRarityCursor)?.filters, {
+  rarities: ["unicorn"], state: null, area: null, freshness: null, bottle: null,
+}, "legacy v4 cursor filters remain readable but normalize to canonical rarity");
 
 const engineSignal = normalizeDropSignal({
   id: "drop-1",
@@ -49,6 +77,23 @@ assert.equal(normalizeDropSignal({
   state: "OH",
   timestamp: "2026-08-20T20:00:00.000Z",
 }).id, "trusted_source:ohlq:item-42", "legacy source namespaces must remain part of canonical IDs");
+assert.deepEqual(SIGNAL_RARITY_TIERS, ["limited", "allocated", "unicorn"], "Signal v1 only emits the three approved rarity categories");
+assert.deepEqual(normalizeSignalRarities(["highly_allocated", "unicorn"]), ["unicorn"], "legacy rarity aliases collapse to Unicorn");
+assert.equal(normalizeDropSignal({
+  id: "legacy-rarity",
+  bottleName: "Legacy Rarity Bottle",
+  rarity_tier: "highly_allocated",
+  price: 0,
+  state: "NC",
+  timestamp: "2026-08-20T20:00:00.000Z",
+}).bottle.rarity, "unicorn");
+assert.equal(normalizeDropSignal({
+  id: "zero-price",
+  bottleName: "Zero Price Bottle",
+  price: 0,
+  state: "NC",
+  timestamp: "2026-08-20T20:00:00.000Z",
+}).availability?.price, undefined, "zero is unknown, not a public price");
 
 const retailerSignal = normalizeDropSignal({
   id: "retailer:submission-1",
@@ -133,6 +178,7 @@ const memberSightingInput: Parameters<typeof normalizeMemberSightingSignal>[0] =
   sightingType: "online_social",
   reporterUserId: "user_secret_123",
   reporterDisplayName: "Private First Name",
+  reporterPublicIdentity: { kind: "member", number: 184, label: "Member #184", displayName: "Oak Street Scout" },
   reporterBadges: ["legacy badge"],
   createdAt: "2026-08-20T21:00:00.000Z",
   upCount: 2,
@@ -142,8 +188,9 @@ const memberSightingInput: Parameters<typeof normalizeMemberSightingSignal>[0] =
 const memberSignal = normalizeMemberSightingSignal(memberSightingInput);
 assert.equal(memberSignal.id, "member:sighting-1");
 assert.equal(memberSignal.source.type, "member");
-assert.equal(memberSignal.source.label, "Member");
+assert.equal(memberSignal.source.label, "Member #184");
 assert.equal(memberSignal.source.reportMode, "reported_online");
+assert.equal(memberSignal.source.actor?.displayName, "Oak Street Scout");
 assert.equal(memberSignal.strength, "more_activity");
 assert.equal(memberSignal.evidence.photo, false, "private reward metadata must not alter the public Signal contract");
 assert.equal(memberSignal.evidence.corroborationCount, 0, "helpful votes are not corroboration");
@@ -261,8 +308,19 @@ for (const call of filterCalls) {
   assert.equal(params.get("bottle"), "Weller");
   assert.ok(params.get("since"));
 }
+filterCalls.length = 0;
+const legacyAreaResponse = await filterHandler(new Request("https://www.bourbonsignal.com/api/v1/signals?state=nc&area=Wake%20County%20ABC&tiers=highly_allocated"));
+assert.equal(legacyAreaResponse.status, 200);
+const dropAreaCall = filterCalls.find((call) => new URL(call).pathname === "/api/drops");
+const sightingAreaCall = filterCalls.find((call) => new URL(call).pathname === "/api/sightings");
+assert.equal(new URL(dropAreaCall!).searchParams.get("store"), "Wake County ABC", "NC Board selections use the website's legacy drop contract");
+assert.equal(new URL(sightingAreaCall!).searchParams.get("area"), "Wake County ABC", "area selection is passed safely to Community sightings");
+assert.equal(new URL(dropAreaCall!).searchParams.get("tiers"), "unicorn");
+assert.equal(new URL(sightingAreaCall!).searchParams.get("tiers"), "unicorn");
+const areaWithoutState = await filterHandler(new Request("https://www.bourbonsignal.com/api/v1/signals?area=Wake%20County%20ABC"));
+assert.equal(areaWithoutState.status, 400, "area requires an explicit state lens");
 const unsupportedFilter = await filterHandler(new Request("https://www.bourbonsignal.com/api/v1/signals?store=secret"));
 assert.equal(unsupportedFilter.status, 400, "unapproved source filters must still fail closed");
-assert.equal(filterCalls.length, 2, "unsupported filters must fail before source access");
+assert.equal(filterCalls.length, 2, "unsupported filters must fail before additional source access");
 
 console.log("Canonical Signal v1 contract passed.");

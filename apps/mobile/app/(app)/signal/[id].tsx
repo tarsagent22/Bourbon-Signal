@@ -68,7 +68,7 @@ export default function SignalDetailScreen() {
     {!signal && !error ? <ActivityIndicator color={colors.accent} /> : null}
     {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
     {signal ? <>
-      <Text style={styles.source}>{signal.source.label}</Text>
+      <Text style={styles.source}>{signal.source.type === "member" && presented?.reporter ? `Reported by ${presented.reporter}` : signal.source.label}</Text>
       <Text style={styles.title}>{signal.bottle.name}</Text>
       <View style={styles.rule} />
       <Detail label="Location" value={presented?.address || presented?.location || signal.location.state || "Location not specified"} />

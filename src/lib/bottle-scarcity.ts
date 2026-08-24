@@ -73,7 +73,7 @@ const TIER_PRESENTATION: Record<ScarcityTier, { label: string; description: stri
     score: 72,
   },
   highly_allocated: {
-    label: "Highly allocated",
+    label: "Unicorn",
     description: "Extremely difficult to find and commonly released through very small allotments or controlled events.",
     score: 86,
   },
@@ -109,7 +109,7 @@ function isScarcityTier(value: unknown): value is ScarcityTier {
 function legacyNationalTier(value: unknown): ScarcityTier {
   const tier = String(value || "").trim().toLowerCase();
   if (tier === "unicorn") return "unicorn";
-  if (tier === "highly_allocated") return "highly_allocated";
+  if (tier === "highly_allocated") return "unicorn";
   if (tier === "allocated") return "allocated";
   if (tier === "limited" || tier === "seasonal") return "limited";
   return "regular";
@@ -164,6 +164,7 @@ export function validateStateScarcityOverrides(overrides: StateScarcityOverride[
     if (!validDate(raw.lastReviewedAt)) throw new Error(`Invalid state scarcity review date for ${jurisdiction}`);
     return {
       ...raw,
+      tier: raw.tier === "highly_allocated" ? "unicorn" : raw.tier,
       jurisdiction,
       reason: raw.reason.trim(),
       sourceIds,
@@ -202,7 +203,7 @@ export function normalizeBottleScarcity(input: BottleScarcityInput | Record<stri
     : null;
 
   return {
-    nationalTier: source.nationalTier || legacyNationalTier(legacyAvailability),
+    nationalTier: source.nationalTier === "highly_allocated" ? "unicorn" : source.nationalTier || legacyNationalTier(legacyAvailability),
     nationalConfidence,
     releaseCadence,
     distributionScope,

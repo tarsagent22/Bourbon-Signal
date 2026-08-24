@@ -1,4 +1,6 @@
 import type { CanonicalSignal, SignalSourceType } from "./signal-contract.ts";
+import { buildSignalFeedAreaDirectory, type SignalFeedAreaDirectory } from "../feed-area-options.ts";
+import { communityDisplayNameFromMetadata, resolvedCommunityDisplayName } from "../community-display-name.ts";
 
 export const SIGNAL_API_VERSION = "bourbon-signal/mobile-api@1" as const;
 export const SIGNAL_API_ERROR_VERSION = "bourbon-signal/api-error@1" as const;
@@ -66,6 +68,9 @@ export interface SignalMemberProfileResponse {
   contractVersion: typeof SIGNAL_API_VERSION;
   profile: {
     identity: PublicSignalIdentity | null;
+    displayName: string;
+    customDisplayName: string | null;
+    feedAreas: SignalFeedAreaDirectory;
     membership: {
       tier: "free" | "standard" | "barrel" | "bottled-in-bond";
       label: string;
@@ -89,10 +94,15 @@ export function buildSignalMemberProfile(
     canSubmitSightings: boolean;
   },
 ): SignalMemberProfileResponse {
+  const identity = publicSignalIdentityFromMetadata(metadata) || null;
+  const customDisplayName = communityDisplayNameFromMetadata(metadata);
   return {
     contractVersion: SIGNAL_API_VERSION,
     profile: {
-      identity: publicSignalIdentityFromMetadata(metadata) || null,
+      identity,
+      displayName: resolvedCommunityDisplayName(metadata, identity?.label || "Member"),
+      customDisplayName,
+      feedAreas: buildSignalFeedAreaDirectory(),
       membership: {
         tier: access.tier,
         label: access.label,

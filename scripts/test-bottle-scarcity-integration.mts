@@ -52,12 +52,12 @@ assert.equal(alBuffaloTrace?.officialAllocationStatus, "state_allocated");
 assert.equal(getBottleStateScarcityOverrides("george-t-stagg", "unicorn").find((item) => item.jurisdiction === "AL")?.tier, "unicorn", "an official allocated list must not downgrade a stronger national baseline");
 assert.equal(getBottleStateScarcityOverrides("makers-mark", "regular").some((item) => item.jurisdiction === "AL"), false, "unmatched bottles must not inherit Alabama allocation");
 const vaWeller12 = BOTTLE_STATE_SCARCITY_OVERRIDES["weller-12-year"]?.find((item) => item.jurisdiction === "VA");
-assert.equal(vaWeller12?.tier, "highly_allocated");
+assert.equal(vaWeller12?.tier, "highly_allocated", "raw curated fixtures remain legacy-compatible while all normalized classifications map to Unicorn");
 assert.equal(vaWeller12?.officialAllocationStatus, "lottery");
 
 for (const bottle of inventory as Array<Record<string, unknown>>) {
   const scarcity = normalizeBottleScarcity(bottle);
-  assert.ok(["regular", "limited", "allocated", "highly_allocated", "unicorn"].includes(scarcity.nationalTier));
+  assert.ok(["regular", "limited", "allocated", "unicorn"].includes(scarcity.nationalTier));
   assert.notEqual(scarcity.nationalTier, "regional", "regional must only be a distribution attribute");
   assert.notEqual(scarcity.nationalTier, "seasonal", "seasonal must only be a release-cadence attribute");
 }

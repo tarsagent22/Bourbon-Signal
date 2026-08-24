@@ -55,6 +55,7 @@ interface DropsResponse {
   error?: string;
 }
 
+
 const DROP_FEED_CLIENT_CACHE_MS = 60_000;
 const DROP_FEED_CLIENT_CACHE_LIMIT = 24;
 const dropFeedResponseCache = new Map<string, { expiresAt: number; data: DropsResponse }>();
@@ -2478,7 +2479,6 @@ export default function DropFeed() {
             {[
               { tier: "all", label: "All signals", activeBg: "rgba(245,237,214,0.14)", activeColor: "var(--color-cream)", inactiveBg: "transparent", inactiveColor: "rgba(245,237,214,0.42)" },
               { tier: "unicorn", label: "Unicorn", activeBg: "rgba(196,148,58,0.18)", activeColor: "#E8C97A", inactiveBg: "transparent", inactiveColor: "rgba(196,148,58,0.46)" },
-              { tier: "highly_allocated", label: "Highly Allocated", activeBg: "rgba(216,154,56,0.18)", activeColor: "#F0BD69", inactiveBg: "transparent", inactiveColor: "rgba(216,154,56,0.48)" },
               { tier: "allocated", label: "Allocated", activeBg: "rgba(184,115,51,0.16)", activeColor: "#D4943A", inactiveBg: "transparent", inactiveColor: "rgba(184,115,51,0.44)" },
               { tier: "limited", label: "Limited", activeBg: "rgba(138,138,138,0.14)", activeColor: "rgba(245,237,214,0.74)", inactiveBg: "transparent", inactiveColor: "rgba(138,138,138,0.46)" },
             ].map((pill) => {
@@ -2700,4 +2700,3 @@ export default function DropFeed() {
     </section>
   );
 }
-

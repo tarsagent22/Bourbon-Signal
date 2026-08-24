@@ -1,7 +1,6 @@
 export const RARITY_FILTER_OPTIONS = [
   { value: "limited", label: "Limited" },
   { value: "allocated", label: "Allocated" },
-  { value: "highly_allocated", label: "Highly allocated" },
   { value: "unicorn", label: "Unicorn" },
 ] as const;
 
@@ -12,16 +11,25 @@ export type SignalFreshness = "24h" | "7d" | "30d" | null;
 export interface SignalFeedFilters {
   rarities: SignalRarity[];
   state: string;
+  area: string;
   freshness: SignalFreshness;
   bottle: string;
 }
 
-export const DEFAULT_SIGNAL_FILTERS: SignalFeedFilters = { rarities: [], state: "", freshness: null, bottle: "" };
+export interface SignalAreaDirectory {
+  states: Array<{
+    code: string;
+    label: string;
+    areaLabel: "Board" | "City";
+    options: Array<{ value: string; label: string }>;
+  }>;
+}
+
+export const DEFAULT_SIGNAL_FILTERS: SignalFeedFilters = { rarities: [], state: "", area: "", freshness: null, bottle: "" };
 
 export function rarityOptionsForView(view: SignalFeedView) {
-  return view === "community"
-    ? RARITY_FILTER_OPTIONS.filter((option) => option.value !== "highly_allocated")
-    : RARITY_FILTER_OPTIONS;
+  void view;
+  return RARITY_FILTER_OPTIONS;
 }
 
 export function toggleRarity(filters: SignalFeedFilters, rarity: SignalRarity): SignalFeedFilters {
@@ -32,15 +40,34 @@ export function toggleRarity(filters: SignalFeedFilters, rarity: SignalRarity): 
 }
 
 export function activeFilterCount(filters: SignalFeedFilters) {
-  return Number(Boolean(filters.state)) + Number(Boolean(filters.freshness)) + Number(Boolean(filters.bottle.trim()));
+  return Number(Boolean(filters.state)) + Number(Boolean(filters.area)) + Number(Boolean(filters.freshness)) + Number(Boolean(filters.bottle.trim()));
 }
 
-export function filterSummary(filters: SignalFeedFilters) {
+export function areaSelectorLabel(state: string) {
+  return state.trim().toUpperCase() === "NC" ? "Board" : "City";
+}
+
+export function areaOptionsForState(directory: SignalAreaDirectory | null | undefined, state: string) {
+  return directory?.states.find((entry) => entry.code === state.trim().toUpperCase())?.options || [];
+}
+
+export function filterSummary(filters: SignalFeedFilters, directory?: SignalAreaDirectory | null) {
   const freshness = filters.freshness === "24h" ? "Last 24 hours" : filters.freshness === "7d" ? "Last 7 days" : filters.freshness === "30d" ? "Last 30 days" : "";
-  return [filters.state, freshness, filters.bottle.trim()].filter(Boolean).join(" · ");
+  const stateEntry = directory?.states.find((entry) => entry.code === filters.state);
+  const state = filters.state ? (stateEntry ? `State: ${stateEntry.label}` : `State: ${filters.state}`) : "";
+  const area = filters.area ? `${stateEntry?.areaLabel || areaSelectorLabel(filters.state)}: ${filters.area}` : "";
+  return [state, area, freshness, filters.bottle.trim()].filter(Boolean).join(" · ");
 }
 
-export function normalizedFilters(filters: SignalFeedFilters): SignalFeedFilters {
+export function normalizedFilters(filters: SignalFeedFilters, directory?: SignalAreaDirectory | null): SignalFeedFilters {
   const state = filters.state.trim().toUpperCase().slice(0, 2);
-  return { ...filters, state: /^[A-Z]{2}$/.test(state) ? state : "", bottle: filters.bottle.replace(/\s+/g, " ").trim().slice(0, 100) };
+  const normalizedState = /^[A-Z]{2}$/.test(state) ? state : "";
+  const area = normalizedState ? filters.area.replace(/\s+/g, " ").trim().slice(0, 120) : "";
+  const allowedAreas = areaOptionsForState(directory, normalizedState);
+  return {
+    ...filters,
+    state: normalizedState,
+    area: directory && normalizedState === "NC" && area && !allowedAreas.some((option) => option.value === area) ? "" : area,
+    bottle: filters.bottle.replace(/\s+/g, " ").trim().slice(0, 100),
+  };
 }

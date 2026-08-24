@@ -17,13 +17,15 @@ import { createSignalPointsRepository } from "@/lib/signal-points-repository";
 import { publicSignalIdentityFromMetadata } from "@/lib/signals/signal-api-contract";
 import { normalizeSignalRarities } from "@/lib/signals/signal-feed-filters";
 import { idempotentSightingFingerprint, idempotentSightingId, sameIdempotentSighting } from "@/lib/signals/signal-api-idempotency";
+import { communityDisplayNameFromMetadata, normalizeCommunityDisplayName, resolvedCommunityDisplayName } from "@/lib/community-display-name";
+import { canonicalSignalFeedAreaSelection, dropFeedStoreQueryMatches } from "@/lib/feed-area-options";
 
 function normalizeSightingType(value: unknown): SightingType {
   return value === "online_social" ? "online_social" : "seen_in_store";
 }
 
 function normalizeRarityTier(value: unknown): MemberSighting["rarityTier"] {
-  return value === "unicorn" || value === "allocated" || value === "limited" ? value : "limited";
+  return value === "unicorn" || value === "highly_allocated" ? "unicorn" : value === "allocated" || value === "limited" ? value : "limited";
 }
 
 function visibleSightingForRequester(sighting: MemberSighting, ownerPointsPreview: boolean) {
@@ -130,7 +132,7 @@ async function buildLegacyCommunitySnapshot(): Promise<LegacyCommunitySnapshot> 
     votes.push(...(prefs.sightingVotes || []).map((vote) => ({ ...vote, userId: user.id })));
     reporters.push({
       id: user.id,
-      displayName: typeof user.firstName === "string" ? user.firstName : "Member",
+      displayName: resolvedCommunityDisplayName(user.publicMetadata, publicSignalIdentityFromMetadata(user.publicMetadata)?.label || "Member"),
       badges: rewardBadgeLabels((user.privateMetadata && typeof user.privateMetadata === "object" ? user.privateMetadata : {}) as Record<string, unknown>),
     });
   }
@@ -191,13 +193,20 @@ async function getAggregateSightings(
   const filterRarities = new Set(filters.rarities || []);
   const filterBottle = filters.bottle?.trim().toLowerCase() || "";
   const filterSince = filters.since ? Date.parse(filters.since) : Number.NaN;
+  const filterArea = filters.area?.trim() || "";
   const eligibleLegacySightings = (legacy?.sightings || []).filter((sighting) => {
     const beforeMatch = !before || sighting.createdAt < before.createdAt || (sighting.createdAt === before.createdAt && sighting.id > before.id);
     const stateMatch = !filterStates.size || filterStates.has(String(sighting.storeState || "").toUpperCase());
-    const rarityMatch = !filterRarities.size || filterRarities.has(String(sighting.rarityTier || ""));
+    const sightingRarity = String(sighting.rarityTier || "") === "highly_allocated" ? "unicorn" : String(sighting.rarityTier || "");
+    const rarityMatch = !filterRarities.size || filterRarities.has(sightingRarity);
     const bottleMatch = !filterBottle || String(sighting.bottleName || "").toLowerCase().includes(filterBottle);
     const sinceMatch = !Number.isFinite(filterSince) || Date.parse(sighting.createdAt) >= filterSince;
-    return beforeMatch && stateMatch && rarityMatch && bottleMatch && sinceMatch;
+    const areaMatch = !filterArea || dropFeedStoreQueryMatches({
+      state: sighting.storeState,
+      query: filterArea,
+      fields: [sighting.storeName, sighting.storeAddress, sighting.storeCity],
+    });
+    return beforeMatch && stateMatch && rarityMatch && bottleMatch && sinceMatch && areaMatch;
   });
   for (const sighting of eligibleLegacySightings) sightingsById.set(sighting.id, sighting);
   for (const sighting of durableFeed.sightings) sightingsById.set(sighting.id, sighting);
@@ -205,9 +214,15 @@ async function getAggregateSightings(
   for (const sighting of sightingsById.values()) {
     const owner = sighting.reporterUserId ? reportersById.get(sighting.reporterUserId) : undefined;
     const row = combinedCounts.get(sighting.id) || { upCount: 0, downCount: 0, myVote: null };
+    const reporterDisplayName = owner?.displayName || sighting.reporterDisplayName || sighting.reporterPublicIdentity?.label || "Member";
+    const customDisplayName = normalizeCommunityDisplayName(reporterDisplayName);
     sightings.push({
       ...sighting,
-      reporterDisplayName: owner?.displayName || sighting.reporterDisplayName || "Member",
+      reporterDisplayName,
+      reporterPublicIdentity: sighting.reporterPublicIdentity ? {
+        ...sighting.reporterPublicIdentity,
+        ...(customDisplayName.ok ? { displayName: customDisplayName.value } : {}),
+      } : undefined,
       reporterBadges: owner?.badges || sighting.reporterBadges,
       sightingType: normalizeSightingType(sighting.sightingType),
       rarityTier: normalizeRarityTier(sighting.rarityTier),
@@ -273,6 +288,7 @@ export async function GET(req: NextRequest) {
   const feedLimit = Number.isFinite(requestedLimit) ? Math.max(1, Math.min(Math.floor(requestedLimit), 1_000)) : 60;
   const requestedState = (url.searchParams.get("state") || "").trim().toUpperCase();
   const requestedBottle = (url.searchParams.get("bottle") || "").replace(/\s+/g, " ").trim();
+  const requestedArea = (url.searchParams.get("area") || "").replace(/\s+/g, " ").trim();
   const requestedSince = url.searchParams.get("since");
   let requestedRarities: string[];
   try {
@@ -281,6 +297,8 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Invalid rarity filter" }, { status: 400 });
   }
   if (requestedState && !/^[A-Z]{2}$/.test(requestedState)) return NextResponse.json({ error: "Invalid state filter" }, { status: 400 });
+  const canonicalArea = requestedArea ? canonicalSignalFeedAreaSelection(requestedState, requestedArea) : null;
+  if (requestedArea && !canonicalArea) return NextResponse.json({ error: "Invalid area filter" }, { status: 400 });
   if (requestedBottle.length > 100) return NextResponse.json({ error: "Invalid bottle filter" }, { status: 400 });
   if (requestedSince && !Number.isFinite(Date.parse(requestedSince))) return NextResponse.json({ error: "Invalid since timestamp" }, { status: 400 });
   const feedFilters: SightingFeedFilters = {
@@ -288,6 +306,7 @@ export async function GET(req: NextRequest) {
     rarities: requestedRarities,
     bottle: requestedBottle || null,
     since: requestedSince || null,
+    area: canonicalArea,
   };
   const beforeCreatedAt = url.searchParams.get("beforeCreatedAt");
   const beforeId = url.searchParams.get("beforeId");
@@ -394,6 +413,10 @@ export async function POST(req: NextRequest) {
   const user = await client.users.getUser(userId);
   const ownerPointsPreview = isRewardsAdminEmail(verifiedPrimaryClerkEmail(user));
   const prefs = normalizePrefs(user.publicMetadata?.sightingsPreferences);
+  const publicIdentity = publicSignalIdentityFromMetadata(user.publicMetadata);
+  const customDisplayName = communityDisplayNameFromMetadata(user.publicMetadata);
+  const reporterDisplayName = resolvedCommunityDisplayName(user.publicMetadata, publicIdentity?.label || "Member");
+  const publicActor = publicIdentity ? { ...publicIdentity, ...(customDisplayName ? { displayName: customDisplayName } : {}) } : undefined;
   const sighting: MemberSighting = {
     id: idempotencyKey ? idempotentSightingId(userId, idempotencyKey) : makeSightingId(),
     bottleName,
@@ -411,9 +434,9 @@ export async function POST(req: NextRequest) {
     source: "custom",
     sightingType: normalizeSightingType(payload.sightingType),
     reporterUserId: userId,
-    reporterDisplayName: typeof user.firstName === "string" ? user.firstName : "Member",
+    reporterDisplayName,
     reporterBadges: rewardBadgeLabels((user.privateMetadata && typeof user.privateMetadata === "object" ? user.privateMetadata : {}) as Record<string, unknown>),
-    reporterPublicIdentity: publicSignalIdentityFromMetadata(user.publicMetadata),
+    reporterPublicIdentity: publicActor,
     idempotencyFingerprint: idempotencyKey ? idempotentSightingFingerprint({ ...payload, reporterUserId: userId }) : undefined,
     storeTimeZone: typeof payload.storeTimeZone === "string" ? payload.storeTimeZone.slice(0, 80) : undefined,
     rewardState: {},

@@ -40,7 +40,8 @@ const FUTURE_CLOCK_SKEW_MS = 15 * 60 * 1000;
 
 
 function dropRarityTier(drop: Record<string, unknown>) {
-  return publicDropRarityTier(drop);
+  const tier = publicDropRarityTier(drop);
+  return tier === "highly_allocated" ? "unicorn" : tier;
 }
 
 function normalizedDropText(value: unknown) {
@@ -62,6 +63,7 @@ function parseTierFilter(url: URL) {
     raw
       .split(/[,|\s]+/)
       .map((tier) => tier.trim().toLowerCase())
+      .map((tier) => tier === "highly_allocated" ? "unicorn" : tier)
       .filter((tier) => DROP_FEED_TIERS.has(tier))
   );
 }

@@ -34,7 +34,7 @@ assert.deepEqual(
 assert.equal(getScarcityTierPresentation("regular").label, "Regular availability");
 assert.equal(getScarcityTierPresentation("limited").label, "Limited availability");
 assert.equal(getScarcityTierPresentation("allocated").label, "Allocated");
-assert.equal(getScarcityTierPresentation("highly_allocated").label, "Highly allocated");
+assert.equal(getScarcityTierPresentation("highly_allocated").label, "Unicorn");
 assert.equal(getScarcityTierPresentation("unicorn").label, "Unicorn");
 
 const regional = normalizeBottleScarcity({
@@ -63,10 +63,10 @@ const curated = normalizeBottleScarcity({
   scarcitySourceIds: ["producer-release", "official-lottery"],
   scarcityLastReviewedAt: "2026-08-03",
 });
-assert.equal(curated.nationalTier, "highly_allocated");
+assert.equal(curated.nationalTier, "unicorn");
 assert.equal(curated.nationalConfidence, "high");
 assert.deepEqual(getScarcityBadges(curated), ["Annual release"]);
-assert.equal(getPublicScarcityLabel(curated), "Highly allocated");
+assert.equal(getPublicScarcityLabel(curated), "Unicorn");
 
 assert.throws(
   () => validateStateScarcityOverrides([
@@ -106,7 +106,7 @@ const scarcity = normalizeBottleScarcity({
 });
 
 const montgomery = resolveBottleScarcity(scarcity, "md-montgomery");
-assert.equal(montgomery.marketTier, "highly_allocated", "the exact jurisdiction must outrank its state fallback");
+assert.equal(montgomery.marketTier, "unicorn", "the exact jurisdiction must outrank its state fallback");
 assert.equal(montgomery.classificationSource, "state_override");
 assert.equal(montgomery.localClassificationEstablished, true);
 assert.equal(montgomery.reason, "Montgomery County evidence.");
@@ -126,7 +126,7 @@ const merged = mergeStateScarcityOverrides(
   [override({ jurisdiction: "NC", tier: "highly_allocated", reason: "Curated classification.", sourceIds: ["official-nc"] })],
 );
 assert.equal(merged.length, 1, "authority merging must emit one record per jurisdiction");
-assert.equal(merged[0].tier, "highly_allocated", "the higher-authority source must own the local classification");
+assert.equal(merged[0].tier, "unicorn", "the higher-authority source must own the local classification");
 assert.deepEqual(merged[0].sourceIds, ["official-nc"], "evidence from a displaced conflicting tier must not leak into the winner");
 
 console.log("Unified bottle scarcity classification contract passed.");

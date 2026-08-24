@@ -3,10 +3,14 @@ import { readFileSync } from "node:fs";
 import {
   SIGNAL_API_ERROR_VERSION,
   SIGNAL_API_VERSION,
+  buildSignalMemberProfile,
   normalizeSignalCreateInput,
   publicSignalIdentityFromMetadata,
   signalIdParts,
 } from "../src/lib/signals/signal-api-contract.ts";
+import { normalizeCommunityDisplayName } from "../src/lib/community-display-name.ts";
+import { createSignalProfilePatchHandler } from "../src/lib/signals/signal-profile-route.ts";
+import { buildSignalFeedAreaDirectory } from "../src/lib/feed-area-options.ts";
 import {
   createSignalActionHandler,
   createSignalCreateHandler,
@@ -19,6 +23,62 @@ const identity = publicSignalIdentityFromMetadata({ memberNumber: 184 });
 assert.deepEqual(identity, { kind: "member", number: 184, label: "Member #184" });
 assert.deepEqual(publicSignalIdentityFromMetadata({ founderNumber: 19, memberNumber: 19 }), { kind: "founder", number: 19, label: "Founder #19" });
 assert.equal(publicSignalIdentityFromMetadata({ memberNumber: "not-a-number", email: "private@example.com" }), undefined);
+assert.deepEqual(normalizeCommunityDisplayName("  Oak   Street Scout  "), { ok: true, value: "Oak Street Scout" });
+for (const reserved of ["", "Bourbon Signal Staff", "Admin", "Founder #12", "Member #9", "support@bourbonsignal.com"]) {
+  const result = normalizeCommunityDisplayName(reserved);
+  assert.equal(result.ok, false, `${JSON.stringify(reserved)} must not be accepted as a Community display name`);
+}
+const areaDirectory = buildSignalFeedAreaDirectory();
+assert.equal(areaDirectory.states.find((state) => state.code === "NC")?.areaLabel, "Board");
+assert.ok(areaDirectory.states.find((state) => state.code === "NC")?.options.some((option) => option.value === "Wake County ABC" && /ABC/.test(option.label)));
+assert.equal(areaDirectory.states.find((state) => state.code === "GA")?.areaLabel, "City");
+
+const defaultDisplayProfile = buildSignalMemberProfile(
+  { memberNumber: 184, email: "private@example.com", firstName: "Private Legal Name" },
+  { tier: "standard", label: "Standard", hasBetaAccess: true, feedPreviewLimit: null, canSubmitSightings: true },
+);
+assert.equal(defaultDisplayProfile.profile.displayName, "Member #184");
+assert.equal(defaultDisplayProfile.profile.customDisplayName, null);
+assert.equal(JSON.stringify(defaultDisplayProfile).includes("private@example.com"), false);
+assert.equal(JSON.stringify(defaultDisplayProfile).includes("Private Legal Name"), false);
+const customDisplayProfile = buildSignalMemberProfile(
+  { memberNumber: 184, communityDisplayName: "Oak Street Scout" },
+  { tier: "standard", label: "Standard", hasBetaAccess: true, feedPreviewLimit: null, canSubmitSightings: true },
+);
+assert.equal(customDisplayProfile.profile.displayName, "Oak Street Scout");
+assert.equal(customDisplayProfile.profile.identity?.label, "Member #184", "the immutable numbered identity remains intact");
+
+let savedDisplayName: string | null | undefined;
+const profilePatchHandler = createSignalProfilePatchHandler({
+  saveDisplayName: async (_userId, displayName) => {
+    savedDisplayName = displayName;
+    return buildSignalMemberProfile(
+      { memberNumber: 184, ...(displayName ? { communityDisplayName: displayName } : {}) },
+      { tier: "standard", label: "Standard", hasBetaAccess: true, feedPreviewLimit: null, canSubmitSightings: true },
+    );
+  },
+});
+const patchedProfile = await profilePatchHandler(new Request("https://www.bourbonsignal.com/api/v1/me/profile", {
+  method: "PATCH",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ displayName: "  Oak   Street Scout " }),
+}), "user_123");
+assert.equal(patchedProfile.status, 200);
+assert.equal(savedDisplayName, "Oak Street Scout");
+assert.equal((await patchedProfile.json()).profile.displayName, "Oak Street Scout");
+const rejectedProfile = await profilePatchHandler(new Request("https://www.bourbonsignal.com/api/v1/me/profile", {
+  method: "PATCH",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ displayName: "Bourbon Signal Support" }),
+}), "user_123");
+assert.equal(rejectedProfile.status, 400);
+const resetProfile = await profilePatchHandler(new Request("https://www.bourbonsignal.com/api/v1/me/profile", {
+  method: "PATCH",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ displayName: null }),
+}), "user_123");
+assert.equal(resetProfile.status, 200);
+assert.equal(savedDisplayName, null);
 assert.equal(idempotentSightingId("user_123", "signal-create-12345678"), idempotentSightingId("user_123", "signal-create-12345678"));
 assert.notEqual(idempotentSightingId("user_123", "signal-create-12345678"), idempotentSightingId("user_123", "signal-create-other"));
 
@@ -189,6 +249,8 @@ assert.match(repositorySource, /reserveIdempotency\([\s\S]*community_sighting_id
 assert.match(sightingsRouteSource, /reserveIdempotency[\s\S]*isLikelyDuplicateSighting[\s\S]*completeIdempotency/, "domain duplicate responses must retain their Idempotency-Key binding");
 assert.match(sightingsSchemaSource, /CREATE TABLE IF NOT EXISTS community_sighting_idempotency/, "the durable reservation table must be part of the additive schema");
 assert.match(repositorySource, /setVoteState\(/, "mobile actions need an idempotent desired-state mutation");
+assert.match(repositorySource, /updateReporterDisplayName\(/, "profile updates need a durable historical sighting update seam");
+assert.match(repositorySource, /reporterDisplayName[\s\S]*reporterPublicIdentity/, "historical payload updates must keep display and numbered actor identity together");
 assert.match(sightingsRouteSource, /typeof payload\.active === "boolean"[\s\S]*setVoteState/, "legacy voting must retain toggle compatibility while v1 uses desired state");
 
 const requests: Request[] = [];

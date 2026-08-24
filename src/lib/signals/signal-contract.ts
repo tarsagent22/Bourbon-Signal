@@ -1,7 +1,8 @@
 import type { MemberSighting } from "../sightings.ts";
 import { isScheduledReleaseSignal, scheduledReleaseDateValue, type ScheduledReleaseInput } from "../scheduled-release-signals.ts";
 import { dropDisplayTime } from "../drop-feed-policy.ts";
-import { isSignalRarityTier, type SignalRarityTier } from "./signal-feed-filters.ts";
+import { normalizeSignalRarityTier, type SignalRarityTier } from "./signal-feed-filters.ts";
+import { normalizeCommunityDisplayName } from "../community-display-name.ts";
 
 export const SIGNAL_CONTRACT_VERSION = "bourbon-signal/signal@1" as const;
 
@@ -23,6 +24,7 @@ export interface CanonicalSignal {
       kind: "founder" | "member";
       number: number;
       label: string;
+      displayName?: string;
     };
   };
   bottle: {
@@ -119,8 +121,8 @@ function normalizeState(value: unknown) {
 
 function signalRarity(...values: unknown[]) {
   for (const value of values) {
-    const normalized = typeof value === "string" ? value.trim().toLowerCase().replace(/[\s-]+/g, "_") : "";
-    if (isSignalRarityTier(normalized)) return normalized;
+    const normalized = normalizeSignalRarityTier(value);
+    if (normalized) return normalized;
   }
   return undefined;
 }
@@ -192,7 +194,7 @@ function signalAvailability(drop: Record<string, unknown>, kind: SignalKind) {
   return {
     status,
     ...(quantity === undefined ? {} : { quantity }),
-    ...(price === undefined ? {} : { price }),
+    ...(price === undefined || price <= 0 ? {} : { price }),
     ...(text(drop.availabilityLabel, drop.availability) ? { label: text(drop.availabilityLabel, drop.availability) } : {}),
     ...(text(drop.inventoryCaveat) ? { caveat: text(drop.inventoryCaveat) } : {}),
   };
@@ -308,6 +310,20 @@ export function normalizeMemberSightingSignal(sighting: MemberSighting): Canonic
   const state = normalizeState(sighting.storeState);
   const displayAt = text(sighting.createdAt) || new Date(0).toISOString();
   const quantity = finiteNumber(sighting.quantityEstimate);
+  const rawIdentity = sighting.reporterPublicIdentity;
+  const identity = rawIdentity
+    && (rawIdentity.kind === "founder" || rawIdentity.kind === "member")
+    && Number.isSafeInteger(rawIdentity.number)
+    && rawIdentity.number > 0
+    ? { ...rawIdentity, label: `${rawIdentity.kind === "founder" ? "Founder" : "Member"} #${rawIdentity.number}` }
+    : undefined;
+  const customDisplayName = normalizeCommunityDisplayName(identity?.displayName);
+  const actor = identity ? {
+    kind: identity.kind,
+    number: identity.number,
+    label: identity.label,
+    ...(customDisplayName.ok ? { displayName: customDisplayName.value } : {}),
+  } : undefined;
 
   return {
     contractVersion: SIGNAL_CONTRACT_VERSION,
@@ -315,9 +331,9 @@ export function normalizeMemberSightingSignal(sighting: MemberSighting): Canonic
     kind: "availability",
     source: {
       type: "member",
-      label: sighting.reporterPublicIdentity?.label || "Member",
+      label: identity?.label || "Member",
       reportMode: sighting.sightingType === "online_social" ? "reported_online" : "seen_in_store",
-      ...(sighting.reporterPublicIdentity ? { actor: sighting.reporterPublicIdentity } : {}),
+      ...(actor ? { actor } : {}),
     },
     bottle: {
       ...(sighting.bottleId ? { id: sighting.bottleId } : {}),
@@ -351,7 +367,7 @@ export function normalizeMemberSightingSignal(sighting: MemberSighting): Canonic
       status: "reported",
       ...(quantity === undefined ? {} : { quantity }),
       ...(sighting.quantityEstimate ? { quantityLabel: sighting.quantityEstimate } : {}),
-      ...(typeof sighting.price === "number" && Number.isFinite(sighting.price) ? { price: sighting.price } : {}),
+      ...(typeof sighting.price === "number" && Number.isFinite(sighting.price) && sighting.price > 0 ? { price: sighting.price } : {}),
       caveat: sighting.sightingType === "online_social"
         ? "Reported online by a member; availability can change before arrival."
         : "Reported by a member; availability can change before arrival.",

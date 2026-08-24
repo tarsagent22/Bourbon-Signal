@@ -1,5 +1,6 @@
 import { neon } from "@neondatabase/serverless";
 import type { MemberSighting, SightingVoteKind } from "@/lib/sightings";
+import { dropFeedAreaSearchNeedles } from "@/lib/feed-area-options";
 
 export interface DurableSightingVote {
   sightingId: string;
@@ -30,6 +31,7 @@ export interface SightingFeedFilters {
   rarities?: string[];
   bottle?: string | null;
   since?: string | null;
+  area?: string | null;
 }
 
 export class CommunitySightingsRepository {
@@ -58,14 +60,18 @@ export class CommunitySightingsRepository {
     const rarities = [...new Set(filters.rarities || [])];
     const bottle = filters.bottle?.trim().toLowerCase() || null;
     const since = filters.since || null;
+    const areaPatterns = filters.area
+      ? dropFeedAreaSearchNeedles(filters.area).map((value) => `%${value}%`)
+      : [];
     const rows = await this.query.query(
       `WITH filtered AS MATERIALIZED (
          SELECT payload, created_at, id
          FROM community_sightings
          WHERE (cardinality($4::text[]) = 0 OR UPPER(payload->>'storeState') = ANY($4::text[]))
-           AND (cardinality($5::text[]) = 0 OR payload->>'rarityTier' = ANY($5::text[]))
+           AND (cardinality($5::text[]) = 0 OR CASE WHEN payload->>'rarityTier' = 'highly_allocated' THEN 'unicorn' ELSE payload->>'rarityTier' END = ANY($5::text[]))
            AND ($6::text IS NULL OR LOWER(payload->>'bottleName') LIKE '%' || $6::text || '%')
            AND ($7::timestamptz IS NULL OR created_at >= $7::timestamptz)
+           AND (cardinality($8::text[]) = 0 OR LOWER(CONCAT_WS(' ', payload->>'storeName', payload->>'storeAddress', payload->>'storeCity')) LIKE ANY($8::text[]))
        ), recent AS MATERIALIZED (
          SELECT payload, created_at, id
          FROM filtered
@@ -78,7 +84,7 @@ export class CommunitySightingsRepository {
        SELECT recent.payload, totals.total_count
        FROM recent CROSS JOIN totals
        ORDER BY recent.created_at DESC, recent.id ASC`,
-      [Math.max(1, Math.min(limit, 1000)), before?.createdAt || null, before?.id || null, states, rarities, bottle, since],
+      [Math.max(1, Math.min(limit, 1000)), before?.createdAt || null, before?.id || null, states, rarities, bottle, since, areaPatterns],
     ) as Array<{ payload: MemberSighting; total_count: number }>;
     return {
       sightings: rows.map((row) => row.payload),
@@ -119,6 +125,26 @@ export class CommunitySightingsRepository {
       [reporterUserId],
     ) as Array<{ payload: MemberSighting }>;
     return rows.map((row) => row.payload);
+  }
+
+  async updateReporterDisplayName(
+    reporterUserId: string,
+    reporterDisplayName: string,
+    reporterPublicIdentity: NonNullable<MemberSighting["reporterPublicIdentity"]>,
+  ): Promise<number> {
+    const rows = await this.query.query(
+      `WITH updated AS (
+         UPDATE community_sightings
+         SET payload = jsonb_set(
+           jsonb_set(payload, '{reporterDisplayName}', to_jsonb($2::text), true),
+           '{reporterPublicIdentity}', $3::jsonb, true
+         ), updated_at = NOW()
+         WHERE reporter_user_id = $1
+         RETURNING id
+       ) SELECT COUNT(*)::int AS count FROM updated`,
+      [reporterUserId, reporterDisplayName, JSON.stringify(reporterPublicIdentity)],
+    ) as Array<{ count: number }>;
+    return Number(rows[0]?.count) || 0;
   }
 
   async getSighting(id: string): Promise<MemberSighting | null> {

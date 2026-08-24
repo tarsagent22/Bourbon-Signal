@@ -3,6 +3,7 @@ import type {
   MemberPreferences,
   MemberPreferencesPatch,
   MemberProfile,
+  MemberProfilePatch,
   SightingSubmission,
   SightingSubmissionResponse,
   Signal,
@@ -88,7 +89,7 @@ export function createMobileApi({
   }
 
   return {
-    listSignals({ view, limit = 30, cursor, fresh = false, rarities = [], state, freshness, bottle }: { view?: "all" | "market" | "community"; limit?: number; cursor?: string | null; fresh?: boolean; rarities?: SignalRarity[]; state?: string; freshness?: SignalFreshness; bottle?: string } = {}) {
+    listSignals({ view, limit = 30, cursor, fresh = false, rarities = [], state, area, freshness, bottle }: { view?: "all" | "market" | "community"; limit?: number; cursor?: string | null; fresh?: boolean; rarities?: SignalRarity[]; state?: string; area?: string; freshness?: SignalFreshness; bottle?: string } = {}) {
       const params = new URLSearchParams({ limit: String(limit) });
       if (view && view !== "all") params.set("view", view);
       if (cursor) params.set("cursor", cursor);
@@ -96,6 +97,8 @@ export function createMobileApi({
       if (normalizedRarities.length) params.set("tiers", normalizedRarities.join(","));
       const normalizedState = state?.trim().toUpperCase();
       if (normalizedState) params.set("state", normalizedState);
+      const normalizedArea = area?.replace(/\s+/g, " ").trim();
+      if (normalizedState && normalizedArea) params.set("area", normalizedArea);
       if (freshness) params.set("freshness", freshness);
       const normalizedBottle = bottle?.replace(/\s+/g, " ").trim();
       if (normalizedBottle) params.set("bottle", normalizedBottle);
@@ -106,6 +109,24 @@ export function createMobileApi({
     },
     getMemberProfile({ fresh = false }: { fresh?: boolean } = {}) {
       return request<MemberProfile>("/api/v1/me/profile", { fresh });
+    },
+    updateMemberProfile(patch: MemberProfilePatch) {
+      return request<MemberProfile>("/api/v1/me/profile", { method: "PATCH", body: patch });
+    },
+    async getSignalAreaOptions(state: string) {
+      const stateCode = state.trim().toUpperCase();
+      if (!/^[A-Z]{2}$/.test(stateCode)) return [];
+      const payload = await request<{ stores?: Array<{ city?: unknown; state?: unknown }> }>(`/api/stores?state=${encodeURIComponent(stateCode)}`, { fresh: true });
+      const cities = (payload.stores || []).flatMap((store) => {
+        const city = typeof store.city === "string" ? store.city.replace(/\s+/g, " ").trim() : "";
+        return city ? [city] : [];
+      });
+      const unique = new Map<string, { value: string; label: string }>();
+      for (const city of cities) {
+        const key = city.toLowerCase();
+        if (!unique.has(key)) unique.set(key, { value: city, label: city });
+      }
+      return [...unique.values()].sort((left, right) => left.label.localeCompare(right.label));
     },
     getMemberPreferences({ fresh = false }: { fresh?: boolean } = {}) {
       return request<MemberPreferences>("/api/user/preferences", { fresh });

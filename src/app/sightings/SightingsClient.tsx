@@ -65,7 +65,7 @@ function asBottleCheckBottle(value: unknown): Bottle | null {
   const name = String(bottle.canonicalName || bottle.name || "");
   if (!id || !name) return null;
   const availability = String(bottle.availability || "");
-  const tier: Bottle["tier"] = availability === "unicorn" ? "unicorn" : availability === "allocated" || availability === "highly_allocated" ? "allocated" : "limited";
+  const tier: Bottle["tier"] = availability === "unicorn" || availability === "highly_allocated" ? "unicorn" : availability === "allocated" ? "allocated" : "limited";
   return { id, name, canonical_id: id, canonical_name: name, aliases: Array.isArray(bottle.aliases) ? bottle.aliases.map(String) : [], distillery: String(bottle.producer || bottle.brand || "Bottle Check index"), tier, msrp: typeof bottle.msrp === "number" ? bottle.msrp : 0 };
 }
 

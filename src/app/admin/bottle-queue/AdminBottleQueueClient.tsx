@@ -21,7 +21,7 @@ type BottleContribution = {
 };
 
 type ReviewAction = "use_match" | "confirm_added" | "dismiss";
-type CatalogDraft = { canonicalName: string; brand: string; category: "bourbon" | "rye" | "american_whiskey"; availability: "common" | "regional" | "seasonal" | "limited" | "allocated" | "highly_allocated" | "unicorn" };
+type CatalogDraft = { canonicalName: string; brand: string; category: "bourbon" | "rye" | "american_whiskey"; availability: "common" | "regional" | "seasonal" | "limited" | "allocated" | "unicorn" };
 
 function initialDraft(item: BottleContribution): CatalogDraft {
   const words = item.rawName.trim().split(/\s+/);
@@ -134,7 +134,7 @@ export default function AdminBottleQueueClient({ embedded = false }: { embedded?
                     <label>Canonical name<input value={draft.canonicalName} onChange={(event) => update({ canonicalName: event.target.value })} /></label>
                     <label>Brand<input value={draft.brand} onChange={(event) => update({ brand: event.target.value })} /></label>
                     <label>Category<select value={draft.category} onChange={(event) => update({ category: event.target.value as CatalogDraft["category"] })}><option value="bourbon">Bourbon</option><option value="rye">Rye</option><option value="american_whiskey">American whiskey</option></select></label>
-                    <label>Availability<select value={draft.availability} onChange={(event) => update({ availability: event.target.value as CatalogDraft["availability"] })}><option value="common">Common</option><option value="regional">Regional</option><option value="seasonal">Seasonal</option><option value="limited">Limited</option><option value="allocated">Allocated</option><option value="highly_allocated">Highly allocated</option><option value="unicorn">Unicorn</option></select></label>
+                    <label>Availability<select value={draft.availability} onChange={(event) => update({ availability: event.target.value as CatalogDraft["availability"] })}><option value="common">Common</option><option value="regional">Regional</option><option value="seasonal">Seasonal</option><option value="limited">Limited</option><option value="allocated">Allocated</option><option value="unicorn">Unicorn</option></select></label>
                   </>;
                 })()}
               </div>
