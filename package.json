@@ -59,6 +59,7 @@
     "test:signal-points": "node --no-warnings --experimental-strip-types --test scripts/test-signal-points.mts && node --no-warnings --experimental-strip-types --test scripts/test-signal-points-membership-credit.mts && node --no-warnings --experimental-strip-types scripts/test-signal-points-postgres.mts",
     "test:signal-contract": "node --no-warnings --experimental-strip-types scripts/test-signal-contract.mts",
     "test:signal-mobile-api": "node --no-warnings --experimental-strip-types scripts/test-signal-mobile-api.mts",
+    "test:push-devices": "node --no-warnings --experimental-strip-types scripts/test-push-devices.mts",
     "test:native-thin-slice": "node --no-warnings --experimental-strip-types scripts/test-native-thin-slice.mts",
     "verify:mobile": "npm --prefix apps/mobile ci && npm --prefix apps/mobile run verify",
     "test:main-feed-composer": "node --no-warnings --experimental-strip-types scripts/test-main-feed-composer.mts",

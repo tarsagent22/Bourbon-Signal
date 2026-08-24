@@ -63,6 +63,9 @@ export type AlertMode = "specific_bottles" | "anything_notable";
 export interface UserAlertPreferences {
   entitlements?: {
     canUseCollection: boolean;
+    alertAreaLimit: number | null;
+    trackedBottleLimit: number | null;
+    canReceiveSmsAlerts: boolean;
   };
   areaPreferences: AreaPreferences;
   notificationPreferences: NotificationPreferences;
@@ -286,6 +289,9 @@ function buildResponseFromMetadata(
   return {
     entitlements: {
       canUseCollection: entitlements.canUseCollection,
+      alertAreaLimit: entitlements.alertAreaLimit,
+      trackedBottleLimit: entitlements.trackedBottleLimit,
+      canReceiveSmsAlerts: entitlements.canReceiveSmsAlerts,
     },
     areaPreferences,
     notificationPreferences,
@@ -338,6 +344,7 @@ function buildQaPreviewResponse(req: NextRequest, payload: Partial<UserAlertPref
     notificationPreferences = {
       ...notificationPreferences,
       onSite: { ...notificationPreferences.onSite, enabled: false },
+      push: { ...notificationPreferences.push, enabled: false },
       email: { ...notificationPreferences.email, enabled: false },
       sms: { ...notificationPreferences.sms, enabled: false },
     };
@@ -655,5 +662,10 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  return NextResponse.json({ ok: true, areaPreferences, notificationPreferences, alertMode, bottleAlertPreferences, collectionPreferences, sightingsPreferences, memberProfile });
+  return NextResponse.json({ ok: true, entitlements: {
+    canUseCollection: entitlements.canUseCollection,
+    alertAreaLimit: entitlements.alertAreaLimit,
+    trackedBottleLimit: entitlements.trackedBottleLimit,
+    canReceiveSmsAlerts: entitlements.canReceiveSmsAlerts,
+  }, areaPreferences, notificationPreferences, alertMode, bottleAlertPreferences, collectionPreferences, sightingsPreferences, memberProfile });
 }

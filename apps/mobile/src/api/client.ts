@@ -4,6 +4,8 @@ import type {
   MemberPreferencesPatch,
   MemberProfile,
   MemberProfilePatch,
+  PushDeviceStatus,
+  RadarBottleOption,
   SightingSubmission,
   SightingSubmissionResponse,
   Signal,
@@ -136,6 +138,34 @@ export function createMobileApi({
     },
     getMemberAlerts({ fresh = false }: { fresh?: boolean } = {}) {
       return request<MemberAlertsResponse>("/api/alerts", { fresh });
+    },
+    updateMemberAlert(action: "mark_read" | "mark_all_read" | "archive", alertId?: string) {
+      return request<MemberAlertsResponse>("/api/alerts", { method: "PATCH", body: { action, ...(alertId ? { alertId } : {}) } });
+    },
+    async listRadarBottles({ fresh = false }: { fresh?: boolean } = {}) {
+      const payload = await request<{ bottles?: Array<Record<string, unknown>> }>("/api/bottles", { fresh });
+      const unique = new Map<string, RadarBottleOption>();
+      for (const raw of payload.bottles || []) {
+        const name = [raw.canonicalName, raw.name, raw.bottle].find((value): value is string => typeof value === "string")?.trim() || "";
+        if (!name) continue;
+        const key = name.toLowerCase();
+        if (!unique.has(key)) unique.set(key, {
+          id: typeof raw.id === "string" ? raw.id : key,
+          name,
+          rarity: [raw.rarityTier, raw.tier].find((value): value is "unicorn" | "allocated" | "limited" => value === "unicorn" || value === "allocated" || value === "limited"),
+        });
+      }
+      return [...unique.values()].sort((left, right) => left.name.localeCompare(right.name));
+    },
+    getPushDeviceStatus(deviceId?: string, { fresh = false }: { fresh?: boolean } = {}) {
+      const suffix = deviceId ? `?deviceId=${encodeURIComponent(deviceId)}` : "";
+      return request<PushDeviceStatus>(`/api/v1/me/push-devices${suffix}`, { fresh });
+    },
+    registerPushDevice(payload: { deviceId: string; expoPushToken: string; platform: "ios" | "android" }) {
+      return request<PushDeviceStatus>("/api/v1/me/push-devices", { method: "POST", body: { action: "register", ...payload } });
+    },
+    disablePushDevice(deviceId: string) {
+      return request<PushDeviceStatus>("/api/v1/me/push-devices", { method: "POST", body: { action: "disable", deviceId } });
     },
     getSignalPoints({ fresh = false }: { fresh?: boolean } = {}) {
       return request<SignalPointsSummary>("/api/signal-points", { fresh });

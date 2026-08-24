@@ -6,6 +6,7 @@ import { presentSignal } from "../../../src/api/presentation";
 import type { MemberPreferences, Signal } from "../../../src/api/types";
 import { useMobileApi } from "../../../src/hooks/useMobileApi";
 import { addSignalBottleToCollection, canonicalBottleKey } from "../../../src/interactions/member-interactions";
+import { setBottleWatched } from "../../../src/radar/radar-preferences";
 import { colors } from "../../../src/theme";
 
 export default function SignalDetailScreen() {
@@ -34,14 +35,23 @@ export default function SignalDetailScreen() {
   const presented = signal ? presentSignal(signal) : null;
   const bottleKey = signal ? canonicalBottleKey(signal.bottle.name) : "";
   const inCellar = Boolean(preferences?.collectionPreferences.bottles.some((bottle) => canonicalBottleKey(bottle.canonicalKey) === bottleKey));
+  const isWatched = Boolean(preferences?.bottleAlertPreferences.bottleKeys.some((key) => canonicalBottleKey(key) === bottleKey)
+    || preferences?.bottleAlertPreferences.bottleNames.some((name) => canonicalBottleKey(name) === bottleKey));
   const address = signal ? [signal.location.store?.address, signal.location.store?.city, signal.location.store?.state, signal.location.store?.zip].filter(Boolean).join(", ") : "";
   const canWatch = Boolean(signal?.actions.includes("watch_bottle"));
   const canUseCollection = preferences?.entitlements?.canUseCollection === true;
   const actionCount = useMemo(() => Number(canWatch) + Number(canUseCollection) + Number(Boolean(address)), [address, canUseCollection, canWatch]);
 
-  async function openRadar() {
-    try { await Linking.openURL("https://www.bourbonsignal.com/dashboard?section=alerts"); }
-    catch { setActionError("Radar settings could not be opened."); }
+  async function toggleRadarWatch() {
+    if (!signal || !preferences || saving) return;
+    setSaving(true); setActionError("");
+    try {
+      const bottleAlertPreferences = setBottleWatched(preferences, signal.bottle.name, !isWatched);
+      const saved = await api.updateMemberPreferences({ bottleAlertPreferences, ...(!isWatched ? { alertMode: "specific_bottles" as const } : {}) });
+      setPreferences(saved);
+    } catch (caught) {
+      setActionError(caught instanceof Error ? caught.message : "This Radar watch could not be changed.");
+    } finally { setSaving(false); }
   }
 
   async function addToCellar() {
@@ -81,7 +91,7 @@ export default function SignalDetailScreen() {
       {signal.source.type === "member" ? <Text style={styles.disclaimer}>Member observations report what someone saw and are not verified retailer inventory.</Text> : null}
       {actionCount ? <View style={styles.actions}>
         <Text style={styles.actionsTitle}>Quick actions</Text>
-        {canWatch ? <ActionButton label="Manage in Radar" onPress={() => void openRadar()} /> : null}
+        {canWatch ? <ActionButton disabled={saving} label={saving ? "Saving…" : isWatched ? "Remove from Radar" : "Watch in Radar"} onPress={() => void toggleRadarWatch()} /> : null}
         {canUseCollection ? <ActionButton disabled={inCellar || saving} label={inCellar ? "Already in Cellar" : saving ? "Adding to Cellar…" : "Add to Cellar"} onPress={() => void addToCellar()} /> : null}
         {address ? <ActionButton label="Open in Maps" onPress={() => void openMaps()} /> : null}
         {actionError ? <Text accessibilityRole="alert" style={styles.error}>{actionError}</Text> : null}

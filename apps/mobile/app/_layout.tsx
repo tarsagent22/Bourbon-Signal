@@ -1,7 +1,9 @@
 import { ClerkProvider } from "@clerk/expo";
 import { tokenCache } from "@clerk/expo/token-cache";
-import { Stack } from "expo-router";
+import * as Notifications from "expo-notifications";
+import { Stack, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
+import { useEffect } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { colors } from "../src/theme";
@@ -15,6 +17,7 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
+        <PushResponseHandler />
         <StatusBar style="light" />
         <Stack screenOptions={{ contentStyle: { backgroundColor: colors.background }, headerStyle: { backgroundColor: colors.surface }, headerTintColor: colors.text, headerShadowVisible: false }}>
           <Stack.Screen name="index" options={{ headerShown: false }} />
@@ -23,6 +26,22 @@ export default function RootLayout() {
       </ClerkProvider>
     </SafeAreaProvider>
   );
+}
+
+function PushResponseHandler() {
+  const router = useRouter();
+  useEffect(() => {
+    const open = (response: Notifications.NotificationResponse | null) => {
+      if (response?.notification.request.content.data?.screen === "radar") {
+        router.push("/(app)/(tabs)/radar");
+        void Notifications.clearLastNotificationResponseAsync();
+      }
+    };
+    void Notifications.getLastNotificationResponseAsync().then(open);
+    const subscription = Notifications.addNotificationResponseReceivedListener(open);
+    return () => subscription.remove();
+  }, [router]);
+  return null;
 }
 
 const styles = StyleSheet.create({
