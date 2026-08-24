@@ -2,6 +2,7 @@ import { STATE_LIFECYCLE_CONFIG } from "../config/stateLifecycle.ts";
 import { demandMetroAreaLabel } from "./demand-metro-areas.ts";
 import { canonicalNcAbcBoardPreference, NC_ABC_BOARD_OPTIONS, ncAbcBoardPreferencesMatch } from "./nc-abc-boards.ts";
 import { locationLabelsMatch, locationMatchKeys, normalizeLocationText } from "./location-normalization.ts";
+import { geographyState, listMonitoringStates } from "./geography-directory.ts";
 
 type AreaState = { areaOptions?: readonly string[]; customerLabel?: string };
 type AreaConfig = { activeStates: readonly string[]; states: Record<string, AreaState> };
@@ -13,6 +14,8 @@ export interface SignalFeedStateOption {
   label: string;
   areaLabel: "Board" | "City";
   options: SignalFeedAreaOption[];
+  monitoringLevels?: Array<"state" | "county" | "city" | "board" | "store">;
+  engineCoverage?: "active" | "expanding";
 }
 export interface SignalFeedAreaDirectory { states: SignalFeedStateOption[] }
 
@@ -36,12 +39,15 @@ export function signalFeedAreaLabel(state?: string | null): "Board" | "City" {
 
 export function buildSignalFeedAreaDirectory(): SignalFeedAreaDirectory {
   const config = STATE_LIFECYCLE_CONFIG as unknown as AreaConfig;
+  const active = new Set(config.activeStates.map((code) => geographyState(code)?.state || code));
   return {
-    states: [...config.activeStates]
-      .map((code) => ({
+    states: listMonitoringStates()
+      .map(({ code, name }) => ({
         code,
-        label: config.states[code]?.customerLabel || code,
+        label: config.states[code]?.customerLabel || name,
         areaLabel: signalFeedAreaLabel(code),
+        monitoringLevels: code === "NC" ? ["state", "county", "city", "board", "store"] as SignalFeedStateOption["monitoringLevels"] : ["state", "county", "city", "store"] as SignalFeedStateOption["monitoringLevels"],
+        engineCoverage: active.has(code) ? "active" as const : "expanding" as const,
         options: getCoveredAreaOptionsForState(code).map((value) => ({
           value,
           label: code === "NC" && NC_ABC_BOARD_OPTIONS.includes(value) ? formatNcAbcAreaMenuLabel(value) : value,

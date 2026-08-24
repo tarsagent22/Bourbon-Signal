@@ -16,7 +16,7 @@ const route = read('src/app/api/alerts/deliver/route.ts');
 const vercel = read('vercel.json');
 
 for (const phrase of [
-  'isServerPaidTier(publicMetadata)',
+  'getServerEntitlements(publicMetadata)',
   'skippedFreeUsers',
   'paidUsersConsidered',
   'hasSavedAreaPreferences(areaPrefs)',
@@ -50,8 +50,12 @@ for (const phrase of [
   if (!delivery.includes(phrase)) fail(`Alert delivery policy missing: ${phrase}`);
 }
 
-if (!/if \(!await isServerPaidTier\(publicMetadata\)\) \{[\s\S]*?continue;/.test(delivery)) {
+if (!/const entitlements = await getServerEntitlements\(publicMetadata\);[\s\S]*?if \(entitlements\.tier === "free"\) \{[\s\S]*?continue;/.test(delivery)) {
   fail('Free users must be skipped before alert matching or channel delivery.');
+}
+
+if (!/entitlements\.canReceiveSightingsAlerts && notificationPrefs\.sightings\.enabled/.test(delivery)) {
+  fail('Community sighting alerts must recheck the current durable entitlement at delivery time.');
 }
 
 if (!/if \(!hasSavedAreaPreferences\(areaPrefs\)\) \{[\s\S]*?continue;/.test(delivery)) {

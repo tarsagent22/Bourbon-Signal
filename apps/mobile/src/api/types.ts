@@ -62,6 +62,8 @@ export interface MemberProfile {
         label: string;
         areaLabel: "Board" | "City";
         options: Array<{ value: string; label: string }>;
+        monitoringLevels?: MonitoringScopeType[];
+        engineCoverage?: "active" | "expanding";
       }>;
     };
     membership: { tier: "free" | "standard" | "barrel" | "bottled-in-bond"; label: string; paid: boolean; hasBetaAccess: boolean };
@@ -103,6 +105,9 @@ export interface RadarAreaPreferences {
   paStores: string[];
 }
 
+export type MonitoringScopeType = "state" | "county" | "city" | "board" | "store";
+export interface MonitoringScope { type: MonitoringScopeType; id: string; state: string; label: string }
+
 export interface MemberPreferences {
   entitlements?: {
     canUseCollection?: boolean;
@@ -111,6 +116,7 @@ export interface MemberPreferences {
     canReceiveSmsAlerts?: boolean;
   };
   areaPreferences: RadarAreaPreferences;
+  monitoringScopes: MonitoringScope[];
   notificationPreferences: {
     onSite: { enabled: boolean };
     push: { enabled: boolean };
@@ -125,6 +131,7 @@ export interface MemberPreferences {
 
 export interface MemberPreferencesPatch {
   areaPreferences?: RadarAreaPreferences;
+  monitoringScopes?: MonitoringScope[];
   notificationPreferences?: {
     onSite?: Partial<MemberPreferences["notificationPreferences"]["onSite"]>;
     push?: Partial<MemberPreferences["notificationPreferences"]["push"]>;
@@ -154,6 +161,8 @@ export interface MemberAlert {
   createdAt: string;
   readAt: string | null;
   archivedAt: string | null;
+  sourceType?: "engine" | "community";
+  sourceLabel?: string;
 }
 
 export interface MemberAlertsResponse {
@@ -168,6 +177,32 @@ export interface PushDeviceStatus {
   enabled: boolean;
   registeredDeviceCount: number;
   currentDeviceRegistered?: boolean;
+  requestId?: string;
+  preferenceProjection?: "saved" | "deferred";
+  warning?: { code: string; message: string; requestId: string };
+}
+
+export interface GeographySearchResponse {
+  contractVersion: "bourbon-signal/mobile-api@1";
+  states: Array<{ id: string; code: string; name: string }>;
+  results: Array<{
+    id: string;
+    level: MonitoringScopeType;
+    state: string;
+    name: string;
+    coverage: { engine: { status: "active" | "expanding" }; community: { active: boolean; recentSightings: number; windowDays: number } };
+    message: string | null;
+  }>;
+  offset: number;
+  limit: number;
+  hasMore: boolean;
+}
+
+export interface ReferralSummary {
+  code: string;
+  referralLink: string;
+  referralPoints: number;
+  referrals: { total: number; free: number; standard: number; barrel: number; founder: number };
 }
 
 export interface SignalRewardItem {

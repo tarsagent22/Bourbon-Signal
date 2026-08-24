@@ -4,8 +4,10 @@ import type {
   MemberPreferencesPatch,
   MemberProfile,
   MemberProfilePatch,
+  GeographySearchResponse,
   PushDeviceStatus,
   RadarBottleOption,
+  ReferralSummary,
   SightingSubmission,
   SightingSubmissionResponse,
   Signal,
@@ -21,6 +23,7 @@ export class MobileApiError extends Error {
     readonly code: string,
     readonly retryable = false,
     readonly resetCursor = false,
+    readonly requestId = "",
   ) {
     super(message);
     this.name = "MobileApiError";
@@ -67,6 +70,7 @@ export function createMobileApi({
         typeof structured?.code === "string" ? structured.code : typeof payload.code === "string" ? payload.code : "UNKNOWN_ERROR",
         structured?.retryable === true,
         payload.resetCursor === true,
+        typeof structured?.requestId === "string" ? structured.requestId : "",
       );
     }
     return payload as T;
@@ -166,6 +170,14 @@ export function createMobileApi({
     },
     disablePushDevice(deviceId: string) {
       return request<PushDeviceStatus>("/api/v1/me/push-devices", { method: "POST", body: { action: "disable", deviceId } });
+    },
+    searchMonitoringGeography({ state, levels = ["state", "county", "city", "board", "store"], query = "", limit = 25, offset = 0, fresh = false }: { state?: string; levels?: Array<"state" | "county" | "city" | "board" | "store">; query?: string; limit?: number; offset?: number; fresh?: boolean } = {}) {
+      const params = new URLSearchParams({ levels: levels.join(","), query, limit: String(limit), offset: String(offset) });
+      if (state) params.set("state", state.trim().toUpperCase());
+      return request<GeographySearchResponse>(`/api/v1/geography?${params.toString()}`, { fresh });
+    },
+    getReferralSummary({ fresh = false }: { fresh?: boolean } = {}) {
+      return request<ReferralSummary>("/api/referrals/me", { fresh });
     },
     getSignalPoints({ fresh = false }: { fresh?: boolean } = {}) {
       return request<SignalPointsSummary>("/api/signal-points", { fresh });

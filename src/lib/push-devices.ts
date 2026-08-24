@@ -66,6 +66,11 @@ export function enabledPushTokens(input: unknown) {
   return normalizePushDevices(input).filter((device) => device.enabled).map((device) => device.expoPushToken);
 }
 
+export function pushPreferenceProjectionAllowsDelivery(input: unknown) {
+  const projection = asRecord(input);
+  return projection?.status !== "pending";
+}
+
 export function buildExpoPushMessages(tokens: string[], alert: { id: string; bottleName: string; storeLabel: string; matchedArea: string }): ExpoPushMessage[] {
   const location = alert.storeLabel || alert.matchedArea || "your monitored market";
   return Array.from(new Set(tokens.filter(validExpoPushToken))).map((to) => ({

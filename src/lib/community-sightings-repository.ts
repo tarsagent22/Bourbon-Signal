@@ -49,6 +49,84 @@ export class CommunitySightingsRepository {
     return rows.map((row) => row.payload);
   }
 
+  async listRecentGeographyActivity(state: string, since: string): Promise<Array<{ storeState: string; storeCity: string; storeCounty: string; storeId: string; storeName: string; storeAddress: string; count: number }>> {
+    const rows = await this.query.query(
+      `SELECT
+         COALESCE(payload->>'storeState', '') AS store_state,
+         COALESCE(payload->>'storeCity', '') AS store_city,
+         COALESCE(payload->>'storeCounty', '') AS store_county,
+         COALESCE(payload->>'storeId', '') AS store_id,
+         COALESCE(payload->>'storeName', '') AS store_name,
+         COALESCE(payload->>'storeAddress', '') AS store_address,
+         COUNT(*)::int AS count
+       FROM community_sightings
+       WHERE created_at >= $1::timestamptz
+         AND ($2 = '' OR UPPER(COALESCE(payload->>'storeState', '')) = $2)
+         AND COALESCE(payload->>'reporterUserId', '') <> ''
+         AND COALESCE(payload->>'sightingType', '') = 'seen_in_store'
+         AND COALESCE(payload->>'bottleId', '') <> ''
+         AND COALESCE(payload->>'bottleName', '') <> ''
+         AND COALESCE(payload->>'storeId', '') <> ''
+         AND COALESCE(payload->>'storeAddress', '') <> ''
+         AND COALESCE(payload->>'storeCity', '') <> ''
+         AND COALESCE(payload->>'storeState', '') <> ''
+         AND COALESCE(payload->>'storeId', '') !~* '(^|[:_-])manual([:_-]|$)'
+         AND COALESCE(payload->'reviewState'->>'needsBottleReview', 'false') <> 'true'
+         AND COALESCE(payload->'reviewState'->>'needsStoreReview', 'false') <> 'true'
+         AND COALESCE(payload->'reviewState'->>'manualBottleName', '') = ''
+         AND COALESCE(payload->'reviewState'->>'manualBottleRarityTier', '') = ''
+         AND COALESCE(payload->'reviewState'->>'manualStoreName', '') = ''
+         AND COALESCE(payload->'reviewState'->>'manualStoreAddress', '') = ''
+         AND COALESCE(payload->'reviewState'->>'manualStoreCity', '') = ''
+         AND COALESCE(payload->'reviewState'->>'manualStoreState', '') = ''
+         AND COALESCE(payload->'reviewState'->>'manualStoreZip', '') = ''
+         AND COALESCE(payload->'rewardState'->>'removedAt', '') = ''
+         AND COALESCE(payload->'rewardState'->>'rejectedAt', '') = ''
+       GROUP BY 1, 2, 3, 4, 5, 6`,
+      [since, state.trim().toUpperCase()],
+    ) as Array<{ store_state: string; store_city: string; store_county: string; store_id: string; store_name: string; store_address: string; count: number }>;
+    return rows.map((row) => ({
+      storeState: row.store_state,
+      storeCity: row.store_city,
+      storeCounty: row.store_county,
+      storeId: row.store_id,
+      storeName: row.store_name,
+      storeAddress: row.store_address,
+      count: Number(row.count) || 0,
+    }));
+  }
+
+  async listRecentAlertSightings(since: string): Promise<MemberSighting[]> {
+    const rows = await this.query.query(
+      `SELECT payload
+       FROM community_sightings
+       WHERE created_at >= $1::timestamptz
+         AND COALESCE(payload->>'reporterUserId', '') <> ''
+         AND COALESCE(payload->>'sightingType', '') = 'seen_in_store'
+         AND COALESCE(payload->>'bottleId', '') <> ''
+         AND COALESCE(payload->>'bottleName', '') <> ''
+         AND COALESCE(payload->>'storeId', '') <> ''
+         AND COALESCE(payload->>'storeAddress', '') <> ''
+         AND COALESCE(payload->>'storeCity', '') <> ''
+         AND COALESCE(payload->>'storeState', '') <> ''
+         AND COALESCE(payload->>'storeId', '') !~* '(^|[:_-])manual([:_-]|$)'
+         AND COALESCE(payload->'reviewState'->>'needsBottleReview', 'false') <> 'true'
+         AND COALESCE(payload->'reviewState'->>'needsStoreReview', 'false') <> 'true'
+         AND COALESCE(payload->'reviewState'->>'manualBottleName', '') = ''
+         AND COALESCE(payload->'reviewState'->>'manualBottleRarityTier', '') = ''
+         AND COALESCE(payload->'reviewState'->>'manualStoreName', '') = ''
+         AND COALESCE(payload->'reviewState'->>'manualStoreAddress', '') = ''
+         AND COALESCE(payload->'reviewState'->>'manualStoreCity', '') = ''
+         AND COALESCE(payload->'reviewState'->>'manualStoreState', '') = ''
+         AND COALESCE(payload->'reviewState'->>'manualStoreZip', '') = ''
+         AND COALESCE(payload->'rewardState'->>'removedAt', '') = ''
+         AND COALESCE(payload->'rewardState'->>'rejectedAt', '') = ''
+       ORDER BY created_at DESC`,
+      [since],
+    ) as Array<{ payload: MemberSighting }>;
+    return rows.map((row) => row.payload);
+  }
+
   async listSightingsFeed(
     currentUserId: string,
     limit = 60,

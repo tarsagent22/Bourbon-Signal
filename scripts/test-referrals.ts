@@ -248,7 +248,7 @@ test("signup, Clerk, Stripe, and member API are wired to the referral service", 
   assert.match(read("src/app/admin/control-room/page.tsx"), /Referral glasses/);
 });
 
-test("member referral link stays useful without exposing the private points program", () => {
+test("member referral link uses the durable ledger without inventing a second points program", () => {
   const component = read("src/components/MemberReferralLink.tsx");
   const settings = read("src/app/settings/SettingsPageClient.tsx");
   const settingsServer = read("src/app/settings/page.tsx");
@@ -262,12 +262,13 @@ test("member referral link stays useful without exposing the private points prog
   assert.match(settings, /<MemberReferralLink/);
   assert.match(settings, /id="referrals"/);
   assert.doesNotMatch(settings, /Signal Points|SignalPointsPanel/);
-  assert.match(settingsServer, /\/account\/signal-points/);
-  assert.doesNotMatch(dashboard, /SignalPointsPanel|Signal Points|memberPoints/);
-  assert.match(read("src/app/admin/control-room/page.tsx"), /<SignalPointsPanel preview/);
+  assert.match(settingsServer, /SettingsPageClient/);
+  assert.match(dashboard, /SignalPointsPanel/);
+  assert.match(read("src/app/admin/control-room/page.tsx"), /SignalPointsAdminBoard/);
   assert.match(read("src/components/SignalPointsPanel.tsx"), /<MemberReferralLink compact/);
   assert.match(referralsPage, /redirect\("\/settings#referrals"\)/);
   assert.doesNotMatch(navigation, /label: "Referrals"/);
   assert.doesNotMatch(component, /totalPoints|founderGlassesEarned|freePointsAwarded/);
-  assert.doesNotMatch(read("src/app/api/referrals/me/route.ts"), /referralPoints|communityPoints|totalPoints|freePointsAwarded|redemptionEligible/);
+  assert.match(read("src/app/api/referrals/me/route.ts"), /referralPoints:\s*summary\.referralPoints/);
+  assert.doesNotMatch(read("src/app/api/referrals/me/route.ts"), /communityPoints|totalPoints|freePointsAwarded|redemptionEligible/);
 });

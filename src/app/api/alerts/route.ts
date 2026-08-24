@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
-import { readSiteExport } from "@/lib/site-engine-contract";
 import { normalizeNotificationPreferences } from "@/lib/notification-preferences";
-import { candidateCanUseOnSite, candidateMatchesArea, candidateMatchesBottlePrefs, candidatePassesFreshOnSiteGuardrails, candidateToMemberAlert, normalizeAlertInboxMetadata, normalizeAreaPrefs, normalizeBottleAlertPreferences } from "@/lib/alert-delivery";
+import { candidateCanUseOnSite, candidateMatchesArea, candidateMatchesBottlePrefs, candidatePassesFreshOnSiteGuardrails, candidateToMemberAlert, normalizeAlertInboxMetadata, normalizeAreaPrefs, normalizeBottleAlertPreferences, readAlertCandidates } from "@/lib/alert-delivery";
+import { getServerEntitlements } from "@/lib/server-entitlements";
 
 type CandidateAlert = Record<string, unknown>;
 
@@ -19,8 +19,7 @@ function asBoolean(value: unknown) {
 }
 
 async function readCandidates() {
-  const engineAlertsPayload = await readSiteExport("alerts");
-  return Array.isArray(engineAlertsPayload?.alerts) ? (engineAlertsPayload.alerts as CandidateAlert[]) : [];
+  return readAlertCandidates();
 }
 
 function reliabilitySummary(candidates: CandidateAlert[]) {
@@ -53,12 +52,16 @@ export async function GET() {
   const client = await clerkClient();
   const user = await client.users.getUser(userId);
   const privateMetadata = (user.privateMetadata && typeof user.privateMetadata === "object" ? user.privateMetadata : {}) as Record<string, unknown>;
+  const entitlements = await getServerEntitlements(user.publicMetadata);
+  const notificationPrefs = normalizeNotificationPreferences(user.publicMetadata?.notificationPreferences);
+  const canReadCommunityAlerts = entitlements.canReceiveSightingsAlerts && notificationPrefs.sightings.enabled;
   const userAlerts = normalizeAlertInboxMetadata(privateMetadata.alertInbox).recent
+    .filter((alert) => alert.sourceType !== "community" || canReadCommunityAlerts)
     .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt));
 
   let candidateAlerts: CandidateAlert[] = [];
   try {
-    candidateAlerts = await readCandidates();
+    candidateAlerts = (await readCandidates()).filter((candidate) => asString(candidate.sourceType) !== "community");
   } catch (err) {
     console.error("[api/alerts] Error reading engine alert candidates:", err);
   }
@@ -87,14 +90,16 @@ export async function POST(req: NextRequest) {
   const client = await clerkClient();
   const user = await client.users.getUser(userId);
   const privateMetadata = (user.privateMetadata && typeof user.privateMetadata === "object" ? user.privateMetadata : {}) as Record<string, unknown>;
-  const areaPrefs = normalizeAreaPrefs(user.publicMetadata?.areaPreferences);
+  const areaPrefs = normalizeAreaPrefs(user.publicMetadata?.areaPreferences, user.publicMetadata?.monitoringScopes);
   const notificationPrefs = normalizeNotificationPreferences(user.publicMetadata?.notificationPreferences);
+  const entitlements = await getServerEntitlements(user.publicMetadata);
   const bottlePrefs = normalizeBottleAlertPreferences(user.publicMetadata?.bottleAlertPreferences);
   const alertMode = user.publicMetadata?.alertMode;
   if (!notificationPrefs.onSite.enabled) return NextResponse.json({ ok: true, created: 0, skipped: "on_site_disabled" });
 
   const candidates = (await readCandidates())
     .filter((candidate) => asBoolean(candidate.eligibleForDelivery))
+    .filter((candidate) => asString(candidate.sourceType) !== "community" || (entitlements.canReceiveSightingsAlerts && notificationPrefs.sightings.enabled))
     .filter(candidateCanUseOnSite)
     .filter((candidate) => candidatePassesFreshOnSiteGuardrails(candidate))
     .filter((candidate) => candidateMatchesArea(candidate, areaPrefs))
@@ -148,10 +153,17 @@ export async function PATCH(req: NextRequest) {
   const user = await client.users.getUser(userId);
   const privateMetadata = (user.privateMetadata && typeof user.privateMetadata === "object" ? user.privateMetadata : {}) as Record<string, unknown>;
   const alerts = normalizeAlertInboxMetadata(privateMetadata.alertInbox).recent;
+  const entitlements = await getServerEntitlements(user.publicMetadata);
+  const notificationPrefs = normalizeNotificationPreferences(user.publicMetadata?.notificationPreferences);
+  const canReadCommunityAlerts = entitlements.canReceiveSightingsAlerts && notificationPrefs.sightings.enabled;
+  const canReadAlert = (alert: (typeof alerts)[number]) => alert.sourceType !== "community" || canReadCommunityAlerts;
+  if (body.action !== "mark_all_read" && body.alertId && alerts.some((alert) => alert.id === body.alertId && !canReadAlert(alert))) {
+    return NextResponse.json({ error: "Alert not found" }, { status: 404 });
+  }
   const now = new Date().toISOString();
 
   const nextAlerts = alerts.map((alert) => {
-    if (body.action === "mark_all_read") {
+    if (body.action === "mark_all_read" && canReadAlert(alert)) {
       return alert.readAt || alert.archivedAt ? alert : { ...alert, readAt: now };
     }
 
@@ -179,6 +191,7 @@ export async function PATCH(req: NextRequest) {
   });
 
   const userAlerts = nextAlerts
+    .filter(canReadAlert)
     .sort((a, b) => +new Date(b.createdAt) - +new Date(a.createdAt));
 
   return NextResponse.json({
@@ -187,5 +200,4 @@ export async function PATCH(req: NextRequest) {
     unreadCount: userAlerts.filter((alert) => !alert.readAt && !alert.archivedAt).length,
   });
 }
-
 

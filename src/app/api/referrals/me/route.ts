@@ -30,6 +30,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({
       code,
       referralLink: `${origin.replace(/\/$/, "")}/r/${code}`,
+      referralPoints: summary.referralPoints,
       referrals: {
         total: summary.totalReferrals,
         free: summary.freeReferrals,

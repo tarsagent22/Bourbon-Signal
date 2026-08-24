@@ -1,12 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import type { MemberPreferences, RadarAreaPreferences } from "../api/types";
-import { alertIsStale, clearRadarAreas, formatPhoneNumber, maskedPhoneNumber, memberAlertBottleNames, radarAreaCount, radarAreaSummary, radarStateDisplayCode, setBottleWatched, setRadarState, toggleRadarArea, watchedBottleCount } from "./radar-preferences";
+import { alertIsStale, clearRadarAreas, formatPhoneNumber, maskedPhoneNumber, memberAlertBottleNames, radarAreaCount, radarAreaSummary, radarMonitoringSummary, radarStateDisplayCode, scopesForState, setBottleWatched, setRadarState, setStatewideScope, stopMonitoringState, toggleMonitoringScope, toggleRadarArea, watchedBottleCount } from "./radar-preferences";
 
 const areas: RadarAreaPreferences = { states: [], ncBoards: [], gaAreas: [], tnAreas: [], vaCities: [], ohCities: [], iaCities: [], idCities: [], scAreas: [], caAreas: [], nvAreas: [], nyAreas: [], coAreas: [], paCounties: [], paStores: [] };
 const preferences = (): MemberPreferences => ({
   entitlements: { trackedBottleLimit: 2, alertAreaLimit: 2 },
   areaPreferences: areas,
+  monitoringScopes: [],
   notificationPreferences: { onSite: { enabled: true }, push: { enabled: false }, email: { enabled: false, mode: "major_only" }, sms: { enabled: false, available: true, verified: false, mode: "major_only" }, sightings: { enabled: false } },
   alertMode: "specific_bottles",
   bottleAlertPreferences: { bottleNames: ["Stagg"], bottleKeys: ["stagg"] },
@@ -36,6 +37,15 @@ test("alert staleness uses signal time and its supplied freshness limit", () => 
   const now = new Date("2026-08-24T12:00:00.000Z");
   assert.equal(alertIsStale({ createdAt: "2026-08-24T11:00:00.000Z", signalAt: "2026-08-21T11:59:59.000Z" }, now), true);
   assert.equal(alertIsStale({ createdAt: "2026-08-24T11:00:00.000Z", freshnessLimitHours: 96 }, now), false);
+});
+
+test("generic mobile scope helpers keep statewide and local semantics unambiguous", () => {
+  const statewide = setStatewideScope([], { code: "FL", name: "Florida" });
+  assert.equal(radarMonitoringSummary(statewide), "1 state · 0 local filters");
+  const county = toggleMonitoringScope(statewide, { type: "county", id: "county:12086", state: "FL", label: "Miami-Dade County" });
+  assert.deepEqual(scopesForState(county, "FL").map((scope) => scope.id), ["county:12086"]);
+  assert.equal(radarMonitoringSummary(county), "1 state · 1 local filter");
+  assert.deepEqual(stopMonitoringState(county, "FL"), []);
 });
 
 test("Radar presentation stays concise, structured, and private", () => {

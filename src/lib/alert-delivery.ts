@@ -2,11 +2,12 @@ import { createHash, randomUUID } from "node:crypto";
 import { clerkClient } from "@clerk/nextjs/server";
 import { PaidDropAlertEmail } from "@/components/emails/PaidDropAlertEmail";
 import { ALERT_FROM, ALERT_REPLY_TO, getResendClient } from "@/lib/email-alerts";
-import { isServerPaidTier } from "@/lib/server-entitlements";
+import { getServerEntitlements } from "@/lib/server-entitlements";
 import { buildAlertId, normalizeNotificationPreferences, type EmailAlertMode, type MemberAlertRecord, type SmsAlertMode } from "@/lib/notification-preferences";
 import { readSiteExport, readSiteExportResult } from "@/lib/site-engine-contract";
 import { alertFreshnessIsDeliverable, evaluateAlertSnapshotSafety, resolveAlertFreshnessCapHours, signalFreshnessHoursAt } from "@/lib/alert-run-safety";
-import { ACTIVE_ENGINE_STATE_CODES, getActiveEngineStateName } from "@/lib/activeStates";
+import { getActiveEngineStateName } from "@/lib/activeStates";
+import { geographyState } from "@/lib/geography-directory";
 import { locationMatchesAny, normalizeStateCodeParam } from "@/lib/location-normalization";
 import { formatSmsAlert, isExactStoreSmsLocation } from "@/lib/sms-alert-copy";
 import { stableGroupedAlertDedupeKey } from "@/lib/alert-dedupe";
@@ -15,10 +16,10 @@ import { reserveAlertDelivery, type AlertQueueMode } from "@/lib/alert-queue/del
 import type { AlertCandidateRecord, AlertChannel } from "@/lib/alert-queue/repository";
 import { californiaAreaMatchesFields, normalizeCaliforniaAreas } from "@/lib/california-area";
 import { nevadaAreaMatchesFields, normalizeNevadaAreas } from "@/lib/nevada-area";
-import { matchedNewYorkArea, newYorkAreaMatchesFields, normalizeNewYorkAreas, SUPPORTED_NEW_YORK_AREAS } from "@/lib/new-york-area";
+import { matchedNewYorkArea, newYorkAreaMatchesFields, normalizeNewYorkAreas } from "@/lib/new-york-area";
 import { coloradoAreaMatchesFields, normalizeColoradoAreas } from "@/lib/colorado-area";
 import { firstAlertCreatedMetadata } from "@/lib/member-activation";
-import { buildExpoPushMessages, enabledPushTokens, sendExpoPushMessages } from "@/lib/push-devices";
+import { buildExpoPushMessages, enabledPushTokens, pushPreferenceProjectionAllowsDelivery, sendExpoPushMessages } from "@/lib/push-devices";
 import {
   CHARLOTTE_METRO_BOARD_GROUP,
   demandMetroAreaMatchesFields,
@@ -27,6 +28,11 @@ import {
   normalizeNcBoardPreferences,
 } from "@/lib/demand-metro-areas";
 import { matchedNcAbcBoardPreference, ncAbcBoardPreferencesMatch } from "@/lib/nc-abc-boards";
+import { buildCommunityAlertCandidates, canonicalCommunityStoreKey, COMMUNITY_ALERT_FRESHNESS_HOURS, type CanonicalCommunityStore } from "@/lib/community-alert-candidates";
+import { createCommunitySightingsRepository } from "@/lib/community-sightings-repository";
+import { candidateMatchesMonitoringScopes } from "@/lib/monitoring-scope-matcher";
+import { monitoringScopesFromPreferences, type MonitoringScope } from "@/lib/monitoring-scopes";
+import { listApprovedLocations } from "@/lib/approved-catalog-service";
 
 export interface AreaPreferences {
   states: string[];
@@ -44,6 +50,7 @@ export interface AreaPreferences {
   coAreas: string[];
   paCounties: string[];
   paStores: string[];
+  monitoringScopes?: MonitoringScope[];
 }
 
 export interface BottleAlertPreferences {
@@ -98,6 +105,7 @@ const ALERT_SMS_MAX_FRESHNESS_HOURS = resolveAlertFreshnessCapHours(Number(proce
 const ALERT_EMAIL_ALLOWED_RECIPIENTS = toStrings(process.env.ALERT_EMAIL_ALLOWED_RECIPIENTS?.split(",")).map((email) => email.toLowerCase());
 const ALERT_SMS_ALLOWED_RECIPIENTS = toStrings(process.env.ALERT_SMS_ALLOWED_RECIPIENTS?.split(",")).map(normalizePhoneNumber).filter(Boolean);
 const ALERT_SAFE_SUBJECT_PREFIX = "fresh signal detected";
+const LEGACY_DENVER_METRO_LABEL = "Denver Metro"; // A saved legacy label, never an implicit statewide default.
 
 function asString(value: unknown, fallback = "") {
   return typeof value === "string" ? value : fallback;
@@ -115,11 +123,10 @@ function toStrings(value: unknown) {
   return Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
 }
 
-export function normalizeAreaPrefs(input: unknown): AreaPreferences {
+export function normalizeAreaPrefs(input: unknown, explicitScopes?: unknown): AreaPreferences {
   const source = (input && typeof input === "object" ? input : {}) as Record<string, unknown>;
-  const supportedStates = new Set<string>(ACTIVE_ENGINE_STATE_CODES);
-  return {
-    states: toStrings(source.states).map((state) => normalizeStateCodeParam(state)).filter((state): state is string => Boolean(state && supportedStates.has(state))),
+  const normalized: AreaPreferences = {
+    states: Array.from(new Set(toStrings(source.states).map((state) => normalizeStateCodeParam(state)).filter((state): state is string => Boolean(state && geographyState(state))))),
     ncBoards: normalizeNcBoardPreferences(source.ncBoards),
     gaAreas: normalizeDemandMetroAreas("GA", source.gaAreas),
     tnAreas: normalizeDemandMetroAreas("TN", source.tnAreas),
@@ -135,6 +142,8 @@ export function normalizeAreaPrefs(input: unknown): AreaPreferences {
     paCounties: toStrings(source.paCounties),
     paStores: toStrings(source.paStores),
   };
+  normalized.monitoringScopes = monitoringScopesFromPreferences(normalized, explicitScopes);
+  return normalized;
 }
 
 export function normalizeBottleAlertPreferences(input: unknown): BottleAlertPreferences {
@@ -168,7 +177,7 @@ function normalizeBottleKey(value: string) {
 }
 
 function stateLabel(state: string) {
-  return getActiveEngineStateName(state) || state || "your area";
+  return geographyState(state)?.name || getActiveEngineStateName(state) || state || "your area";
 }
 
 export async function readAlertCandidates() {
@@ -177,8 +186,32 @@ export async function readAlertCandidates() {
 
 async function readAlertCandidateBatch() {
   const result = await readSiteExportResult("alerts");
+  let communityCandidates: CandidateAlert[] = [];
+  try {
+    const storePayload = await readSiteExport("stores");
+    const storeRows: Array<Record<string, unknown>> = [
+      ...(Array.isArray(storePayload?.stores) ? storePayload.stores as Array<Record<string, unknown>> : []),
+      ...(await listApprovedLocations().catch(() => [])).map((store) => store as unknown as Record<string, unknown>),
+    ];
+    const canonicalStores = new Map<string, CanonicalCommunityStore>();
+    for (const store of storeRows) {
+      const address = asString(store.address);
+      const state = geographyState(asString(store.state || store.state_code))?.state || "";
+      const city = asString(store.city || store.storeCity);
+      const name = asString(store.name || store.displayLabel);
+      if (!address || !state || !city || !name) continue;
+      for (const id of [asString(store.id), asString(store.sourceStoreId), asString(store.storeId)].filter(Boolean)) {
+        canonicalStores.set(canonicalCommunityStoreKey(state, id), { id, address, state, city, name });
+      }
+    }
+    const now = new Date();
+    const since = new Date(now.getTime() - COMMUNITY_ALERT_FRESHNESS_HOURS * 3_600_000).toISOString();
+    communityCandidates = buildCommunityAlertCandidates(await createCommunitySightingsRepository().listRecentAlertSightings(since), now.toISOString(), canonicalStores);
+  } catch (error) {
+    if (process.env.NODE_ENV !== "test") console.warn("community alert candidates unavailable", error instanceof Error ? error.message : "unknown error");
+  }
   return {
-    candidates: Array.isArray(result.payload?.alerts) ? result.payload.alerts as CandidateAlert[] : [],
+    candidates: [...(Array.isArray(result.payload?.alerts) ? result.payload.alerts as CandidateAlert[] : []), ...communityCandidates],
     snapshot: result,
   };
 }
@@ -205,6 +238,7 @@ function candidateAreaLocationFields(candidate: CandidateAlert) {
 }
 
 export function candidateMatchesArea(candidate: CandidateAlert, areaPrefs: AreaPreferences) {
+  if (areaPrefs.monitoringScopes) return candidateMatchesMonitoringScopes(candidate, areaPrefs.monitoringScopes);
   const state = normalizeStateCodeParam(asString(candidate.state));
   if (!state) return false;
   if (areaPrefs.states.length && !areaPrefs.states.includes(state)) return false;
@@ -225,8 +259,8 @@ export function candidateMatchesArea(candidate: CandidateAlert, areaPrefs: AreaP
   if (state === "SC" && areaPrefs.scAreas.length) return locationMatchesAny(locationFields, areaPrefs.scAreas);
   if (state === "CA" && areaPrefs.caAreas.length) return californiaAreaMatchesFields(locationFields, areaPrefs.caAreas);
   if (state === "NV" && areaPrefs.nvAreas.length) return nevadaAreaMatchesFields(locationFields, areaPrefs.nvAreas);
-  if (state === "NY") return newYorkAreaMatchesFields(locationFields, areaPrefs.nyAreas.length ? areaPrefs.nyAreas : SUPPORTED_NEW_YORK_AREAS);
-  if (state === "CO") return coloradoAreaMatchesFields(locationFields, areaPrefs.coAreas.length ? areaPrefs.coAreas : ["Denver Metro"]);
+  if (state === "NY" && areaPrefs.nyAreas.length) return newYorkAreaMatchesFields(locationFields, areaPrefs.nyAreas);
+  if (state === "CO" && areaPrefs.coAreas.length) return coloradoAreaMatchesFields(locationFields, areaPrefs.coAreas);
   if (state === "PA" && (areaPrefs.paCounties.length || areaPrefs.paStores.length)) {
     const countyMatch = areaPrefs.paCounties.length > 0 && locationMatchesAny(locationFields, areaPrefs.paCounties);
     const storeMatch = areaPrefs.paStores.length > 0
@@ -563,20 +597,22 @@ function candidateBottleSummary(candidate: CandidateAlert) {
 
 function candidateLocationGroupKey(candidate: CandidateAlert) {
   const state = asString(candidate.state).toUpperCase();
+  const sourceType = asString(candidate.sourceType) || "engine";
   const precision = candidateLocationPrecision(candidate);
   const locationId = asString(candidate.storeId) || asString(candidate.store_id) || asString(candidate.locationId) || asString(candidate.boardId);
   const locationLabel = candidateStoreLabel(candidate);
-  return [state, precision, locationId || normalizeLocationLookupKey(locationLabel)].filter(Boolean).join("|");
+  return [sourceType, state, precision, locationId || normalizeLocationLookupKey(locationLabel)].filter(Boolean).join("|");
 }
 
-function groupCandidatesByLocation(candidates: CandidateAlert[]) {
+export function groupCandidatesByLocation(candidates: CandidateAlert[]) {
+  const community = candidates.filter((candidate) => asString(candidate.sourceType) === "community");
   const groups = new Map<string, CandidateAlert[]>();
-  for (const candidate of candidates) {
+  for (const candidate of candidates.filter((row) => asString(row.sourceType) !== "community")) {
     const key = candidateLocationGroupKey(candidate);
     groups.set(key, [...(groups.get(key) || []), candidate]);
   }
 
-  return Array.from(groups.entries()).map(([locationKey, rows]) => {
+  const groupedEngine = Array.from(groups.entries()).map(([locationKey, rows]) => {
     const sorted = [...rows].sort(sortCandidatesForMember);
     const primary = sorted[0] || rows[0];
     const freshnessHours = Math.max(...sorted.map((candidate) => asNumber(candidate.freshnessHours, Number.NEGATIVE_INFINITY)).filter(Number.isFinite));
@@ -596,7 +632,8 @@ function groupCandidatesByLocation(candidates: CandidateAlert[]) {
       dedupeKey: groupDedupeKey,
       matchKey: `location-group:${stableHash(locationKey)}`,
     } as CandidateAlert;
-  }).sort(sortCandidatesForMember);
+  });
+  return [...community, ...groupedEngine].sort(sortCandidatesForMember);
 }
 
 function matchedLocationFromOptions(candidate: CandidateAlert, options: string[]) {
@@ -620,7 +657,12 @@ function matchedLocationFromOptions(candidate: CandidateAlert, options: string[]
 }
 
 function candidateMatchedArea(candidate: CandidateAlert, areaPrefs: AreaPreferences) {
-  const state = normalizeStateCodeParam(asString(candidate.state)) || asString(candidate.state).toUpperCase();
+  const rawState = asString(candidate.state);
+  const state = geographyState(rawState)?.state || normalizeStateCodeParam(rawState) || rawState.toUpperCase();
+  if (areaPrefs.monitoringScopes) {
+    const matching = areaPrefs.monitoringScopes.find((scope) => scope.state === state && candidateMatchesMonitoringScopes(candidate, [scope]));
+    return matching?.label || stateLabel(state);
+  }
   const locationName = asString(candidate.locationName) || asString(candidate.storeName) || asString(candidate.storeAddress);
   const locationFields = candidateAreaLocationFields(candidate);
   if (state === "NC" && areaPrefs.ncBoards.length) {
@@ -637,8 +679,8 @@ function candidateMatchedArea(candidate: CandidateAlert, areaPrefs: AreaPreferen
   if (state === "SC" && areaPrefs.scAreas.length) return matchedLocationFromOptions(candidate, areaPrefs.scAreas) || locationName || stateLabel(state);
   if (state === "CA" && areaPrefs.caAreas.length) return californiaAreaMatchesFields([locationName, asString(candidate.storeAddress), asString(candidate.storeCity)], areaPrefs.caAreas) ? "San Diego" : locationName || stateLabel(state);
   if (state === "NV" && areaPrefs.nvAreas.length) return areaPrefs.nvAreas.find((area) => nevadaAreaMatchesFields([locationName, asString(candidate.storeAddress), asString(candidate.storeCity)], [area])) || locationName || stateLabel(state);
-  if (state === "NY") return matchedNewYorkArea(locationFields, areaPrefs.nyAreas.length ? areaPrefs.nyAreas : SUPPORTED_NEW_YORK_AREAS) || locationName || stateLabel(state);
-  if (state === "CO") return coloradoAreaMatchesFields(locationFields, areaPrefs.coAreas.length ? areaPrefs.coAreas : ["Denver Metro"]) ? "Denver Metro" : locationName || stateLabel(state);
+  if (state === "NY" && areaPrefs.nyAreas.length) return matchedNewYorkArea(locationFields, areaPrefs.nyAreas) || locationName || stateLabel(state);
+  if (state === "CO" && areaPrefs.coAreas.length) return coloradoAreaMatchesFields(locationFields, areaPrefs.coAreas) ? areaPrefs.coAreas[0] || LEGACY_DENVER_METRO_LABEL : locationName || stateLabel(state);
   if (state === "PA" && areaPrefs.paCounties.length) return matchedLocationFromOptions(candidate, areaPrefs.paCounties) || locationName || stateLabel(state);
   if (locationName) return locationName;
   return stateLabel(state);
@@ -707,6 +749,8 @@ function normalizeMemberAlertRecord(input: unknown): MemberAlertRecord | null {
     priorityClass: source.priorityClass === "major" ? "major" : "standard",
     signalAt: asString(source.signalAt) || undefined,
     freshnessLimitHours: Number.isFinite(Number(source.freshnessLimitHours)) ? Number(source.freshnessLimitHours) : undefined,
+    sourceType: source.sourceType === "community" ? "community" : "engine",
+    sourceLabel: asString(source.sourceLabel) || undefined,
     createdAt,
     readAt: asString(source.readAt) || null,
     archivedAt: asString(source.archivedAt) || null,
@@ -741,6 +785,8 @@ export function candidateToMemberAlert(userId: string, candidate: CandidateAlert
     priorityClass: candidate.priorityClass === "major" ? "major" : "standard",
     signalAt: asString(candidate.signalAt),
     freshnessLimitHours: freshnessPolicyHours(candidate, "onSite", ALERT_EMAIL_MAX_FRESHNESS_HOURS),
+    sourceType: asString(candidate.sourceType) === "community" ? "community" : "engine",
+    sourceLabel: candidateSourceLabel(candidate) || (asString(candidate.sourceType) === "community" ? "Community sighting" : "Bourbon Signal"),
     createdAt,
     readAt: null,
     archivedAt: null,
@@ -946,7 +992,7 @@ export async function deliverPreferenceAlerts(req: Request, options: {
   const rawEligibleCandidateCount = allCandidates
     .filter((candidate) => asBoolean(candidate.eligibleForDelivery))
     .filter(candidateCanUseOnSite).length;
-  const candidates = (snapshotSafety.safe ? allCandidates : [])
+  const candidates = (snapshotSafety.safe ? allCandidates : allCandidates.filter((candidate) => asString(candidate.sourceType) === "community"))
     .filter((candidate) => asBoolean(candidate.eligibleForDelivery))
     .filter(candidateCanUseOnSite)
     .filter((candidate) => candidatePassesFreshOnSiteGuardrails(candidate))
@@ -1111,14 +1157,15 @@ export async function deliverPreferenceAlerts(req: Request, options: {
 
       const publicMetadata = (user.publicMetadata && typeof user.publicMetadata === "object" ? user.publicMetadata : {}) as Record<string, unknown>;
       const privateMetadata = (user.privateMetadata && typeof user.privateMetadata === "object" ? user.privateMetadata : {}) as Record<string, unknown>;
-      if (!await isServerPaidTier(publicMetadata)) {
+      const entitlements = await getServerEntitlements(publicMetadata);
+      if (entitlements.tier === "free") {
         summary.skippedFreeUsers += 1;
         continue;
       }
       summary.paidUsersConsidered += 1;
 
       const notificationPrefs = normalizeNotificationPreferences(publicMetadata.notificationPreferences);
-      const areaPrefs = normalizeAreaPrefs(publicMetadata.areaPreferences);
+      const areaPrefs = normalizeAreaPrefs(publicMetadata.areaPreferences, publicMetadata.monitoringScopes);
       if (!hasSavedAreaPreferences(areaPrefs)) {
         summary.skippedNoAreaPreferences += 1;
         continue;
@@ -1128,6 +1175,7 @@ export async function deliverPreferenceAlerts(req: Request, options: {
       const alertMode = publicMetadata.alertMode;
       const deliveryMetadata = normalizeDeliveryMetadata(privateMetadata.alertDelivery);
       const matchingPreferenceCandidates = groupCandidatesByLocation(candidates
+        .filter((candidate) => asString(candidate.sourceType) !== "community" || (entitlements.canReceiveSightingsAlerts && notificationPrefs.sightings.enabled))
         .filter((candidate) => candidateMatchesArea(candidate, areaPrefs))
         .filter((candidate) => {
           const matches = candidateMatchesBottlePrefs(candidate, alertMode, bottlePrefs);
@@ -1533,7 +1581,7 @@ export async function deliverPreferenceAlerts(req: Request, options: {
             }
           }
           if (onSiteInboxWritten) createdRealAlert = true;
-          if (onSiteInboxWritten && notificationPrefs.push.enabled) {
+          if (onSiteInboxWritten && notificationPrefs.push.enabled && pushPreferenceProjectionAllowsDelivery(privateMetadata.pushPreferenceProjection)) {
             const messages = newOnSiteAlerts.flatMap((alert) => buildExpoPushMessages(enabledPushTokens(privateMetadata.pushDevices), alert));
             if (messages.length) {
               try {
