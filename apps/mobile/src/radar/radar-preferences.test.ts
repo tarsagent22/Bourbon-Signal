@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import type { MemberPreferences, RadarAreaPreferences } from "../api/types";
-import { alertIsStale, clearRadarAreas, compactMonitoringScopes, formatPhoneNumber, maskedPhoneNumber, memberAlertBottleNames, presentPushIssue, radarAreaCount, radarAreaSummary, radarMonitoringSummary, radarStateDisplayCode, scopesForState, setBottleWatched, setRadarState, setStatewideScope, stopMonitoringState, toggleMonitoringScope, toggleRadarArea, watchedBottleCount } from "./radar-preferences";
+import { alertIsStale, clearRadarAreas, compactMonitoringScopes, formatPhoneNumber, maskedPhoneNumber, memberAlertBottleNames, monitoringScopesChanged, presentPushIssue, radarAreaCount, radarAreaSummary, radarLocalityDisplayName, radarMonitoringSummary, radarStateDisplayCode, scopesForState, setBottleWatched, setRadarState, setStatewideScope, stopMonitoringState, toggleMonitoringScope, toggleRadarArea, watchedBottleCount } from "./radar-preferences";
 
 const areas: RadarAreaPreferences = { states: [], ncBoards: [], gaAreas: [], tnAreas: [], vaCities: [], ohCities: [], iaCities: [], idCities: [], scAreas: [], caAreas: [], nvAreas: [], nyAreas: [], coAreas: [], paCounties: [], paStores: [] };
 const preferences = (): MemberPreferences => ({
@@ -71,6 +71,23 @@ test("area editor summaries cap mounted rows without losing the selected count",
   assert.equal(compact.total, 14);
   assert.equal(compact.visible.length, 6);
   assert.equal(compact.hidden, 8);
+});
+
+test("Radar locality labels hide Census and legal place types", () => {
+  assert.equal(radarLocalityDisplayName("Phoenix city"), "Phoenix");
+  assert.equal(radarLocalityDisplayName("Carefree town"), "Carefree");
+  assert.equal(radarLocalityDisplayName("San Tan Valley CDP"), "San Tan Valley");
+  assert.equal(radarLocalityDisplayName("District of Columbia"), "District of Columbia");
+});
+
+test("area editor dirty state compares the selected state's semantic scopes", () => {
+  const saved = [
+    { type: "city" as const, id: "place:1", state: "AZ", label: "Phoenix" },
+    { type: "county" as const, id: "county:2", state: "AZ", label: "Maricopa County" },
+    { type: "state" as const, id: "state:NM", state: "NM", label: "New Mexico" },
+  ];
+  assert.equal(monitoringScopesChanged(saved, [saved[1], saved[0]], "AZ"), false);
+  assert.equal(monitoringScopesChanged(saved, [saved[0]], "AZ"), true);
 });
 
 test("Push errors keep member guidance separate from support diagnostics", () => {

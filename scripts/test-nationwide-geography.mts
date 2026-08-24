@@ -4,6 +4,7 @@ import test from "node:test";
 import {
   GEOGRAPHY_SOURCE,
   findGeographyById,
+  geographyDisplayName,
   listGeographyMatches,
   listMonitoringStates,
   searchGeography,
@@ -24,6 +25,13 @@ test("county and place stable IDs resolve and search is bounded", () => {
   assert.ok(jackson.results.some((entry) => entry.id === "place:2836000"));
   assert.ok(jackson.results.length <= 5);
   assert.equal(typeof jackson.hasMore, "boolean");
+});
+
+test("member-facing place names omit Census and legal type suffixes", () => {
+  assert.equal(geographyDisplayName("Phoenix city"), "Phoenix");
+  assert.equal(geographyDisplayName("San Tan Valley CDP"), "San Tan Valley");
+  assert.equal(geographyDisplayName("Athens-Clarke County unified government (balance)"), "Athens-Clarke County");
+  assert.equal(geographyDisplayName("District of Columbia"), "District of Columbia");
 });
 
 test("deep place pagination is complete and stable beyond the first 50 matches", () => {
