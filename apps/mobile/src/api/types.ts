@@ -190,6 +190,8 @@ export interface GeographySearchResponse {
     level: MonitoringScopeType;
     state: string;
     name: string;
+    displayName?: string;
+    subtitle?: string | null;
     coverage: { engine: { status: "active" | "expanding" }; community: { active: boolean; recentSightings: number; windowDays: number } };
     message: string | null;
   }>;

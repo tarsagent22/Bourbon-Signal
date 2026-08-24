@@ -2,7 +2,7 @@ import { auth } from "@clerk/nextjs/server";
 import { unstable_cache } from "next/cache";
 import { ACTIVE_ENGINE_STATE_CODES } from "@/lib/activeStates";
 import { createCommunitySightingsRepository } from "@/lib/community-sightings-repository";
-import { geographyState, listGeographyMatches, listMonitoringStates, type GeographyLevel } from "@/lib/geography-directory";
+import { geographyDisplayName, geographyState, listGeographyMatches, listMonitoringStates, type GeographyLevel } from "@/lib/geography-directory";
 import { countCommunityActivity } from "@/lib/geography-community-activity";
 import { NC_ABC_BOARD_OPTIONS } from "@/lib/nc-abc-boards";
 import { listApprovedLocations } from "@/lib/approved-catalog-service";
@@ -71,11 +71,13 @@ export async function GET(request: Request) {
     return Boolean(canonical && canonicalCommunityStoreMatches(canonical, row));
   });
   const activeEngineStates = new Set(ACTIVE_ENGINE_STATE_CODES.map((code) => geographyState(code)?.state || code));
-  const decorate = (entry: { id: string; level: ApiLevel; state: string; name: string; rawId?: string }) => {
+  const decorate = (entry: { id: string; level: ApiLevel; state: string; name: string; subtitle: string | null; rawId?: string }) => {
     const count = countCommunityActivity(recentSightings, entry);
     const engineStatus = activeEngineStates.has(entry.state) ? "active" as const : "expanding" as const;
     return {
       id: entry.id, level: entry.level, state: entry.state, name: entry.name,
+      displayName: entry.level === "city" ? geographyDisplayName(entry.name) : entry.name,
+      subtitle: entry.subtitle,
       coverage: {
         engine: { status: engineStatus },
         community: { active: count > 0, recentSightings: count, windowDays: 7 },
@@ -84,10 +86,10 @@ export async function GET(request: Request) {
     };
   };
   const dynamic = [
-    ...(requestedLevels.includes("board") && (!state || state === "NC") ? NC_ABC_BOARD_OPTIONS.map((name) => ({ id: `board:NC:${slug(name)}`, level: "board" as const, state: "NC", name })) : []),
-    ...(requestedLevels.includes("store") ? stores.map((store) => ({ id: `store:${store.state}:${store.id}`, level: "store" as const, state: store.state, name: store.name, rawId: store.id })) : []),
-  ].filter((entry) => (!state || entry.state === state) && (!query || entry.name.toLowerCase().includes(query.toLowerCase())));
-  const combined = [...staticResults.map((entry) => ({ ...entry, name: entry.name })), ...dynamic]
+    ...(requestedLevels.includes("board") && (!state || state === "NC") ? NC_ABC_BOARD_OPTIONS.map((name) => ({ id: `board:NC:${slug(name)}`, level: "board" as const, state: "NC", name, subtitle: null })) : []),
+    ...(requestedLevels.includes("store") ? stores.map((store) => ({ id: `store:${store.state}:${store.id}`, level: "store" as const, state: store.state, name: store.name, subtitle: `${store.city} · ${store.address}`, rawId: store.id })) : []),
+  ].filter((entry) => (!state || entry.state === state) && (!query || `${entry.name} ${entry.subtitle || ""}`.toLowerCase().includes(query.toLowerCase())));
+  const combined = [...staticResults.map((entry) => ({ ...entry, name: entry.name, subtitle: null })), ...dynamic]
     .sort((left, right) => left.state.localeCompare(right.state) || left.level.localeCompare(right.level) || left.name.localeCompare(right.name));
   const results = combined.slice(offset, offset + limit).map(decorate);
   return Response.json({

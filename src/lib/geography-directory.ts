@@ -18,6 +18,13 @@ const all = [...states, ...counties, ...places];
 const byId = new Map(all.map((entry) => [entry.id, entry]));
 const stateByCode = new Map(states.map((entry) => [entry.state, entry]));
 
+export function geographyDisplayName(value: string) {
+  return value
+    .replace(/\s+(?:(?:unified|consolidated|metropolitan|metro) government|urban county|city|town|village|borough|CDP|municipality|corporation)(?: \(balance\))?$/i, "")
+    .replace(/\s+\(balance\)$/i, "")
+    .trim();
+}
+
 export function listMonitoringStates() {
   return states.map((entry) => ({ id: entry.id, code: entry.state, name: entry.name }));
 }

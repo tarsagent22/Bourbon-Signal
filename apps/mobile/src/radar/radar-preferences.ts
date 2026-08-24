@@ -108,6 +108,20 @@ export function scopesForState(scopes: MonitoringScope[], state: string) {
   return scopes.filter((scope) => scope.state === code);
 }
 
+export function radarLocalityDisplayName(value: string) {
+  return value
+    .replace(/\s+(?:(?:unified|consolidated|metropolitan|metro) government|urban county|city|town|village|borough|CDP|municipality|corporation)(?: \(balance\))?$/i, "")
+    .replace(/\s+\(balance\)$/i, "")
+    .trim();
+}
+
+export function monitoringScopesChanged(saved: MonitoringScope[], draft: MonitoringScope[], state: string) {
+  const signature = (scopes: MonitoringScope[]) => scopesForState(scopes, state)
+    .map((scope) => `${scope.type}\u0000${scope.id}\u0000${scope.label}`)
+    .sort();
+  return JSON.stringify(signature(saved)) !== JSON.stringify(signature(draft));
+}
+
 export function setStatewideScope(scopes: MonitoringScope[], state: { code: string; name: string }) {
   return [...scopes.filter((scope) => scope.state !== state.code), { type: "state" as const, id: `state:${state.code}`, state: state.code, label: state.name }];
 }
