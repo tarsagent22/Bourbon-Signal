@@ -10,7 +10,6 @@ import {
   signalCardStatusLabel,
   signalCardSummary,
   signalCardAppearance,
-  signalLocationLabel,
   signalReporterAttribution,
 } from "../api/presentation";
 import { colors } from "../theme";
@@ -38,9 +37,10 @@ export function SignalCard({ signal, onPress }: { signal: Signal; onPress: () =>
   const presented = presentSignal(signal);
   const status = signalCardStatusLabel(signal, now);
   const summary = signalCardSummary(signal);
-  const location = signalLocationLabel(signal, presented.location);
   const appearance = signalCardAppearance(signal);
   const reporter = signalReporterAttribution(signal);
+  const showStatus = status === "Availability unconfirmed"
+    || (signal.source.type !== "member" && status !== "Reported");
   const availableNow = signal.source.type !== "member" && signalAvailabilityIsCurrent(signal, now);
   const upcoming = status === "Upcoming"
     || signal.availability?.status === "upcoming"
@@ -60,27 +60,28 @@ export function SignalCard({ signal, onPress }: { signal: Signal; onPress: () =>
           <View style={[styles.labelKeyline, { backgroundColor: appearance.keyline }]} />
           <Text style={[styles.rarityLabel, { color: appearance.secondaryText }]}>{appearance.rarityLabel}</Text>
         </View>
-        <Text style={[styles.time, { color: appearance.secondaryText }]}>{relativeSignalTime(signal.timing.displayAt, now)}</Text>
+        <Text style={styles.time}>{relativeSignalTime(signal.timing.displayAt, now)}</Text>
       </View>
 
       <Text numberOfLines={2} style={styles.bottle}>{signal.bottle.name}</Text>
-      <Text numberOfLines={2} style={[styles.location, signal.source.type !== "member" && styles.marketLocation, { color: signal.source.type === "member" ? appearance.secondaryText : appearance.accent }]}>{location}</Text>
+      {presented.storeName ? <Text numberOfLines={2} style={styles.storeName}>{presented.storeName}</Text> : null}
+      {presented.geography ? <Text numberOfLines={1} style={styles.geography}>{presented.geography}</Text> : null}
 
-      <View style={styles.statusRow}>
+      {showStatus ? <View style={styles.statusRow}>
         <View style={[styles.statusDot, availableNow && styles.availableDot, upcoming && styles.upcomingDot]} />
-        <Text style={[styles.status, { color: appearance.secondaryText }, availableNow && styles.availableStatus]}>{status}</Text>
-      </View>
+        <Text style={[styles.status, availableNow && styles.availableStatus]}>{status}</Text>
+      </View> : null}
 
       {presented.price || presented.quantity ? (
         <View style={styles.metaRow}>
-          {presented.price ? <Text style={[styles.price, { color: appearance.accent }]}>{presented.price}</Text> : null}
+          {presented.price ? <Text style={styles.price}>{presented.price}</Text> : null}
           {presented.price && presented.quantity ? <View style={styles.metaDivider} /> : null}
-          {presented.quantity ? <Text style={[styles.quantity, { color: appearance.secondaryText }]}>{presented.quantity}</Text> : null}
+          {presented.quantity ? <Text style={styles.quantity}>{presented.quantity}</Text> : null}
         </View>
       ) : null}
 
-      {summary ? <Text numberOfLines={2} style={[styles.note, { color: appearance.secondaryText }]}>{summary}</Text> : null}
-      {reporter ? <Text numberOfLines={1} style={[styles.reporter, { color: appearance.secondaryText }]}>{reporter}</Text> : null}
+      {summary ? <Text numberOfLines={2} style={styles.note}>{summary}</Text> : null}
+      {reporter ? <Text numberOfLines={1} style={styles.reporter}>{reporter}</Text> : null}
     </Pressable>
   );
 }
@@ -93,7 +94,7 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     paddingHorizontal: 14,
     paddingVertical: 11.5,
-    gap: 6,
+    gap: 5.5,
   },
   pressed: { opacity: 0.82 },
   topline: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 1 },
@@ -105,16 +106,16 @@ const styles = StyleSheet.create({
   statusDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.muted },
   availableDot: { backgroundColor: colors.success },
   upcomingDot: { backgroundColor: colors.accent },
-  status: { fontSize: 11, lineHeight: 15, fontWeight: "700", letterSpacing: 0.2 },
+  status: { color: colors.muted, fontSize: 11, lineHeight: 15, fontWeight: "700", letterSpacing: 0.2 },
   availableStatus: { color: colors.success },
   time: { color: colors.muted, fontSize: 11, lineHeight: 15, fontWeight: "600" },
   bottle: { color: colors.text, fontSize: 19, lineHeight: 24, fontWeight: "700", letterSpacing: -0.2 },
-  location: { fontSize: 13, lineHeight: 18, fontWeight: "500" },
-  marketLocation: { fontSize: 14, lineHeight: 19, fontWeight: "700" },
+  storeName: { color: colors.text, fontSize: 14, lineHeight: 19, fontWeight: "600" },
+  geography: { color: colors.muted, fontSize: 12, lineHeight: 17, fontWeight: "500" },
   metaRow: { minHeight: 20, flexDirection: "row", alignItems: "center", gap: 9, marginTop: 1 },
   metaDivider: { width: 3, height: 3, borderRadius: 2, backgroundColor: colors.border },
-  price: { color: colors.accent, fontSize: 13, lineHeight: 18, fontWeight: "700" },
-  quantity: { fontSize: 12, lineHeight: 17, fontWeight: "600", flexShrink: 1 },
-  note: { fontSize: 12, lineHeight: 17, marginTop: 1 },
-  reporter: { fontSize: 11, lineHeight: 15, fontWeight: "600", marginTop: 1 },
+  price: { color: colors.text, fontSize: 13, lineHeight: 18, fontWeight: "700" },
+  quantity: { color: colors.muted, fontSize: 12, lineHeight: 17, fontWeight: "600", flexShrink: 1 },
+  note: { color: colors.muted, fontSize: 12, lineHeight: 17, marginTop: 1 },
+  reporter: { color: colors.muted, fontSize: 11, lineHeight: 15, fontWeight: "600", marginTop: 1 },
 });

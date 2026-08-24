@@ -37,17 +37,28 @@ function normalizedQuantityLabel(signal: Signal) {
   const counted = raw.match(/^(\d+)(?:\s+bottles?)?$/i);
   if (counted) {
     const count = Number(counted[1]);
-    return `${count} reported`;
+    return `${count} ${count === 1 ? "report" : "reports"}`;
   }
   if (raw) return `Reported: ${raw}`;
   if (typeof signal.availability?.quantity === "number") {
     const count = signal.availability.quantity;
-    return `${count} reported`;
+    return `${count} ${count === 1 ? "report" : "reports"}`;
   }
   if (signal.availability?.status === "available_now" || signal.availability?.status === "reported") {
     return "Quantity unknown";
   }
   return "";
+}
+
+function escapedPattern(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function normalizedStoreName(name: string, city: string) {
+  const cleaned = name.trim();
+  const normalizedCity = city.trim();
+  if (!cleaned || !normalizedCity) return cleaned;
+  return cleaned.replace(new RegExp(`\\s*[/·-]\\s*${escapedPattern(normalizedCity)}\\s*$`, "i"), "").trim();
 }
 
 function retailerQualified(signal: Signal) {
@@ -76,17 +87,32 @@ export function signalAvailabilityIsCurrent(signal: Signal, now = new Date()) {
 }
 
 export function signalAvailabilityRefreshAt(signal: Signal, now = new Date()) {
-  const window = signalAvailabilityWindow(signal);
   const current = now.getTime();
-  if (!window || !Number.isFinite(current)) return null;
-  if (current < window.startsAt) return window.startsAt;
-  if (current < window.endsAt) return window.endsAt;
-  return null;
+  if (!Number.isFinite(current)) return null;
+
+  const candidates: number[] = [];
+  const window = signalAvailabilityWindow(signal);
+  if (window) {
+    if (current < window.startsAt) candidates.push(window.startsAt);
+    else if (current < window.endsAt) candidates.push(window.endsAt);
+  }
+
+  if (signal.kind === "availability") {
+    const observed = Date.parse(signal.timing.displayAt);
+    const staleAt = observed + 72 * 60 * 60 * 1_000;
+    if (Number.isFinite(staleAt) && current < staleAt) candidates.push(staleAt);
+  }
+
+  return candidates.length ? Math.min(...candidates) : null;
 }
 
 export function presentSignal(signal: Signal) {
   const store = signal.location.store;
-  const location = [store?.name || signal.location.label, store?.city, store?.state || signal.location.state].filter(Boolean).join(" · ");
+  const city = store?.city?.trim() || "";
+  const state = store?.state || signal.location.state;
+  const storeName = normalizedStoreName(store?.name || signal.location.label || "", city);
+  const geography = city && state ? `${city}, ${state}` : city || state || "";
+  const location = [storeName, geography].filter(Boolean).join(" · ");
   const address = [store?.address, store?.city, store?.state || signal.location.state, store?.zip].filter(Boolean).join(" · ");
   const rawPrice = signal.availability?.price;
   const price = signal.availability
@@ -97,6 +123,8 @@ export function presentSignal(signal: Signal) {
     ? signal.source.actor?.displayName || signal.source.actor?.label || signal.source.label
     : "";
   return {
+    storeName,
+    geography,
     location,
     address,
     price,
@@ -121,7 +149,7 @@ export function signalCardAppearance(signal: Signal) {
     : { surface: "#1F1A14", keyline: "#57442D", accent: "#D3A258", secondaryText: "#B9A78D" };
   const rarity = signal.bottle.rarity || "limited";
   const rarityAppearance = rarity === "unicorn"
-    ? { surface: "#211925", keyline: "#61446E", accent: "#D8B5E2", secondaryText: "#C9B8CF" }
+    ? { surface: "#211925", keyline: "#61446E", accent: "#D8B5E2", secondaryText: "#B7ACBA" }
     : rarity === "allocated"
       ? community
         ? { surface: "#211A16", keyline: "#745033", accent: "#D79B60", secondaryText: "#BEA48D" }
@@ -134,7 +162,15 @@ export function signalCardAppearance(signal: Signal) {
   };
 }
 
+export function signalReportIsStale(signal: Signal, now = new Date()) {
+  if (signal.kind !== "availability") return false;
+  const observed = Date.parse(signal.timing.displayAt);
+  const current = now.getTime();
+  return Number.isFinite(observed) && Number.isFinite(current) && current - observed >= 72 * 60 * 60 * 1_000;
+}
+
 export function signalCardStatusLabel(signal: Signal, now = new Date()) {
+  if (signalReportIsStale(signal, now)) return "Availability unconfirmed";
   if (signal.source.type === "member") {
     const identity = signal.source.actor?.label || signal.source.label;
     return /^(Founder|Member) #\d+$/.test(identity) ? identity : "Community report";
@@ -176,7 +212,7 @@ export function signalAccessibilityLabel(signal: Signal, now = new Date()) {
   return [
     signal.bottle.name,
     location,
-    status,
+    status === "Reported" || status === "Community report" || /^(Founder|Member) #\d+$/.test(status) ? "" : status,
     signalReporterAttribution(signal),
     signalAccessibilityTime(signal.timing.displayAt, now),
     presented.price,
