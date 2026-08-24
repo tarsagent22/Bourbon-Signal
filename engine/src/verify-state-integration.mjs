@@ -68,7 +68,7 @@ function verifySourceContracts(sourceFiles) {
     ['statePreferences', /ACTIVE_ENGINE_STATE_CODES/, 'site state preferences must derive active states from lifecycle'],
     ['dropApi', /normalizeStateCodeParam[\s\S]*drops\.filter/, 'Drop Feed API must normalize and apply state filters'],
     ['locationsApi', /searchParams\.get\(["']state["']\)/, 'Finder locations API must accept a state filter'],
-    ['preferencesApi', /supportedStates/, 'preference normalization must retain supported lifecycle states'],
+    ['preferencesApi', /supportedStates|geographyState/, 'preference normalization must retain supported lifecycle states through the nationwide geography resolver'],
     ['dashboard', /areaPrefs\.states/, 'dashboard must read saved state preferences'],
     ['dropFeed', /feedStateOptions/, 'Drop Feed must expose lifecycle-backed state controls'],
     ['alertDelivery', /state/, 'alert delivery policy must carry state identity'],
