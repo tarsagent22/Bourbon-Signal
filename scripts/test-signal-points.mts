@@ -431,7 +431,8 @@ test("schema, migration, encrypted backup, APIs, drawer, and owner queue are wir
   assert.doesNotMatch(read("src/components/Navigation.tsx"), /label:\s*["']Rewards["']/);
 
   const referrals = read("src/app/api/referrals/me/route.ts");
-  for (const field of ["referralPoints", "communityPoints", "totalPoints", "freePointsAwarded", "redemptionEligible"]) assert.doesNotMatch(referrals, new RegExp(field));
+  assert.match(referrals, /referralPoints:\s*summary\.referralPoints/);
+  for (const field of ["communityPoints", "totalPoints", "freePointsAwarded", "redemptionEligible"]) assert.doesNotMatch(referrals, new RegExp(field));
   assert.doesNotMatch(referrals, /signal-points-repository/);
   assert.doesNotMatch(read("src/components/MemberReferralLink.tsx"), /Signal Points|points?\b|rewards?|redeem|redemption/i);
   assert.doesNotMatch(read("src/components/emails/FreeMemberDayTwoEmail.tsx"), /Points and badges|Point redemption/i);

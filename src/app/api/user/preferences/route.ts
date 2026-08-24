@@ -8,7 +8,14 @@ import {
   type NotificationPreferencesPatch,
   type NotificationPreferences,
 } from "@/lib/notification-preferences";
-import { ACTIVE_ENGINE_STATE_CODES } from "@/lib/activeStates";
+import { geographyState } from "@/lib/geography-directory";
+import {
+  legacyAreaPreferencesFromScopes,
+  monitoringScopesFromPreferences,
+  normalizeMonitoringScopes,
+  trimMonitoringScopesToLimit,
+  type MonitoringScope,
+} from "@/lib/monitoring-scopes";
 import type { MemberSighting, SignalReport, SignalReportKind, SightingVote, SightingVoteKind, SightingType, SightingsPreferences } from "@/lib/sightings";
 import { getEntitlements, type TierEntitlements } from "@/lib/entitlements";
 import { getServerEntitlements } from "@/lib/server-entitlements";
@@ -68,6 +75,7 @@ export interface UserAlertPreferences {
     canReceiveSmsAlerts: boolean;
   };
   areaPreferences: AreaPreferences;
+  monitoringScopes?: MonitoringScope[];
   notificationPreferences: NotificationPreferences;
   alertMode: AlertMode;
   bottleAlertPreferences: {
@@ -130,10 +138,8 @@ function normalizeAreaPreferences(input: unknown): AreaPreferences {
   const toStringArray = (value: unknown) =>
     Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
 
-  const supportedStates = new Set<string>(ACTIVE_ENGINE_STATE_CODES);
-
   return {
-    states: toStringArray(source.states).map((state) => state.toUpperCase()).filter((state) => supportedStates.has(state)),
+    states: Array.from(new Set(toStringArray(source.states).map((state) => state.toUpperCase()).filter((state) => geographyState(state)))),
     ncBoards: normalizeNcBoardPreferences(source.ncBoards),
     gaAreas: normalizeDemandMetroAreas("GA", source.gaAreas),
     tnAreas: normalizeDemandMetroAreas("TN", source.tnAreas),
@@ -282,7 +288,8 @@ function buildResponseFromMetadata(
   collectionPreferences: UserAlertPreferences["collectionPreferences"] = EMPTY_COLLECTION_PREFERENCES,
   entitlements: TierEntitlements = getEntitlements(user.publicMetadata),
 ): UserAlertPreferences {
-  const areaPreferences = normalizeAreaPreferences(user.publicMetadata?.areaPreferences);
+  const monitoringScopes = monitoringScopesFromPreferences(user.publicMetadata?.areaPreferences, user.publicMetadata?.monitoringScopes);
+  const areaPreferences = normalizeAreaPreferences(legacyAreaPreferencesFromScopes(monitoringScopes));
   const notificationPreferences = normalizeNotificationPreferences(user.publicMetadata?.notificationPreferences);
   const alertMode = normalizeAlertMode(user.publicMetadata?.alertMode);
   const bottleAlertPreferences = normalizeBottleAlertPreferences(user.publicMetadata?.bottleAlertPreferences);
@@ -294,6 +301,7 @@ function buildResponseFromMetadata(
       canReceiveSmsAlerts: entitlements.canReceiveSmsAlerts,
     },
     areaPreferences,
+    monitoringScopes,
     notificationPreferences,
     alertMode,
     bottleAlertPreferences,
@@ -330,6 +338,10 @@ function buildQaPreviewResponse(req: NextRequest, payload: Partial<UserAlertPref
   const tier = getQaPreviewTierFromRequest(req);
   const entitlements = getEntitlements(tier);
   let areaPreferences = normalizeAreaPreferences(payload.areaPreferences ?? QA_PREVIEW_PREFERENCES.areaPreferences);
+  let monitoringScopes = payload.monitoringScopes !== undefined
+    ? normalizeMonitoringScopes(payload.monitoringScopes)
+    : monitoringScopesFromPreferences(payload.areaPreferences ?? QA_PREVIEW_PREFERENCES.areaPreferences);
+  areaPreferences = normalizeAreaPreferences(legacyAreaPreferencesFromScopes(monitoringScopes));
   let notificationPreferences = normalizeNotificationPreferences(payload.notificationPreferences ?? QA_PREVIEW_PREFERENCES.notificationPreferences);
   const alertMode = payload.alertMode === undefined ? QA_PREVIEW_PREFERENCES.alertMode : normalizeAlertMode(payload.alertMode);
   let bottleAlertPreferences = normalizeBottleAlertPreferences(payload.bottleAlertPreferences ?? QA_PREVIEW_PREFERENCES.bottleAlertPreferences);
@@ -341,6 +353,7 @@ function buildQaPreviewResponse(req: NextRequest, payload: Partial<UserAlertPref
 
   if (entitlements.alertAreaLimit === 0) {
     areaPreferences = { ...areaPreferences, states: [] };
+    monitoringScopes = [];
     notificationPreferences = {
       ...notificationPreferences,
       onSite: { ...notificationPreferences.onSite, enabled: false },
@@ -365,7 +378,8 @@ function buildQaPreviewResponse(req: NextRequest, payload: Partial<UserAlertPref
     };
   }
 
-  areaPreferences = trimAreaPreferencesToLimit(areaPreferences, entitlements.alertAreaLimit);
+  monitoringScopes = trimMonitoringScopesToLimit(monitoringScopes, entitlements.alertAreaLimit);
+  areaPreferences = normalizeAreaPreferences(legacyAreaPreferencesFromScopes(monitoringScopes));
 
   if (typeof entitlements.trackedBottleLimit === "number") {
     bottleAlertPreferences = {
@@ -380,6 +394,7 @@ function buildQaPreviewResponse(req: NextRequest, payload: Partial<UserAlertPref
     qaTier: tier,
     entitlements,
     areaPreferences,
+    monitoringScopes,
     notificationPreferences,
     alertMode,
     bottleAlertPreferences,
@@ -406,7 +421,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   if (isQaPreviewRequest(req)) {
     const payload = (await req.json().catch(() => ({}))) as Partial<UserAlertPreferences>;
-    const attemptedAlertWrite = payload.areaPreferences !== undefined || payload.notificationPreferences !== undefined || payload.alertMode !== undefined || payload.bottleAlertPreferences !== undefined;
+    const attemptedAlertWrite = payload.areaPreferences !== undefined || payload.monitoringScopes !== undefined || payload.notificationPreferences !== undefined || payload.alertMode !== undefined || payload.bottleAlertPreferences !== undefined;
     const entitlements = getEntitlements(getQaPreviewTierFromRequest(req));
     if (payload.collectionPreferences !== undefined && !entitlements.canUseCollection) {
       return NextResponse.json({ error: "Collection is included with Barrel Proof and Founder memberships.", qaPreview: true, qaTier: entitlements.tier }, { status: 403 });
@@ -414,10 +429,11 @@ export async function POST(req: NextRequest) {
     if (attemptedAlertWrite && entitlements.alertAreaLimit === 0) {
       return NextResponse.json({ error: "Alert setup is included with Standard Proof and above.", qaPreview: true, qaTier: entitlements.tier }, { status: 403 });
     }
-    if (typeof entitlements.alertAreaLimit === "number" && payload.areaPreferences !== undefined) {
-      const requestedAreas = normalizeAreaPreferences(payload.areaPreferences);
-      const limitedAreas = trimAreaPreferencesToLimit(requestedAreas, entitlements.alertAreaLimit);
-      if (JSON.stringify(limitedAreas) !== JSON.stringify(requestedAreas)) {
+    if (typeof entitlements.alertAreaLimit === "number" && (payload.areaPreferences !== undefined || payload.monitoringScopes !== undefined)) {
+      const requestedScopes = payload.monitoringScopes !== undefined
+        ? normalizeMonitoringScopes(payload.monitoringScopes)
+        : monitoringScopesFromPreferences(payload.areaPreferences);
+      if (trimMonitoringScopesToLimit(requestedScopes, entitlements.alertAreaLimit).length !== requestedScopes.length) {
         return NextResponse.json({
           error: "This alert-area selection exceeds your membership limit. Upgrade to add more markets.",
           code: "alert_area_limit_reached",
@@ -460,7 +476,12 @@ export async function POST(req: NextRequest) {
   const durableEntitlements = await getServerEntitlements(user.publicMetadata);
   const existing = buildResponseFromMetadata(user, durableCollection, durableEntitlements);
 
-  let areaPreferences = normalizeAreaPreferences(payload.areaPreferences ?? existing.areaPreferences ?? EMPTY_AREA_PREFERENCES);
+  let monitoringScopes = payload.monitoringScopes !== undefined
+    ? normalizeMonitoringScopes(payload.monitoringScopes)
+    : payload.areaPreferences !== undefined
+      ? monitoringScopesFromPreferences(payload.areaPreferences)
+      : existing.monitoringScopes || monitoringScopesFromPreferences(existing.areaPreferences);
+  let areaPreferences = normalizeAreaPreferences(legacyAreaPreferencesFromScopes(monitoringScopes));
   let notificationPreferences = existing.notificationPreferences ?? getDefaultNotificationPreferences();
   let notificationPreferencesMetadataPatch: Record<string, unknown> = {};
   if (payload.notificationPreferences !== undefined) {
@@ -517,7 +538,7 @@ export async function POST(req: NextRequest) {
     }
   }
   const entitlements = durableEntitlements;
-  const attemptedAlertWrite = payload.areaPreferences !== undefined || payload.notificationPreferences !== undefined || payload.alertMode !== undefined || payload.bottleAlertPreferences !== undefined;
+  const attemptedAlertWrite = payload.areaPreferences !== undefined || payload.monitoringScopes !== undefined || payload.notificationPreferences !== undefined || payload.alertMode !== undefined || payload.bottleAlertPreferences !== undefined;
 
   if (payload.collectionPreferences !== undefined && !entitlements.canUseCollection) {
     return NextResponse.json({ error: "Collection is included with Barrel Proof and Founder memberships." }, { status: 403 });
@@ -527,9 +548,9 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: "Alert setup is included with Standard Proof and above." }, { status: 403 });
   }
 
-  if (typeof entitlements.alertAreaLimit === "number" && payload.areaPreferences !== undefined) {
-    const limitedAreas = trimAreaPreferencesToLimit(areaPreferences, entitlements.alertAreaLimit);
-    if (JSON.stringify(limitedAreas) !== JSON.stringify(areaPreferences)) {
+  if (typeof entitlements.alertAreaLimit === "number" && (payload.areaPreferences !== undefined || payload.monitoringScopes !== undefined)) {
+    const limitedScopes = trimMonitoringScopesToLimit(monitoringScopes, entitlements.alertAreaLimit);
+    if (limitedScopes.length !== monitoringScopes.length) {
       return NextResponse.json({
         error: "This alert-area selection exceeds your membership limit. Upgrade to add more markets.",
         code: "alert_area_limit_reached",
@@ -563,7 +584,8 @@ export async function POST(req: NextRequest) {
     if (notificationPreferencesMetadataPatch.sightings) notificationPreferencesMetadataPatch.sightings = notificationPreferences.sightings;
   }
 
-  areaPreferences = trimAreaPreferencesToLimit(areaPreferences, entitlements.alertAreaLimit);
+  monitoringScopes = trimMonitoringScopesToLimit(monitoringScopes, entitlements.alertAreaLimit);
+  areaPreferences = normalizeAreaPreferences(legacyAreaPreferencesFromScopes(monitoringScopes));
 
   if (typeof entitlements.trackedBottleLimit === "number") {
     bottleAlertPreferences = {
@@ -622,6 +644,7 @@ export async function POST(req: NextRequest) {
   }
   const publicMetadataPatch = buildSuppliedPreferenceMetadataPatch(payload, {
     areaPreferences,
+    monitoringScopes,
     notificationPreferences: notificationPreferencesMetadataPatch,
     alertMode,
     bottleAlertPreferences,
@@ -629,6 +652,10 @@ export async function POST(req: NextRequest) {
     sightingsPreferences,
     memberProfile,
   });
+  if (payload.areaPreferences !== undefined || payload.monitoringScopes !== undefined) {
+    publicMetadataPatch.areaPreferences = areaPreferences;
+    publicMetadataPatch.monitoringScopes = monitoringScopes;
+  }
   delete publicMetadataPatch.collectionPreferences;
   if (Object.keys(publicMetadataPatch).length > 0) {
     await client.users.updateUserMetadata(userId, { publicMetadata: publicMetadataPatch });
@@ -667,5 +694,5 @@ export async function POST(req: NextRequest) {
     alertAreaLimit: entitlements.alertAreaLimit,
     trackedBottleLimit: entitlements.trackedBottleLimit,
     canReceiveSmsAlerts: entitlements.canReceiveSmsAlerts,
-  }, areaPreferences, notificationPreferences, alertMode, bottleAlertPreferences, collectionPreferences, sightingsPreferences, memberProfile });
+  }, areaPreferences, monitoringScopes, notificationPreferences, alertMode, bottleAlertPreferences, collectionPreferences, sightingsPreferences, memberProfile });
 }

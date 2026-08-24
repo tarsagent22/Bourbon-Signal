@@ -1,4 +1,4 @@
-import type { MemberPreferences, RadarAreaPreferences } from "../api/types";
+import type { MemberPreferences, MonitoringScope, RadarAreaPreferences } from "../api/types";
 import { canonicalBottleKey } from "../interactions/member-interactions";
 
 export const RADAR_AREA_KEYS: Record<string, keyof RadarAreaPreferences> = {
@@ -95,6 +95,32 @@ export function clearRadarAreas(preferences: RadarAreaPreferences, state: string
 
 export function radarAreaCount(preferences: RadarAreaPreferences) {
   return preferences.states.reduce((count, state) => count + Math.max(1, radarAreasForState(preferences, state).length), 0);
+}
+
+export function radarMonitoringSummary(scopes: MonitoringScope[]) {
+  const states = new Set(scopes.map((scope) => scope.state)).size;
+  const locals = scopes.filter((scope) => scope.type !== "state").length;
+  return `${states} state${states === 1 ? "" : "s"} · ${locals} local filter${locals === 1 ? "" : "s"}`;
+}
+
+export function scopesForState(scopes: MonitoringScope[], state: string) {
+  const code = state.trim().toUpperCase();
+  return scopes.filter((scope) => scope.state === code);
+}
+
+export function setStatewideScope(scopes: MonitoringScope[], state: { code: string; name: string }) {
+  return [...scopes.filter((scope) => scope.state !== state.code), { type: "state" as const, id: `state:${state.code}`, state: state.code, label: state.name }];
+}
+
+export function toggleMonitoringScope(scopes: MonitoringScope[], scope: MonitoringScope) {
+  const withoutStatewide = scopes.filter((item) => !(item.state === scope.state && item.type === "state"));
+  return withoutStatewide.some((item) => item.id === scope.id)
+    ? withoutStatewide.filter((item) => item.id !== scope.id)
+    : [...withoutStatewide, scope];
+}
+
+export function stopMonitoringState(scopes: MonitoringScope[], state: string) {
+  return scopes.filter((scope) => scope.state !== state.trim().toUpperCase());
 }
 
 export function alertIsStale(alert: { signalAt?: string; createdAt: string; freshnessLimitHours?: number }, now = new Date()) {

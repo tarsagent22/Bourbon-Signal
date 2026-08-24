@@ -1,16 +1,22 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Alert, Keyboard, Linking, Pressable, RefreshControl, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
-import type { MemberAlert, MemberPreferences, MemberPreferencesPatch, MemberProfile, PushDeviceStatus, RadarBottleOption } from "../../../src/api/types";
+import { Keyboard, KeyboardAvoidingView, Linking, Modal, Platform, Pressable, RefreshControl, ScrollView, Share, StyleSheet, Switch, Text, TextInput, View } from "react-native";
+import type { GeographySearchResponse, MemberAlert, MemberPreferences, MemberPreferencesPatch, MemberProfile, MonitoringScope, MonitoringScopeType, PushDeviceStatus, RadarBottleOption } from "../../../src/api/types";
+import { MobileApiError } from "../../../src/api/client";
 import { relativeSignalTime } from "../../../src/api/presentation";
 import { ErrorState, LoadingState, MemberCard, SectionTitle, memberScreenStyles } from "../../../src/components/MemberScreen";
 import { useMobileApi } from "../../../src/hooks/useMobileApi";
 import { canonicalBottleKey } from "../../../src/interactions/member-interactions";
-import { alertIsStale, clearRadarAreas, formatPhoneNumber, maskedPhoneNumber, memberAlertBottleNames, radarAreaCount, radarAreaSummary, radarAreasForState, radarStateDisplayCode, setBottleWatched, setRadarState, toggleRadarArea, watchedBottleCount } from "../../../src/radar/radar-preferences";
+import { alertIsStale, formatPhoneNumber, maskedPhoneNumber, memberAlertBottleNames, radarMonitoringSummary, radarStateDisplayCode, scopesForState, setBottleWatched, setStatewideScope, stopMonitoringState, toggleMonitoringScope, watchedBottleCount } from "../../../src/radar/radar-preferences";
 import { disableRadarPush, enableRadarPush, radarPushDeviceId, radarPushPermission } from "../../../src/push/push-registration";
 import { colors } from "../../../src/theme";
 
 type RadarView = "matches" | "watches" | "settings";
 const VIEWS: Array<{ key: RadarView; label: string }> = [{ key: "matches", label: "Matches" }, { key: "watches", label: "Watches" }, { key: "settings", label: "Areas & delivery" }];
+
+function pushErrorMessage(caught: unknown, fallback: string) {
+  const base = caught instanceof Error ? caught.message : fallback;
+  return caught instanceof MobileApiError ? `${base} (${caught.code}${caught.requestId ? ` · ${caught.requestId}` : ""})` : base;
+}
 
 export default function RadarScreen() {
   const api = useMobileApi();
@@ -25,8 +31,8 @@ export default function RadarScreen() {
   const [pushError, setPushError] = useState("");
   const [pushRetryEnabled, setPushRetryEnabled] = useState<boolean | null>(null);
   const [pushStage, setPushStage] = useState("");
+  const [pushStatusLoadFailed, setPushStatusLoadFailed] = useState(false);
   const [query, setQuery] = useState("");
-  const [focusedState, setFocusedState] = useState("");
   const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
@@ -41,10 +47,12 @@ export default function RadarScreen() {
       ]);
       setPreferences(nextPreferences); setAlerts(nextAlerts); setProfile(nextProfile); setCatalog(nextCatalog);
       setPhone(nextPreferences.notificationPreferences.sms.phone || "");
+      setPushError(""); setPushRetryEnabled(null);
       const [deviceId, permission] = await Promise.all([radarPushDeviceId(), radarPushPermission().catch(() => "undetermined")]);
-      const nextPush = await api.getPushDeviceStatus(deviceId, { fresh }).catch(() => null);
-      setPushStatus(nextPush); setPushPermission(permission);
-      setFocusedState((current) => current || nextPreferences.areaPreferences.states[0] || nextProfile.profile.feedAreas.states[0]?.code || "");
+      const nextPush = await api.getPushDeviceStatus(deviceId, { fresh }).catch((caught) => {
+        setPushError(pushErrorMessage(caught, "Push registration status could not be loaded.")); setPushStatusLoadFailed(true); return null;
+      });
+      setPushStatus(nextPush); setPushPermission(permission); if (nextPush) setPushStatusLoadFailed(false);
     } catch (caught) {
       setError(caught instanceof Error ? caught.message : "Radar is temporarily unavailable.");
     } finally { setLoading(false); }
@@ -91,20 +99,25 @@ export default function RadarScreen() {
   async function togglePush(enabled: boolean) {
     if (pushBusy || saving) return;
     setPushBusy(true); setPushError(""); setPushRetryEnabled(null); setActionError("");
+    setPushStatusLoadFailed(false);
     setPushStage(enabled ? "Registering this iPhone…" : "Turning off on this iPhone…");
     try {
       const next = enabled ? await enableRadarPush(api) : await disableRadarPush(api);
       if (enabled && !next.enabled) throw new Error("Notification permission is allowed, but this iPhone was not registered. Try again.");
       setPushStatus(next);
-      setPushRetryEnabled(null);
+      if (next.warning) {
+        setPushError(`${next.warning.message} (${next.warning.code} · ${next.warning.requestId})`);
+        setPushRetryEnabled(enabled);
+      } else {
+        setPushRetryEnabled(null);
+      }
       setPushPermission(await radarPushPermission());
       setPreferences((current) => current ? { ...current, notificationPreferences: { ...current.notificationPreferences, push: { enabled: next.enabled } } } : current);
     } catch (caught) {
-      const message = caught instanceof Error ? caught.message : "Push notifications could not be changed.";
+      const message = pushErrorMessage(caught, "Push notifications could not be changed.");
       setPushError(message);
       setPushRetryEnabled(enabled);
       setPushPermission(await radarPushPermission().catch(() => "undetermined"));
-      Alert.alert(enabled ? "Push could not be enabled" : "Push could not be disabled", message);
     } finally { setPushBusy(false); setPushStage(""); }
   }
 
@@ -119,14 +132,13 @@ export default function RadarScreen() {
     refreshControl={<RefreshControl refreshing={loading} onRefresh={() => void load(true)} tintColor={colors.accent} />}
     style={memberScreenStyles.screen}
   >
-    <Text style={styles.overview}>{watchedBottleCount(preferences)} watched · {radarAreaCount(preferences.areaPreferences)} areas · {alerts.unreadCount} unread</Text>
+    <Text style={styles.overview}>{watchedBottleCount(preferences)} watched · {radarMonitoringSummary(preferences.monitoringScopes)} · {alerts.unreadCount} unread</Text>
     <View accessibilityRole="tablist" style={styles.tabs}>{VIEWS.map((item) => <Pressable accessibilityRole="tab" accessibilityState={{ selected: view === item.key }} key={item.key} onPress={() => { Keyboard.dismiss(); setView(item.key); }} style={[styles.tab, view === item.key && styles.tabSelected]}><Text style={[styles.tabText, view === item.key && styles.tabTextSelected]}>{item.label}</Text></Pressable>)}</View>
     {actionError ? <Text accessibilityRole="alert" style={styles.error}>{actionError}</Text> : null}
 
     {view === "matches" ? <MatchesView alerts={activeAlerts} unreadCount={alerts.unreadCount} saving={saving} watchedNames={watchedNames} onMutate={mutateAlert} /> : null}
     {view === "watches" ? <WatchesView catalog={searchResults} preferences={preferences} query={query} saving={saving || pushBusy} watchedKeys={watchedKeys} watchedNames={watchedNames} onQuery={setQuery} onSetWatching={setWatching} /> : null}
     {view === "settings" ? <SettingsView
-      focusedState={focusedState}
       phone={phone}
       preferences={preferences}
       profile={profile}
@@ -136,10 +148,11 @@ export default function RadarScreen() {
       pushPermission={pushPermission}
       pushStage={pushStage}
       pushStatus={pushStatus}
+      pushStatusLoadFailed={pushStatusLoadFailed}
       saving={saving || pushBusy}
-      onFocusState={setFocusedState}
       onPhone={setPhone}
       onSave={savePreferences}
+      onRetryPushStatus={() => load(true)}
       onTogglePush={togglePush}
     /> : null}
   </ScrollView>;
@@ -167,7 +180,7 @@ function AlertCard({ alert, saving, watchedNames, onMutate }: { alert: MemberAle
     <View style={styles.alertHeading}><Text numberOfLines={2} style={styles.cardTitle}>{grouped ? `${bottles.length} watched bottles matched` : bottles[0]}</Text><Text style={styles.priority}>{alert.priorityClass === "major" ? "MAJOR" : "MATCH"}</Text></View>
     {grouped ? <Text numberOfLines={2} style={styles.bottleSummary}>{bottles.slice(0, 3).join(" · ")}{bottles.length > 3 ? ` +${bottles.length - 3} more` : ""}</Text> : null}
     <Text style={styles.location}>{[alert.storeLabel, alert.matchedArea || alert.state].filter(Boolean).join(" · ")}</Text>
-    <Text style={styles.muted}>{relativeSignalTime(observedAt)}{alert.rarityTier ? ` · ${alert.rarityTier[0]?.toUpperCase()}${alert.rarityTier.slice(1)}` : ""}</Text>
+    <Text style={styles.muted}>{alert.sourceLabel || (alert.sourceType === "community" ? "Community sighting" : "Bourbon Signal")} · {relativeSignalTime(observedAt)}{alert.rarityTier ? ` · ${alert.rarityTier[0]?.toUpperCase()}${alert.rarityTier.slice(1)}` : ""}</Text>
     {stale ? <Text style={styles.stale}>Past match · availability unconfirmed</Text> : <Text style={styles.fresh}>Fresh match</Text>}
     <View style={styles.rowActions}>{!alert.readAt ? <SmallButton label="Mark read" disabled={saving} onPress={() => void onMutate("mark_read", alert.id)} /> : null}<SmallButton label="Archive" disabled={saving} onPress={() => void onMutate("archive", alert.id)} /></View>
   </MemberCard>;
@@ -188,27 +201,51 @@ function WatchesView({ catalog, preferences, query, saving, watchedKeys, watched
   </View>;
 }
 
-function SettingsView({ focusedState, phone, preferences, profile, pushBusy, pushError, pushPermission, pushRetryEnabled, pushStage, pushStatus, saving, onFocusState, onPhone, onSave, onTogglePush }: { focusedState: string; phone: string; preferences: MemberPreferences; profile: MemberProfile | null; pushBusy: boolean; pushError: string; pushPermission: string; pushRetryEnabled: boolean | null; pushStage: string; pushStatus: PushDeviceStatus | null; saving: boolean; onFocusState: (state: string) => void; onPhone: (phone: string) => void; onSave: (patch: MemberPreferencesPatch) => Promise<MemberPreferences | null>; onTogglePush: (enabled: boolean) => Promise<void> }) {
-  const [editingAreas, setEditingAreas] = useState(false);
+function SettingsView({ phone, preferences, profile, pushBusy, pushError, pushPermission, pushRetryEnabled, pushStage, pushStatus, pushStatusLoadFailed, saving, onPhone, onRetryPushStatus, onSave, onTogglePush }: { phone: string; preferences: MemberPreferences; profile: MemberProfile | null; pushBusy: boolean; pushError: string; pushPermission: string; pushRetryEnabled: boolean | null; pushStage: string; pushStatus: PushDeviceStatus | null; pushStatusLoadFailed: boolean; saving: boolean; onPhone: (phone: string) => void; onRetryPushStatus: () => Promise<void>; onSave: (patch: MemberPreferencesPatch) => Promise<MemberPreferences | null>; onTogglePush: (enabled: boolean) => Promise<void> }) {
+  const api = useMobileApi();
   const [editingPhone, setEditingPhone] = useState(false);
+  const [editorState, setEditorState] = useState<{ code: string; name: string } | null>(null);
+  const [editorTab, setEditorTab] = useState<"selected" | "browse">("browse");
+  const [editorLevel, setEditorLevel] = useState<MonitoringScopeType>("county");
+  const [draftScopes, setDraftScopes] = useState<MonitoringScope[]>([]);
   const [areaQuery, setAreaQuery] = useState("");
-  const [areaLimit, setAreaLimit] = useState(12);
+  const [areaPage, setAreaPage] = useState<GeographySearchResponse["results"]>([]);
+  const [areaHasMore, setAreaHasMore] = useState(false);
+  const [areaOffset, setAreaOffset] = useState(0);
+  const [areaBusy, setAreaBusy] = useState(false);
+  const [areaError, setAreaError] = useState("");
+  const [referralLink, setReferralLink] = useState("");
   const states = profile?.profile.feedAreas.states || [];
-  const selectedState = states.find((state) => state.code === focusedState);
-  const syntheticMaryland = focusedState === "MD-MONTGOMERY";
-  const selectedAreas = syntheticMaryland ? ["Montgomery County"] : radarAreasForState(preferences.areaPreferences, focusedState);
-  const orderedOptions = selectedState ? [...selectedState.options].sort((left, right) => {
-    const selectedDelta = Number(selectedAreas.includes(right.value)) - Number(selectedAreas.includes(left.value));
-    return selectedDelta || left.label.localeCompare(right.label);
-  }) : [];
-  const needle = areaQuery.trim().toLowerCase();
-  const matchingOptions = orderedOptions.filter((option) => !needle || option.label.toLowerCase().includes(needle));
-  const visibleOptions = matchingOptions.slice(0, areaLimit);
 
-  async function addState(code: string) {
-    if (saving) return;
-    onFocusState(code); setEditingAreas(false); setAreaQuery(""); setAreaLimit(12);
-    if (!preferences.areaPreferences.states.includes(code)) await onSave({ areaPreferences: setRadarState(preferences.areaPreferences, code, true) });
+  useEffect(() => {
+    if (!editorState || editorTab !== "browse" || editorLevel === "state") return;
+    let active = true;
+    const timer = setTimeout(() => {
+      setAreaBusy(true); setAreaError("");
+      void api.searchMonitoringGeography({ state: editorState.code, levels: [editorLevel], query: areaQuery, limit: 25, offset: areaOffset, fresh: true })
+        .then((page) => { if (active) { setAreaPage((current) => areaOffset ? [...current, ...page.results] : page.results); setAreaHasMore(page.hasMore); } })
+        .catch((caught) => { if (active) setAreaError(caught instanceof Error ? caught.message : "Local geography is temporarily unavailable."); })
+        .finally(() => { if (active) setAreaBusy(false); });
+    }, 250);
+    return () => { active = false; clearTimeout(timer); };
+  }, [api, areaOffset, areaQuery, editorLevel, editorState, editorTab]);
+
+  function openEditor(state: { code: string; label: string }) {
+    const current = scopesForState(preferences.monitoringScopes, state.code);
+    setEditorState({ code: state.code, name: state.label });
+    setDraftScopes(current.length ? current : setStatewideScope([], { code: state.code, name: state.label }));
+    setEditorTab(current.length ? "selected" : "browse");
+    setEditorLevel(state.code === "NC" ? "board" : "county");
+    setAreaQuery(""); setAreaOffset(0); setAreaPage([]); setAreaError("");
+  }
+
+  async function shareInvite() {
+    let link = referralLink;
+    if (!link) {
+      const referral = await api.getReferralSummary({ fresh: true });
+      link = referral.referralLink; setReferralLink(link);
+    }
+    await Share.share({ message: `Bourbon Signal sources are still expanding in this area. Invite friends to boost community activity. ${link}` });
   }
 
   const pushDetail = pushStatus?.enabled
@@ -217,19 +254,23 @@ function SettingsView({ focusedState, phone, preferences, profile, pushBusy, pus
       : pushPermission === "granted" ? "Permission allowed · device registration incomplete"
         : pushPermission === "denied" ? "Permission disabled in device settings"
           : "Fastest way to receive a match";
+  const selectedInEditor = editorState ? scopesForState(draftScopes, editorState.code) : [];
+  const visibleRows = editorTab === "selected"
+    ? selectedInEditor.filter((scope) => scope.type !== "state").slice(0, 20).map((scope) => ({ id: scope.id, level: scope.type, state: scope.state, name: scope.label }))
+    : areaPage;
+  const levels: MonitoringScopeType[] = editorState?.code === "NC" ? ["county", "board", "city", "store"] : ["county", "city", "store"];
+  const lowCoverage = Boolean(editorState && states.find((state) => state.code === editorState.code)?.engineCoverage !== "active");
 
   return <View style={styles.section}>
     <SectionTitle>Immediate delivery</SectionTitle>
     <MemberCard>
       <ToggleRow label="Push notifications" detail={pushDetail} disabled={saving} value={Boolean(pushStatus?.enabled)} onValueChange={(value) => void onTogglePush(value)} />
-      {pushError ? <View style={styles.inlineError}><Text accessibilityRole="alert" style={styles.error}>{pushError}</Text>{pushRetryEnabled !== null ? <TextAction label="TRY AGAIN" disabled={saving} onPress={() => void onTogglePush(pushRetryEnabled)} /> : null}</View> : null}
+      {pushError ? <View style={styles.inlineError}><Text accessibilityRole="alert" style={styles.error}>{pushError}</Text>{pushStatusLoadFailed || pushRetryEnabled !== null ? <TextAction label="TRY AGAIN" disabled={saving} onPress={() => void (pushStatusLoadFailed ? onRetryPushStatus() : onTogglePush(Boolean(pushRetryEnabled)))} /> : null}</View> : null}
       {pushPermission === "denied" ? <TextAction label="OPEN DEVICE SETTINGS" onPress={() => void Linking.openSettings()} /> : null}
       <ToggleRow label="Radar inbox" detail="Keep matches inside the app" disabled={saving} value={preferences.notificationPreferences.onSite.enabled} onValueChange={(enabled) => void onSave({ notificationPreferences: { onSite: { enabled } } })} />
       <ToggleRow label="Email" detail="Send qualified matches immediately" disabled={saving} value={preferences.notificationPreferences.email.enabled} onValueChange={(enabled) => void onSave({ notificationPreferences: { email: { enabled } } })} />
-      <ToggleRow label="SMS" detail={!preferences.notificationPreferences.sms.available ? "Unavailable for this membership" : preferences.notificationPreferences.sms.verified ? "Phone verified" : "Enter a phone number to enable"} disabled={saving || !preferences.notificationPreferences.sms.available} value={preferences.notificationPreferences.sms.enabled} onValueChange={(enabled) => {
-        if (enabled && !phone.trim()) return;
-        void onSave({ notificationPreferences: { sms: { enabled, ...(phone.trim() ? { phone: phone.trim() } : {}) } } });
-      }} />
+      <ToggleRow label="Community sightings" detail="Include qualified recent exact-store member reports" disabled={saving} value={preferences.notificationPreferences.sightings.enabled} onValueChange={(enabled) => void onSave({ notificationPreferences: { sightings: { enabled } } })} />
+      <ToggleRow label="SMS" detail={!preferences.notificationPreferences.sms.available ? "Unavailable for this membership" : preferences.notificationPreferences.sms.verified ? "Phone verified" : "Enter a phone number to enable"} disabled={saving || !preferences.notificationPreferences.sms.available} value={preferences.notificationPreferences.sms.enabled} onValueChange={(enabled) => { if (!enabled || phone.trim()) void onSave({ notificationPreferences: { sms: { enabled, ...(phone.trim() ? { phone: phone.trim() } : {}) } } }); }} />
       {preferences.notificationPreferences.sms.available && preferences.notificationPreferences.sms.verified && !editingPhone ? <View style={styles.phoneSummary}><View><Text style={styles.muted}>Verified mobile</Text><Text style={styles.listTitle}>{maskedPhoneNumber(preferences.notificationPreferences.sms.phone)}</Text></View><TextAction label="CHANGE" disabled={saving} onPress={() => setEditingPhone(true)} /></View> : null}
       {preferences.notificationPreferences.sms.available && (!preferences.notificationPreferences.sms.verified || editingPhone) ? <View style={styles.areaEditor}><TextInput editable={!saving} keyboardType="phone-pad" onChangeText={onPhone} placeholder="Mobile number" placeholderTextColor={colors.muted} style={styles.input} value={formatPhoneNumber(phone)} />{editingPhone ? <View style={styles.rowActions}><TextAction label="CANCEL" disabled={saving} onPress={() => { onPhone(preferences.notificationPreferences.sms.phone || ""); setEditingPhone(false); }} /><TextAction label="SAVE & ENABLE SMS" disabled={saving || phone.replace(/\D/g, "").length !== 10} onPress={() => void (async () => { const saved = await onSave({ notificationPreferences: { sms: { phone: phone.trim(), enabled: true } } }); if (saved) setEditingPhone(false); })()} /></View> : null}</View> : null}
     </MemberCard>
@@ -237,20 +278,31 @@ function SettingsView({ focusedState, phone, preferences, profile, pushBusy, pus
     <SectionTitle>Alert criteria</SectionTitle>
     <View style={styles.choiceRow}><Choice disabled={saving} selected={preferences.alertMode === "specific_bottles"} label="Watched bottles" onPress={() => void onSave({ alertMode: "specific_bottles" })} /><Choice disabled={saving} selected={preferences.alertMode === "anything_notable"} label="Anything notable" onPress={() => void onSave({ alertMode: "anything_notable" })} /></View>
 
-    <SectionTitle detail={`${radarAreaCount(preferences.areaPreferences)} active`}>Monitoring areas</SectionTitle>
-    <Text style={styles.muted}>Select a state for statewide monitoring, then optionally narrow it to covered local areas.</Text>
-    <View style={styles.chips}>{states.map((state) => { const selected = preferences.areaPreferences.states.includes(state.code); return <Pressable accessibilityRole="button" accessibilityState={{ selected, disabled: saving }} disabled={saving} key={state.code} onPress={() => void addState(state.code)} style={[styles.chip, selected && styles.chipSelected, saving && styles.disabled]}><Text style={[styles.chipText, selected && styles.chipTextSelected]}>{radarStateDisplayCode(state.code)}</Text></Pressable>; })}</View>
-    {selectedState && preferences.areaPreferences.states.includes(selectedState.code) ? <MemberCard>
-      <View style={styles.headingRow}><View style={styles.flex}><Text style={styles.cardTitle}>{selectedState.label}</Text><Text numberOfLines={2} style={styles.muted}>{radarAreaSummary(selectedAreas, "Statewide monitoring")}</Text></View><TextAction danger disabled={saving} label="REMOVE" onPress={() => { setEditingAreas(false); void onSave({ areaPreferences: setRadarState(preferences.areaPreferences, selectedState.code, false) }); }} /></View>
-      {selectedState.options.length && !syntheticMaryland ? <View style={styles.manageRow}><Text style={styles.muted}>{selectedAreas.length ? `${selectedAreas.length} local area${selectedAreas.length === 1 ? "" : "s"}` : "No local narrowing"}</Text><TextAction label={editingAreas ? "DONE" : "MANAGE"} onPress={() => { setEditingAreas((value) => !value); setAreaQuery(""); setAreaLimit(12); }} /></View> : null}
-      {editingAreas && selectedState.options.length ? <View style={styles.areaEditor}>
-        <TextInput autoCorrect={false} clearButtonMode="while-editing" onChangeText={(value) => { setAreaQuery(value); setAreaLimit(12); }} placeholder={`Search ${selectedState.areaLabel.toLowerCase()}s`} placeholderTextColor={colors.muted} style={styles.input} value={areaQuery} />
-        {selectedAreas.length ? <TextAction disabled={saving} label="CLEAR LOCAL AREAS" onPress={() => void onSave({ areaPreferences: clearRadarAreas(preferences.areaPreferences, selectedState.code) })} /> : null}
-        {visibleOptions.map((option) => { const selected = selectedAreas.includes(option.value); return <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: selected, disabled: saving }} disabled={saving} key={option.value} onPress={() => void onSave({ areaPreferences: toggleRadarArea(preferences.areaPreferences, selectedState.code, option.value) })} style={[styles.areaRow, selected && styles.areaRowSelected, saving && styles.disabled]}><Text style={[styles.areaRowText, selected && styles.chipTextSelected]}>{option.label}</Text><Text style={[styles.areaState, selected && styles.chipTextSelected]}>{selected ? "SELECTED" : "ADD"}</Text></Pressable>; })}
-        {!visibleOptions.length ? <Text style={styles.muted}>No covered areas match that search.</Text> : null}
-        {matchingOptions.length > areaLimit ? <TextAction label={`SHOW ${Math.min(12, matchingOptions.length - areaLimit)} MORE`} onPress={() => setAreaLimit((value) => value + 12)} /> : null}
-      </View> : null}
-    </MemberCard> : null}
+    <SectionTitle detail={radarMonitoringSummary(preferences.monitoringScopes)}>Monitoring areas</SectionTitle>
+    <Text style={styles.muted}>Tap any state to choose statewide monitoring or precise local filters.</Text>
+    <View style={styles.chips}>{states.map((state) => { const selected = scopesForState(preferences.monitoringScopes, state.code).length > 0; return <Pressable accessibilityRole="button" accessibilityState={{ selected, disabled: saving }} disabled={saving} key={state.code} onPress={() => openEditor(state)} style={[styles.chip, selected && styles.chipSelected, saving && styles.disabled]}><Text style={[styles.chipText, selected && styles.chipTextSelected]}>{radarStateDisplayCode(state.code)}</Text></Pressable>; })}</View>
+
+    <Modal animationType="slide" onRequestClose={() => setEditorState(null)} presentationStyle="fullScreen" visible={Boolean(editorState)}>
+      <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.modalScreen}>
+        <View style={styles.modalHeader}><View style={styles.flex}><Text style={styles.modalTitle}>{editorState?.name}</Text><Text style={styles.muted}>Choose Statewide or local filters</Text></View><TextAction label="CANCEL" onPress={() => setEditorState(null)} /></View>
+        <View style={styles.modalBody}>
+          <View style={styles.choiceRow}><Choice label="Selected" selected={editorTab === "selected"} onPress={() => setEditorTab("selected")} /><Choice label="Browse" selected={editorTab === "browse"} onPress={() => setEditorTab("browse")} /></View>
+          <Pressable accessibilityRole="radio" accessibilityState={{ checked: selectedInEditor.some((scope) => scope.type === "state") }} onPress={() => editorState && setDraftScopes(setStatewideScope(draftScopes, editorState))} style={[styles.areaRow, selectedInEditor.some((scope) => scope.type === "state") && styles.areaRowSelected]}><Text style={styles.areaRowText}>Statewide</Text><Text style={styles.areaState}>{selectedInEditor.some((scope) => scope.type === "state") ? "SELECTED" : "CHOOSE"}</Text></Pressable>
+          {editorTab === "browse" ? <><ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.levelRow}>{levels.map((level) => <Pressable key={level} onPress={() => { setEditorLevel(level); setAreaOffset(0); setAreaPage([]); }} style={[styles.levelChip, editorLevel === level && styles.chipSelected]}><Text style={[styles.chipText, editorLevel === level && styles.chipTextSelected]}>{level[0]?.toUpperCase()}{level.slice(1)}</Text></Pressable>)}</ScrollView><TextInput autoCorrect={false} clearButtonMode="while-editing" onChangeText={(value) => { setAreaQuery(value); setAreaOffset(0); setAreaPage([]); }} placeholder={`Search ${editorLevel}`} placeholderTextColor={colors.muted} style={styles.input} value={areaQuery} /></> : null}
+          <ScrollView keyboardShouldPersistTaps="handled" style={styles.resultsList}>
+            {editorTab === "selected" && selectedInEditor.some((scope) => scope.type === "state") ? <Text style={styles.muted}>Statewide monitoring replaces narrower filters for this state.</Text> : null}
+            {visibleRows.map((row) => { const scope: MonitoringScope = { type: row.level, id: row.id, state: row.state, label: row.name }; const selected = draftScopes.some((item) => item.id === row.id); const message = "message" in row && typeof row.message === "string" ? row.message : ""; return <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: selected }} key={row.id} onPress={() => setDraftScopes(toggleMonitoringScope(draftScopes, scope))} style={[styles.areaRow, selected && styles.areaRowSelected]}><View style={styles.flex}><Text style={styles.areaRowText}>{row.name}</Text>{message ? <Text style={styles.muted}>{message}</Text> : null}</View><Text style={styles.areaState}>{selected ? "SELECTED" : "ADD"}</Text></Pressable>; })}
+            {areaBusy ? <Text style={styles.muted}>Loading geography…</Text> : null}
+            {areaError ? <Text accessibilityRole="alert" style={styles.error}>{areaError}</Text> : null}
+            {!areaBusy && !visibleRows.length && editorTab === "selected" && !selectedInEditor.some((scope) => scope.type === "state") ? <Text style={styles.muted}>No local filters selected.</Text> : null}
+            {editorTab === "browse" && areaHasMore ? <TextAction label="LOAD MORE" onPress={() => setAreaOffset((value) => value + 25)} /> : null}
+            {editorTab === "selected" && selectedInEditor.length > 21 ? <Text style={styles.muted}>{selectedInEditor.length - 20} more selected filters are hidden to keep this list manageable.</Text> : null}
+            {lowCoverage ? <MemberCard><Text style={styles.listTitle}>Help build activity here</Text><Text style={styles.muted}>Bourbon Signal sources are still expanding in this area. Invite friends to boost community activity.</Text><TextAction label="INVITE FRIENDS" onPress={() => void shareInvite().catch((caught) => setAreaError(caught instanceof Error ? caught.message : "Invite is temporarily unavailable."))} /></MemberCard> : null}
+          </ScrollView>
+        </View>
+        <View style={styles.pinnedActions}><TextAction danger label="STOP MONITORING" disabled={saving || !editorState || !scopesForState(preferences.monitoringScopes, editorState.code).length} onPress={() => void (async () => { if (!editorState) return; const saved = await onSave({ monitoringScopes: stopMonitoringState(preferences.monitoringScopes, editorState.code) }); if (saved) setEditorState(null); else setAreaError("Monitoring could not be stopped. Try again."); })()} /><View style={styles.footerButtons}><SmallButton label="Cancel" onPress={() => setEditorState(null)} /><SmallButton label={saving ? "Saving…" : "Save"} disabled={saving || !editorState || !selectedInEditor.length} onPress={() => void (async () => { if (!editorState) return; const next = [...preferences.monitoringScopes.filter((scope) => scope.state !== editorState.code), ...selectedInEditor]; const saved = await onSave({ monitoringScopes: next }); if (saved) setEditorState(null); else setAreaError("Monitoring areas could not be saved. Try again."); })()} /></View></View>
+      </KeyboardAvoidingView>
+    </Modal>
   </View>;
 }
 
@@ -269,5 +321,6 @@ const styles = StyleSheet.create({
   compactRow: { minHeight: 48, flexDirection: "row", alignItems: "center", gap: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border, paddingHorizontal: 2, paddingVertical: 7 }, input: { minHeight: 46, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface, color: colors.text, paddingHorizontal: 14, fontSize: 15 },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: 8 }, chip: { minWidth: 46, minHeight: 38, alignItems: "center", justifyContent: "center", paddingHorizontal: 11, borderRadius: 11, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface }, chipSelected: { borderColor: colors.accentPressed, backgroundColor: "#2A1F13" }, chipText: { color: colors.muted, fontSize: 13, fontWeight: "700" }, chipTextSelected: { color: colors.accent },
   choiceRow: { flexDirection: "row", gap: 8 }, choice: { flex: 1, minHeight: 46, alignItems: "center", justifyContent: "center", borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, paddingHorizontal: 10 }, choiceSelected: { borderColor: colors.accentPressed, backgroundColor: "#2A1F13" }, choiceText: { color: colors.muted, fontSize: 12, fontWeight: "700", textAlign: "center" }, choiceTextSelected: { color: colors.accent },
+  modalScreen: { flex: 1, backgroundColor: colors.background }, modalHeader: { minHeight: 88, paddingHorizontal: 18, paddingTop: 22, paddingBottom: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border, flexDirection: "row", alignItems: "center", gap: 12 }, modalTitle: { color: colors.text, fontSize: 23, fontWeight: "800" }, modalBody: { flex: 1, paddingHorizontal: 18, paddingTop: 14, gap: 12 }, resultsList: { flex: 1 }, levelRow: { gap: 8, paddingVertical: 2 }, levelChip: { minHeight: 38, paddingHorizontal: 13, alignItems: "center", justifyContent: "center", borderRadius: 11, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border }, pinnedActions: { paddingHorizontal: 18, paddingVertical: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border, backgroundColor: colors.surface, gap: 8 }, footerButtons: { flexDirection: "row", justifyContent: "flex-end", gap: 10 },
   toggleRow: { minHeight: 58, flexDirection: "row", alignItems: "center", gap: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border }, textActionButton: { minHeight: 36, alignSelf: "flex-start", justifyContent: "center", paddingHorizontal: 2 }, textAction: { color: colors.accent, fontSize: 10, fontWeight: "800", letterSpacing: 0.5 }, dangerAction: { color: colors.danger }, error: { color: colors.danger, fontSize: 13, lineHeight: 18 }, inlineError: { gap: 2, paddingVertical: 8 }, phoneSummary: { minHeight: 48, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 }, manageRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border, paddingTop: 8 }, areaEditor: { gap: 7, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border, paddingTop: 10 }, areaRow: { minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, borderRadius: 10, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, paddingHorizontal: 12, paddingVertical: 8 }, areaRowSelected: { borderColor: colors.accentPressed, backgroundColor: "#2A1F13" }, areaRowText: { flex: 1, color: colors.text, fontSize: 13, lineHeight: 18, fontWeight: "600" }, areaState: { color: colors.muted, fontSize: 9, fontWeight: "800", letterSpacing: 0.4 }, disabled: { opacity: 0.45 }, pressed: { opacity: 0.65 },
 });

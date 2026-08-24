@@ -1,10 +1,13 @@
 import assert from "node:assert/strict";
-import { buildExpoPushMessages, disablePushDevice, enabledPushTokens, normalizePushDevices, registerPushDevice, sendExpoPushMessages, validExpoPushToken } from "../src/lib/push-devices.ts";
+import { buildExpoPushMessages, disablePushDevice, enabledPushTokens, normalizePushDevices, pushPreferenceProjectionAllowsDelivery, registerPushDevice, sendExpoPushMessages, validExpoPushToken } from "../src/lib/push-devices.ts";
 
 const tokenA = "ExponentPushToken[aaaaaaaaaaaaaaaaaaaa]";
 const tokenB = "ExpoPushToken[bbbbbbbbbbbbbbbbbbbb]";
 assert.equal(validExpoPushToken(tokenA), true);
 assert.equal(validExpoPushToken("not-a-token"), false);
+assert.equal(pushPreferenceProjectionAllowsDelivery(undefined), true);
+assert.equal(pushPreferenceProjectionAllowsDelivery({ status: "saved" }), true);
+assert.equal(pushPreferenceProjectionAllowsDelivery({ status: "pending" }), false);
 
 const registered = registerPushDevice([], { deviceId: "phone-1", expoPushToken: tokenA, platform: "ios" }, "2026-08-24T12:00:00.000Z");
 assert.equal(registered.length, 1);

@@ -1,5 +1,6 @@
 export const USER_PREFERENCE_METADATA_FIELDS = [
   "areaPreferences",
+  "monitoringScopes",
   "notificationPreferences",
   "alertMode",
   "bottleAlertPreferences",

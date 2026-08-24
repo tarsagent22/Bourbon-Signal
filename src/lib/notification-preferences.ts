@@ -80,6 +80,8 @@ export interface MemberAlertRecord {
   priorityClass: "major" | "standard";
   signalAt?: string;
   freshnessLimitHours?: number;
+  sourceType?: "engine" | "community";
+  sourceLabel?: string;
   createdAt: string;
   readAt: string | null;
   archivedAt: string | null;
