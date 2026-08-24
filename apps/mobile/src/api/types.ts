@@ -140,6 +140,7 @@ export interface MemberPreferencesPatch {
 export interface MemberAlert {
   id: string;
   bottleName: string;
+  bottleNames?: string[];
   state: string;
   storeLabel: string;
   matchedArea: string;
