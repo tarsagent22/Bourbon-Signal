@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import type { MemberPreferences, RadarAreaPreferences } from "../api/types";
-import { alertIsStale, clearRadarAreas, formatPhoneNumber, maskedPhoneNumber, memberAlertBottleNames, radarAreaCount, radarAreaSummary, radarMonitoringSummary, radarStateDisplayCode, scopesForState, setBottleWatched, setRadarState, setStatewideScope, stopMonitoringState, toggleMonitoringScope, toggleRadarArea, watchedBottleCount } from "./radar-preferences";
+import { alertIsStale, clearRadarAreas, compactMonitoringScopes, formatPhoneNumber, maskedPhoneNumber, memberAlertBottleNames, presentPushIssue, radarAreaCount, radarAreaSummary, radarMonitoringSummary, radarStateDisplayCode, scopesForState, setBottleWatched, setRadarState, setStatewideScope, stopMonitoringState, toggleMonitoringScope, toggleRadarArea, watchedBottleCount } from "./radar-preferences";
 
 const areas: RadarAreaPreferences = { states: [], ncBoards: [], gaAreas: [], tnAreas: [], vaCities: [], ohCities: [], iaCities: [], idCities: [], scAreas: [], caAreas: [], nvAreas: [], nyAreas: [], coAreas: [], paCounties: [], paStores: [] };
 const preferences = (): MemberPreferences => ({
@@ -58,4 +58,29 @@ test("Radar presentation stays concise, structured, and private", () => {
   assert.deepEqual(memberAlertBottleNames({ bottleName: "Rock and Rye" }), ["Rock and Rye"]);
   assert.deepEqual(memberAlertBottleNames({ bottleName: "E.H. Taylor, Jr." }), ["E.H. Taylor, Jr."]);
   assert.deepEqual(memberAlertBottleNames({ bottleName: "Grouped", bottleNames: ["Stagg", "Eagle Rare"] }), ["Stagg", "Eagle Rare"]);
+});
+
+test("area editor summaries cap mounted rows without losing the selected count", () => {
+  const scopes = Array.from({ length: 14 }, (_, index) => ({
+    type: "city" as const,
+    id: `place:${index}`,
+    state: "PA",
+    label: `City ${index + 1}`,
+  }));
+  const compact = compactMonitoringScopes(scopes, 6);
+  assert.equal(compact.total, 14);
+  assert.equal(compact.visible.length, 6);
+  assert.equal(compact.hidden, 8);
+});
+
+test("Push errors keep member guidance separate from support diagnostics", () => {
+  const issue = presentPushIssue({
+    message: "Failed to update push notification settings.",
+    code: "PUSH_DEVICE_REGISTRATION_FAILED",
+    requestId: "request-123",
+    retryable: true,
+  }, "Push couldn’t be turned on for this iPhone.");
+  assert.equal(issue.message, "Push couldn’t be turned on for this iPhone. Try again.");
+  assert.equal(issue.diagnostic, "PUSH_DEVICE_REGISTRATION_FAILED · request-123");
+  assert.doesNotMatch(issue.message, /PUSH_|request-123/);
 });

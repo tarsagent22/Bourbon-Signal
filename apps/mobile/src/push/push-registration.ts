@@ -50,9 +50,6 @@ export async function enableRadarPush(api: MobileApi) {
   const token = await Notifications.getExpoPushTokenAsync({ projectId });
   const deviceId = await radarPushDeviceId();
   const status = await api.registerPushDevice({ deviceId, expoPushToken: token.data, platform: Platform.OS === "android" ? "android" : "ios" });
-  if (status.preferenceProjection === "deferred" || !status.enabled) {
-    throw new Error(status.warning?.message || "The device was saved, but Radar preference sync is incomplete. Tap Retry to finish enabling Push.");
-  }
   return status;
 }
 
