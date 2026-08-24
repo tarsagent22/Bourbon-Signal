@@ -309,14 +309,14 @@ test("presents the canonical Signal transport shape without legacy field assumpt
     actions: ["watch_bottle", "report"] as Signal["actions"],
   };
   const presented = presentSignal(signal);
-  assert.equal(presented.location, "Bottle Shop · Raleigh · NC");
+  assert.equal(presented.location, "Bottle Shop · Raleigh, NC");
   assert.equal(presented.price, "$69.99");
-  assert.equal(presented.quantity, "2 reported");
+  assert.equal(presented.quantity, "2 reports");
   assert.equal(presented.summary, "Two bottles on the shelf");
   assert.equal(presented.reporter, "Member #19");
-  assert.equal(signalCardStatusLabel(signal), "Member #19");
+  assert.equal(signalCardStatusLabel(signal, new Date("2026-08-23T12:00:00.000Z")), "Member #19");
   const accessibility = signalAccessibilityLabel(signal, new Date("2026-08-23T12:00:00.000Z"));
-  for (const detail of ["Example Bourbon", "Bottle Shop", "$69.99", "2 reported", "Two bottles on the shelf", "Member #19", "2 days ago"]) {
+  for (const detail of ["Example Bourbon", "Bottle Shop", "$69.99", "2 reports", "Two bottles on the shelf", "Member #19", "2 days ago"]) {
     assert.match(accessibility, new RegExp(detail.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   }
   assert.doesNotMatch(accessibility, /Member sighting/);
@@ -326,20 +326,20 @@ test("presents the canonical Signal transport shape without legacy field assumpt
     id: "member:founder",
     source: { type: "member", label: "Founder #4", actor: { kind: "founder", number: 4, label: "Founder #4" } },
   };
-  assert.equal(signalCardStatusLabel(founder), "Founder #4");
+  assert.equal(signalCardStatusLabel(founder, new Date("2026-08-23T12:00:00.000Z")), "Founder #4");
   assert.equal(signalCardStatusLabel({
     ...signal,
     id: "member:legacy",
     source: { type: "member", label: "Member" },
-  }), "Community report");
+  }, new Date("2026-08-23T12:00:00.000Z")), "Community report");
 
   const numericQuantity: Signal = {
     ...signal,
     id: "member:numeric-quantity",
     availability: { ...signal.availability!, quantity: undefined, quantityLabel: "4" },
   };
-  assert.equal(presentSignal(numericQuantity).quantity, "4 reported");
-  assert.equal(presentSignal({ ...numericQuantity, availability: { ...numericQuantity.availability!, quantityLabel: "1" } }).quantity, "1 reported");
+  assert.equal(presentSignal(numericQuantity).quantity, "4 reports");
+  assert.equal(presentSignal({ ...numericQuantity, availability: { ...numericQuantity.availability!, quantityLabel: "1" } }).quantity, "1 report");
   assert.equal(presentSignal({ ...signal, availability: { status: "reported", price: 69.99 } }).quantity, "Quantity unknown");
 
   const release: Signal = {
@@ -395,7 +395,7 @@ test("presents the canonical Signal transport shape without legacy field assumpt
   };
   assert.equal(signalAvailabilityIsCurrent(expiredMarket, now), false);
   assert.equal(signalCardStatusLabel(expiredMarket, now), "Reported available");
-  assert.equal(signalAvailabilityRefreshAt(expiredMarket, now), null);
+  assert.equal(signalAvailabilityRefreshAt(expiredMarket, now), Date.parse("2026-08-26T11:00:00.000Z"));
 
   const upcomingMarket: Signal = {
     ...market,

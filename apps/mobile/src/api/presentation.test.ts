@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import type { Signal } from "./types";
-import { presentSignal, signalCardAppearance, signalReporterAttribution } from "./presentation";
+import { presentSignal, signalAccessibilityLabel, signalCardAppearance, signalCardStatusLabel, signalReporterAttribution } from "./presentation";
 
 function signal(overrides: Partial<Signal> = {}): Signal {
   return {
@@ -27,6 +27,32 @@ test("unknown and zero prices use exact honest copy", () => {
   assert.equal(presentSignal(signal({ availability: { status: "reported", price: 64.99 } })).price, "$64.99");
 });
 
+test("store and geography are separate and duplicate slash-city suffixes are removed", () => {
+  const presented = presentSignal(signal({
+    location: {
+      scope: "exact_store",
+      state: "IA",
+      store: { name: "New Star Fletcher / Waterloo", city: "Waterloo", state: "IA" },
+    },
+  }));
+  assert.equal(presented.storeName, "New Star Fletcher");
+  assert.equal(presented.geography, "Waterloo, IA");
+  assert.equal(presented.location, "New Star Fletcher · Waterloo, IA");
+});
+
+test("report counts use concise natural grammar", () => {
+  assert.equal(presentSignal(signal({ availability: { status: "reported", quantityLabel: "1" } })).quantity, "1 report");
+  assert.equal(presentSignal(signal({ availability: { status: "reported", quantityLabel: "2 bottles" } })).quantity, "2 reports");
+});
+
+test("older availability reports are qualified instead of presented as current inventory", () => {
+  const olderReport = signal({ timing: { displayAt: "2026-08-23T12:00:00.000Z" } });
+  const now = new Date("2026-08-27T12:00:00.000Z");
+  assert.equal(signalCardStatusLabel(olderReport, now), "Availability unconfirmed");
+  assert.match(signalAccessibilityLabel(olderReport, now), /Availability unconfirmed/);
+  assert.doesNotMatch(signalAccessibilityLabel(olderReport, now), /, Reported,/);
+});
+
 test("Community reporter attribution uses the public display name", () => {
   const community = signal({
     id: "member:test",
@@ -44,5 +70,5 @@ test("source and rarity appearance stays restrained and makes Unicorn plum", () 
   assert.notEqual(market.surface, community.surface);
   assert.equal(unicorn.surface, "#211925");
   assert.equal(unicorn.keyline, "#61446E");
-  assert.equal(unicorn.secondaryText, "#C9B8CF");
+  assert.equal(unicorn.secondaryText, "#B7ACBA");
 });

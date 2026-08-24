@@ -1,7 +1,7 @@
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { router } from "expo-router";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { FlatList, Modal, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { FlatList, Keyboard, Modal, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { MobileApiError } from "../../../src/api/client";
 import type { MemberProfile, Signal, SignalFeedPage } from "../../../src/api/types";
 import { SignalCard } from "../../../src/components/SignalCard";
@@ -26,6 +26,7 @@ function OptionChooser({
 }) {
   const [expanded, setExpanded] = useState(false);
   const selectedLabel = options.find((option) => option.value === value)?.label || placeholder;
+  const visibleOptions = value ? [{ value: "", label: placeholder }, ...options] : options;
   return <View style={styles.fieldGroup}>
     <Text style={styles.fieldLabel}>{label.toUpperCase()}</Text>
     <Pressable
@@ -39,7 +40,7 @@ function OptionChooser({
       <MaterialCommunityIcons color={colors.muted} name={expanded ? "chevron-up" : "chevron-down"} size={20} />
     </Pressable>
     {expanded ? <ScrollView nestedScrollEnabled style={styles.chooserOptions}>
-      {[{ value: "", label: placeholder }, ...options].map((option) => {
+      {visibleOptions.map((option) => {
         const selected = option.value === value;
         return <Pressable
           key={option.value || "__all"}
@@ -47,7 +48,10 @@ function OptionChooser({
           accessibilityState={{ checked: selected }}
           onPress={() => { onChange(option.value); setExpanded(false); }}
           style={({ pressed }) => [styles.chooserOption, selected && styles.chooserOptionSelected, pressed && styles.segmentPressed]}
-        ><Text style={[styles.chooserOptionText, selected && styles.rarityChipTextSelected]}>{option.label}</Text></Pressable>;
+        >
+          <Text style={[styles.chooserOptionText, selected && styles.rarityChipTextSelected]}>{option.label}</Text>
+          {selected ? <MaterialCommunityIcons color={colors.accent} name="check" size={18} /> : null}
+        </Pressable>;
       })}
     </ScrollView> : null}
   </View>;
@@ -97,6 +101,7 @@ export default function SignalFeedScreen() {
   const draftAreaOptions = draftFilters.state !== "NC" && remoteAreaState === draftFilters.state && remoteAreaOptions.length
     ? remoteAreaOptions
     : staticDraftAreaOptions;
+  const draftFilterCount = activeFilterCount(draftFilters);
   const requestSequence = useRef(0);
   const requestInFlightRef = useRef<"refresh" | "page" | null>(null);
 
@@ -330,7 +335,7 @@ export default function SignalFeedScreen() {
             </Pressable>
           </View>
 
-          <ScrollView contentContainerStyle={styles.filterBody} keyboardShouldPersistTaps="handled">
+          <ScrollView contentContainerStyle={styles.filterBody} keyboardDismissMode="on-drag" keyboardShouldPersistTaps="handled">
           <OptionChooser
             label="State"
             value={draftFilters.state}
@@ -366,20 +371,38 @@ export default function SignalFeedScreen() {
 
           <View style={styles.fieldGroup}>
             <Text style={styles.fieldLabel}>BOTTLE</Text>
-            <TextInput
-              autoCapitalize="words"
-              autoCorrect={false}
-              onChangeText={(bottle) => setDraftFilters((current) => ({ ...current, bottle }))}
-              placeholder="Search bottle name"
-              placeholderTextColor={colors.muted}
-              style={styles.filterInput}
-              value={draftFilters.bottle}
-            />
+            <View style={styles.filterInputShell}>
+              <TextInput
+                autoCapitalize="words"
+                autoCorrect={false}
+                blurOnSubmit
+                onChangeText={(bottle) => setDraftFilters((current) => ({ ...current, bottle }))}
+                onSubmitEditing={() => Keyboard.dismiss()}
+                placeholder="Search bottle name"
+                placeholderTextColor={colors.muted}
+                returnKeyType="done"
+                style={styles.filterInput}
+                value={draftFilters.bottle}
+              />
+              {draftFilters.bottle ? <Pressable
+                accessibilityLabel="Clear bottle search"
+                accessibilityRole="button"
+                hitSlop={8}
+                onPress={() => setDraftFilters((current) => ({ ...current, bottle: "" }))}
+                style={styles.inputClearButton}
+              ><MaterialCommunityIcons color={colors.muted} name="close-circle" size={19} /></Pressable> : null}
+            </View>
           </View>
           </ScrollView>
 
           <View style={styles.sheetActions}>
-            <Pressable accessibilityRole="button" onPress={() => setDraftFilters({ ...DEFAULT_SIGNAL_FILTERS })} style={({ pressed }) => [styles.clearButton, pressed && styles.segmentPressed]}><Text style={styles.clearButtonText}>Clear all</Text></Pressable>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityState={{ disabled: draftFilterCount === 0 }}
+              disabled={draftFilterCount === 0}
+              onPress={() => setDraftFilters({ ...DEFAULT_SIGNAL_FILTERS })}
+              style={({ pressed }) => [styles.clearButton, draftFilterCount === 0 && styles.clearButtonDisabled, pressed && styles.segmentPressed]}
+            ><Text style={[styles.clearButtonText, draftFilterCount === 0 && styles.clearButtonTextDisabled]}>Clear all</Text></Pressable>
             <Pressable accessibilityRole="button" onPress={() => { setFilterOpen(false); applyFilters(draftFilters); }} style={({ pressed }) => [styles.applyButton, pressed && styles.segmentPressed]}><Text style={styles.applyButtonText}>Show Signals</Text></Pressable>
           </View>
         </View>
@@ -448,12 +471,14 @@ const styles = StyleSheet.create({
   chooserValue: { color: colors.text, fontSize: 15, fontWeight: "600", flex: 1 },
   chooserPlaceholder: { color: colors.muted, fontWeight: "500" },
   chooserOptions: { maxHeight: 190, borderRadius: 13, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.background },
-  chooserOption: { minHeight: 44, justifyContent: "center", paddingHorizontal: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
+  chooserOption: { minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10, paddingHorizontal: 14, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
   chooserOptionSelected: { backgroundColor: "#2A1F13" },
   chooserOptionText: { color: colors.muted, fontSize: 13, fontWeight: "600" },
   areaOptionNote: { color: colors.muted, fontSize: 12, lineHeight: 17 },
   areaOptionError: { color: colors.danger, fontSize: 12, lineHeight: 17 },
-  filterInput: { minHeight: 48, borderRadius: 13, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.background, color: colors.text, fontSize: 16, paddingHorizontal: 14 },
+  filterInputShell: { minHeight: 48, flexDirection: "row", alignItems: "center", borderRadius: 13, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.background, paddingLeft: 14, paddingRight: 8 },
+  filterInput: { minHeight: 46, flex: 1, color: colors.text, fontSize: 16, paddingRight: 8 },
+  inputClearButton: { width: 36, height: 36, alignItems: "center", justifyContent: "center" },
   freshnessRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   sheetChoice: { minHeight: 38, justifyContent: "center", paddingHorizontal: 12, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.background },
   sheetChoiceSelected: { borderColor: colors.accentPressed, backgroundColor: "#2A1F13" },
@@ -461,6 +486,8 @@ const styles = StyleSheet.create({
   sheetActions: { flexDirection: "row", gap: 10, paddingTop: 2 },
   clearButton: { minHeight: 48, paddingHorizontal: 16, alignItems: "center", justifyContent: "center", borderRadius: 13, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border },
   clearButtonText: { color: colors.muted, fontSize: 13, fontWeight: "700" },
+  clearButtonDisabled: { opacity: 0.42 },
+  clearButtonTextDisabled: { color: colors.muted },
   applyButton: { flex: 1, minHeight: 48, alignItems: "center", justifyContent: "center", borderRadius: 13, backgroundColor: colors.accent },
   applyButtonText: { color: colors.background, fontSize: 13, fontWeight: "900" },
 });
