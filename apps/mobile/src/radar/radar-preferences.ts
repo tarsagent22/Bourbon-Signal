@@ -6,6 +6,51 @@ export const RADAR_AREA_KEYS: Record<string, keyof RadarAreaPreferences> = {
   SC: "scAreas", CA: "caAreas", NV: "nvAreas", NY: "nyAreas", CO: "coAreas", PA: "paCounties",
 };
 
+export function radarStateDisplayCode(state: string) {
+  const code = state.trim().toUpperCase();
+  return code === "MD-MONTGOMERY" ? "MD" : code;
+}
+
+export function radarAreaSummary(areas: string[], statewideLabel = "Statewide") {
+  if (!areas.length) return statewideLabel;
+  if (areas.length <= 2) return areas.join(" · ");
+  return `${areas.slice(0, 2).join(" · ")} +${areas.length - 2} more`;
+}
+
+export function memberAlertBottleNames(alert: { bottleName: string; bottleNames?: string[] }, knownBottleNames: string[] = []) {
+  const structured = (alert.bottleNames || []).map((value) => value.trim()).filter(Boolean);
+  if (structured.length) return Array.from(new Set(structured));
+  const summary = alert.bottleName.trim();
+  const lowerSummary = summary.toLowerCase();
+  const matches: Array<{ name: string; start: number; end: number }> = [];
+  for (const name of Array.from(new Set(knownBottleNames.map((value) => value.trim()).filter(Boolean))).sort((left, right) => right.length - left.length)) {
+    const needle = name.toLowerCase();
+    let start = lowerSummary.indexOf(needle);
+    while (start >= 0) {
+      const end = start + needle.length;
+      if (!matches.some((match) => start < match.end && end > match.start)) {
+        matches.push({ name, start, end });
+        break;
+      }
+      start = lowerSummary.indexOf(needle, start + 1);
+    }
+  }
+  if (matches.length) return matches.sort((left, right) => left.start - right.start).map((match) => match.name);
+  return [summary || "Bottle signal"];
+}
+
+export function maskedPhoneNumber(phone?: string) {
+  const digits = String(phone || "").replace(/\D/g, "");
+  return digits.length >= 4 ? `••• ••• ${digits.slice(-4)}` : "Verified mobile";
+}
+
+export function formatPhoneNumber(phone: string) {
+  const digits = phone.replace(/\D/g, "").slice(0, 10);
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`;
+  return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6)}`;
+}
+
 export function watchedBottleCount(preferences: MemberPreferences) {
   return new Set([...preferences.bottleAlertPreferences.bottleKeys, ...preferences.bottleAlertPreferences.bottleNames.map(canonicalBottleKey)].filter(Boolean)).size;
 }
@@ -41,6 +86,11 @@ export function toggleRadarArea(preferences: RadarAreaPreferences, state: string
   const current = preferences[key];
   const selected = current.includes(area) ? current.filter((value) => value !== area) : [...current, area];
   return { ...preferences, states: Array.from(new Set([...preferences.states, code])), [key]: selected };
+}
+
+export function clearRadarAreas(preferences: RadarAreaPreferences, state: string): RadarAreaPreferences {
+  const key = RADAR_AREA_KEYS[state.trim().toUpperCase()];
+  return key ? { ...preferences, [key]: [] } : preferences;
 }
 
 export function radarAreaCount(preferences: RadarAreaPreferences) {

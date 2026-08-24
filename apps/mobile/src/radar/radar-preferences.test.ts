@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import type { MemberPreferences, RadarAreaPreferences } from "../api/types";
-import { alertIsStale, radarAreaCount, setBottleWatched, setRadarState, toggleRadarArea, watchedBottleCount } from "./radar-preferences";
+import { alertIsStale, clearRadarAreas, formatPhoneNumber, maskedPhoneNumber, memberAlertBottleNames, radarAreaCount, radarAreaSummary, radarStateDisplayCode, setBottleWatched, setRadarState, toggleRadarArea, watchedBottleCount } from "./radar-preferences";
 
 const areas: RadarAreaPreferences = { states: [], ncBoards: [], gaAreas: [], tnAreas: [], vaCities: [], ohCities: [], iaCities: [], idCities: [], scAreas: [], caAreas: [], nvAreas: [], nyAreas: [], coAreas: [], paCounties: [], paStores: [] };
 const preferences = (): MemberPreferences => ({
@@ -28,6 +28,7 @@ test("state and dependent area updates preserve canonical server fields", () => 
   assert.deepEqual(wake.states, ["NC"]);
   assert.deepEqual(wake.ncBoards, ["Wake County ABC"]);
   assert.equal(radarAreaCount(wake), 1);
+  assert.deepEqual(clearRadarAreas(wake, "NC").ncBoards, []);
   assert.deepEqual(setRadarState(wake, "NC", false).ncBoards, []);
 });
 
@@ -35,4 +36,16 @@ test("alert staleness uses signal time and its supplied freshness limit", () => 
   const now = new Date("2026-08-24T12:00:00.000Z");
   assert.equal(alertIsStale({ createdAt: "2026-08-24T11:00:00.000Z", signalAt: "2026-08-21T11:59:59.000Z" }, now), true);
   assert.equal(alertIsStale({ createdAt: "2026-08-24T11:00:00.000Z", freshnessLimitHours: 96 }, now), false);
+});
+
+test("Radar presentation stays concise, structured, and private", () => {
+  assert.equal(radarStateDisplayCode("MD-MONTGOMERY"), "MD");
+  assert.equal(radarAreaSummary(["Wake", "Mecklenburg", "Durham"]), "Wake · Mecklenburg +1 more");
+  assert.equal(maskedPhoneNumber("4807518539"), "••• ••• 8539");
+  assert.equal(formatPhoneNumber("4807518539"), "(480) 751-8539");
+  assert.deepEqual(memberAlertBottleNames({ bottleName: "Stagg, Weller 12, and Eagle Rare" }, ["Stagg", "Weller 12", "Eagle Rare"]), ["Stagg", "Weller 12", "Eagle Rare"]);
+  assert.deepEqual(memberAlertBottleNames({ bottleName: "Stagg Jr., and Stagg" }, ["Stagg", "Stagg Jr."]), ["Stagg Jr.", "Stagg"]);
+  assert.deepEqual(memberAlertBottleNames({ bottleName: "Rock and Rye" }), ["Rock and Rye"]);
+  assert.deepEqual(memberAlertBottleNames({ bottleName: "E.H. Taylor, Jr." }), ["E.H. Taylor, Jr."]);
+  assert.deepEqual(memberAlertBottleNames({ bottleName: "Grouped", bottleNames: ["Stagg", "Eagle Rare"] }), ["Stagg", "Eagle Rare"]);
 });

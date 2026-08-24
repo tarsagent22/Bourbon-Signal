@@ -23,6 +23,8 @@ for (const phrase of [
   'skippedNoAreaPreferences',
   '.sort(sortCandidatesForMember)',
   'groupCandidatesByLocation',
+  'bottleNames: candidateBottleNames(candidate)',
+  'Array.isArray(source.bottleNames)',
   'CANDIDATE_POOL_PER_USER',
   '.slice(0, Math.max(1, CANDIDATE_POOL_PER_USER))',
   'location-group:',

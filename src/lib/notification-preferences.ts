@@ -69,6 +69,7 @@ export interface MemberAlertRecord {
   userId: string;
   dedupeKey: string;
   bottleName: string;
+  bottleNames?: string[];
   state: string;
   storeLabel: string;
   matchedArea: string;
