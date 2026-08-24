@@ -123,6 +123,25 @@ export function stopMonitoringState(scopes: MonitoringScope[], state: string) {
   return scopes.filter((scope) => scope.state !== state.trim().toUpperCase());
 }
 
+export function compactMonitoringScopes(scopes: MonitoringScope[], limit = 6) {
+  const visibleLimit = Math.max(0, Math.floor(limit));
+  const visible = scopes.slice(0, visibleLimit);
+  return {
+    total: scopes.length,
+    visible,
+    hidden: Math.max(0, scopes.length - visible.length),
+  };
+}
+
+export function presentPushIssue(
+  issue: { message?: string; code?: string; requestId?: string; retryable?: boolean },
+  fallback: string,
+) {
+  const message = `${fallback.trim()}${issue.retryable ? " Try again." : ""}`;
+  const diagnostic = [issue.code, issue.requestId].map((value) => value?.trim()).filter(Boolean).join(" · ");
+  return { message, diagnostic };
+}
+
 export function alertIsStale(alert: { signalAt?: string; createdAt: string; freshnessLimitHours?: number }, now = new Date()) {
   const observed = Date.parse(alert.signalAt || alert.createdAt);
   const limit = typeof alert.freshnessLimitHours === "number" && alert.freshnessLimitHours > 0 ? alert.freshnessLimitHours : 72;
