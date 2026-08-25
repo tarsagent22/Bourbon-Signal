@@ -270,6 +270,20 @@ export function mergeScheduledFallbackEvents({
   return merged;
 }
 
+const MAX_CUSTOMER_DROPS = 10_000;
+
+function capDropsPreservingFullFallbacks(rows, fallbackStates) {
+  const stateOf = (drop) => String(drop?.state || drop?.state_code || '').toUpperCase();
+  const fallbackRows = rows.filter((drop) => fallbackStates.has(stateOf(drop)));
+  if (fallbackRows.length > MAX_CUSTOMER_DROPS) {
+    throw new Error(`Full fallback partitions contain ${fallbackRows.length} rows, exceeding the ${MAX_CUSTOMER_DROPS}-row customer drop cap.`);
+  }
+  const selectedCurrentRows = new Set(rows
+    .filter((drop) => !fallbackStates.has(stateOf(drop)))
+    .slice(0, MAX_CUSTOMER_DROPS - fallbackRows.length));
+  return rows.filter((drop) => fallbackStates.has(stateOf(drop)) || selectedCurrentRows.has(drop));
+}
+
 export function mergePartialRefreshDrops({ previousDrops = [], currentDrops = [], partialRefresh = false, attemptedStateIds = [], fallbackStateIds = [], partialFallbackStateIds = [], isSafePartialRetainedRow = () => true } = {}) {
   const previousRows = Array.isArray(previousDrops) ? previousDrops : Array.isArray(previousDrops?.drops) ? previousDrops.drops : [];
   const currentRows = Array.isArray(currentDrops) ? currentDrops : Array.isArray(currentDrops?.drops) ? currentDrops.drops : [];
@@ -302,12 +316,13 @@ export function mergePartialRefreshDrops({ previousDrops = [], currentDrops = []
     ...previousRows.filter((drop) => !attempted.has(stateOf(drop)) && !partialPreserved.has(stateOf(drop))),
   ];
   const seen = new Set();
-  return merged.filter((drop) => {
+  const sanitized = merged.filter((drop) => {
     const key = drop?.id || [stateOf(drop), drop?.canonicalId, drop?.sourceUrl, drop?.locationName, drop?.quantity, drop?.availabilityStatus, drop?.sourceEventAt].join('|');
     if (seen.has(key)) return false;
     seen.add(key);
     return true;
   }).map((drop) => preserved.has(stateOf(drop))
     ? retainedDrop(drop, drop.staleReason || 'preserved_state_fallback')
-    : drop).slice(0, 10000);
+    : drop);
+  return capDropsPreservingFullFallbacks(sanitized, preserved);
 }

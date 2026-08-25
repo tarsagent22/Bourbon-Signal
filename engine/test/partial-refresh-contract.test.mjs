@@ -79,6 +79,41 @@ test('attempted fallback states retain their last published drops', () => {
   assert.equal(fallback.canAlertAsWatch, false);
 });
 
+test('the global drop cap preserves the complete last-published partition for fallback states', () => {
+  const currentDrops = Array.from({ length: 9_999 }, (_, index) => ({ id: `ia-current-${index}`, state: 'IA' }));
+  const merged = mergePartialRefreshDrops({
+    previousDrops: {
+      drops: [
+        { id: 'il-old-1', state: 'IL', canAlertAsInventory: true },
+        { id: 'il-old-2', state: 'IL', canAlertAsInventory: true },
+      ],
+    },
+    currentDrops,
+    attemptedStateIds: ['IA', 'IL'],
+    fallbackStateIds: ['IL'],
+  });
+
+  assert.equal(merged.length, 10_000);
+  assert.deepEqual(
+    merged.slice(0, 9_998).map((drop) => drop.id),
+    currentDrops.slice(0, 9_998).map((drop) => drop.id),
+  );
+  assert.deepEqual(merged.slice(-2).map((drop) => drop.id), ['il-old-1', 'il-old-2']);
+  assert.deepEqual(merged.filter((drop) => drop.state === 'IL').map((drop) => drop.id), ['il-old-1', 'il-old-2']);
+  assert.equal(merged.filter((drop) => drop.state === 'IA').length, 9_998);
+  assert.equal(merged.filter((drop) => drop.state === 'IL').every((drop) => drop.stale === true && drop.alertable === false), true);
+});
+
+test('fallback rows exceeding the customer drop cap fail closed instead of publishing a partial partition', () => {
+  const previousDrops = Array.from({ length: 10_001 }, (_, index) => ({ id: `il-old-${index}`, state: 'IL' }));
+  assert.throws(() => mergePartialRefreshDrops({
+    previousDrops,
+    currentDrops: [],
+    attemptedStateIds: ['IL'],
+    fallbackStateIds: ['IL'],
+  }), /fallback partitions contain 10001 rows.*10000-row customer drop cap/i);
+});
+
 test('retained Georgia customer rows preserve explicit last-known evidence while becoming non-alerting', () => {
   const merged = mergePartialRefreshDrops({
     previousDrops: [{
