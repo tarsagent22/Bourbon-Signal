@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 
-import { collectState } from '../src/collectors/generic-state.mjs';
+import { collectState, isStaleRetainedNotDueReport } from '../src/collectors/generic-state.mjs';
 import { appendSourceSloObservations } from '../src/sources/slo-report.mjs';
 import { sourceRuntimeOptionsFromArtifacts } from '../src/sources/source-runtime-state.mjs';
 import { ALL_STATE_SOURCES } from '../src/state-sources.mjs';
@@ -248,6 +248,89 @@ test('production source runtime makes an immediate second result not_due without
   assert.equal(second.sourceResults[1].status, 'not_due', 'a standardized previous result supplies reliable fallback timing');
   assert.equal(second.sourceResults[2].status, 'success');
   assert.equal(calls, 4, 'reliably timed sources are retained while the untimed source is probed again');
+});
+
+test('stale retained-not-due inference fails closed on any fresh or delivery-eligible row', () => {
+  const notDue = [{ status: 'not_due' }];
+  const safe = {
+    stale: true,
+    canAlertAsInventory: false,
+    canAlertAsWatch: false,
+    alertable: false,
+    sourceAvailabilityVerified: false,
+    eligibleForEmail: false,
+    eligibleForSms: false,
+  };
+  assert.equal(isStaleRetainedNotDueReport(notDue, [safe]), true);
+  assert.equal(isStaleRetainedNotDueReport([{ status: 'success' }], [safe]), false);
+  assert.equal(isStaleRetainedNotDueReport(notDue, []), false);
+  for (const [field, value] of [
+    ['stale', false],
+    ['canAlertAsInventory', true],
+    ['canAlertAsWatch', true],
+    ['alertable', true],
+    ['sourceAvailabilityVerified', true],
+    ['eligibleForEmail', true],
+    ['eligibleForSms', true],
+  ]) {
+    assert.equal(isStaleRetainedNotDueReport(notDue, [{ ...safe, [field]: value }]), false, `${field} must block stale fallback inference`);
+  }
+});
+
+test('not-due reuse preserves an all-stale non-alertable state partition as explicit stale context', async () => {
+  const config = {
+    id: 'ZZ',
+    label: 'Fixture state',
+    tier: 'test',
+    strategy: 'fixture',
+    cadence: 'test',
+    value: 'fixture',
+    sources: [{ kind: 'html', label: 'retained fixture', url: 'https://retained.fixture.test/source' }],
+    apiCandidates: [],
+  };
+  const fetcher = async (url) => response(url, '<h1>Fixture Bourbon</h1><p>Inventory in stock.</p>');
+  const first = await collectState(config, bible, {
+    fetcher,
+    sourceRunnerOptions: {
+      now: () => '2026-07-15T12:00:00.000Z',
+      baseCadenceMs: 60_000,
+      minCadenceMs: 60_000,
+      maxCadenceMs: 60_000,
+      maxAttempts: 1,
+    },
+  });
+  const staleSignals = first.signals.map((signal) => ({
+    ...signal,
+    stale: true,
+    canAlertAsInventory: false,
+    canAlertAsWatch: false,
+    alertable: false,
+  }));
+  const previous = {
+    ...first,
+    signals: staleSignals,
+  };
+  const productionOptions = sourceRuntimeOptionsFromArtifacts({ previousReport: previous });
+
+  const second = await collectState(config, bible, {
+    fetcher,
+    ...productionOptions,
+    sourceRunnerOptions: {
+      ...productionOptions.sourceRunnerOptions,
+      now: () => '2026-07-15T12:00:30.000Z',
+      baseCadenceMs: 60_000,
+      minCadenceMs: 60_000,
+      maxCadenceMs: 60_000,
+      maxAttempts: 1,
+    },
+  });
+
+  assert.equal(second.sourceResults[0].status, 'not_due');
+  assert.equal(second.stale, true);
+  assert.equal(second.status, 'stale_useful_retained_not_due');
+  assert.match(second.staleReason, /retained not-due evidence was already stale and non-alertable/i);
+  assert.equal(second.staleFallbackAt, second.finishedAt);
+  assert.equal(second.signals.every((signal) => signal.stale === true && signal.canAlertAsInventory === false && signal.canAlertAsWatch === false && signal.alertable === false), true);
 });
 
 test('representative multi-source California lane and run-level SLO use shared runtime without replacing orchestration', async () => {

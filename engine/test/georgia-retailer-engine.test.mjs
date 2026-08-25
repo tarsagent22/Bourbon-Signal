@@ -528,5 +528,8 @@ test('Georgia precision, exporter, verifier, and publication workflow are guarde
   const runEngine = readFileSync(new URL('../src/run.mjs', import.meta.url), 'utf8');
   assert.match(runEngine, /GA:\s*Number\(process\.env\.BOURBON_SIGNAL_GA_STATE_TIMEOUT_MS\s*\|\|\s*420_000\)/);
   const genericCollector = readFileSync(new URL('../src/collectors/generic-state.mjs', import.meta.url), 'utf8');
-  assert.match(genericCollector, /status:\s*precisionProbe\.stale[\s\S]{0,400}:\s*retainedNotDue/, 'stale source backoff must remain explicitly stale before retained-not-due labeling');
+  assert.match(genericCollector, /const reportStale\s*=\s*Boolean\(precisionProbe\.stale\s*\|\|\s*staleRetainedNotDue\)/, 'precision-probe and safely retained not-due stale evidence must both feed report-level staleness');
+  const reportStaleStatus = genericCollector.indexOf('status: reportStale');
+  const retainedNotDueStatus = genericCollector.indexOf(': retainedNotDue', reportStaleStatus);
+  assert.ok(reportStaleStatus >= 0 && retainedNotDueStatus > reportStaleStatus, 'explicit stale labeling must precede ordinary retained-not-due labeling');
 });
