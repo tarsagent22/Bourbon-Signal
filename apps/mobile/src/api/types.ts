@@ -82,6 +82,7 @@ export interface MemberCollectionBottle {
   rating: number;
   tasteTags?: string[];
   wouldBuyAgain?: boolean;
+  opened?: boolean;
   notes?: string;
   addedAt: string;
   updatedAt: string;

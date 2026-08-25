@@ -1,16 +1,35 @@
 import type { MemberCollectionBottle, SignalRewardItem } from "../api/types";
 
 export type CollectionSort = "rating" | "recent" | "name";
+export type CollectionStatusFilter = "all" | "opened" | "unopened";
+export interface CollectionFilters { status: CollectionStatusFilter; minRating: number | null; buyAgainOnly: boolean }
+
+export function collectionSummary(bottles: MemberCollectionBottle[]) {
+  const ratings = bottles.map((bottle) => bottle.rating).filter((rating) => rating > 0);
+  return {
+    count: bottles.length,
+    ratedCount: ratings.length,
+    averageRating: ratings.length ? Math.round(ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length) : null,
+  };
+}
+
+export function visibleTasteTags(tags: string[] = []) {
+  const clean = tags.filter(Boolean);
+  return { visible: clean.slice(0, 2), hiddenCount: Math.max(0, clean.length - 2) };
+}
 
 export function canonicalBottleKey(value: string) {
   return value.toLowerCase().replace(/&/g, " and ").replace(/[^a-z0-9]+/g, " ").replace(/\s+/g, " ").trim();
 }
 
-export function filterAndSortCollection(bottles: MemberCollectionBottle[], query: string, sort: CollectionSort) {
+export function filterAndSortCollection(bottles: MemberCollectionBottle[], query: string, sort: CollectionSort, filters: CollectionFilters = { status: "all", minRating: null, buyAgainOnly: false }) {
   const needle = query.trim().toLowerCase();
   return bottles
     .map((bottle, index) => ({ bottle, index }))
     .filter(({ bottle }) => !needle || [bottle.bottleName, bottle.notes || "", ...(bottle.tasteTags || [])].some((value) => value.toLowerCase().includes(needle)))
+    .filter(({ bottle }) => filters.status === "all" || (filters.status === "opened" ? bottle.opened === true : bottle.opened !== true))
+    .filter(({ bottle }) => filters.minRating == null || bottle.rating >= filters.minRating)
+    .filter(({ bottle }) => !filters.buyAgainOnly || bottle.wouldBuyAgain === true)
     .sort((left, right) => {
       if (sort === "rating") return right.bottle.rating - left.bottle.rating || left.bottle.bottleName.localeCompare(right.bottle.bottleName);
       if (sort === "name") return left.bottle.bottleName.localeCompare(right.bottle.bottleName);
@@ -22,7 +41,7 @@ export function filterAndSortCollection(bottles: MemberCollectionBottle[], query
 export function updateCollectionBottle(
   bottles: MemberCollectionBottle[],
   canonicalKey: string,
-  patch: Pick<MemberCollectionBottle, "rating" | "notes" | "tasteTags" | "wouldBuyAgain">,
+  patch: Pick<MemberCollectionBottle, "rating" | "notes" | "tasteTags" | "wouldBuyAgain" | "opened">,
   updatedAt: string,
 ) {
   const key = canonicalBottleKey(canonicalKey);
@@ -35,6 +54,7 @@ export function updateCollectionBottle(
       notes: patch.notes?.trim().slice(0, 500) || undefined,
       tasteTags,
       wouldBuyAgain: patch.wouldBuyAgain,
+      opened: patch.opened === true,
       updatedAt,
     };
   });
@@ -54,6 +74,7 @@ export function addSignalBottleToCollection(
     rating: 0,
     tasteTags: [],
     wouldBuyAgain: false,
+    opened: false,
     addedAt: now,
     updatedAt: now,
   }];

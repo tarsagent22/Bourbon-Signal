@@ -210,6 +210,7 @@ export function buildBottleCheckCollectionEntry(input: {
     rating: 0,
     tasteTags: [],
     wouldBuyAgain: false,
+    opened: false,
     notes: "",
     addedAt: now,
     updatedAt: now,
