@@ -231,6 +231,7 @@ export interface SignalPointsSummary {
 export interface SightingSubmission {
   bottleName: string;
   bottleId?: string;
+  rarityTier?: "limited" | "allocated" | "unicorn";
   storeId: string;
   storeName: string;
   storeAddress: string;

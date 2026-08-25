@@ -34,6 +34,15 @@ export function signalAccessibilityTime(value: string, now = new Date()) {
 
 function normalizedQuantityLabel(signal: Signal) {
   const raw = signal.availability?.quantityLabel?.trim() || "";
+  if (signal.source.type === "member") {
+    const shelfCount = raw.match(/^(\d+)(?:\s+bottles?)?$/i);
+    if (shelfCount) return `${shelfCount[1]} seen`;
+    if (/^(?:3[–-]5|6\+)$/.test(raw)) return `${raw.replace("-", "–")} seen`;
+    if (raw) return `Reported: ${raw}`;
+    if (typeof signal.availability?.quantity === "number") return `${signal.availability.quantity} seen`;
+    if (signal.availability?.status === "available_now" || signal.availability?.status === "reported") return "Quantity unknown";
+    return "";
+  }
   const counted = raw.match(/^(\d+)(?:\s+bottles?)?$/i);
   if (counted) {
     const count = Number(counted[1]);

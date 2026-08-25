@@ -1,4 +1,5 @@
-import type { RadarBottleOption, SightingSubmission } from "../api/types";
+import { presentSignal, signalCardAppearance } from "../api/presentation";
+import type { RadarBottleOption, Signal, SightingSubmission } from "../api/types";
 import { buildManualStoreId } from "./manual-sighting";
 
 export const POST_QUANTITY_CHOICES = ["1", "2", "3–5", "6+"] as const;
@@ -10,6 +11,85 @@ export interface PostStoreSelection {
   city: string;
   state: string;
   zip?: string;
+}
+
+export interface PostSignalPreview {
+  sourceLabel: "COMMUNITY";
+  contextLabel: "LIMITED" | "ALLOCATED" | "UNICORN";
+  timeLabel: "Now";
+  bottleName: string;
+  storeName: string;
+  geography: string;
+  price?: string;
+  quantity?: string;
+  note?: string;
+  reporter?: string;
+  surface: string;
+  keyline: string;
+  accent: string;
+  secondaryText: string;
+}
+
+export function buildPostSignalPreview(input: {
+  bottleName: string;
+  bottleRarity?: RadarBottleOption["rarity"];
+  storeName: string;
+  storeAddress: string;
+  storeCity: string;
+  storeState: string;
+  price: string;
+  quantity: string;
+  notes: string;
+  reporter?: string;
+}): PostSignalPreview | null {
+  const bottleName = input.bottleName.trim();
+  const storeName = input.storeName.trim();
+  const storeAddress = input.storeAddress.trim();
+  const storeCity = input.storeCity.trim();
+  const storeState = input.storeState.trim().toUpperCase();
+  if (!bottleName || !storeName || !storeAddress || !storeCity || !/^[A-Z]{2}$/.test(storeState)) return null;
+
+  const parsedPrice = Number(input.price.trim().replace(/[$,]/g, ""));
+  const quantity = input.quantity.trim();
+  const note = input.notes.trim();
+  const reporter = input.reporter?.trim() || "";
+  const previewSignal: Signal = {
+    contractVersion: "bourbon-signal/signal@1",
+    id: "member:post-preview",
+    kind: "availability",
+    source: { type: "member", label: reporter || "Member", reportMode: "seen_in_store" },
+    bottle: { name: bottleName, rarity: input.bottleRarity || "limited" },
+    location: { scope: "exact_store", state: storeState, store: { name: storeName, address: storeAddress, city: storeCity, state: storeState } },
+    timing: { displayAt: new Date(0).toISOString() },
+    evidence: { ...(note ? { summary: note } : {}), photo: false, corroborationCount: 0, helpfulCount: 0, retailerReported: false, sourceBacked: false },
+    strength: "more_activity",
+    availability: {
+      status: "reported",
+      ...(Number.isFinite(parsedPrice) && parsedPrice > 0 ? { price: parsedPrice } : {}),
+      ...(quantity ? { quantityLabel: quantity } : {}),
+    },
+    alertEligibility: { inventory: false, watch: true },
+    actions: [],
+  };
+  const presented = presentSignal(previewSignal);
+  const appearance = signalCardAppearance(previewSignal);
+
+  return {
+    sourceLabel: "COMMUNITY",
+    contextLabel: appearance.rarityLabel as PostSignalPreview["contextLabel"],
+    timeLabel: "Now",
+    bottleName,
+    storeName: presented.storeName,
+    geography: presented.geography,
+    price: presented.price,
+    quantity: presented.quantity,
+    ...(presented.summary ? { note: presented.summary } : {}),
+    ...(reporter ? { reporter: `Reported by ${reporter}` } : {}),
+    surface: appearance.surface,
+    keyline: appearance.keyline,
+    accent: appearance.accent,
+    secondaryText: appearance.secondaryText,
+  };
 }
 
 export function filterBottleSuggestions(catalog: RadarBottleOption[], query: string, limit = 5) {
@@ -61,6 +141,7 @@ export function isPostRequiredComplete(input: {
 export function buildPostSightingSubmission(input: {
   bottleName: string;
   bottleId?: string | null;
+  bottleRarity?: RadarBottleOption["rarity"];
   store: PostStoreSelection;
   price: string;
   quantity: string;
@@ -83,6 +164,7 @@ export function buildPostSightingSubmission(input: {
   const payload: SightingSubmission = {
     bottleName,
     ...(input.bottleId?.trim() ? { bottleId: input.bottleId.trim() } : {}),
+    ...(input.bottleRarity ? { rarityTier: input.bottleRarity } : {}),
     storeId: approvedStoreId || buildManualStoreId(storeName, storeAddress, storeCity, storeState),
     storeName,
     storeAddress,

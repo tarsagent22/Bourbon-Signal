@@ -8,7 +8,7 @@ import type { GeographySearchResponse, MemberProfile, RadarBottleOption } from "
 import { MemberCard, memberScreenStyles } from "../../../src/components/MemberScreen";
 import { useMobileApi } from "../../../src/hooks/useMobileApi";
 import { createSightingIdempotencyKey, parseSightingDraftBinding, serializeSightingDraftBinding, SIGHTING_IDEMPOTENCY_STORAGE_KEY, type SightingDraftBinding } from "../../../src/sightings/manual-sighting";
-import { approvedStoreFromGeography, buildPostSightingSubmission, filterBottleSuggestions, isPostRequiredComplete, POST_QUANTITY_CHOICES, type PostStoreSelection } from "../../../src/sightings/post-composer";
+import { approvedStoreFromGeography, buildPostSignalPreview, buildPostSightingSubmission, filterBottleSuggestions, isPostRequiredComplete, POST_QUANTITY_CHOICES, type PostSignalPreview, type PostStoreSelection } from "../../../src/sightings/post-composer";
 import { colors } from "../../../src/theme";
 
 type ActivePicker = "bottle" | "store" | null;
@@ -75,6 +75,19 @@ export default function PostScreen() {
   const canSubmit = profile?.entitlements.canSubmitSignals === true;
   const bottleSuggestions = useMemo(() => filterBottleSuggestions(bottleCatalog, bottleName), [bottleCatalog, bottleName]);
   const requiredComplete = useMemo(() => isPostRequiredComplete({ bottleName, storeName, storeAddress, storeCity, storeState }), [bottleName, storeAddress, storeCity, storeName, storeState]);
+  const selectedBottleRarity = useMemo(() => bottleCatalog.find((bottle) => bottle.id === bottleId)?.rarity, [bottleCatalog, bottleId]);
+  const preview = useMemo(() => buildPostSignalPreview({
+    bottleName,
+    bottleRarity: selectedBottleRarity,
+    storeName,
+    storeAddress,
+    storeCity,
+    storeState,
+    price,
+    quantity,
+    notes,
+    reporter: profile?.displayName || profile?.identity?.label,
+  }), [bottleName, notes, price, profile?.displayName, profile?.identity?.label, quantity, selectedBottleRarity, storeAddress, storeCity, storeName, storeState]);
   const actionDisabled = !requiredComplete || !idempotencyReady || submitting;
 
   useEffect(() => {
@@ -163,6 +176,7 @@ export default function PostScreen() {
     const built = buildPostSightingSubmission({
       bottleName,
       bottleId,
+      bottleRarity: selectedBottleRarity,
       store: { id: selectedStore?.id || null, name: storeName, address: storeAddress, city: storeCity, state: storeState, zip: storeZip || undefined },
       price,
       quantity,
@@ -206,11 +220,11 @@ export default function PostScreen() {
   return (
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} keyboardVerticalOffset={88} style={memberScreenStyles.screen}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" style={styles.scroll}>
-        <View style={styles.postIntro}><View style={styles.introCopy}><Text style={styles.eyebrow}>MEMBER REPORT</Text><Text accessibilityRole="header" style={styles.introTitle}>Post a Signal</Text><Text style={styles.introDescription}>Choose the bottle and retailer. Add only what you observed.</Text></View><View style={styles.signalMark}><MaterialCommunityIcons color={colors.accent} name="bottle-tonic-outline" size={19} /><MaterialCommunityIcons color={colors.accent} name="broadcast" size={18} /></View></View>
+        <View style={styles.postIntro}><Text accessibilityRole="header" style={styles.introTitle}>Post a Signal</Text><Text style={styles.introDescription}>Choose the bottle and retailer. Add only what you observed.</Text></View>
         {loadingProfile ? <ActivityIndicator color={colors.accent} /> : null}
         {!loadingProfile && profile && !canSubmit ? <MemberCard><Text style={styles.blockedTitle}>Posting is not included with this membership</Text><Text style={styles.help}>HQ shows the membership attached to this account.</Text></MemberCard> : null}
-        {canSubmit ? <MemberCard>
-          <ComposerSection number="1" title="Choose a bottle" required>
+        {canSubmit ? <View style={styles.composer}>
+          <ComposerSection icon="bottle-tonic-outline" title="Choose a bottle" required>
             <Field autoCapitalize="words" autoCorrect={false} label="Bottle" onChangeText={changeBottleName} onFocus={() => setActivePicker("bottle")} placeholder="Search bottle catalog" value={bottleName} />
             {bottleId ? <SelectionNote icon="check-circle-outline" text="Catalog bottle selected" /> : bottleName.trim() ? <Text style={styles.helper}>Can’t find it? Keep the bottle name exactly as entered.</Text> : null}
             {activePicker === "bottle" && bottleName.trim().length >= 2 && !bottleId ? <SuggestionList empty="No catalog match. You can still use this name.">
@@ -219,7 +233,7 @@ export default function PostScreen() {
           </ComposerSection>
 
           <View style={styles.divider} />
-          <ComposerSection number="2" title="Find a retailer" required>
+          <ComposerSection icon="storefront-outline" title="Find a retailer" required>
             {!manualStore ? <>
               <Field autoCapitalize="words" autoCorrect={false} label="Store" onChangeText={changeStoreName} onFocus={() => setActivePicker("store")} placeholder="Search retailer, city, or address" value={storeName} />
               {selectedStore ? <View style={styles.selectedStore}><View style={styles.selectionCopy}><Text style={styles.selectionTitle}>{selectedStore.name}</Text><Text style={styles.selectionSubtitle}>{selectedStore.city}, {selectedStore.state} · {selectedStore.address}</Text></View><Pressable accessibilityLabel="Change selected retailer" accessibilityRole="button" hitSlop={8} onPress={() => { changeStoreName(""); setActivePicker("store"); }}><Text style={styles.textAction}>CHANGE</Text></Pressable></View> : null}
@@ -236,18 +250,18 @@ export default function PostScreen() {
           </ComposerSection>
 
           <View style={styles.divider} />
-          <ComposerSection number="3" title="Observed (optional)">
+          <ComposerSection icon="text-box-outline" title="Other Details (optional)">
             <View style={styles.priceField}><Text style={styles.label}>Shelf price</Text><View style={styles.priceInput}><Text style={styles.currency}>$</Text><TextInput accessibilityLabel="Shelf price" keyboardType="decimal-pad" onChangeText={setPrice} placeholder="69.99" placeholderTextColor={colors.muted} style={styles.priceTextInput} value={price} /></View></View>
             <View style={styles.field}><Text style={styles.label}>Quantity seen</Text><View style={styles.chips}>{POST_QUANTITY_CHOICES.map((choice) => <Pressable accessibilityRole="button" accessibilityState={{ selected: !customQuantity && quantity === choice }} key={choice} onPress={() => { setCustomQuantity(false); setQuantity(choice); }} style={[styles.chip, !customQuantity && quantity === choice && styles.chipActive]}><Text style={[styles.chipText, !customQuantity && quantity === choice && styles.chipTextActive]}>{choice}</Text></Pressable>)}<Pressable accessibilityRole="button" accessibilityState={{ selected: customQuantity }} onPress={() => { setCustomQuantity(true); setQuantity(""); }} style={[styles.chip, customQuantity && styles.chipActive]}><Text style={[styles.chipText, customQuantity && styles.chipTextActive]}>Other</Text></Pressable></View></View>
             {customQuantity ? <Field accessibilityLabel="Custom quantity seen" label="Custom quantity" onChangeText={setQuantity} placeholder="Example: 2 behind counter" value={quantity} /> : null}
             <Field autoCapitalize="sentences" label="Notes" multiline numberOfLines={3} onChangeText={setNotes} placeholder="Anything nearby members should know" value={notes} />
           </ComposerSection>
 
-          {requiredComplete ? <View style={styles.preview}><MaterialCommunityIcons color={colors.accent} name="broadcast" size={20} /><View style={styles.selectionCopy}><Text style={styles.previewLabel}>READY TO POST</Text><Text numberOfLines={2} style={styles.previewTitle}>{bottleName}</Text><Text numberOfLines={2} style={styles.selectionSubtitle}>{storeName} · {storeCity}, {storeState.trim().toUpperCase()}</Text></View></View> : null}
+          {preview ? <SignalPreview preview={preview} /> : null}
           {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
           {success ? <Text accessibilityRole="alert" style={styles.success}>{success}</Text> : null}
           <Text style={styles.disclaimer}>Only report what you observed. Availability can change quickly, and manually entered bottles or stores may be reviewed.</Text>
-        </MemberCard> : null}
+        </View> : null}
         {!canSubmit && error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
       </ScrollView>
       {canSubmit ? <View style={styles.actionFooter}>
@@ -260,8 +274,24 @@ export default function PostScreen() {
   );
 }
 
-function ComposerSection({ children, number, required = false, title }: React.PropsWithChildren<{ number: string; required?: boolean; title: string }>) {
-  return <View style={styles.section}><View style={styles.sectionHeading}><Text style={styles.sectionNumber}>{number}</Text><Text accessibilityRole="header" style={styles.sectionTitle}>{title}</Text>{required ? <Text style={styles.required}>REQUIRED</Text> : null}</View>{children}</View>;
+function ComposerSection({ children, icon, required = false, title }: React.PropsWithChildren<{ icon: React.ComponentProps<typeof MaterialCommunityIcons>["name"]; required?: boolean; title: string }>) {
+  return <View style={styles.section}><View style={styles.sectionHeading}><MaterialCommunityIcons color={colors.accent} name={icon} size={20} /><Text accessibilityRole="header" style={styles.sectionTitle}>{title}</Text>{required ? <Text style={styles.required}>REQUIRED</Text> : null}</View>{children}</View>;
+}
+
+function SignalPreview({ preview }: { preview: PostSignalPreview }) {
+  const accessibilityLabel = [preview.sourceLabel, preview.contextLabel, preview.bottleName, preview.storeName, preview.geography, preview.price, preview.quantity, preview.note, preview.reporter].filter(Boolean).join(", ");
+  return <View style={styles.previewSection}>
+    <View style={styles.previewHeading}><Text style={styles.previewHeadingText}>SIGNAL PREVIEW</Text><Text style={styles.previewHelp}>This is how your post will appear in Community.</Text></View>
+    <View accessible accessibilityLabel={accessibilityLabel} style={[styles.previewCard, { backgroundColor: preview.surface, borderColor: preview.keyline }]}>
+      <View style={styles.previewTopline}><View style={styles.previewSourceRow}><Text style={[styles.previewSource, { color: preview.accent }]}>{preview.sourceLabel}</Text><View style={[styles.previewKeyline, { backgroundColor: preview.keyline }]} /><Text style={[styles.previewContext, { color: preview.accent }]}>{preview.contextLabel}</Text></View><Text style={[styles.previewTime, { color: preview.secondaryText }]}>{preview.timeLabel}</Text></View>
+      <Text numberOfLines={2} style={styles.previewBottle}>{preview.bottleName}</Text>
+      <Text numberOfLines={2} style={styles.previewStore}>{preview.storeName}</Text>
+      <Text numberOfLines={1} style={[styles.previewGeography, { color: preview.secondaryText }]}>{preview.geography}</Text>
+      {preview.price || preview.quantity ? <View style={styles.previewMetaRow}>{preview.price ? <Text style={styles.previewPrice}>{preview.price}</Text> : null}{preview.price && preview.quantity ? <View style={[styles.previewMetaDivider, { backgroundColor: preview.keyline }]} /> : null}{preview.quantity ? <Text style={[styles.previewQuantity, { color: preview.secondaryText }]}>{preview.quantity}</Text> : null}</View> : null}
+      {preview.note ? <Text numberOfLines={2} style={[styles.previewNote, { color: preview.secondaryText }]}>{preview.note}</Text> : null}
+      {preview.reporter ? <Text numberOfLines={1} style={[styles.previewReporter, { color: preview.secondaryText }]}>{preview.reporter}</Text> : null}
+    </View>
+  </View>;
 }
 
 type FieldProps = React.ComponentProps<typeof TextInput> & { label: string };
@@ -284,18 +314,15 @@ function SuggestionRow({ onPress, subtitle, title }: { onPress: () => void; subt
 
 const styles = StyleSheet.create({
   scroll: { flex: 1 },
-  content: { ...memberScreenStyles.content, paddingTop: 14, paddingBottom: 24, gap: 14 },
-  postIntro: { flexDirection: "row", alignItems: "flex-start", gap: 12 },
-  introCopy: { flex: 1, gap: 5 },
-  eyebrow: { color: colors.accent, fontSize: 10, fontWeight: "800", letterSpacing: 1.25 },
-  introTitle: { color: colors.text, fontSize: 27, lineHeight: 31, fontWeight: "800", letterSpacing: -0.4 },
+  content: { ...memberScreenStyles.content, paddingTop: 15, paddingBottom: 28, gap: 20 },
+  postIntro: { gap: 6 },
+  introTitle: { color: colors.text, fontFamily: "Fraunces_700Bold", fontSize: 31, lineHeight: 35, letterSpacing: -0.45 },
   introDescription: { color: colors.muted, fontSize: 13, lineHeight: 19 },
-  signalMark: { width: 48, height: 48, borderRadius: 15, borderColor: colors.border, borderWidth: 1, backgroundColor: colors.surface, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 1 },
   blockedTitle: { color: colors.text, fontSize: 16, fontWeight: "700" },
   help: { color: colors.muted, fontSize: 13, lineHeight: 19 },
-  section: { gap: 9 },
+  composer: { gap: 18 },
+  section: { gap: 10 },
   sectionHeading: { minHeight: 24, flexDirection: "row", alignItems: "center", gap: 8 },
-  sectionNumber: { width: 22, height: 22, borderRadius: 11, overflow: "hidden", backgroundColor: colors.surfaceRaised, color: colors.accent, textAlign: "center", lineHeight: 22, fontSize: 11, fontWeight: "800" },
   sectionTitle: { flex: 1, color: colors.text, fontSize: 15, fontWeight: "800" },
   required: { color: colors.muted, fontSize: 9, fontWeight: "800", letterSpacing: 0.9 },
   divider: { height: StyleSheet.hairlineWidth, backgroundColor: colors.border, marginVertical: 2 },
@@ -332,9 +359,26 @@ const styles = StyleSheet.create({
   chipActive: { borderColor: colors.accent, backgroundColor: colors.surfaceRaised },
   chipText: { color: colors.muted, fontSize: 12, fontWeight: "700" },
   chipTextActive: { color: colors.accent },
-  preview: { borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth, borderRadius: 11, padding: 11, backgroundColor: colors.background, flexDirection: "row", alignItems: "center", gap: 10 },
-  previewLabel: { color: colors.accent, fontSize: 9, fontWeight: "900", letterSpacing: 0.9 },
-  previewTitle: { color: colors.text, fontSize: 14, lineHeight: 18, fontWeight: "800" },
+  previewSection: { gap: 8, marginTop: 2 },
+  previewHeading: { gap: 3 },
+  previewHeadingText: { color: colors.accent, fontSize: 10, lineHeight: 14, fontWeight: "900", letterSpacing: 1.05 },
+  previewHelp: { color: colors.muted, fontSize: 11, lineHeight: 15 },
+  previewCard: { backgroundColor: "#1A1B1D", borderColor: "#3E4146", borderWidth: StyleSheet.hairlineWidth, borderRadius: 16, paddingHorizontal: 14, paddingVertical: 12, gap: 5.5 },
+  previewTopline: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 1 },
+  previewSourceRow: { flexDirection: "row", alignItems: "center", gap: 7, flexShrink: 1 },
+  previewSource: { color: "#B8BDC5", fontSize: 10, lineHeight: 14, fontWeight: "900", letterSpacing: 1.05 },
+  previewKeyline: { width: 1, height: 11, backgroundColor: "#3E4146" },
+  previewContext: { color: "#A9ADB4", fontSize: 9, lineHeight: 13, fontWeight: "800", letterSpacing: 0.8 },
+  previewTime: { color: colors.muted, fontSize: 11, lineHeight: 15, fontWeight: "600" },
+  previewBottle: { color: colors.text, fontSize: 19, lineHeight: 24, fontWeight: "700", letterSpacing: -0.2 },
+  previewStore: { color: colors.text, fontSize: 14, lineHeight: 19, fontWeight: "600" },
+  previewGeography: { color: colors.muted, fontSize: 12, lineHeight: 17, fontWeight: "500" },
+  previewMetaRow: { minHeight: 20, flexDirection: "row", alignItems: "center", gap: 9, marginTop: 1 },
+  previewMetaDivider: { width: 3, height: 3, borderRadius: 2, backgroundColor: colors.border },
+  previewPrice: { color: colors.text, fontSize: 13, lineHeight: 18, fontWeight: "700" },
+  previewQuantity: { color: colors.muted, fontSize: 12, lineHeight: 17, fontWeight: "600", flexShrink: 1 },
+  previewNote: { color: colors.muted, fontSize: 12, lineHeight: 17, marginTop: 1 },
+  previewReporter: { color: colors.muted, fontSize: 11, lineHeight: 15, fontWeight: "600", marginTop: 1 },
   error: { color: colors.danger, fontSize: 12, lineHeight: 18 },
   success: { color: colors.success, fontSize: 12, lineHeight: 18 },
   disclaimer: { color: colors.muted, fontSize: 10, lineHeight: 15 },
