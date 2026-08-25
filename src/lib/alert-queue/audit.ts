@@ -13,6 +13,8 @@ export type AlertQueueAuditHealth = {
   repeatedIdentityGroups: number;
   repeatedPayloadGroups: number;
   repeatedUnderlyingBottleGroups: number;
+  latestDeliveryAt: string | null;
+  latestRepeatedUnderlyingBottleAt: string | null;
   note?: string;
 };
 function utcDayWindow(now = new Date()) {
@@ -23,7 +25,14 @@ function utcDayWindow(now = new Date()) {
 
 function base(status: AlertQueueAuditHealth["status"], active: boolean, windowStart: string, windowEnd: string) {
   return { status, queueModeActive: active, windowStart, windowEnd, deliveredRows: 0, uniqueRecipients: 0,
-    channelCounts: { ...zero }, repeatedIdentityGroups: 0, repeatedPayloadGroups: 0, repeatedUnderlyingBottleGroups: 0 };
+    channelCounts: { ...zero }, repeatedIdentityGroups: 0, repeatedPayloadGroups: 0, repeatedUnderlyingBottleGroups: 0,
+    latestDeliveryAt: null, latestRepeatedUnderlyingBottleAt: null };
+}
+
+function timestamp(value: unknown) {
+  if (!value) return null;
+  const parsed = new Date(String(value));
+  return Number.isFinite(parsed.getTime()) ? parsed.toISOString() : null;
 }
 export async function readAlertQueueAuditHealth(options: {
   now?: Date;
@@ -44,7 +53,7 @@ export async function readAlertQueueAuditHealth(options: {
     );
     const rows = await sql.query(`
       with delivered as materialized (
-        select user_id, channel, stable_match_key, provider_message_id, payload
+        select user_id, channel, stable_match_key, provider_message_id, payload, delivered_at
         from alert_candidates
         where status = 'delivered'
           and delivered_at >= $1::timestamptz
@@ -61,13 +70,14 @@ export async function readAlertQueueAuditHealth(options: {
         having count(distinct coalesce(provider_message_id, stable_match_key)) > 1
       ), bottle_tokens as (
         select user_id, channel, payload->>'location' as location,
-          lower(trim(token)) as bottle_token, coalesce(provider_message_id, stable_match_key) as delivery_id
+          lower(trim(token)) as bottle_token, coalesce(provider_message_id, stable_match_key) as delivery_id,
+          delivered_at
         from delivered cross join lateral regexp_split_to_table(
           payload->>'bottle', E'\\s*(?:,\\s*(?:and\\s+)?|\\sand\\s)\\s*'
         ) as token
         where nullif(payload->>'location', '') is not null and nullif(trim(token), '') is not null
       ), repeated_underlying_bottles as (
-        select user_id, channel, location, bottle_token from bottle_tokens
+        select user_id, channel, location, bottle_token, max(delivered_at) as latest_repeated_underlying_bottle_at from bottle_tokens
         group by user_id, channel, location, bottle_token
         having count(distinct delivery_id) > 1
       )
@@ -77,7 +87,9 @@ export async function readAlertQueueAuditHealth(options: {
         count(*) filter (where channel = 'sms') as sms_count,
         (select count(*) from repeated_identities) as repeated_identity_groups,
         (select count(*) from repeated_payloads) as repeated_payload_groups,
-        (select count(*) from repeated_underlying_bottles) as repeated_underlying_bottle_groups
+        (select count(*) from repeated_underlying_bottles) as repeated_underlying_bottle_groups,
+        max(delivered_at) as latest_delivery_at,
+        (select max(latest_repeated_underlying_bottle_at) from repeated_underlying_bottles) as latest_repeated_underlying_bottle_at
       from delivered
     `, [windowStart, windowEnd], { fetchOptions: { signal: AbortSignal.timeout(2_000) } }) as Array<Record<string, unknown>>;
     const row = rows[0] || {};
@@ -89,9 +101,10 @@ export async function readAlertQueueAuditHealth(options: {
       repeatedIdentityGroups: Number(row.repeated_identity_groups || 0),
       repeatedPayloadGroups: Number(row.repeated_payload_groups || 0),
       repeatedUnderlyingBottleGroups: Number(row.repeated_underlying_bottle_groups || 0),
+      latestDeliveryAt: timestamp(row.latest_delivery_at),
+      latestRepeatedUnderlyingBottleAt: timestamp(row.latest_repeated_underlying_bottle_at),
     };
   } catch {
     return { ...base("error", true, windowStart, windowEnd), note: "aggregate_query_failed" };
   }
 }
-

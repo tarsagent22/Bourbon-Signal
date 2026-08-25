@@ -77,4 +77,14 @@ create table if not exists clerk_alert_metadata_backups (
 create index if not exists clerk_alert_metadata_backups_user_idx
   on clerk_alert_metadata_backups (user_id, backed_up_at desc);
 
+create table if not exists alert_delivery_leases (
+  lease_key text primary key,
+  owner text not null,
+  acquired_at timestamptz not null,
+  expires_at timestamptz not null
+);
+
+create index if not exists alert_delivery_leases_expiry_idx
+  on alert_delivery_leases (expires_at);
+
 commit;

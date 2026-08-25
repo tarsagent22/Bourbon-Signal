@@ -8,6 +8,10 @@ export function alertQueueConnectionString(env: NodeJS.ProcessEnv = process.env)
     || null;
 }
 
+export function alertQueueDatabaseConfigured(env: NodeJS.ProcessEnv = process.env) {
+  return Boolean(alertQueueConnectionString(env));
+}
+
 export function createProductionAlertQueueRepository(env: NodeJS.ProcessEnv = process.env) {
   const connectionString = alertQueueConnectionString(env);
   if (!connectionString) {

@@ -70,6 +70,7 @@ export interface MemberAlertRecord {
   dedupeKey: string;
   bottleName: string;
   bottleNames?: string[];
+  underlyingStableKeys?: string[];
   state: string;
   storeLabel: string;
   matchedArea: string;

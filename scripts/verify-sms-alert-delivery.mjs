@@ -13,6 +13,7 @@ const delivery = read('src/lib/alert-delivery.ts');
 const smsCopy = read('src/lib/sms-alert-copy.ts');
 const prefs = read('src/lib/notification-preferences.ts');
 const route = read('src/app/api/alerts/deliver/route.ts');
+const queueRepository = read('src/lib/alert-queue/postgres-repository.ts');
 
 for (const phrase of [
   'ALERT_SMS_DELIVERY_ENABLED',
@@ -62,6 +63,14 @@ if (!/phone\?: string/.test(prefs) || !/verified: boolean/.test(prefs)) {
 
 if (!/baselineSms/.test(route) && !/baseline_sms/.test(route)) {
   fail('/api/alerts/deliver must expose a baselineSms option before broad SMS activation.');
+}
+
+if (!/channel\s*<>\s*'sms'/.test(queueRepository)) {
+  fail('SMS stale claims must remain excluded from automatic recovery.');
+}
+
+if (!/smsProviderAttempted[\s\S]*?smsProviderAttempted = true[\s\S]*?sendTwilioSms[\s\S]*?if \(!smsProviderAttempted \|\| error instanceof DefinitiveSmsSendError\) await failQueuedIntents/.test(delivery)) {
+  fail('Only ambiguous Twilio attempts may leave claims stuck; definitive rejection must remain retryable.');
 }
 
 console.log('SMS alert delivery guardrails verified.');
