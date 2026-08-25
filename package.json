@@ -54,6 +54,7 @@
     "test:drop-feed-performance": "node --no-warnings --experimental-strip-types scripts/test-drop-feed-performance.mts",
     "test:sms-alerts": "node scripts/verify-sms-alert-delivery.mjs && node --experimental-strip-types scripts/test-sms-alert-copy.mjs",
     "test:alert-delivery-policy": "node scripts/verify-alert-delivery-policy.mjs && node --experimental-strip-types scripts/test-alert-run-safety.mts",
+    "test:alert-rarity-preferences": "tsx scripts/test-alert-rarity-preferences.mts",
     "test:alert-queue-audit": "tsx scripts/test-alert-queue-audit.mts",
     "test:sighting-rewards": "node --experimental-strip-types scripts/test-sighting-rewards.mjs",
     "test:referrals": "tsx --test scripts/test-referrals.ts",

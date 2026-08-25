@@ -53,6 +53,7 @@ function mergePreferencePatch(base: UserAlertPreferences, patch: UserAlertPrefer
   const notificationPreferences = notificationPatch
     ? {
         ...base.notificationPreferences,
+        ...(notificationPatch.rarityTiers ? { rarityTiers: notificationPatch.rarityTiers } : {}),
         ...(notificationPatch.onSite ? { onSite: { ...base.notificationPreferences.onSite, ...notificationPatch.onSite } } : {}),
         ...(notificationPatch.push ? { push: { ...base.notificationPreferences.push, ...notificationPatch.push } } : {}),
         ...(notificationPatch.email ? { email: { ...base.notificationPreferences.email, ...notificationPatch.email } } : {}),

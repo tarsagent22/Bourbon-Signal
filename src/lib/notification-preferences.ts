@@ -1,5 +1,7 @@
 export type EmailAlertMode = "all" | "major_only";
 export type SmsAlertMode = "major_only" | "specific_bottles";
+export type AlertRarityTier = "unicorn" | "allocated" | "limited";
+export const ALERT_RARITY_TIERS: AlertRarityTier[] = ["unicorn", "allocated", "limited"];
 
 export interface WeeklyIntelligencePreference {
   emailEnabled: boolean;
@@ -16,6 +18,7 @@ export interface WeeklyIntelligencePreferenceActionRequest {
 }
 
 export interface NotificationPreferences {
+  rarityTiers: AlertRarityTier[];
   onSite: {
     enabled: boolean;
   };
@@ -40,6 +43,7 @@ export interface NotificationPreferences {
 }
 
 export interface NotificationPreferencesPatch {
+  rarityTiers?: AlertRarityTier[];
   onSite?: Partial<NotificationPreferences["onSite"]>;
   push?: Partial<NotificationPreferences["push"]>;
   email?: Partial<NotificationPreferences["email"]>;
@@ -91,6 +95,7 @@ export interface MemberAlertRecord {
 }
 
 const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
+  rarityTiers: [...ALERT_RARITY_TIERS],
   onSite: { enabled: true },
   push: { enabled: false },
   email: { enabled: false, mode: "major_only" },
@@ -101,6 +106,18 @@ const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
 
 export function getDefaultNotificationPreferences(): NotificationPreferences {
   return JSON.parse(JSON.stringify(DEFAULT_NOTIFICATION_PREFERENCES)) as NotificationPreferences;
+}
+
+export function normalizeAlertRarityTier(rarity: unknown): AlertRarityTier | null {
+  const normalized = typeof rarity === "string" ? rarity.trim().toLowerCase() : "";
+  if (normalized === "highly_allocated" || normalized === "highly allocated") return "unicorn";
+  return ALERT_RARITY_TIERS.includes(normalized as AlertRarityTier) ? normalized as AlertRarityTier : null;
+}
+
+export function alertRarityIsSelected(rarity: unknown, selected: AlertRarityTier[]) {
+  const normalized = normalizeAlertRarityTier(rarity);
+  if (!normalized) return ALERT_RARITY_TIERS.every((tier) => selected.includes(tier));
+  return selected.includes(normalized);
 }
 
 export function normalizeNotificationPreferences(input: unknown): NotificationPreferences {
@@ -123,8 +140,11 @@ export function normalizeNotificationPreferences(input: unknown): NotificationPr
   const emailEnabled = unsubscribedAt
     ? Number.isFinite(optedInTime) && Number.isFinite(unsubscribedTime) && optedInTime > unsubscribedTime
     : weeklyIntelligence.emailEnabled === true;
+  const sourceRarityTiers = Array.isArray(source.rarityTiers) ? source.rarityTiers : [];
+  const requestedRarityTiers = ALERT_RARITY_TIERS.filter((tier) => sourceRarityTiers.includes(tier));
 
   return {
+    rarityTiers: requestedRarityTiers.length ? requestedRarityTiers : [...DEFAULT_NOTIFICATION_PREFERENCES.rarityTiers],
     onSite: {
       enabled: typeof onSite.enabled === "boolean" ? onSite.enabled : DEFAULT_NOTIFICATION_PREFERENCES.onSite.enabled,
     },
@@ -215,6 +235,7 @@ export function applyNotificationPreferencesPatch(input: {
   const source = nestedRecord(input.requested) || {};
   const merged = {
     ...existing,
+    rarityTiers: Array.isArray(source.rarityTiers) ? source.rarityTiers : existing.rarityTiers,
     onSite: { ...existing.onSite, ...(nestedRecord(source.onSite) || {}) },
     push: { ...existing.push, ...(nestedRecord(source.push) || {}) },
     email: { ...existing.email, ...(nestedRecord(source.email) || {}) },
@@ -230,6 +251,7 @@ export function applyNotificationPreferencesPatch(input: {
   if (supplied(source, "email")) metadataPatch.email = preferences.email;
   if (supplied(source, "sms")) metadataPatch.sms = preferences.sms;
   if (supplied(source, "sightings")) metadataPatch.sightings = preferences.sightings;
+  if (Object.prototype.hasOwnProperty.call(source, "rarityTiers")) metadataPatch.rarityTiers = preferences.rarityTiers;
 
   const weeklyRequest = nestedRecord(source.weeklyIntelligence);
   if (weeklyRequest && (weeklyRequest.action === "subscribe" || weeklyRequest.action === "unsubscribe")) {

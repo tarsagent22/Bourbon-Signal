@@ -1,17 +1,23 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import type { MemberPreferences, RadarAreaPreferences } from "../api/types";
-import { alertIsStale, clearRadarAreas, compactMonitoringScopes, formatPhoneNumber, maskedPhoneNumber, memberAlertBottleNames, monitoringScopesChanged, presentPushIssue, radarAreaCount, radarAreaSummary, radarLocalityDisplayName, radarMonitoringSummary, radarStateDisplayCode, scopesForState, setBottleWatched, setRadarState, setStatewideScope, stopMonitoringState, toggleMonitoringScope, toggleRadarArea, watchedBottleCount } from "./radar-preferences";
+import { alertIsStale, clearRadarAreas, compactMonitoringScopes, formatPhoneNumber, maskedPhoneNumber, memberAlertBottleNames, monitoringScopesChanged, presentPushIssue, radarAreaCount, radarAreaSummary, radarLocalityDisplayName, radarMonitoringSummary, radarStateDisplayCode, scopesForState, setBottleWatched, setRadarState, setStatewideScope, stopMonitoringState, toggleAlertRarity, toggleMonitoringScope, toggleRadarArea, watchedBottleCount } from "./radar-preferences";
 
 const areas: RadarAreaPreferences = { states: [], ncBoards: [], gaAreas: [], tnAreas: [], vaCities: [], ohCities: [], iaCities: [], idCities: [], scAreas: [], caAreas: [], nvAreas: [], nyAreas: [], coAreas: [], paCounties: [], paStores: [] };
 const preferences = (): MemberPreferences => ({
   entitlements: { trackedBottleLimit: 2, alertAreaLimit: 2 },
   areaPreferences: areas,
   monitoringScopes: [],
-  notificationPreferences: { onSite: { enabled: true }, push: { enabled: false }, email: { enabled: false, mode: "major_only" }, sms: { enabled: false, available: true, verified: false, mode: "major_only" }, sightings: { enabled: false } },
+  notificationPreferences: { rarityTiers: ["unicorn", "allocated", "limited"], onSite: { enabled: true }, push: { enabled: false }, email: { enabled: false, mode: "major_only" }, sms: { enabled: false, available: true, verified: false, mode: "major_only" }, sightings: { enabled: false } },
   alertMode: "specific_bottles",
   bottleAlertPreferences: { bottleNames: ["Stagg"], bottleKeys: ["stagg"] },
   collectionPreferences: { bottles: [], version: 0 },
+});
+
+test("rarity controls preserve stable order and never allow an empty alert selection", () => {
+  assert.deepEqual(toggleAlertRarity(["unicorn", "allocated", "limited"], "limited"), ["unicorn", "allocated"]);
+  assert.deepEqual(toggleAlertRarity(["unicorn", "allocated"], "limited"), ["unicorn", "allocated", "limited"]);
+  assert.deepEqual(toggleAlertRarity(["unicorn"], "unicorn"), ["unicorn"]);
 });
 
 test("watch updates are canonical and enforce the actual membership limit", () => {

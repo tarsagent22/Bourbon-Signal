@@ -23,6 +23,7 @@ for (const phrase of [
   'skippedNoAreaPreferences',
   '.sort(sortCandidatesForMember)',
   'groupCandidatesByLocation',
+  'alertRarityIsSelected(candidate.tier ?? candidate.rarityTier, notificationPrefs.rarityTiers)',
   'bottleNames: candidateBottleNames(candidate)',
   'Array.isArray(source.bottleNames)',
   'CANDIDATE_POOL_PER_USER',

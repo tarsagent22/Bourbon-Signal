@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
 import {
   WeeklyIntelligencePreferenceConflict,
+  alertRarityIsSelected,
   applyNotificationPreferencesPatch,
+  normalizeAlertRarityTier,
   normalizeNotificationPreferences,
 } from '../src/lib/notification-preferences.ts';
 import {
@@ -21,6 +23,23 @@ assert.deepEqual(all.email, { enabled: true, mode: 'all' });
 
 const majorOnly = normalizeNotificationPreferences({ email: { enabled: true, mode: 'major_only' } });
 assert.deepEqual(majorOnly.email, { enabled: true, mode: 'major_only' });
+assert.deepEqual(majorOnly.rarityTiers, ['unicorn', 'allocated', 'limited'], 'existing members default to every alert rarity');
+
+const narrowedRarities = applyNotificationPreferencesPatch({
+  existing: majorOnly,
+  requested: { rarityTiers: ['allocated', 'unicorn', 'allocated', 'invalid'] },
+  now: '2026-07-16T14:00:00.000Z',
+});
+assert.deepEqual(narrowedRarities.preferences.rarityTiers, ['unicorn', 'allocated'], 'rarity selections are normalized into stable product order');
+assert.deepEqual(narrowedRarities.metadataPatch.rarityTiers, ['unicorn', 'allocated'], 'rarity changes persist as an explicit metadata patch');
+const emptyRarities = normalizeNotificationPreferences({ rarityTiers: [] });
+assert.deepEqual(emptyRarities.rarityTiers, ['unicorn', 'allocated', 'limited'], 'an empty or corrupt selection fails safe to all rarities');
+assert.equal(alertRarityIsSelected('limited', ['unicorn', 'allocated']), false, 'limited candidates are excluded when the member turns limited off');
+assert.equal(alertRarityIsSelected('allocated', ['unicorn', 'allocated']), true, 'selected rarities remain eligible');
+assert.equal(normalizeAlertRarityTier('HIGHLY ALLOCATED'), 'unicorn', 'stored and delivered rarity uses the canonical mobile tier');
+assert.equal(alertRarityIsSelected('highly_allocated', ['unicorn']), true, 'legacy highly-allocated candidates normalize to unicorn');
+assert.equal(alertRarityIsSelected(null, ['unicorn', 'allocated']), false, 'unclassified candidates fail closed after a member narrows rarity');
+assert.equal(alertRarityIsSelected(null, ['unicorn', 'allocated', 'limited']), true, 'default all-rarity behavior preserves legacy unclassified candidates');
 
 const suppressed = normalizeNotificationPreferences({
   onSite: { enabled: true },

@@ -24,7 +24,9 @@ import { CoverageRequestsCard } from "@/components/dashboard/CoverageRequestsCar
 import { ActivationChecklist } from "@/components/onboarding/ActivationChecklist";
 import SignalPointsPanel from "@/components/SignalPointsPanel";
 import {
+  ALERT_RARITY_TIERS,
   getDefaultNotificationPreferences,
+  type AlertRarityTier,
   type NotificationPreferences,
 } from "@/lib/notification-preferences";
 import { getPopularBottlePool } from "@/lib/bottleSuggestions";
@@ -858,6 +860,15 @@ function PaidMemberDashboard() {
       ...prev,
       [state]: !prev[state],
     }));
+  };
+
+  const toggleAlertRarity = (tier: AlertRarityTier) => {
+    setNotificationPrefs((current) => {
+      const next = current.rarityTiers.includes(tier)
+        ? current.rarityTiers.filter((value) => value !== tier)
+        : ALERT_RARITY_TIERS.filter((value) => [...current.rarityTiers, tier].includes(value));
+      return next.length ? { ...current, rarityTiers: next } : current;
+    });
   };
 
   const collectionEntries = prefs.collectionPreferences?.bottles ?? [];
@@ -2079,6 +2090,7 @@ function PaidMemberDashboard() {
     const nextPrefs: UserAlertPreferencePatch = {
       areaPreferences: localPrefs,
       notificationPreferences: {
+        rarityTiers: notificationPrefs.rarityTiers,
         onSite: notificationPrefs.onSite,
         email: notificationPrefs.email,
         sms: notificationPrefs.sms,
@@ -2898,7 +2910,7 @@ function PaidMemberDashboard() {
                     {
                       value: "anything_notable" as AlertMode,
                       label: "Anything notable in my area",
-                      note: "Best when you care about your local board, city, or store. Alerts can fire for allocated, limited, unicorn, shipment, or verified inventory hits nearby.",
+                      note: "Best when you care about your local board, city, or store. Alerts can fire for the bottle rarities you select below.",
                     },
                     {
                       value: "specific_bottles" as AlertMode,
@@ -2930,6 +2942,41 @@ function PaidMemberDashboard() {
                       </button>
                     );
                   })}
+                </div>
+                <div style={{ display: "grid", gap: "10px", paddingTop: "8px" }}>
+                  <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: "11px", color: "var(--color-accent-amber)", letterSpacing: "0.12em", textTransform: "uppercase" }}>
+                    Bottle rarity
+                  </div>
+                  <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.6 }}>
+                    Choose which bottle tiers can trigger Radar inbox, push, email, and SMS alerts.
+                  </p>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "10px" }}>
+                    {ALERT_RARITY_TIERS.map((tier) => {
+                      const selected = notificationPrefs.rarityTiers.includes(tier);
+                      return (
+                        <button
+                          aria-pressed={selected}
+                          key={tier}
+                          onClick={() => toggleAlertRarity(tier)}
+                          style={{
+                            minHeight: "48px",
+                            borderRadius: "14px",
+                            border: selected ? "1px solid rgba(196,148,58,0.42)" : "1px solid rgba(255,255,255,0.08)",
+                            background: selected ? "rgba(196,148,58,0.14)" : "rgba(255,255,255,0.03)",
+                            color: selected ? "var(--color-accent-amber)" : "var(--color-text-secondary)",
+                            fontFamily: "var(--font-dm-sans)",
+                            fontSize: "14px",
+                            fontWeight: 700,
+                            cursor: "pointer",
+                            textTransform: "capitalize",
+                          }}
+                        >
+                          {tier}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "var(--color-text-muted)" }}>At least one rarity must stay selected.</span>
                 </div>
               </div>
           </StepShell>
