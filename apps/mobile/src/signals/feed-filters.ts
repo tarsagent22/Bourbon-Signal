@@ -39,6 +39,34 @@ export function toggleRarity(filters: SignalFeedFilters, rarity: SignalRarity): 
   return { ...filters, rarities: selected };
 }
 
+export function filterSignalsByRarity<T extends { bottle: { rarity?: string | null } }>(signals: readonly T[], rarities: readonly SignalRarity[]): T[] {
+  if (!rarities.length) return [...signals];
+  const selected = new Set<string>(rarities);
+  return signals.filter((signal) => selected.has(String(signal.bottle.rarity || "").toLowerCase()));
+}
+
+export function serverSignalFilters(filters: SignalFeedFilters): SignalFeedFilters {
+  return filters.rarities.length ? { ...filters, rarities: [] } : filters;
+}
+
+export function shouldBackfillRarity({
+  rarities,
+  visibleCount,
+  hasMore,
+  loading,
+  error,
+  attempts = 0,
+}: {
+  rarities: readonly SignalRarity[];
+  visibleCount: number;
+  hasMore: boolean;
+  loading: boolean;
+  error: string;
+  attempts?: number;
+}, minimumVisible = 8, maximumAttempts = 3) {
+  return rarities.length > 0 && visibleCount < minimumVisible && hasMore && !loading && !error && attempts < maximumAttempts;
+}
+
 export function activeFilterCount(filters: SignalFeedFilters) {
   return Number(Boolean(filters.state)) + Number(Boolean(filters.area)) + Number(Boolean(filters.freshness)) + Number(Boolean(filters.bottle.trim()));
 }

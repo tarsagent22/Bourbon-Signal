@@ -1,12 +1,12 @@
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { router } from "expo-router";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FlatList, Keyboard, Modal, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { MobileApiError } from "../../../src/api/client";
 import type { MemberProfile, Signal, SignalFeedPage } from "../../../src/api/types";
 import { SignalCard } from "../../../src/components/SignalCard";
 import { useMobileApi } from "../../../src/hooks/useMobileApi";
-import { DEFAULT_SIGNAL_FILTERS, activeFilterCount, areaOptionsForState, areaSelectorLabel, filterSummary, normalizedFilters, rarityOptionsForView, toggleRarity, type SignalFeedFilters } from "../../../src/signals/feed-filters";
+import { DEFAULT_SIGNAL_FILTERS, activeFilterCount, areaOptionsForState, areaSelectorLabel, filterSignalsByRarity, filterSummary, normalizedFilters, rarityOptionsForView, serverSignalFilters, shouldBackfillRarity, toggleRarity, type SignalFeedFilters } from "../../../src/signals/feed-filters";
 import { colors } from "../../../src/theme";
 
 type FeedView = "market" | "community";
@@ -95,6 +95,9 @@ export default function SignalFeedScreen() {
   const [areaOptionsLoading, setAreaOptionsLoading] = useState(false);
   const [areaOptionsError, setAreaOptionsError] = useState("");
   const filters = filtersByView[view];
+  const requestFilters = useMemo(() => serverSignalFilters(filters), [filters]);
+  const visibleSignals = useMemo(() => filterSignalsByRarity(signals, filters.rarities), [filters.rarities, signals]);
+  const rarityBackfillKey = JSON.stringify([view, requestFilters.state, requestFilters.area, requestFilters.freshness, requestFilters.bottle, filters.rarities]);
   const areaDirectory = profile?.feedAreas;
   const stateOptions = areaDirectory?.states.filter((state) => /^[A-Z]{2}$/.test(state.code)).map((state) => ({ value: state.code, label: `${state.label} (${state.code})` })) || [];
   const staticDraftAreaOptions = areaOptionsForState(areaDirectory, draftFilters.state);
@@ -104,6 +107,7 @@ export default function SignalFeedScreen() {
   const draftFilterCount = activeFilterCount(draftFilters);
   const requestSequence = useRef(0);
   const requestInFlightRef = useRef<"refresh" | "page" | null>(null);
+  const rarityBackfillRef = useRef({ key: "", attempts: 0 });
 
   const handleError = useCallback((caught: unknown) => {
     const apiError = caught instanceof MobileApiError ? caught : null;
@@ -128,10 +132,11 @@ export default function SignalFeedScreen() {
     if (refresh && inFlight === "page") requestSequence.current += 1;
     const requestId = ++requestSequence.current;
     requestInFlightRef.current = mode;
+    if (refresh) rarityBackfillRef.current.attempts = 0;
     setLoading(true);
     setError("");
     try {
-      const page = await api.listSignals({ view, limit: 30, cursor: refresh ? null : cursor, fresh: refresh, ...filters });
+      const page = await api.listSignals({ view, limit: 30, cursor: refresh ? null : cursor, fresh: refresh, ...requestFilters });
       if (requestId !== requestSequence.current) return;
       setSignals((current) => {
         const next = refresh ? page.signals : [...current, ...page.signals];
@@ -157,7 +162,7 @@ export default function SignalFeedScreen() {
         setLoading(false);
       }
     }
-  }, [api, cursor, filters, handleError, hasMore, view]);
+  }, [api, cursor, handleError, hasMore, requestFilters, view]);
 
   const selectView = useCallback((next: FeedView) => {
     if (next === view) return;
@@ -187,6 +192,13 @@ export default function SignalFeedScreen() {
     setLoading(false);
   }, [areaDirectory, view]);
 
+  const applyRarityFilters = useCallback((next: SignalFeedFilters) => {
+    setFiltersByView((current) => ({
+      ...current,
+      [view]: { ...current[view], rarities: [...next.rarities] },
+    }));
+  }, [view]);
+
   const openFilters = useCallback(() => {
     setDraftFilters({ ...filters, rarities: [...filters.rarities] });
     setFilterOpen(true);
@@ -194,6 +206,16 @@ export default function SignalFeedScreen() {
 
   useEffect(() => { void loadProfile(); }, [loadProfile]);
   useEffect(() => { if (!loaded && !loading && !error) void load(true); }, [error, load, loaded, loading]);
+  useEffect(() => {
+    if (rarityBackfillRef.current.key !== rarityBackfillKey) {
+      rarityBackfillRef.current = { key: rarityBackfillKey, attempts: 0 };
+    }
+    const backfill = rarityBackfillRef.current;
+    if (loaded && shouldBackfillRarity({ rarities: filters.rarities, visibleCount: visibleSignals.length, hasMore, loading, error, attempts: backfill.attempts })) {
+      backfill.attempts += 1;
+      void load(false);
+    }
+  }, [error, filters.rarities, hasMore, load, loaded, loading, rarityBackfillKey, visibleSignals.length]);
   useEffect(() => {
     if (!filterOpen || !draftFilters.state || draftFilters.state === "NC") {
       setAreaOptionsLoading(false);
@@ -260,7 +282,7 @@ export default function SignalFeedScreen() {
         <Pressable
           accessibilityRole="button"
           accessibilityState={{ selected: filters.rarities.length === 0 }}
-          onPress={() => applyFilters({ ...filters, rarities: [] })}
+          onPress={() => applyRarityFilters({ ...filters, rarities: [] })}
           style={({ pressed }) => [styles.rarityChip, filters.rarities.length === 0 && styles.rarityChipSelected, pressed && styles.segmentPressed]}
         >
           <Text style={[styles.rarityChipText, filters.rarities.length === 0 && styles.rarityChipTextSelected]}>All</Text>
@@ -272,7 +294,7 @@ export default function SignalFeedScreen() {
               key={option.value}
               accessibilityRole="button"
               accessibilityState={{ selected }}
-              onPress={() => applyFilters(toggleRarity(filters, option.value))}
+              onPress={() => applyRarityFilters(toggleRarity(filters, option.value))}
               style={({ pressed }) => [styles.rarityChip, selected && styles.rarityChipSelected, pressed && styles.segmentPressed]}
             >
               <Text style={[styles.rarityChipText, selected && styles.rarityChipTextSelected]}>{option.label}</Text>
@@ -299,26 +321,32 @@ export default function SignalFeedScreen() {
     <>
       <FlatList
       contentContainerStyle={styles.list}
-      data={signals}
+      data={visibleSignals}
       keyExtractor={(item) => item.id}
       renderItem={({ item }) => <SignalCard signal={item} onPress={() => router.push({ pathname: "/(app)/signal/[id]", params: { id: item.id } })} />}
       ItemSeparatorComponent={() => <View style={styles.gap} />}
       refreshControl={<RefreshControl refreshing={loading && loaded} onRefresh={() => load(true)} tintColor={colors.accent} colors={[colors.accent]} />}
-      onEndReached={() => { if (loaded && signals.length) void load(false); }}
+      onEndReached={() => { if (loaded && signals.length && !filters.rarities.length) void load(false); }}
       onEndReachedThreshold={0.5}
       ListHeaderComponent={header}
       ListEmptyComponent={!loaded && loading
         ? <FeedSkeleton />
         : error
           ? <View style={styles.message}><Text accessibilityRole="alert" style={styles.error}>{error}</Text><Pressable accessibilityRole="button" onPress={() => load(true)} style={styles.retryTarget}><Text style={styles.retry}>Try again</Text></Pressable></View>
-          : <Text style={styles.empty}>{view === "community" ? "No member sightings yet." : "No fresh Market Signals are available right now."}</Text>}
+          : filters.rarities.length && loading
+            ? <View style={styles.message}><Text style={styles.loadingText}>Finding more matching Signals…</Text></View>
+            : <Text style={styles.empty}>{filters.rarities.length
+              ? view === "community" ? "No member sightings match these tiers." : "No Market Signals match these tiers right now."
+              : view === "community" ? "No member sightings yet." : "No fresh Market Signals are available right now."}</Text>}
       ListFooterComponent={loaded && loading
         ? <View style={styles.footer}><Text style={styles.loadingText}>Loading…</Text></View>
         : error && signals.length
           ? <View style={styles.footer}><Text accessibilityRole="alert" style={styles.footerError}>{error}</Text><Pressable accessibilityRole="button" onPress={() => load(false)} style={styles.retryTarget}><Text style={styles.retry}>Try again</Text></Pressable></View>
-          : loaded && !hasMore && signals.length
-            ? <Text style={styles.end}>You’re caught up.</Text>
-            : null}
+          : loaded && filters.rarities.length > 0 && hasMore
+            ? <View style={styles.footer}><Pressable accessibilityRole="button" onPress={() => load(false)} style={styles.retryTarget}><Text style={styles.retry}>Load more matching Signals</Text></Pressable></View>
+            : loaded && !hasMore && visibleSignals.length
+              ? <Text style={styles.end}>You’re caught up.</Text>
+              : null}
     />
     <Modal animationType="slide" transparent visible={filterOpen} onRequestClose={() => setFilterOpen(false)}>
       <View style={styles.modalRoot}>
