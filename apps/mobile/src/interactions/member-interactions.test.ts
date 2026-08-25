@@ -3,10 +3,12 @@ import test from "node:test";
 import type { MemberCollectionBottle, SignalRewardItem } from "../api/types";
 import {
   addSignalBottleToCollection,
+  collectionSummary,
   filterAndSortCollection,
   filterWatchedBottles,
   rewardAvailability,
   updateCollectionBottle,
+  visibleTasteTags,
 } from "./member-interactions";
 
 const bottle = (overrides: Partial<MemberCollectionBottle> = {}): MemberCollectionBottle => ({
@@ -16,6 +18,7 @@ const bottle = (overrides: Partial<MemberCollectionBottle> = {}): MemberCollecti
   rating: 95,
   tasteTags: ["Caramel", "Oak"],
   wouldBuyAgain: true,
+  opened: true,
   notes: "Dessert pour",
   addedAt: "2026-08-01T00:00:00.000Z",
   updatedAt: "2026-08-01T00:00:00.000Z",
@@ -33,14 +36,30 @@ test("filters collection text and applies deliberate sort modes", () => {
   assert.deepEqual(filterAndSortCollection(bottles, "", "name").map((item) => item.bottleName), ["E.H. Taylor Small Batch", "Eagle Rare 10Y", "Old Forester 1910"]);
 });
 
+test("filters Cellar by opened state, rating, and buy-again preference", () => {
+  const bottles = [
+    bottle({ bottleName: "Opened favorite", canonicalKey: "opened favorite", rating: 94, opened: true, wouldBuyAgain: true }),
+    bottle({ bottleName: "Unopened favorite", canonicalKey: "unopened favorite", rating: 91, opened: false, wouldBuyAgain: true }),
+    bottle({ bottleName: "Opened pass", canonicalKey: "opened pass", rating: 79, opened: true, wouldBuyAgain: false }),
+  ];
+  assert.deepEqual(filterAndSortCollection(bottles, "", "rating", { status: "opened", minRating: 90, buyAgainOnly: true }).map((item) => item.bottleName), ["Opened favorite"]);
+  assert.deepEqual(filterAndSortCollection(bottles, "", "rating", { status: "unopened", minRating: null, buyAgainOnly: false }).map((item) => item.bottleName), ["Unopened favorite"]);
+});
+
+test("summarizes rated bottles and compacts taste tags", () => {
+  assert.deepEqual(collectionSummary([bottle({ rating: 95 }), bottle({ canonicalKey: "unrated", rating: 0 }), bottle({ canonicalKey: "rated", rating: 85 })]), { count: 3, ratedCount: 2, averageRating: 90 });
+  assert.deepEqual(visibleTasteTags(["Caramel", "Oak", "Vanilla", "Cherry"]), { visible: ["Caramel", "Oak"], hiddenCount: 2 });
+});
+
 test("updates one collection bottle without losing canonical identity", () => {
   const original = bottle();
-  const updated = updateCollectionBottle([original], original.canonicalKey, { rating: 97, notes: "  Better after air  ", tasteTags: ["Caramel", "", "Oak", "Caramel"], wouldBuyAgain: false }, "2026-08-22T00:00:00.000Z");
+  const updated = updateCollectionBottle([original], original.canonicalKey, { rating: 97, notes: "  Better after air  ", tasteTags: ["Caramel", "", "Oak", "Caramel"], wouldBuyAgain: false, opened: false }, "2026-08-22T00:00:00.000Z");
   assert.equal(updated[0].bottleId, original.bottleId);
   assert.equal(updated[0].rating, 97);
   assert.equal(updated[0].notes, "Better after air");
   assert.deepEqual(updated[0].tasteTags, ["Caramel", "Oak"]);
   assert.equal(updated[0].wouldBuyAgain, false);
+  assert.equal(updated[0].opened, false);
   assert.equal(updated[0].updatedAt, "2026-08-22T00:00:00.000Z");
 });
 

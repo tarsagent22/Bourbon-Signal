@@ -5,6 +5,7 @@ export interface CollectionBottlePreference {
   rating: number;
   tasteTags?: string[];
   wouldBuyAgain?: boolean;
+  opened?: boolean;
   notes?: string;
   pendingCanonicalMatch?: boolean;
   bottleContributionId?: string;
@@ -48,6 +49,7 @@ export function normalizeCollectionBottles(input: unknown): CollectionBottlePref
         ? Array.from(new Set(item.tasteTags.filter((tag): tag is string => typeof tag === "string").map((tag) => tag.trim().slice(0, 60)).filter(Boolean))).slice(0, 12)
         : [],
       wouldBuyAgain: typeof item.wouldBuyAgain === "boolean" ? item.wouldBuyAgain : rating >= 80,
+      opened: item.opened === true,
       notes: typeof item.notes === "string" ? item.notes.slice(0, 500) : "",
       pendingCanonicalMatch: item.pendingCanonicalMatch === true,
       bottleContributionId: typeof item.bottleContributionId === "string" ? item.bottleContributionId.slice(0, 180) : undefined,
@@ -68,6 +70,7 @@ export function collectionFingerprint(input: unknown) {
       rating: bottle.rating,
       tasteTags: [...(bottle.tasteTags || [])].sort(),
       wouldBuyAgain: Boolean(bottle.wouldBuyAgain),
+      opened: bottle.opened === true,
       notes: bottle.notes || "",
       pendingCanonicalMatch: Boolean(bottle.pendingCanonicalMatch),
       bottleContributionId: bottle.bottleContributionId || null,
