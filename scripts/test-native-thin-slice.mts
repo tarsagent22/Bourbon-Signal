@@ -339,6 +339,14 @@ assert.doesNotMatch(nativeSignalFeed, /segmentSelected:\s*\{[^}]*borderColor/, "
 assert.doesNotMatch(nativeSignalFeed, /segment:\s*\{[^}]*borderColor:\s*"transparent"/, "segments should not reserve an inner border");
 assert.doesNotMatch(nativeSignalFeed, /[\u{1F300}-\u{1FAFF}]/u, "the segmented control must use designed vector icons, not emoji");
 assert.match(nativeSignalFeed, /rarityOptionsForView\(view\)/, "rarity filters must remain immediately visible and respect each source schema");
+assert.match(nativeSignalFeed, /data=\{visibleSignals\}/, "rarity changes must synchronously filter the already-mounted Signal cache");
+assert.match(nativeSignalFeed, /serverSignalFilters\(filters\)/, "rarity selection must not force a new server query lens");
+assert.match(nativeSignalFeed, /onPress=\{\(\) => applyRarityFilters\(toggleRarity\(filters, option\.value\)\)\}/, "rarity chips must use the non-destructive local transition path");
+assert.doesNotMatch(nativeSignalFeed, /onPress=\{\(\) => applyFilters\(toggleRarity/, "rarity chips must never clear the feed through the remote filter reset path");
+assert.match(nativeSignalFeed, /shouldBackfillRarity/, "sparse rarity results should replenish silently from broad pagination");
+assert.match(nativeSignalFeed, /attempts:\s*backfill\.attempts/, "silent rarity replenishment must honor its bounded page budget");
+assert.match(nativeSignalFeed, /onEndReached=.*!filters\.rarities\.length/, "short filtered lists must not bypass the silent backfill cap through automatic end-reached events");
+assert.match(nativeSignalFeed, /Load more matching Signals/, "members must retain an explicit continuation after bounded silent enrichment");
 assert.match(nativeSignalFeed, /horizontal/, "rarity chips should scroll instead of wrapping into multiple rows");
 assert.match(nativeSignalFeed, /<Modal/, "lower-frequency filters should use one compact native sheet");
 assert.match(nativeSignalFeed, /activeFilterCount/, "the compact filter control must expose its active state");

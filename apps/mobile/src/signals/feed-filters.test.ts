@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import { DEFAULT_SIGNAL_FILTERS, activeFilterCount, areaOptionsForState, areaSelectorLabel, filterSummary, normalizedFilters, rarityOptionsForView, toggleRarity, type SignalAreaDirectory } from "./feed-filters";
+import { DEFAULT_SIGNAL_FILTERS, activeFilterCount, areaOptionsForState, areaSelectorLabel, filterSignalsByRarity, filterSummary, normalizedFilters, rarityOptionsForView, serverSignalFilters, shouldBackfillRarity, toggleRarity, type SignalAreaDirectory, type SignalFeedFilters } from "./feed-filters";
 
 const areas: SignalAreaDirectory = {
   states: [
@@ -15,6 +15,30 @@ test("rarity chips support multi-select and return to All when the last chip is 
   const combined = toggleRarity(allocated, "unicorn");
   assert.deepEqual(combined.rarities, ["allocated", "unicorn"]);
   assert.deepEqual(toggleRarity(toggleRarity(combined, "allocated"), "unicorn").rarities, []);
+});
+
+test("rarity filters synchronously select loaded Signals without reordering them", () => {
+  const signals = [
+    { id: "limited-1", bottle: { rarity: "limited" } },
+    { id: "allocated-1", bottle: { rarity: "allocated" } },
+    { id: "unicorn-1", bottle: { rarity: "unicorn" } },
+    { id: "allocated-2", bottle: { rarity: "allocated" } },
+  ];
+
+  assert.equal(filterSignalsByRarity(signals, []).length, 4);
+  assert.deepEqual(filterSignalsByRarity(signals, ["allocated"]).map((signal) => signal.id), ["allocated-1", "allocated-2"]);
+  assert.deepEqual(filterSignalsByRarity(signals, ["limited", "unicorn"]).map((signal) => signal.id), ["limited-1", "unicorn-1"]);
+});
+
+test("rarity never enters the server query and sparse local results backfill silently", () => {
+  const filters: SignalFeedFilters = { ...DEFAULT_SIGNAL_FILTERS, rarities: ["allocated", "unicorn"], state: "NC", freshness: "7d" };
+  assert.deepEqual(serverSignalFilters(filters), { ...filters, rarities: [] });
+  assert.equal(shouldBackfillRarity({ rarities: ["unicorn"], visibleCount: 2, hasMore: true, loading: false, error: "" }), true);
+  assert.equal(shouldBackfillRarity({ rarities: ["unicorn"], visibleCount: 8, hasMore: true, loading: false, error: "" }), false);
+  assert.equal(shouldBackfillRarity({ rarities: [], visibleCount: 0, hasMore: true, loading: false, error: "" }), false);
+  assert.equal(shouldBackfillRarity({ rarities: ["unicorn"], visibleCount: 0, hasMore: true, loading: true, error: "" }), false);
+  assert.equal(shouldBackfillRarity({ rarities: ["unicorn"], visibleCount: 0, hasMore: true, loading: false, error: "offline" }), false);
+  assert.equal(shouldBackfillRarity({ rarities: ["unicorn"], visibleCount: 0, hasMore: true, loading: false, error: "", attempts: 3 }), false);
 });
 
 test("both feeds expose the canonical three rarity tiers", () => {
