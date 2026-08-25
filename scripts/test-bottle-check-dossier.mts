@@ -108,6 +108,7 @@ assert.deepEqual(collectionEntry, {
   rating: 0,
   tasteTags: [],
   wouldBuyAgain: false,
+  opened: false,
   notes: "",
   addedAt: "2026-08-11T12:00:00.000Z",
   updatedAt: "2026-08-11T12:00:00.000Z",
