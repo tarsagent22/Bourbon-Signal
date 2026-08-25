@@ -127,8 +127,13 @@ const changedQuantitySnapshot = [
 ];
 assert.equal(
   stableGroupedAlertDedupeKey('NC|store|wake-sandy-fork', firstInventorySnapshot),
+  stableGroupedAlertDedupeKey('NC|store|wake-sandy-fork', firstInventorySnapshot.map((candidate) => ({ ...candidate }))),
+  'an identical repeated inventory snapshot must retain the same grouped SMS identity',
+);
+assert.notEqual(
+  stableGroupedAlertDedupeKey('NC|store|wake-sandy-fork', firstInventorySnapshot),
   stableGroupedAlertDedupeKey('NC|store|wake-sandy-fork', changedQuantitySnapshot),
-  'quantity changes must not reopen the same grouped SMS alert',
+  'a meaningful quantity change should create a distinct grouped SMS identity',
 );
 assert.notEqual(
   stableGroupedAlertDedupeKey('NC|store|wake-sandy-fork', firstInventorySnapshot),

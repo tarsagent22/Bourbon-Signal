@@ -1,5 +1,6 @@
 import type {
   AlertCandidateInput,
+  AlertCandidateBatchInput,
   AlertCandidateRecord,
   AlertQueueRepository,
 } from "./repository";
@@ -39,4 +40,21 @@ export async function reserveAlertDelivery(
     return { candidate: current, claimed: false, reason };
   }
   return { candidate: claimed, claimed: true, reason: "claimed" };
+}
+
+export async function reserveAlertDeliveryBatch(
+  repository: AlertQueueRepository,
+  input: AlertCandidateBatchInput,
+  options: { mode: AlertQueueMode; workerId: string; now: string },
+) {
+  if (input.alertWindow !== "stable-v2") {
+    throw new Error("Underlying alert batches must use the stable-v2 alert window");
+  }
+  const claimed = await repository.reserveBatch(
+    input,
+    options.workerId,
+    options.now,
+    options.mode === "active",
+  );
+  return { claimed };
 }

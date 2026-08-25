@@ -10,10 +10,16 @@ import { getActiveEngineStateName } from "@/lib/activeStates";
 import { geographyState } from "@/lib/geography-directory";
 import { locationMatchesAny, normalizeStateCodeParam } from "@/lib/location-normalization";
 import { formatSmsAlert, isExactStoreSmsLocation } from "@/lib/sms-alert-copy";
-import { stableGroupedAlertDedupeKey } from "@/lib/alert-dedupe";
-import { createProductionAlertQueueRepository } from "@/lib/alert-queue/runtime";
-import { reserveAlertDelivery, type AlertQueueMode } from "@/lib/alert-queue/delivery-gate";
+import {
+  enumerateUnderlyingAlertChildren,
+  selectUnseenUnderlyingAlertChildren,
+  stableGroupedAlertDedupeKey,
+  stableUnderlyingAlertKey,
+} from "@/lib/alert-dedupe";
+import { alertQueueDatabaseConfigured, createProductionAlertQueueRepository } from "@/lib/alert-queue/runtime";
+import { reserveAlertDeliveryBatch, type AlertQueueMode } from "@/lib/alert-queue/delivery-gate";
 import type { AlertCandidateRecord, AlertChannel } from "@/lib/alert-queue/repository";
+import { ensureAlertDeliveryIdentityV2 } from "@/lib/alert-queue/clerk-migration";
 import { californiaAreaMatchesFields, normalizeCaliforniaAreas } from "@/lib/california-area";
 import { nevadaAreaMatchesFields, normalizeNevadaAreas } from "@/lib/nevada-area";
 import { matchedNewYorkArea, newYorkAreaMatchesFields, normalizeNewYorkAreas } from "@/lib/new-york-area";
@@ -62,6 +68,7 @@ type CandidateAlert = Record<string, unknown>;
 
 type DeliveryRecord = {
   dedupeKey: string;
+  underlyingStableKeys?: string[];
   deliveredAt: string;
   channel?: "email" | "sms";
   emailMode?: EmailAlertMode | null;
@@ -71,6 +78,7 @@ type DeliveryRecord = {
 };
 
 type AlertDeliveryMetadata = {
+  dedupeIdentityVersion?: number;
   recent?: DeliveryRecord[];
   onSiteBaselineDedupeKeys?: string[];
   emailBaselineDedupeKeys?: string[];
@@ -636,6 +644,39 @@ export function groupCandidatesByLocation(candidates: CandidateAlert[]) {
   return [...community, ...groupedEngine].sort(sortCandidatesForMember);
 }
 
+function underlyingStableKeys(candidate: CandidateAlert) {
+  return enumerateUnderlyingAlertChildren(candidate).map(stableUnderlyingAlertKey).filter(Boolean);
+}
+
+function candidateWithUnderlyingChildren(candidate: CandidateAlert, children: CandidateAlert[]) {
+  if (!children.length) return null;
+  if (asString(candidate.sourceType) === "community" && children.length === 1) {
+    return { ...children[0], __groupCandidates: children } as CandidateAlert;
+  }
+  const locationKey = candidateLocationGroupKey(candidate);
+  const regrouped = groupCandidatesByLocation(children);
+  return regrouped.find((grouped) => candidateLocationGroupKey(grouped) === locationKey)
+    || regrouped[0]
+    || null;
+}
+
+function selectUnseenCandidate(
+  candidate: CandidateAlert,
+  seenStableKeys: ReadonlySet<string>,
+  seenLegacyGroupKeys: ReadonlySet<string>,
+) {
+  const legacyGroupKey = asString(candidate.dedupeKey, asString(candidate.id));
+  if (legacyGroupKey && seenLegacyGroupKeys.has(legacyGroupKey)) return null;
+  return candidateWithUnderlyingChildren(
+    candidate,
+    selectUnseenUnderlyingAlertChildren(candidate, seenStableKeys),
+  );
+}
+
+function flattenUnderlyingStableKeys(candidates: CandidateAlert[]) {
+  return uniqueStrings(candidates.flatMap(underlyingStableKeys));
+}
+
 function matchedLocationFromOptions(candidate: CandidateAlert, options: string[]) {
   const values = [
     asString(candidate.locationName),
@@ -693,6 +734,7 @@ function normalizeDeliveryMetadata(input: unknown): AlertDeliveryMetadata {
         .filter((item): item is Record<string, unknown> => Boolean(item && typeof item === "object"))
         .map((item) => ({
           dedupeKey: asString(item.dedupeKey),
+          underlyingStableKeys: uniqueStrings(toStrings(item.underlyingStableKeys)),
           deliveredAt: asString(item.deliveredAt),
           channel: (item.channel === "sms" ? "sms" : "email") as "email" | "sms",
           emailMode: (item.emailMode === "all" ? "all" : "major_only") as EmailAlertMode,
@@ -703,10 +745,11 @@ function normalizeDeliveryMetadata(input: unknown): AlertDeliveryMetadata {
         .filter((item) => item.dedupeKey && item.deliveredAt)
     : [];
   return {
+    dedupeIdentityVersion: source.dedupeIdentityVersion === 2 ? 2 : undefined,
     recent,
-    onSiteBaselineDedupeKeys: uniqueStrings(toStrings(source.onSiteBaselineDedupeKeys)).slice(0, 1000),
-    emailBaselineDedupeKeys: uniqueStrings(toStrings(source.emailBaselineDedupeKeys)).slice(0, 1000),
-    smsBaselineDedupeKeys: uniqueStrings(toStrings(source.smsBaselineDedupeKeys)).slice(0, 1000),
+    onSiteBaselineDedupeKeys: uniqueStrings(toStrings(source.onSiteBaselineDedupeKeys)),
+    emailBaselineDedupeKeys: uniqueStrings(toStrings(source.emailBaselineDedupeKeys)),
+    smsBaselineDedupeKeys: uniqueStrings(toStrings(source.smsBaselineDedupeKeys)),
     lastOnSiteBaselineAt: asString(source.lastOnSiteBaselineAt) || undefined,
     lastEmailBaselineAt: asString(source.lastEmailBaselineAt) || undefined,
     lastSmsBaselineAt: asString(source.lastSmsBaselineAt) || undefined,
@@ -724,6 +767,12 @@ function recentDeliverySet(metadata: AlertDeliveryMetadata, channel: "email" | "
     .map((record) => deliveryDedupeToken(record.dedupeKey, channel)));
 }
 
+function recentUnderlyingDeliverySet(metadata: AlertDeliveryMetadata, channel: "email" | "sms") {
+  return new Set((metadata.recent || [])
+    .filter((record) => (record.channel || "email") === channel)
+    .flatMap((record) => record.underlyingStableKeys || []));
+}
+
 function normalizeMemberAlertRecord(input: unknown): MemberAlertRecord | null {
   if (!input || typeof input !== "object") return null;
   const source = input as Record<string, unknown>;
@@ -739,6 +788,7 @@ function normalizeMemberAlertRecord(input: unknown): MemberAlertRecord | null {
     dedupeKey,
     bottleName,
     bottleNames: Array.isArray(source.bottleNames) ? uniqueStrings(source.bottleNames.map((value) => asString(value))) : undefined,
+    underlyingStableKeys: uniqueStrings(toStrings(source.underlyingStableKeys)),
     state: asString(source.state),
     storeLabel: asString(source.storeLabel, "Tracked location"),
     matchedArea: asString(source.matchedArea, asString(source.state)),
@@ -775,6 +825,7 @@ export function candidateToMemberAlert(userId: string, candidate: CandidateAlert
     dedupeKey,
     bottleName: asString(candidate.bottle, "Bottle signal"),
     bottleNames: candidateBottleNames(candidate),
+    underlyingStableKeys: underlyingStableKeys(candidate),
     state: asString(candidate.state).toUpperCase(),
     storeLabel: candidateStoreLabel(candidate),
     matchedArea: areaPrefs ? candidateMatchedArea(candidate, areaPrefs) : asString(candidate.locationName) || asString(candidate.state),
@@ -879,13 +930,15 @@ function smsBodyForCandidate(candidate: CandidateAlert, storeLabel: string) {
   });
 }
 
+class DefinitiveSmsSendError extends Error {}
+
 async function sendTwilioSms(to: string, body: string) {
   const accountSid = process.env.TWILIO_ACCOUNT_SID || "";
   const authToken = process.env.TWILIO_AUTH_TOKEN || "";
   const messagingServiceSid = process.env.TWILIO_MESSAGING_SERVICE_SID || "";
   const from = process.env.TWILIO_FROM_NUMBER || "";
-  if (!accountSid || !authToken) throw new Error("Twilio credentials are not configured.");
-  if (!messagingServiceSid && !from) throw new Error("Set TWILIO_MESSAGING_SERVICE_SID or TWILIO_FROM_NUMBER before enabling SMS alerts.");
+  if (!accountSid || !authToken) throw new DefinitiveSmsSendError("Twilio credentials are not configured.");
+  if (!messagingServiceSid && !from) throw new DefinitiveSmsSendError("Set TWILIO_MESSAGING_SERVICE_SID or TWILIO_FROM_NUMBER before enabling SMS alerts.");
 
   const bodyParams = new URLSearchParams({ To: to, Body: body });
   if (messagingServiceSid) bodyParams.set("MessagingServiceSid", messagingServiceSid);
@@ -900,7 +953,7 @@ async function sendTwilioSms(to: string, body: string) {
     body: bodyParams,
   });
   const payload = await response.json().catch(() => ({})) as Record<string, unknown>;
-  if (!response.ok) throw new Error(asString(payload.message, `Twilio SMS send failed with HTTP ${response.status}`));
+  if (!response.ok) throw new DefinitiveSmsSendError(asString(payload.message, `Twilio SMS send failed with HTTP ${response.status}`));
   return { sid: asString(payload.sid) || null, status: asString(payload.status) || null };
 }
 
@@ -1056,10 +1109,13 @@ export async function deliverPreferenceAlerts(req: Request, options: {
     queueDuplicatesSkipped: 0,
     queueFailures: 0,
     queueStaleClaimsRecovered: 0,
+    dedupeIdentityMigrations: 0,
+    dedupeIdentityMigrationFailures: 0,
     errors: [] as Array<{ userId?: string; email?: string; message: string }>,
   };
 
   const queueRepository = queueMode === "off" ? null : createProductionAlertQueueRepository();
+  const memberLeaseRepository = queueRepository || (alertQueueDatabaseConfigured() ? createProductionAlertQueueRepository() : null);
   const queueSnapshotId = batch.snapshot.snapshotId || `bundled-${createHash("sha256")
     .update(`${batch.snapshot.generatedAt || "unknown"}:${batch.snapshot.source}`)
     .digest("hex")
@@ -1085,35 +1141,44 @@ export async function deliverPreferenceAlerts(req: Request, options: {
     }
   }
 
-  async function reserveQueuedIntent(
+  async function reserveQueuedGroup(
     userId: string,
     channel: AlertChannel,
-    stableMatchKey: string,
-    payload: Record<string, unknown>,
+    candidate: CandidateAlert,
+    payload: (child: CandidateAlert) => Record<string, unknown>,
   ) {
-    if (!queueRepository) return null;
-    const reservation = await reserveAlertDelivery(queueRepository, {
+    const children = enumerateUnderlyingAlertChildren(candidate);
+    if (!queueRepository) return { candidate, queueCandidates: [] as AlertCandidateRecord[] };
+    const reservation = await reserveAlertDeliveryBatch(queueRepository, {
       snapshotId: queueSnapshotId,
       userId,
       channel,
-      stableMatchKey,
-      alertWindow: "stable-v1",
+      locationKey: candidateLocationGroupKey(candidate),
+      alertWindow: "stable-v2",
       createdAt: now,
-      payload,
+      children: children.map((child) => ({
+        stableMatchKey: stableUnderlyingAlertKey(child),
+        payload: payload(child),
+      })),
     }, { mode: queueMode as AlertQueueMode, workerId: queueWorkerId, now });
-    summary.queueIntentsObserved += 1;
-    if (reservation.claimed) summary.queueClaimsGranted += 1;
-    else if (reservation.reason === "suppressed") summary.queueSuppressed += 1;
-    else if (queueMode === "active") summary.queueDuplicatesSkipped += 1;
-    return reservation;
+    summary.queueIntentsObserved += children.length;
+    summary.queueClaimsGranted += reservation.claimed.length;
+    if (queueMode === "active") summary.queueDuplicatesSkipped += children.length - reservation.claimed.length;
+    if (queueMode === "shadow") return { candidate, queueCandidates: [] as AlertCandidateRecord[] };
+    const claimedKeys = new Set(reservation.claimed.map((row) => row.stableMatchKey));
+    const claimedCandidate = candidateWithUnderlyingChildren(
+      candidate,
+      children.filter((child) => claimedKeys.has(stableUnderlyingAlertKey(child))),
+    );
+    return claimedCandidate ? { candidate: claimedCandidate, queueCandidates: reservation.claimed } : null;
   }
 
-  async function failQueuedIntent(candidate: AlertCandidateRecord | null, error: unknown) {
-    if (!queueRepository || !candidate || queueMode !== "active") return;
-    const attemptCount = candidate.attemptCount || 0;
+  async function failQueuedIntents(candidates: AlertCandidateRecord[], error: unknown) {
+    if (!queueRepository || !candidates.length || queueMode !== "active") return;
+    const attemptCount = Math.max(...candidates.map((candidate) => candidate.attemptCount || 0));
     const retryAt = attemptCount < 2 ? new Date(Date.parse(now) + (attemptCount + 1) * 5 * 60_000).toISOString() : undefined;
-    await queueRepository.markFailed(
-      candidate.id,
+    await queueRepository.markBatchFailed(
+      candidates.map((candidate) => candidate.id),
       createHash("sha256").update(error instanceof Error ? error.message : String(error)).digest("hex").slice(0, 16),
       now,
       retryAt,
@@ -1121,10 +1186,10 @@ export async function deliverPreferenceAlerts(req: Request, options: {
     summary.queueFailures += 1;
   }
 
-  async function suppressStaleQueuedIntent(candidate: AlertCandidateRecord | null) {
-    if (!queueRepository || !candidate || queueMode !== "active") return;
-    await queueRepository.markFailed(
-      candidate.id,
+  async function suppressStaleQueuedIntents(candidates: AlertCandidateRecord[]) {
+    if (!queueRepository || !candidates.length || queueMode !== "active") return;
+    await queueRepository.markBatchFailed(
+      candidates.map((candidate) => candidate.id),
       createHash("sha256").update("stale_at_final_delivery_boundary").digest("hex").slice(0, 16),
       new Date().toISOString(),
       undefined,
@@ -1151,10 +1216,43 @@ export async function deliverPreferenceAlerts(req: Request, options: {
 
     for (const rawUser of page.data) {
       if (summary.usersConsidered >= MAX_DELIVERY_USERS) break;
-      const user = rawUser as Record<string, unknown>;
+      let user = rawUser as Record<string, unknown>;
       const userId = asString(user.id);
       summary.usersConsidered += 1;
 
+      const initialPublicMetadata = (user.publicMetadata && typeof user.publicMetadata === "object" ? user.publicMetadata : {}) as Record<string, unknown>;
+      const initialEntitlements = await getServerEntitlements(initialPublicMetadata);
+      if (initialEntitlements.tier === "free") {
+        summary.skippedFreeUsers += 1;
+        continue;
+      }
+      summary.paidUsersConsidered += 1;
+
+      const memberLeaseKey = `member:${userId}`;
+      let memberLeaseAcquired = false;
+      if (memberLeaseRepository) {
+        try {
+          memberLeaseAcquired = await memberLeaseRepository.acquireLease(
+            memberLeaseKey,
+            queueWorkerId,
+            now,
+            new Date(Date.parse(now) + 10 * 60_000).toISOString(),
+          );
+        } catch (error) {
+          summary.queueFailures += 1;
+          summary.errors.push({ userId, message: `member delivery lease failed: ${error instanceof Error ? error.message : String(error)}` });
+          continue;
+        }
+        if (!memberLeaseAcquired) {
+          summary.queueDuplicatesSkipped += 1;
+          continue;
+        }
+      }
+
+      try {
+      if (memberLeaseAcquired) {
+        user = await client.users.getUser(userId) as unknown as Record<string, unknown>;
+      }
       const publicMetadata = (user.publicMetadata && typeof user.publicMetadata === "object" ? user.publicMetadata : {}) as Record<string, unknown>;
       const privateMetadata = (user.privateMetadata && typeof user.privateMetadata === "object" ? user.privateMetadata : {}) as Record<string, unknown>;
       const entitlements = await getServerEntitlements(publicMetadata);
@@ -1162,8 +1260,6 @@ export async function deliverPreferenceAlerts(req: Request, options: {
         summary.skippedFreeUsers += 1;
         continue;
       }
-      summary.paidUsersConsidered += 1;
-
       const notificationPrefs = normalizeNotificationPreferences(publicMetadata.notificationPreferences);
       const areaPrefs = normalizeAreaPrefs(publicMetadata.areaPreferences, publicMetadata.monitoringScopes);
       if (!hasSavedAreaPreferences(areaPrefs)) {
@@ -1174,7 +1270,7 @@ export async function deliverPreferenceAlerts(req: Request, options: {
       const bottlePrefs = normalizeBottleAlertPreferences(publicMetadata.bottleAlertPreferences);
       const alertMode = publicMetadata.alertMode;
       const deliveryMetadata = normalizeDeliveryMetadata(privateMetadata.alertDelivery);
-      const matchingPreferenceCandidates = groupCandidatesByLocation(candidates
+      const allMatchingPreferenceCandidates = groupCandidatesByLocation(candidates
         .filter((candidate) => asString(candidate.sourceType) !== "community" || (entitlements.canReceiveSightingsAlerts && notificationPrefs.sightings.enabled))
         .filter((candidate) => candidateMatchesArea(candidate, areaPrefs))
         .filter((candidate) => {
@@ -1182,34 +1278,71 @@ export async function deliverPreferenceAlerts(req: Request, options: {
           if (!matches && alertMode === "specific_bottles") summary.skippedSpecificBottlePrefs += 1;
           return matches;
         })
-        .sort(sortCandidatesForMember))
+        .sort(sortCandidatesForMember));
+      const matchingPreferenceCandidates = allMatchingPreferenceCandidates
         .slice(0, Math.max(1, CANDIDATE_POOL_PER_USER));
+
+      if (!dryRun && deliveryMetadata.dedupeIdentityVersion !== 2) {
+        const enabledChannels: AlertChannel[] = [];
+        if (notificationPrefs.onSite.enabled || notificationPrefs.push.enabled) enabledChannels.push("onSite");
+        if (notificationPrefs.email.enabled) enabledChannels.push("email");
+        if (notificationPrefs.sms.enabled) enabledChannels.push("sms");
+        const migration = await ensureAlertDeliveryIdentityV2({
+          userId,
+          alertDelivery: privateMetadata.alertDelivery,
+          enabledChannels,
+          currentStableKeys: {
+            onSite: flattenUnderlyingStableKeys(allMatchingPreferenceCandidates.filter((candidate) => candidatePassesFreshOnSiteGuardrails(candidate))),
+            email: flattenUnderlyingStableKeys(allMatchingPreferenceCandidates
+              .filter((candidate) => candidatePassesFreshEmailGuardrails(candidate))
+              .filter((candidate) => candidateMatchesEmailMode(candidate, notificationPrefs.email.mode))),
+            sms: flattenUnderlyingStableKeys(allMatchingPreferenceCandidates
+              .filter((candidate) => candidatePassesFreshSmsGuardrails(candidate))
+              .filter((candidate) => candidateMatchesSmsMode(candidate, notificationPrefs.sms.mode, bottlePrefs))),
+          },
+          createdAt: now,
+          baseline: async (baseline) => {
+            if (queueRepository) await queueRepository.baseline(baseline);
+          },
+          persist: async (alertDelivery) => {
+            await client.users.updateUserMetadata(userId, { privateMetadata: { alertDelivery } });
+          },
+        });
+        if (migration.error) {
+          summary.dedupeIdentityMigrationFailures += 1;
+          summary.errors.push({ userId, message: `alert delivery identity migration failed: ${migration.error instanceof Error ? migration.error.message : String(migration.error)}` });
+        } else if (migration.migrated) {
+          summary.dedupeIdentityMigrations += 1;
+        }
+        if (!migration.sendCurrentPass) continue;
+      }
 
       if (matchingPreferenceCandidates.length) {
         summary.usersMatched += 1;
       }
 
       let newOnSiteAlerts: MemberAlertRecord[] = [];
-      let onSiteQueueCandidates: AlertCandidateRecord[] = [];
+      let onSiteQueueGroups: Array<{ alertId: string; candidates: AlertCandidateRecord[] }> = [];
       const pruneStaleOnSiteAlerts = async () => {
         const freshAlerts = newOnSiteAlerts.filter((alert) => memberAlertPassesFinalFreshness(alert));
         const freshAlertIds = new Set(freshAlerts.map((alert) => alert.id));
-        const staleQueueCandidates = onSiteQueueCandidates.filter((candidate) => !freshAlertIds.has(asString(candidate.payload?.alertId)));
-        for (const queuedCandidate of staleQueueCandidates) await suppressStaleQueuedIntent(queuedCandidate);
+        const staleQueueGroups = onSiteQueueGroups.filter((group) => !freshAlertIds.has(group.alertId));
+        for (const group of staleQueueGroups) await suppressStaleQueuedIntents(group.candidates);
         summary.skippedFinalOnSiteFreshness += newOnSiteAlerts.length - freshAlerts.length;
         newOnSiteAlerts = freshAlerts;
-        onSiteQueueCandidates = onSiteQueueCandidates.filter((candidate) => freshAlertIds.has(asString(candidate.payload?.alertId)));
+        onSiteQueueGroups = onSiteQueueGroups.filter((group) => freshAlertIds.has(group.alertId));
       };
       const alertInbox = normalizeAlertInboxMetadata(privateMetadata.alertInbox);
       if (baselineOnSiteOnly) {
-        const baselineDedupeKeys = uniqueStrings(matchingPreferenceCandidates.map((candidate) => asString(candidate.dedupeKey, asString(candidate.id))).filter(Boolean));
+        const baselineDedupeKeys = flattenUnderlyingStableKeys(matchingPreferenceCandidates);
         summary.onSiteBaselinesCreated += baselineDedupeKeys.length;
         if (!dryRun && baselineDedupeKeys.length) {
           await client.users.updateUserMetadata(userId, {
             privateMetadata: {
               alertDelivery: {
+                dedupeIdentityVersion: 2,
                 recent: deliveryMetadata.recent || [],
-                onSiteBaselineDedupeKeys: baselineDedupeKeys,
+                onSiteBaselineDedupeKeys: uniqueStrings([...baselineDedupeKeys, ...(deliveryMetadata.onSiteBaselineDedupeKeys || [])]),
                 emailBaselineDedupeKeys: deliveryMetadata.emailBaselineDedupeKeys || [],
                 smsBaselineDedupeKeys: deliveryMetadata.smsBaselineDedupeKeys || [],
                 lastOnSiteBaselineAt: now,
@@ -1230,29 +1363,34 @@ export async function deliverPreferenceAlerts(req: Request, options: {
 
       if ((notificationPrefs.onSite.enabled || notificationPrefs.push.enabled) && !baselineEmailOnly && !baselineSmsOnly && (dryRun || ALERT_ONSITE_DELIVERY_ENABLED)) {
         const existingOnSiteDedupe = new Set((alertInbox.recent || []).map((alert) => alert.dedupeKey));
+        const existingOnSiteUnderlying = new Set((alertInbox.recent || []).flatMap((alert) => alert.underlyingStableKeys || []));
         const onSiteBaseline = new Set(deliveryMetadata.onSiteBaselineDedupeKeys || []);
         const draftOnSiteAlerts = matchingPreferenceCandidates
           .filter((candidate) => candidatePassesFreshOnSiteGuardrails(candidate))
-          .filter((candidate) => {
-            const dedupeKey = asString(candidate.dedupeKey, asString(candidate.id));
-            const duplicate = existingOnSiteDedupe.has(dedupeKey) || onSiteBaseline.has(dedupeKey);
-            if (duplicate) summary.skippedOnSiteDedupe += 1;
-            return !duplicate;
+          .map((candidate) => {
+            const selected = selectUnseenCandidate(
+              candidate,
+              new Set([...existingOnSiteUnderlying, ...onSiteBaseline]),
+              new Set([...existingOnSiteDedupe, ...onSiteBaseline]),
+            );
+            if (!selected) summary.skippedOnSiteDedupe += 1;
+            return selected;
           })
-          .slice(0, Math.max(1, MAX_ONSITE_ALERTS_PER_USER))
-          .map((candidate) => candidateToMemberAlert(userId, candidate, now, areaPrefs));
+          .filter((candidate): candidate is CandidateAlert => Boolean(candidate))
+          .slice(0, Math.max(1, MAX_ONSITE_ALERTS_PER_USER));
 
-        for (const alert of draftOnSiteAlerts) {
-          const reservation = await reserveQueuedIntent(userId, "onSite", alert.dedupeKey, {
-            alertId: alert.id,
-            bottle: alert.bottleName,
-            state: alert.state,
-            location: alert.storeLabel,
-            eventType: alert.eventType,
-          });
-          if (reservation && reservation.reason !== "shadow_enqueued" && !reservation.claimed) continue;
+        for (const candidate of draftOnSiteAlerts) {
+          const storeLabel = candidateStoreLabel(candidate);
+          const reservation = await reserveQueuedGroup(userId, "onSite", candidate, (child) => ({
+            bottle: asString(child.bottle, "Bottle signal"),
+            state: asString(child.state).toUpperCase(),
+            location: storeLabel,
+            eventType: asString(child.eventType, asString(child.action, "signal")),
+          }));
+          if (!reservation) continue;
+          const alert = candidateToMemberAlert(userId, reservation.candidate, now, areaPrefs);
           newOnSiteAlerts.push(alert);
-          if (reservation?.claimed) onSiteQueueCandidates.push(reservation.candidate);
+          if (reservation.queueCandidates.length) onSiteQueueGroups.push({ alertId: alert.id, candidates: reservation.queueCandidates });
         }
 
         if (newOnSiteAlerts.length) summary.onSiteAlertsCreated += newOnSiteAlerts.length;
@@ -1277,15 +1415,16 @@ export async function deliverPreferenceAlerts(req: Request, options: {
         } else {
           const emailModeCandidates = matchingPreferenceCandidates.filter((candidate) => candidatePassesFreshEmailGuardrails(candidate)).filter((candidate) => candidateMatchesEmailMode(candidate, notificationPrefs.email.mode));
           if (baselineEmailOnly) {
-            const baselineDedupeKeys = uniqueStrings(emailModeCandidates.map((candidate) => asString(candidate.dedupeKey, asString(candidate.id))).filter(Boolean));
+            const baselineDedupeKeys = flattenUnderlyingStableKeys(emailModeCandidates);
             summary.emailBaselinesCreated += baselineDedupeKeys.length;
             if (!dryRun && baselineDedupeKeys.length) {
               await client.users.updateUserMetadata(userId, {
                 privateMetadata: {
                   alertDelivery: {
+                    dedupeIdentityVersion: 2,
                     recent: deliveryMetadata.recent || [],
                     onSiteBaselineDedupeKeys: deliveryMetadata.onSiteBaselineDedupeKeys || [],
-                    emailBaselineDedupeKeys: baselineDedupeKeys,
+                    emailBaselineDedupeKeys: uniqueStrings([...baselineDedupeKeys, ...(deliveryMetadata.emailBaselineDedupeKeys || [])]),
                     smsBaselineDedupeKeys: deliveryMetadata.smsBaselineDedupeKeys || [],
                     lastOnSiteBaselineAt: deliveryMetadata.lastOnSiteBaselineAt,
                     lastEmailBaselineAt: now,
@@ -1298,45 +1437,53 @@ export async function deliverPreferenceAlerts(req: Request, options: {
             continue;
           }
 
-            const delivered = recentDeliverySet(deliveryMetadata, "email");
+          const delivered = recentDeliverySet(deliveryMetadata, "email");
+          const deliveredUnderlying = recentUnderlyingDeliverySet(deliveryMetadata, "email");
           const emailBaseline = new Set(deliveryMetadata.emailBaselineDedupeKeys || []);
           const matchedCandidates = emailModeCandidates
-            .filter((candidate) => {
+            .map((candidate) => {
               const dedupeKey = asString(candidate.dedupeKey, asString(candidate.id));
               const baselineDuplicate = emailBaseline.has(dedupeKey);
-              if (baselineDuplicate) summary.skippedEmailBaseline += 1;
-              return !baselineDuplicate;
+              const selected = selectUnseenCandidate(
+                candidate,
+                new Set([...deliveredUnderlying, ...emailBaseline]),
+                new Set([
+                  ...Array.from(delivered).map((token) => token.slice(0, -":email".length)),
+                  ...emailBaseline,
+                ]),
+              );
+              if (!selected && baselineDuplicate) summary.skippedEmailBaseline += 1;
+              else if (!selected) summary.skippedDedupe += 1;
+              return selected;
             })
-            .filter((candidate) => {
-              const dedupeKey = asString(candidate.dedupeKey, asString(candidate.id));
-              const duplicate = delivered.has(deliveryDedupeToken(dedupeKey, "email"));
-              if (duplicate) summary.skippedDedupe += 1;
-              return !duplicate;
-            })
+            .filter((candidate): candidate is CandidateAlert => Boolean(candidate))
             .slice(0, Math.max(1, MAX_EMAILS_PER_USER));
 
-          for (const candidate of matchedCandidates) {
+          for (const selectedCandidate of matchedCandidates) {
             if (globalEmailCount >= MAX_EMAILS_PER_RUN) break;
+            const selectedStoreLabel = candidateStoreLabel(selectedCandidate);
+            const reservation = await reserveQueuedGroup(userId, "email", selectedCandidate, (child) => ({
+              bottle: asString(child.bottle, "Bottle signal"),
+              state: asString(child.state).toUpperCase(),
+              location: selectedStoreLabel,
+              emailMode: notificationPrefs.email.mode,
+              source: candidateSourceLabel(child),
+            }));
+            if (!reservation) continue;
+            const candidate = reservation.candidate;
+            const queuedCandidates = reservation.queueCandidates;
             const dedupeKey = asString(candidate.dedupeKey, asString(candidate.id));
             const bottleName = asString(candidate.bottle, "Bottle signal");
             const storeLabel = candidateStoreLabel(candidate);
             const matchedArea = candidateMatchedArea(candidate, areaPrefs);
             const state = asString(candidate.state).toUpperCase();
-            const reservation = await reserveQueuedIntent(userId, "email", dedupeKey, {
-              bottle: bottleName,
-              state,
-              location: storeLabel,
-              emailMode: notificationPrefs.email.mode,
-              source: candidateSourceLabel(candidate),
-            });
-            if (reservation && reservation.reason !== "shadow_enqueued" && !reservation.claimed) continue;
-            const queuedCandidate = reservation?.claimed ? reservation.candidate : null;
             if (!candidatePassesFreshEmailGuardrails(candidate)) {
               summary.skippedFinalEmailFreshness += 1;
-              await suppressStaleQueuedIntent(queuedCandidate);
+              await suppressStaleQueuedIntents(queuedCandidates);
               continue;
             }
 
+            const claimedChildCandidateIds = queuedCandidates.map((queuedCandidate) => queuedCandidate.id).sort();
             try {
               let messageId: string | null = null;
               if (!dryRun && resend) {
@@ -1362,7 +1509,9 @@ export async function deliverPreferenceAlerts(req: Request, options: {
                     "X-Entity-Ref-ID": `alert-${userId}-${dedupeKey}`.slice(0, 190),
                   },
                 }, {
-                  idempotencyKey: queuedCandidate?.id || `alert-${createHash("sha256").update(`${userId}:${dedupeKey}`).digest("hex")}`,
+                  idempotencyKey: claimedChildCandidateIds.length
+                    ? `alert-group-${createHash("sha256").update(claimedChildCandidateIds.join(":"), "utf8").digest("hex")}`
+                    : `alert-${createHash("sha256").update(`${userId}:${underlyingStableKeys(candidate).sort().join(":")}`).digest("hex")}`,
                 });
                 if (result.error) throw new Error(result.error.message);
                 messageId = result.data?.id || null;
@@ -1371,10 +1520,14 @@ export async function deliverPreferenceAlerts(req: Request, options: {
               if (dryRun) {
                 summary.emailsWouldSend += 1;
               } else {
-                if (queuedCandidate && queueRepository) {
-                  await queueRepository.markDelivered(queuedCandidate.id, messageId || `resend:${queuedCandidate.id}`, now);
+                if (queuedCandidates.length && queueRepository) {
+                  await queueRepository.markBatchDelivered(
+                    queuedCandidates.map((queuedCandidate) => queuedCandidate.id),
+                    messageId || `resend:${claimedChildCandidateIds.join(":")}`,
+                    now,
+                  );
                 }
-                newRecords.push({ dedupeKey, deliveredAt: now, channel: "email", emailMode: notificationPrefs.email.mode, messageId });
+                newRecords.push({ dedupeKey, underlyingStableKeys: underlyingStableKeys(candidate), deliveredAt: now, channel: "email", emailMode: notificationPrefs.email.mode, messageId });
                 newOnSiteAlerts = newOnSiteAlerts.map((alert) => alert.dedupeKey === dedupeKey
                   ? { ...alert, emailDeliveredAt: now, emailModeAtSend: notificationPrefs.email.mode }
                   : alert);
@@ -1382,7 +1535,7 @@ export async function deliverPreferenceAlerts(req: Request, options: {
               }
               globalEmailCount += 1;
             } catch (error) {
-              await failQueuedIntent(queuedCandidate, error);
+              await failQueuedIntents(queuedCandidates, error);
               summary.errors.push({ userId, email, message: error instanceof Error ? error.message : String(error) });
             }
           }
@@ -1408,16 +1561,17 @@ export async function deliverPreferenceAlerts(req: Request, options: {
         } else if (!smsRecipientAllowed(phone)) {
           summary.skippedSmsRecipientNotAllowed += smsCandidates.length;
         } else if (baselineSmsOnly) {
-          const baselineDedupeKeys = uniqueStrings(smsCandidates.map((candidate) => asString(candidate.dedupeKey, asString(candidate.id))).filter(Boolean));
+          const baselineDedupeKeys = flattenUnderlyingStableKeys(smsCandidates);
           summary.smsBaselinesCreated += baselineDedupeKeys.length;
           if (!dryRun && baselineDedupeKeys.length) {
             await client.users.updateUserMetadata(userId, {
               privateMetadata: {
                 alertDelivery: {
+                  dedupeIdentityVersion: 2,
                   recent: deliveryMetadata.recent || [],
                   onSiteBaselineDedupeKeys: deliveryMetadata.onSiteBaselineDedupeKeys || [],
                   emailBaselineDedupeKeys: deliveryMetadata.emailBaselineDedupeKeys || [],
-                  smsBaselineDedupeKeys: baselineDedupeKeys,
+                  smsBaselineDedupeKeys: uniqueStrings([...baselineDedupeKeys, ...(deliveryMetadata.smsBaselineDedupeKeys || [])]),
                   lastOnSiteBaselineAt: deliveryMetadata.lastOnSiteBaselineAt,
                   lastEmailBaselineAt: deliveryMetadata.lastEmailBaselineAt,
                   lastSmsBaselineAt: now,
@@ -1431,44 +1585,53 @@ export async function deliverPreferenceAlerts(req: Request, options: {
           summary.skippedSmsDeliveryDisabled += smsCandidates.length;
         } else {
           const delivered = recentDeliverySet(deliveryMetadata, "sms");
+          const deliveredUnderlying = recentUnderlyingDeliverySet(deliveryMetadata, "sms");
           const smsBaseline = new Set(deliveryMetadata.smsBaselineDedupeKeys || []);
           const matchedSmsCandidates = smsCandidates
-            .filter((candidate) => {
+            .map((candidate) => {
               const dedupeKey = asString(candidate.dedupeKey, asString(candidate.id));
               const baselineDuplicate = smsBaseline.has(dedupeKey);
-              if (baselineDuplicate) summary.skippedSmsBaseline += 1;
-              return !baselineDuplicate;
+              const selected = selectUnseenCandidate(
+                candidate,
+                new Set([...deliveredUnderlying, ...smsBaseline]),
+                new Set([
+                  ...Array.from(delivered).map((token) => token.slice(0, -":sms".length)),
+                  ...smsBaseline,
+                ]),
+              );
+              if (!selected && baselineDuplicate) summary.skippedSmsBaseline += 1;
+              else if (!selected) summary.skippedDedupe += 1;
+              return selected;
             })
-            .filter((candidate) => {
-              const dedupeKey = asString(candidate.dedupeKey, asString(candidate.id));
-              const duplicate = delivered.has(deliveryDedupeToken(dedupeKey, "sms"));
-              if (duplicate) summary.skippedDedupe += 1;
-              return !duplicate;
-            })
+            .filter((candidate): candidate is CandidateAlert => Boolean(candidate))
             .slice(0, Math.max(1, MAX_SMS_PER_USER));
 
-          for (const candidate of matchedSmsCandidates) {
+          for (const selectedCandidate of matchedSmsCandidates) {
             if (summary.smsSent + summary.smsWouldSend >= MAX_SMS_PER_RUN) break;
+            const selectedStoreLabel = candidateStoreLabel(selectedCandidate);
+            const reservation = await reserveQueuedGroup(userId, "sms", selectedCandidate, (child) => ({
+              bottle: asString(child.bottle, "Bottle signal"),
+              state: asString(child.state).toUpperCase(),
+              location: selectedStoreLabel,
+              smsMode: notificationPrefs.sms.mode,
+              source: candidateSourceLabel(child),
+            }));
+            if (!reservation) continue;
+            const candidate = reservation.candidate;
+            const queuedCandidates = reservation.queueCandidates;
             const dedupeKey = asString(candidate.dedupeKey, asString(candidate.id));
             const storeLabel = candidateStoreLabel(candidate);
-            const reservation = await reserveQueuedIntent(userId, "sms", dedupeKey, {
-              bottle: asString(candidate.bottle, "Bottle signal"),
-              state: asString(candidate.state).toUpperCase(),
-              location: storeLabel,
-              smsMode: notificationPrefs.sms.mode,
-              source: candidateSourceLabel(candidate),
-            });
-            if (reservation && reservation.reason !== "shadow_enqueued" && !reservation.claimed) continue;
-            const queuedCandidate = reservation?.claimed ? reservation.candidate : null;
             if (!candidatePassesFreshSmsGuardrails(candidate)) {
               summary.skippedFinalSmsFreshness += 1;
-              await suppressStaleQueuedIntent(queuedCandidate);
+              await suppressStaleQueuedIntents(queuedCandidates);
               continue;
             }
+            let smsProviderAttempted = false;
             try {
               let messageId: string | null = null;
               let status: string | null = null;
               if (!dryRun) {
+                smsProviderAttempted = true;
                 const result = await sendTwilioSms(phone, smsBodyForCandidate(candidate, storeLabel));
                 messageId = result.sid;
                 status = result.status;
@@ -1476,14 +1639,18 @@ export async function deliverPreferenceAlerts(req: Request, options: {
               if (dryRun) {
                 summary.smsWouldSend += 1;
               } else {
-                if (queuedCandidate && queueRepository) {
-                  await queueRepository.markDelivered(queuedCandidate.id, messageId || `twilio:${queuedCandidate.id}`, now);
+                if (queuedCandidates.length && queueRepository) {
+                  await queueRepository.markBatchDelivered(
+                    queuedCandidates.map((queuedCandidate) => queuedCandidate.id),
+                    messageId || `twilio:${queuedCandidates.map((queuedCandidate) => queuedCandidate.id).sort().join(":")}`,
+                    now,
+                  );
                 }
-                newRecords.push({ dedupeKey, deliveredAt: now, channel: "sms", smsMode: notificationPrefs.sms.mode, messageId, status });
+                newRecords.push({ dedupeKey, underlyingStableKeys: underlyingStableKeys(candidate), deliveredAt: now, channel: "sms", smsMode: notificationPrefs.sms.mode, messageId, status });
                 summary.smsSent += 1;
               }
             } catch (error) {
-              await failQueuedIntent(queuedCandidate, error);
+              if (!smsProviderAttempted || error instanceof DefinitiveSmsSendError) await failQueuedIntents(queuedCandidates, error);
               summary.errors.push({ userId, email: maskPhone(phone), message: error instanceof Error ? error.message : String(error) });
             }
           }
@@ -1495,15 +1662,20 @@ export async function deliverPreferenceAlerts(req: Request, options: {
         const nextRecent = [...newRecords, ...(deliveryMetadata.recent || [])]
           .filter((record, index, rows) => rows.findIndex((item) => item.dedupeKey === record.dedupeKey && (item.channel || "email") === (record.channel || "email")) === index)
           .slice(0, MAX_RECENT_DELIVERIES_PER_USER);
-        const newOnSiteDedupeKeys = newOnSiteAlerts.map((alert) => alert.dedupeKey).filter(Boolean);
-        const newEmailDedupeKeys = newRecords.filter((record) => (record.channel || "email") === "email").map((record) => record.dedupeKey);
-        const newSmsDedupeKeys = newRecords.filter((record) => record.channel === "sms").map((record) => record.dedupeKey);
+        const newOnSiteDedupeKeys = uniqueStrings(newOnSiteAlerts.flatMap((alert) => alert.underlyingStableKeys || []));
+        const newEmailDedupeKeys = uniqueStrings(newRecords
+          .filter((record) => (record.channel || "email") === "email")
+          .flatMap((record) => record.underlyingStableKeys || []));
+        const newSmsDedupeKeys = uniqueStrings(newRecords
+          .filter((record) => record.channel === "sms")
+          .flatMap((record) => record.underlyingStableKeys || []));
         const nextAlertDelivery = {
+          dedupeIdentityVersion: 2,
           recent: nextRecent,
-          onSiteBaselineDedupeKeys: uniqueStrings([...newOnSiteDedupeKeys, ...(deliveryMetadata.onSiteBaselineDedupeKeys || [])]).slice(0, 1000),
-          emailBaselineDedupeKeys: uniqueStrings([...newEmailDedupeKeys, ...(deliveryMetadata.emailBaselineDedupeKeys || [])]).slice(0, 1000),
-          smsBaselineDedupeKeys: uniqueStrings([...newSmsDedupeKeys, ...(deliveryMetadata.smsBaselineDedupeKeys || [])]).slice(0, 1000),
-          lastOnSiteBaselineAt: newOnSiteDedupeKeys.length ? now : deliveryMetadata.lastOnSiteBaselineAt,
+          onSiteBaselineDedupeKeys: deliveryMetadata.onSiteBaselineDedupeKeys || [],
+          emailBaselineDedupeKeys: uniqueStrings([...newEmailDedupeKeys, ...(deliveryMetadata.emailBaselineDedupeKeys || [])]),
+          smsBaselineDedupeKeys: uniqueStrings([...newSmsDedupeKeys, ...(deliveryMetadata.smsBaselineDedupeKeys || [])]),
+          lastOnSiteBaselineAt: deliveryMetadata.lastOnSiteBaselineAt,
           lastEmailBaselineAt: newEmailDedupeKeys.length ? now : deliveryMetadata.lastEmailBaselineAt,
           lastSmsBaselineAt: newSmsDedupeKeys.length ? now : deliveryMetadata.lastSmsBaselineAt,
           lastRunAt: now,
@@ -1551,6 +1723,11 @@ export async function deliverPreferenceAlerts(req: Request, options: {
                   recent: nextOnSiteAlerts,
                   lastSyncedAt: now,
                 },
+                alertDelivery: {
+                  ...nextAlertDelivery,
+                  onSiteBaselineDedupeKeys: uniqueStrings([...newOnSiteDedupeKeys, ...(deliveryMetadata.onSiteBaselineDedupeKeys || [])]).slice(0, 1000),
+                  lastOnSiteBaselineAt: newOnSiteDedupeKeys.length ? now : deliveryMetadata.lastOnSiteBaselineAt,
+                },
                 // Record first_alert_created only in the same successful write that commits a real on-site alert.
                 activation: firstAlertCreatedMetadata(privateMetadata, true, now).activation,
               },
@@ -1571,7 +1748,12 @@ export async function deliverPreferenceAlerts(req: Request, options: {
                     lastSyncedAt: now,
                     compactionReason: "onsite_alert_metadata_retry",
                   },
-                  // Record first_alert_created only in the same successful write that commits a real on-site alert.
+                  alertDelivery: {
+                  ...nextAlertDelivery,
+                  onSiteBaselineDedupeKeys: uniqueStrings([...newOnSiteDedupeKeys, ...(deliveryMetadata.onSiteBaselineDedupeKeys || [])]).slice(0, 1000),
+                  lastOnSiteBaselineAt: newOnSiteDedupeKeys.length ? now : deliveryMetadata.lastOnSiteBaselineAt,
+                },
+                // Record first_alert_created only in the same successful write that commits a real on-site alert.
                 activation: firstAlertCreatedMetadata(privateMetadata, true, now).activation,
                 },
               });
@@ -1592,11 +1774,15 @@ export async function deliverPreferenceAlerts(req: Request, options: {
               }
             }
           }
-          for (const queuedCandidate of onSiteQueueCandidates) {
+          for (const group of onSiteQueueGroups) {
             if (onSiteInboxWritten && queueRepository) {
-              await queueRepository.markDelivered(queuedCandidate.id, `clerk:${userId}:${queuedCandidate.id}`, now);
+              await queueRepository.markBatchDelivered(
+                group.candidates.map((candidate) => candidate.id),
+                `clerk:${userId}:${group.alertId}`,
+                now,
+              );
             } else {
-              await failQueuedIntent(queuedCandidate, new Error("Clerk on-site inbox write failed"));
+              await failQueuedIntents(group.candidates, new Error("Clerk on-site inbox write failed"));
             }
           }
         }
@@ -1607,6 +1793,16 @@ export async function deliverPreferenceAlerts(req: Request, options: {
             });
           } catch (error) {
             summary.errors.push({ userId, message: `first_alert_created milestone update failed after delivery: ${error instanceof Error ? error.message : String(error)}` });
+          }
+        }
+      }
+      } finally {
+        if (memberLeaseAcquired && memberLeaseRepository) {
+          try {
+            await memberLeaseRepository.releaseLease(memberLeaseKey, queueWorkerId);
+          } catch (error) {
+            summary.queueFailures += 1;
+            summary.errors.push({ userId, message: `member delivery lease release failed: ${error instanceof Error ? error.message : String(error)}` });
           }
         }
       }

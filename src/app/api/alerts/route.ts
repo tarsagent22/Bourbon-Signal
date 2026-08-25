@@ -3,6 +3,7 @@ import { auth, clerkClient } from "@clerk/nextjs/server";
 import { normalizeNotificationPreferences } from "@/lib/notification-preferences";
 import { candidateCanUseOnSite, candidateMatchesArea, candidateMatchesBottlePrefs, candidatePassesFreshOnSiteGuardrails, candidateToMemberAlert, normalizeAlertInboxMetadata, normalizeAreaPrefs, normalizeBottleAlertPreferences, readAlertCandidates } from "@/lib/alert-delivery";
 import { getServerEntitlements } from "@/lib/server-entitlements";
+import { withMemberAlertLease } from "@/lib/alert-queue/member-lease";
 
 type CandidateAlert = Record<string, unknown>;
 
@@ -80,70 +81,20 @@ export async function GET() {
   });
 }
 
-export async function POST(req: NextRequest) {
+export async function POST() {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-
-  const body = (await req.json().catch(() => ({}))) as { action?: "sync_candidates"; limit?: number };
-  if (body.action !== "sync_candidates") return NextResponse.json({ error: "Unsupported action" }, { status: 400 });
-
-  const client = await clerkClient();
-  const user = await client.users.getUser(userId);
-  const privateMetadata = (user.privateMetadata && typeof user.privateMetadata === "object" ? user.privateMetadata : {}) as Record<string, unknown>;
-  const areaPrefs = normalizeAreaPrefs(user.publicMetadata?.areaPreferences, user.publicMetadata?.monitoringScopes);
-  const notificationPrefs = normalizeNotificationPreferences(user.publicMetadata?.notificationPreferences);
-  const entitlements = await getServerEntitlements(user.publicMetadata);
-  const bottlePrefs = normalizeBottleAlertPreferences(user.publicMetadata?.bottleAlertPreferences);
-  const alertMode = user.publicMetadata?.alertMode;
-  if (!notificationPrefs.onSite.enabled) return NextResponse.json({ ok: true, created: 0, skipped: "on_site_disabled" });
-
-  const candidates = (await readCandidates())
-    .filter((candidate) => asBoolean(candidate.eligibleForDelivery))
-    .filter((candidate) => asString(candidate.sourceType) !== "community" || (entitlements.canReceiveSightingsAlerts && notificationPrefs.sightings.enabled))
-    .filter(candidateCanUseOnSite)
-    .filter((candidate) => candidatePassesFreshOnSiteGuardrails(candidate))
-    .filter((candidate) => candidateMatchesArea(candidate, areaPrefs))
-    .filter((candidate) => candidateMatchesBottlePrefs(candidate, alertMode, bottlePrefs))
-    .sort((a, b) => asNumber(b.reliabilityScore) - asNumber(a.reliabilityScore));
-
-  const inbox = normalizeAlertInboxMetadata(privateMetadata.alertInbox);
-  const alerts = inbox.recent;
-  const existingDedupe = new Set(alerts.map((alert) => alert.dedupeKey));
-  const createdAt = new Date().toISOString();
-  const created = candidates
-    .filter((candidate) => !existingDedupe.has(asString(candidate.dedupeKey, asString(candidate.id))))
-    .slice(0, Math.max(1, Math.min(25, asNumber(body.limit, 10))))
-    .map((candidate) => candidateToMemberAlert(userId, candidate, createdAt, areaPrefs));
-
-  if (created.length) {
-    await client.users.updateUserMetadata(userId, {
-      privateMetadata: {
-        ...privateMetadata,
-        alertInbox: {
-          recent: [...created, ...alerts].slice(0, 100),
-          lastSyncedAt: createdAt,
-        },
-      },
-    });
-  }
-
-  return NextResponse.json({
-    ok: true,
-    created: created.length,
-    considered: candidates.length,
-    reliabilitySummary: reliabilitySummary(candidates),
-    alertDeliveryEnabled: process.env.ALERT_ONSITE_DELIVERY_ENABLED === "1" || process.env.ALERT_EMAIL_DELIVERY_ENABLED === "1" || process.env.ALERT_DELIVERY_ENABLED === "1",
-    onSiteDeliveryEnabled: process.env.ALERT_ONSITE_DELIVERY_ENABLED === "1" || process.env.ALERT_DELIVERY_ENABLED === "1",
-    emailDeliveryEnabled: process.env.ALERT_EMAIL_DELIVERY_ENABLED === "1" || process.env.ALERT_DELIVERY_ENABLED === "1",
-    emailClientConfigured: Boolean(process.env.RESEND_API_KEY),
-    note: "Created on-site inbox alerts. Email delivery is handled separately by the protected alert delivery worker.",
-  });
+  return NextResponse.json(
+    { error: "Candidate sync moved to the protected alert delivery worker" },
+    { status: 410 },
+  );
 }
 
 export async function PATCH(req: NextRequest) {
   const { userId } = await auth();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
+  const leased = await withMemberAlertLease(userId, async () => {
   const body = (await req.json().catch(() => ({}))) as {
     action?: "mark_read" | "mark_all_read" | "archive";
     alertId?: string;
@@ -199,5 +150,7 @@ export async function PATCH(req: NextRequest) {
     alerts: userAlerts,
     unreadCount: userAlerts.filter((alert) => !alert.readAt && !alert.archivedAt).length,
   });
+  });
+  return leased.acquired ? leased.result : NextResponse.json({ error: "Alert inbox is busy; retry shortly" }, { status: 409 });
 }
 

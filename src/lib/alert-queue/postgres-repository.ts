@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import type {
   AlertBaselineInput,
   AlertCandidateInput,
+  AlertCandidateBatchInput,
   AlertCandidateRecord,
   AlertQueueRepository,
   EngineSnapshotInput,
@@ -84,6 +85,83 @@ export class PostgresAlertQueueRepository implements AlertQueueRepository {
     return record(result.rows[0]);
   }
 
+  async reserveBatch(input: AlertCandidateBatchInput, workerId: string, claimedAt: string, claim: boolean) {
+    const children = Array.from(new Map(input.children
+      .map((child) => [child.stableMatchKey.trim(), child] as const)
+      .filter(([stableMatchKey]) => Boolean(stableMatchKey))).values())
+      .map((child) => ({
+        id: randomUUID(),
+        stableMatchKey: child.stableMatchKey.trim(),
+        payload: child.payload || {},
+      }));
+    if (!children.length) return [];
+    const result = await this.sql.query(`
+      with locked as materialized (
+        select pg_advisory_xact_lock(hashtextextended($1 || chr(31) || $2 || chr(31) || $3, 0))
+      ), batch as materialized (
+        select child.id, child.stable_match_key, child.payload,
+          exists (
+            select 1 from alert_baselines
+            where user_id = $1 and channel = $2 and stable_match_key = child.stable_match_key
+          ) as baselined
+        from locked
+        cross join jsonb_to_recordset($4::jsonb) as child(id text, stable_match_key text, payload jsonb)
+      ), reserved as (
+        insert into alert_candidates (
+          id, snapshot_id, user_id, channel, stable_match_key, alert_window, status, created_at, payload,
+          claimed_by, claimed_at
+        )
+        select batch.id, $5, $1, $2, batch.stable_match_key, $6,
+          case when batch.baselined then 'suppressed' when $10::boolean then 'claimed' else 'pending' end,
+          $7::timestamptz, coalesce(batch.payload, '{}'::jsonb),
+          case when not batch.baselined and $10::boolean then $8 else null end,
+          case when not batch.baselined and $10::boolean then $9::timestamptz else null end
+        from batch
+        on conflict (user_id, channel, stable_match_key, alert_window)
+        do update set
+          status = case
+            when excluded.status = 'suppressed' and alert_candidates.status = 'pending' then 'suppressed'
+            when $10::boolean
+              and excluded.status <> 'suppressed'
+              and alert_candidates.status = 'pending'
+              and (alert_candidates.next_attempt_at is null or alert_candidates.next_attempt_at <= $9::timestamptz)
+            then 'claimed'
+            else alert_candidates.status
+          end,
+          claimed_by = case
+            when $10::boolean
+              and excluded.status <> 'suppressed'
+              and alert_candidates.status = 'pending'
+              and (alert_candidates.next_attempt_at is null or alert_candidates.next_attempt_at <= $9::timestamptz)
+            then $8
+            else alert_candidates.claimed_by
+          end,
+          claimed_at = case
+            when $10::boolean
+              and excluded.status <> 'suppressed'
+              and alert_candidates.status = 'pending'
+              and (alert_candidates.next_attempt_at is null or alert_candidates.next_attempt_at <= $9::timestamptz)
+            then $9::timestamptz
+            else alert_candidates.claimed_at
+          end
+        returning *
+      )
+      select * from reserved where claimed_by = $8 and claimed_at = $9::timestamptz
+    `, [
+      input.userId,
+      input.channel,
+      input.locationKey,
+      JSON.stringify(children.map((child) => ({ id: child.id, stable_match_key: child.stableMatchKey, payload: child.payload }))),
+      input.snapshotId,
+      input.alertWindow,
+      input.createdAt,
+      workerId,
+      claimedAt,
+      claim,
+    ]);
+    return result.rows.map(record);
+  }
+
   async baseline(input: AlertBaselineInput) {
     await this.sql.query(`
       with inserted as (
@@ -129,6 +207,39 @@ export class PostgresAlertQueueRepository implements AlertQueueRepository {
     if (!result.rows[0]) throw new Error(`Cannot mark unclaimed alert candidate ${id} as delivered`);
   }
 
+  async markBatchDelivered(ids: string[], providerMessageId: string, deliveredAt: string) {
+    const uniqueIds = Array.from(new Set(ids));
+    if (!uniqueIds.length) return;
+    const result = await this.sql.query(`
+      with requested as materialized (
+        select distinct unnest($1::text[]) as id
+      ), claimed as materialized (
+        select candidate.id
+        from alert_candidates as candidate
+        join requested using (id)
+        where candidate.status = 'claimed'
+        for update
+      ), valid_batch as materialized (
+        select (select count(*) from requested) = (select count(*) from claimed) as valid
+      ), delivery as (
+        insert into alert_deliveries (
+          candidate_id, attempt_number, provider_message_id, status, attempted_at, completed_at
+        )
+        select claimed.id,
+          coalesce((select max(attempt_number) + 1 from alert_deliveries where candidate_id = claimed.id), 1),
+          $2, 'delivered', $3::timestamptz, $3::timestamptz
+        from claimed cross join valid_batch
+        where valid_batch.valid
+        returning candidate_id
+      )
+      update alert_candidates
+      set status = 'delivered', delivered_at = $3::timestamptz, provider_message_id = $2
+      where id in (select candidate_id from delivery)
+      returning id
+    `, [uniqueIds, providerMessageId, deliveredAt]);
+    if (result.rows.length !== uniqueIds.length) throw new Error("Cannot mark alert batch with unclaimed candidates as delivered");
+  }
+
   async markFailed(id: string, errorCode: string, failedAt: string, retryAt?: string) {
     const result = await this.sql.query(`
       with claimed as (
@@ -154,6 +265,74 @@ export class PostgresAlertQueueRepository implements AlertQueueRepository {
       returning id
     `, [id, errorCode, failedAt, retryAt || null]);
     if (!result.rows[0]) throw new Error(`Cannot fail unclaimed alert candidate ${id}`);
+  }
+
+  async markBatchFailed(ids: string[], errorCode: string, failedAt: string, retryAt?: string) {
+    const uniqueIds = Array.from(new Set(ids));
+    if (!uniqueIds.length) return;
+    const result = await this.sql.query(`
+      with requested as materialized (
+        select distinct unnest($1::text[]) as id
+      ), claimed as materialized (
+        select candidate.id
+        from alert_candidates as candidate
+        join requested using (id)
+        where candidate.status = 'claimed'
+        for update
+      ), valid_batch as materialized (
+        select (select count(*) from requested) = (select count(*) from claimed) as valid
+      ), delivery as (
+        insert into alert_deliveries (
+          candidate_id, attempt_number, status, attempted_at, completed_at, error_code
+        )
+        select claimed.id,
+          coalesce((select max(attempt_number) + 1 from alert_deliveries where candidate_id = claimed.id), 1),
+          'failed', $3::timestamptz, $3::timestamptz, $2
+        from claimed cross join valid_batch
+        where valid_batch.valid
+        returning candidate_id
+      )
+      update alert_candidates
+      set status = case when $4::timestamptz is null then 'failed' else 'pending' end,
+          claimed_by = null,
+          claimed_at = null,
+          attempt_count = attempt_count + 1,
+          next_attempt_at = $4::timestamptz,
+          last_error_code = $2
+      where id in (select candidate_id from delivery)
+      returning id
+    `, [uniqueIds, errorCode, failedAt, retryAt || null]);
+    if (result.rows.length !== uniqueIds.length) throw new Error("Cannot fail alert batch with unclaimed candidates");
+  }
+
+  async acquireLease(leaseKey: string, owner: string, acquiredAt: string, expiresAt: string) {
+    await this.sql.query(`
+      create table if not exists alert_delivery_leases (
+        lease_key text primary key,
+        owner text not null,
+        acquired_at timestamptz not null,
+        expires_at timestamptz not null
+      )
+    `);
+    const result = await this.sql.query(`
+      insert into alert_delivery_leases (lease_key, owner, acquired_at, expires_at)
+      values ($1, $2, $3::timestamptz, $4::timestamptz)
+      on conflict (lease_key) do update set
+        owner = excluded.owner,
+        acquired_at = excluded.acquired_at,
+        expires_at = excluded.expires_at
+      where alert_delivery_leases.expires_at <= excluded.acquired_at
+         or alert_delivery_leases.owner = excluded.owner
+      returning lease_key
+    `, [leaseKey, owner, acquiredAt, expiresAt]);
+    return Boolean(result.rows[0]);
+  }
+
+  async releaseLease(leaseKey: string, owner: string) {
+    await this.sql.query(
+      "delete from alert_delivery_leases where lease_key = $1 and owner = $2",
+      [leaseKey, owner],
+    );
   }
 
   async recoverStaleClaims(claimedBefore: string) {

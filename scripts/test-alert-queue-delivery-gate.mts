@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { InMemoryAlertQueueRepository } from '../src/lib/alert-queue/repository.ts';
-import { reserveAlertDelivery } from '../src/lib/alert-queue/delivery-gate.ts';
+import { reserveAlertDelivery, reserveAlertDeliveryBatch } from '../src/lib/alert-queue/delivery-gate.ts';
 
 const snapshot = {
   snapshotId: 'snapshot-1',
@@ -54,4 +54,40 @@ test('retry is not claimable until nextAttemptAt', async () => {
   assert.equal(early.reason, 'retry_not_due');
   const due = await reserveAlertDelivery(repository, intent, { mode: 'active', workerId: 'worker-c', now: '2026-07-10T14:11:00.000Z' });
   assert.equal(due.claimed, true);
+});
+
+test('batch gate reserves every underlying child at stable-v2 and returns only this worker claims', async () => {
+  const repository = new InMemoryAlertQueueRepository();
+  const input = {
+    snapshotId: snapshot.snapshotId,
+    userId: 'user-1',
+    channel: 'email' as const,
+    locationKey: 'store-1',
+    alertWindow: 'stable-v2',
+    createdAt: intent.createdAt,
+    children: [
+      { stableMatchKey: 'A', payload: { bottle: 'A' } },
+      { stableMatchKey: 'B', payload: { bottle: 'B' } },
+    ],
+  };
+  const first = await reserveAlertDeliveryBatch(repository, input, { mode: 'active', workerId: 'worker-a', now: input.createdAt });
+  const second = await reserveAlertDeliveryBatch(repository, { ...input, children: [input.children[0]!, { stableMatchKey: 'C', payload: { bottle: 'C' } }] }, { mode: 'active', workerId: 'worker-b', now: input.createdAt });
+  assert.deepEqual(first.claimed.map((row) => row.stableMatchKey), ['A', 'B']);
+  assert.deepEqual(second.claimed.map((row) => row.stableMatchKey), ['C']);
+});
+
+test('shadow batch persists child intents without claiming', async () => {
+  const repository = new InMemoryAlertQueueRepository();
+  const input = {
+    snapshotId: snapshot.snapshotId,
+    userId: 'user-1',
+    channel: 'onSite' as const,
+    locationKey: 'store-1',
+    alertWindow: 'stable-v2',
+    createdAt: intent.createdAt,
+    children: [{ stableMatchKey: 'A', payload: { bottle: 'A' } }],
+  };
+  const result = await reserveAlertDeliveryBatch(repository, input, { mode: 'shadow', workerId: 'worker-a', now: input.createdAt });
+  assert.deepEqual(result.claimed, []);
+  assert.equal((await repository.listPending()).length, 1);
 });

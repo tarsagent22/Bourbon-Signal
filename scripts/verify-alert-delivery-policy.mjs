@@ -29,6 +29,12 @@ for (const phrase of [
   '.slice(0, Math.max(1, CANDIDATE_POOL_PER_USER))',
   'location-group:',
   'recentDeliverySet',
+  'underlyingStableKeys',
+  'dedupeIdentityVersion',
+  'reserveAlertDeliveryBatch',
+  'alertWindow: "stable-v2"',
+  'markBatchDelivered',
+  'markBatchFailed',
   'deliveryChannel === "watch_candidate"',
   'isActionableWatch',
   'recentDeliverySet',
@@ -62,8 +68,8 @@ if (!/if \(!hasSavedAreaPreferences\(areaPrefs\)\) \{[\s\S]*?continue;/.test(del
   fail('Users without saved area preferences must be skipped before alert matching or channel delivery.');
 }
 
-if (!/const matchingPreferenceCandidates = groupCandidatesByLocation\(candidates[\s\S]*?\.sort\(sortCandidatesForMember\)\)[\s\S]*?\.slice\(0, Math\.max\(1, CANDIDATE_POOL_PER_USER\)\);/.test(delivery)) {
-  fail('Delivery must group a ranked candidate pool by location so members get one alert per store/board/location burst.');
+if (!/const allMatchingPreferenceCandidates = groupCandidatesByLocation\(candidates[\s\S]*?\.sort\(sortCandidatesForMember\)\);[\s\S]*?const matchingPreferenceCandidates = allMatchingPreferenceCandidates[\s\S]*?\.slice\(0, Math\.max\(1, CANDIDATE_POOL_PER_USER\)\);/.test(delivery)) {
+  fail('Delivery must retain the full grouped match set for migration before slicing the ranked provider pool.');
 }
 
 if (!/function recentDeliverySet[\s\S]*?return new Set[\s\S]*?\.filter\(\(record\) => \(record\.channel \|\| "email"\) === channel\)[\s\S]*?deliveryDedupeToken/.test(delivery) || /const cutoff = Date\.now\(\) - DELIVERY_DEDUPE_WINDOW_HOURS/.test(delivery)) {
@@ -117,6 +123,14 @@ if (!delivery.includes('if (!candidatePassesFreshEmailGuardrails(candidate))')
 
 if (!delivery.includes('suppressStaleQueuedIntent') || !delivery.includes('stale_at_final_delivery_boundary')) {
   fail('Queue claims that age out before send must be terminally suppressed instead of retried.');
+}
+
+if (/Promise\.all\([^)]*(?:reserveAlertDelivery|enqueue|claim)/s.test(delivery)) {
+  fail('Grouped queue reservation must use one atomic batch operation, not Promise.all of child operations.');
+}
+
+if (!/idempotencyKey:[\s\S]*claimedChildCandidateIds/s.test(delivery)) {
+  fail('Grouped email provider idempotency must derive from the claimed child candidate IDs.');
 }
 
 if (!runSafety.includes('future_alert_snapshot')) {

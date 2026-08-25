@@ -152,6 +152,8 @@ const alertAudit = {
   repeatedIdentityGroups: 1,
   repeatedPayloadGroups: 2,
   repeatedUnderlyingBottleGroups: 3,
+  latestDeliveryAt: '2026-07-10T14:20:00.000Z',
+  latestRepeatedUnderlyingBottleAt: '2026-07-10T14:10:00.000Z',
 };
 const audited = buildOpsHealth({
   heartbeat,
@@ -174,6 +176,8 @@ const unavailableAudit = {
   repeatedIdentityGroups: 0,
   repeatedPayloadGroups: 0,
   repeatedUnderlyingBottleGroups: 0,
+  latestDeliveryAt: null,
+  latestRepeatedUnderlyingBottleAt: null,
   note: 'queue_database_unavailable',
 };
 const degradedAudit = buildOpsHealth({ heartbeat, engineGeneratedAt: recent, alertAudit: unavailableAudit });
