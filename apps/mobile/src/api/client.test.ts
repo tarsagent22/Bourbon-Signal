@@ -311,12 +311,12 @@ test("presents the canonical Signal transport shape without legacy field assumpt
   const presented = presentSignal(signal);
   assert.equal(presented.location, "Bottle Shop · Raleigh, NC");
   assert.equal(presented.price, "$69.99");
-  assert.equal(presented.quantity, "2 reports");
+  assert.equal(presented.quantity, "2 seen");
   assert.equal(presented.summary, "Two bottles on the shelf");
   assert.equal(presented.reporter, "Member #19");
   assert.equal(signalCardStatusLabel(signal, new Date("2026-08-23T12:00:00.000Z")), "Member #19");
   const accessibility = signalAccessibilityLabel(signal, new Date("2026-08-23T12:00:00.000Z"));
-  for (const detail of ["Example Bourbon", "Bottle Shop", "$69.99", "2 reports", "Two bottles on the shelf", "Member #19", "2 days ago"]) {
+  for (const detail of ["Example Bourbon", "Bottle Shop", "$69.99", "2 seen", "Two bottles on the shelf", "Member #19", "2 days ago"]) {
     assert.match(accessibility, new RegExp(detail.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   }
   assert.doesNotMatch(accessibility, /Member sighting/);
@@ -338,8 +338,8 @@ test("presents the canonical Signal transport shape without legacy field assumpt
     id: "member:numeric-quantity",
     availability: { ...signal.availability!, quantity: undefined, quantityLabel: "4" },
   };
-  assert.equal(presentSignal(numericQuantity).quantity, "4 reports");
-  assert.equal(presentSignal({ ...numericQuantity, availability: { ...numericQuantity.availability!, quantityLabel: "1" } }).quantity, "1 report");
+  assert.equal(presentSignal(numericQuantity).quantity, "4 seen");
+  assert.equal(presentSignal({ ...numericQuantity, availability: { ...numericQuantity.availability!, quantityLabel: "1" } }).quantity, "1 seen");
   assert.equal(presentSignal({ ...signal, availability: { status: "reported", price: 69.99 } }).quantity, "Quantity unknown");
 
   const release: Signal = {

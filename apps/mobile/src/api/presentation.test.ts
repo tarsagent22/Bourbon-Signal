@@ -45,6 +45,13 @@ test("report counts use concise natural grammar", () => {
   assert.equal(presentSignal(signal({ availability: { status: "reported", quantityLabel: "2 bottles" } })).quantity, "2 reports");
 });
 
+test("Community shelf quantity remains bottles seen rather than report count", () => {
+  const community = { type: "member", label: "Member #19" } as const;
+  assert.equal(presentSignal(signal({ source: community, availability: { status: "reported", quantityLabel: "2" } })).quantity, "2 seen");
+  assert.equal(presentSignal(signal({ source: community, availability: { status: "reported", quantityLabel: "3–5" } })).quantity, "3–5 seen");
+  assert.equal(presentSignal(signal({ source: community, availability: { status: "reported", quantityLabel: "2 behind counter" } })).quantity, "Reported: 2 behind counter");
+});
+
 test("older availability reports are qualified instead of presented as current inventory", () => {
   const olderReport = signal({ timing: { displayAt: "2026-08-23T12:00:00.000Z" } });
   const now = new Date("2026-08-27T12:00:00.000Z");

@@ -1,5 +1,7 @@
 import { ClerkProvider } from "@clerk/expo";
 import { tokenCache } from "@clerk/expo/token-cache";
+import { Fraunces_700Bold } from "@expo-google-fonts/fraunces/700Bold";
+import { useFonts } from "expo-font";
 import * as Notifications from "expo-notifications";
 import { Stack, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
@@ -11,6 +13,8 @@ import { colors } from "../src/theme";
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
 export default function RootLayout() {
+  const [fontsLoaded, fontError] = useFonts({ Fraunces_700Bold });
+  if (!fontsLoaded && !fontError) return null;
   if (!publishableKey) {
     return <View style={styles.configuration}><Text style={styles.title}>Bourbon Signal</Text><Text style={styles.message}>This development build is missing its Clerk publishable key.</Text></View>;
   }
