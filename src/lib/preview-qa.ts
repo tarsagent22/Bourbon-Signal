@@ -25,6 +25,7 @@ export const QA_PREVIEW_PREFERENCES = {
     paStores: [],
   },
   notificationPreferences: {
+    rarityTiers: ["unicorn", "allocated", "limited"] as Array<"unicorn" | "allocated" | "limited">,
     onSite: { enabled: true },
     push: { enabled: false },
     email: { enabled: true, mode: "major_only" as const },

@@ -118,6 +118,7 @@ export interface MemberPreferences {
   areaPreferences: RadarAreaPreferences;
   monitoringScopes: MonitoringScope[];
   notificationPreferences: {
+    rarityTiers: Array<"unicorn" | "allocated" | "limited">;
     onSite: { enabled: boolean };
     push: { enabled: boolean };
     email: { enabled: boolean; mode: "all" | "major_only" };
@@ -133,6 +134,7 @@ export interface MemberPreferencesPatch {
   areaPreferences?: RadarAreaPreferences;
   monitoringScopes?: MonitoringScope[];
   notificationPreferences?: {
+    rarityTiers?: Array<"unicorn" | "allocated" | "limited">;
     onSite?: Partial<MemberPreferences["notificationPreferences"]["onSite"]>;
     push?: Partial<MemberPreferences["notificationPreferences"]["push"]>;
     email?: Partial<MemberPreferences["notificationPreferences"]["email"]>;

@@ -3,7 +3,7 @@ import { clerkClient } from "@clerk/nextjs/server";
 import { PaidDropAlertEmail } from "@/components/emails/PaidDropAlertEmail";
 import { ALERT_FROM, ALERT_REPLY_TO, getResendClient } from "@/lib/email-alerts";
 import { getServerEntitlements } from "@/lib/server-entitlements";
-import { buildAlertId, normalizeNotificationPreferences, type EmailAlertMode, type MemberAlertRecord, type SmsAlertMode } from "@/lib/notification-preferences";
+import { alertRarityIsSelected, buildAlertId, normalizeAlertRarityTier, normalizeNotificationPreferences, type EmailAlertMode, type MemberAlertRecord, type SmsAlertMode } from "@/lib/notification-preferences";
 import { readSiteExport, readSiteExportResult } from "@/lib/site-engine-contract";
 import { alertFreshnessIsDeliverable, evaluateAlertSnapshotSafety, resolveAlertFreshnessCapHours, signalFreshnessHoursAt } from "@/lib/alert-run-safety";
 import { getActiveEngineStateName } from "@/lib/activeStates";
@@ -830,7 +830,7 @@ export function candidateToMemberAlert(userId: string, candidate: CandidateAlert
     storeLabel: candidateStoreLabel(candidate),
     matchedArea: areaPrefs ? candidateMatchedArea(candidate, areaPrefs) : asString(candidate.locationName) || asString(candidate.state),
     eventType: asString(candidate.eventType, asString(candidate.action, "signal")),
-    rarityTier: asString(candidate.tier) || null,
+    rarityTier: normalizeAlertRarityTier(candidate.tier ?? candidate.rarityTier),
     quantity: asNumber(candidate.quantity) || asNumber(candidate.warehouseQty) || null,
     score: asNumber(candidate.reliabilityScore, asNumber(candidate.score)),
     priorityClass: candidate.priorityClass === "major" ? "major" : "standard",
@@ -1272,6 +1272,7 @@ export async function deliverPreferenceAlerts(req: Request, options: {
       const deliveryMetadata = normalizeDeliveryMetadata(privateMetadata.alertDelivery);
       const allMatchingPreferenceCandidates = groupCandidatesByLocation(candidates
         .filter((candidate) => asString(candidate.sourceType) !== "community" || (entitlements.canReceiveSightingsAlerts && notificationPrefs.sightings.enabled))
+        .filter((candidate) => alertRarityIsSelected(candidate.tier ?? candidate.rarityTier, notificationPrefs.rarityTiers))
         .filter((candidate) => candidateMatchesArea(candidate, areaPrefs))
         .filter((candidate) => {
           const matches = candidateMatchesBottlePrefs(candidate, alertMode, bottlePrefs);

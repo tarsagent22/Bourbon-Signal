@@ -6,6 +6,15 @@ export const RADAR_AREA_KEYS: Record<string, keyof RadarAreaPreferences> = {
   SC: "scAreas", CA: "caAreas", NV: "nvAreas", NY: "nyAreas", CO: "coAreas", PA: "paCounties",
 };
 
+export const ALERT_RARITY_TIERS = ["unicorn", "allocated", "limited"] as const;
+export type AlertRarityTier = typeof ALERT_RARITY_TIERS[number];
+
+export function toggleAlertRarity(selected: AlertRarityTier[], tier: AlertRarityTier) {
+  const next = selected.includes(tier) ? selected.filter((value) => value !== tier) : [...selected, tier];
+  if (!next.length) return selected;
+  return ALERT_RARITY_TIERS.filter((value) => next.includes(value));
+}
+
 export function radarStateDisplayCode(state: string) {
   const code = state.trim().toUpperCase();
   return code === "MD-MONTGOMERY" ? "MD" : code;
