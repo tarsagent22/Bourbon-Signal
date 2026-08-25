@@ -14,4 +14,6 @@ assert.match(schema, /next_attempt_at\s+timestamptz/i);
 assert.match(schema, /create table if not exists clerk_alert_metadata_backups/i);
 assert.match(schema, /migration_id\s+text/i);
 assert.match(schema, /unique\s*\(user_id, channel, stable_match_key\)/i);
+assert.match(schema, /alert_candidates_delivered_audit_idx/i);
+assert.match(schema, /where status = 'delivered'/i);
 console.log("Alert queue Postgres schema contract passed.");

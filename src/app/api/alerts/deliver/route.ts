@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { assertAlertDeliveryAuthorized, deliverPreferenceAlerts, sendOperationalTestAlertEmail } from "@/lib/alert-delivery";
 import { writeAlertDeliveryHeartbeat } from "@/lib/ops-health";
+import { readAlertQueueAuditHealth } from "@/lib/alert-queue/audit";
 import { resolveGiftDeliveryMode, runGiftDelivery } from "@/lib/gift-delivery";
 import { runGiftAdverseReconciliation, runGiftExpiryReconciliation } from "@/lib/gift-expiry";
 import { runDirectFounderActivationReconciliation, runGiftActivationReconciliation } from "@/lib/gift-activation";
@@ -60,9 +61,11 @@ async function runDelivery(req: NextRequest) {
           runLatePaymentRefundReconciliation(100),
         ])
       : [];
+    const alertAudit = heartbeatEligible ? await readAlertQueueAuditHealth() : undefined;
     const result = {
       ...deliveryResult,
       monitorOnly,
+      ...(alertAudit ? { alertAudit } : {}),
       ...(giftMaintenanceDue ? {
         giftDelivery: giftMaintenance[0]?.status === "fulfilled" ? giftMaintenance[0].value : { ok: false, isolatedFailure: true },
         giftExpiry: giftMaintenance[1]?.status === "fulfilled" ? giftMaintenance[1].value : { ok: false, isolatedFailure: true },

@@ -36,6 +36,10 @@ create index if not exists alert_candidates_pending_idx
   on alert_candidates (created_at, id)
   where status = 'pending';
 
+create index if not exists alert_candidates_delivered_audit_idx
+  on alert_candidates (delivered_at)
+  where status = 'delivered';
+
 create table if not exists alert_deliveries (
   id bigint generated always as identity primary key,
   candidate_id text not null references alert_candidates(id),
