@@ -29,7 +29,8 @@ const readGeographyStores = unstable_cache(async () => {
       const name = text(store.name || store.displayLabel);
       const address = text(store.address);
       const city = text(store.city || store.storeCity);
-      return id && state && name && address && city ? [[`${state}:${id}`, { id, state, name, address, city }] as const] : [];
+      const zip = text(store.zip || store.postalCode || store.postal_code);
+      return id && state && name && address && city ? [[`${state}:${id}`, { id, state, name, address, city, zip }] as const] : [];
     })).values()];
   } catch (error) {
     console.warn("Radar geography store directory unavailable", error instanceof Error ? error.message : "unknown error");
@@ -71,13 +72,17 @@ export async function GET(request: Request) {
     return Boolean(canonical && canonicalCommunityStoreMatches(canonical, row));
   });
   const activeEngineStates = new Set(ACTIVE_ENGINE_STATE_CODES.map((code) => geographyState(code)?.state || code));
-  const decorate = (entry: { id: string; level: ApiLevel; state: string; name: string; subtitle: string | null; rawId?: string }) => {
+  const decorate = (entry: { id: string; level: ApiLevel; state: string; name: string; subtitle: string | null; rawId?: string; address?: string; city?: string; zip?: string }) => {
     const count = countCommunityActivity(recentSightings, entry);
     const engineStatus = activeEngineStates.has(entry.state) ? "active" as const : "expanding" as const;
     return {
       id: entry.id, level: entry.level, state: entry.state, name: entry.name,
       displayName: entry.level === "city" ? geographyDisplayName(entry.name) : entry.name,
       subtitle: entry.subtitle,
+      storeId: entry.rawId,
+      address: entry.address,
+      city: entry.city,
+      zip: entry.zip || undefined,
       coverage: {
         engine: { status: engineStatus },
         community: { active: count > 0, recentSightings: count, windowDays: 7 },
@@ -87,7 +92,7 @@ export async function GET(request: Request) {
   };
   const dynamic = [
     ...(requestedLevels.includes("board") && (!state || state === "NC") ? NC_ABC_BOARD_OPTIONS.map((name) => ({ id: `board:NC:${slug(name)}`, level: "board" as const, state: "NC", name, subtitle: null })) : []),
-    ...(requestedLevels.includes("store") ? stores.map((store) => ({ id: `store:${store.state}:${store.id}`, level: "store" as const, state: store.state, name: store.name, subtitle: `${store.city} · ${store.address}`, rawId: store.id })) : []),
+    ...(requestedLevels.includes("store") ? stores.map((store) => ({ id: `store:${store.state}:${store.id}`, level: "store" as const, state: store.state, name: store.name, subtitle: `${store.city} · ${store.address}`, rawId: store.id, address: store.address, city: store.city, zip: store.zip })) : []),
   ].filter((entry) => (!state || entry.state === state) && (!query || `${entry.name} ${entry.subtitle || ""}`.toLowerCase().includes(query.toLowerCase())));
   const combined = [...staticResults.map((entry) => ({ ...entry, name: entry.name, subtitle: null })), ...dynamic]
     .sort((left, right) => left.state.localeCompare(right.state) || left.level.localeCompare(right.level) || left.name.localeCompare(right.name));

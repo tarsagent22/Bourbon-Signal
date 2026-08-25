@@ -62,6 +62,7 @@
     "test:push-devices": "node --no-warnings --experimental-strip-types scripts/test-push-devices.mts",
     "test:nationwide-radar": "node --no-warnings --experimental-strip-types --test scripts/test-nationwide-geography.mts scripts/test-monitoring-scopes.mts scripts/test-community-alert-candidates.mts scripts/test-geography-activity.mts scripts/test-nationwide-radar-contracts.mts",
     "test:native-thin-slice": "node --no-warnings --experimental-strip-types scripts/test-native-thin-slice.mts",
+    "test:native-post-composer": "node --no-warnings --experimental-strip-types --test scripts/test-native-post-composer.mts",
     "verify:mobile": "npm --prefix apps/mobile ci && npm --prefix apps/mobile run verify",
     "test:main-feed-composer": "node --no-warnings --experimental-strip-types scripts/test-main-feed-composer.mts",
     "test:campaign-click-tracking": "node --no-warnings --experimental-strip-types scripts/test-campaign-click-tracking.mts",
