@@ -38,7 +38,7 @@ test('throwing, timed out, malformed, and collapsed sources cannot stop healthy 
     adapter('timeout', async (_context, { signal }) => new Promise((_resolve, reject) => {
       signal.addEventListener('abort', () => reject(signal.reason), { once: true });
     })),
-    adapter('malformed', async () => fixture('malformed.json'), {
+    adapter('malformed', async () => ({ malformed: true }), {
       validate: (value) => Array.isArray(value?.signals) || 'fixture payload requires signals',
     }),
     adapter('collapse', async () => ({ signals: [{ id: 'only-one' }] })),
