@@ -29,6 +29,17 @@ export function isRetainedNotDueReport(sourceResults = [], signals = []) {
     && signals.length > 0;
 }
 
+export function isStaleRetainedNotDueReport(sourceResults = [], signals = []) {
+  return isRetainedNotDueReport(sourceResults, signals)
+    && signals.every((signal) => signal?.stale === true
+      && signal?.canAlertAsInventory !== true
+      && signal?.canAlertAsWatch !== true
+      && signal?.alertable !== true
+      && signal?.sourceAvailabilityVerified !== true
+      && signal?.eligibleForEmail !== true
+      && signal?.eligibleForSms !== true);
+}
+
 const SIGNAL_TERMS = [
   'bourbon', 'whiskey', 'whisky', 'allocated', 'limited', 'release', 'lottery', 'barrel', 'single barrel',
   'weller', 'blanton', 'buffalo trace', 'eagle rare', 'stagg', 'taylor', 'pappy', 'van winkle', 'michter',
@@ -624,6 +635,7 @@ export async function collectState(config, bible, options = {}) {
 
   const dedupedSignals = [...new Map(signals.map((signal) => [signal.id, config.id === 'NC' && signal.eventType === 'nc_board_shipment_snapshot' ? applyNcBoardShipmentPolicy(signal) : signal])).values()];
   const retainedNotDue = isRetainedNotDueReport(sourceResults, dedupedSignals);
+  const staleRetainedNotDue = isStaleRetainedNotDueReport(sourceResults, dedupedSignals);
   const reachableSourceReports = sourceReports.filter(sourceReportCountsTowardReachability);
   const monitoredNoCurrentInventory = reachableSourceReports.some(sourceReportProvesMonitoredNoInventory);
   const finishedAt = new Date().toISOString();
@@ -631,6 +643,7 @@ export async function collectState(config, bible, options = {}) {
   const lastGoodAt = sourceResults.length
     ? sourceLastGoodTimes.length ? new Date(Math.max(...sourceLastGoodTimes)).toISOString() : null
     : finishedAt;
+  const reportStale = Boolean(precisionProbe.stale || staleRetainedNotDue);
   return {
     state: config.id,
     label: config.label,
@@ -648,12 +661,14 @@ export async function collectState(config, bible, options = {}) {
     precisionMetadata: precisionProbe.metadata || null,
     signals: dedupedSignals,
     roadblocks,
-    stale: Boolean(precisionProbe.stale),
-    staleReason: precisionProbe.staleReason || null,
-    staleFallbackAt: precisionProbe.staleFallbackAt || null,
-    previousFinishedAt: precisionProbe.previousFinishedAt || null,
-    status: precisionProbe.stale
-      ? `stale_${reachableSourceReports.some((s) => s.matchedBottleCount > 0 || s.pdfLinkCount > 0 || s.documentLinkCount > 0) ? 'useful' : reachableSourceReports.length ? 'reachable_needs_deeper_parser' : 'blocked'}`
+    stale: reportStale,
+    staleReason: precisionProbe.staleReason || (staleRetainedNotDue ? 'Retained not-due evidence was already stale and non-alertable.' : null),
+    staleFallbackAt: precisionProbe.staleFallbackAt || (staleRetainedNotDue ? finishedAt : null),
+    previousFinishedAt: precisionProbe.previousFinishedAt || (staleRetainedNotDue ? lastGoodAt : null),
+    status: reportStale
+      ? staleRetainedNotDue
+        ? 'stale_useful_retained_not_due'
+        : `stale_${reachableSourceReports.some((s) => s.matchedBottleCount > 0 || s.pdfLinkCount > 0 || s.documentLinkCount > 0) ? 'useful' : reachableSourceReports.length ? 'reachable_needs_deeper_parser' : 'blocked'}`
       : retainedNotDue
         ? 'useful_retained_not_due'
         : monitoredNoCurrentInventory
