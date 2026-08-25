@@ -1,4 +1,5 @@
 import { list, put } from "@vercel/blob";
+import type { AlertQueueAuditHealth } from "@/lib/alert-queue/audit";
 
 const HEARTBEAT_PATH = "ops/alert-delivery-heartbeat-v2.json";
 export const EXPECTED_ALERT_CRON_SCHEDULE = "*/5 * * * *";
@@ -15,6 +16,7 @@ export interface AlertDeliveryHeartbeat {
   deploymentId: string | null;
   durationMs: number;
   counts: Record<string, number>;
+  alertAudit?: AlertQueueAuditHealth;
   error: string | null;
 }
 
@@ -57,6 +59,9 @@ export async function writeAlertDeliveryHeartbeat(input: {
     deploymentId: process.env.VERCEL_DEPLOYMENT_ID || null,
     durationMs: Math.max(0, Date.now() - input.startedAt),
     counts: safeCounts(result),
+    alertAudit: result.alertAudit && typeof result.alertAudit === "object"
+      ? result.alertAudit as AlertQueueAuditHealth
+      : undefined,
     error: failed ? "delivery_failed" : null,
   };
   await put(HEARTBEAT_PATH, JSON.stringify(heartbeat), {
@@ -116,6 +121,7 @@ export function buildOpsHealth(input: {
   engineGeneratedAt: string | null;
   refreshHealth?: Record<string, unknown> | null;
   currentDeploymentId?: string | null;
+  alertAudit?: AlertQueueAuditHealth;
   snapshot?: {
     snapshotId: string | null;
     dataSource: string;
@@ -231,6 +237,7 @@ export function buildOpsHealth(input: {
       emailEnabled: process.env.ALERT_EMAIL_DELIVERY_ENABLED === "1" || process.env.ALERT_DELIVERY_ENABLED === "1",
       smsEnabled: process.env.ALERT_SMS_DELIVERY_ENABLED === "1" || process.env.ALERT_DELIVERY_ENABLED === "1",
       monitorOnly,
+      alertAudit: input.alertAudit,
     },
   };
 }

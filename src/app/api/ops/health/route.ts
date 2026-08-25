@@ -18,6 +18,7 @@ export async function GET() {
       ? stats.refreshHealth as Record<string, unknown>
       : null,
     currentDeploymentId: process.env.VERCEL_DEPLOYMENT_ID || null,
+    alertAudit: heartbeat?.alertAudit,
     snapshot: {
       snapshotId: statsResult.snapshotId,
       dataSource: statsResult.source,
