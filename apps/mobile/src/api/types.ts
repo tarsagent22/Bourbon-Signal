@@ -192,6 +192,10 @@ export interface GeographySearchResponse {
     name: string;
     displayName?: string;
     subtitle?: string | null;
+    storeId?: string;
+    address?: string;
+    city?: string;
+    zip?: string;
     coverage: { engine: { status: "active" | "expanding" }; community: { active: boolean; recentSightings: number; windowDays: number } };
     message: string | null;
   }>;

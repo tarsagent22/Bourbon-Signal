@@ -1,38 +1,55 @@
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 import * as Crypto from "expo-crypto";
 import * as SecureStore from "expo-secure-store";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { MobileApiError } from "../../../src/api/client";
-import type { MemberProfile, SightingSubmission } from "../../../src/api/types";
-import { MemberCard, ScreenIntro, memberScreenStyles } from "../../../src/components/MemberScreen";
+import type { GeographySearchResponse, MemberProfile, RadarBottleOption } from "../../../src/api/types";
+import { MemberCard, memberScreenStyles } from "../../../src/components/MemberScreen";
 import { useMobileApi } from "../../../src/hooks/useMobileApi";
-import { buildManualStoreId, createSightingIdempotencyKey, parseSightingDraftBinding, serializeSightingDraftBinding, SIGHTING_IDEMPOTENCY_STORAGE_KEY, type SightingDraftBinding } from "../../../src/sightings/manual-sighting";
+import { createSightingIdempotencyKey, parseSightingDraftBinding, serializeSightingDraftBinding, SIGHTING_IDEMPOTENCY_STORAGE_KEY, type SightingDraftBinding } from "../../../src/sightings/manual-sighting";
+import { approvedStoreFromGeography, buildPostSightingSubmission, filterBottleSuggestions, isPostRequiredComplete, POST_QUANTITY_CHOICES, type PostStoreSelection } from "../../../src/sightings/post-composer";
 import { colors } from "../../../src/theme";
+
+type ActivePicker = "bottle" | "store" | null;
+type GeographyResult = GeographySearchResponse["results"][number];
 
 export default function PostScreen() {
   const api = useMobileApi();
-
   const [profile, setProfile] = useState<MemberProfile["profile"] | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
+  const [bottleCatalog, setBottleCatalog] = useState<RadarBottleOption[]>([]);
   const [bottleName, setBottleName] = useState("");
+  const [bottleId, setBottleId] = useState<string | null>(null);
+  const [activePicker, setActivePicker] = useState<ActivePicker>(null);
   const [storeName, setStoreName] = useState("");
   const [storeAddress, setStoreAddress] = useState("");
   const [storeCity, setStoreCity] = useState("");
   const [storeState, setStoreState] = useState("");
+  const [storeZip, setStoreZip] = useState("");
+  const [selectedStore, setSelectedStore] = useState<PostStoreSelection | null>(null);
+  const [manualStore, setManualStore] = useState(false);
+  const [storeResults, setStoreResults] = useState<PostStoreSelection[]>([]);
+  const [storeSearching, setStoreSearching] = useState(false);
   const [price, setPrice] = useState("");
   const [quantity, setQuantity] = useState("");
+  const [customQuantity, setCustomQuantity] = useState(false);
   const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [idempotencyReady, setIdempotencyReady] = useState(false);
   const draftBinding = useRef<SightingDraftBinding | null>(null);
+  const storeSearchSequence = useRef(0);
 
   useEffect(() => {
     let active = true;
-    api.getMemberProfile()
-      .then((result) => { if (active) setProfile(result.profile); })
-      .catch(async (caught) => {
+    Promise.all([
+      api.getMemberProfile(),
+      api.listRadarBottles().catch(() => [] as RadarBottleOption[]),
+    ])
+      .then(([result, bottles]) => { if (active) { setProfile(result.profile); setBottleCatalog(bottles); } })
+      .catch((caught) => {
         if (active) setError(caught instanceof MobileApiError && caught.status === 401 ? "Your session could not be verified. Return to Signals and retry." : caught instanceof Error ? caught.message : "Posting access is temporarily unavailable.");
       })
       .finally(() => { if (active) setLoadingProfile(false); });
@@ -56,47 +73,111 @@ export default function PostScreen() {
   }, []);
 
   const canSubmit = profile?.entitlements.canSubmitSignals === true;
-  const requiredComplete = useMemo(() => Boolean(bottleName.trim() && storeName.trim() && storeAddress.trim() && storeCity.trim() && /^[A-Za-z]{2}$/.test(storeState.trim())), [bottleName, storeAddress, storeCity, storeName, storeState]);
+  const bottleSuggestions = useMemo(() => filterBottleSuggestions(bottleCatalog, bottleName), [bottleCatalog, bottleName]);
+  const requiredComplete = useMemo(() => isPostRequiredComplete({ bottleName, storeName, storeAddress, storeCity, storeState }), [bottleName, storeAddress, storeCity, storeName, storeState]);
+  const actionDisabled = !requiredComplete || !idempotencyReady || submitting;
+
+  useEffect(() => {
+    const query = storeName.replace(/\s+/g, " ").trim();
+    if (!canSubmit || manualStore || selectedStore || activePicker !== "store" || query.length < 2) {
+      storeSearchSequence.current += 1;
+      setStoreResults([]);
+      setStoreSearching(false);
+      return;
+    }
+    const sequence = ++storeSearchSequence.current;
+    const timer = setTimeout(() => {
+      setStoreSearching(true);
+      api.searchMonitoringGeography({ levels: ["store"], query, limit: 6 })
+        .then((response) => response.results.flatMap((entry: GeographyResult) => {
+          const store = approvedStoreFromGeography(entry);
+          return store ? [store] : [];
+        }))
+        .then((results) => { if (storeSearchSequence.current === sequence) setStoreResults(results); })
+        .catch(() => { if (storeSearchSequence.current === sequence) setStoreResults([]); })
+        .finally(() => { if (storeSearchSequence.current === sequence) setStoreSearching(false); });
+    }, 250);
+    return () => clearTimeout(timer);
+  }, [activePicker, api, canSubmit, manualStore, selectedStore, storeName]);
+
+  function changeBottleName(value: string) {
+    setBottleName(value);
+    setBottleId(null);
+    setSuccess("");
+  }
+
+  function chooseBottle(bottle: RadarBottleOption) {
+    setBottleName(bottle.name);
+    setBottleId(bottle.id);
+    setActivePicker(null);
+  }
+
+  function changeStoreName(value: string) {
+    storeSearchSequence.current += 1;
+    setStoreResults([]);
+    setStoreSearching(false);
+    if (selectedStore) {
+      setStoreAddress(""); setStoreCity(""); setStoreState(""); setStoreZip("");
+    }
+    setSelectedStore(null);
+    setStoreName(value);
+    setSuccess("");
+  }
+
+  function chooseStore(store: PostStoreSelection) {
+    setSelectedStore(store);
+    setStoreName(store.name);
+    setStoreAddress(store.address);
+    setStoreCity(store.city);
+    setStoreState(store.state);
+    setStoreZip(store.zip || "");
+    setStoreResults([]);
+    setActivePicker(null);
+  }
+
+  function startManualStore() {
+    setManualStore(true);
+    setSelectedStore(null);
+    setStoreResults([]);
+    setStoreAddress(""); setStoreCity(""); setStoreState(""); setStoreZip("");
+    setActivePicker(null);
+  }
+
+  function returnToStoreSearch() {
+    setManualStore(false);
+    setSelectedStore(null);
+    setStoreAddress(""); setStoreCity(""); setStoreState(""); setStoreZip("");
+    setActivePicker("store");
+  }
+
+  function resetComposer() {
+    setBottleName(""); setBottleId(null); setStoreName(""); setStoreAddress(""); setStoreCity(""); setStoreState(""); setStoreZip("");
+    setSelectedStore(null); setManualStore(false); setStoreResults([]); setPrice(""); setQuantity(""); setCustomQuantity(false); setNotes(""); setActivePicker(null);
+  }
 
   async function submit() {
     if (!idempotencyReady) {
       setError("Secure draft protection is unavailable. Restart the app before posting.");
       return;
     }
-    if (!requiredComplete || submitting) {
-      setError("Add the bottle, store, street address, city, and two-letter state.");
+    const built = buildPostSightingSubmission({
+      bottleName,
+      bottleId,
+      store: { id: selectedStore?.id || null, name: storeName, address: storeAddress, city: storeCity, state: storeState, zip: storeZip || undefined },
+      price,
+      quantity,
+      notes,
+    });
+    if (!built.ok) {
+      setError(built.error);
       return;
     }
+    if (submitting) return;
     setSubmitting(true);
     setError("");
     setSuccess("");
-    const normalizedState = storeState.trim().toUpperCase();
-    const parsedPrice = price.trim() ? Number(price.replace(/[$,]/g, "")) : null;
-    if (parsedPrice !== null && (!Number.isFinite(parsedPrice) || parsedPrice < 0)) {
-      setError("Enter a valid shelf price or leave it blank.");
-      setSubmitting(false);
-      return;
-    }
-    const payload: SightingSubmission = {
-        bottleName: bottleName.trim(),
-        storeId: buildManualStoreId(storeName, storeAddress, storeCity, normalizedState),
-        storeName: storeName.trim(),
-        storeAddress: storeAddress.trim(),
-        storeCity: storeCity.trim(),
-        storeState: normalizedState,
-        quantityEstimate: quantity.trim() || undefined,
-        price: parsedPrice,
-        notes: notes.trim() || undefined,
-        sightingType: "seen_in_store",
-        reviewState: {
-          needsStoreReview: true,
-          manualStoreName: storeName.trim(),
-          manualStoreCity: storeCity.trim(),
-          manualStoreState: normalizedState,
-        },
-      };
     try {
-      const fingerprint = await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, JSON.stringify(payload));
+      const fingerprint = await Crypto.digestStringAsync(Crypto.CryptoDigestAlgorithm.SHA256, JSON.stringify(built.payload));
       const currentBinding = draftBinding.current;
       if (!currentBinding) throw new Error("Secure draft protection is unavailable. Restart the app before posting.");
       const requestBinding: SightingDraftBinding = currentBinding.fingerprint && currentBinding.fingerprint !== fingerprint
@@ -104,9 +185,9 @@ export default function PostScreen() {
         : { key: currentBinding.key, fingerprint };
       await SecureStore.setItemAsync(SIGHTING_IDEMPOTENCY_STORAGE_KEY, serializeSightingDraftBinding(requestBinding));
       draftBinding.current = requestBinding;
-      const result = await api.submitSighting(payload, requestBinding.key);
+      const result = await api.submitSighting(built.payload, requestBinding.key);
+      resetComposer();
       setSuccess(result.duplicate ? "That Signal was already saved. You are all set." : "Signal posted. Thanks for helping nearby members.");
-      setBottleName(""); setStoreName(""); setStoreAddress(""); setStoreCity(""); setStoreState(""); setPrice(""); setQuantity(""); setNotes("");
       const nextBinding: SightingDraftBinding = { key: createSightingIdempotencyKey(), fingerprint: null };
       try {
         await SecureStore.setItemAsync(SIGHTING_IDEMPOTENCY_STORAGE_KEY, serializeSightingDraftBinding(nextBinding));
@@ -124,55 +205,144 @@ export default function PostScreen() {
 
   return (
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} keyboardVerticalOffset={88} style={memberScreenStyles.screen}>
-      <ScrollView contentContainerStyle={memberScreenStyles.content} keyboardShouldPersistTaps="handled">
-        <ScreenIntro eyebrow="Member report" title="Post a Signal" description="A quick, durable store sighting. Required facts come first; price, quantity, and context stay optional." />
+      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" style={styles.scroll}>
+        <View style={styles.postIntro}><View style={styles.introCopy}><Text style={styles.eyebrow}>MEMBER REPORT</Text><Text accessibilityRole="header" style={styles.introTitle}>Post a Signal</Text><Text style={styles.introDescription}>Choose the bottle and retailer. Add only what you observed.</Text></View><View style={styles.signalMark}><MaterialCommunityIcons color={colors.accent} name="bottle-tonic-outline" size={19} /><MaterialCommunityIcons color={colors.accent} name="broadcast" size={18} /></View></View>
         {loadingProfile ? <ActivityIndicator color={colors.accent} /> : null}
         {!loadingProfile && profile && !canSubmit ? <MemberCard><Text style={styles.blockedTitle}>Posting is not included with this membership</Text><Text style={styles.help}>HQ shows the membership attached to this account.</Text></MemberCard> : null}
         {canSubmit ? <MemberCard>
-          <Field autoCapitalize="words" label="Bottle" onChangeText={setBottleName} placeholder="Bottle name" value={bottleName} />
-          <Field autoCapitalize="words" label="Store" onChangeText={setStoreName} placeholder="Retailer name" value={storeName} />
-          <Field autoCapitalize="words" label="Street address" onChangeText={setStoreAddress} placeholder="123 Main St" value={storeAddress} />
-          <View style={styles.row}>
-            <View style={styles.city}><Field autoCapitalize="words" label="City" onChangeText={setStoreCity} placeholder="City" value={storeCity} /></View>
-            <View style={styles.state}><Field autoCapitalize="characters" label="State" maxLength={2} onChangeText={setStoreState} placeholder="NC" value={storeState} /></View>
-          </View>
-          <View style={styles.row}>
-            <View style={styles.half}><Field keyboardType="decimal-pad" label="Price (optional)" onChangeText={setPrice} placeholder="69.99" value={price} /></View>
-            <View style={styles.half}><Field label="Quantity (optional)" onChangeText={setQuantity} placeholder="2 on shelf" value={quantity} /></View>
-          </View>
-          <Field autoCapitalize="sentences" label="Notes (optional)" multiline onChangeText={setNotes} placeholder="Useful context for nearby members" value={notes} />
+          <ComposerSection number="1" title="Choose a bottle" required>
+            <Field autoCapitalize="words" autoCorrect={false} label="Bottle" onChangeText={changeBottleName} onFocus={() => setActivePicker("bottle")} placeholder="Search bottle catalog" value={bottleName} />
+            {bottleId ? <SelectionNote icon="check-circle-outline" text="Catalog bottle selected" /> : bottleName.trim() ? <Text style={styles.helper}>Can’t find it? Keep the bottle name exactly as entered.</Text> : null}
+            {activePicker === "bottle" && bottleName.trim().length >= 2 && !bottleId ? <SuggestionList empty="No catalog match. You can still use this name.">
+              {bottleSuggestions.map((bottle) => <SuggestionRow key={bottle.id} onPress={() => chooseBottle(bottle)} subtitle={bottle.rarity ? bottle.rarity.replace("_", " ") : undefined} title={bottle.name} />)}
+            </SuggestionList> : null}
+          </ComposerSection>
+
+          <View style={styles.divider} />
+          <ComposerSection number="2" title="Find a retailer" required>
+            {!manualStore ? <>
+              <Field autoCapitalize="words" autoCorrect={false} label="Store" onChangeText={changeStoreName} onFocus={() => setActivePicker("store")} placeholder="Search retailer, city, or address" value={storeName} />
+              {selectedStore ? <View style={styles.selectedStore}><View style={styles.selectionCopy}><Text style={styles.selectionTitle}>{selectedStore.name}</Text><Text style={styles.selectionSubtitle}>{selectedStore.city}, {selectedStore.state} · {selectedStore.address}</Text></View><Pressable accessibilityLabel="Change selected retailer" accessibilityRole="button" hitSlop={8} onPress={() => { changeStoreName(""); setActivePicker("store"); }}><Text style={styles.textAction}>CHANGE</Text></Pressable></View> : null}
+              {activePicker === "store" && storeName.trim().length >= 2 && !selectedStore ? <SuggestionList empty={storeSearching ? undefined : "No approved retailer match yet."} loading={storeSearching}>
+                {storeResults.map((store) => <SuggestionRow key={`${store.state}:${store.id}`} onPress={() => chooseStore(store)} subtitle={`${store.city}, ${store.state} · ${store.address}`} title={store.name} />)}
+              </SuggestionList> : null}
+              {!selectedStore ? <Pressable accessibilityRole="button" onPress={startManualStore} style={({ pressed }) => [styles.manualAction, pressed && styles.pressed]}><MaterialCommunityIcons color={colors.accent} name="pencil-outline" size={16} /><Text style={styles.manualActionText}>Enter store manually</Text></Pressable> : null}
+            </> : <>
+              <View style={styles.manualHeading}><Text style={styles.helper}>Manual store</Text><Pressable accessibilityRole="button" onPress={returnToStoreSearch}><Text style={styles.textAction}>SEARCH INSTEAD</Text></Pressable></View>
+              <Field autoCapitalize="words" label="Retailer name" onChangeText={setStoreName} placeholder="Store name" value={storeName} />
+              <Field autoCapitalize="words" label="Street address" onChangeText={setStoreAddress} placeholder="123 Main St" value={storeAddress} />
+              <View style={styles.row}><View style={styles.city}><Field autoCapitalize="words" label="City" onChangeText={setStoreCity} placeholder="City" value={storeCity} /></View><View style={styles.state}><Field autoCapitalize="characters" label="State" maxLength={2} onChangeText={setStoreState} placeholder="NC" value={storeState} /></View></View>
+            </>}
+          </ComposerSection>
+
+          <View style={styles.divider} />
+          <ComposerSection number="3" title="Observed (optional)">
+            <View style={styles.priceField}><Text style={styles.label}>Shelf price</Text><View style={styles.priceInput}><Text style={styles.currency}>$</Text><TextInput accessibilityLabel="Shelf price" keyboardType="decimal-pad" onChangeText={setPrice} placeholder="69.99" placeholderTextColor={colors.muted} style={styles.priceTextInput} value={price} /></View></View>
+            <View style={styles.field}><Text style={styles.label}>Quantity seen</Text><View style={styles.chips}>{POST_QUANTITY_CHOICES.map((choice) => <Pressable accessibilityRole="button" accessibilityState={{ selected: !customQuantity && quantity === choice }} key={choice} onPress={() => { setCustomQuantity(false); setQuantity(choice); }} style={[styles.chip, !customQuantity && quantity === choice && styles.chipActive]}><Text style={[styles.chipText, !customQuantity && quantity === choice && styles.chipTextActive]}>{choice}</Text></Pressable>)}<Pressable accessibilityRole="button" accessibilityState={{ selected: customQuantity }} onPress={() => { setCustomQuantity(true); setQuantity(""); }} style={[styles.chip, customQuantity && styles.chipActive]}><Text style={[styles.chipText, customQuantity && styles.chipTextActive]}>Other</Text></Pressable></View></View>
+            {customQuantity ? <Field accessibilityLabel="Custom quantity seen" label="Custom quantity" onChangeText={setQuantity} placeholder="Example: 2 behind counter" value={quantity} /> : null}
+            <Field autoCapitalize="sentences" label="Notes" multiline numberOfLines={3} onChangeText={setNotes} placeholder="Anything nearby members should know" value={notes} />
+          </ComposerSection>
+
+          {requiredComplete ? <View style={styles.preview}><MaterialCommunityIcons color={colors.accent} name="broadcast" size={20} /><View style={styles.selectionCopy}><Text style={styles.previewLabel}>READY TO POST</Text><Text numberOfLines={2} style={styles.previewTitle}>{bottleName}</Text><Text numberOfLines={2} style={styles.selectionSubtitle}>{storeName} · {storeCity}, {storeState.trim().toUpperCase()}</Text></View></View> : null}
           {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
           {success ? <Text accessibilityRole="alert" style={styles.success}>{success}</Text> : null}
-          <Pressable accessibilityRole="button" accessibilityState={{ disabled: !requiredComplete || !idempotencyReady || submitting }} disabled={!requiredComplete || !idempotencyReady || submitting} onPress={submit} style={({ pressed }) => [styles.submit, (!requiredComplete || !idempotencyReady || submitting) && styles.submitDisabled, pressed && styles.submitPressed]}>
-            {submitting ? <ActivityIndicator color={colors.background} /> : <Text style={styles.submitText}>Post Signal</Text>}
-          </Pressable>
-          <Text style={styles.disclaimer}>Availability can change quickly. Only report what you observed; Bourbon Signal may review manually entered bottles or stores.</Text>
+          <Text style={styles.disclaimer}>Only report what you observed. Availability can change quickly, and manually entered bottles or stores may be reviewed.</Text>
         </MemberCard> : null}
         {!canSubmit && error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
       </ScrollView>
+      {canSubmit ? <View style={styles.actionFooter}>
+        {!requiredComplete ? <Text style={styles.actionHint}>Choose a bottle and retailer to continue.</Text> : null}
+        <Pressable accessibilityRole="button" accessibilityState={{ disabled: actionDisabled }} disabled={actionDisabled} onPress={submit} style={({ pressed }) => [styles.submit, actionDisabled && styles.submitDisabled, pressed && !actionDisabled && styles.submitPressed]}>
+          {submitting ? <ActivityIndicator color={colors.background} /> : <><MaterialCommunityIcons color={actionDisabled ? colors.muted : colors.background} name="broadcast" size={18} /><Text style={[styles.submitText, actionDisabled && styles.submitTextDisabled]}>Post Signal</Text></>}
+        </Pressable>
+      </View> : null}
     </KeyboardAvoidingView>
   );
 }
 
+function ComposerSection({ children, number, required = false, title }: React.PropsWithChildren<{ number: string; required?: boolean; title: string }>) {
+  return <View style={styles.section}><View style={styles.sectionHeading}><Text style={styles.sectionNumber}>{number}</Text><Text accessibilityRole="header" style={styles.sectionTitle}>{title}</Text>{required ? <Text style={styles.required}>REQUIRED</Text> : null}</View>{children}</View>;
+}
+
 type FieldProps = React.ComponentProps<typeof TextInput> & { label: string };
-function Field({ label, multiline, ...props }: FieldProps) {
-  return <View style={styles.field}><Text style={styles.label}>{label}</Text><TextInput accessibilityLabel={label} multiline={multiline} placeholderTextColor={colors.muted} style={[styles.input, multiline && styles.multiline]} {...props} /></View>;
+function Field({ label, multiline, style, ...props }: FieldProps) {
+  return <View style={styles.field}><Text style={styles.label}>{label}</Text><TextInput accessibilityLabel={props.accessibilityLabel || label} multiline={multiline} placeholderTextColor={colors.muted} style={[styles.input, multiline && styles.multiline, style]} {...props} /></View>;
+}
+
+function SelectionNote({ icon, text }: { icon: React.ComponentProps<typeof MaterialCommunityIcons>["name"]; text: string }) {
+  return <View style={styles.selectionNote}><MaterialCommunityIcons color={colors.success} name={icon} size={15} /><Text style={styles.selectionNoteText}>{text}</Text></View>;
+}
+
+function SuggestionList({ children, empty, loading = false }: React.PropsWithChildren<{ empty?: string; loading?: boolean }>) {
+  const hasChildren = Array.isArray(children) ? children.length > 0 : Boolean(children);
+  return <View style={styles.suggestions}>{loading ? <ActivityIndicator color={colors.accent} size="small" /> : hasChildren ? children : empty ? <Text style={styles.suggestionEmpty}>{empty}</Text> : null}</View>;
+}
+
+function SuggestionRow({ onPress, subtitle, title }: { onPress: () => void; subtitle?: string; title: string }) {
+  return <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.suggestionRow, pressed && styles.pressed]}><View style={styles.selectionCopy}><Text style={styles.suggestionTitle}>{title}</Text>{subtitle ? <Text numberOfLines={2} style={styles.suggestionSubtitle}>{subtitle}</Text> : null}</View><MaterialCommunityIcons color={colors.muted} name="chevron-right" size={18} /></Pressable>;
 }
 
 const styles = StyleSheet.create({
+  scroll: { flex: 1 },
+  content: { ...memberScreenStyles.content, paddingTop: 14, paddingBottom: 24, gap: 14 },
+  postIntro: { flexDirection: "row", alignItems: "flex-start", gap: 12 },
+  introCopy: { flex: 1, gap: 5 },
+  eyebrow: { color: colors.accent, fontSize: 10, fontWeight: "800", letterSpacing: 1.25 },
+  introTitle: { color: colors.text, fontSize: 27, lineHeight: 31, fontWeight: "800", letterSpacing: -0.4 },
+  introDescription: { color: colors.muted, fontSize: 13, lineHeight: 19 },
+  signalMark: { width: 48, height: 48, borderRadius: 15, borderColor: colors.border, borderWidth: 1, backgroundColor: colors.surface, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 1 },
   blockedTitle: { color: colors.text, fontSize: 16, fontWeight: "700" },
   help: { color: colors.muted, fontSize: 13, lineHeight: 19 },
-  field: { gap: 7, flex: 1 },
-  label: { color: colors.muted, fontSize: 12, fontWeight: "700" },
-  input: { minHeight: 48, borderColor: colors.border, borderWidth: 1, borderRadius: 11, backgroundColor: colors.background, color: colors.text, fontSize: 16, paddingHorizontal: 13, paddingVertical: 11 },
-  multiline: { minHeight: 96, textAlignVertical: "top" },
-  row: { flexDirection: "row", alignItems: "flex-start", gap: 10 },
-  city: { flex: 3 }, state: { flex: 1, minWidth: 76 }, half: { flex: 1 },
-  error: { color: colors.danger, fontSize: 13, lineHeight: 19 },
-  success: { color: colors.success, fontSize: 13, lineHeight: 19 },
-  submit: { minHeight: 52, borderRadius: 12, backgroundColor: colors.accent, alignItems: "center", justifyContent: "center" },
-  submitDisabled: { opacity: 0.45 },
+  section: { gap: 9 },
+  sectionHeading: { minHeight: 24, flexDirection: "row", alignItems: "center", gap: 8 },
+  sectionNumber: { width: 22, height: 22, borderRadius: 11, overflow: "hidden", backgroundColor: colors.surfaceRaised, color: colors.accent, textAlign: "center", lineHeight: 22, fontSize: 11, fontWeight: "800" },
+  sectionTitle: { flex: 1, color: colors.text, fontSize: 15, fontWeight: "800" },
+  required: { color: colors.muted, fontSize: 9, fontWeight: "800", letterSpacing: 0.9 },
+  divider: { height: StyleSheet.hairlineWidth, backgroundColor: colors.border, marginVertical: 2 },
+  field: { gap: 6, flex: 1 },
+  label: { color: colors.muted, fontSize: 11, fontWeight: "700" },
+  input: { minHeight: 44, borderColor: colors.border, borderWidth: 1, borderRadius: 11, backgroundColor: colors.background, color: colors.text, fontSize: 15, paddingHorizontal: 12, paddingVertical: 9 },
+  multiline: { minHeight: 72, textAlignVertical: "top" },
+  helper: { color: colors.muted, fontSize: 11, lineHeight: 16 },
+  row: { flexDirection: "row", alignItems: "flex-start", gap: 9 },
+  city: { flex: 3 },
+  state: { flex: 1, minWidth: 72 },
+  suggestions: { borderColor: colors.border, borderWidth: 1, borderRadius: 11, overflow: "hidden", backgroundColor: colors.background, minHeight: 42, justifyContent: "center" },
+  suggestionRow: { minHeight: 48, paddingHorizontal: 11, paddingVertical: 8, flexDirection: "row", alignItems: "center", gap: 8, borderBottomColor: colors.border, borderBottomWidth: StyleSheet.hairlineWidth },
+  suggestionTitle: { color: colors.text, fontSize: 13, fontWeight: "700" },
+  suggestionSubtitle: { color: colors.muted, fontSize: 11, lineHeight: 15 },
+  suggestionEmpty: { color: colors.muted, fontSize: 11, lineHeight: 16, padding: 11 },
+  pressed: { backgroundColor: colors.surfaceRaised },
+  selectionNote: { flexDirection: "row", alignItems: "center", gap: 5 },
+  selectionNoteText: { color: colors.success, fontSize: 11, fontWeight: "700" },
+  selectedStore: { borderColor: colors.accent, borderWidth: StyleSheet.hairlineWidth, borderRadius: 11, padding: 11, flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: colors.surfaceRaised },
+  selectionCopy: { flex: 1, gap: 2 },
+  selectionTitle: { color: colors.text, fontSize: 13, fontWeight: "800" },
+  selectionSubtitle: { color: colors.muted, fontSize: 11, lineHeight: 15 },
+  textAction: { color: colors.accent, fontSize: 10, fontWeight: "900", letterSpacing: 0.6 },
+  manualAction: { minHeight: 38, alignSelf: "flex-start", borderRadius: 9, flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 9, marginLeft: -9 },
+  manualActionText: { color: colors.accent, fontSize: 12, fontWeight: "800" },
+  manualHeading: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10 },
+  priceField: { gap: 6 },
+  priceInput: { minHeight: 44, borderColor: colors.border, borderWidth: 1, borderRadius: 11, backgroundColor: colors.background, flexDirection: "row", alignItems: "center", paddingHorizontal: 12 },
+  currency: { color: colors.text, fontSize: 15, fontWeight: "700" },
+  priceTextInput: { flex: 1, color: colors.text, fontSize: 15, paddingHorizontal: 7, paddingVertical: 9 },
+  chips: { flexDirection: "row", flexWrap: "wrap", gap: 7 },
+  chip: { minWidth: 46, minHeight: 36, borderColor: colors.border, borderWidth: 1, borderRadius: 18, alignItems: "center", justifyContent: "center", paddingHorizontal: 12, backgroundColor: colors.background },
+  chipActive: { borderColor: colors.accent, backgroundColor: colors.surfaceRaised },
+  chipText: { color: colors.muted, fontSize: 12, fontWeight: "700" },
+  chipTextActive: { color: colors.accent },
+  preview: { borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth, borderRadius: 11, padding: 11, backgroundColor: colors.background, flexDirection: "row", alignItems: "center", gap: 10 },
+  previewLabel: { color: colors.accent, fontSize: 9, fontWeight: "900", letterSpacing: 0.9 },
+  previewTitle: { color: colors.text, fontSize: 14, lineHeight: 18, fontWeight: "800" },
+  error: { color: colors.danger, fontSize: 12, lineHeight: 18 },
+  success: { color: colors.success, fontSize: 12, lineHeight: 18 },
+  disclaimer: { color: colors.muted, fontSize: 10, lineHeight: 15 },
+  actionFooter: { borderTopColor: colors.border, borderTopWidth: StyleSheet.hairlineWidth, backgroundColor: colors.surface, paddingHorizontal: 18, paddingTop: 10, paddingBottom: 10, gap: 6 },
+  actionHint: { color: colors.muted, fontSize: 10, textAlign: "center" },
+  submit: { minHeight: 48, borderRadius: 12, backgroundColor: colors.accent, flexDirection: "row", gap: 7, alignItems: "center", justifyContent: "center" },
+  submitDisabled: { backgroundColor: colors.surfaceRaised, borderColor: colors.border, borderWidth: 1 },
   submitPressed: { backgroundColor: colors.accentPressed },
-  submitText: { color: colors.background, fontSize: 15, fontWeight: "800" },
-  disclaimer: { color: colors.muted, fontSize: 11, lineHeight: 17 },
+  submitText: { color: colors.background, fontSize: 14, fontWeight: "900" },
+  submitTextDisabled: { color: colors.muted },
 });
