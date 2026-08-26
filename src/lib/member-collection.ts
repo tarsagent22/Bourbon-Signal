@@ -84,8 +84,7 @@ export function normalizeCollectionBottles(input: unknown): CollectionBottlePref
       sealedQuantity = item.opened === true ? 0 : 1;
       openedQuantity = item.opened === true ? 1 : 0;
     }
-    const tastedOnly = item.tastedOnly === true && sealedQuantity + openedQuantity === 0 && finishedCount === 0;
-    const ownedHistory = sealedQuantity + openedQuantity + finishedCount > 0;
+    const tastedOnly = sealedQuantity + openedQuantity === 0;
     const { rating, isRated } = normalizeRating(item);
     const now = new Date().toISOString();
     const addedAt = typeof item.addedAt === "string" && Number.isFinite(Date.parse(item.addedAt)) ? item.addedAt : now;
@@ -93,13 +92,13 @@ export function normalizeCollectionBottles(input: unknown): CollectionBottlePref
     const ratedAt = isRated && typeof item.ratedAt === "string" && Number.isFinite(Date.parse(item.ratedAt))
       ? item.ratedAt
       : undefined;
-    const pricePaid = ownedHistory && typeof item.pricePaid === "number" && Number.isFinite(item.pricePaid)
+    const pricePaid = typeof item.pricePaid === "number" && Number.isFinite(item.pricePaid)
       ? Math.round(Math.max(0, Math.min(99999, item.pricePaid)) * 100) / 100
       : undefined;
-    const purchaseDate = ownedHistory && typeof item.purchaseDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(item.purchaseDate) && Number.isFinite(Date.parse(`${item.purchaseDate}T00:00:00Z`))
+    const purchaseDate = typeof item.purchaseDate === "string" && /^\d{4}-\d{2}-\d{2}$/.test(item.purchaseDate) && Number.isFinite(Date.parse(`${item.purchaseDate}T00:00:00Z`))
       ? item.purchaseDate
       : undefined;
-    const tastingContext = tastedOnly && COLLECTION_TASTING_CONTEXTS.includes(item.tastingContext as CollectionTastingContext)
+    const tastingContext = COLLECTION_TASTING_CONTEXTS.includes(item.tastingContext as CollectionTastingContext)
       ? item.tastingContext as CollectionTastingContext
       : undefined;
 
@@ -120,7 +119,7 @@ export function normalizeCollectionBottles(input: unknown): CollectionBottlePref
       finishedCount,
       tastedOnly,
       pricePaid,
-      store: ownedHistory ? optionalText(item.store, 180) : undefined,
+      store: optionalText(item.store, 180),
       purchaseDate,
       tastingContext,
       notes: typeof item.notes === "string" ? item.notes.slice(0, 500) : "",

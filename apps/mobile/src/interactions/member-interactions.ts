@@ -3,13 +3,22 @@ import type { MemberCollectionBottle, RadarBottleOption, SignalRewardItem } from
 export const TASTE_TAG_OPTIONS = ["Caramel", "Vanilla", "Oak", "Cherry", "Spice", "Proof heat", "Sweet", "Dark fruit", "Nutty", "Smoky", "Dessert", "Balanced"] as const;
 
 export type CollectionSort = "recently_updated" | "recently_acquired" | "recently_rated" | "rating" | "name";
-export type CollectionStatusFilter = "all" | "sealed" | "open" | "finished" | "just_tasted";
+export type CollectionStatusFilter = "all" | "owned" | "tasted" | "sealed" | "open";
+export type CollectionRatingFilter = "all" | "rated" | "unrated";
 export interface CollectionFilters {
   status: CollectionStatusFilter;
+  rating: CollectionRatingFilter;
   minRating: number | null;
   buyAgainOnly: boolean;
-  tastingContext?: MemberCollectionBottle["tastingContext"];
 }
+
+export const DEFAULT_COLLECTION_FILTERS: CollectionFilters = {
+  status: "all",
+  rating: "all",
+  minRating: null,
+  buyAgainOnly: false,
+};
+export const DEFAULT_COLLECTION_SORT: CollectionSort = "recently_updated";
 
 export type CollectionBottlePatch = Pick<MemberCollectionBottle,
   "rating" | "isRated" | "notes" | "tasteTags" | "wouldBuyAgain" |
@@ -23,10 +32,16 @@ function quantity(value: number | undefined) {
   return Math.max(0, Math.min(999, Math.floor(Number.isFinite(value) ? value! : 0)));
 }
 
+export function collectionDisplayKind(bottle: Pick<MemberCollectionBottle, "sealedQuantity" | "openedQuantity">): "owned" | "tasted" {
+  return quantity(bottle.sealedQuantity) + quantity(bottle.openedQuantity) > 0 ? "owned" : "tasted";
+}
+
 export function collectionSummary(bottles: MemberCollectionBottle[]) {
   const ratings = bottles.filter((bottle) => bottle.isRated).map((bottle) => bottle.rating);
   return {
     uniqueBourbons: bottles.length,
+    ownedWhiskeyCount: bottles.filter((bottle) => collectionDisplayKind(bottle) === "owned").length,
+    tastedOnlyCount: bottles.filter((bottle) => collectionDisplayKind(bottle) === "tasted").length,
     ownedBottleCount: bottles.reduce((sum, bottle) => sum + quantity(bottle.sealedQuantity) + quantity(bottle.openedQuantity), 0),
     ratedCount: ratings.length,
     averageRating: ratings.length ? Math.round((ratings.reduce((sum, rating) => sum + rating, 0) / ratings.length) * 10) / 10 : null,
@@ -60,21 +75,50 @@ export function canonicalBottleKey(value: string) {
   return value.toLowerCase().replace(/&/g, " and ").replace(/[^a-z0-9]+/g, " ").replace(/\s+/g, " ").trim();
 }
 
-export function filterAndSortCollection(bottles: MemberCollectionBottle[], query: string, sort: CollectionSort, filters: CollectionFilters = { status: "all", minRating: null, buyAgainOnly: false }) {
+function pendingCustomBaseKey(bottle: MemberCollectionBottle) {
+  if (!bottle.pendingCanonicalMatch) return "";
+  return canonicalBottleKey(bottle.bottleName.split(/\s+·\s+/u, 1)[0] || "");
+}
+
+export function collectionOptionMatchIndex(bottles: MemberCollectionBottle[], option: RadarBottleOption) {
+  const idMatch = bottles.findIndex((bottle) => bottle.bottleId === option.id);
+  if (idMatch >= 0) return idMatch;
+
+  const canonicalKey = canonicalBottleKey(option.name);
+  const canonicalMatch = bottles.findIndex((bottle) => canonicalBottleKey(bottle.canonicalKey) === canonicalKey
+    || canonicalBottleKey(bottle.bottleName) === canonicalKey);
+  if (canonicalMatch >= 0) return canonicalMatch;
+
+  const optionKeys = new Set([option.name, ...(option.aliases || [])].map(canonicalBottleKey).filter(Boolean));
+  return bottles.findIndex((bottle) => optionKeys.has(pendingCustomBaseKey(bottle)));
+}
+
+export function exactCustomBottleMatchIndex(bottles: MemberCollectionBottle[], candidate: MemberCollectionBottle) {
+  const candidateName = canonicalBottleKey(candidate.bottleName);
+  return bottles.findIndex((bottle) => bottle.bottleId === candidate.bottleId
+    || canonicalBottleKey(bottle.bottleName) === candidateName);
+}
+
+export function filterAndSortCollection(
+  bottles: MemberCollectionBottle[],
+  query: string,
+  sort: CollectionSort = DEFAULT_COLLECTION_SORT,
+  filters: CollectionFilters = DEFAULT_COLLECTION_FILTERS,
+) {
   const needle = query.trim().toLowerCase();
   return bottles
     .map((bottle, index) => ({ bottle, index }))
     .filter(({ bottle }) => !needle || [bottle.bottleName, bottle.notes || "", bottle.store || "", ...(bottle.tasteTags || [])].some((value) => value.toLowerCase().includes(needle)))
     .filter(({ bottle }) => {
       if (filters.status === "all") return true;
+      if (filters.status === "owned") return collectionDisplayKind(bottle) === "owned";
+      if (filters.status === "tasted") return collectionDisplayKind(bottle) === "tasted";
       if (filters.status === "sealed") return quantity(bottle.sealedQuantity) > 0;
-      if (filters.status === "open") return quantity(bottle.openedQuantity) > 0;
-      if (filters.status === "finished") return quantity(bottle.finishedCount) > 0;
-      return bottle.tastedOnly === true;
+      return quantity(bottle.openedQuantity) > 0;
     })
+    .filter(({ bottle }) => filters.rating === "all" || (filters.rating === "rated" ? bottle.isRated : !bottle.isRated))
     .filter(({ bottle }) => filters.minRating == null || (bottle.isRated && bottle.rating >= filters.minRating))
     .filter(({ bottle }) => !filters.buyAgainOnly || bottle.wouldBuyAgain === true)
-    .filter(({ bottle }) => !filters.tastingContext || bottle.tastingContext === filters.tastingContext)
     .sort((left, right) => {
       if (sort === "rating") return (right.bottle.isRated ? right.bottle.rating : -1) - (left.bottle.isRated ? left.bottle.rating : -1) || left.bottle.bottleName.localeCompare(right.bottle.bottleName);
       if (sort === "name") return left.bottle.bottleName.localeCompare(right.bottle.bottleName);
@@ -94,23 +138,12 @@ export function filterAndSortCollection(bottles: MemberCollectionBottle[], query
     .map(({ bottle }) => bottle);
 }
 
-export function projectCollectionBottles(bottles: MemberCollectionBottle[], mode: "owned" | "tastings") {
-  return bottles.filter((bottle) => {
-    if (mode === "owned") return quantity(bottle.sealedQuantity) + quantity(bottle.openedQuantity) > 0;
-    return bottle.tastedOnly === true
-      || quantity(bottle.finishedCount) > 0
-      || bottle.isRated === true
-      || (bottle.tasteTags || []).some((tag) => Boolean(tag.trim()))
-      || Boolean(bottle.notes?.trim());
-  });
-}
-
 export function activeCollectionRefinementCount(filters: CollectionFilters, sort: CollectionSort) {
   return Number(filters.status !== "all")
+    + Number(filters.rating !== "all")
     + Number(filters.minRating !== null)
     + Number(filters.buyAgainOnly)
-    + Number(Boolean(filters.tastingContext))
-    + Number(sort !== "recently_rated");
+    + Number(sort !== DEFAULT_COLLECTION_SORT);
 }
 
 export function updateCollectionBottle(
@@ -126,7 +159,7 @@ export function updateCollectionBottle(
     const sealedQuantity = quantity(patch.sealedQuantity);
     const openedQuantity = quantity(patch.openedQuantity);
     const finishedCount = quantity(patch.finishedCount);
-    const tastedOnly = patch.tastedOnly === true && sealedQuantity + openedQuantity + finishedCount === 0;
+    const tastedOnly = sealedQuantity + openedQuantity === 0;
     const isRated = patch.isRated === true;
     const rating = isRated ? Math.max(0, Math.min(100, Math.round(patch.rating))) : 0;
     const ratingChanged = bottle.isRated !== isRated || (isRated && bottle.rating !== rating);
@@ -143,31 +176,68 @@ export function updateCollectionBottle(
       openedQuantity,
       finishedCount,
       tastedOnly,
-      pricePaid: tastedOnly ? undefined : patch.pricePaid,
-      store: tastedOnly ? undefined : patch.store?.trim() || undefined,
-      purchaseDate: tastedOnly ? undefined : Object.hasOwn(patch, "purchaseDate") ? patch.purchaseDate : bottle.purchaseDate,
-      tastingContext: tastedOnly ? patch.tastingContext : undefined,
+      pricePaid: Object.hasOwn(patch, "pricePaid") ? patch.pricePaid : bottle.pricePaid,
+      store: Object.hasOwn(patch, "store") ? patch.store?.trim() || undefined : bottle.store,
+      purchaseDate: Object.hasOwn(patch, "purchaseDate") ? patch.purchaseDate : bottle.purchaseDate,
+      tastingContext: Object.hasOwn(patch, "tastingContext") ? patch.tastingContext : bottle.tastingContext,
       updatedAt,
     };
   });
 }
 
-export function finishCollectionBottle(bottles: MemberCollectionBottle[], canonicalKey: string, updatedAt: string) {
+export type CollectionInventoryAction = "add_bottle" | "open_bottle" | "finish_bottle" | "keep_tasted_only";
+
+export function applyCollectionInventoryAction(
+  bottles: MemberCollectionBottle[],
+  canonicalKey: string,
+  action: CollectionInventoryAction,
+  updatedAt: string,
+) {
   const key = canonicalBottleKey(canonicalKey);
-  return bottles.map((bottle) => {
-    if (canonicalBottleKey(bottle.canonicalKey) !== key || bottle.tastedOnly) return bottle;
-    const openedQuantity = quantity(bottle.openedQuantity);
-    const sealedQuantity = quantity(bottle.sealedQuantity);
-    if (openedQuantity === 0) return bottle;
+  let changed = false;
+  const next = bottles.map((bottle) => {
+    const matches = bottle.bottleId === canonicalKey
+      || canonicalBottleKey(bottle.canonicalKey || bottle.bottleName) === key;
+    if (!matches) return bottle;
+
+    const currentSealed = quantity(bottle.sealedQuantity);
+    const currentOpened = quantity(bottle.openedQuantity);
+    let sealedQuantity = currentSealed;
+    let openedQuantity = currentOpened;
+    let finishedCount = quantity(bottle.finishedCount);
+
+    if (action === "add_bottle") {
+      sealedQuantity = quantity(currentSealed + 1);
+    } else if (action === "open_bottle") {
+      if (currentSealed === 0) return bottle;
+      sealedQuantity -= 1;
+      openedQuantity = quantity(currentOpened + 1);
+    } else if (action === "finish_bottle") {
+      if (currentOpened === 0) return bottle;
+      openedQuantity -= 1;
+      finishedCount = quantity(finishedCount + 1);
+    } else {
+      if (currentSealed === 0 && currentOpened === 0 && bottle.tastedOnly) return bottle;
+      sealedQuantity = 0;
+      openedQuantity = 0;
+    }
+
+    changed = true;
     return {
       ...bottle,
-      openedQuantity: Math.max(0, openedQuantity - 1),
       sealedQuantity,
-      finishedCount: quantity(bottle.finishedCount) + 1,
-      opened: openedQuantity > 1,
+      openedQuantity,
+      finishedCount,
+      opened: openedQuantity > 0,
+      tastedOnly: sealedQuantity + openedQuantity === 0,
       updatedAt,
     };
   });
+  return changed ? next : bottles;
+}
+
+export function finishCollectionBottle(bottles: MemberCollectionBottle[], canonicalKey: string, updatedAt: string) {
+  return applyCollectionInventoryAction(bottles, canonicalKey, "finish_bottle", updatedAt);
 }
 
 export function createCollectionBottle(option: RadarBottleOption, input: {
@@ -206,6 +276,56 @@ export function createCollectionBottle(option: RadarBottleOption, input: {
     addedAt: now,
     updatedAt: now,
   };
+}
+
+export function upsertCollectionBottle(
+  bottles: MemberCollectionBottle[],
+  option: RadarBottleOption,
+  input: Parameters<typeof createCollectionBottle>[1],
+  now: string,
+  { reconcilePendingCustom = false }: { reconcilePendingCustom?: boolean } = {},
+) {
+  const canonicalKey = canonicalBottleKey(option.name);
+  const existingIndex = collectionOptionMatchIndex(bottles, option);
+  if (existingIndex < 0) return [...bottles, createCollectionBottle(option, input, now)];
+
+  const existing = bottles[existingIndex];
+  const reconcilesPendingCustom = reconcilePendingCustom && existing.pendingCanonicalMatch === true;
+  const increment = quantity(input.quantity ?? 1);
+  const sealedQuantity = quantity(quantity(existing.sealedQuantity) + (input.kind === "sealed" ? increment : 0));
+  const openedQuantity = quantity(quantity(existing.openedQuantity) + (input.kind === "opened" ? increment : 0));
+  const incomingRating = input.isRated === true && input.rating !== undefined && Number.isFinite(input.rating);
+  const rating = incomingRating
+    ? Math.max(0, Math.min(100, Math.round(input.rating ?? 0)))
+    : existing.rating;
+  const isRated = incomingRating ? true : existing.isRated;
+  const ratingChanged = incomingRating && (!existing.isRated || existing.rating !== rating);
+  const incomingTags = Array.from(new Set((input.tasteTags || []).map((tag) => tag.trim()).filter(Boolean))).slice(0, 12);
+  const incomingNotes = input.notes?.trim().slice(0, 500);
+  const isInventoryEntry = input.kind !== "just_tasted";
+
+  const updated: MemberCollectionBottle = {
+    ...existing,
+    bottleId: reconcilesPendingCustom ? option.id : existing.bottleId,
+    bottleName: reconcilesPendingCustom ? option.name.trim() : existing.bottleName,
+    canonicalKey: reconcilesPendingCustom ? canonicalKey : existing.canonicalKey,
+    pendingCanonicalMatch: reconcilesPendingCustom ? false : existing.pendingCanonicalMatch,
+    rating,
+    isRated,
+    ratedAt: ratingChanged ? now : existing.ratedAt,
+    tasteTags: incomingTags.length ? incomingTags : existing.tasteTags,
+    notes: incomingNotes || existing.notes,
+    sealedQuantity,
+    openedQuantity,
+    opened: openedQuantity > 0,
+    tastedOnly: sealedQuantity + openedQuantity === 0,
+    pricePaid: isInventoryEntry && input.pricePaid !== undefined ? input.pricePaid : existing.pricePaid,
+    store: isInventoryEntry && input.store?.trim() ? input.store.trim() : existing.store,
+    purchaseDate: isInventoryEntry && input.purchaseDate !== undefined ? input.purchaseDate : existing.purchaseDate,
+    tastingContext: input.kind === "just_tasted" && input.tastingContext !== undefined ? input.tastingContext : existing.tastingContext,
+    updatedAt: now,
+  };
+  return bottles.map((bottle, index) => index === existingIndex ? updated : bottle);
 }
 
 function stableLocalId(value: string) {
