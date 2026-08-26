@@ -18,6 +18,8 @@
     "backfill:signal-points": "tsx scripts/backfill-signal-points.mts",
     "backfill:signal-points:apply": "tsx scripts/backfill-signal-points.mts --apply",
     "backup:neon-local": "node scripts/backup-neon-local.mjs",
+    "backup:neon-secure": "node --no-warnings --experimental-strip-types scripts/backup-neon-secure-http.mjs",
+    "test:secure-backup": "node --no-warnings --experimental-strip-types scripts/test-secure-backup-export.mjs && tsx --test scripts/test-secure-backup-route.mts",
     "start": "next start",
     "lint": "next lint",
     "ops:daily": "node automation/bourbon-signal/daily-reliability.mjs",
