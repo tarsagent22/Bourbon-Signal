@@ -45,7 +45,8 @@ export class MemberCollectionRepository {
       FROM member_collection_state AS state
       LEFT JOIN member_collection_bottles AS bottles ON bottles.user_id = state.user_id
       WHERE state.user_id = $1
-      ORDER BY bottles.rating DESC NULLS LAST, bottles.bottle_name ASC
+      ORDER BY COALESCE((bottles.payload->>'isRated')::boolean, bottles.rating > 0) DESC,
+        bottles.rating DESC, bottles.bottle_name ASC
     `, [userId]) as Array<{ version?: unknown; payload?: unknown }>;
     return {
       version: Number(rows[0]?.version || 0),
@@ -61,7 +62,9 @@ export class MemberCollectionRepository {
       FROM member_collection_state AS state
       LEFT JOIN member_collection_bottles AS bottles ON bottles.user_id = state.user_id
       WHERE state.user_id = ANY($1::text[])
-      ORDER BY state.user_id ASC, bottles.rating DESC NULLS LAST, bottles.bottle_name ASC
+      ORDER BY state.user_id ASC,
+        COALESCE((bottles.payload->>'isRated')::boolean, bottles.rating > 0) DESC,
+        bottles.rating DESC, bottles.bottle_name ASC
     `, [ids]) as Array<{ user_id?: unknown; version?: unknown; payload?: unknown }>;
     const grouped = new Map<string, MemberCollection>();
     for (const row of rows) {
@@ -250,7 +253,8 @@ export class MemberCollectionRepository {
       WITH per_member AS (
         SELECT user_id, MAX(rating)::float AS rating
         FROM member_collection_bottles
-        WHERE canonical_key = ANY($1::text[]) AND rating > 0
+        WHERE canonical_key = ANY($1::text[])
+          AND COALESCE((payload->>'isRated')::boolean, rating > 0)
         GROUP BY user_id
       )
       SELECT AVG(rating)::float AS average, COUNT(*)::int AS count

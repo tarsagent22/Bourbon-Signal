@@ -16,10 +16,10 @@ export function findBottleCheckCollectionEntry(
 
 export function formatBottleCheckCollectionRating(entry: CollectionBottlePreference | null | undefined) {
   if (!entry) return null;
-  if (!Number.isFinite(entry.rating) || entry.rating <= 0) {
+  if (!entry.isRated || !Number.isFinite(entry.rating)) {
     return "This bottle is in your collection, but you haven’t rated it yet.";
   }
-  const score = (Math.max(0, Math.min(100, entry.rating)) / 10).toFixed(1).replace(/\.0$/, "");
+  const score = (Math.max(0, Math.min(100, entry.rating)) / 10).toFixed(1);
   return `You rated this bottle ${score}/10.`;
 }
 
@@ -208,9 +208,14 @@ export function buildBottleCheckCollectionEntry(input: {
     bottleName: input.bottleName,
     canonicalKey: input.canonicalKey,
     rating: 0,
+    isRated: false,
     tasteTags: [],
     wouldBuyAgain: false,
     opened: false,
+    sealedQuantity: 1,
+    openedQuantity: 0,
+    finishedCount: 0,
+    tastedOnly: false,
     notes: "",
     addedAt: now,
     updatedAt: now,

@@ -80,9 +80,18 @@ export interface MemberCollectionBottle {
   bottleName: string;
   canonicalKey: string;
   rating: number;
+  isRated: boolean;
   tasteTags?: string[];
   wouldBuyAgain?: boolean;
   opened?: boolean;
+  sealedQuantity: number;
+  openedQuantity: number;
+  finishedCount: number;
+  tastedOnly: boolean;
+  pricePaid?: number;
+  store?: string;
+  purchaseDate?: string;
+  tastingContext?: "bar" | "bottle_share" | "friend" | "event" | "other";
   notes?: string;
   addedAt: string;
   updatedAt: string;

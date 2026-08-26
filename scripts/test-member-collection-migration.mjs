@@ -39,6 +39,9 @@ assert.match(dashboard, /setSavingCollection\(true\)/);
 assert.match(dashboard, /await savePreferences\(nextPrefs\)/);
 assert.doesNotMatch(dashboard, /setSavingCollection\(false\)[\s\S]{0,300}void savePreferences\(nextPrefs\)/, 'collection UI must await persistence');
 assert.match(dashboard, /Saved on this device[\s\S]*sync/i, 'offline saves are labelled honestly');
+assert.match(dashboard, /type="range"[\s\S]{0,200}min=\{0\}[\s\S]{0,200}max=\{100\}/, 'website Cellar rating spans 0.0 through 10.0');
+assert.match(dashboard, /collectionIsRated/, 'website keeps unrated separate from a real zero');
+assert.match(dashboard, /collectionEntries\.filter\(\(entry\) => entry\.isRated\)\.map/, 'unrated entries do not become negative taste signals');
 
 assert.match(tasteScore, /getTasteAggregate/);
 assert.doesNotMatch(tasteScore, /clerkClient|getUserList/, 'member taste scoring reads aggregate collection rows instead of scanning Clerk accounts');
