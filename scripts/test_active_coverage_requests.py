@@ -76,6 +76,7 @@ for mutate in (
     lambda payload: payload.update({"count": True}),
     lambda payload: payload.update({"count": 2}),
     lambda payload: payload["requests"][0].update({"unexpected": "private"}),
+    lambda payload: payload.update({"generatedAt": (datetime.now(timezone.utc) + timedelta(minutes=6)).isoformat()}),
 ):
     candidate = valid_payload()
     mutate(candidate)
@@ -84,6 +85,10 @@ for mutate in (
         raise AssertionError("malformed payload must fail closed")
     except RuntimeError:
         pass
+
+bounded_skew = valid_payload()
+bounded_skew["generatedAt"] = (datetime.now(timezone.utc) + timedelta(minutes=2)).isoformat()
+module.validate_payload(bounded_skew)
 
 try:
     module.query_production_api({}, connection_factory=FakeConnection)
