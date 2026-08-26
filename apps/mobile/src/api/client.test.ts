@@ -144,6 +144,72 @@ test("searches bottles on the server, preserves ranked metadata, and keeps unque
   assert.equal(all[0]?.name, "E.H. Taylor Small Batch");
 });
 
+test("loads the complete canonical bottle catalog for local Cellar search", async () => {
+  let captured: Request | null = null;
+  const api = createMobileApi({
+    baseUrl: "https://catalog-load.example.test",
+    getToken: async () => "session-token",
+    fetcher: async (request) => {
+      captured = new Request(request);
+      return Response.json({ bottles: [{ id: "rare-breed", canonicalName: "Wild Turkey Rare Breed", aliases: ["WT Rare Breed"], brand: "Wild Turkey", proof: 116.8 }] });
+    },
+  });
+  const bottles = await api.listBottleCatalog({ fresh: true });
+  assert.equal(new URL(captured!.url).pathname, "/api/bottle-catalog");
+  assert.equal(bottles[0]?.name, "Wild Turkey Rare Breed");
+  assert.deepEqual(bottles[0]?.aliases, ["WT Rare Breed"]);
+});
+
+test("shares the successful bottle catalog across API instances and lets fresh reads replace it", async () => {
+  let requests = 0;
+  const fetcher: typeof fetch = async () => {
+    requests += 1;
+    return Response.json({ bottles: [{ id: `catalog-${requests}`, canonicalName: `Catalog ${requests}` }] });
+  };
+  const createApi = () => createMobileApi({
+    baseUrl: "https://catalog-cache.example.test",
+    getToken: async () => "session-token",
+    fetcher,
+  });
+
+  const first = await createApi().listBottleCatalog();
+  const shared = await createApi().listBottleCatalog();
+  const refreshed = await createApi().listBottleCatalog({ fresh: true });
+  const sharedRefresh = await createApi().listBottleCatalog();
+
+  assert.equal(requests, 2);
+  assert.equal(first[0]?.id, "catalog-1");
+  assert.equal(shared[0]?.id, "catalog-1");
+  assert.equal(refreshed[0]?.id, "catalog-2");
+  assert.equal(sharedRefresh[0]?.id, "catalog-2");
+});
+
+test("coalesces an in-flight catalog failure but does not cache it after that request", async () => {
+  let healthy = false;
+  let requests = 0;
+  const createApi = () => createMobileApi({
+    baseUrl: "https://catalog-retry.example.test",
+    getToken: async () => "session-token",
+    fetcher: async () => {
+      requests += 1;
+      return healthy
+        ? Response.json({ bottles: [{ id: "recovered", canonicalName: "Recovered Bottle" }] })
+        : Response.json({ error: "Catalog unavailable" }, { status: 503 });
+    },
+  });
+
+  const first = createApi();
+  const second = createApi();
+  const failures = await Promise.allSettled([first.listBottleCatalog(), second.listBottleCatalog()]);
+  assert.equal(requests, 1);
+  assert.ok(failures.every((result) => result.status === "rejected"));
+
+  healthy = true;
+  const recovered = await first.listBottleCatalog();
+  assert.equal(requests, 2);
+  assert.equal(recovered[0]?.id, "recovered");
+});
+
 test("submits missing bottles through the authenticated contribution contract", async () => {
   let captured: Request | null = null;
   const api = createMobileApi({

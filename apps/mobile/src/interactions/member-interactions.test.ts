@@ -3,12 +3,13 @@ import test from "node:test";
 import type { MemberCollectionBottle, SignalRewardItem } from "../api/types";
 import {
   addSignalBottleToCollection,
+  applyCollectionInventoryAction,
   collectionSummary,
+  collectionDisplayKind,
   finishCollectionBottle,
   filterAndSortCollection,
   formatCollectionRating,
   filterWatchedBottles,
-  projectCollectionBottles,
   createCollectionBottle,
   createCustomCollectionBottle,
   activeCollectionRefinementCount,
@@ -16,6 +17,7 @@ import {
   rewardAvailability,
   TASTE_TAG_OPTIONS,
   updateCollectionBottle,
+  upsertCollectionBottle,
   visibleTasteTags,
 } from "./member-interactions";
 
@@ -63,33 +65,16 @@ test("filters Cellar by lifecycle, rating, and buy-again preference", () => {
     bottle({ bottleName: "Finished", canonicalKey: "finished", rating: 79, openedQuantity: 0, finishedCount: 1, wouldBuyAgain: false }),
     bottle({ bottleName: "Bar taste", canonicalKey: "bar taste", rating: 90, openedQuantity: 0, sealedQuantity: 0, tastedOnly: true, tastingContext: "bar" }),
   ];
-  assert.deepEqual(filterAndSortCollection(bottles, "", "rating", { status: "open", minRating: 90, buyAgainOnly: true }).map((item) => item.bottleName), ["Opened favorite"]);
-  assert.deepEqual(filterAndSortCollection(bottles, "", "rating", { status: "sealed", minRating: null, buyAgainOnly: false }).map((item) => item.bottleName), ["Sealed favorite"]);
-  assert.deepEqual(filterAndSortCollection(bottles, "", "rating", { status: "finished", minRating: null, buyAgainOnly: false }).map((item) => item.bottleName), ["Finished"]);
-  assert.deepEqual(filterAndSortCollection(bottles, "", "rating", { status: "just_tasted", minRating: null, buyAgainOnly: false }).map((item) => item.bottleName), ["Bar taste"]);
-  assert.deepEqual(filterAndSortCollection(bottles, "", "rating", { status: "all", minRating: null, buyAgainOnly: false, tastingContext: "bar" }).map((item) => item.bottleName), ["Bar taste"]);
-});
-
-test("projects every real tasting evidence record without fabricating dates", () => {
-  const evidence = [
-    bottle({ bottleId: "tasted", canonicalKey: "tasted", tastedOnly: true, isRated: false, tasteTags: [], notes: undefined, finishedCount: 0, openedQuantity: 0 }),
-    bottle({ bottleId: "finished", canonicalKey: "finished", tastedOnly: false, isRated: false, tasteTags: [], notes: undefined, finishedCount: 1, openedQuantity: 0 }),
-    bottle({ bottleId: "rated-owned", canonicalKey: "rated-owned", tastedOnly: false, isRated: true, tasteTags: [], notes: undefined, finishedCount: 0, sealedQuantity: 1, ratedAt: undefined }),
-    bottle({ bottleId: "tagged-owned", canonicalKey: "tagged-owned", tastedOnly: false, isRated: false, tasteTags: ["", "Oak"], notes: undefined, finishedCount: 0, openedQuantity: 1 }),
-    bottle({ bottleId: "noted-owned", canonicalKey: "noted-owned", tastedOnly: false, isRated: false, tasteTags: [], notes: "  Worth revisiting  ", finishedCount: 0, sealedQuantity: 1 }),
-  ];
-  const noEvidence = bottle({ bottleId: "inventory-only", canonicalKey: "inventory-only", tastedOnly: false, isRated: false, tasteTags: ["  "], notes: "  ", finishedCount: 0, sealedQuantity: 1 });
-
-  const tastings = projectCollectionBottles([...evidence, noEvidence], "tastings");
-  assert.deepEqual(tastings.map((item) => item.bottleId), evidence.map((item) => item.bottleId));
-  assert.equal(tastings[2], evidence[2], "projection preserves the source record");
-  assert.equal(tastings[2].ratedAt, undefined, "projection does not invent a tasting date");
-  assert.deepEqual(projectCollectionBottles([...evidence, noEvidence], "owned").map((item) => item.bottleId), ["rated-owned", "tagged-owned", "noted-owned", "inventory-only"]);
+  assert.deepEqual(filterAndSortCollection(bottles, "", "rating", { status: "open", rating: "rated", minRating: 90, buyAgainOnly: true }).map((item) => item.bottleName), ["Opened favorite"]);
+  assert.deepEqual(filterAndSortCollection(bottles, "", "rating", { status: "sealed", rating: "all", minRating: null, buyAgainOnly: false }).map((item) => item.bottleName), ["Sealed favorite"]);
+  assert.deepEqual(filterAndSortCollection(bottles, "", "rating", { status: "tasted", rating: "all", minRating: null, buyAgainOnly: false }).map((item) => item.bottleName), ["Bar taste", "Finished"]);
+  assert.deepEqual(filterAndSortCollection(bottles, "", "rating", { status: "owned", rating: "all", minRating: null, buyAgainOnly: false }).map((item) => item.bottleName), ["Opened favorite", "Sealed favorite"]);
+  assert.deepEqual(filterAndSortCollection(bottles, "", "rating", { status: "all", rating: "unrated", minRating: null, buyAgainOnly: false }).map((item) => item.bottleName), []);
 });
 
 test("counts only active Cellar refinement choices", () => {
-  assert.equal(activeCollectionRefinementCount({ status: "all", minRating: null, buyAgainOnly: false }, "recently_rated"), 0);
-  assert.equal(activeCollectionRefinementCount({ status: "just_tasted", minRating: null, buyAgainOnly: false, tastingContext: "friend" }, "name"), 3);
+  assert.equal(activeCollectionRefinementCount({ status: "all", rating: "all", minRating: null, buyAgainOnly: false }, "recently_updated"), 0);
+  assert.equal(activeCollectionRefinementCount({ status: "tasted", rating: "rated", minRating: null, buyAgainOnly: false }, "name"), 3);
 });
 
 test("summarizes rated bottles and compacts taste tags", () => {
@@ -97,7 +82,7 @@ test("summarizes rated bottles and compacts taste tags", () => {
     bottle({ rating: 95, sealedQuantity: 2, openedQuantity: 0 }),
     bottle({ canonicalKey: "unrated", rating: 0, isRated: false, sealedQuantity: 1, openedQuantity: 0 }),
     bottle({ canonicalKey: "rated", rating: 0, isRated: true, openedQuantity: 1 }),
-  ]), { uniqueBourbons: 3, ownedBottleCount: 4, ratedCount: 2, averageRating: 47.5 });
+  ]), { uniqueBourbons: 3, ownedWhiskeyCount: 3, tastedOnlyCount: 0, ownedBottleCount: 4, ratedCount: 2, averageRating: 47.5 });
   assert.deepEqual(visibleTasteTags(["Caramel", "Oak", "Vanilla", "Cherry"]), { visible: ["Caramel", "Oak"], hiddenCount: 2 });
   assert.equal(formatCollectionRating(bottle({ rating: 95 })), "9.5");
   assert.equal(formatCollectionRating(bottle({ rating: 0, isRated: true })), "0.0");
@@ -187,6 +172,38 @@ test("finishing preserves history and only consumes an open bottle", () => {
   assert.equal(afterSealed.finishedCount, 4);
   const tasted = bottle({ sealedQuantity: 0, openedQuantity: 0, finishedCount: 1, tastedOnly: true });
   assert.equal(finishCollectionBottle([tasted], tasted.canonicalKey, "2026-08-24T00:00:00.000Z")[0].finishedCount, 1, "tasted-only history is unchanged");
+});
+
+test("derives bottle and Glencairn presentation from current inventory", () => {
+  assert.equal(collectionDisplayKind(bottle({ sealedQuantity: 1, openedQuantity: 0, tastedOnly: true })), "owned");
+  assert.equal(collectionDisplayKind(bottle({ sealedQuantity: 0, openedQuantity: 0, tastedOnly: false, finishedCount: 1 })), "tasted");
+});
+
+test("inventory actions convert one canonical record in both directions without losing tasting data", () => {
+  const tasted = bottle({ sealedQuantity: 0, openedQuantity: 0, tastedOnly: true, rating: 93, isRated: true, notes: "Keep me" });
+  const owned = applyCollectionInventoryAction([tasted], tasted.canonicalKey, "add_bottle", "2026-08-25T00:00:00.000Z")[0];
+  assert.equal(collectionDisplayKind(owned), "owned");
+  assert.equal(owned.sealedQuantity, 1);
+  assert.equal(owned.rating, 93);
+  assert.equal(owned.notes, "Keep me");
+  const opened = applyCollectionInventoryAction([owned], owned.canonicalKey, "open_bottle", "2026-08-25T01:00:00.000Z")[0];
+  assert.equal(opened.sealedQuantity, 0);
+  assert.equal(opened.openedQuantity, 1);
+  const finished = applyCollectionInventoryAction([opened], opened.canonicalKey, "finish_bottle", "2026-08-25T02:00:00.000Z")[0];
+  assert.equal(collectionDisplayKind(finished), "tasted");
+  assert.equal(finished.finishedCount, tasted.finishedCount + 1);
+  const removed = applyCollectionInventoryAction([owned], owned.canonicalKey, "keep_tasted_only", "2026-08-25T03:00:00.000Z")[0];
+  assert.equal(collectionDisplayKind(removed), "tasted");
+  assert.equal(removed.rating, 93);
+});
+
+test("upserts existing whiskey instead of creating duplicate owned and tasted records", () => {
+  const existing = bottle({ bottleId: "eagle-rare", bottleName: "Eagle Rare 10 Year", canonicalKey: "eagle rare 10 year", sealedQuantity: 0, openedQuantity: 0, tastedOnly: true, rating: 91, isRated: true });
+  const updated = upsertCollectionBottle([existing], { id: "eagle-rare", name: "Eagle Rare 10 Year" }, { kind: "sealed", quantity: 2, isRated: false }, "2026-08-25T00:00:00.000Z");
+  assert.equal(updated.length, 1);
+  assert.equal(updated[0].sealedQuantity, 2);
+  assert.equal(updated[0].rating, 91, "adding ownership does not erase an existing rating");
+  assert.equal(updated[0].tastedOnly, false);
 });
 
 test("native taste toggles exactly match the website choices", () => {

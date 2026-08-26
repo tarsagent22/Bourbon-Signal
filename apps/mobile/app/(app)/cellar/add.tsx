@@ -13,22 +13,44 @@ import {
   removeBottleContributionReceipts,
   serializeBottleContributionReceipts,
 } from "../../../src/cellar/contribution-receipts";
+import { collectionMatchForOption, createBottleSearchIndex, rankBottleCatalog } from "../../../src/cellar/bottle-search";
 import { EmptyState, ErrorState, LoadingState } from "../../../src/components/MemberScreen";
 import { ScoreSlider } from "../../../src/components/ScoreSlider";
 import { useMobileApi } from "../../../src/hooks/useMobileApi";
-import { applyBottleContributionIds, createCollectionBottle, createCustomCollectionBottle, TASTE_TAG_OPTIONS } from "../../../src/interactions/member-interactions";
+import {
+  applyBottleContributionIds,
+  collectionDisplayKind,
+  collectionInventoryLabel,
+  createCustomCollectionBottle,
+  exactCustomBottleMatchIndex,
+  formatCollectionRating,
+  TASTE_TAG_OPTIONS,
+  upsertCollectionBottle,
+} from "../../../src/interactions/member-interactions";
 import { colors } from "../../../src/theme";
 
-type AddKind = "sealed" | "opened" | "just_tasted";
+type AddKind = "sealed" | "just_tasted";
 const KINDS: Array<{ key: AddKind; label: string }> = [
-  { key: "sealed", label: "I own it" },
-  { key: "opened", label: "I opened it" },
-  { key: "just_tasted", label: "I just tasted it" },
+  { key: "sealed", label: "Add a bottle" },
+  { key: "just_tasted", label: "Rate a whiskey" },
 ];
 const CONTEXTS: Array<{ key: NonNullable<MemberCollectionBottle["tastingContext"]>; label: string }> = [
-  { key: "bar", label: "Bar" }, { key: "bottle_share", label: "Bottle share" }, { key: "friend", label: "Friend" }, { key: "event", label: "Event" }, { key: "other", label: "Other" },
+  { key: "bar", label: "Bar" },
+  { key: "bottle_share", label: "Bottle share" },
+  { key: "friend", label: "Friend" },
+  { key: "event", label: "Event" },
+  { key: "other", label: "Other" },
 ];
 const COMMON_CUES = TASTE_TAG_OPTIONS.slice(0, 5);
+
+function metadataForOption(option: RadarBottleOption, bottles: MemberCollectionBottle[]) {
+  const existing = collectionMatchForOption(bottles, option);
+  if (existing) {
+    if (collectionDisplayKind(existing) === "owned") return `Already owned · ${collectionInventoryLabel(existing) || "Inventory on hand"}`;
+    return `Tasted only · ${existing.isRated ? `${formatCollectionRating(existing)} rating` : "Unrated"}`;
+  }
+  return [option.proof ? `${option.proof} proof` : "", option.ageStatement || ""].filter(Boolean).join(" · ") || "Whiskey catalog";
+}
 
 export default function AddCellarBottleScreen() {
   const api = useMobileApi();
@@ -37,11 +59,14 @@ export default function AddCellarBottleScreen() {
   const receiptStorageKey = bottleContributionReceiptsStorageKey(userId);
   const [preferences, setPreferences] = useState<MemberPreferences | null>(null);
   const [loading, setLoading] = useState(true);
-  const [searching, setSearching] = useState(false);
-  const [error, setError] = useState("");
+  const [preferenceError, setPreferenceError] = useState("");
+  const [catalog, setCatalog] = useState<RadarBottleOption[]>([]);
+  const [catalogLoading, setCatalogLoading] = useState(true);
+  const [catalogError, setCatalogError] = useState("");
+  const [formError, setFormError] = useState("");
   const [query, setQuery] = useState("");
-  const [results, setResults] = useState<RadarBottleOption[]>([]);
   const [selected, setSelected] = useState<RadarBottleOption | null>(null);
+  const [selectedSource, setSelectedSource] = useState<"catalog" | "recent" | null>(null);
   const [custom, setCustom] = useState(false);
   const [customName, setCustomName] = useState("");
   const [customProof, setCustomProof] = useState("");
@@ -60,38 +85,88 @@ export default function AddCellarBottleScreen() {
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
-    void (async () => {
-      setLoading(true); setError("");
-      try { setPreferences(await api.getMemberPreferences({ fresh: true })); }
-      catch (caught) { setError(caught instanceof Error ? caught.message : "Your Cellar is temporarily unavailable."); }
-      finally { setLoading(false); }
-    })();
+    let active = true;
+    setLoading(true);
+    setPreferenceError("");
+    void api.getMemberPreferences({ fresh: true }).then((next) => {
+      if (active) setPreferences(next);
+    }).catch((caught) => {
+      if (active) setPreferenceError(caught instanceof Error ? caught.message : "Your Cellar is temporarily unavailable.");
+    }).finally(() => {
+      if (active) setLoading(false);
+    });
+
+    setCatalogLoading(true);
+    setCatalogError("");
+    void api.listBottleCatalog().then((bottles) => {
+      if (active) setCatalog(bottles);
+    }).catch(() => {
+      if (active) setCatalogError("Fast search could not be prepared. You can still add this whiskey manually.");
+    }).finally(() => {
+      if (active) setCatalogLoading(false);
+    });
+    return () => { active = false; };
   }, [api]);
 
-  useEffect(() => {
-    const needle = query.replace(/\s+/g, " ").trim();
-    if (selected || needle.length < 2) { setResults([]); setSearching(false); return; }
-    let active = true;
-    setSearching(true);
-    const timer = setTimeout(() => {
-      void api.listRadarBottles({ query: needle, limit: 12 }).then((bottles) => {
-        if (active) setResults(bottles);
-      }).catch(() => {
-        if (active) setError("Bottle search is temporarily unavailable. You can still add the bottle below.");
-      }).finally(() => { if (active) setSearching(false); });
-    }, 220);
-    return () => { active = false; clearTimeout(timer); };
-  }, [api, query, selected]);
+  useEffect(() => { setFormError(""); }, [customDetail, customName, customProof, isRated, notes, pricePaid, quantity, rating, store, tasteTags, tastingContext]);
 
+  const bottles = preferences?.collectionPreferences.bottles || [];
+  const needle = query.replace(/\s+/g, " ").trim();
+  const searchIndex = useMemo(() => createBottleSearchIndex(catalog), [catalog]);
+  const results = useMemo(() => needle.length >= 2 ? rankBottleCatalog(searchIndex, needle, 12) : [], [needle, searchIndex]);
+  const recentBottles = useMemo(() => [...bottles]
+    .sort((left, right) => Date.parse(right.updatedAt) - Date.parse(left.updatedAt))
+    .slice(0, 6), [bottles]);
   const cues = useMemo(() => showMoreCues ? TASTE_TAG_OPTIONS : Array.from(new Set([...COMMON_CUES, ...tasteTags])) as typeof TASTE_TAG_OPTIONS[number][], [showMoreCues, tasteTags]);
   const hasBottle = Boolean(selected || custom);
+  const selectedMatch = selected ? collectionMatchForOption(bottles, selected) : undefined;
+  const customCandidate = useMemo(() => {
+    if (!custom || !customName.trim()) return null;
+    const proof = customProof.trim() ? Number(customProof) : undefined;
+    return createCustomCollectionBottle(
+      { name: customName, proof: Number.isFinite(proof) ? proof : undefined, detail: customDetail },
+      { kind: "just_tasted" },
+      "1970-01-01T00:00:00.000Z",
+    );
+  }, [custom, customDetail, customName, customProof]);
+  const customMatchIndex = customCandidate ? exactCustomBottleMatchIndex(bottles, customCandidate) : -1;
+  const customMatch = customMatchIndex >= 0 ? bottles[customMatchIndex] : undefined;
+  const currentMatch = selectedMatch || customMatch;
+  const ratingEnabled = kind === "just_tasted" || isRated;
+  const saveLabel = kind === "sealed"
+    ? currentMatch && collectionDisplayKind(currentMatch) === "owned" ? "Add another bottle" : "Add bottle"
+    : currentMatch ? "Update rating" : "Add this whiskey";
 
-  function choose(option: RadarBottleOption) {
-    setSelected(option); setCustom(false); setQuery(option.name); setError("");
+  function choose(option: RadarBottleOption, source: "catalog" | "recent" = "catalog") {
+    const existing = collectionMatchForOption(bottles, option);
+    setSelected(option);
+    setSelectedSource(source);
+    setCustom(false);
+    setQuery(option.name);
+    setRating(existing?.rating || 0);
+    setIsRated(existing?.isRated === true);
+    setTasteTags(existing?.tasteTags || []);
+    setNotes(existing?.notes || "");
+    setTastingContext(existing?.tastingContext || "bar");
+    setFormError("");
+  }
+
+  function chooseRecent(bottle: MemberCollectionBottle) {
+    choose({ id: bottle.bottleId, name: bottle.bottleName }, "recent");
   }
 
   function beginCustom() {
-    setSelected(null); setCustom(true); setCustomName(query.trim()); setError("");
+    setSelected(null);
+    setSelectedSource(null);
+    setCustom(true);
+    setCustomName(query.trim());
+    setFormError("");
+  }
+
+  function changeKind(next: AddKind) {
+    setKind(next);
+    if (next === "just_tasted") setIsRated(true);
+    setFormError("");
   }
 
   async function save() {
@@ -99,25 +174,47 @@ export default function AddCellarBottleScreen() {
     const ownedQuantity = Number(quantity);
     const numericPrice = pricePaid.trim() ? Number(pricePaid) : undefined;
     const numericProof = customProof.trim() ? Number(customProof) : undefined;
-    if (kind !== "just_tasted" && (!Number.isInteger(ownedQuantity) || ownedQuantity < 1 || ownedQuantity > 999)) { setError("Quantity must be a whole number from 1 to 999."); return; }
-    if (numericPrice !== undefined && (!Number.isFinite(numericPrice) || numericPrice < 0)) { setError("Price paid must be a positive amount."); return; }
-    if (custom && !customName.trim()) { setError("Bottle name is required."); return; }
-    if (numericProof !== undefined && (!Number.isFinite(numericProof) || numericProof <= 0 || numericProof > 300)) { setError("Proof must be a number from 0.1 to 300."); return; }
-    if (custom && results.some((bottle) => bottle.name.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim() === customName.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim())) { setError("That bottle is shown in the near matches. Choose it above to avoid a duplicate."); return; }
-    const customNameKey = customName.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim();
-    if (custom && preferences.collectionPreferences.bottles.some((bottle) => bottle.bottleName.split(" · ")[0].toLowerCase().replace(/[^a-z0-9]+/g, " ").trim() === customNameKey)) { setError("This bottle is already in your Cellar. Open it there to update quantities or tasting details."); return; }
+    if (kind === "sealed" && (!Number.isInteger(ownedQuantity) || ownedQuantity < 1 || ownedQuantity > 999)) { setFormError("Quantity must be a whole number from 1 to 999."); return; }
+    if (kind === "sealed" && numericPrice !== undefined && (!Number.isFinite(numericPrice) || numericPrice < 0)) { setFormError("Price paid must be a positive amount."); return; }
+    if (custom && !customName.trim()) { setFormError("Whiskey name is required."); return; }
+    if (numericProof !== undefined && (!Number.isFinite(numericProof) || numericProof <= 0 || numericProof > 300)) { setFormError("Proof must be a number from 0.1 to 300."); return; }
 
     const now = new Date().toISOString();
-    const input = { kind, quantity: ownedQuantity, pricePaid: numericPrice, store, tastingContext, rating, isRated, tasteTags, notes };
-    const entry = custom
-      ? createCustomCollectionBottle({ name: customName, proof: numericProof, detail: customDetail }, input, now)
-      : createCollectionBottle(selected!, input, now);
-    if (preferences.collectionPreferences.bottles.some((bottle) => bottle.bottleId === entry.bottleId || bottle.canonicalKey === entry.canonicalKey)) { setError("This bottle is already in your Cellar. Open it there to update quantities or tasting details."); return; }
+    const input = {
+      kind,
+      quantity: ownedQuantity,
+      pricePaid: kind === "sealed" ? numericPrice : undefined,
+      store: kind === "sealed" ? store : undefined,
+      tastingContext: kind === "just_tasted" ? tastingContext : undefined,
+      rating,
+      isRated: ratingEnabled,
+      tasteTags: ratingEnabled ? tasteTags : [],
+      notes: ratingEnabled ? notes : "",
+    };
+    let nextBottles: MemberCollectionBottle[];
+    let contributionEntry: MemberCollectionBottle | null = null;
+    if (selected) {
+      nextBottles = upsertCollectionBottle(preferences.collectionPreferences.bottles, selected, input, now, {
+        reconcilePendingCustom: selectedSource === "catalog",
+      });
+    } else {
+      const candidate = createCustomCollectionBottle({ name: customName, proof: numericProof, detail: customDetail }, input, now);
+      const existingIndex = exactCustomBottleMatchIndex(preferences.collectionPreferences.bottles, candidate);
+      if (existingIndex >= 0) {
+        const existing = preferences.collectionPreferences.bottles[existingIndex];
+        nextBottles = upsertCollectionBottle(preferences.collectionPreferences.bottles, { id: existing.bottleId, name: existing.bottleName }, input, now);
+      } else {
+        nextBottles = [...preferences.collectionPreferences.bottles, candidate];
+        contributionEntry = candidate;
+      }
+    }
 
-    setSaving(true); setError("");
+    setSaving(true);
+    setFormError("");
     try {
-      const saved = await api.updateMemberPreferences({ collectionPreferences: { bottles: [...preferences.collectionPreferences.bottles, entry], version: preferences.collectionPreferences.version } });
-      if (custom) {
+      const saved = await api.updateMemberPreferences({ collectionPreferences: { bottles: nextBottles, version: preferences.collectionPreferences.version } });
+      if (contributionEntry) {
+        const entry = contributionEntry;
         try {
           const response = await api.submitBottleContribution(
             { rawName: customName.trim(), source: "collection", context: { proof: numericProof ?? null, detail: customDetail.trim() || null } },
@@ -134,11 +231,11 @@ export default function AddCellarBottleScreen() {
             durableReceipts = undefined;
           }
 
-          const bottles = applyBottleContributionIds(saved.collectionPreferences.bottles, new Map([[entry.bottleId, contributionId]]));
+          const contributedBottles = applyBottleContributionIds(saved.collectionPreferences.bottles, new Map([[entry.bottleId, contributionId]]));
           try {
-            const contributionSaved = bottles === saved.collectionPreferences.bottles
+            const contributionSaved = contributedBottles === saved.collectionPreferences.bottles
               ? saved
-              : await api.updateMemberPreferences({ collectionPreferences: { bottles, version: saved.collectionPreferences.version } });
+              : await api.updateMemberPreferences({ collectionPreferences: { bottles: contributedBottles, version: saved.collectionPreferences.version } });
             const contributionConfirmed = contributionSaved.collectionPreferences.bottles.some((bottle) => bottle.bottleId === entry.bottleId && bottle.bottleContributionId === contributionId);
             if (!contributionConfirmed) throw new Error("Bottle contribution receipt was not confirmed.");
             if (durableReceipts && contributionConfirmed) {
@@ -158,45 +255,151 @@ export default function AddCellarBottleScreen() {
       router.back();
     } catch (caught) {
       if (caught instanceof MobileApiError && caught.status === 409) {
-        setPreferences(await api.getMemberPreferences({ fresh: true }).catch(() => preferences));
-        setError("Your Cellar changed elsewhere. It was refreshed; review this bottle and save again.");
-      } else setError(caught instanceof Error ? caught.message : "This bottle could not be added.");
-    } finally { setSaving(false); }
+        const refreshed = await api.getMemberPreferences({ fresh: true }).catch(() => preferences);
+        setPreferences(refreshed);
+        setFormError("Your Cellar changed elsewhere. It was refreshed; review this whiskey and save again.");
+      } else {
+        setFormError(caught instanceof Error ? caught.message : "This whiskey could not be saved.");
+      }
+    } finally {
+      setSaving(false);
+    }
   }
 
-  return <SafeAreaView edges={["bottom"]} style={styles.screen}><KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.screen}>
-    <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
-      <Text style={styles.eyebrow}>CELLAR</Text><Text accessibilityRole="header" style={styles.title}>Add to Cellar</Text>
-      <Text style={styles.description}>Find your bottle, then save what you own or tasted.</Text>
-      {loading ? <LoadingState label="Opening your Cellar…" /> : null}
-      {error ? <ErrorState message={error} onRetry={() => setError("")} /> : null}
-      {!loading && preferences?.entitlements?.canUseCollection !== true ? <EmptyState title="Cellar is not included with this membership" detail="Return to HQ to review the membership recognized by the app." /> : null}
-      {!loading && preferences?.entitlements?.canUseCollection ? <>
-        <Field label="Bottle"><TextInput accessibilityLabel="Search bottles" autoCapitalize="none" autoFocus clearButtonMode="while-editing" onChangeText={(value) => { setQuery(value); if (selected && value !== selected.name) setSelected(null); if (custom) setCustom(false); }} placeholder="Search bourbon or whiskey" placeholderTextColor={colors.muted} style={styles.input} value={query} /></Field>
-        {searching ? <Text style={styles.fieldHelp}>Finding bottles…</Text> : null}
-        {!selected && results.length ? <View accessibilityLabel={custom ? "Near matches" : "Bottle search results"} style={styles.results}>{custom ? <Text style={styles.nearTitle}>Near matches</Text> : null}{results.map((option) => <Pressable accessibilityRole="button" key={option.id} onPress={() => choose(option)} style={({ pressed }) => [styles.result, pressed && styles.pressed]}><Text style={styles.resultName}>{option.name}</Text><Text style={styles.resultMeta}>{[option.proof ? `${option.proof} proof` : "", option.ageStatement || ""].filter(Boolean).join(" · ")}</Text></Pressable>)}</View> : null}
-        {custom && !searching && !results.length ? <View accessibilityLabel="Near matches" style={styles.results}><Text style={styles.nearTitle}>Near matches</Text><Text style={styles.noMatches}>No close matches found.</Text></View> : null}
-        {!selected && query.trim().length >= 2 && !custom ? <View style={styles.cantFind}><Text style={styles.cantFindText}>Can’t find it?</Text><Pressable accessibilityRole="button" onPress={beginCustom} style={styles.outlineButton}><Text style={styles.outlineButtonText}>Add this bottle</Text></Pressable></View> : null}
-        {custom ? <View style={styles.customBox}><Text style={styles.sectionTitle}>Bottle details</Text><Field label="Display name"><TextInput accessibilityLabel="Bottle display name" onChangeText={setCustomName} placeholder="Required" placeholderTextColor={colors.muted} style={styles.input} value={customName} /></Field><View style={styles.split}><Field label="Proof (optional)"><TextInput accessibilityLabel="Bottle proof" keyboardType="decimal-pad" onChangeText={setCustomProof} placeholder="101.3" placeholderTextColor={colors.muted} style={styles.input} value={customProof} /></Field><Field label="Age, batch, or finish (optional)"><TextInput accessibilityLabel="Age batch or finish" onChangeText={setCustomDetail} placeholder="Batch 7" placeholderTextColor={colors.muted} style={styles.input} value={customDetail} /></Field></View></View> : null}
-        {selected ? <View style={styles.selected}><View style={styles.selectedCopy}><Text style={styles.fieldHelp}>YOUR BOTTLE</Text><Text style={styles.selectedName}>{selected.name}</Text></View><Pressable accessibilityRole="button" onPress={() => { setSelected(null); setQuery(""); }} style={styles.target}><Text style={styles.action}>Change</Text></Pressable></View> : null}
-        {hasBottle ? <>
-          <Field label="What are you adding?"><View style={styles.toggles}>{KINDS.map((option) => <Toggle key={option.key} active={kind === option.key} label={option.label} onPress={() => setKind(option.key)} />)}</View></Field>
-          {kind !== "just_tasted" ? <><Field label="Quantity"><TextInput accessibilityLabel="Bottle quantity" keyboardType="number-pad" maxLength={3} onChangeText={setQuantity} style={styles.input} value={quantity} /></Field><Pressable accessibilityRole="button" accessibilityState={{ expanded: showAcquisition }} onPress={() => setShowAcquisition(!showAcquisition)} style={styles.target}><Text style={styles.action}>{showAcquisition ? "Hide acquisition details" : "Acquisition details"}</Text></Pressable>{showAcquisition ? <><Field label="Price paid"><TextInput accessibilityLabel="Price paid" keyboardType="decimal-pad" onChangeText={setPricePaid} placeholder="Optional" placeholderTextColor={colors.muted} style={styles.input} value={pricePaid} /></Field><Field label="Store"><TextInput accessibilityLabel="Store purchased from" onChangeText={setStore} placeholder="Optional" placeholderTextColor={colors.muted} style={styles.input} value={store} /></Field></> : null}</> : <Field label="Tasting context"><View style={styles.toggles}>{CONTEXTS.map((context) => <Toggle key={context.key} active={tastingContext === context.key} label={context.label} onPress={() => setTastingContext(context.key)} />)}</View></Field>}
-          <Text style={styles.sectionTitle}>My tasting</Text><View style={styles.switchRow}><View style={styles.switchCopy}><Text style={styles.fieldLabel}>Add a rating</Text><Text style={styles.fieldHelp}>A real 0.0 stays different from unrated.</Text></View><Switch accessibilityLabel="Add a rating" onValueChange={setIsRated} thumbColor={colors.text} trackColor={{ false: colors.border, true: colors.accentPressed }} value={isRated} /></View>
-          {isRated ? <ScoreSlider onChange={setRating} value={rating} /> : null}
-          <Field label="Quick cues"><View style={styles.toggles}>{cues.map((tag) => <Toggle key={tag} active={tasteTags.includes(tag)} label={tag} onPress={() => setTasteTags((current) => current.includes(tag) ? current.filter((item) => item !== tag) : [...current, tag])} />)}</View></Field>
-          {!showMoreCues ? <Pressable accessibilityRole="button" onPress={() => setShowMoreCues(true)} style={styles.target}><Text style={styles.action}>More cues</Text></Pressable> : null}
-          <Field label="Notes (optional)"><TextInput accessibilityLabel="Tasting notes" multiline onChangeText={setNotes} placeholder="What stood out?" placeholderTextColor={colors.muted} style={[styles.input, styles.notes]} value={notes} /></Field>
-          <Pressable accessibilityLabel={custom ? "Add this bottle" : "Save to Cellar"} accessibilityRole="button" accessibilityState={{ disabled: saving }} disabled={saving} onPress={() => void save()} style={({ pressed }) => [styles.save, pressed && styles.savePressed]}><Text style={styles.saveText}>{saving ? "Saving…" : custom ? "Add this bottle" : "Save to Cellar"}</Text></Pressable>
+  return <SafeAreaView edges={["bottom"]} style={styles.screen}>
+    <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.screen}>
+      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+        <Text style={styles.eyebrow}>CELLAR</Text>
+        <Text accessibilityRole="header" style={styles.title}>Add to Cellar</Text>
+        <Text style={styles.description}>Find a whiskey, then add a bottle or save a rating.</Text>
+        {loading ? <LoadingState label="Opening your Cellar…" /> : null}
+        {preferenceError ? <ErrorState message={preferenceError} onRetry={() => {
+          setLoading(true);
+          setPreferenceError("");
+          void api.getMemberPreferences({ fresh: true }).then(setPreferences).catch((caught) => {
+            setPreferenceError(caught instanceof Error ? caught.message : "Your Cellar is temporarily unavailable.");
+          }).finally(() => setLoading(false));
+        }} /> : null}
+        {!loading && preferences && preferences.entitlements?.canUseCollection !== true ? <EmptyState title="Cellar is not included with this membership" detail="Return to HQ to review the membership recognized by the app." /> : null}
+        {!loading && preferences?.entitlements?.canUseCollection ? <>
+          <Field label="Whiskey"><TextInput
+            accessibilityLabel="Search bottles"
+            autoCapitalize="none"
+            autoFocus
+            clearButtonMode="while-editing"
+            onChangeText={(value) => {
+              setQuery(value);
+              if (selected && value !== selected.name) setSelected(null);
+              if (custom) setCustom(false);
+              setFormError("");
+            }}
+            placeholder="Search bourbon or whiskey"
+            placeholderTextColor={colors.muted}
+            style={styles.input}
+            value={query}
+          /></Field>
+
+          {catalogLoading ? <Text accessibilityLiveRegion="polite" style={styles.fieldHelp}>Preparing fast search…</Text> : null}
+          {catalogError ? <Text accessibilityRole="alert" style={styles.catalogError}>{catalogError}</Text> : null}
+
+          {!selected && !custom && !needle ? <View style={styles.recentSection}>
+            <Text style={styles.sectionTitle}>Recently in your Cellar</Text>
+            {recentBottles.length ? <View style={styles.results}>{recentBottles.map((bottle) => <ResultRow key={bottle.bottleId} label={bottle.bottleName} metadata={metadataForOption({ id: bottle.bottleId, name: bottle.bottleName }, bottles)} onPress={() => chooseRecent(bottle)} />)}</View> : <Text style={styles.fieldHelp}>Your recently updated whiskeys will appear here.</Text>}
+          </View> : null}
+
+          {!selected && needle.length >= 2 && results.length ? <View accessibilityLabel={custom ? "Near matches" : "Bottle search results"} style={styles.results}>
+            {custom ? <Text style={styles.nearTitle}>Near matches</Text> : null}
+            {results.map((option) => <ResultRow key={option.id} label={option.name} metadata={metadataForOption(option, bottles)} onPress={() => choose(option)} />)}
+          </View> : null}
+          {!selected && needle.length >= 2 && !catalogLoading && !catalogError && !results.length ? <Text style={styles.fieldHelp}>No catalog matches found. You can add this whiskey manually.</Text> : null}
+
+          {!selected && needle.length >= 2 && !custom ? <View style={styles.cantFind}><Text style={styles.cantFindText}>Can’t find it?</Text><Pressable accessibilityRole="button" onPress={beginCustom} style={styles.outlineButton}><Text style={styles.outlineButtonText}>Add this whiskey</Text></Pressable></View> : null}
+
+          {custom ? <View style={styles.customBox}>
+            <Text style={styles.sectionTitle}>Whiskey details</Text>
+            <Field label="Display name"><TextInput accessibilityLabel="Whiskey display name" onChangeText={setCustomName} placeholder="Required" placeholderTextColor={colors.muted} style={styles.input} value={customName} /></Field>
+            <Field label="Proof (optional)"><TextInput accessibilityLabel="Whiskey proof" keyboardType="decimal-pad" onChangeText={setCustomProof} placeholder="101.3" placeholderTextColor={colors.muted} style={styles.input} value={customProof} /></Field>
+            <Field label="Age, batch, or finish (optional)"><TextInput accessibilityLabel="Age batch or finish" onChangeText={setCustomDetail} placeholder="Batch 7" placeholderTextColor={colors.muted} style={styles.input} value={customDetail} /></Field>
+          </View> : null}
+
+          {selected ? <View style={styles.selected}><View style={styles.selectedCopy}><Text style={styles.fieldHelp}>YOUR WHISKEY</Text><Text style={styles.selectedName}>{selected.name}</Text><Text style={styles.resultMeta}>{metadataForOption(selected, bottles)}</Text></View><Pressable accessibilityRole="button" onPress={() => { setSelected(null); setQuery(""); setFormError(""); }} style={styles.target}><Text style={styles.action}>Change</Text></Pressable></View> : null}
+
+          {hasBottle ? <>
+            <Field label="What would you like to do?"><View style={styles.toggles}>{KINDS.map((option) => <Toggle key={option.key} active={kind === option.key} label={option.label} onPress={() => changeKind(option.key)} />)}</View></Field>
+
+            {kind === "sealed" ? <>
+              <Field label="Quantity"><TextInput accessibilityLabel="Bottle quantity" keyboardType="number-pad" maxLength={3} onChangeText={setQuantity} style={styles.input} value={quantity} /></Field>
+              <DisclosureRow expanded={showAcquisition} label="Acquisition (optional)" onPress={() => setShowAcquisition((current) => !current)} />
+              {showAcquisition ? <View style={styles.disclosureBody}><Field label="Price paid"><TextInput accessibilityLabel="Price paid" keyboardType="decimal-pad" onChangeText={setPricePaid} placeholder="Optional" placeholderTextColor={colors.muted} style={styles.input} value={pricePaid} /></Field><Field label="Store"><TextInput accessibilityLabel="Store purchased from" onChangeText={setStore} placeholder="Optional" placeholderTextColor={colors.muted} style={styles.input} value={store} /></Field></View> : null}
+              <View style={styles.switchRow}><View style={styles.switchCopy}><Text style={styles.fieldLabel}>Add a rating</Text><Text style={styles.fieldHelp}>Rate it now, or leave this off and come back after a pour.</Text></View><Switch accessibilityLabel="Add a rating" onValueChange={setIsRated} thumbColor={colors.text} trackColor={{ false: colors.border, true: colors.accentPressed }} value={isRated} /></View>
+            </> : <Field label="Tasting context"><View style={styles.toggles}>{CONTEXTS.map((context) => <Toggle key={context.key} active={tastingContext === context.key} label={context.label} onPress={() => setTastingContext(context.key)} />)}</View></Field>}
+
+            {ratingEnabled ? <View style={styles.ratingSection}>
+              <Text style={styles.sectionTitle}>My rating</Text>
+              <ScoreSlider onChange={setRating} value={rating} />
+              <Field label="Quick cues"><View style={styles.toggles}>{cues.map((tag) => <Toggle key={tag} active={tasteTags.includes(tag)} label={tag} onPress={() => setTasteTags((current) => current.includes(tag) ? current.filter((item) => item !== tag) : [...current, tag])} />)}</View></Field>
+              {!showMoreCues ? <Pressable accessibilityRole="button" onPress={() => setShowMoreCues(true)} style={styles.target}><Text style={styles.action}>More cues</Text></Pressable> : null}
+              <Field label="Notes (optional)"><TextInput accessibilityLabel="Tasting notes" multiline onChangeText={setNotes} placeholder="What stood out?" placeholderTextColor={colors.muted} style={[styles.input, styles.notes]} value={notes} /></Field>
+            </View> : null}
+
+            {formError ? <Text accessibilityRole="alert" style={styles.formError}>{formError}</Text> : null}
+            <Pressable accessibilityLabel={saveLabel} accessibilityRole="button" accessibilityState={{ disabled: saving }} disabled={saving} onPress={() => void save()} style={({ pressed }) => [styles.save, pressed && styles.savePressed, saving && styles.disabled]}><Text style={styles.saveText}>{saving ? "Saving…" : saveLabel}</Text></Pressable>
+          </> : formError ? <Text accessibilityRole="alert" style={styles.formError}>{formError}</Text> : null}
         </> : null}
-      </> : null}
-    </ScrollView>
-  </KeyboardAvoidingView></SafeAreaView>;
+      </ScrollView>
+    </KeyboardAvoidingView>
+  </SafeAreaView>;
 }
 
+function ResultRow({ label, metadata, onPress }: { label: string; metadata: string; onPress: () => void }) { return <Pressable accessibilityLabel={`${label}. ${metadata}`} accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.result, pressed && styles.pressed]}><Text style={styles.resultName}>{label}</Text><Text style={styles.resultMeta}>{metadata}</Text></Pressable>; }
 function Field({ label, children }: { label: string; children: React.ReactNode }) { return <View style={styles.field}><Text style={styles.fieldLabel}>{label}</Text>{children}</View>; }
-function Toggle({ active, label, onPress }: { active: boolean; label: string; onPress: () => void }) { return <Pressable accessibilityRole="button" accessibilityState={{ selected: active }} onPress={onPress} style={[styles.toggle, active && styles.toggleActive]}><Text style={[styles.toggleText, active && styles.toggleTextActive]}>{label}</Text></Pressable>; }
+function Toggle({ active, label, onPress }: { active: boolean; label: string; onPress: () => void }) { return <Pressable accessibilityRole="button" accessibilityState={{ selected: active }} onPress={onPress} style={[styles.toggle, active && styles.toggleActive]}><Text style={[styles.toggleText, active && styles.toggleTextActive]}>{active ? `✓ ${label}` : label}</Text></Pressable>; }
+function DisclosureRow({ expanded, label, onPress }: { expanded: boolean; label: string; onPress: () => void }) { return <Pressable accessibilityRole="button" accessibilityState={{ expanded }} onPress={onPress} style={styles.disclosureRow}><Text style={styles.fieldLabel}>{label}</Text><Text aria-hidden style={styles.disclosureGlyph}>{expanded ? "−" : "+"}</Text></Pressable>; }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1, backgroundColor: colors.background }, content: { padding: 20, paddingBottom: 48, gap: 18 }, eyebrow: { color: colors.accent, fontSize: 11, fontWeight: "800", letterSpacing: 1.3 }, title: { color: colors.text, fontSize: 30, fontWeight: "800" }, description: { color: colors.muted, fontSize: 14, lineHeight: 20 }, sectionTitle: { color: colors.text, fontSize: 18, fontWeight: "800", marginTop: 4 }, field: { flex: 1, gap: 8 }, fieldLabel: { color: colors.text, fontSize: 14, fontWeight: "700" }, fieldHelp: { color: colors.muted, fontSize: 11, lineHeight: 17 }, input: { minHeight: 48, borderColor: colors.border, borderWidth: 1, borderRadius: 12, backgroundColor: colors.surface, color: colors.text, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15 }, notes: { minHeight: 100, textAlignVertical: "top" }, results: { borderColor: colors.border, borderWidth: 1, borderRadius: 12, overflow: "hidden" }, nearTitle: { color: colors.accent, padding: 12, fontSize: 12, fontWeight: "800" }, noMatches: { color: colors.muted, paddingHorizontal: 12, paddingBottom: 12, fontSize: 12 }, result: { minHeight: 52, paddingHorizontal: 14, paddingVertical: 10, justifyContent: "center", borderTopColor: colors.border, borderTopWidth: StyleSheet.hairlineWidth }, resultName: { color: colors.text, fontSize: 14, fontWeight: "700" }, resultMeta: { color: colors.muted, fontSize: 11 }, suggestions: { gap: 4 }, suggestion: { minHeight: 44, justifyContent: "center" }, suggestionText: { color: colors.text, fontSize: 14 }, cantFind: { minHeight: 56, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 }, cantFindText: { color: colors.muted, fontSize: 14 }, outlineButton: { minHeight: 44, justifyContent: "center", paddingHorizontal: 14, borderColor: colors.accent, borderWidth: 1, borderRadius: 11 }, outlineButtonText: { color: colors.accent, fontWeight: "800" }, customBox: { gap: 14, padding: 14, borderColor: colors.border, borderWidth: 1, borderRadius: 14, backgroundColor: colors.surface }, split: { gap: 12 }, selected: { minHeight: 64, borderColor: colors.accent, borderWidth: 1, borderRadius: 12, padding: 12, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 }, selectedCopy: { flex: 1, gap: 4 }, selectedName: { color: colors.text, fontSize: 16, fontWeight: "800" }, target: { minHeight: 44, justifyContent: "center", alignSelf: "flex-start", paddingHorizontal: 8 }, action: { color: colors.accent, fontWeight: "800" }, toggles: { flexDirection: "row", flexWrap: "wrap", gap: 8 }, toggle: { minHeight: 44, justifyContent: "center", borderColor: colors.border, borderWidth: 1, borderRadius: 999, paddingHorizontal: 13 }, toggleActive: { backgroundColor: colors.surfaceRaised, borderColor: colors.accent }, toggleText: { color: colors.muted, fontSize: 12, fontWeight: "700" }, toggleTextActive: { color: colors.accent }, switchRow: { minHeight: 52, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 16 }, switchCopy: { flex: 1 }, save: { minHeight: 52, alignItems: "center", justifyContent: "center", borderRadius: 12, backgroundColor: colors.accent }, savePressed: { backgroundColor: colors.accentPressed }, saveText: { color: colors.background, fontSize: 15, fontWeight: "900" }, pressed: { backgroundColor: colors.surfaceRaised },
+  screen: { flex: 1, backgroundColor: colors.background },
+  content: { padding: 20, paddingBottom: 48, gap: 18 },
+  eyebrow: { color: colors.accent, fontSize: 11, fontWeight: "800", letterSpacing: 1.3 },
+  title: { color: colors.text, fontSize: 30, fontWeight: "800" },
+  description: { color: colors.muted, fontSize: 14, lineHeight: 20 },
+  sectionTitle: { color: colors.text, fontSize: 18, fontWeight: "800", marginTop: 4 },
+  recentSection: { gap: 10 },
+  field: { flex: 1, gap: 8 },
+  fieldLabel: { color: colors.text, fontSize: 14, fontWeight: "700" },
+  fieldHelp: { color: colors.muted, fontSize: 12, lineHeight: 18 },
+  catalogError: { color: colors.danger, fontSize: 12, lineHeight: 18 },
+  formError: { color: colors.danger, fontSize: 13, lineHeight: 19 },
+  input: { minHeight: 48, borderColor: colors.border, borderWidth: 1, borderRadius: 12, backgroundColor: colors.surface, color: colors.text, paddingHorizontal: 14, paddingVertical: 12, fontSize: 15 },
+  notes: { minHeight: 100, textAlignVertical: "top" },
+  results: { borderColor: colors.border, borderWidth: 1, borderRadius: 12, overflow: "hidden" },
+  nearTitle: { color: colors.accent, padding: 12, fontSize: 12, fontWeight: "800" },
+  result: { minHeight: 56, paddingHorizontal: 14, paddingVertical: 10, justifyContent: "center", borderTopColor: colors.border, borderTopWidth: StyleSheet.hairlineWidth },
+  resultName: { color: colors.text, fontSize: 14, fontWeight: "700" },
+  resultMeta: { color: colors.muted, fontSize: 11, lineHeight: 16 },
+  cantFind: { minHeight: 56, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
+  cantFindText: { color: colors.muted, fontSize: 14 },
+  outlineButton: { minHeight: 44, justifyContent: "center", paddingHorizontal: 14, borderColor: colors.accent, borderWidth: 1, borderRadius: 11 },
+  outlineButtonText: { color: colors.accent, fontWeight: "800" },
+  customBox: { gap: 14, padding: 14, borderColor: colors.border, borderWidth: 1, borderRadius: 14, backgroundColor: colors.surface },
+  selected: { minHeight: 68, borderColor: colors.accent, borderWidth: 1, borderRadius: 12, padding: 12, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
+  selectedCopy: { flex: 1, gap: 4 },
+  selectedName: { color: colors.text, fontSize: 16, fontWeight: "800" },
+  target: { minHeight: 44, justifyContent: "center", alignSelf: "flex-start", paddingHorizontal: 8 },
+  action: { color: colors.accent, fontWeight: "800" },
+  toggles: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  toggle: { minHeight: 44, justifyContent: "center", borderColor: colors.border, borderWidth: 1, borderRadius: 999, paddingHorizontal: 13 },
+  toggleActive: { backgroundColor: colors.surfaceRaised, borderColor: colors.accent },
+  toggleText: { color: colors.muted, fontSize: 12, fontWeight: "700" },
+  toggleTextActive: { color: colors.accent },
+  switchRow: { minHeight: 58, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 16 },
+  switchCopy: { flex: 1, gap: 3 },
+  disclosureRow: { minHeight: 52, flexDirection: "row", alignItems: "center", justifyContent: "space-between", borderTopColor: colors.border, borderTopWidth: StyleSheet.hairlineWidth },
+  disclosureGlyph: { color: colors.accent, fontSize: 24 },
+  disclosureBody: { gap: 14 },
+  ratingSection: { gap: 16 },
+  save: { minHeight: 52, alignItems: "center", justifyContent: "center", borderRadius: 12, backgroundColor: colors.accent },
+  savePressed: { backgroundColor: colors.accentPressed },
+  saveText: { color: colors.background, fontSize: 15, fontWeight: "900" },
+  disabled: { opacity: 0.45 },
+  pressed: { backgroundColor: colors.surfaceRaised },
 });

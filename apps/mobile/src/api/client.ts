@@ -38,6 +38,43 @@ type RequestOptions = {
   fresh?: boolean;
 };
 
+function normalizeBottleOptions(rows: Array<Record<string, unknown>>, sortByName = false) {
+  const unique = new Map<string, RadarBottleOption>();
+  for (const raw of rows) {
+    const name = [raw.canonicalName, raw.name, raw.bottle].find((value): value is string => typeof value === "string")?.trim() || "";
+    if (!name) continue;
+    const key = name.toLowerCase();
+    const rawRarity = [raw.rarityTier, raw.tier, raw.nationalTier, raw.availability].find((value): value is string => typeof value === "string");
+    const rarity = rawRarity === "unicorn" ? "unicorn" : rawRarity === "allocated" || rawRarity === "highly_allocated" ? "allocated" : rawRarity === "limited" || rawRarity === "seasonal" || rawRarity === "regional" ? "limited" : undefined;
+    if (!unique.has(key)) unique.set(key, {
+      id: typeof raw.id === "string" ? raw.id : key,
+      name,
+      rarity,
+      aliases: Array.isArray(raw.aliases) ? raw.aliases.filter((value): value is string => typeof value === "string") : undefined,
+      brand: typeof raw.brand === "string" ? raw.brand : undefined,
+      producer: typeof raw.producer === "string" ? raw.producer : typeof raw.distillery === "string" ? raw.distillery : undefined,
+      proof: typeof raw.proof === "number" && Number.isFinite(raw.proof) ? raw.proof : undefined,
+      ageStatement: typeof raw.ageStatement === "string" || raw.ageStatement === null ? raw.ageStatement : undefined,
+    });
+  }
+  const bottles = [...unique.values()];
+  return sortByName ? bottles.sort((left, right) => left.name.localeCompare(right.name)) : bottles;
+}
+
+const BOTTLE_CATALOG_SUCCESS_TTL_MS = 5 * 60 * 1000;
+const MAX_BOTTLE_CATALOG_CACHE_ENTRIES = 8;
+const bottleCatalogCache = new Map<string, { expiresAt: number; promise: Promise<RadarBottleOption[]> }>();
+
+function cacheBottleCatalog(key: string, entry: { expiresAt: number; promise: Promise<RadarBottleOption[]> }) {
+  bottleCatalogCache.delete(key);
+  bottleCatalogCache.set(key, entry);
+  while (bottleCatalogCache.size > MAX_BOTTLE_CATALOG_CACHE_ENTRIES) {
+    const oldestKey = bottleCatalogCache.keys().next().value;
+    if (oldestKey === undefined) break;
+    bottleCatalogCache.delete(oldestKey);
+  }
+}
+
 export function createMobileApi({
   baseUrl = process.env.EXPO_PUBLIC_API_URL || "https://www.bourbonsignal.com",
   getToken,
@@ -156,26 +193,29 @@ export function createMobileApi({
       }
       const path = `/api/bottles${params.size ? `?${params.toString()}` : ""}`;
       const payload = await request<{ bottles?: Array<Record<string, unknown>> }>(path, { fresh });
-      const unique = new Map<string, RadarBottleOption>();
-      for (const raw of payload.bottles || []) {
-        const name = [raw.canonicalName, raw.name, raw.bottle].find((value): value is string => typeof value === "string")?.trim() || "";
-        if (!name) continue;
-        const key = name.toLowerCase();
-        const rawRarity = [raw.rarityTier, raw.tier, raw.nationalTier, raw.availability].find((value): value is string => typeof value === "string");
-        const rarity = rawRarity === "unicorn" ? "unicorn" : rawRarity === "allocated" || rawRarity === "highly_allocated" ? "allocated" : rawRarity === "limited" || rawRarity === "seasonal" || rawRarity === "regional" ? "limited" : undefined;
-        if (!unique.has(key)) unique.set(key, {
-          id: typeof raw.id === "string" ? raw.id : key,
-          name,
-          rarity,
-          aliases: Array.isArray(raw.aliases) ? raw.aliases.filter((value): value is string => typeof value === "string") : undefined,
-          brand: typeof raw.brand === "string" ? raw.brand : undefined,
-          producer: typeof raw.producer === "string" ? raw.producer : typeof raw.distillery === "string" ? raw.distillery : undefined,
-          proof: typeof raw.proof === "number" && Number.isFinite(raw.proof) ? raw.proof : undefined,
-          ageStatement: typeof raw.ageStatement === "string" || raw.ageStatement === null ? raw.ageStatement : undefined,
+      return normalizeBottleOptions(payload.bottles || [], !normalizedQuery);
+    },
+    async listBottleCatalog({ fresh = false }: { fresh?: boolean } = {}) {
+      const cacheKey = baseUrl.replace(/\/+$/, "");
+      const cached = bottleCatalogCache.get(cacheKey);
+      if (!fresh && cached && (cached.expiresAt === 0 || cached.expiresAt > Date.now())) return cached.promise;
+      if (cached && cached.expiresAt > 0 && cached.expiresAt <= Date.now()) bottleCatalogCache.delete(cacheKey);
+
+      let loading: Promise<RadarBottleOption[]>;
+      loading = request<{ bottles?: Array<Record<string, unknown>> }>("/api/bottle-catalog", { fresh: true })
+        .then((payload) => normalizeBottleOptions(payload.bottles || [], true))
+        .then((bottles) => {
+          if (bottleCatalogCache.get(cacheKey)?.promise === loading) {
+            cacheBottleCatalog(cacheKey, { expiresAt: Date.now() + BOTTLE_CATALOG_SUCCESS_TTL_MS, promise: Promise.resolve(bottles) });
+          }
+          return bottles;
+        })
+        .catch((error: unknown) => {
+          if (bottleCatalogCache.get(cacheKey)?.promise === loading) bottleCatalogCache.delete(cacheKey);
+          throw error;
         });
-      }
-      const bottles = [...unique.values()];
-      return normalizedQuery ? bottles : bottles.sort((left, right) => left.name.localeCompare(right.name));
+      cacheBottleCatalog(cacheKey, { expiresAt: 0, promise: loading });
+      return loading;
     },
     submitBottleContribution(payload: { rawName: string; source: "collection"; context?: Record<string, unknown> }, idempotencyKey?: string) {
       return request<BottleContributionResponse>("/api/bottle-contributions", {

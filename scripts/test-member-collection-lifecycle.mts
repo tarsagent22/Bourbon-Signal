@@ -46,6 +46,66 @@ assert.equal(realZero.tastedOnly, true);
 assert.equal(realZero.tastingContext, "bottle_share");
 assert.equal(realZero.ratedAt, undefined, "legacy scores never receive a fabricated rating date");
 
+const roundTrip = (bottle: Record<string, unknown>) => normalizeCollectionBottles(JSON.parse(JSON.stringify({ bottles: [bottle] })))[0];
+const personalHistory = {
+  ...base,
+  rating: 92,
+  isRated: true,
+  ratedAt: "2026-08-20T18:30:00.000Z",
+  tasteTags: ["Cherry", "Oak"],
+  wouldBuyAgain: false,
+  notes: "Opened up after ten minutes.",
+  pricePaid: 72.49,
+  store: "Neighborhood Spirits",
+  purchaseDate: "2026-07-14",
+  tastingContext: "friend",
+  finishedCount: 2,
+};
+const expectedPersonalHistory = {
+  rating: 92,
+  isRated: true,
+  ratedAt: "2026-08-20T18:30:00.000Z",
+  tasteTags: ["Cherry", "Oak"],
+  wouldBuyAgain: false,
+  notes: "Opened up after ten minutes.",
+  pricePaid: 72.49,
+  store: "Neighborhood Spirits",
+  purchaseDate: "2026-07-14",
+  tastingContext: "friend",
+  finishedCount: 2,
+};
+const preservedHistory = (bottle: ReturnType<typeof normalizeCollectionBottles>[number]) => ({
+  rating: bottle.rating,
+  isRated: bottle.isRated,
+  ratedAt: bottle.ratedAt,
+  tasteTags: bottle.tasteTags,
+  wouldBuyAgain: bottle.wouldBuyAgain,
+  notes: bottle.notes,
+  pricePaid: bottle.pricePaid,
+  store: bottle.store,
+  purchaseDate: bottle.purchaseDate,
+  tastingContext: bottle.tastingContext,
+  finishedCount: bottle.finishedCount,
+});
+
+const noCurrentInventory = roundTrip({
+  ...personalHistory,
+  sealedQuantity: 0,
+  openedQuantity: 0,
+  tastedOnly: false,
+});
+assert.equal(noCurrentInventory.tastedOnly, true, "zero current inventory is tasted-only even with finished history and a false legacy flag");
+assert.deepEqual(preservedHistory(noCurrentInventory), expectedPersonalHistory, "owned-to-history server round trip preserves tasting cues, acquisition, context, and finished history");
+
+const ownedAfterTasting = roundTrip({
+  ...noCurrentInventory,
+  sealedQuantity: 1,
+  openedQuantity: 0,
+  tastedOnly: true,
+});
+assert.equal(ownedAfterTasting.tastedOnly, false, "current inventory is owned even with a true legacy flag");
+assert.deepEqual(preservedHistory(ownedAfterTasting), expectedPersonalHistory, "tasted-to-owned server round trip preserves tasting cues, acquisition, context, and finished history");
+
 const ratedAt = "2026-08-21T15:30:00.000Z";
 const [datedRating] = normalizeCollectionBottles([{
   ...base,
@@ -79,7 +139,7 @@ assert.equal(owned.tastedOnly, false, "owned inventory cannot be tasted-only");
 assert.equal(owned.pricePaid, 65);
 assert.equal(owned.store, "Main Street Spirits");
 assert.equal(owned.purchaseDate, "2026-08-18");
-assert.equal(owned.tastingContext, undefined);
+assert.equal(owned.tastingContext, undefined, "invalid tasting context is still discarded");
 
 assert.notEqual(
   collectionFingerprint([{ ...base, rating: 0, isRated: false, sealedQuantity: 1 }]),
