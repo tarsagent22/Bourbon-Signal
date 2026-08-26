@@ -41,6 +41,8 @@ assert.doesNotMatch(dashboard, /setSavingCollection\(false\)[\s\S]{0,300}void sa
 assert.match(dashboard, /Saved on this device[\s\S]*sync/i, 'offline saves are labelled honestly');
 assert.match(dashboard, /type="range"[\s\S]{0,200}min=\{0\}[\s\S]{0,200}max=\{100\}/, 'website Cellar rating spans 0.0 through 10.0');
 assert.match(dashboard, /collectionIsRated/, 'website keeps unrated separate from a real zero');
+assert.match(dashboard, /ratingChanged[\s\S]*ratedAt/, 'website updates the rating date only when the current score changes');
+assert.match(dashboard, /Rated \{new Date\(entry\.ratedAt\)/, 'website shows a saved rating date when one exists');
 assert.match(dashboard, /collectionEntries\.filter\(\(entry\) => entry\.isRated\)\.map/, 'unrated entries do not become negative taste signals');
 
 assert.match(tasteScore, /getTasteAggregate/);

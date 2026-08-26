@@ -19,6 +19,7 @@ const collection = [
     canonicalKey: "eagle rare 10 year",
     rating: 87,
     isRated: true,
+    ratedAt: "2026-08-01T00:30:00.000Z",
     sealedQuantity: 1,
     openedQuantity: 0,
     finishedCount: 0,

@@ -7,6 +7,7 @@ import type {
   GeographySearchResponse,
   PushDeviceStatus,
   RadarBottleOption,
+  BottleContributionResponse,
   ReferralSummary,
   SightingSubmission,
   SightingSubmissionResponse,
@@ -146,20 +147,42 @@ export function createMobileApi({
     updateMemberAlert(action: "mark_read" | "mark_all_read" | "archive", alertId?: string) {
       return request<MemberAlertsResponse>("/api/alerts", { method: "PATCH", body: { action, ...(alertId ? { alertId } : {}) } });
     },
-    async listRadarBottles({ fresh = false }: { fresh?: boolean } = {}) {
-      const payload = await request<{ bottles?: Array<Record<string, unknown>> }>("/api/bottles", { fresh });
+    async listRadarBottles({ fresh = false, query = "", limit = 30 }: { fresh?: boolean; query?: string; limit?: number } = {}) {
+      const normalizedQuery = query.replace(/\s+/g, " ").trim();
+      const params = new URLSearchParams();
+      if (normalizedQuery) {
+        params.set("query", normalizedQuery);
+        params.set("limit", String(Math.max(1, Math.min(30, Math.floor(limit)))));
+      }
+      const path = `/api/bottles${params.size ? `?${params.toString()}` : ""}`;
+      const payload = await request<{ bottles?: Array<Record<string, unknown>> }>(path, { fresh });
       const unique = new Map<string, RadarBottleOption>();
       for (const raw of payload.bottles || []) {
         const name = [raw.canonicalName, raw.name, raw.bottle].find((value): value is string => typeof value === "string")?.trim() || "";
         if (!name) continue;
         const key = name.toLowerCase();
+        const rawRarity = [raw.rarityTier, raw.tier, raw.nationalTier, raw.availability].find((value): value is string => typeof value === "string");
+        const rarity = rawRarity === "unicorn" ? "unicorn" : rawRarity === "allocated" || rawRarity === "highly_allocated" ? "allocated" : rawRarity === "limited" || rawRarity === "seasonal" || rawRarity === "regional" ? "limited" : undefined;
         if (!unique.has(key)) unique.set(key, {
           id: typeof raw.id === "string" ? raw.id : key,
           name,
-          rarity: [raw.rarityTier, raw.tier].find((value): value is "unicorn" | "allocated" | "limited" => value === "unicorn" || value === "allocated" || value === "limited"),
+          rarity,
+          aliases: Array.isArray(raw.aliases) ? raw.aliases.filter((value): value is string => typeof value === "string") : undefined,
+          brand: typeof raw.brand === "string" ? raw.brand : undefined,
+          producer: typeof raw.producer === "string" ? raw.producer : typeof raw.distillery === "string" ? raw.distillery : undefined,
+          proof: typeof raw.proof === "number" && Number.isFinite(raw.proof) ? raw.proof : undefined,
+          ageStatement: typeof raw.ageStatement === "string" || raw.ageStatement === null ? raw.ageStatement : undefined,
         });
       }
-      return [...unique.values()].sort((left, right) => left.name.localeCompare(right.name));
+      const bottles = [...unique.values()];
+      return normalizedQuery ? bottles : bottles.sort((left, right) => left.name.localeCompare(right.name));
+    },
+    submitBottleContribution(payload: { rawName: string; source: "collection"; context?: Record<string, unknown> }, idempotencyKey?: string) {
+      return request<BottleContributionResponse>("/api/bottle-contributions", {
+        method: "POST",
+        body: payload,
+        ...(idempotencyKey ? { headers: { "Idempotency-Key": idempotencyKey } } : {}),
+      });
     },
     getPushDeviceStatus(deviceId?: string, { fresh = false }: { fresh?: boolean } = {}) {
       const suffix = deviceId ? `?deviceId=${encodeURIComponent(deviceId)}` : "";
