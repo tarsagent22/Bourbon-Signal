@@ -39,6 +39,16 @@ export interface OwnerCoverageRequestRow extends MemberCoverageRequest {
   userId: string;
 }
 
+export interface ActiveCoverageBriefRow {
+  targetType: MemberCoverageRequest["targetType"];
+  stateCode: string;
+  areaLabel: string | null;
+  storeName: string | null;
+  status: "requested" | "on_radar";
+  requestedAt: string;
+  updatedAt: string;
+}
+
 export interface CoverageAutomationJob {
   jobKey: string;
   coverageRequestId: string;
@@ -739,6 +749,43 @@ export class CoverageRequestRepository {
   ): Promise<{ requestId: string; jobsStopped: number } | null> {
     const result = await this.updateStatusForOwner(requestId, "closed", closedBy, now);
     return result ? { requestId: result.requestId, jobsStopped: result.jobsStopped } : null;
+  }
+
+  async summarizeActiveAutomationStatusesForOwner(): Promise<Record<string, number>> {
+    const rows = await this.database.query(`
+      SELECT status, COUNT(*)::int AS count
+      FROM coverage_request_automation_jobs
+      WHERE status NOT IN ('notified', 'failed')
+      GROUP BY status
+      ORDER BY status
+    `) as Array<{ status?: unknown; count?: unknown }>;
+    return Object.fromEntries(rows.map((row) => [asString(row.status), Number(row.count || 0)]));
+  }
+
+  async listActiveForBrief(limit = 200): Promise<ActiveCoverageBriefRow[]> {
+    const rows = await this.database.query(`
+      SELECT target_type, state_code, area_label, store_name, status, requested_at, updated_at
+      FROM coverage_requests
+      WHERE status IN ('requested', 'on_radar')
+      ORDER BY updated_at DESC
+      LIMIT $1
+    `, [Math.max(1, Math.min(200, Math.floor(limit)))]) as CoverageRequestRow[];
+    return rows.map((row) => {
+      const targetType = asString(row.target_type);
+      const status = asString(row.status);
+      if (!["state", "county", "city", "store"].includes(targetType) || !["requested", "on_radar"].includes(status)) {
+        throw new Error("Active coverage brief row violated its database contract.");
+      }
+      return {
+        targetType: targetType as MemberCoverageRequest["targetType"],
+        stateCode: asString(row.state_code),
+        areaLabel: nullableString(row.area_label),
+        storeName: nullableString(row.store_name),
+        status: status as "requested" | "on_radar",
+        requestedAt: asString(row.requested_at),
+        updatedAt: asString(row.updated_at),
+      };
+    });
   }
 
   async listDemandForOwner(limit = 10_000): Promise<OwnerCoverageRequestRow[]> {
