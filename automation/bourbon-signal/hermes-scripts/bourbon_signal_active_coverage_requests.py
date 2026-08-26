@@ -82,7 +82,7 @@ def validate_payload(payload: object, now: datetime | None = None) -> dict:
     valid_shape = (
         payload.get("source") == "production_read_api"
         and generated_at is not None
-        and timedelta(0) <= current - generated_at.astimezone(timezone.utc) <= timedelta(hours=36)
+        and -timedelta(minutes=5) <= current - generated_at.astimezone(timezone.utc) <= timedelta(hours=36)
         and isinstance(requests, list)
         and len(requests) <= 200
         and type(payload.get("count")) is int
