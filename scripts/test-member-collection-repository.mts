@@ -68,6 +68,7 @@ const bottle = (name: string, rating: number, updatedAt = '2026-07-29T04:00:00.0
   canonicalKey: name.toLowerCase(),
   rating,
   isRated: true,
+  ratedAt: '2026-07-29T03:30:00.000Z',
   tasteTags: ['caramel'],
   wouldBuyAgain: rating >= 80,
   opened: false,

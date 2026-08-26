@@ -9,6 +9,8 @@ export interface CollectionBottlePreference {
   rating: number;
   /** Disambiguates new real 0 ratings from legacy records where 0 meant unrated. */
   isRated: boolean;
+  /** When the member last set or changed the current numeric rating. */
+  ratedAt?: string;
   tasteTags?: string[];
   wouldBuyAgain?: boolean;
   /** Legacy compatibility projection of openedQuantity. */
@@ -88,6 +90,9 @@ export function normalizeCollectionBottles(input: unknown): CollectionBottlePref
     const now = new Date().toISOString();
     const addedAt = typeof item.addedAt === "string" && Number.isFinite(Date.parse(item.addedAt)) ? item.addedAt : now;
     const updatedAt = typeof item.updatedAt === "string" && Number.isFinite(Date.parse(item.updatedAt)) ? item.updatedAt : addedAt;
+    const ratedAt = isRated && typeof item.ratedAt === "string" && Number.isFinite(Date.parse(item.ratedAt))
+      ? item.ratedAt
+      : undefined;
     const pricePaid = ownedHistory && typeof item.pricePaid === "number" && Number.isFinite(item.pricePaid)
       ? Math.round(Math.max(0, Math.min(99999, item.pricePaid)) * 100) / 100
       : undefined;
@@ -104,10 +109,11 @@ export function normalizeCollectionBottles(input: unknown): CollectionBottlePref
       canonicalKey,
       rating,
       isRated,
+      ratedAt,
       tasteTags: Array.isArray(item.tasteTags)
         ? Array.from(new Set(item.tasteTags.filter((tag): tag is string => typeof tag === "string").map((tag) => tag.trim().slice(0, 60)).filter(Boolean))).slice(0, 12)
         : [],
-      wouldBuyAgain: typeof item.wouldBuyAgain === "boolean" ? item.wouldBuyAgain : isRated && rating !== null && rating >= 80,
+      wouldBuyAgain: typeof item.wouldBuyAgain === "boolean" ? item.wouldBuyAgain : undefined,
       opened: openedQuantity > 0,
       sealedQuantity,
       openedQuantity,
@@ -136,8 +142,9 @@ export function collectionFingerprint(input: unknown) {
       bottleName: bottle.bottleName,
       rating: bottle.rating,
       isRated: bottle.isRated,
+      ratedAt: bottle.ratedAt || null,
       tasteTags: [...(bottle.tasteTags || [])].sort(),
-      wouldBuyAgain: Boolean(bottle.wouldBuyAgain),
+      wouldBuyAgain: bottle.wouldBuyAgain ?? null,
       opened: bottle.opened === true,
       sealedQuantity: bottle.sealedQuantity,
       openedQuantity: bottle.openedQuantity,

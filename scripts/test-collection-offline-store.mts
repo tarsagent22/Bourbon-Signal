@@ -16,7 +16,7 @@ const loaded = await import('../src/lib/collection-offline-store.ts');
 const store = ((loaded as { default?: unknown }).default || loaded) as typeof import('../src/lib/collection-offline-store.ts');
 const collection = (rating: number) => ({
   bottles: [{
-    bottleId: 'bottle-a', bottleName: 'Bottle A', canonicalKey: 'bottle a', rating,
+    bottleId: 'bottle-a', bottleName: 'Bottle A', canonicalKey: 'bottle a', rating, isRated: true, ratedAt: '2026-07-29T00:30:00.000Z',
     tasteTags: [], wouldBuyAgain: true, notes: '', addedAt: '2026-07-29T00:00:00.000Z', updatedAt: '2026-07-29T00:00:00.000Z',
   }],
   version: 1,

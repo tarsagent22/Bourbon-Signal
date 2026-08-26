@@ -56,6 +56,29 @@ export class BottleContributionRepository {
     return rows[0].payload;
   }
 
+  async insertOrReplayContribution(contribution: BottleContribution): Promise<BottleContribution> {
+    const rows = await this.query.query(
+      `INSERT INTO bottle_contributions (id, normalized_name, status, payload, created_at, updated_at)
+       VALUES ($1, $2, $3, $4::jsonb, $5::timestamptz, $6::timestamptz)
+       ON CONFLICT DO NOTHING
+       RETURNING payload`,
+      [contribution.id, contribution.normalizedName, contribution.status, JSON.stringify(contribution), contribution.createdAt, contribution.updatedAt],
+    ) as Array<{ payload: BottleContribution }>;
+    if (rows[0]) return rows[0].payload;
+
+    const existing = await this.query.query(
+      `SELECT payload
+       FROM bottle_contributions
+       WHERE id = $1
+          OR (normalized_name = $2 AND status IN ('new', 'needs_human'))
+       ORDER BY CASE WHEN id = $1 THEN 0 ELSE 1 END, updated_at DESC
+       LIMIT 1`,
+      [contribution.id, contribution.normalizedName],
+    ) as Array<{ payload: BottleContribution }>;
+    if (!existing[0]) throw new Error("Unable to persist or replay bottle contribution.");
+    return existing[0].payload;
+  }
+
   async importLegacyContribution(contribution: BottleContribution) {
     await this.query.query(
       `INSERT INTO bottle_contributions (id, normalized_name, status, payload, created_at, updated_at)

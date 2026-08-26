@@ -81,6 +81,7 @@ export interface MemberCollectionBottle {
   canonicalKey: string;
   rating: number;
   isRated: boolean;
+  ratedAt?: string;
   tasteTags?: string[];
   wouldBuyAgain?: boolean;
   opened?: boolean;
@@ -93,6 +94,8 @@ export interface MemberCollectionBottle {
   purchaseDate?: string;
   tastingContext?: "bar" | "bottle_share" | "friend" | "event" | "other";
   notes?: string;
+  pendingCanonicalMatch?: boolean;
+  bottleContributionId?: string;
   addedAt: string;
   updatedAt: string;
 }
@@ -182,7 +185,21 @@ export interface MemberAlertsResponse {
   unreadCount: number;
 }
 
-export interface RadarBottleOption { id: string; name: string; rarity?: "limited" | "allocated" | "unicorn" }
+export interface RadarBottleOption {
+  id: string;
+  name: string;
+  rarity?: "limited" | "allocated" | "unicorn";
+  aliases?: string[];
+  brand?: string;
+  producer?: string;
+  proof?: number;
+  ageStatement?: string | null;
+}
+
+export interface BottleContributionResponse {
+  ok: true;
+  contribution: { id: string; [key: string]: unknown };
+}
 
 export interface PushDeviceStatus {
   supported: boolean;

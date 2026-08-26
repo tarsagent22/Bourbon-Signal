@@ -124,6 +124,46 @@ test("loads canonical Radar, Cellar, alerts, and HQ data with the same bearer id
   assert.ok(requests.every((request) => request.headers.get("authorization") === "Bearer production-member-token"));
 });
 
+test("searches bottles on the server, preserves ranked metadata, and keeps unqueried compatibility", async () => {
+  const requests: Request[] = [];
+  const api = createMobileApi({
+    baseUrl: "https://example.test",
+    getToken: async () => "session-token",
+    fetcher: async (request) => {
+      requests.push(new Request(request));
+      return Response.json({ bottles: [{ id: "eht-small-batch", canonicalName: "E.H. Taylor Small Batch", aliases: ["eht", "colonel taylor"], brand: "E.H. Taylor", proof: 100, ageStatement: null }] });
+    },
+  });
+  const ranked = await api.listRadarBottles({ query: "eht", limit: 8, fresh: true });
+  const all = await api.listRadarBottles();
+  assert.equal(new URL(requests[0].url).searchParams.get("query"), "eht");
+  assert.equal(new URL(requests[0].url).searchParams.get("limit"), "8");
+  assert.equal(new URL(requests[1].url).search, "");
+  assert.deepEqual(ranked[0]?.aliases, ["eht", "colonel taylor"]);
+  assert.equal(ranked[0]?.proof, 100);
+  assert.equal(all[0]?.name, "E.H. Taylor Small Batch");
+});
+
+test("submits missing bottles through the authenticated contribution contract", async () => {
+  let captured: Request | null = null;
+  const api = createMobileApi({
+    baseUrl: "https://example.test",
+    getToken: async () => "session-token",
+    fetcher: async (request) => {
+      captured = new Request(request);
+      return Response.json({ ok: true, contribution: { id: "contribution-1" } });
+    },
+  });
+  await api.submitBottleContribution(
+    { rawName: "Local Pick Batch 7", source: "collection", context: { proof: 101.3, detail: "Batch 7" } },
+    "cellar-local-abc12345",
+  );
+  assert.equal(captured!.method, "POST");
+  assert.equal(new URL(captured!.url).pathname, "/api/bottle-contributions");
+  assert.equal(captured!.headers.get("idempotency-key"), "cellar-local-abc12345");
+  assert.deepEqual(await captured!.json(), { rawName: "Local Pick Batch 7", source: "collection", context: { proof: 101.3, detail: "Batch 7" } });
+});
+
 test("submits a durable sighting with JSON and a stable idempotency key", async () => {
   const captured: Request[] = [];
   const api = createMobileApi({

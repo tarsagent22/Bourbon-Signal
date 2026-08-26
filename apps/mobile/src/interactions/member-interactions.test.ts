@@ -8,6 +8,11 @@ import {
   filterAndSortCollection,
   formatCollectionRating,
   filterWatchedBottles,
+  projectCollectionBottles,
+  createCollectionBottle,
+  createCustomCollectionBottle,
+  activeCollectionRefinementCount,
+  applyBottleContributionIds,
   rewardAvailability,
   TASTE_TAG_OPTIONS,
   updateCollectionBottle,
@@ -45,6 +50,12 @@ test("filters collection text and applies deliberate sort modes", () => {
   assert.deepEqual(filterAndSortCollection(bottles, "", "name").map((item) => item.bottleName), ["E.H. Taylor Small Batch", "Eagle Rare 10Y", "Old Forester 1910"]);
 });
 
+test("recently rated sorts dated ratings first without inventing legacy dates", () => {
+  const dated = bottle({ bottleName: "Dated pour", canonicalKey: "dated pour", ratedAt: "2026-08-20T00:00:00.000Z", updatedAt: "2026-08-20T00:00:00.000Z" });
+  const legacy = bottle({ bottleName: "Legacy pour", canonicalKey: "legacy pour", ratedAt: undefined, updatedAt: "2026-08-24T00:00:00.000Z" });
+  assert.deepEqual(filterAndSortCollection([legacy, dated], "", "recently_rated").map((item) => item.bottleName), ["Dated pour", "Legacy pour"]);
+});
+
 test("filters Cellar by lifecycle, rating, and buy-again preference", () => {
   const bottles = [
     bottle({ bottleName: "Opened favorite", canonicalKey: "opened favorite", rating: 94, openedQuantity: 1, sealedQuantity: 0, wouldBuyAgain: true }),
@@ -56,6 +67,29 @@ test("filters Cellar by lifecycle, rating, and buy-again preference", () => {
   assert.deepEqual(filterAndSortCollection(bottles, "", "rating", { status: "sealed", minRating: null, buyAgainOnly: false }).map((item) => item.bottleName), ["Sealed favorite"]);
   assert.deepEqual(filterAndSortCollection(bottles, "", "rating", { status: "finished", minRating: null, buyAgainOnly: false }).map((item) => item.bottleName), ["Finished"]);
   assert.deepEqual(filterAndSortCollection(bottles, "", "rating", { status: "just_tasted", minRating: null, buyAgainOnly: false }).map((item) => item.bottleName), ["Bar taste"]);
+  assert.deepEqual(filterAndSortCollection(bottles, "", "rating", { status: "all", minRating: null, buyAgainOnly: false, tastingContext: "bar" }).map((item) => item.bottleName), ["Bar taste"]);
+});
+
+test("projects every real tasting evidence record without fabricating dates", () => {
+  const evidence = [
+    bottle({ bottleId: "tasted", canonicalKey: "tasted", tastedOnly: true, isRated: false, tasteTags: [], notes: undefined, finishedCount: 0, openedQuantity: 0 }),
+    bottle({ bottleId: "finished", canonicalKey: "finished", tastedOnly: false, isRated: false, tasteTags: [], notes: undefined, finishedCount: 1, openedQuantity: 0 }),
+    bottle({ bottleId: "rated-owned", canonicalKey: "rated-owned", tastedOnly: false, isRated: true, tasteTags: [], notes: undefined, finishedCount: 0, sealedQuantity: 1, ratedAt: undefined }),
+    bottle({ bottleId: "tagged-owned", canonicalKey: "tagged-owned", tastedOnly: false, isRated: false, tasteTags: ["", "Oak"], notes: undefined, finishedCount: 0, openedQuantity: 1 }),
+    bottle({ bottleId: "noted-owned", canonicalKey: "noted-owned", tastedOnly: false, isRated: false, tasteTags: [], notes: "  Worth revisiting  ", finishedCount: 0, sealedQuantity: 1 }),
+  ];
+  const noEvidence = bottle({ bottleId: "inventory-only", canonicalKey: "inventory-only", tastedOnly: false, isRated: false, tasteTags: ["  "], notes: "  ", finishedCount: 0, sealedQuantity: 1 });
+
+  const tastings = projectCollectionBottles([...evidence, noEvidence], "tastings");
+  assert.deepEqual(tastings.map((item) => item.bottleId), evidence.map((item) => item.bottleId));
+  assert.equal(tastings[2], evidence[2], "projection preserves the source record");
+  assert.equal(tastings[2].ratedAt, undefined, "projection does not invent a tasting date");
+  assert.deepEqual(projectCollectionBottles([...evidence, noEvidence], "owned").map((item) => item.bottleId), ["rated-owned", "tagged-owned", "noted-owned", "inventory-only"]);
+});
+
+test("counts only active Cellar refinement choices", () => {
+  assert.equal(activeCollectionRefinementCount({ status: "all", minRating: null, buyAgainOnly: false }, "recently_rated"), 0);
+  assert.equal(activeCollectionRefinementCount({ status: "just_tasted", minRating: null, buyAgainOnly: false, tastingContext: "friend" }, "name"), 3);
 });
 
 test("summarizes rated bottles and compacts taste tags", () => {
@@ -82,6 +116,53 @@ test("updates one collection bottle without losing canonical identity", () => {
   assert.equal(updated[0].sealedQuantity, 1);
   assert.equal(updated[0].finishedCount, 2);
   assert.equal(updated[0].updatedAt, "2026-08-22T00:00:00.000Z");
+  assert.equal(updated[0].ratedAt, "2026-08-22T00:00:00.000Z");
+});
+
+test("preserves all three buy-again states through edit and creation", () => {
+  const unknown = bottle({ wouldBuyAgain: undefined });
+  const savedUnknown = updateCollectionBottle([unknown], unknown.canonicalKey, { rating: 95, isRated: true, notes: "", tasteTags: [], wouldBuyAgain: undefined, sealedQuantity: 0, openedQuantity: 1, finishedCount: 0, tastedOnly: false }, "2026-08-22T00:00:00.000Z")[0];
+  assert.equal(savedUnknown.wouldBuyAgain, undefined);
+  assert.equal(createCollectionBottle({ id: "new", name: "New Bottle" }, { kind: "sealed" }, "2026-08-22T00:00:00.000Z").wouldBuyAgain, undefined);
+  assert.equal(updateCollectionBottle([unknown], unknown.canonicalKey, { rating: 95, isRated: true, notes: "", tasteTags: [], wouldBuyAgain: true, sealedQuantity: 0, openedQuantity: 1, finishedCount: 0, tastedOnly: false }, "2026-08-22T00:00:00.000Z")[0].wouldBuyAgain, true);
+  assert.equal(updateCollectionBottle([unknown], unknown.canonicalKey, { rating: 95, isRated: true, notes: "", tasteTags: [], wouldBuyAgain: false, sealedQuantity: 0, openedQuantity: 1, finishedCount: 0, tastedOnly: false }, "2026-08-22T00:00:00.000Z")[0].wouldBuyAgain, false);
+});
+
+test("rating dates change only with rating state and numeric score", () => {
+  const ratedAt = "2026-08-10T00:00:00.000Z";
+  const current = bottle({ rating: 94, isRated: true, ratedAt });
+  const unrelated = updateCollectionBottle([current], current.canonicalKey, { rating: 94, isRated: true, notes: "New note", tasteTags: ["Oak"], wouldBuyAgain: false, sealedQuantity: 2, openedQuantity: 0, finishedCount: 0, tastedOnly: false }, "2026-08-22T00:00:00.000Z")[0];
+  assert.equal(unrelated.ratedAt, ratedAt);
+  const changed = updateCollectionBottle([unrelated], current.canonicalKey, { rating: 95, isRated: true, notes: "New note", tasteTags: ["Oak"], wouldBuyAgain: false, sealedQuantity: 2, openedQuantity: 0, finishedCount: 0, tastedOnly: false }, "2026-08-23T00:00:00.000Z")[0];
+  assert.equal(changed.ratedAt, "2026-08-23T00:00:00.000Z");
+  const unrated = updateCollectionBottle([changed], current.canonicalKey, { rating: 95, isRated: false, notes: "New note", tasteTags: ["Oak"], wouldBuyAgain: false, sealedQuantity: 2, openedQuantity: 0, finishedCount: 0, tastedOnly: false }, "2026-08-24T00:00:00.000Z")[0];
+  assert.equal(unrated.ratedAt, undefined);
+});
+
+test("constructors date new ratings and create stable pending custom bottles", () => {
+  const now = "2026-08-22T00:00:00.000Z";
+  assert.equal(createCollectionBottle({ id: "known", name: "Known Bottle" }, { kind: "sealed", isRated: false }, now).ratedAt, undefined);
+  assert.equal(createCollectionBottle({ id: "known", name: "Known Bottle" }, { kind: "sealed", isRated: true, rating: 0 }, now).ratedAt, now);
+  const first = createCustomCollectionBottle({ name: "  My Local Pick  ", proof: 101.3, detail: "Batch 7" }, { kind: "opened", isRated: true, rating: 88 }, now);
+  const second = createCustomCollectionBottle({ name: "My Local Pick", proof: 101.3, detail: "Batch 7" }, { kind: "sealed" }, "2026-08-23T00:00:00.000Z");
+  assert.equal(first.bottleId, second.bottleId, "the same custom identity gets the same local id");
+  assert.equal(first.pendingCanonicalMatch, true);
+  assert.equal(first.bottleName, "My Local Pick · 101.3 proof · Batch 7");
+  assert.equal(first.ratedAt, now);
+});
+
+test("persists returned contribution ids onto only the exact pending local records", () => {
+  const pending = createCustomCollectionBottle({ name: "My Local Pick" }, { kind: "sealed" }, "2026-08-22T00:00:00.000Z");
+  const other = createCustomCollectionBottle({ name: "Other Local Pick" }, { kind: "sealed" }, "2026-08-22T00:00:00.000Z");
+  const canonical = bottle({ bottleId: "canonical", pendingCanonicalMatch: false });
+  const original = [pending, other, canonical];
+  const updated = applyBottleContributionIds(original, new Map([[pending.bottleId, "contribution-505"]]));
+  assert.notEqual(updated, original);
+  assert.equal(updated[0].bottleContributionId, "contribution-505");
+  assert.equal(updated[1], other);
+  assert.equal(updated[2], canonical);
+  assert.equal(applyBottleContributionIds(updated, new Map([[pending.bottleId, "replacement"]])), updated, "an existing persisted id is never replaced");
+  assert.equal(applyBottleContributionIds(updated, new Map([["missing", "contribution"]])), updated, "a missing local record is a no-op");
 });
 
 test("adds a Signal bottle once and keeps an existing collection record", () => {
@@ -95,15 +176,15 @@ test("adds a Signal bottle once and keeps an existing collection record", () => 
   assert.equal(next[1].canonicalKey, "four roses single barrel");
 });
 
-test("finishing preserves history and consumes an active bottle", () => {
+test("finishing preserves history and only consumes an open bottle", () => {
   const opened = bottle({ sealedQuantity: 2, openedQuantity: 1, finishedCount: 3 });
   const afterOpened = finishCollectionBottle([opened], opened.canonicalKey, "2026-08-22T00:00:00.000Z")[0];
   assert.equal(afterOpened.openedQuantity, 0);
   assert.equal(afterOpened.sealedQuantity, 2);
   assert.equal(afterOpened.finishedCount, 4);
   const afterSealed = finishCollectionBottle([afterOpened], opened.canonicalKey, "2026-08-23T00:00:00.000Z")[0];
-  assert.equal(afterSealed.sealedQuantity, 1);
-  assert.equal(afterSealed.finishedCount, 5);
+  assert.equal(afterSealed.sealedQuantity, 2, "finishing never silently consumes sealed inventory");
+  assert.equal(afterSealed.finishedCount, 4);
   const tasted = bottle({ sealedQuantity: 0, openedQuantity: 0, finishedCount: 1, tastedOnly: true });
   assert.equal(finishCollectionBottle([tasted], tasted.canonicalKey, "2026-08-24T00:00:00.000Z")[0].finishedCount, 1, "tasted-only history is unchanged");
 });

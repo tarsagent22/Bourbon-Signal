@@ -1,6 +1,8 @@
+import { createHash } from "node:crypto";
 import { list } from "@vercel/blob";
 import { normalizeBottleKey, searchBourbonBible } from "@/lib/bourbonBible";
 import { selectLatestQueueBlob } from "@/lib/admin-review";
+import { validBottleContributionIdempotencyKey } from "@/lib/bottle-contribution-idempotency";
 import { createBottleContributionRepository, isStoredBottleContributionStatus, type BottleContributionRepository } from "@/lib/bottle-contribution-repository";
 
 export type BottleContributionSource = "sighting" | "collection" | "bottle_check";
@@ -40,6 +42,18 @@ function contributionId(normalizedName: string, source: BottleContributionSource
   const stamp = Date.now().toString(36);
   const random = Math.random().toString(36).slice(2, 8);
   return `bottle_${source}_${normalizedName.replace(/\s+/g, "-").slice(0, 64)}_${stamp}_${random}`;
+}
+
+export function deterministicBottleContributionId(source: BottleContributionSource, userId: string, idempotencyKey: string) {
+  const digest = createHash("sha256")
+    .update("bottle-contribution:v1\0")
+    .update(source)
+    .update("\0")
+    .update(userId)
+    .update("\0")
+    .update(idempotencyKey)
+    .digest("hex");
+  return `bottle_idem_v1_${digest}`;
 }
 
 function isLegacyContribution(value: unknown): value is BottleContribution {
@@ -100,15 +114,25 @@ export async function addBottleContribution(input: {
   userId?: string;
   userEmail?: string;
   context?: Record<string, unknown>;
-}) {
+  idempotencyKey?: string;
+}, dependencies: {
+  repository?: Pick<BottleContributionRepository, "upsertContribution" | "insertOrReplayContribution">;
+  candidateMatcher?: typeof candidateMatchForBottle;
+  now?: () => string;
+} = {}) {
   const rawName = input.rawName.trim().replace(/\s+/g, " ").slice(0, 160);
   const normalizedName = normalizeBottleKey(rawName);
   if (!rawName || normalizedName.length < 2) throw new Error("Bottle name is required");
+  const idempotencyKey = validBottleContributionIdempotencyKey(input.idempotencyKey);
+  if (input.idempotencyKey && !idempotencyKey) throw new Error("Invalid Idempotency-Key.");
+  if (idempotencyKey && !input.userId) throw new Error("Authenticated user is required for idempotent bottle contributions.");
 
-  const candidate = await candidateMatchForBottle(rawName);
-  const now = nowIso();
+  const candidate = await (dependencies.candidateMatcher || candidateMatchForBottle)(rawName);
+  const now = (dependencies.now || nowIso)();
   const contribution: BottleContribution = {
-    id: contributionId(normalizedName, input.source),
+    id: idempotencyKey
+      ? deterministicBottleContributionId(input.source, input.userId!, idempotencyKey)
+      : contributionId(normalizedName, input.source),
     rawName,
     normalizedName,
     source: input.source,
@@ -124,9 +148,11 @@ export async function addBottleContribution(input: {
     createdAt: now,
     updatedAt: now,
   };
-  const repository = createBottleContributionRepository();
-  await migrateLegacyBlobQueue(repository);
-  return repository.upsertContribution(contribution);
+  const repository = dependencies.repository || createBottleContributionRepository();
+  if (!dependencies.repository) await migrateLegacyBlobQueue(repository as BottleContributionRepository);
+  return idempotencyKey
+    ? repository.insertOrReplayContribution(contribution)
+    : repository.upsertContribution(contribution);
 }
 
 export async function updateBottleContribution(id: string, patch: Partial<Pick<BottleContribution, "status" | "candidateBottleId" | "candidateBottleName" | "confidence" | "notes">>) {

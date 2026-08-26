@@ -1631,6 +1631,7 @@ function PaidMemberDashboard() {
           canonicalKey,
           rating: collectionIsRated ? collectionRating : 0,
           isRated: collectionIsRated,
+          ratedAt: collectionIsRated ? now : undefined,
           tasteTags: collectionTasteTags,
           wouldBuyAgain: collectionIsRated && collectionRating >= 80,
           opened: false,
@@ -1672,6 +1673,7 @@ function PaidMemberDashboard() {
         canonicalKey: option.canonicalKey,
         rating: collectionIsRated ? collectionRating : 0,
         isRated: collectionIsRated,
+        ratedAt: collectionIsRated ? now : undefined,
         tasteTags: collectionTasteTags,
         wouldBuyAgain: collectionIsRated && collectionRating >= 80,
         opened: false,
@@ -1697,9 +1699,13 @@ function PaidMemberDashboard() {
 
   const updateCollectionBottle = async (canonicalKey: string, patch: Partial<UserAlertPreferences["collectionPreferences"]["bottles"][number]>) => {
     const now = new Date().toISOString();
-    await saveCollectionEntries(collectionEntries.map((entry) =>
-      entry.canonicalKey === canonicalKey ? { ...entry, ...patch, updatedAt: now } : entry
-    ));
+    await saveCollectionEntries(collectionEntries.map((entry) => {
+      if (entry.canonicalKey !== canonicalKey) return entry;
+      const nextIsRated = patch.isRated ?? entry.isRated;
+      const nextRating = patch.rating ?? entry.rating;
+      const ratingChanged = nextIsRated !== entry.isRated || (nextIsRated && nextRating !== entry.rating);
+      return { ...entry, ...patch, ratedAt: !nextIsRated ? undefined : ratingChanged ? now : entry.ratedAt, updatedAt: now };
+    }));
   };
 
   const removeCollectionBottle = async (canonicalKey: string) => {
@@ -3408,6 +3414,7 @@ function PaidMemberDashboard() {
                             <div style={{ marginTop: 5, fontFamily: "var(--font-jetbrains)", fontSize: "10px", color: "var(--color-accent-amber)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
                               {entry.pendingCanonicalMatch ? "Pending match" : entry.isRated ? `${tasteScoreLabel(entry.rating)} · ${formatTasteScore(entry.rating)}/10` : "Unrated"}
                             </div>
+                            {entry.isRated && entry.ratedAt ? <div style={{ marginTop: 4, fontFamily: "var(--font-dm-sans)", fontSize: "11px", color: "var(--color-text-tertiary)" }}>Rated {new Date(entry.ratedAt).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</div> : null}
                           </div>
                           <button type="button" onClick={() => setEditingCollectionKey(editing ? null : entry.canonicalKey)} style={{ position: "absolute", right: "10px", bottom: "10px", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "999px", background: editing ? "rgba(196,148,58,0.12)" : "rgba(255,255,255,0.035)", color: editing ? "var(--color-accent-amber)" : "var(--color-text-tertiary)", padding: "6px 9px", fontFamily: "var(--font-dm-sans)", fontSize: "11px", cursor: "pointer" }}>
                             {editing ? "Done" : "Edit"}
