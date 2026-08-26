@@ -18,7 +18,7 @@ class FakeDatabase {
       const keys = params[0] as string[];
       const ratings = [...this.collections.values()].flatMap((value) => {
         const matching = value.bottles
-          .filter((bottle) => keys.includes(bottle.canonicalKey) && bottle.rating > 0)
+          .filter((bottle) => keys.includes(bottle.canonicalKey) && bottle.isRated)
           .map((bottle) => bottle.rating);
         return matching.length ? [Math.max(...matching)] : [];
       });
@@ -67,9 +67,18 @@ const bottle = (name: string, rating: number, updatedAt = '2026-07-29T04:00:00.0
   bottleName: name,
   canonicalKey: name.toLowerCase(),
   rating,
+  isRated: true,
   tasteTags: ['caramel'],
   wouldBuyAgain: rating >= 80,
   opened: false,
+  sealedQuantity: 1,
+  openedQuantity: 0,
+  finishedCount: 0,
+  tastedOnly: false,
+  pricePaid: undefined,
+  store: undefined,
+  purchaseDate: undefined,
+  tastingContext: undefined,
   notes: '',
   addedAt: '2026-07-29T03:00:00.000Z',
   updatedAt,
@@ -107,6 +116,7 @@ assert.equal(collections.get('user-b')?.bottles[0]?.bottleName, 'Bottle A');
 const aggregate = await repository.getTasteAggregate(['bottle a']);
 assert.deepEqual(aggregate, { average: 86, count: 2 });
 assert.equal(database.calls.some((call) => call.text.includes('GROUP BY user_id')), true, 'taste aggregation weights each member once');
+assert.equal(database.calls.some((call) => call.text.includes("payload->>'isRated'")), true, 'taste aggregation includes explicitly rated payload entries without requiring a schema rollout');
 assert.equal(database.calls.some((call) => /CREATE TABLE|ALTER TABLE|CREATE INDEX/i.test(call.text)), false, 'runtime collection requests never run schema DDL');
 assert.equal(database.calls.some((call) => call.text.includes('pg_advisory_xact_lock')), true, 'collection replacements serialize per user');
 

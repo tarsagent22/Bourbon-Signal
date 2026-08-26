@@ -305,7 +305,7 @@ function tasteScoreDescription(score: number) {
 }
 
 function formatTasteScore(score: number) {
-  return (Math.max(10, Math.min(100, score)) / 10).toFixed(1);
+  return (Math.max(0, Math.min(100, score)) / 10).toFixed(1);
 }
 
 function isWhiskeyProduct(name: string) {
@@ -777,6 +777,7 @@ function PaidMemberDashboard() {
   const [broadBottleCatalog, setBroadBottleCatalog] = useState<BibleBottleSuggestion[]>([]);
   const [loadingCollectionSuggestions, setLoadingCollectionSuggestions] = useState(false);
   const [collectionRating, setCollectionRating] = useState(85);
+  const [collectionIsRated, setCollectionIsRated] = useState(true);
   const [collectionTasteTags, setCollectionTasteTags] = useState<string[]>([]);
   const [collectionNotes, setCollectionNotes] = useState("");
   const [savingCollection, setSavingCollection] = useState(false);
@@ -1116,7 +1117,7 @@ function PaidMemberDashboard() {
     const bottleLookup = new Map<string, BottleOption>();
     for (const option of broadCatalogBottleOptions) bottleLookup.set(option.canonicalKey, option);
     for (const option of bottleOptions) bottleLookup.set(option.canonicalKey, option);
-    return buildUserTasteProfile(collectionEntries.map((entry) => {
+    return buildUserTasteProfile(collectionEntries.filter((entry) => entry.isRated).map((entry) => {
       const option = bottleLookup.get(entry.canonicalKey);
       return {
         canonicalKey: entry.canonicalKey,
@@ -1147,7 +1148,7 @@ function PaidMemberDashboard() {
       favoriteTags: collectionTasteProfile.favoriteTags,
       preferredProof: collectionTasteProfile.preferredProof,
       preferredProofRange: collectionTasteProfile.preferredProofRange,
-      basedOnCount: collectionEntries.filter((entry) => entry.rating >= 80).length,
+      basedOnCount: collectionEntries.filter((entry) => entry.isRated && entry.rating >= 80).length,
       proofBottleCount: collectionTasteProfile.proofBottleCount,
       confidence: collectionTasteProfile.confidence,
       favoriteMashBills: collectionTasteProfile.favoriteMashBills,
@@ -1163,7 +1164,7 @@ function PaidMemberDashboard() {
     [dnaFeedbackEntries],
   );
   const recommendationQuickStart = useMemo(
-    () => recommendationReadiness(collectionEntries.filter((entry) => entry.rating > 0).length),
+    () => recommendationReadiness(collectionEntries.filter((entry) => entry.isRated).length),
     [collectionEntries],
   );
 
@@ -1615,7 +1616,7 @@ function PaidMemberDashboard() {
         body: JSON.stringify({
           rawName,
           source: "collection",
-          context: { rating: collectionRating, tasteTags: collectionTasteTags, notes: collectionNotes.trim() },
+          context: { rating: collectionIsRated ? collectionRating : null, tasteTags: collectionTasteTags, notes: collectionNotes.trim() },
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -1628,22 +1629,29 @@ function PaidMemberDashboard() {
           bottleId: data.contribution?.id || canonicalKey,
           bottleName: rawName,
           canonicalKey,
-          rating: collectionRating,
+          rating: collectionIsRated ? collectionRating : 0,
+          isRated: collectionIsRated,
           tasteTags: collectionTasteTags,
-          wouldBuyAgain: collectionRating >= 80,
+          wouldBuyAgain: collectionIsRated && collectionRating >= 80,
+          opened: false,
+          sealedQuantity: 1,
+          openedQuantity: 0,
+          finishedCount: 0,
+          tastedOnly: false,
           notes: collectionNotes.trim(),
           pendingCanonicalMatch: true,
           bottleContributionId: data.contribution?.id,
           addedAt: now,
           updatedAt: now,
         },
-      ].sort((a, b) => b.rating - a.rating || a.bottleName.localeCompare(b.bottleName));
+      ].sort((a, b) => (b.isRated ? b.rating : -1) - (a.isRated ? a.rating : -1) || a.bottleName.localeCompare(b.bottleName));
       const saved = await saveCollectionEntries(nextEntries);
       if (saved) {
         setSelectedCollectionBottle(null);
         setManualCollectionBottleReady(false);
         setCollectionBottleQuery("");
         setCollectionRating(85);
+        setCollectionIsRated(true);
         setCollectionTasteTags([]);
         setCollectionNotes("");
       }
@@ -1662,19 +1670,26 @@ function PaidMemberDashboard() {
         bottleId: option.bottle.id,
         bottleName: option.label,
         canonicalKey: option.canonicalKey,
-        rating: collectionRating,
+        rating: collectionIsRated ? collectionRating : 0,
+        isRated: collectionIsRated,
         tasteTags: collectionTasteTags,
-        wouldBuyAgain: collectionRating >= 80,
+        wouldBuyAgain: collectionIsRated && collectionRating >= 80,
+        opened: false,
+        sealedQuantity: 1,
+        openedQuantity: 0,
+        finishedCount: 0,
+        tastedOnly: false,
         notes: collectionNotes.trim(),
         addedAt: now,
         updatedAt: now,
       },
-    ].sort((a, b) => b.rating - a.rating || a.bottleName.localeCompare(b.bottleName));
+    ].sort((a, b) => (b.isRated ? b.rating : -1) - (a.isRated ? a.rating : -1) || a.bottleName.localeCompare(b.bottleName));
     const saved = await saveCollectionEntries(nextEntries);
     if (saved) {
       setSelectedCollectionBottle(null);
       setCollectionBottleQuery("");
       setCollectionRating(85);
+      setCollectionIsRated(true);
       setCollectionTasteTags([]);
       setCollectionNotes("");
     }
@@ -1694,7 +1709,7 @@ function PaidMemberDashboard() {
   const commitCollectionRating = async (canonicalKey: string) => {
     const rating = collectionRatingDrafts[canonicalKey];
     if (rating === undefined) return;
-    await updateCollectionBottle(canonicalKey, { rating });
+    await updateCollectionBottle(canonicalKey, { rating, isRated: true });
     setCollectionRatingDrafts((prev) => {
       const next = { ...prev };
       delete next[canonicalKey];
@@ -3257,7 +3272,7 @@ function PaidMemberDashboard() {
           <StepShell
             step="Collection"
             title="My Collection"
-            subtitle="Add bottles you own or have tasted, rate them 1.0-10.0, and start building a taste profile. Regular shelf bottles belong here without becoming noisy alert targets."
+            subtitle="Add bottles you own or have tasted, rate them 0.0-10.0, and start building a taste profile. Regular shelf bottles belong here without becoming noisy alert targets."
             hideHeader
             attached
           >
@@ -3330,19 +3345,22 @@ function PaidMemberDashboard() {
                   <div style={{ display: "flex", justifyContent: "space-between", gap: "12px", alignItems: "end", flexWrap: "wrap" }}>
                     <div>
                       <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: "10px", color: "var(--color-accent-amber)", letterSpacing: "0.12em", textTransform: "uppercase" }}>Taste score</div>
-                      <div style={{ marginTop: 5, fontFamily: "var(--font-playfair)", fontSize: "26px", color: "var(--color-cream)" }}>{tasteScoreLabel(collectionRating)}</div>
-                      <p style={{ margin: "4px 0 0", fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "var(--color-text-secondary)", lineHeight: 1.55 }}>{tasteScoreDescription(collectionRating)}</p>
+                      <div style={{ marginTop: 5, fontFamily: "var(--font-playfair)", fontSize: "26px", color: "var(--color-cream)" }}>{collectionIsRated ? tasteScoreLabel(collectionRating) : "Unrated"}</div>
+                      <p style={{ margin: "4px 0 0", fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "var(--color-text-secondary)", lineHeight: 1.55 }}>{collectionIsRated ? tasteScoreDescription(collectionRating) : "Save this bottle without assigning a score yet."}</p>
                     </div>
-                    <div style={{ fontFamily: "var(--font-playfair)", fontSize: "42px", color: "var(--color-accent-amber)", lineHeight: 1 }}>{formatTasteScore(collectionRating)}</div>
+                    <div style={{ fontFamily: "var(--font-playfair)", fontSize: "42px", color: "var(--color-accent-amber)", lineHeight: 1 }}>{collectionIsRated ? formatTasteScore(collectionRating) : "—"}</div>
                   </div>
                   <input
                     type="range"
-                    min={10}
+                    aria-label="Rating from 0.0 to 10.0"
+                    disabled={!collectionIsRated}
+                    min={0}
                     max={100}
                     step={1}
                     value={collectionRating}
-                    onChange={(event) => setCollectionRating(Math.max(10, Math.min(100, Number(event.target.value) || 10)))}
+                    onChange={(event) => { setCollectionIsRated(true); setCollectionRating(Math.max(0, Math.min(100, Number(event.target.value) || 0))); }}
                   />
+                  <button type="button" aria-pressed={!collectionIsRated} onClick={() => setCollectionIsRated((current) => !current)} style={{ justifySelf: "start", minHeight: 44, border: "1px solid rgba(255,255,255,0.10)", borderRadius: "999px", background: !collectionIsRated ? "rgba(196,148,58,0.13)" : "rgba(255,255,255,0.035)", color: !collectionIsRated ? "var(--color-accent-amber)" : "var(--color-text-secondary)", padding: "8px 12px", cursor: "pointer" }}>{collectionIsRated ? "Mark unrated" : "Add a rating"}</button>
                 </div>
                 <div style={{ display: "grid", gap: "9px" }}>
                   <div style={{ fontFamily: "var(--font-jetbrains)", fontSize: "10px", color: "var(--color-accent-amber)", letterSpacing: "0.12em", textTransform: "uppercase" }}>Taste cues</div>
@@ -3388,7 +3406,7 @@ function PaidMemberDashboard() {
                           <div style={{ minWidth: 0, paddingRight: "44px" }}>
                             <h3 style={{ margin: 0, fontFamily: "var(--font-dm-sans)", color: "var(--color-cream)", fontSize: "15px", lineHeight: 1.35, fontWeight: 800 }}>{entry.bottleName}</h3>
                             <div style={{ marginTop: 5, fontFamily: "var(--font-jetbrains)", fontSize: "10px", color: "var(--color-accent-amber)", letterSpacing: "0.08em", textTransform: "uppercase" }}>
-                              {entry.pendingCanonicalMatch ? "Pending match" : tasteScoreLabel(entry.rating)} · {formatTasteScore(entry.rating)}/10
+                              {entry.pendingCanonicalMatch ? "Pending match" : entry.isRated ? `${tasteScoreLabel(entry.rating)} · ${formatTasteScore(entry.rating)}/10` : "Unrated"}
                             </div>
                           </div>
                           <button type="button" onClick={() => setEditingCollectionKey(editing ? null : entry.canonicalKey)} style={{ position: "absolute", right: "10px", bottom: "10px", border: "1px solid rgba(255,255,255,0.08)", borderRadius: "999px", background: editing ? "rgba(196,148,58,0.12)" : "rgba(255,255,255,0.035)", color: editing ? "var(--color-accent-amber)" : "var(--color-text-tertiary)", padding: "6px 9px", fontFamily: "var(--font-dm-sans)", fontSize: "11px", cursor: "pointer" }}>
@@ -3629,4 +3647,3 @@ function PaidMemberDashboard() {
     </div>
   );
 }
-

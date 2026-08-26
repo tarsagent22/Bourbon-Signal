@@ -11,6 +11,7 @@ export default function AppLayout() {
     <Stack screenOptions={{ contentStyle: { backgroundColor: colors.background }, headerStyle: { backgroundColor: colors.surface }, headerTintColor: colors.text, headerShadowVisible: false }}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="signal/[id]" options={{ title: "Signal" }} />
+      <Stack.Screen name="cellar/add" options={{ presentation: "modal", title: "Add bottle" }} />
     </Stack>
   );
 }

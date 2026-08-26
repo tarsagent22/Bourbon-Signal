@@ -18,6 +18,11 @@ const collection = [
     bottleName: "Eagle Rare 10 Year",
     canonicalKey: "eagle rare 10 year",
     rating: 87,
+    isRated: true,
+    sealedQuantity: 1,
+    openedQuantity: 0,
+    finishedCount: 0,
+    tastedOnly: false,
     addedAt: "2026-08-01T00:00:00.000Z",
     updatedAt: "2026-08-01T00:00:00.000Z",
   },
@@ -29,7 +34,8 @@ const saved = findBottleCheckCollectionEntry(collection, {
 });
 assert.equal(saved?.rating, 87, "Bottle Check should recognize a saved bottle by stable ID even when display names differ");
 assert.equal(formatBottleCheckCollectionRating(saved), "You rated this bottle 8.7/10.");
-assert.equal(formatBottleCheckCollectionRating({ ...collection[0], rating: 0 }), "This bottle is in your collection, but you haven’t rated it yet.");
+assert.equal(formatBottleCheckCollectionRating({ ...collection[0], rating: 0, isRated: false }), "This bottle is in your collection, but you haven’t rated it yet.");
+assert.equal(formatBottleCheckCollectionRating({ ...collection[0], rating: 0, isRated: true }), "You rated this bottle 0.0/10.");
 assert.equal(formatBottleCheckCollectionRating(null), null);
 
 const blantons = searchFastBottleSuggestions("blantons", 6);
@@ -80,9 +86,9 @@ const sightingsRepo = readFileSync(new URL("../src/lib/community-sightings-repos
 const sightingsHook = readFileSync(new URL("../src/hooks/useSightings.ts", import.meta.url), "utf8");
 const sightingsClient = readFileSync(new URL("../src/app/sightings/SightingsClient.tsx", import.meta.url), "utf8");
 
-assert.match(sightingsRepo, /listSightingsFeed\(currentUserId: string, limit = 60\)/,
+assert.match(sightingsRepo, /listSightingsFeed\(\s*currentUserId: string,\s*limit = 60/,
   "the public feed should use a bounded purpose-built query");
-assert.match(sightingsRepo, /WITH recent AS MATERIALIZED[\s\S]*LIMIT \$1/,
+assert.match(sightingsRepo, /recent AS MATERIALIZED[\s\S]*LIMIT \$1/,
   "the feed page should be bounded before votes are loaded");
 assert.match(sightingsRepo, /listVotesForSightings[\s\S]*sighting_id = ANY\(\$1::text\[\]\)/,
   "vote work should be bounded to visible sighting IDs");
