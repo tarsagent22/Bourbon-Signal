@@ -1,22 +1,21 @@
-import hashlib
+import http.client
 import json
 import os
 import re
-import shutil
-import subprocess
-from collections import Counter
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
-from bourbon_signal_runtime import hermes_home, load_env
+from bourbon_signal_runtime import load_env
 
 
 COMPLETION_LANE_NAME = "Bourbon Signal coverage request completion lane"
-ACTIVE_TASK_STATUSES = {"todo", "ready", "running", "blocked", "scheduled", "done"}
-REQUEST_ID_PATTERN = re.compile(r"^[a-f0-9-]{16,80}$")
+PRODUCTION_HOST = "www.bourbonsignal.com"
+PRODUCTION_PATH = "/api/ops/active-coverage-requests"
+MAX_RESPONSE_BYTES = 1_000_000
+REQUEST_KEYS = {"targetType", "stateCode", "areaLabel", "storeName", "status", "requestedAt", "updatedAt"}
+PAYLOAD_KEYS = {"contractVersion", "generatedAt", "source", "count", "requests", "automationHealth"}
+TARGET_TYPES = {"state", "county", "city", "store"}
 STATE_PATTERN = re.compile(r"^[A-Z]{2}$")
-AREA_KEY_PATTERN = re.compile(r"^[a-z0-9:-]{1,80}$")
-STORE_ID_PATTERN = re.compile(r"^[a-z0-9:-]{1,160}$")
 
 
 def parse_datetime(value: object) -> datetime | None:
@@ -30,18 +29,21 @@ def parse_datetime(value: object) -> datetime | None:
     return parsed if parsed.tzinfo else parsed.replace(tzinfo=timezone.utc)
 
 
-def timestamp_iso(value: object) -> str | None:
-    try:
-        timestamp = float(value)
-    except (TypeError, ValueError):
+def parse_api_datetime(value: object) -> datetime | None:
+    text = str(value or "").strip()
+    if "T" not in text or not (text.endswith("Z") or re.search(r"[+-]\d{2}:\d{2}$", text)):
         return None
-    return datetime.fromtimestamp(timestamp, timezone.utc).isoformat()
+    try:
+        parsed = datetime.fromisoformat(text.replace("Z", "+00:00"))
+    except ValueError:
+        return None
+    return parsed if parsed.tzinfo else None
 
 
 def summarize_scheduler() -> dict:
-    hermes_home = Path(os.getenv("HERMES_HOME") or (Path(os.getenv("LOCALAPPDATA", Path.home() / "AppData" / "Local")) / "hermes"))
+    home = Path(os.getenv("HERMES_HOME") or (Path(os.getenv("LOCALAPPDATA", Path.home() / "AppData" / "Local")) / "hermes"))
     try:
-        payload = json.loads((hermes_home / "cron" / "jobs.json").read_text(encoding="utf-8"))
+        payload = json.loads((home / "cron" / "jobs.json").read_text(encoding="utf-8"))
         rows = payload.get("jobs", []) if isinstance(payload, dict) else []
         jobs = [row for row in rows if isinstance(row, dict) and str(row.get("name") or "").startswith("Bourbon Signal") and row.get("enabled") is not False]
         failing = sorted(str(row.get("name")) for row in jobs if str(row.get("last_status") or "").lower() in {"failed", "error"})
@@ -50,12 +52,7 @@ def summarize_scheduler() -> dict:
         last_status = str((lane or {}).get("last_status") or "").lower() or None
         last_run_at = parse_datetime((lane or {}).get("last_run_at"))
         age = datetime.now(timezone.utc) - last_run_at.astimezone(timezone.utc) if last_run_at else None
-        fresh = bool(
-            enabled
-            and last_status == "ok"
-            and last_run_at
-            and timedelta(0) <= age <= timedelta(minutes=45)
-        )
+        fresh = bool(enabled and last_status == "ok" and last_run_at and timedelta(0) <= age <= timedelta(minutes=45))
         return {
             "activeJobs": len(jobs),
             "failingJobs": failing,
@@ -74,169 +71,88 @@ def summarize_scheduler() -> dict:
         }
 
 
-def query_payload(database_url: str) -> dict:
-    import psycopg
-
-    request_query = """
-        SELECT target_type, state_code, area_label, store_name, status, requested_at, updated_at
-        FROM coverage_requests
-        WHERE status IN ('requested', 'on_radar')
-        ORDER BY updated_at DESC
-        LIMIT 200
-    """
-    automation_query = """
-        SELECT status, COUNT(*)::int
-        FROM coverage_request_automation_jobs
-        WHERE status NOT IN ('notified', 'failed')
-        GROUP BY status
-        ORDER BY status
-    """
-    with psycopg.connect(database_url, connect_timeout=20) as connection:
-        with connection.cursor() as cursor:
-            cursor.execute(request_query)
-            rows = cursor.fetchall()
-            cursor.execute(automation_query)
-            automation_rows = cursor.fetchall()
-    requests = [{
-        "targetType": row[0], "stateCode": row[1], "areaLabel": row[2], "storeName": row[3],
-        "status": row[4], "requestedAt": row[5].isoformat() if row[5] else None,
-        "updatedAt": row[6].isoformat() if row[6] else None,
-    } for row in rows]
-    automation_statuses = {str(status): int(count) for status, count in automation_rows}
-    health = summarize_scheduler()
-    health["activeAutomationStatuses"] = automation_statuses
+def validate_payload(payload: object, now: datetime | None = None) -> dict:
+    if not isinstance(payload, dict) or set(payload) != PAYLOAD_KEYS or payload.get("contractVersion") != "bourbon-signal/active-coverage-requests@2":
+        raise RuntimeError("Active coverage read API returned an invalid contract.")
+    current = now or datetime.now(timezone.utc)
+    generated_at = parse_api_datetime(payload.get("generatedAt"))
+    requests = payload.get("requests")
+    health = payload.get("automationHealth")
+    statuses = health.get("activeAutomationStatuses") if isinstance(health, dict) else None
+    valid_shape = (
+        payload.get("source") == "production_read_api"
+        and generated_at is not None
+        and timedelta(0) <= current - generated_at.astimezone(timezone.utc) <= timedelta(hours=36)
+        and isinstance(requests, list)
+        and len(requests) <= 200
+        and type(payload.get("count")) is int
+        and payload.get("count") == len(requests)
+        and isinstance(statuses, dict)
+        and set(health) == {"activeAutomationStatuses"}
+        and all(re.fullmatch(r"[a-z_]{2,40}", key) and type(value) is int and value >= 0 for key, value in statuses.items())
+    )
+    if not valid_shape:
+        raise RuntimeError("Active coverage read API returned an invalid payload.")
+    for request in requests:
+        if not isinstance(request, dict) or set(request) != REQUEST_KEYS:
+            raise RuntimeError("Active coverage read API returned an invalid request row.")
+        if request.get("status") not in {"requested", "on_radar"}:
+            raise RuntimeError("Active coverage read API returned a non-active request.")
+        if request.get("targetType") not in TARGET_TYPES or not isinstance(request.get("stateCode"), str) or not STATE_PATTERN.fullmatch(request["stateCode"]):
+            raise RuntimeError("Active coverage read API returned an invalid request target.")
+        if any(value is not None and (not isinstance(value, str) or len(value) > 220) for value in (request.get("areaLabel"), request.get("storeName"))):
+            raise RuntimeError("Active coverage read API returned an invalid request label.")
+        requested_at = parse_api_datetime(request.get("requestedAt"))
+        updated_at = parse_api_datetime(request.get("updatedAt"))
+        if not requested_at or not updated_at or updated_at < requested_at or updated_at > generated_at:
+            raise RuntimeError("Active coverage read API returned invalid request timestamps.")
     return {
-        "contractVersion": "bourbon-signal/active-coverage-requests@2",
-        "generatedAt": datetime.now(timezone.utc).isoformat(),
-        "source": "production_database",
-        "count": len(requests),
+        "contractVersion": payload["contractVersion"],
+        "generatedAt": payload["generatedAt"],
+        "source": payload["source"],
+        "count": payload["count"],
         "requests": requests,
-        "automationHealth": health,
+        "automationHealth": {"activeAutomationStatuses": dict(statuses)},
     }
 
 
-def body_field(body: object, label: str) -> str | None:
-    match = re.search(rf"^- {re.escape(label)}:\s*(.+?)\s*$", str(body or ""), flags=re.MULTILINE | re.IGNORECASE)
-    if not match:
-        return None
-    value = match.group(1).strip()
-    return None if value.casefold() in {"none", "null", "n/a"} else value
-
-
-def authority_directory() -> Path:
-    root = os.getenv("HERMES_HOME") or (Path(os.getenv("LOCALAPPDATA", Path.home() / "AppData" / "Local")) / "hermes")
-    return Path(root) / "automation" / "coverage-authority"
-
-
-def has_authority(job_key: str, task_id: object) -> bool:
-    path = authority_directory() / f"{hashlib.sha256(job_key.encode('utf-8')).hexdigest()}.json"
+def query_production_api(environment: dict[str, str], connection_factory=http.client.HTTPSConnection) -> dict:
+    secret = str(environment.get("COMPANY_SCORECARD_READ_SECRET") or "").strip()
+    if not secret:
+        raise RuntimeError("The dedicated production read secret is unavailable.")
+    connection = connection_factory(PRODUCTION_HOST, timeout=30)
     try:
-        payload = json.loads(path.read_text(encoding="utf-8"))
-    except (OSError, ValueError, TypeError):
-        return False
-    capability = payload.get("authorityCapability")
-    return (
-        payload.get("jobKey") == job_key
-        and payload.get("taskId") == task_id
-        and isinstance(task_id, str)
-        and bool(re.fullmatch(r"t_[a-zA-Z0-9]+", task_id))
-        and isinstance(capability, str)
-        and bool(re.fullmatch(r"[a-zA-Z0-9_-]{43}", capability))
-    )
-
-
-def query_kanban_mirror() -> dict:
-    health = summarize_scheduler()
-    lane = health.get("coverageCompletionLane") or {}
-    if not lane.get("enabled") or not lane.get("fresh"):
-        raise RuntimeError("Coverage completion lane is not healthy and recent; active request visibility is uncertain.")
-    hermes = shutil.which("hermes.exe") or shutil.which("hermes")
-    if not hermes:
-        raise RuntimeError("Hermes CLI is unavailable for the signed coverage request mirror.")
-    result = subprocess.run(
-        [hermes, "kanban", "--board", "bourbon-signal-coverage", "list", "--json"],
-        capture_output=True, text=True, encoding="utf-8", errors="replace", timeout=30,
-    )
-    if result.returncode != 0:
-        raise RuntimeError((result.stderr or result.stdout or "Coverage task mirror failed.").strip().splitlines()[-1])
-    try:
-        tasks = json.loads(result.stdout)
-    except json.JSONDecodeError as error:
-        raise RuntimeError("Coverage task mirror returned invalid JSON.") from error
-    if not isinstance(tasks, list) or not all(isinstance(task, dict) for task in tasks):
-        raise RuntimeError("Coverage task mirror returned an invalid task collection.")
-
-    by_request: dict[str, dict] = {}
-    statuses: Counter[str] = Counter()
-    for task in tasks:
-        if task.get("created_by") != "coverage-request-automation":
-            continue
-        status = str(task.get("status") or "").lower()
-        if status not in ACTIVE_TASK_STATUSES:
-            continue
-        job_key = body_field(task.get("body"), "Job key")
-        if not job_key or not has_authority(job_key, task.get("id")):
-            continue
-        request_id = body_field(task.get("body"), "Request ID")
-        target_type = body_field(task.get("body"), "Target type")
-        state_code = body_field(task.get("body"), "State")
-        area_key = body_field(task.get("body"), "Area key")
-        store_id = body_field(task.get("body"), "Store ID")
-        canonical_target = body_field(task.get("body"), "Canonical target")
-        expected_canonical = (
-            f"state:{state_code}" if target_type == "state"
-            else f"{target_type}:{state_code}:{area_key}" if target_type in {"county", "city"} and area_key
-            else f"store:{state_code}:{store_id}" if target_type == "store" and store_id
-            else None
-        )
-        valid_shape = (
-            bool(request_id and REQUEST_ID_PATTERN.fullmatch(request_id))
-            and bool(state_code and STATE_PATTERN.fullmatch(state_code))
-            and target_type in {"state", "county", "city", "store"}
-            and (
-                target_type == "state"
-                or target_type in {"county", "city"} and bool(area_key and AREA_KEY_PATTERN.fullmatch(area_key))
-                or target_type == "store" and bool(store_id and STORE_ID_PATTERN.fullmatch(store_id))
-            )
-            and canonical_target == expected_canonical
-        )
-        if not valid_shape:
-            raise RuntimeError(f"Coverage task {task.get('id') or 'unknown'} has malformed authenticated request metadata.")
-        created_at = task.get("created_at")
-        updated_at = max(
-            [value for value in (task.get("started_at"), task.get("created_at")) if isinstance(value, (int, float))],
-            default=created_at,
-        )
-        row = {
-            "targetType": target_type,
-            "stateCode": state_code,
-            "areaLabel": None,
-            "storeName": None,
-            "status": "on_radar",
-            "requestedAt": timestamp_iso(created_at),
-            "updatedAt": timestamp_iso(updated_at),
-        }
-        existing = by_request.get(request_id)
-        if not existing or (row["updatedAt"] or "") > (existing["updatedAt"] or ""):
-            by_request[request_id] = row
-        statuses[status] += 1
-    requests = sorted(by_request.values(), key=lambda row: row.get("updatedAt") or "", reverse=True)
-    health["activeAutomationStatuses"] = dict(sorted(statuses.items()))
+        connection.request("GET", PRODUCTION_PATH, headers={
+            "Authorization": f"Bearer {secret}",
+            "Accept": "application/json",
+            "User-Agent": "BourbonSignal-daily-brief/3.0",
+        })
+        response = connection.getresponse()
+        if response.status != 200:
+            raise RuntimeError(f"Active coverage read API returned HTTP {response.status}.")
+        raw = response.read(MAX_RESPONSE_BYTES + 1)
+        if len(raw) > MAX_RESPONSE_BYTES:
+            raise RuntimeError("Active coverage read API response exceeded its size limit.")
+        try:
+            payload = validate_payload(json.loads(raw))
+        except (json.JSONDecodeError, UnicodeDecodeError) as error:
+            raise RuntimeError("Active coverage read API returned invalid JSON.") from error
+    finally:
+        connection.close()
+    scheduler = summarize_scheduler()
+    scheduler["activeAutomationStatuses"] = payload["automationHealth"]["activeAutomationStatuses"]
     return {
-        "contractVersion": "bourbon-signal/active-coverage-requests@2",
-        "generatedAt": datetime.now(timezone.utc).isoformat(),
-        "source": "signed_kanban_mirror",
-        "count": len(requests),
-        "requests": requests,
-        "automationHealth": health,
+        "contractVersion": payload["contractVersion"],
+        "generatedAt": payload["generatedAt"],
+        "source": payload["source"],
+        "count": payload["count"],
+        "requests": payload["requests"],
+        "automationHealth": scheduler,
     }
 
 
 def main() -> None:
-    environment = load_env()
-    database_url = environment.get("BOURBON_QUEUE_DATABASE_URL") or environment.get("BOURBON_QUEUE_DATABASE_URL_UNPOOLED") or environment.get("DATABASE_URL")
-    payload = query_payload(database_url) if database_url else query_kanban_mirror()
-    print(json.dumps(payload, separators=(",", ":")))
+    print(json.dumps(query_production_api(load_env()), separators=(",", ":")))
 
 
 if __name__ == "__main__":
