@@ -59,14 +59,18 @@ test("Cellar is one responsive grid with bottle and Glencairn states", () => {
   assert.match(cellar, /tile:\s*\{[^}]*minHeight:\s*180/, "the grid shows more whiskey without changing its information hierarchy");
 });
 
-test("rating control keeps its appearance but uses stable horizontal pan and tap mechanics", () => {
+test("rating control keeps its appearance but owns a held-thumb gesture from press through release", () => {
   const slider = read("src/components/ScoreSlider.tsx");
-  assert.match(slider, /PanResponder\.create/);
-  assert.match(slider, /onStartShouldSetPanResponder:\s*\(\) => false/, "a touch does not immediately steal vertical scrolling");
-  assert.match(slider, /onMoveShouldSetPanResponder/);
-  assert.match(slider, /gestureState\.moveX/);
+  assert.doesNotMatch(slider, /PanResponder|classifyScoreSliderGesture|gestureState/, "the thumb never changes responder ownership mid-drag");
+  assert.match(slider, /onStartShouldSetResponder=\{\(\) => true\}/, "touching the slider claims the complete gesture immediately");
+  assert.match(slider, /onResponderGrant=\{handleResponderGrant\}/);
+  assert.match(slider, /onResponderMove=\{handleResponderMove\}/);
+  assert.match(slider, /onResponderRelease=\{handleResponderRelease\}/);
+  assert.match(slider, /onResponderTerminationRequest=\{\(\) => false\}/, "a held thumb cannot be stolen mid-drag");
+  assert.match(slider, /event\.nativeEvent\.pageX/, "every drag phase uses stable screen coordinates");
+  assert.doesNotMatch(slider, /measureTrack\(\(\) => setFromPageX/, "a delayed measurement cannot replay the original press after a newer move");
+  assert.match(slider, /measureTrack\(\);\s*setFromPageX\(pageX\);/, "grant refreshes bounds without deferring its score update");
   assert.match(slider, /scoreFromTrackPageX/);
-  assert.match(slider, /classifyScoreSliderGesture/);
   assert.match(slider, /Keyboard\.dismiss/);
   assert.match(slider, /TextInput/);
   assert.match(slider, /accessibilityRole="adjustable"/);
@@ -88,4 +92,7 @@ test("Cellar uses universal bottle and Glencairn silhouettes without bottle-spec
   const bottle = read("src/components/CellarBottleSilhouette.tsx");
   const glencairn = read("src/components/CellarGlencairnSilhouette.tsx");
   for (const source of [bottle, glencairn]) assert.doesNotMatch(source, /require\(|Image|bottleId|canonicalKey|assets\/cellar/);
+  assert.match(glencairn, /MaterialCommunityIcons/);
+  assert.match(glencairn, /name="glass-tulip"/, "tasted-only uses a compact Glencairn-shaped glyph");
+  assert.doesNotMatch(glencairn, /styles\.(rim|flare|bowl|stem|foot)/, "the old oversized goblet construction is gone");
 });
