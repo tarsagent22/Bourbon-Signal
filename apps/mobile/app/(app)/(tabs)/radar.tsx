@@ -7,12 +7,12 @@ import { relativeSignalTime } from "../../../src/api/presentation";
 import { ErrorState, LoadingState, MemberCard, SectionTitle, memberScreenStyles } from "../../../src/components/MemberScreen";
 import { useMobileApi } from "../../../src/hooks/useMobileApi";
 import { canonicalBottleKey } from "../../../src/interactions/member-interactions";
-import { ALERT_RARITY_TIERS, alertIsStale, compactMonitoringScopes, formatPhoneNumber, maskedPhoneNumber, memberAlertBottleNames, monitoringScopesChanged, presentPushIssue, radarLocalityDisplayName, radarMonitoringSummary, radarStateDisplayCode, scopesForState, setBottleWatched, setStatewideScope, stopMonitoringState, toggleAlertRarity, toggleMonitoringScope, watchedBottleCount } from "../../../src/radar/radar-preferences";
+import { ALERT_RARITY_TIERS, alertIsStale, compactMonitoringScopes, formatPhoneNumber, maskedPhoneNumber, memberAlertBottleNames, monitoringScopesChanged, presentPushIssue, radarLocalityDisplayName, radarMonitoringSummary, radarStateDisplayCode, radarWatchlistSummary, scopesForState, setBottleWatched, setStatewideScope, stopMonitoringState, toggleAlertRarity, toggleMonitoringScope, watchedBottleCount } from "../../../src/radar/radar-preferences";
 import { disableRadarPush, enableRadarPush, radarPushDeviceId, radarPushPermission } from "../../../src/push/push-registration";
 import { colors } from "../../../src/theme";
 
-type RadarView = "matches" | "watches" | "settings";
-const VIEWS: Array<{ key: RadarView; label: string }> = [{ key: "matches", label: "Matches" }, { key: "watches", label: "Watches" }, { key: "settings", label: "Areas" }];
+type RadarView = "matches" | "watchlist";
+const VIEWS: Array<{ key: RadarView; label: string }> = [{ key: "matches", label: "Matches" }, { key: "watchlist", label: "Watchlist" }];
 
 function pushIssue(caught: unknown, fallback: string) {
   if (caught instanceof MobileApiError) return presentPushIssue(caught, fallback);
@@ -151,13 +151,13 @@ export default function RadarScreen() {
     refreshControl={<RefreshControl refreshing={loading} onRefresh={() => void load(true)} tintColor={colors.accent} />}
     style={memberScreenStyles.screen}
   >
-    <Text style={styles.overview}>{watchedBottleCount(preferences)} watched · {radarMonitoringSummary(preferences.monitoringScopes)} · {alerts.unreadCount} unread</Text>
+    <Text style={styles.overview}>{radarWatchlistSummary(preferences)} · {radarMonitoringSummary(preferences.monitoringScopes)} · {alerts.unreadCount} unread</Text>
     <View accessibilityRole="tablist" style={styles.tabs}>{VIEWS.map((item) => <Pressable accessibilityRole="tab" accessibilityState={{ selected: view === item.key }} key={item.key} onPress={() => { Keyboard.dismiss(); setView(item.key); }} style={[styles.tab, view === item.key && styles.tabSelected]}><Text style={[styles.tabText, view === item.key && styles.tabTextSelected]}>{item.label}</Text></Pressable>)}</View>
     {actionError ? <Text accessibilityRole="alert" style={styles.error}>{actionError}</Text> : null}
 
     {view === "matches" ? <MatchesView alerts={activeAlerts} unreadCount={alerts.unreadCount} saving={saving} watchedNames={watchedNames} onMutate={mutateAlert} /> : null}
-    {view === "watches" ? <WatchesView catalog={searchResults} preferences={preferences} query={query} saving={saving || pushBusy} watchedKeys={watchedKeys} watchedNames={watchedNames} onQuery={setQuery} onSetWatching={setWatching} /> : null}
-    {view === "settings" ? <SettingsView
+    {view === "watchlist" ? <WatchlistView
+      catalog={searchResults}
       phone={phone}
       preferences={preferences}
       profile={profile}
@@ -169,9 +169,14 @@ export default function RadarScreen() {
       pushStage={pushStage}
       pushStatus={pushStatus}
       pushStatusLoadFailed={pushStatusLoadFailed}
+      query={query}
       saving={saving || pushBusy}
+      watchedKeys={watchedKeys}
+      watchedNames={watchedNames}
       onPhone={setPhone}
+      onQuery={setQuery}
       onSave={savePreferences}
+      onSetWatching={setWatching}
       onRetryPushStatus={() => load(true)}
       onTogglePush={togglePush}
     /> : null}
@@ -206,7 +211,7 @@ function AlertCard({ alert, saving, watchedNames, onMutate }: { alert: MemberAle
   </MemberCard>;
 }
 
-function WatchesView({ catalog, preferences, query, saving, watchedKeys, watchedNames, onQuery, onSetWatching }: { catalog: RadarBottleOption[]; preferences: MemberPreferences; query: string; saving: boolean; watchedKeys: Set<string>; watchedNames: string[]; onQuery: (value: string) => void; onSetWatching: (name: string, watched: boolean) => Promise<void> }) {
+function BottleWatchlist({ catalog, preferences, query, saving, watchedKeys, watchedNames, onQuery, onSetWatching }: { catalog: RadarBottleOption[]; preferences: MemberPreferences; query: string; saving: boolean; watchedKeys: Set<string>; watchedNames: string[]; onQuery: (value: string) => void; onSetWatching: (name: string, watched: boolean) => Promise<void> }) {
   const [showAll, setShowAll] = useState(false);
   const count = watchedBottleCount(preferences); const limit = preferences.entitlements?.trackedBottleLimit;
   const sortedWatches = [...watchedNames].sort((left, right) => left.localeCompare(right));
@@ -221,7 +226,7 @@ function WatchesView({ catalog, preferences, query, saving, watchedKeys, watched
   </View>;
 }
 
-function SettingsView({ phone, preferences, profile, pushBusy, pushDiagnostic, pushError, pushPermission, pushRetryEnabled, pushStage, pushStatus, pushStatusLoadFailed, saving, onPhone, onRetryPushStatus, onSave, onTogglePush }: { phone: string; preferences: MemberPreferences; profile: MemberProfile | null; pushBusy: boolean; pushDiagnostic: string; pushError: string; pushPermission: string; pushRetryEnabled: boolean | null; pushStage: string; pushStatus: PushDeviceStatus | null; pushStatusLoadFailed: boolean; saving: boolean; onPhone: (phone: string) => void; onRetryPushStatus: () => Promise<void>; onSave: (patch: MemberPreferencesPatch) => Promise<MemberPreferences | null>; onTogglePush: (enabled: boolean) => Promise<void> }) {
+function WatchlistView({ catalog, phone, preferences, profile, pushBusy, pushDiagnostic, pushError, pushPermission, pushRetryEnabled, pushStage, pushStatus, pushStatusLoadFailed, query, saving, watchedKeys, watchedNames, onPhone, onQuery, onRetryPushStatus, onSave, onSetWatching, onTogglePush }: { catalog: RadarBottleOption[]; phone: string; preferences: MemberPreferences; profile: MemberProfile | null; pushBusy: boolean; pushDiagnostic: string; pushError: string; pushPermission: string; pushRetryEnabled: boolean | null; pushStage: string; pushStatus: PushDeviceStatus | null; pushStatusLoadFailed: boolean; query: string; saving: boolean; watchedKeys: Set<string>; watchedNames: string[]; onPhone: (phone: string) => void; onQuery: (value: string) => void; onRetryPushStatus: () => Promise<void>; onSave: (patch: MemberPreferencesPatch) => Promise<MemberPreferences | null>; onSetWatching: (name: string, watched: boolean) => Promise<void>; onTogglePush: (enabled: boolean) => Promise<void> }) {
   const api = useMobileApi();
   const insets = useSafeAreaInsets();
   const [editingPhone, setEditingPhone] = useState(false);
@@ -288,6 +293,10 @@ function SettingsView({ phone, preferences, profile, pushBusy, pushDiagnostic, p
   const lowCoverage = Boolean(editorState && states.find((state) => state.code === editorState.code)?.engineCoverage !== "active");
 
   return <View style={styles.section}>
+    <SectionTitle>Alert me about</SectionTitle>
+    <View style={styles.choiceRow}><Choice disabled={saving} selected={preferences.alertMode === "specific_bottles"} label="Specific bottles" onPress={() => void onSave({ alertMode: "specific_bottles" })} /><Choice disabled={saving} selected={preferences.alertMode === "anything_notable"} label="Anything notable" onPress={() => void onSave({ alertMode: "anything_notable" })} /></View>
+    {preferences.alertMode === "specific_bottles" ? <BottleWatchlist catalog={catalog} preferences={preferences} query={query} saving={saving} watchedKeys={watchedKeys} watchedNames={watchedNames} onQuery={onQuery} onSetWatching={onSetWatching} /> : null}
+
     <SectionTitle>Immediate delivery</SectionTitle>
     <MemberCard>
       <ToggleRow label="Push notifications" detail={pushDetail} disabled={saving} value={Boolean(pushStatus?.enabled)} onValueChange={(value) => void onTogglePush(value)} />
@@ -300,9 +309,6 @@ function SettingsView({ phone, preferences, profile, pushBusy, pushDiagnostic, p
       {preferences.notificationPreferences.sms.available && preferences.notificationPreferences.sms.verified && !editingPhone ? <View style={styles.phoneSummary}><View><Text style={styles.muted}>Verified mobile</Text><Text style={styles.listTitle}>{maskedPhoneNumber(preferences.notificationPreferences.sms.phone)}</Text></View><TextAction label="CHANGE" disabled={saving} onPress={() => setEditingPhone(true)} /></View> : null}
       {preferences.notificationPreferences.sms.available && (!preferences.notificationPreferences.sms.verified || editingPhone) ? <View style={styles.areaEditor}><TextInput editable={!saving} keyboardType="phone-pad" onChangeText={onPhone} placeholder="Mobile number" placeholderTextColor={colors.muted} style={styles.input} value={formatPhoneNumber(phone)} />{editingPhone ? <View style={styles.rowActions}><TextAction label="CANCEL" disabled={saving} onPress={() => { onPhone(preferences.notificationPreferences.sms.phone || ""); setEditingPhone(false); }} /><TextAction label="SAVE & ENABLE SMS" disabled={saving || phone.replace(/\D/g, "").length !== 10} onPress={() => void (async () => { const saved = await onSave({ notificationPreferences: { sms: { phone: phone.trim(), enabled: true } } }); if (saved) setEditingPhone(false); })()} /></View> : null}</View> : null}
     </MemberCard>
-
-    <SectionTitle>Alert criteria</SectionTitle>
-    <View style={styles.choiceRow}><Choice disabled={saving} selected={preferences.alertMode === "specific_bottles"} label="Watched bottles" onPress={() => void onSave({ alertMode: "specific_bottles" })} /><Choice disabled={saving} selected={preferences.alertMode === "anything_notable"} label="Anything notable" onPress={() => void onSave({ alertMode: "anything_notable" })} /></View>
 
     <SectionTitle detail="Applies to inbox, push, email, and SMS">Bottle rarity</SectionTitle>
     <Text style={styles.muted}>Choose which bottle tiers can trigger an immediate alert.</Text>

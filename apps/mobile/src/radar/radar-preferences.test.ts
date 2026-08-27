@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import type { MemberPreferences, RadarAreaPreferences } from "../api/types";
-import { alertIsStale, clearRadarAreas, compactMonitoringScopes, formatPhoneNumber, maskedPhoneNumber, memberAlertBottleNames, monitoringScopesChanged, presentPushIssue, radarAreaCount, radarAreaSummary, radarLocalityDisplayName, radarMonitoringSummary, radarStateDisplayCode, scopesForState, setBottleWatched, setRadarState, setStatewideScope, stopMonitoringState, toggleAlertRarity, toggleMonitoringScope, toggleRadarArea, watchedBottleCount } from "./radar-preferences";
+import { alertIsStale, clearRadarAreas, compactMonitoringScopes, formatPhoneNumber, maskedPhoneNumber, memberAlertBottleNames, monitoringScopesChanged, presentPushIssue, radarAreaCount, radarAreaSummary, radarLocalityDisplayName, radarMonitoringSummary, radarStateDisplayCode, radarWatchlistSummary, scopesForState, setBottleWatched, setRadarState, setStatewideScope, stopMonitoringState, toggleAlertRarity, toggleMonitoringScope, toggleRadarArea, watchedBottleCount } from "./radar-preferences";
 
 const areas: RadarAreaPreferences = { states: [], ncBoards: [], gaAreas: [], tnAreas: [], vaCities: [], ohCities: [], iaCities: [], idCities: [], scAreas: [], caAreas: [], nvAreas: [], nyAreas: [], coAreas: [], paCounties: [], paStores: [] };
 const preferences = (): MemberPreferences => ({
@@ -18,6 +18,11 @@ test("rarity controls preserve stable order and never allow an empty alert selec
   assert.deepEqual(toggleAlertRarity(["unicorn", "allocated", "limited"], "limited"), ["unicorn", "allocated"]);
   assert.deepEqual(toggleAlertRarity(["unicorn", "allocated"], "limited"), ["unicorn", "allocated", "limited"]);
   assert.deepEqual(toggleAlertRarity(["unicorn"], "unicorn"), ["unicorn"]);
+});
+
+test("Radar summary names the active alert mode instead of implying an empty bottle watchlist", () => {
+  assert.equal(radarWatchlistSummary(preferences()), "1 watched");
+  assert.equal(radarWatchlistSummary({ ...preferences(), alertMode: "anything_notable" }), "Anything notable");
 });
 
 test("watch updates are canonical and enforce the actual membership limit", () => {

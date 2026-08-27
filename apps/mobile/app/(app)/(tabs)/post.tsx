@@ -220,7 +220,7 @@ export default function PostScreen() {
   return (
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} keyboardVerticalOffset={88} style={memberScreenStyles.screen}>
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" style={styles.scroll}>
-        <View style={styles.postIntro}><Text accessibilityRole="header" style={styles.introTitle}>Post a Signal</Text><Text style={styles.introDescription}>Choose the bottle and retailer. Add only what you observed.</Text></View>
+        <View style={styles.postIntro}><Text accessibilityRole="header" style={styles.introTitle}>Post a Signal</Text><Text style={styles.introDescription}>Share bottle sightings with the community and earn points</Text></View>
         {loadingProfile ? <ActivityIndicator color={colors.accent} /> : null}
         {!loadingProfile && profile && !canSubmit ? <MemberCard><Text style={styles.blockedTitle}>Posting is not included with this membership</Text><Text style={styles.help}>HQ shows the membership attached to this account.</Text></MemberCard> : null}
         {canSubmit ? <View style={styles.composer}>
