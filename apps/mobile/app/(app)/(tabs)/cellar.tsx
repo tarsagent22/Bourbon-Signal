@@ -289,10 +289,11 @@ export default function CellarScreen() {
       key={`cellar-${numColumns}`}
       numColumns={numColumns}
       columnWrapperStyle={numColumns > 1 ? styles.gridRow : undefined}
-      contentContainerStyle={[memberScreenStyles.content, numColumns > 1 && styles.gridContent]}
+      contentContainerStyle={[memberScreenStyles.content, styles.cellarContent, numColumns > 1 && styles.gridContent]}
       data={canUseCollection ? bottles : []}
       keyExtractor={(item) => item.bottleId || item.canonicalKey}
       keyboardShouldPersistTaps="handled"
+      keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
       refreshControl={<RefreshControl refreshing={loading && Boolean(preferences)} onRefresh={() => void load(true)} tintColor={colors.accent} />}
       renderItem={({ item }) => <WhiskeyTile bottle={item} onPress={() => setSelected(item)} width={tileWidth} />}
       ItemSeparatorComponent={numColumns === 1 ? () => <View style={styles.gap} /> : undefined}
@@ -336,7 +337,7 @@ function WhiskeyTile({ bottle, onPress, width }: { bottle: MemberCollectionBottl
     style={({ pressed }) => [styles.tile, width !== undefined && { flex: 0, width }, pressed && styles.pressed]}
   >
     {kind === "owned" ? <CellarBottleSilhouette /> : <CellarGlencairnSilhouette />}
-    <Text numberOfLines={2} style={styles.tileName}>{bottle.bottleName}</Text>
+    <Text numberOfLines={3} style={styles.tileName}>{bottle.bottleName}</Text>
     <Text style={styles.tileRating}>{rating}</Text>
     <Text style={styles.inventory}>{kind === "owned" ? inventory : "Tasted only"}</Text>
   </Pressable>;
@@ -475,7 +476,7 @@ function BottleEditor({ bottle, busy, onClose, onDelete, onInventoryAction, onSa
   return <Modal allowSwipeDismissal={!dirty && !busy} animationType="slide" onRequestClose={requestClose} presentationStyle="pageSheet" visible={Boolean(bottle)}>
     <SafeAreaView edges={["top", "bottom"]} style={styles.modalFrame}>
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.modalFrame}>
-        <ScrollView contentContainerStyle={styles.editor} keyboardShouldPersistTaps="handled">
+        <ScrollView contentContainerStyle={styles.editor} keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"} keyboardShouldPersistTaps="handled">
           <View style={styles.modalHeader}>
             <Pressable accessibilityRole="button" disabled={busy} onPress={requestClose} style={styles.modalTarget}><Text style={styles.modalAction}>Cancel</Text></Pressable>
             <Text accessibilityRole="header" style={styles.modalTitle}>Cellar details</Text>
@@ -548,10 +549,11 @@ const styles = StyleSheet.create({
   refineButton: { minHeight: 44, justifyContent: "center", borderColor: colors.border, borderWidth: 1, borderRadius: 11, paddingHorizontal: 14 },
   refineText: { color: colors.accent, fontWeight: "800" },
   showing: { color: colors.muted, fontSize: 11 },
+  cellarContent: { paddingBottom: 112 },
   gridContent: { gap: 10 },
   gridRow: { gap: 10 },
   gap: { height: 8 },
-  tile: { flex: 1, minHeight: 196, alignItems: "center", justifyContent: "center", gap: 8, padding: 14, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth, borderRadius: 16, backgroundColor: colors.surface },
+  tile: { flex: 1, minHeight: 180, alignItems: "center", justifyContent: "center", gap: 6, padding: 10, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth, borderRadius: 16, backgroundColor: colors.surface },
   tileName: { minHeight: 42, color: colors.text, fontSize: 16, lineHeight: 20, fontWeight: "800", textAlign: "center" },
   tileRating: { color: colors.accent, fontSize: 24, fontWeight: "900" },
   inventory: { color: colors.muted, fontSize: 11, textTransform: "capitalize" },

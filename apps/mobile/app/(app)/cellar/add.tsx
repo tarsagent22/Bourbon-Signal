@@ -2,7 +2,7 @@ import { useAuth } from "@clerk/expo";
 import { useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import { useEffect, useMemo, useState } from "react";
-import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
+import { Alert, Keyboard, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MobileApiError } from "../../../src/api/client";
 import type { MemberCollectionBottle, MemberPreferences, RadarBottleOption } from "../../../src/api/types";
@@ -14,6 +14,7 @@ import {
   serializeBottleContributionReceipts,
 } from "../../../src/cellar/contribution-receipts";
 import { collectionMatchForOption, createBottleSearchIndex, rankBottleCatalog } from "../../../src/cellar/bottle-search";
+import bottleCatalogSeed from "../../../src/cellar/bottle-catalog-seed.json";
 import { EmptyState, ErrorState, LoadingState } from "../../../src/components/MemberScreen";
 import { ScoreSlider } from "../../../src/components/ScoreSlider";
 import { useMobileApi } from "../../../src/hooks/useMobileApi";
@@ -42,6 +43,7 @@ const CONTEXTS: Array<{ key: NonNullable<MemberCollectionBottle["tastingContext"
   { key: "other", label: "Other" },
 ];
 const COMMON_CUES = TASTE_TAG_OPTIONS.slice(0, 5);
+const BOTTLE_CATALOG_SEED = bottleCatalogSeed as RadarBottleOption[];
 
 function metadataForOption(option: RadarBottleOption, bottles: MemberCollectionBottle[]) {
   const existing = collectionMatchForOption(bottles, option);
@@ -60,9 +62,7 @@ export default function AddCellarBottleScreen() {
   const [preferences, setPreferences] = useState<MemberPreferences | null>(null);
   const [loading, setLoading] = useState(true);
   const [preferenceError, setPreferenceError] = useState("");
-  const [catalog, setCatalog] = useState<RadarBottleOption[]>([]);
-  const [catalogLoading, setCatalogLoading] = useState(true);
-  const [catalogError, setCatalogError] = useState("");
+  const [catalog, setCatalog] = useState<RadarBottleOption[]>(BOTTLE_CATALOG_SEED);
   const [formError, setFormError] = useState("");
   const [query, setQuery] = useState("");
   const [selected, setSelected] = useState<RadarBottleOption | null>(null);
@@ -96,15 +96,9 @@ export default function AddCellarBottleScreen() {
       if (active) setLoading(false);
     });
 
-    setCatalogLoading(true);
-    setCatalogError("");
     void api.listBottleCatalog().then((bottles) => {
-      if (active) setCatalog(bottles);
-    }).catch(() => {
-      if (active) setCatalogError("Fast search could not be prepared. You can still add this whiskey manually.");
-    }).finally(() => {
-      if (active) setCatalogLoading(false);
-    });
+      if (active && bottles.length) setCatalog(bottles);
+    }).catch(() => undefined);
     return () => { active = false; };
   }, [api]);
 
@@ -138,6 +132,7 @@ export default function AddCellarBottleScreen() {
     : currentMatch ? "Update rating" : "Add this whiskey";
 
   function choose(option: RadarBottleOption, source: "catalog" | "recent" = "catalog") {
+    Keyboard.dismiss();
     const existing = collectionMatchForOption(bottles, option);
     setSelected(option);
     setSelectedSource(source);
@@ -156,6 +151,7 @@ export default function AddCellarBottleScreen() {
   }
 
   function beginCustom() {
+    Keyboard.dismiss();
     setSelected(null);
     setSelectedSource(null);
     setCustom(true);
@@ -164,6 +160,7 @@ export default function AddCellarBottleScreen() {
   }
 
   function changeKind(next: AddKind) {
+    Keyboard.dismiss();
     setKind(next);
     if (next === "just_tasted") setIsRated(true);
     setFormError("");
@@ -268,7 +265,7 @@ export default function AddCellarBottleScreen() {
 
   return <SafeAreaView edges={["bottom"]} style={styles.screen}>
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.screen}>
-      <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView contentContainerStyle={styles.content} keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"} keyboardShouldPersistTaps="handled">
         <Text style={styles.eyebrow}>CELLAR</Text>
         <Text accessibilityRole="header" style={styles.title}>Add to Cellar</Text>
         <Text style={styles.description}>Find a whiskey, then add a bottle or save a rating.</Text>
@@ -299,8 +296,6 @@ export default function AddCellarBottleScreen() {
             value={query}
           /></Field>
 
-          {catalogLoading ? <Text accessibilityLiveRegion="polite" style={styles.fieldHelp}>Preparing fast search…</Text> : null}
-          {catalogError ? <Text accessibilityRole="alert" style={styles.catalogError}>{catalogError}</Text> : null}
 
           {!selected && !custom && !needle ? <View style={styles.recentSection}>
             <Text style={styles.sectionTitle}>Recently in your Cellar</Text>
@@ -311,7 +306,7 @@ export default function AddCellarBottleScreen() {
             {custom ? <Text style={styles.nearTitle}>Near matches</Text> : null}
             {results.map((option) => <ResultRow key={option.id} label={option.name} metadata={metadataForOption(option, bottles)} onPress={() => choose(option)} />)}
           </View> : null}
-          {!selected && needle.length >= 2 && !catalogLoading && !catalogError && !results.length ? <Text style={styles.fieldHelp}>No catalog matches found. You can add this whiskey manually.</Text> : null}
+          {!selected && needle.length >= 2 && !results.length ? <Text style={styles.fieldHelp}>No catalog matches found. You can add this whiskey manually.</Text> : null}
 
           {!selected && needle.length >= 2 && !custom ? <View style={styles.cantFind}><Text style={styles.cantFindText}>Can’t find it?</Text><Pressable accessibilityRole="button" onPress={beginCustom} style={styles.outlineButton}><Text style={styles.outlineButtonText}>Add this whiskey</Text></Pressable></View> : null}
 
@@ -331,12 +326,12 @@ export default function AddCellarBottleScreen() {
               <Field label="Quantity"><TextInput accessibilityLabel="Bottle quantity" keyboardType="number-pad" maxLength={3} onChangeText={setQuantity} style={styles.input} value={quantity} /></Field>
               <DisclosureRow expanded={showAcquisition} label="Acquisition (optional)" onPress={() => setShowAcquisition((current) => !current)} />
               {showAcquisition ? <View style={styles.disclosureBody}><Field label="Price paid"><TextInput accessibilityLabel="Price paid" keyboardType="decimal-pad" onChangeText={setPricePaid} placeholder="Optional" placeholderTextColor={colors.muted} style={styles.input} value={pricePaid} /></Field><Field label="Store"><TextInput accessibilityLabel="Store purchased from" onChangeText={setStore} placeholder="Optional" placeholderTextColor={colors.muted} style={styles.input} value={store} /></Field></View> : null}
-              <View style={styles.switchRow}><View style={styles.switchCopy}><Text style={styles.fieldLabel}>Add a rating</Text><Text style={styles.fieldHelp}>Rate it now, or leave this off and come back after a pour.</Text></View><Switch accessibilityLabel="Add a rating" onValueChange={setIsRated} thumbColor={colors.text} trackColor={{ false: colors.border, true: colors.accentPressed }} value={isRated} /></View>
+              <View style={styles.switchRow}><View style={styles.switchCopy}><Text style={styles.fieldLabel}>Add a rating</Text><Text style={styles.fieldHelp}>Rate it now, or leave this off and come back after a pour.</Text></View><Switch accessibilityLabel="Add a rating" onValueChange={(next) => { Keyboard.dismiss(); setIsRated(next); }} thumbColor={colors.text} trackColor={{ false: colors.border, true: colors.accentPressed }} value={isRated} /></View>
             </> : <Field label="Tasting context"><View style={styles.toggles}>{CONTEXTS.map((context) => <Toggle key={context.key} active={tastingContext === context.key} label={context.label} onPress={() => setTastingContext(context.key)} />)}</View></Field>}
 
             {ratingEnabled ? <View style={styles.ratingSection}>
               <Text style={styles.sectionTitle}>My rating</Text>
-              <ScoreSlider onChange={setRating} value={rating} />
+              <ScoreSlider onChange={setRating} onInteractionStart={Keyboard.dismiss} value={rating} />
               <Field label="Quick cues"><View style={styles.toggles}>{cues.map((tag) => <Toggle key={tag} active={tasteTags.includes(tag)} label={tag} onPress={() => setTasteTags((current) => current.includes(tag) ? current.filter((item) => item !== tag) : [...current, tag])} />)}</View></Field>
               {!showMoreCues ? <Pressable accessibilityRole="button" onPress={() => setShowMoreCues(true)} style={styles.target}><Text style={styles.action}>More cues</Text></Pressable> : null}
               <Field label="Notes (optional)"><TextInput accessibilityLabel="Tasting notes" multiline onChangeText={setNotes} placeholder="What stood out?" placeholderTextColor={colors.muted} style={[styles.input, styles.notes]} value={notes} /></Field>

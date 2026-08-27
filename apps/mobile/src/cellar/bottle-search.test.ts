@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import type { MemberCollectionBottle, RadarBottleOption } from "../api/types";
 import { createCustomCollectionBottle, exactCustomBottleMatchIndex, upsertCollectionBottle } from "../interactions/member-interactions";
+import bottleCatalogSeed from "./bottle-catalog-seed.json";
 import { collectionMatchForOption, createBottleSearchIndex, rankBottleCatalog } from "./bottle-search";
 
 const catalog: RadarBottleOption[] = [
@@ -13,6 +14,12 @@ const catalog: RadarBottleOption[] = [
 ];
 
 const searchIndex = createBottleSearchIndex(catalog);
+
+test("bundled Cellar search starts with the complete unique production catalog", () => {
+  assert.ok(bottleCatalogSeed.length >= 1100);
+  assert.equal(new Set(bottleCatalogSeed.map((bottle) => bottle.id)).size, bottleCatalogSeed.length);
+  assert.equal(rankBottleCatalog(createBottleSearchIndex(bottleCatalogSeed), "four roses", 1)[0]?.name, "Four Roses Limited Edition Small Batch");
+});
 
 test("precomputed local Cellar search covers names, aliases, brand, producer, proof, age, and cross-field tokens", () => {
   assert.equal(rankBottleCatalog(searchIndex, "wild turkey", 10)[0]?.id, "rare-breed", "name");

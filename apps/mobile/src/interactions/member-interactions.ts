@@ -61,8 +61,8 @@ export function collectionInventoryLabel(bottle: Pick<MemberCollectionBottle, "s
   const sealed = quantity(bottle.sealedQuantity);
   const opened = quantity(bottle.openedQuantity);
   const parts: string[] = [];
-  if (sealed) parts.push(sealed === 1 ? "Sealed" : `${sealed} sealed`);
-  if (opened) parts.push(opened === 1 ? "Open" : `${opened} open`);
+  if (sealed) parts.push(`${sealed} sealed`);
+  if (opened) parts.push(`${opened} open`);
   return parts.join(" · ");
 }
 
