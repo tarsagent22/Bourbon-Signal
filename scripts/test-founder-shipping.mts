@@ -7,6 +7,11 @@ import {
   normalizeFounderShippingSubmission,
 } from "../src/lib/founder-shipping.ts";
 import { shouldOfferFounderGlassClaim } from "../src/lib/founder-glass-claim.ts";
+import {
+  founderShipmentCorrectionIdempotencyKey,
+  founderShipmentEmailCopy,
+  founderShipmentNotificationKind,
+} from "../src/lib/founder-shipment-email.ts";
 
 function read(path: string) {
   return readFileSync(new URL(`../${path}`, import.meta.url), "utf8");
@@ -93,6 +98,24 @@ assert.equal(founderShippingTrackingUrl("UPS", "1Z999AA10123456784"), "https://w
 assert.equal(founderShippingTrackingUrl("USPS", "9400111899223856928499"), "https://tools.usps.com/go/TrackConfirmAction?tLabels=9400111899223856928499");
 assert.equal(founderShippingTrackingUrl("FedEx", "123456789012"), "https://www.fedex.com/fedextrack/?trknbr=123456789012");
 assert.equal(founderShippingTrackingUrl(null, null), null);
+
+const correctionKey = founderShipmentCorrectionIdempotencyKey();
+assert.match(correctionKey, /^founder-glass-corrected-[0-9a-f-]{36}$/, "correction retries use a durable, recognizable idempotency key");
+assert.notEqual(correctionKey, founderShipmentCorrectionIdempotencyKey(), "each real correction gets a distinct provider idempotency key");
+assert.equal(founderShipmentNotificationKind(correctionKey), "correction");
+assert.equal(founderShipmentNotificationKind("founder-glass-shipped-abc"), "shipment");
+assert.deepEqual(founderShipmentEmailCopy("correction"), {
+  subject: "Updated tracking information for your Founder glass",
+  preview: "Updated tracking information for your Founder glass.",
+  headline: "Updated tracking information",
+  introduction: "We apologize for the confusion. The tracking information in our previous email was incorrect. The tracking number below is your updated tracking number.",
+});
+assert.deepEqual(founderShipmentEmailCopy("shipment"), {
+  subject: "Your Bourbon Signal founder glass has shipped",
+  preview: "Your founder glass is on the way.",
+  headline: "Your founder glass is on the way",
+  introduction: "Your Bourbon Signal founder glass has shipped.",
+});
 
 const page = read("src/app/founder-shipping/page.tsx");
 const settings = read("src/app/settings/SettingsPageClient.tsx");
@@ -182,7 +205,9 @@ assert.match(repository, /shipment_notification_claimed_at IS NULL OR shipment_n
 assert.match(repository, /shipment_notification_claimed_at IS NULL[\s\S]*shipment_notification_claimed_at < NOW\(\) - INTERVAL '15 minutes'[\s\S]*carrier IS NOT DISTINCT FROM \$3[\s\S]*tracking_number IS NOT DISTINCT FROM \$4/, "an active claim fences shipment changes while allowing an idempotent save");
 assert.match(repository, /FounderShippingNotificationInFlightError/, "an in-flight notification blocks conflicting fulfillment edits explicitly");
 assert.match(repository, /shipment_notification_claim_token = \$2[\s\S]*shipment_notification_sent_at IS NULL/, "release and mark mutations are fenced by the atomic claim token");
-assert.match(repository, /carrier IS DISTINCT FROM \$3 OR tracking_number IS DISTINCT FROM \$4[\s\S]*shipment_notification_idempotency_key[\s\S]*ELSE NULL/, "fulfillment changes reset every notification field");
+assert.match(repository, /shipment_notification_sent_at = CASE[\s\S]*ELSE NULL[\s\S]*shipment_notification_message_id = CASE[\s\S]*ELSE NULL/, "fulfillment changes reset the prior send result");
+assert.match(repository, /shipment_notification_idempotency_key = CASE[\s\S]*carrier IS NOT DISTINCT FROM \$3[\s\S]*tracking_number IS NOT DISTINCT FROM \$4[\s\S]*THEN shipment_notification_idempotency_key[\s\S]*shipment_notification_sent_at IS NOT NULL[\s\S]*carrier IS DISTINCT FROM \$3 OR tracking_number IS DISTINCT FROM \$4[\s\S]*THEN \$7/, "the database atomically classifies an already-emailed tracking change as a correction");
+assert.match(repository, /date_trunc\('milliseconds', updated_at\) = date_trunc\('milliseconds', \$6::timestamptz\)/, "stale fulfillment forms cannot overwrite a newer correction");
 assert.match(repository, /UPDATE founder_glass_shipping SET founder_number = \$2[\s\S]*founder_number IS NULL/, "new founder numbers reconcile onto existing paid profiles");
 assert.match(repository, /\$1/);
 assert.doesNotMatch(repository, /unsafeMetadata|publicMetadata/, "shipping addresses must not be stored in Clerk metadata");
@@ -196,11 +221,16 @@ assert.match(controlRoom, /shipped/);
 assert.match(controlRoom, /trackingNumber/);
 assert.match(controlRoom, /normalizeFounderFulfillment/);
 assert.match(controlRoom, /sendFounderShipmentNotification/);
+assert.doesNotMatch(controlRoom, /readFounderShippingForUser/, "correction classification must not use a stale pre-read");
+assert.match(controlRoom, /expectedUpdatedAt/, "fulfillment saves carry the row version rendered in the form");
+assert.match(controlRoom, /notificationIdempotencyKey:\s*founderShipmentCorrectionIdempotencyKey\(\)/, "the database receives a PII-free candidate correction key");
 assert.match(controlRoom, /client\.users\.getUser\(record\.userId\)/);
 assert.match(controlRoom, /companyMemberPrimaryEmail\(member\)/);
 assert.match(controlRoom, /Shipment email sent/);
 assert.match(notification, /idempotencyKey/);
 assert.match(notification, /FounderGlassShippedEmail/);
+assert.match(notification, /founderShipmentNotificationKind\(/, "the durable idempotency marker selects correction copy on first send and retry");
+assert.match(notification, /subject:\s*emailCopy\.subject/);
 assert.match(notification, /claimFounderShipmentNotification/);
 assert.match(notification, /releaseFounderShipmentNotification/);
 assert.match(notification, /markFounderShipmentNotificationSent/);
@@ -208,7 +238,9 @@ assert.match(notification, /record\.shipmentNotificationIdempotencyKey \|\| ship
 assert.match(notification, /to:\s*\[currentPrimaryEmail\]/, "shipment email uses the current primary Clerk email passed at send time");
 assert.doesNotMatch(notification, /record\.accountEmail/, "shipment email never trusts the stored account email");
 assert.match(notification, /emails\.send\([\s\S]*\},\s*\{ idempotencyKey \}\)/, "Resend receives the stable shipment idempotency key");
-assert.match(shippingEmail, /Your founder glass is on the way/);
+assert.match(shippingEmail, /kind = "shipment"/, "ordinary first-shipment emails remain the default template");
+assert.match(shippingEmail, /founderShipmentEmailCopy\(kind\)/);
+assert.match(shippingEmail, /emailCopy\.introduction/, "the rendered body uses correction-specific introduction copy");
 assert.doesNotMatch(shippingEmail, /unsubscribe/i, "transactional shipment notices do not masquerade as marketing mail");
 assert.match(migration, /founder-shipping-schema\.sql/);
 assert.match(migration, /founder_glass_shipping:\s*\[/, "the migration verifier requires founder shipping columns");
