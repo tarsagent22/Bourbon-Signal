@@ -23,6 +23,15 @@ test("Watchlist only shows bottle management for specific-bottle alerts", () => 
   assert.doesNotMatch(radar, /preferences\.alertMode === "anything_notable" \? <BottleWatchlist/);
 });
 
+test("Watchlist expansion disappears when no bottles remain hidden", () => {
+  const radar = readScreen("radar");
+
+  assert.match(radar, /watchlist\.totalCount > 3 \? <TextAction/);
+  assert.match(radar, /expanded=\{showAll\}/);
+  assert.match(radar, /accessibilityState=\{\{ expanded \}\}/);
+  assert.match(radar, /if \(showAll && watchlist\.totalCount <= 3\) setShowAll\(false\)/);
+});
+
 test("Post explains the community and points value", () => {
   const post = readScreen("post");
 
