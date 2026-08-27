@@ -210,6 +210,8 @@ export class FounderShippingRepository {
     status: FounderShippingStatus;
     carrier: string | null;
     trackingNumber: string | null;
+    expectedUpdatedAt: string;
+    notificationIdempotencyKey: string;
     updatedBy: string;
   }): Promise<FounderShippingRecord | null> {
     const rows = await this.query.query(
@@ -240,12 +242,17 @@ export class FounderShippingRepository {
            END,
            shipment_notification_idempotency_key = CASE
              WHEN $2 = 'shipped' AND status = 'shipped' AND carrier IS NOT DISTINCT FROM $3 AND tracking_number IS NOT DISTINCT FROM $4
-               THEN shipment_notification_idempotency_key ELSE NULL
+               THEN shipment_notification_idempotency_key
+             WHEN $2 = 'shipped' AND status = 'shipped' AND shipment_notification_sent_at IS NOT NULL
+               AND (carrier IS DISTINCT FROM $3 OR tracking_number IS DISTINCT FROM $4)
+               THEN $7
+             ELSE NULL
            END,
            updated_at = NOW(),
            updated_by = $5
        WHERE user_id = $1
-          AND (
+         AND date_trunc('milliseconds', updated_at) = date_trunc('milliseconds', $6::timestamptz)
+         AND (
             founder_number IS NOT NULL
             OR EXISTS (
               SELECT 1 FROM member_referral_glass_rewards rewards
@@ -259,7 +266,7 @@ export class FounderShippingRepository {
            OR ($2 = 'shipped' AND status = 'shipped' AND carrier IS NOT DISTINCT FROM $3 AND tracking_number IS NOT DISTINCT FROM $4)
          )
        RETURNING *`,
-      [input.userId, input.status, input.carrier, input.trackingNumber, input.updatedBy],
+      [input.userId, input.status, input.carrier, input.trackingNumber, input.updatedBy, input.expectedUpdatedAt, input.notificationIdempotencyKey],
     ) as FounderShippingRow[];
     if (rows[0]) return rowToRecord(rows[0]);
     const current = await this.readForUser(input.userId);

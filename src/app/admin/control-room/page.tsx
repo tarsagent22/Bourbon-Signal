@@ -6,6 +6,7 @@ import { getCompanyControlRoomSnapshot, invalidateCompanyControlRoomSnapshot } f
 import { companyMemberPrimaryEmail, isCompanyControlRoomOwnerEmail } from "@/lib/company-control-room";
 import { formatControlRoomDateTime } from "@/lib/control-room-time";
 import { FOUNDER_SHIPPING_CARRIERS, normalizeFounderFulfillment } from "@/lib/founder-shipping";
+import { founderShipmentCorrectionIdempotencyKey } from "@/lib/founder-shipment-email";
 import { sendFounderShipmentNotification } from "@/lib/founder-shipping-notification";
 import { FounderShippingNotificationInFlightError, listFounderShippingForOwner, updateFounderShippingFulfillment } from "@/lib/founder-shipping-repository";
 import { getReferralRepository } from "@/lib/referral-repository";
@@ -115,13 +116,19 @@ async function updateFounderGlassFulfillment(formData: FormData) {
 
   const shippingUserId = fulfillmentText(formData.get("userId"), 200);
   const fulfillment = normalizeFounderFulfillment(Object.fromEntries(formData.entries()));
+  const expectedUpdatedAt = fulfillmentText(formData.get("expectedUpdatedAt"), 64);
   if (!shippingUserId) redirect("/admin/control-room#founder-glasses");
   if (!fulfillment.ok) redirect(`/admin/control-room?fulfillmentError=${encodeURIComponent(fulfillment.error)}#founder-glasses`);
+  if (!expectedUpdatedAt || !Number.isFinite(Date.parse(expectedUpdatedAt))) {
+    redirect("/admin/control-room?fulfillmentError=This%20fulfillment%20record%20is%20stale.%20Reload%20and%20try%20again.#founder-glasses");
+  }
   let record;
   try {
     record = await updateFounderShippingFulfillment({
       userId: shippingUserId,
       ...fulfillment.value,
+      expectedUpdatedAt,
+      notificationIdempotencyKey: founderShipmentCorrectionIdempotencyKey(),
       updatedBy: ownerEmail,
     });
   } catch (error) {
@@ -130,7 +137,10 @@ async function updateFounderGlassFulfillment(formData: FormData) {
     }
     throw error;
   }
-  if (record && record.status !== "submitted") {
+  if (!record) {
+    redirect("/admin/control-room?fulfillmentError=This%20fulfillment%20record%20changed.%20Reload%20and%20try%20again.#founder-glasses");
+  }
+  if (record.status !== "submitted") {
     const referralStatus = record.status === "confirmed" ? "address_confirmed" : record.status;
     await getReferralRepository().updateGlassFulfillment(record.userId, referralStatus);
   }
@@ -276,6 +286,7 @@ export default async function CompanyControlRoomPage({ searchParams }: { searchP
                     </div>
                     <form action={updateFounderGlassFulfillment} className="cr-founder-form">
                       <input type="hidden" name="userId" value={record.userId} />
+                      <input type="hidden" name="expectedUpdatedAt" value={record.updatedAt} />
                       <label><span>Status</span><select name="status" defaultValue={record.status}>{["submitted", "confirmed", "packed", "shipped"].map((status) => <option key={status} value={status}>{status}</option>)}</select></label>
                       <label><span>Carrier</span><select name="carrier" defaultValue={record.carrier || ""}><option value="">Select carrier</option>{FOUNDER_SHIPPING_CARRIERS.map((carrier) => <option key={carrier} value={carrier}>{carrier}</option>)}</select></label>
                       <label><span>Tracking number</span><input name="trackingNumber" maxLength={160} defaultValue={record.trackingNumber || ""} /></label>

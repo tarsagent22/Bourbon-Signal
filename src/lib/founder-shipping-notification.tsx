@@ -3,6 +3,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { FounderGlassShippedEmail } from "@/components/emails/FounderGlassShippedEmail";
 import { ALERT_REPLY_TO, getResendClient } from "@/lib/email-alerts";
 import { founderShippingTrackingUrl } from "@/lib/founder-shipping";
+import { founderShipmentEmailCopy, founderShipmentNotificationKind } from "@/lib/founder-shipment-email";
 import {
   claimFounderShipmentNotification,
   markFounderShipmentNotificationSent,
@@ -27,6 +28,8 @@ export async function sendFounderShipmentNotification(record: FounderShippingRec
   if (!trackingUrl) throw new Error("The founder glass carrier is not supported for tracking.");
 
   const idempotencyKey = record.shipmentNotificationIdempotencyKey || shipmentIdempotencyKey(record);
+  const kind = founderShipmentNotificationKind(idempotencyKey);
+  const emailCopy = founderShipmentEmailCopy(kind);
   const claimToken = randomUUID();
   const claimed = await claimFounderShipmentNotification({
     userId: record.userId,
@@ -44,13 +47,14 @@ export async function sendFounderShipmentNotification(record: FounderShippingRec
       from: FOUNDER_SHIPPING_FROM,
       to: [currentPrimaryEmail],
       replyTo: ALERT_REPLY_TO,
-      subject: "Your Bourbon Signal founder glass has shipped",
+      subject: emailCopy.subject,
       react: FounderGlassShippedEmail({
         recipientName: claimed.recipientName,
         carrier: claimed.carrier!,
         trackingNumber: claimed.trackingNumber!,
         trackingUrl,
         accountUrl: new URL("/settings#shipping", baseUrl).toString(),
+        kind,
       }),
       headers: { "X-Entity-Ref-ID": idempotencyKey },
     }, { idempotencyKey });
