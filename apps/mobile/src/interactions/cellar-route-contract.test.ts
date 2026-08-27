@@ -92,7 +92,7 @@ test("Cellar uses universal bottle and Glencairn silhouettes without bottle-spec
   const bottle = read("src/components/CellarBottleSilhouette.tsx");
   const glencairn = read("src/components/CellarGlencairnSilhouette.tsx");
   for (const source of [bottle, glencairn]) assert.doesNotMatch(source, /require\(|Image|bottleId|canonicalKey|assets\/cellar/);
-  assert.match(glencairn, /MaterialCommunityIcons/);
-  assert.match(glencairn, /name="glass-tulip"/, "tasted-only uses a compact Glencairn-shaped glyph");
-  assert.doesNotMatch(glencairn, /styles\.(rim|flare|bowl|stem|foot)/, "the old oversized goblet construction is gone");
+  assert.doesNotMatch(glencairn, /MaterialCommunityIcons|glass-tulip|wine/i);
+  for (const part of ["rim", "narrowMouth", "roundedBowl", "amberPour", "solidBase"]) assert.match(glencairn, new RegExp(`styles\\.${part}`));
+  assert.doesNotMatch(glencairn, /styles\.stem/, "Glencairn artwork remains compact and stemless");
 });

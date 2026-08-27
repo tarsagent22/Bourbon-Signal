@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import type { MemberPreferences, RadarAreaPreferences } from "../api/types";
-import { alertIsStale, clearRadarAreas, compactMonitoringScopes, formatPhoneNumber, maskedPhoneNumber, memberAlertBottleNames, monitoringScopesChanged, presentPushIssue, radarAreaCount, radarAreaSummary, radarLocalityDisplayName, radarMonitoringSummary, radarStateDisplayCode, radarWatchlistSummary, scopesForState, setBottleWatched, setRadarState, setStatewideScope, stopMonitoringState, toggleAlertRarity, toggleMonitoringScope, toggleRadarArea, watchedBottleCount } from "./radar-preferences";
+import { alertIsStale, clearRadarAreas, compactMonitoringScopes, compactWatchedBottles, formatPhoneNumber, maskedPhoneNumber, memberAlertBottleNames, monitoringScopesChanged, presentPushIssue, radarAreaCount, radarAreaSummary, radarLocalityDisplayName, radarMonitoringSummary, radarStateDisplayCode, radarWatchlistSummary, scopesForState, setBottleWatched, setRadarState, setStatewideScope, stopMonitoringState, toggleAlertRarity, toggleMonitoringScope, toggleRadarArea, watchedBottleCount } from "./radar-preferences";
 
 const areas: RadarAreaPreferences = { states: [], ncBoards: [], gaAreas: [], tnAreas: [], vaCities: [], ohCities: [], iaCities: [], idCities: [], scAreas: [], caAreas: [], nvAreas: [], nyAreas: [], coAreas: [], paCounties: [], paStores: [] };
 const preferences = (): MemberPreferences => ({
@@ -32,6 +32,20 @@ test("watch updates are canonical and enforce the actual membership limit", () =
   assert.deepEqual(added.bottleKeys, ["stagg", "weller 12 year"]);
   assert.throws(() => setBottleWatched({ ...base, bottleAlertPreferences: added }, "Michter's 10 Year", true), /2 watched bottles/);
   assert.deepEqual(setBottleWatched({ ...base, bottleAlertPreferences: added }, "Stagg", false).bottleNames, ["Weller 12 Year"]);
+});
+
+test("Watchlist preview shows three bottles before revealing the entire sorted list", () => {
+  const names = ["Weller 12", "Stagg", "Eagle Rare", "Blanton's", "Booker's"];
+  assert.deepEqual(compactWatchedBottles(names, false), {
+    visible: ["Blanton's", "Booker's", "Eagle Rare"],
+    hiddenCount: 2,
+    totalCount: 5,
+  });
+  assert.deepEqual(compactWatchedBottles(names, true), {
+    visible: ["Blanton's", "Booker's", "Eagle Rare", "Stagg", "Weller 12"],
+    hiddenCount: 0,
+    totalCount: 5,
+  });
 });
 
 test("state and dependent area updates preserve canonical server fields", () => {

@@ -64,6 +64,15 @@ export function watchedBottleCount(preferences: MemberPreferences) {
   return new Set([...preferences.bottleAlertPreferences.bottleKeys, ...preferences.bottleAlertPreferences.bottleNames.map(canonicalBottleKey)].filter(Boolean)).size;
 }
 
+export function compactWatchedBottles(names: readonly string[], expanded: boolean, previewLimit = 3) {
+  const sorted = [...names].sort((left, right) => left.localeCompare(right));
+  return {
+    visible: expanded ? sorted : sorted.slice(0, previewLimit),
+    hiddenCount: expanded ? 0 : Math.max(0, sorted.length - previewLimit),
+    totalCount: sorted.length,
+  };
+}
+
 export function radarWatchlistSummary(preferences: MemberPreferences) {
   return preferences.alertMode === "anything_notable" ? "Anything notable" : `${watchedBottleCount(preferences)} watched`;
 }
