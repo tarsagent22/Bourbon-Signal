@@ -6,6 +6,7 @@ import {
   applyCollectionInventoryAction,
   collectionSummary,
   collectionDisplayKind,
+  collectionInventoryLabel,
   finishCollectionBottle,
   filterAndSortCollection,
   formatCollectionRating,
@@ -177,6 +178,12 @@ test("finishing preserves history and only consumes an open bottle", () => {
 test("derives bottle and Glencairn presentation from current inventory", () => {
   assert.equal(collectionDisplayKind(bottle({ sealedQuantity: 1, openedQuantity: 0, tastedOnly: true })), "owned");
   assert.equal(collectionDisplayKind(bottle({ sealedQuantity: 0, openedQuantity: 0, tastedOnly: false, finishedCount: 1 })), "tasted");
+});
+
+test("inventory labels always show explicit bottle quantities", () => {
+  assert.equal(collectionInventoryLabel(bottle({ sealedQuantity: 1, openedQuantity: 0 })), "1 sealed");
+  assert.equal(collectionInventoryLabel(bottle({ sealedQuantity: 0, openedQuantity: 1 })), "1 open");
+  assert.equal(collectionInventoryLabel(bottle({ sealedQuantity: 2, openedQuantity: 1 })), "2 sealed · 1 open");
 });
 
 test("inventory actions convert one canonical record in both directions without losing tasting data", () => {

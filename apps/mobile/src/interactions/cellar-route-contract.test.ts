@@ -11,6 +11,8 @@ test("Cellar add uses a dedicated native route, local indexed search, and duplic
   assert.match(layout, /cellar\/add/);
   assert.match(cellar, /router\.push\(["']\/\(app\)\/cellar\/add["']\)/);
   assert.match(add, /listBottleCatalog\(\)/, "the complete canonical catalog is prefetched once instead of queried on every keystroke");
+  assert.match(add, /BOTTLE_CATALOG_SEED/, "search has a bundled catalog before the network refresh completes");
+  assert.match(add, /useState<RadarBottleOption\[\]>\(BOTTLE_CATALOG_SEED\)/, "bundled suggestions are available on the first render");
   assert.match(add, /useMemo\(\(\) => createBottleSearchIndex\(catalog\), \[catalog\]\)/, "the complete catalog is normalized once per catalog load");
   assert.match(add, /rankBottleCatalog/);
   assert.match(add, /collectionMatchForOption/);
@@ -52,19 +54,34 @@ test("Cellar is one responsive grid with bottle and Glencairn states", () => {
   assert.match(cellar, /<ScrollView contentContainerStyle=\{styles\.refineSheet\}/, "Refine remains reachable with large Dynamic Type");
   assert.match(cellar, /refineSheet:\s*\{\s*flexGrow:\s*1/, "Refine content can grow beyond the sheet viewport");
   assert.match(cellar, /allowSwipeDismissal=\{!dirty && !busy\}/, "dirty or busy editors cannot be dismissed underneath visible React state");
+  assert.match(cellar, /numberOfLines=\{3\}/, "long whiskey names get a third line before truncation");
+  assert.match(cellar, /cellarContent:\s*\{[^}]*paddingBottom:\s*112/, "the final row clears the bottom navigation");
+  assert.match(cellar, /tile:\s*\{[^}]*minHeight:\s*180/, "the grid shows more whiskey without changing its information hierarchy");
 });
 
-test("rating control uses one stable responder, direct entry, and accessible fine controls", () => {
+test("rating control keeps its appearance but uses stable horizontal pan and tap mechanics", () => {
   const slider = read("src/components/ScoreSlider.tsx");
-  assert.match(slider, /onResponderGrant/);
-  assert.match(slider, /onResponderMove/);
-  assert.match(slider, /onResponderRelease/);
-  assert.match(slider, /onResponderTerminate=\{resetGesture\}/);
-  assert.match(slider, /onResponderTerminationRequest=\{\(\) => gesture\.current\.intent !== "horizontal"\}/);
+  assert.match(slider, /PanResponder\.create/);
+  assert.match(slider, /onStartShouldSetPanResponder:\s*\(\) => false/, "a touch does not immediately steal vertical scrolling");
+  assert.match(slider, /onMoveShouldSetPanResponder/);
+  assert.match(slider, /gestureState\.moveX/);
+  assert.match(slider, /scoreFromTrackPageX/);
   assert.match(slider, /classifyScoreSliderGesture/);
+  assert.match(slider, /Keyboard\.dismiss/);
   assert.match(slider, /TextInput/);
   assert.match(slider, /accessibilityRole="adjustable"/);
-  assert.doesNotMatch(slider, /onTouchMove/);
+  for (const unchangedVisual of [
+    /track:\s*\{ height: 8, borderRadius: 999/,
+    /thumb:\s*\{ position: "absolute", top: -8, width: 24, height: 24, marginLeft: -12/,
+    /stepButton:\s*\{ minWidth: 64, minHeight: 44/,
+  ]) assert.match(slider, unchangedVisual, "the approved slider visuals stay unchanged");
+});
+
+test("Cellar add dismisses the keyboard when members move from search into form controls", () => {
+  const add = read("app/(app)/cellar/add.tsx");
+  assert.match(add, /keyboardDismissMode=/);
+  assert.match(add, /Keyboard\.dismiss\(\)/);
+  assert.match(add, /<ScoreSlider[^>]*onInteractionStart=\{Keyboard\.dismiss\}/);
 });
 
 test("Cellar uses universal bottle and Glencairn silhouettes without bottle-specific imagery", () => {
