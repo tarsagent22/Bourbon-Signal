@@ -1,15 +1,16 @@
+import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import type { Signal } from "../api/types";
 import {
+  presentBottleIdentity,
   presentSignal,
   relativeSignalTime,
   signalAccessibilityLabel,
   signalAvailabilityIsCurrent,
   signalAvailabilityRefreshAt,
+  signalFeedCardAppearance,
   signalCardStatusLabel,
-  signalCardSummary,
-  signalCardAppearance,
   signalReporterAttribution,
 } from "../api/presentation";
 import { colors } from "../theme";
@@ -35,16 +36,18 @@ export function SignalCard({ signal, onPress }: { signal: Signal; onPress: () =>
   }, [signal.id, signal.timing.displayAt, signal.timing.expiresAt, signal.availability?.status, now]);
 
   const presented = presentSignal(signal);
+  const bottleIdentity = presentBottleIdentity(signal.bottle.name);
   const status = signalCardStatusLabel(signal, now);
-  const summary = signalCardSummary(signal);
-  const appearance = signalCardAppearance(signal);
+  const appearance = signalFeedCardAppearance(signal);
   const reporter = signalReporterAttribution(signal);
-  const showStatus = status === "Availability unconfirmed"
-    || (signal.source.type !== "member" && status !== "Reported");
-  const availableNow = signal.source.type !== "member" && signalAvailabilityIsCurrent(signal, now);
+  const community = signal.source.type === "member";
+  const availableNow = !community && signalAvailabilityIsCurrent(signal, now);
   const upcoming = status === "Upcoming"
     || signal.availability?.status === "upcoming"
     || (!signal.availability && (signal.kind === "release" || signal.kind === "event"));
+  const showStatus = !community || status === "Availability unconfirmed" || upcoming || signal.kind === "release" || signal.kind === "event";
+  const reportedMetric = presented.quantity === "Quantity unknown" ? "" : presented.quantity;
+  const metric = reportedMetric || (!community && availableNow ? "Available now" : "");
 
   return (
     <Pressable
@@ -55,67 +58,76 @@ export function SignalCard({ signal, onPress }: { signal: Signal; onPress: () =>
       style={({ pressed }) => [styles.card, { backgroundColor: appearance.surface, borderColor: appearance.keyline }, pressed && styles.pressed]}
     >
       <View style={styles.topline}>
-        <View style={styles.sourceRow}>
-          <Text style={[styles.sourceLabel, { color: appearance.accent }]}>{appearance.sourceLabel}</Text>
-          <View style={[styles.labelKeyline, { backgroundColor: appearance.keyline }]} />
-          <Text style={[styles.rarityLabel, { color: appearance.secondaryText }]}>{appearance.rarityLabel}</Text>
+        <View style={[styles.rarityBadge, { backgroundColor: appearance.keyline }]}>
+          <Text style={[styles.rarityLabel, { color: appearance.accent }]}>{appearance.rarityLabel}</Text>
         </View>
         <Text style={styles.time}>{relativeSignalTime(signal.timing.displayAt, now)}</Text>
       </View>
 
-      <Text numberOfLines={2} style={styles.bottle}>{signal.bottle.name}</Text>
-      {presented.storeName ? <Text numberOfLines={2} style={styles.storeName}>{presented.storeName}</Text> : null}
-      {presented.geography ? <Text numberOfLines={1} style={styles.geography}>{presented.geography}</Text> : null}
+      <Text numberOfLines={3} style={styles.bottle}>{bottleIdentity.title}</Text>
+      {bottleIdentity.subtitle ? <Text numberOfLines={2} style={styles.bottleSubtitle}>{bottleIdentity.subtitle}</Text> : null}
+
+      <View style={styles.details}>
+        {presented.storeName ? <View style={styles.detailRow}>
+          <MaterialCommunityIcons color={colors.muted} name="storefront-outline" size={17} />
+          <Text numberOfLines={2} style={styles.storeName}>{presented.storeName}</Text>
+        </View> : null}
+        {presented.geography ? <View style={styles.detailRow}>
+          <MaterialCommunityIcons color={colors.muted} name="map-marker-outline" size={17} />
+          <Text numberOfLines={1} style={styles.geography}>{presented.geography}</Text>
+        </View> : null}
+      </View>
 
       {showStatus ? <View style={styles.statusRow}>
         <View style={[styles.statusDot, availableNow && styles.availableDot, upcoming && styles.upcomingDot]} />
-        <Text style={[styles.status, availableNow && styles.availableStatus]}>{status}</Text>
+        <Text style={[styles.status, availableNow && styles.availableStatus, upcoming && styles.upcomingStatus]}>{status}</Text>
       </View> : null}
 
-      {presented.price || presented.quantity ? (
-        <View style={styles.metaRow}>
-          {presented.price ? <Text style={styles.price}>{presented.price}</Text> : null}
-          {presented.price && presented.quantity ? <View style={styles.metaDivider} /> : null}
-          {presented.quantity ? <Text style={styles.quantity}>{presented.quantity}</Text> : null}
-        </View>
-      ) : null}
+      {community && reporter ? <Text numberOfLines={1} style={styles.reporter}>{reporter}</Text> : null}
 
-      {summary ? <Text numberOfLines={2} style={styles.note}>{summary}</Text> : null}
-      {reporter ? <Text numberOfLines={1} style={styles.reporter}>{reporter}</Text> : null}
+      {presented.price || metric ? <View style={[styles.footer, { borderTopColor: appearance.keyline }]}>
+        {presented.price ? <Text style={styles.price}>{presented.price}</Text> : <View />}
+        {metric ? <View style={styles.metric}>
+          <View style={[styles.metricDot, availableNow && styles.availableDot, upcoming && styles.upcomingDot]} />
+          <Text numberOfLines={1} style={[styles.metricText, availableNow && styles.availableStatus]}>{metric}</Text>
+        </View> : null}
+      </View> : null}
     </Pressable>
   );
 }
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: colors.surface,
-    borderColor: colors.border,
     borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: 16,
-    paddingHorizontal: 14,
-    paddingVertical: 11.5,
-    gap: 5.5,
+    borderRadius: 18,
+    paddingHorizontal: 16,
+    paddingTop: 14,
+    paddingBottom: 13,
+    gap: 10,
+    overflow: "hidden",
   },
-  pressed: { opacity: 0.82 },
-  topline: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 1 },
-  sourceRow: { flexDirection: "row", alignItems: "center", gap: 7, flexShrink: 1 },
-  sourceLabel: { fontSize: 10, lineHeight: 14, fontWeight: "900", letterSpacing: 1.05 },
-  labelKeyline: { width: 1, height: 11 },
-  rarityLabel: { fontSize: 9, lineHeight: 13, fontWeight: "800", letterSpacing: 0.8 },
-  statusRow: { flexDirection: "row", alignItems: "center", gap: 7, flexShrink: 1 },
+  pressed: { opacity: 0.8 },
+  topline: { minHeight: 22, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
+  rarityBadge: { minHeight: 22, borderRadius: 7, alignItems: "center", justifyContent: "center", paddingHorizontal: 9 },
+  rarityLabel: { fontSize: 9, lineHeight: 12, fontWeight: "900", letterSpacing: 1.05 },
+  time: { color: colors.muted, fontSize: 11, lineHeight: 15, fontWeight: "600" },
+  bottle: { color: colors.text, fontFamily: "Fraunces_700Bold", fontSize: 22, lineHeight: 27, letterSpacing: -0.35 },
+  bottleSubtitle: { color: colors.muted, fontSize: 12, lineHeight: 17, fontWeight: "500", marginTop: -4 },
+  details: { gap: 7 },
+  detailRow: { minHeight: 20, flexDirection: "row", alignItems: "center", gap: 8 },
+  storeName: { color: colors.text, fontSize: 14, lineHeight: 19, fontWeight: "600", flex: 1 },
+  geography: { color: colors.muted, fontSize: 13, lineHeight: 18, fontWeight: "500", flex: 1 },
+  statusRow: { minHeight: 18, flexDirection: "row", alignItems: "center", gap: 7 },
   statusDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.muted },
   availableDot: { backgroundColor: colors.success },
   upcomingDot: { backgroundColor: colors.accent },
-  status: { color: colors.muted, fontSize: 11, lineHeight: 15, fontWeight: "700", letterSpacing: 0.2 },
+  status: { color: colors.muted, fontSize: 11, lineHeight: 15, fontWeight: "700", letterSpacing: 0.1 },
   availableStatus: { color: colors.success },
-  time: { color: colors.muted, fontSize: 11, lineHeight: 15, fontWeight: "600" },
-  bottle: { color: colors.text, fontSize: 19, lineHeight: 24, fontWeight: "700", letterSpacing: -0.2 },
-  storeName: { color: colors.text, fontSize: 14, lineHeight: 19, fontWeight: "600" },
-  geography: { color: colors.muted, fontSize: 12, lineHeight: 17, fontWeight: "500" },
-  metaRow: { minHeight: 20, flexDirection: "row", alignItems: "center", gap: 9, marginTop: 1 },
-  metaDivider: { width: 3, height: 3, borderRadius: 2, backgroundColor: colors.border },
-  price: { color: colors.text, fontSize: 13, lineHeight: 18, fontWeight: "700" },
-  quantity: { color: colors.muted, fontSize: 12, lineHeight: 17, fontWeight: "600", flexShrink: 1 },
-  note: { color: colors.muted, fontSize: 12, lineHeight: 17, marginTop: 1 },
-  reporter: { color: colors.muted, fontSize: 11, lineHeight: 15, fontWeight: "600", marginTop: 1 },
+  upcomingStatus: { color: colors.accent },
+  reporter: { color: colors.muted, fontSize: 11, lineHeight: 15, fontWeight: "600" },
+  footer: { minHeight: 34, paddingTop: 10, marginTop: 1, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between", gap: 12 },
+  price: { color: colors.text, fontFamily: "Fraunces_700Bold", fontSize: 20, lineHeight: 24, letterSpacing: -0.2 },
+  metric: { minWidth: 0, flexShrink: 1, flexDirection: "row", alignItems: "center", justifyContent: "flex-end", gap: 7 },
+  metricDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.muted },
+  metricText: { color: colors.muted, fontSize: 11, lineHeight: 15, fontWeight: "700", flexShrink: 1 },
 });

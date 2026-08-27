@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import type { Signal } from "./types";
-import { presentSignal, signalAccessibilityLabel, signalCardAppearance, signalCardStatusLabel, signalReporterAttribution } from "./presentation";
+import { presentBottleIdentity, presentSignal, signalAccessibilityLabel, signalFeedCardAppearance, signalCardStatusLabel, signalReporterAttribution } from "./presentation";
 
 function signal(overrides: Partial<Signal> = {}): Signal {
   return {
@@ -40,9 +40,10 @@ test("store and geography are separate and duplicate slash-city suffixes are rem
   assert.equal(presented.location, "New Star Fletcher · Waterloo, IA");
 });
 
-test("report counts use concise natural grammar", () => {
-  assert.equal(presentSignal(signal({ availability: { status: "reported", quantityLabel: "1" } })).quantity, "1 report");
-  assert.equal(presentSignal(signal({ availability: { status: "reported", quantityLabel: "2 bottles" } })).quantity, "2 reports");
+test("Intel inventory counts use explicit bottle grammar", () => {
+  assert.equal(presentSignal(signal({ availability: { status: "reported", quantityLabel: "1" } })).quantity, "1 bottle");
+  assert.equal(presentSignal(signal({ availability: { status: "reported", quantityLabel: "2 bottles" } })).quantity, "2 bottles");
+  assert.equal(presentSignal(signal({ availability: { status: "reported", quantity: 3 } })).quantity, "3 bottles");
 });
 
 test("Community shelf quantity remains bottles seen rather than report count", () => {
@@ -68,14 +69,33 @@ test("Community reporter attribution uses the public display name", () => {
   assert.equal(signalReporterAttribution(community), "Reported by Oak Street Scout");
 });
 
-test("source and rarity appearance stays restrained and makes Unicorn plum", () => {
-  const market = signalCardAppearance(signal());
-  const community = signalCardAppearance(signal({ source: { type: "member", label: "Member #184" } }));
-  const unicorn = signalCardAppearance(signal({ bottle: { name: "Rare Bottle", rarity: "unicorn" } }));
-  assert.equal(market.sourceLabel, "MARKET");
-  assert.equal(community.sourceLabel, "COMMUNITY");
-  assert.notEqual(market.surface, community.surface);
-  assert.equal(unicorn.surface, "#211925");
-  assert.equal(unicorn.keyline, "#61446E");
-  assert.equal(unicorn.secondaryText, "#B7ACBA");
+test("bottle identity separates only explicit style and volume suffixes for editorial cards", () => {
+  assert.deepEqual(presentBottleIdentity("Blade and Bow Kentucky Straight Bourbon Whiskey 750ml"), {
+    title: "Blade and Bow",
+    subtitle: "Kentucky Straight Bourbon Whiskey · 750ml",
+  });
+  assert.deepEqual(presentBottleIdentity("E.H. Taylor Small Batch Bottled in Bond"), {
+    title: "E.H. Taylor",
+    subtitle: "Small Batch Bottled in Bond",
+  });
+  assert.deepEqual(presentBottleIdentity("Penelope Bourbon Private Select 9 Year"), {
+    title: "Penelope Bourbon Private Select 9 Year",
+    subtitle: "",
+  });
+});
+
+test("card appearance keeps neutral editorial surfaces and uses rarity only as an accent", () => {
+  const intel = signalFeedCardAppearance(signal());
+  const community = signalFeedCardAppearance(signal({ source: { type: "member", label: "Member #184" } }));
+  const allocated = signalFeedCardAppearance(signal({ bottle: { name: "Rare Bottle", rarity: "allocated" } }));
+  const unicorn = signalFeedCardAppearance(signal({ bottle: { name: "Rare Bottle", rarity: "unicorn" } }));
+
+  assert.equal("sourceLabel" in intel, false);
+  assert.equal(intel.rarityLabel, "LIMITED");
+  assert.equal(community.rarityLabel, "LIMITED");
+  assert.equal(intel.surface, community.surface);
+  assert.equal(intel.surface, allocated.surface);
+  assert.equal(intel.surface, unicorn.surface);
+  assert.notEqual(intel.accent, allocated.accent);
+  assert.notEqual(allocated.accent, unicorn.accent);
 });

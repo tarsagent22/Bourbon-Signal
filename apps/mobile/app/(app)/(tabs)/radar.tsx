@@ -1,3 +1,4 @@
+import { useLocalSearchParams } from "expo-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Keyboard, KeyboardAvoidingView, Linking, Modal, Platform, Pressable, RefreshControl, ScrollView, Share, StyleSheet, Switch, Text, TextInput, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
@@ -26,6 +27,7 @@ function pushIssue(caught: unknown, fallback: string) {
 
 export default function RadarScreen() {
   const api = useMobileApi();
+  const { section: requestedSection, request } = useLocalSearchParams<{ section?: string; request?: string }>();
   const [view, setView] = useState<RadarView>("matches");
   const [preferences, setPreferences] = useState<MemberPreferences | null>(null);
   const [profile, setProfile] = useState<MemberProfile | null>(null);
@@ -74,6 +76,7 @@ export default function RadarScreen() {
   }, [api]);
 
   useEffect(() => { void load(false); }, [load]);
+  useEffect(() => { if (requestedSection === "matches" && request) setView("matches"); }, [requestedSection, request]);
   const watchedKeys = useMemo(() => new Set((preferences?.bottleAlertPreferences.bottleKeys || []).map(canonicalBottleKey)), [preferences]);
   const watchedNames = preferences?.bottleAlertPreferences.bottleNames || [];
   const searchResults = useMemo(() => {
