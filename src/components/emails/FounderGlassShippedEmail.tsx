@@ -1,5 +1,6 @@
 import * as React from "react";
 import { Body, Button, Container, Head, Html, Preview, Section, Text } from "@react-email/components";
+import { founderShipmentEmailCopy, type FounderShipmentNotificationKind } from "@/lib/founder-shipment-email";
 
 export interface FounderGlassShippedEmailProps {
   recipientName: string;
@@ -7,6 +8,7 @@ export interface FounderGlassShippedEmailProps {
   trackingNumber: string;
   trackingUrl: string;
   accountUrl: string;
+  kind?: FounderShipmentNotificationKind;
 }
 
 export function FounderGlassShippedEmail({
@@ -15,24 +17,26 @@ export function FounderGlassShippedEmail({
   trackingNumber,
   trackingUrl,
   accountUrl,
+  kind = "shipment",
 }: FounderGlassShippedEmailProps) {
   const firstName = recipientName.trim().split(/\s+/)[0] || "there";
+  const emailCopy = founderShipmentEmailCopy(kind);
   return (
     <Html style={{ backgroundColor: "#0f0c09" }}>
       <Head>
         <meta name="color-scheme" content="dark" />
         <meta name="supported-color-schemes" content="dark" />
       </Head>
-      <Preview>Your founder glass is on the way.</Preview>
+      <Preview>{emailCopy.preview}</Preview>
       <Body style={body}>
         <Container style={shell}>
           <Section style={masthead}>
             <Text style={brand}>BOURBON SIGNAL<span style={brandDot}>.</span></Text>
-            <Text style={headline}>Your founder glass is on the way</Text>
+            <Text style={headline}>{emailCopy.headline}</Text>
           </Section>
           <Section style={content}>
             <Text style={paragraph}>Hi {firstName},</Text>
-            <Text style={paragraph}>Your Bourbon Signal founder glass has shipped.</Text>
+            <Text style={paragraph}>{emailCopy.introduction}</Text>
             <Section style={trackingCard}>
               <Text style={label}>CARRIER</Text>
               <Text style={value}>{carrier}</Text>
