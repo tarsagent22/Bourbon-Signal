@@ -1,6 +1,7 @@
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import { Tabs } from "expo-router";
+import { Tabs, router } from "expo-router";
 import type { ColorValue } from "react-native";
+import { Pressable, StyleSheet, Text } from "react-native";
 import { colors } from "../../../src/theme";
 import { MEMBER_TABS } from "../../../src/navigation/member-tabs";
 
@@ -10,6 +11,25 @@ function icon(route: "index" | "radar" | "post" | "cellar" | "hq") {
   const definition = byRoute.get(route)!;
   return ({ color, size }: { color: ColorValue; size: number }) => (
     <MaterialCommunityIcons color={color as string} name={definition.icon as never} size={size} />
+  );
+}
+
+function BrandTitle() {
+  return <Text numberOfLines={1} style={styles.brandTitle}>Bourbon Signal</Text>;
+}
+
+function AlertInboxButton() {
+  return (
+    <Pressable
+      accessibilityHint="Opens Radar matches"
+      accessibilityLabel="Open alert inbox"
+      accessibilityRole="button"
+      hitSlop={8}
+      onPress={() => router.push({ pathname: "/(app)/(tabs)/radar", params: { section: "matches", request: Date.now().toString() } })}
+      style={({ pressed }) => [styles.alertButton, pressed && styles.pressed]}
+    >
+      <MaterialCommunityIcons color={colors.text} name="bell-outline" size={23} />
+    </Pressable>
   );
 }
 
@@ -31,7 +51,7 @@ export default function TabsLayout() {
         freezeOnBlur: true,
       }}
     >
-      <Tabs.Screen name="index" options={{ title: "Signals", headerTitle: "Bourbon Signal", tabBarIcon: icon("index") }} />
+      <Tabs.Screen name="index" options={{ title: "Signals", headerTitle: BrandTitle, headerTitleAlign: "left", headerRight: AlertInboxButton, tabBarIcon: icon("index") }} />
       <Tabs.Screen name="radar" options={{ title: "Radar", tabBarIcon: icon("radar") }} />
       <Tabs.Screen name="post" options={{ title: "Post", tabBarIcon: icon("post") }} />
       <Tabs.Screen name="cellar" options={{ title: "Cellar", tabBarIcon: icon("cellar") }} />
@@ -39,3 +59,9 @@ export default function TabsLayout() {
     </Tabs>
   );
 }
+
+const styles = StyleSheet.create({
+  brandTitle: { color: colors.text, fontFamily: "Fraunces_700Bold", fontSize: 24, lineHeight: 30, letterSpacing: -0.35 },
+  alertButton: { width: 44, height: 44, alignItems: "center", justifyContent: "center", marginRight: 4 },
+  pressed: { opacity: 0.68 },
+});

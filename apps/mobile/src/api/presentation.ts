@@ -46,12 +46,12 @@ function normalizedQuantityLabel(signal: Signal) {
   const counted = raw.match(/^(\d+)(?:\s+bottles?)?$/i);
   if (counted) {
     const count = Number(counted[1]);
-    return `${count} ${count === 1 ? "report" : "reports"}`;
+    return `${count} ${count === 1 ? "bottle" : "bottles"}`;
   }
   if (raw) return `Reported: ${raw}`;
   if (typeof signal.availability?.quantity === "number") {
     const count = signal.availability.quantity;
-    return `${count} ${count === 1 ? "report" : "reports"}`;
+    return `${count} ${count === 1 ? "bottle" : "bottles"}`;
   }
   if (signal.availability?.status === "available_now" || signal.availability?.status === "reported") {
     return "Quantity unknown";
@@ -115,6 +115,29 @@ export function signalAvailabilityRefreshAt(signal: Signal, now = new Date()) {
   return candidates.length ? Math.min(...candidates) : null;
 }
 
+export function presentBottleIdentity(value: string) {
+  const normalized = value.replace(/\s+/g, " ").trim();
+  const volumeMatch = normalized.match(/\s+(\d+(?:\.\d+)?\s?(?:ml|l))$/i);
+  const volume = volumeMatch?.[1] || "";
+  const withoutVolume = volumeMatch ? normalized.slice(0, volumeMatch.index).trim() : normalized;
+  const styleSuffixes = [
+    "Kentucky Straight Bourbon Whiskey",
+    "Kentucky Straight Rye Whiskey",
+    "Small Batch Bottled in Bond",
+    "Single Barrel Bottled in Bond",
+    "Straight Bourbon Whiskey",
+    "Straight Rye Whiskey",
+    "Bottled in Bond",
+    "Bourbon Whiskey",
+  ];
+  const style = styleSuffixes.find((suffix) => withoutVolume.toLowerCase().endsWith(suffix.toLowerCase())) || "";
+  const title = style ? withoutVolume.slice(0, -style.length).trim() : withoutVolume;
+  return {
+    title: title || normalized,
+    subtitle: [style, volume].filter(Boolean).join(" · "),
+  };
+}
+
 export function presentSignal(signal: Signal) {
   const store = signal.location.store;
   const city = store?.city?.trim() || "";
@@ -168,6 +191,18 @@ export function signalCardAppearance(signal: Signal) {
     sourceLabel: community ? "COMMUNITY" : "MARKET",
     rarityLabel: rarity === "unicorn" ? "UNICORN" : rarity === "allocated" ? "ALLOCATED" : "LIMITED",
     ...rarityAppearance,
+  };
+}
+
+export function signalFeedCardAppearance(signal: Signal) {
+  const rarity = signal.bottle.rarity || "limited";
+  const accent = rarity === "unicorn" ? "#D0A4DC" : rarity === "allocated" ? "#E5A15A" : "#D3A258";
+  return {
+    rarityLabel: rarity === "unicorn" ? "UNICORN" : rarity === "allocated" ? "ALLOCATED" : "LIMITED",
+    surface: "#191612",
+    keyline: "#41372B",
+    accent,
+    secondaryText: "#B9AD9C",
   };
 }
 

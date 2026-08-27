@@ -16,6 +16,15 @@ test("Radar uses one Watchlist destination for criteria, bottles, delivery, and 
   assert.match(radar, /view === "watchlist" \? <WatchlistView/);
 });
 
+test("alert-inbox navigation always restores Matches even after Watchlist", () => {
+  const radar = readScreen("radar");
+
+  assert.match(radar, /useLocalSearchParams/);
+  assert.match(radar, /section: requestedSection, request/);
+  assert.match(radar, /if \(requestedSection === "matches" && request\) setView\("matches"\)/);
+  assert.match(radar, /\[requestedSection, request\]/);
+});
+
 test("Watchlist only shows bottle management for specific-bottle alerts", () => {
   const radar = readScreen("radar");
 

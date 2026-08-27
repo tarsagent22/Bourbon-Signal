@@ -11,29 +11,31 @@ function position(fragment: string) {
   return index;
 }
 
-test("Signal Feed presents Intel and Community with centered descriptions above the toggle", () => {
-  assert.match(feed, />Intel<\/Text>/);
-  assert.doesNotMatch(feed, />Market<\/Text>/);
-  assert.match(feed, /Intel gathered from Bourbon Signal sources\./);
-  assert.match(feed, /Bottle sightings shared by Bourbon Signal members\./);
-  assert.match(feed, /contextText: \{[^}]*textAlign: "center"/);
-  assert.ok(position("Intel gathered from Bourbon Signal sources.") < position('accessibilityLabel="Signal feed view"'));
-});
-
-test("Signal Feed exposes controls inline in the requested top-to-bottom order", () => {
+test("Signal Feed opens with the premium control hierarchy and no explanatory paragraph", () => {
   const toggle = position('accessibilityLabel="Signal feed view"');
-  const search = position('placeholder="Search bottle name"');
   const geography = position('accessibilityLabel="Signal geography filters"');
+  const search = position('placeholder="Search bottle name"');
   const rarity = position('accessibilityLabel="Bottle rarity filters"');
-  assert.ok(toggle < search && search < geography && geography < rarity);
+
+  assert.ok(toggle < geography && geography < search && search < rarity);
+  assert.doesNotMatch(feed, /Intel gathered from Bourbon Signal sources|Bottle sightings shared by Bourbon Signal members|contextText/);
   assert.doesNotMatch(feed, /Open Signal filters|Filter Signals|filterOpen|filterSheet/);
-  assert.match(feed, /filters\.state \? <OptionChooser/);
-  assert.match(feed, /label="State"/);
+  assert.match(feed, /showsVerticalScrollIndicator=\{false\}/);
 });
 
-test("Signal Feed uses Intel wording in empty and explanatory states", () => {
-  assert.doesNotMatch(feed, />Market</);
-  assert.doesNotMatch(feed, /Market Signals|market intelligence/);
+test("State and Area remain a stable pair while Area is disabled until State is selected", () => {
+  assert.match(feed, /label="State"[\s\S]*?icon="map-marker-outline"/);
+  assert.match(feed, /label=\{areaLabel\}[\s\S]*?disabled=\{!filters\.state\}/);
+  assert.doesNotMatch(feed, /filters\.state \? <OptionChooser/);
+  assert.doesNotMatch(feed, /geographySoloRow|filterChooserSolo/);
+  assert.match(feed, /accessibilityState=\{\{ expanded, disabled \}\}/);
+  assert.match(feed, /disabled=\{disabled\}/);
+});
+
+test("Signal Feed keeps Intel terminology while preserving the internal market transport value", () => {
+  assert.match(feed, /type FeedView = "market" \| "community"/);
+  assert.match(feed, />Intel<\/Text>/);
+  assert.doesNotMatch(feed, />Market<\/Text>|Market Signals|market intelligence/);
   assert.match(feed, /No Intel Signals match these tiers right now/);
 });
 

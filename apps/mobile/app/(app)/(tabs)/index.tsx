@@ -15,35 +15,39 @@ function OptionChooser({
   label,
   value,
   placeholder,
+  clearLabel,
   options,
-  compact = false,
-  solo = false,
+  icon,
+  disabled = false,
   onChange,
 }: {
   label: string;
   value: string;
   placeholder: string;
+  clearLabel?: string;
   options: Array<{ value: string; label: string }>;
-  compact?: boolean;
-  solo?: boolean;
+  icon: string;
+  disabled?: boolean;
   onChange: (value: string) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
   const selectedLabel = options.find((option) => option.value === value)?.label || placeholder;
-  const visibleOptions = value ? [{ value: "", label: placeholder }, ...options] : options;
-  return <View style={[styles.fieldGroup, compact && styles.filterChooser, solo && styles.filterChooserSolo]}>
-    <Text style={styles.fieldLabel}>{label.toUpperCase()}</Text>
+  const visibleOptions = value ? [{ value: "", label: clearLabel || placeholder }, ...options] : options;
+  useEffect(() => { if (disabled) setExpanded(false); }, [disabled]);
+  return <View style={[styles.fieldGroup, styles.filterChooser, disabled && styles.filterChooserDisabled]}>
     <Pressable
       accessibilityLabel={`${label}, ${selectedLabel}`}
       accessibilityRole="button"
-      accessibilityState={{ expanded }}
+      accessibilityState={{ expanded, disabled }}
+      disabled={disabled}
       onPress={() => setExpanded((current) => !current)}
       style={({ pressed }) => [styles.chooserButton, pressed && styles.segmentPressed]}
     >
-      <Text style={[styles.chooserValue, !value && styles.chooserPlaceholder]}>{selectedLabel}</Text>
-      <MaterialCommunityIcons color={colors.muted} name={expanded ? "chevron-up" : "chevron-down"} size={20} />
+      <MaterialCommunityIcons color={disabled ? colors.border : colors.muted} name={icon as never} size={18} />
+      <Text numberOfLines={1} style={[styles.chooserValue, !value && styles.chooserPlaceholder]}>{selectedLabel}</Text>
+      <MaterialCommunityIcons color={disabled ? colors.border : colors.muted} name={expanded ? "chevron-up" : "chevron-down"} size={19} />
     </Pressable>
-    {expanded ? <ScrollView keyboardShouldPersistTaps="handled" nestedScrollEnabled style={styles.chooserOptions}>
+    {expanded && !disabled ? <ScrollView keyboardShouldPersistTaps="handled" nestedScrollEnabled style={styles.chooserOptions}>
       {visibleOptions.map((option) => {
         const selected = option.value === value;
         return <Pressable
@@ -107,6 +111,9 @@ export default function SignalFeedScreen() {
   const areaOptions = filters.state !== "NC" && remoteAreaState === filters.state && remoteAreaOptions.length
     ? remoteAreaOptions
     : staticAreaOptions;
+  const areaLabel = filters.state
+    ? areaDirectory?.states.find((state) => state.code === filters.state)?.areaLabel || areaSelectorLabel(filters.state)
+    : "Area / Board";
   const bottleQuery = bottleQueries[view];
   const requestSequence = useRef(0);
   const requestInFlightRef = useRef<"refresh" | "page" | null>(null);
@@ -245,10 +252,6 @@ export default function SignalFeedScreen() {
 
   const header = (
     <View style={styles.header}>
-      <Text style={styles.contextText}>{view === "community"
-        ? "Bottle sightings shared by Bourbon Signal members."
-        : "Intel gathered from Bourbon Signal sources."}</Text>
-
       <View accessibilityLabel="Signal feed view" style={styles.segmentedControl}>
         <Pressable
           accessibilityRole="button"
@@ -271,6 +274,30 @@ export default function SignalFeedScreen() {
       </View>
 
       {canUseFilters ? <>
+        <View accessibilityLabel="Signal geography filters" style={styles.geographyRow}>
+          <OptionChooser
+            label="State"
+            icon="map-marker-outline"
+            value={filters.state}
+            placeholder="State"
+            clearLabel="Any state"
+            options={stateOptions}
+            onChange={(state) => applyFilters({ ...filters, state, area: "" })}
+          />
+          <OptionChooser
+            label={areaLabel}
+            icon="map-marker-radius-outline"
+            value={filters.area}
+            placeholder={filters.state ? areaLabel : "Area / Board"}
+            clearLabel={`Any ${areaLabel.toLowerCase()}`}
+            options={areaOptions}
+            disabled={!filters.state}
+            onChange={(area) => applyFilters({ ...filters, area })}
+          />
+        </View>
+        {filters.state && filters.state !== "NC" && areaOptionsLoading ? <Text style={styles.areaOptionNote}>Loading cities…</Text> : null}
+        {filters.state && areaOptionsError ? <Text accessibilityRole="alert" style={styles.areaOptionError}>{areaOptionsError}</Text> : null}
+
         <View style={styles.filterInputShell}>
           <MaterialCommunityIcons color={colors.muted} name="magnify" size={20} />
           <TextInput
@@ -287,13 +314,6 @@ export default function SignalFeedScreen() {
           />
           {bottleQuery ? <Pressable accessibilityLabel="Clear bottle search" accessibilityRole="button" hitSlop={8} onPress={() => setBottleQueries((current) => ({ ...current, [view]: "" }))} style={styles.inputClearButton}><MaterialCommunityIcons color={colors.muted} name="close-circle" size={19} /></Pressable> : null}
         </View>
-
-        <View accessibilityLabel="Signal geography filters" style={[styles.geographyRow, !filters.state && styles.geographySoloRow]}>
-          <OptionChooser compact solo={!filters.state} label="State" value={filters.state} placeholder="Any state" options={stateOptions} onChange={(state) => applyFilters({ ...filters, state, area: "" })} />
-          {filters.state ? <OptionChooser compact label={areaDirectory?.states.find((state) => state.code === filters.state)?.areaLabel || areaSelectorLabel(filters.state)} value={filters.area} placeholder={`Any ${areaSelectorLabel(filters.state).toLowerCase()}`} options={areaOptions} onChange={(area) => applyFilters({ ...filters, area })} /> : null}
-        </View>
-        {filters.state && filters.state !== "NC" && areaOptionsLoading ? <Text style={styles.areaOptionNote}>Loading cities…</Text> : null}
-        {filters.state && areaOptionsError ? <Text accessibilityRole="alert" style={styles.areaOptionError}>{areaOptionsError}</Text> : null}
 
         <ScrollView horizontal keyboardShouldPersistTaps="handled" contentContainerStyle={styles.rarityRow} showsHorizontalScrollIndicator={false} accessibilityLabel="Bottle rarity filters">
           <Pressable
@@ -341,6 +361,7 @@ export default function SignalFeedScreen() {
       contentContainerStyle={styles.list}
       data={visibleSignals}
       keyboardShouldPersistTaps="handled"
+      showsVerticalScrollIndicator={false}
       keyExtractor={(item) => item.id}
       renderItem={({ item }) => <SignalCard signal={item} onPress={() => router.push({ pathname: "/(app)/signal/[id]", params: { id: item.id } })} />}
       ItemSeparatorComponent={() => <View style={styles.gap} />}
@@ -372,20 +393,18 @@ export default function SignalFeedScreen() {
 }
 
 const styles = StyleSheet.create({
-  list: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 64 },
-  gap: { height: 10 },
-  header: { gap: 10, marginBottom: 12 },
+  list: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 64 },
+  gap: { height: 12 },
+  header: { gap: 11, marginBottom: 14 },
   segmentedControl: { flexDirection: "row", padding: 3, borderRadius: 14, backgroundColor: colors.surface, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth },
   segment: { flex: 1, minHeight: 44, borderRadius: 11, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 7 },
-  segmentSelected: { backgroundColor: "#211910" },
+  segmentSelected: { backgroundColor: "#241A10" },
   segmentPressed: { opacity: 0.78 },
   segmentLabel: { color: colors.muted, fontSize: 13, fontWeight: "700" },
   segmentLabelSelected: { color: colors.text },
-  contextText: { color: colors.muted, fontSize: 12, lineHeight: 17, paddingHorizontal: 8, textAlign: "center" },
   geographyRow: { flexDirection: "row", alignItems: "flex-start", justifyContent: "center", gap: 8 },
-  geographySoloRow: { paddingHorizontal: "25%" },
   filterChooser: { flex: 1, minWidth: 0 },
-  filterChooserSolo: { maxWidth: 220 },
+  filterChooserDisabled: { opacity: 0.48 },
   rarityRow: { flexGrow: 1, gap: 7, paddingRight: 8, justifyContent: "center" },
   rarityChip: { minHeight: 36, justifyContent: "center", paddingHorizontal: 13, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface },
   rarityChipSelected: { borderColor: colors.accentPressed, backgroundColor: "#2A1F13" },
@@ -415,8 +434,7 @@ const styles = StyleSheet.create({
   footerError: { color: colors.danger, textAlign: "center" },
   end: { color: colors.muted, textAlign: "center", padding: 24, fontSize: 12 },
   fieldGroup: { gap: 6 },
-  fieldLabel: { color: colors.muted, fontSize: 9, letterSpacing: 0.8, fontWeight: "800", textAlign: "center" },
-  chooserButton: { minHeight: 44, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface, paddingHorizontal: 11, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 6 },
+  chooserButton: { minHeight: 46, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface, paddingHorizontal: 11, flexDirection: "row", alignItems: "center", gap: 7 },
   chooserValue: { color: colors.text, fontSize: 13, fontWeight: "600", flex: 1 },
   chooserPlaceholder: { color: colors.muted, fontWeight: "500" },
   chooserOptions: { maxHeight: 190, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface },
