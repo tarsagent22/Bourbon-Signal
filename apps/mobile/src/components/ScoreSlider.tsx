@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Keyboard, PanResponder, Pressable, StyleSheet, Text, TextInput, View, type GestureResponderEvent, type LayoutChangeEvent } from "react-native";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Keyboard, Pressable, StyleSheet, Text, TextInput, View, type GestureResponderEvent, type LayoutChangeEvent } from "react-native";
 import { colors } from "../theme";
-import { classifyScoreSliderGesture, scoreFromTrackPageX } from "./score-slider-gesture";
+import { scoreFromTrackPageX } from "./score-slider-gesture";
 
 interface ScoreSliderProps {
   value: number;
@@ -17,7 +17,6 @@ function clampScore(value: number) {
 export function ScoreSlider({ value, onChange, label = "My rating", onInteractionStart }: ScoreSliderProps) {
   const trackRef = useRef<View>(null);
   const trackBounds = useRef({ left: 0, width: 0 });
-  const [trackWidth, setTrackWidth] = useState(0);
   const score = clampScore(value);
   const [entry, setEntry] = useState((score / 10).toFixed(1));
   const editingEntry = useRef(false);
@@ -34,34 +33,24 @@ export function ScoreSlider({ value, onChange, label = "My rating", onInteractio
     const next = scoreFromTrackPageX(pageX, trackBounds.current.left, trackBounds.current.width);
     if (next !== null) onChange(next);
   }, [onChange]);
-  const setFromTap = useCallback((event: GestureResponderEvent) => {
-    if (!trackWidth) return;
-    const locationX = Math.max(0, Math.min(trackWidth, event.nativeEvent.locationX));
-    onChange(clampScore((locationX / trackWidth) * 100));
-  }, [onChange, trackWidth]);
-  const panResponder = useMemo(() => PanResponder.create({
-    onStartShouldSetPanResponder: () => false,
-    onMoveShouldSetPanResponder: (_event, gestureState) => classifyScoreSliderGesture(gestureState.dx, gestureState.dy) === "horizontal",
-    onMoveShouldSetPanResponderCapture: (_event, gestureState) => classifyScoreSliderGesture(gestureState.dx, gestureState.dy) === "horizontal",
-    onPanResponderGrant: (event) => {
-      beginInteraction();
-      setFromPageX(event.nativeEvent.pageX);
-    },
-    onPanResponderMove: (_event, gestureState) => setFromPageX(gestureState.moveX),
-    onPanResponderRelease: (_event, gestureState) => setFromPageX(gestureState.moveX),
-    onPanResponderTerminationRequest: () => false,
-  }), [beginInteraction, setFromPageX]);
+  const measureTrack = useCallback(() => {
+    trackRef.current?.measureInWindow((left, _top, width) => {
+      trackBounds.current = { left, width };
+    });
+  }, []);
+  const handleResponderGrant = (event: GestureResponderEvent) => {
+    const pageX = event.nativeEvent.pageX;
+    beginInteraction();
+    measureTrack();
+    setFromPageX(pageX);
+  };
+  const handleResponderMove = (event: GestureResponderEvent) => setFromPageX(event.nativeEvent.pageX);
+  const handleResponderRelease = (event: GestureResponderEvent) => setFromPageX(event.nativeEvent.pageX);
   const adjust = (delta: number) => {
     beginInteraction();
     onChange(clampScore(score + delta));
   };
-  const onLayout = (event: LayoutChangeEvent) => {
-    const width = event.nativeEvent.layout.width;
-    setTrackWidth(width);
-    trackRef.current?.measureInWindow((left, _top, measuredWidth) => {
-      trackBounds.current = { left, width: measuredWidth || width };
-    });
-  };
+  const onLayout = (_event: LayoutChangeEvent) => measureTrack();
   const commitEntry = () => {
     if (!editingEntry.current) return;
     editingEntry.current = false;
@@ -96,28 +85,29 @@ export function ScoreSlider({ value, onChange, label = "My rating", onInteractio
           value={entry}
         />
       </View>
-      <View {...panResponder.panHandlers} onLayout={onLayout} ref={trackRef} style={styles.touchTrack}>
-        <Pressable
-          accessible
-          accessibilityActions={[{ name: "increment", label: "Increase by 0.1" }, { name: "decrement", label: "Decrease by 0.1" }]}
-          accessibilityLabel={`${label} slider`}
-          accessibilityRole="adjustable"
-          accessibilityValue={{ min: 0, max: 10, now: score / 10, text: `${(score / 10).toFixed(1)} out of 10` }}
-          onAccessibilityAction={(event) => {
-            if (event.nativeEvent.actionName === "increment") adjust(1);
-            if (event.nativeEvent.actionName === "decrement") adjust(-1);
-          }}
-          onPress={(event) => {
-            beginInteraction();
-            setFromTap(event);
-          }}
-          style={styles.touchTrack}
-        >
-          <View style={styles.track}>
-            <View style={[styles.fill, { width: `${score}%` }]} />
-            <View style={[styles.thumb, { left: `${score}%` }]} />
-          </View>
-        </Pressable>
+      <View
+        accessible
+        accessibilityActions={[{ name: "increment", label: "Increase by 0.1" }, { name: "decrement", label: "Decrease by 0.1" }]}
+        accessibilityLabel={`${label} slider`}
+        accessibilityRole="adjustable"
+        accessibilityValue={{ min: 0, max: 10, now: score / 10, text: `${(score / 10).toFixed(1)} out of 10` }}
+        onAccessibilityAction={(event) => {
+          if (event.nativeEvent.actionName === "increment") adjust(1);
+          if (event.nativeEvent.actionName === "decrement") adjust(-1);
+        }}
+        onLayout={onLayout}
+        onResponderGrant={handleResponderGrant}
+        onResponderMove={handleResponderMove}
+        onResponderRelease={handleResponderRelease}
+        onResponderTerminationRequest={() => false}
+        onStartShouldSetResponder={() => true}
+        ref={trackRef}
+        style={styles.touchTrack}
+      >
+        <View style={styles.track}>
+          <View style={[styles.fill, { width: `${score}%` }]} />
+          <View style={[styles.thumb, { left: `${score}%` }]} />
+        </View>
       </View>
       <View style={styles.stepRow}>
         <Pressable accessibilityLabel="Decrease rating by 0.1" accessibilityRole="button" onPress={() => adjust(-1)} style={({ pressed }) => [styles.stepButton, pressed && styles.pressed]}><Text style={styles.stepText}>−0.1</Text></Pressable>
