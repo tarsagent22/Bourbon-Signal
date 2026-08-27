@@ -190,8 +190,15 @@ function strictCityHiveInventoryIsValid(signal, identity, store, sourceHostname)
   const variantId = String(signal.variantId || '');
   const reportedQuantity = Number(signal.reportedQuantity ?? signal.raw?.reportedQuantity ?? 0);
   const quantity = Number(signal.quantity || 0);
-  const option = signal.raw?.option;
-  const semantics = String(signal.inventorySemantics || '');
+  const option = signal.raw?.option || {
+    merchant_id: signal.sourceOptionMerchantId,
+    product_id: signal.sourceOptionProductId,
+    option_id: signal.sourceOptionId,
+    full_address: signal.sourceOptionAddress,
+    quantity: signal.sourceOptionQuantity,
+    product_url: signal.sourceOptionProductUrl,
+  };
+  const semantics = String(signal.sourceInventorySemantics || signal.inventorySemantics || '');
   const pathSegments = sourceUrl.pathname.split('/').filter(Boolean);
   const sourceProductId = pathSegments.at(-1) || '';
   const sourceQueryEntries = [...sourceUrl.searchParams.entries()];
@@ -216,9 +223,9 @@ function strictCityHiveInventoryIsValid(signal, identity, store, sourceHostname)
     && sourceQueryEntries[0][1] === variantId
     && sourceUrl.search === `?option-id=${encodeURIComponent(variantId)}`
     && quantityContractValid
-    && String(signal.raw?.chain || '') === identity.chain
-    && String(signal.raw?.merchantId || '') === merchantId
-    && Boolean(String(signal.raw?.product?.id || ''))
+    && String(signal.raw?.chain || signal.sourceChain || '') === identity.chain
+    && String(signal.raw?.merchantId || signal.merchantId || '') === merchantId
+    && Boolean(String(signal.raw?.product?.id || signal.productId || ''))
     && String(option?.merchant_id || '') === merchantId
     && String(option?.product_id || '') === productId
     && String(option?.option_id || '') === variantId

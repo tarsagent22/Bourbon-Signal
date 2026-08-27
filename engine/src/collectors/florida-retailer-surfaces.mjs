@@ -46,6 +46,17 @@ export const FLORIDA_STAR_LIQUORS_SOURCE = Object.freeze({
 
 export const FLORIDA_CITYHIVE_SOURCES = Object.freeze([
   {
+    id: 'airport-liquor-orlando',
+    chainName: 'Airport Liquor Orlando',
+    sourceLabel: 'Airport Liquor Orlando CityHive store inventory',
+    baseUrl: 'https://airportliquororlando.com',
+    categoryUrl: 'https://airportliquororlando.com/shop/?subtype=bourbon',
+    strictInventoryContract: true,
+    merchants: stores([
+      ['6216a15174d6aa7782aa5d81', 'Airport Liquor Orlando', '5749 T G Lee Blvd, Orlando, FL 32822, USA', 'Orlando', '32822'],
+    ]),
+  },
+  {
     id: 'my-florida-liquors',
     chainName: '1001 Liquors / My Florida Liquors',
     sourceLabel: '1001 Liquors / My Florida Liquors CityHive store inventory',

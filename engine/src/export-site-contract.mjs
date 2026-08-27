@@ -495,6 +495,14 @@ export function publicSignal(signal, bible, freshness = null) {
     sourceProductBackordered: signal.sourceProductBackordered ?? signal.raw?.product?.is_on_backorder ?? null,
     productLimitedCaveat: typeof signal.productLimitedCaveat === 'boolean' ? signal.productLimitedCaveat : null,
     variantId: signal.variantId || signal.raw?.variant?.id || signal.raw?.option?.option_id || null,
+    sourceOptionMerchantId: signal.sourceOptionMerchantId || signal.raw?.option?.merchant_id || null,
+    sourceOptionProductId: signal.sourceOptionProductId || signal.raw?.option?.product_id || null,
+    sourceOptionId: signal.sourceOptionId || signal.raw?.option?.option_id || null,
+    sourceOptionAddress: signal.sourceOptionAddress || signal.raw?.option?.full_address || null,
+    sourceOptionQuantity: Number.isFinite(Number(signal.sourceOptionQuantity ?? signal.raw?.option?.quantity))
+      ? Number(signal.sourceOptionQuantity ?? signal.raw?.option?.quantity)
+      : null,
+    sourceOptionProductUrl: signal.sourceOptionProductUrl || signal.raw?.option?.product_url || null,
     variantAvailable: typeof signal.variantAvailable === 'boolean'
       ? signal.variantAvailable
       : typeof signal.raw?.variant?.available === 'boolean'

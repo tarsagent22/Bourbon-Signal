@@ -40,10 +40,10 @@ test('Florida standalone retailer directory identities survive transient invento
 
 test('Florida CityHive registry materially expands exact-store coverage across underserved regions', () => {
   const stores = FLORIDA_CITYHIVE_SOURCES.flatMap((source) => [...source.merchants.values()].map((store) => ({ ...store, sourceId: source.id })));
-  assert.equal(FLORIDA_CITYHIVE_SOURCES.length, 11);
-  assert.equal(stores.length, 58);
+  assert.equal(FLORIDA_CITYHIVE_SOURCES.length, 12);
+  assert.equal(stores.length, 59);
   assert.equal(new Set(stores.map((store) => `${store.sourceId}:${store.id}`)).size, stores.length);
-  for (const city of ['Jacksonville', 'West Palm Beach', 'Fort Lauderdale', 'Sarasota', 'Gainesville', 'Fort Walton Beach', 'Panama City Beach', 'Destin']) {
+  for (const city of ['Orlando', 'Jacksonville', 'West Palm Beach', 'Fort Lauderdale', 'Sarasota', 'Gainesville', 'Fort Walton Beach', 'Panama City Beach', 'Destin']) {
     assert.ok(stores.some((store) => store.city === city), `missing an exact configured store in ${city}`);
   }
   for (const source of FLORIDA_CITYHIVE_SOURCES) {
@@ -55,7 +55,7 @@ test('Florida CityHive registry materially expands exact-store coverage across u
 test('configured Florida store-locator rows are useful directory evidence but never inventory alerts', () => {
   const observedAt = '2026-07-29T23:00:00.000Z';
   const signals = buildFloridaConfiguredStoreLocationSignals(observedAt);
-  assert.equal(signals.length, 58);
+  assert.equal(signals.length, 59);
   assert.ok(signals.every((signal) => signal.eventType === 'retailer_store_location'));
   assert.ok(signals.every((signal) => signal.canAlertAsInventory === false && signal.canAlertAsWatch === false));
   assert.ok(signals.every((signal) => signal.storeAddress && signal.postalCode));
