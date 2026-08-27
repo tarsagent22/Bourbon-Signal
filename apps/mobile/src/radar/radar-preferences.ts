@@ -64,6 +64,10 @@ export function watchedBottleCount(preferences: MemberPreferences) {
   return new Set([...preferences.bottleAlertPreferences.bottleKeys, ...preferences.bottleAlertPreferences.bottleNames.map(canonicalBottleKey)].filter(Boolean)).size;
 }
 
+export function radarWatchlistSummary(preferences: MemberPreferences) {
+  return preferences.alertMode === "anything_notable" ? "Anything notable" : `${watchedBottleCount(preferences)} watched`;
+}
+
 export function setBottleWatched(preferences: MemberPreferences, bottleName: string, watched: boolean) {
   const name = bottleName.trim();
   const key = canonicalBottleKey(name);
