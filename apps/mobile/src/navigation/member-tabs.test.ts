@@ -17,6 +17,13 @@ test("gives each member capability one primary home", () => {
   assert.equal(ownedFeatureHome("signal_points"), "hq");
 });
 
+test("keeps the legacy HQ route while visibly naming it Account", () => {
+  const account = MEMBER_TABS.find((tab) => tab.route === "hq");
+  assert.equal(account?.key, "hq");
+  assert.equal(account?.label, "Account");
+  assert.equal(account?.icon, "account-circle-outline");
+});
+
 test("uses a bottle, not wine glassware, for Cellar", () => {
   const cellar = MEMBER_TABS.find((tab) => tab.key === "cellar");
   assert.match(cellar?.icon || "", /bottle/i);

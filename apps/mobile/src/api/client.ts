@@ -65,6 +65,39 @@ const BOTTLE_CATALOG_SUCCESS_TTL_MS = 5 * 60 * 1000;
 const MAX_BOTTLE_CATALOG_CACHE_ENTRIES = 8;
 const bottleCatalogCache = new Map<string, { expiresAt: number; promise: Promise<RadarBottleOption[]> }>();
 
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function parseReferralSummary(payload: unknown): ReferralSummary {
+  if (!isRecord(payload) || !isRecord(payload.program) || !isRecord(payload.program.pointsByTier) || !isRecord(payload.referrals)) {
+    throw new MobileApiError("Referral rules are temporarily unavailable.", 502, "INVALID_REFERRAL_PROGRAM", true);
+  }
+  const program = payload.program;
+  const pointsByTier = program.pointsByTier as Record<string, unknown>;
+  const referrals = payload.referrals;
+  const pointKeys = ["free", "standard", "barrel", "bottled-in-bond"] as const;
+  const referralKeys = ["total", "free", "standard", "barrel", "founder"] as const;
+  const validCount = (value: unknown) => typeof value === "number" && Number.isInteger(value) && value >= 0;
+  const valid = typeof payload.code === "string"
+    && typeof payload.referralLink === "string"
+    && validCount(payload.referralPoints)
+    && validCount(program.freeAwardLimit)
+    && typeof program.upgradeAwardsDifferenceOnly === "boolean"
+    && pointKeys.every((key) => validCount(pointsByTier[key]))
+    && referralKeys.every((key) => validCount(referrals[key]));
+  if (!valid) throw new MobileApiError("Referral rules are temporarily unavailable.", 502, "INVALID_REFERRAL_PROGRAM", true);
+  return {
+    code: payload.code as string,
+    referralLink: payload.referralLink as string,
+    referralPoints: payload.referralPoints as number,
+    founderGlassesEarned: validCount(payload.founderGlassesEarned) ? payload.founderGlassesEarned as number : 0,
+    founderGlassesAwaitingAddress: validCount(payload.founderGlassesAwaitingAddress) ? payload.founderGlassesAwaitingAddress as number : 0,
+    program: payload.program as ReferralSummary["program"],
+    referrals: payload.referrals as ReferralSummary["referrals"],
+  };
+}
+
 function cacheBottleCatalog(key: string, entry: { expiresAt: number; promise: Promise<RadarBottleOption[]> }) {
   bottleCatalogCache.delete(key);
   bottleCatalogCache.set(key, entry);
@@ -239,8 +272,8 @@ export function createMobileApi({
       if (state) params.set("state", state.trim().toUpperCase());
       return request<GeographySearchResponse>(`/api/v1/geography?${params.toString()}`, { fresh });
     },
-    getReferralSummary({ fresh = false }: { fresh?: boolean } = {}) {
-      return request<ReferralSummary>("/api/referrals/me", { fresh });
+    async getReferralSummary({ fresh = false }: { fresh?: boolean } = {}) {
+      return parseReferralSummary(await request<unknown>("/api/referrals/me", { fresh }));
     },
     getSignalPoints({ fresh = false }: { fresh?: boolean } = {}) {
       return request<SignalPointsSummary>("/api/signal-points", { fresh });

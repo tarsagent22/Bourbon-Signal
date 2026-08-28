@@ -277,7 +277,7 @@ export default function AddCellarBottleScreen() {
             setPreferenceError(caught instanceof Error ? caught.message : "Your Cellar is temporarily unavailable.");
           }).finally(() => setLoading(false));
         }} /> : null}
-        {!loading && preferences && preferences.entitlements?.canUseCollection !== true ? <EmptyState title="Cellar is not included with this membership" detail="Return to HQ to review the membership recognized by the app." /> : null}
+        {!loading && preferences && preferences.entitlements?.canUseCollection !== true ? <EmptyState title="Cellar is not included with this membership" detail="Return to Account to review the membership recognized by the app." /> : null}
         {!loading && preferences?.entitlements?.canUseCollection ? <>
           <Field label="Whiskey"><TextInput
             accessibilityLabel="Search bottles"

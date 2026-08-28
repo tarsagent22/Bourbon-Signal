@@ -222,7 +222,7 @@ export default function PostScreen() {
       <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled" style={styles.scroll}>
         <View style={styles.postIntro}><Text accessibilityRole="header" style={styles.introTitle}>Post a Signal</Text><Text style={styles.introDescription}>Share bottle sightings with the community and earn points</Text></View>
         {loadingProfile ? <ActivityIndicator color={colors.accent} /> : null}
-        {!loadingProfile && profile && !canSubmit ? <MemberCard><Text style={styles.blockedTitle}>Posting is not included with this membership</Text><Text style={styles.help}>HQ shows the membership attached to this account.</Text></MemberCard> : null}
+        {!loadingProfile && profile && !canSubmit ? <MemberCard><Text style={styles.blockedTitle}>Posting is not included with this membership</Text><Text style={styles.help}>Account shows the membership attached to this account.</Text></MemberCard> : null}
         {canSubmit ? <View style={styles.composer}>
           <ComposerSection icon="bottle-tonic-outline" title="Choose a bottle" required>
             <Field autoCapitalize="words" autoCorrect={false} label="Bottle" onChangeText={changeBottleName} onFocus={() => setActivePicker("bottle")} placeholder="Search bottle catalog" value={bottleName} />

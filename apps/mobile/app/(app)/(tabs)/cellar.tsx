@@ -308,7 +308,7 @@ export default function CellarScreen() {
         </View>
         {loading && !preferences ? <LoadingState label="Opening your Cellar…" /> : null}
         {error ? <ErrorState message={error} onRetry={() => void load(true)} /> : null}
-        {preferences && !canUseCollection ? <EmptyState title="Cellar is not included with this membership" detail="HQ shows the membership recognized by the app. Saved collection data remains private without collection access." /> : null}
+        {preferences && !canUseCollection ? <EmptyState title="Cellar is not included with this membership" detail="Account shows the membership recognized by the app. Saved collection data remains private without collection access." /> : null}
         {preferences && canUseCollection ? <>
           <View style={styles.controlRow}>
             <TextInput accessibilityLabel="Search your Cellar" autoCapitalize="none" clearButtonMode="while-editing" onChangeText={setQuery} placeholder="Search your Cellar" placeholderTextColor={colors.muted} style={styles.search} value={query} />

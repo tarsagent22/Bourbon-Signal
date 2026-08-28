@@ -238,6 +238,8 @@ test("signup, Clerk, Stripe, and member API are wired to the referral service", 
   }
   assert.match(memberApi, /ensureMemberReferralCode/);
   assert.match(memberApi, /readSummary/);
+  assert.match(memberApi, /REFERRAL_PROGRAM/);
+  assert.match(memberApi, /program:\s*REFERRAL_PROGRAM/);
   assert.match(referralRedirect, /\/sign-up\?ref=/);
   assert.match(read("src/app/api/referrals/glasses/confirm/route.ts"), /confirmGlassAddress/);
   assert.match(read("src/app/api/member/shipping/route.ts"), /hasGlassRewards/);
