@@ -44,8 +44,8 @@ async function ensureSchema(sql: DatabaseQuery) {
     encrypted_payload TEXT NOT NULL,
     CONSTRAINT ohlq_worker_artifacts_digest_format CHECK (digest ~ '^[0-9a-f]{64}$')
   )`);
-  await sql.query(`CREATE INDEX IF NOT EXISTS ohlq_worker_artifacts_generated_idx
-    ON ohlq_worker_artifacts (generated_at DESC, received_at DESC)`);
+  await sql.query(`CREATE INDEX IF NOT EXISTS ohlq_worker_artifacts_generated_digest_idx
+    ON ohlq_worker_artifacts (generated_at DESC, digest ASC)`);
 }
 
 function normalizedStoredEnvelope(row: Record<string, unknown>) {
@@ -90,7 +90,7 @@ export async function storeOhlqWorkerEnvelopeInDatabase(value: unknown, options:
   const rows = inserted.length ? inserted : await sql.query(`SELECT digest, upload_id::text, generated_at, received_at, encrypted_payload
     FROM ohlq_worker_artifacts
     WHERE digest = $1 OR upload_id = $2::uuid
-    ORDER BY generated_at DESC, received_at DESC
+    ORDER BY generated_at DESC, digest ASC
     LIMIT 1`, [digest, normalized.uploadId]);
   if (!rows.length) throw new Error("OHLQ worker database artifact could not be persisted.");
   const stored = normalizedStoredEnvelope(rows[0]);
@@ -113,7 +113,7 @@ export async function readLatestOhlqWorkerEnvelopeFromDatabase(options: StoreOpt
   await ensureSchema(sql);
   const rows = await sql.query(`SELECT digest, upload_id::text, generated_at, received_at, encrypted_payload
     FROM ohlq_worker_artifacts
-    ORDER BY generated_at DESC, received_at DESC
+    ORDER BY generated_at DESC, digest ASC
     LIMIT 1`);
   if (!rows.length) return null;
   return normalizedStoredEnvelope(rows[0]);

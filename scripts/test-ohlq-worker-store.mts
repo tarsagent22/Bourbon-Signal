@@ -99,7 +99,10 @@ function memoryDatabase() {
         return row ? [row] : [];
       }
       if (/ORDER BY generated_at DESC/iu.test(text)) {
-        return [...rows.values()].sort((left, right) => String(right.generated_at).localeCompare(String(left.generated_at))).slice(0, 1);
+        return [...rows.values()].sort((left, right) => {
+          const generated = String(right.generated_at).localeCompare(String(left.generated_at));
+          return generated || String(left.digest).localeCompare(String(right.digest));
+        }).slice(0, 1);
       }
       throw new Error(`Unexpected database query in test: ${text}`);
     },
@@ -115,6 +118,22 @@ test("immutable OHLQ manifests prevent older concurrent uploads from replacing n
   const latest = await readLatestOhlqWorkerEnvelope(blob as never);
   assert.equal(latest?.generatedAt, newer.generatedAt);
   assert.equal(JSON.stringify([...blob.objects.values()]).includes("Agency 1"), false, "public blobs must remain encrypted");
+});
+
+test("Blob and database backends use the same digest tie-break for equal generated timestamps", async () => {
+  const generatedAt = new Date(Date.now() - 60_000).toISOString();
+  const first = makeEnvelope(generatedAt, "123e4567-e89b-42d3-a456-426614174021", "same-time-a");
+  const second = makeEnvelope(generatedAt, "123e4567-e89b-42d3-a456-426614174022", "same-time-b");
+  const blob = memoryBlob();
+  const database = memoryDatabase();
+  await storeOhlqWorkerEnvelope(first, blob as never);
+  await storeOhlqWorkerEnvelope(second, blob as never);
+  await storeOhlqWorkerEnvelopeInDatabase(first, { database });
+  await storeOhlqWorkerEnvelopeInDatabase(second, { database });
+  const blobLatest = await readLatestOhlqWorkerEnvelope(blob as never);
+  const databaseLatest = await readLatestOhlqWorkerEnvelopeFromDatabase({ database });
+  assert.equal(databaseLatest?.digest, blobLatest?.digest);
+  assert.equal(databaseLatest?.generatedAt, generatedAt);
 });
 
 test("one authoritative backend is selected deterministically for both reads and writes", () => {
