@@ -94,6 +94,7 @@ const ohlqTaskWrapper = expectFile('scripts/run-ohlq-worker-task.ps1');
 if (!/ConvertTo-SecureString/.test(ohlqTaskWrapper)
   || !/Local\\BourbonSignalOhlqWorker/.test(ohlqTaskWrapper)
   || !/WaitForExit\(\$TimeoutMinutes \* 60 \* 1000\)/.test(ohlqTaskWrapper)
+  || !/taskkill\.exe \/PID \$worker\.Id \/T \/F/.test(ohlqTaskWrapper)
   || !/Remove-Item Env:CRON_SECRET/.test(ohlqTaskWrapper)
   || !/ZeroFreeBSTR/.test(ohlqTaskWrapper)) {
   fail('The Windows OHLQ worker wrapper must use DPAPI, prevent overlap, enforce a runtime bound, and clear decrypted credential material.');

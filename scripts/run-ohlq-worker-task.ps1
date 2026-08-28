@@ -22,7 +22,8 @@ try {
 
   $worker = Start-Process -FilePath 'node.exe' -ArgumentList @('scripts/ohlq-persistent-worker.mjs') -WorkingDirectory $ProjectRoot -WindowStyle Hidden -PassThru
   if (-not $worker.WaitForExit($TimeoutMinutes * 60 * 1000)) {
-    Stop-Process -Id $worker.Id -Force -ErrorAction SilentlyContinue
+    & taskkill.exe /PID $worker.Id /T /F 2>$null | Out-Null
+    if (-not $worker.HasExited) { Stop-Process -Id $worker.Id -Force -ErrorAction SilentlyContinue }
     throw "OHLQ worker exceeded the bounded $TimeoutMinutes minute runtime."
   }
   if ($worker.ExitCode -ne 0) { throw "OHLQ worker failed with exit code $($worker.ExitCode)." }
