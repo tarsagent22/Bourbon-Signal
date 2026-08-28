@@ -52,6 +52,17 @@ npm run ohlq:worker
 
 A successful run validates and uploads the sanitized artifact. It consumes browser CPU, memory, and network only; it consumes no model tokens.
 
+## Unattended Windows worker
+
+The scheduled worker uses `scripts/run-ohlq-worker-task.ps1`. The wrapper:
+
+- decrypts `%LOCALAPPDATA%\BourbonSignal\ohlq-worker\worker-credential.dpapi` with Windows DPAPI into memory only;
+- prevents overlapping runs with the `Local\BourbonSignalOhlqWorker` mutex;
+- terminates a run that exceeds the configured 45-minute bound;
+- clears the credential environment and zeroes decrypted memory in `finally`.
+
+The Windows task must run this wrapper only. It must not run or publish the full engine; GitHub Actions is the sole production snapshot release lane.
+
 ## Production handoff
 
-The production refresh runs `scripts/fetch-ohlq-worker-artifact.mjs` before state collection. A targeted Ohio refresh requires a fresh authenticated artifact. Scheduled refreshes retain the existing safe cache when a fresh worker artifact is unavailable.
+The production refresh runs `scripts/fetch-ohlq-worker-artifact.mjs` before state collection. Targeted Ohio, scheduled, and full refreshes require a fresh authenticated artifact and fail closed before collection/publication when it is unavailable. Targeted non-Ohio refreshes may proceed without hydrating Ohio.

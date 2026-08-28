@@ -142,9 +142,11 @@ function sessionMayResume(existing, { scope, stages, now, ownerAlive = pidAlive 
   const activeOwner = ownerAlive(Number(existing?.lease?.pid)) === true;
   const leaseFresh = Number.isFinite(expiresAtMs) && Number.isFinite(nowMs) && expiresAtMs > nowMs;
   return {
-    resumable: !activeOwner || !leaseFresh,
-    active: activeOwner && leaseFresh,
-    reason: activeOwner && leaseFresh ? 'active_owner' : !activeOwner ? 'owner_dead' : 'lease_expired',
+    resumable: !activeOwner,
+    active: activeOwner,
+    reason: activeOwner
+      ? (leaseFresh ? 'active_owner' : 'active_owner_lease_expired')
+      : 'owner_dead',
   };
 }
 

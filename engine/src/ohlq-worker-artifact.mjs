@@ -89,10 +89,14 @@ export async function loadOhlqBrowserArtifact(options = {}) {
 
   if (!ohlqArtifactFreshEnough(browserRun, staleAfterMs, nowMs) && hydrate) {
     try {
+      const requestedMaximumAgeMs = Number(hydrateOptions.maximumAgeMs || process.env.OHLQ_WORKER_FETCH_MAX_AGE_MS || DEFAULT_MAX_AGE_MS);
+      const downloadMaximumAgeMs = Number.isFinite(requestedMaximumAgeMs) && requestedMaximumAgeMs > 0
+        ? Math.min(DEFAULT_MAX_AGE_MS, requestedMaximumAgeMs)
+        : DEFAULT_MAX_AGE_MS;
       const result = await hydrate({
-        destination: path.resolve(artifactPath),
-        maximumAgeMs: Math.max(staleAfterMs, Number(hydrateOptions.maximumAgeMs || 0) || 0),
         ...hydrateOptions,
+        destination: path.resolve(artifactPath),
+        maximumAgeMs: downloadMaximumAgeMs,
       });
       if (result?.artifact) {
         browserRun = result.artifact;

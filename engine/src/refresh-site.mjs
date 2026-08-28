@@ -220,7 +220,7 @@ async function siteDeliverySignature() {
   };
 }
 
-async function maybeDeploySite() {
+async function maybeDeploySite({ assertLease = async () => {} } = {}) {
   const signature = await siteDeliverySignature();
   const previous = await readJson(DEPLOY_STATUS, {});
   const now = new Date().toISOString();
@@ -264,6 +264,7 @@ async function maybeDeploySite() {
   const deployErrors = [];
   for (let attempt = 1; attempt <= DEPLOY_RETRIES; attempt += 1) {
     try {
+      await assertLease();
       result = await runCommand(process.execPath, [
         path.join(PROJECT_ROOT, 'scripts', 'release-production.mjs'),
         '--apply',
@@ -396,6 +397,15 @@ async function main() {
     return session;
   }
 
+  async function assertLeaseBeforeSideEffect() {
+    try {
+      return await renewLease();
+    } catch (error) {
+      error.code = 'REFRESH_LEASE_LOST';
+      throw error;
+    }
+  }
+
   async function writeRefreshStatus(payload) {
     await renewLease();
     await atomicWriteJson(STATUS, payload);
@@ -414,12 +424,27 @@ async function main() {
       status: 'running',
       now: new Date().toISOString(),
     });
+    let heartbeatFailure = null;
+    let heartbeatInFlight = Promise.resolve();
     const heartbeat = setInterval(() => {
-      renewLease().catch(() => {});
+      heartbeatInFlight = heartbeatInFlight.then(async () => {
+        try {
+          await renewLease();
+        } catch (error) {
+          error.code = 'REFRESH_LEASE_LOST';
+          heartbeatFailure ||= error;
+        }
+      });
     }, Math.max(5_000, LEASE_RENEWAL_MS));
+    async function stopHeartbeatAndAssertLease() {
+      clearInterval(heartbeat);
+      await heartbeatInFlight;
+      if (heartbeatFailure) throw heartbeatFailure;
+      await assertLeaseBeforeSideEffect();
+    }
     try {
       const detail = await action();
-      clearInterval(heartbeat);
+      await stopHeartbeatAndAssertLease();
       session = await checkpointRefreshStage({
         statePath: CONTROL_PLANE,
         leaseId: session.lease.leaseId,
@@ -431,7 +456,9 @@ async function main() {
       return detail;
     } catch (error) {
       clearInterval(heartbeat);
-      const message = error instanceof Error ? error.message : String(error);
+      await heartbeatInFlight;
+      const effectiveError = heartbeatFailure || error;
+      const message = effectiveError instanceof Error ? effectiveError.message : String(effectiveError);
       session = await checkpointRefreshStage({
         statePath: CONTROL_PLANE,
         leaseId: session.lease.leaseId,
@@ -440,11 +467,11 @@ async function main() {
         now: new Date().toISOString(),
         details: { error: message },
       }).catch(() => session);
-      if (nonBlocking) {
+      if (nonBlocking && effectiveError?.code !== 'REFRESH_LEASE_LOST') {
         warnings.push(`${stage}: ${message}`);
         return { warning: message };
       }
-      throw error;
+      throw effectiveError;
     }
   }
 
@@ -541,11 +568,12 @@ async function main() {
 
     const autoDeploy = await runStage('auto_deploy', async () => {
       try {
-        publish = await maybeDeploySite();
+        publish = await maybeDeploySite({ assertLease: assertLeaseBeforeSideEffect });
         if (publish.skipped) console.log(`Site auto-deploy skipped: ${publish.skippedReason}`);
         else console.log(`Site auto-deploy complete: ${publish.lastDeploymentUrl || 'production'}`);
         return { publish: summarizePublish(publish), warnings: [] };
       } catch (error) {
+        if (error?.code === 'REFRESH_LEASE_LOST') throw error;
         const warning = `auto-deploy: ${error.message}`;
         publish = null;
         await atomicWriteJson(DEPLOY_STATUS, {

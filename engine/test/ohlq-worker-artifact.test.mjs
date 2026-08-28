@@ -57,14 +57,20 @@ test('OHLQ loader ignores a local cooldown when worker hydration refreshes the a
     await writeFile(artifactPath, `${JSON.stringify(envelope('2026-08-27T00:00:00.000Z').artifact)}\n`, 'utf8');
     await writeFile(cooldownPath, JSON.stringify({ cooldownUntil: '2026-08-28T13:00:00.000Z', reason: 'Cloudflare backoff' }), 'utf8');
 
+    let hydrationOptions = null;
     const loaded = await loadOhlqBrowserArtifact({
       artifactPath,
       cooldownPath,
       staleAfterMs: 12 * 60 * 60_000,
       nowMs: Date.parse('2026-08-28T12:00:00.000Z'),
-      hydrate: async () => ({ artifact: fresh, hydrated: true }),
+      hydrateOptions: { maximumAgeMs: 12 * 60 * 60_000 },
+      hydrate: async (options) => {
+        hydrationOptions = options;
+        return { artifact: fresh, hydrated: true };
+      },
     });
 
+    assert.equal(hydrationOptions.maximumAgeMs, 6 * 60 * 60_000);
     assert.equal(loaded.hydrated, true);
     assert.equal(loaded.stale, false);
     assert.equal(loaded.staleReason, null);

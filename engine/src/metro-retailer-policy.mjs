@@ -74,9 +74,11 @@ function exactProductUrl(signal, source) {
     const variantId = String(signal.variantId || '');
     const productId = String(signal.productId || '');
     const itemListIdentityMode = String(signal?.raw?.productIdentityMode || '') === 'cityhive_itemlist_option_id';
+    const handle = String(signal?.productHandle || signal?.raw?.product?.handle || '').trim();
     return parts.length === 4
       && parts[0] === 'shop'
       && parts[1] === 'product'
+      && (!itemListIdentityMode || (/^[a-z0-9][a-z0-9-]*$/u.test(handle) && parts[2] === handle))
       && !url.hash
       && query.length === 1
       && query[0][0] === 'option-id'

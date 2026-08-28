@@ -73,6 +73,7 @@ function signalFor(source, row, overrides = {}) {
     sourceChain: source.id,
     merchantId: row.merchantId,
     productId: row.productId,
+    productHandle: row.handle || null,
     variantId: row.variantId,
     rawName: row.title,
     canonicalBottleId: 'buffalo-trace-bourbon',
@@ -104,6 +105,7 @@ function signalFor(source, row, overrides = {}) {
       merchantId: row.merchantId,
       reportedQuantity: row.reportedQuantity,
       productIdentityMode: row.productIdentityMode || null,
+      product: { id: row.productId, handle: row.handle || null },
     },
     ...overrides,
   };
@@ -249,6 +251,7 @@ test('CityHive ItemList fallback keeps exact store identity, dedupes duplicates,
   assert.equal(confidenceForSignal(nySignal).canAlertAsInventory, true);
   assert.equal(isMetroRetailerInventory({ ...nySignal, productId: 'forged-option-id' }), false);
   assert.equal(isMetroRetailerInventory({ ...nySignal, sourceUrl: `${nyItemListSource.baseUrl}/shop/product/buffalo-trace-bourbon/not-null?option-id=${nyRows[0].variantId}` }), false);
+  assert.equal(isMetroRetailerInventory({ ...nySignal, sourceUrl: `${nyItemListSource.baseUrl}/shop/product/forged-slug/null?option-id=${nyRows[0].variantId}` }), false);
   const forgedItemListFixture = nyItemListFixture.replaceAll(
     '/null?option-id=option-bt-750',
     '/forged-product-id?option-id=option-bt-750',

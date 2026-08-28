@@ -86,6 +86,36 @@ test('duplicate refresh dispatch is denied while the live owner lease is still c
   }
 });
 
+test('an expired lease cannot be taken over while its owner process is still alive', async () => {
+  const root = await mkdtemp(path.join(tmpdir(), 'bs-refresh-control-plane-'));
+  const statePath = path.join(root, 'refresh-control.json');
+  try {
+    const first = await acquireRefreshControlPlane({
+      statePath,
+      scope: SCOPE,
+      stages: STAGES,
+      now: '2026-08-28T12:00:00.000Z',
+      pid: 111,
+      ownerAlive: () => true,
+      leaseMs: 60_000,
+    });
+    const contender = await acquireRefreshControlPlane({
+      statePath,
+      scope: SCOPE,
+      stages: STAGES,
+      now: '2026-08-28T12:02:00.000Z',
+      pid: 222,
+      ownerAlive: () => true,
+      leaseMs: 60_000,
+    });
+    assert.equal(first.acquired, true);
+    assert.equal(contender.acquired, false);
+    assert.equal(contender.reason, 'active_owner_lease_expired');
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
 test('an expired lease is fenced and cannot overwrite the takeover session', async () => {
   const root = await mkdtemp(path.join(tmpdir(), 'bs-refresh-control-plane-'));
   const statePath = path.join(root, 'refresh-control.json');
@@ -111,7 +141,7 @@ test('an expired lease is fenced and cannot overwrite the takeover session', asy
       stages: STAGES,
       now: '2026-08-28T12:02:00.000Z',
       pid: 222,
-      ownerAlive: () => true,
+      ownerAlive: () => false,
       leaseMs: 60_000,
     });
     assert.equal(takeover.acquired, true);
@@ -197,6 +227,14 @@ test('a truncated control-plane file fails closed by starting a fresh session', 
   } finally {
     await rm(root, { recursive: true, force: true });
   }
+});
+
+test('refresh publication and heartbeat paths fail closed on lease loss', async () => {
+  const source = await readFile(new URL('../src/refresh-site.mjs', import.meta.url), 'utf8');
+  assert.match(source, /await assertLease\(\);\s*result = await runCommand\(process\.execPath/s);
+  assert.match(source, /error\.code = 'REFRESH_LEASE_LOST'/);
+  assert.match(source, /if \(error\?\.code === 'REFRESH_LEASE_LOST'\) throw error/);
+  assert.doesNotMatch(source, /renewLease\(\)\.catch\(\(\) => \{\}\)/);
 });
 
 test('completed sessions remain readable for post-run diagnostics', async () => {
