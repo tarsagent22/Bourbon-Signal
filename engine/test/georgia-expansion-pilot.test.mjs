@@ -8,14 +8,20 @@ import { calculateStateExpansionMetrics, normalizeStateCode } from '../../script
 const expectedSources = new Map([
   ['hd-wine-spirits', ['602d5a6c72b84f0c61d19281', '470 South Atlanta Street, Roswell, GA 30075']],
   ['savi-provisions-decatur', ['6930c397acb8bc7e3f5cacf9', '180 West Ponce de Leon Avenue, Decatur, GA 30030']],
+  ['roswell-liquor-store', ['67b0a26775b60028f019fc7d', '2300 Holcomb Bridge Rd, Roswell, GA 30076, USA']],
+  ['my-friends-bottle-shop', ['6060f60659a44e1d9f414fe3', '275 Memorial Dr SE a, Atlanta, GA 30312, USA']],
+  ['dekalb-package', ['614294182bffa1413867340c', '3711 N Decatur Rd, Decatur, GA 30032, USA']],
+  ['rox-fine-wine-spirits', ['67ba353e1097104c5948a0e9', '910 Peachtree Pkwy, Cumming, GA 30041, USA']],
+  ['island-spirit', ['59810379d05b4360e32fc57e', '444 Johnny Mercer Blvd, Savannah, GA 31410, USA']],
   ['beverage-city-2', ['59810308d05b4360e32fc0fe', '5370 Campbellton Fairburn Road, Fairburn, GA 30213']],
   ['supreme-international-bws', ['683f8c2b49391b4d8202146c', '1338 Veterans Memorial Highway Southwest, Mableton, GA 30126']],
   ['macs-beer-and-wine', ['629f5a1ee808aa2666f4d62d', '21 Peachtree Place Northwest, Atlanta, GA 30309']],
   ['l-and-l-liquor', ['69a064d5f52db426597c677e', '2763 Georgia 54, Peachtree City, GA 30269']],
+  ['hwy-155-package', ['62d51cb495773e3714a3a607', '3430 N McDonough Rd, Locust Grove, GA 30248, USA']],
 ]);
 
-test('Georgia expansion registers six reviewed first-party CityHive exact-store sources', () => {
-  assert.equal(GEORGIA_CITYHIVE_SOURCES.length, 17);
+test('Georgia expansion registers twelve reviewed first-party CityHive exact-store sources', () => {
+  assert.equal(GEORGIA_CITYHIVE_SOURCES.length, 23);
   for (const [sourceId, [merchantId, address]] of expectedSources) {
     const source = GEORGIA_CITYHIVE_SOURCES.find((candidate) => candidate.id === sourceId);
     assert.ok(source, `${sourceId} missing`);

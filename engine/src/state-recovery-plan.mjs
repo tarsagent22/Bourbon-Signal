@@ -1,5 +1,11 @@
 export const STATE_RECOVERY_PLAN_VERSION = 'bourbon-signal-state-recovery-v1';
 export const MAX_STATE_RECOVERY_ATTEMPTS = 2;
+const ACCEPTED_OUTPUT_RETRY_ANOMALIES = new Set([
+  'healthy_collection_publication_not_advanced',
+  'significant_drop_count_collapse',
+  'unexpected_zero_customer_visible_output',
+  'unexpected_zero_valid_output',
+]);
 
 function normalizeStateIds(values = []) {
   return [...new Set(values
@@ -8,16 +14,29 @@ function normalizeStateIds(values = []) {
     .filter((value) => /^[A-Z]{2}(?:-[A-Z0-9]+)*$/.test(value)))].sort();
 }
 
-function transientState(record) {
+function deterministicFailure(record) {
+  const evidence = [
+    record?.collection?.status,
+    record?.fallback?.reason,
+    ...(record?.anomalyCodes || []),
+  ].filter(Boolean).join(' ');
+  return /(?:validation|contract|schema|invalid|misconfig|policy_block|immutable|quality regression|deterministic_collection_failure)/iu.test(evidence);
+}
+
+function retryableState(record) {
   if (!record || record.health === 'blocked' || record.recoveryAction !== 'retry_state_collection') return false;
   if (!['degraded', 'stale_useful'].includes(record.health)) return false;
+  if ((record.anomalyCodes || []).some((code) => ACCEPTED_OUTPUT_RETRY_ANOMALIES.has(code))) return true;
+  if (record.fallback?.status && record.fallback.status !== 'none') return !deterministicFailure(record);
   const evidence = [
     record.collection?.status,
     record.fallback?.reason,
     ...(record.anomalyCodes || []),
   ].filter(Boolean).join(' ');
-  return /(?:timeout|timed out|rate.?limit|http_?(?:408|425|429|500|502|503|504)|network|econn|eai_again|enet|epipe|temporary|transient|unreachable)/iu.test(evidence)
-    && !/(?:validation|contract|schema|invalid|misconfig|policy_block|immutable|quality regression)/iu.test(evidence);
+  if (/(?:timeout|timed out|rate.?limit|http_?(?:408|425|429|500|502|503|504)|network|econn|eai_again|enet|epipe|temporary|transient|unreachable)/iu.test(evidence)) {
+    return !deterministicFailure(record);
+  }
+  return !deterministicFailure(record);
 }
 
 export function buildStateRecoveryPlan(contract, {
@@ -38,7 +57,7 @@ export function buildStateRecoveryPlan(contract, {
     const record = byState.get(state);
     if (!record) skipped.push({ state, reason: 'missing_operating_record' });
     else if (record.health === 'blocked') skipped.push({ state, reason: 'blocked_deterministic_validation' });
-    else if (!transientState(record)) skipped.push({ state, reason: 'not_transient_or_degraded' });
+    else if (!retryableState(record)) skipped.push({ state, reason: 'not_retryable_or_degraded' });
     else if (currentAttempt >= boundedMax) skipped.push({ state, reason: 'attempt_cap_reached' });
     else retryStateIds.push(state);
   }

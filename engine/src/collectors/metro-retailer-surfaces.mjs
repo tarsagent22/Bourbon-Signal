@@ -9,13 +9,13 @@ function store(id, name, merchantId, address, city, stateCode, zip) {
   return Object.freeze({ id, name, merchantId, address, city, state: stateCode, stateCode, zip });
 }
 
-function cityHiveSource({ id, chainName, baseUrl, stateCode, area, stores }) {
+function cityHiveSource({ id, chainName, baseUrl, stateCode, area, stores, inventoryMode = 'premises_quantity' }) {
   return Object.freeze({
     id,
     chainName,
     sourceLabel: `${chainName} CityHive ${area} store inventory`,
     platform: 'cityhive',
-    inventoryMode: 'premises_quantity',
+    inventoryMode,
     baseUrl,
     host: new URL(baseUrl).hostname,
     productsUrl: `${baseUrl}/shop/?subtype=Bourbon`,
@@ -154,6 +154,94 @@ export const NEW_YORK_RETAILER_SOURCES = Object.freeze([
       store('pikes-liquors:5b43c01932c489387055db3c', "Pike's Wine & Liquor", '5b43c01932c489387055db3c', '645 Hempstead Turnpike, Elmont, NY 11003', 'Elmont', 'NY', '11003'),
     ],
   }),
+  cityHiveSource({
+    id: 'turnup-nyc',
+    chainName: 'Turn Up',
+    baseUrl: 'https://turnupnyc.com',
+    stateCode: 'NY',
+    area: 'New York City',
+    inventoryMode: 'itemlist_binary',
+    stores: [
+      store('turnup-nyc:603fe01610e5b726a120c410', 'Turn Up', '603fe01610e5b726a120c410', '2171 3rd Ave, New York, NY 10035, USA', 'New York', 'NY', '10035'),
+    ],
+  }),
+  cityHiveSource({
+    id: 'greenpoint-wine-liquor',
+    chainName: 'Greenpoint Wine & Liquor',
+    baseUrl: 'https://greenpointwineandliquor.com',
+    stateCode: 'NY',
+    area: 'New York City',
+    inventoryMode: 'itemlist_binary',
+    stores: [
+      store('greenpoint-wine-liquor:60bfebe346230e7c456a0000', 'Greenpoint Wine & Liquor', '60bfebe346230e7c456a0000', '89 Nassau Ave, Brooklyn, NY 11222, USA', 'Brooklyn', 'NY', '11222'),
+    ],
+  }),
+  cityHiveSource({
+    id: 'bin70-wine',
+    chainName: 'Bin 70 Wine',
+    baseUrl: 'https://bin70wineny.com',
+    stateCode: 'NY',
+    area: 'New York City',
+    inventoryMode: 'itemlist_binary',
+    stores: [
+      store('bin70-wine:61875f5cd625d867e6b89db9', 'Bin 70 Wine', '61875f5cd625d867e6b89db9', '200 West End Ave, New York, NY 10023, USA', 'New York', 'NY', '10023'),
+    ],
+  }),
+  cityHiveSource({
+    id: 'yardsale-wines',
+    chainName: 'Yardsale Wines',
+    baseUrl: 'https://yardsalewines.com',
+    stateCode: 'NY',
+    area: 'New York City',
+    inventoryMode: 'itemlist_binary',
+    stores: [
+      store('yardsale-wines:68cad9b9bf4d8b59e104c076', 'Yardsale Wines', '68cad9b9bf4d8b59e104c076', '620 5TH AVE, BROOKLYN, NY, 11215, USA', 'Brooklyn', 'NY', '11215'),
+    ],
+  }),
+  cityHiveSource({
+    id: '7th-ave-wines',
+    chainName: '7th Ave Wine and Spirits',
+    baseUrl: 'https://7thavewines.com',
+    stateCode: 'NY',
+    area: 'New York City',
+    inventoryMode: 'itemlist_binary',
+    stores: [
+      store('7th-ave-wines:641a115e5d19eb27cf706d05', '7th Ave Wine and Spirits', '641a115e5d19eb27cf706d05', '6014 7th Ave, Brooklyn, NY 11220, USA', 'Brooklyn', 'NY', '11220'),
+    ],
+  }),
+  cityHiveSource({
+    id: 'bedford-wines',
+    chainName: 'Bedford Wine & Spirits',
+    baseUrl: 'https://bedfordspirits.com',
+    stateCode: 'NY',
+    area: 'New York City',
+    inventoryMode: 'itemlist_binary',
+    stores: [
+      store('bedford-wines:5b4d0bfe0a26f721517e80f2', 'Bedford Wine & Spirits', '5b4d0bfe0a26f721517e80f2', '101 Bedford Ave, Brooklyn, NY 11211, USA', 'Brooklyn', 'NY', '11211'),
+    ],
+  }),
+  cityHiveSource({
+    id: 'michaeltowne-wines',
+    chainName: 'Michael-Towne Wines & Spirits',
+    baseUrl: 'https://www.michaeltownewines.com',
+    stateCode: 'NY',
+    area: 'New York City',
+    inventoryMode: 'itemlist_binary',
+    stores: [
+      store('michaeltowne-wines:552597613530650003010000', 'Michael-Towne Wines & Spirits', '552597613530650003010000', '73 Clark St, Brooklyn, NY 11201, USA', 'Brooklyn', 'NY', '11201'),
+    ],
+  }),
+  cityHiveSource({
+    id: 'city-wines-ny',
+    chainName: 'City Wines',
+    baseUrl: 'https://citywinesny.com',
+    stateCode: 'NY',
+    area: 'New York City',
+    inventoryMode: 'itemlist_binary',
+    stores: [
+      store('city-wines-ny:6716b458e8f66c073d43ac0a', 'City Wines', '6716b458e8f66c073d43ac0a', '2880 Nostrand Ave, Brooklyn, NY 11229, USA', 'Brooklyn', 'NY', '11229'),
+    ],
+  }),
 ]);
 
 export const COLORADO_RETAILER_SOURCES = Object.freeze([
@@ -186,6 +274,39 @@ export const COLORADO_RETAILER_SOURCES = Object.freeze([
     area: 'Denver Metro',
     stores: [
       store('total-beverage:5aaac90bc7f3a3342acbee37', 'Total Beverage', '5aaac90bc7f3a3342acbee37', '9359 Sheridan Boulevard, Westminster, CO 80031, USA', 'Westminster', 'CO', '80031'),
+    ],
+  }),
+  cityHiveSource({
+    id: 'off-broadway-wine-spirits',
+    chainName: 'Off Broadway Wine & Spirits',
+    baseUrl: 'https://www.offbroadwaydenver.com',
+    stateCode: 'CO',
+    area: 'Denver Metro',
+    inventoryMode: 'itemlist_binary',
+    stores: [
+      store('off-broadway-wine-spirits:612ce01cdbcd727f462b4f50', 'Off Broadway Wine & Spirits', '612ce01cdbcd727f462b4f50', '51 Englewood Pkwy, Englewood, CO 80110, USA', 'Englewood', 'CO', '80110'),
+    ],
+  }),
+  cityHiveSource({
+    id: 'mayfair-liquors',
+    chainName: 'Mayfair Liquors',
+    baseUrl: 'https://mayfairliquors.com',
+    stateCode: 'CO',
+    area: 'Denver Metro',
+    inventoryMode: 'itemlist_binary',
+    stores: [
+      store('mayfair-liquors:546baa0f3932330002a80100', 'Mayfair Liquors', '546baa0f3932330002a80100', '1385 Krameria St, Denver, CO 80220, USA', 'Denver', 'CO', '80220'),
+    ],
+  }),
+  cityHiveSource({
+    id: 'heritage-wine-liquor',
+    chainName: 'Heritage Wine and Liquor',
+    baseUrl: 'https://heritagewineandliquor.com',
+    stateCode: 'CO',
+    area: 'Denver Metro',
+    inventoryMode: 'itemlist_binary',
+    stores: [
+      store('heritage-wine-liquor:600e079240fb042738f991d3', 'Heritage Wine and Liquor', '600e079240fb042738f991d3', '7475 E Arapahoe Rd, Centennial, CO 80112, USA', 'Centennial', 'CO', '80112'),
     ],
   }),
 ]);
@@ -360,16 +481,18 @@ function hasPickupOffer(...values) {
   return /\b(?:pick[\s_-]*up|store[\s_-]*pickup|in[\s_-]*store[\s_-]*pickup)\b/iu.test(text);
 }
 
-function exactProductUrl(value, source, productId, variantId) {
+function exactProductUrl(value, source, productId, variantId, { allowNullProductId = false } = {}) {
   try {
     const url = new URL(String(value || ''));
     const sourceOrigin = new URL(source.baseUrl).origin;
     if (url.protocol !== 'https:' || url.origin !== sourceOrigin || url.username || url.password || url.hash) return null;
     const parts = url.pathname.split('/').filter(Boolean);
-    if (parts.length !== 4 || parts[0] !== 'shop' || parts[1] !== 'product' || parts[3] !== productId) return null;
+    if (parts.length !== 4 || parts[0] !== 'shop' || parts[1] !== 'product') return null;
     const query = [...url.searchParams.entries()];
     if (query.length !== 1 || query[0][0] !== 'option-id' || query[0][1] !== variantId) return null;
-    return url.href;
+    if (parts[3] === productId) return url.href;
+    if (allowNullProductId && parts[3] === 'null' && productId === variantId) return url.href;
+    return null;
   } catch {
     return null;
   }
@@ -394,11 +517,23 @@ function merchantConfigurations(values) {
   return configurations;
 }
 
-function exactMerchantConfiguration(configurations, id, store) {
-  return configurations.some((entry) => {
+function exactMerchantEntry(configurations, id, store) {
+  for (const entry of configurations) {
     const merchant = entry?.merchant || entry;
-    return merchantId(merchant) === id && exactPremises(entityAddress(merchant), store);
-  });
+    if (merchantId(merchant) === id && exactPremises(entityAddress(merchant), store)) return merchant;
+  }
+  return null;
+}
+
+function exactMerchantConfiguration(configurations, id, store) {
+  return Boolean(exactMerchantEntry(configurations, id, store));
+}
+
+function merchantPickupEligible(configurations, id, store) {
+  const merchant = exactMerchantEntry(configurations, id, store);
+  if (!merchant) return false;
+  return merchant.pickup === true
+    || hasPickupOffer(merchant.offer_types, merchant.offerTypes, merchant.fulfillment);
 }
 
 function productMerchants(product) {
@@ -432,6 +567,62 @@ function productDescription(product, option) {
     display?.category,
     display?.size,
   ].map(normalizedText).filter(Boolean).join(' ');
+}
+
+function jsonLdObjects(html) {
+  const values = [];
+  for (const match of String(html || '').matchAll(/<script[^>]+type=["']application\/ld\+json["'][^>]*>([\s\S]*?)<\/script>/giu)) {
+    try { values.push(JSON.parse(match[1])); } catch { /* malformed structured data fails closed */ }
+  }
+  return values;
+}
+
+function cityHiveItemListRows(source, html, configurations) {
+  if (source.inventoryMode !== 'itemlist_binary' || source.stores.length !== 1) return [];
+  const store = source.stores[0];
+  if (!merchantPickupEligible(configurations, store.merchantId, store)) return [];
+  const rows = [];
+  const seen = new Set();
+  for (const value of jsonLdObjects(html)) {
+    if (value?.['@type'] !== 'ItemList' || !Array.isArray(value.itemListElement)) continue;
+    for (const product of value.itemListElement) {
+      if (!product || product['@type'] !== 'Product') continue;
+      const offer = Array.isArray(product.offers) ? product.offers[0] : product.offers;
+      const title = normalizedText(product.name);
+      const description = normalizedText([product.description, product.brand, product.sku, title]);
+      if (!/InStock$/iu.test(String(offer?.availability || ''))
+        || !isAllowedMetroBottle(title)
+        || !isAllowedMetroBottle(description)) continue;
+      const variantId = String(product.productID || product.sku || '').trim();
+      const productUrl = exactProductUrl(product.url || offer?.url, source, variantId, variantId, { allowNullProductId: true });
+      if (!variantId || !productUrl) continue;
+      const price = Number(offer?.price);
+      const handle = new URL(productUrl).pathname.split('/').filter(Boolean)[2] || null;
+      const key = `${store.merchantId}:${variantId}:${productUrl}`;
+      if (seen.has(key)) continue;
+      seen.add(key);
+      rows.push({
+        merchantId: store.merchantId,
+        storeId: store.id,
+        productId: variantId,
+        variantId,
+        title,
+        handle,
+        productUrl,
+        price: Number.isFinite(price) && price >= 0 ? price : null,
+        reportedQuantity: null,
+        quantity: 0,
+        quantityIsExact: false,
+        binaryAvailability: true,
+        sourceAvailabilityVerified: true,
+        pickupOfferVerified: true,
+        premisesVerified: true,
+        inventorySemantics: 'binary_retailer_orderable_no_exact_count',
+        productIdentityMode: 'cityhive_itemlist_option_id',
+      });
+    }
+  }
+  return rows;
 }
 
 export function parseMetroCityHiveHtml(html, candidateSource) {
@@ -496,7 +687,7 @@ export function parseMetroCityHiveHtml(html, candidateSource) {
       }
     }
   }
-  return rows;
+  return rows.length > 0 ? rows : cityHiveItemListRows(source, html, configurations);
 }
 
 export function verifyMetroShopifyFulfillmentPolicy(candidateSource, html) {

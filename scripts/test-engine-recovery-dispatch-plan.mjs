@@ -11,29 +11,31 @@ const watchdog = {
 };
 const headSha = 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
 
-test('suppresses the same completed full-recovery incident regardless of outcome', () => {
+test('holds the same completed full-recovery incident inside the bounded backoff window', () => {
   const first = planEngineRecovery({ watchdog, runs: [], headSha });
   assert.equal(first.dispatch, true);
   assert.match(first.incidentKey, /^[a-f0-9]{20}$/);
   const repeated = planEngineRecovery({
     watchdog,
     headSha,
+    now: '2026-07-31T04:25:00.000Z',
     runs: [{
       databaseId: 9,
       event: 'workflow_dispatch',
       status: 'completed',
       conclusion: 'success',
       headSha,
+      createdAt: '2026-07-31T04:20:00.000Z',
       displayTitle: `Inventory recovery ${first.incidentKey}`,
     }],
   });
   assert.equal(repeated.dispatch, false);
-  assert.equal(repeated.reason, 'matching_recovery_attempt');
+  assert.equal(repeated.reason, 'recovery_backoff');
 });
 
 test('allows recovery after main or the incident fingerprint changes', () => {
   const first = planEngineRecovery({ watchdog, runs: [], headSha });
-  const prior = [{ event: 'workflow_dispatch', status: 'completed', conclusion: 'failure', headSha, displayTitle: `Inventory recovery ${first.incidentKey}` }];
+  const prior = [{ event: 'workflow_dispatch', status: 'completed', conclusion: 'failure', headSha, createdAt: '2026-07-31T03:00:00.000Z', displayTitle: `Inventory recovery ${first.incidentKey}` }];
   assert.equal(planEngineRecovery({ watchdog, runs: prior, headSha: 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' }).dispatch, true);
   assert.equal(planEngineRecovery({ watchdog: { ...watchdog, failures: ['Different failure'] }, runs: prior, headSha }).dispatch, true);
 });
@@ -41,14 +43,58 @@ test('allows recovery after main or the incident fingerprint changes', () => {
 test('deduplicates a matching targeted recovery but not an unrelated full failure', () => {
   const targeted = { ...watchdog, recoveryStates: ['NC'] };
   const plan = planEngineRecovery({ watchdog: targeted, runs: [], headSha });
-  const unrelated = [{ event: 'workflow_dispatch', status: 'completed', conclusion: 'failure', headSha, displayTitle: 'Inventory recovery ffffffffffffffffffff' }];
+  const unrelated = [{ event: 'workflow_dispatch', status: 'completed', conclusion: 'failure', headSha, createdAt: '2026-07-31T03:00:00.000Z', displayTitle: 'Inventory recovery ffffffffffffffffffff' }];
   assert.equal(planEngineRecovery({ watchdog: targeted, runs: unrelated, headSha }).dispatch, true);
-  const matching = [{ ...unrelated[0], displayTitle: `Inventory recovery ${plan.incidentKey}` }];
-  assert.equal(planEngineRecovery({ watchdog: targeted, runs: matching, headSha }).dispatch, false);
+  const matching = [{ ...unrelated[0], createdAt: '2026-07-31T04:20:00.000Z', displayTitle: `Inventory recovery ${plan.incidentKey}` }];
+  const backedOff = planEngineRecovery({ watchdog: targeted, runs: matching, headSha, now: '2026-07-31T04:25:00.000Z' });
+  assert.equal(backedOff.dispatch, false);
+  assert.equal(backedOff.reason, 'recovery_backoff');
 });
 
 test('does not queue behind an already active refresh', () => {
   const plan = planEngineRecovery({ watchdog, headSha, runs: [{ event: 'schedule', status: 'in_progress', conclusion: null, headSha, displayTitle: 'Production inventory refresh' }] });
   assert.equal(plan.dispatch, false);
   assert.equal(plan.reason, 'active_refresh');
+});
+
+test('retries the same unchanged incident after the bounded backoff window', () => {
+  const first = planEngineRecovery({ watchdog, runs: [], headSha });
+  const repeated = planEngineRecovery({
+    watchdog,
+    headSha,
+    now: '2026-07-31T04:50:00.000Z',
+    runs: [{
+      databaseId: 9,
+      event: 'workflow_dispatch',
+      status: 'completed',
+      conclusion: 'failure',
+      headSha,
+      createdAt: '2026-07-31T04:20:00.000Z',
+      displayTitle: `Inventory recovery ${first.incidentKey}`,
+    }],
+  });
+  assert.equal(repeated.dispatch, true);
+  assert.equal(repeated.attempt, 2);
+  assert.equal(repeated.reason, 'recovery_needed');
+});
+
+test('opens a bounded incident circuit after repeated unchanged recovery attempts', () => {
+  const first = planEngineRecovery({ watchdog, runs: [], headSha });
+  const runs = [0, 1, 2, 3].map((index) => ({
+    databaseId: index + 1,
+    event: 'workflow_dispatch',
+    status: 'completed',
+    conclusion: 'failure',
+    headSha,
+    createdAt: `2026-07-31T0${index + 1}:00:00.000Z`,
+    displayTitle: `Inventory recovery ${first.incidentKey}`,
+  }));
+  const blocked = planEngineRecovery({
+    watchdog,
+    headSha,
+    now: '2026-07-31T04:30:00.000Z',
+    runs,
+  });
+  assert.equal(blocked.dispatch, false);
+  assert.equal(blocked.reason, 'incident_circuit_open');
 });

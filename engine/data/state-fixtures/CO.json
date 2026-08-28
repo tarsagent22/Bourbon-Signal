@@ -117,9 +117,26 @@
         "officialHost": true,
         "allowlistedHosts": [
           "bonniebraeliquor.com",
+          "heritagewineandliquor.com",
+          "mayfairliquors.com",
           "mollysspirits.com",
-          "totalbev.com"
+          "totalbev.com",
+          "www.offbroadwaydenver.com"
         ]
+      }
+    },
+    {
+      "id": "co-itemlist-binary-availability",
+      "kind": "availability_semantics",
+      "input": {
+        "sourceId": "off-broadway-wine-spirits",
+        "rawName": "Buffalo Trace Bourbon 750ml"
+      },
+      "expected": {
+        "quantity": 0,
+        "quantityIsExact": false,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "canAlertAsInventory": true
       }
     }
   ]

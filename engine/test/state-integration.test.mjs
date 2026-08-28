@@ -58,10 +58,32 @@ test('integration verifier requires executable fixtures, bound evidence, partiti
     stateDrops: { ZZ: { state: 'ZZ', count: 1, drops: [drop] } },
     drops: { drops: [drop] },
     alerts: { alerts: [{ ...drop, eligibleForDelivery: true }] },
-    locations: { locations: [{ state: 'ZZ', id: 'zz-1', address: '1 Main St, Zed, ZZ 00000' }] },
+    locations: { locations: [{ state: 'ZZ', id: 'zz-1', type: 'store', address: '1 Main St, Zed, ZZ 00000' }] },
   };
   const result = verifyStateIntegration({ state: 'ZZ', config, manifest: integrationManifest, fixtures: fixtures(), site, sourceFiles: {} });
   assert.equal(result.ok, true, result.failures.join('\n'));
+
+  const floorManifest = structuredClone(integrationManifest);
+  floorManifest.storeIdentity.expectedKnownStores = 1;
+  floorManifest.evidence.immutablePromotionEvidence.sourceConfigHash = createHash('sha256').update(JSON.stringify({
+    lifecycle: floorManifest.lifecycle,
+    collector: floorManifest.collector,
+    storeIdentity: floorManifest.storeIdentity,
+    sourceSemantics: floorManifest.sourceSemantics,
+    customerPaths: floorManifest.customerPaths,
+  })).digest('hex');
+  const floorConfig = structuredClone(config);
+  floorConfig.states.ZZ.promotionEvidence.immutableEvidence = structuredClone(floorManifest.evidence.immutablePromotionEvidence);
+  const expandedSite = structuredClone(site);
+  expandedSite.locations.locations.push({ state: 'ZZ', id: 'zz-2', type: 'store', address: '2 Main St, Zed, ZZ 00000' });
+  const expandedResult = verifyStateIntegration({ state: 'ZZ', config: floorConfig, manifest: floorManifest, fixtures: fixtures(), site: expandedSite, sourceFiles: {} });
+  assert.equal(expandedResult.ok, true, expandedResult.failures.join('\n'));
+  const collapsedSite = structuredClone(site);
+  collapsedSite.locations.locations = [];
+  assert.match(
+    verifyStateIntegration({ state: 'ZZ', config: floorConfig, manifest: floorManifest, fixtures: fixtures(), site: collapsedSite, sourceFiles: {} }).failures.join('\n'),
+    /expected at least 1 known stores/i,
+  );
 
   const prePromotionCanary = structuredClone(integrationManifest);
   delete prePromotionCanary.evidence.immutablePromotionEvidence;

@@ -122,7 +122,7 @@ test('scheduled workflow contains California retained-not-due exceptions but kee
 test('scheduled workflow isolates state verifier failures before unconditional release gates while targeted runs stay strict', async () => {
   const workflow = await readFile(new URL('../../.github/workflows/refresh-feed.yml', import.meta.url), 'utf8');
   const prepare = workflow.indexOf('scheduled-state-verification.mjs prepare');
-  const refresh = workflow.indexOf('run: npm run refresh:site');
+  const refresh = workflow.indexOf('npm run refresh:site');
   const apply = workflow.indexOf('scheduled-state-verification.mjs apply');
   const coherence = workflow.indexOf('Verify coherent site contract unconditionally');
   const integration = workflow.indexOf('Verify no unproven state promotion entered the customer path');

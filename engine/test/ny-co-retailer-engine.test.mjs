@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 
 import {
   NEW_YORK_RETAILER_SOURCES,
@@ -32,7 +33,13 @@ const nyExtensionSources = NEW_YORK_RETAILER_SOURCES.filter((source) => [
   'liquor-village-nyc',
   'pikes-liquors',
 ].includes(source.id));
+const nyItemListSource = NEW_YORK_RETAILER_SOURCES.find((source) => source.id === 'turnup-nyc');
+const nyItemListSources = NEW_YORK_RETAILER_SOURCES.filter((source) => source.inventoryMode === 'itemlist_binary');
 const coCityHive = COLORADO_RETAILER_SOURCES.find((source) => source.id === 'bonnie-brae-liquor');
+const coItemListSource = COLORADO_RETAILER_SOURCES.find((source) => source.id === 'off-broadway-wine-spirits');
+const coItemListSources = COLORADO_RETAILER_SOURCES.filter((source) => source.inventoryMode === 'itemlist_binary');
+const nyItemListFixture = readFileSync(new URL('./fixtures/metro/ny-itemlist-binary.html', import.meta.url), 'utf8');
+const coItemListFixture = readFileSync(new URL('./fixtures/metro/co-itemlist-binary.html', import.meta.url), 'utf8');
 
 function encodedPage(payload) {
   return `<script>window.__DATA__=JSON.parse(decodeURIComponent("${encodeURIComponent(JSON.stringify(payload))}"))</script>`;
@@ -66,6 +73,7 @@ function signalFor(source, row, overrides = {}) {
     sourceChain: source.id,
     merchantId: row.merchantId,
     productId: row.productId,
+    productHandle: row.handle || null,
     variantId: row.variantId,
     rawName: row.title,
     canonicalBottleId: 'buffalo-trace-bourbon',
@@ -84,13 +92,21 @@ function signalFor(source, row, overrides = {}) {
     quantity: row.quantity,
     quantityIsExact: row.quantityIsExact,
     reportedQuantity: row.reportedQuantity,
+    variantAvailable: row.binaryAvailability === true ? true : null,
     availabilityStatus: 'in_stock',
     sourceAvailabilityVerified: true,
     pickupOfferVerified: true,
     premisesVerified: true,
     observedAt: new Date().toISOString(),
     inventorySemantics: row.inventorySemantics,
-    raw: { chain: source.id, platform: source.platform, merchantId: row.merchantId, reportedQuantity: row.reportedQuantity },
+    raw: {
+      chain: source.id,
+      platform: source.platform,
+      merchantId: row.merchantId,
+      reportedQuantity: row.reportedQuantity,
+      productIdentityMode: row.productIdentityMode || null,
+      product: { id: row.productId, handle: row.handle || null },
+    },
     ...overrides,
   };
 }
@@ -107,14 +123,31 @@ test('NYC, Nassau, and Denver registries are bounded to exact first-party retail
     'crossroads-wines',
     'liquor-village-nyc',
     'pikes-liquors',
+    'turnup-nyc',
+    'greenpoint-wine-liquor',
+    'bin70-wine',
+    'yardsale-wines',
+    '7th-ave-wines',
+    'bedford-wines',
+    'michaeltowne-wines',
+    'city-wines-ny',
   ]);
-  assert.deepEqual(COLORADO_RETAILER_SOURCES.map((source) => source.id), ['bonnie-brae-liquor', 'mollys-spirits', 'total-beverage']);
+  assert.deepEqual(COLORADO_RETAILER_SOURCES.map((source) => source.id), [
+    'bonnie-brae-liquor',
+    'mollys-spirits',
+    'total-beverage',
+    'off-broadway-wine-spirits',
+    'mayfair-liquors',
+    'heritage-wine-liquor',
+  ]);
   assert.ok(NEW_YORK_RETAILER_SOURCES.every((source) => source.stateCode === 'NY' && ['New York City', 'Nassau County'].includes(source.area)));
   assert.equal(NEW_YORK_RETAILER_SOURCES.filter((source) => source.area === 'Nassau County').length, 4);
   assert.ok(NEW_YORK_RETAILER_SOURCES.filter((source) => source.platform === 'shopify').every((source) => source.inventoryMode === 'catalog_only' && source.inventoryEligible === false));
   assert.ok(COLORADO_RETAILER_SOURCES.every((source) => source.stateCode === 'CO' && source.area === 'Denver Metro'));
-  assert.equal(new Set(NEW_YORK_RETAILER_SOURCES.flatMap((source) => source.stores.map((store) => store.address))).size, 10);
-  assert.ok(new Set(COLORADO_RETAILER_SOURCES.flatMap((source) => source.stores.map((store) => store.address))).size >= 4);
+  assert.equal(nyItemListSources.length, 8);
+  assert.equal(coItemListSources.length, 3);
+  assert.equal(new Set(NEW_YORK_RETAILER_SOURCES.flatMap((source) => source.stores.map((store) => store.address))).size, 18);
+  assert.equal(new Set(COLORADO_RETAILER_SOURCES.flatMap((source) => source.stores.map((store) => store.address))).size, 7);
   for (const source of [...NEW_YORK_RETAILER_SOURCES, ...COLORADO_RETAILER_SOURCES]) {
     assert.match(source.baseUrl, /^https:\/\//);
     assert.equal(source.inventoryEligible, source.platform === 'cityhive');
@@ -201,6 +234,45 @@ test('CityHive parser requires allowlisted merchant, exact premises, pickup, pos
   assert.equal(parseMetroCityHiveHtml(encodedPage(cityHivePayload(coCityHive, { productName: 'Buffalo Trace Mini Gift Pack 12 x 50ml' })), coCityHive).length, 0);
   assert.deepEqual(normalizeMetroCityHiveQuantity(9), { reportedQuantity: 9, quantity: 9, quantityIsExact: true, binaryAvailability: false });
   assert.deepEqual(normalizeMetroCityHiveQuantity(100), { reportedQuantity: 100, quantity: 0, quantityIsExact: false, binaryAvailability: true });
+});
+
+test('CityHive ItemList fallback keeps exact store identity, dedupes duplicates, and preserves binary semantics', () => {
+  const nyRows = parseMetroCityHiveHtml(nyItemListFixture, nyItemListSource);
+  assert.equal(nyRows.length, 1);
+  assert.equal(nyRows[0].merchantId, nyItemListSource.stores[0].merchantId);
+  assert.equal(nyRows[0].productId, nyRows[0].variantId);
+  assert.equal(nyRows[0].quantity, 0);
+  assert.equal(nyRows[0].quantityIsExact, false);
+  assert.equal(nyRows[0].binaryAvailability, true);
+  assert.equal(nyRows[0].inventorySemantics, 'binary_retailer_orderable_no_exact_count');
+  assert.equal(nyRows[0].productIdentityMode, 'cityhive_itemlist_option_id');
+  const nySignal = signalFor(nyItemListSource, nyRows[0]);
+  assert.equal(isMetroRetailerInventory(nySignal), true);
+  assert.equal(confidenceForSignal(nySignal).canAlertAsInventory, true);
+  assert.equal(isMetroRetailerInventory({ ...nySignal, productId: 'forged-option-id' }), false);
+  assert.equal(isMetroRetailerInventory({ ...nySignal, sourceUrl: `${nyItemListSource.baseUrl}/shop/product/buffalo-trace-bourbon/not-null?option-id=${nyRows[0].variantId}` }), false);
+  assert.equal(isMetroRetailerInventory({ ...nySignal, sourceUrl: `${nyItemListSource.baseUrl}/shop/product/forged-slug/null?option-id=${nyRows[0].variantId}` }), false);
+  const forgedItemListFixture = nyItemListFixture.replaceAll(
+    '/null?option-id=option-bt-750',
+    '/forged-product-id?option-id=option-bt-750',
+  );
+  assert.deepEqual(
+    parseMetroCityHiveHtml(forgedItemListFixture, nyItemListSource),
+    [],
+    'ItemList fallback must reject a non-null path segment that is not the canonical product identity.',
+  );
+
+  const coRows = parseMetroCityHiveHtml(coItemListFixture, coItemListSource);
+  assert.equal(coRows.length, 1);
+  assert.equal(coRows[0].merchantId, coItemListSource.stores[0].merchantId);
+  assert.equal(coRows[0].productId, coRows[0].variantId);
+  assert.equal(coRows[0].quantity, 0);
+  assert.equal(coRows[0].quantityIsExact, false);
+  assert.equal(coRows[0].binaryAvailability, true);
+  assert.equal(coRows[0].inventorySemantics, 'binary_retailer_orderable_no_exact_count');
+  const coSignal = signalFor(coItemListSource, coRows[0]);
+  assert.equal(isMetroRetailerInventory(coSignal), true);
+  assert.equal(confidenceForSignal(coSignal).canAlertAsInventory, true);
 });
 
 test('Shopify parser remains catalog-only even when a generic same-host pickup page and available variant exist', () => {

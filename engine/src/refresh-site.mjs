@@ -1,14 +1,20 @@
-import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, readdir, rename, rm, writeFile } from 'node:fs/promises';
 import { spawn } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
 import { DEFAULT_CDP_URL, ensureBrowserCdp, killBrowserCdp } from './core/browser-session.mjs';
+import {
+  acquireRefreshControlPlane,
+  checkpointRefreshStage,
+  finishRefreshControlPlane,
+  renewRefreshControlLease,
+} from './refresh-control-plane.mjs';
 import { targetedRunNeedsBrowserCollectors } from './targeted-browser-policy.mjs';
 
 const ROOT = process.cwd();
 const PROJECT_ROOT = path.dirname(ROOT);
 const OUT = path.resolve('out');
-const LOCK = path.join(OUT, 'refresh.lock.json');
+const CONTROL_PLANE = path.join(OUT, 'control-plane', 'refresh-session.json');
 const STATUS = path.join(OUT, 'site-refresh-status.json');
 const DEPLOY_STATUS = path.join(OUT, 'site-deploy-status.json');
 const LOCK_STALE_MS = Number(process.env.BOURBON_SIGNAL_REFRESH_LOCK_STALE_MS || 25 * 60_000);
@@ -23,33 +29,56 @@ const FWGS_BROWSER_STEP_TIMEOUT_MS = Number(process.env.BOURBON_SIGNAL_FWGS_BROW
 const DEPLOY_TIMEOUT_MS = Number(process.env.BOURBON_SIGNAL_DEPLOY_TIMEOUT_MS || 45 * 60_000);
 const DEPLOY_RETRIES = Number(process.env.BOURBON_SIGNAL_DEPLOY_RETRIES || 3);
 const CDP_URL = process.env.OPENCLAW_BROWSER_CDP_URL || DEFAULT_CDP_URL;
+const LEASE_RENEWAL_MS = Number(process.env.BOURBON_SIGNAL_REFRESH_LEASE_RENEWAL_MS || 30_000);
+const CONTROL_PLANE_LEASE_MS = Math.max(
+  LOCK_STALE_MS,
+  RUN_STEP_TIMEOUT_MS + 120_000,
+  STEP_TIMEOUT_MS + 120_000,
+  FWGS_BROWSER_STEP_TIMEOUT_MS + 120_000,
+  10 * 60_000,
+);
 
 async function readJson(file, fallback = null) {
   try { return JSON.parse(await readFile(file, 'utf8')); } catch { return fallback; }
+}
+
+async function atomicWriteJson(file, value) {
+  await mkdir(path.dirname(file), { recursive: true });
+  const temporary = `${file}.${process.pid}.${Date.now()}.tmp`;
+  await writeFile(temporary, JSON.stringify(value, null, 2));
+  await rename(temporary, file);
 }
 
 function sleep(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function acquireLock() {
-  await mkdir(OUT, { recursive: true });
-  const lock = await readJson(LOCK);
-  if (lock?.startedAt) {
-    const age = Date.now() - new Date(lock.startedAt).getTime();
-    const pidAlive = lock.pid ? (() => { try { process.kill(lock.pid, 0); return true; } catch { return false; } })() : false;
-    if (pidAlive) {
-      console.log(`Another refresh appears active (pid=${lock.pid}, age=${Math.round(age / 1000)}s). Skipping.`);
-      return false;
-    }
-    console.warn(`Ignoring stale refresh lock from dead process (pid=${lock.pid}, age=${Math.round(age / 1000)}s, staleAfter=${Math.round(LOCK_STALE_MS / 1000)}s).`);
-  }
-  await writeFile(LOCK, JSON.stringify({ pid: process.pid, startedAt: new Date().toISOString() }, null, 2));
-  return true;
+function summarizeStep(step) {
+  if (!step) return null;
+  return {
+    script: step.script,
+    args: step.args,
+    code: step.code,
+    startedAt: step.startedAt,
+    finishedAt: step.finishedAt,
+  };
 }
 
-async function releaseLock() {
-  await rm(LOCK, { force: true });
+function summarizePublish(publish) {
+  if (!publish) return null;
+  return {
+    skipped: Boolean(publish.skipped),
+    skippedReason: publish.skippedReason || null,
+    changed: publish.changed ?? null,
+    eligible: publish.eligible ?? null,
+    checkedAt: publish.checkedAt || null,
+    deployedAt: publish.deployedAt || null,
+    lastDeployAt: publish.lastDeployAt || null,
+    lastDeploymentUrl: publish.lastDeploymentUrl || null,
+    siteDeliverySignature: publish.siteDeliverySignature || null,
+    userFacingDropCount: publish.userFacingDropCount ?? null,
+    alertCandidateCount: publish.alertCandidateCount ?? null,
+  };
 }
 
 function terminateProcessTree(child) {
@@ -191,7 +220,7 @@ async function siteDeliverySignature() {
   };
 }
 
-async function maybeDeploySite() {
+async function maybeDeploySite({ assertLease = async () => {} } = {}) {
   const signature = await siteDeliverySignature();
   const previous = await readJson(DEPLOY_STATUS, {});
   const now = new Date().toISOString();
@@ -218,16 +247,16 @@ async function maybeDeploySite() {
   };
 
   if (!AUTO_DEPLOY) {
-    await writeFile(DEPLOY_STATUS, JSON.stringify({ ...previous, ...base, skippedReason: 'auto_deploy_disabled' }, null, 2));
+    await atomicWriteJson(DEPLOY_STATUS, { ...previous, ...base, skippedReason: 'auto_deploy_disabled' });
     return { ...base, skipped: true, skippedReason: 'auto_deploy_disabled' };
   }
   if (!changed) {
-    await writeFile(DEPLOY_STATUS, JSON.stringify({ ...previous, ...base, skippedReason: 'site_delivery_signature_unchanged' }, null, 2));
+    await atomicWriteJson(DEPLOY_STATUS, { ...previous, ...base, skippedReason: 'site_delivery_signature_unchanged' });
     return { ...base, skipped: true, skippedReason: 'site_delivery_signature_unchanged' };
   }
   if (minutesSinceDeploy < AUTO_DEPLOY_MINUTES) {
     const skippedReason = `deploy_throttled_${Math.ceil(AUTO_DEPLOY_MINUTES - minutesSinceDeploy)}m_remaining`;
-    await writeFile(DEPLOY_STATUS, JSON.stringify({ ...previous, ...base, skippedReason }, null, 2));
+    await atomicWriteJson(DEPLOY_STATUS, { ...previous, ...base, skippedReason });
     return { ...base, skipped: true, skippedReason };
   }
 
@@ -235,6 +264,7 @@ async function maybeDeploySite() {
   const deployErrors = [];
   for (let attempt = 1; attempt <= DEPLOY_RETRIES; attempt += 1) {
     try {
+      await assertLease();
       result = await runCommand(process.execPath, [
         path.join(PROJECT_ROOT, 'scripts', 'release-production.mjs'),
         '--apply',
@@ -262,7 +292,7 @@ async function maybeDeploySite() {
     releaseOrchestrator: 'scripts/release-production.mjs',
     deploymentResult: { code: result.code, startedAt: result.startedAt, finishedAt: result.finishedAt, stdout: result.stdout.slice(-4000), stderr: result.stderr.slice(-4000) }
   };
-  await writeFile(DEPLOY_STATUS, JSON.stringify(deployed, null, 2));
+  await atomicWriteJson(DEPLOY_STATUS, deployed);
   return deployed;
 }
 
@@ -278,23 +308,189 @@ async function shouldRunBrowserCollectors() {
   return ageMs >= BROWSER_REFRESH_MINUTES * 60_000;
 }
 
+function refreshScope() {
+  return {
+    requestedStates: String(process.env.BOURBON_SIGNAL_RUN_STATES || '')
+      .split(',')
+      .map((value) => value.trim().toUpperCase())
+      .filter(Boolean)
+      .sort(),
+    autoDeploy: AUTO_DEPLOY,
+    browserRefreshMinutes: BROWSER_REFRESH_MINUTES,
+  };
+}
+
+function mergeWarnings(target, additions = []) {
+  for (const warning of additions) {
+    if (warning && !target.includes(warning)) target.push(warning);
+  }
+}
+
+function appendSteps(target, additions = []) {
+  for (const step of additions) {
+    if (step?.script) target.push(step);
+  }
+}
+
+function stageSteps(detail) {
+  return (detail?.steps || []).filter((step) => step?.script);
+}
+
+function stageWarnings(detail) {
+  return (detail?.warnings || []).filter(Boolean);
+}
+
 async function main() {
   const startedAt = new Date().toISOString();
-  const locked = await acquireLock();
-  if (!locked) return;
+  const stages = [
+    'browser_collectors',
+    'build_bible',
+    'collect_states',
+    'rare_report',
+    'location_report',
+    'operational_report',
+    'export_site',
+    'source_usefulness',
+    'store_identity',
+    'auto_deploy',
+  ];
+  const control = await acquireRefreshControlPlane({
+    statePath: CONTROL_PLANE,
+    scope: refreshScope(),
+    stages,
+    now: startedAt,
+    leaseMs: CONTROL_PLANE_LEASE_MS,
+  });
+  if (!control.acquired) {
+    const activeLease = control.session?.lease || {};
+    const age = control.session?.startedAt ? Date.now() - new Date(control.session.startedAt).getTime() : 0;
+    const pidAlive = Number.isInteger(activeLease.pid) && activeLease.pid > 0;
+    if (pidAlive) {
+      console.log(`Another refresh appears active (pid=${activeLease.pid}, age=${Math.round(age / 1000)}s). Skipping.`);
+      return false;
+    }
+  }
+  let session = control.session;
+  if (control.resumed) {
+    console.warn(`Resuming refresh control plane from interrupted run ${session.runId} at stage ${session.failedStage || 'next_pending_stage'}.`);
+  }
 
   const steps = [];
   const warnings = [];
   let publish = null;
-  let lastBrowserRefreshAt = (await readJson(STATUS))?.lastBrowserRefreshAt || null;
-  let lastBrowserAttemptAt = (await readJson(STATUS))?.lastBrowserAttemptAt || null;
+  const priorStatus = await readJson(STATUS);
+  let lastBrowserRefreshAt = session.stageResults?.browser_collectors?.details?.lastBrowserRefreshAt || priorStatus?.lastBrowserRefreshAt || null;
+  let lastBrowserAttemptAt = session.stageResults?.browser_collectors?.details?.lastBrowserAttemptAt || priorStatus?.lastBrowserAttemptAt || null;
+  appendSteps(steps, stageSteps(session.stageResults?.browser_collectors?.details));
+  mergeWarnings(warnings, stageWarnings(session.stageResults?.browser_collectors?.details));
+  mergeWarnings(warnings, stageWarnings(session.stageResults?.source_usefulness?.details));
+  mergeWarnings(warnings, stageWarnings(session.stageResults?.auto_deploy?.details));
+  publish = session.stageResults?.auto_deploy?.details?.publish || null;
+
+  async function renewLease() {
+    session = await renewRefreshControlLease({
+      statePath: CONTROL_PLANE,
+      leaseId: session.lease.leaseId,
+      now: new Date().toISOString(),
+      leaseMs: CONTROL_PLANE_LEASE_MS,
+    });
+    return session;
+  }
+
+  async function assertLeaseBeforeSideEffect() {
+    try {
+      return await renewLease();
+    } catch (error) {
+      error.code = 'REFRESH_LEASE_LOST';
+      throw error;
+    }
+  }
+
+  async function writeRefreshStatus(payload) {
+    await renewLease();
+    await atomicWriteJson(STATUS, payload);
+  }
+
+  async function runStage(stage, action, { nonBlocking = false } = {}) {
+    const prior = session.stageResults?.[stage]?.details || null;
+    if ((session.completedStages || []).includes(stage)) {
+      console.log(`Refresh control plane preserved completed stage ${stage}; resuming after interruption.`);
+      return prior;
+    }
+    session = await checkpointRefreshStage({
+      statePath: CONTROL_PLANE,
+      leaseId: session.lease.leaseId,
+      stage,
+      status: 'running',
+      now: new Date().toISOString(),
+    });
+    let heartbeatFailure = null;
+    let heartbeatInFlight = Promise.resolve();
+    const heartbeat = setInterval(() => {
+      heartbeatInFlight = heartbeatInFlight.then(async () => {
+        try {
+          await renewLease();
+        } catch (error) {
+          error.code = 'REFRESH_LEASE_LOST';
+          heartbeatFailure ||= error;
+        }
+      });
+    }, Math.max(5_000, LEASE_RENEWAL_MS));
+    async function stopHeartbeatAndAssertLease() {
+      clearInterval(heartbeat);
+      await heartbeatInFlight;
+      if (heartbeatFailure) throw heartbeatFailure;
+      await assertLeaseBeforeSideEffect();
+    }
+    try {
+      const detail = await action();
+      await stopHeartbeatAndAssertLease();
+      session = await checkpointRefreshStage({
+        statePath: CONTROL_PLANE,
+        leaseId: session.lease.leaseId,
+        stage,
+        status: detail?.skipped ? 'skipped' : 'completed',
+        now: new Date().toISOString(),
+        details: detail,
+      });
+      return detail;
+    } catch (error) {
+      clearInterval(heartbeat);
+      await heartbeatInFlight;
+      const effectiveError = heartbeatFailure || error;
+      const message = effectiveError instanceof Error ? effectiveError.message : String(effectiveError);
+      session = await checkpointRefreshStage({
+        statePath: CONTROL_PLANE,
+        leaseId: session.lease.leaseId,
+        stage,
+        status: 'failed',
+        now: new Date().toISOString(),
+        details: { error: message },
+      }).catch(() => session);
+      if (nonBlocking && effectiveError?.code !== 'REFRESH_LEASE_LOST') {
+        warnings.push(`${stage}: ${message}`);
+        return { warning: message };
+      }
+      throw effectiveError;
+    }
+  }
 
   try {
-    if (await shouldRunBrowserCollectors()) {
-      // Browser-assisted sources are heavier and can take longer than the base run. Refresh them on a
-      // controlled cadence, then each base run folds the newest complete artifacts into the site export.
+    const browserDetail = await runStage('browser_collectors', async () => {
+      if (!(await shouldRunBrowserCollectors())) {
+        return {
+          skipped: true,
+          reason: 'browser_refresh_not_due',
+          lastBrowserRefreshAt,
+          lastBrowserAttemptAt,
+          warnings: [],
+          steps: [],
+        };
+      }
       let browserOk = false;
       let browserOwner = null;
+      const browserWarnings = [];
+      const browserSteps = [];
       lastBrowserAttemptAt = new Date().toISOString();
       try {
         browserOwner = await ensureBrowserCdp(CDP_URL);
@@ -302,61 +498,100 @@ async function main() {
           ? ['src/fwgs-browser-full.mjs']
           : ['src/ohlq-browser-collector.mjs', 'src/fwgs-browser-full.mjs'];
         if (browserOwner.started) {
-          warnings.push('OHLQ browser collector skipped on scheduled headless Chrome because OHLQ Cloudflare requires an already-warmed interactive browser session; last known OHLQ artifact/snapshot remains in use.');
+          browserWarnings.push('OHLQ browser collector skipped on scheduled headless Chrome because OHLQ Cloudflare requires an already-warmed interactive browser session; last known OHLQ artifact/snapshot remains in use.');
         }
         for (const script of browserScripts) {
           try {
             const timeoutMs = script.includes('fwgs-browser-full') ? FWGS_BROWSER_STEP_TIMEOUT_MS : BROWSER_STEP_TIMEOUT_MS;
-            steps.push(await runNode(script, [], { timeoutMs }));
+            browserSteps.push(summarizeStep(await runNode(script, [], { timeoutMs })));
             if (script.includes('fwgs-browser-full')) browserOk = true;
           } catch (error) {
-            warnings.push(`${script}: ${error.message}`);
-            if (error.result) steps.push(error.result);
+            browserWarnings.push(`${script}: ${error.message}`);
+            if (error.result) browserSteps.push(summarizeStep(error.result));
             console.warn(`Browser-assisted collector skipped/failed; continuing with last artifact: ${script}: ${error.message}`);
           }
         }
       } catch (error) {
-        warnings.push(`browser-cdp: ${error.message}`);
+        browserWarnings.push(`browser-cdp: ${error.message}`);
         console.warn(`Browser-assisted collectors skipped; continuing with last artifacts: ${error.message}`);
       } finally {
         await killBrowserCdp(browserOwner);
       }
       if (browserOk) lastBrowserRefreshAt = new Date().toISOString();
-    }
+      return {
+        skipped: false,
+        lastBrowserRefreshAt,
+        lastBrowserAttemptAt,
+        warnings: browserWarnings,
+        steps: browserSteps,
+      };
+    });
+    appendSteps(steps, stageSteps(browserDetail));
+    mergeWarnings(warnings, stageWarnings(browserDetail));
+    lastBrowserRefreshAt = browserDetail?.lastBrowserRefreshAt || lastBrowserRefreshAt;
+    lastBrowserAttemptAt = browserDetail?.lastBrowserAttemptAt || lastBrowserAttemptAt;
 
-    steps.push(await runNode('src/build-bible.mjs'));
-    steps.push(await runNode('src/run.mjs', [], { timeoutMs: RUN_STEP_TIMEOUT_MS }));
-    steps.push(await runNode('src/rare-report.mjs'));
-    steps.push(await runNode('src/location-report.mjs'));
-    steps.push(await runNode('src/operational-report.mjs'));
-    steps.push(await runNode('src/export-site-contract.mjs'));
-    try {
-      steps.push(await runNode('src/source-usefulness-report.mjs'));
-    } catch (error) {
-      warnings.push(`source-usefulness-report: ${error.message}`);
-      if (error.result) steps.push(error.result);
-      console.warn(`Source usefulness diagnostics failed non-blocking: ${error.message}`);
-    }
-    steps.push(await runNode('src/build-store-identity.mjs'));
+    const buildBible = await runStage('build_bible', async () => ({ step: summarizeStep(await runNode('src/build-bible.mjs')) }));
+    appendSteps(steps, [buildBible?.step]);
 
-    try {
-      publish = await maybeDeploySite();
-      if (publish.skipped) console.log(`Site auto-deploy skipped: ${publish.skippedReason}`);
-      else console.log(`Site auto-deploy complete: ${publish.lastDeploymentUrl || 'production'}`);
-    } catch (error) {
-      warnings.push(`auto-deploy: ${error.message}`);
-      await writeFile(DEPLOY_STATUS, JSON.stringify({
-        autoDeploy: AUTO_DEPLOY,
-        ok: false,
-        checkedAt: new Date().toISOString(),
-        error: error.message,
-        failed: error.result || null
-      }, null, 2));
-      console.warn(`Site auto-deploy failed; refresh data remains local: ${error.message}`);
-    }
+    const collectStates = await runStage('collect_states', async () => ({ step: summarizeStep(await runNode('src/run.mjs', [], { timeoutMs: RUN_STEP_TIMEOUT_MS })) }));
+    appendSteps(steps, [collectStates?.step]);
+
+    const rareReport = await runStage('rare_report', async () => ({ step: summarizeStep(await runNode('src/rare-report.mjs')) }));
+    appendSteps(steps, [rareReport?.step]);
+
+    const locationReport = await runStage('location_report', async () => ({ step: summarizeStep(await runNode('src/location-report.mjs')) }));
+    appendSteps(steps, [locationReport?.step]);
+
+    const operationalReport = await runStage('operational_report', async () => ({ step: summarizeStep(await runNode('src/operational-report.mjs')) }));
+    appendSteps(steps, [operationalReport?.step]);
+
+    const exportSite = await runStage('export_site', async () => ({ step: summarizeStep(await runNode('src/export-site-contract.mjs')) }));
+    appendSteps(steps, [exportSite?.step]);
+
+    const sourceUsefulness = await runStage('source_usefulness', async () => {
+      try {
+        return { step: summarizeStep(await runNode('src/source-usefulness-report.mjs')), warnings: [] };
+      } catch (error) {
+        const step = error.result ? summarizeStep(error.result) : null;
+        const warning = `source-usefulness-report: ${error.message}`;
+        warnings.push(warning);
+        console.warn(`Source usefulness diagnostics failed non-blocking: ${error.message}`);
+        return { step, warnings: [warning] };
+      }
+    });
+    appendSteps(steps, [sourceUsefulness?.step]);
+    mergeWarnings(warnings, stageWarnings(sourceUsefulness));
+
+    const storeIdentity = await runStage('store_identity', async () => ({ step: summarizeStep(await runNode('src/build-store-identity.mjs')) }));
+    appendSteps(steps, [storeIdentity?.step]);
+
+    const autoDeploy = await runStage('auto_deploy', async () => {
+      try {
+        publish = await maybeDeploySite({ assertLease: assertLeaseBeforeSideEffect });
+        if (publish.skipped) console.log(`Site auto-deploy skipped: ${publish.skippedReason}`);
+        else console.log(`Site auto-deploy complete: ${publish.lastDeploymentUrl || 'production'}`);
+        return { publish: summarizePublish(publish), warnings: [] };
+      } catch (error) {
+        if (error?.code === 'REFRESH_LEASE_LOST') throw error;
+        const warning = `auto-deploy: ${error.message}`;
+        publish = null;
+        await atomicWriteJson(DEPLOY_STATUS, {
+          autoDeploy: AUTO_DEPLOY,
+          ok: false,
+          checkedAt: new Date().toISOString(),
+          error: error.message,
+          failed: error.result || null,
+        });
+        console.warn(`Site auto-deploy failed; refresh data remains local: ${error.message}`);
+        return { publish: null, warnings: [warning], failed: true };
+      }
+    });
+    publish = autoDeploy?.publish || publish;
+    mergeWarnings(warnings, stageWarnings(autoDeploy));
 
     const finishedAt = new Date().toISOString();
-    await writeFile(STATUS, JSON.stringify({
+    await writeRefreshStatus({
       ok: true,
       startedAt,
       finishedAt,
@@ -368,31 +603,51 @@ async function main() {
       lastBrowserAttemptAt,
       publish,
       warnings,
-      steps: steps.map((s) => ({ script: s.script, args: s.args, code: s.code, startedAt: s.startedAt, finishedAt: s.finishedAt }))
-    }, null, 2));
+      resumed: control.resumed,
+      refreshControlPlane: { statePath: path.relative(ROOT, CONTROL_PLANE).replaceAll('\\', '/'), runId: session.runId, leaseId: session.lease.leaseId },
+      steps,
+    });
+    session = await finishRefreshControlPlane({
+      statePath: CONTROL_PLANE,
+      leaseId: session.lease.leaseId,
+      status: 'succeeded',
+      now: finishedAt,
+      details: { warnings: warnings.length, steps: steps.length, publish },
+    });
     console.log(`Bourbon Signal refresh complete: ${startedAt} -> ${finishedAt}`);
   } catch (error) {
     const finishedAt = new Date().toISOString();
     const failed = error.result || null;
-    await writeFile(STATUS, JSON.stringify({
-      ok: false,
-      startedAt,
-      finishedAt,
-      cadenceMinutes: REFRESH_CADENCE_MINUTES,
-      browserRefreshMinutes: BROWSER_REFRESH_MINUTES,
-      autoDeploy: AUTO_DEPLOY,
-      autoDeployMinutes: AUTO_DEPLOY_MINUTES,
-      lastBrowserRefreshAt,
-      lastBrowserAttemptAt,
-      publish,
-      error: error.message,
-      warnings,
-      failed,
-      steps: steps.map((s) => ({ script: s.script, args: s.args, code: s.code, startedAt: s.startedAt, finishedAt: s.finishedAt }))
-    }, null, 2));
+    try {
+      await writeRefreshStatus({
+        ok: false,
+        startedAt,
+        finishedAt,
+        cadenceMinutes: REFRESH_CADENCE_MINUTES,
+        browserRefreshMinutes: BROWSER_REFRESH_MINUTES,
+        autoDeploy: AUTO_DEPLOY,
+        autoDeployMinutes: AUTO_DEPLOY_MINUTES,
+        lastBrowserRefreshAt,
+        lastBrowserAttemptAt,
+        publish,
+        error: error.message,
+        warnings,
+        failed,
+        resumed: control.resumed,
+        refreshControlPlane: { statePath: path.relative(ROOT, CONTROL_PLANE).replaceAll('\\', '/'), runId: session.runId, leaseId: session.lease.leaseId, failedStage: session.failedStage || null },
+        steps,
+      });
+    } catch (statusError) {
+      console.warn(`Refresh status update skipped after lease fencing: ${statusError.message}`);
+    }
+    await finishRefreshControlPlane({
+      statePath: CONTROL_PLANE,
+      leaseId: session.lease.leaseId,
+      status: 'failed',
+      now: finishedAt,
+      details: { error: error.message, failedStage: session.failedStage || null },
+    }).catch(() => {});
     throw error;
-  } finally {
-    await releaseLock();
   }
 }
 

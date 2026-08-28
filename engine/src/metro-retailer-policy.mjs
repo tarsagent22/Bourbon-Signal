@@ -71,14 +71,22 @@ function exactProductUrl(signal, source) {
   if (source.platform === 'cityhive') {
     const parts = url.pathname.split('/').filter(Boolean);
     const query = [...url.searchParams.entries()];
+    const variantId = String(signal.variantId || '');
+    const productId = String(signal.productId || '');
+    const itemListIdentityMode = String(signal?.raw?.productIdentityMode || '') === 'cityhive_itemlist_option_id';
+    const handle = String(signal?.productHandle || signal?.raw?.product?.handle || '').trim();
     return parts.length === 4
       && parts[0] === 'shop'
       && parts[1] === 'product'
-      && parts[3] === String(signal.productId || '')
+      && (!itemListIdentityMode || (/^[a-z0-9][a-z0-9-]*$/u.test(handle) && parts[2] === handle))
       && !url.hash
       && query.length === 1
       && query[0][0] === 'option-id'
-      && query[0][1] === String(signal.variantId || '');
+      && query[0][1] === variantId
+      && (
+        parts[3] === productId
+        || (itemListIdentityMode && parts[3] === 'null' && productId === variantId)
+      );
   }
   const handle = String(signal?.productHandle || signal?.raw?.product?.handle || '').trim();
   if (!handle || url.search || url.hash || !/^\/products\/[a-z0-9][a-z0-9-]*$/u.test(url.pathname)) return false;

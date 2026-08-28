@@ -23,7 +23,7 @@ test('recovery planning targets only requested transient degraded states', () =>
   assert.deepEqual(plan.retryStateIds, ['AA', 'BB']);
   assert.deepEqual(plan.skipped, [
     { state: 'CC', reason: 'blocked_deterministic_validation' },
-    { state: 'DD', reason: 'not_transient_or_degraded' },
+    { state: 'DD', reason: 'not_retryable_or_degraded' },
   ]);
   assert.equal(plan.nextAttempt, 1);
   assert.equal(plan.maxAttempts, 2);
@@ -36,12 +36,12 @@ test('recovery attempts are capped at two and cannot be raised by callers', () =
   assert.equal(plan.maxAttempts, 2);
 });
 
-test('stale fallback without explicit transient evidence is not automatically retried', () => {
+test('retry_state_collection remains authoritative even when the fallback reason is generic', () => {
   const ambiguous = structuredClone(contract);
   ambiguous.states.find((state) => state.state === 'BB').fallback.reason = 'scheduled verifier failed';
   const plan = buildStateRecoveryPlan(ambiguous, { failedStateIds: ['BB'], attempt: 0 });
-  assert.deepEqual(plan.retryStateIds, []);
-  assert.deepEqual(plan.skipped, [{ state: 'BB', reason: 'not_transient_or_degraded' }]);
+  assert.deepEqual(plan.retryStateIds, ['BB']);
+  assert.deepEqual(plan.skipped, []);
 });
 
 test('an empty scheduled verifier ledger does not suppress operating-contract recovery targets', async (t) => {
@@ -60,6 +60,45 @@ test('an empty scheduled verifier ledger does not suppress operating-contract re
 
   assert.deepEqual(plan.requestedStateIds, ['AA', 'BB']);
   assert.deepEqual(plan.retryStateIds, ['AA', 'BB']);
+});
+
+test('scheduled verifier failures are unioned with the operating-contract retry set', async (t) => {
+  const root = await mkdtemp(path.join(os.tmpdir(), 'bs-state-recovery-plan-'));
+  t.after(() => rm(root, { recursive: true, force: true }));
+  const contractPath = path.join(root, 'state-health.json');
+  const ledgerPath = path.join(root, 'scheduled-state-verification.json');
+  const unionContract = {
+    ...contract,
+    summary: { retryStateIds: ['AA'] },
+    states: [
+      ...contract.states,
+      { state: 'EE', health: 'degraded', recoveryAction: 'retry_state_collection', collection: { status: 'failed_timeout' } },
+    ],
+  };
+  await writeFile(contractPath, JSON.stringify(unionContract));
+  await writeFile(ledgerPath, JSON.stringify({ failures: [{ states: ['EE'] }] }));
+
+  const plan = await runStateRecoveryPlanner([
+    `--contract=${contractPath}`,
+    `--verification-ledger=${ledgerPath}`,
+    '--attempt=0',
+  ]);
+
+  assert.deepEqual(plan.requestedStateIds, ['AA', 'EE']);
+  assert.deepEqual(plan.retryStateIds, ['AA', 'EE']);
+});
+
+test('accepted output with a zero-customer anomaly is still retryable even without transient collector text', () => {
+  const anomalyOnly = {
+    ...contract,
+    summary: { retryStateIds: ['BB'] },
+    states: [
+      { state: 'BB', health: 'degraded', recoveryAction: 'retry_state_collection', collection: { status: 'useful' }, anomalyCodes: ['unexpected_zero_customer_visible_output'], fallback: { status: 'none', reason: null } },
+    ],
+  };
+  const plan = buildStateRecoveryPlan(anomalyOnly, { failedStateIds: ['BB'], attempt: 0 });
+  assert.deepEqual(plan.retryStateIds, ['BB']);
+  assert.deepEqual(plan.skipped, []);
 });
 
 test('the shared refresh workflow plans recovery after fallback and dispatches one state-only run after production verification', async () => {

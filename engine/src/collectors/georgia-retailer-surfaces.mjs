@@ -65,6 +65,21 @@ export const GEORGIA_CITYHIVE_SOURCES = [
     merchants: new Map([merchant('6506025f502fc12b96c451f1', 'OLD MILTON BEVERAGE', '4045 Old Milton Pkwy, Alpharetta, GA 30022, USA', 'Alpharetta', '30022')]),
   },
   {
+    id: 'roswell-liquor-store', chainName: 'Roswell Liquor Store', sourceLabel: 'Roswell Liquor Store CityHive store inventory',
+    baseUrl: 'https://roswellliquorstore.com', categoryUrl: 'https://roswellliquorstore.com/shop/?subtype=Bourbon',
+    merchants: new Map([merchant('67b0a26775b60028f019fc7d', 'Roswell Liquor Store', '2300 Holcomb Bridge Rd, Roswell, GA 30076, USA', 'Roswell', '30076')]),
+  },
+  {
+    id: 'my-friends-bottle-shop', chainName: "My Friend's Bottle Shop", sourceLabel: "My Friend's Bottle Shop CityHive store inventory",
+    baseUrl: 'https://myfriendsbottleshop.com', categoryUrl: 'https://myfriendsbottleshop.com/shop/?category=spirits&basic-category=bourbon',
+    merchants: new Map([merchant('6060f60659a44e1d9f414fe3', "My Friend's Bottle Shop", '275 Memorial Dr SE a, Atlanta, GA 30312, USA', 'Atlanta', '30312')]),
+  },
+  {
+    id: 'dekalb-package', chainName: 'Dekalb Package', sourceLabel: 'Dekalb Package CityHive store inventory',
+    baseUrl: 'https://dekalbpackage.com', categoryUrl: 'https://dekalbpackage.com/shop/?subtype=Bourbon',
+    merchants: new Map([merchant('614294182bffa1413867340c', 'Dekalb Package', '3711 N Decatur Rd, Decatur, GA 30032, USA', 'Decatur', '30032')]),
+  },
+  {
     id: 'vip-package-store', chainName: 'VIP Package Store', sourceLabel: 'VIP Package Store CityHive store inventory',
     baseUrl: 'https://vipliquoratl.com', categoryUrl: 'https://vipliquoratl.com/shop/?subtype=Bourbon',
     merchants: new Map([merchant('598102d9d05b4360e32fbf16', 'VIP Package Store', '5005 Snapfinger Woods Dr, Decatur, GA 30035, USA', 'Decatur', '30035')]),
@@ -78,6 +93,16 @@ export const GEORGIA_CITYHIVE_SOURCES = [
     id: 'savi-provisions-decatur', chainName: 'MSD LLC Decatur GA', sourceLabel: 'MSD LLC Decatur GA CityHive store inventory',
     baseUrl: 'https://shopsaviprovisionsdecatur.com', categoryUrl: 'https://shopsaviprovisionsdecatur.com/shop/?subtype=Bourbon',
     merchants: new Map([merchant('6930c397acb8bc7e3f5cacf9', 'MSD LLC Decatur GA', '180 West Ponce de Leon Avenue, Decatur, GA 30030', 'Decatur', '30030')]),
+  },
+  {
+    id: 'rox-fine-wine-spirits', chainName: 'Rox Fine Wine & Spirits', sourceLabel: 'Rox Fine Wine & Spirits CityHive store inventory',
+    baseUrl: 'https://roxliquor.com', categoryUrl: 'https://roxliquor.com/shop/?subtype=Bourbon',
+    merchants: new Map([merchant('67ba353e1097104c5948a0e9', 'Rox Fine Wine & Spirits', '910 Peachtree Pkwy, Cumming, GA 30041, USA', 'Cumming', '30041')]),
+  },
+  {
+    id: 'island-spirit', chainName: 'Island Spirit', sourceLabel: 'Island Spirit CityHive store inventory',
+    baseUrl: 'https://islandspiritsav.com', categoryUrl: 'https://islandspiritsav.com/shop/?subtype=Bourbon',
+    merchants: new Map([merchant('59810379d05b4360e32fc57e', 'Island Spirit', '444 Johnny Mercer Blvd, Savannah, GA 31410, USA', 'Savannah', '31410')]),
   },
   {
     id: 'beverage-city-2', chainName: 'Beverage City 2', sourceLabel: 'Beverage City 2 CityHive store inventory',
@@ -98,6 +123,11 @@ export const GEORGIA_CITYHIVE_SOURCES = [
     id: 'l-and-l-liquor', chainName: 'L&L Liquor', sourceLabel: 'L&L Liquor CityHive store inventory',
     baseUrl: 'https://landlliquor.com', categoryUrl: 'https://landlliquor.com/shop/?subtype=Bourbon',
     merchants: new Map([merchant('69a064d5f52db426597c677e', 'L&L Liquor', '2763 Georgia 54, Peachtree City, GA 30269', 'Peachtree City', '30269')]),
+  },
+  {
+    id: 'hwy-155-package', chainName: 'Hwy 155 Package', sourceLabel: 'Hwy 155 Package CityHive store inventory',
+    baseUrl: 'https://hwy155package.com', categoryUrl: 'https://hwy155package.com/shop/?subtype=Bourbon',
+    merchants: new Map([merchant('62d51cb495773e3714a3a607', 'Hwy 155 Package', '3430 N McDonough Rd, Locust Grove, GA 30248, USA', 'Locust Grove', '30248')]),
   },
 ];
 

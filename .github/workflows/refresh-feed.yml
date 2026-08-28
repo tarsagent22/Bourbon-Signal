@@ -154,6 +154,7 @@ jobs:
         env:
           OHLQ_WORKER_ARTIFACT_SECRET: ${{ secrets.OHLQ_WORKER_ARTIFACT_SECRET }}
           OHLQ_WORKER_TARGET_STATES: ${{ inputs.states || '' }}
+          OHLQ_WORKER_ARTIFACT_REQUIRED: ${{ (!inputs.states || contains(inputs.states, 'OH')) && '1' || '0' }}
         run: node scripts/fetch-ohlq-worker-artifact.mjs
 
       - name: Refresh North Carolina official board and store directory
@@ -189,7 +190,21 @@ jobs:
           SC_CITYHIVE_DEV_PUBLIC_API_KEY: ${{ secrets.SC_CITYHIVE_DEV_PUBLIC_API_KEY }}
           SC_CITYHIVE_MOSS_CREEK_PUBLIC_API_KEY: ${{ secrets.SC_CITYHIVE_MOSS_CREEK_PUBLIC_API_KEY }}
           SC_CITYHIVE_ROLLERS_PUBLIC_API_KEY: ${{ secrets.SC_CITYHIVE_ROLLERS_PUBLIC_API_KEY }}
-        run: npm run refresh:site
+        run: |
+          set +e
+          status=1
+          for attempt in 1 2; do
+            npm run refresh:site
+            status=$?
+            if [ "$status" -eq 0 ]; then
+              exit 0
+            fi
+            if [ "$attempt" -eq 1 ]; then
+              echo "Refresh attempt failed with status $status; retrying once on the same runner from validated checkpoints."
+              sleep 15
+            fi
+          done
+          exit "$status"
 
       - name: Verify North Carolina scheduled continuity or isolate a safe partial fallback
         if: ${{ !inputs.states }}
@@ -476,6 +491,7 @@ jobs:
             engine/out/source-usefulness-roi.json
             engine/out/source-usefulness-roi.md
             engine/out/nc-board-intelligence.json
+            engine/out/control-plane/**
             engine/out/site/stats.json
             engine/out/site/state-health.json
             engine/out/optimization/source-run-history.json

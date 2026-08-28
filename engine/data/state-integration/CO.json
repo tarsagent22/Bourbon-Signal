@@ -11,9 +11,12 @@
     "sourceIds": [
       "metro:co:bonnie-brae-liquor",
       "metro:co:mollys-spirits",
-      "metro:co:total-beverage"
+      "metro:co:total-beverage",
+      "metro:co:off-broadway-wine-spirits",
+      "metro:co:mayfair-liquors",
+      "metro:co:heritage-wine-liquor"
     ],
-    "registration": "engine/src/state-sources.mjs and engine/src/collectors/precision-probes.mjs register three bounded, isolated Denver Metro CityHive sources behind the legacy precision runtime."
+    "registration": "engine/src/state-sources.mjs and engine/src/collectors/precision-probes.mjs register six bounded, isolated Denver Metro CityHive sources behind the legacy precision runtime."
   },
   "storeIdentity": {
     "mode": "exact_allowlisted_merchant_and_premises",
@@ -81,6 +84,24 @@
       "url": null,
       "assertion": "This manifest documents implemented engine contracts only and does not claim production deployment.",
       "reason": "Production promotion and website wiring were outside the authorized engine-only scope."
+    },
+    "sourceExtension": {
+      "classification": "active_state_source_extension",
+      "activationSourceConfigHash": "8da37e44f93fbec7c3cf86cbfa33e78f4b092134d7416dd0cd6bd6ad6c84456b",
+      "activationCollector": {
+        "sourceIds": [
+          "metro:co:bonnie-brae-liquor",
+          "metro:co:mollys-spirits",
+          "metro:co:total-beverage"
+        ],
+        "registration": "engine/src/state-sources.mjs and engine/src/collectors/precision-probes.mjs register three bounded, isolated Denver Metro CityHive sources behind the legacy precision runtime."
+      },
+      "addedSourceIds": [
+        "metro:co:off-broadway-wine-spirits",
+        "metro:co:mayfair-liquors",
+        "metro:co:heritage-wine-liquor"
+      ],
+      "assertion": "Historical shadow/canary evidence remains immutable activation proof; current source growth is verified through bounded live source checks, state quality gates, and targeted production publication."
     },
     "immutablePromotionEvidence": {
       "schemaVersion": 1,

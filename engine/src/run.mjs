@@ -102,10 +102,9 @@ const BROWSER_PREFLIGHT_JOBS = [
     id: 'ohlq',
     label: 'Ohio OHLQ browser availability bootstrap',
     artifact: path.join(OUT, 'browser', 'ohlq-availability.json'),
-    command: ['src/ohlq-browser-collector.mjs'],
-    outEnv: 'OHLQ_OUT_FILE',
+    command: ['../scripts/fetch-ohlq-worker-artifact.mjs'],
+    outEnv: 'OHLQ_WORKER_DESTINATION',
     validateArtifact: validateOhlqArtifact,
-    cooldownFile: path.join(OUT, 'browser', 'ohlq-cooldown.json'),
     maxAgeMs: Number(process.env.BOURBON_SIGNAL_OHLQ_PREFLIGHT_MAX_AGE_MS || 24 * 60 * 60_000)
   },
   {

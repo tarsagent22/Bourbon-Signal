@@ -87,6 +87,18 @@ const refreshWorkflow = read('.github/workflows/refresh-feed.yml');
 if (!/BOURBON_SIGNAL_NY_FORCE_METRO_LIVE:[^\n]*contains\(inputs\.states, 'NY'\)[^\n]*'1'/.test(refreshWorkflow)) {
   fail('A targeted New York refresh must force the metro retailer lane live instead of reusing a pre-Nassau cache.');
 }
+if (!/OHLQ_WORKER_ARTIFACT_REQUIRED:[^\n]*!inputs\.states[^\n]*contains\(inputs\.states, 'OH'\)[^\n]*'1'/.test(refreshWorkflow)) {
+  fail('Scheduled/full and targeted Ohio refreshes must require a fresh authenticated OHLQ worker artifact.');
+}
+const ohlqTaskWrapper = expectFile('scripts/run-ohlq-worker-task.ps1');
+if (!/ConvertTo-SecureString/.test(ohlqTaskWrapper)
+  || !/Local\\BourbonSignalOhlqWorker/.test(ohlqTaskWrapper)
+  || !/WaitForExit\(\$TimeoutMinutes \* 60 \* 1000\)/.test(ohlqTaskWrapper)
+  || !/taskkill\.exe \/PID \$worker\.Id \/T \/F/.test(ohlqTaskWrapper)
+  || !/Remove-Item Env:CRON_SECRET/.test(ohlqTaskWrapper)
+  || !/ZeroFreeBSTR/.test(ohlqTaskWrapper)) {
+  fail('The Windows OHLQ worker wrapper must use DPAPI, prevent overlap, enforce a runtime bound, and clear decrypted credential material.');
+}
 if (!/Verify Pennsylvania scheduled lane or isolate a safe stale fallback/.test(refreshWorkflow)
   || !/verify:pa -- --allow-safe-stale-fallback/.test(refreshWorkflow)
   || !/Verify Pennsylvania targeted exact-store recovery/.test(refreshWorkflow)) {

@@ -202,9 +202,9 @@ export function ohlqWorkerArtifactDigest(value: unknown) {
   return createHash("sha256").update(JSON.stringify(value)).digest("hex");
 }
 
-const OHLQ_WORKER_BEARER_SHA256 = "ad4fe35d2453898e3cc3263b4e2b981aa3c63969825a9a9c0b6fa9ed1ec8e940";
+const OHLQ_WORKER_BEARER_SHA256 = "c57e639e1cd2f86865e3741e215ed901de71440724e97179c463b440c7938fe5";
 const OHLQ_WORKER_SIGNING_PUBLIC_KEY = `-----BEGIN PUBLIC KEY-----
-MCowBQYDK2VwAyEA9OgKjMJEtwg3r4or1aa5qmv+GuEzQ+f1Ul20lt+wNOg=
+MCowBQYDK2VwAyEAijDV+IHUSqQAVk17nZ2bMrNI7DbDBE14qiTNOC6Om3c=
 -----END PUBLIC KEY-----`;
 const ED25519_PKCS8_PREFIX = Buffer.from("302e020100300506032b657004220420", "hex");
 
