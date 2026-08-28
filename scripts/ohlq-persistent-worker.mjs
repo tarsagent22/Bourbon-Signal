@@ -198,6 +198,7 @@ async function main() {
       await writeStatus({ ok: false, status, browserLeftOpen: true, profileDir: PROFILE_DIR, url: SAMPLE_URL });
       console.log(JSON.stringify({ ok: false, status, action: 'Complete OHLQ security verification in the opened browser window, then rerun the worker.' }));
       browser = null;
+      process.exitCode = 1;
       return;
     }
     if (BOOTSTRAP) {

@@ -87,8 +87,11 @@ const refreshWorkflow = read('.github/workflows/refresh-feed.yml');
 if (!/BOURBON_SIGNAL_NY_FORCE_METRO_LIVE:[^\n]*contains\(inputs\.states, 'NY'\)[^\n]*'1'/.test(refreshWorkflow)) {
   fail('A targeted New York refresh must force the metro retailer lane live instead of reusing a pre-Nassau cache.');
 }
-if (!/OHLQ_WORKER_ARTIFACT_REQUIRED:[^\n]*!inputs\.states[^\n]*contains\(inputs\.states, 'OH'\)[^\n]*'1'/.test(refreshWorkflow)) {
-  fail('Scheduled/full and targeted Ohio refreshes must require a fresh authenticated OHLQ worker artifact.');
+if (!/OHLQ_WORKER_ARTIFACT_REQUIRED:[^\n]*inputs\.states[^\n]*contains\(inputs\.states, 'OH'\)[^\n]*'1'/.test(refreshWorkflow)
+  || !/Verify Ohio scheduled lane or isolate a safe stale fallback/.test(refreshWorkflow)
+  || !/scheduled-state-verification\.mjs verify --state=OH -- npm run verify:oh/.test(refreshWorkflow)
+  || !/Verify targeted Ohio worker recovery strictly/.test(refreshWorkflow)) {
+  fail('Targeted Ohio must require a fresh worker artifact while scheduled runs isolate an unhealthy Ohio partition and continue other states.');
 }
 const ohlqTaskWrapper = expectFile('scripts/run-ohlq-worker-task.ps1');
 if (!/ConvertTo-SecureString/.test(ohlqTaskWrapper)
