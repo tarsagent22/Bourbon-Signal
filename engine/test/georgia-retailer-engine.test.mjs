@@ -12,6 +12,7 @@ import {
   parseGeorgiaGoToLiquorStoreProducts,
   parseGeorgiaLightspeedProducts,
 } from '../src/collectors/georgia-retailer-surfaces.mjs';
+import { parseCityHiveProducts } from '../src/collectors/cityhive-surfaces.mjs';
 import {
   isGeorgiaRetailerInventory,
   isGeorgiaRetailerLastKnownInventoryEvidence,
@@ -29,6 +30,26 @@ import { buildDrops, publicSignal } from '../src/export-site-contract.mjs';
 const cityHiveSource = GEORGIA_CITYHIVE_SOURCES?.find((source) => source.id === 'tower-wine-spirits');
 const goToStore = GEORGIA_GOTOLIQUOR_STORES?.find((store) => store.id === '1071');
 const elemental = GEORGIA_LIGHTSPEED_STORES?.find((store) => store.id === 'elemental-spirits:atlanta');
+const dekalbFixtureSource = {
+  id: 'dekalb-package-fixture',
+  platform: 'cityhive',
+  merchantId: '614294182bffa1413867340c',
+  hostname: 'dekalbpackage.com',
+  baseUrl: 'https://dekalbpackage.com',
+  categoryUrl: 'https://dekalbpackage.com/shop/?subtype=Bourbon',
+  address: '3711 N Decatur Rd, Decatur, GA 30032, USA',
+};
+const dekalbFixtureHtml = readFileSync(new URL('./fixtures/ga/cityhive/dekalb-live-shape.html', import.meta.url), 'utf8');
+const hwy155FixtureSource = {
+  id: 'hwy-155-package-fixture',
+  platform: 'cityhive',
+  merchantId: '62d51cb495773e3714a3a607',
+  hostname: 'hwy155package.com',
+  baseUrl: 'https://hwy155package.com',
+  categoryUrl: 'https://hwy155package.com/shop/?subtype=Bourbon',
+  address: '3430 N McDonough Rd, Locust Grove, GA 30248, USA',
+};
+const hwy155FixtureHtml = readFileSync(new URL('./fixtures/ga/cityhive/hwy-155-live-shape.html', import.meta.url), 'utf8');
 
 function binarySignal(store, overrides = {}) {
   return {
@@ -103,7 +124,7 @@ const bible = {
 };
 
 test('Georgia surface registry contains only the configured exact first-party identities', () => {
-  assert.equal(GEORGIA_CITYHIVE_SOURCES.length, 17);
+  assert.equal(GEORGIA_CITYHIVE_SOURCES.length, 23);
   assert.equal(GEORGIA_GOTOLIQUOR_STORES.length, 14);
   assert.equal(GEORGIA_LIGHTSPEED_STORES.length, 2);
   assert.ok(cityHiveSource);
@@ -116,8 +137,175 @@ test('Georgia surface registry contains only the configured exact first-party id
     '61e1d53d9f85351b2f07c313',
     '61e1d80a2645234aa8e83468',
   ]);
+  assert.deepEqual(
+    ['roswell-liquor-store', 'my-friends-bottle-shop', 'dekalb-package', 'rox-fine-wine-spirits', 'island-spirit', 'hwy-155-package'].map((sourceId) => {
+      const source = GEORGIA_CITYHIVE_SOURCES.find((candidate) => candidate.id === sourceId);
+      const [merchantId, merchant] = [...source.merchants.entries()][0];
+      return {
+        sourceId,
+        merchantId,
+        address: merchant.address,
+        categoryUrl: source.categoryUrl,
+      };
+    }),
+    [
+      {
+        sourceId: 'roswell-liquor-store',
+        merchantId: '67b0a26775b60028f019fc7d',
+        address: '2300 Holcomb Bridge Rd, Roswell, GA 30076, USA',
+        categoryUrl: 'https://roswellliquorstore.com/shop/?subtype=Bourbon',
+      },
+      {
+        sourceId: 'my-friends-bottle-shop',
+        merchantId: '6060f60659a44e1d9f414fe3',
+        address: '275 Memorial Dr SE a, Atlanta, GA 30312, USA',
+        categoryUrl: 'https://myfriendsbottleshop.com/shop/?category=spirits&basic-category=bourbon',
+      },
+      {
+        sourceId: 'dekalb-package',
+        merchantId: '614294182bffa1413867340c',
+        address: '3711 N Decatur Rd, Decatur, GA 30032, USA',
+        categoryUrl: 'https://dekalbpackage.com/shop/?subtype=Bourbon',
+      },
+      {
+        sourceId: 'rox-fine-wine-spirits',
+        merchantId: '67ba353e1097104c5948a0e9',
+        address: '910 Peachtree Pkwy, Cumming, GA 30041, USA',
+        categoryUrl: 'https://roxliquor.com/shop/?subtype=Bourbon',
+      },
+      {
+        sourceId: 'island-spirit',
+        merchantId: '59810379d05b4360e32fc57e',
+        address: '444 Johnny Mercer Blvd, Savannah, GA 31410, USA',
+        categoryUrl: 'https://islandspiritsav.com/shop/?subtype=Bourbon',
+      },
+      {
+        sourceId: 'hwy-155-package',
+        merchantId: '62d51cb495773e3714a3a607',
+        address: '3430 N McDonough Rd, Locust Grove, GA 30248, USA',
+        categoryUrl: 'https://hwy155package.com/shop/?subtype=Bourbon',
+      },
+    ],
+  );
   assert.ok(GEORGIA_GOTOLIQUOR_STORES.every((store) => /^https:\/\/[^/?#]+\/c\/spirits\/whiskey\/19$/.test(store.categoryUrl)));
   assert.deepEqual(GEORGIA_LIGHTSPEED_STORES.map((store) => store.delayMs), [2_000, 2_000]);
+});
+
+test('Georgia live CityHive fixture keeps exact premises binding and shows why Georgia adds state-specific guards on top', () => {
+  const rows = parseCityHiveProducts(dekalbFixtureHtml, dekalbFixtureSource, {
+    sources: [dekalbFixtureSource],
+    isAllowedBottleFormat: isAllowedGeorgiaBottleFormat,
+  });
+  assert.deepEqual(rows.map((row) => ({
+    merchantId: row.merchantId,
+    productId: row.productId,
+    variantId: row.variantId,
+    title: row.title,
+    productUrl: row.productUrl,
+    price: row.price,
+  })), [
+    {
+      merchantId: '614294182bffa1413867340c',
+      productId: '5891f76e39e21c1a7a569702',
+      variantId: '1fb21098ac4cf6237956c9d57d7e11c990a7df2fd13d96e78b85531d0796b153',
+      title: 'Woodford Reserve Double Oaked Kentucky Straight Bourbon Whiskey',
+      productUrl: 'https://dekalbpackage.com/shop/product/woodford-reserve-double-oaked-kentucky-straight-bourbon-whiskey/5891f76e39e21c1a7a569702?option-id=1fb21098ac4cf6237956c9d57d7e11c990a7df2fd13d96e78b85531d0796b153',
+      price: 59.99,
+    },
+    {
+      merchantId: '614294182bffa1413867340c',
+      productId: '56c3370069702d27ed3f0100',
+      variantId: '15384769f2073ab9f4ad371eabc12913d8c6d886ec9d94c1179f906ba32bb398',
+      title: 'Jim Beam White Label Bourbon',
+      productUrl: 'https://dekalbpackage.com/shop/product/jim-beam-white-label-bourbon/56c3370069702d27ed3f0100?option-id=15384769f2073ab9f4ad371eabc12913d8c6d886ec9d94c1179f906ba32bb398',
+      price: 1,
+    },
+    {
+      merchantId: '614294182bffa1413867340c',
+      productId: '58447fb336d5f379255d21ff',
+      variantId: 'a2ea3b085053053c1f4496787902fc93d8493bab7893795b97d1332e242f377a',
+      title: 'Buffalo Trace Bourbon Cream Liqueur',
+      productUrl: 'https://dekalbpackage.com/shop/product/buffalo-trace-bourbon-cream-liqueur/58447fb336d5f379255d21ff?option-id=a2ea3b085053053c1f4496787902fc93d8493bab7893795b97d1332e242f377a',
+      price: 23.99,
+    },
+  ]);
+  assert.ok(rows.every((row) =>
+    row.quantity === 0
+    && row.quantityIsExact === false
+    && row.sourceAvailabilityVerified === true
+    && row.pickupOfferVerified === true
+    && row.premisesVerified === true
+  ));
+  assert.match(dekalbFixtureHtml, /"quantity": "50"/);
+  assert.equal(isAllowedGeorgiaBottleFormat('Jim Beam White Label Bourbon 50ml'), false);
+  assert.deepEqual(
+    rows
+      .filter((row) => isAllowedGeorgiaBourbonIdentity(row.title, row.title))
+      .map((row) => row.title)
+      .sort(),
+    [
+      'Jim Beam White Label Bourbon',
+      'Woodford Reserve Double Oaked Kentucky Straight Bourbon Whiskey',
+    ],
+  );
+  assert.equal(isAllowedGeorgiaBourbonIdentity('Buffalo Trace Bourbon Cream Liqueur', 'Buffalo Trace Bourbon Cream Liqueur'), false);
+  assert.deepEqual(parseCityHiveProducts(
+    dekalbFixtureHtml.replaceAll('3711 N Decatur Rd, Decatur, GA 30032, USA', '999 Attacker Rd, Decatur, GA 30032, USA'),
+    dekalbFixtureSource,
+    { sources: [dekalbFixtureSource], isAllowedBottleFormat: isAllowedGeorgiaBottleFormat },
+  ), []);
+});
+
+test('Georgia CityHive sentinel live fixture preserves same-store binary availability without inventing exact stock', () => {
+  const rows = parseCityHiveProducts(hwy155FixtureHtml, hwy155FixtureSource, {
+    sources: [hwy155FixtureSource],
+    isAllowedBottleFormat: isAllowedGeorgiaBottleFormat,
+  });
+  assert.deepEqual(rows.map((row) => ({
+    merchantId: row.merchantId,
+    productId: row.productId,
+    variantId: row.variantId,
+    title: row.title,
+    reportedQuantity: row.reportedQuantity,
+    quantity: row.quantity,
+    quantityIsExact: row.quantityIsExact,
+    inventorySemantics: row.inventorySemantics,
+    productUrl: row.productUrl,
+  })), [
+    {
+      merchantId: '62d51cb495773e3714a3a607',
+      productId: '5521cef065613100036c0000',
+      variantId: '71749b184cecfd234aaf9a96879b65ae10b91c0e3d5ea5c3d9fe48e5a42c97f5',
+      title: 'Buffalo Trace Bourbon',
+      reportedQuantity: 100,
+      quantity: 0,
+      quantityIsExact: false,
+      inventorySemantics: 'binary_retailer_orderable_no_exact_count',
+      productUrl: 'https://hwy155package.com/shop/product/buffalo-trace-bourbon/5521cef065613100036c0000?option-id=71749b184cecfd234aaf9a96879b65ae10b91c0e3d5ea5c3d9fe48e5a42c97f5',
+    },
+    {
+      merchantId: '62d51cb495773e3714a3a607',
+      productId: '5824a4bc69702d23f93f0000',
+      variantId: 'dd5cf522de93f4f146289ebf0fd44d8c5eb845f35dca521a3d144ea954d91619',
+      title: 'Weller Special Reserve Bourbon',
+      reportedQuantity: 100,
+      quantity: 0,
+      quantityIsExact: false,
+      inventorySemantics: 'binary_retailer_orderable_no_exact_count',
+      productUrl: 'https://hwy155package.com/shop/product/weller-special-reserve-bourbon/5824a4bc69702d23f93f0000?option-id=dd5cf522de93f4f146289ebf0fd44d8c5eb845f35dca521a3d144ea954d91619',
+    },
+  ]);
+  assert.ok(rows.every((row) =>
+    row.sourceAvailabilityVerified === true
+    && row.pickupOfferVerified === true
+    && row.premisesVerified === true
+  ));
+  assert.match(hwy155FixtureHtml, /"quantity": 100/);
+  assert.deepEqual(parseCityHiveProducts(
+    hwy155FixtureHtml.replaceAll('3430 N McDonough Rd, Locust Grove, GA 30248, USA', '999 Attacker Rd, Locust Grove, GA 30248, USA'),
+    hwy155FixtureSource,
+    { sources: [hwy155FixtureSource], isAllowedBottleFormat: isAllowedGeorgiaBottleFormat },
+  ), []);
 });
 
 test('GoToLiquorStore parser requires a visible store-bound Add to Cart control and a clean product URL', () => {
@@ -483,7 +671,7 @@ test('Georgia lifecycle and registry expose retailer inventory within the author
 
   const georgia = ALL_STATE_SOURCES.find((state) => state.id === 'GA');
   assert.equal(georgia.strategy, 'retailer_store_inventory');
-  assert.equal(georgia.sources.length, 34);
+  assert.equal(georgia.sources.length, 40);
   const labels = new Set(georgia.sources.map((source) => source.label || source.name));
   for (const source of [...GEORGIA_CITYHIVE_SOURCES, ...GEORGIA_GOTOLIQUOR_STORES, ...GEORGIA_LIGHTSPEED_STORES]) {
     assert.ok(labels.has(source.sourceLabel), `Missing Georgia registry source ${source.sourceLabel}`);
