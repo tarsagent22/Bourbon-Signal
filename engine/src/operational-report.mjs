@@ -159,6 +159,11 @@ export function canonicalizeSignal(signal, bible) {
     pickupOfferVerified: signal.pickupOfferVerified === true || signal.raw?.pickupOfferVerified === true,
     deliveryOfferVerified: signal.deliveryOfferVerified === true || signal.raw?.deliveryOfferVerified === true,
     orderabilityOfferVerified: signal.orderabilityOfferVerified === true || signal.raw?.orderabilityOfferVerified === true,
+    sourcePremisesProofVersion: Number(signal.sourcePremisesProofVersion || signal.raw?.sourcePremisesProofVersion || 0) || null,
+    virginiaCacheSchemaVersion: Number(signal.virginiaCacheSchemaVersion || signal.raw?.virginiaCacheSchemaVersion || 0) || null,
+    targetStoreIds: Array.isArray(signal.targetStoreIds || signal.raw?.product?.targetStoreIds)
+      ? [...new Set((signal.targetStoreIds || signal.raw.product.targetStoreIds).map(String))]
+      : null,
     integratedCartVerified: signal.integratedCartVerified === true || signal.raw?.integratedCartVerified === true,
     runtimeStoreId: signal.runtimeStoreId || signal.raw?.runtimeStoreId || null,
     fulfillmentGuaranteed: signal.fulfillmentGuaranteed === true || signal.raw?.fulfillmentGuaranteed === true,

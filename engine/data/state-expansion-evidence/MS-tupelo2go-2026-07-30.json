@@ -95,7 +95,7 @@
     "engine/src/collectors/mississippi-retailer-surfaces.mjs": "17e8e10ed6ddf469105da224b1e2a8812f9fc7fd13e922213f452fdbccde4f81",
     "engine/src/discovery/source-atlas.mjs": "1da5fea3dba0345ad044eba80480ccfb24986c9a89f3aa847aad1b6804aec9f8",
     "engine/src/mississippi-retailer-policy.mjs": "7a2c8c31b949b81c5cab9fc252190d6a6500a33bc414fed9654baeb464c1436f",
-    "engine/src/operational-report.mjs": "92de765dd4318840d24205be39047ce7e0001859a745ee113a26974abc3c2ece",
+    "engine/src/operational-report.mjs": "0c9251c3a7442db5b363f1c7dbf09b4c08b840e5d38339bf35c75bae6522be7e",
     "engine/src/state-sources.mjs": "4e2d21ef15f9d052bec1daa766c268c50866b5b6b59c78f1e093aeb9289f8dd3",
     "engine/src/verify-ms.mjs": "fa20ef6aed6d71624085a539540f5da779a0c0814be28e6b1cfa9b796cd647d7",
     "engine/test/bible-matching.test.mjs": "5f33f5848eb0efe427e4e1e58420f80f41a73b4a0afd191ca3bf3299e82d3830",
@@ -109,7 +109,7 @@
     "src/config/stateLifecycle.ts": "50a0fadc9a1a86de0d9d3a1e61d221040dc98483ed0036a33c7f0ad958486232",
     "engine/src/generate-mississippi-foundation.mjs": "4c5698404c663a88a1fd1d4dffdfd86da4711b5a58f9eef35f1c9f401ded98c5"
   },
-  "implementationDigest": "b0b6558354264d86cceff9690f5caee5223fcf339a148059bbfb506223f91dad",
+  "implementationDigest": "bcd27eabbb3e2deb655b49dc1b5254029d880255ff2c03bbb00491e17c8eba9d",
   "verificationCommands": [
     "npm --prefix engine run test:ms",
     "npm --prefix engine run verify:ms",

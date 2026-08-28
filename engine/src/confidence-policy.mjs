@@ -89,6 +89,7 @@ const MODE_CAPS = {
 };
 
 const NON_INVENTORY_ALERT_EVENT_RE = /store_delivery_snapshot|store_allocation_snapshot|statewide_product_delivery_snapshot|statewide_product_inventory_snapshot|board_shipment|shipment_snapshot|stock_shipped|allocated|lottery|release|catalog|policy|official-source-seed/i;
+const VIRGINIA_EXACT_PREMISES_PRODUCT_CODES = new Set(['016577', '022199', '018434']);
 
 function watchAlertsBlockedByStateSemantics(signal, eventType) {
   if (signal.state === 'MD-MONTGOMERY' && /county_inventory_aggregate|county_product|county_allocated|catalog|product_search/i.test(eventType)) return true;
@@ -244,6 +245,34 @@ export function confidenceForSignal(signal, { nowMs = Date.now() } = {}) {
   if (isSampleOnly) confidence = Math.min(confidence, 0.49);
   const isVirginiaLimitedCaveat = signal.state === 'VA' && signal.raw?.product?.limitedCaveat;
   const isVirginiaOfficialStoreInventory = isVirginiaLimitedCaveat && hasPositiveInventory && rank >= 6 && /store_inventory/i.test(eventType);
+  const isVirginiaStoreInventory = signal.state === 'VA' && /store_inventory/i.test(eventType);
+  const virginiaTopLevelProductCode = String(signal.productCode || '');
+  const virginiaRawProductCode = String(signal.raw?.product?.code || '');
+  const virginiaProductCode = virginiaTopLevelProductCode || virginiaRawProductCode;
+  const virginiaProductCodeConflict = Boolean(virginiaTopLevelProductCode && virginiaRawProductCode && virginiaTopLevelProductCode !== virginiaRawProductCode);
+  const virginiaPremisesProofRequired = isVirginiaStoreInventory
+    && (VIRGINIA_EXACT_PREMISES_PRODUCT_CODES.has(virginiaTopLevelProductCode) || VIRGINIA_EXACT_PREMISES_PRODUCT_CODES.has(virginiaRawProductCode));
+  const virginiaTopLevelTargetIds = Array.isArray(signal.targetStoreIds) ? signal.targetStoreIds.map(String) : [];
+  const virginiaRawTargetIds = Array.isArray(signal.raw?.product?.targetStoreIds) ? signal.raw.product.targetStoreIds.map(String) : [];
+  const virginiaTargetStoreIds = new Set(virginiaTopLevelTargetIds.length ? virginiaTopLevelTargetIds : virginiaRawTargetIds);
+  const virginiaTargetIdentityConflict = virginiaTopLevelTargetIds.length > 0 && virginiaRawTargetIds.length > 0
+    && (virginiaTopLevelTargetIds.length !== virginiaRawTargetIds.length || virginiaTopLevelTargetIds.some((storeId) => !virginiaRawTargetIds.includes(storeId)));
+  const virginiaQuantity = Number(signal.quantity);
+  const virginiaPremisesAllowed = !virginiaPremisesProofRequired || (
+    !virginiaProductCodeConflict
+    && !virginiaTargetIdentityConflict
+    && VIRGINIA_EXACT_PREMISES_PRODUCT_CODES.has(virginiaProductCode)
+    && Number.isSafeInteger(virginiaQuantity)
+    && virginiaQuantity >= 0
+    && signal.sourceAvailabilityVerified === true
+    && signal.premisesVerified === true
+    && Number(signal.sourcePremisesProofVersion || signal.raw?.sourcePremisesProofVersion) === 1
+    && Number(signal.raw?.virginiaCacheSchemaVersion) === 3
+    && virginiaTargetStoreIds.size === 4
+    && ['40', '61', '82', '362'].every((storeId) => virginiaTargetStoreIds.has(storeId))
+    && virginiaTargetStoreIds.has(String(signal.storeId || ''))
+    && String(signal.sourceUrl || '') === `https://www.abc.virginia.gov/stores/${signal.storeId}`
+  );
   if (((/limited/i.test(eventType) && signal.state === 'VA') || isVirginiaLimitedCaveat) && !isVirginiaOfficialStoreInventory) confidence = Math.min(confidence, 0.68);
   confidence = Math.min(confidence, MODE_CAPS[policy.maxAlertMode] ?? 0.7);
   const inventoryBlockedBySemantics = NON_INVENTORY_ALERT_EVENT_RE.test(`${eventType} ${signal.mode || ''}`);
@@ -300,7 +329,7 @@ export function confidenceForSignal(signal, { nowMs = Date.now() } = {}) {
     policyMode: policy.maxAlertMode,
     inventorySemantics: policy.inventorySemantics,
     locationValue: locationValue(signal),
-    canAlertAsInventory: !runtimeAlertBlocked && texasInventoryAllowed && indianaInventoryAllowed && georgiaInventoryAllowed && tennesseeInventoryAllowed && californiaInventoryAllowed && nevadaInventoryAllowed && metroInventoryAllowed && southCarolinaDunesAllowed && southCarolinaSouthernSpiritsAllowed && southCarolinaAllAmericanAllowed && southCarolinaDiscountLiquorAllowed && mississippiInventoryAllowed && !isDistilleryLane && hasPositiveInventory && !inventoryBlockedBySemantics && rank >= 6 && confidence >= 0.72,
-    canAlertAsWatch: !runtimeAlertBlocked && indianaWatchAllowed && georgiaWatchAllowed && tennesseeWatchAllowed && californiaWatchAllowed && nevadaWatchAllowed && metroWatchAllowed && southCarolinaDunesAllowed && southCarolinaSouthernSpiritsAllowed && southCarolinaAllAmericanAllowed && southCarolinaDiscountLiquorAllowed && mississippiWatchAllowed && !isSampleOnly && !watchBlockedBySemantics && confidence >= 0.5 && policy.maxAlertMode !== 'policy_only'
+    canAlertAsInventory: !runtimeAlertBlocked && virginiaPremisesAllowed && texasInventoryAllowed && indianaInventoryAllowed && georgiaInventoryAllowed && tennesseeInventoryAllowed && californiaInventoryAllowed && nevadaInventoryAllowed && metroInventoryAllowed && southCarolinaDunesAllowed && southCarolinaSouthernSpiritsAllowed && southCarolinaAllAmericanAllowed && southCarolinaDiscountLiquorAllowed && mississippiInventoryAllowed && !isDistilleryLane && hasPositiveInventory && !inventoryBlockedBySemantics && rank >= 6 && confidence >= 0.72,
+    canAlertAsWatch: !runtimeAlertBlocked && virginiaPremisesAllowed && indianaWatchAllowed && georgiaWatchAllowed && tennesseeWatchAllowed && californiaWatchAllowed && nevadaWatchAllowed && metroWatchAllowed && southCarolinaDunesAllowed && southCarolinaSouthernSpiritsAllowed && southCarolinaAllAmericanAllowed && southCarolinaDiscountLiquorAllowed && mississippiWatchAllowed && !isSampleOnly && !watchBlockedBySemantics && confidence >= 0.5 && policy.maxAlertMode !== 'policy_only'
   };
 }

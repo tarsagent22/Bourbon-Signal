@@ -59,6 +59,7 @@ const NC_GREENSBORO_STORE_SIGNAL_RE = /buffalo trace|blanton|eagle rare|weller|s
 const NC_GREENSBORO_STORE_EXCLUDE_RE = /john\s+d\s+taylor|old\s+taylor|taylor\s+port|falernum|cream|white\s+dog|rye|elijah\s+craig\s+small\s+batch(?![^\n]{0,40}barrel\s+proof)|tequila|corazon|expresiones|reposado|a[ñn]ejo|vodka|gin|rum|liqueur|cordial|beer|wine|cocktail/i;
 const SITE_ACTIVE_STATE_IDS = CUSTOMER_ACTIVE_STATE_IDS;
 const CUSTOMER_DROP_TIERS = new Set(['unicorn', 'allocated', 'limited']);
+const VIRGINIA_EXACT_PREMISES_PRODUCT_CODES = new Set(['016577', '022199', '018434']);
 
 export function isActiveCustomerStateRow(row, activeStateIds = SITE_ACTIVE_STATE_IDS) {
   return activeStateIds.has(String(row?.state || row?.state_code || '').toUpperCase());
@@ -348,6 +349,39 @@ function isWestVirginiaRecentPurchaseSignal(signal) {
     && signal.canAlertAsWatch === false;
 }
 
+function virginiaPremisesProofState(signal) {
+  const topLevelCode = String(signal.productCode || '');
+  const rawCode = String(signal.raw?.product?.code || '');
+  const codeConflict = Boolean(topLevelCode && rawCode && topLevelCode !== rawCode);
+  const productCode = topLevelCode || rawCode;
+  const proofRequired = signal.state === 'VA'
+    && (VIRGINIA_EXACT_PREMISES_PRODUCT_CODES.has(topLevelCode) || VIRGINIA_EXACT_PREMISES_PRODUCT_CODES.has(rawCode));
+  const topLevelTargetIds = Array.isArray(signal.targetStoreIds) ? signal.targetStoreIds.map(String) : [];
+  const rawTargetIds = Array.isArray(signal.raw?.product?.targetStoreIds) ? signal.raw.product.targetStoreIds.map(String) : [];
+  const targetStoreIds = new Set(topLevelTargetIds.length ? topLevelTargetIds : rawTargetIds);
+  const targetIdentityConflict = topLevelTargetIds.length > 0 && rawTargetIds.length > 0
+    && (topLevelTargetIds.length !== rawTargetIds.length || topLevelTargetIds.some((storeId) => !rawTargetIds.includes(storeId)));
+  const quantity = Number(signal.quantity);
+  const proofAllowed = !proofRequired || (
+    !codeConflict
+    && !targetIdentityConflict
+    && VIRGINIA_EXACT_PREMISES_PRODUCT_CODES.has(productCode)
+    && Number.isSafeInteger(quantity)
+    && quantity >= 0
+    && signal.sourceAvailabilityVerified === true
+    && signal.premisesVerified === true
+    && Number(signal.sourcePremisesProofVersion || signal.raw?.sourcePremisesProofVersion) === 1
+    && Number(signal.virginiaCacheSchemaVersion || signal.raw?.virginiaCacheSchemaVersion) === 3
+    && targetStoreIds.size === 4
+    && ['40', '61', '82', '362'].every((storeId) => targetStoreIds.has(storeId))
+    && targetStoreIds.has(String(signal.storeId || ''))
+    && String(signal.sourceUrl || '') === `https://www.abc.virginia.gov/stores/${signal.storeId}`
+    && signal.stale !== true
+    && signal.sourceStale !== true
+  );
+  return { productCode, codeConflict, proofRequired, proofAllowed };
+}
+
 export function publicSignal(signal, bible, freshness = null) {
   const bibleRecord = findBibleRecord(signal, bible);
   const isNcBoardShipment = signal.state === 'NC'
@@ -409,7 +443,12 @@ export function publicSignal(signal, bible, freshness = null) {
     && (!isSouthCarolinaAllAmericanSignal(signal) || isSouthCarolinaAllAmericanInventory(signal))
     && (!isSouthCarolinaLiquorLibrarySignal(signal) || isSouthCarolinaLiquorLibraryInventory(signal))
     && (!isSouthCarolinaDiscountLiquorSignal(signal) || isSouthCarolinaDiscountLiquorInventory(signal));
-  const policyCanAlertAsInventory = exactScRetailerIdentityAllowed && !staleFallback && (isCostcoWarehouseInventory
+  const virginiaProof = virginiaPremisesProofState(signal);
+  const isVirginiaExactPremisesProduct = virginiaProof.proofRequired;
+  const virginiaProofAllowed = virginiaProof.proofAllowed;
+  const parsedPublicQuantity = Number(signal.quantity ?? signal.storeQty ?? 0);
+  const publicQuantity = Number.isSafeInteger(parsedPublicQuantity) && parsedPublicQuantity >= 0 ? parsedPublicQuantity : 0;
+  const policyCanAlertAsInventory = virginiaProofAllowed && exactScRetailerIdentityAllowed && !staleFallback && (isCostcoWarehouseInventory
     ? Boolean(signal.canAlertAsInventory) && (Number(signal.quantity || signal.storeQty || 0) > 0 || (signal.sourceAvailabilityVerified === true && signal.availabilityStatus === 'in_stock'))
     : signal.state === 'AZ'
       ? isAzRetailerInventory
@@ -426,7 +465,7 @@ export function publicSignal(signal, bible, freshness = null) {
             : signal.state === 'SC'
               ? (isScRetailerEvent ? Boolean(signal.canAlertAsInventory) && isScRetailerInventory : Boolean(signal.canAlertAsInventory))
               : Boolean(signal.canAlertAsInventory));
-  const policyCanAlertAsWatch = exactScRetailerIdentityAllowed && !staleFallback && (isCostcoWarehouseInventory
+  const policyCanAlertAsWatch = virginiaProofAllowed && exactScRetailerIdentityAllowed && !staleFallback && (isCostcoWarehouseInventory
     ? Boolean(signal.canAlertAsWatch)
     : signal.state === 'AZ'
       ? Boolean(signal.canAlertAsWatch) && isArizonaRetailerSignalIdentity(signal)
@@ -486,7 +525,7 @@ export function publicSignal(signal, bible, freshness = null) {
     productId: signal.productId || signal.raw?.product?.id || signal.raw?.option?.product_id || null,
     sourceProductBinding: signal.sourceProductBinding || signal.raw?.productBinding || null,
     productHandle: signal.productHandle || signal.raw?.product?.handle || null,
-    productCode: signal.productCode || null,
+    productCode: virginiaProof.codeConflict ? null : (signal.productCode || signal.raw?.product?.code || null),
     ncCode: signal.ncCode || signal.raw?.ncCode || signal.raw?.NCCODE || null,
     sku: signal.sku || signal.raw?.sku || null,
     sourceProductProofId: signal.sourceProductProofId || null,
@@ -528,8 +567,8 @@ export function publicSignal(signal, bible, freshness = null) {
     zip: signal.zip,
     lat: signal.lat,
     lng: signal.lng,
-    quantity: signal.quantity || signal.storeQty || 0,
-    storeQty: Number(signal.storeQty ?? signal.quantity ?? 0) || 0,
+    quantity: publicQuantity,
+    storeQty: publicQuantity,
     boardShipmentQuantity: isNcBoardShipment
       ? (Number(signal.boardShipmentQuantity ?? signal.quantity ?? 0) || 0)
       : (signal.boardShipmentQuantity ?? null),
@@ -538,17 +577,30 @@ export function publicSignal(signal, bible, freshness = null) {
     quantitySemantics: isNcBoardShipment
       ? (signal.quantitySemantics || signal.raw?.quantitySemantics || 'board_shipment_units_not_store_inventory')
       : (signal.quantitySemantics || signal.raw?.quantitySemantics || null),
-    reportedQuantity: ['FL', 'GA', 'TN', 'NY', 'CO', 'VA'].includes(signal.state) && Number.isFinite(Number(signal.reportedQuantity ?? (isMetroInventory && signal.quantityIsExact === true ? signal.storeQty : null)))
-      ? Number(signal.reportedQuantity ?? signal.storeQty)
-      : null,
-    availabilityStatus: isMsSparseOnSiteInventory ? (signal.availabilityStatus || 'orderable') : signal.availabilityStatus,
-    availabilityLabel: signal.availabilityLabel,
-    sourceAvailabilityVerified: signal.sourceAvailabilityVerified === true,
+    reportedQuantity: isVirginiaExactPremisesProduct
+      ? (Number.isSafeInteger(Number(signal.reportedQuantity)) && Number(signal.reportedQuantity) >= 0 ? Number(signal.reportedQuantity) : null)
+      : ['FL', 'GA', 'TN', 'NY', 'CO', 'VA'].includes(signal.state) && Number.isFinite(Number(signal.reportedQuantity ?? (isMetroInventory && signal.quantityIsExact === true ? signal.storeQty : null)))
+        ? Number(signal.reportedQuantity ?? signal.storeQty)
+        : null,
+    availabilityStatus: isVirginiaExactPremisesProduct && !virginiaProofAllowed
+      ? 'unavailable'
+      : isMsSparseOnSiteInventory ? (signal.availabilityStatus || 'orderable') : signal.availabilityStatus,
+    availabilityLabel: isVirginiaExactPremisesProduct && !virginiaProofAllowed ? 'Verification required' : signal.availabilityLabel,
+    sourceAvailabilityVerified: virginiaProofAllowed && signal.sourceAvailabilityVerified === true,
     fulfillmentPolicyVerified: signal.fulfillmentPolicyVerified === true || signal.raw?.fulfillmentPolicyVerified === true,
     pickupOfferVerified: signal.pickupOfferVerified === true || signal.raw?.pickupOfferVerified === true,
     deliveryOfferVerified: signal.deliveryOfferVerified === true || signal.raw?.deliveryOfferVerified === true,
     orderabilityOfferVerified: signal.orderabilityOfferVerified === true || signal.raw?.orderabilityOfferVerified === true,
-    premisesVerified: signal.premisesVerified === true || signal.raw?.premisesVerified === true,
+    premisesVerified: virginiaProofAllowed && (signal.premisesVerified === true || signal.raw?.premisesVerified === true),
+    sourcePremisesProofVersion: virginiaProofAllowed
+      ? Number(signal.sourcePremisesProofVersion || signal.raw?.sourcePremisesProofVersion || 0) || null
+      : null,
+    virginiaCacheSchemaVersion: virginiaProofAllowed
+      ? Number(signal.virginiaCacheSchemaVersion || signal.raw?.virginiaCacheSchemaVersion || 0) || null
+      : null,
+    targetStoreIds: Array.isArray(signal.targetStoreIds || signal.raw?.product?.targetStoreIds)
+      ? [...new Set((signal.targetStoreIds || signal.raw.product.targetStoreIds).map(String))]
+      : null,
     integratedCartVerified: signal.integratedCartVerified === true || signal.raw?.integratedCartVerified === true,
     controlStoreId: signal.controlStoreId || signal.raw?.controlStoreId || null,
     optionValueId: signal.optionValueId || signal.raw?.optionValueId || null,
@@ -1023,6 +1075,8 @@ function aggregateLeadIdentity(signal) {
 
 function isSafePublicSignal(signal) {
   const type = String(signal.eventType || '');
+  const virginiaProof = virginiaPremisesProofState(signal);
+  if (virginiaProof.proofRequired && !virginiaProof.proofAllowed) return false;
   if (signal.state === 'FL'
     && /^(cityhive_store_inventory_result|retailer_store_inventory_result)$/i.test(type)
     && (!isFloridaRetailerSignalIdentity(signal) || !isFloridaRetailerInventory(signal))) return false;

@@ -1,0 +1,18 @@
+{
+  "schemaVersion": 1,
+  "state": "VA",
+  "target": "Sterling",
+  "source": "Virginia ABC storeNearby inventory API",
+  "rows": [
+    {"productCode":"016577","rawName":"Baker's High Rye Bourbon","storeId":"40","quantity":22,"observedAt":"2026-08-27T22:07:18.437Z","sourceUrl":"https://www.abc.virginia.gov/stores/40","storeAddress":"22000 Dulles Retail Plaza Unit 166 Sterling VA 20166","city":"Sterling","zip":"20166"},
+    {"productCode":"016577","rawName":"Baker's High Rye Bourbon","storeId":"82","quantity":11,"observedAt":"2026-08-27T22:07:18.437Z","sourceUrl":"https://www.abc.virginia.gov/stores/82","storeAddress":"46930 Cedar Lakes Plaza Units100-130 Sterling VA 20164","city":"Sterling","zip":"20164"},
+    {"productCode":"016577","rawName":"Baker's High Rye Bourbon","storeId":"362","quantity":13,"observedAt":"2026-08-27T22:07:19.081Z","sourceUrl":"https://www.abc.virginia.gov/stores/362","storeAddress":"100 Edds Lane Sterling VA 20165","city":"Sterling","zip":"20165"},
+    {"productCode":"018434","rawName":"Green River Full Proof Bourbon","storeId":"40","quantity":6,"observedAt":"2026-08-27T23:36:17.424Z","sourceUrl":"https://www.abc.virginia.gov/stores/40","storeAddress":"22000 Dulles Retail Plaza Unit 166 Sterling VA 20166","city":"Sterling","zip":"20166"},
+    {"productCode":"018434","rawName":"Green River Full Proof Bourbon","storeId":"82","quantity":9,"observedAt":"2026-08-27T23:36:17.424Z","sourceUrl":"https://www.abc.virginia.gov/stores/82","storeAddress":"46930 Cedar Lakes Plaza Units100-130 Sterling VA 20164","city":"Sterling","zip":"20164"},
+    {"productCode":"018434","rawName":"Green River Full Proof Bourbon","storeId":"362","quantity":5,"observedAt":"2026-08-27T23:36:18.078Z","sourceUrl":"https://www.abc.virginia.gov/stores/362","storeAddress":"100 Edds Lane Sterling VA 20165","city":"Sterling","zip":"20165"},
+    {"productCode":"022199","rawName":"Wild Turkey Rare Breed Bourbon","storeId":"40","quantity":6,"observedAt":"2026-08-27T23:35:16.148Z","sourceUrl":"https://www.abc.virginia.gov/stores/40","storeAddress":"22000 Dulles Retail Plaza Unit 166 Sterling VA 20166","city":"Sterling","zip":"20166"},
+    {"productCode":"022199","rawName":"Wild Turkey Rare Breed Bourbon","storeId":"61","quantity":4,"observedAt":"2026-08-27T23:35:16.148Z","sourceUrl":"https://www.abc.virginia.gov/stores/61","storeAddress":"22360 S. Sterling Boulevard Suite 101 Sterling VA 20164","city":"Sterling","zip":"20164"},
+    {"productCode":"022199","rawName":"Wild Turkey Rare Breed Bourbon","storeId":"82","quantity":9,"observedAt":"2026-08-27T23:35:16.148Z","sourceUrl":"https://www.abc.virginia.gov/stores/82","storeAddress":"46930 Cedar Lakes Plaza Units100-130 Sterling VA 20164","city":"Sterling","zip":"20164"},
+    {"productCode":"022199","rawName":"Wild Turkey Rare Breed Bourbon","storeId":"362","quantity":8,"observedAt":"2026-08-27T23:35:16.761Z","sourceUrl":"https://www.abc.virginia.gov/stores/362","storeAddress":"100 Edds Lane Sterling VA 20165","city":"Sterling","zip":"20165"}
+  ]
+}

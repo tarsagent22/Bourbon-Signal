@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import test from 'node:test';
 
@@ -16,12 +17,20 @@ import {
   selectVirginiaOriginStoreRows,
   summarizeVirginiaProductErrors,
   validateVirginiaGlobalQuality,
-  virginiaAbortableDelay
+  virginiaAbortableDelay,
+  virginiaInventoryPremisesMatch,
+  virginiaRefreshPlan
 } from '../src/collectors/virginia-inventory-recovery.mjs';
-import { legacyPrecisionRuntimeOptions } from '../src/collectors/precision-probes.mjs';
+import {
+  legacyPrecisionRuntimeOptions,
+  VIRGINIA_PRODUCTS,
+  virginiaStoreSignals
+} from '../src/collectors/precision-probes.mjs';
 import { runLegacyPrecisionSource } from '../src/sources/legacy-precision-runtime.mjs';
 import { confidenceForSignal } from '../src/confidence-policy.mjs';
 import { targetedRunNeedsBrowserCollectors } from '../src/targeted-browser-policy.mjs';
+import { evaluateVirginiaRequiredStoreProof, validateSterlingRequiredStoreIds } from '../src/verify-va.mjs';
+import { bibleLookup, buildDrops, publicSignal } from '../src/export-site-contract.mjs';
 
 const HOUR = 60 * 60_000;
 
@@ -81,6 +90,46 @@ test('Virginia cold bootstrap always includes verifier-required products', () =>
   assert.ok(selected.some((product) => product.code === 'buffalo-trace'));
 });
 
+test('Virginia real cold-start catalog leaves ten statewide regular partitions after Sterling targets', () => {
+  const selected = selectVirginiaProductsForRefresh(VIRGINIA_PRODUCTS, [], Date.now(), { maxProducts: 15 });
+  assert.equal(selected.length, 15);
+  assert.deepEqual(selected.filter((product) => product.targetStoreIds).map((product) => product.code).sort(), ['016577', '018434', '022199']);
+  assert.ok(selected.filter((product) => !product.limitedCaveat && !product.targetStoreIds).length >= 10);
+  assert.deepEqual(virginiaRefreshPlan({
+    cachedSignalCount: 17_955,
+    recoveryBacklogCount: 0,
+    normalLimit: 5,
+    coldLimit: 15,
+    requiredStoreIds: ['40', '61', '82', '362']
+  }), { force: true, maxProducts: 15 });
+  assert.deepEqual(virginiaRefreshPlan({ cachedSignalCount: 17_955, recoveryBacklogCount: 0 }), { force: false, maxProducts: 15 });
+});
+
+test('Virginia stale non-alerting cache metadata rotates later cohorts without starving Sterling', () => {
+  const now = Date.now();
+  const first = selectVirginiaProductsForRefresh(VIRGINIA_PRODUCTS, [], now, { maxProducts: 15, force: true });
+  const firstCache = sanitizeVirginiaInventoryCacheSignals(first.map((product) => {
+    const row = signal(product.code, '101', new Date(now).toISOString());
+    row.raw.product = { ...product };
+    return row;
+  }));
+  const second = selectVirginiaProductsForRefresh(VIRGINIA_PRODUCTS, firstCache, now + HOUR, { maxProducts: 15, force: true });
+  const targets = (products) => products.filter((product) => product.targetStoreIds).map((product) => product.code).sort();
+  const rotatingProducts = (products) => new Set(products
+    .filter((product) => !product.targetStoreIds && product.verificationPriority !== true)
+    .map((product) => product.code));
+  assert.deepEqual(targets(first), ['016577', '018434', '022199']);
+  assert.deepEqual(targets(second), ['016577', '018434', '022199']);
+  const firstRotatingProducts = rotatingProducts(first);
+  assert.ok([...rotatingProducts(second)].every((code) => !firstRotatingProducts.has(code)));
+  assert.ok(firstCache.every((row) => row.canAlertAsInventory === false && row.sourceStale === true));
+
+  const futureCache = sanitizeVirginiaInventoryCacheSignals([signal('021236', '101', new Date(now + 24 * HOUR).toISOString())]);
+  assert.equal(futureCache[0].raw.virginiaSchedulingObservedAt, null);
+  assert.ok(selectVirginiaProductsForRefresh([{ code: '021236', limitedCaveat: false }], futureCache, now, { maxProducts: 1 })
+    .some((product) => product.code === '021236'));
+});
+
 test('Virginia site-location gate scales to the supported store universe', () => {
   assert.equal(minimumVirginiaSiteLocationCount(392), 300);
   assert.equal(minimumVirginiaSiteLocationCount(800), 600);
@@ -113,6 +162,249 @@ test('Virginia Store 49 priority fails closed for unknown or forged premises wit
   assert.deepEqual(plan.stores, stores);
   assert.deepEqual(plan.verifiedPriorityStoreIds, []);
   assert.deepEqual(plan.rejectedPriorityStoreIds, ['49', '999']);
+});
+
+test('Virginia Sterling priority stores require the reviewed official premises identities', () => {
+  const reviewed = [
+    { storeNumber: '40', address: '22000 Dulles Retail Plaza, Unit 166', city: 'Sterling', zip: '20166' },
+    { storeNumber: '61', address: '22360 S. Sterling Boulevard, Suite 101', city: 'Sterling', zip: '20164' },
+    { storeNumber: '82', address: '46930 Cedar Lakes Plaza, Units100-130', city: 'Sterling', zip: '20164' },
+    { storeNumber: '362', address: '100 Edds Lane', city: 'Sterling', zip: '20165' },
+    { storeNumber: '1', address: '10 First Street', city: 'Richmond', zip: '23219' }
+  ];
+
+  const accepted = planVirginiaOriginStores(reviewed, ['40', '61', '82', '362']);
+  assert.deepEqual(accepted.verifiedPriorityStoreIds, ['40', '61', '82', '362']);
+  assert.deepEqual(accepted.rejectedPriorityStoreIds, []);
+  assert.deepEqual(accepted.stores.slice(0, 4).map((store) => store.storeNumber), ['40', '61', '82', '362']);
+  assert.equal(new Set(accepted.stores.map((store) => store.storeNumber)).size, reviewed.length);
+
+  const forged = reviewed.map((store) => store.storeNumber === '82'
+    ? { ...store, address: '999 Forged Plaza' }
+    : store);
+  const rejected = planVirginiaOriginStores(forged, ['40', '61', '82', '362']);
+  assert.deepEqual(rejected.verifiedPriorityStoreIds, ['40', '61', '362']);
+  assert.deepEqual(rejected.rejectedPriorityStoreIds, ['82']);
+  assert.deepEqual(rejected.stores.slice(0, 3).map((store) => store.storeNumber), ['40', '61', '362']);
+  assert.deepEqual(new Set(rejected.stores.map((store) => store.storeNumber)), new Set(forged.map((store) => store.storeNumber)));
+});
+
+test('Virginia Sterling expansion tracks only source-verified product and store identities', () => {
+  const products = new Map(VIRGINIA_PRODUCTS.map((product) => [product.code, product]));
+  assert.deepEqual(
+    ['016577', '022199', '018434'].map((code) => ({ code, ...products.get(code) })),
+    [
+      { code: '016577', name: "Baker's High Rye Bourbon", limitedCaveat: false, bootstrapPriority: true, targetStoreIds: ['40', '61', '82', '362'], slug: 'baker-s-high-rye-bourbon' },
+      { code: '022199', name: 'Wild Turkey Rare Breed Bourbon', limitedCaveat: false, bootstrapPriority: true, targetStoreIds: ['40', '61', '82', '362'], slug: 'wild-turkey-rare-breed-bourbon' },
+      { code: '018434', name: 'Green River Full Proof Bourbon', limitedCaveat: false, bootstrapPriority: true, targetStoreIds: ['40', '61', '82', '362'], slug: 'green-river-full-proof-bourbon' }
+    ]
+  );
+
+  const product = products.get('022199');
+  const bible = {
+    match: () => ({
+      confidence: 1,
+      record: { id: 'bb_wild_turkey_rare_breed', canonical: 'Wild Turkey Rare Breed Straight Bourbon' }
+    })
+  };
+  const validStore40 = {
+    storeId: 40,
+    address: '22000 Dulles Retail Plaza Unit 166 Sterling VA 20166',
+    address1: '22000 Dulles Retail Plaza',
+    address2: 'Unit 166',
+    city: 'Sterling', state: 'VA', zip: '20166',
+    latitude: 39.00551387, longitude: -77.43714145,
+    url: '/stores/40'
+  };
+  const payload = {
+    products: [
+      { productId: '022199', storeInfo: { ...validStore40, quantity: 6 } },
+      { productId: '022199', storeInfo: { ...validStore40, quantity: 99, address: '999 Forged Plaza' } },
+      { productId: '022199', storeInfo: { ...validStore40, quantity: 99, address: '999 Forged Plaza Sterling VA 20166', address1: '999 Forged Plaza', address2: null } },
+      { productId: '022199', storeInfo: { ...validStore40, quantity: Number.POSITIVE_INFINITY } },
+      { productId: '022199', storeInfo: { ...validStore40, quantity: Number.MAX_SAFE_INTEGER + 1 } },
+      { productId: '022199', storeInfo: { storeId: 40, quantity: 99, state: 'VA', url: '/stores/40' } },
+      { productId: '022199', storeInfo: { storeId: 999, quantity: 99, address: '999 Forged Plaza', city: 'Sterling', state: 'VA', zip: '20166' } },
+      { productId: 'wrong-product', storeInfo: { storeId: 40, quantity: 99, address: '22000 Dulles Retail Plaza, Unit 166', city: 'Sterling', state: 'VA', zip: '20166' } }
+    ]
+  };
+  const origin = { storeNumber: '40', address: '22000 Dulles Retail Plaza, Unit 166', city: 'Sterling', zip: '20166', lat: 39.00551387, lng: -77.43714145 };
+  const signals = virginiaStoreSignals(product, payload, { id: 'VA' }, bible, 'https://www.abc.virginia.gov/webapi/inventory/storeNearby', new Set(['40']), origin);
+
+  assert.equal(signals.length, 1);
+  assert.equal(signals[0].storeId, '40');
+  assert.equal(signals[0].quantity, 6);
+  assert.equal(signals[0].canAlertAsInventory, true);
+  assert.equal(signals[0].raw.originStoreId, '40');
+  assert.equal(signals[0].raw.product.code, '022199');
+  assert.equal(signals[0].raw.sourceQuantityReported, true);
+  assert.equal(signals[0].raw.sourceAvailabilityVerified, true);
+  assert.equal(signals[0].raw.premisesVerified, true);
+  assert.equal(signals[0].sourcePremisesProofVersion, 1);
+  assert.equal(signals[0].raw.virginiaCacheSchemaVersion, 3);
+  assert.deepEqual(signals[0].raw.premisesAuthority, {
+    source: 'virginia_arcgis', storeId: '40',
+    directoryAddress: origin.address, directoryCity: origin.city, directoryZip: origin.zip,
+    directoryLat: origin.lat, directoryLng: origin.lng,
+    matchMethod: 'selected_official_directory_origin'
+  });
+  assert.equal(signals[0].storeAddress, origin.address);
+  assert.equal(signals[0].lat, origin.lat);
+
+  assert.equal(virginiaInventoryPremisesMatch({
+    storeId: 36, address: '7953 Stonewall Shops Square Suite 220 Gainsville VA 20155', address1: '7953 Stonewall Shops Square, Suite 220', city: 'Gainsville', state: 'VA', zip: '20155',
+    latitude: 38.785784, longitude: -77.649117, url: '/stores/36'
+  }, {
+    storeNumber: '36', address: '8038 Crescent Park Drive', city: 'Gainesville', zip: '20155',
+    lat: 38.78443794, lng: -77.66371063
+  }), false, 'an unreviewed moved premise never inherits exact-store trust from proximity');
+  assert.equal(virginiaInventoryPremisesMatch({
+    storeId: 36, address: '999 Forged Plaza Gainsville VA 20155', address1: '999 Forged Plaza', city: 'Gainsville', state: 'VA', zip: '20155',
+    latitude: 37.2, longitude: -79.9, url: '/stores/36'
+  }, {
+    storeNumber: '36', address: '8038 Crescent Park Drive', city: 'Gainesville', zip: '20155',
+    lat: 38.78443794, lng: -77.66371063
+  }), false);
+
+
+  const forgedPolicy = confidenceForSignal({
+    state: 'VA', eventType: 'store_inventory_result', locationPrecision: 'store_level',
+    productCode: '022199', storeId: '40', sourceUrl: 'https://www.abc.virginia.gov/stores/40',
+    targetStoreIds: ['40', '61', '82', '362'],
+    quantity: 99, confidence: 1, sourceAvailabilityVerified: true, premisesVerified: true,
+    sourcePremisesProofVersion: 1, raw: { virginiaCacheSchemaVersion: 2 }
+  });
+  assert.equal(forgedPolicy.canAlertAsInventory, false);
+  assert.equal(forgedPolicy.canAlertAsWatch, false);
+  const verifiedPolicy = confidenceForSignal(signals[0]);
+  assert.equal(verifiedPolicy.canAlertAsInventory, true);
+});
+
+test('Virginia required-store verifier executes the complete Sterling origin set and fails closed per store', () => {
+  assert.equal(validateSterlingRequiredStoreIds('').ok, false);
+  assert.equal(validateSterlingRequiredStoreIds('40,61,82').ok, false);
+  assert.equal(validateSterlingRequiredStoreIds('40,61,82,82,362').ok, false);
+  assert.equal(validateSterlingRequiredStoreIds('40,61,82,999').ok, false);
+  assert.equal(validateSterlingRequiredStoreIds('362,82,61,40').ok, true);
+  const origins = [
+    { storeNumber: '40', address: '22000 Dulles Retail Plaza, Unit 166', city: 'Sterling', zip: '20166' },
+    { storeNumber: '61', address: '22360 S. Sterling Boulevard, Suite 101', city: 'Sterling', zip: '20164' },
+    { storeNumber: '82', address: '46930 Cedar Lakes Plaza, Units100-130', city: 'Sterling', zip: '20164' },
+    { storeNumber: '362', address: '100 Edds Lane', city: 'Sterling', zip: '20165' }
+  ];
+  const signals = origins.map((origin) => ({
+    id: `va-signal-${origin.storeNumber}`, productCode: '022199', targetStoreIds: ['40', '61', '82', '362'],
+    storeId: origin.storeNumber, storeAddress: origin.address, city: origin.city, zip: origin.zip,
+    sourceUrl: `https://www.abc.virginia.gov/stores/${origin.storeNumber}`,
+    locationPrecision: 'store_level', quantity: 2, productLimitedCaveat: false,
+    canAlertAsInventory: true, sourceAvailabilityVerified: true, premisesVerified: true, sourcePremisesProofVersion: 1,
+    virginiaCacheSchemaVersion: 3
+  }));
+  const drops = signals.map((signal) => ({ ...signal, eligibleForOnSite: true }));
+  for (const origin of origins) {
+    assert.equal(evaluateVirginiaRequiredStoreProof({
+      storeId: origin.storeNumber, origin, signals, drops
+    }).ok, true);
+  }
+  assert.equal(evaluateVirginiaRequiredStoreProof({
+    storeId: '82', origin: origins[2], signals, drops: drops.filter((drop) => drop.storeId !== '82')
+  }).ok, false);
+  assert.equal(evaluateVirginiaRequiredStoreProof({
+    storeId: '82', origin: origins[2], signals: signals.map((signal) => signal.storeId === '82' ? { ...signal, quantity: 'Infinity' } : signal), drops
+  }).ok, false);
+  assert.equal(evaluateVirginiaRequiredStoreProof({
+    storeId: '82', origin: origins[2], signals: signals.map((signal) => signal.storeId === '82' ? { ...signal, storeAddress: '999 Forged Plaza' } : signal), drops
+  }).ok, false);
+  assert.equal(evaluateVirginiaRequiredStoreProof({
+    storeId: '82', origin: origins[2], signals,
+    drops: drops.map((drop) => drop.storeId === '82' ? { ...drop, productCode: '018434' } : drop)
+  }).ok, false);
+  assert.equal(evaluateVirginiaRequiredStoreProof({
+    storeId: '82', origin: origins[2], signals,
+    drops: drops.map((drop) => drop.storeId === '82' ? { ...drop, canAlertAsInventory: false } : drop)
+  }).ok, false);
+  assert.equal(evaluateVirginiaRequiredStoreProof({
+    storeId: '82', origin: origins[2],
+    signals: signals.map((signal) => signal.storeId === '82' ? { ...signal, productCode: '018006', virginiaCacheSchemaVersion: null } : signal),
+    drops
+  }).ok, false);
+  assert.equal(evaluateVirginiaRequiredStoreProof({
+    storeId: '82', origin: origins[2],
+    signals: signals.map((signal) => signal.storeId === '82' ? { ...signal, raw: { product: { code: '018006' }, virginiaCacheSchemaVersion: 3 } } : signal),
+    drops
+  }).ok, false);
+});
+
+test('Virginia Sterling source audit is complete and keeps source classes distinct', async () => {
+  const atlas = JSON.parse(await readFile(new URL('../data/source-atlas/VA.json', import.meta.url), 'utf8'));
+  const proofBytes = await readFile(new URL('./fixtures/va/sterling-inventory-proof.json', import.meta.url));
+  const rawProofBytes = await readFile(new URL('./fixtures/va/sterling-inventory-raw-captures.json', import.meta.url));
+  const proof = JSON.parse(proofBytes.toString('utf8'));
+  const rawProof = JSON.parse(rawProofBytes.toString('utf8'));
+  assert.equal(atlas.contractVersion, 'bourbon-signal-virginia-source-audit-v1');
+  assert.equal(atlas.target.areaKey, 'sterling');
+  assert.equal(atlas.target.knownSourceUniverseComplete, true);
+  assert.equal(atlas.discoveryPasses.length, 2);
+  assert.deepEqual(atlas.baseline.officialSterlingStoreIds, ['40', '61', '82', '362']);
+  assert.deepEqual(atlas.inventoryExpansion.products.map((product) => product.code), ['016577', '022199', '018434']);
+  assert.equal(createHash('sha256').update(proofBytes).digest('hex'), atlas.inventoryExpansion.proofFixtureSha256);
+  assert.equal(createHash('sha256').update(rawProofBytes).digest('hex'), atlas.inventoryExpansion.rawProofFixtureSha256);
+  assert.equal(rawProof.capturedAt, atlas.inventoryExpansion.rawProofCapturedAt);
+  const latestProofObservedAt = Math.max(...proof.rows.map((row) => Date.parse(row.observedAt)));
+  assert.equal(Date.parse(atlas.inventoryExpansion.proofObservedAt), latestProofObservedAt);
+  assert.ok(Date.parse(atlas.generatedAt) >= latestProofObservedAt);
+  assert.deepEqual(proof.rows.map((row) => `${row.productCode}:${row.storeId}`), [
+    '016577:40', '016577:82', '016577:362',
+    '018434:40', '018434:82', '018434:362',
+    '022199:40', '022199:61', '022199:82', '022199:362'
+  ]);
+  assert.ok(proof.rows.every((row) => Number.isSafeInteger(row.quantity) && row.quantity > 0 && row.city === 'Sterling'));
+  const reviewedStores = new Map(atlas.target.reviewedStores.map((store) => [store.storeId, store]));
+  const normalizePremise = (value) => String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
+  for (const row of proof.rows) {
+    const reviewed = reviewedStores.get(row.storeId);
+    assert.ok(reviewed, row.storeId);
+    assert.ok(normalizePremise(row.storeAddress).startsWith(normalizePremise(reviewed.address)), row.storeId);
+    assert.equal(row.city, reviewed.city);
+    assert.equal(row.zip, reviewed.zip);
+  }
+  assert.equal(rawProof.captures.length, 12);
+  const capturedRows = [];
+  for (const capture of rawProof.captures) {
+    const requestUrl = new URL(capture.requestUrl);
+    assert.equal(requestUrl.origin, 'https://www.abc.virginia.gov');
+    assert.equal(requestUrl.pathname, '/webapi/inventory/storeNearby');
+    assert.equal(capture.status, 200);
+    assert.match(capture.contentType, /^application\/json\b/i);
+    assert.equal(createHash('sha256').update(capture.rawBody).digest('hex'), capture.bodySha256);
+    const storeId = requestUrl.searchParams.get('storeNumber');
+    const productCode = requestUrl.searchParams.get('productCode');
+    assert.ok(['40', '61', '82', '362'].includes(storeId));
+    assert.ok(['016577', '022199', '018434'].includes(productCode));
+    const payload = JSON.parse(capture.rawBody);
+    const selected = payload.products.find((entry) => String(entry.productId) === productCode && String(entry.storeInfo?.storeId) === storeId);
+    assert.ok(selected, `${productCode}:${storeId}`);
+    assert.ok(Number.isSafeInteger(Number(selected.storeInfo.quantity)) && Number(selected.storeInfo.quantity) >= 0);
+    const reviewed = reviewedStores.get(storeId);
+    assert.equal(selected.storeInfo.city, reviewed.city);
+    assert.equal(String(selected.storeInfo.zip), reviewed.zip);
+    assert.ok(normalizePremise(selected.storeInfo.address).startsWith(normalizePremise(reviewed.address)));
+    if (Number(selected.storeInfo.quantity) > 0) capturedRows.push(`${productCode}:${storeId}:${selected.storeInfo.quantity}`);
+  }
+  assert.deepEqual(capturedRows.sort(), proof.rows.map((row) => `${row.productCode}:${row.storeId}:${row.quantity}`).sort());
+  for (const product of atlas.inventoryExpansion.products) {
+    assert.deepEqual(proof.rows.filter((row) => row.productCode === product.code).map((row) => row.storeId), product.positiveStoreIds);
+  }
+  assert.ok(atlas.inventoryExpansion.products.every((product) => new URL(product.productUrl).hostname === 'www.abc.virginia.gov'));
+  assert.ok(atlas.sources.some((source) => source.sourceClass === 'first_party' && source.outcome === 'adopted'));
+  assert.ok(atlas.sources.some((source) => source.sourceClass === 'official_directory' && source.outcome === 'adopted'));
+  assert.ok(atlas.sources.some((source) => source.sourceClass === 'other_public' && source.outcome !== 'adopted'));
+  assert.ok(atlas.sources.every((source) => /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(source.sourceId)));
+  assert.equal(new Set(atlas.sources.map((source) => source.sourceId)).size, atlas.sources.length);
+  assert.ok(atlas.sources.every((source) => /^https:$/.test(new URL(source.url).protocol)));
+  assert.ok(atlas.sources.every((source) => /^[a-z0-9]+(?:_[a-z0-9]+)*$/.test(source.reasonCode)));
+  assert.ok(atlas.sources.every((source) => ['first_party', 'delegated_marketplace', 'official_directory', 'other_public'].includes(source.sourceClass)));
+  assert.ok(atlas.sources.every((source) => ['adopted', 'viable_not_adopted', 'rejected', 'blocked'].includes(source.outcome)));
 });
 
 test('Virginia cold runners seed the rolling cache from the hydrated state report', () => {
@@ -155,7 +447,7 @@ test('Virginia cold runners seed the rolling cache from the hydrated state repor
   assert.equal(publicContractSeed.signals[0].productCode, '018006');
 });
 
-test('Virginia cache migration deduplicates legacy nearby rows and keeps them non-alertable until selected-origin refresh', () => {
+test('Virginia cache makes every row revalidate live and cannot self-attest premises', () => {
   const legacyOlder = {
     id: 'legacy-old', storeId: '101', quantity: 4, observedAt: '2026-07-20T00:00:00.000Z', canAlertAsInventory: true,
     raw: { product: { code: '018006', limitedCaveat: false }, store: { quantity: 4 } }
@@ -164,19 +456,64 @@ test('Virginia cache migration deduplicates legacy nearby rows and keeps them no
     ...legacyOlder, id: 'legacy-new', quantity: 2, observedAt: '2026-07-21T00:00:00.000Z', raw: { product: { code: '018006', limitedCaveat: false }, store: { quantity: 2 } }
   };
   const verified = {
-    id: 'verified', storeId: '102', quantity: 3, observedAt: '2026-07-21T00:00:00.000Z', canAlertAsInventory: true,
-    raw: { product: { code: '018006', limitedCaveat: false }, originStoreId: '102', sourceQuantityReported: true, sourceAvailabilityVerified: true, virginiaCacheSchemaVersion: 2 }
+    id: 'verified', storeId: '40', storeAddress: '22000 Dulles Retail Plaza, Unit 166', city: 'Sterling', stateCode: 'VA', zip: '20166', quantity: 3,
+    sourceUrl: 'https://www.abc.virginia.gov/stores/40', observedAt: '2026-07-21T00:00:00.000Z',
+    canAlertAsInventory: true, sourceAvailabilityVerified: true, premisesVerified: true, sourcePremisesProofVersion: 1,
+    targetStoreIds: ['40', '61', '82', '362'],
+    raw: {
+      product: { code: '022199', limitedCaveat: false, targetStoreIds: ['40', '61', '82', '362'] }, originStoreId: '40', sourceQuantityReported: true,
+      sourceAvailabilityVerified: true, premisesVerified: true, sourcePremisesProofVersion: 1,
+      premisesAuthority: {
+        source: 'virginia_arcgis', storeId: '40',
+        directoryAddress: '22000 Dulles Retail Plaza, Unit 166', directoryCity: 'Sterling', directoryZip: '20166',
+        matchMethod: 'selected_official_directory_origin'
+      },
+      virginiaCacheSchemaVersion: 3
+    }
+  };
+  const forgedSelfAttested = {
+    ...verified,
+    id: 'forged-self-attested',
+    storeId: '61',
+    sourceUrl: 'https://www.abc.virginia.gov/stores/61',
+    storeAddress: '999 Forged Plaza',
+    quantity: 'Infinity',
+    raw: {
+      ...verified.raw,
+      originStoreId: '61',
+      premisesAuthority: {
+        source: 'virginia_arcgis', storeId: '61', directoryAddress: '999 Forged Plaza', directoryCity: 'Sterling', directoryZip: '20164',
+        matchMethod: 'selected_official_directory_origin'
+      }
+    }
   };
 
-  const migrated = sanitizeVirginiaInventoryCacheSignals([legacyOlder, legacyNewer, verified]);
-  assert.equal(migrated.length, 2);
+  const migrated = sanitizeVirginiaInventoryCacheSignals([legacyOlder, legacyNewer, verified, forgedSelfAttested]);
+  assert.equal(migrated.length, 3);
   const legacy = migrated.find((signal) => signal.storeId === '101');
   assert.equal(legacy.id, 'legacy-new');
   assert.equal(legacy.canAlertAsInventory, false);
   assert.equal(legacy.alertable, false);
   assert.equal(legacy.sourceStale, true);
   assert.equal(legacy.raw.legacyVirginiaCache, true);
-  assert.equal(migrated.find((signal) => signal.storeId === '102').canAlertAsInventory, true);
+  const freshnessReplayedLegacy = applyVirginiaInventoryFreshness([legacy], Date.parse('2026-07-20T01:02:00.000Z'))[0];
+  assert.equal(freshnessReplayedLegacy.sourceStale, true);
+  assert.equal(freshnessReplayedLegacy.canAlertAsInventory, false);
+  const cachedTarget = migrated.find((signal) => signal.storeId === '40');
+  assert.equal(cachedTarget.canAlertAsInventory, false);
+  assert.equal(cachedTarget.sourceStale, true);
+  assert.equal(cachedTarget.premisesVerified, false);
+  const forged = migrated.find((signal) => signal.storeId === '61');
+  assert.equal(forged.quantity, 0);
+  assert.equal(forged.canAlertAsInventory, false);
+  assert.equal(forged.canAlertAsWatch, false);
+  assert.equal(forged.raw.legacyVirginiaCache, true);
+  assert.equal(confidenceForSignal(forged).canAlertAsInventory, false);
+  const migrationSelection = selectVirginiaProductsForRefresh([
+    { code: 'ordinary', limitedCaveat: false },
+    { code: 'bootstrap', limitedCaveat: false, bootstrapPriority: true }
+  ], [{ ...legacy, raw: { ...legacy.raw, product: { code: 'ordinary' } } }], Date.now(), { maxProducts: 1 });
+  assert.deepEqual(migrationSelection.map((product) => product.code), ['bootstrap']);
 });
 
 test('Virginia product partitions replace only complete successful live products', () => {
@@ -297,7 +634,9 @@ test('Virginia collector continuously refreshes bounded product shards instead o
   assert.match(collectorSource, /storePhone:/);
   assert.match(collectorSource, /storeUrl:/);
   assert.match(collectorSource, /VIRGINIA_COLD_START_PRODUCTS_PER_RUN/);
-  assert.match(collectorSource, /recoveryBacklogProductCodes\.size\s*>\s*VIRGINIA_PRODUCTS_PER_RUN/);
+  assert.match(collectorSource, /virginiaRefreshPlan\(/);
+  assert.match(collectorSource, /requiredTargetStoreIds/);
+  assert.match(collectorSource, /process\.env\.BOURBON_SIGNAL_VA_FORCE_LIVE === '1' \|\| refreshPlan\.force/);
   assert.match(collectorSource, /missingCachedProductCodes/);
   assert.match(collectorSource, /supportedCachedSignals/);
   assert.match(collectorSource, /seedVirginiaInventoryCacheSignals\(/);
@@ -319,10 +658,13 @@ test('Virginia verifier blocks stale alertable rows and incomplete regular-produ
   assert.match(verifierSource, /supportedOriginStoreIds/);
   assert.match(verifierSource, /verifiedPriorityStoreIds\.has\('49'\)/);
   assert.match(verifierSource, /rejectedPriorityStoreIds/);
-  assert.match(verifierSource, /if \(requiredTargetStoreId\)/);
-  assert.match(verifierSource, /requiredTargetStoreId === '49'/);
-  assert.match(verifierSource, /targetStoreSignals\.some/);
-  assert.match(verifierSource, /targetStoreDrops\.length\s*>\s*0/);
+  assert.match(verifierSource, /if \(requiredTargetStoreIds\.length\)/);
+  assert.match(verifierSource, /unsupportedTargetStoreIds/);
+  assert.match(verifierSource, /for \(const storeId of requiredTargetStoreIds\)/);
+  assert.match(verifierSource, /evaluateVirginiaRequiredStoreProof/);
+  assert.match(verifierSource, /matchesSupportedOrigin/);
+  assert.match(verifierSource, /hasSafePositiveQuantity/);
+  assert.match(verifierSource, /sourcePremisesProofVersion/);
   assert.match(verifierSource, /signal\.stale\s*\|\|\s*signal\.sourceStale/);
   assert.match(verifierSource, /signal\.alertable\s*\|\|\s*signal\.canAlertAsInventory\s*\|\|\s*signal\.canAlertAsWatch/);
   assert.match(verifierSource, /missingSupportedStores/);
@@ -347,13 +689,13 @@ test('production refresh isolates an explicitly stale Virginia lane without weak
   assert.match(workflow, /va_required_store_id requires an explicit VA state target/);
   assert.match(verifier, /allow-safe-stale-fallback/);
   assert.match(verifier, /\^stale_/);
-  assert.match(verifier, /!requiredTargetStoreId\s*&&\s*allowSafeStaleFallback/);
+  assert.match(verifier, /!requiredTargetStoreIds\.length\s*&&\s*allowSafeStaleFallback/);
   assert.match(verifier, /stateAlertableSignals/);
   assert.match(verifier, /expiredAlertableDrops/);
   assert.match(verifier, /flatMap\(\(signal\) => \[signal\.sourceSignalId, signal\.key\]/);
   assert.match(verifier, /!allowSafeStaleFallback\s*&&\s*rollingFreshnessRoadblocks\.length/);
-  assert.match(verifier, /targetStoreSignals/);
-  assert.match(verifier, /targetStoreDrops/);
+  assert.match(verifier, /evaluateVirginiaRequiredStoreProof/);
+  assert.match(verifier, /supportedOrigins\.get\(storeId\)/);
   assert.match(verifier, /alertableDrops/);
   assert.match(verifier, /eligibleAlertCandidates/);
   assert.match(workflow, /uses:\s*actions\/cache\/restore@v4/);
@@ -376,6 +718,7 @@ test('operational snapshot preserves Virginia product and stale-source metadata 
   assert.match(operational, /storeUrl:/);
   assert.match(operational, /\['GA', 'VA'\]\.includes\(signal\.state\)/);
   assert.match(operational, /premisesVerified:\s*signal\.premisesVerified === true \|\| signal\.raw\?\.premisesVerified === true/);
+  assert.match(operational, /sourcePremisesProofVersion:/);
 });
 
 test('Virginia supported-store identities propagate from precision collection into the state report', async () => {
@@ -423,9 +766,54 @@ test('site export preserves Virginia stale-source labeling instead of silently n
   const exporter = await readFile(new URL('../src/export-site-contract.mjs', import.meta.url), 'utf8');
   assert.match(exporter, /signal\.sourceStale === true \|\| ohioFeedStaleCaveat\(signal\)/);
   assert.match(exporter, /signal\.staleSourceCaveat \|\|/);
-  assert.match(exporter, /productCode:\s*signal\.productCode/);
+  assert.match(exporter, /productCode:\s*virginiaProof\.codeConflict \? null/);
   assert.match(exporter, /productLimitedCaveat:[^\n]*signal\.productLimitedCaveat/);
-  assert.match(exporter, /premisesVerified:\s*signal\.premisesVerified === true/);
+  assert.match(exporter, /premisesVerified:\s*virginiaProofAllowed/);
+  assert.match(exporter, /sourcePremisesProofVersion:/);
+
+  const bible = bibleLookup([{ id: 'wt-rare-breed', canonical: 'Wild Turkey Rare Breed Bourbon', aliases: [], tier: 'limited' }]);
+  const unsafeInput = {
+    id: 'unsafe-va-target', key: 'unsafe-va-target', state: 'VA', stateCode: 'VA', eventType: 'store_inventory_result',
+    sourceLabel: 'Virginia ABC storeNearby inventory API', sourceUrl: 'https://www.abc.virginia.gov/stores/40',
+    productCode: '022199', rawName: 'Wild Turkey Rare Breed Bourbon', canonicalName: 'Wild Turkey Rare Breed Bourbon',
+    canonicalBottleId: 'wt-rare-breed', bottleId: 'wt-rare-breed', tier: 'limited',
+    storeId: '40', storeAddress: '22000 Dulles Retail Plaza, Unit 166', city: 'Sterling', zip: '20166',
+    locationPrecision: 'store_level', quantity: Number.MAX_SAFE_INTEGER + 1, reportedQuantity: Number.MAX_SAFE_INTEGER + 1,
+    canAlertAsInventory: true, canAlertAsWatch: true, sourceAvailabilityVerified: true,
+    premisesVerified: false, sourcePremisesProofVersion: null, targetStoreIds: ['40', '61', '82', '362'],
+    productLimitedCaveat: false, observedAt: new Date().toISOString()
+  };
+  const unsafe = publicSignal(unsafeInput, bible);
+  assert.equal(unsafe.quantity, 0);
+  assert.equal(unsafe.reportedQuantity, null);
+  assert.equal(unsafe.canAlertAsInventory, false);
+  assert.equal(unsafe.canAlertAsWatch, false);
+  assert.equal(unsafe.eligibleForOnSite, false);
+  assert.equal(unsafe.eligibleForDelivery, false);
+  assert.equal(unsafe.premisesVerified, false);
+  assert.deepEqual(buildDrops([unsafeInput], bible, [unsafeInput]), []);
+
+  const conflictInput = {
+    ...unsafeInput,
+    id: 'conflicting-va-target', key: 'conflicting-va-target', productCode: '018006', quantity: 6, reportedQuantity: 6,
+    premisesVerified: true, sourcePremisesProofVersion: 1, virginiaCacheSchemaVersion: 3,
+    raw: { product: { code: '022199', targetStoreIds: ['40', '61', '82', '362'] }, virginiaCacheSchemaVersion: 3 }
+  };
+  assert.deepEqual(buildDrops([conflictInput], bible, [conflictInput]), []);
+  assert.equal(confidenceForSignal(conflictInput).canAlertAsInventory, false);
+
+  const safeInput = {
+    ...unsafeInput,
+    id: 'safe-va-target', key: 'safe-va-target', quantity: 6, reportedQuantity: 6,
+    premisesVerified: true, sourcePremisesProofVersion: 1, virginiaCacheSchemaVersion: 3,
+    raw: { product: { code: '022199', targetStoreIds: ['40', '61', '82', '362'] }, virginiaCacheSchemaVersion: 3 }
+  };
+  const safeDrops = buildDrops([safeInput], bible, [safeInput]);
+  assert.equal(safeDrops.length, 1);
+  assert.equal(safeDrops[0].quantity, 6);
+  assert.equal(safeDrops[0].canAlertAsInventory, true);
+  assert.equal(safeDrops[0].eligibleForOnSite, true);
+  assert.equal(safeDrops[0].eligibleForDelivery, true);
 });
 
 test('confidence policy cannot re-enable stale Virginia inventory after collector freshness gating', () => {
@@ -437,7 +825,10 @@ test('confidence policy cannot re-enable stale Virginia inventory after collecto
     availabilityStatus: 'in_stock',
     confidence: 0.78,
     sourceStale: true,
-    raw: { product: { code: 'A', limitedCaveat: false } }
+    sourceAvailabilityVerified: true,
+    premisesVerified: true,
+    sourcePremisesProofVersion: 1,
+    raw: { product: { code: 'A', limitedCaveat: false }, virginiaCacheSchemaVersion: 3 }
   });
   assert.equal(result.canAlertAsInventory, false);
   assert.equal(result.canAlertAsWatch, false);
@@ -450,8 +841,11 @@ test('confidence policy cannot re-enable stale Virginia inventory after collecto
     availabilityStatus: 'in_stock',
     confidence: 0.78,
     sourceStale: false,
+    sourceAvailabilityVerified: true,
+    premisesVerified: true,
+    sourcePremisesProofVersion: 1,
     observedAt: new Date(Date.now() - 25 * HOUR).toISOString(),
-    raw: { product: { code: 'A', limitedCaveat: false } }
+    raw: { product: { code: 'A', limitedCaveat: false }, virginiaCacheSchemaVersion: 3 }
   });
   assert.equal(expired.canAlertAsInventory, false);
   assert.equal(expired.canAlertAsWatch, false);

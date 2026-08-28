@@ -38,17 +38,85 @@ const VIRGINIA_PRIORITY_ORIGIN_IDENTITIES = new Map([
     address: '881 North Quincy Street',
     city: 'Arlington',
     zip: '22203'
+  }],
+  ['40', {
+    address: '22000 Dulles Retail Plaza, Unit 166',
+    city: 'Sterling',
+    zip: '20166'
+  }],
+  ['61', {
+    address: '22360 S. Sterling Boulevard, Suite 101',
+    city: 'Sterling',
+    zip: '20164'
+  }],
+  ['82', {
+    address: '46930 Cedar Lakes Plaza, Units100-130',
+    city: 'Sterling',
+    zip: '20164'
+  }],
+  ['362', {
+    address: '100 Edds Lane',
+    city: 'Sterling',
+    zip: '20165'
   }]
 ]);
 
+export const VIRGINIA_REQUIRED_PREMISES_PRODUCT_CODES = new Set(['016577', '022199', '018434']);
+export const VIRGINIA_VERIFIER_REGULAR_PRODUCT_CODES = new Set([
+  '021236', '017913', '019880', '022092', '016580',
+  '020376', '016017', '022175', '022178', '019239'
+]);
+
 function normalizedVirginiaPremisesPart(value) {
-  return String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  return String(value || '').toLowerCase().replace(/[^a-z0-9]+/g, '');
 }
 
 function virginiaPriorityIdentityMatches(store, expected) {
   return normalizedVirginiaPremisesPart(store?.address) === normalizedVirginiaPremisesPart(expected.address)
     && normalizedVirginiaPremisesPart(store?.city) === normalizedVirginiaPremisesPart(expected.city)
     && String(store?.zip || '').match(/^\d{5}/)?.[0] === expected.zip;
+}
+
+export function virginiaInventoryPremisesMatch(store, origin) {
+  const storeId = String(store?.storeId ?? store?.storeNumber ?? store?.id ?? '').trim();
+  const originStoreId = String(origin?.storeNumber ?? origin?.storeId ?? '').trim();
+  const streetAddress = [store?.address1, store?.address2].filter(Boolean).join(' ');
+  const fullAddress = [streetAddress, store?.city, store?.state, store?.zip].filter(Boolean).join(' ');
+  const payloadAddress = normalizedVirginiaPremisesPart(store?.address);
+  const payloadPartsAddress = normalizedVirginiaPremisesPart(fullAddress);
+  const originAddress = normalizedVirginiaPremisesPart(origin?.address);
+  const originCity = normalizedVirginiaPremisesPart(origin?.city);
+  const storeState = normalizedVirginiaPremisesPart(store?.state);
+  const storeZip = String(store?.zip || '').match(/^\d{5}/)?.[0];
+  const originZip = String(origin?.zip || '').match(/^\d{5}/)?.[0];
+  const payloadCoherent = payloadAddress.length >= 5
+    && payloadPartsAddress.length >= 5
+    && payloadAddress === payloadPartsAddress;
+  const exactPremises = normalizedVirginiaPremisesPart(streetAddress) === originAddress
+    && normalizedVirginiaPremisesPart(store?.city) === originCity
+    && storeZip === originZip;
+  const storeLat = Number(store?.latitude ?? store?.lat);
+  const storeLng = Number(store?.longitude ?? store?.lng);
+  const originLat = Number(origin?.lat ?? origin?.latitude);
+  const originLng = Number(origin?.lng ?? origin?.longitude);
+  const coordinatesValid = [storeLat, storeLng, originLat, originLng].every(Number.isFinite)
+    && storeLat >= 36.5 && storeLat <= 39.6 && storeLng >= -83.7 && storeLng <= -75.1;
+  const radians = (degrees) => degrees * Math.PI / 180;
+  const deltaLat = radians(storeLat - originLat);
+  const deltaLng = radians(storeLng - originLng);
+  const haversine = coordinatesValid
+    ? 2 * 6371 * Math.asin(Math.sqrt(
+      Math.sin(deltaLat / 2) ** 2
+      + Math.cos(radians(originLat)) * Math.cos(radians(storeLat)) * Math.sin(deltaLng / 2) ** 2
+    ))
+    : Number.POSITIVE_INFINITY;
+  return Boolean(storeId && originStoreId && storeId === originStoreId
+    && originAddress.length >= 5 && originCity.length >= 2 && originZip)
+    && (storeState === 'va' || storeState === 'virginia')
+    && String(store?.url || '') === `/stores/${storeId}`
+    && payloadCoherent
+    && coordinatesValid && haversine <= 1
+    && exactPremises;
 }
 
 export function planVirginiaOriginStores(stores, requestedPriorityStoreIds = ['49']) {
@@ -114,6 +182,14 @@ export function seedVirginiaInventoryCacheSignals(stateReport) {
   };
 }
 
+export function virginiaRefreshPlan({ cachedSignalCount = 0, recoveryBacklogCount = 0, normalLimit = 15, coldLimit = 15, requiredStoreIds = [] } = {}) {
+  const targeted = [...requiredStoreIds].map(String).filter(Boolean).length > 0;
+  return {
+    force: targeted,
+    maxProducts: targeted || cachedSignalCount === 0 || recoveryBacklogCount > normalLimit ? coldLimit : normalLimit
+  };
+}
+
 export function selectVirginiaProductsForRefresh(products, cachedSignals, nowMs = Date.now(), options = {}) {
   const maxProducts = Math.max(1, Number(options.maxProducts || 8));
   const regularIntervalMs = Math.max(1, Number(options.regularIntervalMs || 2 * 60 * 60_000));
@@ -123,7 +199,11 @@ export function selectVirginiaProductsForRefresh(products, cachedSignals, nowMs 
 
   for (const signal of cachedSignals || []) {
     const code = virginiaProductCode(signal);
-    const observedAt = finiteTimestamp(signal?.observedAt);
+    if (signal?.raw?.legacyVirginiaCache === true
+      && (VIRGINIA_REQUIRED_PREMISES_PRODUCT_CODES.has(code) || VIRGINIA_VERIFIER_REGULAR_PRODUCT_CODES.has(code))) continue;
+    const observedAt = finiteTimestamp(signal?.raw?.legacyVirginiaCache === true
+      ? signal.raw?.virginiaSchedulingObservedAt
+      : signal?.observedAt);
     if (!code || observedAt == null) continue;
     latestByProduct.set(code, Math.max(latestByProduct.get(code) || 0, observedAt));
   }
@@ -173,28 +253,41 @@ export function selectVirginiaOriginStoreRows(json, originStoreId, productCode =
 
 export function sanitizeVirginiaInventoryCacheSignals(signals = []) {
   const deduped = new Map();
+  const schedulingNowMs = Date.now();
   for (const signal of signals) {
     const storeId = String(signal?.storeId || '').trim();
     const productCode = virginiaProductCode(signal) || 'unknown-product';
     const key = storeId ? `${productCode}|${storeId}` : `${productCode}|${signal?.id || deduped.size}`;
     const raw = signal?.raw || {};
-    const selectedOriginVerified = storeId
-      && String(raw.originStoreId || '') === storeId
-      && raw.sourceQuantityReported === true
-      && raw.sourceAvailabilityVerified === true
-      && Number(raw.virginiaCacheSchemaVersion) === 2;
-    const migrated = selectedOriginVerified ? signal : {
+    const quantity = Number(signal?.quantity);
+    const quantityVerified = Number.isSafeInteger(quantity) && quantity >= 0;
+    const schedulingObservedAtMs = finiteTimestamp(signal?.observedAt || signal?.fetchedAt);
+    const schedulingObservedAt = schedulingObservedAtMs != null && schedulingObservedAtMs <= schedulingNowMs + 5 * 60_000
+      ? new Date(schedulingObservedAtMs).toISOString()
+      : null;
+    const migrated = {
       ...signal,
+      quantity: quantityVerified ? quantity : 0,
+      reportedQuantity: quantityVerified ? quantity : 0,
+      eventType: 'store_inventory_out_of_stock',
+      availabilityStatus: 'out_of_stock',
+      availabilityLabel: 'Refresh required before live availability',
       alertable: false,
       canAlertAsInventory: false,
+      canAlertAsWatch: false,
+      premisesVerified: false,
+      sourcePremisesProofVersion: null,
       sourceStale: true,
       stale: true,
-      staleReason: 'Legacy Virginia cache row predates selected-origin provenance and must be refreshed before alerting.',
+      staleReason: 'Virginia cached inventory must be revalidated live before use.',
       raw: {
         ...raw,
         legacyVirginiaCache: true,
+        virginiaSchedulingObservedAt: schedulingObservedAt,
         staleFallback: true,
-        staleReason: 'legacy_selected_origin_unverified'
+        premisesVerified: false,
+        sourcePremisesProofVersion: null,
+        staleReason: 'live_selected_origin_revalidation_required'
       }
     };
     const previous = deduped.get(key);
@@ -266,7 +359,10 @@ export function isVirginiaRegularInventoryExpired(signal, nowMs = Date.now(), ma
 export function applyVirginiaInventoryFreshness(signals, nowMs = Date.now(), maxInventoryAgeMs = 24 * 60 * 60_000) {
   return (signals || []).map((signal) => {
     const observedAt = finiteTimestamp(signal?.observedAt);
-    const stale = observedAt == null || nowMs - observedAt > maxInventoryAgeMs;
+    const stale = signal?.raw?.legacyVirginiaCache === true
+      || signal?.raw?.staleFallback === true
+      || observedAt == null
+      || nowMs - observedAt > maxInventoryAgeMs;
     if (!stale) return { ...signal, sourceStale: false, staleSourceCaveat: null };
     const lastConfirmed = observedAt == null ? 'an unknown time' : new Date(observedAt).toISOString();
     return {
