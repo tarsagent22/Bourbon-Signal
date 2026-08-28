@@ -7,6 +7,7 @@ import { createRequire } from 'node:module';
 import { randomUUID } from 'node:crypto';
 import { stableId, stripHtml, titleCase } from '../core/text.mjs';
 import { runBoundedSourceLanes } from '../core/bounded-source-pool.mjs';
+import { hydrateOhlqWorkerArtifact, loadOhlqBrowserArtifact } from '../ohlq-worker-artifact.mjs';
 import { collectNorthCarolinaIntelligence } from './north-carolina-intelligence.mjs';
 import { freshCityHivePositiveSignals, normalizeCityHiveReportedQuantity, oldestSourceEvidenceCohort, reconcileCityHiveRateLimitsWithCache, rotatingSourceCohort } from './cityhive-hardening.mjs';
 import { buildCityHiveRareProbeUrls } from './cityhive-rare-probes.mjs';
@@ -2367,38 +2368,44 @@ function normalizedBottleText(value) {
 export function cityHiveSafeBottleMatch(rawName, bible) {
   const { match, record } = bottleMatch(rawName, bible);
   if (!record) return { match, record: null, unsafeReason: 'no_bottle_bible_match' };
+  const unsafeReason = cityHiveUnsafeBottleMatchReason(rawName, record);
+  if (unsafeReason) return { match, record: null, unsafeReason };
+  return { match, record, unsafeReason: null };
+}
+
+function cityHiveUnsafeBottleMatchReason(rawName, record) {
   const raw = normalizedBottleText(rawName);
   const canonical = normalizedBottleText(record.canonical);
-  if (/\b(cream|liqueur|cordial|cocktail|ready to drink)\b/.test(raw) && !/\b(cream|liqueur|cordial|cocktail|ready to drink)\b/.test(canonical)) return { match, record: null, unsafeReason: 'flavored_or_liqueur_matched_core_bottle' };
-  if (/\brye\b/.test(raw) && !/\brye\b/.test(canonical)) return { match, record: null, unsafeReason: 'rye_matched_non_rye' };
-  if (/\bbourbon\b/.test(raw) && /\brye\b/.test(canonical) && !/\brye\b/.test(raw)) return { match, record: null, unsafeReason: 'bourbon_matched_rye' };
-  if (/\bwheated\b/.test(raw) && !/\bwheated\b/.test(canonical)) return { match, record: null, unsafeReason: 'wheated_matched_non_wheated' };
-  if (/\breserve\b/.test(raw) && !/\breserve\b/.test(canonical)) return { match, record: null, unsafeReason: 'reserve_matched_non_reserve' };
+  if (/\b(cream|liqueur|cordial|cocktail|ready to drink)\b/.test(raw) && !/\b(cream|liqueur|cordial|cocktail|ready to drink)\b/.test(canonical)) return 'flavored_or_liqueur_matched_core_bottle';
+  if (/\brye\b/.test(raw) && !/\brye\b/.test(canonical)) return 'rye_matched_non_rye';
+  if (/\bbourbon\b/.test(raw) && /\brye\b/.test(canonical) && !/\brye\b/.test(raw)) return 'bourbon_matched_rye';
+  if (/\bwheated\b/.test(raw) && !/\bwheated\b/.test(canonical)) return 'wheated_matched_non_wheated';
+  if (/\breserve\b/.test(raw) && !/\breserve\b/.test(canonical)) return 'reserve_matched_non_reserve';
   const rawSpecificPhrases = ['single barrel', 'full proof', 'barrel proof', 'cask strength', 'limited edition', 'small batch select', 'private selection', 'store pick'];
   for (const phrase of rawSpecificPhrases) {
-    if (raw.includes(phrase) && !canonical.includes(phrase) && !(phrase === 'cask strength' && canonical.includes('barrel proof'))) return { match, record: null, unsafeReason: `specific_raw_modifier_matched_generic:${phrase}` };
+    if (raw.includes(phrase) && !canonical.includes(phrase) && !(phrase === 'cask strength' && canonical.includes('barrel proof'))) return `specific_raw_modifier_matched_generic:${phrase}`;
   }
   const requiredPhrases = [
     'limited edition', 'batch proof', 'barrel proof', 'single barrel', 'small batch select',
     'small batch', 'full proof', 'bottled in bond', 'private barrel', 'store pick', 'single barrel select'
   ];
   for (const phrase of requiredPhrases) {
-    if (canonical.includes(phrase) && !raw.includes(phrase)) return { match, record: null, unsafeReason: `missing_modifier:${phrase}` };
+    if (canonical.includes(phrase) && !raw.includes(phrase)) return `missing_modifier:${phrase}`;
   }
   if (/\bfour roses\b/.test(canonical) && /\bbarrel strength\b/.test(canonical)) {
     const hasBarrelStrengthSignal = /\b(barrel strength|cask strength|private selection|private barrel|single barrel select|oes[foqkv]|obs[foqkv])\b/.test(raw);
-    if (!hasBarrelStrengthSignal) return { match, record: null, unsafeReason: 'four_roses_standard_single_barrel_not_barrel_strength' };
+    if (!hasBarrelStrengthSignal) return 'four_roses_standard_single_barrel_not_barrel_strength';
   }
   for (const yearExpression of [...canonical.matchAll(/\b((?:18|19|20)\d{2})\b/g)].map((m) => m[1])) {
-    if (!new RegExp(`\\b${yearExpression}\\b`).test(raw)) return { match, record: null, unsafeReason: `missing_expression:${yearExpression}` };
+    if (!new RegExp(`\\b${yearExpression}\\b`).test(raw)) return `missing_expression:${yearExpression}`;
   }
   for (const year of [...canonical.matchAll(/\b(\d{1,2})\s*year\b/g)].map((m) => m[1])) {
-    if (!new RegExp(`\\b${year}\\s*(?:year|yr|y)\\b`).test(raw)) return { match, record: null, unsafeReason: `missing_age:${year}` };
+    if (!new RegExp(`\\b${year}\\s*(?:year|yr|y)\\b`).test(raw)) return `missing_age:${year}`;
   }
   for (const year of [...canonical.matchAll(/\b(\d{1,2})\s*y\b/g)].map((m) => m[1])) {
-    if (!new RegExp(`\\b${year}\\s*(?:y|yr|year)\\b`).test(raw)) return { match, record: null, unsafeReason: `missing_age:${year}y` };
+    if (!new RegExp(`\\b${year}\\s*(?:y|yr|year)\\b`).test(raw)) return `missing_age:${year}y`;
   }
-  return { match, record, unsafeReason: null };
+  return null;
 }
 
 function kahnsProductTags(product) {
@@ -9520,12 +9527,14 @@ function binnysProductName(hit) {
   return hit.productName || hit.shortDescription || hit.name || hit.objectID || '';
 }
 
-export function binnysProductRelevant(hit) {
+export function binnysProductRelevant(hit, bible = null) {
   const productName = binnysProductName(hit);
   const classification = `${hit.productType || ''} ${hit.productVarietal || ''}`;
   const identityText = `${productName} ${hit.productBrandName || ''} ${classification} ${hit.area || ''} ${(hit.designations || []).join(' ')}`;
   if (BINNYS_EXCLUDE_CLASSIFICATION_RE.test(classification) || BINNYS_EXCLUDE_PRODUCT_NAME_RE.test(productName)) return false;
-  return BINNYS_STRICT_WATCH_RE.test(identityText);
+  if (BINNYS_STRICT_WATCH_RE.test(identityText)) return true;
+  if (!bible) return false;
+  return Boolean(cityHiveSafeBottleMatch(productName, bible).record);
 }
 
 const BINNYS_ALERT_GRADE_SCANNED_CANONICAL_RE = /^(?:Elijah Craig Barrel Proof|Old Forester Birthday Bourbon|Blood Oath|Little Book|Parker'?s Heritage|Knob Creek (?:12|15|18) Year|Russell'?s Reserve (?:13|15) Year|Four Roses Limited Edition)/i;
@@ -9631,7 +9640,7 @@ async function collectIllinois(config, bible) {
         productQueries.push({ term, page, status: 200, nbHits: result.nbHits || 0, hitCount: (result.hits || []).length });
         for (const hit of result.hits || []) {
           if (!hit.objectID || productMap.has(hit.objectID)) continue;
-          if (!binnysProductRelevant(hit)) continue;
+          if (!binnysProductRelevant(hit, bible)) continue;
           productMap.set(hit.objectID, hit);
         }
         if (!result.hits?.length || page + 1 >= Number(result.nbPages || 0)) break;
@@ -9994,25 +10003,22 @@ async function collectOhio(config, bible) {
   const cooldownPath = 'out/browser/ohlq-cooldown.json';
   const discoveryPath = 'data/browser-discovery/ohlq-product-availability-discovery.json';
   const staleAfterMs = Number(process.env.BOURBON_SIGNAL_OHLQ_STALE_AFTER_MS || 12 * 60 * 60_000);
-  let stale = false;
-  let staleReason = null;
+  const browserArtifact = await loadOhlqBrowserArtifact({
+    artifactPath: browserOutPath,
+    cooldownPath,
+    staleAfterMs,
+    hydrate: (options) => hydrateOhlqWorkerArtifact({
+      maximumAgeMs: staleAfterMs,
+      ...options,
+    }),
+  });
+  let stale = browserArtifact.stale;
+  let staleReason = browserArtifact.staleReason;
   let previousFinishedAt = null;
   try {
-    const cooldown = JSON.parse(await readFile(cooldownPath, 'utf8'));
-    const until = Date.parse(cooldown?.cooldownUntil || '');
-    if (Number.isFinite(until) && until > Date.now()) {
-      stale = true;
-      staleReason = `OHLQ cooldown active until ${cooldown.cooldownUntil}`;
-    }
-  } catch {}
-  try {
-    const browserRun = JSON.parse(await readFile(browserOutPath, 'utf8'));
+    const browserRun = browserArtifact.browserRun;
+    if (!browserRun) throw new Error('OHLQ browser artifact unavailable');
     previousFinishedAt = browserRun.generatedAt || null;
-    const generatedAtMs = Date.parse(browserRun.generatedAt || '');
-    if (Number.isFinite(generatedAtMs) && Date.now() - generatedAtMs > staleAfterMs) {
-      stale = true;
-      staleReason = staleReason || `OHLQ browser artifact older than ${Math.round(staleAfterMs / 3600000)}h`;
-    }
     for (const product of browserRun.products || []) {
       if (!product.ok || !Array.isArray(product.inventories)) continue;
       const productSku = String(product.sku || '').toLowerCase();
@@ -10065,8 +10071,8 @@ async function collectOhio(config, bible) {
         source: 'OHLQ direct server fetch',
         url: 'https://www.ohlq.com/api/product-availability/{sku}',
         status: 403,
-        error: 'OHLQ live rows were collected through browser/CDP. Direct Node fetch remains Cloudflare-gated, so scheduled production collection needs a browser-assisted or token/cookie bootstrap runtime.',
-        nextRoute: 'Run npm run ohlq before npm run run, or promote the browser bootstrap into the future scheduled engine runner.'
+        error: 'OHLQ live rows were collected from the signed worker-artifact handoff. Direct Node fetch remains Cloudflare-gated, so scheduled production collection must continue to hydrate the worker artifact rather than bypass the WAF.',
+        nextRoute: 'Keep the unattended OHLQ worker publishing fresh signed artifacts, and investigate worker-side session drift when hydration stops refreshing.'
       });
       return { signals, roadblocks, stale, staleReason, previousFinishedAt };
     }
@@ -10109,7 +10115,8 @@ async function collectOhio(config, bible) {
       });
     }
     if (signals.length) {
-      roadblocks.push({ state: config.id, source: 'OHLQ scheduled browser refresh fallback', url: browserOutPath, status: 0, error: 'Current OHLQ browser artifact did not contain positive decoded rows; retained prior positive-status snapshot rows to avoid dropping known live site coverage.', nextRoute: 'Refresh OHLQ from an already-warmed interactive browser session or improve non-headless Cloudflare handling.' });
+      const hydrationDetail = browserArtifact.hydrationError ? ` Worker artifact refresh failed: ${browserArtifact.hydrationError}` : '';
+      roadblocks.push({ state: config.id, source: 'OHLQ scheduled browser refresh fallback', url: browserOutPath, status: 0, error: `Current OHLQ browser artifact did not contain positive decoded rows; retained prior positive-status snapshot rows to avoid dropping known live site coverage.${hydrationDetail}`, nextRoute: 'Restore fresh signed worker artifacts or inspect the worker-side OHLQ browser session and artifact publishing path.' });
       return { signals, roadblocks, stale: true, staleReason: staleReason || 'OHLQ browser artifact did not contain positive decoded rows; retained prior snapshot rows', previousFinishedAt };
     }
   } catch {
@@ -10121,7 +10128,8 @@ async function collectOhio(config, bible) {
     signals.push(...seeded.signals);
     if (signals.length) {
       previousFinishedAt = previousFinishedAt || seeded.generatedAt;
-      roadblocks.push({ state: config.id, source: 'OHLQ scheduled browser refresh fallback', url: browserOutPath, status: 0, error: 'Current OHLQ browser artifact was unavailable; retained stale, non-alerting OHLQ rows from the hydrated Ohio state report.', nextRoute: 'Refresh OHLQ from an already-warmed interactive browser session while preserving the labeled state-report fallback.' });
+      const hydrationDetail = browserArtifact.hydrationError ? ` Worker artifact refresh failed: ${browserArtifact.hydrationError}` : '';
+      roadblocks.push({ state: config.id, source: 'OHLQ scheduled browser refresh fallback', url: browserOutPath, status: 0, error: `Current OHLQ browser artifact was unavailable; retained stale, non-alerting OHLQ rows from the hydrated Ohio state report.${hydrationDetail}`, nextRoute: 'Restore fresh signed worker artifacts while preserving the labeled Ohio state-report fallback.' });
       return { signals, roadblocks, stale: true, staleReason: staleReason || 'OHLQ browser artifact unavailable; retained hydrated state-report rows', previousFinishedAt };
     }
   } catch {
@@ -10132,7 +10140,8 @@ async function collectOhio(config, bible) {
     signals.push(...seeded.signals);
     if (signals.length) {
       previousFinishedAt = previousFinishedAt || seeded.generatedAt;
-      roadblocks.push({ state: config.id, source: 'OHLQ bounded recovery seed', url: browserOutPath, status: 0, error: 'No live, current-snapshot, or hydrated-state OHLQ inventory was available; restored the bounded July 22 capture as stale, non-alerting feed context.', nextRoute: 'Replace the recovery seed with a fresh warmed-browser collection; never use seeded rows for alerts.' });
+      const hydrationDetail = browserArtifact.hydrationError ? ` Worker artifact refresh failed: ${browserArtifact.hydrationError}` : '';
+      roadblocks.push({ state: config.id, source: 'OHLQ bounded recovery seed', url: browserOutPath, status: 0, error: `No live, current-snapshot, or hydrated-state OHLQ inventory was available; restored the bounded July 22 capture as stale, non-alerting feed context.${hydrationDetail}`, nextRoute: 'Replace the recovery seed with a fresh signed worker artifact; never use seeded rows for alerts.' });
       return { signals, roadblocks, stale: true, staleReason: staleReason || 'OHLQ bounded recovery seed retained as stale feed context', previousFinishedAt };
     }
   } catch {
@@ -10472,8 +10481,77 @@ function idahoProductRelevant(product, bible) {
   return Boolean(record && /bourbon|whiskey|whisky/i.test(hay));
 }
 
-function idahoSafeBottleMatch(rawName, bible) {
-  const safe = cityHiveSafeBottleMatch(rawName, bible);
+function findBibleRecordByAlias(bible, alias) {
+  const wanted = normalizedBottleText(alias);
+  return (bible?.records || []).find((record) => [record.canonical, ...(record.aliases || [])]
+    .some((candidate) => normalizedBottleText(candidate) === wanted)) || null;
+}
+
+function findBibleRecordByCanonicalPrefix(bible, prefix) {
+  const wanted = normalizedBottleText(prefix);
+  return (bible?.records || []).find((record) => normalizedBottleText(record?.canonical || '').startsWith(wanted)) || null;
+}
+
+function uniqueSafeScannedBottleMatch(rawName, bible, options = {}) {
+  const variants = [...new Set([rawName, ...(options.variants || [])].filter(Boolean))];
+  const candidates = [];
+  for (const variant of variants) {
+    for (const record of bible.scanText(variant)) candidates.push(record);
+  }
+  for (const record of options.extraRecords || []) {
+    if (record) candidates.push(record);
+  }
+  const deduped = [...new Map(candidates.map((record) => [record.id, record])).values()];
+  const safe = deduped.filter((record) => !idahoUnsafeBottleMatchReason(rawName, record));
+  if (safe.length !== 1) return { match: null, record: null, unsafeReason: safe.length > 1 ? 'ambiguous_safe_bible_scan_match' : 'no_safe_bible_scan_match' };
+  return {
+    match: { record: safe[0], confidence: 0.9, method: options.method || 'unique-safe-bible-scan' },
+    record: safe[0],
+    unsafeReason: null,
+  };
+}
+
+function idahoFallbackBottleMatch(rawName, bible) {
+  const variants = [
+    String(rawName || '').replace(/\([^)]*\)/g, ' '),
+    String(rawName || '')
+      .replace(/\b(\d{1,2})\s*yr\b/ig, '$1 Year')
+      .replace(/\bJR\.?\b/ig, ' ')
+      .replace(/\bBottled In Bond\b/ig, 'Bottled-in-Bond'),
+  ];
+  const extraRecords = [];
+  if (/taylor/i.test(rawName) && /single barrel/i.test(rawName)) {
+    extraRecords.push(findBibleRecordByCanonicalPrefix(bible, 'E.H. Taylor Single Barrel'));
+  }
+  if (/four roses/i.test(rawName) && /single barrel/i.test(rawName) && /\b(?:oe|ob)s[a-z]\b/i.test(rawName)) {
+    extraRecords.push(findBibleRecordByAlias(bible, 'Four Roses Single Barrel Barrel Strength'));
+  }
+  return uniqueSafeScannedBottleMatch(rawName, bible, {
+    variants,
+    extraRecords,
+    method: 'unique-idaho-safe-bible-scan',
+  });
+}
+
+function idahoUnsafeBottleMatchReason(rawName, record) {
+  const unsafeReason = cityHiveUnsafeBottleMatchReason(rawName, record);
+  if (unsafeReason === 'specific_raw_modifier_matched_generic:single barrel') {
+    const raw = normalizedBottleText(rawName);
+    const canonical = normalizedBottleText(record?.canonical || '');
+    if (/eagle rare/.test(raw) && /eagle rare 10 year/.test(canonical)) return null;
+  }
+  return unsafeReason;
+}
+
+function idahoDirectBottleMatch(rawName, bible) {
+  const { match, record } = bottleMatch(rawName, bible);
+  if (!record) return { match, record: null, unsafeReason: 'no_bottle_bible_match' };
+  const unsafeReason = idahoUnsafeBottleMatchReason(rawName, record);
+  if (unsafeReason) return { match, record: null, unsafeReason };
+  return { match, record, unsafeReason: null };
+}
+
+function applyIdahoBottleGuards(safe, rawName) {
   if (!safe.record) return safe;
   const raw = normalizedBottleText(rawName);
   const canonical = normalizedBottleText(safe.record.canonical);
@@ -10484,6 +10562,12 @@ function idahoSafeBottleMatch(rawName, bible) {
     return { ...safe, record: null, unsafeReason: 'idaho_taylor_single_barrel_not_small_batch' };
   }
   return safe;
+}
+
+export function idahoSafeBottleMatch(rawName, bible) {
+  const direct = applyIdahoBottleGuards(idahoDirectBottleMatch(rawName, bible), rawName);
+  if (direct.record) return direct;
+  return applyIdahoBottleGuards(idahoFallbackBottleMatch(rawName, bible), rawName);
 }
 
 function idahoProductPriority(product, bible) {

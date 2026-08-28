@@ -42,6 +42,7 @@
     "generate:ms": "node src/generate-mississippi-foundation.mjs",
     "verify:tx": "node src/verify-tx.mjs",
     "verify:idaho": "node src/verify-idaho-hardening.mjs",
+    "verify:il": "node src/verify-illinois-hardening.mjs",
     "verify:ia": "node src/verify-iowa-hardening.mjs",
     "verify:md": "node src/verify-maryland-hardening.mjs",
     "verify:ut": "node src/verify-utah-hardening.mjs",

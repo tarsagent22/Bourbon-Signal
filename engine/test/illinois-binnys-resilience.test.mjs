@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 
 import { binnysBottleMatch, binnysProductRelevant } from '../src/collectors/precision-probes.mjs';
+import { BourbonBible } from '../src/core/bible.mjs';
 
 const elijahCraig = { id: 'elijah-craig-barrel-proof', canonical: 'Elijah Craig Barrel Proof' };
 
@@ -44,4 +45,28 @@ test('generic or unsafe Bible scan matches remain rejected', () => {
     productType: 'Liqueur',
     productVarietal: 'Cream',
   }), false);
+});
+
+test('Binny product admission can recover safe live canonicals without widening unsafe generic bourbon matches', async () => {
+  const bible = await BourbonBible.load();
+  assert.equal(binnysProductRelevant({
+    productName: 'Wild Turkey Rare Breed Bourbon',
+    productType: 'Whiskey',
+    productVarietal: 'Bourbon',
+  }, bible), true);
+  assert.equal(binnysProductRelevant({
+    productName: 'Lost Lantern United States of Bourbon 1776 Edition',
+    productType: 'Whiskey',
+    productVarietal: 'Bourbon',
+  }, bible), true);
+  assert.equal(binnysProductRelevant({
+    productName: 'Four Roses Bourbon',
+    productType: 'Whiskey',
+    productVarietal: 'Bourbon',
+  }, bible), false);
+  assert.equal(binnysProductRelevant({
+    productName: 'Henry McKenna Bourbon',
+    productType: 'Whiskey',
+    productVarietal: 'Bourbon',
+  }, bible), false);
 });
