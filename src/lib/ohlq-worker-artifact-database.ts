@@ -22,6 +22,12 @@ function connectionString(env: NodeJS.ProcessEnv = process.env) {
     || null;
 }
 
+export function ohlqWorkerArtifactBackend(env: NodeJS.ProcessEnv = process.env) {
+  if (connectionString(env)) return "database" as const;
+  if (env.BLOB_READ_WRITE_TOKEN) return "blob" as const;
+  throw new Error("No OHLQ worker artifact store is configured.");
+}
+
 function database(options: StoreOptions = {}): DatabaseQuery {
   if (options.database) return options.database;
   const configured = options.connectionString || connectionString();

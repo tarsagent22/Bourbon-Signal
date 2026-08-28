@@ -8,7 +8,7 @@ import {
   verifyOhlqWorkerUploadSignature,
 } from "@/lib/ohlq-worker-artifact";
 import { readLatestOhlqWorkerEnvelope, storeOhlqWorkerEnvelope } from "@/lib/ohlq-worker-artifact-store";
-import { readLatestOhlqWorkerEnvelopeFromDatabase, storeOhlqWorkerEnvelopeInDatabase } from "@/lib/ohlq-worker-artifact-database";
+import { ohlqWorkerArtifactBackend, readLatestOhlqWorkerEnvelopeFromDatabase, storeOhlqWorkerEnvelopeInDatabase } from "@/lib/ohlq-worker-artifact-database";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -16,39 +16,16 @@ export const maxDuration = 60;
 
 const PRIVATE_HEADERS = { "Cache-Control": "private, no-store" };
 
-function databaseConfigured() {
-  return Boolean(process.env.BOURBON_QUEUE_DATABASE_URL || process.env.BOURBON_QUEUE_DATABASE_URL_UNPOOLED || process.env.DATABASE_URL);
-}
-
 async function readDurableArtifact() {
-  let blobError: unknown = null;
-  if (process.env.BLOB_READ_WRITE_TOKEN) {
-    try {
-      const artifact = await readLatestOhlqWorkerEnvelope();
-      if (artifact) return artifact;
-    } catch (error) {
-      blobError = error;
-      console.warn("OHLQ Blob read failed; attempting the encrypted database fallback.", error);
-    }
-  }
-  if (databaseConfigured()) return readLatestOhlqWorkerEnvelopeFromDatabase();
-  if (blobError) throw blobError;
-  throw new Error("No OHLQ worker artifact store is configured.");
+  return ohlqWorkerArtifactBackend() === "database"
+    ? readLatestOhlqWorkerEnvelopeFromDatabase()
+    : readLatestOhlqWorkerEnvelope();
 }
 
 async function storeDurableArtifact(value: unknown) {
-  let blobError: unknown = null;
-  if (process.env.BLOB_READ_WRITE_TOKEN) {
-    try {
-      return await storeOhlqWorkerEnvelope(value);
-    } catch (error) {
-      blobError = error;
-      console.warn("OHLQ Blob write failed; attempting the encrypted database fallback.", error);
-    }
-  }
-  if (databaseConfigured()) return storeOhlqWorkerEnvelopeInDatabase(value);
-  if (blobError) throw blobError;
-  throw new Error("No OHLQ worker artifact store is configured.");
+  return ohlqWorkerArtifactBackend() === "database"
+    ? storeOhlqWorkerEnvelopeInDatabase(value)
+    : storeOhlqWorkerEnvelope(value);
 }
 
 function unauthorized(request: NextRequest) {

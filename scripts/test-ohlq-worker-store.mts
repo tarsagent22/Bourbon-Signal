@@ -3,7 +3,7 @@ import test from "node:test";
 
 import { OHLQ_WORKER_CONTRACT } from "../src/lib/ohlq-worker-artifact.ts";
 import { readLatestOhlqWorkerEnvelope, storeOhlqWorkerEnvelope } from "../src/lib/ohlq-worker-artifact-store.ts";
-import { readLatestOhlqWorkerEnvelopeFromDatabase, storeOhlqWorkerEnvelopeInDatabase } from "../src/lib/ohlq-worker-artifact-database.ts";
+import { ohlqWorkerArtifactBackend, readLatestOhlqWorkerEnvelopeFromDatabase, storeOhlqWorkerEnvelopeInDatabase } from "../src/lib/ohlq-worker-artifact-database.ts";
 
 const previousBlobToken = process.env.BLOB_READ_WRITE_TOKEN;
 const previousArtifactSecret = process.env.OHLQ_WORKER_ARTIFACT_SECRET;
@@ -115,6 +115,12 @@ test("immutable OHLQ manifests prevent older concurrent uploads from replacing n
   const latest = await readLatestOhlqWorkerEnvelope(blob as never);
   assert.equal(latest?.generatedAt, newer.generatedAt);
   assert.equal(JSON.stringify([...blob.objects.values()]).includes("Agency 1"), false, "public blobs must remain encrypted");
+});
+
+test("one authoritative backend is selected deterministically for both reads and writes", () => {
+  assert.equal(ohlqWorkerArtifactBackend({ DATABASE_URL: "postgres://example", BLOB_READ_WRITE_TOKEN: "blob" } as NodeJS.ProcessEnv), "database");
+  assert.equal(ohlqWorkerArtifactBackend({ BLOB_READ_WRITE_TOKEN: "blob" } as NodeJS.ProcessEnv), "blob");
+  assert.throws(() => ohlqWorkerArtifactBackend({} as NodeJS.ProcessEnv), /No OHLQ worker artifact store/);
 });
 
 test("encrypted database fallback preserves newest immutable evidence and rejects upload-ID rebinding", async () => {
