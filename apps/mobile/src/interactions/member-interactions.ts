@@ -395,3 +395,35 @@ export function rewardAvailability(
   if (member.balance < reward.points) return { label: `${reward.points - member.balance} more points needed${physicalStock}`, claimable: false, soldOut: false };
   return { label: `Available to redeem${physicalStock}`, claimable: true, soldOut: false };
 }
+
+export function rewardCatalogSummary(
+  catalog: SignalRewardItem[],
+  member: { balance: number; redemptionEligible: boolean },
+) {
+  const decorated = catalog.map((reward, index) => ({ reward, index, availability: rewardAvailability(reward, member) }));
+  const orderedRewards = [...decorated]
+    .sort((left, right) => {
+      if (left.availability.claimable !== right.availability.claimable) return left.availability.claimable ? -1 : 1;
+      if (left.availability.soldOut !== right.availability.soldOut) return left.availability.soldOut ? 1 : -1;
+      if (left.reward.points !== right.reward.points) return left.reward.points - right.reward.points;
+      return left.index - right.index;
+    })
+    .map(({ reward }) => reward);
+  const featuredReward = orderedRewards.find((reward) => rewardAvailability(reward, member).claimable) || null;
+  const nextReward = member.redemptionEligible ? orderedRewards.find((reward) => {
+    const availability = rewardAvailability(reward, member);
+    return !availability.claimable && !availability.soldOut && reward.points > member.balance;
+  }) || null : null;
+  const nextRewardProgress = nextReward ? {
+    remaining: Math.max(0, nextReward.points - member.balance),
+    ratio: Math.min(1, Math.max(0, member.balance / Math.max(1, nextReward.points))),
+  } : null;
+  return {
+    claimableCount: decorated.filter(({ availability }) => availability.claimable).length,
+    catalogAvailableCount: catalog.length,
+    featuredReward,
+    nextReward,
+    nextRewardProgress,
+    orderedRewards,
+  };
+}
