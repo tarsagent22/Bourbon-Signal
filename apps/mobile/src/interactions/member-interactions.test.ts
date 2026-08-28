@@ -16,6 +16,7 @@ import {
   activeCollectionRefinementCount,
   applyBottleContributionIds,
   rewardAvailability,
+  rewardCatalogSummary,
   TASTE_TAG_OPTIONS,
   updateCollectionBottle,
   upsertCollectionBottle,
@@ -228,4 +229,33 @@ test("distinguishes catalog availability, physical stock, and claimability", () 
   assert.deepEqual(rewardAvailability(physical, { balance: 50, redemptionEligible: true }), { label: "50 more points needed · 4 remaining", claimable: false, soldOut: false });
   assert.deepEqual(rewardAvailability({ ...physical, inventoryRemaining: 0 }, { balance: 130, redemptionEligible: true }), { label: "Sold out", claimable: false, soldOut: true });
   assert.deepEqual(rewardAvailability(physical, { balance: 130, redemptionEligible: false }), { label: "Membership required to redeem · 4 remaining", claimable: false, soldOut: false });
+});
+
+test("summarizes rewards by member claimability instead of catalog inventory", () => {
+  const catalog: SignalRewardItem[] = [
+    { key: "glass", name: "Rocks glass", points: 400, fulfillmentType: "physical", inventoryRemaining: 12 },
+    { key: "sticker", name: "Sticker pack", points: 75, fulfillmentType: "physical", inventoryRemaining: 4 },
+    { key: "sold", name: "Sold out reward", points: 50, fulfillmentType: "physical", inventoryRemaining: 0 },
+    { key: "credit", name: "Membership credit", points: 900, fulfillmentType: "digital", inventoryRemaining: null },
+  ];
+  const summary = rewardCatalogSummary(catalog, { balance: 130, redemptionEligible: true });
+  assert.equal(summary.claimableCount, 1);
+  assert.equal(summary.catalogAvailableCount, 4);
+  assert.equal(summary.featuredReward?.key, "sticker");
+  assert.equal(summary.nextReward?.key, "glass");
+  assert.equal(summary.nextRewardProgress?.remaining, 270);
+  assert.equal(summary.nextRewardProgress?.ratio, 0.325);
+  assert.deepEqual(summary.orderedRewards.map((reward) => reward.key), ["sticker", "glass", "credit", "sold"]);
+});
+
+test("does not present points progress as the redemption barrier for an ineligible member", () => {
+  const catalog: SignalRewardItem[] = [
+    { key: "sticker", name: "Sticker pack", points: 75, fulfillmentType: "physical", inventoryRemaining: 4 },
+  ];
+  const summary = rewardCatalogSummary(catalog, { balance: 130, redemptionEligible: false });
+  assert.equal(summary.claimableCount, 0);
+  assert.equal(summary.catalogAvailableCount, 1);
+  assert.equal(summary.featuredReward, null);
+  assert.equal(summary.nextReward, null);
+  assert.equal(summary.nextRewardProgress, null);
 });

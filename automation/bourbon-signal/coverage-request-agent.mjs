@@ -215,9 +215,17 @@ function normalizeLegacyTerminalResult(value) {
   return { ...root, headline, productionFingerprint, limitations, sourcesReviewed, blockerCode };
 }
 
+export function terminalResultForDelivery(rawResult, normalizedResult) {
+  if (rawResult?.schemaVersion === LEGACY_RESULT_SCHEMA && normalizedResult.outcome === 'blocked') return rawResult;
+  return normalizedResult;
+}
+
 export function normalizeTaskTerminalResult(value) {
-  if (value?.schemaVersion !== LEGACY_RESULT_SCHEMA) return normalizeTerminalResult(value);
-  const legacy = normalizeLegacyTerminalResult(value);
+  const candidate = value?.refresh && typeof value.refresh.artifactDigest === 'string' && /^[a-f0-9]{64}$/.test(value.refresh.artifactDigest)
+    ? { ...value, refresh: { ...value.refresh, artifactDigest: `sha256:${value.refresh.artifactDigest}` } }
+    : value;
+  if (candidate?.schemaVersion !== LEGACY_RESULT_SCHEMA) return normalizeTerminalResult(candidate);
+  const legacy = normalizeLegacyTerminalResult(candidate);
   const trustedAutomationFailure = legacy.blockerCode === 'automation_terminal_contract_failure' || legacy.blockerCode === 'automation_task_missing';
   const migrated = {
     schemaVersion: RESULT_SCHEMA,
@@ -332,7 +340,7 @@ Your final task result must be ONLY one JSON object with schemaVersion ${RESULT_
 - productionFingerprint: string for improved, otherwise null when unavailable
 - pullRequest: {number,url,mergeCommit} or null
 - ci: {status: passed or not_applicable}
-- refresh: {runId,url,artifactDigest} or null
+- refresh: {runId,url,artifactDigest} or null; artifactDigest must be exactly sha256:<64 lowercase hexadecimal characters>
 - metrics: {baselineExactStoreRows,productionExactStoreRows,baselineLiveStores,productionLiveStores,baselineCustomerCards,productionCustomerCards}
 - canonicalVerification: {verified,url}
 - exploration: {sourceCandidates:[{sourceId,sourceClass,outcome,reasonCode}],knownSourceUniverseComplete,secondPass}
@@ -351,6 +359,21 @@ Configured Engine Ops target: ${options.engineOpsLabel || 'Engine Ops'}.`;
 }
 
 export function buildEngineOpsMessage(job, result) {
+  const trustedAutomationFailure = result.blockerCode === 'automation_terminal_contract_failure' || result.blockerCode === 'automation_task_missing';
+  if (trustedAutomationFailure) {
+    const taskMissing = result.blockerCode === 'automation_task_missing';
+    return [
+      `${taskMissing ? '⚠️ Coverage task record missing' : '⚠️ Coverage completion evidence rejected'}: ${job.canonicalTargetKey} (${job.stateCode})`,
+      `Request: ${job.coverageRequestId}`,
+      `Task: ${job.taskId}`,
+      taskMissing
+        ? 'Result: The durable task record could not be recovered. Research, source counts, production metrics, and publication status were not evaluated by the completion reporter.'
+        : 'Result: The task terminal evidence was not accepted. Research, source counts, production metrics, and publication status were not evaluated by the completion reporter.',
+      'Requester notification: not ready (automation failure)',
+      `Blocker: ${result.blockerCode}`,
+      ...result.limitations.map((limitation) => `• ${limitation}`),
+    ].join('\n');
+  }
   const header = result.outcome === 'blocked' ? '⚠️ Coverage expansion blocked' : result.outcome === 'improved' ? '✅ Coverage expansion live' : '✅ Coverage engine improvement live';
   const lines = [
     `${header}: ${job.canonicalTargetKey} (${job.stateCode})`,
@@ -651,12 +674,13 @@ async function processJob(config) {
     legacyTerminalResult = rawResult?.schemaVersion === LEGACY_RESULT_SCHEMA;
     result = normalizeTaskTerminalResult(rawResult);
     if ((task.status === 'blocked') !== (result.outcome === 'blocked')) throw new Error('Kanban terminal status and structured outcome disagree.');
-  } catch {
+  } catch (error) {
+    console.error(`Coverage terminal result rejected for ${job.taskId}: ${error instanceof Error ? error.message : 'unknown validation failure'}`);
     await post(config, config.outcomeSecret, { action: 'fail', jobKey: job.jobKey, taskId: job.taskId, failureCode: 'automation_terminal_contract_failure' });
     await removeAuthorityCapability(job.jobKey);
     return true;
   }
-  const completionResult = legacyTerminalResult ? rawResult : result;
+  const completionResult = terminalResultForDelivery(rawResult, result);
   try {
     await assertAuthorityCapabilityAbsent(job.jobKey, [JSON.stringify(completionResult)], { allowMissing: legacyTerminalResult });
   } catch {
