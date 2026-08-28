@@ -5,11 +5,15 @@ import test from "node:test";
 
 const icon = readFileSync(resolve(process.cwd(), "src/components/CellarGlencairnSilhouette.tsx"), "utf8");
 
-test("tasted-only artwork is a custom stemless Glencairn rather than a wine-glass glyph", () => {
-  assert.doesNotMatch(icon, /MaterialCommunityIcons|glass-tulip|wine|stem/i);
-  assert.match(icon, /style={styles\.rim}/);
-  assert.match(icon, /style={styles\.narrowMouth}/);
-  assert.match(icon, /style={styles\.roundedBowl}/);
-  assert.match(icon, /style={styles\.solidBase}/);
-  assert.match(icon, /amberPour/);
+test("tasted-only artwork uses a reference-faithful Glencairn silhouette", () => {
+  assert.match(icon, /import \{ Image, StyleSheet, View \} from "react-native"/);
+  assert.match(icon, /require\("\.\.\/\.\.\/assets\/icons\/cellar-glencairn\.png"\)/);
+  assert.doesNotMatch(icon, /MaterialCommunityIcons|glass-tulip|wine/i);
+  assert.doesNotMatch(icon, /styles\.(narrowMouth|shoulders|roundedBowl|solidBase)/);
+  assert.match(icon, /width: 44, height: 62/);
+
+  const asset = readFileSync(resolve(process.cwd(), "assets/icons/cellar-glencairn.png"));
+  assert.equal(asset.subarray(1, 4).toString(), "PNG");
+  assert.equal(asset.readUInt32BE(16), 132);
+  assert.equal(asset.readUInt32BE(20), 186);
 });

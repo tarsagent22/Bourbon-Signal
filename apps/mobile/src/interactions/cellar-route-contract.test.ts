@@ -91,8 +91,8 @@ test("Cellar add dismisses the keyboard when members move from search into form 
 test("Cellar uses universal bottle and Glencairn silhouettes without bottle-specific imagery", () => {
   const bottle = read("src/components/CellarBottleSilhouette.tsx");
   const glencairn = read("src/components/CellarGlencairnSilhouette.tsx");
-  for (const source of [bottle, glencairn]) assert.doesNotMatch(source, /require\(|Image|bottleId|canonicalKey|assets\/cellar/);
+  assert.doesNotMatch(bottle, /require\(|Image|bottleId|canonicalKey|assets\/cellar/);
+  assert.match(glencairn, /const glencairnArtwork = require\("\.\.\/\.\.\/assets\/icons\/cellar-glencairn\.png"\)/);
+  assert.doesNotMatch(glencairn, /bottleId|canonicalKey|assets\/cellar|Record<|Map\(/);
   assert.doesNotMatch(glencairn, /MaterialCommunityIcons|glass-tulip|wine/i);
-  for (const part of ["rim", "narrowMouth", "roundedBowl", "amberPour", "solidBase"]) assert.match(glencairn, new RegExp(`styles\\.${part}`));
-  assert.doesNotMatch(glencairn, /styles\.stem/, "Glencairn artwork remains compact and stemless");
 });
