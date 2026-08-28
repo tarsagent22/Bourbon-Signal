@@ -154,7 +154,7 @@ jobs:
         env:
           OHLQ_WORKER_ARTIFACT_SECRET: ${{ secrets.OHLQ_WORKER_ARTIFACT_SECRET }}
           OHLQ_WORKER_TARGET_STATES: ${{ inputs.states || '' }}
-          OHLQ_WORKER_ARTIFACT_REQUIRED: ${{ (!inputs.states || contains(inputs.states, 'OH')) && '1' || '0' }}
+          OHLQ_WORKER_ARTIFACT_REQUIRED: ${{ (inputs.states && contains(inputs.states, 'OH')) && '1' || '0' }}
         run: node scripts/fetch-ohlq-worker-artifact.mjs
 
       - name: Refresh North Carolina official board and store directory
@@ -225,6 +225,16 @@ jobs:
         if: ${{ inputs.states && contains(inputs.states, 'NC') }}
         working-directory: engine
         run: npm run verify:nc-directory
+
+      - name: Verify Ohio scheduled lane or isolate a safe stale fallback
+        if: ${{ !inputs.states }}
+        working-directory: engine
+        run: node src/scheduled-state-verification.mjs verify --state=OH -- npm run verify:oh
+
+      - name: Verify targeted Ohio worker recovery strictly
+        if: ${{ inputs.states && contains(inputs.states, 'OH') }}
+        working-directory: engine
+        run: npm run verify:oh
 
       - name: Verify targeted Indiana inventory expansion
         if: ${{ inputs.states && contains(inputs.states, 'IN') }}

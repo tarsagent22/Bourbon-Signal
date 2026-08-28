@@ -65,4 +65,6 @@ The Windows task must run this wrapper only. It must not run or publish the full
 
 ## Production handoff
 
-The production refresh runs `scripts/fetch-ohlq-worker-artifact.mjs` before state collection. Targeted Ohio, scheduled, and full refreshes require a fresh authenticated artifact and fail closed before collection/publication when it is unavailable. Targeted non-Ohio refreshes may proceed without hydrating Ohio.
+The production refresh runs `scripts/fetch-ohlq-worker-artifact.mjs` before state collection. Targeted Ohio refreshes require a fresh authenticated artifact and fail closed. Scheduled/full refreshes attempt hydration, then strictly verify Ohio; if the worker is unavailable or Ohio fails verification, scheduled-state isolation retains the last verified Ohio partition as stale/non-alertable while other states continue. Targeted non-Ohio refreshes may proceed without hydrating Ohio.
+
+The handoff selects exactly one authoritative backend for both reads and writes. The existing application Neon database is authoritative when configured; Vercel Blob is used only in deployments without an application database. The encrypted `ohlq_worker_artifacts` table enforces unique upload-ID/digest binding, newest-generated ordering, and bounded retention. Raw OHLQ rows are never stored in plaintext. Backend reachability never changes which evidence wins.

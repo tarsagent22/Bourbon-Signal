@@ -8,12 +8,25 @@ import {
   verifyOhlqWorkerUploadSignature,
 } from "@/lib/ohlq-worker-artifact";
 import { readLatestOhlqWorkerEnvelope, storeOhlqWorkerEnvelope } from "@/lib/ohlq-worker-artifact-store";
+import { ohlqWorkerArtifactBackend, readLatestOhlqWorkerEnvelopeFromDatabase, storeOhlqWorkerEnvelopeInDatabase } from "@/lib/ohlq-worker-artifact-database";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
 const PRIVATE_HEADERS = { "Cache-Control": "private, no-store" };
+
+async function readDurableArtifact() {
+  return ohlqWorkerArtifactBackend() === "database"
+    ? readLatestOhlqWorkerEnvelopeFromDatabase()
+    : readLatestOhlqWorkerEnvelope();
+}
+
+async function storeDurableArtifact(value: unknown) {
+  return ohlqWorkerArtifactBackend() === "database"
+    ? storeOhlqWorkerEnvelopeInDatabase(value)
+    : storeOhlqWorkerEnvelope(value);
+}
 
 function unauthorized(request: NextRequest) {
   if (!authorizeOhlqWorkerBearer(request.headers.get("authorization"))) {
@@ -27,7 +40,7 @@ export async function GET(request: NextRequest) {
   const denied = unauthorized(request);
   if (denied) return denied;
   try {
-    const artifact = await readLatestOhlqWorkerEnvelope();
+    const artifact = await readDurableArtifact();
     if (!artifact) return NextResponse.json({ error: "No OHLQ worker artifact is available." }, { status: 404, headers: PRIVATE_HEADERS });
     return NextResponse.json(artifact, { headers: { ...PRIVATE_HEADERS, "X-Bourbon-Signal-Source": "ohlq-persistent-worker" } });
   } catch (error) {
@@ -66,7 +79,7 @@ export async function POST(request: NextRequest) {
   }
   try {
     const input = JSON.parse(body) as unknown;
-    const receipt = await storeOhlqWorkerEnvelope(input);
+    const receipt = await storeDurableArtifact(input);
     return NextResponse.json({ ok: true, ...receipt }, { status: 201, headers: PRIVATE_HEADERS });
   } catch (error) {
     console.error("OHLQ worker artifact upload rejected.", error);

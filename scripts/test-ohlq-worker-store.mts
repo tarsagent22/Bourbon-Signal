@@ -3,6 +3,7 @@ import test from "node:test";
 
 import { OHLQ_WORKER_CONTRACT } from "../src/lib/ohlq-worker-artifact.ts";
 import { readLatestOhlqWorkerEnvelope, storeOhlqWorkerEnvelope } from "../src/lib/ohlq-worker-artifact-store.ts";
+import { ohlqWorkerArtifactBackend, readLatestOhlqWorkerEnvelopeFromDatabase, storeOhlqWorkerEnvelopeInDatabase } from "../src/lib/ohlq-worker-artifact-database.ts";
 
 const previousBlobToken = process.env.BLOB_READ_WRITE_TOKEN;
 const previousArtifactSecret = process.env.OHLQ_WORKER_ARTIFACT_SECRET;
@@ -78,6 +79,36 @@ function memoryBlob() {
   };
 }
 
+function memoryDatabase() {
+  const rows = new Map<string, Record<string, unknown>>();
+  return {
+    rows,
+    async query(text: string, params: unknown[] = []) {
+      if (/CREATE TABLE|CREATE INDEX|DELETE FROM/iu.test(text)) return [];
+      if (/INSERT INTO ohlq_worker_artifacts/iu.test(text)) {
+        const [digest, uploadId, generatedAt, receivedAt, encryptedPayload] = params.map(String);
+        const conflict = [...rows.values()].find((row) => row.digest === digest || row.upload_id === uploadId);
+        if (conflict) return [];
+        const row = { digest, upload_id: uploadId, generated_at: generatedAt, received_at: receivedAt, encrypted_payload: encryptedPayload };
+        rows.set(digest, row);
+        return [row];
+      }
+      if (/WHERE digest = \$1 OR upload_id = \$2/iu.test(text)) {
+        const [digest, uploadId] = params.map(String);
+        const row = [...rows.values()].find((candidate) => candidate.digest === digest || candidate.upload_id === uploadId);
+        return row ? [row] : [];
+      }
+      if (/ORDER BY generated_at DESC/iu.test(text)) {
+        return [...rows.values()].sort((left, right) => {
+          const generated = String(right.generated_at).localeCompare(String(left.generated_at));
+          return generated || String(left.digest).localeCompare(String(right.digest));
+        }).slice(0, 1);
+      }
+      throw new Error(`Unexpected database query in test: ${text}`);
+    },
+  };
+}
+
 test("immutable OHLQ manifests prevent older concurrent uploads from replacing newer evidence", async () => {
   const blob = memoryBlob();
   const newer = makeEnvelope(new Date(Date.now() - 60_000).toISOString(), "123e4567-e89b-42d3-a456-426614174001", "new");
@@ -87,6 +118,46 @@ test("immutable OHLQ manifests prevent older concurrent uploads from replacing n
   const latest = await readLatestOhlqWorkerEnvelope(blob as never);
   assert.equal(latest?.generatedAt, newer.generatedAt);
   assert.equal(JSON.stringify([...blob.objects.values()]).includes("Agency 1"), false, "public blobs must remain encrypted");
+});
+
+test("Blob and database backends use the same digest tie-break for equal generated timestamps", async () => {
+  const generatedAt = new Date(Date.now() - 60_000).toISOString();
+  const first = makeEnvelope(generatedAt, "123e4567-e89b-42d3-a456-426614174021", "same-time-a");
+  const second = makeEnvelope(generatedAt, "123e4567-e89b-42d3-a456-426614174022", "same-time-b");
+  const blob = memoryBlob();
+  const database = memoryDatabase();
+  await storeOhlqWorkerEnvelope(first, blob as never);
+  await storeOhlqWorkerEnvelope(second, blob as never);
+  await storeOhlqWorkerEnvelopeInDatabase(first, { database });
+  await storeOhlqWorkerEnvelopeInDatabase(second, { database });
+  const blobLatest = await readLatestOhlqWorkerEnvelope(blob as never);
+  const databaseLatest = await readLatestOhlqWorkerEnvelopeFromDatabase({ database });
+  assert.equal(databaseLatest?.digest, blobLatest?.digest);
+  assert.equal(databaseLatest?.generatedAt, generatedAt);
+});
+
+test("one authoritative backend is selected deterministically for both reads and writes", () => {
+  assert.equal(ohlqWorkerArtifactBackend({ DATABASE_URL: "postgres://example", BLOB_READ_WRITE_TOKEN: "blob" } as NodeJS.ProcessEnv), "database");
+  assert.equal(ohlqWorkerArtifactBackend({ BLOB_READ_WRITE_TOKEN: "blob" } as NodeJS.ProcessEnv), "blob");
+  assert.throws(() => ohlqWorkerArtifactBackend({} as NodeJS.ProcessEnv), /No OHLQ worker artifact store/);
+});
+
+test("encrypted database fallback preserves newest immutable evidence and rejects upload-ID rebinding", async () => {
+  const database = memoryDatabase();
+  const newer = makeEnvelope(new Date(Date.now() - 60_000).toISOString(), "123e4567-e89b-42d3-a456-426614174011", "db-new");
+  const older = makeEnvelope(new Date(Date.now() - 120_000).toISOString(), "123e4567-e89b-42d3-a456-426614174012", "db-old");
+  await storeOhlqWorkerEnvelopeInDatabase(newer, { database });
+  await storeOhlqWorkerEnvelopeInDatabase(older, { database });
+  const latest = await readLatestOhlqWorkerEnvelopeFromDatabase({ database });
+  assert.equal(latest?.generatedAt, newer.generatedAt);
+  assert.equal(JSON.stringify([...database.rows.values()]).includes("Agency 1"), false, "database payload must remain encrypted");
+
+  const replay = await storeOhlqWorkerEnvelopeInDatabase(newer, { database });
+  assert.equal(replay.digest, latest?.digest);
+  await assert.rejects(
+    () => storeOhlqWorkerEnvelopeInDatabase(makeEnvelope(newer.generatedAt, newer.uploadId, "db-forged"), { database }),
+    /bound to different content/i,
+  );
 });
 
 test("OHLQ upload receipts are idempotent and bind upload IDs to one digest", async () => {
