@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import type { Signal } from "./types";
-import { presentBottleIdentity, presentSignal, signalAccessibilityLabel, signalFeedCardAppearance, signalCardStatusLabel, signalReporterAttribution } from "./presentation";
+import { presentBottleIdentity, presentSignal, signalAccessibilityLabel, signalFeedCardAppearance, signalCardStatusLabel, signalMemberTagLabel, signalReporterAttribution } from "./presentation";
 
 function signal(overrides: Partial<Signal> = {}): Signal {
   return {
@@ -61,12 +61,25 @@ test("older availability reports are qualified instead of presented as current i
   assert.doesNotMatch(signalAccessibilityLabel(olderReport, now), /, Reported,/);
 });
 
-test("Community reporter attribution uses the public display name", () => {
+test("Community postings keep the chosen display name separate from the immutable member tag", () => {
   const community = signal({
     id: "member:test",
     source: { type: "member", label: "Member #184", actor: { kind: "member", number: 184, label: "Member #184", displayName: "Oak Street Scout" } },
   });
+  const observedAt = new Date("2026-08-23T12:00:00.000Z");
   assert.equal(signalReporterAttribution(community), "Reported by Oak Street Scout");
+  assert.equal(signalCardStatusLabel(community, observedAt), "Community report");
+  assert.equal(signalMemberTagLabel(community), "Member #184");
+
+  const tagOnly = signal({
+    id: "member:tag-only",
+    source: { type: "member", label: "Member #184", actor: { kind: "member", number: 184, label: "Member #184" } },
+  });
+  assert.equal(signalReporterAttribution(tagOnly), "", "the numbered tag must not be substituted as a display name");
+  assert.equal(signalMemberTagLabel(tagOnly), "Member #184");
+  const staleAt = new Date("2026-08-27T12:00:00.000Z");
+  assert.equal(signalCardStatusLabel(tagOnly, staleAt), "Availability unconfirmed");
+  assert.match(signalAccessibilityLabel(tagOnly, staleAt), /Availability unconfirmed, Member #184/);
 });
 
 test("bottle identity separates only explicit style and volume suffixes for editorial cards", () => {

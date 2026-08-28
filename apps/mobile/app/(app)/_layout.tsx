@@ -12,6 +12,8 @@ export default function AppLayout() {
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="signal/[id]" options={{ title: "Signal" }} />
       <Stack.Screen name="cellar/add" options={{ presentation: "modal", title: "Add bottle" }} />
+      <Stack.Screen name="account/support" options={{ title: "Support" }} />
+      <Stack.Screen name="account/privacy" options={{ title: "Privacy" }} />
     </Stack>
   );
 }

@@ -6,7 +6,7 @@ import {
 } from "@/lib/signals/signal-api-contract";
 import { PRIVATE_SIGNAL_API_HEADERS, signalApiError } from "@/lib/signals/signal-api-route";
 import { createSignalProfilePatchHandler } from "@/lib/signals/signal-profile-route";
-import { COMMUNITY_DISPLAY_NAME_METADATA_KEY, communityDisplayNameFromMetadata, resolvedCommunityDisplayName } from "@/lib/community-display-name";
+import { COMMUNITY_DISPLAY_NAME_METADATA_KEY, communityDisplayNameFromMetadata } from "@/lib/community-display-name";
 import { createCommunitySightingsRepository } from "@/lib/community-sightings-repository";
 
 export async function GET() {
@@ -32,17 +32,16 @@ const patchProfile = createSignalProfilePatchHandler({
     const identity = publicSignalIdentityFromMetadata(metadata);
     if (!identity) throw new Error("A numbered public identity is required.");
     const oldCustomDisplayName = communityDisplayNameFromMetadata(metadata);
-    const oldResolvedDisplayName = resolvedCommunityDisplayName(metadata, identity.label);
     const oldActor = { ...identity, ...(oldCustomDisplayName ? { displayName: oldCustomDisplayName } : {}) };
     const nextMetadata = { ...metadata, [COMMUNITY_DISPLAY_NAME_METADATA_KEY]: displayName };
     const nextActor = { ...identity, ...(displayName ? { displayName } : {}) };
     const repository = createCommunitySightingsRepository();
 
-    await repository.updateReporterDisplayName(userId, displayName || identity.label, nextActor);
+    await repository.updateReporterDisplayName(userId, displayName || "", nextActor);
     try {
       await client.users.updateUserMetadata(userId, { publicMetadata: nextMetadata });
     } catch (error) {
-      await repository.updateReporterDisplayName(userId, oldResolvedDisplayName, oldActor).catch(() => undefined);
+      await repository.updateReporterDisplayName(userId, oldCustomDisplayName || "", oldActor).catch(() => undefined);
       throw error;
     }
 

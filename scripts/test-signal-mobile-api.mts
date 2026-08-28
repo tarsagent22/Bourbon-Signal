@@ -37,7 +37,7 @@ const defaultDisplayProfile = buildSignalMemberProfile(
   { memberNumber: 184, email: "private@example.com", firstName: "Private Legal Name" },
   { tier: "standard", label: "Standard", hasBetaAccess: true, feedPreviewLimit: null, canSubmitSightings: true },
 );
-assert.equal(defaultDisplayProfile.profile.displayName, "Member #184");
+assert.equal(defaultDisplayProfile.profile.displayName, "", "numbered identity must not become the chosen display name");
 assert.equal(defaultDisplayProfile.profile.customDisplayName, null);
 assert.equal(JSON.stringify(defaultDisplayProfile).includes("private@example.com"), false);
 assert.equal(JSON.stringify(defaultDisplayProfile).includes("Private Legal Name"), false);
@@ -47,6 +47,12 @@ const customDisplayProfile = buildSignalMemberProfile(
 );
 assert.equal(customDisplayProfile.profile.displayName, "Oak Street Scout");
 assert.equal(customDisplayProfile.profile.identity?.label, "Member #184", "the immutable numbered identity remains intact");
+const legacyTagProfile = buildSignalMemberProfile(
+  { memberNumber: 184, communityDisplayName: "Member #184" },
+  { tier: "standard", label: "Standard", hasBetaAccess: true, feedPreviewLimit: null, canSubmitSightings: true },
+);
+assert.equal(legacyTagProfile.profile.displayName, "", "legacy identity fallbacks never project as chosen names");
+assert.equal(legacyTagProfile.profile.identity?.label, "Member #184");
 
 let savedDisplayName: string | null | undefined;
 const profilePatchHandler = createSignalProfilePatchHandler({
@@ -247,6 +253,9 @@ const sightingsSchemaSource = readFileSync("src/lib/community-sightings-schema.s
 assert.match(repositorySource, /ON CONFLICT \(id\) DO UPDATE SET id = community_sightings\.id/, "idempotent inserts must return the winning row after concurrent conflicts");
 assert.match(repositorySource, /reserveIdempotency\([\s\S]*community_sighting_idempotency/, "every key needs a durable reservation before domain dedupe");
 assert.match(sightingsRouteSource, /reserveIdempotency[\s\S]*isLikelyDuplicateSighting[\s\S]*completeIdempotency/, "domain duplicate responses must retain their Idempotency-Key binding");
+assert.match(sightingsRouteSource, /function visibleSightingForRequester[\s\S]*communityDisplayNameSeparateFromIdentity[\s\S]*reporterDisplayName: displayName \|\| ""/, "every direct or idempotent sighting response must remove historical tag-shaped reporter names");
+assert.match(sightingsRouteSource, /binding\.sightingId[\s\S]*visibleSightingForRequester\(bound[\s\S]*sameIdempotentSighting[\s\S]*visibleSightingForRequester\(existing/, "idempotent replay responses must use the sanitized public sighting projection");
+assert.match(sightingsRouteSource, /const publicIdentity = publicSignalIdentityFromMetadata[\s\S]*if \(!publicIdentity\)[\s\S]*numbered member identity is required before posting[\s\S]*reporterPublicIdentity: publicActor/, "new Community posts must fail closed unless they can carry a structured numbered tag");
 assert.match(sightingsSchemaSource, /CREATE TABLE IF NOT EXISTS community_sighting_idempotency/, "the durable reservation table must be part of the additive schema");
 assert.match(repositorySource, /setVoteState\(/, "mobile actions need an idempotent desired-state mutation");
 assert.match(repositorySource, /updateReporterDisplayName\(/, "profile updates need a durable historical sighting update seam");

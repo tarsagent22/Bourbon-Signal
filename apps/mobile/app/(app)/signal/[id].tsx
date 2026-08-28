@@ -2,7 +2,7 @@ import { Stack, useLocalSearchParams } from "expo-router";
 import { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { MobileApiError } from "../../../src/api/client";
-import { presentSignal } from "../../../src/api/presentation";
+import { presentSignal, signalMemberTagLabel } from "../../../src/api/presentation";
 import type { MemberPreferences, Signal } from "../../../src/api/types";
 import { useMobileApi } from "../../../src/hooks/useMobileApi";
 import { addSignalBottleToCollection, canonicalBottleKey } from "../../../src/interactions/member-interactions";
@@ -33,6 +33,7 @@ export default function SignalDetailScreen() {
   }, [api, id]);
 
   const presented = signal ? presentSignal(signal) : null;
+  const memberTag = signal ? signalMemberTagLabel(signal) : "";
   const bottleKey = signal ? canonicalBottleKey(signal.bottle.name) : "";
   const inCellar = Boolean(preferences?.collectionPreferences.bottles.some((bottle) => canonicalBottleKey(bottle.canonicalKey) === bottleKey));
   const isWatched = Boolean(preferences?.bottleAlertPreferences.bottleKeys.some((key) => canonicalBottleKey(key) === bottleKey)
@@ -78,7 +79,11 @@ export default function SignalDetailScreen() {
     {!signal && !error ? <ActivityIndicator color={colors.accent} /> : null}
     {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
     {signal ? <>
-      <Text style={styles.source}>{signal.source.type === "member" && presented?.reporter ? `Reported by ${presented.reporter}` : signal.source.label}</Text>
+      {signal.source.type === "member" ? <View style={styles.authorRow}>
+        {presented?.reporter ? <Text style={styles.reporter}>Reported by {presented.reporter}</Text> : null}
+        {memberTag ? <View style={styles.memberTag}><Text style={styles.memberTagText}>{memberTag}</Text></View> : null}
+        {!presented?.reporter && !memberTag ? <Text style={styles.source}>Community report</Text> : null}
+      </View> : <Text style={styles.source}>{signal.source.label}</Text>}
       <Text style={styles.title}>{signal.bottle.name}</Text>
       <View style={styles.rule} />
       <Detail label="Location" value={presented?.address || presented?.location || signal.location.state || "Location not specified"} />
@@ -105,6 +110,6 @@ function ActionButton({ label, onPress, disabled = false }: { label: string; onP
 function Detail({ label, value }: { label: string; value: string }) { return <View style={styles.detail}><Text style={styles.label}>{label}</Text><Text style={styles.value}>{value}</Text></View>; }
 
 const styles = StyleSheet.create({
-  container: { flexGrow: 1, padding: 22, paddingBottom: 42, gap: 18, backgroundColor: colors.background }, source: { color: colors.accent, fontSize: 12, fontWeight: "700", letterSpacing: 0.8, textTransform: "uppercase" }, title: { color: colors.text, fontSize: 30, fontWeight: "800" }, rule: { height: 1, backgroundColor: colors.border }, detail: { gap: 5 }, label: { color: colors.muted, fontSize: 12, textTransform: "uppercase", letterSpacing: 0.7 }, value: { color: colors.text, fontSize: 16, lineHeight: 23 }, error: { color: colors.danger, fontSize: 13, lineHeight: 18 }, disclaimer: { color: colors.muted, fontSize: 12, lineHeight: 18, marginTop: 4 },
+  container: { flexGrow: 1, padding: 22, paddingBottom: 42, gap: 18, backgroundColor: colors.background }, source: { color: colors.accent, fontSize: 12, fontWeight: "700", letterSpacing: 0.8, textTransform: "uppercase" }, authorRow: { minHeight: 28, flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 8 }, reporter: { color: colors.text, fontSize: 14, lineHeight: 19, fontWeight: "700" }, memberTag: { backgroundColor: colors.surfaceRaised, borderColor: colors.border, borderWidth: 1, borderRadius: 999, paddingHorizontal: 9, paddingVertical: 5 }, memberTagText: { color: colors.text, fontSize: 10, lineHeight: 13, fontWeight: "800", letterSpacing: 0.4 }, title: { color: colors.text, fontSize: 30, fontWeight: "800" }, rule: { height: 1, backgroundColor: colors.border }, detail: { gap: 5 }, label: { color: colors.muted, fontSize: 12, textTransform: "uppercase", letterSpacing: 0.7 }, value: { color: colors.text, fontSize: 16, lineHeight: 23 }, error: { color: colors.danger, fontSize: 13, lineHeight: 18 }, disclaimer: { color: colors.muted, fontSize: 12, lineHeight: 18, marginTop: 4 },
   actions: { gap: 10, marginTop: 4 }, actionsTitle: { color: colors.text, fontSize: 18, fontWeight: "800" }, action: { minHeight: 50, borderColor: colors.accent, borderWidth: 1, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: colors.surface }, actionPressed: { backgroundColor: colors.surfaceRaised }, actionDisabled: { borderColor: colors.border }, actionText: { color: colors.accent, fontSize: 14, fontWeight: "800" }, actionTextDisabled: { color: colors.muted },
 });

@@ -2,7 +2,7 @@ import type { MemberSighting } from "../sightings.ts";
 import { isScheduledReleaseSignal, scheduledReleaseDateValue, type ScheduledReleaseInput } from "../scheduled-release-signals.ts";
 import { dropDisplayTime } from "../drop-feed-policy.ts";
 import { normalizeSignalRarityTier, type SignalRarityTier } from "./signal-feed-filters.ts";
-import { normalizeCommunityDisplayName } from "../community-display-name.ts";
+import { communityDisplayNameSeparateFromIdentity } from "../community-display-name.ts";
 
 export const SIGNAL_CONTRACT_VERSION = "bourbon-signal/signal@1" as const;
 
@@ -317,12 +317,12 @@ export function normalizeMemberSightingSignal(sighting: MemberSighting): Canonic
     && rawIdentity.number > 0
     ? { ...rawIdentity, label: `${rawIdentity.kind === "founder" ? "Founder" : "Member"} #${rawIdentity.number}` }
     : undefined;
-  const customDisplayName = normalizeCommunityDisplayName(identity?.displayName);
+  const customDisplayName = communityDisplayNameSeparateFromIdentity(identity?.displayName, identity?.label);
   const actor = identity ? {
     kind: identity.kind,
     number: identity.number,
     label: identity.label,
-    ...(customDisplayName.ok ? { displayName: customDisplayName.value } : {}),
+    ...(customDisplayName ? { displayName: customDisplayName } : {}),
   } : undefined;
 
   return {

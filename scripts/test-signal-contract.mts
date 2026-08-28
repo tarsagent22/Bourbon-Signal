@@ -9,6 +9,11 @@ import {
 import { createSignalFeedHandler } from "../src/lib/signals/signal-route.ts";
 import { SIGNAL_RARITY_TIERS, normalizeSignalRarities, parseSignalFeedFilters } from "../src/lib/signals/signal-feed-filters.ts";
 import { decodeSignalFeedCursor, encodeSignalFeedCursor } from "../src/lib/signals/signal-feed-cursor.ts";
+import { communityDisplayNameSeparateFromIdentity } from "../src/lib/community-display-name.ts";
+
+assert.equal(communityDisplayNameSeparateFromIdentity(" Founder #19 ", "Founder #19"), null, "historical tag fallbacks must never survive as a chosen name");
+assert.equal(communityDisplayNameSeparateFromIdentity("founder #19", "Founder #19"), null, "tag fallback cleanup is case-insensitive");
+assert.equal(communityDisplayNameSeparateFromIdentity("Oak Street Scout", "Founder #19"), "Oak Street Scout");
 
 assert.deepEqual(SIGNAL_RARITY_TIERS, ["limited", "allocated", "unicorn"]);
 assert.deepEqual(normalizeSignalRarities(["highly_allocated"]), ["unicorn"], "legacy Highly Allocated filters migrate to Unicorn");
@@ -200,6 +205,14 @@ assert.equal(memberSignal.timing.reportedAt, "2026-08-20T21:00:00.000Z");
 assert.equal(memberSignal.availability?.quantityLabel, "A few bottles");
 assert.equal(JSON.stringify(memberSignal).includes("user_secret_123"), false, "private account IDs must never enter the public Signal contract");
 assert.equal(JSON.stringify(memberSignal).includes("Private First Name"), false, "legacy first names must not enter the public Signal contract");
+const tagOnlySignal = normalizeMemberSightingSignal({
+  ...memberSightingInput,
+  id: "sighting-tag-only",
+  reporterDisplayName: "Member #184",
+  reporterPublicIdentity: { kind: "member", number: 184, label: "Member #184", displayName: "Member #184" },
+});
+assert.equal(tagOnlySignal.source.label, "Member #184");
+assert.equal(tagOnlySignal.source.actor?.displayName, undefined, "a numbered identity tag must never be projected as a chosen display name");
 
 const feed = buildCanonicalSignalFeed({
   drops: [releaseSignal, engineSignal, retailerSignal],

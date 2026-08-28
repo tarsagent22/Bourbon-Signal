@@ -1,5 +1,5 @@
 import type { SightingRewardState } from "@/lib/sighting-rewards";
-import { normalizeCommunityDisplayName } from "@/lib/community-display-name";
+import { communityDisplayNameSeparateFromIdentity } from "@/lib/community-display-name";
 
 export type SightingSource = "custom" | "feed" | "finder";
 export type SightingType = "seen_in_store" | "online_social";
@@ -104,15 +104,18 @@ export function canonicalizeLegacySighting(input: MemberSighting, ownerUserId: s
   const reward = input.rewardState;
   const photo = reward?.photoProof;
   const publicIdentity = input.reporterPublicIdentity;
-  const customDisplayName = normalizeCommunityDisplayName(publicIdentity?.displayName);
+  const publicIdentityLabel = publicIdentity && (publicIdentity.kind === "founder" || publicIdentity.kind === "member")
+    ? `${publicIdentity.kind === "founder" ? "Founder" : "Member"} #${publicIdentity.number}`
+    : "";
+  const customDisplayName = communityDisplayNameSeparateFromIdentity(publicIdentity?.displayName, publicIdentityLabel);
   const safePublicIdentity = publicIdentity
     && (publicIdentity.kind === "founder" || publicIdentity.kind === "member")
     && Number.isSafeInteger(publicIdentity.number) && publicIdentity.number > 0
     ? {
       kind: publicIdentity.kind,
       number: publicIdentity.number,
-      label: `${publicIdentity.kind === "founder" ? "Founder" : "Member"} #${publicIdentity.number}`,
-      ...(customDisplayName.ok ? { displayName: customDisplayName.value } : {}),
+      label: publicIdentityLabel,
+      ...(customDisplayName ? { displayName: customDisplayName } : {}),
     }
     : undefined;
   return {
@@ -125,7 +128,7 @@ export function canonicalizeLegacySighting(input: MemberSighting, ownerUserId: s
     price: typeof input.price === "number" && Number.isFinite(input.price) ? input.price : null,
     notes: input.notes ? String(input.notes).slice(0, 1000) : undefined, source: input.source, sightingType: input.sightingType,
     reporterUserId: ownerUserId, createdAt, storeTimeZone: input.storeTimeZone ? String(input.storeTimeZone).slice(0, 80) : undefined,
-    reporterDisplayName: safePublicIdentity?.displayName || safePublicIdentity?.label,
+    reporterDisplayName: safePublicIdentity?.displayName || "",
     reporterPublicIdentity: safePublicIdentity,
     rewardState: reward ? {
       removedAt: reward.removedAt ? String(reward.removedAt).slice(0, 40) : undefined,
