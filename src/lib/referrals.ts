@@ -7,6 +7,12 @@ export const REFERRAL_POINTS_BY_TIER: Record<MembershipTier, number> = {
   "bottled-in-bond": 150,
 };
 
+export const REFERRAL_PROGRAM = {
+  pointsByTier: REFERRAL_POINTS_BY_TIER,
+  freeAwardLimit: 5,
+  upgradeAwardsDifferenceOnly: true,
+} as const;
+
 const REFERRAL_CODE_PATTERN = /^[A-HJ-NP-Z2-9]{8,16}$/u;
 
 export function normalizeReferralCode(value: unknown) {
@@ -17,7 +23,7 @@ export function normalizeReferralCode(value: unknown) {
 }
 
 export function referralPointsForTier(tier: MembershipTier) {
-  return REFERRAL_POINTS_BY_TIER[tier];
+  return REFERRAL_PROGRAM.pointsByTier[tier];
 }
 
 export function calculateReferralAward(input: {
@@ -28,7 +34,8 @@ export function calculateReferralAward(input: {
   const previousAwardedPoints = Math.max(0, Math.trunc(input.previousAwardedPoints));
   const freePointsAlreadyAwarded = Math.max(0, Math.trunc(input.freePointsAlreadyAwarded));
   const desiredTarget = referralPointsForTier(input.nextTier);
-  const targetPoints = input.nextTier === "free" && freePointsAlreadyAwarded >= 50
+  const freePointLimit = REFERRAL_PROGRAM.freeAwardLimit * REFERRAL_PROGRAM.pointsByTier.free;
+  const targetPoints = input.nextTier === "free" && freePointsAlreadyAwarded >= freePointLimit
     ? previousAwardedPoints
     : Math.max(previousAwardedPoints, desiredTarget);
   return {

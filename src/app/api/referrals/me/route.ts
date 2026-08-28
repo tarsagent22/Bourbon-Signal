@@ -1,6 +1,7 @@
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { NextRequest, NextResponse } from "next/server";
 import { getReferralRepository } from "@/lib/referral-repository";
+import { REFERRAL_PROGRAM } from "@/lib/referrals";
 import { ensureMemberReferralCode } from "@/lib/referral-service";
 
 export const dynamic = "force-dynamic";
@@ -31,6 +32,7 @@ export async function GET(req: NextRequest) {
       code,
       referralLink: `${origin.replace(/\/$/, "")}/r/${code}`,
       referralPoints: summary.referralPoints,
+      program: REFERRAL_PROGRAM,
       referrals: {
         total: summary.totalReferrals,
         free: summary.freeReferrals,

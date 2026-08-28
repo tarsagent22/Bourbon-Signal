@@ -62,6 +62,23 @@ test("updates the public Community display name through the member profile endpo
   assert.deepEqual(await captured!.json(), { displayName: " Chandler T. " });
 });
 
+test("validates referral program data before exposing it to Account", async () => {
+  const base = {
+    code: "ABCD2345",
+    referralLink: "https://example.test/r/ABCD2345",
+    referralPoints: 50,
+    program: { pointsByTier: { free: 10, standard: 50, barrel: 100, "bottled-in-bond": 150 }, freeAwardLimit: 5, upgradeAwardsDifferenceOnly: true },
+    referrals: { total: 2, free: 1, standard: 1, barrel: 0, founder: 0 },
+  };
+  const validApi = createMobileApi({ baseUrl: "https://example.test", getToken: async () => "session-token", fetcher: async () => Response.json(base) });
+  const summary = await validApi.getReferralSummary();
+  assert.equal(summary.program.pointsByTier["bottled-in-bond"], 150);
+  assert.equal(summary.founderGlassesEarned, 0, "older additive responses safely default glass counts");
+
+  const invalidApi = createMobileApi({ baseUrl: "https://invalid.test", getToken: async () => "session-token", fetcher: async () => Response.json({ ...base, program: undefined }) });
+  await assert.rejects(invalidApi.getReferralSummary(), (error: unknown) => error instanceof MobileApiError && error.code === "INVALID_REFERRAL_PROGRAM" && error.retryable);
+});
+
 test("loads distinct sorted city options from the canonical store catalog", async () => {
   let captured = "";
   const api = createMobileApi({

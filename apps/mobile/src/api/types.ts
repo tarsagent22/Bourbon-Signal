@@ -237,6 +237,13 @@ export interface ReferralSummary {
   code: string;
   referralLink: string;
   referralPoints: number;
+  founderGlassesEarned: number;
+  founderGlassesAwaitingAddress: number;
+  program: {
+    pointsByTier: { free: number; standard: number; barrel: number; "bottled-in-bond": number };
+    freeAwardLimit: number;
+    upgradeAwardsDifferenceOnly: boolean;
+  };
   referrals: { total: number; free: number; standard: number; barrel: number; founder: number };
 }
 
