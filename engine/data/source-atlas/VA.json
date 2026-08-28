@@ -1,0 +1,111 @@
+{
+  "contractVersion": "bourbon-signal-virginia-source-audit-v1",
+  "generatedAt": "2026-08-28T01:18:44Z",
+  "state": "VA",
+  "target": {
+    "type": "city",
+    "areaKey": "sterling",
+    "city": "Sterling",
+    "knownSourceUniverseComplete": true,
+    "reviewedStores": [
+      { "storeId": "40", "address": "22000 Dulles Retail Plaza, Unit 166", "city": "Sterling", "zip": "20166" },
+      { "storeId": "61", "address": "22360 S. Sterling Boulevard, Suite 101", "city": "Sterling", "zip": "20164" },
+      { "storeId": "82", "address": "46930 Cedar Lakes Plaza, Units100-130", "city": "Sterling", "zip": "20164" },
+      { "storeId": "362", "address": "100 Edds Lane", "city": "Sterling", "zip": "20165" }
+    ]
+  },
+  "discoveryPasses": [
+    {
+      "id": "official-store-and-inventory-pass",
+      "method": "official ArcGIS store-universe reconciliation, official product-page discovery, and bounded Virginia ABC storeNearby probes",
+      "scope": "All four official Sterling Virginia ABC stores and a bounded set of customer-relevant bourbon products"
+    },
+    {
+      "id": "independent-public-catalog-pass",
+      "method": "independent public catalog and search-index discovery followed by first-party inventory verification",
+      "scope": "Public Virginia bourbon catalogs and search results used only to discover candidate product codes; no third-party quantity was adopted"
+    }
+  ],
+  "baseline": {
+    "refreshRunId": 33083153982,
+    "artifactFinishedAt": "2026-08-27T15:10:20.445Z",
+    "freshExactStoreRows": 35,
+    "freshStoreRowsIncludingOutOfStock": 152,
+    "liveStores": 4,
+    "customerCards": 8,
+    "officialSterlingStoreIds": ["40", "61", "82", "362"]
+  },
+  "inventoryExpansion": {
+    "proofObservedAt": "2026-08-27T23:36:18.078Z",
+    "proofFixture": "engine/test/fixtures/va/sterling-inventory-proof.json",
+    "proofFixtureSha256": "f140896ba58d63f6f222ab07cef51e81385c9035107a4dad83a0ea930eab3929",
+    "rawProofCapturedAt": "2026-08-28T01:18:37.866754Z",
+    "rawProofFixture": "engine/test/fixtures/va/sterling-inventory-raw-captures.json",
+    "rawProofFixtureSha256": "8d86dc099a04900531f7b8fd62996e70f000a5855cbe6a1620e94e8e9102b979",
+    "proofSummary": "The official Virginia ABC storeNearby API returned positive exact-store quantities for three additional catalog products at ten Sterling store-product identities. Baker's High Rye was positive at Stores 40, 82, and 362; Wild Turkey Rare Breed was positive at all four Sterling stores; Green River Full Proof was positive at Stores 40, 82, and 362.",
+    "products": [
+      {
+        "code": "016577",
+        "name": "Baker's High Rye Bourbon",
+        "productUrl": "https://www.abc.virginia.gov/products/bourbon/baker-s-high-rye-bourbon",
+        "positiveStoreIds": ["40", "82", "362"]
+      },
+      {
+        "code": "022199",
+        "name": "Wild Turkey Rare Breed Bourbon",
+        "productUrl": "https://www.abc.virginia.gov/products/bourbon/wild-turkey-rare-breed-bourbon",
+        "positiveStoreIds": ["40", "61", "82", "362"]
+      },
+      {
+        "code": "018434",
+        "name": "Green River Full Proof Bourbon",
+        "productUrl": "https://www.abc.virginia.gov/products/bourbon/green-river-full-proof-bourbon",
+        "positiveStoreIds": ["40", "82", "362"]
+      }
+    ]
+  },
+  "sources": [
+    {
+      "sourceId": "virginia-abc-store-directory-arcgis",
+      "sourceClass": "official_directory",
+      "outcome": "adopted",
+      "reasonCode": "official_store_identity_and_premises_verified",
+      "url": "https://vginmaps.vdem.virginia.gov/arcgis/rest/services/VA_Base_Layers/VA_Landmarks/FeatureServer/1/query"
+    },
+    {
+      "sourceId": "virginia-abc-storenearby-inventory-api",
+      "sourceClass": "first_party",
+      "outcome": "adopted",
+      "reasonCode": "exact_store_quantity_verified",
+      "url": "https://www.abc.virginia.gov/webapi/inventory/storeNearby"
+    },
+    {
+      "sourceId": "virginia-abc-product-catalog",
+      "sourceClass": "first_party",
+      "outcome": "adopted",
+      "reasonCode": "official_product_identity_and_catalog_status",
+      "url": "https://www.abc.virginia.gov/products/bourbon"
+    },
+    {
+      "sourceId": "virginia-abc-online-ordering",
+      "sourceClass": "first_party",
+      "outcome": "viable_not_adopted",
+      "reasonCode": "ship_to_store_not_shelf_inventory",
+      "url": "https://www.abc.virginia.gov/products"
+    },
+    {
+      "sourceId": "vabourbon-community-inventory",
+      "sourceClass": "other_public",
+      "outcome": "viable_not_adopted",
+      "reasonCode": "third_party_candidate_discovery_only",
+      "url": "https://vabourbon.com/inventory/products/"
+    },
+    {
+      "sourceId": "sterling-public-retailer-listings",
+      "sourceClass": "other_public",
+      "outcome": "rejected",
+      "reasonCode": "directory_or_search_evidence_without_inventory",
+      "url": "https://www.google.com/search?q=Sterling+Virginia+bourbon+inventory"
+    }
+  ]
+}
