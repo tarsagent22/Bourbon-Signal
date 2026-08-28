@@ -116,17 +116,39 @@
       "expected": {
         "officialHost": true,
         "allowlistedHosts": [
+          "7thavewines.com",
+          "bedfordspirits.com",
+          "bin70wineny.com",
           "bottlerocket.com",
           "cellar53wine.com",
           "cherrywoodwine.com",
+          "citywinesny.com",
           "crossroadswines.com",
+          "greenpointwineandliquor.com",
           "liquorvillagenyc.com",
           "nyc.flatiron-wines.com",
           "pikesliquors.com",
+          "turnupnyc.com",
           "westburyliquors.com",
           "winegalleryonline.com",
-          "www.broadwayspirits.com"
+          "www.broadwayspirits.com",
+          "www.michaeltownewines.com",
+          "yardsalewines.com"
         ]
+      }
+    },
+    {
+      "id": "ny-itemlist-binary-availability",
+      "kind": "availability_semantics",
+      "input": {
+        "sourceId": "turnup-nyc",
+        "rawName": "Buffalo Trace Bourbon 750ml"
+      },
+      "expected": {
+        "quantity": 0,
+        "quantityIsExact": false,
+        "inventorySemantics": "binary_retailer_orderable_no_exact_count",
+        "canAlertAsInventory": true
       }
     }
   ]

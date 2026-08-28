@@ -8695,7 +8695,7 @@ async function collectMetroRetailerSource(config, bible, source, observedAt, sig
       productId: row.productId,
       productHandle: row.handle || null,
       variantId: row.variantId,
-      variantAvailable: source.platform === 'shopify' ? true : null,
+      variantAvailable: source.platform === 'shopify' || row.binaryAvailability === true ? true : null,
       rawName: row.title,
       canonicalBottleId: record.id,
       canonicalName: record.canonical,
@@ -8747,6 +8747,7 @@ async function collectMetroRetailerSource(config, bible, source, observedAt, sig
         premisesVerified: row.premisesVerified === true,
         product: { id: row.productId, handle: row.handle || null },
         variant: { id: row.variantId, sku: row.sku || null, size: row.variantTitle || null, available: true },
+        productIdentityMode: row.productIdentityMode || null,
         matchGuard: unsafeReason,
       },
     };

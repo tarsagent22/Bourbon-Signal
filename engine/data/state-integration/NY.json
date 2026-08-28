@@ -18,9 +18,17 @@
       "metro:ny:bottlerocket",
       "metro:ny:crossroads-wines",
       "metro:ny:liquor-village-nyc",
-      "metro:ny:pikes-liquors"
+      "metro:ny:pikes-liquors",
+      "metro:ny:turnup-nyc",
+      "metro:ny:greenpoint-wine-liquor",
+      "metro:ny:bin70-wine",
+      "metro:ny:yardsale-wines",
+      "metro:ny:7th-ave-wines",
+      "metro:ny:bedford-wines",
+      "metro:ny:michaeltowne-wines",
+      "metro:ny:city-wines-ny"
     ],
-    "registration": "engine/src/state-sources.mjs and engine/src/collectors/precision-probes.mjs register ten bounded, isolated New York City and Nassau County first-party retailer sources behind the legacy precision runtime."
+    "registration": "engine/src/state-sources.mjs and engine/src/collectors/precision-probes.mjs register eighteen bounded, isolated New York City and Nassau County first-party retailer sources behind the legacy precision runtime."
   },
   "storeIdentity": {
     "mode": "exact_allowlisted_merchant_and_premises",
@@ -109,7 +117,15 @@
         "metro:ny:bottlerocket",
         "metro:ny:crossroads-wines",
         "metro:ny:liquor-village-nyc",
-        "metro:ny:pikes-liquors"
+        "metro:ny:pikes-liquors",
+        "metro:ny:turnup-nyc",
+        "metro:ny:greenpoint-wine-liquor",
+        "metro:ny:bin70-wine",
+        "metro:ny:yardsale-wines",
+        "metro:ny:7th-ave-wines",
+        "metro:ny:bedford-wines",
+        "metro:ny:michaeltowne-wines",
+        "metro:ny:city-wines-ny"
       ],
       "assertion": "Historical shadow/canary evidence remains immutable activation proof; current source growth is verified through bounded live source checks, state quality gates, and targeted production publication."
     },

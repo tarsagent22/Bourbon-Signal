@@ -93,48 +93,107 @@ function metroFixtureSignal(state, rawName, input, bible) {
   const merchantId = String(input.merchantId || store.merchantId);
   const address = String(input.address || store.address);
   const quantity = input.quantity ?? 4;
-  const pickup = input.pickup === false ? ['delivery'] : ['pick_up'];
-  const payload = {
-    merchant_configs: [{
-      merchant: {
-        id: merchantId,
-        display_name: store.name,
-        address: {
-          full_address: address,
-          address_properties: { city: store.city, state: store.stateCode, zip: store.zip },
+  const pickupEnabled = input.pickup !== false;
+  const pickup = pickupEnabled ? ['pick_up'] : ['delivery'];
+  let html;
+  if (source.inventoryMode === 'itemlist_binary') {
+    const variantId = String(input.variantId || 'fixture-option');
+    const productUrl = `${source.baseUrl}/shop/product/fixture-bourbon/null?option-id=${variantId}`;
+    const payload = {
+      merchant_configs: [{
+        merchant: {
+          id: merchantId,
+          display_name: store.name,
+          pickup: pickupEnabled,
+          offer_types: pickup,
+          address: {
+            full_address: address,
+            address_properties: { city: store.city, state: store.stateCode, zip: store.zip },
+          },
         },
-      },
-    }],
-    products: [{
-      id: 'fixture-product',
-      name: rawName,
-      basic_category: ['bourbon'],
-      size: { quantity: '750', measure: 'ml' },
-      merchants: [{
-        merchant_id: merchantId,
-        merchant_name: store.name,
-        full_address: address,
-        offer_types: pickup,
-        product_options: [{
-          product_id: 'fixture-product',
-          option_id: 'fixture-option',
+      }],
+    };
+    const offerAvailability = input.sourceStatus === 'out_of_stock'
+      ? 'http://schema.org/OutOfStock'
+      : 'http://schema.org/InStock';
+    html = [
+      `<script>JSON.parse(decodeURIComponent("${encodeURIComponent(JSON.stringify(payload))}"))</script>`,
+      `<script type="application/ld+json">${JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'LiquorStore',
+        name: store.name,
+        address: {
+          '@type': 'PostalAddress',
+          streetAddress: address,
+          addressLocality: store.city,
+          addressRegion: store.stateCode,
+          postalCode: store.zip,
+          addressCountry: 'US',
+        },
+      })}</script>`,
+      `<script type="application/ld+json">${JSON.stringify({
+        '@context': 'https://schema.org',
+        '@type': 'ItemList',
+        itemListElement: [{
+          '@type': 'Product',
+          name: rawName,
+          description: rawName,
+          productID: variantId,
+          sku: variantId,
+          url: productUrl,
+          offers: {
+            '@type': 'Offer',
+            availability: offerAvailability,
+            price: '34.99',
+            priceCurrency: 'USD',
+            url: productUrl,
+          },
+        }],
+      })}</script>`,
+    ].join('');
+  } else {
+    const payload = {
+      merchant_configs: [{
+        merchant: {
+          id: merchantId,
+          display_name: store.name,
+          address: {
+            full_address: address,
+            address_properties: { city: store.city, state: store.stateCode, zip: store.zip },
+          },
+        },
+      }],
+      products: [{
+        id: 'fixture-product',
+        name: rawName,
+        basic_category: ['bourbon'],
+        size: { quantity: '750', measure: 'ml' },
+        merchants: [{
           merchant_id: merchantId,
           merchant_name: store.name,
           full_address: address,
-          quantity,
-          price: 34.99,
-          product_url: `${source.baseUrl}/shop/product/fixture-bourbon/fixture-product?option-id=fixture-option`,
-          option_display_data: {
-            name: rawName,
-            size: { quantity: '750', measure: 'ml' },
-            basic_category: ['bourbon'],
-          },
+          offer_types: pickup,
+          product_options: [{
+            product_id: 'fixture-product',
+            option_id: 'fixture-option',
+            merchant_id: merchantId,
+            merchant_name: store.name,
+            full_address: address,
+            quantity,
+            price: 34.99,
+            product_url: `${source.baseUrl}/shop/product/fixture-bourbon/fixture-product?option-id=fixture-option`,
+            option_display_data: {
+              name: rawName,
+              size: { quantity: '750', measure: 'ml' },
+              basic_category: ['bourbon'],
+            },
+          }],
         }],
       }],
-    }],
-  };
-  const encoded = encodeURIComponent(JSON.stringify(payload));
-  const row = parseMetroCityHiveHtml(`<script>JSON.parse(decodeURIComponent("${encoded}"))</script>`, source)[0];
+    };
+    html = `<script>JSON.parse(decodeURIComponent("${encodeURIComponent(JSON.stringify(payload))}"))</script>`;
+  }
+  const row = parseMetroCityHiveHtml(html, source)[0];
   if (!row) return null;
   const match = bible.match(row.title);
   const record = match?.record || null;
@@ -166,6 +225,7 @@ function metroFixtureSignal(state, rawName, input, bible) {
     quantity: row.quantity,
     quantityIsExact: row.quantityIsExact,
     reportedQuantity: row.reportedQuantity,
+    variantAvailable: row.binaryAvailability === true ? true : null,
     availabilityStatus: 'in_stock',
     sourceAvailabilityVerified: true,
     observedAt: input.fetchedAt || new Date().toISOString(),
@@ -175,6 +235,7 @@ function metroFixtureSignal(state, rawName, input, bible) {
       platform: source.platform,
       merchantId: row.merchantId,
       reportedQuantity: row.reportedQuantity,
+      productIdentityMode: row.productIdentityMode || null,
     },
   };
   return { signal, record, row };
