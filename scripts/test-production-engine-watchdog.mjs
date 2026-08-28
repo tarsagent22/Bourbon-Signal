@@ -81,8 +81,19 @@ const missingExactResult = evaluateProductionHealth({ nowMs, activeStates: ['PA'
 assert.equal(missingExactResult.ok, false, 'Missing exact-store metrics must fail closed.');
 assert.deepEqual(missingExactResult.recoveryStates, ['PA']);
 
+const contractRetry = statsWithPa({ drops: 1400, stores: 560, bestLocationPrecision: 'store_level' });
+contractRetry.body.refreshHealth.retryStateIds = ['PA'];
+contractRetry.body.refreshHealth.states = [
+  { state: 'PA', health: 'degraded', recoveryAction: 'retry_state_collection' },
+];
+const contractRetryResult = evaluateProductionHealth({ nowMs, activeStates: ['PA'], stats: contractRetry, stateChecks });
+assert.equal(contractRetryResult.ok, false, 'Published retryStateIds must trigger targeted recovery even when the snapshot route is alive.');
+assert.deepEqual(contractRetryResult.recoveryStates, ['PA']);
+assert.match(contractRetryResult.failures.join('\n'), /retryStateIds|retry state/i);
+
 const staleAndCollapsed = statsWithPa({ drops: 13, stores: 0, bestLocationPrecision: 'store_aggregate' });
 staleAndCollapsed.body.generatedAt = '2026-07-19T23:00:00.000Z';
+staleAndCollapsed.body.refreshHealth.retryStateIds = ['PA'];
 const staleAndCollapsedResult = evaluateProductionHealth({ nowMs, activeStates: ['PA'], stats: staleAndCollapsed, stateChecks });
 assert.equal(staleAndCollapsedResult.ok, false);
 assert.deepEqual(staleAndCollapsedResult.recoveryStates, [], 'A global stale-snapshot failure requires full recovery even when PA also collapses.');

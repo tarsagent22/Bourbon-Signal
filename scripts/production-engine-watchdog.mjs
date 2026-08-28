@@ -68,6 +68,15 @@ export function evaluateProductionHealth({ nowMs = Date.now(), activeStates: sta
   if (snapshotAgeMs === null || snapshotAgeMs > MAX_SNAPSHOT_AGE_MS) addGlobalFailure(`Production snapshot must be no older than 45 minutes; generatedAt=${generatedAt || 'missing'}.`);
   if (Number(stats?.body?.stateCount || 0) !== states.length) addGlobalFailure(`Production state count ${stats?.body?.stateCount ?? 'missing'} does not match active state count ${states.length}.`);
   if (Number(stats?.body?.refreshHealth?.failedStateCount || 0) > 0) addGlobalFailure(`Production reports ${stats.body.refreshHealth.failedStateCount} failed state(s).`);
+  const operatingRetryStateIds = [...new Set((stats?.body?.refreshHealth?.retryStateIds || [])
+    .map((state) => String(state || '').trim().toUpperCase())
+    .filter(Boolean))].sort();
+  if (operatingRetryStateIds.length > 0) {
+    failures.push(`Production operating contract still requires targeted retryStateIds=${operatingRetryStateIds.join(',')}.`);
+    if (!requiresFullRecovery) {
+      for (const state of operatingRetryStateIds) recoveryStates.add(state);
+    }
+  }
   const checked = new Map(stateChecks.map((row) => [row.state, row]));
   for (const state of states) {
     const row = checked.get(state);

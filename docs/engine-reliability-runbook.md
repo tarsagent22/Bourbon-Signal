@@ -33,7 +33,11 @@ The following remain outside an individual shared-adapter boundary and must not 
 
 `.github/workflows/engine-watchdog.yml` probes the customer domain every 10 minutes. It performs two cache-bypassed checks of `/api/stats` and every active state partition. After two failures it dispatches `refresh-feed.yml`, preserves the watchdog report, and fails loudly so GitHub notifications alert the repository owner.
 
+The watchdog treats `refreshHealth.retryStateIds` from the published operating contract as authoritative targeted-recovery evidence even when the process stayed alive and the snapshot still serves successfully. A run that finished but published zero-customer, collapsed, or stale-useful recovery states is therefore unhealthy until a bounded targeted retry or a later healthy snapshot clears the same state IDs.
+
 The watchdog also emits a GitHub warning annotation when production reports a rollback within the previous hour. Evidence is retained for 30 days. It suppresses duplicate dispatches while a refresh is queued or running. Set the repository variable `BOURBON_SIGNAL_AUTO_RECOVERY_ENABLED=0` as the global kill switch if automatic recovery itself is implicated in an incident.
+
+Repeated unchanged incidents use bounded exponential redispatch backoff and then open a temporary incident circuit instead of either spamming duplicate refreshes or suppressing recovery forever. The immutable incident fingerprint remains the deduplication key; the backoff and circuit window are derived from recent GitHub workflow history so the guard survives runner restarts.
 
 ## State kill switches
 
@@ -69,8 +73,15 @@ New states must progress through discovery, probeable, shadow, canary, active, a
 
 - collector collapse preserves the prior report;
 - recovery starts at the earliest stale stage;
+- interrupted control-plane execution resumes from the persisted checkpoint after stale lease takeover;
 - corrupt snapshot readback cannot activate; and
 - rollback restores the prior complete snapshot.
+
+## Control-plane continuity
+
+`engine/src/refresh-site.mjs` persists a fenced control-plane journal at `engine/out/control-plane/refresh-session.json`. The journal records the planned stages, the current lease owner, heartbeat/expiry, completed checkpoints, and the last failed stage. The workflow retries a failed refresh once on the same runner, where completed-stage outputs and the journal share one filesystem; that retry resumes from the next incomplete stage only after the prior process is dead or its lease expires. A stale owner is fenced from writing new checkpoints or final status after takeover.
+
+The journal is uploaded with refresh diagnostics but is deliberately **not** restored as a cross-run cache. A clean GitHub runner does not necessarily have the intermediate outputs named by an older journal, so a new workflow run safely replays the idempotent stages instead of skipping work from metadata alone. The journal does not weaken publication gates: export, verification, release-lane, snapshot activation, rollback, and production-readback checks remain fatal.
 
 Artifacts are retained for 90 days. Any failure blocks the drill and requires investigation before engine expansion.
 

@@ -29,7 +29,7 @@ export async function runStateRecoveryPlanner(argv = process.argv.slice(2)) {
   const failedStateIds = explicit
     ? explicit.split(',')
     : ledgerFailureStateIds.length
-      ? ledgerFailureStateIds
+      ? [...new Set([...(contract?.summary?.retryStateIds || []), ...ledgerFailureStateIds])]
       : null;
   const plan = buildStateRecoveryPlan(contract, {
     failedStateIds,

@@ -61,6 +61,7 @@ jobs:
           echo "recovery_states=$(node -e "const p=require('./recovery-plan.json');process.stdout.write((p.states||[]).join(','))")" >> "$GITHUB_OUTPUT"
           echo "reason=$(node -e "const p=require('./recovery-plan.json');process.stdout.write(p.reason)")" >> "$GITHUB_OUTPUT"
           echo "incident_key=$(node -e "const p=require('./recovery-plan.json');process.stdout.write(p.incidentKey)")" >> "$GITHUB_OUTPUT"
+          echo "attempt=$(node -e "const p=require('./recovery-plan.json');process.stdout.write(String(p.attempt||''))")" >> "$GITHUB_OUTPUT"
 
       - name: Dispatch guarded recovery after two failed probes
         id: recovery
@@ -84,7 +85,7 @@ jobs:
 
       - name: Record suppressed duplicate recovery
         if: steps.watchdog.outcome == 'failure' && steps.recovery-plan.outcome == 'success' && steps.recovery-plan.outputs.dispatch != 'true'
-        run: echo "::warning title=Production recovery deduplicated::The customer-domain freshness probe is still failed. The unchanged incident already has an active or failed guarded recovery, so no duplicate was dispatched."
+        run: echo "::warning title=Production recovery suppressed::The customer-domain freshness probe is still failed. Guarded recovery was withheld because ${{ steps.recovery-plan.outputs.reason }} for incident ${{ steps.recovery-plan.outputs.incident_key }}."
 
       - name: Escalate unresolved production freshness
         if: steps.watchdog.outcome == 'failure'
