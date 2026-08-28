@@ -73,10 +73,19 @@ for (const [name, expected] of Object.entries(brandManifest.assets)) {
 }
 
 const hq = read("app/(app)/(tabs)/hq.tsx");
+const appLayout = read("app/(app)/_layout.tsx");
+const nativeSupport = read("app/(app)/account/support.tsx");
+const nativePrivacy = read("app/(app)/account/privacy.tsx");
 assert.match(hq, /Privacy policy/);
-assert.match(hq, /Request account deletion/);
+assert.match(hq, /Account deletion help/);
 assert.match(hq, /Support/);
-assert.match(hq, /Linking\.openURL/);
+assert.match(hq, /router\.push\("\/\(app\)\/account\/support"\)/);
+assert.match(hq, /router\.push\("\/\(app\)\/account\/privacy"\)/);
+assert.doesNotMatch(hq, /Linking|openExternal|https?:\/\//);
+assert.match(appLayout, /name="account\/support"/);
+assert.match(appLayout, /name="account\/privacy"/);
+assert.match(nativeSupport, /support@bourbonsignal\.com/);
+assert.match(nativePrivacy, /12\. Changes to this policy/);
 assert.match(hq, /ScrollView/, "HQ account controls must remain reachable on compact screens and with larger text");
 assert.equal(existsSync(resolve(root, "app/(app)/(tabs)/account.tsx")), false, "HQ must replace the duplicate Account tab");
 

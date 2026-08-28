@@ -29,6 +29,9 @@ export function communityDisplayNameFromMetadata(metadata: unknown) {
   return candidate.ok ? candidate.value : null;
 }
 
-export function resolvedCommunityDisplayName(metadata: unknown, immutableIdentityLabel: string) {
-  return communityDisplayNameFromMetadata(metadata) || immutableIdentityLabel;
+export function communityDisplayNameSeparateFromIdentity(value: unknown, immutableIdentityLabel: string | null | undefined) {
+  const candidate = normalizeCommunityDisplayName(value);
+  if (!candidate.ok) return null;
+  const label = typeof immutableIdentityLabel === "string" ? immutableIdentityLabel.trim() : "";
+  return label && candidate.value.toLocaleLowerCase() === label.toLocaleLowerCase() ? null : candidate.value;
 }

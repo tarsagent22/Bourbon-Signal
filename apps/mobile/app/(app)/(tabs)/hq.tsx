@@ -1,8 +1,9 @@
 import { useAuth } from "@clerk/expo";
 import Constants from "expo-constants";
 import * as Updates from "expo-updates";
+import { useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, Linking, Pressable, RefreshControl, ScrollView, Share, StyleSheet, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Share, StyleSheet, Text, TextInput, View } from "react-native";
 import { MobileApiError } from "../../../src/api/client";
 import type { MemberProfile, ReferralSummary, SignalPointsSummary, SignalRewardItem } from "../../../src/api/types";
 import { DataRow, ErrorState, MemberCard, SectionTitle, memberScreenStyles } from "../../../src/components/MemberScreen";
@@ -10,13 +11,9 @@ import { useMobileApi } from "../../../src/hooks/useMobileApi";
 import { rewardAvailability, rewardCatalogSummary } from "../../../src/interactions/member-interactions";
 import { colors } from "../../../src/theme";
 
-const WEB = "https://www.bourbonsignal.com";
-const REWARDS_URL = `${WEB}/dashboard?section=memberPoints`;
-const SETTINGS_URL = `${WEB}/settings`;
-const ACCOUNT_DELETION_URL = "mailto:support@bourbonsignal.com?subject=Bourbon%20Signal%20account%20deletion%20request&body=Please%20delete%20my%20Bourbon%20Signal%20account.%20I%20am%20sending%20this%20request%20from%20the%20email%20address%20associated%20with%20my%20account.";
-
 export default function AccountScreen() {
   const api = useMobileApi();
+  const router = useRouter();
   const { signOut } = useAuth();
   const [profile, setProfile] = useState<MemberProfile["profile"] | null>(null);
   const [points, setPoints] = useState<SignalPointsSummary | null>(null);
@@ -25,7 +22,6 @@ export default function AccountScreen() {
   const [pointsError, setPointsError] = useState("");
   const [referralError, setReferralError] = useState("");
   const [shareError, setShareError] = useState("");
-  const [linkError, setLinkError] = useState("");
   const [loading, setLoading] = useState(true);
   const [displayNameDraft, setDisplayNameDraft] = useState("");
   const [displayNameError, setDisplayNameError] = useState("");
@@ -34,6 +30,8 @@ export default function AccountScreen() {
   const [editingDisplayName, setEditingDisplayName] = useState(false);
   const [showEarningGuide, setShowEarningGuide] = useState(false);
   const [showDiagnostics, setShowDiagnostics] = useState(false);
+  const [showAllRewards, setShowAllRewards] = useState(false);
+  const [showAllRedemptions, setShowAllRedemptions] = useState(false);
   const [sharingReferral, setSharingReferral] = useState(false);
   const referralRequestId = useRef(0);
   const accountRequestId = useRef(0);
@@ -90,12 +88,6 @@ export default function AccountScreen() {
     ? rewardCatalogSummary(points.catalog, { balance: points.balance, redemptionEligible: points.redemptionEligible })
     : null, [points]);
 
-  async function openExternal(url: string) {
-    setLinkError("");
-    try { await Linking.openURL(url); }
-    catch { setLinkError("That link could not be opened. Contact support@bourbonsignal.com."); }
-  }
-
   async function shareReferral() {
     if (!referral || sharingReferral) return;
     setSharingReferral(true);
@@ -120,7 +112,7 @@ export default function AccountScreen() {
       const next = await api.updateMemberProfile({ displayName });
       setProfile(next.profile);
       setDisplayNameDraft(next.profile.customDisplayName || "");
-      setDisplayNameSuccess(displayName === null ? "Public name reset to your member identity." : "Public name saved.");
+      setDisplayNameSuccess(displayName === null ? "Display name removed. Your member tag is unchanged." : "Display name saved.");
       setEditingDisplayName(false);
     } catch (caught) {
       setDisplayNameError(caught instanceof Error ? caught.message : "Public name could not be saved.");
@@ -136,7 +128,6 @@ export default function AccountScreen() {
   const diagnostics = `Bourbon Signal ${versionLabel} (build ${buildLabel}) · Runtime ${runtimeLabel} · Update ${updateLabel}`;
   const trimmedDisplayName = displayNameDraft.trim();
   const displayNameDirty = trimmedDisplayName !== (profile?.customDisplayName || "") && trimmedDisplayName.length > 0;
-  const canSaveShipping = Boolean(profile?.membership.paid || (referral?.founderGlassesEarned || 0) > 0);
   const nextPreview = rewards?.nextReward && rewards.nextReward.key !== rewards.featuredReward?.key ? rewards.nextReward : null;
 
   return <ScrollView
@@ -150,8 +141,11 @@ export default function AccountScreen() {
     {profile ? <View style={styles.commandCard}>
       <Text style={styles.eyebrow}>ACCOUNT</Text>
       <View style={styles.identityRow}>
-        <Text accessibilityRole="header" style={styles.identity}>{profile.identity?.label || "Bourbon Signal Member"}</Text>
-        <View style={styles.planBadge}><Text style={styles.planBadgeText}>{profile.membership.label.toUpperCase()}</Text></View>
+        <Text accessibilityRole="header" style={styles.identity}>{profile.customDisplayName || "Choose a display name"}</Text>
+        <View style={styles.badgesRow}>
+          {profile.identity?.label ? <View style={styles.identityBadge}><Text style={styles.identityBadgeText}>{profile.identity.label}</Text></View> : null}
+          <View style={styles.planBadge}><Text style={styles.planBadgeText}>{profile.membership.label.toUpperCase()}</Text></View>
+        </View>
       </View>
       <Text style={styles.commandDetail}>{profile.entitlements.fullFeed ? "Full Intel" : "Preview Intel"} · {profile.entitlements.canSubmitSignals ? "Community posting" : "Posting unavailable"}</Text>
       {points ? <>
@@ -171,7 +165,7 @@ export default function AccountScreen() {
       <SectionTitle>Profile</SectionTitle>
       <MemberCard>
         <View style={styles.settingSummary}>
-          <View style={styles.settingCopy}><Text style={styles.settingLabel}>Public community name</Text><Text style={styles.settingValue}>{profile.displayName}</Text><Text style={styles.muted}>Shown on Community sightings. Your numbered identity never changes.</Text></View>
+          <View style={styles.settingCopy}><Text style={styles.settingLabel}>Display name</Text><Text style={styles.settingValue}>{profile.customDisplayName || "No display name set"}</Text><Text style={styles.muted}>Shown beside {profile.identity?.label || "your member tag"} on Community sightings. The tag never changes.</Text></View>
           <Pressable accessibilityRole="button" onPress={() => {
             if (editingDisplayName) setDisplayNameDraft(profile.customDisplayName || "");
             setEditingDisplayName((value) => !value);
@@ -180,11 +174,11 @@ export default function AccountScreen() {
           }} style={({ pressed }) => [styles.editButton, pressed && styles.pressed]}><Text style={styles.editButtonText}>{editingDisplayName ? "Cancel" : "Edit"}</Text></Pressable>
         </View>
         {editingDisplayName ? <View style={styles.nameEditor}>
-          <TextInput accessibilityLabel="Public community name" autoCapitalize="words" autoCorrect={false} editable={!savingDisplayName} maxLength={32} onChangeText={(value) => { setDisplayNameDraft(value); setDisplayNameError(""); setDisplayNameSuccess(""); }} placeholder="Choose a public Community name" placeholderTextColor={colors.muted} style={styles.displayNameInput} value={displayNameDraft} />
+          <TextInput accessibilityLabel="Display name" autoCapitalize="words" autoCorrect={false} editable={!savingDisplayName} maxLength={32} onChangeText={(value) => { setDisplayNameDraft(value); setDisplayNameError(""); setDisplayNameSuccess(""); }} placeholder="Choose a display name" placeholderTextColor={colors.muted} style={styles.displayNameInput} value={displayNameDraft} />
           <Text style={styles.characterCount}>{displayNameDraft.length}/32</Text>
           {displayNameError ? <Text accessibilityRole="alert" style={styles.error}>{displayNameError}</Text> : null}
           <View style={styles.nameActions}>
-            {profile.customDisplayName ? <Pressable accessibilityRole="button" disabled={savingDisplayName} onPress={() => void saveDisplayName(null)} style={({ pressed }) => [styles.secondaryButton, pressed && styles.pressed]}><Text style={styles.secondaryButtonText}>Use {profile.identity?.label || "member identity"}</Text></Pressable> : null}
+            {profile.customDisplayName ? <Pressable accessibilityRole="button" disabled={savingDisplayName} onPress={() => void saveDisplayName(null)} style={({ pressed }) => [styles.secondaryButton, pressed && styles.pressed]}><Text style={styles.secondaryButtonText}>Remove display name</Text></Pressable> : null}
             <Pressable accessibilityRole="button" disabled={!displayNameDirty || savingDisplayName} onPress={() => void saveDisplayName(trimmedDisplayName)} style={({ pressed }) => [styles.primaryButton, pressed && styles.primaryPressed, (!displayNameDirty || savingDisplayName) && styles.disabled]}><Text style={styles.primaryButtonText}>{savingDisplayName ? "Saving…" : "Save name"}</Text></Pressable>
           </View>
         </View> : null}
@@ -195,10 +189,8 @@ export default function AccountScreen() {
     <View style={memberScreenStyles.section}>
       <SectionTitle>Account details</SectionTitle>
       <View style={styles.accountPanel}>
-        <LinkRow label="Manage membership" onPress={() => void openExternal(`${WEB}/dashboard`)} />
-        {canSaveShipping ? <LinkRow label="Shipping information" onPress={() => void openExternal(`${SETTINGS_URL}#shipping`)} /> : null}
-        <LinkRow label="Support" onPress={() => void openExternal(`${WEB}/support`)} />
-        <LinkRow label="Privacy policy" onPress={() => void openExternal(`${WEB}/legal/privacy`)} />
+        <NavigationRow label="Support" onPress={() => router.push("/(app)/account/support")} />
+        <NavigationRow label="Privacy policy" onPress={() => router.push("/(app)/account/privacy")} />
         <Pressable accessibilityRole="button" accessibilityState={{ expanded: showDiagnostics }} onPress={() => setShowDiagnostics((value) => !value)} style={({ pressed }) => [styles.linkRow, pressed && styles.pressed]}><Text style={styles.linkText}>App information</Text><Text accessible={false} style={styles.chevron}>{showDiagnostics ? "−" : "+"}</Text></Pressable>
         {showDiagnostics ? <View style={styles.diagnostics}>
           <Text selectable style={styles.diagnosticText}>{diagnostics}</Text>
@@ -206,16 +198,21 @@ export default function AccountScreen() {
         </View> : null}
         <Pressable accessibilityRole="button" onPress={() => signOut()} style={({ pressed }) => [styles.signOut, pressed && styles.pressed]}><Text style={styles.signOutText}>Sign out</Text></Pressable>
       </View>
-      {linkError ? <Text accessibilityRole="alert" style={styles.error}>{linkError}</Text> : null}
     </View>
 
     <View style={memberScreenStyles.section}>
       <SectionTitle detail={rewards ? `${rewards.claimableCount} ready · ${rewards.catalogAvailableCount} in catalog` : undefined}>Rewards</SectionTitle>
       {points && rewards ? <>
-        {rewards.featuredReward ? <FeaturedRewardCard member={points} onOpen={() => void openExternal(REWARDS_URL)} reward={rewards.featuredReward} /> : null}
-        {nextPreview ? <RewardProgressRow member={points} onOpen={() => void openExternal(REWARDS_URL)} reward={nextPreview} /> : null}
-        {!rewards.featuredReward && !nextPreview ? <MemberCard><Text style={styles.guideTitle}>{points.redemptionEligible ? "Reward catalog is up to date" : "Membership required to redeem"}</Text><Text style={styles.muted}>{points.redemptionEligible ? "Open the full catalog to review availability and redemption details." : "Free members can keep earning Signal Points. A paid membership is required before rewards can be redeemed."}</Text></MemberCard> : null}
-        <Pressable accessibilityRole="link" onPress={() => void openExternal(REWARDS_URL)} style={({ pressed }) => [styles.catalogLink, pressed && styles.pressed]}><Text style={styles.catalogLinkText}>View all rewards</Text><Text accessible={false} style={styles.chevron}>›</Text></Pressable>
+        {rewards.featuredReward ? <FeaturedRewardCard member={points} reward={rewards.featuredReward} /> : null}
+        {nextPreview ? <RewardProgressRow member={points} reward={nextPreview} /> : null}
+        {!rewards.featuredReward && !nextPreview ? <MemberCard><Text style={styles.guideTitle}>{points.redemptionEligible ? "Reward catalog is up to date" : "Membership required to redeem"}</Text><Text style={styles.muted}>{points.redemptionEligible ? "Review the catalog below for availability and point requirements." : "Free members can keep earning Signal Points. A paid membership is required before rewards can be redeemed."}</Text></MemberCard> : null}
+        <Pressable accessibilityRole="button" accessibilityState={{ expanded: showAllRewards }} onPress={() => setShowAllRewards((value) => !value)} style={({ pressed }) => [styles.catalogLink, pressed && styles.pressed]}><Text style={styles.catalogLinkText}>{showAllRewards ? "Hide reward catalog" : "View all rewards"}</Text><Text accessible={false} style={styles.chevron}>{showAllRewards ? "−" : "+"}</Text></Pressable>
+        {showAllRewards ? <MemberCard>
+          {rewards.orderedRewards.map((reward, index) => {
+            const availability = rewardAvailability(reward, points);
+            return <DataRow key={reward.key} label={reward.name} value={`${reward.points} pts · ${availability.label}`} last={index === rewards.orderedRewards.length - 1} />;
+          })}
+        </MemberCard> : null}
         {points.debt > 0 ? <Text style={styles.warning}>{points.debt} points are pending reconciliation.</Text> : null}
       </> : pointsError ? <ErrorState message={pointsError} onRetry={() => void load(true)} /> : null}
     </View>
@@ -244,15 +241,15 @@ export default function AccountScreen() {
     {points ? <View style={memberScreenStyles.section}>
       <SectionTitle>Redemption history</SectionTitle>
       {points.redemptions.length ? <MemberCard>
-        {points.redemptions.slice(0, 3).map((redemption, index) => <DataRow key={redemption.id} label={points.catalog.find((reward) => reward.key === redemption.itemKey)?.name || redemption.itemKey} value={`${redemption.status.replaceAll("_", " ")} · ${redemption.pointsSpent} pts`} last={index === Math.min(points.redemptions.length, 3) - 1} />)}
+        {points.redemptions.slice(0, showAllRedemptions ? points.redemptions.length : 3).map((redemption, index, visible) => <DataRow key={redemption.id} label={points.catalog.find((reward) => reward.key === redemption.itemKey)?.name || redemption.itemKey} value={`${redemption.status.replaceAll("_", " ")} · ${redemption.pointsSpent} pts`} last={index === visible.length - 1} />)}
       </MemberCard> : <MemberCard><Text style={styles.muted}>No redemptions yet.</Text></MemberCard>}
-      <Pressable accessibilityRole="link" onPress={() => void openExternal(REWARDS_URL)} style={({ pressed }) => [styles.catalogLink, pressed && styles.pressed]}><Text style={styles.catalogLinkText}>View redemption details</Text><Text accessible={false} style={styles.chevron}>›</Text></Pressable>
+      {points.redemptions.length > 3 ? <Pressable accessibilityRole="button" accessibilityState={{ expanded: showAllRedemptions }} onPress={() => setShowAllRedemptions((value) => !value)} style={({ pressed }) => [styles.catalogLink, pressed && styles.pressed]}><Text style={styles.catalogLinkText}>{showAllRedemptions ? "Show recent only" : "View full history"}</Text><Text accessible={false} style={styles.chevron}>{showAllRedemptions ? "−" : "+"}</Text></Pressable> : null}
     </View> : null}
 
     <View style={[memberScreenStyles.section, styles.dangerZone]}>
       <Text style={styles.dangerTitle}>Data & privacy</Text>
-      <Text style={styles.muted}>Account deletion is separate from everyday settings.</Text>
-      <Pressable accessibilityRole="link" onPress={() => void openExternal(ACCOUNT_DELETION_URL)} style={({ pressed }) => [styles.deletionButton, pressed && styles.pressed]}><Text style={styles.deletionText}>Request account deletion</Text></Pressable>
+      <Text style={styles.muted}>Account deletion is handled through Support so identity, subscription, and contributed-data records can be reviewed safely.</Text>
+      <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/support")} style={({ pressed }) => [styles.deletionButton, pressed && styles.pressed]}><Text style={styles.deletionText}>Account deletion help</Text></Pressable>
     </View>
   </ScrollView>;
 }
@@ -263,23 +260,23 @@ function ProgressBar({ ratio, label }: { ratio: number; label: string }) {
   return <View accessible accessibilityRole="progressbar" accessibilityLabel={`${label}: ${percent} percent complete`} accessibilityValue={{ min: 0, max: 100, now: percent }} style={styles.progressTrack}><View style={[styles.progressFill, { width }]} /></View>;
 }
 
-function FeaturedRewardCard({ reward, member, onOpen }: { reward: SignalRewardItem; member: SignalPointsSummary; onOpen: () => void }) {
+function FeaturedRewardCard({ reward, member }: { reward: SignalRewardItem; member: SignalPointsSummary }) {
   const remaining = Math.max(0, member.balance - reward.points);
-  return <View style={styles.featuredReward}><View style={styles.unlockedPill}><Text style={styles.unlockedText}>UNLOCKED</Text></View><Text style={styles.featuredRewardName}>{reward.name}</Text><Text style={styles.featuredRewardPoints}>{reward.points} points</Text><Text style={styles.featuredRewardDetail}>You’ll have {remaining} points remaining after redemption.</Text><Text style={styles.fulfillmentHint}>{reward.fulfillmentType === "physical" ? "Physical reward · shipping details confirmed before redemption." : "Digital reward · delivery details confirmed before redemption."}</Text><Pressable accessibilityRole="link" onPress={onOpen} style={({ pressed }) => [styles.redeemButton, pressed && styles.primaryPressed]}><Text style={styles.redeemButtonText}>Redeem reward</Text></Pressable></View>;
+  return <View style={styles.featuredReward}><View style={styles.unlockedPill}><Text style={styles.unlockedText}>UNLOCKED</Text></View><Text style={styles.featuredRewardName}>{reward.name}</Text><Text style={styles.featuredRewardPoints}>{reward.points} points</Text><Text style={styles.featuredRewardDetail}>You’ll have {remaining} points remaining after redemption.</Text><Text style={styles.fulfillmentHint}>{reward.fulfillmentType === "physical" ? "Physical reward · shipping details confirmed before redemption." : "Digital reward · delivery details confirmed before redemption."}</Text></View>;
 }
 
-function RewardProgressRow({ reward, member, onOpen }: { reward: SignalRewardItem; member: SignalPointsSummary; onOpen: () => void }) {
+function RewardProgressRow({ reward, member }: { reward: SignalRewardItem; member: SignalPointsSummary }) {
   const availability = rewardAvailability(reward, member);
   const ratio = member.balance / Math.max(1, reward.points);
-  return <View style={styles.rewardRow}><Pressable accessibilityRole="link" accessibilityLabel={`${reward.name}. ${availability.label}. ${reward.points} points.`} onPress={onOpen} style={({ pressed }) => [styles.rewardRowAction, pressed && styles.pressed]}><View style={styles.rewardRowHeader}><View style={styles.rewardCopy}><Text style={styles.rewardName}>{reward.name}</Text><Text style={[styles.rewardStatus, availability.soldOut && styles.soldOut]}>{availability.label}</Text></View><Text style={styles.rewardPoints}>{reward.points} pts</Text></View></Pressable>{member.redemptionEligible && !availability.soldOut ? <ProgressBar label={reward.name} ratio={ratio} /> : null}</View>;
+  return <View style={styles.rewardRow}><View accessible accessibilityLabel={`${reward.name}. ${availability.label}. ${reward.points} points.`} style={styles.rewardRowAction}><View style={styles.rewardRowHeader}><View style={styles.rewardCopy}><Text style={styles.rewardName}>{reward.name}</Text><Text style={[styles.rewardStatus, availability.soldOut && styles.soldOut]}>{availability.label}</Text></View><Text style={styles.rewardPoints}>{reward.points} pts</Text></View></View>{member.redemptionEligible && !availability.soldOut ? <ProgressBar label={reward.name} ratio={ratio} /> : null}</View>;
 }
 
 function GuideItem({ title, detail }: { title: string; detail: string }) {
   return <View style={styles.guideItem}><View style={styles.guideDot} /><View style={styles.guideItemCopy}><Text style={styles.guideItemTitle}>{title}</Text><Text style={styles.guideItemDetail}>{detail}</Text></View></View>;
 }
 
-function LinkRow({ label, onPress }: { label: string; onPress: () => void }) {
-  return <Pressable accessibilityRole="link" onPress={onPress} style={({ pressed }) => [styles.linkRow, pressed && styles.pressed]}><Text style={styles.linkText}>{label}</Text><Text accessible={false} style={styles.chevron}>›</Text></Pressable>;
+function NavigationRow({ label, onPress }: { label: string; onPress: () => void }) {
+  return <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.linkRow, pressed && styles.pressed]}><Text style={styles.linkText}>{label}</Text><Text accessible={false} style={styles.chevron}>›</Text></Pressable>;
 }
 
 const styles = StyleSheet.create({
@@ -287,8 +284,11 @@ const styles = StyleSheet.create({
   muted: { color: colors.muted, fontSize: 14, lineHeight: 20 },
   eyebrow: { color: colors.accent, fontSize: 11, fontWeight: "900", letterSpacing: 1.35 },
   commandCard: { backgroundColor: colors.surface, borderColor: colors.accent, borderWidth: 1, borderRadius: 18, padding: 18, gap: 9 },
-  identityRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", flexWrap: "wrap", gap: 10 },
+  identityRow: { gap: 10 },
   identity: { color: colors.text, fontSize: 25, lineHeight: 30, fontWeight: "900", letterSpacing: -0.4 },
+  badgesRow: { flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 8 },
+  identityBadge: { backgroundColor: colors.surfaceRaised, borderColor: colors.border, borderWidth: 1, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 6 },
+  identityBadgeText: { color: colors.text, fontSize: 10, fontWeight: "800", letterSpacing: 0.5 },
   planBadge: { backgroundColor: "rgba(214,154,74,0.14)", borderColor: "rgba(214,154,74,0.55)", borderWidth: 1, borderRadius: 999, paddingHorizontal: 10, paddingVertical: 6 },
   planBadgeText: { color: colors.accent, fontSize: 10, fontWeight: "900", letterSpacing: 0.8 },
   commandDetail: { color: colors.muted, fontSize: 14, lineHeight: 20 },

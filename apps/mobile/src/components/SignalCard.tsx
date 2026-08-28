@@ -11,6 +11,7 @@ import {
   signalAvailabilityRefreshAt,
   signalFeedCardAppearance,
   signalCardStatusLabel,
+  signalMemberTagLabel,
   signalReporterAttribution,
 } from "../api/presentation";
 import { colors } from "../theme";
@@ -41,6 +42,7 @@ export function SignalCard({ signal, onPress }: { signal: Signal; onPress: () =>
   const appearance = signalFeedCardAppearance(signal);
   const reporter = signalReporterAttribution(signal);
   const community = signal.source.type === "member";
+  const memberTag = signalMemberTagLabel(signal);
   const availableNow = !community && signalAvailabilityIsCurrent(signal, now);
   const upcoming = status === "Upcoming"
     || signal.availability?.status === "upcoming"
@@ -83,7 +85,10 @@ export function SignalCard({ signal, onPress }: { signal: Signal; onPress: () =>
         <Text style={[styles.status, availableNow && styles.availableStatus, upcoming && styles.upcomingStatus]}>{status}</Text>
       </View> : null}
 
-      {community && reporter ? <Text numberOfLines={1} style={styles.reporter}>{reporter}</Text> : null}
+      {community && (reporter || memberTag) ? <View style={styles.authorRow}>
+        {reporter ? <Text numberOfLines={1} style={styles.reporter}>{reporter}</Text> : null}
+        {memberTag ? <View style={styles.memberTag}><Text style={styles.memberTagText}>{memberTag}</Text></View> : null}
+      </View> : null}
 
       {presented.price || metric ? <View style={[styles.footer, { borderTopColor: appearance.keyline }]}>
         {presented.price ? <Text style={styles.price}>{presented.price}</Text> : <View />}
@@ -124,7 +129,10 @@ const styles = StyleSheet.create({
   status: { color: colors.muted, fontSize: 11, lineHeight: 15, fontWeight: "700", letterSpacing: 0.1 },
   availableStatus: { color: colors.success },
   upcomingStatus: { color: colors.accent },
-  reporter: { color: colors.muted, fontSize: 11, lineHeight: 15, fontWeight: "600" },
+  reporter: { color: colors.muted, fontSize: 11, lineHeight: 15, fontWeight: "600", flexShrink: 1 },
+  authorRow: { minHeight: 22, flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 7 },
+  memberTag: { backgroundColor: colors.surfaceRaised, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 4 },
+  memberTagText: { color: colors.text, fontSize: 9, lineHeight: 12, fontWeight: "800", letterSpacing: 0.35 },
   footer: { minHeight: 34, paddingTop: 10, marginTop: 1, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between", gap: 12 },
   price: { color: colors.text, fontFamily: "Fraunces_700Bold", fontSize: 20, lineHeight: 24, letterSpacing: -0.2 },
   metric: { minWidth: 0, flexShrink: 1, flexDirection: "row", alignItems: "center", justifyContent: "flex-end", gap: 7 },

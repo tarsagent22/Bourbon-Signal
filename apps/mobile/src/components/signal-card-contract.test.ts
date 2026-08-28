@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 import test from "node:test";
 
 const card = readFileSync(resolve(process.cwd(), "src/components/SignalCard.tsx"), "utf8");
+const detail = readFileSync(resolve(process.cwd(), "app/(app)/signal/[id].tsx"), "utf8");
 
 function styleBlock(name: string) {
   return card.match(new RegExp(`${name}: \\{[^}]+\\}`))?.[0] || "";
@@ -33,8 +34,14 @@ test("Intel cards always state availability in text rather than relying on color
   assert.match(card, /signalCardStatusLabel/);
 });
 
-test("Community cards preserve public reporter attribution", () => {
+test("Community cards preserve chosen-name attribution and always render the immutable member tag separately", () => {
   assert.match(card, /signalReporterAttribution/);
-  assert.match(card, /community/);
-  assert.match(card, /reporter/);
+  assert.match(card, /signalMemberTagLabel/);
+  assert.match(card, /memberTag \? <View style=\{styles\.memberTag\}/);
+  assert.match(card, /showStatus \? <View style=\{styles\.statusRow\}/);
+  assert.match(card, /styles\.authorRow/);
+  assert.match(detail, /signalMemberTagLabel\(signal\)/);
+  assert.match(detail, /presented\?\.reporter \? <Text style=\{styles\.reporter\}>Reported by \{presented\.reporter\}/);
+  assert.match(detail, /memberTag \? <View style=\{styles\.memberTag\}/);
+  assert.doesNotMatch(detail, /presented\?\.reporter \? `Reported by/);
 });

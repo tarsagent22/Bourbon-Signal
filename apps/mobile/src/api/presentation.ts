@@ -152,7 +152,7 @@ export function presentSignal(signal: Signal) {
     : "";
   const quantity = normalizedQuantityLabel(signal);
   const reporter = signal.source.type === "member"
-    ? signal.source.actor?.displayName || signal.source.actor?.label || signal.source.label
+    ? signal.source.actor?.displayName || ""
     : "";
   return {
     storeName,
@@ -213,12 +213,15 @@ export function signalReportIsStale(signal: Signal, now = new Date()) {
   return Number.isFinite(observed) && Number.isFinite(current) && current - observed >= 72 * 60 * 60 * 1_000;
 }
 
+export function signalMemberTagLabel(signal: Signal) {
+  if (signal.source.type !== "member") return "";
+  const identity = signal.source.actor?.label || signal.source.label;
+  return /^(Founder|Member) #\d+$/.test(identity) ? identity : "";
+}
+
 export function signalCardStatusLabel(signal: Signal, now = new Date()) {
   if (signalReportIsStale(signal, now)) return "Availability unconfirmed";
-  if (signal.source.type === "member") {
-    const identity = signal.source.actor?.label || signal.source.label;
-    return /^(Founder|Member) #\d+$/.test(identity) ? identity : "Community report";
-  }
+  if (signal.source.type === "member") return "Community report";
   if (signal.kind === "release") return "Release";
   if (signal.kind === "event") return "Event";
   if (signal.availability?.status === "available_now") {
@@ -256,7 +259,8 @@ export function signalAccessibilityLabel(signal: Signal, now = new Date()) {
   return [
     signal.bottle.name,
     location,
-    status === "Reported" || status === "Community report" || /^(Founder|Member) #\d+$/.test(status) ? "" : status,
+    status === "Reported" || status === "Community report" ? "" : status,
+    signalMemberTagLabel(signal),
     signalReporterAttribution(signal),
     signalAccessibilityTime(signal.timing.displayAt, now),
     presented.price,

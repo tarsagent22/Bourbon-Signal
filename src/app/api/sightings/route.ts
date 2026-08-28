@@ -17,7 +17,7 @@ import { createSignalPointsRepository } from "@/lib/signal-points-repository";
 import { publicSignalIdentityFromMetadata } from "@/lib/signals/signal-api-contract";
 import { normalizeSignalRarities } from "@/lib/signals/signal-feed-filters";
 import { idempotentSightingFingerprint, idempotentSightingId, sameIdempotentSighting } from "@/lib/signals/signal-api-idempotency";
-import { communityDisplayNameFromMetadata, normalizeCommunityDisplayName, resolvedCommunityDisplayName } from "@/lib/community-display-name";
+import { communityDisplayNameFromMetadata, communityDisplayNameSeparateFromIdentity } from "@/lib/community-display-name";
 import { canonicalSignalFeedAreaSelection, dropFeedStoreQueryMatches } from "@/lib/feed-area-options";
 
 function normalizeSightingType(value: unknown): SightingType {
@@ -29,7 +29,15 @@ function normalizeRarityTier(value: unknown): MemberSighting["rarityTier"] {
 }
 
 function visibleSightingForRequester(sighting: MemberSighting, ownerPointsPreview: boolean) {
-  const { idempotencyFingerprint: _idempotencyFingerprint, ...safeSighting } = sighting;
+  const identity = sighting.reporterPublicIdentity;
+  const displayName = communityDisplayNameSeparateFromIdentity(identity?.displayName, identity?.label)
+    || communityDisplayNameSeparateFromIdentity(sighting.reporterDisplayName, identity?.label);
+  const independentSighting: MemberSighting = {
+    ...sighting,
+    reporterDisplayName: displayName || "",
+    reporterPublicIdentity: identity ? { ...identity, displayName: displayName || undefined } : undefined,
+  };
+  const { idempotencyFingerprint: _idempotencyFingerprint, ...safeSighting } = independentSighting;
   if (ownerPointsPreview) return safeSighting;
   const { rewardState: _rewardState, reporterBadges: _reporterBadges, ...visible } = safeSighting;
   return visible;
@@ -132,7 +140,7 @@ async function buildLegacyCommunitySnapshot(): Promise<LegacyCommunitySnapshot> 
     votes.push(...(prefs.sightingVotes || []).map((vote) => ({ ...vote, userId: user.id })));
     reporters.push({
       id: user.id,
-      displayName: resolvedCommunityDisplayName(user.publicMetadata, publicSignalIdentityFromMetadata(user.publicMetadata)?.label || "Member"),
+      displayName: communityDisplayNameFromMetadata(user.publicMetadata) || "",
       badges: rewardBadgeLabels((user.privateMetadata && typeof user.privateMetadata === "object" ? user.privateMetadata : {}) as Record<string, unknown>),
     });
   }
@@ -214,14 +222,17 @@ async function getAggregateSightings(
   for (const sighting of sightingsById.values()) {
     const owner = sighting.reporterUserId ? reportersById.get(sighting.reporterUserId) : undefined;
     const row = combinedCounts.get(sighting.id) || { upCount: 0, downCount: 0, myVote: null };
-    const reporterDisplayName = owner?.displayName || sighting.reporterDisplayName || sighting.reporterPublicIdentity?.label || "Member";
-    const customDisplayName = normalizeCommunityDisplayName(reporterDisplayName);
+    const identityLabel = sighting.reporterPublicIdentity?.label || "";
+    const reporterDisplayName = communityDisplayNameSeparateFromIdentity(owner?.displayName, identityLabel)
+      || communityDisplayNameSeparateFromIdentity(sighting.reporterPublicIdentity?.displayName, identityLabel)
+      || communityDisplayNameSeparateFromIdentity(sighting.reporterDisplayName, identityLabel)
+      || "";
     sightings.push({
       ...sighting,
       reporterDisplayName,
       reporterPublicIdentity: sighting.reporterPublicIdentity ? {
         ...sighting.reporterPublicIdentity,
-        ...(customDisplayName.ok ? { displayName: customDisplayName.value } : {}),
+        displayName: reporterDisplayName || undefined,
       } : undefined,
       reporterBadges: owner?.badges || sighting.reporterBadges,
       sightingType: normalizeSightingType(sighting.sightingType),
@@ -414,9 +425,12 @@ export async function POST(req: NextRequest) {
   const ownerPointsPreview = isRewardsAdminEmail(verifiedPrimaryClerkEmail(user));
   const prefs = normalizePrefs(user.publicMetadata?.sightingsPreferences);
   const publicIdentity = publicSignalIdentityFromMetadata(user.publicMetadata);
+  if (!publicIdentity) {
+    return NextResponse.json({ error: "A numbered member identity is required before posting." }, { status: 409 });
+  }
   const customDisplayName = communityDisplayNameFromMetadata(user.publicMetadata);
-  const reporterDisplayName = resolvedCommunityDisplayName(user.publicMetadata, publicIdentity?.label || "Member");
-  const publicActor = publicIdentity ? { ...publicIdentity, ...(customDisplayName ? { displayName: customDisplayName } : {}) } : undefined;
+  const reporterDisplayName = customDisplayName || "";
+  const publicActor = { ...publicIdentity, ...(customDisplayName ? { displayName: customDisplayName } : {}) };
   const sighting: MemberSighting = {
     id: idempotencyKey ? idempotentSightingId(userId, idempotencyKey) : makeSightingId(),
     bottleName,

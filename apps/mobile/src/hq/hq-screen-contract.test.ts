@@ -8,6 +8,9 @@ const source = read("../../app/(app)/(tabs)/hq.tsx");
 const layout = read("../../app/(app)/(tabs)/_layout.tsx");
 const tabs = read("../navigation/member-tabs.ts");
 const referralApi = read("../../../../src/app/api/referrals/me/route.ts");
+const appLayout = read("../../app/(app)/_layout.tsx");
+const supportScreen = read("../../app/(app)/account/support.tsx");
+const privacyScreen = read("../../app/(app)/account/privacy.tsx");
 const userFacingAccountCopy = [
   read("../../app/(app)/(tabs)/cellar.tsx"),
   read("../../app/(app)/(tabs)/post.tsx"),
@@ -29,28 +32,31 @@ test("Account leads with a compact member and points summary", () => {
   assert.match(source, /ready to redeem/);
   assert.match(source, /pts to/);
   assert.match(source, /ACCOUNT/);
+  assert.match(source, /profile\.customDisplayName \|\| "Choose a display name"/);
+  assert.match(source, /profile\.identity\?\.label/);
 });
 
-test("profile and everyday account controls appear before rewards", () => {
+test("profile and native account controls appear before rewards", () => {
   const profile = source.indexOf("<SectionTitle>Profile</SectionTitle>");
-  const membership = source.indexOf("Manage membership");
-  const shipping = source.indexOf("Shipping information");
+  const support = source.indexOf("Support");
+  const privacy = source.indexOf("Privacy policy");
   const rewards = source.indexOf(">Rewards</SectionTitle>");
-  assert.ok(profile >= 0 && membership > profile && shipping > membership && rewards > shipping);
-  assert.match(source, /Support/);
-  assert.match(source, /Privacy policy/);
+  assert.ok(profile >= 0 && support > profile && privacy > support && rewards > privacy);
   assert.match(source, /Sign out/);
+  assert.doesNotMatch(source, /Manage membership|Shipping information/);
   assert.doesNotMatch(source, /showAccount/);
   assert.doesNotMatch(source, /Alert me about|Push notifications|Monitoring areas/);
 });
 
-test("Account previews rewards instead of rendering the whole catalog", () => {
+test("Account renders reward and redemption details natively without a web handoff", () => {
   assert.match(source, /function FeaturedRewardCard/);
   assert.match(source, /function RewardProgressRow/);
   assert.match(source, /View all rewards/);
+  assert.match(source, /showAllRewards/);
   assert.match(source, /Redemption history/);
+  assert.match(source, /showAllRedemptions/);
   assert.match(source, /Free members can keep earning Signal Points\. A paid membership is required before rewards can be redeemed\./);
-  assert.doesNotMatch(source, /orderedRewards\.filter\([\s\S]*\.map\(/);
+  assert.doesNotMatch(source, /Redeem reward|redemption details/);
 });
 
 test("Ways to earn loads the canonical referral program and personal invite", () => {
@@ -86,9 +92,17 @@ test("noncritical referrals cannot block primary Account data and stale requests
   assert.match(source, /onPress=\{\(\) => void loadReferral\(true\)\}/);
 });
 
-test("shipping appears only for paid members or earned referral-glass fulfillment", () => {
-  assert.match(source, /canSaveShipping = Boolean\(profile\?\.membership\.paid \|\| \(referral\?\.founderGlassesEarned \|\| 0\) > 0\)/);
-  assert.match(source, /\{canSaveShipping \? <LinkRow label="Shipping information"/);
+test("Account never navigates to an external webpage", () => {
+  assert.doesNotMatch(source, /Linking|openExternal|https?:\/\//);
+  assert.match(source, /router\.push\("\/\(app\)\/account\/support"\)/);
+  assert.match(source, /router\.push\("\/\(app\)\/account\/privacy"\)/);
+  assert.match(appLayout, /name="account\/support"/);
+  assert.match(appLayout, /name="account\/privacy"/);
+  assert.match(supportScreen, /support@bourbonsignal\.com/);
+  assert.match(supportScreen, /Account deletion/);
+  assert.match(privacyScreen, /Updated August 21, 2026/);
+  assert.match(privacyScreen, /12\. Changes to this policy/);
+  assert.doesNotMatch(`${supportScreen}\n${privacyScreen}`, /Linking|https?:\/\//);
 });
 
 test("featured rewards preserve physical and digital fulfillment truth", () => {
@@ -102,13 +116,16 @@ test("Account keeps diagnostics collapsed and destructive actions separated", ()
   assert.match(source, /accessibilityState=\{\{ expanded:/);
   assert.match(source, /Share diagnostics/);
   assert.match(source, /Data & privacy/);
-  assert.match(source, /Request account deletion/);
+  assert.match(source, /Account deletion help/);
+  assert.doesNotMatch(source, /ACCOUNT_DELETION_URL/);
 });
 
 test("reward progress exposes a bounded semantic accessibility value", () => {
   assert.match(source, /const percent = Math\.round\(Math\.min\(1, Math\.max\(0, ratio\)\) \* 100\)/);
   assert.match(source, /<View accessible accessibilityRole="progressbar" accessibilityLabel=\{`\$\{label\}: \$\{percent\} percent complete`\}/);
   assert.match(source, /accessibilityValue=\{\{ min: 0, max: 100, now: percent \}\}/);
+  assert.match(source, /return <View style=\{styles\.rewardRow\}><View accessible accessibilityLabel=.*style=\{styles\.rewardRowAction\}>/);
+  assert.doesNotMatch(source, /<View accessible accessibilityLabel=.*style=\{styles\.rewardRow\}>/);
   assert.match(source, /member\.redemptionEligible && !availability\.soldOut \? <ProgressBar/);
   assert.match(source, /Membership required to redeem/);
 });

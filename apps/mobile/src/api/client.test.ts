@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createMobileApi, MobileApiError } from "./client";
 import type { Signal } from "./types";
-import { presentSignal, relativeSignalTime, signalAccessibilityLabel, signalAccessibilityTime, signalAvailabilityIsCurrent, signalAvailabilityRefreshAt, signalCardStatusLabel, signalCardSummary } from "./presentation";
+import { presentSignal, relativeSignalTime, signalAccessibilityLabel, signalAccessibilityTime, signalAvailabilityIsCurrent, signalAvailabilityRefreshAt, signalCardStatusLabel, signalCardSummary, signalMemberTagLabel } from "./presentation";
 
 test("sends the selected feed view, bearer auth, and opaque cursor without inspecting it", async () => {
   const requests: Request[] = [];
@@ -436,8 +436,9 @@ test("presents the canonical Signal transport shape without legacy field assumpt
   assert.equal(presented.price, "$69.99");
   assert.equal(presented.quantity, "2 seen");
   assert.equal(presented.summary, "Two bottles on the shelf");
-  assert.equal(presented.reporter, "Member #19");
-  assert.equal(signalCardStatusLabel(signal, new Date("2026-08-23T12:00:00.000Z")), "Member #19");
+  assert.equal(presented.reporter, "", "a member tag must not be substituted for an unset display name");
+  assert.equal(signalCardStatusLabel(signal, new Date("2026-08-23T12:00:00.000Z")), "Community report");
+  assert.equal(signalMemberTagLabel(signal), "Member #19");
   const accessibility = signalAccessibilityLabel(signal, new Date("2026-08-23T12:00:00.000Z"));
   for (const detail of ["Example Bourbon", "Bottle Shop", "$69.99", "2 seen", "Two bottles on the shelf", "Member #19", "2 days ago"]) {
     assert.match(accessibility, new RegExp(detail.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
@@ -449,7 +450,8 @@ test("presents the canonical Signal transport shape without legacy field assumpt
     id: "member:founder",
     source: { type: "member", label: "Founder #4", actor: { kind: "founder", number: 4, label: "Founder #4" } },
   };
-  assert.equal(signalCardStatusLabel(founder, new Date("2026-08-23T12:00:00.000Z")), "Founder #4");
+  assert.equal(signalCardStatusLabel(founder, new Date("2026-08-23T12:00:00.000Z")), "Community report");
+  assert.equal(signalMemberTagLabel(founder), "Founder #4");
   assert.equal(signalCardStatusLabel({
     ...signal,
     id: "member:legacy",
