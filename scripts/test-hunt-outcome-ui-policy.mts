@@ -5,6 +5,7 @@ import {
   signalHasExpiredForOutcome,
   shouldOfferHuntOutcomePrompt,
 } from "../src/lib/hunt-outcome-prompt.ts";
+import { huntOutcomePromptStorageKey as mobileStorageKey } from "../apps/mobile/src/signals/hunt-outcome-prompt.ts";
 
 const now = Date.parse("2026-08-29T12:00:00.000Z");
 assert.equal(signalHasExpiredForOutcome({
@@ -37,6 +38,7 @@ assert.equal(shouldOfferHuntOutcomePrompt({
   now,
   lastPromptedAt: now - HUNT_OUTCOME_PROMPT_REPEAT_MS,
 }), true, "the quiet prompt can return after the repeat window");
-assert.equal(huntOutcomePromptStorageKey("trusted_source:abc"), "bourbon-signal:hunt-outcome-prompt:trusted_source%3Aabc");
+assert.equal(huntOutcomePromptStorageKey("trusted_source:abc"), mobileStorageKey("trusted_source:abc"));
+assert.match(mobileStorageKey("trusted_source:abc"), /^[A-Za-z0-9._-]+$/, "SecureStore keys use only supported characters");
 
 console.log("Hunt Outcome UI policy tests passed.");

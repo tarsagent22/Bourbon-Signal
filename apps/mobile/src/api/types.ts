@@ -1,6 +1,7 @@
 export interface Signal {
   contractVersion: "bourbon-signal/signal@1";
   id: string;
+  availabilityEpisodeId?: string;
   kind: "availability" | "release" | "event";
   source: {
     type: "member" | "retailer" | "trusted_source" | "release_source";

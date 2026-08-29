@@ -81,7 +81,7 @@ export function createSignalApiClient({
     },
     setHuntOutcome(signalId: string, outcome: SignalHuntOutcome | null) {
       return request<SignalHuntOutcomeResponse>(`/api/v1/signals/${encodeURIComponent(signalId)}/outcome`, {
-        method: "POST",
+        method: "PUT",
         body: JSON.stringify({ outcome }),
       });
     },

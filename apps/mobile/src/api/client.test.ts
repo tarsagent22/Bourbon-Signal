@@ -301,7 +301,7 @@ test("reads and explicitly writes the member's private Hunt Outcome", async () =
     fetcher: async (request) => {
       const captured = new Request(request);
       requests.push(captured);
-      return Response.json({ contractVersion: "bourbon-signal/mobile-api@1", outcome: captured.method === "POST" ? { outcome: "found_it" } : null });
+      return Response.json({ contractVersion: "bourbon-signal/mobile-api@1", outcome: captured.method === "PUT" ? { outcome: "found_it" } : null });
     },
   });
 
@@ -310,7 +310,7 @@ test("reads and explicitly writes the member's private Hunt Outcome", async () =
 
   assert.equal(new URL(requests[0].url).pathname, "/api/v1/signals/trusted_source%3Aepisode-1/outcome");
   assert.equal(requests[0].method, "GET");
-  assert.equal(requests[1].method, "POST");
+  assert.equal(requests[1].method, "PUT");
   assert.deepEqual(await requests[1].json(), { outcome: "found_it" });
   assert.equal(saved.outcome?.outcome, "found_it");
   assert.ok(requests.every((request) => request.headers.get("authorization") === "Bearer session-token"));

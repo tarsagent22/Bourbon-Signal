@@ -118,5 +118,8 @@ for (const method of ["GET", "PUT", "DELETE"]) {
 }
 assert.match(route, /getSignalDetail/, "the endpoint resolves access through the existing Signal detail API");
 assert.doesNotMatch(route, /aggregatePrivate|totalResponses|foundItRate/, "private aggregates are not exposed from the member route");
+const webClient = readFileSync(new URL("../src/lib/signals/signal-api-client.ts", import.meta.url), "utf8");
+const mobileClient = readFileSync(new URL("../apps/mobile/src/api/client.ts", import.meta.url), "utf8");
+for (const client of [webClient, mobileClient]) assert.match(client, /setHuntOutcome[\s\S]*?method:\s*"PUT"/);
 
 console.log("Hunt Outcome API tests passed.");

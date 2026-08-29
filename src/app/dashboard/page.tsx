@@ -733,6 +733,7 @@ function PaidMemberDashboard() {
   const canRefineAlertAreas = alertAreaLimit !== 0 || isFreeTier;
   const canUseRecommendations = entitlements.canUseRecommendations;
   const canReceiveSightingsAlerts = entitlements.canReceiveSightingsAlerts;
+  const canWatchCellarSuggestions = entitlements.trackedBottleLimit !== 0;
   const feedbackUserId = isSignedIn ? user?.id || null : null;
   const { prefs, confirmedPrefs: confirmedAlertPrefs, loading: prefsLoading, preferenceError, savePreferences } = useAreaPreferences();
   const needsHomeStateActivation = isFreeTier && isSignedIn && !prefsLoading && !prefs.memberProfile?.homeState;
@@ -1797,6 +1798,10 @@ function PaidMemberDashboard() {
   };
 
   const watchCellarHuntSuggestion = async (suggestion: CellarHuntSuggestion) => {
+    if (!canWatchCellarSuggestions) {
+      setCollectionError("Standard adds Radar watch actions. Your Cellar and Hunt next suggestions stay available.");
+      return;
+    }
     if (!isSignedIn) {
       signIn();
       return;
@@ -3517,9 +3522,9 @@ function PaidMemberDashboard() {
                         <strong style={{ display: "block", color: "var(--color-cream)", fontFamily: "var(--font-dm-sans)", fontSize: "13px" }}>{suggestion.bottleName}</strong>
                         <span style={{ display: "block", marginTop: 3, color: "var(--color-text-tertiary)", fontFamily: "var(--font-dm-sans)", fontSize: "11px", lineHeight: 1.5 }}>{suggestion.reason}</span>
                       </div>
-                      <button type="button" disabled={Boolean(savingCellarHuntKey)} onClick={() => void watchCellarHuntSuggestion(suggestion)} style={{ minHeight: 40, border: "1px solid rgba(196,148,58,0.30)", borderRadius: "999px", background: "rgba(196,148,58,0.10)", color: "var(--color-accent-amber)", padding: "8px 11px", cursor: savingCellarHuntKey ? "progress" : "pointer", fontFamily: "var(--font-dm-sans)", fontSize: "11px", fontWeight: 850 }}>
+                      {canWatchCellarSuggestions ? <button type="button" disabled={Boolean(savingCellarHuntKey)} onClick={() => void watchCellarHuntSuggestion(suggestion)} style={{ minHeight: 40, border: "1px solid rgba(196,148,58,0.30)", borderRadius: "999px", background: "rgba(196,148,58,0.10)", color: "var(--color-accent-amber)", padding: "8px 11px", cursor: savingCellarHuntKey ? "progress" : "pointer", fontFamily: "var(--font-dm-sans)", fontSize: "11px", fontWeight: 850 }}>
                         {savingCellarHuntKey === suggestion.canonicalKey ? "Saving…" : "Watch for another"}
-                      </button>
+                      </button> : <a href="/pricing" style={{ color: "var(--color-accent-amber)", fontFamily: "var(--font-dm-sans)", fontSize: "11px", fontWeight: 800 }}>Upgrade to watch</a>}
                     </div>
                   ))}
                 </section>

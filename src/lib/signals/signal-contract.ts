@@ -15,6 +15,7 @@ export type SignalSourceStatus = "ready" | "unauthorized" | "unavailable";
 export interface CanonicalSignal {
   contractVersion: typeof SIGNAL_CONTRACT_VERSION;
   id: string;
+  availabilityEpisodeId?: string;
   kind: SignalKind;
   source: {
     type: SignalSourceType;
@@ -257,10 +258,12 @@ export function normalizeDropSignal(input: Record<string, unknown>): CanonicalSi
   const locationLabel = text(input.display_location, input.displayLocation, input.locationName, storeName, storeCity, state);
   const summary = text(input.evidence, input.summary);
   const scheduledFor = kind === "release" ? scheduledReleaseDateValue(scheduledReleaseInput(input)) : undefined;
+  const availabilityEpisodeId = text(input.availabilityEpisodeId, input.availability_episode_id);
 
   return {
     contractVersion: SIGNAL_CONTRACT_VERSION,
     id: prefixedId(type, rawId),
+    ...(availabilityEpisodeId ? { availabilityEpisodeId } : {}),
     kind,
     source: { type, label },
     bottle: {

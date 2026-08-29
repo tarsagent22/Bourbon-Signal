@@ -197,6 +197,8 @@ export default function CellarScreen() {
     ],
   }).slice(0, 3), [preferences?.bottleAlertPreferences.bottleKeys, preferences?.bottleAlertPreferences.bottleNames, sourceBottles]);
   const canUseRecommendations = preferences?.entitlements?.canUseRecommendations === true;
+  const trackedBottleLimit = preferences?.entitlements?.trackedBottleLimit;
+  const canWatchCellarSuggestions = trackedBottleLimit === null || (typeof trackedBottleLimit === "number" && trackedBottleLimit > 0);
   const bourbonDna = useMemo(() => {
     const favorites = sourceBottles.filter((bottle) => bottle.isRated && bottle.rating >= 80);
     const tagCounts = new Map<string, number>();
@@ -307,6 +309,10 @@ export default function CellarScreen() {
 
   const watchCellarSuggestion = useCallback(async (bottleName: string, canonicalKey: string) => {
     if (!preferences || savingWatchKey) return;
+    if (!canWatchCellarSuggestions) {
+      Alert.alert("Radar watch is a Standard feature", "Standard adds Radar watch actions. Your Cellar and Hunt next suggestions stay available.");
+      return;
+    }
     setSavingWatchKey(canonicalKey);
     setError("");
     try {
@@ -320,7 +326,7 @@ export default function CellarScreen() {
     } finally {
       setSavingWatchKey("");
     }
-  }, [acceptServerPreferences, api, preferences, savingWatchKey]);
+  }, [acceptServerPreferences, api, canWatchCellarSuggestions, preferences, savingWatchKey]);
 
   return <>
     <FlatList
@@ -372,7 +378,7 @@ export default function CellarScreen() {
           <View style={styles.huntNextHeader}><Text style={styles.huntNextTitle}>Hunt next</Text><Text style={styles.huntNextCount}>{cellarHuntSuggestions.length} suggestion{cellarHuntSuggestions.length === 1 ? "" : "s"}</Text></View>
           {cellarHuntSuggestions.map((suggestion) => <View key={suggestion.canonicalKey} style={styles.huntNextRow}>
             <View style={styles.huntNextCopy}><Text style={styles.huntNextName}>{suggestion.bottleName}</Text><Text style={styles.huntNextReason}>{suggestion.reason}</Text></View>
-            <Pressable accessibilityRole="button" accessibilityState={{ disabled: Boolean(savingWatchKey) }} disabled={Boolean(savingWatchKey)} onPress={() => void watchCellarSuggestion(suggestion.bottleName, suggestion.canonicalKey)} style={styles.huntNextButton}><Text style={styles.huntNextButtonText}>{savingWatchKey === suggestion.canonicalKey ? "Saving…" : "Watch for another"}</Text></Pressable>
+            {canWatchCellarSuggestions ? <Pressable accessibilityRole="button" accessibilityState={{ disabled: Boolean(savingWatchKey) }} disabled={Boolean(savingWatchKey)} onPress={() => void watchCellarSuggestion(suggestion.bottleName, suggestion.canonicalKey)} style={styles.huntNextButton}><Text style={styles.huntNextButtonText}>{savingWatchKey === suggestion.canonicalKey ? "Saving…" : "Watch for another"}</Text></Pressable> : <Text style={styles.huntNextReason}>Standard adds Radar watch</Text>}
           </View>)}
         </View> : null}
         {preferences ? <>

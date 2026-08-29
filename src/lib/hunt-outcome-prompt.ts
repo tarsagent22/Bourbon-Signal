@@ -37,5 +37,10 @@ export function shouldOfferHuntOutcomePrompt({
 }
 
 export function huntOutcomePromptStorageKey(signalId: string) {
-  return `bourbon-signal:hunt-outcome-prompt:${encodeURIComponent(signalId.trim())}`;
+  let hash = 2_166_136_261;
+  for (const char of signalId.trim()) {
+    hash ^= char.charCodeAt(0);
+    hash = Math.imul(hash, 16_777_619);
+  }
+  return `bourbon-signal.hunt-outcome-prompt.${(hash >>> 0).toString(16)}`;
 }
