@@ -813,7 +813,12 @@ function seededAvailabilityEpisode(drop, subjectId) {
 
 export function buildAvailabilityEpisodeIndex(signals = [], { previousDrops = [] } = {}) {
   const index = new Map();
-  for (const drop of previousDrops || []) {
+  const previousDropRows = Array.isArray(previousDrops)
+    ? previousDrops
+    : Array.isArray(previousDrops?.drops)
+      ? previousDrops.drops
+      : [];
+  for (const drop of previousDropRows) {
     const subjectId = availabilityEpisodeIdentity(drop);
     if (!subjectId) continue;
     const seed = seededAvailabilityEpisode(drop, subjectId);
