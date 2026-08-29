@@ -50,6 +50,23 @@ export interface SignalFeedPage {
   access: { previewLocked: boolean; requiresAccountForFullFeed: boolean; memberSignalsAvailable: boolean; marketDetailsLocked: boolean };
 }
 
+export type HuntOutcome = "found_it" | "gone_when_checked" | "didnt_go";
+
+export interface HuntOutcomeRecord {
+  signalId: string;
+  availabilityEpisodeId: string;
+  outcome: HuntOutcome;
+  sourceType: Signal["source"]["type"];
+  stateCode: string | null;
+  submittedAt: string;
+  updatedAt: string;
+}
+
+export interface HuntOutcomeResponse {
+  contractVersion: "bourbon-signal/mobile-api@1";
+  outcome: HuntOutcomeRecord | null;
+}
+
 export interface MemberProfile {
   contractVersion: "bourbon-signal/mobile-api@1";
   profile: {

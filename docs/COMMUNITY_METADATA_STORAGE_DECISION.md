@@ -1,28 +1,24 @@
 # Community metadata storage decision
 
-**Status:** Keep current Clerk metadata storage for now; do not perform a disruptive migration without a provisioned relational database.
+**Status:** Managed Postgres is the durable store for relational community and product interaction records; Clerk remains the identity and compact entitlement boundary.
 
-## Evidence
+## Current architecture
 
-- Identity, entitlement, alert preference, sightings, votes, collection, and contribution paths currently share Clerk user metadata and Clerk server APIs.
-- Vercel Blob is already provisioned, but the current Blob uses are append-light artifacts: sighting photos, the missing-bottle queue, and operational heartbeat JSON.
-- No relational database client, migration framework, or `DATABASE_URL`-style environment contract exists in the repository.
+- Clerk owns authentication, verified contact factors, membership metadata, and privacy-safe public member identity.
+- Managed Postgres stores normalized Community Sightings, votes/moderation state, alert queue/dedupe state, member collections, bottle contributions, recommendation feedback, and private Hunt Outcome records.
+- Vercel Blob remains appropriate for append-light artifacts such as sighting photos and operational JSON, not relational voting, dedupe, moderation, or outcome aggregation.
+- Clerk user IDs bind private rows to an account but are not rendered in public Signal or aggregate outcome responses.
 
 ## Decision
 
-Do not move community records into Vercel Blob. Blob JSON would preserve deployment compatibility but make concurrent votes, dedupe, moderation, indexing, and transactional updates less reliable than the current implementation. It would exchange Clerk's scaling ceiling for race conditions and whole-document rewrites.
+New relational member behavior must use the established Postgres repository and migration path. Do not reintroduce whole-document community records in Clerk metadata or Blob. Durable writes must preserve optimistic concurrency, idempotency, moderation, and tier enforcement at the server boundary.
 
-Do not introduce Neon, Supabase, or another relational provider inside an operational-hardening release. Provisioning, schema migration, dual writes, backfill verification, rollback, privacy controls, and production monitoring are required before that change can be called zero-disruption.
+Hunt Outcome is stored uniquely by member plus availability episode. The selected value, source type, state, and submitted/updated timestamps are private. Owner reporting may aggregate counts by source type, state, and time window, but must not expose respondent identity or member/store rankings. Individual outcomes never change Community standing, Signal validity, or availability episode behavior.
 
-Clerk remains the identity and compact entitlement store. Existing community metadata remains in place until a relational migration is deliberately funded and staged.
+## Operational guardrails
 
-## Migration trigger and target
-
-Start the relational migration when any of these is true:
-
-- sightings aggregation approaches the current 100-user scan ceiling;
-- metadata write contention or size limits appear in production;
-- moderation, vote, inbox, dedupe, or collection queries need cross-user indexes;
-- a managed Postgres environment is provisioned for preview and production.
-
-The target should be managed Postgres with normalized tables for sightings, votes, alert inbox/dedupe, collections, and contribution review. Use dual writes, checksummed backfill, read comparison, and a reversible cutover. Keep Clerk user IDs as foreign identity keys and retain only compact entitlement metadata in Clerk.
+1. Apply schema changes through the existing app-storage migration workflow.
+2. Keep preview and production connection configuration separate and fail closed when durable storage is unavailable.
+3. Include new relational tables in secure backup/export coverage before release.
+4. Preserve Clerk as the authentication authority; never copy session secrets or verified contact factors into product tables.
+5. Require explicit privacy and retention review before adding a new use of member-linked interaction data.

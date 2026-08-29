@@ -47,7 +47,7 @@ function productFaqItems(): FaqItem[] {
     {
       question: "How do Bourbon Signal alerts work?",
       answer:
-        "Choose the markets you care about, then decide whether you want anything notable nearby or only specific bottles from your watchlist. An alert area may be a state, control board, city, or individual store, depending on the precision available in that market. Standard Proof includes up to five specific alert areas and 15 watched bottles. Barrel Proof and Bottled in Bond remove those preference limits. Matching alerts can appear on-site and by email, with SMS available under each paid plan’s daily delivery cap. Bourbon Signal only sends alerts from fresh, alert-grade signals—not every broad release lead or unconfirmed community report.",
+        "Choose the markets you care about, then decide whether you want anything notable nearby or only specific bottles from your watchlist. An alert area may be a state, control board, city, or individual store, depending on the precision available in that market. Standard Proof includes up to five specific alert areas and 15 watched bottles. Barrel Proof and Bottled in Bond remove those preference limits. Matching alerts can appear on-site and by email, with SMS available under each paid plan’s daily delivery cap. Bourbon Signal only sends alerts from fresh, alert-grade signals—not every broad release lead or feed item.",
     },
     {
       question: "What are verified retailer signals?",
@@ -67,7 +67,12 @@ function productFaqItems(): FaqItem[] {
     {
       question: "How do My Collection and recommendations work?",
       answer:
-        "Every membership includes My Collection for bottles you own or have tasted, ratings, tasting cues, and private notes. Standard Proof includes unlimited Cellar capacity. Barrel Proof and Bottled in Bond add Bourbon DNA, personalized recommendations, and local opportunity context shaped by your collection. Recommendations are suggestions, not guarantees that a bottle is locally available.",
+        "Every membership includes My Collection for bottles you own or have tasted, ratings, tasting cues, and private notes. Standard Proof includes unlimited Cellar capacity. Cellar can suggest up to three bottles to hunt next, but Radar changes only when you choose the explicit watch action. Barrel Proof and Bottled in Bond add Bourbon DNA, personalized recommendations, and clearly labeled local opportunity context shaped by your collection. Recommendations are suggestions, not guarantees that a bottle is locally available.",
+    },
+    {
+      question: "What is Hunt Outcome?",
+      answer:
+        "Hunt Outcome is an optional, private one-tap question on an expired Signal detail. You can record Found it, Gone when I checked, or Didn’t go, then edit the response quietly. It never changes Community standing or Signal validity, and Bourbon Signal does not publish individual responses or member/store rankings.",
     },
     {
       question: "Why doesn’t every state have the same store-level detail?",

@@ -5,6 +5,8 @@ import type {
   MemberProfile,
   MemberProfilePatch,
   GeographySearchResponse,
+  HuntOutcome,
+  HuntOutcomeResponse,
   PushDeviceStatus,
   RadarBottleOption,
   BottleContributionResponse,
@@ -183,6 +185,12 @@ export function createMobileApi({
     },
     getSignal(id: string) {
       return request<{ contractVersion: "bourbon-signal/mobile-api@1"; signal: Signal }>(`/api/v1/signals/${encodeURIComponent(id)}`);
+    },
+    getHuntOutcome(id: string) {
+      return request<HuntOutcomeResponse>(`/api/v1/signals/${encodeURIComponent(id)}/outcome`, { fresh: true });
+    },
+    setHuntOutcome(id: string, outcome: HuntOutcome | null) {
+      return request<HuntOutcomeResponse>(`/api/v1/signals/${encodeURIComponent(id)}/outcome`, { method: "POST", body: { outcome } });
     },
     getMemberProfile({ fresh = false }: { fresh?: boolean } = {}) {
       return request<MemberProfile>("/api/v1/me/profile", { fresh });

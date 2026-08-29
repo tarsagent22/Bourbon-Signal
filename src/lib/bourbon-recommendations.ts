@@ -54,6 +54,31 @@ export interface RankedRecommendation extends RecommendationCandidate {
   laneLabel: string;
 }
 
+export function recommendationEvidenceSummary({
+  matchedTags = [],
+  mashBillFamily,
+  proofRange,
+  priorRating,
+  localSignalCount = 0,
+}: {
+  matchedTags?: readonly string[];
+  mashBillFamily?: string;
+  proofRange?: { min: number; max: number };
+  priorRating?: number;
+  localSignalCount?: number;
+}) {
+  const tags = Array.from(new Set(matchedTags.map((tag) => tag.trim()).filter(Boolean))).slice(0, 2);
+  const evidence: string[] = [];
+  if (tags.length) evidence.push(`${tags.join(tags.length === 2 ? " and " : "")} cues`);
+  if (mashBillFamily?.trim()) evidence.push(`${mashBillFamily.trim()} affinity`);
+  if (proofRange && Number.isFinite(proofRange.min) && Number.isFinite(proofRange.max)) {
+    evidence.push(`${Math.round(proofRange.min)}-${Math.round(proofRange.max)} proof preference`);
+  }
+  if (Number.isFinite(priorRating)) evidence.push(`prior rating ${(Math.max(0, Math.min(100, Number(priorRating))) / 10).toFixed(1)}`);
+  if (localSignalCount > 0) evidence.push(`${Math.floor(localSignalCount)} recent local signal${Math.floor(localSignalCount) === 1 ? "" : "s"}`);
+  return evidence.join(" · ");
+}
+
 function normalizeLabel(value: string) {
   return value
     .toLowerCase()

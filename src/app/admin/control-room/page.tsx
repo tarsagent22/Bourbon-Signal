@@ -18,6 +18,7 @@ import RetailerAdministration from "@/components/admin/RetailerAdministration";
 import AdminBottleQueueClient from "../bottle-queue/AdminBottleQueueClient";
 import AdminSightingsClient from "../sightings/AdminSightingsClient";
 import SignalPointsAdminBoard from "@/components/admin/SignalPointsAdminBoard";
+import { getHuntOutcomeRepository } from "@/lib/hunt-outcome-repository";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -73,6 +74,17 @@ async function listRetailerAdministration() {
   }
   const submissions = await repository.listSubmissions();
   return { retailers, submissions };
+}
+
+async function loadPrivateHuntOutcomeMetrics(now = new Date()) {
+  const to = new Date(now);
+  const from = new Date(to.getTime() - 30 * 24 * 60 * 60 * 1_000);
+  try {
+    return await getHuntOutcomeRepository().aggregatePrivate({ from: from.toISOString(), to: to.toISOString() });
+  } catch (error) {
+    console.error("Private Hunt Outcome aggregation failed", { error });
+    return null;
+  }
 }
 
 async function updateCoverageRequestStatus(formData: FormData) {
@@ -179,10 +191,11 @@ export default async function CompanyControlRoomPage({ searchParams }: { searchP
   if (!isCompanyControlRoomOwnerEmail(ownerEmail)) notFound();
   const canAdministerRetailers = isRetailerAdminEmail(ownerEmail);
 
-  const [snapshot, founderShipping, retailerAdministration] = await Promise.all([
+  const [snapshot, founderShipping, retailerAdministration, huntOutcomes] = await Promise.all([
     getCompanyControlRoomSnapshot({ forceFresh: Boolean(coverageUpdatedId) }),
     listFounderShippingForOwner(),
     canAdministerRetailers ? listRetailerAdministration() : Promise.resolve(null),
+    loadPrivateHuntOutcomeMetrics(),
   ]);
   const { memberships, founder, revenue, audience, growth, lifecycle, retention, demand, coverageDemand, retailer, engine, alerts, release, automation } = snapshot;
   const coverageStatusUpdatedConfirmed = Boolean(coverageUpdatedId && coverageUpdatedStatus && coverageDemand.recentRequests.some(
@@ -453,6 +466,29 @@ export default async function CompanyControlRoomPage({ searchParams }: { searchP
             <Metric label="Reachable free" value={count(audience.reachableFreeMembers)} detail="Eligible contacts available for a reviewed campaign" />
             <Metric label="Collected · 30 days" value={money(revenue.collectedLast30DaysCents, revenue.currency)} detail="Successful charges less refunds" />
           </div>
+          <div className="cr-subheading"><div><p>Private member feedback · 30 days</p><h3>Hunt outcomes</h3></div><span>Aggregate only</span></div>
+          {huntOutcomes ? <>
+            <div className="cr-metrics four">
+              <Metric label="Outcome responses" value={huntOutcomes.totalResponses} detail="Optional expired-Signal responses" />
+              <Metric label="Found-it count" value={huntOutcomes.foundItCount} detail="Members recorded Found it" accent />
+              <Metric label="Found-it rate" value={`${(huntOutcomes.foundItRate * 100).toFixed(1)}%`} detail="Reported outcomes, not causal attribution" />
+              <Metric label="Window" value="30 days" detail={`${formatControlRoomDateTime(huntOutcomes.window.from)} to ${formatControlRoomDateTime(huntOutcomes.window.to)}`} />
+            </div>
+            <details className="cr-details">
+              <summary>Hunt Outcome breakdown</summary>
+              <div className="cr-detail-grid">
+                <dl className="cr-list">
+                  {huntOutcomes.bySourceType.map((bucket) => <div key={bucket.sourceType}><dt>{bucket.sourceType.replaceAll("_", " ")}</dt><dd>{bucket.foundItCount}/{bucket.totalResponses} · {(bucket.foundItRate * 100).toFixed(1)}%</dd></div>)}
+                  {!huntOutcomes.bySourceType.length ? <div><dt>Source type</dt><dd>No responses</dd></div> : null}
+                </dl>
+                <dl className="cr-list">
+                  {huntOutcomes.byState.map((bucket) => <div key={bucket.stateCode}><dt>{bucket.stateCode}</dt><dd>{bucket.foundItCount}/{bucket.totalResponses} · {(bucket.foundItRate * 100).toFixed(1)}%</dd></div>)}
+                  {!huntOutcomes.byState.length ? <div><dt>State</dt><dd>No responses</dd></div> : null}
+                </dl>
+              </div>
+              <p className="cr-note">These private aggregates contain no member or store rankings. Public claim rendering remains disabled while real observations accumulate.</p>
+            </details>
+          </> : <div className="cr-unavailable" role="alert"><strong>Hunt Outcome metrics are temporarily unavailable.</strong><p>No outcome total or rate is shown when the private aggregate cannot be read.</p></div>}
           <details className="cr-details">
             <summary>Growth funnel and membership detail</summary>
             <div className="cr-detail-grid">

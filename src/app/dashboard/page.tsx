@@ -37,6 +37,7 @@ import {
   buildRecommendationFeedbackModel,
   rankRecommendationCandidates,
   recommendationReadiness,
+  recommendationEvidenceSummary,
   type RecommendationFeedbackEntry,
 } from "@/lib/bourbon-recommendations";
 import { applyTrackedRecommendation, createSerialFeedbackMutationQueue, shouldApplyFeedbackLoad, shouldRunFeedbackMutation } from "@/lib/recommendation-feedback-client";
@@ -54,6 +55,7 @@ import { coverageAreaOption } from "@/lib/coverage-location-aliases";
 import { BADGE_DESCRIPTIONS } from "@/lib/sighting-rewards";
 import { buildAlertSetupGuidance } from "@/lib/alert-setup-guidance";
 import { getCellarAccessPolicy } from "@/lib/cellar-access-policy";
+import { buildCellarHuntSuggestions, type CellarHuntSuggestion } from "@/lib/cellar-hunt-suggestions";
 
 const EMPTY_PREFS: AreaPreferences = {
   states: [],
@@ -787,6 +789,7 @@ function PaidMemberDashboard() {
   const [manualCollectionBottleReady, setManualCollectionBottleReady] = useState(false);
   const [collectionRatingDrafts, setCollectionRatingDrafts] = useState<Record<string, number>>({});
   const [editingCollectionKey, setEditingCollectionKey] = useState<string | null>(null);
+  const [savingCellarHuntKey, setSavingCellarHuntKey] = useState("");
   const [dnaFeedbackState, setDnaFeedbackState] = useState<Record<string, string>>({});
   const [dnaFeedbackEntries, setDnaFeedbackEntries] = useState<RecommendationFeedbackEntry[]>([]);
   const [dnaFeedbackOwnerId, setDnaFeedbackOwnerId] = useState<string | null>(null);
@@ -1249,9 +1252,11 @@ function PaidMemberDashboard() {
         proofMatchExplanation: item.proofMatchExplanation,
         mashBillMatch: item.mashBillMatch,
         laneLabel: recommendation.laneLabel,
-        reason: recommendation.marketScore > 0
-          ? `${item.dnaReason} Fresh signal nearby.`
-          : item.dnaReason,
+        reason: recommendationEvidenceSummary({
+          matchedTags: item.matchedFlavors,
+          mashBillFamily: item.dnaProfile.mashBillFamily,
+          proofRange: collectionTasteProfile.preferredProofRange,
+        }) || item.dnaReason,
       }];
     });
   }, [bottleOptions, broadCatalogBottleOptions, collectionEntries, collectionTasteProfile, dnaFeedbackOwnerId, dnaFeedbackStatus, feedbackUserId, localPrefs, recentDrops, recommendationFeedbackModel, selectedCanonicalKeys, shouldPrepareRecommendations]);
@@ -1353,6 +1358,14 @@ function PaidMemberDashboard() {
       .map(normalizePreferenceBottleKey)
       .filter(Boolean),
   ).size;
+  const cellarHuntSuggestions = useMemo(() => buildCellarHuntSuggestions({
+    collection: collectionEntries,
+    watchedBottleKeys: [...savedBottleIdentityKeys],
+    localSignals: recentDrops.map((drop) => ({
+      canonicalKey: canonicalBottleKey(getDisplayName(drop)),
+      observedAt: drop.timestamp || drop.observed_at || drop.event_at,
+    })),
+  }).slice(0, 3), [collectionEntries, recentDrops, savedBottleIdentityKeys]);
 
   const watchlistSignals = useMemo(() => {
     if (!mounted || savedAreaPrefs.states.length === 0) return [] as Array<{ bottle: string; location: string; timestamp: string; state: string; href: string }>;
@@ -1783,6 +1796,35 @@ function PaidMemberDashboard() {
     }
   };
 
+  const watchCellarHuntSuggestion = async (suggestion: CellarHuntSuggestion) => {
+    if (!isSignedIn) {
+      signIn();
+      return;
+    }
+    if (prefsLoading || !confirmedAlertPrefs || preferenceError || savingCellarHuntKey) {
+      if (!savingCellarHuntKey) setCollectionError("Loading your saved preferences. Try again in a second.");
+      return;
+    }
+    setSavingCellarHuntKey(suggestion.canonicalKey);
+    setCollectionError(null);
+    try {
+      await savePreferences({
+        alertMode: "specific_bottles",
+        bottleAlertPreferences: {
+          bottleNames: Array.from(new Set([...confirmedAlertPrefs.bottleAlertPreferences.bottleNames, suggestion.bottleName])),
+          bottleKeys: Array.from(new Set([...confirmedAlertPrefs.bottleAlertPreferences.bottleKeys, suggestion.canonicalKey])),
+        },
+      });
+      setAlertMode("specific_bottles");
+      const matchingOption = alertBottleLibraryOptions.find((option) => option.canonicalKey === suggestion.canonicalKey);
+      if (matchingOption) addBottleOption(matchingOption);
+    } catch (error) {
+      setCollectionError(error instanceof Error ? error.message : "Could not watch that bottle yet.");
+    } finally {
+      setSavingCellarHuntKey("");
+    }
+  };
+
   const submitDnaFeedback = async (insight: RecommendedBottleInsight, signal: "useful" | "not_for_me" | "already_own" | "saved") => {
     const requestedUserId = feedbackUserId;
     if (!requestedUserId) {
@@ -2185,7 +2227,7 @@ function PaidMemberDashboard() {
       status: dashboardPreferencesUnavailable || dashboardPreferencesPending ? null : dashboardMarketSummary,
     },
     { key: "collection", label: "My Collection", eyebrow: "Taste profile", summary: collectionEntries.length ? `${collectionEntries.length} saved bottle${collectionEntries.length === 1 ? " is" : "s are"} keeping your tasting history together.` : "Save bottles you own or have tasted in one private place.", status: prefsLoading ? "Loading" : `${collectionEntries.length} saved` },
-    { key: "recommendations", label: "Bottle Recommendations", eyebrow: "Based on your taste", summary: "Bottle ideas shaped by your ratings and fresh local signals.", status: canUseRecommendations ? (!collectionEntries.length ? "Needs ratings" : preparedDashboardSections.has("recommendations") && collectionRecommendationInsights.length ? `${collectionRecommendationInsights.length} ideas` : "View ideas") : "Demo" },
+    ...(canUseRecommendations ? [{ key: "recommendations" as const, label: "Your Bourbon DNA", eyebrow: "Barrel collection intelligence", summary: "Taste-fit recommendations with local opportunities kept clearly labeled.", status: !collectionEntries.length ? "Needs ratings" : preparedDashboardSections.has("recommendations") && collectionRecommendationInsights.length ? `${collectionRecommendationInsights.length} ideas` : "View DNA" }] : []),
   ]), [canUseRecommendations, collectionEntries.length, collectionRecommendationInsights.length, dashboardAlertModeSummary, dashboardDeliverySummary, dashboardMarketSummary, dashboardPreferencesPending, dashboardPreferencesUnavailable, prefsLoading, preparedDashboardSections]);
 
   const prepareDashboardSection = (section: DashboardSection) => {
@@ -3463,32 +3505,40 @@ function PaidMemberDashboard() {
                 </div>
               )}
 
+              {cellarHuntSuggestions.length > 0 ? (
+                <section aria-labelledby="cellar-hunt-next-title" style={{ borderRadius: "16px", border: "1px solid rgba(196,148,58,0.18)", background: "rgba(196,148,58,0.045)", padding: "14px", display: "grid", gap: "10px" }}>
+                  <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: "10px" }}>
+                    <h3 id="cellar-hunt-next-title" style={{ margin: 0, color: "var(--color-cream)", fontFamily: "var(--font-playfair)", fontSize: "19px" }}>Hunt next</h3>
+                    <span style={{ color: "var(--color-text-tertiary)", fontFamily: "var(--font-jetbrains)", fontSize: "9px", letterSpacing: "0.08em", textTransform: "uppercase" }}>From your Cellar</span>
+                  </div>
+                  {cellarHuntSuggestions.map((suggestion) => (
+                    <div key={suggestion.canonicalKey} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", borderTop: "1px solid rgba(255,255,255,0.07)", paddingTop: "10px", flexWrap: "wrap" }}>
+                      <div style={{ flex: "1 1 220px", minWidth: 0 }}>
+                        <strong style={{ display: "block", color: "var(--color-cream)", fontFamily: "var(--font-dm-sans)", fontSize: "13px" }}>{suggestion.bottleName}</strong>
+                        <span style={{ display: "block", marginTop: 3, color: "var(--color-text-tertiary)", fontFamily: "var(--font-dm-sans)", fontSize: "11px", lineHeight: 1.5 }}>{suggestion.reason}</span>
+                      </div>
+                      <button type="button" disabled={Boolean(savingCellarHuntKey)} onClick={() => void watchCellarHuntSuggestion(suggestion)} style={{ minHeight: 40, border: "1px solid rgba(196,148,58,0.30)", borderRadius: "999px", background: "rgba(196,148,58,0.10)", color: "var(--color-accent-amber)", padding: "8px 11px", cursor: savingCellarHuntKey ? "progress" : "pointer", fontFamily: "var(--font-dm-sans)", fontSize: "11px", fontWeight: 850 }}>
+                        {savingCellarHuntKey === suggestion.canonicalKey ? "Saving…" : "Watch for another"}
+                      </button>
+                    </div>
+                  ))}
+                </section>
+              ) : null}
+
+              {!canUseRecommendations ? <p style={{ margin: 0, color: "var(--color-text-tertiary)", fontFamily: "var(--font-dm-sans)", fontSize: "11px", lineHeight: 1.5 }}>Barrel Proof adds Bourbon DNA and personalized collection intelligence. Your basic Cellar remains available here without a demo widget.</p> : null}
+
               {collectionError ? <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "#D77A61" }}>{collectionError}</p> : null}
               {savedCollection ? <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "#9AD4B1" }}>{collectionSyncPending ? "Saved on this device; sync pending." : "Collection saved."}</p> : null}
             </div>
           </StepShell>
           ) : null}
 
-          {renderSectionButton("recommendations")}
+          {canUseRecommendations ? renderSectionButton("recommendations") : null}
 
-          {activeDashboardSection === "recommendations" && !canUseRecommendations ? (
+          {activeDashboardSection === "recommendations" && canUseRecommendations && !preparedDashboardSections.has("recommendations") ? (
           <StepShell
-            step="Recommendations"
-            title="Recommended bottles demo"
-            subtitle="Free access can view this surface. Upgrade to generate recommendations from your saved bottles and local signals."
-            hideHeader
-            attached
-          >
-            <div className="dashboard-loading-panel">
-              <strong>Upgrade to use recommendations</strong>
-              <span>Free accounts can view this demo, but personalized recommendations start with Barrel Proof or Bottled in Bond.</span>
-              <a href="/pricing" style={{ justifySelf: "center", marginTop: 4, borderRadius: 999, padding: "10px 14px", background: "linear-gradient(135deg, #C4943A, #E8C97A)", color: "#0D0B07", fontFamily: "var(--font-dm-sans)", fontWeight: 900, textDecoration: "none" }}>Upgrade to use</a>
-            </div>
-          </StepShell>
-          ) : activeDashboardSection === "recommendations" && canUseRecommendations && !preparedDashboardSections.has("recommendations") ? (
-          <StepShell
-            step="Recommendations"
-            title="Recommended bottles"
+            step="Your Bourbon DNA"
+            title="Your Bourbon DNA"
             subtitle="Loading your bottle matches…"
             hideHeader
             attached
@@ -3500,8 +3550,8 @@ function PaidMemberDashboard() {
           </StepShell>
           ) : activeDashboardSection === "recommendations" && canUseRecommendations && (dnaFeedbackOwnerId !== feedbackUserId || dnaFeedbackStatus === "idle" || dnaFeedbackStatus === "loading") ? (
           <StepShell
-            step="Recommendations"
-            title="Recommended bottles"
+            step="Your Bourbon DNA"
+            title="Your Bourbon DNA"
             subtitle="Loading your hidden bottle preferences…"
             hideHeader
             attached
@@ -3513,8 +3563,8 @@ function PaidMemberDashboard() {
           </StepShell>
           ) : activeDashboardSection === "recommendations" && canUseRecommendations && dnaFeedbackStatus === "error" ? (
           <StepShell
-            step="Recommendations"
-            title="Recommended bottles"
+            step="Your Bourbon DNA"
+            title="Your Bourbon DNA"
             subtitle="Your saved bottle feedback could not be loaded."
             hideHeader
             attached
@@ -3526,9 +3576,9 @@ function PaidMemberDashboard() {
           </StepShell>
           ) : activeDashboardSection === "recommendations" && canUseRecommendations ? (
           <StepShell
-            step="Recommendations"
-            title="Recommended bottles"
-            subtitle="Personalized matches from bottles you rate, feedback you give, and fresh local signal."
+            step="Your Bourbon DNA"
+            title="Your Bourbon DNA"
+            subtitle="Taste-fit recommendations from your ratings, with local opportunities labeled separately."
             hideHeader
             attached
           >
@@ -3536,7 +3586,7 @@ function PaidMemberDashboard() {
               <div style={{ borderRadius: "18px", border: "1px solid rgba(196,148,58,0.16)", background: "rgba(196,148,58,0.055)", padding: "16px", display: "grid", gap: "12px" }}>
                 <div style={{ display: "grid", gap: "10px" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "start", flexWrap: "wrap" }}>
-                    <h3 style={{ margin: 0, fontFamily: "var(--font-playfair)", color: "var(--color-cream)", fontSize: "24px" }}>Your Bourbon DNA gets smarter with every bottle you rate.</h3>
+                    <h3 style={{ margin: 0, fontFamily: "var(--font-playfair)", color: "var(--color-cream)", fontSize: "24px" }}>Your Bourbon DNA</h3>
                     <span style={{ borderRadius: "999px", border: "1px solid rgba(196,148,58,0.22)", background: "rgba(196,148,58,0.08)", color: "var(--color-accent-amber)", padding: "5px 8px", fontFamily: "var(--font-jetbrains)", fontSize: "10px", letterSpacing: "0.08em", textTransform: "uppercase" }}>
                       {bourbonDnaSummary.confidence === "strong" ? "Strong read" : bourbonDnaSummary.confidence === "learning" ? "Learning" : "Early read"}
                     </span>
@@ -3592,10 +3642,10 @@ function PaidMemberDashboard() {
                           </Link>
                         ) : null}
                         <div style={{ display: "flex", gap: "7px", flexWrap: "wrap" }}>
-                          <button onClick={() => { void trackCollectionSuggestion(insight); }} style={{ flex: "1 1 120px", border: "1px solid rgba(196,148,58,0.28)", borderRadius: "999px", background: "rgba(196,148,58,0.12)", color: "var(--color-accent-amber)", padding: "8px 10px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", fontWeight: 700, cursor: "pointer" }}>Track bottle</button>
-                          {(["not_for_me", "already_own"] as const).map((signal) => {
+                          <button onClick={() => { void trackCollectionSuggestion(insight); }} style={{ flex: "1 1 120px", border: "1px solid rgba(196,148,58,0.28)", borderRadius: "999px", background: "rgba(196,148,58,0.12)", color: "var(--color-accent-amber)", padding: "8px 10px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", fontWeight: 700, cursor: "pointer" }}>Watch this bottle</button>
+                          {(["useful", "not_for_me", "already_own"] as const).map((signal) => {
                             const status = dnaFeedbackState[`${insight.option.canonicalKey}:${signal}`];
-                            const label = signal === "not_for_me" ? "Not for me" : "Rate it";
+                            const label = signal === "useful" ? "Useful" : signal === "not_for_me" ? "Not for me" : "Already own";
                             const handleFeedback = () => {
                               void submitDnaFeedback(insight, signal);
                               if (signal === "already_own") {

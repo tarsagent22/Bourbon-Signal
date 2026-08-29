@@ -8,7 +8,7 @@ This is the working inventory for Apple’s App Privacy questionnaire. It is not
 - **Advertising:** None.
 - **Device permissions:** No camera, photo library, contacts, microphone, Bluetooth, or device-location permission is requested by this release.
 - **Payments:** No checkout, external-purchase link, StoreKit purchase, or payment-card collection occurs in the app. Effective subscription status is read from the server for access control.
-- **Persistence:** Clerk session tokens plus the non-secret idempotency key and SHA-256 fingerprint for a pending sighting draft use Expo Secure Store. The fingerprint is used only to bind retries to the same request; raw draft fields are not stored. Radar preferences, collection bottles, Signal Points, alerts, sighting content, and payment details remain server-authoritative and are not persisted by the app.
+- **Persistence:** Clerk session tokens plus the non-secret idempotency key and SHA-256 fingerprint for a pending sighting draft use Expo Secure Store. A Signal-scoped timestamp also suppresses repeated Hunt Outcome prompts. Raw draft fields and outcome values are not stored in Secure Store. Radar preferences, collection bottles, Signal Points, alerts, sighting content, Hunt Outcome values, and payment details remain server-authoritative.
 
 ## Conservative App Privacy answers
 
@@ -19,7 +19,7 @@ This is the working inventory for Apple’s App Privacy questionnaire. It is not
 | Identifiers — User ID | Yes | Yes | App Functionality; Fraud Prevention/Security | Clerk and the API use account/session identifiers; private IDs are never rendered publicly. |
 | Purchases — Purchase History | Yes | Yes | App Functionality | The API returns effective membership/entitlement state derived from existing billing records. No payment instrument is collected in-app. |
 | Diagnostics — Other Diagnostic Data | Confirm with final SDK inventory | Potentially | App Functionality; Security | Clerk/Expo infrastructure may process device, network, or request metadata needed for authentication and update delivery. Confirm from current vendor disclosures and the signed archive. |
-| Usage Data | No first-party mobile analytics in this release | — | — | The app does not include a mobile analytics package. Reassess if one is added. |
+| Usage Data — Product Interaction | Yes, when a member chooses a Hunt Outcome | Yes | App Functionality; Analytics | The optional private response records whether the member found it, found it gone, or did not go for an expired availability Signal. Internal reporting is aggregate-only and does not rank members or stores. |
 | Location | No device location | — | — | Store locations shown in Signals are product content, not the member’s device location. |
 | User Content — Customer Support | Yes, when the member chooses to contact support or request deletion | Yes | App Functionality; Account Management | The app opens a member-composed email to Bourbon Signal support. The resulting support/deletion request is linked to the sender so ownership can be verified and the request completed. |
 | User Content — Other User Content | Yes, when a member posts a Signal | Yes | App Functionality | A member can submit bottle, retailer, address, price, quantity, and optional notes. These fields are attached to the authenticated account for moderation, attribution, duplicate prevention, and community display. |
@@ -31,6 +31,7 @@ This is the working inventory for Apple’s App Privacy questionnaire. It is not
 - Expo core, Router, Updates, Splash Screen, Secure Store, Dev Client (development profiles only), Linking, Constants, Status Bar.
 - React Native, Screens, Safe Area Context, Reanimated, and Worklets.
 - No advertising, attribution, location, crash-reporting, social-login, or mobile analytics SDK is intentionally included.
+- Hunt Outcome aggregation is first-party server processing; it does not add an advertising or cross-app tracking SDK.
 
 ## Final submission gates
 

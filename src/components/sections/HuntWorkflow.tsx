@@ -83,7 +83,7 @@ export default function HuntWorkflow() {
                 color: "var(--color-text-secondary)",
               }}
             >
-              Bourbon Signal works best when it helps you make faster decisions: where to look, what to ignore, and when a source-backed signal is worth acting on.
+              Bourbon Signal works best when it helps you make faster decisions: where to look, what to ignore, and which source, timing, and location evidence fits your hunt.
             </p>
           </div>
         </ScrollReveal>

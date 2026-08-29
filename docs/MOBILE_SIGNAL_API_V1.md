@@ -1,6 +1,6 @@
 # Mobile Signal API v1
 
-This is the transport boundary for the future native client. The current web application and a future Expo app use the same Signal objects and posting rules.
+This is the shared transport boundary for the web application and Expo app. Both clients use the same Signal objects, access checks, posting rules, and private Hunt Outcome contract.
 
 ## Authentication
 
@@ -79,6 +79,18 @@ A matched store (`store.id`) must include its canonical street address. Manual s
 Supported initial actions are `helpful`, `confirm`, `correct`, and `no_longer_there`. These preserve the existing durable positive/negative community reaction behavior. Other Signal source types return the stable `ACTION_NOT_AVAILABLE` response until their underlying action workflows are unified.
 
 Action POSTs activate the requested state and are safe to retry; deactivation is deliberately deferred from this initial mobile contract.
+
+### Record an optional Hunt Outcome
+
+`GET /api/v1/signals/:id/outcome` returns only the signed-in member’s current response for an accessible availability Signal. `POST /api/v1/signals/:id/outcome` accepts `found_it`, `gone_when_checked`, `didnt_go`, or `null` for removal.
+
+The Expo app shows this optional private row only after the Signal’s availability window has ended. It is never a modal, blocking step, list-card control, or dedicated push. A selection replaces the member’s earlier value for the same availability episode and can be edited quietly. Outcomes do not change Signal validity, Community standing, or alert delivery.
+
+### Read and update Radar and Cellar preferences
+
+`GET /api/user/preferences` returns server-authoritative Cellar access, collection entries, Radar areas, notification preferences, and bottle watch preferences. `POST /api/user/preferences` accepts partial writes with the existing collection version/conflict contract.
+
+Cellar may display no more than three factual Hunt Next suggestions derived from explicit member evidence. The client must call the preference write only after the member chooses `Watch for another` or `Watch this bottle`; rendering or refreshing suggestions must never auto-watch.
 
 ## Public identity
 

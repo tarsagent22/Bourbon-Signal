@@ -65,6 +65,7 @@
     "test:signal-contract": "node --no-warnings --experimental-strip-types scripts/test-signal-contract.mts",
     "test:signal-mobile-api": "node --no-warnings --experimental-strip-types scripts/test-signal-mobile-api.mts",
     "test:hunt-outcomes": "node --no-warnings --experimental-strip-types scripts/test-hunt-outcome-repository.mts && node --no-warnings --experimental-strip-types scripts/test-hunt-outcome-api.mts && node --no-warnings --experimental-strip-types scripts/test-hunt-outcome-aggregation.mts",
+    "test:product-cohesion-ui": "node --no-warnings --experimental-strip-types scripts/test-hunt-outcome-ui-policy.mts && node --no-warnings --experimental-strip-types scripts/test-cellar-hunt-suggestions.mts && node --no-warnings --experimental-strip-types scripts/test-product-cohesion-surfaces.mts && node --no-warnings --experimental-strip-types scripts/test-launch-product-cohesion-copy.mts",
     "test:push-devices": "node --no-warnings --experimental-strip-types scripts/test-push-devices.mts",
     "test:nationwide-radar": "node --no-warnings --experimental-strip-types --test scripts/test-nationwide-geography.mts scripts/test-monitoring-scopes.mts scripts/test-community-contributor-standing.mts scripts/test-community-alert-candidates.mts scripts/test-geography-activity.mts scripts/test-nationwide-radar-contracts.mts",
     "test:native-thin-slice": "node --no-warnings --experimental-strip-types scripts/test-native-thin-slice.mts",
