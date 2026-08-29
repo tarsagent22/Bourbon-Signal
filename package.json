@@ -141,6 +141,8 @@
     "test:bottle-search": "tsx scripts/test-bottle-search.mts",
     "test:bottle-contributions": "tsx --test scripts/test-bottle-contribution-idempotency.mts",
     "test:bottle-check-dossier": "node --no-warnings --experimental-strip-types scripts/test-bottle-check-dossier.mts",
+    "test:entitlements": "node --no-warnings --experimental-strip-types scripts/test-entitlements.mts",
+    "test:cellar-cohesion": "node --no-warnings --experimental-strip-types scripts/test-cellar-access-policy.mts && node --no-warnings --experimental-strip-types scripts/test-member-collection-entitlements.mts && node --no-warnings --experimental-strip-types scripts/test-cellar-access-surfaces.mts && node --no-warnings --experimental-strip-types scripts/test-cellar-product-copy.mts",
     "test:member-experience-performance": "tsx scripts/test-member-experience-performance.mts",
     "test:bottle-rarity-score": "node --no-warnings --experimental-strip-types scripts/test-bottle-rarity-score.mts",
     "test:bottle-scarcity": "node --no-warnings --experimental-strip-types scripts/test-bottle-scarcity-classification.mts && node --no-warnings --experimental-strip-types scripts/test-bottle-scarcity-integration.mts && npm run audit:bottle-scarcity",

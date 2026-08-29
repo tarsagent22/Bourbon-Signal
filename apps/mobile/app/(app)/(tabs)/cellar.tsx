@@ -176,8 +176,9 @@ export default function CellarScreen() {
 
   useFocusEffect(useCallback(() => { void load(true); }, [load]));
 
-  const canUseCollection = preferences?.entitlements?.canUseCollection === true;
   const sourceBottles = preferences?.collectionPreferences.bottles || [];
+  const collectionAccess = preferences?.collectionAccess;
+  const canAddToCollection = collectionAccess?.canAdd === true;
   const summary = useMemo(() => collectionSummary(sourceBottles), [sourceBottles]);
   const bottles = useMemo(() => filterAndSortCollection(sourceBottles, query, sort, filters), [filters, query, sort, sourceBottles]);
   const numColumns = width >= 360 && fontScale < 1.3 ? 2 : 1;
@@ -290,7 +291,7 @@ export default function CellarScreen() {
       numColumns={numColumns}
       columnWrapperStyle={numColumns > 1 ? styles.gridRow : undefined}
       contentContainerStyle={[memberScreenStyles.content, styles.cellarContent, numColumns > 1 && styles.gridContent]}
-      data={canUseCollection ? bottles : []}
+      data={bottles}
       keyExtractor={(item) => item.bottleId || item.canonicalKey}
       keyboardShouldPersistTaps="handled"
       keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
@@ -304,12 +305,23 @@ export default function CellarScreen() {
             <Text style={styles.summaryLine}>{summary.ownedWhiskeyCount} owned · {summary.tastedOnlyCount} tasted only</Text>
             <Text style={styles.summaryDetail}>{summary.ratedCount} rated{summary.averageRating == null ? "" : ` · ${(summary.averageRating / 10).toFixed(1)} average`}</Text>
           </View>
-          {canUseCollection ? <Pressable accessibilityLabel="Add whiskey to Cellar" accessibilityRole="button" onPress={() => router.push("/(app)/cellar/add")} style={({ pressed }) => [styles.addButton, pressed && styles.addButtonPressed]}><Text style={styles.addButtonText}>+ Add</Text></Pressable> : null}
+          {preferences ? <Pressable accessibilityLabel={canAddToCollection ? "Add whiskey to Cellar" : "Your Free Cellar is full"} accessibilityRole="button" accessibilityState={{ disabled: !canAddToCollection }} disabled={!canAddToCollection} onPress={() => router.push("/(app)/cellar/add")} style={({ pressed }) => [styles.addButton, !canAddToCollection && styles.addButtonDisabled, pressed && canAddToCollection && styles.addButtonPressed]}><Text style={[styles.addButtonText, !canAddToCollection && styles.addButtonTextDisabled]}>+ Add</Text></Pressable> : null}
         </View>
         {loading && !preferences ? <LoadingState label="Opening your Cellar…" /> : null}
         {error ? <ErrorState message={error} onRetry={() => void load(true)} /> : null}
-        {preferences && !canUseCollection ? <EmptyState title="Cellar is not included with this membership" detail="Account shows the membership recognized by the app. Saved collection data remains private without collection access." /> : null}
-        {preferences && canUseCollection ? <>
+        {collectionAccess?.showCapacityNotice ? <View accessibilityRole="summary" style={styles.capacityNotice}>
+          <Text style={styles.capacityTitle}>{collectionAccess.limit !== null && sourceBottles.length > collectionAccess.limit
+            ? "Existing bottles stay available."
+            : collectionAccess.remaining === 0
+              ? "Your Free Cellar is full."
+              : `${collectionAccess.remaining} spaces left in your Free Cellar.`}</Text>
+          <Text style={styles.capacityDetail}>{collectionAccess.limit !== null && sourceBottles.length > collectionAccess.limit
+            ? "You can keep viewing, editing, or deleting every bottle. Standard adds room for new bottles."
+            : collectionAccess.remaining === 0
+              ? "Keep managing every saved bottle here. Standard adds room for new bottles."
+              : "Capacity stays out of the way until you are close to full."}</Text>
+        </View> : null}
+        {preferences ? <>
           <View style={styles.controlRow}>
             <TextInput accessibilityLabel="Search your Cellar" autoCapitalize="none" clearButtonMode="while-editing" onChangeText={setQuery} placeholder="Search your Cellar" placeholderTextColor={colors.muted} style={styles.search} value={query} />
             <Pressable accessibilityLabel={refinementCount ? `Refine, ${refinementCount} active` : "Refine"} accessibilityRole="button" onPress={() => setRefineOpen(true)} style={styles.refineButton}><Text style={styles.refineText}>Refine{refinementCount ? ` (${refinementCount})` : ""}</Text></Pressable>
@@ -317,7 +329,7 @@ export default function CellarScreen() {
           {resultSetChanged ? <Text style={styles.showing}>{bottles.length} shown</Text> : null}
         </> : null}
       </View>}
-      ListEmptyComponent={preferences && canUseCollection && !loading ? <EmptyState title={sourceBottles.length ? "No whiskeys match" : "Your Cellar is ready"} detail={sourceBottles.length ? "Clear the search or refine choices." : "Choose Add to save a bottle or a whiskey you tasted."} /> : null}
+      ListEmptyComponent={preferences && !loading ? <EmptyState title={sourceBottles.length ? "No whiskeys match" : "Your Cellar is ready"} detail={sourceBottles.length ? "Clear the search or refine choices." : "Choose Add to save a bottle or a whiskey you tasted."} /> : null}
       style={memberScreenStyles.screen}
     />
     <RefineSheet filters={filters} onChange={setFilters} onClose={() => setRefineOpen(false)} onSort={setSort} sort={sort} visible={refineOpen} />
@@ -543,7 +555,12 @@ const styles = StyleSheet.create({
   summaryDetail: { color: colors.muted, fontSize: 12 },
   addButton: { minHeight: 44, justifyContent: "center", borderRadius: 11, backgroundColor: colors.accent, paddingHorizontal: 14 },
   addButtonPressed: { backgroundColor: colors.accentPressed },
+  addButtonDisabled: { backgroundColor: colors.surfaceRaised, borderColor: colors.border, borderWidth: 1 },
   addButtonText: { color: colors.background, fontSize: 13, fontWeight: "800" },
+  addButtonTextDisabled: { color: colors.muted },
+  capacityNotice: { gap: 4, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth, borderRadius: 12, backgroundColor: colors.surface, padding: 12 },
+  capacityTitle: { color: colors.text, fontSize: 13, fontWeight: "800" },
+  capacityDetail: { color: colors.muted, fontSize: 12, lineHeight: 17 },
   controlRow: { flexDirection: "row", gap: 8 },
   search: { flex: 1, minHeight: 44, borderColor: colors.border, borderWidth: 1, borderRadius: 11, backgroundColor: colors.surface, color: colors.text, paddingHorizontal: 13, fontSize: 14 },
   refineButton: { minHeight: 44, justifyContent: "center", borderColor: colors.border, borderWidth: 1, borderRadius: 11, paddingHorizontal: 14 },

@@ -69,13 +69,15 @@ assert.equal(bottleCheckActionAccess("track", TIER_ENTITLEMENTS.standard, {
   alreadyTracked: false,
 }).allowed, false, "new markets cannot be silently trimmed at the Standard area limit");
 
-assert.deepEqual(bottleCheckActionAccess("collection", TIER_ENTITLEMENTS.free), {
+assert.equal(bottleCheckActionAccess("collection", TIER_ENTITLEMENTS.free).allowed, true);
+assert.equal(bottleCheckActionAccess("collection", TIER_ENTITLEMENTS.standard).allowed, true);
+assert.deepEqual(bottleCheckActionAccess("collection", TIER_ENTITLEMENTS.free, { collectionBottleCount: 10 }), {
   allowed: false,
-  requiredTier: "Barrel Proof",
-  title: "Upgrade membership to add this bottle to your collection",
-  description: "Barrel Proof and Founder memberships include the saved collection and taste profile.",
+  requiredTier: "Standard Proof",
+  title: "Your Free Cellar is full",
+  description: "Your 10 saved bottles remain available to view, edit, or delete. Standard Proof adds room for more.",
 });
-assert.equal(bottleCheckActionAccess("collection", TIER_ENTITLEMENTS.standard).allowed, false);
+assert.equal(bottleCheckActionAccess("collection", TIER_ENTITLEMENTS.free, { collectionBottleCount: 75, alreadyInCollection: true }).allowed, true, "downgraded members can keep managing an existing bottle");
 assert.equal(bottleCheckActionAccess("collection", TIER_ENTITLEMENTS.barrel).allowed, true);
 assert.equal(bottleCheckActionAccess("collection", TIER_ENTITLEMENTS["bottled-in-bond"]).allowed, true);
 
@@ -135,8 +137,10 @@ assert.match(page, /Retry sync/, "members can retry a pending collection sync");
 assert.match(page, /role="status" aria-live="polite"/, "collection outcomes are announced accessibly");
 assert.match(page, /bottle\.producer \|\| "Not listed"/, "unknown producers are not replaced with a brand");
 assert.doesNotMatch(page, /current MSRP|reviewed MSRP|Fair shelf price/i, "price copy stays neutral without provenance");
-assert.match(route, /payload\.collectionPreferences !== undefined && !entitlements\.canUseCollection/, "collection entitlement is enforced before durable writes");
-assert.match(route, /Collection is included with Barrel Proof and Founder memberships\./, "server denial explains the required collection tier");
+assert.match(page, /collectionBottleCount:\s*collectionEntries\.length/, "Bottle Check evaluates Free capacity before a new addition");
+assert.match(page, /alreadyInCollection:\s*isInCollection/, "Bottle Check keeps existing collection entries actionable after downgrade");
+assert.doesNotMatch(route, /Collection is included with Barrel Proof and Founder memberships\./, "basic Cellar is not Barrel-gated");
+assert.match(route, /code: "collection_limit_reached"/, "server returns a stable Cellar capacity error");
 assert.match(route, /code: "alert_area_limit_reached"/, "server rejects alert-area overflow instead of trimming it as success");
 assert.match(route, /code: "tracked_bottle_limit_reached"/, "server rejects tracked-bottle overflow instead of trimming it as success");
 assert.match(preferencesHook, /collectionSyncState/, "durable pending and conflict state is exposed after reload");

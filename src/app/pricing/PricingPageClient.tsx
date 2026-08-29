@@ -214,6 +214,7 @@ function PricingPageContent({ julySaleEnabled }: { julySaleEnabled: boolean }) {
             <ul>
               <li>Limited Drop Feed access</li>
               <li>3 Bottle Checks</li>
+              <li>My Collection</li>
               <li>Coverage Map and Member Sightings</li>
             </ul>
             <button type="button" onClick={() => router.push(isSignedIn ? "/welcome" : "/sign-up")}>

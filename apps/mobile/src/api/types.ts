@@ -121,13 +121,25 @@ export interface RadarAreaPreferences {
 export type MonitoringScopeType = "state" | "county" | "city" | "board" | "store";
 export interface MonitoringScope { type: MonitoringScopeType; id: string; state: string; label: string }
 
+export interface CellarAccessPolicy {
+  canRead: boolean;
+  canEditExisting: boolean;
+  canAdd: boolean;
+  limit: number | null;
+  remaining: number | null;
+  showCapacityNotice: boolean;
+}
+
 export interface MemberPreferences {
   entitlements?: {
     canUseCollection?: boolean;
+    canUseRecommendations?: boolean;
+    collectionBottleLimit?: number | null;
     alertAreaLimit?: number | null;
     trackedBottleLimit?: number | null;
     canReceiveSmsAlerts?: boolean;
   };
+  collectionAccess: CellarAccessPolicy;
   areaPreferences: RadarAreaPreferences;
   monitoringScopes: MonitoringScope[];
   notificationPreferences: {

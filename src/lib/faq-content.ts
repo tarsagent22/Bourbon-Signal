@@ -67,7 +67,7 @@ function productFaqItems(): FaqItem[] {
     {
       question: "How do My Collection and recommendations work?",
       answer:
-        "My Collection lets Barrel Proof and Bottled in Bond members save bottles they own or have tasted, score them from 1.0 to 10.0, add tasting cues, and keep private notes. If a bottle is missing from the catalog, you can save it while Bourbon Signal works to match it to an official record. Those ratings build your Bourbon DNA—an evolving view of the flavors, proof ranges, mash bills, and bottle styles you prefer. Recommended Bottles combines that taste profile with recent local signal context. Recommendations improve after you rate several bottles, but they are suggestions—not guarantees that a bottle is locally available.",
+        "Every membership includes My Collection for bottles you own or have tasted, ratings, tasting cues, and private notes. Standard Proof includes unlimited Cellar capacity. Barrel Proof and Bottled in Bond add Bourbon DNA, personalized recommendations, and local opportunity context shaped by your collection. Recommendations are suggestions, not guarantees that a bottle is locally available.",
     },
     {
       question: "Why doesn’t every state have the same store-level detail?",
@@ -87,12 +87,12 @@ function pricingFaqItems(options: FaqOptions): FaqItem[] {
     {
       question: "What can I do as a free member?",
       answer:
-        "A free account includes a preview of the latest Drop Feed signals, up to three Bottle Checks, the Coverage Map, and access to Member Sightings. You can submit sightings and help other hunters. A paid membership unlocks the full feed, saved alert areas and bottle watchlists, live notification delivery, and additional dashboard tools. My Collection and personalized bottle recommendations begin with Barrel Proof.",
+        "A free account includes a preview of the latest Drop Feed signals, up to three Bottle Checks, the Coverage Map, Member Sightings, and My Collection. You can submit sightings and help other hunters. A paid membership unlocks the full feed, saved alert areas and bottle watchlists, live notification delivery, and additional dashboard tools.",
     },
     {
       question: "What is the difference between Standard Proof and Barrel Proof?",
       answer:
-        "Standard Proof is built for alerts and everyday hunting: the full feed, unlimited Bottle Checks, up to five alert areas, up to 15 tracked bottles, and on-site, email, and SMS delivery. Barrel Proof removes the alert-preference limits and adds My Collection, Bourbon DNA, personalized bottle recommendations, Member Sighting alerts, and a higher SMS allowance.",
+        "Standard Proof includes an unlimited Cellar and is built for alerts and everyday hunting: the full feed, unlimited Bottle Checks, up to five alert areas, up to 15 tracked bottles, and on-site, email, and SMS delivery. Barrel Proof removes the alert-preference limits and adds Bourbon DNA and personalized collection intelligence, recommendations, local opportunities, Member Sighting alerts, and a higher SMS allowance.",
     },
     {
       question: "How do alerts and alert limits work?",
@@ -112,7 +112,7 @@ function pricingFaqItems(options: FaqOptions): FaqItem[] {
     {
       question: "Which features are available in each plan?",
       answer:
-        "Free is designed for trying the feed, Bottle Check, the Coverage Map, and community sightings. Standard Proof unlocks the full feed, unlimited Bottle Checks, saved alerts, bottle tracking, and notification delivery. Barrel Proof adds unlimited alert preferences, My Collection, Bourbon DNA, recommendations, and Member Sighting alerts. Bottled in Bond includes the complete paid product as a lifetime Founder membership. The plan cards above show the current prices and exact limits.",
+        "Free is designed for trying the feed, Bottle Check, the Coverage Map, community sightings, and My Collection. Standard Proof unlocks the full feed, unlimited Bottle Checks, unlimited Cellar capacity, saved alerts, bottle tracking, and notification delivery. Barrel Proof adds unlimited alert preferences, Bourbon DNA, personalized collection intelligence, recommendations, and Member Sighting alerts. Bottled in Bond includes the complete paid product as a lifetime Founder membership. The plan cards above show the current prices and exact alert limits.",
     },
   ];
 }

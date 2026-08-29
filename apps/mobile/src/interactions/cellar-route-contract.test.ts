@@ -57,6 +57,18 @@ test("Cellar is one responsive grid with bottle and Glencairn states", () => {
   assert.match(cellar, /numberOfLines=\{3\}/, "long whiskey names get a third line before truncation");
   assert.match(cellar, /cellarContent:\s*\{[^}]*paddingBottom:\s*112/, "the final row clears the bottom navigation");
   assert.match(cellar, /tile:\s*\{[^}]*minHeight:\s*180/, "the grid shows more whiskey without changing its information hierarchy");
+  assert.match(cellar, /preferences\?\.collectionAccess/, "native Cellar renders server-authoritative capacity state");
+  assert.match(cellar, /Your Free Cellar is full/);
+  assert.match(cellar, /Existing bottles stay available/);
+  assert.match(cellar, /data=\{bottles\}/, "stored bottles remain visible after any tier change");
+  assert.doesNotMatch(cellar, /Cellar is not included with this membership/);
+});
+
+test("Signal detail respects Cellar addition capacity without hiding existing data", () => {
+  const detail = read("app/(app)/signal/[id].tsx");
+  assert.match(detail, /collectionAccess\?\.canAdd/);
+  assert.match(detail, /Free Cellar is full/);
+  assert.match(detail, /Already in Cellar/);
 });
 
 test("rating control keeps its appearance but owns a held-thumb gesture from press through release", () => {

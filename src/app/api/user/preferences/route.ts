@@ -42,8 +42,10 @@ import {
 import {
   getMemberCollectionRepository,
   MemberCollectionConflictError,
+  MemberCollectionLimitError,
 } from "@/lib/member-collection-repository";
 import { countDistinctTrackedBottles } from "@/lib/bottle-check-dossier";
+import { getCellarAccessPolicy, type CellarAccessPolicy } from "@/lib/cellar-access-policy";
 
 export type { CollectionBottlePreference } from "@/lib/member-collection";
 
@@ -70,10 +72,13 @@ export type AlertMode = "specific_bottles" | "anything_notable";
 export interface UserAlertPreferences {
   entitlements?: {
     canUseCollection: boolean;
+    canUseRecommendations: boolean;
+    collectionBottleLimit: number | null;
     alertAreaLimit: number | null;
     trackedBottleLimit: number | null;
     canReceiveSmsAlerts: boolean;
   };
+  collectionAccess: CellarAccessPolicy;
   areaPreferences: AreaPreferences;
   monitoringScopes?: MonitoringScope[];
   notificationPreferences: NotificationPreferences;
@@ -296,10 +301,13 @@ function buildResponseFromMetadata(
   return {
     entitlements: {
       canUseCollection: entitlements.canUseCollection,
+      canUseRecommendations: entitlements.canUseRecommendations,
+      collectionBottleLimit: entitlements.collectionBottleLimit,
       alertAreaLimit: entitlements.alertAreaLimit,
       trackedBottleLimit: entitlements.trackedBottleLimit,
       canReceiveSmsAlerts: entitlements.canReceiveSmsAlerts,
     },
+    collectionAccess: getCellarAccessPolicy(entitlements, collectionPreferences.bottles.length),
     areaPreferences,
     monitoringScopes,
     notificationPreferences,
@@ -393,6 +401,7 @@ function buildQaPreviewResponse(req: NextRequest, payload: Partial<UserAlertPref
     qaPreview: true,
     qaTier: tier,
     entitlements,
+    collectionAccess: getCellarAccessPolicy(entitlements, collectionPreferences.bottles.length),
     areaPreferences,
     monitoringScopes,
     notificationPreferences,
@@ -423,9 +432,6 @@ export async function POST(req: NextRequest) {
     const payload = (await req.json().catch(() => ({}))) as Partial<UserAlertPreferences>;
     const attemptedAlertWrite = payload.areaPreferences !== undefined || payload.monitoringScopes !== undefined || payload.notificationPreferences !== undefined || payload.alertMode !== undefined || payload.bottleAlertPreferences !== undefined;
     const entitlements = getEntitlements(getQaPreviewTierFromRequest(req));
-    if (payload.collectionPreferences !== undefined && !entitlements.canUseCollection) {
-      return NextResponse.json({ error: "Collection is included with Barrel Proof and Founder memberships.", qaPreview: true, qaTier: entitlements.tier }, { status: 403 });
-    }
     if (attemptedAlertWrite && entitlements.alertAreaLimit === 0) {
       return NextResponse.json({ error: "Alert setup is included with Standard Proof and above.", qaPreview: true, qaTier: entitlements.tier }, { status: 403 });
     }
@@ -540,10 +546,6 @@ export async function POST(req: NextRequest) {
   const entitlements = durableEntitlements;
   const attemptedAlertWrite = payload.areaPreferences !== undefined || payload.monitoringScopes !== undefined || payload.notificationPreferences !== undefined || payload.alertMode !== undefined || payload.bottleAlertPreferences !== undefined;
 
-  if (payload.collectionPreferences !== undefined && !entitlements.canUseCollection) {
-    return NextResponse.json({ error: "Collection is included with Barrel Proof and Founder memberships." }, { status: 403 });
-  }
-
   if (attemptedAlertWrite && entitlements.alertAreaLimit === 0) {
     return NextResponse.json({ error: "Alert setup is included with Standard Proof and above." }, { status: 403 });
   }
@@ -621,9 +623,18 @@ export async function POST(req: NextRequest) {
         userId,
         collectionPreferences.bottles,
         payload.collectionPreferences.version,
+        { bottleLimit: entitlements.collectionBottleLimit },
       );
       collectionPreferences = { bottles: savedCollection.bottles, version: savedCollection.version };
     } catch (error) {
+      if (error instanceof MemberCollectionLimitError) {
+        return NextResponse.json({
+          error: error.message,
+          code: "collection_limit_reached",
+          limit: error.limit,
+          currentCount: error.currentCount,
+        }, { status: 403 });
+      }
       if (error instanceof MemberCollectionConflictError) {
         const current = await getMemberCollectionRepository().getForUser(userId);
         if (collectionFingerprint(current.bottles) === collectionFingerprint(collectionPreferences.bottles)) {
@@ -691,8 +702,10 @@ export async function POST(req: NextRequest) {
 
   return NextResponse.json({ ok: true, entitlements: {
     canUseCollection: entitlements.canUseCollection,
+    canUseRecommendations: entitlements.canUseRecommendations,
+    collectionBottleLimit: entitlements.collectionBottleLimit,
     alertAreaLimit: entitlements.alertAreaLimit,
     trackedBottleLimit: entitlements.trackedBottleLimit,
     canReceiveSmsAlerts: entitlements.canReceiveSmsAlerts,
-  }, areaPreferences, monitoringScopes, notificationPreferences, alertMode, bottleAlertPreferences, collectionPreferences, sightingsPreferences, memberProfile });
+  }, collectionAccess: getCellarAccessPolicy(entitlements, collectionPreferences.bottles.length), areaPreferences, monitoringScopes, notificationPreferences, alertMode, bottleAlertPreferences, collectionPreferences, sightingsPreferences, memberProfile });
 }

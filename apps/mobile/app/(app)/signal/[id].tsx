@@ -40,8 +40,10 @@ export default function SignalDetailScreen() {
     || preferences?.bottleAlertPreferences.bottleNames.some((name) => canonicalBottleKey(name) === bottleKey));
   const address = signal ? [signal.location.store?.address, signal.location.store?.city, signal.location.store?.state, signal.location.store?.zip].filter(Boolean).join(", ") : "";
   const canWatch = Boolean(signal?.actions.includes("watch_bottle"));
-  const canUseCollection = preferences?.entitlements?.canUseCollection === true;
-  const actionCount = useMemo(() => Number(canWatch) + Number(canUseCollection) + Number(Boolean(address)), [address, canUseCollection, canWatch]);
+  const collectionAccess = preferences?.collectionAccess;
+  const canReadCellar = collectionAccess?.canRead === true;
+  const canAddToCellar = collectionAccess?.canAdd === true;
+  const actionCount = useMemo(() => Number(canWatch) + Number(canReadCellar) + Number(Boolean(address)), [address, canReadCellar, canWatch]);
 
   async function toggleRadarWatch() {
     if (!signal || !preferences || saving) return;
@@ -56,12 +58,12 @@ export default function SignalDetailScreen() {
   }
 
   async function addToCellar() {
-    if (!signal || !preferences || inCellar || saving) return;
+    if (!signal || !preferences || inCellar || !collectionAccess?.canAdd || saving) return;
     setSaving(true); setActionError("");
     try {
       const bottles = addSignalBottleToCollection(preferences.collectionPreferences.bottles, signal.bottle, new Date().toISOString());
       const saved = await api.updateMemberPreferences({ collectionPreferences: { bottles, version: preferences.collectionPreferences.version } });
-      setPreferences((current) => current ? { ...current, collectionPreferences: saved.collectionPreferences } : current);
+      setPreferences(saved);
     } catch (caught) {
       setActionError(caught instanceof MobileApiError && caught.status === 409 ? "Your Cellar changed elsewhere. Open Cellar and refresh before adding this bottle." : caught instanceof Error ? caught.message : "This bottle could not be added to Cellar.");
     } finally { setSaving(false); }
@@ -97,7 +99,7 @@ export default function SignalDetailScreen() {
       {actionCount ? <View style={styles.actions}>
         <Text style={styles.actionsTitle}>Quick actions</Text>
         {canWatch ? <ActionButton disabled={saving} label={saving ? "Saving…" : isWatched ? "Remove from Radar" : "Watch in Radar"} onPress={() => void toggleRadarWatch()} /> : null}
-        {canUseCollection ? <ActionButton disabled={inCellar || saving} label={inCellar ? "Already in Cellar" : saving ? "Adding to Cellar…" : "Add to Cellar"} onPress={() => void addToCellar()} /> : null}
+        {canReadCellar ? <ActionButton disabled={inCellar || !canAddToCellar || saving} label={inCellar ? "Already in Cellar" : !canAddToCellar ? "Free Cellar is full" : saving ? "Adding to Cellar…" : "Add to Cellar"} onPress={() => void addToCellar()} /> : null}
         {address ? <ActionButton label="Open in Maps" onPress={() => void openMaps()} /> : null}
         {actionError ? <Text accessibilityRole="alert" style={styles.error}>{actionError}</Text> : null}
       </View> : null}

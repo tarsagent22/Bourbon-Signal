@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
-import memberCollectionModule from "../src/lib/member-collection.ts";
 
+const loadedMemberCollection = await import("../src/lib/member-collection.ts");
+const memberCollectionModule = ((loadedMemberCollection as { default?: unknown }).default || loadedMemberCollection) as typeof import("../src/lib/member-collection.ts");
 const { collectionFingerprint, normalizeCollectionBottles } = memberCollectionModule;
 
 const timestamp = "2026-08-20T12:00:00.000Z";

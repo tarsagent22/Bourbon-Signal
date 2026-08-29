@@ -17,6 +17,7 @@ export interface TierEntitlements {
   bottleCheckLimit: number | null;
   alertAreaLimit: number | null;
   trackedBottleLimit: number | null;
+  collectionBottleLimit: number | null;
   canUseStateFilter: boolean;
   canUseDropFeedFilters: boolean;
   canUseBottleSearch: boolean;
@@ -26,6 +27,7 @@ export interface TierEntitlements {
   canReceiveSightingsAlerts: boolean;
   canAccessDashboard: boolean;
   canUseCollection: boolean;
+  canUseBourbonDna: boolean;
   canUseRecommendations: boolean;
   canReceiveSmsAlerts: boolean;
   smsDailyLimit: number;
@@ -53,6 +55,7 @@ export const TIER_ENTITLEMENTS: Record<MembershipTier, TierEntitlements> = {
     bottleCheckLimit: 3,
     alertAreaLimit: 0,
     trackedBottleLimit: 0,
+    collectionBottleLimit: 10,
     canUseStateFilter: false,
     canUseDropFeedFilters: false,
     canUseBottleSearch: false,
@@ -61,7 +64,8 @@ export const TIER_ENTITLEMENTS: Record<MembershipTier, TierEntitlements> = {
     canSubmitSightings: true,
     canReceiveSightingsAlerts: false,
     canAccessDashboard: true,
-    canUseCollection: false,
+    canUseCollection: true,
+    canUseBourbonDna: false,
     canUseRecommendations: false,
     canReceiveSmsAlerts: false,
     smsDailyLimit: 0,
@@ -76,6 +80,7 @@ export const TIER_ENTITLEMENTS: Record<MembershipTier, TierEntitlements> = {
     bottleCheckLimit: null,
     alertAreaLimit: 5,
     trackedBottleLimit: 15,
+    collectionBottleLimit: null,
     canUseStateFilter: true,
     canUseDropFeedFilters: false,
     canUseBottleSearch: false,
@@ -84,7 +89,8 @@ export const TIER_ENTITLEMENTS: Record<MembershipTier, TierEntitlements> = {
     canSubmitSightings: true,
     canReceiveSightingsAlerts: false,
     canAccessDashboard: true,
-    canUseCollection: false,
+    canUseCollection: true,
+    canUseBourbonDna: false,
     canUseRecommendations: false,
     canReceiveSmsAlerts: true,
     smsDailyLimit: 3,
@@ -99,6 +105,7 @@ export const TIER_ENTITLEMENTS: Record<MembershipTier, TierEntitlements> = {
     bottleCheckLimit: null,
     alertAreaLimit: null,
     trackedBottleLimit: null,
+    collectionBottleLimit: null,
     canUseStateFilter: true,
     canUseDropFeedFilters: true,
     canUseBottleSearch: true,
@@ -108,6 +115,7 @@ export const TIER_ENTITLEMENTS: Record<MembershipTier, TierEntitlements> = {
     canReceiveSightingsAlerts: true,
     canAccessDashboard: true,
     canUseCollection: true,
+    canUseBourbonDna: true,
     canUseRecommendations: true,
     canReceiveSmsAlerts: true,
     smsDailyLimit: 8,
@@ -122,6 +130,7 @@ export const TIER_ENTITLEMENTS: Record<MembershipTier, TierEntitlements> = {
     bottleCheckLimit: null,
     alertAreaLimit: null,
     trackedBottleLimit: null,
+    collectionBottleLimit: null,
     canUseStateFilter: true,
     canUseDropFeedFilters: true,
     canUseBottleSearch: true,
@@ -131,6 +140,7 @@ export const TIER_ENTITLEMENTS: Record<MembershipTier, TierEntitlements> = {
     canReceiveSightingsAlerts: true,
     canAccessDashboard: true,
     canUseCollection: true,
+    canUseBourbonDna: true,
     canUseRecommendations: true,
     canReceiveSmsAlerts: true,
     smsDailyLimit: 10,
