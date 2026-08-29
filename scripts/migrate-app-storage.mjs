@@ -64,6 +64,7 @@ const schemaFiles = [
   '../src/lib/gift-schema.sql',
   '../src/lib/community-sightings-schema.sql',
   '../src/lib/retailer-schema.sql',
+  '../src/lib/hunt-outcome-schema.sql',
 ];
 const sql = neon(connectionString);
 if (apply) {
@@ -123,6 +124,7 @@ const expected = [
   'retailer_applications',
   'retailer_stores',
   'retailer_submissions',
+  'hunt_outcomes',
 ];
 const rows = await sql.query(`
   SELECT table_name FROM information_schema.tables
@@ -173,6 +175,7 @@ const requiredColumns = {
   retailer_applications: ['user_id', 'terms_accepted_at', 'decision_notified_status'],
   retailer_stores: ['id', 'user_id', 'status'],
   retailer_submissions: ['id', 'user_id', 'store_id', 'status', 'payload'],
+  hunt_outcomes: ['user_id', 'signal_id', 'availability_episode_id', 'outcome', 'source_type', 'state_code', 'submitted_at', 'updated_at'],
 };
 const columnRows = await sql.query(`
   SELECT table_name, column_name, data_type, is_nullable, character_maximum_length, column_default FROM information_schema.columns
@@ -274,6 +277,9 @@ const expectedIndexes = [
   'retailer_stores_user_status_idx',
   'retailer_submissions_status_created_idx',
   'retailer_submissions_store_created_idx',
+  'hunt_outcomes_updated_idx',
+  'hunt_outcomes_source_updated_idx',
+  'hunt_outcomes_state_updated_idx',
 ];
 const indexRows = await sql.query(`SELECT indexname FROM pg_indexes WHERE schemaname = 'public' AND indexname = ANY($1::text[])`, [expectedIndexes]);
 const availableIndexes = new Set(indexRows.map((row) => row.indexname));
