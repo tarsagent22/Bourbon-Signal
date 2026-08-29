@@ -112,6 +112,8 @@ const expected = [
   'signal_reward_fulfillments',
   'membership_trial_claims',
   'bottle_contributions',
+  'community_contributor_moderation',
+  'community_sighting_alert_authority',
   'community_sighting_votes',
   'community_sighting_idempotency',
   'community_sightings',
@@ -160,6 +162,8 @@ const requiredColumns = {
   signal_reward_fulfillments: ['redemption_id', 'fulfillment_type', 'shipping_profile_user_id', 'shipping_address', 'owner_notes', 'carrier', 'tracking_number', 'created_at', 'updated_at'],
   membership_trial_claims: ['user_id', 'subscription_id', 'plan', 'source', 'checkout_session_id', 'trial_ends_at', 'metadata', 'status', 'started_at', 'converted_at', 'canceled_at', 'created_at', 'updated_at'],
   bottle_contributions: ['id', 'status', 'payload'],
+  community_contributor_moderation: ['reporter_user_id', 'restriction_kind', 'restriction_reason', 'restricted_at', 'restricted_by', 'restoration_reason', 'restored_at', 'restored_by', 'updated_at'],
+  community_sighting_alert_authority: ['sighting_id', 'reporter_user_id', 'report_created_at', 'authorized_at'],
   community_sighting_votes: ['sighting_id', 'user_id', 'kind'],
   community_sighting_idempotency: ['binding_id', 'reporter_user_id', 'request_fingerprint', 'sighting_id', 'created_at', 'updated_at'],
   community_sightings: ['id', 'reporter_user_id', 'payload'],
@@ -259,6 +263,8 @@ const expectedIndexes = [
   'signal_reward_redemptions_user_created_idx',
   'signal_reward_redemptions_status_created_idx',
   'bottle_contributions_updated_idx',
+  'community_contributor_moderation_restricted_idx',
+  'community_sighting_alert_authority_reporter_idx',
   'community_sightings_created_idx',
   'community_sighting_idempotency_reporter_idx',
   'community_sighting_votes_sighting_idx',
@@ -316,6 +322,10 @@ const invalidFounderIndexes = Object.entries(expectedFounderIndexes).flatMap(([i
     : [index];
 });
 const expectedConstraints = [
+  'community_contributor_moderation_pkey',
+  'community_contributor_moderation_restriction_kind_check',
+  'community_sighting_alert_authority_pkey',
+  'community_sighting_alert_authority_sighting_id_fkey',
   'community_sighting_idempotency_pkey',
   'community_sighting_votes_pkey',
   'community_sighting_votes_sighting_id_fkey',

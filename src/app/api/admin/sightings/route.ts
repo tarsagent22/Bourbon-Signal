@@ -46,11 +46,16 @@ export async function GET() {
     const prefs = normalizePrefs(publicMetadata.sightingsPreferences);
     return prefs.submittedSightings.map((sighting) => ({ ...sighting, reporterUserId: user.id }));
   });
-  const durableSightings = await createCommunitySightingsRepository().listSightings();
+  const repository = createCommunitySightingsRepository();
+  const durableSightings = await repository.listSightings();
   const sightingsById = new Map<string, MemberSighting>(legacySightings.map((sighting) => [sighting.id, sighting]));
   for (const sighting of durableSightings) sightingsById.set(sighting.id, sighting);
-  const sightings = [...sightingsById.values()]
-    .filter((sighting) => needsSightingReview(sighting))
+  const pendingSightings = [...sightingsById.values()].filter((sighting) => needsSightingReview(sighting));
+  const moderationByReporter = new Map(await Promise.all(
+    [...new Set(pendingSightings.map((sighting) => sighting.reporterUserId).filter((value): value is string => Boolean(value)))]
+      .map(async (reporterUserId) => [reporterUserId, await repository.getContributorModeration(reporterUserId)] as const),
+  ));
+  const sightings = pendingSightings
     .map((sighting) => {
       const user = sighting.reporterUserId ? usersById.get(sighting.reporterUserId) : undefined;
       return {
@@ -58,6 +63,7 @@ export async function GET() {
         reporterEmail: user ? verifiedPrimaryClerkEmail(user) : "",
         reporterName: user ? ([user.firstName, user.lastName].filter(Boolean).join(" ") || "Member") : "Member",
         reviewReasons: reviewReasonLabels(sighting.reviewState),
+        contributorModeration: sighting.reporterUserId ? moderationByReporter.get(sighting.reporterUserId) || null : null,
       };
     })
     .sort((a, b) => +new Date(b.rewardState?.photoProof?.uploadedAt || b.createdAt) - +new Date(a.rewardState?.photoProof?.uploadedAt || a.createdAt));

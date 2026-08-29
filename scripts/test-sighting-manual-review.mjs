@@ -1,6 +1,9 @@
 import assert from 'node:assert/strict';
-import { isLikelyDuplicateSighting, needsSightingReview, reviewReasonLabels, sanitizeManualSightingField, sightingDuplicateKey } from '../src/lib/sighting-review.ts';
-import { canonicalizeLegacySighting } from '../src/lib/sightings.ts';
+import sightingReviewModule from '../src/lib/sighting-review.ts';
+import sightingsModule from '../src/lib/sightings.ts';
+
+const { canonicalizeLegacySighting } = sightingsModule;
+const { isLikelyDuplicateSighting, isSameReporterCanonicalDuplicateSighting, needsSightingReview, reviewReasonLabels, sanitizeManualSightingField, sightingDuplicateKey } = sightingReviewModule;
 
 const baseSighting = {
   id: 'sighting_manual_1',
@@ -106,5 +109,31 @@ assert.equal(isLikelyDuplicateSighting(
   { bottleName: 'E.H. Taylor Cured Oak', storeName: 'Beach Discount Beverage', createdAt: '2026-07-03T14:36:34Z' },
   { bottleName: 'E.H. Taylor Cured Oak', storeName: 'Other Store', createdAt: '2026-07-03T14:42:34Z' }
 ), false, 'different store is not a duplicate');
+
+const canonicalReport = {
+  ...baseSighting,
+  reporterUserId: 'member-1',
+  bottleId: 'bottle-123',
+  storeId: 'store-456',
+  createdAt: '2026-07-03T14:36:34Z',
+};
+assert.equal(isSameReporterCanonicalDuplicateSighting(canonicalReport, {
+  ...canonicalReport,
+  id: 'sighting_manual_2',
+  createdAt: '2026-07-03T14:42:34Z',
+}), true, 'the same reporter and canonical bottle/store are deduped inside the existing window');
+assert.equal(isSameReporterCanonicalDuplicateSighting(canonicalReport, {
+  ...canonicalReport,
+  id: 'sighting_manual_3',
+  reporterUserId: 'member-2',
+  createdAt: '2026-07-03T14:42:34Z',
+}), false, 'a different reporter may independently report the same canonical bottle/store');
+assert.equal(isSameReporterCanonicalDuplicateSighting(canonicalReport, {
+  ...canonicalReport,
+  id: 'sighting_manual_4',
+  bottleId: 'bottle-789',
+  bottleName: canonicalReport.bottleName,
+  createdAt: '2026-07-03T14:42:34Z',
+}), false, 'canonical IDs, not matching display names, control anti-gaming dedupe');
 
 console.log('Manual sighting review policy verified.');

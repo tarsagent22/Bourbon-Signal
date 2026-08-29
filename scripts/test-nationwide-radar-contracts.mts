@@ -107,7 +107,8 @@ test("referral, push, geography, and native UI source contracts are additive", (
   assert.match(delivery, /const community = candidates\.filter[\s\S]*sourceType\) === "community"/);
   assert.match(delivery, /entitlements\.canReceiveSightingsAlerts && notificationPrefs\.sightings\.enabled/);
   assert.match(delivery, /const state = geographyState\(rawState\)\?\.state \|\| normalizeStateCodeParam\(rawState\)/);
-  assert.match(delivery, /listRecentAlertSightings\(since\)/);
+  assert.match(delivery, /listRecentAlertSightings\(since, now\.toISOString\(\)\)/);
+  assert.match(delivery, /reserveAlertAuthority\(provisionallyEligibleIds, now\.toISOString\(\)\)/);
   assert.doesNotMatch(delivery, /listSightings\(1000\)/);
   assert.match(delivery, /canonicalCommunityStoreKey\(state, id\)/);
   assert.match(delivery, /pushPreferenceProjectionAllowsDelivery\(privateMetadata\.pushPreferenceProjection\)/);

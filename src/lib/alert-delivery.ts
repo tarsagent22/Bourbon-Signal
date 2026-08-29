@@ -34,7 +34,7 @@ import {
   normalizeNcBoardPreferences,
 } from "@/lib/demand-metro-areas";
 import { matchedNcAbcBoardPreference, ncAbcBoardPreferencesMatch } from "@/lib/nc-abc-boards";
-import { buildCommunityAlertCandidates, canonicalCommunityStoreKey, COMMUNITY_ALERT_FRESHNESS_HOURS, type CanonicalCommunityStore } from "@/lib/community-alert-candidates";
+import { buildCommunityAlertCandidates, canonicalCommunityStoreKey, COMMUNITY_ALERT_FRESHNESS_HOURS, qualifyCommunitySighting, type CanonicalCommunityStore } from "@/lib/community-alert-candidates";
 import { createCommunitySightingsRepository } from "@/lib/community-sightings-repository";
 import { candidateMatchesMonitoringScopes } from "@/lib/monitoring-scope-matcher";
 import { monitoringScopesFromPreferences, type MonitoringScope } from "@/lib/monitoring-scopes";
@@ -214,7 +214,17 @@ async function readAlertCandidateBatch() {
     }
     const now = new Date();
     const since = new Date(now.getTime() - COMMUNITY_ALERT_FRESHNESS_HOURS * 3_600_000).toISOString();
-    communityCandidates = buildCommunityAlertCandidates(await createCommunitySightingsRepository().listRecentAlertSightings(since), now.toISOString(), canonicalStores);
+    const repository = createCommunitySightingsRepository();
+    const recentCommunitySightings = await repository.listRecentAlertSightings(since, now.toISOString());
+    const provisionallyEligibleIds = recentCommunitySightings
+      .filter((input) => qualifyCommunitySighting({ ...input, alertAllowance: true }, now.toISOString(), canonicalStores).qualified)
+      .map((input) => input.sighting.id);
+    const authorizedSightingIds = await repository.reserveAlertAuthority(provisionallyEligibleIds, now.toISOString());
+    const authorizedCommunitySightings = recentCommunitySightings.map((input) => ({
+      ...input,
+      alertAllowance: authorizedSightingIds.has(input.sighting.id),
+    }));
+    communityCandidates = buildCommunityAlertCandidates(authorizedCommunitySightings, now.toISOString(), canonicalStores);
   } catch (error) {
     if (process.env.NODE_ENV !== "test") console.warn("community alert candidates unavailable", error instanceof Error ? error.message : "unknown error");
   }

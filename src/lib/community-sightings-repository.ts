@@ -1,6 +1,8 @@
 import { neon } from "@neondatabase/serverless";
 import type { MemberSighting, SightingVoteKind } from "@/lib/sightings";
 import { dropFeedAreaSearchNeedles } from "@/lib/feed-area-options";
+import { COMMUNITY_ALERT_AUTHORITY_LIMIT, type CommunityContributorModeration, type CommunityContributorRestrictionKind, type CommunityContributorStanding } from "@/lib/community-contributor-standing";
+import type { CommunityAlertSightingInput } from "@/lib/community-alert-candidates";
 
 export interface DurableSightingVote {
   sightingId: string;
@@ -20,6 +22,34 @@ export interface SightingIdempotencyBinding {
   reporterUserId: string;
   requestFingerprint: string;
   sightingId: string | null;
+}
+
+export interface RecentCommunityAlertSighting extends CommunityAlertSightingInput {
+  contributorStanding: CommunityContributorStanding;
+}
+
+function cleanCommunitySightingSql(alias: string) {
+  return `${alias}.reporter_user_id <> ''
+    AND COALESCE(${alias}.payload->>'reporterUserId', '') <> ''
+    AND COALESCE(${alias}.payload->>'sightingType', '') = 'seen_in_store'
+    AND COALESCE(${alias}.payload->>'bottleId', '') <> ''
+    AND COALESCE(${alias}.payload->>'bottleName', '') <> ''
+    AND COALESCE(${alias}.payload->>'storeId', '') <> ''
+    AND COALESCE(${alias}.payload->>'storeAddress', '') <> ''
+    AND COALESCE(${alias}.payload->>'storeCity', '') <> ''
+    AND COALESCE(${alias}.payload->>'storeState', '') <> ''
+    AND COALESCE(${alias}.payload->>'storeId', '') !~* '(^|[:_-])manual([:_-]|$)'
+    AND COALESCE(${alias}.payload->'reviewState'->>'needsBottleReview', 'false') <> 'true'
+    AND COALESCE(${alias}.payload->'reviewState'->>'needsStoreReview', 'false') <> 'true'
+    AND COALESCE(${alias}.payload->'reviewState'->>'manualBottleName', '') = ''
+    AND COALESCE(${alias}.payload->'reviewState'->>'manualBottleRarityTier', '') = ''
+    AND COALESCE(${alias}.payload->'reviewState'->>'manualStoreName', '') = ''
+    AND COALESCE(${alias}.payload->'reviewState'->>'manualStoreAddress', '') = ''
+    AND COALESCE(${alias}.payload->'reviewState'->>'manualStoreCity', '') = ''
+    AND COALESCE(${alias}.payload->'reviewState'->>'manualStoreState', '') = ''
+    AND COALESCE(${alias}.payload->'reviewState'->>'manualStoreZip', '') = ''
+    AND COALESCE(${alias}.payload->'rewardState'->>'removedAt', '') = ''
+    AND COALESCE(${alias}.payload->'rewardState'->>'rejectedAt', '') = ''`;
 }
 
 function connectionString(env: NodeJS.ProcessEnv = process.env) {
@@ -96,35 +126,106 @@ export class CommunitySightingsRepository {
     }));
   }
 
-  async listRecentAlertSightings(since: string): Promise<MemberSighting[]> {
+  async listRecentAlertSightings(since: string, now = new Date().toISOString()): Promise<RecentCommunityAlertSighting[]> {
     const rows = await this.query.query(
-      `SELECT payload
-       FROM community_sightings
-       WHERE created_at >= $1::timestamptz
-         AND COALESCE(payload->>'reporterUserId', '') <> ''
-         AND COALESCE(payload->>'sightingType', '') = 'seen_in_store'
-         AND COALESCE(payload->>'bottleId', '') <> ''
-         AND COALESCE(payload->>'bottleName', '') <> ''
-         AND COALESCE(payload->>'storeId', '') <> ''
-         AND COALESCE(payload->>'storeAddress', '') <> ''
-         AND COALESCE(payload->>'storeCity', '') <> ''
-         AND COALESCE(payload->>'storeState', '') <> ''
-         AND COALESCE(payload->>'storeId', '') !~* '(^|[:_-])manual([:_-]|$)'
-         AND COALESCE(payload->'reviewState'->>'needsBottleReview', 'false') <> 'true'
-         AND COALESCE(payload->'reviewState'->>'needsStoreReview', 'false') <> 'true'
-         AND COALESCE(payload->'reviewState'->>'manualBottleName', '') = ''
-         AND COALESCE(payload->'reviewState'->>'manualBottleRarityTier', '') = ''
-         AND COALESCE(payload->'reviewState'->>'manualStoreName', '') = ''
-         AND COALESCE(payload->'reviewState'->>'manualStoreAddress', '') = ''
-         AND COALESCE(payload->'reviewState'->>'manualStoreCity', '') = ''
-         AND COALESCE(payload->'reviewState'->>'manualStoreState', '') = ''
-         AND COALESCE(payload->'reviewState'->>'manualStoreZip', '') = ''
-         AND COALESCE(payload->'rewardState'->>'removedAt', '') = ''
-         AND COALESCE(payload->'rewardState'->>'rejectedAt', '') = ''
-       ORDER BY created_at DESC`,
-      [since],
-    ) as Array<{ payload: MemberSighting }>;
-    return rows.map((row) => row.payload);
+      `WITH recent AS MATERIALIZED (
+         SELECT s.id,s.reporter_user_id,s.payload,s.created_at
+         FROM community_sightings s
+         WHERE s.created_at >= $1::timestamptz
+           AND ${cleanCommunitySightingSql("s")}
+       )
+       SELECT recent.payload,
+         CASE
+           WHEN moderation.restricted_at IS NOT NULL
+             AND (moderation.restored_at IS NULL OR moderation.restored_at < moderation.restricted_at)
+             THEN 'restricted'
+           WHEN EXISTS (
+             SELECT 1
+             FROM community_sightings first_clean
+             JOIN community_sightings second_clean
+               ON second_clean.reporter_user_id = first_clean.reporter_user_id
+              AND second_clean.created_at >= first_clean.created_at + INTERVAL '24 hours'
+             WHERE first_clean.reporter_user_id = recent.reporter_user_id
+               AND first_clean.created_at <= $2::timestamptz - INTERVAL '24 hours'
+               AND second_clean.created_at <= $2::timestamptz - INTERVAL '24 hours'
+               AND ${cleanCommunitySightingSql("first_clean")}
+               AND ${cleanCommunitySightingSql("second_clean")}
+           ) THEN 'active'
+           ELSE 'new'
+         END AS contributor_standing
+       FROM recent
+       LEFT JOIN community_contributor_moderation moderation
+         ON moderation.reporter_user_id = recent.reporter_user_id
+       ORDER BY recent.created_at DESC,recent.id ASC`,
+      [since, now],
+    ) as Array<{ payload: MemberSighting; contributor_standing: CommunityContributorStanding }>;
+    return rows.map((row) => ({
+      sighting: row.payload,
+      contributorStanding: row.contributor_standing,
+      alertAllowance: false,
+    }));
+  }
+
+  async reserveAlertAuthority(sightingIds: string[], now = new Date().toISOString()): Promise<Set<string>> {
+    const uniqueIds = [...new Set(sightingIds.filter(Boolean))];
+    if (!uniqueIds.length) return new Set();
+    const [, reservationRows] = await this.query.transaction((tx) => [
+      tx.query(
+        `SELECT pg_advisory_xact_lock(hashtextextended('community-alert:' || reporters.reporter_user_id, 0))
+         FROM (
+           SELECT DISTINCT reporter_user_id
+           FROM community_sightings
+           WHERE id = ANY($1::text[])
+           ORDER BY reporter_user_id
+         ) reporters`,
+        [uniqueIds],
+      ),
+      tx.query(
+        `WITH candidates AS MATERIALIZED (
+           SELECT s.id,s.reporter_user_id,s.created_at
+           FROM community_sightings s
+           LEFT JOIN community_contributor_moderation moderation
+             ON moderation.reporter_user_id = s.reporter_user_id
+           WHERE s.id = ANY($1::text[])
+             AND ${cleanCommunitySightingSql("s")}
+             AND NOT (
+               moderation.restricted_at IS NOT NULL
+               AND (moderation.restored_at IS NULL OR moderation.restored_at < moderation.restricted_at)
+             )
+         ), existing AS MATERIALIZED (
+           SELECT authority.sighting_id
+           FROM community_sighting_alert_authority authority
+           JOIN candidates ON candidates.id = authority.sighting_id
+         ), usage AS MATERIALIZED (
+           SELECT reporters.reporter_user_id,COUNT(authority.sighting_id)::int AS recent_count
+           FROM (SELECT DISTINCT reporter_user_id FROM candidates) reporters
+           LEFT JOIN community_sighting_alert_authority authority
+             ON authority.reporter_user_id = reporters.reporter_user_id
+            AND authority.report_created_at > $2::timestamptz - INTERVAL '24 hours'
+            AND authority.report_created_at <= $2::timestamptz
+           GROUP BY reporters.reporter_user_id
+         ), ranked AS MATERIALIZED (
+           SELECT candidates.*,
+             ROW_NUMBER() OVER (PARTITION BY candidates.reporter_user_id ORDER BY candidates.created_at,candidates.id) AS candidate_rank
+           FROM candidates
+           WHERE NOT EXISTS (SELECT 1 FROM existing WHERE existing.sighting_id = candidates.id)
+         ), inserted AS (
+           INSERT INTO community_sighting_alert_authority
+             (sighting_id,reporter_user_id,report_created_at,authorized_at)
+           SELECT ranked.id,ranked.reporter_user_id,ranked.created_at,$2::timestamptz
+           FROM ranked
+           JOIN usage ON usage.reporter_user_id = ranked.reporter_user_id
+           WHERE usage.recent_count + ranked.candidate_rank <= $3
+           ON CONFLICT (sighting_id) DO NOTHING
+           RETURNING sighting_id
+         )
+         SELECT sighting_id FROM existing
+         UNION
+         SELECT sighting_id FROM inserted`,
+        [uniqueIds, now, COMMUNITY_ALERT_AUTHORITY_LIMIT],
+      ),
+    ], { isolationLevel: "ReadCommitted" });
+    return new Set((reservationRows as Array<{ sighting_id: string }>).map((row) => row.sighting_id));
   }
 
   async listSightingsFeed(
@@ -203,6 +304,139 @@ export class CommunitySightingsRepository {
       [reporterUserId],
     ) as Array<{ payload: MemberSighting }>;
     return rows.map((row) => row.payload);
+  }
+
+  async findRecentCanonicalDuplicate(
+    reporterUserId: string,
+    bottleId: string,
+    storeId: string,
+    since: string,
+    through = new Date().toISOString(),
+  ): Promise<MemberSighting | null> {
+    const rows = await this.query.query(
+      `SELECT payload
+       FROM community_sightings
+       WHERE reporter_user_id = $1
+         AND payload->>'bottleId' = $2
+         AND payload->>'storeId' = $3
+         AND created_at >= $4::timestamptz
+         AND created_at <= $5::timestamptz
+       ORDER BY created_at DESC,id ASC
+       LIMIT 1`,
+      [reporterUserId, bottleId, storeId, since, through],
+    ) as Array<{ payload: MemberSighting }>;
+    return rows[0]?.payload || null;
+  }
+
+  async getContributorModeration(reporterUserId: string): Promise<CommunityContributorModeration | null> {
+    const rows = await this.query.query(
+      `SELECT restriction_kind,restriction_reason,restricted_at,restricted_by,
+              restoration_reason,restored_at,restored_by
+       FROM community_contributor_moderation
+       WHERE reporter_user_id = $1
+       LIMIT 1`,
+      [reporterUserId],
+    ) as Array<{
+      restriction_kind: CommunityContributorRestrictionKind;
+      restriction_reason: string;
+      restricted_at: string | Date;
+      restricted_by: string | null;
+      restoration_reason: string | null;
+      restored_at: string | Date | null;
+      restored_by: string | null;
+    }>;
+    const row = rows[0];
+    return row ? {
+      restrictionKind: row.restriction_kind,
+      restrictionReason: row.restriction_reason,
+      restrictedAt: new Date(row.restricted_at).toISOString(),
+      restrictedBy: row.restricted_by,
+      restorationReason: row.restoration_reason,
+      restoredAt: row.restored_at ? new Date(row.restored_at).toISOString() : null,
+      restoredBy: row.restored_by,
+    } : null;
+  }
+
+  async restrictContributor(
+    reporterUserId: string,
+    restrictionKind: CommunityContributorRestrictionKind,
+    restrictionReason: string,
+    restrictedBy: string,
+    restrictedAt = new Date().toISOString(),
+  ): Promise<CommunityContributorModeration> {
+    if (!reporterUserId.trim() || !restrictedBy.trim() || !restrictionReason.trim()) throw new Error("Contributor restriction evidence is required.");
+    const rows = await this.query.query(
+      `INSERT INTO community_contributor_moderation
+         (reporter_user_id,restriction_kind,restriction_reason,restricted_at,restricted_by,updated_at)
+       VALUES ($1,$2,$3,$4::timestamptz,$5,NOW())
+       ON CONFLICT (reporter_user_id) DO UPDATE SET
+         restriction_kind = EXCLUDED.restriction_kind,
+         restriction_reason = EXCLUDED.restriction_reason,
+         restricted_at = EXCLUDED.restricted_at,
+         restricted_by = EXCLUDED.restricted_by,
+         restoration_reason = NULL,
+         restored_at = NULL,
+         restored_by = NULL,
+         updated_at = NOW()
+       RETURNING restriction_kind,restriction_reason,restricted_at,restricted_by,
+                 restoration_reason,restored_at,restored_by`,
+      [reporterUserId, restrictionKind, restrictionReason.trim(), restrictedAt, restrictedBy],
+    ) as Array<{
+      restriction_kind: CommunityContributorRestrictionKind;
+      restriction_reason: string;
+      restricted_at: string | Date;
+      restricted_by: string | null;
+      restoration_reason: string | null;
+      restored_at: string | Date | null;
+      restored_by: string | null;
+    }>;
+    const row = rows[0];
+    if (!row) throw new Error("Unable to persist contributor restriction.");
+    return {
+      restrictionKind: row.restriction_kind,
+      restrictionReason: row.restriction_reason,
+      restrictedAt: new Date(row.restricted_at).toISOString(),
+      restrictedBy: row.restricted_by,
+      restorationReason: row.restoration_reason,
+      restoredAt: row.restored_at ? new Date(row.restored_at).toISOString() : null,
+      restoredBy: row.restored_by,
+    };
+  }
+
+  async restoreContributor(
+    reporterUserId: string,
+    restorationReason: string,
+    restoredBy: string,
+    restoredAt = new Date().toISOString(),
+  ): Promise<CommunityContributorModeration> {
+    if (!reporterUserId.trim() || !restoredBy.trim() || !restorationReason.trim()) throw new Error("Contributor restoration evidence is required.");
+    const rows = await this.query.query(
+      `UPDATE community_contributor_moderation
+       SET restoration_reason = $2,restored_at = $3::timestamptz,restored_by = $4,updated_at = NOW()
+       WHERE reporter_user_id = $1 AND restricted_at IS NOT NULL
+       RETURNING restriction_kind,restriction_reason,restricted_at,restricted_by,
+                 restoration_reason,restored_at,restored_by`,
+      [reporterUserId, restorationReason.trim(), restoredAt, restoredBy],
+    ) as Array<{
+      restriction_kind: CommunityContributorRestrictionKind;
+      restriction_reason: string;
+      restricted_at: string | Date;
+      restricted_by: string | null;
+      restoration_reason: string | null;
+      restored_at: string | Date | null;
+      restored_by: string | null;
+    }>;
+    const row = rows[0];
+    if (!row) throw new Error("Contributor restriction not found.");
+    return {
+      restrictionKind: row.restriction_kind,
+      restrictionReason: row.restriction_reason,
+      restrictedAt: new Date(row.restricted_at).toISOString(),
+      restrictedBy: row.restricted_by,
+      restorationReason: row.restoration_reason,
+      restoredAt: row.restored_at ? new Date(row.restored_at).toISOString() : null,
+      restoredBy: row.restored_by,
+    };
   }
 
   async updateReporterDisplayName(

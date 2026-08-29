@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { geographyState, searchGeography } from "./geography-directory.ts";
+import type { CommunityContributorStanding } from "./community-contributor-standing.ts";
 import type { MemberSighting } from "./sightings.ts";
 
 export const COMMUNITY_ALERT_FRESHNESS_HOURS = 2;
@@ -27,6 +28,12 @@ function cityIsValid(state: string, city: string) {
 
 export type CommunitySightingQualification = { qualified: true; freshnessHours: number; store: CanonicalCommunityStore } | { qualified: false; reason: string };
 
+export interface CommunityAlertSightingInput {
+  sighting: MemberSighting;
+  contributorStanding: CommunityContributorStanding;
+  alertAllowance: boolean;
+}
+
 function addressToken(value: string) { return value.toLowerCase().replace(/[^a-z0-9]+/g, " ").replace(/\s+/g, " ").trim(); }
 
 export function canonicalCommunityStoreMatches(store: CanonicalCommunityStore, candidate: { storeId?: unknown; storeName?: unknown; storeAddress?: unknown; storeCity?: unknown; storeState?: unknown }) {
@@ -37,8 +44,11 @@ export function canonicalCommunityStoreMatches(store: CanonicalCommunityStore, c
     && store.state === String(candidate.storeState || "").trim().toUpperCase();
 }
 
-export function qualifyCommunitySighting(sighting: MemberSighting, now = new Date().toISOString(), canonicalStores?: ReadonlyMap<string, CanonicalCommunityStore>): CommunitySightingQualification {
+export function qualifyCommunitySighting(input: CommunityAlertSightingInput, now = new Date().toISOString(), canonicalStores?: ReadonlyMap<string, CanonicalCommunityStore>): CommunitySightingQualification {
+  const { sighting } = input;
   if (!sighting.reporterUserId?.trim()) return { qualified: false, reason: "unauthenticated_reporter" };
+  if (input.contributorStanding !== "active") return { qualified: false, reason: `contributor_${input.contributorStanding}` };
+  if (!input.alertAllowance) return { qualified: false, reason: "contributor_alert_limit" };
   if (sighting.sightingType !== "seen_in_store") return { qualified: false, reason: "not_seen_in_store" };
   if (!sighting.bottleId?.trim() || !sighting.bottleName?.trim()) return { qualified: false, reason: "noncanonical_bottle" };
   if (!sighting.storeId?.trim() || /(^|[:_-])manual([:_-]|$)/i.test(sighting.storeId)) return { qualified: false, reason: "noncanonical_store" };
@@ -65,10 +75,11 @@ export function qualifyCommunitySighting(sighting: MemberSighting, now = new Dat
   return { qualified: true, freshnessHours: Math.max(0, freshnessHours), store: canonicalStore };
 }
 
-export function buildCommunityAlertCandidates(sightings: MemberSighting[], now = new Date().toISOString(), canonicalStores?: ReadonlyMap<string, CanonicalCommunityStore>) {
+export function buildCommunityAlertCandidates(inputs: CommunityAlertSightingInput[], now = new Date().toISOString(), canonicalStores?: ReadonlyMap<string, CanonicalCommunityStore>) {
   const unique = new Map<string, Record<string, unknown>>();
-  for (const sighting of sightings) {
-    const qualification = qualifyCommunitySighting(sighting, now, canonicalStores);
+  for (const input of inputs) {
+    const { sighting } = input;
+    const qualification = qualifyCommunitySighting(input, now, canonicalStores);
     if (!qualification.qualified || unique.has(sighting.id)) continue;
     const store = qualification.store;
     const state = store.state;
@@ -101,7 +112,7 @@ export function buildCommunityAlertCandidates(sightings: MemberSighting[], now =
       eligibleForEmail: true,
       eligibleForSms: true,
       availabilityStatus: "community_reported",
-      availabilityLabel: "A member reported seeing this bottle at this store recently. Availability is unconfirmed.",
+      availabilityLabel: "A member reported seeing this bottle at this store recently.",
       evidence: "Recent qualified member report; check with the store before making a trip.",
       blockers: [],
       cautions: ["community_report_not_verified_inventory"],

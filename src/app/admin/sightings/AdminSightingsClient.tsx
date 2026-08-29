@@ -3,9 +3,15 @@
 import { useEffect, useState } from "react";
 import { Eye, EyeOff, RotateCw, X } from "lucide-react";
 import type { MemberSighting } from "@/lib/sightings";
+import type { CommunityContributorModeration } from "@/lib/community-contributor-standing";
 import { formatControlRoomDateTime } from "@/lib/control-room-time";
 
-type AdminSighting = MemberSighting & { reporterEmail?: string; reporterName?: string; reviewReasons?: string[] };
+type AdminSighting = MemberSighting & {
+  reporterEmail?: string;
+  reporterName?: string;
+  reviewReasons?: string[];
+  contributorModeration?: CommunityContributorModeration | null;
+};
 
 function statusLabel(sighting: AdminSighting) {
   const proof = sighting.rewardState?.photoProof;
@@ -135,6 +141,15 @@ export default function AdminSightingsClient({ embedded = false }: { embedded?: 
                   <p className="admin-detail">{sighting.storeName} · {[sighting.storeCity, sighting.storeState].filter(Boolean).join(", ")}</p>
                   <p className="admin-detail">Reporter: {sighting.reporterName || "Member"} · {sighting.reporterEmail || "unknown"}</p>
                   <p className="admin-detail">Tier: {sighting.rarityTier || "limited"}</p>
+                  {sighting.contributorModeration ? (
+                    <div className="admin-review-box">
+                      <div className="admin-review-tags"><span>Contributor restriction · {sighting.contributorModeration.restrictionKind}</span></div>
+                      <p className="admin-detail">{sighting.contributorModeration.restrictionReason} · {formatControlRoomDateTime(sighting.contributorModeration.restrictedAt)}</p>
+                      {sighting.contributorModeration.restoredAt ? (
+                        <p className="admin-detail">Restored: {sighting.contributorModeration.restorationReason || "No restoration note"} · {formatControlRoomDateTime(sighting.contributorModeration.restoredAt)}</p>
+                      ) : null}
+                    </div>
+                  ) : null}
                   {sighting.reviewState?.needsBottleReview || sighting.reviewState?.needsStoreReview ? (
                     <div className="admin-review-box">
                       <div className="admin-review-tags">{(sighting.reviewReasons || []).map((reason) => <span key={reason}>{reason}</span>)}</div>

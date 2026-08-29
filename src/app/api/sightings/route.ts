@@ -9,7 +9,7 @@ import { canUseMemberSightingBoundary } from "@/lib/signals/sighting-pagination-
 import { isRewardsAdminEmail, reconcileMemberRewards, summarizeMemberRewards, type MemberRewardsSummary } from "@/lib/sighting-rewards";
 import { verifiedPrimaryClerkEmail } from "@/lib/owner-auth";
 import { memberSightingTierForAvailability, normalizeSightingsForRewards } from "@/lib/sighting-reward-tiers";
-import { isLikelyDuplicateSighting, sanitizeManualSightingField } from "@/lib/sighting-review";
+import { isLikelyDuplicateSighting, isSameReporterCanonicalDuplicateSighting, sanitizeManualSightingField, SIGHTING_DUPLICATE_WINDOW_MS } from "@/lib/sighting-review";
 import { getQaPreviewTierFromRequest, isQaPreviewRequest } from "@/lib/preview-qa";
 import { addBottleContribution } from "@/lib/bottle-contributions";
 import { COMMUNITY_SIGHTINGS_DURABLE_CUTOVER } from "@/data/community-sightings-cutover";
@@ -19,6 +19,7 @@ import { normalizeSignalRarities } from "@/lib/signals/signal-feed-filters";
 import { idempotentSightingFingerprint, idempotentSightingId, sameIdempotentSighting } from "@/lib/signals/signal-api-idempotency";
 import { communityDisplayNameFromMetadata, communityDisplayNameSeparateFromIdentity } from "@/lib/community-display-name";
 import { canonicalSignalFeedAreaSelection, dropFeedStoreQueryMatches } from "@/lib/feed-area-options";
+import { communityVoteAllowed } from "@/lib/community-contributor-standing";
 
 function normalizeSightingType(value: unknown): SightingType {
   return value === "online_social" ? "online_social" : "seen_in_store";
@@ -490,12 +491,20 @@ export async function POST(req: NextRequest) {
     }
   }
   const observedRewardGeneration = await createSignalPointsRepository().readRewardGeneration(userId);
-  const durableSightings = await repository.listSightingsForReporter(userId);
+  const duplicateSince = new Date(Date.parse(sighting.createdAt) - SIGHTING_DUPLICATE_WINDOW_MS).toISOString();
+  const [durableSightings, durableDuplicate] = await Promise.all([
+    repository.listSightingsForReporter(userId),
+    repository.findRecentCanonicalDuplicate(userId, bottleId, storeId, duplicateSince, sighting.createdAt),
+  ]);
   const ownedSightings = dedupeSightings([...prefs.submittedSightings, ...durableSightings]);
   const rewardCatalog = await getBourbonBible();
   const rewardSightings = normalizeSightingsForRewards(ownedSightings, rewardCatalog);
   const privateMetadata = (user.privateMetadata && typeof user.privateMetadata === "object" ? user.privateMetadata : {}) as Record<string, unknown>;
-  const duplicate = ownedSightings.find((existing) => isLikelyDuplicateSighting(existing, sighting));
+  const legacyDuplicate = prefs.submittedSightings.find((existing) => isSameReporterCanonicalDuplicateSighting(
+    { ...existing, reporterUserId: existing.reporterUserId || userId },
+    sighting,
+  ) && isLikelyDuplicateSighting(existing, sighting));
+  const duplicate = durableDuplicate || legacyDuplicate;
   if (duplicate) {
     if (idempotencyKey && requestFingerprint) await repository.completeIdempotency(sighting.id, userId, requestFingerprint, duplicate.id);
     const nextRewards = reconcileMemberRewards(rewardSightings, privateMetadata.memberRewards);
@@ -584,8 +593,9 @@ export async function PATCH(req: NextRequest) {
     target = aggregate.sightings.find((sighting) => sighting.id === sightingId) || null;
   }
   if (!target) return NextResponse.json({ error: "Sighting not found" }, { status: 404 });
-  // Historical regression marker: poster cannot vote is intentionally not enforced now;
-  // voting is a lightweight helpful/not-helpful reaction and admins often test their own sightings.
+  if (!communityVoteAllowed(target.reporterUserId, userId)) {
+    return NextResponse.json({ error: "The sighting poster cannot vote on their own report." }, { status: 409 });
+  }
 
   if (!(await repository.getSighting(sightingId))) {
     if (!target.reporterUserId || !/^[-_a-zA-Z0-9]{1,160}$/.test(target.id)) return NextResponse.json({ error: "Invalid legacy sighting" }, { status: 409 });

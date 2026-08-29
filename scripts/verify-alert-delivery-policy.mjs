@@ -10,6 +10,7 @@ function read(path) {
 }
 
 const delivery = read('src/lib/alert-delivery.ts');
+const communityCandidates = read('src/lib/community-alert-candidates.ts');
 const runSafety = read('src/lib/alert-run-safety.ts');
 const exportContract = read('engine/src/export-site-contract.mjs');
 const route = read('src/app/api/alerts/deliver/route.ts');
@@ -63,6 +64,14 @@ if (!/const entitlements = await getServerEntitlements\(publicMetadata\);[\s\S]*
 
 if (!/entitlements\.canReceiveSightingsAlerts && notificationPrefs\.sightings\.enabled/.test(delivery)) {
   fail('Community sighting alerts must recheck the current durable entitlement at delivery time.');
+}
+
+if (!/listRecentAlertSightings\(since, now\.toISOString\(\)\)[\s\S]*qualifyCommunitySighting[\s\S]*reserveAlertAuthority[\s\S]*buildCommunityAlertCandidates/.test(delivery)) {
+  fail('Community standing and rolling allowance must produce one common eligible candidate set before channel delivery.');
+}
+
+if (/unconfirmed/i.test(communityCandidates)) {
+  fail('Community alert copy must never apply an unconfirmed label.');
 }
 
 if (!/if \(!hasSavedAreaPreferences\(areaPrefs\)\) \{[\s\S]*?continue;/.test(delivery)) {

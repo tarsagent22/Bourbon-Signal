@@ -98,7 +98,9 @@ const TABLES = [
   'bourbon_recommendation_feedback',
   'bourbon_recommendation_feedback_state',
   'clerk_alert_metadata_backups',
+  'community_contributor_moderation',
   'community_sighting_idempotency',
+  'community_sighting_alert_authority',
   'community_sighting_votes',
   'community_sightings',
   'coverage_request_automation_jobs',
@@ -148,6 +150,8 @@ const GIFT_TABLES = [
 const REQUIRED_TABLES = [
   'bottle_contributions',
   'bourbon_recommendation_feedback',
+  'community_contributor_moderation',
+  'community_sighting_alert_authority',
   'community_sighting_votes',
   'community_sightings',
   'coverage_request_automation_jobs',
