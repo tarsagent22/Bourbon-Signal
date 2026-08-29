@@ -5,7 +5,14 @@ import { ALERT_FROM, ALERT_REPLY_TO, getResendClient } from "@/lib/email-alerts"
 import { getServerEntitlements } from "@/lib/server-entitlements";
 import { alertRarityIsSelected, buildAlertId, normalizeAlertRarityTier, normalizeNotificationPreferences, type EmailAlertMode, type MemberAlertRecord, type SmsAlertMode } from "@/lib/notification-preferences";
 import { readSiteExport, readSiteExportResult } from "@/lib/site-engine-contract";
-import { alertFreshnessIsDeliverable, evaluateAlertSnapshotSafety, resolveAlertFreshnessCapHours, signalFreshnessHoursAt } from "@/lib/alert-run-safety";
+import {
+  ALERT_FRESHNESS_HARD_CAP_HOURS,
+  COMMUNITY_ALERT_FRESHNESS_HARD_CAP_HOURS,
+  alertFreshnessIsDeliverable,
+  evaluateAlertSnapshotSafety,
+  resolveAlertFreshnessCapHours,
+  signalFreshnessHoursAt,
+} from "@/lib/alert-run-safety";
 import { getActiveEngineStateName } from "@/lib/activeStates";
 import { geographyState } from "@/lib/geography-directory";
 import { locationMatchesAny, normalizeStateCodeParam } from "@/lib/location-normalization";
@@ -108,7 +115,8 @@ const ALERT_DELIVERY_ENABLED = process.env.ALERT_DELIVERY_ENABLED === "1";
 const ALERT_ONSITE_DELIVERY_ENABLED = ALERT_DELIVERY_ENABLED || process.env.ALERT_ONSITE_DELIVERY_ENABLED === "1";
 const ALERT_EMAIL_DELIVERY_ENABLED = ALERT_DELIVERY_ENABLED || process.env.ALERT_EMAIL_DELIVERY_ENABLED === "1";
 const ALERT_SMS_DELIVERY_ENABLED = process.env.ALERT_SMS_DELIVERY_ENABLED === "1";
-const ALERT_REALTIME_MAX_FRESHNESS_HOURS = resolveAlertFreshnessCapHours(Number(process.env.ALERT_REALTIME_MAX_FRESHNESS_HOURS));
+const ALERT_REALTIME_MAX_FRESHNESS_CONFIGURED_HOURS = Number(process.env.ALERT_REALTIME_MAX_FRESHNESS_HOURS);
+const ALERT_REALTIME_MAX_FRESHNESS_HOURS = resolveAlertFreshnessCapHours(ALERT_REALTIME_MAX_FRESHNESS_CONFIGURED_HOURS);
 const ALERT_EMAIL_MAX_FRESHNESS_HOURS = resolveAlertFreshnessCapHours(Number(process.env.ALERT_EMAIL_MAX_FRESHNESS_HOURS || ALERT_REALTIME_MAX_FRESHNESS_HOURS));
 const ALERT_SMS_MAX_FRESHNESS_HOURS = resolveAlertFreshnessCapHours(Number(process.env.ALERT_SMS_MAX_FRESHNESS_HOURS || ALERT_REALTIME_MAX_FRESHNESS_HOURS));
 const ALERT_EMAIL_ALLOWED_RECIPIENTS = toStrings(process.env.ALERT_EMAIL_ALLOWED_RECIPIENTS?.split(",")).map((email) => email.toLowerCase());
@@ -408,11 +416,23 @@ function candidateCanSendSms(candidate: CandidateAlert) {
   return candidateCanSendEmail(candidate);
 }
 
+function candidateFreshnessHardCapHours(candidate: CandidateAlert) {
+  return asString(candidate.sourceType).toLowerCase() === "community"
+    ? COMMUNITY_ALERT_FRESHNESS_HARD_CAP_HOURS
+    : ALERT_FRESHNESS_HARD_CAP_HOURS;
+}
+
 function freshnessPolicyHours(candidate: CandidateAlert, channel: "onSite" | "email" | "sms", fallback: number) {
   const policy = candidate.freshnessPolicyHours && typeof candidate.freshnessPolicyHours === "object" ? candidate.freshnessPolicyHours as Record<string, unknown> : null;
   const value = asNumber(policy?.[channel], Number.NaN);
   const candidateLimit = Number.isFinite(value) && value > 0 ? value : fallback;
-  return Math.min(candidateLimit, ALERT_REALTIME_MAX_FRESHNESS_HOURS);
+  return Math.min(
+    candidateLimit,
+    resolveAlertFreshnessCapHours(
+      ALERT_REALTIME_MAX_FRESHNESS_CONFIGURED_HOURS,
+      candidateFreshnessHardCapHours(candidate),
+    ),
+  );
 }
 
 function candidateDeliveryBlockers(candidate: CandidateAlert) {
@@ -438,7 +458,11 @@ export function candidatePassesFreshOnSiteGuardrails(candidate: CandidateAlert, 
   if (blockers.includes("manual_refresh_quarantine")) return false;
   if (blockers.includes("stale_observation")) return false;
   if (cautions.includes("unknown_freshness")) return false;
-  return alertFreshnessIsDeliverable(freshnessHours, freshnessPolicyHours(candidate, "onSite", ALERT_EMAIL_MAX_FRESHNESS_HOURS));
+  return alertFreshnessIsDeliverable(
+    freshnessHours,
+    freshnessPolicyHours(candidate, "onSite", ALERT_EMAIL_MAX_FRESHNESS_HOURS),
+    candidateFreshnessHardCapHours(candidate),
+  );
 }
 
 export function candidatePassesFreshEmailGuardrails(candidate: CandidateAlert, now?: string) {
@@ -452,14 +476,22 @@ export function candidatePassesFreshEmailGuardrails(candidate: CandidateAlert, n
   if (blockers.includes("manual_refresh_quarantine")) return false;
   if (blockers.includes("stale_observation")) return false;
   if (cautions.includes("unknown_freshness")) return false;
-  return alertFreshnessIsDeliverable(freshnessHours, freshnessPolicyHours(candidate, "email", ALERT_EMAIL_MAX_FRESHNESS_HOURS));
+  return alertFreshnessIsDeliverable(
+    freshnessHours,
+    freshnessPolicyHours(candidate, "email", ALERT_EMAIL_MAX_FRESHNESS_HOURS),
+    candidateFreshnessHardCapHours(candidate),
+  );
 }
 
 export function candidatePassesFreshSmsGuardrails(candidate: CandidateAlert, now?: string) {
   if (!candidateCanSendSms(candidate)) return false;
   if (!candidatePassesFreshEmailGuardrails(candidate, now)) return false;
   const freshnessHours = candidateFreshnessHoursAtDelivery(candidate, now);
-  return alertFreshnessIsDeliverable(freshnessHours, freshnessPolicyHours(candidate, "sms", ALERT_SMS_MAX_FRESHNESS_HOURS));
+  return alertFreshnessIsDeliverable(
+    freshnessHours,
+    freshnessPolicyHours(candidate, "sms", ALERT_SMS_MAX_FRESHNESS_HOURS),
+    candidateFreshnessHardCapHours(candidate),
+  );
 }
 
 function candidateTimestampLabel(candidate: CandidateAlert) {

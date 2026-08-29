@@ -53,7 +53,9 @@ for (const phrase of [
   'eligibleForSms === true',
   'freshnessPolicyHours',
   'ALERT_REALTIME_MAX_FRESHNESS_HOURS',
-  'Math.min(candidateLimit, ALERT_REALTIME_MAX_FRESHNESS_HOURS)',
+  'candidateFreshnessHardCapHours',
+  'COMMUNITY_ALERT_FRESHNESS_HARD_CAP_HOURS',
+  'ALERT_REALTIME_MAX_FRESHNESS_CONFIGURED_HOURS',
 ]) {
   if (!delivery.includes(phrase)) fail(`Alert delivery policy missing: ${phrase}`);
 }
