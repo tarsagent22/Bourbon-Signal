@@ -15,6 +15,7 @@ import {
   selectUnseenUnderlyingAlertChildren,
   stableGroupedAlertDedupeKey,
   stableUnderlyingAlertKey,
+  withAvailabilityEpisodeIdentity,
 } from "@/lib/alert-dedupe";
 import { alertQueueDatabaseConfigured, createProductionAlertQueueRepository } from "@/lib/alert-queue/runtime";
 import { reserveAlertDeliveryBatch, type AlertQueueMode } from "@/lib/alert-queue/delivery-gate";
@@ -229,7 +230,12 @@ async function readAlertCandidateBatch() {
     if (process.env.NODE_ENV !== "test") console.warn("community alert candidates unavailable", error instanceof Error ? error.message : "unknown error");
   }
   return {
-    candidates: [...(Array.isArray(result.payload?.alerts) ? result.payload.alerts as CandidateAlert[] : []), ...communityCandidates],
+    candidates: [
+      ...(Array.isArray(result.payload?.alerts)
+        ? (result.payload.alerts as CandidateAlert[]).map(withAvailabilityEpisodeIdentity)
+        : []),
+      ...communityCandidates,
+    ],
     snapshot: result,
   };
 }

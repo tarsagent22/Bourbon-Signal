@@ -119,6 +119,7 @@
     "verify:production-engine": "tsx scripts/verify-production-engine-regression.mjs",
     "test:performance-budgets": "node scripts/test-performance-budgets.mjs",
     "test:alert-dedupe": "node --no-warnings --experimental-strip-types scripts/test-alert-dedupe.mts",
+    "test:availability-episode-alerts": "node --test engine/test/availability-episode-alerts.test.mjs && node --no-warnings --experimental-strip-types scripts/test-availability-episode-alerts.mts",
     "test:alert-queue-repository": "node --experimental-strip-types scripts/test-alert-queue-repository.mts && node --experimental-strip-types scripts/test-alert-queue-delivery-gate.mts && node --experimental-strip-types scripts/test-postgres-alert-queue.mts",
     "test:alert-queue-schema": "node scripts/test-alert-queue-schema.mjs",
     "backup:alert-queue": "node scripts/alert-queue-backup.mjs backup",

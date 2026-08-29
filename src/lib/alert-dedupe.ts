@@ -7,6 +7,8 @@ export type GroupedAlertIdentity = {
   signalAt?: unknown;
   changeType?: unknown;
   eventIdentityKey?: unknown;
+  availabilityEpisodeId?: unknown;
+  legacyDedupeKey?: unknown;
   __groupCandidates?: unknown;
 };
 
@@ -17,6 +19,8 @@ function nonEmptyString(value: unknown) {
 export function stableUnderlyingAlertKey(candidate: GroupedAlertIdentity) {
   const explicit = nonEmptyString(candidate.eventIdentityKey);
   if (explicit) return explicit;
+  const availabilityEpisodeId = nonEmptyString(candidate.availabilityEpisodeId);
+  if (availabilityEpisodeId) return `availability-episode:${availabilityEpisodeId}`;
   const matchKey = nonEmptyString(candidate.matchKey);
   const dedupeKey = nonEmptyString(candidate.dedupeKey);
   const changeType = nonEmptyString(candidate.changeType);
@@ -25,6 +29,19 @@ export function stableUnderlyingAlertKey(candidate: GroupedAlertIdentity) {
     return `event:${matchKey}:${signalAt}:${dedupeKey || nonEmptyString(candidate.id)}`;
   }
   return dedupeKey || nonEmptyString(candidate.id) || matchKey;
+}
+
+export function withAvailabilityEpisodeIdentity<T extends GroupedAlertIdentity>(candidate: T): T {
+  const availabilityEpisodeId = nonEmptyString(candidate.availabilityEpisodeId);
+  if (!availabilityEpisodeId || nonEmptyString(candidate.eventIdentityKey)) return candidate;
+  return {
+    ...candidate,
+    eventIdentityKey: `availability-episode:${availabilityEpisodeId}`,
+  };
+}
+
+function underlyingAlertIdentityKeys(candidate: GroupedAlertIdentity) {
+  return [stableUnderlyingAlertKey(candidate), nonEmptyString(candidate.legacyDedupeKey)].filter(Boolean);
 }
 
 export function enumerateUnderlyingAlertChildren<T extends GroupedAlertIdentity>(candidate: T): T[] {
@@ -47,7 +64,7 @@ export function selectUnseenUnderlyingAlertChildren<T extends GroupedAlertIdenti
   seenStableKeys: ReadonlySet<string>,
 ) {
   return enumerateUnderlyingAlertChildren(candidate)
-    .filter((child) => !seenStableKeys.has(stableUnderlyingAlertKey(child)));
+    .filter((child) => !underlyingAlertIdentityKeys(child).some((key) => seenStableKeys.has(key)));
 }
 
 export function stableGroupedAlertDedupeKey(locationKey: string, candidates: GroupedAlertIdentity[]) {

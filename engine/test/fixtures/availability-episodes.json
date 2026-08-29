@@ -1,0 +1,35 @@
+{
+  "identity": {
+    "state": "GA",
+    "eventType": "retailer_store_inventory_result",
+    "canonicalBottleId": "bottle-eagle-rare-10",
+    "sourceRuntimeId": "retailer-example-atlanta",
+    "sourceLabel": "Example retailer inventory",
+    "sourceUrl": "https://retailer.example/inventory/eagle-rare-10",
+    "storeId": "example-retailer:atlanta",
+    "locationName": "Example Retailer Atlanta",
+    "locationPrecision": "store_level"
+  },
+  "cases": {
+    "firstDetection": [
+      { "observedAt": "2026-08-29T12:00:00.000Z", "availabilityStatus": "in_stock", "quantity": 1 }
+    ],
+    "quantityChange": [
+      { "observedAt": "2026-08-29T12:00:00.000Z", "availabilityStatus": "in_stock", "quantity": 1 },
+      { "observedAt": "2026-08-29T12:15:00.000Z", "availabilityStatus": "in_stock", "quantity": 12 }
+    ],
+    "reconfirmation": [
+      { "observedAt": "2026-08-29T12:00:00.000Z", "availabilityStatus": "in_stock", "quantity": 1 },
+      { "observedAt": "2026-08-29T12:30:00.000Z", "availabilityStatus": "in_stock", "quantity": 1 }
+    ],
+    "restock": [
+      { "observedAt": "2026-08-29T12:00:00.000Z", "availabilityStatus": "in_stock", "quantity": 1 },
+      { "observedAt": "2026-08-29T12:20:00.000Z", "availabilityStatus": "out_of_stock", "quantity": 0 },
+      { "observedAt": "2026-08-29T12:40:00.000Z", "availabilityStatus": "in_stock", "quantity": 4 }
+    ],
+    "missingRun": [
+      { "observedAt": "2026-08-29T12:00:00.000Z", "availabilityStatus": "in_stock", "quantity": 1 },
+      { "observedAt": "2026-08-29T13:00:00.000Z", "availabilityStatus": "in_stock", "quantity": 1 }
+    ]
+  }
+}
