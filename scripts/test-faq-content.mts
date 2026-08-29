@@ -10,7 +10,7 @@ const homePage = await readFile(new URL("../src/app/page.tsx", import.meta.url),
 const pricingPage = await readFile(new URL("../src/app/pricing/PricingPageClient.tsx", import.meta.url), "utf8");
 
 const productFaqs = getFaqItems("product");
-assert.equal(productFaqs.length, 9);
+assert.equal(productFaqs.length, 10);
 assert.deepEqual(productFaqs.map((item) => item.question), [
   "What is Bourbon Signal?",
   "Where is Bourbon Signal coverage available?",
@@ -20,6 +20,7 @@ assert.deepEqual(productFaqs.map((item) => item.question), [
   "What are Member Sightings?",
   "How does Bottle Check work?",
   "How do My Collection and recommendations work?",
+  "What is Hunt Outcome?",
   "Why doesn’t every state have the same store-level detail?",
 ]);
 
