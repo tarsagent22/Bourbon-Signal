@@ -5,6 +5,7 @@ import { alertIsStale, clearRadarAreas, compactMonitoringScopes, compactWatchedB
 
 const areas: RadarAreaPreferences = { states: [], ncBoards: [], gaAreas: [], tnAreas: [], vaCities: [], ohCities: [], iaCities: [], idCities: [], scAreas: [], caAreas: [], nvAreas: [], nyAreas: [], coAreas: [], paCounties: [], paStores: [] };
 const preferences = (): MemberPreferences => ({
+  collectionAccess: { canRead: true, canEditExisting: true, canAdd: true, limit: null, remaining: null, showCapacityNotice: false },
   entitlements: { trackedBottleLimit: 2, alertAreaLimit: 2 },
   areaPreferences: areas,
   monitoringScopes: [],

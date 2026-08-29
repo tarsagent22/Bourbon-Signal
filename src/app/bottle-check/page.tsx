@@ -428,7 +428,10 @@ export default function BottleCheckPage() {
     requestedNewAreaCount,
     alreadyTracked: isTracked,
   });
-  const collectionActionAccess = bottleCheckActionAccess("collection", entitlements);
+  const collectionActionAccess = bottleCheckActionAccess("collection", entitlements, {
+    collectionBottleCount: collectionEntries.length,
+    alreadyInCollection: isInCollection,
+  });
   const effectiveCollectionSaveState = collectionSaveState === "idle"
     ? (isInCollection ? collectionSyncState : "idle")
     : collectionSaveState;

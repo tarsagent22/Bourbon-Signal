@@ -7,6 +7,7 @@ export const QA_PREVIEW_TIER_COOKIE = "bourbon_signal_qa_tier";
 export const QA_PREVIEW_TIER_STORAGE_KEY = "bourbonSignalQaTier";
 
 export const QA_PREVIEW_PREFERENCES = {
+  collectionAccess: { canRead: true, canEditExisting: true, canAdd: true, limit: null, remaining: null, showCapacityNotice: false },
   areaPreferences: {
     states: ["NC", "VA", "PA"],
     ncBoards: [],

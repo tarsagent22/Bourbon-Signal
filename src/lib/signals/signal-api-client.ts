@@ -6,6 +6,8 @@ import {
   type SignalCreateInput,
   type SignalCreateResponse,
   type SignalDetailResponse,
+  type SignalHuntOutcome,
+  type SignalHuntOutcomeResponse,
   type SignalMemberProfileResponse,
 } from "./signal-api-contract.ts";
 import type { CanonicalSignalFeed } from "./signal-contract.ts";
@@ -73,6 +75,15 @@ export function createSignalApiClient({
     },
     getSignal(signalId: string) {
       return request<SignalDetailResponse>(`/api/v1/signals/${encodeURIComponent(signalId)}`);
+    },
+    getHuntOutcome(signalId: string) {
+      return request<SignalHuntOutcomeResponse>(`/api/v1/signals/${encodeURIComponent(signalId)}/outcome`);
+    },
+    setHuntOutcome(signalId: string, outcome: SignalHuntOutcome | null) {
+      return request<SignalHuntOutcomeResponse>(`/api/v1/signals/${encodeURIComponent(signalId)}/outcome`, {
+        method: "PUT",
+        body: JSON.stringify({ outcome }),
+      });
     },
     createSignal(input: SignalCreateInput, options: { idempotencyKey?: string } = {}) {
       return request<SignalCreateResponse>("/api/v1/signals", {

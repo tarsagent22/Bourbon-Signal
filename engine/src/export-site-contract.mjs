@@ -546,6 +546,9 @@ export function publicSignal(signal, bible, freshness = null) {
     eventAt,
     firstSeenAt,
     lastConfirmedAt,
+    availabilityEpisodeId: freshness?.availabilityEpisodeId || null,
+    availabilityEpisodeStartedAt: freshness?.availabilityEpisodeStartedAt || null,
+    availabilityEpisodeKind: freshness?.availabilityEpisodeKind || null,
     displayAt,
     timestampBasis,
     locationPrecision: signal.locationPrecision,
@@ -726,6 +729,163 @@ function signalFreshnessKey(signal) {
   ].map((value) => String(value).toLowerCase().trim()).join('|');
 }
 
+function normalizedAvailabilityStatus(signal) {
+  return String(signal?.availabilityStatus || signal?.availability_status || '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '_')
+    .replace(/^_+|_+$/g, '');
+}
+
+function isAvailabilityEpisodeObservation(signal) {
+  if (String(signal?.locationPrecision || signal?.location_precision || '').toLowerCase() !== 'store_level') return false;
+  const type = String(signal?.eventType || signal?.type || '').toLowerCase();
+  if (/shipment|allocation|lottery|raffle|release|catalog|event/.test(type)) return false;
+  return /inventory|availability|in_stock|out_of_stock|limited_supply/.test(type)
+    || Boolean(normalizedAvailabilityStatus(signal));
+}
+
+function explicitAvailabilityState(signal) {
+  if (!isAvailabilityEpisodeObservation(signal)) return null;
+  const status = normalizedAvailabilityStatus(signal);
+  if (/^(?:out_of_stock|unavailable|sold_out|not_available|pickup_unavailable|no_stock)$/.test(status)) return 'unavailable';
+  if (/^(?:in_stock|available|limited_supply|orderable|pickup_available)$/.test(status)) return 'available';
+
+  const quantity = Number(signal?.quantity ?? signal?.storeQty ?? signal?.reportedQuantity);
+  if (Number.isFinite(quantity) && quantity > 0) return 'available';
+  if (Number.isFinite(quantity) && quantity === 0 && signal?.quantityIsExact === true && signal?.sourceAvailabilityVerified === true) return 'unavailable';
+  if (signal?.variantAvailable === false && signal?.sourceAvailabilityVerified === true) return 'unavailable';
+  if (signal?.variantAvailable === true && signal?.sourceAvailabilityVerified === true) return 'available';
+  if (signal?.quantityIsExact === false && signal?.sourceAvailabilityVerified === true && signal?.canAlertAsInventory === true) return 'available';
+  return null;
+}
+
+function availabilityObservationAt(signal) {
+  const value = signal?.observedAt || signal?.fetchedAt || signal?.lastConfirmedAt || signal?.last_confirmed_at;
+  const time = Date.parse(value || '');
+  return Number.isFinite(time) ? new Date(time).toISOString() : null;
+}
+
+export function availabilityEpisodeIdentity(signal) {
+  if (!signal || typeof signal !== 'object') return '';
+  const source = signal.sourceRuntimeId
+    || signal.leafSourceRuntimeId
+    || signal.sourceChain
+    || signal.merchantId
+    || signal.sourceUrl
+    || signal.sourceLabel
+    || signal.source;
+  const bottle = signal.canonicalBottleId
+    || signal.canonicalId
+    || signal.bottleId
+    || signal.canonicalName
+    || signal.bottleName
+    || signal.rawName;
+  const location = signal.storeId
+    || signal.runtimeStoreId
+    || signal.storeAddress
+    || signal.locationName
+    || signal.storeName;
+  if (!source || !bottle || !location) return '';
+  return stableId(['availability_subject', signal.state || signal.stateCode || '', source, bottle, location]);
+}
+
+function availabilityEpisodeId(subjectId, startedAt) {
+  return stableId(['availability_episode', subjectId, startedAt]);
+}
+
+function seededAvailabilityEpisode(drop, subjectId) {
+  const startedAt = drop.availabilityEpisodeStartedAt || drop.availability_episode_started_at || drop.firstSeenAt || drop.first_seen_at;
+  const checkpointAt = drop.lastConfirmedAt || drop.last_confirmed_at || startedAt;
+  if (!startedAt || !checkpointAt || !Number.isFinite(Date.parse(startedAt)) || !Number.isFinite(Date.parse(checkpointAt))) return null;
+  const id = drop.availabilityEpisodeId || drop.availability_episode_id || availabilityEpisodeId(subjectId, startedAt);
+  return {
+    available: true,
+    id,
+    kind: drop.availabilityEpisodeKind || drop.availability_episode_kind || 'first_detection',
+    startedAt: new Date(Date.parse(startedAt)).toISOString(),
+    firstSeenAt: new Date(Date.parse(startedAt)).toISOString(),
+    lastConfirmedAt: new Date(Date.parse(checkpointAt)).toISOString(),
+    checkpointAt: Date.parse(checkpointAt),
+    hasEverAvailable: true,
+    lastUnavailableAt: null,
+  };
+}
+
+export function buildAvailabilityEpisodeIndex(signals = [], { previousDrops = [] } = {}) {
+  const index = new Map();
+  const previousDropRows = Array.isArray(previousDrops)
+    ? previousDrops
+    : Array.isArray(previousDrops?.drops)
+      ? previousDrops.drops
+      : [];
+  for (const drop of previousDropRows) {
+    const subjectId = availabilityEpisodeIdentity(drop);
+    if (!subjectId) continue;
+    const seed = seededAvailabilityEpisode(drop, subjectId);
+    const existing = index.get(subjectId);
+    if (seed && (!existing || seed.checkpointAt > existing.checkpointAt)) index.set(subjectId, seed);
+  }
+
+  const observations = (signals || [])
+    .map((signal, order) => ({
+      order,
+      subjectId: availabilityEpisodeIdentity(signal),
+      state: explicitAvailabilityState(signal),
+      observedAt: availabilityObservationAt(signal),
+    }))
+    .filter((entry) => entry.subjectId && entry.state && entry.observedAt)
+    .sort((left, right) => Date.parse(left.observedAt) - Date.parse(right.observedAt) || left.order - right.order);
+
+  for (const observation of observations) {
+    const observedTime = Date.parse(observation.observedAt);
+    const existing = index.get(observation.subjectId) || {
+      available: false,
+      id: null,
+      kind: null,
+      startedAt: null,
+      firstSeenAt: null,
+      lastConfirmedAt: null,
+      checkpointAt: Number.NEGATIVE_INFINITY,
+      hasEverAvailable: false,
+      lastUnavailableAt: null,
+    };
+    if (observedTime <= existing.checkpointAt) continue;
+
+    if (observation.state === 'unavailable') {
+      index.set(observation.subjectId, {
+        ...existing,
+        available: false,
+        checkpointAt: observedTime,
+        lastUnavailableAt: observation.observedAt,
+      });
+      continue;
+    }
+
+    if (!existing.available) {
+      const kind = existing.hasEverAvailable || existing.lastUnavailableAt ? 'restock' : 'first_detection';
+      index.set(observation.subjectId, {
+        ...existing,
+        available: true,
+        id: availabilityEpisodeId(observation.subjectId, observation.observedAt),
+        kind,
+        startedAt: observation.observedAt,
+        firstSeenAt: observation.observedAt,
+        lastConfirmedAt: observation.observedAt,
+        checkpointAt: observedTime,
+        hasEverAvailable: true,
+      });
+      continue;
+    }
+
+    index.set(observation.subjectId, {
+      ...existing,
+      lastConfirmedAt: observation.observedAt,
+      checkpointAt: observedTime,
+    });
+  }
+  return index;
+}
+
 function isGeorgiaRetailerProjectionSignal(signal) {
   return signal?.state === 'GA'
     && /^(retailer_store_inventory_result|cityhive_store_inventory_result)$/i.test(String(signal.eventType || signal.type || ''))
@@ -762,7 +922,7 @@ function sourceEventAt(signal) {
   return null;
 }
 
-function buildFreshnessIndex(historicalSignals = [], currentSignals = []) {
+function buildFreshnessIndex(historicalSignals = [], currentSignals = [], previousDrops = [], availabilityHistory = historicalSignals) {
   const index = new Map();
   for (const signal of [...historicalSignals, ...currentSignals]) {
     const key = signalFreshnessKey(signal);
@@ -776,6 +936,23 @@ function buildFreshnessIndex(historicalSignals = [], currentSignals = []) {
     if (firstSeenAt && (!cur.firstSeenAt || firstSeenAt < cur.firstSeenAt)) cur.firstSeenAt = firstSeenAt;
     if (lastConfirmedAt && (!cur.lastConfirmedAt || lastConfirmedAt > cur.lastConfirmedAt)) cur.lastConfirmedAt = lastConfirmedAt;
     index.set(key, cur);
+  }
+  const availabilityEpisodes = buildAvailabilityEpisodeIndex(
+    [...availabilityHistory, ...currentSignals],
+    { previousDrops },
+  );
+  for (const signal of [...historicalSignals, ...currentSignals]) {
+    const episode = availabilityEpisodes.get(availabilityEpisodeIdentity(signal));
+    if (!episode) continue;
+    index.set(signalFreshnessKey(signal), {
+      firstSeenAt: episode.firstSeenAt,
+      lastConfirmedAt: episode.lastConfirmedAt,
+      eventAt: null,
+      availabilityEpisodeId: episode.id,
+      availabilityEpisodeStartedAt: episode.startedAt,
+      availabilityEpisodeKind: episode.kind,
+      availabilityEpisodeAvailable: episode.available,
+    });
   }
   return index;
 }
@@ -1125,9 +1302,9 @@ function publicDisplaySortTimestamp(signal, freshnessIndex) {
   return freshness?.eventAt || freshness?.firstSeenAt || signal.observedAt || signal.fetchedAt || freshness?.lastConfirmedAt || '';
 }
 
-export function buildDrops(signals, bible, currentSignals = []) {
+export function buildDrops(signals, bible, currentSignals = [], previousDrops = [], availabilityHistory = signals) {
   const seenSourceIds = new Set();
-  const freshnessIndex = buildFreshnessIndex(signals, currentSignals);
+  const freshnessIndex = buildFreshnessIndex(signals, currentSignals, previousDrops, availabilityHistory);
   const currentKeys = new Set(currentSignals.map(signalFreshnessKey));
   const currentGeorgiaRetailerKeys = new Set((currentSignals || [])
     .filter(isGeorgiaRetailerProjectionSignal)
@@ -1725,8 +1902,10 @@ export function buildCurrentInventoryAlertsFromDrops(drops) {
         && drop.inventorySemantics === 'binary_retailer_orderable_no_exact_count'
         && Number(drop.quantity || 0) === 0
       );
+      const episodeIdentity = drop.availabilityEpisodeId ? `availability-episode:${drop.availabilityEpisodeId}` : null;
+      const legacyIdentityParts = ['current_inventory_alert', drop.state, drop.canonicalId || drop.bottleName, drop.storeId || drop.locationName, drop.availabilityStatus || '', drop.quantity || 0];
       return ({
-      id: stableId(['current_inventory_alert', drop.id || drop.state, drop.canonicalId || drop.bottleName, drop.storeId || drop.locationName, drop.quantity || 0, drop.availabilityStatus || '']),
+      id: episodeIdentity ? stableId(['current_inventory_alert', episodeIdentity]) : stableId(['current_inventory_alert', drop.id || drop.state, drop.canonicalId || drop.bottleName, drop.storeId || drop.locationName, drop.quantity || 0, drop.availabilityStatus || '']),
       action: 'inventory_alert_candidate',
       score: drop.tier === 'unicorn' ? 150 : drop.tier === 'allocated' ? 135 : 112,
       reliabilityScore: drop.tier === 'unicorn' ? 92 : drop.tier === 'allocated' ? 88 : 82,
@@ -1743,7 +1922,12 @@ export function buildCurrentInventoryAlertsFromDrops(drops) {
       freshnessHours: Number(dropAgeHours(drop).toFixed(2)),
       bootstrap: false,
       changeType: 'current_inventory_signal',
-      dedupeKey: stableId(['current_inventory_alert', drop.state, drop.canonicalId || drop.bottleName, drop.storeId || drop.locationName, drop.availabilityStatus || '', drop.quantity || 0]),
+      availabilityEpisodeId: drop.availabilityEpisodeId || null,
+      availabilityEpisodeStartedAt: drop.availabilityEpisodeStartedAt || null,
+      availabilityEpisodeKind: drop.availabilityEpisodeKind || null,
+      eventIdentityKey: episodeIdentity,
+      dedupeKey: episodeIdentity ? stableId(['current_inventory_alert', episodeIdentity]) : stableId(legacyIdentityParts),
+      legacyDedupeKey: episodeIdentity ? stableId(legacyIdentityParts) : null,
       matchKey: stableId([drop.state, drop.canonicalId || drop.bottleName, drop.storeId || drop.locationName || 'regional']),
       gates: ['current_public_drop', 'store_level', southCarolinaInStoreBaseline || southCarolinaCityHiveBinaryBaseline
         ? 'verified_binary_in_store_availability'
@@ -2066,15 +2250,15 @@ async function main() {
   const bottles = buildBottles(signals, bible, biblePayload.records || []);
   const currentStores = buildStores(signals);
   const currentLocations = buildLocationBible(signals, activeOfficialLocations);
+  const previousDrops = await readJson(path.join(PREVIOUS_SITE_OUT, 'drops.json'), []);
   const currentWvLocationIds = new Set(currentLocations
     .filter((location) => String(location?.state || location?.state_code || '').toUpperCase() === 'WV'
       && (location?.type === 'store' || location?.locationType === 'store'))
     .map((location) => String(location.id)));
-  const candidateDrops = buildDrops(historicalSignals, bible, signals);
-  const currentDrops = buildDrops(signals, bible, signals);
+  const candidateDrops = buildDrops(historicalSignals, bible, signals, previousDrops);
+  const currentDrops = buildDrops(signals, bible, signals, previousDrops, historicalSignals);
   const previousLocations = await readJson(path.join(PREVIOUS_SITE_OUT, 'locations.json'), []);
   const previousStores = await readJson(path.join(PREVIOUS_SITE_OUT, 'stores.json'), []);
-  const previousDrops = await readJson(path.join(PREVIOUS_SITE_OUT, 'drops.json'), []);
   const previousEvents = await readJson(path.join(PREVIOUS_SITE_OUT, 'events.json'), []);
   const bootstrapDrops = await readJson(path.join(OUT, 'historical-bootstrap', 'drops.json'), []);
   const previousStateQuality = await readJson(path.join(PREVIOUS_SITE_OUT, 'state-quality.json'), null);

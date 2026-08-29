@@ -1,5 +1,7 @@
 import type { MemberSighting, SightingReviewState } from "@/lib/sightings";
 
+export const SIGHTING_DUPLICATE_WINDOW_MS = 15 * 60 * 1000;
+
 export function sanitizeManualSightingField(value: unknown, maxLength = 180) {
   return String(value || "")
     .replace(/[\r\n\t]+/g, " ")
@@ -39,11 +41,32 @@ export function sightingDuplicateKey(sighting: Pick<MemberSighting, "bottleName"
 export function isLikelyDuplicateSighting(
   existing: Pick<MemberSighting, "bottleName" | "bottleId" | "storeName" | "storeId" | "createdAt">,
   next: Pick<MemberSighting, "bottleName" | "bottleId" | "storeName" | "storeId" | "createdAt">,
-  windowMs = 15 * 60 * 1000
+  windowMs = SIGHTING_DUPLICATE_WINDOW_MS
 ) {
   if (sightingDuplicateKey(existing) !== sightingDuplicateKey(next)) return false;
   const existingTime = +new Date(existing.createdAt);
   const nextTime = +new Date(next.createdAt);
   if (!Number.isFinite(existingTime) || !Number.isFinite(nextTime)) return true;
   return Math.abs(nextTime - existingTime) <= windowMs;
+}
+
+export function isSameReporterCanonicalDuplicateSighting(
+  existing: Pick<MemberSighting, "reporterUserId" | "bottleId" | "storeId" | "createdAt">,
+  next: Pick<MemberSighting, "reporterUserId" | "bottleId" | "storeId" | "createdAt">,
+  windowMs = SIGHTING_DUPLICATE_WINDOW_MS,
+) {
+  const existingReporter = String(existing.reporterUserId || "").trim();
+  const nextReporter = String(next.reporterUserId || "").trim();
+  const existingBottle = String(existing.bottleId || "").trim();
+  const nextBottle = String(next.bottleId || "").trim();
+  const existingStore = String(existing.storeId || "").trim();
+  const nextStore = String(next.storeId || "").trim();
+  if (!existingReporter || existingReporter !== nextReporter) return false;
+  if (!existingBottle || existingBottle !== nextBottle) return false;
+  if (!existingStore || existingStore !== nextStore) return false;
+  const existingTime = Date.parse(existing.createdAt);
+  const nextTime = Date.parse(next.createdAt);
+  return Number.isFinite(existingTime)
+    && Number.isFinite(nextTime)
+    && Math.abs(nextTime - existingTime) <= windowMs;
 }

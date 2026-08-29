@@ -84,7 +84,7 @@ test('persisted backup requires a local signature from a separate authentication
   assert.deepEqual(decryptEnvelope(verifyPersistedArtifact(artifact, authentication.publicKey), encryption.privateKey), payload);
   assert.throws(() => verifyPersistedArtifact(artifact, keyPair().publicKey), /signature/);
   assert.throws(() => decryptEnvelope(envelope, keyPair().privateKey));
-  const tamperedCiphertext = `${artifact.ciphertext.slice(0, -1)}${artifact.ciphertext.endsWith('A') ? 'B' : 'A'}`;
+  const tamperedCiphertext = `${artifact.ciphertext.startsWith('A') ? 'B' : 'A'}${artifact.ciphertext.slice(1)}`;
   assert.throws(() => verifyPersistedArtifact({ ...artifact, ciphertext: tamperedCiphertext }, authentication.publicKey), /signature/);
   assert.throws(() => decryptEnvelope({ ...envelope, ciphertext: tamperedCiphertext }, encryption.privateKey));
 });

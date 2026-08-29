@@ -35,8 +35,9 @@ WTlx7v0tH1M33PxeSwMiG5DinWEqRvOVSGL3dKYueoy2Oo+eppaZyM3jd4CRGNL7
 -----END PUBLIC KEY-----`;
 
 const BASE_REQUIRED_TABLES = [
-  "bottle_contributions", "bourbon_recommendation_feedback", "community_sighting_votes", "community_sightings",
-  "coverage_request_automation_jobs", "coverage_requests", "founder_glass_shipping", "member_collection_bottles",
+  "bottle_contributions", "bourbon_recommendation_feedback", "community_contributor_moderation",
+  "community_sighting_alert_authority", "community_sighting_votes", "community_sightings",
+  "coverage_request_automation_jobs", "coverage_requests", "founder_glass_shipping", "hunt_outcomes", "member_collection_bottles",
   "member_collection_legacy_backups", "member_collection_state", "member_referral_codes",
   "member_referral_eligibility_events", "member_referral_glass_rewards", "member_referral_point_ledger",
   "member_referrals", "retailer_applications", "retailer_stores", "retailer_submissions",

@@ -99,6 +99,8 @@ export type BottleCheckTrackContext = {
   currentAlertAreaCount?: number;
   requestedNewAreaCount?: number;
   alreadyTracked?: boolean;
+  collectionBottleCount?: number;
+  alreadyInCollection?: boolean;
 };
 
 export function bottleCheckActionAccess(
@@ -130,12 +132,22 @@ export function bottleCheckActionAccess(
     }
     return { allowed: true };
   }
-  if (entitlements.canUseCollection) return { allowed: true };
+  if (context.alreadyInCollection) return { allowed: true };
+  if (!entitlements.canUseCollection) {
+    return {
+      allowed: false,
+      requiredTier: "Standard Proof",
+      title: "Cellar is unavailable",
+      description: "Refresh your membership access before changing this Cellar.",
+    };
+  }
+  if (typeof entitlements.collectionBottleLimit !== "number"
+    || (context.collectionBottleCount || 0) < entitlements.collectionBottleLimit) return { allowed: true };
   return {
     allowed: false,
-    requiredTier: "Barrel Proof",
-    title: "Upgrade membership to add this bottle to your collection",
-    description: "Barrel Proof and Founder memberships include the saved collection and taste profile.",
+    requiredTier: "Standard Proof",
+    title: "Your Free Cellar is full",
+    description: `Your ${entitlements.collectionBottleLimit} saved bottles remain available to view, edit, or delete. Standard Proof adds room for more.`,
   };
 }
 

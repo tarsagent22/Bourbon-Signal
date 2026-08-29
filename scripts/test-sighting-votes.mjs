@@ -1,4 +1,5 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
 
 function applyVote(existingVotes, sightingId, vote) {
   const existingVote = existingVotes.find((item) => item.sightingId === sightingId);
@@ -22,5 +23,12 @@ assert.equal(toggleOff.length, 0);
 const keepOtherVotes = applyVote([{ sightingId: 'sighting_2', kind: 'up', createdAt: 'old' }], 'sighting_1', 'up');
 assert.equal(keepOtherVotes.length, 2);
 assert.equal(keepOtherVotes.some((item) => item.sightingId === 'sighting_2'), true);
+
+const sightingsRoute = readFileSync('src/app/api/sightings/route.ts', 'utf8');
+assert.match(
+  sightingsRoute,
+  /if \(!communityVoteAllowed\(target\.reporterUserId, userId\)\)[\s\S]*status: 409/,
+  'the shared server-side voting route must reject self-votes for web and mobile callers',
+);
 
 console.log('Sighting vote toggle policy verified.');

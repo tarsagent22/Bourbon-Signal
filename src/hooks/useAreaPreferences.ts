@@ -20,6 +20,7 @@ import {
 } from "@/lib/collection-offline-store";
 
 const EMPTY_PREFS: UserAlertPreferences = {
+  collectionAccess: { canRead: true, canEditExisting: true, canAdd: true, limit: 10, remaining: 10, showCapacityNotice: false },
   areaPreferences: {
     states: [],
     ncBoards: [],

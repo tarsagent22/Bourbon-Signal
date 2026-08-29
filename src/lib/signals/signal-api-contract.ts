@@ -64,6 +64,23 @@ export interface SignalDetailResponse {
   signal: CanonicalSignal;
 }
 
+export type SignalHuntOutcome = "found_it" | "gone_when_checked" | "didnt_go";
+
+export interface SignalHuntOutcomeRecord {
+  signalId: string;
+  availabilityEpisodeId: string;
+  outcome: SignalHuntOutcome;
+  sourceType: SignalSourceType;
+  stateCode: string | null;
+  submittedAt: string;
+  updatedAt: string;
+}
+
+export interface SignalHuntOutcomeResponse {
+  contractVersion: typeof SIGNAL_API_VERSION;
+  outcome: SignalHuntOutcomeRecord | null;
+}
+
 export interface SignalMemberProfileResponse {
   contractVersion: typeof SIGNAL_API_VERSION;
   profile: {

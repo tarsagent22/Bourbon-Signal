@@ -43,6 +43,7 @@ assert.deepEqual(decodeSignalFeedCursor(legacyRarityCursor)?.filters, {
 
 const engineSignal = normalizeDropSignal({
   id: "drop-1",
+  availability_episode_id: "episode-drop-1",
   canonical_id: "bottle-1",
   canonical_name: "Example Bourbon",
   event_type: "store_inventory_result",
@@ -65,6 +66,7 @@ const engineSignal = normalizeDropSignal({
 
 assert.equal(engineSignal.contractVersion, SIGNAL_CONTRACT_VERSION);
 assert.equal(engineSignal.id, "trusted_source:drop-1");
+assert.equal(engineSignal.availabilityEpisodeId, "episode-drop-1");
 assert.equal(engineSignal.kind, "availability");
 assert.deepEqual(engineSignal.source, { type: "trusted_source", label: "Trusted source" });
 assert.deepEqual(engineSignal.bottle, { id: "bottle-1", name: "Example Bourbon" });

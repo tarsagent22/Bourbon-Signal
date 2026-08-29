@@ -6,7 +6,7 @@ _Last updated: 2026-07-05 from current `engine/out/site` exports._
 
 Bourbon Signal alerts should turn messy public/retailer/state signals into a trusted member promise:
 
-> Tell a member when a bottle worth chasing appears in a market they care about, with honest context about how actionable the signal is.
+> Tell a member when relevant bottle activity appears in a market they care about, with honest source, timing, location, and limitation context.
 
 The alert system is not just a notification pipe. It is the trust layer between source data and a member's decision to drive, buy, wait, or ignore.
 
@@ -31,7 +31,7 @@ A source is **not** alert-capable if it is only:
 - General product catalog with no availability signal
 - Historical-only data
 - Unverified scraped text
-- Member sighting data, until the sightings trust/reputation loop is ready
+- Member sighting data from a contributor who has not yet earned alert authority or is restricted; the report may still remain visible in the feed
 
 ### Stage 1 — Signal normalization
 
@@ -93,7 +93,7 @@ Hard rules:
 - Unknown freshness: no email/SMS.
 - Bootstrap/manual refresh quarantine: no email/SMS.
 - Explicit stale blocker: no delivery.
-- Member sightings: no automatic outbound alerts yet.
+- Member Sightings use an internal two-hour alert freshness window after contributor standing, exact-store, review-state, and daily allowance checks pass. The product exposes no freshness countdown.
 
 Default maximum freshness windows:
 
@@ -147,6 +147,7 @@ Default throttles:
 - email: 1/user/run, conservative global cap
 - SMS: strict cap; major/specific only
 - dedupe by candidate/channel/user for at least 24h
+- dedupe first detection and each durable unavailable-to-available episode by availability episode identity; reconfirmations and quantity changes stay in the same episode
 
 ### Stage 7 — Delivery channel policy
 
@@ -206,6 +207,10 @@ Daily alert health should report:
 - top suppressed reasons
 
 Weekly Sol-level audit should review false positives/false negatives and tune policy.
+
+### Optional Hunt Outcome evidence
+
+After an availability Signal expires, its detail may show one optional, private Hunt Outcome row: `found_it`, `gone_when_checked`, or `didnt_go`. The row is never a modal, required dismissal, dedicated push, public confirmation label, or contributor-standing input. Internal owner reporting may show aggregate totals, found-it count/rate, source type, state, and time window without member or store rankings. Public claim rendering remains disabled until an approved minimum sample rule passes and any claim says members recorded or reported the result.
 
 ---
 

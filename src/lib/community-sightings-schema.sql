@@ -42,3 +42,26 @@ CREATE TABLE IF NOT EXISTS community_sighting_votes (
   PRIMARY KEY (sighting_id, user_id)
 );
 CREATE INDEX IF NOT EXISTS community_sighting_votes_sighting_idx ON community_sighting_votes (sighting_id);
+
+CREATE TABLE IF NOT EXISTS community_contributor_moderation (
+  reporter_user_id TEXT PRIMARY KEY,
+  restriction_kind TEXT NOT NULL CHECK (restriction_kind IN ('spam', 'deception')),
+  restriction_reason TEXT NOT NULL,
+  restricted_at TIMESTAMPTZ NOT NULL,
+  restricted_by TEXT NOT NULL,
+  restoration_reason TEXT,
+  restored_at TIMESTAMPTZ,
+  restored_by TEXT,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS community_contributor_moderation_restricted_idx
+  ON community_contributor_moderation (restricted_at DESC);
+
+CREATE TABLE IF NOT EXISTS community_sighting_alert_authority (
+  sighting_id TEXT PRIMARY KEY REFERENCES community_sightings(id) ON DELETE CASCADE,
+  reporter_user_id TEXT NOT NULL,
+  report_created_at TIMESTAMPTZ NOT NULL,
+  authorized_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+CREATE INDEX IF NOT EXISTS community_sighting_alert_authority_reporter_idx
+  ON community_sighting_alert_authority (reporter_user_id, report_created_at DESC);

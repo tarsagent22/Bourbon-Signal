@@ -293,6 +293,29 @@ test("saves a partial member preference patch without placing writes in the read
   assert.deepEqual(await captured[0].json(), { collectionPreferences: { bottles: [], version: 4 } });
 });
 
+test("reads and explicitly writes the member's private Hunt Outcome", async () => {
+  const requests: Request[] = [];
+  const api = createMobileApi({
+    baseUrl: "https://example.test",
+    getToken: async () => "session-token",
+    fetcher: async (request) => {
+      const captured = new Request(request);
+      requests.push(captured);
+      return Response.json({ contractVersion: "bourbon-signal/mobile-api@1", outcome: captured.method === "PUT" ? { outcome: "found_it" } : null });
+    },
+  });
+
+  await api.getHuntOutcome("trusted_source:episode-1");
+  const saved = await api.setHuntOutcome("trusted_source:episode-1", "found_it");
+
+  assert.equal(new URL(requests[0].url).pathname, "/api/v1/signals/trusted_source%3Aepisode-1/outcome");
+  assert.equal(requests[0].method, "GET");
+  assert.equal(requests[1].method, "PUT");
+  assert.deepEqual(await requests[1].json(), { outcome: "found_it" });
+  assert.equal(saved.outcome?.outcome, "found_it");
+  assert.ok(requests.every((request) => request.headers.get("authorization") === "Bearer session-token"));
+});
+
 test("invalidates the cached preference read after a successful write", async () => {
   const requests: Request[] = [];
   const api = createMobileApi({

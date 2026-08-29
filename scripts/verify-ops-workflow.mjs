@@ -340,7 +340,7 @@ for (const phrase of ['canUseDropFeedFilters', 'canUseStateFilter', 'canUseBottl
   if (!dropFeed.includes(phrase)) fail(`Drop Feed should gate filter/search/sighting affordances with ${phrase}.`);
 }
 const dashboardPage = read('src/app/dashboard/page.tsx');
-for (const phrase of ['canAccessDashboard', 'canUseCollection', 'canUseRecommendations', 'canReceiveSightingsAlerts', 'canUseAdvancedFilters']) {
+for (const phrase of ['canAccessDashboard', 'getCellarAccessPolicy', 'canUseRecommendations', 'canReceiveSightingsAlerts', 'canUseAdvancedFilters']) {
   if (!dashboardPage.includes(phrase)) fail(`Dashboard should gate tier-specific access with ${phrase}.`);
 }
 const bottleCheckPage = read('src/app/bottle-check/page.tsx');

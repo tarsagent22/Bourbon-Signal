@@ -51,7 +51,13 @@ function isScheduledReleaseSignal(drop: Record<string, unknown>) {
   return /scheduled release|limited release/.test(label) && /not live shelf inventory|release intelligence/.test(caveat);
 }
 
+export function dropAvailabilityEpisodeIdentity(drop: Record<string, unknown>) {
+  return firstText(drop.availability_episode_id, drop.availabilityEpisodeId);
+}
+
 function stableDropIdentity(drop: Record<string, unknown>) {
+  const availabilityEpisodeId = dropAvailabilityEpisodeIdentity(drop);
+  if (availabilityEpisodeId) return `availability-episode|${availabilityEpisodeId}`;
   return [
     drop.id,
     drop.signal_id,

@@ -3,6 +3,7 @@ import {
   buildRecommendationFeedbackModel,
   normalizeRecommendationFeedbackEntries,
   recommendationReadiness,
+  recommendationEvidenceSummary,
   rankRecommendationCandidates,
   scoreMarketSignals,
 } from '../src/lib/bourbon-recommendations.ts';
@@ -173,5 +174,13 @@ const reorderedDiversity = rankRecommendationCandidates([
   },
 ], buildRecommendationFeedbackModel([]), { limit: 3, now });
 assert.notEqual(reorderedDiversity[0]?.producer, reorderedDiversity[1]?.producer, 'best-match reordering preserves top-card producer diversity');
+
+assert.equal(recommendationEvidenceSummary({
+  matchedTags: ['Caramel', 'Oak', 'Cherry'],
+  mashBillFamily: 'wheated bourbon',
+  proofRange: { min: 95, max: 110 },
+  priorRating: 91,
+}), 'Caramel and Oak cues · wheated bourbon affinity · 95-110 proof preference · prior rating 9.1', 'DNA evidence stays concise and factual');
+assert.equal(recommendationEvidenceSummary({ matchedTags: [], localSignalCount: 2 }), '2 recent local signals', 'local opportunity evidence is distinct from taste fit');
 
 console.log('bourbon recommendation tests passed');

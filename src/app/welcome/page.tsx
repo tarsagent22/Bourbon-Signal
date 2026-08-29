@@ -922,6 +922,7 @@ export default function WelcomePage() {
                     <div>
                       <h2 id="membership-next-step-heading">Try Barrel Proof free for 7 days</h2>
                       <span>$6/month after 7 days</span>
+                      <p>Build your Bourbon DNA with personalized collection intelligence.</p>
                     </div>
                     <Link href="/checkout/continue?plan=barrel_monthly&source=welcome-trial&trialOffer=1&registration=1">
                       Start 7-day free trial<ArrowUpRight size={16} aria-hidden="true" />

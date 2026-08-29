@@ -36,6 +36,14 @@ test("repeated snapshots with the same state identity do not reopen a match", ()
   assert.deepEqual(selectUnseenUnderlyingAlertChildren(repeated, new Set([stableUnderlyingAlertKey(a)])), []);
 });
 
+test("an availability episode stays stable across quantity and confirmation metadata", () => {
+  const first = { ...a, availabilityEpisodeId: "episode-one", dedupeKey: "match-a|qty-1", quantity: 1 };
+  const reconfirmed = { ...first, dedupeKey: "match-a|qty-12", quantity: 12, signalAt: "2026-08-25T18:30:00.000Z" };
+  assert.equal(stableUnderlyingAlertKey(first), "availability-episode:episode-one");
+  assert.equal(stableUnderlyingAlertKey(reconfirmed), stableUnderlyingAlertKey(first));
+  assert.deepEqual(selectUnseenUnderlyingAlertChildren(reconfirmed, new Set([stableUnderlyingAlertKey(first)])), []);
+});
+
 test("a meaningful changed-signal event receives a distinct occurrence identity", () => {
   const changed = {
     ...a,

@@ -1,10 +1,10 @@
 import { neon } from "@neondatabase/serverless";
-import { runtimeNeonConnectionString } from "./neon-runtime";
+import { runtimeNeonConnectionString } from "./neon-runtime.ts";
 import {
   normalizeCollectionBottles,
   type CollectionBottlePreference,
   type MemberCollection,
-} from "./member-collection";
+} from "./member-collection.ts";
 
 export interface MemberCollectionQueryExecutor {
   query(text: string, params?: unknown[]): Promise<unknown>;
@@ -26,6 +26,18 @@ export class MemberCollectionConflictError extends Error {
     super("Your collection changed on another device. Refresh and try again.");
     this.name = "MemberCollectionConflictError";
     this.currentVersion = currentVersion;
+  }
+}
+
+export class MemberCollectionLimitError extends Error {
+  readonly limit: number;
+  readonly currentCount: number;
+
+  constructor(limit: number, currentCount: number) {
+    super("Your Free Cellar is full. Existing bottles stay available to view, edit, or delete.");
+    this.name = "MemberCollectionLimitError";
+    this.limit = limit;
+    this.currentCount = currentCount;
   }
 }
 
@@ -157,9 +169,17 @@ export class MemberCollectionRepository {
     return rows[0]?.should_migrate === true && Number(rows[0]?.entry_count || 0) === bottles.length;
   }
 
-  async replaceForUser(userId: string, entries: CollectionBottlePreference[], expectedVersion: number): Promise<MemberCollection> {
+  async replaceForUser(
+    userId: string,
+    entries: CollectionBottlePreference[],
+    expectedVersion: number,
+    options: { bottleLimit?: number | null } = {},
+  ): Promise<MemberCollection> {
     if (!userId) throw new Error("A user id is required to save a collection.");
     const bottles = normalizeCollectionBottles(entries);
+    const bottleLimit = typeof options.bottleLimit === "number" && Number.isFinite(options.bottleLimit)
+      ? Math.max(0, Math.floor(options.bottleLimit))
+      : null;
     const [, , result] = await this.database.transaction((transaction) => [
       transaction.query(USER_LOCK_SQL, [userId]),
       transaction.query(`INSERT INTO member_collection_state (user_id) VALUES ($1) ON CONFLICT (user_id) DO NOTHING`, [userId]),
@@ -168,13 +188,29 @@ export class MemberCollectionRepository {
           SELECT version FROM member_collection_state WHERE user_id = $1
         ), accepted AS (
           SELECT version FROM current_state WHERE version = $2::bigint
+        ), incoming_payload AS MATERIALIZED (
+          SELECT item FROM accepted, jsonb_array_elements($3::jsonb) AS item
+        ), current_count AS MATERIALIZED (
+          SELECT COUNT(*)::int AS value FROM member_collection_bottles WHERE user_id = $1
+        ), incoming_additions AS MATERIALIZED (
+          SELECT COUNT(*)::int AS value
+          FROM incoming_payload
+          WHERE NOT EXISTS (
+            SELECT 1 FROM member_collection_bottles AS existing
+            WHERE existing.user_id = $1 AND existing.canonical_key = item->>'canonicalKey'
+          )
+        ), permitted AS (
+          SELECT accepted.version FROM accepted, current_count, incoming_additions
+          WHERE $4::int IS NULL
+            OR incoming_additions.value = 0
+            OR current_count.value + incoming_additions.value <= $4::int
         ), next_version AS (
           UPDATE member_collection_state
           SET version = member_collection_state.version + 1, updated_at = NOW()
-          WHERE user_id = $1 AND EXISTS (SELECT 1 FROM accepted)
+          WHERE user_id = $1 AND EXISTS (SELECT 1 FROM permitted)
           RETURNING version
         ), incoming AS (
-          SELECT item FROM next_version, jsonb_array_elements($3::jsonb) AS item
+          SELECT item FROM next_version, incoming_payload
         ), removed AS (
           DELETE FROM member_collection_bottles AS bottles
           WHERE bottles.user_id = $1 AND EXISTS (SELECT 1 FROM next_version)
@@ -205,12 +241,20 @@ export class MemberCollectionRepository {
             updated_at = EXCLUDED.updated_at
           RETURNING 1
         )
-        SELECT CASE WHEN EXISTS(SELECT 1 FROM next_version) THEN 'saved' ELSE 'conflict' END AS outcome,
-          COALESCE((SELECT version FROM next_version), (SELECT version FROM current_state), 0) AS version
-      `, [userId, expectedVersion, JSON.stringify(bottles)]),
+        SELECT CASE
+            WHEN EXISTS(SELECT 1 FROM next_version) THEN 'saved'
+            WHEN NOT EXISTS(SELECT 1 FROM accepted) THEN 'conflict'
+            ELSE 'collection_limit'
+          END AS outcome,
+          COALESCE((SELECT version FROM next_version), (SELECT version FROM current_state), 0) AS version,
+          COALESCE((SELECT value FROM current_count), 0) AS current_count
+      `, [userId, expectedVersion, JSON.stringify(bottles), bottleLimit]),
     ], { isolationLevel: "ReadCommitted" });
-    const row = (result as Array<{ outcome?: unknown; version?: unknown }>)[0];
+    const row = (result as Array<{ outcome?: unknown; version?: unknown; current_count?: unknown }>)[0];
     const version = Number(row?.version || 0);
+    if (row?.outcome === "collection_limit") {
+      throw new MemberCollectionLimitError(bottleLimit || 0, Number(row.current_count || 0));
+    }
     if (row?.outcome !== "saved") throw new MemberCollectionConflictError(version);
     return { version, bottles };
   }

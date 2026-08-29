@@ -1,6 +1,11 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { alertFreshnessIsDeliverable, evaluateAlertSnapshotSafety, resolveAlertFreshnessCapHours, resolveAlertSnapshotMaxAgeMinutes, signalFreshnessHoursAt } from '../src/lib/alert-run-safety.ts';
+import { COMMUNITY_ALERT_FRESHNESS_HOURS } from '../src/lib/community-alert-candidates.ts';
+
+test('community candidate discovery retains its two-hour internal freshness window', () => {
+  assert.equal(COMMUNITY_ALERT_FRESHNESS_HOURS, 2);
+});
 
 test('stale export blocks delivery even when embedded candidate freshness is low', () => {
   const result = evaluateAlertSnapshotSafety({

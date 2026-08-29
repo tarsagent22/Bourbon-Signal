@@ -1,8 +1,11 @@
 import { getActiveEngineStateName } from "@/lib/activeStates";
 import { dropDisplayTime } from "@/lib/drop-feed-policy";
 import { getScheduledReleaseSignalCopy, isScheduledReleaseSignal } from "@/lib/scheduled-release-signals";
+import { normalizeDropSignal, type SignalKind } from "@/lib/signals/signal-contract";
 
 export interface DropEvent {
+  id?: string;
+  eventId?: string;
   timestamp: string;
   event_type: string;
   bottle_id?: string;
@@ -98,6 +101,8 @@ export interface GroupedDrop {
   quantity_in_stock?: number;
   state?: string;
   id: string;
+  signalId?: string;
+  signalKind?: SignalKind;
   signalLabel?: string;
   confidenceTier?: "exact_store" | "online_positive" | "listing_only" | string;
   availabilityScope?: "exact" | "page" | "online" | string;
@@ -379,6 +384,7 @@ export function groupDrops(drops: DropEvent[], limit: number = 20): GroupedDrop[
     const bucket = Math.floor(ts / SIX_HOURS);
     const groupState = String(event.classification_state || event.state || event.state_code || "unknown").trim().toUpperCase();
     const groupKey = `${displayName.toLowerCase()}|${event.event_type}|${groupState}|${bucket}`;
+    const canonicalSignal = normalizeDropSignal(event as unknown as Record<string, unknown>);
 
     const existing = groups.get(groupKey);
     const locations = getLocation(event);
@@ -394,6 +400,8 @@ export function groupDrops(drops: DropEvent[], limit: number = 20): GroupedDrop[
       }
       if (event.timestamp > existing.timestamp) {
         existing.timestamp = event.timestamp;
+        existing.signalId = canonicalSignal.id;
+        existing.signalKind = canonicalSignal.kind;
       }
       if (event.quantity_shipped) {
         existing.quantity_shipped = (existing.quantity_shipped || 0) + event.quantity_shipped;
@@ -477,6 +485,8 @@ export function groupDrops(drops: DropEvent[], limit: number = 20): GroupedDrop[
         quantity_in_stock: event.quantity_in_stock,
         state: event.state || event.state_code,
         id: groupKey,
+        signalId: canonicalSignal.id,
+        signalKind: canonicalSignal.kind,
         signalLabel: getPublicSignalLabel(event),
         confidenceTier: event.confidence_tier,
         availabilityScope: customerFacingAvailabilityScope(event),

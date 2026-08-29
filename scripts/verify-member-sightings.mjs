@@ -94,7 +94,7 @@ if (dashboard.includes('View all matches')) fail('Dashboard should use one plain
 if (dashboard.includes('personal-signal-brief')) fail('Dashboard should not repeat radar totals in a second statistics strip.');
 
 const adminSightings = read('src/app/admin/sightings/AdminSightingsClient.tsx');
-for (const phrase of ['Approve & publish', 'Approve, keep photo private', 'pendingReview', 'Approved and published', 'navigator.vibrate', 'embedded']) {
+for (const phrase of ['Approve & publish', 'Approve, keep photo private', 'pendingReview', 'Approved and published', 'navigator.vibrate', 'embedded', 'contributorModeration', 'Contributor restriction']) {
   if (!adminSightings.includes(phrase)) fail(`Admin sighting review should provide working queue feedback and embedding: ${phrase}`);
 }
 const adminSightingsRoute = read('src/app/api/admin/sightings/route.ts');

@@ -37,6 +37,7 @@ import {
   buildRecommendationFeedbackModel,
   rankRecommendationCandidates,
   recommendationReadiness,
+  recommendationEvidenceSummary,
   type RecommendationFeedbackEntry,
 } from "@/lib/bourbon-recommendations";
 import { applyTrackedRecommendation, createSerialFeedbackMutationQueue, shouldApplyFeedbackLoad, shouldRunFeedbackMutation } from "@/lib/recommendation-feedback-client";
@@ -53,6 +54,8 @@ import { NC_ABC_BOARD_OPTIONS, ncAbcBoardPreferencesMatch } from "@/lib/nc-abc-b
 import { coverageAreaOption } from "@/lib/coverage-location-aliases";
 import { BADGE_DESCRIPTIONS } from "@/lib/sighting-rewards";
 import { buildAlertSetupGuidance } from "@/lib/alert-setup-guidance";
+import { getCellarAccessPolicy } from "@/lib/cellar-access-policy";
+import { buildCellarHuntSuggestions, type CellarHuntSuggestion } from "@/lib/cellar-hunt-suggestions";
 
 const EMPTY_PREFS: AreaPreferences = {
   states: [],
@@ -728,9 +731,9 @@ function PaidMemberDashboard() {
   const canUseAdvancedFilters = entitlements.canUseAdvancedFilters;
   const alertAreaLimit = entitlements.alertAreaLimit;
   const canRefineAlertAreas = alertAreaLimit !== 0 || isFreeTier;
-  const canUseCollection = entitlements.canUseCollection;
   const canUseRecommendations = entitlements.canUseRecommendations;
   const canReceiveSightingsAlerts = entitlements.canReceiveSightingsAlerts;
+  const canWatchCellarSuggestions = entitlements.trackedBottleLimit !== 0;
   const feedbackUserId = isSignedIn ? user?.id || null : null;
   const { prefs, confirmedPrefs: confirmedAlertPrefs, loading: prefsLoading, preferenceError, savePreferences } = useAreaPreferences();
   const needsHomeStateActivation = isFreeTier && isSignedIn && !prefsLoading && !prefs.memberProfile?.homeState;
@@ -787,6 +790,7 @@ function PaidMemberDashboard() {
   const [manualCollectionBottleReady, setManualCollectionBottleReady] = useState(false);
   const [collectionRatingDrafts, setCollectionRatingDrafts] = useState<Record<string, number>>({});
   const [editingCollectionKey, setEditingCollectionKey] = useState<string | null>(null);
+  const [savingCellarHuntKey, setSavingCellarHuntKey] = useState("");
   const [dnaFeedbackState, setDnaFeedbackState] = useState<Record<string, string>>({});
   const [dnaFeedbackEntries, setDnaFeedbackEntries] = useState<RecommendationFeedbackEntry[]>([]);
   const [dnaFeedbackOwnerId, setDnaFeedbackOwnerId] = useState<string | null>(null);
@@ -873,6 +877,7 @@ function PaidMemberDashboard() {
   };
 
   const collectionEntries = prefs.collectionPreferences?.bottles ?? [];
+  const cellarAccess = getCellarAccessPolicy(entitlements, collectionEntries.length);
   const collectionKeys = useMemo(() => new Set(collectionEntries.map((entry) => entry.canonicalKey)), [collectionEntries]);
   const shouldPrepareCollection = preparedDashboardSections.has("collection") || preparedDashboardSections.has("recommendations");
   const shouldPrepareRecommendations = preparedDashboardSections.has("recommendations");
@@ -1248,9 +1253,11 @@ function PaidMemberDashboard() {
         proofMatchExplanation: item.proofMatchExplanation,
         mashBillMatch: item.mashBillMatch,
         laneLabel: recommendation.laneLabel,
-        reason: recommendation.marketScore > 0
-          ? `${item.dnaReason} Fresh signal nearby.`
-          : item.dnaReason,
+        reason: recommendationEvidenceSummary({
+          matchedTags: item.matchedFlavors,
+          mashBillFamily: item.dnaProfile.mashBillFamily,
+          proofRange: collectionTasteProfile.preferredProofRange,
+        }) || item.dnaReason,
       }];
     });
   }, [bottleOptions, broadCatalogBottleOptions, collectionEntries, collectionTasteProfile, dnaFeedbackOwnerId, dnaFeedbackStatus, feedbackUserId, localPrefs, recentDrops, recommendationFeedbackModel, selectedCanonicalKeys, shouldPrepareRecommendations]);
@@ -1352,6 +1359,14 @@ function PaidMemberDashboard() {
       .map(normalizePreferenceBottleKey)
       .filter(Boolean),
   ).size;
+  const cellarHuntSuggestions = useMemo(() => buildCellarHuntSuggestions({
+    collection: collectionEntries,
+    watchedBottleKeys: [...savedBottleIdentityKeys],
+    localSignals: recentDrops.map((drop) => ({
+      canonicalKey: canonicalBottleKey(getDisplayName(drop)),
+      observedAt: drop.timestamp || drop.observed_at || drop.event_at,
+    })),
+  }).slice(0, 3), [collectionEntries, recentDrops, savedBottleIdentityKeys]);
 
   const watchlistSignals = useMemo(() => {
     if (!mounted || savedAreaPrefs.states.length === 0) return [] as Array<{ bottle: string; location: string; timestamp: string; state: string; href: string }>;
@@ -1588,6 +1603,10 @@ function PaidMemberDashboard() {
   };
 
   const saveStagedCollectionBottle = async () => {
+    if (!cellarAccess.canAdd) {
+      setCollectionError("Your Free Cellar is full. Existing bottles stay available to edit or delete.");
+      return;
+    }
     if (selectedCollectionBottle) {
       await addCollectionBottle(selectedCollectionBottle);
       return;
@@ -1605,6 +1624,10 @@ function PaidMemberDashboard() {
     if (rawName.length < 2) return;
     if (!isSignedIn) {
       signIn();
+      return;
+    }
+    if (!cellarAccess.canAdd) {
+      setCollectionError("Your Free Cellar is full. Existing bottles stay available to edit or delete.");
       return;
     }
     setSavingCollection(true);
@@ -1664,6 +1687,10 @@ function PaidMemberDashboard() {
   };
 
   const addCollectionBottle = async (option: BottleOption) => {
+    if (!cellarAccess.canAdd && !collectionKeys.has(option.canonicalKey)) {
+      setCollectionError("Your Free Cellar is full. Existing bottles stay available to edit or delete.");
+      return;
+    }
     const now = new Date().toISOString();
     const nextEntries = [
       ...collectionEntries.filter((entry) => entry.canonicalKey !== option.canonicalKey),
@@ -1767,6 +1794,39 @@ function PaidMemberDashboard() {
       });
     } catch (error) {
       setCollectionError(error instanceof Error ? error.message : "Could not track that suggestion yet.");
+    }
+  };
+
+  const watchCellarHuntSuggestion = async (suggestion: CellarHuntSuggestion) => {
+    if (!canWatchCellarSuggestions) {
+      setCollectionError("Standard adds Radar watch actions. Your Cellar and Hunt next suggestions stay available.");
+      return;
+    }
+    if (!isSignedIn) {
+      signIn();
+      return;
+    }
+    if (prefsLoading || !confirmedAlertPrefs || preferenceError || savingCellarHuntKey) {
+      if (!savingCellarHuntKey) setCollectionError("Loading your saved preferences. Try again in a second.");
+      return;
+    }
+    setSavingCellarHuntKey(suggestion.canonicalKey);
+    setCollectionError(null);
+    try {
+      await savePreferences({
+        alertMode: "specific_bottles",
+        bottleAlertPreferences: {
+          bottleNames: Array.from(new Set([...confirmedAlertPrefs.bottleAlertPreferences.bottleNames, suggestion.bottleName])),
+          bottleKeys: Array.from(new Set([...confirmedAlertPrefs.bottleAlertPreferences.bottleKeys, suggestion.canonicalKey])),
+        },
+      });
+      setAlertMode("specific_bottles");
+      const matchingOption = alertBottleLibraryOptions.find((option) => option.canonicalKey === suggestion.canonicalKey);
+      if (matchingOption) addBottleOption(matchingOption);
+    } catch (error) {
+      setCollectionError(error instanceof Error ? error.message : "Could not watch that bottle yet.");
+    } finally {
+      setSavingCellarHuntKey("");
     }
   };
 
@@ -2171,9 +2231,9 @@ function PaidMemberDashboard() {
           : `${dashboardAlertModeSummary} · ${dashboardDeliverySummary}.`,
       status: dashboardPreferencesUnavailable || dashboardPreferencesPending ? null : dashboardMarketSummary,
     },
-    { key: "collection", label: "My Collection", eyebrow: "Taste profile", summary: collectionEntries.length ? `${collectionEntries.length} saved bottle${collectionEntries.length === 1 ? " is" : "s are"} shaping your recommendations.` : "Save bottles you own or have tasted to improve your recommendations.", status: canUseCollection ? (prefsLoading ? "Loading" : `${collectionEntries.length} saved`) : "Demo" },
-    { key: "recommendations", label: "Bottle Recommendations", eyebrow: "Based on your taste", summary: "Bottle ideas shaped by your ratings and fresh local signals.", status: canUseRecommendations ? (!collectionEntries.length ? "Needs ratings" : preparedDashboardSections.has("recommendations") && collectionRecommendationInsights.length ? `${collectionRecommendationInsights.length} ideas` : "View ideas") : "Demo" },
-  ]), [canUseCollection, canUseRecommendations, collectionEntries.length, collectionRecommendationInsights.length, dashboardAlertModeSummary, dashboardDeliverySummary, dashboardMarketSummary, dashboardPreferencesPending, dashboardPreferencesUnavailable, prefsLoading, preparedDashboardSections]);
+    { key: "collection", label: "My Collection", eyebrow: "Taste profile", summary: collectionEntries.length ? `${collectionEntries.length} saved bottle${collectionEntries.length === 1 ? " is" : "s are"} keeping your tasting history together.` : "Save bottles you own or have tasted in one private place.", status: prefsLoading ? "Loading" : `${collectionEntries.length} saved` },
+    ...(canUseRecommendations ? [{ key: "recommendations" as const, label: "Your Bourbon DNA", eyebrow: "Barrel collection intelligence", summary: "Taste-fit recommendations with local opportunities kept clearly labeled.", status: !collectionEntries.length ? "Needs ratings" : preparedDashboardSections.has("recommendations") && collectionRecommendationInsights.length ? `${collectionRecommendationInsights.length} ideas` : "View DNA" }] : []),
+  ]), [canUseRecommendations, collectionEntries.length, collectionRecommendationInsights.length, dashboardAlertModeSummary, dashboardDeliverySummary, dashboardMarketSummary, dashboardPreferencesPending, dashboardPreferencesUnavailable, prefsLoading, preparedDashboardSections]);
 
   const prepareDashboardSection = (section: DashboardSection) => {
     if (section === "alerts") return;
@@ -3247,21 +3307,7 @@ function PaidMemberDashboard() {
 
           {renderSectionButton("collection")}
 
-          {activeDashboardSection === "collection" && !canUseCollection ? (
-          <StepShell
-            step="Collection"
-            title="My Collection demo"
-            subtitle="Free access can view this surface. Upgrade to save bottles you own or have tasted, ratings, notes, and taste cues."
-            hideHeader
-            attached
-          >
-            <div className="dashboard-loading-panel">
-              <strong>Upgrade to use My Collection</strong>
-              <span>Free accounts can view this demo, but saving bottles and ratings starts with Barrel Proof or Bottled in Bond.</span>
-              <a href="/pricing" style={{ justifySelf: "center", marginTop: 4, borderRadius: 999, padding: "10px 14px", background: "linear-gradient(135deg, #C4943A, #E8C97A)", color: "#0D0B07", fontFamily: "var(--font-dm-sans)", fontWeight: 900, textDecoration: "none" }}>Upgrade to use</a>
-            </div>
-          </StepShell>
-          ) : activeDashboardSection === "collection" && canUseCollection && !preparedDashboardSections.has("collection") ? (
+          {activeDashboardSection === "collection" && !preparedDashboardSections.has("collection") ? (
           <StepShell
             step="Collection"
             title="My Collection"
@@ -3274,7 +3320,7 @@ function PaidMemberDashboard() {
               <span>We’re pulling your saved bottles and taste profile without blocking the dashboard.</span>
             </div>
           </StepShell>
-          ) : activeDashboardSection === "collection" && canUseCollection ? (
+          ) : activeDashboardSection === "collection" ? (
           <StepShell
             step="Collection"
             title="My Collection"
@@ -3283,9 +3329,28 @@ function PaidMemberDashboard() {
             attached
           >
             <div id="my-collection" style={{ display: "grid", gap: "18px" }}>
+              {cellarAccess.showCapacityNotice ? (
+                <div role="status" style={{ borderRadius: "14px", border: "1px solid rgba(196,148,58,0.20)", background: "rgba(196,148,58,0.07)", padding: "12px 14px", display: "grid", gap: "4px" }}>
+                  <strong style={{ fontFamily: "var(--font-dm-sans)", color: "var(--color-cream)", fontSize: "13px" }}>
+                    {cellarAccess.limit !== null && collectionEntries.length > cellarAccess.limit
+                      ? "Existing bottles stay available."
+                      : cellarAccess.remaining === 0
+                        ? "Your Free Cellar is full."
+                        : `${cellarAccess.remaining} spaces left in your Free Cellar.`}
+                  </strong>
+                  <span style={{ fontFamily: "var(--font-dm-sans)", color: "var(--color-text-secondary)", fontSize: "12px", lineHeight: 1.5 }}>
+                    {cellarAccess.limit !== null && collectionEntries.length > cellarAccess.limit
+                      ? "You can keep viewing, editing, or deleting every bottle. Standard adds room for new bottles."
+                      : cellarAccess.remaining === 0
+                        ? "Keep managing every saved bottle here. Standard adds room for new bottles."
+                        : "Capacity stays out of the way until you are close to full."}
+                  </span>
+                </div>
+              ) : null}
               <div style={{ display: "grid", gap: "14px" }}>
                 <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: "12px", position: "relative", zIndex: 30 }}>
                   <input
+                    disabled={!cellarAccess.canAdd}
                     value={collectionBottleQuery}
                     onChange={(event) => {
                       setCollectionBottleQuery(event.target.value);
@@ -3302,7 +3367,7 @@ function PaidMemberDashboard() {
                           key={option.canonicalKey}
                           type="button"
                           onClick={() => stageCollectionBottle(option)}
-                          disabled={savingCollection}
+                          disabled={savingCollection || !cellarAccess.canAdd}
                           style={{ width: "100%", textAlign: "left", padding: "12px 13px", borderRadius: "12px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.035)", color: "var(--color-cream)", cursor: savingCollection ? "progress" : "pointer", fontFamily: "var(--font-dm-sans)" }}
                         >
                           <strong>{option.label}</strong>
@@ -3314,7 +3379,7 @@ function PaidMemberDashboard() {
                       <button
                         type="button"
                         onClick={() => { setSelectedCollectionBottle(null); setManualCollectionBottleReady(true); setCollectionError(null); setCollectionBibleSuggestions([]); }}
-                        disabled={savingCollection}
+                        disabled={savingCollection || !cellarAccess.canAdd}
                         style={{ width: "100%", textAlign: "left", padding: "12px 13px", borderRadius: "12px", border: "1px solid rgba(196,148,58,0.30)", background: "rgba(196,148,58,0.10)", color: "var(--color-cream)", cursor: savingCollection ? "progress" : "pointer", fontFamily: "var(--font-dm-sans)" }}
                       >
                         <strong>Can’t find it? Add “{collectionBottleQuery.trim()}”</strong>
@@ -3392,13 +3457,13 @@ function PaidMemberDashboard() {
                 <button
                   type="button"
                   onClick={saveStagedCollectionBottle}
-                  disabled={savingCollection || (!selectedCollectionBottle && !manualCollectionBottleReady)}
+                  disabled={savingCollection || !cellarAccess.canAdd || (!selectedCollectionBottle && !manualCollectionBottleReady)}
                   style={{ border: "1px solid rgba(196,148,58,0.30)", borderRadius: "14px", background: (selectedCollectionBottle || manualCollectionBottleReady) ? "linear-gradient(135deg, #C4943A 0%, #D4A44A 100%)" : "rgba(255,255,255,0.045)", color: (selectedCollectionBottle || manualCollectionBottleReady) ? "#0D0B07" : "var(--color-text-tertiary)", padding: "13px 16px", fontFamily: "var(--font-dm-sans)", fontSize: "14px", fontWeight: 800, cursor: savingCollection ? "progress" : (selectedCollectionBottle || manualCollectionBottleReady) ? "pointer" : "not-allowed", opacity: savingCollection ? 0.75 : 1 }}
                 >
                   {savingCollection ? "Saving bottle…" : selectedCollectionBottle ? "Save bottle to collection" : manualCollectionBottleReady ? "Save new bottle to collection" : "Select or add a bottle to save"}
                 </button>
                 <p style={{ margin: "-4px 0 0", fontFamily: "var(--font-dm-sans)", color: "var(--color-text-tertiary)", fontSize: "12px", lineHeight: 1.5 }}>
-                  Every rating sharpens your recommendations.
+                  Ratings and notes keep your tasting history useful.
                 </p>
               </div>
 
@@ -3441,9 +3506,31 @@ function PaidMemberDashboard() {
                 </div>
               ) : (
                 <div style={{ borderRadius: "18px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.03)", padding: "18px", fontFamily: "var(--font-dm-sans)", color: "var(--color-text-secondary)", lineHeight: 1.8 }}>
-                  Your collection is empty. Add a few bottles you own or have tasted and rate highly; Barrel Proof recommendations will start from those signals.
+                  Your collection is empty. Add bottles you own or have tasted to keep your tasting history in one place.
                 </div>
               )}
+
+              {cellarHuntSuggestions.length > 0 ? (
+                <section aria-labelledby="cellar-hunt-next-title" style={{ borderRadius: "16px", border: "1px solid rgba(196,148,58,0.18)", background: "rgba(196,148,58,0.045)", padding: "14px", display: "grid", gap: "10px" }}>
+                  <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: "10px" }}>
+                    <h3 id="cellar-hunt-next-title" style={{ margin: 0, color: "var(--color-cream)", fontFamily: "var(--font-playfair)", fontSize: "19px" }}>Hunt next</h3>
+                    <span style={{ color: "var(--color-text-tertiary)", fontFamily: "var(--font-jetbrains)", fontSize: "9px", letterSpacing: "0.08em", textTransform: "uppercase" }}>From your Cellar</span>
+                  </div>
+                  {cellarHuntSuggestions.map((suggestion) => (
+                    <div key={suggestion.canonicalKey} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", borderTop: "1px solid rgba(255,255,255,0.07)", paddingTop: "10px", flexWrap: "wrap" }}>
+                      <div style={{ flex: "1 1 220px", minWidth: 0 }}>
+                        <strong style={{ display: "block", color: "var(--color-cream)", fontFamily: "var(--font-dm-sans)", fontSize: "13px" }}>{suggestion.bottleName}</strong>
+                        <span style={{ display: "block", marginTop: 3, color: "var(--color-text-tertiary)", fontFamily: "var(--font-dm-sans)", fontSize: "11px", lineHeight: 1.5 }}>{suggestion.reason}</span>
+                      </div>
+                      {canWatchCellarSuggestions ? <button type="button" disabled={Boolean(savingCellarHuntKey)} onClick={() => void watchCellarHuntSuggestion(suggestion)} style={{ minHeight: 40, border: "1px solid rgba(196,148,58,0.30)", borderRadius: "999px", background: "rgba(196,148,58,0.10)", color: "var(--color-accent-amber)", padding: "8px 11px", cursor: savingCellarHuntKey ? "progress" : "pointer", fontFamily: "var(--font-dm-sans)", fontSize: "11px", fontWeight: 850 }}>
+                        {savingCellarHuntKey === suggestion.canonicalKey ? "Saving…" : "Watch for another"}
+                      </button> : <a href="/pricing" style={{ color: "var(--color-accent-amber)", fontFamily: "var(--font-dm-sans)", fontSize: "11px", fontWeight: 800 }}>Upgrade to watch</a>}
+                    </div>
+                  ))}
+                </section>
+              ) : null}
+
+              {!canUseRecommendations ? <p style={{ margin: 0, color: "var(--color-text-tertiary)", fontFamily: "var(--font-dm-sans)", fontSize: "11px", lineHeight: 1.5 }}>Barrel Proof adds Bourbon DNA and personalized collection intelligence. Your basic Cellar remains available here without a demo widget.</p> : null}
 
               {collectionError ? <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "#D77A61" }}>{collectionError}</p> : null}
               {savedCollection ? <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "#9AD4B1" }}>{collectionSyncPending ? "Saved on this device; sync pending." : "Collection saved."}</p> : null}
@@ -3451,26 +3538,12 @@ function PaidMemberDashboard() {
           </StepShell>
           ) : null}
 
-          {renderSectionButton("recommendations")}
+          {canUseRecommendations ? renderSectionButton("recommendations") : null}
 
-          {activeDashboardSection === "recommendations" && !canUseRecommendations ? (
+          {activeDashboardSection === "recommendations" && canUseRecommendations && !preparedDashboardSections.has("recommendations") ? (
           <StepShell
-            step="Recommendations"
-            title="Recommended bottles demo"
-            subtitle="Free access can view this surface. Upgrade to generate recommendations from your saved bottles and local signals."
-            hideHeader
-            attached
-          >
-            <div className="dashboard-loading-panel">
-              <strong>Upgrade to use recommendations</strong>
-              <span>Free accounts can view this demo, but personalized recommendations start with Barrel Proof or Bottled in Bond.</span>
-              <a href="/pricing" style={{ justifySelf: "center", marginTop: 4, borderRadius: 999, padding: "10px 14px", background: "linear-gradient(135deg, #C4943A, #E8C97A)", color: "#0D0B07", fontFamily: "var(--font-dm-sans)", fontWeight: 900, textDecoration: "none" }}>Upgrade to use</a>
-            </div>
-          </StepShell>
-          ) : activeDashboardSection === "recommendations" && canUseRecommendations && !preparedDashboardSections.has("recommendations") ? (
-          <StepShell
-            step="Recommendations"
-            title="Recommended bottles"
+            step="Your Bourbon DNA"
+            title="Your Bourbon DNA"
             subtitle="Loading your bottle matches…"
             hideHeader
             attached
@@ -3482,8 +3555,8 @@ function PaidMemberDashboard() {
           </StepShell>
           ) : activeDashboardSection === "recommendations" && canUseRecommendations && (dnaFeedbackOwnerId !== feedbackUserId || dnaFeedbackStatus === "idle" || dnaFeedbackStatus === "loading") ? (
           <StepShell
-            step="Recommendations"
-            title="Recommended bottles"
+            step="Your Bourbon DNA"
+            title="Your Bourbon DNA"
             subtitle="Loading your hidden bottle preferences…"
             hideHeader
             attached
@@ -3495,8 +3568,8 @@ function PaidMemberDashboard() {
           </StepShell>
           ) : activeDashboardSection === "recommendations" && canUseRecommendations && dnaFeedbackStatus === "error" ? (
           <StepShell
-            step="Recommendations"
-            title="Recommended bottles"
+            step="Your Bourbon DNA"
+            title="Your Bourbon DNA"
             subtitle="Your saved bottle feedback could not be loaded."
             hideHeader
             attached
@@ -3508,9 +3581,9 @@ function PaidMemberDashboard() {
           </StepShell>
           ) : activeDashboardSection === "recommendations" && canUseRecommendations ? (
           <StepShell
-            step="Recommendations"
-            title="Recommended bottles"
-            subtitle="Personalized matches from bottles you rate, feedback you give, and fresh local signal."
+            step="Your Bourbon DNA"
+            title="Your Bourbon DNA"
+            subtitle="Taste-fit recommendations from your ratings, with local opportunities labeled separately."
             hideHeader
             attached
           >
@@ -3518,7 +3591,7 @@ function PaidMemberDashboard() {
               <div style={{ borderRadius: "18px", border: "1px solid rgba(196,148,58,0.16)", background: "rgba(196,148,58,0.055)", padding: "16px", display: "grid", gap: "12px" }}>
                 <div style={{ display: "grid", gap: "10px" }}>
                   <div style={{ display: "flex", justifyContent: "space-between", gap: "10px", alignItems: "start", flexWrap: "wrap" }}>
-                    <h3 style={{ margin: 0, fontFamily: "var(--font-playfair)", color: "var(--color-cream)", fontSize: "24px" }}>Your Bourbon DNA gets smarter with every bottle you rate.</h3>
+                    <h3 style={{ margin: 0, fontFamily: "var(--font-playfair)", color: "var(--color-cream)", fontSize: "24px" }}>Your Bourbon DNA</h3>
                     <span style={{ borderRadius: "999px", border: "1px solid rgba(196,148,58,0.22)", background: "rgba(196,148,58,0.08)", color: "var(--color-accent-amber)", padding: "5px 8px", fontFamily: "var(--font-jetbrains)", fontSize: "10px", letterSpacing: "0.08em", textTransform: "uppercase" }}>
                       {bourbonDnaSummary.confidence === "strong" ? "Strong read" : bourbonDnaSummary.confidence === "learning" ? "Learning" : "Early read"}
                     </span>
@@ -3574,10 +3647,10 @@ function PaidMemberDashboard() {
                           </Link>
                         ) : null}
                         <div style={{ display: "flex", gap: "7px", flexWrap: "wrap" }}>
-                          <button onClick={() => { void trackCollectionSuggestion(insight); }} style={{ flex: "1 1 120px", border: "1px solid rgba(196,148,58,0.28)", borderRadius: "999px", background: "rgba(196,148,58,0.12)", color: "var(--color-accent-amber)", padding: "8px 10px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", fontWeight: 700, cursor: "pointer" }}>Track bottle</button>
-                          {(["not_for_me", "already_own"] as const).map((signal) => {
+                          <button onClick={() => { void trackCollectionSuggestion(insight); }} style={{ flex: "1 1 120px", border: "1px solid rgba(196,148,58,0.28)", borderRadius: "999px", background: "rgba(196,148,58,0.12)", color: "var(--color-accent-amber)", padding: "8px 10px", fontFamily: "var(--font-dm-sans)", fontSize: "12px", fontWeight: 700, cursor: "pointer" }}>Watch this bottle</button>
+                          {(["useful", "not_for_me", "already_own"] as const).map((signal) => {
                             const status = dnaFeedbackState[`${insight.option.canonicalKey}:${signal}`];
-                            const label = signal === "not_for_me" ? "Not for me" : "Rate it";
+                            const label = signal === "useful" ? "Useful" : signal === "not_for_me" ? "Not for me" : "Already own";
                             const handleFeedback = () => {
                               void submitDnaFeedback(insight, signal);
                               if (signal === "already_own") {

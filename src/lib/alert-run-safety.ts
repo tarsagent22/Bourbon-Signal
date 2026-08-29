@@ -1,15 +1,26 @@
 export const ALERT_FRESHNESS_HARD_CAP_HOURS = 1;
+export const COMMUNITY_ALERT_FRESHNESS_HARD_CAP_HOURS = 2;
 
-export function resolveAlertFreshnessCapHours(configured: number | undefined) {
-  return Number.isFinite(configured) && Number(configured) > 0
-    ? Math.min(Number(configured), ALERT_FRESHNESS_HARD_CAP_HOURS)
+export function resolveAlertFreshnessCapHours(
+  configured: number | undefined,
+  hardCapHours = ALERT_FRESHNESS_HARD_CAP_HOURS,
+) {
+  const hardCap = Number.isFinite(hardCapHours) && hardCapHours > 0
+    ? hardCapHours
     : ALERT_FRESHNESS_HARD_CAP_HOURS;
+  return Number.isFinite(configured) && Number(configured) > 0
+    ? Math.min(Number(configured), hardCap)
+    : hardCap;
 }
 
-export function alertFreshnessIsDeliverable(freshnessHours: number, configuredLimitHours: number | undefined) {
+export function alertFreshnessIsDeliverable(
+  freshnessHours: number,
+  configuredLimitHours: number | undefined,
+  hardCapHours = ALERT_FRESHNESS_HARD_CAP_HOURS,
+) {
   return Number.isFinite(freshnessHours)
     && freshnessHours >= 0
-    && freshnessHours <= resolveAlertFreshnessCapHours(configuredLimitHours);
+    && freshnessHours <= resolveAlertFreshnessCapHours(configuredLimitHours, hardCapHours);
 }
 
 export function signalFreshnessHoursAt(signalAt: string | null | undefined, now: string = new Date().toISOString()) {

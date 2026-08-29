@@ -186,6 +186,8 @@ function memberSightingToGrouped(sighting: MemberSighting, store?: Store): Group
     quantity_in_stock: sighting.quantityEstimate ? 1 : undefined,
     state: sighting.storeState,
     id: sighting.id,
+    signalId: `member:${sighting.id}`,
+    signalKind: "availability",
     signalLabel: "Member sighting",
     confidenceTier: "member_sighting",
     availabilityScope: "exact",
@@ -1427,6 +1429,13 @@ function FeedRow({ drop, isNew, index, isFreeUser, reportKind, onReport, onVoteS
                         <span>{detail.value}</span>
                       </div>
                     ))}
+                    {drop.signalId ? (
+                      <div onClick={(event) => event.stopPropagation()} style={{ marginTop: "14px" }}>
+                        <a href={`/signals/${encodeURIComponent(drop.signalId)}`} style={{ color: "var(--color-accent-amber)", fontWeight: 750, textDecoration: "none" }}>
+                          Open full Signal details →
+                        </a>
+                      </div>
+                    ) : null}
                   </>
                 )}
               </div>

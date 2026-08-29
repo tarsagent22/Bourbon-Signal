@@ -38,6 +38,8 @@ import {
   updateCollectionBottle,
 } from "../../../src/interactions/member-interactions";
 import { colors } from "../../../src/theme";
+import { setBottleWatched } from "../../../src/radar/radar-preferences";
+import { buildCellarHuntSuggestions } from "../../../src/cellar/cellar-hunt-suggestions";
 
 const COMMON_CUES = TASTE_TAG_OPTIONS.slice(0, 5);
 
@@ -85,6 +87,8 @@ export default function CellarScreen() {
   const [refineOpen, setRefineOpen] = useState(false);
   const [selected, setSelected] = useState<MemberCollectionBottle | null>(null);
   const [mutating, setMutating] = useState(false);
+  const [savingWatchKey, setSavingWatchKey] = useState("");
+  const [dnaExpanded, setDnaExpanded] = useState(false);
   const reportedPendingBottleIds = useRef(new Set<string>());
 
   const acceptServerPreferences = useCallback((next: MemberPreferences) => {
@@ -176,14 +180,33 @@ export default function CellarScreen() {
 
   useFocusEffect(useCallback(() => { void load(true); }, [load]));
 
-  const canUseCollection = preferences?.entitlements?.canUseCollection === true;
   const sourceBottles = preferences?.collectionPreferences.bottles || [];
+  const collectionAccess = preferences?.collectionAccess;
+  const canAddToCollection = collectionAccess?.canAdd === true;
   const summary = useMemo(() => collectionSummary(sourceBottles), [sourceBottles]);
   const bottles = useMemo(() => filterAndSortCollection(sourceBottles, query, sort, filters), [filters, query, sort, sourceBottles]);
   const numColumns = width >= 360 && fontScale < 1.3 ? 2 : 1;
   const tileWidth = numColumns === 2 ? (width - 36 - 10) / 2 : undefined;
   const refinementCount = activeCollectionRefinementCount(filters, sort);
   const resultSetChanged = Boolean(query.trim() || refinementCount);
+  const cellarHuntSuggestions = useMemo(() => buildCellarHuntSuggestions({
+    collection: sourceBottles,
+    watchedBottleKeys: [
+      ...(preferences?.bottleAlertPreferences.bottleKeys || []),
+      ...(preferences?.bottleAlertPreferences.bottleNames || []),
+    ],
+  }).slice(0, 3), [preferences?.bottleAlertPreferences.bottleKeys, preferences?.bottleAlertPreferences.bottleNames, sourceBottles]);
+  const canUseRecommendations = preferences?.entitlements?.canUseRecommendations === true;
+  const trackedBottleLimit = preferences?.entitlements?.trackedBottleLimit;
+  const canWatchCellarSuggestions = trackedBottleLimit === null || (typeof trackedBottleLimit === "number" && trackedBottleLimit > 0);
+  const bourbonDna = useMemo(() => {
+    const favorites = sourceBottles.filter((bottle) => bottle.isRated && bottle.rating >= 80);
+    const tagCounts = new Map<string, number>();
+    favorites.forEach((bottle) => (bottle.tasteTags || []).forEach((tag) => tagCounts.set(tag, (tagCounts.get(tag) || 0) + 1)));
+    const favoriteTags = [...tagCounts].sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0])).slice(0, 3).map(([tag]) => tag);
+    const averageRating = favorites.length ? favorites.reduce((sum, bottle) => sum + bottle.rating, 0) / favorites.length / 10 : null;
+    return { favorites, favoriteTags, averageRating };
+  }, [sourceBottles]);
 
   const persistBottles = useCallback(async (nextBottles: MemberCollectionBottle[], version: number, conflictMessage: string) => {
     if (mutating) return null;
@@ -284,13 +307,34 @@ export default function CellarScreen() {
     ]);
   }, [mutating, persistBottles, preferences, selected]);
 
+  const watchCellarSuggestion = useCallback(async (bottleName: string, canonicalKey: string) => {
+    if (!preferences || savingWatchKey) return;
+    if (!canWatchCellarSuggestions) {
+      Alert.alert("Radar watch is a Standard feature", "Standard adds Radar watch actions. Your Cellar and Hunt next suggestions stay available.");
+      return;
+    }
+    setSavingWatchKey(canonicalKey);
+    setError("");
+    try {
+      const bottleAlertPreferences = setBottleWatched(preferences, bottleName, true);
+      const saved = await api.updateMemberPreferences({ bottleAlertPreferences, alertMode: "specific_bottles" });
+      acceptServerPreferences(saved);
+    } catch (caught) {
+      const message = caught instanceof Error ? caught.message : "That Radar watch could not be saved.";
+      setError(message);
+      Alert.alert("Radar watch not saved", message);
+    } finally {
+      setSavingWatchKey("");
+    }
+  }, [acceptServerPreferences, api, canWatchCellarSuggestions, preferences, savingWatchKey]);
+
   return <>
     <FlatList
       key={`cellar-${numColumns}`}
       numColumns={numColumns}
       columnWrapperStyle={numColumns > 1 ? styles.gridRow : undefined}
       contentContainerStyle={[memberScreenStyles.content, styles.cellarContent, numColumns > 1 && styles.gridContent]}
-      data={canUseCollection ? bottles : []}
+      data={bottles}
       keyExtractor={(item) => item.bottleId || item.canonicalKey}
       keyboardShouldPersistTaps="handled"
       keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
@@ -304,12 +348,40 @@ export default function CellarScreen() {
             <Text style={styles.summaryLine}>{summary.ownedWhiskeyCount} owned · {summary.tastedOnlyCount} tasted only</Text>
             <Text style={styles.summaryDetail}>{summary.ratedCount} rated{summary.averageRating == null ? "" : ` · ${(summary.averageRating / 10).toFixed(1)} average`}</Text>
           </View>
-          {canUseCollection ? <Pressable accessibilityLabel="Add whiskey to Cellar" accessibilityRole="button" onPress={() => router.push("/(app)/cellar/add")} style={({ pressed }) => [styles.addButton, pressed && styles.addButtonPressed]}><Text style={styles.addButtonText}>+ Add</Text></Pressable> : null}
+          {preferences ? <Pressable accessibilityLabel={canAddToCollection ? "Add whiskey to Cellar" : "Your Free Cellar is full"} accessibilityRole="button" accessibilityState={{ disabled: !canAddToCollection }} disabled={!canAddToCollection} onPress={() => router.push("/(app)/cellar/add")} style={({ pressed }) => [styles.addButton, !canAddToCollection && styles.addButtonDisabled, pressed && canAddToCollection && styles.addButtonPressed]}><Text style={[styles.addButtonText, !canAddToCollection && styles.addButtonTextDisabled]}>+ Add</Text></Pressable> : null}
         </View>
         {loading && !preferences ? <LoadingState label="Opening your Cellar…" /> : null}
         {error ? <ErrorState message={error} onRetry={() => void load(true)} /> : null}
-        {preferences && !canUseCollection ? <EmptyState title="Cellar is not included with this membership" detail="Account shows the membership recognized by the app. Saved collection data remains private without collection access." /> : null}
-        {preferences && canUseCollection ? <>
+        {collectionAccess?.showCapacityNotice ? <View accessibilityRole="summary" style={styles.capacityNotice}>
+          <Text style={styles.capacityTitle}>{collectionAccess.limit !== null && sourceBottles.length > collectionAccess.limit
+            ? "Existing bottles stay available."
+            : collectionAccess.remaining === 0
+              ? "Your Free Cellar is full."
+              : `${collectionAccess.remaining} spaces left in your Free Cellar.`}</Text>
+          <Text style={styles.capacityDetail}>{collectionAccess.limit !== null && sourceBottles.length > collectionAccess.limit
+            ? "You can keep viewing, editing, or deleting every bottle. Standard adds room for new bottles."
+            : collectionAccess.remaining === 0
+              ? "Keep managing every saved bottle here. Standard adds room for new bottles."
+              : "Capacity stays out of the way until you are close to full."}</Text>
+        </View> : null}
+        {canUseRecommendations ? <View style={styles.dnaCard}>
+          <Pressable accessibilityRole="button" accessibilityState={{ expanded: dnaExpanded }} onPress={() => setDnaExpanded((current) => !current)} style={styles.dnaHeader}>
+            <View style={styles.dnaCopy}><Text style={styles.dnaEyebrow}>BARREL COLLECTION INTELLIGENCE</Text><Text style={styles.dnaTitle}>Your Bourbon DNA</Text><Text style={styles.dnaSummary}>{bourbonDna.favoriteTags.length ? bourbonDna.favoriteTags.join(" · ") : "Rate favorites and add taste cues to build your profile."}</Text></View>
+            <Text style={styles.disclosureGlyph}>{dnaExpanded ? "−" : "+"}</Text>
+          </Pressable>
+          {dnaExpanded ? <View style={styles.dnaDetails}>
+            <Text style={styles.capacityDetail}>{bourbonDna.favorites.length ? `${bourbonDna.favorites.length} rated favorite${bourbonDna.favorites.length === 1 ? "" : "s"}${bourbonDna.averageRating === null ? "" : ` · ${bourbonDna.averageRating.toFixed(1)} average`}.` : "Your first strong ratings will establish taste and style affinity."}</Text>
+            <Text style={styles.capacityDetail}>Proof range and mash-bill affinity appear as matched bottle evidence becomes available. Local hunting opportunities stay separate below.</Text>
+          </View> : null}
+        </View> : preferences ? <Text style={styles.premiumNote}>Barrel Proof adds Bourbon DNA and personalized collection intelligence; your basic Cellar stays focused on your bottles.</Text> : null}
+        {cellarHuntSuggestions.length ? <View style={styles.huntNext}>
+          <View style={styles.huntNextHeader}><Text style={styles.huntNextTitle}>Hunt next</Text><Text style={styles.huntNextCount}>{cellarHuntSuggestions.length} suggestion{cellarHuntSuggestions.length === 1 ? "" : "s"}</Text></View>
+          {cellarHuntSuggestions.map((suggestion) => <View key={suggestion.canonicalKey} style={styles.huntNextRow}>
+            <View style={styles.huntNextCopy}><Text style={styles.huntNextName}>{suggestion.bottleName}</Text><Text style={styles.huntNextReason}>{suggestion.reason}</Text></View>
+            {canWatchCellarSuggestions ? <Pressable accessibilityRole="button" accessibilityState={{ disabled: Boolean(savingWatchKey) }} disabled={Boolean(savingWatchKey)} onPress={() => void watchCellarSuggestion(suggestion.bottleName, suggestion.canonicalKey)} style={styles.huntNextButton}><Text style={styles.huntNextButtonText}>{savingWatchKey === suggestion.canonicalKey ? "Saving…" : "Watch for another"}</Text></Pressable> : <Text style={styles.huntNextReason}>Standard adds Radar watch</Text>}
+          </View>)}
+        </View> : null}
+        {preferences ? <>
           <View style={styles.controlRow}>
             <TextInput accessibilityLabel="Search your Cellar" autoCapitalize="none" clearButtonMode="while-editing" onChangeText={setQuery} placeholder="Search your Cellar" placeholderTextColor={colors.muted} style={styles.search} value={query} />
             <Pressable accessibilityLabel={refinementCount ? `Refine, ${refinementCount} active` : "Refine"} accessibilityRole="button" onPress={() => setRefineOpen(true)} style={styles.refineButton}><Text style={styles.refineText}>Refine{refinementCount ? ` (${refinementCount})` : ""}</Text></Pressable>
@@ -317,7 +389,7 @@ export default function CellarScreen() {
           {resultSetChanged ? <Text style={styles.showing}>{bottles.length} shown</Text> : null}
         </> : null}
       </View>}
-      ListEmptyComponent={preferences && canUseCollection && !loading ? <EmptyState title={sourceBottles.length ? "No whiskeys match" : "Your Cellar is ready"} detail={sourceBottles.length ? "Clear the search or refine choices." : "Choose Add to save a bottle or a whiskey you tasted."} /> : null}
+      ListEmptyComponent={preferences && !loading ? <EmptyState title={sourceBottles.length ? "No whiskeys match" : "Your Cellar is ready"} detail={sourceBottles.length ? "Clear the search or refine choices." : "Choose Add to save a bottle or a whiskey you tasted."} /> : null}
       style={memberScreenStyles.screen}
     />
     <RefineSheet filters={filters} onChange={setFilters} onClose={() => setRefineOpen(false)} onSort={setSort} sort={sort} visible={refineOpen} />
@@ -543,7 +615,17 @@ const styles = StyleSheet.create({
   summaryDetail: { color: colors.muted, fontSize: 12 },
   addButton: { minHeight: 44, justifyContent: "center", borderRadius: 11, backgroundColor: colors.accent, paddingHorizontal: 14 },
   addButtonPressed: { backgroundColor: colors.accentPressed },
+  addButtonDisabled: { backgroundColor: colors.surfaceRaised, borderColor: colors.border, borderWidth: 1 },
   addButtonText: { color: colors.background, fontSize: 13, fontWeight: "800" },
+  addButtonTextDisabled: { color: colors.muted },
+  capacityNotice: { gap: 4, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth, borderRadius: 12, backgroundColor: colors.surface, padding: 12 },
+  capacityTitle: { color: colors.text, fontSize: 13, fontWeight: "800" },
+  capacityDetail: { color: colors.muted, fontSize: 12, lineHeight: 17 },
+  dnaCard: { borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth, borderRadius: 14, backgroundColor: colors.surface, overflow: "hidden" },
+  dnaHeader: { minHeight: 64, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, padding: 13 },
+  dnaCopy: { flex: 1, gap: 3 }, dnaEyebrow: { color: colors.accent, fontSize: 9, fontWeight: "900", letterSpacing: 1 }, dnaTitle: { color: colors.text, fontSize: 18, fontWeight: "900" }, dnaSummary: { color: colors.muted, fontSize: 12 }, dnaDetails: { gap: 6, borderTopColor: colors.border, borderTopWidth: StyleSheet.hairlineWidth, padding: 13 },
+  premiumNote: { color: colors.muted, fontSize: 11, lineHeight: 16 },
+  huntNext: { gap: 8, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth, borderRadius: 14, backgroundColor: colors.surface, padding: 12 }, huntNextHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10 }, huntNextTitle: { color: colors.text, fontSize: 17, fontWeight: "900" }, huntNextCount: { color: colors.muted, fontSize: 10, textTransform: "uppercase", letterSpacing: 0.7 }, huntNextRow: { gap: 9, borderTopColor: colors.border, borderTopWidth: StyleSheet.hairlineWidth, paddingTop: 10 }, huntNextCopy: { gap: 3 }, huntNextName: { color: colors.text, fontSize: 13, fontWeight: "800" }, huntNextReason: { color: colors.muted, fontSize: 11, lineHeight: 16 }, huntNextButton: { minHeight: 44, alignSelf: "flex-start", justifyContent: "center", borderColor: colors.accent, borderWidth: 1, borderRadius: 999, paddingHorizontal: 12 }, huntNextButtonText: { color: colors.accent, fontSize: 11, fontWeight: "900" },
   controlRow: { flexDirection: "row", gap: 8 },
   search: { flex: 1, minHeight: 44, borderColor: colors.border, borderWidth: 1, borderRadius: 11, backgroundColor: colors.surface, color: colors.text, paddingHorizontal: 13, fontSize: 14 },
   refineButton: { minHeight: 44, justifyContent: "center", borderColor: colors.border, borderWidth: 1, borderRadius: 11, paddingHorizontal: 14 },

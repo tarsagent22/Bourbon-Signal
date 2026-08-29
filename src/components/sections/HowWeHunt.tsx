@@ -24,7 +24,7 @@ const steps: StepData[] = [
   },
   {
     number: "04",
-    description: "Grab the bourbon you've been looking for when a source-backed drop is worth acting on",
+    description: "Use source, timing, and location evidence to decide whether a drop fits your hunt",
   },
 ];
 
