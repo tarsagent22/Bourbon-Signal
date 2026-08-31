@@ -158,7 +158,7 @@ export default function RadarScreen() {
     <View accessibilityRole="tablist" style={styles.tabs}>{VIEWS.map((item) => <Pressable accessibilityRole="tab" accessibilityState={{ selected: view === item.key }} key={item.key} onPress={() => { Keyboard.dismiss(); setView(item.key); }} style={[styles.tab, view === item.key && styles.tabSelected]}><Text style={[styles.tabText, view === item.key && styles.tabTextSelected]}>{item.label}</Text></Pressable>)}</View>
     {actionError ? <Text accessibilityRole="alert" style={styles.error}>{actionError}</Text> : null}
 
-    {view === "matches" ? <MatchesView alerts={activeAlerts} unreadCount={alerts.unreadCount} saving={saving} watchedNames={watchedNames} onMutate={mutateAlert} /> : null}
+    {view === "matches" ? <MatchesView alerts={activeAlerts} unreadCount={alerts.unreadCount} saving={saving} watchedNames={watchedNames} onMutate={mutateAlert} onOpenWatchlist={() => setView("watchlist")} /> : null}
     {view === "watchlist" ? <WatchlistView
       catalog={searchResults}
       phone={phone}
@@ -186,16 +186,24 @@ export default function RadarScreen() {
   </ScrollView>;
 }
 
-function MatchesView({ alerts, unreadCount, saving, watchedNames, onMutate }: { alerts: MemberAlert[]; unreadCount: number; saving: boolean; watchedNames: string[]; onMutate: (action: "mark_read" | "mark_all_read" | "archive", alertId?: string) => Promise<void> }) {
+function MatchesView({ alerts, unreadCount, saving, watchedNames, onMutate, onOpenWatchlist }: { alerts: MemberAlert[]; unreadCount: number; saving: boolean; watchedNames: string[]; onMutate: (action: "mark_read" | "mark_all_read" | "archive", alertId?: string) => Promise<void>; onOpenWatchlist: () => void }) {
   const [showPast, setShowPast] = useState(false);
   const current = alerts.filter((alert) => !alertIsStale(alert));
   const past = alerts.filter((alert) => alertIsStale(alert));
   const visible = showPast ? [...current, ...past] : current;
   return <View style={styles.section}>
     <View style={styles.headingRow}><SectionTitle detail={`${current.length} current`}>Alert inbox</SectionTitle>{unreadCount ? <TextAction label="MARK ALL READ" disabled={saving} onPress={() => void onMutate("mark_all_read")} /> : null}</View>
-    {!current.length && !showPast ? <MemberCard><Text style={styles.cardTitle}>No current matches</Text><Text style={styles.muted}>New freshness-qualified matches will appear here.</Text></MemberCard> : null}
+    {!current.length && !showPast ? <MemberCard>
+      <Text style={styles.cardTitle}>No current matches</Text>
+      <Text style={styles.muted}>Nothing is freshness-qualified right now. New matches will appear here as Radar finds them.</Text>
+      {past.length ? <Text style={styles.muted}>{past.length} past match{past.length === 1 ? " is" : "es are"} still available to review.</Text> : null}
+      <View style={styles.rowActions}>
+        {past.length ? <TextAction label={`VIEW ${past.length} PAST MATCH${past.length === 1 ? "" : "ES"}`} onPress={() => setShowPast(true)} /> : null}
+        <TextAction label="REVIEW WATCHLIST" onPress={onOpenWatchlist} />
+      </View>
+    </MemberCard> : null}
     {visible.map((alert) => <AlertCard alert={alert} key={alert.id} saving={saving} watchedNames={watchedNames} onMutate={onMutate} />)}
-    {past.length ? <TextAction label={showPast ? "HIDE PAST MATCHES" : `SHOW ${past.length} PAST MATCH${past.length === 1 ? "" : "ES"}`} onPress={() => setShowPast((value) => !value)} /> : null}
+    {past.length && (current.length || showPast) ? <TextAction label={showPast ? "HIDE PAST MATCHES" : `SHOW ${past.length} PAST MATCH${past.length === 1 ? "" : "ES"}`} onPress={() => setShowPast((value) => !value)} /> : null}
   </View>;
 }
 

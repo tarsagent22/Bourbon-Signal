@@ -51,7 +51,7 @@ export default function TabsLayout() {
         freezeOnBlur: true,
       }}
     >
-      <Tabs.Screen name="index" options={{ title: "Signals", headerTitle: BrandTitle, headerTitleAlign: "left", headerRight: AlertInboxButton, tabBarIcon: icon("index") }} />
+      <Tabs.Screen name="index" options={{ title: "Home", headerTitle: BrandTitle, headerTitleAlign: "left", headerRight: AlertInboxButton, tabBarIcon: icon("index") }} />
       <Tabs.Screen name="radar" options={{ title: "Radar", tabBarIcon: icon("radar") }} />
       <Tabs.Screen name="post" options={{ title: "Post", tabBarIcon: icon("post") }} />
       <Tabs.Screen name="cellar" options={{ title: "Cellar", tabBarIcon: icon("cellar") }} />

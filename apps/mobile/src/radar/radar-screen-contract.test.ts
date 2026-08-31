@@ -41,6 +41,17 @@ test("Watchlist expansion disappears when no bottles remain hidden", () => {
   assert.match(radar, /if \(showAll && watchlist\.totalCount <= 3\) setShowAll\(false\)/);
 });
 
+test("Radar empty Matches connects current status, past matches, and Watchlist configuration", () => {
+  const radar = readScreen("radar");
+
+  assert.match(radar, /No current matches/);
+  assert.match(radar, /freshness-qualified/);
+  assert.match(radar, /past\.length/);
+  assert.match(radar, /VIEW .*PAST MATCH/);
+  assert.match(radar, /REVIEW WATCHLIST/);
+  assert.match(radar, /onOpenWatchlist=\{\(\) => setView\("watchlist"\)\}/);
+});
+
 test("Post explains the community and points value", () => {
   const post = readScreen("post");
 

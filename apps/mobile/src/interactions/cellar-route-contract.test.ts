@@ -36,18 +36,30 @@ test("native add keeps the simple owned-or-tasted flow and progressive optional 
   assert.doesNotMatch(add, /A real 0\.0 stays different from unrated/);
 });
 
-test("Cellar is one responsive grid with bottle and Glencairn states", () => {
+test("Cellar has explicit component-state grid and dense list views with bottle and Glencairn states", () => {
   const cellar = read("app/(app)/(tabs)/cellar.tsx");
   for (const label of ["Refine", "All", "Owned", "Tasted only", "Rated", "Unrated", "Open now", "Sealed", "In my Cellar", "My rating", "Add bottle", "Keep as tasted only", "Open one", "Mark one finished", "Acquisition", "Bottle details", "More cues"]) assert.match(cellar, new RegExp(label));
+  assert.match(cellar, /type CellarViewMode = "grid" \| "list"/);
+  assert.match(cellar, /useState<CellarViewMode>\("grid"\)/);
+  assert.match(cellar, /accessibilityRole="radiogroup"/);
+  assert.match(cellar, /function ViewModeButton/);
+  assert.match(cellar, /accessibilityRole="radio"/);
+  assert.match(cellar, /accessibilityState=\{\{ checked:/);
+  assert.match(cellar, /function WhiskeyListRow/);
+  assert.match(cellar, /viewMode === "grid" \? <WhiskeyTile/);
+  assert.match(cellar, /key=\{`cellar-\$\{viewMode\}-\$\{numColumns\}`\}/);
   assert.match(cellar, /numColumns/);
   assert.match(cellar, /tileWidth/);
   assert.match(cellar, /useWindowDimensions/);
   assert.match(cellar, /<CellarBottleSilhouette/);
   assert.match(cellar, /<CellarGlencairnSilhouette/);
   assert.match(cellar, /collectionDisplayKind/);
+  assert.match(cellar, /styles\.listRating/);
+  assert.match(cellar, /styles\.listInventory/);
+  assert.match(cellar, /styles\.statusPill/);
   assert.match(cellar, /applyCollectionInventoryAction/);
   assert.match(cellar, /<ScoreSlider/);
-  assert.doesNotMatch(cellar, /My bottles|Tastings|CellarMode|ModeButton|TastingRow/);
+  assert.doesNotMatch(cellar, /My bottles|Tastings|CellarMode|TastingRow/);
   assert.doesNotMatch(cellar, /More options/);
   assert.doesNotMatch(cellar, /A real 0\.0 stays different from unrated/);
   assert.match(cellar, /Would you buy it again\?/);
@@ -62,6 +74,20 @@ test("Cellar is one responsive grid with bottle and Glencairn states", () => {
   assert.match(cellar, /Existing bottles stay available/);
   assert.match(cellar, /data=\{bottles\}/, "stored bottles remain visible after any tier change");
   assert.doesNotMatch(cellar, /Cellar is not included with this membership/);
+});
+
+test("Bourbon DNA is entitlement-gated collection evidence with confidence and a next action", () => {
+  const cellar = read("app/(app)/(tabs)/cellar.tsx");
+  assert.match(cellar, /buildBourbonDna/);
+  assert.match(cellar, /canUseRecommendations \? <View style=\{styles\.dnaCard\}>/);
+  assert.match(cellar, /Barrel Proof and Founder memberships add Bourbon DNA/);
+  assert.match(cellar, /bourbonDna\.supportedTraits/);
+  assert.match(cellar, /bourbonDna\.confidence\.label/);
+  assert.match(cellar, /bourbonDna\.confidence\.detail/);
+  assert.match(cellar, /bourbonDna\.nextAction\.label/);
+  assert.match(cellar, /onPress=\{improveBourbonDna\}/);
+  assert.match(cellar, /bottles you rated 8\.0 or higher/);
+  assert.doesNotMatch(cellar, /Proof range|mash-bill|mash bill|chemistry compatibility/i);
 });
 
 test("Signal detail respects Cellar addition capacity without hiding existing data", () => {

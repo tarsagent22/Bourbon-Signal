@@ -2,6 +2,11 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { createHash } from "node:crypto";
+import { spawnSync } from "node:child_process";
+
+const CAMERA_PERMISSION_MESSAGE = "Allow Bourbon Signal to use your camera to photograph a bottle or shelf as evidence for a manual post.";
+const PHOTO_LIBRARY_PERMISSION_MESSAGE = "Allow Bourbon Signal to access photos you choose as bottle or shelf evidence for a manual post.";
+const LOCATION_PERMISSION_MESSAGE = "Allow Bourbon Signal to use your current location to suggest nearby retailers or start Trip Mode. You can always enter a destination manually.";
 
 const root = resolve(import.meta.dirname, "..");
 const readJson = (path) => JSON.parse(readFileSync(resolve(root, path), "utf8"));
@@ -31,6 +36,115 @@ assert.equal(eas.build?.production?.environment, "production");
 assert.ok(eas.submit?.production, "a production EAS Submit profile must exist");
 assert.ok(pkg.scripts?.["verify:release-readiness"], "release readiness must be a repeatable package gate");
 
+for (const dependency of ["expo-camera", "expo-image-picker", "expo-location"]) {
+  assert.match(pkg.dependencies?.[dependency] || "", /^~57\./, `${dependency} must use the Expo SDK-compatible release`);
+}
+
+const pluginEntry = (name) => app.plugins?.find((plugin) => plugin === name || (Array.isArray(plugin) && plugin[0] === name));
+const pluginOptions = (name) => {
+  const plugin = pluginEntry(name);
+  assert.ok(plugin, `${name} must be configured as an Expo config plugin`);
+  assert.ok(Array.isArray(plugin), `${name} must declare explicit native permission options`);
+  return plugin[1];
+};
+
+assert.deepEqual(pluginOptions("expo-camera"), {
+  cameraPermission: CAMERA_PERMISSION_MESSAGE,
+  microphonePermission: false,
+  recordAudioAndroid: false,
+  barcodeScannerEnabled: true,
+});
+assert.deepEqual(pluginOptions("expo-image-picker"), {
+  photosPermission: PHOTO_LIBRARY_PERMISSION_MESSAGE,
+  cameraPermission: CAMERA_PERMISSION_MESSAGE,
+  microphonePermission: false,
+});
+assert.deepEqual(pluginOptions("expo-location"), {
+  locationWhenInUsePermission: LOCATION_PERMISSION_MESSAGE,
+  locationAlwaysAndWhenInUsePermission: false,
+  locationAlwaysPermission: false,
+  motionUsagePermission: false,
+  isIosBackgroundLocationEnabled: false,
+  isAndroidBackgroundLocationEnabled: false,
+  isAndroidForegroundServiceEnabled: false,
+  isAndroidMotionActivityEnabled: false,
+});
+assert.deepEqual(app.android?.permissions, [
+  "android.permission.CAMERA",
+  "android.permission.ACCESS_COARSE_LOCATION",
+  "android.permission.ACCESS_FINE_LOCATION",
+]);
+assert.deepEqual(app.android?.blockedPermissions, [
+  "android.permission.ACCESS_BACKGROUND_LOCATION",
+  "android.permission.RECORD_AUDIO",
+  "android.permission.READ_EXTERNAL_STORAGE",
+  "android.permission.WRITE_EXTERNAL_STORAGE",
+]);
+
+for (const launchPath of ["app/_layout.tsx", "app/index.tsx", "app/(app)/_layout.tsx"]) {
+  const launchSource = read(launchPath);
+  assert.doesNotMatch(launchSource, /request(?:Camera|MediaLibrary|Foreground|Background)?PermissionsAsync/,
+    `native permissions must never be requested from ${launchPath}`);
+  assert.doesNotMatch(launchSource, /from ["']expo-(?:camera|image-picker|location)["']/,
+    `native capabilities must not initialize from ${launchPath}`);
+}
+
+const expoCli = resolve(root, "node_modules/expo/bin/cli");
+assert.ok(existsSync(expoCli), "Expo must be installed before native config inspection");
+const configResult = spawnSync(process.execPath, [expoCli, "config", "--type", "introspect", "--json"], {
+  cwd: root,
+  encoding: "utf8",
+  windowsHide: true,
+  maxBuffer: 10 * 1024 * 1024,
+});
+assert.equal(configResult.status, 0, `Expo native config inspection failed:\n${configResult.stderr || configResult.stdout}`);
+const configStart = configResult.stdout.indexOf("{");
+const configEnd = configResult.stdout.lastIndexOf("}");
+assert.ok(configStart >= 0 && configEnd > configStart, "Expo native config inspection did not return JSON");
+const resolvedNativeConfig = JSON.parse(configResult.stdout.slice(configStart, configEnd + 1));
+
+const infoPlist = resolvedNativeConfig._internal?.modResults?.ios?.infoPlist || {};
+assert.equal(infoPlist.NSCameraUsageDescription, CAMERA_PERMISSION_MESSAGE);
+assert.equal(infoPlist.NSPhotoLibraryUsageDescription, PHOTO_LIBRARY_PERMISSION_MESSAGE);
+assert.equal(infoPlist.NSLocationWhenInUseUsageDescription, LOCATION_PERMISSION_MESSAGE);
+for (const forbiddenKey of [
+  "NSMicrophoneUsageDescription",
+  "NSLocationAlwaysAndWhenInUseUsageDescription",
+  "NSLocationAlwaysUsageDescription",
+  "NSMotionUsageDescription",
+]) assert.equal(forbiddenKey in infoPlist, false, `${forbiddenKey} must not be emitted`);
+assert.equal(infoPlist.UIBackgroundModes?.includes("location") || false, false, "iOS background location must stay disabled");
+
+const manifestPermissions = resolvedNativeConfig._internal?.modResults?.android?.manifest?.manifest?.["uses-permission"] || [];
+const activeAndroidPermissions = manifestPermissions
+  .filter((entry) => entry?.$?.["tools:node"] !== "remove")
+  .map((entry) => entry?.$?.["android:name"]);
+const blockedAndroidPermissions = manifestPermissions
+  .filter((entry) => entry?.$?.["tools:node"] === "remove")
+  .map((entry) => entry?.$?.["android:name"]);
+for (const requiredPermission of app.android.permissions) {
+  assert.ok(activeAndroidPermissions.includes(requiredPermission), `${requiredPermission} must be present in the resolved Android manifest`);
+}
+for (const blockedPermission of app.android.blockedPermissions) {
+  assert.ok(blockedAndroidPermissions.includes(blockedPermission), `${blockedPermission} must be removed from the resolved Android manifest`);
+}
+for (const forbiddenPermission of [
+  "android.permission.ACCESS_BACKGROUND_LOCATION",
+  "android.permission.RECORD_AUDIO",
+  "android.permission.READ_EXTERNAL_STORAGE",
+  "android.permission.WRITE_EXTERNAL_STORAGE",
+  "android.permission.FOREGROUND_SERVICE",
+  "android.permission.FOREGROUND_SERVICE_LOCATION",
+  "android.permission.ACTIVITY_RECOGNITION",
+  "com.google.android.gms.permission.ACTIVITY_RECOGNITION",
+]) assert.equal(activeAndroidPermissions.includes(forbiddenPermission), false, `${forbiddenPermission} must not be active`);
+
+const androidGradleProperties = resolvedNativeConfig._internal?.modResults?.android?.gradleProperties || [];
+const androidBarcodeProperty = androidGradleProperties.find((entry) => entry.key === "expo.camera.barcode-scanner-enabled");
+assert.notEqual(androidBarcodeProperty?.value, "false", "the Android native build must not disable barcode-scanning support");
+assert.notEqual(resolvedNativeConfig._internal?.modResults?.ios?.podfileProperties?.["expo.camera.barcode-scanner-enabled"], "false",
+  "the iOS native build must not disable barcode-scanning support");
+
 for (const path of [
   "store/app-store-metadata.json",
   "store/app-privacy.md",
@@ -53,6 +167,21 @@ assert.equal(metadata.supportUrl, "https://www.bourbonsignal.com/support");
 const privacyInventory = read("store/app-privacy.md");
 assert.match(privacyInventory, /User Content — Customer Support \| Yes/);
 assert.doesNotMatch(privacyInventory, /\| User Content \| No collection/);
+assert.match(privacyInventory, /prompts only after an explicit member action/i);
+assert.match(privacyInventory, /does not upload evidence photos/i);
+assert.match(privacyInventory, /microphone and background location remain disabled/i);
+assert.doesNotMatch(privacyInventory, /No camera, photo library, contacts, microphone, Bluetooth, or device-location permission/);
+const reviewNotes = read("store/app-review-notes.md");
+assert.match(reviewNotes, /Review the Home tab/);
+assert.match(reviewNotes, /open a Signal's Bottle Profile/);
+assert.match(reviewNotes, /Account → Privacy & Support → Account deletion help/);
+assert.doesNotMatch(reviewNotes, /Signals tab|Open HQ|HQ → Request account deletion/);
+assert.match(reviewNotes, /no permission prompt runs at app launch/i);
+assert.match(reviewNotes, /does not upload evidence photos or expose barcode matching/i);
+assert.match(reviewNotes, /does not request microphone or background location/i);
+const releaseChecklist = read("store/release-checklist.md");
+assert.match(releaseChecklist, /foreground-location native foundation/i);
+assert.match(releaseChecklist, /manual posting and destination entry/i);
 assert.match(read("../../src/app/legal/privacy/page.tsx"), /use the mobile app/);
 assert.match(read("../../src/app/support/page.tsx"), /updated="August 21, 2026"/);
 

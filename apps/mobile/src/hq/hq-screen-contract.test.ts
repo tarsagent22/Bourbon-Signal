@@ -36,12 +36,21 @@ test("Account leads with a compact member and points summary", () => {
   assert.match(source, /profile\.identity\?\.label/);
 });
 
-test("profile and native account controls appear before rewards", () => {
-  const profile = source.indexOf("<SectionTitle>Profile</SectionTitle>");
-  const support = source.indexOf("Support");
-  const privacy = source.indexOf("Privacy policy");
-  const rewards = source.indexOf(">Rewards</SectionTitle>");
-  assert.ok(profile >= 0 && support > profile && privacy > support && rewards > privacy);
+test("Account is organized into compact accessible destinations", () => {
+  const profile = source.indexOf('label="Profile"');
+  const membership = source.indexOf('label="Membership"');
+  const alerts = source.indexOf('label="Alerts"');
+  const rewards = source.indexOf('label="Rewards"');
+  const privacySupport = source.indexOf('label="Privacy & Support"');
+  assert.ok(profile >= 0 && membership > profile && alerts > membership && rewards > alerts && privacySupport > rewards);
+  assert.match(source, /type AccountDestination/);
+  assert.match(source, /expandedDestination/);
+  assert.match(source, /function DestinationDisclosureRow/);
+  assert.match(source, /accessibilityState=\{\{ expanded \}\}/);
+  assert.match(source, /Matches, Watchlist, and delivery/);
+  assert.match(source, /pathname: "\/\(app\)\/\(tabs\)\/radar"/);
+  assert.match(source, /profile\.membership\.label/);
+  assert.match(source, /Full Intel|Preview Intel/);
   assert.match(source, /Sign out/);
   assert.doesNotMatch(source, /Manage membership|Shipping information/);
   assert.doesNotMatch(source, /showAccount/);
