@@ -15,7 +15,7 @@
 - [x] Native Post uses the canonical durable/idempotent sighting endpoint and clearly marks manual-store review.
 - [x] Public support and privacy URLs are documented.
 - [x] Store copy, privacy inventory, review notes, and screenshot specification are version-controlled.
-- [x] No native billing, external checkout steering, tracking SDK, location permission, camera permission, or push permission was added.
+- [x] Camera, selected-photo, and foreground-location native foundation uses precise purpose copy, lazy permission contracts, and manual posting and destination entry fallbacks; microphone, background location, barcode matching, evidence upload, native billing, external checkout steering, and tracking SDKs remain disabled or absent.
 
 ## Complete after Apple Developer Program acceptance
 
@@ -27,7 +27,7 @@
 - [x] Confirm the EAS `production` environment contains only the two approved public runtime values (`EXPO_PUBLIC_API_URL` and `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY`).
 - [ ] Create a least-privilege App Review account and place credentials only in App Store Connect.
 - [ ] Produce a production iOS build and inspect its privacy manifests, SDK signatures, entitlements, permissions, and development-module exclusions.
-- [ ] Install through TestFlight and test sign-in/MFA, feed pagination, detail, Radar data, native posting, Cellar data, HQ/points, account links, deletion request, sign-out, offline/retry behavior, text scaling, and small-screen layout.
+- [ ] Install through TestFlight and test sign-in/MFA, feed pagination, detail, Radar data, native posting, Cellar data, HQ/points, account links, deletion request, sign-out, offline/retry behavior, text scaling, small-screen layout, and any enabled camera/photo/location prompt plus denial fallback on real devices.
 - [ ] Capture and batch-review real candidate screenshots at Apple-accepted dimensions.
 - [ ] Reconcile App Privacy and age-rating answers against the final binary and current vendor disclosures.
 - [ ] Submit to TestFlight internal testing first; App Store review requires separate owner approval after device QA.

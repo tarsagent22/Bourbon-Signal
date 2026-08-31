@@ -8,7 +8,8 @@ Bourbon Signal is a focused native companion for existing members. It presents t
 - no external checkout link or payment steering;
 - no account registration inside the app;
 - push notification permission is requested only when a signed-in member explicitly enables Push in Radar; the device token is used only for immediate, freshness-qualified Radar matches;
-- no camera, location, or background-tracking permission;
+- camera or selected-photo access is permitted only after a member explicitly chooses bottle or shelf evidence; optional foreground location is permitted only after choosing nearby-retailer suggestions or Trip Mode, and no permission prompt runs at app launch;
+- denial always preserves manual posting or destination entry; this candidate does not upload evidence photos or expose barcode matching, and it does not request microphone or background location;
 - manual Signal posting is available only to entitled members and uses durable idempotency plus server review for manually entered bottles or stores.
 
 Existing website subscribers sign in and receive server-authoritative access from the same account. Availability can change and the UI tells members to confirm with the retailer.
