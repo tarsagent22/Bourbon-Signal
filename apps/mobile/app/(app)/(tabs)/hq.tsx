@@ -11,6 +11,8 @@ import { useMobileApi } from "../../../src/hooks/useMobileApi";
 import { rewardAvailability, rewardCatalogSummary } from "../../../src/interactions/member-interactions";
 import { colors } from "../../../src/theme";
 
+type AccountDestination = "profile" | "membership" | "rewards" | "privacy_support";
+
 export default function AccountScreen() {
   const api = useMobileApi();
   const router = useRouter();
@@ -32,6 +34,7 @@ export default function AccountScreen() {
   const [showDiagnostics, setShowDiagnostics] = useState(false);
   const [showAllRewards, setShowAllRewards] = useState(false);
   const [showAllRedemptions, setShowAllRedemptions] = useState(false);
+  const [expandedDestination, setExpandedDestination] = useState<AccountDestination | null>(null);
   const [sharingReferral, setSharingReferral] = useState(false);
   const referralRequestId = useRef(0);
   const accountRequestId = useRef(0);
@@ -129,6 +132,7 @@ export default function AccountScreen() {
   const trimmedDisplayName = displayNameDraft.trim();
   const displayNameDirty = trimmedDisplayName !== (profile?.customDisplayName || "") && trimmedDisplayName.length > 0;
   const nextPreview = rewards?.nextReward && rewards.nextReward.key !== rewards.featuredReward?.key ? rewards.nextReward : null;
+  const toggleDestination = (destination: AccountDestination) => setExpandedDestination((current) => current === destination ? null : destination);
 
   return <ScrollView
     contentContainerStyle={memberScreenStyles.content}
@@ -161,9 +165,10 @@ export default function AccountScreen() {
       </> : null}
     </View> : null}
 
-    {profile ? <View style={memberScreenStyles.section}>
-      <SectionTitle>Profile</SectionTitle>
-      <MemberCard>
+    <View style={styles.destinations}>
+      <View style={styles.destinationGroup}>
+        <DestinationDisclosureRow expanded={expandedDestination === "profile"} label="Profile" summary={profile ? profile.customDisplayName || profile.identity?.label || "Member identity" : "Member identity"} onPress={() => toggleDestination("profile")} />
+        {expandedDestination === "profile" && profile ? <View style={styles.destinationBody}><MemberCard>
         <View style={styles.settingSummary}>
           <View style={styles.settingCopy}><Text style={styles.settingLabel}>Display name</Text><Text style={styles.settingValue}>{profile.customDisplayName || "No display name set"}</Text><Text style={styles.muted}>Shown beside {profile.identity?.label || "your member tag"} on Community sightings. The tag never changes.</Text></View>
           <Pressable accessibilityRole="button" onPress={() => {
@@ -183,25 +188,27 @@ export default function AccountScreen() {
           </View>
         </View> : null}
         {displayNameSuccess ? <Text accessibilityRole="alert" style={styles.success}>{displayNameSuccess}</Text> : null}
-      </MemberCard>
-    </View> : null}
-
-    <View style={memberScreenStyles.section}>
-      <SectionTitle>Account details</SectionTitle>
-      <View style={styles.accountPanel}>
-        <NavigationRow label="Support" onPress={() => router.push("/(app)/account/support")} />
-        <NavigationRow label="Privacy policy" onPress={() => router.push("/(app)/account/privacy")} />
-        <Pressable accessibilityRole="button" accessibilityState={{ expanded: showDiagnostics }} onPress={() => setShowDiagnostics((value) => !value)} style={({ pressed }) => [styles.linkRow, pressed && styles.pressed]}><Text style={styles.linkText}>App information</Text><Text accessible={false} style={styles.chevron}>{showDiagnostics ? "−" : "+"}</Text></Pressable>
-        {showDiagnostics ? <View style={styles.diagnostics}>
-          <Text selectable style={styles.diagnosticText}>{diagnostics}</Text>
-          <Pressable accessibilityRole="button" onPress={() => void Share.share({ message: diagnostics, title: "Bourbon Signal diagnostics" })} style={({ pressed }) => [styles.diagnosticAction, pressed && styles.pressed]}><Text style={styles.diagnosticActionText}>Share diagnostics</Text></Pressable>
-        </View> : null}
-        <Pressable accessibilityRole="button" onPress={() => signOut()} style={({ pressed }) => [styles.signOut, pressed && styles.pressed]}><Text style={styles.signOutText}>Sign out</Text></Pressable>
+        </MemberCard></View> : null}
       </View>
-    </View>
 
+      <View style={styles.destinationGroup}>
+        <DestinationDisclosureRow expanded={expandedDestination === "membership"} label="Membership" summary={profile?.membership.label || "Plan and access"} onPress={() => toggleDestination("membership")} />
+        {expandedDestination === "membership" && profile ? <View style={styles.destinationBody}><MemberCard>
+          <DataRow label="Plan" value={profile.membership.label} />
+          <DataRow label="Signal access" value={profile.entitlements.fullFeed ? "Full Intel" : "Preview Intel"} />
+          <DataRow label="Community" value={profile.entitlements.canSubmitSignals ? "Posting available" : "Posting unavailable"} last />
+        </MemberCard></View> : null}
+      </View>
+
+      <View style={styles.destinationGroup}>
+        <NavigationRow detail="Matches, Watchlist, and delivery" label="Alerts" onPress={() => router.push({ pathname: "/(app)/(tabs)/radar" })} />
+      </View>
+
+      <View style={styles.destinationGroup}>
+        <DestinationDisclosureRow expanded={expandedDestination === "rewards"} label="Rewards" summary={points ? `${points.balance} points · ${rewards?.claimableCount || 0} ready` : "Points, earning, and history"} onPress={() => toggleDestination("rewards")} />
+        {expandedDestination === "rewards" ? <View style={styles.destinationBody}>
     <View style={memberScreenStyles.section}>
-      <SectionTitle detail={rewards ? `${rewards.claimableCount} ready · ${rewards.catalogAvailableCount} in catalog` : undefined}>Rewards</SectionTitle>
+      <SectionTitle detail={rewards ? `${rewards.claimableCount} ready · ${rewards.catalogAvailableCount} in catalog` : undefined}>Featured & catalog</SectionTitle>
       {points && rewards ? <>
         {rewards.featuredReward ? <FeaturedRewardCard member={points} reward={rewards.featuredReward} /> : null}
         {nextPreview ? <RewardProgressRow member={points} reward={nextPreview} /> : null}
@@ -245,11 +252,29 @@ export default function AccountScreen() {
       </MemberCard> : <MemberCard><Text style={styles.muted}>No redemptions yet.</Text></MemberCard>}
       {points.redemptions.length > 3 ? <Pressable accessibilityRole="button" accessibilityState={{ expanded: showAllRedemptions }} onPress={() => setShowAllRedemptions((value) => !value)} style={({ pressed }) => [styles.catalogLink, pressed && styles.pressed]}><Text style={styles.catalogLinkText}>{showAllRedemptions ? "Show recent only" : "View full history"}</Text><Text accessible={false} style={styles.chevron}>{showAllRedemptions ? "−" : "+"}</Text></Pressable> : null}
     </View> : null}
+        </View> : null}
+      </View>
 
-    <View style={[memberScreenStyles.section, styles.dangerZone]}>
-      <Text style={styles.dangerTitle}>Data & privacy</Text>
-      <Text style={styles.muted}>Account deletion is handled through Support so identity, subscription, and contributed-data records can be reviewed safely.</Text>
-      <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/support")} style={({ pressed }) => [styles.deletionButton, pressed && styles.pressed]}><Text style={styles.deletionText}>Account deletion help</Text></Pressable>
+      <View style={styles.destinationGroup}>
+        <DestinationDisclosureRow expanded={expandedDestination === "privacy_support"} label="Privacy & Support" summary="Policies, help, app information, and sign out" onPress={() => toggleDestination("privacy_support")} />
+        {expandedDestination === "privacy_support" ? <View style={styles.destinationBody}>
+          <View style={styles.accountPanel}>
+            <NavigationRow label="Support" onPress={() => router.push("/(app)/account/support")} />
+            <NavigationRow label="Privacy policy" onPress={() => router.push("/(app)/account/privacy")} />
+            <Pressable accessibilityRole="button" accessibilityState={{ expanded: showDiagnostics }} onPress={() => setShowDiagnostics((value) => !value)} style={({ pressed }) => [styles.linkRow, pressed && styles.pressed]}><Text style={styles.linkText}>App information</Text><Text accessible={false} style={styles.chevron}>{showDiagnostics ? "−" : "+"}</Text></Pressable>
+            {showDiagnostics ? <View style={styles.diagnostics}>
+              <Text selectable style={styles.diagnosticText}>{diagnostics}</Text>
+              <Pressable accessibilityRole="button" onPress={() => void Share.share({ message: diagnostics, title: "Bourbon Signal diagnostics" })} style={({ pressed }) => [styles.diagnosticAction, pressed && styles.pressed]}><Text style={styles.diagnosticActionText}>Share diagnostics</Text></Pressable>
+            </View> : null}
+            <Pressable accessibilityRole="button" onPress={() => signOut()} style={({ pressed }) => [styles.signOut, pressed && styles.pressed]}><Text style={styles.signOutText}>Sign out</Text></Pressable>
+          </View>
+          <View style={[memberScreenStyles.section, styles.dangerZone]}>
+            <Text style={styles.dangerTitle}>Data & privacy</Text>
+            <Text style={styles.muted}>Account deletion is handled through Support so identity, subscription, and contributed-data records can be reviewed safely.</Text>
+            <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/support")} style={({ pressed }) => [styles.deletionButton, pressed && styles.pressed]}><Text style={styles.deletionText}>Account deletion help</Text></Pressable>
+          </View>
+        </View> : null}
+      </View>
     </View>
   </ScrollView>;
 }
@@ -275,8 +300,12 @@ function GuideItem({ title, detail }: { title: string; detail: string }) {
   return <View style={styles.guideItem}><View style={styles.guideDot} /><View style={styles.guideItemCopy}><Text style={styles.guideItemTitle}>{title}</Text><Text style={styles.guideItemDetail}>{detail}</Text></View></View>;
 }
 
-function NavigationRow({ label, onPress }: { label: string; onPress: () => void }) {
-  return <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.linkRow, pressed && styles.pressed]}><Text style={styles.linkText}>{label}</Text><Text accessible={false} style={styles.chevron}>›</Text></Pressable>;
+function DestinationDisclosureRow({ expanded, label, summary, onPress }: { expanded: boolean; label: string; summary: string; onPress: () => void }) {
+  return <Pressable accessibilityRole="button" accessibilityState={{ expanded }} onPress={onPress} style={({ pressed }) => [styles.destinationRow, pressed && styles.pressed]}><View style={styles.destinationCopy}><Text accessibilityRole="header" style={styles.destinationTitle}>{label}</Text><Text numberOfLines={2} style={styles.destinationDetail}>{summary}</Text></View><Text accessible={false} style={styles.chevron}>{expanded ? "−" : "+"}</Text></Pressable>;
+}
+
+function NavigationRow({ label, detail, onPress }: { label: string; detail?: string; onPress: () => void }) {
+  return <Pressable accessibilityRole="button" onPress={onPress} style={({ pressed }) => [styles.linkRow, pressed && styles.pressed]}><View style={styles.destinationCopy}><Text style={styles.linkText}>{label}</Text>{detail ? <Text style={styles.destinationDetail}>{detail}</Text> : null}</View><Text accessible={false} style={styles.chevron}>›</Text></Pressable>;
 }
 
 const styles = StyleSheet.create({
@@ -301,6 +330,13 @@ const styles = StyleSheet.create({
   commandRewardDetail: { color: colors.muted, fontSize: 12, lineHeight: 17, textAlign: "right" },
   progressTrack: { height: 6, backgroundColor: colors.border, borderRadius: 999, overflow: "hidden" },
   progressFill: { height: "100%", backgroundColor: colors.accent, borderRadius: 999 },
+  destinations: { gap: 10 },
+  destinationGroup: { borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth, borderRadius: 16, backgroundColor: colors.surface, overflow: "hidden" },
+  destinationRow: { minHeight: 68, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 14, paddingHorizontal: 16, paddingVertical: 11 },
+  destinationCopy: { flex: 1, gap: 3 },
+  destinationTitle: { color: colors.text, fontSize: 17, fontWeight: "800" },
+  destinationDetail: { color: colors.muted, fontSize: 12, lineHeight: 17 },
+  destinationBody: { gap: 18, borderTopColor: colors.border, borderTopWidth: StyleSheet.hairlineWidth, backgroundColor: colors.background, padding: 14 },
   settingSummary: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 12 },
   settingCopy: { flex: 1, gap: 3 },
   settingLabel: { color: colors.muted, fontSize: 12, fontWeight: "700" },
@@ -316,7 +352,7 @@ const styles = StyleSheet.create({
   secondaryButton: { minHeight: 44, borderRadius: 10, borderColor: colors.border, borderWidth: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 12 },
   secondaryButtonText: { color: colors.text, fontSize: 13, fontWeight: "700" },
   accountPanel: { borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth, borderRadius: 16, backgroundColor: colors.surface, overflow: "hidden" },
-  linkRow: { minHeight: 54, borderBottomColor: colors.border, borderBottomWidth: StyleSheet.hairlineWidth, paddingHorizontal: 16, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
+  linkRow: { minHeight: 62, borderBottomColor: colors.border, borderBottomWidth: StyleSheet.hairlineWidth, paddingHorizontal: 16, paddingVertical: 9, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
   linkText: { color: colors.text, fontSize: 15, fontWeight: "700" },
   chevron: { color: colors.accent, fontSize: 23, lineHeight: 25 },
   diagnostics: { padding: 16, gap: 12, borderBottomColor: colors.border, borderBottomWidth: StyleSheet.hairlineWidth, backgroundColor: colors.background },
