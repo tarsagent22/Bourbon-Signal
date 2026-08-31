@@ -22,6 +22,9 @@ test("Home opens with a personalized overview before the premium feed controls",
   assert.match(feed, /Your Bourbon Signal home/);
   assert.match(feed, /getMemberPreferences/);
   assert.match(feed, /getMemberAlerts/);
+  assert.match(feed, /const requestId = \+\+profileRequestSequence\.current/);
+  assert.match(feed, /requestTripStorageKey === tripStorageKeyRef\.current/);
+  assert.ok((feed.match(/if \(!isCurrentRequest\(\)\) return;/g) || []).length >= 2);
   assert.match(feed, /setAlerts\(null\)/);
   assert.match(feed, /matches unavailable/);
   assert.match(feed, /radarWatchlistSummary/);

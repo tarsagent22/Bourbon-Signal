@@ -132,9 +132,12 @@ export default function SignalFeedScreen() {
   const requestInFlightRef = useRef<"refresh" | "page" | null>(null);
   const rarityBackfillRef = useRef({ key: "", attempts: 0 });
   const filtersByViewRef = useRef(filtersByView);
-  const preTripGeographyRef = useRef<Record<FeedView, Pick<SignalFeedFilters, "state" | "area">> | null>(null);
-  const tripRestoredRef = useRef(false);
   filtersByViewRef.current = filtersByView;
+  const preTripGeographyRef = useRef<Record<FeedView, Pick<SignalFeedFilters, "state" | "area">> | null>(null);
+  const profileRequestSequence = useRef(0);
+  const tripStorageKeyRef = useRef(tripStorageKey);
+  tripStorageKeyRef.current = tripStorageKey;
+  const tripRestoredRef = useRef(false);
 
   const resetFeed = useCallback(() => {
     requestSequence.current += 1;
@@ -155,6 +158,9 @@ export default function SignalFeedScreen() {
   }, []);
 
   const loadProfile = useCallback(async (fresh = false) => {
+    const requestId = ++profileRequestSequence.current;
+    const requestTripStorageKey = tripStorageKey;
+    const isCurrentRequest = () => requestId === profileRequestSequence.current && requestTripStorageKey === tripStorageKeyRef.current;
     setProfileError("");
     setAlerts(null);
     const profilePromise = api.getMemberProfile({ fresh });
@@ -164,6 +170,7 @@ export default function SignalFeedScreen() {
     ]);
     const tripPromise = tripStorageKey ? SecureStore.getItemAsync(tripStorageKey) : Promise.resolve(null);
     const [profileResult, tripResult] = await Promise.allSettled([profilePromise, tripPromise]);
+    if (!isCurrentRequest()) return;
     if (profileResult.status === "fulfilled") {
       setProfile(profileResult.value.profile);
       if (!tripRestoredRef.current && tripResult.status === "fulfilled") {
@@ -183,6 +190,7 @@ export default function SignalFeedScreen() {
       if (tripResult.status === "fulfilled") setTripRestoreReady(true);
     }
     const [preferencesResult, alertsResult] = await personalizationPromise;
+    if (!isCurrentRequest()) return;
     if (preferencesResult.status === "fulfilled") setPreferences(preferencesResult.value);
     if (alertsResult.status === "fulfilled") setAlerts(alertsResult.value);
     const failed = [profileResult, tripResult, preferencesResult, alertsResult].some((result) => result.status === "rejected");
