@@ -11,21 +11,38 @@ function position(fragment: string) {
   return index;
 }
 
-test("Signal Feed opens with the premium control hierarchy and no explanatory paragraph", () => {
+test("Home opens with a personalized overview before the premium feed controls", () => {
+  const overview = position('accessibilityLabel="Home overview"');
   const toggle = position('accessibilityLabel="Signal feed view"');
   const geography = position('accessibilityLabel="Signal geography filters"');
   const search = position('placeholder="Search bottle name"');
   const rarity = position('accessibilityLabel="Bottle rarity filters"');
 
-  assert.ok(toggle < geography && geography < search && search < rarity);
+  assert.ok(overview < toggle && toggle < geography && geography < search && search < rarity);
+  assert.match(feed, /Your Bourbon Signal home/);
+  assert.match(feed, /getMemberPreferences/);
+  assert.match(feed, /getMemberAlerts/);
+  assert.match(feed, /radarWatchlistSummary/);
+  assert.match(feed, /OPEN RADAR/);
   assert.doesNotMatch(feed, /Intel gathered from Bourbon Signal sources|Bottle sightings shared by Bourbon Signal members|contextText/);
   assert.doesNotMatch(feed, /Open Signal filters|Filter Signals|filterOpen|filterSheet/);
   assert.match(feed, /showsVerticalScrollIndicator=\{false\}/);
 });
 
+test("Trip Mode is local, persistent, visibly active, and overrides only Home requests", () => {
+  assert.match(feed, /SecureStore\.getItemAsync\(TRIP_MODE_STORAGE_KEY\)/);
+  assert.match(feed, /SecureStore\.setItemAsync\(TRIP_MODE_STORAGE_KEY/);
+  assert.match(feed, /SecureStore\.deleteItemAsync\(TRIP_MODE_STORAGE_KEY\)/);
+  assert.match(feed, /signalFiltersForTrip\(filters, tripMode\)/);
+  assert.match(feed, /Trip Mode active/);
+  assert.match(feed, /accessibilityLabel="Exit Trip Mode"/);
+  assert.match(feed, /stateOptions\.map/);
+  assert.doesNotMatch(feed, /updateMemberPreferences/);
+});
+
 test("State and Area remain a stable pair while Area is disabled until State is selected", () => {
   assert.match(feed, /label="State"[\s\S]*?icon="map-marker-outline"/);
-  assert.match(feed, /label=\{areaLabel\}[\s\S]*?disabled=\{!filters\.state\}/);
+  assert.match(feed, /label=\{areaLabel\}[\s\S]*?disabled=\{!effectiveFilters\.state\}/);
   assert.doesNotMatch(feed, /filters\.state \? <OptionChooser/);
   assert.doesNotMatch(feed, /geographySoloRow|filterChooserSolo/);
   assert.match(feed, /accessibilityState=\{\{ expanded, disabled \}\}/);

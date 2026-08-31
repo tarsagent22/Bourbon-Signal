@@ -1,4 +1,4 @@
-export type MemberTabKey = "signals" | "radar" | "post" | "cellar" | "hq";
+export type MemberTabKey = "home" | "radar" | "post" | "cellar" | "hq";
 export type MemberOwnedFeature =
   | "signal_feed"
   | "signal_detail"
@@ -22,7 +22,7 @@ export interface MemberTabDefinition {
 }
 
 export const MEMBER_TABS: readonly MemberTabDefinition[] = [
-  { key: "signals", route: "index", label: "Signals", icon: "radio-tower", owns: ["signal_feed", "signal_detail"] },
+  { key: "home", route: "index", label: "Home", icon: "home-outline", owns: ["signal_feed", "signal_detail"] },
   { key: "radar", route: "radar", label: "Radar", icon: "radar", owns: ["watched_bottles", "saved_markets", "alert_controls", "alert_inbox"] },
   { key: "post", route: "post", label: "Post", icon: "plus-circle-outline", owns: ["sighting_composer"] },
   { key: "cellar", route: "cellar", label: "Cellar", icon: "bottle-soda-classic-outline", owns: ["collection"] },

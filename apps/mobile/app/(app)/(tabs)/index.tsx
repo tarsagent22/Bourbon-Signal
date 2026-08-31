@@ -1,11 +1,14 @@
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { router } from "expo-router";
+import * as SecureStore from "expo-secure-store";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FlatList, Keyboard, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { MobileApiError } from "../../../src/api/client";
-import type { MemberProfile, Signal, SignalFeedPage } from "../../../src/api/types";
+import type { MemberAlertsResponse, MemberPreferences, MemberProfile, Signal, SignalFeedPage } from "../../../src/api/types";
 import { SignalCard } from "../../../src/components/SignalCard";
+import { parseTripModeState, serializeTripModeState, signalFiltersForTrip, TRIP_MODE_STORAGE_KEY, tripModeForState, type TripModeState } from "../../../src/home/trip-mode";
 import { useMobileApi } from "../../../src/hooks/useMobileApi";
+import { alertIsStale, radarMonitoringSummary, radarWatchlistSummary } from "../../../src/radar/radar-preferences";
 import { DEFAULT_SIGNAL_FILTERS, areaOptionsForState, areaSelectorLabel, filterSignalsByRarity, normalizedFilters, rarityOptionsForView, serverSignalFilters, shouldBackfillRarity, toggleRarity, type SignalFeedFilters } from "../../../src/signals/feed-filters";
 import { colors } from "../../../src/theme";
 
@@ -92,6 +95,11 @@ export default function SignalFeedScreen() {
   const [profileError, setProfileError] = useState("");
   const [access, setAccess] = useState<SignalFeedPage["access"] | null>(null);
   const [profile, setProfile] = useState<MemberProfile["profile"] | null>(null);
+  const [preferences, setPreferences] = useState<MemberPreferences | null>(null);
+  const [alerts, setAlerts] = useState<MemberAlertsResponse | null>(null);
+  const [tripMode, setTripMode] = useState<TripModeState | null>(null);
+  const [tripChooserOpen, setTripChooserOpen] = useState(false);
+  const [tripError, setTripError] = useState("");
   const [filtersByView, setFiltersByView] = useState<Record<FeedView, SignalFeedFilters>>({
     market: { ...DEFAULT_SIGNAL_FILTERS },
     community: { ...DEFAULT_SIGNAL_FILTERS },
@@ -102,22 +110,38 @@ export default function SignalFeedScreen() {
   const [areaOptionsLoading, setAreaOptionsLoading] = useState(false);
   const [areaOptionsError, setAreaOptionsError] = useState("");
   const filters = filtersByView[view];
-  const requestFilters = useMemo(() => serverSignalFilters(filters), [filters]);
+  const effectiveFilters = useMemo(() => signalFiltersForTrip(filters, tripMode), [filters, tripMode]);
+  const requestFilters = useMemo(() => serverSignalFilters(effectiveFilters), [effectiveFilters]);
   const visibleSignals = useMemo(() => filterSignalsByRarity(signals, filters.rarities), [filters.rarities, signals]);
   const rarityBackfillKey = JSON.stringify([view, requestFilters.state, requestFilters.area, requestFilters.freshness, requestFilters.bottle, filters.rarities]);
   const areaDirectory = profile?.feedAreas;
   const stateOptions = areaDirectory?.states.filter((state) => /^[A-Z]{2}$/.test(state.code)).map((state) => ({ value: state.code, label: `${state.label} (${state.code})` })) || [];
-  const staticAreaOptions = areaOptionsForState(areaDirectory, filters.state);
-  const areaOptions = filters.state !== "NC" && remoteAreaState === filters.state && remoteAreaOptions.length
+  const staticAreaOptions = areaOptionsForState(areaDirectory, effectiveFilters.state);
+  const areaOptions = effectiveFilters.state !== "NC" && remoteAreaState === effectiveFilters.state && remoteAreaOptions.length
     ? remoteAreaOptions
     : staticAreaOptions;
-  const areaLabel = filters.state
-    ? areaDirectory?.states.find((state) => state.code === filters.state)?.areaLabel || areaSelectorLabel(filters.state)
+  const areaLabel = effectiveFilters.state
+    ? areaDirectory?.states.find((state) => state.code === effectiveFilters.state)?.areaLabel || areaSelectorLabel(effectiveFilters.state)
     : "Area / Board";
   const bottleQuery = bottleQueries[view];
   const requestSequence = useRef(0);
   const requestInFlightRef = useRef<"refresh" | "page" | null>(null);
   const rarityBackfillRef = useRef({ key: "", attempts: 0 });
+  const filtersByViewRef = useRef(filtersByView);
+  const preTripGeographyRef = useRef<Record<FeedView, Pick<SignalFeedFilters, "state" | "area">> | null>(null);
+  const tripRestoredRef = useRef(false);
+  filtersByViewRef.current = filtersByView;
+
+  const resetFeed = useCallback(() => {
+    requestSequence.current += 1;
+    requestInFlightRef.current = null;
+    setSignals([]);
+    setCursor(null);
+    setHasMore(true);
+    setError("");
+    setLoaded(false);
+    setLoading(false);
+  }, []);
 
   const handleError = useCallback((caught: unknown) => {
     const apiError = caught instanceof MobileApiError ? caught : null;
@@ -128,12 +152,34 @@ export default function SignalFeedScreen() {
 
   const loadProfile = useCallback(async (fresh = false) => {
     setProfileError("");
-    try {
-      setProfile((await api.getMemberProfile({ fresh })).profile);
-    } catch (caught) {
-      setProfileError(caught instanceof Error ? caught.message : "Membership details are temporarily unavailable.");
+    const [profileResult, preferencesResult, alertsResult, tripResult] = await Promise.allSettled([
+      api.getMemberProfile({ fresh }),
+      api.getMemberPreferences({ fresh }),
+      api.getMemberAlerts({ fresh }),
+      SecureStore.getItemAsync(TRIP_MODE_STORAGE_KEY),
+    ]);
+    if (profileResult.status === "fulfilled") {
+      setProfile(profileResult.value.profile);
+      if (!tripRestoredRef.current && tripResult.status === "fulfilled") {
+        tripRestoredRef.current = true;
+        const restoredTrip = parseTripModeState(tripResult.value, profileResult.value.profile.feedAreas);
+        if (restoredTrip) {
+          const current = filtersByViewRef.current;
+          preTripGeographyRef.current = {
+            market: { state: current.market.state, area: current.market.area },
+            community: { state: current.community.state, area: current.community.area },
+          };
+        }
+        setTripMode(restoredTrip);
+        if (restoredTrip) resetFeed();
+        else if (tripResult.value) void SecureStore.deleteItemAsync(TRIP_MODE_STORAGE_KEY).catch(() => undefined);
+      }
     }
-  }, [api]);
+    if (preferencesResult.status === "fulfilled") setPreferences(preferencesResult.value);
+    if (alertsResult.status === "fulfilled") setAlerts(alertsResult.value);
+    const failed = [profileResult, preferencesResult, alertsResult].some((result) => result.status === "rejected");
+    if (failed) setProfileError("Some Home personalization is temporarily unavailable. Tap to retry.");
+  }, [api, resetFeed]);
 
   const load = useCallback(async (refresh = false) => {
     const mode = refresh ? "refresh" : "page";
@@ -208,6 +254,50 @@ export default function SignalFeedScreen() {
     }));
   }, [view]);
 
+  const activateTripMode = useCallback(async (state: string) => {
+    const next = tripModeForState(state, areaDirectory);
+    if (!next) {
+      setTripError("That destination is not available in your Home areas.");
+      return;
+    }
+    if (!preTripGeographyRef.current) {
+      const current = filtersByViewRef.current;
+      preTripGeographyRef.current = {
+        market: { state: current.market.state, area: current.market.area },
+        community: { state: current.community.state, area: current.community.area },
+      };
+    }
+    setTripError("");
+    setTripMode(next);
+    setTripChooserOpen(false);
+    resetFeed();
+    try {
+      await SecureStore.setItemAsync(TRIP_MODE_STORAGE_KEY, serializeTripModeState(next));
+    } catch {
+      setTripError("Trip Mode is active, but it could not be saved on this device.");
+    }
+  }, [areaDirectory, resetFeed]);
+
+  const exitTripMode = useCallback(async () => {
+    const previousGeography = preTripGeographyRef.current;
+    if (previousGeography) {
+      setFiltersByView((current) => ({
+        market: { ...current.market, ...previousGeography.market },
+        community: { ...current.community, ...previousGeography.community },
+      }));
+      preTripGeographyRef.current = null;
+    }
+    setTripMode(null);
+    setTripChooserOpen(false);
+    setTripError("");
+    resetFeed();
+    try {
+      await SecureStore.deleteItemAsync(TRIP_MODE_STORAGE_KEY);
+    } catch {
+      setTripError("Trip Mode ended, but its saved device state could not be cleared.");
+    }
+  }, [resetFeed]);
+
   useEffect(() => { void loadProfile(); }, [loadProfile]);
   useEffect(() => { if (!loaded && !loading && !error) void load(true); }, [error, load, loaded, loading]);
   useEffect(() => {
@@ -227,7 +317,7 @@ export default function SignalFeedScreen() {
     return () => clearTimeout(timer);
   }, [applyFilters, bottleQuery, filters]);
   useEffect(() => {
-    if (!filters.state || filters.state === "NC") {
+    if (!effectiveFilters.state || effectiveFilters.state === "NC") {
       setAreaOptionsLoading(false);
       setAreaOptionsError("");
       return;
@@ -235,23 +325,54 @@ export default function SignalFeedScreen() {
     let current = true;
     setAreaOptionsLoading(true);
     setAreaOptionsError("");
-    void api.getSignalAreaOptions(filters.state).then((options) => {
+    void api.getSignalAreaOptions(effectiveFilters.state).then((options) => {
       if (!current) return;
-      setRemoteAreaState(filters.state);
+      setRemoteAreaState(effectiveFilters.state);
       setRemoteAreaOptions(options);
       if (!options.length && !staticAreaOptions.length) setAreaOptionsError("No city options are available for this state yet.");
     }).catch(() => {
       if (current && !staticAreaOptions.length) setAreaOptionsError("City options are temporarily unavailable.");
     }).finally(() => { if (current) setAreaOptionsLoading(false); });
     return () => { current = false; };
-  }, [api, filters.state, staticAreaOptions.length]);
+  }, [api, effectiveFilters.state, staticAreaOptions.length]);
 
   const marketLocked = view === "market" && Boolean(access?.marketDetailsLocked);
   const paidAccessMismatch = Boolean(profile?.membership.paid && marketLocked);
   const canUseFilters = view === "community" || access?.marketDetailsLocked === false;
+  const currentMatchCount = alerts?.alerts.filter((alert) => !alert.archivedAt && !alertIsStale(alert)).length || 0;
+  const radarStatus = preferences
+    ? `${radarWatchlistSummary(preferences)} · ${radarMonitoringSummary(preferences.monitoringScopes)} · ${currentMatchCount} current match${currentMatchCount === 1 ? "" : "es"}`
+    : "Radar status is temporarily unavailable";
+  const tripDestination = tripMode ? stateOptions.find((option) => option.value === tripMode.state)?.label || tripMode.state : "";
 
   const header = (
     <View style={styles.header}>
+      <View accessibilityLabel="Home overview" style={styles.homeOverview}>
+        <Text style={styles.homeEyebrow}>HOME</Text>
+        <Text accessibilityRole="header" style={styles.homeTitle}>Your Bourbon Signal home</Text>
+        <Text style={styles.homeIntro}>{profile?.displayName ? `Welcome back, ${profile.displayName}.` : "Your personalized bourbon activity, in one place."}</Text>
+        <View style={styles.homeRule} />
+        <View style={styles.homeStatusRow}>
+          <View style={styles.homeStatusIcon}><MaterialCommunityIcons color={colors.accent} name="radar" size={21} /></View>
+          <View style={styles.homeStatusCopy}><Text style={styles.homeStatusTitle}>Radar</Text><Text numberOfLines={2} style={styles.homeStatusDetail}>{radarStatus}</Text></View>
+          <Pressable accessibilityRole="button" onPress={() => router.push({ pathname: "/(app)/(tabs)/radar", params: { section: "matches", request: Date.now().toString() } })} style={({ pressed }) => [styles.homeAction, pressed && styles.segmentPressed]}><Text style={styles.homeActionText}>OPEN RADAR</Text></Pressable>
+        </View>
+        <View style={styles.homeRule} />
+        <View style={styles.homeStatusRow}>
+          <View style={styles.homeStatusIcon}><MaterialCommunityIcons color={tripMode ? colors.success : colors.muted} name="map-marker-path" size={21} /></View>
+          <View style={styles.homeStatusCopy}>
+            <Text style={styles.homeStatusTitle}>{tripMode ? "Trip Mode active" : "Trip Mode"}</Text>
+            <Text numberOfLines={2} style={styles.homeStatusDetail}>{tripMode ? `Home is browsing ${tripDestination}.` : "Temporarily browse Signals in another state."}</Text>
+          </View>
+          {tripMode
+            ? <Pressable accessibilityLabel="Exit Trip Mode" accessibilityRole="button" onPress={() => void exitTripMode()} style={({ pressed }) => [styles.homeAction, pressed && styles.segmentPressed]}><Text style={styles.homeActionText}>EXIT</Text></Pressable>
+            : <Pressable accessibilityRole="button" accessibilityState={{ expanded: tripChooserOpen }} onPress={() => setTripChooserOpen((current) => !current)} style={({ pressed }) => [styles.homeAction, pressed && styles.segmentPressed]}><Text style={styles.homeActionText}>CHOOSE STATE</Text></Pressable>}
+        </View>
+        {!tripMode && tripChooserOpen ? <View accessibilityLabel="Trip Mode destinations" style={styles.tripDestinations}>
+          {stateOptions.map((option) => <Pressable accessibilityLabel={`Start Trip Mode for ${option.label}`} accessibilityRole="button" key={option.value} onPress={() => void activateTripMode(option.value)} style={({ pressed }) => [styles.tripDestination, pressed && styles.segmentPressed]}><Text style={styles.tripDestinationCode}>{option.value}</Text><Text numberOfLines={1} style={styles.tripDestinationLabel}>{option.label.replace(` (${option.value})`, "")}</Text></Pressable>)}
+        </View> : null}
+        {tripError ? <Text accessibilityRole="alert" style={styles.tripError}>{tripError}</Text> : null}
+      </View>
       <View accessibilityLabel="Signal feed view" style={styles.segmentedControl}>
         <Pressable
           accessibilityRole="button"
@@ -278,25 +399,25 @@ export default function SignalFeedScreen() {
           <OptionChooser
             label="State"
             icon="map-marker-outline"
-            value={filters.state}
+            value={effectiveFilters.state}
             placeholder="State"
             clearLabel="Any state"
             options={stateOptions}
-            onChange={(state) => applyFilters({ ...filters, state, area: "" })}
+            onChange={(state) => tripMode ? state ? void activateTripMode(state) : void exitTripMode() : applyFilters({ ...filters, state, area: "" })}
           />
           <OptionChooser
             label={areaLabel}
             icon="map-marker-radius-outline"
-            value={filters.area}
-            placeholder={filters.state ? areaLabel : "Area / Board"}
+            value={effectiveFilters.area}
+            placeholder={effectiveFilters.state ? areaLabel : "Area / Board"}
             clearLabel={`Any ${areaLabel.toLowerCase()}`}
             options={areaOptions}
-            disabled={!filters.state}
-            onChange={(area) => applyFilters({ ...filters, area })}
+            disabled={!effectiveFilters.state}
+            onChange={(area) => applyFilters({ ...effectiveFilters, area })}
           />
         </View>
-        {filters.state && filters.state !== "NC" && areaOptionsLoading ? <Text style={styles.areaOptionNote}>Loading cities…</Text> : null}
-        {filters.state && areaOptionsError ? <Text accessibilityRole="alert" style={styles.areaOptionError}>{areaOptionsError}</Text> : null}
+        {effectiveFilters.state && effectiveFilters.state !== "NC" && areaOptionsLoading ? <Text style={styles.areaOptionNote}>Loading cities…</Text> : null}
+        {effectiveFilters.state && areaOptionsError ? <Text accessibilityRole="alert" style={styles.areaOptionError}>{areaOptionsError}</Text> : null}
 
         <View style={styles.filterInputShell}>
           <MaterialCommunityIcons color={colors.muted} name="magnify" size={20} />
@@ -365,7 +486,7 @@ export default function SignalFeedScreen() {
       keyExtractor={(item) => item.id}
       renderItem={({ item }) => <SignalCard signal={item} onPress={() => router.push({ pathname: "/(app)/signal/[id]", params: { id: item.id } })} />}
       ItemSeparatorComponent={() => <View style={styles.gap} />}
-      refreshControl={<RefreshControl refreshing={loading && loaded} onRefresh={() => load(true)} tintColor={colors.accent} colors={[colors.accent]} />}
+      refreshControl={<RefreshControl refreshing={loading && loaded} onRefresh={() => { void load(true); void loadProfile(true); }} tintColor={colors.accent} colors={[colors.accent]} />}
       onEndReached={() => { if (loaded && signals.length && !filters.rarities.length) void load(false); }}
       onEndReachedThreshold={0.5}
       ListHeaderComponent={header}
@@ -396,6 +517,23 @@ const styles = StyleSheet.create({
   list: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 64 },
   gap: { height: 12 },
   header: { gap: 11, marginBottom: 14 },
+  homeOverview: { gap: 10, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface, padding: 15 },
+  homeEyebrow: { color: colors.accent, fontSize: 10, fontWeight: "800", letterSpacing: 1.2 },
+  homeTitle: { color: colors.text, fontSize: 21, lineHeight: 26, fontWeight: "800" },
+  homeIntro: { color: colors.muted, fontSize: 12, lineHeight: 17 },
+  homeRule: { height: StyleSheet.hairlineWidth, backgroundColor: colors.border },
+  homeStatusRow: { minHeight: 46, flexDirection: "row", alignItems: "center", gap: 10 },
+  homeStatusIcon: { width: 34, height: 34, alignItems: "center", justifyContent: "center", borderRadius: 11, backgroundColor: colors.surfaceRaised },
+  homeStatusCopy: { flex: 1, gap: 2 },
+  homeStatusTitle: { color: colors.text, fontSize: 13, lineHeight: 18, fontWeight: "800" },
+  homeStatusDetail: { color: colors.muted, fontSize: 10, lineHeight: 14 },
+  homeAction: { minHeight: 40, justifyContent: "center", paddingHorizontal: 4 },
+  homeActionText: { color: colors.accent, fontSize: 9, fontWeight: "800", letterSpacing: 0.45 },
+  tripDestinations: { flexDirection: "row", flexWrap: "wrap", gap: 7, paddingTop: 2 },
+  tripDestination: { minHeight: 38, maxWidth: "48%", flexDirection: "row", alignItems: "center", gap: 6, borderRadius: 11, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, paddingHorizontal: 9 },
+  tripDestinationCode: { color: colors.accent, fontSize: 11, fontWeight: "800" },
+  tripDestinationLabel: { flexShrink: 1, color: colors.text, fontSize: 11, fontWeight: "600" },
+  tripError: { color: colors.danger, fontSize: 11, lineHeight: 15 },
   segmentedControl: { flexDirection: "row", padding: 3, borderRadius: 14, backgroundColor: colors.surface, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth },
   segment: { flex: 1, minHeight: 44, borderRadius: 11, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 7 },
   segmentSelected: { backgroundColor: "#241A10" },
