@@ -77,6 +77,8 @@ assert.deepEqual(app.android?.permissions, [
 assert.deepEqual(app.android?.blockedPermissions, [
   "android.permission.ACCESS_BACKGROUND_LOCATION",
   "android.permission.RECORD_AUDIO",
+  "android.permission.READ_EXTERNAL_STORAGE",
+  "android.permission.WRITE_EXTERNAL_STORAGE",
 ]);
 
 for (const launchPath of ["app/_layout.tsx", "app/index.tsx", "app/(app)/_layout.tsx"]) {
@@ -129,6 +131,8 @@ for (const blockedPermission of app.android.blockedPermissions) {
 for (const forbiddenPermission of [
   "android.permission.ACCESS_BACKGROUND_LOCATION",
   "android.permission.RECORD_AUDIO",
+  "android.permission.READ_EXTERNAL_STORAGE",
+  "android.permission.WRITE_EXTERNAL_STORAGE",
   "android.permission.FOREGROUND_SERVICE",
   "android.permission.FOREGROUND_SERVICE_LOCATION",
   "android.permission.ACTIVITY_RECOGNITION",
@@ -168,6 +172,10 @@ assert.match(privacyInventory, /does not upload evidence photos/i);
 assert.match(privacyInventory, /microphone and background location remain disabled/i);
 assert.doesNotMatch(privacyInventory, /No camera, photo library, contacts, microphone, Bluetooth, or device-location permission/);
 const reviewNotes = read("store/app-review-notes.md");
+assert.match(reviewNotes, /Review the Home tab/);
+assert.match(reviewNotes, /open a Signal's Bottle Profile/);
+assert.match(reviewNotes, /Account → Privacy & Support → Account deletion help/);
+assert.doesNotMatch(reviewNotes, /Signals tab|Open HQ|HQ → Request account deletion/);
 assert.match(reviewNotes, /no permission prompt runs at app launch/i);
 assert.match(reviewNotes, /does not upload evidence photos or expose barcode matching/i);
 assert.match(reviewNotes, /does not request microphone or background location/i);

@@ -22,6 +22,8 @@ test("Home opens with a personalized overview before the premium feed controls",
   assert.match(feed, /Your Bourbon Signal home/);
   assert.match(feed, /getMemberPreferences/);
   assert.match(feed, /getMemberAlerts/);
+  assert.match(feed, /setAlerts\(null\)/);
+  assert.match(feed, /matches unavailable/);
   assert.match(feed, /radarWatchlistSummary/);
   assert.match(feed, /OPEN RADAR/);
   assert.doesNotMatch(feed, /Intel gathered from Bourbon Signal sources|Bottle sightings shared by Bourbon Signal members|contextText/);
@@ -29,10 +31,15 @@ test("Home opens with a personalized overview before the premium feed controls",
   assert.match(feed, /showsVerticalScrollIndicator=\{false\}/);
 });
 
-test("Trip Mode is local, persistent, visibly active, and overrides only Home requests", () => {
-  assert.match(feed, /SecureStore\.getItemAsync\(TRIP_MODE_STORAGE_KEY\)/);
-  assert.match(feed, /SecureStore\.setItemAsync\(TRIP_MODE_STORAGE_KEY/);
-  assert.match(feed, /SecureStore\.deleteItemAsync\(TRIP_MODE_STORAGE_KEY\)/);
+test("Trip Mode is account-scoped, restored before loading, visibly active, and overrides only Home requests", () => {
+  assert.match(feed, /tripModeStorageKeyForUser\(userId\)/);
+  assert.match(feed, /SecureStore\.getItemAsync\(tripStorageKey\)/);
+  assert.match(feed, /SecureStore\.setItemAsync\(tripStorageKey/);
+  assert.match(feed, /SecureStore\.deleteItemAsync\(tripStorageKey\)/);
+  assert.match(feed, /tripRestoreReady && !loaded/);
+  assert.match(feed, /if \(tripResult\.status === "fulfilled"\) setTripRestoreReady\(true\)/);
+  assert.doesNotMatch(feed, /if \(!tripRestoredRef\.current\) tripRestoredRef\.current = true/);
+  assert.match(feed, /onRefresh=\{\(\) => \{ if \(tripRestoreReady\) void load\(true\)/);
   assert.match(feed, /signalFiltersForTrip\(filters, tripMode\)/);
   assert.match(feed, /Trip Mode active/);
   assert.match(feed, /accessibilityLabel="Exit Trip Mode"/);

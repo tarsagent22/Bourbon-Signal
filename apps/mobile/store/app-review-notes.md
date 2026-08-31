@@ -23,15 +23,15 @@ Reviewer path:
 1. Open Bourbon Signal.
 2. Sign in with the App Review account.
 3. Complete the supplied verification factor if the account requires one. Configure the review account so Apple can complete this without contacting a private individual.
-4. Review the Signals tab, open a Signal detail, and continue loading the feed.
+4. Review the Home tab, open a Signal's Bottle Profile, and continue loading the feed.
 5. Open Radar to see saved alert markets, watched bottles, alert channels, and the alert inbox.
 6. Open Post and review the required bottle/store fields. A submitted review Signal affects production community data, so Apple should not submit a test sighting unless coordinated with Bourbon Signal.
 7. Open Cellar to see the review account's collection.
-8. Open HQ to see membership, Signal Points, rewards, Support, Privacy policy, Request account deletion, and Sign out.
+8. Open Account to see membership, Signal Points, rewards, Alerts, Profile, and Privacy & Support. Expand Privacy & Support for Support, Privacy policy, Account deletion help, app information, and Sign out.
 
 ## Account deletion
 
-The app is sign-in-only and does not create accounts. A signed-in member can still initiate deletion from **HQ → Request account deletion**. This opens a pre-addressed request to `support@bourbonsignal.com`. Support verifies ownership, removes the account from active systems, and confirms any billing, fraud-prevention, dispute, or legal records that must be retained. Subscription cancellation and account deletion are separate actions.
+The app is sign-in-only and does not create accounts. A signed-in member can still initiate deletion from **Account → Privacy & Support → Account deletion help**. This opens the native Support flow for a deletion request to `support@bourbonsignal.com`. Support verifies ownership, removes the account from active systems, and confirms any billing, fraud-prevention, dispute, or legal records that must be retained. Subscription cancellation and account deletion are separate actions.
 
 ## Encryption
 

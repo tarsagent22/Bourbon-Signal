@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import type { SignalAreaDirectory, SignalFeedFilters } from "../signals/feed-filters";
-import { parseTripModeState, serializeTripModeState, signalFiltersForTrip, tripModeForState } from "./trip-mode";
+import { parseTripModeState, serializeTripModeState, signalFiltersForTrip, tripModeForState, tripModeStorageKeyForUser } from "./trip-mode";
 
 const areas: SignalAreaDirectory = {
   states: [
@@ -22,6 +22,14 @@ test("Trip Mode serializes a versioned local value that can be restored", () => 
   assert.ok(trip);
   assert.equal(serializeTripModeState(trip), '{"version":1,"state":"NC"}');
   assert.deepEqual(parseTripModeState(serializeTripModeState(trip), areas), trip);
+});
+
+test("Trip Mode storage is isolated by signed-in account without exposing the account id", () => {
+  const first = tripModeStorageKeyForUser("user_first");
+  const second = tripModeStorageKeyForUser("user_second");
+  assert.notEqual(first, second);
+  assert.doesNotMatch(first, /user_first/);
+  assert.match(first, /^[A-Za-z0-9._-]+$/);
 });
 
 test("Trip Mode overrides only request geography and leaves the member's filters untouched", () => {

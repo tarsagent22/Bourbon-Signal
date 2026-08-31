@@ -74,7 +74,7 @@ export default function SignalDetailScreen() {
 
   const presented = signal ? presentSignal(signal) : null;
   const memberTag = signal ? signalMemberTagLabel(signal) : "";
-  const bottleProfile = signal && preferences ? bottleProfileState(signal.bottle.name, preferences) : null;
+  const bottleProfile = signal && preferences ? bottleProfileState(signal.bottle, preferences) : null;
   const inCellar = bottleProfile?.inCellar === true;
   const isWatched = bottleProfile?.isWatched === true;
   const address = signal ? [signal.location.store?.address, signal.location.store?.city, signal.location.store?.state, signal.location.store?.zip].filter(Boolean).join(", ") : "";

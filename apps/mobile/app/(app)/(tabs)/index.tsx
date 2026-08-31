@@ -1,3 +1,4 @@
+import { useAuth } from "@clerk/expo";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { router } from "expo-router";
 import * as SecureStore from "expo-secure-store";
@@ -6,7 +7,7 @@ import { FlatList, Keyboard, Pressable, RefreshControl, ScrollView, StyleSheet, 
 import { MobileApiError } from "../../../src/api/client";
 import type { MemberAlertsResponse, MemberPreferences, MemberProfile, Signal, SignalFeedPage } from "../../../src/api/types";
 import { SignalCard } from "../../../src/components/SignalCard";
-import { parseTripModeState, serializeTripModeState, signalFiltersForTrip, TRIP_MODE_STORAGE_KEY, tripModeForState, type TripModeState } from "../../../src/home/trip-mode";
+import { parseTripModeState, serializeTripModeState, signalFiltersForTrip, tripModeForState, tripModeStorageKeyForUser, type TripModeState } from "../../../src/home/trip-mode";
 import { useMobileApi } from "../../../src/hooks/useMobileApi";
 import { alertIsStale, radarMonitoringSummary, radarWatchlistSummary } from "../../../src/radar/radar-preferences";
 import { DEFAULT_SIGNAL_FILTERS, areaOptionsForState, areaSelectorLabel, filterSignalsByRarity, normalizedFilters, rarityOptionsForView, serverSignalFilters, shouldBackfillRarity, toggleRarity, type SignalFeedFilters } from "../../../src/signals/feed-filters";
@@ -85,6 +86,7 @@ function FeedSkeleton() {
 
 export default function SignalFeedScreen() {
   const api = useMobileApi();
+  const { isLoaded: authLoaded, userId } = useAuth();
   const [view, setView] = useState<FeedView>("market");
   const [signals, setSignals] = useState<Signal[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
@@ -98,6 +100,7 @@ export default function SignalFeedScreen() {
   const [preferences, setPreferences] = useState<MemberPreferences | null>(null);
   const [alerts, setAlerts] = useState<MemberAlertsResponse | null>(null);
   const [tripMode, setTripMode] = useState<TripModeState | null>(null);
+  const [tripRestoreReady, setTripRestoreReady] = useState(false);
   const [tripChooserOpen, setTripChooserOpen] = useState(false);
   const [tripError, setTripError] = useState("");
   const [filtersByView, setFiltersByView] = useState<Record<FeedView, SignalFeedFilters>>({
@@ -124,6 +127,7 @@ export default function SignalFeedScreen() {
     ? areaDirectory?.states.find((state) => state.code === effectiveFilters.state)?.areaLabel || areaSelectorLabel(effectiveFilters.state)
     : "Area / Board";
   const bottleQuery = bottleQueries[view];
+  const tripStorageKey = useMemo(() => userId ? tripModeStorageKeyForUser(userId) : null, [userId]);
   const requestSequence = useRef(0);
   const requestInFlightRef = useRef<"refresh" | "page" | null>(null);
   const rarityBackfillRef = useRef({ key: "", attempts: 0 });
@@ -152,12 +156,14 @@ export default function SignalFeedScreen() {
 
   const loadProfile = useCallback(async (fresh = false) => {
     setProfileError("");
-    const [profileResult, preferencesResult, alertsResult, tripResult] = await Promise.allSettled([
-      api.getMemberProfile({ fresh }),
+    setAlerts(null);
+    const profilePromise = api.getMemberProfile({ fresh });
+    const personalizationPromise = Promise.allSettled([
       api.getMemberPreferences({ fresh }),
       api.getMemberAlerts({ fresh }),
-      SecureStore.getItemAsync(TRIP_MODE_STORAGE_KEY),
     ]);
+    const tripPromise = tripStorageKey ? SecureStore.getItemAsync(tripStorageKey) : Promise.resolve(null);
+    const [profileResult, tripResult] = await Promise.allSettled([profilePromise, tripPromise]);
     if (profileResult.status === "fulfilled") {
       setProfile(profileResult.value.profile);
       if (!tripRestoredRef.current && tripResult.status === "fulfilled") {
@@ -172,14 +178,16 @@ export default function SignalFeedScreen() {
         }
         setTripMode(restoredTrip);
         if (restoredTrip) resetFeed();
-        else if (tripResult.value) void SecureStore.deleteItemAsync(TRIP_MODE_STORAGE_KEY).catch(() => undefined);
+        else if (tripResult.value && tripStorageKey) void SecureStore.deleteItemAsync(tripStorageKey).catch(() => undefined);
       }
+      if (tripResult.status === "fulfilled") setTripRestoreReady(true);
     }
+    const [preferencesResult, alertsResult] = await personalizationPromise;
     if (preferencesResult.status === "fulfilled") setPreferences(preferencesResult.value);
     if (alertsResult.status === "fulfilled") setAlerts(alertsResult.value);
-    const failed = [profileResult, preferencesResult, alertsResult].some((result) => result.status === "rejected");
+    const failed = [profileResult, tripResult, preferencesResult, alertsResult].some((result) => result.status === "rejected");
     if (failed) setProfileError("Some Home personalization is temporarily unavailable. Tap to retry.");
-  }, [api, resetFeed]);
+  }, [api, resetFeed, tripStorageKey]);
 
   const load = useCallback(async (refresh = false) => {
     const mode = refresh ? "refresh" : "page";
@@ -272,11 +280,12 @@ export default function SignalFeedScreen() {
     setTripChooserOpen(false);
     resetFeed();
     try {
-      await SecureStore.setItemAsync(TRIP_MODE_STORAGE_KEY, serializeTripModeState(next));
+      if (!tripStorageKey) throw new Error("Signed-in account unavailable");
+      await SecureStore.setItemAsync(tripStorageKey, serializeTripModeState(next));
     } catch {
       setTripError("Trip Mode is active, but it could not be saved on this device.");
     }
-  }, [areaDirectory, resetFeed]);
+  }, [areaDirectory, resetFeed, tripStorageKey]);
 
   const exitTripMode = useCallback(async () => {
     const previousGeography = preTripGeographyRef.current;
@@ -292,14 +301,26 @@ export default function SignalFeedScreen() {
     setTripError("");
     resetFeed();
     try {
-      await SecureStore.deleteItemAsync(TRIP_MODE_STORAGE_KEY);
+      if (!tripStorageKey) throw new Error("Signed-in account unavailable");
+      await SecureStore.deleteItemAsync(tripStorageKey);
     } catch {
       setTripError("Trip Mode ended, but its saved device state could not be cleared.");
     }
-  }, [resetFeed]);
+  }, [resetFeed, tripStorageKey]);
 
-  useEffect(() => { void loadProfile(); }, [loadProfile]);
-  useEffect(() => { if (!loaded && !loading && !error) void load(true); }, [error, load, loaded, loading]);
+  useEffect(() => {
+    if (!authLoaded || !tripStorageKey) return;
+    tripRestoredRef.current = false;
+    preTripGeographyRef.current = null;
+    setTripMode(null);
+    setProfile(null);
+    setPreferences(null);
+    setAlerts(null);
+    setTripRestoreReady(false);
+    resetFeed();
+    void loadProfile();
+  }, [authLoaded, loadProfile, resetFeed, tripStorageKey]);
+  useEffect(() => { if (tripRestoreReady && !loaded && !loading && !error) void load(true); }, [error, load, loaded, loading, tripRestoreReady]);
   useEffect(() => {
     if (rarityBackfillRef.current.key !== rarityBackfillKey) {
       rarityBackfillRef.current = { key: rarityBackfillKey, attempts: 0 };
@@ -339,9 +360,9 @@ export default function SignalFeedScreen() {
   const marketLocked = view === "market" && Boolean(access?.marketDetailsLocked);
   const paidAccessMismatch = Boolean(profile?.membership.paid && marketLocked);
   const canUseFilters = view === "community" || access?.marketDetailsLocked === false;
-  const currentMatchCount = alerts?.alerts.filter((alert) => !alert.archivedAt && !alertIsStale(alert)).length || 0;
+  const currentMatchCount = alerts ? alerts.alerts.filter((alert) => !alert.archivedAt && !alertIsStale(alert)).length : null;
   const radarStatus = preferences
-    ? `${radarWatchlistSummary(preferences)} · ${radarMonitoringSummary(preferences.monitoringScopes)} · ${currentMatchCount} current match${currentMatchCount === 1 ? "" : "es"}`
+    ? `${radarWatchlistSummary(preferences)} · ${radarMonitoringSummary(preferences.monitoringScopes)} · ${currentMatchCount === null ? "matches unavailable" : `${currentMatchCount} current match${currentMatchCount === 1 ? "" : "es"}`}`
     : "Radar status is temporarily unavailable";
   const tripDestination = tripMode ? stateOptions.find((option) => option.value === tripMode.state)?.label || tripMode.state : "";
 
@@ -464,7 +485,7 @@ export default function SignalFeedScreen() {
 
       {profileError ? (
         <Pressable accessibilityRole="button" onPress={() => loadProfile(true)} style={styles.inlineError}>
-          <Text accessibilityRole="alert" style={styles.inlineErrorText}>Membership check unavailable. Tap to retry.</Text>
+          <Text accessibilityRole="alert" style={styles.inlineErrorText}>{profileError}</Text>
         </Pressable>
       ) : null}
 
@@ -486,7 +507,7 @@ export default function SignalFeedScreen() {
       keyExtractor={(item) => item.id}
       renderItem={({ item }) => <SignalCard signal={item} onPress={() => router.push({ pathname: "/(app)/signal/[id]", params: { id: item.id } })} />}
       ItemSeparatorComponent={() => <View style={styles.gap} />}
-      refreshControl={<RefreshControl refreshing={loading && loaded} onRefresh={() => { void load(true); void loadProfile(true); }} tintColor={colors.accent} colors={[colors.accent]} />}
+      refreshControl={<RefreshControl refreshing={loading && loaded} onRefresh={() => { if (tripRestoreReady) void load(true); void loadProfile(true); }} tintColor={colors.accent} colors={[colors.accent]} />}
       onEndReached={() => { if (loaded && signals.length && !filters.rarities.length) void load(false); }}
       onEndReachedThreshold={0.5}
       ListHeaderComponent={header}

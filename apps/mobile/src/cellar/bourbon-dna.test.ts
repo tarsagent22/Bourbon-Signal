@@ -28,8 +28,6 @@ test("Bourbon DNA traits come only from taste tags on strongly rated collection 
 
   assert.deepEqual(dna.supportedTraits, [
     { name: "Caramel", ratingCount: 2, averageRating: 8.9 },
-    { name: "Oak", ratingCount: 1, averageRating: 9.2 },
-    { name: "Vanilla", ratingCount: 1, averageRating: 8.6 },
   ]);
   assert.equal(dna.favoriteCount, 2);
   assert.equal(dna.ratedCount, 3);
@@ -43,7 +41,7 @@ test("Bourbon DNA states its data sufficiency without overstating a small sample
   ]);
   assert.equal(building.confidence.level, "building");
   assert.equal(building.confidence.label, "Building confidence");
-  assert.match(building.confidence.detail, /1 rating/);
+  assert.match(building.confidence.detail, /1 strong rating/);
   assert.match(building.confidence.detail, /1 with taste cues/);
 
   const established = buildBourbonDna(Array.from({ length: 8 }, (_, index) => bottle({
@@ -55,6 +53,35 @@ test("Bourbon DNA states its data sufficiency without overstating a small sample
   })));
   assert.equal(established.confidence.level, "established");
   assert.equal(established.confidence.label, "Established confidence");
+});
+
+test("Bourbon DNA confidence requires positive taste evidence, not ratings alone", () => {
+  const dna = buildBourbonDna(Array.from({ length: 8 }, (_, index) => bottle({
+    bottleId: `low-${index}`,
+    bottleName: `Low rating ${index}`,
+    isRated: true,
+    rating: 60 + index,
+    tasteTags: index < 5 ? ["Smoke"] : [],
+  })));
+
+  assert.equal(dna.supportedTraits.length, 0);
+  assert.equal(dna.confidence.level, "building");
+  assert.match(dna.confidence.detail, /0 strong ratings/);
+  assert.equal(dna.nextAction.kind, "rate_another");
+});
+
+test("Bourbon DNA confidence requires repeated traits rather than unrelated favorite cues", () => {
+  const dna = buildBourbonDna(Array.from({ length: 8 }, (_, index) => bottle({
+    bottleId: `unique-${index}`,
+    bottleName: `Unique favorite ${index}`,
+    isRated: true,
+    rating: 85,
+    tasteTags: index < 5 ? [`Cue ${index}`] : [],
+  })));
+
+  assert.equal(dna.supportedTraits.length, 0);
+  assert.equal(dna.confidence.level, "building");
+  assert.doesNotMatch(dna.confidence.detail, /Repeated evidence/);
 });
 
 test("Bourbon DNA recommends one specific existing-bottle action before asking for more collection data", () => {

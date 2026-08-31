@@ -28,12 +28,12 @@ export interface BourbonDnaSummary {
   nextAction: BourbonDnaNextAction;
 }
 
-function confidenceFor(ratedCount: number, taggedRatingCount: number): BourbonDnaConfidence {
-  const evidence = `${ratedCount} rating${ratedCount === 1 ? "" : "s"} · ${taggedRatingCount} with taste cues`;
-  if (ratedCount >= 8 && taggedRatingCount >= 5) {
+function confidenceFor(favoriteCount: number, taggedFavoriteCount: number, strongestTraitCount: number): BourbonDnaConfidence {
+  const evidence = `${favoriteCount} strong rating${favoriteCount === 1 ? "" : "s"} · ${taggedFavoriteCount} with taste cues`;
+  if (favoriteCount >= 8 && taggedFavoriteCount >= 5 && strongestTraitCount >= 3) {
     return { level: "established", label: "Established confidence", detail: `${evidence}. Repeated evidence is strong enough to make these taste patterns useful.` };
   }
-  if (ratedCount >= 3 && taggedRatingCount >= 2) {
+  if (favoriteCount >= 3 && taggedFavoriteCount >= 2 && strongestTraitCount >= 2) {
     return { level: "emerging", label: "Growing confidence", detail: `${evidence}. Your patterns are directional and will sharpen with more ratings.` };
   }
   return { level: "building", label: "Building confidence", detail: `${evidence}. This is an early read, not a complete taste profile.` };
@@ -50,13 +50,13 @@ function nextActionFor(bottles: MemberCollectionBottle[]): BourbonDnaNextAction 
     };
   }
 
-  const missingCues = bottles.find((bottle) => bottle.isRated && !(bottle.tasteTags || []).length);
+  const missingCues = bottles.find((bottle) => bottle.isRated && bottle.rating >= FAVORITE_RATING && !(bottle.tasteTags || []).length);
   if (missingCues) {
     return {
       kind: "add_taste_cues",
       bottleId: missingCues.bottleId,
       label: `Add cues to ${missingCues.bottleName}`,
-      detail: "Taste cues explain what your saved score means and strengthen trait support.",
+      detail: "Taste cues on a strongly rated bottle explain what you enjoyed and strengthen trait support.",
     };
   }
 
@@ -71,6 +71,7 @@ export function buildBourbonDna(bottles: MemberCollectionBottle[]): BourbonDnaSu
   const rated = bottles.filter((bottle) => bottle.isRated);
   const taggedRatingCount = rated.filter((bottle) => (bottle.tasteTags || []).length > 0).length;
   const favorites = rated.filter((bottle) => bottle.rating >= FAVORITE_RATING);
+  const taggedFavoriteCount = favorites.filter((bottle) => (bottle.tasteTags || []).length > 0).length;
   const traits = new Map<string, { name: string; ratings: number[] }>();
 
   favorites.forEach((bottle) => {
@@ -87,6 +88,7 @@ export function buildBourbonDna(bottles: MemberCollectionBottle[]): BourbonDnaSu
   });
 
   const supportedTraits = [...traits.values()]
+    .filter(({ ratings }) => ratings.length >= 2)
     .map(({ name, ratings }) => ({
       name,
       ratingCount: ratings.length,
@@ -100,7 +102,7 @@ export function buildBourbonDna(bottles: MemberCollectionBottle[]): BourbonDnaSu
     taggedRatingCount,
     favoriteCount: favorites.length,
     supportedTraits,
-    confidence: confidenceFor(rated.length, taggedRatingCount),
+    confidence: confidenceFor(favorites.length, taggedFavoriteCount, supportedTraits[0]?.ratingCount || 0),
     nextAction: nextActionFor(bottles),
   };
 }
