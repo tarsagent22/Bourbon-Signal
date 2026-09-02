@@ -4,6 +4,7 @@ import type {
   MemberPreferencesPatch,
   MemberProfile,
   MemberProfilePatch,
+  MembershipTrialEligibility,
   GeographySearchResponse,
   HuntOutcome,
   HuntOutcomeResponse,
@@ -197,6 +198,9 @@ export function createMobileApi({
     },
     updateMemberProfile(patch: MemberProfilePatch) {
       return request<MemberProfile>("/api/v1/me/profile", { method: "PATCH", body: patch });
+    },
+    getMembershipTrialEligibility({ fresh = false }: { fresh?: boolean } = {}) {
+      return request<MembershipTrialEligibility>("/api/membership-trial", { fresh });
     },
     async getSignalAreaOptions(state: string) {
       const stateCode = state.trim().toUpperCase();

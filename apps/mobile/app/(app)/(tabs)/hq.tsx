@@ -11,7 +11,7 @@ import { useMobileApi } from "../../../src/hooks/useMobileApi";
 import { rewardAvailability, rewardCatalogSummary } from "../../../src/interactions/member-interactions";
 import { colors } from "../../../src/theme";
 
-type AccountDestination = "profile" | "membership" | "rewards" | "privacy_support";
+type AccountDestination = "profile" | "rewards" | "privacy_support";
 
 export default function AccountScreen() {
   const api = useMobileApi();
@@ -192,12 +192,7 @@ export default function AccountScreen() {
       </View>
 
       <View style={styles.destinationGroup}>
-        <DestinationDisclosureRow expanded={expandedDestination === "membership"} label="Membership" summary={profile?.membership.label || "Plan and access"} onPress={() => toggleDestination("membership")} />
-        {expandedDestination === "membership" && profile ? <View style={styles.destinationBody}><MemberCard>
-          <DataRow label="Plan" value={profile.membership.label} />
-          <DataRow label="Signal access" value={profile.entitlements.fullFeed ? "Full Intel" : "Preview Intel"} />
-          <DataRow label="Community" value={profile.entitlements.canSubmitSignals ? "Posting available" : "Posting unavailable"} last />
-        </MemberCard></View> : null}
+        <NavigationRow detail={profile ? `${profile.membership.label} · Compare plans and access` : "Compare plans and access"} label="Membership" onPress={() => router.push("/(app)/account/membership")} />
       </View>
 
       <View style={styles.destinationGroup}>
