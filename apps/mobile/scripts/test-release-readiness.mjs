@@ -6,7 +6,7 @@ import { spawnSync } from "node:child_process";
 
 const CAMERA_PERMISSION_MESSAGE = "Allow Bourbon Signal to use your camera to photograph a bottle or shelf as evidence for a manual post.";
 const PHOTO_LIBRARY_PERMISSION_MESSAGE = "Allow Bourbon Signal to access photos you choose as bottle or shelf evidence for a manual post.";
-const LOCATION_PERMISSION_MESSAGE = "Allow Bourbon Signal to use your current location to suggest nearby retailers or start Trip Mode. You can always enter a destination manually.";
+const LOCATION_PERMISSION_MESSAGE = "Allow Bourbon Signal to use your current location to suggest nearby retailers. You can always enter a retailer manually.";
 
 const root = resolve(import.meta.dirname, "..");
 const readJson = (path) => JSON.parse(readFileSync(resolve(root, path), "utf8"));
@@ -172,6 +172,11 @@ assert.match(privacyInventory, /does not upload evidence photos/i);
 assert.match(privacyInventory, /microphone and background location remain disabled/i);
 assert.doesNotMatch(privacyInventory, /No camera, photo library, contacts, microphone, Bluetooth, or device-location permission/);
 const reviewNotes = read("store/app-review-notes.md");
+assert.doesNotMatch(`${JSON.stringify(app)}\n${privacyInventory}\n${reviewNotes}`, /Trip Mode|trip_mode|trip-mode/i,
+  "release-facing configuration and documentation must not advertise removed Trip Mode behavior");
+assert.equal(existsSync(resolve(root, "src/home/trip-mode.ts")), false, "removed Trip Mode implementation must not ship");
+assert.equal(existsSync(resolve(root, "src/home/trip-mode.test.ts")), false, "removed Trip Mode tests must not ship");
+assert.doesNotMatch(pkg.scripts?.test || "", /trip-mode/i, "the mobile test command must not reference removed Trip Mode tests");
 assert.match(reviewNotes, /Review the Home tab/);
 assert.match(reviewNotes, /open a Signal's Bottle Profile/);
 assert.match(reviewNotes, /Account → Privacy & Support → Account deletion help/);
@@ -181,7 +186,10 @@ assert.match(reviewNotes, /does not upload evidence photos or expose barcode mat
 assert.match(reviewNotes, /does not request microphone or background location/i);
 const releaseChecklist = read("store/release-checklist.md");
 assert.match(releaseChecklist, /foreground-location native foundation/i);
-assert.match(releaseChecklist, /manual posting and destination entry/i);
+assert.match(releaseChecklist, /manual posting and retailer entry/i);
+const mobileReadme = read("README.md");
+assert.match(mobileReadme, /manual posting and retailer-entry fallbacks/i);
+assert.doesNotMatch(mobileReadme, /destination-entry|Trip Mode|trip_mode|trip-mode/i);
 assert.match(read("../../src/app/legal/privacy/page.tsx"), /use the mobile app/);
 assert.match(read("../../src/app/support/page.tsx"), /updated="August 21, 2026"/);
 

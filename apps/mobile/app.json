@@ -64,7 +64,7 @@
       [
         "expo-location",
         {
-          "locationWhenInUsePermission": "Allow Bourbon Signal to use your current location to suggest nearby retailers or start Trip Mode. You can always enter a destination manually.",
+          "locationWhenInUsePermission": "Allow Bourbon Signal to use your current location to suggest nearby retailers. You can always enter a retailer manually.",
           "locationAlwaysAndWhenInUsePermission": false,
           "locationAlwaysPermission": false,
           "motionUsagePermission": false,

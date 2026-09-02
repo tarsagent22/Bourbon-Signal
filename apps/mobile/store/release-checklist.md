@@ -15,7 +15,7 @@
 - [x] Native Post uses the canonical durable/idempotent sighting endpoint and clearly marks manual-store review.
 - [x] Public support and privacy URLs are documented.
 - [x] Store copy, privacy inventory, review notes, and screenshot specification are version-controlled.
-- [x] Camera, selected-photo, and foreground-location native foundation uses precise purpose copy, lazy permission contracts, and manual posting and destination entry fallbacks; microphone, background location, barcode matching, evidence upload, native billing, external checkout steering, and tracking SDKs remain disabled or absent.
+- [x] Camera, selected-photo, and foreground-location native foundation uses precise purpose copy, lazy permission contracts, and manual posting and retailer entry fallbacks; microphone, background location, barcode matching, evidence upload, native billing, external checkout steering, and tracking SDKs remain disabled or absent.
 
 ## Complete after Apple Developer Program acceptance
 
