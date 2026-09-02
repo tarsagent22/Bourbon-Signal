@@ -11,7 +11,7 @@ Lean Expo SDK 57 development client for the first native product slice.
 - In-app support, privacy policy, and account-deletion request paths
 - Sign-out and cursor/session recovery
 - Expo-native camera, selected-photo, and foreground-location dependency/config foundation
-- Pure lazy-permission policy with manual posting and destination-entry fallbacks
+- Pure lazy-permission policy with manual posting and retailer-entry fallbacks
 
 Evidence-capture UI, photo uploads, barcode matching, native billing, editable profiles, badges, and social mechanics are intentionally deferred. Camera, photo, and current-location permissions are never requested at launch; future callers must request them only after the matching member action. Microphone and background location are disabled.
 

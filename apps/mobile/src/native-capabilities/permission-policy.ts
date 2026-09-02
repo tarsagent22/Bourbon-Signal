@@ -5,19 +5,18 @@ export const PHOTO_LIBRARY_PERMISSION_MESSAGE =
   "Allow Bourbon Signal to access photos you choose as bottle or shelf evidence for a manual post.";
 
 export const LOCATION_PERMISSION_MESSAGE =
-  "Allow Bourbon Signal to use your current location to suggest nearby retailers or start Trip Mode. You can always enter a destination manually.";
+  "Allow Bourbon Signal to use your current location to suggest nearby retailers. You can always enter a retailer manually.";
 
 export const NATIVE_CAPABILITY_PURPOSES = [
   "capture_bottle_or_shelf_evidence",
   "choose_bottle_or_shelf_evidence",
   "suggest_nearby_retailers",
-  "start_trip_mode_from_current_location",
 ] as const;
 
 export type NativeCapabilityPurpose = (typeof NATIVE_CAPABILITY_PURPOSES)[number];
 export type NativePermission = "camera" | "photo_library" | "foreground_location";
 export type PermissionDenial = "denied" | "blocked" | "unavailable";
-export type ManualCapabilityFallback = "manual_post_without_photo" | "manual_destination_entry";
+export type ManualCapabilityFallback = "manual_post_without_photo" | "manual_retailer_entry";
 
 export interface NativeCapabilityPolicy {
   readonly permission: NativePermission;
@@ -52,7 +51,7 @@ const PHOTO_LIBRARY_RATIONALE = {
 const LOCATION_RATIONALE = {
   ios: LOCATION_PERMISSION_MESSAGE,
   android:
-    "Use your current location only after you ask for nearby retailer suggestions or Trip Mode. Bourbon Signal does not use background location, and you can always enter a destination manually.",
+    "Use your current location only after you ask for nearby retailer suggestions. Bourbon Signal does not use background location, and you can always enter a retailer manually.",
 } as const;
 
 const POLICIES = Object.freeze({
@@ -80,17 +79,7 @@ const POLICIES = Object.freeze({
     permission: "foreground_location",
     requestTiming: "after_explicit_user_action",
     rationale: LOCATION_RATIONALE,
-    manualFallback: "manual_destination_entry",
-    photoHandling: "not_applicable",
-    locationScope: "foreground_only",
-    allowsPhotoUpload: false,
-    allowsBarcodeCatalogMatch: false,
-  },
-  start_trip_mode_from_current_location: {
-    permission: "foreground_location",
-    requestTiming: "after_explicit_user_action",
-    rationale: LOCATION_RATIONALE,
-    manualFallback: "manual_destination_entry",
+    manualFallback: "manual_retailer_entry",
     photoHandling: "not_applicable",
     locationScope: "foreground_only",
     allowsPhotoUpload: false,
@@ -111,15 +100,9 @@ const PHOTO_LIBRARY_DENIAL_COPY = {
 } as const;
 
 const NEARBY_RETAILER_DENIAL_COPY = {
-  denied: "Location access is off. Enter a retailer or destination manually to continue.",
-  blocked: "Location access is off in Settings. Enter a retailer or destination manually to continue.",
-  unavailable: "Current location is not available. Enter a retailer or destination manually to continue.",
-} as const;
-
-const TRIP_MODE_DENIAL_COPY = {
-  denied: "Location access is off. Enter your Trip Mode destination manually to continue.",
-  blocked: "Location access is off in Settings. Enter your Trip Mode destination manually to continue.",
-  unavailable: "Current location is not available. Enter your Trip Mode destination manually to continue.",
+  denied: "Location access is off. Enter a retailer manually to continue.",
+  blocked: "Location access is off in Settings. Enter a retailer manually to continue.",
+  unavailable: "Current location is not available. Enter a retailer manually to continue.",
 } as const;
 
 export function nativeCapabilityPolicyFor(purpose: NativeCapabilityPurpose): NativeCapabilityPolicy {
@@ -150,13 +133,6 @@ export function permissionDenialFallbackFor(
         title: "Location access is off",
         message: NEARBY_RETAILER_DENIAL_COPY[denial],
         actionLabel: "Enter retailer manually",
-        manualEntryAvailable: true,
-      };
-    case "start_trip_mode_from_current_location":
-      return {
-        title: "Location access is off",
-        message: TRIP_MODE_DENIAL_COPY[denial],
-        actionLabel: "Enter destination manually",
         manualEntryAvailable: true,
       };
   }
