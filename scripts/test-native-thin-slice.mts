@@ -333,7 +333,7 @@ assert.match(nativeSignalFeed, /account-group-outline/);
 assert.match(nativeSignalFeed, />Intel</);
 assert.doesNotMatch(nativeSignalFeed, />Market</);
 assert.match(nativeSignalFeed, /type FeedView = "market" \| "community";/, "the user-facing Intel rename must preserve the existing market API contract");
-assert.match(nativeSignalFeed, />Community</);
+assert.match(nativeSignalFeed, />Sightings</);
 assert.match(nativeSignalFeed, /requestInFlightRef\.current/, "feed requests need a synchronous in-flight guard so refresh and pagination cannot race");
 assert.doesNotMatch(nativeSignalFeed, /LIVE MEMBER INTELLIGENCE/);
 assert.doesNotMatch(nativeSignalFeed, /updatedLabel|styles\.updated/, "feed freshness belongs to each card, not a detached header label");
@@ -342,7 +342,7 @@ assert.doesNotMatch(nativeSignalFeed, /segment:\s*\{[^}]*borderColor:\s*"transpa
 assert.doesNotMatch(nativeSignalFeed, /[\u{1F300}-\u{1FAFF}]/u, "the segmented control must use designed vector icons, not emoji");
 assert.match(nativeSignalFeed, /rarityOptionsForView\(view\)/, "rarity filters must remain immediately visible and respect each source schema");
 assert.match(nativeSignalFeed, /data=\{visibleSignals\}/, "rarity changes must synchronously filter the already-mounted Signal cache");
-assert.match(nativeSignalFeed, /serverSignalFilters\(effectiveFilters\)/, "rarity selection must not force a new server query lens while Trip Mode may override geography");
+assert.match(nativeSignalFeed, /serverSignalFilters\(filters\)/, "rarity selection must not force a new server query lens");
 assert.match(nativeSignalFeed, /onPress=\{\(\) => applyRarityFilters\(toggleRarity\(filters, option\.value\)\)\}/, "rarity chips must use the non-destructive local transition path");
 assert.doesNotMatch(nativeSignalFeed, /onPress=\{\(\) => applyFilters\(toggleRarity/, "rarity chips must never clear the feed through the remote filter reset path");
 assert.match(nativeSignalFeed, /shouldBackfillRarity/, "sparse rarity results should replenish silently from broad pagination");
@@ -354,7 +354,8 @@ assert.doesNotMatch(nativeSignalFeed, /<Modal|activeFilterCount|Open Signal filt
 assert.match(nativeSignalFeed, /placeholder="Search bottle name"/, "bottle search must stay directly on the feed");
 assert.match(nativeSignalFeed, /label="State"/, "state selection must stay directly on the feed");
 assert.match(nativeSignalFeed, /label=\{areaLabel\}/, "the dependent area control must keep stable side-by-side geometry");
-assert.match(nativeSignalFeed, /disabled=\{!effectiveFilters\.state\}/, "area selection must remain disabled until the effective Home or Trip Mode state is selected");
+assert.match(nativeSignalFeed, /disabled=\{!filters\.state\}/, "area selection must remain disabled until a Home state is selected");
+assert.doesNotMatch(nativeSignalFeed, /Trip Mode|tripMode|trip-mode/, "Home must not restore the removed Trip Mode feature");
 assert.doesNotMatch(nativeSignalFeed, /Intel gathered from Bourbon Signal sources|Bottle sightings shared by Bourbon Signal members/, "the feed header must not spend vertical space on explanatory paragraphs");
 const nativeSignalCard = readFileSync("apps/mobile/src/components/SignalCard.tsx", "utf8");
 assert.match(nativeSignalCard, /signalCardStatusLabel/, "cards must reduce machine availability labels to concise member-facing states");
