@@ -412,6 +412,25 @@ test("preserves legacy string API errors instead of replacing them with a generi
   await assert.rejects(api.getMemberPreferences(), (error: unknown) => error instanceof MobileApiError && error.message === "Collection storage is temporarily unavailable.");
 });
 
+test("loads authoritative trial eligibility for native membership pricing", async () => {
+  let captured: Request | null = null;
+  const api = createMobileApi({
+    getToken: async () => "member-token",
+    fetcher: async (request) => {
+      captured = new Request(request);
+      return Response.json({
+        standardMonthly: { eligible: false, reason: "already_used" },
+        barrelMonthly: { eligible: false, reason: "already_used" },
+      });
+    },
+  });
+
+  const result = await api.getMembershipTrialEligibility({ fresh: true });
+  assert.equal(new URL(captured!.url).pathname, "/api/membership-trial");
+  assert.equal(captured!.headers.get("authorization"), "Bearer member-token");
+  assert.equal(result.standardMonthly.eligible, false);
+});
+
 test("coalesces repeated account reads during a render loop, including failures", async () => {
   let requests = 0;
   const api = createMobileApi({

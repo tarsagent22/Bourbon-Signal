@@ -93,6 +93,11 @@ export interface MemberProfilePatch {
   displayName: string | null;
 }
 
+export interface MembershipTrialEligibility {
+  standardMonthly: { eligible: boolean; reason: string };
+  barrelMonthly: { eligible: boolean; reason: string };
+}
+
 export interface MemberCollectionBottle {
   bottleId: string;
   bottleName: string;
