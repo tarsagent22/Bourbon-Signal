@@ -38,14 +38,25 @@ test("native add keeps the simple owned-or-tasted flow and progressive optional 
 
 test("My Shelf has explicit component-state grid and dense list views with bottle and Glencairn states", () => {
   const cellar = read("app/(app)/(tabs)/cellar.tsx");
-  for (const label of ["My Shelf", "Refine", "All", "Owned", "Tasted only", "Rated", "Unrated", "Open now", "Sealed", "On my shelf", "My rating", "Add bottle", "Keep as tasted only", "Open one", "Mark one finished", "Acquisition", "Bottle details", "More cues"]) assert.match(cellar, new RegExp(label));
+  const shelfDisplay = read("src/components/MyShelfDisplay.tsx");
+  for (const label of ["My Shelf", "More filters", "All", "Owned", "Tasted", "Rated", "Unrated", "Open", "Sealed", "On my shelf", "My rating", "Add bottle", "Keep as tasted only", "Open one", "Mark one finished", "Acquisition", "Bottle details", "More cues"]) assert.match(cellar, new RegExp(label));
   assert.match(cellar, /type CellarViewMode = "grid" \| "list"/);
   assert.match(cellar, /useState<CellarViewMode>\("grid"\)/);
   assert.match(cellar, /accessibilityRole="radiogroup"/);
   assert.match(cellar, /function ViewModeButton/);
+  assert.match(cellar, /active \? `✓ \$\{label\}` : label/, "view mode selection is not communicated by color alone");
+  assert.match(cellar, /const QUICK_COLLECTION_FILTERS/);
+  assert.match(cellar, /<ScrollView accessibilityLabel="Filter My Shelf" accessibilityRole="radiogroup"/, "quick status filters expose their grouped radio relationship");
+  assert.match(cellar, /function CollectionFilterChip/);
+  assert.match(cellar, /Sort: \{COLLECTION_SORT_LABELS\[sort\]\}/, "the primary toolbar exposes the active sort");
+  assert.doesNotMatch(cellar, /resultSetChanged \? `\$\{bottles\.length\} shown` : `\$\{bottles\.length\} bottle/, "the summary count is not redundantly repeated below the filters");
   assert.match(cellar, /accessibilityRole="radio"/);
   assert.match(cellar, /accessibilityState=\{\{ checked:/);
   assert.match(cellar, /function WhiskeyListRow/);
+  assert.match(cellar, /const statusLabel = kind === "owned" \? `Owned · \$\{inventory\}` : "Tasted only"/);
+  assert.match(cellar, /`Rated \$\{rating\}`/, "rating is supporting information rather than the card headline");
+  assert.match(cellar, /styles\.tileStatus/);
+  assert.match(cellar, /width !== undefined && \{ flexBasis: "auto", flexGrow: 0, flexShrink: 0, width \}/, "two-column tiles keep their measured width in native and React Native Web");
   assert.match(cellar, /viewMode === "grid" \? <WhiskeyTile/);
   assert.match(cellar, /key=\{`cellar-\$\{viewMode\}-\$\{numColumns\}`\}/);
   assert.match(cellar, /numColumns/);
@@ -56,14 +67,13 @@ test("My Shelf has explicit component-state grid and dense list views with bottl
   assert.match(cellar, /collectionDisplayKind/);
   assert.match(cellar, /styles\.listRating/);
   assert.match(cellar, /styles\.listInventory/);
-  assert.match(cellar, /styles\.statusPill/);
   assert.match(cellar, /applyCollectionInventoryAction/);
   assert.match(cellar, /<ScoreSlider/);
   assert.doesNotMatch(cellar, /My bottles|Tastings|CellarMode|TastingRow/);
   assert.doesNotMatch(cellar, /More options/);
   assert.doesNotMatch(cellar, /A real 0\.0 stays different from unrated/);
   assert.match(cellar, /Would you buy it again\?/);
-  assert.match(cellar, /<ScrollView contentContainerStyle=\{styles\.refineSheet\}/, "Refine remains reachable with large Dynamic Type");
+  assert.match(cellar, /<ScrollView[^>]*contentContainerStyle=\{styles\.refineSheet\}/, "Filter and sort sheets remain reachable with large Dynamic Type");
   assert.match(cellar, /refineSheet:\s*\{\s*flexGrow:\s*1/, "Refine content can grow beyond the sheet viewport");
   assert.match(cellar, /allowSwipeDismissal=\{!dirty && !busy\}/, "dirty or busy editors cannot be dismissed underneath visible React state");
   assert.match(cellar, /numberOfLines=\{3\}/, "long whiskey names get a third line before truncation");
@@ -77,6 +87,8 @@ test("My Shelf has explicit component-state grid and dense list views with bottl
   assert.match(cellar, /bottles\.slice\(0, visibleCount\)/);
   assert.match(cellar, /Show \{Math\.min\(12, bottles\.length - visibleBottles\.length\)\} more/);
   assert.match(cellar, /<MyShelfDisplay/);
+  assert.match(shelfDisplay, /display:\s*\{[\s\S]*?height:\s*140,/, "the decorative shelf stays compact enough to expose collection content");
+  assert.match(shelfDisplay, /accessibilityHint="Decorative summary; exact counts appear above\."/, "the shelf cannot be mistaken for one illustration per owned bottle");
   const footer = cellar.indexOf("ListFooterComponent");
   const huntNext = cellar.indexOf("Hunt next", footer);
   const dna = cellar.indexOf("Your Bourbon DNA", footer);

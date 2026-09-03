@@ -38,6 +38,7 @@ import {
   type CollectionFilters,
   type CollectionInventoryAction,
   type CollectionSort,
+  type CollectionStatusFilter,
   updateCollectionBottle,
 } from "../../../src/interactions/member-interactions";
 import { colors } from "../../../src/theme";
@@ -46,6 +47,21 @@ import { buildCellarHuntSuggestions } from "../../../src/cellar/cellar-hunt-sugg
 
 const COMMON_CUES = TASTE_TAG_OPTIONS.slice(0, 5);
 type CellarViewMode = "grid" | "list";
+
+const QUICK_COLLECTION_FILTERS: readonly { key: CollectionStatusFilter; label: string }[] = [
+  { key: "all", label: "All" },
+  { key: "owned", label: "Owned" },
+  { key: "tasted", label: "Tasted" },
+  { key: "open", label: "Open" },
+];
+
+const COLLECTION_SORT_LABELS: Record<CollectionSort, string> = {
+  recently_updated: "Recent",
+  recently_acquired: "Recently added",
+  recently_rated: "Recently rated",
+  rating: "Highest rated",
+  name: "Name",
+};
 
 function findBottle(bottles: MemberCollectionBottle[], selected: MemberCollectionBottle) {
   return bottles.find((bottle) => bottle.bottleId === selected.bottleId)
@@ -89,7 +105,7 @@ export default function CellarScreen() {
   const [viewMode, setViewMode] = useState<CellarViewMode>("grid");
   const [sort, setSort] = useState<CollectionSort>(DEFAULT_COLLECTION_SORT);
   const [filters, setFilters] = useState<CollectionFilters>(DEFAULT_COLLECTION_FILTERS);
-  const [refineOpen, setRefineOpen] = useState(false);
+  const [refineMode, setRefineMode] = useState<"filters" | "sort" | null>(null);
   const [selected, setSelected] = useState<MemberCollectionBottle | null>(null);
   const [mutating, setMutating] = useState(false);
   const [savingWatchKey, setSavingWatchKey] = useState("");
@@ -196,7 +212,7 @@ export default function CellarScreen() {
   const numColumns = viewMode === "grid" && width >= 360 && fontScale < 1.3 ? 2 : 1;
   const tileWidth = numColumns === 2 ? (width - 36 - 10) / 2 : undefined;
   const refinementCount = activeCollectionRefinementCount(filters, sort);
-  const resultSetChanged = Boolean(query.trim() || refinementCount);
+  const moreFilterCount = Number(filters.status === "sealed") + Number(filters.rating !== "all") + Number(filters.minRating !== null) + Number(filters.buyAgainOnly);
   const cellarHuntSuggestions = useMemo(() => buildCellarHuntSuggestions({
     collection: sourceBottles,
     watchedBottleKeys: [
@@ -381,10 +397,16 @@ export default function CellarScreen() {
         {preferences ? <>
           <View style={styles.controlRow}>
             <TextInput accessibilityLabel="Search My Shelf" autoCapitalize="none" clearButtonMode="while-editing" onChangeText={setQuery} placeholder="Search My Shelf" placeholderTextColor={colors.muted} style={styles.search} value={query} />
-            <Pressable accessibilityLabel={refinementCount ? `Refine, ${refinementCount} active` : "Refine"} accessibilityRole="button" onPress={() => setRefineOpen(true)} style={styles.refineButton}><Text style={styles.refineText}>Refine{refinementCount ? ` (${refinementCount})` : ""}</Text></Pressable>
+            <Pressable accessibilityLabel={`Sort My Shelf. ${COLLECTION_SORT_LABELS[sort]} selected`} accessibilityRole="button" onPress={() => setRefineMode("sort")} style={({ pressed }) => [styles.sortButton, pressed && styles.pressed]}><Text style={styles.sortText}>Sort: {COLLECTION_SORT_LABELS[sort]}</Text></Pressable>
+          </View>
+          <View style={styles.filterBar}>
+            <ScrollView accessibilityLabel="Filter My Shelf" accessibilityRole="radiogroup" horizontal showsHorizontalScrollIndicator={false} style={styles.quickFilterScroller} contentContainerStyle={styles.quickFilters}>
+              {QUICK_COLLECTION_FILTERS.map((item) => <CollectionFilterChip active={filters.status === item.key} key={item.key} label={item.label} onPress={() => setFilters((current) => ({ ...current, status: item.key }))} />)}
+            </ScrollView>
+            <Pressable accessibilityLabel={moreFilterCount ? `More filters, ${moreFilterCount} active` : "More filters"} accessibilityRole="button" onPress={() => setRefineMode("filters")} style={[styles.moreFiltersButton, moreFilterCount > 0 && styles.moreFiltersButtonActive]}><Text style={[styles.moreFiltersText, moreFilterCount > 0 && styles.moreFiltersTextActive]}>More filters{moreFilterCount ? ` (${moreFilterCount})` : ""}</Text></Pressable>
           </View>
           <View style={styles.browseToolbar}>
-            <Text style={styles.showing}>{resultSetChanged ? `${bottles.length} shown` : `${bottles.length} bottle${bottles.length === 1 ? "" : "s"}`}</Text>
+            {query.trim() || refinementCount ? <Text accessibilityLiveRegion="polite" style={styles.showing}>{bottles.length} shown</Text> : <View />}
             <View accessibilityLabel="My Shelf view" accessibilityRole="radiogroup" style={styles.viewToggle}><ViewModeButton active={viewMode === "grid"} label="Grid" onPress={() => setViewMode("grid")} /><ViewModeButton active={viewMode === "list"} label="List" onPress={() => setViewMode("list")} /></View>
           </View>
         </> : null}
@@ -420,78 +442,76 @@ export default function CellarScreen() {
       ListEmptyComponent={preferences && !loading ? <EmptyState title={sourceBottles.length ? "No whiskeys match" : "My Shelf is ready"} detail={sourceBottles.length ? "Clear the search or refine choices." : "Choose Add to save a bottle or a whiskey you tasted."} /> : null}
       style={memberScreenStyles.screen}
     />
-    <RefineSheet filters={filters} onChange={setFilters} onClose={() => setRefineOpen(false)} onSort={setSort} sort={sort} visible={refineOpen} />
+    <RefineSheet filters={filters} mode={refineMode} onChange={setFilters} onClose={() => setRefineMode(null)} onSort={setSort} sort={sort} />
     <BottleEditor bottle={selected} busy={mutating} onClose={() => setSelected(null)} onDelete={requestDelete} onInventoryAction={applyInventoryAction} onSave={saveBottle} />
   </>;
 }
 
 function WhiskeyTile({ bottle, onPress, width }: { bottle: MemberCollectionBottle; onPress: () => void; width?: number }) {
   const kind = collectionDisplayKind(bottle);
-  const kindLabel = kind === "owned" ? "Owned" : "Tasted only";
-  const inventory = kind === "owned" ? collectionInventoryLabel(bottle) || "Inventory on hand" : "No bottles on hand";
+  const inventory = kind === "owned" ? collectionInventoryLabel(bottle) || "On hand" : "";
+  const statusLabel = kind === "owned" ? `Owned · ${inventory}` : "Tasted only";
   const rating = formatCollectionRating(bottle);
   return <Pressable
-    accessibilityLabel={`${kindLabel}. ${bottle.bottleName}. Rating ${rating}. Inventory ${inventory}.`}
+    accessibilityLabel={`${bottle.bottleName}. ${statusLabel}. ${bottle.isRated ? `Rated ${rating}` : "Unrated"}.`}
     accessibilityRole="button"
     onPress={onPress}
-    style={({ pressed }) => [styles.tile, width !== undefined && { flex: 0, width }, pressed && styles.pressed]}
+    style={({ pressed }) => [styles.tile, width !== undefined && { flexBasis: "auto", flexGrow: 0, flexShrink: 0, width }, pressed && styles.pressed]}
   >
-    {kind === "owned" ? <CellarBottleSilhouette /> : <CellarGlencairnSilhouette />}
-    <Text numberOfLines={3} style={styles.tileName}>{bottle.bottleName}</Text>
-    <Text style={styles.tileRating}>{rating}</Text>
-    <Text style={styles.inventory}>{kind === "owned" ? inventory : "Tasted only"}</Text>
+    <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={styles.tileArtwork}>
+      {kind === "owned" ? <CellarBottleSilhouette /> : <CellarGlencairnSilhouette />}
+    </View>
+    <View style={styles.tileCopy}>
+      <Text numberOfLines={3} style={styles.tileName}>{bottle.bottleName}</Text>
+      <Text numberOfLines={2} style={styles.tileStatus}>{statusLabel}</Text>
+      <Text style={styles.tileRating}>{bottle.isRated ? `Rated ${rating}` : "Unrated"}</Text>
+    </View>
   </Pressable>;
 }
 
 function WhiskeyListRow({ bottle, onPress }: { bottle: MemberCollectionBottle; onPress: () => void }) {
   const kind = collectionDisplayKind(bottle);
-  const status = kind === "owned" ? "Owned" : "Tasted only";
-  const inventory = kind === "owned" ? collectionInventoryLabel(bottle) || "Inventory on hand" : "No bottles on hand";
+  const inventory = kind === "owned" ? collectionInventoryLabel(bottle) || "On hand" : "";
+  const statusLabel = kind === "owned" ? `Owned · ${inventory}` : "Tasted only";
   const rating = formatCollectionRating(bottle);
   return <Pressable
-    accessibilityLabel={`${status}. ${bottle.bottleName}. Rating ${rating}. Inventory ${inventory}.`}
+    accessibilityLabel={`${bottle.bottleName}. ${statusLabel}. ${bottle.isRated ? `Rated ${rating}` : "Unrated"}.`}
     accessibilityRole="button"
     onPress={onPress}
     style={({ pressed }) => [styles.listRow, pressed && styles.pressed]}
   >
     {kind === "owned" ? <CellarBottleSilhouette /> : <CellarGlencairnSilhouette />}
     <View style={styles.listCopy}>
-      <View style={styles.listHeading}><Text numberOfLines={2} style={styles.listName}>{bottle.bottleName}</Text><View style={styles.statusPill}><Text style={styles.statusPillText}>{status}</Text></View></View>
-      <View style={styles.listFacts}><Text style={styles.listRating}>{rating}</Text><Text numberOfLines={1} style={styles.listInventory}>{inventory}</Text></View>
+      <Text numberOfLines={2} style={styles.listName}>{bottle.bottleName}</Text>
+      <Text numberOfLines={1} style={styles.listInventory}>{statusLabel}</Text>
+      <Text style={styles.listRating}>{bottle.isRated ? `Rated ${rating}` : "Unrated"}</Text>
     </View>
   </Pressable>;
 }
 
 function ViewModeButton({ active, label, onPress }: { active: boolean; label: string; onPress: () => void }) {
-  return <Pressable accessibilityLabel={`${label} view`} accessibilityRole="radio" accessibilityState={{ checked: active }} onPress={onPress} style={[styles.viewModeButton, active && styles.viewModeButtonActive]}><Text style={[styles.viewModeText, active && styles.viewModeTextActive]}>{label}</Text></Pressable>;
+  return <Pressable accessibilityLabel={`${label} view`} accessibilityRole="radio" accessibilityState={{ checked: active }} onPress={onPress} style={[styles.viewModeButton, active && styles.viewModeButtonActive]}><Text style={[styles.viewModeText, active && styles.viewModeTextActive]}>{active ? `✓ ${label}` : label}</Text></Pressable>;
 }
 
-function RefineSheet({ filters, onChange, onClose, onSort, sort, visible }: { filters: CollectionFilters; onChange: (next: CollectionFilters) => void; onClose: () => void; onSort: (next: CollectionSort) => void; sort: CollectionSort; visible: boolean }) {
-  const statuses = [
-    { key: "all", label: "All" },
-    { key: "owned", label: "Owned" },
-    { key: "tasted", label: "Tasted only" },
-    { key: "open", label: "Open now" },
-    { key: "sealed", label: "Sealed" },
-  ] as const;
+function CollectionFilterChip({ active, label, onPress }: { active: boolean; label: string; onPress: () => void }) {
+  return <Pressable accessibilityRole="radio" accessibilityState={{ checked: active }} onPress={onPress} style={[styles.filterChip, active && styles.filterChipActive]}><Text style={[styles.filterChipText, active && styles.filterChipTextActive]}>{active ? `✓ ${label}` : label}</Text></Pressable>;
+}
+
+function RefineSheet({ filters, mode, onChange, onClose, onSort, sort }: { filters: CollectionFilters; mode: "filters" | "sort" | null; onChange: (next: CollectionFilters) => void; onClose: () => void; onSort: (next: CollectionSort) => void; sort: CollectionSort }) {
   const ratings = [{ key: "all", label: "All" }, { key: "rated", label: "Rated" }, { key: "unrated", label: "Unrated" }] as const;
-  const sorts = [
-    { key: "recently_updated", label: "Recently updated" },
-    { key: "recently_rated", label: "Recently rated" },
-    { key: "rating", label: "Rating" },
-    { key: "name", label: "Name" },
-  ] as const;
-  return <Modal animationType="slide" onRequestClose={onClose} presentationStyle="pageSheet" visible={visible}>
+  const sorts = (Object.entries(COLLECTION_SORT_LABELS) as [CollectionSort, string][]).map(([key, label]) => ({ key, label }));
+  return <Modal animationType="slide" onRequestClose={onClose} presentationStyle="pageSheet" visible={mode !== null}>
     <SafeAreaView style={styles.modalFrame}>
       <ScrollView contentContainerStyle={styles.refineSheet} keyboardShouldPersistTaps="handled">
-        <View style={styles.modalHeader}><Text accessibilityRole="header" style={styles.modalTitle}>Refine</Text><Pressable accessibilityRole="button" onPress={onClose} style={styles.modalTarget}><Text style={styles.modalAction}>Done</Text></Pressable></View>
-        <Field label="Show"><View style={styles.toggleGrid}>{statuses.map((item) => <Toggle key={item.key} active={filters.status === item.key} label={item.label} onPress={() => onChange({ ...filters, status: item.key })} />)}</View></Field>
-        <Field label="Rating"><View style={styles.toggleGrid}>{ratings.map((item) => <Toggle key={item.key} active={(filters.rating || "all") === item.key} label={item.label} onPress={() => onChange({ ...filters, rating: item.key })} />)}</View></Field>
-        <View style={styles.toggleGrid}>
-          <Toggle active={filters.buyAgainOnly} label="Buy again" onPress={() => onChange({ ...filters, buyAgainOnly: !filters.buyAgainOnly })} />
-          <Toggle active={filters.minRating === 90} label="9.0+" onPress={() => onChange({ ...filters, minRating: filters.minRating === 90 ? null : 90 })} />
-        </View>
-        <Field label="Sort"><View style={styles.toggleGrid}>{sorts.map((item) => <Toggle key={item.key} active={sort === item.key} label={item.label} onPress={() => onSort(item.key)} />)}</View></Field>
+        <View style={styles.modalHeader}><Text accessibilityRole="header" style={styles.modalTitle}>{mode === "sort" ? "Sort My Shelf" : "More filters"}</Text><Pressable accessibilityRole="button" onPress={onClose} style={styles.modalTarget}><Text style={styles.modalAction}>Done</Text></Pressable></View>
+        {mode === "sort" ? <Field label="Sort by"><View style={styles.toggleGrid}>{sorts.map((item) => <Toggle key={item.key} active={sort === item.key} label={item.label} onPress={() => { onSort(item.key); onClose(); }} />)}</View></Field> : <>
+          <Field label="Inventory"><View style={styles.toggleGrid}><Toggle active={filters.status === "sealed"} label="Sealed" onPress={() => onChange({ ...filters, status: filters.status === "sealed" ? "all" : "sealed" })} /></View></Field>
+          <Field label="Rating"><View style={styles.toggleGrid}>{ratings.map((item) => <Toggle key={item.key} active={(filters.rating || "all") === item.key} label={item.label} onPress={() => onChange({ ...filters, rating: item.key })} />)}</View></Field>
+          <View style={styles.toggleGrid}>
+            <Toggle active={filters.buyAgainOnly} label="Buy again" onPress={() => onChange({ ...filters, buyAgainOnly: !filters.buyAgainOnly })} />
+            <Toggle active={filters.minRating === 90} label="9.0+" onPress={() => onChange({ ...filters, minRating: filters.minRating === 90 ? null : 90 })} />
+          </View>
+        </>}
       </ScrollView>
     </SafeAreaView>
   </Modal>;
@@ -691,33 +711,42 @@ const styles = StyleSheet.create({
   showMoreText: { color: colors.accent, fontSize: 13, fontWeight: "900" },
   huntNext: { gap: 8, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth, borderRadius: 14, backgroundColor: colors.surface, padding: 12 }, huntNextHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10 }, huntNextTitle: { color: colors.text, fontSize: 17, fontWeight: "900" }, huntNextCount: { color: colors.muted, fontSize: 10, textTransform: "uppercase", letterSpacing: 0.7 }, huntNextRow: { gap: 9, borderTopColor: colors.border, borderTopWidth: StyleSheet.hairlineWidth, paddingTop: 10 }, huntNextCopy: { gap: 3 }, huntNextName: { color: colors.text, fontSize: 13, fontWeight: "800" }, huntNextReason: { color: colors.muted, fontSize: 11, lineHeight: 16 }, huntNextButton: { minHeight: 44, alignSelf: "flex-start", justifyContent: "center", borderColor: colors.accent, borderWidth: 1, borderRadius: 999, paddingHorizontal: 12 }, huntNextButtonText: { color: colors.accent, fontSize: 11, fontWeight: "900" },
   controlRow: { flexDirection: "row", gap: 8 },
-  search: { flex: 1, minHeight: 44, borderColor: colors.border, borderWidth: 1, borderRadius: 11, backgroundColor: colors.surface, color: colors.text, paddingHorizontal: 13, fontSize: 14 },
-  refineButton: { minHeight: 44, justifyContent: "center", borderColor: colors.border, borderWidth: 1, borderRadius: 11, paddingHorizontal: 14 },
-  refineText: { color: colors.accent, fontWeight: "800" },
+  search: { flex: 1, minHeight: 44, borderColor: "#594839", borderWidth: 1, borderRadius: 11, backgroundColor: colors.surface, color: colors.text, paddingHorizontal: 13, fontSize: 14 },
+  sortButton: { minHeight: 44, maxWidth: "44%", justifyContent: "center", borderColor: "#594839", borderWidth: 1, borderRadius: 11, backgroundColor: colors.surface, paddingHorizontal: 11 },
+  sortText: { color: colors.text, fontSize: 11, fontWeight: "800" },
+  filterBar: { minHeight: 44, flexDirection: "row", alignItems: "center", gap: 8 },
+  quickFilterScroller: { flex: 1 },
+  quickFilters: { alignItems: "center", gap: 7, paddingRight: 2 },
+  filterChip: { minHeight: 44, justifyContent: "center", borderColor: "#594839", borderWidth: 1, borderRadius: 999, backgroundColor: colors.surface, paddingHorizontal: 12 },
+  filterChipActive: { borderColor: colors.accent, backgroundColor: "rgba(214,154,74,0.18)" },
+  filterChipText: { color: colors.text, fontSize: 11, fontWeight: "800" },
+  filterChipTextActive: { color: colors.accent },
+  moreFiltersButton: { minHeight: 44, justifyContent: "center", borderColor: "#594839", borderWidth: 1, borderRadius: 11, backgroundColor: colors.surface, paddingHorizontal: 10 },
+  moreFiltersButtonActive: { borderColor: colors.accent, backgroundColor: "rgba(214,154,74,0.18)" },
+  moreFiltersText: { color: colors.text, fontSize: 10, fontWeight: "800" },
+  moreFiltersTextActive: { color: colors.accent },
   browseToolbar: { minHeight: 38, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
   showing: { color: colors.muted, fontSize: 11 },
-  viewToggle: { flexDirection: "row", gap: 2, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth, borderRadius: 10, backgroundColor: colors.surface, padding: 2 },
-  viewModeButton: { minWidth: 54, minHeight: 34, alignItems: "center", justifyContent: "center", borderRadius: 8, paddingHorizontal: 10 },
-  viewModeButtonActive: { backgroundColor: colors.surfaceRaised },
-  viewModeText: { color: colors.muted, fontSize: 11, fontWeight: "800" },
+  viewToggle: { flexDirection: "row", gap: 2, borderColor: "#594839", borderWidth: 1, borderRadius: 10, backgroundColor: colors.surface, padding: 2 },
+  viewModeButton: { minWidth: 60, minHeight: 36, alignItems: "center", justifyContent: "center", borderRadius: 8, paddingHorizontal: 10 },
+  viewModeButtonActive: { backgroundColor: "rgba(214,154,74,0.18)" },
+  viewModeText: { color: colors.text, fontSize: 11, fontWeight: "800" },
   viewModeTextActive: { color: colors.accent },
   cellarContent: { paddingBottom: 112 },
   gridContent: { gap: 10 },
   gridRow: { gap: 10 },
   gap: { height: 8 },
-  tile: { flex: 1, minHeight: 180, alignItems: "center", justifyContent: "center", gap: 6, padding: 10, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth, borderRadius: 16, backgroundColor: colors.surface },
-  tileName: { minHeight: 42, color: colors.text, fontSize: 16, lineHeight: 20, fontWeight: "800", textAlign: "center" },
-  tileRating: { color: colors.accent, fontSize: 24, fontWeight: "900" },
-  inventory: { color: colors.muted, fontSize: 11, textTransform: "capitalize" },
-  listRow: { minHeight: 84, flexDirection: "row", alignItems: "center", gap: 12, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth, borderRadius: 14, backgroundColor: colors.surface, paddingHorizontal: 12, paddingVertical: 10 },
-  listCopy: { flex: 1, gap: 8 },
-  listHeading: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 10 },
-  listName: { flex: 1, color: colors.text, fontSize: 15, lineHeight: 19, fontWeight: "800" },
-  statusPill: { borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth, borderRadius: 999, backgroundColor: colors.surfaceRaised, paddingHorizontal: 8, paddingVertical: 4 },
-  statusPillText: { color: colors.muted, fontSize: 9, fontWeight: "800", textTransform: "uppercase" },
-  listFacts: { flexDirection: "row", alignItems: "center", gap: 9 },
-  listRating: { color: colors.accent, fontSize: 17, fontWeight: "900" },
-  listInventory: { flex: 1, color: colors.muted, fontSize: 11, textTransform: "capitalize" },
+  tile: { flex: 1, minHeight: 180, alignItems: "stretch", justifyContent: "flex-start", gap: 8, padding: 11, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth, borderRadius: 16, backgroundColor: colors.surface },
+  tileArtwork: { height: 62, alignItems: "center", justifyContent: "center" },
+  tileCopy: { flex: 1, alignItems: "flex-start", gap: 5 },
+  tileName: { minHeight: 40, color: colors.text, fontSize: 15, lineHeight: 19, fontWeight: "800", textAlign: "left" },
+  tileStatus: { color: colors.text, fontSize: 11, lineHeight: 15, fontWeight: "800" },
+  tileRating: { color: colors.muted, fontSize: 11, lineHeight: 15, fontWeight: "700" },
+  listRow: { minHeight: 92, flexDirection: "row", alignItems: "center", gap: 12, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth, borderRadius: 14, backgroundColor: colors.surface, paddingHorizontal: 12, paddingVertical: 10 },
+  listCopy: { flex: 1, alignItems: "flex-start", gap: 4 },
+  listName: { color: colors.text, fontSize: 15, lineHeight: 19, fontWeight: "800" },
+  listRating: { color: colors.muted, fontSize: 11, fontWeight: "700" },
+  listInventory: { color: colors.text, fontSize: 11, lineHeight: 15, fontWeight: "800" },
   pressed: { opacity: 0.72 },
   modalFrame: { flex: 1, backgroundColor: colors.background },
   refineSheet: { flexGrow: 1, padding: 20, paddingBottom: 40, gap: 24 },
