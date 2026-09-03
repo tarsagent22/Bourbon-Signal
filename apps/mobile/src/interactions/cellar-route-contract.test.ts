@@ -53,10 +53,12 @@ test("My Shelf has explicit component-state grid and dense list views with bottl
   assert.match(cellar, /accessibilityRole="radio"/);
   assert.match(cellar, /accessibilityState=\{\{ checked:/);
   assert.match(cellar, /function WhiskeyListRow/);
-  assert.match(cellar, /const statusLabel = kind === "owned" \? `Owned · \$\{inventory\}` : "Tasted only"/);
-  assert.match(cellar, /`Rated \$\{rating\}`/, "rating is supporting information rather than the card headline");
-  assert.match(cellar, /styles\.tileStatus/);
-  assert.match(cellar, /width !== undefined && \{ flexBasis: "auto", flexGrow: 0, flexShrink: 0, width \}/, "two-column tiles keep their measured width in native and React Native Web");
+  assert.match(cellar, /const kindLabel = kind === "owned" \? "Owned" : "Tasted only"/);
+  assert.match(cellar, /styles\.inventory/, "the original centered inventory label remains in the grid card");
+  assert.match(cellar, /width !== undefined && \{ flex: 0, width \}/, "two-column cards retain the native FlatList geometry that shipped before the regression");
+  assert.match(cellar, /tile:\s*\{ flex: 1, minHeight: 180, alignItems: "center", justifyContent: "center"/, "grid cards retain their original centered composition");
+  assert.match(cellar, /tileRating:\s*\{ color: colors\.accent, fontSize: 24/, "the original prominent rating treatment is restored");
+  assert.doesNotMatch(cellar, /styles\.tileArtwork|styles\.tileCopy|styles\.tileStatus|flexBasis: "auto"/, "the regressed card wrapper and basis override stay removed");
   assert.match(cellar, /viewMode === "grid" \? <WhiskeyTile/);
   assert.match(cellar, /key=\{`cellar-\$\{viewMode\}-\$\{numColumns\}`\}/);
   assert.match(cellar, /numColumns/);
