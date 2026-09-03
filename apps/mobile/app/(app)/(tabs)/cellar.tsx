@@ -449,23 +449,19 @@ export default function CellarScreen() {
 
 function WhiskeyTile({ bottle, onPress, width }: { bottle: MemberCollectionBottle; onPress: () => void; width?: number }) {
   const kind = collectionDisplayKind(bottle);
-  const inventory = kind === "owned" ? collectionInventoryLabel(bottle) || "On hand" : "";
-  const statusLabel = kind === "owned" ? `Owned · ${inventory}` : "Tasted only";
+  const kindLabel = kind === "owned" ? "Owned" : "Tasted only";
+  const inventory = kind === "owned" ? collectionInventoryLabel(bottle) || "Inventory on hand" : "No bottles on hand";
   const rating = formatCollectionRating(bottle);
   return <Pressable
-    accessibilityLabel={`${bottle.bottleName}. ${statusLabel}. ${bottle.isRated ? `Rated ${rating}` : "Unrated"}.`}
+    accessibilityLabel={`${kindLabel}. ${bottle.bottleName}. Rating ${rating}. Inventory ${inventory}.`}
     accessibilityRole="button"
     onPress={onPress}
-    style={({ pressed }) => [styles.tile, width !== undefined && { flexBasis: "auto", flexGrow: 0, flexShrink: 0, width }, pressed && styles.pressed]}
+    style={({ pressed }) => [styles.tile, width !== undefined && { flex: 0, width }, pressed && styles.pressed]}
   >
-    <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={styles.tileArtwork}>
-      {kind === "owned" ? <CellarBottleSilhouette /> : <CellarGlencairnSilhouette />}
-    </View>
-    <View style={styles.tileCopy}>
-      <Text numberOfLines={3} style={styles.tileName}>{bottle.bottleName}</Text>
-      <Text numberOfLines={2} style={styles.tileStatus}>{statusLabel}</Text>
-      <Text style={styles.tileRating}>{bottle.isRated ? `Rated ${rating}` : "Unrated"}</Text>
-    </View>
+    {kind === "owned" ? <CellarBottleSilhouette /> : <CellarGlencairnSilhouette />}
+    <Text numberOfLines={3} style={styles.tileName}>{bottle.bottleName}</Text>
+    <Text style={styles.tileRating}>{rating}</Text>
+    <Text style={styles.inventory}>{kind === "owned" ? inventory : "Tasted only"}</Text>
   </Pressable>;
 }
 
@@ -736,12 +732,10 @@ const styles = StyleSheet.create({
   gridContent: { gap: 10 },
   gridRow: { gap: 10 },
   gap: { height: 8 },
-  tile: { flex: 1, minHeight: 180, alignItems: "stretch", justifyContent: "flex-start", gap: 8, padding: 11, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth, borderRadius: 16, backgroundColor: colors.surface },
-  tileArtwork: { height: 62, alignItems: "center", justifyContent: "center" },
-  tileCopy: { flex: 1, alignItems: "flex-start", gap: 5 },
-  tileName: { minHeight: 40, color: colors.text, fontSize: 15, lineHeight: 19, fontWeight: "800", textAlign: "left" },
-  tileStatus: { color: colors.text, fontSize: 11, lineHeight: 15, fontWeight: "800" },
-  tileRating: { color: colors.muted, fontSize: 11, lineHeight: 15, fontWeight: "700" },
+  tile: { flex: 1, minHeight: 180, alignItems: "center", justifyContent: "center", gap: 6, padding: 10, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth, borderRadius: 16, backgroundColor: colors.surface },
+  tileName: { minHeight: 42, color: colors.text, fontSize: 16, lineHeight: 20, fontWeight: "800", textAlign: "center" },
+  tileRating: { color: colors.accent, fontSize: 24, fontWeight: "900" },
+  inventory: { color: colors.muted, fontSize: 11, textTransform: "capitalize" },
   listRow: { minHeight: 92, flexDirection: "row", alignItems: "center", gap: 12, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth, borderRadius: 14, backgroundColor: colors.surface, paddingHorizontal: 12, paddingVertical: 10 },
   listCopy: { flex: 1, alignItems: "flex-start", gap: 4 },
   listName: { color: colors.text, fontSize: 15, lineHeight: 19, fontWeight: "800" },
