@@ -553,9 +553,12 @@ export class CommunitySightingsRepository {
 
   async replacePhotoProof(sightingId: string, ownerUserId: string, expectedPreviousUrl: string | null, photoProof: NonNullable<NonNullable<MemberSighting["rewardState"]>["photoProof"]>): Promise<SightingMutationResult | null> {
     const rows = await this.query.query(
-      `WITH updated AS MATERIALIZED (
+      `WITH locked AS MATERIALIZED (
+         SELECT pg_advisory_xact_lock(hashtextextended($1, 0))
+       ), updated AS MATERIALIZED (
          UPDATE community_sightings
          SET payload = jsonb_set(payload, '{rewardState,photoProof}', $4::jsonb, true), updated_at = NOW()
+         FROM locked
          WHERE id = $1 AND reporter_user_id = $2
            AND (payload#>>'{rewardState,photoProof,url}') IS NOT DISTINCT FROM $3
          RETURNING payload,reporter_user_id

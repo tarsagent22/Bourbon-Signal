@@ -16,19 +16,20 @@ assert.match(route, /limit:\s*error\.limit/);
 assert.match(route, /currentCount:\s*error\.currentCount/);
 
 assert.match(dashboard, /getCellarAccessPolicy/);
-assert.match(dashboard, /Your Free Cellar is full/);
+assert.match(dashboard, /Your free shelf is full/);
 assert.match(dashboard, /Existing bottles stay available/);
-assert.doesNotMatch(dashboard, /My Collection demo|saving bottles and ratings starts with Barrel Proof/i);
+assert.doesNotMatch(dashboard, /My Shelf demo|saving bottles and ratings starts with Barrel Proof/i);
 assert.match(bottleCheck, /collectionBottleCount:\s*collectionEntries\.length/);
 assert.match(bottleCheck, /alreadyInCollection:\s*isInCollection/);
 
 assert.match(nativeTypes, /collectionAccess:\s*CellarAccessPolicy/);
 assert.match(nativeCellar, /preferences\?\.collectionAccess/);
-assert.match(nativeCellar, /Your Free Cellar is full/);
+assert.match(nativeCellar, /Your free shelf is full/);
 assert.match(nativeCellar, /Existing bottles stay available/);
-assert.match(nativeCellar, /data=\{bottles\}/, "stored bottles are never hidden by tier");
+assert.match(nativeCellar, /data=\{visibleBottles\}/, "My Shelf uses bounded progressive rendering");
+assert.match(nativeCellar, /Show \{Math\.min\(12/, "all stored bottles remain reachable in twelve-item pages");
 assert.doesNotMatch(nativeCellar, /Cellar is not included with this membership/);
 assert.match(nativeSignal, /collectionAccess\?\.canAdd/);
-assert.match(nativeSignal, /Free Cellar is full/);
+assert.match(nativeSignal, /Free shelf is full/);
 
-console.log("Web and native Cellar access contracts passed.");
+console.log("Web and native My Shelf access contracts passed.");

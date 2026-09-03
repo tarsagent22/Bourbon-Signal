@@ -23,7 +23,7 @@ test("Bottle Profile unifies canonical Radar and Cellar state", () => {
     isWatched: true,
     inCellar: true,
     radarLabel: "Watched",
-    cellarLabel: "In Cellar",
+    cellarLabel: "On My Shelf",
     ratingLabel: "8.7 / 10",
     inventoryLabel: "2 sealed · 1 open",
   });
@@ -48,7 +48,7 @@ test("Bottle Profile stays truthful when no personalized state exists", () => {
     isWatched: false,
     inCellar: false,
     radarLabel: "Not watched",
-    cellarLabel: "Not in Cellar",
+    cellarLabel: "Not on My Shelf",
     ratingLabel: "Unrated",
     inventoryLabel: "No bottles owned",
   });

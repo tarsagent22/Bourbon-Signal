@@ -33,7 +33,7 @@ import { nevadaAreaMatchesFields, normalizeNevadaAreas } from "@/lib/nevada-area
 import { matchedNewYorkArea, newYorkAreaMatchesFields, normalizeNewYorkAreas } from "@/lib/new-york-area";
 import { coloradoAreaMatchesFields, normalizeColoradoAreas } from "@/lib/colorado-area";
 import { firstAlertCreatedMetadata } from "@/lib/member-activation";
-import { buildExpoPushMessages, enabledPushTokens, pushPreferenceProjectionAllowsDelivery, sendExpoPushMessages } from "@/lib/push-devices";
+import { buildExpoPushMessages, disablePushTokens, enabledPushTokens, normalizePendingExpoPushTickets, pushPreferenceProjectionAllowsDelivery, reconcileExpoPushReceipts, sendExpoPushMessages } from "@/lib/push-devices";
 import {
   CHARLOTTE_METRO_BOARD_GROUP,
   demandMetroAreaMatchesFields,
@@ -1309,6 +1309,23 @@ export async function deliverPreferenceAlerts(req: Request, options: {
         continue;
       }
       const notificationPrefs = normalizeNotificationPreferences(publicMetadata.notificationPreferences);
+      let currentPushDevices = privateMetadata.pushDevices;
+      const pushReceiptMetadata = privateMetadata.pushDeliveryReceipts && typeof privateMetadata.pushDeliveryReceipts === "object"
+        ? privateMetadata.pushDeliveryReceipts as Record<string, unknown>
+        : {};
+      let pendingPushTickets = normalizePendingExpoPushTickets(pushReceiptMetadata.pending, now);
+      if (!dryRun && notificationPrefs.push.enabled && pushPreferenceProjectionAllowsDelivery(privateMetadata.pushPreferenceProjection) && pendingPushTickets.length) {
+        try {
+          const receipts = await reconcileExpoPushReceipts(pendingPushTickets, currentPushDevices, fetch, now);
+          currentPushDevices = receipts.devices;
+          pendingPushTickets = receipts.pending;
+          await client.users.updateUserMetadata(userId, {
+            privateMetadata: { pushDevices: currentPushDevices, pushDeliveryReceipts: { pending: pendingPushTickets, lastCheckedAt: now } },
+          });
+        } catch (error) {
+          summary.errors.push({ userId, message: `push receipt reconciliation failed: ${error instanceof Error ? error.message : String(error)}` });
+        }
+      }
       const areaPrefs = normalizeAreaPrefs(publicMetadata.areaPreferences, publicMetadata.monitoringScopes);
       if (!hasSavedAreaPreferences(areaPrefs)) {
         summary.skippedNoAreaPreferences += 1;
@@ -1813,11 +1830,16 @@ export async function deliverPreferenceAlerts(req: Request, options: {
           }
           if (onSiteInboxWritten) createdRealAlert = true;
           if (onSiteInboxWritten && notificationPrefs.push.enabled && pushPreferenceProjectionAllowsDelivery(privateMetadata.pushPreferenceProjection)) {
-            const messages = newOnSiteAlerts.flatMap((alert) => buildExpoPushMessages(enabledPushTokens(privateMetadata.pushDevices), alert));
+            const messages = newOnSiteAlerts.flatMap((alert) => buildExpoPushMessages(enabledPushTokens(currentPushDevices), alert));
             if (messages.length) {
               try {
                 const result = await sendExpoPushMessages(messages);
                 summary.pushNotificationsSent += result.accepted;
+                currentPushDevices = disablePushTokens(currentPushDevices, result.invalidTokens, now);
+                pendingPushTickets = [...pendingPushTickets, ...result.tickets.map((ticket) => ({ ...ticket, createdAt: now }))].slice(-200);
+                await client.users.updateUserMetadata(userId, {
+                  privateMetadata: { pushDevices: currentPushDevices, pushDeliveryReceipts: { pending: pendingPushTickets, lastCheckedAt: now } },
+                });
               } catch (error) {
                 summary.errors.push({ userId, message: `push delivery failed: ${error instanceof Error ? error.message : String(error)}` });
               }

@@ -12,14 +12,14 @@ test("Signal detail is the unified Bottle Profile route", () => {
   assert.match(detail, />Current Signal<\/Text>/);
   assert.match(detail, /bottleProfileState/);
   assert.match(detail, /label="Radar"/);
-  assert.match(detail, /label="Cellar"/);
+  assert.match(detail, /label="My Shelf"/);
   assert.match(detail, /label="Rating"/);
   assert.match(detail, /label="Inventory"/);
 });
 
 test("Bottle Profile keeps existing Signal actions and does not invent Bourbon DNA", () => {
   assert.match(detail, /Watch in Radar/);
-  assert.match(detail, /Add to Cellar/);
+  assert.match(detail, /Add to My Shelf/);
   assert.match(detail, /Open in Maps/);
   assert.match(detail, /Hunt Outcome/);
   assert.doesNotMatch(detail, /Bourbon DNA|DNA compatibility|compatibility score/i);

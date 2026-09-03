@@ -119,6 +119,62 @@ test("preserves cursor reset errors for a clean feed refresh", async () => {
   await assert.rejects(api.listSignals(), (error: unknown) => error instanceof MobileApiError && error.resetCursor && error.code === "CURSOR_RESET_REQUIRED");
 });
 
+test("uploads sighting evidence directly to Blob with an authenticated absolute token handler", async () => {
+  let upload: { pathname: string; body: Blob; options: { handleUploadUrl: string; headers?: Record<string, string>; clientPayload?: string } } | null = null;
+  const api = createMobileApi({
+    baseUrl: "https://example.test/mobile",
+    getToken: async () => "session-token",
+    blobUploader: async (pathname, body, options) => {
+      upload = { pathname, body: body as Blob, options };
+      return { url: "https://blob.test/proof.jpg", downloadUrl: "https://blob.test/proof.jpg", pathname, contentType: "image/jpeg", contentDisposition: "inline", etag: "etag" };
+    },
+  });
+  const file = new Blob(["jpeg"], { type: "image/jpeg" });
+  await api.uploadSightingPhoto("sighting_abc", file, 1234);
+  assert.equal(upload!.pathname, "sighting-proofs/sighting_abc/1234.jpg");
+  assert.equal(upload!.body, file);
+  assert.equal(upload!.options.handleUploadUrl, "https://example.test/api/sightings/photo");
+  assert.deepEqual(upload!.options.headers, { Authorization: "Bearer session-token" });
+  assert.equal(upload!.options.clientPayload, JSON.stringify({ sightingId: "sighting_abc" }));
+});
+
+test("attaches an uploaded Blob to the existing sighting with compare-before-replace semantics", async () => {
+  let captured: Request | null = null;
+  const api = createMobileApi({
+    baseUrl: "https://example.test",
+    getToken: async () => "session-token",
+    fetcher: async (request) => {
+      captured = new Request(request);
+      return Response.json({ ok: true, photoProof: { url: "https://blob.test/proof.jpg" } });
+    },
+  });
+  await api.attachSightingPhoto("sighting_abc", { url: "https://blob.test/proof.jpg", pathname: "sighting-proofs/sighting_abc/1234.jpg" });
+  assert.equal(captured!.method, "PATCH");
+  assert.equal(new URL(captured!.url).pathname, "/api/sightings/photo");
+  assert.deepEqual(await captured!.json(), {
+    sightingId: "sighting_abc",
+    blob: { url: "https://blob.test/proof.jpg", pathname: "sighting-proofs/sighting_abc/1234.jpg" },
+  });
+});
+
+test("recovers a completed upload from its staged pathname after a lost Blob response", async () => {
+  let captured: Request | null = null;
+  const api = createMobileApi({
+    baseUrl: "https://example.test",
+    getToken: async () => "session-token",
+    fetcher: async (request) => {
+      captured = new Request(request);
+      return Response.json({ ok: true, photoProof: { url: "https://blob.test/proof.jpg" } });
+    },
+  });
+  await api.attachSightingPhoto("sighting_abc", { pathname: "sighting-proofs/sighting_abc/1234.jpg" });
+  assert.deepEqual(await captured!.json(), {
+    sightingId: "sighting_abc",
+    blob: { pathname: "sighting-proofs/sighting_abc/1234.jpg" },
+  });
+});
+
+
 test("loads canonical Radar, Cellar, alerts, and HQ data with the same bearer identity", async () => {
   const requests: Request[] = [];
   const api = createMobileApi({

@@ -2,13 +2,15 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import * as Crypto from "expo-crypto";
 import * as SecureStore from "expo-secure-store";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { MobileApiError } from "../../../src/api/client";
 import type { GeographySearchResponse, MemberProfile, RadarBottleOption } from "../../../src/api/types";
 import { MemberCard, memberScreenStyles } from "../../../src/components/MemberScreen";
 import { useMobileApi } from "../../../src/hooks/useMobileApi";
 import { createSightingIdempotencyKey, parseSightingDraftBinding, serializeSightingDraftBinding, SIGHTING_IDEMPOTENCY_STORAGE_KEY, type SightingDraftBinding } from "../../../src/sightings/manual-sighting";
 import { approvedStoreFromGeography, buildPostSignalPreview, buildPostSightingSubmission, filterBottleSuggestions, isPostRequiredComplete, POST_QUANTITY_CHOICES, type PostSignalPreview, type PostStoreSelection } from "../../../src/sightings/post-composer";
+import { createPendingPhotoAttachment, stagePendingPhotoUpload, type PendingPhotoAttachment, type SightingPhotoAsset } from "../../../src/sightings/sighting-photo";
+import { chooseSightingPhoto, discardSightingPhoto, sightingPhotoBlob, type SightingPhotoSource } from "../../../src/sightings/sighting-photo-native";
 import { colors } from "../../../src/theme";
 
 type ActivePicker = "bottle" | "store" | null;
@@ -36,6 +38,10 @@ export default function PostScreen() {
   const [customQuantity, setCustomQuantity] = useState(false);
   const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
+  const [selectedPhoto, setSelectedPhoto] = useState<SightingPhotoAsset | null>(null);
+  const [pendingPhotoAttachment, setPendingPhotoAttachment] = useState<PendingPhotoAttachment | null>(null);
+  const [photoBusy, setPhotoBusy] = useState(false);
+  const [photoMessage, setPhotoMessage] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
   const [idempotencyReady, setIdempotencyReady] = useState(false);
@@ -88,7 +94,7 @@ export default function PostScreen() {
     notes,
     reporter: profile?.displayName || profile?.identity?.label,
   }), [bottleName, notes, price, profile?.displayName, profile?.identity?.label, quantity, selectedBottleRarity, storeAddress, storeCity, storeName, storeState]);
-  const actionDisabled = !requiredComplete || !idempotencyReady || submitting;
+  const actionDisabled = pendingPhotoAttachment ? photoBusy || submitting : !requiredComplete || !idempotencyReady || submitting || photoBusy;
 
   useEffect(() => {
     const query = storeName.replace(/\s+/g, " ").trim();
@@ -168,7 +174,102 @@ export default function PostScreen() {
     setSelectedStore(null); setManualStore(false); setStoreResults([]); setPrice(""); setQuantity(""); setCustomQuantity(false); setNotes(""); setActivePicker(null);
   }
 
+  async function prepareNextDraft() {
+    const nextBinding: SightingDraftBinding = { key: createSightingIdempotencyKey(), fingerprint: null };
+    try {
+      await SecureStore.setItemAsync(SIGHTING_IDEMPOTENCY_STORAGE_KEY, serializeSightingDraftBinding(nextBinding));
+      draftBinding.current = nextBinding;
+    } catch {
+      setIdempotencyReady(false);
+      setError("Signal saved, but secure draft protection could not prepare the next post. Restart the app before posting again.");
+    }
+  }
+
+  async function selectPhoto(source: SightingPhotoSource) {
+    if (photoBusy || pendingPhotoAttachment) return;
+    setPhotoBusy(true);
+    setError("");
+    setPhotoMessage("");
+    try {
+      const result = await chooseSightingPhoto(source);
+      if (result.error) {
+        setPhotoMessage(result.error);
+        return;
+      }
+      if (!result.photo) return;
+      discardSightingPhoto(selectedPhoto);
+      setSelectedPhoto(result.photo);
+      setPhotoMessage("Photo ready. It will be attached after the Signal is saved.");
+    } catch (caught) {
+      setPhotoMessage(caught instanceof Error ? caught.message : "That photo could not be prepared. You can still post without it.");
+    } finally {
+      setPhotoBusy(false);
+    }
+  }
+
+  function removeSelectedPhoto() {
+    if (pendingPhotoAttachment) return;
+    discardSightingPhoto(selectedPhoto);
+    setSelectedPhoto(null);
+    setPhotoMessage("");
+  }
+
+  async function completePhotoAttachment(photo: SightingPhotoAsset) {
+    discardSightingPhoto(photo);
+    setSelectedPhoto(null);
+    setPendingPhotoAttachment(null);
+    setPhotoMessage("");
+    resetComposer();
+    setSuccess("Signal posted with photo evidence. Thanks for helping nearby members.");
+    await prepareNextDraft();
+  }
+
+  async function retryPhotoUpload(attachment: PendingPhotoAttachment) {
+    if (photoBusy) return;
+    setPhotoBusy(true);
+    setError("");
+    setPhotoMessage("Attaching photo evidence…");
+    let workingAttachment = attachment;
+    let blob = attachment.blob;
+    try {
+      if (blob && !blob.url) {
+        try {
+          await api.attachSightingPhoto(attachment.sightingId, blob);
+          await completePhotoAttachment(attachment.photo);
+          return;
+        } catch (caught) {
+          if (!(caught instanceof MobileApiError) || caught.status !== 404) throw caught;
+          blob = undefined;
+          workingAttachment = { ...attachment, blob: undefined };
+        }
+      }
+      if (!blob) {
+        const timestamp = Date.now();
+        workingAttachment = stagePendingPhotoUpload(workingAttachment, timestamp);
+        blob = workingAttachment.blob;
+        setPendingPhotoAttachment(workingAttachment);
+        const uploaded = await api.uploadSightingPhoto(attachment.sightingId, sightingPhotoBlob(attachment.photo), timestamp);
+        blob = { url: uploaded.url, pathname: uploaded.pathname };
+        workingAttachment = { ...workingAttachment, blob };
+        setPendingPhotoAttachment(workingAttachment);
+      }
+      await api.attachSightingPhoto(attachment.sightingId, blob);
+      await completePhotoAttachment(attachment.photo);
+    } catch {
+      setPendingPhotoAttachment({ ...workingAttachment, blob });
+      setSuccess("Signal posted. The photo has not been attached yet.");
+      setError("Photo upload failed. Retry the photo without posting another Signal.");
+      setPhotoMessage("");
+    } finally {
+      setPhotoBusy(false);
+    }
+  }
+
   async function submit() {
+    if (pendingPhotoAttachment) {
+      await retryPhotoUpload(pendingPhotoAttachment);
+      return;
+    }
     if (!idempotencyReady) {
       setError("Secure draft protection is unavailable. Restart the app before posting.");
       return;
@@ -200,15 +301,15 @@ export default function PostScreen() {
       await SecureStore.setItemAsync(SIGHTING_IDEMPOTENCY_STORAGE_KEY, serializeSightingDraftBinding(requestBinding));
       draftBinding.current = requestBinding;
       const result = await api.submitSighting(built.payload, requestBinding.key);
-      resetComposer();
-      setSuccess(result.duplicate ? "That Signal was already saved. You are all set." : "Signal posted. Thanks for helping nearby members.");
-      const nextBinding: SightingDraftBinding = { key: createSightingIdempotencyKey(), fingerprint: null };
-      try {
-        await SecureStore.setItemAsync(SIGHTING_IDEMPOTENCY_STORAGE_KEY, serializeSightingDraftBinding(nextBinding));
-        draftBinding.current = nextBinding;
-      } catch {
-        setIdempotencyReady(false);
-        setError("Signal saved, but secure draft protection could not prepare the next post. Restart the app before posting again.");
+      if (selectedPhoto) {
+        const attachment = createPendingPhotoAttachment(result.sighting.id, selectedPhoto);
+        setPendingPhotoAttachment(attachment);
+        setSuccess(result.duplicate ? "That Signal was already saved. Attaching your photo…" : "Signal posted. Attaching your photo…");
+        await retryPhotoUpload(attachment);
+      } else {
+        resetComposer();
+        setSuccess(result.duplicate ? "That Signal was already saved. You are all set." : "Signal posted. Thanks for helping nearby members.");
+        await prepareNextDraft();
       }
     } catch (caught) {
       setError(caught instanceof MobileApiError && caught.status === 401 ? "Your session could not be verified. Return to Signals and retry." : caught instanceof Error ? caught.message : "Your Signal could not be posted.");
@@ -255,11 +356,28 @@ export default function PostScreen() {
             <View style={styles.field}><Text style={styles.label}>Quantity seen</Text><View style={styles.chips}>{POST_QUANTITY_CHOICES.map((choice) => <Pressable accessibilityRole="button" accessibilityState={{ selected: !customQuantity && quantity === choice }} key={choice} onPress={() => { setCustomQuantity(false); setQuantity(choice); }} style={[styles.chip, !customQuantity && quantity === choice && styles.chipActive]}><Text style={[styles.chipText, !customQuantity && quantity === choice && styles.chipTextActive]}>{choice}</Text></Pressable>)}<Pressable accessibilityRole="button" accessibilityState={{ selected: customQuantity }} onPress={() => { setCustomQuantity(true); setQuantity(""); }} style={[styles.chip, customQuantity && styles.chipActive]}><Text style={[styles.chipText, customQuantity && styles.chipTextActive]}>Other</Text></Pressable></View></View>
             {customQuantity ? <Field accessibilityLabel="Custom quantity seen" label="Custom quantity" onChangeText={setQuantity} placeholder="Example: 2 behind counter" value={quantity} /> : null}
             <Field autoCapitalize="sentences" label="Notes" multiline numberOfLines={3} onChangeText={setNotes} placeholder="Anything nearby members should know" value={notes} />
+            <View style={styles.photoEvidence}>
+              <View style={styles.photoHeading}><View style={styles.photoTitleRow}><MaterialCommunityIcons color={colors.accent} name="camera-outline" size={18} /><Text style={styles.photoTitle}>Photo evidence</Text></View><Text style={styles.photoOptional}>OPTIONAL</Text></View>
+              {!selectedPhoto ? <View style={styles.photoActions}>
+                <Pressable accessibilityRole="button" disabled={photoBusy} onPress={() => void selectPhoto("camera")} style={({ pressed }) => [styles.photoAction, pressed && styles.pressed]}><MaterialCommunityIcons color={colors.text} name="camera" size={18} /><Text style={styles.photoActionText}>Take photo</Text></Pressable>
+                <Pressable accessibilityRole="button" disabled={photoBusy} onPress={() => void selectPhoto("library")} style={({ pressed }) => [styles.photoAction, pressed && styles.pressed]}><MaterialCommunityIcons color={colors.text} name="image-outline" size={18} /><Text style={styles.photoActionText}>Choose photo</Text></Pressable>
+              </View> : <View style={styles.photoPreviewWrap}>
+                <Image accessibilityLabel="Selected sighting evidence" resizeMode="cover" source={{ uri: selectedPhoto.uri }} style={styles.photoPreview} />
+                {!pendingPhotoAttachment ? <View style={styles.photoActions}>
+                  <Pressable accessibilityRole="button" disabled={photoBusy} onPress={() => void selectPhoto("library")} style={({ pressed }) => [styles.photoAction, pressed && styles.pressed]}><Text style={styles.photoActionText}>Replace photo</Text></Pressable>
+                  <Pressable accessibilityRole="button" disabled={photoBusy} onPress={removeSelectedPhoto} style={({ pressed }) => [styles.photoRemove, pressed && styles.pressed]}><Text style={styles.photoRemoveText}>Remove photo</Text></Pressable>
+                </View> : null}
+              </View>}
+              {photoBusy ? <ActivityIndicator color={colors.accent} size="small" /> : null}
+              {photoMessage ? <Text accessibilityRole="alert" style={styles.photoMessage}>{photoMessage}</Text> : null}
+              <Text style={styles.photoDisclosure}>Evidence may appear publicly with this sighting. Photos are resized, re-encoded, and stripped of embedded metadata before upload.</Text>
+            </View>
           </ComposerSection>
 
           {preview ? <SignalPreview preview={preview} /> : null}
           {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
           {success ? <Text accessibilityRole="alert" style={styles.success}>{success}</Text> : null}
+
           <Text style={styles.disclaimer}>Only report what you observed. Availability can change quickly, and manually entered bottles or stores may be reviewed.</Text>
         </View> : null}
         {!canSubmit && error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
@@ -267,7 +385,7 @@ export default function PostScreen() {
       {canSubmit ? <View style={styles.actionFooter}>
         {!requiredComplete ? <Text style={styles.actionHint}>Choose a bottle and retailer to continue.</Text> : null}
         <Pressable accessibilityRole="button" accessibilityState={{ disabled: actionDisabled }} disabled={actionDisabled} onPress={submit} style={({ pressed }) => [styles.submit, actionDisabled && styles.submitDisabled, pressed && !actionDisabled && styles.submitPressed]}>
-          {submitting ? <ActivityIndicator color={colors.background} /> : <><MaterialCommunityIcons color={actionDisabled ? colors.muted : colors.background} name="broadcast" size={18} /><Text style={[styles.submitText, actionDisabled && styles.submitTextDisabled]}>Post Signal</Text></>}
+          {submitting || photoBusy ? <ActivityIndicator color={colors.background} /> : <><MaterialCommunityIcons color={actionDisabled ? colors.muted : colors.background} name={pendingPhotoAttachment ? "cloud-upload-outline" : "broadcast"} size={18} /><Text style={[styles.submitText, actionDisabled && styles.submitTextDisabled]}>{pendingPhotoAttachment ? "Retry photo upload" : "Post Signal"}</Text></>}
         </Pressable>
       </View> : null}
     </KeyboardAvoidingView>
@@ -359,6 +477,21 @@ const styles = StyleSheet.create({
   chipActive: { borderColor: colors.accent, backgroundColor: colors.surfaceRaised },
   chipText: { color: colors.muted, fontSize: 12, fontWeight: "700" },
   chipTextActive: { color: colors.accent },
+  photoEvidence: { gap: 10, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth, borderRadius: 13, backgroundColor: colors.surfaceRaised, padding: 12 },
+  photoHeading: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10 },
+  photoTitleRow: { flexDirection: "row", alignItems: "center", gap: 7 },
+  photoTitle: { color: colors.text, fontSize: 13, fontWeight: "800" },
+  photoOptional: { color: colors.muted, fontSize: 9, fontWeight: "800", letterSpacing: 0.9 },
+  photoActions: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  photoAction: { minHeight: 40, borderColor: colors.border, borderWidth: 1, borderRadius: 10, backgroundColor: colors.background, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 7, paddingHorizontal: 12 },
+  photoActionText: { color: colors.text, fontSize: 12, fontWeight: "800" },
+  photoPreviewWrap: { gap: 9 },
+  photoPreview: { width: "100%", height: 178, borderRadius: 11, backgroundColor: colors.background },
+  photoRemove: { minHeight: 40, borderRadius: 10, alignItems: "center", justifyContent: "center", paddingHorizontal: 12 },
+  photoRemoveText: { color: colors.danger, fontSize: 12, fontWeight: "800" },
+  photoMessage: { color: colors.accent, fontSize: 11, lineHeight: 16 },
+  photoDisclosure: { color: colors.muted, fontSize: 10, lineHeight: 15 },
+
   previewSection: { gap: 8, marginTop: 2 },
   previewHeading: { gap: 3 },
   previewHeadingText: { color: colors.accent, fontSize: 10, lineHeight: 14, fontWeight: "900", letterSpacing: 1.05 },

@@ -2,7 +2,7 @@
   "expo": {
     "name": "Bourbon Signal",
     "slug": "bourbon-signal",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "orientation": "portrait",
     "scheme": "bourbonsignal",
     "icon": "./assets/icon.png",
@@ -17,12 +17,12 @@
     "android": {
       "package": "com.bourbonsignal.app",
       "permissions": [
-        "android.permission.CAMERA",
-        "android.permission.ACCESS_COARSE_LOCATION",
-        "android.permission.ACCESS_FINE_LOCATION"
+        "android.permission.CAMERA"
       ],
       "blockedPermissions": [
         "android.permission.ACCESS_BACKGROUND_LOCATION",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION",
         "android.permission.RECORD_AUDIO",
         "android.permission.READ_EXTERNAL_STORAGE",
         "android.permission.WRITE_EXTERNAL_STORAGE"
@@ -42,36 +42,21 @@
       "expo-router",
       "expo-secure-store",
       "expo-dev-client",
-      "expo-notifications",
-      "@clerk/expo",
       [
-        "expo-camera",
+        "expo-notifications",
         {
-          "cameraPermission": "Allow Bourbon Signal to use your camera to photograph a bottle or shelf as evidence for a manual post.",
-          "microphonePermission": false,
-          "recordAudioAndroid": false,
-          "barcodeScannerEnabled": true
+          "icon": "./assets/notification-icon.png",
+          "color": "#C48A4A",
+          "defaultChannel": "radar"
         }
       ],
+      "@clerk/expo",
       [
         "expo-image-picker",
         {
-          "photosPermission": "Allow Bourbon Signal to access photos you choose as bottle or shelf evidence for a manual post.",
-          "cameraPermission": "Allow Bourbon Signal to use your camera to photograph a bottle or shelf as evidence for a manual post.",
+          "photosPermission": "Allow Bourbon Signal to access only photos you choose as optional sighting evidence that may appear publicly with your Signal.",
+          "cameraPermission": "Allow Bourbon Signal to use your camera for optional sighting evidence that may appear publicly with your Signal.",
           "microphonePermission": false
-        }
-      ],
-      [
-        "expo-location",
-        {
-          "locationWhenInUsePermission": "Allow Bourbon Signal to use your current location to suggest nearby retailers. You can always enter a retailer manually.",
-          "locationAlwaysAndWhenInUsePermission": false,
-          "locationAlwaysPermission": false,
-          "motionUsagePermission": false,
-          "isIosBackgroundLocationEnabled": false,
-          "isAndroidBackgroundLocationEnabled": false,
-          "isAndroidForegroundServiceEnabled": false,
-          "isAndroidMotionActivityEnabled": false
         }
       ],
       [

@@ -176,7 +176,7 @@ export class SignalPointsRepository {
     return generation;
   }
 
-  async reconcileClerkRewards(userId: string, memberRewards: unknown, rewardGeneration: number) {
+  async reconcileClerkRewardsWithStatus(userId: string, memberRewards: unknown, rewardGeneration: number) {
     const generation = rewardGeneration;
     if (!Number.isSafeInteger(generation) || generation < 0) throw new Error("Invalid Signal Points reward generation.");
     const hash = createHash("sha256").update(JSON.stringify(memberRewards || {})).digest("hex").slice(0, 32);
@@ -189,7 +189,15 @@ export class SignalPointsRepository {
       [userId, CLERK_REWARD_SOURCE_PREFIX, generation, JSON.stringify(targets), `clerk-rewards:${hash}`, JSON.stringify({ snapshotHash: hash })],
     ) as Array<Record<string, unknown>>;
     if (!rows[0]) throw new Error("Signal Points source-set reconciliation did not complete.");
-    return number(rows[0].balance);
+    return {
+      balance: number(rows[0].balance),
+      applied: rows[0].applied === true,
+      generation: number(rows[0].generation),
+    };
+  }
+
+  async reconcileClerkRewards(userId: string, memberRewards: unknown, rewardGeneration: number) {
+    return (await this.reconcileClerkRewardsWithStatus(userId, memberRewards, rewardGeneration)).balance;
   }
 
   async readClerkRewardSource(userId: string) {

@@ -11,11 +11,11 @@
 - [x] iOS non-exempt-encryption declaration is present.
 - [x] Expo template artwork is replaced with repository-owned Bourbon Signal icon, splash, adaptive, monochrome, and favicon assets.
 - [x] HQ includes membership, Signal Points, rewards, Support, Privacy policy, Request account deletion, and sign-out actions.
-- [x] Signals, Radar, Post, Cellar, and HQ have distinct native ownership rather than duplicated dashboard cards.
+- [x] Signals, Radar, Post, My Shelf, and HQ have distinct native ownership rather than duplicated dashboard cards.
 - [x] Native Post uses the canonical durable/idempotent sighting endpoint and clearly marks manual-store review.
 - [x] Public support and privacy URLs are documented.
 - [x] Store copy, privacy inventory, review notes, and screenshot specification are version-controlled.
-- [x] Camera, selected-photo, and foreground-location native foundation uses precise purpose copy, lazy permission contracts, and manual posting and retailer entry fallbacks; microphone, background location, barcode matching, evidence upload, native billing, external checkout steering, and tracking SDKs remain disabled or absent.
+- [x] Camera and selected-photo evidence use precise purpose copy, lazy permission requests, resized metadata-stripped JPEGs, direct authenticated upload, and manual posting without a photo; microphone, location, barcode matching, native billing, external checkout steering, and tracking SDKs remain disabled or absent.
 
 ## Complete after Apple Developer Program acceptance
 
@@ -27,7 +27,7 @@
 - [x] Confirm the EAS `production` environment contains only the two approved public runtime values (`EXPO_PUBLIC_API_URL` and `EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY`).
 - [ ] Create a least-privilege App Review account and place credentials only in App Store Connect.
 - [ ] Produce a production iOS build and inspect its privacy manifests, SDK signatures, entitlements, permissions, and development-module exclusions.
-- [ ] Install through TestFlight and test sign-in/MFA, feed pagination, detail, Radar data, native posting, Cellar data, HQ/points, account links, deletion request, sign-out, offline/retry behavior, text scaling, small-screen layout, and any enabled camera/photo/location prompt plus denial fallback on real devices.
+- [ ] Install through TestFlight and test sign-in/MFA, feed pagination, detail, Radar data, native posting and photo retry, My Shelf data, HQ/points, account links, deletion request, sign-out, offline/retry behavior, text scaling, small-screen layout, and camera/photo prompts plus denial fallback on real devices.
 - [ ] Capture and batch-review real candidate screenshots at Apple-accepted dimensions.
 - [ ] Reconcile App Privacy and age-rating answers against the final binary and current vendor disclosures.
 - [ ] Submit to TestFlight internal testing first; App Store review requires separate owner approval after device QA.

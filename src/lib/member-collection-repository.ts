@@ -34,7 +34,7 @@ export class MemberCollectionLimitError extends Error {
   readonly currentCount: number;
 
   constructor(limit: number, currentCount: number) {
-    super("Your Free Cellar is full. Existing bottles stay available to view, edit, or delete.");
+    super("Your free shelf is full. Existing bottles stay available to view, edit, or delete.");
     this.name = "MemberCollectionLimitError";
     this.limit = limit;
     this.currentCount = currentCount;

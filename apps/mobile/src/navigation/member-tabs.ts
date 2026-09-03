@@ -25,7 +25,7 @@ export const MEMBER_TABS: readonly MemberTabDefinition[] = [
   { key: "home", route: "index", label: "Home", icon: "home-outline", owns: ["signal_feed", "signal_detail"] },
   { key: "radar", route: "radar", label: "Radar", icon: "radar", owns: ["watched_bottles", "saved_markets", "alert_controls", "alert_inbox"] },
   { key: "post", route: "post", label: "Post", icon: "plus-circle-outline", owns: ["sighting_composer"] },
-  { key: "cellar", route: "cellar", label: "Cellar", icon: "bottle-soda-classic-outline", owns: ["collection"] },
+  { key: "cellar", route: "cellar", label: "My Shelf", icon: "bottle-soda-classic-outline", owns: ["collection"] },
   { key: "hq", route: "hq", label: "Account", icon: "account-circle-outline", owns: ["member_identity", "signal_points", "rewards", "account_controls"] },
 ] as const;
 

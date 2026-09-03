@@ -10,10 +10,11 @@ Lean Expo SDK 57 development client for the first native product slice.
 - Privacy-safe membership/account state
 - In-app support, privacy policy, and account-deletion request paths
 - Sign-out and cursor/session recovery
-- Expo-native camera, selected-photo, and foreground-location dependency/config foundation
-- Pure lazy-permission policy with manual posting and retailer-entry fallbacks
+- Optional sighting evidence from the system camera or selected-photo flow
+- Resized, metadata-stripped JPEG upload with retry against the already-saved Signal
+- Pure lazy-permission policy with a manual posting without-photo fallback
 
-Evidence-capture UI, photo uploads, barcode matching, native billing, editable profiles, badges, and social mechanics are intentionally deferred. Camera, photo, and current-location permissions are never requested at launch; future callers must request them only after the matching member action. Microphone and background location are disabled.
+Camera and selected-photo permissions are never requested at launch; each appears only after the matching member action. Optional sighting evidence may appear publicly with its Signal. Barcode matching, native billing, editable profiles, badges, and social mechanics remain intentionally deferred. Microphone and all location permissions are disabled.
 
 ## Local configuration
 

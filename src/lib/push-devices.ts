@@ -18,11 +18,26 @@ export interface ExpoPushMessage {
   priority: "high";
 }
 
+export interface PendingExpoPushTicket {
+  id: string;
+  token: string;
+  createdAt: string;
+}
+
 const MAX_PUSH_DEVICES = 8;
+const MAX_PENDING_PUSH_TICKETS = 200;
+const MAX_PENDING_PUSH_TICKET_AGE_MS = 7 * 24 * 60 * 60 * 1000;
 const EXPO_PUSH_ENDPOINT = "https://exp.host/--/api/v2/push/send";
+const EXPO_PUSH_RECEIPTS_ENDPOINT = "https://exp.host/--/api/v2/push/getReceipts";
 
 function asRecord(value: unknown) {
   return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : null;
+}
+
+function expoHeaders() {
+  const headers: Record<string, string> = { Accept: "application/json", "Content-Type": "application/json" };
+  if (process.env.EXPO_ACCESS_TOKEN) headers.Authorization = `Bearer ${process.env.EXPO_ACCESS_TOKEN}`;
+  return headers;
 }
 
 export function validExpoPushToken(value: string) {
@@ -62,6 +77,11 @@ export function disablePushDevice(input: unknown, deviceId: string, now: string)
   return normalizePushDevices(input).map((device) => device.deviceId === target ? { ...device, enabled: false, updatedAt: now } : device);
 }
 
+export function disablePushTokens(input: unknown, tokens: string[], now: string) {
+  const invalid = new Set(tokens.filter(validExpoPushToken));
+  return normalizePushDevices(input).map((device) => invalid.has(device.expoPushToken) ? { ...device, enabled: false, updatedAt: now } : device);
+}
+
 export function enabledPushTokens(input: unknown) {
   return normalizePushDevices(input).filter((device) => device.enabled).map((device) => device.expoPushToken);
 }
@@ -84,22 +104,70 @@ export function buildExpoPushMessages(tokens: string[], alert: { id: string; bot
 }
 
 export async function sendExpoPushMessages(messages: ExpoPushMessage[], fetcher: typeof fetch = fetch) {
-  if (!messages.length) return { accepted: 0, rejected: 0 };
+  if (!messages.length) return { accepted: 0, rejected: 0, tickets: [] as Array<{ id: string; token: string }>, invalidTokens: [] as string[] };
   let accepted = 0;
   let rejected = 0;
+  const acceptedTickets: Array<{ id: string; token: string }> = [];
+  const invalidTokens: string[] = [];
   for (let index = 0; index < messages.length; index += 100) {
     const chunk = messages.slice(index, index + 100);
-    const response = await fetcher(EXPO_PUSH_ENDPOINT, {
-      method: "POST",
-      headers: { Accept: "application/json", "Content-Type": "application/json" },
-      body: JSON.stringify(chunk),
-    });
+    const response = await fetcher(EXPO_PUSH_ENDPOINT, { method: "POST", headers: expoHeaders(), body: JSON.stringify(chunk) });
     if (!response.ok) throw new Error(`Expo push request failed (${response.status}).`);
-    const payload = (await response.json().catch(() => ({}))) as { data?: Array<{ status?: string }> };
-    const tickets = Array.isArray(payload.data) ? payload.data : [];
-    const chunkAccepted = tickets.filter((ticket) => ticket.status === "ok").length;
-    accepted += chunkAccepted;
-    rejected += chunk.length - chunkAccepted;
+    const payload = (await response.json().catch(() => ({}))) as { data?: Array<{ status?: string; id?: string; details?: { error?: string } }> };
+    const responseTickets = Array.isArray(payload.data) ? payload.data : [];
+    chunk.forEach((message, ticketIndex) => {
+      const ticket = responseTickets[ticketIndex];
+      if (ticket?.status === "ok") {
+        accepted += 1;
+        if (typeof ticket.id === "string" && ticket.id.trim()) acceptedTickets.push({ id: ticket.id.trim(), token: message.to });
+      } else {
+        rejected += 1;
+        if (ticket?.details?.error === "DeviceNotRegistered") invalidTokens.push(message.to);
+      }
+    });
   }
-  return { accepted, rejected };
+  return { accepted, rejected, tickets: acceptedTickets, invalidTokens: Array.from(new Set(invalidTokens)) };
+}
+
+export function normalizePendingExpoPushTickets(input: unknown, now: string): PendingExpoPushTicket[] {
+  const rows = Array.isArray(input) ? input : [];
+  const currentTime = Date.parse(now);
+  const unique = new Map<string, PendingExpoPushTicket>();
+  for (const raw of rows) {
+    const row = asRecord(raw);
+    const id = typeof row?.id === "string" ? row.id.trim() : "";
+    const token = typeof row?.token === "string" ? row.token.trim() : "";
+    const createdAt = typeof row?.createdAt === "string" && Number.isFinite(Date.parse(row.createdAt)) ? row.createdAt : "";
+    if (!/^[a-zA-Z0-9_-]{8,256}$/.test(id) || !validExpoPushToken(token) || !createdAt) continue;
+    if (Number.isFinite(currentTime) && currentTime - Date.parse(createdAt) > MAX_PENDING_PUSH_TICKET_AGE_MS) continue;
+    unique.set(id, { id, token, createdAt });
+  }
+  return [...unique.values()].slice(-MAX_PENDING_PUSH_TICKETS);
+}
+
+export async function reconcileExpoPushReceipts(input: unknown, devices: unknown, fetcher: typeof fetch = fetch, now = new Date().toISOString()) {
+  const pending = normalizePendingExpoPushTickets(input, now);
+  if (!pending.length) return { devices: normalizePushDevices(devices), pending, accepted: 0, rejected: 0 };
+  const receipts: Record<string, { status?: string; details?: { error?: string } }> = {};
+  for (let index = 0; index < pending.length; index += 300) {
+    const chunk = pending.slice(index, index + 300);
+    const response = await fetcher(EXPO_PUSH_RECEIPTS_ENDPOINT, { method: "POST", headers: expoHeaders(), body: JSON.stringify({ ids: chunk.map((ticket) => ticket.id) }) });
+    if (!response.ok) throw new Error(`Expo push receipt request failed (${response.status}).`);
+    const payload = (await response.json().catch(() => ({}))) as { data?: Record<string, { status?: string; details?: { error?: string } }> };
+    Object.assign(receipts, asRecord(payload.data) || {});
+  }
+  let accepted = 0;
+  let rejected = 0;
+  const invalidTokens: string[] = [];
+  const unresolved: PendingExpoPushTicket[] = [];
+  for (const ticket of pending) {
+    const receipt = receipts[ticket.id];
+    if (!receipt) unresolved.push(ticket);
+    else if (receipt.status === "ok") accepted += 1;
+    else {
+      rejected += 1;
+      if (receipt.details?.error === "DeviceNotRegistered") invalidTokens.push(ticket.token);
+    }
+  }
+  return { devices: disablePushTokens(devices, invalidTokens, now), pending: unresolved, accepted, rejected };
 }

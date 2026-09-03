@@ -41,7 +41,7 @@ export default function SignalDetailScreen() {
       if (signalResult.status === "fulfilled") setSignal(signalResult.value.signal);
       else setError(signalResult.reason instanceof MobileApiError ? signalResult.reason.message : "This Signal is temporarily unavailable.");
       if (preferencesResult.status === "fulfilled") setPreferences(preferencesResult.value);
-      else setPreferencesError("Member actions are temporarily unavailable. Pull to refresh from Radar or Cellar and retry.");
+      else setPreferencesError("Member actions are temporarily unavailable. Pull to refresh from Radar or My Shelf and retry.");
     });
     return () => { active = false; };
   }, [api, id]);
@@ -104,7 +104,7 @@ export default function SignalDetailScreen() {
       const saved = await api.updateMemberPreferences({ collectionPreferences: { bottles, version: preferences.collectionPreferences.version } });
       setPreferences(saved);
     } catch (caught) {
-      setActionError(caught instanceof MobileApiError && caught.status === 409 ? "Your Cellar changed elsewhere. Open Cellar and refresh before adding this bottle." : caught instanceof Error ? caught.message : "This bottle could not be added to Cellar.");
+      setActionError(caught instanceof MobileApiError && caught.status === 409 ? "My Shelf changed elsewhere. Open My Shelf and refresh before adding this bottle." : caught instanceof Error ? caught.message : "This bottle could not be added to My Shelf.");
     } finally { setSaving(false); }
   }
 
@@ -140,7 +140,7 @@ export default function SignalDetailScreen() {
         <Text accessibilityRole="header" style={styles.sectionTitle}>Bottle Profile</Text>
         <View style={styles.profileGrid}>
           <ProfileDetail label="Radar" value={bottleProfile?.radarLabel || "Unavailable"} />
-          <ProfileDetail label="Cellar" value={bottleProfile?.cellarLabel || "Unavailable"} />
+          <ProfileDetail label="My Shelf" value={bottleProfile?.cellarLabel || "Unavailable"} />
           <ProfileDetail label="Rating" value={bottleProfile?.ratingLabel || "Unavailable"} />
           <ProfileDetail label="Inventory" value={bottleProfile?.inventoryLabel || "Unavailable"} />
         </View>
@@ -164,7 +164,7 @@ export default function SignalDetailScreen() {
       {actionCount ? <View style={styles.actions}>
         <Text style={styles.actionsTitle}>Actions</Text>
         {canWatch ? <ActionButton disabled={saving} label={saving ? "Saving…" : isWatched ? "Remove from Radar" : "Watch in Radar"} onPress={() => void toggleRadarWatch()} /> : null}
-        {canReadCellar ? <ActionButton disabled={inCellar || !canAddToCellar || saving} label={inCellar ? "Already in Cellar" : !canAddToCellar ? "Free Cellar is full" : saving ? "Adding to Cellar…" : "Add to Cellar"} onPress={() => void addToCellar()} /> : null}
+        {canReadCellar ? <ActionButton disabled={inCellar || !canAddToCellar || saving} label={inCellar ? "Already on My Shelf" : !canAddToCellar ? "Free shelf is full" : saving ? "Adding to My Shelf…" : "Add to My Shelf"} onPress={() => void addToCellar()} /> : null}
         {address ? <ActionButton label="Open in Maps" onPress={() => void openMaps()} /> : null}
         {actionError ? <Text accessibilityRole="alert" style={styles.error}>{actionError}</Text> : null}
       </View> : null}

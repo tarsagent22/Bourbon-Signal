@@ -91,7 +91,7 @@ export default function AddCellarBottleScreen() {
     void api.getMemberPreferences({ fresh: true }).then((next) => {
       if (active) setPreferences(next);
     }).catch((caught) => {
-      if (active) setPreferenceError(caught instanceof Error ? caught.message : "Your Cellar is temporarily unavailable.");
+      if (active) setPreferenceError(caught instanceof Error ? caught.message : "My Shelf is temporarily unavailable.");
     }).finally(() => {
       if (active) setLoading(false);
     });
@@ -243,10 +243,10 @@ export default function AddCellarBottleScreen() {
               } catch {}
             }
           } catch {
-            Alert.alert("Bottle added", "Your bottle is safe in your Cellar. We’ll keep working on the match in the background.");
+            Alert.alert("Bottle added", "Your bottle is safe on My Shelf. We’ll keep working on the match in the background.");
           }
         } catch {
-          Alert.alert("Bottle added", "Your bottle is safe in your Cellar. We’ll keep working on the match in the background.");
+          Alert.alert("Bottle added", "Your bottle is safe on My Shelf. We’ll keep working on the match in the background.");
         }
       }
       router.back();
@@ -254,7 +254,7 @@ export default function AddCellarBottleScreen() {
       if (caught instanceof MobileApiError && caught.status === 409) {
         const refreshed = await api.getMemberPreferences({ fresh: true }).catch(() => preferences);
         setPreferences(refreshed);
-        setFormError("Your Cellar changed elsewhere. It was refreshed; review this whiskey and save again.");
+        setFormError("My Shelf changed elsewhere. It was refreshed; review this whiskey and save again.");
       } else {
         setFormError(caught instanceof Error ? caught.message : "This whiskey could not be saved.");
       }
@@ -266,18 +266,18 @@ export default function AddCellarBottleScreen() {
   return <SafeAreaView edges={["bottom"]} style={styles.screen}>
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.screen}>
       <ScrollView contentContainerStyle={styles.content} keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"} keyboardShouldPersistTaps="handled">
-        <Text style={styles.eyebrow}>CELLAR</Text>
-        <Text accessibilityRole="header" style={styles.title}>Add to Cellar</Text>
+        <Text style={styles.eyebrow}>MY SHELF</Text>
+        <Text accessibilityRole="header" style={styles.title}>Add to My Shelf</Text>
         <Text style={styles.description}>Find a whiskey, then add a bottle or save a rating.</Text>
-        {loading ? <LoadingState label="Opening your Cellar…" /> : null}
+        {loading ? <LoadingState label="Opening My Shelf…" /> : null}
         {preferenceError ? <ErrorState message={preferenceError} onRetry={() => {
           setLoading(true);
           setPreferenceError("");
           void api.getMemberPreferences({ fresh: true }).then(setPreferences).catch((caught) => {
-            setPreferenceError(caught instanceof Error ? caught.message : "Your Cellar is temporarily unavailable.");
+            setPreferenceError(caught instanceof Error ? caught.message : "My Shelf is temporarily unavailable.");
           }).finally(() => setLoading(false));
         }} /> : null}
-        {!loading && preferences && preferences.entitlements?.canUseCollection !== true ? <EmptyState title="Cellar is not included with this membership" detail="Return to Account to review the membership recognized by the app." /> : null}
+        {!loading && preferences && preferences.entitlements?.canUseCollection !== true ? <EmptyState title="My Shelf is not included with this membership" detail="Return to Account to review the membership recognized by the app." /> : null}
         {!loading && preferences?.entitlements?.canUseCollection ? <>
           <Field label="Whiskey"><TextInput
             accessibilityLabel="Search bottles"
@@ -298,7 +298,7 @@ export default function AddCellarBottleScreen() {
 
 
           {!selected && !custom && !needle ? <View style={styles.recentSection}>
-            <Text style={styles.sectionTitle}>Recently in your Cellar</Text>
+            <Text style={styles.sectionTitle}>Recently on My Shelf</Text>
             {recentBottles.length ? <View style={styles.results}>{recentBottles.map((bottle) => <ResultRow key={bottle.bottleId} label={bottle.bottleName} metadata={metadataForOption({ id: bottle.bottleId, name: bottle.bottleName }, bottles)} onPress={() => chooseRecent(bottle)} />)}</View> : <Text style={styles.fieldHelp}>Your recently updated whiskeys will appear here.</Text>}
           </View> : null}
 

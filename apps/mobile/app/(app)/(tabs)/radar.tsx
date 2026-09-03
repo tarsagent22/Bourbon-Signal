@@ -9,11 +9,11 @@ import { ErrorState, LoadingState, MemberCard, SectionTitle, memberScreenStyles 
 import { useMobileApi } from "../../../src/hooks/useMobileApi";
 import { canonicalBottleKey } from "../../../src/interactions/member-interactions";
 import { ALERT_RARITY_TIERS, alertIsStale, compactMonitoringScopes, compactWatchedBottles, formatPhoneNumber, maskedPhoneNumber, memberAlertBottleNames, monitoringScopesChanged, presentPushIssue, radarLocalityDisplayName, radarMonitoringSummary, radarStateDisplayCode, radarWatchlistSummary, scopesForState, setBottleWatched, setStatewideScope, stopMonitoringState, toggleAlertRarity, toggleMonitoringScope, watchedBottleCount } from "../../../src/radar/radar-preferences";
-import { disableRadarPush, enableRadarPush, radarPushDeviceId, radarPushPermission } from "../../../src/push/push-registration";
+import { disableRadarPush, enableRadarPush, radarPushDeviceId, radarPushPermission, refreshRadarPushIfEnabled, rememberRadarPushEnabled, watchRadarPushToken } from "../../../src/push/push-registration";
 import { colors } from "../../../src/theme";
 
 type RadarView = "matches" | "watchlist";
-const VIEWS: Array<{ key: RadarView; label: string }> = [{ key: "matches", label: "Matches" }, { key: "watchlist", label: "Watchlist" }];
+const VIEWS: Array<{ key: RadarView; label: string }> = [{ key: "watchlist", label: "Watchlist" }, { key: "matches", label: "Matches" }];
 
 function pushIssue(caught: unknown, fallback: string) {
   if (caught instanceof MobileApiError) return presentPushIssue(caught, fallback);
@@ -28,7 +28,7 @@ function pushIssue(caught: unknown, fallback: string) {
 export default function RadarScreen() {
   const api = useMobileApi();
   const { section: requestedSection, request } = useLocalSearchParams<{ section?: string; request?: string }>();
-  const [view, setView] = useState<RadarView>("matches");
+  const [view, setView] = useState<RadarView>("watchlist");
   const [preferences, setPreferences] = useState<MemberPreferences | null>(null);
   const [profile, setProfile] = useState<MemberProfile | null>(null);
   const [alerts, setAlerts] = useState<{ alerts: MemberAlert[]; unreadCount: number }>({ alerts: [], unreadCount: 0 });
@@ -60,7 +60,9 @@ export default function RadarScreen() {
       try {
         const [deviceId, permission] = await Promise.all([radarPushDeviceId(), radarPushPermission().catch(() => "undetermined")]);
         const nextPush = await api.getPushDeviceStatus(deviceId, { fresh });
-        setPushStatus(nextPush); setPushPermission(permission); setPushStatusLoadFailed(false);
+        await rememberRadarPushEnabled(nextPush.enabled);
+        const refreshedPush = nextPush.enabled ? await refreshRadarPushIfEnabled(api).catch(() => null) : null;
+        setPushStatus(refreshedPush || nextPush); setPushPermission(permission); setPushStatusLoadFailed(false);
         if (nextPush?.warning) {
           const issue = presentPushIssue(nextPush.warning, "This iPhone is registered, but Push is still finishing setup.");
           setPushError(issue.message); setPushDiagnostic(issue.diagnostic); setPushRetryEnabled(true);
@@ -77,6 +79,11 @@ export default function RadarScreen() {
 
   useEffect(() => { void load(false); }, [load]);
   useEffect(() => { if (requestedSection === "matches" && request) setView("matches"); }, [requestedSection, request]);
+  useEffect(() => {
+    let active = true;
+    const subscription = watchRadarPushToken(api, (status) => { if (active && status) setPushStatus(status); });
+    return () => { active = false; subscription.remove(); };
+  }, [api]);
   const watchedKeys = useMemo(() => new Set((preferences?.bottleAlertPreferences.bottleKeys || []).map(canonicalBottleKey)), [preferences]);
   const watchedNames = preferences?.bottleAlertPreferences.bottleNames || [];
   const searchResults = useMemo(() => {

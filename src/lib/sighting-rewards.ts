@@ -26,6 +26,7 @@ export interface SightingRewardState {
   verificationSources?: SightingVerificationSource[];
   verifiedAt?: string;
   photoProof?: SightingPhotoProof;
+
 }
 
 export interface MemberRewardLedgerEntry {

@@ -8,6 +8,7 @@ import { StatusBar } from "expo-status-bar";
 import { useEffect } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { radarRouteForNotificationData } from "../src/push/push-navigation";
 import { colors } from "../src/theme";
 
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
@@ -36,8 +37,9 @@ function PushResponseHandler() {
   const router = useRouter();
   useEffect(() => {
     const open = (response: Notifications.NotificationResponse | null) => {
-      if (response?.notification.request.content.data?.screen === "radar") {
-        router.push("/(app)/(tabs)/radar");
+      const route = radarRouteForNotificationData(response?.notification.request.content.data);
+      if (route) {
+        router.push(route);
         void Notifications.clearLastNotificationResponseAsync();
       }
     };

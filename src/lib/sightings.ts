@@ -136,6 +136,7 @@ export function canonicalizeLegacySighting(input: MemberSighting, ownerUserId: s
       helpfulAt: reward.helpfulAt ? String(reward.helpfulAt).slice(0, 40) : undefined,
       verificationSources: Array.isArray(reward.verificationSources) ? reward.verificationSources.filter((source) => source === "photo" || source === "community") : undefined,
       verifiedAt: reward.verifiedAt ? String(reward.verifiedAt).slice(0, 40) : undefined,
+
       photoProof: photo?.url ? {
         url: String(photo.url).slice(0, 2048),
         pathname: photo.pathname ? String(photo.pathname).slice(0, 1024) : undefined,

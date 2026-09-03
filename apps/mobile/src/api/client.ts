@@ -1,3 +1,4 @@
+import { uploadClientBlob, type ClientBlobUploadResult } from "./blob-upload";
 import type {
   MemberAlertsResponse,
   MemberPreferences,
@@ -40,6 +41,27 @@ type RequestOptions = {
   headers?: Record<string, string>;
   fresh?: boolean;
 };
+
+type BlobUploader = (
+  pathname: string,
+  body: Blob,
+  options: {
+    access: "public";
+    contentType: "image/jpeg";
+    handleUploadUrl: string;
+    clientPayload: string;
+    headers: { Authorization: string };
+    multipart: boolean;
+  },
+) => Promise<ClientBlobUploadResult>;
+
+const defaultBlobUploader: BlobUploader = (pathname, body, options) => uploadClientBlob({
+  pathname,
+  body,
+  handleUploadUrl: options.handleUploadUrl,
+  clientPayload: options.clientPayload,
+  authorization: options.headers.Authorization,
+});
 
 function normalizeBottleOptions(rows: Array<Record<string, unknown>>, sortByName = false) {
   const unique = new Map<string, RadarBottleOption>();
@@ -115,11 +137,13 @@ export function createMobileApi({
   baseUrl = process.env.EXPO_PUBLIC_API_URL || "https://www.bourbonsignal.com",
   getToken,
   fetcher = fetch,
+  blobUploader = defaultBlobUploader,
   readCooldownMs = 10_000,
 }: {
   baseUrl?: string;
   getToken: () => Promise<string | null>;
   fetcher?: typeof fetch;
+  blobUploader?: BlobUploader;
   readCooldownMs?: number;
 }) {
   const recentReads = new Map<string, { expiresAt: number; promise: Promise<unknown> }>();
@@ -297,5 +321,27 @@ export function createMobileApi({
         headers: { "Idempotency-Key": idempotencyKey },
       });
     },
+    async uploadSightingPhoto(sightingId: string, file: Blob, timestamp = Date.now()) {
+      if (!/^sighting_[-_a-zA-Z0-9]{1,150}$/.test(sightingId)) {
+        throw new MobileApiError("The saved sighting could not be matched to this photo.", 400, "INVALID_SIGHTING_ID");
+      }
+      const token = await getToken();
+      if (!token) throw new MobileApiError("Your session could not be verified. Return to Signals and retry.", 401, "UNAUTHORIZED");
+      return blobUploader(`sighting-proofs/${sightingId}/${timestamp}.jpg`, file, {
+        access: "public",
+        contentType: "image/jpeg",
+        handleUploadUrl: new URL("/api/sightings/photo", baseUrl).toString(),
+        clientPayload: JSON.stringify({ sightingId }),
+        headers: { Authorization: `Bearer ${token}` },
+        multipart: file.size > 4 * 1024 * 1024,
+      });
+    },
+    attachSightingPhoto(sightingId: string, blob: { url?: string; pathname: string }) {
+      return request<{ ok: true; photoProof: { url: string; pathname: string; uploadedAt: string; status: "verified_public" } }>("/api/sightings/photo", {
+        method: "PATCH",
+        body: { sightingId, blob },
+      });
+    },
+
   };
 }

@@ -124,7 +124,7 @@ for (const feature of [
   "Alert preference limits",
   "Signal Points redemption",
   "Sightings alerts",
-  "My Collection",
+  "My Shelf",
   "Recommended Bottles",
   "Founder badge + number",
   "Numbered Founder’s glass",

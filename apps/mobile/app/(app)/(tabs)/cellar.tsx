@@ -15,8 +15,10 @@ import {
   type BottleContributionReceipts,
 } from "../../../src/cellar/contribution-receipts";
 import { buildBourbonDna } from "../../../src/cellar/bourbon-dna";
+import { nextShelfPageSize } from "../../../src/cellar/my-shelf-display";
 import { CellarBottleSilhouette } from "../../../src/components/CellarBottleSilhouette";
 import { CellarGlencairnSilhouette } from "../../../src/components/CellarGlencairnSilhouette";
+import { MyShelfDisplay } from "../../../src/components/MyShelfDisplay";
 import { EmptyState, ErrorState, LoadingState, memberScreenStyles } from "../../../src/components/MemberScreen";
 import { ScoreSlider } from "../../../src/components/ScoreSlider";
 import { useMobileApi } from "../../../src/hooks/useMobileApi";
@@ -92,6 +94,7 @@ export default function CellarScreen() {
   const [mutating, setMutating] = useState(false);
   const [savingWatchKey, setSavingWatchKey] = useState("");
   const [dnaExpanded, setDnaExpanded] = useState(false);
+  const [visibleCount, setVisibleCount] = useState(12);
   const reportedPendingBottleIds = useRef(new Set<string>());
 
   const acceptServerPreferences = useCallback((next: MemberPreferences) => {
@@ -175,7 +178,7 @@ export default function CellarScreen() {
     } catch (caught) {
       setError(caught instanceof MobileApiError && caught.status === 401
         ? "Your session could not be verified. Return to Signals and retry."
-        : caught instanceof Error ? caught.message : "Your Cellar is temporarily unavailable.");
+        : caught instanceof Error ? caught.message : "My Shelf is temporarily unavailable.");
     } finally {
       setLoading(false);
     }
@@ -188,6 +191,8 @@ export default function CellarScreen() {
   const canAddToCollection = collectionAccess?.canAdd === true;
   const summary = useMemo(() => collectionSummary(sourceBottles), [sourceBottles]);
   const bottles = useMemo(() => filterAndSortCollection(sourceBottles, query, sort, filters), [filters, query, sort, sourceBottles]);
+  const visibleBottles = bottles.slice(0, visibleCount);
+  const ownedBottleKeys = useMemo(() => sourceBottles.filter((bottle) => collectionDisplayKind(bottle) === "owned").map((bottle) => bottle.canonicalKey), [sourceBottles]);
   const numColumns = viewMode === "grid" && width >= 360 && fontScale < 1.3 ? 2 : 1;
   const tileWidth = numColumns === 2 ? (width - 36 - 10) / 2 : undefined;
   const refinementCount = activeCollectionRefinementCount(filters, sort);
@@ -203,6 +208,8 @@ export default function CellarScreen() {
   const trackedBottleLimit = preferences?.entitlements?.trackedBottleLimit;
   const canWatchCellarSuggestions = trackedBottleLimit === null || (typeof trackedBottleLimit === "number" && trackedBottleLimit > 0);
   const bourbonDna = useMemo(() => buildBourbonDna(sourceBottles), [sourceBottles]);
+
+  useEffect(() => { setVisibleCount(12); }, [filters, query, sort, viewMode]);
 
   const improveBourbonDna = useCallback(() => {
     const action = bourbonDna.nextAction;
@@ -226,12 +233,12 @@ export default function CellarScreen() {
       if (caught instanceof MobileApiError && caught.status === 409) {
         await load(true);
         setError(conflictMessage);
-        Alert.alert("Cellar refreshed", conflictMessage);
+        Alert.alert("My Shelf refreshed", conflictMessage);
         return null;
       }
-      const message = caught instanceof Error ? caught.message : "That Cellar change could not be saved.";
+      const message = caught instanceof Error ? caught.message : "That My Shelf change could not be saved.";
       setError(message);
-      Alert.alert("Cellar change not saved", message);
+      Alert.alert("My Shelf change not saved", message);
       return null;
     } finally {
       setMutating(false);
@@ -241,7 +248,7 @@ export default function CellarScreen() {
   const saveBottle = useCallback(async (patch: CollectionBottlePatch) => {
     if (!preferences || !selected) return false;
     const next = updateCollectionBottle(preferences.collectionPreferences.bottles, selected.canonicalKey, patch, new Date().toISOString());
-    const saved = await persistBottles(next, preferences.collectionPreferences.version, "Your Cellar changed elsewhere. It was refreshed before these details could be saved.");
+    const saved = await persistBottles(next, preferences.collectionPreferences.version, "My Shelf changed elsewhere. It was refreshed before these details could be saved.");
     if (!saved) return false;
     setSelected(null);
     return true;
@@ -258,7 +265,7 @@ export default function CellarScreen() {
     } catch (caught) {
       if (caught instanceof MobileApiError && caught.status === 409) {
         await load(true);
-        const message = "Your Cellar changed again before Undo could be applied. It has been refreshed.";
+        const message = "My Shelf changed again before Undo could be applied. It has been refreshed.";
         setError(message);
         Alert.alert("Undo not applied", message);
       } else {
@@ -277,7 +284,7 @@ export default function CellarScreen() {
       const priorBottles = preferences.collectionPreferences.bottles;
       const nextBottles = applyCollectionInventoryAction(priorBottles, selected.canonicalKey, action, new Date().toISOString());
       if (nextBottles === priorBottles) return;
-      const saved = await persistBottles(nextBottles, preferences.collectionPreferences.version, "Your Cellar changed elsewhere. It was refreshed before that inventory action could be saved.");
+      const saved = await persistBottles(nextBottles, preferences.collectionPreferences.version, "My Shelf changed elsewhere. It was refreshed before that inventory action could be saved.");
       if (!saved) return;
       const messages: Record<CollectionInventoryAction, string> = {
         add_bottle: "One sealed bottle was added.",
@@ -285,7 +292,7 @@ export default function CellarScreen() {
         finish_bottle: "One open bottle was marked finished.",
         keep_tasted_only: "Inventory was removed while your rating and tasting history were kept.",
       };
-      Alert.alert("Cellar updated", messages[action], [
+      Alert.alert("My Shelf updated", messages[action], [
         { text: "Undo", onPress: () => void undoInventoryAction(priorBottles, saved.collectionPreferences.version) },
         { text: "Done", style: "cancel" },
       ]);
@@ -303,11 +310,11 @@ export default function CellarScreen() {
 
   const requestDelete = useCallback(() => {
     if (!preferences || !selected || mutating) return;
-    Alert.alert("Delete this Cellar history?", `${selected.bottleName} and all inventory, rating, and tasting history will be removed.`, [
+    Alert.alert("Delete this My Shelf history?", `${selected.bottleName} and all inventory, rating, and tasting history will be removed.`, [
       { text: "Cancel", style: "cancel" },
       { text: "Delete", style: "destructive", onPress: () => void (async () => {
         const next = preferences.collectionPreferences.bottles.filter((bottle) => bottle.bottleId !== selected.bottleId);
-        const saved = await persistBottles(next, preferences.collectionPreferences.version, "Your Cellar changed elsewhere. It was refreshed before deletion could be saved.");
+        const saved = await persistBottles(next, preferences.collectionPreferences.version, "My Shelf changed elsewhere. It was refreshed before deletion could be saved.");
         if (saved) setSelected(null);
       })() },
     ]);
@@ -316,7 +323,7 @@ export default function CellarScreen() {
   const watchCellarSuggestion = useCallback(async (bottleName: string, canonicalKey: string) => {
     if (!preferences || savingWatchKey) return;
     if (!canWatchCellarSuggestions) {
-      Alert.alert("Radar watch is a Standard feature", "Standard adds Radar watch actions. Your Cellar and Hunt next suggestions stay available.");
+      Alert.alert("Radar watch is a Standard feature", "Standard adds Radar watch actions. My Shelf and Hunt next suggestions stay available.");
       return;
     }
     setSavingWatchKey(canonicalKey);
@@ -340,7 +347,7 @@ export default function CellarScreen() {
       numColumns={numColumns}
       columnWrapperStyle={viewMode === "grid" && numColumns > 1 ? styles.gridRow : undefined}
       contentContainerStyle={[memberScreenStyles.content, styles.cellarContent, viewMode === "grid" && numColumns > 1 && styles.gridContent]}
-      data={bottles}
+      data={visibleBottles}
       keyExtractor={(item) => item.bottleId || item.canonicalKey}
       keyboardShouldPersistTaps="handled"
       keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
@@ -350,25 +357,50 @@ export default function CellarScreen() {
       ListHeaderComponent={<View style={styles.header}>
         <View style={styles.topRow}>
           <View style={styles.topCopy}>
-            <Text style={styles.eyebrow}>YOUR CELLAR</Text>
+            <Text style={styles.eyebrow}>MY SHELF</Text>
             <Text style={styles.summaryLine}>{summary.ownedWhiskeyCount} owned · {summary.tastedOnlyCount} tasted only</Text>
             <Text style={styles.summaryDetail}>{summary.ratedCount} rated{summary.averageRating == null ? "" : ` · ${(summary.averageRating / 10).toFixed(1)} average`}</Text>
           </View>
-          {preferences ? <Pressable accessibilityLabel={canAddToCollection ? "Add whiskey to Cellar" : "Your Free Cellar is full"} accessibilityRole="button" accessibilityState={{ disabled: !canAddToCollection }} disabled={!canAddToCollection} onPress={() => router.push("/(app)/cellar/add")} style={({ pressed }) => [styles.addButton, !canAddToCollection && styles.addButtonDisabled, pressed && canAddToCollection && styles.addButtonPressed]}><Text style={[styles.addButtonText, !canAddToCollection && styles.addButtonTextDisabled]}>+ Add</Text></Pressable> : null}
+          {preferences ? <Pressable accessibilityLabel={canAddToCollection ? "Add whiskey to My Shelf" : "Your free shelf is full"} accessibilityRole="button" accessibilityState={{ disabled: !canAddToCollection }} disabled={!canAddToCollection} onPress={() => router.push("/(app)/cellar/add")} style={({ pressed }) => [styles.addButton, !canAddToCollection && styles.addButtonDisabled, pressed && canAddToCollection && styles.addButtonPressed]}><Text style={[styles.addButtonText, !canAddToCollection && styles.addButtonTextDisabled]}>+ Add</Text></Pressable> : null}
         </View>
-        {loading && !preferences ? <LoadingState label="Opening your Cellar…" /> : null}
+        {preferences ? <MyShelfDisplay ownedBottleKeys={ownedBottleKeys} ownedCount={summary.ownedWhiskeyCount} tastedOnlyCount={summary.tastedOnlyCount} /> : null}
+        {loading && !preferences ? <LoadingState label="Opening My Shelf…" /> : null}
         {error ? <ErrorState message={error} onRetry={() => void load(true)} /> : null}
         {collectionAccess?.showCapacityNotice ? <View accessibilityRole="summary" style={styles.capacityNotice}>
           <Text style={styles.capacityTitle}>{collectionAccess.limit !== null && sourceBottles.length > collectionAccess.limit
             ? "Existing bottles stay available."
             : collectionAccess.remaining === 0
-              ? "Your Free Cellar is full."
-              : `${collectionAccess.remaining} spaces left in your Free Cellar.`}</Text>
+              ? "Your free shelf is full."
+              : `${collectionAccess.remaining} spaces left on your free shelf.`}</Text>
           <Text style={styles.capacityDetail}>{collectionAccess.limit !== null && sourceBottles.length > collectionAccess.limit
             ? "You can keep viewing, editing, or deleting every bottle. Standard adds room for new bottles."
             : collectionAccess.remaining === 0
               ? "Keep managing every saved bottle here. Standard adds room for new bottles."
               : "Capacity stays out of the way until you are close to full."}</Text>
+        </View> : null}
+        {preferences ? <>
+          <View style={styles.controlRow}>
+            <TextInput accessibilityLabel="Search My Shelf" autoCapitalize="none" clearButtonMode="while-editing" onChangeText={setQuery} placeholder="Search My Shelf" placeholderTextColor={colors.muted} style={styles.search} value={query} />
+            <Pressable accessibilityLabel={refinementCount ? `Refine, ${refinementCount} active` : "Refine"} accessibilityRole="button" onPress={() => setRefineOpen(true)} style={styles.refineButton}><Text style={styles.refineText}>Refine{refinementCount ? ` (${refinementCount})` : ""}</Text></Pressable>
+          </View>
+          <View style={styles.browseToolbar}>
+            <Text style={styles.showing}>{resultSetChanged ? `${bottles.length} shown` : `${bottles.length} bottle${bottles.length === 1 ? "" : "s"}`}</Text>
+            <View accessibilityLabel="My Shelf view" accessibilityRole="radiogroup" style={styles.viewToggle}><ViewModeButton active={viewMode === "grid"} label="Grid" onPress={() => setViewMode("grid")} /><ViewModeButton active={viewMode === "list"} label="List" onPress={() => setViewMode("list")} /></View>
+          </View>
+        </> : null}
+      </View>}
+      ListFooterComponent={preferences ? <View style={styles.footer}>
+        {bottles.length > visibleBottles.length ? <Pressable
+          accessibilityRole="button"
+          onPress={() => setVisibleCount((current) => nextShelfPageSize(bottles.length, current))}
+          style={({ pressed }) => [styles.showMoreButton, pressed && styles.pressed]}
+        ><Text style={styles.showMoreText}>Show {Math.min(12, bottles.length - visibleBottles.length)} more</Text></Pressable> : null}
+        {cellarHuntSuggestions.length ? <View style={styles.huntNext}>
+          <View style={styles.huntNextHeader}><Text style={styles.huntNextTitle}>Hunt next</Text><Text style={styles.huntNextCount}>{cellarHuntSuggestions.length} suggestion{cellarHuntSuggestions.length === 1 ? "" : "s"}</Text></View>
+          {cellarHuntSuggestions.map((suggestion) => <View key={suggestion.canonicalKey} style={styles.huntNextRow}>
+            <View style={styles.huntNextCopy}><Text style={styles.huntNextName}>{suggestion.bottleName}</Text><Text style={styles.huntNextReason}>{suggestion.reason}</Text></View>
+            {canWatchCellarSuggestions ? <Pressable accessibilityRole="button" accessibilityState={{ disabled: Boolean(savingWatchKey) }} disabled={Boolean(savingWatchKey)} onPress={() => void watchCellarSuggestion(suggestion.bottleName, suggestion.canonicalKey)} style={styles.huntNextButton}><Text style={styles.huntNextButtonText}>{savingWatchKey === suggestion.canonicalKey ? "Saving…" : "Watch for another"}</Text></Pressable> : <Text style={styles.huntNextReason}>Standard adds Radar watch</Text>}
+          </View>)}
         </View> : null}
         {canUseRecommendations ? <View style={styles.dnaCard}>
           <Pressable accessibilityRole="button" accessibilityState={{ expanded: dnaExpanded }} onPress={() => setDnaExpanded((current) => !current)} style={styles.dnaHeader}>
@@ -383,26 +415,9 @@ export default function CellarScreen() {
             <View style={styles.dnaActionBlock}><Text style={styles.dnaSectionLabel}>ONE NEXT STEP</Text><Text style={styles.capacityDetail}>{bourbonDna.nextAction.detail}</Text><Pressable accessibilityRole="button" onPress={improveBourbonDna} style={({ pressed }) => [styles.dnaAction, pressed && styles.pressed]}><Text style={styles.dnaActionText}>{bourbonDna.nextAction.label}</Text></Pressable></View>
             <Text style={styles.dnaMethod}>Confidence reflects the amount and repetition in your saved ratings—not facts about bottle composition.</Text>
           </View> : null}
-        </View> : preferences ? <Text style={styles.premiumNote}>Barrel Proof and Founder memberships add Bourbon DNA and personalized collection intelligence; your basic Cellar stays focused on your bottles.</Text> : null}
-        {cellarHuntSuggestions.length ? <View style={styles.huntNext}>
-          <View style={styles.huntNextHeader}><Text style={styles.huntNextTitle}>Hunt next</Text><Text style={styles.huntNextCount}>{cellarHuntSuggestions.length} suggestion{cellarHuntSuggestions.length === 1 ? "" : "s"}</Text></View>
-          {cellarHuntSuggestions.map((suggestion) => <View key={suggestion.canonicalKey} style={styles.huntNextRow}>
-            <View style={styles.huntNextCopy}><Text style={styles.huntNextName}>{suggestion.bottleName}</Text><Text style={styles.huntNextReason}>{suggestion.reason}</Text></View>
-            {canWatchCellarSuggestions ? <Pressable accessibilityRole="button" accessibilityState={{ disabled: Boolean(savingWatchKey) }} disabled={Boolean(savingWatchKey)} onPress={() => void watchCellarSuggestion(suggestion.bottleName, suggestion.canonicalKey)} style={styles.huntNextButton}><Text style={styles.huntNextButtonText}>{savingWatchKey === suggestion.canonicalKey ? "Saving…" : "Watch for another"}</Text></Pressable> : <Text style={styles.huntNextReason}>Standard adds Radar watch</Text>}
-          </View>)}
-        </View> : null}
-        {preferences ? <>
-          <View style={styles.controlRow}>
-            <TextInput accessibilityLabel="Search your Cellar" autoCapitalize="none" clearButtonMode="while-editing" onChangeText={setQuery} placeholder="Search your Cellar" placeholderTextColor={colors.muted} style={styles.search} value={query} />
-            <Pressable accessibilityLabel={refinementCount ? `Refine, ${refinementCount} active` : "Refine"} accessibilityRole="button" onPress={() => setRefineOpen(true)} style={styles.refineButton}><Text style={styles.refineText}>Refine{refinementCount ? ` (${refinementCount})` : ""}</Text></Pressable>
-          </View>
-          <View style={styles.browseToolbar}>
-            <Text style={styles.showing}>{resultSetChanged ? `${bottles.length} shown` : `${bottles.length} bottle${bottles.length === 1 ? "" : "s"}`}</Text>
-            <View accessibilityLabel="Cellar view" accessibilityRole="radiogroup" style={styles.viewToggle}><ViewModeButton active={viewMode === "grid"} label="Grid" onPress={() => setViewMode("grid")} /><ViewModeButton active={viewMode === "list"} label="List" onPress={() => setViewMode("list")} /></View>
-          </View>
-        </> : null}
-      </View>}
-      ListEmptyComponent={preferences && !loading ? <EmptyState title={sourceBottles.length ? "No whiskeys match" : "Your Cellar is ready"} detail={sourceBottles.length ? "Clear the search or refine choices." : "Choose Add to save a bottle or a whiskey you tasted."} /> : null}
+        </View> : <Text style={styles.premiumNote}>Barrel Proof and Founder memberships add Bourbon DNA and personalized collection intelligence; My Shelf stays focused on your bottles.</Text>}
+      </View> : null}
+      ListEmptyComponent={preferences && !loading ? <EmptyState title={sourceBottles.length ? "No whiskeys match" : "My Shelf is ready"} detail={sourceBottles.length ? "Clear the search or refine choices." : "Choose Add to save a bottle or a whiskey you tasted."} /> : null}
       style={memberScreenStyles.screen}
     />
     <RefineSheet filters={filters} onChange={setFilters} onClose={() => setRefineOpen(false)} onSort={setSort} sort={sort} visible={refineOpen} />
@@ -549,7 +564,7 @@ function BottleEditor({ bottle, busy, onClose, onDelete, onInventoryAction, onSa
   function requestClose() {
     if (busy) return;
     if (!dirty) { onClose(); return; }
-    Alert.alert("Discard changes?", "Your unsaved Cellar details will be lost. Inventory actions already saved to the server will remain.", [
+    Alert.alert("Discard changes?", "Your unsaved My Shelf details will be lost. Inventory actions already saved to the server will remain.", [
       { text: "Keep editing", style: "cancel" },
       { text: "Discard", style: "destructive", onPress: onClose },
     ]);
@@ -587,12 +602,12 @@ function BottleEditor({ bottle, busy, onClose, onDelete, onInventoryAction, onSa
         <ScrollView contentContainerStyle={styles.editor} keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"} keyboardShouldPersistTaps="handled">
           <View style={styles.modalHeader}>
             <Pressable accessibilityRole="button" disabled={busy} onPress={requestClose} style={styles.modalTarget}><Text style={styles.modalAction}>Cancel</Text></Pressable>
-            <Text accessibilityRole="header" style={styles.modalTitle}>Cellar details</Text>
-            <Pressable accessibilityLabel="Save Cellar details" accessibilityRole="button" accessibilityState={{ disabled: busy || !dirty }} disabled={busy || !dirty} onPress={() => void save()} style={styles.modalTarget}><Text style={[styles.modalAction, (busy || !dirty) && styles.mutedAction]}>{busy ? "Saving…" : "Save"}</Text></Pressable>
+            <Text accessibilityRole="header" style={styles.modalTitle}>My Shelf details</Text>
+            <Pressable accessibilityLabel="Save My Shelf details" accessibilityRole="button" accessibilityState={{ disabled: busy || !dirty }} disabled={busy || !dirty} onPress={() => void save()} style={styles.modalTarget}><Text style={[styles.modalAction, (busy || !dirty) && styles.mutedAction]}>{busy ? "Saving…" : "Save"}</Text></Pressable>
           </View>
           <Text style={styles.editorName}>{bottle?.bottleName}</Text>
 
-          <Section title="In my Cellar">
+          <Section title="On my shelf">
             <View style={styles.inventoryStateRow}><Text style={styles.inventoryState}>{kind === "owned" ? "Owned" : "Tasted only"}</Text><Text style={styles.fieldHelp}>{inventorySummary}</Text></View>
             <View style={styles.actionStack}>
               <ActionButton disabled={busy} label="Add bottle" onPress={() => onInventoryAction("add_bottle")} />
@@ -625,7 +640,7 @@ function BottleEditor({ bottle, busy, onClose, onDelete, onInventoryAction, onSa
             <Stepper label="Sealed" onChange={setSealed} value={sealed} />
             <Stepper label="Open" onChange={setOpened} value={opened} />
             <Stepper label="Finished" onChange={setFinished} value={finished} />
-            <Pressable accessibilityHint="Requires destructive confirmation" accessibilityRole="button" disabled={busy} onPress={onDelete} style={styles.deleteButton}><Text style={styles.deleteText}>Delete Cellar history</Text></Pressable>
+            <Pressable accessibilityHint="Requires destructive confirmation" accessibilityRole="button" disabled={busy} onPress={onDelete} style={styles.deleteButton}><Text style={styles.deleteText}>Delete My Shelf history</Text></Pressable>
           </View> : null}
           {saveError ? <Text accessibilityRole="alert" style={styles.error}>{saveError}</Text> : null}
         </ScrollView>
@@ -671,6 +686,9 @@ const styles = StyleSheet.create({
   dnaActionText: { color: colors.accent, fontSize: 12, fontWeight: "900" },
   dnaMethod: { color: colors.muted, fontSize: 10, lineHeight: 15, fontStyle: "italic" },
   premiumNote: { color: colors.muted, fontSize: 11, lineHeight: 16 },
+  footer: { gap: 14, paddingTop: 8 },
+  showMoreButton: { minHeight: 48, alignItems: "center", justifyContent: "center", borderColor: colors.accent, borderWidth: 1, borderRadius: 13, backgroundColor: "rgba(196,148,58,0.08)" },
+  showMoreText: { color: colors.accent, fontSize: 13, fontWeight: "900" },
   huntNext: { gap: 8, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth, borderRadius: 14, backgroundColor: colors.surface, padding: 12 }, huntNextHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10 }, huntNextTitle: { color: colors.text, fontSize: 17, fontWeight: "900" }, huntNextCount: { color: colors.muted, fontSize: 10, textTransform: "uppercase", letterSpacing: 0.7 }, huntNextRow: { gap: 9, borderTopColor: colors.border, borderTopWidth: StyleSheet.hairlineWidth, paddingTop: 10 }, huntNextCopy: { gap: 3 }, huntNextName: { color: colors.text, fontSize: 13, fontWeight: "800" }, huntNextReason: { color: colors.muted, fontSize: 11, lineHeight: 16 }, huntNextButton: { minHeight: 44, alignSelf: "flex-start", justifyContent: "center", borderColor: colors.accent, borderWidth: 1, borderRadius: 999, paddingHorizontal: 12 }, huntNextButtonText: { color: colors.accent, fontSize: 11, fontWeight: "900" },
   controlRow: { flexDirection: "row", gap: 8 },
   search: { flex: 1, minHeight: 44, borderColor: colors.border, borderWidth: 1, borderRadius: 11, backgroundColor: colors.surface, color: colors.text, paddingHorizontal: 13, fontSize: 14 },
