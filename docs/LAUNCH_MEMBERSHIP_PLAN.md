@@ -18,12 +18,12 @@ The first implementation pass should define a single membership/entitlement cont
 ### Free / signed-in
 - Dashboard access with strong upgrade prompts.
 - 3 Bottle Checks, then upgrade prompt.
-- Basic Cellar access with `collectionBottleLimit: 10`; capacity copy appears only near or at the addition boundary, and existing bottles are never hidden after a downgrade.
+- Basic My Shelf access with `collectionBottleLimit: 10`; capacity copy appears only near or at the addition boundary, and existing bottles are never hidden after a downgrade.
 - During the 3 Bottle Checks, show a conversion CTA such as `Get alerted when this drops in your area.`
 - Read-only/limited surfaces should be explicit, not silently broken.
 
 ### Standard — `$3/mo` or `$30/yr`
-- Unlimited basic Cellar.
+- Unlimited basic My Shelf.
 - 5 alert areas.
 - 15 tracked bottles.
 - State-only filters.
@@ -31,7 +31,7 @@ The first implementation pass should define a single membership/entitlement cont
 - Read and submit Member Sightings.
 
 ### Barrel — `$6/mo` or `$60/yr`
-- Unlimited Cellar plus Bourbon DNA, personalized collection intelligence, and taste-fit recommendations with local opportunities labeled separately.
+- Unlimited My Shelf plus Bourbon DNA, personalized collection intelligence, and taste-fit recommendations with local opportunities labeled separately.
 - Effectively unlimited alert areas and tracked bottles.
 - Advanced filters.
 - Sightings alerts included at launch, with honest copy that participation improves coverage over time.
@@ -115,8 +115,8 @@ Do not paste secrets into committed files, PR bodies, screenshots, or chat summa
 
 ## Resolved tier decisions
 
-- Free includes basic Cellar with contextual capacity handling; Standard includes unlimited basic Cellar; Barrel and Bottled-in-Bond add Bourbon DNA and personalized collection intelligence.
-- Cellar-to-Radar suggestions return no more than three items and never change a watchlist without the member choosing the explicit watch action.
+- Free includes basic My Shelf with contextual capacity handling; Standard includes unlimited basic My Shelf; Barrel and Bottled-in-Bond add Bourbon DNA and personalized collection intelligence.
+- My Shelf-to-Radar suggestions return no more than three items and never change a watchlist without the member choosing the explicit watch action.
 - Hunt Outcome is optional and private on expired Signal detail. It does not affect contributor standing, Signal validity, or alert delivery, and public outcome claims remain disabled until separately approved minimum-data rules pass.
 - Sightings alerts are included at launch and should be presented honestly as improving with member participation.
 - Bottled-in-Bond Founder is a 100-spot lifetime tier for all current and future paid features.

@@ -4,9 +4,8 @@ import { resolve } from "node:path";
 import { createHash } from "node:crypto";
 import { spawnSync } from "node:child_process";
 
-const CAMERA_PERMISSION_MESSAGE = "Allow Bourbon Signal to use your camera to photograph a bottle or shelf as evidence for a manual post.";
-const PHOTO_LIBRARY_PERMISSION_MESSAGE = "Allow Bourbon Signal to access photos you choose as bottle or shelf evidence for a manual post.";
-const LOCATION_PERMISSION_MESSAGE = "Allow Bourbon Signal to use your current location to suggest nearby retailers. You can always enter a retailer manually.";
+const CAMERA_PERMISSION_MESSAGE = "Allow Bourbon Signal to use your camera for optional sighting evidence that may appear publicly with your Signal.";
+const PHOTO_LIBRARY_PERMISSION_MESSAGE = "Allow Bourbon Signal to access only photos you choose as optional sighting evidence that may appear publicly with your Signal.";
 
 const root = resolve(import.meta.dirname, "..");
 const readJson = (path) => JSON.parse(readFileSync(resolve(root, path), "utf8"));
@@ -21,7 +20,7 @@ const app = readJson("app.json").expo;
 const eas = readJson("eas.json");
 const pkg = readJson("package.json");
 
-assert.equal(app.version, "1.0.0", "the first store candidate must use a public 1.0.0 version");
+assert.equal(app.version, "1.1.0", "the camera and push native candidate must use a fresh public runtime version");
 assert.equal(app.ios?.bundleIdentifier, "com.bourbonsignal.app");
 assert.equal(app.ios?.config?.usesNonExemptEncryption, false);
 assert.equal(app.runtimeVersion?.policy, "appVersion");
@@ -36,9 +35,11 @@ assert.equal(eas.build?.production?.environment, "production");
 assert.ok(eas.submit?.production, "a production EAS Submit profile must exist");
 assert.ok(pkg.scripts?.["verify:release-readiness"], "release readiness must be a repeatable package gate");
 
-for (const dependency of ["expo-camera", "expo-image-picker", "expo-location"]) {
+for (const dependency of ["expo-image-picker", "expo-image-manipulator", "expo-file-system"]) {
   assert.match(pkg.dependencies?.[dependency] || "", /^~57\./, `${dependency} must use the Expo SDK-compatible release`);
 }
+assert.equal(pkg.dependencies?.["expo-camera"], undefined, "the unused custom camera/barcode module must not ship");
+assert.equal(pkg.dependencies?.["expo-location"], undefined, "unused location code and permission declarations must not ship");
 
 const pluginEntry = (name) => app.plugins?.find((plugin) => plugin === name || (Array.isArray(plugin) && plugin[0] === name));
 const pluginOptions = (name) => {
@@ -48,34 +49,25 @@ const pluginOptions = (name) => {
   return plugin[1];
 };
 
-assert.deepEqual(pluginOptions("expo-camera"), {
-  cameraPermission: CAMERA_PERMISSION_MESSAGE,
-  microphonePermission: false,
-  recordAudioAndroid: false,
-  barcodeScannerEnabled: true,
+assert.equal(pluginEntry("expo-camera"), undefined);
+assert.equal(pluginEntry("expo-location"), undefined);
+assert.deepEqual(pluginOptions("expo-notifications"), {
+  icon: "./assets/notification-icon.png",
+  color: "#C48A4A",
+  defaultChannel: "radar",
 });
 assert.deepEqual(pluginOptions("expo-image-picker"), {
   photosPermission: PHOTO_LIBRARY_PERMISSION_MESSAGE,
   cameraPermission: CAMERA_PERMISSION_MESSAGE,
   microphonePermission: false,
 });
-assert.deepEqual(pluginOptions("expo-location"), {
-  locationWhenInUsePermission: LOCATION_PERMISSION_MESSAGE,
-  locationAlwaysAndWhenInUsePermission: false,
-  locationAlwaysPermission: false,
-  motionUsagePermission: false,
-  isIosBackgroundLocationEnabled: false,
-  isAndroidBackgroundLocationEnabled: false,
-  isAndroidForegroundServiceEnabled: false,
-  isAndroidMotionActivityEnabled: false,
-});
 assert.deepEqual(app.android?.permissions, [
   "android.permission.CAMERA",
-  "android.permission.ACCESS_COARSE_LOCATION",
-  "android.permission.ACCESS_FINE_LOCATION",
 ]);
 assert.deepEqual(app.android?.blockedPermissions, [
   "android.permission.ACCESS_BACKGROUND_LOCATION",
+  "android.permission.ACCESS_COARSE_LOCATION",
+  "android.permission.ACCESS_FINE_LOCATION",
   "android.permission.RECORD_AUDIO",
   "android.permission.READ_EXTERNAL_STORAGE",
   "android.permission.WRITE_EXTERNAL_STORAGE",
@@ -106,9 +98,9 @@ const resolvedNativeConfig = JSON.parse(configResult.stdout.slice(configStart, c
 const infoPlist = resolvedNativeConfig._internal?.modResults?.ios?.infoPlist || {};
 assert.equal(infoPlist.NSCameraUsageDescription, CAMERA_PERMISSION_MESSAGE);
 assert.equal(infoPlist.NSPhotoLibraryUsageDescription, PHOTO_LIBRARY_PERMISSION_MESSAGE);
-assert.equal(infoPlist.NSLocationWhenInUseUsageDescription, LOCATION_PERMISSION_MESSAGE);
 for (const forbiddenKey of [
   "NSMicrophoneUsageDescription",
+  "NSLocationWhenInUseUsageDescription",
   "NSLocationAlwaysAndWhenInUseUsageDescription",
   "NSLocationAlwaysUsageDescription",
   "NSMotionUsageDescription",
@@ -139,11 +131,7 @@ for (const forbiddenPermission of [
   "com.google.android.gms.permission.ACTIVITY_RECOGNITION",
 ]) assert.equal(activeAndroidPermissions.includes(forbiddenPermission), false, `${forbiddenPermission} must not be active`);
 
-const androidGradleProperties = resolvedNativeConfig._internal?.modResults?.android?.gradleProperties || [];
-const androidBarcodeProperty = androidGradleProperties.find((entry) => entry.key === "expo.camera.barcode-scanner-enabled");
-assert.notEqual(androidBarcodeProperty?.value, "false", "the Android native build must not disable barcode-scanning support");
-assert.notEqual(resolvedNativeConfig._internal?.modResults?.ios?.podfileProperties?.["expo.camera.barcode-scanner-enabled"], "false",
-  "the iOS native build must not disable barcode-scanning support");
+assert.deepEqual(png("assets/notification-icon.png"), { width: 96, height: 96, colorType: 6 }, "Android notification icon must be a transparent 96px RGBA PNG");
 
 for (const path of [
   "store/app-store-metadata.json",
@@ -168,8 +156,9 @@ const privacyInventory = read("store/app-privacy.md");
 assert.match(privacyInventory, /User Content — Customer Support \| Yes/);
 assert.doesNotMatch(privacyInventory, /\| User Content \| No collection/);
 assert.match(privacyInventory, /prompts only after an explicit member action/i);
-assert.match(privacyInventory, /does not upload evidence photos/i);
-assert.match(privacyInventory, /microphone and background location remain disabled/i);
+assert.match(privacyInventory, /optional sighting evidence/i);
+assert.match(privacyInventory, /resized.*metadata/i);
+assert.match(privacyInventory, /microphone and all location permissions remain disabled/i);
 assert.doesNotMatch(privacyInventory, /No camera, photo library, contacts, microphone, Bluetooth, or device-location permission/);
 const reviewNotes = read("store/app-review-notes.md");
 assert.doesNotMatch(`${JSON.stringify(app)}\n${privacyInventory}\n${reviewNotes}`, /Trip Mode|trip_mode|trip-mode/i,
@@ -182,13 +171,14 @@ assert.match(reviewNotes, /open a Signal's Bottle Profile/);
 assert.match(reviewNotes, /Account → Privacy & Support → Account deletion help/);
 assert.doesNotMatch(reviewNotes, /Signals tab|Open HQ|HQ → Request account deletion/);
 assert.match(reviewNotes, /no permission prompt runs at app launch/i);
-assert.match(reviewNotes, /does not upload evidence photos or expose barcode matching/i);
-assert.match(reviewNotes, /does not request microphone or background location/i);
+assert.match(reviewNotes, /optional sighting evidence/i);
+assert.match(reviewNotes, /does not expose barcode matching/i);
+assert.match(reviewNotes, /does not request microphone or location/i);
 const releaseChecklist = read("store/release-checklist.md");
-assert.match(releaseChecklist, /foreground-location native foundation/i);
-assert.match(releaseChecklist, /manual posting and retailer entry/i);
+assert.match(releaseChecklist, /camera and selected-photo evidence/i);
+assert.match(releaseChecklist, /manual posting without a photo/i);
 const mobileReadme = read("README.md");
-assert.match(mobileReadme, /manual posting and retailer-entry fallbacks/i);
+assert.match(mobileReadme, /optional sighting evidence/i);
 assert.doesNotMatch(mobileReadme, /destination-entry|Trip Mode|trip_mode|trip-mode/i);
 assert.match(read("../../src/app/legal/privacy/page.tsx"), /use the mobile app/);
 assert.match(read("../../src/app/support/page.tsx"), /updated="August 21, 2026"/);

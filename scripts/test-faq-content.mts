@@ -19,7 +19,7 @@ assert.deepEqual(productFaqs.map((item) => item.question), [
   "What are verified retailer signals?",
   "What are Member Sightings?",
   "How does Bottle Check work?",
-  "How do My Collection and recommendations work?",
+  "How do My Shelf and recommendations work?",
   "What is Hunt Outcome?",
   "Why doesn’t every state have the same store-level detail?",
 ]);

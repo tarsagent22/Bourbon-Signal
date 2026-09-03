@@ -137,7 +137,7 @@ export default function HeroSection() {
               "Drop Alerts",
               "Member Sightings",
               "Bottle Check",
-              "My Collection",
+              "My Shelf",
               "Personalized Bottle Recommendations",
             ].map((item, index, arr) => (
               <div

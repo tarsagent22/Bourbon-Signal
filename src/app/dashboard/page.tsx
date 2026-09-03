@@ -1604,7 +1604,7 @@ function PaidMemberDashboard() {
 
   const saveStagedCollectionBottle = async () => {
     if (!cellarAccess.canAdd) {
-      setCollectionError("Your Free Cellar is full. Existing bottles stay available to edit or delete.");
+      setCollectionError("Your free shelf is full. Existing bottles stay available to edit or delete.");
       return;
     }
     if (selectedCollectionBottle) {
@@ -1627,7 +1627,7 @@ function PaidMemberDashboard() {
       return;
     }
     if (!cellarAccess.canAdd) {
-      setCollectionError("Your Free Cellar is full. Existing bottles stay available to edit or delete.");
+      setCollectionError("Your free shelf is full. Existing bottles stay available to edit or delete.");
       return;
     }
     setSavingCollection(true);
@@ -1688,7 +1688,7 @@ function PaidMemberDashboard() {
 
   const addCollectionBottle = async (option: BottleOption) => {
     if (!cellarAccess.canAdd && !collectionKeys.has(option.canonicalKey)) {
-      setCollectionError("Your Free Cellar is full. Existing bottles stay available to edit or delete.");
+      setCollectionError("Your free shelf is full. Existing bottles stay available to edit or delete.");
       return;
     }
     const now = new Date().toISOString();
@@ -1799,7 +1799,7 @@ function PaidMemberDashboard() {
 
   const watchCellarHuntSuggestion = async (suggestion: CellarHuntSuggestion) => {
     if (!canWatchCellarSuggestions) {
-      setCollectionError("Standard adds Radar watch actions. Your Cellar and Hunt next suggestions stay available.");
+      setCollectionError("Standard adds Radar watch actions. My Shelf and Hunt next suggestions stay available.");
       return;
     }
     if (!isSignedIn) {
@@ -2231,7 +2231,7 @@ function PaidMemberDashboard() {
           : `${dashboardAlertModeSummary} · ${dashboardDeliverySummary}.`,
       status: dashboardPreferencesUnavailable || dashboardPreferencesPending ? null : dashboardMarketSummary,
     },
-    { key: "collection", label: "My Collection", eyebrow: "Taste profile", summary: collectionEntries.length ? `${collectionEntries.length} saved bottle${collectionEntries.length === 1 ? " is" : "s are"} keeping your tasting history together.` : "Save bottles you own or have tasted in one private place.", status: prefsLoading ? "Loading" : `${collectionEntries.length} saved` },
+    { key: "collection", label: "My Shelf", eyebrow: "Taste profile", summary: collectionEntries.length ? `${collectionEntries.length} saved bottle${collectionEntries.length === 1 ? " is" : "s are"} keeping your tasting history together.` : "Save bottles you own or have tasted in one private place.", status: prefsLoading ? "Loading" : `${collectionEntries.length} saved` },
     ...(canUseRecommendations ? [{ key: "recommendations" as const, label: "Your Bourbon DNA", eyebrow: "Barrel collection intelligence", summary: "Taste-fit recommendations with local opportunities kept clearly labeled.", status: !collectionEntries.length ? "Needs ratings" : preparedDashboardSections.has("recommendations") && collectionRecommendationInsights.length ? `${collectionRecommendationInsights.length} ideas` : "View DNA" }] : []),
   ]), [canUseRecommendations, collectionEntries.length, collectionRecommendationInsights.length, dashboardAlertModeSummary, dashboardDeliverySummary, dashboardMarketSummary, dashboardPreferencesPending, dashboardPreferencesUnavailable, prefsLoading, preparedDashboardSections]);
 
@@ -3309,8 +3309,8 @@ function PaidMemberDashboard() {
 
           {activeDashboardSection === "collection" && !preparedDashboardSections.has("collection") ? (
           <StepShell
-            step="Collection"
-            title="My Collection"
+            step="My Shelf"
+            title="My Shelf"
             subtitle="Loading your saved bottles…"
             hideHeader
             attached
@@ -3322,21 +3322,21 @@ function PaidMemberDashboard() {
           </StepShell>
           ) : activeDashboardSection === "collection" ? (
           <StepShell
-            step="Collection"
-            title="My Collection"
+            step="My Shelf"
+            title="My Shelf"
             subtitle="Add bottles you own or have tasted, rate them 0.0-10.0, and start building a taste profile. Regular shelf bottles belong here without becoming noisy alert targets."
             hideHeader
             attached
           >
-            <div id="my-collection" style={{ display: "grid", gap: "18px" }}>
+            <div id="my-shelf" style={{ display: "grid", gap: "18px" }}>
               {cellarAccess.showCapacityNotice ? (
                 <div role="status" style={{ borderRadius: "14px", border: "1px solid rgba(196,148,58,0.20)", background: "rgba(196,148,58,0.07)", padding: "12px 14px", display: "grid", gap: "4px" }}>
                   <strong style={{ fontFamily: "var(--font-dm-sans)", color: "var(--color-cream)", fontSize: "13px" }}>
                     {cellarAccess.limit !== null && collectionEntries.length > cellarAccess.limit
                       ? "Existing bottles stay available."
                       : cellarAccess.remaining === 0
-                        ? "Your Free Cellar is full."
-                        : `${cellarAccess.remaining} spaces left in your Free Cellar.`}
+                        ? "Your free shelf is full."
+                        : `${cellarAccess.remaining} spaces left on My Shelf.`}
                   </strong>
                   <span style={{ fontFamily: "var(--font-dm-sans)", color: "var(--color-text-secondary)", fontSize: "12px", lineHeight: 1.5 }}>
                     {cellarAccess.limit !== null && collectionEntries.length > cellarAccess.limit
@@ -3514,7 +3514,7 @@ function PaidMemberDashboard() {
                 <section aria-labelledby="cellar-hunt-next-title" style={{ borderRadius: "16px", border: "1px solid rgba(196,148,58,0.18)", background: "rgba(196,148,58,0.045)", padding: "14px", display: "grid", gap: "10px" }}>
                   <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: "10px" }}>
                     <h3 id="cellar-hunt-next-title" style={{ margin: 0, color: "var(--color-cream)", fontFamily: "var(--font-playfair)", fontSize: "19px" }}>Hunt next</h3>
-                    <span style={{ color: "var(--color-text-tertiary)", fontFamily: "var(--font-jetbrains)", fontSize: "9px", letterSpacing: "0.08em", textTransform: "uppercase" }}>From your Cellar</span>
+                    <span style={{ color: "var(--color-text-tertiary)", fontFamily: "var(--font-jetbrains)", fontSize: "9px", letterSpacing: "0.08em", textTransform: "uppercase" }}>From My Shelf</span>
                   </div>
                   {cellarHuntSuggestions.map((suggestion) => (
                     <div key={suggestion.canonicalKey} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "12px", borderTop: "1px solid rgba(255,255,255,0.07)", paddingTop: "10px", flexWrap: "wrap" }}>
@@ -3530,7 +3530,7 @@ function PaidMemberDashboard() {
                 </section>
               ) : null}
 
-              {!canUseRecommendations ? <p style={{ margin: 0, color: "var(--color-text-tertiary)", fontFamily: "var(--font-dm-sans)", fontSize: "11px", lineHeight: 1.5 }}>Barrel Proof adds Bourbon DNA and personalized collection intelligence. Your basic Cellar remains available here without a demo widget.</p> : null}
+              {!canUseRecommendations ? <p style={{ margin: 0, color: "var(--color-text-tertiary)", fontFamily: "var(--font-dm-sans)", fontSize: "11px", lineHeight: 1.5 }}>Barrel Proof adds Bourbon DNA and personalized collection intelligence. My Shelf remains available here without a demo widget.</p> : null}
 
               {collectionError ? <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "#D77A61" }}>{collectionError}</p> : null}
               {savedCollection ? <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "#9AD4B1" }}>{collectionSyncPending ? "Saved on this device; sync pending." : "Collection saved."}</p> : null}
@@ -3683,7 +3683,7 @@ function PaidMemberDashboard() {
                       ) : null}
                     </div>
                     <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", color: "var(--color-text-tertiary)", fontSize: "12px", lineHeight: 1.55 }}>
-                      Want better matches? Add or rate more bottles in My Collection.
+                      Want better matches? Add or rate more bottles in My Shelf.
                     </p>
                   </div>
                   </>

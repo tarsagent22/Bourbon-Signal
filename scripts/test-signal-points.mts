@@ -206,7 +206,7 @@ test("sighting mutation routes reconcile one complete generation-guarded source 
   const communityRepository = read("src/lib/community-sightings-repository.ts");
   assert.match(communityRepository, /rewardGeneration/);
   for (const path of ["src/app/api/sightings/route.ts", "src/app/api/sightings/photo/route.ts", "src/app/api/admin/sightings/route.ts"]) {
-    assert.match(read(path), /reconcileClerkRewards\([^;]*rewardGeneration/);
+    assert.match(read(path), /reconcileClerkRewards(?:WithStatus)?\([^;]*(?:rewardGeneration|targetGeneration)/);
   }
 });
 
@@ -460,7 +460,7 @@ test("sighting reward projections write PostgreSQL before Clerk", () => {
     "src/app/api/admin/sightings/route.ts",
   ]) {
     const source = read(path);
-    assert.match(source, /await (?:createSignalPointsRepository\(\)|signalPoints)\.reconcileClerkRewards\([^;]+;[\s\S]{0,220}await [^;]*users\.updateUserMetadata/, `${path} writes PostgreSQL before its Clerk projection`);
+    assert.match(source, /await (?:createSignalPointsRepository\(\)|signalPoints)\.reconcileClerkRewards(?:WithStatus)?\([^;]+;[\s\S]{0,1200}await [^;]*users\.updateUserMetadata/, `${path} writes PostgreSQL before its Clerk projection`);
     assert.doesNotMatch(source, /await [^;]*users\.updateUserMetadata[\s\S]{0,220}await createSignalPointsRepository\(\)\.reconcileClerkRewards/, `${path} has no Clerk-first reward projection`);
   }
   const memberSightings = read("src/app/api/sightings/route.ts");

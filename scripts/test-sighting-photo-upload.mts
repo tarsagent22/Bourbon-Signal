@@ -49,13 +49,20 @@ assert.match(hook, /setError\(message\)/, 'the hook must preserve the actionable
 
 assert.match(route, /handleUpload\(/, 'the photo route must issue constrained direct-upload tokens');
 assert.match(route, /onBeforeGenerateToken/, 'the token route must validate the requested sighting before upload');
+assert.match(route, /onUploadCompleted/, 'the Blob callback must attach successful uploads even when the client loses its response');
 assert.match(route, /target\.reporterUserId\s*!==\s*userId/, 'only the sighting owner may receive an upload token or attach a photo');
+assert.match(route, /Photo evidence is already attached/, 'upload tokens must reject later replacement of immutable sighting evidence');
 assert.match(route, /allowedContentTypes/, 'upload tokens must be restricted to supported image types');
 assert.match(route, /maximumSizeInBytes:\s*MAX_SIGHTING_PHOTO_BYTES/, 'direct uploads should support mobile photos up to the behavior-tested 10 MB limit');
-assert.match(route, /export async function PATCH/, 'the route must expose an authenticated finalize operation');
-assert.match(route, /await head\(/, 'finalization must verify the uploaded object exists in the configured Blob store');
-assert.match(route, /replacePhotoProof\(/, 'finalization must durably attach the verified Blob to the exact sighting');
+assert.match(route, /export async function PATCH/, 'the route must expose an authenticated recovery operation');
+assert.match(route, /await head\(/, 'recovery must verify the uploaded object exists in the configured Blob store');
+assert.match(route, /replacePhotoProof\(sightingId, userId, null, photoProof\)/, 'the one allowed attachment must compare against an empty photo slot');
+assert.match(route, /if \(currentPhoto\)[\s\S]*?await del\(losingUpload\.url/, 'a losing candidate is removed only after immutable evidence already owns the slot');
+assert.match(route, /reconcileClerkRewardsWithStatus/, 'reward projection must know whether its generation applied');
+assert.match(route, /readRewardGeneration/, 'reward projection must re-check the durable generation around Clerk writes');
+assert.match(route, /for \(let attempt = 0; attempt < 3/, 'reward projection retries from the newest generation when concurrent mutations race the Clerk write');
 assert.doesNotMatch(route, /req\.formData\(/, 'the server route must not proxy multipart image bodies through the 4.5 MB function limit');
 assert.doesNotMatch(route, /await put\(/, 'the server route must not perform the image upload itself');
+assert.doesNotMatch(route, /export async function DELETE\(/, 'post-submit evidence is retried or recovered rather than racing a public Blob deletion');
 
 console.log('Sighting direct photo-upload contract passed.');

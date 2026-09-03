@@ -20,7 +20,7 @@ test("Cellar add uses a dedicated native route, local indexed search, and duplic
   assert.match(add, /reconcilePendingCustom:\s*selectedSource === "catalog"/);
   assert.match(add, /upsertCollectionBottle/);
   assert.doesNotMatch(add, /setTimeout\([\s\S]*listRadarBottles/, "typing never waits for a debounced network request");
-  assert.match(add, /Recently in your Cellar/);
+  assert.match(add, /Recently on My Shelf/);
   assert.match(add, /Already owned|Tasted only/);
   assert.match(add, /updateMemberPreferences/);
   assert.match(add, /collectionPreferences\.version/);
@@ -28,7 +28,7 @@ test("Cellar add uses a dedicated native route, local indexed search, and duplic
 
 test("native add keeps the simple owned-or-tasted flow and progressive optional details", () => {
   const add = read("app/(app)/cellar/add.tsx");
-  for (const label of ["Add to Cellar", "Search bourbon or whiskey", "Add a bottle", "Rate a whiskey", "Quantity", "Price paid", "Store", "Can.t find it\?", "Add this whiskey", "Near matches", "More cues"]) assert.match(add, new RegExp(label));
+  for (const label of ["Add to My Shelf", "Search bourbon or whiskey", "Add a bottle", "Rate a whiskey", "Quantity", "Price paid", "Store", "Can.t find it\?", "Add this whiskey", "Near matches", "More cues"]) assert.match(add, new RegExp(label));
   assert.doesNotMatch(add, /canonical (?:bottle|library|Radar)|Purchase date|purchaseDate/i);
   assert.match(add, /submitBottleContribution/);
   assert.match(add, /createCustomCollectionBottle/);
@@ -36,9 +36,9 @@ test("native add keeps the simple owned-or-tasted flow and progressive optional 
   assert.doesNotMatch(add, /A real 0\.0 stays different from unrated/);
 });
 
-test("Cellar has explicit component-state grid and dense list views with bottle and Glencairn states", () => {
+test("My Shelf has explicit component-state grid and dense list views with bottle and Glencairn states", () => {
   const cellar = read("app/(app)/(tabs)/cellar.tsx");
-  for (const label of ["Refine", "All", "Owned", "Tasted only", "Rated", "Unrated", "Open now", "Sealed", "In my Cellar", "My rating", "Add bottle", "Keep as tasted only", "Open one", "Mark one finished", "Acquisition", "Bottle details", "More cues"]) assert.match(cellar, new RegExp(label));
+  for (const label of ["My Shelf", "Refine", "All", "Owned", "Tasted only", "Rated", "Unrated", "Open now", "Sealed", "On my shelf", "My rating", "Add bottle", "Keep as tasted only", "Open one", "Mark one finished", "Acquisition", "Bottle details", "More cues"]) assert.match(cellar, new RegExp(label));
   assert.match(cellar, /type CellarViewMode = "grid" \| "list"/);
   assert.match(cellar, /useState<CellarViewMode>\("grid"\)/);
   assert.match(cellar, /accessibilityRole="radiogroup"/);
@@ -69,10 +69,18 @@ test("Cellar has explicit component-state grid and dense list views with bottle 
   assert.match(cellar, /numberOfLines=\{3\}/, "long whiskey names get a third line before truncation");
   assert.match(cellar, /cellarContent:\s*\{[^}]*paddingBottom:\s*112/, "the final row clears the bottom navigation");
   assert.match(cellar, /tile:\s*\{[^}]*minHeight:\s*180/, "the grid shows more whiskey without changing its information hierarchy");
-  assert.match(cellar, /preferences\?\.collectionAccess/, "native Cellar renders server-authoritative capacity state");
-  assert.match(cellar, /Your Free Cellar is full/);
+  assert.match(cellar, /preferences\?\.collectionAccess/, "native My Shelf renders server-authoritative capacity state");
+  assert.match(cellar, /Your free shelf is full/);
   assert.match(cellar, /Existing bottles stay available/);
-  assert.match(cellar, /data=\{bottles\}/, "stored bottles remain visible after any tier change");
+  assert.match(cellar, /data=\{visibleBottles\}/);
+  assert.match(cellar, /useState\(12\)/);
+  assert.match(cellar, /bottles\.slice\(0, visibleCount\)/);
+  assert.match(cellar, /Show \{Math\.min\(12, bottles\.length - visibleBottles\.length\)\} more/);
+  assert.match(cellar, /<MyShelfDisplay/);
+  const footer = cellar.indexOf("ListFooterComponent");
+  const huntNext = cellar.indexOf("Hunt next", footer);
+  const dna = cellar.indexOf("Your Bourbon DNA", footer);
+  assert.ok(footer >= 0 && huntNext > footer && dna > huntNext, "Hunt next and Bourbon DNA follow the visible collection");
   assert.doesNotMatch(cellar, /Cellar is not included with this membership/);
 });
 
@@ -90,11 +98,11 @@ test("Bourbon DNA is entitlement-gated collection evidence with confidence and a
   assert.doesNotMatch(cellar, /Proof range|mash-bill|mash bill|chemistry compatibility/i);
 });
 
-test("Signal detail respects Cellar addition capacity without hiding existing data", () => {
+test("Signal detail respects My Shelf addition capacity without hiding existing data", () => {
   const detail = read("app/(app)/signal/[id].tsx");
   assert.match(detail, /collectionAccess\?\.canAdd/);
-  assert.match(detail, /Free Cellar is full/);
-  assert.match(detail, /Already in Cellar/);
+  assert.match(detail, /Free shelf is full/);
+  assert.match(detail, /Already on My Shelf/);
 });
 
 test("rating control keeps its appearance but owns a held-thumb gesture from press through release", () => {

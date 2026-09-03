@@ -35,6 +35,12 @@
       "height": 432,
       "mode": "RGBA"
     },
+    "notification-icon.png": {
+      "sha256": "925331f936c4a74ce24543f87b610d14a3147ac75eed8a1790e8411768287025",
+      "width": 96,
+      "height": 96,
+      "mode": "RGBA"
+    },
     "favicon.png": {
       "sha256": "69592e0b668a6d6168ee595ee27d24b7337da877b39da3ed28d273270293df71",
       "width": 48,

@@ -74,7 +74,7 @@ assert.equal(bottleCheckActionAccess("collection", TIER_ENTITLEMENTS.standard).a
 assert.deepEqual(bottleCheckActionAccess("collection", TIER_ENTITLEMENTS.free, { collectionBottleCount: 10 }), {
   allowed: false,
   requiredTier: "Standard Proof",
-  title: "Your Free Cellar is full",
+  title: "Your free shelf is full",
   description: "Your 10 saved bottles remain available to view, edit, or delete. Standard Proof adds room for more.",
 });
 assert.equal(bottleCheckActionAccess("collection", TIER_ENTITLEMENTS.free, { collectionBottleCount: 75, alreadyInCollection: true }).allowed, true, "downgraded members can keep managing an existing bottle");

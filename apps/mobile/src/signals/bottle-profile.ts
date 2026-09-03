@@ -25,7 +25,7 @@ export function bottleProfileState(identity: Signal["bottle"], preferences: Memb
     isWatched,
     inCellar: Boolean(bottle),
     radarLabel: isWatched ? "Watched" : "Not watched",
-    cellarLabel: bottle ? bottle.tastedOnly && !quantities.length ? "Tasted, not owned" : "In Cellar" : "Not in Cellar",
+    cellarLabel: bottle ? bottle.tastedOnly && !quantities.length ? "Tasted, not owned" : "On My Shelf" : "Not on My Shelf",
     ratingLabel: bottle?.isRated ? `${(bottle.rating / 10).toFixed(1)} / 10` : "Unrated",
     inventoryLabel: quantities.length ? quantities.join(" · ") : "No bottles owned",
   };

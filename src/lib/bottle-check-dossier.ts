@@ -137,8 +137,8 @@ export function bottleCheckActionAccess(
     return {
       allowed: false,
       requiredTier: "Standard Proof",
-      title: "Cellar is unavailable",
-      description: "Refresh your membership access before changing this Cellar.",
+      title: "My Shelf is unavailable",
+      description: "Refresh your membership access before changing My Shelf.",
     };
   }
   if (typeof entitlements.collectionBottleLimit !== "number"
@@ -146,7 +146,7 @@ export function bottleCheckActionAccess(
   return {
     allowed: false,
     requiredTier: "Standard Proof",
-    title: "Your Free Cellar is full",
+    title: "Your free shelf is full",
     description: `Your ${entitlements.collectionBottleLimit} saved bottles remain available to view, edit, or delete. Standard Proof adds room for more.`,
   };
 }

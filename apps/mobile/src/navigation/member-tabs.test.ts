@@ -25,8 +25,9 @@ test("keeps the legacy HQ route while visibly naming it Account", () => {
   assert.equal(account?.icon, "account-circle-outline");
 });
 
-test("uses a bottle, not wine glassware, for Cellar", () => {
+test("uses a bottle, not wine glassware, for My Shelf", () => {
   const cellar = MEMBER_TABS.find((tab) => tab.key === "cellar");
+  assert.equal(cellar?.label, "My Shelf");
   assert.match(cellar?.icon || "", /bottle/i);
   assert.doesNotMatch(cellar?.icon || "", /wine|glass/i);
 });

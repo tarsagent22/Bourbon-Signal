@@ -6,11 +6,12 @@ import { test } from "node:test";
 const mobileRoot = process.cwd();
 const readScreen = (name: "radar" | "post") => readFileSync(resolve(mobileRoot, `app/(app)/(tabs)/${name}.tsx`), "utf8");
 
-test("Radar uses one Watchlist destination for criteria, bottles, delivery, and areas", () => {
+test("Radar opens on one Watchlist destination before Matches", () => {
   const radar = readScreen("radar");
 
   assert.match(radar, /type RadarView = "matches" \| "watchlist";/);
-  assert.match(radar, /const VIEWS[^\n]+label: "Matches"[^\n]+label: "Watchlist"/);
+  assert.match(radar, /const VIEWS[^\n]+label: "Watchlist"[^\n]+label: "Matches"/);
+  assert.match(radar, /useState<RadarView>\("watchlist"\)/);
   assert.doesNotMatch(radar, /const VIEWS[^\n]+label: "Watches"/);
   assert.doesNotMatch(radar, /const VIEWS[^\n]+label: "Areas"/);
   assert.match(radar, /view === "watchlist" \? <WatchlistView/);

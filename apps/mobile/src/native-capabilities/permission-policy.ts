@@ -1,31 +1,27 @@
 export const CAMERA_PERMISSION_MESSAGE =
-  "Allow Bourbon Signal to use your camera to photograph a bottle or shelf as evidence for a manual post.";
+  "Allow Bourbon Signal to use your camera for optional sighting evidence that may appear publicly with your Signal.";
 
 export const PHOTO_LIBRARY_PERMISSION_MESSAGE =
-  "Allow Bourbon Signal to access photos you choose as bottle or shelf evidence for a manual post.";
-
-export const LOCATION_PERMISSION_MESSAGE =
-  "Allow Bourbon Signal to use your current location to suggest nearby retailers. You can always enter a retailer manually.";
+  "Allow Bourbon Signal to access only photos you choose as optional sighting evidence that may appear publicly with your Signal.";
 
 export const NATIVE_CAPABILITY_PURPOSES = [
   "capture_bottle_or_shelf_evidence",
   "choose_bottle_or_shelf_evidence",
-  "suggest_nearby_retailers",
 ] as const;
 
 export type NativeCapabilityPurpose = (typeof NATIVE_CAPABILITY_PURPOSES)[number];
-export type NativePermission = "camera" | "photo_library" | "foreground_location";
+export type NativePermission = "camera" | "photo_library";
 export type PermissionDenial = "denied" | "blocked" | "unavailable";
-export type ManualCapabilityFallback = "manual_post_without_photo" | "manual_retailer_entry";
+export type ManualCapabilityFallback = "manual_post_without_photo";
 
 export interface NativeCapabilityPolicy {
   readonly permission: NativePermission;
   readonly requestTiming: "after_explicit_user_action";
   readonly rationale: Readonly<{ ios: string; android: string }>;
   readonly manualFallback: ManualCapabilityFallback;
-  readonly photoHandling: "device_only_no_upload" | "not_applicable";
-  readonly locationScope: "foreground_only" | "not_applicable";
-  readonly allowsPhotoUpload: false;
+  readonly photoHandling: "normalized_public_evidence_upload";
+  readonly locationScope: "not_applicable";
+  readonly allowsPhotoUpload: true;
   readonly allowsBarcodeCatalogMatch: false;
 }
 
@@ -38,20 +34,12 @@ export interface PermissionDenialFallback {
 
 const CAMERA_RATIONALE = {
   ios: CAMERA_PERMISSION_MESSAGE,
-  android:
-    "Use the camera only after you choose to photograph a bottle or shelf as evidence for a manual post. You can keep posting manually without a photo.",
+  android: "Use the camera only after you choose optional evidence. Attached photos are resized, re-encoded without embedded metadata, and may appear publicly with the Signal.",
 } as const;
 
 const PHOTO_LIBRARY_RATIONALE = {
   ios: PHOTO_LIBRARY_PERMISSION_MESSAGE,
-  android:
-    "Choose a bottle or shelf photo as evidence for a manual post. The photo stays on this device because native photo upload is not supported.",
-} as const;
-
-const LOCATION_RATIONALE = {
-  ios: LOCATION_PERMISSION_MESSAGE,
-  android:
-    "Use your current location only after you ask for nearby retailer suggestions. Bourbon Signal does not use background location, and you can always enter a retailer manually.",
+  android: "Choose only a photo you want to attach as optional evidence. Attached photos are resized, re-encoded without embedded metadata, and may appear publicly with the Signal.",
 } as const;
 
 const POLICIES = Object.freeze({
@@ -60,9 +48,9 @@ const POLICIES = Object.freeze({
     requestTiming: "after_explicit_user_action",
     rationale: CAMERA_RATIONALE,
     manualFallback: "manual_post_without_photo",
-    photoHandling: "device_only_no_upload",
+    photoHandling: "normalized_public_evidence_upload",
     locationScope: "not_applicable",
-    allowsPhotoUpload: false,
+    allowsPhotoUpload: true,
     allowsBarcodeCatalogMatch: false,
   },
   choose_bottle_or_shelf_evidence: {
@@ -70,19 +58,9 @@ const POLICIES = Object.freeze({
     requestTiming: "after_explicit_user_action",
     rationale: PHOTO_LIBRARY_RATIONALE,
     manualFallback: "manual_post_without_photo",
-    photoHandling: "device_only_no_upload",
+    photoHandling: "normalized_public_evidence_upload",
     locationScope: "not_applicable",
-    allowsPhotoUpload: false,
-    allowsBarcodeCatalogMatch: false,
-  },
-  suggest_nearby_retailers: {
-    permission: "foreground_location",
-    requestTiming: "after_explicit_user_action",
-    rationale: LOCATION_RATIONALE,
-    manualFallback: "manual_retailer_entry",
-    photoHandling: "not_applicable",
-    locationScope: "foreground_only",
-    allowsPhotoUpload: false,
+    allowsPhotoUpload: true,
     allowsBarcodeCatalogMatch: false,
   },
 } satisfies Record<NativeCapabilityPurpose, NativeCapabilityPolicy>);
@@ -99,41 +77,13 @@ const PHOTO_LIBRARY_DENIAL_COPY = {
   unavailable: "Photo selection is not available on this device. You can keep posting manually without a photo.",
 } as const;
 
-const NEARBY_RETAILER_DENIAL_COPY = {
-  denied: "Location access is off. Enter a retailer manually to continue.",
-  blocked: "Location access is off in Settings. Enter a retailer manually to continue.",
-  unavailable: "Current location is not available. Enter a retailer manually to continue.",
-} as const;
-
 export function nativeCapabilityPolicyFor(purpose: NativeCapabilityPurpose): NativeCapabilityPolicy {
   return POLICIES[purpose];
 }
 
-export function permissionDenialFallbackFor(
-  purpose: NativeCapabilityPurpose,
-  denial: PermissionDenial,
-): PermissionDenialFallback {
-  switch (purpose) {
-    case "capture_bottle_or_shelf_evidence":
-      return {
-        title: "Camera access is off",
-        message: EVIDENCE_DENIAL_COPY[denial],
-        actionLabel: "Continue without a photo",
-        manualEntryAvailable: true,
-      };
-    case "choose_bottle_or_shelf_evidence":
-      return {
-        title: "Photo access is off",
-        message: PHOTO_LIBRARY_DENIAL_COPY[denial],
-        actionLabel: "Continue without a photo",
-        manualEntryAvailable: true,
-      };
-    case "suggest_nearby_retailers":
-      return {
-        title: "Location access is off",
-        message: NEARBY_RETAILER_DENIAL_COPY[denial],
-        actionLabel: "Enter retailer manually",
-        manualEntryAvailable: true,
-      };
+export function permissionDenialFallbackFor(purpose: NativeCapabilityPurpose, denial: PermissionDenial): PermissionDenialFallback {
+  if (purpose === "capture_bottle_or_shelf_evidence") {
+    return { title: "Camera access is off", message: EVIDENCE_DENIAL_COPY[denial], actionLabel: "Continue without a photo", manualEntryAvailable: true };
   }
+  return { title: "Photo access is off", message: PHOTO_LIBRARY_DENIAL_COPY[denial], actionLabel: "Continue without a photo", manualEntryAvailable: true };
 }

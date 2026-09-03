@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
-import { del, head } from "@vercel/blob";
+import { BlobNotFoundError, del, head } from "@vercel/blob";
 import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 import { getBourbonBible } from "@/lib/bourbonBible";
 import { canonicalizeLegacySighting, type MemberSighting, type SightingsPreferences } from "@/lib/sightings";
@@ -30,7 +30,6 @@ function dedupeSightings(items: MemberSighting[]) {
   return [...new Map(items.map((item) => [item.id, item])).values()];
 }
 
-
 async function getOwnedSighting(sightingId: string, userId: string) {
   const repository = createCommunitySightingsRepository();
   const durable = await repository.getSighting(sightingId);
@@ -49,8 +48,122 @@ async function getOwnedSighting(sightingId: string, userId: string) {
   return { repository, target: target.sighting };
 }
 
+async function reconcileAttachedPhotoRewards(
+  userId: string,
+  repository: ReturnType<typeof createCommunitySightingsRepository>,
+  rewardGeneration: number,
+) {
+  const client = await clerkClient();
+  const signalPoints = createSignalPointsRepository();
+  let targetGeneration = rewardGeneration;
+
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const user = await client.users.getUser(userId);
+    const publicMetadata = (user.publicMetadata && typeof user.publicMetadata === "object" ? user.publicMetadata : {}) as Record<string, unknown>;
+    const privateMetadata = (user.privateMetadata && typeof user.privateMetadata === "object" ? user.privateMetadata : {}) as Record<string, unknown>;
+    const prefs = normalizePrefs(publicMetadata.sightingsPreferences);
+    const durableOwned = await repository.listSightingsForReporter(userId);
+    const legacyOwned = prefs.submittedSightings.map((sighting) => ({ ...sighting, reporterUserId: userId }));
+    const rewardSightings = normalizeSightingsForRewards(dedupeSightings([...legacyOwned, ...durableOwned]), await getBourbonBible());
+    const nextRewards = reconcileMemberRewards(rewardSightings, privateMetadata.memberRewards);
+    const reconciliation = await signalPoints.reconcileClerkRewardsWithStatus(userId, nextRewards, targetGeneration);
+    const generationBeforeProjection = await signalPoints.readRewardGeneration(userId);
+    if (!reconciliation.applied || generationBeforeProjection !== targetGeneration) {
+      targetGeneration = generationBeforeProjection;
+      continue;
+    }
+    await client.users.updateUserMetadata(userId, { privateMetadata: { memberRewards: nextRewards } });
+    const generationAfterProjection = await signalPoints.readRewardGeneration(userId);
+    if (generationAfterProjection === targetGeneration) return;
+    targetGeneration = generationAfterProjection;
+  }
+  throw new Error("Sighting reward projection changed repeatedly during photo reconciliation.");
+}
+
+type UploadedPhotoDescriptor = { url?: string; pathname: string };
+
+async function attachUploadedPhoto({
+  sightingId,
+  userId,
+  blob,
+  token,
+}: {
+  sightingId: string;
+  userId: string;
+  blob: UploadedPhotoDescriptor;
+  token: string;
+}) {
+  if (!validateSightingPhotoPath(sightingId, blob.pathname)) throw new Error("Invalid completed upload");
+  const owned = await getOwnedSighting(sightingId, userId);
+  if (!owned || owned.target.reporterUserId !== userId) throw new Error("Sighting not found");
+
+  const currentPhoto = owned.target.rewardState?.photoProof;
+  if (currentPhoto) {
+    const replay = await owned.repository.replacePhotoProof(sightingId, userId, currentPhoto.url, currentPhoto);
+    if (!replay) throw new Error("Photo changed in another request");
+    await reconcileAttachedPhotoRewards(userId, owned.repository, replay.rewardGeneration);
+    if (currentPhoto.url !== blob.url && currentPhoto.pathname !== blob.pathname) {
+      try {
+        const losingUpload = blob.url ? { url: blob.url } : await head(blob.pathname, { token });
+        await del(losingUpload.url, { token });
+      } catch (error) {
+        if (!(error instanceof BlobNotFoundError)) throw error;
+      }
+    }
+    return currentPhoto;
+  }
+
+  const uploaded = await head(blob.url || blob.pathname, { token });
+  const completed = validateCompletedSightingPhoto(
+    { sightingId, blob: { url: uploaded.url, pathname: blob.pathname } },
+    uploaded,
+  );
+  if (!completed) throw new Error("Uploaded photo could not be verified");
+
+  const photoProof = {
+    url: completed.url,
+    pathname: completed.pathname,
+    uploadedAt: new Date().toISOString(),
+    status: "verified_public" as const,
+    publicUrl: uploaded.url,
+  };
+  const mutation = await owned.repository.replacePhotoProof(sightingId, userId, null, photoProof);
+  if (mutation) {
+    await reconcileAttachedPhotoRewards(userId, owned.repository, mutation.rewardGeneration);
+    return photoProof;
+  }
+
+  const latest = await owned.repository.getSighting(sightingId);
+  const winningPhoto = latest?.rewardState?.photoProof;
+  if (!winningPhoto) throw new Error("Photo changed in another request");
+  if (winningPhoto.url !== uploaded.url && winningPhoto.pathname !== uploaded.pathname) {
+    const replay = await owned.repository.replacePhotoProof(sightingId, userId, winningPhoto.url, winningPhoto);
+    if (!replay) throw new Error("Photo changed in another request");
+    await reconcileAttachedPhotoRewards(userId, owned.repository, replay.rewardGeneration);
+    await del(uploaded.url, { token });
+    return winningPhoto;
+  }
+  const replay = await owned.repository.replacePhotoProof(sightingId, userId, winningPhoto.url, winningPhoto);
+  if (!replay) throw new Error("Photo changed in another request");
+  await reconcileAttachedPhotoRewards(userId, owned.repository, replay.rewardGeneration);
+  return winningPhoto;
+}
+
+function parseUploadTokenPayload(value: string | null) {
+  if (!value) return null;
+  try {
+    const parsed = JSON.parse(value) as { sightingId?: unknown; userId?: unknown };
+    const sightingId = validSightingPhotoId(parsed.sightingId);
+    const userId = typeof parsed.userId === "string" && /^user_[-_a-zA-Z0-9]{1,240}$/.test(parsed.userId) ? parsed.userId : null;
+    return sightingId && userId ? { sightingId, userId } : null;
+  } catch {
+    return null;
+  }
+}
+
 export async function POST(req: NextRequest) {
-  if (!process.env.BLOB_READ_WRITE_TOKEN) return NextResponse.json({ error: "Photo uploads are not configured yet." }, { status: 503 });
+  const token = process.env.BLOB_READ_WRITE_TOKEN;
+  if (!token) return NextResponse.json({ error: "Photo uploads are not configured yet." }, { status: 503 });
   const body = await req.json().catch(() => null) as HandleUploadBody | null;
   if (!body) return NextResponse.json({ error: "Invalid upload request" }, { status: 400 });
 
@@ -58,6 +171,7 @@ export async function POST(req: NextRequest) {
     const response = await handleUpload({
       request: req,
       body,
+      token,
       onBeforeGenerateToken: async (pathname, clientPayload) => {
         const { userId } = await auth();
         if (!userId) throw new Error("Unauthorized");
@@ -65,9 +179,8 @@ export async function POST(req: NextRequest) {
         if (!payload) throw new Error("Invalid sighting upload request");
         const owned = await getOwnedSighting(payload.sightingId, userId);
         if (!owned || owned.target.reporterUserId !== userId) throw new Error("Sighting not found");
-        if (!validateSightingPhotoPath(payload.sightingId, pathname)) {
-          throw new Error("Invalid photo pathname");
-        }
+        if (owned.target.rewardState?.photoProof) throw new Error("Photo evidence is already attached");
+        if (!validateSightingPhotoPath(payload.sightingId, pathname)) throw new Error("Invalid photo pathname");
         return {
           allowedContentTypes: [...ALLOWED_SIGHTING_PHOTO_TYPES],
           maximumSizeInBytes: MAX_SIGHTING_PHOTO_BYTES,
@@ -77,12 +190,21 @@ export async function POST(req: NextRequest) {
           tokenPayload: JSON.stringify({ sightingId: payload.sightingId, userId }),
         };
       },
+      onUploadCompleted: async ({ blob, tokenPayload }) => {
+        const payload = parseUploadTokenPayload(tokenPayload || null);
+        if (!payload) throw new Error("Invalid completed upload identity");
+        await attachUploadedPhoto({ sightingId: payload.sightingId, userId: payload.userId, blob, token });
+      },
     });
     return NextResponse.json(response);
   } catch (error) {
-    console.error("Unable to issue sighting photo upload token", error);
-    const message = error instanceof Error ? error.message : "Unable to start photo upload";
-    const status = message === "Unauthorized" ? 401 : message === "Sighting not found" ? 404 : 400;
+    console.error("Unable to process sighting photo upload", error);
+    const message = error instanceof Error ? error.message : "Unable to process photo upload";
+    const callback = (body as { type?: string }).type === "blob.upload-completed";
+    const status = message === "Unauthorized" ? 401
+      : message === "Sighting not found" ? 404
+        : message === "Photo evidence is already attached" ? 409
+          : callback ? 500 : 400;
     return NextResponse.json({ error: message }, { status });
   }
 }
@@ -95,57 +217,20 @@ export async function PATCH(req: NextRequest) {
 
   const body = await req.json().catch(() => null) as { sightingId?: unknown; blob?: { url?: unknown; pathname?: unknown } } | null;
   const sightingId = validSightingPhotoId(body?.sightingId);
-  const blobUrl = typeof body?.blob?.url === "string" ? body.blob.url : "";
   const pathname = typeof body?.blob?.pathname === "string" ? body.blob.pathname : "";
-  if (!sightingId || !blobUrl || !validateSightingPhotoPath(sightingId, pathname)) {
+  const blobUrl = typeof body?.blob?.url === "string" ? body.blob.url : undefined;
+  if (!sightingId || !validateSightingPhotoPath(sightingId, pathname)) {
     return NextResponse.json({ error: "Invalid completed upload" }, { status: 400 });
   }
 
-  const owned = await getOwnedSighting(sightingId, userId);
-  if (!owned || owned.target.reporterUserId !== userId) return NextResponse.json({ error: "Sighting not found" }, { status: 404 });
-
   try {
-    const uploaded = await head(blobUrl, { token });
-    const completed = validateCompletedSightingPhoto(body, uploaded);
-    if (!completed) {
-      return NextResponse.json({ error: "Uploaded photo could not be verified" }, { status: 400 });
-    }
-
-    const uploadedAt = new Date().toISOString();
-    const photoProof = {
-      url: completed.url,
-      pathname: completed.pathname,
-      uploadedAt,
-      status: "verified_public" as const,
-      publicUrl: uploaded.url,
-    };
-    const previousUrl = owned.target.rewardState?.photoProof?.url || null;
-    const mutation = await owned.repository.replacePhotoProof(sightingId, userId, previousUrl, photoProof);
-    if (!mutation) {
-      await del(uploaded.url, { token }).catch(() => undefined);
-      return NextResponse.json({ error: "Photo changed in another request. Please retry." }, { status: 409 });
-    }
-
-    const client = await clerkClient();
-    const user = await client.users.getUser(userId);
-    const publicMetadata = (user.publicMetadata && typeof user.publicMetadata === "object" ? user.publicMetadata : {}) as Record<string, unknown>;
-    const privateMetadata = (user.privateMetadata && typeof user.privateMetadata === "object" ? user.privateMetadata : {}) as Record<string, unknown>;
-    const prefs = normalizePrefs(publicMetadata.sightingsPreferences);
-    const durableOwned = await owned.repository.listSightingsForReporter(userId);
-    const legacyOwned = prefs.submittedSightings.map((sighting) => ({ ...sighting, reporterUserId: userId }));
-    const rewardSightings = normalizeSightingsForRewards(dedupeSightings([...legacyOwned, ...durableOwned]), await getBourbonBible());
-    const nextRewards = reconcileMemberRewards(rewardSightings, privateMetadata.memberRewards);
-    await createSignalPointsRepository().reconcileClerkRewards(userId, nextRewards, mutation.rewardGeneration);
-    await client.users.updateUserMetadata(userId, { privateMetadata: { memberRewards: nextRewards } }).catch((error) => {
-      console.error("Sighting points reconciled, but the Clerk projection failed", error);
-    });
-
-    if (previousUrl && previousUrl !== uploaded.url) {
-      await del(previousUrl, { token }).catch((error) => console.error("Unable to remove replaced sighting proof", error));
-    }
+    const photoProof = await attachUploadedPhoto({ sightingId, userId, blob: { url: blobUrl, pathname }, token });
     return NextResponse.json({ ok: true, photoProof });
   } catch (error) {
-    console.error("Unable to finalize sighting photo", error);
-    return NextResponse.json({ error: "Unable to verify and attach the uploaded photo" }, { status: 500 });
+    if (error instanceof BlobNotFoundError) return NextResponse.json({ error: "Uploaded photo is not available yet" }, { status: 404 });
+    console.error("Unable to recover and attach sighting photo", error);
+    const message = error instanceof Error ? error.message : "Unable to attach the uploaded photo";
+    const status = message === "Sighting not found" ? 404 : message.startsWith("Invalid") ? 400 : 500;
+    return NextResponse.json({ error: message }, { status });
   }
 }

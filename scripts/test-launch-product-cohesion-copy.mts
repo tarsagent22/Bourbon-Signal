@@ -17,9 +17,9 @@ const sources = [
 assert.doesNotMatch(sources, /worth acting on/i);
 assert.doesNotMatch(sources, /(?:confirmed|unconfirmed) community/i, "Community copy does not expose a confirmed/unconfirmed taxonomy");
 assert.doesNotMatch(sources, /public[^\n]{0,80}(?:two|2)[- ]hour[^\n]{0,80}countdown/i);
-assert.doesNotMatch(sources, /My Collection (?:begins|starts) (?:at|with) Barrel/i);
+assert.doesNotMatch(sources, /My Shelf (?:begins|starts) (?:at|with) Barrel/i);
 assert.doesNotMatch(sources, /only\s+(?:10|ten)|10[- ]bottle limit/i, "the Free cap is never an acquisition headline");
-assert.match(sources, /Standard[^\n]{0,160}unlimited (?:basic )?Cellar/i);
+assert.match(sources, /Standard[^\n]{0,160}unlimited (?:basic )?My Shelf/i);
 assert.match(sources, /Barrel[^\n]{0,160}Bourbon DNA/i);
 assert.match(sources, /Hunt Outcome[^\n]{0,160}optional|optional[^\n]{0,160}Hunt Outcome/i);
 assert.match(sources, /Hunt Outcome[^\n]{0,160}private|private[^\n]{0,160}Hunt Outcome/i);
