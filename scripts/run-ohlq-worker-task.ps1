@@ -1,10 +1,13 @@
 param(
-  [string]$ProjectRoot = 'C:\Users\chand\projects\bs-mobile-radar-watchlist',
+  [string]$ProjectRoot,
   [string]$CredentialPath = "$env:LOCALAPPDATA\BourbonSignal\ohlq-worker\worker-credential.dpapi",
   [int]$TimeoutMinutes = 45
 )
 
 $ErrorActionPreference = 'Stop'
+if ([string]::IsNullOrWhiteSpace($ProjectRoot)) {
+  $ProjectRoot = Split-Path -Parent $PSScriptRoot
+}
 $mutex = New-Object System.Threading.Mutex($false, 'Local\BourbonSignalOhlqWorker')
 $lockAcquired = $false
 $secretPointer = [IntPtr]::Zero

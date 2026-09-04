@@ -24,6 +24,44 @@ let ownedLockId = null;
 
 function sleep(ms) { return new Promise((resolve) => setTimeout(resolve, ms)); }
 
+async function closeExistingBrowserCdp(cdpUrl) {
+  const version = await fetch(`${cdpUrl.replace(/\/$/, '')}/json/version`, {
+    signal: AbortSignal.timeout(5_000),
+  }).then((response) => response.json());
+  if (!version?.webSocketDebuggerUrl) return false;
+  await new Promise((resolve, reject) => {
+    const socket = new WebSocket(version.webSocketDebuggerUrl);
+    const timer = setTimeout(() => {
+      socket.close();
+      reject(new Error('Timed out closing the existing OHLQ browser.'));
+    }, 10_000);
+    const finish = () => {
+      clearTimeout(timer);
+      resolve();
+    };
+    socket.addEventListener('open', () => socket.send(JSON.stringify({ id: 1, method: 'Browser.close' })), { once: true });
+    socket.addEventListener('message', finish, { once: true });
+    socket.addEventListener('close', finish, { once: true });
+    socket.addEventListener('error', () => {
+      clearTimeout(timer);
+      reject(new Error('Failed to close the existing OHLQ browser.'));
+    }, { once: true });
+  });
+  return true;
+}
+
+async function waitForBrowserCdpToClose(cdpUrl, timeoutMs = 5_000) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    const reachable = await fetch(`${cdpUrl.replace(/\/$/, '')}/json/version`, {
+      signal: AbortSignal.timeout(1_000),
+    }).then((response) => response.ok).catch(() => false);
+    if (!reachable) return true;
+    await sleep(200);
+  }
+  return false;
+}
+
 async function writeStatus(value) {
   await mkdir(path.dirname(STATUS_PATH), { recursive: true });
   const temporary = `${STATUS_PATH}.${process.pid}.tmp`;
@@ -194,10 +232,32 @@ async function main() {
     await page.connect();
     const readiness = await browserReadiness(page);
     if (readiness.status !== 'ready') {
-      const status = readiness.status === 'needs_human' ? 'needs_human_cloudflare_verification' : 'browser_not_ready';
-      await writeStatus({ ok: false, status, browserLeftOpen: true, profileDir: PROFILE_DIR, url: SAMPLE_URL });
-      console.log(JSON.stringify({ ok: false, status, action: 'Complete OHLQ security verification in the opened browser window, then rerun the worker.' }));
-      browser = null;
+      const needsHuman = readiness.status === 'needs_human';
+      const status = needsHuman ? 'needs_human_cloudflare_verification' : 'browser_not_ready';
+      let cleanupSucceeded = false;
+      let cleanupError = null;
+      if (needsHuman) {
+        browser = null;
+      } else {
+        page.close();
+        page = null;
+        try {
+          if (browser.started) await killBrowserCdp(browser);
+          else await closeExistingBrowserCdp(CDP_URL);
+          cleanupSucceeded = await waitForBrowserCdpToClose(CDP_URL);
+          if (cleanupSucceeded) browser = null;
+          else cleanupError = 'The dedicated OHLQ browser remained reachable after cleanup.';
+        } catch (error) {
+          cleanupError = error instanceof Error ? error.message : String(error);
+        }
+      }
+      const action = needsHuman
+        ? 'Complete OHLQ security verification in the opened browser window, then rerun the worker.'
+        : cleanupSucceeded
+          ? 'OHLQ did not return a usable product page; the browser was closed and the source remains safely unavailable.'
+          : 'OHLQ did not return a usable product page and browser cleanup failed; close the dedicated OHLQ browser before retrying.';
+      await writeStatus({ ok: false, status, browserLeftOpen: !cleanupSucceeded, cleanupError, profileDir: PROFILE_DIR, url: SAMPLE_URL });
+      console.log(JSON.stringify({ ok: false, status, action }));
       process.exitCode = 1;
       return;
     }
