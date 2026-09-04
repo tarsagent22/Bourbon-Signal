@@ -16,6 +16,12 @@ function isLabeledDegraded(row = {}) {
   return row.stale === true || /^(?:stale_|failed_|blocked|reachable_needs_deeper_parser)/.test(status);
 }
 
+export function requiresStateAlertSuppression(operating) {
+  return operating?.health === 'blocked'
+    || operating?.freshness?.status === 'stale'
+    || Boolean(operating?.fallback?.status && operating.fallback.status !== 'none');
+}
+
 export function assessStateFailureIsolation({ stateCoverage = null, refreshHealth = null, alerts = [] } = {}) {
   const coverageRows = rows(stateCoverage, 'states');
   const coverageByState = new Map(coverageRows.map((row) => [stateId(row?.state), row]));
@@ -79,9 +85,7 @@ export function assessStateFailureIsolation({ stateCoverage = null, refreshHealt
       unsafeStateIds.add(state);
     }
     const requiresAlertSuppression = operating
-      ? operating.health === 'blocked'
-        || operating.freshness?.status === 'stale'
-        || (operating.fallback?.status && operating.fallback.status !== 'none')
+      ? requiresStateAlertSuppression(operating)
       : isLabeledDegraded(coverage);
     if (requiresAlertSuppression && alertingStates.has(state)) {
       issues.push(`Degraded state ${state} still has an eligible alert candidate.`);
