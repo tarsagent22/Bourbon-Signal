@@ -1,4 +1,5 @@
 import { createHash, randomUUID } from 'node:crypto';
+import { requiresStateAlertSuppression } from './state-failure-isolation.mjs';
 import { createReadStream, createWriteStream } from 'node:fs';
 import { mkdir, readFile, readdir, rename, rm, stat, writeFile } from 'node:fs/promises';
 import path from 'node:path';
@@ -2492,7 +2493,7 @@ async function main() {
   };
   let stateOperating = buildStateOperatingContract({ ...operatingInput, alerts: cappedAlertCandidates });
   const nonAlertableStateIds = new Set(stateOperating.states
-    .filter((state) => state.health === 'blocked' || state.fallback?.status === 'last_published')
+    .filter(requiresStateAlertSuppression)
     .map((state) => state.state));
   const publishedAlertCandidates = cappedAlertCandidates.filter((candidate) => !nonAlertableStateIds.has(String(candidate.state).toUpperCase()));
   if (publishedAlertCandidates.length !== cappedAlertCandidates.length) {

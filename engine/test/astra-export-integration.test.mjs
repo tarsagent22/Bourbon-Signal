@@ -29,10 +29,16 @@ test('E11 composed exporter persists a TX opportunity across unrelated NY public
     assert.equal(closed.alerts.length, 0);
   } finally { await rm(root, { recursive: true, force: true }); }
 });
-test('E04 composed exporter does not quarantine valid current rows just because siblings are retained', async () => {
+test('E04 composed exporter preserves current display rows but obeys partial-state alert isolation', async () => {
   const root = await mkdtemp(path.join(tmpdir(), 'astra-partial-'));
   try {
     const alerts = await exportFixture(root, { partialRefresh: true, attemptedStateIds: ['TX'], freshStateIds: ['TX'], partialFallbackStateIds: ['TX'], states: [{ state: 'TX', status: 'partial_useful_quality_fallback', signalCount: 1 }] });
-    assert.equal(alerts.alerts.length, 1);
+    assert.equal(alerts.alerts.length, 0, 'partial fallback is not permitted to emit eligible alerts');
+    const drops = JSON.parse(await readFile(path.join(root, 'site', 'drops.json'), 'utf8'));
+    assert.ok(drops.drops.some(drop => drop.state === 'TX'), 'valid current display rows must survive');
+    const { assessStateFailureIsolation } = await import('../src/state-failure-isolation.mjs');
+    const stats = JSON.parse(await readFile(path.join(root, 'site', 'stats.json'), 'utf8'));
+    const isolation = assessStateFailureIsolation({stateCoverage: stats.stateCoverage, refreshHealth: stats.refreshHealth, alerts});
+    assert.equal(isolation.ok, true, isolation.issues.join('; '));
   } finally { await rm(root, { recursive: true, force: true }); }
 });

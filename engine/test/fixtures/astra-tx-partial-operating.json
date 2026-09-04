@@ -1,0 +1,51 @@
+{
+  "sourceRun": 33925674074,
+  "note": "Actual failed-run operating-state diagnostic; contains no invented signal records.",
+  "operating": {
+    "state": "TX",
+    "health": "stale_useful",
+    "collection": {
+      "status": "partial_useful_quality_fallback",
+      "count": 5,
+      "lastSuccessAt": "2026-09-04T22:32:37.439Z"
+    },
+    "signalCount": 1861,
+    "customerVisibleDropCount": 39,
+    "alertCandidateCount": 1,
+    "lastPublicationAt": "2026-08-13T02:58:59.659Z",
+    "freshness": {
+      "status": "stale",
+      "observedAt": "2026-09-04T22:30:02.737Z",
+      "ageHours": 0.1
+    },
+    "evidenceFreshness": {
+      "inventory": {
+        "totalCount": 39,
+        "freshCount": 37,
+        "overdueCount": 2,
+        "unknownCount": 0,
+        "maxAgeHours": 4.020429444444445,
+        "deadlineHours": 2
+      },
+      "informationalCount": 0,
+      "sources": [
+        {
+          "sourceId": "precision:tx",
+          "totalCount": 39,
+          "freshCount": 37,
+          "overdueCount": 2,
+          "unknownCount": 0,
+          "status": "overdue"
+        }
+      ]
+    },
+    "fallback": {
+      "status": "partial",
+      "reason": "Current evidence is combined with safe last-published context."
+    },
+    "anomalyCodes": [
+      "inventory_confirmation_overdue"
+    ],
+    "recoveryAction": "retry_state_collection"
+  }
+}
