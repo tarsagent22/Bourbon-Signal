@@ -1,14 +1,14 @@
-import { ClerkProvider } from "@clerk/expo";
+import { ClerkProvider, useAuth } from "@clerk/expo";
 import { tokenCache } from "@clerk/expo/token-cache";
 import { Fraunces_700Bold } from "@expo-google-fonts/fraunces/700Bold";
 import { useFonts } from "expo-font";
 import * as Notifications from "expo-notifications";
-import { Stack, useRouter } from "expo-router";
+import { Stack, useRouter, useRootNavigationState } from "expo-router";
 import { StatusBar } from "expo-status-bar";
-import { useEffect } from "react";
+import { useEffect, useRef, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
-import { radarRouteForNotificationData } from "../src/push/push-navigation";
+import { createPendingPushNavigation } from "../src/push/push-navigation";
 import { colors } from "../src/theme";
 
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
@@ -35,18 +35,25 @@ export default function RootLayout() {
 
 function PushResponseHandler() {
   const router = useRouter();
+  const { isLoaded, isSignedIn } = useAuth();
+  const navigation = useRootNavigationState();
+  const queue = useRef(createPendingPushNavigation());
+  const [revision, setRevision] = useState(0);
   useEffect(() => {
+    let active = true;
     const open = (response: Notifications.NotificationResponse | null) => {
-      const route = radarRouteForNotificationData(response?.notification.request.content.data);
-      if (route) {
-        router.push(route);
-        void Notifications.clearLastNotificationResponseAsync();
-      }
+      if (!active || !response) return;
+      queue.current.receive(response.notification.request.identifier, response.notification.request.content.data);
+      setRevision(value => value + 1);
     };
-    void Notifications.getLastNotificationResponseAsync().then(open);
+    void Notifications.getLastNotificationResponseAsync().then(open).catch(() => {});
     const subscription = Notifications.addNotificationResponseReceivedListener(open);
-    return () => subscription.remove();
-  }, [router]);
+    return () => { active = false; subscription.remove(); };
+  }, []);
+  useEffect(() => {
+    const route = queue.current.take(isLoaded && !!isSignedIn, !!navigation?.key);
+    if (route) { router.push(route); void Notifications.clearLastNotificationResponseAsync().catch(() => {}); }
+  }, [isLoaded, isSignedIn, navigation?.key, revision, router]);
   return null;
 }
 

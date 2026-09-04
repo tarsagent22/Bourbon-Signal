@@ -12,6 +12,7 @@ export const PUSH_ENABLED_KEY = "bourbon-signal.push-enabled";
 
 type MobileApi = ReturnType<typeof createMobileApi>;
 type PushStatusListener = (status: PushDeviceStatus | null) => void;
+let logoutInProgress = false;
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -36,6 +37,7 @@ export async function radarPushPermission() {
 }
 
 export async function rememberRadarPushEnabled(enabled: boolean) {
+  if (enabled && logoutInProgress) return;
   await SecureStore.setItemAsync(PUSH_ENABLED_KEY, enabled ? "1" : "0");
 }
 
@@ -50,6 +52,7 @@ async function configureAndroidRadarChannel() {
 }
 
 async function registerCurrentRadarPushToken(api: MobileApi, requestPermission: boolean) {
+  if (logoutInProgress) return null;
   if (!Device.isDevice) {
     if (requestPermission) throw new Error("Push notifications require a physical device.");
     return null;
@@ -65,10 +68,12 @@ async function registerCurrentRadarPushToken(api: MobileApi, requestPermission: 
   if (!projectId) throw new Error("Push project configuration is unavailable.");
   const token = await Notifications.getExpoPushTokenAsync({ projectId });
   const deviceId = await radarPushDeviceId();
+  if (logoutInProgress) return null;
   return api.registerPushDevice({ deviceId, expoPushToken: token.data, platform: Platform.OS === "android" ? "android" : "ios" });
 }
 
 export async function enableRadarPush(api: MobileApi) {
+  logoutInProgress = false;
   const status = await registerCurrentRadarPushToken(api, true);
   if (!status) throw new Error("Push notifications could not be enabled on this device.");
   await rememberRadarPushEnabled(status.enabled);
@@ -94,4 +99,33 @@ export function watchRadarPushToken(api: MobileApi, onStatus?: PushStatusListene
       .then((status) => onStatus?.(status))
       .catch(() => onStatus?.(null));
   });
+}
+
+// Online device-only mitigation, NOT cross-account ownership or offline safety.
+export async function signOutWithRadarPushDisabled(api: MobileApi, signOut: () => Promise<unknown>, timeoutMs = 5000) {
+  logoutInProgress = true;
+  let timer: ReturnType<typeof setTimeout>;
+  let expired = false;
+  const revoke = async () => {
+    await rememberRadarPushEnabled(false).catch(() => {});
+    const id = await SecureStore.getItemAsync(DEVICE_ID_KEY);
+    if (!id || expired) return false;
+    await api.disablePushDevice(id);
+    if (expired) return false;
+    const status = await api.getPushDeviceStatus(id, { fresh: true });
+    return status.currentDeviceRegistered === false;
+  };
+  let pushDisabled = false;
+  try {
+    pushDisabled = await Promise.race([
+      revoke().catch(() => false),
+      new Promise<false>(resolve => { timer = setTimeout(() => { expired = true; resolve(false); }, timeoutMs); }),
+    ]);
+  } finally {
+    clearTimeout(timer!);
+    api.clearReadCache();
+    void Notifications.dismissAllNotificationsAsync().catch(() => {});
+    await signOut();
+  }
+  return { pushDisabled };
 }

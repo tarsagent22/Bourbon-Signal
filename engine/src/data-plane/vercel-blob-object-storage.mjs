@@ -49,19 +49,25 @@ export class VercelBlobObjectStorage {
   }
 
   async readPointer() {
+    this.#pointerEtag = null;
+    this.#pointerRevision = null;
     const blob = await this.#findExact(ACTIVE_POINTER);
     if (!blob) {
       this.#pointerEtag = null;
       this.#pointerRevision = 0;
       return null;
     }
-    const [raw, metadata] = await Promise.all([
-      this.#readUrl(blob.url),
-      this.#blob.head(blob.url, { token: process.env.BLOB_READ_WRITE_TOKEN }),
-    ]);
+    // The body and CAS version must come from the same response. HEAD is
+    // independently mutable, including immediately after our own write.
+    const response = await this.#fetcher(blob.url, { cache: 'no-store' });
+    if (!response.ok) throw new Error(`Blob pointer read failed with HTTP ${response.status}`);
+    const etag = response.headers?.get('etag');
+    if (!etag || /^W\//i.test(etag)) throw new Error('Blob pointer requires a strong same-response ETag version.');
+    const raw = await response.text();
     const pointer = JSON.parse(raw);
-    this.#pointerEtag = metadata.etag || null;
-    this.#pointerRevision = pointer.revision ?? 0;
+    if (!Number.isSafeInteger(pointer?.revision) || pointer.revision < 1) throw new Error('Invalid Blob pointer revision.');
+    this.#pointerEtag = etag;
+    this.#pointerRevision = pointer.revision;
     return pointer;
   }
 
@@ -90,10 +96,12 @@ export class VercelBlobObjectStorage {
   }
 
   async compareAndSwapPointer(expectedRevision, next) {
+    if (!Number.isSafeInteger(expectedRevision) || expectedRevision < 0 || next?.revision !== expectedRevision + 1) throw new Error('Invalid pointer revision transition.');
     if (this.#pointerRevision !== expectedRevision) await this.readPointer();
     if (this.#pointerRevision !== expectedRevision) return false;
+    if (expectedRevision > 0 && !this.#pointerEtag) throw new Error('Pointer CAS requires a version.');
     try {
-      const result = await this.#blob.put(ACTIVE_POINTER, JSON.stringify(next), {
+      await this.#blob.put(ACTIVE_POINTER, JSON.stringify(next), {
         access: 'public',
         addRandomSuffix: false,
         allowOverwrite: expectedRevision > 0,
@@ -102,13 +110,12 @@ export class VercelBlobObjectStorage {
         contentType: 'application/json',
         token: process.env.BLOB_READ_WRITE_TOKEN,
       });
-      const metadata = await this.#blob.head(result.url, { token: process.env.BLOB_READ_WRITE_TOKEN });
+      this.#pointerEtag = null;
+      this.#pointerRevision = null;
       await this.#writePointerEvent(next);
-      this.#pointerEtag = metadata.etag || null;
-      this.#pointerRevision = next.revision;
       return true;
     } catch (error) {
-      if (error instanceof this.#blob.BlobPreconditionFailedError || /precondition|already exists|etag|match/i.test(String(error))) {
+      if ((this.#blob.BlobPreconditionFailedError && error instanceof this.#blob.BlobPreconditionFailedError) || /precondition|already exists|etag|match/i.test(String(error))) {
         this.#pointerEtag = null;
         this.#pointerRevision = null;
         return false;

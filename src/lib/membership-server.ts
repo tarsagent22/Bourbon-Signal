@@ -87,7 +87,39 @@ export async function findUserByStripeCustomerId(customerId: string) {
   return users.find((user) => user.publicMetadata?.stripeCustomerId === customerId || user.privateMetadata?.stripeCustomerId === customerId) || null;
 }
 
+// Recovery observes this server-read snapshot before provider discovery. Checkout
+// upgrades deliberately omit it; an old recovery must not act as a new checkout.
+export type MembershipRecoveryAuthority = Pick<ClerkMembershipUser, "publicMetadata" | "privateMetadata">;
+
+export function membershipRecoveryAuthorityMatches(
+  user: MembershipRecoveryAuthority,
+  expected: MembershipRecoveryAuthority,
+  candidate: { plan: BillingPlanId; stripeCustomerId?: string | null; stripeSubscriptionId?: string | null },
+) {
+  const publicKeys = ["tier", "membershipTier", "plan", "billingPlan", "membershipStatus", "membershipUpdatedAt",
+    "stripeCustomerId", "founderNumber", "directFounderCheckoutAttemptId", "directFounderEntitlementVersion",
+    "giftOrderId", "giftEntitlementVersion", "giftAccessStartsAt", "giftAccessExpiresAt"];
+  const privateKeys = ["stripeCustomerId", "stripeSubscriptionId", "stripePlan", "stripeMembershipStatus", "stripeMembershipUpdatedAt"];
+  for (const [scope, keys] of [["publicMetadata", publicKeys], ["privateMetadata", privateKeys]] as const) {
+    if (keys.some((key) => (user[scope]?.[key] ?? null) !== (expected[scope]?.[key] ?? null))) return false;
+  }
+  const metadata = user.publicMetadata;
+  const tier = normalizeMembershipTier(metadata?.tier || metadata?.membershipTier);
+  const plan = stringValue(metadata?.plan) || stringValue(metadata?.billingPlan);
+  if (metadata?.membershipStatus === "canceled" && (tier === "free" || plan === "free")) return false;
+  if (hasActiveGiftMembership(metadata)) return false;
+  if (candidate.plan !== "bib_lifetime") {
+    if (tier === "bottled-in-bond" || plan === "bib_lifetime" || plan === "lifetime") return false;
+    const subscriptionId = stringValue(user.privateMetadata?.stripeSubscriptionId);
+    const customerId = stringValue(user.privateMetadata?.stripeCustomerId) || stringValue(metadata?.stripeCustomerId);
+    if (subscriptionId && subscriptionId !== candidate.stripeSubscriptionId) return false;
+    if (customerId && customerId !== candidate.stripeCustomerId) return false;
+  }
+  return true;
+}
+
 export async function activateMembership(userId: string, input: {
+  recoveryAuthority?: MembershipRecoveryAuthority;
   tier: MembershipTier;
   plan: BillingPlanId;
   stripeCustomerId?: string | null;
@@ -102,6 +134,7 @@ export async function activateMembership(userId: string, input: {
   const user = await client.users.getUser(userId);
   const now = new Date().toISOString();
   const status = input.status || "active";
+  if (input.recoveryAuthority && !membershipRecoveryAuthorityMatches(user, input.recoveryAuthority, input)) return false;
   const trialMetadata = membershipTrialMetadata({
     status,
     plan: input.plan,
@@ -113,7 +146,6 @@ export async function activateMembership(userId: string, input: {
   if (activeGiftOrderId && hasActiveGiftMembership(user.publicMetadata as Record<string, unknown>) && input.plan !== "bib_lifetime") {
     await client.users.updateUserMetadata(userId, {
       publicMetadata: {
-        ...user.publicMetadata,
         giftPreviousMembership: { tier: input.tier, plan: input.plan, status },
         membershipUpdatedAt: now,
       },
@@ -344,6 +376,44 @@ export async function reactivateDirectFounderMembership(attemptId: string) {
 }
 
 
+// Status-only reconciliation of an already bound subscription. Never grants a
+// new tier, replaces lifetime/gift authority, or invents a subscription binding.
+export async function reconcileExistingSubscriptionStatus(userId: string, input: {
+  customerId: string;
+  subscriptionId: string;
+  plan: BillingPlanId;
+  status: string;
+}) {
+  const client = await clerkClient();
+  const user = await client.users.getUser(userId);
+  const publicMetadata = user.publicMetadata;
+  const privateMetadata = user.privateMetadata;
+  if (privateMetadata?.stripeSubscriptionId !== input.subscriptionId) return;
+  const customerId = stringValue(privateMetadata?.stripeCustomerId) || stringValue(publicMetadata?.stripeCustomerId);
+  if (customerId !== input.customerId) return;
+  const plan = stringValue(publicMetadata?.plan) || stringValue(publicMetadata?.billingPlan);
+  if (plan === "bib_lifetime" || normalizeMembershipTier(publicMetadata?.tier) === "bottled-in-bond") return;
+  const previous = publicMetadata?.giftPreviousMembership && typeof publicMetadata.giftPreviousMembership === "object"
+    ? publicMetadata.giftPreviousMembership as Record<string, unknown> : null;
+  const giftOverlay = plan?.startsWith("gift_");
+  if ((giftOverlay ? previous?.plan : plan) !== input.plan) return;
+  if (privateMetadata?.stripePlan && privateMetadata.stripePlan !== input.plan) return;
+  if (input.status === "trialing" && (!["standard_monthly", "barrel_monthly"].includes(input.plan)
+    || (privateMetadata?.membershipTrialSubscriptionId && privateMetadata.membershipTrialSubscriptionId !== input.subscriptionId))) return;
+  const now = new Date().toISOString();
+  await client.users.updateUserMetadata(userId, {
+    publicMetadata: {
+      ...(giftOverlay ? { giftPreviousMembership: { ...previous, status: input.status } } : { membershipStatus: input.status }),
+      membershipUpdatedAt: now,
+    },
+    privateMetadata: {
+      stripeMembershipStatus: input.status,
+      stripeMembershipUpdatedAt: now,
+      ...membershipTrialMetadata({ status: input.status, plan: input.plan, subscriptionId: input.subscriptionId, existingPrivateMetadata: privateMetadata, now }),
+    },
+  });
+}
+
 export async function suspendMembershipForSubscription(customerId: string, subscriptionId: string, status = "past_due", knownUserId?: string | null) {
   const user = knownUserId
     ? await (await clerkClient()).users.getUser(knownUserId)
@@ -366,7 +436,7 @@ export async function suspendMembershipForSubscription(customerId: string, subsc
       ? user.publicMetadata.giftPreviousMembership as Record<string, unknown> : {};
     const client = await clerkClient();
     await client.users.updateUserMetadata(user.id, {
-      publicMetadata: { ...user.publicMetadata, giftPreviousMembership: { ...previous, status }, membershipUpdatedAt: new Date().toISOString() },
+      publicMetadata: { giftPreviousMembership: { ...previous, status }, membershipUpdatedAt: new Date().toISOString() },
       privateMetadata: { ...user.privateMetadata, stripeMembershipStatus: status, ...trialMetadata },
     });
     return;
@@ -376,7 +446,6 @@ export async function suspendMembershipForSubscription(customerId: string, subsc
   const client = await clerkClient();
   await client.users.updateUserMetadata(user.id, {
     publicMetadata: {
-      ...user.publicMetadata,
       membershipStatus: status,
       membershipUpdatedAt: new Date().toISOString(),
     },
@@ -410,7 +479,7 @@ export async function downgradeMembershipForSubscription(customerId: string, sub
       ? user.publicMetadata.giftPreviousMembership as Record<string, unknown> : {};
     const client = await clerkClient();
     await client.users.updateUserMetadata(user.id, {
-      publicMetadata: { ...user.publicMetadata, giftPreviousMembership: { ...previous, status: "canceled" }, membershipUpdatedAt: new Date().toISOString() },
+      publicMetadata: { giftPreviousMembership: { ...previous, status: "canceled" }, membershipUpdatedAt: new Date().toISOString() },
       privateMetadata: { ...user.privateMetadata, stripeMembershipStatus: "canceled", ...trialMetadata },
     });
     return;

@@ -64,7 +64,7 @@ test('CityHive fallback accepts only fresh positive rows from the requested sour
   );
 });
 
-test('a rate-limited Tennessee source is not reported broken when fresh positive cache preserves it', () => {
+test('a rate-limited Tennessee source retains failed live-attempt evidence despite cache continuity', () => {
   const result = reconcileCityHiveRateLimitsWithCache({
     sources: [{
       id: 'happy-ours-wine-and-spirits',
@@ -83,7 +83,10 @@ test('a rate-limited Tennessee source is not reported broken when fresh positive
   });
 
   assert.deepEqual(result.recoveredSourceIds, ['happy-ours-wine-and-spirits']);
-  assert.deepEqual(result.roadblocks, [{ source: 'Another source', status: 500, error: 'HTTP 500' }]);
+  assert.deepEqual(result.roadblocks, [
+    { source: 'Happy Ours Wine & Spirits CityHive store inventory', status: 429, error: 'HTTP 429' },
+    { source: 'Another source', status: 500, error: 'HTTP 500' },
+  ]);
 });
 
 test('live rows do not disguise a current CityHive rate limit as recovered cache', () => {

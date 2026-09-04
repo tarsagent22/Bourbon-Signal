@@ -53,6 +53,7 @@ function splitSql(source) {
 }
 
 const schemaFiles = [
+  '../src/lib/push-ownership-schema.sql',
   '../src/lib/member-collection-schema.sql',
   '../src/lib/bottle-contribution-schema.sql',
   '../src/lib/approved-catalog-schema.sql',
@@ -64,6 +65,7 @@ const schemaFiles = [
   '../src/lib/gift-schema.sql',
   '../src/lib/community-sightings-schema.sql',
   '../src/lib/retailer-schema.sql',
+  '../src/lib/retailer-store-verification.sql',
   '../src/lib/hunt-outcome-schema.sql',
 ];
 const sql = neon(connectionString);
@@ -83,6 +85,7 @@ if (check) {
 }
 
 const expected = [
+  'member_push_ownership',
   'approved_catalog_bottles',
   'approved_catalog_locations',
   'welcome_signal_previews',
@@ -134,6 +137,7 @@ const rows = await sql.query(`
 const found = new Set(rows.map((row) => row.table_name));
 const missing = expected.filter((table) => !found.has(table));
 const requiredColumns = {
+  member_push_ownership: ['resource_hash', 'user_id', 'binding_id', 'expires_at', 'updated_at'],
   approved_catalog_bottles: ['id', 'normalized_name', 'payload', 'approved_by'],
   approved_catalog_locations: ['id', 'normalized_key', 'payload', 'approved_by'],
   welcome_signal_previews: ['user_id', 'payload', 'redeemed_at', 'expires_at'],
@@ -173,7 +177,7 @@ const requiredColumns = {
   member_collection_legacy_backups: ['user_id', 'payload'],
   member_collection_state: ['user_id', 'version', 'legacy_migrated_at'],
   retailer_applications: ['user_id', 'terms_accepted_at', 'decision_notified_status'],
-  retailer_stores: ['id', 'user_id', 'status'],
+  retailer_stores: ['id', 'user_id', 'status', 'verification_method', 'verification_contact', 'verified_by', 'verified_at'],
   retailer_submissions: ['id', 'user_id', 'store_id', 'status', 'payload'],
   hunt_outcomes: ['user_id', 'signal_id', 'availability_episode_id', 'outcome', 'source_type', 'state_code', 'submitted_at', 'updated_at'],
 };

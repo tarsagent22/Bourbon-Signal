@@ -1,5 +1,5 @@
 import { useLocalSearchParams } from "expo-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Keyboard, KeyboardAvoidingView, Linking, Modal, Platform, Pressable, RefreshControl, ScrollView, Share, StyleSheet, Switch, Text, TextInput, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import type { GeographySearchResponse, MemberAlert, MemberPreferences, MemberPreferencesPatch, MemberProfile, MonitoringScope, MonitoringScopeType, PushDeviceStatus, RadarBottleOption } from "../../../src/api/types";
@@ -7,8 +7,10 @@ import { MobileApiError } from "../../../src/api/client";
 import { relativeSignalTime } from "../../../src/api/presentation";
 import { ErrorState, LoadingState, MemberCard, SectionTitle, memberScreenStyles } from "../../../src/components/MemberScreen";
 import { useMobileApi } from "../../../src/hooks/useMobileApi";
+import { useScreenRevalidation } from "../../../src/hooks/useScreenRevalidation";
+import { useAccessibleStatus } from '../../../src/hooks/useAccessibleStatus';
 import { canonicalBottleKey } from "../../../src/interactions/member-interactions";
-import { ALERT_RARITY_TIERS, alertIsStale, compactMonitoringScopes, compactWatchedBottles, formatPhoneNumber, maskedPhoneNumber, memberAlertBottleNames, monitoringScopesChanged, presentPushIssue, radarLocalityDisplayName, radarMonitoringSummary, radarStateDisplayCode, radarWatchlistSummary, scopesForState, setBottleWatched, setStatewideScope, stopMonitoringState, toggleAlertRarity, toggleMonitoringScope, watchedBottleCount } from "../../../src/radar/radar-preferences";
+import { ALERT_RARITY_TIERS, alertIsStale, compactMonitoringScopes, compactWatchedBottles, formatPhoneNumber, maskedPhoneNumber, memberAlertBottleNames, monitoringScopesChanged, presentPushIssue, radarLocalityDisplayName, radarMonitoringSummary, radarStateDisplayCode, radarWatchlistSummary, scopesForState, bottleWatchMutation, setStatewideScope, stopMonitoringState, toggleAlertRarity, toggleMonitoringScope, watchedBottleCount } from "../../../src/radar/radar-preferences";
 import { disableRadarPush, enableRadarPush, radarPushDeviceId, radarPushPermission, refreshRadarPushIfEnabled, rememberRadarPushEnabled, watchRadarPushToken } from "../../../src/push/push-registration";
 import { colors } from "../../../src/theme";
 
@@ -47,38 +49,50 @@ export default function RadarScreen() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
   const [actionError, setActionError] = useState("");
+  const [saveNotice, setSaveNotice] = useState("");
+  const loadSequence = useRef(0);
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
+  useAccessibleStatus(actionError || error || saveNotice);
 
   const load = useCallback(async (fresh = false) => {
+    const sequence = ++loadSequence.current;
     setLoading(true); setError("");
     try {
       const [nextPreferences, nextAlerts, nextProfile, nextCatalog] = await Promise.all([
         api.getMemberPreferences({ fresh }), api.getMemberAlerts({ fresh }), api.getMemberProfile({ fresh }), api.listRadarBottles({ fresh }),
       ]);
+      if (sequence !== loadSequence.current) return;
       setPreferences(nextPreferences); setAlerts(nextAlerts); setProfile(nextProfile); setCatalog(nextCatalog);
+      setLastUpdated(new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' }));
       setPhone(nextPreferences.notificationPreferences.sms.phone || "");
       setPushError(""); setPushDiagnostic(""); setPushRetryEnabled(null);
       try {
         const [deviceId, permission] = await Promise.all([radarPushDeviceId(), radarPushPermission().catch(() => "undetermined")]);
         const nextPush = await api.getPushDeviceStatus(deviceId, { fresh });
+        if (sequence !== loadSequence.current) return;
         await rememberRadarPushEnabled(nextPush.enabled);
         const refreshedPush = nextPush.enabled ? await refreshRadarPushIfEnabled(api).catch(() => null) : null;
+        if (sequence !== loadSequence.current) return;
         setPushStatus(refreshedPush || nextPush); setPushPermission(permission); setPushStatusLoadFailed(false);
         if (nextPush?.warning) {
           const issue = presentPushIssue(nextPush.warning, "This iPhone is registered, but Push is still finishing setup.");
           setPushError(issue.message); setPushDiagnostic(issue.diagnostic); setPushRetryEnabled(true);
         }
       } catch (caught) {
+        if (sequence !== loadSequence.current) return;
         const issue = pushIssue(caught, "Push status is temporarily unavailable.");
         setPushError(issue.message); setPushDiagnostic(issue.diagnostic); setPushStatusLoadFailed(true); setPushStatus(null);
         setPushPermission(await radarPushPermission().catch(() => "undetermined"));
       }
     } catch (caught) {
+      if (sequence !== loadSequence.current) return;
       setError(caught instanceof Error ? caught.message : "Radar is temporarily unavailable.");
-    } finally { setLoading(false); }
+    } finally { if (sequence === loadSequence.current) setLoading(false); }
   }, [api]);
 
-  useEffect(() => { void load(false); }, [load]);
-  useEffect(() => { if (requestedSection === "matches" && request) setView("matches"); }, [requestedSection, request]);
+  useEffect(() => () => { loadSequence.current += 1; }, [api]);
+  useScreenRevalidation(() => load(true));
+  useEffect(() => { if (requestedSection === "matches" && request) { setView("matches"); void load(true); } }, [load, requestedSection, request]);
   useEffect(() => {
     let active = true;
     const subscription = watchRadarPushToken(api, (status) => { if (active && status) setPushStatus(status); });
@@ -95,10 +109,11 @@ export default function RadarScreen() {
 
   async function savePreferences(patch: MemberPreferencesPatch) {
     if (!preferences || saving || pushBusy) return null;
-    setSaving(true); setActionError("");
+    setSaving(true); setActionError(""); setSaveNotice("");
     try {
       const saved = await api.updateMemberPreferences(patch);
       setPreferences(saved);
+      setSaveNotice("Radar settings saved.");
       return saved;
     } catch (caught) {
       setActionError(caught instanceof Error ? caught.message : "Radar settings could not be saved.");
@@ -109,8 +124,7 @@ export default function RadarScreen() {
   async function setWatching(name: string, watched: boolean) {
     if (!preferences) return;
     try {
-      const bottleAlertPreferences = setBottleWatched(preferences, name, watched);
-      await savePreferences({ bottleAlertPreferences, alertMode: watched ? "specific_bottles" : preferences.alertMode });
+      await savePreferences({ watchlistMutation: bottleWatchMutation(name, watched), ...(watched ? { alertMode: "specific_bottles" as const } : {}) });
     } catch (caught) { setActionError(caught instanceof Error ? caught.message : "This watch could not be changed."); }
   }
 
@@ -162,6 +176,8 @@ export default function RadarScreen() {
     style={memberScreenStyles.screen}
   >
     <Text style={styles.overview}>{radarWatchlistSummary(preferences)} · {radarMonitoringSummary(preferences.monitoringScopes)} · {alerts.unreadCount} unread</Text>
+    {lastUpdated ? <Text style={styles.muted}>Updated {lastUpdated}{error ? ' · Showing last loaded data' : ''}</Text> : null}
+    {error ? <ErrorState message={error} onRetry={() => void load(true)} /> : null}
     <View accessibilityRole="tablist" style={styles.tabs}>{VIEWS.map((item) => <Pressable accessibilityRole="tab" accessibilityState={{ selected: view === item.key }} key={item.key} onPress={() => { Keyboard.dismiss(); setView(item.key); }} style={[styles.tab, view === item.key && styles.tabSelected]}><Text style={[styles.tabText, view === item.key && styles.tabTextSelected]}>{item.label}</Text></Pressable>)}</View>
     {actionError ? <Text accessibilityRole="alert" style={styles.error}>{actionError}</Text> : null}
 
@@ -236,7 +252,7 @@ function BottleWatchlist({ catalog, preferences, query, saving, watchedKeys, wat
   useEffect(() => { if (showAll && watchlist.totalCount <= 3) setShowAll(false); }, [showAll, watchlist.totalCount]);
   return <View style={styles.section}>
     <SectionTitle detail={typeof limit === "number" ? `${count} / ${limit}` : `${count} watched`}>Watched bottles</SectionTitle>
-    <TextInput autoCapitalize="words" autoCorrect={false} clearButtonMode="while-editing" onChangeText={onQuery} onSubmitEditing={Keyboard.dismiss} placeholder="Search to add or remove" placeholderTextColor={colors.muted} returnKeyType="search" style={styles.input} value={query} />
+    <TextInput accessibilityLabel="Search watched bottles" accessibilityHint="Search the bottle catalog to add or remove a watch." autoCapitalize="words" autoCorrect={false} clearButtonMode="while-editing" onChangeText={onQuery} onSubmitEditing={Keyboard.dismiss} placeholder="Search to add or remove" placeholderTextColor={colors.muted} returnKeyType="search" style={styles.input} value={query} />
     {query.trim() ? <View style={styles.stack}>{catalog.length ? catalog.map((bottle) => {
       const watched = watchedKeys.has(canonicalBottleKey(bottle.name));
       return <View key={bottle.id} style={styles.compactRow}><View style={styles.flex}><Text style={styles.listTitle}>{bottle.name}</Text>{bottle.rarity ? <Text style={styles.muted}>{bottle.rarity}</Text> : null}</View><TextAction disabled={saving} label={watched ? "REMOVE" : "WATCH"} onPress={() => void onSetWatching(bottle.name, !watched)} /></View>;
@@ -325,7 +341,7 @@ function WatchlistView({ catalog, phone, preferences, profile, pushBusy, pushDia
       <ToggleRow label="Community sightings" detail="Include qualified recent exact-store member reports" disabled={saving} value={preferences.notificationPreferences.sightings.enabled} onValueChange={(enabled) => void onSave({ notificationPreferences: { sightings: { enabled } } })} />
       <ToggleRow label="SMS" detail={!preferences.notificationPreferences.sms.available ? "Unavailable for this membership" : preferences.notificationPreferences.sms.verified ? "Phone verified" : "Enter a phone number to enable"} disabled={saving || !preferences.notificationPreferences.sms.available} value={preferences.notificationPreferences.sms.enabled} onValueChange={(enabled) => { if (!enabled || phone.trim()) void onSave({ notificationPreferences: { sms: { enabled, ...(phone.trim() ? { phone: phone.trim() } : {}) } } }); }} />
       {preferences.notificationPreferences.sms.available && preferences.notificationPreferences.sms.verified && !editingPhone ? <View style={styles.phoneSummary}><View><Text style={styles.muted}>Verified mobile</Text><Text style={styles.listTitle}>{maskedPhoneNumber(preferences.notificationPreferences.sms.phone)}</Text></View><TextAction label="CHANGE" disabled={saving} onPress={() => setEditingPhone(true)} /></View> : null}
-      {preferences.notificationPreferences.sms.available && (!preferences.notificationPreferences.sms.verified || editingPhone) ? <View style={styles.areaEditor}><TextInput editable={!saving} keyboardType="phone-pad" onChangeText={onPhone} placeholder="Mobile number" placeholderTextColor={colors.muted} style={styles.input} value={formatPhoneNumber(phone)} />{editingPhone ? <View style={styles.rowActions}><TextAction label="CANCEL" disabled={saving} onPress={() => { onPhone(preferences.notificationPreferences.sms.phone || ""); setEditingPhone(false); }} /><TextAction label="SAVE & ENABLE SMS" disabled={saving || phone.replace(/\D/g, "").length !== 10} onPress={() => void (async () => { const saved = await onSave({ notificationPreferences: { sms: { phone: phone.trim(), enabled: true } } }); if (saved) setEditingPhone(false); })()} /></View> : null}</View> : null}
+      {preferences.notificationPreferences.sms.available && (!preferences.notificationPreferences.sms.verified || editingPhone) ? <View style={styles.areaEditor}><TextInput accessibilityLabel="Mobile number for SMS alerts" accessibilityHint="Enter your mobile number. Enabling SMS gives consent to receive alert messages." editable={!saving} keyboardType="phone-pad" onChangeText={onPhone} placeholder="Mobile number" placeholderTextColor={colors.muted} style={styles.input} value={formatPhoneNumber(phone)} />{editingPhone ? <View style={styles.rowActions}><TextAction label="CANCEL" disabled={saving} onPress={() => { onPhone(preferences.notificationPreferences.sms.phone || ""); setEditingPhone(false); }} /><TextAction label="SAVE & ENABLE SMS" disabled={saving || phone.replace(/\D/g, "").length !== 10} onPress={() => void (async () => { const saved = await onSave({ notificationPreferences: { sms: { phone: phone.trim(), enabled: true } } }); if (saved) setEditingPhone(false); })()} /></View> : null}</View> : null}
     </MemberCard>
 
     <SectionTitle detail="Applies to inbox, push, email, and SMS">Bottle rarity</SectionTitle>
@@ -344,7 +360,7 @@ function WatchlistView({ catalog, phone, preferences, profile, pushBusy, pushDia
             <View style={styles.choiceRow}><Choice label={`Selected (${selectedInEditor.length})`} selected={editorTab === "selected"} onPress={() => setEditorTab("selected")} /><Choice label="Browse" selected={editorTab === "browse"} onPress={() => setEditorTab("browse")} /></View>
             <Pressable accessibilityRole="radio" accessibilityState={{ checked: selectedInEditor.some((scope) => scope.type === "state") }} onPress={() => editorState && setDraftScopes(setStatewideScope(draftScopes, editorState))} style={[styles.areaRow, selectedInEditor.some((scope) => scope.type === "state") && styles.areaRowSelected]}><Text style={styles.areaRowText}>Statewide</Text><Text style={styles.areaState}>{selectedInEditor.some((scope) => scope.type === "state") ? "SELECTED" : "CHOOSE"}</Text></Pressable>
             {editorTab === "browse" ? <Text style={styles.scopeGuidance}>{selectedInEditor.some((scope) => scope.type === "state") ? "Adding a local filter replaces statewide monitoring." : "Choosing Statewide replaces your local filters."}</Text> : null}
-            {editorTab === "browse" ? <><ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.levelScroller} contentContainerStyle={styles.levelRow}>{levels.map((level) => <Pressable key={level} onPress={() => { setEditorLevel(level); setAreaOffset(0); setAreaPage([]); }} style={[styles.levelChip, editorLevel === level && styles.chipSelected]}><Text style={[styles.chipText, editorLevel === level && styles.chipTextSelected]}>{level[0]?.toUpperCase()}{level.slice(1)}</Text></Pressable>)}</ScrollView><TextInput autoCorrect={false} clearButtonMode="while-editing" onChangeText={(value) => { setAreaQuery(value); setAreaOffset(0); setAreaPage([]); }} placeholder={`Search ${editorLevel}`} placeholderTextColor={colors.muted} style={styles.input} value={areaQuery} /></> : null}
+            {editorTab === "browse" ? <><ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.levelScroller} contentContainerStyle={styles.levelRow}>{levels.map((level) => <Pressable key={level} onPress={() => { setEditorLevel(level); setAreaOffset(0); setAreaPage([]); }} style={[styles.levelChip, editorLevel === level && styles.chipSelected]}><Text style={[styles.chipText, editorLevel === level && styles.chipTextSelected]}>{level[0]?.toUpperCase()}{level.slice(1)}</Text></Pressable>)}</ScrollView><TextInput autoCorrect={false} clearButtonMode="while-editing" onChangeText={(value) => { setAreaQuery(value); setAreaOffset(0); setAreaPage([]); }} accessibilityLabel={`Search ${editorLevel}`} accessibilityHint="Search available monitoring areas." placeholder={`Search ${editorLevel}`} placeholderTextColor={colors.muted} style={styles.input} value={areaQuery} /></> : null}
             <ScrollView contentContainerStyle={styles.resultsContent} keyboardDismissMode="on-drag" keyboardShouldPersistTaps="handled" style={styles.resultsList}>
               {editorTab === "selected" && selectedInEditor.some((scope) => scope.type === "state") ? <Text style={styles.muted}>Statewide monitoring is on. Choose Browse to replace it with local filters.</Text> : null}
               {visibleRows.map((row) => { const displayName = "displayName" in row && typeof row.displayName === "string" ? row.displayName : row.level === "city" ? radarLocalityDisplayName(row.name) : row.name; const scope: MonitoringScope = { type: row.level, id: row.id, state: row.state, label: row.name }; const selected = draftScopes.some((item) => item.id === row.id); const subtitle = "subtitle" in row && typeof row.subtitle === "string" ? row.subtitle : ""; const message = "message" in row && typeof row.message === "string" ? row.message : ""; return <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: selected }} key={row.id} onPress={() => setDraftScopes(toggleMonitoringScope(draftScopes, scope))} style={[styles.areaRow, selected && styles.areaRowSelected]}><View style={styles.flex}><Text numberOfLines={2} style={styles.areaRowText}>{displayName}</Text>{subtitle ? <Text numberOfLines={1} style={styles.areaSubtitle}>{subtitle}</Text> : null}{message ? <Text numberOfLines={2} style={styles.muted}>{message}</Text> : null}</View><Text style={[styles.areaState, selected && styles.areaStateSelected]}>{editorTab === "selected" ? "REMOVE" : selected ? "ADDED" : "ADD"}</Text></Pressable>; })}

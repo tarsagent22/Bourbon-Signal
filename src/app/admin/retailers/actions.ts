@@ -4,22 +4,17 @@ import { auth, clerkClient } from "@clerk/nextjs/server";
 import { revalidatePath } from "next/cache";
 import { notFound, redirect } from "next/navigation";
 import { isRetailerAdminEmail } from "@/lib/retailer-admin";
+import { verifiedPrimaryClerkEmail } from "@/lib/owner-auth";
 import { getRetailerRepository, type RetailerApplicationRecord } from "@/lib/retailer-repository";
 import { normalizeRetailerStatus } from "@/lib/retailer-portal";
 import { notifyRetailerDecision } from "@/lib/retailer-notifications";
-
-function primaryEmail(user: { emailAddresses?: Array<{ id?: string; emailAddress?: string }>; primaryEmailAddressId?: string | null }) {
-  const emails = user.emailAddresses || [];
-  const primary = emails.find((email) => email.id === user.primaryEmailAddressId) || emails[0];
-  return primary?.emailAddress?.trim().toLowerCase() || "";
-}
 
 export async function requireRetailerAdminAccess() {
   const { userId } = await auth();
   if (!userId) redirect("/sign-in?redirect_url=/admin/control-room%23retailers");
   const client = await clerkClient();
   const admin = await client.users.getUser(userId);
-  if (!isRetailerAdminEmail(primaryEmail(admin))) notFound();
+  if (!isRetailerAdminEmail(verifiedPrimaryClerkEmail(admin))) notFound();
   return { client, admin };
 }
 
@@ -75,6 +70,21 @@ export async function updateRetailerStatus(formData: FormData) {
   if (application.status === "verified" || application.status === "rejected") {
     try { await deliverRetailerDecision(application); } catch (error) { console.error("Retailer decision email failed", error); }
   }
+  refreshRetailerWorkspaces();
+}
+
+export async function verifyRetailerStore(formData: FormData) {
+  const { admin } = await requireRetailerAdminAccess();
+  const userId = String(formData.get("userId") || "");
+  const storeId = String(formData.get("storeId") || "");
+  const expectedUpdatedAt = String(formData.get("expectedUpdatedAt") || "");
+  const status = formData.get("status");
+  if (!userId || !storeId || !Number.isFinite(Date.parse(expectedUpdatedAt)) || (status !== "verified" && status !== "rejected")) return;
+  await getRetailerRepository().updateStoreVerification({
+    userId, storeId, status, expectedUpdatedAt, reviewedBy: admin.id,
+    verificationMethod: String(formData.get("verificationMethod") || ""),
+    verificationContact: String(formData.get("verificationContact") || ""),
+  });
   refreshRetailerWorkspaces();
 }
 

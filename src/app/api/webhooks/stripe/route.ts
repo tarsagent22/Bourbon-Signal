@@ -1,9 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
-import { clerkClient } from "@clerk/nextjs/server";
 import Stripe from "stripe";
-import { isMembershipAccessActive, normalizeMembershipTier, type BillingPlanId } from "@/lib/entitlements";
+import { isMembershipAccessActive, type BillingPlanId } from "@/lib/entitlements";
 import { getCheckoutPlanByPriceId, getPlanByPriceId, LAUNCH_BILLING_PLANS, type LaunchBillingPlan } from "@/lib/stripe-plans";
-import { activateMembership, downgradeMembershipForSubscription, findUserByEmailAddress, findUserByStripeCustomerId, suspendMembershipForSubscription } from "@/lib/membership-server";
+import { activateMembership, downgradeMembershipForSubscription, findUserByEmailAddress, findUserByStripeCustomerId, reconcileExistingSubscriptionStatus, suspendMembershipForSubscription } from "@/lib/membership-server";
 import { reconcileReferredMembership } from "@/lib/referral-service";
 import { isGiftPurchase } from "@/lib/gifts";
 import { handleDirectFounderStripeEvent, handleGiftStripeEvent } from "@/lib/gift-stripe-webhook";
@@ -23,6 +22,35 @@ function getWebhookSecret() {
 
 function stringValue(value: unknown) {
   return typeof value === "string" ? value : null;
+}
+
+function stripeObjectId(value: unknown) {
+  if (typeof value === "string") return value;
+  return value && typeof value === "object" && "id" in value ? stringValue(value.id) : null;
+}
+
+async function reconcileInvoiceSubscription(stripe: Stripe, invoice: Stripe.Invoice) {
+  const customerId = stripeObjectId(invoice.customer);
+  const legacy = (invoice as unknown as { subscription?: unknown }).subscription;
+  const modern = invoice.parent?.subscription_details?.subscription;
+  const legacyId = stripeObjectId(legacy);
+  const modernId = stripeObjectId(modern);
+  if (legacyId && modernId && legacyId !== modernId) return;
+  const subscriptionId = modernId || legacyId;
+  // A customer-only invoice is not evidence about their current subscription.
+  if (!customerId || !subscriptionId) return;
+  const user = await findUserByStripeCustomerId(customerId);
+  if (!user || user.privateMetadata?.stripeSubscriptionId !== subscriptionId) return;
+  const subscription = await retrieveCurrentSubscription(stripe, subscriptionId);
+  if (!subscription || subscription.id !== subscriptionId || stripeObjectId(subscription.customer) !== customerId) return;
+  if (subscription.metadata?.userId && subscription.metadata.userId !== user.id) return;
+  // Invoice recovery cannot select a plan from metadata or create new authority.
+  if (subscription.items.data.length !== 1 || subscription.items.has_more) return;
+  const plan = getPlanByPriceId(subscription.items.data[0]?.price.id);
+  if (!plan || plan.id === "bib_lifetime") return;
+  await reconcileExistingSubscriptionStatus(user.id, {
+    customerId, subscriptionId, plan: plan.id, status: subscription.status,
+  });
 }
 
 function isReferralEligiblePurchase(metadata: Stripe.Metadata | null | undefined) {
@@ -191,38 +219,8 @@ export async function POST(req: NextRequest) {
     if (customerId) await downgradeMembershipForSubscription(customerId, subscription.id, metadataUserId);
   }
 
-  if (event.type === "invoice.payment_failed") {
-    const invoice = event.data.object as Stripe.Invoice;
-    const customerId = stringValue(invoice.customer);
-    const user = customerId ? await findUserByStripeCustomerId(customerId) : null;
-    if (user) {
-      const subscriptionId = stringValue((invoice as unknown as { subscription?: unknown }).subscription) || stringValue(user.privateMetadata?.stripeSubscriptionId) || "";
-      if (customerId && subscriptionId) await suspendMembershipForSubscription(customerId, subscriptionId, "past_due");
-    }
-  }
-
-  if (event.type === "invoice.payment_succeeded") {
-    const invoice = event.data.object as Stripe.Invoice;
-    const customerId = stringValue(invoice.customer);
-    const user = customerId ? await findUserByStripeCustomerId(customerId) : null;
-    if (user && normalizeMembershipTier(user.publicMetadata?.tier) !== "free") {
-      const client = await clerkClient();
-      const currentPlan = stringValue(user.publicMetadata?.plan) || stringValue(user.publicMetadata?.billingPlan);
-      const previous = user.publicMetadata?.giftPreviousMembership && typeof user.publicMetadata.giftPreviousMembership === "object"
-        ? user.publicMetadata.giftPreviousMembership as Record<string, unknown> : null;
-      await client.users.updateUserMetadata(user.id, {
-        publicMetadata: {
-          ...user.publicMetadata,
-          membershipStatus: "active",
-          ...(currentPlan?.startsWith("gift_") && previous ? { giftPreviousMembership: { ...previous, status: "active" } } : {}),
-          membershipUpdatedAt: new Date().toISOString(),
-        },
-        privateMetadata: {
-          ...user.privateMetadata,
-          stripeMembershipStatus: "active",
-        },
-      });
-    }
+  if (event.type === "invoice.payment_failed" || event.type === "invoice.payment_succeeded") {
+    await reconcileInvoiceSubscription(stripe, event.data.object as Stripe.Invoice);
   }
 
   return NextResponse.json({ received: true });

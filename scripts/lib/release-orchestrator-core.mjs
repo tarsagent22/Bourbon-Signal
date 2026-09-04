@@ -75,6 +75,21 @@ export function parsePorcelainPaths(status) {
 }
 
 export function evaluateCronRegistration(payload, expected) {
+  if (Array.isArray(expected)) {
+    const crons = Array.isArray(payload?.crons) ? payload.crons : [];
+    const results = expected.map((entry) => evaluateCronRegistration(payload, entry));
+    const failures = results.flatMap((result) => result.failures);
+    const paths = new Set(expected.map((entry) => entry.path));
+    if (!expected.length || paths.size !== expected.length || expected.some((entry) => !entry.path || !entry.schedule || !entry.host)) failures.push('Invalid approved cron set.');
+    if (!Array.isArray(payload?.crons)) failures.push('Missing cron registration evidence.');
+    for (const cron of crons) {
+      if (!paths.has(cron.path)) failures.push(`Unapproved registered cron ${cron.path}.`);
+      if (crons.filter((row) => row.path === cron.path).length !== 1) failures.push(`Duplicate registered cron ${cron.path}.`);
+    }
+    const pending = [...(Array.isArray(payload?.undeployed) ? payload.undeployed : []), ...(Array.isArray(payload?.modified) ? payload.modified : [])];
+    if (pending.length) failures.push('Pending undeployed/modified cron configuration.');
+    return { ok: failures.length === 0, expected, actual: crons, pending, failures };
+  }
   const crons = Array.isArray(payload?.crons) ? payload.crons : [];
   const matching = crons.find((cron) => cron.path === expected.path);
   const pending = [

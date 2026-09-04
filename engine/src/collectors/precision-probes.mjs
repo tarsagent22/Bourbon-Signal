@@ -1,5 +1,7 @@
 import { renameSync } from 'node:fs';
-import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, rm } from 'node:fs/promises';
+import { collectionRequestSignal, throwIfCollectionAborted, withCollectionContext, writeCollectionFile as writeFile } from '../core/collection-context.mjs';
+import { readBoundedCollectionBody, fetchCollectionResponse } from '../core/collection-http.mjs';
 import { execFile } from 'node:child_process';
 import { promisify } from 'node:util';
 import path from 'node:path';
@@ -1704,25 +1706,27 @@ export async function readBoundedPrecisionResponse(response, {
 }
 
 async function textFetch(url, options = {}) {
+  options = { ...options, signal: collectionRequestSignal(options.signal) };
   const timeoutMs = Number(options.timeoutMs || process.env.BOURBON_SIGNAL_PRECISION_FETCH_TIMEOUT_MS || 18_000);
   const controller = new AbortController();
   const timeout = timeoutMs > 0 ? setTimeout(() => controller.abort(), timeoutMs) : null;
-  const signals = [controller.signal, options.signal].filter(Boolean);
+  const signal = AbortSignal.any([controller.signal, options.signal].filter(Boolean));
+  let response;
   try {
-    const res = await fetch(url, {
-      redirect: options.redirect || 'follow',
+    const fetched = await fetchCollectionResponse(url, {
+      reviewedSeedUrls: options.reviewedSeedUrls,
+      maxRedirects: options.maxRedirects,
       headers: { 'user-agent': 'Mozilla/5.0 (BourbonSignal research)', accept: 'text/html,application/json,text/csv,*/*', ...(options.headers || {}) },
       method: options.method || 'GET',
       body: options.body,
-      signal: signals.length > 1 ? AbortSignal.any(signals) : controller.signal
+      signal
     });
-    const text = options.maxBytes
-      ? await readBoundedPrecisionResponse(res, { url: res.url || url, maxBytes: options.maxBytes })
-      : await res.text();
-    return { ok: res.ok, status: res.status, url: res.url, contentType: res.headers.get('content-type') || '', rawSetCookie: res.headers.get('set-cookie') || '', retryAfter: res.headers.get('retry-after'), text, error: null };
+    const res = response = fetched.response;
+    const text = (await readBoundedCollectionBody(res, { maxBytes: options.maxBytes, signal })).toString('utf8');
+    return { ok: res.ok, status: res.status, url: fetched.url, contentType: res.headers.get('content-type') || '', rawSetCookie: res.headers.get('set-cookie') || '', retryAfter: res.headers.get('retry-after'), text, error: null };
   } catch (error) {
     if (options.signal?.aborted) throw error;
-    return { ok: false, status: 0, url, contentType: '', text: '', error: error instanceof Error ? error.message : String(error) };
+    return { ok: false, status: response?.status || 0, url, contentType: '', text: '', error: error instanceof Error ? error.message : String(error) };
   } finally {
     if (timeout) clearTimeout(timeout);
   }
@@ -9420,7 +9424,7 @@ async function collectPrecisionProbesDirect(config, bible, existingSignals = [],
   if (config.id === 'UT') return collectUtah(config, bible);
   if (config.id === 'ID') return collectIdaho(config, bible);
   if (config.id === 'AL') return collectAlabama(config, bible);
-  if (config.id === 'NC') return collectNorthCarolinaIntelligence(config, bible, collectNcStoreInventory);
+  if (config.id === 'NC') return collectNorthCarolinaIntelligence(config, bible, collectNcStoreInventory, options);
   if (config.id === 'IL') return collectIllinois(config, bible);
   if (config.id === 'IN') return collectIndiana(config, bible, existingSignals, options);
   if (config.id === 'TN') return collectTennessee(config, bible, options);
@@ -9431,7 +9435,7 @@ async function collectPrecisionProbesDirect(config, bible, existingSignals = [],
   if (config.id === 'GA') return collectGeorgia(config, bible, options);
   if (config.id === 'NY' || config.id === 'CO') return collectMetroRetailers(config, bible, options);
   if (config.id === 'SC') return collectSouthCarolina(config, bible);
-  if (config.id === 'TX') return collectTexas(config, bible, existingSignals);
+  if (config.id === 'TX') return withCollectionContext(options, () => collectTexas(config, bible, existingSignals));
   if (config.id === 'VA') return collectVirginia(config, bible, options);
   if (config.id === 'PA') return collectPennsylvania(config, bible);
   if (config.id === 'MD-MONTGOMERY') return collectMontgomery(config, bible);
@@ -9497,7 +9501,10 @@ export async function collectPrecisionProbes(config, bible, existingSignals = []
     stateId: config.id,
     label: `${config.label} precision collector`,
     url: precisionRuntimeUrl(config),
-    collect: ({ signal }) => collectPrecisionProbesDirect(config, bible, precisionExistingSignals, { ...options, signal }),
+    collect: ({ signal }) => collectPrecisionProbesDirect(config, bible, precisionExistingSignals, {
+      ...options,
+      signal: options.signal ? AbortSignal.any([signal, options.signal]) : signal,
+    }),
     previousResults: eligibleMetroPreviousPrecisionResults(options.previousSourceResults, config.id),
     circuitBreaker: options.sourceCircuitBreaker,
     sourceRunnerOptions: legacyPrecisionRuntimeOptions(config.id, sourceRunnerOptions),
@@ -10020,12 +10027,24 @@ async function collectOhio(config, bible) {
     const browserRun = browserArtifact.browserRun;
     if (!browserRun) throw new Error('OHLQ browser artifact unavailable');
     previousFinishedAt = browserRun.generatedAt || null;
+    let complete = Array.isArray(browserRun.products) && browserRun.products.length > 0 && browserArtifact.freshArtifact === true;
+    let recordsInspected = 0;
+    const negativeObservations = [];
+    const inspectedScope = [];
     for (const product of browserRun.products || []) {
-      if (!product.ok || !Array.isArray(product.inventories)) continue;
+      if (!product.ok || !Array.isArray(product.inventories)) { complete = false; continue; }
       const productSku = String(product.sku || '').toLowerCase();
       const variantRows = product.inventories.filter((store) => String(store.VariantCode || '').toLowerCase() === productSku);
       const hasVariantCodes = product.inventories.some((store) => Boolean(store.VariantCode));
       const matchingRows = variantRows.length ? variantRows : hasVariantCodes ? [] : product.inventories;
+      if (!productSku || !matchingRows.length) complete = false;
+      for (const store of matchingRows) {
+        const availability = ohlqAvailability(store.I);
+        if (!store.AgencyId || availability.status === 'unknown' || (store.State && store.State !== 'OH')) { complete = false; continue; }
+        recordsInspected += 1;
+        inspectedScope.push({ sku: product.sku, storeId: String(store.AgencyId) });
+        if (!availability.positive) negativeObservations.push({ sku: product.sku, storeId: String(store.AgencyId), availabilityStatus: availability.status, observedAt: browserRun.generatedAt });
+      }
       const bucketCounts = matchingRows.reduce((counts, store) => {
         const availability = ohlqAvailability(store.I);
         counts[availability.status] = (counts[availability.status] || 0) + 1;
@@ -10066,7 +10085,7 @@ async function collectOhio(config, bible) {
       if (product.ok) continue;
       roadblocks.push({ state: config.id, source: 'OHLQ browser-assisted product availability API', url: product.pageUrl || product.endpoint || browserOutPath, status: product.status || 0, error: product.error || 'Browser collector did not return inventory rows', nextRoute: 'Check product slug/SKU, page Cloudflare state, and OHLQ rendered csrf token.' });
     }
-    if (signals.length) {
+    if (signals.length || complete) {
       roadblocks.push({
         state: config.id,
         source: 'OHLQ direct server fetch',
@@ -10075,7 +10094,8 @@ async function collectOhio(config, bible) {
         error: 'OHLQ live rows were collected from the signed worker-artifact handoff. Direct Node fetch remains Cloudflare-gated, so scheduled production collection must continue to hydrate the worker artifact rather than bypass the WAF.',
         nextRoute: 'Keep the unattended OHLQ worker publishing fresh signed artifacts, and investigate worker-side session drift when hydration stops refreshing.'
       });
-      return { signals, roadblocks, stale, staleReason, previousFinishedAt };
+      return { signals, roadblocks, stale, staleReason, previousFinishedAt,
+        metadata: { complete, outcome: complete ? (signals.length ? 'complete_positive' : 'complete_empty') : 'partial', recordsInspected, inspectedScope, negativeObservations } };
     }
   } catch {
     // Fall through to static discovery evidence below; the browser collector is optional for normal raw-fetch runs.

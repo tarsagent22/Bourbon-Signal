@@ -5,6 +5,8 @@ import { persistPushDeviceChange, pushDeviceErrorBody, type PushDeviceErrorCode 
 import { normalizePushDevices, type PushPlatform } from "@/lib/push-devices";
 import { isServerPaidTier } from "@/lib/server-entitlements";
 import { normalizeNotificationPreferences } from "@/lib/notification-preferences";
+import { withMemberAlertLease } from "@/lib/alert-queue/member-lease";
+import { getPushOwnershipRepository, ownedPushDevices, withPushOwnershipLease } from "@/lib/push-ownership";
 
 const HEADERS = { "Cache-Control": "private, no-store", Vary: "Cookie, Authorization" };
 function errorResponse(status: number, code: PushDeviceErrorCode, message: string, requestId: string, retryable = false) {
@@ -49,7 +51,7 @@ export async function GET(req: NextRequest) {
     const deviceId = req.nextUrl.searchParams.get("deviceId")?.trim().slice(0, 120) || "";
     const publicPushEnabled = normalizeNotificationPreferences(user.publicMetadata?.notificationPreferences).push.enabled;
     return Response.json(responseFor(
-      normalizePushDevices(privateMetadata.pushDevices),
+      await ownedPushDevices(userId, privateMetadata.pushDevices),
       deviceId,
       requestId,
       projectionStatus(privateMetadata.pushPreferenceProjection),
@@ -65,9 +67,11 @@ export async function POST(req: NextRequest) {
   const { userId } = await auth();
   if (!userId) return errorResponse(401, "PUSH_PROFILE_LOAD_FAILED", "Sign in to change push registration.", requestId);
   const body = (await req.json().catch(() => ({}))) as { action?: "register" | "disable"; deviceId?: string; expoPushToken?: string; platform?: PushPlatform };
-  if (!body.deviceId?.trim() || (body.action !== "register" && body.action !== "disable")) {
+  if (!body || typeof body.deviceId !== "string" || !body.deviceId.trim() || body.deviceId.length > 120 || (body.action !== "register" && body.action !== "disable") || (body.action === "register" && (typeof body.expoPushToken !== "string" || !["ios", "android"].includes(body.platform || "")))) {
     return errorResponse(400, "PUSH_VALIDATION_FAILED", "A device ID and valid action are required.", requestId);
   }
+  body.deviceId = body.deviceId.trim();
+  const change = async (assertMemberHeld: () => Promise<void>) => {
   let client: Awaited<ReturnType<typeof clerkClient>>;
   let user: Awaited<ReturnType<Awaited<ReturnType<typeof clerkClient>>["users"]["getUser"]>>;
   try {
@@ -86,22 +90,36 @@ export async function POST(req: NextRequest) {
     }
   }
   const privateMetadata = (user.privateMetadata && typeof user.privateMetadata === "object" ? user.privateMetadata : {}) as Record<string, unknown>;
+  return withPushOwnershipLease([{ deviceId: body.deviceId!, expoPushToken: body.action === "register" ? body.expoPushToken?.trim() : undefined }], async assertOwnershipHeld => {
   let saved;
   try {
     saved = await persistPushDeviceChange({
       currentDevices: privateMetadata.pushDevices,
-      action: body.action,
-      device: { deviceId: body.deviceId, expoPushToken: body.expoPushToken, platform: body.platform },
+      action: body.action!,
+      device: { deviceId: body.deviceId!, expoPushToken: body.expoPushToken, platform: body.platform },
       now: new Date().toISOString(),
       writePrivateDevices: async (pushDevices, pushPreferenceProjection) => {
+        await assertMemberHeld();
+        await assertOwnershipHeld();
+        const ownership = getPushOwnershipRepository();
+        if (body.action === "register") {
+          const target = pushDevices.find(device => device.deviceId === body.deviceId)!;
+          target.bindingId = randomUUID();
+          await ownership.bind(userId, target, target.bindingId);
+        } else {
+          // Revoke BEFORE metadata. A partial Clerk failure must not leave a live binding.
+          await ownership.disable(userId, body.deviceId!);
+        }
         await client.users.updateUserMetadata(userId, { privateMetadata: { pushDevices, pushPreferenceProjection } });
       },
       writePublicPushPreference: async (enabled) => {
+        await assertMemberHeld();
         await client.users.updateUserMetadata(userId, {
           publicMetadata: { notificationPreferences: { push: { enabled } } },
         });
       },
       writeProjectionState: async (pushPreferenceProjection) => {
+        await assertMemberHeld();
         await client.users.updateUserMetadata(userId, { privateMetadata: { pushPreferenceProjection } });
       },
     });
@@ -109,5 +127,14 @@ export async function POST(req: NextRequest) {
     const validation = error instanceof Error && /invalid push device/i.test(error.message);
     return errorResponse(validation ? 400 : 503, validation ? "PUSH_VALIDATION_FAILED" : "PUSH_DEVICE_WRITE_FAILED", validation ? error.message : "This device could not be saved.", requestId, !validation);
   }
-  return Response.json(responseFor(saved.devices, body.deviceId, requestId, saved.preferenceProjection, saved.pushEnabled), { headers: HEADERS });
+  return Response.json(responseFor(await ownedPushDevices(userId, saved.devices), body.deviceId!, requestId, saved.preferenceProjection, saved.pushEnabled), { headers: HEADERS });
+  });
+  };
+  try {
+    const leased = await withMemberAlertLease(userId, change, { requireDurable: true });
+    if (!leased.acquired) return errorResponse(409, "PUSH_DEVICE_WRITE_FAILED", "Member preferences are busy. Retry shortly.", requestId, true);
+    return leased.result;
+  } catch {
+    return errorResponse(503, "PUSH_DEVICE_WRITE_FAILED", "Shared push registration is temporarily unavailable.", requestId, true);
+  }
 }

@@ -1,9 +1,11 @@
 import type { RetailerApplicationRecord, RetailerSubmissionRecord } from "@/lib/retailer-repository";
+import { getRetailerRepository } from "@/lib/retailer-repository";
 import {
   removeRetailerAccess,
   removeRetailerSubmission,
   resendRetailerDecisionNotification,
   updateRetailerStatus,
+  verifyRetailerStore,
 } from "@/app/admin/retailers/actions";
 
 type Props = {
@@ -11,7 +13,10 @@ type Props = {
   submissions: RetailerSubmissionRecord[];
 };
 
-export default function RetailerAdministration({ retailers, submissions }: Props) {
+export default async function RetailerAdministration({ retailers, submissions }: Props) {
+  const storesByUser = new Map(await Promise.all(retailers.map(async (retailer) => [
+    retailer.userId, await getRetailerRepository().listStores(retailer.userId, true),
+  ] as const)));
   const pendingCount = retailers.filter((retailer) => retailer.status === "pending").length;
   return (
     <section className="cr-section cr-retailer-section">
@@ -74,6 +79,22 @@ export default function RetailerAdministration({ retailers, submissions }: Props
                   </div>
                 </div>
 
+                {(storesByUser.get(application.userId) || []).filter((store) => !store.isPrimary).map((store) => (
+                  <section className="cr-retailer-submissions" key={store.id}>
+                    <h3>{store.storeName} — {store.status}</h3>
+                    <p>{store.storeAddress} · {store.listedPhone}</p>
+                    <p>Verify this location through an independently sourced official contact.</p>
+                    <form action={verifyRetailerStore} className="cr-retailer-verify">
+                      <input type="hidden" name="userId" value={application.userId} />
+                      <input type="hidden" name="storeId" value={store.id} />
+                      <input type="hidden" name="expectedUpdatedAt" value={store.updatedAt} />
+                      <label>Location decision<select name="status" defaultValue="verified"><option value="verified">Verify location</option><option value="rejected">Reject location</option></select></label>
+                      <label>Independent verification<select name="verificationMethod" required><option value="public_phone">Public phone callback</option><option value="business_email">Official business email</option></select></label>
+                      <label>Official contact used<input name="verificationContact" required maxLength={240} /></label>
+                      <button type="submit" disabled={application.status !== "verified"}>Save location decision</button>
+                    </form>
+                  </section>
+                ))}
                 {retailerSubmissions.length ? (
                   <div className="cr-retailer-submissions">
                     <h3>Submitted signals</h3>

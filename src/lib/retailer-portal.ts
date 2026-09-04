@@ -153,6 +153,7 @@ export function normalizeRetailerSubmission(input: unknown, now = new Date()): R
   const nowDate = Number.isNaN(now.getTime()) ? new Date() : now;
   const requestedTimeZone = text(row.timeZone, 64);
   const timeZone = requestedTimeZone ? normalizeRetailerTimeZone(requestedTimeZone) : "";
+  if (requestedTimeZone && timeZone !== requestedTimeZone) return { ok: false, error: "Choose a supported store time zone." };
   const requestedStart = text(row.startsAt, 40);
   const requestedEnd = text(row.expiresAt, 40);
   const usesLocalDateTime = [requestedStart, requestedEnd].some((value) => /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2})?$/.test(value));
@@ -176,6 +177,9 @@ export function normalizeRetailerSubmission(input: unknown, now = new Date()): R
     if (!endDate) return { ok: false, error: "Choose a valid availability end date and time." };
     if (endDate.getTime() <= startDate.getTime()) {
       return { ok: false, error: "Availability must end after it goes live." };
+    }
+    if (endDate.getTime() - startDate.getTime() > RETAILER_SIGNAL_FRESHNESS_MS) {
+      return { ok: false, error: "Availability must end within 24 hours of going live. Post again after reconfirming stock." };
     }
     expiresAt = endDate.toISOString();
   } else if (requestedEnd) {
@@ -218,6 +222,8 @@ export function retailerSubmissionLifecycle(
   const nowMs = now.getTime();
   const startsAt = parsedDate(submission.startsAt)?.getTime();
   const expiresAt = parsedDate(submission.expiresAt)?.getTime();
+  if (startsAt === undefined || expiresAt === undefined || expiresAt <= startsAt
+    || expiresAt - startsAt > RETAILER_SIGNAL_FRESHNESS_MS) return "ended";
   if (expiresAt !== undefined && expiresAt !== null && expiresAt <= nowMs) return "ended";
   if (startsAt !== undefined && startsAt !== null && startsAt > nowMs) return "upcoming";
   return "live";

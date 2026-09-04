@@ -3,10 +3,13 @@ import { alertQueueDatabaseConfigured, createProductionAlertQueueRepository } fr
 
 export async function withMemberAlertLease<T>(
   userId: string,
-  operation: () => Promise<T>,
+  operation: (assertHeld: () => Promise<void>) => Promise<T>,
+  options: { requireDurable?: boolean } = {},
 ): Promise<{ acquired: true; result: T } | { acquired: false }> {
   if (!alertQueueDatabaseConfigured()) {
-    return { acquired: true, result: await operation() };
+    if (options.requireDurable) throw new Error("durable_member_lease_unavailable");
+    // No in-memory or unlocked production substitute for a cross-server lease.
+    return { acquired: false };
   }
 
   const repository = createProductionAlertQueueRepository();
@@ -20,8 +23,11 @@ export async function withMemberAlertLease<T>(
   );
   if (!acquired) return { acquired: false };
 
+  const assertHeld = async () => {
+    if (!(await repository.renewLease(`member:${userId}`, owner))) throw new Error("member_lease_lost");
+  };
   try {
-    return { acquired: true, result: await operation() };
+    return { acquired: true, result: await operation(assertHeld) };
   } finally {
     await repository.releaseLease(`member:${userId}`, owner);
   }

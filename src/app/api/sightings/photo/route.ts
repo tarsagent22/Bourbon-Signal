@@ -1,9 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
-import { BlobNotFoundError, del, head } from "@vercel/blob";
+import { BlobNotFoundError, head } from "@vercel/blob";
 import { handleUpload, type HandleUploadBody } from "@vercel/blob/client";
 import { getBourbonBible } from "@/lib/bourbonBible";
-import { canonicalizeLegacySighting, type MemberSighting, type SightingsPreferences } from "@/lib/sightings";
+import { type MemberSighting, type SightingsPreferences } from "@/lib/sightings";
 import { createCommunitySightingsRepository } from "@/lib/community-sightings-repository";
 import { reconcileMemberRewards } from "@/lib/sighting-rewards";
 import { normalizeSightingsForRewards } from "@/lib/sighting-reward-tiers";
@@ -38,14 +38,9 @@ async function getOwnedSighting(sightingId: string, userId: string) {
     return { repository, target: durable };
   }
 
-  const client = await clerkClient();
-  const user = await client.users.getUser(userId);
-  const publicMetadata = (user.publicMetadata && typeof user.publicMetadata === "object" ? user.publicMetadata : {}) as Record<string, unknown>;
-  const prefs = normalizePrefs(publicMetadata.sightingsPreferences);
-  const legacy = prefs.submittedSightings.find((sighting) => sighting.id === sightingId);
-  if (!legacy || !/^[-_a-zA-Z0-9]{1,160}$/.test(legacy.id)) return null;
-  const target = await repository.insertSightingIfAbsent(canonicalizeLegacySighting(legacy, userId));
-  return { repository, target: target.sighting };
+  // The durable cutover is complete. Mutable account metadata is not migration
+  // provenance; missing historical rows require separately verified recovery.
+  return null;
 }
 
 async function reconcileAttachedPhotoRewards(
@@ -102,18 +97,12 @@ async function attachUploadedPhoto({
     const replay = await owned.repository.replacePhotoProof(sightingId, userId, currentPhoto.url, currentPhoto);
     if (!replay) throw new Error("Photo changed in another request");
     await reconcileAttachedPhotoRewards(userId, owned.repository, replay.rewardGeneration);
-    if (currentPhoto.url !== blob.url && currentPhoto.pathname !== blob.pathname) {
-      try {
-        const losingUpload = blob.url ? { url: blob.url } : await head(blob.pathname, { token });
-        await del(losingUpload.url, { token });
-      } catch (error) {
-        if (!(error instanceof BlobNotFoundError)) throw error;
-      }
-    }
+    // Recovery replays the immutable winner. Neither a caller URL nor a valid
+    // pathname proves ownership of a losing upload attempt. Never delete here.
     return currentPhoto;
   }
 
-  const uploaded = await head(blob.url || blob.pathname, { token });
+  const uploaded = await head(blob.pathname, { token });
   const completed = validateCompletedSightingPhoto(
     { sightingId, blob: { url: uploaded.url, pathname: blob.pathname } },
     uploaded,
@@ -140,7 +129,7 @@ async function attachUploadedPhoto({
     const replay = await owned.repository.replacePhotoProof(sightingId, userId, winningPhoto.url, winningPhoto);
     if (!replay) throw new Error("Photo changed in another request");
     await reconcileAttachedPhotoRewards(userId, owned.repository, replay.rewardGeneration);
-    await del(uploaded.url, { token });
+    // Retain the orphan until a separate, provenance-backed cleanup can own it.
     return winningPhoto;
   }
   const replay = await owned.repository.replacePhotoProof(sightingId, userId, winningPhoto.url, winningPhoto);

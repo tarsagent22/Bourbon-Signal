@@ -10,12 +10,13 @@
     "web": "expo start --web",
     "generate:catalog-seed": "node scripts/generate-bottle-catalog-seed.mjs",
     "typecheck": "tsc --noEmit",
-    "test": "tsx --test src/api/blob-upload.test.ts src/api/client.test.ts src/api/presentation.test.ts src/cellar/bottle-search.test.ts src/cellar/bourbon-dna.test.ts src/cellar/my-shelf-display.test.ts src/cellar/contribution-receipts.test.ts src/components/cellar-glencairn-contract.test.ts src/components/signal-card-contract.test.ts src/components/ScoreSlider.test.ts src/hq/hq-screen-contract.test.ts src/interactions/cellar-route-contract.test.ts src/interactions/member-interactions.test.ts src/membership/membership-plans.test.ts src/membership/membership-screen-contract.test.ts src/native-capabilities/permission-policy.test.ts src/navigation/feed-brand-contract.test.ts src/navigation/member-tabs.test.ts src/push/push-navigation.test.ts src/push/push-registration-contract.test.ts src/radar/radar-preferences.test.ts src/radar/radar-screen-contract.test.ts src/sightings/manual-sighting.test.ts src/sightings/post-composer.test.ts src/sightings/sighting-photo.test.ts src/sightings/sighting-photo-screen-contract.test.ts src/signals/bottle-profile.test.ts src/signals/feed-filters.test.ts src/signals/feed-screen-contract.test.ts src/signals/signal-detail-contract.test.ts",
+    "test": "tsx --test src/api/blob-upload.test.ts src/api/client.test.ts src/api/presentation.test.ts src/cellar/bottle-search.test.ts src/cellar/bourbon-dna.test.ts src/cellar/my-shelf-display.test.ts src/cellar/contribution-receipts.test.ts src/components/cellar-glencairn-contract.test.ts src/components/signal-card-contract.test.ts src/components/ScoreSlider.test.ts src/hq/hq-screen-contract.test.ts src/interactions/cellar-route-contract.test.ts src/interactions/member-interactions.test.ts src/membership/membership-plans.test.ts src/membership/membership-screen-contract.test.ts src/native-capabilities/permission-policy.test.ts src/navigation/feed-brand-contract.test.ts src/navigation/member-tabs.test.ts src/push/push-navigation.test.ts src/push/push-registration-contract.test.ts src/radar/radar-preferences.test.ts src/radar/radar-screen-contract.test.ts src/sightings/manual-sighting.test.ts src/sightings/post-composer.test.ts src/sightings/sighting-photo.test.ts src/sightings/sighting-photo-screen-contract.test.ts src/signals/bottle-profile.test.ts src/signals/feed-filters.test.ts src/signals/feed-screen-contract.test.ts src/signals/signal-detail-contract.test.ts && npm run test:astra",
     "verify:release-readiness": "node scripts/test-release-readiness.mjs",
     "verify:native-deps": "npm ls react-native-worklets react-native-reanimated expo-modules-core --all",
     "export:android": "expo export --platform android --output-dir dist/android",
     "export:ios": "expo export --platform ios --output-dir dist/ios",
-    "verify": "npm run verify:native-deps && npm run typecheck && npm test && npm run verify:release-readiness && npm run export:android && npm run export:ios"
+    "verify": "npm run verify:native-deps && npm run typecheck && npm test && npm run verify:release-readiness && npm run export:android && npm run export:ios",
+    "test:astra": "node scripts/test-astra-suite.mjs"
   },
   "dependencies": {
     "@clerk/expo": "^4.5.2",
@@ -53,6 +54,10 @@
     "typescript": "~6.0.3"
   },
   "overrides": {
-    "uuid": "11.1.1"
+    "uuid": "11.1.1",
+    "@xmldom/xmldom": "0.9.12",
+    "query-string": "9.4.1",
+    "decode-uri-component": "0.5.0",
+    "jayson": "4.1.3"
   }
 }

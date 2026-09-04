@@ -34,8 +34,9 @@ function nowIso(now) {
 
 function collapseError(adapter, previous, value) {
   if (!previous?.lastGoodAt || previous.value == null) return null;
-  const baseline = adapter.recordCount(previous.value);
-  const current = adapter.recordCount(value);
+  const comparison = { previous: previous.value, candidate: value };
+  const baseline = adapter.recordCount(previous.value, comparison);
+  const current = adapter.recordCount(value, comparison);
   if (!Number.isFinite(baseline) || !Number.isFinite(current) || baseline < adapter.collapse.minBaseline) return null;
   const floor = Math.ceil(baseline * adapter.collapse.minRatio);
   if (current >= floor) return null;
@@ -50,6 +51,11 @@ async function executeWithTimeout(adapter, context, workerSignal, attempt, timeo
   if (workerSignal?.aborted) forwardAbort();
   else workerSignal?.addEventListener('abort', forwardAbort, { once: true });
   let timer;
+  let settled = false;
+  const execution = Promise.resolve().then(() => {
+    controller.signal.throwIfAborted();
+    return adapter.execute(context, { signal: controller.signal, attempt, source: adapter });
+  }).finally(() => { settled = true; });
   try {
     const timeout = new Promise((_, reject) => {
       timer = setTimeout(() => {
@@ -59,9 +65,19 @@ async function executeWithTimeout(adapter, context, workerSignal, attempt, timeo
       }, timeoutMs);
     });
     return await Promise.race([
-      Promise.resolve().then(() => adapter.execute(context, { signal: controller.signal, attempt, source: adapter })),
+      execution,
       timeout,
     ]);
+  } catch (error) {
+    if (controller.signal.aborted) {
+      // Allow cooperative abort handlers to settle, but never wait indefinitely
+      // for a transport/parser that ignores cancellation.
+      let graceTimer;
+      await Promise.race([execution.catch(() => {}), new Promise((resolve) => { graceTimer = setTimeout(resolve, 0); })]);
+      clearTimeout(graceTimer);
+      error.executionTerminated = settled;
+    }
+    throw error;
   } finally {
     clearTimeout(timer);
     workerSignal?.removeEventListener('abort', forwardAbort);
@@ -169,7 +185,8 @@ export async function runSourceAdapters(adapters, context = {}, options = {}) {
             message: lastError.message,
           },
         });
-        if (!lastError.transient || attemptCount >= adapterMaxAttempts) break;
+        // A timed-out promise may still be running. Never overlap it with a retry.
+        if ((lastError.kind === 'timeout' && error.executionTerminated !== true) || signal.aborted || !lastError.transient || attemptCount >= adapterMaxAttempts) break;
         await sleep(retryDelayMs * attemptCount);
       }
     }

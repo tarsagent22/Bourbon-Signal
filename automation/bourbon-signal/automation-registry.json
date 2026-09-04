@@ -606,6 +606,35 @@
       "artifacts": [
         "encrypted_local_neon_backup"
       ]
+    },
+    {
+      "id": "github-dependency-security",
+      "platform": "github_workflow",
+      "workflowPath": ".github/workflows/dependency-security.yml",
+      "active": true,
+      "ownerLayer": "deterministic",
+      "executionClass": "script_only",
+      "frequency": "on every main push or pull request; manual dispatch",
+      "agent": {
+        "provider": null,
+        "model": null,
+        "reasoning": null
+      },
+      "externalApi": {
+        "classes": [
+          "npm_registry"
+        ],
+        "maxRequestsPerRun": 12
+      },
+      "customerMutation": "none",
+      "promotionDeployment": "none",
+      "silencePolicy": "report_output",
+      "killSwitch": "github_workflow_disable",
+      "artifacts": [
+        "locked_dependency_audit",
+        "astra_regressions"
+      ],
+      "delivery": "github_only"
     }
   ],
   "timezone": "America/New_York"

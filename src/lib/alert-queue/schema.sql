@@ -87,4 +87,10 @@ create table if not exists alert_delivery_leases (
 create index if not exists alert_delivery_leases_expiry_idx
   on alert_delivery_leases (expires_at);
 
+create table if not exists alert_recipient_cursor (
+  id text primary key check (id = 'live'),
+  next_offset bigint not null check (next_offset >= 0),
+  updated_at timestamptz not null
+);
+
 commit;

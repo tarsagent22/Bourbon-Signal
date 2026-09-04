@@ -56,9 +56,11 @@ const deferredRewardIndex = route.indexOf("after(async () =>", persistedSighting
 assert.ok(persistedSightingIndex >= 0 && deferredRewardIndex > persistedSightingIndex,
   "POST must persist the sighting before deferred reward work");
 assert.doesNotMatch(route, /await client\.users\.updateUserMetadata\(userId, \{ privateMetadata: \{ memberRewards: nextRewards \} \}\)/, "reward persistence should not block a request inline");
-assert.match(route, /let target = await repository\.getSighting\(sightingId\)/,
+assert.match(route, /const target = await repository\.getSighting\(sightingId\)/,
   "voting should resolve durable sightings directly regardless of feed page");
-assert.match(route, /getAggregateSightings\(userId, \{ requireLegacy: true, limit: 1_000 \}\)/,
-  "legacy vote fallback should remain explicit behind the durable lookup");
+assert.doesNotMatch(route, /getAggregateSightings\(userId, \{ requireLegacy: true, limit: 1_000 \}\)/,
+  "untrusted legacy metadata cannot authorize durable votes");
+assert.match(route, /if \(!target\) return NextResponse\.json\(\{ error: "Sighting not found" \}, \{ status: 404 \}\)/,
+  "missing durable vote targets fail closed rather than being imported from client metadata");
 
 console.log("Sightings performance contracts passed.");

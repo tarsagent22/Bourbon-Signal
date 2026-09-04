@@ -2,6 +2,7 @@ export type PushPlatform = "ios" | "android";
 
 export interface PushDeviceRecord {
   deviceId: string;
+  bindingId?: string;
   expoPushToken: string;
   platform: PushPlatform;
   enabled: boolean;
@@ -10,11 +11,13 @@ export interface PushDeviceRecord {
 }
 
 export interface ExpoPushMessage {
+  // Server-only identity for owned-sender dedupe; never serialize to Expo/OS.
+  dedupeKey: string;
   to: string;
   sound: "default";
   title: string;
   body: string;
-  data: { screen: "radar"; alertId: string };
+  data: { screen: "radar" };
   priority: "high";
 }
 
@@ -56,7 +59,8 @@ export function normalizePushDevices(input: unknown): PushDeviceRecord[] {
     if (!deviceId || !platform || !validExpoPushToken(expoPushToken)) continue;
     const updatedAt = typeof item.updatedAt === "string" && Number.isFinite(Date.parse(item.updatedAt)) ? item.updatedAt : new Date(0).toISOString();
     const createdAt = typeof item.createdAt === "string" && Number.isFinite(Date.parse(item.createdAt)) ? item.createdAt : updatedAt;
-    const next = { deviceId, expoPushToken, platform, enabled: item.enabled !== false, createdAt, updatedAt };
+    const bindingId = typeof item.bindingId === "string" && /^[a-zA-Z0-9-]{1,80}$/.test(item.bindingId) ? item.bindingId : undefined;
+    const next = { deviceId, expoPushToken, platform, enabled: item.enabled !== false, createdAt, updatedAt, ...(bindingId ? { bindingId } : {}) };
     const existing = unique.get(deviceId);
     if (!existing || Date.parse(next.updatedAt) >= Date.parse(existing.updatedAt)) unique.set(deviceId, next);
   }
@@ -82,6 +86,7 @@ export function disablePushTokens(input: unknown, tokens: string[], now: string)
   return normalizePushDevices(input).map((device) => invalid.has(device.expoPushToken) ? { ...device, enabled: false, updatedAt: now } : device);
 }
 
+// Local candidates only. NEVER authorize a send from metadata alone; use sendOwnedExpoPushMessages.
 export function enabledPushTokens(input: unknown) {
   return normalizePushDevices(input).filter((device) => device.enabled).map((device) => device.expoPushToken);
 }
@@ -92,13 +97,15 @@ export function pushPreferenceProjectionAllowsDelivery(input: unknown) {
 }
 
 export function buildExpoPushMessages(tokens: string[], alert: { id: string; bottleName: string; storeLabel: string; matchedArea: string }): ExpoPushMessage[] {
-  const location = alert.storeLabel || alert.matchedArea || "your monitored market";
+  // OS queues can outlive ownership and offline logout. Display/data fields must
+  // be generic; the server-only dedupeKey is stripped at the provider boundary.
   return Array.from(new Set(tokens.filter(validExpoPushToken))).map((to) => ({
+    dedupeKey: alert.id,
     to,
     sound: "default",
-    title: alert.bottleName || "New Bourbon Signal match",
-    body: `Matched at ${location}. Open Radar for details.`,
-    data: { screen: "radar", alertId: alert.id },
+    title: "Bourbon Signal",
+    body: "Open Radar to check your latest matches.",
+    data: { screen: "radar" },
     priority: "high",
   }));
 }
@@ -111,10 +118,17 @@ export async function sendExpoPushMessages(messages: ExpoPushMessage[], fetcher:
   const invalidTokens: string[] = [];
   for (let index = 0; index < messages.length; index += 100) {
     const chunk = messages.slice(index, index + 100);
-    const response = await fetcher(EXPO_PUSH_ENDPOINT, { method: "POST", headers: expoHeaders(), body: JSON.stringify(chunk) });
+    // Allowlist wire fields: internal dedupe identity must never reach an OS queue.
+    const payloadMessages = chunk.map(({ to, sound, priority }) => ({ to, sound, priority, title: "Bourbon Signal", body: "Open Radar to check your latest matches.", data: { screen: "radar" } }));
+    const response = await fetcher(EXPO_PUSH_ENDPOINT, { method: "POST", headers: expoHeaders(), body: JSON.stringify(payloadMessages) });
     if (!response.ok) throw new Error(`Expo push request failed (${response.status}).`);
     const payload = (await response.json().catch(() => ({}))) as { data?: Array<{ status?: string; id?: string; details?: { error?: string } }> };
     const responseTickets = Array.isArray(payload.data) ? payload.data : [];
+    // Missing/malformed tickets are ambiguous acceptance, NOT known rejection. Throwing
+    // leaves the durable push intent unknown/manual rather than causing an automatic replay.
+    if (responseTickets.length !== chunk.length || responseTickets.some((ticket) => ticket?.status !== "ok" && ticket?.status !== "error")) {
+      throw new Error("Expo push acceptance unknown: malformed ticket response.");
+    }
     chunk.forEach((message, ticketIndex) => {
       const ticket = responseTickets[ticketIndex];
       if (ticket?.status === "ok") {

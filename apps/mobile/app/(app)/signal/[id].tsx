@@ -7,7 +7,7 @@ import { presentSignal, signalMemberTagLabel } from "../../../src/api/presentati
 import type { HuntOutcome, MemberPreferences, Signal } from "../../../src/api/types";
 import { useMobileApi } from "../../../src/hooks/useMobileApi";
 import { addSignalBottleToCollection } from "../../../src/interactions/member-interactions";
-import { setBottleWatched } from "../../../src/radar/radar-preferences";
+import { bottleWatchMutation } from "../../../src/radar/radar-preferences";
 import { bottleProfileState } from "../../../src/signals/bottle-profile";
 import { colors } from "../../../src/theme";
 import { huntOutcomePromptStorageKey, shouldOfferHuntOutcomePrompt } from "../../../src/signals/hunt-outcome-prompt";
@@ -88,8 +88,7 @@ export default function SignalDetailScreen() {
     if (!signal || !preferences || saving) return;
     setSaving(true); setActionError("");
     try {
-      const bottleAlertPreferences = setBottleWatched(preferences, signal.bottle.name, !isWatched);
-      const saved = await api.updateMemberPreferences({ bottleAlertPreferences, ...(!isWatched ? { alertMode: "specific_bottles" as const } : {}) });
+      const saved = await api.updateMemberPreferences({ watchlistMutation: bottleWatchMutation(signal.bottle.name, !isWatched), ...(!isWatched ? { alertMode: "specific_bottles" as const } : {}) });
       setPreferences(saved);
     } catch (caught) {
       setActionError(caught instanceof Error ? caught.message : "This Radar watch could not be changed.");

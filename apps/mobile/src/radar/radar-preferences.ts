@@ -77,6 +77,11 @@ export function radarWatchlistSummary(preferences: MemberPreferences) {
   return preferences.alertMode === "anything_notable" ? "Anything notable" : `${watchedBottleCount(preferences)} watched`;
 }
 
+// Send intent, never a replacement derived from a mounted/cached member snapshot.
+export function bottleWatchMutation(bottleName: string, watched: boolean) {
+  return { bottleName: bottleName.trim(), watched };
+}
+
 export function setBottleWatched(preferences: MemberPreferences, bottleName: string, watched: boolean) {
   const name = bottleName.trim();
   const key = canonicalBottleKey(name);

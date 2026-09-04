@@ -13,7 +13,8 @@ test("enabled push registration refreshes its token and listens for token rotati
 });
 
 test("root notification responses use the safe explicit Radar Matches route", () => {
-  assert.match(rootLayout, /radarRouteForNotificationData/);
+  assert.match(rootLayout, /createPendingPushNavigation/);
+  assert.match(rootLayout, /queue.current.take\(isLoaded/);
   assert.match(rootLayout, /router\.push\(route\)/);
   assert.doesNotMatch(rootLayout, /router\.push\("\/\(app\)\/\(tabs\)\/radar"\)/);
 });

@@ -39,7 +39,8 @@ const patchProfile = createSignalProfilePatchHandler({
 
     await repository.updateReporterDisplayName(userId, displayName || "", nextActor);
     try {
-      await client.users.updateUserMetadata(userId, { publicMetadata: nextMetadata });
+      // Clerk merges owned keys; replaying the read snapshot can undo a concurrent watch delta.
+      await client.users.updateUserMetadata(userId, { publicMetadata: { [COMMUNITY_DISPLAY_NAME_METADATA_KEY]: displayName } });
     } catch (error) {
       await repository.updateReporterDisplayName(userId, oldCustomDisplayName || "", oldActor).catch(() => undefined);
       throw error;

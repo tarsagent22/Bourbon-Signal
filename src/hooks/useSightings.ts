@@ -38,7 +38,6 @@ export function useSightings(
   { includePreferences = true, includeRewards = true, feedLimit = 60 }: UseSightingsOptions = {},
 ) {
   const [preferences, setPreferences] = useState<SightingsPreferences>(EMPTY_SIGHTINGS_PREFERENCES);
-  const [rawPreferences, setRawPreferences] = useState<PreferencesResponse | null>(null);
   const [sightings, setSightings] = useState<MemberSighting[]>([]);
   const [states, setStates] = useState<string[]>([]);
   const [rewards, setRewards] = useState<MemberRewardsSummary | null>(null);
@@ -53,7 +52,6 @@ export function useSightings(
     if (!res.ok) throw new Error("Unable to load preferences");
     const data = (await res.json()) as PreferencesResponse;
     const sightingsPreferences = data.sightingsPreferences ?? EMPTY_SIGHTINGS_PREFERENCES;
-    setRawPreferences(data);
     setPreferences(sightingsPreferences);
     return data;
   }, []);
@@ -102,31 +100,6 @@ export function useSightings(
   useEffect(() => {
     refresh();
   }, [refresh]);
-
-  const saveSightingsPreferences = useCallback(async (next: SightingsPreferences) => {
-    setSaving(true);
-    setError(null);
-    try {
-      const base = rawPreferences ?? (await refreshPreferences()) ?? {};
-      const res = await fetch("/api/user/preferences", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...base, sightingsPreferences: next }),
-      });
-      if (!res.ok) throw new Error("Unable to save sightings");
-      const data = (await res.json()) as PreferencesResponse;
-      const saved = data.sightingsPreferences ?? next;
-      setRawPreferences(data);
-      setPreferences(saved);
-      return saved;
-    } catch (err) {
-      console.error("Failed to save sightings", err);
-      setError("Unable to save sightings");
-      throw err;
-    } finally {
-      setSaving(false);
-    }
-  }, [rawPreferences, refreshPreferences]);
 
   const addSighting = useCallback(async (sighting: MemberSighting) => {
     setSaving(true);
@@ -213,14 +186,29 @@ export function useSightings(
   }, [refreshSightings]);
 
   const addSignalReport = useCallback(async (report: SignalReport) => {
-    const withoutSameUserSignal = preferences.signalReports.filter((item) => item.signalId !== report.signalId);
-    const next = {
-      submittedSightings: preferences.submittedSightings,
-      signalReports: [report, ...withoutSameUserSignal].slice(0, 250),
-      sightingVotes: preferences.sightingVotes || [],
-    };
-    return saveSightingsPreferences(next);
-  }, [preferences, saveSightingsPreferences]);
+    setSaving(true);
+    setError(null);
+    try {
+      const res = await fetch("/api/sightings/reports", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          signalId: report.signalId, bottleName: report.bottleName, kind: report.kind,
+          storeName: report.storeName, storeAddress: report.storeAddress, state: report.state,
+        }),
+      });
+      const data = await res.json() as { signalReports?: SignalReport[]; error?: string };
+      if (!res.ok || !Array.isArray(data.signalReports)) throw new Error(data.error || "Unable to save report");
+      const signalReports = data.signalReports;
+      setPreferences((current) => ({ ...current, signalReports }));
+      return signalReports;
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Unable to save report");
+      throw err;
+    } finally {
+      setSaving(false);
+    }
+  }, []);
 
   const reportsBySignalId = useMemo(() => {
     const map = new Map<string, SignalReport>();

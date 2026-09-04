@@ -66,7 +66,8 @@
     "test:signal-mobile-api": "node --no-warnings --experimental-strip-types scripts/test-signal-mobile-api.mts",
     "test:hunt-outcomes": "node --no-warnings --experimental-strip-types scripts/test-hunt-outcome-repository.mts && node --no-warnings --experimental-strip-types scripts/test-hunt-outcome-api.mts && node --no-warnings --experimental-strip-types scripts/test-hunt-outcome-aggregation.mts",
     "test:product-cohesion-ui": "node --no-warnings --experimental-strip-types scripts/test-hunt-outcome-ui-policy.mts && node --no-warnings --experimental-strip-types scripts/test-cellar-hunt-suggestions.mts && node --no-warnings --experimental-strip-types scripts/test-product-cohesion-surfaces.mts && node --no-warnings --experimental-strip-types scripts/test-launch-product-cohesion-copy.mts",
-    "test:push-devices": "node --no-warnings --experimental-strip-types scripts/test-push-devices.mts",
+    "test:member-state": "tsx --test scripts/test-astra-member-state.ts scripts/test-astra-push-ownership.ts scripts/test-astra-member-lease.ts",
+    "test:push-devices": "node --no-warnings --experimental-strip-types scripts/test-push-devices.mts && npm run test:member-state",
     "test:nationwide-radar": "node --no-warnings --experimental-strip-types --test scripts/test-nationwide-geography.mts scripts/test-monitoring-scopes.mts scripts/test-community-contributor-standing.mts scripts/test-community-alert-candidates.mts scripts/test-geography-activity.mts scripts/test-nationwide-radar-contracts.mts",
     "test:native-thin-slice": "node --no-warnings --experimental-strip-types scripts/test-native-thin-slice.mts",
     "test:native-post-composer": "node --no-warnings --experimental-strip-types --test scripts/test-native-post-composer.mts",
@@ -180,7 +181,8 @@
     "test:member-weekly-surface": "node scripts/verify-member-weekly-surface.mjs",
     "test:storage-architecture": "tsx scripts/test-member-collection-lifecycle.mts && tsx scripts/test-member-collection-repository.mts && tsx scripts/test-collection-offline-store.mts && tsx scripts/test-legacy-collection-retirement.mts && node scripts/test-member-collection-migration.mjs && node scripts/test-neon-runtime-efficiency.mjs",
     "capture:performance-baseline": "node scripts/capture-performance-baseline.mjs",
-    "verify:ci": "npm run test:gifts && npm run test:member-retention && npm run test:signal-points && npm run test:signal-contract && npm run test:signal-mobile-api && npm run test:hunt-outcomes && npm run test:push-devices && npm run test:native-thin-slice && npm run verify:mobile && npm run test:main-feed-composer && npm run test:campaign-click-tracking && npm run test:low-coverage-community-email && npm run test:missing-state-community-email && npm run test:public-acquisition-ctas && npm run test:wvabca-gateway && npm run test:ohlq-worker && npm run test:storage-architecture && npm run verify:state-lifecycle-drift && npm --prefix engine run verify:ms -- --phase=research && npm --prefix engine run verify:sc-dunes && npm run test:coverage && npm run test:coverage-depth && npm run test:retailer-public-submissions && npm run test:nc-board-completeness && npm run verify:nc-board-registry && npm --prefix engine run verify:nc-board-registry && npm run test:premium-boundaries && npm run test:state-user-path && npm run test:state-area-contracts && npm run test:ny-co-user-path && npm run test:demand-metro-user-path && npm run test:utah-user-path && npm run test:feed-history-owner-nav && npm run test:operator-backbone && npm run test:production-checks && npm run test:company-scorecard-feed && npm run test:agent-cost-automation && npm run test:growth-events && npm run test:demand-intelligence && npm run test:growth-experiments && npm run test:member-welcome && npm run test:conversion && npm run test:founder-shipping && npm run test:free-member-day-two-email && npm run test:bottle-check-suggestions && npm run test:bottle-check-dossier && npm run test:bottle-rarity-score && npm run test:bottle-scarcity && npm run test:member-activation && npm run test:member-weekly-intelligence && npm run test:member-weekly-delivery && npm run test:member-weekly-surface && npm run test:bourbon-recommendations && npm run test:recommendation-feedback-repository && npm run test:checkout-attribution && npm run test:july-sale && npm run test:growth-funnels && npm run test:first-alert-created && npm run test:sprint4-contracts && npm run test:faq-content && npm run test:home-release-radar && npm run test:sightings-preview && npm run test:member-sightings && npm run test:retailer-portal && npm run test:retailer-acquisition && npm run test:release-radar && npm run test:scheduled-release-copy && npm run test:california-area && npm run test:progressive-feed && npm run test:drop-feed-card-design && npm run test:drop-feed-classification && npm run test:drop-feed-policy && npm run test:drop-feed-performance && npm run test:ops && npm run test:release && npm run test:sms-alerts && npm run test:alert-delivery-policy && npm run test:alert-queue-audit && npm run test:performance-budgets && npm run test:alert-queue-repository && npm run test:alert-queue-schema && npm run test:operations-dashboard && npm --prefix engine run test:ga && npm --prefix engine run test:demand-metros && npm --prefix engine run test:ny-co && npm --prefix engine run verify:site && npm --prefix engine run verify:demand-metros -- --structural-only && npm --prefix engine run verify:state-integration -- --all-active && npm --prefix engine run verify:reliability && npm --prefix engine run verify:pa:automation && npm run test:production-engine-watchdog && npm run test:site-engine-stats && npm run test:state-report-hydration && npm run test:production-verification-scope && npm run test:alert-copy-contract && npm run test:engine-snapshot-reader && npm run build"
+    "verify:ci": "npm run test:gifts && npm run test:member-retention && npm run test:signal-points && npm run test:signal-contract && npm run test:signal-mobile-api && npm run test:hunt-outcomes && npm run test:push-devices && npm run test:native-thin-slice && npm run verify:mobile && npm run test:main-feed-composer && npm run test:campaign-click-tracking && npm run test:low-coverage-community-email && npm run test:missing-state-community-email && npm run test:public-acquisition-ctas && npm run test:wvabca-gateway && npm run test:ohlq-worker && npm run test:storage-architecture && npm run verify:state-lifecycle-drift && npm --prefix engine run verify:ms -- --phase=research && npm --prefix engine run verify:sc-dunes && npm run test:coverage && npm run test:coverage-depth && npm run test:retailer-public-submissions && npm run test:nc-board-completeness && npm run verify:nc-board-registry && npm --prefix engine run verify:nc-board-registry && npm run test:premium-boundaries && npm run test:state-user-path && npm run test:state-area-contracts && npm run test:ny-co-user-path && npm run test:demand-metro-user-path && npm run test:utah-user-path && npm run test:feed-history-owner-nav && npm run test:operator-backbone && npm run test:production-checks && npm run test:company-scorecard-feed && npm run test:agent-cost-automation && npm run test:growth-events && npm run test:demand-intelligence && npm run test:growth-experiments && npm run test:member-welcome && npm run test:conversion && npm run test:founder-shipping && npm run test:free-member-day-two-email && npm run test:bottle-check-suggestions && npm run test:bottle-check-dossier && npm run test:bottle-rarity-score && npm run test:bottle-scarcity && npm run test:member-activation && npm run test:member-weekly-intelligence && npm run test:member-weekly-delivery && npm run test:member-weekly-surface && npm run test:bourbon-recommendations && npm run test:recommendation-feedback-repository && npm run test:checkout-attribution && npm run test:july-sale && npm run test:growth-funnels && npm run test:first-alert-created && npm run test:sprint4-contracts && npm run test:faq-content && npm run test:home-release-radar && npm run test:sightings-preview && npm run test:member-sightings && npm run test:retailer-portal && npm run test:retailer-acquisition && npm run test:release-radar && npm run test:scheduled-release-copy && npm run test:california-area && npm run test:progressive-feed && npm run test:drop-feed-card-design && npm run test:drop-feed-classification && npm run test:drop-feed-policy && npm run test:drop-feed-performance && npm run test:ops && npm run test:release && npm run test:sms-alerts && npm run test:alert-delivery-policy && npm run test:alert-queue-audit && npm run test:performance-budgets && npm run test:alert-queue-repository && npm run test:alert-queue-schema && npm run test:operations-dashboard && npm --prefix engine run test:ga && npm --prefix engine run test:demand-metros && npm --prefix engine run test:ny-co && npm --prefix engine run verify:site && npm --prefix engine run verify:demand-metros -- --structural-only && npm --prefix engine run verify:state-integration -- --all-active && npm --prefix engine run verify:reliability && npm --prefix engine run verify:pa:automation && npm run test:production-engine-watchdog && npm run test:site-engine-stats && npm run test:state-report-hydration && npm run test:production-verification-scope && npm run test:alert-copy-contract && npm run test:engine-snapshot-reader && npm run build && npm run test:astra",
+    "test:astra": "node scripts/test-astra-suite.mjs"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.5.16",
@@ -195,7 +197,7 @@
     "d3-geo": "^3.1.1",
     "framer-motion": "^12.38.0",
     "lucide-react": "^0.577.0",
-    "next": "^15.5.20",
+    "next": "15.5.25",
     "react": "^19",
     "react-dom": "^19",
     "react-email": "^6.6.9",
@@ -207,6 +209,7 @@
     "zustand": "^5.0.12"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "0.5.8",
     "@tailwindcss/postcss": "^4",
     "@types/d3-geo": "^3.1.0",
     "@types/node": "^22",
@@ -216,13 +219,20 @@
     "@types/topojson-client": "^3.1.5",
     "ajv": "^8.20.0",
     "eslint": "^9",
-    "eslint-config-next": "^15.5.20",
+    "eslint-config-next": "15.5.25",
     "pg": "^8.23.0",
     "tailwindcss": "^4",
     "tsx": "^4.20.6",
     "typescript": "^5"
   },
   "overrides": {
-    "ws": "8.21.0"
+    "ws": "8.21.0",
+    "@humanfs/node": "0.16.8",
+    "fast-uri": "3.1.6",
+    "fflate": "0.8.3",
+    "nanoid": "3.3.18",
+    "next": {
+      "postcss": "8.5.26"
+    }
   }
 }

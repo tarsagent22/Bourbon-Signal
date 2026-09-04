@@ -4,11 +4,11 @@ import { ActivityIndicator, StyleSheet, View } from "react-native";
 import { colors } from "../../src/theme";
 
 export default function AppLayout() {
-  const { isLoaded, isSignedIn } = useAuth();
+  const { isLoaded, isSignedIn, userId, sessionId } = useAuth();
   if (!isLoaded) return <View style={styles.center}><ActivityIndicator color={colors.accent} /></View>;
   if (!isSignedIn) return <Redirect href="/" />;
   return (
-    <Stack screenOptions={{ contentStyle: { backgroundColor: colors.background }, headerStyle: { backgroundColor: colors.surface }, headerTintColor: colors.text, headerShadowVisible: false }}>
+    <Stack key={`${userId}:${sessionId}`} screenOptions={{ contentStyle: { backgroundColor: colors.background }, headerStyle: { backgroundColor: colors.surface }, headerTintColor: colors.text, headerShadowVisible: false }}>
       <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
       <Stack.Screen name="signal/[id]" options={{ title: "Signal" }} />
       <Stack.Screen name="cellar/add" options={{ presentation: "modal", title: "Add bottle" }} />

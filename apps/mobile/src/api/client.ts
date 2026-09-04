@@ -1,4 +1,5 @@
 import { uploadClientBlob, type ClientBlobUploadResult } from "./blob-upload";
+import { validApiResponse } from "./response-validation";
 import type {
   MemberAlertsResponse,
   MemberPreferences,
@@ -35,11 +36,23 @@ export class MobileApiError extends Error {
   }
 }
 
+// A consumer may stop waiting without cancelling an attempt shared by other screens.
+function consume<T>(promise: Promise<T>, signal?: AbortSignal): Promise<T> {
+  if (!signal) return promise;
+  return new Promise<T>((resolve, reject) => {
+    const abort = () => reject(new MobileApiError("Request cancelled.", 0, "REQUEST_CANCELLED"));
+    if (signal.aborted) abort();
+    else signal.addEventListener("abort", abort, { once: true });
+    promise.then(resolve, reject).finally(() => signal.removeEventListener("abort", abort));
+  });
+}
+
 type RequestOptions = {
   method?: "GET" | "POST" | "PUT" | "PATCH";
   body?: unknown;
   headers?: Record<string, string>;
   fresh?: boolean;
+  signal?: AbortSignal;
 };
 
 type BlobUploader = (
@@ -139,31 +152,58 @@ export function createMobileApi({
   fetcher = fetch,
   blobUploader = defaultBlobUploader,
   readCooldownMs = 10_000,
+  requestTimeoutMs = 15_000,
+  maxReadCacheEntries = 64,
+  now = Date.now,
 }: {
   baseUrl?: string;
   getToken: () => Promise<string | null>;
   fetcher?: typeof fetch;
   blobUploader?: BlobUploader;
   readCooldownMs?: number;
+  requestTimeoutMs?: number;
+  maxReadCacheEntries?: number;
+  now?: () => number;
 }) {
   const recentReads = new Map<string, { expiresAt: number; promise: Promise<unknown> }>();
+  let currentToken: string | null | undefined;
+  const cacheLimit = Math.max(1, Math.min(256, maxReadCacheEntries));
+  function pruneReads() {
+    for (const [key, entry] of recentReads) if (entry.expiresAt <= now()) recentReads.delete(key);
+    while (recentReads.size > cacheLimit) recentReads.delete(recentReads.keys().next().value!);
+  }
+  async function bounded<T>(work: (signal: AbortSignal) => Promise<T>): Promise<T> {
+    const controller = new AbortController();
+    let timer: ReturnType<typeof setTimeout>;
+    const timeout = new Promise<never>((_, reject) => {
+      timer = setTimeout(() => {
+        reject(new MobileApiError("The request timed out. Please retry.", 408, "REQUEST_TIMEOUT", true));
+        controller.abort();
+      }, Math.max(1, requestTimeoutMs));
+    });
+    try { return await Promise.race([work(controller.signal), timeout]); }
+    finally { clearTimeout(timer!); }
+  }
 
   async function performRequest<T>(path: string, options: RequestOptions = {}, suppliedToken?: string | null): Promise<T> {
+    return bounded(async (signal) => {
     const token = suppliedToken === undefined ? await getToken() : suppliedToken;
     const headers = new Headers({ Accept: "application/json", ...options.headers });
     if (token) headers.set("Authorization", `Bearer ${token}`);
     if (options.body !== undefined) headers.set("Content-Type", "application/json");
     const response = await fetcher(new Request(new URL(path, baseUrl), {
       method: options.method || "GET",
+      signal,
       headers,
       body: options.body === undefined ? undefined : JSON.stringify(options.body),
-    }));
-    const payload = await response.json().catch(() => ({})) as Record<string, unknown>;
+    })).catch(() => { throw new MobileApiError("Unable to connect. Check your connection and retry.", 0, "NETWORK_ERROR", true); });
+    const raw: unknown = await response.json().catch(() => null);
+    const payload = isRecord(raw) ? raw : {};
     if (!response.ok) {
       const structured = payload.error && typeof payload.error === "object" ? payload.error as Record<string, unknown> : null;
       const scalarMessage = typeof payload.error === "string" ? payload.error : null;
       throw new MobileApiError(
-        scalarMessage || (typeof structured?.message === "string" ? structured.message : "Bourbon Signal is temporarily unavailable."),
+        (scalarMessage || (typeof structured?.message === "string" ? structured.message : "Bourbon Signal is temporarily unavailable.")).replace(/[\u0000-\u001f]/g, " ").slice(0, 240),
         response.status,
         typeof structured?.code === "string" ? structured.code : typeof payload.code === "string" ? payload.code : "UNKNOWN_ERROR",
         structured?.retryable === true,
@@ -171,11 +211,15 @@ export function createMobileApi({
         typeof structured?.requestId === "string" ? structured.requestId : "",
       );
     }
-    return payload as T;
+    if (!validApiResponse(path, raw)) throw new MobileApiError("The server returned an invalid response. Please retry.", 502, "INVALID_RESPONSE", true);
+    return raw as T;
+    });
   }
 
   async function request<T>(path: string, options: RequestOptions = {}): Promise<T> {
-    const token = await getToken();
+    const token = await bounded(() => getToken());
+    if (token !== currentToken) { recentReads.clear(); currentToken = token; }
+    pruneReads();
     if (options.method && options.method !== "GET") {
       const payload = await performRequest<T>(path, options, token);
       for (const key of recentReads.keys()) {
@@ -183,16 +227,25 @@ export function createMobileApi({
       }
       return payload;
     }
-    const key = `GET ${token || "anonymous"} ${path}`;
-    const now = Date.now();
+    const key = `GET ${path}`;
+    const time = now();
     const recent = recentReads.get(key);
-    if (!options.fresh && recent && recent.expiresAt > now) return recent.promise as Promise<T>;
+    if (!options.fresh && recent && recent.expiresAt > time) {
+      recentReads.delete(key); recentReads.set(key, recent);
+      return consume(recent.promise as Promise<T>, options.signal);
+    }
     const promise = performRequest<T>(path, options, token);
-    recentReads.set(key, { expiresAt: now + readCooldownMs, promise });
-    return promise;
+    recentReads.set(key, { expiresAt: time + readCooldownMs, promise });
+    pruneReads();
+    void promise.catch((error) => {
+      if (error instanceof MobileApiError && error.code === "REQUEST_TIMEOUT" && recentReads.get(key)?.promise === promise) recentReads.delete(key);
+    });
+    return consume(promise, options.signal);
   }
 
   return {
+    clearReadCache() { recentReads.clear(); currentToken = undefined; },
+    readCacheInfo() { pruneReads(); return { size: recentReads.size, keys: [...recentReads.keys()] }; },
     listSignals({ view, limit = 30, cursor, fresh = false, rarities = [], state, area, freshness, bottle }: { view?: "all" | "market" | "community"; limit?: number; cursor?: string | null; fresh?: boolean; rarities?: SignalRarity[]; state?: string; area?: string; freshness?: SignalFreshness; bottle?: string } = {}) {
       const params = new URLSearchParams({ limit: String(limit) });
       if (view && view !== "all") params.set("view", view);
@@ -217,8 +270,8 @@ export function createMobileApi({
     setHuntOutcome(id: string, outcome: HuntOutcome | null) {
       return request<HuntOutcomeResponse>(`/api/v1/signals/${encodeURIComponent(id)}/outcome`, { method: "PUT", body: { outcome } });
     },
-    getMemberProfile({ fresh = false }: { fresh?: boolean } = {}) {
-      return request<MemberProfile>("/api/v1/me/profile", { fresh });
+    getMemberProfile({ fresh = false, signal }: { fresh?: boolean; signal?: AbortSignal } = {}) {
+      return request<MemberProfile>("/api/v1/me/profile", { fresh, signal });
     },
     updateMemberProfile(patch: MemberProfilePatch) {
       return request<MemberProfile>("/api/v1/me/profile", { method: "PATCH", body: patch });
@@ -241,14 +294,14 @@ export function createMobileApi({
       }
       return [...unique.values()].sort((left, right) => left.label.localeCompare(right.label));
     },
-    getMemberPreferences({ fresh = false }: { fresh?: boolean } = {}) {
-      return request<MemberPreferences>("/api/user/preferences", { fresh });
+    getMemberPreferences({ fresh = false, signal }: { fresh?: boolean; signal?: AbortSignal } = {}) {
+      return request<MemberPreferences>("/api/user/preferences", { fresh, signal });
     },
     updateMemberPreferences(patch: MemberPreferencesPatch) {
       return request<MemberPreferences>("/api/user/preferences", { method: "POST", body: patch });
     },
-    getMemberAlerts({ fresh = false }: { fresh?: boolean } = {}) {
-      return request<MemberAlertsResponse>("/api/alerts", { fresh });
+    getMemberAlerts({ fresh = false, signal }: { fresh?: boolean; signal?: AbortSignal } = {}) {
+      return request<MemberAlertsResponse>("/api/alerts", { fresh, signal });
     },
     updateMemberAlert(action: "mark_read" | "mark_all_read" | "archive", alertId?: string) {
       return request<MemberAlertsResponse>("/api/alerts", { method: "PATCH", body: { action, ...(alertId ? { alertId } : {}) } });
@@ -264,10 +317,10 @@ export function createMobileApi({
       const payload = await request<{ bottles?: Array<Record<string, unknown>> }>(path, { fresh });
       return normalizeBottleOptions(payload.bottles || [], !normalizedQuery);
     },
-    async listBottleCatalog({ fresh = false }: { fresh?: boolean } = {}) {
+    async listBottleCatalog({ fresh = false, signal }: { fresh?: boolean; signal?: AbortSignal } = {}) {
       const cacheKey = baseUrl.replace(/\/+$/, "");
       const cached = bottleCatalogCache.get(cacheKey);
-      if (!fresh && cached && (cached.expiresAt === 0 || cached.expiresAt > Date.now())) return cached.promise;
+      if (!fresh && cached && (cached.expiresAt === 0 || cached.expiresAt > Date.now())) return consume(cached.promise, signal);
       if (cached && cached.expiresAt > 0 && cached.expiresAt <= Date.now()) bottleCatalogCache.delete(cacheKey);
 
       let loading: Promise<RadarBottleOption[]>;
@@ -284,7 +337,7 @@ export function createMobileApi({
           throw error;
         });
       cacheBottleCatalog(cacheKey, { expiresAt: 0, promise: loading });
-      return loading;
+      return consume(loading, signal);
     },
     submitBottleContribution(payload: { rawName: string; source: "collection"; context?: Record<string, unknown> }, idempotencyKey?: string) {
       return request<BottleContributionResponse>("/api/bottle-contributions", {
@@ -325,16 +378,16 @@ export function createMobileApi({
       if (!/^sighting_[-_a-zA-Z0-9]{1,150}$/.test(sightingId)) {
         throw new MobileApiError("The saved sighting could not be matched to this photo.", 400, "INVALID_SIGHTING_ID");
       }
-      const token = await getToken();
+      const token = await bounded(() => getToken());
       if (!token) throw new MobileApiError("Your session could not be verified. Return to Signals and retry.", 401, "UNAUTHORIZED");
-      return blobUploader(`sighting-proofs/${sightingId}/${timestamp}.jpg`, file, {
+      return bounded(() => blobUploader(`sighting-proofs/${sightingId}/${timestamp}.jpg`, file, {
         access: "public",
         contentType: "image/jpeg",
         handleUploadUrl: new URL("/api/sightings/photo", baseUrl).toString(),
         clientPayload: JSON.stringify({ sightingId }),
         headers: { Authorization: `Bearer ${token}` },
         multipart: file.size > 4 * 1024 * 1024,
-      });
+      }));
     },
     attachSightingPhoto(sightingId: string, blob: { url?: string; pathname: string }) {
       return request<{ ok: true; photoProof: { url: string; pathname: string; uploadedAt: string; status: "verified_public" } }>("/api/sightings/photo", {

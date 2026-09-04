@@ -42,35 +42,53 @@ function hidden(tag) {
     || classes.some((value) => ['hidden', 'd-none', 'sr-only'].includes(value.toLowerCase()));
 }
 
-function hiddenAncestor(html, index) {
+function productBlocks(html) {
+  // Bounded structural tokenization: only explicitly closed cards can supply
+  // evidence. Hidden/non-rendered subtrees never contribute anchors or controls.
   const stack = [];
-  const prefix = String(html || '').slice(0, index)
-    .replace(/<!--[\s\S]*?-->/gu, (value) => ' '.repeat(value.length))
-    .replace(/<(script|style)\b[^>]*>[\s\S]*?<\/\1>/giu, (value) => ' '.repeat(value.length));
-  for (const match of prefix.matchAll(/<\/?(div|li|article|section|ul|ol)\b[^>]*>/giu)) {
+  const cards = [];
+  const voidTags = new Set(['area', 'base', 'br', 'col', 'embed', 'hr', 'img', 'input', 'link', 'meta', 'param', 'source', 'track', 'wbr']);
+  let nodes = 0;
+  const tokens = /<!--[\s\S]*?-->|<(script|style|textarea|title)\b[^>]*>[\s\S]*?<\/\1\s*>|<\/?([a-z][a-z0-9:-]*)\b(?:[^>"']|"[^"]*"|'[^']*')*>/giu;
+  for (const match of html.matchAll(tokens)) {
+    if (++nodes > 50_000 || stack.length > 128) return [];
     const tag = match[0];
-    const name = match[1].toLowerCase();
-    if (/^<\//u.test(tag)) {
-      for (let cursor = stack.length - 1; cursor >= 0; cursor -= 1) {
-        if (stack[cursor].name !== name) continue;
-        stack.splice(cursor);
-        break;
-      }
+    const name = match[2]?.toLowerCase();
+    const card = stack.findLast((entry) => entry.card);
+    if (!name) {
+      if (card) card.masked.push([match.index, match.index + tag.length]);
+      continue;
+    }
+    if (tag.startsWith('</')) {
+      const index = stack.findLastIndex((entry) => entry.name === name);
+      if (index < 0) continue;
+      const closed = stack[index];
+      // Mismatched nesting cannot establish a trustworthy closed product card.
+      if (index !== stack.length - 1 && stack.slice(index).some((entry) => entry.card)) return [];
+      stack.splice(index);
+      if (closed.hidden && card) card.masked.push([closed.start, match.index + tag.length]);
+      if (closed.card && !closed.hidden) cards.push({ ...closed, end: match.index + tag.length });
     } else {
-      stack.push({ name, hidden: hidden(tag) || stack.some((entry) => entry.hidden) });
+      const isCard = ['div', 'li', 'article'].includes(name) && attribute(tag, 'class').split(/\s+/u).includes('product-item');
+      if (isCard && card) return []; // nested cards could bind a sibling's control
+      const entry = { name, start: match.index, hidden: hidden(tag) || ['template', 'noscript'].includes(name) || Boolean(stack.at(-1)?.hidden), card: isCard, masked: [] };
+      if (voidTags.has(name)) {
+        if (entry.hidden && card) card.masked.push([match.index, match.index + tag.length]);
+      } else stack.push(entry);
     }
   }
-  return stack.some((entry) => entry.hidden);
-}
-
-function productBlocks(html) {
-  const source = String(html || '');
-  const starts = [...source.matchAll(/<(?:div|li|article)\b[^>]*class\s*=\s*["'][^"']*\bproduct-item\b[^"']*["'][^>]*>/giu)]
-    .map((match) => ({ index: match.index, tag: match[0] }));
-  return starts
-    .map((start, index) => ({ ...start, block: source.slice(start.index, starts[index + 1]?.index ?? source.length) }))
-    .filter((entry) => !hidden(entry.tag) && !hiddenAncestor(source, entry.index))
-    .map((entry) => entry.block);
+  return cards.map((card) => {
+    const block = html.slice(card.start, card.end);
+    // Keep original script assignments only for the independent merchant guard.
+    const ranges = card.masked.sort((a, b) => a[0] - b[0]);
+    let visible = '', cursor = card.start;
+    for (const [start, end] of ranges) {
+      if (start > cursor) visible += html.slice(cursor, start);
+      cursor = Math.max(cursor, end);
+    }
+    visible += html.slice(cursor, card.end);
+    return { block, visible };
+  });
 }
 
 function price(block) {
@@ -131,9 +149,9 @@ export function parseGoToLiquorStoreProducts(html, candidateStore, {
   if (!store || typeof html !== 'string' || Buffer.byteLength(html, 'utf8') > 8 * 1024 * 1024) return [];
   const rows = [];
   const seen = new Set();
-  for (const block of productBlocks(html)) {
+  for (const { block, visible } of productBlocks(html)) {
     const orderableProductIds = new Set();
-    for (const match of block.matchAll(/<(a|button)\b[^>]*>[\s\S]*?<\/\1>|<input\b[^>]*>/giu)) {
+    for (const match of visible.matchAll(/<(a|button)\b[^>]*>[\s\S]*?<\/\1>|<input\b[^>]*>/giu)) {
       const control = match[0];
       if (hidden(control) || !/Add\s+to\s+Cart|GaAddtoCart|addproducttocart_list/iu.test(control)) continue;
       const controlStoreId = String(store.controlStoreId || store.cartStoreId || store.platformStoreId || store.merchantId);
@@ -147,7 +165,7 @@ export function parseGoToLiquorStoreProducts(html, candidateStore, {
       if (productId) orderableProductIds.add(productId);
     }
     if (!orderableProductIds.size) continue;
-    const product = productAnchor(block, store);
+    const product = productAnchor(visible, store);
     if (!product || !isAllowedBottleFormat(product.title)) continue;
     const productId = product.url.pathname.match(/\/(\d+)\/?$/u)?.[1] || '';
     if (!productId || !orderableProductIds.has(productId) || seen.has(product.url.href)) continue;

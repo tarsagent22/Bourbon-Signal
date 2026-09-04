@@ -18,6 +18,7 @@ import { isFloridaRetailerInventory, isFloridaRetailerSignalIdentity } from './f
 import { isGeorgiaRetailerInventory, isGeorgiaRetailerSignalIdentity } from './georgia-retailer-policy.mjs';
 import { isIndianaRetailerInventory, isIndianaRetailerSignalIdentity } from './indiana-retailer-policy.mjs';
 import { isMississippiRetailerInventory } from './mississippi-retailer-policy.mjs';
+import { isTexasRetailerInventory } from './texas-retailer-policy.mjs';
 import { isMetroRetailerInventory, isMetroRetailerSignalIdentity, metroRetailerArea } from './metro-retailer-policy.mjs';
 import { isTennesseeRetailerInventory, isTennesseeRetailerSignalIdentity } from './tennessee-retailer-policy.mjs';
 import { isSouthCarolinaDunesInventory, isSouthCarolinaDunesSignal } from './south-carolina-dunes-policy.mjs';
@@ -533,6 +534,7 @@ export function publicSignal(signal, bible, freshness = null) {
     sourceProductInStock: signal.sourceProductInStock ?? signal.raw?.product?.is_in_stock ?? null,
     sourceProductBackordered: signal.sourceProductBackordered ?? signal.raw?.product?.is_on_backorder ?? null,
     productLimitedCaveat: typeof signal.productLimitedCaveat === 'boolean' ? signal.productLimitedCaveat : null,
+    optionId: signal.optionId || signal.raw?.optionId || signal.raw?.option?.option_id || null,
     variantId: signal.variantId || signal.raw?.variant?.id || signal.raw?.option?.option_id || null,
     variantAvailable: typeof signal.variantAvailable === 'boolean'
       ? signal.variantAvailable
@@ -1781,6 +1783,32 @@ function applyAlertPolicyToCandidate(candidate) {
   };
 }
 
+// This is bounded snapshot continuity, not a transactional event bus. Carry
+// only previously accepted inventory episodes, never reconstruct from history.
+export function preservePartialRefreshOpportunities({ previousCandidates = [], currentCandidates = [], currentDrops = [], partialRefresh = false, attemptedStateIds = [], nowMs = Date.now() } = {}) {
+  if (!partialRefresh) return currentCandidates;
+  const attempted = new Set(attemptedStateIds.map((state) => String(state).toUpperCase()));
+  const evidenceKey = (row) => JSON.stringify([row.state, row.canonicalId || row.canonicalBottleId, row.storeId, row.availabilityEpisodeId]);
+  const currentEvidence = new Map(currentDrops.map((row) => [evidenceKey(row), row]));
+  const previousRows = Array.isArray(previousCandidates) ? previousCandidates : (previousCandidates?.alerts || []);
+  const carried = previousRows.filter((candidate) => {
+    if (attempted.has(candidate.state) || !candidate.availabilityEpisodeId
+      || candidate.eligibleForDelivery !== true || candidate.actionabilityClass !== 'store_inventory'
+      || candidate.stale || candidate.sourceStale || candidate.raw?.staleFallback) return false;
+    const age = (nowMs - Date.parse(candidate.signalAt || '')) / 3_600_000;
+    if (!Number.isFinite(age) || age < 0 || age > CURRENT_INVENTORY_ALERT_MAX_AGE_HOURS) return false;
+    const evidence = currentEvidence.get(evidenceKey(candidate));
+    return evidence?.canAlertAsInventory === true && evidence.locationPrecision === 'store_level'
+      && dropAgeHours(evidence, nowMs) <= CURRENT_INVENTORY_ALERT_MAX_AGE_HOURS
+      && dropHasPositiveAlertInventory(evidence);
+  }).map((candidate) => {
+    const policy = applyAlertPolicyToCandidate({ ...candidate, freshnessHours: (nowMs - Date.parse(candidate.signalAt)) / 3_600_000 });
+    return { ...policy, eligibleForEmail: candidate.eligibleForEmail === true && policy.eligibleForEmail,
+      eligibleForSms: candidate.eligibleForSms === true && policy.eligibleForSms };
+  }).filter((candidate) => candidate.eligibleForDelivery);
+  return uniqueBy([...currentCandidates, ...carried], (candidate) => candidate.dedupeKey || candidate.id);
+}
+
 function alertCandidateSort(a, b) {
   return Number(b.eligibleForDelivery) - Number(a.eligibleForDelivery) || (b.reliabilityScore || 0) - (a.reliabilityScore || 0) || (b.score || 0) - (a.score || 0);
 }
@@ -1852,6 +1880,8 @@ function ohioFeedStaleCaveat(signal) {
 }
 
 export function dropHasPositiveAlertInventory(drop) {
+  if (drop?.stale || drop?.sourceStale || drop?.raw?.staleFallback) return false;
+  if (drop?.state === 'TX') return isTexasRetailerInventory(drop);
   if (isSouthCarolinaDunesSignal(drop)) return isSouthCarolinaDunesInventory(drop);
   if (['NY', 'CO'].includes(drop?.state)) return isMetroRetailerInventory(drop);
   if (drop?.state === 'FL') {
@@ -1897,7 +1927,7 @@ export function buildCurrentInventoryAlertsFromDrops(drops) {
       const southCarolinaBinaryBaseline = isSouthCarolinaSouthernSpiritsInventory(drop)
         || southCarolinaInStoreBaseline
         || southCarolinaCityHiveBinaryBaseline;
-      const binaryRetailerOrderability = floridaBinaryBaseline || isSouthCarolinaSouthernSpiritsInventory(drop) || (
+      const binaryRetailerOrderability = (drop.state === 'TX' && Number(drop.quantity || 0) === 0 && isTexasRetailerInventory(drop)) || floridaBinaryBaseline || isSouthCarolinaSouthernSpiritsInventory(drop) || (
         (georgiaBaseline || metroBaseline || tennesseeBinaryBaseline)
         && drop.inventorySemantics === 'binary_retailer_orderable_no_exact_count'
         && Number(drop.quantity || 0) === 0
@@ -1928,6 +1958,7 @@ export function buildCurrentInventoryAlertsFromDrops(drops) {
       eventIdentityKey: episodeIdentity,
       dedupeKey: episodeIdentity ? stableId(['current_inventory_alert', episodeIdentity]) : stableId(legacyIdentityParts),
       legacyDedupeKey: episodeIdentity ? stableId(legacyIdentityParts) : null,
+      optionId: drop.optionId || drop.raw?.optionId || drop.raw?.option?.option_id || null,
       matchKey: stableId([drop.state, drop.canonicalId || drop.bottleName, drop.storeId || drop.locationName || 'regional']),
       gates: ['current_public_drop', 'store_level', southCarolinaInStoreBaseline || southCarolinaCityHiveBinaryBaseline
         ? 'verified_binary_in_store_availability'
@@ -1969,7 +2000,8 @@ export function buildCurrentInventoryAlertsFromDrops(drops) {
       zip: drop.zip || null,
       quantity: drop.quantity || 0,
       storeQty: Number(drop.storeQty ?? drop.quantity ?? 0) || 0,
-      quantityIsExact: typeof drop.quantityIsExact === 'boolean' ? drop.quantityIsExact : null,
+      quantityIsExact: drop.state === 'TX' && Number(drop.quantity || 0) === 0 && isTexasRetailerInventory(drop)
+        ? false : typeof drop.quantityIsExact === 'boolean' ? drop.quantityIsExact : null,
       quantitySemantics: drop.quantitySemantics || null,
       reportedQuantity: drop.reportedQuantity ?? null,
       availabilityStatus: drop.availabilityStatus,
@@ -2251,6 +2283,7 @@ async function main() {
   const currentStores = buildStores(signals);
   const currentLocations = buildLocationBible(signals, activeOfficialLocations);
   const previousDrops = await readJson(path.join(PREVIOUS_SITE_OUT, 'drops.json'), []);
+  const previousAlertCandidates = await readJson(path.join(PREVIOUS_SITE_OUT, 'alerts.json'), []);
   const currentWvLocationIds = new Set(currentLocations
     .filter((location) => String(location?.state || location?.state_code || '').toUpperCase() === 'WV'
       && (location?.type === 'store' || location?.locationType === 'store'))
@@ -2338,7 +2371,13 @@ async function main() {
   const alertCandidates = uniqueBy([...reportedAlertCandidates, ...regionalWatchAlertCandidates, ...currentInventoryAlertCandidates].map(applyAlertPolicyToCandidate), (candidate) => candidate.dedupeKey || candidate.id)
     .filter((candidate) => candidate.eligibleForDelivery)
     .sort(alertCandidateSort);
-  const cappedAlertCandidates = capAlertCandidatesByState(alertCandidates, 1000, 200);
+  const cappedAlertCandidates = preservePartialRefreshOpportunities({
+    previousCandidates: previousAlertCandidates,
+    currentCandidates: capAlertCandidatesByState(alertCandidates, 1000, 200),
+    currentDrops,
+    partialRefresh: summary.partialRefresh === true,
+    attemptedStateIds: summary.attemptedStateIds || [],
+  });
   const historicalTrends = buildHistoricalTrends(historicalSignals, signals, bible);
   const generatedAt = new Date().toISOString();
   const engineGeneratedAt = summary.generatedAt || snapshot.generatedAt || generatedAt;
@@ -2453,7 +2492,7 @@ async function main() {
   };
   let stateOperating = buildStateOperatingContract({ ...operatingInput, alerts: cappedAlertCandidates });
   const nonAlertableStateIds = new Set(stateOperating.states
-    .filter((state) => state.health === 'blocked' || state.fallback?.status !== 'none')
+    .filter((state) => state.health === 'blocked' || state.fallback?.status === 'last_published')
     .map((state) => state.state));
   const publishedAlertCandidates = cappedAlertCandidates.filter((candidate) => !nonAlertableStateIds.has(String(candidate.state).toUpperCase()));
   if (publishedAlertCandidates.length !== cappedAlertCandidates.length) {

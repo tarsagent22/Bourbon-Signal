@@ -236,7 +236,10 @@ async function deployAndAlias(tempRoot, manifest) {
 
 async function assertCronRegistered(tempRoot, deploymentUrl) {
   const result = await run('vercel', ['crons', 'ls', '--format', 'json', '--scope', VERCEL_SCOPE], { cwd: tempRoot, quiet: true });
-  const cron = evaluateCronRegistration(parseJsonOutput(result.stdout), { ...EXPECTED_CRON, host: new URL(deploymentUrl).hostname });
+  const config = JSON.parse(await readFile(path.join(tempRoot, 'vercel.json'), 'utf8'));
+  if (!Array.isArray(config.crons) || !config.crons.length) throw new Error('Approved checkout has no cron declarations.');
+  const expected = config.crons.map((cron) => ({ ...cron, host: new URL(deploymentUrl).hostname }));
+  const cron = evaluateCronRegistration(parseJsonOutput(result.stdout), expected);
   if (!cron.ok) throw new Error(`Cron registration assertion failed: ${cron.failures.join(' ')}`);
   return cron;
 }

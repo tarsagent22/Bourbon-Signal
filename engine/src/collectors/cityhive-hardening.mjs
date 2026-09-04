@@ -44,7 +44,8 @@ export function reconcileCityHiveRateLimitsWithCache({ roadblocks = [], sources 
     .map((roadblock) => roadblock?.source)
     .filter(Boolean));
   const isReachabilitySummary = (roadblock) => /^(?:reachable_no_safe_inventory_rows|reachable_no_inventory_rows)$/i.test(String(roadblock?.status || ''));
-  const isRecoveredNoise = (roadblock) => Number(roadblock?.status) === 429 || isReachabilitySummary(roadblock);
+  // Cache continuity never proves the live request recovered.
+  const isRecoveredNoise = (roadblock) => isReachabilitySummary(roadblock);
 
   return {
     recoveredSourceIds: [...recoveredSourceIds].sort(),

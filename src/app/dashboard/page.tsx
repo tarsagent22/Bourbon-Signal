@@ -1772,16 +1772,7 @@ function PaidMemberDashboard() {
         persistTracking: async () => {
           await savePreferences({
             alertMode: "specific_bottles",
-            bottleAlertPreferences: {
-              bottleNames: Array.from(new Set([
-                ...confirmedAlertPrefs.bottleAlertPreferences.bottleNames,
-                option.label,
-              ])),
-              bottleKeys: Array.from(new Set([
-                ...confirmedAlertPrefs.bottleAlertPreferences.bottleKeys,
-                option.canonicalKey,
-              ])),
-            },
+            watchlistMutation: { bottleName: option.label, bottleKey: option.canonicalKey, watched: true },
           });
         },
         rollbackTracking: () => {
@@ -1815,10 +1806,7 @@ function PaidMemberDashboard() {
     try {
       await savePreferences({
         alertMode: "specific_bottles",
-        bottleAlertPreferences: {
-          bottleNames: Array.from(new Set([...confirmedAlertPrefs.bottleAlertPreferences.bottleNames, suggestion.bottleName])),
-          bottleKeys: Array.from(new Set([...confirmedAlertPrefs.bottleAlertPreferences.bottleKeys, suggestion.canonicalKey])),
-        },
+        watchlistMutation: { bottleName: suggestion.bottleName, bottleKey: suggestion.canonicalKey, watched: true },
       });
       setAlertMode("specific_bottles");
       const matchingOption = alertBottleLibraryOptions.find((option) => option.canonicalKey === suggestion.canonicalKey);
@@ -2181,6 +2169,7 @@ function PaidMemberDashboard() {
       bottleAlertPreferences: {
         bottleNames: nextBottleNames,
         bottleKeys: nextBottleKeys,
+        version: persistedBottlePreferences.version,
       },
     };
     void savePreferences(nextPrefs)

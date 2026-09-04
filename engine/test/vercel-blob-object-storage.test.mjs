@@ -35,7 +35,7 @@ function fakeBlobApi() {
     async fetcher(url) {
       const pathname = new URL(url).pathname.slice(1);
       const value = objects.get(pathname);
-      return { ok: Boolean(value), status: value ? 200 : 404, text: async () => value?.body || '' };
+      return { ok: Boolean(value), status: value ? 200 : 404, headers: new Headers(value ? { etag: value.etag } : {}), text: async () => value?.body || '' };
     },
     objects,
     failPointerEvents(count) { pointerEventFailures = count; },

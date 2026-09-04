@@ -6,7 +6,7 @@ import { promisify } from 'node:util';
 import { pathToFileURL } from 'node:url';
 
 import { classifyFreshnessState } from '../engine/src/operations/freshness-state.mjs';
-import { runPublisher } from '../engine/src/data-plane/publish-site-snapshot.mjs';
+
 import { VercelBlobObjectStorage } from '../engine/src/data-plane/vercel-blob-object-storage.mjs';
 
 const execFileAsync = promisify(execFile);
@@ -102,6 +102,11 @@ async function writeIncident(outputPath, result) {
   await rename(temp, outputPath);
 }
 
+export function createObservationOnlyAdapters({ isRefreshRunning, verifyProductionReader }) {
+  const denied = async () => { throw new Error('Local recovery is observation-only; use the canonical GitHub publication authority.'); };
+  return { isRefreshRunning, verifyProductionReader, triggerRefresh: denied, publishExisting: denied, activateStaged: denied, rerunExport: denied };
+}
+
 export async function runWatchdog(options = {}) {
   const projectRoot = path.resolve(options.projectRoot || process.cwd());
   const siteDir = path.resolve(options.siteDir || path.join(projectRoot, 'engine', 'out', 'site'));
@@ -119,18 +124,14 @@ export async function runWatchdog(options = {}) {
     productionObservedAt: observation.observedAt,
   };
   const taskName = options.taskName || '\\Bourbon Signal Engine Refresh';
-  const adapters = options.adapters || {
+  const adapters = options.adapters || createObservationOnlyAdapters({
     isRefreshRunning: () => taskStatus(taskName),
-    triggerRefresh: async () => { await execFileAsync('schtasks.exe', ['/Run', '/TN', taskName], { windowsHide: true }); return { started: true }; },
-    publishExisting: () => runPublisher(['--site-dir', siteDir]),
-    activateStaged: () => runPublisher(['--site-dir', siteDir]),
-    rerunExport: async () => { await execFileAsync('node', ['src/export-site-contract.mjs'], { cwd: path.join(projectRoot, 'engine'), windowsHide: true }); return { exported: true }; },
     verifyProductionReader: async () => {
       const verification = await productionObservation(activeSnapshotId, productionUrl);
       if (!verification.observedAt) throw new Error('Production is not observing the active engine snapshot');
       return { observedAt: verification.observedAt };
     },
-  };
+  });
   const result = await executeFreshnessRecovery(state, adapters, options);
   const outputPath = path.join(projectRoot, 'engine', 'out', 'operations', 'freshness-watchdog.json');
   await writeIncident(outputPath, { ...result, state, activeSnapshotId });

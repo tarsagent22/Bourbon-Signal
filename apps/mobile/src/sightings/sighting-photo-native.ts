@@ -1,6 +1,8 @@
 import { manipulateAsync, SaveFormat } from "expo-image-manipulator";
 import * as ImagePicker from "expo-image-picker";
-import { File } from "expo-file-system";
+import { File, Directory, Paths } from "expo-file-system";
+import * as SecureStore from "expo-secure-store";
+import { createPhotoJournal } from './photo-journal';
 import {
   MAX_NATIVE_SIGHTING_PHOTO_BYTES,
   nextPhotoNormalizationPass,
@@ -8,6 +10,26 @@ import {
 } from "./sighting-photo";
 
 export type SightingPhotoSource = "camera" | "library";
+
+function photoDirectory(owner: string) {
+  if (!/^[a-zA-Z0-9_-]{1,200}$/.test(owner)) throw new Error('Sign in before attaching a photo.');
+  const directory = new Directory(Paths.document, 'sighting-photo-retry', owner);
+  directory.create({ intermediates: true, idempotent: true });
+  return directory;
+}
+export function nativePhotoJournal(owner: string) {
+  const directory = photoDirectory(owner);
+  return createPhotoJournal({ owner, storage: SecureStore, ownedRoot: `${directory.uri.replace(/\/$/, '')}/`,
+    removeFile: uri => { try { const file = new File(uri); if (file.exists) file.delete(); } catch {} } });
+}
+export function retainSightingPhoto(owner: string, photo: SightingPhotoAsset): SightingPhotoAsset {
+  const directory = photoDirectory(owner);
+  // One pending attachment per account; caller checks the journal before retention.
+  const target = new File(directory, 'pending.jpg');
+  const source = new File(photo.uri);
+  if (source.uri !== target.uri) { if (target.exists) target.delete(); source.copy(target); }
+  return { ...photo, uri: target.uri, fileName: 'pending.jpg', byteSize: target.size };
+}
 
 export async function chooseSightingPhoto(source: SightingPhotoSource): Promise<{ photo?: SightingPhotoAsset; error?: string }> {
   const permission = source === "camera"

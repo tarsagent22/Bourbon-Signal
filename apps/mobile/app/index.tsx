@@ -3,6 +3,7 @@ import { Redirect } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 import { colors } from "../src/theme";
+import { useAccessibleStatus } from '../src/hooks/useAccessibleStatus';
 
 type VerificationStrategy = "email_code" | "phone_code" | "totp" | "backup_code";
 
@@ -21,6 +22,7 @@ export default function SignInScreen() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
   const [authTimedOut, setAuthTimedOut] = useState(false);
+  useAccessibleStatus(error);
 
   useEffect(() => {
     if (authLoaded) return;
@@ -109,16 +111,16 @@ export default function SignInScreen() {
       {verificationStrategy ? (
         <View style={styles.form}>
           <Text style={styles.subtitle}>{verificationStrategy === "email_code" || verificationStrategy === "phone_code" ? "Enter the code Clerk sent to your verified contact." : "Enter the code for this account."}</Text>
-          <TextInput autoCapitalize="none" autoComplete="one-time-code" keyboardType={verificationStrategy === "backup_code" ? "default" : "number-pad"} placeholder={verificationLabel} placeholderTextColor={colors.muted} value={verificationCode} onChangeText={setVerificationCode} onSubmitEditing={verify} style={styles.input} />
+          <TextInput accessibilityLabel={verificationLabel} accessibilityHint={error || "Enter your account verification code, then verify and continue."} autoCapitalize="none" autoComplete="one-time-code" keyboardType={verificationStrategy === "backup_code" ? "default" : "number-pad"} placeholder={verificationLabel} placeholderTextColor={colors.muted} value={verificationCode} onChangeText={setVerificationCode} onSubmitEditing={verify} style={styles.input} />
           {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
-          <Pressable disabled={submitting} onPress={verify} style={({ pressed }) => [styles.button, pressed && styles.buttonPressed, submitting && styles.disabled]}><Text style={styles.buttonText}>{submitting ? "Verifying…" : "Verify and continue"}</Text></Pressable>
+          <Pressable accessibilityRole="button" accessibilityState={{ disabled: submitting, busy: submitting }} disabled={submitting} onPress={verify} style={({ pressed }) => [styles.button, pressed && styles.buttonPressed, submitting && styles.disabled]}><Text style={styles.buttonText}>{submitting ? "Verifying…" : "Verify and continue"}</Text></Pressable>
         </View>
       ) : (
         <View style={styles.form}>
-          <TextInput autoCapitalize="none" autoComplete="email" keyboardType="email-address" placeholder="Email" placeholderTextColor={colors.muted} value={email} onChangeText={setEmail} style={styles.input} />
-          <TextInput autoCapitalize="none" autoComplete="current-password" placeholder="Password" placeholderTextColor={colors.muted} secureTextEntry value={password} onChangeText={setPassword} onSubmitEditing={submit} style={styles.input} />
+          <TextInput accessibilityLabel="Email address" accessibilityHint={error || "Enter the email address for your member account."} autoCapitalize="none" autoComplete="email" keyboardType="email-address" placeholder="Email" placeholderTextColor={colors.muted} value={email} onChangeText={setEmail} style={styles.input} />
+          <TextInput accessibilityLabel="Password" accessibilityHint={error || "Enter your account password."} autoCapitalize="none" autoComplete="current-password" placeholder="Password" placeholderTextColor={colors.muted} secureTextEntry value={password} onChangeText={setPassword} onSubmitEditing={submit} style={styles.input} />
           {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
-          <Pressable disabled={submitting} onPress={submit} style={({ pressed }) => [styles.button, pressed && styles.buttonPressed, submitting && styles.disabled]}><Text style={styles.buttonText}>{submitting ? "Signing in…" : "Sign in"}</Text></Pressable>
+          <Pressable accessibilityRole="button" accessibilityState={{ disabled: submitting, busy: submitting }} disabled={submitting} onPress={submit} style={({ pressed }) => [styles.button, pressed && styles.buttonPressed, submitting && styles.disabled]}><Text style={styles.buttonText}>{submitting ? "Signing in…" : "Sign in"}</Text></Pressable>
         </View>
       )}
     </KeyboardAvoidingView>

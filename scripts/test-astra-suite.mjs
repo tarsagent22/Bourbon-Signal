@@ -1,0 +1,15 @@
+import { readdirSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+const root=fileURLToPath(new URL('../',import.meta.url));
+const files=readdirSync(new URL('./',import.meta.url)).filter(name=>/^test-astra-.*\.(?:mjs|cjs)$/.test(name)&&name!=='test-astra-suite.mjs').sort().map(name=>`scripts/${name}`);
+if(!files.length)throw new Error('No Astra regression tests discovered');
+const native=spawnSync(process.execPath,['--test',...files],{cwd:root,stdio:'inherit',timeout:300000});
+if(native.status!==0)process.exit(native.status||1);
+const typed=['member-state','member-lease','push-ownership'].map(name=>`scripts/test-astra-${name}.ts`);
+const typedRun=spawnSync(process.execPath,['node_modules/tsx/dist/cli.mjs','--test',...typed],{cwd:root,stdio:'inherit',timeout:300000});
+if(typedRun.status!==0)process.exit(typedRun.status??1);
+const pglite=createRequire(import.meta.url).resolve('@electric-sql/pglite');
+const sqlRun=spawnSync(process.execPath,['node_modules/tsx/dist/cli.mjs','scripts/test-astra-member-state-sql-local.ts',pglite],{cwd:root,stdio:'inherit',timeout:60000});
+process.exit(sqlRun.status??1);
