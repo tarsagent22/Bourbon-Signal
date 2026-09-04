@@ -38,8 +38,6 @@ export function planEngineRecovery({ watchdog, runs, headSha, now = new Date().t
   const nowMs = validTime(now);
   if (nowMs == null) throw new Error('Invalid recovery planning time.');
   const mode = incidentStates.length ? 'targeted' : 'full';
-  const deferredStates = incidentStates.length > 1 && incidentStates.includes('OH') ? ['OH'] : [];
-  const states = incidentStates.filter((state) => !deferredStates.includes(state));
   const incident = {
     headSha: String(headSha).toLowerCase(),
     snapshot: String(watchdog?.snapshotId || watchdog?.generatedAt || 'unknown'),
@@ -49,13 +47,16 @@ export function planEngineRecovery({ watchdog, runs, headSha, now = new Date().t
   };
   const incidentKey = createHash('sha256').update(JSON.stringify(incident)).digest('hex').slice(0, 20);
   const title = `Inventory recovery ${incidentKey}`;
-  const planIdentity = { incidentKey, mode, states, deferredStates };
-  const active = (runs || []).find((run) => run?.status === 'queued' || run?.status === 'in_progress');
-  if (active) return { dispatch: false, reason: 'active_refresh', priorRunId: active.databaseId || null, ...planIdentity };
   const matchingAttempts = (runs || [])
     .filter((run) => matchingIncident(run, title, incident.headSha))
     .map((run) => ({ ...run, observedAtMs: validTime(run?.createdAt, run?.updatedAt, run?.startedAt) }))
     .sort((left, right) => (left.observedAtMs || 0) - (right.observedAtMs || 0));
+  const selectedState = incidentStates.length ? incidentStates[matchingAttempts.length % incidentStates.length] : null;
+  const states = selectedState ? [selectedState] : [];
+  const deferredStates = incidentStates.filter((state) => state !== selectedState);
+  const planIdentity = { incidentKey, mode, states, deferredStates };
+  const active = (runs || []).find((run) => run?.status === 'queued' || run?.status === 'in_progress');
+  if (active) return { dispatch: false, reason: 'active_refresh', priorRunId: active.databaseId || null, ...planIdentity };
   const lastAttempt = matchingAttempts.at(-1) || null;
   if (matchingAttempts.length >= MAX_MATCHING_INCIDENT_ATTEMPTS && lastAttempt?.observedAtMs != null) {
     const nextEligibleAtMs = lastAttempt.observedAtMs + INCIDENT_CIRCUIT_COOLDOWN_MS;
