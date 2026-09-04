@@ -65,7 +65,7 @@ export async function POST(req: NextRequest) {
     subscriptionId = subscriptionId || recovered.subscriptionId;
     if (customerId) {
       await client.users.updateUserMetadata(userId, {
-        publicMetadata: { ...user.publicMetadata, stripeCustomerId: customerId },
+        publicMetadata: { stripeCustomerId: customerId },
         privateMetadata: { ...user.privateMetadata, stripeCustomerId: customerId, stripeSubscriptionId: subscriptionId || null },
       });
     }

@@ -1,4 +1,6 @@
 function signalObservationIdentity(signal) {
+  const ohioKey = ohioInventoryKey(signal);
+  if (ohioKey) return JSON.stringify(['precision:oh', ohioKey]);
   return JSON.stringify([
     signal?.eventType || signal?.type || '',
     signal?.canonicalId || signal?.canonicalBottleId || signal?.bottleId || signal?.canonicalName || signal?.rawName || signal?.id || '',
@@ -163,7 +165,7 @@ function preservedFallback(previous, reason, now = new Date().toISOString(), can
     sourceResults: candidate?.sourceResults || previous.sourceResults || [],
     sourceCircuitState: candidate?.sourceCircuitState || previous.sourceCircuitState || {},
     status: `stale_${priorStatus}_quality_fallback`,
-    signals: (previous.signals || []).map((signal) => ({
+    signals: (previous.signals || []).map((signal) => sanitizeNonAlertingStaleSignal({
       ...signal,
       stale: true,
       staleReason: `Quality guard preserved the last good report because ${reason}.`,
@@ -202,6 +204,9 @@ function sanitizeNonAlertingStaleSignal(signal) {
     canAlertAsWatch: false,
     alertable: false,
     sourceAvailabilityVerified: false,
+    eligibleForDelivery: false,
+    eligibleForEmail: false,
+    eligibleForSms: false,
     raw: {
       ...(signal.raw || {}),
       staleFallback: true,
@@ -257,6 +262,41 @@ function partialFallback(previous, candidate, reason, now = new Date().toISOStri
   };
 }
 
+function ohioInventoryKey(signal) {
+  if ((signal.leafSourceRuntimeId || signal.sourceRuntimeId) !== 'precision:oh'
+    || !/^browser_assisted_store_inventory_/.test(String(signal.eventType || ''))
+    || (signal.state && signal.state !== 'OH')) return null;
+  const sku = signal.raw?.product?.sku;
+  return typeof sku === 'string' && sku && typeof signal.storeId === 'string' && signal.storeId
+    ? JSON.stringify([sku, signal.storeId]) : null;
+}
+
+function reconcileOhioNegatives(previous, candidate, now) {
+  if (previous?.state !== 'OH' || candidate?.state !== 'OH' || candidate.stale) return previous;
+  const cutoff = Date.parse(now || new Date().toISOString());
+  const negatives = new Map();
+  const current = new Set((candidate.signals || []).map(ohioInventoryKey).filter(Boolean));
+  for (const source of candidate.sourceResults || []) {
+    if (source.sourceId !== 'precision:oh' || source.status !== 'success' || source.ok !== true || source.stale || source.quarantined) continue;
+    const metadata = source.metadata;
+    if (metadata?.complete !== true || !Array.isArray(metadata.inspectedScope) || !Array.isArray(metadata.negativeObservations)) continue;
+    const key = (row) => typeof row?.sku === 'string' && row.sku && typeof row.storeId === 'string' && row.storeId
+      ? JSON.stringify([row.sku, row.storeId]) : null;
+    const covered = new Set(metadata.inspectedScope.map(key).filter(Boolean));
+    for (const observation of metadata.negativeObservations) {
+      const identity = key(observation), observed = Date.parse(observation.observedAt || '');
+      if (identity && covered.has(identity) && !current.has(identity) && observation.availabilityStatus === 'sold_out'
+        && Number.isFinite(observed) && observed <= cutoff) negatives.set(identity, observed);
+    }
+  }
+  const signals = (previous.signals || []).filter((signal) => {
+    const observed = negatives.get(ohioInventoryKey(signal));
+    const priorObserved = Date.parse(signal.lastConfirmedAt || signal.observedAt || '');
+    return observed == null || (Number.isFinite(priorObserved) && observed < priorObserved);
+  });
+  return signals.length === (previous.signals || []).length ? previous : { ...previous, signals };
+}
+
 export function guardStateReport({ previous, candidate, now, options } = {}) {
   if (!candidate) {
     if (!previous) return { accepted: false, report: null, reason: 'candidate and previous report are missing' };
@@ -265,8 +305,26 @@ export function guardStateReport({ previous, candidate, now, options } = {}) {
   const reconciledCandidate = reconcileNcObservationHistory(previous, candidate);
   if (!previous) return { accepted: true, report: reconciledCandidate, reason: null };
 
-  const reason = collapseReason(previous, reconciledCandidate, options);
+  const reconciledPrevious = reconcileOhioNegatives(previous, reconciledCandidate, now);
+  const removedNegatives = reconciledPrevious !== previous;
+  previous = reconciledPrevious;
+  const currentIdentities = new Set((reconciledCandidate.signals || []).map(signalObservationIdentity));
+  const uncoveredSiblings = removedNegatives && previous.signals.some((signal) => !currentIdentities.has(signalObservationIdentity(signal)));
+  const reason = collapseReason(previous, reconciledCandidate, options)
+    || (uncoveredSiblings ? 'the complete OH observation covered only part of the previous state identities' : null);
   if (!reason) return { accepted: true, report: reconciledCandidate, reason: null };
+  // A successful leaf result is a narrower validation boundary than the state
+  // volume baseline. Preserve only rows bound to those successful results.
+  const successfulSources = new Set((reconciledCandidate.sourceResults || [])
+    .filter((source) => typeof source.sourceId === 'string' && source.sourceId.trim()
+      && source.status === 'success' && source.ok === true && !source.stale && !source.quarantined)
+    .map((source) => source.sourceId));
+  const validatedCurrent = (reconciledCandidate.signals || []).filter((signal) =>
+    successfulSources.has(signal.leafSourceRuntimeId || signal.sourceRuntimeId)
+    && !signal.stale && !signal.sourceStale && !signal.raw?.staleFallback);
+  if (!options?.mergePartialFallback && validatedCurrent.length) {
+    return { accepted: true, report: partialFallback(previous, { ...reconciledCandidate, signals: validatedCurrent }, reason, now), reason };
+  }
   if (options?.mergePartialFallback && (reconciledCandidate.signals || []).length > 0) {
     return { accepted: true, report: partialFallback(previous, reconciledCandidate, reason, now), reason };
   }

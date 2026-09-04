@@ -9,13 +9,6 @@ const MAX_RECOVERY_BACKOFF_MS = 2 * 60 * 60_000;
 const INCIDENT_CIRCUIT_COOLDOWN_MS = 6 * 60 * 60_000;
 const MAX_MATCHING_INCIDENT_ATTEMPTS = 4;
 
-function stableFailures(watchdog) {
-  return (Array.isArray(watchdog?.failures) ? watchdog.failures : [])
-    .map((failure) => typeof failure === 'string' ? failure : JSON.stringify(failure))
-    .map((failure) => failure.trim())
-    .filter(Boolean)
-    .sort();
-}
 
 function validTime(...values) {
   for (const value of values) {
@@ -25,9 +18,8 @@ function validTime(...values) {
   return null;
 }
 
-function matchingIncident(run, title, headSha) {
+function matchingIncident(run, title) {
   return run?.event === 'workflow_dispatch'
-    && String(run?.headSha || '').toLowerCase() === headSha
     && String(run?.displayTitle || '') === title;
 }
 
@@ -38,17 +30,26 @@ export function planEngineRecovery({ watchdog, runs, headSha, now = new Date().t
   const nowMs = validTime(now);
   if (nowMs == null) throw new Error('Invalid recovery planning time.');
   const mode = incidentStates.length ? 'targeted' : 'full';
+  if (incidentStates.length > 1) {
+    const plans = incidentStates.map((state) => planEngineRecovery({ watchdog: { ...watchdog, recoveryStates: [state] }, runs, headSha, now }));
+    plans.sort((a, b) => Number(b.dispatch) - Number(a.dispatch)
+      || (a.priorAttempts || 0) - (b.priorAttempts || 0)
+      || String(a.nextEligibleAt || '').localeCompare(String(b.nextEligibleAt || ''))
+      || a.states[0].localeCompare(b.states[0]));
+    const selected = plans[0];
+    return { ...selected, deferredStates: incidentStates.filter((state) => state !== selected.states[0]) };
+  }
   const incident = {
-    headSha: String(headSha).toLowerCase(),
-    snapshot: String(watchdog?.snapshotId || watchdog?.generatedAt || 'unknown'),
+    // Stable recovery boundary: state collection or global publication. Neither
+    // snapshot identity, release SHA nor diagnostic prose closes an incident.
+    failureClass: mode === 'targeted' ? 'state_collection' : 'publication',
     mode,
     states: incidentStates,
-    failures: stableFailures(watchdog),
   };
   const incidentKey = createHash('sha256').update(JSON.stringify(incident)).digest('hex').slice(0, 20);
   const title = `Inventory recovery ${incidentKey}`;
   const matchingAttempts = (runs || [])
-    .filter((run) => matchingIncident(run, title, incident.headSha))
+    .filter((run) => matchingIncident(run, title))
     .map((run) => ({ ...run, observedAtMs: validTime(run?.createdAt, run?.updatedAt, run?.startedAt) }))
     .sort((left, right) => (left.observedAtMs || 0) - (right.observedAtMs || 0));
   const selectedState = incidentStates.length ? incidentStates[matchingAttempts.length % incidentStates.length] : null;

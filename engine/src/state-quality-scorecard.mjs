@@ -13,10 +13,79 @@ function number(value) {
   return Number.isFinite(parsed) ? parsed : 0;
 }
 
+// Release quality is not alert authority. Keep downstream identity/lifecycle/alert
+// guards intact. Inventory confirmation has a two-hour TTL; watch events 72h.
+export const QUALITY_FUTURE_TOLERANCE_MS = 5 * 60_000;
+export const QUALITY_MIN_FRESH_RATIO = 0.75;
+
 function freshnessHours(value, nowMs = Date.now()) {
   if (!value) return null;
   const parsed = new Date(value).getTime();
-  return Number.isFinite(parsed) ? Math.max(0, (nowMs - parsed) / 3_600_000) : null;
+  return Number.isFinite(parsed) && parsed <= nowMs + QUALITY_FUTURE_TOLERANCE_MS
+    ? Math.max(0, (nowMs - parsed) / 3_600_000) : null;
+}
+
+function evidenceFor(drop) {
+  return {
+    // Explicit confirmation wins even when malformed: do not launder it using
+    // a more recent crawl, publication or source-event timestamp.
+    confirmedAt: drop.lastConfirmedAt ?? drop.last_confirmed_at
+      ?? drop.inventoryCheckedAt ?? drop.observedAt ?? drop.observed_at ?? null,
+    eventAt: drop.sourceEventAt ?? drop.source_event_at ?? drop.eventAt ?? drop.event_at
+      ?? drop.firstSeenAt ?? drop.timestamp ?? null,
+    store: drop.storeId || drop.store_id || drop.storeAddress || drop.store_address || null,
+    area: drop.area || drop.regionId || drop.city || drop.county || null,
+    inventory: drop.canAlertAsInventory === true || drop.dataLane === 'onsite_inventory'
+      || /inventory/iu.test(String(drop.type || drop.eventType || '')),
+    stale: drop.stale === true || drop.sourceStale === true || drop.source_stale === true
+      || drop.raw?.sourceRuntimeNonAlertable === true,
+  };
+}
+
+function ageDistribution(values) {
+  const ages = values.filter((value) => value !== null).sort((a, b) => a - b);
+  const percentile = (p) => ages.length ? ages[Math.max(0, Math.ceil(ages.length * p) - 1)] : null;
+  return { p50: percentile(0.5), p95: percentile(0.95), max: ages.at(-1) ?? null };
+}
+
+function evaluateFreshness(input, nowMs, liveStore, watchLane) {
+  const maxAgeHours = liveStore ? 2 : watchLane ? 72 : 24;
+  const rows = Array.isArray(input.freshnessEvidence) ? input.freshnessEvidence : null;
+  // Compatibility for callers supplying aggregate quality inputs. Production
+  // buildStateQualityInputs always supplies row evidence and distribution.
+  const evidence = rows ?? [{ confirmedAt: input.freshestObservedAt, eventAt: input.freshestObservedAt }];
+  const confirmationAges = evidence.map((row) => freshnessHours(row.confirmedAt, nowMs));
+  const eventAges = evidence.map((row) => freshnessHours(row.eventAt, nowMs));
+  const relevantAges = liveStore ? confirmationAges : evidence.map((row, i) => row.eventAt != null ? eventAges[i] : confirmationAges[i]);
+  let futureRowCount = 0;
+  const fresh = evidence.map((row, i) => {
+    const value = liveStore ? row.confirmedAt : row.eventAt ?? row.confirmedAt;
+    if (Date.parse(value || '') > nowMs + QUALITY_FUTURE_TOLERANCE_MS) futureRowCount += 1;
+    return !row.stale && (!liveStore || row.inventory !== false)
+      && relevantAges[i] !== null && relevantAges[i] <= maxAgeHours;
+  });
+  const groupRatio = (key) => {
+    const all = new Set(evidence.map((row) => row[key]).filter(Boolean));
+    const usable = new Set(evidence.filter((row, i) => fresh[i]).map((row) => row[key]).filter(Boolean));
+    return all.size ? usable.size / all.size : null;
+  };
+  const freshRowCount = fresh.filter(Boolean).length;
+  const freshRowRatio = evidence.length ? freshRowCount / evidence.length : 0;
+  const freshStoreRatio = groupRatio('store');
+  const freshAreaRatio = groupRatio('area');
+  const validAges = relevantAges.filter((age) => age !== null);
+  const blocked = !freshRowCount || freshRowRatio < QUALITY_MIN_FRESH_RATIO
+    || (liveStore && [freshStoreRatio, freshAreaRatio].some((ratio) => ratio !== null && ratio < QUALITY_MIN_FRESH_RATIO));
+  return {
+    basis: liveStore ? 'inventory_confirmation' : 'source_event',
+    maxAgeHours, minFreshRatio: QUALITY_MIN_FRESH_RATIO,
+    distributionKnown: rows !== null, rowCount: evidence.length,
+    freshRowCount, freshRowRatio, freshStoreRatio, freshAreaRatio,
+    futureRowCount, unknownRowCount: relevantAges.filter((age) => age === null).length - futureRowCount,
+    confirmationAgeHours: ageDistribution(confirmationAges), eventAgeHours: ageDistribution(eventAges),
+    freshestAgeHours: validAges.length ? Math.min(...validAges) : null,
+    eligible: !blocked,
+  };
 }
 
 function clamp(value, min = 0, max = 100) {
@@ -24,7 +93,7 @@ function clamp(value, min = 0, max = 100) {
 }
 
 export function scoreStateQuality(input, options = {}) {
-  const nowMs = options.nowMs || Date.now();
+  const nowMs = options.nowMs ?? Date.now();
   const normalized = {
     state: String(input.state || '').toUpperCase(),
     coverageTier: String(input.coverageTier || 'unknown'),
@@ -35,12 +104,16 @@ export function scoreStateQuality(input, options = {}) {
     sourceCount: number(input.sourceCount),
     roadblockCount: number(input.roadblockCount),
     freshestObservedAt: input.freshestObservedAt || null,
+    ...(Array.isArray(input.freshnessEvidence) ? { freshnessEvidence: input.freshnessEvidence } : {}),
     status: String(input.status || 'unknown'),
   };
   const liveStore = LIVE_STORE_TIERS.has(normalized.coverageTier);
   const watchLane = WATCH_TIERS.has(normalized.coverageTier);
-  const ageHours = freshnessHours(normalized.freshestObservedAt, nowMs);
+  const freshness = evaluateFreshness(normalized, nowMs, liveStore, watchLane);
+  const ageHours = freshness.freshestAgeHours;
   const weaknesses = [];
+  if (!freshness.eligible) weaknesses.push('insufficient_fresh_evidence');
+  if (freshness.futureRowCount) weaknesses.push('future_freshness');
 
   let freshnessScore = 0;
   if (ageHours === null) weaknesses.push('unknown_freshness');
@@ -80,7 +153,7 @@ export function scoreStateQuality(input, options = {}) {
 
   const score = Math.round(clamp(freshnessScore + volumeScore + precisionScore + alertScore + sourceScore + reliabilityScore));
   const threshold = liveStore ? 65 : watchLane ? 50 : 55;
-  const hardBlock = weaknesses.includes('unknown_freshness')
+  const hardBlock = !freshness.eligible || weaknesses.includes('unknown_freshness')
     || weaknesses.includes('no_public_drops')
     || (liveStore && weaknesses.includes('no_store_level_drops'))
     || /failed/iu.test(normalized.status);
@@ -91,6 +164,7 @@ export function scoreStateQuality(input, options = {}) {
     score,
     threshold,
     releaseEligible: score >= threshold && !hardBlock,
+    freshness,
     freshnessHours: ageHours === null ? null : Math.round(ageHours * 10) / 10,
     dimensions: {
       freshness: Math.round(freshnessScore),
@@ -118,7 +192,7 @@ function summarizeStateQuality(states) {
 
 export function buildStateQualityScorecard(inputs, { generatedAt = new Date().toISOString(), nowMs } = {}) {
   const states = inputs
-    .map((input) => scoreStateQuality(input, { nowMs: nowMs || new Date(generatedAt).getTime() }))
+    .map((input) => scoreStateQuality(input, { nowMs: nowMs ?? new Date(generatedAt).getTime() }))
     .sort((a, b) => b.score - a.score || a.state.localeCompare(b.state));
   return {
     schemaVersion: 2,
@@ -135,7 +209,11 @@ export function mergePartialRefreshStateQuality(previous, current, summary = {})
   const previousByState = new Map((previous?.states || []).map((state) => [String(state.state).toUpperCase(), state]));
   const states = (current?.states || []).map((state) => {
     const stateId = String(state.state).toUpperCase();
-    return attempted.has(stateId) && !preserved.has(stateId) ? state : previousByState.get(stateId) || state;
+    if (attempted.has(stateId) && !preserved.has(stateId)) return state;
+    const prior = previousByState.get(stateId) || state;
+    // Preserve history, not an expired eligibility decision from a prior clock.
+    return prior.input && current.generatedAt
+      ? scoreStateQuality(prior.input, { nowMs: Date.parse(current.generatedAt) }) : prior;
   }).sort((a, b) => b.score - a.score || a.state.localeCompare(b.state));
   return { ...current, summary: summarizeStateQuality(states), states };
 }
@@ -154,6 +232,15 @@ export function compareStateQuality(previous, current, { maxScoreDrop = 15, minD
   const warnings = [];
   const previousByState = new Map((previous?.states || []).map((state) => [state.state, state]));
   for (const state of current?.states || []) {
+    // Positive retained volume cannot waive freshness. An empty/non-alerting
+    // partition has no positive evidence to validate and must not prevent a
+    // sold-out observation or an unrelated fresh partition from publishing.
+    const hasPositiveRows = number(state.input?.dropCount ?? state.dropCount) > 0;
+    if (hasPositiveRows && (state.freshness?.eligible === false || (state.weaknesses || []).includes('insufficient_fresh_evidence'))) {
+      // State admission and global snapshot publication are separate: the
+      // score remains ineligible, but this must not freeze healthy partitions.
+      warnings.push(`${state.state}: insufficient fresh evidence for release quality.`);
+    }
     const before = previousByState.get(state.state);
     if (!before) continue;
     const priorDrops = number(before.input?.dropCount ?? before.dropCount);
@@ -200,12 +287,14 @@ export function buildStateQualityInputs({ stateCoverage, drops, alerts }) {
     let freshestObservedAt = null;
     let freshestMs = -Infinity;
     let storeLevelDropCount = 0;
+    const freshnessEvidence = stateDrops.map(evidenceFor);
     for (const drop of stateDrops) {
       const source = drop.sourceUrl || drop.source_url || drop.source || drop.sourceLabel || drop.retailer;
       if (source) sources.add(String(source));
       const precision = String(drop.locationPrecision || drop.location_precision || '');
       if (precision === 'store_level' || drop.storeId || drop.store_id || drop.storeAddress || drop.store_address) storeLevelDropCount += 1;
-      for (const value of [drop.sourceEventAt, drop.source_event_at, drop.observedAt, drop.observed_at, drop.timestamp, drop.lastSeenAt]) {
+      const evidence = evidenceFor(drop);
+      for (const value of [LIVE_STORE_TIERS.has(coverage.coverageTier) ? evidence.confirmedAt : evidence.eventAt ?? evidence.confirmedAt]) {
         const parsed = value ? new Date(value).getTime() : NaN;
         if (Number.isFinite(parsed) && parsed > freshestMs) { freshestMs = parsed; freshestObservedAt = new Date(parsed).toISOString(); }
       }
@@ -220,6 +309,7 @@ export function buildStateQualityInputs({ stateCoverage, drops, alerts }) {
       sourceCount: sources.size || number(coverage.sourceCount),
       roadblockCount: coverage.roadblockCount,
       freshestObservedAt,
+      freshnessEvidence,
       status: coverage.status,
     };
   });

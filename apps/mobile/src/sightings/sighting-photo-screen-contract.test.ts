@@ -18,8 +18,11 @@ test("Post offers camera and library evidence with preview replacement and remov
 test("a failed photo upload retries against the existing sighting without reposting it", () => {
   assert.match(post, /pendingPhotoAttachment/);
   assert.match(post, /if \(pendingPhotoAttachment\)[\s\S]*retryPhotoUpload/);
-  assert.match(post, /api\.uploadSightingPhoto/);
-  assert.match(post, /result\.sighting\.id/);
+  assert.match(post, /journal\.resume\(api, sightingPhotoBlob\)/);
+  const journal = readFileSync(new URL('./photo-journal.ts', import.meta.url), 'utf8');
+  assert.match(journal, /api\.uploadSightingPhoto/);
+  assert.match(journal, /result\.sighting\.id/);
+  assert.match(post, /journal\.prepare\(built.payload, requestBinding.key, retained\)/);
   assert.match(post, /Retry photo/);
   assert.doesNotMatch(post, /Finish without photo|finishWithoutPhoto|api\.discardSightingPhoto/, "post-submit evidence stays in retry or recovery until one photo is attached");
 });

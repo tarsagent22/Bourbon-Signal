@@ -1,0 +1,65 @@
+name: Locked dependency security
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  locked-audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        package: ['.', 'engine', 'apps/mobile']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      # Audit the lock, not a developer's mutable node_modules. Do not omit dev
+      # dependencies, ignore failure, auto-fix, or downgrade the Expo SDK here.
+      - name: Reject moderate or higher locked advisories
+        working-directory: ${{ matrix.package }}
+        run: npm audit --package-lock-only --ignore-scripts --audit-level=moderate
+
+  scoped-regressions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: node --test scripts/test-astra-ops-guards.mjs scripts/test-astra-dependency-lock.mjs scripts/test-astra-recipient-fairness.mjs scripts/test-release-orchestrator.mjs
+  durable-state-regressions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_HOST_AUTH_METHOD: trust
+        ports:
+          - 55439:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm ci --ignore-scripts --prefix engine
+      - run: npm run test:astra
+      - run: node --test scripts/test-m12-push-outbox.mjs

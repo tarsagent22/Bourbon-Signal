@@ -44,6 +44,29 @@ export class PostgresAlertQueueRepository implements AlertQueueRepository {
     this.sql = sql;
   }
 
+  async readRecipientCursor(): Promise<number> {
+    const result = await this.sql.query(`select next_offset from alert_recipient_cursor where id = 'live'`);
+    const offset = Number(result.rows[0]?.next_offset || 0);
+    if (!Number.isSafeInteger(offset) || offset < 0) throw new Error("Invalid durable recipient cursor");
+    return offset;
+  }
+
+  async writeRecipientCursor(offset: number, owner: string): Promise<void> {
+    if (!Number.isSafeInteger(offset) || offset < 0) throw new Error("Invalid recipient cursor offset");
+    const result = await this.sql.query(`
+      with owned as materialized (
+        select lease_key from alert_delivery_leases
+        where lease_key = 'recipient-scan:v1' and owner = $2 and expires_at > now()
+        for update
+      )
+      insert into alert_recipient_cursor (id, next_offset, updated_at)
+      select 'live', $1, now() from owned
+      on conflict (id) do update set next_offset = excluded.next_offset, updated_at = excluded.updated_at
+      returning id
+    `, [offset, owner]);
+    if (!result.rows.length) throw new Error("Recipient scan lease expired or ownership lost");
+  }
+
   async registerSnapshot(input: EngineSnapshotInput) {
     await this.sql.query(`
       insert into engine_snapshots (
@@ -325,6 +348,16 @@ export class PostgresAlertQueueRepository implements AlertQueueRepository {
          or alert_delivery_leases.owner = excluded.owner
       returning lease_key
     `, [leaseKey, owner, acquiredAt, expiresAt]);
+    return Boolean(result.rows[0]);
+  }
+
+  // Unlike acquireLease this cannot insert/reacquire a missing or expired lease.
+  // An operation that stalled across takeover must discard its metadata snapshot.
+  async renewLease(leaseKey: string, owner: string, seconds = 60) {
+    const result = await this.sql.query(`update alert_delivery_leases
+      set expires_at = clock_timestamp() + ($3::integer * interval '1 second')
+      where lease_key = $1 and owner = $2 and expires_at > clock_timestamp()
+      returning lease_key`, [leaseKey, owner, seconds]);
     return Boolean(result.rows[0]);
   }
 

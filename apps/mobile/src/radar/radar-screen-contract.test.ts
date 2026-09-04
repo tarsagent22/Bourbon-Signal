@@ -22,8 +22,8 @@ test("alert-inbox navigation always restores Matches even after Watchlist", () =
 
   assert.match(radar, /useLocalSearchParams/);
   assert.match(radar, /section: requestedSection, request/);
-  assert.match(radar, /if \(requestedSection === "matches" && request\) setView\("matches"\)/);
-  assert.match(radar, /\[requestedSection, request\]/);
+  assert.match(radar, /if \(requestedSection === "matches" && request\) \{ setView\("matches"\); void load\(true\)/);
+  assert.match(radar, /\[load, requestedSection, request\]/);
 });
 
 test("Watchlist only shows bottle management for specific-bottle alerts", () => {

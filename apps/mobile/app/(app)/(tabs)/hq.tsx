@@ -8,6 +8,9 @@ import { MobileApiError } from "../../../src/api/client";
 import type { MemberProfile, ReferralSummary, SignalPointsSummary, SignalRewardItem } from "../../../src/api/types";
 import { DataRow, ErrorState, MemberCard, SectionTitle, memberScreenStyles } from "../../../src/components/MemberScreen";
 import { useMobileApi } from "../../../src/hooks/useMobileApi";
+import { useScreenRevalidation } from "../../../src/hooks/useScreenRevalidation";
+import { useAccessibleStatus } from '../../../src/hooks/useAccessibleStatus';
+import { signOutWithRadarPushDisabled } from "../../../src/push/push-registration";
 import { rewardAvailability, rewardCatalogSummary } from "../../../src/interactions/member-interactions";
 import { colors } from "../../../src/theme";
 
@@ -17,6 +20,14 @@ export default function AccountScreen() {
   const api = useMobileApi();
   const router = useRouter();
   const { signOut } = useAuth();
+  const [signingOut, setSigningOut] = useState(false);
+  async function logout() {
+    if (signingOut) return;
+    setSigningOut(true);
+    try { await signOutWithRadarPushDisabled(api, signOut); }
+    catch { setProfileError("Sign out could not finish. Please retry."); }
+    finally { setSigningOut(false); }
+  }
   const [profile, setProfile] = useState<MemberProfile["profile"] | null>(null);
   const [points, setPoints] = useState<SignalPointsSummary | null>(null);
   const [referral, setReferral] = useState<ReferralSummary | null>(null);
@@ -28,6 +39,7 @@ export default function AccountScreen() {
   const [displayNameDraft, setDisplayNameDraft] = useState("");
   const [displayNameError, setDisplayNameError] = useState("");
   const [displayNameSuccess, setDisplayNameSuccess] = useState("");
+  useAccessibleStatus(displayNameError || displayNameSuccess || profileError);
   const [savingDisplayName, setSavingDisplayName] = useState(false);
   const [editingDisplayName, setEditingDisplayName] = useState(false);
   const [showEarningGuide, setShowEarningGuide] = useState(false);
@@ -85,7 +97,7 @@ export default function AccountScreen() {
     setLoading(false);
   }, [api, loadReferral]);
 
-  useEffect(() => { void load(false); }, [load]);
+  useScreenRevalidation(() => load(true));
 
   const rewards = useMemo(() => points
     ? rewardCatalogSummary(points.catalog, { balance: points.balance, redemptionEligible: points.redemptionEligible })
@@ -261,7 +273,7 @@ export default function AccountScreen() {
               <Text selectable style={styles.diagnosticText}>{diagnostics}</Text>
               <Pressable accessibilityRole="button" onPress={() => void Share.share({ message: diagnostics, title: "Bourbon Signal diagnostics" })} style={({ pressed }) => [styles.diagnosticAction, pressed && styles.pressed]}><Text style={styles.diagnosticActionText}>Share diagnostics</Text></Pressable>
             </View> : null}
-            <Pressable accessibilityRole="button" onPress={() => signOut()} style={({ pressed }) => [styles.signOut, pressed && styles.pressed]}><Text style={styles.signOutText}>Sign out</Text></Pressable>
+            <Pressable accessibilityRole="button" disabled={signingOut} accessibilityState={{ disabled: signingOut, busy: signingOut }} onPress={() => void logout()} style={({ pressed }) => [styles.signOut, pressed && styles.pressed]}><Text style={styles.signOutText}>Sign out</Text></Pressable>
           </View>
           <View style={[memberScreenStyles.section, styles.dangerZone]}>
             <Text style={styles.dangerTitle}>Data & privacy</Text>

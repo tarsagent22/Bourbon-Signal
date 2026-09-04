@@ -2,6 +2,33 @@ import { createSourceAdapter } from './source-adapter.mjs';
 import { markSourceValueNonAlertable, summarizeSourceResult } from './source-result.mjs';
 import { runSourceAdapters } from './source-runner.mjs';
 
+function inspectedScopeKey(metadata) {
+  if (!Array.isArray(metadata?.inspectedScope)) return null;
+  const keys = metadata.inspectedScope.map((row) => {
+    if (typeof row?.sku !== 'string' || !row.sku || typeof row?.storeId !== 'string' || !row.storeId) return null;
+    return JSON.stringify([row.sku, row.storeId]);
+  });
+  if (!keys.length || keys.includes(null)) return false;
+  return JSON.stringify([...new Set(keys)].sort());
+}
+
+function comparableLegacyCount(value, { previous, candidate } = {}) {
+  if (!previous || !candidate) return value.signals.length;
+  // A useful explicitly partial result is not a census. Let the state guard
+  // retain uncovered siblings, rather than replacing current positives with old rows.
+  if (candidate.metadata?.complete === false && candidate.signals.length > 0 && !candidate.stale) return NaN;
+  const left = previous.metadata, right = candidate.metadata;
+  const validCount = (m) => Number.isSafeInteger(m?.recordsInspected) && m.recordsInspected > 0;
+  const leftScope = inspectedScopeKey(left), rightScope = inspectedScopeKey(right);
+  const sameScope = leftScope !== false && rightScope !== false && leftScope === rightScope;
+  // Legacy sources without subject scopes retain their source-local complete
+  // census contract. Never compare that census to positives on the other side.
+  if (left?.complete === true && right?.complete === true && validCount(left) && validCount(right) && sameScope) {
+    return value.metadata.recordsInspected;
+  }
+  return value.signals.length;
+}
+
 function stampedEntries(entries, sourceRuntimeId) {
   return (entries || []).map((entry) => ({ ...entry, sourceRuntimeId }));
 }
@@ -72,9 +99,10 @@ export async function runLegacyPrecisionSource({
       };
     },
     validate: (value) => Array.isArray(value?.signals) && Array.isArray(value?.roadblocks)
+      && !(value.signals.length === 0 && value.metadata?.complete === false)
       ? true
       : 'Legacy precision collector returned a malformed result',
-    recordCount: (value) => value.signals.length,
+    recordCount: comparableLegacyCount,
   });
   const isolated = await runSourceAdapters([adapter], {}, {
     ...sourceRunnerOptions,

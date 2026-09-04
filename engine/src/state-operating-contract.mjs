@@ -6,6 +6,7 @@ import {
   projectCustomerSurfaces,
 } from './customer-surface-policy.mjs';
 import { lifecycleExpectsCustomerVisibleDrops } from './state-lifecycle.mjs';
+import { buildStateRecoveryPlan } from './state-recovery-plan.mjs';
 
 export const STATE_OPERATING_CONTRACT_VERSION = 'bourbon-signal-state-operating-v1';
 
@@ -58,6 +59,38 @@ function freshnessFor(rows, generatedAt, stale) {
         : ageHours <= 168 ? 'aging'
           : 'stale';
   return { status, observedAt, ageHours };
+}
+
+// Event chronology remains in `freshness` for compatibility. Inventory SLA
+// diagnostics use confirmation timestamps, never publication or event age.
+export function inventoryEvidenceFreshness(rows, generatedAt) {
+  const nowMs = Date.parse(generatedAt);
+  const inventoryRows = rows.filter((row) => row?.informationalOnly !== true
+    && row?.dataLane !== 'informational'
+    && row?.locationPrecision === 'store_level'
+    && (row?.canAlertAsInventory === true || /inventory/i.test(String(row?.type || row?.eventType || ''))));
+  const groups = new Map();
+  const total = { totalCount: 0, freshCount: 0, overdueCount: 0, unknownCount: 0, maxAgeHours: null, deadlineHours: 2 };
+  for (const row of inventoryRows) {
+    const sourceId = String(row.leafSourceRuntimeId || row.sourceRuntimeId || row.sourceLabel || row.source || 'unknown');
+    if (!groups.has(sourceId)) groups.set(sourceId, { sourceId, totalCount: 0, freshCount: 0, overdueCount: 0, unknownCount: 0 });
+    const source = groups.get(sourceId);
+    const confirmed = Date.parse(row.lastConfirmedAt || row.observedAt || '');
+    const age = (nowMs - confirmed) / 3_600_000;
+    const known = Number.isFinite(age) && age >= 0;
+    const fresh = known && age <= 2 && !row.stale && !row.sourceStale && !row.raw?.staleFallback;
+    for (const counts of [total, source]) {
+      counts.totalCount++;
+      counts[fresh ? 'freshCount' : 'overdueCount']++;
+      if (!known) counts.unknownCount++;
+    }
+    if (known) total.maxAgeHours = Math.max(total.maxAgeHours ?? 0, age);
+  }
+  return {
+    inventory: total,
+    informationalCount: rows.length - inventoryRows.length,
+    sources: [...groups.values()].map((source) => ({ ...source, status: source.overdueCount ? 'overdue' : 'fresh' })),
+  };
 }
 
 function collectionSucceeded(status) {
@@ -202,6 +235,8 @@ export function buildStateOperatingContract({
     }
 
     const freshness = freshnessFor(visibleDrops, generatedAt, fallback.status !== 'none' || stateSummary.stale === true);
+    const evidenceFreshness = inventoryEvidenceFreshness(visibleDrops, generatedAt);
+    if (evidenceFreshness.inventory.overdueCount) anomalies.push('inventory_confirmation_overdue');
     const anomalyCodes = [...new Set(anomalies)].sort();
     const health = healthFor(anomalyCodes, fallback, visibleDrops.length, stateSummary);
     return {
@@ -217,16 +252,26 @@ export function buildStateOperatingContract({
       alertCandidateCount: eligibleAlerts.length,
       lastPublicationAt,
       freshness,
+      evidenceFreshness,
       fallback,
       anomalyCodes,
       recoveryAction: recoveryFor(health, anomalyCodes, fallback),
     };
   });
 
-  return {
+  const contract = {
     contractVersion: STATE_OPERATING_CONTRACT_VERSION,
     generatedAt,
     summary: summarizeStateOperatingContract(states),
     states,
   };
+  // Persist fair selection in the existing immutable published state-health
+  // contract. A publication reserves a turn; it is NOT proof of job dispatch.
+  const lastSelectedAtByState = Object.fromEntries(Object.entries(previous?.recoveryDispatchState?.lastSelectedAtByState || {})
+    .filter(([state]) => active.includes(state)));
+  const plan = buildStateRecoveryPlan(contract, { lastSelectedAtByState });
+  const selectedState = plan.retryStateIds[0] || null;
+  if (selectedState) lastSelectedAtByState[selectedState] = generatedAt;
+  contract.recoveryDispatchState = { selectedState, lastSelectedAtByState, semantics: 'publication_turn_reservation_not_dispatch_receipt' };
+  return contract;
 }

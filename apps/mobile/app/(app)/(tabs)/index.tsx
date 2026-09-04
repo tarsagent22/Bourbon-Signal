@@ -6,6 +6,7 @@ import { MobileApiError } from "../../../src/api/client";
 import type { MemberProfile, Signal, SignalFeedPage } from "../../../src/api/types";
 import { SignalCard } from "../../../src/components/SignalCard";
 import { useMobileApi } from "../../../src/hooks/useMobileApi";
+import { useScreenRevalidation } from "../../../src/hooks/useScreenRevalidation";
 import { DEFAULT_SIGNAL_FILTERS, areaOptionsForState, areaSelectorLabel, filterSignalsByRarity, normalizedFilters, rarityOptionsForView, serverSignalFilters, shouldBackfillRarity, toggleRarity, type SignalFeedFilters } from "../../../src/signals/feed-filters";
 import { colors } from "../../../src/theme";
 
@@ -211,7 +212,7 @@ export default function SignalFeedScreen() {
     }));
   }, [view]);
 
-  useEffect(() => { void loadProfile(); }, [loadProfile]);
+  useScreenRevalidation(() => { void loadProfile(true); void load(true); });
   useEffect(() => { if (!loaded && !loading && !error) void load(true); }, [error, load, loaded, loading]);
   useEffect(() => {
     if (rarityBackfillRef.current.key !== rarityBackfillKey) {

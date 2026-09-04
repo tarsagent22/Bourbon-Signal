@@ -15,6 +15,8 @@ function previousValue(previousReport, result) {
     roadblocks: (previousReport?.roadblocks || []).filter((roadblock) => roadblock.sourceRuntimeId === result.sourceId),
     sourceReport: sourceReports[0] || null,
     sourceReports,
+    metadata: result.metadata || null,
+    recordsInspected: result.recordsInspected ?? result.metadata?.recordsInspected ?? null,
   };
 }
 
@@ -28,7 +30,8 @@ function metricsFromObservations(sourceId, observations) {
   return {
     sourceId,
     probes: probes.length,
-    usefulChanges: 0,
+    usefulChanges: probes.reduce((sum, observation) => sum + (SUCCESS_OUTCOMES.has(observation.outcome) ? Math.max(0, Number(observation.usefulChanges) || 0) : 0), 0),
+    consecutiveUnchanged: Math.max(0, Number(probes.at(-1).consecutiveUnchanged) || 0),
     failures: probes.filter((observation) => !SUCCESS_OUTCOMES.has(observation.outcome)).length,
     consecutiveFailures,
     lastProbeAt: probes.at(-1).observedAt,
@@ -44,7 +47,8 @@ function metricsFromPrevious(result) {
   return {
     sourceId: result.sourceId,
     probes: 1,
-    usefulChanges: 0,
+    usefulChanges: failed ? 0 : Math.max(0, Number(result.usefulChanges) || 0),
+    consecutiveUnchanged: Math.max(0, Number(result.consecutiveUnchanged) || 0),
     failures: failed ? 1 : 0,
     consecutiveFailures: failed ? 1 : 0,
     lastProbeAt,

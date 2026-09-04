@@ -1,4 +1,6 @@
-import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, readdir } from 'node:fs/promises';
+import { collectionRequestSignal, throwIfCollectionAborted, withCollectionContext, writeCollectionFile as writeFile } from '../core/collection-context.mjs';
+import { readBoundedCollectionBody, fetchCollectionResponse } from '../core/collection-http.mjs';
 import path from 'node:path';
 import { inflateRawSync } from 'node:zlib';
 import { extractLinks, stableId, stripHtml, titleCase } from '../core/text.mjs';
@@ -127,9 +129,10 @@ function csvRows(text = '') {
 async function bufferFetch(url, options = {}) {
   const timeout = withTimeout(options.timeoutMs || 30000);
   try {
-    const res = await fetch(url, {
-      redirect: 'follow',
-      signal: timeout.signal,
+    const signal = collectionRequestSignal(AbortSignal.any([timeout.signal, options.signal].filter(Boolean)));
+    const fetched = await fetchCollectionResponse(url, {
+      reviewedSeedUrls: options.reviewedSeedUrls,
+      signal,
       headers: {
         'user-agent': 'Mozilla/5.0 (BourbonSignal NC official-source collector; +https://bourbonsignal.com)',
         accept: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet,application/octet-stream,*/*',
@@ -137,7 +140,8 @@ async function bufferFetch(url, options = {}) {
         ...(options.headers || {})
       }
     });
-    return { ok: res.ok, status: res.status, url: res.url, contentType: res.headers.get('content-type') || '', buffer: Buffer.from(await res.arrayBuffer()) };
+    const res = fetched.response;
+    return { ok: res.ok, status: res.status, url: fetched.url, contentType: res.headers.get('content-type') || '', buffer: await readBoundedCollectionBody(res, { maxBytes: options.maxBytes, signal }) };
   } finally {
     timeout.done();
   }
@@ -284,11 +288,12 @@ function withTimeout(ms = 18000) {
 async function textFetch(url, options = {}) {
   const timeout = withTimeout(options.timeoutMs || 18000);
   try {
-    const res = await fetch(url, {
-      redirect: 'follow',
+    const signal = collectionRequestSignal(AbortSignal.any([timeout.signal, options.signal].filter(Boolean)));
+    const fetched = await fetchCollectionResponse(url, {
+      reviewedSeedUrls: options.reviewedSeedUrls,
       method: options.method || 'GET',
       body: options.body,
-      signal: timeout.signal,
+      signal,
       headers: {
         'user-agent': 'Mozilla/5.0 (BourbonSignal NC official-source collector; +https://bourbonsignal.com)',
         accept: 'text/html,application/json,application/xml,text/xml,*/*',
@@ -296,7 +301,8 @@ async function textFetch(url, options = {}) {
         ...(options.headers || {})
       }
     });
-    return { ok: res.ok, status: res.status, url: res.url, contentType: res.headers.get('content-type') || '', text: await res.text() };
+    const res = fetched.response;
+    return { ok: res.ok, status: res.status, url: fetched.url, contentType: res.headers.get('content-type') || '', text: (await readBoundedCollectionBody(res, { maxBytes: options.maxBytes, signal })).toString('utf8') };
   } finally {
     timeout.done();
   }
@@ -422,7 +428,7 @@ function interestingLink(link) {
 function normalizedWebOrigin(value) {
   try {
     const url = new URL(value);
-    if (!['http:', 'https:'].includes(url.protocol)) return null;
+    if (!['http:', 'https:'].includes(url.protocol) || url.username || url.password) return null;
     return `${url.hostname.toLowerCase().replace(/^www\./, '')}${url.port ? `:${url.port}` : ''}`;
   } catch {
     return null;
@@ -985,7 +991,7 @@ async function discoverBoardPages(board) {
   const reports = [];
   const seedUrls = candidateUrlsForBoard(board);
   const homeUrls = seedUrls.filter((url) => /\/$/.test(new URL(url).pathname)).slice(0, 1);
-  const homeResponses = await Promise.all(homeUrls.map((url) => safeTextFetch(url, { referer: board.website || url, timeoutMs: NC_BOARD_WEBSITE_TIMEOUT_MS })));
+  const homeResponses = await Promise.all(homeUrls.map((url) => safeTextFetch(url, { reviewedSeedUrls: seedUrls, referer: board.website || url, timeoutMs: NC_BOARD_WEBSITE_TIMEOUT_MS })));
   const discovered = [];
   for (let i = 0; i < homeResponses.length; i += 1) {
     const res = homeResponses[i];
@@ -999,7 +1005,7 @@ async function discoverBoardPages(board) {
   }
 
   const urls = [...new Set([...seedUrls, ...discovered])].slice(0, NC_BOARD_WEBSITE_URL_MAX);
-  const responses = await Promise.all(urls.map((url) => safeTextFetch(url, { referer: board.website || url, timeoutMs: NC_BOARD_WEBSITE_TIMEOUT_MS })));
+  const responses = await Promise.all(urls.map((url) => safeTextFetch(url, { reviewedSeedUrls: seedUrls, referer: board.website || url, timeoutMs: NC_BOARD_WEBSITE_TIMEOUT_MS })));
   const directoryIndex = urls.indexOf(CUMBERLAND_STORE_LOCATIONS_URL);
   const directoryResponse = directoryIndex >= 0 ? responses[directoryIndex] : null;
   const westwoodDirectoryEvidence = directoryResponse ? {
@@ -1285,7 +1291,11 @@ function coverageSummary(boards) {
   return { boardCount: list.length, withWebsite, withTrackedShipments, withReleasePages, withInventoryPages, noWebsiteYet: list.filter((b) => !b.website).map((b) => b.boardName).slice(0, 50) };
 }
 
-export async function collectNorthCarolinaIntelligence(config, bible, collectStoreInventoryFn) {
+export async function collectNorthCarolinaIntelligence(config, bible, collectStoreInventoryFn, options = {}) {
+  return withCollectionContext(options, () => collectNorthCarolinaIntelligenceDirect(config, bible, collectStoreInventoryFn));
+}
+
+async function collectNorthCarolinaIntelligenceDirect(config, bible, collectStoreInventoryFn) {
   const signals = [];
   const roadblocks = [];
   const boards = new Map();

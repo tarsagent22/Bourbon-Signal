@@ -9,7 +9,8 @@ export class BourbonBible {
     this.byNormalizedAlias = new Map();
     this.aliasIndex = [];
     for (const record of records) {
-      this.byKey.set(record.normalizedKey, record);
+      if (this.byKey.has(record.normalizedKey) && this.byKey.get(record.normalizedKey) !== record) this.byKey.set(record.normalizedKey, null);
+      else if (!this.byKey.has(record.normalizedKey)) this.byKey.set(record.normalizedKey, record);
       for (const alias of [record.canonical, ...(record.aliases || [])]) {
         const normalizedAlias = normalizeBottleName(alias).toLowerCase().replace(/\s+/g, ' ').trim();
         if (normalizedAlias) {
@@ -32,20 +33,25 @@ export class BourbonBible {
     const normalized = normalizeBottleName(rawName);
     const normalizedAlias = normalized.toLowerCase().replace(/\s+/g, ' ').trim();
     const exactAlias = this.byNormalizedAlias.get(normalizedAlias);
+    if (this.byNormalizedAlias.has(normalizedAlias) && !exactAlias) return null;
     if (exactAlias) return { record: exactAlias, confidence: 1, method: 'exact-normalized-alias' };
     if (/\b(?:small batch|limited edition|single barrel|barrel proof|double oaked|straight bourbon)\b/iu.test(normalized)) return null;
     const key = fingerprintName(normalized);
     if (!key) return null;
-    if (this.byKey.has(key)) return { record: this.byKey.get(key), confidence: 1, method: 'exact-key' };
+    if (this.byKey.has(key)) return this.byKey.get(key) ? { record: this.byKey.get(key), confidence: 1, method: 'exact-key' } : null;
 
     let best = null;
+    let ambiguous = false;
     for (const item of this.aliasIndex) {
       if (key.includes(item.key) || item.key.includes(key)) {
         const confidence = Math.min(item.key.length, key.length) / Math.max(item.key.length, key.length);
-        if (!best || confidence > best.confidence) best = { record: item.record, confidence, method: 'alias-containment' };
+        if (!best || confidence > best.confidence) {
+          best = { record: item.record, confidence, method: 'alias-containment' };
+          ambiguous = false;
+        } else if (confidence === best.confidence && item.record !== best.record) ambiguous = true;
       }
     }
-    return best && best.confidence >= 0.55 ? best : null;
+    return !ambiguous && best && best.confidence >= 0.55 ? best : null;
   }
 
   scanText(text) {
@@ -53,6 +59,8 @@ export class BourbonBible {
     const found = new Map();
     for (const item of this.aliasIndex) {
       const alias = item.alias.toLowerCase();
+      const normalizedAlias = normalizeBottleName(item.alias).toLowerCase().replace(/\s+/g, ' ').trim();
+      if (this.byNormalizedAlias.get(normalizedAlias) == null) continue;
       if (alias.length < 5) continue;
       if (haystack.includes(alias)) found.set(item.record.id, item.record);
     }

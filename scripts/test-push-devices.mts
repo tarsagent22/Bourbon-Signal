@@ -24,9 +24,13 @@ assert.deepEqual(enabledPushTokens(disabled), []);
 
 const messages = buildExpoPushMessages([tokenA, tokenA, tokenB], { id: "alert-1", bottleName: "Stagg", storeLabel: "Example Spirits", matchedArea: "Raleigh, NC" });
 assert.equal(messages.length, 2);
-assert.equal(messages[0]?.title, "Stagg");
-assert.match(messages[0]?.body || "", /Example Spirits/);
-assert.deepEqual(messages[0]?.data, { screen: "radar", alertId: "alert-1" });
+assert.equal(messages[0]?.title, "Bourbon Signal");
+assert.equal(messages[0]?.body, "Open Radar to check your latest matches.");
+assert.deepEqual(messages[0]?.data, { screen: "radar" });
+for (const privateValue of ["Stagg", "Example Spirits", "Raleigh, NC"]) assert.equal(JSON.stringify(messages).includes(privateValue), false);
+assert.equal(messages[0]?.dedupeKey, "alert-1", "server-side alert identity still distinguishes episodes before serialization");
+assert.equal(messages[0]?.priority, "high");
+assert.equal(messages[0]?.sound, "default");
 assert.equal(JSON.stringify(messages).includes("digest"), false);
 
 let captured: unknown = null;
@@ -39,6 +43,14 @@ assert.equal(sent.rejected, 1);
 assert.deepEqual(sent.tickets, [{ id: "ticket-a", token: tokenA }]);
 assert.deepEqual(sent.invalidTokens, [tokenB]);
 assert.equal(Array.isArray(captured), true);
+for (const privateValue of ["Stagg", "Example Spirits", "Raleigh, NC", "alert-1", "dedupeKey", "alertId"]) assert.equal(JSON.stringify(captured).includes(privateValue), false);
+assert.deepEqual(captured, [tokenA, tokenB].map(to => ({ to, sound: "default", title: "Bourbon Signal", body: "Open Radar to check your latest matches.", data: { screen: "radar" }, priority: "high" })));
+let otherCaptured: unknown;
+await sendExpoPushMessages(buildExpoPushMessages([tokenA, tokenB], { id: "other-user-alert", bottleName: "Other bottle", storeLabel: "Other store", matchedArea: "Other area" }), (async (_input, init) => {
+  otherCaptured = JSON.parse(String(init?.body));
+  return Response.json({ data: [{ status: "ok" }, { status: "ok" }] });
+}) as typeof fetch);
+assert.deepEqual(otherCaptured, captured, "OS payload is independent of member details even after offline logout/account switch");
 
 let requests = 0;
 const many = Array.from({ length: 205 }, () => messages[0]!);

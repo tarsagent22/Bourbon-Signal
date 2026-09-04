@@ -57,7 +57,8 @@ assert.match(route, /maximumSizeInBytes:\s*MAX_SIGHTING_PHOTO_BYTES/, 'direct up
 assert.match(route, /export async function PATCH/, 'the route must expose an authenticated recovery operation');
 assert.match(route, /await head\(/, 'recovery must verify the uploaded object exists in the configured Blob store');
 assert.match(route, /replacePhotoProof\(sightingId, userId, null, photoProof\)/, 'the one allowed attachment must compare against an empty photo slot');
-assert.match(route, /if \(currentPhoto\)[\s\S]*?await del\(losingUpload\.url/, 'a losing candidate is removed only after immutable evidence already owns the slot');
+assert.doesNotMatch(route, /\bdel\s*\(/, 'photo callbacks and caller-driven recovery must never delete objects without server-owned attempt provenance');
+assert.match(route, /await head\(blob\.pathname, \{ token \}\)/, 'first attachment must resolve only the validated pathname in the configured store');
 assert.match(route, /reconcileClerkRewardsWithStatus/, 'reward projection must know whether its generation applied');
 assert.match(route, /readRewardGeneration/, 'reward projection must re-check the durable generation around Clerk writes');
 assert.match(route, /for \(let attempt = 0; attempt < 3/, 'reward projection retries from the newest generation when concurrent mutations race the Clerk write');

@@ -80,7 +80,7 @@ async function submitRetailerUpdate(formData: FormData) {
   if (!submitted.timeZone && usesLocalTime && retailerTimeZoneNeedsChoice(store.storeAddress)) {
     redirect("/retailers/portal?error=Choose%20the%20selected%20store%20time%20zone");
   }
-  if (!submitted.timeZone && !retailerTimeZoneNeedsChoice(store.storeAddress)) {
+  if (!retailerTimeZoneNeedsChoice(store.storeAddress)) {
     submitted.timeZone = inferRetailerTimeZone(store.storeAddress);
   }
   const normalized = normalizeRetailerSubmission(submitted);
@@ -124,7 +124,8 @@ export default async function RetailerPortalPage({ searchParams }: { searchParam
   const repository = getRetailerRepository();
   const application = await repository.getApplication(userId);
   if (!application) redirect("/retailers/onboarding");
-  const stores = await repository.listStores(userId);
+  const allStores = await repository.listStores(userId, true);
+  const stores = allStores.filter((store) => store.status === "verified");
   const submissions = (await repository.listSubmissions(userId)).filter((submission) => submission.status !== "rejected");
   const retailerStatus = application.status;
   const liveSignalCount = submissions.filter((submission) => retailerSubmissionLifecycle(submission) === "live").length;
@@ -164,7 +165,7 @@ export default async function RetailerPortalPage({ searchParams }: { searchParam
         {params.submitted === "1" ? <p className={styles.notice}>Signal submitted. No additional approval is required.</p> : null}
         {params.ended === "1" ? <p className={styles.notice}>The availability signal has ended.</p> : null}
         {profileUpdated === "1" ? <p className={styles.notice}>Store profile updated.</p> : null}
-        {params.storeAdded === "1" ? <p className={styles.notice}>Store location added. You can now select it when posting a signal.</p> : null}
+        {params.storeAdded === "1" ? <p className={styles.notice}>Store location saved for verification. It will become available for signals after approval.</p> : null}
         {profileUpdated === "review" ? <p className={styles.notice}>Store profile updated. Changes to the store identity are being re-verified.</p> : null}
 
         {retailerStatus === "pending" ? (
@@ -214,19 +215,19 @@ export default async function RetailerPortalPage({ searchParams }: { searchParam
                   </form>
                 </section>
 
-                {stores.filter((store) => !store.isPrimary).length ? (
+                {allStores.filter((store) => !store.isPrimary).length ? (
                   <section className={styles.locationList}>
                     <div className={styles.locationListHeader}>
                       <div>
                         <p className={styles.eyebrow}>Additional locations</p>
                         <h3>Your other stores</h3>
                       </div>
-                      <span className={styles.locationCount}>{stores.filter((store) => !store.isPrimary).length}</span>
+                      <span className={styles.locationCount}>{allStores.filter((store) => !store.isPrimary).length}</span>
                     </div>
                     <div className={styles.submissions}>
-                      {stores.filter((store) => !store.isPrimary).map((store) => (
+                      {allStores.filter((store) => !store.isPrimary).map((store) => (
                         <article className={`${styles.submissionCard} ${styles.locationCard}`} key={store.id}>
-                          <div className={styles.statusLine}><span className={styles.status}>Location</span><strong>{store.storeName}</strong></div>
+                          <div className={styles.statusLine}><span className={styles.status}>{store.status}</span><strong>{store.storeName}</strong></div>
                           <p className={styles.muted}>{store.storeAddress}</p>
                           <div className={styles.submissionMeta}><span>{store.listedPhone}</span>{store.website ? <span>{store.website}</span> : null}</div>
                         </article>
@@ -241,7 +242,7 @@ export default async function RetailerPortalPage({ searchParams }: { searchParam
                     <div>
                       <p className={styles.eyebrow}>Expand your account</p>
                       <h3>Add another location</h3>
-                      <p className={styles.muted}>New locations become available in the signal form immediately.</p>
+                      <p className={styles.muted}>Each new location requires independent verification before it can publish signals.</p>
                     </div>
                   </header>
                   <form action={addRetailerStore} className={`${styles.formGrid} ${styles.locationForm}`}>

@@ -26,6 +26,7 @@ function deterministicFailure(record) {
 function retryableState(record) {
   if (!record || record.health === 'blocked' || record.recoveryAction !== 'retry_state_collection') return false;
   if (!['degraded', 'stale_useful'].includes(record.health)) return false;
+  if (deterministicFailure(record)) return false;
   if ((record.anomalyCodes || []).some((code) => ACCEPTED_OUTPUT_RETRY_ANOMALIES.has(code))) return true;
   if (record.fallback?.status && record.fallback.status !== 'none') return !deterministicFailure(record);
   const evidence = [
@@ -43,6 +44,7 @@ export function buildStateRecoveryPlan(contract, {
   failedStateIds = null,
   attempt = 0,
   maxAttempts = MAX_STATE_RECOVERY_ATTEMPTS,
+  lastSelectedAtByState = null,
 } = {}) {
   const boundedMax = Math.min(MAX_STATE_RECOVERY_ATTEMPTS, Math.max(1, Number(maxAttempts) || MAX_STATE_RECOVERY_ATTEMPTS));
   const currentAttempt = Math.max(0, Number(attempt) || 0);
@@ -62,9 +64,12 @@ export function buildStateRecoveryPlan(contract, {
     else eligibleRetryStateIds.push(state);
   }
 
-  const selectedState = eligibleRetryStateIds.length
-    ? eligibleRetryStateIds[currentAttempt % eligibleRetryStateIds.length]
-    : null;
+  const publishedSelection = contract?.recoveryDispatchState?.selectedState;
+  const fairOrder = lastSelectedAtByState ? [...eligibleRetryStateIds].sort((a, b) =>
+    String(lastSelectedAtByState[a] || '').localeCompare(String(lastSelectedAtByState[b] || '')) || a.localeCompare(b)) : eligibleRetryStateIds;
+  const selectedState = currentAttempt === 0 && eligibleRetryStateIds.includes(publishedSelection)
+    ? publishedSelection
+    : fairOrder.length ? fairOrder[currentAttempt % fairOrder.length] : null;
   const retryStateIds = selectedState ? [selectedState] : [];
   const deferredRetryStateIds = eligibleRetryStateIds.filter((state) => state !== selectedState);
 

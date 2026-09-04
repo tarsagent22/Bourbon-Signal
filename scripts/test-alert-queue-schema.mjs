@@ -23,5 +23,5 @@ assert.match(schema, /lease_key\s+text\s+primary key/i);
 assert.match(schema, /expires_at\s+timestamptz\s+not null/i);
 assert.match(migration, /alert-queue-v3-member-leases/);
 assert.match(migration, /alert_delivery_leases/);
-assert.match(migration, /tables\.length !== 7/);
+assert.match(migration, /tables\.length !== 9/);
 console.log("Alert queue Postgres schema contract passed.");

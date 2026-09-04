@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
+import { preferencesFixture, profileFixture, feedFixture } from './astra-fixtures';
 import { createMobileApi, MobileApiError } from "./client";
 import type { Signal } from "./types";
 import { presentSignal, relativeSignalTime, signalAccessibilityLabel, signalAccessibilityTime, signalAvailabilityIsCurrent, signalAvailabilityRefreshAt, signalCardStatusLabel, signalCardSummary, signalMemberTagLabel } from "./presentation";
@@ -11,7 +12,7 @@ test("sends the selected feed view, bearer auth, and opaque cursor without inspe
     getToken: async () => "session-token",
     fetcher: async (request) => {
       requests.push(new Request(request));
-      return Response.json({ signals: [], nextCursor: null, hasMore: false });
+      return Response.json(feedFixture());
     },
   });
   await api.listSignals({ view: "community", limit: 20, cursor: "opaque/cursor+value" });
@@ -27,7 +28,7 @@ test("serializes normalized Signal filters for server-side pagination", async ()
     getToken: async () => "session-token",
     fetcher: async (request) => {
       captured = new Request(request);
-      return Response.json({ signals: [], nextCursor: null, hasMore: false });
+      return Response.json(feedFixture());
     },
   });
   await api.listSignals({
@@ -53,7 +54,7 @@ test("updates the public Community display name through the member profile endpo
     getToken: async () => "session-token",
     fetcher: async (request) => {
       captured = new Request(request);
-      return Response.json({ profile: { displayName: "Chandler T." } });
+      return Response.json(profileFixture({ displayName: "Chandler T." }));
     },
   });
   await api.updateMemberProfile({ displayName: " Chandler T. " });
@@ -104,7 +105,7 @@ test("preserves the combined-feed default for callers that omit a view", async (
     getToken: async () => "session-token",
     fetcher: async (input) => {
       request = new Request(input);
-      return Response.json({ signals: [], nextCursor: null, hasMore: false });
+      return Response.json(feedFixture());
     },
   });
   await api.listSignals();
@@ -145,7 +146,7 @@ test("attaches an uploaded Blob to the existing sighting with compare-before-rep
     getToken: async () => "session-token",
     fetcher: async (request) => {
       captured = new Request(request);
-      return Response.json({ ok: true, photoProof: { url: "https://blob.test/proof.jpg" } });
+      return Response.json({ ok: true, photoProof: { url: "https://blob.test/proof.jpg", pathname: "sighting-proofs/sighting_abc/1234.jpg", uploadedAt: "2026-09-01T00:00:00Z", status: "verified_public" } });
     },
   });
   await api.attachSightingPhoto("sighting_abc", { url: "https://blob.test/proof.jpg", pathname: "sighting-proofs/sighting_abc/1234.jpg" });
@@ -164,7 +165,7 @@ test("recovers a completed upload from its staged pathname after a lost Blob res
     getToken: async () => "session-token",
     fetcher: async (request) => {
       captured = new Request(request);
-      return Response.json({ ok: true, photoProof: { url: "https://blob.test/proof.jpg" } });
+      return Response.json({ ok: true, photoProof: { url: "https://blob.test/proof.jpg", pathname: "sighting-proofs/sighting_abc/1234.jpg", uploadedAt: "2026-09-01T00:00:00Z", status: "verified_public" } });
     },
   });
   await api.attachSightingPhoto("sighting_abc", { pathname: "sighting-proofs/sighting_abc/1234.jpg" });
@@ -184,9 +185,9 @@ test("loads canonical Radar, Cellar, alerts, and HQ data with the same bearer id
       const captured = new Request(request);
       requests.push(captured);
       const pathname = new URL(captured.url).pathname;
-      if (pathname === "/api/user/preferences") return Response.json({ entitlements: { canUseCollection: true }, collectionPreferences: { bottles: [], version: 2 } });
+      if (pathname === "/api/user/preferences") return Response.json(preferencesFixture({ entitlements: { canUseCollection: true }, collectionPreferences: { bottles: [], version: 2 } }));
       if (pathname === "/api/alerts") return Response.json({ alerts: [], unreadCount: 0 });
-      if (pathname === "/api/signal-points") return Response.json({ balance: 125, debt: 0, catalog: [], redemptions: [], tier: "barrel" });
+      if (pathname === "/api/signal-points") return Response.json({ balance: 125, debt: 0, catalog: [], redemptions: [], tier: "barrel", redemptionEligible: true });
       throw new Error(`Unexpected path: ${pathname}`);
     },
   });
@@ -337,7 +338,7 @@ test("saves a partial member preference patch without placing writes in the read
     getToken: async () => "session-token",
     fetcher: async (request) => {
       captured.push(new Request(request));
-      return Response.json({ collectionPreferences: { bottles: [], version: captured.length } });
+      return Response.json(preferencesFixture({ collectionPreferences: { bottles: [], version: captured.length } }));
     },
   });
 
@@ -357,7 +358,7 @@ test("reads and explicitly writes the member's private Hunt Outcome", async () =
     fetcher: async (request) => {
       const captured = new Request(request);
       requests.push(captured);
-      return Response.json({ contractVersion: "bourbon-signal/mobile-api@1", outcome: captured.method === "PUT" ? { outcome: "found_it" } : null });
+      return Response.json({ contractVersion: "bourbon-signal/mobile-api@1", outcome: captured.method === "PUT" ? { outcome: "found_it", signalId: "trusted_source:episode-1", availabilityEpisodeId: "episode-1", sourceType: "trusted_source", stateCode: null, submittedAt: "2026-09-01T00:00:00Z", updatedAt: "2026-09-01T00:00:00Z" } : null });
     },
   });
 
@@ -381,7 +382,7 @@ test("invalidates the cached preference read after a successful write", async ()
     fetcher: async (request) => {
       const captured = new Request(request);
       requests.push(captured);
-      return Response.json({ collectionPreferences: { bottles: [], version: requests.length } });
+      return Response.json(preferencesFixture({ collectionPreferences: { bottles: [], version: requests.length } }));
     },
   });
 
@@ -403,7 +404,7 @@ test("isolates cached authenticated reads when the bearer session changes", asyn
     fetcher: async (request) => {
       const captured = new Request(request);
       requests.push(captured);
-      return Response.json({ profile: { identity: { label: captured.headers.get("authorization") } } });
+      return Response.json(profileFixture({ identity: { kind: "member", number: 1, label: captured.headers.get("authorization")! } }));
     },
   });
 
@@ -424,7 +425,7 @@ test("a forced refresh bypasses a cached account failure", async () => {
     readCooldownMs: 30_000,
     fetcher: async () => {
       requests += 1;
-      return healthy ? Response.json({ collectionPreferences: { bottles: [], version: 2 } }) : Response.json({ error: "Unavailable" }, { status: 503 });
+      return healthy ? Response.json(preferencesFixture({ collectionPreferences: { bottles: [], version: 2 } })) : Response.json({ error: "Unavailable" }, { status: 503 });
     },
   });
 
@@ -445,7 +446,7 @@ test("a forced refresh bypasses a cached success", async () => {
     readCooldownMs: 30_000,
     fetcher: async () => {
       requests += 1;
-      return Response.json({ collectionPreferences: { bottles: [], version } });
+      return Response.json(preferencesFixture({ collectionPreferences: { bottles: [], version } }));
     },
   });
 

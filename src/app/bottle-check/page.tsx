@@ -531,10 +531,7 @@ export default function BottleCheckPage() {
           states: Array.from(new Set([...prefs.areaPreferences.states, ...selectedStates])),
         },
         alertMode: "specific_bottles",
-        bottleAlertPreferences: {
-          bottleNames: Array.from(new Set([...prefs.bottleAlertPreferences.bottleNames, bottle.canonicalName])),
-          bottleKeys: Array.from(new Set([...prefs.bottleAlertPreferences.bottleKeys, bottleKey].filter(Boolean))),
-        },
+        watchlistMutation: { bottleName: bottle.canonicalName, bottleKey: bottleKey || undefined, watched: true },
       });
       setTrackSaved(true);
     } catch (error) {

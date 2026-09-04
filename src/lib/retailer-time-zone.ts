@@ -35,7 +35,10 @@ function stateFromAddress(address: string) {
 }
 
 export function retailerTimeZoneNeedsChoice(address: string) {
-  return MULTI_ZONE_STATES.has(stateFromAddress(address));
+  const state = stateFromAddress(address);
+  // A fallback is not location authority. Unrecognized addresses, including
+  // accepted no-ZIP addresses, need the same explicit choice as split states.
+  return !stateTimeZones[state] || MULTI_ZONE_STATES.has(state);
 }
 
 export function normalizeRetailerTimeZone(value: unknown, fallback: RetailerTimeZone = "America/New_York") {

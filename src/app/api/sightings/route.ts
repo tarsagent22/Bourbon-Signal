@@ -1,7 +1,7 @@
 import { after, NextRequest, NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { getBourbonBible, searchBourbonBible, normalizeBottleKey as normalizeBibleBottleKey, type BibleBottle } from "@/lib/bourbonBible";
-import { canonicalizeLegacySighting, makeSightingId, normalizeBottleKey, type MemberSighting, type SightingType, type SightingVote, type SightingVoteKind, type SightingsPreferences } from "@/lib/sightings";
+import { makeSightingId, normalizeBottleKey, type MemberSighting, type SightingType, type SightingVote, type SightingVoteKind, type SightingsPreferences } from "@/lib/sightings";
 import { createCommunitySightingsRepository, type DurableSightingVote, type SightingFeedFilters } from "@/lib/community-sightings-repository";
 import { getEntitlements } from "@/lib/entitlements";
 import { getServerEntitlements } from "@/lib/server-entitlements";
@@ -587,25 +587,12 @@ export async function PATCH(req: NextRequest) {
   if (!sightingId || !vote) return NextResponse.json({ error: "Invalid vote" }, { status: 400 });
 
   const repository = createCommunitySightingsRepository();
-  let target = await repository.getSighting(sightingId);
-  if (!target) {
-    const aggregate = await getAggregateSightings(userId, { requireLegacy: true, limit: 1_000 });
-    target = aggregate.sightings.find((sighting) => sighting.id === sightingId) || null;
-  }
+  const target = await repository.getSighting(sightingId);
   if (!target) return NextResponse.json({ error: "Sighting not found" }, { status: 404 });
   if (!communityVoteAllowed(target.reporterUserId, userId)) {
     return NextResponse.json({ error: "The sighting poster cannot vote on their own report." }, { status: 409 });
   }
 
-  if (!(await repository.getSighting(sightingId))) {
-    if (!target.reporterUserId || !/^[-_a-zA-Z0-9]{1,160}$/.test(target.id)) return NextResponse.json({ error: "Invalid legacy sighting" }, { status: 409 });
-    const client = await clerkClient();
-    const owner = await client.users.getUser(target.reporterUserId);
-    const ownerPublicMetadata = (owner.publicMetadata && typeof owner.publicMetadata === "object" ? owner.publicMetadata : {}) as Record<string, unknown>;
-    const currentLegacy = normalizePrefs(ownerPublicMetadata.sightingsPreferences).submittedSightings.find((sighting) => sighting.id === sightingId);
-    if (!currentLegacy) return NextResponse.json({ error: "Sighting is no longer available" }, { status: 404 });
-    await repository.insertSightingIfAbsent(canonicalizeLegacySighting(currentLegacy, target.reporterUserId));
-  }
   if (!(await repository.getVote(sightingId, userId)) && target.myVote) {
     await repository.setVote(sightingId, userId, target.myVote);
   }

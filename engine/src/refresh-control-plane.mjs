@@ -136,11 +136,12 @@ function buildSessionPayload(existing, { scope, stages, now, pid, leaseMs }) {
 function sessionMayResume(existing, { scope, stages, now, ownerAlive = pidAlive } = {}) {
   const plan = sessionPlan(scope, stages);
   if (existing?.contractVersion !== REFRESH_CONTROL_PLANE_VERSION) return { resumable: false, active: false, reason: 'no_valid_existing_session' };
-  if (String(existing.planFingerprint || '') !== fingerprint(plan)) return { resumable: false, active: false, reason: 'plan_changed' };
+
   const expiresAtMs = millisAt(existing?.lease?.expiresAt);
   const nowMs = typeof now === 'number' ? now : Date.parse(now || '');
   const activeOwner = ownerAlive(Number(existing?.lease?.pid)) === true;
   const leaseFresh = Number.isFinite(expiresAtMs) && Number.isFinite(nowMs) && expiresAtMs > nowMs;
+  if (!activeOwner && String(existing.planFingerprint || '') !== fingerprint(plan)) return { resumable: false, active: false, reason: 'plan_changed' };
   return {
     resumable: !activeOwner,
     active: activeOwner,

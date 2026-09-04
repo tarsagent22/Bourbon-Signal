@@ -8,6 +8,8 @@ import {
   scoreStateQuality,
 } from './state-quality-scorecard.mjs';
 
+const fixtureTime = new Date().toISOString();
+
 const strong = scoreStateQuality({
   state: 'AA',
   coverageTier: 'live_store_inventory',
@@ -17,7 +19,7 @@ const strong = scoreStateQuality({
   alertCandidateCount: 20,
   sourceCount: 4,
   roadblockCount: 1,
-  freshestObservedAt: new Date().toISOString(),
+  freshestObservedAt: fixtureTime,
   status: 'useful',
 });
 assert.ok(strong.score >= 80, `strong state should score >=80, got ${strong.score}`);
@@ -49,7 +51,7 @@ const watchLane = scoreStateQuality({
   alertCandidateCount: 2,
   sourceCount: 3,
   roadblockCount: 0,
-  freshestObservedAt: new Date().toISOString(),
+  freshestObservedAt: fixtureTime,
   status: 'useful',
 });
 assert.ok(!watchLane.weaknesses.includes('no_store_level_drops'), 'watch lanes must not be judged as live store inventory');
@@ -86,7 +88,7 @@ const genericSourceAlertable = buildStateQualityInputs({
 });
 assert.equal(genericSourceAlertable[0].alertCandidateCount, 0, 'generic source alertability must not earn delivery-readiness credit');
 
-const scorecard = buildStateQualityScorecard([strong.input, weak.input, watchLane.input], { generatedAt: '2026-07-09T00:00:00.000Z' });
+const scorecard = buildStateQualityScorecard([strong.input, weak.input, watchLane.input], { generatedAt: fixtureTime });
 assert.equal(scorecard.schemaVersion, 2);
 assert.equal(scorecard.states.length, 3);
 assert.equal(scorecard.summary.releaseBlockedStates, 1);

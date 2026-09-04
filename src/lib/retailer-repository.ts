@@ -1,4 +1,5 @@
 import { neon } from "@neondatabase/serverless";
+import { retailerSubmissionLifecycle } from "./retailer-portal.ts";
 import type {
   RetailerApplication,
   RetailerStore,
@@ -28,7 +29,7 @@ export interface RetailerApplicationRecord extends RetailerApplication {
 export interface RetailerStoreRecord extends RetailerStore {
   id: string;
   userId: string;
-  status: "verified" | "rejected";
+  status: "pending" | "verified" | "rejected";
   isPrimary: boolean;
   createdAt: string;
   updatedAt: string;
@@ -197,12 +198,12 @@ export class RetailerRepository {
     return rows[0] ? applicationFromRow(rows[0] as Record<string, unknown>) : null;
   }
 
-  async listStores(userId: string) {
+  async listStores(userId: string, includeUnverified = false) {
     const rows = await this.query.query(`
       SELECT * FROM retailer_stores
-      WHERE user_id = $1 AND status = 'verified'
+      WHERE user_id = $1 AND (status = 'verified' OR $2::boolean)
       ORDER BY is_primary DESC, created_at ASC
-    `, [userId]);
+    `, [userId, includeUnverified]);
     return rows.map((row) => storeFromRow(row as Record<string, unknown>));
   }
 
@@ -218,12 +219,32 @@ export class RetailerRepository {
   async createStore(input: { id: string; userId: string; store: RetailerStore }) {
     const rows = await this.query.query(`
       INSERT INTO retailer_stores (id, user_id, store_name, store_address, website, listed_phone, status, is_primary)
-      SELECT $1, applications.user_id, $3, $4, $5, $6, 'verified', FALSE
+      SELECT $1, applications.user_id, $3, $4, $5, $6, 'pending', FALSE
       FROM retailer_applications applications
       WHERE applications.user_id = $2 AND applications.status = 'verified'
       ON CONFLICT (user_id, store_address) DO NOTHING
       RETURNING *
     `, [input.id, input.userId, input.store.storeName, input.store.storeAddress, input.store.website, input.store.listedPhone]);
+    return rows[0] ? storeFromRow(rows[0] as Record<string, unknown>) : null;
+  }
+
+  async updateStoreVerification(input: {
+    userId: string; storeId: string; status: "verified" | "rejected";
+    reviewedBy: string; verificationMethod: string; verificationContact: string;
+    expectedUpdatedAt: string;
+  }) {
+    if (!input.reviewedBy || !["verified", "rejected"].includes(input.status)) return null;
+    if (input.status === "verified" && (!["public_phone", "business_email"].includes(input.verificationMethod) || !input.verificationContact.trim())) return null;
+    const rows = await this.query.query(`
+      UPDATE retailer_stores stores SET status = $3,
+        verification_method = $4, verification_contact = $5, verified_by = $6,
+        verified_at = NOW(), updated_at = NOW()
+      FROM retailer_applications applications
+      WHERE stores.user_id = $1 AND stores.id = $2 AND stores.is_primary = FALSE
+        AND applications.user_id = stores.user_id AND applications.status = 'verified'
+        AND date_trunc('milliseconds', stores.updated_at) = $7::timestamptz
+      RETURNING stores.*
+    `, [input.userId, input.storeId, input.status, input.verificationMethod, input.verificationContact.trim().slice(0, 240), input.reviewedBy, input.expectedUpdatedAt]);
     return rows[0] ? storeFromRow(rows[0] as Record<string, unknown>) : null;
   }
 
@@ -327,9 +348,9 @@ export class RetailerRepository {
     if (rows[0]) {
       await this.query.query(`
         UPDATE retailer_stores
-        SET status = CASE WHEN $2 = 'rejected' THEN 'rejected' ELSE 'verified' END,
+        SET status = CASE WHEN $2 = 'verified' THEN 'verified' ELSE $2 END,
             updated_at = NOW()
-        WHERE user_id = $1
+        WHERE user_id = $1 AND is_primary = TRUE
       `, [input.userId, input.status]);
     }
     return rows[0] ? applicationFromRow(rows[0] as Record<string, unknown>) : null;
@@ -373,8 +394,10 @@ export class RetailerRepository {
       SELECT submissions.*
       FROM retailer_submissions submissions
       INNER JOIN retailer_applications applications ON applications.user_id = submissions.user_id
+      INNER JOIN retailer_stores stores ON stores.id = submissions.store_id AND stores.user_id = submissions.user_id
       WHERE submissions.status = 'reviewed'
         AND applications.status = 'verified'
+        AND stores.status = 'verified'
         AND submissions.payload->>'kind' IN ('bottle_drop', 'barrel_pick', 'tasting', 'lottery')
         AND COALESCE(submissions.payload->>'soldOutAt', '') = ''
         -- Avoid casting user/legacy JSON text: a single malformed timestamp
@@ -386,7 +409,8 @@ export class RetailerRepository {
     `, [cutoff, boundedLimit]);
     return rows
       .map((row) => submissionFromRow(row as Record<string, unknown>))
-      .filter((submission) => isCanonicalFutureRetailerExpiry(submission.expiresAt, currentTime));
+      .filter((submission) => isCanonicalFutureRetailerExpiry(submission.expiresAt, currentTime)
+        && retailerSubmissionLifecycle(submission, new Date(currentTime)) !== "ended");
   }
 
   async markSubmissionSoldOut(input: { id: string; userId: string; soldOutAt: string }) {

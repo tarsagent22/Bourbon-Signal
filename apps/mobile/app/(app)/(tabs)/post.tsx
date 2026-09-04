@@ -1,4 +1,5 @@
 import { MaterialCommunityIcons } from "@expo/vector-icons";
+import { useAuth } from '@clerk/expo';
 import * as Crypto from "expo-crypto";
 import * as SecureStore from "expo-secure-store";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -7,17 +8,26 @@ import { MobileApiError } from "../../../src/api/client";
 import type { GeographySearchResponse, MemberProfile, RadarBottleOption } from "../../../src/api/types";
 import { MemberCard, memberScreenStyles } from "../../../src/components/MemberScreen";
 import { useMobileApi } from "../../../src/hooks/useMobileApi";
+import { useAccessibleStatus } from '../../../src/hooks/useAccessibleStatus';
 import { createSightingIdempotencyKey, parseSightingDraftBinding, serializeSightingDraftBinding, SIGHTING_IDEMPOTENCY_STORAGE_KEY, type SightingDraftBinding } from "../../../src/sightings/manual-sighting";
 import { approvedStoreFromGeography, buildPostSignalPreview, buildPostSightingSubmission, filterBottleSuggestions, isPostRequiredComplete, POST_QUANTITY_CHOICES, type PostSignalPreview, type PostStoreSelection } from "../../../src/sightings/post-composer";
-import { createPendingPhotoAttachment, stagePendingPhotoUpload, type PendingPhotoAttachment, type SightingPhotoAsset } from "../../../src/sightings/sighting-photo";
-import { chooseSightingPhoto, discardSightingPhoto, sightingPhotoBlob, type SightingPhotoSource } from "../../../src/sightings/sighting-photo-native";
+import { type SightingPhotoAsset } from "../../../src/sightings/sighting-photo";
+import { type PhotoJournalEntry } from "../../../src/sightings/photo-journal";
+import { chooseSightingPhoto, discardSightingPhoto, sightingPhotoBlob, nativePhotoJournal, retainSightingPhoto, type SightingPhotoSource } from "../../../src/sightings/sighting-photo-native";
 import { colors } from "../../../src/theme";
 
 type ActivePicker = "bottle" | "store" | null;
 type GeographyResult = GeographySearchResponse["results"][number];
 
 export default function PostScreen() {
+  const { userId } = useAuth();
+  return userId ? <PostComposer key={userId} userId={userId} /> : null;
+}
+
+function PostComposer({ userId }: { userId: string }) {
   const api = useMobileApi();
+  const journal = useMemo(() => nativePhotoJournal(userId), [userId]);
+  const draftStorageKey = `${SIGHTING_IDEMPOTENCY_STORAGE_KEY}.${userId}`;
   const [profile, setProfile] = useState<MemberProfile["profile"] | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [bottleCatalog, setBottleCatalog] = useState<RadarBottleOption[]>([]);
@@ -39,11 +49,12 @@ export default function PostScreen() {
   const [notes, setNotes] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [selectedPhoto, setSelectedPhoto] = useState<SightingPhotoAsset | null>(null);
-  const [pendingPhotoAttachment, setPendingPhotoAttachment] = useState<PendingPhotoAttachment | null>(null);
+  const [pendingPhotoAttachment, setPendingPhotoAttachment] = useState<PhotoJournalEntry | null>(null);
   const [photoBusy, setPhotoBusy] = useState(false);
   const [photoMessage, setPhotoMessage] = useState("");
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  useAccessibleStatus(error || success || photoMessage);
   const [idempotencyReady, setIdempotencyReady] = useState(false);
   const draftBinding = useRef<SightingDraftBinding | null>(null);
   const storeSearchSequence = useRef(0);
@@ -66,9 +77,11 @@ export default function PostScreen() {
     let active = true;
     async function prepareDurableDraft() {
       try {
-        const stored = await SecureStore.getItemAsync(SIGHTING_IDEMPOTENCY_STORAGE_KEY);
+        const pending = await journal.load();
+        if (active && pending) { setPendingPhotoAttachment(pending); setSelectedPhoto(pending.photo); setPhotoMessage('A saved photo is waiting. Retry without posting another Signal.'); }
+        const stored = await SecureStore.getItemAsync(draftStorageKey);
         const binding = parseSightingDraftBinding(stored) || { key: createSightingIdempotencyKey(), fingerprint: null };
-        if (!stored || !stored.trim().startsWith("{")) await SecureStore.setItemAsync(SIGHTING_IDEMPOTENCY_STORAGE_KEY, serializeSightingDraftBinding(binding));
+        if (!stored || !stored.trim().startsWith("{")) await SecureStore.setItemAsync(draftStorageKey, serializeSightingDraftBinding(binding));
         if (active) { draftBinding.current = binding; setIdempotencyReady(true); }
       } catch {
         if (active) setError("Secure draft protection is unavailable. Restart the app before posting.");
@@ -76,7 +89,7 @@ export default function PostScreen() {
     }
     void prepareDurableDraft();
     return () => { active = false; };
-  }, []);
+  }, [draftStorageKey, journal]);
 
   const canSubmit = profile?.entitlements.canSubmitSignals === true;
   const bottleSuggestions = useMemo(() => filterBottleSuggestions(bottleCatalog, bottleName), [bottleCatalog, bottleName]);
@@ -177,7 +190,7 @@ export default function PostScreen() {
   async function prepareNextDraft() {
     const nextBinding: SightingDraftBinding = { key: createSightingIdempotencyKey(), fingerprint: null };
     try {
-      await SecureStore.setItemAsync(SIGHTING_IDEMPOTENCY_STORAGE_KEY, serializeSightingDraftBinding(nextBinding));
+      await SecureStore.setItemAsync(draftStorageKey, serializeSightingDraftBinding(nextBinding));
       draftBinding.current = nextBinding;
     } catch {
       setIdempotencyReady(false);
@@ -224,41 +237,16 @@ export default function PostScreen() {
     await prepareNextDraft();
   }
 
-  async function retryPhotoUpload(attachment: PendingPhotoAttachment) {
+  async function retryPhotoUpload(attachment: PhotoJournalEntry) {
     if (photoBusy) return;
     setPhotoBusy(true);
     setError("");
-    setPhotoMessage("Attaching photo evidence…");
-    let workingAttachment = attachment;
-    let blob = attachment.blob;
+    setPhotoMessage("Recovering photo evidence…");
     try {
-      if (blob && !blob.url) {
-        try {
-          await api.attachSightingPhoto(attachment.sightingId, blob);
-          await completePhotoAttachment(attachment.photo);
-          return;
-        } catch (caught) {
-          if (!(caught instanceof MobileApiError) || caught.status !== 404) throw caught;
-          blob = undefined;
-          workingAttachment = { ...attachment, blob: undefined };
-        }
-      }
-      if (!blob) {
-        const timestamp = Date.now();
-        workingAttachment = stagePendingPhotoUpload(workingAttachment, timestamp);
-        blob = workingAttachment.blob;
-        setPendingPhotoAttachment(workingAttachment);
-        const uploaded = await api.uploadSightingPhoto(attachment.sightingId, sightingPhotoBlob(attachment.photo), timestamp);
-        blob = { url: uploaded.url, pathname: uploaded.pathname };
-        workingAttachment = { ...workingAttachment, blob };
-        setPendingPhotoAttachment(workingAttachment);
-      }
-      await api.attachSightingPhoto(attachment.sightingId, blob);
+      await journal.resume(api, sightingPhotoBlob);
       await completePhotoAttachment(attachment.photo);
     } catch {
-      setPendingPhotoAttachment({ ...workingAttachment, blob });
-      setSuccess("Signal posted. The photo has not been attached yet.");
-      setError("Photo upload failed. Retry the photo without posting another Signal.");
+      setError("Photo could not be completed. Retry the saved request without posting another Signal.");
       setPhotoMessage("");
     } finally {
       setPhotoBusy(false);
@@ -298,15 +286,19 @@ export default function PostScreen() {
       const requestBinding: SightingDraftBinding = currentBinding.fingerprint && currentBinding.fingerprint !== fingerprint
         ? { key: createSightingIdempotencyKey(), fingerprint }
         : { key: currentBinding.key, fingerprint };
-      await SecureStore.setItemAsync(SIGHTING_IDEMPOTENCY_STORAGE_KEY, serializeSightingDraftBinding(requestBinding));
+      await SecureStore.setItemAsync(draftStorageKey, serializeSightingDraftBinding(requestBinding));
       draftBinding.current = requestBinding;
-      const result = await api.submitSighting(built.payload, requestBinding.key);
       if (selectedPhoto) {
-        const attachment = createPendingPhotoAttachment(result.sighting.id, selectedPhoto);
+        if (await journal.load()) throw new Error('Finish the saved photo retry before posting another Signal.');
+        const retained = retainSightingPhoto(userId, selectedPhoto);
+        await journal.prepare(built.payload, requestBinding.key, retained);
+        const attachment = (await journal.load())!;
+        discardSightingPhoto(selectedPhoto);
+        setSelectedPhoto(retained);
         setPendingPhotoAttachment(attachment);
-        setSuccess(result.duplicate ? "That Signal was already saved. Attaching your photo…" : "Signal posted. Attaching your photo…");
         await retryPhotoUpload(attachment);
       } else {
+        const result = await api.submitSighting(built.payload, requestBinding.key);
         resetComposer();
         setSuccess(result.duplicate ? "That Signal was already saved. You are all set." : "Signal posted. Thanks for helping nearby members.");
         await prepareNextDraft();

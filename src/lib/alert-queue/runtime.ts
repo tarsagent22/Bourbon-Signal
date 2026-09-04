@@ -12,7 +12,7 @@ export function alertQueueDatabaseConfigured(env: NodeJS.ProcessEnv = process.en
   return Boolean(alertQueueConnectionString(env));
 }
 
-export function createProductionAlertQueueRepository(env: NodeJS.ProcessEnv = process.env) {
+export function createProductionAlertQueueSqlExecutor(env: NodeJS.ProcessEnv = process.env): SqlExecutor {
   const connectionString = alertQueueConnectionString(env);
   if (!connectionString) {
     throw new Error("Durable alert queue is not configured: missing BOURBON_QUEUE_DATABASE_URL.");
@@ -24,5 +24,9 @@ export function createProductionAlertQueueRepository(env: NodeJS.ProcessEnv = pr
       return { rows: rows as Array<Record<string, unknown>> };
     },
   };
-  return new PostgresAlertQueueRepository(executor);
+  return executor;
+}
+
+export function createProductionAlertQueueRepository(env: NodeJS.ProcessEnv = process.env) {
+  return new PostgresAlertQueueRepository(createProductionAlertQueueSqlExecutor(env));
 }

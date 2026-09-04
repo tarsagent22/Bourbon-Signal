@@ -10,6 +10,7 @@ import {
   setCachedAreaPreferences,
 } from "@/lib/area-preferences-cache";
 import { getDefaultNotificationPreferences } from "@/lib/notification-preferences";
+import { applyWatchlistWrite, normalizeWatchlist } from "@/lib/watchlist-state";
 import { isQaPreviewMode, QA_PREVIEW_PREFERENCES } from "@/lib/preview-qa";
 import {
   clearPendingCollection,
@@ -69,6 +70,7 @@ function mergePreferencePatch(base: UserAlertPreferences, patch: UserAlertPrefer
     ...base,
     ...patch,
     notificationPreferences,
+    ...(patch.watchlistMutation ? { bottleAlertPreferences: applyWatchlistWrite(normalizeWatchlist(base.bottleAlertPreferences), undefined, patch.watchlistMutation, null) } : {}),
   } as UserAlertPreferences;
 }
 
@@ -296,6 +298,13 @@ export function useAreaPreferences() {
       if (requestedUserId) clearCachedAreaPreferences(requestedUserId);
       if (activeUserIdRef.current === requestedUserId) await fetchPrefs();
       throw new Error("Failed to save preferences");
+    }
+    if (res.status === 409 && !collectionWrite && (requestPatch.bottleAlertPreferences || requestPatch.watchlistMutation)) {
+      const conflict = await res.json().catch(() => null) as { error?: string } | null;
+      if (requestedUserId) clearCachedAreaPreferences(requestedUserId);
+      if (activeUserIdRef.current === requestedUserId) await fetchPrefs();
+      // Never rebase a full replacement onto a freshly fetched revision automatically.
+      throw new Error(conflict?.error || "Your watchlist changed elsewhere. Refresh and review before saving.");
     }
     if (res.status === 409 && collectionWrite && requestedUserId && pendingWrite) {
       const conflict = await res.json().catch(() => null) as { currentCollection?: UserAlertPreferences["collectionPreferences"] } | null;

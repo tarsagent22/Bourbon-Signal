@@ -1,4 +1,5 @@
 ﻿import { setTimeout as delay } from 'node:timers/promises';
+import { readBoundedCollectionBody, fetchCollectionResponse } from './collection-http.mjs';
 
 const DEFAULT_HEADERS = {
   'user-agent': 'BourbonSignalEngine/0.1 (+https://bourbonsignal.com; research prototype)',
@@ -12,19 +13,24 @@ export async function fetchWithMeta(url, options = {}) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), timeoutMs);
   const signals = [controller.signal, options.signal].filter(Boolean);
+  const signal = signals.length > 1 ? AbortSignal.any(signals) : controller.signal;
+  let response;
   try {
-    const res = await fetch(url, {
-      redirect: 'follow',
+    signal.throwIfAborted();
+    const fetched = await fetchCollectionResponse(url, {
+      reviewedSeedUrls: options.reviewedSeedUrls,
+      maxRedirects: options.maxRedirects,
       headers: { ...DEFAULT_HEADERS, ...(options.headers || {}) },
-      signal: signals.length > 1 ? AbortSignal.any(signals) : controller.signal
+      signal
     });
+    const res = response = fetched.response;
     const contentType = res.headers.get('content-type') || '';
-    const text = await res.text();
+    const text = (await readBoundedCollectionBody(res, { maxBytes: options.maxBytes, signal })).toString('utf8');
     return {
       ok: res.ok,
       status: res.status,
       statusText: res.statusText,
-      url: res.url,
+      url: fetched.url,
       requestedUrl: url,
       contentType,
       bytes: Buffer.byteLength(text),
@@ -35,7 +41,7 @@ export async function fetchWithMeta(url, options = {}) {
   } catch (error) {
     return {
       ok: false,
-      status: 0,
+      status: response?.status || 0,
       statusText: 'FETCH_ERROR',
       url,
       requestedUrl: url,

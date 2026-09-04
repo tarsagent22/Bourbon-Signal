@@ -1,4 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
+import { withMemberAlertLease } from "@/lib/alert-queue/member-lease";
+import { applyWatchlistWrite, normalizeWatchlist, WatchlistError, type WatchlistMutation } from "@/lib/watchlist-state";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import {
   getDefaultNotificationPreferences,
@@ -86,6 +88,7 @@ export interface UserAlertPreferences {
   bottleAlertPreferences: {
     bottleNames: string[];
     bottleKeys: string[];
+    version?: number;
   };
   collectionPreferences: {
     bottles: CollectionBottlePreference[];
@@ -98,6 +101,7 @@ export interface UserAlertPreferences {
 
 export type UserAlertPreferencePatch = Omit<Partial<UserAlertPreferences>, "notificationPreferences"> & {
   notificationPreferences?: NotificationPreferencesPatch;
+  watchlistMutation?: WatchlistMutation;
 };
 
 const EMPTY_AREA_PREFERENCES: AreaPreferences = {
@@ -207,14 +211,7 @@ function normalizeBottleKey(value: string) {
 }
 
 function normalizeBottleAlertPreferences(input: unknown): UserAlertPreferences["bottleAlertPreferences"] {
-  const source = (input && typeof input === "object" ? input : {}) as Record<string, unknown>;
-  const toStringArray = (value: unknown) =>
-    Array.isArray(value) ? value.filter((item): item is string => typeof item === "string") : [];
-  const unique = (values: string[]) => Array.from(new Set(values.map((value) => value.trim()).filter(Boolean))).slice(0, 100);
-  return {
-    bottleNames: unique(toStringArray(source.bottleNames)),
-    bottleKeys: unique(toStringArray(source.bottleKeys).map(normalizeBottleKey)),
-  };
+  return normalizeWatchlist(input);
 }
 
 function normalizeCollectionPreferences(input: unknown, version = 0): UserAlertPreferences["collectionPreferences"] {
@@ -473,6 +470,12 @@ export async function POST(req: NextRequest) {
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
   const payload = (await req.json().catch(() => ({}))) as UserAlertPreferencePatch;
+  if (!payload || typeof payload !== "object" || Array.isArray(payload)) return NextResponse.json({ error: "Invalid preferences." }, { status: 400 });
+  if (Object.prototype.hasOwnProperty.call(payload, "sightingsPreferences")) {
+    return NextResponse.json({ error: "Sightings and votes must be saved through the Signals API.", code: "sightings_server_owned" }, { status: 400 });
+  }
+  // Read, CAS, validation and write share delivery's durable member lease.
+  const write = async (assertHeld: () => Promise<void>) => {
   const client = await clerkClient();
   const user = await client.users.getUser(userId);
   const durableCollection = await loadDurableCollection(user).catch(() => null);
@@ -529,7 +532,16 @@ export async function POST(req: NextRequest) {
     if (notificationPreferencesMetadataPatch.sms) notificationPreferencesMetadataPatch.sms = notificationPreferences.sms;
   }
   const alertMode = payload.alertMode === undefined ? existing.alertMode : normalizeAlertMode(payload.alertMode);
-  let bottleAlertPreferences = normalizeBottleAlertPreferences(payload.bottleAlertPreferences ?? existing.bottleAlertPreferences ?? EMPTY_BOTTLE_ALERT_PREFERENCES);
+  const watchlistWrite = payload.bottleAlertPreferences !== undefined || payload.watchlistMutation !== undefined;
+  let bottleAlertPreferences = existing.bottleAlertPreferences;
+  if (watchlistWrite) {
+    try {
+      bottleAlertPreferences = applyWatchlistWrite(existing.bottleAlertPreferences, payload.bottleAlertPreferences, payload.watchlistMutation, durableEntitlements.trackedBottleLimit);
+    } catch (error) {
+      if (error instanceof WatchlistError) return NextResponse.json({ error: error.message, code: error.code, currentWatchlist: existing.bottleAlertPreferences }, { status: error.status });
+      throw error;
+    }
+  }
   let collectionPreferences = normalizeCollectionPreferences(payload.collectionPreferences ?? existing.collectionPreferences ?? EMPTY_COLLECTION_PREFERENCES, existing.collectionPreferences.version || 0);
   const sightingsPreferences = normalizeSightingsPreferences(payload.sightingsPreferences ?? existing.sightingsPreferences ?? EMPTY_SIGHTINGS_PREFERENCES);
   let memberProfile = existing.memberProfile;
@@ -544,7 +556,7 @@ export async function POST(req: NextRequest) {
     }
   }
   const entitlements = durableEntitlements;
-  const attemptedAlertWrite = payload.areaPreferences !== undefined || payload.monitoringScopes !== undefined || payload.notificationPreferences !== undefined || payload.alertMode !== undefined || payload.bottleAlertPreferences !== undefined;
+  const attemptedAlertWrite = payload.areaPreferences !== undefined || payload.monitoringScopes !== undefined || payload.notificationPreferences !== undefined || payload.alertMode !== undefined || watchlistWrite;
 
   if (attemptedAlertWrite && entitlements.alertAreaLimit === 0) {
     return NextResponse.json({ error: "Alert setup is included with Standard Proof and above." }, { status: 403 });
@@ -560,15 +572,7 @@ export async function POST(req: NextRequest) {
     }
   }
 
-  if (typeof entitlements.trackedBottleLimit === "number" && payload.bottleAlertPreferences !== undefined) {
-    const requestedBottleCount = countDistinctTrackedBottles(bottleAlertPreferences);
-    if (requestedBottleCount > entitlements.trackedBottleLimit) {
-      return NextResponse.json({
-        error: "This tracked-bottle selection exceeds your membership limit. Upgrade to track more bottles.",
-        code: "tracked_bottle_limit_reached",
-      }, { status: 403 });
-    }
-  }
+
 
   if (!entitlements.canReceiveSmsAlerts) {
     notificationPreferences = {
@@ -588,13 +592,6 @@ export async function POST(req: NextRequest) {
 
   monitoringScopes = trimMonitoringScopesToLimit(monitoringScopes, entitlements.alertAreaLimit);
   areaPreferences = normalizeAreaPreferences(legacyAreaPreferencesFromScopes(monitoringScopes));
-
-  if (typeof entitlements.trackedBottleLimit === "number") {
-    bottleAlertPreferences = {
-      bottleNames: bottleAlertPreferences.bottleNames.slice(0, entitlements.trackedBottleLimit),
-      bottleKeys: bottleAlertPreferences.bottleKeys.slice(0, entitlements.trackedBottleLimit),
-    };
-  }
 
   const activation = deriveMemberActivation({
     tier: entitlements.tier,
@@ -668,7 +665,9 @@ export async function POST(req: NextRequest) {
     publicMetadataPatch.monitoringScopes = monitoringScopes;
   }
   delete publicMetadataPatch.collectionPreferences;
+  if (watchlistWrite) publicMetadataPatch.bottleAlertPreferences = bottleAlertPreferences;
   if (Object.keys(publicMetadataPatch).length > 0) {
+    await assertHeld();
     await client.users.updateUserMetadata(userId, { publicMetadata: publicMetadataPatch });
   }
 
@@ -708,4 +707,11 @@ export async function POST(req: NextRequest) {
     trackedBottleLimit: entitlements.trackedBottleLimit,
     canReceiveSmsAlerts: entitlements.canReceiveSmsAlerts,
   }, collectionAccess: getCellarAccessPolicy(entitlements, collectionPreferences.bottles.length), areaPreferences, monitoringScopes, notificationPreferences, alertMode, bottleAlertPreferences, collectionPreferences, sightingsPreferences, memberProfile });
+  };
+  try {
+    const leased = await withMemberAlertLease(userId, write, { requireDurable: true });
+    return leased.acquired ? leased.result : NextResponse.json({ error: "Your preferences are being updated. Retry shortly.", code: "member_state_busy" }, { status: 409 });
+  } catch {
+    return NextResponse.json({ error: "Shared preference storage is temporarily unavailable.", code: "member_state_unavailable" }, { status: 503 });
+  }
 }

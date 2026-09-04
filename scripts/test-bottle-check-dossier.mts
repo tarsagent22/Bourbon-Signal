@@ -148,7 +148,10 @@ assert.match(page, /effectiveCollectionSaveState/, "Bottle Check keeps persisten
 assert.match(page, /isInCollection \? collectionSyncState : "idle"/, "persistent sync state is scoped to a displayed collection bottle");
 assert.match(page, /retryExistingCollection[\s\S]*prefs\.collectionPreferences/, "retry replays the persisted collection without rebuilding a bottle entry");
 assert.equal((route.match(/code: "alert_area_limit_reached"/g) || []).length, 2, "real and QA-preview writes both reject alert-area overflow");
-assert.equal((route.match(/code: "tracked_bottle_limit_reached"/g) || []).length, 2, "real and QA-preview writes both reject tracked-bottle overflow");
-assert.equal((route.match(/countDistinctTrackedBottles\(/g) || []).length, 2, "both server paths enforce the normalized union count");
+const watchlistStateSource = readFileSync(new URL("../src/lib/watchlist-state.ts", import.meta.url), "utf8");
+assert.match(route, /applyWatchlistWrite\(existing\.bottleAlertPreferences, payload\.bottleAlertPreferences, payload\.watchlistMutation, durableEntitlements\.trackedBottleLimit\)/, "real writes enforce caps inside the serialized mutation");
+assert.match(watchlistStateSource, /after\.size > limit/, "atomic writes count the saved union rather than a stale client replacement");
+assert.match(watchlistStateSource, /new WatchlistError\('tracked_bottle_limit_reached',403/, "atomic overflow is rejected, not silently truncated");
+assert.ok((route.match(/countDistinctTrackedBottles\(/g) || []).length >= 1, "QA preview retains its independent normalized union cap");
 
 console.log("Bottle Check dossier and entitlement contracts passed.");

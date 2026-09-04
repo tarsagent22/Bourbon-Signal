@@ -4,6 +4,7 @@ import { clerkClient } from "@clerk/nextjs/server";
 import type { LaunchBillingPlan } from "@/lib/stripe-plans";
 import { getMembershipTrialRepository } from "@/lib/membership-trial-repository";
 import { hasActiveGiftMembership } from "@/lib/membership-trial";
+import { membershipRecoveryAuthorityMatches, type MembershipRecoveryAuthority } from "@/lib/membership-server";
 
 function isManagedTrial(subscription: Stripe.Subscription, plan: LaunchBillingPlan | null): plan is LaunchBillingPlan & { id: "standard_monthly" | "barrel_monthly" } {
   return subscription.metadata?.trial_offer === "monthly_7_day_v1"
@@ -20,9 +21,18 @@ export async function enforceMembershipSubscriptionActivation(input: {
   subscription: Stripe.Subscription;
   plan: LaunchBillingPlan | null;
   observedAt?: string;
+  recoveryAuthority?: MembershipRecoveryAuthority;
 }) {
   const observedAt = input.observedAt || new Date().toISOString();
   const user = await (await clerkClient()).users.getUser(input.userId);
+  if (input.recoveryAuthority && (!input.plan || !membershipRecoveryAuthorityMatches(user, input.recoveryAuthority, {
+    plan: input.plan.id,
+    stripeCustomerId: typeof input.subscription.customer === "string" ? input.subscription.customer : input.subscription.customer.id,
+    stripeSubscriptionId: input.subscription.id,
+  }))) {
+    // Recovery is read/repair, not authorization to cancel another subscription.
+    return { accepted: false as const, reason: "recovery_authority_changed" as const };
+  }
   if (hasActiveGiftMembership(user.publicMetadata as Record<string, unknown>)) {
     await input.stripe.subscriptions.cancel(input.subscription.id);
     console.warn("subscription overlapping active gift canceled", { userId: input.userId, subscriptionId: input.subscription.id });

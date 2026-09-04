@@ -29,6 +29,11 @@ export function updateStateRunMetric(metrics = {}, result) {
   return {
     ...metrics,
     [result.id]: {
+      ...previous,
+      // Only explicit successful confirmation renews evidence; unchanged
+      // content/fetch completion alone must not move its deadline.
+      ...(!failed ? Object.fromEntries(['lastConfirmedAt', 'freshnessDeadlineAt', 'freshnessMaxAgeMs']
+        .filter((key) => result[key] != null).map((key) => [key, result[key]])) : {}),
       sourceId: result.id,
       probes: Number(previous.probes || 0) + 1,
       usefulChanges: Number(previous.usefulChanges || 0) + (changed ? 1 : 0),

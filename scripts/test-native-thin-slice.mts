@@ -321,8 +321,10 @@ for (const route of ["radar", "post", "cellar", "hq"]) {
 }
 assert.equal(existsSync("apps/mobile/app/(app)/(tabs)/account.tsx"), false, "HQ must replace the duplicate account tab");
 const mobileApiHook = readFileSync("apps/mobile/src/hooks/useMobileApi.ts", "utf8");
-assert.match(mobileApiHook, /const getTokenRef = useRef\(getToken\)/, "Clerk token callback churn must not recreate the API client");
-assert.match(mobileApiHook, /getToken: \(\) => getTokenRef\.current\(\)/, "the stable API client must call Clerk's latest token callback");
+assert.match(mobileApiHook, /const current = useRef\(\{ identity, getToken \}\)/, "Clerk token callback churn must not recreate the account-scoped API client");
+assert.match(mobileApiHook, /current\.current\.getToken\(\)/, "the stable API client must call Clerk's latest token callback");
+assert.match(mobileApiHook, /\[identity\]/, "only account/session transitions may replace the API client");
+assert.match(mobileApiHook, /current\.current\.identity !== identity/, "old API handles must reject a different account token");
 const mobileApiClient = readFileSync("apps/mobile/src/api/client.ts", "utf8");
 assert.match(mobileApiClient, /recentReads\.get\(key\)/, "native GET requests must have a circuit breaker against remount storms");
 const nativeSignalFeed = readFileSync("apps/mobile/app/(app)/(tabs)/index.tsx", "utf8");

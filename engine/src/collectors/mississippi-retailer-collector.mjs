@@ -43,9 +43,7 @@ async function boundedFetchJson(url, { body, signal, cookie } = {}) {
     },
     body: JSON.stringify({ jsonrpc: '2.0', method: 'call', params: body || {}, id: 1 }),
   });
-  const text = await response.text();
-  if (Buffer.byteLength(text, 'utf8') > 8 * 1024 * 1024) throw new Error(`Mississippi retailer JSON response from ${url} exceeded 8 MiB`);
-  const parsed = JSON.parse(text);
+  const parsed = await readBoundedMississippiJsonResponse(response, { url });
   return {
     ok: response.ok,
     status: response.status,
@@ -546,9 +544,9 @@ export async function collectMississippiRetailers(config, options = {}) {
     schedule: false,
     concurrency: Math.min(2, adapters.length),
     perDomain: 1,
-    previousResults: options.previousResults,
-    circuitBreaker: options.circuitBreaker,
     ...options.sourceRunnerOptions,
+    previousResults: options.previousSourceResults ?? options.previousResults,
+    circuitBreaker: options.sourceCircuitBreaker ?? options.circuitBreaker,
   });
   const signals = isolated.results.flatMap((result) => result.value?.signals || []);
   const roadblocks = isolated.results.flatMap((result) => result.value?.roadblocks || []);

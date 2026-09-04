@@ -27,6 +27,8 @@ function observationFromResult(result, now, attempt = null, attemptIndex = 0) {
     sourceId,
     observedAt,
     outcome,
+    usefulChanges: outcome === 'success' ? Math.max(0, Number(result.usefulChanges) || 0) : 0,
+    consecutiveUnchanged: Math.max(0, Number(result.consecutiveUnchanged) || 0),
     attemptCount: attempt ? 1 : Number(result.attemptCount || 0),
     ...(runtimeMs != null ? { runtimeMs } : {}),
     ...(attempt?.error?.kind || result.error?.kind ? { errorKind: attempt?.error?.kind || result.error?.kind } : {}),

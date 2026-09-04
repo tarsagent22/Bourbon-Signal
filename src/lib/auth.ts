@@ -22,18 +22,65 @@ export function useAuth() {
 
     const recoverMode = needsFounderNumber ? "founder_number" : "checkout";
     const key = `bourbon_signal_${recoverMode}_recover_${user.id}`;
-    if (typeof window !== "undefined" && window.sessionStorage.getItem(key) === "1") return;
-    if (typeof window !== "undefined") window.sessionStorage.setItem(key, "1");
-
-    fetch("/api/checkout/recover", { method: "POST" })
-      .then(async (res) => {
-        if (!res.ok) return null;
-        return (await res.json()) as { activated?: boolean };
-      })
-      .then(async (data) => {
-        if (data?.activated) await user.reload();
-      })
-      .catch(() => {});
+    try { if (typeof window !== "undefined" && window.sessionStorage.getItem(key) === "1") return; } catch { /* Storage can be disabled. */ }
+    if (typeof window === "undefined") return;
+    type RecoveryJob = { running: boolean; cooldownUntil: number; consumers: Set<symbol>; timer?: ReturnType<typeof setTimeout> };
+    // Window-scoped, not server-global: all mounted useAuth callers share one
+    // bounded job per member/mode, even when browser storage is disabled.
+    const browser = window as typeof window & { bourbonSignalRecoveryJobs?: Map<string, RecoveryJob> };
+    const jobs = browser.bourbonSignalRecoveryJobs ??= new Map<string, RecoveryJob>();
+    for (const [jobKey, job] of jobs) {
+      if (!job.running && job.cooldownUntil <= Date.now()) jobs.delete(jobKey);
+    }
+    let job = jobs.get(key);
+    if (!job) {
+      if (jobs.size >= 64) return;
+      job = { running: false, cooldownUntil: 0, consumers: new Set() };
+      jobs.set(key, job);
+    }
+    const current = job;
+    const consumer = Symbol();
+    current.consumers.add(consumer);
+    const finish = () => {
+      current.running = false;
+      current.timer = undefined;
+      // Negative results and exhausted transient failures are temporary. A
+      // later checkout can be recovered after this short cooldown.
+      current.cooldownUntil = Date.now() + 30_000;
+    };
+    const recover = async (attempt: number) => {
+      current.timer = undefined;
+      if (!current.consumers.size) { finish(); jobs.delete(key); return; }
+      try {
+        const res = await fetch("/api/checkout/recover", { method: "POST" });
+        if (!current.consumers.size) { finish(); jobs.delete(key); return; }
+        if (res.ok) {
+          const data = await res.json() as { ok?: boolean; activated?: boolean };
+          if (data.ok === true && data.activated === true) {
+            await user.reload();
+            try { window.sessionStorage.setItem(key, "1"); } catch { /* Storage may be disabled. */ }
+            finish();
+            return;
+          }
+          if (data.ok === true && data.activated === false) { finish(); return; }
+        } else if (res.status < 500 && res.status !== 429) { finish(); return; }
+      } catch { /* Preserve bounded retries for transient failures. */ }
+      if (current.consumers.size && attempt < 2) {
+        current.timer = setTimeout(() => { void recover(attempt + 1); }, 1_000 * 4 ** attempt);
+      } else finish();
+    };
+    if (!current.running && current.cooldownUntil <= Date.now()) {
+      current.running = true;
+      void recover(0);
+    }
+    return () => {
+      current.consumers.delete(consumer);
+      if (!current.consumers.size && current.timer !== undefined) {
+        clearTimeout(current.timer);
+        finish();
+        jobs.delete(key);
+      }
+    };
   }, [isLoaded, isSignedIn, memberNumber, memberTier, user]);
 
   return {

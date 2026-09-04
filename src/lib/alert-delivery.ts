@@ -25,6 +25,7 @@ import {
   withAvailabilityEpisodeIdentity,
 } from "@/lib/alert-dedupe";
 import { alertQueueDatabaseConfigured, createProductionAlertQueueRepository } from "@/lib/alert-queue/runtime";
+import { ownedPushDevices, sendOwnedExpoPushMessages } from "@/lib/push-ownership";
 import { reserveAlertDeliveryBatch, type AlertQueueMode } from "@/lib/alert-queue/delivery-gate";
 import type { AlertCandidateRecord, AlertChannel } from "@/lib/alert-queue/repository";
 import { ensureAlertDeliveryIdentityV2 } from "@/lib/alert-queue/clerk-migration";
@@ -33,7 +34,8 @@ import { nevadaAreaMatchesFields, normalizeNevadaAreas } from "@/lib/nevada-area
 import { matchedNewYorkArea, newYorkAreaMatchesFields, normalizeNewYorkAreas } from "@/lib/new-york-area";
 import { coloradoAreaMatchesFields, normalizeColoradoAreas } from "@/lib/colorado-area";
 import { firstAlertCreatedMetadata } from "@/lib/member-activation";
-import { buildExpoPushMessages, disablePushTokens, enabledPushTokens, normalizePendingExpoPushTickets, pushPreferenceProjectionAllowsDelivery, reconcileExpoPushReceipts, sendExpoPushMessages } from "@/lib/push-devices";
+import { buildExpoPushMessages, disablePushTokens, enabledPushTokens, normalizePendingExpoPushTickets, pushPreferenceProjectionAllowsDelivery, reconcileExpoPushReceipts } from "@/lib/push-devices";
+import { createProductionPushOutbox, drainPushOutbox } from "@/lib/alert-queue/push-outbox";
 import {
   CHARLOTTE_METRO_BOARD_GROUP,
   demandMetroAreaMatchesFields,
@@ -104,7 +106,9 @@ type AlertInboxMetadata = {
 
 const MAX_RECENT_DELIVERIES_PER_USER = 250;
 const MAX_RECENT_ONSITE_ALERTS_PER_USER = 100;
-const MAX_DELIVERY_USERS = Number(process.env.ALERT_DELIVERY_MAX_USERS || 500);
+const configuredDeliveryUsers = Number(process.env.ALERT_DELIVERY_MAX_USERS ?? 500);
+const MAX_DELIVERY_USERS = Number.isFinite(configuredDeliveryUsers) ? Math.min(5000, Math.max(0, Math.floor(configuredDeliveryUsers))) : 0;
+const MAX_RECIPIENT_SCAN_USERS = 5000;
 const MAX_EMAILS_PER_RUN = Number(process.env.ALERT_DELIVERY_MAX_EMAILS_PER_RUN || 250);
 const MAX_EMAILS_PER_USER = Number(process.env.ALERT_DELIVERY_MAX_EMAILS_PER_USER || 1);
 const MAX_SMS_PER_RUN = Number(process.env.ALERT_DELIVERY_MAX_SMS_PER_RUN || 25);
@@ -917,11 +921,12 @@ export function assertAlertDeliveryAuthorized(req: Request) {
 
 async function getUsersPage(client: Awaited<ReturnType<typeof clerkClient>>, offset: number) {
   const usersApi = client.users as unknown as {
-    getUserList: (params: { limit: number; offset: number }) => Promise<{ data?: unknown[]; totalCount?: number } | unknown[]>;
+    getUserList: (params: { limit: number; offset: number; orderBy: string }) => Promise<{ data?: unknown[]; totalCount?: number } | unknown[]>;
   };
-  const result = await usersApi.getUserList({ limit: 100, offset });
-  if (Array.isArray(result)) return { data: result, totalCount: result.length };
-  return { data: Array.isArray(result.data) ? result.data : [], totalCount: Number(result.totalCount || 0) || 0 };
+  const result = await usersApi.getUserList({ limit: 100, offset, orderBy: "+created_at" });
+  if (Array.isArray(result)) return { data: result, totalCount: undefined };
+  const totalCount = typeof result.totalCount === "number" && Number.isSafeInteger(result.totalCount) && result.totalCount >= 0 ? result.totalCount : undefined;
+  return { data: Array.isArray(result.data) ? result.data : [], totalCount };
 }
 
 function primaryEmailForUser(user: Record<string, unknown>) {
@@ -1256,14 +1261,29 @@ export async function deliverPreferenceAlerts(req: Request, options: {
   const resend = !dryRun && ALERT_EMAIL_DELIVERY_ENABLED ? getResendClient() : null;
   const client = await clerkClient();
 
-  let offset = 0;
+  // Observational/baseline runs must not consume the live recipient cursor.
+  const continueLiveScan = !dryRun && !baselineOnSiteOnly && !baselineEmailOnly && !baselineSmsOnly;
+  if (continueLiveScan && !memberLeaseRepository) {
+    return { ...summary, ok: false, deliveryDisabled: true, reason: "Durable recipient continuation requires the alert queue database and recipient-cursor migration." };
+  }
+  const scanLeaseKey = "recipient-scan:v1";
+  if (continueLiveScan && !await memberLeaseRepository!.acquireLease(scanLeaseKey, queueWorkerId, now, new Date(Date.parse(now) + 10 * 60_000).toISOString())) {
+    return { ...summary, scanBusy: true };
+  }
+  try {
+  let offset = continueLiveScan ? await memberLeaseRepository!.readRecipientCursor() : 0;
   let globalEmailCount = 0;
-  while (summary.usersConsidered < MAX_DELIVERY_USERS) {
+  while (summary.paidUsersConsidered < MAX_DELIVERY_USERS && summary.usersConsidered < MAX_RECIPIENT_SCAN_USERS) {
     const page = await getUsersPage(client, offset);
-    if (!page.data.length) break;
+    if (!page.data.length) {
+      if (continueLiveScan) await memberLeaseRepository!.writeRecipientCursor(0, queueWorkerId);
+      break;
+    }
+    const pageEndOffset = offset + page.data.length;
 
     for (const rawUser of page.data) {
-      if (summary.usersConsidered >= MAX_DELIVERY_USERS) break;
+      if (summary.paidUsersConsidered >= MAX_DELIVERY_USERS || summary.usersConsidered >= MAX_RECIPIENT_SCAN_USERS) break;
+      try {
       let user = rawUser as Record<string, unknown>;
       const userId = asString(user.id);
       summary.usersConsidered += 1;
@@ -1314,6 +1334,57 @@ export async function deliverPreferenceAlerts(req: Request, options: {
         ? privateMetadata.pushDeliveryReceipts as Record<string, unknown>
         : {};
       let pendingPushTickets = normalizePendingExpoPushTickets(pushReceiptMetadata.pending, now);
+      const livePushRun = !dryRun && !baselineOnSiteOnly && !baselineEmailOnly && !baselineSmsOnly && ALERT_ONSITE_DELIVERY_ENABLED;
+      const pushOutbox = livePushRun && notificationPrefs.push.enabled ? createProductionPushOutbox() : null;
+      const drainMemberPush = async () => {
+        if (!pushOutbox) return;
+        await drainPushOutbox(pushOutbox, userId, queueWorkerId, {
+          resolve: async (intent) => {
+            // Refresh policy and devices for EVERY attempt, under the existing member lease.
+            const latest = await client.users.getUser(userId);
+            const pub = latest.publicMetadata as Record<string, unknown>;
+            const priv = latest.privateMetadata as Record<string, unknown>;
+            const entitlement = await getServerEntitlements(pub);
+            const prefs = normalizeNotificationPreferences(pub.notificationPreferences);
+            const areas = normalizeAreaPrefs(pub.areaPreferences, pub.monitoringScopes);
+            if (entitlement.tier === "free" || !prefs.push.enabled || !pushPreferenceProjectionAllowsDelivery(priv.pushPreferenceProjection) || !hasSavedAreaPreferences(areas)) return null;
+            const bottles = normalizeBottleAlertPreferences(pub.bottleAlertPreferences);
+            const attemptAt = new Date().toISOString();
+            const snapshotFresh = evaluateAlertSnapshotSafety({ generatedAt: batch.snapshot.generatedAt, now: attemptAt, maxAgeMinutes: Number(process.env.ALERT_SNAPSHOT_MAX_AGE_MINUTES || 45) }).safe;
+            const wanted = new Set(intent.stableKeys);
+            const children = candidates.flatMap(enumerateUnderlyingAlertChildren)
+              .filter((child) => wanted.has(stableUnderlyingAlertKey(child)))
+              .filter((child) => asString(child.sourceType) === "community" ? entitlement.canReceiveSightingsAlerts && prefs.sightings.enabled : snapshotFresh)
+              .filter((child) => candidatePassesFreshOnSiteGuardrails(child, attemptAt))
+              .filter((child) => alertRarityIsSelected(child.tier ?? child.rarityTier, prefs.rarityTiers))
+              .filter((child) => candidateMatchesArea(child, areas) && candidateMatchesBottlePrefs(child, pub.alertMode, bottles));
+            if (new Set(children.map(stableUnderlyingAlertKey)).size !== wanted.size) return null;
+            const groups = groupCandidatesByLocation(children);
+            if (groups.length !== 1) return null;
+            const alert = { ...candidateToMemberAlert(userId, groups[0], attemptAt, areas), id: intent.alertId };
+            if (!memberAlertPassesFinalFreshness(alert, attemptAt)) return null;
+            currentPushDevices = await ownedPushDevices(userId, priv.pushDevices);
+            if (!memberAlertPassesFinalFreshness(alert) || children.some((child) => !candidatePassesFreshOnSiteGuardrails(child))) return null;
+            pendingPushTickets = normalizePendingExpoPushTickets((priv.pushDeliveryReceipts as Record<string, unknown> | undefined)?.pending, attemptAt);
+            return { devices: currentPushDevices, messages: buildExpoPushMessages(enabledPushTokens(currentPushDevices), alert) };
+          },
+          send: sendOwnedExpoPushMessages,
+          accepted: async (result) => {
+            summary.pushNotificationsSent += result.accepted;
+            // Never overwrite the full Clerk device list with an ownership-filtered subset.
+            const latest = await client.users.getUser(userId);
+            currentPushDevices = disablePushTokens(latest.privateMetadata.pushDevices, result.invalidTokens, new Date().toISOString());
+            pendingPushTickets = [...pendingPushTickets, ...result.tickets.map((ticket) => ({ ...ticket, createdAt: new Date().toISOString() }))].slice(-200);
+            await pushOutbox.assertHeld(userId, queueWorkerId);
+            await client.users.updateUserMetadata(userId, {
+              privateMetadata: { pushDevices: currentPushDevices, pushDeliveryReceipts: { pending: pendingPushTickets, lastCheckedAt: new Date().toISOString() } },
+            });
+          },
+        });
+      };
+      // Drain BEFORE no-area, identity-migration, channel and inbox-dedupe continues.
+      // A prior inbox success is not a prerequisite and cannot hide durable retries.
+      await drainMemberPush();
       if (!dryRun && notificationPrefs.push.enabled && pushPreferenceProjectionAllowsDelivery(privateMetadata.pushPreferenceProjection) && pendingPushTickets.length) {
         try {
           const receipts = await reconcileExpoPushReceipts(pendingPushTickets, currentPushDevices, fetch, now);
@@ -1462,6 +1533,19 @@ export async function deliverPreferenceAlerts(req: Request, options: {
         if (newOnSiteAlerts.length) summary.onSiteAlertsCreated += newOnSiteAlerts.length;
         if (dryRun && notificationPrefs.push.enabled) {
           summary.pushNotificationsWouldSend += newOnSiteAlerts.flatMap((alert) => buildExpoPushMessages(enabledPushTokens(privateMetadata.pushDevices), alert)).length;
+        }
+      }
+
+      // Commit push intent before any inbox write (or later email/SMS work). If this
+      // fails, stop before inbox dedupe can make the push intent unrecoverable.
+      if (pushOutbox && notificationPrefs.push.enabled && pushPreferenceProjectionAllowsDelivery(privateMetadata.pushPreferenceProjection)) {
+        await pruneStaleOnSiteAlerts();
+        for (const alert of newOnSiteAlerts) {
+          await pushOutbox.enqueue(userId, queueWorkerId, {
+            alertId: alert.id,
+            stableKeys: alert.underlyingStableKeys || [],
+            expiresAt: new Date(Math.min(Date.now() + 2 * 3_600_000, Date.parse(alert.signalAt || "") + (alert.freshnessLimitHours || 2) * 3_600_000)).toISOString(),
+          });
         }
       }
 
@@ -1829,22 +1913,7 @@ export async function deliverPreferenceAlerts(req: Request, options: {
             }
           }
           if (onSiteInboxWritten) createdRealAlert = true;
-          if (onSiteInboxWritten && notificationPrefs.push.enabled && pushPreferenceProjectionAllowsDelivery(privateMetadata.pushPreferenceProjection)) {
-            const messages = newOnSiteAlerts.flatMap((alert) => buildExpoPushMessages(enabledPushTokens(currentPushDevices), alert));
-            if (messages.length) {
-              try {
-                const result = await sendExpoPushMessages(messages);
-                summary.pushNotificationsSent += result.accepted;
-                currentPushDevices = disablePushTokens(currentPushDevices, result.invalidTokens, now);
-                pendingPushTickets = [...pendingPushTickets, ...result.tickets.map((ticket) => ({ ...ticket, createdAt: now }))].slice(-200);
-                await client.users.updateUserMetadata(userId, {
-                  privateMetadata: { pushDevices: currentPushDevices, pushDeliveryReceipts: { pending: pendingPushTickets, lastCheckedAt: now } },
-                });
-              } catch (error) {
-                summary.errors.push({ userId, message: `push delivery failed: ${error instanceof Error ? error.message : String(error)}` });
-              }
-            }
-          }
+          // Push is drained separately below, whether inbox persistence succeeded or not.
           for (const group of onSiteQueueGroups) {
             if (onSiteInboxWritten && queueRepository) {
               await queueRepository.markBatchDelivered(
@@ -1867,6 +1936,7 @@ export async function deliverPreferenceAlerts(req: Request, options: {
           }
         }
       }
+      await drainMemberPush();
       } finally {
         if (memberLeaseAcquired && memberLeaseRepository) {
           try {
@@ -1877,11 +1947,20 @@ export async function deliverPreferenceAlerts(req: Request, options: {
           }
         }
       }
+      } finally {
+        offset += 1;
+        if (continueLiveScan && (offset >= pageEndOffset || summary.paidUsersConsidered >= MAX_DELIVERY_USERS || summary.usersConsidered >= MAX_RECIPIENT_SCAN_USERS)) {
+          const nextOffset = page.totalCount !== undefined && offset >= page.totalCount ? 0 : offset;
+          await memberLeaseRepository!.writeRecipientCursor(nextOffset, queueWorkerId);
+        }
+      }
     }
 
-    offset += page.data.length;
-    if (!page.totalCount || offset >= page.totalCount) break;
+    if (page.totalCount !== undefined && offset >= page.totalCount) break;
   }
 
   return summary;
+  } finally {
+    if (continueLiveScan) await memberLeaseRepository!.releaseLease(scanLeaseKey, queueWorkerId);
+  }
 }
