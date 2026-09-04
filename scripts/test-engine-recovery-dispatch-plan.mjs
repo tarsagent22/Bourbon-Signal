@@ -57,22 +57,31 @@ test('does not queue behind an already active refresh', () => {
   assert.equal(plan.reason, 'active_refresh');
 });
 
-test('defers Ohio from a multi-state recovery so missing OHLQ evidence cannot block other states', () => {
-  const plan = planEngineRecovery({
-    watchdog: { ...watchdog, recoveryStates: ['TX', 'OH', 'CO'] },
-    runs: [],
-    headSha,
-  });
-  assert.deepEqual(plan.states, ['CO', 'TX']);
-  assert.deepEqual(plan.deferredStates, ['OH']);
+test('isolates one recovery state per run so a failed source cannot block sibling states', () => {
+  const incidentWatchdog = { ...watchdog, recoveryStates: ['TX', 'OH', 'CO'] };
+  const first = planEngineRecovery({ watchdog: incidentWatchdog, runs: [], headSha });
+  assert.deepEqual(first.states, ['CO']);
+  assert.deepEqual(first.deferredStates, ['OH', 'TX']);
 
-  const ohioOnly = planEngineRecovery({
-    watchdog: { ...watchdog, recoveryStates: ['OH'] },
-    runs: [],
+  const second = planEngineRecovery({
+    watchdog: incidentWatchdog,
+    runs: [{
+      event: 'workflow_dispatch',
+      status: 'completed',
+      conclusion: 'failure',
+      headSha,
+      displayTitle: `Inventory recovery ${first.incidentKey}`,
+      createdAt: '2026-09-04T11:00:00.000Z',
+    }],
     headSha,
+    now: '2026-09-04T11:16:00.000Z',
   });
-  assert.deepEqual(ohioOnly.states, ['OH']);
-  assert.deepEqual(ohioOnly.deferredStates, []);
+  assert.deepEqual(second.states, ['OH']);
+  assert.deepEqual(second.deferredStates, ['CO', 'TX']);
+
+  const only = planEngineRecovery({ watchdog: { ...watchdog, recoveryStates: ['OH'] }, runs: [], headSha });
+  assert.deepEqual(only.states, ['OH']);
+  assert.deepEqual(only.deferredStates, []);
 });
 
 test('retries the same unchanged incident after the bounded backoff window', () => {
