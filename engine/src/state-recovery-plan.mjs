@@ -50,7 +50,7 @@ export function buildStateRecoveryPlan(contract, {
   const requestedStateIds = normalizeStateIds(failedStateIds === null
     ? (contract?.summary?.retryStateIds || [])
     : failedStateIds);
-  const retryStateIds = [];
+  const eligibleRetryStateIds = [];
   const skipped = [];
 
   for (const state of requestedStateIds) {
@@ -59,8 +59,14 @@ export function buildStateRecoveryPlan(contract, {
     else if (record.health === 'blocked') skipped.push({ state, reason: 'blocked_deterministic_validation' });
     else if (!retryableState(record)) skipped.push({ state, reason: 'not_retryable_or_degraded' });
     else if (currentAttempt >= boundedMax) skipped.push({ state, reason: 'attempt_cap_reached' });
-    else retryStateIds.push(state);
+    else eligibleRetryStateIds.push(state);
   }
+
+  const selectedState = eligibleRetryStateIds.length
+    ? eligibleRetryStateIds[currentAttempt % eligibleRetryStateIds.length]
+    : null;
+  const retryStateIds = selectedState ? [selectedState] : [];
+  const deferredRetryStateIds = eligibleRetryStateIds.filter((state) => state !== selectedState);
 
   return {
     contractVersion: STATE_RECOVERY_PLAN_VERSION,
@@ -70,6 +76,7 @@ export function buildStateRecoveryPlan(contract, {
     maxAttempts: boundedMax,
     requestedStateIds,
     retryStateIds,
+    deferredRetryStateIds,
     skipped,
   };
 }

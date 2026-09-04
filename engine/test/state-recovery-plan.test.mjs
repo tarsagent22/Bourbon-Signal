@@ -18,15 +18,20 @@ const contract = {
   ],
 };
 
-test('recovery planning targets only requested transient degraded states', () => {
+test('recovery planning isolates one transient degraded state and defers siblings', () => {
   const plan = buildStateRecoveryPlan(contract, { failedStateIds: ['CC', 'AA', 'DD', 'BB'], attempt: 0 });
-  assert.deepEqual(plan.retryStateIds, ['AA', 'BB']);
+  assert.deepEqual(plan.retryStateIds, ['AA']);
+  assert.deepEqual(plan.deferredRetryStateIds, ['BB']);
   assert.deepEqual(plan.skipped, [
     { state: 'CC', reason: 'blocked_deterministic_validation' },
     { state: 'DD', reason: 'not_retryable_or_degraded' },
   ]);
   assert.equal(plan.nextAttempt, 1);
   assert.equal(plan.maxAttempts, 2);
+
+  const next = buildStateRecoveryPlan(contract, { failedStateIds: ['AA', 'BB'], attempt: 1 });
+  assert.deepEqual(next.retryStateIds, ['BB']);
+  assert.deepEqual(next.deferredRetryStateIds, ['AA']);
 });
 
 test('recovery attempts are capped at two and cannot be raised by callers', () => {
@@ -59,7 +64,8 @@ test('an empty scheduled verifier ledger does not suppress operating-contract re
   ]);
 
   assert.deepEqual(plan.requestedStateIds, ['AA', 'BB']);
-  assert.deepEqual(plan.retryStateIds, ['AA', 'BB']);
+  assert.deepEqual(plan.retryStateIds, ['AA']);
+  assert.deepEqual(plan.deferredRetryStateIds, ['BB']);
 });
 
 test('scheduled verifier failures are unioned with the operating-contract retry set', async (t) => {
@@ -85,7 +91,8 @@ test('scheduled verifier failures are unioned with the operating-contract retry 
   ]);
 
   assert.deepEqual(plan.requestedStateIds, ['AA', 'EE']);
-  assert.deepEqual(plan.retryStateIds, ['AA', 'EE']);
+  assert.deepEqual(plan.retryStateIds, ['AA']);
+  assert.deepEqual(plan.deferredRetryStateIds, ['EE']);
 });
 
 test('accepted output with a zero-customer anomaly is still retryable even without transient collector text', () => {
