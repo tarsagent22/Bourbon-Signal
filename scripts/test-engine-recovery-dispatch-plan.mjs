@@ -57,6 +57,24 @@ test('does not queue behind an already active refresh', () => {
   assert.equal(plan.reason, 'active_refresh');
 });
 
+test('defers Ohio from a multi-state recovery so missing OHLQ evidence cannot block other states', () => {
+  const plan = planEngineRecovery({
+    watchdog: { ...watchdog, recoveryStates: ['TX', 'OH', 'CO'] },
+    runs: [],
+    headSha,
+  });
+  assert.deepEqual(plan.states, ['CO', 'TX']);
+  assert.deepEqual(plan.deferredStates, ['OH']);
+
+  const ohioOnly = planEngineRecovery({
+    watchdog: { ...watchdog, recoveryStates: ['OH'] },
+    runs: [],
+    headSha,
+  });
+  assert.deepEqual(ohioOnly.states, ['OH']);
+  assert.deepEqual(ohioOnly.deferredStates, []);
+});
+
 test('retries the same unchanged incident after the bounded backoff window', () => {
   const first = planEngineRecovery({ watchdog, runs: [], headSha });
   const repeated = planEngineRecovery({

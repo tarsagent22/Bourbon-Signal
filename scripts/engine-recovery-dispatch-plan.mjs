@@ -32,23 +32,26 @@ function matchingIncident(run, title, headSha) {
 }
 
 export function planEngineRecovery({ watchdog, runs, headSha, now = new Date().toISOString() }) {
-  const states = [...new Set((watchdog?.recoveryStates || []).map((state) => String(state).trim()).filter(Boolean))].sort();
-  if (states.some((state) => !/^[A-Z]{2}(?:-[A-Z]+)?$/.test(state))) throw new Error('Invalid recovery state identifier.');
+  const incidentStates = [...new Set((watchdog?.recoveryStates || []).map((state) => String(state).trim()).filter(Boolean))].sort();
+  if (incidentStates.some((state) => !/^[A-Z]{2}(?:-[A-Z]+)?$/.test(state))) throw new Error('Invalid recovery state identifier.');
   if (!/^[a-f0-9]{40}$/i.test(String(headSha || ''))) throw new Error('Invalid main revision.');
   const nowMs = validTime(now);
   if (nowMs == null) throw new Error('Invalid recovery planning time.');
-  const mode = states.length ? 'targeted' : 'full';
+  const mode = incidentStates.length ? 'targeted' : 'full';
+  const deferredStates = incidentStates.length > 1 && incidentStates.includes('OH') ? ['OH'] : [];
+  const states = incidentStates.filter((state) => !deferredStates.includes(state));
   const incident = {
     headSha: String(headSha).toLowerCase(),
     snapshot: String(watchdog?.snapshotId || watchdog?.generatedAt || 'unknown'),
     mode,
-    states,
+    states: incidentStates,
     failures: stableFailures(watchdog),
   };
   const incidentKey = createHash('sha256').update(JSON.stringify(incident)).digest('hex').slice(0, 20);
   const title = `Inventory recovery ${incidentKey}`;
+  const planIdentity = { incidentKey, mode, states, deferredStates };
   const active = (runs || []).find((run) => run?.status === 'queued' || run?.status === 'in_progress');
-  if (active) return { dispatch: false, reason: 'active_refresh', priorRunId: active.databaseId || null, incidentKey, mode, states };
+  if (active) return { dispatch: false, reason: 'active_refresh', priorRunId: active.databaseId || null, ...planIdentity };
   const matchingAttempts = (runs || [])
     .filter((run) => matchingIncident(run, title, incident.headSha))
     .map((run) => ({ ...run, observedAtMs: validTime(run?.createdAt, run?.updatedAt, run?.startedAt) }))
@@ -61,9 +64,7 @@ export function planEngineRecovery({ watchdog, runs, headSha, now = new Date().t
         dispatch: false,
         reason: 'incident_circuit_open',
         priorRunId: lastAttempt.databaseId || null,
-        incidentKey,
-        mode,
-        states,
+        ...planIdentity,
         attempt: matchingAttempts.length,
         priorAttempts: matchingAttempts.length,
         retryDelayMinutes: Math.round(INCIDENT_CIRCUIT_COOLDOWN_MS / 60_000),
@@ -79,9 +80,7 @@ export function planEngineRecovery({ watchdog, runs, headSha, now = new Date().t
         dispatch: false,
         reason: 'recovery_backoff',
         priorRunId: lastAttempt.databaseId || null,
-        incidentKey,
-        mode,
-        states,
+        ...planIdentity,
         attempt: matchingAttempts.length + 1,
         priorAttempts: matchingAttempts.length,
         retryDelayMinutes: Math.round(backoffMs / 60_000),
@@ -93,9 +92,7 @@ export function planEngineRecovery({ watchdog, runs, headSha, now = new Date().t
     dispatch: true,
     reason: 'recovery_needed',
     priorRunId: lastAttempt?.databaseId || null,
-    incidentKey,
-    mode,
-    states,
+    ...planIdentity,
     attempt: matchingAttempts.length + 1,
     priorAttempts: matchingAttempts.length,
     retryDelayMinutes: matchingAttempts.length
