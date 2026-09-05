@@ -1,7 +1,7 @@
 import type { Signal } from "./types";
 
 const statusLabels: Record<NonNullable<Signal["availability"]>["status"], string> = {
-  available_now: "Available now",
+  available_now: "Reported available",
   upcoming: "Upcoming",
   reported: "Reported",
   unknown: "Availability unknown",
@@ -63,8 +63,11 @@ function escapedPattern(value: string) {
   return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
-function normalizedStoreName(name: string, city: string) {
-  const cleaned = name.trim();
+function normalizedStoreName(name: string, city: string, address = "") {
+  const original = name.trim();
+  const cleaned = address.trim()
+    ? original.replace(new RegExp(`\\s*[,/·-]\\s*${escapedPattern(address.trim())}\\s*$`, "i"), "").trim() || original
+    : original;
   const normalizedCity = city.trim();
   if (!cleaned || !normalizedCity) return cleaned;
   return cleaned.replace(new RegExp(`\\s*[/·-]\\s*${escapedPattern(normalizedCity)}\\s*$`, "i"), "").trim();
@@ -142,7 +145,7 @@ export function presentSignal(signal: Signal) {
   const store = signal.location.store;
   const city = store?.city?.trim() || "";
   const state = store?.state || signal.location.state;
-  const storeName = normalizedStoreName(store?.name || signal.location.label || "", city);
+  const storeName = normalizedStoreName(store?.name || signal.location.label || "", city, store?.address);
   const geography = city && state ? `${city}, ${state}` : city || state || "";
   const location = [storeName, geography].filter(Boolean).join(" · ");
   const address = [store?.address, store?.city, store?.state || signal.location.state, store?.zip].filter(Boolean).join(" · ");
@@ -228,7 +231,7 @@ export function signalCardStatusLabel(signal: Signal, now = new Date()) {
     const window = signalAvailabilityWindow(signal);
     if (window && now.getTime() < window.startsAt) return "Upcoming";
     if (!signalAvailabilityIsCurrent(signal, now)) return "Reported available";
-    return retailerQualified(signal) ? "Retailer reports available" : "Available now";
+    return retailerQualified(signal) ? "Retailer reports available" : "Reported available";
   }
   if (signal.availability) return statusLabels[signal.availability.status];
   if (retailerQualified(signal)) return "Retailer reported";

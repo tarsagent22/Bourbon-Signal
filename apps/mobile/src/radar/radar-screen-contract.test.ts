@@ -36,10 +36,48 @@ test("Watchlist only shows bottle management for specific-bottle alerts", () => 
 test("Watchlist expansion disappears when no bottles remain hidden", () => {
   const radar = readScreen("radar");
 
-  assert.match(radar, /watchlist\.totalCount > 3 \? <TextAction/);
+  assert.match(radar, /VIEW ALL \$\{watchlist\.totalCount\} BOTTLES/);
   assert.match(radar, /expanded=\{showAll\}/);
   assert.match(radar, /accessibilityState=\{\{ expanded \}\}/);
   assert.match(radar, /if \(showAll && watchlist\.totalCount <= 3\) setShowAll\(false\)/);
+});
+
+test("Watchlist is organized as what, where, and how with collapsed locations", () => {
+  const radar = readScreen("radar");
+  const bottles = radar.indexOf("<SectionTitle>Bottles</SectionTitle>");
+  const locations = radar.indexOf("<SectionTitle detail={radarMonitoringSummary(preferences.monitoringScopes)}>Locations</SectionTitle>");
+  const delivery = radar.indexOf("<SectionTitle>Delivery</SectionTitle>");
+  assert.ok(bottles >= 0 && bottles < locations && locations < delivery);
+  assert.match(radar, /Anything notable includes/);
+  assert.match(radar, /EDIT LOCATIONS/);
+  assert.match(radar, /locationsExpanded \?/);
+});
+
+test("quiet watch removal offers an atomic Undo without replacing the full watchlist", () => {
+  const radar = readScreen("radar");
+  assert.match(radar, /Removed \{undoBottle\.name\}/);
+  assert.match(radar, /label="UNDO"/);
+  assert.match(radar, /watchlistMutation: bottleWatchMutation/);
+  assert.doesNotMatch(radar, /onSetWatching[\s\S]{0,500}bottleAlertPreferences:/);
+  assert.match(radar, /onSetWatching\(undoBottle\.name, true, true\)/);
+});
+
+test("preference refreshes cannot overwrite a mutation that starts or finishes in flight", () => {
+  const radar = readScreen("radar");
+  assert.match(radar, /const preferenceMutationAtStart = preferenceMutationEpoch\.current/);
+  assert.match(radar, /preferenceMutationAtStart === preferenceMutationEpoch\.current/);
+  assert.match(radar, /preferenceMutationEpoch\.current \+= 1/);
+});
+
+test("push readiness and unread ownership are explicit", () => {
+  const radar = readScreen("radar");
+  assert.match(radar, /Push to this phone: \{pushReadiness\}/);
+  assert.match(radar, /Finish setting up push alerts/);
+  assert.match(radar, /item\.key === "matches" && alerts\.unreadCount/);
+  assert.doesNotMatch(radar, /HIDE DETAILS|Support code:/);
+  assert.match(radar, /Keep matches inside the app even when phone push is off/);
+  assert.doesNotMatch(radar, /radarMonitoringSummary\(preferences\.monitoringScopes\)[^\n]*alerts\.unreadCount/);
+  assert.match(radar, /pushRecoveryAction === "retry-disable"[\s\S]*togglePush\(false\)/);
 });
 
 test("Radar empty Matches connects current status, past matches, and Watchlist configuration", () => {

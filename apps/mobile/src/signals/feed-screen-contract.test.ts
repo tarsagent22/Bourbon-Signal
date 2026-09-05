@@ -19,14 +19,34 @@ test("Home opens directly on fresh Intel and member sightings", () => {
 
   assert.ok(toggle < geography && geography < search && search < rarity);
   assert.match(feed, />Intel<\/Text>/);
-  assert.match(feed, />Sightings<\/Text>/);
+  assert.match(feed, />Community<\/Text>/);
   assert.match(feed, /No fresh Intel Signals are available right now/);
   assert.match(feed, /No member sightings yet/);
   assert.doesNotMatch(feed, /Home overview|Your Bourbon Signal home|OPEN RADAR/);
-  assert.doesNotMatch(feed, /Trip Mode|tripMode|trip-mode|SecureStore/);
+  assert.doesNotMatch(feed, /Trip Mode|tripMode|trip-mode/);
   assert.doesNotMatch(feed, /getMemberPreferences|getMemberAlerts|radarWatchlistSummary|radarMonitoringSummary/);
   assert.doesNotMatch(feed, /Open Signal filters|Filter Signals|filterOpen|filterSheet/);
+  assert.doesNotMatch(feed, /canUseFilters/);
   assert.match(feed, /showsVerticalScrollIndicator=\{false\}/);
+});
+
+test("Home restores user-scoped browsing filters without touching Radar preferences", () => {
+  assert.match(feed, /homeBrowsingStorageKey\(userId\)/);
+  assert.match(feed, /loadHomeBrowsingPreferences/);
+  assert.match(feed, /saveHomeBrowsingPreferences/);
+  assert.doesNotMatch(feed, /getMemberPreferences|updateMemberPreferences|notificationPreferences|monitoringScopes/);
+  assert.match(feed, /loadedBrowsingStorageKey === browsingStorageKey/);
+});
+
+test("immediate rarity and bottle input invalidate pending Home restore", () => {
+  assert.match(feed, /const applyRarityFilters = useCallback\(\(next: SignalFeedFilters\) => \{\s*browsingMutationSequence\.current \+= 1;/);
+  assert.match(feed, /onChangeText=\{\(value\) => \{\s*browsingMutationSequence\.current \+= 1;/);
+});
+
+test("Home location controls say All states and expose one-tap location clearing", () => {
+  assert.match(feed, /placeholder="All states"/);
+  assert.match(feed, /clearLabel="All states"/);
+  assert.match(feed, /accessibilityLabel="Clear Home location filters"/);
 });
 
 test("State and Area remain a stable pair while Area is disabled until State is selected", () => {

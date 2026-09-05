@@ -17,15 +17,20 @@ test("Signal cards use an editorial rarity-time-title hierarchy without the lega
   assert.match(card, /presentBottleIdentity\(signal\.bottle\.name\)/);
   assert.match(card, /styles\.bottleSubtitle/);
   assert.match(styleBlock("bottle"), /fontFamily: "Fraunces_700Bold"/);
-  assert.match(styleBlock("price"), /fontFamily: "Fraunces_700Bold"/);
+  assert.match(styleBlock("price"), /fontSize: 13/);
 });
 
-test("Signal cards use designed store and location rows with a concise anchored footer", () => {
+test("Signal cards use compact borderless rows with inline price and reported quantity", () => {
   assert.match(card, /name="storefront-outline"/);
   assert.match(card, /name="map-marker-outline"/);
-  assert.match(card, /styles\.footer/);
-  assert.match(card, /styles\.metricDot/);
+  assert.match(card, /styles\.factsRow/);
+  assert.doesNotMatch(card, /styles\.footer|styles\.metricDot/);
+  assert.match(styleBlock("card"), /minHeight: 120/);
+  assert.doesNotMatch(styleBlock("card"), /borderWidth|borderRadius|backgroundColor/);
+  assert.match(styleBlock("bottle"), /fontSize: 18/);
   assert.doesNotMatch(card, /signalCardSummary|styles\.note/);
+  assert.doesNotMatch(card, /"Available now"/);
+  assert.match(detail, /<Detail label="Location" value=\{presented\?\.address \|\|/);
 });
 
 test("Intel cards always state availability in text rather than relying on color", () => {
