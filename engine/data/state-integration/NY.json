@@ -26,9 +26,11 @@
       "metro:ny:7th-ave-wines",
       "metro:ny:bedford-wines",
       "metro:ny:michaeltowne-wines",
-      "metro:ny:city-wines-ny"
+      "metro:ny:city-wines-ny",
+      "metro:ny:five-star-wine-spirits-buffalo",
+      "metro:ny:bailey-discount-liquor-wine"
     ],
-    "registration": "engine/src/state-sources.mjs and engine/src/collectors/precision-probes.mjs register eighteen bounded, isolated New York City and Nassau County first-party retailer sources behind the legacy precision runtime."
+    "registration": "engine/src/state-sources.mjs and engine/src/collectors/precision-probes.mjs register twenty bounded, isolated New York City, Nassau County, and Buffalo first-party retailer sources behind the legacy precision runtime."
   },
   "storeIdentity": {
     "mode": "exact_allowlisted_merchant_and_premises",
@@ -125,7 +127,9 @@
         "metro:ny:7th-ave-wines",
         "metro:ny:bedford-wines",
         "metro:ny:michaeltowne-wines",
-        "metro:ny:city-wines-ny"
+        "metro:ny:city-wines-ny",
+        "metro:ny:five-star-wine-spirits-buffalo",
+        "metro:ny:bailey-discount-liquor-wine"
       ],
       "assertion": "Historical shadow/canary evidence remains immutable activation proof; current source growth is verified through bounded live source checks, state quality gates, and targeted production publication."
     },

@@ -19,7 +19,7 @@ const precision = read("engine/src/collectors/precision-probes.mjs");
 const confidence = read("engine/src/confidence-policy.mjs");
 const exporter = read("engine/src/export-site-contract.mjs");
 
-for (const [state, label, areas] of [["NY", "New York", ["New York City", "Nassau County"]], ["CO", "Colorado", ["Denver Metro"]]]) {
+for (const [state, label, areas] of [["NY", "New York", ["New York City", "Nassau County", "Buffalo"]], ["CO", "Colorado", ["Denver Metro"]]]) {
   const entry = lifecycle.states[state];
   assert.ok(["shadow", "active"].includes(entry.publicStatus), `${state} must be staged or customer-active`);
   if (entry.publicStatus === "active") assert.ok(lifecycle.activeStates.includes(state), `${state} active lifecycle must be listed customer-active`);
@@ -36,16 +36,17 @@ for (const [state, label, areas] of [["NY", "New York", ["New York City", "Nassa
   assert.ok(existsSync(path.join(root, `engine/data/state-fixtures/${state}.json`)), `${state} fixture manifest must exist`);
 }
 
-assert.deepEqual(lifecycle.states.NY.areaOptions, ["New York City", "Nassau County"]);
+assert.deepEqual(lifecycle.states.NY.areaOptions, ["New York City", "Nassau County", "Buffalo"]);
 assert.ok(lifecycle.states.NY.customerSummary.includes("Nassau County"));
-assert.ok(engineSources.includes("New York City + Nassau County first-party retailer inventory"), "NY operational source metadata must name both supported areas");
-assert.ok(engineSources.includes("Exact-premises New York City and Nassau County retailer inventory"), "NY operational source value must not retain the old Manhattan-only scope");
-assert.ok(confidence.includes("New York City, Nassau County, and Denver Metro retailer rows"), "central metro confidence metadata must name Nassau County");
-assert.ok(exporter.includes("New York City, Nassau County, or Denver Metro retailer availability"), "exported on-site candidate metadata must name Nassau County");
+assert.ok(lifecycle.states.NY.customerSummary.includes("Buffalo"));
+assert.ok(engineSources.includes("New York City + Nassau County + Buffalo first-party retailer inventory"), "NY operational source metadata must name every supported area");
+assert.ok(engineSources.includes("Exact-premises New York City, Nassau County, and Buffalo retailer inventory"), "NY operational source value must name Buffalo without implying statewide coverage");
+assert.ok(confidence.includes("New York City, Nassau County, Buffalo, and Denver Metro retailer rows"), "central metro confidence metadata must name Buffalo");
+assert.ok(exporter.includes("New York City, Nassau County, Buffalo, or Denver Metro retailer availability"), "exported on-site candidate metadata must name Buffalo");
 assert.ok(metroRetailerSources.includes("wine-gallery") && metroRetailerSources.includes("cherrywood-wine") && metroRetailerSources.includes("westbury-liquors"));
 assert.ok(dropFeed.includes("SUPPORTED_NEW_YORK_AREAS"), "Drop Feed defaults must use the complete New York area contract");
 
-assert.ok(lifecycleSource.includes('New York City') && lifecycleSource.includes('Nassau County') && lifecycleSource.includes('Denver Metro'), "generated lifecycle source must expose every metro scope");
+assert.ok(lifecycleSource.includes('New York City') && lifecycleSource.includes('Nassau County') && lifecycleSource.includes('Buffalo') && lifecycleSource.includes('Denver Metro'), "generated lifecycle source must expose every metro scope");
 assert.ok(existsSync(path.join(root, "src/lib/new-york-area.ts")));
 assert.ok(existsSync(path.join(root, "src/lib/colorado-area.ts")));
 
@@ -70,4 +71,4 @@ assert.ok(dropFeed.includes('buildDropFeedAreaRequest(feedStateParam, implicitSa
 assert.ok(preferencesApi.includes('normalizeNewYorkAreas') && preferencesApi.includes('normalizeColoradoAreas'));
 assert.ok(dashboard.includes('SUPPORTED_NEW_YORK_AREAS') && dashboard.includes('SUPPORTED_COLORADO_AREAS'));
 
-console.log("New York City, Nassau County, and Denver/Colorado website wiring contract passed.");
+console.log("New York City, Nassau County, Buffalo, and Denver/Colorado website wiring contract passed.");

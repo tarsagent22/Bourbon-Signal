@@ -242,6 +242,28 @@ export const NEW_YORK_RETAILER_SOURCES = Object.freeze([
       store('city-wines-ny:6716b458e8f66c073d43ac0a', 'City Wines', '6716b458e8f66c073d43ac0a', '2880 Nostrand Ave, Brooklyn, NY 11229, USA', 'Brooklyn', 'NY', '11229'),
     ],
   }),
+  cityHiveSource({
+    id: 'five-star-wine-spirits-buffalo',
+    chainName: '5 Star Wine & Spirits',
+    baseUrl: 'https://5star-wines.com',
+    stateCode: 'NY',
+    area: 'Buffalo',
+    inventoryMode: 'itemlist_binary',
+    stores: [
+      store('five-star-wine-spirits-buffalo:5f3c57ad869d7863e8a109c9', '5 star wine & spirits, Buffalo, NY', '5f3c57ad869d7863e8a109c9', '24 Bailey Ave, Buffalo, NY 14220, USA', 'Buffalo', 'NY', '14220'),
+    ],
+  }),
+  cityHiveSource({
+    id: 'bailey-discount-liquor-wine',
+    chainName: 'Bailey Discount Liquor & Wine',
+    baseUrl: 'https://baileydiscountliquorandwine.com',
+    stateCode: 'NY',
+    area: 'Buffalo',
+    inventoryMode: 'itemlist_binary',
+    stores: [
+      store('bailey-discount-liquor-wine:6552574725493d2c90afee1d', 'Bailey Discount Liquor & Wine', '6552574725493d2c90afee1d', '1245 Bailey Ave, Buffalo, NY 14206, USA', 'Buffalo', 'NY', '14206'),
+    ],
+  }),
 ]);
 
 export const COLORADO_RETAILER_SOURCES = Object.freeze([

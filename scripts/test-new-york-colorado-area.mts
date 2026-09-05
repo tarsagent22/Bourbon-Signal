@@ -12,11 +12,12 @@ import {
   SUPPORTED_COLORADO_AREAS,
 } from "../src/lib/colorado-area.ts";
 
-assert.deepEqual(SUPPORTED_NEW_YORK_AREAS, ["New York City", "Nassau County"]);
-assert.deepEqual(normalizeNewYorkAreas(["NYC", "new york city", "nassau", "Albany"]), ["New York City", "Nassau County"]);
+assert.deepEqual(SUPPORTED_NEW_YORK_AREAS, ["New York City", "Nassau County", "Buffalo"]);
+assert.deepEqual(normalizeNewYorkAreas(["NYC", "new york city", "nassau", "Buffalo NY", "Albany"]), ["New York City", "Nassau County", "Buffalo"]);
 assert.deepEqual(parseNewYorkAreaQuery(null), { requested: false, valid: true, areas: [] });
 assert.deepEqual(parseNewYorkAreaQuery("New York City"), { requested: true, valid: true, areas: ["New York City"] });
 assert.deepEqual(parseNewYorkAreaQuery("Nassau County"), { requested: true, valid: true, areas: ["Nassau County"] });
+assert.deepEqual(parseNewYorkAreaQuery("Buffalo"), { requested: true, valid: true, areas: ["Buffalo"] });
 assert.deepEqual(parseNewYorkAreaQuery("Albany"), { requested: true, valid: false, areas: [] });
 for (const field of [
   "New York City",
@@ -48,6 +49,14 @@ for (const field of ["Long Island, NY", "Suffolk County", "Huntington, NY", "Nas
   assert.equal(newYorkAreaMatchesFields([field], ["Nassau County"]), false, `${field} must not expand Nassau County coverage`);
 }
 
+for (const field of ["Buffalo", "Buffalo, NY", "24 Bailey Ave, Buffalo, NY 14220", "1245 Bailey Ave, Buffalo, NY 14206"]) {
+  assert.equal(newYorkAreaMatchesFields([field], ["Buffalo"]), true, `${field} should match Buffalo`);
+  assert.equal(newYorkAreaMatchesFields([field], ["New York City"]), false, `${field} must not match New York City`);
+}
+for (const field of ["Buffalo, MN", "Buffalo County, WI", "Buffalo Grove, IL", "Amherst, NY"]) {
+  assert.equal(newYorkAreaMatchesFields([field], ["Buffalo"]), false, `${field} must not expand Buffalo coverage`);
+}
+
 assert.deepEqual(SUPPORTED_COLORADO_AREAS, ["Denver Metro"]);
 assert.deepEqual(normalizeColoradoAreas(["Denver", "denver metro", "Colorado Springs"]), ["Denver Metro"]);
 assert.deepEqual(parseColoradoAreaQuery(null), { requested: false, valid: true, areas: [] });
@@ -68,4 +77,4 @@ for (const field of ["Colorado", "Colorado statewide", "Colorado Springs, CO", "
 }
 assert.equal(coloradoAreaMatchesFields(["Denver"], []), true);
 
-console.log("New York City and Denver Metro strict area contracts passed.");
+console.log("New York City, Nassau County, Buffalo, and Denver Metro strict area contracts passed.");
