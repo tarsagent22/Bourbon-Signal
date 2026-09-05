@@ -9,7 +9,7 @@ function store(id, name, merchantId, address, city, stateCode, zip) {
   return Object.freeze({ id, name, merchantId, address, city, state: stateCode, stateCode, zip });
 }
 
-function cityHiveSource({ id, chainName, baseUrl, stateCode, area, stores, inventoryMode = 'premises_quantity' }) {
+function cityHiveSource({ id, chainName, baseUrl, stateCode, area, stores, inventoryMode = 'premises_quantity', depthDiscovery = null }) {
   return Object.freeze({
     id,
     chainName,
@@ -21,6 +21,7 @@ function cityHiveSource({ id, chainName, baseUrl, stateCode, area, stores, inven
     productsUrl: `${baseUrl}/shop/?subtype=Bourbon`,
     fulfillmentPolicyUrl: `${baseUrl}/shop/?subtype=Bourbon`,
     maxPages: 1,
+    depthDiscovery: depthDiscovery ? Object.freeze({ ...depthDiscovery }) : null,
     stateCode,
     area,
     inventoryEligible: true,
@@ -249,6 +250,18 @@ export const NEW_YORK_RETAILER_SOURCES = Object.freeze([
     stateCode: 'NY',
     area: 'Buffalo',
     inventoryMode: 'itemlist_binary',
+    depthDiscovery: {
+      maxCategoryPages: 2,
+      includeWhiskey: true,
+      queryTerms: ['weller', 'van winkle', 'single barrel', 'barrel proof', 'bottled in bond', 'limited edition', 'rare'],
+      maxRequests: 10,
+      maxElapsedMs: 25_000,
+      maxBodyBytes: 1_024 * 1_024,
+      maxTotalBytes: 6 * 1_024 * 1_024,
+      maxProducts: 300,
+      requestTimeoutMs: 10_000,
+      refreshCadenceMs: 30 * 60_000,
+    },
     stores: [
       store('five-star-wine-spirits-buffalo:5f3c57ad869d7863e8a109c9', '5 star wine & spirits, Buffalo, NY', '5f3c57ad869d7863e8a109c9', '24 Bailey Ave, Buffalo, NY 14220, USA', 'Buffalo', 'NY', '14220'),
     ],
@@ -260,6 +273,18 @@ export const NEW_YORK_RETAILER_SOURCES = Object.freeze([
     stateCode: 'NY',
     area: 'Buffalo',
     inventoryMode: 'itemlist_binary',
+    depthDiscovery: {
+      maxCategoryPages: 2,
+      includeWhiskey: true,
+      queryTerms: ['weller', 'van winkle', 'single barrel', 'barrel proof', 'bottled in bond', 'limited edition', 'rare'],
+      maxRequests: 10,
+      maxElapsedMs: 25_000,
+      maxBodyBytes: 1_024 * 1_024,
+      maxTotalBytes: 6 * 1_024 * 1_024,
+      maxProducts: 300,
+      requestTimeoutMs: 10_000,
+      refreshCadenceMs: 30 * 60_000,
+    },
     stores: [
       store('bailey-discount-liquor-wine:6552574725493d2c90afee1d', 'Bailey Discount Liquor & Wine', '6552574725493d2c90afee1d', '1245 Bailey Ave, Buffalo, NY 14206, USA', 'Buffalo', 'NY', '14206'),
     ],

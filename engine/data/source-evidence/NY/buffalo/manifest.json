@@ -42,6 +42,13 @@
       "negativeRawSha256": "b1606eb3ca3a076183addf8b293c73db56225982d41be29ce5c9af2751e0366b"
     }
   ],
+  "depthLiveProof": {
+    "fixture": "depth-live-proof-2026-09-05.json",
+    "sha256": "c2bb4dfefe2aad586715476f1f81254220b31e02788d5212b809b6d3b1cec74f",
+    "bytes": 31164,
+    "syntheticDataUsed": false,
+    "sanitization": "Hash-and-metadata evidence only; no response bodies, client keys, cookies, authorization headers, or credentials are retained. Product URLs preserve public merchant/product/option stock evidence."
+  },
   "rejectedCandidates": [
     {
       "source": "Elmwood Discount Liquor & Wine",

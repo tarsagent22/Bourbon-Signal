@@ -113,6 +113,7 @@ import {
   verifyMetroShopifyFulfillmentPolicy,
 } from './metro-retailer-surfaces.mjs';
 import { isMetroRetailerInventory } from '../metro-retailer-policy.mjs';
+import { collectBuffaloCityHiveRows, selectMetroSourcesForRefresh } from './buffalo-cityhive-discovery.mjs';
 import { isSouthCarolinaAllAmericanInventory, isSouthCarolinaDiscountLiquorInventory, isSouthCarolinaLiquorLibraryInventory } from '../south-carolina-retailer-policy.mjs';
 import {
   buildIndianaTargetStoreLocationSignals,
@@ -2387,7 +2388,10 @@ function cityHiveUnsafeBottleMatchReason(rawName, record) {
   if (/\breserve\b/.test(raw) && !/\breserve\b/.test(canonical)) return 'reserve_matched_non_reserve';
   const rawSpecificPhrases = ['single barrel', 'full proof', 'barrel proof', 'cask strength', 'limited edition', 'small batch select', 'private selection', 'store pick'];
   for (const phrase of rawSpecificPhrases) {
-    if (raw.includes(phrase) && !canonical.includes(phrase) && !(phrase === 'cask strength' && canonical.includes('barrel proof'))) return `specific_raw_modifier_matched_generic:${phrase}`;
+    const reviewedHenryMcKennaSingleBarrel = phrase === 'single barrel'
+      && raw === 'henry mckenna single barrel 10 year old bourbon whiskey'
+      && canonical === 'henry mckenna 10 year';
+    if (raw.includes(phrase) && !canonical.includes(phrase) && !reviewedHenryMcKennaSingleBarrel && !(phrase === 'cask strength' && canonical.includes('barrel proof'))) return `specific_raw_modifier_matched_generic:${phrase}`;
   }
   const requiredPhrases = [
     'limited edition', 'batch proof', 'barrel proof', 'single barrel', 'small batch select',
@@ -8632,8 +8636,16 @@ async function fetchMetroShopifyProducts(source, signal) {
   return products;
 }
 
-async function fetchMetroRetailerRows(source, signal) {
+export async function fetchMetroRetailerRows(source, signal) {
   if (source.platform === 'cityhive') {
+    if (source.depthDiscovery) {
+      return collectBuffaloCityHiveRows(source, {
+        fetchText: textFetch,
+        parseHtml: parseMetroCityHiveHtml,
+        signal,
+        sleepFn: sleepWithSignal,
+      });
+    }
     const rows = [];
     const seen = new Set();
     for (const store of source.stores) {
@@ -8681,6 +8693,7 @@ async function fetchMetroRetailerRows(source, signal) {
 
 async function collectMetroRetailerSource(config, bible, source, observedAt, signal) {
   const fetched = await fetchMetroRetailerRows(source, signal);
+  const discoveryMetadata = fetched.metadata || null;
   const signals = [];
   for (const row of fetched.rows) {
     const store = source.stores.find((candidate) => candidate.merchantId === row.merchantId);
@@ -8752,12 +8765,33 @@ async function collectMetroRetailerSource(config, bible, source, observedAt, sig
         product: { id: row.productId, handle: row.handle || null },
         variant: { id: row.variantId, sku: row.sku || null, size: row.variantTitle || null, available: true },
         productIdentityMode: row.productIdentityMode || null,
+        discoveryRoute: row.discoveryRoute || null,
         matchGuard: unsafeReason,
+        discovery: discoveryMetadata ? {
+          mode: discoveryMetadata.discoveryMode,
+          requestCount: discoveryMetadata.requestCount,
+          elapsedMs: discoveryMetadata.elapsedMs,
+          candidateRows: discoveryMetadata.candidateRows,
+          uniqueRows: discoveryMetadata.uniqueRows,
+          completeSnapshot: discoveryMetadata.completeSnapshot,
+          stoppedReason: discoveryMetadata.stoppedReason,
+        } : null,
       },
     };
     if (isMetroRetailerInventory(metroSignal)) signals.push(metroSignal);
   }
   const roadblocks = [];
+  if (discoveryMetadata?.optionalFailures?.length) {
+    roadblocks.push({
+      state: config.id,
+      source: source.sourceLabel,
+      sourceRuntimeId: `metro:${source.stateCode.toLowerCase()}:${source.id}`,
+      url: source.productsUrl,
+      status: 'partial_optional_discovery_failure',
+      error: `${discoveryMetadata.optionalFailures.length} optional Buffalo CityHive category or family-search pages failed; ${signals.length} valid baseline signals remain usable, and this run is not treated as a complete replacement snapshot.`,
+      nextRoute: 'Retry the bounded optional discovery pages later while preserving baseline evidence and still-fresh prior source rows.',
+    });
+  }
   if (!signals.length) {
     roadblocks.push({
       state: config.id,
@@ -8769,7 +8803,7 @@ async function collectMetroRetailerSource(config, bible, source, observedAt, sig
       nextRoute: 'Inspect the current first-party source shape without weakening merchant, premises, format, pickup, or product identity requirements.',
     });
   }
-  return { signals, roadblocks };
+  return { signals, roadblocks, metadata: { discovery: discoveryMetadata, completeSnapshot: discoveryMetadata?.completeSnapshot !== false } };
 }
 
 function previousMetroSourceResults(cache, sources) {
@@ -8815,7 +8849,10 @@ async function collectMetroRetailers(config, bible, options = {}) {
   const eligibleSourceIds = new Set(sources.map((source) => source.id));
   const eligibleCachedSignals = cachedMetroRetailerSignals(cache).filter((cachedSignal) => eligibleSourceIds.has(cachedSignal.sourceChain));
   const forceLive = process.env[`BOURBON_SIGNAL_${config.id}_FORCE_METRO_LIVE`] === '1';
-  if (cache && !forceLive) {
+  const refreshSources = cache
+    ? selectMetroSourcesForRefresh(sources, eligibleCachedSignals, { forceLive })
+    : sources;
+  if (cache && !refreshSources.length) {
     return {
       signals: eligibleCachedSignals,
       roadblocks: [
@@ -8838,7 +8875,7 @@ async function collectMetroRetailers(config, bible, options = {}) {
     };
   }
 
-  const adapters = sources.map((source) => createSourceAdapter({
+  const adapters = refreshSources.map((source) => createSourceAdapter({
     id: `metro:${source.stateCode.toLowerCase()}:${source.id}`,
     label: source.sourceLabel,
     url: source.productsUrl,
@@ -8851,10 +8888,10 @@ async function collectMetroRetailers(config, bible, options = {}) {
   }));
   const isolated = await runSourceAdapters(adapters, {}, {
     ...options.sourceRunnerOptions,
-    previousResults: previousMetroSourceResults(cache, sources),
+    previousResults: previousMetroSourceResults(cache, refreshSources),
     circuitBreaker: options.sourceCircuitBreaker,
     schedule: false,
-    concurrency: Math.min(3, sources.length),
+    concurrency: Math.min(3, refreshSources.length),
     perDomain: 1,
     timeoutMs: Number(process.env.BOURBON_SIGNAL_METRO_SOURCE_TIMEOUT_MS || 75_000),
     maxAttempts: Number(process.env.BOURBON_SIGNAL_METRO_SOURCE_ATTEMPTS || 2),
@@ -8864,10 +8901,12 @@ async function collectMetroRetailers(config, bible, options = {}) {
   const liveSignals = [];
   const roadblocks = [];
   const completedSourceIds = new Set();
+  const successfulSourceIds = new Set();
   for (const [index, result] of isolated.results.entries()) {
-    const source = sources[index];
+    const source = refreshSources[index];
     if (result.ok) {
-      completedSourceIds.add(source.id);
+      successfulSourceIds.add(source.id);
+      if (result.value?.metadata?.completeSnapshot !== false) completedSourceIds.add(source.id);
       liveSignals.push(...(result.value?.signals || []));
       roadblocks.push(...(result.value?.roadblocks || []));
       continue;
@@ -8885,8 +8924,9 @@ async function collectMetroRetailers(config, bible, options = {}) {
 
   const cachedSignals = eligibleCachedSignals;
   const signals = mergeMetroSourceCacheSignals(liveSignals, cachedSignals, completedSourceIds);
+  const refreshedSourceChains = new Set(refreshSources.map((source) => source.id));
   const retainedSourceChains = new Set(signals
-    .filter((signal) => !completedSourceIds.has(signal.sourceChain))
+    .filter((signal) => refreshedSourceChains.has(signal.sourceChain) && !completedSourceIds.has(signal.sourceChain))
     .map((signal) => signal.sourceChain));
   if (retainedSourceChains.size) {
     roadblocks.push({
@@ -8898,7 +8938,7 @@ async function collectMetroRetailers(config, bible, options = {}) {
       nextRoute: 'Retry only the failed retailer sources on the next bounded cadence and let their cache rows expire normally if no fresh proof returns.',
     });
   }
-  if (completedSourceIds.size) await writeMetroRetailerCache(config.id, signals, roadblocks);
+  if (successfulSourceIds.size) await writeMetroRetailerCache(config.id, signals, roadblocks);
   if (!signals.length) {
     roadblocks.push({
       state: config.id,
@@ -8915,6 +8955,7 @@ async function collectMetroRetailers(config, bible, options = {}) {
     metadata: {
       lane: 'metro_retailer',
       cacheReused: false,
+      refreshedSourceIds: refreshSources.map((source) => source.id),
       completedSourceIds: [...completedSourceIds].sort(),
       sourceResults: isolated.results.map(summarizeSourceResult),
     },
