@@ -71,7 +71,12 @@ BEGIN
    INSERT INTO source_lane_subjects(source_id,subject_id,payload) VALUES(p_source,s->>'id',s)
    ON CONFLICT(source_id,subject_id) DO UPDATE SET payload=EXCLUDED.payload;
    UPDATE source_lane_opportunities SET closed=true WHERE source_id=p_source AND subject_id=s->>'id'
-    AND (s->>'state'='unavailable' OR episode_id IS DISTINCT FROM s->>'episodeId');
+    AND (s->>'state'='unavailable' OR episode_id IS DISTINCT FROM s->>'episodeId'
+      -- Current canonical policy may withdraw eligibility while stock remains
+      -- available. Close the opportunity, never fabricate a negative/new episode.
+      OR NOT EXISTS (SELECT 1 FROM jsonb_array_elements(p_opportunities) current_op
+        WHERE current_op->>'sourceSubjectId'=s->>'id'
+          AND current_op->>'availabilityEpisodeId'=s->>'episodeId'));
  END LOOP;
  FOR o IN SELECT * FROM jsonb_array_elements(p_opportunities) LOOP
    INSERT INTO source_lane_opportunities(episode_id,source_id,subject_id,revision,run_id,observed_at,expires_at,payload)

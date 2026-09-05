@@ -1,4 +1,5 @@
 import { createHash, randomUUID } from "node:crypto";
+import { render } from "@react-email/render";
 import { invokeSourceProvider } from "@/lib/source-lane";
 import { pollRuntimeSourceLanes, mergeRuntimeSourceCandidates, runtimeSourceCandidatesStillValid, traceRuntimeSourceCandidates, persistRuntimeSourceDemand } from "@/lib/source-lane-runtime";
 import { classifyCompanyMember } from "@/lib/company-control-room";
@@ -1706,7 +1707,8 @@ export async function deliverPreferenceAlerts(req: Request, options: {
                   to: [email],
                   replyTo: ALERT_REPLY_TO,
                   subject: `${ALERT_SAFE_SUBJECT_PREFIX.replace(/^./, (char) => char.toUpperCase())}: ${bottleName} at ${candidateSubjectLocationLabel(candidate)}`,
-                  react: PaidDropAlertEmail({
+                  // Resend otherwise awaits React rendering after our final veto.
+                  html: await render(PaidDropAlertEmail({
                     firstName: asString(user.firstName) || null,
                     bottleName,
                     storeLabel,
@@ -1718,7 +1720,7 @@ export async function deliverPreferenceAlerts(req: Request, options: {
                     sourceLabel: candidateSourceLabel(candidate),
                     sourceUrl: candidateSourceUrl(candidate),
                     dashboardUrl: `${appUrl}/dashboard`,
-                  }),
+                  })),
                   headers: {
                     "X-Entity-Ref-ID": `alert-${userId}-${dedupeKey}`.slice(0, 190),
                   },

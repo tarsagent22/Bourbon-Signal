@@ -7,6 +7,100 @@ const lane = laneImport.default || laneImport;
 import { transport } from './fixtures/source-lane-fixture.mts';
 import { buildSourceLaneUsefulness } from '../engine/src/optimization/source-usefulness-report.mjs';
 import { deliveryFixture } from './fixtures/source-delivery-fixture.mts';
+import { createRequire } from 'node:module';
+const require = createRequire(new URL('../package.json', import.meta.url));
+const { Resend } = require('resend');
+const React = require('react');
+
+for (const scenario of ['negative', 'expired', 'render-failure', 'accepted']) test('correction-2 R3 locked SDK render boundary: '+scenario, async t => {
+  const {repo,at,policy,poll} = await setup(t);
+  const locked = JSON.parse(await readFile(new URL('../package-lock.json', import.meta.url),'utf8'));
+  const installed=JSON.parse(await readFile(new URL('../node_modules/resend/package.json',import.meta.url),'utf8'));
+  assert.equal(installed.version,locked.packages['node_modules/resend'].version);
+  await poll(0,0); await poll(1,3);
+  const candidates = (await lane.readSourceLaneCandidates(repo,[],policy(1),true,at(1))).slice(0,1);
+  const f = deliveryFixture(candidates,lane,{},'email');
+  let n=1, requests=0, renderFinished=false, captured:any;
+  f.context.runtimeSourceCandidatesStillValid=async(cs:any[])=>{
+    const valid=await lane.sourceCandidatesStillValid(repo,cs,policy(n),true,at(n));
+    f.events.push('validate:'+valid);return valid;
+  };
+  f.context.traceRuntimeSourceCandidates=async(cs:any[],stage:string,ch:string)=>{
+    f.events.push('trace:'+stage);await repo.trace(cs,stage,ch,at(n));
+  };
+  async function Component() {
+    await Promise.resolve();
+    if(scenario==='render-failure') throw Error('synthetic asynchronous rendering failure');
+    if(scenario==='negative') {n=2;await poll(n,0);}
+    if(scenario==='expired') n=26;
+    renderFinished=true;f.events.push('render-finished');
+    return React.createElement('div',null,'synthetic email');
+  }
+  f.context.PaidDropAlertEmail=()=>React.createElement(Component);
+  const client=new Resend('re_synthetic_not_a_credential');
+  const send=client.emails.send.bind(client.emails);
+  client.emails.send=(payload:any,options:any)=>{captured={payload,options};return send(payload,options);};
+  f.context.getResendClient=()=>client;
+  t.mock.method(globalThis,'fetch',async(_url:any,options:any)=>{
+    requests++;f.events.push('transport');
+    assert.equal(renderFinished,true);
+    assert.equal(await lane.sourceCandidatesStillValid(repo,candidates,policy(n),true,at(n)),true,'no HTTP request after source revocation or expiry');
+    assert.match(JSON.parse(options.body).html,/synthetic email/);
+    return new Response(JSON.stringify({id:'synthetic-accepted'}),{status:200,headers:{'content-type':'application/json'}});
+  });
+  const result=await f.run({queueMode:'active'});
+  if(scenario==='accepted') {
+    assert.equal(result.errors.length,0);assert.equal(requests,1);assert.equal(result.emailsSent,1);
+    assert.equal('react' in captured.payload,false,'SDK must receive HTML only');
+    assert.match(captured.payload.html,/synthetic email/);
+    const {createHash}=await import('node:crypto');
+    assert.equal(captured.options.idempotencyKey,'alert-group-'+createHash('sha256').update('queue-0').digest('hex'));
+    assert.equal(f.events[f.events.indexOf('transport')-1],'validate:true');
+    assert.ok(f.events.indexOf('trace:provider_attempt')>f.events.indexOf('transport'));
+  } else {
+    assert.equal(requests,0,'preparation must complete before final source veto');
+    assert.equal(result.emailsSent,0);
+    assert.equal(result.errors.length,scenario==='render-failure'?1:0);
+    assert.equal((await repo.sql.query("SELECT * FROM source_lane_trace WHERE stage IN ('provider_attempt','provider_failed','provider_accepted')")).rows.length,0);
+    if(scenario!=='render-failure') assert.equal(result.skippedFinalEmailFreshness,1);
+  }
+});
+
+test('correction-2 R4 current canonical Standard demotion vetoes retained and already-queued opportunities without changing availability history', async t => {
+  const {repo,source,at,policy,poll,bible}=await setup(t);
+  await poll(0,0);await poll(1,3);
+  const opened=await lane.readSourceLaneCandidates(repo,[],policy(1),true,at(1));
+  assert.equal(opened.length,source.subjects.length);
+  const before=await repo.inspect();
+  const currentPolicy={...policy(2),snapshotId:'synthetic-standard-demotion'};
+  const f=deliveryFixture(opened.slice(0,1),lane,{},'email');
+  let demoted=false;
+  f.context.traceRuntimeSourceCandidates=async(cs:any[],stage:string,ch:string)=>{
+    await repo.trace(cs,stage,ch,at(1));
+    if(stage==='reserved' && !demoted) {
+      demoted=true;for(const record of bible.byId.values())record.tier='standard';
+      await poll(2,5,{policy:currentPolicy});
+    }
+  };
+  f.context.runtimeSourceCandidatesStillValid=(cs:any[])=>lane.sourceCandidatesStillValid(repo,cs,demoted?currentPolicy:policy(1),true,demoted?at(2):at(1));
+  const result=await f.run({queueMode:'active'});
+  assert.equal(demoted,true,'exercise demotion after queue reservation');
+  assert.equal(f.sends.length,0,'already-read allocated payload must not send');
+  assert.equal(result.errors.length,0);
+  assert.equal(await lane.sourceCandidatesStillValid(repo,opened,currentPolicy,true,at(2)),false);
+  assert.equal((await lane.readSourceLaneCandidates(repo,opened,currentPolicy,true,at(2))).length,0);
+  const after=await repo.inspect();assert.equal(after.heads[0].healthy,true);
+  assert.equal(after.opportunities.length,before.opportunities.length);
+  for(const s of after.subjects) {
+    const prior=before.subjects.find(p=>p.subject_id===s.subject_id)!.payload;
+    assert.equal(s.payload.state,'available');assert.equal(s.payload.observedAt,at(2));
+    for(const key of ['id','storeId','canonicalBottleId','episodeId','episodeAt','baseline','lastNegativeAt'])assert.deepEqual(s.payload[key],prior[key],key);
+  }
+  for(const o of after.opportunities) {
+    const prior=before.opportunities.find(p=>p.episode_id===o.episode_id)!;
+    for(const key of ['episode_id','observed_at','expires_at','accepted_at'])assert.deepEqual(o[key],prior[key],key);
+  }
+});
 
 async function setup(t: any) {
   const db = new PGlite(); t.after(() => db.close());
@@ -21,7 +115,7 @@ async function setup(t: any) {
     clock = Date.parse(at(n));
     assert.equal((await lane.pollSourceLane({repository:repo,source,policy:policy(n),bible,enabled:true,now:()=>at(n),fetcher:transport(source,quantity),...extra})).status,'accepted');
   };
-  return {db,repo,source,at,policy,poll};
+  return {db,repo,source,at,policy,poll,bible};
 }
 
 test('R1 reconfirmation preserves every episode clock, expiry and provider latency while updating quantity', async t => {

@@ -1,4 +1,5 @@
 import vm from 'node:vm';
+import { render } from '@react-email/render';
 import ts from 'typescript';
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
@@ -13,7 +14,7 @@ export function deliveryFixture(candidates: any[], lane: any, overrides: any = {
   const queue={recoverStaleClaims:async()=>0,acquireLease:async()=>true,releaseLease:async()=>{},registerSnapshot:async()=>{},readRecipientCursor:async()=>0,writeRecipientCursor:async()=>{},markBatchDelivered:async()=>{},markFailed:async()=>{},markBatchFailed:async()=>{}};
   const send=async(kind: string)=>{sends.push(kind);events.push('send:'+kind);return {data:{id:'synthetic-accepted'},sid:'synthetic-sid',status:'queued',accepted:1,rejected:0,tickets:[],invalidTokens:[]};};
   const context: any={
-    process:{env:{}},Date,Set,Map,Math,Number,String,createHash,
+    process:{env:{}},Date,Set,Map,Math,Number,String,createHash,render,
     pollRuntimeSourceLanes:async()=>{},mergeRuntimeSourceCandidates:async(c:any)=>c,persistRuntimeSourceDemand:async()=>{},
     traceRuntimeSourceCandidates:async(_c:any,stage:string,ch:string)=>{events.push('trace:'+stage+':'+ch);},runtimeSourceCandidatesStillValid:async()=>true,invokeSourceProvider:lane.invokeSourceProvider,
     classifyCompanyMember:()=>({isOwner:false,isRetailer:false}),
@@ -25,7 +26,7 @@ export function deliveryFixture(candidates: any[], lane: any, overrides: any = {
     MAX_DELIVERY_USERS:10,MAX_RECIPIENT_SCAN_USERS:100,MAX_ONSITE_ALERTS_PER_USER:2,CANDIDATE_POOL_PER_USER:25,MAX_RECENT_DELIVERIES_PER_USER:250,MAX_RECENT_ONSITE_ALERTS_PER_USER:100,MAX_EMAILS_PER_RUN:10,MAX_EMAILS_PER_USER:2,MAX_SMS_PER_RUN:10,MAX_SMS_PER_USER:2,
     alertQueueDatabaseConfigured:()=>true,createProductionAlertQueueRepository:()=>queue,
     reserveAlertDeliveryBatch:async(_repo:any,input:any)=>({claimed:input.children.map((c:any,i:number)=>({id:'queue-'+i,payload:c.payload,stableMatchKey:c.stableMatchKey}))}),
-    candidateWithUnderlyingChildren:(_c:any,children:any[])=>children[0] || null,
+    candidateWithUnderlyingChildren:(_c:any,children:any[])=>children[0] || null,candidateLocationGroupKey:()=> 'synthetic-store',
     randomUUID:()=> 'synthetic-worker',getResendClient:()=>({emails:{send:()=>send('email')}}),sendTwilioSms:()=>send('sms'),assertTwilioSmsConfigured:()=>{},DefinitiveSmsSendError:class extends Error{},
     clerkClient:async()=>({users:{getUser:async()=>structuredClone(user),updateUserMetadata:async(_id:any,patch:any)=>{if(patch.privateMetadata?.alertInbox)events.push('inbox');Object.assign(user.privateMetadata,structuredClone(patch.privateMetadata||{}));}}}),
     getUsersPage:async(_c:any,offset:number)=>({data:offset?[]:[structuredClone(user)],totalCount:1}),
