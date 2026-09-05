@@ -1,6 +1,4 @@
-import { readFileSync } from 'node:fs';
-
-const CONFIG = JSON.parse(readFileSync(new URL('../../src/config/demand-metro-areas.json', import.meta.url), 'utf8'));
+import CONFIG from '../../src/config/demand-metro-areas.json' with { type: 'json' };
 
 export const DEMAND_METRO_AREAS = Object.freeze(Object.fromEntries(
   Object.entries(CONFIG).map(([state, definition]) => [state, Object.freeze({

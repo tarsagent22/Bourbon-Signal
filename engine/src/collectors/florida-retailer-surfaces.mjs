@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { readFileSync } from 'node:fs';
+import FLORIDA_STAR_LIQUORS_REGISTRY from '../../data/florida-star-liquors-store-registry.json' with { type: 'json' };
 
 import { stableId } from '../core/text.mjs';
 
@@ -11,7 +11,7 @@ function stores(rows) {
   }));
 }
 
-const FLORIDA_STAR_LIQUORS_REGISTRY = JSON.parse(readFileSync(new URL('../../data/florida-star-liquors-store-registry.json', import.meta.url), 'utf8'));
+
 export const FLORIDA_STAR_LIQUORS_REGISTRY_SHA256 = '88a77fc4eeccc115f8c8d7004a285db284b28723654dc5a371ccfcdf15ae76e8';
 
 const starRegistryRows = (FLORIDA_STAR_LIQUORS_REGISTRY.stores || []).map((row) => ({

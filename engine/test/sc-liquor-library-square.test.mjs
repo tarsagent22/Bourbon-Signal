@@ -98,6 +98,23 @@ function validCatalogProduct(overrides = {}) {
   };
 }
 
+test('scoped inspection distinguishes explicit identity-bound zero from unknown', () => {
+  assert.equal(typeof square.parseLiquorLibraryScopedObservation, 'function');
+  const product = validCatalogProduct();
+  const sku = validSkuPayload(square.parseLiquorLibraryCatalogPage(validCatalogPayload(), { expectedPage: 1 }).products[0]);
+  const subject = { productId: product.id, siteProductId: product.site_product_id, variationId: sku.data[0].id };
+  assert.equal(square.parseLiquorLibraryScopedObservation(product, sku, subject)?.state, 'available');
+  const zero = structuredClone(product);
+  Object.assign(zero.inventory, { total: 0, all_inventory_total: 0, lowest: 0, all_variations_sold_out: true });
+  zero.badges.out_of_stock = true;
+  const zeroSku = structuredClone(sku);
+  Object.assign(zeroSku.data[0], { inventory: 0, total_inventory: 0, sold_out: true });
+  assert.equal(square.parseLiquorLibraryScopedObservation(zero, zeroSku, subject)?.state, 'unavailable');
+  for (const [p, s, expected] of [[zero, sku, subject], [null, zeroSku, subject], [zero, zeroSku, { ...subject, variationId: 'FORGED' }], [{ ...zero, merchant_id: 'FORGED' }, zeroSku, subject]]) {
+    assert.equal(square.parseLiquorLibraryScopedObservation(p, s, expected), null);
+  }
+});
+
 function validCatalogPayload(products = [validCatalogProduct()]) {
   return {
     data: products,

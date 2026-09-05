@@ -81,7 +81,7 @@ function hasMiniatureLiquorLibraryFormat(rawName) {
     .some((match) => Number(match[1]) <= 375);
 }
 
-function parseLiquorLibraryCatalogProduct(product) {
+function parseLiquorLibraryCatalogProduct(product, negative = false) {
   const source = LIQUOR_LIBRARY_SOURCE;
   if (!product || typeof product !== 'object' || Array.isArray(product)) return null;
   const productId = exactString(product.id);
@@ -110,17 +110,17 @@ function parseLiquorLibraryCatalogProduct(product) {
     || !product.categoryIds.includes(source.categoryId)
     || !product.categoryIds.includes(source.categoryPageId)
     || !sourceUrl
-    || product.badges?.out_of_stock !== false
-    || inventory?.all_variations_sold_out !== false
+    || product.badges?.out_of_stock !== negative
+    || inventory?.all_variations_sold_out !== negative
     || inventory?.marked_sold_out_at_all_existing_locations !== false
     || inventory?.marked_sold_out_skus_count !== 0
     || inventory?.has_location_not_tracking !== false
     || !Number.isInteger(quantity)
-    || quantity <= 0
+    || (negative ? quantity !== 0 : quantity <= 0)
     || quantity > 10_000
     || allInventory !== quantity
     || !Number.isInteger(lowest)
-    || lowest <= 0
+    || (negative ? lowest !== 0 : lowest <= 0)
     || lowest > quantity
     || !Number.isFinite(priceLow)
     || priceLow <= 0
@@ -168,7 +168,7 @@ export function parseLiquorLibraryCatalogPage(payload, options = {}) {
     || pagination.total_pages < 1
     || pagination.total_pages > maxPages
     || expectedPage > pagination.total_pages) return null;
-  const accepted = products.map(parseLiquorLibraryCatalogProduct).filter(Boolean);
+  const accepted = products.map((product) => parseLiquorLibraryCatalogProduct(product)).filter(Boolean);
   return {
     products: accepted,
     rejectedCount: products.length - accepted.length,
@@ -178,7 +178,7 @@ export function parseLiquorLibraryCatalogPage(payload, options = {}) {
   };
 }
 
-export function parseLiquorLibrarySkuPayload(payload, product) {
+export function parseLiquorLibrarySkuPayload(payload, product, negative = false) {
   const pagination = payload?.meta?.pagination;
   if (!payload || typeof payload !== 'object' || Array.isArray(payload)
     || !payload.meta || typeof payload.meta !== 'object' || Array.isArray(payload.meta)
@@ -213,11 +213,11 @@ export function parseLiquorLibrarySkuPayload(payload, product) {
     || variation.fulfillment?.methods?.pickup !== true
     || variation.fulfillment?.methods_at_any_location?.pickup !== true
     || variation.inventory_tracking_enabled !== true
-    || variation.sold_out !== false
+    || variation.sold_out !== negative
     || variation.stockable !== true
     || variation.sellable !== true
     || !Number.isInteger(inventory)
-    || inventory <= 0
+    || (negative ? inventory !== 0 : inventory <= 0)
     || inventory > 10_000
     || totalInventory !== inventory
     || inventory !== product.quantity
@@ -231,6 +231,18 @@ export function parseLiquorLibrarySkuPayload(payload, product) {
     inventoryTrackingEnabled: true,
     pickupEnabled: true,
   };
+}
+
+// No omission semantics: a negative requires both catalog and exact-location SKU
+// explicit zero, with the same identity/pickup/tracking checks as a positive.
+export function parseLiquorLibraryScopedObservation(rawProduct, payload, subject) {
+  if (rawProduct?.id !== subject?.productId || rawProduct?.site_product_id !== subject?.siteProductId) return null;
+  const negative = rawProduct?.inventory?.total === 0;
+  const product = parseLiquorLibraryCatalogProduct(rawProduct, negative);
+  const verified = product && parseLiquorLibrarySkuPayload(payload, product, negative);
+  if (!verified || verified.variationId !== subject.variationId) return null;
+  if (typeof payload.data[0].inventory !== 'number' || typeof payload.data[0].total_inventory !== 'number') return null;
+  return { state: negative ? 'unavailable' : 'available', product: verified };
 }
 
 function preservesLiquorLibraryAgeExpressions(rawName, canonicalName) {

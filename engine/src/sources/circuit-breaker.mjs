@@ -63,4 +63,13 @@ export class SourceCircuitBreaker {
     if (sourceId != null) return structuredClone(this.#states.get(sourceId) || { state: 'closed', consecutiveFailures: 0 });
     return Object.fromEntries([...this.#states].map(([id, state]) => [id, structuredClone(state)]));
   }
+
+  withCheckpoint(sourceId, state) {
+    return new SourceCircuitBreaker({
+      failureThreshold: this.#failureThreshold,
+      cooldownMs: this.#cooldownMs,
+      now: this.#now,
+      initialState: { [sourceId]: structuredClone(state) },
+    });
+  }
 }

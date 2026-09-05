@@ -105,8 +105,8 @@ if (!scheduledRefresh.includes("$env:BOURBON_SIGNAL_AUTO_DEPLOY = '0'") || sched
 if (deliveryRoute.indexOf('assertAlertDeliveryAuthorized(req)') > deliveryRoute.indexOf('const startedAt')) {
   failures.push('Alert delivery authorization must happen before heartbeat-eligible execution starts.');
 }
-if (!deliveryRoute.includes('scheduledRun && !testEmail && baselineModeCount === 0')) {
-  failures.push('Only authenticated scheduler monitor executions may write the delivery heartbeat; test and baseline requests must remain excluded.');
+if (!deliveryRoute.includes('scheduledRun && !dryRun && queueMode !== "shadow" && !testEmail && baselineModeCount === 0')) {
+  failures.push('Only authenticated live scheduler executions may write the delivery heartbeat; dry-run, shadow, test and baseline requests must remain excluded.');
 }
 if (!deliveryRoute.includes('requestedDryRun || (monitorOnly && !testEmail && baselineModeCount === 0)')) {
   failures.push('Monitor-only scheduler executions must be forced to dry-run before delivery begins.');

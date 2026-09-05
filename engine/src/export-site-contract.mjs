@@ -8,8 +8,7 @@ import { pipeline } from 'node:stream/promises';
 import { createGunzip, createGzip } from 'node:zlib';
 import { fingerprintName, normalizeBottleName, stableId } from './core/text.mjs';
 import { precisionRank } from './location-precision.mjs';
-import { buildLocationBible } from './location-bible.mjs';
-import { CUSTOMER_ACTIVE_STATE_IDS } from './state-sources.mjs';
+import { CUSTOMER_ACTIVE_STATE_IDS } from './state-lifecycle.mjs';
 import { getStateLifecycle, lifecycleAllowsInventoryAlert, lifecycleAllowsWatchAlert } from './state-lifecycle.mjs';
 import { isCostcoSpiritsEligibleState } from './costco-eligibility.mjs';
 import { buildStateQualityInputs, buildStateQualityScorecard, compareStateQuality, mergePartialRefreshStateQuality, scopeStateQualityForRefresh } from './state-quality-scorecard.mjs';
@@ -1770,7 +1769,7 @@ export function buildAlerts(alerts) {
 }
 
 
-function applyAlertPolicyToCandidate(candidate) {
+export function applyAlertPolicyToCandidate(candidate) {
   const policy = alertChannelPolicy(candidate);
   const lifecycleEligible = lifecycleAllowsInventoryAlert(candidate.state) || lifecycleAllowsWatchAlert(candidate.state);
   return {
@@ -2283,6 +2282,7 @@ async function main() {
     .map(enforceArchivedSourceAlertPolicy);
   const bottles = buildBottles(signals, bible, biblePayload.records || []);
   const currentStores = buildStores(signals);
+  const { buildLocationBible } = await import('./location-bible.mjs');
   const currentLocations = buildLocationBible(signals, activeOfficialLocations);
   const previousDrops = await readJson(path.join(PREVIOUS_SITE_OUT, 'drops.json'), []);
   const previousAlertCandidates = await readJson(path.join(PREVIOUS_SITE_OUT, 'alerts.json'), []);

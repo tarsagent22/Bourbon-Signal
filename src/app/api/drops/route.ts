@@ -1,4 +1,5 @@
 import { getServerEntitlements } from "@/lib/server-entitlements";
+import { readRuntimeSourceDropOverlay } from "@/lib/source-lane-runtime";
 import { NextResponse } from "next/server";
 import { auth, clerkClient } from "@clerk/nextjs/server";
 import { normalizeDropForSite, readSiteExportResults, siteExportHeaders } from "@/lib/site-engine-contract";
@@ -233,7 +234,8 @@ export async function GET(request: Request) {
     ]);
     const exportPayload = dropResult.payload;
     const statsPayload = statsResult.payload;
-    const rawDrops = Array.isArray(exportPayload?.drops) ? exportPayload.drops : [];
+    const sourceOverlay = await readRuntimeSourceDropOverlay(Array.isArray(exportPayload?.drops) ? exportPayload.drops : [], dropResult.snapshotId);
+    const rawDrops = sourceOverlay.drops;
     const retailerDrops = retailerSubmissions
       .map((submission) => retailerSubmissionToFeedCard(submission, new Date()))
       .filter((drop): drop is NonNullable<typeof drop> => Boolean(drop));
@@ -410,7 +412,7 @@ export async function GET(request: Request) {
       : drops.sort(compareDropFeedNewestFirst);
 
     const total = drops.length;
-    const engineSnapshot = String(dropResult.snapshotId || exportPayload?.generatedAt || engineRunTimestamp(statsPayload, exportPayload?.generatedAt));
+    const engineSnapshot = `${String(dropResult.snapshotId || exportPayload?.generatedAt || engineRunTimestamp(statsPayload, exportPayload?.generatedAt))}:source:${sourceOverlay.version}`;
     const snapshot = `${engineSnapshot}:classification:${classificationIndex.version}:retailer:${retailerFeedSnapshot(retailerSubmissions)}:history:${historicalMode ? 1 : 0}:signalOrder:${canonicalSignalOrder ? 1 : 0}`;
     const page = paginateDrops(drops, { limit, offset, cursor: requestedCursor, snapshot });
     const pagedDrops = page.items;

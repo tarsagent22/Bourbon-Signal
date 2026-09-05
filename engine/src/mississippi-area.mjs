@@ -1,9 +1,6 @@
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
+import program from '../../src/config/mississippi-program.json' with { type: 'json' };
 
-const PROGRAM_PATH = fileURLToPath(new URL('../../src/config/mississippi-program.json', import.meta.url));
-
-export const MISSISSIPPI_PROGRAM = Object.freeze(JSON.parse(readFileSync(PROGRAM_PATH, 'utf8')));
+export const MISSISSIPPI_PROGRAM = Object.freeze(program);
 export const MISSISSIPPI_REGION_IDS = Object.freeze(MISSISSIPPI_PROGRAM.regions.map((region) => region.id));
 
 export function normalizeMississippiPlace(value) {

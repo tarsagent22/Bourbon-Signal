@@ -1,4 +1,5 @@
 import type { NextConfig } from "next";
+import path from "node:path";
 
 const ONE_YEAR = 31_536_000;
 
@@ -33,6 +34,15 @@ const nextConfig: NextConfig = {
   // an unrelated parent package-lock.json, which otherwise triggers noisy local
   // build warnings and can make build output less reproducible.
   outputFileTracingRoot: process.cwd(),
+  webpack(config) {
+    // Only this evidence-pinned collector needs a build-time registry adapter.
+    // Historical source/policy bytes remain unchanged for the MS verifier.
+    config.module.rules.push({
+      test: /engine[\\/]src[\\/]collectors[\\/]mississippi-retailer-surfaces\.mjs$/,
+      use: [{ loader: path.resolve(process.cwd(), "scripts/build/ms-registry-boundary.cjs") }],
+    });
+    return config;
+  },
   outputFileTracingIncludes: {
     "/api/source/wvabca": ["./engine/data/certificates/wvabca-rapidssl-chain.pem"],
   },

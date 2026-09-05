@@ -2,6 +2,7 @@ import { runBoundedPool } from '../optimization/worker-pool.mjs';
 import { decideSourceSchedule } from '../optimization/source-scheduler.mjs';
 import { validateSourceValue } from './source-adapter.mjs';
 import { SourceCircuitBreaker } from './circuit-breaker.mjs';
+import { SourceCheckpointStore, checkpointPrevious, checkpointMetrics } from './source-checkpoint.mjs';
 import {
   CircuitOpenSourceError,
   CollapsedSourceError,
@@ -106,8 +107,32 @@ export async function runSourceAdapters(adapters, context = {}, options = {}) {
 
   const now = options.now || (() => new Date().toISOString());
   const sleep = options.sleep || ((ms) => new Promise((resolve) => setTimeout(resolve, ms)));
-  const prior = previousMap(options.previousResults);
+  const prior = new Map(previousMap(options.previousResults));
   const quarantined = quarantineSet(options.quarantinedSourceIds, options.env);
+  const checkpointErrors = [];
+  const checkpointDirectory = options.checkpointDirectory ?? (options.env || process.env).BOURBON_SIGNAL_SOURCE_CHECKPOINT_DIRECTORY;
+  let checkpoints = null;
+  const restoredCircuits = {};
+  if (checkpointDirectory) {
+    try { checkpoints = new SourceCheckpointStore(checkpointDirectory); }
+    catch { checkpointErrors.push({ code: 'checkpoint_directory_invalid' }); }
+  }
+  if (checkpoints) {
+    // Clone option maps: checkpoint recovery must not mutate caller-owned policy.
+    options = { ...options, sourceMetrics: { ...options.sourceMetrics } };
+    for (const adapter of list) {
+      try {
+        const saved = await checkpoints.read(adapter);
+        const previous = prior.get(adapter.id);
+        if (!saved || (previous && Date.parse(previous.checkedAt) >= Date.parse(saved.result.checkedAt))) continue;
+        prior.set(adapter.id, checkpointPrevious(saved, nowIso(now)));
+        const metrics = options.sourceMetrics[adapter.id] || {};
+        options.sourceMetrics[adapter.id] = Date.parse(metrics.lastProbeAt) > Date.parse(saved.result.checkedAt)
+          ? metrics : { ...metrics, ...checkpointMetrics(saved.result, saved.circuit) };
+        restoredCircuits[adapter.id] = saved.circuit;
+      } catch (error) { checkpointErrors.push({ sourceId: adapter.id, code: error.code }); }
+    }
+  }
   const circuitBreaker = options.circuitBreaker || new SourceCircuitBreaker(options.circuitBreakerOptions);
   const maxAttempts = Math.max(1, Math.floor(Number(options.maxAttempts ?? 2)));
   const timeoutMs = Math.max(1, Number(options.timeoutMs ?? 18_000));
@@ -123,8 +148,13 @@ export async function runSourceAdapters(adapters, context = {}, options = {}) {
     return attemptTimeoutMs * attempts + retryDelayMs * attempts + 1_000;
   }));
 
-  const poolResults = await runBoundedPool(tasks, async (task, { signal }) => {
+  const executeTask = async (task, { signal }) => {
     const { adapter, schedule } = task;
+    // A caller-owned breaker remains authoritative. A restored breaker is used
+    // only for this source when its durable attempt is newer than the caller's.
+    const sourceCircuit = restoredCircuits[adapter.id]
+      ? circuitBreaker.withCheckpoint(adapter.id, restoredCircuits[adapter.id])
+      : circuitBreaker;
     const previous = prior.get(adapter.id) || null;
     const sourceQuarantined = quarantined.has(adapter.id);
     if (schedule.decision === 'disabled') {
@@ -134,7 +164,11 @@ export async function runSourceAdapters(adapters, context = {}, options = {}) {
       return createSourceSkippedResult({ adapter, previous, status: 'not_due', now: nowIso(now), schedule, quarantined: sourceQuarantined });
     }
     if (schedule.decision === 'wait') schedule.decision = 'probe_now_missing_previous';
-    const circuit = circuitBreaker.canExecute(adapter.id);
+    let circuit = sourceCircuit.canExecute(adapter.id);
+    if (circuit.allowed && sourceCircuit !== circuitBreaker) {
+      circuit = circuitBreaker.canExecute(adapter.id);
+      if (!circuit.allowed) restoredCircuits[adapter.id] = circuitBreaker.snapshot(adapter.id);
+    }
     if (!circuit.allowed) {
       const error = new CircuitOpenSourceError(adapter.id, { details: circuit });
       return createSourceSkippedResult({ adapter, previous, status: 'circuit_open', now: nowIso(now), schedule, error, quarantined: sourceQuarantined });
@@ -161,7 +195,9 @@ export async function runSourceAdapters(adapters, context = {}, options = {}) {
           outcome: 'success',
           error: null,
         });
-        circuitBreaker.recordSuccess(adapter.id);
+        sourceCircuit.recordSuccess(adapter.id);
+        if (sourceCircuit !== circuitBreaker) circuitBreaker.recordSuccess(adapter.id);
+        restoredCircuits[adapter.id] = sourceCircuit.snapshot(adapter.id);
         return createSourceSuccessResult({
           adapter,
           value: candidate,
@@ -190,7 +226,9 @@ export async function runSourceAdapters(adapters, context = {}, options = {}) {
         await sleep(retryDelayMs * attemptCount);
       }
     }
-    circuitBreaker.recordFailure(adapter.id, lastError);
+    sourceCircuit.recordFailure(adapter.id, lastError);
+    if (sourceCircuit !== circuitBreaker) circuitBreaker.recordFailure(adapter.id, lastError);
+    restoredCircuits[adapter.id] = sourceCircuit.snapshot(adapter.id);
     return createSourceFailureResult({
       adapter,
       error: lastError,
@@ -202,6 +240,21 @@ export async function runSourceAdapters(adapters, context = {}, options = {}) {
       schedule,
       quarantined: sourceQuarantined,
     });
+  };
+  const poolResults = await runBoundedPool(tasks, async (task, worker) => {
+    const result = await executeTask(task, worker);
+    // Outside the collection retry loop: storage failure never reruns a fetch.
+    // Commit here rather than after Promise.all so healthy siblings are durable.
+    if (checkpoints && result.attemptCount > 0) {
+      try { await checkpoints.write(task.adapter, result, restoredCircuits[task.adapter.id] || circuitBreaker.snapshot(task.adapter.id)); }
+      catch (error) {
+        result.checkpointError = error.code;
+        if (!checkpointErrors.some(entry => entry.sourceId === task.adapter.id && entry.code === error.code)) {
+          checkpointErrors.push({ sourceId: task.adapter.id, code: error.code });
+        }
+      }
+    }
+    return result;
   }, {
     concurrency: Math.max(1, Math.floor(Number(options.concurrency ?? 4))),
     perDomain: Math.max(1, Math.floor(Number(options.perDomain ?? 1))),
@@ -225,5 +278,5 @@ export async function runSourceAdapters(adapters, context = {}, options = {}) {
       quarantined: quarantined.has(adapter.id),
     });
   });
-  return { results, circuitState: circuitBreaker.snapshot(), schedules };
+  return { results, circuitState: { ...circuitBreaker.snapshot(), ...restoredCircuits }, schedules, checkpointErrors };
 }
