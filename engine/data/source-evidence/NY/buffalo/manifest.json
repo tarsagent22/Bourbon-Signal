@@ -12,12 +12,12 @@
       "positiveStatus": 200,
       "positiveRenderedAt": "2026-09-05T12:43:50.906Z",
       "positiveFixture": "5star-bourbon-live.html",
-      "positiveSha256": "edd933413e288d9eda9f0806adcdd000ff797c40b41834819423af2556ca74fb",
+      "positiveSha256": "388591b31fdd9984dca7ae32bf528664d1e722ca125b0fe76f6d4b15ebbcf061",
       "negativeUrl": "https://5star-wines.com/shop/product/buffalo-trace-kentucky-straight-bourbon/56c26b0e75627570b02a0000?option-id=c04186ff63f7bc97d9117ac6f76495451cddd713bb8ae1da2a1cd7ddd7d62aee",
       "negativeStatus": 200,
       "negativeRenderedAt": "2026-09-05T12:43:53.997Z",
       "negativeFixture": "5star-buffalo-trace-375-oos.html",
-      "negativeSha256": "701061ad43ef5031ff3a2f5fa76cc8d7221de6b3e3cd49ee75cb66ea32b57fbf",
+      "negativeSha256": "deaec5a48dd9d8e7f7c17441c30093ddec2fa08b39a4629dece196f656b78bdf",
       "negativeControl": "The selected 375 mL Buffalo Trace option embeds quantity 0 and must not produce an inventory row.",
       "positiveRawSha256": "d443fe91dc9cb14c8e812c57c807969b9acd8d4ac0d5403c48ee57fcfff776e7",
       "negativeRawSha256": "9e1e4046da11cdab16be347bf2d46cfe3d8fb917388a1df1f45ad65991fbc7a2"
@@ -31,12 +31,12 @@
       "positiveStatus": 200,
       "positiveRenderedAt": "2026-09-05T12:43:52.599Z",
       "positiveFixture": "bailey-bourbon-live.html",
-      "positiveSha256": "6c5a74985ac6ad1aa64da256d69bf336d47819663cd630da864beff586ac707b",
+      "positiveSha256": "16421333c90f0620e48ae3a7c3eae3115fe05a923dd97185ec3b3b450c1a4a3b",
       "negativeUrl": "https://baileydiscountliquorandwine.com/shop/product/makers-mark-bourbon-whisky/5521cef46561310003bb0100?option-id=fccf96ce3e97384c6d705e6fb1df989f96488691047aab99497caf7cb89db912",
       "negativeStatus": 200,
       "negativeRenderedAt": "2026-09-05T12:43:54.390Z",
       "negativeFixture": "bailey-makers-mark-options.html",
-      "negativeSha256": "8eeaaf6b4b65d4d153d78bcfffeb46c8fa6163634886eb907169e9d98686385a",
+      "negativeSha256": "84db0b9f2c03393a3f2ee9ad0dee3996238ea32068802fcfd7fef1ac0654606b",
       "negativeControl": "The selected 50 mL Maker's Mark option embeds quantity 0 and is excluded by both positive-quantity and bottle-size guards; positive larger variants remain independently evaluated.",
       "positiveRawSha256": "80ec487b36e67a456d6d122db16eebe9336a16e496dfce334528966cc2e10ae4",
       "negativeRawSha256": "b1606eb3ca3a076183addf8b293c73db56225982d41be29ce5c9af2751e0366b"
@@ -58,5 +58,5 @@
       "reason": "DataDome blocks the ordinary client, so this source is not registered or used."
     }
   ],
-  "fixtureRedaction": "Public client key and analytics token values redacted; inventory/merchant/premises/product evidence unchanged. Raw capture hashes retained separately."
+  "fixtureRedaction": "Public client key and analytics token values redacted; inventory/merchant/premises/product evidence unchanged. Raw capture hashes retained separately. Trailing whitespace normalized for repository hygiene."
 }
