@@ -16,7 +16,7 @@ import {
 } from "../api/presentation";
 import { colors } from "../theme";
 
-export function SignalCard({ signal, onPress }: { signal: Signal; onPress: () => void }) {
+export function SignalCard({ signal, onPress, highlighted = false }: { signal: Signal; onPress: () => void; highlighted?: boolean }) {
   const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {
@@ -57,7 +57,7 @@ export function SignalCard({ signal, onPress }: { signal: Signal; onPress: () =>
       accessibilityLabel={signalAccessibilityLabel(signal, now)}
       accessibilityRole="button"
       onPress={onPress}
-      style={({ pressed }) => [styles.card, pressed && styles.pressed]}
+      style={({ pressed }) => [styles.card, highlighted && styles.highlighted, pressed && styles.pressed]}
     >
       <View style={styles.topline}>
         <View style={[styles.rarityBadge, { backgroundColor: appearance.keyline }]}>
@@ -106,6 +106,7 @@ const styles = StyleSheet.create({
     gap: 7,
   },
   pressed: { opacity: 0.8 },
+  highlighted: { marginHorizontal: -8, paddingHorizontal: 10, borderRadius: 12, backgroundColor: "#2B1E10", borderColor: colors.accentPressed, borderWidth: StyleSheet.hairlineWidth },
   topline: { minHeight: 22, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
   rarityBadge: { minHeight: 22, borderRadius: 7, alignItems: "center", justifyContent: "center", paddingHorizontal: 9 },
   rarityLabel: { fontSize: 9, lineHeight: 12, fontWeight: "900", letterSpacing: 1.05 },
