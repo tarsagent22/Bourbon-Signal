@@ -1,4 +1,5 @@
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
+import { useAuth } from "@clerk/expo";
 import { router } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { FlatList, Keyboard, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
@@ -8,6 +9,7 @@ import { SignalCard } from "../../../src/components/SignalCard";
 import { useMobileApi } from "../../../src/hooks/useMobileApi";
 import { useScreenRevalidation } from "../../../src/hooks/useScreenRevalidation";
 import { DEFAULT_SIGNAL_FILTERS, areaOptionsForState, areaSelectorLabel, filterSignalsByRarity, normalizedFilters, rarityOptionsForView, serverSignalFilters, shouldBackfillRarity, toggleRarity, type SignalFeedFilters } from "../../../src/signals/feed-filters";
+import { homeBrowsingStorageKey, loadHomeBrowsingPreferences, saveHomeBrowsingPreferences } from "../../../src/signals/home-browsing-preferences";
 import { colors } from "../../../src/theme";
 
 type FeedView = "market" | "community";
@@ -83,6 +85,8 @@ function FeedSkeleton() {
 
 export default function SignalFeedScreen() {
   const api = useMobileApi();
+  const { userId } = useAuth();
+  const browsingStorageKey = homeBrowsingStorageKey(userId);
   const [view, setView] = useState<FeedView>("market");
   const [signals, setSignals] = useState<Signal[]>([]);
   const [cursor, setCursor] = useState<string | null>(null);
@@ -102,6 +106,8 @@ export default function SignalFeedScreen() {
   const [remoteAreaOptions, setRemoteAreaOptions] = useState<Array<{ value: string; label: string }>>([]);
   const [areaOptionsLoading, setAreaOptionsLoading] = useState(false);
   const [areaOptionsError, setAreaOptionsError] = useState("");
+  const [loadedBrowsingStorageKey, setLoadedBrowsingStorageKey] = useState("");
+  const browsingLoaded = Boolean(browsingStorageKey) && loadedBrowsingStorageKey === browsingStorageKey;
   const filters = filtersByView[view];
   const requestFilters = useMemo(() => serverSignalFilters(filters), [filters]);
   const visibleSignals = useMemo(() => filterSignalsByRarity(signals, filters.rarities), [filters.rarities, signals]);
@@ -120,6 +126,7 @@ export default function SignalFeedScreen() {
   const requestInFlightRef = useRef<"refresh" | "page" | null>(null);
   const rarityBackfillRef = useRef({ key: "", attempts: 0 });
   const profileRequestSequence = useRef(0);
+  const browsingMutationSequence = useRef(0);
 
   const handleError = useCallback((caught: unknown) => {
     const apiError = caught instanceof MobileApiError ? caught : null;
@@ -180,6 +187,7 @@ export default function SignalFeedScreen() {
 
   const selectView = useCallback((next: FeedView) => {
     if (next === view) return;
+    browsingMutationSequence.current += 1;
     requestSequence.current += 1;
     requestInFlightRef.current = null;
     setView(next);
@@ -193,6 +201,7 @@ export default function SignalFeedScreen() {
   }, [view]);
 
   const applyFilters = useCallback((next: SignalFeedFilters) => {
+    browsingMutationSequence.current += 1;
     const normalized = normalizedFilters(next, areaDirectory);
     requestSequence.current += 1;
     requestInFlightRef.current = null;
@@ -206,14 +215,42 @@ export default function SignalFeedScreen() {
   }, [areaDirectory, view]);
 
   const applyRarityFilters = useCallback((next: SignalFeedFilters) => {
+    browsingMutationSequence.current += 1;
     setFiltersByView((current) => ({
       ...current,
       [view]: { ...current[view], rarities: [...next.rarities] },
     }));
   }, [view]);
 
-  useScreenRevalidation(() => { void loadProfile(true); void load(true); });
-  useEffect(() => { if (!loaded && !loading && !error) void load(true); }, [error, load, loaded, loading]);
+  useEffect(() => {
+    let current = true;
+    const mutationAtStart = browsingMutationSequence.current;
+    setLoadedBrowsingStorageKey("");
+    setView("market");
+    setFiltersByView({ market: { ...DEFAULT_SIGNAL_FILTERS }, community: { ...DEFAULT_SIGNAL_FILTERS } });
+    setBottleQueries({ market: "", community: "" });
+    void loadHomeBrowsingPreferences(browsingStorageKey).catch(() => null).then((saved) => {
+      if (!current) return;
+      if (saved && mutationAtStart === browsingMutationSequence.current) {
+        setView(saved.view);
+        setFiltersByView(saved.filtersByView);
+        setBottleQueries({ market: saved.filtersByView.market.bottle, community: saved.filtersByView.community.bottle });
+      }
+      setLoadedBrowsingStorageKey(browsingStorageKey);
+    });
+    return () => { current = false; };
+  }, [browsingStorageKey]);
+
+  useEffect(() => {
+    if (!browsingLoaded || loadedBrowsingStorageKey !== browsingStorageKey) return;
+    const timer = setTimeout(() => {
+      void saveHomeBrowsingPreferences(browsingStorageKey, { version: 1, view, filtersByView }).catch(() => undefined);
+    }, 150);
+    return () => clearTimeout(timer);
+  }, [browsingLoaded, browsingStorageKey, filtersByView, loadedBrowsingStorageKey, view]);
+
+  useScreenRevalidation(() => { void loadProfile(true); if (browsingLoaded) void load(true); });
+  useEffect(() => { if (browsingLoaded && !loaded && !loading && !error) void load(true); }, [browsingLoaded, error, load, loaded, loading]);
   useEffect(() => {
     if (rarityBackfillRef.current.key !== rarityBackfillKey) {
       rarityBackfillRef.current = { key: rarityBackfillKey, attempts: 0 };
@@ -252,7 +289,6 @@ export default function SignalFeedScreen() {
 
   const marketLocked = view === "market" && Boolean(access?.marketDetailsLocked);
   const paidAccessMismatch = Boolean(profile?.membership.paid && marketLocked);
-  const canUseFilters = view === "community" || access?.marketDetailsLocked === false;
 
   const header = (
     <View style={styles.header}>
@@ -273,18 +309,18 @@ export default function SignalFeedScreen() {
           style={({ pressed }) => [styles.segment, view === "community" && styles.segmentSelected, pressed && styles.segmentPressed]}
         >
           <MaterialCommunityIcons color={view === "community" ? colors.accent : colors.muted} name="account-group-outline" size={21} />
-          <Text style={[styles.segmentLabel, view === "community" && styles.segmentLabelSelected]}>Sightings</Text>
+          <Text style={[styles.segmentLabel, view === "community" && styles.segmentLabelSelected]}>Community</Text>
         </Pressable>
       </View>
 
-      {canUseFilters ? <>
+      <>
         <View accessibilityLabel="Signal geography filters" style={styles.geographyRow}>
           <OptionChooser
             label="State"
             icon="map-marker-outline"
             value={filters.state}
-            placeholder="State"
-            clearLabel="Any state"
+            placeholder="All states"
+            clearLabel="All states"
             options={stateOptions}
             onChange={(state) => applyFilters({ ...filters, state, area: "" })}
           />
@@ -299,6 +335,13 @@ export default function SignalFeedScreen() {
             onChange={(area) => applyFilters({ ...filters, area })}
           />
         </View>
+        {filters.state ? <View style={styles.locationSelection}>
+          <Text numberOfLines={1} style={styles.locationSelectionText}>{filters.area ? `${filters.state} · ${filters.area}` : `${filters.state} · All ${areaLabel === "City" ? "cities" : "boards"}`}</Text>
+          <Pressable accessibilityLabel="Clear Home location filters" accessibilityRole="button" onPress={() => applyFilters({ ...filters, state: "", area: "" })} style={styles.clearLocationButton}>
+            <MaterialCommunityIcons color={colors.accent} name="close" size={17} />
+            <Text style={styles.clearLocationText}>Clear</Text>
+          </Pressable>
+        </View> : null}
         {filters.state && filters.state !== "NC" && areaOptionsLoading ? <Text style={styles.areaOptionNote}>Loading cities…</Text> : null}
         {filters.state && areaOptionsError ? <Text accessibilityRole="alert" style={styles.areaOptionError}>{areaOptionsError}</Text> : null}
 
@@ -308,7 +351,7 @@ export default function SignalFeedScreen() {
             autoCapitalize="words"
             autoCorrect={false}
             blurOnSubmit
-            onChangeText={(bottle) => setBottleQueries((current) => ({ ...current, [view]: bottle }))}
+            onChangeText={(value) => { browsingMutationSequence.current += 1; setBottleQueries((current) => ({ ...current, [view]: value })); }}
             onSubmitEditing={() => Keyboard.dismiss()}
             placeholder="Search bottle name"
             placeholderTextColor={colors.muted}
@@ -343,7 +386,7 @@ export default function SignalFeedScreen() {
             );
           })}
         </ScrollView>
-      </> : null}
+      </>
 
       {profileError ? (
         <Pressable accessibilityRole="button" onPress={() => loadProfile(true)} style={styles.inlineError}>
@@ -368,7 +411,7 @@ export default function SignalFeedScreen() {
       showsVerticalScrollIndicator={false}
       keyExtractor={(item) => item.id}
       renderItem={({ item }) => <SignalCard signal={item} onPress={() => router.push({ pathname: "/(app)/signal/[id]", params: { id: item.id } })} />}
-      ItemSeparatorComponent={() => <View style={styles.gap} />}
+      ItemSeparatorComponent={() => <View style={styles.separator} />}
       refreshControl={<RefreshControl refreshing={loading && loaded} onRefresh={() => { void load(true); void loadProfile(true); }} tintColor={colors.accent} colors={[colors.accent]} />}
       onEndReached={() => { if (loaded && signals.length && !filters.rarities.length) void load(false); }}
       onEndReachedThreshold={0.5}
@@ -397,9 +440,9 @@ export default function SignalFeedScreen() {
 }
 
 const styles = StyleSheet.create({
-  list: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 64 },
-  gap: { height: 12 },
-  header: { gap: 11, marginBottom: 14 },
+  list: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 64 },
+  separator: { height: StyleSheet.hairlineWidth, backgroundColor: colors.border },
+  header: { gap: 8, marginBottom: 4 },
   segmentedControl: { flexDirection: "row", padding: 3, borderRadius: 14, backgroundColor: colors.surface, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth },
   segment: { flex: 1, minHeight: 44, borderRadius: 11, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 7 },
   segmentSelected: { backgroundColor: "#241A10" },
@@ -407,10 +450,14 @@ const styles = StyleSheet.create({
   segmentLabel: { color: colors.muted, fontSize: 13, fontWeight: "700" },
   segmentLabelSelected: { color: colors.text },
   geographyRow: { flexDirection: "row", alignItems: "flex-start", justifyContent: "center", gap: 8 },
+  locationSelection: { minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, paddingLeft: 4 },
+  locationSelectionText: { flex: 1, color: colors.muted, fontSize: 11, lineHeight: 15 },
+  clearLocationButton: { minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 3, paddingHorizontal: 6 },
+  clearLocationText: { color: colors.accent, fontSize: 11, fontWeight: "800" },
   filterChooser: { flex: 1, minWidth: 0 },
   filterChooserDisabled: { opacity: 0.48 },
   rarityRow: { flexGrow: 1, gap: 7, paddingRight: 8, justifyContent: "center" },
-  rarityChip: { minHeight: 36, justifyContent: "center", paddingHorizontal: 13, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface },
+  rarityChip: { minHeight: 44, justifyContent: "center", paddingHorizontal: 13, borderRadius: 22, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface },
   rarityChipSelected: { borderColor: colors.accentPressed, backgroundColor: "#2A1F13" },
   rarityChipText: { color: colors.muted, fontSize: 12, fontWeight: "700" },
   rarityChipTextSelected: { color: colors.text },

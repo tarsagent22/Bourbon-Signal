@@ -40,6 +40,13 @@ test("store and geography are separate and duplicate slash-city suffixes are rem
   assert.equal(presented.location, "New Star Fletcher · Waterloo, IA");
 });
 
+test("store titles omit a duplicated structured address without losing detail", () => {
+  const presented = presentSignal(signal({ location: { scope: "exact_store", state: "TX", store: { name: "WB Liquors #86, 5610 N Desert Blvd, B-4", address: "5610 N Desert Blvd, B-4", city: "El Paso", state: "TX" } } }));
+  assert.equal(presented.storeName, "WB Liquors #86");
+  assert.match(presented.address, /5610 N Desert Blvd, B-4/);
+  assert.equal(presentSignal(signal({ location: { scope: "exact_store", state: "TX", store: { name: "Liquors, 86", address: "5610 N Desert Blvd", state: "TX" } } })).storeName, "Liquors, 86");
+});
+
 test("Intel inventory counts use explicit bottle grammar", () => {
   assert.equal(presentSignal(signal({ availability: { status: "reported", quantityLabel: "1" } })).quantity, "1 bottle");
   assert.equal(presentSignal(signal({ availability: { status: "reported", quantityLabel: "2 bottles" } })).quantity, "2 bottles");

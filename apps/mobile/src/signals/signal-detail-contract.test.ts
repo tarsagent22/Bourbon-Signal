@@ -19,6 +19,8 @@ test("Signal detail is the unified Bottle Profile route", () => {
 
 test("Bottle Profile keeps existing Signal actions and does not invent Bourbon DNA", () => {
   assert.match(detail, /Watch in Radar/);
+  assert.match(detail, /const canWatch = Boolean\(signal\?\.actions\.includes\("watch_bottle"\)\);/);
+  assert.doesNotMatch(detail, /const canWatch = .*alertEligibility/);
   assert.match(detail, /Add to My Shelf/);
   assert.match(detail, /Open in Maps/);
   assert.match(detail, /Hunt Outcome/);
