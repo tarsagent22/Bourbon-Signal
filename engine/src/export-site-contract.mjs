@@ -13,6 +13,7 @@ import { CUSTOMER_ACTIVE_STATE_IDS } from './state-sources.mjs';
 import { getStateLifecycle, lifecycleAllowsInventoryAlert, lifecycleAllowsWatchAlert } from './state-lifecycle.mjs';
 import { isCostcoSpiritsEligibleState } from './costco-eligibility.mjs';
 import { buildStateQualityInputs, buildStateQualityScorecard, compareStateQuality, mergePartialRefreshStateQuality, scopeStateQualityForRefresh } from './state-quality-scorecard.mjs';
+import { loadComparableStateQualityBaseline } from './state-quality-baseline.mjs';
 import { buildStateDropPartitions, verifyStateDropPartitions } from './site-state-partitions.mjs';
 import { isArizonaRetailerInventory, isArizonaRetailerSignalIdentity } from './arizona-retailer-policy.mjs';
 import { isFloridaRetailerInventory, isFloridaRetailerSignalIdentity } from './florida-retailer-policy.mjs';
@@ -2295,7 +2296,7 @@ async function main() {
   const previousStores = await readJson(path.join(PREVIOUS_SITE_OUT, 'stores.json'), []);
   const previousEvents = await readJson(path.join(PREVIOUS_SITE_OUT, 'events.json'), []);
   const bootstrapDrops = await readJson(path.join(OUT, 'historical-bootstrap', 'drops.json'), []);
-  const previousStateQuality = await readJson(path.join(PREVIOUS_SITE_OUT, 'state-quality.json'), null);
+  const previousStateQuality = await loadComparableStateQualityBaseline(PREVIOUS_SITE_OUT);
   const previousStateHealth = await readJson(path.join(PREVIOUS_SITE_OUT, 'state-health.json'), null);
   const detectedFallbackStateIds = detectDropCollapseFallbacks(previousStateQuality, currentDrops, summary.attemptedStateIds || []);
   const tennesseeStateReport = detectedFallbackStateIds.includes('TN')
@@ -2458,9 +2459,8 @@ async function main() {
           !partialFallbackStateIds.includes(String(state.state).toUpperCase())),
       }
     : scopedStateQuality;
-  const stateQualityRegression = previousStateQuality?.schemaVersion === stateQuality.schemaVersion
-    ? compareStateQuality(previousStateQuality, comparableStateQuality)
-    : { ok: true, failures: [], warnings: ['State-quality baseline schema changed; recording a current-snapshot baseline.'] };
+  const stateQualityRegression = compareStateQuality(previousStateQuality, comparableStateQuality);
+  if (previousStateQuality?.baselineMigration) stateQuality.baselineMigration = previousStateQuality.baselineMigration;
   if (attemptedQualityStates) {
     stateQualityRegression.warnings.push(`Partial refresh quality comparison limited to attempted states: ${[...attemptedQualityStates].sort().join(', ') || 'none'}.`);
   }

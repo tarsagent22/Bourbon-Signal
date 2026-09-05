@@ -1,0 +1,40 @@
+// Offline, production-derived diagnostic. Never invokes collection or delivery.
+import { readFile } from 'node:fs/promises';
+import path from 'node:path';
+import { BourbonBible } from '../src/core/bible.mjs';
+import { canonicalizeSignal } from '../src/operational-report.mjs';
+import { bibleLookup, buildDrops } from '../src/export-site-contract.mjs';
+import { buildStateQualityInputs, buildStateQualityScorecard, compareStateQuality } from '../src/state-quality-scorecard.mjs';
+import { verifyRunCoherence } from '../src/site-run-coherence.mjs';
+import { verifyStateDropPartitions } from '../src/site-state-partitions.mjs';
+import { validateLastPublishedPartitions } from '../src/scheduled-state-verification.mjs';
+const [root, bibleFile] = process.argv.slice(2);
+if (!root || !bibleFile) throw new Error('Supply report root and locally rebuilt bible');
+const read = async (file) => JSON.parse(await readFile(file, 'utf8'));
+const dir = path.join(root, 'accepted-site-baseline');
+const manifest = await read(path.join(dir, 'manifest.json'));
+const payloads = Object.fromEntries(await Promise.all(Object.entries(manifest.files).map(async ([key, file]) => [key, await read(path.join(dir, file))])));
+const partitions = { index: payloads.stateDrops, payloads: new Map(await Promise.all(payloads.stateDrops.states.map(async row => [row.state, await read(path.join(dir, row.file))]))) };
+const coherence = verifyRunCoherence({ ...payloads, ...Object.fromEntries(partitions.payloads) }, manifest);
+const partitionCheck = verifyStateDropPartitions(payloads.drops.drops, partitions);
+const validatedStates = await validateLastPublishedPartitions({ previousSiteDir: dir, stateIds: partitions.index.states.map(row => row.state) });
+const generatedAt = '2026-09-04T23:24:17.014Z';
+const biblePayload = await read(bibleFile);
+const bible = new BourbonBible(biblePayload.records);
+const output = [];
+for (const state of ['MD-MONTGOMERY', 'KY']) {
+  const report = await read(path.join(root, 'full-failed-fixture/states', `${state}.json`));
+  const signals = report.signals.map(signal => canonicalizeSignal(signal, bible));
+  const acceptedDrops = payloads.drops.drops.filter(row => row.state === state);
+  const coverage = payloads.stats.stateCoverage.states.find(row => row.state === state);
+  const score = (drops, coverageRow) => buildStateQualityScorecard(buildStateQualityInputs({ stateCoverage: { states: [coverageRow] }, drops, alerts: payloads.alerts.alerts }), { generatedAt }).states[0];
+  const currentCoverage = { ...coverage, roadblockCount: report.roadblocks.length, status: report.status, signalCount: signals.length };
+  const drops = buildDrops(signals, bibleLookup(biblePayload.records), signals, payloads.drops, signals);
+  const clocks = rows => rows.map(({id, bottleName, observedAt, firstSeenAt, lastConfirmedAt, eventAt, availabilityEpisodeId, availabilityEpisodeStartedAt}) => ({id, bottleName, observedAt, firstSeenAt, lastConfirmedAt, eventAt, availabilityEpisodeId, availabilityEpisodeStartedAt}));
+  const accepted = payloads.stateQuality.states.find(row => row.state === state);
+  const rederived = score(acceptedDrops, coverage);
+  const replay = score(drops, currentCoverage);
+  output.push({ state, accepted, rederived, replay, rawOnly: score(buildDrops(signals, bibleLookup(biblePayload.records), signals), currentCoverage), acceptedClocks: clocks(acceptedDrops), replayClocks: clocks(drops), comparison: compareStateQuality({ states: [accepted] }, { states: [replay] }), comparableComparison: compareStateQuality({ states: [rederived] }, { states: [replay] }) });
+}
+console.log(JSON.stringify({ provenance: { cache: 'inventory-published-site-Linux-33927556238', recoveryWorkflow: '33930263273', failedRun: '33928220252', manifest, bibleFile, caveat: 'Captured failed state reports + accepted episode anchors + locally rebuilt bible; not the unavailable complete failed operational snapshot/history/alerts.' }, generatedAt, coherence, partitionCheck, validatedStates, states: output }, null, 2));
+if (!coherence.ok || !partitionCheck.ok) process.exitCode = 1;

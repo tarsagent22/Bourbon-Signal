@@ -20,8 +20,9 @@ test('a labeled preserved fallback does not block fresh states from publishing',
   assert.match(result.warnings.join(' '), /preserved fallback/i);
 });
 
-test('state quality v2 uses a current-snapshot baseline', () => {
-  assert.equal(buildStateQualityScorecard([]).schemaVersion, 2);
+test('empty quality is schema 3; aggregate-only callers retain schema 2', () => {
+  assert.equal(buildStateQualityScorecard([]).schemaVersion, 3);
+  assert.equal(buildStateQualityScorecard([{ state: 'TX' }]).schemaVersion, 2);
 });
 
 test('scheduled refresh persists collector history, the actual scheduler state, and runs twice hourly', async () => {

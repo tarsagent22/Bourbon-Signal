@@ -6,6 +6,10 @@ import { tmpdir } from 'node:os';
 import path from 'node:path';
 
 import { verifyCustomerSurfaceClasses } from '../src/verify-customer-surface-classes.mjs';
+import { attachRunIdentity } from '../src/site-run-coherence.mjs';
+import { loadComparableStateQualityBaseline } from '../src/state-quality-baseline.mjs';
+import { buildStateDropPartitions } from '../src/site-state-partitions.mjs';
+import { buildStateQualityInputs, buildStateQualityScorecard } from '../src/state-quality-scorecard.mjs';
 
 test('checked-in site outputs preserve representative customer and alert-safety classes end to end', async () => {
   const [drops, events] = await Promise.all([
@@ -23,6 +27,29 @@ test('targeted refresh preserves untouched published event classes from its hydr
   const baseline = path.join(root, 'hydrated-baseline');
   try {
     await cp(new URL('../out/site/', import.meta.url), baseline, { recursive: true });
+    // July's checked-in customer-surface fixture predates state-health publication.
+    // Explicit disposable metadata scaffolding, not recovered production health.
+    // Keep its original run clocks and all published drop evidence unchanged.
+    const identity = await readFile(path.join(baseline, 'manifest.json'), 'utf8').then(JSON.parse);
+    await writeFile(path.join(baseline, 'state-health.json'), JSON.stringify(attachRunIdentity({ states: [], fixtureOnly: true }, identity)));
+    // The checked-in WV partition also belongs to a later fixture run. Rebuild
+    // disposable partitions losslessly from July's canonical drops and coverage,
+    // using only that publication's existing identity, never new evidence clocks.
+    const sourceDrops = await readFile(path.join(baseline, 'drops.json'), 'utf8').then(JSON.parse);
+    const stats = await readFile(path.join(baseline, 'stats.json'), 'utf8').then(JSON.parse);
+    const partitions = buildStateDropPartitions(sourceDrops.drops, { ...identity, activeStates: stats.stateCoverage.states.map(row => row.state) });
+    await writeFile(path.join(baseline, 'states/index.json'), JSON.stringify(attachRunIdentity(partitions.index, identity)));
+    for (const [state, payload] of partitions.payloads) {
+      await mkdir(path.join(baseline, 'states', state), { recursive: true });
+      await writeFile(path.join(baseline, 'states', state, 'drops.json'), JSON.stringify(attachRunIdentity(payload, identity)));
+    }
+    // July's scalar scorecard also claims MS drops absent from its public feed.
+    // This test isolates event continuity, not accepted-quality migration: build
+    // coherent fixture quality from its actual rows at the existing July clock.
+    const alerts = await readFile(path.join(baseline, 'alerts.json'), 'utf8').then(JSON.parse);
+    const quality = buildStateQualityScorecard(buildStateQualityInputs({ stateCoverage: stats.stateCoverage, drops: sourceDrops.drops, alerts: alerts.alerts }), { generatedAt: identity.generatedAt });
+    await writeFile(path.join(baseline, 'state-quality.json'), JSON.stringify(attachRunIdentity(quality, identity)));
+    assert.equal((await loadComparableStateQualityBaseline(baseline)).schemaVersion, 3);
     const baselineEvents = await readFile(path.join(baseline, 'events.json'), 'utf8').then(JSON.parse);
     const untouchedEvent = baselineEvents.events.find((event) => event.state !== 'NY' && event.category === 'barrel_pick');
     assert.ok(untouchedEvent, 'hydrated baseline must contain a truthful non-target event representative');
