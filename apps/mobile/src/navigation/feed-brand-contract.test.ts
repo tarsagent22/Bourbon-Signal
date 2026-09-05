@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import { resolve } from "node:path";
 import test from "node:test";
 
@@ -13,4 +13,13 @@ test("Home header uses the Bourbon Signal brand font and a real alert-inbox acti
   assert.match(tabs, /accessibilityLabel="Open alert inbox"/);
   assert.match(tabs, /name="bell-outline"/);
   assert.match(tabs, /router\.push\(\{ pathname: "\/\(app\)\/\(tabs\)\/radar", params: \{ section: "matches", request: Date\.now\(\)\.toString\(\) \} \}\)/);
+});
+
+test("Home header reuses a compact bundled shelf-photo crop without expanding the feed", () => {
+  const asset = resolve(process.cwd(), "assets/home-shelf-header.jpg");
+  assert.equal(existsSync(asset), true);
+  assert.ok(statSync(asset).size < 100_000, "mobile header crop should remain lightweight");
+  assert.match(tabs, /require\("\.\.\/\.\.\/\.\.\/assets\/home-shelf-header\.jpg"\)/);
+  assert.match(tabs, /headerBackground: HomeHeaderBackground/);
+  assert.doesNotMatch(tabs, /tagline|call.to.action|heroCta/i);
 });

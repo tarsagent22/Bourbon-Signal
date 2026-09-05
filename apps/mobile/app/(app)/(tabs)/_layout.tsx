@@ -1,7 +1,7 @@
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { Tabs, router } from "expo-router";
 import type { ColorValue } from "react-native";
-import { Pressable, StyleSheet, Text } from "react-native";
+import { ImageBackground, Pressable, StyleSheet, Text, View } from "react-native";
 import { colors } from "../../../src/theme";
 import { MEMBER_TABS } from "../../../src/navigation/member-tabs";
 
@@ -33,6 +33,21 @@ function AlertInboxButton() {
   );
 }
 
+function HomeHeaderBackground() {
+  return (
+    <ImageBackground
+      accessibilityIgnoresInvertColors
+      imageStyle={styles.homeHeaderImage}
+      resizeMode="cover"
+      source={require("../../../assets/home-shelf-header.jpg")}
+      style={StyleSheet.absoluteFill}
+    >
+      <View style={styles.homeHeaderAmber} />
+      <View style={styles.homeHeaderShade} />
+    </ImageBackground>
+  );
+}
+
 export default function TabsLayout() {
   return (
     <Tabs
@@ -51,7 +66,7 @@ export default function TabsLayout() {
         freezeOnBlur: true,
       }}
     >
-      <Tabs.Screen name="index" options={{ title: "Home", headerTitle: BrandTitle, headerTitleAlign: "left", headerRight: AlertInboxButton, tabBarIcon: icon("index") }} />
+      <Tabs.Screen name="index" options={{ title: "Home", headerTitle: BrandTitle, headerTitleAlign: "left", headerRight: AlertInboxButton, headerBackground: HomeHeaderBackground, tabBarIcon: icon("index") }} />
       <Tabs.Screen name="radar" options={{ title: "Radar", tabBarIcon: icon("radar") }} />
       <Tabs.Screen name="post" options={{ title: "Post", tabBarIcon: icon("post") }} />
       <Tabs.Screen name="cellar" options={{ title: "My Shelf", tabBarIcon: icon("cellar") }} />
@@ -64,4 +79,7 @@ const styles = StyleSheet.create({
   brandTitle: { color: colors.text, fontFamily: "Fraunces_700Bold", fontSize: 24, lineHeight: 30, letterSpacing: -0.35 },
   alertButton: { width: 44, height: 44, alignItems: "center", justifyContent: "center", marginRight: 4 },
   pressed: { opacity: 0.68 },
+  homeHeaderImage: { opacity: 0.9 },
+  homeHeaderAmber: { position: "absolute", inset: 0, backgroundColor: "rgba(70, 36, 10, 0.18)" },
+  homeHeaderShade: { position: "absolute", inset: 0, backgroundColor: "rgba(5, 4, 3, 0.28)" },
 });
