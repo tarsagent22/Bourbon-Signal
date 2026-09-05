@@ -108,7 +108,7 @@ const report = {
   generatedAt: new Date().toISOString(),
   proofKind: 'production-compatible unauthenticated first-party Buffalo CityHive comparison',
   syntheticDataUsed: false,
-  complete: storeResults.every((result) => result.status === 'success'),
+  complete: storeResults.every((result) => result.status === 'success' && result.completeSnapshot === true),
   stores: storeResults,
 };
 await mkdir(path.dirname(outputPath), { recursive: true });

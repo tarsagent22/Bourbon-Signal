@@ -8803,7 +8803,16 @@ async function collectMetroRetailerSource(config, bible, source, observedAt, sig
       nextRoute: 'Inspect the current first-party source shape without weakening merchant, premises, format, pickup, or product identity requirements.',
     });
   }
-  return { signals, roadblocks, metadata: { discovery: discoveryMetadata, completeSnapshot: discoveryMetadata?.completeSnapshot !== false } };
+  return {
+    signals,
+    roadblocks,
+    metadata: {
+      discovery: discoveryMetadata,
+      completeSnapshot: discoveryMetadata?.completeSnapshot !== false,
+      successfulDiscoveryRoutes: discoveryMetadata?.successfulDiscoveryRoutes || [],
+      unavailableVariantKeys: discoveryMetadata?.unavailableVariantKeys || [],
+    },
+  };
 }
 
 function previousMetroSourceResults(cache, sources) {
@@ -8850,7 +8859,7 @@ async function collectMetroRetailers(config, bible, options = {}) {
   const eligibleCachedSignals = cachedMetroRetailerSignals(cache).filter((cachedSignal) => eligibleSourceIds.has(cachedSignal.sourceChain));
   const forceLive = process.env[`BOURBON_SIGNAL_${config.id}_FORCE_METRO_LIVE`] === '1';
   const refreshSources = cache
-    ? selectMetroSourcesForRefresh(sources, eligibleCachedSignals, { forceLive })
+    ? selectMetroSourcesForRefresh(sources, eligibleCachedSignals, { forceLive, fallbackCadenceMs: METRO_RETAILER_CACHE_MAX_AGE_MS })
     : sources;
   if (cache && !refreshSources.length) {
     return {
@@ -8902,11 +8911,13 @@ async function collectMetroRetailers(config, bible, options = {}) {
   const roadblocks = [];
   const completedSourceIds = new Set();
   const successfulSourceIds = new Set();
+  const partialSourceMetadata = new Map();
   for (const [index, result] of isolated.results.entries()) {
     const source = refreshSources[index];
     if (result.ok) {
       successfulSourceIds.add(source.id);
       if (result.value?.metadata?.completeSnapshot !== false) completedSourceIds.add(source.id);
+      else partialSourceMetadata.set(source.id, result.value?.metadata);
       liveSignals.push(...(result.value?.signals || []));
       roadblocks.push(...(result.value?.roadblocks || []));
       continue;
@@ -8923,7 +8934,7 @@ async function collectMetroRetailers(config, bible, options = {}) {
   }
 
   const cachedSignals = eligibleCachedSignals;
-  const signals = mergeMetroSourceCacheSignals(liveSignals, cachedSignals, completedSourceIds);
+  const signals = mergeMetroSourceCacheSignals(liveSignals, cachedSignals, completedSourceIds, partialSourceMetadata);
   const refreshedSourceChains = new Set(refreshSources.map((source) => source.id));
   const retainedSourceChains = new Set(signals
     .filter((signal) => refreshedSourceChains.has(signal.sourceChain) && !completedSourceIds.has(signal.sourceChain))

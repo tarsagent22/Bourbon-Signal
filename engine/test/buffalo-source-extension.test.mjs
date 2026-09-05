@@ -47,11 +47,15 @@ test('only due Buffalo sources bypass the four-hour state cache on a bounded thi
     [buffalo[1].id],
   );
   assert.deepEqual(
+    selectMetroSourcesForRefresh([...buffalo, nyPeer], cached.filter((signal) => signal.sourceChain !== nyPeer.id), { nowMs }).map((source) => source.id),
+    [buffalo[1].id, nyPeer.id],
+  );
+  assert.deepEqual(
     selectMetroSourcesForRefresh([...buffalo, nyPeer], cached, { nowMs, forceLive: true }).map((source) => source.id),
     [...buffalo, nyPeer].map((source) => source.id),
   );
   const precisionSource = readFileSync(new URL('../src/collectors/precision-probes.mjs', import.meta.url), 'utf8');
-  assert.match(precisionSource, /selectMetroSourcesForRefresh\(sources, eligibleCachedSignals, \{ forceLive \}\)/u);
+  assert.match(precisionSource, /selectMetroSourcesForRefresh\(sources, eligibleCachedSignals, \{ forceLive, fallbackCadenceMs: METRO_RETAILER_CACHE_MAX_AGE_MS \}\)/u);
   assert.match(precisionSource, /const adapters = refreshSources\.map/u);
 });
 
@@ -71,6 +75,49 @@ test('an incomplete optional search refresh keeps prior extras at their original
     ['baseline', freshObservedAt],
     ['prior-search-extra', oldObservedAt],
   ]);
+});
+
+test('identity-bound sold-out observations override cache while unrelated optional failures retain old rows without re-aging', async () => {
+  const source = NEW_YORK_RETAILER_SOURCES.find((candidate) => candidate.id === 'bailey-discount-liquor-wine');
+  const store = source.stores[0];
+  const oldObservedAt = '2026-09-05T11:30:00.000Z';
+  const freshObservedAt = '2026-09-05T15:30:00.000Z';
+  const baseline = cityHivePage(source, [
+    { title: 'Eagle Rare 10 Year Kentucky Straight Bourbon', productId: 'live', variantId: '750' },
+    { title: 'Buffalo Trace Bourbon 750ml', productId: 'sold-out', variantId: '750', quantity: 0 },
+    { title: 'Weller Special Reserve 750ml', productId: 'forged-sold-out', variantId: '750', merchantId: 'other-merchant', quantity: 0 },
+  ]);
+  let requestCount = 0;
+  const result = await collectBuffaloCityHiveRows(source, {
+    fetchText: async (url) => (++requestCount === 1
+      ? { ok: true, status: 200, url, text: baseline }
+      : { ok: false, status: 503, url, text: '', error: 'optional unavailable' }),
+    parseHtml: parseMetroCityHiveHtml,
+    sleepFn: async () => {},
+    searchTerms: ['weller'],
+  });
+  const merged = mergeMetroSourceCacheSignals(
+    [{ id: 'live', sourceChain: source.id, merchantId: store.merchantId, productId: 'live', variantId: '750', observedAt: freshObservedAt }],
+    [
+      { id: 'sold-out', sourceChain: source.id, merchantId: store.merchantId, productId: 'sold-out', variantId: '750', observedAt: oldObservedAt, raw: { discoveryRoute: 'family_search:weller' } },
+      { id: 'missing-from-healthy-baseline', sourceChain: source.id, merchantId: store.merchantId, productId: 'missing', variantId: '750', observedAt: oldObservedAt, raw: { discoveryRoute: 'bourbon_category' } },
+      { id: 'unrelated-failed-search', sourceChain: source.id, merchantId: store.merchantId, productId: 'prior-weller', variantId: '750', observedAt: oldObservedAt, raw: { discoveryRoute: 'family_search:weller' } },
+    ],
+    new Set(),
+    new Map([[source.id, result.metadata]]),
+  );
+
+  assert.equal(result.metadata.completeSnapshot, false);
+  assert.deepEqual(result.metadata.unavailableVariantKeys, [`${store.merchantId}:sold-out:750`]);
+  assert.deepEqual(merged.map((signal) => [signal.id, signal.observedAt]), [
+    ['live', freshObservedAt],
+    ['unrelated-failed-search', oldObservedAt],
+  ]);
+});
+
+test('Buffalo proof is incomplete when any successful store result is only partial', () => {
+  const probeSource = readFileSync(new URL('../src/probe-buffalo-depth.mjs', import.meta.url), 'utf8');
+  assert.match(probeSource, /storeResults\.every\(\(result\) => result\.status === 'success' && result\.completeSnapshot === true\)/u);
 });
 
 test('reviewed exact Buffalo aliases recover rare bottles without weakening expression protections', () => {

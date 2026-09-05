@@ -679,6 +679,7 @@ export function parseMetroCityHiveHtml(html, candidateSource) {
   const configurations = merchantConfigurations(embeddedValues);
   const rows = [];
   const seen = new Set();
+  const unavailableVariantKeys = new Set();
   for (const payload of productPayloads(embeddedValues)) {
     for (const product of payload.products) {
       if (!product || typeof product !== 'object') continue;
@@ -692,7 +693,6 @@ export function parseMetroCityHiveHtml(html, candidateSource) {
           if (!exactPremises(entityAddress(merchant), configuredStore) || !exactPremises(entityAddress(option), configuredStore)) continue;
           if (!hasPickupOffer(merchant?.offer_types, merchant?.offerTypes, merchant?.fulfillment, option?.offer_types, option?.offerTypes, option?.fulfillment)) continue;
           const quantity = normalizeMetroCityHiveQuantity(option?.quantity);
-          if (quantity.reportedQuantity <= 0) continue;
           const title = normalizedText(option?.option_display_data?.name || option?.optionDisplayData?.name || product.name || product.title);
           const description = productDescription(product, option);
           const explicitSize = option?.option_display_data?.size?.quantity
@@ -710,6 +710,13 @@ export function parseMetroCityHiveHtml(html, candidateSource) {
           if (!productId || !variantId) continue;
           const productUrl = exactProductUrl(option?.product_url || option?.productUrl || option?.url, source, productId, variantId);
           if (!productUrl) continue;
+          const explicitQuantity = Number(option?.quantity);
+          if (quantity.reportedQuantity <= 0) {
+            if (option?.quantity !== null && option?.quantity !== undefined && Number.isFinite(explicitQuantity) && explicitQuantity === 0) {
+              unavailableVariantKeys.add(`${id}:${productId}:${variantId}`);
+            }
+            continue;
+          }
           const key = `${id}:${productId}:${variantId}:${productUrl}`;
           if (seen.has(key)) continue;
           seen.add(key);
@@ -734,7 +741,9 @@ export function parseMetroCityHiveHtml(html, candidateSource) {
       }
     }
   }
-  return rows.length > 0 ? rows : cityHiveItemListRows(source, html, configurations);
+  const result = rows.length > 0 ? rows : cityHiveItemListRows(source, html, configurations);
+  Object.defineProperty(result, 'unavailableVariantKeys', { value: [...unavailableVariantKeys].sort() });
+  return result;
 }
 
 export function verifyMetroShopifyFulfillmentPolicy(candidateSource, html) {
@@ -827,7 +836,7 @@ export function filterFreshMetroSignals(signals, nowMs = Date.now(), maxAgeMs) {
   });
 }
 
-export function mergeMetroSourceCacheSignals(liveSignals, cachedSignals, completedSourceIds = new Set()) {
+export function mergeMetroSourceCacheSignals(liveSignals, cachedSignals, completedSourceIds = new Set(), partialSourceMetadata = new Map()) {
   const merged = [];
   const seen = new Set();
   for (const signal of Array.isArray(liveSignals) ? liveSignals : []) {
@@ -836,7 +845,14 @@ export function mergeMetroSourceCacheSignals(liveSignals, cachedSignals, complet
     merged.push(signal);
   }
   for (const signal of Array.isArray(cachedSignals) ? cachedSignals : []) {
-    if (!signal?.id || seen.has(signal.id) || completedSourceIds.has(String(signal.sourceChain || ''))) continue;
+    const sourceId = String(signal?.sourceChain || '');
+    const metadata = partialSourceMetadata.get(sourceId);
+    const identityKey = `${signal?.merchantId || ''}:${signal?.productId || ''}:${signal?.variantId || ''}`;
+    const unavailable = new Set(metadata?.unavailableVariantKeys || []);
+    const successfulRoutes = new Set(metadata?.successfulDiscoveryRoutes || []);
+    const discoveryRoute = signal?.raw?.discoveryRoute;
+    if (!signal?.id || seen.has(signal.id) || completedSourceIds.has(sourceId)
+      || unavailable.has(identityKey) || discoveryRoute && successfulRoutes.has(discoveryRoute)) continue;
     seen.add(signal.id);
     merged.push(signal);
   }

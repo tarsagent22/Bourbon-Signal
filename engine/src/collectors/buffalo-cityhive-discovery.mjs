@@ -1,4 +1,5 @@
 const BUFFALO_SOURCE_IDS = new Set(['five-star-wine-spirits-buffalo', 'bailey-discount-liquor-wine']);
+const DEFAULT_METRO_REFRESH_CADENCE_MS = 4 * 60 * 60_000;
 
 export const BUFFALO_CITYHIVE_DISCOVERY_BUDGETS = Object.freeze({
   maxRequests: 10,
@@ -61,22 +62,26 @@ function discoveryPages(source, searchTerms) {
 
 function rowKey(row) { return `${row.merchantId}:${row.productId}:${row.variantId}`; }
 
+function discoveryRoute(page) { return page.term ? `${page.kind}:${page.term}` : page.kind; }
+
 function hasReviewedMerchantIdentity(html, source) {
   const merchantId = source.stores[0].merchantId;
   const escaped = merchantId.replace(/[.*+?^${}()|[\]\\]/gu, '\\$&');
   return typeof html === 'string' && new RegExp(`data-ch-merchant-id=["']${escaped}["']`, 'u').test(html);
 }
 
-export function selectMetroSourcesForRefresh(sources, cachedSignals, { nowMs = Date.now(), forceLive = false } = {}) {
+export function selectMetroSourcesForRefresh(sources, cachedSignals, { nowMs = Date.now(), forceLive = false, fallbackCadenceMs = DEFAULT_METRO_REFRESH_CADENCE_MS } = {}) {
   if (forceLive) return [...sources];
   return [...sources].filter((source) => {
-    const cadenceMs = Number(source.depthDiscovery?.refreshCadenceMs);
-    if (!Number.isFinite(cadenceMs) || cadenceMs <= 0) return false;
     const observed = (cachedSignals || [])
       .filter((signal) => signal?.sourceChain === source.id)
       .map((signal) => Date.parse(String(signal.observedAt || '')))
       .filter(Number.isFinite);
     if (!observed.length) return true;
+    const configuredCadenceMs = Number(source.depthDiscovery?.refreshCadenceMs);
+    const cadenceMs = Number.isFinite(configuredCadenceMs) && configuredCadenceMs > 0
+      ? configuredCadenceMs
+      : fallbackCadenceMs;
     const latest = Math.max(...observed);
     return latest > nowMs || nowMs - latest >= cadenceMs;
   });
@@ -98,6 +103,8 @@ export async function collectBuffaloCityHiveRows(source, {
   const rows = [];
   const seenRows = new Set();
   const categoryFingerprints = new Set();
+  const successfulDiscoveryRoutes = new Set();
+  const unavailableVariantKeys = new Set();
   const attempts = [];
   const optionalFailures = [];
   let requestCount = 0;
@@ -124,6 +131,9 @@ export async function collectBuffaloCityHiveRows(source, {
       if (!hasReviewedMerchantIdentity(response.text, source)) throw new Error('response did not preserve the reviewed CityHive merchant identity');
       const parsed = parseHtml(response.text, source);
       if (!Array.isArray(parsed)) throw new Error('parser returned a malformed response');
+      const route = discoveryRoute(page);
+      successfulDiscoveryRoutes.add(route);
+      for (const key of parsed.unavailableVariantKeys || []) unavailableVariantKeys.add(key);
       candidateRows += parsed.length;
       const fingerprint = [...new Set(parsed.map(rowKey))].sort().join('|');
       if (page.kind === 'bourbon_category_page' && (!parsed.length || categoryFingerprints.has(fingerprint))) {
@@ -138,7 +148,7 @@ export async function collectBuffaloCityHiveRows(source, {
         const key = rowKey(row);
         if (seenRows.has(key)) continue;
         seenRows.add(key);
-        rows.push({ ...row, discoveryRoute: page.term ? `${page.kind}:${page.term}` : page.kind });
+        rows.push({ ...row, discoveryRoute: route });
         newRows += 1;
         if (rows.length >= budgets.maxProducts) break;
       }
@@ -163,6 +173,8 @@ export async function collectBuffaloCityHiveRows(source, {
       discoveryMode: 'buffalo_bounded_cityhive_categories_and_public_search', requestCount,
       elapsedMs: Math.max(0, now() - startedAt), totalBytes, candidateRows, uniqueRows: rows.length,
       completeSnapshot, stoppedReason, optionalFailures, attempts, budgets,
+      successfulDiscoveryRoutes: [...successfulDiscoveryRoutes].sort(),
+      unavailableVariantKeys: [...unavailableVariantKeys].sort(),
     },
   };
 }
