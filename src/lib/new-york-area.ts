@@ -1,4 +1,4 @@
-export const SUPPORTED_NEW_YORK_AREAS = ["New York City", "Nassau County"] as const;
+export const SUPPORTED_NEW_YORK_AREAS = ["New York City", "Nassau County", "Buffalo"] as const;
 export type NewYorkArea = (typeof SUPPORTED_NEW_YORK_AREAS)[number];
 
 const CANONICAL_AREA_BY_TOKEN = new Map<string, NewYorkArea>([
@@ -7,6 +7,8 @@ const CANONICAL_AREA_BY_TOKEN = new Map<string, NewYorkArea>([
   ["nyc", "New York City"],
   ["nassau", "Nassau County"],
   ["nassau county", "Nassau County"],
+  ["buffalo", "Buffalo"],
+  ["buffalo ny", "Buffalo"],
 ]);
 
 const NEW_YORK_CITY_LOCALITIES = [
@@ -85,10 +87,22 @@ function fieldMatchesNassauCounty(field: string): boolean {
   });
 }
 
+function fieldMatchesBuffalo(field: string): boolean {
+  const token = normalize(field);
+  return token === "buffalo"
+    || token === "buffalo ny"
+    || token === "buffalo new york"
+    || /\bbuffalo (?:ny|new york)(?: \d{5}(?: \d{4})?)?(?: usa)?$/.test(token);
+}
+
 export function matchedNewYorkArea(fields: readonly unknown[], selectedAreas: readonly string[]): NewYorkArea | null {
   const areas = normalizeNewYorkAreas([...selectedAreas]);
   for (const area of areas) {
-    const matches = area === "New York City" ? fieldMatchesNewYorkCity : fieldMatchesNassauCounty;
+    const matches = area === "New York City"
+      ? fieldMatchesNewYorkCity
+      : area === "Nassau County"
+        ? fieldMatchesNassauCounty
+        : fieldMatchesBuffalo;
     if (fields.some((field) => typeof field === "string" && matches(field))) return area;
   }
   return null;

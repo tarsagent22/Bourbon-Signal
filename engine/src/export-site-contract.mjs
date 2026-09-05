@@ -2023,7 +2023,7 @@ export function buildCurrentInventoryAlertsFromDrops(drops) {
       reason: drop.state === 'CA'
         ? 'Current first-party binary retailer orderability plus separately verified pickup/collection policy eligible for San Diego member matching.'
         : metroBaseline
-          ? 'Current identity-bound New York City, Nassau County, or Denver Metro retailer availability eligible for conservative on-site matching; verify pickup before driving.'
+          ? 'Current identity-bound New York City, Nassau County, Buffalo, or Denver Metro retailer availability eligible for conservative on-site matching; verify pickup before driving.'
         : southCarolinaInStoreBaseline
           ? 'Current first-party binary in-store availability eligible for on-site matching; online orderability and exact quantity are not published.'
           : binaryRetailerOrderability

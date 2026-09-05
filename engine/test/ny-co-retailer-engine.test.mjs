@@ -35,11 +35,20 @@ const nyExtensionSources = NEW_YORK_RETAILER_SOURCES.filter((source) => [
 ].includes(source.id));
 const nyItemListSource = NEW_YORK_RETAILER_SOURCES.find((source) => source.id === 'turnup-nyc');
 const nyItemListSources = NEW_YORK_RETAILER_SOURCES.filter((source) => source.inventoryMode === 'itemlist_binary');
+const nyBuffaloSources = NEW_YORK_RETAILER_SOURCES.filter((source) => source.area === 'Buffalo');
 const coCityHive = COLORADO_RETAILER_SOURCES.find((source) => source.id === 'bonnie-brae-liquor');
 const coItemListSource = COLORADO_RETAILER_SOURCES.find((source) => source.id === 'off-broadway-wine-spirits');
 const coItemListSources = COLORADO_RETAILER_SOURCES.filter((source) => source.inventoryMode === 'itemlist_binary');
 const nyItemListFixture = readFileSync(new URL('./fixtures/metro/ny-itemlist-binary.html', import.meta.url), 'utf8');
 const coItemListFixture = readFileSync(new URL('./fixtures/metro/co-itemlist-binary.html', import.meta.url), 'utf8');
+const buffaloLiveFixtures = new Map([
+  ['five-star-wine-spirits-buffalo', readFileSync(new URL('../data/source-evidence/NY/buffalo/5star-bourbon-live.html', import.meta.url), 'utf8')],
+  ['bailey-discount-liquor-wine', readFileSync(new URL('../data/source-evidence/NY/buffalo/bailey-bourbon-live.html', import.meta.url), 'utf8')],
+]);
+const buffaloNegativeFixtures = new Map([
+  ['five-star-wine-spirits-buffalo', readFileSync(new URL('../data/source-evidence/NY/buffalo/5star-buffalo-trace-375-oos.html', import.meta.url), 'utf8')],
+  ['bailey-discount-liquor-wine', readFileSync(new URL('../data/source-evidence/NY/buffalo/bailey-makers-mark-options.html', import.meta.url), 'utf8')],
+]);
 
 function encodedPage(payload) {
   return `<script>window.__DATA__=JSON.parse(decodeURIComponent("${encodeURIComponent(JSON.stringify(payload))}"))</script>`;
@@ -111,7 +120,7 @@ function signalFor(source, row, overrides = {}) {
   };
 }
 
-test('NYC, Nassau, and Denver registries are bounded to exact first-party retailer identities', () => {
+test('NYC, Nassau, Buffalo, and Denver registries are bounded to exact first-party retailer identities', () => {
   assert.deepEqual(NEW_YORK_RETAILER_SOURCES.map((source) => source.id), [
     'cellar-53',
     'broadway-spirits',
@@ -131,6 +140,8 @@ test('NYC, Nassau, and Denver registries are bounded to exact first-party retail
     'bedford-wines',
     'michaeltowne-wines',
     'city-wines-ny',
+    'five-star-wine-spirits-buffalo',
+    'bailey-discount-liquor-wine',
   ]);
   assert.deepEqual(COLORADO_RETAILER_SOURCES.map((source) => source.id), [
     'bonnie-brae-liquor',
@@ -140,18 +151,54 @@ test('NYC, Nassau, and Denver registries are bounded to exact first-party retail
     'mayfair-liquors',
     'heritage-wine-liquor',
   ]);
-  assert.ok(NEW_YORK_RETAILER_SOURCES.every((source) => source.stateCode === 'NY' && ['New York City', 'Nassau County'].includes(source.area)));
+  assert.ok(NEW_YORK_RETAILER_SOURCES.every((source) => source.stateCode === 'NY' && ['New York City', 'Nassau County', 'Buffalo'].includes(source.area)));
   assert.equal(NEW_YORK_RETAILER_SOURCES.filter((source) => source.area === 'Nassau County').length, 4);
+  assert.equal(nyBuffaloSources.length, 2);
   assert.ok(NEW_YORK_RETAILER_SOURCES.filter((source) => source.platform === 'shopify').every((source) => source.inventoryMode === 'catalog_only' && source.inventoryEligible === false));
   assert.ok(COLORADO_RETAILER_SOURCES.every((source) => source.stateCode === 'CO' && source.area === 'Denver Metro'));
-  assert.equal(nyItemListSources.length, 8);
+  assert.equal(nyItemListSources.length, 10);
   assert.equal(coItemListSources.length, 3);
-  assert.equal(new Set(NEW_YORK_RETAILER_SOURCES.flatMap((source) => source.stores.map((store) => store.address))).size, 18);
+  assert.equal(new Set(NEW_YORK_RETAILER_SOURCES.flatMap((source) => source.stores.map((store) => store.address))).size, 20);
   assert.equal(new Set(COLORADO_RETAILER_SOURCES.flatMap((source) => source.stores.map((store) => store.address))).size, 7);
   for (const source of [...NEW_YORK_RETAILER_SOURCES, ...COLORADO_RETAILER_SOURCES]) {
     assert.match(source.baseUrl, /^https:\/\//);
     assert.equal(source.inventoryEligible, source.platform === 'cityhive');
     assert.ok(source.stores.every((store) => store.id && store.name && store.address && store.city && store.zip && store.merchantId));
+  }
+});
+
+test('Buffalo CityHive rows require reviewed merchants, exact premises, pickup, and positive inventory', () => {
+  assert.deepEqual(nyBuffaloSources.map((source) => source.id), ['five-star-wine-spirits-buffalo', 'bailey-discount-liquor-wine']);
+  for (const source of nyBuffaloSources) {
+    const store = source.stores[0];
+    const [row] = parseMetroCityHiveHtml(encodedPage(cityHivePayload(source, { quantity: 100 })), source);
+    assert.equal(row.merchantId, store.merchantId);
+    assert.equal(row.binaryAvailability, true);
+    assert.equal(row.quantityIsExact, false);
+    const signal = signalFor(source, row);
+    assert.equal(isMetroRetailerInventory(signal), true);
+    assert.equal(metroRetailerArea(signal), 'Buffalo');
+    assert.equal(parseMetroCityHiveHtml(encodedPage(cityHivePayload(source, { merchantId: 'forged' })), source).length, 0);
+    assert.equal(parseMetroCityHiveHtml(encodedPage(cityHivePayload(source, { address: '1 Forged Ave, Miami, FL 33101' })), source).length, 0);
+    assert.equal(parseMetroCityHiveHtml(encodedPage(cityHivePayload(source, { quantity: 0 })), source).length, 0);
+    assert.equal(isMetroRetailerInventory({ ...signal, storeAddress: '1 Forged Ave, Miami, FL 33101' }), false);
+  }
+});
+
+test('captured Buffalo first-party pages produce guarded positive rows and reject captured unavailable options', () => {
+  const expectedCounts = new Map([
+    ['five-star-wine-spirits-buffalo', 24],
+    ['bailey-discount-liquor-wine', 16],
+  ]);
+  for (const source of nyBuffaloSources) {
+    const rows = parseMetroCityHiveHtml(buffaloLiveFixtures.get(source.id), source);
+    assert.equal(rows.length, expectedCounts.get(source.id));
+    assert.ok(rows.every((row) => row.merchantId === source.stores[0].merchantId));
+    assert.ok(rows.every((row) => row.premisesVerified && row.pickupOfferVerified && row.sourceAvailabilityVerified));
+    assert.ok(rows.every((row) => row.quantityIsExact && row.quantity > 0 && row.reportedQuantity === row.quantity));
+    assert.equal(parseMetroCityHiveHtml(buffaloNegativeFixtures.get(source.id), source).length, 0);
+    const forged = { ...source, id: `${source.id}-forged` };
+    assert.equal(parseMetroCityHiveHtml(buffaloLiveFixtures.get(source.id), forged).length, 0);
   }
 });
 
@@ -320,7 +367,7 @@ test('canary verification rejects forged source URLs and stale inventory', () =>
 });
 
 test('New York and Colorado are runner-routed metro inventory states with conservative public scope', async () => {
-  for (const [state, areas] of [['NY', ['New York City', 'Nassau County']], ['CO', ['Denver Metro']]]) {
+  for (const [state, areas] of [['NY', ['New York City', 'Nassau County', 'Buffalo']], ['CO', ['Denver Metro']]]) {
     const lifecycle = getStateLifecycle(state);
     assert.ok(['shadow', 'active'].includes(lifecycle?.publicStatus));
     assert.equal(lifecycle.coverageTier, 'live_store_inventory');
