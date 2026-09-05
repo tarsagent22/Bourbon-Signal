@@ -1,3 +1,5 @@
+import { isDeepStrictEqual } from 'node:util';
+
 const LIVE_STORE_TIERS = new Set(['live_store_inventory']);
 const WATCH_TIERS = new Set([
   'store_delivery_leads',
@@ -17,6 +19,7 @@ function number(value) {
 // guards intact. Inventory confirmation has a two-hour TTL; watch events 72h.
 export const QUALITY_FUTURE_TOLERANCE_MS = 5 * 60_000;
 export const QUALITY_MIN_FRESH_RATIO = 0.75;
+export const STATE_QUALITY_SCHEMA_VERSION = 3;
 
 function freshnessHours(value, nowMs = Date.now()) {
   if (!value) return null;
@@ -105,6 +108,7 @@ export function scoreStateQuality(input, options = {}) {
     roadblockCount: number(input.roadblockCount),
     freshestObservedAt: input.freshestObservedAt || null,
     ...(Array.isArray(input.freshnessEvidence) ? { freshnessEvidence: input.freshnessEvidence } : {}),
+    ...(input.freshnessEvidenceOrigin ? { freshnessEvidenceOrigin: input.freshnessEvidenceOrigin } : {}),
     status: String(input.status || 'unknown'),
   };
   const liveStore = LIVE_STORE_TIERS.has(normalized.coverageTier);
@@ -195,14 +199,138 @@ export function buildStateQualityScorecard(inputs, { generatedAt = new Date().to
     .map((input) => scoreStateQuality(input, { nowMs: nowMs ?? new Date(generatedAt).getTime() }))
     .sort((a, b) => b.score - a.score || a.state.localeCompare(b.state));
   return {
-    schemaVersion: 2,
+    // Aggregate-only callers retain their legacy label; never claim row-level
+    // semantics merely because this process runs the new scorer.
+    schemaVersion: inputs.every((input) => Array.isArray(input.freshnessEvidence)) ? STATE_QUALITY_SCHEMA_VERSION : 2,
     generatedAt,
     summary: summarizeStateQuality(states),
     states,
   };
 }
 
+const object = value => value !== null && typeof value === 'object' && !Array.isArray(value);
+const text = value => typeof value === 'string' && value.length > 0;
+const nullableText = value => value === null || text(value);
+const finite = value => typeof value === 'number' && Number.isFinite(value);
+
+export function assertStateQualityBaseline(previous, { acceptedStates } = {}) {
+  if (!Array.isArray(previous?.states) || !previous.states.length || !Number.isFinite(Date.parse(previous.generatedAt))) {
+    throw new Error('State-quality baseline is missing states or its evaluation clock.');
+  }
+  const seen = new Set();
+  for (const row of previous.states) {
+    const fail = detail => { throw new Error(`${row?.state}: invalid state-quality baseline ${detail}.`); };
+    if (!object(row) || !/^[A-Z]+(?:-[A-Z]+)*$/.test(row.state) || seen.has(row.state)) fail('state identity or duplicate row');
+    seen.add(row.state);
+    if (!object(row.input) || row.input.state !== row.state || !text(row.coverageTier)
+      || row.input.coverageTier !== row.coverageTier || !text(row.input.status)) fail('input identity');
+    for (const field of ['score', 'threshold']) if (!finite(row[field])) fail(field);
+    if (typeof row.releaseEligible !== 'boolean' || !Array.isArray(row.weaknesses)
+      || row.weaknesses.some(value => !text(value))) fail('comparator fields');
+    if (!(row.freshnessHours === null || finite(row.freshnessHours))) fail('freshnessHours');
+    for (const field of ['signalCount', 'dropCount', 'storeLevelDropCount', 'alertCandidateCount', 'sourceCount', 'roadblockCount']) {
+      if (!finite(row.input[field]) || row.input[field] < 0) fail(`input ${field}`);
+    }
+    if (!nullableText(row.input.freshestObservedAt)) fail('input freshestObservedAt');
+    for (const field of ['freshness', 'volume', 'precision', 'alerts', 'sourceDiversity', 'reliability']) {
+      if (!finite(row.dimensions?.[field])) fail(`dimension ${field}`);
+    }
+    const hasEvidence = Object.hasOwn(row.input, 'freshnessEvidence');
+    if (previous.schemaVersion === STATE_QUALITY_SCHEMA_VERSION || hasEvidence) {
+      const evidence = row.input.freshnessEvidence;
+      if (!Array.isArray(evidence) || evidence.length < row.input.dropCount) fail('per-drop freshness evidence');
+      for (const item of evidence) {
+        // Invalid timestamp strings remain unknown evidence, never fresh clocks.
+        // Migration's explicit unknown placeholders contain just the two clocks.
+        if (!object(item) || !nullableText(item.confirmedAt) || !nullableText(item.eventAt)
+          || ['store', 'area'].some(key => Object.hasOwn(item, key) && !nullableText(item[key]))
+          || ['inventory', 'stale'].some(key => Object.hasOwn(item, key) && typeof item[key] !== 'boolean')) fail('freshness evidence structure');
+      }
+      if (row.freshness?.distributionKnown !== true) fail('freshness evidence distribution');
+      const freshness = row.freshness;
+      if (!['inventory_confirmation', 'source_event'].includes(freshness.basis) || typeof freshness.eligible !== 'boolean') fail('freshness evidence fields');
+      for (const field of ['maxAgeHours', 'minFreshRatio', 'rowCount', 'freshRowCount', 'freshRowRatio', 'futureRowCount', 'unknownRowCount']) {
+        if (!finite(freshness[field])) fail(`freshness evidence ${field}`);
+      }
+      for (const field of ['freshStoreRatio', 'freshAreaRatio', 'freshestAgeHours']) {
+        if (!(freshness[field] === null || finite(freshness[field]))) fail(`freshness evidence ${field}`);
+      }
+      for (const field of ['confirmationAgeHours', 'eventAgeHours']) for (const key of ['p50', 'p95', 'max']) {
+        const value = freshness[field]?.[key];
+        if (!(value === null || finite(value))) fail(`freshness evidence ${field}.${key}`);
+      }
+      if (freshness.rowCount !== evidence.length) fail('freshness evidence row count');
+    }
+    const expected = scoreStateQuality(row.input, { nowMs: Date.parse(previous.generatedAt) });
+    if (previous.schemaVersion === 2) {
+      // Validate legacy arithmetic without imposing new freshness semantics on
+      // its scalar dimension. Non-freshness scoring is unchanged by migration.
+      for (const field of ['volume', 'precision', 'alerts', 'sourceDiversity', 'reliability']) {
+        if (row.dimensions[field] !== expected.dimensions[field]) fail(`inconsistent dimension ${field}`);
+      }
+      if (row.threshold !== expected.threshold || row.score !== expected.score - expected.dimensions.freshness + row.dimensions.freshness) fail('inconsistent legacy score');
+    }
+    if (previous.schemaVersion === STATE_QUALITY_SCHEMA_VERSION) {
+      for (const field of ['score', 'threshold', 'releaseEligible', 'freshnessHours', 'dimensions', 'freshness', 'weaknesses']) {
+        if (!isDeepStrictEqual(row[field], expected[field])) fail(`inconsistent ${field}`);
+      }
+    }
+  }
+  if (acceptedStates && (seen.size !== acceptedStates.size || [...acceptedStates].some(state => !seen.has(state)))) {
+    throw new Error('State-quality baseline states do not match complete accepted coverage.');
+  }
+}
+
+function assertEvidenceBaseline(previous) {
+  assertStateQualityBaseline(previous);
+}
+
+// Only freshness semantics changed. Keep accepted volume, alert capability,
+// reliability and source diversity: the published feed can be capped or include
+// history, so rebuilding these dimensions would silently reset real guards.
+// Callers must supply the validated, accepted (never candidate) site drops.
+export function migrateStateQualityBaseline(previous, { drops } = {}) {
+  if (!previous || ![2, STATE_QUALITY_SCHEMA_VERSION].includes(previous.schemaVersion)) {
+    throw new Error('Unsupported or missing state-quality baseline schema version.');
+  }
+  assertStateQualityBaseline(previous);
+  if (previous.schemaVersion === STATE_QUALITY_SCHEMA_VERSION) {
+    assertEvidenceBaseline(previous);
+    return previous;
+  }
+  if (!Array.isArray(drops) || !Array.isArray(previous.states) || !Number.isFinite(Date.parse(previous.generatedAt))) {
+    throw new Error('State-quality migration requires accepted baseline drops, states and evaluation clock.');
+  }
+  const inputs = previous.states.map((row) => {
+    if (!row.input || row.input.state !== row.state) throw new Error(`${row.state}: missing accepted quality input.`);
+    if (Array.isArray(row.input.freshnessEvidence)) return row.input;
+    const stateDrops = drops.filter((drop) => String(drop.state || drop.state_code || '').toUpperCase() === row.state);
+    if (number(row.input.dropCount) > 0 && !stateDrops.length) throw new Error(`${row.state}: missing accepted baseline drop evidence.`);
+    const [derived] = buildStateQualityInputs({ stateCoverage: { states: [row.input] }, drops: stateDrops, alerts: [] });
+    // Missing original quality rows cannot acquire freshness from a capped feed.
+    // Count them as unknown; retain all available historical clocks, not only the
+    // freshest N. This is published evidence, not a reconstructed source snapshot.
+    const missingRows = Math.max(0, number(row.input.dropCount) - stateDrops.length);
+    const freshnessEvidence = [...derived.freshnessEvidence, ...Array.from({ length: missingRows }, () => ({ confirmedAt: null, eventAt: null }))];
+    return {
+      ...row.input,
+      freshestObservedAt: derived.freshestObservedAt,
+      freshnessEvidence,
+      freshnessEvidenceOrigin: { kind: 'accepted_public_drops', runId: previous.runId || null, generatedAt: previous.generatedAt, publishedRowCount: stateDrops.length, unknownRowCount: missingRows },
+    };
+  });
+  // Re-evaluate at the original clock for comparison; partial retention separately
+  // ages these same anchors at the new clock. Do not erase real subsequent aging.
+  const migrated = { ...previous, ...buildStateQualityScorecard(inputs, { generatedAt: previous.generatedAt }), baselineMigration: { fromSchemaVersion: 2, toSchemaVersion: STATE_QUALITY_SCHEMA_VERSION, sourceRunId: previous.runId || null } };
+  assertEvidenceBaseline(migrated);
+  return migrated;
+}
+
 export function mergePartialRefreshStateQuality(previous, current, summary = {}) {
+  if (current?.schemaVersion === STATE_QUALITY_SCHEMA_VERSION && previous) {
+    if (previous.schemaVersion !== STATE_QUALITY_SCHEMA_VERSION) throw new Error('State-quality baseline requires migration before partial retention.');
+    assertEvidenceBaseline(previous);
+  }
   const preserved = new Set((summary.fallbackStateIds || []).map((state) => String(state).toUpperCase()));
   if ((summary.partialRefresh !== true && !preserved.size) || previous?.schemaVersion !== current?.schemaVersion) return current;
   const attempted = new Set((summary.attemptedStateIds || []).map((state) => String(state).toUpperCase()));

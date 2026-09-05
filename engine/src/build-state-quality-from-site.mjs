@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { readFile, writeFile } from 'node:fs/promises';
 import path from 'node:path';
+import { loadComparableStateQualityBaseline } from './state-quality-baseline.mjs';
 import {
   buildStateQualityInputs,
   buildStateQualityScorecard,
@@ -18,7 +19,7 @@ async function main() {
   const drops = await readJson('drops.json');
   const alerts = await readJson('alerts.json');
   const manifest = await readJson('manifest.json');
-  const previous = await readJson('state-quality.json');
+  const previous = await loadComparableStateQualityBaseline(siteDir);
   if (!stats?.stateCoverage || !Array.isArray(drops?.drops) || !Array.isArray(alerts?.alerts) || !manifest?.files) {
     throw new Error('Site exports are incomplete; expected stats, drops, alerts, and manifest.');
   }
@@ -33,6 +34,9 @@ async function main() {
   if (!scorecard.regression.ok && process.env.BOURBON_SIGNAL_ALLOW_STATE_QUALITY_REGRESSION !== '1') {
     throw new Error(`State quality regression blocked scorecard update: ${scorecard.regression.failures.join(' ')}`);
   }
+  scorecard.runId = manifest.runId;
+  scorecard.engineGeneratedAt = manifest.engineGeneratedAt;
+  if (previous?.baselineMigration) scorecard.baselineMigration = previous.baselineMigration;
   stats.stateQuality = scorecard.summary;
   manifest.files.stateQuality = 'state-quality.json';
   await writeFile(path.join(siteDir, 'state-quality.json'), JSON.stringify(scorecard, null, 2));
