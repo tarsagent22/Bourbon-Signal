@@ -4,6 +4,48 @@ import path from 'node:path';
 import { stableId } from '../core/text.mjs';
 import { classifyRoadblock } from '../roadblock-health.mjs';
 
+// Private durable-lane extension of this report, not a second ROI score.
+export function buildSourceLaneUsefulness({ opportunities = [], traces = [], heads = [], batches = [], generatedAt = new Date().toISOString(), complete = true } = {}) {
+  const unique = [...new Map(opportunities.map(o => [o.episode_id, o])).values()];
+  const aggregate = (key) => {
+    const groups = new Map();
+    for (const o of unique) {
+      const id = key(o), g = groups.get(id) || { id, episodes: 0, stores: new Set(), freshEpisodes: 0 };
+      g.episodes++; if (o.payload?.storeId) g.stores.add(o.payload.storeId);
+      if (!o.closed && Date.parse(o.expires_at) > Date.parse(generatedAt)) g.freshEpisodes++;
+      groups.set(id, g);
+    }
+    return [...groups.values()].map(g => ({ ...g, stores: g.stores.size }));
+  };
+  const latency = (from, to) => {
+    const values = []; let missing = 0, clockSkew = 0;
+    for (const o of unique) {
+      const a = Date.parse(from(o) || ''), b = Date.parse(to(o) || '');
+      if (!Number.isFinite(a) || !Number.isFinite(b)) { missing++; continue; }
+      if (b < a) { clockSkew++; continue; } values.push(b-a);
+    }
+    values.sort((a,b) => a-b);
+    return { samples: values.length, missing, clockSkew, medianMs: values.length ? values[Math.floor(values.length/2)] : null };
+  };
+  const stage = (o, name) => traces.filter(t => t.episode_id === o.episode_id && t.stage === name).map(t => t.first_at).sort()[0];
+  return { contractVersion: SOURCE_USEFULNESS_CONTRACT_VERSION, generatedAt, windowComplete: complete, endToEndComplete: false,
+    telemetryCoverage: 'best_effort_episode_stages_not_recipient_outcomes',
+    providerFailureMeaning: 'call_failed_or_explicit_rejection_not_proof_of_non_delivery',
+    deviceReceipt: 'unavailable', sourceEventTime: 'unavailable',
+    sources: aggregate(o => o.source_id), areas: aggregate(o => o.payload?.sourceAreaId || o.payload?.state || 'unknown'),
+    health: heads.map(h => ({ sourceId: h.source_id, healthy: h.healthy, reason: h.last_reason, acceptedAt: h.accepted_at, nextDueAt: h.next_due_at })),
+    inspection: batches.map(b => ({ sourceId: b.source_id, revision: b.revision, accounting: b.accounting })),
+    latencies: {
+      observedToAccepted: latency(o => o.observed_at, o => o.accepted_at),
+      acceptedToConsidered: latency(o => o.accepted_at, o => stage(o, 'considered')),
+      consideredToReserved: latency(o => stage(o, 'considered'), o => stage(o, 'reserved')),
+      reservedToProviderAttempt: latency(o => stage(o, 'reserved'), o => stage(o, 'provider_attempt')),
+      observedToProviderAccepted: latency(o => o.observed_at, o => stage(o, 'provider_accepted')),
+    },
+    stages: [...new Set(traces.map(t => `${t.stage}:${t.channel}`))].map(key => ({ key, samples: traces.filter(t => `${t.stage}:${t.channel}` === key).reduce((n,t) => n + Number(t.samples),0) })),
+  };
+}
+
 export const SOURCE_USEFULNESS_CONTRACT_VERSION = 'bourbon-signal-source-usefulness-v1';
 export const DEFAULT_FRESH_ALERT_HOURS = 24;
 

@@ -1,9 +1,6 @@
-import { readFileSync } from 'node:fs';
-import { fileURLToPath } from 'node:url';
+import config from '../../src/config/state-lifecycle.json' with { type: 'json' };
 
-const CONFIG_PATH = fileURLToPath(new URL('../../src/config/state-lifecycle.json', import.meta.url));
-
-export const STATE_LIFECYCLE_CONFIG = JSON.parse(readFileSync(CONFIG_PATH, 'utf8'));
+export const STATE_LIFECYCLE_CONFIG = config;
 export const STATE_LIFECYCLE = STATE_LIFECYCLE_CONFIG.states || {};
 export const CUSTOMER_ACTIVE_STATE_IDS = new Set(STATE_LIFECYCLE_CONFIG.activeStates || []);
 

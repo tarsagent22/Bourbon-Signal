@@ -12,12 +12,18 @@ const compiled = ts.transpile(source.slice(start).replace('export async', 'async
 function fixture(users, overrides = {}) {
   let cursor = 0;
   const seen = [];
+  const pollModes = [], demandCalls = [];
   const repository = {
     acquireLease: async () => true, releaseLease: async () => {},
     readRecipientCursor: async () => cursor,
     writeRecipientCursor: async (offset) => { cursor = offset; },
   };
   const context = {
+    pollRuntimeSourceLanes: async dryRun => { pollModes.push(dryRun); },
+    traceRuntimeSourceCandidates: async () => {}, runtimeSourceCandidatesStillValid: async () => true,
+    persistRuntimeSourceDemand: async (members, complete) => { demandCalls.push({ members, complete }); },
+    classifyCompanyMember: () => ({ isOwner: false, isRetailer: false }),
+    normalizeBottleAlertPreferences: () => ({ bottleNames: [], bottleKeys: [] }), candidateMatchesArea: () => false,
     process: { env: {} }, Date, Set, Map, Math, Number, String,
     assertAlertDeliveryAuthorized: () => {}, readAlertCandidateBatch: async () => ({ candidates: [], snapshot: { snapshotId: 'fixture', generatedAt: new Date().toISOString() } }),
     evaluateAlertSnapshotSafety: () => ({ safe: true }), loadSiteLocationLookupRecords: async () => {},
@@ -35,7 +41,7 @@ function fixture(users, overrides = {}) {
   };
   const vmContext = vm.createContext({ ...context, ...overrides });
   vm.runInContext(compiled, vmContext);
-  return { run: async (options = {}) => { const result = await vmContext.deliverPreferenceAlerts({}, options); seen.push(result); return result; }, seen, repository, get cursor() { return cursor; } };
+  return { run: async (options = {}) => { const result = await vmContext.deliverPreferenceAlerts({}, options); seen.push(result); return result; }, seen, repository, pollModes, demandCalls, get cursor() { return cursor; } };
 }
 test('a zero or invalid paid-recipient budget cannot enable delivery', () => {
   const declarations = source.slice(source.indexOf('const MAX_RECENT_DELIVERIES_PER_USER'), source.indexOf('const MAX_EMAILS_PER_RUN'));
@@ -48,6 +54,7 @@ test('paid accounts beyond a free prefix do not consume the paid processing budg
   const users = [...Array.from({ length: 500 }, (_, i) => ({ id: `free-${i}`, publicMetadata: {} })), { id: 'paid-last', publicMetadata: { paid: true } }];
   const f = fixture(users);
   assert.equal((await f.run()).paidUsersConsidered, 1);
+  assert.equal(f.demandCalls[0].complete, true);
 });
 test('bounded runs resume paid recipients and wrap only after reaching the end', async () => {
   const f = fixture(Array.from({ length: 5 }, (_, i) => ({ id: `paid-${i}`, publicMetadata: { paid: true } })));
@@ -72,6 +79,9 @@ test('observational runs never consume live continuation', async () => {
   assert.equal(f.cursor, 2);
   await f.run({ dryRun: true });
   assert.equal(f.cursor, 2);
+  assert.deepEqual(f.pollModes, [false, true]);
+  assert.equal(f.demandCalls.length, 1, 'dry-run cannot persist demand');
+  assert.equal(f.demandCalls[0].complete, false, 'bounded partial scan cannot claim complete cohorts');
 });
 test('another scan owner blocks enumeration without modifying continuation', async () => {
   const f = fixture([{ id: 'paid', publicMetadata: { paid: true } }]);

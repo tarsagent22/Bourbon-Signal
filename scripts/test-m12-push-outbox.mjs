@@ -96,6 +96,8 @@ test('missing schema fails closed before resolving tokens or sending',async()=>{
 // ownership and provider boundaries are local fakes; no live SDK/service is invoked.
 const deliverySource = readFileSync(new URL('../src/lib/alert-delivery.ts',import.meta.url),'utf8');
 const deliveryCode = ts.transpile(deliverySource.slice(deliverySource.indexOf('export async function deliverPreferenceAlerts(')).replace('export async','async'),{target:ts.ScriptTarget.ES2022});
+const laneSource = readFileSync(new URL('../src/lib/source-lane.ts',import.meta.url),'utf8');
+const providerCode = ts.transpile(laneSource.slice(laneSource.indexOf('export async function invokeSourceProvider'),laneSource.indexOf('export class SourceLaneRepository')).replace('export async','async'),{target:ts.ScriptTarget.ES2022});
 async function callerFixture() {
   const userId=`caller-${++id}`;
   const prefs={push:{enabled:true},onSite:{enabled:true},email:{enabled:false},sms:{enabled:false},sightings:{enabled:true},rarityTiers:['allocated']};
@@ -109,6 +111,11 @@ async function callerFixture() {
   };
   const context={
     process:{env:{}},Date,Set,Map,Math,Number,String,
+    // This fixture exercises the existing non-source-lane push path. Preserve
+    // the real final provider boundary, while keeping new source I/O isolated.
+    pollRuntimeSourceLanes:async()=>{},traceRuntimeSourceCandidates:async()=>{},persistRuntimeSourceDemand:async()=>{},
+    runtimeSourceCandidatesStillValid:async candidates=>{assert.ok(candidates.every(c=>!c.sourceLaneId));return true;},
+    classifyCompanyMember:()=>({kind:'member'}),
     assertAlertDeliveryAuthorized:()=>{}, readAlertCandidateBatch:async()=>({candidates:[candidate],snapshot:{snapshotId:'test',generatedAt:new Date().toISOString()}}),
     evaluateAlertSnapshotSafety:()=>({safe:true}),loadSiteLocationLookupRecords:async()=>{},
     asString:(v,d='')=>typeof v==='string'?v:d,asNumber:(v,d=0)=>typeof v==='number'?v:d,asBoolean:v=>v===true,
@@ -121,7 +128,7 @@ async function callerFixture() {
     getUsersPage:async(_c,offset)=>({data:offset?[]:[structuredClone(user)],totalCount:1}),
     getServerEntitlements:async pub=>({tier:pub.paid?'standard':'free',canReceiveSightingsAlerts:true}),
     normalizeNotificationPreferences:v=>v,normalizeAreaPrefs:v=>v,hasSavedAreaPreferences:v=>v?.saved,
-    normalizeBottleAlertPreferences:v=>v,normalizeDeliveryMetadata:v=>v,normalizeAlertInboxMetadata:v=>v||{recent:[]},normalizePendingExpoPushTickets:()=>[],
+    normalizeBottleAlertPreferences:v=>({bottleNames:[],bottleKeys:[],...v}),normalizeDeliveryMetadata:v=>v,normalizeAlertInboxMetadata:v=>v||{recent:[]},normalizePendingExpoPushTickets:()=>[],
     pushPreferenceProjectionAllowsDelivery:v=>v?.status!=='pending',
     groupCandidatesByLocation:cs=>cs,enumerateUnderlyingAlertChildren:c=>[c],stableUnderlyingAlertKey:c=>c.key,
     alertRarityIsSelected:(tier,tiers)=>tiers.includes(tier),candidateMatchesArea:(_c,areas)=>areas.saved,candidateMatchesBottlePrefs:(_c,_mode,bottles)=>!bottles.deny,
@@ -132,7 +139,7 @@ async function callerFixture() {
     sendOwnedExpoPushMessages:async(_u,devices)=>{sends++;assert.deepEqual(devices,sends===1?['live-v1']:['live-v2']);return sends===1?result(0,1):result(1,0);},
     disablePushTokens:d=>d,
   };
-  const ctx=vm.createContext(context);vm.runInContext(deliveryCode,ctx);
+  const ctx=vm.createContext(context);vm.runInContext(providerCode,ctx);vm.runInContext(deliveryCode,ctx);
   return {user,candidate,context:ctx,run:options=>ctx.deliverPreferenceAlerts({},options),get sends(){return sends;},get inboxes(){return inboxes;},get reads(){return reads;},set failAfterInbox(v){failAfterInbox=v;},
     due:()=>sql.query("update alert_push_outbox set next_attempt_at=now()-interval '1 second' where user_id=$1",[userId]),
     state:async()=>(await sql.query('select * from alert_push_outbox where user_id=$1',[userId])).rows[0]};

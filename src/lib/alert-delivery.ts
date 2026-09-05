@@ -1,4 +1,8 @@
 import { createHash, randomUUID } from "node:crypto";
+import { render } from "@react-email/render";
+import { invokeSourceProvider } from "@/lib/source-lane";
+import { pollRuntimeSourceLanes, mergeRuntimeSourceCandidates, runtimeSourceCandidatesStillValid, traceRuntimeSourceCandidates, persistRuntimeSourceDemand } from "@/lib/source-lane-runtime";
+import { classifyCompanyMember } from "@/lib/company-control-room";
 import { clerkClient } from "@clerk/nextjs/server";
 import { PaidDropAlertEmail } from "@/components/emails/PaidDropAlertEmail";
 import { ALERT_FROM, ALERT_REPLY_TO, getResendClient } from "@/lib/email-alerts";
@@ -34,7 +38,7 @@ import { nevadaAreaMatchesFields, normalizeNevadaAreas } from "@/lib/nevada-area
 import { matchedNewYorkArea, newYorkAreaMatchesFields, normalizeNewYorkAreas } from "@/lib/new-york-area";
 import { coloradoAreaMatchesFields, normalizeColoradoAreas } from "@/lib/colorado-area";
 import { firstAlertCreatedMetadata } from "@/lib/member-activation";
-import { buildExpoPushMessages, disablePushTokens, enabledPushTokens, normalizePendingExpoPushTickets, pushPreferenceProjectionAllowsDelivery, reconcileExpoPushReceipts } from "@/lib/push-devices";
+import { buildExpoPushMessages, disablePushTokens, enabledPushTokens, normalizePendingExpoPushTickets, pushPreferenceProjectionAllowsDelivery, reconcileExpoPushReceipts, sendExpoPushMessages } from "@/lib/push-devices";
 import { createProductionPushOutbox, drainPushOutbox } from "@/lib/alert-queue/push-outbox";
 import {
   CHARLOTTE_METRO_BOARD_GROUP,
@@ -205,7 +209,7 @@ export async function readAlertCandidates() {
   return (await readAlertCandidateBatch()).candidates;
 }
 
-async function readAlertCandidateBatch() {
+export async function readAlertCandidateBatch(dryRun = true) {
   const result = await readSiteExportResult("alerts");
   let communityCandidates: CandidateAlert[] = [];
   try {
@@ -232,7 +236,9 @@ async function readAlertCandidateBatch() {
     const provisionallyEligibleIds = recentCommunitySightings
       .filter((input) => qualifyCommunitySighting({ ...input, alertAllowance: true }, now.toISOString(), canonicalStores).qualified)
       .map((input) => input.sighting.id);
-    const authorizedSightingIds = await repository.reserveAlertAuthority(provisionallyEligibleIds, now.toISOString());
+    // Read-only runs never consume community authority. They conservatively omit
+    // unreserved community candidates rather than simulate a live authority grant.
+    const authorizedSightingIds = dryRun ? new Set<string>() : await repository.reserveAlertAuthority(provisionallyEligibleIds, now.toISOString());
     const authorizedCommunitySightings = recentCommunitySightings.map((input) => ({
       ...input,
       alertAllowance: authorizedSightingIds.has(input.sighting.id),
@@ -242,12 +248,12 @@ async function readAlertCandidateBatch() {
     if (process.env.NODE_ENV !== "test") console.warn("community alert candidates unavailable", error instanceof Error ? error.message : "unknown error");
   }
   return {
-    candidates: [
+    candidates: await mergeRuntimeSourceCandidates([
       ...(Array.isArray(result.payload?.alerts)
         ? (result.payload.alerts as CandidateAlert[]).map(withAvailabilityEpisodeIdentity)
         : []),
       ...communityCandidates,
-    ],
+    ], result),
     snapshot: result,
   };
 }
@@ -457,6 +463,7 @@ export function candidatePassesFreshOnSiteGuardrails(candidate: CandidateAlert, 
   const freshnessHours = candidateFreshnessHoursAtDelivery(candidate, now);
 
   if (!candidateCanUseOnSite(candidate)) return false;
+  if (["standard", "regular", "common", "core"].includes(asString(candidate.tier).toLowerCase())) return false;
   if (asBoolean(candidate.bootstrap)) return false;
   if (blockers.includes("bootstrap_run_not_sendable")) return false;
   if (blockers.includes("manual_refresh_quarantine")) return false;
@@ -475,6 +482,7 @@ export function candidatePassesFreshEmailGuardrails(candidate: CandidateAlert, n
   const freshnessHours = candidateFreshnessHoursAtDelivery(candidate, now);
 
   if (!candidateCanSendEmail(candidate)) return false;
+  if (["standard", "regular", "common", "core"].includes(asString(candidate.tier).toLowerCase())) return false;
   if (asBoolean(candidate.bootstrap)) return false;
   if (blockers.includes("bootstrap_run_not_sendable")) return false;
   if (blockers.includes("manual_refresh_quarantine")) return false;
@@ -664,7 +672,13 @@ function candidateLocationGroupKey(candidate: CandidateAlert) {
   return [sourceType, state, precision, locationId || normalizeLocationLookupKey(locationLabel)].filter(Boolean).join("|");
 }
 
-export function groupCandidatesByLocation(candidates: CandidateAlert[]) {
+export function groupCandidatesByLocation(candidates: CandidateAlert[], bottlePrefs?: BottleAlertPreferences) {
+  // Ordering only, after caller eligibility/area/consent filtering. Watchlist
+  // membership never authorizes an otherwise excluded candidate.
+  const explicitlyWatched = (candidate: CandidateAlert) => Boolean(bottlePrefs &&
+    enumerateUnderlyingAlertChildren(candidate).some((child) => candidateMatchesBottlePrefs(child, "specific_bottles", bottlePrefs)));
+  const relevanceSort = (a: CandidateAlert, b: CandidateAlert) =>
+    Number(explicitlyWatched(b)) - Number(explicitlyWatched(a)) || sortCandidatesForMember(a, b);
   const community = candidates.filter((candidate) => asString(candidate.sourceType) === "community");
   const groups = new Map<string, CandidateAlert[]>();
   for (const candidate of candidates.filter((row) => asString(row.sourceType) !== "community")) {
@@ -673,6 +687,8 @@ export function groupCandidatesByLocation(candidates: CandidateAlert[]) {
   }
 
   const groupedEngine = Array.from(groups.entries()).map(([locationKey, rows]) => {
+    // Keep the policy-bearing primary and child order unchanged. Relevance
+    // only orders complete groups; it must not change inherited channel gates.
     const sorted = [...rows].sort(sortCandidatesForMember);
     const primary = sorted[0] || rows[0];
     const freshnessHours = Math.max(...sorted.map((candidate) => asNumber(candidate.freshnessHours, Number.NEGATIVE_INFINITY)).filter(Number.isFinite));
@@ -693,7 +709,7 @@ export function groupCandidatesByLocation(candidates: CandidateAlert[]) {
       matchKey: `location-group:${stableHash(locationKey)}`,
     } as CandidateAlert;
   });
-  return [...community, ...groupedEngine].sort(sortCandidatesForMember);
+  return [...community, ...groupedEngine].sort(relevanceSort);
 }
 
 function underlyingStableKeys(candidate: CandidateAlert) {
@@ -985,13 +1001,18 @@ function smsBodyForCandidate(candidate: CandidateAlert, storeLabel: string) {
 
 class DefinitiveSmsSendError extends Error {}
 
+function assertTwilioSmsConfigured() {
+  if (!process.env.TWILIO_ACCOUNT_SID || !process.env.TWILIO_AUTH_TOKEN) throw new DefinitiveSmsSendError("Twilio credentials are not configured.");
+  if (!process.env.TWILIO_MESSAGING_SERVICE_SID && !process.env.TWILIO_FROM_NUMBER) throw new DefinitiveSmsSendError("Set TWILIO_MESSAGING_SERVICE_SID or TWILIO_FROM_NUMBER before enabling SMS alerts.");
+}
+
 async function sendTwilioSms(to: string, body: string) {
+  assertTwilioSmsConfigured();
   const accountSid = process.env.TWILIO_ACCOUNT_SID || "";
   const authToken = process.env.TWILIO_AUTH_TOKEN || "";
   const messagingServiceSid = process.env.TWILIO_MESSAGING_SERVICE_SID || "";
   const from = process.env.TWILIO_FROM_NUMBER || "";
-  if (!accountSid || !authToken) throw new DefinitiveSmsSendError("Twilio credentials are not configured.");
-  if (!messagingServiceSid && !from) throw new DefinitiveSmsSendError("Set TWILIO_MESSAGING_SERVICE_SID or TWILIO_FROM_NUMBER before enabling SMS alerts.");
+
 
   const bodyParams = new URLSearchParams({ To: to, Body: body });
   if (messagingServiceSid) bodyParams.set("MessagingServiceSid", messagingServiceSid);
@@ -1079,16 +1100,18 @@ export async function deliverPreferenceAlerts(req: Request, options: {
 
   const requestedQueueMode = options.queueMode || "off";
   // Shadow mode is observational by definition. Force the entire delivery path into dry-run
-  // even if an environment toggle is accidentally changed, so it can only persist queue intents.
+  // even if an environment toggle is accidentally changed; no queue or other writes.
   const dryRun = options.dryRun === true || requestedQueueMode === "shadow";
   const queueMode = dryRun && requestedQueueMode === "active" ? "shadow" : requestedQueueMode;
   const baselineOnSiteOnly = options.baselineOnSiteOnly === true;
   const baselineEmailOnly = options.baselineEmailOnly === true;
   const baselineSmsOnly = options.baselineSmsOnly === true;
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://www.bourbonsignal.com";
+  await pollRuntimeSourceLanes(dryRun || baselineOnSiteOnly || baselineEmailOnly || baselineSmsOnly);
   const now = new Date().toISOString();
-  const batch = await readAlertCandidateBatch();
+  const batch = await readAlertCandidateBatch(dryRun);
   const allCandidates = batch.candidates;
+  if (!dryRun) await traceRuntimeSourceCandidates(allCandidates, "considered");
   const snapshotSafety = evaluateAlertSnapshotSafety({
     generatedAt: batch.snapshot.generatedAt,
     now,
@@ -1167,7 +1190,7 @@ export async function deliverPreferenceAlerts(req: Request, options: {
     errors: [] as Array<{ userId?: string; email?: string; message: string }>,
   };
 
-  const queueRepository = queueMode === "off" ? null : createProductionAlertQueueRepository();
+  const queueRepository = dryRun || queueMode === "off" ? null : createProductionAlertQueueRepository();
   const memberLeaseRepository = queueRepository || (alertQueueDatabaseConfigured() ? createProductionAlertQueueRepository() : null);
   const queueSnapshotId = batch.snapshot.snapshotId || `bundled-${createHash("sha256")
     .update(`${batch.snapshot.generatedAt || "unknown"}:${batch.snapshot.source}`)
@@ -1201,6 +1224,7 @@ export async function deliverPreferenceAlerts(req: Request, options: {
     payload: (child: CandidateAlert) => Record<string, unknown>,
   ) {
     const children = enumerateUnderlyingAlertChildren(candidate);
+    if (!await runtimeSourceCandidatesStillValid(children)) return null;
     if (!queueRepository) return { candidate, queueCandidates: [] as AlertCandidateRecord[] };
     const reservation = await reserveAlertDeliveryBatch(queueRepository, {
       snapshotId: queueSnapshotId,
@@ -1211,10 +1235,11 @@ export async function deliverPreferenceAlerts(req: Request, options: {
       createdAt: now,
       children: children.map((child) => ({
         stableMatchKey: stableUnderlyingAlertKey(child),
-        payload: payload(child),
+        payload: { ...payload(child), sourceLaneId: child.sourceLaneId, sourceRunId: child.sourceRunId, sourceRevision: child.sourceRevision, availabilityEpisodeId: child.availabilityEpisodeId, sourceSubjectId: child.sourceSubjectId, observedAt: child.observedAt, sourcePolicySnapshotId: child.sourcePolicySnapshotId },
       })),
     }, { mode: queueMode as AlertQueueMode, workerId: queueWorkerId, now });
     summary.queueIntentsObserved += children.length;
+    if (!dryRun && reservation.claimed.length) await traceRuntimeSourceCandidates(reservation.claimed.map(row => row.payload || {}), "reserved", channel);
     summary.queueClaimsGranted += reservation.claimed.length;
     if (queueMode === "active") summary.queueDuplicatesSkipped += children.length - reservation.claimed.length;
     if (queueMode === "shadow") return { candidate, queueCandidates: [] as AlertCandidateRecord[] };
@@ -1272,10 +1297,19 @@ export async function deliverPreferenceAlerts(req: Request, options: {
   }
   try {
   let offset = continueLiveScan ? await memberLeaseRepository!.readRecipientCursor() : 0;
+  const demandScanStartedAtZero = offset === 0;
+  const demandMembers: Array<{ id: string; areas: string[]; watchlist: string[] }> = [];
+  let demandComplete = false;
+  let demandTruncated = false;
+  let demandExpectedTotal: number | undefined;
+  let demandTotalStable = true;
   let globalEmailCount = 0;
   while (summary.paidUsersConsidered < MAX_DELIVERY_USERS && summary.usersConsidered < MAX_RECIPIENT_SCAN_USERS) {
     const page = await getUsersPage(client, offset);
+    if (demandExpectedTotal === undefined) demandExpectedTotal = page.totalCount;
+    else if (page.totalCount !== demandExpectedTotal) demandTotalStable = false;
     if (!page.data.length) {
+      demandComplete = demandScanStartedAtZero && demandTotalStable && (page.totalCount === undefined || offset >= page.totalCount);
       if (continueLiveScan) await memberLeaseRepository!.writeRecipientCursor(0, queueWorkerId);
       break;
     }
@@ -1286,6 +1320,17 @@ export async function deliverPreferenceAlerts(req: Request, options: {
       try {
       let user = rawUser as Record<string, unknown>;
       const userId = asString(user.id);
+      if (!dryRun && demandMembers.length >= 5000) demandTruncated = true;
+      if (!dryRun && demandMembers.length < 5000) {
+        const member = classifyCompanyMember(user);
+        const pub = (user.publicMetadata || {}) as Record<string, unknown>;
+        if (!member.isOwner && !member.isRetailer && pub.isTestAccount !== true) {
+          const areas = normalizeAreaPrefs(pub.areaPreferences, pub.monitoringScopes);
+          const watches = normalizeBottleAlertPreferences(pub.bottleAlertPreferences);
+          const local = candidateMatchesArea({ state: "SC", city: "North Myrtle Beach", storeName: "Liquor Library", storeAddress: "270 Hwy 17 N, North Myrtle Beach, SC 29582", locationPrecision: "store_level" }, areas);
+          demandMembers.push({ id: userId, areas: local ? ["SC:north-myrtle-beach"] : [], watchlist: [...watches.bottleNames, ...watches.bottleKeys] });
+        }
+      }
       summary.usersConsidered += 1;
 
       const initialPublicMetadata = (user.publicMetadata && typeof user.publicMetadata === "object" ? user.publicMetadata : {}) as Record<string, unknown>;
@@ -1298,7 +1343,7 @@ export async function deliverPreferenceAlerts(req: Request, options: {
 
       const memberLeaseKey = `member:${userId}`;
       let memberLeaseAcquired = false;
-      if (memberLeaseRepository) {
+      if (memberLeaseRepository && !dryRun) {
         try {
           memberLeaseAcquired = await memberLeaseRepository.acquireLease(
             memberLeaseKey,
@@ -1336,6 +1381,7 @@ export async function deliverPreferenceAlerts(req: Request, options: {
       let pendingPushTickets = normalizePendingExpoPushTickets(pushReceiptMetadata.pending, now);
       const livePushRun = !dryRun && !baselineOnSiteOnly && !baselineEmailOnly && !baselineSmsOnly && ALERT_ONSITE_DELIVERY_ENABLED;
       const pushOutbox = livePushRun && notificationPrefs.push.enabled ? createProductionPushOutbox() : null;
+      let pushTraceChildren: CandidateAlert[] = [];
       const drainMemberPush = async () => {
         if (!pushOutbox) return;
         await drainPushOutbox(pushOutbox, userId, queueWorkerId, {
@@ -1359,17 +1405,33 @@ export async function deliverPreferenceAlerts(req: Request, options: {
               .filter((child) => alertRarityIsSelected(child.tier ?? child.rarityTier, prefs.rarityTiers))
               .filter((child) => candidateMatchesArea(child, areas) && candidateMatchesBottlePrefs(child, pub.alertMode, bottles));
             if (new Set(children.map(stableUnderlyingAlertKey)).size !== wanted.size) return null;
+            if (!await runtimeSourceCandidatesStillValid(children)) return null;
             const groups = groupCandidatesByLocation(children);
             if (groups.length !== 1) return null;
             const alert = { ...candidateToMemberAlert(userId, groups[0], attemptAt, areas), id: intent.alertId };
             if (!memberAlertPassesFinalFreshness(alert, attemptAt)) return null;
             currentPushDevices = await ownedPushDevices(userId, priv.pushDevices);
-            if (!memberAlertPassesFinalFreshness(alert) || children.some((child) => !candidatePassesFreshOnSiteGuardrails(child))) return null;
+            if (!memberAlertPassesFinalFreshness(alert) || children.some((child) => !candidatePassesFreshOnSiteGuardrails(child)) || !await runtimeSourceCandidatesStillValid(children)) return null;
             pendingPushTickets = normalizePendingExpoPushTickets((priv.pushDeliveryReceipts as Record<string, unknown> | undefined)?.pending, attemptAt);
+            pushTraceChildren = children;
             return { devices: currentPushDevices, messages: buildExpoPushMessages(enabledPushTokens(currentPushDevices), alert) };
           },
-          send: sendOwnedExpoPushMessages,
+          send: (owner, devices, messages) => sendOwnedExpoPushMessages(owner, devices, messages, {
+            send: async chunk => {
+              const outcome = await invokeSourceProvider({
+                validate: async () => await runtimeSourceCandidatesStillValid(pushTraceChildren) && pushTraceChildren.every(child => candidatePassesFreshOnSiteGuardrails(child)),
+                send: () => sendExpoPushMessages(chunk),
+                recordAttempt: at => traceRuntimeSourceCandidates(pushTraceChildren, "provider_attempt", "push", at),
+                recordFailed: at => traceRuntimeSourceCandidates(pushTraceChildren, "provider_failed", "push", at),
+              });
+              if (!outcome.suppressed && outcome.result.rejected) await traceRuntimeSourceCandidates(pushTraceChildren, "provider_failed", "push");
+              // Zero accounted destinations is conservatively held by the existing
+              // outbox, never described as a provider rejection or auto-retried.
+              return outcome.suppressed ? { accepted: 0, rejected: 0, tickets: [], invalidTokens: [] } : outcome.result;
+            },
+          }),
           accepted: async (result) => {
+            if (result.accepted) await traceRuntimeSourceCandidates(pushTraceChildren, "provider_accepted", "push");
             summary.pushNotificationsSent += result.accepted;
             // Never overwrite the full Clerk device list with an ownership-filtered subset.
             const latest = await client.users.getUser(userId);
@@ -1415,7 +1477,7 @@ export async function deliverPreferenceAlerts(req: Request, options: {
           if (!matches && alertMode === "specific_bottles") summary.skippedSpecificBottlePrefs += 1;
           return matches;
         })
-        .sort(sortCandidatesForMember));
+        .sort(sortCandidatesForMember), bottlePrefs);
       const matchingPreferenceCandidates = allMatchingPreferenceCandidates
         .slice(0, Math.max(1, CANDIDATE_POOL_PER_USER));
 
@@ -1459,9 +1521,11 @@ export async function deliverPreferenceAlerts(req: Request, options: {
       }
 
       let newOnSiteAlerts: MemberAlertRecord[] = [];
+      const onSiteSourceCandidates = new Map<string, CandidateAlert[]>();
       let onSiteQueueGroups: Array<{ alertId: string; candidates: AlertCandidateRecord[] }> = [];
       const pruneStaleOnSiteAlerts = async () => {
-        const freshAlerts = newOnSiteAlerts.filter((alert) => memberAlertPassesFinalFreshness(alert));
+        const sourceValidity = await Promise.all(newOnSiteAlerts.map((alert) => runtimeSourceCandidatesStillValid(onSiteSourceCandidates.get(alert.id) || [])));
+        const freshAlerts = newOnSiteAlerts.filter((alert, index) => sourceValidity[index] && memberAlertPassesFinalFreshness(alert));
         const freshAlertIds = new Set(freshAlerts.map((alert) => alert.id));
         const staleQueueGroups = onSiteQueueGroups.filter((group) => !freshAlertIds.has(group.alertId));
         for (const group of staleQueueGroups) await suppressStaleQueuedIntents(group.candidates);
@@ -1526,6 +1590,7 @@ export async function deliverPreferenceAlerts(req: Request, options: {
           }));
           if (!reservation) continue;
           const alert = candidateToMemberAlert(userId, reservation.candidate, now, areaPrefs);
+          onSiteSourceCandidates.set(alert.id, enumerateUnderlyingAlertChildren(reservation.candidate));
           newOnSiteAlerts.push(alert);
           if (reservation.queueCandidates.length) onSiteQueueGroups.push({ alertId: alert.id, candidates: reservation.queueCandidates });
         }
@@ -1627,7 +1692,7 @@ export async function deliverPreferenceAlerts(req: Request, options: {
             const storeLabel = candidateStoreLabel(candidate);
             const matchedArea = candidateMatchedArea(candidate, areaPrefs);
             const state = asString(candidate.state).toUpperCase();
-            if (!candidatePassesFreshEmailGuardrails(candidate)) {
+            if (!candidatePassesFreshEmailGuardrails(candidate) || !await runtimeSourceCandidatesStillValid(enumerateUnderlyingAlertChildren(candidate))) {
               summary.skippedFinalEmailFreshness += 1;
               await suppressStaleQueuedIntents(queuedCandidates);
               continue;
@@ -1637,12 +1702,13 @@ export async function deliverPreferenceAlerts(req: Request, options: {
             try {
               let messageId: string | null = null;
               if (!dryRun && resend) {
-                const result = await resend.emails.send({
+                const emailPayload = {
                   from: ALERT_FROM,
                   to: [email],
                   replyTo: ALERT_REPLY_TO,
                   subject: `${ALERT_SAFE_SUBJECT_PREFIX.replace(/^./, (char) => char.toUpperCase())}: ${bottleName} at ${candidateSubjectLocationLabel(candidate)}`,
-                  react: PaidDropAlertEmail({
+                  // Resend otherwise awaits React rendering after our final veto.
+                  html: await render(PaidDropAlertEmail({
                     firstName: asString(user.firstName) || null,
                     bottleName,
                     storeLabel,
@@ -1654,17 +1720,33 @@ export async function deliverPreferenceAlerts(req: Request, options: {
                     sourceLabel: candidateSourceLabel(candidate),
                     sourceUrl: candidateSourceUrl(candidate),
                     dashboardUrl: `${appUrl}/dashboard`,
-                  }),
+                  })),
                   headers: {
                     "X-Entity-Ref-ID": `alert-${userId}-${dedupeKey}`.slice(0, 190),
                   },
-                }, {
+                };
+                const emailOptions = {
                   idempotencyKey: claimedChildCandidateIds.length
                     ? `alert-group-${createHash("sha256").update(claimedChildCandidateIds.join(":"), "utf8").digest("hex")}`
                     : `alert-${createHash("sha256").update(`${userId}:${underlyingStableKeys(candidate).sort().join(":")}`).digest("hex")}`,
+                };
+                const outcome = await invokeSourceProvider({
+                  validate: async () => await runtimeSourceCandidatesStillValid(enumerateUnderlyingAlertChildren(candidate)) && candidatePassesFreshEmailGuardrails(candidate),
+                  recordAttempt: at => traceRuntimeSourceCandidates(enumerateUnderlyingAlertChildren(candidate), "provider_attempt", "email", at),
+                  recordFailed: at => traceRuntimeSourceCandidates(enumerateUnderlyingAlertChildren(candidate), "provider_failed", "email", at),
+                  send: async () => {
+                    const result = await resend.emails.send(emailPayload, emailOptions);
+                    if (result.error) throw new Error(result.error.message);
+                    return result;
+                  },
                 });
-                if (result.error) throw new Error(result.error.message);
-                messageId = result.data?.id || null;
+                if (outcome.suppressed) {
+                  summary.skippedFinalEmailFreshness += 1;
+                  await suppressStaleQueuedIntents(queuedCandidates);
+                  continue;
+                }
+                messageId = outcome.result.data?.id || null;
+                if (messageId) await traceRuntimeSourceCandidates(enumerateUnderlyingAlertChildren(candidate), "provider_accepted", "email");
               }
 
               if (dryRun) {
@@ -1771,7 +1853,7 @@ export async function deliverPreferenceAlerts(req: Request, options: {
             const queuedCandidates = reservation.queueCandidates;
             const dedupeKey = asString(candidate.dedupeKey, asString(candidate.id));
             const storeLabel = candidateStoreLabel(candidate);
-            if (!candidatePassesFreshSmsGuardrails(candidate)) {
+            if (!candidatePassesFreshSmsGuardrails(candidate) || !await runtimeSourceCandidatesStillValid(enumerateUnderlyingAlertChildren(candidate))) {
               summary.skippedFinalSmsFreshness += 1;
               await suppressStaleQueuedIntents(queuedCandidates);
               continue;
@@ -1781,10 +1863,22 @@ export async function deliverPreferenceAlerts(req: Request, options: {
               let messageId: string | null = null;
               let status: string | null = null;
               if (!dryRun) {
-                smsProviderAttempted = true;
-                const result = await sendTwilioSms(phone, smsBodyForCandidate(candidate, storeLabel));
-                messageId = result.sid;
-                status = result.status;
+                // Configuration is preflight, not a failed provider attempt.
+                assertTwilioSmsConfigured();
+                const outcome = await invokeSourceProvider({
+                  validate: async () => await runtimeSourceCandidatesStillValid(enumerateUnderlyingAlertChildren(candidate)) && candidatePassesFreshSmsGuardrails(candidate),
+                  send: () => { smsProviderAttempted = true; return sendTwilioSms(phone, smsBodyForCandidate(candidate, storeLabel)); },
+                  recordAttempt: at => traceRuntimeSourceCandidates(enumerateUnderlyingAlertChildren(candidate), "provider_attempt", "sms", at),
+                  recordFailed: at => traceRuntimeSourceCandidates(enumerateUnderlyingAlertChildren(candidate), "provider_failed", "sms", at),
+                });
+                if (outcome.suppressed) {
+                  summary.skippedFinalSmsFreshness += 1;
+                  await suppressStaleQueuedIntents(queuedCandidates);
+                  continue;
+                }
+                messageId = outcome.result.sid;
+                status = outcome.result.status;
+                await traceRuntimeSourceCandidates(enumerateUnderlyingAlertChildren(candidate), "provider_accepted", "sms");
               }
               if (dryRun) {
                 summary.smsWouldSend += 1;
@@ -1912,7 +2006,10 @@ export async function deliverPreferenceAlerts(req: Request, options: {
               summary.errors.push({ userId, message: `On-site alert metadata update failed after compaction retry: ${primaryError}; retry: ${retryError instanceof Error ? retryError.message : String(retryError)}` });
             }
           }
-          if (onSiteInboxWritten) createdRealAlert = true;
+          if (onSiteInboxWritten) {
+            createdRealAlert = true;
+            await traceRuntimeSourceCandidates(newOnSiteAlerts.flatMap(alert => onSiteSourceCandidates.get(alert.id) || []), "onsite_committed", "onSite");
+          }
           // Push is drained separately below, whether inbox persistence succeeded or not.
           for (const group of onSiteQueueGroups) {
             if (onSiteInboxWritten && queueRepository) {
@@ -1956,9 +2053,13 @@ export async function deliverPreferenceAlerts(req: Request, options: {
       }
     }
 
-    if (page.totalCount !== undefined && offset >= page.totalCount) break;
+    if (page.totalCount !== undefined && offset >= page.totalCount) {
+      demandComplete = demandScanStartedAtZero && demandTotalStable;
+      break;
+    }
   }
 
+  if (continueLiveScan) await persistRuntimeSourceDemand(demandMembers, demandComplete && !demandTruncated);
   return summary;
   } finally {
     if (continueLiveScan) await memberLeaseRepository!.releaseLease(scanLeaseKey, queueWorkerId);

@@ -53,6 +53,7 @@ function splitSql(source) {
 }
 
 const schemaFiles = [
+  '../src/lib/source-lane-schema.sql',
   '../src/lib/push-ownership-schema.sql',
   '../src/lib/member-collection-schema.sql',
   '../src/lib/bottle-contribution-schema.sql',
@@ -85,6 +86,7 @@ if (check) {
 }
 
 const expected = [
+  'source_lane_heads', 'source_lane_batches', 'source_lane_subjects', 'source_lane_opportunities', 'source_lane_trace', 'source_lane_demand',
   'member_push_ownership',
   'approved_catalog_bottles',
   'approved_catalog_locations',
@@ -137,6 +139,12 @@ const rows = await sql.query(`
 const found = new Set(rows.map((row) => row.table_name));
 const missing = expected.filter((table) => !found.has(table));
 const requiredColumns = {
+  source_lane_heads: ['source_id', 'generation', 'revision', 'lease_owner', 'lease_until', 'next_due_at', 'healthy'],
+  source_lane_batches: ['source_id', 'run_id', 'revision', 'digest', 'observed_at', 'accepted_at', 'policy_id', 'accounting'],
+  source_lane_subjects: ['source_id', 'subject_id', 'payload'],
+  source_lane_opportunities: ['episode_id', 'source_id', 'subject_id', 'revision', 'run_id', 'observed_at', 'accepted_at', 'expires_at', 'closed', 'payload'],
+  source_lane_trace: ['episode_id', 'stage', 'channel', 'first_at', 'last_at', 'samples'],
+  source_lane_demand: ['singleton', 'payload', 'updated_at'],
   member_push_ownership: ['resource_hash', 'user_id', 'binding_id', 'expires_at', 'updated_at'],
   approved_catalog_bottles: ['id', 'normalized_name', 'payload', 'approved_by'],
   approved_catalog_locations: ['id', 'normalized_key', 'payload', 'approved_by'],

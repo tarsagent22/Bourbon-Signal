@@ -1,3 +1,43 @@
+export interface AreaWatchlistDemand {
+  complete: boolean;
+  generatedAt: string;
+  scannedMembers: number;
+  minCohortSize: 5;
+  cohorts: Array<{ area: string; canonicalBottleId: string; members: number }>;
+}
+
+// Joint membership, never the Cartesian product of independently aggregated
+// geography and bottle counts. Only explicit watchlists; no inferred ownership.
+export function aggregateAreaWatchlistDemand(
+  members: readonly { id: string; areas: string[]; watchlist: string[] }[],
+  options: { catalog: readonly DemandBottleCatalogItem[]; allowedAreas: readonly string[]; complete: boolean; generatedAt: string },
+): AreaWatchlistDemand {
+  const complete = options.complete && members.length <= 5000;
+  const result: AreaWatchlistDemand = { complete, generatedAt: options.generatedAt, scannedMembers: members.length, minCohortSize: 5, cohorts: [] };
+  if (!complete) return result;
+  const lookup = buildBottleLookup(options.catalog), allowed = new Set(options.allowedAreas);
+  const groups = new Map<string, { area: string; canonicalBottleId: string; members: Set<string> }>();
+  for (const member of members) {
+    if (!member.id) continue;
+    for (const area of new Set(member.areas.filter(a => allowed.has(a)))) {
+      for (const raw of member.watchlist.slice(0, 300)) {
+        const canonical = lookup.get(bottleLookupKey(raw));
+        if (!canonical) continue;
+        const key = `${area}|${canonical.canonicalBottleId}`;
+        const group = groups.get(key) || { area, canonicalBottleId: canonical.canonicalBottleId, members: new Set<string>() };
+        group.members.add(member.id); groups.set(key, group);
+      }
+    }
+  }
+  result.cohorts = [...groups.values()].filter(g => g.members.size >= 5).map(g => ({ area: g.area, canonicalBottleId: g.canonicalBottleId, members: g.members.size }));
+  return result;
+}
+export function areaWatchlistPriority(snapshot: AreaWatchlistDemand | null, area: string, bottleIds: readonly string[], now: string) {
+  const age = Date.parse(now) - Date.parse(snapshot?.generatedAt || '');
+  if (!snapshot?.complete || !Number.isFinite(age) || age < 0 || age > 24 * 3_600_000) return 0;
+  return Math.min(100, snapshot.cohorts.filter(c => c.area === area && c.members >= 5 && bottleIds.includes(c.canonicalBottleId)).reduce((n, c) => n + c.members, 0));
+}
+
 export const DEFAULT_DEMAND_COHORT_SIZE = 5;
 
 const MAX_DEMAND_INPUT_LENGTH = 180;

@@ -41,7 +41,7 @@ async function runDelivery(req: NextRequest) {
     ? configuredQueueMode
     : "off";
   const dryRun = requestedDryRun || (monitorOnly && !testEmail && baselineModeCount === 0);
-  const heartbeatEligible = scheduledRun && !testEmail && baselineModeCount === 0;
+  const heartbeatEligible = scheduledRun && !dryRun && queueMode !== "shadow" && !testEmail && baselineModeCount === 0;
   try {
     const deliveryResult = testEmail
       ? await sendOperationalTestAlertEmail(req)

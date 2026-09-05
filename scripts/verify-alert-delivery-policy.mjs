@@ -80,7 +80,7 @@ if (!/if \(!hasSavedAreaPreferences\(areaPrefs\)\) \{[\s\S]*?continue;/.test(del
   fail('Users without saved area preferences must be skipped before alert matching or channel delivery.');
 }
 
-if (!/const allMatchingPreferenceCandidates = groupCandidatesByLocation\(candidates[\s\S]*?\.sort\(sortCandidatesForMember\)\);[\s\S]*?const matchingPreferenceCandidates = allMatchingPreferenceCandidates[\s\S]*?\.slice\(0, Math\.max\(1, CANDIDATE_POOL_PER_USER\)\);/.test(delivery)) {
+if (!/const allMatchingPreferenceCandidates = groupCandidatesByLocation\(candidates[\s\S]*?\.sort\(sortCandidatesForMember\), bottlePrefs\);[\s\S]*?const matchingPreferenceCandidates = allMatchingPreferenceCandidates[\s\S]*?\.slice\(0, Math\.max\(1, CANDIDATE_POOL_PER_USER\)\);/.test(delivery)) {
   fail('Delivery must retain the full grouped match set for migration before slicing the ranked provider pool.');
 }
 
@@ -127,8 +127,8 @@ if (!delivery.includes('signalFreshnessHoursAt(asString(candidate.signalAt), now
   fail('Final delivery must recompute age from the canonical signal timestamp rather than trusting export-time freshness.');
 }
 
-if (!delivery.includes('if (!candidatePassesFreshEmailGuardrails(candidate))')
-  || !delivery.includes('if (!candidatePassesFreshSmsGuardrails(candidate))')
+if (!delivery.includes('if (!candidatePassesFreshEmailGuardrails(candidate) || !await runtimeSourceCandidatesStillValid(')
+  || !delivery.includes('if (!candidatePassesFreshSmsGuardrails(candidate) || !await runtimeSourceCandidatesStillValid(')
   || !delivery.includes('await pruneStaleOnSiteAlerts()')) {
   fail('On-site, email, and SMS must each recheck freshness at their final provider or metadata mutation boundary.');
 }

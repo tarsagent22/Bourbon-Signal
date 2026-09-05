@@ -1,0 +1,30 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import * as demandImport from '../src/lib/demand-intelligence.ts';
+import * as report from '../engine/src/optimization/source-usefulness-report.mjs';
+const demand = demandImport.default || demandImport;
+test('joint area/watchlist cohorts require complete scan, five distinct members and fresh data', () => {
+  assert.equal(typeof demand.aggregateAreaWatchlistDemand, 'function');
+  const catalog = [{ id: 'bottle-a', name: 'Bottle A' }];
+  const members = Array.from({length:5}, (_,i) => ({ id: `fixture-${i}`, areas: ['SC:north-myrtle-beach'], watchlist: ['Bottle A'] }));
+  const opts = { catalog, allowedAreas: ['SC:north-myrtle-beach'], complete: true, generatedAt: new Date().toISOString() };
+  const result = demand.aggregateAreaWatchlistDemand(members, opts);
+  assert.equal(result.cohorts.length, 1); assert.equal(result.cohorts[0].members, 5);
+  assert.equal(JSON.stringify(result).includes('fixture-'), false);
+  assert.equal(demand.aggregateAreaWatchlistDemand(members.slice(0,4), opts).cohorts.length, 0);
+  assert.equal(demand.aggregateAreaWatchlistDemand([...members.slice(0,4),members[0]], opts).cohorts.length, 0);
+  assert.equal(demand.aggregateAreaWatchlistDemand(members, { ...opts, complete: false }).cohorts.length, 0);
+  assert.equal(demand.aggregateAreaWatchlistDemand(members.map(m => ({ ...m, areas: ['NC:charlotte'] })), opts).cohorts.length, 0);
+  assert.equal(demand.areaWatchlistPriority(result, 'SC:north-myrtle-beach', ['bottle-a'], new Date(Date.now()+25*3_600_000).toISOString()), 0);
+});
+test('usefulness measures distinct episodes and latency samples, not device receipts', () => {
+  assert.equal(typeof report.buildSourceLaneUsefulness, 'function');
+  const now = '2026-09-05T00:00:00.000Z';
+  const rows = [{ episode_id: 'a', source_id: 'lane', observed_at: now, accepted_at: '2026-09-05T00:00:01.000Z', payload: { state:'SC', storeId:'store', sourceAreaId:'SC:north-myrtle-beach' }, closed:false, expires_at:'2026-09-05T02:00:00.000Z' }];
+  const result = report.buildSourceLaneUsefulness({ opportunities: [...rows,...rows], traces: [{ episode_id:'a',stage:'provider_accepted',channel:'email',first_at:'2026-09-04T23:59:59.000Z', samples:1 }], generatedAt:now });
+  assert.equal(result.areas[0].episodes, 1); assert.equal(result.areas[0].stores, 1);
+  assert.equal(result.latencies.observedToAccepted.samples, 1);
+  assert.equal(result.latencies.observedToAccepted.medianMs, 1000);
+  assert.equal(result.latencies.observedToProviderAccepted.clockSkew, 1);
+  assert.equal(result.deviceReceipt, 'unavailable');
+});

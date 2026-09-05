@@ -1,5 +1,5 @@
 import { mkdtemp, rm } from 'node:fs/promises';
-import { readFileSync } from 'node:fs';
+import FLORIDA_ABC_STORE_REGISTRY from '../../data/florida-abc-store-registry.json' with { type: 'json' };
 import { createHash } from 'node:crypto';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -132,7 +132,7 @@ export const FLORIDA_ABC_SEARCHSPRING_URL = 'https://api.searchspring.net/api/se
 export const FLORIDA_ABC_DIRECTORY_QUERIES = Object.freeze(['Pensacola', 'West Palm Beach', 'Gainesville', 'Tampa']);
 export const FLORIDA_ABC_DIRECTORY_URLS = Object.freeze(FLORIDA_ABC_DIRECTORY_QUERIES.map((query) => `https://abc.irishtitan.cloud/api/retail-locations?search=${encodeURIComponent(query)}&radius=1000`));
 
-const FLORIDA_ABC_STORE_REGISTRY = JSON.parse(readFileSync(new URL('../../data/florida-abc-store-registry.json', import.meta.url), 'utf8'));
+
 export const FLORIDA_ABC_STORE_REGISTRY_SHA256 = 'd56369e11b4883b59d7dcadd4de48f4388bbc489b2549b8c3016744ab717e1cc';
 
 function canonicalAbcRegistryRows(rows) {
