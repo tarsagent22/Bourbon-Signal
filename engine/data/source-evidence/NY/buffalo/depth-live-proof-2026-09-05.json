@@ -1,0 +1,564 @@
+{
+  "schemaVersion": 1,
+  "generatedAt": "2026-09-05T15:27:04.401Z",
+  "proofKind": "production-compatible unauthenticated first-party Buffalo CityHive comparison",
+  "syntheticDataUsed": false,
+  "complete": true,
+  "stores": [
+    {
+      "sourceId": "five-star-wine-spirits-buffalo",
+      "storeName": "5 star wine & spirits, Buffalo, NY",
+      "merchantId": "5f3c57ad869d7863e8a109c9",
+      "status": "success",
+      "requestCount": 10,
+      "elapsedMs": 9290,
+      "baseline": {
+        "uniquePositiveVariants": 26,
+        "canonicalRelevantMatches": 8,
+        "tierCounts": {
+          "allocated": 3,
+          "core": 2,
+          "standard": 3
+        },
+        "bottles": [
+          {
+            "canonicalBottleId": "bb_13fcb09e58792e06",
+            "canonicalName": "Bulleit Bourbon",
+            "tier": "standard",
+            "rawName": "Bulleit Bourbon",
+            "productUrl": "https://5star-wines.com/shop/product/bulleit-bourbon/5fdd3a7ab23bc17c10747710?option-id=9613cc69416a7c733f222e997c75041bfee115bf4e48fb5a85a81a1c95b7c7c1",
+            "merchantId": "5f3c57ad869d7863e8a109c9",
+            "variantId": "9613cc69416a7c733f222e997c75041bfee115bf4e48fb5a85a81a1c95b7c7c1"
+          },
+          {
+            "canonicalBottleId": "bb_13fcb09e58792e06",
+            "canonicalName": "Bulleit Bourbon",
+            "tier": "standard",
+            "rawName": "Bulleit Bourbon",
+            "productUrl": "https://5star-wines.com/shop/product/bulleit-bourbon/56c2713c75627570b0160200?option-id=0dfc4c6944280cee4b244d5a816132db00d053f34f89269babf77dbc90ea2d77",
+            "merchantId": "5f3c57ad869d7863e8a109c9",
+            "variantId": "0dfc4c6944280cee4b244d5a816132db00d053f34f89269babf77dbc90ea2d77"
+          },
+          {
+            "canonicalBottleId": "bb_361a268eaf7afec6",
+            "canonicalName": "Angel's Envy Bourbon",
+            "tier": "standard",
+            "rawName": "Angel's Envy Kentucky Straight Bourbon Whiskey",
+            "productUrl": "https://5star-wines.com/shop/product/angels-envy-kentucky-straight-bourbon-whiskey/56c26aa075627570b0070000?option-id=616cdd37627f3bf97233606fd49ef7d88342fab27f82fe39106de468fbe3cd47",
+            "merchantId": "5f3c57ad869d7863e8a109c9",
+            "variantId": "616cdd37627f3bf97233606fd49ef7d88342fab27f82fe39106de468fbe3cd47"
+          },
+          {
+            "canonicalBottleId": "bb_5afa9241206ab963",
+            "canonicalName": "Blanton's Original Single Barrel",
+            "tier": "allocated",
+            "rawName": "Blanton's The Original Single Barrel Kentucky Straight Bourbon Whiskey",
+            "productUrl": "https://5star-wines.com/shop/product/blantons-the-original-single-barrel-kentucky-straight-bourbon-whiskey/5521ceef6561310003530000?option-id=f4c73889b4358e77a61aacbd627fe6cceeeb8172afa59476f234063af80c7307",
+            "merchantId": "5f3c57ad869d7863e8a109c9",
+            "variantId": "f4c73889b4358e77a61aacbd627fe6cceeeb8172afa59476f234063af80c7307"
+          },
+          {
+            "canonicalBottleId": "bb_152c90f782b801f5",
+            "canonicalName": "E.H. Taylor Small Batch",
+            "tier": "allocated",
+            "rawName": "Colonel E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey",
+            "productUrl": "https://5star-wines.com/shop/product/colonel-e-h-taylor-small-batch-kentucky-straight-bourbon-whiskey/5521cefd65613100033e0400?option-id=47053ff5e4609bcb43474e44bfc0cb5c130115711957605987e37b0ba19f8029",
+            "merchantId": "5f3c57ad869d7863e8a109c9",
+            "variantId": "47053ff5e4609bcb43474e44bfc0cb5c130115711957605987e37b0ba19f8029"
+          },
+          {
+            "canonicalBottleId": "bb_ee4b5c90535d24d7",
+            "canonicalName": "1792 Full Proof",
+            "tier": "allocated",
+            "rawName": "1792 Bourbon Full Proof",
+            "productUrl": "https://5star-wines.com/shop/product/1792-bourbon-full-proof/59653a92355d0935c14d7491?option-id=dd1e2a742de147bca497d8c273d0435ef77c126aca7a9d2ce21cdf50e2654a7a",
+            "merchantId": "5f3c57ad869d7863e8a109c9",
+            "variantId": "dd1e2a742de147bca497d8c273d0435ef77c126aca7a9d2ce21cdf50e2654a7a"
+          },
+          {
+            "canonicalBottleId": "bb_9b3f8371a44671f4",
+            "canonicalName": "1792 Small Batch",
+            "tier": "core",
+            "rawName": "1792 Small Batch Bourbon",
+            "productUrl": "https://5star-wines.com/shop/product/1792-small-batch-bourbon/56702e3d7562755050100100?option-id=f11be9eb92edda191179365fd0fa144b30702f990c8510f21c2f1e4a828a80a2",
+            "merchantId": "5f3c57ad869d7863e8a109c9",
+            "variantId": "f11be9eb92edda191179365fd0fa144b30702f990c8510f21c2f1e4a828a80a2"
+          },
+          {
+            "canonicalBottleId": "bb_9b3f8371a44671f4",
+            "canonicalName": "1792 Small Batch",
+            "tier": "core",
+            "rawName": "1792 Small Batch Bourbon",
+            "productUrl": "https://5star-wines.com/shop/product/1792-small-batch-bourbon/573141c869702d067c152900?option-id=b13e0e8769f8bc6d7a03a7aa345223fb3c94300f47ff54f1945b2fe002759cfd",
+            "merchantId": "5f3c57ad869d7863e8a109c9",
+            "variantId": "b13e0e8769f8bc6d7a03a7aa345223fb3c94300f47ff54f1945b2fe002759cfd"
+          }
+        ]
+      },
+      "improved": {
+        "uniquePositiveVariants": 41,
+        "canonicalRelevantMatches": 9,
+        "tierCounts": {
+          "allocated": 4,
+          "core": 2,
+          "standard": 3
+        },
+        "bottles": [
+          {
+            "canonicalBottleId": "bb_13fcb09e58792e06",
+            "canonicalName": "Bulleit Bourbon",
+            "tier": "standard",
+            "rawName": "Bulleit Bourbon",
+            "productUrl": "https://5star-wines.com/shop/product/bulleit-bourbon/5fdd3a7ab23bc17c10747710?option-id=9613cc69416a7c733f222e997c75041bfee115bf4e48fb5a85a81a1c95b7c7c1",
+            "merchantId": "5f3c57ad869d7863e8a109c9",
+            "variantId": "9613cc69416a7c733f222e997c75041bfee115bf4e48fb5a85a81a1c95b7c7c1"
+          },
+          {
+            "canonicalBottleId": "bb_13fcb09e58792e06",
+            "canonicalName": "Bulleit Bourbon",
+            "tier": "standard",
+            "rawName": "Bulleit Bourbon",
+            "productUrl": "https://5star-wines.com/shop/product/bulleit-bourbon/56c2713c75627570b0160200?option-id=0dfc4c6944280cee4b244d5a816132db00d053f34f89269babf77dbc90ea2d77",
+            "merchantId": "5f3c57ad869d7863e8a109c9",
+            "variantId": "0dfc4c6944280cee4b244d5a816132db00d053f34f89269babf77dbc90ea2d77"
+          },
+          {
+            "canonicalBottleId": "bb_361a268eaf7afec6",
+            "canonicalName": "Angel's Envy Bourbon",
+            "tier": "standard",
+            "rawName": "Angel's Envy Kentucky Straight Bourbon Whiskey",
+            "productUrl": "https://5star-wines.com/shop/product/angels-envy-kentucky-straight-bourbon-whiskey/56c26aa075627570b0070000?option-id=616cdd37627f3bf97233606fd49ef7d88342fab27f82fe39106de468fbe3cd47",
+            "merchantId": "5f3c57ad869d7863e8a109c9",
+            "variantId": "616cdd37627f3bf97233606fd49ef7d88342fab27f82fe39106de468fbe3cd47"
+          },
+          {
+            "canonicalBottleId": "bb_5afa9241206ab963",
+            "canonicalName": "Blanton's Original Single Barrel",
+            "tier": "allocated",
+            "rawName": "Blanton's The Original Single Barrel Kentucky Straight Bourbon Whiskey",
+            "productUrl": "https://5star-wines.com/shop/product/blantons-the-original-single-barrel-kentucky-straight-bourbon-whiskey/5521ceef6561310003530000?option-id=f4c73889b4358e77a61aacbd627fe6cceeeb8172afa59476f234063af80c7307",
+            "merchantId": "5f3c57ad869d7863e8a109c9",
+            "variantId": "f4c73889b4358e77a61aacbd627fe6cceeeb8172afa59476f234063af80c7307"
+          },
+          {
+            "canonicalBottleId": "bb_152c90f782b801f5",
+            "canonicalName": "E.H. Taylor Small Batch",
+            "tier": "allocated",
+            "rawName": "Colonel E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey",
+            "productUrl": "https://5star-wines.com/shop/product/colonel-e-h-taylor-small-batch-kentucky-straight-bourbon-whiskey/5521cefd65613100033e0400?option-id=47053ff5e4609bcb43474e44bfc0cb5c130115711957605987e37b0ba19f8029",
+            "merchantId": "5f3c57ad869d7863e8a109c9",
+            "variantId": "47053ff5e4609bcb43474e44bfc0cb5c130115711957605987e37b0ba19f8029"
+          },
+          {
+            "canonicalBottleId": "bb_ee4b5c90535d24d7",
+            "canonicalName": "1792 Full Proof",
+            "tier": "allocated",
+            "rawName": "1792 Bourbon Full Proof",
+            "productUrl": "https://5star-wines.com/shop/product/1792-bourbon-full-proof/59653a92355d0935c14d7491?option-id=dd1e2a742de147bca497d8c273d0435ef77c126aca7a9d2ce21cdf50e2654a7a",
+            "merchantId": "5f3c57ad869d7863e8a109c9",
+            "variantId": "dd1e2a742de147bca497d8c273d0435ef77c126aca7a9d2ce21cdf50e2654a7a"
+          },
+          {
+            "canonicalBottleId": "bb_9b3f8371a44671f4",
+            "canonicalName": "1792 Small Batch",
+            "tier": "core",
+            "rawName": "1792 Small Batch Bourbon",
+            "productUrl": "https://5star-wines.com/shop/product/1792-small-batch-bourbon/56702e3d7562755050100100?option-id=f11be9eb92edda191179365fd0fa144b30702f990c8510f21c2f1e4a828a80a2",
+            "merchantId": "5f3c57ad869d7863e8a109c9",
+            "variantId": "f11be9eb92edda191179365fd0fa144b30702f990c8510f21c2f1e4a828a80a2"
+          },
+          {
+            "canonicalBottleId": "bb_9b3f8371a44671f4",
+            "canonicalName": "1792 Small Batch",
+            "tier": "core",
+            "rawName": "1792 Small Batch Bourbon",
+            "productUrl": "https://5star-wines.com/shop/product/1792-small-batch-bourbon/573141c869702d067c152900?option-id=b13e0e8769f8bc6d7a03a7aa345223fb3c94300f47ff54f1945b2fe002759cfd",
+            "merchantId": "5f3c57ad869d7863e8a109c9",
+            "variantId": "b13e0e8769f8bc6d7a03a7aa345223fb3c94300f47ff54f1945b2fe002759cfd"
+          },
+          {
+            "canonicalBottleId": "bb_be6a0afd4ba5f963",
+            "canonicalName": "Elijah Craig Barrel Proof",
+            "tier": "allocated",
+            "rawName": "Elijah Craig Barrel Proof",
+            "productUrl": "https://5star-wines.com/shop/product/elijah-craig-barrel-proof/56c29217756275139dc70300?option-id=3d93b49724609c76372fde68ad932452f0fcf332837dd94d9741a69e46868371",
+            "merchantId": "5f3c57ad869d7863e8a109c9",
+            "variantId": "3d93b49724609c76372fde68ad932452f0fcf332837dd94d9741a69e46868371"
+          }
+        ]
+      },
+      "extraCanonicalBottles": [
+        {
+          "canonicalBottleId": "bb_be6a0afd4ba5f963",
+          "canonicalName": "Elijah Craig Barrel Proof",
+          "tier": "allocated",
+          "rawName": "Elijah Craig Barrel Proof",
+          "productUrl": "https://5star-wines.com/shop/product/elijah-craig-barrel-proof/56c29217756275139dc70300?option-id=3d93b49724609c76372fde68ad932452f0fcf332837dd94d9741a69e46868371",
+          "merchantId": "5f3c57ad869d7863e8a109c9",
+          "variantId": "3d93b49724609c76372fde68ad932452f0fcf332837dd94d9741a69e46868371"
+        }
+      ],
+      "completeSnapshot": true,
+      "stoppedReason": "repeated_category_page",
+      "optionalFailures": [],
+      "responseEvidence": [
+        {
+          "url": "https://5star-wines.com/shop/?subtype=Bourbon&merchant-id=5f3c57ad869d7863e8a109c9",
+          "status": 200,
+          "bytes": 499162,
+          "sha256": "12c02b29237d02208de069a05d3610c5dcce10e3b73c8bed7df49cb073af688b"
+        },
+        {
+          "url": "https://5star-wines.com/shop/?subtype=Bourbon&page=2&merchant-id=5f3c57ad869d7863e8a109c9",
+          "status": 200,
+          "bytes": 497940,
+          "sha256": "d9f8a023d444c6b6fdc340b441b8622823b967d72b9869787d6f9a15badf78df"
+        },
+        {
+          "url": "https://5star-wines.com/shop/?subtype=whiskey&merchant-id=5f3c57ad869d7863e8a109c9",
+          "status": 200,
+          "bytes": 552450,
+          "sha256": "c95d145c57d6a27539b213b2a654777aed8a9cf553a4f5be6f9183f039bf6da4"
+        },
+        {
+          "url": "https://5star-wines.com/shop/?ch-query=weller&merchant-id=5f3c57ad869d7863e8a109c9",
+          "status": 200,
+          "bytes": 368336,
+          "sha256": "5c2706c0006fb08ac3e475e44b296c0b98bcd399dfd3c514a198d4dba6456ac5"
+        },
+        {
+          "url": "https://5star-wines.com/shop/?ch-query=van+winkle&merchant-id=5f3c57ad869d7863e8a109c9",
+          "status": 200,
+          "bytes": 171313,
+          "sha256": "f59fca2cb4ad394b5f8a9827439f761c207f6307567fe1b70877f0865b1ec4e5"
+        },
+        {
+          "url": "https://5star-wines.com/shop/?ch-query=single+barrel&merchant-id=5f3c57ad869d7863e8a109c9",
+          "status": 200,
+          "bytes": 387507,
+          "sha256": "1fe7fbad041c7502bed42fa49476710fb80ed727f02338ba8ea6e916f3381eb5"
+        },
+        {
+          "url": "https://5star-wines.com/shop/?ch-query=barrel+proof&merchant-id=5f3c57ad869d7863e8a109c9",
+          "status": 200,
+          "bytes": 433880,
+          "sha256": "286556126f4bef6ad8ed55ef6a530cd0c604e84ab52d9113823d06b863aad3fc"
+        },
+        {
+          "url": "https://5star-wines.com/shop/?ch-query=bottled+in+bond&merchant-id=5f3c57ad869d7863e8a109c9",
+          "status": 200,
+          "bytes": 390850,
+          "sha256": "c661cf42d6de86847dd0f9c5e138517f43cb13c5d41939c4f0cab2d464c9f49f"
+        },
+        {
+          "url": "https://5star-wines.com/shop/?ch-query=limited+edition&merchant-id=5f3c57ad869d7863e8a109c9",
+          "status": 200,
+          "bytes": 357906,
+          "sha256": "831c0f494434a3d5a9045500c574ed6e0b9e5c6c7701980faea6c428c94361d0"
+        },
+        {
+          "url": "https://5star-wines.com/shop/?ch-query=rare&merchant-id=5f3c57ad869d7863e8a109c9",
+          "status": 200,
+          "bytes": 268080,
+          "sha256": "6992c0bd6d94b9966aa48ad9174ca715127bdbfc2e3c2870a31bf3922ddaab7a"
+        }
+      ]
+    },
+    {
+      "sourceId": "bailey-discount-liquor-wine",
+      "storeName": "Bailey Discount Liquor & Wine",
+      "merchantId": "6552574725493d2c90afee1d",
+      "status": "success",
+      "requestCount": 10,
+      "elapsedMs": 7441,
+      "baseline": {
+        "uniquePositiveVariants": 16,
+        "canonicalRelevantMatches": 9,
+        "tierCounts": {
+          "allocated": 6,
+          "limited": 1,
+          "standard": 2
+        },
+        "bottles": [
+          {
+            "canonicalBottleId": "bb_361a268eaf7afec6",
+            "canonicalName": "Angel's Envy Bourbon",
+            "tier": "standard",
+            "rawName": "Angel's Envy Kentucky Straight Bourbon Whiskey",
+            "productUrl": "https://baileydiscountliquorandwine.com/shop/product/angels-envy-kentucky-straight-bourbon-whiskey/56c26aa075627570b0070000?option-id=616cdd37627f3bf97233606fd49ef7d88342fab27f82fe39106de468fbe3cd47",
+            "merchantId": "6552574725493d2c90afee1d",
+            "variantId": "616cdd37627f3bf97233606fd49ef7d88342fab27f82fe39106de468fbe3cd47"
+          },
+          {
+            "canonicalBottleId": "bb_5afa9241206ab963",
+            "canonicalName": "Blanton's Original Single Barrel",
+            "tier": "allocated",
+            "rawName": "Blanton's The Original Single Barrel Kentucky Straight Bourbon Whiskey",
+            "productUrl": "https://baileydiscountliquorandwine.com/shop/product/blantons-the-original-single-barrel-kentucky-straight-bourbon-whiskey/5521ceef6561310003530000?option-id=f4c73889b4358e77a61aacbd627fe6cceeeb8172afa59476f234063af80c7307",
+            "merchantId": "6552574725493d2c90afee1d",
+            "variantId": "f4c73889b4358e77a61aacbd627fe6cceeeb8172afa59476f234063af80c7307"
+          },
+          {
+            "canonicalBottleId": "bb_317836b9e64a7620",
+            "canonicalName": "Buffalo Trace Bourbon",
+            "tier": "allocated",
+            "rawName": "Buffalo Trace Bourbon",
+            "productUrl": "https://baileydiscountliquorandwine.com/shop/product/buffalo-trace-bourbon/5521cef065613100036c0000?option-id=71749b184cecfd234aaf9a96879b65ae10b91c0e3d5ea5c3d9fe48e5a42c97f5",
+            "merchantId": "6552574725493d2c90afee1d",
+            "variantId": "71749b184cecfd234aaf9a96879b65ae10b91c0e3d5ea5c3d9fe48e5a42c97f5"
+          },
+          {
+            "canonicalBottleId": "bb_13fcb09e58792e06",
+            "canonicalName": "Bulleit Bourbon",
+            "tier": "standard",
+            "rawName": "Bulleit Bourbon",
+            "productUrl": "https://baileydiscountliquorandwine.com/shop/product/bulleit-bourbon/56c2712175627570b00d0200?option-id=7e5beba72f4c8243613877cb89415e9a9a6c4ae467294488ffcb674dc3100bf5",
+            "merchantId": "6552574725493d2c90afee1d",
+            "variantId": "7e5beba72f4c8243613877cb89415e9a9a6c4ae467294488ffcb674dc3100bf5"
+          },
+          {
+            "canonicalBottleId": "bb_152c90f782b801f5",
+            "canonicalName": "E.H. Taylor Small Batch",
+            "tier": "allocated",
+            "rawName": "Colonel E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey",
+            "productUrl": "https://baileydiscountliquorandwine.com/shop/product/colonel-e-h-taylor-small-batch-kentucky-straight-bourbon-whiskey/5521cefd65613100033e0400?option-id=47053ff5e4609bcb43474e44bfc0cb5c130115711957605987e37b0ba19f8029",
+            "merchantId": "6552574725493d2c90afee1d",
+            "variantId": "47053ff5e4609bcb43474e44bfc0cb5c130115711957605987e37b0ba19f8029"
+          },
+          {
+            "canonicalBottleId": "bb_d0fe561ac45db2d5",
+            "canonicalName": "Eagle Rare 10 Year",
+            "tier": "allocated",
+            "rawName": "Eagle Rare 10 Year Kentucky Straight Bourbon",
+            "productUrl": "https://baileydiscountliquorandwine.com/shop/product/eagle-rare-10-year-kentucky-straight-bourbon/5521cef16561310003020100?option-id=2019723d4bc388a1636a0e8333f6cab54fb3b7f582d026c6e3b19cb398a6e87c",
+            "merchantId": "6552574725493d2c90afee1d",
+            "variantId": "2019723d4bc388a1636a0e8333f6cab54fb3b7f582d026c6e3b19cb398a6e87c"
+          },
+          {
+            "canonicalBottleId": "bb_be6a0afd4ba5f963",
+            "canonicalName": "Elijah Craig Barrel Proof",
+            "tier": "allocated",
+            "rawName": "Elijah Craig Barrel Proof",
+            "productUrl": "https://baileydiscountliquorandwine.com/shop/product/elijah-craig-barrel-proof/56c29217756275139dc70300?option-id=3d93b49724609c76372fde68ad932452f0fcf332837dd94d9741a69e46868371",
+            "merchantId": "6552574725493d2c90afee1d",
+            "variantId": "3d93b49724609c76372fde68ad932452f0fcf332837dd94d9741a69e46868371"
+          },
+          {
+            "canonicalBottleId": "bb_d99031402ce45359",
+            "canonicalName": "Elijah Craig Toasted Barrel",
+            "tier": "limited",
+            "rawName": "Elijah Craig Toasted Barrel Bourbon",
+            "productUrl": "https://baileydiscountliquorandwine.com/shop/product/elijah-craig-toasted-barrel-bourbon/5f0341cd4b2ef011dcbda2af?option-id=a92784fc91500753882c3e66a29bb2422ce7becd1ca55db5b182d2685fded91b",
+            "merchantId": "6552574725493d2c90afee1d",
+            "variantId": "a92784fc91500753882c3e66a29bb2422ce7becd1ca55db5b182d2685fded91b"
+          },
+          {
+            "canonicalBottleId": "bb_b7ca7cc4ab428ba8",
+            "canonicalName": "Henry McKenna 10 Year",
+            "tier": "allocated",
+            "rawName": "Henry McKenna Single Barrel 10 Year Old Bourbon Whiskey",
+            "productUrl": "https://baileydiscountliquorandwine.com/shop/product/henry-mckenna-single-barrel-10-year-old-bourbon-whiskey/56c26c3975627570b0880000?option-id=5c0ebaf043c4bd578c30b20f4207bf4addb175dad1c036780e0aba5c01f95dc1",
+            "merchantId": "6552574725493d2c90afee1d",
+            "variantId": "5c0ebaf043c4bd578c30b20f4207bf4addb175dad1c036780e0aba5c01f95dc1"
+          }
+        ]
+      },
+      "improved": {
+        "uniquePositiveVariants": 23,
+        "canonicalRelevantMatches": 11,
+        "tierCounts": {
+          "allocated": 7,
+          "limited": 1,
+          "standard": 2,
+          "unicorn": 1
+        },
+        "bottles": [
+          {
+            "canonicalBottleId": "bb_361a268eaf7afec6",
+            "canonicalName": "Angel's Envy Bourbon",
+            "tier": "standard",
+            "rawName": "Angel's Envy Kentucky Straight Bourbon Whiskey",
+            "productUrl": "https://baileydiscountliquorandwine.com/shop/product/angels-envy-kentucky-straight-bourbon-whiskey/56c26aa075627570b0070000?option-id=616cdd37627f3bf97233606fd49ef7d88342fab27f82fe39106de468fbe3cd47",
+            "merchantId": "6552574725493d2c90afee1d",
+            "variantId": "616cdd37627f3bf97233606fd49ef7d88342fab27f82fe39106de468fbe3cd47"
+          },
+          {
+            "canonicalBottleId": "bb_5afa9241206ab963",
+            "canonicalName": "Blanton's Original Single Barrel",
+            "tier": "allocated",
+            "rawName": "Blanton's The Original Single Barrel Kentucky Straight Bourbon Whiskey",
+            "productUrl": "https://baileydiscountliquorandwine.com/shop/product/blantons-the-original-single-barrel-kentucky-straight-bourbon-whiskey/5521ceef6561310003530000?option-id=f4c73889b4358e77a61aacbd627fe6cceeeb8172afa59476f234063af80c7307",
+            "merchantId": "6552574725493d2c90afee1d",
+            "variantId": "f4c73889b4358e77a61aacbd627fe6cceeeb8172afa59476f234063af80c7307"
+          },
+          {
+            "canonicalBottleId": "bb_317836b9e64a7620",
+            "canonicalName": "Buffalo Trace Bourbon",
+            "tier": "allocated",
+            "rawName": "Buffalo Trace Bourbon",
+            "productUrl": "https://baileydiscountliquorandwine.com/shop/product/buffalo-trace-bourbon/5521cef065613100036c0000?option-id=71749b184cecfd234aaf9a96879b65ae10b91c0e3d5ea5c3d9fe48e5a42c97f5",
+            "merchantId": "6552574725493d2c90afee1d",
+            "variantId": "71749b184cecfd234aaf9a96879b65ae10b91c0e3d5ea5c3d9fe48e5a42c97f5"
+          },
+          {
+            "canonicalBottleId": "bb_13fcb09e58792e06",
+            "canonicalName": "Bulleit Bourbon",
+            "tier": "standard",
+            "rawName": "Bulleit Bourbon",
+            "productUrl": "https://baileydiscountliquorandwine.com/shop/product/bulleit-bourbon/56c2712175627570b00d0200?option-id=7e5beba72f4c8243613877cb89415e9a9a6c4ae467294488ffcb674dc3100bf5",
+            "merchantId": "6552574725493d2c90afee1d",
+            "variantId": "7e5beba72f4c8243613877cb89415e9a9a6c4ae467294488ffcb674dc3100bf5"
+          },
+          {
+            "canonicalBottleId": "bb_152c90f782b801f5",
+            "canonicalName": "E.H. Taylor Small Batch",
+            "tier": "allocated",
+            "rawName": "Colonel E.H. Taylor Small Batch Kentucky Straight Bourbon Whiskey",
+            "productUrl": "https://baileydiscountliquorandwine.com/shop/product/colonel-e-h-taylor-small-batch-kentucky-straight-bourbon-whiskey/5521cefd65613100033e0400?option-id=47053ff5e4609bcb43474e44bfc0cb5c130115711957605987e37b0ba19f8029",
+            "merchantId": "6552574725493d2c90afee1d",
+            "variantId": "47053ff5e4609bcb43474e44bfc0cb5c130115711957605987e37b0ba19f8029"
+          },
+          {
+            "canonicalBottleId": "bb_d0fe561ac45db2d5",
+            "canonicalName": "Eagle Rare 10 Year",
+            "tier": "allocated",
+            "rawName": "Eagle Rare 10 Year Kentucky Straight Bourbon",
+            "productUrl": "https://baileydiscountliquorandwine.com/shop/product/eagle-rare-10-year-kentucky-straight-bourbon/5521cef16561310003020100?option-id=2019723d4bc388a1636a0e8333f6cab54fb3b7f582d026c6e3b19cb398a6e87c",
+            "merchantId": "6552574725493d2c90afee1d",
+            "variantId": "2019723d4bc388a1636a0e8333f6cab54fb3b7f582d026c6e3b19cb398a6e87c"
+          },
+          {
+            "canonicalBottleId": "bb_be6a0afd4ba5f963",
+            "canonicalName": "Elijah Craig Barrel Proof",
+            "tier": "allocated",
+            "rawName": "Elijah Craig Barrel Proof",
+            "productUrl": "https://baileydiscountliquorandwine.com/shop/product/elijah-craig-barrel-proof/56c29217756275139dc70300?option-id=3d93b49724609c76372fde68ad932452f0fcf332837dd94d9741a69e46868371",
+            "merchantId": "6552574725493d2c90afee1d",
+            "variantId": "3d93b49724609c76372fde68ad932452f0fcf332837dd94d9741a69e46868371"
+          },
+          {
+            "canonicalBottleId": "bb_d99031402ce45359",
+            "canonicalName": "Elijah Craig Toasted Barrel",
+            "tier": "limited",
+            "rawName": "Elijah Craig Toasted Barrel Bourbon",
+            "productUrl": "https://baileydiscountliquorandwine.com/shop/product/elijah-craig-toasted-barrel-bourbon/5f0341cd4b2ef011dcbda2af?option-id=a92784fc91500753882c3e66a29bb2422ce7becd1ca55db5b182d2685fded91b",
+            "merchantId": "6552574725493d2c90afee1d",
+            "variantId": "a92784fc91500753882c3e66a29bb2422ce7becd1ca55db5b182d2685fded91b"
+          },
+          {
+            "canonicalBottleId": "bb_b7ca7cc4ab428ba8",
+            "canonicalName": "Henry McKenna 10 Year",
+            "tier": "allocated",
+            "rawName": "Henry McKenna Single Barrel 10 Year Old Bourbon Whiskey",
+            "productUrl": "https://baileydiscountliquorandwine.com/shop/product/henry-mckenna-single-barrel-10-year-old-bourbon-whiskey/56c26c3975627570b0880000?option-id=5c0ebaf043c4bd578c30b20f4207bf4addb175dad1c036780e0aba5c01f95dc1",
+            "merchantId": "6552574725493d2c90afee1d",
+            "variantId": "5c0ebaf043c4bd578c30b20f4207bf4addb175dad1c036780e0aba5c01f95dc1"
+          },
+          {
+            "canonicalBottleId": "bb_54f5df2f8ee5d7c9",
+            "canonicalName": "Weller Special Reserve",
+            "tier": "allocated",
+            "rawName": "Weller Special Reserve",
+            "productUrl": "https://baileydiscountliquorandwine.com/shop/product/weller-special-reserve/5521cef86561310003da0200?option-id=a8c4b4e271895c2d29d5307bac3caaaf7dd0b15e52fe36362cce9ad250d11108",
+            "merchantId": "6552574725493d2c90afee1d",
+            "variantId": "a8c4b4e271895c2d29d5307bac3caaaf7dd0b15e52fe36362cce9ad250d11108"
+          },
+          {
+            "canonicalBottleId": "bb_770b95a65307bba6",
+            "canonicalName": "Old Rip Van Winkle 10 Year",
+            "tier": "unicorn",
+            "rawName": "Old Rip Van Winkle 10 Year Bourbon Whiskey",
+            "productUrl": "https://baileydiscountliquorandwine.com/shop/product/old-rip-van-winkle-10-year-bourbon-whiskey/56c2703975627570b0c00100?option-id=d42d3b2a08c9b2f89caf3b53e22057de283f8aff0c6ff93675f7dd11656b25c4",
+            "merchantId": "6552574725493d2c90afee1d",
+            "variantId": "d42d3b2a08c9b2f89caf3b53e22057de283f8aff0c6ff93675f7dd11656b25c4"
+          }
+        ]
+      },
+      "extraCanonicalBottles": [
+        {
+          "canonicalBottleId": "bb_54f5df2f8ee5d7c9",
+          "canonicalName": "Weller Special Reserve",
+          "tier": "allocated",
+          "rawName": "Weller Special Reserve",
+          "productUrl": "https://baileydiscountliquorandwine.com/shop/product/weller-special-reserve/5521cef86561310003da0200?option-id=a8c4b4e271895c2d29d5307bac3caaaf7dd0b15e52fe36362cce9ad250d11108",
+          "merchantId": "6552574725493d2c90afee1d",
+          "variantId": "a8c4b4e271895c2d29d5307bac3caaaf7dd0b15e52fe36362cce9ad250d11108"
+        },
+        {
+          "canonicalBottleId": "bb_770b95a65307bba6",
+          "canonicalName": "Old Rip Van Winkle 10 Year",
+          "tier": "unicorn",
+          "rawName": "Old Rip Van Winkle 10 Year Bourbon Whiskey",
+          "productUrl": "https://baileydiscountliquorandwine.com/shop/product/old-rip-van-winkle-10-year-bourbon-whiskey/56c2703975627570b0c00100?option-id=d42d3b2a08c9b2f89caf3b53e22057de283f8aff0c6ff93675f7dd11656b25c4",
+          "merchantId": "6552574725493d2c90afee1d",
+          "variantId": "d42d3b2a08c9b2f89caf3b53e22057de283f8aff0c6ff93675f7dd11656b25c4"
+        }
+      ],
+      "completeSnapshot": true,
+      "stoppedReason": "repeated_category_page",
+      "optionalFailures": [],
+      "responseEvidence": [
+        {
+          "url": "https://baileydiscountliquorandwine.com/shop/?subtype=Bourbon&merchant-id=6552574725493d2c90afee1d",
+          "status": 200,
+          "bytes": 479142,
+          "sha256": "a6beac195ca2935e3dacf3926f7a49346556fe920d96954da5d2256df39cc39d"
+        },
+        {
+          "url": "https://baileydiscountliquorandwine.com/shop/?subtype=Bourbon&page=2&merchant-id=6552574725493d2c90afee1d",
+          "status": 200,
+          "bytes": 478104,
+          "sha256": "3c60a3d3fbc3449f3bd48b7109332b7ea36b03bffa3e6ea12492c4b4f1f32912"
+        },
+        {
+          "url": "https://baileydiscountliquorandwine.com/shop/?subtype=whiskey&merchant-id=6552574725493d2c90afee1d",
+          "status": 200,
+          "bytes": 426304,
+          "sha256": "e9fdb9ab1c7704305a08cb111135af4dd6c6ecadbb378666d50bedcc37cad684"
+        },
+        {
+          "url": "https://baileydiscountliquorandwine.com/shop/?ch-query=weller&merchant-id=6552574725493d2c90afee1d",
+          "status": 200,
+          "bytes": 281973,
+          "sha256": "92d9594eccf41f66bea73a57791e948b12517199ecf525bcf975b807b5307e3c"
+        },
+        {
+          "url": "https://baileydiscountliquorandwine.com/shop/?ch-query=van+winkle&merchant-id=6552574725493d2c90afee1d",
+          "status": 200,
+          "bytes": 207989,
+          "sha256": "51bd139c124f6812fd45d0bdf4f15b924c500d29e884b0666d940321cefa9073"
+        },
+        {
+          "url": "https://baileydiscountliquorandwine.com/shop/?ch-query=single+barrel&merchant-id=6552574725493d2c90afee1d",
+          "status": 200,
+          "bytes": 417562,
+          "sha256": "3492602eafe2167868785918ec3c5cd8204b23e0d2c7094d4f511b735706b3a6"
+        },
+        {
+          "url": "https://baileydiscountliquorandwine.com/shop/?ch-query=barrel+proof&merchant-id=6552574725493d2c90afee1d",
+          "status": 200,
+          "bytes": 438558,
+          "sha256": "65e97228f50f280191837db8f7702d4a4a574c189c6c5db298a409207a6071d3"
+        },
+        {
+          "url": "https://baileydiscountliquorandwine.com/shop/?ch-query=bottled+in+bond&merchant-id=6552574725493d2c90afee1d",
+          "status": 200,
+          "bytes": 268282,
+          "sha256": "69d23e52354a737e8b60f7fa6cc4c1a07b2677311318831f6a1e9d204a56bb06"
+        },
+        {
+          "url": "https://baileydiscountliquorandwine.com/shop/?ch-query=limited+edition&merchant-id=6552574725493d2c90afee1d",
+          "status": 200,
+          "bytes": 250156,
+          "sha256": "da01087169658755bb59a22fba324d67229833094623000fee25aa0e308dd2a4"
+        },
+        {
+          "url": "https://baileydiscountliquorandwine.com/shop/?ch-query=rare&merchant-id=6552574725493d2c90afee1d",
+          "status": 200,
+          "bytes": 255786,
+          "sha256": "93547121d90083aeb98f9e380b101fcced2a02b060e37e576793d624a9ed015e"
+        }
+      ]
+    }
+  ]
+}

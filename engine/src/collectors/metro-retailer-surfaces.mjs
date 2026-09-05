@@ -9,7 +9,7 @@ function store(id, name, merchantId, address, city, stateCode, zip) {
   return Object.freeze({ id, name, merchantId, address, city, state: stateCode, stateCode, zip });
 }
 
-function cityHiveSource({ id, chainName, baseUrl, stateCode, area, stores, inventoryMode = 'premises_quantity' }) {
+function cityHiveSource({ id, chainName, baseUrl, stateCode, area, stores, inventoryMode = 'premises_quantity', depthDiscovery = null }) {
   return Object.freeze({
     id,
     chainName,
@@ -21,6 +21,7 @@ function cityHiveSource({ id, chainName, baseUrl, stateCode, area, stores, inven
     productsUrl: `${baseUrl}/shop/?subtype=Bourbon`,
     fulfillmentPolicyUrl: `${baseUrl}/shop/?subtype=Bourbon`,
     maxPages: 1,
+    depthDiscovery: depthDiscovery ? Object.freeze({ ...depthDiscovery }) : null,
     stateCode,
     area,
     inventoryEligible: true,
@@ -249,6 +250,18 @@ export const NEW_YORK_RETAILER_SOURCES = Object.freeze([
     stateCode: 'NY',
     area: 'Buffalo',
     inventoryMode: 'itemlist_binary',
+    depthDiscovery: {
+      maxCategoryPages: 2,
+      includeWhiskey: true,
+      queryTerms: ['weller', 'van winkle', 'single barrel', 'barrel proof', 'bottled in bond', 'limited edition', 'rare'],
+      maxRequests: 10,
+      maxElapsedMs: 25_000,
+      maxBodyBytes: 1_024 * 1_024,
+      maxTotalBytes: 6 * 1_024 * 1_024,
+      maxProducts: 300,
+      requestTimeoutMs: 10_000,
+      refreshCadenceMs: 30 * 60_000,
+    },
     stores: [
       store('five-star-wine-spirits-buffalo:5f3c57ad869d7863e8a109c9', '5 star wine & spirits, Buffalo, NY', '5f3c57ad869d7863e8a109c9', '24 Bailey Ave, Buffalo, NY 14220, USA', 'Buffalo', 'NY', '14220'),
     ],
@@ -260,6 +273,18 @@ export const NEW_YORK_RETAILER_SOURCES = Object.freeze([
     stateCode: 'NY',
     area: 'Buffalo',
     inventoryMode: 'itemlist_binary',
+    depthDiscovery: {
+      maxCategoryPages: 2,
+      includeWhiskey: true,
+      queryTerms: ['weller', 'van winkle', 'single barrel', 'barrel proof', 'bottled in bond', 'limited edition', 'rare'],
+      maxRequests: 10,
+      maxElapsedMs: 25_000,
+      maxBodyBytes: 1_024 * 1_024,
+      maxTotalBytes: 6 * 1_024 * 1_024,
+      maxProducts: 300,
+      requestTimeoutMs: 10_000,
+      refreshCadenceMs: 30 * 60_000,
+    },
     stores: [
       store('bailey-discount-liquor-wine:6552574725493d2c90afee1d', 'Bailey Discount Liquor & Wine', '6552574725493d2c90afee1d', '1245 Bailey Ave, Buffalo, NY 14206, USA', 'Buffalo', 'NY', '14206'),
     ],
@@ -654,6 +679,7 @@ export function parseMetroCityHiveHtml(html, candidateSource) {
   const configurations = merchantConfigurations(embeddedValues);
   const rows = [];
   const seen = new Set();
+  const unavailableVariantKeys = new Set();
   for (const payload of productPayloads(embeddedValues)) {
     for (const product of payload.products) {
       if (!product || typeof product !== 'object') continue;
@@ -667,7 +693,6 @@ export function parseMetroCityHiveHtml(html, candidateSource) {
           if (!exactPremises(entityAddress(merchant), configuredStore) || !exactPremises(entityAddress(option), configuredStore)) continue;
           if (!hasPickupOffer(merchant?.offer_types, merchant?.offerTypes, merchant?.fulfillment, option?.offer_types, option?.offerTypes, option?.fulfillment)) continue;
           const quantity = normalizeMetroCityHiveQuantity(option?.quantity);
-          if (quantity.reportedQuantity <= 0) continue;
           const title = normalizedText(option?.option_display_data?.name || option?.optionDisplayData?.name || product.name || product.title);
           const description = productDescription(product, option);
           const explicitSize = option?.option_display_data?.size?.quantity
@@ -685,6 +710,13 @@ export function parseMetroCityHiveHtml(html, candidateSource) {
           if (!productId || !variantId) continue;
           const productUrl = exactProductUrl(option?.product_url || option?.productUrl || option?.url, source, productId, variantId);
           if (!productUrl) continue;
+          const explicitQuantity = Number(option?.quantity);
+          if (quantity.reportedQuantity <= 0) {
+            if (option?.quantity !== null && option?.quantity !== undefined && Number.isFinite(explicitQuantity) && explicitQuantity === 0) {
+              unavailableVariantKeys.add(`${id}:${productId}:${variantId}`);
+            }
+            continue;
+          }
           const key = `${id}:${productId}:${variantId}:${productUrl}`;
           if (seen.has(key)) continue;
           seen.add(key);
@@ -709,7 +741,9 @@ export function parseMetroCityHiveHtml(html, candidateSource) {
       }
     }
   }
-  return rows.length > 0 ? rows : cityHiveItemListRows(source, html, configurations);
+  const result = rows.length > 0 ? rows : cityHiveItemListRows(source, html, configurations);
+  Object.defineProperty(result, 'unavailableVariantKeys', { value: [...unavailableVariantKeys].sort() });
+  return result;
 }
 
 export function verifyMetroShopifyFulfillmentPolicy(candidateSource, html) {
@@ -802,7 +836,7 @@ export function filterFreshMetroSignals(signals, nowMs = Date.now(), maxAgeMs) {
   });
 }
 
-export function mergeMetroSourceCacheSignals(liveSignals, cachedSignals, completedSourceIds = new Set()) {
+export function mergeMetroSourceCacheSignals(liveSignals, cachedSignals, completedSourceIds = new Set(), partialSourceMetadata = new Map()) {
   const merged = [];
   const seen = new Set();
   for (const signal of Array.isArray(liveSignals) ? liveSignals : []) {
@@ -811,7 +845,14 @@ export function mergeMetroSourceCacheSignals(liveSignals, cachedSignals, complet
     merged.push(signal);
   }
   for (const signal of Array.isArray(cachedSignals) ? cachedSignals : []) {
-    if (!signal?.id || seen.has(signal.id) || completedSourceIds.has(String(signal.sourceChain || ''))) continue;
+    const sourceId = String(signal?.sourceChain || '');
+    const metadata = partialSourceMetadata.get(sourceId);
+    const identityKey = `${signal?.merchantId || ''}:${signal?.productId || ''}:${signal?.variantId || ''}`;
+    const unavailable = new Set(metadata?.unavailableVariantKeys || []);
+    const successfulRoutes = new Set(metadata?.successfulDiscoveryRoutes || []);
+    const discoveryRoute = signal?.raw?.discoveryRoute;
+    if (!signal?.id || seen.has(signal.id) || completedSourceIds.has(sourceId)
+      || unavailable.has(identityKey) || discoveryRoute && successfulRoutes.has(discoveryRoute)) continue;
     seen.add(signal.id);
     merged.push(signal);
   }
