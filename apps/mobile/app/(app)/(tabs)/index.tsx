@@ -2,6 +2,7 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AccessibilityInfo, Animated, AppState, FlatList, ImageBackground, Keyboard, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MobileApiError } from "../../../src/api/client";
 import { presentBottleIdentity, relativeSignalTime, signalAccessibilityTime } from "../../../src/api/presentation";
 import type { MemberProfile, Signal, SignalFeedPage } from "../../../src/api/types";
@@ -84,6 +85,7 @@ function FeedSkeleton() {
 
 export default function SignalFeedScreen() {
   const api = useMobileApi();
+  const insets = useSafeAreaInsets();
   const [view, setView] = useState<FeedView>("market");
   const [signals, setSignals] = useState<Signal[]>([]);
   const [queuedSignals, setQueuedSignals] = useState<Signal[]>([]);
@@ -372,19 +374,14 @@ export default function SignalFeedScreen() {
   const homeBackdrop = (
     <ImageBackground
       accessibilityIgnoresInvertColors
-      imageStyle={styles.homeBackdropImage}
       resizeMode="cover"
-      source={require("../../../assets/home-shelf-header.jpg")}
+      source={require("../../../assets/home-shelf-background.jpg")}
       style={styles.homeBackdrop}
-    >
-      <View style={styles.homeBackdropShade} />
-      <View style={styles.homeBackdropFadeMid} />
-      <View style={styles.homeBackdropFade} />
-    </ImageBackground>
+    />
   );
 
   const header = (
-    <View style={styles.header}>
+    <View style={[styles.header, { paddingTop: insets.top + 64 }]}>
       {tickerSignal ? <View accessibilityLabel="Recent reports" style={styles.tickerShell}>
         <Animated.View style={[styles.tickerAnimated, { opacity: tickerOpacity, transform: [{ translateY: tickerOpacity.interpolate({ inputRange: [0, 1], outputRange: [5, 0] }) }] }]}>
           <Pressable
@@ -527,7 +524,7 @@ export default function SignalFeedScreen() {
       keyExtractor={(item) => item.id}
       renderItem={({ item }) => <SignalCard highlighted={highlightedIds.includes(item.id)} signal={item} onPress={() => router.push({ pathname: "/(app)/signal/[id]", params: { id: item.id } })} />}
 
-      refreshControl={<RefreshControl refreshing={loading && loaded} onRefresh={() => { void load(true); void loadProfile(true); }} tintColor={colors.accent} colors={[colors.accent]} />}
+      refreshControl={<RefreshControl refreshing={loading && loaded} onRefresh={() => { void load(true); void loadProfile(true); }} progressViewOffset={insets.top + 56} tintColor={colors.accent} colors={[colors.accent]} />}
       onEndReached={() => { if (loaded && signals.length && !filters.rarities.length) void load(false); }}
       onEndReachedThreshold={0.5}
       ListHeaderComponent={header}
@@ -566,13 +563,9 @@ export default function SignalFeedScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background },
-  homeBackdrop: { position: "absolute", top: 0, left: 0, right: 0, height: 300 },
-  homeBackdropImage: { opacity: 0.78 },
-  homeBackdropShade: { position: "absolute", inset: 0, backgroundColor: "rgba(5, 4, 3, 0.38)" },
-  homeBackdropFadeMid: { position: "absolute", left: 0, right: 0, bottom: 56, height: 72, backgroundColor: "rgba(9, 8, 7, 0.46)" },
-  homeBackdropFade: { position: "absolute", left: 0, right: 0, bottom: 0, height: 58, backgroundColor: colors.background },
+  homeBackdrop: StyleSheet.absoluteFill,
   list: { paddingHorizontal: 16, paddingTop: 0, paddingBottom: 64 },
-  header: { gap: 8, marginBottom: 10, paddingTop: 8, paddingBottom: 12 },
+  header: { gap: 8, marginBottom: 10, paddingBottom: 12 },
   tickerShell: { minHeight: 34, marginHorizontal: -16, paddingHorizontal: 16, justifyContent: "center", overflow: "hidden", backgroundColor: "rgba(29, 21, 13, 0.46)" },
   tickerAnimated: { minHeight: 34, justifyContent: "center" },
   tickerSignal: { minHeight: 34, flexDirection: "row", alignItems: "center", gap: 7 },

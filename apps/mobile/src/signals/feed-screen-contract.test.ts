@@ -62,12 +62,14 @@ test("Home uses a compact scoped ticker rather than another rounded card", () =>
   assert.doesNotMatch(feed, /ItemSeparatorComponent/);
 });
 
-test("the fixed shelf backdrop remains behind pull-to-refresh until Signals begin", () => {
+test("one full-screen shelf composition continues behind the transparent header and fades into the feed", () => {
   const backdrop = position("style={styles.homeBackdrop}");
   const list = position("      <FlatList");
   assert.ok(backdrop < list);
   assert.match(feed, /const homeBackdrop = \(/);
-  assert.match(feed, /source=\{require\("\.\.\/\.\.\/\.\.\/assets\/home-shelf-header\.jpg"\)\}/);
-  assert.match(feed, /styles\.homeBackdropShade/);
-  assert.match(feed, /styles\.homeBackdropFade/);
+  assert.match(feed, /source=\{require\("\.\.\/\.\.\/\.\.\/assets\/home-shelf-background\.jpg"\)\}/);
+  assert.match(feed, /homeBackdrop: StyleSheet\.absoluteFill/);
+  assert.match(feed, /useSafeAreaInsets\(\)/);
+  assert.match(feed, /paddingTop: insets\.top \+ 64/);
+  assert.doesNotMatch(feed, /home-shelf-header\.jpg|homeBackdropShade|homeBackdropFadeMid|homeBackdropFade/);
 });

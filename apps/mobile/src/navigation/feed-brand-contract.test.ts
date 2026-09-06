@@ -12,9 +12,8 @@ test("Home header uses the Bourbon Signal brand font and a real alert-inbox acti
   assert.match(tabs, /Bourbon Signal/);
   assert.match(tabs, /accessibilityLabel="Open alert inbox"/);
   assert.match(tabs, /name="bell-outline"/);
-  assert.match(tabs, /headerBackground: HomeHeaderBackground/);
-  assert.match(tabs, /home-shelf-header\.jpg/);
-  assert.match(tabs, /homeHeaderImage: \{ opacity: 1/);
-  assert.match(tabs, /rgba\(5, 4, 3, 0\.12\)/);
+  assert.match(tabs, /headerTransparent: true/);
+  assert.match(tabs, /headerStyle: \{ backgroundColor: "transparent" \}/);
+  assert.doesNotMatch(tabs, /HomeHeaderBackground|home-shelf-header\.jpg|homeHeaderImage/);
   assert.match(tabs, /router\.push\(\{ pathname: "\/\(app\)\/\(tabs\)\/radar", params: \{ section: "matches", request: Date\.now\(\)\.toString\(\) \} \}\)/);
 });
