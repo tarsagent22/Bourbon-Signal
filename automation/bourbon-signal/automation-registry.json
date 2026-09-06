@@ -2,6 +2,23 @@
   "schemaVersion": 1,
   "automations": [
     {
+      "id": "github-mobile-ios-startup",
+      "platform": "github_workflow",
+      "workflowPath": ".github/workflows/mobile-ios-startup.yml",
+      "active": true,
+      "ownerLayer": "deterministic",
+      "executionClass": "script_only",
+      "frequency": "manual workflow dispatch only",
+      "agent": { "provider": null, "model": null, "reasoning": null },
+      "externalApi": { "classes": ["github_actions"], "maxRequestsPerRun": 0 },
+      "customerMutation": "none",
+      "promotionDeployment": "none",
+      "silencePolicy": "report_output",
+      "killSwitch": "github_workflow_disable",
+      "artifacts": ["native-home-fixture"],
+      "delivery": "github_only"
+    },
+    {
       "id": "github-ci",
       "platform": "github_workflow",
       "workflowPath": ".github/workflows/ci.yml",

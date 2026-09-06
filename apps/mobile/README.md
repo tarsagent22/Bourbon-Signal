@@ -50,7 +50,7 @@ After a development binary with `expo-updates` is installed, compatible TypeScri
 npx eas-cli update --channel development --environment development --message "Describe the preview"
 ```
 
-Native dependencies, permissions, app identifiers, and other native configuration changes still require a new EAS Build. `runtimeVersion` follows the app version so an incompatible update cannot be delivered to a different binary version.
+Native dependencies, permissions, app identifiers, and other native configuration changes still require a new EAS Build. Android `runtimeVersion` follows the app version. The iOS recovery binary uses the explicit runtime `1.1.0-ios-recovery-1` to isolate it from the previous `1.1.0` update stream. Native compatibility changes require a new build and a compatible runtime; runtime isolation is recovery packaging, not a proven crash root-cause fix.
 
 The app IDs are `com.bourbonsignal.app` on Android and iOS. EAS `development`, `preview`, and `production` environments provide the same two public Clerk/API runtime values; no Clerk secret belongs in a mobile build. The production store candidate uses app version `1.0.0`, remote build-number auto-increment, and the `production` OTA channel.
 

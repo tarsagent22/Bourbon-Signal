@@ -1,61 +1,64 @@
 name: Native iOS startup
 on:
-  pull_request:
-    paths:
-      - 'apps/mobile/**'
-      - '.github/workflows/mobile-ios-startup.yml'
+  workflow_dispatch:
 permissions:
   contents: read
-  actions: read
 concurrency:
-  group: native-ios-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
+  group: native-ios-${{ github.ref }}
+  cancel-in-progress: false
 jobs:
   startup:
-    if: github.event.pull_request.head.repo.full_name == github.repository
     runs-on: macos-26
-    timeout-minutes: 15
-    env:
-      CI: '1'
+    timeout-minutes: 40
     defaults:
       run:
         working-directory: apps/mobile
+    env:
+      CI: '1'
+      EXPO_NO_TELEMETRY: '1'
+      EXPO_PUBLIC_API_URL: https://www.bourbonsignal.com
+      EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ vars.NATIVE_SMOKE_CLERK_PUBLISHABLE_KEY }}
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.event.pull_request.head.sha }}
       - uses: actions/setup-node@v4
         with:
-          node-version: '24'
+          node-version: '22'
           cache: npm
           cache-dependency-path: apps/mobile/package-lock.json
       - run: npm ci --no-audit --no-fund
-      # Temporary incident-only reuse; not a permanent release-readiness gate.
-      # Native dependencies are unchanged from this exact archived simulator shell.
-      - name: Retrieve the already-tested native shell
-        uses: actions/download-artifact@v4
-        with:
-          github-token: ${{ github.token }}
-          run-id: '34005474222'
-          name: native-ios-startup-3f02e40552f2e4b0ff0846fe6ddc7d604fab3b93
-          path: apps/mobile/native-evidence
-      - name: Restore native shell
+      - run: npm run test:ios-recovery
+      - run: npx expo prebuild --platform ios --no-install
+      - run: pod install --project-directory=ios
+      - name: Compile Release native shell
         run: |
-          mkdir -p native-evidence/build/Build/Products/Release-iphonesimulator
-          tar -xzf native-evidence/simulator-app.tar.gz -C native-evidence/build/Build/Products/Release-iphonesimulator
-      - name: Export real Home with only synthetic API and auth seams
+          mkdir -p native-evidence
+          xcodebuild -workspace ios/BourbonSignal.xcworkspace -scheme BourbonSignal -configuration Release -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath native-evidence/build CODE_SIGNING_ALLOWED=NO ONLY_ACTIVE_ARCH=YES ARCHS="$(uname -m)" -quiet > native-evidence/xcodebuild.log 2>&1
+      - name: Bundle native Home fixture with explicit seams
         run: |
-          node -e "require('node:fs').writeFileSync('metro.config.js',\"module.exports = require('./scripts/native-home/metro.config.cjs');\\n\")"
+          test ! -e metro.config.js
           trap 'rm -f metro.config.js' EXIT
-          npx expo export:embed --entry-file scripts/native-home/entry.tsx --platform ios --dev false --bytecode --bundle-output native-evidence/build/Build/Products/Release-iphonesimulator/BourbonSignal.app/main.jsbundle --sourcemap-output native-evidence/home-fixture.map
-      - name: Run native Home fixture
+          node -e "require('node:fs').writeFileSync('metro.config.js',\"module.exports = require('./scripts/native-home/metro.config.cjs');\\n\")"
+          npx expo export:embed --entry-file scripts/native-home/entry.tsx --platform ios --dev false --bytecode --reset-cache --bundle-output native-evidence/home-fixture.hbc --sourcemap-output native-evidence/home-fixture.map
+          python3 - <<'PY'
+          import json, shutil
+          from pathlib import Path
+          sources = json.loads(Path('native-evidence/home-fixture.map').read_text())['sources']
+          assert '/scripts/native-home/fixture.ts' in sources
+          assert '/src/hooks/useMobileApi.ts' not in sources
+          assert '/app/(app)/(tabs)/index.tsx' in sources
+          assert any('expo-secure-store' in s for s in sources)
+          assert any('react-navigation' in s for s in sources)
+          shutil.copyfile('native-evidence/home-fixture.hbc', 'native-evidence/build/Build/Products/Release-iphonesimulator/BourbonSignal.app/main.jsbundle')
+          PY
+      - name: Capture actual native Home
         env:
           NATIVE_SCENARIO: home-fixture
         run: python3 scripts/verify-ios-startup.py
-      - name: Preserve actual native Home evidence
+      - uses: actions/upload-artifact@v4
         if: always()
-        uses: actions/upload-artifact@v4
         with:
-          name: native-home-fixture-${{ github.event.pull_request.head.sha }}
-          path: apps/mobile/native-evidence/home-fixture/
+          name: native-home-fixture-${{ github.sha }}
+          path: |
+            apps/mobile/native-evidence/xcodebuild.log
+            apps/mobile/native-evidence/home-fixture/
           retention-days: 7

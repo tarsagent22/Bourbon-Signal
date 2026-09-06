@@ -4,6 +4,8 @@
   "private": true,
   "main": "expo-router/entry",
   "scripts": {
+    "postinstall": "node scripts/prepare-native-plist.cjs",
+    "test:ios-recovery": "node --test scripts/ios-recovery.test.cjs",
     "start": "expo start --dev-client",
     "android": "expo run:android",
     "ios": "expo run:ios",
@@ -16,7 +18,7 @@
     "verify:native-deps": "npm ls react-native-worklets react-native-reanimated expo-modules-core --all",
     "export:android": "expo export --platform android --output-dir dist/android",
     "export:ios": "expo export --platform ios --output-dir dist/ios",
-    "verify": "npm run verify:native-deps && npm run typecheck && npm test && npm run test:home-browsing && npm run verify:release-readiness && npm run export:android && npm run export:ios",
+    "verify": "npm run verify:native-deps && npm run test:ios-recovery && npm run typecheck && npm test && npm run test:home-browsing && npm run verify:release-readiness && npm run export:android && npm run export:ios",
     "test:astra": "node scripts/test-astra-suite.mjs"
   },
   "dependencies": {
