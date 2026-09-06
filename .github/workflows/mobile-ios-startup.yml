@@ -1,0 +1,55 @@
+name: Native iOS startup
+on:
+  pull_request:
+    paths:
+      - 'apps/mobile/**'
+      - '.github/workflows/mobile-ios-startup.yml'
+permissions:
+  contents: read
+concurrency:
+  group: native-ios-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+jobs:
+  startup:
+    if: github.event.pull_request.head.repo.full_name == github.repository
+    runs-on: macos-26
+    timeout-minutes: 40
+    env:
+      CI: '1'
+      EXPO_PUBLIC_API_URL: https://www.bourbonsignal.com
+      EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY: ${{ vars.NATIVE_SMOKE_CLERK_PUBLISHABLE_KEY }}
+    defaults:
+      run:
+        working-directory: apps/mobile
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+          cache-dependency-path: apps/mobile/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - name: Generate native iOS project
+        run: npx expo prebuild --platform ios --no-install
+      - name: Install pods
+        run: pod install --project-directory=ios
+      - name: Compile actual Release app for simulator
+        run: |
+          mkdir -p native-evidence
+          set -o pipefail
+          xcodebuild -workspace ios/BourbonSignal.xcworkspace -scheme BourbonSignal -configuration Release -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath native-evidence/build CODE_SIGNING_ALLOWED=NO build > native-evidence/build.log 2>&1
+      - name: Cold-launch native app and capture failure
+        run: python3 scripts/verify-ios-startup.py
+      - name: Preserve native startup evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-ios-startup-${{ github.event.pull_request.head.sha }}
+          path: |
+            apps/mobile/native-evidence/*.log
+            apps/mobile/native-evidence/*.json
+            apps/mobile/native-evidence/*.png
+            apps/mobile/native-evidence/*.ips
+          retention-days: 7
