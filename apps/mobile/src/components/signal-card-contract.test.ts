@@ -28,9 +28,11 @@ test("Signal cards use designed store and location rows with a concise anchored 
   assert.doesNotMatch(card, /signalCardSummary|styles\.note/);
 });
 
-test("Signal cards use one top and one bottom boundary instead of boxing the price", () => {
-  assert.match(styleBlock("card"), /borderTopWidth: StyleSheet\.hairlineWidth/);
-  assert.match(styleBlock("card"), /borderBottomWidth: StyleSheet\.hairlineWidth/);
+test("Signal cards separate with spacing and a quiet surface instead of divider lines", () => {
+  assert.match(styleBlock("card"), /backgroundColor: "#14110E"/);
+  assert.match(styleBlock("card"), /borderRadius: 10/);
+  assert.match(styleBlock("card"), /marginBottom: 10/);
+  assert.doesNotMatch(styleBlock("card"), /borderTopWidth|borderBottomWidth/);
   assert.doesNotMatch(styleBlock("footer"), /borderTopWidth|borderTopColor/);
 });
 

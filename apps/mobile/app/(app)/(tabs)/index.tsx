@@ -369,16 +369,22 @@ export default function SignalFeedScreen() {
   const paidAccessMismatch = Boolean(profile?.membership.paid && marketLocked);
   const canUseFilters = view === "community" || access?.marketDetailsLocked === false;
 
-  const header = (
+  const homeBackdrop = (
     <ImageBackground
       accessibilityIgnoresInvertColors
-      imageStyle={styles.headerImage}
+      imageStyle={styles.homeBackdropImage}
       resizeMode="cover"
       source={require("../../../assets/home-shelf-header.jpg")}
-      style={styles.headerBackdrop}
+      style={styles.homeBackdrop}
     >
-      <View pointerEvents="none" style={styles.headerShade} />
-      <View style={styles.header}>
+      <View style={styles.homeBackdropShade} />
+      <View style={styles.homeBackdropFadeMid} />
+      <View style={styles.homeBackdropFade} />
+    </ImageBackground>
+  );
+
+  const header = (
+    <View style={styles.header}>
       {tickerSignal ? <View accessibilityLabel="Recent reports" style={styles.tickerShell}>
         <Animated.View style={[styles.tickerAnimated, { opacity: tickerOpacity, transform: [{ translateY: tickerOpacity.interpolate({ inputRange: [0, 1], outputRange: [5, 0] }) }] }]}>
           <Pressable
@@ -506,12 +512,12 @@ export default function SignalFeedScreen() {
           <Text accessibilityRole="alert" style={styles.inlineErrorText}>Paid access was not recognized. Refresh or sign in again.</Text>
         </View>
       ) : null}
-      </View>
-    </ImageBackground>
+    </View>
   );
 
   return (
     <View style={styles.screen}>
+      {homeBackdrop}
       <FlatList
       ref={listRef}
       contentContainerStyle={styles.list}
@@ -559,12 +565,14 @@ export default function SignalFeedScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1 },
+  screen: { flex: 1, backgroundColor: colors.background },
+  homeBackdrop: { position: "absolute", top: 0, left: 0, right: 0, height: 300 },
+  homeBackdropImage: { opacity: 0.78 },
+  homeBackdropShade: { position: "absolute", inset: 0, backgroundColor: "rgba(5, 4, 3, 0.38)" },
+  homeBackdropFadeMid: { position: "absolute", left: 0, right: 0, bottom: 56, height: 72, backgroundColor: "rgba(9, 8, 7, 0.46)" },
+  homeBackdropFade: { position: "absolute", left: 0, right: 0, bottom: 0, height: 58, backgroundColor: colors.background },
   list: { paddingHorizontal: 16, paddingTop: 0, paddingBottom: 64 },
-  headerBackdrop: { marginHorizontal: -16, marginBottom: 10, overflow: "hidden" },
-  headerImage: { opacity: 0.58 },
-  headerShade: { position: "absolute", inset: 0, backgroundColor: "rgba(5, 4, 3, 0.50)" },
-  header: { gap: 8, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 12 },
+  header: { gap: 8, marginBottom: 10, paddingTop: 8, paddingBottom: 12 },
   tickerShell: { minHeight: 34, marginHorizontal: -16, paddingHorizontal: 16, justifyContent: "center", overflow: "hidden", backgroundColor: "rgba(29, 21, 13, 0.46)" },
   tickerAnimated: { minHeight: 34, justifyContent: "center" },
   tickerSignal: { minHeight: 34, flexDirection: "row", alignItems: "center", gap: 7 },
