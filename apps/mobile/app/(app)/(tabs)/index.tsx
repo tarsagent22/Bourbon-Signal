@@ -107,6 +107,7 @@ export default function SignalFeedScreen() {
     community: { ...DEFAULT_SIGNAL_FILTERS },
   });
   const [bottleQueries, setBottleQueries] = useState<Record<FeedView, string>>({ market: "", community: "" });
+  const [searchExpanded, setSearchExpanded] = useState(false);
   const [remoteAreaState, setRemoteAreaState] = useState("");
   const [remoteAreaOptions, setRemoteAreaOptions] = useState<Array<{ value: string; label: string }>>([]);
   const [areaOptionsLoading, setAreaOptionsLoading] = useState(false);
@@ -114,7 +115,7 @@ export default function SignalFeedScreen() {
   const filters = filtersByView[view];
   const requestFilters = useMemo(() => serverSignalFilters(filters), [filters]);
   const visibleSignals = useMemo(() => filterSignalsByRarity(signals, filters.rarities), [filters.rarities, signals]);
-  const tickerSignals = useMemo(() => recentTickerSignals(visibleSignals, new Date(tickerNow)), [tickerNow, visibleSignals]);
+  const tickerSignals = useMemo(() => recentTickerSignals(visibleSignals, filters.state, new Date(tickerNow)), [filters.state, tickerNow, visibleSignals]);
   const tickerSignal = tickerSignals.length ? tickerSignals[tickerIndex % tickerSignals.length] : null;
   const scopeKey = JSON.stringify([view, requestFilters, filters.rarities]);
   const screenActive = screenFocused && appState === "active";
@@ -213,6 +214,7 @@ export default function SignalFeedScreen() {
     setError("");
     setLoaded(false);
     setLoading(false);
+    setSearchExpanded(false);
   }, [view]);
 
   const applyFilters = useCallback((next: SignalFeedFilters) => {
@@ -327,7 +329,7 @@ export default function SignalFeedScreen() {
   }, [screenActive]);
   useEffect(() => {
     if (!screenActive || motionDisabled || tickerSignals.length < 2) return undefined;
-    const timer = setInterval(() => setTickerIndex((current) => (current + 1) % tickerSignals.length), 8_000);
+    const timer = setInterval(() => setTickerIndex((current) => (current + 1) % tickerSignals.length), 5_000);
     return () => clearInterval(timer);
   }, [motionDisabled, screenActive, tickerSignals.length]);
   useEffect(() => {
@@ -352,6 +354,16 @@ export default function SignalFeedScreen() {
     listRef.current?.scrollToOffset({ offset: 0, animated: !motionDisabled });
   }, [motionDisabled, queuedSignals]);
 
+  const toggleBottleSearch = useCallback(() => {
+    if (!searchExpanded) {
+      setSearchExpanded(true);
+      return;
+    }
+    setSearchExpanded(false);
+    Keyboard.dismiss();
+    if (bottleQuery) setBottleQueries((current) => ({ ...current, [view]: "" }));
+  }, [bottleQuery, searchExpanded, view]);
+
   const marketLocked = view === "market" && Boolean(access?.marketDetailsLocked);
   const paidAccessMismatch = Boolean(profile?.membership.paid && marketLocked);
   const canUseFilters = view === "community" || access?.marketDetailsLocked === false;
@@ -359,7 +371,7 @@ export default function SignalFeedScreen() {
   const header = (
     <View style={styles.header}>
       {tickerSignal ? <View accessibilityLabel="Recent reports" style={styles.tickerShell}>
-        <Animated.View style={[styles.tickerAnimated, { opacity: tickerOpacity }]}>
+        <Animated.View style={[styles.tickerAnimated, { opacity: tickerOpacity, transform: [{ translateY: tickerOpacity.interpolate({ inputRange: [0, 1], outputRange: [5, 0] }) }] }]}>
           <Pressable
             accessibilityHint="Opens Signal details"
             accessibilityLabel={`${tickerSignal.bottle.name}, ${tickerLocationLabel(tickerSignal)}, Reported ${signalAccessibilityTime(tickerSignal.timing.displayAt)}`}
@@ -367,16 +379,12 @@ export default function SignalFeedScreen() {
             onPress={() => router.push({ pathname: "/(app)/signal/[id]", params: { id: tickerSignal.id } })}
             style={({ pressed }) => [styles.tickerSignal, pressed && styles.segmentPressed]}
           >
-            <View style={styles.tickerMarker}><MaterialCommunityIcons color={colors.accent} name="radio-tower" size={15} /></View>
-            <Text numberOfLines={1} style={styles.tickerText}>{tickerSignal.bottle.name} · {tickerLocationLabel(tickerSignal)} · Reported {relativeSignalTime(tickerSignal.timing.displayAt)}</Text>
+            <View style={styles.tickerDot} />
+            <Text numberOfLines={1} style={styles.tickerText}><Text style={styles.tickerBottle}>{tickerSignal.bottle.name}</Text> · {tickerLocationLabel(tickerSignal)} · {relativeSignalTime(tickerSignal.timing.displayAt)}</Text>
+            <MaterialCommunityIcons color={colors.muted} name="chevron-right" size={16} />
           </Pressable>
         </Animated.View>
-        {tickerSignals.length > 1 ? <Pressable
-          accessibilityLabel="Show next recent report"
-          accessibilityRole="button"
-          onPress={() => setTickerIndex((current) => (current + 1) % tickerSignals.length)}
-          style={({ pressed }) => [styles.tickerNext, pressed && styles.segmentPressed]}
-        ><MaterialCommunityIcons color={colors.muted} name="chevron-right" size={20} /></Pressable> : null}
+        <View style={styles.tickerDivider} />
       </View> : null}
       <View accessibilityLabel="Signal feed view" style={styles.segmentedControl}>
         <Pressable
@@ -424,7 +432,7 @@ export default function SignalFeedScreen() {
         {filters.state && filters.state !== "NC" && areaOptionsLoading ? <Text style={styles.areaOptionNote}>Loading cities…</Text> : null}
         {filters.state && areaOptionsError ? <Text accessibilityRole="alert" style={styles.areaOptionError}>{areaOptionsError}</Text> : null}
 
-        <View style={styles.filterInputShell}>
+        {searchExpanded || bottleQuery ? <View style={styles.filterInputShell}>
           <MaterialCommunityIcons color={colors.muted} name="magnify" size={20} />
           <TextInput
             autoCapitalize="words"
@@ -439,32 +447,43 @@ export default function SignalFeedScreen() {
             value={bottleQuery}
           />
           {bottleQuery ? <Pressable accessibilityLabel="Clear bottle search" accessibilityRole="button" hitSlop={8} onPress={() => setBottleQueries((current) => ({ ...current, [view]: "" }))} style={styles.inputClearButton}><MaterialCommunityIcons color={colors.muted} name="close-circle" size={19} /></Pressable> : null}
-        </View>
+        </View> : null}
 
-        <ScrollView horizontal keyboardShouldPersistTaps="handled" contentContainerStyle={styles.rarityRow} showsHorizontalScrollIndicator={false} accessibilityLabel="Bottle rarity filters">
+        <View style={styles.filterToolsRow}>
+          <ScrollView horizontal keyboardShouldPersistTaps="handled" contentContainerStyle={styles.rarityRow} showsHorizontalScrollIndicator={false} accessibilityLabel="Bottle rarity filters">
+            <Pressable
+              accessibilityRole="button"
+              accessibilityState={{ selected: filters.rarities.length === 0 }}
+              onPress={() => applyRarityFilters({ ...filters, rarities: [] })}
+              style={({ pressed }) => [styles.rarityChip, filters.rarities.length === 0 && styles.rarityChipSelected, pressed && styles.segmentPressed]}
+            >
+              <Text style={[styles.rarityChipText, filters.rarities.length === 0 && styles.rarityChipTextSelected]}>All</Text>
+            </Pressable>
+            {rarityOptionsForView(view).map((option) => {
+              const selected = filters.rarities.includes(option.value);
+              return (
+                <Pressable
+                  key={option.value}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected }}
+                  onPress={() => applyRarityFilters(toggleRarity(filters, option.value))}
+                  style={({ pressed }) => [styles.rarityChip, selected && styles.rarityChipSelected, pressed && styles.segmentPressed]}
+                >
+                  <Text style={[styles.rarityChipText, selected && styles.rarityChipTextSelected]}>{option.label}</Text>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
           <Pressable
+            accessibilityLabel={searchExpanded ? "Close bottle search" : "Search bottle name"}
             accessibilityRole="button"
-            accessibilityState={{ selected: filters.rarities.length === 0 }}
-            onPress={() => applyRarityFilters({ ...filters, rarities: [] })}
-            style={({ pressed }) => [styles.rarityChip, filters.rarities.length === 0 && styles.rarityChipSelected, pressed && styles.segmentPressed]}
+            accessibilityState={{ expanded: searchExpanded }}
+            onPress={toggleBottleSearch}
+            style={({ pressed }) => [styles.searchToggle, searchExpanded && styles.searchToggleActive, pressed && styles.segmentPressed]}
           >
-            <Text style={[styles.rarityChipText, filters.rarities.length === 0 && styles.rarityChipTextSelected]}>All</Text>
+            <MaterialCommunityIcons color={searchExpanded ? colors.accent : colors.muted} name={searchExpanded ? "close" : "magnify"} size={19} />
           </Pressable>
-          {rarityOptionsForView(view).map((option) => {
-            const selected = filters.rarities.includes(option.value);
-            return (
-              <Pressable
-                key={option.value}
-                accessibilityRole="button"
-                accessibilityState={{ selected }}
-                onPress={() => applyRarityFilters(toggleRarity(filters, option.value))}
-                style={({ pressed }) => [styles.rarityChip, selected && styles.rarityChipSelected, pressed && styles.segmentPressed]}
-              >
-                <Text style={[styles.rarityChipText, selected && styles.rarityChipTextSelected]}>{option.label}</Text>
-              </Pressable>
-            );
-          })}
-        </ScrollView>
+        </View>
       </> : null}
 
       {profileError ? (
@@ -531,32 +550,36 @@ export default function SignalFeedScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1 },
-  list: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 64 },
+  list: { paddingHorizontal: 16, paddingTop: 0, paddingBottom: 64 },
   separator: { height: StyleSheet.hairlineWidth, backgroundColor: colors.border },
-  header: { gap: 11, marginBottom: 14 },
-  tickerShell: { minHeight: 46, flexDirection: "row", alignItems: "stretch", borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, borderColor: "#5A4127", backgroundColor: "#1D150D", overflow: "hidden" },
-  tickerAnimated: { flex: 1 },
-  tickerSignal: { minHeight: 46, flex: 1, flexDirection: "row", alignItems: "center", gap: 8, paddingLeft: 10, paddingVertical: 5 },
-  tickerMarker: { width: 28, height: 28, borderRadius: 14, alignItems: "center", justifyContent: "center", backgroundColor: "#2B1E11" },
-  tickerText: { flex: 1, color: colors.text, fontSize: 12, lineHeight: 16, fontWeight: "700" },
-  tickerNext: { minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center" },
+  header: { gap: 8, marginBottom: 10, paddingTop: 8 },
+  tickerShell: { minHeight: 34, marginHorizontal: -16, paddingHorizontal: 16, justifyContent: "center", overflow: "hidden", backgroundColor: "rgba(29, 21, 13, 0.46)" },
+  tickerAnimated: { minHeight: 34, justifyContent: "center" },
+  tickerSignal: { minHeight: 34, flexDirection: "row", alignItems: "center", gap: 7 },
+  tickerDot: { width: 5, height: 5, borderRadius: 3, backgroundColor: colors.accent },
+  tickerText: { flex: 1, color: colors.muted, fontSize: 11, lineHeight: 15, fontWeight: "500" },
+  tickerBottle: { color: colors.text, fontWeight: "800" },
+  tickerDivider: { position: "absolute", left: 16, right: 16, bottom: 0, height: StyleSheet.hairlineWidth, backgroundColor: "#5A4127" },
   newSignalsPill: { position: "absolute", zIndex: 5, top: 8, alignSelf: "center", minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingHorizontal: 16, borderRadius: 22, backgroundColor: colors.accent, borderWidth: 1, borderColor: "#F1BC72", shadowColor: "#000", shadowOpacity: 0.32, shadowRadius: 8, shadowOffset: { width: 0, height: 3 }, elevation: 5 },
   newSignalsPillPressed: { backgroundColor: colors.accentPressed, transform: [{ scale: 0.98 }] },
   newSignalsText: { color: "#171009", fontSize: 12, lineHeight: 16, fontWeight: "900" },
-  segmentedControl: { flexDirection: "row", padding: 3, borderRadius: 14, backgroundColor: colors.surface, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth },
-  segment: { flex: 1, minHeight: 44, borderRadius: 11, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 7 },
-  segmentSelected: { backgroundColor: "#241A10" },
+  segmentedControl: { flexDirection: "row", borderBottomColor: colors.border, borderBottomWidth: StyleSheet.hairlineWidth },
+  segment: { flex: 1, minHeight: 38, borderBottomWidth: 2, borderBottomColor: "transparent", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6 },
+  segmentSelected: { borderBottomColor: colors.accent },
   segmentPressed: { opacity: 0.78 },
   segmentLabel: { color: colors.muted, fontSize: 13, fontWeight: "700" },
   segmentLabelSelected: { color: colors.text },
   geographyRow: { flexDirection: "row", alignItems: "flex-start", justifyContent: "center", gap: 8 },
   filterChooser: { flex: 1, minWidth: 0 },
   filterChooserDisabled: { opacity: 0.48 },
-  rarityRow: { flexGrow: 1, gap: 7, paddingRight: 8, justifyContent: "center" },
-  rarityChip: { minHeight: 36, justifyContent: "center", paddingHorizontal: 13, borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface },
+  filterToolsRow: { minHeight: 36, flexDirection: "row", alignItems: "center", gap: 7 },
+  rarityRow: { gap: 6, paddingRight: 2, justifyContent: "flex-start" },
+  rarityChip: { minHeight: 32, justifyContent: "center", paddingHorizontal: 12, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface },
   rarityChipSelected: { borderColor: colors.accentPressed, backgroundColor: "#2A1F13" },
   rarityChipText: { color: colors.muted, fontSize: 12, fontWeight: "700" },
   rarityChipTextSelected: { color: colors.text },
+  searchToggle: { width: 36, height: 36, flexShrink: 0, alignItems: "center", justifyContent: "center", borderRadius: 18, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface },
+  searchToggleActive: { borderColor: colors.accentPressed, backgroundColor: "#2A1F13" },
   inlineError: { borderRadius: 12, borderColor: colors.danger, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 12, paddingVertical: 10, backgroundColor: colors.surface },
   inlineErrorText: { color: colors.danger, fontSize: 12, lineHeight: 17 },
   summaryList: { gap: 12 },
@@ -581,7 +604,7 @@ const styles = StyleSheet.create({
   footerError: { color: colors.danger, textAlign: "center" },
   end: { color: colors.muted, textAlign: "center", padding: 24, fontSize: 12 },
   fieldGroup: { gap: 6 },
-  chooserButton: { minHeight: 46, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface, paddingHorizontal: 11, flexDirection: "row", alignItems: "center", gap: 7 },
+  chooserButton: { minHeight: 40, borderRadius: 10, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface, paddingHorizontal: 10, flexDirection: "row", alignItems: "center", gap: 6 },
   chooserValue: { color: colors.text, fontSize: 13, fontWeight: "600", flex: 1 },
   chooserPlaceholder: { color: colors.muted, fontWeight: "500" },
   chooserOptions: { maxHeight: 190, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface },
@@ -590,7 +613,7 @@ const styles = StyleSheet.create({
   chooserOptionText: { color: colors.muted, fontSize: 12, fontWeight: "600" },
   areaOptionNote: { color: colors.muted, fontSize: 11, lineHeight: 15, textAlign: "center" },
   areaOptionError: { color: colors.danger, fontSize: 11, lineHeight: 15, textAlign: "center" },
-  filterInputShell: { minHeight: 46, flexDirection: "row", alignItems: "center", borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface, paddingLeft: 12, paddingRight: 6, gap: 7 },
-  filterInput: { minHeight: 44, flex: 1, color: colors.text, fontSize: 15, paddingRight: 6 },
+  filterInputShell: { minHeight: 40, flexDirection: "row", alignItems: "center", borderRadius: 10, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface, paddingLeft: 10, paddingRight: 4, gap: 6 },
+  filterInput: { minHeight: 38, flex: 1, color: colors.text, fontSize: 14, paddingRight: 5 },
   inputClearButton: { width: 36, height: 36, alignItems: "center", justifyContent: "center" },
 });

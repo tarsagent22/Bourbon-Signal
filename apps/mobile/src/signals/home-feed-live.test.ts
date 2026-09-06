@@ -32,12 +32,18 @@ test("accepting new rows prepends once and preserves existing order", () => {
   assert.deepEqual(acceptQueuedSignals(current, [signal("c", "2026-09-05T13:00:00.000Z"), current[0]]).map((item) => item.id), ["c", "a", "b"]);
 });
 
-test("ticker includes only honest recent availability and formats city/state", () => {
+test("ticker stays empty without a geographic browsing scope", () => {
+  const now = new Date("2026-09-05T15:00:00.000Z");
+  assert.deepEqual(recentTickerSignals([signal("recent", "2026-09-05T13:00:00.000Z")], "", now), []);
+});
+
+test("ticker includes only honest recent availability in newest-first order", () => {
   const now = new Date("2026-09-05T15:00:00.000Z");
   const recent = signal("recent", "2026-09-05T13:00:00.000Z");
+  const newest = signal("newest", "2026-09-05T14:30:00.000Z");
   const future = signal("future", "2026-09-06T13:00:00.000Z");
   const old = signal("old", "2026-08-30T13:00:00.000Z");
   const release = signal("release", "2026-09-05T14:00:00.000Z", { kind: "release" });
-  assert.deepEqual(recentTickerSignals([future, old, release, recent], now).map((item) => item.id), ["recent"]);
+  assert.deepEqual(recentTickerSignals([future, recent, old, release, newest], "NC", now).map((item) => item.id), ["newest", "recent"]);
   assert.equal(tickerLocationLabel(recent), "Raleigh, NC");
 });

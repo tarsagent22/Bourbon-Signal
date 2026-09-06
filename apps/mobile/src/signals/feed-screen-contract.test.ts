@@ -45,10 +45,18 @@ test("Signal Feed keeps Intel terminology while preserving the internal market t
   assert.match(feed, /No Intel Signals match these tiers right now/);
 });
 
-test("inline filters stay mounted and receive the first tap while search is focused", () => {
-  const applyFilters = feed.match(/const applyFilters = useCallback\([\s\S]*?\}, \[areaDirectory, view\]\);/)?.[0] || "";
-  assert.ok(applyFilters);
-  assert.doesNotMatch(applyFilters, /setAccess\(null\)/);
+test("bottle search expands on demand without adding a permanent control block", () => {
+  assert.match(feed, /const \[searchExpanded, setSearchExpanded\] = useState\(false\)/);
+  assert.match(feed, /searchExpanded \|\| bottleQuery/);
+  assert.match(feed, /accessibilityLabel=\{searchExpanded \? "Close bottle search" : "Search bottle name"\}/);
   assert.match(feed, /<FlatList[\s\S]*?keyboardShouldPersistTaps="handled"/);
-  assert.ok((feed.match(/keyboardShouldPersistTaps="handled"/g) || []).length >= 3);
+});
+
+test("Home uses a compact scoped ticker rather than another rounded card", () => {
+  assert.match(feed, /recentTickerSignals\(visibleSignals, filters\.state,/);
+  assert.match(feed, /const timer = setInterval[\s\S]*?5_000/);
+  assert.match(feed, /translateY/);
+  assert.match(feed, /tickerDivider/);
+  assert.doesNotMatch(feed, /tickerMarker/);
+  assert.doesNotMatch(feed, /· Reported \{relativeSignalTime/);
 });

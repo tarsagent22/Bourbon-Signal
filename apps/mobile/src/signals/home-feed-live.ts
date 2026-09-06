@@ -25,14 +25,15 @@ export function acceptQueuedSignals(current: readonly Signal[], queued: readonly
   return uniqueById([...queued, ...current]);
 }
 
-export function recentTickerSignals(signals: readonly Signal[], now = new Date()) {
+export function recentTickerSignals(signals: readonly Signal[], scopeState: string, now = new Date()) {
+  if (!scopeState.trim()) return [];
   const current = now.getTime();
   if (!Number.isFinite(current)) return [];
   return uniqueById(signals).filter((signal) => {
     if (signal.kind !== "availability") return false;
     const reported = Date.parse(signal.timing.displayAt);
     return Number.isFinite(reported) && reported <= current && current - reported < SIGNAL_RECENT_WINDOW_MS;
-  });
+  }).sort((left, right) => Date.parse(right.timing.displayAt) - Date.parse(left.timing.displayAt));
 }
 
 export function tickerLocationLabel(signal: Signal) {

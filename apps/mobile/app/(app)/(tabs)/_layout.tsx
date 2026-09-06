@@ -79,7 +79,7 @@ const styles = StyleSheet.create({
   brandTitle: { color: colors.text, fontFamily: "Fraunces_700Bold", fontSize: 24, lineHeight: 30, letterSpacing: -0.35 },
   alertButton: { width: 44, height: 44, alignItems: "center", justifyContent: "center", marginRight: 4 },
   pressed: { opacity: 0.68 },
-  homeHeaderImage: { opacity: 0.9 },
-  homeHeaderAmber: { position: "absolute", inset: 0, backgroundColor: "rgba(70, 36, 10, 0.18)" },
-  homeHeaderShade: { position: "absolute", inset: 0, backgroundColor: "rgba(5, 4, 3, 0.28)" },
+  homeHeaderImage: { opacity: 1 },
+  homeHeaderAmber: { position: "absolute", inset: 0, backgroundColor: "rgba(70, 36, 10, 0.08)" },
+  homeHeaderShade: { position: "absolute", inset: 0, backgroundColor: "rgba(5, 4, 3, 0.12)" },
 });
