@@ -59,4 +59,10 @@ test("Home uses a compact scoped ticker rather than another rounded card", () =>
   assert.match(feed, /tickerDivider/);
   assert.doesNotMatch(feed, /tickerMarker/);
   assert.doesNotMatch(feed, /· Reported \{relativeSignalTime/);
+  assert.doesNotMatch(feed, /ItemSeparatorComponent/);
+});
+
+test("the shelf atmosphere continues through Home controls until Signals begin", () => {
+  assert.match(feed, /<ImageBackground[\s\S]*?source=\{require\("\.\.\/\.\.\/\.\.\/assets\/home-shelf-header\.jpg"\)\}[\s\S]*?style=\{styles\.headerBackdrop\}/);
+  assert.match(feed, /styles\.headerShade/);
 });

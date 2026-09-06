@@ -95,6 +95,9 @@ test("bottle identity separates only explicit style and volume suffixes for edit
     title: "Penelope Bourbon Private Select 9 Year",
     subtitle: "",
   });
+  assert.equal(presentBottleIdentity("W.L. WELLER SPECIAL RESERVE").title, "W.L. Weller Special Reserve");
+  assert.equal(presentBottleIdentity("BOOKER'S BBN").title, "Booker's BBN");
+  assert.equal(presentBottleIdentity("1792 FULL PROOF").title, "1792 Full Proof");
 });
 
 test("card appearance keeps neutral editorial surfaces and uses rarity only as an accent", () => {

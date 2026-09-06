@@ -90,7 +90,7 @@ export function SignalCard({ signal, onPress, highlighted = false }: { signal: S
         {memberTag ? <View style={styles.memberTag}><Text style={styles.memberTagText}>{memberTag}</Text></View> : null}
       </View> : null}
 
-      {presented.price || metric ? <View style={[styles.footer, { borderTopColor: appearance.keyline }]}>
+      {presented.price || metric ? <View style={styles.footer}>
         {presented.price ? <Text style={styles.price}>{presented.price}</Text> : <View />}
         {metric ? <View style={styles.metric}>
           <View style={[styles.metricDot, availableNow && styles.availableDot, upcoming && styles.upcomingDot]} />
@@ -105,7 +105,11 @@ const styles = StyleSheet.create({
   card: {
     paddingHorizontal: 2,
     paddingVertical: 13,
+    marginBottom: 8,
     gap: 7,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderColor: colors.border,
     overflow: "hidden",
   },
   pressed: { opacity: 0.76, transform: [{ scale: 0.995 }] },
@@ -131,7 +135,7 @@ const styles = StyleSheet.create({
   authorRow: { minHeight: 22, flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 7 },
   memberTag: { backgroundColor: colors.surfaceRaised, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 4 },
   memberTagText: { color: colors.text, fontSize: 9, lineHeight: 12, fontWeight: "800", letterSpacing: 0.35 },
-  footer: { minHeight: 34, paddingTop: 10, marginTop: 1, borderTopWidth: StyleSheet.hairlineWidth, flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between", gap: 12 },
+  footer: { minHeight: 34, paddingTop: 5, marginTop: 1, flexDirection: "row", alignItems: "flex-end", justifyContent: "space-between", gap: 12 },
   price: { color: colors.text, fontFamily: "Fraunces_700Bold", fontSize: 20, lineHeight: 24, letterSpacing: -0.2 },
   metric: { minWidth: 0, flexShrink: 1, flexDirection: "row", alignItems: "center", justifyContent: "flex-end", gap: 7 },
   metricDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.muted },

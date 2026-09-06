@@ -28,6 +28,12 @@ test("Signal cards use designed store and location rows with a concise anchored 
   assert.doesNotMatch(card, /signalCardSummary|styles\.note/);
 });
 
+test("Signal cards use one top and one bottom boundary instead of boxing the price", () => {
+  assert.match(styleBlock("card"), /borderTopWidth: StyleSheet\.hairlineWidth/);
+  assert.match(styleBlock("card"), /borderBottomWidth: StyleSheet\.hairlineWidth/);
+  assert.doesNotMatch(styleBlock("footer"), /borderTopWidth|borderTopColor/);
+});
+
 test("Intel cards always state availability in text rather than relying on color", () => {
   assert.match(card, /const showStatus = !community \|\|/);
   assert.match(card, /styles\.status/);

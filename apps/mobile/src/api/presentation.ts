@@ -115,6 +115,17 @@ export function signalAvailabilityRefreshAt(signal: Signal, now = new Date()) {
   return candidates.length ? Math.min(...candidates) : null;
 }
 
+function editorialBottleCase(value: string) {
+  const letters = value.replace(/[^A-Za-z]/g, "");
+  if (!letters || letters !== letters.toUpperCase()) return value;
+  const preserved = new Set(["ABV", "BBN", "BIB", "BTAC", "CYPB", "C.Y.P.B.", "E.H.", "JTS", "KY", "W.L."]);
+  return value.split(" ").map((token) => {
+    if (!/[A-Z]/.test(token) || /\d/.test(token) || preserved.has(token) || /^(?:[A-Z]\.){2,}$/.test(token) || /^(?:I|II|III|IV|V|VI|VII|VIII|IX|X)$/.test(token)) return token;
+    const cased = token.toLowerCase().replace(/(^|[-'’])([a-z])/g, (_, lead: string, letter: string) => `${lead}${letter.toUpperCase()}`).replace(/(['’])S\b/g, "$1s");
+    return cased.replace(/^Mc([a-z])/, (_, letter: string) => `Mc${letter.toUpperCase()}`);
+  }).join(" ");
+}
+
 export function presentBottleIdentity(value: string) {
   const normalized = value.replace(/\s+/g, " ").trim();
   const volumeMatch = normalized.match(/\s+(\d+(?:\.\d+)?\s?(?:ml|l))$/i);
@@ -133,7 +144,7 @@ export function presentBottleIdentity(value: string) {
   const style = styleSuffixes.find((suffix) => withoutVolume.toLowerCase().endsWith(suffix.toLowerCase())) || "";
   const title = style ? withoutVolume.slice(0, -style.length).trim() : withoutVolume;
   return {
-    title: title || normalized,
+    title: editorialBottleCase(title || normalized),
     subtitle: [style, volume].filter(Boolean).join(" · "),
   };
 }

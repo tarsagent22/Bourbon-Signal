@@ -1,9 +1,9 @@
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AccessibilityInfo, Animated, AppState, FlatList, Keyboard, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { AccessibilityInfo, Animated, AppState, FlatList, ImageBackground, Keyboard, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { MobileApiError } from "../../../src/api/client";
-import { relativeSignalTime, signalAccessibilityTime } from "../../../src/api/presentation";
+import { presentBottleIdentity, relativeSignalTime, signalAccessibilityTime } from "../../../src/api/presentation";
 import type { MemberProfile, Signal, SignalFeedPage } from "../../../src/api/types";
 import { SignalCard } from "../../../src/components/SignalCard";
 import { useMobileApi } from "../../../src/hooks/useMobileApi";
@@ -117,6 +117,7 @@ export default function SignalFeedScreen() {
   const visibleSignals = useMemo(() => filterSignalsByRarity(signals, filters.rarities), [filters.rarities, signals]);
   const tickerSignals = useMemo(() => recentTickerSignals(visibleSignals, filters.state, new Date(tickerNow)), [filters.state, tickerNow, visibleSignals]);
   const tickerSignal = tickerSignals.length ? tickerSignals[tickerIndex % tickerSignals.length] : null;
+  const tickerBottle = tickerSignal ? presentBottleIdentity(tickerSignal.bottle.name).title : "";
   const scopeKey = JSON.stringify([view, requestFilters, filters.rarities]);
   const screenActive = screenFocused && appState === "active";
   const motionDisabled = reduceMotion || screenReaderEnabled;
@@ -369,7 +370,15 @@ export default function SignalFeedScreen() {
   const canUseFilters = view === "community" || access?.marketDetailsLocked === false;
 
   const header = (
-    <View style={styles.header}>
+    <ImageBackground
+      accessibilityIgnoresInvertColors
+      imageStyle={styles.headerImage}
+      resizeMode="cover"
+      source={require("../../../assets/home-shelf-header.jpg")}
+      style={styles.headerBackdrop}
+    >
+      <View pointerEvents="none" style={styles.headerShade} />
+      <View style={styles.header}>
       {tickerSignal ? <View accessibilityLabel="Recent reports" style={styles.tickerShell}>
         <Animated.View style={[styles.tickerAnimated, { opacity: tickerOpacity, transform: [{ translateY: tickerOpacity.interpolate({ inputRange: [0, 1], outputRange: [5, 0] }) }] }]}>
           <Pressable
@@ -380,7 +389,7 @@ export default function SignalFeedScreen() {
             style={({ pressed }) => [styles.tickerSignal, pressed && styles.segmentPressed]}
           >
             <View style={styles.tickerDot} />
-            <Text numberOfLines={1} style={styles.tickerText}><Text style={styles.tickerBottle}>{tickerSignal.bottle.name}</Text> · {tickerLocationLabel(tickerSignal)} · {relativeSignalTime(tickerSignal.timing.displayAt)}</Text>
+            <Text numberOfLines={1} style={styles.tickerText}><Text style={styles.tickerBottle}>{tickerBottle}</Text> · {tickerLocationLabel(tickerSignal)} · {relativeSignalTime(tickerSignal.timing.displayAt)}</Text>
             <MaterialCommunityIcons color={colors.muted} name="chevron-right" size={16} />
           </Pressable>
         </Animated.View>
@@ -497,7 +506,8 @@ export default function SignalFeedScreen() {
           <Text accessibilityRole="alert" style={styles.inlineErrorText}>Paid access was not recognized. Refresh or sign in again.</Text>
         </View>
       ) : null}
-    </View>
+      </View>
+    </ImageBackground>
   );
 
   return (
@@ -510,7 +520,7 @@ export default function SignalFeedScreen() {
       showsVerticalScrollIndicator={false}
       keyExtractor={(item) => item.id}
       renderItem={({ item }) => <SignalCard highlighted={highlightedIds.includes(item.id)} signal={item} onPress={() => router.push({ pathname: "/(app)/signal/[id]", params: { id: item.id } })} />}
-      ItemSeparatorComponent={() => <View style={styles.separator} />}
+
       refreshControl={<RefreshControl refreshing={loading && loaded} onRefresh={() => { void load(true); void loadProfile(true); }} tintColor={colors.accent} colors={[colors.accent]} />}
       onEndReached={() => { if (loaded && signals.length && !filters.rarities.length) void load(false); }}
       onEndReachedThreshold={0.5}
@@ -551,8 +561,10 @@ export default function SignalFeedScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1 },
   list: { paddingHorizontal: 16, paddingTop: 0, paddingBottom: 64 },
-  separator: { height: StyleSheet.hairlineWidth, backgroundColor: colors.border },
-  header: { gap: 8, marginBottom: 10, paddingTop: 8 },
+  headerBackdrop: { marginHorizontal: -16, marginBottom: 10, overflow: "hidden" },
+  headerImage: { opacity: 0.58 },
+  headerShade: { position: "absolute", inset: 0, backgroundColor: "rgba(5, 4, 3, 0.50)" },
+  header: { gap: 8, paddingHorizontal: 16, paddingTop: 8, paddingBottom: 12 },
   tickerShell: { minHeight: 34, marginHorizontal: -16, paddingHorizontal: 16, justifyContent: "center", overflow: "hidden", backgroundColor: "rgba(29, 21, 13, 0.46)" },
   tickerAnimated: { minHeight: 34, justifyContent: "center" },
   tickerSignal: { minHeight: 34, flexDirection: "row", alignItems: "center", gap: 7 },
