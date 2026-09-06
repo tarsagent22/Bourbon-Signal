@@ -31,6 +31,18 @@ jobs:
           cache: npm
           cache-dependency-path: apps/mobile/package-lock.json
       - run: npm ci --no-audit --no-fund
+      - name: Adapt build-tool parser to locked secure xmldom API
+        run: |
+          node - <<'NODE'
+          const fs = require('node:fs');
+          const path = require.resolve('@expo/plist/build/parse');
+          const source = fs.readFileSync(path, 'utf8');
+          const before = '.parseFromString(xml)';
+          if (!source.includes(before)) throw new Error('Unexpected plist parser; reassess compatibility shim');
+          fs.writeFileSync(path, source.replace(before, '.parseFromString(xml, "text/xml")'));
+          const plist = require('@expo/plist');
+          if (plist.parse('<plist><dict><key>ready</key><true/></dict></plist>').ready !== true) throw new Error('Plist parser failed');
+          NODE
       - name: Generate native iOS project
         run: npx expo prebuild --platform ios --no-install
       - name: Install pods
