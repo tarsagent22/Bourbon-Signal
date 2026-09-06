@@ -333,7 +333,7 @@ assert.match(nativeSignalFeed, /account-group-outline/);
 assert.match(nativeSignalFeed, />Intel</);
 assert.doesNotMatch(nativeSignalFeed, />Market</);
 assert.match(nativeSignalFeed, /type FeedView = "market" \| "community";/, "the user-facing Intel rename must preserve the existing market API contract");
-assert.match(nativeSignalFeed, />Sightings</);
+assert.match(nativeSignalFeed, />Community</);
 assert.match(nativeSignalFeed, /requestInFlightRef\.current/, "feed requests need a synchronous in-flight guard so refresh and pagination cannot race");
 assert.doesNotMatch(nativeSignalFeed, /LIVE MEMBER INTELLIGENCE/);
 assert.doesNotMatch(nativeSignalFeed, /updatedLabel|styles\.updated/, "feed freshness belongs to each card, not a detached header label");

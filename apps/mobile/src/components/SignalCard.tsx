@@ -16,7 +16,7 @@ import {
 } from "../api/presentation";
 import { colors } from "../theme";
 
-export function SignalCard({ signal, onPress }: { signal: Signal; onPress: () => void }) {
+export function SignalCard({ signal, onPress, highlighted = false }: { signal: Signal; onPress: () => void; highlighted?: boolean }) {
   const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {
@@ -57,7 +57,7 @@ export function SignalCard({ signal, onPress }: { signal: Signal; onPress: () =>
       accessibilityLabel={signalAccessibilityLabel(signal, now)}
       accessibilityRole="button"
       onPress={onPress}
-      style={({ pressed }) => [styles.card, { backgroundColor: appearance.surface, borderColor: appearance.keyline }, pressed && styles.pressed]}
+      style={({ pressed }) => [styles.card, highlighted && styles.highlighted, pressed && styles.pressed]}
     >
       <View style={styles.topline}>
         <View style={[styles.rarityBadge, { backgroundColor: appearance.keyline }]}>
@@ -103,15 +103,13 @@ export function SignalCard({ signal, onPress }: { signal: Signal; onPress: () =>
 
 const styles = StyleSheet.create({
   card: {
-    borderWidth: StyleSheet.hairlineWidth,
-    borderRadius: 18,
-    paddingHorizontal: 16,
-    paddingTop: 14,
-    paddingBottom: 13,
-    gap: 10,
+    paddingHorizontal: 2,
+    paddingVertical: 13,
+    gap: 7,
     overflow: "hidden",
   },
-  pressed: { opacity: 0.8 },
+  pressed: { opacity: 0.76, transform: [{ scale: 0.995 }] },
+  highlighted: { marginHorizontal: -8, paddingHorizontal: 10, borderRadius: 12, backgroundColor: "#2B1E10", borderColor: colors.accentPressed, borderWidth: StyleSheet.hairlineWidth },
   topline: { minHeight: 22, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
   rarityBadge: { minHeight: 22, borderRadius: 7, alignItems: "center", justifyContent: "center", paddingHorizontal: 9 },
   rarityLabel: { fontSize: 9, lineHeight: 12, fontWeight: "900", letterSpacing: 1.05 },

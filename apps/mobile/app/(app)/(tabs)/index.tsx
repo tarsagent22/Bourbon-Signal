@@ -1,12 +1,14 @@
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
-import { router } from "expo-router";
+import { router, useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { FlatList, Keyboard, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { AccessibilityInfo, Animated, AppState, FlatList, Keyboard, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { MobileApiError } from "../../../src/api/client";
+import { relativeSignalTime, signalAccessibilityTime } from "../../../src/api/presentation";
 import type { MemberProfile, Signal, SignalFeedPage } from "../../../src/api/types";
 import { SignalCard } from "../../../src/components/SignalCard";
 import { useMobileApi } from "../../../src/hooks/useMobileApi";
 import { DEFAULT_SIGNAL_FILTERS, areaOptionsForState, areaSelectorLabel, filterSignalsByRarity, normalizedFilters, rarityOptionsForView, serverSignalFilters, shouldBackfillRarity, toggleRarity, type SignalFeedFilters } from "../../../src/signals/feed-filters";
+import { acceptQueuedSignals, reconcileQueuedSignals, recentTickerSignals, tickerLocationLabel } from "../../../src/signals/home-feed-live";
 import { colors } from "../../../src/theme";
 
 type FeedView = "market" | "community";
@@ -84,6 +86,14 @@ export default function SignalFeedScreen() {
   const api = useMobileApi();
   const [view, setView] = useState<FeedView>("market");
   const [signals, setSignals] = useState<Signal[]>([]);
+  const [queuedSignals, setQueuedSignals] = useState<Signal[]>([]);
+  const [highlightedIds, setHighlightedIds] = useState<string[]>([]);
+  const [tickerIndex, setTickerIndex] = useState(0);
+  const [tickerNow, setTickerNow] = useState(() => Date.now());
+  const [reduceMotion, setReduceMotion] = useState(true);
+  const [screenReaderEnabled, setScreenReaderEnabled] = useState(true);
+  const [screenFocused, setScreenFocused] = useState(false);
+  const [appState, setAppState] = useState(AppState.currentState);
   const [cursor, setCursor] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -104,6 +114,11 @@ export default function SignalFeedScreen() {
   const filters = filtersByView[view];
   const requestFilters = useMemo(() => serverSignalFilters(filters), [filters]);
   const visibleSignals = useMemo(() => filterSignalsByRarity(signals, filters.rarities), [filters.rarities, signals]);
+  const tickerSignals = useMemo(() => recentTickerSignals(visibleSignals, new Date(tickerNow)), [tickerNow, visibleSignals]);
+  const tickerSignal = tickerSignals.length ? tickerSignals[tickerIndex % tickerSignals.length] : null;
+  const scopeKey = JSON.stringify([view, requestFilters, filters.rarities]);
+  const screenActive = screenFocused && appState === "active";
+  const motionDisabled = reduceMotion || screenReaderEnabled;
   const rarityBackfillKey = JSON.stringify([view, requestFilters.state, requestFilters.area, requestFilters.freshness, requestFilters.bottle, filters.rarities]);
   const areaDirectory = profile?.feedAreas;
   const stateOptions = areaDirectory?.states.filter((state) => /^[A-Z]{2}$/.test(state.code)).map((state) => ({ value: state.code, label: `${state.label} (${state.code})` })) || [];
@@ -119,6 +134,13 @@ export default function SignalFeedScreen() {
   const requestInFlightRef = useRef<"refresh" | "page" | null>(null);
   const rarityBackfillRef = useRef({ key: "", attempts: 0 });
   const profileRequestSequence = useRef(0);
+  const backgroundRequestSequence = useRef(0);
+  const scopeKeyRef = useRef(scopeKey);
+  const listRef = useRef<FlatList<Signal>>(null);
+  const signalsSnapshotRef = useRef<Signal[]>(signals);
+  const tickerOpacity = useRef(new Animated.Value(1)).current;
+  scopeKeyRef.current = scopeKey;
+  signalsSnapshotRef.current = signals;
 
   const handleError = useCallback((caught: unknown) => {
     const apiError = caught instanceof MobileApiError ? caught : null;
@@ -183,6 +205,8 @@ export default function SignalFeedScreen() {
     requestInFlightRef.current = null;
     setView(next);
     setSignals([]);
+    setQueuedSignals([]);
+    setHighlightedIds([]);
     setCursor(null);
     setHasMore(true);
     setAccess(null);
@@ -197,6 +221,8 @@ export default function SignalFeedScreen() {
     requestInFlightRef.current = null;
     setFiltersByView((current) => ({ ...current, [view]: normalized }));
     setSignals([]);
+    setQueuedSignals([]);
+    setHighlightedIds([]);
     setCursor(null);
     setHasMore(true);
     setError("");
@@ -205,6 +231,9 @@ export default function SignalFeedScreen() {
   }, [areaDirectory, view]);
 
   const applyRarityFilters = useCallback((next: SignalFeedFilters) => {
+    backgroundRequestSequence.current += 1;
+    setQueuedSignals([]);
+    setHighlightedIds([]);
     setFiltersByView((current) => ({
       ...current,
       [view]: { ...current[view], rarities: [...next.rarities] },
@@ -249,12 +278,106 @@ export default function SignalFeedScreen() {
     return () => { current = false; };
   }, [api, filters.state, staticAreaOptions.length]);
 
+  useFocusEffect(useCallback(() => {
+    setScreenFocused(true);
+    return () => setScreenFocused(false);
+  }, []));
+  useEffect(() => {
+    const subscription = AppState.addEventListener("change", setAppState);
+    return () => subscription.remove();
+  }, []);
+  useEffect(() => {
+    let mounted = true;
+    void Promise.all([AccessibilityInfo.isReduceMotionEnabled(), AccessibilityInfo.isScreenReaderEnabled()]).then(([motion, reader]) => {
+      if (mounted) { setReduceMotion(motion); setScreenReaderEnabled(reader); }
+    });
+    const motionSubscription = AccessibilityInfo.addEventListener("reduceMotionChanged", setReduceMotion);
+    const readerSubscription = AccessibilityInfo.addEventListener("screenReaderChanged", setScreenReaderEnabled);
+    return () => { mounted = false; motionSubscription.remove(); readerSubscription.remove(); };
+  }, []);
+  useEffect(() => {
+    backgroundRequestSequence.current += 1;
+    setQueuedSignals([]);
+    setHighlightedIds([]);
+    setTickerIndex(0);
+  }, [scopeKey]);
+  useEffect(() => {
+    if (!screenActive || !loaded || error) return undefined;
+    let stopped = false;
+    const capturedScope = scopeKey;
+    const poll = async () => {
+      const requestId = ++backgroundRequestSequence.current;
+      try {
+        const page = await api.listSignals({ view, limit: 30, cursor: null, fresh: true, ...requestFilters });
+        if (stopped || requestId !== backgroundRequestSequence.current || capturedScope !== scopeKeyRef.current) return;
+        const scopedIncoming = filterSignalsByRarity(page.signals, filters.rarities);
+        setQueuedSignals((current) => reconcileQueuedSignals(signalsSnapshotRef.current, current, scopedIncoming));
+      } catch {
+        // Background freshness is optional; the visible feed remains usable.
+      }
+    };
+    const timer = setInterval(() => { void poll(); }, 60_000);
+    return () => { stopped = true; backgroundRequestSequence.current += 1; clearInterval(timer); };
+  }, [api, error, filters.rarities, loaded, requestFilters, scopeKey, screenActive, view]);
+  useEffect(() => {
+    if (!screenActive) return undefined;
+    setTickerNow(Date.now());
+    const timer = setInterval(() => setTickerNow(Date.now()), 60_000);
+    return () => clearInterval(timer);
+  }, [screenActive]);
+  useEffect(() => {
+    if (!screenActive || motionDisabled || tickerSignals.length < 2) return undefined;
+    const timer = setInterval(() => setTickerIndex((current) => (current + 1) % tickerSignals.length), 8_000);
+    return () => clearInterval(timer);
+  }, [motionDisabled, screenActive, tickerSignals.length]);
+  useEffect(() => {
+    tickerOpacity.stopAnimation();
+    if (!screenActive || motionDisabled || !tickerSignal) { tickerOpacity.setValue(1); return; }
+    tickerOpacity.setValue(0);
+    Animated.timing(tickerOpacity, { toValue: 1, duration: 180, useNativeDriver: true }).start();
+    return () => tickerOpacity.stopAnimation();
+  }, [motionDisabled, screenActive, tickerOpacity, tickerSignal?.id]);
+  useEffect(() => {
+    if (!screenActive || !highlightedIds.length) return undefined;
+    const timer = setTimeout(() => setHighlightedIds([]), reduceMotion ? 2_000 : 2_600);
+    return () => clearTimeout(timer);
+  }, [highlightedIds.length, reduceMotion, screenActive]);
+
+  const acceptNewSignals = useCallback(() => {
+    if (!queuedSignals.length) return;
+    const acceptedIds = queuedSignals.map((signal) => signal.id);
+    setSignals((current) => acceptQueuedSignals(current, queuedSignals));
+    setQueuedSignals([]);
+    setHighlightedIds(acceptedIds);
+    listRef.current?.scrollToOffset({ offset: 0, animated: !motionDisabled });
+  }, [motionDisabled, queuedSignals]);
+
   const marketLocked = view === "market" && Boolean(access?.marketDetailsLocked);
   const paidAccessMismatch = Boolean(profile?.membership.paid && marketLocked);
   const canUseFilters = view === "community" || access?.marketDetailsLocked === false;
 
   const header = (
     <View style={styles.header}>
+      {tickerSignal ? <View accessibilityLabel="Recent reports" style={styles.tickerShell}>
+        <Animated.View style={[styles.tickerAnimated, { opacity: tickerOpacity }]}>
+          <Pressable
+            accessibilityHint="Opens Signal details"
+            accessibilityLabel={`${tickerSignal.bottle.name}, ${tickerLocationLabel(tickerSignal)}, Reported ${signalAccessibilityTime(tickerSignal.timing.displayAt)}`}
+            accessibilityRole="button"
+            onPress={() => router.push({ pathname: "/(app)/signal/[id]", params: { id: tickerSignal.id } })}
+            style={({ pressed }) => [styles.tickerSignal, pressed && styles.segmentPressed]}
+          >
+            <View style={styles.tickerMarker}><MaterialCommunityIcons color={colors.accent} name="radio-tower" size={15} /></View>
+            <Text numberOfLines={1} style={styles.tickerText}>{tickerSignal.bottle.name} · {tickerLocationLabel(tickerSignal)} · Reported {relativeSignalTime(tickerSignal.timing.displayAt)}</Text>
+          </Pressable>
+        </Animated.View>
+        {tickerSignals.length > 1 ? <Pressable
+          accessibilityLabel="Show next recent report"
+          accessibilityRole="button"
+          onPress={() => setTickerIndex((current) => (current + 1) % tickerSignals.length)}
+          style={({ pressed }) => [styles.tickerNext, pressed && styles.segmentPressed]}
+        ><MaterialCommunityIcons color={colors.muted} name="chevron-right" size={20} /></Pressable> : null}
+      </View> : null}
       <View accessibilityLabel="Signal feed view" style={styles.segmentedControl}>
         <Pressable
           accessibilityRole="button"
@@ -272,7 +395,7 @@ export default function SignalFeedScreen() {
           style={({ pressed }) => [styles.segment, view === "community" && styles.segmentSelected, pressed && styles.segmentPressed]}
         >
           <MaterialCommunityIcons color={view === "community" ? colors.accent : colors.muted} name="account-group-outline" size={21} />
-          <Text style={[styles.segmentLabel, view === "community" && styles.segmentLabelSelected]}>Sightings</Text>
+          <Text style={[styles.segmentLabel, view === "community" && styles.segmentLabelSelected]}>Community</Text>
         </Pressable>
       </View>
 
@@ -359,15 +482,16 @@ export default function SignalFeedScreen() {
   );
 
   return (
-    <>
+    <View style={styles.screen}>
       <FlatList
+      ref={listRef}
       contentContainerStyle={styles.list}
       data={visibleSignals}
       keyboardShouldPersistTaps="handled"
       showsVerticalScrollIndicator={false}
       keyExtractor={(item) => item.id}
-      renderItem={({ item }) => <SignalCard signal={item} onPress={() => router.push({ pathname: "/(app)/signal/[id]", params: { id: item.id } })} />}
-      ItemSeparatorComponent={() => <View style={styles.gap} />}
+      renderItem={({ item }) => <SignalCard highlighted={highlightedIds.includes(item.id)} signal={item} onPress={() => router.push({ pathname: "/(app)/signal/[id]", params: { id: item.id } })} />}
+      ItemSeparatorComponent={() => <View style={styles.separator} />}
       refreshControl={<RefreshControl refreshing={loading && loaded} onRefresh={() => { void load(true); void loadProfile(true); }} tintColor={colors.accent} colors={[colors.accent]} />}
       onEndReached={() => { if (loaded && signals.length && !filters.rarities.length) void load(false); }}
       onEndReachedThreshold={0.5}
@@ -391,14 +515,34 @@ export default function SignalFeedScreen() {
               ? <Text style={styles.end}>You’re caught up.</Text>
               : null}
     />
-    </>
+      {queuedSignals.length ? <Pressable
+        accessibilityLabel={`${queuedSignals.length} new ${queuedSignals.length === 1 ? "signal" : "signals"}`}
+        accessibilityLiveRegion="polite"
+        accessibilityRole="button"
+        onPress={acceptNewSignals}
+        style={({ pressed }) => [styles.newSignalsPill, pressed && styles.newSignalsPillPressed]}
+      >
+        <MaterialCommunityIcons color="#171009" name="arrow-up" size={17} />
+        <Text style={styles.newSignalsText}>New signals · {queuedSignals.length}</Text>
+      </Pressable> : null}
+    </View>
     );
 }
 
 const styles = StyleSheet.create({
+  screen: { flex: 1 },
   list: { paddingHorizontal: 16, paddingTop: 12, paddingBottom: 64 },
-  gap: { height: 12 },
+  separator: { height: StyleSheet.hairlineWidth, backgroundColor: colors.border },
   header: { gap: 11, marginBottom: 14 },
+  tickerShell: { minHeight: 46, flexDirection: "row", alignItems: "stretch", borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, borderColor: "#5A4127", backgroundColor: "#1D150D", overflow: "hidden" },
+  tickerAnimated: { flex: 1 },
+  tickerSignal: { minHeight: 46, flex: 1, flexDirection: "row", alignItems: "center", gap: 8, paddingLeft: 10, paddingVertical: 5 },
+  tickerMarker: { width: 28, height: 28, borderRadius: 14, alignItems: "center", justifyContent: "center", backgroundColor: "#2B1E11" },
+  tickerText: { flex: 1, color: colors.text, fontSize: 12, lineHeight: 16, fontWeight: "700" },
+  tickerNext: { minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center" },
+  newSignalsPill: { position: "absolute", zIndex: 5, top: 8, alignSelf: "center", minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingHorizontal: 16, borderRadius: 22, backgroundColor: colors.accent, borderWidth: 1, borderColor: "#F1BC72", shadowColor: "#000", shadowOpacity: 0.32, shadowRadius: 8, shadowOffset: { width: 0, height: 3 }, elevation: 5 },
+  newSignalsPillPressed: { backgroundColor: colors.accentPressed, transform: [{ scale: 0.98 }] },
+  newSignalsText: { color: "#171009", fontSize: 12, lineHeight: 16, fontWeight: "900" },
   segmentedControl: { flexDirection: "row", padding: 3, borderRadius: 14, backgroundColor: colors.surface, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth },
   segment: { flex: 1, minHeight: 44, borderRadius: 11, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 7 },
   segmentSelected: { backgroundColor: "#241A10" },
