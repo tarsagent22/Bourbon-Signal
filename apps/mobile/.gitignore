@@ -36,6 +36,9 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 
+# Native diagnostic output (never application source)
+/native-evidence/
+
 # generated native folders
 /ios
 /android
