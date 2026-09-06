@@ -13,8 +13,12 @@ def run(*args, check=True):
 
 
 def main():
-    evidence = Path('native-evidence').resolve()
-    evidence.mkdir(exist_ok=True)
+    base = Path('native-evidence').resolve()
+    scenario = os.environ.get('NATIVE_SCENARIO', 'embedded')
+    if not re.fullmatch(r'[a-z-]+', scenario):
+        raise RuntimeError('Invalid diagnostic scenario')
+    evidence = base / scenario
+    evidence.mkdir(parents=True, exist_ok=True)
     devices = json.loads(run('xcrun', 'simctl', 'list', 'devices', 'available', '--json').stdout)['devices']
     candidates = [device for runtime, entries in devices.items() if 'iOS' in runtime for device in entries if 'iPhone' in device['name']]
     if not candidates:
@@ -23,9 +27,10 @@ def main():
     udid = device['udid']
     run('xcrun', 'simctl', 'boot', udid, check=False)
     run('xcrun', 'simctl', 'bootstatus', udid, '-b')
-    app = evidence / 'build/Build/Products/Release-iphonesimulator/BourbonSignal.app'
+    app = base / 'build/Build/Products/Release-iphonesimulator/BourbonSignal.app'
     if not app.exists():
         raise RuntimeError('Compiled Release app is absent')
+    run('xcrun', 'simctl', 'uninstall', udid, 'com.bourbonsignal.app', check=False)
     run('xcrun', 'simctl', 'install', udid, str(app))
     launched = run('xcrun', 'simctl', 'launch', '--terminate-running-process', '--stdout=' + str(evidence / 'stdout.log'), '--stderr=' + str(evidence / 'stderr.log'), udid, 'com.bourbonsignal.app', check=False)
     (evidence / 'launch.log').write_text(launched.stdout + launched.stderr)
