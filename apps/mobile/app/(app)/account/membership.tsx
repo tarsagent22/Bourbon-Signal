@@ -6,7 +6,6 @@ import type { MemberProfile, MembershipTrialEligibility } from "../../../src/api
 import { ErrorState, memberScreenStyles } from "../../../src/components/MemberScreen";
 import { useMobileApi } from "../../../src/hooks/useMobileApi";
 import {
-  MEMBERSHIP_COMPARISON_ROWS,
   PAID_MEMBERSHIP_PLANS,
   billingChoiceFor,
   membershipActionFor,
@@ -14,6 +13,7 @@ import {
   type MembershipTier,
 } from "../../../src/membership/membership-plans";
 import { colors } from "../../../src/theme";
+import { MembershipComparison } from "../../../src/membership/MembershipComparison";
 
 export default function MembershipScreen() {
   const api = useMobileApi();
@@ -98,37 +98,9 @@ export default function MembershipScreen() {
       })}
     </View>
 
-    <View style={styles.comparisonSection}>
-      <View style={styles.comparisonHeading}>
-        <Text accessibilityRole="header" style={styles.comparisonTitle}>Compare features</Text>
-        <Text style={styles.comparisonHint}>Free is shown as a baseline, without another pricing card.</Text>
-      </View>
-      <ScrollView horizontal contentContainerStyle={styles.comparisonTable} showsHorizontalScrollIndicator>
-        <View>
-          <View style={[styles.comparisonRow, styles.comparisonHeaderRow]}>
-            <Text style={[styles.comparisonCell, styles.featureCell, styles.comparisonHeaderText]}>FEATURE</Text>
-            <Text style={[styles.comparisonCell, styles.tierCell, styles.comparisonHeaderText]}>FREE</Text>
-            <Text style={[styles.comparisonCell, styles.tierCell, styles.comparisonHeaderText]}>STANDARD</Text>
-            <Text style={[styles.comparisonCell, styles.tierCell, styles.comparisonHeaderText]}>BARREL</Text>
-            <Text style={[styles.comparisonCell, styles.tierCell, styles.comparisonHeaderText]}>FOUNDER</Text>
-          </View>
-          {MEMBERSHIP_COMPARISON_ROWS.map((row) => <View
-            accessible
-            accessibilityLabel={`${row.feature}. Free: ${row.values.free}. Standard: ${row.values.standard}. Barrel: ${row.values.barrel}. Founder: ${row.values["bottled-in-bond"]}.`}
-            key={row.feature}
-            style={styles.comparisonRow}
-          >
-            <Text accessible={false} style={[styles.comparisonCell, styles.featureCell, styles.featureText]}>{row.feature}</Text>
-            <Text accessible={false} style={[styles.comparisonCell, styles.tierCell, styles.valueText]}>{row.values.free}</Text>
-            <Text accessible={false} style={[styles.comparisonCell, styles.tierCell, styles.valueText]}>{row.values.standard}</Text>
-            <Text accessible={false} style={[styles.comparisonCell, styles.tierCell, styles.valueText]}>{row.values.barrel}</Text>
-            <Text accessible={false} style={[styles.comparisonCell, styles.tierCell, styles.valueText]}>{row.values["bottled-in-bond"]}</Text>
-          </View>)}
-        </View>
-      </ScrollView>
-    </View>
-
     <Text style={styles.footnote}>Monthly Standard Proof and Barrel Proof include one eligible 7-day trial. Annual and lifetime memberships do not include a trial.</Text>
+
+    <MembershipComparison />
   </ScrollView>;
 }
 
@@ -167,19 +139,6 @@ const styles = StyleSheet.create({
   reviewText: { color: colors.text, fontSize: 14, fontWeight: "900" },
   reviewTextPrimary: { color: colors.background },
   arrow: { color: colors.accent, fontSize: 24, lineHeight: 26 },
-  comparisonSection: { borderColor: colors.border, borderWidth: 1, borderRadius: 18, backgroundColor: colors.surface, overflow: "hidden" },
-  comparisonHeading: { gap: 4, paddingHorizontal: 16, paddingTop: 16, paddingBottom: 12 },
-  comparisonTitle: { color: colors.text, fontSize: 20, lineHeight: 25, fontWeight: "900" },
-  comparisonHint: { color: colors.muted, fontSize: 12, lineHeight: 17 },
-  comparisonTable: { paddingBottom: 8 },
-  comparisonRow: { minHeight: 58, flexDirection: "row", alignItems: "stretch", borderTopColor: colors.border, borderTopWidth: StyleSheet.hairlineWidth },
-  comparisonHeaderRow: { minHeight: 40, backgroundColor: colors.surfaceRaised },
-  comparisonCell: { paddingHorizontal: 9, paddingVertical: 10, textAlignVertical: "center" },
-  featureCell: { width: 142 },
-  tierCell: { width: 98, textAlign: "center" },
-  comparisonHeaderText: { color: colors.accent, fontSize: 9, lineHeight: 13, fontWeight: "900", letterSpacing: 0.7 },
-  featureText: { color: colors.text, fontSize: 12, lineHeight: 17, fontWeight: "800" },
-  valueText: { color: colors.muted, fontSize: 11, lineHeight: 16, fontWeight: "700" },
   pressed: { opacity: 0.72 },
   footnote: { color: colors.muted, fontSize: 12, lineHeight: 18, textAlign: "center", paddingHorizontal: 10 },
 });

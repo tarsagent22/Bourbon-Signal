@@ -23,7 +23,7 @@ export type MembershipPlan = {
 
 export type MembershipComparisonRow = {
   feature: string;
-  values: Record<MembershipTier, string>;
+  values: Record<"standard" | "barrel", string>;
 };
 
 export const MEMBERSHIP_PLANS: MembershipPlan[] = [
@@ -88,16 +88,11 @@ export const MEMBERSHIP_PLANS: MembershipPlan[] = [
 export const PAID_MEMBERSHIP_PLANS = MEMBERSHIP_PLANS.filter((plan): plan is MembershipPlan & { tier: Exclude<MembershipTier, "free"> } => plan.tier !== "free");
 
 export const MEMBERSHIP_COMPARISON_ROWS: MembershipComparisonRow[] = [
-  { feature: "Intel feed", values: { free: "7-item preview", standard: "Full state", barrel: "Full + advanced", "bottled-in-bond": "Full + advanced" } },
-  { feature: "Community Signals", values: { free: "Read 2 + post", standard: "Full + post", barrel: "Full + post", "bottled-in-bond": "Full + post" } },
-  { feature: "Alert areas", values: { free: "—", standard: "Up to 5", barrel: "Unlimited", "bottled-in-bond": "Unlimited" } },
-  { feature: "Watched bottles", values: { free: "—", standard: "Up to 15", barrel: "Unlimited", "bottled-in-bond": "Unlimited" } },
-  { feature: "Alert delivery", values: { free: "—", standard: "Push · email · SMS", barrel: "Push · email · SMS", "bottled-in-bond": "Push · email · SMS" } },
-  { feature: "My Shelf", values: { free: "Up to 10", standard: "Unlimited", barrel: "Unlimited", "bottled-in-bond": "Unlimited" } },
-  { feature: "Signal Points", values: { free: "Earn", standard: "Earn + redeem", barrel: "Earn + redeem", "bottled-in-bond": "Earn + redeem" } },
-  { feature: "Community alerts", values: { free: "—", standard: "—", barrel: "Included", "bottled-in-bond": "Included" } },
-  { feature: "DNA + recommendations", values: { free: "—", standard: "—", barrel: "Included", "bottled-in-bond": "Included" } },
-  { feature: "Founder identity + glass", values: { free: "—", standard: "—", barrel: "—", "bottled-in-bond": "Included" } },
+  { feature: "Intel", values: { standard: "Full state", barrel: "Full + advanced" } },
+  { feature: "Alert areas", values: { standard: "5", barrel: "Unlimited" } },
+  { feature: "Watched bottles", values: { standard: "15", barrel: "Unlimited" } },
+  { feature: "Community alerts", values: { standard: "Not included", barrel: "Included" } },
+  { feature: "DNA + recommendations", values: { standard: "Not included", barrel: "Included" } },
 ];
 
 const tierRank: Record<MembershipTier, number> = {

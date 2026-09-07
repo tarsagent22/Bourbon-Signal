@@ -11,8 +11,9 @@ import {
 
 test("the pricing overview has three paid cards and a Free comparison baseline", () => {
   assert.deepEqual(PAID_MEMBERSHIP_PLANS.map((plan) => plan.tier), ["standard", "barrel", "bottled-in-bond"]);
-  assert.ok(MEMBERSHIP_COMPARISON_ROWS.length >= 8);
-  assert.ok(MEMBERSHIP_COMPARISON_ROWS.every((row) => row.values.free !== undefined));
+  assert.deepEqual(MEMBERSHIP_COMPARISON_ROWS.map((row) => row.feature), ["Intel", "Alert areas", "Watched bottles", "Community alerts", "DNA + recommendations"]);
+  assert.ok(MEMBERSHIP_COMPARISON_ROWS.every((row) => Object.keys(row.values).sort().join() === "barrel,standard"));
+  assert.deepEqual(MEMBERSHIP_COMPARISON_ROWS.map((row) => [row.values.standard, row.values.barrel]), [["Full state", "Full + advanced"], ["5", "Unlimited"], ["15", "Unlimited"], ["Not included", "Included"], ["Not included", "Included"]]);
   assert.doesNotMatch(JSON.stringify({ plans: MEMBERSHIP_PLANS, rows: MEMBERSHIP_COMPARISON_ROWS }), /Bottle Check/i);
 });
 
