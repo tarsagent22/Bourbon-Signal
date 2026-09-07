@@ -15,8 +15,8 @@ import {
 type MembershipPlanChooserProps = {
   interval: BillingInterval;
   currentTier: MembershipTier | null;
-  standardTrialEligible: boolean;
-  barrelTrialEligible: boolean;
+  standardTrialEligible: boolean | null;
+  barrelTrialEligible: boolean | null;
   onSelect: (tier: Exclude<MembershipTier, "free">) => void;
 };
 
@@ -41,10 +41,10 @@ export function MembershipPlanChooser({
         const action = currentTier
           ? membershipActionFor(currentTier, plan.tier)
           : { label: `Review ${plan.chooserName || plan.name}` };
-        const trialDisclosure = trialDisclosureFor(plan.tier, interval, trialEligible);
+        const trialDisclosure = currentTier === "bottled-in-bond" ? null : trialDisclosureFor(plan.tier, interval, trialEligible);
         return <Pressable
           accessibilityRole="button"
-          accessibilityLabel={membershipChoiceAccessibilityLabel(plan.tier, interval, trialEligible, action.label)}
+          accessibilityLabel={currentTier === "bottled-in-bond" ? [plan.name, plan.bestFor, ...(plan.chooserFeatures || []), action.label].join(". ") : membershipChoiceAccessibilityLabel(plan.tier, interval, trialEligible, action.label)}
           key={plan.tier}
           onPress={() => onSelect(plan.tier)}
           style={({ pressed }) => [styles.plan, plan.tier === "barrel" && styles.barrelPlan, currentTier === plan.tier && styles.currentPlan, pressed && styles.pressed]}
@@ -91,7 +91,7 @@ export function MembershipPlanChooser({
           <Text accessibilityRole="header" style={styles.founderName}>{founder.chooserName}</Text>
           {currentTier === founder.tier ? <View style={styles.currentBadge}><Text style={styles.currentText}>CURRENT</Text></View> : null}
         </View>
-        <Text style={styles.founderPromise}>{founder.bestFor}, plus your permanent Founder number and numbered glass. Lifetime access · no trial.</Text>
+        <Text style={styles.founderPromise}>{founder.bestFor}, plus your permanent Founder number and numbered glass. One payment. No renewal.</Text>
       </View>
       <View style={styles.founderPriceBlock}>
         <Text style={styles.founderPrice}>{founderPrice?.price}</Text>
@@ -100,7 +100,7 @@ export function MembershipPlanChooser({
       </View>
     </Pressable> : null}
 
-    <Pressable
+    {currentTier !== "bottled-in-bond" ? <Pressable
       accessibilityRole="button"
       accessibilityLabel={freeExpanded ? "Hide free limits" : "See free limits"}
       accessibilityState={{ expanded: freeExpanded }}
@@ -113,7 +113,7 @@ export function MembershipPlanChooser({
         <Text style={styles.freeSummary}>Preview recent intelligence, post sightings, save 10 bottles and earn points—without alerts.</Text>
       </View>
       <Text accessible={false} style={styles.expand}>{freeExpanded ? "−" : "+"}</Text>
-    </Pressable>
+    </Pressable> : null}
     {freeExpanded ? <View style={styles.freeDetails}>
       {freePlan?.features.map((feature) => <Text key={feature} style={styles.freeDetail}>• {feature}</Text>)}
       <Text style={styles.freeDetail}>No alerts. Paid membership is required to redeem points.</Text>

@@ -16,9 +16,9 @@ test("paid plans explain who each choice serves and what changes", () => {
   const barrel = MEMBERSHIP_PLANS.find((plan) => plan.tier === "barrel");
   const founder = MEMBERSHIP_PLANS.find((plan) => plan.tier === "bottled-in-bond");
   assert.equal(standard?.bestFor, "For focused hunting near home");
-  assert.deepEqual(standard?.chooserFeatures, ["Full availability intelligence across your state", "Track 15 bottles in 5 hunting areas", "Immediate push, email, and SMS alerts"]);
+  assert.deepEqual(standard?.chooserFeatures, ["See all tracked availability in your state", "Track 15 bottles in 5 hunting areas", "Push, email, and SMS alerts for matching availability"]);
   assert.equal(barrel?.bestFor, "For serious or multi-area hunters");
-  assert.deepEqual(barrel?.chooserFeatures, ["Everything in Standard Proof", "Track unlimited bottles and areas", "Alerts from member-reported sightings", "Collection-based DNA and bottle recommendations"]);
+  assert.deepEqual(barrel?.chooserFeatures, ["Everything in Standard Proof", "Track unlimited bottles and areas", "Alerts from member-reported sightings", "Discover your taste profile and bottles you may like"]);
   assert.equal(founder?.bestFor, "Barrel Proof for life");
   assert.deepEqual(founder?.chooserFeatures, ["Permanent Founder number", "Numbered Founder’s glass"]);
   assert.doesNotMatch(JSON.stringify(MEMBERSHIP_PLANS), /Bottle Check|Full \+ advanced/i);
@@ -44,12 +44,13 @@ test("monthly is the default and annual never receives a trial", () => {
 });
 
 test("chooser disclosures make trial state and decision details explicit", () => {
+  assert.equal(trialDisclosureFor("standard", "monthly", null), "Trial eligibility could not be confirmed");
   assert.equal(trialDisclosureFor("standard", "monthly", true), "7-day free trial · $3/month after");
   assert.equal(trialDisclosureFor("standard", "monthly", false), "No trial available · $3/month");
   assert.equal(trialDisclosureFor("barrel", "annual", false), "2 months free · annual plans have no trial");
   assert.equal(trialDisclosureFor("bottled-in-bond", "lifetime", false), "Lifetime access · no trial");
   const label = membershipChoiceAccessibilityLabel("standard", "monthly", true, "Review Standard Proof");
-  assert.match(label, /Standard Proof.*\$3\/month.*For focused hunting near home.*Full availability intelligence across your state.*Track 15 bottles in 5 hunting areas.*7-day free trial.*Review Standard Proof/);
+  assert.match(label, /Standard Proof.*\$3\/month.*For focused hunting near home.*See all tracked availability in your state.*Track 15 bottles in 5 hunting areas.*7-day free trial.*Review Standard Proof/);
 });
 
 test("membership actions distinguish current, included, upgrade, and unavailable purchase states", () => {

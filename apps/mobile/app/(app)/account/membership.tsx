@@ -6,7 +6,7 @@ import type { MemberProfile, MembershipTrialEligibility } from "../../../src/api
 import { ErrorState, memberScreenStyles } from "../../../src/components/MemberScreen";
 import { useMobileApi } from "../../../src/hooks/useMobileApi";
 import { MembershipPlanChooser } from "../../../src/membership/MembershipPlanChooser";
-import { type BillingInterval, type MembershipTier } from "../../../src/membership/membership-plans";
+import { planForTier, type BillingInterval, type MembershipTier } from "../../../src/membership/membership-plans";
 import { colors } from "../../../src/theme";
 
 export default function MembershipScreen() {
@@ -16,6 +16,7 @@ export default function MembershipScreen() {
   const [trialEligibility, setTrialEligibility] = useState<MembershipTrialEligibility | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [compareExpanded, setCompareExpanded] = useState(false);
   const [interval, setInterval] = useState<BillingInterval>("monthly");
 
   const load = useCallback(async (fresh = false) => {
@@ -42,6 +43,8 @@ export default function MembershipScreen() {
   useEffect(() => { void load(false); }, [load]);
 
   const currentTier = profile ? profile.membership.tier as MembershipTier : null;
+  const isFounder = currentTier === "bottled-in-bond";
+  const showPlans = !isFounder || compareExpanded;
 
   return <ScrollView
     contentContainerStyle={memberScreenStyles.content}
@@ -50,26 +53,30 @@ export default function MembershipScreen() {
   >
     <View style={styles.hero}>
       <Text style={styles.eyebrow}>YOUR MEMBERSHIP</Text>
-      <Text accessibilityRole="header" style={styles.title}>Pick your hunting plan.</Text>
-      <Text style={styles.description}>Focused alerts, unlimited range, or Founder for life.</Text>
-      {profile ? <View style={styles.currentBadge}><Text style={styles.currentBadgeLabel}>CURRENT</Text><Text style={styles.currentBadgeValue}>{profile.membership.label}</Text></View> : null}
+      <Text accessibilityRole="header" style={styles.title}>{isFounder ? "You’re a Founder." : "Pick your hunting plan."}</Text>
+      <Text style={styles.description}>{isFounder ? "You have Barrel Proof benefits for life. No subscription renewal." : "Choose how many bottles and hunting areas to watch."}</Text>
+      {profile ? <View style={styles.currentBadge}><Text style={styles.currentBadgeLabel}>CURRENT</Text><Text style={styles.currentBadgeValue}>{isFounder ? "Founder" : planForTier(currentTier || "")?.name || profile.membership.label}</Text></View> : null}
     </View>
 
     {loading && !profile ? <View accessibilityLabel="Loading membership" style={styles.loading}><ActivityIndicator color={colors.accent} /></View> : null}
     {error ? <ErrorState message={error} onRetry={() => void load(true)} /> : null}
 
+    {isFounder ? <Pressable accessibilityRole="button" accessibilityState={{ expanded: compareExpanded }} onPress={() => setCompareExpanded((value) => !value)}><Text style={styles.description}>{compareExpanded ? "Hide plans" : "Compare plans"}</Text></Pressable> : null}
+
+    {showPlans ? <>
     <View accessibilityRole="tablist" style={styles.intervalControl}>
       <Pressable accessibilityRole="tab" accessibilityState={{ selected: interval === "monthly" }} onPress={() => setInterval("monthly")} style={[styles.intervalOption, interval === "monthly" && styles.intervalSelected]}><Text style={[styles.intervalText, interval === "monthly" && styles.intervalTextSelected]}>Monthly</Text></Pressable>
       <Pressable accessibilityRole="tab" accessibilityState={{ selected: interval === "annual" }} onPress={() => setInterval("annual")} style={[styles.intervalOption, interval === "annual" && styles.intervalSelected]}><Text style={[styles.intervalText, interval === "annual" && styles.intervalTextSelected]}>Annual · 2 months free</Text></Pressable>
     </View>
 
     <MembershipPlanChooser
-      barrelTrialEligible={Boolean(trialEligibility?.barrelMonthly.eligible)}
+      barrelTrialEligible={trialEligibility?.barrelMonthly.eligible ?? null}
       currentTier={currentTier}
       interval={interval}
       onSelect={(tier) => router.push({ pathname: "/(app)/account/membership/[tier]", params: { tier, interval } })}
-      standardTrialEligible={Boolean(trialEligibility?.standardMonthly.eligible)}
+      standardTrialEligible={trialEligibility?.standardMonthly.eligible ?? null}
     />
+    </> : null}
   </ScrollView>;
 }
 

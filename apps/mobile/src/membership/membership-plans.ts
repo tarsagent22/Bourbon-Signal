@@ -44,9 +44,9 @@ export const MEMBERSHIP_PLANS: MembershipPlan[] = [
     description: "Full state Intel, focused alerts, and unlimited room on My Shelf.",
     bestFor: "For focused hunting near home",
     chooserFeatures: [
-      "Full availability intelligence across your state",
+      "See all tracked availability in your state",
       "Track 15 bottles in 5 hunting areas",
-      "Immediate push, email, and SMS alerts",
+      "Push, email, and SMS alerts for matching availability",
     ],
     monthly: { price: "$3", suffix: "/month", trialDays: 7 },
     annual: { price: "$30", suffix: "/year", valueNote: "2 months free" },
@@ -68,7 +68,7 @@ export const MEMBERSHIP_PLANS: MembershipPlan[] = [
       "Everything in Standard Proof",
       "Track unlimited bottles and areas",
       "Alerts from member-reported sightings",
-      "Collection-based DNA and bottle recommendations",
+      "Discover your taste profile and bottles you may like",
     ],
     recommended: true,
     monthly: { price: "$6", suffix: "/month", trialDays: 7 },
@@ -126,11 +126,12 @@ export function billingChoiceFor(tier: MembershipTier, interval: BillingInterval
   return choice ? { interval: normalizedInterval, ...choice } : null;
 }
 
-export function trialDisclosureFor(tier: MembershipTier, interval: BillingInterval, trialEligible: boolean) {
+export function trialDisclosureFor(tier: MembershipTier, interval: BillingInterval, trialEligible: boolean | null) {
   const price = billingChoiceFor(tier, interval);
   if (!price) return null;
   if (price.interval === "lifetime") return "Lifetime access · no trial";
   if (price.interval === "annual") return `${price.valueNote || "Annual membership"} · annual plans have no trial`;
+  if (trialEligible === null) return "Trial eligibility could not be confirmed";
   if (price.trialDays && trialEligible) return `${price.trialDays}-day free trial · ${price.price}${price.suffix} after`;
   return `No trial available · ${price.price}${price.suffix}`;
 }
@@ -138,7 +139,7 @@ export function trialDisclosureFor(tier: MembershipTier, interval: BillingInterv
 export function membershipChoiceAccessibilityLabel(
   tier: MembershipTier,
   interval: BillingInterval,
-  trialEligible: boolean,
+  trialEligible: boolean | null,
   actionLabel: string,
 ) {
   const plan = MEMBERSHIP_PLANS.find((candidate) => candidate.tier === tier);
