@@ -5,10 +5,12 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { ActivityIndicator, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { MobileApiError } from "../../../src/api/client";
 import type { GeographySearchResponse, MemberProfile, RadarBottleOption } from "../../../src/api/types";
+import { createBottleSearchIndex, rankBottleCatalog } from "../../../src/cellar/bottle-search";
+import bottleCatalogSeed from "../../../src/cellar/bottle-catalog-seed.json";
 import { MemberCard, memberScreenStyles } from "../../../src/components/MemberScreen";
 import { useMobileApi } from "../../../src/hooks/useMobileApi";
 import { createSightingIdempotencyKey, parseSightingDraftBinding, serializeSightingDraftBinding, SIGHTING_IDEMPOTENCY_STORAGE_KEY, type SightingDraftBinding } from "../../../src/sightings/manual-sighting";
-import { approvedStoreFromGeography, buildPostSignalPreview, buildPostSightingSubmission, filterBottleSuggestions, isPostRequiredComplete, POST_QUANTITY_CHOICES, type PostSignalPreview, type PostStoreSelection } from "../../../src/sightings/post-composer";
+import { approvedStoreFromGeography, buildPostSignalPreview, buildPostSightingSubmission, isPostRequiredComplete, POST_QUANTITY_CHOICES, rankApprovedStoreSuggestions, type PostSignalPreview, type PostStoreSelection } from "../../../src/sightings/post-composer";
 import { createPendingPhotoAttachment, stagePendingPhotoUpload, type PendingPhotoAttachment, type SightingPhotoAsset } from "../../../src/sightings/sighting-photo";
 import { chooseSightingPhoto, discardSightingPhoto, sightingPhotoBlob, type SightingPhotoSource } from "../../../src/sightings/sighting-photo-native";
 import { colors } from "../../../src/theme";
@@ -16,11 +18,13 @@ import { colors } from "../../../src/theme";
 type ActivePicker = "bottle" | "store" | null;
 type GeographyResult = GeographySearchResponse["results"][number];
 
+const BOTTLE_CATALOG_SEED = bottleCatalogSeed as RadarBottleOption[];
+
 export default function PostScreen() {
   const api = useMobileApi();
   const [profile, setProfile] = useState<MemberProfile["profile"] | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
-  const [bottleCatalog, setBottleCatalog] = useState<RadarBottleOption[]>([]);
+  const [bottleCatalog, setBottleCatalog] = useState<RadarBottleOption[]>(BOTTLE_CATALOG_SEED);
   const [bottleName, setBottleName] = useState("");
   const [bottleId, setBottleId] = useState<string | null>(null);
   const [activePicker, setActivePicker] = useState<ActivePicker>(null);
@@ -52,9 +56,9 @@ export default function PostScreen() {
     let active = true;
     Promise.all([
       api.getMemberProfile(),
-      api.listRadarBottles().catch(() => [] as RadarBottleOption[]),
+      api.listBottleCatalog().catch(() => BOTTLE_CATALOG_SEED),
     ])
-      .then(([result, bottles]) => { if (active) { setProfile(result.profile); setBottleCatalog(bottles); } })
+      .then(([result, bottles]) => { if (active) { setProfile(result.profile); if (bottles.length > 0) setBottleCatalog(bottles); } })
       .catch((caught) => {
         if (active) setError(caught instanceof MobileApiError && caught.status === 401 ? "Your session could not be verified. Return to Signals and retry." : caught instanceof Error ? caught.message : "Posting access is temporarily unavailable.");
       })
@@ -79,7 +83,8 @@ export default function PostScreen() {
   }, []);
 
   const canSubmit = profile?.entitlements.canSubmitSignals === true;
-  const bottleSuggestions = useMemo(() => filterBottleSuggestions(bottleCatalog, bottleName), [bottleCatalog, bottleName]);
+  const bottleSearchIndex = useMemo(() => createBottleSearchIndex(bottleCatalog), [bottleCatalog]);
+  const bottleSuggestions = useMemo(() => rankBottleCatalog(bottleSearchIndex, bottleName, 5), [bottleName, bottleSearchIndex]);
   const requiredComplete = useMemo(() => isPostRequiredComplete({ bottleName, storeName, storeAddress, storeCity, storeState }), [bottleName, storeAddress, storeCity, storeName, storeState]);
   const selectedBottleRarity = useMemo(() => bottleCatalog.find((bottle) => bottle.id === bottleId)?.rarity, [bottleCatalog, bottleId]);
   const preview = useMemo(() => buildPostSignalPreview({
@@ -107,12 +112,12 @@ export default function PostScreen() {
     const sequence = ++storeSearchSequence.current;
     const timer = setTimeout(() => {
       setStoreSearching(true);
-      api.searchMonitoringGeography({ levels: ["store"], query, limit: 6 })
+      api.searchMonitoringGeography({ levels: ["store"], query, limit: 25 })
         .then((response) => response.results.flatMap((entry: GeographyResult) => {
           const store = approvedStoreFromGeography(entry);
           return store ? [store] : [];
         }))
-        .then((results) => { if (storeSearchSequence.current === sequence) setStoreResults(results); })
+        .then((results) => { if (storeSearchSequence.current === sequence) setStoreResults(rankApprovedStoreSuggestions(results, query, 6)); })
         .catch(() => { if (storeSearchSequence.current === sequence) setStoreResults([]); })
         .finally(() => { if (storeSearchSequence.current === sequence) setStoreSearching(false); });
     }, 250);

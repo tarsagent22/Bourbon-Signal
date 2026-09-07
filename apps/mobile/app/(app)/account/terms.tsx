@@ -56,8 +56,8 @@ export default function TermsScreen() {
     <View style={styles.hero}>
       <Text style={styles.eyebrow}>TERMS OF SERVICE</Text>
       <Text accessibilityRole="header" style={styles.title}>Terms of Service</Text>
-      <Text style={styles.updated}>Updated June 24, 2026</Text>
-      <Text style={styles.intro}>These Terms govern your access to Bourbon Signal, including the website, mobile app, Intel feed, Bottle Check, alert tools, subscriptions, and related services. Bourbon Signal is operated by Todd Digital Ventures LLC.</Text>
+      <Text style={styles.updated}>Updated September 6, 2026</Text>
+      <Text style={styles.intro}>These Terms govern your access to Bourbon Signal, including the website, mobile app, Intel feed, Community tools, alerts, subscriptions, and related services. Bourbon Signal is operated by Todd Digital Ventures LLC.</Text>
     </View>
     {sections.map(([heading, paragraphs]) => <View key={heading} style={styles.section}>
       <Text accessibilityRole="header" style={styles.sectionTitle}>{heading}</Text>

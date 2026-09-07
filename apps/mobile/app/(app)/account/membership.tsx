@@ -6,7 +6,8 @@ import type { MemberProfile, MembershipTrialEligibility } from "../../../src/api
 import { ErrorState, memberScreenStyles } from "../../../src/components/MemberScreen";
 import { useMobileApi } from "../../../src/hooks/useMobileApi";
 import {
-  MEMBERSHIP_PLANS,
+  MEMBERSHIP_COMPARISON_ROWS,
+  PAID_MEMBERSHIP_PLANS,
   billingChoiceFor,
   membershipActionFor,
   type BillingInterval,
@@ -69,7 +70,7 @@ export default function MembershipScreen() {
     </View>
 
     <View style={styles.planList}>
-      {MEMBERSHIP_PLANS.map((plan) => {
+      {PAID_MEMBERSHIP_PLANS.map((plan) => {
         const price = billingChoiceFor(plan.tier, interval);
         const action = profile ? membershipActionFor(profile.membership.tier as MembershipTier, plan.tier) : { kind: "unknown" as const, label: "Review plan" };
         const trialEligible = Boolean(price?.trialDays && (plan.tier === "standard" ? trialEligibility?.standardMonthly.eligible : plan.tier === "barrel" ? trialEligibility?.barrelMonthly.eligible : false));
@@ -82,15 +83,11 @@ export default function MembershipScreen() {
             {plan.recommended ? <View style={styles.recommendedBadge}><Text style={styles.recommendedText}>RECOMMENDED</Text></View> : null}
             {currentTier === plan.tier ? <View style={styles.activeBadge}><Text style={styles.activeText}>CURRENT</Text></View> : null}
           </View>
-          <Text style={styles.planDescription}>{plan.description}</Text>
           <View style={styles.priceRow}>
-            <Text style={styles.price}>{price?.price || "$0"}</Text>
-            <Text style={styles.priceSuffix}>{price?.suffix || " forever"}</Text>
+            <Text style={styles.price}>{price?.price}</Text>
+            <Text style={styles.priceSuffix}>{price?.suffix}</Text>
           </View>
           {trialEligible ? <Text style={styles.priceNote}>{price?.trialDays}-day free trial · {price?.price}{price?.suffix} after</Text> : price?.valueNote ? <Text style={styles.priceNote}>{price.valueNote}</Text> : null}
-          <View style={styles.featureList}>
-            {plan.features.slice(0, 3).map((feature) => <View key={feature} style={styles.featureRow}><Text accessible={false} style={styles.check}>✓</Text><Text style={styles.feature}>{feature}</Text></View>)}
-          </View>
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={action.label}
@@ -99,6 +96,36 @@ export default function MembershipScreen() {
           ><Text style={[styles.reviewText, plan.recommended && styles.reviewTextPrimary]}>{action.label}</Text><Text accessible={false} style={[styles.arrow, plan.recommended && styles.reviewTextPrimary]}>›</Text></Pressable>
         </View>;
       })}
+    </View>
+
+    <View style={styles.comparisonSection}>
+      <View style={styles.comparisonHeading}>
+        <Text accessibilityRole="header" style={styles.comparisonTitle}>Compare features</Text>
+        <Text style={styles.comparisonHint}>Free is shown as a baseline, without another pricing card.</Text>
+      </View>
+      <ScrollView horizontal contentContainerStyle={styles.comparisonTable} showsHorizontalScrollIndicator>
+        <View>
+          <View style={[styles.comparisonRow, styles.comparisonHeaderRow]}>
+            <Text style={[styles.comparisonCell, styles.featureCell, styles.comparisonHeaderText]}>FEATURE</Text>
+            <Text style={[styles.comparisonCell, styles.tierCell, styles.comparisonHeaderText]}>FREE</Text>
+            <Text style={[styles.comparisonCell, styles.tierCell, styles.comparisonHeaderText]}>STANDARD</Text>
+            <Text style={[styles.comparisonCell, styles.tierCell, styles.comparisonHeaderText]}>BARREL</Text>
+            <Text style={[styles.comparisonCell, styles.tierCell, styles.comparisonHeaderText]}>FOUNDER</Text>
+          </View>
+          {MEMBERSHIP_COMPARISON_ROWS.map((row) => <View
+            accessible
+            accessibilityLabel={`${row.feature}. Free: ${row.values.free}. Standard: ${row.values.standard}. Barrel: ${row.values.barrel}. Founder: ${row.values["bottled-in-bond"]}.`}
+            key={row.feature}
+            style={styles.comparisonRow}
+          >
+            <Text accessible={false} style={[styles.comparisonCell, styles.featureCell, styles.featureText]}>{row.feature}</Text>
+            <Text accessible={false} style={[styles.comparisonCell, styles.tierCell, styles.valueText]}>{row.values.free}</Text>
+            <Text accessible={false} style={[styles.comparisonCell, styles.tierCell, styles.valueText]}>{row.values.standard}</Text>
+            <Text accessible={false} style={[styles.comparisonCell, styles.tierCell, styles.valueText]}>{row.values.barrel}</Text>
+            <Text accessible={false} style={[styles.comparisonCell, styles.tierCell, styles.valueText]}>{row.values["bottled-in-bond"]}</Text>
+          </View>)}
+        </View>
+      </ScrollView>
     </View>
 
     <Text style={styles.footnote}>Monthly Standard Proof and Barrel Proof include one eligible 7-day trial. Annual and lifetime memberships do not include a trial.</Text>
@@ -131,20 +158,28 @@ const styles = StyleSheet.create({
   recommendedText: { color: colors.background, fontSize: 8, fontWeight: "900", letterSpacing: 0.65 },
   activeBadge: { borderRadius: 999, backgroundColor: "rgba(126,173,131,0.18)", paddingHorizontal: 8, paddingVertical: 5 },
   activeText: { color: colors.success, fontSize: 8, fontWeight: "900", letterSpacing: 0.65 },
-  planDescription: { color: colors.muted, fontSize: 14, lineHeight: 20 },
   priceRow: { flexDirection: "row", alignItems: "baseline" },
   price: { color: colors.text, fontSize: 31, lineHeight: 35, fontWeight: "900", fontVariant: ["tabular-nums"] },
   priceSuffix: { color: colors.muted, fontSize: 14, fontWeight: "700" },
   priceNote: { color: colors.accent, fontSize: 12, lineHeight: 17, fontWeight: "800" },
-  featureList: { gap: 8 },
-  featureRow: { flexDirection: "row", alignItems: "flex-start", gap: 9 },
-  check: { color: colors.success, fontSize: 14, lineHeight: 20, fontWeight: "900" },
-  feature: { flex: 1, color: colors.text, fontSize: 13, lineHeight: 20 },
   reviewButton: { minHeight: 48, borderRadius: 12, borderColor: colors.border, borderWidth: 1, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
   reviewButtonPrimary: { backgroundColor: colors.accent, borderColor: colors.accent },
   reviewText: { color: colors.text, fontSize: 14, fontWeight: "900" },
   reviewTextPrimary: { color: colors.background },
   arrow: { color: colors.accent, fontSize: 24, lineHeight: 26 },
+  comparisonSection: { borderColor: colors.border, borderWidth: 1, borderRadius: 18, backgroundColor: colors.surface, overflow: "hidden" },
+  comparisonHeading: { gap: 4, paddingHorizontal: 16, paddingTop: 16, paddingBottom: 12 },
+  comparisonTitle: { color: colors.text, fontSize: 20, lineHeight: 25, fontWeight: "900" },
+  comparisonHint: { color: colors.muted, fontSize: 12, lineHeight: 17 },
+  comparisonTable: { paddingBottom: 8 },
+  comparisonRow: { minHeight: 58, flexDirection: "row", alignItems: "stretch", borderTopColor: colors.border, borderTopWidth: StyleSheet.hairlineWidth },
+  comparisonHeaderRow: { minHeight: 40, backgroundColor: colors.surfaceRaised },
+  comparisonCell: { paddingHorizontal: 9, paddingVertical: 10, textAlignVertical: "center" },
+  featureCell: { width: 142 },
+  tierCell: { width: 98, textAlign: "center" },
+  comparisonHeaderText: { color: colors.accent, fontSize: 9, lineHeight: 13, fontWeight: "900", letterSpacing: 0.7 },
+  featureText: { color: colors.text, fontSize: 12, lineHeight: 17, fontWeight: "800" },
+  valueText: { color: colors.muted, fontSize: 11, lineHeight: 16, fontWeight: "700" },
   pressed: { opacity: 0.72 },
   footnote: { color: colors.muted, fontSize: 12, lineHeight: 18, textAlign: "center", paddingHorizontal: 10 },
 });

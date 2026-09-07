@@ -1,27 +1,13 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import type { RadarBottleOption } from "../api/types";
 import {
   approvedStoreFromGeography,
   buildPostSignalPreview,
   buildPostSightingSubmission,
-  filterBottleSuggestions,
   isPostRequiredComplete,
   POST_QUANTITY_CHOICES,
+  rankApprovedStoreSuggestions,
 } from "./post-composer";
-
-const catalog: RadarBottleOption[] = [
-  { id: "eagle-rare-10", name: "Eagle Rare 10 Year", rarity: "allocated" },
-  { id: "rare-breed", name: "Rare Breed" },
-  { id: "eh-taylor", name: "E.H. Taylor Small Batch", rarity: "allocated" },
-];
-
-test("ranks bottle suggestions by prefix before contains matches", () => {
-  assert.deepEqual(
-    filterBottleSuggestions(catalog, "rare").map((bottle) => bottle.id),
-    ["rare-breed", "eagle-rare-10"],
-  );
-});
 
 test("maps an approved geography store without parsing its subtitle", () => {
   assert.deepEqual(approvedStoreFromGeography({
@@ -45,6 +31,16 @@ test("maps an approved geography store without parsing its subtitle", () => {
 
 test("rejects incomplete approved geography store rows", () => {
   assert.equal(approvedStoreFromGeography({ id: "store:NC:missing", level: "store", state: "NC", name: "Missing address" }), null);
+});
+
+test("ranks approved retailer matches by the shopper's words", () => {
+  const stores = [
+    { id: "one", name: "Raleigh Wine Shop", address: "1 Main St", city: "Raleigh", state: "NC" },
+    { id: "two", name: "Total Wine & More", address: "4421 Six Forks Rd", city: "Raleigh", state: "NC" },
+    { id: "three", name: "Total Beverage", address: "9 Oak Ave", city: "Durham", state: "NC" },
+  ];
+  assert.deepEqual(rankApprovedStoreSuggestions(stores, "total wine", 3).map((store) => store.id), ["two"]);
+  assert.deepEqual(rankApprovedStoreSuggestions(stores, "raleigh wine", 3).map((store) => store.id), ["one", "two"]);
 });
 
 test("requires complete bottle and store facts before posting", () => {

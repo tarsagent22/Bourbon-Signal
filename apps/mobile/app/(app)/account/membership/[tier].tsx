@@ -86,13 +86,13 @@ export default function MembershipPlanScreen() {
     </View>
 
     <View style={styles.statusCard}>
-      <Text accessibilityRole="header" style={styles.statusTitle}>{isCurrentOrIncluded ? action?.label : isFree ? "Free membership" : "In-app purchasing is next"}</Text>
+      <Text accessibilityRole="header" style={styles.statusTitle}>{isCurrentOrIncluded ? action?.label : isFree ? "Free membership" : "Membership purchasing is coming soon"}</Text>
       <Text style={styles.statusBody}>{isCurrentOrIncluded
         ? "Your account already has this level of access."
         : isFree
           ? "Free membership is included with every Bourbon Signal account."
-          : "In-app purchases are not available in this build yet. This screen is ready for native billing and receipt integration; it will never send you to an external checkout."}</Text>
-      <Pressable accessibilityRole="button" accessibilityState={{ disabled: true }} disabled style={styles.disabledButton}><Text style={styles.disabledButtonText}>{isCurrentOrIncluded ? action?.label : isFree ? "Included with your account" : hasTrial ? "Start 7-day free trial" : `Choose ${plan.name}`}</Text></Pressable>
+          : "In-app purchases are not available in this build yet. You can review plans now; purchasing and restoration will be available here when memberships launch."}</Text>
+      <Pressable accessibilityRole="button" accessibilityState={{ disabled: true }} disabled style={styles.disabledButton}><Text style={styles.disabledButtonText}>{isCurrentOrIncluded ? action?.label : isFree ? "Included with your account" : "Purchases coming soon"}</Text></Pressable>
       {!isFree ? <Pressable accessibilityRole="button" accessibilityState={{ disabled: true }} disabled style={styles.restoreButton}><Text style={styles.restoreText}>Restore purchases</Text></Pressable> : null}
     </View>
 

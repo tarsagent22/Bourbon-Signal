@@ -22,10 +22,26 @@ test("membership overview compares every tier with accurate pricing and native d
   assert.match(plans, /name: "Bottled in Bond"/);
   assert.match(screen, /Monthly/);
   assert.match(screen, /Annual · 2 months free/);
+  assert.match(screen, /PAID_MEMBERSHIP_PLANS\.map/);
+  assert.match(screen, /MEMBERSHIP_COMPARISON_ROWS\.map/);
+  assert.match(screen, /Compare features/);
+  assert.doesNotMatch(screen, /\{MEMBERSHIP_PLANS\.map/);
+  assert.doesNotMatch(screen, /plan\.description/);
+  assert.doesNotMatch(screen, /plan\.features\.slice/);
   assert.ok(screen.includes('pathname: "/(app)/account/membership/[tier]"'));
   assert.match(screen, /profile \? membershipActionFor/);
   assert.doesNotMatch(screen, /profile\?\.membership\.tier \|\| "free"/);
   assert.doesNotMatch(screen, /Linking\.openURL|WebBrowser|bourbonsignal\.com/);
+});
+
+test("mobile membership and legal surfaces retire Bottle Check copy", () => {
+  const surfaces = [
+    read("src/membership/membership-plans.ts"),
+    read("app/(app)/account/membership.tsx"),
+    read("app/(app)/account/membership/[tier].tsx"),
+    read("app/(app)/account/terms.tsx"),
+  ].join("\n");
+  assert.doesNotMatch(surfaces, /Bottle Check|Bottle Checker/i);
 });
 
 test("plan review gives Apple-ready disclosures without pretending purchasing works", () => {

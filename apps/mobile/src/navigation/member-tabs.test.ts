@@ -1,6 +1,9 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import test from "node:test";
 import { MEMBER_TABS, ownedFeatureHome } from "./member-tabs";
+
+const tabsLayout = readFileSync(new URL("../../app/(app)/(tabs)/_layout.tsx", import.meta.url), "utf8");
 
 test("defines the five native-only member destinations in field order", () => {
   assert.deepEqual(MEMBER_TABS.map((tab) => tab.key), ["home", "radar", "post", "cellar", "hq"]);
@@ -32,8 +35,10 @@ test("uses a bottle, not wine glassware, for My Shelf", () => {
   assert.doesNotMatch(cellar?.icon || "", /wine|glass/i);
 });
 
-test("uses a plain plus glyph for the custom primary Post button", () => {
+test("uses a lifted plain plus glyph for the custom primary Post button", () => {
   const post = MEMBER_TABS.find((tab) => tab.key === "post");
   assert.equal(post?.label, "Post");
   assert.equal(post?.icon, "plus");
+  assert.match(tabsLayout, /postIconButton:\s*\{[^}]*marginTop:\s*-18/s);
+  assert.match(tabsLayout, /tabBarAccessibilityLabel:\s*"Create a Community Signal"/);
 });

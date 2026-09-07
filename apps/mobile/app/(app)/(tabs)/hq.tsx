@@ -180,7 +180,8 @@ export default function AccountScreen() {
         </View>
         {editingDisplayName ? <View style={styles.nameEditor}>
           <TextInput accessibilityLabel="Display name" autoCapitalize="words" autoCorrect={false} editable={!savingDisplayName} maxLength={32} onChangeText={(value) => { setDisplayNameDraft(value); setDisplayNameError(""); setDisplayNameSuccess(""); }} placeholder="Choose a display name" placeholderTextColor={colors.muted} style={styles.displayNameInput} value={displayNameDraft} />
-          <Text style={styles.characterCount}>{displayNameDraft.length}/32</Text>
+          <View style={styles.nameGuidanceRow}><Text style={styles.nameGuidance}>Public name · 2–32 characters</Text><Text style={styles.characterCount}>{displayNameDraft.length}/32</Text></View>
+          <Text style={styles.nameGuidance}>Do not impersonate Bourbon Signal, staff, or numbered member tags.</Text>
           {displayNameError ? <Text accessibilityRole="alert" style={styles.error}>{displayNameError}</Text> : null}
           <View style={styles.nameActions}>
             {profile.customDisplayName ? <Pressable accessibilityRole="button" disabled={savingDisplayName} onPress={() => void saveDisplayName(null)} style={({ pressed }) => [styles.secondaryButton, pressed && styles.pressed]}><Text style={styles.secondaryButtonText}>Remove display name</Text></Pressable> : null}
@@ -340,6 +341,8 @@ const styles = StyleSheet.create({
   editButtonText: { color: colors.accent, fontSize: 13, fontWeight: "800" },
   nameEditor: { gap: 9, paddingTop: 8, borderTopColor: colors.border, borderTopWidth: StyleSheet.hairlineWidth },
   displayNameInput: { minHeight: 48, borderRadius: 12, borderColor: colors.border, borderWidth: 1, backgroundColor: colors.background, color: colors.text, paddingHorizontal: 13, fontSize: 16 },
+  nameGuidanceRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
+  nameGuidance: { flexShrink: 1, color: colors.muted, fontSize: 11, lineHeight: 16 },
   characterCount: { color: colors.muted, fontSize: 12, textAlign: "right" },
   nameActions: { flexDirection: "row", justifyContent: "flex-end", flexWrap: "wrap", gap: 8 },
   primaryButton: { minHeight: 44, backgroundColor: colors.accent, borderRadius: 10, alignItems: "center", justifyContent: "center", paddingHorizontal: 14 },

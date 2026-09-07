@@ -68,6 +68,6 @@ const styles = StyleSheet.create({
   brandTitle: { color: colors.text, fontFamily: "Fraunces_700Bold", fontSize: 24, lineHeight: 30, letterSpacing: -0.35 },
   brandPeriod: { color: colors.accent },
   alertButton: { width: 44, height: 44, alignItems: "center", justifyContent: "center", marginRight: 4 },
-  postIconButton: { width: 48, height: 48, marginTop: -12, borderRadius: 24, alignItems: "center", justifyContent: "center", backgroundColor: colors.accent, borderColor: "#F1BC72", borderWidth: 1 },
+  postIconButton: { width: 48, height: 48, marginTop: -18, borderRadius: 24, alignItems: "center", justifyContent: "center", backgroundColor: colors.accent, borderColor: "#F1BC72", borderWidth: 1 },
   pressed: { opacity: 0.68 },
 });

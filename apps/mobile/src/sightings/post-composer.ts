@@ -92,17 +92,6 @@ export function buildPostSignalPreview(input: {
   };
 }
 
-export function filterBottleSuggestions(catalog: RadarBottleOption[], query: string, limit = 5) {
-  const needle = query.replace(/\s+/g, " ").trim().toLowerCase();
-  if (!needle) return [];
-  return catalog
-    .map((bottle, index) => ({ bottle, index, name: bottle.name.toLowerCase() }))
-    .filter(({ name }) => name.includes(needle))
-    .sort((left, right) => Number(!left.name.startsWith(needle)) - Number(!right.name.startsWith(needle)) || left.index - right.index)
-    .slice(0, Math.max(1, limit))
-    .map(({ bottle }) => bottle);
-}
-
 export function approvedStoreFromGeography(entry: {
   id: string;
   storeId?: string;
@@ -120,6 +109,44 @@ export function approvedStoreFromGeography(entry: {
   const state = entry.state.trim().toUpperCase();
   if (entry.level !== "store" || !storeId || !name || !address || !city || !/^[A-Z]{2}$/.test(state)) return null;
   return { id: storeId, name, address, city, state, ...(entry.zip?.trim() ? { zip: entry.zip.trim() } : {}) };
+}
+
+export function rankApprovedStoreSuggestions(stores: PostStoreSelection[], query: string, limit = 6) {
+  const normalize = (value: string) => value
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/&/g, " and ")
+    .replace(/[^a-z0-9]+/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+  const needle = normalize(query);
+  if (!needle || limit <= 0) return [];
+  const queryTokens = needle.split(" ");
+
+  return stores
+    .map((store) => {
+      const name = normalize(store.name);
+      const nameTokens = name.split(" ");
+      const combined = normalize([store.name, store.city, store.state, store.address, store.zip].filter(Boolean).join(" "));
+      const combinedTokens = combined.split(" ");
+      const tokenMatch = (tokens: string[]) => queryTokens.every((queryToken) => tokens.some((token) => token.startsWith(queryToken)));
+      const score = name === needle ? 0
+        : name.startsWith(needle) ? 1
+          : name.includes(needle) ? 2
+            : tokenMatch(nameTokens) ? 3
+              : combined.includes(needle) ? 4
+                : tokenMatch(combinedTokens) ? 5
+                  : null;
+      return { store, score };
+    })
+    .filter((match): match is { store: PostStoreSelection; score: number } => match.score !== null)
+    .sort((left, right) => left.score - right.score
+      || left.store.name.localeCompare(right.store.name)
+      || left.store.city.localeCompare(right.store.city)
+      || String(left.store.id).localeCompare(String(right.store.id)))
+    .slice(0, Math.floor(limit))
+    .map(({ store }) => store);
 }
 
 export function isPostRequiredComplete(input: {

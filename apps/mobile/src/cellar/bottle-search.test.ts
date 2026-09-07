@@ -10,6 +10,7 @@ const catalog: RadarBottleOption[] = [
   { id: "rare-breed", name: "Wild Turkey Rare Breed", aliases: ["WT Rare Breed"], brand: "Wild Turkey", producer: "Campari", proof: 116.8 },
   { id: "eh-taylor", name: "E.H. Taylor Small Batch", aliases: ["Colonel Taylor", "EHT"], brand: "E.H. Taylor", proof: 100 },
   { id: "makers-mark", name: "Maker’s Mark", aliases: ["Maker's"], brand: "Maker’s Mark", proof: 90 },
+  { id: "michters-10", name: "Michter’s 10 Year", aliases: ["M10"], brand: "Michter’s", ageStatement: "10 Years" },
   { id: "larceny", name: "Larcény Small Batch", brand: "Larceny", proof: 92 },
 ];
 
@@ -37,6 +38,14 @@ test("precomputed local Cellar search covers names, aliases, brand, producer, pr
 test("local search retains deterministic name and alias priority", () => {
   assert.deepEqual(rankBottleCatalog(searchIndex, "rare", 10).map((item) => item.id), ["rare-breed", "eagle-rare"]);
   assert.deepEqual(rankBottleCatalog(searchIndex, "", 10), []);
+});
+
+test("local search tolerates one meaningful typo only after strong matches are exhausted", () => {
+  assert.equal(rankBottleCatalog(searchIndex, "mkaers", 10)[0]?.id, "makers-mark", "adjacent transposition");
+  assert.equal(rankBottleCatalog(searchIndex, "sazeracc", 10)[0]?.id, "eagle-rare", "single added character");
+  assert.equal(rankBottleCatalog(searchIndex, "mitchers 10", 10)[0]?.id, "michters-10", "common two-edit typo on a long token");
+  assert.deepEqual(rankBottleCatalog(searchIndex, "eht", 10).map((item) => item.id), ["eh-taylor"], "short exact aliases remain supported");
+  assert.deepEqual(rankBottleCatalog(searchIndex, "zz", 10), [], "short unknown input does not trigger fuzzy noise");
 });
 
 test("search options resolve an existing canonical Cellar record for state-aware actions", () => {

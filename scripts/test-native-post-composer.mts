@@ -22,7 +22,12 @@ test("approved store search exposes structured location identity additively", ()
 });
 
 test("Post uses canonical bottle and approved retailer suggestions with manual fallback", () => {
-  assert.match(post, /listRadarBottles/);
+  assert.match(post, /listBottleCatalog/);
+  assert.match(post, /bottle-catalog-seed\.json/);
+  assert.match(post, /BOTTLE_CATALOG_SEED/);
+  assert.match(post, /createBottleSearchIndex/);
+  assert.match(post, /rankBottleCatalog/);
+  assert.doesNotMatch(post, /listRadarBottles/);
   assert.match(post, /searchMonitoringGeography\(\{[^}]*levels:\s*\["store"\]/s);
   assert.match(post, /approvedStoreFromGeography/);
   assert.match(post, /if \(!canSubmit \|\| manualStore \|\| selectedStore \|\| activePicker !== "store" \|\| query\.length < 2\) \{\s*storeSearchSequence\.current \+= 1;\s*setStoreResults\(\[\]\);/);

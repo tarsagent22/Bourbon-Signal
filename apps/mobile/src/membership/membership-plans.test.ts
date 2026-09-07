@@ -1,11 +1,20 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import {
+  MEMBERSHIP_COMPARISON_ROWS,
   MEMBERSHIP_PLANS,
+  PAID_MEMBERSHIP_PLANS,
   billingChoiceFor,
   membershipActionFor,
   type MembershipTier,
 } from "./membership-plans";
+
+test("the pricing overview has three paid cards and a Free comparison baseline", () => {
+  assert.deepEqual(PAID_MEMBERSHIP_PLANS.map((plan) => plan.tier), ["standard", "barrel", "bottled-in-bond"]);
+  assert.ok(MEMBERSHIP_COMPARISON_ROWS.length >= 8);
+  assert.ok(MEMBERSHIP_COMPARISON_ROWS.every((row) => row.values.free !== undefined));
+  assert.doesNotMatch(JSON.stringify({ plans: MEMBERSHIP_PLANS, rows: MEMBERSHIP_COMPARISON_ROWS }), /Bottle Check/i);
+});
 
 test("mobile plans preserve the canonical pricing and monthly trial disclosures", () => {
   const standard = MEMBERSHIP_PLANS.find((plan) => plan.tier === "standard");

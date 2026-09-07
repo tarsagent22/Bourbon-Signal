@@ -21,16 +21,20 @@ export type MembershipPlan = {
   lifetime?: Omit<PriceChoice, "interval">;
 };
 
+export type MembershipComparisonRow = {
+  feature: string;
+  values: Record<MembershipTier, string>;
+};
+
 export const MEMBERSHIP_PLANS: MembershipPlan[] = [
   {
     tier: "free",
     name: "Free",
     eyebrow: "Start hunting",
-    description: "Explore live signals, contribute sightings, and keep a small My Shelf collection.",
+    description: "Explore recent signals, contribute to Community, and start building My Shelf.",
     features: [
       "7-item Intel preview",
       "2 newest Community Signals",
-      "3 Bottle Checks",
       "10 bottles on My Shelf",
       "Post Community Signals and earn points",
     ],
@@ -39,13 +43,13 @@ export const MEMBERSHIP_PLANS: MembershipPlan[] = [
     tier: "standard",
     name: "Standard Proof",
     eyebrow: "Core membership",
-    description: "Turn state signals into a focused hunting plan with full access and alerts.",
+    description: "Full state Intel, focused alerts, and unlimited room on My Shelf.",
     monthly: { price: "$3", suffix: "/month", trialDays: 7 },
     annual: { price: "$30", suffix: "/year", valueNote: "2 months free" },
     features: [
       "Full state Intel feed",
       "Alerts for up to 5 areas and 15 bottles",
-      "Unlimited Bottle Checks and Community Signals",
+      "Push, email, and SMS alert delivery",
       "Unlimited My Shelf",
       "Redeem Signal Points for member rewards",
     ],
@@ -54,7 +58,7 @@ export const MEMBERSHIP_PLANS: MembershipPlan[] = [
     tier: "barrel",
     name: "Barrel Proof",
     eyebrow: "Serious hunters",
-    description: "Add unlimited preferences and intelligence shaped by your own collection.",
+    description: "Unlimited hunting preferences plus intelligence shaped by your collection.",
     recommended: true,
     monthly: { price: "$6", suffix: "/month", trialDays: 7 },
     annual: { price: "$60", suffix: "/year", valueNote: "2 months free" },
@@ -70,7 +74,7 @@ export const MEMBERSHIP_PLANS: MembershipPlan[] = [
     tier: "bottled-in-bond",
     name: "Bottled in Bond",
     eyebrow: "Limited Founder offer",
-    description: "Lifetime access to the complete hunting toolkit with permanent Founder recognition.",
+    description: "Lifetime Barrel Proof access with permanent Founder recognition.",
     limited: true,
     lifetime: { price: "$50", suffix: " once" },
     features: [
@@ -79,6 +83,21 @@ export const MEMBERSHIP_PLANS: MembershipPlan[] = [
       "Founder badge and number on your profile",
     ],
   },
+];
+
+export const PAID_MEMBERSHIP_PLANS = MEMBERSHIP_PLANS.filter((plan): plan is MembershipPlan & { tier: Exclude<MembershipTier, "free"> } => plan.tier !== "free");
+
+export const MEMBERSHIP_COMPARISON_ROWS: MembershipComparisonRow[] = [
+  { feature: "Intel feed", values: { free: "7-item preview", standard: "Full state", barrel: "Full + advanced", "bottled-in-bond": "Full + advanced" } },
+  { feature: "Community Signals", values: { free: "Read 2 + post", standard: "Full + post", barrel: "Full + post", "bottled-in-bond": "Full + post" } },
+  { feature: "Alert areas", values: { free: "—", standard: "Up to 5", barrel: "Unlimited", "bottled-in-bond": "Unlimited" } },
+  { feature: "Watched bottles", values: { free: "—", standard: "Up to 15", barrel: "Unlimited", "bottled-in-bond": "Unlimited" } },
+  { feature: "Alert delivery", values: { free: "—", standard: "Push · email · SMS", barrel: "Push · email · SMS", "bottled-in-bond": "Push · email · SMS" } },
+  { feature: "My Shelf", values: { free: "Up to 10", standard: "Unlimited", barrel: "Unlimited", "bottled-in-bond": "Unlimited" } },
+  { feature: "Signal Points", values: { free: "Earn", standard: "Earn + redeem", barrel: "Earn + redeem", "bottled-in-bond": "Earn + redeem" } },
+  { feature: "Community alerts", values: { free: "—", standard: "—", barrel: "Included", "bottled-in-bond": "Included" } },
+  { feature: "DNA + recommendations", values: { free: "—", standard: "—", barrel: "Included", "bottled-in-bond": "Included" } },
+  { feature: "Founder identity + glass", values: { free: "—", standard: "—", barrel: "—", "bottled-in-bond": "Included" } },
 ];
 
 const tierRank: Record<MembershipTier, number> = {

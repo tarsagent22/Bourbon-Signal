@@ -92,14 +92,87 @@ function compareRanks(left: MatchRank[], right: MatchRank[]) {
   return 0;
 }
 
+function withinOneEdit(left: string, right: string) {
+  if (left === right) return true;
+  if (Math.abs(left.length - right.length) > 1) return false;
+  if (left.length === right.length) {
+    const mismatches: number[] = [];
+    for (let index = 0; index < left.length; index += 1) {
+      if (left[index] !== right[index]) mismatches.push(index);
+      if (mismatches.length > 2) return false;
+    }
+    if (mismatches.length === 1) return true;
+    return mismatches.length === 2
+      && mismatches[1] === mismatches[0] + 1
+      && left[mismatches[0]] === right[mismatches[1]]
+      && left[mismatches[1]] === right[mismatches[0]];
+  }
+  const [shorter, longer] = left.length < right.length ? [left, right] : [right, left];
+  let shortIndex = 0;
+  let longIndex = 0;
+  let skipped = false;
+  while (shortIndex < shorter.length && longIndex < longer.length) {
+    if (shorter[shortIndex] === longer[longIndex]) {
+      shortIndex += 1;
+      longIndex += 1;
+    } else if (skipped) {
+      return false;
+    } else {
+      skipped = true;
+      longIndex += 1;
+    }
+  }
+  return true;
+}
+
+function editDistanceAtMost(left: string, right: string, maximum: number) {
+  if (Math.abs(left.length - right.length) > maximum) return false;
+  let previous = Array.from({ length: right.length + 1 }, (_, index) => index);
+  for (let leftIndex = 1; leftIndex <= left.length; leftIndex += 1) {
+    const current = [leftIndex];
+    let rowMinimum = current[0];
+    for (let rightIndex = 1; rightIndex <= right.length; rightIndex += 1) {
+      current[rightIndex] = Math.min(
+        current[rightIndex - 1] + 1,
+        previous[rightIndex] + 1,
+        previous[rightIndex - 1] + Number(left[leftIndex - 1] !== right[rightIndex - 1]),
+      );
+      rowMinimum = Math.min(rowMinimum, current[rightIndex]);
+    }
+    if (rowMinimum > maximum) return false;
+    previous = current;
+  }
+  return previous[right.length] <= maximum;
+}
+
+function typoRank(entry: IndexedBottle, queryTokens: readonly string[]) {
+  let edits = 0;
+  for (const queryToken of queryTokens) {
+    if (entry.tokens.some((token) => token === queryToken || token.startsWith(queryToken))) continue;
+    if (queryToken.length < 5) return null;
+    const maximum = queryToken.length >= 8 ? 2 : 1;
+    if (!entry.tokens.some((token) => token.length >= 5 && (withinOneEdit(token, queryToken) || editDistanceAtMost(token, queryToken, maximum)))) return null;
+    edits += 1;
+  }
+  return edits > 0 ? edits : null;
+}
+
 export function rankBottleCatalog(index: BottleSearchIndex, query: string, limit = 12) {
   const needle = normalizeSearchValue(query);
   if (!needle || limit <= 0) return [];
   const queryTokens = needle.split(" ");
-  return index.entries
+  const strong = index.entries
     .map((entry) => ({ entry, ranks: optionRanks(entry, needle, queryTokens) }))
     .filter(({ ranks }) => ranks.length > 0)
     .sort((left, right) => compareRanks(left.ranks, right.ranks)
+      || left.entry.normalizedName.localeCompare(right.entry.normalizedName)
+      || left.entry.option.id.localeCompare(right.entry.option.id));
+  if (strong.length > 0) return strong.slice(0, Math.floor(limit)).map(({ entry }) => entry.option);
+  if (needle.length < 5) return [];
+  return index.entries
+    .map((entry) => ({ entry, typo: typoRank(entry, queryTokens) }))
+    .filter((match): match is { entry: IndexedBottle; typo: number } => match.typo !== null)
+    .sort((left, right) => left.typo - right.typo
       || left.entry.normalizedName.localeCompare(right.entry.normalizedName)
       || left.entry.option.id.localeCompare(right.entry.option.id))
     .slice(0, Math.floor(limit))

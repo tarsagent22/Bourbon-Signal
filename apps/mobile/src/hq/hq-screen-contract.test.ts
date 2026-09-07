@@ -36,6 +36,11 @@ test("Account leads with a compact member and points summary", () => {
   assert.match(source, /profile\.identity\?\.label/);
 });
 
+test("the display-name editor explains the public identity guardrails", () => {
+  assert.match(source, /Public name · 2–32 characters/);
+  assert.match(source, /Do not impersonate Bourbon Signal, staff, or numbered member tags/);
+});
+
 test("Account is organized into compact accessible destinations", () => {
   const profile = source.indexOf('label="Profile"');
   const membership = source.indexOf('label="Membership"');
