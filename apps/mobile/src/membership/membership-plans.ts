@@ -11,19 +11,17 @@ type PriceChoice = {
 export type MembershipPlan = {
   tier: MembershipTier;
   name: string;
+  chooserName?: string;
   eyebrow: string;
   description: string;
   features: string[];
+  bestFor?: string;
+  chooserFeatures?: string[];
   recommended?: boolean;
   limited?: boolean;
   monthly?: Omit<PriceChoice, "interval">;
   annual?: Omit<PriceChoice, "interval">;
   lifetime?: Omit<PriceChoice, "interval">;
-};
-
-export type MembershipComparisonRow = {
-  feature: string;
-  values: Record<"standard" | "barrel", string>;
 };
 
 export const MEMBERSHIP_PLANS: MembershipPlan[] = [
@@ -44,6 +42,12 @@ export const MEMBERSHIP_PLANS: MembershipPlan[] = [
     name: "Standard Proof",
     eyebrow: "Core membership",
     description: "Full state Intel, focused alerts, and unlimited room on My Shelf.",
+    bestFor: "For focused hunting near home",
+    chooserFeatures: [
+      "Full availability intelligence across your state",
+      "Track 15 bottles in 5 hunting areas",
+      "Immediate push, email, and SMS alerts",
+    ],
     monthly: { price: "$3", suffix: "/month", trialDays: 7 },
     annual: { price: "$30", suffix: "/year", valueNote: "2 months free" },
     features: [
@@ -59,6 +63,13 @@ export const MEMBERSHIP_PLANS: MembershipPlan[] = [
     name: "Barrel Proof",
     eyebrow: "Serious hunters",
     description: "Unlimited hunting preferences plus intelligence shaped by your collection.",
+    bestFor: "For serious or multi-area hunters",
+    chooserFeatures: [
+      "Everything in Standard Proof",
+      "Track unlimited bottles and areas",
+      "Alerts from member-reported sightings",
+      "Collection-based DNA and bottle recommendations",
+    ],
     recommended: true,
     monthly: { price: "$6", suffix: "/month", trialDays: 7 },
     annual: { price: "$60", suffix: "/year", valueNote: "2 months free" },
@@ -73,8 +84,14 @@ export const MEMBERSHIP_PLANS: MembershipPlan[] = [
   {
     tier: "bottled-in-bond",
     name: "Bottled in Bond",
+    chooserName: "Founder",
     eyebrow: "Limited Founder offer",
     description: "Lifetime Barrel Proof access with permanent Founder recognition.",
+    bestFor: "Barrel Proof for life",
+    chooserFeatures: [
+      "Permanent Founder number",
+      "Numbered Founder’s glass",
+    ],
     limited: true,
     lifetime: { price: "$50", suffix: " once" },
     features: [
@@ -87,13 +104,6 @@ export const MEMBERSHIP_PLANS: MembershipPlan[] = [
 
 export const PAID_MEMBERSHIP_PLANS = MEMBERSHIP_PLANS.filter((plan): plan is MembershipPlan & { tier: Exclude<MembershipTier, "free"> } => plan.tier !== "free");
 
-export const MEMBERSHIP_COMPARISON_ROWS: MembershipComparisonRow[] = [
-  { feature: "Intel", values: { standard: "Full state", barrel: "Full + advanced" } },
-  { feature: "Alert areas", values: { standard: "5", barrel: "Unlimited" } },
-  { feature: "Watched bottles", values: { standard: "15", barrel: "Unlimited" } },
-  { feature: "Community alerts", values: { standard: "Not included", barrel: "Included" } },
-  { feature: "DNA + recommendations", values: { standard: "Not included", barrel: "Included" } },
-];
 
 const tierRank: Record<MembershipTier, number> = {
   free: 0,
@@ -116,12 +126,42 @@ export function billingChoiceFor(tier: MembershipTier, interval: BillingInterval
   return choice ? { interval: normalizedInterval, ...choice } : null;
 }
 
+export function trialDisclosureFor(tier: MembershipTier, interval: BillingInterval, trialEligible: boolean) {
+  const price = billingChoiceFor(tier, interval);
+  if (!price) return null;
+  if (price.interval === "lifetime") return "Lifetime access · no trial";
+  if (price.interval === "annual") return `${price.valueNote || "Annual membership"} · annual plans have no trial`;
+  if (price.trialDays && trialEligible) return `${price.trialDays}-day free trial · ${price.price}${price.suffix} after`;
+  return `No trial available · ${price.price}${price.suffix}`;
+}
+
+export function membershipChoiceAccessibilityLabel(
+  tier: MembershipTier,
+  interval: BillingInterval,
+  trialEligible: boolean,
+  actionLabel: string,
+) {
+  const plan = MEMBERSHIP_PLANS.find((candidate) => candidate.tier === tier);
+  const price = billingChoiceFor(tier, interval);
+  if (!plan || !price) return actionLabel;
+  return [
+    plan.chooserName || plan.name,
+    `${price.price}${price.suffix}`,
+    plan.bestFor,
+    ...(plan.chooserFeatures || []),
+    trialDisclosureFor(tier, interval, trialEligible),
+    actionLabel,
+  ].filter(Boolean).join(". ");
+}
+
 export function membershipActionFor(current: MembershipTier, target: MembershipTier) {
   if (current === target) return { kind: "current" as const, label: "Current membership" };
   if (tierRank[current] > tierRank[target]) {
-    const currentName = MEMBERSHIP_PLANS.find((plan) => plan.tier === current)?.name || "your membership";
+    const currentPlan = MEMBERSHIP_PLANS.find((plan) => plan.tier === current);
+    const currentName = currentPlan?.chooserName || currentPlan?.name || "your membership";
     return { kind: "included" as const, label: `Included with ${currentName}` };
   }
-  const targetName = MEMBERSHIP_PLANS.find((plan) => plan.tier === target)?.name || "membership";
+  const targetPlan = MEMBERSHIP_PLANS.find((plan) => plan.tier === target);
+  const targetName = targetPlan?.chooserName || targetPlan?.name || "membership";
   return { kind: "upgrade" as const, label: `Review ${targetName}` };
 }

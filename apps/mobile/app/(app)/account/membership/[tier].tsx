@@ -63,7 +63,7 @@ export default function MembershipPlanScreen() {
   return <ScrollView contentContainerStyle={memberScreenStyles.content} style={memberScreenStyles.screen}>
     <View style={styles.hero}>
       <Text style={styles.eyebrow}>{plan.eyebrow.toUpperCase()}</Text>
-      <Text accessibilityRole="header" style={styles.title}>{plan.name}</Text>
+      <Text accessibilityRole="header" style={styles.title}>{plan.chooserName || plan.name}</Text>
       <Text style={styles.description}>{plan.description}</Text>
     </View>
 
