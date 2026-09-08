@@ -1,4 +1,4 @@
-import { randomUUID } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import * as vercelBlob from '@vercel/blob';
 
 const ACTIVE_POINTER = 'engine/active.json';
@@ -48,6 +48,31 @@ export class VercelBlobObjectStorage {
     return blob ? this.#readUrl(blob.url) : null;
   }
 
+  async #readCurrentPointerEvent(expectedEtag) {
+    // Blob uses a quoted MD5 content ETag for these small, single-part JSON
+    // writes. Refuse recovery if that provider contract changes.
+    if (!/^"[a-f0-9]{32}"$/.test(expectedEtag)) throw new Error('Unsupported current pointer version.');
+    let cursor;
+    for (let page = 0; page < 5; page += 1) {
+      const result = await this.#blob.list({ prefix: ACTIVE_POINTER_EVENTS, limit: 100, cursor, token: process.env.BLOB_READ_WRITE_TOKEN });
+      for (const event of result.blobs) {
+        if (!event.pathname.startsWith(ACTIVE_POINTER_EVENTS) || event.etag !== expectedEtag) continue;
+        const response = await this.#fetcher(event.url, { cache: 'no-store' });
+        if (!response.ok || response.headers?.get('etag') !== expectedEtag) {
+          await response.body?.cancel?.();
+          throw new Error('Immutable pointer event version mismatch.');
+        }
+        const raw = await response.text();
+        const contentEtag = `"${createHash('md5').update(raw).digest('hex')}"`;
+        if (contentEtag !== expectedEtag) throw new Error('Immutable pointer event content mismatch.');
+        return raw;
+      }
+      if (!result.hasMore || !result.cursor) break;
+      cursor = result.cursor;
+    }
+    throw new Error('Current pointer version has no matching immutable event.');
+  }
+
   async readPointer() {
     this.#pointerEtag = null;
     this.#pointerRevision = null;
@@ -57,13 +82,20 @@ export class VercelBlobObjectStorage {
       this.#pointerRevision = 0;
       return null;
     }
-    // The body and CAS version must come from the same response. HEAD is
-    // independently mutable, including immediately after our own write.
+    const current = await this.#blob.head(blob.url, { token: process.env.BLOB_READ_WRITE_TOKEN });
+    if (!current.etag || /^W\//i.test(current.etag)) throw new Error('Current Blob pointer requires a strong ETag version.');
     const response = await this.#fetcher(blob.url, { cache: 'no-store' });
     if (!response.ok) throw new Error(`Blob pointer read failed with HTTP ${response.status}`);
-    const etag = response.headers?.get('etag');
+    let etag = response.headers?.get('etag');
     if (!etag || /^W\//i.test(etag)) throw new Error('Blob pointer requires a strong same-response ETag version.');
-    const raw = await response.text();
+    let raw = await response.text();
+    if (etag !== current.etag) {
+      // Public mutable Blob reads can remain CDN-stale for hours. Never pair
+      // that old body with HEAD's newer version. Recover only identical bytes
+      // from the already-existing immutable journal, bound to the current ETag.
+      raw = await this.#readCurrentPointerEvent(current.etag);
+      etag = current.etag;
+    }
     const pointer = JSON.parse(raw);
     if (!Number.isSafeInteger(pointer?.revision) || pointer.revision < 1) throw new Error('Invalid Blob pointer revision.');
     this.#pointerEtag = etag;
