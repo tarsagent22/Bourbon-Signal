@@ -94,7 +94,7 @@ test('demand metros expose one stable canonical option with exact reviewed alias
 
   for (const [state, values] of Object.entries({
     NC: ['Charlotte', 'Mecklenburg', 'Concord', 'Kannapolis', 'Indian Trail', 'Mooresville', 'Statesville', 'Gastonia'],
-    GA: ['Atlanta', 'Doraville', 'Brookhaven', 'Chamblee', 'Decatur', 'Stonecrest', 'Marietta', 'Alpharetta', 'Cumming', 'Suwanee', 'Fairburn', 'Norcross'],
+    GA: ['Atlanta', 'Doraville', 'Brookhaven', 'Chamblee', 'Decatur', 'Stonecrest', 'Marietta', 'Alpharetta', 'Cumming', 'Suwanee', 'Fairburn', 'Norcross', 'Stone Mountain', 'Union City'],
     TN: ['Nashville', 'Davidson', 'Franklin', 'Brentwood', 'Murfreesboro', 'Smyrna', 'La Vergne', 'Hendersonville', 'Gallatin', 'Mount Juliet'],
   })) {
     for (const value of values) {
@@ -115,6 +115,7 @@ test('demand metro matching has no substring, county-name, highway, or cross-sta
     }
   }
   assert.equal(demandMetroAreaMatchesFields('GA', ['Nashville, TN'], ['Atlanta Metro']), false);
+  assert.equal(demandMetroAreaMatchesFields('GA', ['830 N Main St, Cedartown, GA 30125, USA'], ['Atlanta Metro']), false);
   assert.equal(demandMetroAreaMatchesFields('TN', ['Atlanta, GA'], ['Nashville Metro']), false);
 });
 

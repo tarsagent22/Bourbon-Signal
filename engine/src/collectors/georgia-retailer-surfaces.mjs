@@ -129,6 +129,36 @@ export const GEORGIA_CITYHIVE_SOURCES = [
     baseUrl: 'https://hwy155package.com', categoryUrl: 'https://hwy155package.com/shop/?subtype=Bourbon',
     merchants: new Map([merchant('62d51cb495773e3714a3a607', 'Hwy 155 Package', '3430 N McDonough Rd, Locust Grove, GA 30248, USA', 'Locust Grove', '30248')]),
   },
+  {
+    id: 'cedartown-liquor-store', chainName: 'Cedartown Liquor Store', sourceLabel: 'Cedartown Liquor Store CityHive store inventory',
+    baseUrl: 'https://cedartownliquor.com', categoryUrl: 'https://cedartownliquor.com/shop/?subtype=Bourbon',
+    merchants: new Map([merchant('614319de6c4f35678fe21c40', 'CEDARTOWN LIQUOR STORE', '830 N Main St, Cedartown, GA 30125, USA', 'Cedartown', '30125')]),
+  },
+  {
+    id: 'jackies-fine-wine-spirits', chainName: "Jackie's Fine Wine and Spirits", sourceLabel: "Jackie's Fine Wine and Spirits CityHive store inventory",
+    baseUrl: 'https://jackieswineandspirits.com', categoryUrl: 'https://jackieswineandspirits.com/shop/?subtype=Bourbon',
+    merchants: new Map([merchant('628d3d80ca936b26d57b73be', "Jackie's Fine Wine and Spirits", '3140 Johnson Ferry Rd, Marietta, GA 30062, USA', 'Marietta', '30062')]),
+  },
+  {
+    id: 'big-johns-package-store', chainName: "Big John's Package Store", sourceLabel: "Big John's Package Store CityHive store inventory",
+    baseUrl: 'https://bigjohnspackage.com', categoryUrl: 'https://bigjohnspackage.com/shop/?subtype=Bourbon',
+    merchants: new Map([merchant('6580b79f060c6a2bc31bb022', "Big John's Package Store", '5345 Memorial Dr, Stone Mountain, GA 30083, USA', 'Stone Mountain', '30083')]),
+  },
+  {
+    id: 'shannon-beverage-warehouse', chainName: 'Shannon Beverage Warehouse', sourceLabel: 'Shannon Beverage Warehouse CityHive store inventory',
+    baseUrl: 'https://shannonbeverage.com', categoryUrl: 'https://shannonbeverage.com/shop/?subtype=Bourbon',
+    merchants: new Map([merchant('5e7179a4453f5434f5a32e77', 'Shannon beverage warehouse', '6900 Londonderry Way, Union City, GA 30291, USA', 'Union City', '30291')]),
+  },
+  {
+    id: 'metro-bottle-atlanta', chainName: 'MetroBottle', sourceLabel: 'MetroBottle CityHive store inventory',
+    baseUrl: 'https://metrobottle.com', categoryUrl: 'https://metrobottle.com/shop/?subtype=Bourbon',
+    merchants: new Map([merchant('66708b917a01b0290869f338', 'MetroBottle', '2225 Marietta Blvd NW, Atlanta, GA 30318, USA', 'Atlanta', '30318')]),
+  },
+  {
+    id: 'savi-provisions-atlanta', chainName: 'Savi Provisions - Atlanta', sourceLabel: 'Savi Provisions - Atlanta CityHive store inventory',
+    baseUrl: 'https://saviprovisionsatl.com', categoryUrl: 'https://saviprovisionsatl.com/shop/?subtype=Bourbon',
+    merchants: new Map([merchant('604a7a795063d2197ab0aefc', 'Savi Provisions - Atlanta', '308 Pharr Rd NE, Atlanta, GA 30305, USA', 'Atlanta', '30305')]),
+  },
 ];
 
 function goTo(id, chain, name, hostname, categoryUrl, address, city, zip) {

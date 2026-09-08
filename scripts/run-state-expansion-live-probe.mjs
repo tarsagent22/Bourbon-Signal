@@ -3,7 +3,11 @@ import { fileURLToPath } from 'node:url';
 import { createHash, randomUUID } from 'node:crypto';
 import { taskPacketDigest } from './lib/engine-expansion-speed.mjs';
 import { PENSACOLA_SHOPIFY_SOURCE, PENSACOLA_SHOPIFY_STORES } from '../engine/src/collectors/florida-pensacola-surfaces.mjs';
+import { GEORGIA_CITYHIVE_SOURCES, GEORGIA_GOTOLIQUOR_STORES, GEORGIA_LIGHTSPEED_STORES } from '../engine/src/collectors/georgia-retailer-surfaces.mjs';
 import { isSouthCarolinaCityHiveInventory } from '../engine/src/south-carolina-retailer-policy.mjs';
+import { isGeorgiaRetailerInventory } from '../engine/src/georgia-retailer-policy.mjs';
+import { verifyGeorgiaReleasePolicy } from '../engine/src/georgia-release-policy.mjs';
+import { bibleLookup, buildDrops } from '../engine/src/export-site-contract.mjs';
 
 import {
   calculateStateExpansionMetrics,
@@ -19,7 +23,7 @@ const state = normalizeStateCode(optionValue('state'));
 const packetFile = optionValue('packet');
 const metricsFile = optionValue('metrics');
 if (!packetFile || !metricsFile) throw new Error('--packet and --metrics are required.');
-if (state !== 'FL' && state !== 'SC') throw new Error('The forced live-probe wrapper supports the reviewed Florida and South Carolina paths only.');
+if (state !== 'FL' && state !== 'SC' && state !== 'GA') throw new Error('The forced live-probe wrapper supports the reviewed Florida, Georgia, and South Carolina paths only.');
 
 const packet = await readJson(path.resolve(root, packetFile));
 const gh = process.platform === 'win32' ? 'gh.exe' : 'gh';
@@ -54,23 +58,47 @@ const engineRoot = path.join(root, 'engine');
 let result;
 try {
   await runCommand('node', ['scripts/hydrate-state-reports.mjs'], { cwd: root, env, timeoutMs: 12 * 60_000 });
-  await runCommand('node', ['src/refresh-site.mjs'], { cwd: engineRoot, env, timeoutMs: 25 * 60_000 });
-  if (state === 'SC') await runCommand(process.execPath, ['src/score-sc-user-reach.mjs'], { cwd: engineRoot, env, timeoutMs: 2 * 60_000 });
-  await runCommand(process.execPath, [state === 'FL' ? 'src/verify-fl.mjs' : 'src/verify-sc.mjs'], { cwd: engineRoot, env, timeoutMs: 8 * 60_000 });
+  let localGeorgiaDrops = null;
+  if (state === 'GA') {
+    await runCommand(process.execPath, ['src/build-bible.mjs'], { cwd: engineRoot, env, timeoutMs: 10 * 60_000 });
+    await runCommand(process.execPath, ['src/run.mjs'], { cwd: engineRoot, env, timeoutMs: 25 * 60_000 });
+    const [freshGeorgia, biblePayload] = await Promise.all([
+      readJson(path.join(engineRoot, 'out', 'states', 'GA.json')),
+      readJson(path.join(engineRoot, 'out', 'bourbon-bible.json')),
+    ]);
+    localGeorgiaDrops = buildDrops(freshGeorgia.signals || [], bibleLookup(biblePayload.records || []), freshGeorgia.signals || []);
+    verifyGeorgiaReleasePolicy({ state: freshGeorgia, siteDrops: localGeorgiaDrops, siteAlerts: [] });
+  } else {
+    await runCommand('node', ['src/refresh-site.mjs'], { cwd: engineRoot, env, timeoutMs: 25 * 60_000 });
+    if (state === 'SC') await runCommand(process.execPath, ['src/score-sc-user-reach.mjs'], { cwd: engineRoot, env, timeoutMs: 2 * 60_000 });
+    const verifier = state === 'FL' ? 'src/verify-fl.mjs' : 'src/verify-sc.mjs';
+    await runCommand(process.execPath, [verifier], { cwd: engineRoot, env, timeoutMs: 8 * 60_000 });
+  }
 
   const stateReport = await readJson(path.join(root, 'engine', 'out', 'states', `${state}.json`));
-  const siteDrops = await readJson(path.join(root, 'engine', 'out', 'site', 'states', state, 'drops.json'));
-  const { stdout: coverageStateJson } = await runCommand(process.execPath, [
-    '--no-warnings',
-    '--experimental-strip-types',
-    path.join(root, 'scripts', 'print-generated-coverage-state.mts'),
-    `--state=${state}`,
-    `--site-root=${path.join(root, 'engine', 'out', 'site')}`,
-  ], { cwd: root, capture: true, timeoutMs: 2 * 60_000 });
-  const coverageState = JSON.parse(coverageStateJson);
-  const coverageGeneratedAtMs = Date.parse(coverageState.generatedAt || '');
-  if (!Number.isFinite(coverageGeneratedAtMs) || coverageGeneratedAtMs < startedAtMs) {
-    throw new Error('Generated coverage contract predates this forced live probe.');
+  const siteDrops = state === 'GA'
+    ? { drops: localGeorgiaDrops }
+    : await readJson(path.join(root, 'engine', 'out', 'site', 'states', state, 'drops.json'));
+  const coverageState = state === 'GA'
+    ? {
+        representedAreaCount: new Set((stateReport.signals || []).filter(isGeorgiaRetailerInventory).map((row) => row.city).filter(Boolean)).size,
+        layers: {
+          known: GEORGIA_CITYHIVE_SOURCES.reduce((sum, source) => sum + source.merchants.size, 0)
+            + GEORGIA_GOTOLIQUOR_STORES.length + GEORGIA_LIGHTSPEED_STORES.length + 1,
+        },
+      }
+    : JSON.parse((await runCommand(process.execPath, [
+        '--no-warnings',
+        '--experimental-strip-types',
+        path.join(root, 'scripts', 'print-generated-coverage-state.mts'),
+        `--state=${state}`,
+        `--site-root=${path.join(root, 'engine', 'out', 'site')}`,
+      ], { cwd: root, capture: true, timeoutMs: 2 * 60_000 })).stdout);
+  if (state !== 'GA') {
+    const coverageGeneratedAtMs = Date.parse(coverageState.generatedAt || '');
+    if (!Number.isFinite(coverageGeneratedAtMs) || coverageGeneratedAtMs < startedAtMs) {
+      throw new Error('Generated coverage contract predates this forced live probe.');
+    }
   }
   const drops = Array.isArray(siteDrops) ? siteDrops : (siteDrops?.drops || []);
   const targetCustomerCards = state === 'FL'
@@ -107,7 +135,7 @@ try {
           || /CityHive/i.test(String(row?.sourceLabel || row?.source || '')))
           ? isSouthCarolinaCityHiveInventory(row)
           : true
-        : null,
+        : state === 'GA' ? isGeorgiaRetailerInventory : null,
     }),
     targetCustomerCards: targetCustomerCards.length,
   };

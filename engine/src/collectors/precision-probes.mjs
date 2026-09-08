@@ -2218,7 +2218,7 @@ function parseIndianaLiquorGroupFeaturedWhiskeyEvents(cleanText, observedAt = ne
   return events;
 }
 
-function cityHiveJsonBlobs(html) {
+export function cityHiveJsonBlobs(html) {
   const blobs = [];
   for (const match of html.matchAll(/JSON\.parse\(decodeURIComponent\("([^"]+)"\)\)/g)) {
     try { blobs.push(JSON.parse(decodeURIComponent(match[1]))); } catch {}
@@ -2226,7 +2226,7 @@ function cityHiveJsonBlobs(html) {
   return blobs;
 }
 
-function cityHiveProducts(blobs) {
+export function cityHiveProducts(blobs) {
   const products = [];
   const visit = (value) => {
     if (!value || typeof value !== 'object') return;
