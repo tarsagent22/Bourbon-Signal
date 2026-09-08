@@ -1,0 +1,91 @@
+{
+  "schemaVersion": "bourbon-signal-raw-first-party-capture-v1",
+  "capturedAt": "2026-09-08T13:38:37.987Z",
+  "requestPolicy": "One direct HTTPS request per first-party domain, serial, no bypass. Each retained file is the exact parser-visible JSON.parse(decodeURIComponent(...)) expression containing the reported product option.",
+  "observations": [
+    {
+      "sourceId": "cedartown-liquor-store",
+      "categoryUrl": "https://cedartownliquor.com/shop/?subtype=Bourbon",
+      "captureUrl": "https://cedartownliquor.com/shop/?subtype=Bourbon&merchant-id=614319de6c4f35678fe21c40",
+      "captureFile": "raw/cedartown-liquor-store.html",
+      "merchantId": "614319de6c4f35678fe21c40",
+      "storeName": "CEDARTOWN LIQUOR STORE",
+      "address": "830 N Main St, Cedartown, GA 30125, USA",
+      "catalogProductId": "5521cef96561310003000300",
+      "productId": "5521cef96561310003000300",
+      "variantId": "1e19ebc256c82c4130e152f7edaacda3d2718f61e72e2bfa0acf19d7245c0173",
+      "productName": "Jim Beam Bourbon Whiskey",
+      "reportedQuantity": 4
+    },
+    {
+      "sourceId": "jackies-fine-wine-spirits",
+      "categoryUrl": "https://jackieswineandspirits.com/shop/?subtype=Bourbon",
+      "captureUrl": "https://jackieswineandspirits.com/shop/?subtype=Bourbon&merchant-id=628d3d80ca936b26d57b73be",
+      "captureFile": "raw/jackies-fine-wine-spirits.html",
+      "merchantId": "628d3d80ca936b26d57b73be",
+      "storeName": "Jackie's Fine Wine and Spirits",
+      "address": "3140 Johnson Ferry Rd, Marietta, GA 30062, USA",
+      "catalogProductId": "61952ddb73ec4e49d509004c",
+      "productId": "61952ddb73ec4e49d509004c",
+      "variantId": "892e88fc5391a9cbcd670e326334e59b17c61b308359370bbe2cf382e30fc46d",
+      "productName": "Maker's Mark Bourbon Whisky",
+      "reportedQuantity": 54
+    },
+    {
+      "sourceId": "big-johns-package-store",
+      "categoryUrl": "https://bigjohnspackage.com/shop/?subtype=Bourbon",
+      "captureUrl": "https://bigjohnspackage.com/shop/?subtype=Bourbon&merchant-id=6580b79f060c6a2bc31bb022",
+      "captureFile": "raw/big-johns-package-store.html",
+      "merchantId": "6580b79f060c6a2bc31bb022",
+      "storeName": "Big John's Package Store",
+      "address": "5345 Memorial Dr, Stone Mountain, GA 30083, USA",
+      "catalogProductId": "5a54daa70abe0a6cfcb3c3b1",
+      "productId": "5a54daa70abe0a6cfcb3c3b1",
+      "variantId": "2086496bfadcbcfae497c738dd839482abe03f7f37e8086c31068727b7075fa5",
+      "productName": "1792 Bourbon Bottled in Bond",
+      "reportedQuantity": 50
+    },
+    {
+      "sourceId": "shannon-beverage-warehouse",
+      "categoryUrl": "https://shannonbeverage.com/shop/?subtype=Bourbon",
+      "captureUrl": "https://shannonbeverage.com/shop/?subtype=Bourbon&merchant-id=5e7179a4453f5434f5a32e77",
+      "captureFile": "raw/shannon-beverage-warehouse.html",
+      "merchantId": "5e7179a4453f5434f5a32e77",
+      "storeName": "Shannon beverage warehouse",
+      "address": "6900 Londonderry Way, Union City, GA 30291, USA",
+      "catalogProductId": "61952dd473ec4e49d508fbf4",
+      "productId": "61952dd473ec4e49d508fbf4",
+      "variantId": "0cc3ae2ac49897909660f29fd6f1be54783604af0be65650646782722c3afa0a",
+      "productName": "Maker's Mark Bourbon Whisky",
+      "reportedQuantity": 26
+    },
+    {
+      "sourceId": "metro-bottle-atlanta",
+      "categoryUrl": "https://metrobottle.com/shop/?subtype=Bourbon",
+      "captureUrl": "https://metrobottle.com/shop/?subtype=Bourbon&merchant-id=66708b917a01b0290869f338",
+      "captureFile": "raw/metro-bottle-atlanta.html",
+      "merchantId": "66708b917a01b0290869f338",
+      "storeName": "MetroBottle",
+      "address": "2225 Marietta Blvd NW, Atlanta, GA 30318, USA",
+      "catalogProductId": "69b34cef6c4601000196db0b",
+      "productId": "69b34cef6c4601000196db0b",
+      "variantId": "15f143620ad6a496d963700157ff072fafd4b219901022ca38320b7f240a1552",
+      "productName": "Barrell Bourbon Cigar Blend",
+      "reportedQuantity": 10
+    },
+    {
+      "sourceId": "savi-provisions-atlanta",
+      "categoryUrl": "https://saviprovisionsatl.com/shop/?subtype=Bourbon",
+      "captureUrl": "https://saviprovisionsatl.com/shop/?subtype=Bourbon&merchant-id=604a7a795063d2197ab0aefc",
+      "captureFile": "raw/savi-provisions-atlanta.html",
+      "merchantId": "604a7a795063d2197ab0aefc",
+      "storeName": "Savi Provisions - Atlanta",
+      "address": "308 Pharr Rd NE, Atlanta, GA 30305, USA",
+      "catalogProductId": "5521cefb6561310003c10300",
+      "productId": "5521cefb6561310003c10300",
+      "variantId": "213340e8be1c326dc5d42d68eee86dafe8deffe0cb7bc322d159f9546b89e196",
+      "productName": "Colonel E. H. Taylor Single Barrel Kentucky Straight Bourbon Whiskey",
+      "reportedQuantity": 82
+    }
+  ]
+}

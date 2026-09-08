@@ -124,7 +124,7 @@ const bible = {
 };
 
 test('Georgia surface registry contains only the configured exact first-party identities', () => {
-  assert.equal(GEORGIA_CITYHIVE_SOURCES.length, 23);
+  assert.equal(GEORGIA_CITYHIVE_SOURCES.length, 29);
   assert.equal(GEORGIA_GOTOLIQUOR_STORES.length, 14);
   assert.equal(GEORGIA_LIGHTSPEED_STORES.length, 2);
   assert.ok(cityHiveSource);
@@ -671,7 +671,7 @@ test('Georgia lifecycle and registry expose retailer inventory within the author
 
   const georgia = ALL_STATE_SOURCES.find((state) => state.id === 'GA');
   assert.equal(georgia.strategy, 'retailer_store_inventory');
-  assert.equal(georgia.sources.length, 40);
+  assert.equal(georgia.sources.length, 46);
   const labels = new Set(georgia.sources.map((source) => source.label || source.name));
   for (const source of [...GEORGIA_CITYHIVE_SOURCES, ...GEORGIA_GOTOLIQUOR_STORES, ...GEORGIA_LIGHTSPEED_STORES]) {
     assert.ok(labels.has(source.sourceLabel), `Missing Georgia registry source ${source.sourceLabel}`);
