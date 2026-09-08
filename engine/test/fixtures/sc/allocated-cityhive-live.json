@@ -1,0 +1,191 @@
+{
+  "schemaVersion": "bourbon-signal-sc-cityhive-api-capture-v1",
+  "capturedAt": "2026-09-08T16:38:18.453Z",
+  "requestPolicy": "Serial public first-party CityHive API requests with a 650ms delay, no access-control bypass. api_key and request GUID query values are omitted from provenance. Each response retains the exact parser-visible product and option fields used by the SC collector.",
+  "merchant": {
+    "sourceId": "odarbys-liquor-barn",
+    "merchantId": "607f9bdbb73eb4091ef976e7",
+    "storeName": "O'Darby's Heckle",
+    "address": "1740 Heckle Blvd, Rock Hill, SC 29732, USA"
+  },
+  "baseline": {
+    "searchText": "bourbon",
+    "publicUrl": "https://api.cityhive.net/api/v1/products/search.json",
+    "rawBytes": 258846,
+    "rawSha256": "14ed45a21d3caa515588e61384789f84ade1fb82c3042ad4f70a6942e461b02b",
+    "rawProductCount": 30,
+    "confirmedMissingNames": [
+      "Elijah Craig Barrel Proof Store Pick",
+      "Larceny Barrel Proof Single Barrel - \"Honey Wheat\"",
+      "Four Roses Sngl Brl Obsk",
+      "Wild Turkey Rare Breed Bourbon",
+      "Jack Daniel's Single Barrel Barrel Proof Rye"
+    ],
+    "response": {
+      "result": 0,
+      "data": {
+        "products": [
+          {
+            "id": "65bba646f4a7b827d18f2427",
+            "name": "1792 Bottled In Bond Bourbon",
+            "basic_category": ["bourbon"],
+            "merchants": [{
+              "product_options": [{
+                "merchant_id": "607f9bdbb73eb4091ef976e7",
+                "merchant_name": "O'Darby's Heckle",
+                "full_address": "1740 Heckle Blvd, Rock Hill, SC 29732, USA",
+                "product_id": "65bba646f4a7b827d18f2427",
+                "option_id": "de200e60ce5bd15e1e1dbb7ad6fb700048d89283b341ebf344ceaae5569014f0",
+                "quantity": 5,
+                "price": 51.48,
+                "product_url": "https://odarbysliquorbarn.com/shop/product/1792-bottled-in-bond-bourbon/65bba646f4a7b827d18f2427?option-id=de200e60ce5bd15e1e1dbb7ad6fb700048d89283b341ebf344ceaae5569014f0",
+                "option_params": {"size": {"measure": "ml", "quantity": "750"}},
+                "option_display_data": {"name": "1792 Bottled In Bond Bourbon", "basic_category": ["bourbon"]}
+              }]
+            }]
+          }
+        ]
+      }
+    }
+  },
+  "expandedResponses": [
+    {
+      "searchText": "rye",
+      "rawBytes": 233671,
+      "rawSha256": "512f5336cac606135faa2efa0623c4bd14b5cc2f5f303ee781c57e5c031b5ba4",
+      "rawProductCount": 30,
+      "response": {"result": 0, "data": {"products": [{
+        "id": "56c290db756275139d5b0300",
+        "name": "Angel's Envy Finished Rye Whiskey",
+        "basic_category": ["rye", "whiskey"],
+        "merchants": [{"product_options": [{
+          "merchant_id": "607f9bdbb73eb4091ef976e7",
+          "merchant_name": "O'Darby's Heckle",
+          "full_address": "1740 Heckle Blvd, Rock Hill, SC 29732, USA",
+          "product_id": "56c290db756275139d5b0300",
+          "option_id": "17662de4c6246957df1b57faf27869ea3278c2dbde1e6c2baa5126995f29161b",
+          "quantity": 5,
+          "price": 78.25,
+          "product_url": "https://odarbysliquorbarn.com/shop/product/angels-envy-finished-rye-whiskey/56c290db756275139d5b0300?option-id=17662de4c6246957df1b57faf27869ea3278c2dbde1e6c2baa5126995f29161b",
+          "option_params": {"size": {"measure": "ml", "quantity": "750"}},
+          "option_display_data": {"name": "Angel's Envy Finished Rye Whiskey", "basic_category": ["rye", "whiskey"]}
+        }]}]
+      }]}}
+    },
+    {
+      "searchText": "elijah craig",
+      "rawBytes": 78598,
+      "rawSha256": "fdad15dde607b5ca5d422c8aa48f7090e4e7c8e11025415d2a8cc8e648f04c74",
+      "rawProductCount": 5,
+      "response": {"result": 0, "data": {"products": [{
+        "id": "6144fc9d59f9ed58fcc1ca44",
+        "name": "Elijah Craig Barrel Proof Store Pick",
+        "basic_category": ["bourbon", "whiskey"],
+        "merchants": [{"product_options": [{
+          "merchant_id": "607f9bdbb73eb4091ef976e7",
+          "merchant_name": "O'Darby's Heckle",
+          "full_address": "1740 Heckle Blvd, Rock Hill, SC 29732, USA",
+          "product_id": "6144fc9d59f9ed58fcc1ca44",
+          "option_id": "d8667a8b9d912b27fed7c655eff027281c8202a889c12af4bae15f30d811b7e1",
+          "quantity": 1,
+          "price": 97.83,
+          "product_url": "https://odarbysliquorbarn.com/shop/product/elijah-craig-barrel-proof-store-pick/6144fc9d59f9ed58fcc1ca44?option-id=d8667a8b9d912b27fed7c655eff027281c8202a889c12af4bae15f30d811b7e1",
+          "option_params": {"size": {"measure": "ml", "quantity": "750"}},
+          "option_display_data": {"name": "Elijah Craig Barrel Proof Store Pick", "basic_category": ["bourbon", "whiskey"]}
+        }]}]
+      }]}}
+    },
+    {
+      "searchText": "larceny",
+      "rawBytes": 50753,
+      "rawSha256": "45dc4d83d1da12bb8c42039873322747e1a04e0dbd1423d234d3cb6487783672",
+      "rawProductCount": 4,
+      "response": {"result": 0, "data": {"products": [{
+        "id": "66a9e5966fca2d6ad43e8101",
+        "name": "Larceny Barrel Proof Single Barrel - \"Honey Wheat\"",
+        "basic_category": ["bourbon"],
+        "merchants": [{"product_options": [{
+          "merchant_id": "607f9bdbb73eb4091ef976e7",
+          "merchant_name": "O'Darby's Heckle",
+          "full_address": "1740 Heckle Blvd, Rock Hill, SC 29732, USA",
+          "product_id": "66a9e5966fca2d6ad43e8101",
+          "option_id": "b1d0297d57984c8442b7679e47c94a23802c3c47f4b29cb30c5965c49218a1ce",
+          "quantity": 16,
+          "price": 77.23,
+          "product_url": "https://odarbysliquorbarn.com/shop/product/larceny-barrel-proof-single-barrel-honey-wheat-/66a9e5966fca2d6ad43e8101?option-id=b1d0297d57984c8442b7679e47c94a23802c3c47f4b29cb30c5965c49218a1ce",
+          "option_params": {"size": {"measure": "ml", "quantity": "750"}},
+          "option_display_data": {"name": "Larceny Barrel Proof Single Barrel - \"Honey Wheat\"", "basic_category": ["bourbon"]}
+        }]}]
+      }]}}
+    },
+    {
+      "searchText": "four roses",
+      "rawBytes": 143836,
+      "rawSha256": "861f897854d87afffa12025e16a4318c88b74f94f93e8aeb39f893d9d7c5a89a",
+      "rawProductCount": 20,
+      "response": {"result": 0, "data": {"products": [{
+        "id": "65f4af7c06c83435b35ad590",
+        "name": "Four Roses Sngl Brl Obsk",
+        "basic_category": ["bourbon"],
+        "merchants": [{"product_options": [{
+          "merchant_id": "607f9bdbb73eb4091ef976e7",
+          "merchant_name": "O'Darby's Heckle",
+          "full_address": "1740 Heckle Blvd, Rock Hill, SC 29732, USA",
+          "product_id": "65f4af7c06c83435b35ad590",
+          "option_id": "3b2c091a442b2d31475bbeb7d075b38b54606e6232ee81e9001b4ea948f9e6a1",
+          "quantity": 12,
+          "price": 43.25,
+          "product_url": "https://odarbysliquorbarn.com/shop/product/four-roses-sngl-brl-obsk/65f4af7c06c83435b35ad590?option-id=3b2c091a442b2d31475bbeb7d075b38b54606e6232ee81e9001b4ea948f9e6a1",
+          "option_params": {"size": {"measure": "ml", "quantity": "750"}},
+          "option_display_data": {"name": "Four Roses Sngl Brl Obsk", "basic_category": ["bourbon"]}
+        }]}]
+      }]}}
+    },
+    {
+      "searchText": "wild turkey",
+      "rawBytes": 98493,
+      "rawSha256": "1818d1bce4bc7a0854e6cac36bb895b3b5b1a6095b5736f7582ebbdae2b87475",
+      "rawProductCount": 14,
+      "response": {"result": 0, "data": {"products": [{
+        "id": "56553d8e69702d2923120000",
+        "name": "Wild Turkey Rare Breed Bourbon",
+        "basic_category": ["bourbon", "whiskey"],
+        "merchants": [{"product_options": [{
+          "merchant_id": "607f9bdbb73eb4091ef976e7",
+          "merchant_name": "O'Darby's Heckle",
+          "full_address": "1740 Heckle Blvd, Rock Hill, SC 29732, USA",
+          "product_id": "56553d8e69702d2923120000",
+          "option_id": "b56a6adeb1ad500184602447d60e35e0600270238ba5ee3cc53632f7a2ff4a3c",
+          "quantity": 8,
+          "price": 56.63,
+          "product_url": "https://odarbysliquorbarn.com/shop/product/wild-turkey-rare-breed-bourbon/56553d8e69702d2923120000?option-id=b56a6adeb1ad500184602447d60e35e0600270238ba5ee3cc53632f7a2ff4a3c",
+          "option_params": {"size": {"measure": "ml", "quantity": "750"}},
+          "option_display_data": {"name": "Wild Turkey Rare Breed Bourbon", "basic_category": ["bourbon", "whiskey"]}
+        }]}]
+      }]}}
+    },
+    {
+      "searchText": "jack daniel",
+      "rawBytes": 325706,
+      "rawSha256": "73697c6863acb3670ce6f72ca842289dbb55ab044766ceb5217bf4626774525b",
+      "rawProductCount": 25,
+      "response": {"result": 0, "data": {"products": [{
+        "id": "6437269221766324364d477b",
+        "name": "Jack Daniel's Single Barrel Barrel Proof Rye",
+        "basic_category": ["rye"],
+        "merchants": [{"product_options": [{
+          "merchant_id": "607f9bdbb73eb4091ef976e7",
+          "merchant_name": "O'Darby's Heckle",
+          "full_address": "1740 Heckle Blvd, Rock Hill, SC 29732, USA",
+          "product_id": "6437269221766324364d477b",
+          "option_id": "d09eb2f36f3cc0015de51cde7867f1cb1d172b5bb03161dab59134fd1847fd25",
+          "quantity": 6,
+          "price": 76.2,
+          "product_url": "https://odarbysliquorbarn.com/shop/product/jack-daniels-single-barrel-barrel-proof-rye/6437269221766324364d477b?option-id=d09eb2f36f3cc0015de51cde7867f1cb1d172b5bb03161dab59134fd1847fd25",
+          "option_params": {"size": {"measure": "ml", "quantity": "750"}},
+          "option_display_data": {"name": "Jack Daniel's Single Barrel Barrel Proof Rye", "basic_category": ["rye"]}
+        }]}]
+      }]}}
+    }
+  ]
+}

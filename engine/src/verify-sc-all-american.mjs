@@ -47,7 +47,7 @@ const sourceLocationRows = allAmericanReportRows.filter((row) => row.eventType =
 if (sourceRows.length + sourceLocationRows.length !== allAmericanReportRows.length) {
   throw new Error('All American report contains an unrecognized or malformed event type');
 }
-if (!sourceRows.length) throw new Error('Forced live SC report produced no All American inventory rows');
+if (sourceRows.length) throw new Error('Preview-only All American source emitted forbidden inventory rows');
 if (!sourceRows.every((row) => isSouthCarolinaAllAmericanInventory(row)
   && hasSouthCarolinaAllAmericanRawSourceProof(row))) {
   throw new Error('All American raw source rows failed exact identity, raw proof, freshness, or binary-stock policy');
@@ -59,6 +59,7 @@ if (sourceLocationRows.length !== 1 || !sourceLocationRows.every(isSouthCarolina
 const stateDrops = drops.filter((row) => row.state === 'SC' && row.locationPrecision === 'store_level');
 const freshDrops = stateDrops.filter((row) => row.stale !== true && row.sourceStale !== true);
 const sourceDrops = drops.filter(isSouthCarolinaAllAmericanSignal);
+if (sourceDrops.length) throw new Error('Preview-only All American source reached customer drops');
 // Healthy exact source rows can be intentionally absent from the customer feed when
 // every observed bottle is suppressed by the relevance contract. Projection checks
 // below still require zero current alerts and only source-bound change alerts.
@@ -72,6 +73,7 @@ if (!sourceDrops.every((row) => row.state === 'SC'
 }
 
 const sourceAlerts = alerts.filter(isSouthCarolinaAllAmericanSignal);
+if (sourceAlerts.length) throw new Error('Preview-only All American source reached alerts');
 if (!sourceAlerts.every((row) => isSouthCarolinaAllAmericanInventory(row)
   && row.eligibleForOnSite === true
   && row.eligibleForEmail === false
@@ -90,7 +92,11 @@ const { currentInventoryAlerts, additionalChangeAlerts } = verifyAllAmericanAler
 });
 
 const sourceStores = stores.filter(isSouthCarolinaAllAmericanSignal);
-if (sourceStores.length !== 1 || !sourceStores.every(isSouthCarolinaAllAmericanStoreExport)) {
+if (sourceStores.length !== 1 || !sourceStores.every((row) => row.id === ALL_AMERICAN_STORE_ID
+  && row.sourceStoreId === ALL_AMERICAN_STORE_ID && row.state === 'SC'
+  && row.name === 'All American Liquor' && row.address === '121 W Butler Rd, Mauldin, SC 29662'
+  && row.city === 'Mauldin' && row.zip === '29662'
+  && row.sourceAvailabilityVerified === false && row.hasSignals === false)) {
   throw new Error('All American exact store export is missing or ambiguous');
 }
 

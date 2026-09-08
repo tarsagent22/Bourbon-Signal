@@ -1,0 +1,24 @@
+{
+  "schemaVersion": "bourbon-signal-sc-woocommerce-capture-v1",
+  "capturedAt": "2026-09-08T16:31:57.546Z",
+  "requestUrl": "https://www.aalmauldin.com/wp-json/wc/store/v1/products?per_page=100&page=1",
+  "status": 200,
+  "rawBytes": 1777,
+  "rawSha256": "fbab9a5a5ce65db099a2df4fdcf8c53f72933a97f1b3abcf072048a0e4217866",
+  "xWpTotal": 1,
+  "xWpTotalPages": 1,
+  "products": [{
+    "id": 1309,
+    "name": "1792 Small Batch 750ml",
+    "slug": "1792-small-batch-750ml",
+    "permalink": "https://www.aalmauldin.com/product/1792-small-batch-750ml/",
+    "sku": "08800211",
+    "short_description": "<p>A private sync preview product imported from CRE.</p>",
+    "description": "<p>Available at All American Liquor. Ask us for current availability.</p>",
+    "prices": {"price": "3199", "currency_minor_unit": 2},
+    "is_purchasable": false,
+    "is_in_stock": true,
+    "is_on_backorder": false,
+    "add_to_cart": {"text": "Read more", "url": "https://www.aalmauldin.com/product/1792-small-batch-750ml/"}
+  }]
+}

@@ -264,51 +264,19 @@ function exactAllAmericanProductUrl(signal) {
   }
 }
 
+function isAllAmericanPreviewCatalogProduct(product) {
+  const catalogCopy = `${product?.short_description || ''} ${product?.description || ''}`
+    .replace(/<[^>]*>/g, ' ')
+    .replace(/&nbsp;|&#160;/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return /\bprivate\s+sync\s+preview\b|\bpreview\s+product\b|\bask\s+us\s+for\s+current\s+availability\b/i.test(catalogCopy);
+}
+
 export function isSouthCarolinaAllAmericanInventory(signal, nowMs = Date.now()) {
-  const eventType = String(signal?.eventType || signal?.type || '');
-  const sourceChain = String(signal?.sourceChain || '');
-  const productId = String(signal?.productId || '').trim();
-  const sku = String(signal?.sku || '').trim();
-  const rawProduct = signal?.raw?.product;
-  const observedAt = Date.parse(String(signal?.observedAt || signal?.lastConfirmedAt || signal?.firstSeenAt || ''));
-  const ageMs = nowMs - observedAt;
-  return signal?.state === 'SC'
-    && signal?.stateCode === 'SC'
-    && eventType === 'retailer_store_inventory_result'
-    && signal?.sourceLabel === ALL_AMERICAN_SOURCE
-    && sourceChain === 'all-american-liquor'
-    && (signal?.raw == null || signal.raw.chain === 'all-american-liquor')
-    && signal?.locationPrecision === 'store_level'
-    && signal?.storeId === ALL_AMERICAN_STORE_ID
-    && signal?.storeName === 'All American Liquor'
-    && signal?.city === 'Mauldin'
-    && String(signal?.postalCode || signal?.zip || '') === '29662'
-    && normalizedIdentity(signal?.storeAddress) === ALL_AMERICAN_ADDRESS
-    && Boolean(signal?.canonicalBottleId || signal?.canonicalId)
-    && Boolean(String(signal?.rawName || signal?.bottleName || signal?.canonicalName || '').trim())
-    && productId.length > 0
-    && sku.length > 0
-    && signal?.sourceProductProofId === productId
-    && signal?.sourceProductProofSku === sku
-    && signal?.sourceProductInStock === true
-    && signal?.sourceProductBackordered === false
-    && (rawProduct == null || (String(rawProduct.id ?? '') === productId
-      && String(rawProduct.sku ?? '') === sku
-      && rawProduct.is_in_stock === true
-      && rawProduct.is_on_backorder === false))
-    && exactAllAmericanProductUrl(signal)
-    && signal?.quantity === 0
-    && signal?.storeQty === 0
-    && signal?.quantityIsExact === false
-    && signal?.quantitySemantics === 'binary_retailer_in_stock'
-    && signal?.sourceAvailabilityVerified === true
-    && signal?.availabilityStatus === 'in_stock'
-    && signal?.orderabilityOfferVerified === false
-    && signal?.stale !== true
-    && signal?.sourceStale !== true
-    && Number.isFinite(observedAt)
-    && ageMs >= -MAX_FUTURE_SKEW_MS
-    && ageMs <= ALL_AMERICAN_MAX_AGE_MS;
+  // All American is currently a location-only source. Its sole live catalog row is
+  // preview copy, and legacy/exported rows cannot retain sufficient stock proof.
+  return false;
 }
 
 export function isSouthCarolinaAllAmericanSignal(signal) {
@@ -332,6 +300,8 @@ export function hasSouthCarolinaAllAmericanRawSourceProof(signal) {
   const productId = String(signal?.productId || '').trim();
   const sku = String(signal?.sku || '').trim();
   return signal?.raw?.chain === 'all-american-liquor'
+    && signal?.raw?.product?.catalogEvidenceVersion === 2
+    && !isAllAmericanPreviewCatalogProduct(signal?.raw?.product)
     && String(signal?.raw?.product?.id ?? '') === productId
     && String(signal?.raw?.product?.sku ?? '') === sku
     && signal?.raw?.product?.is_in_stock === true
@@ -363,6 +333,21 @@ export function isSouthCarolinaAllAmericanLocation(signal) {
     && Number.isFinite(observedAt)
     && ageMs >= -MAX_FUTURE_SKEW_MS
     && ageMs <= ALL_AMERICAN_MAX_AGE_MS;
+}
+
+// The immutable historical baseline retains this premise, but its preview-only
+// source must now be preserved as a fresh exact directory location, never stock.
+export function isSouthCarolinaQuarantinedBaselinePreserved(baselineStore, stateSignals) {
+  if (baselineStore?.storeId !== ALL_AMERICAN_STORE_ID
+    || baselineStore?.storeName !== 'All American Liquor'
+    || normalizedIdentity(baselineStore?.storeAddress) !== ALL_AMERICAN_ADDRESS
+    || !Array.isArray(stateSignals)) return false;
+  const rows = stateSignals.filter(isSouthCarolinaAllAmericanSignal);
+  const locations = rows.filter((row) => row.eventType === 'retailer_store_location');
+  return locations.length === 1 && isSouthCarolinaAllAmericanLocation(locations[0])
+    && rows.every((row) => row.canAlertAsInventory === false
+      && row.canAlertAsWatch === false && row.sourceAvailabilityVerified !== true
+      && !['retailer_store_inventory_result', 'cityhive_store_inventory_result'].includes(row.eventType));
 }
 
 export function isSouthCarolinaAllAmericanStoreExport(store) {

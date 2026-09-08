@@ -1113,10 +1113,9 @@ const TX_CITYHIVE_SOURCES = [
 const TX_WATCH_RE = /bourbon|blanton|eagle rare|weller|stagg|e\.?h\.?\s*taylor|colonel\s*taylor|buffalo trace|old fitz|fitzgerald|michter|willett|baker'?s?|booker'?s?|bardstown|holladay|single barrel|barrel pick|rare|allocated/i;
 
 const SC_CITYHIVE_ARTIFACT_PATH = 'out/browser/SC-cityhive-retailer-inventory.json';
-// One bourbon category page per selected merchant currently yields broad SC coverage while
-// avoiding the request amplification that caused blocked refreshes. Inventory cache reuse is
-// capped at six hours so positive Myrtle Beach rows remain inside the public freshness window.
-const SC_CITYHIVE_MAX_PAGES = Number(process.env.BOURBON_SIGNAL_SC_CITYHIVE_MAX_PAGES || 1);
+// Keep the existing three-request ceiling. The API uses proven single-family searches and
+// rotates one reviewed family on the same six-hour cadence as the cache.
+const SC_CITYHIVE_MAX_PAGES = Math.max(1, Math.min(3, Number(process.env.BOURBON_SIGNAL_SC_CITYHIVE_MAX_PAGES) || 3));
 const SC_CITYHIVE_CACHE_MAX_AGE_MS = Number(process.env.BOURBON_SIGNAL_SC_CITYHIVE_CACHE_MAX_AGE_MS || 6 * 60 * 60_000);
 const SC_CITYHIVE_PAGE_DELAY_MS = Number(process.env.BOURBON_SIGNAL_SC_CITYHIVE_PAGE_DELAY_MS || 650);
 const SC_ALL_AMERICAN_BASE_URL = 'https://www.aalmauldin.com';
@@ -1296,6 +1295,18 @@ const SC_CITYHIVE_INVENTORY_MERCHANT_IDS = new Set(
   [...SC_CITYHIVE_MERCHANT_IDS].filter((merchantId) => !SC_CITYHIVE_EXCLUDED_EXPANSION_MERCHANT_IDS.has(merchantId)),
 );
 const SC_CITYHIVE_MERCHANT_CHAIN = new Map(SC_CITYHIVE_SOURCES.flatMap((source) => source.merchantIds.map((merchantId) => [merchantId, source.id])));
+const SC_CITYHIVE_FAMILY_SEARCH_ROTATION = [
+  'elijah craig',
+  'larceny',
+  'four roses',
+  'wild turkey',
+  'jack daniel',
+  'booker',
+  'michter',
+  'stagg',
+  'weller',
+  'russell',
+];
 const SC_MYRTLE_CITYHIVE_MERCHANT_IDS = [
   '6a0b27396d36df004b28a7ab',
   '61e1d04c823936166693c7f3',
@@ -1499,25 +1510,30 @@ export function isAuthoritativeSouthCarolinaCityHiveMerchantPayload(input = {}) 
     && strictIds(payloadMerchantIds).has(requested);
 }
 
-export function southCarolinaCityHiveProbePlan(sources = SC_CITYHIVE_SOURCES) {
+export function southCarolinaCityHiveProbePlan(sources = SC_CITYHIVE_SOURCES, observedAt = new Date().toISOString()) {
   if (!Array.isArray(sources)) return [];
   const isValidSeedUrl = (value) => {
     if (typeof value !== 'string' || !value.trim()) return false;
     try { return new URL(value).protocol === 'https:'; } catch { return false; }
   };
+  const observedMs = Date.parse(String(observedAt || ''));
+  const cadenceBucket = Number.isFinite(observedMs) ? Math.floor(observedMs / SC_CITYHIVE_CACHE_MAX_AGE_MS) : 0;
   const probes = [];
-  for (const source of sources) {
+  for (const [sourceIndex, source] of sources.entries()) {
     if (!source || typeof source !== 'object' || !Array.isArray(source.merchantIds) || !Array.isArray(source.urls)) continue;
     const merchantIds = source.merchantIds.filter((id) => typeof id === 'string' && SC_CITYHIVE_INVENTORY_MERCHANT_IDS.has(id));
     for (const seedUrl of source.urls.filter(isValidSeedUrl).slice(0, 1)) {
       for (const merchantId of merchantIds) {
         const priority = SC_MYRTLE_CITYHIVE_MERCHANT_PRIORITY.has(merchantId) ? 'myrtle' : 'statewide';
+        const familySearch = SC_CITYHIVE_FAMILY_SEARCH_ROTATION[(cadenceBucket + sourceIndex) % SC_CITYHIVE_FAMILY_SEARCH_ROTATION.length];
+        const apiSearchTerms = ['bourbon', 'rye', familySearch];
         for (const [pageIndex, url] of cityHiveMerchantPageUrls(seedUrl, merchantId, SC_CITYHIVE_MAX_PAGES).entries()) {
           probes.push({
             source,
             merchantId,
             url,
             page: pageIndex + 1,
+            apiSearchText: apiSearchTerms[pageIndex],
             priority,
           });
         }
@@ -2376,6 +2392,48 @@ export function cityHiveSafeBottleMatch(rawName, bible) {
   const unsafeReason = cityHiveUnsafeBottleMatchReason(rawName, record);
   if (unsafeReason) return { match, record: null, unsafeReason };
   return { match, record, unsafeReason: null };
+}
+
+const SC_CITYHIVE_EXACT_NAME_MAP = new Map([
+  ['elijah craig barrel proof store pick', 'Elijah Craig Barrel Proof'],
+]);
+
+export function southCarolinaCityHiveBottleMatch(rawName, bible) {
+  const shared = cityHiveSafeBottleMatch(rawName, bible);
+  if (shared.record) return shared;
+  const exactCanonical = SC_CITYHIVE_EXACT_NAME_MAP.get(normalizedBottleText(rawName));
+  if (!exactCanonical) return shared;
+  const { match, record } = bottleMatch(exactCanonical, bible);
+  if (!record) return shared;
+  return { match, record, unsafeReason: null };
+}
+
+export function isSafeSouthCarolinaCityHiveBottleOption(option = {}, rawName = '') {
+  const normalizedName = String(rawName || '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
+  if (/\b(?:mini(?:ature)?|sampler|\d+\s*(?:pack|pk)|\d+\s*x\s*\d+\s*ml)\b/.test(normalizedName)) return false;
+  const size = option?.option_params?.size;
+  if (!size || typeof size !== 'object' || Array.isArray(size)) return false;
+  const quantity = Number(size.quantity);
+  if (!Number.isFinite(quantity) || quantity <= 0) return false;
+  const measure = String(size.measure || '').toLowerCase().replace(/[^a-z]/g, '');
+  const toMilliliters = (amount, unit) => unit === 'ml' || unit === 'milliliter' || unit === 'milliliters'
+    ? amount
+    : unit === 'l' || unit === 'liter' || unit === 'liters'
+      ? amount * 1_000
+      : unit === 'oz' || unit === 'floz'
+        ? amount * 29.5735
+        : null;
+  const isSupportedStandard = (milliliters) => Number.isFinite(milliliters)
+    && [700, 750, 1_000].some((standard) => Math.abs(milliliters - standard) <= 15);
+  const milliliters = toMilliliters(quantity, measure);
+  if (!isSupportedStandard(milliliters)) return false;
+  const statedVolumes = [...String(rawName || '').matchAll(/\b(\d+(?:\.\d+)?)\s*(ml|milliliters?|l|liters?|fl\s*oz|oz)\b/gi)]
+    .map((match) => toMilliliters(Number(match[1]), match[2].toLowerCase().replace(/[^a-z]/g, '')));
+  return statedVolumes.every((stated) => isSupportedStandard(stated) && Math.abs(stated - milliliters) <= 15);
+}
+
+export function shouldBlockSouthCarolinaCityHivePriority(failedSourceIds = []) {
+  return new Set([...failedSourceIds].filter((sourceId) => typeof sourceId === 'string' && sourceId)).size >= 2;
 }
 
 function cityHiveUnsafeBottleMatchReason(rawName, record) {
@@ -6072,10 +6130,12 @@ export async function fetchSouthCarolinaCityHivePublicApi(source, merchantId, op
   const apiKey = typeof source?.apiKeyEnv === 'string' ? String(process.env[source.apiKeyEnv] || '').trim() : '';
   if (!apiKey || typeof source?.apiClientOrigin !== 'string' || typeof source?.apiClientOriginUrl !== 'string') return null;
   const publicUrl = 'https://api.cityhive.net/api/v1/products/search.json';
+  const requestedSearchText = typeof options?.searchText === 'string' ? options.searchText.trim().toLowerCase() : 'bourbon';
+  const searchText = /^[a-z0-9][a-z0-9 .'-]{1,63}$/.test(requestedSearchText) ? requestedSearchText : 'bourbon';
   const params = new URLSearchParams({
     merchant_id: merchantId,
     new_style: 'true',
-    text: 'bourbon',
+    text: searchText,
     api_key: apiKey,
     sdk_guid: randomUUID(),
     ch_request_guid: randomUUID(),
@@ -6114,6 +6174,17 @@ export function resolveSouthCarolinaCityHiveProbePayload(input = {}) {
   const apiEvidence = input.apiEvidence && typeof input.apiEvidence === 'object' ? input.apiEvidence : null;
   const pageAttempt = input.pageAttempt && typeof input.pageAttempt === 'object' ? input.pageAttempt : null;
   const pageEvidence = input.pageEvidence && typeof input.pageEvidence === 'object' ? input.pageEvidence : null;
+  if (isTerminalProbeFailure(apiAttempt?.status)) {
+    return {
+      blobs: null,
+      evidence: null,
+      evidenceUrl: apiAttempt.publicUrl || input.pageUrl || null,
+      transportFailure: {
+        status: apiAttempt.status,
+        error: apiAttempt.error || `Public CityHive API returned HTTP ${apiAttempt.status}.`,
+      },
+    };
+  }
   if (input.useApiEvidence === true && apiAttempt?.ok && apiEvidence?.authoritative) {
     return { blobs: apiAttempt.blobs, evidence: apiEvidence, evidenceUrl: apiAttempt.publicUrl, transportFailure: null };
   }
@@ -6137,6 +6208,10 @@ export function resolveSouthCarolinaCityHiveProbePayload(input = {}) {
   };
 }
 
+export function shouldAttemptSouthCarolinaCityHiveStorefrontFallback(apiAttempt, useApiEvidence = false) {
+  return useApiEvidence !== true && !isTerminalProbeFailure(apiAttempt?.status);
+}
+
 function southCarolinaCityHiveEvidenceHasUsableInventory(evidence, bible, merchantId, sourceMerchantIds) {
   if (!evidence?.authoritative || !Array.isArray(evidence.optionRecords)) return false;
   for (const optionRecord of evidence.optionRecords) {
@@ -6152,8 +6227,9 @@ function southCarolinaCityHiveEvidenceHasUsableInventory(evidence, bible, mercha
     const rawName = option.option_display_data?.name || option.product_name || product.name || '';
     const candidateText = JSON.stringify({ name: rawName, productName: option.product_name || product.name, category: option.basic_category || product.basic_category, tags: option.product_tags, storeTags: option.store_specific_tags, props: option.additional_properties });
     if (!isSouthCarolinaRetailerCandidate(candidateText)) continue;
+    if (!isSafeSouthCarolinaCityHiveBottleOption(option, rawName)) continue;
     if (normalizeCityHiveReportedQuantity(option.quantity).quantity <= 0) continue;
-    if (cityHiveSafeBottleMatch(rawName, bible).record) return true;
+    if (southCarolinaCityHiveBottleMatch(rawName, bible).record) return true;
   }
   return false;
 }
@@ -6196,24 +6272,30 @@ async function collectSouthCarolinaCityHive(config, bible, observedAt) {
   const configuredProbeCount = SC_CITYHIVE_INVENTORY_MERCHANT_IDS.size;
   let reachablePayloadCount = 0;
   const completedMerchantIds = new Set();
-  const failedProbeCounts = { myrtle: 0, statewide: 0 };
+  const successfulProbeCounts = new Map();
+  const failedMerchantIds = new Set();
+  const failedPrioritySources = { myrtle: new Set(), statewide: new Set() };
   const blockedPriorities = new Set();
   const blockedSourceKeys = new Set();
+  const recordPriorityFailure = (priority, sourceId) => {
+    failedPrioritySources[priority].add(sourceId);
+    if (shouldBlockSouthCarolinaCityHivePriority(failedPrioritySources[priority])) blockedPriorities.add(priority);
+  };
   // Probe the three exact Myrtle merchants first, but isolate their failure budget
   // so a blocked Myrtle source cannot prevent representative statewide probes.
-  for (const probe of southCarolinaCityHiveProbePlan()) {
+  for (const probe of southCarolinaCityHiveProbePlan(SC_CITYHIVE_SOURCES, observedAt)) {
     const { source, merchantId, url } = probe;
     if (blockedPriorities.has(probe.priority)) continue;
-    if (blockedSourceKeys.has(`${probe.priority}|${source.id}`)) continue;
+    if (blockedSourceKeys.has(source.id) || failedMerchantIds.has(merchantId)) continue;
     const sourceMerchantIds = new Set((source.merchantIds || []).filter((id) => SC_CITYHIVE_INVENTORY_MERCHANT_IDS.has(id)));
     const probeDeadlineMs = Date.now() + 36_000;
-    const apiAttempt = await fetchSouthCarolinaCityHivePublicApi(source, merchantId, { deadlineMs: probeDeadlineMs });
+    const apiAttempt = await fetchSouthCarolinaCityHivePublicApi(source, merchantId, { deadlineMs: probeDeadlineMs, searchText: probe.apiSearchText });
     const apiEvidence = apiAttempt?.ok ? southCarolinaCityHiveMerchantEvidence(apiAttempt.blobs, merchantId) : null;
     const useApiEvidence = southCarolinaCityHiveEvidenceHasUsableInventory(apiEvidence, bible, merchantId, sourceMerchantIds);
     let pageAttempt = null;
     let pageBlobs = null;
     let pageEvidence = null;
-    if (!useApiEvidence) {
+    if (shouldAttemptSouthCarolinaCityHiveStorefrontFallback(apiAttempt, useApiEvidence)) {
       const remainingMs = Math.max(0, probeDeadlineMs - Date.now());
       pageAttempt = remainingMs >= 1_000
         ? await curlTextFetch(url, { headers: { accept: 'text/html,*/*' }, timeoutMs: remainingMs, maxBuffer: 8 * 1024 * 1024 })
@@ -6242,19 +6324,19 @@ async function collectSouthCarolinaCityHive(config, bible, observedAt) {
         error: transportFailure?.error || `HTTP ${transportFailure?.status || 0}`,
         nextRoute: 'Retry the bounded public CityHive products API and selected first-party merchant page; keep exact merchant, premise, and product-option proof mandatory.'
       };
-      failedProbeCounts[probe.priority] += 1;
-      if (failedProbeCounts[probe.priority] >= 2) blockedPriorities.add(probe.priority);
+      failedMerchantIds.add(merchantId);
+      recordPriorityFailure(probe.priority, source.id);
       if (isTerminalProbeFailure(transportFailure?.status)) {
         platformFailures.push(failure);
-        blockedSourceKeys.add(`${probe.priority}|${source.id}`);
+        blockedSourceKeys.add(source.id);
       } else roadblocks.push(failure);
       continue;
     }
     reachablePayloadCount += 1;
     evidence ||= southCarolinaCityHiveMerchantEvidence(blobs, merchantId);
           if (!evidence.authoritative) {
-            failedProbeCounts[probe.priority] += 1;
-            if (failedProbeCounts[probe.priority] >= 2) blockedPriorities.add(probe.priority);
+            failedMerchantIds.add(merchantId);
+      recordPriorityFailure(probe.priority, source.id);
             roadblocks.push({
               state: config.id,
               source: source.sourceLabel,
@@ -6265,12 +6347,13 @@ async function collectSouthCarolinaCityHive(config, bible, observedAt) {
             });
             continue;
           }
+          let premiseVerifiedForProbe = false;
           for (const merchant of evidence.merchants) {
-            if (seenStores.has(`${source.id}|${merchantId}`)) continue;
             const a = cityHiveAddressParts(merchant.address || {});
             if ((a.state || '').toUpperCase() !== 'SC' && !/,\s*SC\s+\d{5}/i.test(a.fullAddress || '')) continue;
+            premiseVerifiedForProbe = true;
+            if (seenStores.has(`${source.id}|${merchantId}`)) continue;
             seenStores.add(`${source.id}|${merchantId}`);
-            completedMerchantIds.add(merchantId);
             signals.push({
               id: stableId([config.id, 'cityhive-store-location', source.id, merchantId]),
               state: config.id,
@@ -6302,9 +6385,9 @@ async function collectSouthCarolinaCityHive(config, bible, observedAt) {
               raw: { chain: source.id, merchant }
             });
           }
-          if (!completedMerchantIds.has(merchantId)) {
-            failedProbeCounts[probe.priority] += 1;
-            if (failedProbeCounts[probe.priority] >= 2) blockedPriorities.add(probe.priority);
+          if (!premiseVerifiedForProbe) {
+            failedMerchantIds.add(merchantId);
+      recordPriorityFailure(probe.priority, source.id);
             roadblocks.push({
               state: config.id,
               source: source.sourceLabel,
@@ -6330,12 +6413,13 @@ async function collectSouthCarolinaCityHive(config, bible, observedAt) {
                 const rawName = option.option_display_data?.name || option.product_name || product.name || '';
                 const candidateText = JSON.stringify({ name: rawName, productName: option.product_name || product.name, category: option.basic_category || product.basic_category, tags: option.product_tags, storeTags: option.store_specific_tags, props: option.additional_properties });
                 if (!isSouthCarolinaRetailerCandidate(candidateText)) continue;
+                if (!isSafeSouthCarolinaCityHiveBottleOption(option, rawName)) continue;
                 const { reportedQuantity, binaryAvailability, quantity } = normalizeCityHiveReportedQuantity(option.quantity);
                 if (quantity <= 0) continue;
                 const key = `${source.id}|${optionMerchantId}|${productId}|${optionId}`;
                 if (seenProductOptions.has(key)) continue;
                 seenProductOptions.add(key);
-                const { match, record, unsafeReason } = cityHiveSafeBottleMatch(rawName, bible);
+                const { match, record, unsafeReason } = southCarolinaCityHiveBottleMatch(rawName, bible);
                 if (!record) continue;
                 const city = fullAddress.match(/,\s*([^,]+),\s*SC\s+\d{5}/i)?.[1] || null;
                 const zip = fullAddress.match(/\bSC\s+(\d{5}(?:-\d{4})?)\b/i)?.[1] || null;
@@ -6384,6 +6468,9 @@ async function collectSouthCarolinaCityHive(config, bible, observedAt) {
                   raw: { chain: source.id, reportedQuantity, binaryAvailability, product: { id: parentProductId || productId, sourceOptionProductId: productId, name: option.product_name || product.name || rawName, basic_category: option.basic_category || product.basic_category || null }, option, matchGuard: unsafeReason }
                 });
           }
+          const successfulProbeCount = (successfulProbeCounts.get(merchantId) || 0) + 1;
+          successfulProbeCounts.set(merchantId, successfulProbeCount);
+          if (successfulProbeCount === SC_CITYHIVE_MAX_PAGES) completedMerchantIds.add(merchantId);
           await sleep(SC_CITYHIVE_PAGE_DELAY_MS);
   }
 
@@ -7235,6 +7322,13 @@ function isUnsafeSouthCarolinaAllAmericanFormat(rawName) {
   return miniature || multipack;
 }
 
+function isSouthCarolinaAllAmericanPreviewCatalogProduct(product) {
+  const catalogCopy = htmlToText(`${product?.short_description || ''} ${product?.description || ''}`)
+    .replace(/\s+/g, ' ')
+    .trim();
+  return /\bprivate\s+sync\s+preview\b|\bpreview\s+product\b|\bask\s+us\s+for\s+current\s+availability\b/i.test(catalogCopy);
+}
+
 export function buildSouthCarolinaAllAmericanSignal(config, product, bible, observedAt) {
   const rawName = htmlToText(product?.name || '')
     .replace(/[’‘]/g, "'")
@@ -7249,6 +7343,7 @@ export function buildSouthCarolinaAllAmericanSignal(config, product, bible, obse
     || !sku
     || product?.is_in_stock !== true
     || product?.is_on_backorder !== false
+    || isSouthCarolinaAllAmericanPreviewCatalogProduct(product)
     || isUnsafeSouthCarolinaAllAmericanFormat(rawName)
     || !isSouthCarolinaRetailerCandidate(rawName)) return null;
   let sourceUrl;
@@ -7274,7 +7369,7 @@ export function buildSouthCarolinaAllAmericanSignal(config, product, bible, obse
     sourceUrl,
     sourceLabel: SC_ALL_AMERICAN_SOURCE_LABEL,
     sourceChain: 'all-american-liquor',
-    eventType: 'retailer_store_inventory_result',
+    eventType: 'retailer_catalog_result',
     rawName,
     canonicalBottleId: record.id,
     bottleId: record.id,
@@ -7291,9 +7386,9 @@ export function buildSouthCarolinaAllAmericanSignal(config, product, bible, obse
     quantityIsExact: false,
     quantitySemantics: 'binary_retailer_in_stock',
     price,
-    availabilityStatus: 'in_stock',
-    availabilityLabel: 'Retailer reports in-store availability — exact quantity unavailable',
-    sourceAvailabilityVerified: true,
+    availabilityStatus: 'catalog_listed',
+    availabilityLabel: 'Catalog listing — current availability unverified',
+    sourceAvailabilityVerified: false,
     orderabilityOfferVerified: false,
     sourceProductInStock: true,
     sourceProductBackordered: false,
@@ -7308,11 +7403,11 @@ export function buildSouthCarolinaAllAmericanSignal(config, product, bible, obse
     zip: SC_ALL_AMERICAN_STORE.zip,
     observedAt,
     fetchedAt: observedAt,
-    canAlertAsInventory: true,
-    canAlertAsWatch: true,
-    dataLane: 'inventory',
-    inventorySemantics: 'All American Liquor publicly marks this SKU in stock for its Mauldin premises, while its shop states inventory is wholesale/in-store only and subject to change. This is binary in-store availability, not online purchasability or exact bottle quantity.',
-    evidence: `All American Liquor WooCommerce Store API reports ${rawName} is_in_stock=true${price ? ` at $${price.toFixed(2)}` : ''} for the Mauldin store; exact quantity is not exposed.`,
+    canAlertAsInventory: false,
+    canAlertAsWatch: false,
+    dataLane: 'catalog',
+    inventorySemantics: 'All American Liquor is location-only until first-party current-stock proof survives normalization and public export revalidation.',
+    evidence: `All American Liquor lists ${rawName}${price ? ` at $${price.toFixed(2)}` : ''}; this is catalog context, not current inventory.`,
     raw: {
       chain: 'all-american-liquor',
       product: {
@@ -7323,6 +7418,9 @@ export function buildSouthCarolinaAllAmericanSignal(config, product, bible, obse
         is_on_backorder: product.is_on_backorder,
         prices: product.prices,
         add_to_cart: product.add_to_cart,
+        short_description: product.short_description,
+        description: product.description,
+        catalogEvidenceVersion: 2,
       },
     },
   };

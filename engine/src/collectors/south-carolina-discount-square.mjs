@@ -43,6 +43,16 @@ export function parseDiscountLiquorLocation(payload) {
   const row = rows[0];
   const address = row?.address?.data;
   const source = DISCOUNT_LIQUOR_SOURCE;
+  // First-party Square address revision verified 2026-09-08. The store/owner/site,
+  // street, city and pickup identity are unchanged; accept only either reviewed tuple.
+  const reviewedPostalGeocode = address && (
+    (exactString(address.postal_code) === source.store.zip
+      && Number(address.latitude) === source.store.lat
+      && Number(address.longitude) === source.store.lng)
+    || (exactString(address.postal_code) === '29715-6805'
+      && Number(address.latitude) === 35.006714
+      && Number(address.longitude) === -80.931084)
+  );
   if (!row || typeof row !== 'object' || Array.isArray(row)
     || exactString(row.id) !== source.locationId
     || exactString(row.square_id) !== source.locationId
@@ -59,10 +69,8 @@ export function parseDiscountLiquorLocation(payload) {
     || exactString(address.street2) !== ''
     || exactString(address.city) !== source.store.city
     || exactString(address.region_code) !== 'SC'
-    || exactString(address.postal_code) !== source.store.zip
-    || exactString(address.country_code) !== 'US'
-    || Number(address.latitude) !== source.store.lat
-    || Number(address.longitude) !== source.store.lng) return null;
+    || !reviewedPostalGeocode
+    || exactString(address.country_code) !== 'US') return null;
   return source.store;
 }
 

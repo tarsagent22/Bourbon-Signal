@@ -1,0 +1,220 @@
+{
+  "data": [
+    {
+      "id": "LEG9F5YDP0ZS2",
+      "owner_id": "151282621",
+      "site_id": "741520739911976347",
+      "store_address_id": "11ef96db696016bf9f983cecef6dbac6",
+      "nickname": "Discount Liquor",
+      "display_name": "Discount Liquor",
+      "description": "Retail and Wholesale Wine and Spirits",
+      "alcohol_delivery_enabled": false,
+      "prepared_status_enabled": false,
+      "pickup_timezone": "America/New_York",
+      "pickup_timezone_info": {
+        "name": "America/New_York",
+        "current_time_24_format": "13:31",
+        "utc_offset_string": "-04:00",
+        "utc_offset_minutes": -240
+      },
+      "pickup_hours": {
+        "SUN": [],
+        "MON": [
+          {
+            "open": "12:00:00",
+            "close": "18:00:00"
+          }
+        ],
+        "TUE": [
+          {
+            "open": "12:00:00",
+            "close": "18:00:00"
+          }
+        ],
+        "WED": [
+          {
+            "open": "12:00:00",
+            "close": "18:00:00"
+          }
+        ],
+        "THU": [
+          {
+            "open": "12:00:00",
+            "close": "18:00:00"
+          }
+        ],
+        "FRI": [
+          {
+            "open": "12:00:00",
+            "close": "18:00:00"
+          }
+        ],
+        "SAT": [
+          {
+            "open": "12:00:00",
+            "close": "18:00:00"
+          }
+        ]
+      },
+      "delivery_hours": {
+        "SUN": [],
+        "MON": [],
+        "TUE": [],
+        "WED": [],
+        "THU": [],
+        "FRI": [],
+        "SAT": []
+      },
+      "batch_order_settings": {
+        "pickup": {
+          "cutoff_time": "10:00:00",
+          "minimum_days_required": 1,
+          "timeslot_type": "specific"
+        },
+        "delivery": {
+          "cutoff_time": null,
+          "minimum_days_required": 0,
+          "timeslot_type": "specific"
+        }
+      },
+      "order_prep_time": 0,
+      "max_orders_per_window": null,
+      "schedule_pickup_enabled": true,
+      "schedule_pickup_max_days": 90,
+      "schedule_delivery_enabled": false,
+      "schedule_delivery_max_days": 30,
+      "pickup_instructions": "",
+      "is_shipping_location": true,
+      "square_business_hours": "[]",
+      "delivery_fee_maximum": {
+        "enabled": false,
+        "value": 0,
+        "formatted": "$0.00"
+      },
+      "delivery_fee_maximum_formatted": "$0.00",
+      "delivery_order_subtotal_minimum": 0,
+      "delivery_order_subtotal_minimum_formatted": "$0.00",
+      "pickup_order_subtotal_minimum": 0,
+      "pickup_order_subtotal_minimum_formatted": "$0.00",
+      "delivery_areas": [],
+      "curbside_pickup_enabled": false,
+      "no_contact_delivery_enabled": false,
+      "automatically_assign_pickup_times": true,
+      "automatically_assign_delivery_times": true,
+      "no_eta_fulfillment_instructions": "",
+      "no_eta_short_fulfillment_instructions": "",
+      "couriers": [],
+      "courier_delivery_previously_enabled": null,
+      "allowed_delivery_types": {
+        "alcohol": false
+      },
+      "service_fee_type": 1,
+      "service_fee": 0,
+      "service_fee_formatted": "$0.00",
+      "dine_in_enabled": false,
+      "dine_in_settings": null,
+      "created_at": 1729910464,
+      "updated_at": null,
+      "google_food_ordering_id": "11ef96db696168309f983cecef6dbac6",
+      "google_food_ordering_site_id": "741520739911976347",
+      "is_open_tabs_feature_group": true,
+      "has_besi_enabled": true,
+      "delivery_has_been_enabled": false,
+      "pickup_has_been_enabled": true,
+      "can_use_sso_business_hours": true,
+      "pickup_settings": {
+        "batch_order_settings": {
+          "cutoff_time": "10:00:00",
+          "minimum_days_required": 1,
+          "timeslot_type": "specific"
+        },
+        "print_order_tickets_immediately_enabled": false,
+        "fulfillment_preferences_id": "fprefs_1285lm4mph6wrzg3pawzwprhb",
+        "order_limit_settings": null,
+        "order_prep_time": "PT0M",
+        "enablement_status": "ENABLED",
+        "enablement_scheduled_at": "",
+        "fulfillment_preferences_object_version": 5
+      },
+      "delivery_settings": {
+        "batch_order_settings": {
+          "cutoff_time": null,
+          "minimum_days_required": 0,
+          "timeslot_type": "specific"
+        },
+        "print_order_tickets_immediately_enabled": false,
+        "fulfillment_preferences_id": "fprefs_1285lm4mnye0fw2hmmhrwzom7",
+        "order_limit_settings": null,
+        "order_prep_time": "PT0M",
+        "enablement_status": "ENABLED",
+        "enablement_scheduled_at": "",
+        "fulfillment_preferences_object_version": 5
+      },
+      "pickup_enabled": true,
+      "delivery_enabled": true,
+      "print_order_tickets_immediately_enabled": false,
+      "pickup_delivery_shared_order_limits": false,
+      "delivery_estimated_max_duration_minutes": null,
+      "delivery_estimated_min_duration_minutes": null,
+      "delivery_fee": 0,
+      "delivery_fee_formatted": "$0.00",
+      "address": {
+        "data": {
+          "id": "11ef96db696016bf9f983cecef6dbac6",
+          "deleted": false,
+          "owner_id": "151282621",
+          "site_id": "741520739911976347",
+          "store_address_id": 1,
+          "is_shippable": true,
+          "is_primary": true,
+          "is_valid": true,
+          "business_name": "Discount Liquor",
+          "street": "400 N Dobys Bridge Rd",
+          "street2": "",
+          "postal_code": "29715-6805",
+          "city": "Fort Mill",
+          "region_code": "SC",
+          "region_code_cca2": "SC",
+          "region_code_full_name": "South Carolina",
+          "country_code": "US",
+          "country_code_cca2": "US",
+          "country_code_full_name": "United States",
+          "phone": "+1 803-396-8234",
+          "email": null,
+          "latitude": 35.006714,
+          "longitude": -80.931084,
+          "created_date": "2024-10-30T16:24:18+00:00",
+          "updated_date": "2026-09-02T11:10:25+00:00"
+        }
+      },
+      "free_fulfillment_conditions": {
+        "data": []
+      },
+      "delivery_conditions": {
+        "data": {
+          "order_subtotal_minimum_range_formatted": "$0.00",
+          "delivery_fee_range_formatted": "$0.00",
+          "min_delivery_fee": 0,
+          "max_delivery_fee": 0
+        }
+      },
+      "square_id": "LEG9F5YDP0ZS2",
+      "weebly_id": "11ef96db696168309f983cecef6dbac6"
+    }
+  ],
+  "meta": {
+    "pagination": {
+      "total": 1,
+      "count": 1,
+      "per_page": 100,
+      "current_page": 1,
+      "total_pages": 1,
+      "links": []
+    },
+    "delivery": {
+      "order_subtotal_minimum_range_formatted": "$0.00",
+      "delivery_fee_range_formatted": "$0.00"
+    },
+    "delivery_event_tracking": []
+  }
+}

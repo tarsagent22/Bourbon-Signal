@@ -1,0 +1,6 @@
+{
+  "sourceUrl": "https://cdn5.editmysite.com/app/store/api/v28/editor/users/151282621/sites/741520739911976347/store-locations?page=1&per_page=100&include=address,free_fulfillment_conditions&valid=1",
+  "capturedAt": "2026-09-08T17:31:00.663413+00:00",
+  "captureSha256": "e9780a034258123d32dc51952b9ab49b03bc4dc26cf78fbb6ead9296691beb53",
+  "note": "Public first-party Square location response. Owner/site/location/street unchanged; exact ZIP+4 and geocode revision only."
+}
