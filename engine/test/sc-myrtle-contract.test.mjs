@@ -13,7 +13,14 @@ import {
   southCarolinaCityHiveBoundMerchantIds,
   southCarolinaCityHiveMerchantEvidence,
   southCarolinaCityHiveProbePlan,
+  cityHiveSafeBottleMatch,
+  southCarolinaCityHiveBottleMatch,
+  isSafeSouthCarolinaCityHiveBottleOption,
+  shouldBlockSouthCarolinaCityHivePriority,
+  fetchSouthCarolinaCityHivePublicApi,
+  shouldAttemptSouthCarolinaCityHiveStorefrontFallback,
 } from '../src/collectors/precision-probes.mjs';
+import { BourbonBible } from '../src/core/bible.mjs';
 import { buildCurrentInventoryAlertsFromDrops } from '../src/export-site-contract.mjs';
 import { isSouthCarolinaCityHiveInventory } from '../src/south-carolina-retailer-policy.mjs';
 
@@ -23,16 +30,12 @@ const refreshWorkflow = readFileSync(new URL('../../.github/workflows/refresh-fe
 const liveProbe = readFileSync(new URL('../../scripts/run-state-expansion-live-probe.mjs', import.meta.url), 'utf8');
 const storeUniverse = JSON.parse(readFileSync(new URL('../data/store-universe/SC.json', import.meta.url), 'utf8'));
 const inventoryBaseline = JSON.parse(readFileSync(new URL('../data/south-carolina-inventory-baseline.json', import.meta.url), 'utf8'));
+const allocatedCityHiveCapture = JSON.parse(readFileSync(new URL('./fixtures/sc/allocated-cityhive-live.json', import.meta.url), 'utf8'));
+const bible = await BourbonBible.load(new URL('../out/bourbon-bible.json', import.meta.url));
 
 function defaultHours(constantName) {
   const match = collector.match(new RegExp(`const ${constantName} = Number\\(process\\.env\\.[A-Z0-9_]+ \\|\\| (\\d+) \\* 60 \\* 60_000\\)`));
   assert.ok(match, `missing hour-based default for ${constantName}`);
-  return Number(match[1]);
-}
-
-function defaultNumber(constantName) {
-  const match = collector.match(new RegExp(`const ${constantName} = Number\\(process\\.env\\.[A-Z0-9_]+ \\|\\| (\\d+)\\)`));
-  assert.ok(match, `missing numeric default for ${constantName}`);
   return Number(match[1]);
 }
 
@@ -50,7 +53,7 @@ test('Myrtle catalog query failures are coalesced outside the bounded term loop'
 
 test('Myrtle Beach CityHive inventory refresh stays inside the public freshness window', () => {
   assert.ok(defaultHours('SC_CITYHIVE_CACHE_MAX_AGE_MS') <= 6, 'SC CityHive cache must refresh at least every six hours');
-  assert.equal(defaultNumber('SC_CITYHIVE_MAX_PAGES'), 1, 'one well-covered CityHive category page per merchant avoids request amplification');
+  assert.match(collector, /SC_CITYHIVE_MAX_PAGES = Math\.max\(1, Math\.min\(3,[^\n]+\|\| 3\)\)/, 'three-probe default and hard maximum must remain bounded');
 });
 
 test('South Carolina expansion pins the complete 20-store production baseline and 22-store release floor', () => {
@@ -83,28 +86,169 @@ test('Myrtle Beach live inventory remains a South Carolina release contract', ()
   assert.match(verifier, /exportedMyrtleStores\.length < 1/);
 });
 
-test('Myrtle Beach merchants are probed first without widening the statewide CityHive request matrix', () => {
+test('Myrtle Beach merchants are probed first with a strict three-request single-family rotation', () => {
   assert.deepEqual(southCarolinaCityHiveProbePlan(null), []);
   assert.deepEqual(southCarolinaCityHiveProbePlan([{ merchantIds: null, urls: {} }]), []);
   assert.deepEqual(southCarolinaCityHiveProbePlan([{ merchantIds: ['61e1d04c823936166693c7f3'], urls: ['', 'not-a-url', 'http://insecure.example'] }]), []);
-  const probes = southCarolinaCityHiveProbePlan();
+  const probes = southCarolinaCityHiveProbePlan(undefined, allocatedCityHiveCapture.capturedAt);
   const myrtle = probes.filter((probe) => probe.priority === 'myrtle');
-  assert.deepEqual(myrtle.map((probe) => probe.merchantId), [
+  assert.deepEqual([...new Set(myrtle.map((probe) => probe.merchantId))], [
     '6a0b27396d36df004b28a7ab',
     '61e1d04c823936166693c7f3',
     '6144e1c2085a5f20a622a15f',
   ]);
-  assert.ok(probes.every((probe) => probe.page === 1));
+  assert.ok(probes.every((probe) => probe.page >= 1 && probe.page <= 3));
+  for (const merchantId of new Set(probes.map((probe) => probe.merchantId))) {
+    const merchantProbes = probes.filter((probe) => probe.merchantId === merchantId);
+    assert.equal(merchantProbes.length, 3);
+    assert.equal(merchantProbes[0].apiSearchText, 'bourbon');
+    assert.equal(merchantProbes[1].apiSearchText, 'rye');
+    assert.equal(new Set(merchantProbes.map((probe) => probe.apiSearchText)).size, 3);
+    assert.deepEqual(merchantProbes.map((probe) => new URL(probe.url).searchParams.get('skip')), [null, '18', '36']);
+  }
+  const nextCadence = southCarolinaCityHiveProbePlan(undefined, new Date(Date.parse(allocatedCityHiveCapture.capturedAt) + 6 * 60 * 60_000).toISOString());
+  assert.equal(nextCadence.length, probes.length);
+  assert.ok(probes.every((probe) => /^(?:bourbon|rye|[a-z]+(?: [a-z]+)?)$/.test(probe.apiSearchText)));
+  assert.ok(nextCadence.some((probe, index) => probe.page === 3 && probe.apiSearchText !== probes[index].apiSearchText));
   assert.ok(myrtle.every((probe) => new URL(probe.url).searchParams.get('merchant-id') === probe.merchantId));
-  assert.match(collector, /failedProbeCounts = \{ myrtle: 0, statewide: 0 \}/);
-  assert.match(collector, /blockedPriorities\.add\(probe\.priority\)/);
-  assert.match(collector, /blockedSourceKeys\.add\(`\$\{probe\.priority\}\|\$\{source\.id\}`\)/);
+  assert.match(collector, /failedPrioritySources = \{ myrtle: new Set\(\), statewide: new Set\(\) \}/);
+  assert.match(collector, /failedPrioritySources\[priority\]\.add\(sourceId\)/);
+  assert.match(collector, /blockedPriorities\.add\(priority\)/);
+  assert.match(collector, /blockedSourceKeys\.add\(source\.id\)/);
+  assert.match(collector, /blockedSourceKeys\.has\(source\.id\) \|\| failedMerchantIds\.has\(merchantId\)/);
+  assert.match(collector, /failedMerchantIds\.add\(merchantId\)/);
   assert.match(collector, /typeof option\.full_address === 'string'/);
   assert.match(collector, /parentProductId && parentProductId !== productId/);
   assert.match(collector, /southCarolinaCityHiveMerchantEvidence\(blobs, merchantId\)/);
-  assert.match(collector, /completedMerchantIds\.add\(merchantId\)/);
+  assert.match(collector, /successfulProbeCount === SC_CITYHIVE_MAX_PAGES\) completedMerchantIds\.add\(merchantId\)/);
   assert.doesNotMatch(collector, /reachablePageCount \+= 1;\s*completedMerchantIds\.add/);
   assert.match(collector, /completedMerchantIds\.size === configuredProbeCount[\s\S]*writeSouthCarolinaCityHiveCache/);
+});
+
+test('captured CityHive API responses prove page-one loss and expanded bourbon plus rye detector breadth', () => {
+  assert.equal(allocatedCityHiveCapture.schemaVersion, 'bourbon-signal-sc-cityhive-api-capture-v1');
+  assert.equal(allocatedCityHiveCapture.baseline.rawProductCount, 30);
+  assert.equal(allocatedCityHiveCapture.baseline.confirmedMissingNames.length, 5);
+  const merchantId = allocatedCityHiveCapture.merchant.merchantId;
+  const parsed = [];
+  for (const capture of [allocatedCityHiveCapture.baseline, ...allocatedCityHiveCapture.expandedResponses]) {
+    assert.match(capture.rawSha256, /^[a-f0-9]{64}$/);
+    const blobs = southCarolinaCityHiveApiEvidenceBlobs(capture.response, merchantId);
+    const evidence = southCarolinaCityHiveMerchantEvidence(blobs, merchantId);
+    assert.equal(evidence.authoritative, true, `${capture.searchText} lost exact merchant/premise binding`);
+    for (const { option, product } of evidence.optionRecords) {
+      assert.equal(option.merchant_id, merchantId);
+      assert.equal(option.full_address, allocatedCityHiveCapture.merchant.address);
+      assert.equal(option.product_id, product.id);
+      assert.ok(Number.isInteger(option.quantity) && option.quantity > 0);
+      assert.match(JSON.stringify([product.basic_category, option.option_display_data?.basic_category]), /bourbon|rye|whiskey/i);
+      parsed.push({ searchText: capture.searchText, name: option.option_display_data?.name || product.name, match: southCarolinaCityHiveBottleMatch(option.option_display_data?.name || product.name, bible) });
+    }
+  }
+  assert.ok(parsed.some((row) => row.searchText === 'rye' && /rye/i.test(row.name)));
+  for (const family of ['Elijah Craig', 'Wild Turkey']) {
+    const row = parsed.find((candidate) => candidate.name.includes(family));
+    assert.ok(row, `missing captured ${family} response`);
+    assert.ok(row.match?.record, `${family} must survive the production Bottle Bible guard`);
+  }
+  for (const family of ['Larceny', 'Jack Daniel', 'Four Roses']) {
+    const row = parsed.find((candidate) => candidate.name.includes(family));
+    assert.ok(row, `missing captured ${family} response`);
+    assert.equal(row.match?.record || null, null, `${family} must not be forced onto a different canonical bottle while the catalog lacks the exact expression`);
+  }
+
+  const capturedElijah = allocatedCityHiveCapture.expandedResponses.find((row) => row.searchText === 'elijah craig');
+  const forged = structuredClone(capturedElijah.response);
+  const option = forged.data.products[0].merchants[0].product_options[0];
+  option.merchant_id = 'merchant-mismatch';
+  assert.deepEqual(southCarolinaCityHiveApiEvidenceBlobs(forged, merchantId), []);
+  option.merchant_id = merchantId;
+  option.quantity = 0;
+  const zeroEvidence = southCarolinaCityHiveMerchantEvidence(southCarolinaCityHiveApiEvidenceBlobs(forged, merchantId), merchantId);
+  assert.equal(zeroEvidence.authoritative, true);
+  assert.equal(zeroEvidence.options[0].quantity, 0);
+  option.quantity = 1;
+  option.option_id = '';
+  assert.deepEqual(southCarolinaCityHiveApiEvidenceBlobs(forged, merchantId), []);
+});
+
+test('CityHive bottle format and source-failure budgets fail closed without retailer-wide starvation', () => {
+  assert.equal(isSafeSouthCarolinaCityHiveBottleOption({ option_params: { size: { quantity: '750', measure: 'ml' } } }, "Booker's Bourbon"), true);
+  assert.equal(isSafeSouthCarolinaCityHiveBottleOption({ option_params: { size: { quantity: '1.75', measure: 'L' } } }, 'Wild Turkey Rare Breed'), false);
+  assert.equal(isSafeSouthCarolinaCityHiveBottleOption({ option_params: { size: { quantity: '50', measure: 'ml' } } }, "Booker's Bourbon"), false);
+  assert.equal(isSafeSouthCarolinaCityHiveBottleOption({ option_params: { size: { quantity: '750', measure: 'ml' } } }, "Booker's Bourbon 50ml"), false);
+  assert.equal(isSafeSouthCarolinaCityHiveBottleOption({ option_params: { size: { quantity: '750', measure: 'ml' } } }, "Booker's Bourbon 1L"), false);
+  assert.equal(isSafeSouthCarolinaCityHiveBottleOption({}, "Booker's Bourbon"), false);
+  assert.equal(isSafeSouthCarolinaCityHiveBottleOption({ option_params: { size: { quantity: '12', measure: 'ct' } } }, "Booker's Bourbon"), false);
+  assert.equal(isSafeSouthCarolinaCityHiveBottleOption({ option_params: { size: { quantity: '50', measure: '' } } }, "Booker's Bourbon 50ml"), false);
+  assert.equal(isSafeSouthCarolinaCityHiveBottleOption({ option_params: { size: { quantity: '750', measure: 'ml' } } }, "Booker's Bourbon 3 Pack"), false);
+  assert.equal(isSafeSouthCarolinaCityHiveBottleOption({ option_params: { size: { quantity: '0', measure: 'ml' } } }, "Booker's Bourbon"), false);
+
+  // Repeated 429/transport failures from one chain consume one source slot; a
+  // second distinct failing chain closes that priority lane at the existing cap.
+  assert.equal(shouldBlockSouthCarolinaCityHivePriority(['greens-beverage']), false);
+  assert.equal(shouldBlockSouthCarolinaCityHivePriority(['greens-beverage', 'greens-beverage']), false);
+  assert.equal(shouldBlockSouthCarolinaCityHivePriority(['greens-beverage', 'wine-bourbon-barn']), true);
+});
+
+test('CityHive API 429 remains terminal even when storefront fallback fails or returns unusable HTTP 200', () => {
+  assert.equal(shouldAttemptSouthCarolinaCityHiveStorefrontFallback({ ok: false, status: 429 }), false);
+  assert.equal(shouldAttemptSouthCarolinaCityHiveStorefrontFallback({ ok: false, status: 0 }), true);
+  for (const pageAttempt of [
+    { ok: false, status: 0, error: 'network failure' },
+    { ok: true, status: 200, text: '<html>not authoritative</html>' },
+  ]) {
+    const resolved = resolveSouthCarolinaCityHiveProbePayload({
+      apiAttempt: { ok: false, status: 429, error: 'rate limited', publicUrl: 'https://api.cityhive.net/api/v1/products/search.json' },
+      pageAttempt,
+      pageBlobs: pageAttempt.ok ? [] : null,
+      pageEvidence: pageAttempt.ok ? { authoritative: false } : null,
+      pageUrl: 'https://retailer.example/shop/',
+    });
+    assert.equal(resolved.blobs, null);
+    assert.equal(resolved.transportFailure.status, 429);
+    assert.match(resolved.transportFailure.error, /rate limited/i);
+  }
+});
+
+test('shared CityHive matcher baseline rejects SC-only abbreviations and dangerous suffix stripping', () => {
+  for (const rawName of [
+    'Elijah Craig Barrel Proof Store Pick Gift Set',
+    'Elijah Craig Barrel Proof Store Pick 18 Year',
+    'Four Roses Single Barrel OBSK Recipe Only',
+    'Four Roses Single Barrel OBSK 50ml',
+  ]) assert.equal(cityHiveSafeBottleMatch(rawName, bible).record, null, rawName);
+  assert.equal(southCarolinaCityHiveBottleMatch('Elijah Craig Barrel Proof Store Pick', bible).record?.canonical, 'Elijah Craig Barrel Proof');
+  assert.equal(southCarolinaCityHiveBottleMatch('Four Roses Sngl Brl Obsk', bible).record, null, 'recipe code and single barrel do not prove barrel strength');
+});
+
+test('CityHive API transport sends the planned family query and returns merchant-bound evidence', async () => {
+  const capture = allocatedCityHiveCapture.expandedResponses.find((row) => row.searchText === 'elijah craig');
+  const envName = 'SC_CITYHIVE_TEST_PUBLIC_API_KEY';
+  const priorKey = process.env[envName];
+  const priorFetch = globalThis.fetch;
+  let requestedUrl = null;
+  process.env[envName] = 'fixture-public-key';
+  globalThis.fetch = async (url) => {
+    requestedUrl = new URL(String(url));
+    return new Response(JSON.stringify(capture.response), { status: 200, headers: { 'content-type': 'application/json' } });
+  };
+  try {
+    const result = await fetchSouthCarolinaCityHivePublicApi({
+      apiKeyEnv: envName,
+      apiClientOrigin: 'app://sites.fixture',
+      apiClientOriginUrl: 'https://retailer.example/shop/',
+    }, allocatedCityHiveCapture.merchant.merchantId, { searchText: 'elijah craig' });
+    assert.equal(result.ok, true);
+    assert.equal(requestedUrl.origin, 'https://api.cityhive.net');
+    assert.equal(requestedUrl.searchParams.get('text'), 'elijah craig');
+    assert.equal(requestedUrl.searchParams.get('merchant_id'), allocatedCityHiveCapture.merchant.merchantId);
+    assert.ok(result.blobs.length >= 2);
+  } finally {
+    globalThis.fetch = priorFetch;
+    if (priorKey == null) delete process.env[envName];
+    else process.env[envName] = priorKey;
+  }
 });
 
 test('CityHive completion requires requested-merchant configuration and product payload proof', () => {

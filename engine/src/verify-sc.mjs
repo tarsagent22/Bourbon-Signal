@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
-import { hasSouthCarolinaPositiveInventoryEvidence } from './south-carolina-retailer-policy.mjs';
+import { hasSouthCarolinaPositiveInventoryEvidence, isSouthCarolinaQuarantinedBaselinePreserved } from './south-carolina-retailer-policy.mjs';
 async function readJson(file, fallback = null) {
   try { return JSON.parse(await readFile(file, 'utf8')); } catch { return fallback; }
 }
@@ -74,7 +74,10 @@ for (const row of currentStateInventoryRows) {
   if (!currentRowsByStoreId.has(storeId)) currentRowsByStoreId.set(storeId, []);
   currentRowsByStoreId.get(storeId).push(row);
 }
-const missingBaselineStores = inventoryBaseline.stores.map((row) => row.storeId).filter((storeId) => !currentStateInventoryStores.has(storeId));
+const missingBaselineStores = inventoryBaseline.stores
+  .filter((row) => !currentStateInventoryStores.has(row.storeId)
+    && !isSouthCarolinaQuarantinedBaselinePreserved(row, stateSignals))
+  .map((row) => row.storeId);
 if (missingBaselineStores.length) throw new Error(`South Carolina inventory baseline stores were lost: ${missingBaselineStores.join(', ')}`);
 const baselineIdentityMismatches = inventoryBaseline.stores.flatMap((baselineStore) =>
   (currentRowsByStoreId.get(baselineStore.storeId) || [])

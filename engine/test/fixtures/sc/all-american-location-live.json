@@ -1,0 +1,39 @@
+{
+  "id": "a8d6dd1ab3aa9990",
+  "state": "SC",
+  "sourceLabel": "All American Liquor Mauldin WooCommerce in-store availability",
+  "sourceUrl": "https://www.aalmauldin.com",
+  "rawName": "All American Liquor",
+  "canonicalBottleId": null,
+  "canonicalName": null,
+  "confidence": 0.72,
+  "eventType": "retailer_store_location",
+  "locationPrecision": "store_level",
+  "locationName": "All American Liquor",
+  "storeName": "All American Liquor",
+  "storeId": "all-american-liquor:all-american-liquor-mauldin",
+  "storeAddress": "121 W Butler Rd, Mauldin, SC 29662",
+  "city": "Mauldin",
+  "stateCode": "SC",
+  "postalCode": "29662",
+  "zip": "29662",
+  "lat": null,
+  "lng": null,
+  "quantity": 0,
+  "observedAt": "2026-09-08T17:32:51.355Z",
+  "canAlertAsInventory": false,
+  "canAlertAsWatch": false,
+  "inventorySemantics": "All American Liquor location metadata identifies a public South Carolina retailer source. Store-location rows are not bottle inventory by themselves.",
+  "evidence": "All American Liquor Mauldin WooCommerce in-store availability identifies All American Liquor at 121 W Butler Rd, Mauldin, SC 29662.",
+  "raw": {
+    "chain": "all-american-liquor",
+    "store": {
+      "id": "all-american-liquor-mauldin",
+      "name": "All American Liquor",
+      "address": "121 W Butler Rd, Mauldin, SC 29662",
+      "city": "Mauldin",
+      "zip": "29662"
+    }
+  },
+  "sourceRuntimeId": "precision:sc"
+}

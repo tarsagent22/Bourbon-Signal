@@ -19,6 +19,7 @@ import {
 
 const bible = await BourbonBible.load(new URL('../out/bourbon-bible.json', import.meta.url));
 const allAmericanVerifierSource = readFileSync(new URL('../src/verify-sc-all-american.mjs', import.meta.url), 'utf8');
+const allAmericanPreviewCapture = JSON.parse(readFileSync(new URL('./fixtures/sc/all-american-preview-live.json', import.meta.url), 'utf8'));
 
 function product(overrides = {}) {
   return {
@@ -48,7 +49,7 @@ function signal(overrides = {}) {
   );
 }
 
-test('All American binary stock becomes exact-store inventory without inventing quantity or orderability', () => {
+test('All American remains catalog-only while its live storefront is preview-only', () => {
   const row = signal();
   assert.ok(row);
   assert.equal(row.rawName, "Booker's Bourbon - 750ml");
@@ -56,39 +57,42 @@ test('All American binary stock becomes exact-store inventory without inventing 
   assert.equal(row.storeQty, 0);
   assert.equal(row.quantityIsExact, false);
   assert.equal(row.quantitySemantics, 'binary_retailer_in_stock');
-  assert.equal(row.sourceAvailabilityVerified, true);
-  assert.equal(row.availabilityStatus, 'in_stock');
+  assert.equal(row.eventType, 'retailer_catalog_result');
+  assert.equal(row.sourceAvailabilityVerified, false);
+  assert.equal(row.availabilityStatus, 'catalog_listed');
   assert.equal(row.orderabilityOfferVerified, false);
   assert.equal(row.storeId, 'all-american-liquor:all-american-liquor-mauldin');
   assert.equal(row.storeAddress, '121 W Butler Rd, Mauldin, SC 29662');
   assert.equal(row.productId, 1216);
   assert.equal(row.sku, '080686011408');
-  assert.equal(isSouthCarolinaAllAmericanInventory(row), true);
-  assert.equal(hasSouthCarolinaPositiveInventoryEvidence(row), true);
+  assert.equal(row.canAlertAsInventory, false);
+  assert.equal(row.canAlertAsWatch, false);
+  assert.equal(isSouthCarolinaAllAmericanInventory(row), false);
+  assert.equal(hasSouthCarolinaPositiveInventoryEvidence(row), false);
 });
 
-test('All American identity survives normalization and reaches on-site cards without baseline outbound delivery', () => {
+test('All American raw and rawless rows fail normalization, cache, public-drop, and alert paths', () => {
   const row = signal();
   const normalized = canonicalizeSignal(row, bible);
-  assert.equal(isSouthCarolinaAllAmericanInventory(normalized), true);
-  assert.equal(confidenceForSignal(normalized).canAlertAsInventory, true);
+  assert.equal(isSouthCarolinaAllAmericanInventory(row), false);
+  assert.equal(isSouthCarolinaAllAmericanInventory(normalized), false);
+  assert.equal(confidenceForSignal(normalized).canAlertAsInventory, false);
+  assert.equal(isSouthCarolinaAllAmericanCacheUsable([row], row.observedAt, Date.parse(row.observedAt)), false);
 
   const record = { id: normalized.canonicalBottleId, canonical: normalized.canonicalName, tier: 'allocated', aliases: [] };
   const lookup = { byId: new Map([[record.id, record]]), byName: new Map() };
-  const [drop] = buildDrops([normalized], lookup, [normalized]);
-  assert.ok(drop);
-  assert.equal(drop.canAlertAsInventory, true);
-  assert.equal(drop.quantitySemantics, 'binary_retailer_in_stock');
+  assert.deepEqual(buildDrops([normalized], lookup, [normalized]), []);
 
-  const [alert] = buildCurrentInventoryAlertsFromDrops([{ ...drop, tier: 'allocated', type: normalized.eventType }]);
-  assert.ok(alert);
-  assert.equal(alert.eligibleForOnSite, true);
-  assert.equal(alert.eligibleForEmail, false);
-  assert.equal(alert.eligibleForSms, false);
-  assert.ok(alert.gates.includes('verified_binary_in_store_availability'));
-  assert.equal(alert.gates.includes('verified_binary_orderability'), false);
-  assert.match(alert.reason, /in-store availability/i);
-  assert.match(alert.reason, /online orderability.*not published/i);
+  const rawless = structuredClone(normalized);
+  delete rawless.raw;
+  rawless.eventType = 'retailer_store_inventory_result';
+  rawless.canAlertAsInventory = true;
+  rawless.sourceAvailabilityVerified = true;
+  rawless.availabilityStatus = 'in_stock';
+  assert.equal(isSouthCarolinaAllAmericanInventory(rawless), false);
+  assert.equal(confidenceForSignal(rawless).canAlertAsInventory, false);
+  assert.deepEqual(buildDrops([rawless], lookup, [rawless]), []);
+  assert.deepEqual(buildCurrentInventoryAlertsFromDrops([{ ...rawless, tier: 'allocated', type: rawless.eventType }]), []);
 });
 
 test('All American production verifier accepts separate first-run change and current on-site projections', () => {
@@ -310,24 +314,17 @@ test('All American location and exported store require the complete exact premis
   }
 });
 
-test('All American first-run change survives the exported alert contract without widening delivery', () => {
+test('All American catalog rows cannot enter the exported alert contract', () => {
   const normalized = canonicalizeSignal(signal(), bible);
   const candidate = candidateFromChange({ type: 'new_signal', key: normalized.key, before: null, after: normalized });
-  assert.equal(candidate.eligibleForEmail, false);
-  assert.equal(candidate.eligibleForSms, false);
-  assert.ok(candidate.gates.includes('verified_binary_in_store_availability'));
+  assert.notEqual(candidate.eligibleForEmail, true);
+  assert.notEqual(candidate.eligibleForSms, true);
+  assert.notEqual(candidate.eligibleForDelivery, true);
   assert.equal(candidate.canonicalBottleId, normalized.canonicalBottleId);
   assert.equal(candidate.productId, normalized.productId);
   assert.equal(candidate.sku, normalized.sku);
 
-  const [exported] = buildAlerts({ candidates: [candidate] });
-  assert.ok(exported);
-  assert.equal(isSouthCarolinaAllAmericanInventory(exported), true);
-  assert.equal(exported.eligibleForOnSite, true);
-  assert.equal(exported.eligibleForEmail, false);
-  assert.equal(exported.eligibleForSms, false);
-  assert.ok(exported.gates.includes('verified_binary_in_store_availability'));
-  assert.equal(exported.gates.includes('verified_binary_orderability'), false);
+  assert.deepEqual(buildAlerts({ candidates: [candidate] }), []);
 });
 
 test('All American exact identity rejects forged source, premise, product, stock, and freshness bindings', () => {
@@ -417,11 +414,23 @@ test('All American parser fails closed for unavailable, backordered, unsafe-form
   assert.equal(buildSouthCarolinaAllAmericanSignal({ id: 'SC' }, product({ sku: '' }), bible, new Date().toISOString()), null);
 });
 
+test('captured All American private-sync preview is not current stock despite WooCommerce is_in_stock', () => {
+  assert.equal(allAmericanPreviewCapture.status, 200);
+  assert.equal(allAmericanPreviewCapture.xWpTotal, 1);
+  assert.match(allAmericanPreviewCapture.rawSha256, /^[a-f0-9]{64}$/);
+  const [preview] = allAmericanPreviewCapture.products;
+  assert.equal(preview.is_in_stock, true);
+  assert.equal(preview.is_on_backorder, false);
+  assert.match(preview.short_description, /private sync preview/i);
+  assert.match(preview.description, /ask us for current availability/i);
+  assert.equal(buildSouthCarolinaAllAmericanSignal({ id: 'SC' }, preview, bible, allAmericanPreviewCapture.capturedAt), null);
+});
+
 test('All American cache rejects legacy inventory rows without the reviewed proof schema', () => {
   const nowMs = Date.parse('2026-08-04T21:00:00.000Z');
   const generatedAt = '2026-08-04T20:30:00.000Z';
   const row = buildSouthCarolinaAllAmericanSignal({ id: 'SC' }, product(), bible, generatedAt);
-  assert.equal(isSouthCarolinaAllAmericanCacheUsable([row], generatedAt, nowMs), true);
+  assert.equal(isSouthCarolinaAllAmericanCacheUsable([row], generatedAt, nowMs), false);
   assert.equal(isSouthCarolinaAllAmericanCacheUsable([], generatedAt, nowMs), false);
   assert.equal(isSouthCarolinaAllAmericanCacheUsable(null, generatedAt, nowMs), false);
   assert.equal(isSouthCarolinaAllAmericanCacheUsable('HTTP 403 denied', generatedAt, nowMs), false);
