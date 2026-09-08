@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
+import { createHash } from 'node:crypto';
 
 import { VercelBlobObjectStorage } from '../src/data-plane/vercel-blob-object-storage.mjs';
 
@@ -19,7 +20,7 @@ function fakeBlobApi() {
       if (current && !options.allowOverwrite) throw new Error('already exists');
       if (options.ifMatch && current?.etag !== options.ifMatch) throw new PreconditionError('etag mismatch');
       revision += 1;
-      const value = { body: String(body), etag: `etag-${revision}`, url: `https://blob.test/${pathname}`, pathname };
+      const value = { body: String(body), etag: `"${createHash('md5').update(String(body)).digest('hex')}"`, url: `https://blob.test/${pathname}`, pathname };
       objects.set(pathname, value);
       return value;
     },
@@ -64,3 +65,64 @@ test('blob pointer compare-and-swap rejects a stale etag', async () => {
   assert.equal(await second.compareAndSwapPointer(1, { revision: 2, active: 'stale' }), false);
   assert.equal((await second.readPointer()).active, 'two');
 });
+
+
+test('cached mutable pointer recovers current body from an ETag-bound immutable event', async () => {
+  const api = fakeBlobApi();
+  const writer = new VercelBlobObjectStorage({ blob: api, fetcher: api.fetcher });
+  await writer.readPointer();
+  await writer.compareAndSwapPointer(0, { revision: 1, active: 'old' });
+  const cached = { ...api.objects.get('engine/active.json') };
+  await writer.readPointer();
+  await writer.compareAndSwapPointer(1, { revision: 2, active: 'current' });
+  const reader = new VercelBlobObjectStorage({ blob: api, fetcher: async (url) => {
+    if (new URL(url).pathname === '/engine/active.json') return {
+      ok: true, status: 200, headers: new Headers({ etag: cached.etag }), text: async () => cached.body,
+    };
+    return api.fetcher(url);
+  } });
+  assert.deepEqual(await reader.readPointer(), { revision: 2, active: 'current' });
+  assert.equal(await reader.compareAndSwapPointer(2, { revision: 3, active: 'next' }), true);
+});
+
+test('journal recovery fails closed without an event matching current storage version', async () => {
+  const api = fakeBlobApi();
+  await api.put('engine/active.json', JSON.stringify({ revision: 2, active: 'current' }), { allowOverwrite: true });
+  const stale = JSON.stringify({ revision: 1, active: 'old' });
+  const reader = new VercelBlobObjectStorage({ blob: api, fetcher: async () => ({
+    ok: true, status: 200, headers: new Headers({ etag: '"old-version"' }), text: async () => stale,
+  }) });
+  await assert.rejects(() => reader.readPointer(), /current.*pointer|pointer.*version/i);
+  assert.equal(JSON.parse(api.objects.get('engine/active.json').body).active, 'current');
+});
+
+for (const mode of ['competing-write', 'tampered-event', 'wrong-response-version']) {
+  test(`immutable pointer recovery preserves fencing: ${mode}`, async () => {
+    const api = fakeBlobApi();
+    const writer = new VercelBlobObjectStorage({ blob: api, fetcher: api.fetcher });
+    await writer.readPointer();
+    await writer.compareAndSwapPointer(0, { revision: 1, active: 'old' });
+    const cached = { ...api.objects.get('engine/active.json') };
+    await writer.readPointer();
+    await writer.compareAndSwapPointer(1, { revision: 2, active: 'current' });
+    const reader = new VercelBlobObjectStorage({ blob: api, fetcher: async (url) => {
+      if (new URL(url).pathname === '/engine/active.json') return {
+        ok: true, status: 200, headers: new Headers({ etag: cached.etag }), text: async () => cached.body,
+      };
+      const response = await api.fetcher(url);
+      if (mode === 'tampered-event') return { ...response, text: async () => JSON.stringify({ revision: 99, active: 'forged' }) };
+      if (mode === 'wrong-response-version') return { ...response, headers: new Headers({ etag: '"other"' }) };
+      return response;
+    } });
+    if (mode === 'competing-write') {
+      assert.equal((await reader.readPointer()).revision, 2);
+      await writer.readPointer();
+      await writer.compareAndSwapPointer(2, { revision: 3, active: 'competitor' });
+      assert.equal(await reader.compareAndSwapPointer(2, { revision: 3, active: 'lost-update' }), false);
+      assert.equal(JSON.parse(api.objects.get('engine/active.json').body).active, 'competitor');
+    } else {
+      await assert.rejects(() => reader.readPointer(), /mismatch/i);
+      assert.equal(JSON.parse(api.objects.get('engine/active.json').body).active, 'current');
+    }
+  });
+}

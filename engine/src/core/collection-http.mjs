@@ -61,8 +61,16 @@ export async function fetchCollectionResponse(value, options = {}) {
   }
 }
 
+// The official NC warehouse table measured 8.49 MB in September 2026.
+// Review this exact endpoint separately; keep every other source at 8 MiB.
+function collectionBodyBudget(response) {
+  return response.url === 'https://abc2.nc.gov/StoresBoards/Stocks'
+    ? 16 * 1024 * 1024
+    : DEFAULT_COLLECTION_MAX_BYTES;
+}
+
 // Fetch exposes decoded bytes: this budget also bounds HTTP decompression output.
-export async function readBoundedCollectionBody(response, { maxBytes = DEFAULT_COLLECTION_MAX_BYTES, signal } = {}) {
+export async function readBoundedCollectionBody(response, { maxBytes = collectionBodyBudget(response), signal } = {}) {
   if (!Number.isFinite(maxBytes) || maxBytes <= 0) throw new Error('Collection byte limit must be positive and finite');
   const tooLarge = () => new Error(`Collection response exceeded ${maxBytes} bytes`);
   signal?.throwIfAborted();
