@@ -1,0 +1,72 @@
+{
+  "purpose": "Owner-requested six-product aesthetic pilot. Source-hosted product imagery, not original illustrations.",
+  "rights": "Images remain the property of their respective owners. Source availability is not a redistribution license; broader permanent catalog rollout needs rights review.",
+  "images": [
+    {
+      "id": "henry-mckenna-10",
+      "name": "Henry McKenna 10 Year",
+      "publisher": "Heaven Hill",
+      "sourcePage": "https://heavenhilldistillery.com/henry-mckenna-single-barrel.php",
+      "assetUrl": "https://heavenhilldistillery.com/images/brands/detail/mckena-4708.png",
+      "retrievedAt": "2026-09-09T12:18:15.059025+00:00",
+      "rawSha256": "7df7ce42b92a47c5e81ad73a2f4ac75459c918db02d7da55547cff6ef173e932",
+      "sha256": "6881aef47a9f197dc2bf97a6c9bb41321188a081fe3b3fa9cd0d708a9e63126b",
+      "processing": "Non-generative alpha crop, proportional resize, transparent padding; 1792 diffuse halo removed; Russell source outer border trimmed."
+    },
+    {
+      "id": "eh-taylor-small-batch",
+      "name": "E.H. Taylor Small Batch",
+      "publisher": "Unwind Bottle Shop",
+      "sourcePage": "https://unwindbottleshop.com/products/eh-taylor-small-batch-bourbon-750ml",
+      "assetUrl": "https://cdn.shopify.com/s/files/1/0585/2872/7110/files/EHTaylorSmallBatchBourbon750ml.png?v=1752173685",
+      "retrievedAt": "2026-09-09T12:18:15.232393+00:00",
+      "rawSha256": "a7dd669f2cb79f88832599c72d21b430eb074bea463e747cfcc9980dc680cd37",
+      "sha256": "808a628bda29086e83315c5ef8eb0a5e8f5e1a982300fdb51e408956fc001513",
+      "processing": "Non-generative alpha crop, proportional resize, transparent padding; 1792 diffuse halo removed; Russell source outer border trimmed."
+    },
+    {
+      "id": "1792-small-batch",
+      "name": "1792 Small Batch",
+      "publisher": "Sazerac",
+      "sourcePage": "https://www.sazerac.com/our-brands/sazerac-brands/1792.html",
+      "assetUrl": "https://www.sazerac.com/our-brands/sazerac-brands/1792/_jcr_content/root/container/container/tabs/container/image.coreimg.png/1628811128455/1792-bottle.png",
+      "retrievedAt": "2026-09-09T12:18:15.358366+00:00",
+      "rawSha256": "d028b5d454d3f71b372eeeb3cc984e141c7325d02aac621cfc8f29a997e7497d",
+      "sha256": "f0ea7ac8d8abde55fee08ba57de7daf5768b6978f8d13675db9e8130e437e09b",
+      "processing": "Non-generative alpha crop, proportional resize, transparent padding; 1792 diffuse halo removed; Russell source outer border trimmed."
+    },
+    {
+      "id": "penelope-riviera",
+      "name": "Penelope Riviera Cask Finish",
+      "publisher": "Penelope Bourbon",
+      "sourcePage": "https://shop.penelopebourbon.com/products/riviera",
+      "assetUrl": "https://shop.penelopebourbon.com/cdn/shop/files/Penelope_Mock_Riviera_WEB_D8_530x.png?v=1778313135",
+      "retrievedAt": "2026-09-09T12:18:15.420756+00:00",
+      "rawSha256": "ee4094f43f63019fd2be097f248e2ec4850e231fedf53b4fd9bd7d619d18a2d9",
+      "sha256": "45097ab0659de540afeb127512d3a50fc848912a727e72140b9ec8806a69b01f",
+      "processing": "Non-generative alpha crop, proportional resize, transparent padding; 1792 diffuse halo removed; Russell source outer border trimmed."
+    },
+    {
+      "id": "buffalo-trace",
+      "name": "Buffalo Trace Bourbon",
+      "publisher": "Buffalo Trace Distillery",
+      "sourcePage": "https://www.buffalotracedistillery.com/our-brands/buffalo-trace/buffalo-trace-bourbon/",
+      "assetUrl": "https://cms.buffalotracedistillery.com/wp-content/uploads/2025/11/BUFFALO_TRACE_BOTTLE-e1765117225509.png",
+      "retrievedAt": "2026-09-09T12:18:15.470798+00:00",
+      "rawSha256": "56b93a9e80dbda7eb7bf7cd269aeb7305b3d2f24757da1bd9ab035bfd76d4dec",
+      "sha256": "b4061bcf1943c51cc09d5fecb99faba885ade5e5df5e9c04d0b485e64860e00d",
+      "processing": "Non-generative alpha crop, proportional resize, transparent padding; 1792 diffuse halo removed; Russell source outer border trimmed."
+    },
+    {
+      "id": "russells-reserve-10",
+      "name": "Russell's Reserve 10 Year",
+      "publisher": "Curiada",
+      "sourcePage": "https://curiada.com/products/russells-reserve-10-year-bourbon",
+      "assetUrl": "https://curiada.com/cdn/shop/products/Russell_sReserve10transp.png?v=1649276569&width=1080",
+      "retrievedAt": "2026-09-09T12:18:15.527030+00:00",
+      "rawSha256": "8bec0ac21ea8d2ad4b784e12c4d19ef50cb0531119d2f7fdb449439c39ee429a",
+      "sha256": "8cf8b651e09b250ace044365d638a860bbe486ba0e2b2b20ec50d81026fe435c",
+      "processing": "Non-generative alpha crop, proportional resize, transparent padding; 1792 diffuse halo removed; Russell source outer border trimmed."
+    }
+  ]
+}
