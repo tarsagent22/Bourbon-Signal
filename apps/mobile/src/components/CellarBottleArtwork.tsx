@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { Image, StyleSheet, View } from "react-native";
+import { useBottlePhoto } from "../bottle-photos/native";
 import { CellarBottleSilhouette } from "./CellarBottleSilhouette";
 import { resolveCellarBottleArtwork, type CellarBottleIdentity } from "./cellar-bottle-artwork";
 
@@ -15,6 +17,14 @@ export function CellarBottleArtwork({ bottle, size = "grid" }: {
   bottle: CellarBottleIdentity;
   size?: "grid" | "list";
 }) {
+  const { uri, blocked } = useBottlePhoto(bottle);
+  const [failedUri, setFailedUri] = useState<string>();
+  if (blocked || (!bottle.bottleId && !bottle.bottleName)) return <CellarBottleSilhouette />;
+  if (uri && uri !== failedUri) return (
+    <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={size === "grid" ? styles.gridFrame : styles.listFrame}>
+      <Image key={uri} resizeMode="contain" source={{ uri, cache: "force-cache" }} onError={() => setFailedUri(uri)} style={size === "grid" ? styles.gridArtwork : styles.listArtwork} />
+    </View>
+  );
   const artworkId = resolveCellarBottleArtwork(bottle);
   if (!artworkId) return <CellarBottleSilhouette />;
   return (
