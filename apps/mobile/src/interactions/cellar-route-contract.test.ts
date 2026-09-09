@@ -78,7 +78,7 @@ test("My Shelf has explicit component-state grid and dense list views with bottl
   assert.match(cellar, /<ScrollView[^>]*contentContainerStyle=\{styles\.refineSheet\}/, "Filter and sort sheets remain reachable with large Dynamic Type");
   assert.match(cellar, /refineSheet:\s*\{\s*flexGrow:\s*1/, "Refine content can grow beyond the sheet viewport");
   assert.match(cellar, /allowSwipeDismissal=\{!dirty && !busy\}/, "dirty or busy editors cannot be dismissed underneath visible React state");
-  assert.match(cellar, /numberOfLines=\{3\}/, "long whiskey names get a third line before truncation");
+  assert.match(cellar, /numberOfLines=\{expandedText \? undefined : 2\}/, "compact normal titles expand without line clipping on narrow or large-text devices");
   assert.match(cellar, /cellarContent:\s*\{[^}]*paddingBottom:\s*20/, "non-overlay native tab layout needs only compact trailing content padding; browser shell clearance is exercised");
   assert.doesNotMatch(cellar, /tile:\s*\{[^}]*minHeight:/, "cards grow with names and large text instead of a fixed dead gap");
   assert.match(cellar, /preferences\?\.collectionAccess/, "native My Shelf renders server-authoritative capacity state");

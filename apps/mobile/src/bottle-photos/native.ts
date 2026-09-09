@@ -26,5 +26,5 @@ export function useBottlePhoto(identity: PhotoIdentity) {
     return () => { mounted = false; };
   }, []);
   const photo = resolveBottlePhoto(registry, identity, catalog);
-  return { uri: photo && photoUrl(photo), blocked: photoIdentityConflicts(registry, identity, catalog) };
+  return { uri: photo && photoUrl(photo), sha256: photo?.sha256, blocked: photoIdentityConflicts(registry, identity, catalog) };
 }
