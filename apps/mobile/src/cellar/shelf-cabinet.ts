@@ -27,5 +27,5 @@ export function cabinetRows<T>(items: readonly T[]): T[][] {
   return [bounded.slice(0, half), bounded.slice(half)];
 }
 export function shelfGridLayout(width: number, mode: 'grid' | 'list') {
-  return { columns: mode === 'grid' ? 3 : 1, tileWidth: (width - 32 - 16) / 3 };
+  return { columns: mode === 'grid' ? 3 : 1, tileWidth: (width - 20 - 16) / 3 };
 }

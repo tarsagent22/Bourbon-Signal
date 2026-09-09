@@ -1,5 +1,7 @@
 import assert from 'node:assert/strict';
 import './shelf-asset-layout.test';
+import './shelf-fidelity.test';
+import './photo-presentation.test';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
 const page=readFileSync(new URL('../../app/(app)/(tabs)/cellar.tsx',import.meta.url),'utf8');
