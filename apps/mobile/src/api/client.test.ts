@@ -2,6 +2,27 @@ import assert from "node:assert/strict";
 import test from "node:test";
 import { createMobileApi, MobileApiError } from "./client";
 import type { Signal } from "./types";
+
+test('installed-compatible client preserves shelf style on POST and fresh GET without rewriting inventory', async () => {
+  const original = {collectionPreferences:{bottles:[{bottleId:'fixture-only'}],version:7,shelfStyle:'amber'}};
+  let stored = structuredClone(original);
+  const writes: unknown[] = [];
+  const api = createMobileApi({baseUrl:'https://example.test',getToken:async()=> 'fixture-token',fetcher:async input=>{
+    const request = new Request(input);
+    if(request.method==='POST') {
+      const body = await request.json(); writes.push(body);
+      stored.collectionPreferences.shelfStyle = body.collectionPreferences.shelfStyle;
+    }
+    return Response.json(stored);
+  }});
+  for(const shelfStyle of ['black','walnut','amber'] as const) {
+    const saved = await api.updateMemberPreferences({collectionPreferences:{shelfStyle}});
+    assert.equal(saved.collectionPreferences.shelfStyle,shelfStyle);
+    assert.equal((await api.getMemberPreferences({fresh:true})).collectionPreferences.shelfStyle,shelfStyle);
+    assert.deepEqual({...stored.collectionPreferences,shelfStyle:'amber'},original.collectionPreferences);
+  }
+  assert.deepEqual(writes,['black','walnut','amber'].map(shelfStyle=>({collectionPreferences:{shelfStyle}})));
+});
 import { presentSignal, relativeSignalTime, signalAccessibilityLabel, signalAccessibilityTime, signalAvailabilityIsCurrent, signalAvailabilityRefreshAt, signalCardStatusLabel, signalCardSummary, signalMemberTagLabel } from "./presentation";
 
 test("sends the selected feed view, bearer auth, and opaque cursor without inspecting it", async () => {

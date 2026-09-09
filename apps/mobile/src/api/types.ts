@@ -175,7 +175,7 @@ export interface MemberPreferences {
   };
   alertMode: "specific_bottles" | "anything_notable";
   bottleAlertPreferences: { bottleNames: string[]; bottleKeys: string[] };
-  collectionPreferences: { bottles: MemberCollectionBottle[]; version: number };
+  collectionPreferences: { bottles: MemberCollectionBottle[]; version: number; shelfStyle?: "amber" | "walnut" | "black" };
 }
 
 export interface MemberPreferencesPatch {
@@ -191,7 +191,7 @@ export interface MemberPreferencesPatch {
   };
   alertMode?: MemberPreferences["alertMode"];
   bottleAlertPreferences?: MemberPreferences["bottleAlertPreferences"];
-  collectionPreferences?: MemberPreferences["collectionPreferences"];
+  collectionPreferences?: MemberPreferences["collectionPreferences"] | { shelfStyle: "amber" | "walnut" | "black" };
 }
 
 export interface MemberAlert {
