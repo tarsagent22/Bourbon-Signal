@@ -104,12 +104,20 @@ const nextConfig: NextConfig = {
         ],
       },
       {
+        source: "/bottle-photos/:hash([a-f0-9]{64}).png",
+        headers: [{ key: "Cache-Control", value: `public, max-age=${ONE_YEAR}, immutable` }],
+      },
+      {
+        source: "/bottle-photos/registry.v1.json",
+        headers: [{ key: "Cache-Control", value: "public, max-age=0, must-revalidate" }],
+      },
+      {
         source: "/api/source/wvabca",
         headers: [...SECURITY_HEADERS],
       },
       {
         // Keep HTML dynamic, but stop forcing every asset onto a short cache leash.
-        source: "/((?!_next/static|_next/image|favicon.ico|api/source/wvabca).*)",
+        source: "/((?!_next/static|_next/image|favicon.ico|api/source/wvabca|bottle-photos).*)",
         headers: [
           {
             key: "Cache-Control",

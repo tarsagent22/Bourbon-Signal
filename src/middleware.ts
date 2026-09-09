@@ -97,7 +97,7 @@ export const config = {
       has: [{ type: "host", value: "clerk.bourbonsignal.com" }],
     },
     // Skip Next internals and static assets, but run on app/API routes.
-    "/((?!_next|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
+    "/((?!_next|bottle-photos/registry[.]v1[.]json$|[^?]*\\.(?:html?|css|js(?!on)|jpe?g|webp|png|gif|svg|ttf|woff2?|ico|csv|docx?|xlsx?|zip|webmanifest)).*)",
     "/api/(.*)",
   ],
 };

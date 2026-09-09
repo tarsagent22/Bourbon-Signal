@@ -4,6 +4,7 @@ import { mergeBottleCatalogSources } from "@/lib/bottle-catalog-merge";
 import { getBottleStateScarcityOverrides } from "@/data/bottle-scarcity-overrides";
 import { mergeStateScarcityOverrides, normalizeBottleScarcity, type BottleScarcity, type ScarcityConfidence, type ScarcityTier } from "@/lib/bottle-scarcity";
 import { listApprovedBottles } from "@/lib/approved-catalog-service";
+import { catalogBottlePhoto, type CatalogBottlePhoto } from "./bottle-photos";
 
 export type AvailabilityTier = "common" | "regional" | "seasonal" | "limited" | "allocated" | "highly_allocated" | "unicorn";
 export type BuyerVerdict = "safe_to_pass" | "fair_buy" | "good_buy" | "grab_at_msrp" | "special_find" | "unknown";
@@ -11,6 +12,7 @@ export type BuyerVerdict = "safe_to_pass" | "fair_buy" | "good_buy" | "grab_at_m
 export interface BibleBottle extends BottleScarcity {
   id: string;
   canonicalName: string;
+  photo?: CatalogBottlePhoto;
   brand: string;
   producer?: string;
   category: "bourbon" | "rye" | "american_whiskey";
@@ -323,6 +325,7 @@ async function buildBourbonBible({ includeApprovedCatalog = true }: { includeApp
     return {
       ...publicBottle,
       ...scarcity,
+      photo: catalogBottlePhoto(bottle),
     };
   });
 }
