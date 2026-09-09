@@ -2,7 +2,7 @@
 import { createHash } from 'node:crypto';
 import { inflateSync } from 'node:zlib';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { resolve, relative, isAbsolute } from 'node:path';
+import { resolve, relative, isAbsolute, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import { createRequire } from 'node:module';
 import type { BottlePhoto, CatalogIdentity } from '../apps/mobile/src/bottle-photos/registry.ts';
@@ -99,7 +99,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
   const root = resolve(import.meta.dirname, '..');
   const audit = resolve(auditPath);
   const rel = relative(root, audit);
-  requireGate(rel.startsWith('..') || isAbsolute(rel), 'Private audit must be outside repository');
+  requireGate(rel === '..' || rel.startsWith(`..${sep}`) || isAbsolute(rel), 'Private audit must be outside repository');
   const rows = JSON.parse(readFileSync(resolve(manifest), 'utf8'));
   const catalog = JSON.parse(readFileSync(resolve(root, 'apps/mobile/src/cellar/bottle-catalog-seed.json'), 'utf8'));
   const result = buildPhotoPublication(rows, catalog);

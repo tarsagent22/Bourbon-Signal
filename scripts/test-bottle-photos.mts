@@ -2,6 +2,20 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { readFileSync, readdirSync } from 'node:fs';
 import { createHash } from 'node:crypto';
+import { spawnSync } from 'node:child_process';
+import { fileURLToPath } from 'node:url';
+import { resolve } from 'node:path';
+
+test('staging CLI rejects inside-repository private audit paths before reading inputs or writing', () => {
+  const cwd = fileURLToPath(new URL('../', import.meta.url));
+  for (const name of ['..private-audit.json', '..private/audit.json', 'public/private-audit.json']) {
+    // The intentionally missing input prevents writes even against the old faulty gate.
+    const result = spawnSync(process.execPath, ['--import', 'tsx', 'scripts/stage-bottle-photos.mts',
+      '__missing_first50_regression_manifest__.json', resolve(cwd, name)], { cwd, encoding: 'utf8' });
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /Error: Private audit must be outside repository/, name);
+  }
+});
 const root = new URL('../', import.meta.url);
 const load = () => import(new URL('./stage-bottle-photos.mts', import.meta.url).href);
 const read = (path: string) => readFileSync(new URL(path, root));
