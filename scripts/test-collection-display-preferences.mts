@@ -1,0 +1,20 @@
+import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import * as display from '../src/lib/collection-display-preferences.ts';
+assert.equal(typeof display.collectionDisplayWrite,'function','style-only collection preference validator exists');
+for(const shelfStyle of ['amber','walnut','black']) assert.deepEqual(display.collectionDisplayWrite({collectionPreferences:{shelfStyle}}),{shelfStyle});
+assert.equal(display.collectionDisplayWrite({collectionPreferences:{bottles:[],version:2}}),null);
+// Every existing editor spreads the GET collection object, including its additive style.
+assert.equal(display.collectionDisplayWrite({collectionPreferences:{bottles:[{bottleId:'keep',rating:72}],version:2,shelfStyle:'walnut'}}),null);
+assert.equal(display.collectionDisplayWrite({notificationPreferences:{sms:{enabled:true}}}),null);
+for(const payload of [{collectionPreferences:{shelfStyle:'red'}},{collectionPreferences:{shelfStyle:null}},{collectionPreferences:{shelfStyle:'black',bottles:[]}},{collectionPreferences:{shelfStyle:'black'},notificationPreferences:{sms:{enabled:false}}}])assert.throws(()=>display.collectionDisplayWrite(payload));
+const existing={collectionPreferences:{bottles:[{bottleId:'keep'}],version:12},notificationPreferences:{sms:{enabled:true}},alertMode:'anything_notable'};
+const patch=display.collectionDisplayWrite({collectionPreferences:{shelfStyle:'walnut'}});
+assert.deepEqual(patch,{shelfStyle:'walnut'});
+assert.deepEqual(existing.collectionPreferences,{bottles:[{bottleId:'keep'}],version:12});
+assert.equal(display.readShelfStyle({shelfStyle:'black'}),'black');assert.equal(display.readShelfStyle(null),'amber');assert.equal(display.readShelfStyle({shelfStyle:'bad'}),'amber');
+const route=readFileSync(new URL('../src/app/api/user/preferences/route.ts',import.meta.url),'utf8');
+assert.match(route,/collectionDisplayPreferences: displayWrite/);
+assert.match(route,/shelfStyle: readShelfStyle\(user.publicMetadata\?\.collectionDisplayPreferences\)/);
+assert.ok(route.indexOf('if (displayWrite)')<route.indexOf('let monitoringScopes = payload',route.indexOf('const write = async')));
+console.log('Collection display additive isolated write, validation and preservation passed');

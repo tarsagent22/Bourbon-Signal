@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { collectionDisplayWrite, readShelfStyle, type ShelfStyle } from "@/lib/collection-display-preferences";
 import { withMemberAlertLease } from "@/lib/alert-queue/member-lease";
 import { applyWatchlistWrite, normalizeWatchlist, WatchlistError, type WatchlistMutation } from "@/lib/watchlist-state";
 import { auth, clerkClient } from "@clerk/nextjs/server";
@@ -93,6 +94,7 @@ export interface UserAlertPreferences {
   collectionPreferences: {
     bottles: CollectionBottlePreference[];
     version?: number;
+    shelfStyle?: ShelfStyle;
   };
   sightingsPreferences?: SightingsPreferences;
   memberProfile: MemberProfilePreferences;
@@ -310,7 +312,7 @@ function buildResponseFromMetadata(
     notificationPreferences,
     alertMode,
     bottleAlertPreferences,
-    collectionPreferences,
+    collectionPreferences: { ...collectionPreferences, shelfStyle: readShelfStyle(user.publicMetadata?.collectionDisplayPreferences) },
     sightingsPreferences: normalizeSightingsPreferences(user.publicMetadata?.sightingsPreferences),
     memberProfile: normalizeMemberProfilePreferences(user.publicMetadata?.memberProfile),
     activation: deriveMemberActivation({
@@ -484,6 +486,15 @@ export async function POST(req: NextRequest) {
   }
   const durableEntitlements = await getServerEntitlements(user.publicMetadata);
   const existing = buildResponseFromMetadata(user, durableCollection, durableEntitlements);
+
+  let displayWrite: ReturnType<typeof collectionDisplayWrite>;
+  try { displayWrite = collectionDisplayWrite(payload); }
+  catch (error) { return NextResponse.json({ error: error instanceof Error ? error.message : "Invalid shelf style." }, { status: 400 }); }
+  if (displayWrite) {
+    await assertHeld();
+    await client.users.updateUserMetadata(userId, { publicMetadata: { collectionDisplayPreferences: displayWrite } });
+    return NextResponse.json({ ...existing, collectionPreferences: { ...existing.collectionPreferences, ...displayWrite } });
+  }
 
   let monitoringScopes = payload.monitoringScopes !== undefined
     ? normalizeMonitoringScopes(payload.monitoringScopes)
@@ -699,6 +710,7 @@ export async function POST(req: NextRequest) {
     }
   }
 
+  collectionPreferences = { ...collectionPreferences, shelfStyle: existing.collectionPreferences.shelfStyle };
   return NextResponse.json({ ok: true, entitlements: {
     canUseCollection: entitlements.canUseCollection,
     canUseRecommendations: entitlements.canUseRecommendations,
