@@ -58,8 +58,12 @@ export function resolveCellarBottleArtwork(identity: CellarBottleIdentity): Cell
     const names = EXACT_NAMES[artworkId];
     if (displayName && !names.has(displayName)) continue;
     const canonicalName = normalized(identity.canonicalKey);
+    // Actual legacy records used the brand-only key. It is compatible only
+    // with the exact Small Batch display name, never with an ID/key alone.
+    const legacySmallBatch = artworkId === "1792-small-batch"
+      && canonicalName === "1792" && displayName === "1792 small batch";
     if (canonicalName && canonicalName !== normalized(artworkId) && !names.has(canonicalName)
-      && canonicalName !== SAVED_KEYS[artworkId]) continue;
+      && canonicalName !== SAVED_KEYS[artworkId] && !legacySmallBatch) continue;
     if (identifiers.some((value) => /\b(?:barrel proof|full proof|rr ?13|russell s? reserve 13)\b/.test(value))) continue;
     // Henry McKenna 10 IS a single barrel; the other five selected products are not.
     if (artworkId !== "henry-mckenna-10" && identifiers.some((value) => /\bsingle barrel\b/.test(value))) continue;

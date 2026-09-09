@@ -32,7 +32,12 @@ for (const { id, name, variants } of cases) {
     for (const bottleName of variants) {
       assert.equal(resolveCellarBottleArtwork({ bottleId: entry.id, bottleName, canonicalKey: canonicalBottleKey(bottleName) }), undefined);
       const conflictingKey = canonicalBottleKey(bottleName);
-      if (conflictingKey !== canonicalKey) {
+      // 1792 12 Year also collapses to the legacy brand-only key. That
+      // ambiguous key is not an edition conflict when the display name is
+      // exactly Small Batch; the actual variant name above remains rejected.
+      if (id === "1792-small-batch" && conflictingKey === "1792") {
+        assert.equal(resolveCellarBottleArtwork({ bottleId: entry.id, bottleName: name, canonicalKey: conflictingKey }), id);
+      } else if (conflictingKey !== canonicalKey) {
         assert.equal(resolveCellarBottleArtwork({ bottleId: entry.id, bottleName: name, canonicalKey: conflictingKey }), undefined);
       }
     }
@@ -53,6 +58,35 @@ for (const { id, name, variants } of cases) {
     }
   });
 }
+
+test("actual legacy 1792 Small Batch saved record resolves its photo", () => {
+  // Exact identity fields supplied by the parent production collection read.
+  // Compatibility belongs in presentation; never rewrite the saved collection.
+  const record = Object.freeze({
+    bottle_id: "bb_9b3f8371a44671f4",
+    bottle_name: "1792 Small Batch",
+    canonical_key: "1792",
+  });
+  assert.equal(resolveCellarBottleArtwork({
+    bottleId: record.bottle_id,
+    bottleName: record.bottle_name,
+    canonicalKey: record.canonical_key,
+  }), "1792-small-batch");
+});
+
+test("legacy 1792 key requires the exact Small Batch display name", () => {
+  for (const bottleId of ["bb_9b3f8371a44671f4", "1792-small-batch", undefined]) {
+    for (const bottleName of [undefined, "", "1792", "1792 Full Proof", "1792 Single Barrel",
+      "1792 12 Year", "1792 Bottled in Bond", "1792 Sweet Wheat", "1792 High Rye",
+      "1792 Port Finish", "1792 Small Batch Full Proof", "1792 Small Batch 12 Year",
+      "1792 Small Batch Bourbon", "Barton 1792 Small Batch", "Buffalo Trace Bourbon"]) {
+      assert.equal(resolveCellarBottleArtwork({ bottleId, bottleName, canonicalKey: "1792" }), undefined,
+        `${bottleId}: ${bottleName}`);
+    }
+  }
+  assert.equal(resolveCellarBottleArtwork({ bottleName: "1792 Small Batch", canonicalKey: "1792 full proof" }), undefined);
+  assert.equal(resolveCellarBottleArtwork({ bottleId: "1792-full-proof", bottleName: "1792 Small Batch", canonicalKey: "1792" }), undefined);
+});
 
 test("exact catalog aliases and punctuation without broad brand matches", () => {
   for (const bottleName of ["Henry McKenna 10 Year Single Barrel", "Henry McKenna Single Barrel 10 Year"])
