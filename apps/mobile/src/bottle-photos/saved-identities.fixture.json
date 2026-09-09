@@ -1,0 +1,87 @@
+[
+  {
+    "bottle_id": "bb_317836b9e64a7620",
+    "bottle_name": "Buffalo Trace Bourbon",
+    "canonical_key": "buffalo trace"
+  },
+  {
+    "bottle_id": "bible-bb_b7ca7cc4ab428ba8",
+    "bottle_name": "Henry McKenna 10 Year",
+    "canonical_key": "henry mckenna year"
+  },
+  {
+    "bottle_id": "e-h-taylor-jr-barrel-proof-bourbon",
+    "bottle_name": "E.H. Taylor Jr. Barrel Proof Bourbon",
+    "canonical_key": "e h taylor jr barrel proof bourbon"
+  },
+  {
+    "bottle_id": "bb_9b3f8371a44671f4",
+    "bottle_name": "1792 Small Batch",
+    "canonical_key": "1792"
+  },
+  {
+    "bottle_id": "bible-old-forester-1910",
+    "bottle_name": "Old Forester 1910 Old Fine Whisky",
+    "canonical_key": "1910 fine forester old"
+  },
+  {
+    "bottle_id": "bb_71e0a5ef723ea82c",
+    "bottle_name": "Michter's US 1 Straight Bourbon Small Batch",
+    "canonical_key": "michter s us 1"
+  },
+  {
+    "bottle_id": "bible-eagle-rare-10y",
+    "bottle_name": "Eagle Rare 10Y",
+    "canonical_key": "eagle rare"
+  },
+  {
+    "bottle_id": "bible-russells-reserve-single-barrel",
+    "bottle_name": "Russell's Reserve Single Barrel",
+    "canonical_key": "barrel reserve russells single"
+  },
+  {
+    "bottle_id": "bible-angels-envy-bourbon",
+    "bottle_name": "Angel's Envy Bourbon",
+    "canonical_key": "angels bourbon envy"
+  },
+  {
+    "bottle_id": "bb_7a177344b1290314",
+    "bottle_name": "Jack Daniel's 12 Year",
+    "canonical_key": "jack daniel s 12 year"
+  },
+  {
+    "bottle_id": "bible-woodford-reserve",
+    "bottle_name": "Woodford Reserve Bourbon",
+    "canonical_key": "bourbon reserve woodford"
+  },
+  {
+    "bottle_id": "bible-woodford-reserve-double-oaked",
+    "bottle_name": "Woodford Reserve Double Oaked",
+    "canonical_key": "double oaked reserve woodford"
+  },
+  {
+    "bottle_id": "bb_ef203a18f5f98f23",
+    "bottle_name": "Heaven Hill Bottled-in-Bond 7 Year",
+    "canonical_key": "heaven hill bottled in bond 7 year"
+  },
+  {
+    "bottle_id": "bible-wild-turkey-101",
+    "bottle_name": "Wild Turkey 101 Bourbon",
+    "canonical_key": "101 bourbon turkey wild"
+  },
+  {
+    "bottle_id": "bible-penelope-riviera-cask-finish",
+    "bottle_name": "Penelope Riviera Cask Finish",
+    "canonical_key": "cask finish penelope riviera"
+  },
+  {
+    "bottle_id": "bible-eh-taylor-small-batch",
+    "bottle_name": "E.H. Taylor Small Batch",
+    "canonical_key": "batch small taylor"
+  },
+  {
+    "bottle_id": "bible-russells-reserve-10",
+    "bottle_name": "Russell's Reserve 10 Year",
+    "canonical_key": "reserve russells year"
+  }
+]

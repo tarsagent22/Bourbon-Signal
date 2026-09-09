@@ -8,6 +8,7 @@ export async function GET() {
   const bottles = (await getBourbonBible()).map((bottle) => ({
     id: bottle.id,
     canonicalName: bottle.canonicalName,
+    photo: bottle.photo,
     brand: bottle.brand,
     producer: bottle.producer,
     category: bottle.category,

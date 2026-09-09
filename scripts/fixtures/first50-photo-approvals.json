@@ -1,0 +1,252 @@
+[
+  {
+    "catalogId": "angels-envy-bourbon",
+    "displayName": "Angel's Envy Bourbon",
+    "sha256": "d1d234f29657932956a985515212163d1ed32cb173e82fe8c8478402a36d1cda"
+  },
+  {
+    "catalogId": "angels-envy-rye",
+    "displayName": "Angel's Envy Rye",
+    "sha256": "1a30767273cbc1bf45be78c9dd5fd88ce21f5cb89c226323eab2a5707a3172ab"
+  },
+  {
+    "catalogId": "bb_f1bb80f4dc160729",
+    "displayName": "Baker's 7 Year Single Barrel",
+    "sha256": "e9b4c3318be570c297eeb310e651d33a94b847d56092a7b0ce9305b597d2a84c"
+  },
+  {
+    "catalogId": "basil-haydens",
+    "displayName": "Basil Hayden's",
+    "sha256": "7817c5d29d48ffc5a94546386b7d923fc15072a611e479ae32f0301870b3d11b"
+  },
+  {
+    "catalogId": "bb_30452cb85b45d0f9",
+    "displayName": "Blue Note Juke Joint Bourbon",
+    "sha256": "828d9b52e4f332226e0ac101ea1a37268898a1f0ceab7d977aec3cb1361fb999"
+  },
+  {
+    "catalogId": "bulleit-bourbon",
+    "displayName": "Bulleit Bourbon",
+    "sha256": "3804838e91b58651189eb7201ec1cbdf17fb13017dbcc583e9a4b2903b8af122"
+  },
+  {
+    "catalogId": "elijah-craig-small-batch",
+    "displayName": "Elijah Craig Small Batch",
+    "sha256": "5f0f54502ce7dbcc1b9302a824891d8c12590440490c27db679474969081b9b1"
+  },
+  {
+    "catalogId": "evan-williams-1783-small-batch",
+    "displayName": "Evan Williams 1783 Small Batch",
+    "sha256": "74b62d325d6bda9f7859e711b4016abf09f44a15337a52a282516fd4c6c4b4ba"
+  },
+  {
+    "catalogId": "four-roses-single-barrel",
+    "displayName": "Four Roses Single Barrel",
+    "sha256": "097769a0a496541047a31332739d518fcafefea9a9e95e6c9a560ffe784b08c3"
+  },
+  {
+    "catalogId": "heaven-hill-bottled-in-bond",
+    "displayName": "Heaven Hill 7 Year Bottled-in-Bond",
+    "sha256": "ed582905bb306429cc981670f583ef729843d8d4c872433743b88e580fa2379a"
+  },
+  {
+    "catalogId": "bb_ef203a18f5f98f23",
+    "displayName": "Heaven Hill Bottled-in-Bond 7 Year",
+    "sha256": "ed582905bb306429cc981670f583ef729843d8d4c872433743b88e580fa2379a"
+  },
+  {
+    "catalogId": "high-west-double-rye",
+    "displayName": "High West Double Rye",
+    "sha256": "d42c87a48cd673b2661725705873c13ded3baa204210b7249ae06adab7965d44"
+  },
+  {
+    "catalogId": "high-west-whiskey-double-rye",
+    "displayName": "High West Whiskey Double Rye!",
+    "sha256": "d42c87a48cd673b2661725705873c13ded3baa204210b7249ae06adab7965d44"
+  },
+  {
+    "catalogId": "knob-creek-9",
+    "displayName": "Knob Creek 9 Year",
+    "sha256": "1451e8184673bc1446f91acc7cf635b697f343af4df80abb8ac2be3599161cec"
+  },
+  {
+    "catalogId": "larceny-small-batch",
+    "displayName": "Larceny Small Batch",
+    "sha256": "8b49ee36054aa79dd8ba91486f193fd539485a3525b0556cbc3b4d07e6d5bb09"
+  },
+  {
+    "catalogId": "makers-mark",
+    "displayName": "Maker's Mark",
+    "sha256": "4fa9ce4e1b78698caef7b3e69738024240c67d7edcaa36e26db459b63f7c0ac6"
+  },
+  {
+    "catalogId": "makers-mark-46",
+    "displayName": "Maker's Mark 46",
+    "sha256": "fdfc5aadfd73c75fae8768ff257e0fae5afe29048f6c02d70d0773973e36bc09"
+  },
+  {
+    "catalogId": "bb_71e0a5ef723ea82c",
+    "displayName": "Michter's US 1 Straight Bourbon Small Batch",
+    "sha256": "ea2c7cde1a49b2a615560cb0f1d8cdf71e38a25255186b5230ba74c2202ea673"
+  },
+  {
+    "catalogId": "michters-us-1-small-batch-bourbon",
+    "displayName": "Michter's US*1 Small Batch Bourbon",
+    "sha256": "ea2c7cde1a49b2a615560cb0f1d8cdf71e38a25255186b5230ba74c2202ea673"
+  },
+  {
+    "catalogId": "bb_03a02fbf93f04058",
+    "displayName": "Minor Case Rye",
+    "sha256": "f14a5181f2803b3d2e1e4182f62264aefe0538932568fb523024fa5d5f71f51c"
+  },
+  {
+    "catalogId": "nikka-coffey-malt-whisky",
+    "displayName": "Nikka Coffey Malt Whisky",
+    "sha256": "8be30db7150074667df308cc8b79ad6f8f258ddc098fa51dcbbc3f916f279dd8"
+  },
+  {
+    "catalogId": "old-forester-rye",
+    "displayName": "Old Forester Rye",
+    "sha256": "d6edf21210637dfeae2dbf456ce32f696ba3dd5038cb2bb5ec3374566ed95a74"
+  },
+  {
+    "catalogId": "old-grand-dad-114",
+    "displayName": "Old Grand Dad 114",
+    "sha256": "3fa253cb318d48fa853657ddb487f6a236a8db545fd7a26c356bb16a4a4a11c2"
+  },
+  {
+    "catalogId": "bb_473aba10a697b5fc",
+    "displayName": "Penelope Four Grain Bourbon",
+    "sha256": "d3d00b329fb02d43c0878e26648297c32c4c549a9603319d08b1c37df0a527f8"
+  },
+  {
+    "catalogId": "penelope-wheated-bourbon",
+    "displayName": "Penelope Wheated Bourbon",
+    "sha256": "d4317e59710a2c848b3678f15422a478e14470e08be864592581390eed7aa60a"
+  },
+  {
+    "catalogId": "pinhook-bourbon",
+    "displayName": "Pinhook Bourbon",
+    "sha256": "517a7e42bf6fe7112df344b21902763df93cbb2b399eddd69eee8ac750a94760"
+  },
+  {
+    "catalogId": "sazerac-rye",
+    "displayName": "Sazerac Rye",
+    "sha256": "3e33f99c9af100941c34db4dade51b80c03320c6371183d9722f4b948cd96364"
+  },
+  {
+    "catalogId": "skrewball-peanut-butter-whiskey",
+    "displayName": "Skrewball Peanut Butter Whiskey",
+    "sha256": "1051921526ba9e3f7d578453a8762aa8554ac30ab8adf4e0182be514aa6ff968"
+  },
+  {
+    "catalogId": "bb_71c68398a83ef404",
+    "displayName": "Smoke Wagon Uncut Unfiltered",
+    "sha256": "8109a523fbdf3a51a648bc353511b92863f9b764af73f98cba19f0e85b09f0d6"
+  },
+  {
+    "catalogId": "wild-turkey-rare-breed",
+    "displayName": "Wild Turkey Rare Breed",
+    "sha256": "877fbc37e52f78cb90557cebe1fd70ff99160c45d6d7ac103aa89f9303955852"
+  },
+  {
+    "catalogId": "bb_22604f9ddde2b6ba",
+    "displayName": "Wild Turkey Rare Breed Straight Bourbon",
+    "sha256": "877fbc37e52f78cb90557cebe1fd70ff99160c45d6d7ac103aa89f9303955852"
+  },
+  {
+    "catalogId": "woodford-reserve",
+    "displayName": "Woodford Reserve Bourbon",
+    "sha256": "e08b9f5e00e953eba6b2bb39eb16a82f5f94cc75d3dc8aca5165ae971fd65139"
+  },
+  {
+    "catalogId": "woodford-double-oaked",
+    "displayName": "Woodford Reserve Double Oaked",
+    "sha256": "ad8017ffb3efb40f3ac06ac015260fd9ae1219125a4b69d65c64a90f634257b8"
+  },
+  {
+    "catalogId": "bb_bc740ceed124f31d",
+    "displayName": "Woodford Reserve Double Oaked Bourbon",
+    "sha256": "ad8017ffb3efb40f3ac06ac015260fd9ae1219125a4b69d65c64a90f634257b8"
+  },
+  {
+    "catalogId": "wyoming-whiskey-small-batch",
+    "displayName": "Wyoming Whiskey Small Batch",
+    "sha256": "0fdc793419a83d43866a9e7b3ae5a23bf6e25afca1089e1b32a684c448b6c9dd"
+  },
+  {
+    "catalogId": "yellowstone-select",
+    "displayName": "Yellowstone Select",
+    "sha256": "4ed2ad3335bc70d28fbd54c8b01248691779163df89b36d1f45cb5374eb12252"
+  },
+  {
+    "catalogId": "evan-williams-single-barrel-vintage",
+    "displayName": "Evan Williams Single Barrel Vintage",
+    "sha256": "4c45cf45e4711a4a182e48564a674d79ad75a51a29bb6177d0042ae45f909e42"
+  },
+  {
+    "catalogId": "bb_c1b9f5325e7c08a4",
+    "displayName": "Holladay Soft Red Wheat Bottled-in-Bond",
+    "sha256": "255a2d797295ccaddca61742d54d0dcce5dd62631cb34df52f3efc36b657347c"
+  },
+  {
+    "catalogId": "old-fitzgerald-7y-bottled-in-bond",
+    "displayName": "Old Fitzgerald 7Y Bottled in Bond",
+    "sha256": "da7e5a5a3f7577ad475ca6bfefb692699f9d35d72d9febe93ecce843fd52f661"
+  },
+  {
+    "catalogId": "rabbit-hole-dareringer-bourbon-sherry",
+    "displayName": "Rabbit Hole Dareringer Bourbon Sherry",
+    "sha256": "059f730f347eedb96f446c66d63db8678b0946d1529a8da3b8be813e7a717854"
+  },
+  {
+    "catalogId": "willett-family-estate-rye-4y",
+    "displayName": "Willett Family Estate Rye 4Y",
+    "sha256": "6ed5c58260d0f6883b7ccf49487c0353955ef7b8299b91767e1bfedafde616ae"
+  },
+  {
+    "catalogId": "old-forester-1910",
+    "displayName": "Old Forester 1910 Old Fine Whisky",
+    "sha256": "24144eb939d8c353230745d4f14d8ab6f4a2b65417dd71c2218e55de2bc91f68"
+  },
+  {
+    "catalogId": "eagle-rare-10",
+    "displayName": "Eagle Rare 10 Year",
+    "sha256": "206fb83074fceb4a2b8d6900c8cabe368caa50fdf25f6f0f8d795aac124874f6"
+  },
+  {
+    "catalogId": "wild-turkey-101",
+    "displayName": "Wild Turkey 101 Bourbon",
+    "sha256": "d85b35f0c79e2fed8a0a091ef0707e43067a7dc3dd6a08cd3b91e2c8bc9d9095"
+  },
+  {
+    "catalogId": "henry-mckenna-10-year",
+    "displayName": "Henry McKenna 10 Year",
+    "sha256": "6881aef47a9f197dc2bf97a6c9bb41321188a081fe3b3fa9cd0d708a9e63126b"
+  },
+  {
+    "catalogId": "eh-taylor-small-batch",
+    "displayName": "E.H. Taylor Small Batch",
+    "sha256": "808a628bda29086e83315c5ef8eb0a5e8f5e1a982300fdb51e408956fc001513"
+  },
+  {
+    "catalogId": "1792-small-batch",
+    "displayName": "1792 Small Batch",
+    "sha256": "f0ea7ac8d8abde55fee08ba57de7daf5768b6978f8d13675db9e8130e437e09b"
+  },
+  {
+    "catalogId": "penelope-riviera-cask-finish",
+    "displayName": "Penelope Riviera Cask Finish",
+    "sha256": "45097ab0659de540afeb127512d3a50fc848912a727e72140b9ec8806a69b01f"
+  },
+  {
+    "catalogId": "buffalo-trace-bourbon",
+    "displayName": "Buffalo Trace Bourbon",
+    "sha256": "b4061bcf1943c51cc09d5fecb99faba885ade5e5df5e9c04d0b485e64860e00d"
+  },
+  {
+    "catalogId": "russells-reserve-10",
+    "displayName": "Russell's Reserve 10 Year",
+    "sha256": "8cf8b651e09b250ace044365d638a860bbe486ba0e2b2b20ec50d81026fe435c"
+  }
+]
