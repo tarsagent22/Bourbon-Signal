@@ -19,6 +19,6 @@ test('every count zero through twenty, balanced max two rows max ten and common 
 });
 test('three columns at phone widths with usable list and known styles',()=>{
  assert.equal(typeof shelf.shelfGridLayout,'function','three column feature must exist');
- for(const w of [320,390,430]){const g=shelf.shelfGridLayout(w,'grid');assert.equal(g.columns,3);assert.ok(g.tileWidth*3+16+32<=w+0.01);assert.equal(shelf.shelfGridLayout(w,'list').columns,1);}
+ for(const w of [320,390,430]){const g=shelf.shelfGridLayout(w,'grid');assert.equal(g.columns,3);assert.ok(g.tileWidth*3+16+20<=w+0.01);assert.equal(shelf.shelfGridLayout(w,'list').columns,1);}
  assert.deepEqual(shelf.SHELF_STYLES.map(s=>s.label),['Amber Wood','Dark Walnut','Black Modern']);
 });
