@@ -9,13 +9,24 @@
       "ownerLayer": "deterministic",
       "executionClass": "script_only",
       "frequency": "manual workflow dispatch only",
-      "agent": { "provider": null, "model": null, "reasoning": null },
-      "externalApi": { "classes": ["github_actions"], "maxRequestsPerRun": 0 },
+      "agent": {
+        "provider": null,
+        "model": null,
+        "reasoning": null
+      },
+      "externalApi": {
+        "classes": [
+          "github_actions"
+        ],
+        "maxRequestsPerRun": 0
+      },
       "customerMutation": "none",
       "promotionDeployment": "none",
       "silencePolicy": "report_output",
       "killSwitch": "github_workflow_disable",
-      "artifacts": ["native-home-fixture"],
+      "artifacts": [
+        "native-home-fixture"
+      ],
       "delivery": "github_only"
     },
     {
@@ -454,7 +465,7 @@
       "active": true,
       "ownerLayer": "sensor",
       "executionClass": "script_then_agent",
-      "script": "resolve-source-scout-input.mjs",
+      "script": "resolve-source-scout-input.py",
       "frequency": "daily semantic review at 02:15 Eastern",
       "agent": {
         "provider": "openai-codex",

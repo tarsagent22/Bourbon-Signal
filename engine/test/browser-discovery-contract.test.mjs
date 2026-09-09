@@ -6,8 +6,9 @@ import {
   createBrowserDiscoveryPlan,
   groupSourcesByDomain,
   removeEphemeralProfile,
+  summarizeBrowserDiscovery,
 } from '../src/browser-source-discovery.mjs';
-import { BrowserPage, filterBrowserExecutableCandidates, settleWaitRemaining } from '../src/core/browser-session.mjs';
+import { BrowserPage, filterBrowserExecutableCandidates, isStaleInterceptionError, settleWaitRemaining } from '../src/core/browser-session.mjs';
 
 test('browser executable discovery rejects missing foreign-platform absolute paths', () => {
   const existing = new Set(['/usr/bin/google-chrome']);
@@ -131,6 +132,39 @@ test('browser discovery fail-closed interception blocks heavy resource types and
   const unsupported = new BrowserPage('ws://example.test');
   unsupported.send = async () => { throw new Error('Fetch interception unavailable'); };
   await assert.rejects(() => unsupported.configureEndpointDiscovery(), /interception unavailable/iu);
+});
+
+test('browser discovery ignores only retired interception IDs and retains the routing race as diagnostics', () => {
+  assert.equal(isStaleInterceptionError(new Error('Invalid InterceptionId.')), true);
+  assert.equal(isStaleInterceptionError(new Error('Fetch domain unavailable')), false);
+
+  const page = new BrowserPage('ws://example.test');
+  page.recordEndpointDiscoveryProtocolError(new Error('Invalid InterceptionId.'), { requestId: 'retired-1', resourceType: 'Image' });
+  page.recordEndpointDiscoveryProtocolError(new Error('Fetch domain unavailable'), { requestId: 'live-2', resourceType: 'Script' });
+  assert.equal(page.protocolErrors.length, 1);
+  assert.deepEqual(page.routingDiagnostics(), {
+    staleInterceptionCount: 1,
+    staleInterceptions: [{ requestId: 'retired-1', resourceType: 'Image', error: 'Invalid InterceptionId.' }],
+  });
+});
+
+test('browser discovery preserves ordered per-source outcomes and marks partial failure honestly', () => {
+  const plan = {
+    stateIds: ['NH'],
+    sources: [
+      { state: 'NH', source: { label: 'Search', url: 'https://example.test/search' } },
+      { state: 'NH', source: { label: 'Category', url: 'https://example.test/category' } },
+    ],
+  };
+  const summary = summarizeBrowserDiscovery({
+    plan,
+    recordsByIndex: new Map([[0, { state: 'NH', source: plan.sources[0].source }]]),
+    roadblocksByIndex: new Map([[1, { state: 'NH', sourceUrl: plan.sources[1].source.url, reason: 'navigation failed' }]]),
+  });
+  assert.equal(summary.outcome, 'partial_failure');
+  assert.equal(summary.ok, false);
+  assert.deepEqual(summary.sourceResults.map((result) => result.status), ['succeeded', 'failed']);
+  assert.deepEqual(summary.sourceResults.map((result) => result.sourceUrl), plan.sources.map((item) => item.source.url));
 });
 
 test('adaptive browser settle waits only for the remaining quiet window', () => {

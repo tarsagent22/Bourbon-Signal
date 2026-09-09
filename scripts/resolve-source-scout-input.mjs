@@ -15,6 +15,8 @@ const RUN_LIST_LIMIT = '20';
 const TIMESTAMP_SKEW_MS = 5 * 60_000;
 
 export const SOURCE_SCOUT_MANIFEST_CONTRACT_VERSION = 'bourbon-signal-source-scout-input-v1';
+export const SOURCE_SCOUT_REPOSITORY_ROOT = 'C:/Users/chand/projects/bs-source-scout-runtime';
+export const SOURCE_SCOUT_REPOSITORY = 'tarsagent22/Bourbon-Signal';
 export const SOURCE_SCOUT_REQUIRED_FILES = Object.freeze({
   'optimization/source-run-history.json': 'updatedAt',
   'site/stats.json': 'generatedAt',
@@ -48,6 +50,37 @@ async function pathExists(target) {
     if (error?.code === 'ENOENT') return false;
     throw error;
   }
+}
+
+function normalizedRepositoryPath(value) {
+  return path.win32.normalize(String(value || '').trim().replaceAll('/', '\\')).replace(/[\\]+$/u, '').toLowerCase();
+}
+
+export function isExpectedSourceScoutOrigin(value) {
+  return /^(?:https:\/\/github\.com\/|git@github\.com:|ssh:\/\/git@github\.com\/)tarsagent22\/Bourbon-Signal(?:\.git)?\/?$/iu.test(String(value || '').trim());
+}
+
+export async function preflightSourceScoutRepository(repositoryRoot, {
+  expectedRepositoryRoot = SOURCE_SCOUT_REPOSITORY_ROOT,
+  execFileImpl = execFileAsync,
+} = {}) {
+  const resolved = path.resolve(String(repositoryRoot || ''));
+  const packagePath = path.join(resolved, 'package.json');
+  const resolverPath = path.join(resolved, 'scripts', 'resolve-source-scout-input.mjs');
+  try {
+    if (normalizedRepositoryPath(resolved) !== normalizedRepositoryPath(expectedRepositoryRoot)) throw new Error(`repository root must be ${expectedRepositoryRoot}`);
+    const [packageStat, resolverStat] = await Promise.all([lstat(packagePath), lstat(resolverPath)]);
+    if (!packageStat.isFile() || packageStat.isSymbolicLink() || !resolverStat.isFile() || resolverStat.isSymbolicLink()) throw new Error('invalid repository markers');
+    const packageJson = parseJson(await readFile(packagePath, 'utf8'), 'Bourbon Signal package.json');
+    if (packageJson?.name !== 'bourbon-signal') throw new Error('unexpected package name');
+    const topLevel = await runCommand(execFileImpl, 'git', ['rev-parse', '--show-toplevel'], resolved);
+    if (normalizedRepositoryPath(topLevel.stdout) !== normalizedRepositoryPath(expectedRepositoryRoot)) throw new Error('git top-level does not match the canonical scout checkout');
+    const remote = await runCommand(execFileImpl, 'git', ['remote', 'get-url', 'origin'], resolved);
+    if (!isExpectedSourceScoutOrigin(remote.stdout)) throw new Error(`unexpected origin; expected GitHub repository ${SOURCE_SCOUT_REPOSITORY}`);
+  } catch (error) {
+    throw new Error(`Source-scout repository preflight failed for ${resolved}. Set BOURBON_SIGNAL_REPOSITORY_ROOT or --repository-root to the canonical Bourbon Signal checkout; ambient cwd is not trusted. (${error instanceof Error ? error.message : String(error)})`);
+  }
+  return resolved;
 }
 
 export function selectNewestSuccessfulMainRun(runs) {
@@ -155,11 +188,12 @@ async function createFreshOutput(outputDirectory) {
 }
 
 export async function resolveSourceScoutInput({
-  cwd = process.cwd(),
+  cwd = process.env.BOURBON_SIGNAL_REPOSITORY_ROOT || process.cwd(),
   outputDirectory = null,
   execFileImpl = execFileAsync,
+  expectedRepositoryRoot = SOURCE_SCOUT_REPOSITORY_ROOT,
 } = {}) {
-  const repositoryRoot = path.resolve(cwd);
+  const repositoryRoot = await preflightSourceScoutRepository(cwd, { expectedRepositoryRoot, execFileImpl });
   const outputRoot = await createFreshOutput(outputDirectory);
   const artifactDirectory = path.join(outputRoot, 'inventory-refresh');
   const manifestPath = path.join(outputRoot, 'source-scout-provenance.json');
@@ -178,6 +212,7 @@ export async function resolveSourceScoutInput({
       '--branch', PRODUCTION_BRANCH,
       '--status', 'success',
       '--limit', RUN_LIST_LIMIT,
+      '--repo', SOURCE_SCOUT_REPOSITORY,
       '--json', 'databaseId,headBranch,headSha,status,conclusion,createdAt,updatedAt,url',
     ], repositoryRoot);
     const run = selectNewestSuccessfulMainRun(parseJson(listed.stdout || '[]', 'GitHub refresh-feed run list'));
@@ -192,6 +227,7 @@ export async function resolveSourceScoutInput({
       'run', 'download', String(run.databaseId),
       '--name', artifactName,
       '--dir', artifactDirectory,
+      '--repo', SOURCE_SCOUT_REPOSITORY,
     ], repositoryRoot);
 
     const validation = await validateSourceScoutArtifact({ artifactDirectory, run, originMainSha });
@@ -199,6 +235,7 @@ export async function resolveSourceScoutInput({
     const manifest = {
       contractVersion: SOURCE_SCOUT_MANIFEST_CONTRACT_VERSION,
       resolvedAt,
+      repositoryRoot,
       ref: REF_NAME,
       originMainSha: originMainSha.toLowerCase(),
       workflow: WORKFLOW,
@@ -231,13 +268,22 @@ export async function resolveSourceScoutInput({
 
 function argValue(name) {
   const prefix = `${name}=`;
-  return process.argv.slice(2).find((arg) => arg.startsWith(prefix))?.slice(prefix.length) || null;
+  const args = process.argv.slice(2);
+  const inline = args.find((arg) => arg.startsWith(prefix));
+  if (inline) return inline.slice(prefix.length);
+  const index = args.indexOf(name);
+  return index >= 0 ? args[index + 1] || null : null;
 }
 
 async function main() {
-  const result = await resolveSourceScoutInput({ outputDirectory: argValue('--output') });
+  const result = await resolveSourceScoutInput({
+    cwd: argValue('--repository-root') || process.env.BOURBON_SIGNAL_REPOSITORY_ROOT || process.cwd(),
+    outputDirectory: argValue('--output'),
+  });
   process.stdout.write(`${JSON.stringify({
     ok: true,
+    status: 'resolved',
+    repositoryRoot: result.manifest.repositoryRoot,
     outputDirectory: result.outputDirectory,
     artifactDirectory: result.artifactDirectory,
     manifestPath: result.manifestPath,
@@ -250,7 +296,7 @@ async function main() {
 const invokedPath = process.argv[1] ? pathToFileURL(path.resolve(process.argv[1])).href : '';
 if (import.meta.url === invokedPath) {
   main().catch((error) => {
-    process.stderr.write(`${error instanceof Error ? error.message : String(error)}\n`);
+    process.stderr.write(`${JSON.stringify({ ok: false, status: 'failed', error: error instanceof Error ? error.message : String(error) })}\n`);
     process.exitCode = 1;
   });
 }

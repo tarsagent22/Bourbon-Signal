@@ -111,6 +111,31 @@ export function groupSourcesByDomain(items = []) {
   return [...groups.entries()].map(([domain, groupedItems]) => ({ domain, items: groupedItems }));
 }
 
+export function summarizeBrowserDiscovery({ plan, recordsByIndex = new Map(), roadblocksByIndex = new Map() } = {}) {
+  const sourceResults = (plan?.sources || []).map((item, index) => {
+    const record = recordsByIndex.get(index) || null;
+    const roadblock = roadblocksByIndex.get(index) || null;
+    return {
+      state: item.state,
+      sourceLabel: item.source?.label || null,
+      sourceUrl: item.source?.url || null,
+      status: record ? 'succeeded' : 'failed',
+      endpointCandidateCount: record?.endpointCandidates?.length || 0,
+      routingDiagnostics: record?.routingDiagnostics || { staleInterceptionCount: 0, staleInterceptions: [] },
+      error: roadblock?.reason || (record ? null : 'missing_source_result'),
+    };
+  });
+  const succeeded = sourceResults.filter((result) => result.status === 'succeeded').length;
+  const failed = sourceResults.length - succeeded;
+  return {
+    ok: failed === 0,
+    outcome: failed === 0 ? 'success' : succeeded > 0 ? 'partial_failure' : 'failure',
+    sourceResults,
+    records: [...recordsByIndex.entries()].sort(([left], [right]) => left - right).map(([, record]) => record),
+    roadblocks: [...roadblocksByIndex.entries()].sort(([left], [right]) => left - right).map(([, roadblock]) => roadblock),
+  };
+}
+
 export function compactBrowserDiscoveryResult({ state, source, page = {}, network = [] } = {}) {
   const byUrl = new Map();
   for (const resource of page.resources || []) {
@@ -148,7 +173,10 @@ async function discoverSource(page, item, startedAt, maxDurationMs) {
     maxSettleMs: Number(process.env.BROWSER_DISCOVERY_MAX_SETTLE_MS || 2_000),
   });
   const extracted = await page.extractPage();
-  return compactBrowserDiscoveryResult({ state: item.state, source: item.source, page: extracted, network: page.networkSummary() });
+  return {
+    ...compactBrowserDiscoveryResult({ state: item.state, source: item.source, page: extracted, network: page.networkSummary() }),
+    routingDiagnostics: page.routingDiagnostics(),
+  };
 }
 
 export async function removeEphemeralProfile(profileDir, { remove = rm, wait = sleep, attempts = 4 } = {}) {
@@ -213,11 +241,13 @@ async function main() {
       }
     }
     await Promise.all(Array.from({ length: Math.min(plan.concurrency, groups.length) }, () => worker()));
-    const records = [...recordsByIndex.entries()].sort(([left], [right]) => left - right).map(([, record]) => record);
-    const roadblocks = [...roadblocksByIndex.entries()].sort(([left], [right]) => left - right).map(([, roadblock]) => roadblock);
+    const summarized = summarizeBrowserDiscovery({ plan, recordsByIndex, roadblocksByIndex });
+    const { records, roadblocks, sourceResults } = summarized;
     const output = {
       schemaVersion: 'bourbon-signal-browser-source-discovery-v1',
       generatedAt: new Date().toISOString(),
+      ok: summarized.ok,
+      outcome: summarized.outcome,
       profileMode: plan.profileMode,
       pageLimit: plan.maxPages,
       durationLimitMs: plan.maxDurationMs,
@@ -225,13 +255,27 @@ async function main() {
       perDomainConcurrency: plan.perDomainConcurrency,
       records,
       roadblocks,
+      sourceResults,
     };
     await writeJson(path.join(DEFAULT_OUT_DIR, 'browser-discovery-summary.json'), output);
     for (const state of plan.stateIds) {
-      const stateOutput = { ...output, records: records.filter((record) => record.state === state), roadblocks: roadblocks.filter((roadblock) => roadblock.state === state) };
+      const stateRecords = records.filter((record) => record.state === state);
+      const stateRoadblocks = roadblocks.filter((roadblock) => roadblock.state === state);
+      const stateSourceResults = sourceResults.filter((result) => result.state === state);
+      const stateSuccesses = stateSourceResults.filter((result) => result.status === 'succeeded').length;
+      const stateFailures = stateSourceResults.length - stateSuccesses;
+      const stateOutput = {
+        ...output,
+        ok: stateFailures === 0,
+        outcome: stateFailures === 0 ? 'success' : stateSuccesses > 0 ? 'partial_failure' : 'failure',
+        records: stateRecords,
+        roadblocks: stateRoadblocks,
+        sourceResults: stateSourceResults,
+      };
       await writeJson(path.join(DEFAULT_OUT_DIR, `${state}-browser-discovery.json`), stateOutput);
     }
-    console.log(JSON.stringify({ states: plan.stateIds, pages: records.length, roadblocks: roadblocks.length }, null, 2));
+    console.log(JSON.stringify({ ok: summarized.ok, outcome: summarized.outcome, states: plan.stateIds, pages: records.length, roadblocks: roadblocks.length }, null, 2));
+    if (!summarized.ok) throw new Error(`Browser discovery ${summarized.outcome}: ${roadblocks.length} of ${sourceResults.length} allowlisted sources failed; evidence was preserved.`);
   } finally {
     for (const page of pages) page.close();
     await killBrowserCdp(browser);

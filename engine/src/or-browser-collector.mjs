@@ -1,4 +1,6 @@
-import { BrowserPage, DEFAULT_CDP_URL, getOrCreateTarget, sleep, writeJson } from './core/browser-session.mjs';
+import { BrowserPage, DEFAULT_CDP_URL, ensureBrowserCdp, getOrCreateTarget, killBrowserCdp, sleep, writeJson } from './core/browser-session.mjs';
+import { fileURLToPath } from 'node:url';
+import path from 'node:path';
 
 const OUT_FILE = process.env.OR_OUT_FILE || 'out/browser/OR-product-availability.json';
 const ZIP = process.env.OR_SEARCH_ZIP || '97205';
@@ -35,26 +37,72 @@ function parseStoreRows(text) {
   return rows;
 }
 
-async function submitSearch(page, product, zip = ZIP) {
-  await page.navigate('https://www.oregonliquorsearch.com/', 1000);
-  await page.evaluate(`(() => {
-    const buttons = Array.from(document.querySelectorAll('input[type="submit"],button'));
-    const age = buttons.find((el) => /21 or older/i.test(String(el.value || el.textContent || '')));
-    if (age) age.click();
-  })()`).catch(() => null);
-  await sleep(500);
-  await page.evaluate(`(() => {
-    const product = document.querySelector('#product,[name=productSearchParam]');
-    if (product) product.value = ${JSON.stringify(product)};
-    const loc = document.querySelector('#location,[name=locationSearchParam]');
-    if (loc) loc.value = ${JSON.stringify(zip)};
-    const radius = document.querySelector('#radius,[name=radiusSearchParam]');
-    if (radius) radius.value = '10';
-    const form = document.forms[0];
-    if (form) form.submit();
-    return Boolean(form);
-  })()`);
-  await sleep(2800);
+export function summarizeOregonCollection({ products = [], errors = [], terms = TERMS, generatedAt = new Date().toISOString() } = {}) {
+  const diagnostics = [...errors];
+  for (const product of products) {
+    if (!product?.error) continue;
+    const alreadyRecorded = diagnostics.some((entry) => entry?.phase === 'detail'
+      && entry?.itemCode === product.itemCode
+      && entry?.error === product.error);
+    if (!alreadyRecorded) diagnostics.push({ phase: 'detail', itemCode: product.itemCode || null, term: product.searchTerm || null, error: product.error });
+  }
+  const storeRowCount = products.reduce((sum, product) => sum + (product?.stores?.length || 0), 0);
+  return {
+    schemaVersion: 'bourbon-signal-or-product-availability-v1',
+    generatedAt,
+    status: storeRowCount > 0 ? (diagnostics.length ? 'partial' : 'ready') : diagnostics.length ? 'failed' : 'no_store_rows',
+    zip: ZIP,
+    terms,
+    productCount: products.length,
+    storeRowCount,
+    products,
+    errors: diagnostics,
+  };
+}
+
+export function assertOregonCollectionComplete(payload) {
+  if (payload?.status === 'ready') return payload;
+  const details = (payload?.errors || []).map((entry) => entry?.error).filter(Boolean).join('; ');
+  throw new Error(`Oregon browser collection incomplete (${payload?.status || 'unknown'}).${details ? ` ${details}` : ''}`);
+}
+
+export function findOregonProductDetailUrl(page, product) {
+  const identities = [product?.itemCode, product?.newItemCode].map((value) => String(value || '').toLowerCase()).filter(Boolean);
+  for (const link of page?.links || []) {
+    const candidate = `${link?.text || ''} ${link?.href || ''}`.toLowerCase();
+    if (!identities.some((identity) => candidate.includes(identity))) continue;
+    try {
+      const url = new URL(link.href, page.url || 'https://www.oregonliquorsearch.com/');
+      if (url.protocol === 'https:' && url.hostname === 'www.oregonliquorsearch.com') return url.toString();
+    } catch {}
+  }
+  return null;
+}
+
+async function submitSearch(page, product, zip = ZIP, directUrl = null) {
+  if (directUrl) {
+    await page.navigate(directUrl, 1000);
+  } else {
+    await page.navigate('https://www.oregonliquorsearch.com/', 1000);
+    await page.evaluate(`(() => {
+      const buttons = Array.from(document.querySelectorAll('input[type="submit"],button'));
+      const age = buttons.find((el) => /21 or older/i.test(String(el.value || el.textContent || '')));
+      if (age) age.click();
+    })()`).catch(() => null);
+    await sleep(500);
+    await page.evaluate(`(() => {
+      const product = document.querySelector('#product,[name=productSearchParam]');
+      if (product) product.value = ${JSON.stringify(product)};
+      const loc = document.querySelector('#location,[name=locationSearchParam]');
+      if (loc) loc.value = ${JSON.stringify(zip)};
+      const radius = document.querySelector('#radius,[name=radiusSearchParam]');
+      if (radius) radius.value = '10';
+      const form = document.forms[0];
+      if (form) form.submit();
+      return Boolean(form);
+    })()`);
+    await sleep(2800);
+  }
   const extracted = await page.extractPage();
   const structured = await page.evaluate(`(() => {
     const rows = Array.from(document.querySelectorAll('table tr')).map((tr) => Array.from(tr.children).map((td) => td.innerText.trim()).filter(Boolean));
@@ -92,10 +140,27 @@ async function submitSearch(page, product, zip = ZIP) {
   return { ...extracted, structured };
 }
 
-async function main() {
-  const target = await getOrCreateTarget(DEFAULT_CDP_URL, 'oregonliquorsearch.com');
+export async function runOregonBrowserCollector() {
+  const browser = await ensureBrowserCdp(DEFAULT_CDP_URL, {
+    profileDir: process.env.OR_BROWSER_PROFILE_DIR || 'out/browser-profile/or-liquor-search',
+    detached: false,
+    timeoutMs: 30_000,
+  });
+  let target;
+  try {
+    target = await getOrCreateTarget(DEFAULT_CDP_URL, 'oregonliquorsearch.com');
+  } catch (error) {
+    if (browser.started) await killBrowserCdp(browser);
+    throw error;
+  }
   const page = new BrowserPage(target.webSocketDebuggerUrl, { pageTimeoutMs: 50000 });
-  await page.connect();
+  try {
+    await page.connect();
+  } catch (error) {
+    page.close();
+    if (browser.started) await killBrowserCdp(browser);
+    throw error;
+  }
   const products = [];
   const productMap = new Map();
   const errors = [];
@@ -118,17 +183,17 @@ async function main() {
           console.log(`  detail: ${item.itemCode} ${detailRows.length} stores`);
         } else {
           console.log(`  products: ${productRows.length}`);
-          for (const row of productRows.slice(0, 4)) productMap.set(row.itemCode, { ...row, searchTerm: term, productListUrl: result.url, stores: [] });
+          for (const row of productRows.slice(0, 4)) productMap.set(row.itemCode, { ...row, searchTerm: term, productListUrl: result.url, detailUrl: findOregonProductDetailUrl(result, row), stores: [] });
         }
       } catch (error) {
-        errors.push({ term, error: error.message });
+        errors.push({ phase: 'search', term, error: error.message });
         console.log(`  error: ${error.message}`);
       }
     }
     for (const row of Array.from(productMap.values())) {
       if (row.stores?.length) continue;
       try {
-        const detail = await submitSearch(page, row.itemCode);
+        const detail = await submitSearch(page, row.itemCode, ZIP, row.detailUrl);
         row.pageUrl = detail.url;
         const detailProduct = detail.structured?.detailProduct;
         if (detailProduct) {
@@ -149,15 +214,22 @@ async function main() {
         console.log(`  ${row.itemCode}: ${row.stores.length} stores`);
       } catch (error) {
         row.error = error.message;
+        errors.push({ phase: 'detail', itemCode: row.itemCode || null, term: row.searchTerm || null, error: row.error });
       }
     }
     products.push(...productMap.values());
   } finally {
     page.close();
+    if (browser.started) await killBrowserCdp(browser);
   }
-  const payload = { generatedAt: new Date().toISOString(), zip: ZIP, terms: TERMS, productCount: products.length, storeRowCount: products.reduce((sum, p) => sum + (p.stores?.length || 0), 0), products, errors };
+  const payload = summarizeOregonCollection({ products, errors });
   await writeJson(OUT_FILE, payload);
   console.log(`Wrote ${OUT_FILE}: ${payload.productCount} products, ${payload.storeRowCount} store rows.`);
+  assertOregonCollectionComplete(payload);
+  return payload;
 }
 
-main().catch((error) => { console.error(error); process.exit(1); });
+const invokedPath = process.argv[1] ? path.resolve(process.argv[1]) : '';
+if (invokedPath === fileURLToPath(import.meta.url)) {
+  runOregonBrowserCollector().catch((error) => { console.error(error); process.exit(1); });
+}

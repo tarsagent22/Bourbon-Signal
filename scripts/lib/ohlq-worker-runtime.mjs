@@ -1,6 +1,9 @@
 import { createHash } from 'node:crypto';
+import { readFile } from 'node:fs/promises';
 import os from 'node:os';
 import path from 'node:path';
+
+const OHLQ_ACCESS_DENIED_BACKOFF_MS = 6 * 60 * 60_000;
 
 export function deterministicOhlqUploadId(value) {
   const bytes = createHash('sha256').update(JSON.stringify(value)).digest().subarray(0, 16);
@@ -11,10 +14,75 @@ export function deterministicOhlqUploadId(value) {
 }
 
 export function classifyOhlqBrowserState(state = {}) {
-  const text = `${state?.title || ''} ${state?.text || ''}`;
+  const title = String(state?.title || '');
+  const text = `${title} ${state?.text || ''}`.replace(/\s+/g, ' ').trim();
+  if (/\b(?:access denied|forbidden)\b/i.test(title) || /\bneed access to this site\b.*\bcontact (?:the )?lesc\b/i.test(text)) return 'access_denied';
   if (/just a moment|performing security verification|verify you are human|cloudflare/i.test(text)) return 'needs_human';
   if (state?.hasCsrf && state?.hasProduct) return 'ready';
   return 'not_ready';
+}
+
+export function getActiveOhlqCooldown(payload, { now = Date.now(), ignoreCooldown = false } = {}) {
+  if (ignoreCooldown) return null;
+  const nowMs = now instanceof Date ? now.getTime() : Number(now);
+  const until = Date.parse(payload?.cooldownUntil || '');
+  return Number.isFinite(nowMs) && Number.isFinite(until) && until > nowMs ? payload : null;
+}
+
+export async function readActiveOhlqCooldownFile(file, {
+  ignoreCooldown = false,
+  now = Date.now(),
+  readFileFn = readFile,
+} = {}) {
+  if (ignoreCooldown) return null;
+  let raw;
+  try {
+    raw = await readFileFn(file, 'utf8');
+  } catch (error) {
+    if (error?.code === 'ENOENT') return null;
+    throw new Error(`OHLQ cooldown state could not be read (${error?.code || error?.message || String(error)}).`);
+  }
+  let payload;
+  try {
+    payload = JSON.parse(raw);
+  } catch (error) {
+    throw new Error(`OHLQ cooldown state contains invalid JSON (${error instanceof Error ? error.message : String(error)}).`);
+  }
+  if (!payload || typeof payload !== 'object' || Array.isArray(payload) || !Number.isFinite(Date.parse(payload.cooldownUntil || ''))) {
+    throw new Error('OHLQ cooldown state has an invalid cooldownUntil timestamp or payload.');
+  }
+  return getActiveOhlqCooldown(payload, { now });
+}
+
+function safeOhlqUrl(value) {
+  try {
+    const url = new URL(String(value || ''));
+    if (url.protocol !== 'https:' || !/(^|\.)ohlq\.com$/i.test(url.hostname)) return null;
+    url.username = '';
+    url.password = '';
+    url.search = '';
+    url.hash = '';
+    return url.toString();
+  } catch {
+    return null;
+  }
+}
+
+export function createOhlqAccessDeniedCooldown(state = {}, { now = Date.now() } = {}) {
+  const nowMs = now instanceof Date ? now.getTime() : Number(now);
+  if (!Number.isFinite(nowMs)) throw new TypeError('OHLQ denial cooldown requires a valid observation time.');
+  return {
+    generatedAt: new Date(nowMs).toISOString(),
+    cooldownUntil: new Date(nowMs + OHLQ_ACCESS_DENIED_BACKOFF_MS).toISOString(),
+    backoffHours: OHLQ_ACCESS_DENIED_BACKOFF_MS / (60 * 60_000),
+    status: 'source_access_denied',
+    reason: 'OHLQ explicitly denied source access and directed the operator to contact LESC.',
+    sample: {
+      url: safeOhlqUrl(state?.href),
+      hasCsrf: Boolean(state?.hasCsrf),
+      hasProduct: Boolean(state?.hasProduct),
+    },
+  };
 }
 
 export function resolveOhlqWorkerPaths(env = process.env, home = os.homedir()) {

@@ -14,6 +14,11 @@ const MUTATION_CLASSES = new Set(['none', 'internal_state', 'snapshot_activation
 const PROMOTION_CLASSES = new Set(['none', 'guarded_recovery_dispatch', 'snapshot_activation', 'operator_only', 'draft_pr_only']);
 const SILENCE_POLICIES = new Set(['quiet_on_success', 'compact_exception_only', 'report_output']);
 const DELIVERY_CLASSES = new Set(['local', 'main_chat', 'ops_chat', 'github_only']);
+export const SOURCE_SCOUT_WORKDIR = 'C:/Users/chand/projects/bs-source-scout-runtime';
+
+function normalizedWindowsPath(value) {
+  return path.win32.normalize(String(value || '').replaceAll('/', '\\')).replace(/[\\]+$/u, '').toLowerCase();
+}
 
 function fail(failures, message) { failures.push(message); }
 function isPlainObject(value) { return Boolean(value) && typeof value === 'object' && !Array.isArray(value); }
@@ -80,11 +85,14 @@ export function verifyAutomationRegistry(registry, { workflowPaths = activeWorkf
         if (expectsNoAgent && !liveJob.script) fail(failures, `${prefix} script-only or profile-wrapped job is missing a live scheduler script.`);
         if (profileWrapped && !/^[a-f0-9]{64}$/.test(String(liveJob.profileSafetyHash || ''))) fail(failures, `${prefix} profile-wrapped job must bind its wrapper, prompt, model, provider, and reasoning policy.`);
         const dedicatedOperator = entry.id === 'hermes-daily-operator';
+        const dedicatedScout = entry.id === 'hermes-source-scout';
         if (!expectedHermesWorkdir) fail(failures, `${prefix} is missing the host repository workdir.`);
         else if (dedicatedOperator) {
           if (liveJob.workdir === expectedHermesWorkdir || !/[\\/]Bourbon-Signal-operator-base$/i.test(String(liveJob.workdir || ''))) {
             fail(failures, `${prefix} must use the isolated operator base checkout.`);
           }
+        } else if (dedicatedScout) {
+          if (normalizedWindowsPath(liveJob.workdir) !== normalizedWindowsPath(SOURCE_SCOUT_WORKDIR) || liveJob.script !== 'resolve-source-scout-input.py') fail(failures, `${prefix} requires its isolated scout checkout and Python launcher.`);
         } else if (liveJob.workdir !== expectedHermesWorkdir) fail(failures, `${prefix} live scheduler workdir drifted from the host repository root.`);
         if (expectsNoAgent && entry.killSwitch !== `cron_pause:${entry.hermesJobId}`) fail(failures, `${prefix} script-only or profile-wrapped job must expose its live cron pause kill switch.`);
         if (entry.delivery === 'main_chat' && liveJob.deliver !== 'origin') fail(failures, `${prefix} must deliver to the main chat origin.`);
