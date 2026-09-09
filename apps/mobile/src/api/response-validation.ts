@@ -29,7 +29,7 @@ export const preferencesResponse = obj({
     onSite: obj({ enabled: bool }), push: obj({ enabled: bool }), email: obj({ enabled: bool, mode: one('all','major_only') }),
     sms: obj({ enabled: bool, available: bool, verified: bool, mode: one('major_only','specific_bottles'), phone: optional(str) }), sightings: obj({ enabled: bool }) }),
   alertMode: one('specific_bottles','anything_notable'), bottleAlertPreferences: obj({ bottleNames: strings, bottleKeys: strings }),
-  collectionPreferences: obj({ bottles: arr(collectionBottle), version: num }),
+  collectionPreferences: obj({ bottles: arr(collectionBottle), version: num, shelfStyle: optional(one('amber', 'walnut', 'black')) }),
 });
 const profile = obj({ contractVersion: mobileVersion, profile: obj({ identity: nullable(obj({ kind: one('founder','member'), number: num, label: str })),
   displayName: str, customDisplayName: nullable(str), feedAreas: obj({ states: arr(obj({ code: str, label: str, areaLabel: one('Board','City'), options: arr(obj({ value: str, label: str })) })) }),
