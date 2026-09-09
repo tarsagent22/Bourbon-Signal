@@ -51,7 +51,7 @@ test("My Shelf has explicit component-state grid and dense list views with bottl
   assert.match(cellar, /numColumns/);
   assert.match(cellar, /tileWidth/);
   assert.match(cellar, /useWindowDimensions/);
-  assert.match(cellar, /<CellarBottleSilhouette/);
+  assert.match(cellar, /<CellarBottleArtwork bottle=\{bottle\}/);
   assert.match(cellar, /<CellarGlencairnSilhouette/);
   assert.match(cellar, /collectionDisplayKind/);
   assert.match(cellar, /styles\.listRating/);
@@ -138,10 +138,16 @@ test("Cellar add dismisses the keyboard when members move from search into form 
   assert.match(add, /<ScoreSlider[^>]*onInteractionStart=\{Keyboard\.dismiss\}/);
 });
 
-test("Cellar uses universal bottle and Glencairn silhouettes without bottle-specific imagery", () => {
+test("Cellar uses the bounded bottle-art resolver while retaining its universal fallbacks", () => {
   const bottle = read("src/components/CellarBottleSilhouette.tsx");
+  const artwork = read("src/components/CellarBottleArtwork.tsx");
   const glencairn = read("src/components/CellarGlencairnSilhouette.tsx");
   assert.doesNotMatch(bottle, /require\(|Image|bottleId|canonicalKey|assets\/cellar/);
+  assert.match(artwork, /eh-taylor-small-batch\.png/);
+  assert.match(artwork, /russells-reserve-10\.png/);
+  assert.match(artwork, /gridFrame:\s*\{\s*width:\s*80,\s*height:\s*116/);
+  assert.match(artwork, /listFrame:\s*\{\s*width:\s*44,\s*height:\s*62/);
+  assert.match(artwork, /<CellarBottleSilhouette \/>/);
   assert.match(glencairn, /const glencairnArtwork = require\("\.\.\/\.\.\/assets\/icons\/cellar-glencairn\.png"\)/);
   assert.doesNotMatch(glencairn, /bottleId|canonicalKey|assets\/cellar|Record<|Map\(/);
   assert.doesNotMatch(glencairn, /MaterialCommunityIcons|glass-tulip|wine/i);

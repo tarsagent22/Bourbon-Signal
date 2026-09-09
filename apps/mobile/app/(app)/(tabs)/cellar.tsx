@@ -16,7 +16,7 @@ import {
 } from "../../../src/cellar/contribution-receipts";
 import { buildBourbonDna } from "../../../src/cellar/bourbon-dna";
 import { nextShelfPageSize } from "../../../src/cellar/my-shelf-display";
-import { CellarBottleSilhouette } from "../../../src/components/CellarBottleSilhouette";
+import { CellarBottleArtwork } from "../../../src/components/CellarBottleArtwork";
 import { CellarGlencairnSilhouette } from "../../../src/components/CellarGlencairnSilhouette";
 import { MyShelfDisplay } from "../../../src/components/MyShelfDisplay";
 import { EmptyState, ErrorState, LoadingState, memberScreenStyles } from "../../../src/components/MemberScreen";
@@ -436,7 +436,7 @@ function WhiskeyTile({ bottle, onPress, width }: { bottle: MemberCollectionBottl
     onPress={onPress}
     style={({ pressed }) => [styles.tile, width !== undefined && { flex: 0, width }, pressed && styles.pressed]}
   >
-    {kind === "owned" ? <CellarBottleSilhouette /> : <CellarGlencairnSilhouette />}
+    {kind === "owned" ? <CellarBottleArtwork bottle={bottle} /> : <CellarGlencairnSilhouette />}
     <Text numberOfLines={3} style={styles.tileName}>{bottle.bottleName}</Text>
     <Text style={styles.tileRating}>{rating}</Text>
     <Text style={styles.inventory}>{kind === "owned" ? inventory : "Tasted only"}</Text>
@@ -454,7 +454,7 @@ function WhiskeyListRow({ bottle, onPress }: { bottle: MemberCollectionBottle; o
     onPress={onPress}
     style={({ pressed }) => [styles.listRow, pressed && styles.pressed]}
   >
-    {kind === "owned" ? <CellarBottleSilhouette /> : <CellarGlencairnSilhouette />}
+    {kind === "owned" ? <CellarBottleArtwork bottle={bottle} size="list" /> : <CellarGlencairnSilhouette />}
     <View style={styles.listCopy}>
       <View style={styles.listHeading}><Text numberOfLines={2} style={styles.listName}>{bottle.bottleName}</Text><View style={styles.statusPill}><Text style={styles.statusPillText}>{status}</Text></View></View>
       <View style={styles.listFacts}><Text style={styles.listRating}>{rating}</Text><Text numberOfLines={1} style={styles.listInventory}>{inventory}</Text></View>
