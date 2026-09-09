@@ -10090,6 +10090,12 @@ export async function collectIndiana(config, bible, existingSignals = [], option
   return { signals, roadblocks };
 }
 
+export function trustedOregonStoreQuantity(value) {
+  if (value == null || String(value).trim() === '') return null;
+  const quantity = Number(value);
+  return Number.isFinite(quantity) && quantity >= 0 ? quantity : null;
+}
+
 async function collectOregon(config, bible) {
   const signals = [], roadblocks = [];
   const browserOutPath = 'out/browser/OR-product-availability.json';
@@ -10099,28 +10105,37 @@ async function collectOregon(config, bible) {
       if (!Array.isArray(product.stores) || !product.stores.length) continue;
       const { base } = signalBase(config.id, 'Oregon Liquor Search browser-assisted product/location search', product.pageUrl || browserOutPath, product.name || product.itemCode, bible);
       for (const store of product.stores) {
+        const quantity = trustedOregonStoreQuantity(store.quantity);
+        if (quantity == null) continue;
+        const storeAddress = [store.address, store.city, 'OR', store.zip].filter(Boolean).join(', ');
         signals.push({
-          id: stableId([config.id, 'or-browser-store', product.itemCode, store.storeNo, store.quantity]),
+          id: stableId([config.id, 'or-browser-store', product.itemCode, store.storeNo, quantity]),
           ...base,
-          eventType: Number(store.quantity || 0) > 0 ? 'store_inventory_result' : 'store_inventory_out_of_stock',
+          eventType: quantity > 0 ? 'store_inventory_result' : 'store_inventory_out_of_stock',
           locationPrecision: 'store_level',
           locationName: `Oregon Liquor Store ${store.storeNo}`,
           storeName: `Oregon Liquor Store ${store.storeNo}`,
           storeId: String(store.storeNo),
-          storeAddress: [store.address, store.city, 'OR', store.zip].filter(Boolean).join(', '),
+          storeAddress,
           city: store.city || null,
           stateCode: 'OR',
           postalCode: store.zip || null,
-          quantity: Number(store.quantity || 0) || 0,
+          quantity,
           price: product.bottlePrice ?? null,
           observedAt: browserRun.generatedAt || base.fetchedAt,
+          sourceAvailabilityVerified: true,
+          canAlertAsInventory: quantity > 0 && Boolean(base.canonicalBottleId && store.storeNo && storeAddress),
+          canAlertAsWatch: quantity > 0 && Boolean(base.canonicalBottleId && store.storeNo && storeAddress),
+          dataLane: 'inventory',
           evidence: `Oregon Liquor Search reports ${store.quantity} bottle(s) of ${product.name || product.itemCode} at store ${store.storeNo} in ${store.city || 'Oregon'} within ${store.distanceMiles ?? '?'} miles of ${browserRun.zip}. Oregon notes quantities update daily and should be verified with the store.`,
           raw: { product, store, caveat: 'Oregon Liquor Search quantity is not real-time; updated daily.' }
         });
       }
     }
     if (signals.length) {
-      roadblocks.push({ state: config.id, source: 'Oregon Liquor Search browser-assisted search', url: 'https://www.oregonliquorsearch.com/', status: 200, error: 'Store-level rows require browser/session flow with age gate and selected product code; direct guessed API routes still fail.', nextRoute: 'Promote OR browser collector into scheduled standalone runner and expand beyond Portland ZIP/test terms.' });
+      if (Array.isArray(browserRun.errors) && browserRun.errors.length) {
+        roadblocks.push({ state: config.id, source: 'Oregon Liquor Search browser-assisted search', url: 'https://www.oregonliquorsearch.com/', status: 'partial', error: `${browserRun.errors.length} tracked search term(s) failed while sibling store evidence was retained.`, nextRoute: 'Inspect the per-term errors in the browser artifact and retry only the failed terms.' });
+      }
       return { signals, roadblocks };
     }
     roadblocks.push({ state: config.id, source: 'Oregon Liquor Search browser-assisted search', url: browserOutPath, status: 0, error: 'Browser collector output found but no store rows parsed.', nextRoute: 'Inspect current Oregon HTML table format and product code search flow.' });

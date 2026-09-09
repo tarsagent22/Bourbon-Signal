@@ -49,10 +49,9 @@ const BASE_STATE_SOURCES = [
       { kind: 'html', url: 'https://www.oregon.gov/olcc/liquorstores/pages/current_month_productandpricing.aspx', label: 'Current month product/pricing' },
       { kind: 'html', url: 'https://www.oregon.gov/olcc/LIQUORSTORES/pages/special_orders.aspx', label: 'Special orders / locator guidance' }
     ],
-    apiCandidates: [
-      'https://www.oregonliquorsearch.com/api/search?query=bourbon',
-      'https://www.oregonliquorsearch.com/servlet/FrontController?view=global&action=search&productSearch=bourbon'
-    ]
+    // Guessed API routes were removed after repeated 404/500 results. The
+    // browser/session collector is the only proven current generation path.
+    apiCandidates: []
   },
   {
     id: 'IA', label: 'Iowa ABD', tier: 'A', strategy: 'public_data_portal', cadence: 'daily-60m',

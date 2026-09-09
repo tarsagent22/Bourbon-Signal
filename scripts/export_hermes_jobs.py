@@ -1,5 +1,6 @@
 import hashlib
 import json
+import ntpath
 import os
 import re
 from datetime import datetime, timezone
@@ -15,6 +16,19 @@ AUTONOMOUS_OPERATOR_SCRIPT = "bourbon_signal_autonomous_operator.py"
 REPO_WORKDIR = os.environ.get("BOURBON_SIGNAL_REGISTRY_WORKDIR") or str(ROOT)
 OPERATOR_WORKDIR = os.environ.get("BOURBON_SIGNAL_OPERATOR_WORKDIR") or str(ROOT.parent / "Bourbon-Signal-operator-base")
 MANAGED_WORKDIRS = {REPO_WORKDIR.casefold(), OPERATOR_WORKDIR.casefold()}
+SOURCE_SCOUT_JOB_ID = "bb9c16064777"
+SOURCE_SCOUT_WORKDIR = "C:/Users/chand/projects/bs-source-scout-runtime"
+
+
+def normalized_windows_path(value: str) -> str:
+    return ntpath.normpath(str(value or "").replace("/", "\\")).casefold()
+
+
+def is_managed_job(job: dict) -> bool:
+    workdir = str(job.get("workdir") or "")
+    if job.get("id") == SOURCE_SCOUT_JOB_ID:
+        return normalized_windows_path(workdir) == normalized_windows_path(SOURCE_SCOUT_WORKDIR)
+    return workdir.casefold() in MANAGED_WORKDIRS
 
 
 def read_timezone(config_text: str, env: dict[str, str] | None = None) -> str:
@@ -103,7 +117,7 @@ def main() -> None:
     autonomous_model, autonomous_provider = profile_model(autonomous_config_text)
     jobs = []
     for job in live.get("jobs", []):
-        if str(job.get("workdir") or "").casefold() not in MANAGED_WORKDIRS:
+        if not is_managed_job(job):
             continue
         no_agent = bool(job.get("no_agent"))
         profile_wrapped = job.get("script") == AUTONOMOUS_OPERATOR_SCRIPT

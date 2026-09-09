@@ -1,6 +1,10 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { createHash, generateKeyPairSync } from "node:crypto";
+import { existsSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import os from "node:os";
+import { tmpdir } from "node:os";
 import path from "node:path";
 import test from "node:test";
 
@@ -15,8 +19,9 @@ import {
 } from "../src/lib/ohlq-worker-artifact.ts";
 import { decryptOhlqWorkerBlob, encryptOhlqWorkerBlob } from "../src/lib/ohlq-worker-blob-crypto.ts";
 import { ohlqArtifactDigest, validateOhlqArtifactDownload } from "./lib/ohlq-worker-handoff.mjs";
-import { classifyOhlqBrowserState, deterministicOhlqUploadId, resolveOhlqWorkerPaths } from "./lib/ohlq-worker-runtime.mjs";
+import { classifyOhlqBrowserState, createOhlqAccessDeniedCooldown, getActiveOhlqCooldown, deterministicOhlqUploadId, readActiveOhlqCooldownFile, resolveOhlqWorkerPaths } from "./lib/ohlq-worker-runtime.mjs";
 import { ohlqBlockedReason, ohlqResultIsAccessBlocked } from "../engine/src/sources/ohlq-access-policy.mjs";
+import { hydrateOhlqWorkerArtifact } from "../engine/src/ohlq-worker-artifact.mjs";
 
 const now = Date.parse("2026-08-15T15:00:00.000Z");
 const secret = "0123456789abcdef0123456789abcdef";
@@ -138,6 +143,7 @@ test("OHLQ upload IDs are deterministic UUIDs for idempotent artifact retries", 
 });
 
 test("OHLQ browser readiness never treats a Cloudflare challenge as collection-ready", () => {
+  assert.equal(classifyOhlqBrowserState({title:"",text:"If you need access to this site and feel this is an error, please contact the LESC at 1-877-812-0013.",hasCsrf:false,hasProduct:false}), "access_denied");
   assert.equal(classifyOhlqBrowserState({ title: "Just a moment...", text: "Performing security verification" }), "needs_human");
   assert.equal(classifyOhlqBrowserState({ title: "Product", text: "Verify you are human Cloudflare", hasCsrf: true, hasProduct: true }), "needs_human");
   assert.equal(classifyOhlqBrowserState({ title: "Blanton's Gold", hasCsrf: true, hasProduct: true }), "ready");
@@ -145,6 +151,87 @@ test("OHLQ browser readiness never treats a Cloudflare challenge as collection-r
   assert.equal(ohlqBlockedReason("Cloudflare error 1015"), true);
   assert.equal(ohlqResultIsAccessBlocked({ status: 429 }), true);
   assert.equal(ohlqResultIsAccessBlocked({ status: 200, title: "OHLQ product" }), false);
+});
+
+test("OHLQ access denial creates a safe six-hour cooldown compatible with collector semantics", () => {
+  const observedAt = Date.parse("2026-09-08T23:10:33.000Z");
+  const cooldown = createOhlqAccessDeniedCooldown({
+    title: "",
+    text: "If you need access to this site and feel this is an error, please contact the LESC at 1-877-812-0013.",
+    href: "https://www.ohlq.com/liquor/whiskey/american/bourbon/blantons-gold",
+    hasCsrf: false,
+    hasProduct: false,
+  }, { now: observedAt });
+
+  assert.equal(cooldown.generatedAt, "2026-09-08T23:10:33.000Z");
+  assert.equal(cooldown.cooldownUntil, "2026-09-09T05:10:33.000Z");
+  assert.equal(cooldown.backoffHours, 6);
+  assert.equal(cooldown.status, "source_access_denied");
+  assert.equal(cooldown.sample.url, "https://www.ohlq.com/liquor/whiskey/american/bourbon/blantons-gold");
+  assert.equal(JSON.stringify(cooldown).includes("If you need access"), false, "the body must not be persisted");
+  assert.equal(getActiveOhlqCooldown(cooldown, { now: observedAt + 30 * 60_000 }), cooldown);
+  assert.equal(getActiveOhlqCooldown(cooldown, { now: observedAt + 6 * 60 * 60_000 }), null);
+  assert.equal(getActiveOhlqCooldown(cooldown, { now: observedAt + 30 * 60_000, ignoreCooldown: true }), null);
+
+  const collectorCooldown = { cooldownUntil: "2026-09-09T23:10:33.000Z", reason: "access blocked/rate-limited" };
+  assert.equal(getActiveOhlqCooldown(collectorCooldown, { now: observedAt }), collectorCooldown);
+});
+
+test("OHLQ worker reports an active denial cooldown as blocked without attempting the source", async () => {
+  const stateDir = await mkdtemp(path.join(os.tmpdir(), "bs-ohlq-denial-cooldown-"));
+  const cooldownPath = path.join(stateDir, "ohlq-cooldown.json");
+  const statusPath = path.join(stateDir, "status.json");
+  const lockPath = path.join(stateDir, "worker.lock");
+  const cooldown = createOhlqAccessDeniedCooldown({ href: "https://www.ohlq.com/product" });
+  await writeFile(cooldownPath, JSON.stringify(cooldown), "utf8");
+
+  try {
+    const run = spawnSync(process.execPath, ["scripts/ohlq-persistent-worker.mjs"], {
+      cwd: process.cwd(),
+      env: {
+        ...process.env,
+        OHLQ_IGNORE_COOLDOWN: "0",
+        OHLQ_WORKER_STATE_DIR: stateDir,
+        OHLQ_WORKER_CDP_URL: "http://127.0.0.1:9",
+        OHLQ_WORKER_API_URL: "http://127.0.0.1:9",
+      },
+      encoding: "utf8",
+      timeout: 5_000,
+    });
+    assert.equal(run.status, 1, run.stderr);
+    assert.match(run.stdout, /"ok":false/);
+    assert.match(run.stdout, /"status":"source_access_denied"/);
+    const status = JSON.parse(await readFile(statusPath, "utf8"));
+    assert.equal(status.ok, false);
+    assert.equal(status.status, "source_access_denied");
+    assert.equal(status.cooldownActive, true);
+    assert.equal(status.cooldownUntil, cooldown.cooldownUntil);
+    assert.equal(status.sourceAttempted, false);
+    assert.match(status.action, /LESC.*1-877-812-0013/);
+    assert.equal(existsSync(lockPath), false, "the cooldown exit must release the worker mutex");
+  } finally {
+    await rm(stateDir, { recursive: true, force: true });
+  }
+});
+
+test("OHLQ cooldown state permits a missing file but fails closed on malformed or unreadable state", async () => {
+  const stateDir = await mkdtemp(path.join(os.tmpdir(), "bs-ohlq-cooldown-read-"));
+  const cooldownPath = path.join(stateDir, "ohlq-cooldown.json");
+  try {
+    assert.equal(await readActiveOhlqCooldownFile(cooldownPath), null);
+    for (const raw of ['null', '{}', '[]', '{"cooldownUntil":"invalid"}']) {
+      await writeFile(cooldownPath, raw, 'utf8');
+      await assert.rejects(readActiveOhlqCooldownFile(cooldownPath), /cooldown.*invalid/iu);
+    }
+    await writeFile(cooldownPath, "{not-json", "utf8");
+    await assert.rejects(readActiveOhlqCooldownFile(cooldownPath), /cooldown.*invalid JSON/iu);
+    await assert.rejects(
+      readActiveOhlqCooldownFile(cooldownPath, { readFileFn: async () => { const error = new Error("denied"); (error as NodeJS.ErrnoException).code = "EACCES"; throw error; } }),
+      /cooldown.*EACCES|cooldown.*denied/iu,
+    );
+  } finally {
+    await rm(stateDir, { recursive: true, force: true });
+  }
 });
 
 test("OHLQ browser profile defaults to durable local state outside the repository", () => {
@@ -170,16 +257,50 @@ test("production handoff rejects stale and tampered downloads before replacing t
 });
 
 test("scheduled handoff tolerates network failure but targeted Ohio fails closed case-insensitively", () => {
+  const outputRoot = mkdtempSync(path.join(tmpdir(), "bs-ohlq-hydration-health-"));
+  const optionalStatus = path.join(outputRoot, "optional-status.json");
+  const requiredStatus = path.join(outputRoot, "required-status.json");
   const baseEnv = {
     ...process.env,
     OHLQ_WORKER_API_URL: "http://127.0.0.1:9",
     OHLQ_WORKER_ARTIFACT_SECRET: secret,
   };
-  const optional = spawnSync(process.execPath, ["scripts/fetch-ohlq-worker-artifact.mjs"], { cwd: process.cwd(), env: baseEnv, encoding: "utf8", timeout: 10_000 });
-  assert.equal(optional.status, 0, optional.stderr);
-  const required = spawnSync(process.execPath, ["scripts/fetch-ohlq-worker-artifact.mjs"], {
-    cwd: process.cwd(), env: { ...baseEnv, OHLQ_WORKER_TARGET_STATES: "fl,oh" }, encoding: "utf8", timeout: 10_000,
-  });
-  assert.notEqual(required.status, 0);
-  assert.match(required.stderr, /fetch failed|ECONNREFUSED/i);
+  try {
+    const optional = spawnSync(process.execPath, ["scripts/fetch-ohlq-worker-artifact.mjs"], {
+      cwd: process.cwd(), env: { ...baseEnv, OHLQ_WORKER_HYDRATION_STATUS_FILE: optionalStatus }, encoding: "utf8", timeout: 10_000,
+    });
+    assert.equal(optional.status, 0, optional.stderr);
+    const optionalHealth = JSON.parse(readFileSync(optionalStatus, "utf8"));
+    assert.deepEqual([optionalHealth.ok, optionalHealth.status, optionalHealth.required], [false, "dependency_unavailable", false]);
+    assert.match(optionalHealth.nextRoute, /persistent OHLQ worker/i);
+
+    const required = spawnSync(process.execPath, ["scripts/fetch-ohlq-worker-artifact.mjs"], {
+      cwd: process.cwd(), env: { ...baseEnv, OHLQ_WORKER_TARGET_STATES: "fl,oh", OHLQ_WORKER_HYDRATION_STATUS_FILE: requiredStatus }, encoding: "utf8", timeout: 10_000,
+    });
+    assert.notEqual(required.status, 0);
+    assert.match(required.stderr, /fetch failed|ECONNREFUSED/i);
+    const requiredHealth = JSON.parse(readFileSync(requiredStatus, "utf8"));
+    assert.deepEqual([requiredHealth.ok, requiredHealth.status, requiredHealth.required], [false, "dependency_unavailable", true]);
+    assert.equal(requiredHealth.cacheDisposition, "unchanged");
+  } finally {
+    rmSync(outputRoot, { recursive: true, force: true });
+  }
+});
+
+test("an HTTP 404 worker dependency never replaces or refreshes the retained Ohio artifact", async () => {
+  let writes = 0;
+  let renames = 0;
+  await assert.rejects(
+    hydrateOhlqWorkerArtifact({
+      secret,
+      fetchImpl: async () => new Response(JSON.stringify({ error: "No OHLQ worker artifact is available." }), { status: 404 }),
+      mkdirFn: async () => undefined,
+      writeFileFn: async () => { writes += 1; },
+      renameFn: async () => { renames += 1; },
+      nowMs: now,
+    }),
+    /HTTP 404.*No OHLQ worker artifact is available/iu,
+  );
+  assert.equal(writes, 0);
+  assert.equal(renames, 0);
 });

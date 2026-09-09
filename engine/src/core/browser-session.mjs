@@ -13,6 +13,10 @@ export function settleWaitRemaining({ nowMs, lastActivityMs, idleMs, maxWaitRema
   return Math.max(0, Math.min(quietRemaining, Number(maxWaitRemainingMs)));
 }
 
+export function isStaleInterceptionError(error) {
+  return /Invalid InterceptionId\.?/iu.test(error instanceof Error ? error.message : String(error || ''));
+}
+
 const ENDPOINT_DISCOVERY_BLOCKED_TYPES = Object.freeze(['Image', 'Font', 'Media', 'Stylesheet']);
 const ENDPOINT_DISCOVERY_BLOCKED_ORIGINS = Object.freeze([
   '*://*.doubleclick.net/*',
@@ -85,7 +89,7 @@ function spawnBrowserForCdp(cdpUrl = DEFAULT_CDP_URL, options = {}) {
     '--lang=en-US,en',
     'about:blank'
   ];
-  const child = spawn(executable, args, { detached: true, stdio: 'ignore', windowsHide: true });
+  const child = spawn(executable, args, { detached: options.detached !== false, stdio: 'ignore', windowsHide: true });
   child.unref();
   return { executable, profileDir, port, pid: child.pid };
 }
@@ -148,6 +152,7 @@ export class BrowserPage {
     this.pending = new Map();
     this.events = [];
     this.protocolErrors = [];
+    this.staleInterceptions = [];
     this.pageTimeoutMs = Number(options.pageTimeoutMs || process.env.BROWSER_PAGE_TIMEOUT_MS || 45000);
   }
 
@@ -162,7 +167,7 @@ export class BrowserPage {
       const msg = JSON.parse(event.data);
       if (msg.method) this.events.push({ at: new Date().toISOString(), method: msg.method, params: msg.params });
       if (msg.method === 'Fetch.requestPaused') {
-        void this.routeEndpointDiscoveryResource(msg.params).catch((error) => this.protocolErrors.push(error));
+        void this.routeEndpointDiscoveryResource(msg.params).catch((error) => this.recordEndpointDiscoveryProtocolError(error, msg.params));
       }
       if (!msg.id) return;
       const pending = this.pending.get(msg.id);
@@ -221,6 +226,25 @@ export class BrowserPage {
     return this.send('Fetch.continueRequest', { requestId: params.requestId });
   }
 
+  recordEndpointDiscoveryProtocolError(error, params = {}) {
+    if (isStaleInterceptionError(error)) {
+      this.staleInterceptions.push({
+        requestId: params.requestId || null,
+        resourceType: params.resourceType || null,
+        error: error instanceof Error ? error.message : String(error),
+      });
+      return;
+    }
+    this.protocolErrors.push(error);
+  }
+
+  routingDiagnostics() {
+    return {
+      staleInterceptionCount: this.staleInterceptions.length,
+      staleInterceptions: this.staleInterceptions.slice(0, 20),
+    };
+  }
+
   lastNetworkActivityMs(fallback = Date.now()) {
     for (let index = this.events.length - 1; index >= 0; index -= 1) {
       const event = this.events[index];
@@ -253,6 +277,7 @@ export class BrowserPage {
     const maxSettleMs = Number(settings.maxSettleMs ?? 2_000);
     this.events = [];
     this.protocolErrors = [];
+    this.staleInterceptions = [];
     await this.send('Page.navigate', { url });
     const started = Date.now();
     while (Date.now() - started < this.pageTimeoutMs) {

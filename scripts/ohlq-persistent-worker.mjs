@@ -5,7 +5,13 @@ import os from 'node:os';
 import path from 'node:path';
 import { gzipSync } from 'node:zlib';
 
-import { classifyOhlqBrowserState, deterministicOhlqUploadId, resolveOhlqWorkerPaths } from './lib/ohlq-worker-runtime.mjs';
+import {
+  classifyOhlqBrowserState,
+  createOhlqAccessDeniedCooldown,
+  deterministicOhlqUploadId,
+  readActiveOhlqCooldownFile,
+  resolveOhlqWorkerPaths,
+} from './lib/ohlq-worker-runtime.mjs';
 
 const ROOT = path.resolve(import.meta.dirname, '..');
 const ENGINE = path.join(ROOT, 'engine');
@@ -67,6 +73,17 @@ async function writeStatus(value) {
   const temporary = `${STATUS_PATH}.${process.pid}.tmp`;
   await writeFile(temporary, `${JSON.stringify({ ...value, checkedAt: new Date().toISOString() }, null, 2)}\n`, 'utf8');
   await rename(temporary, STATUS_PATH);
+}
+
+async function activeCooldown() {
+  return readActiveOhlqCooldownFile(COOLDOWN_PATH, { ignoreCooldown: process.env.OHLQ_IGNORE_COOLDOWN === '1' });
+}
+
+async function writeCooldown(value) {
+  await mkdir(path.dirname(COOLDOWN_PATH), { recursive: true });
+  const temporary = `${COOLDOWN_PATH}.${process.pid}.tmp`;
+  await writeFile(temporary, `${JSON.stringify(value, null, 2)}\n`, 'utf8');
+  await rename(temporary, COOLDOWN_PATH);
 }
 
 function pidIsAlive(pid) {
@@ -171,6 +188,7 @@ async function browserReadiness(page) {
     }))()`, true).catch((error) => ({ error: error.message }));
     const classification = classifyOhlqBrowserState(state);
     if (classification === 'ready') return { status: 'ready', state };
+    if (classification === 'access_denied') return { status: 'access_denied', state };
     if (classification !== 'needs_human') await sleep(1_000);
     else await sleep(2_000);
   }
@@ -216,6 +234,46 @@ async function main() {
     await writeStatus({ ok: true, status: 'already_running' });
     return;
   }
+  let proceedPastCooldown = false;
+  try {
+    let cooldown;
+    try {
+      cooldown = await activeCooldown();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      const blocked = { ok: false, status: 'cooldown_state_invalid', error: message, cooldownActive: true, sourceAttempted: false };
+      await writeStatus(blocked);
+      console.log(JSON.stringify(blocked));
+      process.exitCode = 1;
+      return;
+    }
+    if (!cooldown) {
+      proceedPastCooldown = true;
+    } else {
+      const accessDenied = cooldown.status === 'source_access_denied';
+      const status = accessDenied ? 'source_access_denied' : 'source_cooldown_active';
+      const reason = accessDenied
+        ? 'OHLQ explicitly denied source access and directed the operator to contact LESC.'
+        : 'The existing OHLQ collector cooldown is active after a blocked or unsuccessful collection.';
+      const action = accessDenied
+        ? `Contact OHLQ LESC at 1-877-812-0013 about legitimate site access; no source request will be made before ${cooldown.cooldownUntil}.`
+        : `Leave the collector cooldown in place; no source request will be made before ${cooldown.cooldownUntil}.`;
+      await writeStatus({
+        ok: false,
+        status,
+        reason,
+        action,
+        cooldownActive: true,
+        cooldownUntil: cooldown.cooldownUntil,
+        sourceAttempted: false,
+      });
+      console.log(JSON.stringify({ ok: false, status, reason, action, cooldownActive: true, cooldownUntil: cooldown.cooldownUntil, sourceAttempted: false }));
+      process.exitCode = 1;
+    }
+  } finally {
+    if (!proceedPastCooldown) await releaseOwnedLock();
+  }
+  if (!proceedPastCooldown) return;
   process.env.OHLQ_CDP_URL = CDP_URL;
   process.env.BROWSER_CDP_URL = CDP_URL;
   process.env.BROWSER_HEADLESS = '0';
@@ -233,7 +291,10 @@ async function main() {
     const readiness = await browserReadiness(page);
     if (readiness.status !== 'ready') {
       const needsHuman = readiness.status === 'needs_human';
-      const status = needsHuman ? 'needs_human_cloudflare_verification' : 'browser_not_ready';
+      const accessDenied = readiness.status === 'access_denied';
+      const status = accessDenied ? 'source_access_denied' : needsHuman ? 'needs_human_cloudflare_verification' : 'browser_not_ready';
+      const cooldown = accessDenied ? createOhlqAccessDeniedCooldown(readiness.state) : null;
+      if (cooldown) await writeCooldown(cooldown);
       let cleanupSucceeded = false;
       let cleanupError = null;
       if (needsHuman) {
@@ -251,13 +312,28 @@ async function main() {
           cleanupError = error instanceof Error ? error.message : String(error);
         }
       }
-      const action = needsHuman
-        ? 'Complete OHLQ security verification in the opened browser window, then rerun the worker.'
-        : cleanupSucceeded
-          ? 'OHLQ did not return a usable product page; the browser was closed and the source remains safely unavailable.'
-          : 'OHLQ did not return a usable product page and browser cleanup failed; close the dedicated OHLQ browser before retrying.';
-      await writeStatus({ ok: false, status, browserLeftOpen: !cleanupSucceeded, cleanupError, profileDir: PROFILE_DIR, url: SAMPLE_URL });
-      console.log(JSON.stringify({ ok: false, status, action }));
+      const action = accessDenied
+        ? `Contact OHLQ LESC at 1-877-812-0013 about legitimate site access; automatic source requests are blocked until ${cooldown.cooldownUntil}.`
+        : needsHuman
+          ? 'Complete OHLQ security verification in the opened browser window, then rerun the worker.'
+          : cleanupSucceeded
+            ? 'OHLQ did not return a usable product page; the browser was closed and the source remains safely unavailable.'
+            : 'OHLQ did not return a usable product page and browser cleanup failed; close the dedicated OHLQ browser before retrying.';
+      const reason = accessDenied ? cooldown.reason : null;
+      await writeStatus({
+        ok: false,
+        status,
+        reason,
+        action,
+        cooldownActive: Boolean(cooldown),
+        cooldownUntil: cooldown?.cooldownUntil || null,
+        sourceAttempted: true,
+        browserLeftOpen: !cleanupSucceeded,
+        cleanupError,
+        profileDir: PROFILE_DIR,
+        url: SAMPLE_URL,
+      });
+      console.log(JSON.stringify({ ok: false, status, reason, action, cooldownActive: Boolean(cooldown), cooldownUntil: cooldown?.cooldownUntil || null }));
       process.exitCode = 1;
       return;
     }

@@ -13,6 +13,7 @@ import { buildDailyCompanyBrief, buildWeeklyStrategyReview } from './lib/operato
 import { buildFinding } from './lib/operator-findings.mjs';
 import { renderStateLifecycleTypes, verifyStateLifecycleDrift } from './generate-state-lifecycle-types.mjs';
 import { buildCompanyScorecard } from '../src/lib/company-control-room.ts';
+import { verifyAutomationRegistry } from './verify-automation-registry.mjs';
 
 const root = resolve('.');
 
@@ -51,6 +52,16 @@ const registry = JSON.parse(readFileSync(registryPath, 'utf8'));
 const cadence = JSON.parse(readFileSync(resolve('automation/bourbon-signal/automation-cadence-contract.json'), 'utf8'));
 const hermesSnapshot = JSON.parse(readFileSync(resolve('automation/bourbon-signal/hermes-jobs.json'), 'utf8'));
 const hermesByName = new Map(hermesSnapshot.jobs.map((job) => [job.name, job]));
+const scoutJob = hermesSnapshot.jobs.find((job) => job.jobId === 'bb9c16064777');
+assert.equal(scoutJob.script, 'resolve-source-scout-input.py', 'Hermes must execute a Python launcher, not parse Node as Python');
+assert.equal(scoutJob.workdir.replaceAll('\\\\', '/'), 'C:/Users/chand/projects/bs-source-scout-runtime');
+const wrongScoutRoot = structuredClone(hermesSnapshot);
+wrongScoutRoot.jobs.find((job) => job.jobId === 'bb9c16064777').workdir = 'C:/untrusted/bs-source-scout-runtime';
+assert.ok(
+  verifyAutomationRegistry(registry, { hermesJobs: wrongScoutRoot }).failures.some((failure) => /source-scout.*isolated scout checkout/iu.test(failure)),
+  'registry verification must reject a suffix-matching untrusted scout checkout',
+);
+assert.ok(readFileSync(resolve('scripts/export_hermes_jobs.py'), 'utf8').includes('bb9c16064777'), 'scout must not disappear from exports because of its dedicated workdir');
 assert.equal(registry.schemaVersion, 1);
 assert.equal(registry.timezone, 'America/New_York');
 assert.equal(cadence.timezone, 'America/New_York');
@@ -72,13 +83,15 @@ assert.equal(hermesByName.get('Bourbon Signal deterministic state source collect
 assert.equal(hermesByName.get('Bourbon Signal autonomous company operator')?.schedule, '5 22 * * *');
 const sourceScoutJob = hermesByName.get('Bourbon Signal silent demand and source scout');
 assert.equal(sourceScoutJob?.jobId, 'bb9c16064777');
-assert.equal(sourceScoutJob?.script, 'resolve-source-scout-input.mjs');
+assert.equal(sourceScoutJob?.script, 'resolve-source-scout-input.py');
 assert.doesNotMatch(sourceScoutJob?.workdir || '', /objective-control/i);
 const sourceScoutRegistry = registry.automations.find((entry) => entry.id === 'hermes-source-scout');
 assert.equal(sourceScoutRegistry?.executionClass, 'script_then_agent');
 assert.equal(sourceScoutRegistry?.ownerLayer, 'sensor');
-assert.equal(sourceScoutRegistry?.script, 'resolve-source-scout-input.mjs');
-assert.ok(readFileSync(resolve('scripts', sourceScoutRegistry.script), 'utf8').includes('resolveSourceScoutInput'));
+assert.equal(sourceScoutRegistry?.script, 'resolve-source-scout-input.py');
+assert.ok(readFileSync(resolve('scripts', sourceScoutRegistry.script), 'utf8').includes('resolve-source-scout-input.mjs'));
+assert.match(readFileSync(resolve('scripts', sourceScoutRegistry.script), 'utf8'), /--repository-root/);
+assert.ok(readFileSync(resolve('scripts/resolve-source-scout-input.mjs'), 'utf8').includes('resolveSourceScoutInput'));
 assert.deepEqual(sourceScoutRegistry?.externalApi.classes, ['github_artifact_read']);
 assert.ok(sourceScoutRegistry?.artifacts.includes('source_scout_input_manifest'));
 assert.ok(sourceScoutRegistry?.artifacts.every((artifact) => !/objective|lock/i.test(artifact)));
@@ -88,7 +101,7 @@ const codingOperator = hermesByName.get('Bourbon Signal autonomous company opera
 assert.deepEqual([codingOperator.noAgent, codingOperator.script, codingOperator.provider, codingOperator.model, codingOperator.reasoning], [true, 'bourbon_signal_autonomous_operator.py', 'openai-codex', 'gpt-5.6-sol', 'low']);
 assert.match(codingOperator.profileSafetyHash || '', /^[a-f0-9]{64}$/);
 assert.equal(codingOperator.workdir, 'C:\\c\\Users\\chand\\projects\\Bourbon-Signal-operator-base');
-assert.ok(hermesSnapshot.jobs.filter((job) => job !== codingOperator).every((job) => job.workdir === 'C:\\c\\Users\\chand\\projects\\Bourbon-Signal-autonomous'), 'Non-operator jobs must use the authoritative automation checkout.');
+assert.ok(hermesSnapshot.jobs.filter((job) => job !== codingOperator && job !== sourceScoutJob).every((job) => job.workdir === 'C:\\c\\Users\\chand\\projects\\Bourbon-Signal-autonomous'), 'Non-operator jobs must use the authoritative automation checkout.');
 for (const job of hermesSnapshot.jobs.filter((row) => !row.noAgent)) {
   assert.deepEqual([job.provider, job.model, job.reasoning], ['openai-codex', 'gpt-5.6-luna', 'xhigh']);
   assert.match(job.safetyHash || '', /^[a-f0-9]{64}$/, `${job.name} must bind prompt, skills, and toolsets`);
