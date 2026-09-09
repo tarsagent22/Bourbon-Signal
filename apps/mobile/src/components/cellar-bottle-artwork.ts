@@ -35,6 +35,18 @@ const EXACT_NAMES: Readonly<Record<CellarBottleArtworkId, ReadonlySet<string>>> 
   ]),
 };
 
+// Server canonicalBottleKey sorts tokens and drops ages/short words. These
+// compatibility keys are NOT exact-product identifiers: require a matching
+// display name or exact ID as well. Contract tests use the real server function.
+const SAVED_KEYS: Readonly<Record<CellarBottleArtworkId, string>> = {
+  "henry-mckenna-10": "henry mckenna year",
+  "eh-taylor-small-batch": "batch small taylor",
+  "1792-small-batch": "1792 batch small",
+  "penelope-riviera": "cask finish penelope riviera",
+  "buffalo-trace": "bourbon buffalo trace",
+  "russells-reserve-10": "reserve russells year",
+};
+
 /** Only the six owner-selected products. Never expand from catalog alias arrays:
  * the Taylor catalog has known Single Barrel collisions. A present display name
  * must agree with the exact product; stale IDs cannot relabel another edition.
@@ -46,7 +58,8 @@ export function resolveCellarBottleArtwork(identity: CellarBottleIdentity): Cell
     const names = EXACT_NAMES[artworkId];
     if (displayName && !names.has(displayName)) continue;
     const canonicalName = normalized(identity.canonicalKey);
-    if (canonicalName && canonicalName !== normalized(artworkId) && !names.has(canonicalName)) continue;
+    if (canonicalName && canonicalName !== normalized(artworkId) && !names.has(canonicalName)
+      && canonicalName !== SAVED_KEYS[artworkId]) continue;
     if (identifiers.some((value) => /\b(?:barrel proof|full proof|rr ?13|russell s? reserve 13)\b/.test(value))) continue;
     // Henry McKenna 10 IS a single barrel; the other five selected products are not.
     if (artworkId !== "henry-mckenna-10" && identifiers.some((value) => /\bsingle barrel\b/.test(value))) continue;

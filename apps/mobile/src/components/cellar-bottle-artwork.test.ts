@@ -4,6 +4,11 @@ import { readFileSync, readdirSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { resolveCellarBottleArtwork } from "./cellar-bottle-artwork";
 
+// Load the real server implementation at runtime without pulling server-only
+// types/dependencies into the mobile TypeScript project.
+const serverIdentity = import(new URL("../../../../src/lib/bottleIdentity.ts", import.meta.url).href);
+import catalog from "../cellar/bottle-catalog-seed.json";
+
 const cases = [
   { id: "henry-mckenna-10", name: "Henry McKenna 10 Year", variants: ["Henry McKenna", "Henry McKenna 80 Proof"] },
   { id: "eh-taylor-small-batch", name: "E.H. Taylor Small Batch", variants: ["E.H. Taylor Single Barrel", "E.H. Taylor Barrel Proof", "E.H. Taylor Straight Rye"] },
@@ -14,6 +19,24 @@ const cases = [
 ] as const;
 
 for (const { id, name, variants } of cases) {
+  test(`saved server identity resolves photo: ${name}`, async () => {
+    const { canonicalBottleKey } = await serverIdentity;
+    const entry = catalog.find((row) => row.name === name);
+    assert.ok(entry, name);
+    const canonicalKey = canonicalBottleKey(name);
+    for (const bottleId of [entry.id, "custom-entry", undefined]) {
+      assert.equal(resolveCellarBottleArtwork({ bottleId, bottleName: name, canonicalKey }), id);
+    }
+    // Server keys discard ages and cannot identify an exact edition alone.
+    assert.equal(resolveCellarBottleArtwork({ canonicalKey }), undefined);
+    for (const bottleName of variants) {
+      assert.equal(resolveCellarBottleArtwork({ bottleId: entry.id, bottleName, canonicalKey: canonicalBottleKey(bottleName) }), undefined);
+      const conflictingKey = canonicalBottleKey(bottleName);
+      if (conflictingKey !== canonicalKey) {
+        assert.equal(resolveCellarBottleArtwork({ bottleId: entry.id, bottleName: name, canonicalKey: conflictingKey }), undefined);
+      }
+    }
+  });
   test(`exact product photo: ${name}`, () => {
     assert.equal(resolveCellarBottleArtwork({ bottleId: id, bottleName: name }), id);
     assert.equal(resolveCellarBottleArtwork({ bottleName: name }), id);
