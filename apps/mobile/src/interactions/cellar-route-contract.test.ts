@@ -44,11 +44,11 @@ test("My Shelf has explicit component-state grid and dense list views with bottl
   assert.match(cellar, /useState<CellarViewMode>\("grid"\)/);
   assert.match(cellar, /accessibilityRole="radiogroup"/);
   assert.match(cellar, /function ViewModeButton/);
-  assert.match(cellar, /active \? `✓ \$\{label\}` : label/, "view mode selection is not communicated by color alone");
+  assert.match(cellar, /viewModeButtonActive:.*borderBottomWidth: 2/, "view mode selection has a geometric underline plus checked semantics");
   assert.match(cellar, /const QUICK_COLLECTION_FILTERS/);
   assert.match(cellar, /<View accessibilityLabel="Filter My Shelf" accessibilityRole="radiogroup"/, "three visible tabs expose their grouped radio relationship");
   assert.match(cellar, /function CollectionFilterChip/);
-  assert.match(cellar, /Sort: \{COLLECTION_SORT_LABELS\[sort\]\}/, "the primary toolbar exposes the active sort");
+  assert.match(cellar, /<Field label="Sort by">/, "sort remains available inside the compact filter sheet");
   assert.doesNotMatch(cellar, /resultSetChanged \? `\$\{bottles\.length\} shown` : `\$\{bottles\.length\} bottle/, "the summary count is not redundantly repeated below the filters");
   assert.match(cellar, /accessibilityRole="radio"/);
   assert.match(cellar, /accessibilityState=\{\{ checked:/);
@@ -57,7 +57,7 @@ test("My Shelf has explicit component-state grid and dense list views with bottl
   assert.match(cellar, /styles\.inventory/, "the original centered inventory label remains in the grid card");
   assert.match(cellar, /width !== undefined && \{ width \}/, "three-column cards use explicit width without zero flex-basis collapse");
   assert.match(cellar, /shelfGridLayout\(width, viewMode\)/, "authorized redesign uses the tested three-column geometry");
-  assert.match(cellar, /tileRating:\s*\{ color: colors\.accent, fontSize: 18/, "ratings remain readable in three-column cards");
+  assert.match(cellar, /tileRating:\s*\{ color: colors\.accent, fontSize: 12/, "small star ratings preserve the requested compact card hierarchy");
   assert.doesNotMatch(cellar, /styles\.tileArtwork|styles\.tileCopy|styles\.tileStatus|flexBasis: "auto"/, "the regressed card wrapper and basis override stay removed");
   assert.match(cellar, /viewMode === "grid" \? <WhiskeyTile/);
   assert.match(cellar, /key=\{`cellar-\$\{viewMode\}-\$\{numColumns\}`\}/);
@@ -79,8 +79,8 @@ test("My Shelf has explicit component-state grid and dense list views with bottl
   assert.match(cellar, /refineSheet:\s*\{\s*flexGrow:\s*1/, "Refine content can grow beyond the sheet viewport");
   assert.match(cellar, /allowSwipeDismissal=\{!dirty && !busy\}/, "dirty or busy editors cannot be dismissed underneath visible React state");
   assert.match(cellar, /numberOfLines=\{3\}/, "long whiskey names get a third line before truncation");
-  assert.match(cellar, /cellarContent:\s*\{[^}]*paddingBottom:\s*112/, "the final row clears the bottom navigation");
-  assert.match(cellar, /tile:\s*\{[^}]*minHeight:\s*218/, "three-column cards retain space for exact names and status");
+  assert.match(cellar, /cellarContent:\s*\{[^}]*paddingBottom:\s*20/, "non-overlay native tab layout needs only compact trailing content padding; browser shell clearance is exercised");
+  assert.doesNotMatch(cellar, /tile:\s*\{[^}]*minHeight:/, "cards grow with names and large text instead of a fixed dead gap");
   assert.match(cellar, /preferences\?\.collectionAccess/, "native My Shelf renders server-authoritative capacity state");
   assert.match(cellar, /Your free shelf is full/);
   assert.match(cellar, /Existing bottles stay available/);
