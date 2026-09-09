@@ -58,7 +58,7 @@ export default function TabsLayout() {
       <Tabs.Screen name="index" options={{ title: "Home", headerTitle: BrandTitle, headerTitleAlign: "left", headerRight: AlertInboxButton, headerTransparent: true, headerStyle: { backgroundColor: "transparent" }, tabBarIcon: icon("index") }} />
       <Tabs.Screen name="radar" options={{ title: "Radar", tabBarIcon: icon("radar") }} />
       <Tabs.Screen name="post" options={{ title: "Post", tabBarAccessibilityLabel: "Create a Community Signal", tabBarIcon: PostTabIcon }} />
-      <Tabs.Screen name="cellar" options={{ title: "My Shelf", tabBarIcon: icon("cellar") }} />
+      <Tabs.Screen name="cellar" options={{ title: "My Shelf", headerShown: false, tabBarIcon: icon("cellar") }} />
       <Tabs.Screen name="hq" options={{ title: "Account", tabBarIcon: icon("hq") }} />
     </Tabs>
   );

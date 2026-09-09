@@ -1,0 +1,43 @@
+{
+  "1": {
+    "width": 1230,
+    "height": 480,
+    "baselineY": [
+      0.8875
+    ],
+    "interiorX": [
+      0.055,
+      0.945
+    ],
+    "projection": "orthographic frontal",
+    "bottleAlphaBaseline": 0.9733333333333334
+  },
+  "2": {
+    "width": 1230,
+    "height": 680,
+    "baselineY": [
+      0.5,
+      0.920588
+    ],
+    "interiorX": [
+      0.055,
+      0.945
+    ],
+    "projection": "orthographic frontal",
+    "bottleAlphaBaseline": 0.9733333333333334
+  },
+  "2spacious": {
+    "width": 1230,
+    "height": 780,
+    "baselineY": [
+      0.55641,
+      0.930769
+    ],
+    "interiorX": [
+      0.055,
+      0.945
+    ],
+    "projection": "orthographic frontal",
+    "bottleAlphaBaseline": 0.9733333333333334
+  }
+}
