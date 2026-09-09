@@ -100,6 +100,7 @@ export default function CellarScreen() {
   const { width } = useWindowDimensions();
   const [preferences, setPreferences] = useState<MemberPreferences | null>(null);
   const activeUser = useRef(userId);
+  const styleRevision = useRef(0);
   activeUser.current = userId;
   const [styleSaving, setStyleSaving] = useState(false);
   useEffect(() => { setPreferences(null); setSelected(null); setStyleSaving(false); }, [userId]);
@@ -188,12 +189,13 @@ export default function CellarScreen() {
   }, [api, persistContributionIds, receiptStorageKey]);
 
   const load = useCallback(async (fresh = false) => {
+    const readStyleRevision = styleRevision.current;
     setLoading(true);
     setError("");
     try {
       const receiptRead = await readContributionReceipts(receiptStorageKey);
       const nextPreferences = await api.getMemberPreferences({ fresh });
-      if (activeUser.current !== userId) return;
+      if (activeUser.current !== userId || readStyleRevision !== styleRevision.current) return;
       acceptServerPreferences(nextPreferences);
       retryPendingContributions(nextPreferences, receiptRead.receipts);
     } catch (caught) {
@@ -367,6 +369,7 @@ export default function CellarScreen() {
       const saved = await api.updateMemberPreferences({ collectionPreferences: { shelfStyle } });
       if (activeUser.current !== userId) return false;
       if (saved.collectionPreferences.shelfStyle !== shelfStyle) throw new Error("Shelf finish was not saved. Retry when online.");
+      styleRevision.current += 1;
       setPreferences(current => current ? { ...current, collectionPreferences: { ...current.collectionPreferences, shelfStyle } } : current);
       return true;
     } catch (caught) {
