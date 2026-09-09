@@ -29,8 +29,12 @@ export function ShelfCabinet({ bottles, shelfStyle, busy, onStyle, onBottle }: {
   // Reserve the measured inline heading at larger text sizes; never stretch the cabinet grain.
   const photoScale = Math.max(0, Math.min(1, ((interiorWidth * .89 / slots) - 2) / 80, (cabinetHeight * plate.baselineY[0] - headingHeight - 8) / 116));
   return <View>
-    <View testID="shelf-cabinet" onLayout={e => setInteriorWidth(e.nativeEvent.layout.width)} style={{ height: cabinetHeight, position: 'relative' }}>
-      <Image accessibilityElementsHidden importantForAccessibility="no-hide-descendants" source={cabinetAssets[shelfStyle][assetKey]} resizeMode="contain" style={StyleSheet.absoluteFill} />
+    <View testID="shelf-cabinet" onLayout={e => {
+      const width = e.nativeEvent.layout.width;
+      if (Number.isFinite(width) && width > 0) setInteriorWidth(width);
+    }} style={{ height: cabinetHeight, position: 'relative', overflow: 'hidden' }}>
+      {/* Native Image injects asset dimensions; bind the same frame used by bottle placement. */}
+      <Image accessibilityElementsHidden importantForAccessibility="no-hide-descendants" source={cabinetAssets[shelfStyle][assetKey]} resizeMode="contain" style={{ position: 'absolute', left: 0, top: 0, width: interiorWidth, height: cabinetHeight }} />
       <View onLayout={e => setHeadingHeight(e.nativeEvent.layout.height)} style={styles.heading}>
         <Text style={styles.caption}>TOP RATED · {ranked.length}/20</Text>
         <Pressable accessibilityRole="button" accessibilityLabel="Edit Shelf" onPress={() => setPicker(true)} style={styles.edit}><Text style={styles.editText}>Edit Shelf</Text></Pressable>
