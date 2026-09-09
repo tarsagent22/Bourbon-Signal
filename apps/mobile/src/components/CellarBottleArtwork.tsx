@@ -3,8 +3,12 @@ import { CellarBottleSilhouette } from "./CellarBottleSilhouette";
 import { resolveCellarBottleArtwork, type CellarBottleIdentity } from "./cellar-bottle-artwork";
 
 const bottleArtwork = {
-  "eh-taylor-small-batch": require("../../assets/bottles/eh-taylor-small-batch.png"),
-  "russells-reserve-10": require("../../assets/bottles/russells-reserve-10.png"),
+  "henry-mckenna-10": require("../../assets/bottles/photos/henry-mckenna-10.png"),
+  "eh-taylor-small-batch": require("../../assets/bottles/photos/eh-taylor-small-batch.png"),
+  "1792-small-batch": require("../../assets/bottles/photos/1792-small-batch.png"),
+  "penelope-riviera": require("../../assets/bottles/photos/penelope-riviera.png"),
+  "buffalo-trace": require("../../assets/bottles/photos/buffalo-trace.png"),
+  "russells-reserve-10": require("../../assets/bottles/photos/russells-reserve-10.png"),
 } as const;
 
 export function CellarBottleArtwork({ bottle, size = "grid" }: {
