@@ -509,7 +509,7 @@ function WhiskeyTile({ bottle, onPress, width }: { bottle: MemberCollectionBottl
   >
     <View style={styles.tileArt}>{kind === "owned" ? <CellarBottleArtwork bottle={bottle} /> : <CellarGlencairnSilhouette />}</View>
     <View style={[styles.tileTitleZone, { minHeight: 26 * fontScale }]}><Text numberOfLines={expandedText ? undefined : 2} style={styles.tileName}>{bottle.bottleName}</Text></View>
-    <Text style={styles.tileRating}>★ {rating}</Text>
+    <Text style={styles.tileRating}>{rating}</Text>
     <Text numberOfLines={expandedText ? undefined : 2} style={styles.inventory}>{kind === "owned" ? inventory : "Tasted only"}</Text>
   </Pressable>;
 }
