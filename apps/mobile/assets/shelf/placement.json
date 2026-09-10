@@ -1,9 +1,9 @@
 {
   "1": {
     "width": 1230,
-    "height": 480,
+    "height": 440,
     "baselineY": [
-      0.8875
+      0.877273
     ],
     "interiorX": [
       0.055,
@@ -28,10 +28,10 @@
   },
   "2spacious": {
     "width": 1230,
-    "height": 780,
+    "height": 700,
     "baselineY": [
-      0.55641,
-      0.930769
+      0.562857,
+      0.922857
     ],
     "interiorX": [
       0.055,

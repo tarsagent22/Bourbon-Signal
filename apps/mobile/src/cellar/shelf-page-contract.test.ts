@@ -2,6 +2,9 @@ import assert from 'node:assert/strict';
 import './shelf-asset-layout.test';
 import './shelf-fidelity.test';
 import './photo-presentation.test';
+import './collection-statistics.test';
+import './collection-statistics-ui.test';
+import './shelf-stats-polish.test';
 import test from 'node:test';
 import { readFileSync } from 'node:fs';
 const page=readFileSync(new URL('../../app/(app)/(tabs)/cellar.tsx',import.meta.url),'utf8');
@@ -17,7 +20,7 @@ test('an older refresh cannot undo an acknowledged shelf finish', async () => {
  const stale = structuredClone(preferences);
  const api = {getMemberPreferences: () => {startedRead(); return read;}, updateMemberPreferences: async () => ({collectionPreferences:{shelfStyle:'black'}})};
  const noop = () => {};
- const deps = {api, activeUser:{current:'fixture'}, userId:'fixture', styleRevision:{current:0}, styleSaving:false, mutating:false, receiptStorageKey:'fixture', readContributionReceipts:async()=>({receipts:new Map()}), setLoading:noop, setError:noop, setStyleSaving:noop, retryPendingContributions:noop, MobileApiError:Error, Alert:{alert:noop}, acceptServerPreferences:(next:typeof preferences)=>{preferences=next;}, setPreferences:(update:(p:typeof preferences)=>typeof preferences)=>{preferences=update(preferences);}};
+ const deps = {api, mounted:{current:true}, activeUser:{current:'fixture'}, userId:'fixture', styleRevision:{current:0}, styleSaving:false, mutating:false, receiptStorageKey:'fixture', readContributionReceipts:async()=>({receipts:new Map()}), setLoading:noop, setError:noop, setStyleSaving:noop, retryPendingContributions:noop, MobileApiError:Error, Alert:{alert:noop}, acceptServerPreferences:(next:typeof preferences)=>{preferences=next;}, setPreferences:(update:(p:typeof preferences)=>typeof preferences)=>{preferences=update(preferences);}};
  const callbacks = new Function(...Object.keys(deps), `return {load:async(fresh=false)=>{${loadBody}},save:async(shelfStyle)=>{${saveBody}}}`)(...Object.values(deps));
  const loading = callbacks.load(true); await started;
  assert.equal(await callbacks.save('black'),true);
