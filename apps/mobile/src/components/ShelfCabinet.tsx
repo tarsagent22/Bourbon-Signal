@@ -27,7 +27,7 @@ export function ShelfCabinet({ bottles, shelfStyle, busy, onStyle, onBottle }: {
   const plate = placement[assetKey];
   const cabinetHeight = interiorWidth * plate.height / plate.width;
   // Reserve the measured inline heading at larger text sizes; never stretch the cabinet grain.
-  const photoScale = Math.max(0, Math.min(1, ((interiorWidth * .89 / slots) - 2) / 80, (cabinetHeight * plate.baselineY[0] - headingHeight - 8) / 116));
+  const photoScale = Math.max(0, Math.min(1, ((interiorWidth * .89 / slots) - 2) / (slots <= 6 ? 70 : 80), (cabinetHeight * plate.baselineY[0] - headingHeight - 8) / 116));
   return <View>
     <View testID="shelf-cabinet" onLayout={e => {
       const width = e.nativeEvent.layout.width;
@@ -35,9 +35,9 @@ export function ShelfCabinet({ bottles, shelfStyle, busy, onStyle, onBottle }: {
     }} style={{ height: cabinetHeight, position: 'relative', overflow: 'hidden' }}>
       {/* Native Image injects asset dimensions; bind the same frame used by bottle placement. */}
       <Image accessibilityElementsHidden importantForAccessibility="no-hide-descendants" source={cabinetAssets[shelfStyle][assetKey]} resizeMode="contain" style={{ position: 'absolute', left: 0, top: 0, width: interiorWidth, height: cabinetHeight }} />
-      <View onLayout={e => setHeadingHeight(e.nativeEvent.layout.height)} style={styles.heading}>
+      <View onLayout={e => { const height = e.nativeEvent.layout.height; if (Number.isFinite(height) && height > 0) setHeadingHeight(height); }} style={styles.heading}>
         <Text style={styles.caption}>TOP RATED · {ranked.length}/20</Text>
-        <Pressable accessibilityRole="button" accessibilityLabel="Edit Shelf" onPress={() => setPicker(true)} style={styles.edit}><Text style={styles.editText}>Edit Shelf</Text></Pressable>
+        <Pressable accessibilityRole="button" accessibilityLabel="Shelf Style" onPress={() => setPicker(true)} style={styles.edit}><Text style={styles.editText}>Shelf Style</Text></Pressable>
       </View>
       {(rows.length ? rows : [[]]).map((row, i) => <View testID="cabinet-row" key={i} style={{ position: 'absolute', left: '5.5%', right: '5.5%', top: cabinetHeight * plate.baselineY[i] - 116 * photoScale, height: 116 * photoScale, flexDirection: 'row', justifyContent: 'center' }}>
         {row.map(bottle => <Pressable key={bottle.bottleId || `${bottle.canonicalKey}:${bottle.bottleName}`} testID="cabinet-bottle" accessibilityRole="button" accessibilityLabel={`${bottle.bottleName}. Personally rated ${(bottle.rating / 10).toFixed(1)}. Open details.`} onPress={() => onBottle(bottle)} style={{ width: interiorWidth * .89 / slots, height: 116 * photoScale, alignItems: 'center' }}>

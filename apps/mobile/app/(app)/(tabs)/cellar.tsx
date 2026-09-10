@@ -3,7 +3,7 @@ import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useFocusEffect, useRouter } from "expo-router";
 import * as SecureStore from "expo-secure-store";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Alert, FlatList, KeyboardAvoidingView, Modal, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Switch, Text, TextInput, useWindowDimensions, View } from "react-native";
+import { AccessibilityInfo, findNodeHandle, Alert, FlatList, KeyboardAvoidingView, Modal, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Switch, Text, TextInput, useWindowDimensions, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { MobileApiError } from "../../../src/api/client";
 import type { MemberCollectionBottle, MemberPreferences } from "../../../src/api/types";
@@ -20,7 +20,8 @@ import { nextShelfPageSize } from "../../../src/cellar/my-shelf-display";
 import { CellarBottleArtwork } from "../../../src/components/CellarBottleArtwork";
 import { CellarGlencairnSilhouette } from "../../../src/components/CellarGlencairnSilhouette";
 import { ShelfCabinet } from "../../../src/components/ShelfCabinet";
-import { shelfGridLayout, type ShelfStyle } from "../../../src/cellar/shelf-cabinet";
+import { CollectionStatisticsSheet } from "../../../src/components/CollectionStatisticsSheet";
+import { rankedShelfBottles, shelfGridLayout, type ShelfStyle } from "../../../src/cellar/shelf-cabinet";
 import { EmptyState, ErrorState, LoadingState, memberScreenStyles } from "../../../src/components/MemberScreen";
 import { ScoreSlider } from "../../../src/components/ScoreSlider";
 import { useMobileApi } from "../../../src/hooks/useMobileApi";
@@ -31,6 +32,7 @@ import {
   collectionDisplayKind,
   collectionInventoryLabel,
   collectionSummary,
+  collectionStatistics,
   DEFAULT_COLLECTION_FILTERS,
   DEFAULT_COLLECTION_SORT,
   filterAndSortCollection,
@@ -94,13 +96,21 @@ async function writeContributionReceipts(storageKey: string, receipts: BottleCon
 }
 
 export default function CellarScreen() {
+  const { userId } = useAuth();
+  // Keep API identity invalidation above the keyed local-state boundary.
   const api = useMobileApi();
+  return <AccountCellarScreen key={userId || 'signed-out'} api={api} />;
+}
+
+function AccountCellarScreen({ api }: { api: ReturnType<typeof useMobileApi> }) {
   const { userId } = useAuth();
   const router = useRouter();
   const receiptStorageKey = bottleContributionReceiptsStorageKey(userId);
-  const { width } = useWindowDimensions();
+  const { width, fontScale } = useWindowDimensions();
   const [preferences, setPreferences] = useState<MemberPreferences | null>(null);
   const activeUser = useRef(userId);
+  const mounted = useRef(true);
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
   const styleRevision = useRef(0);
   activeUser.current = userId;
   const [styleSaving, setStyleSaving] = useState(false);
@@ -116,6 +126,14 @@ export default function CellarScreen() {
   const [mutating, setMutating] = useState(false);
   const [savingWatchKey, setSavingWatchKey] = useState("");
   const [dnaExpanded, setDnaExpanded] = useState(false);
+  const [statisticsOpen, setStatisticsOpen] = useState(false);
+  const statisticsTrigger = useRef<View>(null);
+  const restoreStatisticsFocus = () => {
+    if (Platform.OS === 'web') { (statisticsTrigger.current as unknown as {focus?: () => void})?.focus?.(); return; }
+    const node = findNodeHandle(statisticsTrigger.current);
+    if (node != null) AccessibilityInfo.setAccessibilityFocus(node);
+  };
+  const closeStatistics = () => { setStatisticsOpen(false); };
   const [visibleCount, setVisibleCount] = useState(12);
   const reportedPendingBottleIds = useRef(new Set<string>());
 
@@ -195,8 +213,9 @@ export default function CellarScreen() {
     setError("");
     try {
       const receiptRead = await readContributionReceipts(receiptStorageKey);
+      if (!mounted.current) return;
       const nextPreferences = await api.getMemberPreferences({ fresh });
-      if (activeUser.current !== userId || readStyleRevision !== styleRevision.current) return;
+      if (!mounted.current || activeUser.current !== userId || readStyleRevision !== styleRevision.current) return;
       acceptServerPreferences(nextPreferences);
       retryPendingContributions(nextPreferences, receiptRead.receipts);
     } catch (caught) {
@@ -214,6 +233,8 @@ export default function CellarScreen() {
   const collectionAccess = preferences?.collectionAccess;
   const canAddToCollection = collectionAccess?.canAdd === true;
   const summary = useMemo(() => collectionSummary(sourceBottles), [sourceBottles]);
+  const statistics = useMemo(() => collectionStatistics(sourceBottles), [sourceBottles]);
+  const ranked = useMemo(() => rankedShelfBottles(sourceBottles), [sourceBottles]);
   const bottles = useMemo(() => filterAndSortCollection(sourceBottles, query, sort, filters), [filters, query, sort, sourceBottles]);
   const visibleBottles = bottles.slice(0, visibleCount);
   const { columns: numColumns, tileWidth } = shelfGridLayout(width, viewMode);
@@ -401,7 +422,11 @@ export default function CellarScreen() {
         </View>
         {preferences ? <>
           <ShelfCabinet bottles={sourceBottles} shelfStyle={preferences.collectionPreferences.shelfStyle || "amber"} busy={styleSaving || mutating} onStyle={saveShelfStyle} onBottle={setSelected} />
-          <View accessibilityLabel="Collection Statistics" accessibilityRole="summary" style={styles.statistics}><Text style={styles.summaryDetail}>{summary.ownedWhiskeyCount} owned · {summary.tastedOnlyCount} tasted only{summary.averageRating == null ? "" : ` · ${(summary.averageRating / 10).toFixed(1)} average rating`}</Text></View>
+          <Pressable ref={statisticsTrigger} accessibilityLabel="Collection Statistics" accessibilityRole="button" accessibilityHint="View whole-collection statistics and readable Top Rated list" onPress={() => { if (!selected && !refineMode && !styleSaving) setStatisticsOpen(true); }} style={styles.statistics}>
+            <MaterialCommunityIcons accessible={false} name="chart-bar" size={22} color={colors.accent} />
+            <View style={{flex: 1}}><Text style={styles.statisticsTitle}>Collection Statistics</Text><Text style={styles.summaryDetail}>{statistics.ownedBottleCount} bottles · {statistics.ownedWhiskeyCount} owned entries{statistics.averageRating == null ? "" : ` · ${(statistics.averageRating / 10).toFixed(1)} avg`}</Text></View>
+            <MaterialCommunityIcons accessible={false} name="chevron-right" size={20} color={colors.muted} />
+          </Pressable>
         </> : null}
         {loading && !preferences ? <LoadingState label="Opening My Shelf…" /> : null}
         {error ? <ErrorState message={error} onRetry={() => void load(true)} /> : null}
@@ -424,9 +449,9 @@ export default function CellarScreen() {
             </View>
           </View>
           <View style={styles.controlRow}>
-            <TextInput accessibilityLabel="Search My Shelf" autoCapitalize="none" clearButtonMode="while-editing" onChangeText={setQuery} placeholder="Search" placeholderTextColor={colors.muted} style={styles.search} value={query} />
+            <View style={styles.searchField}><MaterialCommunityIcons accessible={false} name="magnify" size={18} color={colors.muted} /><TextInput accessibilityLabel="Search My Shelf" autoCapitalize="none" clearButtonMode="while-editing" onChangeText={setQuery} placeholder="Search" placeholderTextColor={colors.muted} style={styles.search} value={query} /></View>
 
-            <Pressable accessibilityLabel={moreFilterCount ? `More filters, ${moreFilterCount} active` : "More filters"} accessibilityRole="button" onPress={() => setRefineMode("filters")} style={[styles.moreFiltersButton, moreFilterCount > 0 && styles.moreFiltersButtonActive]}><Text style={styles.moreFiltersText}>Filters{moreFilterCount ? ` (${moreFilterCount})` : ""}</Text></Pressable>
+            <Pressable accessibilityLabel={moreFilterCount ? `More filters, ${moreFilterCount} active` : "More filters"} accessibilityRole="button" onPress={() => setRefineMode("filters")} style={[styles.moreFiltersButton, moreFilterCount > 0 && styles.moreFiltersButtonActive]}><MaterialCommunityIcons accessible={false} name="tune-variant" size={18} color={moreFilterCount ? colors.accent : colors.muted} />{width >= 350 || fontScale <= 1.15 ? <Text style={styles.moreFiltersText}>Filters{moreFilterCount ? ` (${moreFilterCount})` : ""}</Text> : null}</Pressable>
 
             <View accessibilityLabel="My Shelf view" accessibilityRole="radiogroup" style={styles.viewToggle}><ViewModeButton active={viewMode === "grid"} label="Grid" onPress={() => setViewMode("grid")} /><ViewModeButton active={viewMode === "list"} label="List" onPress={() => setViewMode("list")} /></View>
           </View>
@@ -463,6 +488,7 @@ export default function CellarScreen() {
       ListEmptyComponent={preferences && !loading ? <EmptyState title={sourceBottles.length ? "No whiskeys match" : "My Shelf is ready"} detail={sourceBottles.length ? "Clear the search or refine choices." : "Choose Add to save a bottle or a whiskey you tasted."} /> : null}
       style={memberScreenStyles.screen}
     />
+    <CollectionStatisticsSheet visible={statisticsOpen} statistics={statistics} ranked={ranked} onClose={closeStatistics} onDismiss={restoreStatisticsFocus} />
     <RefineSheet filters={filters} mode={refineMode} onChange={setFilters} onClose={() => setRefineMode(null)} onSort={setSort} sort={sort} />
     <BottleEditor bottle={selected} busy={mutating} onClose={() => setSelected(null)} onDelete={requestDelete} onInventoryAction={applyInventoryAction} onSave={saveBottle} />
   </SafeAreaView>;
@@ -702,10 +728,10 @@ function Stepper({ label, onChange, value }: { label: string; onChange: (value: 
 
 const styles = StyleSheet.create({
   pageTitle: { color: colors.text, fontSize: 32, fontWeight: "700", fontFamily: "Fraunces_700Bold" },
-  statistics: { gap: 2, paddingVertical: 5, paddingHorizontal: 10, borderWidth: StyleSheet.hairlineWidth, borderColor: "#29251f", borderRadius: 6, backgroundColor: "#12110e" },
+  statistics: { minHeight: 44, flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 4, paddingHorizontal: 10, borderWidth: StyleSheet.hairlineWidth, borderColor: "#29251f", borderRadius: 8, backgroundColor: "#12110e" },
   statisticsTitle: { color: colors.text, fontSize: 12, fontWeight: "500" },
-  collectionTabs: { flex: 1, flexDirection: "row", gap: 0, borderWidth: StyleSheet.hairlineWidth, borderColor: "#302b24", borderRadius: 6, overflow: "hidden" },
-  tileArt: { height: 76, width: 72, alignItems: "center", justifyContent: "center", transform: [{ scale: 0.65 }] },
+  collectionTabs: { flex: 1, flexDirection: "row", gap: 2, padding: 3, borderWidth: StyleSheet.hairlineWidth, borderColor: "#302b24", borderRadius: 9 },
+  tileArt: { height: 84, width: 80, alignItems: "center", justifyContent: "center", transform: [{ scale: 0.73 }] },
   header: { gap: 3, marginBottom: 0 },
   topRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 14, paddingTop: 0 },
   topCopy: { flex: 1, gap: 4 },
@@ -739,19 +765,20 @@ const styles = StyleSheet.create({
   showMoreText: { color: colors.accent, fontSize: 13, fontWeight: "900" },
   huntNext: { gap: 8, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth, borderRadius: 14, backgroundColor: colors.surface, padding: 12 }, huntNextHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10 }, huntNextTitle: { color: colors.text, fontSize: 17, fontWeight: "900" }, huntNextCount: { color: colors.muted, fontSize: 10, textTransform: "uppercase", letterSpacing: 0.7 }, huntNextRow: { gap: 9, borderTopColor: colors.border, borderTopWidth: StyleSheet.hairlineWidth, paddingTop: 10 }, huntNextCopy: { gap: 3 }, huntNextName: { color: colors.text, fontSize: 13, fontWeight: "800" }, huntNextReason: { color: colors.muted, fontSize: 11, lineHeight: 16 }, huntNextButton: { minHeight: 44, alignSelf: "flex-start", justifyContent: "center", borderColor: colors.accent, borderWidth: 1, borderRadius: 999, paddingHorizontal: 12 }, huntNextButtonText: { color: colors.accent, fontSize: 11, fontWeight: "900" },
   controlRow: { flexDirection: "row", gap: 8 },
-  search: { flex: 1, minWidth: 0, minHeight: 44, borderColor: "#343029", borderWidth: StyleSheet.hairlineWidth, borderRadius: 7, backgroundColor: "#151410", color: colors.text, paddingHorizontal: 10, fontSize: 12 },
+  searchField: { flex: 1, minWidth: 0, minHeight: 44, flexDirection: "row", alignItems: "center", paddingLeft: 8, borderColor: "#343029", borderWidth: StyleSheet.hairlineWidth, borderRadius: 7, backgroundColor: "#151410" },
+  search: { flex: 1, minWidth: 0, minHeight: 44, color: colors.text, paddingHorizontal: 6, fontSize: 12 },
   sortButton: { minHeight: 44, maxWidth: "44%", justifyContent: "center", borderColor: "#594839", borderWidth: 1, borderRadius: 11, backgroundColor: colors.surface, paddingHorizontal: 11 },
   sortText: { color: colors.text, fontSize: 11, fontWeight: "800" },
   filterBar: { minHeight: 44, flexDirection: "row", alignItems: "center", gap: 8 },
   quickFilterScroller: { flex: 1 },
   quickFilters: { alignItems: "center", gap: 7, paddingRight: 2 },
-  filterChip: { flex: 1, minWidth: 0, minHeight: 44, justifyContent: "center", alignItems: "center", backgroundColor: colors.surface, paddingHorizontal: 2, paddingVertical: 4 },
-  filterChipActive: { borderColor: colors.accent, backgroundColor: colors.accent, borderBottomWidth: 2 },
+  filterChip: { flex: 1, minWidth: 0, minHeight: 44, justifyContent: "center", alignItems: "center", backgroundColor: colors.surface, borderRadius: 6, paddingHorizontal: 2, paddingVertical: 4 },
+  filterChipActive: { backgroundColor: colors.accent },
   filterChipInline: { flexDirection: "row", gap: 3 },
   filterChipText: { color: colors.text, fontSize: 11, fontWeight: "500", textAlign: "center", flexShrink: 1 },
   tabCount: { color: colors.muted, fontSize: 10, textAlign: "center" },
   filterChipTextActive: { color: colors.background, fontWeight: "700" },
-  moreFiltersButton: { minHeight: 44, justifyContent: "center", borderColor: "#343029", borderWidth: StyleSheet.hairlineWidth, borderRadius: 7, backgroundColor: "#151410", paddingHorizontal: 8 },
+  moreFiltersButton: { minWidth: 44, minHeight: 44, flexDirection: "row", alignItems: "center", gap: 4, justifyContent: "center", borderColor: "#343029", borderWidth: StyleSheet.hairlineWidth, borderRadius: 7, backgroundColor: "#151410", paddingHorizontal: 6 },
   moreFiltersButtonActive: { borderColor: colors.accent, backgroundColor: "rgba(214,154,74,0.18)" },
   moreFiltersText: { color: colors.text, fontSize: 10, fontWeight: "800" },
   moreFiltersTextActive: { color: colors.accent },
@@ -766,9 +793,9 @@ const styles = StyleSheet.create({
   gridContent: { gap: 6 },
   gridRow: { gap: 8 },
   gap: { height: 8 },
-  tile: { flexGrow: 0, flexShrink: 0, minWidth: 0, alignItems: "center", gap: 2, paddingHorizontal: 4, paddingVertical: 5, borderColor: "#25221c", borderWidth: StyleSheet.hairlineWidth, borderRadius: 6, backgroundColor: "#13120f" },
+  tile: { flexGrow: 0, flexShrink: 0, minWidth: 0, alignItems: "center", gap: 1, paddingHorizontal: 4, paddingVertical: 2, borderColor: "#25221c", borderWidth: StyleSheet.hairlineWidth, borderRadius: 6, backgroundColor: "#13120f" },
   tileTitleZone: { alignSelf: "stretch", minHeight: 28, justifyContent: "center" },
-  tileName: { alignSelf: "stretch", color: colors.text, fontSize: 11, lineHeight: 13, fontFamily: Platform.select({ ios: "Georgia", android: "serif", default: "Georgia" }), fontWeight: "600", textAlign: "center" },
+  tileName: { alignSelf: "stretch", color: colors.text, fontSize: 10.5, lineHeight: 13, fontFamily: Platform.select({ ios: "Georgia", android: "serif", default: "Georgia" }), fontWeight: "400", textAlign: "center" },
   tileRating: { color: colors.accent, fontSize: 12, lineHeight: 15, fontWeight: "500" },
   inventory: { alignSelf: "stretch", textAlign: "center", color: colors.muted, fontSize: 10, lineHeight: 12, textTransform: "capitalize" },
   listRow: { minHeight: 92, flexDirection: "row", alignItems: "center", gap: 12, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth, borderRadius: 14, backgroundColor: colors.surface, paddingHorizontal: 12, paddingVertical: 10 },
