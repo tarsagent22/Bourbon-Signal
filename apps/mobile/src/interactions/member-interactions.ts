@@ -48,6 +48,24 @@ export function collectionSummary(bottles: MemberCollectionBottle[]) {
   };
 }
 
+export function collectionStatistics(bottles: MemberCollectionBottle[]) {
+  // One personal rating per saved entry, independent of physical inventory.
+  const rated = bottles.filter(bottle => bottle.isRated === true && Number.isFinite(bottle.rating) && bottle.rating >= 0 && bottle.rating <= 100);
+  const ownedRated = rated.filter(bottle => collectionDisplayKind(bottle) === "owned");
+  const highestRatedOwned = ownedRated.reduce<MemberCollectionBottle | null>((best, bottle) => !best || bottle.rating > best.rating ? bottle : best, null);
+  return {
+    ...collectionSummary(bottles),
+    sealedBottleCount: bottles.reduce((sum, bottle) => sum + quantity(bottle.sealedQuantity), 0),
+    openBottleCount: bottles.reduce((sum, bottle) => sum + quantity(bottle.openedQuantity), 0),
+    ratedCount: rated.length,
+    averageRating: rated.length ? rated.reduce((sum, bottle) => sum + bottle.rating, 0) / rated.length : null,
+    highestRatedOwned,
+    // Saved entries contain no distillery. Catalog producer is a conflated
+    // producer/distillery fallback, not evidence of a distillation facility.
+    distillery: { status: "unavailable" as const, knownBottleCount: 0, leaders: [] as string[] },
+  };
+}
+
 export function formatCollectionRating(bottle: Pick<MemberCollectionBottle, "rating" | "isRated">) {
   return bottle.isRated ? (bottle.rating / 10).toFixed(1) : "Unrated";
 }
