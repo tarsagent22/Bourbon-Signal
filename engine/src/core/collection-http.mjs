@@ -61,9 +61,10 @@ export async function fetchCollectionResponse(value, options = {}) {
   }
 }
 
-// The official NC warehouse table measured 8.49 MB in September 2026.
-// Review this exact endpoint separately; keep every other source at 8 MiB.
+// Reviewed official NC payloads: warehouse 8.49 MB; shipment extract 17.06 MB.
+// Keep every other source at 8 MiB and preserve caller-supplied tighter limits.
 function collectionBodyBudget(response) {
+  if (response.url === 'https://abc2.nc.gov/Search/StockShippedData') return 32 * 1024 * 1024;
   return response.url === 'https://abc2.nc.gov/StoresBoards/Stocks'
     ? 16 * 1024 * 1024
     : DEFAULT_COLLECTION_MAX_BYTES;
