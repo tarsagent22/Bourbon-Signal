@@ -4,6 +4,7 @@
   "private": true,
   "main": "expo-router/entry",
   "scripts": {
+    "test:ios-recovery": "node --test scripts/ios-recovery.test.cjs",
     "start": "expo start --dev-client",
     "android": "expo run:android",
     "ios": "expo run:ios",
