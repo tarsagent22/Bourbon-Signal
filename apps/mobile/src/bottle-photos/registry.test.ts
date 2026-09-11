@@ -19,8 +19,8 @@ test('all cumulative exact ID/name mappings and immutable images resolve', async
   const { parsePhotoRegistry, resolveBottlePhoto, photoUrl } = await load();
   const data = parsePhotoRegistry(registry());
   assert.ok(data);
-  assert.equal(data.entries.length, 89);
-  assert.equal(new Set(data.entries.map((r: any) => r.sha256)).size, 81);
+  assert.equal(data.entries.length, 233);
+  assert.equal(new Set(data.entries.map((r: any) => r.sha256)).size, 225);
   for (const row of data.entries) {
     for (const identity of [{ bottleId: row.catalogId }, { bottleName: row.displayName }, { bottleId: row.catalogId, bottleName: row.displayName }]) {
       assert.equal(resolveBottlePhoto(data, identity, catalog)?.sha256, row.sha256, JSON.stringify(identity));
@@ -45,7 +45,7 @@ test('no lossy key lookup, fuzzy name, generic age normalization, or stale ID/na
   const data = registry();
   for (const identity of [
     { canonicalKey: 'eagle rare' }, { canonicalKey: 'reserve russells year' },
-    { bottleName: 'Eagle Rare 10 Yr' }, { bottleName: 'Eagle Rare 12 Year' },
+    { bottleName: 'Eagle Rare 10 Yr' },
     { bottleId: 'eagle-rare-10', bottleName: 'Eagle Rare 17 Year' },
     { bottleId: 'eagle-rare-10', bottleName: 'Wild Turkey 101 Bourbon' },
     { bottleId: 'e-h-taylor-jr-barrel-proof-bourbon', bottleName: 'E.H. Taylor Small Batch' },
@@ -56,6 +56,7 @@ test('no lossy key lookup, fuzzy name, generic age normalization, or stale ID/na
     { bottleId: 'woodford-reserve', bottleName: 'Woodford Reserve Double Oaked' },
   ]) assert.equal(resolveBottlePhoto(data, identity, catalog), undefined, JSON.stringify(identity));
   assert.equal(resolveBottlePhoto(data, { bottleName: 'Eagle Rare 10Y' })?.catalogId, 'eagle-rare-10');
+  assert.equal(resolveBottlePhoto(data, { bottleName: 'Eagle Rare 12 Year' })?.catalogId, 'eagle-rare-12');
 });
 
 test('duplicate exact names only resolve when every matching approved product image agrees, including ID/name lookups', async () => {
