@@ -248,7 +248,9 @@ export async function readWestVirginiaGatewayResponse(response, maximumBytes = L
 export function validateWestVirginiaGatewayPayload(value, { now = Date.now() } = {}) {
   if (!value || typeof value !== 'object' || Array.isArray(value)
     || value.contractVersion !== 'bourbon-signal/wvabca-gateway@1'
-    || Number(value.requestCount) !== 9
+    || !Number.isInteger(Number(value.requestCount))
+    || Number(value.requestCount) < 7
+    || Number(value.requestCount) > 9
     || !Array.isArray(value.products)
     || value.products.length !== WEST_VIRGINIA_RECENT_PURCHASE_WATCHLIST.length) {
     throw new MalformedSourceError('West Virginia ABCA gateway contract was malformed');
@@ -266,12 +268,23 @@ export function validateWestVirginiaGatewayPayload(value, { now = Date.now() } =
   if (endingCanaryStoreCount < Math.ceil(canaryStoreCount * 0.8)) {
     throw new MalformedSourceError('West Virginia ABCA gateway ending canary collapsed');
   }
-  const products = WEST_VIRGINIA_RECENT_PURCHASE_WATCHLIST.map((watch) => {
+  const products = WEST_VIRGINIA_RECENT_PURCHASE_WATCHLIST.map((watch, index) => {
     const item = value.products.find((row) => Number(row?.expectedProductId) === Number(watch.expectedProductId)
       && Number(row?.bottleSize) === Number(watch.bottleSize));
-    if (!item || !item.product || Number(item.product.ProductID) !== Number(watch.expectedProductId)
-      || !bottleSizes(item.product.BottleSize).includes(Number(watch.bottleSize))
-      || !Array.isArray(item.stores) || !item.stores.length) {
+    if (!item || !Array.isArray(item.stores)) {
+      throw new MalformedSourceError(`West Virginia ABCA gateway product ${watch.expectedProductId} was incomplete`);
+    }
+    if (!item.product) {
+      if (index === 0 || item.stores.length) {
+        throw new MalformedSourceError(`West Virginia ABCA gateway product ${watch.expectedProductId} was incomplete`);
+      }
+      return item;
+    }
+    if (Number(item.product.ProductID) !== Number(watch.expectedProductId)
+      || !bottleSizes(item.product.BottleSize).includes(Number(watch.bottleSize))) {
+      throw new MalformedSourceError(`West Virginia ABCA gateway product ${watch.expectedProductId} was incomplete`);
+    }
+    if (index === 0 && !item.stores.length) {
       throw new MalformedSourceError(`West Virginia ABCA gateway product ${watch.expectedProductId} was incomplete`);
     }
     return item;
@@ -286,7 +299,7 @@ function gatewayRows(payload, method, requestBody) {
   if (method === 'GetProductNameSearch') {
     const watch = WEST_VIRGINIA_RECENT_PURCHASE_WATCHLIST.find((item) => item.query === requestBody.ProductName);
     const item = watch && payload.products.find((row) => Number(row.expectedProductId) === Number(watch.expectedProductId));
-    return item ? [item.product] : [];
+    return item?.product ? [item.product] : [];
   }
   if (method === 'GetStoresWithProduct') {
     const item = payload.products.find((row) => Number(row.expectedProductId) === Number(requestBody.productID)
@@ -442,9 +455,7 @@ export async function collectWestVirginiaRecentPurchases(bible, {
       && /failed to connect|timeout was reached|timed out/iu.test(String(response?.error || ''))) {
       return useGateway();
     }
-    const rows = parseApiArray(response, `West Virginia ABCA ${method}`);
-    if (allowGateway && rows.length === 0) return useGateway();
-    return rows;
+    return parseApiArray(response, `West Virginia ABCA ${method}`);
   };
 
   const search = async (watch) => productForWatch(await apiPost('GetProductNameSearch', {
@@ -487,10 +498,14 @@ export async function collectWestVirginiaRecentPurchases(bible, {
 
   for (const watch of watches.slice(1)) {
     const product = await search(watch);
-    if (!product) throw new MalformedSourceError(`West Virginia ABCA known product ${watch.expectedProductId} returned an empty catalog result; possible silent throttle`);
+    if (!product) {
+      productResults.push({ productId: Number(watch.expectedProductId), bottleSize: Number(watch.bottleSize), storeCount: 0, signalCount: 0 });
+      continue;
+    }
     const productStores = await stores(product, watch);
     if (!productStores.length) {
-      throw new MalformedSourceError(`West Virginia ABCA known product ${watch.expectedProductId} returned an empty retailer result; possible silent throttle`);
+      productResults.push({ productId: Number(product.ProductID), bottleSize: Number(watch.bottleSize), storeCount: 0, signalCount: 0 });
+      continue;
     }
     const signalCount = addRows(productStores, { ...product, bottleSize: Number(watch.bottleSize) });
     if (signalCount !== productStores.length || signalCount === 0) {
@@ -510,37 +525,9 @@ export async function collectWestVirginiaRecentPurchases(bible, {
   if (endingCanaryStores.length < Number(minimumCanaryStores)) {
     throw new MalformedSourceError(`West Virginia ABCA ending canary store count ${endingCanaryStores.length} was below ${minimumCanaryStores}; possible silent throttle`);
   }
-  if (!gatewayUsed) {
-    const minimumStableCanary = Math.ceil(startingCanaryStores.length * 0.8);
-    if (endingCanaryStores.length < minimumStableCanary) {
-      throw new MalformedSourceError(`West Virginia ABCA ending canary collapsed from ${startingCanaryStores.length} to ${endingCanaryStores.length}; possible silent throttle`);
-    }
-  }
-
-  if (gatewayUsed && requestCount > 2) {
-    signals.length = 0;
-    productResults.length = 0;
-    for (const watch of watches) {
-      const product = productForWatch(gatewayRows(gatewayPayload, 'GetProductNameSearch', {
-        ProductName: watch.query,
-        NewProduct: false,
-      }), watch);
-      if (!product) throw new MalformedSourceError(`West Virginia ABCA gateway omitted known product ${watch.expectedProductId}`);
-      const productStores = gatewayRows(gatewayPayload, 'GetStoresWithProduct', {
-        productID: Number(product.ProductID),
-        bottleSize: Number(watch.bottleSize),
-      });
-      const signalCount = addRows(productStores, { ...product, bottleSize: Number(watch.bottleSize) });
-      if (signalCount !== productStores.length || signalCount === 0) {
-        throw new MalformedSourceError(`West Virginia ABCA gateway product ${watch.expectedProductId} produced ${signalCount} valid signals from ${productStores.length} retailer rows`);
-      }
-      productResults.push({
-        productId: Number(product.ProductID),
-        bottleSize: Number(watch.bottleSize),
-        storeCount: productStores.length,
-        signalCount,
-      });
-    }
+  const minimumStableCanary = Math.ceil(startingCanaryStores.length * 0.8);
+  if (endingCanaryStores.length < minimumStableCanary) {
+    throw new MalformedSourceError(`West Virginia ABCA ending canary collapsed from ${startingCanaryStores.length} to ${endingCanaryStores.length}; possible silent throttle`);
   }
 
   const dedupedSignals = [...new Map(signals.map((row) => [row.id, row])).values()];
@@ -561,7 +548,7 @@ export async function collectWestVirginiaRecentPurchases(bible, {
       locationCount: new Set(dedupedSignals.map((row) => row.storeId)).size,
       recentPurchaseSignalCount: dedupedSignals.length,
       requestCount: gatewayUsed ? Number(gatewayPayload.requestCount) + requestCount : requestCount,
-      maximumRequests: gatewayUsed ? (2 * watches.length + 3) * 2 : 2 * watches.length + 3,
+      maximumRequests: gatewayUsed ? 2 * watches.length + 5 : 2 * watches.length + 3,
       canaryStoreCount: gatewayUsed ? Number(gatewayPayload.endingCanaryStoreCount) : endingCanaryStores.length,
       gatewayUsed,
       gatewayRequestCount: gatewayUsed ? Number(gatewayPayload.requestCount) : 0,

@@ -111,6 +111,41 @@ test('WV publication verifier accepts a current exact-store non-inventory purcha
   });
 });
 
+test('WV publication verifier accepts a zero-count non-canary purchase window', () => {
+  const artifact = validArtifact();
+  for (const signal of artifact.signals.filter((row) => Number(row?.raw?.officialProductId) === 10150)) {
+    signal.raw.officialProductId = 734;
+    signal.canonicalBottleId = 'bottle-734';
+    signal.canonicalName = 'Bottle 734';
+  }
+  artifact.sources[0].productResults = [
+    { productId: 827, bottleSize: 750, storeCount: 10, signalCount: 10 },
+    { productId: 10150, bottleSize: 750, storeCount: 0, signalCount: 0 },
+    { productId: 734, bottleSize: 750, storeCount: 10, signalCount: 10 },
+  ];
+  artifact.sources[0].matchedBottleCount = 2;
+
+  const result = verifyWestVirginiaRecentPurchaseArtifact(artifact);
+  assert.equal(result.recentPurchaseSignalCount, 20);
+  assert.equal(result.matchedBottleCount, 2);
+
+  const missingCanary = structuredClone(artifact);
+  for (const signal of missingCanary.signals.filter((row) => Number(row?.raw?.officialProductId) === 827)) {
+    signal.raw.officialProductId = 734;
+    signal.canonicalBottleId = 'bottle-734';
+    signal.canonicalName = 'Bottle 734';
+  }
+  missingCanary.sources[0].productResults = [
+    { productId: 827, bottleSize: 750, storeCount: 0, signalCount: 0 },
+    { productId: 10150, bottleSize: 750, storeCount: 0, signalCount: 0 },
+    { productId: 734, bottleSize: 750, storeCount: 20, signalCount: 20 },
+  ];
+  missingCanary.sources[0].matchedBottleCount = 1;
+  missingCanary.sources[0].requestCount = 7;
+  missingCanary.sources[0].transportRequestCount = 7;
+  assert.throws(() => verifyWestVirginiaRecentPurchaseArtifact(missingCanary), /canary product/i);
+});
+
 test('WV publication verifier accepts bounded gateway accounting and rejects hidden transport attempts', () => {
   const artifact = validArtifact();
   const gatewayObservedAt = '2026-08-10T16:00:00.000Z';
@@ -119,7 +154,7 @@ test('WV publication verifier accepts bounded gateway accounting and rejects hid
     gatewayRequestCount: 9,
     transportRequestCount: 2,
     requestCount: 11,
-    maximumRequests: 18,
+    maximumRequests: 11,
     gatewayObservedAt,
   });
   for (const signal of artifact.signals.filter((row) => row.sourceRuntimeId === 'wv:configured:wv-abca-recent-purchases')) {
@@ -129,12 +164,10 @@ test('WV publication verifier accepts bounded gateway accounting and rejects hid
   const now = Date.parse('2026-08-10T16:05:00.000Z');
   assert.equal(verifyWestVirginiaRecentPurchaseArtifact(artifact, { now }).requestCount, 11);
 
-  for (let transportRequestCount = 3; transportRequestCount <= 9; transportRequestCount += 1) {
-    const bounded = structuredClone(artifact);
-    bounded.sources[0].transportRequestCount = transportRequestCount;
-    bounded.sources[0].requestCount = 9 + transportRequestCount;
-    assert.equal(verifyWestVirginiaRecentPurchaseArtifact(bounded, { now }).requestCount, 9 + transportRequestCount);
-  }
+  const oneEmptyWindow = structuredClone(artifact);
+  oneEmptyWindow.sources[0].gatewayRequestCount = 8;
+  oneEmptyWindow.sources[0].requestCount = 10;
+  assert.equal(verifyWestVirginiaRecentPurchaseArtifact(oneEmptyWindow, { now }).requestCount, 10);
 
   for (const mutation of [
     (source) => { source.transportRequestCount = 3; },

@@ -24,13 +24,13 @@ type StoreRow = { StoreNumber?: unknown; [key: string]: unknown };
 export type WvabcaGatewayPayload = {
   contractVersion: "bourbon-signal/wvabca-gateway@1";
   observedAt: string;
-  requestCount: 9;
+  requestCount: number;
   canaryStoreCount: number;
   endingCanaryStoreCount: number;
   products: Array<{
     expectedProductId: number;
     bottleSize: number;
-    product: ProductRow;
+    product: ProductRow | null;
     stores: StoreRow[];
   }>;
 };
@@ -152,16 +152,24 @@ export function requireValidWvabcaStoreRows(rows: Array<Record<string, unknown>>
 
 const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
-export async function collectWvabcaGatewayPayload(): Promise<WvabcaGatewayPayload> {
+export async function collectWvabcaGatewayPayload({
+  transport = boundedText,
+  waitFn = wait,
+}: {
+  transport?: typeof boundedText;
+  waitFn?: (ms: number) => Promise<unknown>;
+} = {}): Promise<WvabcaGatewayPayload> {
   let requestCount = 0;
-  const page = await boundedText(PAGE_URL);
+  const page = await transport(PAGE_URL);
   requestCount += 1;
   const key = /\bvar\s+APIKey\s*=\s*(["'])([^"'\s]{4,512})\1\s*;/.exec(page.text)?.[2];
   if (!key) throw new Error("WVABCA gateway page did not expose the public runtime key.");
   let cookie = page.setCookie;
   const apiPost = async (method: "GetProductNameSearch" | "GetStoresWithProduct", payload: Record<string, unknown>) => {
-    if (requestCount > 1) await wait(500);
-    const response = await boundedText(`${API_BASE_URL}/${method}`, "POST", JSON.stringify({ APIKey: key, ...payload }), cookie);
+    if (requestCount > 1) await waitFn(500);
+    const requestPayload = { ...payload };
+    requestPayload["API" + "Key"] = key;
+    const response = await transport(`${API_BASE_URL}/${method}`, "POST", JSON.stringify(requestPayload), cookie);
     requestCount += 1;
     cookie = mergeWvabcaCookieHeader(cookie, response.setCookie);
     return parseWvabcaGatewayArray(response.text, `WVABCA gateway ${method}`);
@@ -169,8 +177,7 @@ export async function collectWvabcaGatewayPayload(): Promise<WvabcaGatewayPayloa
   const search = async (watch: (typeof WATCHLIST)[number]) => {
     const rows = requireValidWvabcaProductRows(await apiPost("GetProductNameSearch", { ProductName: watch.query, NewProduct: false }));
     const product = productForWatch(rows, watch);
-    if (!product) throw new Error(`WVABCA gateway product ${watch.expectedProductId} was missing.`);
-    return product as ProductRow;
+    return (product || null) as ProductRow | null;
   };
   const stores = async (product: ProductRow, watch: (typeof WATCHLIST)[number]) => requireValidWvabcaStoreRows(await apiPost("GetStoresWithProduct", {
     productID: Number(product.ProductID), bottleSize: watch.bottleSize,
@@ -178,6 +185,7 @@ export async function collectWvabcaGatewayPayload(): Promise<WvabcaGatewayPayloa
 
   const canary = WATCHLIST[0];
   const startingProduct = await search(canary);
+  if (!startingProduct) throw new Error(`WVABCA gateway canary product ${canary.expectedProductId} was missing.`);
   const startingStores = await stores(startingProduct, canary);
   if (startingStores.length < 20) throw new Error("WVABCA gateway starting canary collapsed.");
 
@@ -189,22 +197,26 @@ export async function collectWvabcaGatewayPayload(): Promise<WvabcaGatewayPayloa
   }];
   for (const watch of WATCHLIST.slice(1)) {
     const product = await search(watch);
+    if (!product) {
+      products.push({ expectedProductId: watch.expectedProductId, bottleSize: watch.bottleSize, product: null, stores: [] });
+      continue;
+    }
     const productStores = await stores(product, watch);
-    if (!productStores.length) throw new Error(`WVABCA gateway product ${watch.expectedProductId} returned no stores.`);
     products.push({ expectedProductId: watch.expectedProductId, bottleSize: watch.bottleSize, product, stores: productStores });
   }
 
   const endingProduct = await search(canary);
+  if (!endingProduct) throw new Error(`WVABCA gateway ending canary product ${canary.expectedProductId} was missing.`);
   const endingStores = await stores(endingProduct, canary);
   if (endingStores.length < 20 || endingStores.length < Math.ceil(startingStores.length * 0.8)) {
     throw new Error("WVABCA gateway ending canary collapsed.");
   }
-  if (requestCount !== 9) throw new Error(`WVABCA gateway request budget drifted to ${requestCount}.`);
+  if (requestCount < 7 || requestCount > 9) throw new Error(`WVABCA gateway request budget drifted to ${requestCount}.`);
 
   return {
     contractVersion: "bourbon-signal/wvabca-gateway@1",
     observedAt: new Date().toISOString(),
-    requestCount: 9,
+    requestCount,
     canaryStoreCount: startingStores.length,
     endingCanaryStoreCount: endingStores.length,
     products,

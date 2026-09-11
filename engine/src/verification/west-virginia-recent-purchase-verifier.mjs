@@ -4,7 +4,7 @@ const MINIMUM_PURCHASE_SIGNALS = 20;
 const MINIMUM_PURCHASE_STORES = 20;
 const MINIMUM_CANARY_STORES = 20;
 const MAXIMUM_DIRECT_REQUESTS = 9;
-const MAXIMUM_GATEWAY_REQUESTS = 18;
+const MAXIMUM_GATEWAY_REQUESTS = 11;
 const MAXIMUM_GATEWAY_AGE_MS = 20 * 60_000;
 const EXPECTED_PRODUCTS = new Set([827, 10150, 734]);
 const DIRECTORY_STORE_COUNT = 180;
@@ -69,14 +69,14 @@ export function verifyWestVirginiaRecentPurchaseArtifact(state, { now = Date.now
   invariant(Number(source.requestCount) <= maximumRequests, 'source request budget exceeded.');
   invariant(Number(source.maximumRequests) === maximumRequests, 'source maximum request contract drifted.');
   if (source.gatewayUsed === true) {
-    invariant(Number(source.gatewayRequestCount) === MAXIMUM_DIRECT_REQUESTS, 'gateway request count drifted.');
-    invariant(Number(source.transportRequestCount) >= 2 && Number(source.transportRequestCount) <= MAXIMUM_DIRECT_REQUESTS, 'pre-gateway transport request count drifted.');
+    invariant(Number(source.gatewayRequestCount) >= 7 && Number(source.gatewayRequestCount) <= MAXIMUM_DIRECT_REQUESTS, 'gateway request count drifted.');
+    invariant(Number(source.transportRequestCount) === 2, 'pre-gateway transport request count drifted.');
     invariant(Number(source.requestCount) === Number(source.gatewayRequestCount) + Number(source.transportRequestCount), 'gateway request accounting is incomplete.');
   } else {
     invariant(source.gatewayUsed === false, 'direct transport mode was not declared.');
-    invariant(Number(source.requestCount) === MAXIMUM_DIRECT_REQUESTS, 'direct request count drifted.');
+    invariant(Number(source.requestCount) >= 7 && Number(source.requestCount) <= MAXIMUM_DIRECT_REQUESTS, 'direct request count drifted.');
     invariant(Number(source.gatewayRequestCount) === 0, 'direct mode reported gateway requests.');
-    invariant(Number(source.transportRequestCount) === MAXIMUM_DIRECT_REQUESTS, 'direct transport request count drifted.');
+    invariant(Number(source.transportRequestCount) === Number(source.requestCount), 'direct transport request count drifted.');
   }
   invariant(Number(source.canaryStoreCount) >= MINIMUM_CANARY_STORES, 'source canary store count collapsed.');
   invariant(source.purchaseWindowDays === 90, 'source purchase window drifted.');
@@ -97,16 +97,20 @@ export function verifyWestVirginiaRecentPurchaseArtifact(state, { now = Date.now
   invariant(productResults.length === EXPECTED_PRODUCTS.size, 'watched product result count drifted.');
   for (const productId of EXPECTED_PRODUCTS) {
     const result = productResults.find((row) => Number(row?.productId) === productId && Number(row?.bottleSize) === 750);
-    invariant(result && Number(result.storeCount) > 0 && Number(result.signalCount) === Number(result.storeCount), `watched product ${productId} is empty or partially rejected.`);
+    invariant(result && Number(result.storeCount) >= 0 && Number(result.signalCount) === Number(result.storeCount), `watched product ${productId} is missing or partially rejected.`);
     const artifactCount = signals.filter((signal) => Number(signal?.raw?.officialProductId) === productId).length;
     invariant(artifactCount === Number(result.signalCount), `watched product ${productId} signal count does not match the artifact.`);
   }
+  const canaryProduct = productResults.find((row) => Number(row?.productId) === 827 && Number(row?.bottleSize) === 750);
+  invariant(Number(canaryProduct?.storeCount) > 0
+    && Number(canaryProduct?.signalCount) === Number(canaryProduct?.storeCount), 'canary product is empty or partially rejected.');
   invariant(productResults.reduce((sum, row) => sum + Number(row?.signalCount || 0), 0) === signals.length, 'watched product totals do not match the artifact.');
 
   const stores = new Set(signals.map((signal) => signal.storeId));
   const bottles = new Set(signals.map((signal) => signal.canonicalBottleId));
   invariant(stores.size >= MINIMUM_PURCHASE_STORES, `only ${stores.size} recent-purchase stores were produced.`);
-  invariant(bottles.size === EXPECTED_PRODUCTS.size, 'artifact does not contain every watched bottle identity.');
+  const nonemptyProductCount = productResults.filter((row) => Number(row.signalCount) > 0).length;
+  invariant(bottles.size === nonemptyProductCount, 'artifact bottle identities do not match nonempty watched products.');
   invariant(Number(source.recentPurchaseSignalCount) === signals.length, 'source signal count does not match the artifact.');
   invariant(Number(source.locationCount) === stores.size, 'source location count does not match the artifact.');
   invariant(Number(source.matchedBottleCount) === bottles.size, 'source bottle count does not match the artifact.');

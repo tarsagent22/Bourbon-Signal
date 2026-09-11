@@ -4,6 +4,7 @@ import test from "node:test";
 
 import {
   authorizeWvabcaGateway,
+  collectWvabcaGatewayPayload,
   mergeWvabcaCookieHeader,
   parseWvabcaGatewayArray,
   requireValidWvabcaProductRows,
@@ -77,6 +78,42 @@ test("WVABCA gateway rejects the entire catalog response when one product identi
   ]) {
     assert.throws(() => requireValidWvabcaProductRows(rows), /product identity/i);
   }
+});
+
+test("WVABCA gateway represents an empty non-canary purchase window without a store request", async () => {
+  const product = (ProductID: number, ProductName: string) => ({ ProductID, ProductName, BottleSize: "750" });
+  const stores = (ProductID: number, ProductName: string, count: number) => Array.from({ length: count }, (_, index) => ({
+    StoreNumber: ProductID * 100 + index,
+    ProductID,
+    BottleSize: 750,
+    StoreName: `Store ${index}`,
+    StreetAddress1: `${index + 1} Main St`,
+    City: "Charleston,WV",
+    ProductName,
+  }));
+  const buffalo = product(827, "Buffalo Trace Kentucky Straight Bourbon Whiskey");
+  const bookers = product(734, "Booker's Bourbon");
+  const responses = [
+    { status: 200, text: '<script>var APIKey = "public-key";</script>', setCookie: "session=one" },
+    { status: 200, text: JSON.stringify([buffalo]), setCookie: "" },
+    { status: 200, text: JSON.stringify(stores(827, String(buffalo.ProductName), 25)), setCookie: "" },
+    { status: 200, text: "[]", setCookie: "" },
+    { status: 200, text: JSON.stringify([bookers]), setCookie: "" },
+    { status: 200, text: JSON.stringify(stores(734, String(bookers.ProductName), 20)), setCookie: "" },
+    { status: 200, text: JSON.stringify([buffalo]), setCookie: "" },
+    { status: 200, text: JSON.stringify(stores(827, String(buffalo.ProductName), 25)), setCookie: "" },
+  ];
+  let calls = 0;
+  const payload = await collectWvabcaGatewayPayload({
+    transport: async () => responses[calls++],
+    waitFn: async () => {},
+  });
+
+  assert.equal(calls, 8);
+  assert.equal(payload.requestCount, 8);
+  assert.equal(payload.products[1].expectedProductId, 10150);
+  assert.equal(payload.products[1].product, null);
+  assert.deepEqual(payload.products[1].stores, []);
 });
 
 test("WVABCA gateway cancels oversized streamed responses before full buffering", async () => {
