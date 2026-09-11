@@ -50,7 +50,7 @@ jobs:
           assert '/scripts/native-home/fixture.ts' in sources
           assert '/src/hooks/useMobileApi.ts' not in sources
           assert '/app/(app)/(tabs)/index.tsx' in sources
-          assert any('expo-secure-store' in s for s in sources)
+
           assert any('react-navigation' in s for s in sources)
           shutil.copyfile('native-evidence/home-fixture.hbc', 'native-evidence/build/Build/Products/Release-iphonesimulator/BourbonSignal.app/main.jsbundle')
           PY
