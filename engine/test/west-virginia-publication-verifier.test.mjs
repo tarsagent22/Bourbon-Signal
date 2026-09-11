@@ -24,6 +24,10 @@ function purchaseSignal(index, overrides = {}) {
     quantityIsExact: false,
     canAlertAsInventory: false,
     canAlertAsWatch: false,
+    alertable: false,
+    observedAt: '2026-08-10T16:00:00.000Z',
+    fetchedAt: '2026-08-10T16:00:00.000Z',
+    stale: false,
     raw: {
       officialStoreNumber: 500 + index,
       officialProductId: 827,
@@ -115,12 +119,22 @@ test('WV publication verifier accepts bounded gateway accounting and rejects hid
     gatewayRequestCount: 9,
     transportRequestCount: 2,
     requestCount: 11,
-    maximumRequests: 11,
+    maximumRequests: 18,
     gatewayObservedAt,
   });
-  for (const signal of artifact.signals.filter((row) => row.sourceRuntimeId === 'wv:configured:wv-abca-recent-purchases')) signal.observedAt = gatewayObservedAt;
+  for (const signal of artifact.signals.filter((row) => row.sourceRuntimeId === 'wv:configured:wv-abca-recent-purchases')) {
+    signal.observedAt = gatewayObservedAt;
+    signal.fetchedAt = gatewayObservedAt;
+  }
   const now = Date.parse('2026-08-10T16:05:00.000Z');
   assert.equal(verifyWestVirginiaRecentPurchaseArtifact(artifact, { now }).requestCount, 11);
+
+  for (let transportRequestCount = 3; transportRequestCount <= 9; transportRequestCount += 1) {
+    const bounded = structuredClone(artifact);
+    bounded.sources[0].transportRequestCount = transportRequestCount;
+    bounded.sources[0].requestCount = 9 + transportRequestCount;
+    assert.equal(verifyWestVirginiaRecentPurchaseArtifact(bounded, { now }).requestCount, 9 + transportRequestCount);
+  }
 
   for (const mutation of [
     (source) => { source.transportRequestCount = 3; },
@@ -175,6 +189,12 @@ test('WV publication verifier rejects any live-inventory, quantity, alert, or pr
     (signal) => { signal.quantityIsExact = true; },
     (signal) => { signal.canAlertAsInventory = true; },
     (signal) => { signal.canAlertAsWatch = true; },
+    (signal) => { signal.alertable = true; },
+    (signal) => { signal.eligibleForDelivery = true; },
+    (signal) => { signal.eligibleForEmail = true; },
+    (signal) => { signal.eligibleForSms = true; },
+    (signal) => { signal.stale = true; },
+    (signal) => { signal.fetchedAt = '2026-08-09T16:00:00.000Z'; },
     (signal) => { signal.premisesVerified = false; },
     (signal) => { signal.raw.noLiveInventory = false; },
   ]) {

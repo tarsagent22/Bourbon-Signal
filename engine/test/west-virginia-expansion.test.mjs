@@ -386,7 +386,7 @@ test('WV recent-purchase collector uses a fresh fixed gateway after a direct API
   assert.ok(result.signals.every((signal) => signal.observedAt === gatewayObservedAt));
   assert.equal(result.sourceReport.gatewayUsed, true);
   assert.equal(result.sourceReport.requestCount, 11);
-  assert.equal(result.sourceReport.maximumRequests, 11);
+  assert.equal(result.sourceReport.maximumRequests, 18);
   assert.equal(result.sourceReport.gatewayRequestCount, 9);
   assert.equal(result.sourceReport.canaryStoreCount, 20);
   assert.equal(result.sourceReport.transportRequestCount, 2);
@@ -403,6 +403,68 @@ test('WV recent-purchase collector uses a fresh fixed gateway after a direct API
     () => validateWestVirginiaGatewayPayload({ ...gatewayPayload, observedAt: '2026-08-10T15:00:00.000Z' }, { now: Date.parse('2026-08-10T16:05:00.000Z') }),
     /stale/i,
   );
+});
+
+test('WV recent-purchase collector uses the fixed gateway after an HTTP 200 silent throttle', async () => {
+  const gatewayObservedAt = new Date().toISOString();
+  const products = WEST_VIRGINIA_RECENT_PURCHASE_WATCHLIST.map((watch, productIndex) => ({
+    expectedProductId: watch.expectedProductId,
+    bottleSize: watch.bottleSize,
+    product: { ProductID: watch.expectedProductId, ProductName: watch.query, BottleSize: String(watch.bottleSize) },
+    stores: Array.from({ length: productIndex === 0 ? 25 : 20 }, (_, index) => ({
+      StoreNumber: 2_000 + productIndex * 100 + index,
+      StoreName: `Silent Throttle Store ${productIndex}-${index}`,
+      StreetAddress1: `${index + 1} Capitol St`,
+      City: 'Charleston,WV',
+      PhoneNumber: '304-555-0100',
+      ProductID: watch.expectedProductId,
+      BottleSize: watch.bottleSize,
+      ProductName: watch.query,
+    })),
+  }));
+  const gatewayPayload = {
+    contractVersion: 'bourbon-signal/wvabca-gateway@1',
+    observedAt: gatewayObservedAt,
+    requestCount: 9,
+    canaryStoreCount: 25,
+    endingCanaryStoreCount: 20,
+    products,
+  };
+  const directCanaryStores = Array.from({ length: 50 }, (_, index) => ({
+    ...products[0].stores[index % products[0].stores.length],
+    StoreNumber: 3_000 + index,
+    StoreName: `Direct Canary Store ${index}`,
+  }));
+  let directCalls = 0;
+  const result = await collectWestVirginiaRecentPurchases({
+    scanText: (text) => [{ id: `bottle-${text}`, canonical: text }],
+  }, {
+    observedAt: '2026-08-10T16:05:00.000Z',
+    sleep: async () => {},
+    allowGateway: true,
+    request: async (url, options = {}) => {
+      directCalls += 1;
+      if (url === 'https://www.wvabca.com/liquorsearch.aspx') return { ok: true, status: 200, text: liquorSearchHtml };
+      const body = JSON.parse(options.body);
+      if (url.endsWith('/GetProductNameSearch')) {
+        if (body.ProductName === WEST_VIRGINIA_RECENT_PURCHASE_WATCHLIST[1].query) return { ok: true, status: 200, text: '[]' };
+        return { ok: true, status: 200, text: JSON.stringify([products[0].product]) };
+      }
+      if (url.endsWith('/GetStoresWithProduct')) return { ok: true, status: 200, text: JSON.stringify(directCanaryStores) };
+      throw new Error(`Unexpected URL ${url}`);
+    },
+    gatewayRequest: async () => gatewayPayload,
+  });
+
+  assert.equal(directCalls, 4);
+  assert.equal(result.signals.length, 65);
+  assert.ok(result.signals.every((signal) => signal.observedAt === gatewayObservedAt));
+  assert.equal(result.sourceReport.gatewayUsed, true);
+  assert.equal(result.sourceReport.requestCount, 13);
+  assert.equal(result.sourceReport.maximumRequests, 18);
+  assert.equal(result.sourceReport.gatewayRequestCount, 9);
+  assert.equal(result.sourceReport.transportRequestCount, 4);
+  assert.ok(result.signals.every((signal) => signal.canAlertAsInventory === false && signal.canAlertAsWatch === false));
 });
 
 test('WV recent-purchase collector preserves sanitized curl failure detail', async () => {

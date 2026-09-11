@@ -4,7 +4,7 @@ const MINIMUM_PURCHASE_SIGNALS = 20;
 const MINIMUM_PURCHASE_STORES = 20;
 const MINIMUM_CANARY_STORES = 20;
 const MAXIMUM_DIRECT_REQUESTS = 9;
-const MAXIMUM_GATEWAY_REQUESTS = 11;
+const MAXIMUM_GATEWAY_REQUESTS = 18;
 const MAXIMUM_GATEWAY_AGE_MS = 20 * 60_000;
 const EXPECTED_PRODUCTS = new Set([827, 10150, 734]);
 const DIRECTORY_STORE_COUNT = 180;
@@ -37,6 +37,12 @@ function validPurchaseSignal(signal) {
     && signal.quantityIsExact === false
     && signal.canAlertAsInventory === false
     && signal.canAlertAsWatch === false
+    && signal.alertable !== true
+    && signal.eligibleForDelivery !== true
+    && signal.eligibleForEmail !== true
+    && signal.eligibleForSms !== true
+    && signal.stale === false
+    && signal.fetchedAt === signal.observedAt
     && signal.raw?.officialStoreNumber === Number(signal.storeNumber)
     && Number.isInteger(Number(signal.raw?.officialProductId))
     && Number(signal.raw?.officialBottleSizeMl) === 750
@@ -64,7 +70,7 @@ export function verifyWestVirginiaRecentPurchaseArtifact(state, { now = Date.now
   invariant(Number(source.maximumRequests) === maximumRequests, 'source maximum request contract drifted.');
   if (source.gatewayUsed === true) {
     invariant(Number(source.gatewayRequestCount) === MAXIMUM_DIRECT_REQUESTS, 'gateway request count drifted.');
-    invariant(Number(source.transportRequestCount) === 2, 'pre-gateway transport request count drifted.');
+    invariant(Number(source.transportRequestCount) >= 2 && Number(source.transportRequestCount) <= MAXIMUM_DIRECT_REQUESTS, 'pre-gateway transport request count drifted.');
     invariant(Number(source.requestCount) === Number(source.gatewayRequestCount) + Number(source.transportRequestCount), 'gateway request accounting is incomplete.');
   } else {
     invariant(source.gatewayUsed === false, 'direct transport mode was not declared.');
