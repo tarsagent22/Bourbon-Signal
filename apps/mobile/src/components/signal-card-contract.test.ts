@@ -20,7 +20,7 @@ test("Signal cards use an editorial rarity-time-title hierarchy without the lega
   assert.match(styleBlock("price"), /fontSize: 13/);
 });
 
-test("Signal cards use compact borderless rows with inline price and reported quantity", () => {
+test("Signal cards use compact tinted cards with inline price and reported quantity", () => {
   assert.match(card, /name="storefront-outline"/);
   assert.match(card, /name="map-marker-outline"/);
   assert.match(card, /styles\.factsRow/);
@@ -30,7 +30,13 @@ test("Signal cards use compact borderless rows with inline price and reported qu
   assert.match(styleBlock("card"), /gap: 5/);
   assert.ok(card.indexOf('styles.details') < card.indexOf('styles.factsRow'), 'store/location precede compact hunting footer');
   assert.match(card, /styles\.factsRow[\s\S]*styles\.statusRow[\s\S]*styles\.metricText/);
-  assert.doesNotMatch(styleBlock("card"), /borderWidth|borderRadius|backgroundColor/);
+  assert.match(styleBlock("card"), /backgroundColor: "rgba\(14, 12, 10, 0\.42\)"/);
+  assert.match(styleBlock("card"), /borderWidth: StyleSheet\.hairlineWidth/);
+  assert.match(styleBlock("card"), /borderRadius: 10/);
+  assert.match(styleBlock("card"), /paddingHorizontal: 10/);
+  const feed = readFileSync(resolve(process.cwd(), "app/(app)/(tabs)/index.tsx"), "utf8");
+  assert.match(feed, /ItemSeparatorComponent=/);
+  assert.match(feed, /separator: \{ height: 6 \}/);
   assert.match(styleBlock("bottle"), /fontSize: 18/);
   assert.doesNotMatch(card, /signalCardSummary|styles\.note/);
   assert.doesNotMatch(card, /"Available now"/);

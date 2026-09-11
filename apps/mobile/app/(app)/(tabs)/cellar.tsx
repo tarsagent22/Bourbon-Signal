@@ -666,7 +666,7 @@ function BottleEditor({ bottle, busy, onClose, onDelete, onInventoryAction, onSa
     if (!saved) setSaveError("These details were not saved. Review the message and try again.");
   }
 
-  return <Modal allowSwipeDismissal={!dirty && !busy} animationType="slide" onRequestClose={requestClose} presentationStyle="pageSheet" visible={Boolean(bottle)}>
+  return <Modal allowSwipeDismissal={!dirty && !busy && !ratingDragging} animationType="slide" onRequestClose={requestClose} presentationStyle="pageSheet" visible={Boolean(bottle)}>
     <SafeAreaView edges={["top", "bottom"]} style={styles.modalFrame}>
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.modalFrame}>
         <ScrollView scrollEnabled={!ratingDragging} contentContainerStyle={styles.editor} keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"} keyboardShouldPersistTaps="handled">
