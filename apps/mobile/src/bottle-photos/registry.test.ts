@@ -15,12 +15,12 @@ test('shared photo registry contract exists', async () => {
   assert.equal(typeof api?.resolveBottlePhoto, 'function', 'missing exact photo registry resolver');
 });
 
-test('all 50 exact ID/name mappings and 45 immutable images resolve', async () => {
+test('all cumulative exact ID/name mappings and immutable images resolve', async () => {
   const { parsePhotoRegistry, resolveBottlePhoto, photoUrl } = await load();
   const data = parsePhotoRegistry(registry());
   assert.ok(data);
-  assert.equal(data.entries.length, 50);
-  assert.equal(new Set(data.entries.map((r: any) => r.sha256)).size, 45);
+  assert.equal(data.entries.length, 89);
+  assert.equal(new Set(data.entries.map((r: any) => r.sha256)).size, 81);
   for (const row of data.entries) {
     for (const identity of [{ bottleId: row.catalogId }, { bottleName: row.displayName }, { bottleId: row.catalogId, bottleName: row.displayName }]) {
       assert.equal(resolveBottlePhoto(data, identity, catalog)?.sha256, row.sha256, JSON.stringify(identity));
@@ -29,9 +29,9 @@ test('all 50 exact ID/name mappings and 45 immutable images resolve', async () =
   }
 });
 
-test('actual 17 saved identities: exact names support hashed IDs; three absent editions fall back', async () => {
+test('actual 17 saved identities: exact Russell wave02 match resolves; unapproved Taylor and non-exact Jack spelling fall back', async () => {
   const { resolveBottlePhoto } = await load();
-  const absent = new Set(['e-h-taylor-jr-barrel-proof-bourbon', 'bible-russells-reserve-single-barrel', 'bb_7a177344b1290314']);
+  const absent = new Set(['e-h-taylor-jr-barrel-proof-bourbon', 'bb_7a177344b1290314']);
   assert.equal(fixtures().length, 17);
   for (const row of fixtures()) {
     const result = resolveBottlePhoto(registry(), { bottleId: row.bottle_id, bottleName: row.bottle_name, canonicalKey: row.canonical_key }, catalog);

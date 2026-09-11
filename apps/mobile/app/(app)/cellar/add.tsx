@@ -79,6 +79,7 @@ export default function AddCellarBottleScreen() {
   const [tastingContext, setTastingContext] = useState<MemberCollectionBottle["tastingContext"]>("bar");
   const [isRated, setIsRated] = useState(false);
   const [rating, setRating] = useState(0);
+  const [ratingDragging, setRatingDragging] = useState(false);
   const [tasteTags, setTasteTags] = useState<string[]>([]);
   const [showMoreCues, setShowMoreCues] = useState(false);
   const [notes, setNotes] = useState("");
@@ -265,7 +266,7 @@ export default function AddCellarBottleScreen() {
 
   return <SafeAreaView edges={["bottom"]} style={styles.screen}>
     <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.screen}>
-      <ScrollView contentContainerStyle={styles.content} keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"} keyboardShouldPersistTaps="handled">
+      <ScrollView scrollEnabled={!ratingDragging} contentContainerStyle={styles.content} keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"} keyboardShouldPersistTaps="handled">
         <Text style={styles.eyebrow}>MY SHELF</Text>
         <Text accessibilityRole="header" style={styles.title}>Add to My Shelf</Text>
         <Text style={styles.description}>Find a whiskey, then add a bottle or save a rating.</Text>
@@ -331,7 +332,7 @@ export default function AddCellarBottleScreen() {
 
             {ratingEnabled ? <View style={styles.ratingSection}>
               <Text style={styles.sectionTitle}>My rating</Text>
-              <ScoreSlider onChange={setRating} onInteractionStart={Keyboard.dismiss} value={rating} />
+              <ScoreSlider onChange={setRating} onDraggingChange={setRatingDragging} onInteractionStart={Keyboard.dismiss} value={rating} />
               <Field label="Quick cues"><View style={styles.toggles}>{cues.map((tag) => <Toggle key={tag} active={tasteTags.includes(tag)} label={tag} onPress={() => setTasteTags((current) => current.includes(tag) ? current.filter((item) => item !== tag) : [...current, tag])} />)}</View></Field>
               {!showMoreCues ? <Pressable accessibilityRole="button" onPress={() => setShowMoreCues(true)} style={styles.target}><Text style={styles.action}>More cues</Text></Pressable> : null}
               <Field label="Notes (optional)"><TextInput accessibilityLabel="Tasting notes" multiline onChangeText={setNotes} placeholder="What stood out?" placeholderTextColor={colors.muted} style={[styles.input, styles.notes]} value={notes} /></Field>
