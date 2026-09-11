@@ -22,6 +22,7 @@ test('secure locked plist parser handles Expo generated XML', () => {
 });
 test('native startup verifier bounds simulator boot waits', () => {
   const verifier = fs.readFileSync('scripts/verify-ios-startup.py', 'utf8');
+  assert.match(verifier, /def run\(\*args, check=True, timeout=120\):/);
   assert.match(verifier, /bootstatus[\s\S]*timeout=120/);
   assert.match(verifier, /subprocess\.TimeoutExpired/);
 });

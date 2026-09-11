@@ -8,7 +8,7 @@ import subprocess
 import time
 
 
-def run(*args, check=True, timeout=None):
+def run(*args, check=True, timeout=120):
     return subprocess.run(args, check=check, text=True, capture_output=True, timeout=timeout)
 
 
