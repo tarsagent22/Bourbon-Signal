@@ -1291,6 +1291,17 @@ function coverageSummary(boards) {
   return { boardCount: list.length, withWebsite, withTrackedShipments, withReleasePages, withInventoryPages, noWebsiteYet: list.filter((b) => !b.website).map((b) => b.boardName).slice(0, 50) };
 }
 
+export function ncPrecisionResult(signals, roadblocks) {
+  return {
+    signals,
+    roadblocks,
+    // This combines changing shipment extracts with bounded store searches and
+    // board-page probes, not a census. Preserve fresh positives through the
+    // existing state partial-continuity guard; missing identities remain stale.
+    metadata: { complete: false, scope: 'nc_bounded_official_observations' },
+  };
+}
+
 export async function collectNorthCarolinaIntelligence(config, bible, collectStoreInventoryFn, options = {}) {
   return withCollectionContext(options, () => collectNorthCarolinaIntelligenceDirect(config, bible, collectStoreInventoryFn));
 }
@@ -1344,5 +1355,5 @@ async function collectNorthCarolinaIntelligenceDirect(config, bible, collectStor
 
   const seen = new Map();
   for (const signal of signals) seen.set(signal.id, signal);
-  return { signals: [...seen.values()], roadblocks };
+  return ncPrecisionResult([...seen.values()], roadblocks);
 }
