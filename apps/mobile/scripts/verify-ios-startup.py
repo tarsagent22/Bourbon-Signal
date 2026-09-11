@@ -8,8 +8,8 @@ import subprocess
 import time
 
 
-def run(*args, check=True):
-    return subprocess.run(args, check=check, text=True, capture_output=True)
+def run(*args, check=True, timeout=None):
+    return subprocess.run(args, check=check, text=True, capture_output=True, timeout=timeout)
 
 
 def main():
@@ -26,7 +26,11 @@ def main():
     device = candidates[-1]
     udid = device['udid']
     run('xcrun', 'simctl', 'boot', udid, check=False)
-    run('xcrun', 'simctl', 'bootstatus', udid, '-b')
+    try:
+        run('xcrun', 'simctl', 'bootstatus', udid, '-b', timeout=120)
+    except subprocess.TimeoutExpired as error:
+        run('xcrun', 'simctl', 'shutdown', udid, check=False)
+        raise RuntimeError('Simulator did not finish booting within 120 seconds') from error
     app = base / 'build/Build/Products/Release-iphonesimulator/BourbonSignal.app'
     if not app.exists():
         raise RuntimeError('Compiled Release app is absent')
