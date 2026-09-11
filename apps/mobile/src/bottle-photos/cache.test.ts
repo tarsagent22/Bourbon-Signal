@@ -28,7 +28,7 @@ test('no eager fetch; 50 parallel cards and later mounts make one public metadat
   assert.equal(calls, 0);
   const results = await Promise.all(Array.from({ length: 50 }, () => cache.load()));
   assert.equal(calls, 1);
-  assert.equal(results[0].entries.length, 50);
+  assert.equal(results[0].entries.length, data().entries.length);
   assert.ok(results.every(value => value === results[0]));
   assert.equal(await cache.load(), results[0]);
   assert.deepEqual(JSON.parse(storage.value()!), data());

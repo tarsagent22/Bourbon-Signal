@@ -7,7 +7,7 @@ This is an additive public catalog presentation path, not collection data or a s
 - `apps/mobile/src/bottle-photos/registry.ts`: shared, dependency-free exact resolver/schema used by native and `src/lib/bottle-photos.ts`.
 - Catalog objects and `/api/bottle-catalog` expose optional `photo`; native independently demand-fetches the small public registry, not the whole catalog or an OTA-bundled photo map.
 
-FIRST50 contains 50 reviewed catalog records and 45 image hashes. It is not the full catalog. Images are sourced product assets, not guaranteed camera photography. Existing six pilot PNG bytes, fit/sizing, Glencairn and shelf styles are unchanged.
+FIRST50 contains 50 reviewed catalog records and 45 image hashes. The additive wave02 batch contains 39 more exact catalog IDs and 36 additional image hashes; 11 of its 50 researched candidates were excluded for unresolved age/proof or composition conflicts. It is not the full catalog. The first50 approvals remain frozen, with cumulative publication verified separately. Images are sourced product assets, not guaranteed camera photography. Existing six pilot PNG bytes, fit/sizing, Glencairn and shelf styles are unchanged.
 
 ## Identity
 
@@ -15,7 +15,7 @@ Only exact catalog IDs or reviewed exact display names select photos. Name compa
 
 A present name must agree with a known ID. The optional known-catalog argument rejects known unrepresented editions too. Mobile supplies its existing seed (exact ID/name only), including the explicit legacy `bible-` namespace. Unknown saved hashed IDs can resolve by reviewed name; an opaque unknown ID alone cannot prove or contradict an edition. Lossy server canonical keys never select a registry photo. Multiple exact names can share a reviewed image; conflicting hashes for the same name are rejected at staging and suppressed at runtime.
 
-The sanitized 17-record regression fixture is test-only, never public registry/account metadata. Three unrepresented editions deliberately fall back: E.H. Taylor Jr. Barrel Proof Bourbon, Russell's Reserve Single Barrel, Jack Daniel's 12 Year. Do not invent mappings for them.
+The sanitized 17-record regression fixture is test-only, never public registry/account metadata. Wave02 adds exact matches for Russell's Reserve Single Barrel and the full catalog name Jack Daniel's 12 Year Tennessee Whiskey. The fixture's shorter Jack Daniel's 12 Year name remains unapproved and falls back; E.H. Taylor Jr. Barrel Proof Bourbon remains excluded. Do not invent either mapping.
 
 ## Native delivery
 
