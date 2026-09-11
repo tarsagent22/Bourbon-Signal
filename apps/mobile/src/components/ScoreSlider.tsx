@@ -61,6 +61,10 @@ export function ScoreSlider({ value, onChange, label = "My rating", onInteractio
   }, [setFromPageX]);
   const handleResponderGrant = (event: GestureResponderEvent) => {
     const pageX = event.nativeEvent.pageX;
+    // The track now owns the rating. Consume direct-entry editing before
+    // dismissing the keyboard: native blur may arrive after this grant.
+    editingEntry.current = false;
+    setEntry((score / 10).toFixed(1));
     gesture.current = { active: true, pendingX: pageX, generation: gesture.current.generation + 1 };
     callbacks.current.onDraggingChange?.(true);
     beginInteraction();

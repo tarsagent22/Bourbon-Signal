@@ -100,9 +100,13 @@ export function SignalCard({ signal, onPress, highlighted = false }: { signal: S
 const styles = StyleSheet.create({
   card: {
     minHeight: 120,
-    paddingHorizontal: 2,
+    paddingHorizontal: 10,
     paddingVertical: 8,
     gap: 5,
+    backgroundColor: "rgba(14, 12, 10, 0.42)",
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: "rgba(210, 184, 145, 0.20)",
+    borderRadius: 10,
   },
   pressed: { opacity: 0.8 },
   highlighted: { marginHorizontal: -8, paddingHorizontal: 10, borderRadius: 12, backgroundColor: "#2B1E10", borderColor: colors.accentPressed, borderWidth: StyleSheet.hairlineWidth },

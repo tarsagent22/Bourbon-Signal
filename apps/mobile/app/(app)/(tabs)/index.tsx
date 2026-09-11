@@ -663,7 +663,7 @@ export default function SignalFeedScreen() {
 const styles = StyleSheet.create({
   screen: { flex: 1 },
   list: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 64 },
-  separator: { height: StyleSheet.hairlineWidth, backgroundColor: colors.border },
+  separator: { height: 6 },
   header: { gap: 8, marginBottom: 4 },
   tickerShell: { minHeight: 54, flexDirection: "row", alignItems: "stretch", borderRadius: 13, borderWidth: StyleSheet.hairlineWidth, borderColor: "#5A4127", backgroundColor: "#1D150D", overflow: "hidden" },
   tickerAnimated: { flex: 1 },

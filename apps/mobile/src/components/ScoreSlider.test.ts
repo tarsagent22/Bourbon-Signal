@@ -1,3 +1,4 @@
+import "./score-slider-native-held.test.mjs";
 import assert from "node:assert/strict";
 import test from "node:test";
 import { scoreFromTrackPageX } from "./score-slider-gesture";
