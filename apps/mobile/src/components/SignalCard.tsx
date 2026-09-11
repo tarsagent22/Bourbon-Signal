@@ -100,9 +100,14 @@ export function SignalCard({ signal, onPress, highlighted = false }: { signal: S
 const styles = StyleSheet.create({
   card: {
     minHeight: 120,
-    paddingHorizontal: 2,
+    paddingHorizontal: 10,
     paddingVertical: 8,
     gap: 5,
+    backgroundColor: "rgba(14, 12, 10, 0.42)",
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: "rgba(210, 184, 145, 0.20)",
+    borderRadius: 10,
+    marginBottom: 6,
   },
   pressed: { opacity: 0.8 },
   highlighted: { marginHorizontal: -8, paddingHorizontal: 10, borderRadius: 12, backgroundColor: "#2B1E10", borderColor: colors.accentPressed, borderWidth: StyleSheet.hairlineWidth },
@@ -110,7 +115,7 @@ const styles = StyleSheet.create({
   rarityBadge: { minHeight: 22, borderRadius: 7, alignItems: "center", justifyContent: "center", paddingHorizontal: 9 },
   rarityLabel: { fontSize: 9, lineHeight: 12, fontWeight: "900", letterSpacing: 1.05 },
   time: { color: colors.muted, fontSize: 11, lineHeight: 15, fontWeight: "600" },
-  bottle: { color: colors.text, fontFamily: "Fraunces_700Bold", fontSize: 22, lineHeight: 27, letterSpacing: -0.35 },
+  bottle: { color: colors.text, fontFamily: "Fraunces_700Bold", fontSize: 18, lineHeight: 23, letterSpacing: -0.2 },
   bottleSubtitle: { color: colors.muted, fontSize: 12, lineHeight: 17, fontWeight: "500", marginTop: -4 },
   factsRow: { minHeight: 24, flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 8 },
   details: { gap: 1 },
@@ -128,6 +133,6 @@ const styles = StyleSheet.create({
   authorRow: { minHeight: 22, flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 7 },
   memberTag: { backgroundColor: colors.surfaceRaised, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth, borderRadius: 999, paddingHorizontal: 8, paddingVertical: 4 },
   memberTagText: { color: colors.text, fontSize: 9, lineHeight: 12, fontWeight: "800", letterSpacing: 0.35 },
-  price: { color: colors.text, fontFamily: "Fraunces_700Bold", fontSize: 20, lineHeight: 24, letterSpacing: -0.2 },
+  price: { color: colors.text, fontSize: 13, lineHeight: 18, fontWeight: "800" },
   metricText: { color: colors.muted, fontSize: 11, lineHeight: 15, fontWeight: "700", flexShrink: 1 },
 });
