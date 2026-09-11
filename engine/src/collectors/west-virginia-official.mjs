@@ -431,15 +431,20 @@ export async function collectWestVirginiaRecentPurchases(bible, {
     });
     requestCount += 1;
     if (response?.setCookie) cookie = [cookie, firstCookie(response.setCookie)].filter(Boolean).join('; ');
-    if (allowGateway && requestCount === 2 && method === 'GetProductNameSearch' && payload.ProductName === canary.query
-      && !response?.ok && Number(response?.status || 0) === 0
-      && /failed to connect|timeout was reached|timed out/iu.test(String(response?.error || ''))) {
+    const useGateway = async () => {
       gatewayPayload = validateWestVirginiaGatewayPayload(await gatewayRequest({ signal }));
       gatewayUsed = true;
       signalObservedAt = gatewayPayload.observedAt;
       return gatewayRows(gatewayPayload, method, payload);
+    };
+    if (allowGateway && requestCount === 2 && method === 'GetProductNameSearch' && payload.ProductName === canary.query
+      && !response?.ok && Number(response?.status || 0) === 0
+      && /failed to connect|timeout was reached|timed out/iu.test(String(response?.error || ''))) {
+      return useGateway();
     }
-    return parseApiArray(response, `West Virginia ABCA ${method}`);
+    const rows = parseApiArray(response, `West Virginia ABCA ${method}`);
+    if (allowGateway && rows.length === 0) return useGateway();
+    return rows;
   };
 
   const search = async (watch) => productForWatch(await apiPost('GetProductNameSearch', {
@@ -505,9 +510,37 @@ export async function collectWestVirginiaRecentPurchases(bible, {
   if (endingCanaryStores.length < Number(minimumCanaryStores)) {
     throw new MalformedSourceError(`West Virginia ABCA ending canary store count ${endingCanaryStores.length} was below ${minimumCanaryStores}; possible silent throttle`);
   }
-  const minimumStableCanary = Math.ceil(startingCanaryStores.length * 0.8);
-  if (endingCanaryStores.length < minimumStableCanary) {
-    throw new MalformedSourceError(`West Virginia ABCA ending canary collapsed from ${startingCanaryStores.length} to ${endingCanaryStores.length}; possible silent throttle`);
+  if (!gatewayUsed) {
+    const minimumStableCanary = Math.ceil(startingCanaryStores.length * 0.8);
+    if (endingCanaryStores.length < minimumStableCanary) {
+      throw new MalformedSourceError(`West Virginia ABCA ending canary collapsed from ${startingCanaryStores.length} to ${endingCanaryStores.length}; possible silent throttle`);
+    }
+  }
+
+  if (gatewayUsed && requestCount > 2) {
+    signals.length = 0;
+    productResults.length = 0;
+    for (const watch of watches) {
+      const product = productForWatch(gatewayRows(gatewayPayload, 'GetProductNameSearch', {
+        ProductName: watch.query,
+        NewProduct: false,
+      }), watch);
+      if (!product) throw new MalformedSourceError(`West Virginia ABCA gateway omitted known product ${watch.expectedProductId}`);
+      const productStores = gatewayRows(gatewayPayload, 'GetStoresWithProduct', {
+        productID: Number(product.ProductID),
+        bottleSize: Number(watch.bottleSize),
+      });
+      const signalCount = addRows(productStores, { ...product, bottleSize: Number(watch.bottleSize) });
+      if (signalCount !== productStores.length || signalCount === 0) {
+        throw new MalformedSourceError(`West Virginia ABCA gateway product ${watch.expectedProductId} produced ${signalCount} valid signals from ${productStores.length} retailer rows`);
+      }
+      productResults.push({
+        productId: Number(product.ProductID),
+        bottleSize: Number(watch.bottleSize),
+        storeCount: productStores.length,
+        signalCount,
+      });
+    }
   }
 
   const dedupedSignals = [...new Map(signals.map((row) => [row.id, row])).values()];
@@ -528,7 +561,7 @@ export async function collectWestVirginiaRecentPurchases(bible, {
       locationCount: new Set(dedupedSignals.map((row) => row.storeId)).size,
       recentPurchaseSignalCount: dedupedSignals.length,
       requestCount: gatewayUsed ? Number(gatewayPayload.requestCount) + requestCount : requestCount,
-      maximumRequests: gatewayUsed ? 2 * watches.length + 5 : 2 * watches.length + 3,
+      maximumRequests: gatewayUsed ? (2 * watches.length + 3) * 2 : 2 * watches.length + 3,
       canaryStoreCount: gatewayUsed ? Number(gatewayPayload.endingCanaryStoreCount) : endingCanaryStores.length,
       gatewayUsed,
       gatewayRequestCount: gatewayUsed ? Number(gatewayPayload.requestCount) : 0,
