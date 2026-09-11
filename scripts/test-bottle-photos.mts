@@ -25,7 +25,8 @@ const catalog = () => json('apps/mobile/src/cellar/bottle-catalog-seed.json');
 const first50 = () => json('scripts/fixtures/first50-photo-approvals.json');
 const wave02 = () => json('scripts/fixtures/wave02-photo-approvals.json');
 const wave03 = () => json('scripts/fixtures/wave03-photo-approvals.json');
-const approved = () => [...first50(), ...wave02(), ...wave03()];
+const wave04 = () => json('scripts/fixtures/wave04-photo-approvals.json');
+const approved = () => [...first50(), ...wave02(), ...wave03(), ...wave04()];
 const approvedHashes = () => new Set(approved().map((r: any) => r.sha256)).size;
 function privateRows() {
   return approved().map((r: any) => ({ catalogId: r.catalogId, catalogName: r.displayName, sha256: r.sha256,
@@ -47,6 +48,7 @@ test('cumulative approved batches are exactly staged, preserving all first50 map
   assert.equal(first50().length, 50);
   assert.equal(wave02().length, 39);
   assert.equal(wave03().length, 100);
+  assert.equal(wave04().length, 44);
   assert.equal(new Set(approved().map((r: any) => r.catalogId)).size, approved().length);
   assert.equal(registry.entries.length, approved().length);
   assert.deepEqual(registry.entries.slice(0, 50).map(({ catalogId, displayName, sha256 }: any) => ({ catalogId, displayName, sha256 })), first50());

@@ -19,8 +19,8 @@ test('all cumulative exact ID/name mappings and immutable images resolve', async
   const { parsePhotoRegistry, resolveBottlePhoto, photoUrl } = await load();
   const data = parsePhotoRegistry(registry());
   assert.ok(data);
-  assert.equal(data.entries.length, 189);
-  assert.equal(new Set(data.entries.map((r: any) => r.sha256)).size, 181);
+  assert.equal(data.entries.length, 233);
+  assert.equal(new Set(data.entries.map((r: any) => r.sha256)).size, 225);
   for (const row of data.entries) {
     for (const identity of [{ bottleId: row.catalogId }, { bottleName: row.displayName }, { bottleId: row.catalogId, bottleName: row.displayName }]) {
       assert.equal(resolveBottlePhoto(data, identity, catalog)?.sha256, row.sha256, JSON.stringify(identity));
