@@ -33,6 +33,10 @@ jobs:
         run: |
           mkdir -p native-evidence
           xcodebuild -workspace ios/BourbonSignal.xcworkspace -scheme BourbonSignal -configuration Release -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath native-evidence/build CODE_SIGNING_ALLOWED=NO ONLY_ACTIVE_ARCH=YES ARCHS="$(uname -m)" -quiet > native-evidence/xcodebuild.log 2>&1
+      - name: Capture full production startup bundle
+        env:
+          NATIVE_SCENARIO: full-production
+        run: python3 scripts/verify-ios-startup.py
       - name: Bundle native Home fixture with explicit seams
         run: |
           test ! -e metro.config.js
@@ -60,5 +64,6 @@ jobs:
           name: native-home-fixture-${{ github.sha }}
           path: |
             apps/mobile/native-evidence/xcodebuild.log
+            apps/mobile/native-evidence/full-production/
             apps/mobile/native-evidence/home-fixture/
           retention-days: 7
