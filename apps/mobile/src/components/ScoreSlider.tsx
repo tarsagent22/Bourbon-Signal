@@ -8,18 +8,29 @@ interface ScoreSliderProps {
   onChange: (value: number) => void;
   label?: string;
   onInteractionStart?: () => void;
+  onDraggingChange?: (dragging: boolean) => void;
 }
 
 function clampScore(value: number) {
   return Number.isFinite(value) ? Math.max(0, Math.min(100, Math.round(value))) : 0;
 }
 
-export function ScoreSlider({ value, onChange, label = "My rating", onInteractionStart }: ScoreSliderProps) {
+export function ScoreSlider({ value, onChange, label = "My rating", onInteractionStart, onDraggingChange }: ScoreSliderProps) {
   const trackRef = useRef<View>(null);
   const trackBounds = useRef({ left: 0, width: 0 });
   const score = clampScore(value);
   const [entry, setEntry] = useState((score / 10).toFixed(1));
   const editingEntry = useRef(false);
+  const callbacks = useRef({ onChange, onDraggingChange });
+  callbacks.current = { onChange, onDraggingChange };
+  const gesture = useRef({ active: false, pendingX: null as number | null, generation: 0 });
+  const measurementPending = useRef(false);
+
+  useEffect(() => () => {
+    gesture.current.generation++;
+    gesture.current.pendingX = null;
+    if (gesture.current.active) callbacks.current.onDraggingChange?.(false);
+  }, []);
 
   useEffect(() => {
     if (!editingEntry.current) setEntry((score / 10).toFixed(1));
@@ -31,28 +42,61 @@ export function ScoreSlider({ value, onChange, label = "My rating", onInteractio
   }, [onInteractionStart]);
   const setFromPageX = useCallback((pageX: number) => {
     const next = scoreFromTrackPageX(pageX, trackBounds.current.left, trackBounds.current.width);
-    if (next !== null) onChange(next);
-  }, [onChange]);
-  const measureTrack = useCallback(() => {
-    trackRef.current?.measureInWindow((left, _top, width) => {
-      trackBounds.current = { left, width };
-    });
+    if (next !== null) callbacks.current.onChange(next);
   }, []);
+  const measureTrack = useCallback(() => {
+    const generation = gesture.current.generation;
+    measurementPending.current = true;
+    trackRef.current?.measureInWindow((left, _top, width) => {
+      if (generation !== gesture.current.generation || !Number.isFinite(left) || !(width > 0)) return;
+      measurementPending.current = false;
+      trackBounds.current = { left, width };
+      // Native measurement is asynchronous. Replay the latest point (including
+      // a release), never the captured grant or an earlier gesture's coordinate.
+      if (gesture.current.pendingX !== null) {
+        setFromPageX(gesture.current.pendingX);
+        if (!gesture.current.active) gesture.current.pendingX = null;
+      }
+    });
+  }, [setFromPageX]);
   const handleResponderGrant = (event: GestureResponderEvent) => {
     const pageX = event.nativeEvent.pageX;
+    gesture.current = { active: true, pendingX: pageX, generation: gesture.current.generation + 1 };
+    callbacks.current.onDraggingChange?.(true);
     beginInteraction();
     measureTrack();
     setFromPageX(pageX);
   };
-  const handleResponderMove = (event: GestureResponderEvent) => setFromPageX(event.nativeEvent.pageX);
-  const handleResponderRelease = (event: GestureResponderEvent) => setFromPageX(event.nativeEvent.pageX);
+  const handleResponderMove = (event: GestureResponderEvent) => {
+    if (!gesture.current.active) return;
+    gesture.current.pendingX = event.nativeEvent.pageX;
+    setFromPageX(event.nativeEvent.pageX);
+  };
+  const handleResponderRelease = (event: GestureResponderEvent) => {
+    if (!gesture.current.active) return;
+    gesture.current.pendingX = event.nativeEvent.pageX;
+    setFromPageX(event.nativeEvent.pageX);
+    gesture.current.active = false;
+    if (!measurementPending.current) gesture.current.pendingX = null;
+    callbacks.current.onDraggingChange?.(false);
+  };
+  const handleResponderTerminate = () => {
+    gesture.current = { active: false, pendingX: null, generation: gesture.current.generation + 1 };
+    callbacks.current.onDraggingChange?.(false);
+  };
   const adjust = (delta: number) => {
+    gesture.current.generation++;
+    gesture.current.pendingX = null;
+    measurementPending.current = false;
     beginInteraction();
     onChange(clampScore(score + delta));
   };
   const onLayout = (_event: LayoutChangeEvent) => measureTrack();
   const commitEntry = () => {
     if (!editingEntry.current) return;
+    gesture.current.generation++;
+    gesture.current.pendingX = null;
+    measurementPending.current = false;
     editingEntry.current = false;
     const parsed = Number(entry.trim());
     if (!Number.isFinite(parsed)) {
@@ -87,6 +131,7 @@ export function ScoreSlider({ value, onChange, label = "My rating", onInteractio
       </View>
       <View
         accessible
+        collapsable={false}
         accessibilityActions={[{ name: "increment", label: "Increase by 0.1" }, { name: "decrement", label: "Decrease by 0.1" }]}
         accessibilityLabel={`${label} slider`}
         accessibilityRole="adjustable"
@@ -99,12 +144,13 @@ export function ScoreSlider({ value, onChange, label = "My rating", onInteractio
         onResponderGrant={handleResponderGrant}
         onResponderMove={handleResponderMove}
         onResponderRelease={handleResponderRelease}
+        onResponderTerminate={handleResponderTerminate}
         onResponderTerminationRequest={() => false}
         onStartShouldSetResponder={() => true}
         ref={trackRef}
         style={styles.touchTrack}
       >
-        <View style={styles.track}>
+        <View pointerEvents="none" style={styles.track}>
           <View style={[styles.fill, { width: `${score}%` }]} />
           <View style={[styles.thumb, { left: `${score}%` }]} />
         </View>

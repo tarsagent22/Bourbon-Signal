@@ -575,6 +575,7 @@ function BottleEditor({ bottle, busy, onClose, onDelete, onInventoryAction, onSa
   onSave: (patch: CollectionBottlePatch) => Promise<boolean>;
 }) {
   const [rating, setRating] = useState(0);
+  const [ratingDragging, setRatingDragging] = useState(false);
   const [isRated, setIsRated] = useState(false);
   const [notes, setNotes] = useState("");
   const [tags, setTags] = useState<string[]>([]);
@@ -668,7 +669,7 @@ function BottleEditor({ bottle, busy, onClose, onDelete, onInventoryAction, onSa
   return <Modal allowSwipeDismissal={!dirty && !busy} animationType="slide" onRequestClose={requestClose} presentationStyle="pageSheet" visible={Boolean(bottle)}>
     <SafeAreaView edges={["top", "bottom"]} style={styles.modalFrame}>
       <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : undefined} style={styles.modalFrame}>
-        <ScrollView contentContainerStyle={styles.editor} keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"} keyboardShouldPersistTaps="handled">
+        <ScrollView scrollEnabled={!ratingDragging} contentContainerStyle={styles.editor} keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"} keyboardShouldPersistTaps="handled">
           <View style={styles.modalHeader}>
             <Pressable accessibilityRole="button" disabled={busy} onPress={requestClose} style={styles.modalTarget}><Text style={styles.modalAction}>Cancel</Text></Pressable>
             <Text accessibilityRole="header" style={styles.modalTitle}>My Shelf details</Text>
@@ -689,7 +690,7 @@ function BottleEditor({ bottle, busy, onClose, onDelete, onInventoryAction, onSa
 
           <Section title="My rating">
             <View style={styles.switchRow}><View style={styles.switchCopy}><Text style={styles.fieldLabel}>Add a rating</Text><Text style={styles.fieldHelp}>Turn this on when you want a score saved with this whiskey.</Text></View><Switch accessibilityLabel="Add a rating" onValueChange={setIsRated} thumbColor={colors.text} trackColor={{ false: colors.border, true: colors.accentPressed }} value={isRated} /></View>
-            {isRated ? <ScoreSlider onChange={setRating} value={rating} /> : null}
+            {isRated ? <ScoreSlider onChange={setRating} onDraggingChange={setRatingDragging} value={rating} /> : null}
             <Field label="Quick cues"><View style={styles.toggleGrid}>{cues.map((tag) => <Toggle key={tag} active={tags.includes(tag)} label={tag} onPress={() => setTags((current) => current.includes(tag) ? current.filter((item) => item !== tag) : [...current, tag])} />)}</View></Field>
             {!showMoreCues ? <ActionButton label="More cues" onPress={() => setShowMoreCues(true)} /> : null}
             <Field label="Notes (optional)"><TextInput accessibilityLabel="Tasting notes" multiline onChangeText={setNotes} placeholder="What stood out?" placeholderTextColor={colors.muted} style={[styles.input, styles.notesInput]} value={notes} /></Field>

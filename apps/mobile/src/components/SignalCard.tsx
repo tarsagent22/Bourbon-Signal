@@ -69,25 +69,24 @@ export function SignalCard({ signal, onPress, highlighted = false }: { signal: S
       <Text numberOfLines={3} style={styles.bottle}>{bottleIdentity.title}</Text>
       {bottleIdentity.subtitle ? <Text numberOfLines={2} style={styles.bottleSubtitle}>{bottleIdentity.subtitle}</Text> : null}
 
-      {presented.price || metric ? <View style={styles.factsRow}>
-        {presented.price ? <Text style={styles.price}>{presented.price}</Text> : null}
-        {metric ? <Text numberOfLines={1} style={styles.metricText}>{metric}</Text> : null}
-      </View> : null}
-
       <View style={styles.details}>
         {presented.storeName ? <View style={styles.detailRow}>
           <MaterialCommunityIcons color={colors.muted} name="storefront-outline" size={17} />
-          <Text numberOfLines={1} style={styles.storeName}>{presented.storeName}</Text>
+          <Text style={styles.storeName}>{presented.storeName}</Text>
         </View> : null}
         {presented.geography ? <View style={styles.detailRow}>
           <MaterialCommunityIcons color={colors.muted} name="map-marker-outline" size={17} />
-          <Text numberOfLines={1} style={styles.geography}>{presented.geography}</Text>
+          <Text style={styles.geography}>{presented.geography}</Text>
         </View> : null}
       </View>
 
-      {showStatus ? <View style={styles.statusRow}>
-        <View style={[styles.statusDot, availableNow && styles.availableDot, upcoming && styles.upcomingDot]} />
-        <Text style={[styles.status, availableNow && styles.availableStatus, upcoming && styles.upcomingStatus]}>{status}</Text>
+      {presented.price || metric || showStatus ? <View style={styles.factsRow}>
+        {presented.price ? <Text style={styles.price}>{presented.price}</Text> : null}
+        {showStatus ? <View style={styles.statusRow}>
+          <View style={[styles.statusDot, availableNow && styles.availableDot, upcoming && styles.upcomingDot]} />
+          <Text style={[styles.status, availableNow && styles.availableStatus, upcoming && styles.upcomingStatus]}>{status}</Text>
+        </View> : null}
+        {metric ? <Text style={styles.metricText}>{metric}</Text> : null}
       </View> : null}
 
       {community && (reporter || memberTag) ? <View style={styles.authorRow}>
@@ -102,8 +101,8 @@ const styles = StyleSheet.create({
   card: {
     minHeight: 120,
     paddingHorizontal: 2,
-    paddingVertical: 12,
-    gap: 7,
+    paddingVertical: 8,
+    gap: 5,
   },
   pressed: { opacity: 0.8 },
   highlighted: { marginHorizontal: -8, paddingHorizontal: 10, borderRadius: 12, backgroundColor: "#2B1E10", borderColor: colors.accentPressed, borderWidth: StyleSheet.hairlineWidth },
@@ -114,15 +113,15 @@ const styles = StyleSheet.create({
   bottle: { color: colors.text, fontFamily: "Fraunces_700Bold", fontSize: 18, lineHeight: 23, letterSpacing: -0.2 },
   bottleSubtitle: { color: colors.muted, fontSize: 12, lineHeight: 17, fontWeight: "500", marginTop: -4 },
   factsRow: { minHeight: 24, flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 8 },
-  details: { gap: 4 },
+  details: { gap: 1 },
   detailRow: { minHeight: 20, flexDirection: "row", alignItems: "center", gap: 8 },
   storeName: { color: colors.text, fontSize: 14, lineHeight: 19, fontWeight: "600", flex: 1 },
   geography: { color: colors.muted, fontSize: 13, lineHeight: 18, fontWeight: "500", flex: 1 },
-  statusRow: { minHeight: 18, flexDirection: "row", alignItems: "center", gap: 7 },
+  statusRow: { minHeight: 18, flexDirection: "row", alignItems: "center", gap: 7, flexShrink: 1 },
   statusDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.muted },
   availableDot: { backgroundColor: colors.success },
   upcomingDot: { backgroundColor: colors.accent },
-  status: { color: colors.muted, fontSize: 11, lineHeight: 15, fontWeight: "700", letterSpacing: 0.1 },
+  status: { color: colors.muted, fontSize: 11, lineHeight: 15, fontWeight: "700", letterSpacing: 0.1, flexShrink: 1 },
   availableStatus: { color: colors.success },
   upcomingStatus: { color: colors.accent },
   reporter: { color: colors.muted, fontSize: 11, lineHeight: 15, fontWeight: "600", flexShrink: 1 },

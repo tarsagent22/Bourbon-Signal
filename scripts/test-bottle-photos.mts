@@ -22,7 +22,10 @@ const read = (path: string) => readFileSync(new URL(path, root));
 const json = (path: string) => JSON.parse(read(path).toString());
 const hash = (bytes: Buffer) => createHash('sha256').update(bytes).digest('hex');
 const catalog = () => json('apps/mobile/src/cellar/bottle-catalog-seed.json');
-const approved = () => json('scripts/fixtures/first50-photo-approvals.json');
+const first50 = () => json('scripts/fixtures/first50-photo-approvals.json');
+const wave02 = () => json('scripts/fixtures/wave02-photo-approvals.json');
+const approved = () => [...first50(), ...wave02()];
+const approvedHashes = () => new Set(approved().map((r: any) => r.sha256)).size;
 function privateRows() {
   return approved().map((r: any) => ({ catalogId: r.catalogId, catalogName: r.displayName, sha256: r.sha256,
     path: `public/bottle-photos/${r.sha256}.png`, bytes: read(`public/bottle-photos/${r.sha256}.png`).length,
@@ -37,13 +40,17 @@ test('publication validator exists before staging images', async () => {
   assert.equal(typeof api?.buildPhotoPublication, 'function', 'missing reviewed publication gate');
 });
 
-test('all 50 approved mappings and 45 hashes are exactly staged, not imported into mobile', () => {
+test('cumulative approved batches are exactly staged, preserving all first50 mappings and hashes', () => {
   const registry = json('public/bottle-photos/registry.v1.json');
   assert.equal(registry.schemaVersion, 1);
-  assert.equal(registry.entries.length, 50);
+  assert.equal(first50().length, 50);
+  assert.equal(wave02().length, 39);
+  assert.equal(new Set(approved().map((r: any) => r.catalogId)).size, approved().length);
+  assert.equal(registry.entries.length, approved().length);
+  assert.deepEqual(registry.entries.slice(0, 50).map(({ catalogId, displayName, sha256 }: any) => ({ catalogId, displayName, sha256 })), first50());
   assert.deepEqual(registry.entries.map(({ catalogId, displayName, sha256 }: any) => ({ catalogId, displayName, sha256 })), approved());
-  assert.equal(new Set(registry.entries.map((r: any) => r.sha256)).size, 45);
-  assert.equal(readdirSync(new URL('public/bottle-photos/', root)).filter(n => n.endsWith('.png')).length, 45);
+  assert.equal(new Set(registry.entries.map((r: any) => r.sha256)).size, approvedHashes());
+  assert.equal(readdirSync(new URL('public/bottle-photos/', root)).filter(n => n.endsWith('.png')).length, approvedHashes());
   assert.equal(registry.revision, hash(Buffer.from(JSON.stringify(registry.entries))));
   for (const r of registry.entries) {
     const bytes = read(`public/bottle-photos/${r.sha256}.png`);
@@ -63,9 +70,9 @@ test('private unverified rights remain distinct from owner deferral; public proj
   const { buildPhotoPublication } = await load();
   const rows = privateRows();
   const result = buildPhotoPublication(rows, catalog(), (path: string) => read(path));
-  assert.equal(result.registry.entries.length, 50);
-  assert.equal(result.assets.size, 45);
-  assert.equal(result.privateAudit.length, 50);
+  assert.equal(result.registry.entries.length, approved().length);
+  assert.equal(result.assets.size, approvedHashes());
+  assert.equal(result.privateAudit.length, approved().length);
   for (const row of result.privateAudit) {
     assert.equal(row.rightsStatus, 'unverified');
     assert.equal(row.ownerDeferredLicensing, true);

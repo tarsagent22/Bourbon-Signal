@@ -34,7 +34,7 @@ test('personal rating formatter retains decimals, valid zero and unrated distinc
 });
 
 test('rating editing remains the existing conditional ScoreSlider and save path', () => {
-  assert.match(page, /\{isRated \? <ScoreSlider onChange=\{setRating\} value=\{rating\} \/> : null\}/);
+  assert.match(page, /\{isRated \? <ScoreSlider onChange=\{setRating\} onDraggingChange=\{setRatingDragging\} value=\{rating\} \/> : null\}/);
   assert.match(page, /<BottleEditor bottle=\{selected\}/);
   assert.match(page, /onSave=\{saveBottle\}/);
 });

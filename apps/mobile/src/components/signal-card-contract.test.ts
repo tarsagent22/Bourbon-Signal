@@ -26,6 +26,10 @@ test("Signal cards use compact borderless rows with inline price and reported qu
   assert.match(card, /styles\.factsRow/);
   assert.doesNotMatch(card, /styles\.footer|styles\.metricDot/);
   assert.match(styleBlock("card"), /minHeight: 120/);
+  assert.match(styleBlock("card"), /paddingVertical: 8/);
+  assert.match(styleBlock("card"), /gap: 5/);
+  assert.ok(card.indexOf('styles.details') < card.indexOf('styles.factsRow'), 'store/location precede compact hunting footer');
+  assert.match(card, /styles\.factsRow[\s\S]*styles\.statusRow[\s\S]*styles\.metricText/);
   assert.doesNotMatch(styleBlock("card"), /borderWidth|borderRadius|backgroundColor/);
   assert.match(styleBlock("bottle"), /fontSize: 18/);
   assert.doesNotMatch(card, /signalCardSummary|styles\.note/);
