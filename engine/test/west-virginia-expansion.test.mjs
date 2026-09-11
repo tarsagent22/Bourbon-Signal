@@ -386,10 +386,18 @@ test('WV recent-purchase collector uses a fresh fixed gateway after a direct API
   assert.ok(result.signals.every((signal) => signal.observedAt === gatewayObservedAt));
   assert.equal(result.sourceReport.gatewayUsed, true);
   assert.equal(result.sourceReport.requestCount, 11);
-  assert.equal(result.sourceReport.maximumRequests, 18);
+  assert.equal(result.sourceReport.maximumRequests, 11);
   assert.equal(result.sourceReport.gatewayRequestCount, 9);
   assert.equal(result.sourceReport.canaryStoreCount, 20);
   assert.equal(result.sourceReport.transportRequestCount, 2);
+
+  const emptyWindowPayload = structuredClone(gatewayPayload);
+  emptyWindowPayload.requestCount = 8;
+  emptyWindowPayload.products[1].product = null;
+  emptyWindowPayload.products[1].stores = [];
+  const validatedEmptyWindow = validateWestVirginiaGatewayPayload(emptyWindowPayload);
+  assert.equal(validatedEmptyWindow.products[1].product, null);
+  assert.deepEqual(validatedEmptyWindow.products[1].stores, []);
 
   assert.throws(
     () => validateWestVirginiaGatewayPayload({ ...gatewayPayload, endingCanaryStoreCount: undefined }),
@@ -405,15 +413,14 @@ test('WV recent-purchase collector uses a fresh fixed gateway after a direct API
   );
 });
 
-test('WV recent-purchase collector uses the fixed gateway after an HTTP 200 silent throttle', async () => {
-  const gatewayObservedAt = new Date().toISOString();
+test('WV recent-purchase collector keeps valid leads when a non-canary purchase window is empty', async () => {
   const products = WEST_VIRGINIA_RECENT_PURCHASE_WATCHLIST.map((watch, productIndex) => ({
     expectedProductId: watch.expectedProductId,
     bottleSize: watch.bottleSize,
     product: { ProductID: watch.expectedProductId, ProductName: watch.query, BottleSize: String(watch.bottleSize) },
     stores: Array.from({ length: productIndex === 0 ? 25 : 20 }, (_, index) => ({
       StoreNumber: 2_000 + productIndex * 100 + index,
-      StoreName: `Silent Throttle Store ${productIndex}-${index}`,
+      StoreName: `Purchase Window Store ${productIndex}-${index}`,
       StreetAddress1: `${index + 1} Capitol St`,
       City: 'Charleston,WV',
       PhoneNumber: '304-555-0100',
@@ -422,48 +429,40 @@ test('WV recent-purchase collector uses the fixed gateway after an HTTP 200 sile
       ProductName: watch.query,
     })),
   }));
-  const gatewayPayload = {
-    contractVersion: 'bourbon-signal/wvabca-gateway@1',
-    observedAt: gatewayObservedAt,
-    requestCount: 9,
-    canaryStoreCount: 25,
-    endingCanaryStoreCount: 20,
-    products,
-  };
-  const directCanaryStores = Array.from({ length: 50 }, (_, index) => ({
-    ...products[0].stores[index % products[0].stores.length],
-    StoreNumber: 3_000 + index,
-    StoreName: `Direct Canary Store ${index}`,
-  }));
   let directCalls = 0;
   const result = await collectWestVirginiaRecentPurchases({
     scanText: (text) => [{ id: `bottle-${text}`, canonical: text }],
   }, {
     observedAt: '2026-08-10T16:05:00.000Z',
     sleep: async () => {},
-    allowGateway: true,
     request: async (url, options = {}) => {
       directCalls += 1;
       if (url === 'https://www.wvabca.com/liquorsearch.aspx') return { ok: true, status: 200, text: liquorSearchHtml };
       const body = JSON.parse(options.body);
       if (url.endsWith('/GetProductNameSearch')) {
-        if (body.ProductName === WEST_VIRGINIA_RECENT_PURCHASE_WATCHLIST[1].query) return { ok: true, status: 200, text: '[]' };
-        return { ok: true, status: 200, text: JSON.stringify([products[0].product]) };
+        const productIndex = WEST_VIRGINIA_RECENT_PURCHASE_WATCHLIST.findIndex((watch) => watch.query === body.ProductName);
+        if (productIndex === 1) return { ok: true, status: 200, text: '[]' };
+        return { ok: true, status: 200, text: JSON.stringify([products[productIndex].product]) };
       }
-      if (url.endsWith('/GetStoresWithProduct')) return { ok: true, status: 200, text: JSON.stringify(directCanaryStores) };
+      if (url.endsWith('/GetStoresWithProduct')) {
+        const product = products.find((row) => Number(row.expectedProductId) === Number(body.productID));
+        return { ok: true, status: 200, text: JSON.stringify(product.stores) };
+      }
       throw new Error(`Unexpected URL ${url}`);
     },
-    gatewayRequest: async () => gatewayPayload,
   });
 
-  assert.equal(directCalls, 4);
-  assert.equal(result.signals.length, 65);
-  assert.ok(result.signals.every((signal) => signal.observedAt === gatewayObservedAt));
-  assert.equal(result.sourceReport.gatewayUsed, true);
-  assert.equal(result.sourceReport.requestCount, 13);
-  assert.equal(result.sourceReport.maximumRequests, 18);
-  assert.equal(result.sourceReport.gatewayRequestCount, 9);
-  assert.equal(result.sourceReport.transportRequestCount, 4);
+  assert.equal(directCalls, 8);
+  assert.equal(result.signals.length, 45);
+  assert.equal(result.sourceReport.gatewayUsed, false);
+  assert.equal(result.sourceReport.requestCount, 8);
+  assert.equal(result.sourceReport.maximumRequests, 9);
+  assert.deepEqual(result.sourceReport.productResults[1], {
+    productId: WEST_VIRGINIA_RECENT_PURCHASE_WATCHLIST[1].expectedProductId,
+    bottleSize: 750,
+    storeCount: 0,
+    signalCount: 0,
+  });
   assert.ok(result.signals.every((signal) => signal.canAlertAsInventory === false && signal.canAlertAsWatch === false));
 });
 
@@ -534,34 +533,6 @@ test('WV recent-purchase collector fails closed on silent empty-array throttling
       minimumCanaryStores: 2,
     }),
     /ending canary.*empty|silent throttle/i,
-  );
-});
-
-test('WV recent-purchase collector rejects an empty non-canary watched product', async () => {
-  const blantonCatalog = [{ ProductID: 10150, ProductName: "Blanton's Gold Bourbon", BottleSize: '750' }];
-  const request = async (url, options = {}) => {
-    if (url === 'https://www.wvabca.com/liquorsearch.aspx') return { ok: true, status: 200, text: liquorSearchHtml };
-    const body = JSON.parse(options.body);
-    if (url.endsWith('/GetProductNameSearch')) {
-      return { ok: true, status: 200, text: JSON.stringify(body.ProductName.includes("Blanton") ? blantonCatalog : buffaloCatalog) };
-    }
-    if (url.endsWith('/GetStoresWithProduct')) {
-      return { ok: true, status: 200, text: JSON.stringify(Number(body.productID) === 10150 ? [] : buffaloStores) };
-    }
-    throw new Error(`Unexpected URL ${url}`);
-  };
-  const bible = { scanText: (name) => [{ id: name.includes("Blanton") ? 'blantons-gold' : 'buffalo-trace', canonical: name, tier: 'allocated', confidence: 0.99 }] };
-  await assert.rejects(
-    collectWestVirginiaRecentPurchases(bible, {
-      request,
-      sleep: async () => {},
-      watchlist: [
-        { query: 'Buffalo Trace Kentucky Straight Bourbon Whiskey', expectedProductId: 827, bottleSize: 750 },
-        { query: "Blanton's Gold Bourbon", expectedProductId: 10150, bottleSize: 750 },
-      ],
-      minimumCanaryStores: 2,
-    }),
-    /known product 10150.*empty.*retailer|silent throttle/i,
   );
 });
 
