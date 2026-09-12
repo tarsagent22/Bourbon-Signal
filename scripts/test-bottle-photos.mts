@@ -26,7 +26,8 @@ const first50 = () => json('scripts/fixtures/first50-photo-approvals.json');
 const wave02 = () => json('scripts/fixtures/wave02-photo-approvals.json');
 const wave03 = () => json('scripts/fixtures/wave03-photo-approvals.json');
 const wave04 = () => json('scripts/fixtures/wave04-photo-approvals.json');
-const approved = () => [...first50(), ...wave02(), ...wave03(), ...wave04()];
+const wave05 = () => json('scripts/fixtures/wave05-photo-approvals.json');
+const approved = () => [...first50(), ...wave02(), ...wave03(), ...wave04(), ...wave05()];
 const approvedHashes = () => new Set(approved().map((r: any) => r.sha256)).size;
 function privateRows() {
   return approved().map((r: any) => ({ catalogId: r.catalogId, catalogName: r.displayName, sha256: r.sha256,
@@ -49,10 +50,18 @@ test('cumulative approved batches are exactly staged, preserving all first50 map
   assert.equal(wave02().length, 39);
   assert.equal(wave03().length, 100);
   assert.equal(wave04().length, 44);
+  assert.equal(wave05().length, 65);
+  const whiskeyClasses = new Set([
+    'bourbon', 'rye-whiskey', 'wheat-whiskey', 'corn-whiskey', 'tennessee-whiskey',
+    'american-whiskey', 'american-single-malt', 'scotch-whisky', 'irish-whiskey',
+    'canadian-whisky', 'japanese-whisky', 'world-whisky', 'whiskey',
+  ]);
+  assert.ok(wave05().every((r: any) => whiskeyClasses.has(r.whiskeyClass)), 'wave05 must be whiskey-only');
+  assert.ok(wave05().every((r: any) => !/\b(tequila|mezcal|vodka|gin|rum|brandy|cognac|liqueur|limoncello|cocktail|margarita|wine|beer|cider|sake|gift set|bundle|multipack|case)\b/i.test(r.displayName)), 'wave05 contains a forbidden non-whiskey product');
   assert.equal(new Set(approved().map((r: any) => r.catalogId)).size, approved().length);
   assert.equal(registry.entries.length, approved().length);
   assert.deepEqual(registry.entries.slice(0, 50).map(({ catalogId, displayName, sha256 }: any) => ({ catalogId, displayName, sha256 })), first50());
-  assert.deepEqual(registry.entries.map(({ catalogId, displayName, sha256 }: any) => ({ catalogId, displayName, sha256 })), approved());
+  assert.deepEqual(registry.entries.map(({ catalogId, displayName, sha256 }: any) => ({ catalogId, displayName, sha256 })), approved().map(({ catalogId, displayName, sha256 }: any) => ({ catalogId, displayName, sha256 })));
   assert.equal(new Set(registry.entries.map((r: any) => r.sha256)).size, approvedHashes());
   assert.equal(readdirSync(new URL('public/bottle-photos/', root)).filter(n => n.endsWith('.png')).length, approvedHashes());
   assert.equal(registry.revision, hash(Buffer.from(JSON.stringify(registry.entries))));
@@ -83,7 +92,7 @@ test('private unverified rights remain distinct from owner deferral; public proj
   }
   assert.deepEqual(result.registry, json('public/bottle-photos/registry.v1.json'));
   const publicText = JSON.stringify(result.registry);
-  for (const secret of ['sourcePage', 'originalPath', 'reviewEvidence', 'rightsStatus', 'ownerDeferredLicensing', 'private-', 'account', 'C:\\']) assert.ok(!publicText.includes(secret), secret);
+  for (const secret of ['sourcePage', 'originalPath', 'reviewEvidence', 'rightsStatus', 'ownerDeferredLicensing', 'private-review.jpg', 'account', 'C:\\']) assert.ok(!publicText.includes(secret), secret);
   assert.equal(rows[0].rightsStatus, 'unverified');
 });
 

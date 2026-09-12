@@ -1,0 +1,392 @@
+[
+  {
+    "catalogId": "heaven-hill-grain-to-glass",
+    "displayName": "Heaven Hill Grain to Glass",
+    "sha256": "b10007e73974765869d73829b03472236f3016cf4fa63fa21f68aa183ad1919e",
+    "whiskeyClass": "bourbon"
+  },
+  {
+    "catalogId": "bb_542df7266c14aedc",
+    "displayName": "Pursuit United Bourbon",
+    "sha256": "07fed4749a791c643856127a3a81744ffbd096c74b83677a2a70075d116fdf17",
+    "whiskeyClass": "bourbon"
+  },
+  {
+    "catalogId": "bb_7bb808afdb3c6530",
+    "displayName": "Elijah Craig 21-Year-Old Single Barrel",
+    "sha256": "a87718c2e69f5148f53fe2ede75a604190c13a9cb9a9245819075028bac3fff8",
+    "whiskeyClass": "bourbon"
+  },
+  {
+    "catalogId": "basil-hayden-golden-rye",
+    "displayName": "Basil Hayden Golden Rye",
+    "sha256": "5baf1223b5d9e329a7585d282448e92997eb0ff2574b13c321e517f16648515a",
+    "whiskeyClass": "whiskey"
+  },
+  {
+    "catalogId": "weller-single-barrel",
+    "displayName": "Weller Single Barrel",
+    "sha256": "044b3a12690f5d353ca5aa4acb33912d5e03e860a539ecf5b3adce126fa43d8d",
+    "whiskeyClass": "whiskey"
+  },
+  {
+    "catalogId": "nearest-green-tennessee-whiskey",
+    "displayName": "Nearest Green Tennessee Whiskey",
+    "sha256": "e62471f8e925d668db6917254d67e629e6accf9129199a0bd1e5ba30989a2a45",
+    "whiskeyClass": "tennessee-whiskey"
+  },
+  {
+    "catalogId": "bb_a3e109c627a8eb46",
+    "displayName": "Old Forester King Ranch",
+    "sha256": "afb0dbbcfdb244db8fb1c73ae8a523227153ba43fe3ee1256e72f2c4944d0325",
+    "whiskeyClass": "bourbon"
+  },
+  {
+    "catalogId": "george-dickel-rye",
+    "displayName": "George Dickel Rye",
+    "sha256": "1b4343ddef957f97bd65ec808fdcbb3a932c3bb451b1f9fd7f488048cc6991c0",
+    "whiskeyClass": "whiskey"
+  },
+  {
+    "catalogId": "widow-jane-baby-jane",
+    "displayName": "Widow Jane Baby Jane",
+    "sha256": "34e6ccb901e771293ff5ff0d3927ac62aca848392bbc517f1d559aa8d373f297",
+    "whiskeyClass": "bourbon"
+  },
+  {
+    "catalogId": "woodford-reserve-barrel-strength-rye",
+    "displayName": "Woodford Reserve Barrel Strength Rye",
+    "sha256": "04fda74dada54c545cd08c8452ade5cc88b8fbd8441e1efc3dab5fa7ed23ede1",
+    "whiskeyClass": "rye-whiskey"
+  },
+  {
+    "catalogId": "bb_311d861fd25dbe8d",
+    "displayName": "Barrell Bourbon Cask Finish Series Amburana",
+    "sha256": "a253bd8117d5730525320d97ceafecaea13bd363751ca75d0fdb4ae7d7ea30fa",
+    "whiskeyClass": "bourbon"
+  },
+  {
+    "catalogId": "2xo-white-oak-rye",
+    "displayName": "2XO White Oak Rye",
+    "sha256": "082be5f4ba4de8cc6dcbf506ee0fb5fadc10cbcfbbee8c1f3e87a0f87660fb4f",
+    "whiskeyClass": "rye-whiskey"
+  },
+  {
+    "catalogId": "e-h-taylor-distillers-council",
+    "displayName": "E.H. Taylor Distiller's Council",
+    "sha256": "12ae6da839bae8a025320cf3f925d23960dab6cb6c27d41de6549434f0dd3451",
+    "whiskeyClass": "bourbon"
+  },
+  {
+    "catalogId": "weller-12-year",
+    "displayName": "W.L. Weller 12 Year",
+    "sha256": "efd351465a9c7bd94d4e0d5b127f8481837eb4f43711018b970ec6e6b2598866",
+    "whiskeyClass": "bourbon"
+  },
+  {
+    "catalogId": "black-velvet",
+    "displayName": "Black Velvet",
+    "sha256": "aa078bf0f9d1e690273b599dc6dc1dfd20a1a4aefac54ebe42eb89a054b6b88c",
+    "whiskeyClass": "whiskey"
+  },
+  {
+    "catalogId": "whistlepig-wheat-whiskey-declaration",
+    "displayName": "WhistlePig Wheat Whiskey Declaration",
+    "sha256": "2585c51ddd65089d12a82e5d33a6ac18d3e9e1de19b6756ac799f556285a61cf",
+    "whiskeyClass": "whiskey"
+  },
+  {
+    "catalogId": "yellowstone-limited-edition-2026",
+    "displayName": "Yellowstone Limited Edition 2026",
+    "sha256": "2e7f192c3d1fc3f3869870b934eadf15f02e2d8c7f8d3ac03f72c021b3cf92db",
+    "whiskeyClass": "bourbon"
+  },
+  {
+    "catalogId": "bb_26101bb2f6066725",
+    "displayName": "Evan Williams 1783 Bourbon",
+    "sha256": "63b70361df6e73d8e61ef4ecedaec53bf95476a36f392e1dc6ab96a4b2ad1c42",
+    "whiskeyClass": "whiskey"
+  },
+  {
+    "catalogId": "blantons-gold-bourbon",
+    "displayName": "Blanton's Gold Bourbon",
+    "sha256": "e7feceae46a4823abec4b951bccc287ac92efa5670292c164fc76995a767dc91",
+    "whiskeyClass": "whiskey"
+  },
+  {
+    "catalogId": "chattanooga-whiskey-91",
+    "displayName": "Chattanooga Whiskey 91",
+    "sha256": "1d36c37aec7f0781294761206d0f26fbf5117d441542542abd56002df3f4251a",
+    "whiskeyClass": "bourbon"
+  },
+  {
+    "catalogId": "yellowstone-small-batch-recollection",
+    "displayName": "Yellowstone Small Batch Recollection",
+    "sha256": "4ef20b82597503ccf3554b135ed82cd274c165bef38aea8e78b7cc49e593d831",
+    "whiskeyClass": "bourbon"
+  },
+  {
+    "catalogId": "bb_0276bacbf4621773",
+    "displayName": "Jack Daniel's Barrel Heritage Barrel Toasted",
+    "sha256": "559bac2f7e0837e0568e8a9ff08d62410b9a4da19f8d74b85f4ab1bab490764e",
+    "whiskeyClass": "tennessee-whiskey"
+  },
+  {
+    "catalogId": "rebel-100-proof-bourbon",
+    "displayName": "Rebel 100 Proof Bourbon",
+    "sha256": "1be7526465ac33512bd1d6e3fa4940242c573c9ff31a1494b8e476dad0b22571",
+    "whiskeyClass": "bourbon"
+  },
+  {
+    "catalogId": "4547-bourbon-250th-anniversary-edition",
+    "displayName": "4547 Bourbon 250th Anniversary Edition",
+    "sha256": "b65dc72e58691c9541312498cd66de5400e2cc757c405152c19e39761a5cf806",
+    "whiskeyClass": "bourbon"
+  },
+  {
+    "catalogId": "cutty-sark",
+    "displayName": "Cutty Sark",
+    "sha256": "b1931dc34e01b19038963e80bd266865db02c547a5dca69f691e63172b0f0d16",
+    "whiskeyClass": "whiskey"
+  },
+  {
+    "catalogId": "whiskey-jypsi-tribute-double-barrel-bourbon",
+    "displayName": "Whiskey JYPSI Tribute Double Barrel Bourbon",
+    "sha256": "ec83baa9f03fad837e70130bf51abb5605c73c1238f43394c2eb19dfbe33b34c",
+    "whiskeyClass": "whiskey"
+  },
+  {
+    "catalogId": "bb_190faabf7deb067c",
+    "displayName": "Belle Meade Bourbon Classic",
+    "sha256": "d94f926df3d84cd9b7ff81bcc1a229ebe93a74afe35e847f67df5f32444e2a1a",
+    "whiskeyClass": "whiskey"
+  },
+  {
+    "catalogId": "stagg-26b",
+    "displayName": "Stagg 26B",
+    "sha256": "44b4675e3c34568cb973da3d7b95ec7bbe686454874adb3826ab468776314755",
+    "whiskeyClass": "bourbon"
+  },
+  {
+    "catalogId": "bib-and-tucker-gold-roast-bourbon",
+    "displayName": "Bib & Tucker Gold Roast Bourbon",
+    "sha256": "4eb122114db9804e264b78f9d29ad5b10a37b5d64b8b449f352fa8b67c199eea",
+    "whiskeyClass": "bourbon"
+  },
+  {
+    "catalogId": "bb_7668274bf55e7f42",
+    "displayName": "Ben Holladay 6 Year Missouri Bourbon",
+    "sha256": "10f392f732a0b9613363544668620258551f16c1ccddeaf1b188a715101ac575",
+    "whiskeyClass": "bourbon"
+  },
+  {
+    "catalogId": "quality-house-old-style-bourbon",
+    "displayName": "Quality House Old Style Bourbon",
+    "sha256": "2adb0b503222574fcc2b043141b2ba1ed98882a7659719dadada893976b9d912",
+    "whiskeyClass": "whiskey"
+  },
+  {
+    "catalogId": "penelope-havana",
+    "displayName": "Penelope Havana",
+    "sha256": "3d2d2c25d91a464e1d5e5bc7140377dac5a9a4acb039051f8ecf88884222649b",
+    "whiskeyClass": "bourbon"
+  },
+  {
+    "catalogId": "bulleit-bourbon-mesquite-smoked-malt",
+    "displayName": "Bulleit Bourbon Mesquite Smoked Malt",
+    "sha256": "40d6499bf51b64cf068ce0fe8f8bde8d7c60be5b92935539a577fbc9ad1e00cd",
+    "whiskeyClass": "bourbon"
+  },
+  {
+    "catalogId": "henry-mckenna-single-barrel",
+    "displayName": "Henry McKenna Single Barrel",
+    "sha256": "f666f47187a3802c7e453e5948245fd7900236c84f740f5dc26c21688e47821b",
+    "whiskeyClass": "whiskey"
+  },
+  {
+    "catalogId": "penelope-toasted-private-batch-marshmallow",
+    "displayName": "Penelope Toasted Private Batch Marshmallow",
+    "sha256": "ec367dde7e82318e50a634d4c13a0433db8a2f5ab373b6e5e0709ca176f30ea9",
+    "whiskeyClass": "bourbon"
+  },
+  {
+    "catalogId": "virgin-bourbon",
+    "displayName": "Virgin Bourbon",
+    "sha256": "0dce6d82380c5a286b211b4a5337c3d29ad65224246a3780503f75e4cc63748f",
+    "whiskeyClass": "bourbon"
+  },
+  {
+    "catalogId": "widow-jane-the-vaults-2025-release",
+    "displayName": "Widow Jane The Vaults 2025 Release",
+    "sha256": "c8d3d172c802ce7038725f7eef44e6eea80eeafa3d81152259b99d6fd343ed42",
+    "whiskeyClass": "bourbon"
+  },
+  {
+    "catalogId": "rittenhouse-rye-america-250th-ed",
+    "displayName": "Rittenhouse Rye America 250th Ed.",
+    "sha256": "8a9cbcbc39aa3ab619170e8f92598b0ce580d7df5d1087ce3407880d8af39682",
+    "whiskeyClass": "whiskey"
+  },
+  {
+    "catalogId": "whistlepig-snout-to-tail-bourbon-10y",
+    "displayName": "WhistlePig Snout To Tail Bourbon 10Y",
+    "sha256": "de0c9973cb242c3faf69bdc2e9f01bc00a5bb508ed502718d95c67c59d8e65c3",
+    "whiskeyClass": "whiskey"
+  },
+  {
+    "catalogId": "creek-water-american-whiskey",
+    "displayName": "Creek Water American Whiskey",
+    "sha256": "eccc7ee6ce9505ef0da23c790873a1f006f8c7e4211cabc9a69c9d77fff72a47",
+    "whiskeyClass": "whiskey"
+  },
+  {
+    "catalogId": "glen-moray-port-cask-finish",
+    "displayName": "Glen Moray Port Cask Finish",
+    "sha256": "958864b60254692e442792976e55581c3639bce194d20d886338642738961349",
+    "whiskeyClass": "scotch-whisky"
+  },
+  {
+    "catalogId": "bb_2435a31e97c20ce7",
+    "displayName": "Willett Pot Still Reserve Small Batch Straight Bourbon",
+    "sha256": "97d1b03313b342f774dac7d01f8a9ebbeb02ef6a340321b1f1f16dba223fc0bd",
+    "whiskeyClass": "bourbon"
+  },
+  {
+    "catalogId": "bb_9b186a3bfc444786",
+    "displayName": "Yellowstone Toasted Bourbon",
+    "sha256": "8a679f9c5be722dd863fda4dc9821bcee135bd70e68284c2a4ea316f3dfefc41",
+    "whiskeyClass": "bourbon"
+  },
+  {
+    "catalogId": "pappy-van-winkle-20",
+    "displayName": "Pappy Van Winkle's Family Reserve 20Y",
+    "sha256": "9697d978e36a4d5ab29c890b7bda692111c000bb81a5ae2f3503b08e33bd3a2f",
+    "whiskeyClass": "bourbon"
+  },
+  {
+    "catalogId": "blue-run-kentucky-straight-bourbon-whiskey-blueprint-series",
+    "displayName": "Blue Run Kentucky Straight Bourbon Whiskey Blueprint Series",
+    "sha256": "977a1f8f79d9f0d7f6ddf374ef2d133529c92f0aee402d5ad1d5563b3b8793ab",
+    "whiskeyClass": "bourbon"
+  },
+  {
+    "catalogId": "seagrams-vo-gold",
+    "displayName": "Seagram's VO Gold",
+    "sha256": "09601076387104cf6375cc2ce36e966e4e8c1d12538714d0ad93968033a170c7",
+    "whiskeyClass": "canadian-whisky"
+  },
+  {
+    "catalogId": "eh-taylor-single-barrel",
+    "displayName": "E.H. Taylor Single Barrel",
+    "sha256": "3233e0cc3d939cac078c1ce059cf056b50afbfe1aee957b800e930e93949511b",
+    "whiskeyClass": "bourbon"
+  },
+  {
+    "catalogId": "weller-cypb",
+    "displayName": "Weller CYPB",
+    "sha256": "b2dee5ec2bc3b0c352ecb904cf03fa9f5f688841c273bc70390bd73da0c55bef",
+    "whiskeyClass": "bourbon"
+  },
+  {
+    "catalogId": "weller-full-proof",
+    "displayName": "W.L. Weller Full Proof",
+    "sha256": "d4df8b09bb2066d7b6cc0d00bae84511ff5504f8ccb252d49b40ae65016969ab",
+    "whiskeyClass": "bourbon"
+  },
+  {
+    "catalogId": "weller-millennium",
+    "displayName": "Weller Millennium",
+    "sha256": "e982cdca5b76f8163c026bdd7b6207c1e89c1f16f38980cdc17e701707895c4b",
+    "whiskeyClass": "bourbon"
+  },
+  {
+    "catalogId": "weller-antique-107",
+    "displayName": "W.L. Weller Antique 107",
+    "sha256": "07e3d0bee3358cb87879353c587ced22a509b15fb91fded60c147fde85e6225f",
+    "whiskeyClass": "bourbon"
+  },
+  {
+    "catalogId": "weller-special-reserve",
+    "displayName": "W.L. Weller Special Reserve",
+    "sha256": "18012b16aec9a0564cbbcba1099ce32d418d356318388576f797b7abc8a4faad",
+    "whiskeyClass": "bourbon"
+  },
+  {
+    "catalogId": "penelope-bourbon-toasted-barrel-finish",
+    "displayName": "Penelope Bourbon Toasted Barrel Finish",
+    "sha256": "8bec414e0c6ecb9e78425659c69a9df5527e751074c3ca53488a84e090e06518",
+    "whiskeyClass": "bourbon"
+  },
+  {
+    "catalogId": "bardstown-bourbon-origin-series-bottled-in-bond",
+    "displayName": "Bardstown Bourbon Origin Series Bottled in Bond",
+    "sha256": "0599142d0467f3e7a62461a5a98f079822030f74bb20d1bb8d504ea232549abf",
+    "whiskeyClass": "bourbon"
+  },
+  {
+    "catalogId": "bardstown-bourbon-origin-series-kentucky-straight-bourbon-whiskey",
+    "displayName": "Bardstown Bourbon Origin Series Kentucky Straight Bourbon Whiskey",
+    "sha256": "f7dd68cdabf9d6558a894d9aae1ac60c5214b0ad7fbc997c457da46361861bcf",
+    "whiskeyClass": "bourbon"
+  },
+  {
+    "catalogId": "knob-creek-21y",
+    "displayName": "Knob Creek 21Y",
+    "sha256": "387382edd92687854c22f07771e4cfc1d4e13d3818ef0b0d90146e6119806d66",
+    "whiskeyClass": "bourbon"
+  },
+  {
+    "catalogId": "van-winkle-family-reserve-rye-13y",
+    "displayName": "Van Winkle Family Reserve Rye 13Y",
+    "sha256": "ab2b443d50e8f581ca7b3f7ab72c60e0373f68f89e8febe08dfe89008393eb53",
+    "whiskeyClass": "rye-whiskey"
+  },
+  {
+    "catalogId": "high-west-whiskey-campfire",
+    "displayName": "High West Whiskey Campfire",
+    "sha256": "b59111f91fc2dafccf82e34102f6bb3286b678c0f900eab7a28a9ccdb7abc9a4",
+    "whiskeyClass": "whiskey"
+  },
+  {
+    "catalogId": "knob-creek-15-year",
+    "displayName": "Knob Creek 15 Year",
+    "sha256": "be86342aea3f5dbb584239eeafe17c0c4e753e6f2b2f5db37f410c20c65f1d2a",
+    "whiskeyClass": "bourbon"
+  },
+  {
+    "catalogId": "traveller-blended-whiskey-no-40",
+    "displayName": "Traveller Blended Whiskey No. 40",
+    "sha256": "f69a0920e2e6dc6ad9c7ee83531461bc28a55dd52f9130431af90a6bff3dad53",
+    "whiskeyClass": "whiskey"
+  },
+  {
+    "catalogId": "tincup-rye-whiskey",
+    "displayName": "Tincup Rye Whiskey",
+    "sha256": "42da217b9995e00ee6f2e6f71f15719b1c53eb1a8a9c98cc40ebb97cc058ef89",
+    "whiskeyClass": "rye-whiskey"
+  },
+  {
+    "catalogId": "tenjaku-blended-whisky",
+    "displayName": "Tenjaku Blended Whisky",
+    "sha256": "427550fc507264efbd241859b00ad843ffe15f15a6e6d640d7ee9e21d6257fab",
+    "whiskeyClass": "whiskey"
+  },
+  {
+    "catalogId": "chattanooga-whiskey-111",
+    "displayName": "Chattanooga Whiskey 111",
+    "sha256": "5e8fe92a3ad0856f222952448e260d7e4c78a00f32e62fa1866e0911746620b2",
+    "whiskeyClass": "bourbon"
+  },
+  {
+    "catalogId": "larceny",
+    "displayName": "Larceny",
+    "sha256": "fef22d4948b2dfb3e2b18c7bef2c92c770f737babc7178302ef2bf8c26c99d75",
+    "whiskeyClass": "bourbon"
+  },
+  {
+    "catalogId": "old-grand-dad-bonded-100-proof",
+    "displayName": "Old Grand Dad Bonded 100 Proof",
+    "sha256": "d03eb57ab7a8bdce53ebc5b6413266f640ae635cdf2a44e4fa640e990cadbecc",
+    "whiskeyClass": "bourbon"
+  }
+]
