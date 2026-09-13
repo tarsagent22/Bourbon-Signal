@@ -3,7 +3,7 @@ import Stripe from "stripe";
 import { clerkClient } from "@clerk/nextjs/server";
 import type { LaunchBillingPlan } from "@/lib/stripe-plans";
 import { getMembershipTrialRepository } from "@/lib/membership-trial-repository";
-import { hasActiveGiftMembership } from "@/lib/membership-trial";
+import { hasActiveGiftMembership, membershipTrialConversionMetadata, paidPostTrialInvoiceConvertsMembership } from "@/lib/membership-trial";
 import { membershipRecoveryAuthorityMatches, type MembershipRecoveryAuthority } from "@/lib/membership-server";
 
 function isManagedTrial(subscription: Stripe.Subscription, plan: LaunchBillingPlan | null): plan is LaunchBillingPlan & { id: "standard_monthly" | "barrel_monthly" } {
@@ -54,10 +54,36 @@ export async function enforceMembershipSubscriptionActivation(input: {
     console.warn("duplicate membership trial subscription canceled", { userId: input.userId, subscriptionId: input.subscription.id });
     return { accepted: false as const, reason: "duplicate_trial" as const };
   }
-  if (input.subscription.status === "active") {
-    await repository.markConverted(input.subscription.id, observedAt);
-  }
   return { accepted: true as const, managedTrial: true as const };
+}
+
+export async function markMembershipTrialConvertedFromInvoice(input: {
+  userId: string;
+  subscriptionId: string;
+  invoice: Stripe.Invoice;
+  observedAt: string;
+}) {
+  if (!paidPostTrialInvoiceConvertsMembership({
+    status: input.invoice.status,
+    billingReason: input.invoice.billing_reason,
+  })) return false;
+  const repository = getMembershipTrialRepository();
+  const claim = await repository.findByUserId(input.userId);
+  if (!claim || claim.subscriptionId !== input.subscriptionId) return false;
+  const convertedAt = stripeTimestamp(input.invoice.status_transitions?.paid_at, input.observedAt);
+  const convertedClaim = await repository.markConverted(input.subscriptionId, convertedAt);
+  if (!convertedClaim) return false;
+  const canonicalConvertedAt = convertedClaim.convertedAt || convertedAt;
+  const client = await clerkClient();
+  const user = await client.users.getUser(input.userId);
+  const metadata = membershipTrialConversionMetadata({
+    subscriptionId: input.subscriptionId,
+    existingPrivateMetadata: user.privateMetadata as Record<string, unknown>,
+    convertedAt: canonicalConvertedAt,
+  });
+  if (!("membershipTrialConvertedAt" in metadata)) return true;
+  await client.users.updateUserMetadata(input.userId, { privateMetadata: metadata });
+  return true;
 }
 
 export function isManagedMembershipTrial(subscription: Stripe.Subscription, plan: LaunchBillingPlan | null) {
