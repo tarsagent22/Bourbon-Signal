@@ -1,6 +1,6 @@
 {
   "contractVersion": "bourbon-signal-indiana-source-audit-v2",
-  "generatedAt": "2026-08-09T03:18:34.000Z",
+  "generatedAt": "2026-09-13T17:46:54.000Z",
   "state": "IN",
   "knownSourceUniverseComplete": true,
   "discoveryPasses": [
@@ -18,14 +18,19 @@
       "id": "hunter-demand-expansion-pass-2026-08-08",
       "method": "production-artifact baseline, bounded market/platform discovery, and exact CityHive merchant-page probes",
       "scope": "25 candidate stores/platforms across Bloomington, Terre Haute, Indianapolis, Evansville, Lafayette, Northwest Indiana, Fort Wayne, and southern Indiana; 20 live-proven Big Red stores selected"
+    },
+    {
+      "id": "owner-named-retailer-pass-2026-09-13",
+      "method": "owner-priority Brave discovery, first-party endpoint inspection, and exact CityHive branch probes",
+      "scope": "Payless Liquors, all Big Red Liquors, SoBro Spirits, Kahn's Fine Wines & Spirits, Rural Inn, and Handy Spot Liquors"
     }
   ],
   "inventoryExpansion": {
     "baselineRunId": 31284654025,
     "baselineFreshInventoryStores": 72,
-    "targetCount": 20,
-    "proofObservedAt": "2026-08-09T03:18:34.000Z",
-    "proofSummary": "Twenty-three never-probed Big Red merchant pages returned HTTP 200 with 522 positive exact-store bourbon options. The release selects the 20 highest-demand stores and leaves French Lick, Morgantown, and Trafalgar as reviewed backups.",
+    "targetCount": 23,
+    "proofObservedAt": "2026-09-13T17:46:54.000Z",
+    "proofSummary": "All 23 Big Red merchants outside the 48-store base cohort are selected. Fresh exact-store CityHive probes confirmed positive bourbon options at the three former backups: French Lick (21), Morgantown (36), and Trafalgar (22), completing all 71 named Big Red branches while excluding the separately branded Vault merchant.",
     "targets": [
       { "merchantId": "5e92525978e8f13c2cb1e15c", "name": "Big Red #105 - Bloomington", "city": "Bloomington", "address": "1255 S College Mall Rd, Bloomington, IN 47401, USA" },
       { "merchantId": "5e92525778e8f13c2cb1e158", "name": "Big Red #104 - Bloomington", "city": "Bloomington", "address": "3207 E 3rd St, Bloomington, IN 47401, USA" },
@@ -46,13 +51,12 @@
       { "merchantId": "5e9254c478e8f13c2cb1e214", "name": "Big Red #230 - Martinsville", "city": "Martinsville", "address": "1631 E Morgan St, Martinsville, IN 46151, USA" },
       { "merchantId": "5e9254c178e8f13c2cb1e210", "name": "Big Red #229 - Martinsville", "city": "Martinsville", "address": "2194 Burton Ln, Martinsville, IN 46151, USA" },
       { "merchantId": "5e92545e78e8f13c2cb1e188", "name": "Big Red #117 - Martinsville", "city": "Martinsville", "address": "490 Morton Ave, Martinsville, IN 46151, USA" },
-      { "merchantId": "5e92545b78e8f13c2cb1e184", "name": "Big Red #116 - Bedford", "city": "Bedford", "address": "3307 16th St, Bedford, IN 47421, USA" }
+      { "merchantId": "5e92545b78e8f13c2cb1e184", "name": "Big Red #116 - Bedford", "city": "Bedford", "address": "3307 16th St, Bedford, IN 47421, USA" },
+      { "merchantId": "5e92546078e8f13c2cb1e18c", "name": "Big Red #118 - French Lick", "city": "French Lick", "address": "8494 IN-56, French Lick, IN 47432, USA" },
+      { "merchantId": "6286c31c6094f9534f4a0dda", "name": "Big Red #236 - Morgantown", "city": "Morgantown", "address": "29 S Marion St, Morgantown, IN 46160, USA" },
+      { "merchantId": "6286c459e9d5b22702570b9c", "name": "Big Red #237 - Trafalgar", "city": "Trafalgar", "address": "120 IN-135, Trafalgar, IN 46181, USA" }
     ],
-    "reviewedBackups": [
-      { "merchantId": "5e92546078e8f13c2cb1e18c", "city": "French Lick", "disposition": "live_proven_backup_lower_demand" },
-      { "merchantId": "6286c31c6094f9534f4a0dda", "city": "Morgantown", "disposition": "live_proven_backup_lower_demand" },
-      { "merchantId": "6286c459e9d5b22702570b9c", "city": "Trafalgar", "disposition": "live_proven_backup_lower_demand" }
-    ]
+    "reviewedBackups": []
   },
   "sources": [
     {
@@ -264,6 +268,27 @@
       "outcome": "blocked",
       "reasonCode": "bot_protection_no_bypass",
       "url": "https://www.totalwine.com/"
+    },
+    {
+      "sourceId": "rural-inn-indianapolis",
+      "sourceClass": "first_party",
+      "outcome": "viable_not_adopted",
+      "reasonCode": "exact_store_barrel_pick_context_no_current_product_inventory",
+      "url": "https://www.theruralinn.com/the-store"
+    },
+    {
+      "sourceId": "sobro-spirits-indianapolis",
+      "sourceClass": "first_party",
+      "outcome": "blocked",
+      "reasonCode": "official_site_no_public_product_inventory",
+      "url": "http://www.sobrospirits.com/"
+    },
+    {
+      "sourceId": "handy-spot-liquors-indiana",
+      "sourceClass": "other_public",
+      "outcome": "rejected",
+      "reasonCode": "premises_discovery_only_no_authoritative_inventory_contract",
+      "url": "https://www.facebook.com/handyspotliquor/"
     }
   ]
 }

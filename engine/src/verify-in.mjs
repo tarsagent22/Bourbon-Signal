@@ -77,6 +77,31 @@ const retailerInventorySources = new Set(retailerInventorySignals.map((signal) =
 const cityHiveInventorySignals = allSignals.filter((signal) => signal.eventType === 'cityhive_store_inventory_result');
 const cityHiveInventorySources = new Set(cityHiveInventorySignals.map((signal) => signal.sourceLabel).filter(Boolean));
 const cityHiveStoreLocations = allSignals.filter((signal) => signal.eventType === 'retailer_store_location' && /CityHive/i.test(String(signal.sourceLabel || '')));
+const currentBigRedStoreLocations = cityHiveStoreLocations.filter((signal) => {
+  const storeName = String(signal.storeName || signal.locationName || signal.rawName || '');
+  const observedAtMs = Date.parse(signal.observedAt || signal.inventoryCheckedAt || '');
+  return (signal.raw?.chain === 'big-red' || signal.sourceChain === 'big-red')
+    && /^Big Red\b/i.test(storeName)
+    && Number.isFinite(stateStartedAt)
+    && Number.isFinite(stateFinishedAt)
+    && Number.isFinite(observedAtMs)
+    && observedAtMs >= stateStartedAt
+    && observedAtMs <= stateFinishedAt + 5 * 60_000;
+});
+const currentBigRedStoreIds = new Set(currentBigRedStoreLocations.map((signal) => String(signal.storeId || '')).filter(Boolean));
+const missingBigRedTargetLocations = INDIANA_CITYHIVE_EXPANSION_TARGETS.filter((target) => !currentBigRedStoreIds.has(`big-red:${target.merchantId}`));
+const currentVaultSignals = allSignals.filter((signal) => {
+  const observedAtMs = Date.parse(signal.observedAt || signal.inventoryCheckedAt || '');
+  const merchantId = String(signal.merchantId || signal.raw?.option?.merchant_id || signal.raw?.merchant?.id || '');
+  const storeName = String(signal.storeName || signal.locationName || signal.rawName || signal.raw?.option?.merchant_name || signal.raw?.merchant?.display_name || '');
+  return (signal.raw?.chain === 'big-red' || signal.sourceChain === 'big-red')
+    && (merchantId === '6a6a45535947acd5fb1a9fd1' || /\bVault\b/i.test(storeName))
+    && Number.isFinite(stateStartedAt)
+    && Number.isFinite(stateFinishedAt)
+    && Number.isFinite(observedAtMs)
+    && observedAtMs >= stateStartedAt
+    && observedAtMs <= stateFinishedAt + 5 * 60_000;
+});
 const paylessInventorySignals = allSignals.filter((signal) => signal.eventType === 'retailer_store_inventory_result' && /Payless Liquors/i.test(String(signal.sourceLabel || '')));
 const penguinInventorySignals = allSignals.filter((signal) => signal.eventType === 'retailer_store_inventory_result' && /Penguin Liquor/i.test(String(signal.sourceLabel || '')));
 const penguinRoadblocks = roadblocks.filter((roadblock) => /Penguin Liquor/i.test(String(roadblock.source || roadblock.url || roadblock.error || '')));
@@ -137,9 +162,13 @@ assert(cityHiveStoreLocations.length >= 20, `Expected CityHive retailer store-lo
 assert(retailerInventorySignals.length >= 300, `Expected at least 300 current-plus-retained Indiana retailer inventory signals after expansion; got ${retailerInventorySignals.length}`);
 assert(alertableRetailerInventorySignals.length >= 20, `Expected at least 20 fresh alertable Indiana retailer inventory signals; got ${alertableRetailerInventorySignals.length}`);
 assert(liveRetailerInventoryStores.size >= 5, `Expected at least 5 fresh alertable Indiana stores; got ${liveRetailerInventoryStores.size}`);
-assert(INDIANA_CITYHIVE_EXPANSION_TARGETS.length === 20, `Expected exactly 20 Indiana CityHive expansion targets; got ${INDIANA_CITYHIVE_EXPANSION_TARGETS.length}`);
-assert(expansionTargetInventoryStores.size === 20, `Expected current alertable inventory from all 20 Indiana expansion stores; got ${expansionTargetInventoryStores.size}`, missingExpansionTargets);
-assert(expansionTargetInventorySignals.length >= 20, `Expected at least one current inventory row per Indiana expansion store; got ${expansionTargetInventorySignals.length}`);
+assert(INDIANA_CITYHIVE_EXPANSION_TARGETS.length === 23, `Expected exactly 23 Indiana CityHive expansion targets; got ${INDIANA_CITYHIVE_EXPANSION_TARGETS.length}`);
+assert(currentBigRedStoreIds.size === 71, `Expected exact current location coverage for all 71 named Big Red branches; got ${currentBigRedStoreIds.size}`);
+assert(currentBigRedStoreLocations.length === currentBigRedStoreIds.size, `Expected one current location row per named Big Red branch; got ${currentBigRedStoreLocations.length}/${currentBigRedStoreIds.size}`);
+assert(currentVaultSignals.length === 0, `The separately branded Vault merchant must not enter current Big Red location or inventory authority; got ${currentVaultSignals.length} rows`, currentVaultSignals);
+assert(missingBigRedTargetLocations.length === 0, `Missing current Big Red target store locations: ${missingBigRedTargetLocations.length}`, missingBigRedTargetLocations);
+assert(expansionTargetInventoryStores.size >= 20, `Expected current alertable inventory from at least 20 proven Big Red expansion stores; got ${expansionTargetInventoryStores.size}`, missingExpansionTargets);
+assert(expansionTargetInventorySignals.length >= 20, `Expected current inventory rows from at least 20 Indiana expansion stores; got ${expansionTargetInventorySignals.length}`);
 assert(staleRetailerInventorySignals.every((signal) => signal.canAlertAsInventory === false && signal.canAlertAsWatch === false), 'Retained stale Indiana inventory must remain nonalertable.', staleRetailerInventorySignals.filter((signal) => signal.canAlertAsInventory || signal.canAlertAsWatch).slice(0, 10));
 assert(retailerInventorySources.size >= 6, `Expected at least 6 Indiana retailer inventory source chains; got ${retailerInventorySources.size}: ${[...retailerInventorySources].join(', ')}`);
 assert(cityHiveInventorySources.size >= 5, `Expected at least 5 Indiana CityHive inventory source chains; got ${cityHiveInventorySources.size}: ${[...cityHiveInventorySources].join(', ')}`);

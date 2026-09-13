@@ -7,7 +7,10 @@ import {
   INDIANA_CITYHIVE_EXPANSION_TARGETS,
   INDIANA_CITYHIVE_SOURCE_COHORT_SIZE,
   INDIANA_TARGET_STORES,
+  filterIndianaCityHiveAllowedSignals,
   indianaCityHivePriorityRank,
+  isIndianaCityHiveMerchantAllowed,
+  isIndianaCityHiveProductOptionMerchantAllowed,
   isIndianaCityHivePriorityMarket,
   filterFreshIndianaTargetSignals,
   mergeIndianaTargetCacheSignals,
@@ -61,6 +64,9 @@ const EXPECTED_BIG_RED_EXPANSION_MERCHANTS = new Map([
   ['5e9254c178e8f13c2cb1e210', ['Martinsville', '2194 Burton Ln, Martinsville, IN 46151, USA']],
   ['5e92545e78e8f13c2cb1e188', ['Martinsville', '490 Morton Ave, Martinsville, IN 46151, USA']],
   ['5e92545b78e8f13c2cb1e184', ['Bedford', '3307 16th St, Bedford, IN 47421, USA']],
+  ['5e92546078e8f13c2cb1e18c', ['French Lick', '8494 IN-56, French Lick, IN 47432, USA']],
+  ['6286c31c6094f9534f4a0dda', ['Morgantown', '29 S Marion St, Morgantown, IN 46160, USA']],
+  ['6286c459e9d5b22702570b9c', ['Trafalgar', '120 IN-135, Trafalgar, IN 46181, USA']],
 ]);
 
 test('Indiana Target registry binds official store IDs to exact Indiana addresses', () => {
@@ -83,9 +89,28 @@ test('Indiana CityHive branch expansion prioritizes every Gays Hops-N-Schnapps m
   assert(indianaCityHivePriorityRank('Auburn') < indianaCityHivePriorityRank('unknown Indiana town'));
 });
 
-test('Indiana CityHive expansion appends exactly 20 live-proven Big Red merchants beyond the base cohort', () => {
-  assert.equal(INDIANA_CITYHIVE_EXPANSION_TARGETS.length, 20);
-  assert.equal(new Set(INDIANA_CITYHIVE_EXPANSION_TARGETS.map((store) => store.merchantId)).size, 20);
+test('Big Red CityHive selection excludes separately branded merchants', () => {
+  assert.equal(isIndianaCityHiveMerchantAllowed('big-red', 'Big Red #237 - Trafalgar'), true);
+  assert.equal(isIndianaCityHiveMerchantAllowed('big-red', 'THE VAULT - #401'), false);
+  assert.equal(isIndianaCityHiveMerchantAllowed('cap-n-cork', 'Cap n Cork Georgetown'), true);
+  const allowedBigRedIds = new Set(['6286c459e9d5b22702570b9c']);
+  assert.equal(isIndianaCityHiveProductOptionMerchantAllowed('big-red', '6286c459e9d5b22702570b9c', allowedBigRedIds), true);
+  assert.equal(isIndianaCityHiveProductOptionMerchantAllowed('big-red', '6a6a45535947acd5fb1a9fd1', allowedBigRedIds), false);
+  assert.equal(isIndianaCityHiveProductOptionMerchantAllowed('big-red', '', allowedBigRedIds), false);
+  assert.equal(isIndianaCityHiveProductOptionMerchantAllowed('cap-n-cork', 'any-merchant', new Set()), true);
+  const allowedSignals = filterIndianaCityHiveAllowedSignals([
+    { id: 'big-red-live', sourceChain: 'big-red', merchantId: '6286c459e9d5b22702570b9c', storeName: 'Big Red #237 - Trafalgar' },
+    { id: 'vault-live', sourceChain: 'big-red', merchantId: '6a6a45535947acd5fb1a9fd1', storeName: 'THE VAULT - #401' },
+    { id: 'vault-cache', raw: { chain: 'big-red', option: { merchant_id: '6a6a45535947acd5fb1a9fd1', merchant_name: 'THE VAULT - #401' }, cacheFallback: true } },
+    { id: 'vault-retained', raw: { chain: 'big-red', merchant: { id: '6a6a45535947acd5fb1a9fd1', display_name: 'THE VAULT - #401' }, retainedCache: true } },
+    { id: 'other-cityhive', sourceChain: 'cap-n-cork', merchantId: 'any-merchant', storeName: 'Cap n Cork Georgetown' },
+  ]);
+  assert.deepEqual(allowedSignals.map((signal) => signal.id), ['big-red-live', 'other-cityhive']);
+});
+
+test('Indiana CityHive expansion appends all 23 live-proven Big Red merchants beyond the base cohort', () => {
+  assert.equal(INDIANA_CITYHIVE_EXPANSION_TARGETS.length, 23);
+  assert.equal(new Set(INDIANA_CITYHIVE_EXPANSION_TARGETS.map((store) => store.merchantId)).size, 23);
   for (const store of INDIANA_CITYHIVE_EXPANSION_TARGETS) {
     const expected = EXPECTED_BIG_RED_EXPANSION_MERCHANTS.get(store.merchantId);
     assert.ok(expected, `unexpected expansion merchant ${store.merchantId}`);
@@ -107,12 +132,10 @@ test('Indiana CityHive expansion appends exactly 20 live-proven Big Red merchant
     ordinal: base.length + index,
   }));
   const excluded = [
-    { id: 'french-lick', name: 'French Lick candidate', city: 'French Lick', address: '1 Main St, French Lick, IN', ordinal: 68 },
-    { id: 'morgantown', name: 'Morgantown candidate', city: 'Morgantown', address: '2 Main St, Morgantown, IN', ordinal: 69 },
-    { id: 'trafalgar', name: 'Trafalgar candidate', city: 'Trafalgar', address: '3 Main St, Trafalgar, IN', ordinal: 70 },
+    { id: 'the-vault', name: 'The Vault', city: 'Indianapolis', address: '1 Main St, Indianapolis, IN', ordinal: 71 },
   ];
   const selected = selectIndianaCityHivePriorityMerchants([...base, ...expansion, ...excluded], { baseLimit: 48 });
-  assert.equal(selected.length, 68);
+  assert.equal(selected.length, 71);
   assert.deepEqual(new Set(selected.slice(48).map((store) => store.id)), new Set(EXPECTED_BIG_RED_EXPANSION_MERCHANTS.keys()));
   assert.equal(selected.some((store) => excluded.some((candidate) => candidate.id === store.id)), false);
 });
@@ -342,17 +365,21 @@ test('Indiana lawful-source audit is complete, stable, and machine-classifiable'
   const audit = JSON.parse(await readFile(new URL('../data/source-atlas/IN.json', import.meta.url), 'utf8'));
   assert.equal(audit.contractVersion, 'bourbon-signal-indiana-source-audit-v2');
   assert.equal(audit.knownSourceUniverseComplete, true);
-  assert.equal(audit.discoveryPasses.length, 3);
+  assert.equal(audit.discoveryPasses.length, 4);
   assert.equal(new Set(audit.discoveryPasses.map((pass) => pass.method)).size, audit.discoveryPasses.length);
   assert.equal(audit.inventoryExpansion.baselineFreshInventoryStores, 72);
-  assert.equal(audit.inventoryExpansion.targetCount, 20);
-  assert.equal(audit.inventoryExpansion.targets.length, 20);
+  assert.equal(audit.inventoryExpansion.targetCount, 23);
+  assert.equal(audit.inventoryExpansion.targets.length, 23);
   assert.deepEqual(
     new Set(audit.inventoryExpansion.targets.map((store) => store.merchantId)),
     new Set(INDIANA_CITYHIVE_EXPANSION_TARGETS.map((store) => store.merchantId)),
   );
-  assert.ok(audit.sources.length >= 25);
+  assert.ok(audit.sources.length >= 28);
   assert.equal(new Set(audit.sources.map((source) => source.sourceId)).size, audit.sources.length);
+  const namedRetailerSources = new Map(audit.sources.map((source) => [source.sourceId, source]));
+  assert.equal(namedRetailerSources.get('rural-inn-indianapolis')?.reasonCode, 'exact_store_barrel_pick_context_no_current_product_inventory');
+  assert.equal(namedRetailerSources.get('sobro-spirits-indianapolis')?.outcome, 'blocked');
+  assert.equal(namedRetailerSources.get('handy-spot-liquors-indiana')?.outcome, 'rejected');
   for (const source of audit.sources) {
     assert.match(source.sourceId, /^[a-z0-9]+(?:-[a-z0-9]+)*$/);
     assert.ok(INDIANA_SOURCE_CLASSES.has(source.sourceClass), source.sourceId);
@@ -365,7 +392,9 @@ test('Indiana verifier distinguishes fresh alertable rows from stale nonalertabl
   const verifier = await readFile(new URL('../src/verify-in.mjs', import.meta.url), 'utf8');
   const collector = await readFile(new URL('../src/collectors/precision-probes.mjs', import.meta.url), 'utf8');
   assert.match(verifier, /liveRetailerInventoryStores\.size >= 5/);
-  assert.match(verifier, /expansionTargetInventoryStores\.size === 20/);
+  assert.match(verifier, /currentBigRedStoreIds\.size === 71/);
+  assert.match(verifier, /missingBigRedTargetLocations\.length === 0/);
+  assert.match(verifier, /expansionTargetInventoryStores\.size >= 20/);
   assert.match(verifier, /observedAtMs >= stateStartedAt/);
   assert.match(verifier, /staleRetailerInventorySignals\.every/);
   assert.match(verifier, /staleAlertableRetailerInventoryDrops\.length === 0/);
