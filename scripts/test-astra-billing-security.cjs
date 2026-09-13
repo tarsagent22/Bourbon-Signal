@@ -24,7 +24,11 @@ function harness({ status = 'unpaid', publicMetadata = {}, privateMetadata = {},
     '@/lib/membership-server': membership, '@/lib/referral-service': {}, '@/lib/gifts': { isGiftPurchase: () => false },
     '@/lib/gift-stripe-webhook': { handleGiftStripeEvent: async () => false, handleDirectFounderStripeEvent: async () => false },
     '@/lib/membership-trial-repository': { getMembershipTrialRepository: () => ({ markCanceled: async () => {} }) },
-    '@/lib/membership-trial-stripe': { enforceMembershipSubscriptionActivation: async () => { trialCalls.push('enforce'); return { accepted: true }; }, isManagedMembershipTrial: () => false },
+    '@/lib/membership-trial-stripe': {
+      enforceMembershipSubscriptionActivation: async () => { trialCalls.push('enforce'); return { accepted: true }; },
+      isManagedMembershipTrial: () => true,
+      markMembershipTrialConvertedFromInvoice: async input => { trialCalls.push(`convert:${input.invoice.status}:${input.invoice.billing_reason}`); return true; },
+    },
   });
   return { writes, retrieved, trialCalls, user: () => user, run: async (type, invoice) => {
     event = { id: 'evt_fixture', type, created: 1788480000, data: { object: { customer: 'cus_fixture', ...invoice } } };
@@ -67,13 +71,22 @@ test('F3 subscription/customer ownership mismatch and authority changes during p
     assert.equal(h.writes.length, 0);
   }
 });
-test('F3 duplicate recovered invoices retain original trial history', async () => {
+test('F3 recovered invoice status reconciliation preserves trial history without inventing conversion', async () => {
   const h = harness({ status: 'active', privateMetadata: { membershipTrialStartedAt: '2026-08-01T00:00:00.000Z', membershipTrialSubscriptionId: 'sub_current' } });
   await h.run('invoice.payment_succeeded', { subscription: 'sub_current' });
-  const converted = h.user().privateMetadata.membershipTrialConvertedAt;
-  assert.ok(converted);
+  assert.equal(h.user().privateMetadata.membershipTrialConvertedAt, undefined, 'subscription active alone is not paid-cycle evidence');
   await h.run('invoice.payment_failed', { subscription: { id: 'sub_current' } });
-  assert.equal(h.user().privateMetadata.membershipTrialConvertedAt, converted);
+  assert.equal(h.user().privateMetadata.membershipTrialConvertedAt, undefined);
   assert.equal(h.user().privateMetadata.membershipTrialStartedAt, '2026-08-01T00:00:00.000Z');
   assert.equal(h.user().publicMetadata.membershipStatus, 'active');
+});
+test('F3 invoice.payment_failed cannot invoke trial conversion even with paid-looking invoice fields', async () => {
+  const h = harness({ status: 'active' });
+  await h.run('invoice.payment_failed', { subscription: 'sub_current', status: 'paid', billing_reason: 'subscription_cycle' });
+  assert.deepEqual(h.trialCalls, []);
+});
+test('F3 invoice.payment_succeeded invokes managed trial conversion', async () => {
+  const h = harness({ status: 'active' });
+  await h.run('invoice.payment_succeeded', { subscription: 'sub_current', status: 'paid', billing_reason: 'subscription_cycle' });
+  assert.deepEqual(h.trialCalls, ['convert:paid:subscription_cycle']);
 });

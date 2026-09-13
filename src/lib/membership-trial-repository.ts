@@ -104,8 +104,9 @@ export class MembershipTrialRepository {
     await this.ensureSchema();
     const rows = await this.database.query(
       `UPDATE membership_trial_claims
-       SET status = 'converted', converted_at = COALESCE(converted_at, $2::timestamptz), updated_at = NOW()
+       SET status = 'converted', converted_at = LEAST(COALESCE(converted_at, $2::timestamptz), $2::timestamptz), updated_at = NOW()
        WHERE subscription_id = $1
+         AND (canceled_at IS NULL OR canceled_at > $2::timestamptz)
        RETURNING *`,
       [subscriptionId, convertedAt],
     );
@@ -116,8 +117,8 @@ export class MembershipTrialRepository {
     await this.ensureSchema();
     const rows = await this.database.query(
       `UPDATE membership_trial_claims
-       SET status = CASE WHEN converted_at IS NULL THEN 'canceled' ELSE status END,
-           canceled_at = CASE WHEN converted_at IS NULL THEN COALESCE(canceled_at, $2::timestamptz) ELSE canceled_at END,
+       SET status = CASE WHEN converted_at IS NULL OR $2::timestamptz <= converted_at THEN 'canceled' ELSE status END,
+           canceled_at = CASE WHEN canceled_at IS NULL THEN $2::timestamptz ELSE LEAST(canceled_at, $2::timestamptz) END,
            updated_at = NOW()
        WHERE subscription_id = $1
        RETURNING *`,

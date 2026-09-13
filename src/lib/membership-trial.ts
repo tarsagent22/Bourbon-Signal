@@ -17,6 +17,27 @@ function text(metadata: Metadata, key: string) {
   return typeof value === "string" ? value.trim() : "";
 }
 
+export function paidPostTrialInvoiceConvertsMembership(input: {
+  status: string | null | undefined;
+  billingReason: string | null | undefined;
+}) {
+  return input.status === "paid" && input.billingReason === "subscription_cycle";
+}
+
+export function membershipTrialConversionMetadata(input: {
+  subscriptionId: string | null | undefined;
+  existingPrivateMetadata: Metadata;
+  convertedAt: string;
+}) {
+  const storedSubscriptionId = text(input.existingPrivateMetadata, "membershipTrialSubscriptionId");
+  const trialStarted = text(input.existingPrivateMetadata, "membershipTrialStartedAt");
+  const candidateTime = Date.parse(input.convertedAt);
+  const existingTime = Date.parse(text(input.existingPrivateMetadata, "membershipTrialConvertedAt"));
+  if (!trialStarted || !storedSubscriptionId || storedSubscriptionId !== input.subscriptionId || !Number.isFinite(candidateTime)) return {};
+  if (Number.isFinite(existingTime) && existingTime <= candidateTime) return {};
+  return { membershipTrialConvertedAt: input.convertedAt };
+}
+
 export function hasActiveGiftMembership(publicMetadata: Metadata, now = new Date()) {
   const plan = text(publicMetadata, "plan") || text(publicMetadata, "billingPlan");
   const status = text(publicMetadata, "membershipStatus").toLowerCase();
@@ -65,9 +86,6 @@ export function membershipTrialMetadata(input: {
       membershipTrialPlan: text(input.existingPrivateMetadata, "membershipTrialPlan") || input.plan,
       membershipTrialSubscriptionId: storedSubscriptionId || input.subscriptionId || null,
     };
-  }
-  if (input.status === "active" && appliesToStoredTrial && !trialConverted) {
-    return { membershipTrialConvertedAt: input.now };
   }
   if (["canceled", "unpaid", "incomplete_expired"].includes(input.status || "")
     && appliesToStoredTrial

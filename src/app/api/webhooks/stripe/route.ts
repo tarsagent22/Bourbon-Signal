@@ -7,7 +7,7 @@ import { reconcileReferredMembership } from "@/lib/referral-service";
 import { isGiftPurchase } from "@/lib/gifts";
 import { handleDirectFounderStripeEvent, handleGiftStripeEvent } from "@/lib/gift-stripe-webhook";
 import { getMembershipTrialRepository } from "@/lib/membership-trial-repository";
-import { enforceMembershipSubscriptionActivation, isManagedMembershipTrial } from "@/lib/membership-trial-stripe";
+import { enforceMembershipSubscriptionActivation, isManagedMembershipTrial, markMembershipTrialConvertedFromInvoice } from "@/lib/membership-trial-stripe";
 
 export const dynamic = "force-dynamic";
 
@@ -29,7 +29,7 @@ function stripeObjectId(value: unknown) {
   return value && typeof value === "object" && "id" in value ? stringValue(value.id) : null;
 }
 
-async function reconcileInvoiceSubscription(stripe: Stripe, invoice: Stripe.Invoice) {
+async function reconcileInvoiceSubscription(stripe: Stripe, invoice: Stripe.Invoice, allowTrialConversion = false) {
   const customerId = stripeObjectId(invoice.customer);
   const legacy = (invoice as unknown as { subscription?: unknown }).subscription;
   const modern = invoice.parent?.subscription_details?.subscription;
@@ -51,6 +51,14 @@ async function reconcileInvoiceSubscription(stripe: Stripe, invoice: Stripe.Invo
   await reconcileExistingSubscriptionStatus(user.id, {
     customerId, subscriptionId, plan: plan.id, status: subscription.status,
   });
+  if (allowTrialConversion && isManagedMembershipTrial(subscription, plan)) {
+    await markMembershipTrialConvertedFromInvoice({
+      userId: user.id,
+      subscriptionId,
+      invoice,
+      observedAt: new Date().toISOString(),
+    });
+  }
 }
 
 function isReferralEligiblePurchase(metadata: Stripe.Metadata | null | undefined) {
@@ -186,7 +194,8 @@ export async function POST(req: NextRequest) {
       if (!enforcement.accepted) return NextResponse.json({ received: true });
     }
     if (isManagedMembershipTrial(subscription, plan) && ["canceled", "unpaid", "incomplete_expired"].includes(subscription.status)) {
-      await getMembershipTrialRepository().markCanceled(subscription.id, eventAt);
+      const cancellationAt = new Date((subscription.canceled_at || event.created) * 1000).toISOString();
+      await getMembershipTrialRepository().markCanceled(subscription.id, cancellationAt);
     }
     if (userId && plan && isMembershipAccessActive(plan.tier, subscription.status, plan.id)) {
       await activateMembership(userId, {
@@ -214,13 +223,14 @@ export async function POST(req: NextRequest) {
       if (durableClaim && durableClaim.subscriptionId !== subscription.id) {
         return NextResponse.json({ received: true });
       }
-      await getMembershipTrialRepository().markCanceled(subscription.id, new Date(event.created * 1000).toISOString());
+      const cancellationAt = new Date((subscription.canceled_at || event.created) * 1000).toISOString();
+      await getMembershipTrialRepository().markCanceled(subscription.id, cancellationAt);
     }
     if (customerId) await downgradeMembershipForSubscription(customerId, subscription.id, metadataUserId);
   }
 
   if (event.type === "invoice.payment_failed" || event.type === "invoice.payment_succeeded") {
-    await reconcileInvoiceSubscription(stripe, event.data.object as Stripe.Invoice);
+    await reconcileInvoiceSubscription(stripe, event.data.object as Stripe.Invoice, event.type === "invoice.payment_succeeded");
   }
 
   return NextResponse.json({ received: true });

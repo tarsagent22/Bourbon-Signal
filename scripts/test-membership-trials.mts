@@ -2,8 +2,10 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import {
   hasActiveGiftMembership,
+  membershipTrialConversionMetadata,
   membershipTrialEligibility,
   membershipTrialMetadata,
+  paidPostTrialInvoiceConvertsMembership,
   MONTHLY_MEMBERSHIP_TRIAL_DAYS,
 } from "../src/lib/membership-trial.ts";
 
@@ -53,7 +55,25 @@ assert.deepEqual(membershipTrialMetadata({
   subscriptionId: "sub_trial",
   existingPrivateMetadata: { membershipTrialStartedAt: "2026-08-16T12:00:00.000Z", membershipTrialSubscriptionId: "sub_trial" },
   now: "2026-08-23T12:00:00.000Z",
+}), {}, "subscription active alone is not proof that the first paid invoice succeeded");
+assert.deepEqual(membershipTrialConversionMetadata({
+  subscriptionId: "sub_trial",
+  existingPrivateMetadata: { membershipTrialStartedAt: "2026-08-16T12:00:00.000Z", membershipTrialSubscriptionId: "sub_trial" },
+  convertedAt: "2026-08-23T12:00:00.000Z",
 }), { membershipTrialConvertedAt: "2026-08-23T12:00:00.000Z" });
+assert.deepEqual(membershipTrialConversionMetadata({
+  subscriptionId: "sub_trial",
+  existingPrivateMetadata: { membershipTrialStartedAt: "2026-08-16T12:00:00.000Z", membershipTrialSubscriptionId: "sub_trial", membershipTrialConvertedAt: "2026-08-25T12:00:00.000Z" },
+  convertedAt: "2026-08-23T12:00:00.000Z",
+}), { membershipTrialConvertedAt: "2026-08-23T12:00:00.000Z" }, "an earlier delayed paid invoice repairs the conversion timestamp");
+assert.deepEqual(membershipTrialConversionMetadata({
+  subscriptionId: "sub_other",
+  existingPrivateMetadata: { membershipTrialStartedAt: "2026-08-16T12:00:00.000Z", membershipTrialSubscriptionId: "sub_trial" },
+  convertedAt: "2026-08-23T12:00:00.000Z",
+}), {});
+assert.equal(paidPostTrialInvoiceConvertsMembership({ status: "paid", billingReason: "subscription_cycle" }), true);
+assert.equal(paidPostTrialInvoiceConvertsMembership({ status: "open", billingReason: "subscription_cycle" }), false);
+assert.equal(paidPostTrialInvoiceConvertsMembership({ status: "paid", billingReason: "subscription_create" }), false);
 assert.deepEqual(membershipTrialMetadata({
   status: "canceled",
   plan: "barrel_monthly",
@@ -86,7 +106,15 @@ assert.match(trialSchema, /user_id TEXT PRIMARY KEY/);
 assert.match(trialSchema, /subscription_id TEXT NOT NULL UNIQUE/);
 assert.match(trialRepository, /CREATE TABLE IF NOT EXISTS membership_trial_claims/);
 assert.match(trialRepository, /ON CONFLICT \(user_id\) DO NOTHING/);
+assert.match(trialRepository, /converted_at = LEAST\(COALESCE\(converted_at, \$2::timestamptz\), \$2::timestamptz\)/);
+assert.match(trialRepository, /canceled_at IS NULL OR canceled_at > \$2::timestamptz/, "equal timestamps deterministically prefer cancellation");
+assert.match(trialRepository, /\$2::timestamptz <= converted_at/);
 assert.match(webhook, /enforceMembershipSubscriptionActivation/);
+assert.match(webhook, /markMembershipTrialConvertedFromInvoice/);
+assert.equal((webhook.match(/const cancellationAt = new Date\(\(subscription\.canceled_at \|\| event\.created\) \* 1000\)\.toISOString\(\)/g) || []).length, 2);
+assert.equal((webhook.match(/markCanceled\(subscription\.id, cancellationAt\)/g) || []).length, 2);
+assert.match(trialStripe, /const convertedClaim = await repository\.markConverted[\s\S]*if \(!convertedClaim\) return false[\s\S]*membershipTrialConversionMetadata/);
+assert.doesNotMatch(trialStripe, /input\.subscription\.status === "active"[\s\S]*markConverted/);
 assert.match(webhook, /retrieveCurrentSubscription\(stripe, eventSubscription\.id\)/, "subscription transitions must use current Stripe state");
 assert.match(continueCheckout, /trialOfferExpected[\s\S]*\/api\/membership-trial/, "post-sign-in checkout must recheck the advertised trial");
 assert.match(checkout, /trialOfferExpected/);
