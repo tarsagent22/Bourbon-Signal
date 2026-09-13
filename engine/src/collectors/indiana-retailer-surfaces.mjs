@@ -91,6 +91,44 @@ export function isIndianaCityHivePriorityMarket(value) {
   return indianaCityHivePriorityRank(value) < INDIANA_CITYHIVE_PRIORITY_CITIES.length;
 }
 
+export function isIndianaCityHiveMerchantAllowed(sourceId, merchantName) {
+  if (String(sourceId || '') !== 'big-red') return true;
+  return /^Big Red\b/i.test(String(merchantName || '').trim());
+}
+
+export function isIndianaCityHiveProductOptionMerchantAllowed(sourceId, merchantId, allowedMerchantIds) {
+  if (String(sourceId || '') !== 'big-red') return true;
+  const normalizedMerchantId = String(merchantId || '');
+  return normalizedMerchantId.length > 0
+    && allowedMerchantIds instanceof Set
+    && allowedMerchantIds.has(normalizedMerchantId);
+}
+
+const INDIANA_BIG_RED_EXCLUDED_MERCHANT_IDS = new Set(['6a6a45535947acd5fb1a9fd1']);
+
+export function isIndianaCityHiveSignalAllowed(signal) {
+  const sourceId = String(signal?.raw?.chain || signal?.sourceChain || '');
+  if (sourceId !== 'big-red') return true;
+  const merchantId = String(
+    signal?.merchantId
+    || signal?.raw?.option?.merchant_id
+    || signal?.raw?.merchant?.id
+    || String(signal?.storeId || '').replace(/^big-red:/, ''),
+  );
+  const merchantName = signal?.storeName
+    || signal?.locationName
+    || signal?.rawName
+    || signal?.raw?.option?.merchant_name
+    || signal?.raw?.merchant?.display_name
+    || signal?.raw?.merchant?.name;
+  return !INDIANA_BIG_RED_EXCLUDED_MERCHANT_IDS.has(merchantId)
+    && isIndianaCityHiveMerchantAllowed(sourceId, merchantName);
+}
+
+export function filterIndianaCityHiveAllowedSignals(signals) {
+  return (Array.isArray(signals) ? signals : []).filter(isIndianaCityHiveSignalAllowed);
+}
+
 export const INDIANA_CITYHIVE_EXPANSION_TARGETS = Object.freeze([
   { merchantId: '5e92525978e8f13c2cb1e15c', name: 'Big Red #105 - Bloomington', city: 'Bloomington', address: '1255 S College Mall Rd, Bloomington, IN 47401, USA' },
   { merchantId: '5e92525778e8f13c2cb1e158', name: 'Big Red #104 - Bloomington', city: 'Bloomington', address: '3207 E 3rd St, Bloomington, IN 47401, USA' },
@@ -112,6 +150,9 @@ export const INDIANA_CITYHIVE_EXPANSION_TARGETS = Object.freeze([
   { merchantId: '5e9254c178e8f13c2cb1e210', name: 'Big Red #229 - Martinsville', city: 'Martinsville', address: '2194 Burton Ln, Martinsville, IN 46151, USA' },
   { merchantId: '5e92545e78e8f13c2cb1e188', name: 'Big Red #117 - Martinsville', city: 'Martinsville', address: '490 Morton Ave, Martinsville, IN 46151, USA' },
   { merchantId: '5e92545b78e8f13c2cb1e184', name: 'Big Red #116 - Bedford', city: 'Bedford', address: '3307 16th St, Bedford, IN 47421, USA' },
+  { merchantId: '5e92546078e8f13c2cb1e18c', name: 'Big Red #118 - French Lick', city: 'French Lick', address: '8494 IN-56, French Lick, IN 47432, USA' },
+  { merchantId: '6286c31c6094f9534f4a0dda', name: 'Big Red #236 - Morgantown', city: 'Morgantown', address: '29 S Marion St, Morgantown, IN 46160, USA' },
+  { merchantId: '6286c459e9d5b22702570b9c', name: 'Big Red #237 - Trafalgar', city: 'Trafalgar', address: '120 IN-135, Trafalgar, IN 46181, USA' },
 ].map(Object.freeze));
 
 const INDIANA_CITYHIVE_EXPANSION_TARGET_IDS = new Set(

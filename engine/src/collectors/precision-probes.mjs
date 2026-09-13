@@ -121,7 +121,10 @@ import {
   INDIANA_CITYHIVE_SOURCE_COHORT_SIZE,
   INDIANA_TARGET_STORES,
   filterFreshIndianaTargetSignals,
+  filterIndianaCityHiveAllowedSignals,
   isIndianaCityHiveCacheUsable,
+  isIndianaCityHiveMerchantAllowed,
+  isIndianaCityHiveProductOptionMerchantAllowed,
   mergeIndianaTargetCacheSignals,
   parseIndianaTargetFulfillment,
   parseIndianaTargetSearchProducts,
@@ -2328,7 +2331,9 @@ function cityHivePriorityMerchants(blobs, source) {
     seen.add(merchant.id);
     const a = cityHiveAddressParts(merchant.address || {});
     if ((a.state || '').toUpperCase() && (a.state || '').toUpperCase() !== 'IN') continue;
-    merchants.push({ id: merchant.id, name: merchant.display_name || merchant.name, city: a.city, address: a.fullAddress, sourceId: source.id, ordinal: ordinal++ });
+    const merchantName = merchant.display_name || merchant.name;
+    if (!isIndianaCityHiveMerchantAllowed(source.id, merchantName)) continue;
+    merchants.push({ id: merchant.id, name: merchantName, city: a.city, address: a.fullAddress, sourceId: source.id, ordinal: ordinal++ });
   }
   return selectIndianaCityHivePriorityMerchants(merchants, { baseLimit: IN_CITYHIVE_MAX_MERCHANTS_PER_SOURCE });
 }
@@ -3195,7 +3200,7 @@ async function collectIndianaCityHive(config, bible, observedAt, existingSignals
   const retainedCache = mergeIndianaCityHiveRetentionCaches(cache, previousCache, observedAt);
   const cacheAgeMs = cache?.generatedAt ? Date.now() - new Date(cache.generatedAt).getTime() : Infinity;
   if (process.env.BOURBON_SIGNAL_IN_FORCE_CITYHIVE_LIVE !== '1' && cache && Number.isFinite(cacheAgeMs) && cacheAgeMs >= 0 && cacheAgeMs < IN_CITYHIVE_LIVE_REFRESH_MIN_AGE_MS) {
-    const cachedSignals = cachedIndianaCityHiveSignals(cache, observedAt);
+    const cachedSignals = filterIndianaCityHiveAllowedSignals(cachedIndianaCityHiveSignals(cache, observedAt));
     const reconciled = reconcileCityHiveRateLimitsWithCache({
       roadblocks: cache.roadblocks || [],
       sources: IN_CITYHIVE_SOURCES,
@@ -3270,9 +3275,15 @@ async function collectIndianaCityHive(config, bible, observedAt, existingSignals
         if (!products.length || seenPageFirstProducts.has(repeatKey)) continue;
         seenPageFirstProducts.add(repeatKey);
 
-        for (const cfg of cityHiveMerchantConfigs(blobs)) {
+        const merchantConfigs = cityHiveMerchantConfigs(blobs);
+        const allowedMerchantIds = new Set(merchantConfigs
+          .map((cfg) => cfg?.merchant || cfg)
+          .filter((merchant) => merchant?.id && isIndianaCityHiveMerchantAllowed(source.id, merchant.display_name || merchant.name))
+          .map((merchant) => String(merchant.id)));
+        for (const cfg of merchantConfigs) {
           const merchant = cfg?.merchant || cfg;
-          if (!merchant?.id || seenStores.has(`${source.id}|${merchant.id}`)) continue;
+          const merchantName = merchant?.display_name || merchant?.name;
+          if (!merchant?.id || !isIndianaCityHiveMerchantAllowed(source.id, merchantName) || seenStores.has(`${source.id}|${merchant.id}`)) continue;
           seenStores.add(`${source.id}|${merchant.id}`);
           const a = cityHiveAddressParts(merchant.address || {});
           if ((a.state || '').toUpperCase() && (a.state || '').toUpperCase() !== 'IN') continue;
@@ -3311,6 +3322,7 @@ async function collectIndianaCityHive(config, bible, observedAt, existingSignals
         for (const product of products) {
           for (const merchant of product.merchants || []) {
             for (const option of merchant.product_options || []) {
+              if (!isIndianaCityHiveProductOptionMerchantAllowed(source.id, option.merchant_id, allowedMerchantIds)) continue;
               if (!isBourbonRelevantProduct(product, option)) continue;
               const key = `${source.id}|${option.merchant_id}|${option.product_id}|${option.option_id}`;
               if (seenProductOptions.has(key)) continue;
@@ -3402,6 +3414,8 @@ async function collectIndianaCityHive(config, bible, observedAt, existingSignals
       });
     }
   }
+  const allowedSignals = filterIndianaCityHiveAllowedSignals(signals);
+  signals.splice(0, signals.length, ...allowedSignals);
   if (liveInventoryProduced) await writeIndianaCityHiveCache(signals, liveRoadblocks, signal);
   const reconciled = reconcileCityHiveRateLimitsWithCache({
     roadblocks,
