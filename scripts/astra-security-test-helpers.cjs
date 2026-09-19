@@ -30,7 +30,7 @@ function moduleFrom(file, stubs = {}, cache = new Map()) {
     throw new Error(`Unstubbed import (network blocked): ${id} in ${file}`);
   };
   vm.runInNewContext(ts.transpileModule(text, { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, esModuleInterop: true, jsx: ts.JsxEmit.ReactJSX } }).outputText,
-    { exports, require: requireLocal, console, Date, URL, process: { env: { STRIPE_SECRET_KEY: 'offline-fixture', STRIPE_WEBHOOK_SECRET: 'offline-fixture' }, cwd: () => root }, setTimeout, clearTimeout, Buffer }, { filename: full });
+    { exports, require: requireLocal, console, Date, URL, process: { env: { STRIPE_SECRET_KEY: 'offline-fixture', STRIPE_WEBHOOK_SECRET: 'offline-fixture' }, cwd: () => root }, setTimeout, clearTimeout, setInterval, clearInterval, Buffer }, { filename: full });
   return exports;
 }
 module.exports = { functions, moduleFrom, root };
