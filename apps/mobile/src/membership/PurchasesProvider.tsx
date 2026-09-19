@@ -52,6 +52,10 @@ export function PurchasesProvider({ children, adapter: injectedAdapter }: PropsW
 
   useEffect(() => coordinator.subscribe(setState), [coordinator]);
   useEffect(() => {
+    // Keep native StoreKit/RevenueCat out of the root launch path. Membership
+    // pages can request an explicit refresh once the app is open; this keeps
+    // front-end review screens usable even when native purchase setup is absent.
+    if (!auth.isLoaded || auth.isSignedIn) return;
     void coordinator.syncSession(sessionRef.current);
   }, [auth.isLoaded, auth.isSignedIn, auth.userId, coordinator]);
 

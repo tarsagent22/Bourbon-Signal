@@ -88,6 +88,13 @@ test("the authenticated app tree owns the purchase provider and no paywall UI de
   assert.doesNotMatch(packageJson, /react-native-purchases-ui/);
 });
 
+test("the purchase provider does not initialize StoreKit during root startup", () => {
+  const provider = read("src/membership/PurchasesProvider.tsx");
+  const planScreen = read("app/(app)/account/membership/[tier].tsx");
+  assert.match(provider, /if \(!auth\.isLoaded \|\| auth\.isSignedIn\) return;/);
+  assert.match(planScreen, /Refresh purchase status/);
+});
+
 test("native legal copy covers Apple and RevenueCat purchase handling without retired product wording", () => {
   const terms = read("app/(app)/account/terms.tsx");
   const privacy = read("app/(app)/account/privacy.tsx");
