@@ -318,8 +318,8 @@ assert.match(nativeSignIn, /MobileApiError/,
   "entry must distinguish a missing legacy onboarding route from a real startup outage");
 assert.match(nativeSignIn, /status === 404[\s\S]*getMemberProfile/,
   "older servers without the onboarding route may fall back to authenticated member profile");
-assert.match(nativeSignIn, /destination === "app"[\s\S]*<Redirect href="\/\(app\)" \/>/,
-  "completed members must land on the authenticated app navigator");
+assert.match(nativeSignIn, /destination === "app"[\s\S]*<Redirect href="\/\(app\)\/\(tabs\)" \/>/,
+  "completed members must land on the actual authenticated tab navigator route");
 assert.equal(existsSync("apps/mobile/app/_layout.tsx"), true, "the Expo Router root must exist");
 assert.equal(existsSync("apps/mobile/app/(app)/(tabs)/index.tsx"), true, "the authenticated feed route must exist");
 assert.equal(existsSync("apps/mobile/app/(app)/signal/[id].tsx"), true, "the Signal detail route must exist");

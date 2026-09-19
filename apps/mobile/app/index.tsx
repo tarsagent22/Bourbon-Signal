@@ -47,7 +47,7 @@ export default function EntryScreen() {
 
   if (!isLoaded) return <Loading />;
   if (!isSignedIn) return <Redirect href="/(auth)/sign-in" />;
-  if (destination === "app") return <Redirect href="/(app)" />;
+  if (destination === "app") return <Redirect href="/(app)/(tabs)" />;
   if (destination === "onboarding") return <Redirect href={{ pathname: "/(auth)/sign-up", params: { resume: "onboarding" } }} />;
   if (error) return <View style={styles.center}>
     <Text accessibilityRole="alert" style={styles.error}>{error}</Text>
