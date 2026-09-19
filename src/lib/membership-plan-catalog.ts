@@ -1,4 +1,5 @@
 import type { BillingPlanId, MembershipTier } from "./entitlements";
+import type { AppleMembershipProductId } from "./apple-membership";
 
 export type PaidMembershipPlan = {
   tier: Exclude<MembershipTier, "free">;
@@ -15,6 +16,13 @@ export type PaidMembershipPlan = {
   accent: "standard" | "barrel" | "founder";
   featured?: boolean;
   evergreenEmailEligible: boolean;
+};
+
+export const APPLE_PRODUCT_PLAN_IDS: Readonly<Record<AppleMembershipProductId, Exclude<BillingPlanId, "bib_lifetime">>> = {
+  "com.bourbonsignal.app.standard.monthly": "standard_monthly",
+  "com.bourbonsignal.app.standard.annual": "standard_annual",
+  "com.bourbonsignal.app.barrel.monthly": "barrel_monthly",
+  "com.bourbonsignal.app.barrel.annual": "barrel_annual",
 };
 
 export const PAID_MEMBERSHIP_PLANS: PaidMembershipPlan[] = [

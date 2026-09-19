@@ -4,7 +4,7 @@ import { colors } from "../../../src/theme";
 const sections = [
   ["1. Information we collect", [
     "Account information, including name, email address, authentication identifiers, and account metadata provided through our authentication provider.",
-    "Subscription and billing information, including plan and payment status, customer identifiers, invoices, and related metadata from processors such as Stripe. We do not store full card numbers on our servers.",
+    "Subscription and billing information, including plan and purchase status, purchase history, customer identifiers, invoices, and related metadata from processors such as Stripe, Apple, and RevenueCat. We do not store full card numbers on our servers.",
     "Preferences you save, including states, markets, boards, cities, counties, bottles, alert settings, notification channels, SMS consent, and mobile phone number.",
     "Community sighting content, your chosen display name, and your numbered Founder or Member tag are publicly visible when you post a Community Signal.",
     "Usage, device, browser, approximate IP-based location, log, error, performance, communication, feedback, support, survey, and message-delivery information.",
@@ -18,7 +18,7 @@ const sections = [
     "Transactional billing, security, account, and important service messages may still be sent when necessary.",
   ]],
   ["4. Service providers", [
-    "We use providers for hosting, authentication, payment processing, email, SMS, analytics, error monitoring, and storage. Examples may include Vercel, Clerk, Stripe, Twilio, and other infrastructure vendors. They process information on our behalf or under their own terms and policies.",
+    "We use providers for hosting, authentication, payment processing, purchase verification, email, SMS, analytics, error monitoring, and storage. Examples may include Vercel, Clerk, Apple, RevenueCat, Stripe, Twilio, and other infrastructure vendors. They process information on our behalf or under their own terms and policies.",
   ]],
   ["5. SMS privacy", [
     "When you opt into SMS alerts, we use your phone number, consent status, alert preferences, and delivery metadata to send and manage messages.",
@@ -55,7 +55,7 @@ export default function PrivacyScreen() {
     <View style={styles.hero}>
       <Text style={styles.eyebrow}>PRIVACY POLICY</Text>
       <Text accessibilityRole="header" style={styles.title}>Your information at Bourbon Signal</Text>
-      <Text style={styles.updated}>Updated August 21, 2026</Text>
+      <Text style={styles.updated}>Updated September 13, 2026</Text>
       <Text style={styles.intro}>This policy explains how Bourbon Signal, operated by Todd Digital Ventures LLC, collects and uses information when you use the website or mobile app, create an account, subscribe, save preferences, contact support, or receive alerts.</Text>
     </View>
     {sections.map(([heading, paragraphs]) => <View key={heading} style={styles.section}>

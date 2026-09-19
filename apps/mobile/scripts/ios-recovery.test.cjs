@@ -4,8 +4,8 @@ const fs = require('node:fs');
 const app = require('../app.json').expo;
 const pkg = require('../package.json');
 
-test('iOS recovery is isolated from runtime 1.1.0 without changing Android', () => {
-  assert.equal(app.ios.runtimeVersion, '1.1.0-ios-recovery-1');
+test('iOS RevenueCat binary is isolated from recovery runtime 1.1.0 without changing Android', () => {
+  assert.equal(app.ios.runtimeVersion, '1.1.0-ios-iap-1');
   assert.equal(app.version, '1.1.0');
   assert.deepEqual(app.runtimeVersion, { policy: 'appVersion' });
   assert.equal(app.android.runtimeVersion, undefined);

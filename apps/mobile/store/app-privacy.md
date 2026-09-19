@@ -1,44 +1,49 @@
-# App privacy inventory
+# App privacy inventory — draft candidate
 
-This is the working inventory for Apple’s App Privacy questionnaire. It is not a claim that the signed binary has already been inspected. Reconcile it against the final production archive and current Clerk, Expo, and API behavior before submission.
+This is a working inventory for Apple’s App Privacy questionnaire. It describes the intended source behavior, not a completed audit of a final binary. Reconcile it against the final signed archive, current Apple/RevenueCat/Clerk/Expo disclosures, production API behavior, and App Store Connect answers before submission.
 
 ## Product assertions
 
-- **Tracking:** No. The native app contains no advertising SDK, does not link app data with third-party advertising data, and does not use data to track members across other companies’ apps or websites.
-- **Advertising:** None.
-- **Device permissions:** Camera and selected-photo access are configured only for member-initiated optional sighting evidence. The policy prompts only after an explicit member action and preserves manual posting without a photo after denial. Attached photos are resized and re-encoded without embedded metadata before a direct authenticated upload. Microphone and all location permissions remain disabled.
-- **Payments:** No checkout, external-purchase link, StoreKit purchase, or payment-card collection occurs in the app. Effective subscription status is read from the server for access control.
-- **Persistence:** Expo Secure Store contains Clerk session tokens, the installation identifier and push-enabled marker, user-scoped Home browsing filters, user-scoped contribution receipts, and user-scoped sighting idempotency bindings. Home filters are local convenience state and remain separate from server-authoritative Radar locations. A Signal-scoped timestamp suppresses repeated Hunt Outcome prompts. The user-scoped photo retry journal contains the pending sighting payload, idempotency key, sighting ID when known, upload pathname and bounded app-owned photo reference; no upload credentials are persisted. One retained JPEG per account (up to 3 MiB) lives in the app document directory; completed retries delete it and expired retries are cleaned on that account’s next load after seven days. Other accounts cannot resume or render that journal. Outcome values, Radar preferences, collection bottles, Signal Points, alerts and membership remain server-authoritative.
+- Tracking: No. No advertising SDK or cross-company tracking is intentionally included.
+- Advertising: None.
+- Payments: iOS membership purchases and restores use StoreKit through RevenueCat. Apple processes payment details; the app sends purchase/restore evidence to Bourbon Signal’s authenticated server for reconciliation and receives the authoritative membership lifecycle. The app does not collect card numbers and contains no external checkout.
+- Push: Permission is requested only after a signed-in member enables Push in Radar. The authenticated account, installation identifier, Expo push token, preferences, and delivery state support immediate Radar notifications.
+- Photos: Camera and selected-photo prompts only after an explicit member action to add optional sighting evidence. Denial preserves manual posting. Evidence is resized and re-encoded without embedded metadata before authenticated upload and may be shown publicly with the sighting.
+- Location and microphone: Microphone and all location permissions remain disabled in this candidate.
+- Account deletion: The native authenticated deletion flow sends an account-deletion request to Bourbon Signal. Subscription cancellation is a separate Apple action.
+- Local persistence: Expo Secure Store contains Clerk session material, installation/push state, user-scoped browsing filters, contribution receipts, sighting idempotency bindings, and bounded photo retry data. The Support screen presents a selectable support address; the native deletion flow submits its own authenticated request. Membership, Radar preferences, collection data, Hunt Outcomes, Signal Points, alerts, and effective access remain server-authoritative.
 
 ## Conservative App Privacy answers
 
-| Apple data type | Collected | Linked to identity | Purpose | Why |
+| Apple data type | Collected | Linked to identity | Purpose | Reason |
 |---|---:|---:|---|---|
-| Contact Info — Email Address | Yes | Yes | App Functionality; Account Management | Clerk authenticates the existing member account. |
-| Contact Info — Phone Number | Yes, when supplied | Yes | App Functionality; Account Security | Radar collects and edits a mobile number for SMS alerts, in addition to any Clerk phone verification factor. Preserve explicit SMS enablement/consent and server entitlement checks. |
-| Identifiers — User ID | Yes | Yes | App Functionality; Fraud Prevention/Security | Clerk and the API use account/session identifiers; private IDs are never rendered publicly. |
-| Identifiers — Device ID | Yes, when push is enabled | Yes | App Functionality | An installation identifier and Expo push token are registered to the authenticated account for immediate Radar notifications. Online sign-out attempts device-only disable before ending the session; offline revocation, queued OS delivery and cross-account ownership remain release prerequisites, not completed guarantees. |
-| Purchases — Purchase History | Yes | Yes | App Functionality | The API returns effective membership/entitlement state derived from existing billing records. No payment instrument is collected in-app. |
-| Diagnostics — Other Diagnostic Data | Confirm with final SDK inventory | Potentially | App Functionality; Security | Clerk/Expo infrastructure may process device, network, or request metadata needed for authentication and update delivery. Confirm from current vendor disclosures and the signed archive. |
-| Usage Data — Product Interaction | Yes, when a member chooses a Hunt Outcome | Yes | App Functionality; Analytics | The optional private response records whether the member found it, found it gone, or did not go for an expired availability Signal. Internal reporting is aggregate-only and does not rank members or stores. |
-| Location — Precise Location | No | — | — | The current native app does not request foreground or background location. Members search for or enter a retailer manually. |
-| User Content — Customer Support | Yes, when the member contacts support separately | Yes | App Functionality; Account Management | The app displays selectable support contact information and instructions; it does not open an email composer or submit a deletion request. The member composes an email separately. A resulting support/deletion request is linked to the sender for ownership verification. |
-| User Content — Other User Content | Yes, when a member posts a Signal or attaches optional sighting evidence | Yes | App Functionality | A member can submit bottle, retailer, address, price, quantity, optional notes, and an optional evidence photo. Attached photos are resized and re-encoded without embedded metadata, stored as public sighting evidence, and linked to the authenticated account for moderation, attribution, duplicate prevention, and community display. |
-| Financial Info | No | — | — | Stripe processes website billing; the mobile app receives entitlement state only. |
+| Contact Info — Email Address | Yes | Yes | App Functionality; Account Management | Clerk authenticates the member account and support/deletion requests use the account identity. |
+| Contact Info — Phone Number | Yes, when supplied | Yes | App Functionality; Account Security | Members may save a number and separately consent to SMS alerts; Clerk may also use a phone verification factor. |
+| Identifiers — User ID | Yes | Yes | App Functionality; Fraud Prevention/Security | Clerk, RevenueCat app-user identity, and Bourbon Signal APIs bind authenticated access and purchase reconciliation to the account. |
+| Identifiers — Device ID | Yes, when push is enabled | Yes | App Functionality | An installation identifier and Expo push token register the current device for Radar notifications. |
+| Purchases — Purchase History | Yes | Yes | App Functionality | StoreKit/RevenueCat purchase, restore, product, offer, environment, expiration, and lifecycle status are reconciled to the account for entitlement and support. |
+| Diagnostics — Other Diagnostic Data | Confirm with final SDK inventory | Potentially | App Functionality; Security | Apple, RevenueCat, Clerk, Expo, and hosting infrastructure may process device, network, request, or SDK diagnostic data. Verify current vendor disclosures and the signed archive. |
+| Usage Data — Product Interaction | Yes, when used | Yes | App Functionality; Analytics | Member-chosen Hunt Outcomes and product actions operate member features; analytics must remain first-party, allowlisted, and free of raw private identifiers. |
+| Location — Precise Location | No | — | — | Members search for or enter a retailer manually; no foreground/background location permission is requested. |
+| User Content — Customer Support | Yes, when submitted | Yes | App Functionality; Account Management | Support and authenticated deletion requests are linked to the member for ownership verification and resolution. |
+| User Content — Other User Content | Yes, when posted | Yes | App Functionality | Sightings can include bottle, retailer, address, price, quantity, notes, and optional photo evidence for moderation and community display. |
+| Financial Info | No | — | — | Apple processes payment instruments. Bourbon Signal receives purchase/entitlement status, not payment-card details. |
 
 ## Third-party SDK inventory
 
-- `@clerk/expo`: authentication, session security, and secure token lifecycle.
-- Expo core, Router, Updates, Splash Screen, Secure Store, Dev Client (development profiles only), Linking, Constants, Status Bar, Notifications, Image Picker, Image Manipulator, and File System; Vercel Blob handles direct authenticated evidence upload.
+- `@clerk/expo`: authentication and secure session lifecycle.
+- `react-native-purchases`: StoreKit product presentation, purchase, restore, and RevenueCat entitlement state.
+- Expo core, Router, Updates, Splash Screen, Secure Store, Linking, Constants, Status Bar, Notifications, Image Picker, Image Manipulator, and File System.
+- Vercel Blob: direct authenticated optional sighting-evidence upload.
 - React Native, Screens, Safe Area Context, Reanimated, and Worklets.
-- No advertising, attribution, crash-reporting, social-login, location, or mobile analytics SDK is intentionally included.
-- Hunt Outcome aggregation is first-party server processing; it does not add an advertising or cross-app tracking SDK.
+- Development Client is for development profiles only and must be absent from the final production archive unless explicitly justified.
+- No advertising, attribution, social-login, location, or standalone mobile-analytics SDK is intentionally included.
 
 ## Final submission gates
 
-1. Build the production iOS archive after Apple enrollment approval.
-2. Inspect the archive’s privacy manifests and SDK signatures; development-client modules must not be present in the production binary unless required.
-3. Re-check current Clerk and Expo privacy disclosures.
-4. Reconcile App Store Connect answers with the table above and the public privacy policy.
-5. If any SDK collects diagnostics or device identifiers beyond authentication/security, disclose it rather than claiming “data not collected.”
-6. Record actual Radar phone/SMS consent, push registration/sign-out and support-information walkthroughs on the final archive. Reconcile the photo retry and contribution receipt inventory with the public policy. These walkthroughs and the App Store questionnaire have not been verified by local source tests.
+1. Configure and validate Apple products and RevenueCat offerings; they are not yet proven ready.
+2. Produce the final signed iOS archive.
+3. Inspect privacy manifests, required-reason APIs, SDK signatures, entitlements, permissions, and development-module exclusions.
+4. Re-check current Apple, RevenueCat, Clerk, Expo, and Vercel disclosures.
+5. Verify sandbox/TestFlight purchase, restore, offer eligibility, lifecycle transitions, push registration/revocation, photo denial/retry, support, and deletion behavior.
+6. Reconcile this inventory, public Privacy Policy, and App Store Connect answers. If observed collection exceeds this draft, disclose the observed behavior rather than preserving a narrower claim.

@@ -44,5 +44,5 @@ test('M13: async form outcomes announce once per changed message', () => {
     h.reset(); useAccessibleStatus(message); while (h.effects.length) h.effects.shift()!();
   }
   assert.deepEqual(spoken, ['Saved.', 'Please retry.']);
-  for (const file of ['app/index.tsx','app/(app)/(tabs)/radar.tsx','app/(app)/(tabs)/post.tsx','app/(app)/(tabs)/hq.tsx']) assert.ok(fs.readFileSync(file,'utf8').includes('useAccessibleStatus('), file);
+  for (const file of ['app/(auth)/sign-in.tsx','app/(auth)/sign-up.tsx','app/(app)/(tabs)/radar.tsx','app/(app)/(tabs)/post.tsx','app/(app)/(tabs)/hq.tsx']) assert.ok(fs.readFileSync(file,'utf8').includes('useAccessibleStatus('), file);
 });

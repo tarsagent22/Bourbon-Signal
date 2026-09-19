@@ -29,7 +29,17 @@ test("monthly is the default and annual never receives a trial", () => {
 test("membership actions distinguish current, included, upgrade, and unavailable purchase states", () => {
   const action = (current: MembershipTier, target: MembershipTier) => membershipActionFor(current, target);
   assert.deepEqual(action("free", "free"), { kind: "current", label: "Current membership" });
-  assert.deepEqual(action("barrel", "standard"), { kind: "included", label: "Included with Barrel Proof" });
-  assert.deepEqual(action("free", "barrel"), { kind: "upgrade", label: "Review Barrel Proof" });
-  assert.deepEqual(action("standard", "bottled-in-bond"), { kind: "upgrade", label: "Review Bottled in Bond" });
+  assert.deepEqual(action("barrel", "standard"), { kind: "included", label: "Included with Barrel" });
+  assert.deepEqual(action("free", "barrel"), { kind: "upgrade", label: "Review Barrel" });
+  assert.deepEqual(action("standard", "bottled-in-bond"), { kind: "unavailable", label: "Founder access" });
+});
+
+test("customer-facing membership names are canonical while the Founder entitlement id remains stable", () => {
+  assert.deepEqual(MEMBERSHIP_PLANS.map(({ tier, name }) => [tier, name]), [
+    ["free", "Free"],
+    ["standard", "Standard"],
+    ["barrel", "Barrel"],
+    ["bottled-in-bond", "Founder"],
+  ]);
+  assert.equal(MEMBERSHIP_PLANS.find((plan) => plan.tier === "bottled-in-bond")?.purchasableOnIos, false);
 });

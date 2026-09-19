@@ -18,6 +18,9 @@ CREATE TABLE IF NOT EXISTS member_referrals (
   attributed_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+ALTER TABLE member_referrals DROP CONSTRAINT IF EXISTS member_referrals_referrer_user_id_fkey;
+ALTER TABLE member_referrals ADD CONSTRAINT member_referrals_referrer_user_id_fkey
+  FOREIGN KEY (referrer_user_id) REFERENCES member_referral_codes(referrer_user_id) ON UPDATE CASCADE;
 
 CREATE TABLE IF NOT EXISTS member_referral_eligibility_events (
   source_event_id TEXT PRIMARY KEY,
@@ -242,3 +245,27 @@ BEGIN
   RETURN QUERY SELECT 'claimed'::TEXT, COALESCE(free_award.points_awarded, 0)::INTEGER;
 END;
 $$;
+
+CREATE OR REPLACE FUNCTION anonymize_referral_member(p_user_id TEXT,p_subject_token TEXT)
+RETURNS VOID LANGUAGE plpgsql AS $$
+BEGIN
+  UPDATE member_referral_codes SET referrer_user_id=p_subject_token,email_hash=p_subject_token,updated_at=NOW()
+  WHERE referrer_user_id=p_user_id;
+  UPDATE member_referrals SET referred_user_id=p_subject_token,referred_email_hash=p_subject_token,updated_at=NOW()
+  WHERE referred_user_id=p_user_id;
+  UPDATE member_referral_eligibility_events SET
+    source_event_id=REPLACE(source_event_id,p_user_id,p_subject_token),
+    referred_user_id=p_subject_token
+  WHERE referred_user_id=p_user_id OR source_event_id LIKE '%'||p_user_id||'%';
+  UPDATE member_referral_point_ledger SET
+    event_key=REPLACE(event_key,p_user_id,p_subject_token),
+    source_event_id=CASE WHEN source_event_id IS NULL THEN NULL ELSE REPLACE(source_event_id,p_user_id,p_subject_token) END,
+    referrer_user_id=CASE WHEN referrer_user_id=p_user_id THEN p_subject_token ELSE referrer_user_id END,
+    referred_user_id=CASE WHEN referred_user_id=p_user_id THEN p_subject_token ELSE referred_user_id END
+  WHERE referrer_user_id=p_user_id OR referred_user_id=p_user_id;
+  UPDATE member_referral_glass_rewards SET
+    referrer_user_id=CASE WHEN referrer_user_id=p_user_id THEN p_subject_token ELSE referrer_user_id END,
+    referred_user_id=CASE WHEN referred_user_id=p_user_id THEN p_subject_token ELSE referred_user_id END,
+    updated_at=NOW()
+  WHERE referrer_user_id=p_user_id OR referred_user_id=p_user_id;
+END $$;

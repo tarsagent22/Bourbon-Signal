@@ -24,6 +24,7 @@ assert.equal(app.version, "1.1.0", "the camera and push native candidate must us
 assert.equal(app.ios?.bundleIdentifier, "com.bourbonsignal.app");
 assert.equal(app.ios?.config?.usesNonExemptEncryption, false);
 assert.equal(app.runtimeVersion?.policy, "appVersion");
+assert.equal(app.ios?.runtimeVersion, "1.1.0-ios-iap-1", "RevenueCat adds a native module and must not share the recovery binary OTA runtime");
 assert.equal(app.extra?.eas?.projectId, "693a1966-5bfc-4f25-9fe4-e39c009ec04a");
 assert.equal(app.updates?.url, "https://u.expo.dev/693a1966-5bfc-4f25-9fe4-e39c009ec04a");
 assert.equal(app.updates?.checkAutomatically, "ON_LOAD");
@@ -168,7 +169,7 @@ assert.equal(existsSync(resolve(root, "src/home/trip-mode.test.ts")), false, "re
 assert.doesNotMatch(pkg.scripts?.test || "", /trip-mode/i, "the mobile test command must not reference removed Trip Mode tests");
 assert.match(reviewNotes, /Review the Home tab/);
 assert.match(reviewNotes, /open a Signal's Bottle Profile/);
-assert.match(reviewNotes, /Account → Privacy & Support → Account deletion help/);
+assert.match(reviewNotes, /Account → Privacy & Support → Delete account/);
 assert.doesNotMatch(reviewNotes, /Signals tab|Open HQ|HQ → Request account deletion/);
 assert.match(reviewNotes, /no permission prompt runs at app launch/i);
 assert.match(reviewNotes, /optional sighting evidence/i);
@@ -204,7 +205,7 @@ const appLayout = read("app/(app)/_layout.tsx");
 const nativeSupport = read("app/(app)/account/support.tsx");
 const nativePrivacy = read("app/(app)/account/privacy.tsx");
 assert.match(hq, /Privacy policy/);
-assert.match(hq, /Account deletion help/);
+assert.match(hq, /Delete account/);
 assert.match(hq, /Support/);
 assert.match(hq, /router\.push\("\/\(app\)\/account\/support"\)/);
 assert.match(hq, /router\.push\("\/\(app\)\/account\/privacy"\)/);

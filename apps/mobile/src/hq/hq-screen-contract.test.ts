@@ -109,7 +109,7 @@ test("Account never navigates to an external webpage", () => {
   assert.match(appLayout, /name="account\/privacy"/);
   assert.match(supportScreen, /support@bourbonsignal\.com/);
   assert.match(supportScreen, /Account deletion/);
-  assert.match(privacyScreen, /Updated August 21, 2026/);
+  assert.match(privacyScreen, /Updated September 13, 2026/);
   assert.match(privacyScreen, /12\. Changes to this policy/);
   assert.doesNotMatch(`${supportScreen}\n${privacyScreen}`, /Linking|https?:\/\//);
 });
@@ -125,7 +125,8 @@ test("Account keeps diagnostics collapsed and destructive actions separated", ()
   assert.match(source, /accessibilityState=\{\{ expanded:/);
   assert.match(source, /Share diagnostics/);
   assert.match(source, /Data & privacy/);
-  assert.match(source, /Account deletion help/);
+  assert.match(source, /Delete account/);
+  assert.match(source, /router\.push\("\/\(app\)\/account\/delete"\)/);
   assert.doesNotMatch(source, /ACCOUNT_DELETION_URL/);
 });
 

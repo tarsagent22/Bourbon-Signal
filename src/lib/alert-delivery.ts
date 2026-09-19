@@ -29,7 +29,7 @@ import {
   withAvailabilityEpisodeIdentity,
 } from "@/lib/alert-dedupe";
 import { alertQueueDatabaseConfigured, createProductionAlertQueueRepository } from "@/lib/alert-queue/runtime";
-import { ownedPushDevices, sendOwnedExpoPushMessages } from "@/lib/push-ownership";
+import { durablePushTicketBindings, ownedPushDevices, sendOwnedExpoPushMessages } from "@/lib/push-ownership";
 import { reserveAlertDeliveryBatch, type AlertQueueMode } from "@/lib/alert-queue/delivery-gate";
 import type { AlertCandidateRecord, AlertChannel } from "@/lib/alert-queue/repository";
 import { ensureAlertDeliveryIdentityV2 } from "@/lib/alert-queue/clerk-migration";
@@ -38,7 +38,7 @@ import { nevadaAreaMatchesFields, normalizeNevadaAreas } from "@/lib/nevada-area
 import { matchedNewYorkArea, newYorkAreaMatchesFields, normalizeNewYorkAreas } from "@/lib/new-york-area";
 import { coloradoAreaMatchesFields, normalizeColoradoAreas } from "@/lib/colorado-area";
 import { firstAlertCreatedMetadata } from "@/lib/member-activation";
-import { buildExpoPushMessages, disablePushTokens, enabledPushTokens, normalizePendingExpoPushTickets, pushPreferenceProjectionAllowsDelivery, reconcileExpoPushReceipts, sendExpoPushMessages } from "@/lib/push-devices";
+import { buildExpoPushMessages, disablePushTokens, enabledPushTokens, pushPreferenceProjectionAllowsDelivery, sendExpoPushMessages } from "@/lib/push-devices";
 import { createProductionPushOutbox, drainPushOutbox } from "@/lib/alert-queue/push-outbox";
 import {
   CHARLOTTE_METRO_BOARD_GROUP,
@@ -53,6 +53,7 @@ import { createCommunitySightingsRepository } from "@/lib/community-sightings-re
 import { candidateMatchesMonitoringScopes } from "@/lib/monitoring-scope-matcher";
 import { monitoringScopesFromPreferences, type MonitoringScope } from "@/lib/monitoring-scopes";
 import { listApprovedLocations } from "@/lib/approved-catalog-service";
+import { normalizeDropSignal } from "@/lib/signals/signal-contract";
 
 export interface AreaPreferences {
   states: string[];
@@ -142,6 +143,20 @@ function asNumber(value: unknown, fallback = 0) {
 
 function asBoolean(value: unknown) {
   return value === true;
+}
+
+export async function isolatePushChannelFailure(
+  stage: "initialize" | "drain" | "enqueue",
+  operation: () => Promise<void>,
+  report: (message: string) => void,
+) {
+  try {
+    await operation();
+    return true;
+  } catch (error) {
+    report(`push ${stage} failed: ${error instanceof Error ? error.message : String(error)}`);
+    return false;
+  }
 }
 
 function toStrings(value: unknown) {
@@ -854,6 +869,7 @@ function normalizeMemberAlertRecord(input: unknown): MemberAlertRecord | null {
     id,
     userId,
     dedupeKey,
+    signalId: asString(source.signalId) || undefined,
     bottleName,
     bottleNames: Array.isArray(source.bottleNames) ? uniqueStrings(source.bottleNames.map((value) => asString(value))) : undefined,
     underlyingStableKeys: uniqueStrings(toStrings(source.underlyingStableKeys)),
@@ -887,10 +903,15 @@ export function normalizeAlertInboxMetadata(input: unknown): AlertInboxMetadata 
 
 export function candidateToMemberAlert(userId: string, candidate: CandidateAlert, createdAt: string, areaPrefs?: AreaPreferences): MemberAlertRecord {
   const dedupeKey = asString(candidate.dedupeKey, asString(candidate.id));
+  const candidateId = asString(candidate.id);
+  const signalId = asString(candidate.sourceType) === "community"
+    ? (candidateId.startsWith("community:") ? `member:${candidateId.slice("community:".length)}` : "")
+    : normalizeDropSignal(candidate).id;
   return {
     id: buildAlertId(userId, dedupeKey, createdAt),
     userId,
     dedupeKey,
+    ...(signalId ? { signalId } : {}),
     bottleName: asString(candidate.bottle, "Bottle signal"),
     bottleNames: candidateBottleNames(candidate),
     underlyingStableKeys: underlyingStableKeys(candidate),
@@ -1157,6 +1178,7 @@ export async function deliverPreferenceAlerts(req: Request, options: {
     onSiteAlertsCreated: 0,
     pushNotificationsSent: 0,
     pushNotificationsWouldSend: 0,
+    pushFailures: 0,
     emailsSent: 0,
     emailsWouldSend: 0,
     smsSent: 0,
@@ -1375,16 +1397,19 @@ export async function deliverPreferenceAlerts(req: Request, options: {
       }
       const notificationPrefs = normalizeNotificationPreferences(publicMetadata.notificationPreferences);
       let currentPushDevices = privateMetadata.pushDevices;
-      const pushReceiptMetadata = privateMetadata.pushDeliveryReceipts && typeof privateMetadata.pushDeliveryReceipts === "object"
-        ? privateMetadata.pushDeliveryReceipts as Record<string, unknown>
-        : {};
-      let pendingPushTickets = normalizePendingExpoPushTickets(pushReceiptMetadata.pending, now);
       const livePushRun = !dryRun && !baselineOnSiteOnly && !baselineEmailOnly && !baselineSmsOnly && ALERT_ONSITE_DELIVERY_ENABLED;
-      const pushOutbox = livePushRun && notificationPrefs.push.enabled ? createProductionPushOutbox() : null;
+      let pushOutbox = livePushRun && notificationPrefs.push.enabled
+        ? createProductionPushOutbox()
+        : null;
+      const reportPushFailure = (message: string) => {
+        summary.pushFailures += 1;
+        summary.errors.push({ userId, message });
+      };
       let pushTraceChildren: CandidateAlert[] = [];
       const drainMemberPush = async () => {
         if (!pushOutbox) return;
-        await drainPushOutbox(pushOutbox, userId, queueWorkerId, {
+        const memberPushOutbox = pushOutbox;
+        await drainPushOutbox(memberPushOutbox, userId, queueWorkerId, {
           resolve: async (intent) => {
             // Refresh policy and devices for EVERY attempt, under the existing member lease.
             const latest = await client.users.getUser(userId);
@@ -1412,7 +1437,6 @@ export async function deliverPreferenceAlerts(req: Request, options: {
             if (!memberAlertPassesFinalFreshness(alert, attemptAt)) return null;
             currentPushDevices = await ownedPushDevices(userId, priv.pushDevices);
             if (!memberAlertPassesFinalFreshness(alert) || children.some((child) => !candidatePassesFreshOnSiteGuardrails(child)) || !await runtimeSourceCandidatesStillValid(children)) return null;
-            pendingPushTickets = normalizePendingExpoPushTickets((priv.pushDeliveryReceipts as Record<string, unknown> | undefined)?.pending, attemptAt);
             pushTraceChildren = children;
             return { devices: currentPushDevices, messages: buildExpoPushMessages(enabledPushTokens(currentPushDevices), alert) };
           },
@@ -1430,35 +1454,24 @@ export async function deliverPreferenceAlerts(req: Request, options: {
               return outcome.suppressed ? { accepted: 0, rejected: 0, tickets: [], invalidTokens: [] } : outcome.result;
             },
           }),
+          durableTickets: (result, devices) => durablePushTicketBindings(devices, result.tickets),
           accepted: async (result) => {
             if (result.accepted) await traceRuntimeSourceCandidates(pushTraceChildren, "provider_accepted", "push");
             summary.pushNotificationsSent += result.accepted;
             // Never overwrite the full Clerk device list with an ownership-filtered subset.
             const latest = await client.users.getUser(userId);
             currentPushDevices = disablePushTokens(latest.privateMetadata.pushDevices, result.invalidTokens, new Date().toISOString());
-            pendingPushTickets = [...pendingPushTickets, ...result.tickets.map((ticket) => ({ ...ticket, createdAt: new Date().toISOString() }))].slice(-200);
-            await pushOutbox.assertHeld(userId, queueWorkerId);
+            await memberPushOutbox.assertHeld(userId, queueWorkerId);
             await client.users.updateUserMetadata(userId, {
-              privateMetadata: { pushDevices: currentPushDevices, pushDeliveryReceipts: { pending: pendingPushTickets, lastCheckedAt: new Date().toISOString() } },
+              privateMetadata: { pushDevices: currentPushDevices },
             });
           },
         });
       };
-      // Drain BEFORE no-area, identity-migration, channel and inbox-dedupe continues.
-      // A prior inbox success is not a prerequisite and cannot hide durable retries.
-      await drainMemberPush();
-      if (!dryRun && notificationPrefs.push.enabled && pushPreferenceProjectionAllowsDelivery(privateMetadata.pushPreferenceProjection) && pendingPushTickets.length) {
-        try {
-          const receipts = await reconcileExpoPushReceipts(pendingPushTickets, currentPushDevices, fetch, now);
-          currentPushDevices = receipts.devices;
-          pendingPushTickets = receipts.pending;
-          await client.users.updateUserMetadata(userId, {
-            privateMetadata: { pushDevices: currentPushDevices, pushDeliveryReceipts: { pending: pendingPushTickets, lastCheckedAt: now } },
-          });
-        } catch (error) {
-          summary.errors.push({ userId, message: `push receipt reconciliation failed: ${error instanceof Error ? error.message : String(error)}` });
-        }
-      }
+      // Push is additive. A missing/unavailable push schema must never block the
+      // established on-site, email, or SMS channels.
+      const pushDrainReady = await isolatePushChannelFailure("drain", drainMemberPush, reportPushFailure);
+      if (!pushDrainReady) pushOutbox = null;
       const areaPrefs = normalizeAreaPrefs(publicMetadata.areaPreferences, publicMetadata.monitoringScopes);
       if (!hasSavedAreaPreferences(areaPrefs)) {
         summary.skippedNoAreaPreferences += 1;
@@ -1601,17 +1614,19 @@ export async function deliverPreferenceAlerts(req: Request, options: {
         }
       }
 
-      // Commit push intent before any inbox write (or later email/SMS work). If this
-      // fails, stop before inbox dedupe can make the push intent unrecoverable.
       if (pushOutbox && notificationPrefs.push.enabled && pushPreferenceProjectionAllowsDelivery(privateMetadata.pushPreferenceProjection)) {
         await pruneStaleOnSiteAlerts();
-        for (const alert of newOnSiteAlerts) {
-          await pushOutbox.enqueue(userId, queueWorkerId, {
-            alertId: alert.id,
-            stableKeys: alert.underlyingStableKeys || [],
-            expiresAt: new Date(Math.min(Date.now() + 2 * 3_600_000, Date.parse(alert.signalAt || "") + (alert.freshnessLimitHours || 2) * 3_600_000)).toISOString(),
-          });
-        }
+        const memberPushOutbox = pushOutbox;
+        const pushEnqueueReady = await isolatePushChannelFailure("enqueue", async () => {
+          for (const alert of newOnSiteAlerts) {
+            await memberPushOutbox.enqueue(userId, queueWorkerId, {
+              alertId: alert.id,
+              stableKeys: alert.underlyingStableKeys || [],
+              expiresAt: new Date(Math.min(Date.now() + 2 * 3_600_000, Date.parse(alert.signalAt || "") + (alert.freshnessLimitHours || 2) * 3_600_000)).toISOString(),
+            });
+          }
+        }, reportPushFailure);
+        if (!pushEnqueueReady) pushOutbox = null;
       }
 
       let newRecords: DeliveryRecord[] = [];

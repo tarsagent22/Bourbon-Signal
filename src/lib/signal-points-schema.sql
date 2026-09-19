@@ -114,6 +114,22 @@ END $$;
 CREATE OR REPLACE FUNCTION reject_signal_reward_fulfillment_snapshot_mutation()
 RETURNS TRIGGER LANGUAGE plpgsql AS $$
 BEGIN
+  IF EXISTS (
+      SELECT 1 FROM account_deletion_requests request
+      WHERE request.request_id=current_setting('app.account_deletion_request_id',TRUE)
+        AND request.status='cleanup_queued'
+        AND request.user_id=OLD.shipping_profile_user_id
+        AND request.subject_token=NEW.shipping_profile_user_id
+        AND request.subject_token ~ '^deleted:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+    )
+    AND NEW.redemption_id IS NOT DISTINCT FROM OLD.redemption_id
+    AND NEW.fulfillment_type IS NOT DISTINCT FROM OLD.fulfillment_type
+    AND (
+      (NEW.fulfillment_type='digital' AND NEW.shipping_address IS NULL)
+      OR (NEW.fulfillment_type='physical' AND NEW.shipping_address->>'recipientName'='Deleted member')
+    ) THEN
+    RETURN NEW;
+  END IF;
   IF NEW.redemption_id IS DISTINCT FROM OLD.redemption_id
     OR NEW.fulfillment_type IS DISTINCT FROM OLD.fulfillment_type
     OR NEW.shipping_profile_user_id IS DISTINCT FROM OLD.shipping_profile_user_id
@@ -211,7 +227,22 @@ UPDATE signal_reward_catalog SET active=FALSE,updated_at=NOW()
 WHERE item_key IN ('coaster_set','tshirt','rocks_glass_pair','glencairn_pair','hoodie') AND active=TRUE;
 
 CREATE OR REPLACE FUNCTION reject_signal_point_ledger_mutation()
-RETURNS TRIGGER LANGUAGE plpgsql AS $$ BEGIN RAISE EXCEPTION 'Signal Points ledger is append-only'; END $$;
+RETURNS TRIGGER LANGUAGE plpgsql AS $$
+BEGIN
+  IF TG_OP='UPDATE'
+    AND EXISTS (
+      SELECT 1 FROM account_deletion_requests request
+      WHERE request.request_id=current_setting('app.account_deletion_request_id',TRUE)
+        AND request.status='cleanup_queued'
+        AND request.user_id=OLD.user_id
+        AND request.subject_token=NEW.user_id
+        AND request.subject_token ~ '^deleted:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+    )
+    AND (to_jsonb(NEW)-'user_id') IS NOT DISTINCT FROM (to_jsonb(OLD)-'user_id') THEN
+    RETURN NEW;
+  END IF;
+  RAISE EXCEPTION 'Signal Points ledger is append-only';
+END $$;
 DROP TRIGGER IF EXISTS signal_point_ledger_append_only ON signal_point_ledger;
 CREATE TRIGGER signal_point_ledger_append_only BEFORE UPDATE OR DELETE ON signal_point_ledger
 FOR EACH ROW EXECUTE FUNCTION reject_signal_point_ledger_mutation();
@@ -556,3 +587,35 @@ END $$;
 CREATE INDEX IF NOT EXISTS signal_point_ledger_user_created_idx ON signal_point_ledger(user_id,created_at DESC);
 CREATE INDEX IF NOT EXISTS signal_reward_redemptions_user_created_idx ON signal_reward_redemptions(user_id,created_at DESC);
 CREATE INDEX IF NOT EXISTS signal_reward_redemptions_status_created_idx ON signal_reward_redemptions(status,created_at ASC);
+
+CREATE OR REPLACE FUNCTION anonymize_signal_points_member(p_user_id TEXT,p_subject_token TEXT,p_deleted_email TEXT,p_request_id TEXT)
+RETURNS VOID LANGUAGE plpgsql AS $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM account_deletion_requests request
+    WHERE request.user_id=p_user_id AND request.subject_token=p_subject_token
+      AND request.request_id=p_request_id AND request.status='cleanup_queued'
+      AND request.subject_token ~ '^deleted:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+  ) THEN
+    RAISE EXCEPTION 'Signal Points deletion authority is unavailable';
+  END IF;
+  PERFORM set_config('app.account_deletion_request_id',p_request_id,TRUE);
+  INSERT INTO signal_point_accounts(user_id,balance,debt,created_at,updated_at)
+  SELECT p_subject_token,balance,debt,created_at,NOW() FROM signal_point_accounts WHERE user_id=p_user_id
+  ON CONFLICT(user_id) DO NOTHING;
+  UPDATE signal_reward_fulfillments SET
+    shipping_profile_user_id=CASE WHEN shipping_profile_user_id=p_user_id THEN p_subject_token ELSE shipping_profile_user_id END,
+    shipping_address=CASE WHEN fulfillment_type='physical' THEN jsonb_build_object(
+      'recipientName','Deleted member','addressLine1','Retained transaction record','addressLine2',NULL,
+      'city','Not retained','stateCode','NA','postalCode','00000','countryCode','US','phone','0000000000'
+    ) ELSE NULL END,owner_notes=NULL
+  WHERE shipping_profile_user_id=p_user_id;
+  UPDATE signal_reward_redemption_events SET actor_id=p_subject_token,metadata='{}'::jsonb
+  WHERE actor_id=p_user_id OR redemption_id IN (SELECT id FROM signal_reward_redemptions WHERE user_id=p_user_id);
+  UPDATE signal_reward_redemptions SET user_id=p_subject_token,account_email=p_deleted_email,details='{}'::jsonb WHERE user_id=p_user_id;
+  UPDATE signal_point_ledger SET user_id=p_subject_token WHERE user_id=p_user_id;
+  UPDATE signal_point_source_balances SET user_id=p_subject_token WHERE user_id=p_user_id;
+  UPDATE signal_point_reward_generations SET user_id=p_subject_token WHERE user_id=p_user_id;
+  DELETE FROM signal_point_accounts WHERE user_id=p_user_id;
+  PERFORM set_config('app.account_deletion_request_id','',TRUE);
+END $$;

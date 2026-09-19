@@ -1,11 +1,18 @@
 import { uploadClientBlob, type ClientBlobUploadResult } from "./blob-upload";
 import { validApiResponse } from "./response-validation";
 import type {
+  AccountDeletionResponse,
+  AppleMembershipReadinessResponse,
+  AppleMembershipReconciliationRequest,
+  AppleMembershipReconciliationResponse,
   MemberAlertsResponse,
   MemberPreferences,
   MemberPreferencesPatch,
   MemberProfile,
   MemberProfilePatch,
+  MobileOnboardingRequest,
+  MobileOnboardingResponse,
+  MobileOnboardingStatusResponse,
   MembershipTrialEligibility,
   GeographySearchResponse,
   HuntOutcome,
@@ -48,7 +55,7 @@ function consume<T>(promise: Promise<T>, signal?: AbortSignal): Promise<T> {
 }
 
 type RequestOptions = {
-  method?: "GET" | "POST" | "PUT" | "PATCH";
+  method?: "GET" | "POST" | "PUT" | "PATCH" | "DELETE";
   body?: unknown;
   headers?: Record<string, string>;
   fresh?: boolean;
@@ -105,6 +112,10 @@ const bottleCatalogCache = new Map<string, { expiresAt: number; promise: Promise
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function invalidTypedResponse(): never {
+  throw new MobileApiError("The server returned an invalid response. Please retry.", 502, "INVALID_RESPONSE", true);
 }
 
 function parseReferralSummary(payload: unknown): ReferralSummary {
@@ -177,8 +188,8 @@ export function createMobileApi({
     let timer: ReturnType<typeof setTimeout>;
     const timeout = new Promise<never>((_, reject) => {
       timer = setTimeout(() => {
-        reject(new MobileApiError("The request timed out. Please retry.", 408, "REQUEST_TIMEOUT", true));
         controller.abort();
+        reject(new MobileApiError("The request timed out. Please retry.", 408, "REQUEST_TIMEOUT", true));
       }, Math.max(1, requestTimeoutMs));
     });
     try { return await Promise.race([work(controller.signal), timeout]); }
@@ -276,8 +287,27 @@ export function createMobileApi({
     updateMemberProfile(patch: MemberProfilePatch) {
       return request<MemberProfile>("/api/v1/me/profile", { method: "PATCH", body: patch });
     },
+    completeMobileOnboarding(payload: MobileOnboardingRequest) {
+      return request<MobileOnboardingResponse>("/api/v1/me/onboarding", { method: "POST", body: payload });
+    },
+    getMobileOnboardingStatus({ fresh = false, signal }: { fresh?: boolean; signal?: AbortSignal } = {}) {
+      return request<MobileOnboardingStatusResponse>("/api/v1/me/onboarding", { fresh, signal });
+    },
+    requestAccountDeletion() {
+      return request<AccountDeletionResponse>("/api/v1/me/account", { method: "DELETE", body: { confirmation: "DELETE" } });
+    },
     getMembershipTrialEligibility({ fresh = false }: { fresh?: boolean } = {}) {
       return request<MembershipTrialEligibility>("/api/membership-trial", { fresh });
+    },
+    async getAppleMembershipReadiness({ fresh = false }: { fresh?: boolean } = {}) {
+      const response = await request<AppleMembershipReadinessResponse | AppleMembershipReconciliationResponse>("/api/v1/me/apple-membership", { fresh });
+      if (!("available" in response) || typeof response.available !== "boolean" || !Array.isArray(response.eligibleProductIds) || typeof response.restoreAvailable !== "boolean") invalidTypedResponse();
+      return response;
+    },
+    async reconcileAppleMembership(payload: AppleMembershipReconciliationRequest) {
+      const response = await request<AppleMembershipReadinessResponse | AppleMembershipReconciliationResponse>("/api/v1/me/apple-membership", { method: "POST", body: payload });
+      if (!("status" in response) || response.status !== "reconciled" || !("effectiveTier" in response)) invalidTypedResponse();
+      return response;
     },
     async getSignalAreaOptions(state: string) {
       const stateCode = state.trim().toUpperCase();

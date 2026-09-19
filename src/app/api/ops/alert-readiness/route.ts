@@ -1,5 +1,6 @@
 import { deliverPreferenceAlerts } from "@/lib/alert-delivery";
 import { createAlertReadinessHandler } from "@/lib/alert-readiness";
+import { readPushDeliveryHealth } from "@/lib/push-receipts";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -12,4 +13,5 @@ export const GET = createAlertReadinessHandler({
   read: () => deliverPreferenceAlerts(new Request("https://www.bourbonsignal.com/api/alerts/deliver", {
     headers: { authorization: `Bearer ${process.env.ALERT_DELIVERY_SECRET || process.env.CRON_SECRET || ""}` },
   }), { dryRun: true, queueMode: "off" }),
+  pushHealth: () => readPushDeliveryHealth(),
 });

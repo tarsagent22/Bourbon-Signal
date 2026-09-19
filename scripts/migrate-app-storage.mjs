@@ -54,6 +54,7 @@ function splitSql(source) {
 
 const schemaFiles = [
   '../src/lib/source-lane-schema.sql',
+  '../src/lib/account-deletion-schema.sql',
   '../src/lib/push-ownership-schema.sql',
   '../src/lib/member-collection-schema.sql',
   '../src/lib/bottle-contribution-schema.sql',
@@ -63,6 +64,7 @@ const schemaFiles = [
   '../src/lib/referral-schema.sql',
   '../src/lib/signal-points-schema.sql',
   '../src/lib/membership-trial-schema.sql',
+  '../src/lib/apple-membership-schema.sql',
   '../src/lib/gift-schema.sql',
   '../src/lib/community-sightings-schema.sql',
   '../src/lib/retailer-schema.sql',
@@ -87,6 +89,7 @@ if (check) {
 
 const expected = [
   'source_lane_heads', 'source_lane_batches', 'source_lane_subjects', 'source_lane_opportunities', 'source_lane_trace', 'source_lane_demand',
+  'account_deletion_requests',
   'member_push_ownership',
   'approved_catalog_bottles',
   'approved_catalog_locations',
@@ -117,6 +120,8 @@ const expected = [
   'signal_reward_redemption_events',
   'signal_reward_fulfillments',
   'membership_trial_claims',
+  'apple_memberships',
+  'apple_membership_events',
   'bottle_contributions',
   'community_contributor_moderation',
   'community_sighting_alert_authority',
@@ -175,6 +180,8 @@ const requiredColumns = {
   signal_reward_redemption_events: ['id', 'redemption_id', 'from_status', 'to_status', 'actor_id', 'actor_role', 'metadata', 'created_at'],
   signal_reward_fulfillments: ['redemption_id', 'fulfillment_type', 'shipping_profile_user_id', 'shipping_address', 'owner_notes', 'carrier', 'tracking_number', 'created_at', 'updated_at'],
   membership_trial_claims: ['user_id', 'subscription_id', 'plan', 'source', 'checkout_session_id', 'trial_ends_at', 'metadata', 'status', 'started_at', 'converted_at', 'canceled_at', 'created_at', 'updated_at'],
+  apple_memberships: ['original_transaction_id', 'clerk_user_id', 'environment', 'product_id', 'entitlement_status', 'expires_at', 'offer_state', 'ordered_event_at', 'status_priority', 'last_provider_event_id', 'created_at', 'updated_at', 'last_reconciled_at', 'projected_at'],
+  apple_membership_events: ['provider_event_id', 'clerk_user_id', 'original_transaction_id', 'environment', 'product_id', 'entitlement_status', 'expires_at', 'offer_state', 'ordered_event_at', 'received_at', 'created_at'],
   bottle_contributions: ['id', 'status', 'payload'],
   community_contributor_moderation: ['reporter_user_id', 'restriction_kind', 'restriction_reason', 'restricted_at', 'restricted_by', 'restoration_reason', 'restored_at', 'restored_by', 'updated_at'],
   community_sighting_alert_authority: ['sighting_id', 'reporter_user_id', 'report_created_at', 'authorized_at'],
@@ -277,6 +284,8 @@ const expectedIndexes = [
   'signal_point_ledger_user_created_idx',
   'signal_reward_redemptions_user_created_idx',
   'signal_reward_redemptions_status_created_idx',
+  'apple_memberships_owner_order_idx',
+  'apple_membership_events_transaction_order_idx',
   'bottle_contributions_updated_idx',
   'community_contributor_moderation_restricted_idx',
   'community_sighting_alert_authority_reporter_idx',

@@ -63,6 +63,125 @@ test("updates the public Community display name through the member profile endpo
   assert.deepEqual(await captured!.json(), { displayName: " Chandler T. " });
 });
 
+test("submits native onboarding and permanent account deletion through authenticated member endpoints", async () => {
+  const requests: Request[] = [];
+  const api = createMobileApi({
+    baseUrl: "https://example.test",
+    getToken: async () => "session-token",
+    fetcher: async (request) => {
+      const captured = new Request(request);
+      requests.push(captured);
+      if (new URL(captured.url).pathname.endsWith("/onboarding")) {
+        return Response.json({ contractVersion: "bourbon-signal/mobile-api@1", completed: true });
+      }
+      return Response.json({
+        contractVersion: "bourbon-signal/mobile-api@1",
+        status: "cleanup_queued",
+        requestId: "delete_1",
+        accessRevoked: true,
+        identityDeleted: true,
+        remainingCleanup: ["uploaded_sighting_proof_blobs"],
+      });
+    },
+  });
+
+  await api.completeMobileOnboarding({ displayName: "Oak Street", age21Affirmed: true, homeState: "NC" });
+  await api.requestAccountDeletion();
+
+  assert.deepEqual(requests.map((request) => [request.method, new URL(request.url).pathname]), [
+    ["POST", "/api/v1/me/onboarding"],
+    ["DELETE", "/api/v1/me/account"],
+  ]);
+  assert.equal(requests[0].headers.get("authorization"), "Bearer session-token");
+  assert.deepEqual(await requests[0].json(), { displayName: "Oak Street", age21Affirmed: true, homeState: "NC" });
+});
+
+test("uses a typed authenticated Apple-membership readiness and reconciliation boundary", async () => {
+  const requests: Request[] = [];
+  const api = createMobileApi({
+    baseUrl: "https://example.test",
+    getToken: async () => "session-token",
+    fetcher: async (request) => {
+      const captured = new Request(request);
+      requests.push(captured);
+      if (captured.method === "GET") return Response.json({
+        contractVersion: "bourbon-signal/mobile-api@1",
+        available: false,
+        reason: "backend_not_configured",
+        eligibleProductIds: [],
+        restoreAvailable: false,
+        membership: null,
+      });
+      return Response.json({
+        contractVersion: "bourbon-signal/mobile-api@1",
+        status: "reconciled",
+        effectiveTier: "free",
+        membership: {
+          productId: "com.bourbonsignal.app.standard.monthly",
+          status: "expired",
+          environment: "sandbox",
+          expiresAt: "2026-09-01T00:00:00.000Z",
+          offerState: "none",
+          updatedAt: "2026-09-13T20:00:00.000Z"
+        },
+      });
+    },
+  });
+
+  const readiness = await api.getAppleMembershipReadiness({ fresh: true });
+  const reconciliation = await api.reconcileAppleMembership({
+    action: "purchase",
+    productId: "com.bourbonsignal.app.standard.monthly",
+  });
+
+  assert.equal(readiness.available, false);
+  assert.equal(reconciliation.effectiveTier, "free");
+  assert.deepEqual(requests.map((request) => [request.method, new URL(request.url).pathname]), [
+    ["GET", "/api/v1/me/apple-membership"],
+    ["POST", "/api/v1/me/apple-membership"],
+  ]);
+  assert.deepEqual(await requests[1].json(), {
+    action: "purchase",
+    productId: "com.bourbonsignal.app.standard.monthly",
+  });
+  assert.equal(requests.every((request) => request.headers.get("authorization") === "Bearer session-token"), true);
+});
+
+test("fails closed when Apple lifecycle data is malformed", async () => {
+  const api = createMobileApi({
+    baseUrl: "https://example.test",
+    getToken: async () => "session-token",
+    fetcher: async () => Response.json({
+      contractVersion: "bourbon-signal/mobile-api@1",
+      available: true,
+      reason: "ready",
+      eligibleProductIds: [],
+      restoreAvailable: true,
+      membership: {
+        productId: "com.bourbonsignal.app.standard.monthly",
+        status: "mystery",
+        environment: "sandbox",
+        expiresAt: null,
+        offerState: "none",
+        updatedAt: "2026-09-13T20:00:00.000Z",
+      },
+    }),
+  });
+  await assert.rejects(() => api.getAppleMembershipReadiness({ fresh: true }), (error: unknown) => error instanceof MobileApiError && error.code === "INVALID_RESPONSE");
+});
+
+test("fails closed when the Apple membership endpoint returns the wrong success variant", async () => {
+  const api = createMobileApi({
+    baseUrl: "https://example.test",
+    getToken: async () => "session-token",
+    fetcher: async (request) => new Request(request).method === "GET"
+      ? Response.json({ contractVersion: "bourbon-signal/mobile-api@1", status: "reconciled", effectiveTier: "standard" })
+      : Response.json({ contractVersion: "bourbon-signal/mobile-api@1", available: true, reason: "ready", eligibleProductIds: [], restoreAvailable: true }),
+  });
+  await assert.rejects(() => api.getAppleMembershipReadiness({ fresh: true }), (error: unknown) => error instanceof MobileApiError && error.code === "INVALID_RESPONSE");
+  await assert.rejects(() => api.reconcileAppleMembership({ action: "restore" }), (error: unknown) => error instanceof MobileApiError && error.code === "INVALID_RESPONSE");
+});
+
 test("validates referral program data before exposing it to Account", async () => {
   const base = {
     code: "ABCD2345",

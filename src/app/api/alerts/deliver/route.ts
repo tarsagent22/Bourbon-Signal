@@ -6,6 +6,7 @@ import { resolveGiftDeliveryMode, runGiftDelivery } from "@/lib/gift-delivery";
 import { runGiftAdverseReconciliation, runGiftExpiryReconciliation } from "@/lib/gift-expiry";
 import { runDirectFounderActivationReconciliation, runGiftActivationReconciliation } from "@/lib/gift-activation";
 import { runLatePaymentRefundReconciliation } from "@/lib/gift-refunds";
+import { runPushReceiptReconciliation } from "@/lib/push-receipts";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 300;
@@ -43,6 +44,12 @@ async function runDelivery(req: NextRequest) {
   const dryRun = requestedDryRun || (monitorOnly && !testEmail && baselineModeCount === 0);
   const heartbeatEligible = scheduledRun && !dryRun && queueMode !== "shadow" && !testEmail && baselineModeCount === 0;
   try {
+    // Receipt polling is isolated from send execution: retries can only poll already
+    // accepted provider ticket IDs and can never re-enter the push send outbox. Run it
+    // first so an unrelated delivery failure cannot strand authoritative receipts.
+    const pushReceipts = heartbeatEligible
+      ? await runPushReceiptReconciliation().catch(() => ({ ok: false, isolatedFailure: true }))
+      : undefined;
     const deliveryResult = testEmail
       ? await sendOperationalTestAlertEmail(req)
       : await deliverPreferenceAlerts(req, { dryRun, baselineOnSiteOnly, baselineEmailOnly, baselineSmsOnly, queueMode });
@@ -62,10 +69,12 @@ async function runDelivery(req: NextRequest) {
         ])
       : [];
     const alertAudit = heartbeatEligible ? await readAlertQueueAuditHealth() : undefined;
+
     const result = {
       ...deliveryResult,
       monitorOnly,
       ...(alertAudit ? { alertAudit } : {}),
+      ...(pushReceipts ? { pushReceipts } : {}),
       ...(giftMaintenanceDue ? {
         giftDelivery: giftMaintenance[0]?.status === "fulfilled" ? giftMaintenance[0].value : { ok: false, isolatedFailure: true },
         giftExpiry: giftMaintenance[1]?.status === "fulfilled" ? giftMaintenance[1].value : { ok: false, isolatedFailure: true },

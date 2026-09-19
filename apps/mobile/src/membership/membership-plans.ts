@@ -16,6 +16,7 @@ export type MembershipPlan = {
   features: string[];
   recommended?: boolean;
   limited?: boolean;
+  purchasableOnIos?: boolean;
   monthly?: Omit<PriceChoice, "interval">;
   annual?: Omit<PriceChoice, "interval">;
   lifetime?: Omit<PriceChoice, "interval">;
@@ -30,14 +31,14 @@ export const MEMBERSHIP_PLANS: MembershipPlan[] = [
     features: [
       "7-item Intel preview",
       "2 newest Community Signals",
-      "3 Bottle Checks",
+      "3 bottle intelligence lookups",
       "10 bottles on My Shelf",
       "Post Community Signals and earn points",
     ],
   },
   {
     tier: "standard",
-    name: "Standard Proof",
+    name: "Standard",
     eyebrow: "Core membership",
     description: "Turn state signals into a focused hunting plan with full access and alerts.",
     monthly: { price: "$3", suffix: "/month", trialDays: 7 },
@@ -45,21 +46,21 @@ export const MEMBERSHIP_PLANS: MembershipPlan[] = [
     features: [
       "Full state Intel feed",
       "Alerts for up to 5 areas and 15 bottles",
-      "Unlimited Bottle Checks and Community Signals",
+      "Unlimited bottle intelligence and Community Signals",
       "Unlimited My Shelf",
       "Redeem Signal Points for member rewards",
     ],
   },
   {
     tier: "barrel",
-    name: "Barrel Proof",
+    name: "Barrel",
     eyebrow: "Serious hunters",
     description: "Add unlimited preferences and intelligence shaped by your own collection.",
     recommended: true,
     monthly: { price: "$6", suffix: "/month", trialDays: 7 },
     annual: { price: "$60", suffix: "/year", valueNote: "2 months free" },
     features: [
-      "Everything in Standard Proof",
+      "Everything in Standard",
       "Unlimited areas and watched bottles",
       "Advanced filters and Community Signal alerts",
       "Bourbon DNA and collection intelligence",
@@ -68,13 +69,14 @@ export const MEMBERSHIP_PLANS: MembershipPlan[] = [
   },
   {
     tier: "bottled-in-bond",
-    name: "Bottled in Bond",
-    eyebrow: "Limited Founder offer",
-    description: "Lifetime access to the complete hunting toolkit with permanent Founder recognition.",
+    name: "Founder",
+    eyebrow: "Existing Founder access",
+    description: "Lifetime access to the complete hunting toolkit with permanent Founder recognition. Existing Founder memberships remain active in the app.",
     limited: true,
+    purchasableOnIos: false,
     lifetime: { price: "$50", suffix: " once" },
     features: [
-      "Everything in Barrel Proof for life",
+      "Everything in Barrel for life",
       "Numbered Founder’s glass",
       "Founder badge and number on your profile",
     ],
@@ -108,6 +110,7 @@ export function membershipActionFor(current: MembershipTier, target: MembershipT
     const currentName = MEMBERSHIP_PLANS.find((plan) => plan.tier === current)?.name || "your membership";
     return { kind: "included" as const, label: `Included with ${currentName}` };
   }
+  if (target === "bottled-in-bond") return { kind: "unavailable" as const, label: "Founder access" };
   const targetName = MEMBERSHIP_PLANS.find((plan) => plan.tier === target)?.name || "membership";
   return { kind: "upgrade" as const, label: `Review ${targetName}` };
 }

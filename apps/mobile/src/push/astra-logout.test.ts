@@ -10,18 +10,18 @@ test('MM-02 queued A notification after offline logout waits for authentication 
   const { buildExpoPushMessages, sendExpoPushMessages } = loadWithMocks('../../src/lib/push-devices.ts', {});
   const messages = buildExpoPushMessages(['ExpoPushToken[fixture-token-12345]'], { id: 'A-private-id', bottleName: 'A-private-bottle', storeLabel: 'A-private-store', matchedArea: 'A-private-area' });
   let queued: any;
-  await sendExpoPushMessages(messages, async (_input: unknown, init: RequestInit) => { queued = JSON.parse(String(init.body))[0]; return Response.json({ data: [{ status: 'ok' }] }); });
+  await sendExpoPushMessages(messages, async (_input: unknown, init: RequestInit) => { queued = JSON.parse(String(init.body))[0]; return Response.json({ data: [{ status: 'ok', id: 'fixture-provider-ticket' }] }); });
   const { push, events } = setup();
   const result = await push.signOutWithRadarPushDisabled({ disablePushDevice: async () => { throw new Error('offline'); }, clearReadCache() {} }, async () => { events.push('signed-out'); });
   assert.equal(result.pushDisabled, false); assert.ok(events.includes('signed-out'));
-  assert.deepEqual(queued, { to: 'ExpoPushToken[fixture-token-12345]', title: 'Bourbon Signal', body: 'Open Radar to check your latest matches.', data: { screen: 'radar' }, sound: 'default', priority: 'high' });
+  assert.deepEqual(queued, { to: 'ExpoPushToken[fixture-token-12345]', title: 'Bourbon Signal', body: 'Open Radar to check your latest matches.', data: { screen: 'radar', alertId: 'A-private-id' }, sound: 'default', priority: 'high' });
   const navigation = createPendingPushNavigation();
   navigation.receive('queued-A-os-request', queued.data);
   assert.equal(navigation.take(false, true), null, 'locked UI must not fetch or show A details');
   assert.equal(navigation.take(true, false), null);
   // B does not register for push. The already-queued tap opens B's authenticated Radar.
   const route = navigation.take(true, true);
-  assert.deepEqual(route, { pathname: '/(app)/(tabs)/radar', params: { section: 'matches', request: 'queued-A-os-request' } });
+  assert.deepEqual(route, { pathname: '/(app)/(tabs)/radar', params: { section: 'matches', alert: 'A-private-id', request: 'queued-A-os-request' } });
   let reads = 0;
   const apiB = createMobileApi({ baseUrl: 'https://offline.invalid', getToken: async () => 'fixture-B', fetcher: async input => {
     const request = new Request(input); reads++;
@@ -69,4 +69,31 @@ test('M02 mitigation: reads back revocation while authenticated, leaves another 
   const result = await push.signOutWithRadarPushDisabled(api, async () => { signedOut = true; events.push('signedOut'); });
   assert.equal(result.pushDisabled,true); assert.deepEqual([...enabled], ['installation-other']);
   assert.ok(events.indexOf('readback') > events.indexOf('write')); assert.ok(events.indexOf('signedOut') > events.indexOf('readback'));
+});
+
+test('M02 offline logout persists a capability revocation and flushes it without member authentication', async () => {
+  const { push, stored } = setup();
+  stored.set('bourbon-signal.push-revocation-token', '11111111-1111-4111-8111-111111111111');
+  const offline = async () => { throw new Error('offline'); };
+  const result = await push.signOutWithRadarPushDisabled({ disablePushDevice: async () => { throw new Error('offline'); }, clearReadCache() {} }, async () => {}, 15, { fetcher: offline });
+  assert.equal(result.pushDisabled, false);
+  assert.ok(stored.get('bourbon-signal.pending-push-revocation'));
+  let authorization: string | null = 'unexpected';
+  assert.equal(await push.flushPendingPushRevocation(async (input: RequestInfo | URL, init?: RequestInit) => {
+    const request = new Request(input, init); authorization = request.headers.get('authorization');
+    assert.deepEqual(await request.json(), { deviceId: 'installation-A', revocationToken: '11111111-1111-4111-8111-111111111111' });
+    return Response.json({ ok: true, revoked: true });
+  }), true);
+  assert.equal(authorization, null);
+  assert.equal(stored.has('bourbon-signal.pending-push-revocation'), false);
+});
+
+test('flushing an old-account revocation never deletes a newer binding capability', async () => {
+  const { push, stored } = setup();
+  const oldToken = '11111111-1111-4111-8111-111111111111';
+  const newToken = '22222222-2222-4222-8222-222222222222';
+  stored.set('bourbon-signal.pending-push-revocation', JSON.stringify({ deviceId: 'installation-A', revocationToken: oldToken }));
+  stored.set('bourbon-signal.push-revocation-token', newToken);
+  assert.equal(await push.flushPendingPushRevocation(async () => Response.json({ ok: true, revoked: false })), true);
+  assert.equal(stored.get('bourbon-signal.push-revocation-token'), newToken);
 });

@@ -13,7 +13,8 @@ test('M06: every typed API family rejects incomplete success and wrong contract 
   for (const payload of [{}, { contractVersion: 'future@99' }]) {
     const api = createMobileApi({ baseUrl: 'https://protocol.invalid', getToken: async () => 'A', fetcher: async () => Response.json(payload) });
     for (const call of [() => api.listSignals(), () => api.getSignal('s'), () => api.getMemberProfile(), () => api.getMemberAlerts(),
-      () => api.getMembershipTrialEligibility(), () => api.getSignalPoints(), () => api.getPushDeviceStatus(), () => api.listRadarBottles(),
+      () => api.getMembershipTrialEligibility(), () => api.getAppleMembershipReadiness(), () => api.reconcileAppleMembership({ action: 'restore' }),
+      () => api.getSignalPoints(), () => api.getPushDeviceStatus(), () => api.listRadarBottles(),
       () => api.searchMonitoringGeography(), () => api.getHuntOutcome('s'), () => api.submitSighting({} as never, 'key'),
       () => api.attachSightingPhoto('sighting_a', { pathname: 'sighting-proofs/sighting_a/1.jpg' }),
       () => api.submitBottleContribution({ rawName: 'Test', source: 'collection' })]) await assert.rejects(call(), protocol);

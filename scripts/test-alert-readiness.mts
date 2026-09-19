@@ -53,11 +53,13 @@ test('diagnostics cannot take live, baseline, recipient or other query controls'
  assert.equal((await run(request('',secret,'POST'))).status,405);assert.equal(reads,0);
 });
 test('diagnostics return only bounded aggregate readiness with no raw errors or member fields',async()=>{
- let reads=0; const run=await handler({secret:()=>secret,read:async()=>{reads++;return {dryRun:true,snapshotSource:'remote-snapshot',snapshotFresh:true,usersConsidered:4,usersMatched:2,emailsWouldSend:1,emailsSent:0,errors:['private fixture@example.invalid'],members:[{phone:'private'}],unknown:99};}});
+ let reads=0; const run=await handler({secret:()=>secret,now:()=>"2026-09-14T01:00:00.000Z",read:async()=>{reads++;return {dryRun:true,snapshotSource:'remote-snapshot',snapshotFresh:true,usersConsidered:4,usersMatched:2,emailsWouldSend:1,emailsSent:0,errors:['private fixture@example.invalid'],members:[{phone:'private'}],unknown:99};},pushHealth:async()=>({pendingTickets:3,maxReceiptLagSeconds:901,delivered:7,rejected:2,unknown:1,staleDevices:4,invalidDevices:1,reasonClasses:{receipt_ok:7,device_not_registered:1,provider_transient:2},userId:'private-user',expoPushToken:'ExpoPushToken[private]'})});
  const response=await run(request());const data=await response.json();
  assert.equal(response.status,200);assert.match(response.headers.get('cache-control')||'',/private.*no-store/);
  assert.equal(reads,1);assert.equal(data.summary.usersMatched,2);assert.equal(data.errorCount,1);
- assert.equal(data.deviceReceiptProven,false);assert.equal(data.summary.emailsSent,0);
+ assert.equal(data.deviceReceiptProven,true);assert.equal(data.summary.emailsSent,0);
+ assert.deepEqual(data.pushDelivery,{pendingTickets:3,maxReceiptLagSeconds:901,delivered:7,rejected:2,unknown:1,staleDevices:4,invalidDevices:1,reasonClasses:{receipt_ok:7,device_not_registered:1,provider_transient:2}});
+ assert.equal(data.generatedAt,'2026-09-14T01:00:00.000Z');
  assert.equal(JSON.stringify(data).includes('private'),false);assert.equal('unknown' in data.summary,false);
 });
 test('unexpected live result or read exception is a sanitized failure',async()=>{
@@ -70,5 +72,6 @@ test('deployed diagnostics route hardcodes dry-run and never accepts caller deli
  assert.match(text,/deliverPreferenceAlerts\(new Request\("https:\/\/www\.bourbonsignal\.com\/api\/alerts\/deliver"/);
  assert.match(text,/\{ dryRun: true, queueMode: "off" \}/);
  assert.match(text,/ALERT_READINESS_READ_SECRET/);
+ assert.match(text,/readPushDeliveryHealth/);
  assert.doesNotMatch(text,/searchParams|baseline:|testEmail:|testPhone:/);
 });
