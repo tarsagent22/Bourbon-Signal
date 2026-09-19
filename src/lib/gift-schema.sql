@@ -231,6 +231,16 @@ CREATE UNIQUE INDEX IF NOT EXISTS founder_spot_assigned_user_idx ON founder_spot
 CREATE UNIQUE INDEX IF NOT EXISTS direct_founder_checkout_live_user_idx
   ON direct_founder_checkout_reservations (user_id) WHERE status IN ('creating','open');
 
+CREATE OR REPLACE FUNCTION account_deletion_anonymization_authorized(p_request_id TEXT,p_user_id TEXT,p_subject_token TEXT DEFAULT NULL)
+RETURNS BOOLEAN LANGUAGE plpgsql AS $$
+DECLARE allowed BOOLEAN := FALSE;
+BEGIN
+  IF to_regclass('account_deletion_requests') IS NULL OR COALESCE(p_request_id,'')='' THEN RETURN FALSE; END IF;
+  EXECUTE 'SELECT EXISTS (SELECT 1 FROM account_deletion_requests WHERE request_id=$1 AND status=''cleanup_queued'' AND user_id=$2 AND ($3 IS NULL OR subject_token=$3) AND subject_token ~ ''^deleted:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'')'
+  INTO allowed USING p_request_id,p_user_id,p_subject_token;
+  RETURN COALESCE(allowed,FALSE);
+END $$;
+
 CREATE OR REPLACE FUNCTION prevent_gift_event_mutation()
 RETURNS TRIGGER LANGUAGE plpgsql AS $$
 BEGIN
@@ -239,12 +249,10 @@ BEGIN
     AND (to_jsonb(NEW)-'event_payload') IS NOT DISTINCT FROM (to_jsonb(OLD)-'event_payload')
     AND EXISTS (
       SELECT 1 FROM gift_orders gift
-      JOIN account_deletion_requests request
-        ON request.user_id=gift.purchaser_user_id OR request.user_id=gift.redeemed_by_user_id
-      WHERE gift.id=OLD.gift_order_id
-        AND request.request_id=current_setting('app.account_deletion_request_id',TRUE)
-        AND request.status='cleanup_queued'
-        AND request.subject_token ~ '^deleted:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+      WHERE gift.id=OLD.gift_order_id AND (
+        account_deletion_anonymization_authorized(current_setting('app.account_deletion_request_id',TRUE),gift.purchaser_user_id)
+        OR account_deletion_anonymization_authorized(current_setting('app.account_deletion_request_id',TRUE),gift.redeemed_by_user_id)
+      )
     ) THEN
     RETURN NEW;
   END IF;

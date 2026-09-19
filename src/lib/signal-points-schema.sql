@@ -111,17 +111,20 @@ BEGIN
   END IF;
 END $$;
 
+CREATE OR REPLACE FUNCTION account_deletion_anonymization_authorized(p_request_id TEXT,p_user_id TEXT,p_subject_token TEXT DEFAULT NULL)
+RETURNS BOOLEAN LANGUAGE plpgsql AS $$
+DECLARE allowed BOOLEAN := FALSE;
+BEGIN
+  IF to_regclass('account_deletion_requests') IS NULL OR COALESCE(p_request_id,'')='' THEN RETURN FALSE; END IF;
+  EXECUTE 'SELECT EXISTS (SELECT 1 FROM account_deletion_requests WHERE request_id=$1 AND status=''cleanup_queued'' AND user_id=$2 AND ($3 IS NULL OR subject_token=$3) AND subject_token ~ ''^deleted:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'')'
+  INTO allowed USING p_request_id,p_user_id,p_subject_token;
+  RETURN COALESCE(allowed,FALSE);
+END $$;
+
 CREATE OR REPLACE FUNCTION reject_signal_reward_fulfillment_snapshot_mutation()
 RETURNS TRIGGER LANGUAGE plpgsql AS $$
 BEGIN
-  IF EXISTS (
-      SELECT 1 FROM account_deletion_requests request
-      WHERE request.request_id=current_setting('app.account_deletion_request_id',TRUE)
-        AND request.status='cleanup_queued'
-        AND request.user_id=OLD.shipping_profile_user_id
-        AND request.subject_token=NEW.shipping_profile_user_id
-        AND request.subject_token ~ '^deleted:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
-    )
+  IF account_deletion_anonymization_authorized(current_setting('app.account_deletion_request_id',TRUE),OLD.shipping_profile_user_id,NEW.shipping_profile_user_id)
     AND NEW.redemption_id IS NOT DISTINCT FROM OLD.redemption_id
     AND NEW.fulfillment_type IS NOT DISTINCT FROM OLD.fulfillment_type
     AND (
@@ -230,14 +233,7 @@ CREATE OR REPLACE FUNCTION reject_signal_point_ledger_mutation()
 RETURNS TRIGGER LANGUAGE plpgsql AS $$
 BEGIN
   IF TG_OP='UPDATE'
-    AND EXISTS (
-      SELECT 1 FROM account_deletion_requests request
-      WHERE request.request_id=current_setting('app.account_deletion_request_id',TRUE)
-        AND request.status='cleanup_queued'
-        AND request.user_id=OLD.user_id
-        AND request.subject_token=NEW.user_id
-        AND request.subject_token ~ '^deleted:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
-    )
+    AND account_deletion_anonymization_authorized(current_setting('app.account_deletion_request_id',TRUE),OLD.user_id,NEW.user_id)
     AND (to_jsonb(NEW)-'user_id') IS NOT DISTINCT FROM (to_jsonb(OLD)-'user_id') THEN
     RETURN NEW;
   END IF;
