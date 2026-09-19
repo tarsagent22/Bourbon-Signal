@@ -314,6 +314,10 @@ assert.equal(existsSync("apps/mobile/app.json"), true, "the Expo shell must exis
 const nativeSignIn = readFileSync("apps/mobile/app/index.tsx", "utf8");
 assert.match(nativeSignIn, /getMobileOnboardingStatus/,
   "signed-in members must resolve server-authoritative onboarding before entering the app");
+assert.match(nativeSignIn, /MobileApiError/,
+  "entry must distinguish a missing legacy onboarding route from a real startup outage");
+assert.match(nativeSignIn, /status === 404[\s\S]*getMemberProfile/,
+  "older servers without the onboarding route may fall back to authenticated member profile");
 assert.match(nativeSignIn, /destination === "app"[\s\S]*<Redirect href="\/\(app\)" \/>/,
   "completed members must land on the authenticated app navigator");
 assert.equal(existsSync("apps/mobile/app/_layout.tsx"), true, "the Expo Router root must exist");

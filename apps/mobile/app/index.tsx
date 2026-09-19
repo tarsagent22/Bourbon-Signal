@@ -3,6 +3,7 @@ import { Redirect } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 import { useMobileApi } from "../src/hooks/useMobileApi";
+import { MobileApiError } from "../src/api/client";
 import { colors } from "../src/theme";
 
 type Destination = "app" | "onboarding" | null;
@@ -25,7 +26,18 @@ export default function EntryScreen() {
     setError("");
     void api.getMobileOnboardingStatus({ fresh: true, signal: controller.signal })
       .then((status) => setDestination(status.completed ? "app" : "onboarding"))
-      .catch((caught) => {
+      .catch(async (caught) => {
+        if (controller.signal.aborted) return;
+        if (caught instanceof MobileApiError && caught.status === 404) {
+          try {
+            await api.getMemberProfile({ fresh: true, signal: controller.signal });
+            if (!controller.signal.aborted) setDestination("app");
+            return;
+          } catch (profileError) {
+            if (controller.signal.aborted) return;
+            caught = profileError;
+          }
+        }
         if (!controller.signal.aborted) {
           setError(caught instanceof Error ? caught.message : "Account setup status could not be checked.");
         }
