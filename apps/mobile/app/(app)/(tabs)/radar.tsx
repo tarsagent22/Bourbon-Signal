@@ -1,4 +1,4 @@
-import { useLocalSearchParams } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Keyboard, KeyboardAvoidingView, Linking, Modal, Platform, Pressable, RefreshControl, ScrollView, Share, StyleSheet, Switch, Text, TextInput, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
@@ -13,6 +13,7 @@ import { canonicalBottleKey } from "../../../src/interactions/member-interaction
 import { ALERT_RARITY_TIERS, alertIsStale, compactMonitoringScopes, compactWatchedBottles, formatPhoneNumber, maskedPhoneNumber, memberAlertBottleNames, monitoringScopesChanged, presentPushIssue, radarLocalityDisplayName, radarMonitoringSummary, radarStateDisplayCode, radarWatchlistSummary, scopesForState, bottleWatchMutation, setStatewideScope, stopMonitoringState, toggleAlertRarity, toggleMonitoringScope, watchedBottleCount } from "../../../src/radar/radar-preferences";
 import { radarPushState, type PushRecoveryAction } from "../../../src/radar/radar-push-state";
 import { disableRadarPush, enableRadarPush, radarPushDeviceId, radarPushPermission, refreshRadarPushIfEnabled, rememberRadarPushEnabled, watchRadarPushToken } from "../../../src/push/push-registration";
+import { signalRouteForRequestedAlert } from "../../../src/push/push-navigation";
 import { colors } from "../../../src/theme";
 
 type RadarView = "matches" | "watchlist";
@@ -30,7 +31,8 @@ function pushIssue(caught: unknown, fallback: string) {
 
 export default function RadarScreen() {
   const api = useMobileApi();
-  const { section: requestedSection, request } = useLocalSearchParams<{ section?: string; request?: string }>();
+  const router = useRouter();
+  const { section: requestedSection, alert: requestedAlert, request } = useLocalSearchParams<{ section?: string; alert?: string; request?: string }>();
   const [view, setView] = useState<RadarView>("watchlist");
   const [preferences, setPreferences] = useState<MemberPreferences | null>(null);
   const [profile, setProfile] = useState<MemberProfile | null>(null);
@@ -53,6 +55,7 @@ export default function RadarScreen() {
   const loadSequence = useRef(0);
   const writeSequence = useRef(0);
   const preferenceMutationEpoch = useRef(0);
+  const handledPushRequests = useRef(new Set<string>());
   const [lastUpdated, setLastUpdated] = useState<string | null>(null);
   useAccessibleStatus(actionError || error || saveNotice);
 
@@ -100,6 +103,12 @@ export default function RadarScreen() {
   useEffect(() => () => { loadSequence.current += 1; }, [api]);
   useScreenRevalidation(() => load(true));
   useEffect(() => { if (requestedSection === "matches" && request) { setView("matches"); void load(true); } }, [load, requestedSection, request]);
+  useEffect(() => {
+    if (loading || !request || handledPushRequests.current.has(request)) return;
+    handledPushRequests.current.add(request);
+    const route = signalRouteForRequestedAlert(alerts.alerts, requestedAlert);
+    if (route) router.push(route);
+  }, [alerts.alerts, loading, request, requestedAlert, router]);
   useEffect(() => {
     let active = true;
     const subscription = watchRadarPushToken(api, (status) => { if (active && status) setPushStatus(status); });

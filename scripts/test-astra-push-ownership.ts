@@ -28,7 +28,7 @@ const body={action:'register',deviceId:'fixture-installation',expoPushToken:'Exp
 const post=(r:any,b:any)=>r.POST(new Request('https://fixture.invalid',{method:'POST',body:JSON.stringify(b),headers:{'Content-Type':'application/json'}}));
 const get=(r:any)=>r.GET(Object.assign(new Request('https://fixture.invalid'),{nextUrl:new URL('https://fixture.invalid?deviceId=fixture-installation')}));
 test('real push route registers durable binding and status rejects the previous owner after reassignment',async()=>{
- const f=fixture(),r=await route(f);assert.equal((await post(r,body)).status,200);assert.equal((await (await get(r)).json()).currentDeviceRegistered,true);
+ const f=fixture(),r=await route(f);const registered=await post(r,body);assert.equal(registered.status,200);assert.match((await registered.json()).revocationToken,/^[0-9a-f-]{36}$/i);assert.equal((await (await get(r)).json()).currentDeviceRegistered,true);
  f.userId='B';assert.equal((await post(r,body)).status,200);f.userId='A';assert.equal((await (await get(r)).json()).currentDeviceRegistered,false);
 });
 test('online disable revokes binding even when stale metadata remains; old account cannot disable new owner',async()=>{

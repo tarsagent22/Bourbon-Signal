@@ -4,7 +4,7 @@ import { createRequire } from 'node:module';
 import vm from 'node:vm';
 import test from 'node:test';
 import ts from 'typescript';
-import pg from 'pg';
+import { PGlite } from '@electric-sql/pglite';
 const require = createRequire(import.meta.url);
 function load(path, overrides = {}) {
   const exports = {};
@@ -13,21 +13,24 @@ function load(path, overrides = {}) {
   return exports;
 }
 const { PostgresPushOutbox, drainPushOutbox } = load('../src/lib/alert-queue/push-outbox.ts', { './runtime': { alertQueueConnectionString: () => { throw Error('NO PRODUCTION DATABASE'); } } });
+const { PostgresPushReceiptRepository } = load('../src/lib/push-receipts.ts', { './alert-queue/runtime': { createProductionAlertQueueSqlExecutor: () => { throw Error('NO PRODUCTION DATABASE'); } }, './alert-queue/postgres-repository': {} });
 const { sendExpoPushMessages, buildExpoPushMessages } = load('../src/lib/push-devices.ts');
 const messages = buildExpoPushMessages(['ExpoPushToken[aaaaaaaaaaaa]'], { id: 'alert', bottleName: 'Bottle', storeLabel: 'Store', matchedArea: 'Area' });
-const result = (accepted, rejected) => ({ accepted, rejected, tickets: [], invalidTokens: [] });
-const pool = new pg.Pool({ host: '127.0.0.1', port: 55439, user: 'postgres', password: '', database: 'postgres', max: 1 });
-let sql, repo;
+let providerTicketSequence = 0;
+const result = (accepted, rejected) => ({ accepted, rejected, tickets: Array.from({length:accepted},()=>({id:`provider-ticket-${++providerTicketSequence}`,token:'ExpoPushToken[aaaaaaaaaaaa]'})), invalidTokens: [] });
+let database, sql, repo, receiptRepo;
 test.before(async () => {
-  sql = await pool.connect();
-  await sql.query('create temporary table alert_delivery_leases (lease_key text primary key, owner text, expires_at timestamptz)');
-  // Temporary schema ensures zero shared/public table writes, even on this isolated server.
-  await sql.query('set search_path to pg_temp');
+  database = new PGlite();
+  sql = { query: (text, params = []) => database.query(text, params) };
+  // The in-memory database guarantees zero shared/public or production writes.
+  await database.exec('create table alert_delivery_leases (lease_key text primary key, owner text, expires_at timestamptz)');
+  await database.exec('create table member_push_ownership (resource_hash text primary key,user_id text not null,binding_id text not null,expires_at timestamptz not null,updated_at timestamptz not null)');
   const schema = readFileSync(new URL('../src/lib/alert-queue/push-outbox.sql', import.meta.url), 'utf8');
-  await sql.query(schema); await sql.query(schema);
+  await database.exec(schema); await database.exec(schema);
   repo = new PostgresPushOutbox(sql);
+  receiptRepo = new PostgresPushReceiptRepository(sql);
 });
-test.after(async () => { sql?.release(); await pool.end(); });
+test.after(async () => { await database?.close(); });
 let id = 0;
 async function fixture() {
   const user = `user-${++id}`, owner = `owner-${id}`;
@@ -38,6 +41,8 @@ async function fixture() {
   const run = (send = async () => result(0,1), resolve = async () => ({ devices: ['CURRENT LIVE ONLY'], messages })) => drainPushOutbox(repo,user,owner,{
     resolve: async row => { resolutions++; return resolve(row); },
     send: async (...args) => { sends++; assert.equal(args[0],user); assert.deepEqual(args[1],['CURRENT LIVE ONLY']); return send(...args); },
+    durableTickets: result => result.tickets.map(ticket=>({ticketId:ticket.id,tokenHash:'a'.repeat(64),installationHash:'b'.repeat(64),bindingId:'fixture-generation'})),
+    now:()=> '2026-09-14T01:00:00.000Z',
   });
   const due = () => sql.query("update alert_push_outbox set next_attempt_at=now()-interval '1 second' where user_id=$1",[user]);
   return {user,owner,state,run,due,get sends(){return sends;},get resolutions(){return resolutions;}};
@@ -49,9 +54,17 @@ test('known rejection retries on second run without a new inbox or enqueue; acce
   await f.run(); assert.equal(f.sends,2);
 });
 test('network-after-send, zero ownership, and mixed acceptance are terminal unknown/manual',async()=>{
-  for(const send of [async()=>{throw Error('network after send');},async()=>result(0,0),async()=>result(1,1)]){
+  for(const send of [async()=>{throw Error('network after send');},async()=>result(0,0)]){
     const f=await fixture();await f.run(send);assert.equal((await f.state()).status,'unknown');await f.due();await f.run();assert.equal(f.sends,1);
   }
+  const mixed=await fixture();await mixed.run(async()=>result(1,1));const mixedState=await mixed.state();assert.equal(mixedState.status,'unknown');
+  const tickets=(await sql.query('select provider_ticket_id,status from alert_push_tickets where outbox_id=$1',[mixedState.id])).rows;
+  assert.equal(tickets.length,1,'known accepted tickets from a mixed result must remain durable');
+  await sql.query("update alert_push_tickets set next_receipt_at='2026-09-14T00:00:00.000Z' where outbox_id=$1",[mixedState.id]);
+  const claimed=await receiptRepo.claimDue('mixed-owner','2026-09-14T01:00:00.000Z',10);assert.equal(claimed.some(ticket=>ticket.outboxId===mixedState.id),true);
+  await receiptRepo.resolve('mixed-owner',[{ticketId:tickets[0].provider_ticket_id,status:'delivered',reason:'receipt_ok'}],'2026-09-14T01:00:00.000Z');
+  assert.equal((await mixed.state()).status,'unknown','a receipt for the accepted subset cannot erase the ambiguous destination');
+  await mixed.due();await mixed.run();assert.equal(mixed.sends,1);
 });
 test('write-ahead unknown survives crash and duplicate enqueue',async()=>{
   const f=await fixture();const row=(await repo.pending(f.user,f.owner))[0];await repo.begin(f.user,f.owner,row.id);
@@ -77,12 +90,45 @@ test('lost completion write cannot turn provider acceptance into auto retry',asy
 test('outbox stores identifiers only, not devices, tokens or message payloads',async()=>{
   const f=await fixture();const row=await f.state();assert.deepEqual(row.stable_keys,['episode-key']);assert.doesNotMatch(JSON.stringify(row),/ExpoPushToken|CURRENT LIVE|bottleName/);
 });
+test('provider acceptance durably records ticket ids and hashed exact-device ownership before accepted',async()=>{
+  const f=await fixture();const intent=(await repo.pending(f.user,f.owner))[0];await repo.begin(f.user,f.owner,intent.id);
+  await repo.accept(f.user,f.owner,intent.id,[{
+    ticketId:'expo-ticket-durable-1',tokenHash:'a'.repeat(64),installationHash:'b'.repeat(64),bindingId:'binding-generation-1',
+  }],'2026-09-14T01:00:00.000Z');
+  const row=await f.state();assert.equal(row.status,'accepted');assert.equal(row.reason,'provider_accepted_receipt_pending');
+  const tickets=(await sql.query('select * from alert_push_tickets where outbox_id=$1',[row.id])).rows;
+  assert.equal(tickets.length,1);assert.equal(tickets[0].provider_ticket_id,'expo-ticket-durable-1');assert.equal(tickets[0].status,'pending');
+  assert.doesNotMatch(JSON.stringify(tickets),/ExpoPushToken|CURRENT LIVE|bottleName/);
+});
+test('an incomplete durable-ticket write leaves write-ahead unknown and cannot replay',async()=>{
+  const f=await fixture();const intent=(await repo.pending(f.user,f.owner))[0];await repo.begin(f.user,f.owner,intent.id);
+  await assert.rejects(repo.accept(f.user,f.owner,intent.id,[],'2026-09-14T01:00:00.000Z'));
+  assert.equal((await f.state()).status,'unknown');await f.run();assert.equal(f.sends,0);
+});
+test('receipt SQL is idempotent and DeviceNotRegistered revokes only the exact owned generation',async()=>{
+  const f=await fixture();const intent=(await repo.pending(f.user,f.owner))[0];await repo.begin(f.user,f.owner,intent.id);
+  const ticket={ticketId:`receipt-ticket-${id}`,tokenHash:'c'.repeat(64),installationHash:'d'.repeat(64),bindingId:`binding-${id}`};
+  await sql.query('insert into member_push_ownership values ($1,$2,$3,$4,$4),($5,$2,$3,$4,$4),($6,$2,$7,$4,$4)',[ticket.tokenHash,f.user,ticket.bindingId,'2026-09-15T00:00:00.000Z',ticket.installationHash,'e'.repeat(64),'other-binding']);
+  await repo.accept(f.user,f.owner,intent.id,[ticket],'2026-09-14T00:00:00.000Z');
+  await sql.query("update alert_push_tickets set next_receipt_at='2026-09-14T00:00:00.000Z' where provider_ticket_id=$1",[ticket.ticketId]);
+  const claimed=await receiptRepo.claimDue('receipt-owner','2026-09-14T01:00:00.000Z',10);assert.equal(claimed.length,1);
+  await receiptRepo.resolve('receipt-owner',[{ticketId:ticket.ticketId,status:'rejected',reason:'device_not_registered'}],'2026-09-14T01:00:00.000Z');
+  await receiptRepo.resolve('receipt-owner',[{ticketId:ticket.ticketId,status:'delivered',reason:'receipt_ok'}],'2026-09-14T01:01:00.000Z');
+  const receipt=(await sql.query('select status,reason from alert_push_tickets where provider_ticket_id=$1',[ticket.ticketId])).rows[0];assert.equal(receipt.status,'rejected');
+  assert.equal((await f.state()).status,'rejected');
+  const ownership=(await sql.query('select resource_hash,expires_at from member_push_ownership where user_id=$1 order by resource_hash',[f.user])).rows;
+  assert.equal(ownership.filter(row=>new Date(row.expires_at).toISOString()==='2026-09-14T01:00:00.000Z').length,2);assert.equal(ownership.length,3);
+  const duplicateOutbox=`duplicate-${id}`;
+  await sql.query("insert into alert_push_outbox (id,user_id,alert_id,stable_keys,status,expires_at) values ($1,$2,'duplicate',array['duplicate-episode'],'rejected','2026-09-15T00:00:00.000Z')",[duplicateOutbox,f.user]);
+  await sql.query("insert into alert_push_tickets (provider_ticket_id,outbox_id,user_id,token_hash,installation_hash,binding_id,status,next_receipt_at,accepted_at,resolved_at,reason) values ($1,$2,$3,$4,$5,$6,'rejected',$7,$7,$7,'device_not_registered')",[`duplicate-ticket-${id}`,duplicateOutbox,f.user,ticket.tokenHash,ticket.installationHash,ticket.bindingId,'2026-09-14T01:00:00.000Z']);
+  const health=await receiptRepo.health('2026-09-14T01:02:00.000Z');assert.equal(health.rejected>=2,true);assert.equal(health.invalidDevices,1);
+});
 test('transport only counts explicit error tickets as known rejection',async()=>{
   for(const data of [undefined,[],[{}],[{status:'unexpected'}]]){
     await assert.rejects(sendExpoPushMessages(messages,async()=>new Response(JSON.stringify({data}),{status:200})));
   }
   assert.equal((await sendExpoPushMessages(messages,async()=>new Response(JSON.stringify({data:[{status:'error',details:{error:'MessageRateExceeded'}}]}),{status:200}))).rejected,1);
-  assert.equal((await sendExpoPushMessages(messages,async()=>new Response(JSON.stringify({data:[{status:'ok',id:'ticket'}]}),{status:200}))).accepted,1);
+  assert.equal((await sendExpoPushMessages(messages,async()=>new Response(JSON.stringify({data:[{status:'ok',id:'ticket-okay'}]}),{status:200}))).accepted,1);
 });
 test('missing schema fails closed before resolving tokens or sending',async()=>{
   const f=await fixture();
@@ -123,6 +169,7 @@ async function callerFixture() {
     ALERT_DELIVERY_ENABLED:true,ALERT_ONSITE_DELIVERY_ENABLED:true,ALERT_EMAIL_DELIVERY_ENABLED:false,ALERT_SMS_DELIVERY_ENABLED:false,
     MAX_DELIVERY_USERS:10,MAX_RECIPIENT_SCAN_USERS:100,MAX_ONSITE_ALERTS_PER_USER:1,CANDIDATE_POOL_PER_USER:25,MAX_RECENT_DELIVERIES_PER_USER:250,MAX_RECENT_ONSITE_ALERTS_PER_USER:100,
     alertQueueDatabaseConfigured:()=>true,createProductionAlertQueueRepository:()=>queue,createProductionPushOutbox:()=>repo,drainPushOutbox,
+    isolatePushChannelFailure:async(_stage,operation,report)=>{try{await operation();return true;}catch(error){report(`push failed: ${error instanceof Error?error.message:String(error)}`);return false;}},
     randomUUID:()=>`worker-${++id}`,getResendClient:()=>null,
     clerkClient:async()=>({users:{getUser:async()=>{reads++;return structuredClone(user);},updateUserMetadata:async(_id,patch)=>{if(failAfterInbox&&inboxes)throw Error('failure after inbox success');if(patch.privateMetadata?.alertInbox)inboxes++;Object.assign(user.privateMetadata,structuredClone(patch.privateMetadata||{}));}}}),
     getUsersPage:async(_c,offset)=>({data:offset?[]:[structuredClone(user)],totalCount:1}),
@@ -136,6 +183,7 @@ async function callerFixture() {
     candidateStoreLabel:()=> 'Store',candidateToMemberAlert:(_u,c,now)=>({id:`alert-${now}`,dedupeKey:c.dedupeKey,underlyingStableKeys:[c.key],bottleName:c.bottle,storeLabel:'Store',matchedArea:'Area',signalAt:c.signalAt,freshnessLimitHours:2}),
     memberAlertPassesFinalFreshness:()=>true,uniqueStrings:values=>[...new Set(values)],firstAlertCreatedMetadata:()=>({activation:{}}),primaryEmailForUser:()=>'',
     ownedPushDevices:async(_u,devices)=>devices,enabledPushTokens:devices=>devices.length?['ExpoPushToken[aaaaaaaaaaaa]']:[],buildExpoPushMessages,
+    durablePushTicketBindings:(_devices,tickets)=>tickets.map(ticket=>({ticketId:ticket.id,tokenHash:'a'.repeat(64),installationHash:'b'.repeat(64),bindingId:'caller-generation'})),
     sendOwnedExpoPushMessages:async(_u,devices)=>{sends++;assert.deepEqual(devices,sends===1?['live-v1']:['live-v2']);return sends===1?result(0,1):result(1,0);},
     disablePushTokens:d=>d,
   };

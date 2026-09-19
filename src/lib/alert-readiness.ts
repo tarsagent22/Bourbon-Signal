@@ -12,7 +12,34 @@ const counts = [
   "queueFailures", "queueStaleClaimsRecovered", "dedupeIdentityMigrations", "dedupeIdentityMigrationFailures",
 ] as const;
 
-export function createAlertReadinessHandler(options: { secret: () => string | undefined; read: () => Promise<unknown> }) {
+const pushHealthCounts = ["pendingTickets", "maxReceiptLagSeconds", "delivered", "rejected", "unknown", "staleDevices", "invalidDevices"] as const;
+const pushReasonClasses = new Set(["receipt_ok", "device_not_registered", "receipt_rejected", "provider_transient", "receipt_retry_exhausted", "malformed_receipt_response", "partial_receipt_response", "unknown_receipt_ids", "account_deleted_after_acceptance"]);
+
+function sanitizePushHealth(value: unknown) {
+  if (!value || typeof value !== "object" || Array.isArray(value)) throw new Error("Invalid push health result");
+  const source = value as Record<string, unknown>;
+  const health: Record<string, number | Record<string, number>> = {};
+  for (const field of pushHealthCounts) {
+    const value = source[field];
+    if (typeof value !== "number" || !Number.isSafeInteger(value) || value < 0) throw new Error("Invalid push health count");
+    health[field] = value;
+  }
+  const reasons: Record<string, number> = {};
+  if (source.reasonClasses && typeof source.reasonClasses === "object" && !Array.isArray(source.reasonClasses)) {
+    for (const [reason, value] of Object.entries(source.reasonClasses as Record<string, unknown>)) {
+      if (pushReasonClasses.has(reason) && typeof value === "number" && Number.isSafeInteger(value) && value >= 0) reasons[reason] = value;
+    }
+  }
+  health.reasonClasses = reasons;
+  return health;
+}
+
+export function createAlertReadinessHandler(options: {
+  secret: () => string | undefined;
+  read: () => Promise<unknown>;
+  pushHealth?: () => Promise<unknown>;
+  now?: () => string;
+}) {
   return async (request: Request): Promise<Response> => {
     const expected = options.secret();
     const authorization = request.headers.get("authorization") || "";
@@ -47,8 +74,12 @@ export function createAlertReadinessHandler(options: { secret: () => string | un
       }
       if (["remote-snapshot", "local-export", "cache-fallback", "empty-fallback"].includes(String(data.snapshotSource))) summary.snapshotSource = String(data.snapshotSource);
       if (["off", "shadow", "active"].includes(String(data.queueMode))) summary.queueMode = String(data.queueMode);
-      return Response.json({ contractVersion: "bourbon-signal-alert-readiness-v1", generatedAt: new Date().toISOString(), summary,
-        errorCount: Array.isArray(data.errors) ? data.errors.length : 0, deviceReceiptProven: false }, { headers });
+      const pushDelivery = options.pushHealth ? sanitizePushHealth(await options.pushHealth()) : null;
+      return Response.json({ contractVersion: "bourbon-signal-alert-readiness-v2", generatedAt: (options.now || (() => new Date().toISOString()))(), summary,
+        errorCount: Array.isArray(data.errors) ? data.errors.length : 0,
+        deviceReceiptProven: Boolean(pushDelivery && Number(pushDelivery.delivered) > 0),
+        ...(pushDelivery ? { pushDelivery } : {}),
+      }, { headers });
     } catch {
       return Response.json({ error: "Alert diagnostics unavailable" }, { status: 503, headers });
     }

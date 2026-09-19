@@ -231,9 +231,31 @@ CREATE UNIQUE INDEX IF NOT EXISTS founder_spot_assigned_user_idx ON founder_spot
 CREATE UNIQUE INDEX IF NOT EXISTS direct_founder_checkout_live_user_idx
   ON direct_founder_checkout_reservations (user_id) WHERE status IN ('creating','open');
 
+CREATE OR REPLACE FUNCTION account_deletion_anonymization_authorized(p_request_id TEXT,p_user_id TEXT,p_subject_token TEXT DEFAULT NULL)
+RETURNS BOOLEAN LANGUAGE plpgsql AS $$
+DECLARE allowed BOOLEAN := FALSE;
+BEGIN
+  IF to_regclass('account_deletion_requests') IS NULL OR COALESCE(p_request_id,'')='' THEN RETURN FALSE; END IF;
+  EXECUTE 'SELECT EXISTS (SELECT 1 FROM account_deletion_requests WHERE request_id=$1 AND status=''cleanup_queued'' AND user_id=$2 AND ($3 IS NULL OR subject_token=$3) AND subject_token ~ ''^deleted:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'')'
+  INTO allowed USING p_request_id,p_user_id,p_subject_token;
+  RETURN COALESCE(allowed,FALSE);
+END $$;
+
 CREATE OR REPLACE FUNCTION prevent_gift_event_mutation()
 RETURNS TRIGGER LANGUAGE plpgsql AS $$
 BEGIN
+  IF TG_OP='UPDATE'
+    AND NEW.event_payload='{}'::jsonb
+    AND (to_jsonb(NEW)-'event_payload') IS NOT DISTINCT FROM (to_jsonb(OLD)-'event_payload')
+    AND EXISTS (
+      SELECT 1 FROM gift_orders gift
+      WHERE gift.id=OLD.gift_order_id AND (
+        account_deletion_anonymization_authorized(current_setting('app.account_deletion_request_id',TRUE),gift.purchaser_user_id)
+        OR account_deletion_anonymization_authorized(current_setting('app.account_deletion_request_id',TRUE),gift.redeemed_by_user_id)
+      )
+    ) THEN
+    RETURN NEW;
+  END IF;
   RAISE EXCEPTION 'gift_order_events is append-only';
 END;
 $$;
@@ -773,3 +795,33 @@ BEGIN
   RETURN QUERY SELECT * FROM gift_orders WHERE id = target.id;
 END;
 $$;
+
+CREATE OR REPLACE FUNCTION anonymize_gift_member(p_user_id TEXT,p_subject_token TEXT,p_deleted_email TEXT,p_request_id TEXT)
+RETURNS VOID LANGUAGE plpgsql AS $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM account_deletion_requests request
+    WHERE request.user_id=p_user_id AND request.subject_token=p_subject_token
+      AND request.request_id=p_request_id AND request.status='cleanup_queued'
+      AND request.subject_token ~ '^deleted:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
+  ) THEN
+    RAISE EXCEPTION 'Gift deletion authority is unavailable';
+  END IF;
+  PERFORM set_config('app.account_deletion_request_id',p_request_id,TRUE);
+  UPDATE gift_order_events SET event_payload='{}'::jsonb
+  WHERE gift_order_id IN (
+    SELECT id FROM gift_orders WHERE purchaser_user_id=p_user_id OR redeemed_by_user_id=p_user_id
+  );
+  UPDATE gift_orders SET
+    recipient_email=CASE WHEN redeemed_by_user_id=p_user_id THEN p_deleted_email ELSE recipient_email END,
+    recipient_name=CASE WHEN redeemed_by_user_id=p_user_id THEN 'Deleted member' ELSE recipient_name END,
+    gift_message=CASE WHEN redeemed_by_user_id=p_user_id THEN NULL ELSE gift_message END,
+    purchaser_user_id=CASE WHEN purchaser_user_id=p_user_id THEN p_subject_token ELSE purchaser_user_id END,
+    purchaser_email=CASE WHEN purchaser_user_id=p_user_id THEN p_deleted_email ELSE purchaser_email END,
+    purchaser_name=CASE WHEN purchaser_user_id=p_user_id THEN NULL ELSE purchaser_name END,
+    redeemed_by_user_id=CASE WHEN redeemed_by_user_id=p_user_id THEN p_subject_token ELSE redeemed_by_user_id END,
+    redeemed_by_email=CASE WHEN redeemed_by_user_id=p_user_id THEN p_deleted_email ELSE redeemed_by_email END
+  WHERE purchaser_user_id=p_user_id OR redeemed_by_user_id=p_user_id;
+  UPDATE gift_redemption_recipients SET user_id=p_subject_token,verified_email=p_deleted_email WHERE user_id=p_user_id;
+  PERFORM set_config('app.account_deletion_request_id','',TRUE);
+END $$;

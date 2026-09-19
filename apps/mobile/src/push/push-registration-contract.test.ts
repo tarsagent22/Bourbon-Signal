@@ -10,6 +10,12 @@ test("enabled push registration refreshes its token and listens for token rotati
   assert.match(registration, /refreshRadarPushIfEnabled/);
   assert.match(registration, /addPushTokenListener/);
   assert.match(registration, /registerPushDevice/);
+  assert.match(registration, /PENDING_PUSH_REVOCATION_KEY/);
+  assert.match(registration, /flushPendingPushRevocation/);
+});
+
+test("root retries a durable offline-logout revocation intent", () => {
+  assert.match(rootLayout, /flushPendingPushRevocation/);
 });
 
 test("root notification responses use the safe explicit Radar Matches route", () => {

@@ -83,18 +83,27 @@ test('MM-01 membership full-snapshot branches preserve concurrent watch changes'
     assert.ok(interleaved, branch); assertWatchSurvived(f);
   }
 });
-test('MM-02 independent real builder/provider-boundary probe: queued OS payload has no member content or alert identifier', async () => {
+test('MM-02 independent real builder/provider-boundary probe: queued OS payload has only a user-bound alert lookup token', async () => {
   const { buildExpoPushMessages, sendExpoPushMessages } = req(root + '/src/lib/push-devices.ts');
   const tokens = ['ExpoPushToken[fixture-token-12345]'];
-  const a = buildExpoPushMessages(tokens, { id: 'Account A private alert', bottleName: 'Account A bottle', storeLabel: 'Account A store', matchedArea: 'Account A area' })[0];
-  const b = buildExpoPushMessages(tokens, { id: 'Account B private alert', bottleName: 'Account B bottle', storeLabel: 'Account B store', matchedArea: 'Account B area' })[0];
+  const a = buildExpoPushMessages(tokens, { id: 'alert_A_private', bottleName: 'Account A bottle', storeLabel: 'Account A store', matchedArea: 'Account A area' })[0];
+  const b = buildExpoPushMessages(tokens, { id: 'alert_B_private', bottleName: 'Account B bottle', storeLabel: 'Account B store', matchedArea: 'Account B area' })[0];
   assert.notEqual(a.dedupeKey, b.dedupeKey, 'server-side identity still distinguishes alerts');
   const payloads = [];
-  const fakeProvider = async (_input, init) => { payloads.push(JSON.parse(init.body)[0]); return Response.json({ data: [{ status: 'ok' }] }); };
+  const fakeProvider = async (_input, init) => { payloads.push(JSON.parse(init.body)[0]); return Response.json({ data: [{ status: 'ok', id: `ticket-${payloads.length}` }] }); };
   await sendExpoPushMessages([a], fakeProvider); await sendExpoPushMessages([b], fakeProvider);
   // Even an old server-side pending message is sanitized before new OS acceptance.
   await sendExpoPushMessages([{ ...a, title: 'Legacy private bottle', body: 'Legacy private store', data: { screen: 'radar', alertId: 'Legacy-private-alert', userId: 'A' } }], fakeProvider);
-  for (const payload of payloads) assert.deepEqual(payload, { to: tokens[0], title: 'Bourbon Signal', body: 'Open Radar to check your latest matches.', data: { screen: 'radar' }, priority: 'high', sound: 'default' });
+  assert.deepEqual(payloads.map(payload => payload.data), [
+    { screen: 'radar', alertId: 'alert_A_private' },
+    { screen: 'radar', alertId: 'alert_B_private' },
+    { screen: 'radar', alertId: 'Legacy-private-alert' },
+  ]);
+  for (const payload of payloads) {
+    assert.equal(payload.title, 'Bourbon Signal');
+    assert.equal(payload.body, 'Open Radar to check your latest matches.');
+    assert.doesNotMatch(JSON.stringify(payload), /Account [AB] bottle|Account [AB] store|userId/);
+  }
   // Preserve the integrated outbox classifier: ambiguous tickets must never turn
   // into known rejection/retry, while explicit tickets retain their bookkeeping.
   for (const data of [undefined, [], [{}], [{ status: 'unexpected' }]]) await assert.rejects(sendExpoPushMessages([a], async () => Response.json({ data })), /acceptance unknown/);

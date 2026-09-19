@@ -26,10 +26,12 @@ const canonicalCandidate = {
   bottle: "Test Bottle",
   state: "NC",
   tier: "highly_allocated",
+  sourceType: "trusted_source",
   signalAt: "2026-08-25T00:00:00.000Z",
 };
 assert.equal(alertRarityIsSelected(canonicalCandidate.tier, ["unicorn"]), true);
 assert.equal(candidateToMemberAlert("user-1", canonicalCandidate, "2026-08-25T00:01:00.000Z").rarityTier, "unicorn");
+assert.equal(candidateToMemberAlert("user-1", canonicalCandidate, "2026-08-25T00:01:00.000Z").signalId, "trusted_source:candidate-1");
 assert.equal(
   stableUnderlyingAlertKey(canonicalCandidate),
   stableUnderlyingAlertKey({ ...canonicalCandidate, selectedRarityTiers: ["limited"] }),
@@ -44,7 +46,7 @@ assert.match(delivery, /alertRarityIsSelected\(candidate\.tier \?\? candidate\.r
 assert.match(alertsRoute, /Candidate sync moved to the protected alert delivery worker/);
 assert.match(website, /Bottle rarity/);
 assert.match(website, /Radar inbox, push, email, and SMS alerts/);
-assert.match(mobile, /Bottle rarity/);
-assert.match(mobile, /Applies to inbox, push, email, and SMS/);
+assert.match(mobile, /<SectionTitle detail="Applies to inbox, phone push, email, and SMS">Rarity<\/SectionTitle>/);
+assert.match(mobile, /toggleAlertRarity/);
 
 console.log("Cross-surface alert rarity preference contract passed.");

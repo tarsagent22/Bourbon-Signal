@@ -12,7 +12,7 @@ test('M07: a second push refreshes mounted Radar and an older reply cannot overw
   const module = loadWithMocks('app/(app)/(tabs)/radar.tsx', {
     react: { ...React, useState: (initial: unknown) => [initial, (v: any) => { if (v?.unreadCount !== undefined) alertWrites.push(v.unreadCount); }],
       useEffect: (f: () => unknown) => effects.push(f), useCallback: (f: unknown) => f, useMemo: (f: () => unknown) => f(), useRef: (v: unknown) => refs[refIndex++] ||= { current: v } },
-    'expo-router': { useLocalSearchParams: () => params }, 'react-native': { StyleSheet: { create: (v: unknown) => v }, View: 'View' },
+    'expo-router': { useLocalSearchParams: () => params, useRouter: () => ({ push() {} }) }, 'react-native': { StyleSheet: { create: (v: unknown) => v }, View: 'View' },
     'react-native-safe-area-context': {}, '../../../src/hooks/useMobileApi': { useMobileApi: () => api },
     '../../../src/hooks/useAccessibleStatus': { useAccessibleStatus() {} }, '../../../src/hooks/useScreenRevalidation': { useScreenRevalidation: (f: typeof focus) => { focus = f; } },
     '../../../src/components/MemberScreen': { memberScreenStyles: {}, LoadingState: 'LoadingState' },

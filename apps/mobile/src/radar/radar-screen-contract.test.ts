@@ -21,7 +21,7 @@ test("alert-inbox navigation always restores Matches even after Watchlist", () =
   const radar = readScreen("radar");
 
   assert.match(radar, /useLocalSearchParams/);
-  assert.match(radar, /section: requestedSection, request/);
+  assert.match(radar, /section: requestedSection, alert: requestedAlert, request/);
   assert.match(radar, /if \(requestedSection === "matches" && request\) \{ setView\("matches"\); void load\(true\)/);
   assert.match(radar, /\[load, requestedSection, request\]/);
 });

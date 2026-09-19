@@ -26,18 +26,24 @@ test('real lease never runs unlocked when the database is absent, including lega
 });
 test('independent real lease modules share contention, renew before writes, and cannot release a stolen lease',async()=>{
  const f=database(),a=await modules(f),b=await modules(f);let run=false;
- await a.withMemberAlertLease('A',async(guard:any)=>{
+ await assert.rejects(a.withMemberAlertLease('A',async(guard:any)=>{
   assert.deepEqual(await b.withMemberAlertLease('A',async()=>{run=true;}),{acquired:false});await guard();
   f.rows.set('member:A',{owner:'new-worker'});await assert.rejects(guard(),/member_lease_lost/);
- },{requireDurable:true});
+ },{requireDurable:true}),/member_lease_lost/);
  assert.equal(run,false);assert.equal(f.rows.get('member:A').owner,'new-worker');
 });
 test('expired/lost lease cannot be reacquired by a stale operation after a newer worker released it',async()=>{
  const f=database(),m=await modules(f);
- await m.withMemberAlertLease('A',async(guard:any)=>{
+ await assert.rejects(m.withMemberAlertLease('A',async(guard:any)=>{
   f.rows.delete('member:A'); // newer worker acquired, wrote, released while this operation stalled
   await assert.rejects(guard(),/member_lease_lost/);
- },{requireDurable:true});
+ },{requireDurable:true}),/member_lease_lost/);
+});
+test('durable member lease renews while a long operation is in flight',async()=>{
+ const f=database(),m=await modules(f);let renewals=0;
+ const baseRenew=f.repository.renewLease;f.repository.renewLease=async(...args:any[])=>{renewals++;return baseRenew(...args);};
+ await m.withMemberAlertLease('A',async()=>{await new Promise(resolve=>setTimeout(resolve,30));},{requireDurable:true,heartbeatMs:5});
+ assert.ok(renewals>=2,`expected periodic lease renewal, saw ${renewals}`);
 });
 
 test('final sender gates stale metadata by current owner/generation and deduplicates each alert/token',async()=>{
@@ -74,4 +80,14 @@ test('resource leases serialize final send with cross-account reassignment and f
  f.configured=true;await assert.rejects(a.sendOwnedExpoPushMessages('A',[device],messages,{repository:{owned:async()=>{throw new Error('database-down');}},send:async()=>{providerCalls++;}}),/database-down/);
  assert.equal(providerCalls,1);assert.equal(f.rows.size,0);
  assert.ok(f.events.every((e:any)=>!JSON.stringify(e).includes('ExpoPushToken[')));
+});
+
+test('accepted provider tickets bind only to the exact owned device generation using hashes',async()=>{
+ const f=database(),m=await modules(f,'src/lib/push-ownership.ts');
+ const other={...device,deviceId:'other-device',expoPushToken:'ExpoPushToken[other-token-12345]',bindingId:'other-generation'};
+ const bindings=m.durablePushTicketBindings([device,other],[{id:'provider-ticket-1',token:device.expoPushToken}]);
+ assert.equal(bindings.length,1);assert.equal(bindings[0].ticketId,'provider-ticket-1');assert.equal(bindings[0].bindingId,device.bindingId);
+ assert.match(bindings[0].tokenHash,/^[0-9a-f]{64}$/);assert.match(bindings[0].installationHash,/^[0-9a-f]{64}$/);
+ assert.doesNotMatch(JSON.stringify(bindings),/ExpoPushToken|fixture-device/);
+ assert.deepEqual(m.durablePushTicketBindings([other],[{id:'provider-ticket-1',token:device.expoPushToken}]),[]);
 });

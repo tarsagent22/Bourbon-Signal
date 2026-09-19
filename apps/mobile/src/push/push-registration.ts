@@ -8,11 +8,49 @@ import type { PushDeviceStatus } from "../api/types";
 import type { createMobileApi } from "../api/client";
 
 const DEVICE_ID_KEY = "bourbon-signal.push-device-id";
+const PUSH_REVOCATION_TOKEN_KEY = "bourbon-signal.push-revocation-token";
+export const PENDING_PUSH_REVOCATION_KEY = "bourbon-signal.pending-push-revocation";
 export const PUSH_ENABLED_KEY = "bourbon-signal.push-enabled";
 
 type MobileApi = ReturnType<typeof createMobileApi>;
 type PushStatusListener = (status: PushDeviceStatus | null) => void;
 let logoutInProgress = false;
+
+type PendingPushRevocation = { deviceId: string; revocationToken: string };
+
+function pushRevocationUrl() {
+  const base = process.env.EXPO_PUBLIC_API_URL || Constants.expoConfig?.extra?.apiUrl || "https://www.bourbonsignal.com";
+  return `${String(base).replace(/\/+$/, "")}/api/v1/push-revocations`;
+}
+
+export async function flushPendingPushRevocation(fetcher: typeof fetch = fetch) {
+  const raw = await SecureStore.getItemAsync(PENDING_PUSH_REVOCATION_KEY);
+  if (!raw) return true;
+  let pending: PendingPushRevocation;
+  try {
+    pending = JSON.parse(raw) as PendingPushRevocation;
+  } catch {
+    await SecureStore.deleteItemAsync(PENDING_PUSH_REVOCATION_KEY);
+    return true;
+  }
+  if (!pending.deviceId || !pending.revocationToken) return false;
+  try {
+    const response = await fetcher(pushRevocationUrl(), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(pending),
+    });
+    const body = await response.json().catch(() => ({})) as { ok?: boolean };
+    if (!response.ok || body.ok !== true) return false;
+    await SecureStore.deleteItemAsync(PENDING_PUSH_REVOCATION_KEY);
+    if (await SecureStore.getItemAsync(PUSH_REVOCATION_TOKEN_KEY) === pending.revocationToken) {
+      await SecureStore.deleteItemAsync(PUSH_REVOCATION_TOKEN_KEY);
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -69,7 +107,10 @@ async function registerCurrentRadarPushToken(api: MobileApi, requestPermission: 
   const token = await Notifications.getExpoPushTokenAsync({ projectId });
   const deviceId = await radarPushDeviceId();
   if (logoutInProgress) return null;
-  return api.registerPushDevice({ deviceId, expoPushToken: token.data, platform: Platform.OS === "android" ? "android" : "ios" });
+  await flushPendingPushRevocation().catch(() => false);
+  const status = await api.registerPushDevice({ deviceId, expoPushToken: token.data, platform: Platform.OS === "android" ? "android" : "ios" });
+  if (status.revocationToken) await SecureStore.setItemAsync(PUSH_REVOCATION_TOKEN_KEY, status.revocationToken);
+  return status;
 }
 
 export async function enableRadarPush(api: MobileApi) {
@@ -83,6 +124,8 @@ export async function enableRadarPush(api: MobileApi) {
 export async function disableRadarPush(api: MobileApi) {
   const status = await api.disablePushDevice(await radarPushDeviceId());
   await rememberRadarPushEnabled(false);
+  await SecureStore.deleteItemAsync(PUSH_REVOCATION_TOKEN_KEY);
+  await SecureStore.deleteItemAsync(PENDING_PUSH_REVOCATION_KEY);
   return status;
 }
 
@@ -102,7 +145,12 @@ export function watchRadarPushToken(api: MobileApi, onStatus?: PushStatusListene
 }
 
 // Online device-only mitigation, NOT cross-account ownership or offline safety.
-export async function signOutWithRadarPushDisabled(api: MobileApi, signOut: () => Promise<unknown>, timeoutMs = 5000) {
+export async function signOutWithRadarPushDisabled(
+  api: MobileApi,
+  signOut: () => Promise<unknown>,
+  timeoutMs = 5000,
+  adapters: { fetcher?: typeof fetch } = {},
+) {
   logoutInProgress = true;
   let timer: ReturnType<typeof setTimeout>;
   let expired = false;
@@ -110,10 +158,20 @@ export async function signOutWithRadarPushDisabled(api: MobileApi, signOut: () =
     await rememberRadarPushEnabled(false).catch(() => {});
     const id = await SecureStore.getItemAsync(DEVICE_ID_KEY);
     if (!id || expired) return false;
+    const revocationToken = await SecureStore.getItemAsync(PUSH_REVOCATION_TOKEN_KEY);
+    if (revocationToken) {
+      await SecureStore.setItemAsync(PENDING_PUSH_REVOCATION_KEY, JSON.stringify({ deviceId: id, revocationToken }));
+      if (await flushPendingPushRevocation(adapters.fetcher || fetch)) return true;
+    }
     await api.disablePushDevice(id);
     if (expired) return false;
     const status = await api.getPushDeviceStatus(id, { fresh: true });
-    return status.currentDeviceRegistered === false;
+    if (status.currentDeviceRegistered === false) {
+      await SecureStore.deleteItemAsync(PENDING_PUSH_REVOCATION_KEY);
+      await SecureStore.deleteItemAsync(PUSH_REVOCATION_TOKEN_KEY);
+      return true;
+    }
+    return false;
   };
   let pushDisabled = false;
   try {

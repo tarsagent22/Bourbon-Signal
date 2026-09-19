@@ -9,12 +9,15 @@ import { useEffect, useRef, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { createPendingPushNavigation } from "../src/push/push-navigation";
+import { flushPendingPushRevocation } from "../src/push/push-registration";
+import { PurchasesProvider } from "../src/membership/PurchasesProvider";
 import { colors } from "../src/theme";
 
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({ Fraunces_700Bold });
+  useEffect(() => { void flushPendingPushRevocation(); }, []);
   if (!fontsLoaded && !fontError) return null;
   if (!publishableKey) {
     return <View style={styles.configuration}><Text style={styles.title}>Bourbon Signal</Text><Text style={styles.message}>This development build is missing its Clerk publishable key.</Text></View>;
@@ -22,12 +25,15 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
-        <PushResponseHandler />
-        <StatusBar style="light" />
-        <Stack screenOptions={{ contentStyle: { backgroundColor: colors.background }, headerStyle: { backgroundColor: colors.surface }, headerTintColor: colors.text, headerShadowVisible: false }}>
-          <Stack.Screen name="index" options={{ headerShown: false }} />
-          <Stack.Screen name="(app)" options={{ headerShown: false }} />
-        </Stack>
+        <PurchasesProvider>
+          <PushResponseHandler />
+          <StatusBar style="light" />
+          <Stack screenOptions={{ contentStyle: { backgroundColor: colors.background }, headerStyle: { backgroundColor: colors.surface }, headerTintColor: colors.text, headerShadowVisible: false }}>
+            <Stack.Screen name="index" options={{ headerShown: false }} />
+            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+            <Stack.Screen name="(app)" options={{ headerShown: false }} />
+          </Stack>
+        </PurchasesProvider>
       </ClerkProvider>
     </SafeAreaProvider>
   );

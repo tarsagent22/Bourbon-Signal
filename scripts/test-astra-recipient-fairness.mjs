@@ -37,6 +37,7 @@ function fixture(users, overrides = {}) {
     asString: value => typeof value === 'string' ? value : '',
     getServerEntitlements: async metadata => ({ tier: metadata.paid ? 'standard' : 'free' }),
     normalizeNotificationPreferences: () => ({ push: { enabled: false } }), normalizePendingExpoPushTickets: () => [],
+    isolatePushChannelFailure: async (_stage, operation, report) => { try { await operation(); return true; } catch (error) { report(String(error)); return false; } },
     normalizeAreaPrefs: () => ({}), hasSavedAreaPreferences: () => false,
   };
   const vmContext = vm.createContext({ ...context, ...overrides });
