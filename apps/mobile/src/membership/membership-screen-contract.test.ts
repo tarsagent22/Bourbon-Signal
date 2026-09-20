@@ -33,8 +33,8 @@ test("membership overview compares every tier with accurate pricing and native d
   assert.match(chooser, /without alerts/);
   assert.match(chooser, /useState\(false\)/);
   assert.match(chooser, /accessibilityState=\{\{ expanded: freeExpanded \}\}/);
-  assert.match(chooser, /accessibilityLabel=\{membershipChoiceAccessibilityLabel/);
-  assert.match(chooser, /trialDisclosureFor/);
+  assert.match(chooser, /accessibilityLabel=\{\[plan\.name/);
+  assert.doesNotMatch(chooser, /trialDisclosureFor|7-day free trial|Trial eligibility/);
   assert.doesNotMatch(chooser, /Compare features|Plan differences|MEMBERSHIP_COMPARISON_ROWS|Full \+ advanced|ScrollView|numberOfLines|adjustsFontSizeToFit/);
   assert.doesNotMatch(screen, /MembershipComparison|PAID_MEMBERSHIP_PLANS\.map|Monthly Standard Proof and Barrel Proof include/);
   assert.doesNotMatch(screen, /\{MEMBERSHIP_PLANS\.map/);
@@ -62,26 +62,27 @@ test("mobile membership and legal surfaces retire Bottle Check copy", () => {
   assert.doesNotMatch(surfaces, /Bottle Check|Bottle Checker/i);
 });
 
-test("plan review gives Apple-ready disclosures without pretending purchasing works", () => {
+test("plan review is composed for Apple's bootstrap screenshots before products exist", () => {
   const screen = read("app/(app)/account/membership/[tier].tsx");
+  assert.match(screen, /APPLE SUBSCRIPTION/);
   assert.match(screen, /plan\.chooserName \|\| plan\.name/);
-  assert.match(screen, /7-day free trial/);
-  assert.match(screen, /Renews automatically unless canceled/);
-  assert.match(screen, /In-app purchases are not available in this build yet/);
-  assert.match(screen, /Restore purchases/);
-  assert.match(screen, /Platform\.OS/);
-  assert.match(screen, /Apple ID/);
-  assert.match(screen, /Google Play account/);
-  assert.match(screen, /plan\.tier === "free"/);
-  assert.match(screen, /Free membership\. No payment or renewal\./);
-  assert.match(screen, /canceled before the next billing date/);
-  assert.match(screen, /getMembershipTrialEligibility/);
-  assert.match(screen, /trialEligibility/);
-  assert.match(screen, /disabled/);
+  assert.match(screen, /billingChoiceFor\(plan\.tier, interval\)/);
+  assert.match(screen, /Monthly/);
+  assert.match(screen, /Annual/);
+  assert.match(screen, /Auto-renews monthly until canceled\./);
+  assert.match(screen, /Auto-renews annually until canceled\./);
+  assert.match(screen, /Payment is charged to your Apple Account after confirmation\./);
+  assert.match(screen, /What you get/);
   assert.ok(screen.includes('router.push("/(app)/account/privacy")'));
   assert.ok(screen.includes('router.push("/(app)/account/terms")'));
-  assert.ok(screen.includes('router.push("/(app)/account/support")'));
+  assert.doesNotMatch(screen, /7-day free trial|trialEligibility|purchases are not available|purchasing is coming soon|Purchases coming soon|Price unavailable/i);
   assert.doesNotMatch(screen, /Linking\.openURL|WebBrowser|bourbonsignal\.com/);
+});
+
+test("iOS comparison does not advertise Founder as a purchasable plan", () => {
+  const chooser = read("src/membership/MembershipPlanChooser.tsx");
+  assert.match(chooser, /Platform\.OS !== "ios" && founder/);
+  assert.doesNotMatch(chooser, /accessibilityLabel=\{membershipChoiceAccessibilityLabel\("bottled-in-bond"/);
 });
 
 test("subscription review links to native terms that cover recurring billing", () => {

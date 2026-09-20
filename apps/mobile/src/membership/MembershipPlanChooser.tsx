@@ -1,13 +1,11 @@
 import { useState } from "react";
-import { Pressable, StyleSheet, Text, View } from "react-native";
+import { Platform, Pressable, StyleSheet, Text, View } from "react-native";
 import { colors } from "../theme";
 import {
   PAID_MEMBERSHIP_PLANS,
   billingChoiceFor,
-  membershipChoiceAccessibilityLabel,
   membershipActionFor,
   planForTier,
-  trialDisclosureFor,
   type BillingInterval,
   type MembershipTier,
 } from "./membership-plans";
@@ -23,8 +21,6 @@ type MembershipPlanChooserProps = {
 export function MembershipPlanChooser({
   interval,
   currentTier,
-  standardTrialEligible,
-  barrelTrialEligible,
   onSelect,
 }: MembershipPlanChooserProps) {
   const [freeExpanded, setFreeExpanded] = useState(false);
@@ -37,14 +33,12 @@ export function MembershipPlanChooser({
     <View style={styles.planStack}>
       {comparisonPlans.map((plan) => {
         const price = billingChoiceFor(plan.tier, interval);
-        const trialEligible = plan.tier === "standard" ? standardTrialEligible : barrelTrialEligible;
         const action = currentTier
           ? membershipActionFor(currentTier, plan.tier)
           : { label: `Review ${plan.chooserName || plan.name}` };
-        const trialDisclosure = currentTier === "bottled-in-bond" ? null : trialDisclosureFor(plan.tier, interval, trialEligible);
         return <Pressable
           accessibilityRole="button"
-          accessibilityLabel={currentTier === "bottled-in-bond" ? [plan.name, plan.bestFor, ...(plan.chooserFeatures || []), action.label].join(". ") : membershipChoiceAccessibilityLabel(plan.tier, interval, trialEligible, action.label)}
+          accessibilityLabel={[plan.name, `${price?.price}${price?.suffix}`, plan.bestFor, ...(plan.chooserFeatures || []), action.label].filter(Boolean).join(". ")}
           key={plan.tier}
           onPress={() => onSelect(plan.tier)}
           style={({ pressed }) => [styles.plan, plan.tier === "barrel" && styles.barrelPlan, currentTier === plan.tier && styles.currentPlan, pressed && styles.pressed]}
@@ -71,8 +65,6 @@ export function MembershipPlanChooser({
             </View>)}
           </View>
 
-          {trialDisclosure ? <Text style={styles.trial}>{trialDisclosure}</Text> : null}
-
           <Text accessible={false} style={[styles.reviewText, plan.tier === "barrel" && styles.reviewTextPrimary]}>{action.label}  ›</Text>
         </Pressable>;
       })}
@@ -80,9 +72,9 @@ export function MembershipPlanChooser({
 
     <Text style={styles.sharedBenefits}>Every paid plan also includes unlimited My Shelf, full Community access and points redemption.</Text>
 
-    {founder ? <Pressable
+    {Platform.OS !== "ios" && founder ? <Pressable
       accessibilityRole="button"
-      accessibilityLabel={membershipChoiceAccessibilityLabel("bottled-in-bond", "lifetime", false, "Review Founder")}
+      accessibilityLabel={[founder.chooserName, `${founderPrice?.price} once`, founder.bestFor, "Review Founder"].filter(Boolean).join(". ")}
       onPress={() => onSelect("bottled-in-bond")}
       style={({ pressed }) => [styles.founder, currentTier === founder.tier && styles.currentPlan, pressed && styles.pressed]}
     >
@@ -143,7 +135,7 @@ const styles = StyleSheet.create({
   featureRow: { flexDirection: "row", alignItems: "flex-start", gap: 6 },
   featureMark: { color: colors.accent, fontSize: 13, lineHeight: 18, fontWeight: "900" },
   feature: { flex: 1, color: colors.text, fontSize: 13, lineHeight: 18 },
-  trial: { color: colors.accent, fontSize: 12, lineHeight: 17, fontWeight: "800" },
+
   reviewText: { color: colors.accent, fontSize: 13, lineHeight: 18, fontWeight: "900" },
   reviewTextPrimary: { color: colors.accent },
   sharedBenefits: { color: colors.muted, fontSize: 12, lineHeight: 17, paddingHorizontal: 3 },
