@@ -1,0 +1,7 @@
+diff --git a/node_modules/query-string/index.js b/node_modules/query-string/index.js
+index 0480a96..ba596de 100644
+--- a/node_modules/query-string/index.js
++++ b/node_modules/query-string/index.js
+@@ -1 +1,2 @@
+ import * as queryString from './base.js';
++export * from './base.js';

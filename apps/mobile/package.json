@@ -4,7 +4,7 @@
   "private": true,
   "main": "expo-router/entry",
   "scripts": {
-    "postinstall": "node scripts/prepare-native-plist.cjs",
+    "postinstall": "node scripts/prepare-native-plist.cjs && patch-package",
     "test:ios-recovery": "node --test scripts/ios-recovery.test.cjs",
     "start": "expo start --dev-client",
     "android": "expo run:android",
@@ -13,7 +13,7 @@
     "generate:catalog-seed": "node scripts/generate-bottle-catalog-seed.mjs",
     "typecheck": "tsc --noEmit",
     "test:bottle-art": "tsx --test src/components/cellar-bottle-artwork.test.ts",
-    "test": "tsx --test src/bottle-photos/registry.test.ts src/bottle-photos/cache.test.ts src/api/blob-upload.test.ts src/api/client.test.ts src/account/subscription-management.test.ts src/account/account-deletion-screen-contract.test.ts src/auth/auth-screen-contract.test.ts src/api/presentation.test.ts src/cellar/bottle-search.test.ts src/cellar/bourbon-dna.test.ts src/cellar/my-shelf-display.test.ts src/cellar/shelf-cabinet.test.ts src/cellar/shelf-page-contract.test.ts src/cellar/contribution-receipts.test.ts src/components/cellar-bottle-artwork.test.ts src/components/cellar-glencairn-contract.test.ts src/components/signal-card-contract.test.ts src/components/ScoreSlider.test.ts src/hq/hq-screen-contract.test.ts src/interactions/cellar-route-contract.test.ts src/interactions/member-interactions.test.ts src/membership/membership-plans.test.ts src/membership/membership-lifecycle.test.ts src/membership/purchases.test.ts src/membership/revenuecat-adapter.test.ts src/membership/membership-screen-contract.test.ts src/membership/store-release-contract.test.ts src/native-capabilities/permission-policy.test.ts src/navigation/feed-brand-contract.test.ts src/navigation/member-tabs.test.ts src/push/push-navigation.test.ts src/push/push-registration-contract.test.ts src/startup/startup-error-boundary-contract.test.ts src/radar/radar-preferences.test.ts src/radar/radar-push-state.test.ts src/radar/radar-screen-contract.test.ts src/sightings/manual-sighting.test.ts src/sightings/post-composer.test.ts src/sightings/sighting-photo.test.ts src/sightings/sighting-photo-screen-contract.test.ts src/signals/bottle-profile.test.ts src/signals/feed-filters.test.ts src/signals/feed-screen-contract.test.ts src/signals/home-feed-live.test.ts src/signals/signal-detail-contract.test.ts && npm run test:astra",
+    "test": "tsx --test src/bottle-photos/registry.test.ts src/bottle-photos/cache.test.ts src/api/blob-upload.test.ts src/api/client.test.ts src/account/subscription-management.test.ts src/account/account-deletion-screen-contract.test.ts src/auth/auth-screen-contract.test.ts src/api/presentation.test.ts src/cellar/bottle-search.test.ts src/cellar/bourbon-dna.test.ts src/cellar/my-shelf-display.test.ts src/cellar/shelf-cabinet.test.ts src/cellar/shelf-page-contract.test.ts src/cellar/contribution-receipts.test.ts src/components/cellar-bottle-artwork.test.ts src/components/cellar-glencairn-contract.test.ts src/components/signal-card-contract.test.ts src/components/ScoreSlider.test.ts src/hq/hq-screen-contract.test.ts src/interactions/cellar-route-contract.test.ts src/interactions/member-interactions.test.ts src/membership/membership-plans.test.ts src/membership/membership-lifecycle.test.ts src/membership/purchases.test.ts src/membership/revenuecat-adapter.test.ts src/membership/membership-screen-contract.test.ts src/membership/store-release-contract.test.ts src/native-capabilities/permission-policy.test.ts src/navigation/feed-brand-contract.test.ts src/navigation/member-tabs.test.ts src/push/push-navigation.test.ts src/push/push-registration-contract.test.ts src/startup/startup-error-boundary-contract.test.ts src/startup/router-query-string-contract.test.ts src/radar/radar-preferences.test.ts src/radar/radar-push-state.test.ts src/radar/radar-screen-contract.test.ts src/sightings/manual-sighting.test.ts src/sightings/post-composer.test.ts src/sightings/sighting-photo.test.ts src/sightings/sighting-photo-screen-contract.test.ts src/signals/bottle-profile.test.ts src/signals/feed-filters.test.ts src/signals/feed-screen-contract.test.ts src/signals/home-feed-live.test.ts src/signals/signal-detail-contract.test.ts && npm run test:astra",
     "test:home-browsing": "tsx --test src/signals/home-browsing-preferences.test.ts",
     "verify:release-readiness": "node scripts/test-release-readiness.mjs",
     "verify:native-deps": "npm ls react-native-worklets react-native-reanimated expo-modules-core --all",
@@ -42,6 +42,8 @@
     "expo-splash-screen": "~57.0.9",
     "expo-status-bar": "~57.0.1",
     "expo-updates": "~57.0.23",
+    "patch-package": "8.0.1",
+    "query-string": "9.5.1",
     "react": "19.2.3",
     "react-dom": "19.2.3",
     "react-native": "0.86.3",
@@ -61,7 +63,7 @@
   "overrides": {
     "uuid": "11.1.1",
     "@xmldom/xmldom": "0.9.12",
-    "query-string": "9.4.1",
+    "query-string": "9.5.1",
     "decode-uri-component": "0.5.0",
     "jayson": "4.1.3"
   }
