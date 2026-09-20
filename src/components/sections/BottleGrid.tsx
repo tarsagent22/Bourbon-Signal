@@ -14,7 +14,6 @@ import { isInStockNow, isSeenThisWeek } from "@/lib/availability";
 import { canonicalBottleKey, dropMatchesBottle } from "@/lib/bottleIdentity";
 
 const FREE_VISIBLE_COUNT = 6;
-const TESTER_MODE = true;
 
 function sortBottles(list: Bottle[], sortBy: string): Bottle[] {
   const sorted = [...list];
@@ -57,16 +56,6 @@ export default function BottleGrid({ bottles: propBottles, loading = false }: Bo
   const { isSignedIn } = useAuth();
   const IS_FREE_USER = !isSignedIn;
   const router = useRouter();
-
-  const handleCheckout = (plan: "monthly" | "annual" | "founder") => {
-    if (TESTER_MODE) {
-      router.push("/dashboard");
-      return;
-    }
-
-    const checkoutPlan = plan === "monthly" ? "standard_monthly" : plan === "annual" ? "standard_annual" : "bib_lifetime";
-    router.push(`/sign-up?intent=paid&redirect_url=${encodeURIComponent(`/checkout/continue?plan=${checkoutPlan}&registration=1`)}`);
-  };
 
   const { selectedStates, hasSelectedStates } = useStatePreferences();
   const { watchedBottles } = useWatchlistStore();
@@ -452,7 +441,7 @@ export default function BottleGrid({ bottles: propBottles, loading = false }: Bo
                 </p>
                 <div className="flex items-center justify-center gap-4 flex-wrap">
                   <button
-                    onClick={() => handleCheckout("monthly")}
+                    onClick={() => router.push("/dashboard")}
                     className="inline-block rounded-lg"
                     style={{
                       fontFamily: "var(--font-dm-sans)",
@@ -470,7 +459,7 @@ export default function BottleGrid({ bottles: propBottles, loading = false }: Bo
                     Open free dashboard
                   </button>
                   <button
-                    onClick={() => handleCheckout("founder")}
+                    onClick={() => router.push("/dashboard")}
                     className="inline-block rounded-lg"
                     style={{
                       fontFamily: "var(--font-dm-sans)",

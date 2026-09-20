@@ -20,9 +20,7 @@ test("membership overview compares every tier with accurate pricing and native d
   assert.match(plans, /name: "Standard"/);
   assert.match(plans, /name: "Barrel"/);
   assert.match(plans, /name: "Founder"/);
-  assert.match(screen, /Monthly/);
-  assert.match(screen, /Annual/);
-  assert.doesNotMatch(screen, /Annual · 2 months free/);
+  assert.doesNotMatch(screen, /Annual|annual/);
   assert.ok(screen.includes('pathname: "/(app)/account/membership/[tier]"'));
   assert.match(screen, /profile \? membershipActionFor/);
   assert.doesNotMatch(screen, /profile\?\.membership\.tier \|\| "free"/);

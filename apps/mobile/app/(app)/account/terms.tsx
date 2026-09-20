@@ -32,7 +32,7 @@ const sections = [
   ["7. Billing, cancellations, and refunds", [
     "Paid Bourbon Signal plans are billed in advance on a recurring basis according to the plan you select. By subscribing, you authorize the applicable payment provider to charge your payment method for recurring subscription fees and applicable taxes or fees.",
     "You may cancel a recurring subscription at any time through the account controls provided by the payment platform or by contacting support. Apple subscriptions are managed through the App Store. Cancellation stops future renewals but does not automatically refund charges already paid.",
-    "Monthly or annual members generally retain access through the end of the current paid billing period after cancellation. Founding member purchases are non-refundable and provide lifetime membership access according to the founding member offer terms.",
+    "Monthly members and existing annual members generally retain access through the end of the current paid billing period after cancellation. Founding member purchases are non-refundable and provide lifetime membership access according to the founding member offer terms.",
     "Bourbon Signal subscriptions are generally non-refundable once a billing period begins, except where required by law or at our discretion.",
   ]],
   ["8. Acceptable use", [

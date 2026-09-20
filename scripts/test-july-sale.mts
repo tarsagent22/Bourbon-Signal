@@ -113,10 +113,9 @@ assert.match(checkoutRoute, /expire\(reusableSession\.id\)/, "stale full-price o
 assert.match(checkoutRoute, /expectedPromotion === "july_sale_2026" && julySaleConfig\.state !== "active"/, "a stale sale page must never fall through to full-price checkout");
 
 const pricingServerPage = readFileSync("src/app/pricing/page.tsx", "utf8");
-assert.match(pricingServerPage, /isJulySaleReadyForCustomers/, "pricing promotion must use a server-authoritative Stripe readiness check");
+assert.doesNotMatch(pricingServerPage, /isJulySaleReadyForCustomers/, "retired pricing promotion must not be reintroduced through the server page");
 const pricingPage = readFileSync("src/app/pricing/PricingPageClient.tsx", "utf8");
-assert.match(pricingPage, /const expectedPromotion = julySaleActive/, "eligible pricing checkout should declare that the customer expects the sale");
-assert.match(pricingPage, /checkoutContinueUrl\(plan, source, expectedPromotion, planHasTrial\(plan\)\)/, "sale and trial intent must survive sign-up redirect");
+assert.doesNotMatch(pricingPage, /expectedPromotion|Annual|annual|2 months free/, "retired annual promotion must not appear on public pricing");
 const continuePage = readFileSync("src/app/checkout/continue/page.tsx", "utf8");
 assert.match(continuePage, /JSON\.stringify\(\{ plan, source, expectedPromotion, trialOfferExpected \}\)/, "continued checkout must send sale and trial intent to the API");
 for (const phrase of [
@@ -129,7 +128,7 @@ for (const phrase of [
   "$51",
   "$42.50",
 ]) {
-  assert.ok(pricingPage.includes(phrase), `pricing page missing sale language: ${phrase}`);
+  assert.ok(!pricingPage.includes(phrase), `retired pricing page still contains sale language: ${phrase}`);
 }
 
 console.log("July sale checkout and customer-copy contract passed.");

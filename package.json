@@ -136,7 +136,7 @@
     "test:growth-experiments": "node --no-warnings --experimental-strip-types scripts/test-growth-experiments.mts",
     "test:member-activation": "node --no-warnings --experimental-strip-types scripts/test-member-activation.mts",
     "test:member-welcome": "node --no-warnings --experimental-strip-types scripts/test-member-welcome.mts && node --no-warnings --experimental-strip-types scripts/test-welcome-local-preview.mts && node --no-warnings --experimental-strip-types scripts/test-welcome-onboarding-adjustments.mts",
-    "test:conversion": "node --no-warnings --experimental-strip-types scripts/test-membership-trials.mts && node --no-warnings --experimental-strip-types scripts/test-conversion-surfaces.mts && node --no-warnings --experimental-strip-types scripts/test-owner-signal-points-preview.mts",
+    "test:conversion": "tsx --test scripts/test-membership-monthly-only.mts && node --no-warnings --experimental-strip-types scripts/test-membership-trials.mts && node --no-warnings --experimental-strip-types scripts/test-conversion-surfaces.mts && node --no-warnings --experimental-strip-types scripts/test-owner-signal-points-preview.mts",
     "test:founder-shipping": "node --no-warnings --experimental-strip-types scripts/test-founder-shipping.mts",
     "test:free-member-day-two-email": "tsx scripts/test-free-member-day-two-email.ts",
     "test:low-coverage-community-email": "tsx scripts/test-low-coverage-community-email.mts",

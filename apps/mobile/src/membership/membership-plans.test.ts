@@ -7,22 +7,22 @@ import {
   type MembershipTier,
 } from "./membership-plans";
 
-test("mobile plans preserve the canonical pricing and monthly trial disclosures", () => {
+test("mobile plans expose monthly pricing only while preserving Founder lifetime access", () => {
   const standard = MEMBERSHIP_PLANS.find((plan) => plan.tier === "standard");
   const barrel = MEMBERSHIP_PLANS.find((plan) => plan.tier === "barrel");
   const founder = MEMBERSHIP_PLANS.find((plan) => plan.tier === "bottled-in-bond");
 
   assert.deepEqual(standard?.monthly, { price: "$3", suffix: "/month", trialDays: 7 });
-  assert.deepEqual(standard?.annual, { price: "$30", suffix: "/year", valueNote: "2 months free" });
+  assert.equal(Object.hasOwn(standard ?? {}, "annual"), false);
   assert.deepEqual(barrel?.monthly, { price: "$6", suffix: "/month", trialDays: 7 });
-  assert.deepEqual(barrel?.annual, { price: "$60", suffix: "/year", valueNote: "2 months free" });
+  assert.equal(Object.hasOwn(barrel ?? {}, "annual"), false);
   assert.deepEqual(founder?.lifetime, { price: "$50", suffix: " once" });
-  assert.equal(MEMBERSHIP_PLANS.find((plan) => plan.tier === "free")?.annual, undefined);
+  assert.equal(Object.hasOwn(MEMBERSHIP_PLANS.find((plan) => plan.tier === "free") ?? {}, "annual"), false);
 });
 
-test("monthly is the default and annual never receives a trial", () => {
+test("monthly is the only subscription choice, including for legacy annual route parameters", () => {
   assert.deepEqual(billingChoiceFor("standard"), { interval: "monthly", price: "$3", suffix: "/month", trialDays: 7 });
-  assert.deepEqual(billingChoiceFor("barrel", "annual"), { interval: "annual", price: "$60", suffix: "/year", valueNote: "2 months free" });
+  assert.deepEqual(billingChoiceFor("barrel", "annual"), { interval: "monthly", price: "$6", suffix: "/month", trialDays: 7 });
   assert.deepEqual(billingChoiceFor("bottled-in-bond"), { interval: "lifetime", price: "$50", suffix: " once" });
 });
 

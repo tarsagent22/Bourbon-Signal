@@ -2,16 +2,14 @@
 
 Screenshots have not been captured or approved. They must come from the reviewed TestFlight candidate or a byte-equivalent simulator build after Apple products and representative review data are configured. Do not fabricate screenshots, inventory, purchase states, prices, trial eligibility, private identifiers, or review evidence.
 
-## Subscription review screenshots (required for the four Apple products)
+## Subscription review screenshots (required for the two launch monthly Apple products)
 
-These are **App Review-only In-App Purchase assets**, separate from the public App Store listing screenshots below. Capture the real in-app review screen once for each configured product:
+These are **App Review-only In-App Purchase assets**, separate from the public App Store listing screenshots below. Capture the real in-app review screen once for each launch product:
 
-1. Standard monthly — Account → Membership → Standard → Monthly.
-2. Standard annual — Account → Membership → Standard → Annual.
-3. Barrel monthly — Account → Membership → Barrel → Monthly.
-4. Barrel annual — Account → Membership → Barrel → Annual.
+1. Standard monthly — Account → Membership → Standard.
+2. Barrel monthly — Account → Membership → Barrel.
 
-Each image must visibly contain the matching tier name, Apple-localized price and billing period, auto-renewal disclosure, and the enabled purchase action. The current detail screen intentionally keeps those elements together above the benefits list. Do not upload the overview screen, a disabled `Price unavailable` state, a development mock, or a screenshot whose selected interval differs from the App Store Connect product receiving it.
+Each image must visibly contain the matching tier name, Apple-localized price and monthly billing period, auto-renewal disclosure, and the enabled purchase action. Legacy annual product identifiers remain lifecycle and restore compatibility only; they are not launch purchase options or screenshot targets. The current detail screen intentionally keeps those elements together above the benefits list. Do not upload the overview screen, a disabled `Price unavailable` state, a development mock, or a screenshot whose product differs from the App Store Connect product receiving it.
 
 Apple documents iOS subscription review screenshots as at least 640 × 920 px. A normal portrait capture from the final iPhone candidate is acceptable; do not resize it into the public-listing 6.9-inch slot. Reconfirm the accepted dimensions shown by App Store Connect when uploading.
 

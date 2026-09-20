@@ -25,6 +25,11 @@ const APPROVED_PRODUCT_IDS = Object.freeze([
   APPLE_PRODUCT_IDS.barrel.annual,
 ] as const);
 
+const REQUIRED_PURCHASE_PRODUCT_IDS = Object.freeze([
+  APPLE_PRODUCT_IDS.standard.monthly,
+  APPLE_PRODUCT_IDS.barrel.monthly,
+] as const);
+
 export type AppleProductId = (typeof APPROVED_PRODUCT_IDS)[number];
 export type PurchaseFlowStatus = "signed_out" | "unsupported" | "configuring" | "unavailable" | "ready" | "purchasing" | "restoring" | "cancelled" | "pending" | "error";
 
@@ -110,7 +115,7 @@ export function mapDefaultOfferingPackages(packages: PurchaseStorePackage[]) {
     const product = approved.get(productId);
     return product ? [product] : [];
   });
-  return { products, complete: products.length === APPROVED_PRODUCT_IDS.length };
+  return { products, complete: REQUIRED_PURCHASE_PRODUCT_IDS.every((productId) => approved.has(productId)) };
 }
 
 function messageForUnavailable(reason: "key" | "products" | "server") {

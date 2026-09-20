@@ -1,28 +1,20 @@
 import type { BillingPlanId, MembershipTier } from "./entitlements";
-import type { AppleMembershipProductId } from "./apple-membership";
+
+export type PublicCheckoutPlanId = "standard_monthly" | "barrel_monthly" | "bib_lifetime";
 
 export type PaidMembershipPlan = {
   tier: Exclude<MembershipTier, "free">;
   name: string;
   eyebrow: string;
   monthlyPrice?: string;
-  annualPrice?: string;
   oneTimePrice?: string;
-  monthlyPlan?: BillingPlanId;
-  annualPlan?: BillingPlanId;
-  plan?: BillingPlanId;
+  monthlyPlan?: PublicCheckoutPlanId;
+  plan?: PublicCheckoutPlanId;
   description: string;
   features: string[];
   accent: "standard" | "barrel" | "founder";
   featured?: boolean;
   evergreenEmailEligible: boolean;
-};
-
-export const APPLE_PRODUCT_PLAN_IDS: Readonly<Record<AppleMembershipProductId, Exclude<BillingPlanId, "bib_lifetime">>> = {
-  "com.bourbonsignal.app.standard.monthly": "standard_monthly",
-  "com.bourbonsignal.app.standard.annual": "standard_annual",
-  "com.bourbonsignal.app.barrel.monthly": "barrel_monthly",
-  "com.bourbonsignal.app.barrel.annual": "barrel_annual",
 };
 
 export const PAID_MEMBERSHIP_PLANS: PaidMembershipPlan[] = [
@@ -31,9 +23,7 @@ export const PAID_MEMBERSHIP_PLANS: PaidMembershipPlan[] = [
     name: "Standard Proof",
     eyebrow: "Core Membership",
     monthlyPrice: "$3",
-    annualPrice: "$30",
     monthlyPlan: "standard_monthly",
-    annualPlan: "standard_annual",
     description: "Turn the state signal you just explored into a focused hunting plan.",
     features: [
       "Full state Drop Feed",
@@ -50,9 +40,7 @@ export const PAID_MEMBERSHIP_PLANS: PaidMembershipPlan[] = [
     name: "Barrel Proof",
     eyebrow: "Serious hunters",
     monthlyPrice: "$6",
-    annualPrice: "$60",
     monthlyPlan: "barrel_monthly",
-    annualPlan: "barrel_annual",
     description: "Pair unlimited hunting tools with intelligence shaped by your own collection.",
     features: [
       "Everything in Standard with unlimited preferences",
@@ -83,13 +71,15 @@ export const PAID_MEMBERSHIP_PLANS: PaidMembershipPlan[] = [
 
 export const CORE_PAID_MEMBERSHIP_PLANS = PAID_MEMBERSHIP_PLANS.filter((plan) => plan.evergreenEmailEligible);
 
-export const CHECKOUT_PLAN_TIERS: Record<BillingPlanId, MembershipTier> = {
+export const CHECKOUT_PLAN_TIERS: Record<PublicCheckoutPlanId, MembershipTier> = {
   standard_monthly: "standard",
-  standard_annual: "standard",
   barrel_monthly: "barrel",
-  barrel_annual: "barrel",
   bib_lifetime: "bottled-in-bond",
 };
+
+export function isPublicCheckoutPlanId(planId: BillingPlanId): planId is PublicCheckoutPlanId {
+  return Object.hasOwn(CHECKOUT_PLAN_TIERS, planId);
+}
 
 export const MEMBERSHIP_COMPARISON_ROWS = [
   ["Drop Feed access", "Limited", "Full · state only", "Full · advanced", "Full · advanced"],

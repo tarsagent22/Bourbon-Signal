@@ -3,21 +3,18 @@
 import { Suspense, useEffect, useMemo, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useAuth } from "@/lib/auth";
-import type { BillingPlanId } from "@/lib/entitlements";
 import { recordGrowthMilestone } from "@/lib/growth-client";
+import type { PublicCheckoutPlanId } from "@/lib/membership-plan-catalog";
 
-const VALID_PLANS: BillingPlanId[] = [
+const VALID_PLANS: PublicCheckoutPlanId[] = [
   "standard_monthly",
-  "standard_annual",
   "barrel_monthly",
-  "barrel_annual",
   "bib_lifetime",
 ];
 
-function normalizePlan(value: string | null): BillingPlanId | null {
-  if (VALID_PLANS.includes(value as BillingPlanId)) return value as BillingPlanId;
+function normalizePlan(value: string | null): PublicCheckoutPlanId | null {
+  if (VALID_PLANS.includes(value as PublicCheckoutPlanId)) return value as PublicCheckoutPlanId;
   if (value === "monthly") return "standard_monthly";
-  if (value === "annual") return "standard_annual";
   if (value === "founder") return "bib_lifetime";
   return null;
 }

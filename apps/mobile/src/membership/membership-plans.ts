@@ -18,7 +18,6 @@ export type MembershipPlan = {
   limited?: boolean;
   purchasableOnIos?: boolean;
   monthly?: Omit<PriceChoice, "interval">;
-  annual?: Omit<PriceChoice, "interval">;
   lifetime?: Omit<PriceChoice, "interval">;
 };
 
@@ -42,7 +41,6 @@ export const MEMBERSHIP_PLANS: MembershipPlan[] = [
     eyebrow: "Core membership",
     description: "Turn state signals into a focused hunting plan with full access and alerts.",
     monthly: { price: "$3", suffix: "/month", trialDays: 7 },
-    annual: { price: "$30", suffix: "/year", valueNote: "2 months free" },
     features: [
       "Full state Intel feed",
       "Alerts for up to 5 areas and 15 bottles",
@@ -58,7 +56,6 @@ export const MEMBERSHIP_PLANS: MembershipPlan[] = [
     description: "Add unlimited preferences and intelligence shaped by your own collection.",
     recommended: true,
     monthly: { price: "$6", suffix: "/month", trialDays: 7 },
-    annual: { price: "$60", suffix: "/year", valueNote: "2 months free" },
     features: [
       "Everything in Standard",
       "Unlimited areas and watched bottles",
@@ -95,13 +92,11 @@ export function planForTier(tier: string | string[] | undefined) {
   return MEMBERSHIP_PLANS.find((plan) => plan.tier === value) || null;
 }
 
-export function billingChoiceFor(tier: MembershipTier, interval: BillingInterval = "monthly") {
+export function billingChoiceFor(tier: MembershipTier, _interval: BillingInterval = "monthly") {
   const plan = MEMBERSHIP_PLANS.find((candidate) => candidate.tier === tier);
   if (!plan) return null;
   if (plan.lifetime) return { interval: "lifetime" as const, ...plan.lifetime };
-  const normalizedInterval = interval === "annual" ? "annual" : "monthly";
-  const choice = normalizedInterval === "annual" ? plan.annual : plan.monthly;
-  return choice ? { interval: normalizedInterval, ...choice } : null;
+  return plan.monthly ? { interval: "monthly" as const, ...plan.monthly } : null;
 }
 
 export function membershipActionFor(current: MembershipTier, target: MembershipTier) {

@@ -129,7 +129,7 @@ assert.match(webhook, /durableClaim\.subscriptionId !== subscription\.id/);
 assert.match(pricing, /7 days free, then \$3\/month/);
 assert.match(pricing, /7 days free, then \$6\/month/);
 assert.match(pricing, /Start 7-day free trial/);
-assert.match(pricing, /Annual <span>2 months free<\/span>/);
+assert.doesNotMatch(pricing, /Annual|annual|2 months free/);
 assert.doesNotMatch(pricing, /card required/i);
 assert.match(welcome, /Try Barrel Proof free for 7 days/);
 assert.match(welcome, /\$6\/month after 7 days/);

@@ -24,7 +24,7 @@ export default function RefundsPage() {
           heading: "2. Cancellation",
           body: [
             "You may cancel your subscription at any time through the account, billing portal, or by contacting support if the self-service portal is unavailable.",
-            "Cancellation stops future renewals. Monthly members keep membership access until the next would-be monthly renewal date. Annual members keep membership access until the annual renewal date. Cancellation does not immediately remove paid access for the billing period already purchased.",
+            "Cancellation stops future renewals. Monthly members keep membership access until the next would-be monthly renewal date. Existing annual members keep membership access until their already-paid annual period ends. Cancellation does not immediately remove paid access for the billing period already purchased.",
           ],
         },
         {

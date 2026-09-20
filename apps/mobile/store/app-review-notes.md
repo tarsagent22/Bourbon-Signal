@@ -15,8 +15,9 @@ The intended iOS membership flow uses StoreKit through RevenueCat and reconciles
 Customer-facing memberships are:
 
 - Free: $0 with no renewal.
-- Standard: monthly or annual auto-renewing subscription.
-- Barrel: monthly or annual auto-renewing subscription.
+- Standard: $3/month auto-renewing subscription.
+- Barrel: $6/month auto-renewing subscription.
+- Existing annual members, if any, retain their server-confirmed access and restore/lifecycle handling; annual billing is not offered to new members.
 - Founder: existing lifetime access is honored but is not sold in the app.
 
 Introductory trial presentation is disabled in this candidate. RevenueCat product offer metadata is not treated as proof that the reviewing Apple account is eligible, so the app makes no trial claim. The purchase confirmation uses Apple’s localized price and billing period.
@@ -30,7 +31,7 @@ These steps describe the implemented navigation. They must be rechecked on the f
 3. Open Radar to review saved markets, watched bottles, alert channels, and the alert inbox. Push permission appears only after the member explicitly enables Push.
 4. Open Post. Bottle and store are required; optional photo access is requested only after the member chooses evidence. Apple should not submit production community data unless coordinated with Bourbon Signal.
 5. Open Shelf to review saved bottles. A downgrade preserves saved data; only additions above the current plan limit are blocked.
-6. Open Account → Membership. Review Free, Standard, Barrel, and existing Founder presentation; monthly/annual choices; current lifecycle status; Restore purchases; and Manage subscriptions in the App Store.
+6. Open Account → Membership. Review Free, Standard, Barrel, and existing Founder presentation; the monthly purchase paths; current lifecycle status; Restore purchases; and Manage subscriptions in the App Store.
 7. From Membership, open Terms of Service, Privacy, Membership support, and Delete account.
 8. Account → Privacy & Support → Delete account opens the native deletion flow. The same section exposes Support, Privacy policy, app information, and Sign out.
 
@@ -55,10 +56,10 @@ A signed-in member can open Account → Privacy & Support → Request account de
 
 Before submission:
 
-- configure the four subscription products and offerings in App Store Connect and RevenueCat;
+- configure the two monthly launch subscription products and offerings in App Store Connect and RevenueCat; preserve legacy annual identifiers only when needed for existing subscriber lifecycle and restore handling;
 - create a least-privilege review account with stable representative access;
 - enter credentials and private review-contact details only in App Store Connect;
-- verify monthly/annual purchase, absence of trial claims in this candidate, pending purchase, cancel, renewal, grace/billing retry, refund/revoke, restore, and Manage Subscriptions in sandbox/TestFlight;
+- verify monthly purchase, absence of trial claims in this candidate, pending purchase, cancel, renewal, grace/billing retry, refund/revoke, restore, legacy annual restoration if applicable, and Manage Subscriptions in sandbox/TestFlight;
 - capture screenshots from the reviewed candidate; and
 - produce and inspect the final signed build.
 

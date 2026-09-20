@@ -8,7 +8,6 @@ import { useMobileApi } from "../../../../src/hooks/useMobileApi";
 import {
   membershipActionFor,
   planForTier,
-  type BillingInterval,
   type MembershipTier,
 } from "../../../../src/membership/membership-plans";
 import { deriveMobileMembershipLifecycle } from "../../../../src/membership/membership-lifecycle";
@@ -20,14 +19,13 @@ export default function MembershipPlanScreen() {
   const api = useMobileApi();
   const purchases = usePurchases();
   const router = useRouter();
-  const params = useLocalSearchParams<{ tier?: string; interval?: string }>();
+  const params = useLocalSearchParams<{ tier?: string }>();
   const plan = planForTier(params.tier);
   const [profile, setProfile] = useState<MemberProfile["profile"] | null>(null);
 
   const [error, setError] = useState("");
   const [subscriptionBusy, setSubscriptionBusy] = useState(false);
-  const requestedInterval: BillingInterval = params.interval === "annual" ? "annual" : "monthly";
-  const [interval, setInterval] = useState<BillingInterval>(plan?.lifetime ? "lifetime" : requestedInterval);
+
 
   const load = useCallback(async () => {
     try {
@@ -50,7 +48,7 @@ export default function MembershipPlanScreen() {
 
   const isFree = plan.tier === "free";
   const isFounder = plan.tier === "bottled-in-bond";
-  const productId = productIdFor(plan.tier, interval === "annual" ? "annual" : "monthly");
+  const productId = productIdFor(plan.tier, "monthly");
   const storeProduct = purchases.products.find((product) => product.productId === productId);
   const action = profile ? membershipActionFor(profile.membership.tier as MembershipTier, plan.tier) : null;
 
@@ -143,10 +141,6 @@ export default function MembershipPlanScreen() {
 
     {error ? <ErrorState message={error} onRetry={() => void purchases.refresh()} /> : !profile ? <View accessibilityLabel="Loading current membership" style={styles.loading}><ActivityIndicator color={colors.accent} /></View> : null}
 
-    {!plan.lifetime && !isFree ? <View accessibilityRole="tablist" style={styles.intervalControl}>
-      <Pressable accessibilityRole="tab" accessibilityState={{ selected: interval === "monthly" }} disabled={purchaseBusy} onPress={() => setInterval("monthly")} style={[styles.intervalOption, interval === "monthly" && styles.intervalSelected]}><Text style={[styles.intervalText, interval === "monthly" && styles.intervalTextSelected]}>Monthly</Text></Pressable>
-      <Pressable accessibilityRole="tab" accessibilityState={{ selected: interval === "annual" }} disabled={purchaseBusy} onPress={() => setInterval("annual")} style={[styles.intervalOption, interval === "annual" && styles.intervalSelected]}><Text style={[styles.intervalText, interval === "annual" && styles.intervalTextSelected]}>Annual</Text></Pressable>
-    </View> : null}
 
     {lifecycle ? <View style={styles.statusCard}>
       <Text accessibilityRole="header" style={styles.statusTitle}>{lifecycle.title}</Text>
@@ -156,7 +150,6 @@ export default function MembershipPlanScreen() {
 
     <View style={styles.purchaseCard}>
       <View style={styles.priceRow}><Text style={styles.price}>{displayPrice}</Text><Text style={styles.priceSuffix}>{displayPeriod}</Text></View>
-      {storeProduct && interval === "annual" ? <Text style={styles.trial}>Billed annually through the App Store</Text> : null}
       <Text style={styles.renewal}>{renewalCopy}</Text>
       <Pressable accessibilityRole="button" accessibilityLabel={purchaseAccessibilityLabel} accessibilityState={{ disabled: !canPurchase, busy: purchases.status === "purchasing" }} disabled={!canPurchase} onPress={() => void buy()} style={[styles.purchaseButton, !canPurchase && styles.disabledButton]}><Text style={styles.purchaseButtonText}>{purchaseButtonLabel}</Text></Pressable>
       {!isFree && !isFounder ? <Pressable accessibilityRole="button" accessibilityState={{ disabled: !canRestore, busy: purchases.status === "restoring" }} disabled={!canRestore} onPress={() => void restorePurchases()} style={[styles.restoreButton, !canRestore && styles.restoreDisabled]}><Text style={styles.restoreText}>{purchases.status === "restoring" ? "Restoring…" : "Restore purchases"}</Text></Pressable> : null}
@@ -192,11 +185,7 @@ const styles = StyleSheet.create({
   title: { color: colors.text, fontSize: 33, lineHeight: 38, fontWeight: "900", letterSpacing: -0.6 },
   description: { color: colors.muted, fontSize: 15, lineHeight: 22 },
   loading: { minHeight: 76, alignItems: "center", justifyContent: "center" },
-  intervalControl: { flexDirection: "row", borderRadius: 13, padding: 4, backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 },
-  intervalOption: { minHeight: 44, flex: 1, borderRadius: 10, alignItems: "center", justifyContent: "center", paddingHorizontal: 8 },
-  intervalSelected: { backgroundColor: colors.surfaceRaised, borderColor: "rgba(214,154,74,0.55)", borderWidth: 1 },
-  intervalText: { color: colors.muted, fontSize: 12, fontWeight: "700", textAlign: "center" },
-  intervalTextSelected: { color: colors.text },
+
   purchaseCard: { backgroundColor: colors.surface, borderColor: colors.accent, borderWidth: 1, borderRadius: 18, padding: 18, gap: 8 },
   priceRow: { flexDirection: "row", alignItems: "baseline", flexWrap: "wrap" },
   price: { color: colors.text, fontSize: 34, lineHeight: 40, fontWeight: "900", fontVariant: ["tabular-nums"] },

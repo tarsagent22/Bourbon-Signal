@@ -8,9 +8,8 @@ import Footer from "@/components/Footer";
 import ScrollReveal from "@/components/ScrollReveal";
 import FAQ from "@/components/sections/FAQ";
 import { useAuth } from "@/lib/auth";
-import type { BillingPlanId, MembershipTier } from "@/lib/entitlements";
-import { isJulySaleEligiblePlan, julySalePriceLabel } from "@/lib/july-sale";
-import type { PaidMembershipPlan } from "@/lib/membership-plan-catalog";
+import type { MembershipTier } from "@/lib/entitlements";
+import type { PaidMembershipPlan, PublicCheckoutPlanId } from "@/lib/membership-plan-catalog";
 import {
   CHECKOUT_PLAN_TIERS,
   MEMBERSHIP_COMPARISON_ROWS,
@@ -24,27 +23,23 @@ const tierRank: Record<MembershipTier, number> = {
   "bottled-in-bond": 3,
 };
 
-type BillingCycle = "monthly" | "annual";
-type PaidPlanId = BillingPlanId;
+type PaidPlanId = PublicCheckoutPlanId;
 type PricingTier = PaidMembershipPlan;
 
 const checkoutPlanTiers = CHECKOUT_PLAN_TIERS;
 const paidTiers = PAID_MEMBERSHIP_PLANS;
 const comparisonRows = MEMBERSHIP_COMPARISON_ROWS;
 
-function checkoutContinueUrl(plan: PaidPlanId, source = "unknown", expectedPromotion?: string, trialExpected = false) {
-  const promotion = expectedPromotion ? `&expectedPromotion=${encodeURIComponent(expectedPromotion)}` : "";
+function checkoutContinueUrl(plan: PaidPlanId, source = "unknown", trialExpected = false) {
   const trial = trialExpected ? "&trialOffer=1" : "";
-  return `/checkout/continue?plan=${plan}&source=${encodeURIComponent(source)}${promotion}${trial}&registration=1`;
+  return `/checkout/continue?plan=${plan}&source=${encodeURIComponent(source)}${trial}&registration=1`;
 }
 
 
-function PricingPageContent({ julySaleEnabled }: { julySaleEnabled: boolean }) {
+function PricingPageContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { isLoaded, isSignedIn, memberTier } = useAuth();
-  const julySaleActive = julySaleEnabled;
-  const [billingCycle, setBillingCycle] = useState<BillingCycle>(() => julySaleActive ? "annual" : "monthly");
   const [pendingPlan, setPendingPlan] = useState<PaidPlanId | "free" | null>(null);
   const checkoutInFlight = useRef(false);
   const [error, setError] = useState<string | null>(null);
@@ -104,20 +99,14 @@ function PricingPageContent({ julySaleEnabled }: { julySaleEnabled: boolean }) {
 
   function selectedPlan(tier: PricingTier): PaidPlanId | null {
     if (tier.plan) return tier.plan;
-    if (billingCycle === "annual" && tier.annualPlan) return tier.annualPlan;
     return tier.monthlyPlan || null;
   }
 
   function priceFor(tier: PricingTier, plan: PaidPlanId | null) {
     const regular = tier.oneTimePrice
       ? { price: tier.oneTimePrice, cadence: "one time" }
-      : billingCycle === "annual"
-        ? { price: tier.annualPrice || "", cadence: "per year" }
-        : { price: tier.monthlyPrice || "", cadence: "per month" };
-    const salePrice = julySaleActive && plan && isJulySaleEligiblePlan(plan)
-      ? julySalePriceLabel(plan)
-      : null;
-    return { ...regular, salePrice };
+      : { price: tier.monthlyPrice || "", cadence: "per month" };
+    return regular;
   }
 
   async function startCheckout(plan: PaidPlanId | null, targetTier: MembershipTier) {
@@ -130,11 +119,8 @@ function PricingPageContent({ julySaleEnabled }: { julySaleEnabled: boolean }) {
       setError(targetTier === memberTier ? "You already have this membership." : "Your current membership already includes this tier.");
       return;
     }
-    const expectedPromotion = julySaleActive && isJulySaleEligiblePlan(plan)
-      ? "july_sale_2026"
-      : undefined;
     if (!isSignedIn) {
-      router.push(`/sign-up?intent=paid&redirect_url=${encodeURIComponent(checkoutContinueUrl(plan, source, expectedPromotion, planHasTrial(plan)))}`);
+      router.push(`/sign-up?intent=paid&redirect_url=${encodeURIComponent(checkoutContinueUrl(plan, source, planHasTrial(plan)))}`);
       return;
     }
     if (checkoutInFlight.current) return;
@@ -148,7 +134,6 @@ function PricingPageContent({ julySaleEnabled }: { julySaleEnabled: boolean }) {
         body: JSON.stringify({
           plan,
           source,
-          expectedPromotion,
           trialOfferExpected: planHasTrial(plan),
         }),
       });
@@ -194,14 +179,6 @@ function PricingPageContent({ julySaleEnabled }: { julySaleEnabled: boolean }) {
         <section className="pricing-hero">
           <ScrollReveal>
             <h1>Pick your proof.</h1>
-            <div className="billing-toggle" aria-label="Billing cycle">
-              <button type="button" data-active={billingCycle === "monthly"} onClick={() => setBillingCycle("monthly")}>
-                Monthly
-              </button>
-              <button type="button" data-active={billingCycle === "annual"} onClick={() => setBillingCycle("annual")}>
-                Annual <span>2 months free</span>
-              </button>
-            </div>
           </ScrollReveal>
         </section>
 
@@ -244,17 +221,6 @@ function PricingPageContent({ julySaleEnabled }: { julySaleEnabled: boolean }) {
           </section>
         ) : null}
 
-        {julySaleActive ? (
-          <section className="july-sale-banner" aria-label="July membership sale">
-            <p>July sale — 15% off</p>
-            <div>
-              <strong>15% off annual memberships and Founder lifetime through July 31 at 11 PM ET; applied automatically.</strong>
-              <span>Standard annual $25.50 · Barrel annual $51 · Founder lifetime $42.50 one time</span>
-            </div>
-            <em>The discount applies to the first annual payment; annual plans renew at the regular price. Founder remains a one-time payment.</em>
-          </section>
-        ) : null}
-
         <section className="pricing-grid" aria-label="Bourbon Signal pricing tiers">
           {paidTiers.map((tier) => {
             const plan = selectedPlan(tier);
@@ -280,13 +246,10 @@ function PricingPageContent({ julySaleEnabled }: { julySaleEnabled: boolean }) {
                 {current ? <div className="current-badge">Current</div> : null}
                 <p className="pricing-eyebrow">{tier.eyebrow}</p>
                 <h2>{tier.name}</h2>
-                <div className={`pricing-price-row ${price.salePrice ? "sale" : ""}`}>
-                  {price.salePrice ? (
-                    <div className="sale-price-line"><del>{price.price}</del><strong>{price.salePrice}</strong></div>
-                  ) : <strong>{price.price}</strong>}
+                <div className="pricing-price-row">
+                  <strong>{price.price}</strong>
                   <span>{price.cadence}</span>
                   {planHasTrial(plan) ? <small>{trialPriceCopy(plan)}</small> : null}
-                  {price.salePrice ? <small>15% off · applied automatically at checkout</small> : null}
                 </div>
                 <p className="pricing-description">{tier.description}</p>
                 <ul>{tier.features.map((feature) => <li key={feature}><span aria-hidden="true">✓</span>{feature}</li>)}</ul>
@@ -343,10 +306,10 @@ function PricingPageContent({ julySaleEnabled }: { julySaleEnabled: boolean }) {
   );
 }
 
-export default function PricingPageClient({ julySaleEnabled }: { julySaleEnabled: boolean }) {
+export default function PricingPageClient() {
   return (
     <Suspense fallback={null}>
-      <PricingPageContent julySaleEnabled={julySaleEnabled} />
+      <PricingPageContent />
     </Suspense>
   );
 }

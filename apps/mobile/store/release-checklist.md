@@ -6,7 +6,7 @@ This checklist separates source implementation from Apple configuration and fina
 
 - [x] App version and bundle/package identifiers are defined in source.
 - [x] Native sign-in, sign-out, session recovery, and authenticated account routing are implemented.
-- [x] Native StoreKit/RevenueCat purchase and restore coordination is implemented for four approved product identifiers.
+- [x] Native StoreKit/RevenueCat purchase and restore coordination is implemented for the two launch monthly products; legacy annual identifiers remain lifecycle and restore compatibility only.
 - [x] Purchase and restore results reconcile with the authenticated Bourbon Signal server before paid access appears.
 - [x] Customer membership names are Free, Standard, Barrel, and Founder while internal compatibility identifiers remain intact.
 - [x] Free shows $0 and no renewal; Founder is honored but not sold through Apple.
@@ -25,7 +25,7 @@ Configured StoreKit and RevenueCat products are required and remain unverified.
 
 - [ ] Accept all applicable Apple agreements and verify App Store Connect organization/team access.
 - [ ] Create or verify the App Store Connect app record for `com.bourbonsignal.app`.
-- [ ] Create and configure Standard monthly, Standard annual, Barrel monthly, and Barrel annual subscriptions.
+- [ ] Create and configure the Standard monthly and Barrel monthly subscriptions. Preserve any existing annual product identifiers only for legacy subscriber lifecycle and restore handling; do not expose them as launch purchase options.
 - [ ] Configure subscription groups, territories, pricing, tax/category data, localization, review information, and introductory offers as approved.
 - [ ] Configure matching RevenueCat products, entitlements, offerings, webhook/API credentials, and production environment values.
 - [ ] Prove that product identifiers, eligible offerings, and localized prices returned by StoreKit exactly match source contracts.
@@ -37,8 +37,8 @@ Products are not configured or verified by this source pass.
 
 ## Sandbox and TestFlight evidence — not complete
 
-- [ ] Verify monthly and annual purchase screens make no introductory-trial claim in this candidate.
-- [ ] Verify localized Standard and Barrel monthly/annual prices at the purchase boundary.
+- [ ] Verify Standard and Barrel monthly purchase screens make no introductory-trial claim in this candidate.
+- [ ] Verify localized Standard and Barrel monthly prices at the purchase boundary.
 - [ ] Verify purchase success does not grant access before server reconciliation and profile refresh.
 - [ ] Verify pending, canceled, interrupted, and failed purchases remain non-entitled.
 - [ ] Verify restore for the same account and denial across a different account.

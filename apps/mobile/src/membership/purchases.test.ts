@@ -111,6 +111,10 @@ test("Apple product mapping is immutable, complete, and ignores unapproved produ
   assert.equal(mapped.complete, true);
   assert.deepEqual(mapped.products.map((item) => item.productId), products.map((item) => item.productId));
   assert.deepEqual(mapped.products.map((item) => [item.localizedPrice, item.localizedPeriod]), [["$3.00", "month"], ["$30.00", "year"], ["$6.00", "month"], ["$60.00", "year"]]);
+
+  const monthlyOnly = mapDefaultOfferingPackages(products.filter((item) => item.localizedPeriod === "month"));
+  assert.equal(monthlyOnly.complete, true);
+  assert.deepEqual(monthlyOnly.products.map((item) => item.productId), [APPLE_PRODUCT_IDS.standard.monthly, APPLE_PRODUCT_IDS.barrel.monthly]);
 });
 
 test("configuration runs only for an exact authenticated iOS Clerk user without anonymous provider identities", async () => {
@@ -204,7 +208,7 @@ test("a stale purchase cannot reconcile or overwrite the newly signed-out state"
 test("missing key, incomplete products, or missing backend fail closed before purchase and restore", async () => {
   for (const setup of [
     { key: "", options: {} },
-    { key: "appl_public", options: { packages: products.slice(0, 3) } },
+    { key: "appl_public", options: { packages: products.slice(0, 2) } },
     { key: "appl_public", options: { readinessError: new Error("404") } },
     { key: "appl_public", options: { readinessAvailable: false } },
   ] as const) {

@@ -5,8 +5,6 @@ import { staggerContainer, fadeUpVariant } from "@/lib/animations";
 import { FOUNDING_SPOTS_REMAINING } from "@/data/config";
 import { useRouter } from "next/navigation";
 import {
-  STANDARD_ANNUAL_PRICE,
-  STANDARD_ANNUAL_SAVINGS,
   STANDARD_FEATURES,
   STANDARD_MONTHLY_PRICE,
   FOUNDER_ACCESS_LINE,
@@ -25,13 +23,13 @@ const TESTER_MODE = true;
 
 export default function PricingSection() {
   const router = useRouter();
-  const handleCheckout = (plan: "monthly" | "annual" | "founder") => {
+  const handleCheckout = (plan: "monthly" | "founder") => {
     if (TESTER_MODE) {
       router.push("/dashboard");
       return;
     }
 
-    const checkoutPlan = plan === "monthly" ? "standard_monthly" : plan === "annual" ? "standard_annual" : "bib_lifetime";
+    const checkoutPlan = plan === "monthly" ? "standard_monthly" : "bib_lifetime";
     router.push(`/sign-up?intent=paid&redirect_url=${encodeURIComponent(`/checkout/continue?plan=${checkoutPlan}&registration=1`)}`);
   };
 
@@ -102,7 +100,7 @@ export default function PricingSection() {
               </div>
 
               <p style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "rgba(245,237,214,0.42)", marginBottom: "8px" }}>
-                {TESTER_MODE ? "Tester access is open while we validate signal quality." : `Or ${STANDARD_ANNUAL_PRICE}, ${STANDARD_ANNUAL_SAVINGS}.`}
+                {TESTER_MODE ? "Tester access is open while we validate signal quality." : "Monthly access. Cancel anytime."}
               </p>
 
               <p style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "rgba(245,237,214,0.3)", marginBottom: "28px" }}>
@@ -122,11 +120,8 @@ export default function PricingSection() {
                 <button onClick={() => handleCheckout("monthly")} style={{ display: "block", width: "100%", boxSizing: "border-box", cursor: "pointer", background: "rgba(196,148,58,0.08)", border: "1px solid rgba(196,148,58,0.4)", color: "rgba(196,148,58,0.9)", fontFamily: "var(--font-dm-sans)", fontSize: "14px", fontWeight: 500, padding: "13px", borderRadius: "10px", textAlign: "center" }}>
                   {TESTER_MODE ? "Open free dashboard" : `Start monthly, ${STANDARD_MONTHLY_PRICE}`}
                 </button>
-                <button onClick={() => handleCheckout("annual")} style={{ display: "block", width: "100%", boxSizing: "border-box", cursor: "pointer", background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.12)", color: "var(--color-cream)", fontFamily: "var(--font-dm-sans)", fontSize: "14px", fontWeight: 500, padding: "13px", borderRadius: "10px", textAlign: "center" }}>
-                  {TESTER_MODE ? "Build alert setup" : `Go annual, ${STANDARD_ANNUAL_PRICE}`}
-                </button>
                 <p className="text-center" style={{ fontFamily: "var(--font-dm-sans)", fontSize: "12px", color: "rgba(245,237,214,0.35)", marginTop: "10px" }}>
-                  {TESTER_MODE ? "No payment required during tester validation." : "Same access either way. Annual saves you money."}
+                  {TESTER_MODE ? "No payment required during tester validation." : "Monthly membership renews until canceled."}
                 </p>
               </div>
             </motion.div>

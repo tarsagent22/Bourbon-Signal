@@ -15,6 +15,7 @@ import { resolveServerEffectiveMembershipTier } from "@/lib/server-entitlements"
 import { hasActiveGiftMembership, membershipTrialEligibility, MONTHLY_MEMBERSHIP_TRIAL_DAYS } from "@/lib/membership-trial";
 import { getMembershipTrialRepository } from "@/lib/membership-trial-repository";
 import { enforceMembershipSubscriptionActivation } from "@/lib/membership-trial-stripe";
+import { isPublicCheckoutPlanId } from "@/lib/membership-plan-catalog";
 import {
   buildJulySaleSessionFields,
   julySaleCheckoutConfig,
@@ -142,6 +143,9 @@ export async function POST(req: NextRequest) {
   const planId = normalizeBillingPlan(body.plan);
   if (!planId) {
     return NextResponse.json({ error: "Choose a valid Bourbon Signal membership plan." }, { status: 400 });
+  }
+  if (!isPublicCheckoutPlanId(planId)) {
+    return NextResponse.json({ error: "Annual memberships are no longer offered. Choose a monthly plan." }, { status: 410 });
   }
 
   const plan = LAUNCH_BILLING_PLANS[planId];

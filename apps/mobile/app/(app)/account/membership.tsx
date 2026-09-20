@@ -9,7 +9,6 @@ import { useMobileApi } from "../../../src/hooks/useMobileApi";
 import {
   MEMBERSHIP_PLANS,
   membershipActionFor,
-  type BillingInterval,
   type MembershipTier,
 } from "../../../src/membership/membership-plans";
 import { usePurchases } from "../../../src/membership/PurchasesProvider";
@@ -25,7 +24,6 @@ export default function MembershipScreen() {
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
-  const [interval, setInterval] = useState<BillingInterval>("monthly");
   const [subscriptionBusy, setSubscriptionBusy] = useState(false);
   const [subscriptionError, setSubscriptionError] = useState("");
 
@@ -92,14 +90,9 @@ export default function MembershipScreen() {
       {subscriptionError ? <Text accessibilityRole="alert" style={styles.subscriptionError}>{subscriptionError}</Text> : null}
     </View> : null}
 
-    <View accessibilityRole="tablist" style={styles.intervalControl}>
-      <Pressable accessibilityRole="tab" accessibilityState={{ selected: interval === "monthly" }} onPress={() => setInterval("monthly")} style={[styles.intervalOption, interval === "monthly" && styles.intervalSelected]}><Text style={[styles.intervalText, interval === "monthly" && styles.intervalTextSelected]}>Monthly</Text></Pressable>
-      <Pressable accessibilityRole="tab" accessibilityState={{ selected: interval === "annual" }} onPress={() => setInterval("annual")} style={[styles.intervalOption, interval === "annual" && styles.intervalSelected]}><Text style={[styles.intervalText, interval === "annual" && styles.intervalTextSelected]}>Annual</Text></Pressable>
-    </View>
-
     <View style={styles.planList}>
       {MEMBERSHIP_PLANS.map((plan) => {
-        const productId = productIdFor(plan.tier, interval === "annual" ? "annual" : "monthly");
+        const productId = productIdFor(plan.tier, "monthly");
         const storeProduct = purchases.products.find((product) => product.productId === productId);
         const action = profile ? membershipActionFor(profile.membership.tier as MembershipTier, plan.tier) : { kind: "unknown" as const, label: "Review plan" };
 
@@ -119,14 +112,13 @@ export default function MembershipScreen() {
             <Text style={styles.price}>{displayPrice}</Text>
             <Text style={styles.priceSuffix}>{displayPeriod}</Text>
           </View>
-          {interval === "annual" && storeProduct ? <Text style={styles.priceNote}>Annual billing through the App Store</Text> : null}
           <View style={styles.featureList}>
             {plan.features.slice(0, 3).map((feature) => <View key={feature} style={styles.featureRow}><Text accessible={false} style={styles.check}>✓</Text><Text style={styles.feature}>{feature}</Text></View>)}
           </View>
           <Pressable
             accessibilityRole="button"
             accessibilityLabel={action.label}
-            onPress={() => router.push({ pathname: "/(app)/account/membership/[tier]", params: { tier: plan.tier, interval } })}
+            onPress={() => router.push({ pathname: "/(app)/account/membership/[tier]", params: { tier: plan.tier } })}
             style={({ pressed }) => [styles.reviewButton, plan.recommended && styles.reviewButtonPrimary, pressed && styles.pressed]}
           ><Text style={[styles.reviewText, plan.recommended && styles.reviewTextPrimary]}>{action.label}</Text><Text accessible={false} style={[styles.arrow, plan.recommended && styles.reviewTextPrimary]}>›</Text></Pressable>
         </View>;
@@ -155,11 +147,7 @@ const styles = StyleSheet.create({
   manageButton: { minHeight: 44, justifyContent: "center", alignItems: "center", borderRadius: 11, borderColor: colors.border, borderWidth: 1, paddingHorizontal: 12 },
   manageText: { color: colors.accent, fontSize: 13, fontWeight: "800", textAlign: "center" },
   subscriptionError: { color: colors.danger, fontSize: 12, lineHeight: 18 },
-  intervalControl: { flexDirection: "row", borderRadius: 13, padding: 4, backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1 },
-  intervalOption: { minHeight: 44, flex: 1, borderRadius: 10, alignItems: "center", justifyContent: "center", paddingHorizontal: 8 },
-  intervalSelected: { backgroundColor: colors.surfaceRaised, borderColor: "rgba(214,154,74,0.55)", borderWidth: 1 },
-  intervalText: { color: colors.muted, fontSize: 12, fontWeight: "700", textAlign: "center" },
-  intervalTextSelected: { color: colors.text },
+
   planList: { gap: 13 },
   planCard: { borderRadius: 18, borderColor: colors.border, borderWidth: 1, backgroundColor: colors.surface, padding: 17, gap: 12 },
   recommendedCard: { borderColor: colors.accent, backgroundColor: "#1B1611" },
@@ -176,7 +164,7 @@ const styles = StyleSheet.create({
   priceRow: { flexDirection: "row", alignItems: "baseline" },
   price: { color: colors.text, fontSize: 31, lineHeight: 35, fontWeight: "900", fontVariant: ["tabular-nums"] },
   priceSuffix: { color: colors.muted, fontSize: 14, fontWeight: "700" },
-  priceNote: { color: colors.accent, fontSize: 12, lineHeight: 17, fontWeight: "800" },
+
   featureList: { gap: 8 },
   featureRow: { flexDirection: "row", alignItems: "flex-start", gap: 9 },
   check: { color: colors.success, fontSize: 14, lineHeight: 20, fontWeight: "900" },
