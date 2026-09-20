@@ -1,4 +1,4 @@
-import { Component, type ErrorInfo, type PropsWithChildren, type ReactNode } from "react";
+import { Component, Fragment, type ErrorInfo, type PropsWithChildren, type ReactNode } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
 import { colors } from "../theme";
 
@@ -29,7 +29,7 @@ export class StartupErrorBoundary extends Component<PropsWithChildren, State> {
         </View>
       );
     }
-    return <>{this.state.resetKey ? <View key={this.state.resetKey}>{this.props.children}</View> : this.props.children}</>;
+    return <>{this.state.resetKey ? <Fragment key={this.state.resetKey}>{this.props.children}</Fragment> : this.props.children}</>;
   }
 }
 
