@@ -41,3 +41,8 @@ test("root notification responses use the safe explicit Radar Matches route", ()
   assert.match(rootLayout, /router\.push\(route\)/);
   assert.doesNotMatch(rootLayout, /router\.push\("\/\(app\)\/\(tabs\)\/radar"\)/);
 });
+
+test("root notification responses do not call navigation-state hooks before the root navigator exists", () => {
+  assert.doesNotMatch(rootLayout, /useRootNavigationState/);
+  assert.match(rootLayout, /queue\.current\.take\(isLoaded && !!isSignedIn, true\)/);
+});

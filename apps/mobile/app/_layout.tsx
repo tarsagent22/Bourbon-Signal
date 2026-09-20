@@ -3,7 +3,7 @@ import { tokenCache } from "@clerk/expo/token-cache";
 import { Fraunces_700Bold } from "@expo-google-fonts/fraunces/700Bold";
 import { useFonts } from "expo-font";
 import * as Notifications from "expo-notifications";
-import { Stack, useRouter, useRootNavigationState } from "expo-router";
+import { Stack, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { useEffect, useRef, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
@@ -56,7 +56,6 @@ function StartupMaintenance() {
 function PushResponseHandler() {
   const router = useRouter();
   const { isLoaded, isSignedIn } = useAuth();
-  const navigation = useRootNavigationState();
   const queue = useRef(createPendingPushNavigation());
   const [revision, setRevision] = useState(0);
   useEffect(() => {
@@ -89,11 +88,11 @@ function PushResponseHandler() {
     };
   }, []);
   useEffect(() => {
-    const route = queue.current.take(isLoaded && !!isSignedIn, !!navigation?.key);
+    const route = queue.current.take(isLoaded && !!isSignedIn, true);
     if (!route) return;
     try { router.push(route); } catch { /* navigation may still be mounting */ }
     void Notifications.clearLastNotificationResponseAsync().catch(() => {});
-  }, [isLoaded, isSignedIn, navigation?.key, revision, router]);
+  }, [isLoaded, isSignedIn, revision, router]);
   return null;
 }
 
