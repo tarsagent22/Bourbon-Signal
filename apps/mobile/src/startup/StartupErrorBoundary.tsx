@@ -11,18 +11,21 @@ export class StartupErrorBoundary extends Component<PropsWithChildren, State> {
     return { error, resetKey: 0 };
   }
 
-  componentDidCatch(_error: Error, _info: ErrorInfo) {
+  componentDidCatch(error: Error, _info: ErrorInfo) {
+    console.error("[Bourbon Signal] startup render error:", error);
     // Keep startup failures inside the app instead of handing an uncaught
     // render error to Expo Updates' launch rollback/crash pipeline.
   }
 
   render(): ReactNode {
     if (this.state.error) {
+      const detail = this.state.error.message?.trim().slice(0, 240) || "Unknown startup error.";
       return (
         <View accessibilityRole="alert" style={styles.center}>
           <Text style={styles.eyebrow}>BOURBON SIGNAL</Text>
           <Text style={styles.title}>The app hit a startup error.</Text>
           <Text style={styles.message}>Try again. If the problem continues, the app will keep this recovery screen instead of closing.</Text>
+          <Text selectable style={styles.detail}>{detail}</Text>
           <Pressable accessibilityRole="button" onPress={() => this.setState(({ resetKey }) => ({ error: null, resetKey: resetKey + 1 }))} style={styles.retry}>
             <Text style={styles.retryText}>Try again</Text>
           </Pressable>
@@ -38,6 +41,7 @@ const styles = StyleSheet.create({
   eyebrow: { color: colors.accent, fontSize: 11, fontWeight: "900", letterSpacing: 1.25 },
   title: { color: colors.text, fontSize: 25, fontWeight: "900", textAlign: "center" },
   message: { color: colors.muted, fontSize: 15, lineHeight: 22, textAlign: "center" },
+  detail: { color: colors.danger, fontSize: 12, lineHeight: 18, textAlign: "center", maxWidth: 330 },
   retry: { minHeight: 48, minWidth: 140, alignItems: "center", justifyContent: "center", borderRadius: 12, backgroundColor: colors.accent, paddingHorizontal: 18 },
   retryText: { color: colors.background, fontSize: 15, fontWeight: "900" },
 });

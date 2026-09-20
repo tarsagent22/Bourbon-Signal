@@ -28,10 +28,11 @@ test("notification native setup is deferred and guarded instead of running at mo
   assert.doesNotMatch(pushRegistration, /^Notifications\.setNotificationHandler\(/m);
 });
 
-test("root boot is protected by a visible startup error boundary", () => {
+test("root boot is protected by a visible startup error boundary that preserves the error detail", () => {
   assert.match(rootLayout, /StartupErrorBoundary/);
   assert.match(startupBoundary, /Try again/);
   assert.match(startupBoundary, /componentDidCatch/);
+  assert.match(startupBoundary, /this\.state\.error\.message/);
 });
 
 test("root notification responses use the safe explicit Radar Matches route", () => {
