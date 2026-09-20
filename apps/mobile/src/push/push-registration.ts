@@ -52,14 +52,21 @@ export async function flushPendingPushRevocation(fetcher: typeof fetch = fetch) 
   }
 }
 
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+export function configureRadarNotifications() {
+  try {
+    Notifications.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldPlaySound: true,
+        shouldSetBadge: false,
+        shouldShowBanner: true,
+        shouldShowList: true,
+      }),
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
 
 export async function radarPushDeviceId() {
   const existing = await SecureStore.getItemAsync(DEVICE_ID_KEY);

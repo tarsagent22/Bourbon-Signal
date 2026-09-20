@@ -9,34 +9,48 @@ import { useEffect, useRef, useState } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { createPendingPushNavigation } from "../src/push/push-navigation";
-import { flushPendingPushRevocation } from "../src/push/push-registration";
+import { configureRadarNotifications, flushPendingPushRevocation } from "../src/push/push-registration";
 import { PurchasesProvider } from "../src/membership/PurchasesProvider";
+import { StartupErrorBoundary } from "../src/startup/StartupErrorBoundary";
 import { colors } from "../src/theme";
 
 const publishableKey = process.env.EXPO_PUBLIC_CLERK_PUBLISHABLE_KEY;
 
 export default function RootLayout() {
   const [fontsLoaded, fontError] = useFonts({ Fraunces_700Bold });
-  useEffect(() => { void flushPendingPushRevocation(); }, []);
-  if (!fontsLoaded && !fontError) return null;
-  if (!publishableKey) {
-    return <View style={styles.configuration}><Text style={styles.title}>Bourbon Signal</Text><Text style={styles.message}>This development build is missing its Clerk publishable key.</Text></View>;
-  }
-  return (
-    <SafeAreaProvider>
-      <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
-        <PurchasesProvider>
-          <PushResponseHandler />
-          <StatusBar style="light" />
-          <Stack screenOptions={{ contentStyle: { backgroundColor: colors.background }, headerStyle: { backgroundColor: colors.surface }, headerTintColor: colors.text, headerShadowVisible: false }}>
-            <Stack.Screen name="index" options={{ headerShown: false }} />
-            <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-            <Stack.Screen name="(app)" options={{ headerShown: false }} />
-          </Stack>
-        </PurchasesProvider>
-      </ClerkProvider>
-    </SafeAreaProvider>
-  );
+  return <StartupErrorBoundary>
+    {!fontsLoaded && !fontError ? null : !publishableKey ? (
+      <View style={styles.configuration}><Text style={styles.title}>Bourbon Signal</Text><Text style={styles.message}>This development build is missing its Clerk publishable key.</Text></View>
+    ) : (
+      <SafeAreaProvider>
+        <ClerkProvider publishableKey={publishableKey} tokenCache={tokenCache}>
+          <PurchasesProvider>
+            <StartupMaintenance />
+            <PushResponseHandler />
+            <StatusBar style="light" />
+            <Stack screenOptions={{ contentStyle: { backgroundColor: colors.background }, headerStyle: { backgroundColor: colors.surface }, headerTintColor: colors.text, headerShadowVisible: false }}>
+              <Stack.Screen name="index" options={{ headerShown: false }} />
+              <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+              <Stack.Screen name="(app)" options={{ headerShown: false }} />
+            </Stack>
+          </PurchasesProvider>
+        </ClerkProvider>
+      </SafeAreaProvider>
+    )}
+  </StartupErrorBoundary>;
+}
+
+function StartupMaintenance() {
+  useEffect(() => {
+    let active = true;
+    const timer = setTimeout(() => {
+      if (!active) return;
+      configureRadarNotifications();
+      void flushPendingPushRevocation().catch(() => false);
+    }, 0);
+    return () => { active = false; clearTimeout(timer); };
+  }, []);
+  return null;
 }
 
 function PushResponseHandler() {
@@ -47,18 +61,38 @@ function PushResponseHandler() {
   const [revision, setRevision] = useState(0);
   useEffect(() => {
     let active = true;
+    let subscription: Notifications.Subscription | null = null;
     const open = (response: Notifications.NotificationResponse | null) => {
       if (!active || !response) return;
-      queue.current.receive(response.notification.request.identifier, response.notification.request.content.data);
-      setRevision(value => value + 1);
+      try {
+        const request = response.notification?.request;
+        if (!request) return;
+        queue.current.receive(request.identifier, request.content.data);
+        setRevision(value => value + 1);
+      } catch {
+        // Malformed notification data must never escape the startup callback.
+      }
     };
-    void Notifications.getLastNotificationResponseAsync().then(open).catch(() => {});
-    const subscription = Notifications.addNotificationResponseReceivedListener(open);
-    return () => { active = false; subscription.remove(); };
+    const timer = setTimeout(() => {
+      if (!active) return;
+      void Notifications.getLastNotificationResponseAsync().then(open).catch(() => {});
+      try {
+        subscription = Notifications.addNotificationResponseReceivedListener(open);
+      } catch {
+        subscription = null;
+      }
+    }, 0);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+      try { subscription?.remove(); } catch { /* native listener cleanup is best effort */ }
+    };
   }, []);
   useEffect(() => {
     const route = queue.current.take(isLoaded && !!isSignedIn, !!navigation?.key);
-    if (route) { router.push(route); void Notifications.clearLastNotificationResponseAsync().catch(() => {}); }
+    if (!route) return;
+    try { router.push(route); } catch { /* navigation may still be mounting */ }
+    void Notifications.clearLastNotificationResponseAsync().catch(() => {});
   }, [isLoaded, isSignedIn, navigation?.key, revision, router]);
   return null;
 }
