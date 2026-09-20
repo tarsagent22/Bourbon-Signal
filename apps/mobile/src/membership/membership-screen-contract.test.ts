@@ -92,11 +92,12 @@ test("subscription review links to native terms that cover recurring billing", (
   assert.match(terms, /Billing, cancellations, and refunds/);
 });
 
- test("Founder overview confirms access and makes comparison secondary", () => {
- const screen = read("app/(app)/account/membership.tsx");
- assert.match(screen, /You’re a Founder/);
- assert.match(screen, /No subscription renewal/);
- assert.match(screen, /const showPlans = !isFounder \|\| compareExpanded/);
- assert.match(screen, /eligible \?\? null/);
- assert.doesNotMatch(screen, /unlimited range/);
- });
+test("Founder entitlement is presented as Free on the pricing page only", () => {
+  const screen = read("app/(app)/account/membership.tsx");
+  assert.match(screen, /const pricingTier = currentTier === "bottled-in-bond" \? "free" : currentTier/);
+  assert.match(screen, /currentTier=\{pricingTier\}/);
+  assert.match(screen, /Pick your hunting plan\./);
+  assert.doesNotMatch(screen, /You’re a Founder|No subscription renewal|compareExpanded|showPlans/);
+  assert.match(screen, /eligible \?\? null/);
+  assert.doesNotMatch(screen, /unlimited range/);
+});
