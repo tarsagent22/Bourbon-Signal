@@ -19,7 +19,7 @@ assert.equal(FREE_MEMBER_DAY_TWO_CAMPAIGN_ID, "free-member-day-two-trial-v2");
 assert.equal(FREE_MEMBER_DAY_TWO_SUBJECT, "Try Bourbon Signal free for 7 days");
 assert.equal(FREE_MEMBER_DAY_TWO_LIVE_SEND_SUPPORTED, true, "approved trial email must support guarded live delivery");
 assert.deepEqual(CORE_PAID_MEMBERSHIP_PLANS.map((plan) => plan.tier), ["standard", "barrel"]);
-assert.deepEqual(CORE_PAID_MEMBERSHIP_PLANS.map((plan) => [plan.monthlyPrice, plan.annualPrice]), [["$3", "$30"], ["$6", "$60"]]);
+assert.deepEqual(CORE_PAID_MEMBERSHIP_PLANS.map((plan) => [plan.monthlyPrice]), [["$3"], ["$6"]]);
 assert.equal(PAID_MEMBERSHIP_PLANS.length, 3, "pricing page keeps the separate conditional Founder offer");
 
 const config = buildFreeMemberDayTwoConfig({

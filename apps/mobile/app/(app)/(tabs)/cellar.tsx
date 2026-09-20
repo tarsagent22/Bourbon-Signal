@@ -483,7 +483,7 @@ function AccountCellarScreen({ api }: { api: ReturnType<typeof useMobileApi> }) 
             <View style={styles.dnaActionBlock}><Text style={styles.dnaSectionLabel}>ONE NEXT STEP</Text><Text style={styles.capacityDetail}>{bourbonDna.nextAction.detail}</Text><Pressable accessibilityRole="button" onPress={improveBourbonDna} style={({ pressed }) => [styles.dnaAction, pressed && styles.pressed]}><Text style={styles.dnaActionText}>{bourbonDna.nextAction.label}</Text></Pressable></View>
             <Text style={styles.dnaMethod}>Confidence reflects the amount and repetition in your saved ratings—not facts about bottle composition.</Text>
           </View> : null}
-        </View> : <Text style={styles.premiumNote}>Barrel Proof and Founder memberships add Bourbon DNA and personalized collection intelligence; My Shelf stays focused on your bottles.</Text>}
+        </View> : <Text style={styles.premiumNote}>Barrel and Founder memberships add Bourbon DNA and personalized collection intelligence; My Shelf stays focused on your bottles.</Text>}
       </View> : null}
       ListEmptyComponent={preferences && !loading ? <EmptyState title={sourceBottles.length ? "No whiskeys match" : "My Shelf is ready"} detail={sourceBottles.length ? "Clear the search or refine choices." : "Choose Add to save a bottle or a whiskey you tasted."} /> : null}
       style={memberScreenStyles.screen}

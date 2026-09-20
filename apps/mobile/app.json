@@ -8,7 +8,7 @@
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "ios": {
-      "runtimeVersion": "1.1.0-ios-recovery-1",
+      "runtimeVersion": "1.1.0-ios-iap-1",
       "supportsTablet": false,
       "bundleIdentifier": "com.bourbonsignal.app",
       "config": {

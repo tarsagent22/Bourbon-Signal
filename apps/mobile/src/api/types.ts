@@ -93,9 +93,80 @@ export interface MemberProfilePatch {
   displayName: string | null;
 }
 
+export interface MobileOnboardingRequest {
+  displayName: string;
+  age21Affirmed: true;
+  homeState: string;
+}
+
+export interface MobileOnboardingResponse {
+  contractVersion: "bourbon-signal/mobile-api@1";
+  completed: true;
+}
+
+export interface MobileOnboardingStatusResponse {
+  contractVersion: "bourbon-signal/mobile-api@1";
+  completed: boolean;
+}
+
+export interface AccountDeletionResponse {
+  contractVersion: "bourbon-signal/mobile-api@1";
+  status: "cleanup_queued" | "completed";
+  requestId: string;
+  accessRevoked: boolean;
+  identityDeleted: boolean;
+  remainingCleanup: string[];
+}
+
 export interface MembershipTrialEligibility {
   standardMonthly: { eligible: boolean; reason: string };
   barrelMonthly: { eligible: boolean; reason: string };
+}
+
+export type AppleMembershipProductId =
+  | "com.bourbonsignal.app.standard.monthly"
+  | "com.bourbonsignal.app.standard.annual"
+  | "com.bourbonsignal.app.barrel.monthly"
+  | "com.bourbonsignal.app.barrel.annual";
+
+export type AppleMembershipStatus =
+  | "trialing"
+  | "active"
+  | "canceled_period_end"
+  | "grace_period"
+  | "billing_issue"
+  | "expired"
+  | "refunded"
+  | "revoked";
+
+export interface AppleMembershipSummary {
+  productId: AppleMembershipProductId;
+  status: AppleMembershipStatus;
+  environment: "sandbox" | "production";
+  expiresAt: string | null;
+  offerState: "none" | "introductory_trial" | "introductory_offer" | "promotional_offer" | "unknown";
+  updatedAt: string;
+}
+
+export interface AppleMembershipReadinessResponse {
+  contractVersion: "bourbon-signal/mobile-api@1";
+  available: boolean;
+  reason: "ready" | "backend_not_configured" | "account_ineligible" | "provider_unavailable";
+  eligibleProductIds: AppleMembershipProductId[];
+  restoreAvailable: boolean;
+  membership: AppleMembershipSummary | null;
+  trialPolicy?: "intro_offers_disabled";
+}
+
+export type AppleMembershipReconciliationRequest =
+  | { action: "purchase"; productId: AppleMembershipProductId }
+  | { action: "restore"; productId?: never };
+
+export interface AppleMembershipReconciliationResponse {
+  contractVersion: "bourbon-signal/mobile-api@1";
+  status: "reconciled";
+  effectiveTier: "free" | "standard" | "barrel" | "bottled-in-bond";
+  membership: AppleMembershipSummary;
 }
 
 export interface MemberCollectionBottle {
@@ -197,6 +268,7 @@ export interface MemberPreferencesPatch {
 
 export interface MemberAlert {
   id: string;
+  signalId?: string;
   bottleName: string;
   bottleNames?: string[];
   state: string;
@@ -243,6 +315,7 @@ export interface PushDeviceStatus {
   registeredDeviceCount: number;
   currentDeviceRegistered?: boolean;
   requestId?: string;
+  revocationToken?: string;
   preferenceProjection?: "saved" | "deferred";
   warning?: { code: string; message: string; requestId: string };
 }

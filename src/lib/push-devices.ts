@@ -17,7 +17,7 @@ export interface ExpoPushMessage {
   sound: "default";
   title: string;
   body: string;
-  data: { screen: "radar" };
+  data: { screen: "radar"; alertId: string };
   priority: "high";
 }
 
@@ -105,7 +105,7 @@ export function buildExpoPushMessages(tokens: string[], alert: { id: string; bot
     sound: "default",
     title: "Bourbon Signal",
     body: "Open Radar to check your latest matches.",
-    data: { screen: "radar" },
+    data: { screen: "radar", alertId: alert.id },
     priority: "high",
   }));
 }
@@ -119,15 +119,18 @@ export async function sendExpoPushMessages(messages: ExpoPushMessage[], fetcher:
   for (let index = 0; index < messages.length; index += 100) {
     const chunk = messages.slice(index, index + 100);
     // Allowlist wire fields: internal dedupe identity must never reach an OS queue.
-    const payloadMessages = chunk.map(({ to, sound, priority }) => ({ to, sound, priority, title: "Bourbon Signal", body: "Open Radar to check your latest matches.", data: { screen: "radar" } }));
+    const payloadMessages = chunk.map(({ to, sound, priority, data }) => ({ to, sound, priority, title: "Bourbon Signal", body: "Open Radar to check your latest matches.", data: { screen: "radar", alertId: data.alertId } }));
     const response = await fetcher(EXPO_PUSH_ENDPOINT, { method: "POST", headers: expoHeaders(), body: JSON.stringify(payloadMessages) });
     if (!response.ok) throw new Error(`Expo push request failed (${response.status}).`);
     const payload = (await response.json().catch(() => ({}))) as { data?: Array<{ status?: string; id?: string; details?: { error?: string } }> };
     const responseTickets = Array.isArray(payload.data) ? payload.data : [];
     // Missing/malformed tickets are ambiguous acceptance, NOT known rejection. Throwing
     // leaves the durable push intent unknown/manual rather than causing an automatic replay.
-    if (responseTickets.length !== chunk.length || responseTickets.some((ticket) => ticket?.status !== "ok" && ticket?.status !== "error")) {
-      throw new Error("Expo push acceptance unknown: malformed ticket response.");
+    if (responseTickets.length !== chunk.length || responseTickets.some((ticket) =>
+      (ticket?.status !== "ok" && ticket?.status !== "error")
+      || (ticket.status === "ok" && (typeof ticket.id !== "string" || !ticket.id.trim()))
+    )) {
+      throw new Error("Expo push acceptance unknown: malformed or missing provider ticket.");
     }
     chunk.forEach((message, ticketIndex) => {
       const ticket = responseTickets[ticketIndex];

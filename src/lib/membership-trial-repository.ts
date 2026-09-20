@@ -100,6 +100,34 @@ export class MembershipTrialRepository {
     };
   }
 
+  async claimAuthoritativeAppleTrial(input: {
+    userId: string;
+    originalTransactionId: string;
+    productId: string;
+    startedAt: string;
+    expiresAt: string | null;
+  }) {
+    await this.ensureSchema();
+    const plan: TrialPlan | null = input.productId === "com.bourbonsignal.app.standard.monthly"
+      ? "standard_monthly"
+      : input.productId === "com.bourbonsignal.app.barrel.monthly"
+        ? "barrel_monthly"
+        : null;
+    if (!plan) return { accepted: false, claim: null };
+    const subscriptionId = `apple:${input.originalTransactionId}`;
+    const rows = await this.database.query(
+      `INSERT INTO membership_trial_claims
+         (user_id, subscription_id, plan, source, trial_ends_at, metadata, status, started_at, updated_at)
+       VALUES ($1, $2, $3, 'apple_revenuecat', $4::timestamptz, $5::jsonb, 'started', $6::timestamptz, NOW())
+       ON CONFLICT (user_id) DO NOTHING
+       RETURNING *`,
+      [input.userId, subscriptionId, plan, input.expiresAt, JSON.stringify({ productId: input.productId }), input.startedAt],
+    );
+    if (rows[0]) return { accepted: true, claim: toClaim(rows[0]) };
+    const existing = await this.findByUserId(input.userId);
+    return { accepted: existing?.subscriptionId === subscriptionId, claim: existing };
+  }
+
   async markConverted(subscriptionId: string, convertedAt: string) {
     await this.ensureSchema();
     const rows = await this.database.query(

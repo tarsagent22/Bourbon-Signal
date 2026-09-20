@@ -1,47 +1,73 @@
-# App Review notes
+# App Review notes — draft candidate
+
+## Submission status
+
+This draft candidate is not final and is not ready for App Review. The source implements the intended native membership, authentication, push, legal, support, and account-deletion paths, but the App Store Connect products are not configured, sandbox purchase and restore evidence is not verified, review screenshots are not captured, and a final signed build has not been produced.
+
+Do not submit these notes as a claim that the unfinished candidate or its Apple products are operational.
 
 ## Reviewer summary
 
-Bourbon Signal is a focused native companion for existing members. It presents the canonical Signal Feed and exact Signal details, plus distinct Radar, Post, My Shelf, and HQ destinations backed by the same server-authoritative member account. It is not a web wrapper.
+Bourbon Signal is a native bourbon-availability companion. Signed-in members can review Signals, manage Radar preferences, post member sightings, maintain Shelf data, and view account and membership status. Availability can change; the app tells members to confirm with the retailer before traveling or buying.
 
-- no in-app purchase;
-- no external checkout link or payment steering;
-- no account registration inside the app;
-- push notification permission is requested only when a signed-in member explicitly enables Push in Radar; the device token is used only for immediate, freshness-qualified Radar matches;
-- camera or selected-photo access is permitted only after a member explicitly chooses optional sighting evidence, and no permission prompt runs at app launch;
-- denial always preserves manual posting without a photo; optional sighting evidence is resized and re-encoded without embedded metadata before upload and may appear publicly with the Signal;
-- this candidate does not expose barcode matching and does not request microphone or location;
-- manual Signal posting is available only to entitled members and uses durable idempotency plus server review for manually entered bottles or stores.
+The intended iOS membership flow uses StoreKit through RevenueCat and reconciles every purchase or restore with Bourbon Signal’s server before paid access appears. There is no external checkout in the app.
 
-Existing website subscribers sign in and receive server-authoritative access from the same account. Availability can change and the UI tells members to confirm with the retailer.
+Customer-facing memberships are:
 
-## Review access
+- Free: $0 with no renewal.
+- Standard: $3/month auto-renewing subscription.
+- Barrel: $6/month auto-renewing subscription.
+- Existing annual members, if any, retain their server-confirmed access and restore/lifecycle handling; annual billing is not offered to new members.
+- Founder: existing lifetime access is honored but is not sold in the app.
 
-Before submission, create a dedicated review account with stable full-feed access and no owner/admin privileges. Enter its credentials only in App Store Connect’s App Review Information. Never commit or paste them into repository files, CI logs, EAS variables, issue bodies, or PR comments.
+Introductory trial presentation is disabled in this candidate. RevenueCat product offer metadata is not treated as proof that the reviewing Apple account is eligible, so the app makes no trial claim. The purchase confirmation uses Apple’s localized price and billing period.
 
-Reviewer path:
+## Intended review path
 
-1. Open Bourbon Signal.
-2. Sign in with the App Review account.
-3. Complete the supplied verification factor if the account requires one. Configure the review account so Apple can complete this without contacting a private individual.
-4. Review the Home tab, open a Signal's Bottle Profile, and continue loading the feed.
-5. Open Radar to see saved alert markets, watched bottles, alert channels, and the alert inbox.
-6. Open Post and review the required bottle/store fields. A submitted review Signal affects production community data, so Apple should not submit a test sighting unless coordinated with Bourbon Signal.
-7. Open My Shelf to see the review account's collection.
-8. Open Account to see membership, Signal Points, rewards, Alerts, Profile, and Privacy & Support. Expand Privacy & Support for Support, Privacy policy, Account deletion help, app information, and Sign out.
+These steps describe the implemented navigation. They must be rechecked on the final signed build before submission.
+
+1. Open Bourbon Signal. A new reviewer can choose Create a free account; for full review coverage, sign in with the dedicated App Review account supplied only in App Store Connect.
+2. Review the Home tab, open a Signal's Bottle Profile, and inspect its source-backed detail.
+3. Open Radar to review saved markets, watched bottles, alert channels, and the alert inbox. Push permission appears only after the member explicitly enables Push.
+4. Open Post. Bottle and store are required; optional photo access is requested only after the member chooses evidence. Apple should not submit production community data unless coordinated with Bourbon Signal.
+5. Open Shelf to review saved bottles. A downgrade preserves saved data; only additions above the current plan limit are blocked.
+6. Open Account → Membership. Review Free, Standard, Barrel, and existing Founder presentation; the monthly purchase paths; current lifecycle status; Restore purchases; and Manage subscriptions in the App Store.
+7. From Membership, open Terms of Service, Privacy, Membership support, and Delete account.
+8. Account → Privacy & Support → Delete account opens the native deletion flow. The same section exposes Support, Privacy policy, app information, and Sign out.
+
+## Membership lifecycle behavior
+
+The app maps the server-authoritative membership record into Free, purchase pending, trialing, active, grace period, billing retry, canceled at period end, expired, refunded/revoked, existing Founder, and provider unavailable states. A local StoreKit success alone never grants paid access. Existing Founder and already-active server access remain visible if the purchase provider is temporarily unavailable.
 
 ## Account deletion
 
-The app is sign-in-only and does not create accounts. A signed-in member can still initiate deletion from **Account → Privacy & Support → Account deletion help**. This opens the native Support flow for a deletion request to `support@bourbonsignal.com`. Support verifies ownership, removes the account from active systems, and confirms any billing, fraud-prevention, dispute, or legal records that must be retained. Subscription cancellation and account deletion are separate actions.
+A signed-in member can open Account → Privacy & Support → Request account deletion, or Membership → Delete account. The native confirmation screen submits the authenticated permanent-deletion request to Bourbon Signal. The screen explains that Apple subscription cancellation is separate and links to native App Store subscription management. This path must be exercised with a disposable account on the final candidate.
 
-## Encryption
+## Permissions and data
 
-The app uses standard HTTPS/TLS and secure authentication. Expo configuration declares `usesNonExemptEncryption: false`. Reconfirm the export-compliance answer against the final signed binary.
+- Push permission is requested only after an explicit Radar action.
+- Camera or selected-photo permission is requested only for optional sighting evidence.
+- Denial preserves manual posting without a photo.
+- Selected evidence is resized and re-encoded without embedded metadata before upload.
+- No permission prompt runs at app launch.
+- The candidate does not expose barcode matching and does not request microphone or location access.
 
-## Contact and URLs
+## Review access and remaining setup
+
+Before submission:
+
+- configure the two monthly launch subscription products and offerings in App Store Connect and RevenueCat; preserve legacy annual identifiers only when needed for existing subscriber lifecycle and restore handling;
+- create a least-privilege review account with stable representative access;
+- enter credentials and private review-contact details only in App Store Connect;
+- verify monthly purchase, absence of trial claims in this candidate, pending purchase, cancel, renewal, grace/billing retry, refund/revoke, restore, legacy annual restoration if applicable, and Manage Subscriptions in sandbox/TestFlight;
+- capture screenshots from the reviewed candidate; and
+- produce and inspect the final signed build.
+
+## Public URLs
 
 - Support: https://www.bourbonsignal.com/support
 - Privacy: https://www.bourbonsignal.com/legal/privacy
+- Terms: https://www.bourbonsignal.com/legal/terms
 - Marketing: https://www.bourbonsignal.com
 
-Private review-contact details must be entered directly in App Store Connect after enrollment approval.
+Expo configuration declares `usesNonExemptEncryption: false`; confirm that answer against the final signed archive.

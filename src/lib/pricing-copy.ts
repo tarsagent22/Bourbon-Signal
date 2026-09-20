@@ -1,10 +1,5 @@
 export const STANDARD_MONTHLY_PRICE = "$3/mo";
-export const STANDARD_ANNUAL_PRICE = "$30/yr";
-export const STANDARD_ANNUAL_SAVINGS = "Save $6 a year";
-export const STANDARD_ANNUAL_SAVINGS_SHORT = "Save 17%";
 export const BARREL_MONTHLY_PRICE = "$6/mo";
-export const BARREL_ANNUAL_PRICE = "$60/yr";
-export const BARREL_ANNUAL_SAVINGS = "Save $12 a year";
 export const FOUNDER_PRICE = "$50";
 
 export const FREE_FEATURES = [

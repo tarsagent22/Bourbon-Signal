@@ -102,7 +102,7 @@ test("Bourbon DNA is entitlement-gated collection evidence with confidence and a
   const cellar = read("app/(app)/(tabs)/cellar.tsx");
   assert.match(cellar, /buildBourbonDna/);
   assert.match(cellar, /canUseRecommendations \? <View style=\{styles\.dnaCard\}>/);
-  assert.match(cellar, /Barrel Proof and Founder memberships add Bourbon DNA/);
+  assert.match(cellar, /Barrel and Founder memberships add Bourbon DNA/);
   assert.match(cellar, /bourbonDna\.supportedTraits/);
   assert.match(cellar, /bourbonDna\.confidence\.label/);
   assert.match(cellar, /bourbonDna\.confidence\.detail/);

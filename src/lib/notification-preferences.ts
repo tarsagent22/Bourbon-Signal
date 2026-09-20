@@ -72,6 +72,7 @@ export interface MemberAlertRecord {
   id: string;
   userId: string;
   dedupeKey: string;
+  signalId?: string;
   bottleName: string;
   bottleNames?: string[];
   underlyingStableKeys?: string[];

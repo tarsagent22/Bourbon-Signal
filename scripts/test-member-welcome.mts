@@ -6,8 +6,8 @@ assert.equal(resolveSignUpRedirect(null, null), "/welcome");
 assert.equal(resolveSignUpRedirect("/release-radar?source=release_radar", null), "/welcome", "generic signup destinations must complete Welcome first");
 assert.equal(resolveSignUpRedirect("//evil.example", "paid"), "/welcome");
 assert.equal(
-  resolveSignUpRedirect("/checkout/continue?plan=standard_annual&source=pricing&registration=1", "paid"),
-  "/checkout/continue?plan=standard_annual&source=pricing&registration=1",
+  resolveSignUpRedirect("/checkout/continue?plan=standard_monthly&source=pricing&registration=1", "paid"),
+  "/checkout/continue?plan=standard_monthly&source=pricing&registration=1",
   "only a validated paid checkout continuation may bypass Welcome",
 );
 assert.equal(resolveSignUpRedirect("/dashboard", "paid"), "/welcome", "paid intent cannot bless an arbitrary internal route");
@@ -142,7 +142,7 @@ for (const viewportWidth of [320, 375, 390]) {
   assert.equal(132 + planWidth, comparisonViewport, `sticky feature and plan columns must exactly fill the ${viewportWidth}px comparison viewport`);
   assert.ok(planWidth >= 142, `${viewportWidth}px must retain a readable plan column`);
 }
-assert.match(pricingSource, /\.july-sale-banner\s*\{[^}]*grid-template-areas:/, "desktop sale copy must use bounded named grid areas");
+assert.doesNotMatch(pricingSource, /\.july-sale-banner|billing-toggle/, "retired annual promotion styles must not remain on public pricing");
 assert.doesNotMatch(pricingSource, /grid-template-columns:auto 1fr auto/, "sale disclaimer must not squeeze the offer into an intrinsic three-column layout");
 const founderCardSource = pricingCatalogSource.slice(pricingCatalogSource.indexOf('tier: "bottled-in-bond"'), pricingCatalogSource.indexOf("export const CORE_PAID_MEMBERSHIP_PLANS"));
 assert.doesNotMatch(pricingCatalogSource, /Signal Strength meter/);
@@ -150,17 +150,14 @@ assert.match(pricingCatalogSource, /Redeem Signal Points for member rewards/);
 assert.doesNotMatch(founderCardSource, /description:\s*"Everything in Barrel Proof/);
 assert.ok(founderCardSource.indexOf("Numbered Founder’s glass") < founderCardSource.indexOf("Founder badge & number on profile"), "the numbered glass should precede the profile badge in the Founder card");
 assert.doesNotMatch(pricingSource, /compact-differences/);
-assert.match(pricingSource, /July sale — 15% off/);
-assert.match(pricingSource, /annual memberships and Founder lifetime/);
-assert.match(pricingSource, /first annual payment/);
-assert.match(pricingSource, /Founder remains a one-time payment/);
+assert.doesNotMatch(pricingSource, /July sale — 15% off|annual memberships|first annual payment|Founder remains a one-time payment/);
 assert.match(pricingSource, /@media \(max-width:\s*640px\)[\s\S]*100vw - 28px/, "mobile pricing containers must remain viewport-bound");
 assert.match(pricingSource, /Recommended[\s\S]*Barrel Proof/);
 assert.match(pricingSource, /Limited lifetime offer/);
-for (const plan of ["standard_monthly", "standard_annual", "barrel_monthly", "barrel_annual", "bib_lifetime"]) {
+for (const plan of ["standard_monthly", "barrel_monthly", "bib_lifetime"]) {
   assert.ok(pricingTruthSource.includes(plan), `pricing must preserve checkout plan ${plan}`);
 }
-for (const price of ["$3", "$30", "$6", "$60", "$50"]) {
+for (const price of ["$3", "$6", "$50"]) {
   assert.ok(pricingTruthSource.includes(price), `pricing must preserve approved price ${price}`);
 }
 assert.match(pricingSource, /canceledPlan[\s\S]*\/welcome/, "a canceled paid signup choosing Free must complete Welcome");

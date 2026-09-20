@@ -12,6 +12,7 @@ import { useScreenRevalidation } from "../../../src/hooks/useScreenRevalidation"
 import { DEFAULT_SIGNAL_FILTERS, areaOptionsForState, areaSelectorLabel, filterSignalsByRarity, normalizedFilters, rarityOptionsForView, serverSignalFilters, shouldBackfillRarity, toggleRarity, type SignalFeedFilters } from "../../../src/signals/feed-filters";
 import { acceptQueuedSignals, recentTickerSignals, reconcileDisplayedSignals, reconcileQueuedSignals, tickerLocationLabel } from "../../../src/signals/home-feed-live";
 import { homeBrowsingStorageKey, loadHomeBrowsingPreferences, saveHomeBrowsingPreferences } from "../../../src/signals/home-browsing-preferences";
+import { PushMaintenance, PushResponseHandler } from "../../../src/push/PushResponseHandler";
 import { colors } from "../../../src/theme";
 
 type FeedView = "market" | "community";
@@ -614,6 +615,8 @@ export default function SignalFeedScreen() {
 
   return (
     <View style={styles.screen}>
+      <PushMaintenance />
+      <PushResponseHandler />
       <FlatList
       ref={listRef}
       contentContainerStyle={styles.list}

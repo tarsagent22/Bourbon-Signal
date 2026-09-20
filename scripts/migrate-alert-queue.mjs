@@ -28,9 +28,9 @@ await sql.transaction((txn) => [
   `),
   txn.query(`
     insert into alert_queue_migrations (version)
-    values ($1), ($2), ($3)
+    values ($1), ($2), ($3), ($4)
     on conflict (version) do nothing
-  `, ['alert-queue-v3-member-leases', 'alert-queue-v4-recipient-cursor', 'alert-queue-v5-push-outbox']),
+  `, ['alert-queue-v3-member-leases', 'alert-queue-v4-recipient-cursor', 'alert-queue-v5-push-outbox', 'alert-queue-v6-push-receipts']),
 ]);
 
 const verification = await sql.query(`
@@ -46,14 +46,15 @@ const verification = await sql.query(`
       'alert_delivery_leases',
       'alert_recipient_cursor',
       'alert_push_outbox',
+      'alert_push_tickets',
       'alert_queue_migrations'
     )
   order by table_name
 `);
 
 const tables = verification.map((row) => row.table_name);
-if (tables.length !== 9) {
-  throw new Error(`Alert queue schema verification failed: found ${tables.length}/9 required base tables.`);
+if (tables.length !== 10) {
+  throw new Error(`Alert queue schema verification failed: found ${tables.length}/10 required base tables.`);
 }
 
 const cursorColumns = await sql.query(`

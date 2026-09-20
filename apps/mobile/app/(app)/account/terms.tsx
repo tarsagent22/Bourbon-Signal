@@ -18,6 +18,7 @@ const sections = [
   ["4. Accounts and subscriptions", [
     "Certain features require an account. You are responsible for keeping your account information accurate and secure and for all activity that occurs through your account.",
     "Paid subscriptions renew automatically unless canceled before the next billing period. Pricing, plans, trial periods, and features may change over time, but we will make reasonable efforts to communicate material changes before they affect active subscribers.",
+    "Apple subscriptions purchased in the iOS app are billed through the App Store. Bourbon Signal confirms access through its server after the purchase provider verifies the transaction. We do not grant access from device purchase state alone.",
     "Payment processing is handled by third-party providers. We do not store your full payment card details on our servers.",
   ]],
   ["5. Alerts and notifications", [
@@ -30,8 +31,8 @@ const sections = [
   ]],
   ["7. Billing, cancellations, and refunds", [
     "Paid Bourbon Signal plans are billed in advance on a recurring basis according to the plan you select. By subscribing, you authorize the applicable payment provider to charge your payment method for recurring subscription fees and applicable taxes or fees.",
-    "You may cancel a recurring subscription at any time through the account controls provided by the payment platform or by contacting support. Cancellation stops future renewals but does not automatically refund charges already paid.",
-    "Monthly or annual members generally retain access through the end of the current paid billing period after cancellation. Founding member purchases are non-refundable and provide lifetime membership access according to the founding member offer terms.",
+    "You may cancel a recurring subscription at any time through the account controls provided by the payment platform or by contacting support. Apple subscriptions are managed through the App Store. Cancellation stops future renewals but does not automatically refund charges already paid.",
+    "Monthly members and existing annual members generally retain access through the end of the current paid billing period after cancellation. Founding member purchases are non-refundable and provide lifetime membership access according to the founding member offer terms.",
     "Bourbon Signal subscriptions are generally non-refundable once a billing period begins, except where required by law or at our discretion.",
   ]],
   ["8. Acceptable use", [
@@ -56,8 +57,8 @@ export default function TermsScreen() {
     <View style={styles.hero}>
       <Text style={styles.eyebrow}>TERMS OF SERVICE</Text>
       <Text accessibilityRole="header" style={styles.title}>Terms of Service</Text>
-      <Text style={styles.updated}>Updated June 24, 2026</Text>
-      <Text style={styles.intro}>These Terms govern your access to Bourbon Signal, including the website, mobile app, Intel feed, Bottle Check, alert tools, subscriptions, and related services. Bourbon Signal is operated by Todd Digital Ventures LLC.</Text>
+      <Text style={styles.updated}>Updated September 13, 2026</Text>
+      <Text style={styles.intro}>These Terms govern your access to Bourbon Signal, including the website, mobile app, Intel feed, bottle intelligence, alert tools, subscriptions, and related services. Bourbon Signal is operated by Todd Digital Ventures LLC.</Text>
     </View>
     {sections.map(([heading, paragraphs]) => <View key={heading} style={styles.section}>
       <Text accessibilityRole="header" style={styles.sectionTitle}>{heading}</Text>

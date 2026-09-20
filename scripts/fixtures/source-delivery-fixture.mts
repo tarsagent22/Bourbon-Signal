@@ -44,6 +44,7 @@ export function deliveryFixture(candidates: any[], lane: any, overrides: any = {
     candidateMatchedArea:()=> 'SC',candidateSubjectLocationLabel:()=> 'Synthetic',candidateTimestampLabel:()=>'',candidateQuantityLabel:()=>'',candidateEvidenceLabel:()=>'',candidateSourceLabel:()=>'',candidateSourceUrl:()=>'',PaidDropAlertEmail:()=>null,ALERT_FROM:'synthetic@example.invalid',ALERT_REPLY_TO:'synthetic@example.invalid',ALERT_SAFE_SUBJECT_PREFIX:'Synthetic',
     ownedPushDevices:async(_u:any,d:any)=>d,enabledPushTokens:(d:any)=>d,buildExpoPushMessages:()=>[{to:'synthetic-device'}],disablePushTokens:(d:any)=>d,
     createProductionPushOutbox:()=>({enqueue:async()=>{},assertHeld:async()=>{}}),
+    isolatePushChannelFailure:async(_stage:any,operation:any,report:any)=>{try{await operation();return true;}catch(error){report(`push failed: ${error instanceof Error?error.message:String(error)}`);return false;}},
     drainPushOutbox:async(_r:any,_u:any,_w:any,callbacks:any)=>{
       const resolved=await callbacks.resolve({alertId:candidates[0].id,stableKeys:candidates.map(c=>c.availabilityEpisodeId)});
       if(resolved){const result=await callbacks.send(user.id,resolved.devices,resolved.messages);await callbacks.accepted(result);}

@@ -12,6 +12,9 @@ const arr = (check: Check): Check => v => Array.isArray(v) && v.every(check);
 const obj = (shape: Record<string, Check>): Check => v => record(v) && Object.entries(shape).every(([k, check]) => check(v[k]));
 const strings = arr(str);
 const tier = one('free', 'standard', 'barrel', 'bottled-in-bond');
+const appleProductId = one('com.bourbonsignal.app.standard.monthly', 'com.bourbonsignal.app.standard.annual', 'com.bourbonsignal.app.barrel.monthly', 'com.bourbonsignal.app.barrel.annual');
+const appleMembership = obj({ productId: appleProductId, status: one('trialing','active','canceled_period_end','grace_period','billing_issue','expired','refunded','revoked'),
+  environment: one('sandbox','production'), expiresAt: nullable(str), offerState: one('none','introductory_trial','introductory_offer','promotional_offer','unknown'), updatedAt: str });
 const mobileVersion = one('bourbon-signal/mobile-api@1');
 const signalVersion = one('bourbon-signal/signal@1');
 const scope = obj({ type: one('state', 'county', 'city', 'board', 'store'), id: str, state: str, label: str });
@@ -34,18 +37,24 @@ export const preferencesResponse = obj({
 const profile = obj({ contractVersion: mobileVersion, profile: obj({ identity: nullable(obj({ kind: one('founder','member'), number: num, label: str })),
   displayName: str, customDisplayName: nullable(str), feedAreas: obj({ states: arr(obj({ code: str, label: str, areaLabel: one('Board','City'), options: arr(obj({ value: str, label: str })) })) }),
   membership: obj({ tier, label: str, paid: bool, hasBetaAccess: bool }), entitlements: obj({ fullFeed: bool, canSubmitSignals: bool }) }) });
-const alerts = obj({ alerts: arr(obj({ id: str, bottleName: str, state: str, storeLabel: str, matchedArea: str, eventType: str,
+const alerts = obj({ alerts: arr(obj({ id: str, signalId: optional(str), bottleName: str, state: str, storeLabel: str, matchedArea: str, eventType: str,
   rarityTier: nullable(one('limited','allocated','unicorn')), quantity: nullable(num), score: num, priorityClass: one('major','standard'), createdAt: str, readAt: nullable(str), archivedAt: nullable(str) })), unreadCount: num });
 const bottles = obj({ bottles: arr(v => record(v) && [v.canonicalName, v.name, v.bottle].some(str)) });
 const outcome = obj({ contractVersion: mobileVersion, outcome: nullable(obj({ signalId: str, availabilityEpisodeId: str, outcome: one('found_it','gone_when_checked','didnt_go'), sourceType: one('member','retailer','trusted_source','release_source'), stateCode: nullable(str), submittedAt: str, updatedAt: str })) });
 const checks: Record<string, Check> = {
   '/api/user/preferences': preferencesResponse,
   '/api/v1/me/profile': profile,
+  '/api/v1/me/onboarding': obj({ contractVersion: mobileVersion, completed: bool }),
+  '/api/v1/me/account': obj({ contractVersion: mobileVersion, status: one('cleanup_queued','completed'), requestId: str, accessRevoked: bool, identityDeleted: bool, remainingCleanup: strings }),
   '/api/alerts': alerts,
   '/api/bottles': bottles, '/api/bottle-catalog': bottles,
   '/api/stores': obj({ stores: arr(obj({ city: optional(str), state: optional(str) })) }),
   '/api/membership-trial': obj({ standardMonthly: obj({ eligible: bool, reason: str }), barrelMonthly: obj({ eligible: bool, reason: str }) }),
-  '/api/v1/me/push-devices': obj({ supported: bool, enabled: bool, registeredDeviceCount: num, currentDeviceRegistered: optional(bool) }),
+  '/api/v1/me/apple-membership': v => record(v) && v.contractVersion === 'bourbon-signal/mobile-api@1' && (
+    (typeof v.available === 'boolean' && one('ready','backend_not_configured','account_ineligible','provider_unavailable')(v.reason) && arr(appleProductId)(v.eligibleProductIds) && typeof v.restoreAvailable === 'boolean' && nullable(appleMembership)(v.membership))
+    || (v.status === 'reconciled' && tier(v.effectiveTier) && appleMembership(v.membership))
+  ),
+  '/api/v1/me/push-devices': obj({ supported: bool, enabled: bool, registeredDeviceCount: num, currentDeviceRegistered: optional(bool), revocationToken: optional(str) }),
   '/api/sightings': obj({ ok: one(true), created: bool, sighting: obj({ id: str }) }),
   '/api/sightings/photo': obj({ ok: one(true), photoProof: obj({ url: str, pathname: str, uploadedAt: str, status: one('verified_public') }) }),
   '/api/bottle-contributions': obj({ ok: one(true), contribution: obj({ id: str }) }),

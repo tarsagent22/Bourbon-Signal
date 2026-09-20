@@ -64,7 +64,7 @@ export default function TermsPage() {
           body: [
             "Paid Bourbon Signal plans are billed in advance on a recurring basis according to the plan you select. By subscribing, you authorize our payment processor to charge your payment method for recurring subscription fees and applicable taxes or fees.",
             "You may cancel a recurring subscription at any time through your account settings or by contacting support. Cancellation stops future renewals but does not automatically refund charges already paid.",
-            "Monthly or annual members generally retain access through the end of the current paid billing period after cancellation. Founding member purchases are non-refundable and provide lifetime membership access according to the founding member offer terms.",
+            "Monthly members and existing annual members generally retain access through the end of the current paid billing period after cancellation. Founding member purchases are non-refundable and provide lifetime membership access according to the founding member offer terms.",
             "Bourbon Signal subscriptions are generally non-refundable once a billing period begins. We do not typically provide prorated refunds for partial months or unused time after cancellation, except where required by law or at our discretion.",
             "Temporary outages, delayed alerts, source failures, reduced coverage, or changes to public and third-party data sources do not automatically entitle you to a refund. If a major paid feature becomes unavailable for an extended period, we may choose to offer account credits, extensions, plan adjustments, or refunds at our discretion.",
           ],

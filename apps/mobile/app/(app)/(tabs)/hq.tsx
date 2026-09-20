@@ -241,7 +241,7 @@ export default function AccountScreen() {
         <GuideItem title="Report a useful sighting" detail="Share the bottle, exact store, and current availability." />
         <GuideItem title="Build verified contributions" detail="Accepted location and timing evidence adds to your available balance." />
         {referral ? <>
-          <GuideItem title="Refer a friend" detail={`Free (first ${referral.program.freeAwardLimit} awards): ${referral.program.pointsByTier.free} pts · Standard: ${referral.program.pointsByTier.standard} · Barrel: ${referral.program.pointsByTier.barrel} · Bottled-in-Bond: ${referral.program.pointsByTier["bottled-in-bond"]}${referral.program.upgradeAwardsDifferenceOnly ? " · upgrade differences only." : "."}`} />
+          <GuideItem title="Refer a friend" detail={`Free (first ${referral.program.freeAwardLimit} awards): ${referral.program.pointsByTier.free} pts · Standard: ${referral.program.pointsByTier.standard} · Barrel: ${referral.program.pointsByTier.barrel} · Founder: ${referral.program.pointsByTier["bottled-in-bond"]}${referral.program.upgradeAwardsDifferenceOnly ? " · upgrade differences only." : "."}`} />
           <View style={styles.referralPanel}>
             <View style={styles.referralSummary}><Text style={styles.referralTitle}>{referral.referrals.total} referred · {referral.referralPoints} points earned</Text><Text selectable style={styles.referralLink}>{referral.referralLink}</Text></View>
             <Pressable accessibilityRole="button" disabled={sharingReferral} onPress={() => void shareReferral()} style={({ pressed }) => [styles.shareButton, pressed && styles.primaryPressed, sharingReferral && styles.disabled]}><Text style={styles.shareButtonText}>{sharingReferral ? "Opening…" : "Share referral link"}</Text></Pressable>
@@ -277,8 +277,8 @@ export default function AccountScreen() {
           </View>
           <View style={[memberScreenStyles.section, styles.dangerZone]}>
             <Text style={styles.dangerTitle}>Data & privacy</Text>
-            <Text style={styles.muted}>Account deletion is handled through Support so identity, subscription, and contributed-data records can be reviewed safely.</Text>
-            <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/support")} style={({ pressed }) => [styles.deletionButton, pressed && styles.pressed]}><Text style={styles.deletionText}>Account deletion help</Text></Pressable>
+            <Text style={styles.muted}>Permanent deletion revokes account access and removes supported product data. Apple subscriptions must be canceled separately.</Text>
+            <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/delete")} style={({ pressed }) => [styles.deletionButton, pressed && styles.pressed]}><Text style={styles.deletionText}>Delete account</Text></Pressable>
           </View>
         </View> : null}
       </View>

@@ -219,17 +219,42 @@ export function resolvePreviousMembershipTierAfterDirectFounder(input: unknown) 
   return isMembershipAccessActive(tier, record.status, record.plan) ? tier : "free";
 }
 
+function activeAppleMembershipTier(input: unknown, now: Date) {
+  const tier = normalizeMembershipTier(metadataValue(input, "appleMembershipTier"));
+  const plan = normalizeBillingPlan(metadataValue(input, "appleMembershipPlan"));
+  const status = metadataValue(input, "appleMembershipStatus");
+  const expiresAt = metadataValue(input, "appleMembershipExpiresAt");
+  if (tier === "free" || !plan || plan === "bib_lifetime") return "free" as MembershipTier;
+  if (status !== "trialing" && status !== "active" && status !== "canceled_period_end" && status !== "grace_period") {
+    return "free" as MembershipTier;
+  }
+  if (typeof expiresAt !== "string") return "free" as MembershipTier;
+  const expiry = Date.parse(expiresAt);
+  return Number.isFinite(expiry) && expiry > now.getTime() ? tier : "free";
+}
+
+function higherMembershipTier(left: MembershipTier, right: MembershipTier) {
+  const rank: Record<MembershipTier, number> = { free: 0, standard: 1, barrel: 2, "bottled-in-bond": 3 };
+  return rank[right] > rank[left] ? right : left;
+}
+
 export function resolveEffectiveMembershipTier(input: unknown, now = new Date()): MembershipTier {
   if (input && typeof input === "object") {
     const rawTier = metadataValue(input, "tier") ?? metadataValue(input, "membershipTier");
     const rawPlan = metadataValue(input, "plan") ?? metadataValue(input, "billingPlan");
     const status = metadataValue(input, "membershipStatus");
     const tier = normalizeMembershipTier(rawTier);
-    if (isMembershipAccessActive(tier, status, rawPlan) && giftAccessIsCurrent(input, now)) return tier;
-    if ((rawPlan === "gift_standard_annual" || rawPlan === "gift_barrel_annual") && !giftAccessIsCurrent(input, now)) {
-      return resolvePreviousMembershipTierAfterGift(input);
+    const appleTier = activeAppleMembershipTier(input, now);
+    const isAnnualGift = rawPlan === "gift_standard_annual" || rawPlan === "gift_barrel_annual";
+    if (isAnnualGift) {
+      const baseTier = giftAccessIsCurrent(input, now)
+        ? (isMembershipAccessActive(tier, status, rawPlan) ? tier : "free")
+        : resolvePreviousMembershipTierAfterGift(input);
+      return higherMembershipTier(baseTier, appleTier);
     }
-    return "free";
+    if (tier === "bottled-in-bond" && isMembershipAccessActive(tier, status, rawPlan)) return tier;
+    const baseTier = isMembershipAccessActive(tier, status, rawPlan) ? tier : "free";
+    return higherMembershipTier(baseTier, appleTier);
   }
   return normalizeMembershipTier(input);
 }

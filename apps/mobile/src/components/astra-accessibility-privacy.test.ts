@@ -15,10 +15,10 @@ function nodes(tree: any): any[] {
 function renderSignIn(strategy: string | null = null) {
   let index = 0;
   const state = ['entered@example.invalid','secret','123456', strategy];
-  const module = loadWithMocks('app/index.tsx', {
+  const module = loadWithMocks('app/(auth)/sign-in.tsx', {
     '@clerk/expo': { useAuth: () => ({ isLoaded: true, isSignedIn: false }), useSignIn: () => ({ signIn: {}, fetchStatus: 'idle' }) },
-    'expo-router': { Redirect: 'Redirect' }, 'react-native': native,
-    '../src/hooks/useAccessibleStatus': { useAccessibleStatus() {} },
+    'expo-router': { Redirect: 'Redirect', useRouter: () => ({ push() {} }) }, 'react-native': native,
+    '../../src/hooks/useAccessibleStatus': { useAccessibleStatus() {} },
     react: { ...React, useState: (initial: unknown) => [index < state.length ? state[index++] : (index++, initial), () => {}], useEffect() {} },
   });
   return nodes(module.default());
@@ -37,7 +37,7 @@ test('M13: mounted Radar search and SMS input render named controls', () => {
   const prefs = preferencesFixture(); prefs.notificationPreferences.sms.available = true;
   const states = ['watchlist',prefs,profileFixture()];
   const module = loadWithMocks('app/(app)/(tabs)/radar.tsx', {
-    'react-native': native, 'expo-router': { useLocalSearchParams: () => ({}) },
+    'react-native': native, 'expo-router': { useLocalSearchParams: () => ({}), useRouter: () => ({ push() {} }) },
     'react-native-safe-area-context': { useSafeAreaInsets: () => ({}), SafeAreaView: 'SafeAreaView' },
     react: { ...React, useState: (initial: unknown) => [index < states.length ? states[index++] : (index++, initial), () => {}], useEffect() {}, useRef: (v: unknown) => ({ current: v }), useMemo: (f: () => unknown) => f(), useCallback: (f: unknown) => f },
     '../../../src/components/MemberScreen': { MemberCard: 'MemberCard', SectionTitle: 'SectionTitle', memberScreenStyles: {} },

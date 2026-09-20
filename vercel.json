@@ -28,6 +28,10 @@
     {
       "path": "/api/gifts/deliver?live=1&cron=v1",
       "schedule": "0 * * * *"
+    },
+    {
+      "path": "/api/account-deletion/cleanup",
+      "schedule": "15 3 * * *"
     }
   ]
 }

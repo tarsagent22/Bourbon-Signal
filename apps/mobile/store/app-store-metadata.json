@@ -1,10 +1,16 @@
 {
-  "schemaVersion": "bourbon-signal/app-store-metadata@1",
+  "schemaVersion": "bourbon-signal/app-store-metadata@2",
+  "submissionStatus": "draft_not_ready_for_submission",
+  "candidateStatus": "draft_not_ready_for_submission",
+  "buildStatus": "final_signed_build_not_produced",
+  "productConfigurationStatus": "apple_and_revenuecat_products_not_verified",
+  "screenshotStatus": "review_screenshots_not_captured",
+  "sandboxEvidenceStatus": "sandbox_purchase_restore_and_lifecycle_not_verified",
   "locale": "en-US",
   "name": "Bourbon Signal",
   "subtitle": "Fresh bourbon intelligence",
-  "promotionalText": "See timely bourbon availability Signals from trusted sources and members, with exact details when the evidence supports them.",
-  "description": "Bourbon Signal gives existing members a focused, trustworthy view of timely bourbon availability intelligence.\n\nUse the native app to:\n• Review recent availability and release Signals\n• Open exact Signal details, including retailer, timing, price, quantity, and source context when available\n• Privately record an optional Hunt Outcome after an availability Signal expires\n• Monitor watched bottles, saved markets, and recent alerts in Radar\n• Post a store sighting with durable duplicate protection\n• Open My Shelf, keep bottle notes, and explicitly choose what to watch next\n• Check your membership, Signal Points, and available rewards in Account\n\nAvailability changes quickly. Bourbon Signal presents the strongest current evidence available, but inventory should always be confirmed with the retailer before travel or purchase.\n\nThe app is a companion for existing Bourbon Signal accounts. It does not sell subscriptions or direct members to an external checkout.",
+  "promotionalText": "See timely bourbon availability Signals, manage Radar preferences, and keep your bourbon hunt organized.",
+  "description": "Bourbon Signal gives members a focused, trustworthy view of timely bourbon availability intelligence. Create a free account in the app, then review Signals and manage your membership from one native experience.\n\nUse the native app to:\n• Review recent availability and release Signals\n• Open details including retailer, timing, price, quantity, and source context when evidence supports them\n• Monitor watched bottles, saved markets, and recent alerts in Radar\n• Post a store sighting with optional photo evidence\n• Keep saved bottles, ratings, and notes on Shelf\n• Review membership, Signal Points, rewards, privacy, support, and account controls\n\niOS members can choose eligible Standard or Barrel subscriptions through Apple, restore purchases, and open App Store subscription management. Free is $0 with no renewal. Existing Founder access is honored but is not sold in the app. Any eligible trial is limited to qualifying monthly products and appears only when both the Bourbon Signal account and Apple confirm eligibility.\n\nAvailability changes quickly. Confirm with the retailer before travel or purchase.",
   "keywords": "bourbon,whiskey,availability,retailers,bottles,releases,inventory,rare whiskey",
   "primaryCategory": "FOOD_AND_DRINK",
   "secondaryCategory": "LIFESTYLE",
@@ -12,8 +18,23 @@
   "supportUrl": "https://www.bourbonsignal.com/support",
   "marketingUrl": "https://www.bourbonsignal.com",
   "copyright": "2026 Todd Digital Ventures LLC",
-  "contentRights": "Bourbon Signal owns or is authorized to use the submitted app artwork, copy, and product content.",
-  "ageRatingNote": "The service is intended for adults age 21 and older and contains alcohol-related product information. Complete Apple's current age-rating questionnaire honestly; do not hard-code a rating in automation.",
-  "reviewContact": "Enter the organization-controlled review contact directly in App Store Connect; do not commit private contact details here.",
-  "reviewAccount": "Create a dedicated least-privilege review account after App Store Connect access exists. Store credentials only in App Store Connect review information."
+  "contentRights": "Confirm all final artwork and product-content rights before submission.",
+  "ageRatingNote": "The service is intended for adults age 21 and older and contains alcohol-related product information. Complete Apple's current age-rating questionnaire from observed final-candidate content.",
+  "reviewContact": "Pending. Enter organization-controlled contact details only in App Store Connect.",
+  "reviewAccount": "Pending. Create a dedicated least-privilege account and store credentials only in App Store Connect.",
+  "submissionBlockers": [
+    "configured_storekit_and_revenuecat_products",
+    "reviewed_candidate_screenshots",
+    "sandbox_purchase_restore_lifecycle_evidence",
+    "final_signed_build_and_device_qa"
+  ],
+  "pendingSubmissionRequirements": [
+    "Configure and approve four Apple subscription products and matching RevenueCat offerings",
+    "Verify localized prices in sandbox; introductory trial presentation remains disabled until true per-Apple-account StoreKit eligibility is implemented",
+    "Verify purchase, pending, cancel, restore, renewal, grace, billing retry, refund, revoke, and expiration behavior",
+    "Capture and approve App Review screenshots from the reviewed candidate",
+    "Create and validate the least-privilege App Review account",
+    "Produce and inspect the final signed build",
+    "Reconcile App Privacy and age-rating answers against that final build"
+  ]
 }

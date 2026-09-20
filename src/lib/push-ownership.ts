@@ -3,12 +3,14 @@ import type { SqlExecutor } from './alert-queue/postgres-repository';
 import { createProductionAlertQueueSqlExecutor } from './alert-queue/runtime';
 import { withMemberAlertLease } from './alert-queue/member-lease';
 import { normalizePushDevices, sendExpoPushMessages, type ExpoPushMessage, type PushDeviceRecord } from './push-devices';
+import type { DurablePushTicket } from './alert-queue/push-outbox';
 
 export const pushOwnershipHash = (kind: 'installation' | 'token', value: string) => createHash('sha256').update(`bourbon-signal/push/${kind}/v1\0${value}`).digest('hex');
 type PushIdentity = Pick<PushDeviceRecord, 'deviceId'> & Partial<Pick<PushDeviceRecord, 'expoPushToken'>>;
 export interface PushOwnershipRepository {
   bind(userId: string, device: PushIdentity & { expoPushToken: string }, bindingId: string): Promise<void>;
   disable(userId: string, deviceId: string): Promise<void>;
+  revokeByCapability(deviceId: string, bindingId: string): Promise<boolean>;
   owned(userId: string, devices: PushDeviceRecord[]): Promise<PushDeviceRecord[]>;
 }
 export class PostgresPushOwnershipRepository implements PushOwnershipRepository {
@@ -27,6 +29,16 @@ export class PostgresPushOwnershipRepository implements PushOwnershipRepository 
     await this.sql.query(`update member_push_ownership set expires_at=now(),updated_at=now()
       where resource_hash=$1 and user_id=$2`,[pushOwnershipHash('installation',deviceId),userId]);
   }
+  async revokeByCapability(deviceId: string, bindingId: string) {
+    const result = await this.sql.query(`with target as (
+      select user_id,binding_id from member_push_ownership
+      where resource_hash=$1 and binding_id=$2 and expires_at>now()
+    )
+    update member_push_ownership ownership set expires_at=now(),updated_at=now()
+      from target where ownership.user_id=target.user_id and ownership.binding_id=target.binding_id
+      returning ownership.resource_hash`,[pushOwnershipHash('installation',deviceId),bindingId]);
+    return result.rows.length > 0;
+  }
   async owned(userId: string, devices: PushDeviceRecord[]) {
     const candidates = devices.filter(d=>d.enabled && d.bindingId);
     if (!candidates.length) return [];
@@ -44,6 +56,25 @@ export class PostgresPushOwnershipRepository implements PushOwnershipRepository 
 export const getPushOwnershipRepository = (): PushOwnershipRepository => new PostgresPushOwnershipRepository(createProductionAlertQueueSqlExecutor());
 export async function ownedPushDevices(userId: string, devices: unknown, repository = getPushOwnershipRepository()) {
   return repository.owned(userId,normalizePushDevices(devices));
+}
+
+export function durablePushTicketBindings(
+  devices: unknown,
+  tickets: Array<{ id: string; token: string }>,
+): DurablePushTicket[] {
+  const byToken = new Map(normalizePushDevices(devices)
+    .filter((device) => device.enabled && device.bindingId)
+    .map((device) => [device.expoPushToken, device]));
+  return tickets.flatMap((ticket) => {
+    const device = byToken.get(ticket.token);
+    if (!device?.bindingId) return [];
+    return [{
+      ticketId: ticket.id,
+      tokenHash: pushOwnershipHash('token', device.expoPushToken),
+      installationHash: pushOwnershipHash('installation', device.deviceId),
+      bindingId: device.bindingId,
+    }];
+  });
 }
 
 // Registration/revocation and final provider authorization share resource leases across accounts.

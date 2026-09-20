@@ -24,6 +24,7 @@ function responseFor(
   requestId: string,
   preferenceProjection: "saved" | "deferred",
   publicPushEnabled: boolean,
+  revocationToken?: string,
 ) {
   const active = devices.filter((device) => device.enabled);
   const currentDeviceRegistered = Boolean(deviceId && active.some((device) => device.deviceId === deviceId));
@@ -35,6 +36,7 @@ function responseFor(
     currentDeviceRegistered,
     requestId,
     preferenceProjection,
+    ...(revocationToken ? { revocationToken } : {}),
     ...(preferenceProjection === "deferred" ? {
       warning: { code: "PUSH_PREFERENCE_WRITE_FAILED" as const, message: "The device was saved, but Radar preference sync is incomplete. Tap Retry to finish enabling Push.", requestId },
     } : {}),
@@ -92,6 +94,7 @@ export async function POST(req: NextRequest) {
   const privateMetadata = (user.privateMetadata && typeof user.privateMetadata === "object" ? user.privateMetadata : {}) as Record<string, unknown>;
   return withPushOwnershipLease([{ deviceId: body.deviceId!, expoPushToken: body.action === "register" ? body.expoPushToken?.trim() : undefined }], async assertOwnershipHeld => {
   let saved;
+  let revocationToken: string | undefined;
   try {
     saved = await persistPushDeviceChange({
       currentDevices: privateMetadata.pushDevices,
@@ -105,6 +108,7 @@ export async function POST(req: NextRequest) {
         if (body.action === "register") {
           const target = pushDevices.find(device => device.deviceId === body.deviceId)!;
           target.bindingId = randomUUID();
+          revocationToken = target.bindingId;
           await ownership.bind(userId, target, target.bindingId);
         } else {
           // Revoke BEFORE metadata. A partial Clerk failure must not leave a live binding.
@@ -127,7 +131,7 @@ export async function POST(req: NextRequest) {
     const validation = error instanceof Error && /invalid push device/i.test(error.message);
     return errorResponse(validation ? 400 : 503, validation ? "PUSH_VALIDATION_FAILED" : "PUSH_DEVICE_WRITE_FAILED", validation ? error.message : "This device could not be saved.", requestId, !validation);
   }
-  return Response.json(responseFor(await ownedPushDevices(userId, saved.devices), body.deviceId!, requestId, saved.preferenceProjection, saved.pushEnabled), { headers: HEADERS });
+  return Response.json(responseFor(await ownedPushDevices(userId, saved.devices), body.deviceId!, requestId, saved.preferenceProjection, saved.pushEnabled, revocationToken), { headers: HEADERS });
   });
   };
   try {

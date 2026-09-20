@@ -12,6 +12,7 @@ import type { SqlExecutor } from './postgres-repository';
 import type { ExpoPushMessage, sendExpoPushMessages } from '../push-devices';
 
 export type PushIntent = { id: string; alertId: string; stableKeys: string[]; attempts: number };
+export type DurablePushTicket = { ticketId: string; tokenHash: string; installationHash: string; bindingId: string };
 // All mutations are fenced by the same member lease used by registration/preferences and
 // the caller. Lock the lease row in the statement so takeover cannot race the mutation.
 const fence = `with held as materialized (select lease_key from alert_delivery_leases
@@ -64,6 +65,40 @@ export class PostgresPushOutbox {
       where id=$3 and user_id=$4 and status in ('pending','unknown') and exists(select 1 from held) returning id`,[`member:${userId}`,owner,id,userId,status,reason]);
     if (!result.rows.length) throw new Error('push_completion_not_persisted_or_lease_lost');
   }
+  private async persistAcceptedTickets(userId: string, owner: string, id: string, tickets: DurablePushTicket[], acceptedAt: string, complete: boolean) {
+    const ticketIds = new Set<string>();
+    if (!tickets.length || tickets.length > 100 || tickets.some((ticket) => {
+      const valid = /^[a-zA-Z0-9_-]{8,256}$/.test(ticket.ticketId)
+        && /^[0-9a-f]{64}$/.test(ticket.tokenHash)
+        && /^[0-9a-f]{64}$/.test(ticket.installationHash)
+        && /^[a-zA-Z0-9-]{1,80}$/.test(ticket.bindingId)
+        && !ticketIds.has(ticket.ticketId);
+      ticketIds.add(ticket.ticketId);
+      return !valid;
+    })) throw new Error('push_provider_tickets_incomplete');
+    const result = await this.sql.query(`${fence}, incoming as materialized (
+        select * from jsonb_to_recordset($6::jsonb) as ticket(provider_ticket_id text,token_hash text,installation_hash text,binding_id text)
+      ), inserted as (
+        insert into alert_push_tickets
+          (provider_ticket_id,outbox_id,user_id,token_hash,installation_hash,binding_id,status,next_receipt_at,accepted_at,updated_at)
+        select ticket.provider_ticket_id,$3,$4,ticket.token_hash,ticket.installation_hash,ticket.binding_id,'pending',$5::timestamptz+interval '15 minutes',$5::timestamptz,$5::timestamptz
+        from incoming ticket,held
+        on conflict do nothing returning provider_ticket_id
+      ) update alert_push_outbox set status=case when $7::boolean then 'accepted' else 'unknown' end,
+          reason=case when $7::boolean then 'provider_accepted_receipt_pending' else 'partial_or_unaccounted_manual_review' end,updated_at=$5::timestamptz
+        where id=$3 and user_id=$4 and status='unknown' and exists(select 1 from held)
+          and (select count(*) from inserted)=jsonb_array_length($6::jsonb) returning id`,
+      [`member:${userId}`,owner,id,userId,acceptedAt,JSON.stringify(tickets.map(ticket=>({
+        provider_ticket_id:ticket.ticketId,token_hash:ticket.tokenHash,installation_hash:ticket.installationHash,binding_id:ticket.bindingId,
+      }))),complete]);
+    if (!result.rows.length) throw new Error('push_provider_tickets_not_persisted_or_lease_lost');
+  }
+  async accept(userId: string, owner: string, id: string, tickets: DurablePushTicket[], acceptedAt: string) {
+    return this.persistAcceptedTickets(userId,owner,id,tickets,acceptedAt,true);
+  }
+  async recordAcceptedSubset(userId: string, owner: string, id: string, tickets: DurablePushTicket[], acceptedAt: string) {
+    return this.persistAcceptedTickets(userId,owner,id,tickets,acceptedAt,false);
+  }
 }
 
 export async function drainPushOutbox(repository: PostgresPushOutbox,userId: string,owner: string, adapters: {
@@ -71,7 +106,9 @@ export async function drainPushOutbox(repository: PostgresPushOutbox,userId: str
   // token, device ownership assertion, or send payload is ever read from this outbox.
   resolve: (intent: PushIntent) => Promise<{ devices: unknown; messages: ExpoPushMessage[] } | null>;
   send: (userId: string,devices: unknown,messages: ExpoPushMessage[]) => ReturnType<typeof sendExpoPushMessages>;
+  durableTickets?: (result: Awaited<ReturnType<typeof sendExpoPushMessages>>, devices: unknown) => DurablePushTicket[];
   accepted?: (result: Awaited<ReturnType<typeof sendExpoPushMessages>>) => Promise<void>;
+  now?: () => string;
 }) {
   for (const intent of await repository.pending(userId,owner)) {
     await repository.assertHeld(userId,owner);
@@ -92,8 +129,24 @@ export async function drainPushOutbox(repository: PostgresPushOutbox,userId: str
     const allRejected = result.accepted === 0 && result.rejected === live.messages.length;
     // The ownership boundary returns aggregate counts. Partial sends/ownership filtering
     // cannot safely identify which destinations may retry; hold those for manual review.
-    await repository.finish(userId,owner,intent.id,allAccepted ? 'accepted' : allRejected ? 'pending' : 'unknown',
-      allAccepted ? 'provider_accepted_not_receipted' : allRejected ? 'explicit_provider_rejection' : 'partial_or_unaccounted_manual_review');
+    if (result.accepted > 0) {
+      // Persist every provider ticket and exact hashed binding before the intent can leave
+      // write-ahead unknown. Any crash or incomplete ticket response remains non-replayable.
+      try {
+        const tickets = adapters.durableTickets?.(result,live.devices) || [];
+        if (tickets.length !== result.accepted) throw new Error('push_provider_tickets_incomplete');
+        const acceptedAt = (adapters.now || (()=>new Date().toISOString()))();
+        if (allAccepted) await repository.accept(userId,owner,intent.id,tickets,acceptedAt);
+        else await repository.recordAcceptedSubset(userId,owner,intent.id,tickets,acceptedAt);
+      } catch (error) {
+        // The write-ahead unknown state still prevents replay, but surface the failed
+        // durable completion so operations never mistake it for tracked acceptance.
+        throw error;
+      }
+    } else {
+      await repository.finish(userId,owner,intent.id,allRejected ? 'pending' : 'unknown',
+        allRejected ? 'explicit_provider_rejection' : 'partial_or_unaccounted_manual_review');
+    }
     // Receipt bookkeeping failure must not undo the durable provider result.
     if (adapters.accepted) await adapters.accepted(result);
   }

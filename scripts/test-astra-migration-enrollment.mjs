@@ -24,5 +24,11 @@ test('application migration enrolls both push ownership and retailer verificatio
 });
 test('queue migration applies and verifies cursor and push outbox',async()=>{
  const source=await readFile(new URL('./migrate-alert-queue.mjs',import.meta.url),'utf8');
- for(const name of ['push-outbox.sql','alert_recipient_cursor','alert_push_outbox'])assert.ok(source.includes(name),`${name} missing`);
+ for(const name of ['push-outbox.sql','alert_recipient_cursor','alert_push_outbox','alert_push_tickets','alert-queue-v6-push-receipts'])assert.ok(source.includes(name),`${name} missing`);
+});
+test('required CI push command includes durable outbox and receipt reconciliation contracts',async()=>{
+ const pkg=JSON.parse(await readFile(new URL('../package.json',import.meta.url),'utf8'));
+ const command=String(pkg.scripts?.['test:push-devices']||'');
+ for(const name of ['test-push-devices.mts','test-m12-push-outbox.mjs','test-push-receipts.mts'])assert.ok(command.includes(name),`${name} missing from test:push-devices`);
+ assert.match(String(pkg.scripts?.['verify:ci']||''),/test:push-devices/);
 });
