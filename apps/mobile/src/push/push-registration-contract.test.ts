@@ -34,7 +34,8 @@ test("root boot is protected by a visible startup error boundary that preserves 
   assert.match(rootLayout, /StartupErrorBoundary/);
   assert.match(startupBoundary, /Try again/);
   assert.match(startupBoundary, /componentDidCatch/);
-  assert.match(startupBoundary, /this\.state\.error\.message/);
+  assert.match(startupBoundary, /error\.message/);
+  assert.match(startupBoundary, /info\.componentStack/);
 });
 
 test("root notification responses use the safe explicit Radar Matches route", () => {
