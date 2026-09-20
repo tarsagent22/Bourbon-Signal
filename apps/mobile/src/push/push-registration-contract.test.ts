@@ -5,6 +5,8 @@ import test from "node:test";
 const registration = readFileSync(new URL("./push-registration.ts", import.meta.url), "utf8");
 const pushRegistration = registration;
 const rootLayout = readFileSync(new URL("../../app/_layout.tsx", import.meta.url), "utf8");
+const tabsIndex = readFileSync(new URL("../../app/(app)/(tabs)/index.tsx", import.meta.url), "utf8");
+const responseHandler = readFileSync(new URL("./PushResponseHandler.tsx", import.meta.url), "utf8");
 const startupBoundary = readFileSync(new URL("../startup/StartupErrorBoundary.tsx", import.meta.url), "utf8");
 
 test("enabled push registration refreshes its token and listens for token rotation", () => {
@@ -16,14 +18,14 @@ test("enabled push registration refreshes its token and listens for token rotati
   assert.match(registration, /flushPendingPushRevocation/);
 });
 
-test("root retries a durable offline-logout revocation intent without an unhandled boot rejection", () => {
-  assert.match(rootLayout, /StartupMaintenance/);
-  assert.match(rootLayout, /flushPendingPushRevocation\(\)\.catch\(\(\) => false\)/);
-  assert.doesNotMatch(rootLayout, /useEffect\(\(\) => \{ void flushPendingPushRevocation\(\); \}, \[\]\)/);
+test("push maintenance is deferred until the authenticated app mounts", () => {
+  assert.doesNotMatch(rootLayout, /configureRadarNotifications|flushPendingPushRevocation/);
+  assert.match(tabsIndex, /<PushMaintenance \/>/);
+  assert.match(responseHandler, /flushPendingPushRevocation\(\)\.catch\(\(\) => false\)/);
 });
 
 test("notification native setup is deferred and guarded instead of running at module load", () => {
-  assert.match(rootLayout, /configureRadarNotifications/);
+  assert.match(responseHandler, /configureRadarNotifications/);
   assert.match(pushRegistration, /export function configureRadarNotifications/);
   assert.doesNotMatch(pushRegistration, /^Notifications\.setNotificationHandler\(/m);
 });
@@ -36,13 +38,15 @@ test("root boot is protected by a visible startup error boundary that preserves 
 });
 
 test("root notification responses use the safe explicit Radar Matches route", () => {
-  assert.match(rootLayout, /createPendingPushNavigation/);
-  assert.match(rootLayout, /queue.current.take\(isLoaded/);
-  assert.match(rootLayout, /router\.push\(route\)/);
-  assert.doesNotMatch(rootLayout, /router\.push\("\/\(app\)\/\(tabs\)\/radar"\)/);
+  assert.match(responseHandler, /createPendingPushNavigation/);
+  assert.match(responseHandler, /queue\.current\.take\(isLoaded/);
+  assert.match(responseHandler, /router\.push\(route\)/);
+  assert.match(responseHandler, /typeof getLastResponse === "function"/);
+  assert.match(responseHandler, /typeof clearLastResponse === "function"/);
+  assert.doesNotMatch(responseHandler, /router\.push\("\/\(app\)\/\(tabs\)\/radar"\)/);
 });
 
-test("root notification responses do not call navigation-state hooks before the root navigator exists", () => {
-  assert.doesNotMatch(rootLayout, /useRootNavigationState/);
-  assert.match(rootLayout, /queue\.current\.take\(isLoaded && !!isSignedIn, true\)/);
+test("push response handling is deferred until the authenticated navigator mounts", () => {
+  assert.doesNotMatch(rootLayout, /<PushResponseHandler \/>/);
+  assert.match(tabsIndex, /<PushResponseHandler \/>/);
 });
