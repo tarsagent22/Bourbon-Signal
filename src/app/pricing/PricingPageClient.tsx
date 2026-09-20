@@ -319,17 +319,6 @@ const pricingCss = `
 .pricing-hero { width:min(980px, calc(100% - 40px)); margin:0 auto; text-align:center; }
 .pricing-kicker { margin:0; color:var(--color-accent-amber); font:900 11px/1 var(--font-jetbrains); letter-spacing:.16em; text-transform:uppercase; }
 .pricing-hero h1 { max-width:860px; margin:16px auto 0; color:var(--color-cream); font:700 clamp(44px, 7vw, 80px)/.93 var(--font-playfair); letter-spacing:-.052em; }
-.billing-toggle { width:min(390px, 100%); margin:28px auto 0; display:grid; grid-template-columns:1fr 1fr; gap:6px; border:1px solid rgba(245,237,214,.10); border-radius:999px; padding:6px; background:rgba(255,255,255,.035); box-shadow:inset 0 1px 0 rgba(255,255,255,.04); }
-.billing-toggle button { border:0; border-radius:999px; padding:11px 12px; color:var(--color-text-secondary); background:transparent; font:900 12px/1 var(--font-dm-sans); cursor:pointer; transition:background .18s ease, color .18s ease, transform .18s ease; }
-.billing-toggle button[data-active="true"] { color:#17110B; background:linear-gradient(135deg, #C4943A, #D4A44A); box-shadow:0 10px 24px rgba(196,148,58,.18); }
-.billing-toggle button:hover, .billing-toggle button:focus-visible { outline:none; transform:translateY(-1px); }
-.billing-toggle span { margin-left:5px; font:900 10px/1 var(--font-jetbrains); letter-spacing:.08em; text-transform:uppercase; }
-.july-sale-banner { width:min(940px, calc(100% - 40px)); margin:24px auto 0; display:grid; grid-template-columns:auto minmax(0, 1fr); grid-template-areas:"badge offer" "badge terms"; column-gap:16px; row-gap:8px; align-items:start; border:1px solid rgba(232,201,122,.38); border-radius:18px; padding:18px; background:linear-gradient(135deg, rgba(196,148,58,.19), rgba(82,54,24,.15)); box-shadow:0 18px 60px rgba(0,0,0,.24), inset 0 1px 0 rgba(255,255,255,.06); }
-.july-sale-banner p { grid-area:badge; margin:1px 0 0; border-radius:999px; padding:7px 9px; color:#17110B; background:linear-gradient(135deg, #E8C97A, #C4943A); font:950 9px/1 var(--font-jetbrains); letter-spacing:.12em; text-transform:uppercase; white-space:nowrap; }
-.july-sale-banner div { grid-area:offer; display:grid; gap:5px; min-width:0; }
-.july-sale-banner strong { color:var(--color-cream); font:700 22px/1.05 var(--font-playfair); }
-.july-sale-banner span { color:var(--color-text-secondary); font:800 12px/1.35 var(--font-dm-sans); }
-.july-sale-banner em { grid-area:terms; max-width:760px; color:#E8C97A; font:800 11px/1.45 var(--font-dm-sans); font-style:normal; text-align:left; }
 .free-preview-strip { width:min(940px, calc(100% - 40px)); margin:30px auto 0; display:grid; grid-template-columns:1.2fr 1fr auto; gap:18px; align-items:center; border:1px solid rgba(245,237,214,.08); border-radius:22px; padding:18px 20px; background:linear-gradient(135deg, rgba(255,255,255,.044), rgba(196,148,58,.035)); box-shadow:0 18px 70px rgba(0,0,0,.20), inset 0 1px 0 rgba(255,255,255,.04); }
 .free-preview-strip p { margin:0 0 7px; color:var(--color-accent-amber); font:900 10px/1 var(--font-jetbrains); letter-spacing:.15em; text-transform:uppercase; }
 .free-preview-strip h2 { margin:0; color:var(--color-cream); font:700 clamp(21px, 2.2vw, 30px)/1.06 var(--font-playfair); letter-spacing:-.03em; }
@@ -367,8 +356,6 @@ const pricingCss = `
 .pricing-card h2 { margin:10px 0 0; color:var(--color-cream); font:700 31px/1.02 var(--font-playfair); letter-spacing:-.032em; }
 .pricing-price-row { margin-top:18px; display:grid; gap:4px; }
 .pricing-price-row strong { color:var(--color-cream); font:800 48px/.9 var(--font-playfair); }
-.sale-price-line { display:flex; align-items:baseline; gap:11px; flex-wrap:wrap; }
-.sale-price-line del { color:rgba(245,237,214,.46); font:700 20px/1 var(--font-playfair); text-decoration-thickness:2px; }
 .pricing-price-row small { margin-top:4px; color:#E8C97A; font:900 11px/1.35 var(--font-dm-sans); }
 .pricing-card.founder .pricing-price-row strong, .pricing-card.featured .pricing-price-row strong { color:var(--color-accent-amber); }
 .pricing-price-row span { color:var(--color-text-tertiary); font:800 12px/1.4 var(--font-dm-sans); }
@@ -399,13 +386,12 @@ const pricingCss = `
 .comparison-head { background:rgba(196,148,58,.09); }
 .comparison-head span { min-height:50px; color:var(--color-accent-amber); font:900 10px/1.15 var(--font-jetbrains); letter-spacing:.12em; text-transform:uppercase; }
 .comparison-head span:first-child { z-index:4; color:var(--color-accent-amber); background:linear-gradient(90deg, rgba(49,35,19,1), rgba(39,29,18,.99)); }
-@media (max-width: 900px) { .july-sale-banner { grid-template-columns:1fr; grid-template-areas:"badge" "offer" "terms"; text-align:left; } .july-sale-banner p { width:max-content; } .free-preview-strip { grid-template-columns:1fr; text-align:left; } .free-preview-strip button { width:100%; } }
+@media (max-width: 900px) { .free-preview-strip { grid-template-columns:1fr; text-align:left; } .free-preview-strip button { width:100%; } }
 @media (max-width: 760px) { .comparison-wrap { width:calc(100% - 28px); padding:16px 0 16px 16px; overflow:hidden; } .comparison-heading { display:grid; align-items:start; padding-right:16px; } .comparison-heading p { text-align:left; } .comparison-scroll { padding-right:16px; } .comparison-table { min-width:704px; border-radius:14px; } .comparison-row { grid-template-columns:132px repeat(4, 142px); } .comparison-row span { min-height:44px; padding:12px 9px; font-size:11px; } .comparison-head span { font-size:9px; letter-spacing:.10em; } }
 @media (max-width: 480px) { .comparison-scroll { padding-right:0; } .comparison-table { width:max-content; min-width:0; } .comparison-row { width:max-content; grid-template-columns:132px repeat(4, calc(100vw - 178px)); } }
 @media (max-width: 640px) {
   .launch-pricing-page { width:100%; max-width:100vw; padding-top:108px; overflow-x:clip; }
   .pricing-hero,
-  .july-sale-banner,
   .free-preview-strip,
   .pricing-grid,
   .pricing-error,
@@ -417,12 +403,6 @@ const pricingCss = `
   .checkout-canceled-actions { display:grid; }
   .checkout-canceled-actions button { width:100%; }
   .pricing-hero h1 { max-width:100%; font-size:clamp(38px, 11vw, 50px); overflow-wrap:anywhere; }
-  .billing-toggle { width:100%; min-width:0; box-sizing:border-box; }
-  .billing-toggle button { min-width:0; padding:10px 6px; }
-  .billing-toggle span { display:block; margin:4px 0 0; font-size:8px; }
-  .july-sale-banner strong,
-  .july-sale-banner span,
-  .july-sale-banner em,
   .pricing-description { overflow-wrap:anywhere; }
   .pricing-description { min-height:0; }
 }
