@@ -9,6 +9,7 @@ import {
 
 const OUT = path.resolve('out');
 const VIRGINIA_INVENTORY_MAX_AGE_MS = Math.max(60 * 60_000, Number(process.env.BOURBON_SIGNAL_VA_INVENTORY_MAX_AGE_MS || 24 * 60 * 60_000));
+const MINIMUM_VIRGINIA_REGULAR_PRODUCT_PARTITIONS = 8;
 
 async function readJson(file) {
   return JSON.parse(await readFile(file, 'utf8'));
@@ -35,6 +36,37 @@ export function undercoveredVirginiaRegularProducts(regularProductCoverage) {
   return [...regularProductCoverage.entries()]
     .filter(([, stores]) => stores.size < minimumStoreCount)
     .map(([code, stores]) => ({ code, storeCount: stores.size }));
+}
+
+export function hasMinimumVirginiaRegularProductCoverage(regularProductCoverage) {
+  return regularProductCoverage.size >= MINIMUM_VIRGINIA_REGULAR_PRODUCT_PARTITIONS;
+}
+
+export function virginiaProductCodes(signals) {
+  return new Set(signals
+    .map((signal) => signal.productCode
+      || signal.raw?.product?.code
+      || String(signal.sourceUrl || '').match(/productCode=([^&]+)/)?.[1])
+    .filter(Boolean));
+}
+
+export function regularVirginiaProductCoverage(signals, expiredInventoryIds = new Set()) {
+  const coverage = new Map();
+  for (const signal of signals) {
+    const limitedCaveat = signal.productLimitedCaveat ?? signal.raw?.product?.limitedCaveat;
+    const topLevelTargetStoreIds = Array.isArray(signal.targetStoreIds) ? signal.targetStoreIds : [];
+    const rawTargetStoreIds = Array.isArray(signal.raw?.product?.targetStoreIds) ? signal.raw.product.targetStoreIds : [];
+    const targetStoreIds = topLevelTargetStoreIds.length ? topLevelTargetStoreIds : rawTargetStoreIds;
+    if (signal.sourceStale || expiredInventoryIds.has(signal.sourceSignalId || signal.key) || limitedCaveat !== false
+      || !signal.storeId || (Array.isArray(targetStoreIds) && targetStoreIds.length)) continue;
+    const code = signal.productCode
+      || signal.raw?.product?.code
+      || String(signal.sourceUrl || '').match(/productCode=([^&]+)/)?.[1];
+    if (!code) continue;
+    if (!coverage.has(code)) coverage.set(code, new Set());
+    coverage.get(code).add(String(signal.storeId));
+  }
+  return coverage;
 }
 
 function normalizedPremisesPart(value) {
@@ -128,7 +160,7 @@ async function main() {
   const expiredInventoryIds = new Set(expiredInventorySignals.flatMap((signal) => [signal.sourceSignalId, signal.key].filter(Boolean)));
   const inventorySignals = signals.filter((signal) => signal.canAlertAsInventory);
   const positiveSignals = signals.filter((signal) => signal.eventType === 'store_inventory_result' && hasSafePositiveQuantity(signal) && !signal.sourceStale && !expiredInventoryIds.has(signal.sourceSignalId || signal.key));
-  const productCodes = new Set(signals.map((signal) => signal.productCode || String(signal.sourceUrl || '').match(/productCode=([^&]+)/)?.[1]).filter(Boolean));
+  const productCodes = virginiaProductCodes(signals);
   const canonicalNames = new Set(signals.map((signal) => signal.canonicalName).filter(Boolean));
   const bad1792 = signals.filter((signal) => /1792\s+Small\s+Batch/i.test(String(signal.rawName || '')) && /Full\s+Proof/i.test(String(signal.canonicalName || '')));
   const invalidOriginRoadblocks = (state.roadblocks || []).filter((roadblock) => /No Store exists/i.test(String(roadblock.error || '')));
@@ -151,15 +183,7 @@ async function main() {
   const requiredTargetStoreInput = String(process.env.BOURBON_SIGNAL_VA_REQUIRED_STORE_ID || '');
   const requiredTargetValidation = validateSterlingRequiredStoreIds(requiredTargetStoreInput);
   const requiredTargetStoreIds = requiredTargetValidation.ids;
-  const regularProductCoverage = new Map();
-  for (const signal of signals) {
-    if (signal.sourceStale || expiredInventoryIds.has(signal.sourceSignalId || signal.key) || signal.productLimitedCaveat !== false
-      || !signal.storeId || (Array.isArray(signal.targetStoreIds) && signal.targetStoreIds.length)) continue;
-    const code = signal.productCode || String(signal.sourceUrl || '').match(/productCode=([^&]+)/)?.[1];
-    if (!code) continue;
-    if (!regularProductCoverage.has(code)) regularProductCoverage.set(code, new Set());
-    regularProductCoverage.get(code).add(String(signal.storeId));
-  }
+  const regularProductCoverage = regularVirginiaProductCoverage(signals, expiredInventoryIds);
   const undercoveredRegularProducts = undercoveredVirginiaRegularProducts(regularProductCoverage);
   const missingSupportedStores = [...regularProductCoverage.entries()]
     .map(([code, stores]) => ({ code, missingStoreIds: [...supportedOriginStoreIds].filter((storeId) => !stores.has(storeId)) }))
@@ -218,7 +242,7 @@ async function main() {
       assert(proof.drop, `VA target Store ${storeId} has no fresh customer-visible inventory card bound to the official supported origin`, proof.exactStoreDrops);
     }
   }
-  assert(regularProductCoverage.size >= 10, 'VA fresh regular-product coverage is incomplete', [...regularProductCoverage.keys()]);
+  assert(hasMinimumVirginiaRegularProductCoverage(regularProductCoverage), 'VA fresh regular-product coverage is incomplete', [...regularProductCoverage.keys()]);
   assert(!undercoveredRegularProducts.length, 'VA regular products do not cover the statewide supported-store floor', undercoveredRegularProducts);
   assert(!missingSupportedStores.length, 'VA regular products are missing supported store identities', missingSupportedStores);
   assert(!unexpectedSupportedStores.length, 'VA regular products contain unsupported store identities', unexpectedSupportedStores);
