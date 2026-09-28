@@ -22,7 +22,12 @@ import {
   virginiaInventoryPremisesMatch,
   virginiaRefreshPlan
 } from '../src/collectors/virginia-inventory-recovery.mjs';
-import { undercoveredVirginiaRegularProducts } from '../src/verify-va.mjs';
+import {
+  hasMinimumVirginiaRegularProductCoverage,
+  regularVirginiaProductCoverage,
+  undercoveredVirginiaRegularProducts,
+  virginiaProductCodes
+} from '../src/verify-va.mjs';
 import {
   legacyPrecisionRuntimeOptions,
   VIRGINIA_PRODUCTS,
@@ -157,6 +162,52 @@ test('Virginia verifier accepts the current exact store universe and rejects a c
 
   const collapsedStores = new Set(Array.from({ length: 379 }, (_, index) => String(index + 1)));
   assert.deepEqual(undercoveredVirginiaRegularProducts(new Map([['A', collapsedStores]])), [{ code: 'A', storeCount: 379 }]);
+});
+
+test('Virginia verifier recognizes normalized raw regular-product classification fields', () => {
+  const rows = Array.from({ length: 389 }, (_, index) => ({
+    ...signal('017913', String(index + 1), '2026-09-28T04:51:47.000Z'),
+    eventType: 'store_inventory_result',
+    locationPrecision: 'store_level',
+    productCode: undefined,
+    productLimitedCaveat: undefined,
+    raw: {
+      product: {
+        code: '017913',
+        limitedCaveat: false
+      }
+    }
+  }));
+
+  const coverage = regularVirginiaProductCoverage(rows, new Set());
+  assert.equal(coverage.get('017913')?.size, 389);
+  assert.deepEqual(undercoveredVirginiaRegularProducts(coverage), []);
+  assert.deepEqual([...virginiaProductCodes(rows)], ['017913']);
+});
+
+test('Virginia verifier requires eight complete statewide regular-product partitions', () => {
+  const completeCoverage = new Map(Array.from({ length: 8 }, (_, index) => [String(index), new Set(['1'])]));
+  assert.equal(hasMinimumVirginiaRegularProductCoverage(completeCoverage), true);
+
+  completeCoverage.delete('7');
+  assert.equal(hasMinimumVirginiaRegularProductCoverage(completeCoverage), false);
+});
+
+test('Virginia verifier excludes raw targeted partitions when the normalized target list is empty', () => {
+  const row = {
+    ...signal('016577', '40', '2026-09-28T04:51:47.000Z'),
+    productLimitedCaveat: false,
+    targetStoreIds: [],
+    raw: {
+      product: {
+        code: '016577',
+        limitedCaveat: false,
+        targetStoreIds: ['40', '61', '82', '362']
+      }
+    }
+  };
+
+  assert.equal(regularVirginiaProductCoverage([row], new Set()).size, 0);
 });
 
 test('Virginia Store 49 is prioritized only after the official Ballston identity matches', () => {
