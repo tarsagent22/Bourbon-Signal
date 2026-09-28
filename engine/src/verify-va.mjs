@@ -1,7 +1,11 @@
 import { readFile } from 'node:fs/promises';
 import path from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { isVirginiaRegularInventoryExpired, minimumVirginiaSiteLocationCount } from './collectors/virginia-inventory-recovery.mjs';
+import {
+  isVirginiaRegularInventoryExpired,
+  minimumVirginiaSiteLocationCount,
+  minimumVirginiaSupportedStoreCount
+} from './collectors/virginia-inventory-recovery.mjs';
 
 const OUT = path.resolve('out');
 const VIRGINIA_INVENTORY_MAX_AGE_MS = Math.max(60 * 60_000, Number(process.env.BOURBON_SIGNAL_VA_INVENTORY_MAX_AGE_MS || 24 * 60 * 60_000));
@@ -24,6 +28,13 @@ function groupBy(items, keyFn) {
     acc[key] = (acc[key] || 0) + 1;
     return acc;
   }, {});
+}
+
+export function undercoveredVirginiaRegularProducts(regularProductCoverage) {
+  const minimumStoreCount = minimumVirginiaSupportedStoreCount();
+  return [...regularProductCoverage.entries()]
+    .filter(([, stores]) => stores.size < minimumStoreCount)
+    .map(([code, stores]) => ({ code, storeCount: stores.size }));
 }
 
 function normalizedPremisesPart(value) {
@@ -149,9 +160,7 @@ async function main() {
     if (!regularProductCoverage.has(code)) regularProductCoverage.set(code, new Set());
     regularProductCoverage.get(code).add(String(signal.storeId));
   }
-  const undercoveredRegularProducts = [...regularProductCoverage.entries()]
-    .filter(([, stores]) => stores.size < 390)
-    .map(([code, stores]) => ({ code, storeCount: stores.size }));
+  const undercoveredRegularProducts = undercoveredVirginiaRegularProducts(regularProductCoverage);
   const missingSupportedStores = [...regularProductCoverage.entries()]
     .map(([code, stores]) => ({ code, missingStoreIds: [...supportedOriginStoreIds].filter((storeId) => !stores.has(storeId)) }))
     .filter((entry) => entry.missingStoreIds.length);
@@ -192,7 +201,8 @@ async function main() {
   assert(productCodes.size >= 12, 'VA product-code coverage below expanded top-performer baseline', [...productCodes]);
   assert(!staleAlertableSignals.length, 'VA stale cache rows must never remain inventory-alertable', staleAlertableSignals.slice(0, 10));
   assert(!expiredAlertableDrops.length, 'VA public drops derived from expired inventory must remain non-alertable', expiredAlertableDrops.slice(0, 10));
-  assert(state.precisionMetadata?.virginia?.storeUniverseVerified === true && supportedOriginStoreIds.size >= 390, 'VA supported-store universe is not verified', state.precisionMetadata?.virginia || null);
+  assert(state.precisionMetadata?.virginia?.storeUniverseVerified === true
+    && supportedOriginStoreIds.size >= minimumVirginiaSupportedStoreCount(), 'VA supported-store universe is not verified', state.precisionMetadata?.virginia || null);
   assert(verifiedPriorityStoreIds.has('49') && !rejectedPriorityStoreIds.length, 'VA Ballston Store 49 official premises identity was not verified for first-priority probing', state.precisionMetadata?.virginia || null);
   if (requiredTargetStoreIds.length) {
     const unsupportedTargetStoreIds = requiredTargetStoreIds.filter((storeId) => !verifiedPriorityStoreIds.has(storeId));

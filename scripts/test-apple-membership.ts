@@ -339,7 +339,7 @@ test("RevenueCat subscriber normalization uses exact fetched owner and current s
         },
       },
     },
-  });
+  }, new Date(BASE_TIME));
   assert.equal(normalized.status, "trialing");
   assert.equal(normalized.offerState, "introductory_trial");
   assert.equal(normalized.clerkUserId, USER_A);
