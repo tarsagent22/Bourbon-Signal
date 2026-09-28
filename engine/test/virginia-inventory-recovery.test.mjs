@@ -10,6 +10,7 @@ import {
   isVirginiaRetiredOriginFailure,
   mergeVirginiaProductPartitions,
   minimumVirginiaSiteLocationCount,
+  minimumVirginiaSupportedStoreCount,
   planVirginiaOriginStores,
   sanitizeVirginiaInventoryCacheSignals,
   seedVirginiaInventoryCacheSignals,
@@ -21,6 +22,7 @@ import {
   virginiaInventoryPremisesMatch,
   virginiaRefreshPlan
 } from '../src/collectors/virginia-inventory-recovery.mjs';
+import { undercoveredVirginiaRegularProducts } from '../src/verify-va.mjs';
 import {
   legacyPrecisionRuntimeOptions,
   VIRGINIA_PRODUCTS,
@@ -135,6 +137,26 @@ test('Virginia site-location gate scales to the supported store universe', () =>
   assert.equal(minimumVirginiaSiteLocationCount(800), 600);
   assert.equal(minimumVirginiaSiteLocationCount(100), 100);
   assert.equal(minimumVirginiaSiteLocationCount(0), 300);
+});
+
+test('Virginia verified store universe tolerates bounded official closures without accepting a directory collapse', () => {
+  const minimumStoreCount = minimumVirginiaSupportedStoreCount();
+  const currentStoreIds = new Set(Array.from({ length: 389 }, (_, index) => String(index + 1)));
+  const currentRows = [...currentStoreIds].map((storeId) => signal('A', storeId, '2026-09-28T01:36:31.000Z'));
+  assert.equal(minimumStoreCount, 380);
+  assert.equal(evaluateVirginiaProductCoverage(currentRows, currentStoreIds, { minimumExpectedStoreCount: 390 }).complete, true);
+
+  const collapsedStoreIds = new Set(Array.from({ length: 379 }, (_, index) => String(index + 1)));
+  const collapsedRows = [...collapsedStoreIds].map((storeId) => signal('A', storeId, '2026-09-28T01:36:31.000Z'));
+  assert.equal(evaluateVirginiaProductCoverage(collapsedRows, collapsedStoreIds, { minimumExpectedStoreCount: 390 }).complete, false);
+});
+
+test('Virginia verifier accepts the current exact store universe and rejects a collapsed regular-product partition', () => {
+  const currentStores = new Set(Array.from({ length: 389 }, (_, index) => String(index + 1)));
+  assert.deepEqual(undercoveredVirginiaRegularProducts(new Map([['A', currentStores]])), []);
+
+  const collapsedStores = new Set(Array.from({ length: 379 }, (_, index) => String(index + 1)));
+  assert.deepEqual(undercoveredVirginiaRegularProducts(new Map([['A', collapsedStores]])), [{ code: 'A', storeCount: 379 }]);
 });
 
 test('Virginia Store 49 is prioritized only after the official Ballston identity matches', () => {
@@ -636,6 +658,7 @@ test('Virginia collector continuously refreshes bounded product shards instead o
   assert.match(collectorSource, /VIRGINIA_COLD_START_PRODUCTS_PER_RUN/);
   assert.match(collectorSource, /virginiaRefreshPlan\(/);
   assert.match(collectorSource, /requiredTargetStoreIds/);
+  assert.match(collectorSource, /minimumExpectedStoreCount:\s*productTargetStoreIds\.size\s*\|\|\s*390/);
   assert.match(collectorSource, /process\.env\.BOURBON_SIGNAL_VA_FORCE_LIVE === '1' \|\| refreshPlan\.force/);
   assert.match(collectorSource, /missingCachedProductCodes/);
   assert.match(collectorSource, /supportedCachedSignals/);
@@ -656,6 +679,8 @@ test('Virginia verifier blocks stale alertable rows and incomplete regular-produ
   assert.match(verifierSource, /sourceStale/);
   assert.match(verifierSource, /productLimitedCaveat/);
   assert.match(verifierSource, /supportedOriginStoreIds/);
+  assert.match(verifierSource, /supportedOriginStoreIds\.size\s*>=\s*minimumVirginiaSupportedStoreCount\(\)/);
+  assert.doesNotMatch(verifierSource, /supportedOriginStoreIds\.size\s*>=\s*390/);
   assert.match(verifierSource, /verifiedPriorityStoreIds\.has\('49'\)/);
   assert.match(verifierSource, /rejectedPriorityStoreIds/);
   assert.match(verifierSource, /if \(requiredTargetStoreIds\.length\)/);

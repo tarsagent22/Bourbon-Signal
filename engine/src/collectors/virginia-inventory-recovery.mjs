@@ -33,6 +33,10 @@ export function minimumVirginiaSiteLocationCount(supportedOriginStoreCount) {
   return Math.min(supportedCount, Math.max(300, Math.ceil(supportedCount * 0.75)));
 }
 
+export function minimumVirginiaSupportedStoreCount() {
+  return 380;
+}
+
 const VIRGINIA_PRIORITY_ORIGIN_IDENTITIES = new Map([
   ['49', {
     address: '881 North Quincy Street',
@@ -301,11 +305,15 @@ export function sanitizeVirginiaInventoryCacheSignals(signals = []) {
 export function evaluateVirginiaProductCoverage(signals, expectedStoreIds, options = {}) {
   const expected = new Set([...expectedStoreIds].map(String));
   const minimumExpectedStoreCount = Math.max(0, Number(options.minimumExpectedStoreCount || 0));
+  const verifiedUniverseFloor = minimumVirginiaSupportedStoreCount();
+  const effectiveMinimumExpectedStoreCount = minimumExpectedStoreCount >= verifiedUniverseFloor
+    ? Math.max(verifiedUniverseFloor, Math.min(minimumExpectedStoreCount, expected.size))
+    : minimumExpectedStoreCount;
   const covered = new Set((signals || []).map((signal) => String(signal.storeId || '')).filter(Boolean));
   const missingStoreIds = [...expected].filter((storeId) => !covered.has(storeId));
   const unexpectedStoreIds = [...covered].filter((storeId) => !expected.has(storeId));
   return {
-    complete: expected.size >= minimumExpectedStoreCount && expected.size > 0 && missingStoreIds.length === 0 && unexpectedStoreIds.length === 0,
+    complete: expected.size >= effectiveMinimumExpectedStoreCount && expected.size > 0 && missingStoreIds.length === 0 && unexpectedStoreIds.length === 0,
     coveredStoreCount: expected.size - missingStoreIds.length,
     expectedStoreCount: expected.size,
     missingStoreIds,
