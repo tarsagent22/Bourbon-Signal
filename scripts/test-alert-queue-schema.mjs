@@ -14,6 +14,9 @@ assert.match(schema, /attempt_count\s+integer/i);
 assert.match(schema, /next_attempt_at\s+timestamptz/i);
 assert.match(schema, /create table if not exists clerk_alert_metadata_backups/i);
 assert.match(schema, /migration_id\s+text/i);
+for (const column of ["private_metadata", "public_metadata", "private_metadata_hash", "public_metadata_hash"]) {
+  assert.match(schema, new RegExp(`add column if not exists ${column}`, "i"));
+}
 assert.match(schema, /unique\s*\(user_id, channel, stable_match_key\)/i);
 assert.match(schema, /alert_candidates_delivered_audit_idx/i);
 assert.match(schema, /where status = 'delivered'/i);
@@ -22,6 +25,8 @@ assert.match(schema, /create table if not exists alert_delivery_leases/i);
 assert.match(schema, /lease_key\s+text\s+primary key/i);
 assert.match(schema, /expires_at\s+timestamptz\s+not null/i);
 assert.match(migration, /alert-queue-v3-member-leases/);
+assert.match(migration, /alert-queue-v7-clerk-metadata-capacity-backups/);
+assert.match(migration, /backupColumns\.length !== 4/);
 assert.match(migration, /alert_delivery_leases/);
 assert.match(migration, /tables\.length !== 10/);
 console.log("Alert queue Postgres schema contract passed.");

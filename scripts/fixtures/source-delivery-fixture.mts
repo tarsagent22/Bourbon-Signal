@@ -3,6 +3,8 @@ import { render } from '@react-email/render';
 import ts from 'typescript';
 import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
+import * as migrationModule from '../../src/lib/alert-queue/clerk-migration.ts';
+const { ensureAlertDeliveryIdentityV2 } = ((migrationModule as { default?: unknown }).default || migrationModule) as typeof import('../../src/lib/alert-queue/clerk-migration.ts');
 const source = readFileSync(new URL('../../src/lib/alert-delivery.ts',import.meta.url),'utf8');
 const code = ts.transpile(source.slice(source.indexOf('export async function deliverPreferenceAlerts(')).replace('export async','async'),{target:ts.ScriptTarget.ES2022});
 // Executes the actual delivery function with synthetic external services. Lane
@@ -10,8 +12,8 @@ const code = ts.transpile(source.slice(source.indexOf('export async function del
 export function deliveryFixture(candidates: any[], lane: any, overrides: any = {}, channel = 'email') {
   const events: any[] = [], sends: any[] = [];
   const prefs={push:{enabled:channel==='push'},onSite:{enabled:channel==='onSite'},email:{enabled:channel==='email',mode:'all'},sms:{enabled:channel==='sms',verified:true,phone:'+15555550123',mode:'all'},sightings:{enabled:true},rarityTiers:['allocated']};
-  const user={id:'synthetic-member',publicMetadata:{paid:true,notificationPreferences:prefs,areaPreferences:{saved:true},bottleAlertPreferences:{bottleNames:[],bottleKeys:[]}},privateMetadata:{alertDelivery:{dedupeIdentityVersion:2,recent:[]},pushDevices:['synthetic-device']}};
-  const queue={recoverStaleClaims:async()=>0,acquireLease:async()=>true,releaseLease:async()=>{},registerSnapshot:async()=>{},readRecipientCursor:async()=>0,writeRecipientCursor:async()=>{},markBatchDelivered:async()=>{},markFailed:async()=>{},markBatchFailed:async()=>{}};
+  const user={id:'synthetic-member',publicMetadata:{paid:true,notificationPreferences:prefs,areaPreferences:{saved:true},bottleAlertPreferences:{bottleNames:[],bottleKeys:[]}},privateMetadata:{alertDelivery:{dedupeIdentityVersion:2,durableBaselineVersion:1,recent:[]},pushDevices:['synthetic-device'],lifecycleTimeZone:'UTC'}};
+  const queue={recoverStaleClaims:async()=>0,acquireLease:async()=>true,releaseLease:async()=>{},registerSnapshot:async()=>{},readRecipientCursor:async()=>0,writeRecipientCursor:async()=>{},baseline:async(input:any)=>{events.push('baseline:'+input.channel+':'+input.stableMatchKey);},markBatchDelivered:async()=>{},markFailed:async()=>{},markBatchFailed:async()=>{}};
   const send=async(kind: string)=>{sends.push(kind);events.push('send:'+kind);return {data:{id:'synthetic-accepted'},sid:'synthetic-sid',status:'queued',accepted:1,rejected:0,tickets:[],invalidTokens:[]};};
   const context: any={
     process:{env:{}},Date,Set,Map,Math,Number,String,createHash,render,
@@ -32,6 +34,8 @@ export function deliveryFixture(candidates: any[], lane: any, overrides: any = {
     getUsersPage:async(_c:any,offset:number)=>({data:offset?[]:[structuredClone(user)],totalCount:1}),
     getServerEntitlements:async()=>({tier:'standard',canReceiveSightingsAlerts:true}),
     normalizeNotificationPreferences:(v:any)=>v,normalizeAreaPrefs:(v:any)=>v,hasSavedAreaPreferences:(v:any)=>v?.saved,
+    normalizeAlertDeliveryTimeZone:()=> 'UTC',alertDeliveryWindowStatus:()=>({open:true,reason:'open',localHour:12}),isWithinMemberAlertDeliveryWindow:()=>true,compactClerkAlertDelivery:(v:any)=>v,
+    ensureAlertDeliveryIdentityV2,
     normalizeBottleAlertPreferences:(v:any)=>v,normalizeDeliveryMetadata:(v:any)=>v,normalizeAlertInboxMetadata:(v:any)=>v||{recent:[]},normalizePendingExpoPushTickets:()=>[],
     pushPreferenceProjectionAllowsDelivery:()=>true,
     groupCandidatesByLocation:(cs:any)=>cs,enumerateUnderlyingAlertChildren:(c:any)=>[c],stableUnderlyingAlertKey:(c:any)=>c.availabilityEpisodeId,
@@ -53,5 +57,5 @@ export function deliveryFixture(candidates: any[], lane: any, overrides: any = {
   };
   Object.assign(context,overrides);
   const ctx=vm.createContext(context);vm.runInContext(code,ctx);
-  return {context:ctx,events,sends,run:(options={})=>ctx.deliverPreferenceAlerts({},options)};
+  return {context:ctx,events,sends,user,run:(options={})=>ctx.deliverPreferenceAlerts({}, {queueMode:'active',...options})};
 }

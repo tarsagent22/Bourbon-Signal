@@ -1,12 +1,16 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import {
+import * as scopesModule from "../src/lib/monitoring-scopes.ts";
+import * as matcherModule from "../src/lib/monitoring-scope-matcher.ts";
+
+const {
+  compactMonitoringScopesForMetadata,
   legacyAreaPreferencesFromScopes,
   monitoringScopesFromPreferences,
   normalizeMonitoringScopes,
   trimMonitoringScopesToLimit,
-} from "../src/lib/monitoring-scopes.ts";
-import { candidateMatchesMonitoringScopes } from "../src/lib/monitoring-scope-matcher.ts";
+} = ((scopesModule as { default?: unknown }).default || scopesModule) as typeof import("../src/lib/monitoring-scopes.ts");
+const { candidateMatchesMonitoringScopes } = ((matcherModule as { default?: unknown }).default || matcherModule) as typeof import("../src/lib/monitoring-scope-matcher.ts");
 
 test("legacy states migrate nationwide without losing FL or MS", () => {
   const scopes = monitoringScopesFromPreferences({ states: ["fl", "MS", "FL"] });
@@ -43,6 +47,33 @@ test("generic normalization validates, dedupes, and makes statewide authoritativ
     { type: "county", id: "county:nope", state: "NY" },
   ]);
   assert.deepEqual(scopes, [{ type: "state", id: "state:NY", state: "NY", label: "New York" }]);
+});
+
+test("compact explicit scope ids preserve exact county and board semantics", () => {
+  const preferences = {
+    states: ["NY", "NC"],
+    ncBoards: ["Wake County ABC"],
+  };
+  const explicit = normalizeMonitoringScopes([
+    { type: "county", id: "county:36061", state: "NY", label: "New York County" },
+    { type: "board", id: "board:NC:wake-county-abc", state: "NC", label: "Wake County ABC" },
+  ]);
+  const compactIds = explicit.map((scope) => scope.id);
+  assert.deepEqual(monitoringScopesFromPreferences(preferences, compactIds), explicit);
+  assert.deepEqual(monitoringScopesFromPreferences(preferences, [...compactIds, "city:legacy:NY:not-real"]), []);
+  const stored = compactMonitoringScopesForMetadata(preferences, explicit);
+  assert.ok(stored.every((scope) => typeof scope === "string"));
+  assert.deepEqual(monitoringScopesFromPreferences(preferences, stored), explicit);
+});
+
+test("metadata compaction retains an unresolved legacy scope object instead of widening it", () => {
+  const preferences = { states: ["AZ"] };
+  const explicit = normalizeMonitoringScopes([
+    { type: "city", id: "city:legacy:AZ:private-market", state: "AZ", label: "Private Market" },
+  ]);
+  const stored = compactMonitoringScopesForMetadata(preferences, explicit);
+  assert.equal(typeof stored[0], "object");
+  assert.deepEqual(monitoringScopesFromPreferences(preferences, stored), explicit);
 });
 
 test("limits trim deterministically without splitting state semantics", () => {

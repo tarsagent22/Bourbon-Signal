@@ -99,7 +99,25 @@ export function normalizeMonitoringScopes(input: unknown, cap = MAX_MONITORING_S
 export function monitoringScopesFromPreferences(input: unknown, explicitScopes?: unknown): MonitoringScope[] {
   const source = record(input);
   const supplied = explicitScopes === undefined ? source.monitoringScopes : explicitScopes;
-  if (Array.isArray(supplied)) return normalizeMonitoringScopes(supplied);
+  if (Array.isArray(supplied)) {
+    if (supplied.length === 0) return [];
+    const includesCompactIds = supplied.some((value) => typeof value === "string");
+    if (!includesCompactIds) return normalizeMonitoringScopes(supplied);
+    const legacyById = new Map(
+      monitoringScopesFromPreferences(source, null).map((scope) => [scope.id, scope] as const),
+    );
+    const resolved = supplied.map((value) => {
+      if (typeof value !== "string") return normalizeMonitoringScopes([value])[0] || null;
+      const id = value.trim();
+      const legacy = legacyById.get(id);
+      if (legacy) return legacy;
+      const geography = findGeographyById(id);
+      if (!geography || !(geography.level === "state" || geography.level === "county" || geography.level === "city")) return null;
+      return { type: geography.level, id: geography.id, state: geography.state, label: geography.name } as MonitoringScope;
+    });
+    if (resolved.some((scope) => !scope)) return [];
+    return normalizeMonitoringScopes(resolved);
+  }
   const requestedStates = strings(source.states).map((state) => state.toUpperCase());
   const legacyMontgomeryOnly = requestedStates.includes("MD-MONTGOMERY") && !requestedStates.includes("MD");
   const states: string[] = [...new Set<string>(requestedStates.flatMap((state) => {
@@ -125,6 +143,19 @@ export function monitoringScopesFromPreferences(input: unknown, explicitScopes?:
     scopes.push(...stores.map((storeId) => ({ type: "store" as const, id: `store:${state}:${storeId}`, state, label: storeId })));
   }
   return normalizeMonitoringScopes(scopes);
+}
+
+export function compactMonitoringScopesForMetadata(preferences: unknown, input: unknown): Array<string | MonitoringScope> {
+  return normalizeMonitoringScopes(input).map((scope) => {
+    const resolved = monitoringScopesFromPreferences(preferences, [scope.id]);
+    return resolved.length === 1
+      && resolved[0].type === scope.type
+      && resolved[0].id === scope.id
+      && resolved[0].state === scope.state
+      && resolved[0].label === scope.label
+      ? scope.id
+      : scope;
+  });
 }
 
 export function legacyAreaPreferencesFromScopes(input: unknown): LegacyAreaPreferences {

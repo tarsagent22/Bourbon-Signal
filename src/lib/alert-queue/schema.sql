@@ -74,6 +74,11 @@ create table if not exists clerk_alert_metadata_backups (
   primary key (migration_id, user_id)
 );
 
+alter table clerk_alert_metadata_backups add column if not exists private_metadata jsonb;
+alter table clerk_alert_metadata_backups add column if not exists public_metadata jsonb;
+alter table clerk_alert_metadata_backups add column if not exists private_metadata_hash text;
+alter table clerk_alert_metadata_backups add column if not exists public_metadata_hash text;
+
 create index if not exists clerk_alert_metadata_backups_user_idx
   on clerk_alert_metadata_backups (user_id, backed_up_at desc);
 

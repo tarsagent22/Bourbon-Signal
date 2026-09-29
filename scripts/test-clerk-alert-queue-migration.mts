@@ -1,6 +1,8 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { ensureAlertDeliveryIdentityV2, extractClerkAlertBaselines } from '../src/lib/alert-queue/clerk-migration.ts';
+import * as migrationModule from '../src/lib/alert-queue/clerk-migration.ts';
+
+const { ensureAlertDeliveryIdentityV2, extractClerkAlertBaselines } = ((migrationModule as { default?: unknown }).default || migrationModule) as typeof import('../src/lib/alert-queue/clerk-migration.ts');
 
 test('extracts channel-specific Clerk baselines and delivered history without duplicates', () => {
   const result = extractClerkAlertBaselines('user-1', {
@@ -35,7 +37,7 @@ test('ignores malformed keys and unknown channels', () => {
   assert.deepEqual(result, []);
 });
 
-test('v2 migration baselines only currently matching underlying keys for enabled channels and sends none', async () => {
+test('v2 migration baselines legacy and current matching identities before sending none', async () => {
   const baselines: string[] = [];
   let persisted: Record<string, unknown> | undefined;
   const result = await ensureAlertDeliveryIdentityV2({
@@ -49,10 +51,10 @@ test('v2 migration baselines only currently matching underlying keys for enabled
   });
   assert.equal(result.migrated, true);
   assert.equal(result.sendCurrentPass, false);
-  assert.deepEqual(baselines, ['onSite:A', 'onSite:B', 'email:A']);
+  assert.deepEqual(baselines, ['email:legacy-group', 'onSite:A', 'onSite:B', 'email:A']);
   assert.equal(persisted?.dedupeIdentityVersion, 2);
-  assert.deepEqual(persisted?.onSiteBaselineDedupeKeys, ['A', 'B']);
-  assert.deepEqual(persisted?.emailBaselineDedupeKeys, ['A']);
+  assert.equal('onSiteBaselineDedupeKeys' in (persisted || {}), false, 'durable baseline identities must not be duplicated into Clerk');
+  assert.equal('emailBaselineDedupeKeys' in (persisted || {}), false, 'durable baseline identities must not be duplicated into Clerk');
   assert.equal(JSON.stringify(persisted).includes('future-sms-key'), false, 'disabled channels and future keys must not be baselined');
 });
 
@@ -82,12 +84,37 @@ test('existing v2 metadata does not baseline or block future distinct keys', asy
   assert.equal(touched, false);
 });
 
-test('migration does not cap the stable baseline set', async () => {
+test('existing v2 metadata imports legacy Clerk baseline arrays before compacting them', async () => {
+  const baselines: string[] = [];
+  let persisted: Record<string, unknown> = {};
+  const result = await ensureAlertDeliveryIdentityV2({
+    userId: 'user-v2-legacy',
+    alertDelivery: {
+      dedupeIdentityVersion: 2,
+      emailBaselineDedupeKeys: ['legacy-a'],
+      recent: [{ channel: 'email', dedupeKey: 'group-a', underlyingStableKeys: ['legacy-b'], deliveredAt: '2026-07-10T14:00:00.000Z' }],
+    },
+    enabledChannels: ['email'],
+    currentStableKeys: { email: ['new-key'] },
+    createdAt: '2026-07-10T15:00:00.000Z',
+    baseline: async ({ stableMatchKey }) => { baselines.push(stableMatchKey); },
+    persist: async (next) => { persisted = next; },
+  });
+  assert.equal(result.migrated, true);
+  assert.equal(result.sendCurrentPass, false);
+  assert.deepEqual(baselines.sort(), ['group-a', 'legacy-a', 'legacy-b']);
+  assert.equal('emailBaselineDedupeKeys' in persisted, false);
+});
+
+test('migration preserves the full durable baseline set while keeping Clerk metadata bounded', async () => {
   const keys = Array.from({ length: 1005 }, (_, index) => `key-${index}`);
+  const baselines: string[] = [];
   let persisted: Record<string, unknown> = {};
   await ensureAlertDeliveryIdentityV2({
     userId: 'user-many', alertDelivery: {}, enabledChannels: ['email'], currentStableKeys: { email: keys },
-    createdAt: '2026-07-10T15:00:00.000Z', baseline: async () => {}, persist: async (next) => { persisted = next; },
+    createdAt: '2026-07-10T15:00:00.000Z', baseline: async ({ stableMatchKey }) => { baselines.push(stableMatchKey); }, persist: async (next) => { persisted = next; },
   });
-  assert.equal((persisted.emailBaselineDedupeKeys as string[]).length, keys.length);
+  assert.deepEqual(baselines, keys);
+  assert.equal('emailBaselineDedupeKeys' in persisted, false);
+  assert.ok(Buffer.byteLength(JSON.stringify(persisted), 'utf8') <= 3072);
 });

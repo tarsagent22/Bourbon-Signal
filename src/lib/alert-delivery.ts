@@ -33,6 +33,8 @@ import { durablePushTicketBindings, ownedPushDevices, sendOwnedExpoPushMessages 
 import { reserveAlertDeliveryBatch, type AlertQueueMode } from "@/lib/alert-queue/delivery-gate";
 import type { AlertCandidateRecord, AlertChannel } from "@/lib/alert-queue/repository";
 import { ensureAlertDeliveryIdentityV2 } from "@/lib/alert-queue/clerk-migration";
+import { compactClerkAlertDelivery } from "@/lib/alert-queue/clerk-alert-metadata";
+import { alertDeliveryWindowStatus, isWithinMemberAlertDeliveryWindow, normalizeAlertDeliveryTimeZone } from "@/lib/alert-delivery-window";
 import { californiaAreaMatchesFields, normalizeCaliforniaAreas } from "@/lib/california-area";
 import { nevadaAreaMatchesFields, normalizeNevadaAreas } from "@/lib/nevada-area";
 import { matchedNewYorkArea, newYorkAreaMatchesFields, normalizeNewYorkAreas } from "@/lib/new-york-area";
@@ -1199,6 +1201,8 @@ export async function deliverPreferenceAlerts(req: Request, options: {
     skippedFinalOnSiteFreshness: 0,
     skippedFinalEmailFreshness: 0,
     skippedFinalSmsFreshness: 0,
+    skippedOutsideDeliveryHours: 0,
+    skippedMissingDeliveryTimeZone: 0,
     skippedSpecificBottlePrefs: 0,
     queueMode,
     queueIntentsObserved: 0,
@@ -1236,6 +1240,13 @@ export async function deliverPreferenceAlerts(req: Request, options: {
     if (queueMode === "active") {
       const staleBefore = new Date(Date.parse(now) - 10 * 60_000).toISOString();
       summary.queueStaleClaimsRecovered = await queueRepository.recoverStaleClaims(staleBefore);
+    }
+  }
+
+  async function persistDurableBaselines(userId: string, channel: AlertChannel, stableMatchKeys: string[]) {
+    if (!memberLeaseRepository) throw new Error("Durable alert baseline repository is required.");
+    for (const stableMatchKey of uniqueStrings(stableMatchKeys)) {
+      await memberLeaseRepository.baseline({ userId, channel, stableMatchKey, createdAt: now });
     }
   }
 
@@ -1286,15 +1297,19 @@ export async function deliverPreferenceAlerts(req: Request, options: {
     summary.queueFailures += 1;
   }
 
-  async function suppressStaleQueuedIntents(candidates: AlertCandidateRecord[]) {
+  async function suppressQueuedIntents(candidates: AlertCandidateRecord[], reason: "stale_at_final_delivery_boundary" | "outside_member_delivery_window") {
     if (!queueRepository || !candidates.length || queueMode !== "active") return;
     await queueRepository.markBatchFailed(
       candidates.map((candidate) => candidate.id),
-      createHash("sha256").update("stale_at_final_delivery_boundary").digest("hex").slice(0, 16),
+      createHash("sha256").update(reason).digest("hex").slice(0, 16),
       new Date().toISOString(),
       undefined,
     );
     summary.queueFailures += 1;
+  }
+
+  async function suppressStaleQueuedIntents(candidates: AlertCandidateRecord[]) {
+    await suppressQueuedIntents(candidates, "stale_at_final_delivery_boundary");
   }
 
   if (!dryRun && !baselineOnSiteOnly && !baselineEmailOnly && !baselineSmsOnly && queueMode === "off" && !ALERT_ONSITE_DELIVERY_ENABLED && !ALERT_EMAIL_DELIVERY_ENABLED && !ALERT_SMS_DELIVERY_ENABLED) {
@@ -1303,6 +1318,10 @@ export async function deliverPreferenceAlerts(req: Request, options: {
       deliveryDisabled: true,
       reason: "Set ALERT_ONSITE_DELIVERY_ENABLED=1 for on-site inbox sync, ALERT_EMAIL_DELIVERY_ENABLED=1 for live email delivery, and/or ALERT_SMS_DELIVERY_ENABLED=1 for live SMS delivery. ALERT_DELIVERY_ENABLED=1 enables on-site/email legacy full-delivery mode.",
     };
+  }
+  if (!dryRun && !baselineOnSiteOnly && !baselineEmailOnly && !baselineSmsOnly && queueMode === "off"
+    && (ALERT_ONSITE_DELIVERY_ENABLED || ALERT_EMAIL_DELIVERY_ENABLED || ALERT_SMS_DELIVERY_ENABLED)) {
+    throw new Error("Durable alert queue active mode is required for live delivery.");
   }
 
   const resend = !dryRun && ALERT_EMAIL_DELIVERY_ENABLED ? getResendClient() : null;
@@ -1396,8 +1415,11 @@ export async function deliverPreferenceAlerts(req: Request, options: {
         continue;
       }
       const notificationPrefs = normalizeNotificationPreferences(publicMetadata.notificationPreferences);
+      const alertDeliveryTimeZone = normalizeAlertDeliveryTimeZone(privateMetadata.lifecycleTimeZone);
+      const deliveryWindow = alertDeliveryWindowStatus(now, privateMetadata.lifecycleTimeZone);
+      const memberDeliveryWindowOpen = isWithinMemberAlertDeliveryWindow(now, alertDeliveryTimeZone);
       let currentPushDevices = privateMetadata.pushDevices;
-      const livePushRun = !dryRun && !baselineOnSiteOnly && !baselineEmailOnly && !baselineSmsOnly && ALERT_ONSITE_DELIVERY_ENABLED;
+      const livePushRun = memberDeliveryWindowOpen && !dryRun && !baselineOnSiteOnly && !baselineEmailOnly && !baselineSmsOnly && ALERT_ONSITE_DELIVERY_ENABLED;
       let pushOutbox = livePushRun && notificationPrefs.push.enabled
         ? createProductionPushOutbox()
         : null;
@@ -1421,6 +1443,7 @@ export async function deliverPreferenceAlerts(req: Request, options: {
             if (entitlement.tier === "free" || !prefs.push.enabled || !pushPreferenceProjectionAllowsDelivery(priv.pushPreferenceProjection) || !hasSavedAreaPreferences(areas)) return null;
             const bottles = normalizeBottleAlertPreferences(pub.bottleAlertPreferences);
             const attemptAt = new Date().toISOString();
+            if (!isWithinMemberAlertDeliveryWindow(attemptAt, priv.lifecycleTimeZone)) return null;
             const snapshotFresh = evaluateAlertSnapshotSafety({ generatedAt: batch.snapshot.generatedAt, now: attemptAt, maxAgeMinutes: Number(process.env.ALERT_SNAPSHOT_MAX_AGE_MINUTES || 45) }).safe;
             const wanted = new Set(intent.stableKeys);
             const children = candidates.flatMap(enumerateUnderlyingAlertChildren)
@@ -1443,7 +1466,9 @@ export async function deliverPreferenceAlerts(req: Request, options: {
           send: (owner, devices, messages) => sendOwnedExpoPushMessages(owner, devices, messages, {
             send: async chunk => {
               const outcome = await invokeSourceProvider({
-                validate: async () => await runtimeSourceCandidatesStillValid(pushTraceChildren) && pushTraceChildren.every(child => candidatePassesFreshOnSiteGuardrails(child)),
+                validate: async () => isWithinMemberAlertDeliveryWindow(new Date().toISOString(), alertDeliveryTimeZone)
+                  && await runtimeSourceCandidatesStillValid(pushTraceChildren)
+                  && pushTraceChildren.every(child => candidatePassesFreshOnSiteGuardrails(child)),
                 send: () => sendExpoPushMessages(chunk),
                 recordAttempt: at => traceRuntimeSourceCandidates(pushTraceChildren, "provider_attempt", "push", at),
                 recordFailed: at => traceRuntimeSourceCandidates(pushTraceChildren, "provider_failed", "push", at),
@@ -1494,7 +1519,7 @@ export async function deliverPreferenceAlerts(req: Request, options: {
       const matchingPreferenceCandidates = allMatchingPreferenceCandidates
         .slice(0, Math.max(1, CANDIDATE_POOL_PER_USER));
 
-      if (!dryRun && deliveryMetadata.dedupeIdentityVersion !== 2) {
+      if (!dryRun) {
         const enabledChannels: AlertChannel[] = [];
         if (notificationPrefs.onSite.enabled || notificationPrefs.push.enabled) enabledChannels.push("onSite");
         if (notificationPrefs.email.enabled) enabledChannels.push("email");
@@ -1504,17 +1529,24 @@ export async function deliverPreferenceAlerts(req: Request, options: {
           alertDelivery: privateMetadata.alertDelivery,
           enabledChannels,
           currentStableKeys: {
-            onSite: flattenUnderlyingStableKeys(allMatchingPreferenceCandidates.filter((candidate) => candidatePassesFreshOnSiteGuardrails(candidate))),
-            email: flattenUnderlyingStableKeys(allMatchingPreferenceCandidates
-              .filter((candidate) => candidatePassesFreshEmailGuardrails(candidate))
-              .filter((candidate) => candidateMatchesEmailMode(candidate, notificationPrefs.email.mode))),
-            sms: flattenUnderlyingStableKeys(allMatchingPreferenceCandidates
-              .filter((candidate) => candidatePassesFreshSmsGuardrails(candidate))
-              .filter((candidate) => candidateMatchesSmsMode(candidate, notificationPrefs.sms.mode, bottlePrefs))),
+            onSite: enabledChannels.includes("onSite")
+              ? flattenUnderlyingStableKeys(allMatchingPreferenceCandidates.filter((candidate) => candidatePassesFreshOnSiteGuardrails(candidate)))
+              : [],
+            email: enabledChannels.includes("email")
+              ? flattenUnderlyingStableKeys(allMatchingPreferenceCandidates
+                .filter((candidate) => candidatePassesFreshEmailGuardrails(candidate))
+                .filter((candidate) => candidateMatchesEmailMode(candidate, notificationPrefs.email.mode)))
+              : [],
+            sms: enabledChannels.includes("sms")
+              ? flattenUnderlyingStableKeys(allMatchingPreferenceCandidates
+                .filter((candidate) => candidatePassesFreshSmsGuardrails(candidate))
+                .filter((candidate) => candidateMatchesSmsMode(candidate, notificationPrefs.sms.mode, bottlePrefs)))
+              : [],
           },
           createdAt: now,
           baseline: async (baseline) => {
-            if (queueRepository) await queueRepository.baseline(baseline);
+            if (!memberLeaseRepository) throw new Error("Durable alert baseline repository is required for identity migration.");
+            await memberLeaseRepository.baseline(baseline);
           },
           persist: async (alertDelivery) => {
             await client.users.updateUserMetadata(userId, { privateMetadata: { alertDelivery } });
@@ -1532,17 +1564,31 @@ export async function deliverPreferenceAlerts(req: Request, options: {
       if (matchingPreferenceCandidates.length) {
         summary.usersMatched += 1;
       }
+      if (!baselineOnSiteOnly && !baselineEmailOnly && !baselineSmsOnly && matchingPreferenceCandidates.length && !memberDeliveryWindowOpen) {
+        if (deliveryWindow.reason === "missing_time_zone" || deliveryWindow.reason === "invalid_time_zone") {
+          summary.skippedMissingDeliveryTimeZone += 1;
+        } else {
+          summary.skippedOutsideDeliveryHours += 1;
+        }
+        continue;
+      }
 
       let newOnSiteAlerts: MemberAlertRecord[] = [];
       const onSiteSourceCandidates = new Map<string, CandidateAlert[]>();
       let onSiteQueueGroups: Array<{ alertId: string; candidates: AlertCandidateRecord[] }> = [];
       const pruneStaleOnSiteAlerts = async () => {
         const sourceValidity = await Promise.all(newOnSiteAlerts.map((alert) => runtimeSourceCandidatesStillValid(onSiteSourceCandidates.get(alert.id) || [])));
-        const freshAlerts = newOnSiteAlerts.filter((alert, index) => sourceValidity[index] && memberAlertPassesFinalFreshness(alert));
+        const windowOpen = isWithinMemberAlertDeliveryWindow(new Date().toISOString(), alertDeliveryTimeZone);
+        const freshAlerts = windowOpen
+          ? newOnSiteAlerts.filter((alert, index) => sourceValidity[index] && memberAlertPassesFinalFreshness(alert))
+          : [];
+        const removedAlertCount = newOnSiteAlerts.length - freshAlerts.length;
         const freshAlertIds = new Set(freshAlerts.map((alert) => alert.id));
         const staleQueueGroups = onSiteQueueGroups.filter((group) => !freshAlertIds.has(group.alertId));
-        for (const group of staleQueueGroups) await suppressStaleQueuedIntents(group.candidates);
-        summary.skippedFinalOnSiteFreshness += newOnSiteAlerts.length - freshAlerts.length;
+        for (const group of staleQueueGroups) await suppressQueuedIntents(group.candidates, windowOpen ? "stale_at_final_delivery_boundary" : "outside_member_delivery_window");
+        if (!windowOpen && newOnSiteAlerts.length) summary.skippedOutsideDeliveryHours += 1;
+        else summary.skippedFinalOnSiteFreshness += removedAlertCount;
+        summary.onSiteAlertsCreated = Math.max(0, summary.onSiteAlertsCreated - removedAlertCount);
         newOnSiteAlerts = freshAlerts;
         onSiteQueueGroups = onSiteQueueGroups.filter((group) => freshAlertIds.has(group.alertId));
       };
@@ -1551,19 +1597,14 @@ export async function deliverPreferenceAlerts(req: Request, options: {
         const baselineDedupeKeys = flattenUnderlyingStableKeys(matchingPreferenceCandidates);
         summary.onSiteBaselinesCreated += baselineDedupeKeys.length;
         if (!dryRun && baselineDedupeKeys.length) {
+          await persistDurableBaselines(userId, "onSite", baselineDedupeKeys);
           await client.users.updateUserMetadata(userId, {
             privateMetadata: {
-              alertDelivery: {
+              alertDelivery: compactClerkAlertDelivery({
+                ...deliveryMetadata,
                 dedupeIdentityVersion: 2,
-                recent: deliveryMetadata.recent || [],
-                onSiteBaselineDedupeKeys: uniqueStrings([...baselineDedupeKeys, ...(deliveryMetadata.onSiteBaselineDedupeKeys || [])]),
-                emailBaselineDedupeKeys: deliveryMetadata.emailBaselineDedupeKeys || [],
-                smsBaselineDedupeKeys: deliveryMetadata.smsBaselineDedupeKeys || [],
                 lastOnSiteBaselineAt: now,
-                lastEmailBaselineAt: deliveryMetadata.lastEmailBaselineAt,
-                lastSmsBaselineAt: deliveryMetadata.lastSmsBaselineAt,
-                lastRunAt: deliveryMetadata.lastRunAt,
-              },
+              }),
             },
           });
         }
@@ -1648,19 +1689,14 @@ export async function deliverPreferenceAlerts(req: Request, options: {
             const baselineDedupeKeys = flattenUnderlyingStableKeys(emailModeCandidates);
             summary.emailBaselinesCreated += baselineDedupeKeys.length;
             if (!dryRun && baselineDedupeKeys.length) {
+              await persistDurableBaselines(userId, "email", baselineDedupeKeys);
               await client.users.updateUserMetadata(userId, {
                 privateMetadata: {
-                  alertDelivery: {
+                  alertDelivery: compactClerkAlertDelivery({
+                    ...deliveryMetadata,
                     dedupeIdentityVersion: 2,
-                    recent: deliveryMetadata.recent || [],
-                    onSiteBaselineDedupeKeys: deliveryMetadata.onSiteBaselineDedupeKeys || [],
-                    emailBaselineDedupeKeys: uniqueStrings([...baselineDedupeKeys, ...(deliveryMetadata.emailBaselineDedupeKeys || [])]),
-                    smsBaselineDedupeKeys: deliveryMetadata.smsBaselineDedupeKeys || [],
-                    lastOnSiteBaselineAt: deliveryMetadata.lastOnSiteBaselineAt,
                     lastEmailBaselineAt: now,
-                    lastSmsBaselineAt: deliveryMetadata.lastSmsBaselineAt,
-                    lastRunAt: deliveryMetadata.lastRunAt,
-                  },
+                  }),
                 },
               });
             }
@@ -1691,6 +1727,10 @@ export async function deliverPreferenceAlerts(req: Request, options: {
 
           for (const selectedCandidate of matchedCandidates) {
             if (globalEmailCount >= MAX_EMAILS_PER_RUN) break;
+            if (!isWithinMemberAlertDeliveryWindow(new Date().toISOString(), alertDeliveryTimeZone)) {
+              summary.skippedOutsideDeliveryHours += 1;
+              break;
+            }
             const selectedStoreLabel = candidateStoreLabel(selectedCandidate);
             const reservation = await reserveQueuedGroup(userId, "email", selectedCandidate, (child) => ({
               bottle: asString(child.bottle, "Bottle signal"),
@@ -1746,7 +1786,9 @@ export async function deliverPreferenceAlerts(req: Request, options: {
                     : `alert-${createHash("sha256").update(`${userId}:${underlyingStableKeys(candidate).sort().join(":")}`).digest("hex")}`,
                 };
                 const outcome = await invokeSourceProvider({
-                  validate: async () => await runtimeSourceCandidatesStillValid(enumerateUnderlyingAlertChildren(candidate)) && candidatePassesFreshEmailGuardrails(candidate),
+                  validate: async () => isWithinMemberAlertDeliveryWindow(new Date().toISOString(), alertDeliveryTimeZone)
+                    && await runtimeSourceCandidatesStillValid(enumerateUnderlyingAlertChildren(candidate))
+                    && candidatePassesFreshEmailGuardrails(candidate),
                   recordAttempt: at => traceRuntimeSourceCandidates(enumerateUnderlyingAlertChildren(candidate), "provider_attempt", "email", at),
                   recordFailed: at => traceRuntimeSourceCandidates(enumerateUnderlyingAlertChildren(candidate), "provider_failed", "email", at),
                   send: async () => {
@@ -1756,8 +1798,10 @@ export async function deliverPreferenceAlerts(req: Request, options: {
                   },
                 });
                 if (outcome.suppressed) {
-                  summary.skippedFinalEmailFreshness += 1;
-                  await suppressStaleQueuedIntents(queuedCandidates);
+                  const stillOpen = isWithinMemberAlertDeliveryWindow(new Date().toISOString(), alertDeliveryTimeZone);
+                  if (stillOpen) summary.skippedFinalEmailFreshness += 1;
+                  else summary.skippedOutsideDeliveryHours += 1;
+                  await suppressQueuedIntents(queuedCandidates, stillOpen ? "stale_at_final_delivery_boundary" : "outside_member_delivery_window");
                   continue;
                 }
                 messageId = outcome.result.data?.id || null;
@@ -1811,19 +1855,14 @@ export async function deliverPreferenceAlerts(req: Request, options: {
           const baselineDedupeKeys = flattenUnderlyingStableKeys(smsCandidates);
           summary.smsBaselinesCreated += baselineDedupeKeys.length;
           if (!dryRun && baselineDedupeKeys.length) {
+            await persistDurableBaselines(userId, "sms", baselineDedupeKeys);
             await client.users.updateUserMetadata(userId, {
               privateMetadata: {
-                alertDelivery: {
+                alertDelivery: compactClerkAlertDelivery({
+                  ...deliveryMetadata,
                   dedupeIdentityVersion: 2,
-                  recent: deliveryMetadata.recent || [],
-                  onSiteBaselineDedupeKeys: deliveryMetadata.onSiteBaselineDedupeKeys || [],
-                  emailBaselineDedupeKeys: deliveryMetadata.emailBaselineDedupeKeys || [],
-                  smsBaselineDedupeKeys: uniqueStrings([...baselineDedupeKeys, ...(deliveryMetadata.smsBaselineDedupeKeys || [])]),
-                  lastOnSiteBaselineAt: deliveryMetadata.lastOnSiteBaselineAt,
-                  lastEmailBaselineAt: deliveryMetadata.lastEmailBaselineAt,
                   lastSmsBaselineAt: now,
-                  lastRunAt: deliveryMetadata.lastRunAt,
-                },
+                }),
               },
             });
           }
@@ -1855,6 +1894,10 @@ export async function deliverPreferenceAlerts(req: Request, options: {
 
           for (const selectedCandidate of matchedSmsCandidates) {
             if (summary.smsSent + summary.smsWouldSend >= MAX_SMS_PER_RUN) break;
+            if (!isWithinMemberAlertDeliveryWindow(new Date().toISOString(), alertDeliveryTimeZone)) {
+              summary.skippedOutsideDeliveryHours += 1;
+              break;
+            }
             const selectedStoreLabel = candidateStoreLabel(selectedCandidate);
             const reservation = await reserveQueuedGroup(userId, "sms", selectedCandidate, (child) => ({
               bottle: asString(child.bottle, "Bottle signal"),
@@ -1881,14 +1924,18 @@ export async function deliverPreferenceAlerts(req: Request, options: {
                 // Configuration is preflight, not a failed provider attempt.
                 assertTwilioSmsConfigured();
                 const outcome = await invokeSourceProvider({
-                  validate: async () => await runtimeSourceCandidatesStillValid(enumerateUnderlyingAlertChildren(candidate)) && candidatePassesFreshSmsGuardrails(candidate),
+                  validate: async () => isWithinMemberAlertDeliveryWindow(new Date().toISOString(), alertDeliveryTimeZone)
+                    && await runtimeSourceCandidatesStillValid(enumerateUnderlyingAlertChildren(candidate))
+                    && candidatePassesFreshSmsGuardrails(candidate),
                   send: () => { smsProviderAttempted = true; return sendTwilioSms(phone, smsBodyForCandidate(candidate, storeLabel)); },
                   recordAttempt: at => traceRuntimeSourceCandidates(enumerateUnderlyingAlertChildren(candidate), "provider_attempt", "sms", at),
                   recordFailed: at => traceRuntimeSourceCandidates(enumerateUnderlyingAlertChildren(candidate), "provider_failed", "sms", at),
                 });
                 if (outcome.suppressed) {
-                  summary.skippedFinalSmsFreshness += 1;
-                  await suppressStaleQueuedIntents(queuedCandidates);
+                  const stillOpen = isWithinMemberAlertDeliveryWindow(new Date().toISOString(), alertDeliveryTimeZone);
+                  if (stillOpen) summary.skippedFinalSmsFreshness += 1;
+                  else summary.skippedOutsideDeliveryHours += 1;
+                  await suppressQueuedIntents(queuedCandidates, stillOpen ? "stale_at_final_delivery_boundary" : "outside_member_delivery_window");
                   continue;
                 }
                 messageId = outcome.result.sid;
@@ -1928,17 +1975,15 @@ export async function deliverPreferenceAlerts(req: Request, options: {
         const newSmsDedupeKeys = uniqueStrings(newRecords
           .filter((record) => record.channel === "sms")
           .flatMap((record) => record.underlyingStableKeys || []));
-        const nextAlertDelivery = {
+        const nextAlertDelivery = compactClerkAlertDelivery({
+          ...deliveryMetadata,
           dedupeIdentityVersion: 2,
           recent: nextRecent,
-          onSiteBaselineDedupeKeys: deliveryMetadata.onSiteBaselineDedupeKeys || [],
-          emailBaselineDedupeKeys: uniqueStrings([...newEmailDedupeKeys, ...(deliveryMetadata.emailBaselineDedupeKeys || [])]),
-          smsBaselineDedupeKeys: uniqueStrings([...newSmsDedupeKeys, ...(deliveryMetadata.smsBaselineDedupeKeys || [])]),
           lastOnSiteBaselineAt: deliveryMetadata.lastOnSiteBaselineAt,
           lastEmailBaselineAt: newEmailDedupeKeys.length ? now : deliveryMetadata.lastEmailBaselineAt,
           lastSmsBaselineAt: newSmsDedupeKeys.length ? now : deliveryMetadata.lastSmsBaselineAt,
           lastRunAt: now,
-        };
+        });
         try {
           await client.users.updateUserMetadata(userId, {
             privateMetadata: {
@@ -1948,15 +1993,11 @@ export async function deliverPreferenceAlerts(req: Request, options: {
         } catch (error) {
           const primaryError = error instanceof Error ? error.message : String(error);
           try {
-            // If a long-lived member accumulated oversized legacy private metadata, do not let
-            // that block current delivery bookkeeping. Retain fresh records plus durable baseline
-            // keys so dedupe still protects the member from duplicate sends after compaction.
+            // The durable queue is authoritative. Retry with only the newly accepted
+            // provider records plus the compact identity marker.
             await client.users.updateUserMetadata(userId, {
               privateMetadata: {
-                alertDelivery: {
-                  ...nextAlertDelivery,
-                  recent: nextRecent.slice(0, Math.max(newRecords.length, 50)),
-                },
+                alertDelivery: compactClerkAlertDelivery({ ...nextAlertDelivery, recent: newRecords }),
               },
             });
           } catch (retryError) {
@@ -1982,11 +2023,10 @@ export async function deliverPreferenceAlerts(req: Request, options: {
                   recent: nextOnSiteAlerts,
                   lastSyncedAt: now,
                 },
-                alertDelivery: {
+                alertDelivery: compactClerkAlertDelivery({
                   ...nextAlertDelivery,
-                  onSiteBaselineDedupeKeys: uniqueStrings([...newOnSiteDedupeKeys, ...(deliveryMetadata.onSiteBaselineDedupeKeys || [])]).slice(0, 1000),
                   lastOnSiteBaselineAt: newOnSiteDedupeKeys.length ? now : deliveryMetadata.lastOnSiteBaselineAt,
-                },
+                }),
                 // Record first_alert_created only in the same successful write that commits a real on-site alert.
                 activation: firstAlertCreatedMetadata(privateMetadata, true, now).activation,
               },
@@ -2007,11 +2047,10 @@ export async function deliverPreferenceAlerts(req: Request, options: {
                     lastSyncedAt: now,
                     compactionReason: "onsite_alert_metadata_retry",
                   },
-                  alertDelivery: {
-                  ...nextAlertDelivery,
-                  onSiteBaselineDedupeKeys: uniqueStrings([...newOnSiteDedupeKeys, ...(deliveryMetadata.onSiteBaselineDedupeKeys || [])]).slice(0, 1000),
-                  lastOnSiteBaselineAt: newOnSiteDedupeKeys.length ? now : deliveryMetadata.lastOnSiteBaselineAt,
-                },
+                  alertDelivery: compactClerkAlertDelivery({
+                    ...nextAlertDelivery,
+                    lastOnSiteBaselineAt: newOnSiteDedupeKeys.length ? now : deliveryMetadata.lastOnSiteBaselineAt,
+                  }),
                 // Record first_alert_created only in the same successful write that commits a real on-site alert.
                 activation: firstAlertCreatedMetadata(privateMetadata, true, now).activation,
                 },
