@@ -35,7 +35,7 @@ test("plans a private alertDelivery-only compaction and preserves unrelated meta
   assert.equal(plan.nextPrivateMetadata.alertInbox, privateMetadata.alertInbox);
   assert.equal(plan.nextPrivateMetadata.activation, privateMetadata.activation);
   assert.equal((plan.nextPrivateMetadata.alertDelivery as Record<string, unknown>).dedupeIdentityVersion, 2);
-  assert.equal("emailBaselineDedupeKeys" in (plan.nextPrivateMetadata.alertDelivery as Record<string, unknown>), false);
+  assert.equal((plan.nextPrivateMetadata.alertDelivery as Record<string, unknown>).emailBaselineDedupeKeys, null);
   assert.equal(plan.unrelatedPrivateHashBefore, plan.unrelatedPrivateHashAfter);
   assert.ok(plan.privateBytesAfter < plan.privateBytesBefore);
 });

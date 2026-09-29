@@ -33,9 +33,9 @@ test("compacts Clerk alert delivery to a bounded operational tail", () => {
   });
 
   assert.equal(compacted.dedupeIdentityVersion, 2);
-  assert.equal("onSiteBaselineDedupeKeys" in compacted, false);
-  assert.equal("emailBaselineDedupeKeys" in compacted, false);
-  assert.equal("smsBaselineDedupeKeys" in compacted, false);
+  assert.equal(compacted.onSiteBaselineDedupeKeys, null);
+  assert.equal(compacted.emailBaselineDedupeKeys, null);
+  assert.equal(compacted.smsBaselineDedupeKeys, null);
   assert.ok(Array.isArray(compacted.recent));
   assert.ok((compacted.recent as unknown[]).length > 0);
   assert.equal((compacted.recent as Array<{ dedupeKey: string }>)[0].dedupeKey, deliveryRecord(0).dedupeKey);
@@ -47,7 +47,13 @@ test("returns a minimal v2 marker when history cannot fit the target", () => {
   const compacted = compactClerkAlertDelivery({
     recent: [{ ...deliveryRecord(1), dedupeKey: "x".repeat(10_000) }],
   });
-  assert.deepEqual(compacted, { dedupeIdentityVersion: 2, durableBaselineVersion: 1 });
+  assert.deepEqual(compacted, {
+    dedupeIdentityVersion: 2,
+    durableBaselineVersion: 1,
+    onSiteBaselineDedupeKeys: null,
+    emailBaselineDedupeKeys: null,
+    smsBaselineDedupeKeys: null,
+  });
   assert.ok(jsonUtf8Bytes(compacted) <= CLERK_ALERT_DELIVERY_TARGET_BYTES);
 });
 
