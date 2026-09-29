@@ -56,7 +56,13 @@ export function jsonUtf8Bytes(value: unknown) {
 
 export function compactClerkAlertDelivery(input: unknown): JsonRecord {
   const source = record(input);
-  const base: JsonRecord = { dedupeIdentityVersion: 2, durableBaselineVersion: 1 };
+  const base: JsonRecord = {
+    dedupeIdentityVersion: 2,
+    durableBaselineVersion: 1,
+    onSiteBaselineDedupeKeys: null,
+    emailBaselineDedupeKeys: null,
+    smsBaselineDedupeKeys: null,
+  };
   for (const field of ["lastOnSiteBaselineAt", "lastEmailBaselineAt", "lastSmsBaselineAt", "lastRunAt"] as const) {
     const value = timestamp(source[field]);
     if (value) base[field] = value;

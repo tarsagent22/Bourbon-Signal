@@ -53,8 +53,8 @@ test('v2 migration baselines legacy and current matching identities before sendi
   assert.equal(result.sendCurrentPass, false);
   assert.deepEqual(baselines, ['email:legacy-group', 'onSite:A', 'onSite:B', 'email:A']);
   assert.equal(persisted?.dedupeIdentityVersion, 2);
-  assert.equal('onSiteBaselineDedupeKeys' in (persisted || {}), false, 'durable baseline identities must not be duplicated into Clerk');
-  assert.equal('emailBaselineDedupeKeys' in (persisted || {}), false, 'durable baseline identities must not be duplicated into Clerk');
+  assert.equal(persisted?.onSiteBaselineDedupeKeys, null, 'legacy Clerk arrays must be tombstoned after durable import');
+  assert.equal(persisted?.emailBaselineDedupeKeys, null, 'legacy Clerk arrays must be tombstoned after durable import');
   assert.equal(JSON.stringify(persisted).includes('future-sms-key'), false, 'disabled channels and future keys must not be baselined');
 });
 
@@ -103,7 +103,7 @@ test('existing v2 metadata imports legacy Clerk baseline arrays before compactin
   assert.equal(result.migrated, true);
   assert.equal(result.sendCurrentPass, false);
   assert.deepEqual(baselines.sort(), ['group-a', 'legacy-a', 'legacy-b']);
-  assert.equal('emailBaselineDedupeKeys' in persisted, false);
+  assert.equal(persisted.emailBaselineDedupeKeys, null);
 });
 
 test('migration preserves the full durable baseline set while keeping Clerk metadata bounded', async () => {
@@ -115,6 +115,6 @@ test('migration preserves the full durable baseline set while keeping Clerk meta
     createdAt: '2026-07-10T15:00:00.000Z', baseline: async ({ stableMatchKey }) => { baselines.push(stableMatchKey); }, persist: async (next) => { persisted = next; },
   });
   assert.deepEqual(baselines, keys);
-  assert.equal('emailBaselineDedupeKeys' in persisted, false);
+  assert.equal(persisted.emailBaselineDedupeKeys, null);
   assert.ok(Buffer.byteLength(JSON.stringify(persisted), 'utf8') <= 3072);
 });
