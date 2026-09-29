@@ -13,6 +13,7 @@ import {
 } from "@/lib/notification-preferences";
 import { geographyState } from "@/lib/geography-directory";
 import {
+  compactMonitoringScopesForMetadata,
   legacyAreaPreferencesFromScopes,
   monitoringScopesFromPreferences,
   normalizeMonitoringScopes,
@@ -673,7 +674,7 @@ export async function POST(req: NextRequest) {
   });
   if (payload.areaPreferences !== undefined || payload.monitoringScopes !== undefined) {
     publicMetadataPatch.areaPreferences = areaPreferences;
-    publicMetadataPatch.monitoringScopes = monitoringScopes;
+    publicMetadataPatch.monitoringScopes = compactMonitoringScopesForMetadata(areaPreferences, monitoringScopes);
   }
   delete publicMetadataPatch.collectionPreferences;
   if (watchlistWrite) publicMetadataPatch.bottleAlertPreferences = bottleAlertPreferences;

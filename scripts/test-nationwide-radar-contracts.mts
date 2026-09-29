@@ -67,10 +67,11 @@ test("referral, push, geography, and native UI source contracts are additive", (
   assert.match(radar, /levelScroller:\s*\{[^}]*flexGrow:\s*0[^}]*maxHeight:/);
   assert.match(radar, /pinnedActions:\s*\{[^}]*flexDirection:\s*"row"/);
   assert.match(radar, /compactMonitoringScopes/);
-  assert.match(radar, /showPushDetails/);
+  assert.match(radar, /const pushPresentation = radarPushState/);
+  assert.match(radar, /const pushRecoveryAction: PushRecoveryAction = pushPresentation\.action/);
   assert.match(radar, /input:\s*\{[^}]*fontSize:\s*16/);
   assert.match(radar, /automaticallyAdjustKeyboardInsets=\{Platform\.OS === "ios"\}/);
-  assert.match(radar, /nextPush\?\.warning/);
+  assert.match(radar, /resolvedPush\.warning/);
   assert.match(radar, /try \{\s+const \[deviceId, permission\]/);
   assert.doesNotMatch(radar, /message:\s*caught instanceof Error \? caught\.message/);
   assert.doesNotMatch(pushRegistration, /throw new Error\(status\.warning\?\.message/);

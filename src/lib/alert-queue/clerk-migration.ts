@@ -1,4 +1,5 @@
 import type { AlertBaselineInput, AlertChannel } from "./repository";
+import { compactClerkAlertDelivery } from "./clerk-alert-metadata";
 
 type JsonRecord = Record<string, unknown>;
 
@@ -53,12 +54,6 @@ export function extractClerkAlertBaselines(
   }));
 }
 
-const baselineFieldByChannel: Record<AlertChannel, string> = {
-  onSite: "onSiteBaselineDedupeKeys",
-  email: "emailBaselineDedupeKeys",
-  sms: "smsBaselineDedupeKeys",
-};
-
 export async function ensureAlertDeliveryIdentityV2(input: {
   userId: string;
   alertDelivery: unknown;
@@ -69,7 +64,16 @@ export async function ensureAlertDeliveryIdentityV2(input: {
   persist: (nextAlertDelivery: JsonRecord) => Promise<void>;
 }) {
   const existing = record(input.alertDelivery);
-  if (existing.dedupeIdentityVersion === 2) {
+  const legacyBaselines = extractClerkAlertBaselines(input.userId, { alertDelivery: existing }, input.createdAt);
+  const hasLegacyArrays = strings(existing.onSiteBaselineDedupeKeys).length > 0
+    || strings(existing.emailBaselineDedupeKeys).length > 0
+    || strings(existing.smsBaselineDedupeKeys).length > 0;
+  if (existing.dedupeIdentityVersion === 2
+    && existing.durableBaselineVersion === 1
+    && !hasLegacyArrays) {
+    return { migrated: false, sendCurrentPass: true } as const;
+  }
+  if (existing.dedupeIdentityVersion === 2 && legacyBaselines.length === 0 && !hasLegacyArrays) {
     return { migrated: false, sendCurrentPass: true } as const;
   }
 
@@ -80,19 +84,25 @@ export async function ensureAlertDeliveryIdentityV2(input: {
   }
 
   try {
-    for (const channel of enabledChannels) {
-      for (const stableMatchKey of stableKeys.get(channel) || []) {
-        await input.baseline({ userId: input.userId, channel, stableMatchKey, createdAt: input.createdAt });
+    const baselines = new Map<string, AlertBaselineInput>();
+    for (const baseline of legacyBaselines) {
+      baselines.set(`${baseline.channel}\u001f${baseline.stableMatchKey}`, baseline);
+    }
+    if (existing.dedupeIdentityVersion !== 2) {
+      for (const channel of enabledChannels) {
+        for (const stableMatchKey of stableKeys.get(channel) || []) {
+          const baseline = { userId: input.userId, channel, stableMatchKey, createdAt: input.createdAt };
+          baselines.set(`${channel}\u001f${stableMatchKey}`, baseline);
+        }
       }
     }
-    const nextAlertDelivery: JsonRecord = { ...existing, dedupeIdentityVersion: 2 };
-    for (const channel of enabledChannels) {
-      const field = baselineFieldByChannel[channel];
-      nextAlertDelivery[field] = Array.from(new Set([
-        ...strings(existing[field]),
-        ...(stableKeys.get(channel) || []),
-      ]));
+    for (const baseline of baselines.values()) {
+      await input.baseline(baseline);
     }
+    // Complete baseline identity belongs in the durable queue. Clerk keeps only a
+    // bounded operational tail and the migration marker so normal future writes
+    // cannot exceed the provider's metadata namespace limit.
+    const nextAlertDelivery = compactClerkAlertDelivery({ ...existing, dedupeIdentityVersion: 2, durableBaselineVersion: 1 });
     await input.persist(nextAlertDelivery);
     return { migrated: true, sendCurrentPass: false } as const;
   } catch (error) {

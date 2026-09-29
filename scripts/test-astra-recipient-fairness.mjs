@@ -15,6 +15,7 @@ function fixture(users, overrides = {}) {
   const pollModes = [], demandCalls = [];
   const repository = {
     acquireLease: async () => true, releaseLease: async () => {},
+    registerSnapshot: async () => {}, recoverStaleClaims: async () => 0,
     readRecipientCursor: async () => cursor,
     writeRecipientCursor: async (offset) => { cursor = offset; },
   };
@@ -37,12 +38,13 @@ function fixture(users, overrides = {}) {
     asString: value => typeof value === 'string' ? value : '',
     getServerEntitlements: async metadata => ({ tier: metadata.paid ? 'standard' : 'free' }),
     normalizeNotificationPreferences: () => ({ push: { enabled: false } }), normalizePendingExpoPushTickets: () => [],
+    normalizeAlertDeliveryTimeZone: () => 'UTC', alertDeliveryWindowStatus: () => ({ open: true, reason: 'open', localHour: 12 }), isWithinMemberAlertDeliveryWindow: () => true, compactClerkAlertDelivery: value => value,
     isolatePushChannelFailure: async (_stage, operation, report) => { try { await operation(); return true; } catch (error) { report(String(error)); return false; } },
     normalizeAreaPrefs: () => ({}), hasSavedAreaPreferences: () => false,
   };
   const vmContext = vm.createContext({ ...context, ...overrides });
   vm.runInContext(compiled, vmContext);
-  return { run: async (options = {}) => { const result = await vmContext.deliverPreferenceAlerts({}, options); seen.push(result); return result; }, seen, repository, pollModes, demandCalls, get cursor() { return cursor; } };
+  return { run: async (options = {}) => { const result = await vmContext.deliverPreferenceAlerts({}, { queueMode: 'active', ...options }); seen.push(result); return result; }, seen, repository, pollModes, demandCalls, get cursor() { return cursor; } };
 }
 test('a zero or invalid paid-recipient budget cannot enable delivery', () => {
   const declarations = source.slice(source.indexOf('const MAX_RECENT_DELIVERIES_PER_USER'), source.indexOf('const MAX_EMAILS_PER_RUN'));
@@ -93,7 +95,7 @@ test('another scan owner blocks enumeration without modifying continuation', asy
   assert.equal(f.cursor, 0);
 });
 test('missing durable storage fails closed for live delivery', async () => {
-  const f = fixture([], { alertQueueDatabaseConfigured: () => false });
+  const f = fixture([], { alertQueueDatabaseConfigured: () => false, createProductionAlertQueueRepository: () => null });
   const result = await f.run();
   assert.equal(result.ok, false);
   assert.equal(result.deliveryDisabled, true);

@@ -285,3 +285,36 @@ test('R4 onsite terminal trace follows actual inbox success, not failed metadata
     assert.equal((await repo.sql.query("SELECT * FROM source_lane_trace WHERE stage='onsite_committed'")).rows.length,fail?0:1);
   }
 });
+
+test('live delivery fails closed when the durable queue is not active', async t => {
+  const {repo,at,policy,poll}=await setup(t);await poll(0,0);await poll(1,3);
+  const candidates=(await lane.readSourceLaneCandidates(repo,[],policy(1),true,at(1))).slice(0,1);
+  const f=deliveryFixture(candidates,lane,{},'email');
+  await assert.rejects(()=>f.run({queueMode:'off'}),/active mode is required/i);
+  assert.equal(f.sends.length,0);
+});
+
+test('on-site delivery rechecks the member window after delayed source validation', async t => {
+  const {repo,at,policy,poll}=await setup(t);await poll(0,0);await poll(1,3);
+  const candidates=(await lane.readSourceLaneCandidates(repo,[],policy(1),true,at(1))).slice(0,1);
+  const f=deliveryFixture(candidates,lane,{},'onSite');
+  let windowOpen=true;
+  f.context.isWithinMemberAlertDeliveryWindow=()=>windowOpen;
+  f.context.runtimeSourceCandidatesStillValid=async()=>{windowOpen=false;return true;};
+  const result=await f.run({queueMode:'active'});
+  assert.equal(result.onSiteAlertsCreated,0);
+  assert.equal(f.events.includes('inbox'),false);
+  assert.ok(result.skippedOutsideDeliveryHours>=1);
+});
+
+test('already-v2 legacy identities are imported durably before live delivery continues',async t=>{
+  const {repo,at,policy,poll}=await setup(t);await poll(0,0);await poll(1,3);
+  const candidates=(await lane.readSourceLaneCandidates(repo,[],policy(1),true,at(1))).slice(0,1);
+  const f=deliveryFixture(candidates,lane,{},'email');
+  f.user.privateMetadata.alertDelivery={dedupeIdentityVersion:2,emailBaselineDedupeKeys:['legacy-email-key'],recent:[]};
+  const result=await f.run({queueMode:'active'});
+  assert.equal(result.emailsSent,0);
+  assert.equal(f.sends.length,0);
+  assert.ok(f.events.includes('baseline:email:legacy-email-key'));
+  assert.equal((f.user.privateMetadata.alertDelivery as Record<string,unknown>).durableBaselineVersion,1);
+});

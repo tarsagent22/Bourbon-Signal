@@ -28,9 +28,9 @@ await sql.transaction((txn) => [
   `),
   txn.query(`
     insert into alert_queue_migrations (version)
-    values ($1), ($2), ($3), ($4)
+    values ($1), ($2), ($3), ($4), ($5)
     on conflict (version) do nothing
-  `, ['alert-queue-v3-member-leases', 'alert-queue-v4-recipient-cursor', 'alert-queue-v5-push-outbox', 'alert-queue-v6-push-receipts']),
+  `, ['alert-queue-v3-member-leases', 'alert-queue-v4-recipient-cursor', 'alert-queue-v5-push-outbox', 'alert-queue-v6-push-receipts', 'alert-queue-v7-clerk-metadata-capacity-backups']),
 ]);
 
 const verification = await sql.query(`
@@ -64,9 +64,17 @@ const cursorColumns = await sql.query(`
 `);
 if (cursorColumns.length !== 3) throw new Error('Recipient cursor schema verification failed.');
 
+const backupColumns = await sql.query(`
+  select column_name from information_schema.columns
+  where table_schema = 'public' and table_name = 'clerk_alert_metadata_backups'
+    and column_name in ('private_metadata', 'public_metadata', 'private_metadata_hash', 'public_metadata_hash')
+`);
+if (backupColumns.length !== 4) throw new Error('Clerk metadata capacity backup schema verification failed.');
+
 console.log(JSON.stringify({
   ok: true,
-  migration: 'alert-queue-v4-recipient-cursor',
+  migration: 'alert-queue-v7-clerk-metadata-capacity-backups',
   recipientCursorVerified: true,
+  clerkMetadataCapacityBackupVerified: true,
   tables,
 }, null, 2));

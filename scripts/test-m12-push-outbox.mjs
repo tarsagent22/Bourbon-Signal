@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
+import { createHash } from 'node:crypto';
 import vm from 'node:vm';
 import test from 'node:test';
 import ts from 'typescript';
@@ -147,16 +148,27 @@ const providerCode = ts.transpile(laneSource.slice(laneSource.indexOf('export as
 async function callerFixture() {
   const userId=`caller-${++id}`;
   const prefs={push:{enabled:true},onSite:{enabled:true},email:{enabled:false},sms:{enabled:false},sightings:{enabled:true},rarityTiers:['allocated']};
-  const user={id:userId,publicMetadata:{paid:true,notificationPreferences:prefs,areaPreferences:{saved:true},bottleAlertPreferences:{}},privateMetadata:{alertDelivery:{dedupeIdentityVersion:2,recent:[]},pushDevices:['live-v1']}};
+  const user={id:userId,publicMetadata:{paid:true,notificationPreferences:prefs,areaPreferences:{saved:true},bottleAlertPreferences:{}},privateMetadata:{lifecycleTimeZone:'UTC',alertDelivery:{dedupeIdentityVersion:2,recent:[]},pushDevices:['live-v1']}};
   let sends=0,inboxes=0,reads=0,failAfterInbox=false;
   const candidate={eligibleForDelivery:true,bottle:'Bottle',tier:'allocated',signalAt:new Date().toISOString(),key:'episode',dedupeKey:'group',sourceType:'engine'};
+  const queueCandidates=new Map();let queueCandidateId=0;
   const queue={
     acquireLease:async(key,owner,_at,expires)=>{const r=await sql.query(`insert into alert_delivery_leases values ($1,$2,$3) on conflict (lease_key) do update set owner=excluded.owner,expires_at=excluded.expires_at where alert_delivery_leases.expires_at<=now() returning lease_key`,[key,owner,expires]);return !!r.rows.length;},
     releaseLease:async(key,owner)=>{await sql.query('delete from alert_delivery_leases where lease_key=$1 and owner=$2',[key,owner]);},
-    registerSnapshot:async()=>{},readRecipientCursor:async()=>0,writeRecipientCursor:async()=>{},
+    registerSnapshot:async()=>{},readRecipientCursor:async()=>0,writeRecipientCursor:async()=>{},recoverStaleClaims:async()=>0,
+    reserveBatch:async(input,workerId,claimedAt,claim)=>{
+      if(!claim)return [];
+      const claimed=[];
+      for(const child of input.children){const key=`${input.userId}:${input.channel}:${child.stableMatchKey}`;if(queueCandidates.has(key))continue;
+        const row={...input,...child,id:`queue-${++queueCandidateId}`,status:'claimed',claimedBy:workerId,claimedAt};queueCandidates.set(key,row);claimed.push(row);}
+      return claimed;
+    },
+    baseline:async()=>{},
+    markBatchDelivered:async(ids,_providerMessageId,deliveredAt)=>{for(const row of queueCandidates.values())if(ids.includes(row.id)){row.status='delivered';row.deliveredAt=deliveredAt;}},
+    markBatchFailed:async(ids,errorCode,_failedAt,retryAt)=>{for(const row of queueCandidates.values())if(ids.includes(row.id)){row.status=retryAt?'pending':'failed';row.lastErrorCode=errorCode;row.nextAttemptAt=retryAt;}},
   };
   const context={
-    process:{env:{}},Date,Set,Map,Math,Number,String,
+    process:{env:{}},Date,Set,Map,Math,Number,String,createHash,
     // This fixture exercises the existing non-source-lane push path. Preserve
     // the real final provider boundary, while keeping new source I/O isolated.
     pollRuntimeSourceLanes:async()=>{},traceRuntimeSourceCandidates:async()=>{},persistRuntimeSourceDemand:async()=>{},
@@ -169,6 +181,7 @@ async function callerFixture() {
     ALERT_DELIVERY_ENABLED:true,ALERT_ONSITE_DELIVERY_ENABLED:true,ALERT_EMAIL_DELIVERY_ENABLED:false,ALERT_SMS_DELIVERY_ENABLED:false,
     MAX_DELIVERY_USERS:10,MAX_RECIPIENT_SCAN_USERS:100,MAX_ONSITE_ALERTS_PER_USER:1,CANDIDATE_POOL_PER_USER:25,MAX_RECENT_DELIVERIES_PER_USER:250,MAX_RECENT_ONSITE_ALERTS_PER_USER:100,
     alertQueueDatabaseConfigured:()=>true,createProductionAlertQueueRepository:()=>queue,createProductionPushOutbox:()=>repo,drainPushOutbox,
+    reserveAlertDeliveryBatch:async(repository,input,options)=>({claimed:await repository.reserveBatch(input,options.workerId,options.now,options.mode==='active')}),
     isolatePushChannelFailure:async(_stage,operation,report)=>{try{await operation();return true;}catch(error){report(`push failed: ${error instanceof Error?error.message:String(error)}`);return false;}},
     randomUUID:()=>`worker-${++id}`,getResendClient:()=>null,
     clerkClient:async()=>({users:{getUser:async()=>{reads++;return structuredClone(user);},updateUserMetadata:async(_id,patch)=>{if(failAfterInbox&&inboxes)throw Error('failure after inbox success');if(patch.privateMetadata?.alertInbox)inboxes++;Object.assign(user.privateMetadata,structuredClone(patch.privateMetadata||{}));}}}),
@@ -176,22 +189,34 @@ async function callerFixture() {
     getServerEntitlements:async pub=>({tier:pub.paid?'standard':'free',canReceiveSightingsAlerts:true}),
     normalizeNotificationPreferences:v=>v,normalizeAreaPrefs:v=>v,hasSavedAreaPreferences:v=>v?.saved,
     normalizeBottleAlertPreferences:v=>({bottleNames:[],bottleKeys:[],...v}),normalizeDeliveryMetadata:v=>v,normalizeAlertInboxMetadata:v=>v||{recent:[]},normalizePendingExpoPushTickets:()=>[],
+    normalizeAlertDeliveryTimeZone:()=> 'UTC',alertDeliveryWindowStatus:()=>({open:true,reason:'open',localHour:12}),isWithinMemberAlertDeliveryWindow:()=>true,
+    compactClerkAlertDelivery:v=>v,ensureAlertDeliveryIdentityV2:async()=>({migrated:false,sendCurrentPass:true}),
     pushPreferenceProjectionAllowsDelivery:v=>v?.status!=='pending',
-    groupCandidatesByLocation:cs=>cs,enumerateUnderlyingAlertChildren:c=>[c],stableUnderlyingAlertKey:c=>c.key,
+    candidatePassesFreshEmailGuardrails:()=>true,candidatePassesFreshSmsGuardrails:()=>true,
+    groupCandidatesByLocation:cs=>cs,enumerateUnderlyingAlertChildren:c=>[c],stableUnderlyingAlertKey:c=>c.key,candidateLocationGroupKey:()=> 'location',candidateWithUnderlyingChildren:(candidate,children)=>children.length?candidate:null,
     alertRarityIsSelected:(tier,tiers)=>tiers.includes(tier),candidateMatchesArea:(_c,areas)=>areas.saved,candidateMatchesBottlePrefs:(_c,_mode,bottles)=>!bottles.deny,
     sortCandidatesForMember:()=>0,selectUnseenCandidate:(c,seen,legacy)=>seen.has(c.key)||legacy.has(c.dedupeKey)?null:c,
     candidateStoreLabel:()=> 'Store',candidateToMemberAlert:(_u,c,now)=>({id:`alert-${now}`,dedupeKey:c.dedupeKey,underlyingStableKeys:[c.key],bottleName:c.bottle,storeLabel:'Store',matchedArea:'Area',signalAt:c.signalAt,freshnessLimitHours:2}),
-    memberAlertPassesFinalFreshness:()=>true,uniqueStrings:values=>[...new Set(values)],firstAlertCreatedMetadata:()=>({activation:{}}),primaryEmailForUser:()=>'',
+    memberAlertPassesFinalFreshness:alert=>Date.now()-Date.parse(alert.signalAt)<alert.freshnessLimitHours*3600000,uniqueStrings:values=>[...new Set(values)],recentDeliverySet:()=>new Set(),recentUnderlyingDeliverySet:()=>new Set(),underlyingStableKeys:c=>[c.key],flattenUnderlyingStableKeys:cs=>cs.map(c=>c.key),firstAlertCreatedMetadata:()=>({activation:{}}),primaryEmailForUser:()=>'',
     ownedPushDevices:async(_u,devices)=>devices,enabledPushTokens:devices=>devices.length?['ExpoPushToken[aaaaaaaaaaaa]']:[],buildExpoPushMessages,
     durablePushTicketBindings:(_devices,tickets)=>tickets.map(ticket=>({ticketId:ticket.id,tokenHash:'a'.repeat(64),installationHash:'b'.repeat(64),bindingId:'caller-generation'})),
     sendOwnedExpoPushMessages:async(_u,devices)=>{sends++;assert.deepEqual(devices,sends===1?['live-v1']:['live-v2']);return sends===1?result(0,1):result(1,0);},
     disablePushTokens:d=>d,
   };
   const ctx=vm.createContext(context);vm.runInContext(providerCode,ctx);vm.runInContext(deliveryCode,ctx);
-  return {user,candidate,context:ctx,run:options=>ctx.deliverPreferenceAlerts({},options),get sends(){return sends;},get inboxes(){return inboxes;},get reads(){return reads;},set failAfterInbox(v){failAfterInbox=v;},
+  return {user,candidate,context:ctx,run:options=>ctx.deliverPreferenceAlerts({}, {queueMode:'active',...(options||{})}),get sends(){return sends;},get inboxes(){return inboxes;},get reads(){return reads;},set failAfterInbox(v){failAfterInbox=v;},
     due:()=>sql.query("update alert_push_outbox set next_attempt_at=now()-interval '1 second' where user_id=$1",[userId]),
     state:async()=>(await sql.query('select * from alert_push_outbox where user_id=$1',[userId])).rows[0]};
 }
+test('actual caller: recipient quiet hours suppress inbox, push, email and SMS work',async()=>{
+  const f=await callerFixture();
+  f.context.alertDeliveryWindowStatus=()=>({open:false,reason:'outside_delivery_hours',localHour:2});
+  f.context.isWithinMemberAlertDeliveryWindow=()=>false;
+  const result=await f.run();
+  assert.equal(result.onSiteAlertsCreated,0);assert.equal(result.pushNotificationsSent,0);assert.equal(result.emailsSent,0);assert.equal(result.smsSent,0);
+  assert.equal(result.skippedOutsideDeliveryHours,1);assert.equal(f.inboxes,0);assert.equal(f.sends,0);assert.equal(await f.state(),undefined);
+});
+
 test('actual caller: inbox succeeds, known rejection, second run sends only push with current devices',async()=>{
   const f=await callerFixture();const first=await f.run();assert.equal(first.onSiteAlertsCreated,1);assert.equal(f.inboxes,1);assert.equal(f.sends,1);
   assert.equal((await f.state()).status,'pending');f.user.privateMetadata.pushDevices=['live-v2'];await f.due();
