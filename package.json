@@ -233,7 +233,7 @@
   "overrides": {
     "ws": "8.21.0",
     "@humanfs/node": "0.16.8",
-    "fast-uri": "3.1.6",
+    "fast-uri": "3.1.8",
     "fflate": "0.8.3",
     "nanoid": "3.3.18",
     "next": {
