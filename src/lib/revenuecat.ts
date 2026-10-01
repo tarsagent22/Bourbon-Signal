@@ -1,6 +1,6 @@
 import { timingSafeEqual } from "node:crypto";
 import {
-  APPLE_MEMBERSHIP_PRODUCT_IDS,
+  APPLE_MEMBERSHIP_SELLABLE_PRODUCT_IDS,
   AppleMembershipError,
   appleMembershipAccessTier,
   appleMembershipPlanForProduct,
@@ -10,6 +10,7 @@ import {
   type AppleMembershipSnapshot,
   type AppleMembershipStatus,
 } from "./apple-membership.ts";
+import type { AppleTransactionLookup } from "./apple-transaction-verifier.ts";
 
 export type RevenueCatConfigurationBlocker =
   | "server_credentials_missing"
@@ -47,15 +48,18 @@ function latestTimestamp(values: Array<string | null>) {
 }
 
 function sameProductSet(configured: string[]) {
-  return configured.length === APPLE_MEMBERSHIP_PRODUCT_IDS.length
+  return configured.length === APPLE_MEMBERSHIP_SELLABLE_PRODUCT_IDS.length
     && new Set(configured).size === configured.length
-    && APPLE_MEMBERSHIP_PRODUCT_IDS.every((productId) => configured.includes(productId));
+    && APPLE_MEMBERSHIP_SELLABLE_PRODUCT_IDS.every((productId) => configured.includes(productId));
 }
 
 export function revenueCatConfiguration(env: Environment = process.env): RevenueCatConfiguration {
   const apiKey = env.REVENUECAT_SERVER_API_KEY?.trim() || "";
   const webhookSecret = env.REVENUECAT_WEBHOOK_SECRET?.trim() || "";
   if (!apiKey || !webhookSecret) return { ready: false, blocker: "server_credentials_missing" };
+  if (!env.APPLE_IAP_PRIVATE_KEY?.trim() || !env.APPLE_IAP_KEY_ID?.trim() || !env.APPLE_IAP_ISSUER_ID?.trim()) {
+    return { ready: false, blocker: "server_credentials_missing" };
+  }
   const configuredProducts = (env.REVENUECAT_APPLE_PRODUCT_IDS || "").split(",").map((value) => value.trim()).filter(Boolean);
   if (!sameProductSet(configuredProducts)) return { ready: false, blocker: "products_not_configured" };
   if (env.REVENUECAT_APPLE_TRIAL_POLICY?.trim() !== "intro_offers_disabled") {
@@ -153,6 +157,7 @@ export function createRevenueCatSubscriberFetcher(input: {
   apiKey: string;
   fetchImpl?: typeof fetch;
   baseUrl?: string;
+  verifyAppleTransaction?: (input: AppleTransactionLookup) => Promise<{ originalTransactionId: string; revokedAt?: number }>;
 }) {
   const fetchImpl = input.fetchImpl || fetch;
   const baseUrl = (input.baseUrl || "https://api.revenuecat.com/v1").replace(/\/$/, "");
@@ -171,6 +176,30 @@ export function createRevenueCatSubscriberFetcher(input: {
       throw new AppleMembershipError("PROVIDER_UNAVAILABLE", "RevenueCat subscription verification is temporarily unavailable.");
     }
     const payload = await response.json().catch(() => null);
+    const subscriber = record(record(payload)?.subscriber);
+    if (subscriber && input.verifyAppleTransaction) {
+      if (stringValue(subscriber.original_app_user_id) !== clerkUserId) {
+        throw new AppleMembershipError("PURCHASE_OWNED_BY_ANOTHER_ACCOUNT", "RevenueCat subscriber owner does not match the authenticated account.");
+      }
+      const subscriptions = record(subscriber.subscriptions);
+      for (const [productId, value] of Object.entries(subscriptions || {})) {
+        const subscription = record(value);
+        if (!isAppleMembershipProductId(productId) || !subscription || subscription.store !== "app_store"
+          || typeof subscription.is_sandbox !== "boolean") {
+          throw new AppleMembershipError("PRODUCT_NOT_ALLOWED", "RevenueCat returned a subscription outside the Apple membership catalog.");
+        }
+        const rawId = subscription.store_transaction_id;
+        const transactionId = typeof rawId === "number" && Number.isSafeInteger(rawId) ? String(rawId) : stringValue(rawId);
+        if (!/^\d+$/.test(transactionId)) throw new AppleMembershipError("PROVIDER_RESPONSE_INVALID", "RevenueCat omitted the Apple store transaction identifier.");
+        const verified = await input.verifyAppleTransaction({ transactionId, productId, environment: subscription.is_sandbox ? "sandbox" : "production" });
+        const claimedOriginal = stringValue(subscription.original_transaction_id || subscription.original_transaction_identifier);
+        if (claimedOriginal && claimedOriginal !== verified.originalTransactionId) {
+          throw new AppleMembershipError("PROVIDER_RESPONSE_INVALID", "RevenueCat and Apple transaction ownership disagree.");
+        }
+        subscription.original_transaction_id = verified.originalTransactionId;
+        if (verified.revokedAt !== undefined) subscription.revoked_at = new Date(verified.revokedAt).toISOString();
+      }
+    }
     return normalizeRevenueCatSubscriber(clerkUserId, payload);
   };
 }
@@ -193,6 +222,7 @@ export function createRevenueCatWebhookHandler(input: {
     }
     const body = record(await request.json().catch(() => null));
     const event = record(body?.event);
+    if (event?.type === "TEST") return Response.json({ received: true, outcome: "test" });
     const providerEventId = stringValue(event?.id);
     const clerkUserId = stringValue(event?.app_user_id);
     if (!providerEventId || !clerkUserId || providerEventId.length > 500 || clerkUserId.length > 500) {

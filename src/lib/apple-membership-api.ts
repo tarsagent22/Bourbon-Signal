@@ -1,5 +1,5 @@
 import {
-  APPLE_MEMBERSHIP_PRODUCT_IDS,
+  APPLE_MEMBERSHIP_SELLABLE_PRODUCT_IDS,
   AppleMembershipError,
   applePurchaseAccountBlocker,
   isAppleMembershipProductId,
@@ -86,7 +86,7 @@ export function createAppleMembershipApiHandlers(dependencies: {
         available: !blocker,
         reason: blocker ? "account_ineligible" : "ready",
         ...(blocker ? { blocker } : {}),
-        eligibleProductIds: blocker ? [] : APPLE_MEMBERSHIP_PRODUCT_IDS,
+        eligibleProductIds: blocker ? [] : APPLE_MEMBERSHIP_SELLABLE_PRODUCT_IDS,
         restoreAvailable: !blocker,
         membership: publicMembership(current),
         trialPolicy: "intro_offers_disabled",

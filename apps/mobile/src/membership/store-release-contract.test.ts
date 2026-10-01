@@ -20,9 +20,9 @@ test("production mobile surfaces use canonical customer membership names", () =>
     productionMobileSource(fileURLToPath(new URL("app", root))),
     read("src/membership/membership-plans.ts"),
   ].join("\n");
-  assert.doesNotMatch(source, /Bottle Check|Standard Proof|Barrel Proof|Bottled in Bond|Bottled-in-Bond/);
+  assert.doesNotMatch(source, /Bottle Check|Standard Proof|Bottled in Bond|Bottled-in-Bond/);
   assert.match(source, /name: "Standard"/);
-  assert.match(source, /name: "Barrel"/);
+  assert.match(source, /name: "Barrel Proof"/);
   assert.match(source, /name: "Founder"/);
   assert.match(source, /"bottled-in-bond"/, "the internal Founder entitlement identifier must remain stable");
 });

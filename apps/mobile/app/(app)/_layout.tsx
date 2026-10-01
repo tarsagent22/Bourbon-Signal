@@ -16,8 +16,8 @@ export default function AppLayout() {
       <Stack.Screen name="account/privacy" options={{ title: "Privacy" }} />
       <Stack.Screen name="account/delete" options={{ title: "Delete account" }} />
       <Stack.Screen name="account/terms" options={{ title: "Terms" }} />
-      <Stack.Screen name="account/membership" options={{ title: "Membership" }} />
-      <Stack.Screen name="account/membership/[tier]" options={{ title: "Review membership" }} />
+      <Stack.Screen name="account/membership" options={{ title: "Membership", headerBackTitle: "Account", headerBackButtonDisplayMode: "minimal" }} />
+      <Stack.Screen name="account/membership/[tier]" options={{ title: "Review membership", headerBackTitle: "Plans", headerBackButtonDisplayMode: "minimal" }} />
     </Stack>
   );
 }

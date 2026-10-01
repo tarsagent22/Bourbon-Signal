@@ -263,7 +263,7 @@ export function createPurchaseCoordinator({
         membership: reconciliation.membership,
         message: tier === "free"
           ? "No active Apple membership was found. Your server-confirmed Free access is unchanged."
-          : `${tier === "bottled-in-bond" ? "Founder" : tier === "barrel" ? "Barrel" : "Standard"} access is confirmed.`,
+          : `${tier === "bottled-in-bond" ? "Founder" : tier === "barrel" ? "Barrel Proof" : "Standard"} access is confirmed.`,
       });
       return state;
     } catch {
