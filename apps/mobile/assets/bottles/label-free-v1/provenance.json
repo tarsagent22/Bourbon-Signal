@@ -1,0 +1,60 @@
+{
+  "study": "Label-free bottle study",
+  "method": "Built-in image generation, five separate requests",
+  "prompt_common": "Use case: product-mockup. Create a newly rendered premium realistic LABEL-FREE whiskey bottle illustration for an app catalog. Input image is a SHAPE REFERENCE ONLY: retain its physical bottle proportions, contour, closure geometry and glass base, but make fresh lighting/reflections and remove ALL label material, logos, words, numbers, printed graphics, etched branding and neck-paper seals. No blank replacement label, no rectangular patches, no ghost lettering. Clear uninterrupted glass exposing physically plausible amber liquid with natural subtle variation, crisp controlled softbox side reflections, restrained premium realism rather than oversaturated orange or fantasy glow. Full bottle upright centered front elevation, slight natural depth, generous padding, 85 percent canvas height. True TRANSPARENT alpha background outside bottle; no backdrop, no exterior halo, no floor, no external shadow, no props. Keep stopper visible. Absolutely no text anywhere. Shape accuracy is more important than decoration.",
+  "assets": [
+    {
+      "file": "bare-eagle.png",
+      "prompt": "Eagle Rare 10 Year physical form: tall slender straight cylindrical body, elongated slim neck, softly rounded narrow shoulders, silver-gray capsule. Keep silver material but remove the star band and all printing. Thick clear glass heel. Slender proportions exactly as shape reference.",
+      "reference": "C:/Users/chand/Documents/Bourbon Signal/original-art-preview/assets/real-eagle.png",
+      "approvedMasterSha256": "9042da0b7d74f3b17fc0c94a63b7f613f42135aaa4164ad376253c539b2a2132",
+      "exportSha256": "cb67ed809123587e6b00c041bcc8a6bd95f8cc416ebd3ea4f8ddd484c0b1938c",
+      "width": 720,
+      "height": 1080,
+      "bytes": 291174
+    },
+    {
+      "file": "bare-taylor.png",
+      "prompt": "E.H. Taylor Small Batch physical form: tall straight round body with long tapered bare clear-glass neck and exposed wooden cork stopper. NO foil wine capsule. Remove red paper tax strip entirely, remove all yellow body paper entirely. Preserve shoulders, neck taper, wood stopper and heavy clear-glass base from reference.",
+      "reference": "C:/Users/chand/Documents/Bourbon Signal/original-art-preview/assets/real-taylor.png",
+      "approvedMasterSha256": "059d19f9fecfc590faba6c57d98ae280d8817c8a8e477cf956c471f7fb836609",
+      "exportSha256": "4a2e626b8af477e5cfdc0ab8d661589c42f8e540e41abbfcc3b13f5dab1a661a",
+      "width": 720,
+      "height": 1080,
+      "bytes": 295967
+    },
+    {
+      "file": "bare-michters.png",
+      "prompt": "Michter's US1 Small Batch physical form: broader round body with smooth rounded shoulders, medium clear-glass neck with small molded glass rings, exposed wooden cork stopper. Remove neck label and black/gold paper strips entirely; leave wood stopper, cork and clear neck. Remove oval body label entirely. Retain rounded internal bottom punt and overall physical geometry.",
+      "reference": "C:/Users/chand/Documents/Bourbon Signal/original-art-preview/assets/real-michters.png",
+      "approvedMasterSha256": "61c631dca35102f88e202ec360b117dcd28bc3b46306c086c7e711d4ae9133b5",
+      "exportSha256": "c7801fdbcd4dc7a917f6c01769d4556a29a7bc858b8f7f93b06b5eb43c3b01f5",
+      "width": 720,
+      "height": 1080,
+      "bytes": 401447
+    },
+    {
+      "file": "bare-stagg.png",
+      "prompt": "Stagg physical form: broad compact straight-sided round bottle, high rounded shoulders, short clear neck, long black capsule with ridged black cap. Keep matte black capsule but remove orange bands and all printing. Remove black body label entirely. Thick clear base and deeper reddish amber liquid. Preserve compact silhouette exactly as shape reference.",
+      "reference": "C:/Users/chand/Documents/Bourbon Signal/original-art-preview/assets/real-stagg.png",
+      "approvedMasterSha256": "b2d16d8286bad28223e043905aefa0f10cf32374e957a86437a7373297924f35",
+      "exportSha256": "ef466d50ef14cbb8685890d75048c27b316b458a2d2e3fc868b1adb1b2a44697",
+      "width": 720,
+      "height": 1080,
+      "bytes": 424891
+    },
+    {
+      "file": "bare-blantons.png",
+      "prompt": "Blanton's Original Single Barrel physical form: squat broad faceted near-globe glass body, polygonal faces, bevelled lower taper, short cylindrical neck, bronze horse-and-rider stopper. Fresh clean symmetrical frontal catalog view (do NOT reproduce photo's scene, perspective, camera angle, lighting or background). Preserve horse/rider recognizable stopper physical form without lettering. Remove all neck and body paper labels, wax medallions, seal strings and embossed letters. Faceted glass and very short broad globe are the focus. Warm amber whiskey.",
+      "reference": "C:/Users/chand/Documents/Bourbon Signal/membership-permissions-review/public/bottles/blanton.jpg",
+      "approvedMasterSha256": "3eda89f7eb48744d4c6ddfd9534f6e8737b99915c2dea9e3cfac4088d5cbb817",
+      "exportSha256": "98fcd170635f7cd85f1b4f30baae686bce9e5cf82a56dfbbccca1361a6e4637d",
+      "width": 720,
+      "height": 960,
+      "bytes": 498983
+    }
+  ],
+  "motion": "Native Animated gentle sway in expanded My Shelf artwork. Static lists and cabinet; reduced-motion and background pause.",
+  "review": "Visual concepts; shape proportions approximate. No legal clearance inferred.",
+  "export": "Lossless PNG encoding after proportional Lanczos downsampling to at most 720x1080. Generated alpha preserved; no recoloring, labels or geometry edits."
+}

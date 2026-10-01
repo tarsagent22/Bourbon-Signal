@@ -4,6 +4,8 @@ import { useBottlePhoto } from "../bottle-photos/native";
 import { groundedPhotoFrame, photoPresentationScale } from "../cellar/photo-presentation";
 import { CellarBottleSilhouette } from "./CellarBottleSilhouette";
 import { resolveCellarBottleArtwork, type CellarBottleIdentity } from "./cellar-bottle-artwork";
+import { resolveLabelFreeBottleArtwork } from './label-free-bottle-artwork';
+import { LabelFreeBottleArtwork } from './LabelFreeBottleArtwork';
 
 const bottleArtwork = {
   "henry-mckenna-10": require("../../assets/bottles/photos/henry-mckenna-10.png"),
@@ -17,6 +19,14 @@ const bottleArtwork = {
 export function CellarBottleArtwork({ bottle, size = "grid" }: {
   bottle: CellarBottleIdentity;
   size?: "grid" | "list";
+}) {
+  const shape = resolveLabelFreeBottleArtwork(bottle);
+  if (shape) return <LabelFreeBottleArtwork shape={shape} size={size} />;
+  return <LegacyBottleArtwork bottle={bottle} size={size} />;
+}
+
+function LegacyBottleArtwork({ bottle, size }: {
+  bottle: CellarBottleIdentity; size: 'grid' | 'list';
 }) {
   const { uri, sha256, blocked } = useBottlePhoto(bottle);
   const frame = (scale: number) => groundedPhotoFrame(size === "grid" ? 80 : 44, size === "grid" ? 116 : 62, scale);
