@@ -18,6 +18,8 @@ import {
 import { buildBourbonDna } from "../../../src/cellar/bourbon-dna";
 import { nextShelfPageSize } from "../../../src/cellar/my-shelf-display";
 import { CellarBottleArtwork } from "../../../src/components/CellarBottleArtwork";
+import { LabelFreeBottleArtwork } from '../../../src/components/LabelFreeBottleArtwork';
+import { resolveLabelFreeBottleArtwork } from '../../../src/components/label-free-bottle-artwork';
 import { CellarGlencairnSilhouette } from "../../../src/components/CellarGlencairnSilhouette";
 import { ShelfCabinet } from "../../../src/components/ShelfCabinet";
 import { CollectionStatisticsSheet } from "../../../src/components/CollectionStatisticsSheet";
@@ -676,6 +678,7 @@ function BottleEditor({ bottle, busy, onClose, onDelete, onInventoryAction, onSa
             <Pressable accessibilityLabel="Save My Shelf details" accessibilityRole="button" accessibilityState={{ disabled: busy || !dirty }} disabled={busy || !dirty} onPress={() => void save()} style={styles.modalTarget}><Text style={[styles.modalAction, (busy || !dirty) && styles.mutedAction]}>{busy ? "Saving…" : "Save"}</Text></Pressable>
           </View>
           <Text style={styles.editorName}>{bottle?.bottleName}</Text>
+          {bottle && resolveLabelFreeBottleArtwork(bottle) ? <View style={{ alignItems: 'center', marginBottom: 12 }}><LabelFreeBottleArtwork key={bottle.bottleId || bottle.bottleName} shape={resolveLabelFreeBottleArtwork(bottle)!} size="detail" /></View> : null}
 
           <Section title="On my shelf">
             <View style={styles.inventoryStateRow}><Text style={styles.inventoryState}>{kind === "owned" ? "Owned" : "Tasted only"}</Text><Text style={styles.fieldHelp}>{inventorySummary}</Text></View>
