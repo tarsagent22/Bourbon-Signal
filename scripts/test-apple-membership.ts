@@ -5,6 +5,7 @@ import { PGlite } from "@electric-sql/pglite";
 
 import {
   APPLE_MEMBERSHIP_PRODUCT_IDS,
+  APPLE_MEMBERSHIP_SELLABLE_PRODUCT_IDS,
   AppleMembershipError,
   appleMembershipAccessTier,
   appleMembershipPlanForProduct,
@@ -19,8 +20,13 @@ import {
 } from "../src/lib/apple-membership.ts";
 import { PostgresAppleMembershipRepository } from "../src/lib/apple-membership-repository.ts";
 import { resolveEffectiveMembershipTier } from "../src/lib/entitlements.ts";
+import { createAppleTransactionVerifier, validateAppleTransaction } from "../src/lib/apple-transaction-verifier.ts";
+import { APPLE_ROOT_CA_G3 } from "../src/lib/apple-root-ca.ts";
+import { createAppleMembershipApiHandlers } from "../src/lib/apple-membership-api.ts";
+import { Environment, SignedDataVerifier } from "@apple/app-store-server-library";
 import {
   createRevenueCatWebhookHandler,
+  createRevenueCatSubscriberFetcher,
   normalizeRevenueCatSubscriber,
   revenueCatConfiguration,
 } from "../src/lib/revenuecat.ts";
@@ -317,12 +323,95 @@ test("Clerk projection retries when Founder, gift, or Stripe authority changes d
   assert.equal(writes[0].publicMetadata?.appleMembershipTier, "standard");
 });
 
-test("configuration is dormant without all server credentials, exact products, and the no-intro-offer attestation", () => {
+test("configuration requires both live monthly products and rejects incomplete or unsupported catalogs", () => {
   assert.deepEqual(revenueCatConfiguration({}), { ready: false, blocker: "server_credentials_missing" });
-  assert.deepEqual(revenueCatConfiguration({ REVENUECAT_SERVER_API_KEY: "configured", REVENUECAT_WEBHOOK_SECRET: "configured" }), { ready: false, blocker: "products_not_configured" });
-  const products = APPLE_MEMBERSHIP_PRODUCT_IDS.join(",");
-  assert.deepEqual(revenueCatConfiguration({ REVENUECAT_SERVER_API_KEY: "configured", REVENUECAT_WEBHOOK_SECRET: "configured", REVENUECAT_APPLE_PRODUCT_IDS: products }), { ready: false, blocker: "storekit_trial_policy_unconfirmed" });
-  assert.equal(revenueCatConfiguration({ REVENUECAT_SERVER_API_KEY: "configured", REVENUECAT_WEBHOOK_SECRET: "configured", REVENUECAT_APPLE_PRODUCT_IDS: products, REVENUECAT_APPLE_TRIAL_POLICY: "intro_offers_disabled" }).ready, true);
+  const server = { REVENUECAT_SERVER_API_KEY: "configured", REVENUECAT_WEBHOOK_SECRET: "configured", APPLE_IAP_PRIVATE_KEY: "configured", APPLE_IAP_KEY_ID: "configured", APPLE_IAP_ISSUER_ID: "configured" };
+  assert.deepEqual(revenueCatConfiguration({ ...server, APPLE_IAP_PRIVATE_KEY: "" }), { ready: false, blocker: "server_credentials_missing" });
+  assert.deepEqual(revenueCatConfiguration(server), { ready: false, blocker: "products_not_configured" });
+  const products = APPLE_MEMBERSHIP_SELLABLE_PRODUCT_IDS.join(",");
+  for (const invalid of [
+    APPLE_MEMBERSHIP_SELLABLE_PRODUCT_IDS[0],
+    `${products},${APPLE_MEMBERSHIP_SELLABLE_PRODUCT_IDS[0]}`,
+    APPLE_MEMBERSHIP_PRODUCT_IDS.join(","),
+    `${products},com.bourbonsignal.app.founder.lifetime`,
+  ]) {
+    assert.deepEqual(revenueCatConfiguration({ ...server, REVENUECAT_APPLE_PRODUCT_IDS: invalid, REVENUECAT_APPLE_TRIAL_POLICY: "intro_offers_disabled" }), { ready: false, blocker: "products_not_configured" });
+  }
+  assert.deepEqual(revenueCatConfiguration({ ...server, REVENUECAT_APPLE_PRODUCT_IDS: products }), { ready: false, blocker: "storekit_trial_policy_unconfirmed" });
+  assert.equal(revenueCatConfiguration({ ...server, REVENUECAT_APPLE_PRODUCT_IDS: products, REVENUECAT_APPLE_TRIAL_POLICY: "intro_offers_disabled" }).ready, true);
+});
+
+test("documented RevenueCat store transaction IDs resolve to the same Apple original across renewals", async () => {
+  const productId = APPLE_MEMBERSHIP_SELLABLE_PRODUCT_IDS[0];
+  const lookups: string[] = [];
+  for (const transactionId of ["1000000000000001", "1000000000000002"]) {
+    const fetcher = createRevenueCatSubscriberFetcher({
+      apiKey: "server-key",
+      fetchImpl: async () => Response.json({ subscriber: { original_app_user_id: USER_A, subscriptions: { [productId]: {
+        store: "app_store", store_transaction_id: transactionId, is_sandbox: true, period_type: "normal",
+        purchase_date: new Date().toISOString(), expires_date: new Date(Date.now() + 86400000).toISOString(),
+      } } } }),
+      verifyAppleTransaction: async (input) => { lookups.push(input.transactionId); assert.equal(input.environment, "sandbox"); return { originalTransactionId: "1000000000000000" }; },
+    });
+    assert.equal((await fetcher(USER_A)).originalTransactionId, "1000000000000000");
+  }
+  assert.deepEqual(lookups, ["1000000000000001", "1000000000000002"]);
+});
+
+test("provider identity mismatches and non-Apple store records fail before Apple lookup", async () => {
+  for (const [owner, store] of [[USER_B, "app_store"], [USER_A, "promotional"]]) {
+    let lookups = 0;
+    const fetcher = createRevenueCatSubscriberFetcher({ apiKey: "key",
+      fetchImpl: async () => Response.json({ subscriber: { original_app_user_id: owner, subscriptions: { [APPLE_MEMBERSHIP_SELLABLE_PRODUCT_IDS[0]]: { store, store_transaction_id: "1001", is_sandbox: true } } } }),
+      verifyAppleTransaction: async () => { lookups++; return { originalTransactionId: "1000" }; },
+    });
+    await assert.rejects(fetcher(USER_A), AppleMembershipError);
+    assert.equal(lookups, 0);
+  }
+});
+
+test("RevenueCat and Apple original-ID disagreement fails before reconciliation", async () => {
+  const productId = APPLE_MEMBERSHIP_SELLABLE_PRODUCT_IDS[0];
+  const fetcher = createRevenueCatSubscriberFetcher({ apiKey: "key",
+    fetchImpl: async () => Response.json({ subscriber: { original_app_user_id: USER_A, subscriptions: { [productId]: { store: "app_store", store_transaction_id: "1001", original_transaction_id: "2000", is_sandbox: true } } } }),
+    verifyAppleTransaction: async () => ({ originalTransactionId: "1000" }),
+  });
+  await assert.rejects(fetcher(USER_A), /ownership disagree/);
+});
+
+test("purchase readiness exposes only the two live monthly products", async () => {
+  const handlers = createAppleMembershipApiHandlers({
+    configuration: () => ({ ready: true, apiKey: "key", webhookSecret: "secret" }),
+    getAccount: async () => ({ publicMetadata: {}, privateMetadata: {} }),
+    readCurrent: async () => null,
+    reconcile: async () => { throw new Error("Readiness cannot reconcile"); },
+  });
+  const response = await handlers.readiness(USER_A);
+  const body = await response.json();
+  assert.equal(body.available, true);
+  assert.deepEqual(body.eligibleProductIds, [...APPLE_MEMBERSHIP_SELLABLE_PRODUCT_IDS]);
+});
+
+test("Apple transaction binding rejects wrong bundle, product, environment, transaction, and purchase type", async () => {
+  const input = { transactionId: "1001", productId: APPLE_MEMBERSHIP_SELLABLE_PRODUCT_IDS[0], environment: "sandbox" as const };
+  const decoded = { transactionId: "1001", originalTransactionId: "1000", productId: input.productId, environment: Environment.SANDBOX, bundleId: "com.bourbonsignal.app", type: "Auto-Renewable Subscription" };
+  assert.equal(validateAppleTransaction(input, decoded).originalTransactionId, "1000");
+  for (const changed of [{ bundleId: "other" }, { productId: "other" }, { environment: Environment.PRODUCTION }, { transactionId: "other" }, { originalTransactionId: "" }, { type: "Non-Consumable" }]) {
+    assert.throws(() => validateAppleTransaction(input, { ...decoded, ...changed }), AppleMembershipError);
+  }
+  const verifier = new SignedDataVerifier([APPLE_ROOT_CA_G3], true, Environment.SANDBOX, "com.bourbonsignal.app");
+  await assert.rejects(verifier.verifyAndDecodeTransaction(`${Buffer.from('{"alg":"none"}').toString('base64url')}.${Buffer.from(JSON.stringify(decoded)).toString('base64url')}.`));
+  await assert.rejects(createAppleTransactionVerifier({})(input), /not configured/);
+});
+
+test("authenticated RevenueCat test deliveries acknowledge without reconciling or granting access", async () => {
+  let reconciles = 0;
+  const handler = createRevenueCatWebhookHandler({ secret: "secret", reconcile: async () => { reconciles++; return { outcome: "applied", effectiveTier: "barrel" }; } });
+  const response = await handler(new Request("https://example.com", { method: "POST", headers: { authorization: "secret" }, body: JSON.stringify({ event: { type: "TEST" } }) }));
+  assert.equal(response.status, 200);
+  assert.equal(reconciles, 0);
+  const unauthorized = await handler(new Request("https://example.com", { method: "POST", body: JSON.stringify({ event: { type: "TEST" } }) }));
+  assert.equal(unauthorized.status, 401);
 });
 
 test("RevenueCat subscriber normalization uses exact fetched owner and current subscription state", () => {

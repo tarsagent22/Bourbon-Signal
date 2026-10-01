@@ -1,180 +1,159 @@
-import { useRouter } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, Linking, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { ActivityIndicator, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, useWindowDimensions, View } from "react-native";
 import { openAppleSubscriptionManagement } from "../../../src/account/subscription-management";
-import { MobileApiError } from "../../../src/api/client";
 import type { MemberProfile } from "../../../src/api/types";
-import { ErrorState, memberScreenStyles } from "../../../src/components/MemberScreen";
+import { ErrorState } from "../../../src/components/MemberScreen";
 import { useMobileApi } from "../../../src/hooks/useMobileApi";
-import {
-  MEMBERSHIP_PLANS,
-  membershipActionFor,
-  type MembershipTier,
-} from "../../../src/membership/membership-plans";
+import { MEMBERSHIP_PLANS, membershipActionFor, type MembershipTier } from "../../../src/membership/membership-plans";
 import { usePurchases } from "../../../src/membership/PurchasesProvider";
 import { deriveMobileMembershipLifecycle } from "../../../src/membership/membership-lifecycle";
 import { productIdFor } from "../../../src/membership/purchases";
 import { colors } from "../../../src/theme";
 
+const cards = [
+  { tier: "standard" as const, name: "Standard", description: "Stay on top of the bottles you want, in the places you hunt.", features: ["Full state Intel & community feed", "Alerts for 5 areas & 15 bottles", "Unlimited bottles on My Shelf", "Unlimited bottle intelligence"] },
+  { tier: "barrel" as const, name: "Barrel Proof", description: "Follow every bottle. Find more through the collection you love.", features: ["Everything in Standard", "Unlimited areas & watched bottles", "Advanced filters & community alerts", "Collection insights & recommendations"] },
+];
+
 export default function MembershipScreen() {
   const api = useMobileApi();
   const router = useRouter();
+  const { welcome } = useLocalSearchParams<{ welcome?: string }>();
+  const isWelcome = welcome === "1";
   const purchases = usePurchases();
+  const refreshPurchases = purchases.refresh;
+  useEffect(() => { void refreshPurchases(); }, [refreshPurchases]);
   const [profile, setProfile] = useState<MemberProfile["profile"] | null>(null);
-
-  const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
-  const [subscriptionBusy, setSubscriptionBusy] = useState(false);
-  const [subscriptionError, setSubscriptionError] = useState("");
+  const [error, setError] = useState("");
+  const [attempted, setAttempted] = useState(false);
+  const [operationBusy, setOperationBusy] = useState(false);
+  const operationLock = useRef(false);
+  const [selected, setSelected] = useState(0);
+  const carousel = useRef<ScrollView>(null);
+  const { width } = useWindowDimensions();
+  const pageWidth = Math.min(width, 520);
+  const cardWidth = pageWidth - 62;
+  const stride = cardWidth + 12;
+  const selectedRef = useRef(selected);
+  selectedRef.current = selected;
+  useEffect(() => { carousel.current?.scrollTo({ x: selectedRef.current * stride, animated: false }); }, [stride]);
 
-  const load = useCallback(async (fresh = false) => {
+  const load = useCallback(async () => {
     setLoading(true);
-    setError("");
-    try {
-      const response = await api.getMemberProfile({ fresh });
-      setProfile(response.profile);
-    } catch (caught) {
-      setProfile(null);
-
-      setError(caught instanceof MobileApiError && caught.status === 401
-        ? "Your session could not be verified. Return to Account and retry."
-        : caught instanceof Error ? caught.message : "Membership details are temporarily unavailable.");
-    } finally {
-      setLoading(false);
-    }
+    try { const response = await api.getMemberProfile({ fresh: true }); setProfile(response.profile); setError(""); }
+    catch { setProfile(null); setError("We couldn’t load your membership. Please try again."); }
+    finally { setLoading(false); }
   }, [api]);
-
-  useEffect(() => { void load(false); }, [load]);
-
-  useEffect(() => {
-    if (purchases.profile) setProfile(purchases.profile);
-  }, [purchases.profile]);
-
+  useEffect(() => { void load(); }, [load]);
+  useEffect(() => { if (purchases.profile) setProfile(purchases.profile); }, [purchases.profile]);
   const currentTier = profile ? profile.membership.tier as MembershipTier : null;
   const lifecycle = profile ? deriveMobileMembershipLifecycle({ profile, purchaseStatus: purchases.status, appleMembership: purchases.membership }) : null;
+  const busy = operationBusy || ["configuring", "purchasing", "restoring"].includes(purchases.status);
+  const showLifecycle = lifecycle && !["free", "active", "founder", "provider_unavailable"].includes(lifecycle.state);
 
-  async function manageSubscriptions() {
-    if (subscriptionBusy) return;
-    setSubscriptionBusy(true);
-    setSubscriptionError("");
-    try {
-      await openAppleSubscriptionManagement(Linking.openURL);
-    } catch {
-      setSubscriptionError("App Store subscription settings could not be opened. Open the App Store, tap your profile, then Subscriptions.");
-    } finally {
-      setSubscriptionBusy(false);
-    }
+  async function run(action: () => Promise<void>) {
+    if (operationLock.current) return;
+    operationLock.current = true;
+    setOperationBusy(true); setError("");
+    try { await action(); } catch { setError("That couldn’t be completed. Please try again."); }
+    finally { operationLock.current = false; setOperationBusy(false); }
   }
+  async function choose(tier: "standard" | "barrel") {
+    const productId = productIdFor(tier, "monthly");
+    const action = profile ? membershipActionFor(profile.membership.tier as MembershipTier, tier) : null;
+    if (busy || !productId || action?.kind !== "upgrade" || Platform.OS !== "ios") return;
+    setAttempted(true);
+    await run(async () => {
+      if (purchases.status !== "ready" || !purchases.products.some(p => p.productId === productId) || !purchases.eligibleProductIds.includes(productId)) {
+        await refreshPurchases();
+        return;
+      }
+      await purchases.purchase(productId);
+    });
+  }
+  async function restore() {
+    if (busy || Platform.OS !== "ios") return;
+    setAttempted(true);
+    await run(async () => {
+      if (purchases.status !== "ready" || !purchases.restoreAvailable) { await refreshPurchases(); return; }
+      await purchases.restore();
+    });
+  }
+  const statusText = purchases.status === "pending" ? "Apple is processing your purchase. Your current access is unchanged."
+    : purchases.status === "cancelled" ? "Purchase canceled. You haven’t been charged."
+      : attempted && !busy && purchases.status !== "ready" ? "We couldn’t load purchase options. Try again in a moment."
+        : "";
 
-  return <ScrollView
-    contentContainerStyle={memberScreenStyles.content}
-    refreshControl={<RefreshControl refreshing={loading && Boolean(profile)} onRefresh={() => void load(true)} tintColor={colors.accent} />}
-    style={memberScreenStyles.screen}
-  >
-    <View style={styles.hero}>
-      <Text style={styles.eyebrow}>YOUR MEMBERSHIP</Text>
-      <Text accessibilityRole="header" style={styles.title}>Choose the signal depth you need.</Text>
-      <Text style={styles.description}>Compare every Bourbon Signal membership without leaving the app.</Text>
-      {profile ? <View style={styles.currentBadge}><Text style={styles.currentBadgeLabel}>CURRENT</Text><Text style={styles.currentBadgeValue}>{MEMBERSHIP_PLANS.find((plan) => plan.tier === profile.membership.tier)?.name || "Membership"}</Text></View> : null}
-    </View>
-
-    {loading && !profile ? <View accessibilityLabel="Loading membership" style={styles.loading}><ActivityIndicator color={colors.accent} /></View> : null}
-    {error ? <ErrorState message={error} onRetry={() => void load(true)} /> : null}
-
-    {lifecycle ? <View style={styles.lifecycleCard}>
-      <Text style={styles.lifecycleEyebrow}>ACCOUNT STATUS</Text>
-      <Text accessibilityRole="header" style={styles.lifecycleTitle}>{lifecycle.title}</Text>
-      <Text style={styles.lifecycleDetail}>{lifecycle.detail}</Text>
-      <Text style={styles.preservation}>{lifecycle.preservationNotice}</Text>
-      {Platform.OS === "ios" ? <Pressable accessibilityRole="button" accessibilityState={{ busy: subscriptionBusy, disabled: subscriptionBusy }} disabled={subscriptionBusy} onPress={() => void manageSubscriptions()} style={styles.manageButton}><Text style={styles.manageText}>{subscriptionBusy ? "Opening…" : "Manage subscriptions in the App Store"}</Text></Pressable> : null}
-      {subscriptionError ? <Text accessibilityRole="alert" style={styles.subscriptionError}>{subscriptionError}</Text> : null}
-    </View> : null}
-
-    <View style={styles.planList}>
-      {MEMBERSHIP_PLANS.map((plan) => {
-        const productId = productIdFor(plan.tier, "monthly");
-        const storeProduct = purchases.products.find((product) => product.productId === productId);
-        const action = profile ? membershipActionFor(profile.membership.tier as MembershipTier, plan.tier) : { kind: "unknown" as const, label: "Review plan" };
-
-        const displayPrice = plan.tier === "free" ? "$0" : plan.tier === "bottled-in-bond" ? "Existing access" : storeProduct?.localizedPrice || "Price unavailable";
-        const displayPeriod = plan.tier === "free" ? " forever" : plan.tier === "bottled-in-bond" ? "" : storeProduct ? `/${storeProduct.localizedPeriod}` : "";
-        return <View key={plan.tier} style={[styles.planCard, plan.recommended && styles.recommendedCard, currentTier === plan.tier && styles.currentCard]}>
-          <View style={styles.planTopRow}>
-            <View style={styles.planHeading}>
-              <Text style={styles.planEyebrow}>{plan.eyebrow.toUpperCase()}</Text>
-              <Text accessibilityRole="header" style={styles.planName}>{plan.name}</Text>
-            </View>
-            {plan.recommended ? <View style={styles.recommendedBadge}><Text style={styles.recommendedText}>RECOMMENDED</Text></View> : null}
-            {currentTier === plan.tier ? <View style={styles.activeBadge}><Text style={styles.activeText}>CURRENT</Text></View> : null}
-          </View>
-          <Text style={styles.planDescription}>{plan.description}</Text>
-          <View style={styles.priceRow}>
-            <Text style={styles.price}>{displayPrice}</Text>
-            <Text style={styles.priceSuffix}>{displayPeriod}</Text>
-          </View>
-          <View style={styles.featureList}>
-            {plan.features.slice(0, 3).map((feature) => <View key={feature} style={styles.featureRow}><Text accessible={false} style={styles.check}>✓</Text><Text style={styles.feature}>{feature}</Text></View>)}
-          </View>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={action.label}
-            onPress={() => router.push({ pathname: "/(app)/account/membership/[tier]", params: { tier: plan.tier } })}
-            style={({ pressed }) => [styles.reviewButton, plan.recommended && styles.reviewButtonPrimary, pressed && styles.pressed]}
-          ><Text style={[styles.reviewText, plan.recommended && styles.reviewTextPrimary]}>{action.label}</Text><Text accessible={false} style={[styles.arrow, plan.recommended && styles.reviewTextPrimary]}>›</Text></Pressable>
-        </View>;
-      })}
-    </View>
-
-    <Text style={styles.footnote}>Subscriptions use the localized price shown by the App Store. Founder memberships are honored here but are not sold through Apple.</Text>
-    {purchases.status === "unavailable" ? <Text accessibilityRole="alert" style={styles.purchaseStatus}>{purchases.message}</Text> : null}
-  </ScrollView>;
+  return <View style={styles.screen}>
+    <Stack.Screen options={{ title: "Bourbon Signal", headerBackTitle: "Account", ...(isWelcome ? { headerBackVisible: false, gestureEnabled: false } : {}) }} />
+    <ScrollView contentContainerStyle={[styles.content, { width: pageWidth }]}>
+      <View style={styles.hero}>
+        <Text accessibilityRole="header" style={styles.title}>Find your next bottle.</Text>
+        <Text style={styles.subtitle}>A little more signal.{"\n"}A lot more possibility.</Text>
+        {!isWelcome && currentTier ? <Text style={styles.current}>YOUR MEMBERSHIP · {MEMBERSHIP_PLANS.find(p => p.tier === currentTier)?.name}</Text> : null}
+      </View>
+      {loading && !profile ? <ActivityIndicator accessibilityLabel="Loading membership" color={colors.accent} /> : null}
+      <View style={styles.tabs} accessibilityRole="tablist">
+        {cards.map((card, index) => <Pressable key={card.tier} accessibilityRole="tab" accessibilityState={{ selected: index === selected }} accessibilityLabel={card.name}
+          onPress={() => { setSelected(index); carousel.current?.scrollTo({ x: index * stride, animated: false }); }} style={[styles.tab, index === selected && styles.tabSelected]}>
+          <Text style={[styles.tabText, index === selected && styles.tabTextSelected]}>{card.name}</Text>
+        </Pressable>)}
+      </View>
+      <ScrollView ref={carousel} horizontal showsHorizontalScrollIndicator={false} snapToInterval={stride} decelerationRate="fast" disableIntervalMomentum
+        contentContainerStyle={styles.track} scrollEventThrottle={16}
+        onScroll={event => setSelected(Math.max(0, Math.min(1, Math.round(event.nativeEvent.contentOffset.x / stride))))}>
+        {cards.map((card, index) => {
+          const productId = productIdFor(card.tier, "monthly");
+          const product = purchases.products.find(p => p.productId === productId);
+          const action = profile ? membershipActionFor(profile.membership.tier as MembershipTier, card.tier) : null;
+          const included = action?.kind === "current" || action?.kind === "included";
+          const disabled = busy || !profile || included || Platform.OS !== "ios";
+          const ready = purchases.status === "ready" && Boolean(product && productId && purchases.eligibleProductIds.includes(productId));
+          const label = included ? action?.label : busy ? "Please wait…" : ready ? `Choose ${card.name}` : Platform.OS === "ios" ? "Check purchase options" : "Available on iPhone";
+          return <View key={card.tier} style={[styles.card, { width: cardWidth }, index === 1 && styles.premium]}
+            accessibilityElementsHidden={selected !== index} importantForAccessibility={selected !== index ? "no-hide-descendants" : "auto"}>
+            <View style={styles.cardHeading}><Text accessibilityRole="header" style={styles.cardTitle}>{card.name}</Text><View style={styles.medallion} accessible={false}><View style={styles.glassBowl} /><View style={styles.glassStem} /><View style={styles.glassFoot} /></View></View>
+            <Text style={styles.cardDescription}>{card.description}</Text>
+            <View style={styles.priceRow}>{product ? <><Text style={styles.price}>{product.localizedPrice}</Text><Text style={styles.period}>/ {product.localizedPeriod}</Text></> : <Text style={styles.pricePlaceholder}>Monthly membership</Text>}</View>
+            <Text style={styles.billing}>Billed monthly. Cancel anytime.</Text>
+            <View style={styles.divider} />
+            <View style={styles.features}>{card.features.map(feature => <View key={feature} style={styles.featureRow}><View style={[styles.checkCircle, index === 1 && styles.goldCheck]}><Text accessible={false} style={[styles.check, index === 1 && styles.goldCheckText]}>✓</Text></View><Text style={styles.feature}>{feature}</Text></View>)}</View>
+            <Pressable accessibilityRole="button" accessibilityLabel={ready && !included ? `Purchase ${card.name} for ${product?.localizedPrice} per ${product?.localizedPeriod}` : label}
+              accessibilityState={{ disabled, busy }} disabled={disabled} onPress={() => void choose(card.tier)}
+              style={({ pressed }) => [styles.subscribe, index === 1 && styles.subscribeGold, disabled && styles.disabled, pressed && styles.pressed]}>
+              <Text style={[styles.subscribeText, index === 1 && styles.subscribeGoldText]}>{label}</Text>
+            </Pressable>
+          </View>;
+        })}
+      </ScrollView>
+      <View style={styles.dots} accessible={false}>{cards.map((card,index) => <View key={card.tier} style={[styles.dot, index === selected && styles.dotSelected]} />)}</View>
+      <View style={styles.footer}>
+        <Pressable accessibilityRole="button" onPress={() => router.replace("/(app)/(tabs)")} style={styles.freeButton}><Text style={styles.freeText}>{currentTier && currentTier !== "free" ? "Continue to Bourbon Signal" : "Continue with Free"} <Text style={styles.gold}> →</Text></Text></Pressable>
+        <Text style={styles.fine}>Subscriptions renew automatically until canceled.{"\n"}{Platform.OS === "ios" ? "Payment is charged to your Apple Account at confirmation." : "Apple subscriptions are available in the iOS app."}</Text>
+        <View style={styles.links}>
+          {Platform.OS === "ios" ? <Pressable accessibilityRole="button" disabled={busy} onPress={() => void restore()} style={styles.link}><Text style={styles.linkText}>{purchases.status === "restoring" ? "Restoring…" : "Restore purchases"}</Text></Pressable> : null}
+          <Pressable accessibilityRole="button" accessibilityLabel="Terms of Service" onPress={() => router.push("/(app)/account/terms")} style={styles.link}><Text style={styles.linkText}>Terms</Text></Pressable>
+          <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/privacy")} style={styles.link}><Text style={styles.linkText}>Privacy</Text></Pressable>
+        </View>
+        {statusText ? <Text accessibilityRole="alert" style={styles.status}>{statusText}</Text> : null}
+        {error ? <ErrorState message={error} onRetry={() => void run(async () => { await load(); await refreshPurchases(); })} /> : null}
+        {showLifecycle ? <View style={styles.lifecycle}><Text style={styles.freeText}>{lifecycle.title}</Text><Text style={styles.status}>{lifecycle.detail}</Text></View> : null}
+        {currentTier === "bottled-in-bond" ? <Text style={styles.status}>Your Founder membership includes all Barrel Proof benefits for life.</Text> : null}
+        <View style={styles.links}>
+          {Platform.OS === "ios" && lifecycle?.manageSubscriptions ? <Pressable accessibilityRole="button" disabled={busy} onPress={() => void run(() => openAppleSubscriptionManagement(Linking.openURL))} style={styles.link}><Text style={styles.linkText}>Manage subscriptions in the App Store</Text></Pressable> : null}
+          <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/support")} style={styles.link}><Text style={styles.linkText}>Membership support</Text></Pressable>
+        </View>
+      </View>
+    </ScrollView>
+  </View>;
 }
-
 const styles = StyleSheet.create({
-  hero: { gap: 8, paddingTop: 3 },
-  eyebrow: { color: colors.accent, fontSize: 11, fontWeight: "900", letterSpacing: 1.35 },
-  title: { color: colors.text, fontSize: 30, lineHeight: 35, fontWeight: "900", letterSpacing: -0.55 },
-  description: { color: colors.muted, fontSize: 15, lineHeight: 22 },
-  currentBadge: { marginTop: 6, alignSelf: "flex-start", flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1, borderRadius: 999, paddingHorizontal: 11, paddingVertical: 7 },
-  currentBadgeLabel: { color: colors.accent, fontSize: 9, fontWeight: "900", letterSpacing: 1 },
-  currentBadgeValue: { color: colors.text, fontSize: 13, fontWeight: "800" },
-  loading: { minHeight: 90, alignItems: "center", justifyContent: "center" },
-  lifecycleCard: { borderRadius: 18, backgroundColor: colors.surfaceRaised, padding: 17, gap: 8 },
-  lifecycleEyebrow: { color: colors.accent, fontSize: 9, fontWeight: "900", letterSpacing: 1.1 },
-  lifecycleTitle: { color: colors.text, fontSize: 19, lineHeight: 24, fontWeight: "900" },
-  lifecycleDetail: { color: colors.muted, fontSize: 14, lineHeight: 21 },
-  preservation: { color: colors.muted, fontSize: 12, lineHeight: 18 },
-  manageButton: { minHeight: 44, justifyContent: "center", alignItems: "center", borderRadius: 11, borderColor: colors.border, borderWidth: 1, paddingHorizontal: 12 },
-  manageText: { color: colors.accent, fontSize: 13, fontWeight: "800", textAlign: "center" },
-  subscriptionError: { color: colors.danger, fontSize: 12, lineHeight: 18 },
-
-  planList: { gap: 13 },
-  planCard: { borderRadius: 18, borderColor: colors.border, borderWidth: 1, backgroundColor: colors.surface, padding: 17, gap: 12 },
-  recommendedCard: { borderColor: colors.accent, backgroundColor: "#1B1611" },
-  currentCard: { borderColor: colors.success },
-  planTopRow: { flexDirection: "row", alignItems: "flex-start", gap: 9 },
-  planHeading: { flex: 1, gap: 3 },
-  planEyebrow: { color: colors.accent, fontSize: 9, fontWeight: "900", letterSpacing: 1.1 },
-  planName: { color: colors.text, fontSize: 22, lineHeight: 27, fontWeight: "900" },
-  recommendedBadge: { borderRadius: 999, backgroundColor: colors.accent, paddingHorizontal: 8, paddingVertical: 5 },
-  recommendedText: { color: colors.background, fontSize: 8, fontWeight: "900", letterSpacing: 0.65 },
-  activeBadge: { borderRadius: 999, backgroundColor: "rgba(126,173,131,0.18)", paddingHorizontal: 8, paddingVertical: 5 },
-  activeText: { color: colors.success, fontSize: 8, fontWeight: "900", letterSpacing: 0.65 },
-  planDescription: { color: colors.muted, fontSize: 14, lineHeight: 20 },
-  priceRow: { flexDirection: "row", alignItems: "baseline" },
-  price: { color: colors.text, fontSize: 31, lineHeight: 35, fontWeight: "900", fontVariant: ["tabular-nums"] },
-  priceSuffix: { color: colors.muted, fontSize: 14, fontWeight: "700" },
-
-  featureList: { gap: 8 },
-  featureRow: { flexDirection: "row", alignItems: "flex-start", gap: 9 },
-  check: { color: colors.success, fontSize: 14, lineHeight: 20, fontWeight: "900" },
-  feature: { flex: 1, color: colors.text, fontSize: 13, lineHeight: 20 },
-  reviewButton: { minHeight: 48, borderRadius: 12, borderColor: colors.border, borderWidth: 1, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
-  reviewButtonPrimary: { backgroundColor: colors.accent, borderColor: colors.accent },
-  reviewText: { color: colors.text, fontSize: 14, fontWeight: "900" },
-  reviewTextPrimary: { color: colors.background },
-  arrow: { color: colors.accent, fontSize: 24, lineHeight: 26 },
-  pressed: { opacity: 0.72 },
-  footnote: { color: colors.muted, fontSize: 12, lineHeight: 18, textAlign: "center", paddingHorizontal: 10 },
-  purchaseStatus: { color: colors.muted, fontSize: 12, lineHeight: 18, textAlign: "center", paddingHorizontal: 10 },
+  screen:{flex:1,backgroundColor:colors.background},content:{alignSelf:"center",paddingTop:14,paddingBottom:28},
+  hero:{paddingHorizontal:20,alignItems:"center",gap:8},title:{fontSize:28,lineHeight:33,fontWeight:"600",letterSpacing:-1,color:colors.text,textAlign:"center"},subtitle:{fontSize:13,lineHeight:20,color:colors.muted,textAlign:"center"},current:{fontSize:10,color:colors.muted,marginTop:2},
+  tabs:{marginHorizontal:24,marginTop:15,marginBottom:16,padding:4,flexDirection:"row",gap:4,borderWidth:1,borderColor:colors.border,borderRadius:12,backgroundColor:"#12100e"},tab:{flex:1,minHeight:40,justifyContent:"center",alignItems:"center",borderRadius:8,padding:4},tabSelected:{backgroundColor:"#31281f"},tabText:{fontSize:12,fontWeight:"600",color:colors.muted},tabTextSelected:{color:colors.text},
+  track:{paddingLeft:24,paddingRight:38,gap:12,paddingBottom:8},card:{borderRadius:22,borderWidth:1,borderColor:"#493b2f",padding:23,minHeight:416,backgroundColor:"#1c1713"},premium:{borderColor:colors.accent,backgroundColor:"#241c13"},cardHeading:{flexDirection:"row",alignItems:"center",justifyContent:"space-between",gap:8},cardTitle:{fontSize:23,lineHeight:29,fontWeight:"600",letterSpacing:-0.6,color:colors.text,flexShrink:1},medallion:{width:29,height:29,borderRadius:9,borderWidth:1,borderColor:"#62503a",alignItems:"center",justifyContent:"center"},glassBowl:{width:11,height:12,borderWidth:1,borderColor:colors.accent,borderBottomLeftRadius:6,borderBottomRightRadius:6},glassStem:{width:1,height:4,backgroundColor:colors.accent},glassFoot:{width:9,height:1,backgroundColor:colors.accent},cardDescription:{fontSize:12,lineHeight:19,color:colors.muted,marginTop:10,marginBottom:12,minHeight:38},
+  priceRow:{flexDirection:"row",alignItems:"baseline",flexWrap:"wrap",minHeight:64},price:{fontSize:56,lineHeight:64,fontWeight:"600",letterSpacing:-2,color:colors.text},period:{fontSize:13,color:colors.muted,marginLeft:6},pricePlaceholder:{fontSize:24,lineHeight:34,color:colors.text},billing:{fontSize:10,lineHeight:16,color:colors.muted,marginTop:7},divider:{height:1,backgroundColor:"#55443266",marginTop:14,marginBottom:14},features:{gap:10,marginBottom:18},featureRow:{flexDirection:"row",alignItems:"flex-start",gap:9},checkCircle:{height:16,width:16,borderRadius:8,backgroundColor:"#51443688",alignItems:"center",justifyContent:"center",marginTop:1},goldCheck:{backgroundColor:colors.accent},check:{fontSize:10,color:"#cfb89b"},goldCheckText:{color:"#1b130a"},feature:{flex:1,fontSize:12,lineHeight:18,color:"#e4dace"},subscribe:{marginTop:"auto",minHeight:47,padding:10,borderWidth:1,borderColor:"#816342",borderRadius:12,backgroundColor:"#30261c",alignItems:"center",justifyContent:"center"},subscribeGold:{backgroundColor:colors.accent,borderColor:"#e1ad68"},subscribeText:{fontSize:13,lineHeight:18,fontWeight:"600",color:colors.text,textAlign:"center"},subscribeGoldText:{color:"#21160a"},disabled:{opacity:0.5},pressed:{opacity:0.75},
+  dots:{flexDirection:"row",justifyContent:"center",gap:6,paddingTop:1,paddingBottom:7},dot:{height:5,width:5,borderRadius:5,backgroundColor:"#5a4b3a"},dotSelected:{width:17,backgroundColor:colors.accent},footer:{paddingHorizontal:21,alignItems:"center"},freeButton:{minHeight:44,justifyContent:"center",paddingHorizontal:12},freeText:{fontSize:13,fontWeight:"600",color:colors.text,textAlign:"center"},gold:{color:colors.accent},fine:{fontSize:10,lineHeight:16,color:colors.muted,textAlign:"center",marginTop:2,marginBottom:3},links:{flexDirection:"row",justifyContent:"center",flexWrap:"wrap",columnGap:19},link:{minHeight:44,justifyContent:"center"},linkText:{fontSize:10,color:"#bfa785",textAlign:"center"},status:{fontSize:12,lineHeight:18,color:colors.muted,textAlign:"center",marginVertical:8},lifecycle:{padding:12,borderRadius:12,backgroundColor:colors.surfaceRaised},
 });

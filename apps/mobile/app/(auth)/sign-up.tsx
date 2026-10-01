@@ -131,7 +131,7 @@ export default function SignUpScreen() {
     setError("");
     try {
       await api.completeMobileOnboarding({ displayName: displayName.trim(), age21Affirmed: true, homeState });
-      router.replace("/(app)/(tabs)");
+      router.replace({ pathname: "/(app)/account/membership", params: { welcome: "1" } });
     } catch (caught) {
       setError(caught instanceof Error ? `${caught.message} Try again.` : "Your profile could not be saved. Try again.");
     } finally {
@@ -179,7 +179,7 @@ export default function SignUpScreen() {
         </View>
         <Text style={styles.notice}>Free accounts do not receive alerts. Your home state starts your feed; alert areas and delivery remain off unless you later choose an eligible membership.</Text>
         {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
-        <PrimaryButton busy={busy} label="Continue Free" onPress={completeOnboarding} />
+        <PrimaryButton busy={busy} label="See membership options" onPress={completeOnboarding} />
       </View> : null}
     </ScrollView>
 

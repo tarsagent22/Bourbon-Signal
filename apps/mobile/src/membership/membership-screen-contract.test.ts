@@ -12,16 +12,20 @@ test("Account opens the native membership destination instead of embedding a dea
   assert.doesNotMatch(account, /Linking\.openURL|WebBrowser|bourbonsignal\.com\/pricing/);
 });
 
-test("membership overview compares every tier with accurate pricing and native detail routes", () => {
+test("membership cards keep live pricing and purchase directly through the guarded coordinator", () => {
   const screen = read("app/(app)/account/membership.tsx");
   const plans = read("src/membership/membership-plans.ts");
   assert.match(screen, /YOUR MEMBERSHIP/);
   assert.match(plans, /name: "Free"/);
   assert.match(plans, /name: "Standard"/);
-  assert.match(plans, /name: "Barrel"/);
+  assert.match(plans, /name: "Barrel Proof"/);
   assert.match(plans, /name: "Founder"/);
   assert.doesNotMatch(screen, /Annual|annual/);
-  assert.ok(screen.includes('pathname: "/(app)/account/membership/[tier]"'));
+  assert.doesNotMatch(screen, /pathname: "\/\(app\)\/account\/membership\/\[tier\]"/);
+  assert.match(screen, /await purchases\.purchase\(productId\)/);
+  assert.match(screen, /purchases\.eligibleProductIds\.includes\(productId\)/);
+  assert.match(screen, /operationLock\.current/);
+  assert.match(screen, /action\?\.kind !== "upgrade"/);
   assert.match(screen, /profile \? membershipActionFor/);
   assert.doesNotMatch(screen, /profile\?\.membership\.tier \|\| "free"/);
   assert.doesNotMatch(screen, /Stripe Checkout|checkout\/continue|bourbonsignal\.com\/pricing/);
@@ -29,19 +33,19 @@ test("membership overview compares every tier with accurate pricing and native d
   assert.match(screen, /useEffect\(\(\) => \{\s*if \(purchases\.profile\) setProfile\(purchases\.profile\);\s*\}, \[purchases\.profile\]\)/);
   assert.match(screen, /localizedPrice/);
   assert.doesNotMatch(screen, /hasIntroductoryOffer|monthlyTrialIsEligible|getMembershipTrialEligibility|trialEligibility|7-day trial|Eligible 7-day/);
-  assert.doesNotMatch(screen, /Standard Proof|Barrel Proof|Bottled in Bond|Bottle Check/);
+  assert.doesNotMatch(screen, /Standard Proof|Bottled in Bond|Bottle Check/);
 });
 
 test("plan review uses native purchases but fails closed until server reconciliation is ready", () => {
   const screen = read("app/(app)/account/membership/[tier].tsx");
   assert.match(screen, /Renews automatically unless canceled/);
-  assert.match(screen, /Apple purchases are not available/);
+  assert.match(screen, /load purchase options/);
   assert.match(screen, /Restore purchases/);
   assert.match(screen, /purchase\(productId\)/);
   assert.match(screen, /restore\(\)/);
   assert.match(screen, /localizedPrice/);
   assert.doesNotMatch(screen, /hasIntroductoryOffer|monthlyTrialIsEligible|getMembershipTrialEligibility|trialEligibility|7-day trial|Eligible 7-day/);
-  assert.match(screen, /refresh.*authoritative|authoritative.*profile/i);
+  assert.doesNotMatch(screen, /authoritative server profile|reconciles it/);
   assert.match(screen, /Platform\.OS/);
   assert.match(screen, /Apple ID/);
   assert.match(screen, /Google Play account/);
@@ -59,18 +63,18 @@ test("plan review uses native purchases but fails closed until server reconcilia
   assert.ok(screen.includes('router.push("/(app)/account/terms")'));
   assert.ok(screen.includes('router.push("/(app)/account/support")'));
   assert.doesNotMatch(screen, /Stripe Checkout|checkout\/continue|bourbonsignal\.com\/pricing/);
-  assert.doesNotMatch(screen, /Standard Proof|Barrel Proof|Bottled in Bond|Bottle Check/);
+  assert.doesNotMatch(screen, /Standard Proof|Bottled in Bond|Bottle Check/);
 });
 
-test("Apple review paywall keeps localized price, renewal terms, and purchase action together above benefits", () => {
+test("Apple review paywall leads with benefits and groups localized price, renewal terms, and purchase action", () => {
   const screen = read("app/(app)/account/membership/[tier].tsx");
   const purchaseCardStart = screen.indexOf('<View style={styles.purchaseCard}>');
   const benefitsStart = screen.indexOf('<View style={styles.featuresCard}>');
   const purchaseAction = screen.indexOf('onPress={() => void buy()}');
 
   assert.ok(purchaseCardStart >= 0, "the StoreKit offer card must exist");
-  assert.ok(purchaseAction > purchaseCardStart && purchaseAction < benefitsStart,
-    "the purchase action must remain inside the StoreKit offer card before the benefits list");
+  assert.ok(benefitsStart >= 0 && benefitsStart < purchaseCardStart && purchaseAction > purchaseCardStart,
+    "benefits lead into the StoreKit offer card, which contains the purchase action");
   assert.match(screen, /storeProduct\?\.localizedPrice/);
   assert.match(screen, /Renews automatically unless canceled at least 24 hours before the current period ends/);
   assert.match(screen, /`Continue with \$\{plan\.name\} · \$\{storeProduct\.localizedPrice\}`/);
@@ -91,6 +95,12 @@ test("the purchase provider does not initialize StoreKit during root startup", (
   const planScreen = read("app/(app)/account/membership/[tier].tsx");
   assert.match(provider, /if \(!auth\.isLoaded \|\| auth\.isSignedIn\) return;/);
   assert.match(planScreen, /Refresh purchase status/);
+  for (const screen of [planScreen, read("app/(app)/account/membership.tsx")]) {
+    assert.match(screen, /useEffect\(\(\) => \{ void refreshPurchases\(\); \}, \[refreshPurchases\]\)/,
+      "entering either membership route must load live products without a manual refresh");
+  }
+  assert.match(provider, /const refresh = useCallback/,
+    "purchase-state updates must not create a new refresh effect dependency");
 });
 
 test("native legal copy covers Apple and RevenueCat purchase handling without retired product wording", () => {
@@ -102,5 +112,5 @@ test("native legal copy covers Apple and RevenueCat purchase handling without re
   assert.match(terms, /App Store/);
   assert.match(privacy, /RevenueCat/);
   assert.match(privacy, /purchase history|purchase status/);
-  assert.doesNotMatch(`${terms}\n${privacy}`, /Bottle Check|Standard Proof|Barrel Proof|Bottled in Bond/);
+  assert.doesNotMatch(`${terms}\n${privacy}`, /Bottle Check|Standard Proof|Bottled in Bond/);
 });

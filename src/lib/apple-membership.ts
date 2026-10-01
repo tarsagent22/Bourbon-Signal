@@ -15,6 +15,12 @@ export const APPLE_MEMBERSHIP_PRODUCT_IDS = [
   "com.bourbonsignal.app.barrel.annual",
 ] as const;
 
+// Only monthly plans are offered at launch; historical annual purchases remain recognized.
+export const APPLE_MEMBERSHIP_SELLABLE_PRODUCT_IDS = [
+  "com.bourbonsignal.app.standard.monthly",
+  "com.bourbonsignal.app.barrel.monthly",
+] as const;
+
 export type AppleMembershipProductId = typeof APPLE_MEMBERSHIP_PRODUCT_IDS[number];
 export type AppleMembershipEnvironment = "sandbox" | "production";
 export type AppleMembershipStatus =

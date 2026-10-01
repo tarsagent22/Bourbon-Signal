@@ -39,7 +39,7 @@ export const MEMBERSHIP_PLANS: MembershipPlan[] = [
     tier: "standard",
     name: "Standard",
     eyebrow: "Core membership",
-    description: "Turn state signals into a focused hunting plan with full access and alerts.",
+    description: "Follow your bottles and get alerts for the places you hunt.",
     monthly: { price: "$3", suffix: "/month", trialDays: 7 },
     features: [
       "Full state Intel feed",
@@ -51,17 +51,17 @@ export const MEMBERSHIP_PLANS: MembershipPlan[] = [
   },
   {
     tier: "barrel",
-    name: "Barrel",
+    name: "Barrel Proof",
     eyebrow: "Serious hunters",
-    description: "Add unlimited preferences and intelligence shaped by your own collection.",
+    description: "Watch every bottle on your list. Discover more through your collection.",
     recommended: true,
     monthly: { price: "$6", suffix: "/month", trialDays: 7 },
     features: [
       "Everything in Standard",
       "Unlimited areas and watched bottles",
       "Advanced filters and Community Signal alerts",
-      "Bourbon DNA and collection intelligence",
-      "Personalized recommendations and local opportunities",
+      "Bourbon DNA: insights into your collection",
+      "Recommendations and opportunities picked for you",
     ],
   },
   {
@@ -73,7 +73,7 @@ export const MEMBERSHIP_PLANS: MembershipPlan[] = [
     purchasableOnIos: false,
     lifetime: { price: "$50", suffix: " once" },
     features: [
-      "Everything in Barrel for life",
+      "Everything in Barrel Proof for life",
       "Numbered Founder’s glass",
       "Founder badge and number on your profile",
     ],

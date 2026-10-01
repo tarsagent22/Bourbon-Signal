@@ -32,7 +32,7 @@ test("verified accounts must resume server-authoritative onboarding before enter
 test("native sign-up uses Clerk email code verification and no social or phone collection", () => {
   for (const contract of [
     /useSignUp/, /signUp\.password/, /signUp\.verifications\.sendEmailCode/, /signUp\.verifications\.verifyEmailCode/, /signUp\.finalize/,
-    /I affirm that I am 21 or older/, /Community display name/, /Home state and starting area/, /Continue Free/,
+    /I affirm that I am 21 or older/, /Community display name/, /Home state and starting area/, /See membership options/,
     /accessibilityRole="alert"/, /accessibilityLabel="Email verification code"/,
   ]) assert.match(signUp, contract);
   assert.doesNotMatch(signUp, /OAuth|social login|phone-pad|phoneNumber/);
@@ -46,4 +46,14 @@ test("sign-up exposes retryable busy and error states without logging credential
   assert.match(signUp, /caught instanceof Error/);
   assert.match(signUp, /Try again/);
   assert.doesNotMatch(signUp, /console\.(?:log|warn|error)/);
+});
+
+test("successful onboarding introduces memberships without changing returning-user routing", () => {
+  const saved = signUp.indexOf("await api.completeMobileOnboarding");
+  const destination = signUp.indexOf('pathname: "/(app)/account/membership", params: { welcome: "1" }');
+  assert.ok(saved >= 0 && destination > saved);
+  assert.match(entry, /destination === "app".*Redirect href="\/\(app\)\/\(tabs\)"/);
+  const membership = read("../../app/(app)/account/membership.tsx");
+  assert.match(membership, /Continue with Free/);
+  assert.match(membership, /router\.replace\("\/\(app\)\/\(tabs\)"\)/);
 });

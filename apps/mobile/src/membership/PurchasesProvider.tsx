@@ -1,5 +1,5 @@
 import { useAuth } from "@clerk/expo";
-import { createContext, type PropsWithChildren, useContext, useEffect, useMemo, useRef, useState } from "react";
+import { createContext, type PropsWithChildren, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
 import { Platform } from "react-native";
 import { useMobileApi } from "../hooks/useMobileApi";
 import {
@@ -59,12 +59,18 @@ export function PurchasesProvider({ children, adapter: injectedAdapter }: PropsW
     void coordinator.syncSession(sessionRef.current);
   }, [auth.isLoaded, auth.isSignedIn, auth.userId, coordinator]);
 
+  // Stable across purchase-state updates so screen entry effects do not keep
+  // reconfiguring StoreKit. Auth changes still reload the active account.
+  const refresh = useCallback(async () => {
+    await coordinator.syncSession({ isLoaded: auth.isLoaded, isSignedIn: Boolean(auth.isSignedIn), userId: auth.userId || null });
+  }, [auth.isLoaded, auth.isSignedIn, auth.userId, coordinator]);
+
   const value = useMemo<PurchasesContextValue>(() => ({
     ...state,
     async purchase(productId) { await coordinator.purchase(productId); },
     async restore() { await coordinator.restore(); },
-    async refresh() { await coordinator.syncSession(sessionRef.current); },
-  }), [coordinator, state]);
+    refresh,
+  }), [coordinator, state, refresh]);
 
   return <PurchasesContext.Provider value={value}>{children}</PurchasesContext.Provider>;
 }

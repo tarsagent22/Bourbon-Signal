@@ -29,7 +29,7 @@ export const DOWNGRADE_DATA_NOTICE = "Your saved bottles and preferences stay in
 const PLAN_NAMES: Record<MembershipTier, string> = {
   free: "Free",
   standard: "Standard",
-  barrel: "Barrel",
+  barrel: "Barrel Proof",
   "bottled-in-bond": "Founder",
 };
 
@@ -65,16 +65,16 @@ export function deriveMobileMembershipLifecycle(input: {
   }
 
   if (appleMembership) {
-    const name = appleMembership.productId.includes(".barrel.") ? "Barrel" : "Standard";
+    const name = appleMembership.productId.includes(".barrel.") ? "Barrel Proof" : "Standard";
     switch (appleMembership.status) {
       case "trialing":
-        return result("trialing", `${name} trial active`, "Your server-confirmed trial is active. It renews through the App Store unless canceled before the trial ends.", accessActive, true);
+        return result("trialing", `${name} trial active`, "Your trial is active. It renews through the App Store unless canceled before the trial ends.", accessActive, true);
       case "active":
         return result("active", `${name} active`, "Your Apple membership is active and confirmed by Bourbon Signal.", accessActive, true);
       case "grace_period":
         return result("grace_period", "Billing grace period", "Apple is allowing time to resolve a billing issue. Manage your payment method in the App Store to avoid interruption.", accessActive, true);
       case "billing_issue":
-        return result("billing_retry", "Billing retry needed", "Apple could not renew this membership. Update your payment method in the App Store; access follows the server-confirmed status.", accessActive, true);
+        return result("billing_retry", "Billing retry needed", "Apple could not renew this membership. Update your payment method in the App Store; your membership will update once payment is confirmed.", accessActive, true);
       case "canceled_period_end":
         return result("canceled_at_period_end", "Canceled at period end", "Renewal is off. Your confirmed access continues through the current paid period, then the account returns to its available membership level.", accessActive, true);
       case "expired":
@@ -86,14 +86,14 @@ export function deriveMobileMembershipLifecycle(input: {
   }
 
   if (accessActive) {
-    return result("active", `${planName(profile)} active`, "Your server-confirmed membership is active. Use its billing provider to manage renewal.", true, false);
+    return result("active", `${planName(profile)} active`, "Your membership is active. Manage renewal with the service where you subscribed.", true, false);
   }
 
   if (["unavailable", "unsupported", "error"].includes(purchaseStatus)) {
-    return result("provider_unavailable", "Apple purchases unavailable", "Your current Bourbon Signal access is unchanged. Purchase and restore stay disabled until Apple and the server are available.", false, false);
+    return result("provider_unavailable", "Apple purchases unavailable", "Your current Bourbon Signal access is unchanged. Please try loading purchase options again.", false, false);
   }
 
-  return result("free", "Free membership", "$0. No payment or renewal. Upgrade options appear only after current App Store products and account eligibility are confirmed.", false, false);
+  return result("free", "Free membership", "Explore for free. No payment or renewal.", false, false);
 }
 
 export function monthlyTrialIsEligible(input: {

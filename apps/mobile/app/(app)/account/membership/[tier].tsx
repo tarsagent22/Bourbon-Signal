@@ -1,4 +1,4 @@
-import { useLocalSearchParams, useRouter } from "expo-router";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { openAppleSubscriptionManagement } from "../../../../src/account/subscription-management";
@@ -18,13 +18,16 @@ import { colors } from "../../../../src/theme";
 export default function MembershipPlanScreen() {
   const api = useMobileApi();
   const purchases = usePurchases();
+  const refreshPurchases = purchases.refresh;
+  useEffect(() => { void refreshPurchases(); }, [refreshPurchases]);
   const router = useRouter();
-  const params = useLocalSearchParams<{ tier?: string }>();
+  const params = useLocalSearchParams<{ tier?: string; welcome?: string }>();
   const plan = planForTier(params.tier);
   const [profile, setProfile] = useState<MemberProfile["profile"] | null>(null);
 
   const [error, setError] = useState("");
   const [subscriptionBusy, setSubscriptionBusy] = useState(false);
+  const [showPurchaseStatus, setShowPurchaseStatus] = useState(false);
 
 
   const load = useCallback(async () => {
@@ -56,10 +59,11 @@ export default function MembershipPlanScreen() {
   const purchaseBusy = purchases.status === "purchasing" || purchases.status === "restoring" || purchases.status === "configuring";
   const canPurchase = Platform.OS === "ios" && action?.kind === "upgrade" && purchases.status === "ready" && Boolean(productId && storeProduct && purchases.eligibleProductIds.includes(productId));
   const canRestore = Platform.OS === "ios" && purchases.status === "ready" && purchases.restoreAvailable && !isFree && !isFounder;
-  const displayPrice = isFree ? "$0" : isFounder ? "Existing access only" : storeProduct?.localizedPrice || "Price unavailable";
+  const loadingProducts = purchases.status === "configuring" || purchases.status === "signed_out";
+  const displayPrice = isFree ? "$0" : isFounder ? "Lifetime access" : storeProduct?.localizedPrice || (loadingProducts ? "Loading price…" : "Monthly membership");
   const displayPeriod = storeProduct ? `/${storeProduct.localizedPeriod}` : "";
   const billingDisclosure = Platform.OS === "ios"
-    ? "Payment will be charged to your Apple ID after confirmation. Subscription management and cancellation remain in your App Store account."
+    ? "Billed to your Apple ID after confirmation. Manage or cancel in App Store subscriptions."
     : "Apple purchase options are available only in the iOS app. Your Google Play account is not charged, and your server-confirmed membership still works on this device.";
   const lifecycle = profile ? deriveMobileMembershipLifecycle({ profile, purchaseStatus: purchases.status, appleMembership: purchases.membership }) : null;
   const renewalCopy = isFree
@@ -71,6 +75,11 @@ export default function MembershipPlanScreen() {
         : "Renews automatically unless canceled before the next billing date.";
 
   async function buy() {
+    setShowPurchaseStatus(true);
+    if (productId && !canPurchase && action?.kind === "upgrade" && !purchaseBusy) {
+      await purchases.refresh();
+      return;
+    }
     if (!productId || !canPurchase) return;
     setError("");
     try {
@@ -105,79 +114,78 @@ export default function MembershipPlanScreen() {
 
   const purchaseButtonLabel = purchases.status === "purchasing"
     ? "Completing purchase…"
-    : storeProduct
+    : isCurrentOrIncluded ? action?.label || "Included" : storeProduct && canPurchase
         ? `Continue with ${plan.name} · ${storeProduct.localizedPrice}`
         : productId
-          ? `Choose ${plan.name}`
+          ? "Check purchase options"
           : isFounder
             ? "Not sold through Apple"
             : action?.label || "Unavailable";
-  const purchaseAccessibilityLabel = storeProduct
+  const purchaseAccessibilityLabel = storeProduct && canPurchase
     ? `Purchase ${plan.name} for ${storeProduct.localizedPrice} per ${storeProduct.localizedPeriod}`
     : purchaseButtonLabel;
-  const statusTitle = isCurrentOrIncluded
-    ? action?.label
-    : isFree
-      ? "Free membership"
-      : isFounder
-        ? "Founder access is honored"
-        : purchases.status === "ready"
-          ? "Purchase through the App Store"
-          : "Apple purchases are not available";
   const statusBody = isCurrentOrIncluded
-    ? "Your authoritative server profile already includes this level of access."
+    ? "These benefits are already included with your membership."
     : isFree
       ? "Free membership is included with every Bourbon Signal account."
       : isFounder
         ? "Founder memberships are honored here but are not sold through Apple."
-        : `${purchases.message} After the App Store completes a purchase or restore, Bourbon Signal reconciles it and refreshes your authoritative server profile before paid access appears.`;
+        : loadingProducts ? "Connecting to the App Store…"
+          : purchases.status === "ready" ? "Apple will ask you to confirm before you’re charged."
+            : purchases.status === "pending" ? "Apple is still processing your purchase. Your current access is unchanged."
+              : purchases.status === "cancelled" ? "Purchase canceled. You haven’t been charged."
+                : "We couldn’t load purchase options. Try again, or keep exploring with your current plan.";
+  const canCheckOptions = Platform.OS === "ios" && action?.kind === "upgrade" && Boolean(productId) && !canPurchase && !purchaseBusy;
 
   return <ScrollView contentContainerStyle={memberScreenStyles.content} style={memberScreenStyles.screen}>
+    <Stack.Screen options={{ title: plan.name, headerBackTitle: "Plans" }} />
     <View style={styles.hero}>
       <Text style={styles.eyebrow}>{plan.eyebrow.toUpperCase()}</Text>
       <Text accessibilityRole="header" style={styles.title}>{plan.name}</Text>
       <Text style={styles.description}>{plan.description}</Text>
     </View>
 
-    {error ? <ErrorState message={error} onRetry={() => void purchases.refresh()} /> : !profile ? <View accessibilityLabel="Loading current membership" style={styles.loading}><ActivityIndicator color={colors.accent} /></View> : null}
+    {error ? <ErrorState message={error} onRetry={() => { void load(); void purchases.refresh(); }} /> : !profile ? <View accessibilityLabel="Loading current membership" style={styles.loading}><ActivityIndicator color={colors.accent} /></View> : null}
 
+    <View style={styles.featuresCard}>
+      <Text accessibilityRole="header" style={styles.sectionTitle}>Your membership includes</Text>
+      {plan.features.map((feature) => <View key={feature} style={styles.featureRow}><Text accessible={false} style={styles.check}>✓</Text><Text style={styles.feature}>{feature}</Text></View>)}
+    </View>
 
-    {lifecycle ? <View style={styles.statusCard}>
+    <View style={styles.purchaseCard}>
+      <View style={styles.priceRow}><Text style={storeProduct || isFree ? styles.price : styles.statusBody}>{displayPrice}</Text><Text style={styles.priceSuffix}>{displayPeriod}</Text></View>
+      <Text style={styles.renewal}>{renewalCopy}</Text>
+      <Pressable accessibilityRole="button" accessibilityLabel={purchaseAccessibilityLabel} accessibilityState={{ disabled: !canPurchase && !canCheckOptions, busy: purchaseBusy }} disabled={!canPurchase && !canCheckOptions} onPress={() => void buy()} style={[styles.purchaseButton, !canPurchase && !canCheckOptions && styles.disabledButton]}><Text style={styles.purchaseButtonText}>{purchaseButtonLabel}</Text></Pressable>
+      {!isFree && !isFounder ? <Pressable accessibilityRole="button" accessibilityState={{ disabled: !canRestore, busy: purchases.status === "restoring" }} disabled={!canRestore} onPress={() => void restorePurchases()} style={[styles.restoreButton, !canRestore && styles.restoreDisabled]}><Text style={styles.restoreText}>{purchases.status === "restoring" ? "Restoring…" : "Restore purchases"}</Text></Pressable> : null}
+      {(showPurchaseStatus && purchases.status !== "ready") || purchases.status === "pending" || purchases.status === "cancelled" || isCurrentOrIncluded ? <View style={styles.inlineStatus}>
+        <Text accessibilityRole={purchases.status === "error" || purchases.status === "pending" ? "alert" : undefined} style={styles.statusBody}>{statusBody}</Text>
+        {purchases.status !== "ready" && !purchaseBusy && !isFree && !isFounder ? <Pressable accessibilityRole="button" onPress={() => void purchases.refresh()} style={styles.refreshButton}><Text style={styles.refreshText}>Refresh purchase status</Text></Pressable> : null}
+      </View> : null}
+      <Text style={styles.legalCopy}>{billingDisclosure}</Text>
+      <View style={styles.legalLinks}>
+        <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/terms")} style={styles.legalButton}><Text style={styles.legalText}>Terms of Service</Text></Pressable>
+        <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/privacy")} style={styles.legalButton}><Text style={styles.legalText}>Privacy</Text></Pressable>
+      </View>
+    </View>
+
+    {params.welcome === "1" ? <Pressable accessibilityRole="button" onPress={() => router.replace("/(app)/(tabs)")} style={styles.secondaryButton}><Text style={styles.secondaryText}>{profile?.membership.paid ? "Continue to Bourbon Signal" : "Continue with Free"}</Text></Pressable> : null}
+
+    {lifecycle && !["free", "provider_unavailable", "active", "founder"].includes(lifecycle.state) ? <View style={styles.statusCard}>
       <Text accessibilityRole="header" style={styles.statusTitle}>{lifecycle.title}</Text>
       <Text style={styles.statusBody}>{lifecycle.detail}</Text>
       <Text style={styles.preservation}>{lifecycle.preservationNotice}</Text>
     </View> : null}
 
-    <View style={styles.purchaseCard}>
-      <View style={styles.priceRow}><Text style={styles.price}>{displayPrice}</Text><Text style={styles.priceSuffix}>{displayPeriod}</Text></View>
-      <Text style={styles.renewal}>{renewalCopy}</Text>
-      <Pressable accessibilityRole="button" accessibilityLabel={purchaseAccessibilityLabel} accessibilityState={{ disabled: !canPurchase, busy: purchases.status === "purchasing" }} disabled={!canPurchase} onPress={() => void buy()} style={[styles.purchaseButton, !canPurchase && styles.disabledButton]}><Text style={styles.purchaseButtonText}>{purchaseButtonLabel}</Text></Pressable>
-      {!isFree && !isFounder ? <Pressable accessibilityRole="button" accessibilityState={{ disabled: !canRestore, busy: purchases.status === "restoring" }} disabled={!canRestore} onPress={() => void restorePurchases()} style={[styles.restoreButton, !canRestore && styles.restoreDisabled]}><Text style={styles.restoreText}>{purchases.status === "restoring" ? "Restoring…" : "Restore purchases"}</Text></Pressable> : null}
-    </View>
-
-    <View style={styles.featuresCard}>
-      <Text accessibilityRole="header" style={styles.sectionTitle}>What you get</Text>
-      {plan.features.map((feature) => <View key={feature} style={styles.featureRow}><Text accessible={false} style={styles.check}>✓</Text><Text style={styles.feature}>{feature}</Text></View>)}
-    </View>
-
-    <View style={styles.statusCard}>
-      <Text accessibilityRole="header" style={styles.statusTitle}>{statusTitle}</Text>
-      <Text accessibilityRole={purchases.status === "error" || purchases.status === "pending" ? "alert" : undefined} style={styles.statusBody}>{statusBody}</Text>
-      {purchases.status !== "ready" && !purchaseBusy && !isFree && !isFounder ? <Pressable accessibilityRole="button" onPress={() => void purchases.refresh()} style={styles.refreshButton}><Text style={styles.refreshText}>Refresh purchase status</Text></Pressable> : null}
-    </View>
-
     <View style={styles.legalLinks}>
-      {Platform.OS === "ios" ? <Pressable accessibilityRole="button" accessibilityState={{ busy: subscriptionBusy, disabled: subscriptionBusy }} disabled={subscriptionBusy} onPress={() => void manageSubscriptions()} style={styles.legalButton}><Text style={styles.legalText}>{subscriptionBusy ? "Opening…" : "Manage subscriptions in the App Store"}</Text></Pressable> : null}
-      <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/privacy")} style={styles.legalButton}><Text style={styles.legalText}>Privacy</Text></Pressable>
-      <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/terms")} style={styles.legalButton}><Text style={styles.legalText}>Terms of Service</Text></Pressable>
+      {Platform.OS === "ios" && lifecycle?.manageSubscriptions ? <Pressable accessibilityRole="button" accessibilityState={{ busy: subscriptionBusy, disabled: subscriptionBusy }} disabled={subscriptionBusy} onPress={() => void manageSubscriptions()} style={styles.legalButton}><Text style={styles.legalText}>{subscriptionBusy ? "Opening…" : "Manage subscriptions in the App Store"}</Text></Pressable> : null}
       <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/support")} style={styles.legalButton}><Text style={styles.legalText}>Membership support</Text></Pressable>
       <Pressable accessibilityRole="button" onPress={() => router.push("/(app)/account/delete")} style={styles.legalButton}><Text style={styles.legalText}>Delete account</Text></Pressable>
     </View>
-    {!isFree ? <Text style={styles.legalCopy}>{billingDisclosure}</Text> : null}
   </ScrollView>;
 }
 
 const styles = StyleSheet.create({
+  inlineStatus: { gap: 4, paddingTop: 4 },
   missing: { flex: 1, backgroundColor: colors.background, alignItems: "center", justifyContent: "center", gap: 18, padding: 24 },
   missingTitle: { color: colors.text, fontSize: 22, fontWeight: "900" },
   hero: { gap: 7, paddingTop: 3 },
@@ -192,7 +200,7 @@ const styles = StyleSheet.create({
   priceSuffix: { color: colors.muted, fontSize: 15, fontWeight: "700" },
   trial: { color: colors.accent, fontSize: 14, lineHeight: 20, fontWeight: "900" },
   renewal: { color: colors.muted, fontSize: 12, lineHeight: 18 },
-  featuresCard: { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1, borderRadius: 18, padding: 18, gap: 11 },
+  featuresCard: { paddingVertical: 4, paddingHorizontal: 2, gap: 10 },
   sectionTitle: { color: colors.text, fontSize: 18, fontWeight: "900", marginBottom: 2 },
   featureRow: { flexDirection: "row", alignItems: "flex-start", gap: 10 },
   check: { color: colors.success, fontSize: 15, lineHeight: 21, fontWeight: "900" },

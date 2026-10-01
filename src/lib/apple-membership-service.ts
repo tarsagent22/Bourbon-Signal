@@ -7,12 +7,13 @@ import {
 import { getAppleMembershipRepository } from "./apple-membership-repository.ts";
 import { getMembershipTrialRepository } from "./membership-trial-repository";
 import { createRevenueCatSubscriberFetcher, revenueCatConfiguration } from "./revenuecat.ts";
+import { createAppleTransactionVerifier } from "./apple-transaction-verifier.ts";
 
 export function configuredAppleMembershipService(env: NodeJS.ProcessEnv = process.env) {
   const configuration = revenueCatConfiguration(env);
   if (!configuration.ready) return { ready: false, configuration } as const;
   const repository = getAppleMembershipRepository();
-  const fetchCurrentSubscriber = createRevenueCatSubscriberFetcher({ apiKey: configuration.apiKey });
+  const fetchCurrentSubscriber = createRevenueCatSubscriberFetcher({ apiKey: configuration.apiKey, verifyAppleTransaction: createAppleTransactionVerifier(env) });
   const projectMembership = createAppleMembershipProjector({
     getUser: async (userId) => {
       const user = await (await clerkClient()).users.getUser(userId);
