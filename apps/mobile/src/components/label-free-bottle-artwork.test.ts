@@ -4,6 +4,7 @@ import { readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import seed from '../cellar/bottle-catalog-seed.json';
 import secondBatch from '../../assets/bottles/label-free-v2/catalog.json';
+import thirdBatch from '../../assets/bottles/label-free-v3/catalog.json';
 import { FIRST_BATCH_PRODUCTS, LABEL_FREE_PRODUCTS, resolveLabelFreeBottleArtwork as resolve } from './label-free-bottle-artwork';
 
 test('first batch covers 16 exact catalog entries using five reusable shapes', () => {
@@ -21,9 +22,9 @@ test('first batch covers 16 exact catalog entries using five reusable shapes', (
 test('second batch adds 59 exact products with 10 shapes, preserving all first-batch mappings', () => {
   assert.equal(secondBatch.products.length, 59);
   assert.equal(secondBatch.shapes.length, 10);
-  assert.equal(LABEL_FREE_PRODUCTS.length, 75);
-  assert.equal(new Set(LABEL_FREE_PRODUCTS.map(product => product.id)).size, 75);
-  assert.equal(new Set(LABEL_FREE_PRODUCTS.map(product => product.shape)).size, 15);
+  assert.equal(LABEL_FREE_PRODUCTS.length, 172);
+  assert.equal(new Set(LABEL_FREE_PRODUCTS.map(product => product.id)).size, 172);
+  assert.equal(new Set(LABEL_FREE_PRODUCTS.map(product => product.shape)).size, 37);
   for (const product of secondBatch.products) {
     const entry = seed.find(bottle => bottle.id === product.id);
     assert.equal(entry?.name, product.name, `${product.id}: exact catalog name required`);
@@ -64,7 +65,7 @@ test('second-batch transparent exports match their recorded hashes and fit three
 });
 
 test('unreviewed editions, sizes, generic brand names and lossy keys never inherit artwork', () => {
-  for (const bottleName of ['Eagle Rare 12 Year', 'Eagle Rare 17 Year', 'Eagle Rare 25Y', 'George T. Stagg', "Michter's US*1 Unblended American Whiskey", "Michter's 10 Year Bourbon", "Blanton's Gold Bourbon", 'E.H. Taylor Cured Oak', 'E.H. Taylor Small Batch 1.75L', 'E.H. Taylor', 'Michter']) {
+  for (const bottleName of ['Eagle Rare 17 Year', 'Eagle Rare 25Y', 'George T. Stagg', "Michter's US*1 Unblended American Whiskey", "Michter's 10 Year Bourbon", "Blanton's Gold Bourbon", 'E.H. Taylor Cured Oak', 'E.H. Taylor Small Batch 1.75L', 'E.H. Taylor', 'Michter']) {
     assert.equal(resolve({ bottleName }), undefined, bottleName);
     assert.equal(resolve({ bottleId: 'eh-taylor-small-batch', bottleName }), undefined, `stale ID: ${bottleName}`);
   }
@@ -84,7 +85,8 @@ test('approved names normalize apostrophes and punctuation without importing amb
 test('bundled first batch overrides photo fetching and exports have alpha and recorded provenance', () => {
   const component = readFileSync(new URL('./CellarBottleArtwork.tsx', import.meta.url), 'utf8');
   assert.match(component, /if \(shape\) return <LabelFreeBottleArtwork/);
-  assert.ok(component.indexOf('if (shape)') < component.indexOf('return <LegacyBottleArtwork'));
+  assert.doesNotMatch(component, /LegacyBottleArtwork|useBottlePhoto|assets\/bottles\/photos/);
+  assert.match(component, /<CellarBottleSilhouette size=\{size\}/);
   const directory = new URL('../../assets/bottles/label-free-v1/', import.meta.url);
   const provenance = JSON.parse(readFileSync(new URL('provenance.json', directory), 'utf8'));
   assert.equal(provenance.assets.length, 5);
@@ -98,4 +100,45 @@ test('bundled first batch overrides photo fetching and exports have alpha and re
     bytes += png.length;
   }
   assert.ok(bytes < 2_000_000, 'five assets should remain under 2 MB total');
+});
+
+test('third batch adds 97 reviewed entries and never guesses unusual editions or packaging',()=>{
+ assert.equal(thirdBatch.products.length,97);
+ assert.equal(thirdBatch.shapes.length,23);
+ for(const product of thirdBatch.products) {
+  assert.equal(seed.find(entry=>entry.id===product.id)?.name,product.name);
+  assert.equal(resolve({bottleId:product.id,bottleName:product.name}),product.shape);
+  assert.equal(resolve({bottleName:product.name}),product.shape);
+  assert.equal(resolve({bottleId:product.id}),product.shape);
+  for(const name of ('names' in product ? product.names as string[] : [])) assert.equal(resolve({bottleName:name}),product.shape,name);
+  assert.equal(resolve({bottleId:product.id,bottleName:'Custom unreviewed edition'}),undefined);
+ }
+ for(const bottleName of ['Weller Millennium','William Larue Weller',"Russell's Reserve Single Rickhouse",'Old Forester 1924','Henry McKenna','Penelope Estate Collection','Bulleit Bourbon 1.75L (PET)','Sazerac 18 Year','Heaven Hill Heritage Collection','Old Grand-Dad Bottled in Bond']) assert.equal(resolve({bottleName}),undefined,bottleName);
+ assert.equal(resolve({bottleName:'Eagle Rare 12 Year'}),'eagle-12');
+ assert.equal(resolve({bottleId:'eagle-rare-10',bottleName:'Eagle Rare 12 Year'}),undefined);
+});
+test('third-batch exports and generated registry match every reviewed asset and catalog',()=>{
+ const directory=new URL('../../assets/bottles/label-free-v3/',import.meta.url);
+ const provenance=JSON.parse(readFileSync(new URL('provenance.json',directory),'utf8'));
+ const registry=readFileSync(new URL('./label-free-artwork-assets.ts',import.meta.url),'utf8');
+ const catalog=readFileSync(new URL('./label-free-artwork-catalog.ts',import.meta.url),'utf8');
+ assert.equal(provenance.assets.length,23);
+ assert.deepEqual(new Set(provenance.assets.map((asset:{shape:string})=>asset.shape)),new Set(thirdBatch.shapes));
+ let bytes=0;
+ for(const asset of provenance.assets) {
+  const png=readFileSync(new URL(asset.file,directory));
+  assert.equal(createHash('sha256').update(png).digest('hex'),asset.exportSha256);
+  assert.equal(png[25],6,'true RGBA required');
+  assert.equal(png.readUInt32BE(16),asset.width);
+  assert.equal(png.readUInt32BE(20),asset.height);
+  assert.ok(asset.width<=540&&asset.height<=810);
+  assert.equal(png.length,asset.bytes); bytes+=png.length;
+  assert.ok(registry.includes(`label-free-v3/${asset.file}`));
+ }
+ assert.ok(bytes<6_000_000,'batch3 below6MB');
+ assert.equal((registry.match(/require\(/g)||[]).length,38);
+ for(const batch of [1,2,3])assert.ok(catalog.includes(`label-free-v${batch}/catalog.json`));
+ const fallback=readFileSync(new URL('./CellarBottleSilhouette.tsx',import.meta.url),'utf8');
+ assert.match(fallback,/shape="neutral"/);
+ assert.doesNotMatch(fallback,/styles\.label|useBottlePhoto/);
 });

@@ -69,13 +69,9 @@ test('storage failures do not suppress valid network data; stalled network resol
   assert.deepEqual(await stalled.load(), data());
 });
 
-test('component demands cached photo, handles image errors, preserves static pilots and exact sizing', () => {
+test('My Shelf no longer requests legacy catalog photos or bundles photo pilots', () => {
   const component = readFileSync(new URL('../components/CellarBottleArtwork.tsx', import.meta.url), 'utf8');
-  assert.match(component, /useBottlePhoto/);
-  assert.match(component, /!bottle.bottleId && !bottle.bottleName/, 'key-only input must not select even a static pilot');
-  assert.match(component, /onError=/);
-  assert.match(component, /cache: "force-cache"/);
-  for (const style of ['gridFrame: { width: 80, height: 116', 'gridArtwork: { width: 80, height: 116 }', 'listFrame: { width: 44, height: 62', 'listArtwork: { width: 44, height: 62 }']) assert.ok(component.includes(style));
-  assert.match(component, /resizeMode="contain"/);
-  assert.equal((component.match(/require\("\.\.\/\.\.\/assets\/bottles\/photos\//g) || []).length, 6);
+  assert.doesNotMatch(component, /useBottlePhoto|force-cache|assets\/bottles\/photos/);
+  assert.match(component, /resolveLabelFreeBottleArtwork\(bottle\)/);
+  assert.match(component, /<CellarBottleSilhouette size=\{size\}/);
 });

@@ -3,7 +3,10 @@ import { readFileSync } from 'node:fs';
 import { test } from 'node:test';
 import { shelfGridLayout } from './shelf-cabinet';
 test('grid shares ten-point safe page gutters at each phone width', () => {
-  for (const width of [320, 390, 430]) assert.equal(shelfGridLayout(width, 'grid').tileWidth * 3 + 16 + 20, width);
+  for (const width of [320, 390, 430]) {
+    const {columns,tileWidth}=shelfGridLayout(width, 'grid');
+    assert.equal(tileWidth * columns + (columns - 1) * 8 + 20, width);
+  }
 });
 const page = readFileSync(new URL('../../app/(app)/(tabs)/cellar.tsx', import.meta.url), 'utf8');
 test('fidelity controls use real four-square/list icons, inline counts and responsive fallback', () => {

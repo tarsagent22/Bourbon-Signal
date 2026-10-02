@@ -16,14 +16,11 @@ import {
   type BottleContributionReceipts,
 } from "../../../src/cellar/contribution-receipts";
 import { buildBourbonDna } from "../../../src/cellar/bourbon-dna";
-import { nextShelfPageSize } from "../../../src/cellar/my-shelf-display";
 import { CellarBottleArtwork } from "../../../src/components/CellarBottleArtwork";
-import { LabelFreeBottleArtwork } from '../../../src/components/LabelFreeBottleArtwork';
-import { resolveLabelFreeBottleArtwork } from '../../../src/components/label-free-bottle-artwork';
 import { CellarGlencairnSilhouette } from "../../../src/components/CellarGlencairnSilhouette";
 import { ShelfCabinet } from "../../../src/components/ShelfCabinet";
 import { CollectionStatisticsSheet } from "../../../src/components/CollectionStatisticsSheet";
-import { rankedShelfBottles, shelfGridLayout, type ShelfStyle } from "../../../src/cellar/shelf-cabinet";
+import { rankedShelfBottles, shelfBottleKey, shelfGridLayout, type ShelfStyle } from "../../../src/cellar/shelf-cabinet";
 import { EmptyState, ErrorState, LoadingState, memberScreenStyles } from "../../../src/components/MemberScreen";
 import { ScoreSlider } from "../../../src/components/ScoreSlider";
 import { useMobileApi } from "../../../src/hooks/useMobileApi";
@@ -136,7 +133,6 @@ function AccountCellarScreen({ api }: { api: ReturnType<typeof useMobileApi> }) 
     if (node != null) AccessibilityInfo.setAccessibilityFocus(node);
   };
   const closeStatistics = () => { setStatisticsOpen(false); };
-  const [visibleCount, setVisibleCount] = useState(12);
   const reportedPendingBottleIds = useRef(new Set<string>());
 
   const acceptServerPreferences = useCallback((next: MemberPreferences) => {
@@ -238,8 +234,7 @@ function AccountCellarScreen({ api }: { api: ReturnType<typeof useMobileApi> }) 
   const statistics = useMemo(() => collectionStatistics(sourceBottles), [sourceBottles]);
   const ranked = useMemo(() => rankedShelfBottles(sourceBottles), [sourceBottles]);
   const bottles = useMemo(() => filterAndSortCollection(sourceBottles, query, sort, filters), [filters, query, sort, sourceBottles]);
-  const visibleBottles = bottles.slice(0, visibleCount);
-  const { columns: numColumns, tileWidth } = shelfGridLayout(width, viewMode);
+  const { columns: numColumns, tileWidth } = shelfGridLayout(width, viewMode, fontScale);
   const refinementCount = activeCollectionRefinementCount(filters, sort);
   const moreFilterCount = Number(filters.status === "sealed") + Number(filters.rating !== "all") + Number(filters.minRating !== null) + Number(filters.buyAgainOnly);
   const cellarHuntSuggestions = useMemo(() => buildCellarHuntSuggestions({
@@ -254,7 +249,6 @@ function AccountCellarScreen({ api }: { api: ReturnType<typeof useMobileApi> }) 
   const canWatchCellarSuggestions = trackedBottleLimit === null || (typeof trackedBottleLimit === "number" && trackedBottleLimit > 0);
   const bourbonDna = useMemo(() => buildBourbonDna(sourceBottles), [sourceBottles]);
 
-  useEffect(() => { setVisibleCount(12); }, [filters, query, sort, viewMode]);
 
   const improveBourbonDna = useCallback(() => {
     const action = bourbonDna.nextAction;
@@ -408,8 +402,8 @@ function AccountCellarScreen({ api }: { api: ReturnType<typeof useMobileApi> }) 
       numColumns={numColumns}
       columnWrapperStyle={viewMode === "grid" && numColumns > 1 ? styles.gridRow : undefined}
       contentContainerStyle={[memberScreenStyles.content, styles.cellarContent, viewMode === "grid" && numColumns > 1 && styles.gridContent]}
-      data={visibleBottles}
-      keyExtractor={(item) => item.bottleId || item.canonicalKey}
+      data={bottles}
+      keyExtractor={shelfBottleKey}
       keyboardShouldPersistTaps="handled"
       keyboardDismissMode={Platform.OS === "ios" ? "interactive" : "on-drag"}
       refreshControl={<RefreshControl refreshing={loading && Boolean(preferences)} onRefresh={() => void load(true)} tintColor={colors.accent} />}
@@ -460,11 +454,6 @@ function AccountCellarScreen({ api }: { api: ReturnType<typeof useMobileApi> }) 
         </> : null}
       </View>}
       ListFooterComponent={preferences ? <View style={styles.footer}>
-        {bottles.length > visibleBottles.length ? <Pressable
-          accessibilityRole="button"
-          onPress={() => setVisibleCount((current) => nextShelfPageSize(bottles.length, current))}
-          style={({ pressed }) => [styles.showMoreButton, pressed && styles.pressed]}
-        ><Text style={styles.showMoreText}>Show {Math.min(12, bottles.length - visibleBottles.length)} more</Text></Pressable> : null}
         {cellarHuntSuggestions.length ? <View style={styles.huntNext}>
           <View style={styles.huntNextHeader}><Text style={styles.huntNextTitle}>Hunt next</Text><Text style={styles.huntNextCount}>{cellarHuntSuggestions.length} suggestion{cellarHuntSuggestions.length === 1 ? "" : "s"}</Text></View>
           {cellarHuntSuggestions.map((suggestion) => <View key={suggestion.canonicalKey} style={styles.huntNextRow}>
@@ -678,7 +667,7 @@ function BottleEditor({ bottle, busy, onClose, onDelete, onInventoryAction, onSa
             <Pressable accessibilityLabel="Save My Shelf details" accessibilityRole="button" accessibilityState={{ disabled: busy || !dirty }} disabled={busy || !dirty} onPress={() => void save()} style={styles.modalTarget}><Text style={[styles.modalAction, (busy || !dirty) && styles.mutedAction]}>{busy ? "Saving…" : "Save"}</Text></Pressable>
           </View>
           <Text style={styles.editorName}>{bottle?.bottleName}</Text>
-          {bottle && resolveLabelFreeBottleArtwork(bottle) ? <View style={{ alignItems: 'center', marginBottom: 12 }}><LabelFreeBottleArtwork key={bottle.bottleId || bottle.bottleName} shape={resolveLabelFreeBottleArtwork(bottle)!} size="detail" /></View> : null}
+          {bottle && kind === "owned" ? <View style={{ alignItems: 'center', marginBottom: 12 }}><CellarBottleArtwork key={shelfBottleKey(bottle)} bottle={bottle} size="detail" /></View> : null}
 
           <Section title="On my shelf">
             <View style={styles.inventoryStateRow}><Text style={styles.inventoryState}>{kind === "owned" ? "Owned" : "Tasted only"}</Text><Text style={styles.fieldHelp}>{inventorySummary}</Text></View>

@@ -17,8 +17,19 @@ test('every count zero through twenty, balanced max two rows max ten and common 
  for(let n=0;n<=20;n++) {const items=Array.from({length:n},(_,i)=>bottle(String(i)));const rows=shelf.cabinetRows(items);assert.equal(rows.flat().length,n);assert.equal(rows.length,n===0?0:n<=10?1:2);assert.ok(rows.every(r=>r.length<=10));if(n>10)assert.ok(Math.abs(rows[0].length-rows[1].length)<=1);}
  assert.equal(shelf.rankedShelfBottles(Array.from({length:30},(_,i)=>bottle(String(i)))).length,20);
 });
-test('three columns at phone widths with usable list and known styles',()=>{
- assert.equal(typeof shelf.shelfGridLayout,'function','three column feature must exist');
- for(const w of [320,390,430]){const g=shelf.shelfGridLayout(w,'grid');assert.equal(g.columns,3);assert.ok(g.tileWidth*3+16+20<=w+0.01);assert.equal(shelf.shelfGridLayout(w,'list').columns,1);}
+test('phone grids adapt to narrow screens and larger text; list fills its gutters',()=>{
+ for(const [width,fontScale,columns] of [[320,1,2],[390,1,3],[430,1,3],[390,1.2,2],[430,1.5,2]]) {
+  const grid=shelf.shelfGridLayout(width,'grid',fontScale);
+  assert.equal(grid.columns,columns);
+  assert.equal(grid.tileWidth*columns+(columns-1)*8+20,width);
+  assert.deepEqual(shelf.shelfGridLayout(width,'list',fontScale),{columns:1,tileWidth:width-20});
+ }
  assert.deepEqual(shelf.SHELF_STYLES.map(s=>s.label),['Amber Wood','Dark Walnut','Black Modern']);
+});
+test('custom editions with the same lossy key remain distinct and exact duplicates dedupe',()=>{
+ const a=bottle('',{canonicalKey:'1792',bottleName:'1792 12 Year'});
+ const b=bottle('',{canonicalKey:'1792',bottleName:'1792 Small Batch'});
+ assert.notEqual(shelf.shelfBottleKey(a),shelf.shelfBottleKey(b));
+ assert.equal(shelf.shelfBottleKey(bottle('known',{bottleName:'Old name'})),'known');
+ assert.deepEqual(shelf.rankedShelfBottles([a,b,{...a}]),[a,b]);
 });
