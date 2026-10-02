@@ -1,19 +1,66 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { readFileSync } from 'node:fs';
+import { createHash } from 'node:crypto';
 import seed from '../cellar/bottle-catalog-seed.json';
-import { LABEL_FREE_PRODUCTS, resolveLabelFreeBottleArtwork as resolve } from './label-free-bottle-artwork';
+import secondBatch from '../../assets/bottles/label-free-v2/catalog.json';
+import { FIRST_BATCH_PRODUCTS, LABEL_FREE_PRODUCTS, resolveLabelFreeBottleArtwork as resolve } from './label-free-bottle-artwork';
 
 test('first batch covers 16 exact catalog entries using five reusable shapes', () => {
-  assert.equal(LABEL_FREE_PRODUCTS.length, 16);
-  assert.equal(new Set(LABEL_FREE_PRODUCTS.map(product => product.shape)).size, 5);
-  for (const product of LABEL_FREE_PRODUCTS) {
+  assert.equal(FIRST_BATCH_PRODUCTS.length, 16);
+  assert.equal(new Set(FIRST_BATCH_PRODUCTS.map(product => product.shape)).size, 5);
+  for (const product of FIRST_BATCH_PRODUCTS) {
     const entry = seed.find(bottle => bottle.id === product.id);
     assert.equal(entry?.name, product.name, `${product.id} must remain a real exact catalog entry`);
     assert.equal(resolve({ bottleId: entry!.id, bottleName: entry!.name }), product.shape);
     assert.equal(resolve({ bottleId: entry!.id }), product.shape);
     assert.equal(resolve({ bottleName: entry!.name, canonicalKey: 'legacy lossy key' }), product.shape);
   }
+});
+
+test('second batch adds 59 exact products with 10 shapes, preserving all first-batch mappings', () => {
+  assert.equal(secondBatch.products.length, 59);
+  assert.equal(secondBatch.shapes.length, 10);
+  assert.equal(LABEL_FREE_PRODUCTS.length, 75);
+  assert.equal(new Set(LABEL_FREE_PRODUCTS.map(product => product.id)).size, 75);
+  assert.equal(new Set(LABEL_FREE_PRODUCTS.map(product => product.shape)).size, 15);
+  for (const product of secondBatch.products) {
+    const entry = seed.find(bottle => bottle.id === product.id);
+    assert.equal(entry?.name, product.name, `${product.id}: exact catalog name required`);
+    assert.equal(resolve({ bottleId: product.id, bottleName: product.name }), product.shape);
+    assert.equal(resolve({ bottleName: product.name }), product.shape);
+    assert.equal(resolve({ bottleId: product.id }), product.shape);
+    assert.equal(resolve({ bottleId: product.id, bottleName: 'Unreviewed custom bottle' }), undefined);
+  }
+});
+
+test('similar brands, unreviewed shapes and other sizes are excluded; distinct shapes never collide', () => {
+  for (const bottleName of ['1792 Extended Cask Collection Pinot Noir', 'Buffalo Trace Distillery Prohibition Collection', 'Elijah Craig 18 Year', 'Knob Creek 21Y', "Maker's Mark Cellar Aged", "Maker's Mark - 12Pk", 'Woodford Reserve Batch Proof', 'Woodford Reserve - 12Pk (PET)', 'Four Roses Small Batch Select', 'Four Roses Limited Edition Small Batch', 'Buffalo Trace Bourbon 1.75L', 'Knob Creek 9 Year 375 ml']) {
+    assert.equal(resolve({ bottleName }), undefined, bottleName);
+  }
+  assert.equal(resolve({ bottleId: 'makers-mark-46', bottleName: "Maker's Mark" }), undefined);
+  assert.equal(resolve({ bottleId: 'woodford-double-oaked', bottleName: 'Woodford Reserve Bourbon' }), undefined);
+  assert.equal(resolve({ bottleId: 'four-roses-small-batch', bottleName: 'Four Roses Single Barrel' }), undefined);
+  assert.equal(resolve({ canonicalKey: 'batch small roses' }), undefined);
+});
+
+test('second-batch transparent exports match their recorded hashes and fit three-times detail resolution', () => {
+  const directory = new URL('../../assets/bottles/label-free-v2/', import.meta.url);
+  const provenance = JSON.parse(readFileSync(new URL('provenance.json', directory), 'utf8'));
+  assert.equal(provenance.assets.length, 10);
+  assert.deepEqual(new Set(provenance.assets.map((asset: {shape: string}) => asset.shape)), new Set(secondBatch.shapes));
+  let bytes = 0;
+  for (const asset of provenance.assets) {
+    const png = readFileSync(new URL(asset.file, directory));
+    assert.equal(createHash('sha256').update(png).digest('hex'), asset.exportSha256);
+    assert.equal(png.readUInt32BE(16), asset.width);
+    assert.equal(png.readUInt32BE(20), asset.height);
+    assert.equal(png[25], 6, 'RGBA alpha required');
+    assert.ok(asset.width <= 540 && asset.height <= 810);
+    assert.equal(png.length, asset.bytes);
+    bytes += png.length;
+  }
+  assert.ok(bytes < 3_500_000, 'second batch should stay below 3.5 MB');
 });
 
 test('unreviewed editions, sizes, generic brand names and lossy keys never inherit artwork', () => {

@@ -1,0 +1,350 @@
+{
+  "batch": 2,
+  "products": [
+    {
+      "id": "1792-small-batch",
+      "name": "1792 Small Batch",
+      "shape": "1792",
+      "names": [
+        "1792 Small Batch Bourbon"
+      ]
+    },
+    {
+      "id": "1792-bottled-in-bond",
+      "name": "1792 Bottled in Bond",
+      "shape": "1792"
+    },
+    {
+      "id": "1792-bottled-in-bond-single-barrel-select",
+      "name": "1792 Bottled in Bond Single Barrel Select",
+      "shape": "1792"
+    },
+    {
+      "id": "1792-full-proof",
+      "name": "1792 Full Proof",
+      "shape": "1792"
+    },
+    {
+      "id": "1792-full-proof-single-barrel-select",
+      "name": "1792 Full Proof Single Barrel Select",
+      "shape": "1792"
+    },
+    {
+      "id": "1792-single-barrel-bourbon",
+      "name": "1792 Single Barrel Bourbon",
+      "shape": "1792"
+    },
+    {
+      "id": "1792-single-barrel-select",
+      "name": "1792 Single Barrel Select",
+      "shape": "1792"
+    },
+    {
+      "id": "1792-sweet-wheat-bourbon",
+      "name": "1792 Sweet Wheat Bourbon",
+      "shape": "1792"
+    },
+    {
+      "id": "buffalo-trace-bourbon",
+      "name": "Buffalo Trace Bourbon",
+      "shape": "buffalo-trace",
+      "names": [
+        "Buffalo Trace",
+        "Buffalo Trace Kentucky Straight Bourbon"
+      ]
+    },
+    {
+      "id": "buffalo-trace-single-barrel-bourbon",
+      "name": "Buffalo Trace Single Barrel Bourbon",
+      "shape": "buffalo-trace"
+    },
+    {
+      "id": "buffalo-trace-single-barrel-select",
+      "name": "Buffalo Trace Single Barrel Select",
+      "shape": "buffalo-trace"
+    },
+    {
+      "id": "elijah-craig-small-batch",
+      "name": "Elijah Craig Small Batch",
+      "shape": "elijah-craig",
+      "names": [
+        "Elijah Craig Small Batch Bourbon"
+      ]
+    },
+    {
+      "id": "elijah-craig-barrel-proof",
+      "name": "Elijah Craig Barrel Proof",
+      "shape": "elijah-craig"
+    },
+    {
+      "id": "elijah-craig-barrel-proof-ncabc-btb",
+      "name": "Elijah Craig Barrel Proof (NCABC BTB)",
+      "shape": "elijah-craig"
+    },
+    {
+      "id": "elijah-craig-rye",
+      "name": "Elijah Craig Rye",
+      "shape": "elijah-craig"
+    },
+    {
+      "id": "elijah-craig-straight-rye",
+      "name": "Elijah Craig Straight Rye",
+      "shape": "elijah-craig"
+    },
+    {
+      "id": "bb_babb8d7d3e6be567",
+      "name": "Elijah Craig Straight Rye Whiskey",
+      "shape": "elijah-craig"
+    },
+    {
+      "id": "elijah-craig-rye-toasted-barrel",
+      "name": "Elijah Craig Rye Toasted Barrel",
+      "shape": "elijah-craig"
+    },
+    {
+      "id": "elijah-craig-toasted-barrel",
+      "name": "Elijah Craig Toasted Barrel",
+      "shape": "elijah-craig"
+    },
+    {
+      "id": "elijah-craig-toasted-barrel-private-barrel",
+      "name": "Elijah Craig Toasted Barrel Private Barrel",
+      "shape": "elijah-craig"
+    },
+    {
+      "id": "bb_edf8a558304ee135",
+      "name": "Elijah Craig Toasted Barrel Private Barrel (btb) .75l",
+      "shape": "elijah-craig"
+    },
+    {
+      "id": "elijah-craig-barrel-proof-rye",
+      "name": "Elijah Craig Barrel Proof Rye",
+      "shape": "elijah-craig"
+    },
+    {
+      "id": "knob-creek",
+      "name": "Knob Creek",
+      "shape": "knob-creek"
+    },
+    {
+      "id": "knob-creek-9",
+      "name": "Knob Creek 9 Year",
+      "shape": "knob-creek",
+      "names": [
+        "Knob Creek 9",
+        "Knob Creek 9 Year Bourbon"
+      ]
+    },
+    {
+      "id": "knob-creek-12",
+      "name": "Knob Creek 12 Year",
+      "shape": "knob-creek"
+    },
+    {
+      "id": "knob-creek-15-year",
+      "name": "Knob Creek 15 Year",
+      "shape": "knob-creek"
+    },
+    {
+      "id": "knob-creek-18y",
+      "name": "Knob Creek 18Y",
+      "shape": "knob-creek"
+    },
+    {
+      "id": "knob-creek-bourbon-x-rye-blend",
+      "name": "Knob Creek Bourbon X Rye Blend",
+      "shape": "knob-creek"
+    },
+    {
+      "id": "knob-creek-rye",
+      "name": "Knob Creek Rye",
+      "shape": "knob-creek"
+    },
+    {
+      "id": "knob-creek-rye-single-barrel",
+      "name": "Knob Creek Rye Single Barrel",
+      "shape": "knob-creek"
+    },
+    {
+      "id": "knob-creek-rye-single-barrel-cask-strength",
+      "name": "Knob Creek Rye Single Barrel Cask Strength",
+      "shape": "knob-creek"
+    },
+    {
+      "id": "knob-creek-single-barrel-cask-strength",
+      "name": "Knob Creek Single Barrel Cask Strength",
+      "shape": "knob-creek"
+    },
+    {
+      "id": "knob-creek-single-barrel-reserve",
+      "name": "Knob Creek Single Barrel Reserve",
+      "shape": "knob-creek"
+    },
+    {
+      "id": "knob-creek-smoked-maple",
+      "name": "Knob Creek Smoked Maple",
+      "shape": "knob-creek"
+    },
+    {
+      "id": "woodford-reserve",
+      "name": "Woodford Reserve Bourbon",
+      "shape": "woodford-reserve",
+      "names": [
+        "Woodford Reserve"
+      ]
+    },
+    {
+      "id": "woodford-reserve-bourbon-personal-selection",
+      "name": "Woodford Reserve Bourbon Personal Selection",
+      "shape": "woodford-reserve"
+    },
+    {
+      "id": "woodford-reserve-bourbon-ps-ncabc-btb",
+      "name": "Woodford Reserve Bourbon PS (NCABC BTB)",
+      "shape": "woodford-reserve"
+    },
+    {
+      "id": "woodford-reserve-personal-sel",
+      "name": "Woodford Reserve Personal Sel",
+      "shape": "woodford-reserve"
+    },
+    {
+      "id": "woodford-reserve-personal-sel-ncabc-btb",
+      "name": "Woodford Reserve Personal Sel (NCABC BTB)",
+      "shape": "woodford-reserve"
+    },
+    {
+      "id": "woodford-reserve-rye",
+      "name": "Woodford Reserve Rye",
+      "shape": "woodford-reserve"
+    },
+    {
+      "id": "woodford-reserve-wheat",
+      "name": "Woodford Reserve Wheat",
+      "shape": "woodford-reserve"
+    },
+    {
+      "id": "woodford-reserve-ky-straight-malt",
+      "name": "Woodford Reserve KY Straight Malt",
+      "shape": "woodford-reserve"
+    },
+    {
+      "id": "woodford-double-oaked",
+      "name": "Woodford Reserve Double Oaked",
+      "shape": "woodford-double-oaked"
+    },
+    {
+      "id": "bb_bc740ceed124f31d",
+      "name": "Woodford Reserve Double Oaked Bourbon",
+      "shape": "woodford-double-oaked"
+    },
+    {
+      "id": "woodford-reserve-double-oaked-single-barrel",
+      "name": "Woodford Reserve Double Oaked Single Barrel",
+      "shape": "woodford-double-oaked"
+    },
+    {
+      "id": "woodford-reserve-double-oaked-single-barrel-ncabc-btb",
+      "name": "Woodford Reserve Double Oaked Single Barrel (NCABC BTB)",
+      "shape": "woodford-double-oaked"
+    },
+    {
+      "id": "makers-mark",
+      "name": "Maker's Mark",
+      "shape": "makers-mark",
+      "names": [
+        "Maker's Mark Bourbon"
+      ]
+    },
+    {
+      "id": "makers-mark-cask-strength",
+      "name": "Maker's Mark Cask Strength",
+      "shape": "makers-mark"
+    },
+    {
+      "id": "makers-mark-cask-strength-military-edition",
+      "name": "Maker's Mark Cask Strength Military Edition",
+      "shape": "makers-mark"
+    },
+    {
+      "id": "makers-mark-46",
+      "name": "Maker's Mark 46",
+      "shape": "makers-mark-46"
+    },
+    {
+      "id": "makers-mark-46-cask-strength",
+      "name": "Maker's Mark 46 Cask Strength",
+      "shape": "makers-mark-46"
+    },
+    {
+      "id": "four-roses-single-barrel",
+      "name": "Four Roses Single Barrel",
+      "shape": "four-roses-single-barrel",
+      "names": [
+        "Four Roses Single Barrel Bourbon"
+      ]
+    },
+    {
+      "id": "bb_bb97e76c263976a8",
+      "name": "Four Roses Single Barrel Barrel Strength",
+      "shape": "four-roses-single-barrel"
+    },
+    {
+      "id": "four-roses-single-barrel-barrel-strength-private",
+      "name": "Four Roses Single Barrel Barrel Strength Private",
+      "shape": "four-roses-single-barrel"
+    },
+    {
+      "id": "four-roses-single-barrel-barrel-strength-private-ncabc-btb",
+      "name": "Four Roses Single Barrel Barrel Strength Private (NCABC BTB)",
+      "shape": "four-roses-single-barrel"
+    },
+    {
+      "id": "four-roses-single-barrel-obsk",
+      "name": "Four Roses Single Barrel OBSK",
+      "shape": "four-roses-single-barrel"
+    },
+    {
+      "id": "four-roses-single-barrel-oesf",
+      "name": "Four Roses Single Barrel OESF",
+      "shape": "four-roses-single-barrel"
+    },
+    {
+      "id": "four-roses-single-barrel-oesq",
+      "name": "Four Roses Single Barrel OESQ",
+      "shape": "four-roses-single-barrel"
+    },
+    {
+      "id": "four-roses-small-batch",
+      "name": "Four Roses Small Batch",
+      "shape": "four-roses-small-batch",
+      "names": [
+        "Four Roses Small Batch Bourbon"
+      ]
+    }
+  ],
+  "shapes": [
+    "1792",
+    "buffalo-trace",
+    "elijah-craig",
+    "knob-creek",
+    "woodford-reserve",
+    "woodford-double-oaked",
+    "makers-mark",
+    "makers-mark-46",
+    "four-roses-single-barrel",
+    "four-roses-small-batch"
+  ],
+  "excluded": [
+    "1792 Extended Cask Collection",
+    "Buffalo Trace Prohibition Collection",
+    "Elijah Craig 18/21 Year",
+    "Knob Creek 21 Year",
+    "Maker's Mark Cellar Aged",
+    "Woodford Reserve Batch Proof",
+    "Woodford Reserve Master's Collection",
+    "Four Roses Small Batch Select",
+    "Four Roses Limited Editions",
+    "PET/multipack or non-750 ml forms"
+  ]
+}

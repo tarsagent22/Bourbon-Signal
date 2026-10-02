@@ -1,11 +1,13 @@
 import type { CellarBottleIdentity } from './cellar-bottle-artwork';
+import type { LABEL_FREE_ARTWORK } from './label-free-artwork-assets';
+import secondBatch from '../../assets/bottles/label-free-v2/catalog.json';
 
-export type LabelFreeShape = 'eagle' | 'taylor' | 'michters' | 'stagg' | 'blantons';
+export type LabelFreeShape = keyof typeof LABEL_FREE_ARTWORK;
 
 // Reviewed 750 ml shape families only. Names remain visible beside the artwork:
 // shared geometry does not imply identical age, proof, or edition. Never expand
 // from catalog aliases: Taylor's seed includes known cross-edition aliases.
-export const LABEL_FREE_PRODUCTS: ReadonlyArray<Readonly<{
+export const FIRST_BATCH_PRODUCTS: ReadonlyArray<Readonly<{
   id: string; name: string; shape: LabelFreeShape; names?: readonly string[];
 }>> = [
   { id: 'eagle-rare-10', name: 'Eagle Rare 10 Year', shape: 'eagle', names: ['Eagle Rare 10', 'Eagle Rare 10Y', 'Eagle Rare 10 Yr'] },
@@ -24,6 +26,11 @@ export const LABEL_FREE_PRODUCTS: ReadonlyArray<Readonly<{
   { id: 'stagg-single-barrel-select', name: 'Stagg Single Barrel Select', shape: 'stagg' },
   { id: 'blantons-single-barrel', name: "Blanton's Single Barrel", shape: 'blantons', names: ["Blanton's Original Single Barrel", 'Blantons', "Blanton's", 'Blanton'] },
   { id: 'blantons-single-barrel-select', name: "Blanton's Single Barrel Select", shape: 'blantons' },
+];
+
+export const LABEL_FREE_PRODUCTS = [
+  ...FIRST_BATCH_PRODUCTS,
+  ...secondBatch.products.map(product => ({ ...product, shape: product.shape as LabelFreeShape })),
 ];
 
 function normalize(value?: string) {
