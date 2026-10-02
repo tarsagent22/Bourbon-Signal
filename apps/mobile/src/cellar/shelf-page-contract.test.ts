@@ -43,3 +43,10 @@ test('all filtered entries are virtualized with stable identities and original a
  assert.doesNotMatch(page,/visibleCount|visibleBottles|nextShelfPageSize/);
  assert.match(page,/<CellarBottleArtwork key=\{shelfBottleKey\(bottle\)\} bottle=\{bottle\} size="detail"/);
 });
+
+test('the native editor supplies exact selected identity for updates, inventory and deletion',()=>{
+ assert.match(page,/updateCollectionBottle\(preferences.collectionPreferences.bottles, selected, patch/);
+ assert.match(page,/applyCollectionInventoryAction\(priorBottles, selected, action/);
+ assert.match(page,/filter\(\(bottle\) => !matchesCollectionBottle\(bottle, selected\)\)/);
+ assert.doesNotMatch(page,/selected.canonicalKey, (patch|action)/);
+});

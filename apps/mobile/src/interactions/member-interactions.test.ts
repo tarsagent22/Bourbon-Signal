@@ -19,6 +19,7 @@ import {
   rewardCatalogSummary,
   TASTE_TAG_OPTIONS,
   updateCollectionBottle,
+  matchesCollectionBottle,
   upsertCollectionBottle,
   visibleTasteTags,
 } from "./member-interactions";
@@ -258,4 +259,23 @@ test("does not present points progress as the redemption barrier for an ineligib
   assert.equal(summary.featuredReward, null);
   assert.equal(summary.nextReward, null);
   assert.equal(summary.nextRewardProgress, null);
+});
+
+test('selected editions with a shared canonical key isolate rating, inventory, deletion and refresh matching',()=>{
+ for(const custom of [false,true]) {
+  const selected=bottle({bottleId:custom?'':'1792-12-year',bottleName:'1792 12 Year',canonicalKey:'1792',sealedQuantity:1,openedQuantity:1});
+  const other=bottle({bottleId:custom?'':'1792-small-batch',bottleName:'1792 Small Batch',canonicalKey:'1792',sealedQuantity:1,openedQuantity:1});
+  const input=[selected,other];
+  const updated=updateCollectionBottle(input,selected,{rating:80,isRated:true,tasteTags:[],sealedQuantity:2,openedQuantity:1,finishedCount:0,tastedOnly:false},'2026-10-02');
+  assert.equal(updated[0].rating,80);
+  assert.equal(updated[1],other,'another edition must retain its rating and inventory');
+  for(const action of ['add_bottle','open_bottle','finish_bottle','keep_tasted_only'] as const) {
+   const next=applyCollectionInventoryAction(input,selected,action,'2026-10-02');
+   assert.notEqual(next[0],selected,action);
+   assert.equal(next[1],other,action);
+  }
+  assert.deepEqual(input.filter(item=>!matchesCollectionBottle(item,selected)),[other]);
+  assert.equal([other].find(item=>matchesCollectionBottle(item,selected)),undefined,'a removed selection must not switch to another edition');
+  assert.equal(selected.sealedQuantity,1,'source collection stays immutable');
+ }
 });

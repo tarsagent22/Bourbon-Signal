@@ -32,6 +32,7 @@ import {
   collectionInventoryLabel,
   collectionSummary,
   collectionStatistics,
+  matchesCollectionBottle,
   DEFAULT_COLLECTION_FILTERS,
   DEFAULT_COLLECTION_SORT,
   filterAndSortCollection,
@@ -66,9 +67,7 @@ const COLLECTION_SORT_LABELS: Record<CollectionSort, string> = {
 };
 
 function findBottle(bottles: MemberCollectionBottle[], selected: MemberCollectionBottle) {
-  return bottles.find((bottle) => bottle.bottleId === selected.bottleId)
-    || bottles.find((bottle) => bottle.canonicalKey === selected.canonicalKey)
-    || null;
+  return bottles.find((bottle) => matchesCollectionBottle(bottle, selected)) || null;
 }
 
 async function readContributionReceipts(storageKey: string) {
@@ -286,7 +285,7 @@ function AccountCellarScreen({ api }: { api: ReturnType<typeof useMobileApi> }) 
 
   const saveBottle = useCallback(async (patch: CollectionBottlePatch) => {
     if (!preferences || !selected) return false;
-    const next = updateCollectionBottle(preferences.collectionPreferences.bottles, selected.canonicalKey, patch, new Date().toISOString());
+    const next = updateCollectionBottle(preferences.collectionPreferences.bottles, selected, patch, new Date().toISOString());
     const saved = await persistBottles(next, preferences.collectionPreferences.version, "My Shelf changed elsewhere. It was refreshed before these details could be saved.");
     if (!saved) return false;
     setSelected(null);
@@ -321,7 +320,7 @@ function AccountCellarScreen({ api }: { api: ReturnType<typeof useMobileApi> }) 
     if (!preferences || !selected || mutating) return;
     const execute = async () => {
       const priorBottles = preferences.collectionPreferences.bottles;
-      const nextBottles = applyCollectionInventoryAction(priorBottles, selected.canonicalKey, action, new Date().toISOString());
+      const nextBottles = applyCollectionInventoryAction(priorBottles, selected, action, new Date().toISOString());
       if (nextBottles === priorBottles) return;
       const saved = await persistBottles(nextBottles, preferences.collectionPreferences.version, "My Shelf changed elsewhere. It was refreshed before that inventory action could be saved.");
       if (!saved) return;
@@ -352,7 +351,7 @@ function AccountCellarScreen({ api }: { api: ReturnType<typeof useMobileApi> }) 
     Alert.alert("Delete this My Shelf history?", `${selected.bottleName} and all inventory, rating, and tasting history will be removed.`, [
       { text: "Cancel", style: "cancel" },
       { text: "Delete", style: "destructive", onPress: () => void (async () => {
-        const next = preferences.collectionPreferences.bottles.filter((bottle) => bottle.bottleId !== selected.bottleId);
+        const next = preferences.collectionPreferences.bottles.filter((bottle) => !matchesCollectionBottle(bottle, selected));
         const saved = await persistBottles(next, preferences.collectionPreferences.version, "My Shelf changed elsewhere. It was refreshed before deletion could be saved.");
         if (saved) setSelected(null);
       })() },
