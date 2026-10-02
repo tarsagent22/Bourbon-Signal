@@ -7,6 +7,9 @@ export const SHELF_STYLES = [
   { id: 'black', label: 'Black Modern', wood: '#292b2b', edge: '#555953', back: '#1d2020', dark: '#0a0c0c' },
 ] as const;
 export type ShelfStyle = typeof SHELF_STYLES[number]['id'];
+export function shelfBottleKey(bottle: Pick<MemberCollectionBottle, 'bottleId' | 'canonicalKey' | 'bottleName'>) {
+  return bottle.bottleId || `${bottle.canonicalKey}\n${bottle.bottleName}`;
+}
 export function rankedShelfBottles(bottles: readonly MemberCollectionBottle[]) {
   const seen = new Set<string>();
   return bottles.map((bottle, index) => ({ bottle, index }))
@@ -14,7 +17,7 @@ export function rankedShelfBottles(bottles: readonly MemberCollectionBottle[]) {
     .sort((a, b) => b.bottle.rating - a.bottle.rating || a.index - b.index)
     .filter(({ bottle }) => {
       // Canonical keys can lose edition/age (both 1792 editions have key "1792").
-      const identity = bottle.bottleId || `${bottle.canonicalKey}\n${bottle.bottleName}`;
+      const identity = shelfBottleKey(bottle);
       if (seen.has(identity)) return false;
       seen.add(identity); return true;
     }).slice(0, 20).map(({ bottle }) => bottle);
@@ -26,6 +29,7 @@ export function cabinetRows<T>(items: readonly T[]): T[][] {
   const half = Math.ceil(bounded.length / 2);
   return [bounded.slice(0, half), bounded.slice(half)];
 }
-export function shelfGridLayout(width: number, mode: 'grid' | 'list') {
-  return { columns: mode === 'grid' ? 3 : 1, tileWidth: (width - 20 - 16) / 3 };
+export function shelfGridLayout(width: number, mode: 'grid' | 'list', fontScale = 1) {
+  const columns = mode === 'list' ? 1 : width < 350 || fontScale > 1.15 ? 2 : 3;
+  return { columns, tileWidth: (width - 20 - (columns - 1) * 8) / columns };
 }

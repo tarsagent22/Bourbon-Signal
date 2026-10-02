@@ -1,0 +1,569 @@
+{
+  "batch": 3,
+  "products": [
+    {
+      "id": "weller-12-year",
+      "name": "W.L. Weller 12 Year",
+      "shape": "weller",
+      "names": [
+        "Weller 12 Year"
+      ]
+    },
+    {
+      "id": "weller-antique-107",
+      "name": "W.L. Weller Antique 107",
+      "shape": "weller",
+      "names": [
+        "Weller Antique 107"
+      ]
+    },
+    {
+      "id": "weller-full-proof",
+      "name": "W.L. Weller Full Proof",
+      "shape": "weller",
+      "names": [
+        "Weller Full Proof",
+        "W.L. Weller Full Proof Bourbon"
+      ]
+    },
+    {
+      "id": "weller-special-reserve",
+      "name": "W.L. Weller Special Reserve",
+      "shape": "weller",
+      "names": [
+        "Weller Special Reserve"
+      ]
+    },
+    {
+      "id": "weller-cypb",
+      "name": "Weller CYPB",
+      "shape": "weller"
+    },
+    {
+      "id": "weller-full-proof-single-barrel-select",
+      "name": "Weller Full Proof Single Barrel Select",
+      "shape": "weller"
+    },
+    {
+      "id": "weller-single-barrel",
+      "name": "Weller Single Barrel",
+      "shape": "weller"
+    },
+    {
+      "id": "weller-special-reserve-single-barrel-select",
+      "name": "Weller Special Reserve Single Barrel Select",
+      "shape": "weller"
+    },
+    {
+      "id": "pappy-van-winkle-15",
+      "name": "Pappy Van Winkle 15 Year",
+      "shape": "pappy",
+      "names": [
+        "Pappy Van Winkle's Family Reserve 15 Year",
+        "Pappy Van Winkle 15"
+      ]
+    },
+    {
+      "id": "old-rip-van-winkle-10",
+      "name": "Old Rip Van Winkle 10 Year",
+      "shape": "old-rip"
+    },
+    {
+      "id": "russells-reserve-10",
+      "name": "Russell's Reserve 10 Year",
+      "shape": "russells",
+      "names": [
+        "Russell's Reserve 10 Year Bourbon"
+      ]
+    },
+    {
+      "id": "russells-reserve-13-year",
+      "name": "Russell's Reserve 13 Year",
+      "shape": "russells",
+      "names": [
+        "Russell's Reserve 13",
+        "Russell's Reserve 13 Year Bourbon"
+      ]
+    },
+    {
+      "id": "russells-reserve-single-barrel",
+      "name": "Russell's Reserve Single Barrel",
+      "shape": "russells"
+    },
+    {
+      "id": "henry-mckenna-10-year",
+      "name": "Henry McKenna 10 Year",
+      "shape": "henry-mckenna",
+      "names": [
+        "Henry McKenna 10",
+        "Henry McKenna 10 Year Single Barrel",
+        "Henry McKenna Single Barrel 10 Year",
+        "Henry McKenna 10 Year Bottled in Bond"
+      ]
+    },
+    {
+      "id": "henry-mckenna-single-barrel",
+      "name": "Henry McKenna Single Barrel",
+      "shape": "henry-mckenna"
+    },
+    {
+      "id": "penelope-american-light-17y-125p",
+      "name": "Penelope American Light 17Y 125P",
+      "shape": "penelope"
+    },
+    {
+      "id": "penelope-american-light-18y-whiskey",
+      "name": "Penelope American Light 18Y Whiskey",
+      "shape": "penelope"
+    },
+    {
+      "id": "penelope-american-light-whiskey",
+      "name": "Penelope American Light Whiskey",
+      "shape": "penelope"
+    },
+    {
+      "id": "penelope-architect-bourbon",
+      "name": "Penelope Architect Bourbon",
+      "shape": "penelope"
+    },
+    {
+      "id": "penelope-architect-creme-brulee-ncabc-btb",
+      "name": "Penelope Architect Creme Brulee (NCABC BTB)",
+      "shape": "penelope"
+    },
+    {
+      "id": "penelope-architect-private-barrel",
+      "name": "Penelope Architect Private Barrel",
+      "shape": "penelope"
+    },
+    {
+      "id": "penelope-barrel-strength-7y-bourbon",
+      "name": "Penelope Barrel Strength 7Y bourbon",
+      "shape": "penelope"
+    },
+    {
+      "id": "penelope-bourbon",
+      "name": "Penelope Bourbon",
+      "shape": "penelope"
+    },
+    {
+      "id": "penelope-bourbon-toasted-barrel-finish",
+      "name": "Penelope Bourbon Toasted Barrel Finish",
+      "shape": "penelope"
+    },
+    {
+      "id": "penelope-classic-series-straight-bourbon",
+      "name": "Penelope Classic Series Straight Bourbon",
+      "shape": "penelope"
+    },
+    {
+      "id": "penelope-classic-series-straight-rye-whiskey",
+      "name": "Penelope Classic Series Straight Rye Whiskey",
+      "shape": "penelope"
+    },
+    {
+      "id": "bb_473aba10a697b5fc",
+      "name": "Penelope Four Grain Bourbon",
+      "shape": "penelope"
+    },
+    {
+      "id": "penelope-havana",
+      "name": "Penelope Havana",
+      "shape": "penelope"
+    },
+    {
+      "id": "penelope-private-select-9y",
+      "name": "Penelope Private Select 9Y",
+      "shape": "penelope"
+    },
+    {
+      "id": "penelope-rio-cask-finish",
+      "name": "Penelope Rio Cask Finish",
+      "shape": "penelope"
+    },
+    {
+      "id": "penelope-riviera-cask-finish",
+      "name": "Penelope Riviera Cask Finish",
+      "shape": "penelope",
+      "names": [
+        "Penelope Riviera",
+        "Penelope Cooper Series Riviera"
+      ]
+    },
+    {
+      "id": "penelope-rose-cask-finish-barrel",
+      "name": "Penelope Rose Cask Finish Barrel",
+      "shape": "penelope"
+    },
+    {
+      "id": "penelope-straight-bourbon",
+      "name": "Penelope Straight Bourbon",
+      "shape": "penelope"
+    },
+    {
+      "id": "penelope-toasted-bourbon-private-batch",
+      "name": "Penelope Toasted Bourbon Private Batch",
+      "shape": "penelope"
+    },
+    {
+      "id": "penelope-toasted-finish-private-barrel",
+      "name": "Penelope Toasted Finish Private Barrel",
+      "shape": "penelope"
+    },
+    {
+      "id": "penelope-toasted-private-batch-marshmallow",
+      "name": "Penelope Toasted Private Batch Marshmallow",
+      "shape": "penelope"
+    },
+    {
+      "id": "penelope-tokaji-cask-finish-rye",
+      "name": "Penelope Tokaji Cask Finish Rye",
+      "shape": "penelope"
+    },
+    {
+      "id": "penelope-valencia",
+      "name": "Penelope Valencia",
+      "shape": "penelope"
+    },
+    {
+      "id": "penelope-wheated-bourbon",
+      "name": "Penelope Wheated Bourbon",
+      "shape": "penelope"
+    },
+    {
+      "id": "southern-star-bourbon",
+      "name": "Southern Star Bourbon",
+      "shape": "southern-star"
+    },
+    {
+      "id": "southern-star-bourbon-cask-strength",
+      "name": "Southern Star Bourbon Cask Strength",
+      "shape": "southern-star"
+    },
+    {
+      "id": "southern-star-paragon-bottled-in-bond",
+      "name": "Southern Star Paragon Bottled in Bond",
+      "shape": "southern-star"
+    },
+    {
+      "id": "southern-star-paragon-cask-strength",
+      "name": "Southern Star Paragon Cask Strength",
+      "shape": "southern-star"
+    },
+    {
+      "id": "southern-star-straight-rye-whiskey-bottled-in-bond",
+      "name": "Southern Star Straight Rye Whiskey Bottled in Bond",
+      "shape": "southern-star"
+    },
+    {
+      "id": "eagle-rare-12",
+      "name": "Eagle Rare 12 Year",
+      "shape": "eagle-12"
+    },
+    {
+      "id": "wild-turkey-101",
+      "name": "Wild Turkey 101 Bourbon",
+      "shape": "wild-turkey-101"
+    },
+    {
+      "id": "bb_4b57850b8b8f77fd",
+      "name": "Wild Turkey 101 8Y .75l",
+      "shape": "wild-turkey-101"
+    },
+    {
+      "id": "wild-turkey-rare-breed",
+      "name": "Wild Turkey Rare Breed",
+      "shape": "wild-turkey-rare-breed"
+    },
+    {
+      "id": "bb_22604f9ddde2b6ba",
+      "name": "Wild Turkey Rare Breed Straight Bourbon",
+      "shape": "wild-turkey-rare-breed"
+    },
+    {
+      "id": "old-forester-1870",
+      "name": "Old Forester 1870 Whiskey Row Series",
+      "shape": "old-forester-whiskey-row"
+    },
+    {
+      "id": "old-forester-1897",
+      "name": "Old Forester 1897 Whiskey Row Series",
+      "shape": "old-forester-whiskey-row"
+    },
+    {
+      "id": "old-forester-1910",
+      "name": "Old Forester 1910 Old Fine Whisky",
+      "shape": "old-forester-whiskey-row",
+      "names": [
+        "Old Forester 1910"
+      ]
+    },
+    {
+      "id": "old-forester-1920",
+      "name": "Old Forester 1920 Prohibition Style",
+      "shape": "old-forester-whiskey-row",
+      "names": [
+        "Old Forester 1920"
+      ]
+    },
+    {
+      "id": "old-forester",
+      "name": "Old Forester",
+      "shape": "old-forester-classic"
+    },
+    {
+      "id": "old-forester-100",
+      "name": "Old Forester 100 Proof",
+      "shape": "old-forester-classic"
+    },
+    {
+      "id": "bb_8b27dd3856554ada",
+      "name": "Old Forester 100 Proof Bourbon",
+      "shape": "old-forester-classic"
+    },
+    {
+      "id": "old-forester-86",
+      "name": "Old Forester 86 Proof",
+      "shape": "old-forester-classic"
+    },
+    {
+      "id": "old-forester-rye",
+      "name": "Old Forester Rye",
+      "shape": "old-forester-classic"
+    },
+    {
+      "id": "bb_73d094ebd8833e55",
+      "name": "Old Forester Signature",
+      "shape": "old-forester-classic"
+    },
+    {
+      "id": "old-forester-single-barrel",
+      "name": "Old Forester Single Barrel",
+      "shape": "old-forester-classic"
+    },
+    {
+      "id": "old-forester-single-barrel-barrel-proof",
+      "name": "Old Forester Single Barrel Barrel Proof",
+      "shape": "old-forester-classic"
+    },
+    {
+      "id": "larceny",
+      "name": "Larceny",
+      "shape": "larceny"
+    },
+    {
+      "id": "larceny-92-proof",
+      "name": "Larceny 92 Proof",
+      "shape": "larceny"
+    },
+    {
+      "id": "larceny-barrel-proof",
+      "name": "Larceny Barrel Proof",
+      "shape": "larceny"
+    },
+    {
+      "id": "larceny-barrel-proof-ncabc-btb",
+      "name": "Larceny Barrel Proof (NCABC BTB)",
+      "shape": "larceny"
+    },
+    {
+      "id": "larceny-barrel-proof-private-barrel",
+      "name": "Larceny Barrel Proof Private Barrel",
+      "shape": "larceny"
+    },
+    {
+      "id": "larceny-private-barrel-ncabc-btb",
+      "name": "Larceny Private Barrel (NCABC BTB)",
+      "shape": "larceny"
+    },
+    {
+      "id": "larceny-small-batch",
+      "name": "Larceny Small Batch",
+      "shape": "larceny"
+    },
+    {
+      "id": "bulleit-bourbon",
+      "name": "Bulleit Bourbon",
+      "shape": "bulleit"
+    },
+    {
+      "id": "bulleit-bourbon-10y",
+      "name": "Bulleit Bourbon 10Y",
+      "shape": "bulleit"
+    },
+    {
+      "id": "bulleit-bourbon-bottled-in-bond",
+      "name": "Bulleit Bourbon Bottled in Bond",
+      "shape": "bulleit"
+    },
+    {
+      "id": "bulleit-rye",
+      "name": "Bulleit Rye",
+      "shape": "bulleit"
+    },
+    {
+      "id": "angels-envy-bourbon",
+      "name": "Angel's Envy Bourbon",
+      "shape": "angels-envy"
+    },
+    {
+      "id": "angels-envy-rye",
+      "name": "Angel's Envy Rye",
+      "shape": "angels-envy"
+    },
+    {
+      "id": "angels-envy-kentucky-straight-bourbon-whiskey-port-barrel-finish",
+      "name": "Angel's Envy Kentucky Straight Bourbon Whiskey Port Barrel Finish",
+      "shape": "angels-envy"
+    },
+    {
+      "id": "evan-williams-black",
+      "name": "Evan Williams Black",
+      "shape": "evan-williams-classic"
+    },
+    {
+      "id": "evan-williams-black-label",
+      "name": "Evan Williams Black Label",
+      "shape": "evan-williams-classic"
+    },
+    {
+      "id": "evan-williams-bottled-in-bond",
+      "name": "Evan Williams Bottled-in-Bond",
+      "shape": "evan-williams-classic"
+    },
+    {
+      "id": "evan-williams-bourbon-green-label",
+      "name": "Evan Williams Bourbon Green Label",
+      "shape": "evan-williams-classic"
+    },
+    {
+      "id": "evan-williams-white-bottled-in-bond",
+      "name": "Evan Williams White Bottled in Bond",
+      "shape": "evan-williams-classic"
+    },
+    {
+      "id": "evan-williams-white-label-bottled-in-bond",
+      "name": "Evan Williams White Label Bottled in Bond",
+      "shape": "evan-williams-classic"
+    },
+    {
+      "id": "evan-williams-single-barrel-vintage",
+      "name": "Evan Williams Single Barrel Vintage",
+      "shape": "evan-williams-single-barrel"
+    },
+    {
+      "id": "bb_26101bb2f6066725",
+      "name": "Evan Williams 1783 Bourbon",
+      "shape": "evan-williams-1783"
+    },
+    {
+      "id": "evan-williams-1783-small-batch",
+      "name": "Evan Williams 1783 Small Batch",
+      "shape": "evan-williams-1783"
+    },
+    {
+      "id": "benchmark-bonded",
+      "name": "Benchmark Bonded",
+      "shape": "benchmark"
+    },
+    {
+      "id": "benchmark-full-proof",
+      "name": "Benchmark Full Proof",
+      "shape": "benchmark"
+    },
+    {
+      "id": "benchmark-single-barrel",
+      "name": "Benchmark Single Barrel",
+      "shape": "benchmark"
+    },
+    {
+      "id": "benchmark-small-batch",
+      "name": "Benchmark Small Batch",
+      "shape": "benchmark"
+    },
+    {
+      "id": "benchmark-top-floor",
+      "name": "Benchmark Top Floor",
+      "shape": "benchmark"
+    },
+    {
+      "id": "sazerac-rye",
+      "name": "Sazerac Rye",
+      "shape": "sazerac"
+    },
+    {
+      "id": "sazerac-rye-6y",
+      "name": "Sazerac Rye 6Y",
+      "shape": "sazerac"
+    },
+    {
+      "id": "sazerac-rye-single-barrel-select",
+      "name": "Sazerac Rye Single Barrel Select",
+      "shape": "sazerac"
+    },
+    {
+      "id": "old-grand-dad-114",
+      "name": "Old Grand Dad 114",
+      "shape": "old-grand-dad-114"
+    },
+    {
+      "id": "heaven-hill-bottled-in-bond",
+      "name": "Heaven Hill 7 Year Bottled-in-Bond",
+      "shape": "heaven-hill"
+    },
+    {
+      "id": "heaven-hill-bottled-in-bond-ncabc-btb",
+      "name": "Heaven Hill Bottled in Bond (NCABC BTB)",
+      "shape": "heaven-hill"
+    },
+    {
+      "id": "heaven-hill-bottled-in-bond-bourbon-private-barrel",
+      "name": "Heaven Hill Bottled in Bond Bourbon Private Barrel",
+      "shape": "heaven-hill"
+    },
+    {
+      "id": "bb_ef203a18f5f98f23",
+      "name": "Heaven Hill Bottled-in-Bond 7 Year",
+      "shape": "heaven-hill"
+    }
+  ],
+  "shapes": [
+    "weller",
+    "pappy",
+    "old-rip",
+    "russells",
+    "henry-mckenna",
+    "penelope",
+    "southern-star",
+    "eagle-12",
+    "wild-turkey-101",
+    "wild-turkey-rare-breed",
+    "old-forester-whiskey-row",
+    "old-forester-classic",
+    "larceny",
+    "bulleit",
+    "angels-envy",
+    "evan-williams-classic",
+    "evan-williams-single-barrel",
+    "evan-williams-1783",
+    "benchmark",
+    "sazerac",
+    "old-grand-dad-114",
+    "heaven-hill",
+    "neutral"
+  ],
+  "excluded": [
+    "Non-750ml, PET and multipacks",
+    "Weller Millennium and Antique Collection",
+    "Pappy 20/23 and other Van Winkle forms",
+    "Russell Single Rickhouse",
+    "Penelope Estate, Project X and bottled cocktails",
+    "Wild Turkey Masters Keep and Longbranch",
+    "Old Forester Birthday, 1924, Statesman and King Ranch",
+    "Evan Williams flavored variants",
+    "Benchmark Old 8 and Rye",
+    "Old Grand Dad other forms",
+    "Heaven Hill Heritage and Grain to Glass"
+  ],
+  "shapeReview": "Standard label-free geometry families; material/color variation does not identify age or proof. Names remain visible. Russell 13 shape additionally compared against reference-russells-13.webp."
+}

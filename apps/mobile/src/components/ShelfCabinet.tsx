@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { Image, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { MemberCollectionBottle } from '../api/types';
-import { cabinetRows, rankedShelfBottles, SHELF_STYLES, type ShelfStyle } from '../cellar/shelf-cabinet';
+import { cabinetRows, rankedShelfBottles, shelfBottleKey, SHELF_STYLES, type ShelfStyle } from '../cellar/shelf-cabinet';
 import { CellarBottleArtwork } from './CellarBottleArtwork';
 import placement from '../../assets/shelf/placement.json';
 
@@ -40,7 +40,7 @@ export function ShelfCabinet({ bottles, shelfStyle, busy, onStyle, onBottle }: {
         <Pressable accessibilityRole="button" accessibilityLabel="Shelf Style" onPress={() => setPicker(true)} style={styles.edit}><Text style={styles.editText}>Shelf Style</Text></Pressable>
       </View>
       {(rows.length ? rows : [[]]).map((row, i) => <View testID="cabinet-row" key={i} style={{ position: 'absolute', left: '5.5%', right: '5.5%', top: cabinetHeight * plate.baselineY[i] - 116 * photoScale, height: 116 * photoScale, flexDirection: 'row', justifyContent: 'center' }}>
-        {row.map(bottle => <Pressable key={bottle.bottleId || `${bottle.canonicalKey}:${bottle.bottleName}`} testID="cabinet-bottle" accessibilityRole="button" accessibilityLabel={`${bottle.bottleName}. Personally rated ${(bottle.rating / 10).toFixed(1)}. Open details.`} onPress={() => onBottle(bottle)} style={{ width: interiorWidth * .89 / slots, height: 116 * photoScale, alignItems: 'center' }}>
+        {row.map(bottle => <Pressable key={shelfBottleKey(bottle)} testID="cabinet-bottle" accessibilityRole="button" accessibilityLabel={`${bottle.bottleName}. Personally rated ${(bottle.rating / 10).toFixed(1)}. Open details.`} onPress={() => onBottle(bottle)} style={{ width: interiorWidth * .89 / slots, height: 116 * photoScale, alignItems: 'center' }}>
           <Image accessibilityElementsHidden importantForAccessibility="no-hide-descendants" source={contactShadow} style={{ position: 'absolute', bottom: -3, width: 66 * photoScale, height: 12 * photoScale }} />
           <View pointerEvents="none" style={{ position: 'absolute', width: 80, height: 116, bottom: (116 * photoScale - 116) / 2 - 116 * photoScale * .027, transform: [{ scale: photoScale }] }}><CellarBottleArtwork bottle={bottle} /></View>
         </Pressable>)}

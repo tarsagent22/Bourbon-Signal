@@ -102,7 +102,7 @@ test("exact catalog aliases and punctuation without broad brand matches", () => 
     assert.equal(resolveCellarBottleArtwork({ bottleName }), undefined);
 });
 
-test("exactly six locally bundled, source-tracked transparent product images", () => {
+test("historical source images retain provenance but are not bundled by My Shelf", () => {
   const dir = new URL("../../assets/bottles/photos/", import.meta.url);
   const manifest = JSON.parse(readFileSync(new URL("sources.json", dir), "utf8"));
   assert.equal(manifest.images.length, cases.length);
@@ -118,8 +118,8 @@ test("exactly six locally bundled, source-tracked transparent product images", (
     assert.equal(bytes[25], 6, `${id}: RGBA`);
     assert.ok(bytes.length < 500_000, id);
     assert.equal(createHash("sha256").update(bytes).digest("hex"), entry.sha256, id);
-    assert.ok(component.includes(`require("../../assets/bottles/photos/${id}.png")`), id);
+    assert.ok(!component.includes(`assets/bottles/photos/${id}.png`), id);
   }
-  assert.ok(component.includes('resizeMode="contain"'));
-  assert.ok(component.includes("if (!artworkId) return <CellarBottleSilhouette />"));
+  assert.doesNotMatch(component, /useBottlePhoto|LegacyBottleArtwork/);
+  assert.match(component, /<CellarBottleSilhouette size=\{size\}/);
 });

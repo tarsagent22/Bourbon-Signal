@@ -164,15 +164,25 @@ export function activeCollectionRefinementCount(filters: CollectionFilters, sort
     + Number(sort !== DEFAULT_COLLECTION_SORT);
 }
 
+export type CollectionBottleTarget = string | Pick<MemberCollectionBottle, 'bottleId' | 'canonicalKey' | 'bottleName'>;
+
+export function matchesCollectionBottle(bottle: MemberCollectionBottle, target: CollectionBottleTarget) {
+  // Native selection supplies an exact identity. Retain string-key compatibility
+  // for older callers, but never broaden a selected edition to its canonical family.
+  if (typeof target !== 'string') return target.bottleId
+    ? bottle.bottleId === target.bottleId
+    : bottle.bottleName === target.bottleName && canonicalBottleKey(bottle.canonicalKey) === canonicalBottleKey(target.canonicalKey);
+  return bottle.bottleId === target || canonicalBottleKey(bottle.canonicalKey || bottle.bottleName) === canonicalBottleKey(target);
+}
+
 export function updateCollectionBottle(
   bottles: MemberCollectionBottle[],
-  canonicalKey: string,
+  target: CollectionBottleTarget,
   patch: CollectionBottlePatch,
   updatedAt: string,
 ) {
-  const key = canonicalBottleKey(canonicalKey);
   return bottles.map((bottle) => {
-    if (canonicalBottleKey(bottle.canonicalKey) !== key) return bottle;
+    if (!matchesCollectionBottle(bottle, target)) return bottle;
     const tasteTags = Array.from(new Set((patch.tasteTags || []).map((tag) => tag.trim()).filter(Boolean))).slice(0, 12);
     const sealedQuantity = quantity(patch.sealedQuantity);
     const openedQuantity = quantity(patch.openedQuantity);
@@ -207,16 +217,13 @@ export type CollectionInventoryAction = "add_bottle" | "open_bottle" | "finish_b
 
 export function applyCollectionInventoryAction(
   bottles: MemberCollectionBottle[],
-  canonicalKey: string,
+  target: CollectionBottleTarget,
   action: CollectionInventoryAction,
   updatedAt: string,
 ) {
-  const key = canonicalBottleKey(canonicalKey);
   let changed = false;
   const next = bottles.map((bottle) => {
-    const matches = bottle.bottleId === canonicalKey
-      || canonicalBottleKey(bottle.canonicalKey || bottle.bottleName) === key;
-    if (!matches) return bottle;
+    if (!matchesCollectionBottle(bottle, target)) return bottle;
 
     const currentSealed = quantity(bottle.sealedQuantity);
     const currentOpened = quantity(bottle.openedQuantity);
