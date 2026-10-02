@@ -4,7 +4,7 @@
     {
       "id": "1792-small-batch",
       "name": "1792 Small Batch",
-      "shape": "1792",
+      "shape": "1792-maroon",
       "names": [
         "1792 Small Batch Bourbon"
       ]
@@ -12,37 +12,37 @@
     {
       "id": "1792-bottled-in-bond",
       "name": "1792 Bottled in Bond",
-      "shape": "1792"
+      "shape": "1792-yellow"
     },
     {
       "id": "1792-bottled-in-bond-single-barrel-select",
       "name": "1792 Bottled in Bond Single Barrel Select",
-      "shape": "1792"
+      "shape": "1792-yellow"
     },
     {
       "id": "1792-full-proof",
       "name": "1792 Full Proof",
-      "shape": "1792"
+      "shape": "1792-black"
     },
     {
       "id": "1792-full-proof-single-barrel-select",
       "name": "1792 Full Proof Single Barrel Select",
-      "shape": "1792"
+      "shape": "1792-black"
     },
     {
       "id": "1792-single-barrel-bourbon",
       "name": "1792 Single Barrel Bourbon",
-      "shape": "1792"
+      "shape": "1792-beige"
     },
     {
       "id": "1792-single-barrel-select",
       "name": "1792 Single Barrel Select",
-      "shape": "1792"
+      "shape": "1792-beige"
     },
     {
       "id": "1792-sweet-wheat-bourbon",
       "name": "1792 Sweet Wheat Bourbon",
-      "shape": "1792"
+      "shape": "1792-amber"
     },
     {
       "id": "buffalo-trace-bourbon",
@@ -84,27 +84,27 @@
     {
       "id": "elijah-craig-rye",
       "name": "Elijah Craig Rye",
-      "shape": "elijah-craig"
+      "shape": "elijah-rye-brown"
     },
     {
       "id": "elijah-craig-straight-rye",
       "name": "Elijah Craig Straight Rye",
-      "shape": "elijah-craig"
+      "shape": "elijah-rye-brown"
     },
     {
       "id": "bb_babb8d7d3e6be567",
       "name": "Elijah Craig Straight Rye Whiskey",
-      "shape": "elijah-craig"
+      "shape": "elijah-rye-brown"
     },
     {
       "id": "elijah-craig-rye-toasted-barrel",
       "name": "Elijah Craig Rye Toasted Barrel",
-      "shape": "elijah-craig"
+      "shape": "elijah-rye-brown"
     },
     {
       "id": "elijah-craig-toasted-barrel",
       "name": "Elijah Craig Toasted Barrel",
-      "shape": "elijah-craig"
+      "shape": "elijah-rye-brown"
     },
     {
       "id": "elijah-craig-toasted-barrel-private-barrel",
@@ -119,7 +119,7 @@
     {
       "id": "elijah-craig-barrel-proof-rye",
       "name": "Elijah Craig Barrel Proof Rye",
-      "shape": "elijah-craig"
+      "shape": "elijah-rye-brown"
     },
     {
       "id": "knob-creek",
@@ -216,12 +216,12 @@
     {
       "id": "woodford-reserve-rye",
       "name": "Woodford Reserve Rye",
-      "shape": "woodford-reserve"
+      "shape": "woodford-rye-green"
     },
     {
       "id": "woodford-reserve-wheat",
       "name": "Woodford Reserve Wheat",
-      "shape": "woodford-reserve"
+      "shape": "woodford-wheat-red"
     },
     {
       "id": "woodford-reserve-ky-straight-malt",

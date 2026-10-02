@@ -4,7 +4,7 @@
     {
       "id": "weller-12-year",
       "name": "W.L. Weller 12 Year",
-      "shape": "weller",
+      "shape": "weller-black",
       "names": [
         "Weller 12 Year"
       ]
@@ -29,7 +29,7 @@
     {
       "id": "weller-special-reserve",
       "name": "W.L. Weller Special Reserve",
-      "shape": "weller",
+      "shape": "weller-green",
       "names": [
         "Weller Special Reserve"
       ]
@@ -52,7 +52,7 @@
     {
       "id": "weller-special-reserve-single-barrel-select",
       "name": "Weller Special Reserve Single Barrel Select",
-      "shape": "weller"
+      "shape": "weller-green"
     },
     {
       "id": "pappy-van-winkle-15",
@@ -139,7 +139,7 @@
     {
       "id": "penelope-barrel-strength-7y-bourbon",
       "name": "Penelope Barrel Strength 7Y bourbon",
-      "shape": "penelope"
+      "shape": "penelope-barrel-red"
     },
     {
       "id": "penelope-bourbon",
@@ -174,12 +174,12 @@
     {
       "id": "penelope-private-select-9y",
       "name": "Penelope Private Select 9Y",
-      "shape": "penelope"
+      "shape": "penelope-estate-black"
     },
     {
       "id": "penelope-rio-cask-finish",
       "name": "Penelope Rio Cask Finish",
-      "shape": "penelope"
+      "shape": "penelope-estate-burgundy"
     },
     {
       "id": "penelope-riviera-cask-finish",
@@ -359,17 +359,17 @@
     {
       "id": "larceny-barrel-proof",
       "name": "Larceny Barrel Proof",
-      "shape": "larceny"
+      "shape": "larceny-copper"
     },
     {
       "id": "larceny-barrel-proof-ncabc-btb",
       "name": "Larceny Barrel Proof (NCABC BTB)",
-      "shape": "larceny"
+      "shape": "larceny-copper"
     },
     {
       "id": "larceny-barrel-proof-private-barrel",
       "name": "Larceny Barrel Proof Private Barrel",
-      "shape": "larceny"
+      "shape": "larceny-copper"
     },
     {
       "id": "larceny-private-barrel-ncabc-btb",
@@ -389,17 +389,17 @@
     {
       "id": "bulleit-bourbon-10y",
       "name": "Bulleit Bourbon 10Y",
-      "shape": "bulleit"
+      "shape": "bulleit-rye-black"
     },
     {
       "id": "bulleit-bourbon-bottled-in-bond",
       "name": "Bulleit Bourbon Bottled in Bond",
-      "shape": "bulleit"
+      "shape": "bulleit-copper"
     },
     {
       "id": "bulleit-rye",
       "name": "Bulleit Rye",
-      "shape": "bulleit"
+      "shape": "bulleit-rye-black"
     },
     {
       "id": "angels-envy-bourbon",
@@ -409,7 +409,7 @@
     {
       "id": "angels-envy-rye",
       "name": "Angel's Envy Rye",
-      "shape": "angels-envy"
+      "shape": "angels-envy-rye-brown"
     },
     {
       "id": "angels-envy-kentucky-straight-bourbon-whiskey-port-barrel-finish",
@@ -429,7 +429,7 @@
     {
       "id": "evan-williams-bottled-in-bond",
       "name": "Evan Williams Bottled-in-Bond",
-      "shape": "evan-williams-classic"
+      "shape": "evan-williams-bond"
     },
     {
       "id": "evan-williams-bourbon-green-label",
@@ -439,12 +439,12 @@
     {
       "id": "evan-williams-white-bottled-in-bond",
       "name": "Evan Williams White Bottled in Bond",
-      "shape": "evan-williams-classic"
+      "shape": "evan-williams-bond"
     },
     {
       "id": "evan-williams-white-label-bottled-in-bond",
       "name": "Evan Williams White Label Bottled in Bond",
-      "shape": "evan-williams-classic"
+      "shape": "evan-williams-bond"
     },
     {
       "id": "evan-williams-single-barrel-vintage",

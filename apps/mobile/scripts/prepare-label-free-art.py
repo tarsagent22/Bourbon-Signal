@@ -19,10 +19,10 @@ def register(mobile):
     """Generate both Metro assets and exact product mappings from all batches."""
     registrations, imports, batch_names, catalogs = [], [], [], []
     seen, ids, names = set(), set(), {}
-    seed = {p['id']: p['name'] for p in json.loads((mobile / 'src/cellar/bottle-catalog-seed.json').read_text())}
+    seed = {p['id']: p['name'] for p in json.loads((mobile / 'src/cellar/bottle-catalog-seed.json').read_text(encoding='utf-8'))}
     for folder in sorted((mobile / 'assets/bottles').glob('label-free-v*')):
-        metadata = json.loads((folder / 'provenance.json').read_text())
-        catalog = json.loads((folder / 'catalog.json').read_text())
+        metadata = json.loads((folder / 'provenance.json').read_text(encoding='utf-8'))
+        catalog = json.loads((folder / 'catalog.json').read_text(encoding='utf-8'))
         batch_name = f"batch{catalog['batch']}"
         imports.append(f"import {batch_name} from '../../assets/bottles/{folder.name}/catalog.json';")
         batch_names.append(batch_name)
@@ -63,18 +63,27 @@ def prepare(jobs_path, masters, batch, mobile):
     destination = mobile / "assets" / "bottles" / f"label-free-v{batch}"
     destination.mkdir(parents=True, exist_ok=True)
     previous_path = destination / "provenance.json"
-    previous = json.loads(previous_path.read_text()) if previous_path.exists() else {"assets": []}
+    previous = json.loads(previous_path.read_text(encoding='utf-8')) if previous_path.exists() else {"assets": []}
     previous_assets = {entry["file"]: entry for entry in previous["assets"]}
-    catalog = json.loads((destination / "catalog.json").read_text())
-    seed = {entry["id"]: entry for entry in json.loads((mobile / "src/cellar/bottle-catalog-seed.json").read_text())}
+    catalog = json.loads((destination / "catalog.json").read_text(encoding='utf-8'))
+    seed = {entry["id"]: entry for entry in json.loads((mobile / "src/cellar/bottle-catalog-seed.json").read_text(encoding='utf-8'))}
     shapes = [job["shape"] for job in jobs["jobs"]]
     if len(shapes) != len(set(shapes)) or set(shapes) != set(catalog["shapes"]):
         raise ValueError("Job shapes must exactly match the reviewed catalog shape allowlist")
     products = catalog["products"]
     if len({product["id"] for product in products}) != len(products):
         raise ValueError("Duplicate catalog product ID")
+    reusable_shapes = set(shapes)
+    for folder in (mobile / "assets/bottles").glob("label-free-v*"):
+        if folder == destination:
+            continue
+        metadata = json.loads((folder / "provenance.json").read_text(encoding='utf-8'))
+        for asset in metadata["assets"]:
+            if sha(folder / asset["file"]) != asset.get("exportSha256", asset.get("sha256")):
+                raise ValueError(f"Export hash mismatch: {asset['file']}")
+            reusable_shapes.add(asset.get("shape", asset["file"].removeprefix("bare-").removesuffix(".png")))
     for product in products:
-        if product["shape"] not in shapes or seed.get(product["id"], {}).get("name") != product["name"]:
+        if product["shape"] not in reusable_shapes or seed.get(product["id"], {}).get("name") != product["name"]:
             raise ValueError(f"Unknown or stale catalog mapping: {product}")
     assets = []
     reused = 0
