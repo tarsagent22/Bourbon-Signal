@@ -1,14 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { AccessibilityInfo, Animated, AppState, Easing, Image, View } from 'react-native';
 import type { LabelFreeShape } from './label-free-bottle-artwork';
-
-const artwork = {
-  eagle: require('../../assets/bottles/label-free-v1/bare-eagle.png'),
-  taylor: require('../../assets/bottles/label-free-v1/bare-taylor.png'),
-  michters: require('../../assets/bottles/label-free-v1/bare-michters.png'),
-  stagg: require('../../assets/bottles/label-free-v1/bare-stagg.png'),
-  blantons: require('../../assets/bottles/label-free-v1/bare-blantons.png'),
-} as const;
+import { LABEL_FREE_ARTWORK as artwork } from './label-free-artwork-assets';
 
 export function LabelFreeBottleArtwork({ shape, size = 'grid' }: {
   shape: LabelFreeShape; size?: 'grid' | 'list' | 'detail';
