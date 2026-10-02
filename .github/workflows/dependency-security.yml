@@ -22,6 +22,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
+      - name: Install and verify the mobile cryptography backport
+        if: matrix.package == 'apps/mobile'
+        working-directory: apps/mobile
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          node scripts/check-forge-backport-advisories.cjs
       # Audit the lock, not a developer's mutable node_modules. Do not omit dev
       # dependencies, ignore failure, auto-fix, or downgrade the Expo SDK here.
       - name: Reject moderate or higher locked advisories
