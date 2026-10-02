@@ -447,4 +447,7 @@ export const LABEL_FREE_ARTWORK = {
   'larceny-copper': require('../../assets/bottles/label-free-v4/bare-larceny-copper.png'),
   'angels-envy-rye-brown': require('../../assets/bottles/label-free-v4/bare-angels-envy-rye-brown.png'),
   'michters-rye-green': require('../../assets/bottles/label-free-v4/bare-michters-rye-green.png'),
+  'fleischmann-preferred-black': require('../../assets/bottles/label-free-v4/bare-fleischmann-preferred-black.png'),
+  'breckenridge-reserve-brown': require('../../assets/bottles/label-free-v4/bare-breckenridge-reserve-brown.png'),
+  'aristocrat-blend-black': require('../../assets/bottles/label-free-v4/bare-aristocrat-blend-black.png'),
 } as const;

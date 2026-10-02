@@ -3400,6 +3400,61 @@
       "id": "ezra-brooks-stave-finish-sweet-cinnamon",
       "name": "Ezra Brooks Stave Finish Sweet Cinnamon",
       "shape": "ezra-stave-black"
+    },
+    {
+      "id": "fleischmanns-preferred",
+      "name": "Fleischmann's Preferred",
+      "shape": "fleischmann-preferred-black"
+    },
+    {
+      "id": "breckenridge-reserve-barrel-program",
+      "name": "Breckenridge Reserve Barrel Program",
+      "shape": "breckenridge-reserve-brown"
+    },
+    {
+      "id": "aristocrat-supreme-80-blend",
+      "name": "Aristocrat Supreme 80 Blend",
+      "shape": "aristocrat-blend-black"
+    },
+    {
+      "id": "high-west-midwinter-night-dram-act-13-scene-7",
+      "name": "High west midwinter night dram act 13 scene 7",
+      "shape": "high-west-natural"
+    },
+    {
+      "id": "midwinter-nights-dram-act-13-scene-7",
+      "name": "Midwinter Night’s Dram Act 13 Scene 7",
+      "shape": "high-west-natural"
+    },
+    {
+      "id": "barrell-foundation-single-barrel",
+      "name": "Barrell Foundation Single Barrel",
+      "shape": "barrell-brown"
+    },
+    {
+      "id": "rabbit-hole-cavehill-single-barrel",
+      "name": "Rabbit Hole Cavehill Single Barrel",
+      "shape": "rabbit-hole-standard"
+    },
+    {
+      "id": "rabbit-hole-heigold-single-barrel",
+      "name": "Rabbit Hole Heigold Single Barrel",
+      "shape": "rabbit-hole-standard"
+    },
+    {
+      "id": "very-old-barton",
+      "name": "Very Old Barton",
+      "shape": "barton-black"
+    },
+    {
+      "id": "ancient-ancient-age",
+      "name": "Ancient Ancient Age",
+      "shape": "ancient-age-beige"
+    },
+    {
+      "id": "bookers-the-reserves-2025",
+      "name": "Booker's The Reserves 2025",
+      "shape": "bookers-wax"
     }
   ],
   "shapes": [
@@ -3811,7 +3866,10 @@
     "penelope-barrel-red",
     "larceny-copper",
     "angels-envy-rye-brown",
-    "michters-rye-green"
+    "michters-rye-green",
+    "fleischmann-preferred-black",
+    "breckenridge-reserve-brown",
+    "aristocrat-blend-black"
   ],
   "excluded": [],
   "shapeReview": "Exact product reference review; closure color and physical form determine reuse. Full live catalog coverage is enforced separately before release."

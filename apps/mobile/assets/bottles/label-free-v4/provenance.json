@@ -5326,6 +5326,45 @@
       "width": 540,
       "height": 720,
       "bytes": 177373
+    },
+    {
+      "shape": "fleischmann-preferred-black",
+      "file": "bare-fleischmann-preferred-black.png",
+      "masterFile": "bare-fleischmann-preferred-black.png",
+      "prompt": "Use case: product-mockup. Create one original photorealistic LABEL-LESS bottle illustration for Bourbon Signal's app catalog. Image 1 is physical GEOMETRY AND CLOSURE reference ONLY, image 2 is approved glass render STYLE ONLY. Preserve actual shape, proportions, stopper/capsule color and physical material. Fresh frontal studio rendering with rich physically plausible liquid, controlled softbox side highlights and crisp glass. Remove ALL body/neck paper labels, seals, text, numbers, logos, medallions and branded embossing. No blank labels, patches or ghost letters. Smooth uninterrupted glass except true structural facets or ribs. Preserve the actual physical stopper/closure color; remove printing on it. Centered full upright bottle including stopper and heel, 3:4 portrait, 92 percent height. TRUE TRANSPARENT alpha background outside bottle, no floor, external shadow, exterior glow or props. One bottle only. Accuracy of physical form takes priority.\nSubject geometry: Tall broad straight amber whiskey cylinder with rounded deeply fluted glass shoulder, slim neck and flat BLACK screw cap. Yellow neck band is printed PAPER, remove completely.",
+      "reference": "C:\\Users\\chand\\Documents\\Bourbon Signal/art-retail-reference-images-v2/fleischmanns-preferred.jpg",
+      "referenceSha256": "a54beb52720b93439c7b243750008d189766fb45b87d462708c3b412443175fa",
+      "approvedMasterSha256": "1dc6ca4f4b4ef3a6efdb0fc7e482a5adbd756e614cd171ec7d2a6c6efff34f57",
+      "exportSha256": "e840726243e5082440a33b92a2fe52f2a03c0c8fcce468619cb6b709a200fb5d",
+      "width": 540,
+      "height": 720,
+      "bytes": 230292
+    },
+    {
+      "shape": "breckenridge-reserve-brown",
+      "file": "bare-breckenridge-reserve-brown.png",
+      "masterFile": "bare-breckenridge-reserve-brown.png",
+      "prompt": "Use case: product-mockup. Create one original photorealistic LABEL-LESS bottle illustration for Bourbon Signal's app catalog. Image 1 is physical GEOMETRY AND CLOSURE reference ONLY, image 2 is approved glass render STYLE ONLY. Preserve actual shape, proportions, stopper/capsule color and physical material. Fresh frontal studio rendering with rich physically plausible liquid, controlled softbox side highlights and crisp glass. Remove ALL body/neck paper labels, seals, text, numbers, logos, medallions and branded embossing. No blank labels, patches or ghost letters. Smooth uninterrupted glass except true structural facets or ribs. Preserve the actual physical stopper/closure color; remove printing on it. Centered full upright bottle including stopper and heel, 3:4 portrait, 92 percent height. TRUE TRANSPARENT alpha background outside bottle, no floor, external shadow, exterior glow or props. One bottle only. Accuracy of physical form takes priority.\nSubject geometry: Straight round cylindrical amber whiskey bottle, thick clear heel, rounded shoulders, medium short clear neck and dark BROWN wood cylindrical stopper. Remove vertical black paper strip.",
+      "reference": "C:\\Users\\chand\\Documents\\Bourbon Signal/art-retail-tail-images/breckenridge-reserve-barrel-program-0.jpg",
+      "referenceSha256": "b9fc94aa47e4668ee55e0d8e078fd49dcc443462631d1550811d0ecba340d98c",
+      "approvedMasterSha256": "e6d7322fe874d8dff98562972cb0dc5d85fea6772f93ffd874f5c495aa69713c",
+      "exportSha256": "ebc5a9c046c3d9017936f6f1dcc6cb57ca29bfffba67ecc6c91a43117c69b39e",
+      "width": 540,
+      "height": 720,
+      "bytes": 200706
+    },
+    {
+      "shape": "aristocrat-blend-black",
+      "file": "bare-aristocrat-blend-black.png",
+      "masterFile": "bare-aristocrat-blend-black.png",
+      "prompt": "Use case: product-mockup. Create one original photorealistic LABEL-LESS bottle illustration for Bourbon Signal's app catalog. Image 1 is physical GEOMETRY AND CLOSURE reference ONLY, image 2 is approved glass render STYLE ONLY. Preserve actual shape, proportions, stopper/capsule color and physical material. Fresh frontal studio rendering with rich physically plausible liquid, controlled softbox side highlights and crisp glass. Remove ALL body/neck paper labels, seals, text, numbers, logos, medallions and branded embossing. No blank labels, patches or ghost letters. Smooth uninterrupted glass except true structural facets or ribs. Preserve the actual physical stopper/closure color; remove printing on it. Centered full upright bottle including stopper and heel, 3:4 portrait, 92 percent height. TRUE TRANSPARENT alpha background outside bottle, no floor, external shadow, exterior glow or props. One bottle only. Accuracy of physical form takes priority.\nSubject geometry: Tall straight round amber blended whiskey bottle, gentle sloping shoulders and long narrow clear neck topped with BLACK ribbed screw cap. Remove black neck printed band.",
+      "reference": "C:\\Users\\chand\\Documents\\Bourbon Signal/art-heavenhill-tail-images/411-0182.png",
+      "referenceSha256": "f53dc9074ad641d49a2edda861353737261be7b33f8b689806fbdbb4c233c429",
+      "approvedMasterSha256": "514ae5347edb38e9e7f26bb4d41c4e020c64436ded488a84287036c6506c2a84",
+      "exportSha256": "ab06693822fad704b00244a7c11778570fbacc8ac0a8b70c362ed9f678a91977",
+      "width": 540,
+      "height": 720,
+      "bytes": 142165
     }
   ]
 }
