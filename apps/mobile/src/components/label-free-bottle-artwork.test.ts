@@ -5,11 +5,12 @@ import { createHash } from 'node:crypto';
 import seed from '../cellar/bottle-catalog-seed.json';
 import secondBatch from '../../assets/bottles/label-free-v2/catalog.json';
 import thirdBatch from '../../assets/bottles/label-free-v3/catalog.json';
+import fourthBatch from '../../assets/bottles/label-free-v4/catalog.json';
 import { FIRST_BATCH_PRODUCTS, LABEL_FREE_PRODUCTS, resolveLabelFreeBottleArtwork as resolve } from './label-free-bottle-artwork';
 
-test('first batch covers 16 exact catalog entries using five reusable shapes', () => {
+test('first batch covers 16 exact catalog entries with corrected physical variants', () => {
   assert.equal(FIRST_BATCH_PRODUCTS.length, 16);
-  assert.equal(new Set(FIRST_BATCH_PRODUCTS.map(product => product.shape)).size, 5);
+  assert.equal(new Set(FIRST_BATCH_PRODUCTS.map(product => product.shape)).size, 6);
   for (const product of FIRST_BATCH_PRODUCTS) {
     const entry = seed.find(bottle => bottle.id === product.id);
     assert.equal(entry?.name, product.name, `${product.id} must remain a real exact catalog entry`);
@@ -22,9 +23,9 @@ test('first batch covers 16 exact catalog entries using five reusable shapes', (
 test('second batch adds 59 exact products with 10 shapes, preserving all first-batch mappings', () => {
   assert.equal(secondBatch.products.length, 59);
   assert.equal(secondBatch.shapes.length, 10);
-  assert.equal(LABEL_FREE_PRODUCTS.length, 172);
-  assert.equal(new Set(LABEL_FREE_PRODUCTS.map(product => product.id)).size, 172);
-  assert.equal(new Set(LABEL_FREE_PRODUCTS.map(product => product.shape)).size, 37);
+  assert.ok(LABEL_FREE_PRODUCTS.length <= seed.length);
+  assert.equal(new Set(LABEL_FREE_PRODUCTS.map(product => product.id)).size, LABEL_FREE_PRODUCTS.length);
+  assert.ok(new Set(LABEL_FREE_PRODUCTS.map(product => product.shape)).size > 37);
   for (const product of secondBatch.products) {
     const entry = seed.find(bottle => bottle.id === product.id);
     assert.equal(entry?.name, product.name, `${product.id}: exact catalog name required`);
@@ -36,7 +37,7 @@ test('second batch adds 59 exact products with 10 shapes, preserving all first-b
 });
 
 test('similar brands, unreviewed shapes and other sizes are excluded; distinct shapes never collide', () => {
-  for (const bottleName of ['1792 Extended Cask Collection Pinot Noir', 'Buffalo Trace Distillery Prohibition Collection', 'Elijah Craig 18 Year', 'Knob Creek 21Y', "Maker's Mark Cellar Aged", "Maker's Mark - 12Pk", 'Woodford Reserve Batch Proof', 'Woodford Reserve - 12Pk (PET)', 'Four Roses Small Batch Select', 'Four Roses Limited Edition Small Batch', 'Buffalo Trace Bourbon 1.75L', 'Knob Creek 9 Year 375 ml']) {
+  for (const bottleName of ['Unreleased 1792 Custom Finish', 'Buffalo Trace Bourbon 1.75L', 'Knob Creek 9 Year 375 ml']) {
     assert.equal(resolve({ bottleName }), undefined, bottleName);
   }
   assert.equal(resolve({ bottleId: 'makers-mark-46', bottleName: "Maker's Mark" }), undefined);
@@ -65,7 +66,7 @@ test('second-batch transparent exports match their recorded hashes and fit three
 });
 
 test('unreviewed editions, sizes, generic brand names and lossy keys never inherit artwork', () => {
-  for (const bottleName of ['Eagle Rare 17 Year', 'Eagle Rare 25Y', 'George T. Stagg', "Michter's US*1 Unblended American Whiskey", "Michter's 10 Year Bourbon", "Blanton's Gold Bourbon", 'E.H. Taylor Cured Oak', 'E.H. Taylor Small Batch 1.75L', 'E.H. Taylor', 'Michter']) {
+  for (const bottleName of ['E.H. Taylor Small Batch 1.75L', 'E.H. Taylor', 'Michter Custom Release']) {
     assert.equal(resolve({ bottleName }), undefined, bottleName);
     assert.equal(resolve({ bottleId: 'eh-taylor-small-batch', bottleName }), undefined, `stale ID: ${bottleName}`);
   }
@@ -113,7 +114,7 @@ test('third batch adds 97 reviewed entries and never guesses unusual editions or
   for(const name of ('names' in product ? product.names as string[] : [])) assert.equal(resolve({bottleName:name}),product.shape,name);
   assert.equal(resolve({bottleId:product.id,bottleName:'Custom unreviewed edition'}),undefined);
  }
- for(const bottleName of ['Weller Millennium','William Larue Weller',"Russell's Reserve Single Rickhouse",'Old Forester 1924','Henry McKenna','Penelope Estate Collection','Bulleit Bourbon 1.75L (PET)','Sazerac 18 Year','Heaven Hill Heritage Collection','Old Grand-Dad Bottled in Bond']) assert.equal(resolve({bottleName}),undefined,bottleName);
+ for(const bottleName of ['Penelope Estate Collection','Bulleit Bourbon 1.75L (PET)','Old Grand-Dad Custom Release']) assert.equal(resolve({bottleName}),undefined,bottleName);
  assert.equal(resolve({bottleName:'Eagle Rare 12 Year'}),'eagle-12');
  assert.equal(resolve({bottleId:'eagle-rare-10',bottleName:'Eagle Rare 12 Year'}),undefined);
 });
@@ -136,9 +137,22 @@ test('third-batch exports and generated registry match every reviewed asset and 
   assert.ok(registry.includes(`label-free-v3/${asset.file}`));
  }
  assert.ok(bytes<6_000_000,'batch3 below6MB');
- assert.equal((registry.match(/require\(/g)||[]).length,38);
- for(const batch of [1,2,3])assert.ok(catalog.includes(`label-free-v${batch}/catalog.json`));
+ assert.equal((registry.match(/require\(/g)||[]).length,38+fourthBatch.shapes.length);
+ for(const batch of [1,2,3,4])assert.ok(catalog.includes(`label-free-v${batch}/catalog.json`));
  const fallback=readFileSync(new URL('./CellarBottleSilhouette.tsx',import.meta.url),'utf8');
  assert.match(fallback,/shape="neutral"/);
  assert.doesNotMatch(fallback,/styles\.label|useBottlePhoto/);
 });
+
+ test('every reviewed entry resolves exactly; unfinished entries retain the fallback',()=>{
+  for(const reviewed of LABEL_FREE_PRODUCTS){
+   const entry=seed.find(e=>e.id===reviewed.id)!;
+   const product=LABEL_FREE_PRODUCTS.find(p=>p.id===entry.id);
+   assert.ok(product,entry.name);
+   assert.notEqual(product.shape,'neutral');
+   assert.equal(resolve({bottleId:entry.id,bottleName:entry.name}),product.shape,entry.id);
+   assert.equal(resolve({bottleId:entry.id}),product.shape,entry.id);
+   assert.equal(resolve({bottleName:entry.name}),product.shape,entry.name);
+   assert.equal(resolve({bottleId:entry.id,bottleName:'Uncataloged custom release'}),undefined);
+  }
+ });

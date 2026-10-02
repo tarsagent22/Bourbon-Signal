@@ -31,7 +31,11 @@ class RegistrationTests(unittest.TestCase):
         path.write_text(json.dumps(data))
 
     def test_all_batches_register_deterministically(self):
-        self.assertEqual(art.register(self.root), {'registeredShapes': 38, 'totalCatalogEntries': 172})
+        catalogs = [json.loads(path.read_text()) for path in (self.root / 'assets/bottles').glob('label-free-v*/catalog.json')]
+        self.assertEqual(art.register(self.root), {
+            'registeredShapes': sum(len(catalog['shapes']) for catalog in catalogs),
+            'totalCatalogEntries': sum(len(catalog['products']) for catalog in catalogs),
+        })
         files = [self.root / 'src/components' / name for name in ['label-free-artwork-assets.ts', 'label-free-artwork-catalog.ts']]
         before = [path.read_bytes() for path in files]
         art.register(self.root)
@@ -57,6 +61,35 @@ class RegistrationTests(unittest.TestCase):
         path.write_bytes(path.read_bytes() + b'corruption')
         with self.assertRaisesRegex(ValueError, 'Export hash mismatch'):
             art.register(self.root)
+
+    def test_reviewed_cross_batch_reuse_needs_no_new_master(self):
+        seed = json.loads((self.root / 'src/cellar/bottle-catalog-seed.json').read_text())
+        product = seed[0]
+        for path in (self.root / 'assets/bottles').glob('label-free-v*/catalog.json'):
+            catalog = json.loads(path.read_text())
+            catalog['products'] = [p for p in catalog['products'] if p['id'] != product['id']]
+            path.write_text(json.dumps(catalog))
+        destination = self.root / 'assets/bottles/label-free-v99'
+        destination.mkdir()
+        (destination / 'catalog.json').write_text(json.dumps({'batch':99, 'shapes':[], 'products':[
+            {'id':product['id'], 'name':product['name'], 'shape':'eagle'}]}))
+        reference = self.root / 'assets/bottles/label-free-v1/bare-eagle.png'
+        jobs = self.root / 'jobs.json'
+        jobs.write_text(json.dumps({'method':'test', 'styleReference':str(reference), 'jobs':[]}))
+        art.prepare(jobs, self.root, 99, self.root)
+        self.assertEqual(json.loads((destination / 'provenance.json').read_text())['assets'], [])
+
+    def test_cross_batch_reuse_rejects_unregistered_shape(self):
+        destination = self.root / 'assets/bottles/label-free-v99'
+        destination.mkdir()
+        seed = json.loads((self.root / 'src/cellar/bottle-catalog-seed.json').read_text())
+        product = seed[0]
+        (destination / 'catalog.json').write_text(json.dumps({'batch':99, 'shapes':[], 'products':[
+            {'id':product['id'], 'name':product['name'], 'shape':'unreviewed-invented-shape'}]}))
+        jobs = self.root / 'jobs.json'
+        jobs.write_text(json.dumps({'method':'test', 'styleReference':'unused', 'jobs':[]}))
+        with self.assertRaisesRegex(ValueError, 'Unknown or stale'):
+            art.prepare(jobs, self.root, 99, self.root)
 
 if __name__ == '__main__':
     unittest.main()
