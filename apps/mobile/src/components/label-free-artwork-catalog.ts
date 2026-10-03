@@ -3,9 +3,10 @@ import batch1 from '../../assets/bottles/label-free-v1/catalog.json';
 import batch2 from '../../assets/bottles/label-free-v2/catalog.json';
 import batch3 from '../../assets/bottles/label-free-v3/catalog.json';
 import batch4 from '../../assets/bottles/label-free-v4/catalog.json';
+import batch5 from '../../assets/bottles/label-free-v5/catalog.json';
 import type { LABEL_FREE_ARTWORK } from './label-free-artwork-assets';
 
 export type ReviewedArtworkProduct = Readonly<{ id: string; name: string; shape: keyof typeof LABEL_FREE_ARTWORK; names?: readonly string[] }>;
-export const LABEL_FREE_BATCHES = [batch1, batch2, batch3, batch4] as const;
+export const LABEL_FREE_BATCHES = [batch1, batch2, batch3, batch4, batch5] as const;
 export const FIRST_BATCH_PRODUCTS = batch1.products as readonly ReviewedArtworkProduct[];
 export const LABEL_FREE_PRODUCTS = LABEL_FREE_BATCHES.flatMap(batch => batch.products) as readonly ReviewedArtworkProduct[];
