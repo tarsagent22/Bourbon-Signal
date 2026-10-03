@@ -119,3 +119,21 @@ test("card appearance keeps neutral editorial surfaces and uses rarity only as a
   assert.notEqual(intel.accent, allocated.accent);
   assert.notEqual(allocated.accent, unicorn.accent);
 });
+
+
+test("Limited badges read as silver across feeds with accessible text contrast", () => {
+  const limited = signalFeedCardAppearance(signal());
+  const memberLimited = signalFeedCardAppearance(signal({ source: { type: "member", label: "Member #184" } }));
+  const allocated = signalFeedCardAppearance(signal({ bottle: { name: "Bourbon", rarity: "allocated" } }));
+  const unicorn = signalFeedCardAppearance(signal({ bottle: { name: "Bourbon", rarity: "unicorn" } }));
+  assert.equal(memberLimited.accent, limited.accent);
+  assert.equal(memberLimited.keyline, limited.keyline);
+  assert.equal(new Set([limited.accent, allocated.accent, unicorn.accent]).size, 3);
+  assert.notEqual(limited.keyline, allocated.keyline);
+  const luminance = (hex: string) => {
+    const rgb = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
+    const linear = rgb.map((c) => c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4);
+    return linear[0] * 0.2126 + linear[1] * 0.7152 + linear[2] * 0.0722;
+  };
+  assert.ok((luminance(limited.accent) + 0.05) / (luminance(limited.keyline) + 0.05) >= 4.5);
+});

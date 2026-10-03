@@ -91,15 +91,9 @@ test("inline filters stay mounted and receive the first tap while search is focu
   assert.ok((feed.match(/keyboardShouldPersistTaps="handled"/g) || []).length >= 3);
 });
 
-test("Home shows an honest scoped report ticker with native detail navigation", () => {
-  const ticker = position('accessibilityLabel="Recent reports"');
-  const toggle = position('accessibilityLabel="Signal feed view"');
-  assert.ok(ticker < toggle);
-  assert.match(feed, /recentTickerSignals\(visibleSignals, new Date\(tickerNow\)\)/);
-  assert.match(feed, /Reported \{relativeSignalTime\(tickerSignal\.timing\.displayAt\)\}/);
-  assert.match(feed, /pathname: "\/(?:\(app\)\/)?signal\/\[id\]"/);
-  assert.doesNotMatch(feed, /\bLive\b|marquee/);
-  assert.match(feed, /accessibilityLabel="Show next recent report"/);
+test("Home starts with feed controls without a duplicate rotating report strip", () => {
+  assert.doesNotMatch(feed, /Recent reports|Show next recent report|tickerSignal|tickerOpacity|recentTickerSignals|Animated/);
+  assert.match(feed, /accessibilityLabel="Signal feed view"/);
 });
 
 test("background refresh queues scoped ids without resetting pagination", () => {
@@ -117,19 +111,15 @@ test("background refresh queues scoped ids without resetting pagination", () => 
   assert.match(pollEffect, /accessChanged[\s\S]*?setSignals\(scopedIncoming\)[\s\S]*?setQueuedSignals\(\[\]\)/);
 });
 
-test("ticker crossfade and rotation are active-screen only and honor assistive preferences", () => {
+test("new-signal navigation honors motion and screen-reader preferences", () => {
   assert.match(feed, /screenFocused && appState === "active"/);
   assert.match(feed, /AccessibilityInfo\.isReduceMotionEnabled/);
   assert.match(feed, /AccessibilityInfo\.isScreenReaderEnabled/);
   assert.match(feed, /const \[reduceMotion, setReduceMotion\] = useState\(true\)/);
   assert.match(feed, /const \[screenReaderEnabled, setScreenReaderEnabled\] = useState\(true\)/);
-  assert.match(feed, /if \(!screenActive \|\| motionDisabled \|\| tickerSignals\.length < 2\)/);
-  assert.match(feed, /Animated\.timing\(tickerOpacity, \{ toValue: 1, duration: 180, useNativeDriver: true \}\)/);
-  assert.match(feed, /generation !== tickerAnimationGeneration\.current/);
-  assert.match(feed, /animation\.stop\(\)/);
-  assert.match(feed, /clearInterval\(timer\)/);
+  assert.match(feed, /const motionDisabled = reduceMotion \|\| screenReaderEnabled/);
+  assert.match(feed, /scrollToOffset\(\{ offset: 0, animated: !motionDisabled \}\)/);
 });
-
 
 test("Home backdrop fills the viewport while the feed and new-signal action clear the native header", () => {
   assert.match(feed, /require\("\.\.\/\.\.\/\.\.\/assets\/home-shelf-background\.jpg"\)/);

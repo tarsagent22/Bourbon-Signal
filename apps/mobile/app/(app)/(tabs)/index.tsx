@@ -2,16 +2,15 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useAuth } from "@clerk/expo";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AccessibilityInfo, Animated, AppState, FlatList, ImageBackground, Keyboard, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { AccessibilityInfo, AppState, FlatList, ImageBackground, Keyboard, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MobileApiError } from "../../../src/api/client";
-import { relativeSignalTime, signalAccessibilityTime } from "../../../src/api/presentation";
 import type { MemberProfile, Signal, SignalFeedPage } from "../../../src/api/types";
 import { SignalCard } from "../../../src/components/SignalCard";
 import { useMobileApi } from "../../../src/hooks/useMobileApi";
 import { useScreenRevalidation } from "../../../src/hooks/useScreenRevalidation";
 import { DEFAULT_SIGNAL_FILTERS, areaOptionsForState, areaSelectorLabel, filterSignalsByRarity, normalizedFilters, rarityOptionsForView, serverSignalFilters, shouldBackfillRarity, toggleRarity, type SignalFeedFilters } from "../../../src/signals/feed-filters";
-import { acceptQueuedSignals, recentTickerSignals, reconcileDisplayedSignals, reconcileQueuedSignals, tickerLocationLabel } from "../../../src/signals/home-feed-live";
+import { acceptQueuedSignals, reconcileDisplayedSignals, reconcileQueuedSignals } from "../../../src/signals/home-feed-live";
 import { homeBrowsingStorageKey, loadHomeBrowsingPreferences, saveHomeBrowsingPreferences } from "../../../src/signals/home-browsing-preferences";
 import { PushMaintenance, PushResponseHandler } from "../../../src/push/PushResponseHandler";
 import { colors } from "../../../src/theme";
@@ -97,8 +96,6 @@ export default function SignalFeedScreen() {
   const [signals, setSignals] = useState<Signal[]>([]);
   const [queuedSignals, setQueuedSignals] = useState<Signal[]>([]);
   const [highlightedIds, setHighlightedIds] = useState<string[]>([]);
-  const [tickerIndex, setTickerIndex] = useState(0);
-  const [tickerNow, setTickerNow] = useState(() => Date.now());
   const [reduceMotion, setReduceMotion] = useState(true);
   const [screenReaderEnabled, setScreenReaderEnabled] = useState(true);
   const [screenFocused, setScreenFocused] = useState(false);
@@ -125,8 +122,6 @@ export default function SignalFeedScreen() {
   const filters = filtersByView[view];
   const requestFilters = useMemo(() => serverSignalFilters(filters), [filters]);
   const visibleSignals = useMemo(() => filterSignalsByRarity(signals, filters.rarities), [filters.rarities, signals]);
-  const tickerSignals = useMemo(() => recentTickerSignals(visibleSignals, new Date(tickerNow)), [tickerNow, visibleSignals]);
-  const tickerSignal = tickerSignals.length ? tickerSignals[tickerIndex % tickerSignals.length] : null;
   const scopeKey = JSON.stringify([userId, view, requestFilters, filters.rarities]);
   const screenActive = screenFocused && appState === "active";
   const motionDisabled = reduceMotion || screenReaderEnabled;
@@ -152,8 +147,6 @@ export default function SignalFeedScreen() {
   const signalsSnapshotRef = useRef<Signal[]>(signals);
   const accessSnapshotRef = useRef<SignalFeedPage["access"] | null>(access);
   const latestDisplayedBaselineRef = useRef("");
-  const tickerOpacity = useRef(new Animated.Value(1)).current;
-  const tickerAnimationGeneration = useRef(0);
   scopeKeyRef.current = scopeKey;
   signalsSnapshotRef.current = signals;
   accessSnapshotRef.current = access;
@@ -344,7 +337,6 @@ export default function SignalFeedScreen() {
     backgroundRequestSequence.current += 1;
     setQueuedSignals([]);
     setHighlightedIds([]);
-    setTickerIndex(0);
   }, [scopeKey]);
 
   useEffect(() => {
@@ -396,31 +388,6 @@ export default function SignalFeedScreen() {
     };
   }, [api, browsingLoaded, error, filters.rarities, handleError, loaded, requestFilters, scopeKey, screenActive, view]);
 
-  useEffect(() => {
-    if (!screenActive) return undefined;
-    setTickerNow(Date.now());
-    const timer = setInterval(() => setTickerNow(Date.now()), 60_000);
-    return () => clearInterval(timer);
-  }, [screenActive]);
-  useEffect(() => {
-    if (!screenActive || motionDisabled || tickerSignals.length < 2) return undefined;
-    const timer = setInterval(() => setTickerIndex((current) => (current + 1) % tickerSignals.length), 8_000);
-    return () => clearInterval(timer);
-  }, [motionDisabled, screenActive, tickerSignals.length]);
-  useEffect(() => {
-    const generation = ++tickerAnimationGeneration.current;
-    tickerOpacity.stopAnimation();
-    if (!screenActive || motionDisabled || !tickerSignal) {
-      tickerOpacity.setValue(1);
-      return () => { tickerAnimationGeneration.current += 1; tickerOpacity.stopAnimation(); };
-    }
-    tickerOpacity.setValue(0);
-    const animation = Animated.timing(tickerOpacity, { toValue: 1, duration: 180, useNativeDriver: true });
-    animation.start(({ finished }) => {
-      if (!finished || generation !== tickerAnimationGeneration.current) return;
-    });
-    return () => { tickerAnimationGeneration.current += 1; animation.stop(); tickerOpacity.stopAnimation(); };
-  }, [motionDisabled, screenActive, tickerOpacity, tickerSignal?.id]);
   useEffect(() => {
     if (!screenActive || !highlightedIds.length) return undefined;
     const timer = setTimeout(() => setHighlightedIds([]), reduceMotion ? 2_000 : 2_600);
@@ -481,31 +448,6 @@ export default function SignalFeedScreen() {
 
   const header = (
     <View style={styles.header}>
-      {tickerSignal ? <View accessibilityLabel="Recent reports" style={styles.tickerShell}>
-        <Animated.View style={[styles.tickerAnimated, { opacity: tickerOpacity }]}>
-        <Pressable
-          accessibilityHint="Opens Signal details"
-          accessibilityLabel={`${tickerSignal.bottle.name}, ${tickerLocationLabel(tickerSignal)}, Reported ${signalAccessibilityTime(tickerSignal.timing.displayAt)}`}
-          accessibilityRole="button"
-          onPress={() => router.push({ pathname: "/(app)/signal/[id]", params: { id: tickerSignal.id } })}
-          style={({ pressed }) => [styles.tickerSignal, pressed && styles.segmentPressed]}
-        >
-          <View style={styles.tickerMarker}><MaterialCommunityIcons color={colors.accent} name="radio-tower" size={15} /></View>
-          <View style={styles.tickerCopy}>
-            <Text numberOfLines={1} style={styles.tickerBottle}>{tickerSignal.bottle.name}</Text>
-            <Text numberOfLines={1} style={styles.tickerMeta}>{tickerLocationLabel(tickerSignal)} · Reported {relativeSignalTime(tickerSignal.timing.displayAt)}</Text>
-          </View>
-        </Pressable>
-        </Animated.View>
-        {tickerSignals.length > 1 ? <Pressable
-          accessibilityLabel="Show next recent report"
-          accessibilityRole="button"
-          onPress={() => setTickerIndex((current) => (current + 1) % tickerSignals.length)}
-          style={({ pressed }) => [styles.tickerNext, pressed && styles.segmentPressed]}
-        >
-          <MaterialCommunityIcons color={colors.muted} name="chevron-right" size={20} />
-        </Pressable> : null}
-      </View> : null}
       <View accessibilityLabel="Signal feed view" style={styles.segmentedControl}>
         <Pressable
           accessibilityRole="button"
@@ -683,14 +625,6 @@ const styles = StyleSheet.create({
   list: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 64 },
   separator: { height: 6 },
   header: { gap: 8, marginBottom: 4 },
-  tickerShell: { minHeight: 54, flexDirection: "row", alignItems: "stretch", borderRadius: 13, borderWidth: StyleSheet.hairlineWidth, borderColor: "#5A4127", backgroundColor: "#1D150D", overflow: "hidden" },
-  tickerAnimated: { flex: 1 },
-  tickerSignal: { minHeight: 54, flex: 1, flexDirection: "row", alignItems: "center", gap: 9, paddingLeft: 10, paddingVertical: 6 },
-  tickerMarker: { width: 30, height: 30, borderRadius: 15, alignItems: "center", justifyContent: "center", backgroundColor: "#2B1E11" },
-  tickerCopy: { flex: 1, gap: 2 },
-  tickerBottle: { color: colors.text, fontSize: 13, lineHeight: 17, fontWeight: "800" },
-  tickerMeta: { color: colors.muted, fontSize: 12, lineHeight: 16, fontWeight: "600" },
-  tickerNext: { minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center" },
   newSignalsPill: { position: "absolute", zIndex: 5, top: 8, alignSelf: "center", minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingHorizontal: 16, borderRadius: 22, backgroundColor: colors.accent, borderWidth: 1, borderColor: "#F1BC72", shadowColor: "#000", shadowOpacity: 0.32, shadowRadius: 8, shadowOffset: { width: 0, height: 3 }, elevation: 5 },
   newSignalsPillPressed: { backgroundColor: colors.accentPressed, transform: [{ scale: 0.98 }] },
   newSignalsText: { color: "#171009", fontSize: 12, lineHeight: 16, fontWeight: "900" },
