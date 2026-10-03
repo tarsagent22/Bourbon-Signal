@@ -38,14 +38,15 @@ test("Watchlist expansion disappears when no bottles remain hidden", () => {
   assert.match(radar, /if \(showAll && watchlist\.totalCount <= 3\) setShowAll\(false\)/);
 });
 
-test("preferences shows continuous sections and separates sources from delivery", () => {
+test("preferences shows continuous sections with sightings beneath phone alerts", () => {
   const radar = readScreen("radar");
   for (const title of ["Bottles", "Locations", "Notifications"]) assert.ok(radar.includes(`<SectionTitle>${title}</SectionTitle>`));
   assert.match(radar, /bottle list and selected tiers must both match/);
   const sources = radar.indexOf('<SectionTitle>Bottles</SectionTitle>');
   const community = radar.indexOf('<ToggleRow label="Community sightings"');
   const notifications = radar.indexOf('<SectionTitle>Notifications</SectionTitle>');
-  assert.ok(sources < community && community < notifications);
+  assert.ok(sources < notifications && notifications < community);
+  assert.match(radar, /get notified if a member posts a bottle in an area you watch/);
 });
 
 test("quiet watch removal offers an atomic Undo without replacing the full watchlist", () => {

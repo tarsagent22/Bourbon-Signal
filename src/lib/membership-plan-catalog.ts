@@ -85,7 +85,7 @@ export const MEMBERSHIP_COMPARISON_ROWS = [
   ["Drop Feed access", "Limited", "Full · state only", "Full · advanced", "Full · advanced"],
   ["Bottle Checks", "3", "Unlimited", "Unlimited", "Unlimited"],
   ["Member Sightings", "Limited", "✓", "✓", "✓"],
-  ["SMS, email, and on-site alerts", "—", "✓", "✓", "✓"],
+  ["Push and in-app alerts", "—", "✓", "✓", "✓"],
   ["Alert preference limits", "—", "5 areas · 15 bottles", "No limits", "No limits"],
   ["Signal Points redemption", "Earn only", "✓", "✓", "✓"],
   ["Sightings alerts", "—", "—", "✓", "✓"],

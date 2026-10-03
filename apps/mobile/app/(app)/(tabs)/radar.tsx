@@ -10,7 +10,7 @@ import { useMobileApi } from "../../../src/hooks/useMobileApi";
 import { useScreenRevalidation } from "../../../src/hooks/useScreenRevalidation";
 import { useAccessibleStatus } from '../../../src/hooks/useAccessibleStatus';
 import { canonicalBottleKey } from "../../../src/interactions/member-interactions";
-import { ALERT_RARITY_TIERS, alertIsStale, compactWatchedBottles, formatPhoneNumber, maskedPhoneNumber, memberAlertBottleNames, monitoringScopesChanged, presentPushIssue, radarLocalityDisplayName, scopesForState, bottleWatchMutation, setStatewideScope, stopMonitoringState, toggleAlertRarity, toggleMonitoringScope, watchedBottleCount } from "../../../src/radar/radar-preferences";
+import { ALERT_RARITY_TIERS, alertIsStale, compactWatchedBottles, memberAlertBottleNames, monitoringScopesChanged, presentPushIssue, radarLocalityDisplayName, scopesForState, bottleWatchMutation, setStatewideScope, stopMonitoringState, toggleAlertRarity, toggleMonitoringScope, watchedBottleCount } from "../../../src/radar/radar-preferences";
 import { radarPushState, type PushRecoveryAction } from "../../../src/radar/radar-push-state";
 import { disableRadarPush, enableRadarPush, radarPushDeviceId, radarPushPermission, refreshRadarPushIfEnabled, watchRadarPushToken } from "../../../src/push/push-registration";
 import { signalRouteForRequestedAlert } from "../../../src/push/push-navigation";
@@ -49,7 +49,6 @@ export default function RadarScreen() {
   const [pushStatusLoadFailed, setPushStatusLoadFailed] = useState(false);
   const [pushFailedAction, setPushFailedAction] = useState<"enable" | "disable" | null>(null);
   const [query, setQuery] = useState("");
-  const [phone, setPhone] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -80,7 +79,6 @@ export default function RadarScreen() {
           if (sequence !== loadSequence.current || preferenceMutationAtStart !== preferenceMutationEpoch.current) return;
         }
         setPreferences(nextPreferences);
-        setPhone(nextPreferences.notificationPreferences.sms.phone || "");
       }
       setAlerts(nextAlerts); setProfile(nextProfile); setCatalog(nextCatalog);
       if (!initialDestinationChosen.current) {
@@ -229,7 +227,6 @@ export default function RadarScreen() {
       onRecoverPush={() => { if (pushRecoveryAction === "settings") void Linking.openSettings().catch(() => setActionError("Open your phone Settings to allow notifications for Bourbon Signal.")); else if (pushRecoveryAction === "retry-status") void load(true); else if (pushRecoveryAction === "retry-disable") void togglePush(false); else void togglePush(true); }}
       onLayout={(y) => { preferencesY.current = y; }}
       catalog={searchResults}
-      phone={phone}
       preferences={preferences}
       profile={profile}
       pushBusy={pushBusy}
@@ -241,7 +238,6 @@ export default function RadarScreen() {
       saving={saving || pushBusy}
       watchedKeys={watchedKeys}
       watchedNames={watchedNames}
-      onPhone={setPhone}
       onQuery={setQuery}
       onSave={savePreferences}
       onSetWatching={setWatching}
@@ -321,11 +317,10 @@ function BottleWatchlist({ catalog, preferences, query, saving, watchedKeys, wat
   </View>;
 }
 
-function WatchlistView({ pushNeedsAttention, pushRecoveryAction, onRecoverPush, onLayout, onNotificationsLayout, catalog, phone, preferences, profile, pushBusy, pushError, pushPermission, pushStage, pushStatus, query, saving, watchedKeys, watchedNames, onPhone, onQuery, onSave, onSetWatching, onTogglePush }: { pushNeedsAttention: boolean; pushRecoveryAction: PushRecoveryAction; onRecoverPush: () => void; onLayout: (y: number) => void; onNotificationsLayout: (y: number) => void; catalog: RadarBottleOption[]; phone: string; preferences: MemberPreferences; profile: MemberProfile | null; pushBusy: boolean; pushError: string; pushPermission: string; pushStage: string; pushStatus: PushDeviceStatus | null; query: string; saving: boolean; watchedKeys: Set<string>; watchedNames: string[]; onPhone: (phone: string) => void; onQuery: (value: string) => void; onSave: (patch: MemberPreferencesPatch) => Promise<MemberPreferences | null>; onSetWatching: (name: string, watched: boolean, preserveAlertMode?: boolean) => Promise<MemberPreferences | null>; onTogglePush: (enabled: boolean) => Promise<void> }) {
+function WatchlistView({ pushNeedsAttention, pushRecoveryAction, onRecoverPush, onLayout, onNotificationsLayout, catalog, preferences, profile, pushBusy, pushError, pushPermission, pushStage, pushStatus, query, saving, watchedKeys, watchedNames, onQuery, onSave, onSetWatching, onTogglePush }: { pushNeedsAttention: boolean; pushRecoveryAction: PushRecoveryAction; onRecoverPush: () => void; onLayout: (y: number) => void; onNotificationsLayout: (y: number) => void; catalog: RadarBottleOption[]; preferences: MemberPreferences; profile: MemberProfile | null; pushBusy: boolean; pushError: string; pushPermission: string; pushStage: string; pushStatus: PushDeviceStatus | null; query: string; saving: boolean; watchedKeys: Set<string>; watchedNames: string[]; onQuery: (value: string) => void; onSave: (patch: MemberPreferencesPatch) => Promise<MemberPreferences | null>; onSetWatching: (name: string, watched: boolean, preserveAlertMode?: boolean) => Promise<MemberPreferences | null>; onTogglePush: (enabled: boolean) => Promise<void> }) {
   const router = useRouter();
   const api = useMobileApi();
   const insets = useSafeAreaInsets();
-  const [editingPhone, setEditingPhone] = useState(false);
   const [showTierHelp, setShowTierHelp] = useState(false);
   const [locationsOpen, setLocationsOpen] = useState(false);
   const [editorState, setEditorState] = useState<{ code: string; name: string } | null>(null);
@@ -408,7 +403,6 @@ function WatchlistView({ pushNeedsAttention, pushRecoveryAction, onRecoverPush, 
     <View style={styles.choiceRow}>{ALERT_RARITY_TIERS.map((tier) => <RarityChoice disabled={saving} key={tier} label={tier[0].toUpperCase() + tier.slice(1)} selected={preferences.notificationPreferences.rarityTiers.includes(tier)} onPress={() => void onSave({ notificationPreferences: { rarityTiers: toggleAlertRarity(preferences.notificationPreferences.rarityTiers, tier) } })} />)}</View>
 
     {showTierHelp ? <Text style={styles.muted}>Unicorn · exceptionally hard to find{"\n"}Allocated · distributed in restricted quantities{"\n"}Limited · limited releases</Text> : null}
-      <ToggleRow label="Community sightings" detail="Include recent member reports at specific stores" disabled={saving} value={preferences.notificationPreferences.sightings.enabled} onValueChange={(enabled) => void onSave({ notificationPreferences: { sightings: { enabled } } })} />
     </View>
     <View style={styles.section}>
       <SectionTitle>Locations</SectionTitle>
@@ -421,11 +415,7 @@ function WatchlistView({ pushNeedsAttention, pushRecoveryAction, onRecoverPush, 
     <MemberCard>
       {pushNeedsAttention ? <View style={styles.toggleRow}><View style={styles.flex}><Text style={styles.listTitle}>Phone alerts</Text><Text style={styles.muted}>{pushDetail}</Text></View><TextAction label={pushBusy ? "WORKING…" : pushRecoveryAction === "settings" ? "OPEN SETTINGS" : "RETRY"} disabled={saving || pushBusy} onPress={onRecoverPush} /></View>
         : <ToggleRow label="Phone alerts" detail={pushDetail} disabled={saving || pushBusy} value={Boolean(pushStatus?.enabled && pushStatus.currentDeviceRegistered !== false && pushPermission === "granted" && !pushError)} onValueChange={(value) => void onTogglePush(value)} />}
-      <ToggleRow label="Email"  disabled={saving} value={preferences.notificationPreferences.email.enabled} onValueChange={(enabled) => void onSave({ notificationPreferences: { email: { enabled } } })} />
-
-      <ToggleRow label="SMS" detail={!preferences.notificationPreferences.sms.available ? "Unavailable for this membership" : preferences.notificationPreferences.sms.verified ? "Phone verified" : "Enter a phone number to enable"} disabled={saving || !preferences.notificationPreferences.sms.available} value={preferences.notificationPreferences.sms.enabled} onValueChange={(enabled) => { if (enabled && !phone.trim()) { setEditingPhone(true); return; } if (!enabled || phone.trim()) void onSave({ notificationPreferences: { sms: { enabled, ...(phone.trim() ? { phone: phone.trim() } : {}) } } }); }} />
-      {preferences.notificationPreferences.sms.available && preferences.notificationPreferences.sms.enabled && preferences.notificationPreferences.sms.verified && !editingPhone ? <View style={styles.phoneSummary}><View><Text style={styles.muted}>Verified mobile</Text><Text style={styles.listTitle}>{maskedPhoneNumber(preferences.notificationPreferences.sms.phone)}</Text></View><TextAction label="CHANGE" disabled={saving} onPress={() => setEditingPhone(true)} /></View> : null}
-      {preferences.notificationPreferences.sms.available && ((preferences.notificationPreferences.sms.enabled && !preferences.notificationPreferences.sms.verified) || editingPhone) ? <View style={styles.areaEditor}><TextInput accessibilityLabel="Mobile number for SMS alerts" accessibilityHint="Enter your mobile number. Enabling SMS gives consent to receive alert messages." editable={!saving} keyboardType="phone-pad" onChangeText={onPhone} placeholder="Mobile number" placeholderTextColor={colors.muted} style={styles.input} value={formatPhoneNumber(phone)} />{editingPhone ? <View style={styles.rowActions}><TextAction label="CANCEL" disabled={saving} onPress={() => { onPhone(preferences.notificationPreferences.sms.phone || ""); setEditingPhone(false); }} /><TextAction label="SAVE & ENABLE SMS" disabled={saving || phone.replace(/\D/g, "").length !== 10} onPress={() => void (async () => { const saved = await onSave({ notificationPreferences: { sms: { phone: phone.trim(), enabled: true } } }); if (saved) setEditingPhone(false); })()} /></View> : null}</View> : null}
+      <ToggleRow label="Community sightings" detail="get notified if a member posts a bottle in an area you watch" disabled={saving} value={preferences.notificationPreferences.sightings.enabled} onValueChange={(enabled) => void onSave({ notificationPreferences: { sightings: { enabled } } })} />
     </MemberCard>
 
     </View>

@@ -47,7 +47,7 @@ function productFaqItems(): FaqItem[] {
     {
       question: "How do Bourbon Signal alerts work?",
       answer:
-        "Choose the markets you care about, then decide whether you want anything notable nearby or only specific bottles from your watchlist. An alert area may be a state, control board, city, or individual store, depending on the precision available in that market. Standard Proof includes up to five specific alert areas and 15 watched bottles. Barrel Proof and Bottled in Bond remove those preference limits. Matching alerts can appear on-site and by email, with SMS available under each paid plan’s daily delivery cap. Bourbon Signal only sends alerts from fresh, alert-grade signals—not every broad release lead or feed item.",
+        "Choose the markets you care about, then decide whether you want anything notable nearby or only specific bottles from your watchlist. An alert area may be a state, control board, city, or individual store, depending on the precision available in that market. Standard Proof includes up to five specific alert areas and 15 watched bottles. Barrel Proof and Bottled in Bond remove those preference limits. Matching alerts appear in your inbox and through push notifications. Bourbon Signal only sends alerts from fresh, alert-grade signals—not every broad release lead or feed item.",
     },
     {
       question: "What are verified retailer signals?",
@@ -97,17 +97,17 @@ function pricingFaqItems(options: FaqOptions): FaqItem[] {
     {
       question: "What is the difference between Standard Proof and Barrel Proof?",
       answer:
-        "Standard Proof includes unlimited My Shelf capacity and is built for alerts and everyday hunting: the full feed, unlimited Bottle Checks, up to five alert areas, up to 15 tracked bottles, and on-site, email, and SMS delivery. Barrel Proof removes the alert-preference limits and adds Bourbon DNA and personalized collection intelligence, recommendations, local opportunities, Member Sighting alerts, and a higher SMS allowance.",
+        "Standard Proof includes unlimited My Shelf capacity and is built for alerts and everyday hunting: the full feed, unlimited Bottle Checks, up to five alert areas, up to 15 tracked bottles, and in-app and push delivery. Barrel Proof removes the alert-preference limits and adds Bourbon DNA and personalized collection intelligence, recommendations, local opportunities, Member Sighting alerts.",
     },
     {
       question: "How do alerts and alert limits work?",
       answer:
-        `Choose anything notable in your selected markets or narrow alerts to bottles on your watchlist. Standard Proof supports up to five specific alert areas, 15 tracked bottles, and up to ${TIER_ENTITLEMENTS.standard.smsDailyLimit} SMS alerts per day. Barrel Proof removes the area and bottle limits and supports up to ${TIER_ENTITLEMENTS.barrel.smsDailyLimit} SMS alerts per day. Bottled in Bond includes the same unlimited preferences with up to ${TIER_ENTITLEMENTS["bottled-in-bond"].smsDailyLimit} SMS alerts per day. On-site and email delivery are also available on paid plans.`,
+        `Choose anything notable in your selected markets or narrow alerts to bottles on your watchlist. Standard Proof supports up to five specific alert areas, 15 tracked bottles, and push notifications. Barrel Proof removes the area and bottle limits with push notifications. Bottled in Bond includes the same unlimited preferences with push notifications. In-app alerts are also available on paid plans.`,
     },
     {
       question: "What is the Bottled in Bond Founder membership?",
       answer:
-        `Bottled in Bond is Bourbon Signal’s lifetime Founder membership: a one-time $50 purchase with no recurring subscription fee. It includes current and future paid product features, unlimited alert areas and bottle tracking, the highest SMS allowance, Founder recognition and member number, early access to new tools, and a numbered Founder’s glass. ${founderAvailability}`,
+        `Bottled in Bond is Bourbon Signal’s lifetime Founder membership: a one-time $50 purchase with no recurring subscription fee. It includes current and future paid product features, unlimited alert areas and bottle tracking, Founder recognition and member number, early access to new tools, and a numbered Founder’s glass. ${founderAvailability}`,
     },
     {
       question: "Can I cancel or change my membership?",

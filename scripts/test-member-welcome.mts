@@ -120,7 +120,7 @@ for (const feature of [
   "Drop Feed access",
   "Bottle Checks",
   "Member Sightings",
-  "SMS, email, and on-site alerts",
+  "Push and in-app alerts",
   "Alert preference limits",
   "Signal Points redemption",
   "Sightings alerts",

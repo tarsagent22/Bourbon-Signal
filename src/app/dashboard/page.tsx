@@ -2190,8 +2190,6 @@ function PaidMemberDashboard() {
 
   const enabledDeliveryLabels = useMemo(() => [
     dashboardPrefs.notificationPreferences.onSite.enabled ? "On-site" : null,
-    dashboardPrefs.notificationPreferences.email.enabled ? "Email" : null,
-    dashboardPrefs.notificationPreferences.sms.enabled ? "SMS" : null,
   ].filter((label): label is string => Boolean(label)), [dashboardPrefs.notificationPreferences]);
 
   const dashboardMarketSummary = useMemo(() => {
@@ -3018,7 +3016,7 @@ function PaidMemberDashboard() {
                     Bottle rarity
                   </div>
                   <p style={{ margin: 0, fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.6 }}>
-                    Choose which bottle tiers can trigger Radar inbox, push, email, and SMS alerts.
+                    Choose which bottle tiers can trigger Radar inbox and push alerts.
                   </p>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: "10px" }}>
                     {ALERT_RARITY_TIERS.map((tier) => {
@@ -3186,8 +3184,6 @@ function PaidMemberDashboard() {
               >
                 {(() => {
                   const onSiteActive = notificationPrefs.onSite.enabled;
-                  const emailActive = notificationPrefs.email.enabled;
-                  const smsActive = notificationPrefs.sms.enabled;
                   const sightingsActive = notificationPrefs.sightings?.enabled === true;
 
                   return (
@@ -3204,55 +3200,10 @@ function PaidMemberDashboard() {
                         }
                       />
 
-                      <NotificationChannelCard
-                        title="Email alerts"
-                        description="Get email alerts when a signal matches your watchlist."
-                        checked={emailActive}
-                        onCheckedChange={(checked) =>
-                          setNotificationPrefs((prev) => ({
-                            ...prev,
-                            email: { ...prev.email, enabled: checked },
-                          }))
-                        }
-                      />
-
-                      <div style={{ width: "100%", borderRadius: "18px", border: smsActive ? "1px solid rgba(196,148,58,0.34)" : "1px solid rgba(255,255,255,0.08)", background: smsActive ? "linear-gradient(180deg, rgba(47,33,18,0.98) 0%, rgba(24,18,12,0.98) 100%)" : "linear-gradient(180deg, rgba(20,16,12,0.92) 0%, rgba(14,11,8,0.92) 100%)", boxShadow: smsActive ? "inset 0 1px 0 rgba(239,192,80,0.12), 0 0 28px rgba(212,146,11,0.12)" : "inset 0 1px 0 rgba(255,255,255,0.03)", padding: "18px", display: "grid", gap: "12px", position: "relative", overflow: "hidden" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", gap: "14px", alignItems: "center" }}>
-                          <div style={{ display: "flex", flexDirection: "column", gap: "8px", minWidth: 0, flex: 1 }}>
-                            <span style={{ fontFamily: "var(--font-playfair)", fontSize: "24px", color: "var(--color-cream)" }}>SMS alerts</span>
-                            <span style={{ fontFamily: "var(--font-dm-sans)", fontSize: "13px", color: "var(--color-text-secondary)", lineHeight: 1.7, maxWidth: "38ch" }}>
-                              Text alerts for high-priority bottle matches. {entitlements.canReceiveSmsAlerts ? `${entitlements.smsDailyLimit}/day cap during rollout.` : "Upgrade to activate SMS delivery."}
-                            </span>
-                          </div>
-                          <LiquidToggle
-                            checked={smsActive}
-                            onCheckedChange={(checked) => setNotificationPrefs((prev) => ({ ...prev, sms: { ...prev.sms, enabled: checked && entitlements.canReceiveSmsAlerts } }))}
-                          />
-                        </div>
-                        <div style={{ display: "grid", gap: "8px" }}>
-                          <label htmlFor="sms-phone" style={{ fontFamily: "var(--font-jetbrains)", fontSize: "10px", color: "var(--color-accent-amber)", letterSpacing: "0.1em", textTransform: "uppercase" }}>Phone number</label>
-                          <input
-                            id="sms-phone"
-                            value={notificationPrefs.sms.phone || ""}
-                            onChange={(event) => setNotificationPrefs((prev) => ({ ...prev, sms: { ...prev.sms, phone: event.target.value, verified: false } }))}
-                            placeholder="(555) 123-4567"
-                            inputMode="tel"
-                            disabled={!entitlements.canReceiveSmsAlerts}
-                            style={{ width: "100%", borderRadius: "14px", border: "1px solid rgba(255,255,255,0.08)", background: "rgba(255,255,255,0.035)", color: "var(--color-text-primary)", padding: "12px 14px", fontFamily: "var(--font-dm-sans)", fontSize: "13px", outline: "none", opacity: entitlements.canReceiveSmsAlerts ? 1 : 0.55 }}
-                          />
-                          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap", alignItems: "center" }}>
-                            {[{ value: "major_only", label: "Major only" }, { value: "specific_bottles", label: "Watchlist only" }].map((option) => (
-                              <button key={option.value} type="button" onClick={() => setNotificationPrefs((prev) => ({ ...prev, sms: { ...prev.sms, mode: option.value as typeof prev.sms.mode } }))} disabled={!entitlements.canReceiveSmsAlerts} style={{ padding: "7px 10px", borderRadius: "999px", border: notificationPrefs.sms.mode === option.value ? "1px solid rgba(196,148,58,0.32)" : "1px solid rgba(255,255,255,0.08)", background: notificationPrefs.sms.mode === option.value ? "rgba(196,148,58,0.12)" : "rgba(255,255,255,0.03)", color: notificationPrefs.sms.mode === option.value ? "var(--color-cream)" : "var(--color-text-secondary)", cursor: entitlements.canReceiveSmsAlerts ? "pointer" : "not-allowed", fontSize: "12px" }}>{option.label}</button>
-                            ))}
-                            <span style={{ color: notificationPrefs.sms.verified ? "#9AD4B1" : "var(--color-text-tertiary)", fontFamily: "var(--font-dm-sans)", fontSize: "12px" }}>{notificationPrefs.sms.verified ? "Verified" : entitlements.canReceiveSmsAlerts ? "Verification will be required before live SMS sends." : "SMS unlocks with Standard Proof."}</span>
-                          </div>
-                        </div>
-                      </div>
-
                       {canReceiveSightingsAlerts ? (
                         <NotificationChannelCard
                           title="Member Sighting alerts"
-                          description="Get notified when member-submitted sightings match your watchlist and markets. Included with Barrel Proof and Bottled in Bond."
+                          description="get notified if a member posts a bottle in an area you watch"
                           checked={sightingsActive}
                           onCheckedChange={(checked) =>
                             setNotificationPrefs((prev) => ({

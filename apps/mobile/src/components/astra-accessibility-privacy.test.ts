@@ -32,7 +32,7 @@ test('M13: entered sign-in and MFA fields render persistent accessible names', (
   }
   for (const button of renderSignIn().filter(n => n.type === 'Pressable')) assert.equal(button.props.accessibilityRole, 'button');
 });
-test('M13: mounted Radar search and SMS input render named controls', () => {
+test('M13: mounted Radar exposes push and sightings without retired channels', () => {
   let index = 0;
   const prefs = preferencesFixture(); prefs.notificationPreferences.sms.available = true; prefs.notificationPreferences.sms.enabled = true;
   const states: any[] = ['settings',prefs,profileFixture({ feedAreas: { states: [{ code: 'AZ', label: 'Arizona', engineCoverage: 'active' }] } } as any)];
@@ -48,9 +48,10 @@ test('M13: mounted Radar search and SMS input render named controls', () => {
   const rendered = nodes(module.default());
   const fields = rendered.filter(n => n.type === 'TextInput');
   assert.ok(fields.some(n => n.props.accessibilityLabel === 'Search watched bottles'));
-  assert.ok(fields.some(n => n.props.accessibilityLabel === 'Mobile number for SMS alerts'));
+  assert.ok(!fields.some(n => n.props.accessibilityLabel === 'Mobile number for SMS alerts'));
   for (const field of fields) assert.ok(field.props.accessibilityLabel, `Missing label for ${field.props.placeholder}`);
-  assert.ok(rendered.some(n => n.type === 'Switch' && n.props.accessibilityLabel === 'Email'));
+  assert.ok(!rendered.some(n => n.type === 'Switch' && ['Email','SMS'].includes(n.props.accessibilityLabel)));
+  assert.deepEqual(rendered.filter(n => n.type === 'Switch').map(n => n.props.accessibilityLabel), ['Phone alerts','Community sightings']);
   assert.ok(!rendered.some(n => n.type === 'Switch' && n.props.accessibilityLabel === 'Radar inbox'));
   const render = () => { index = 0; return nodes(module.default()); };
   const button = (label: string) => render().find(n => n.type === 'Pressable' && nodes(n).some(child => child.type === 'Text' && child.props.children === label));
