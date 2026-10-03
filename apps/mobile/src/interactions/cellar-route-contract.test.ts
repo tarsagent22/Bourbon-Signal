@@ -88,7 +88,7 @@ test("My Shelf has explicit component-state grid and dense list views with bottl
   assert.match(cellar, /keyExtractor=\{shelfBottleKey\}/);
   assert.doesNotMatch(cellar, /visibleBottles|visibleCount|nextShelfPageSize/);
   assert.match(cellar, /<ShelfCabinet/);
-  assert.match(shelfDisplay, /cabinetRows\(ranked\)/, "the actual cabinet uses bounded tested rows, not decorative progression");
+  assert.match(shelfDisplay, /showcaseBottles\(bottles, mode\)/, "the actual cabinet uses bounded tested rows, not decorative progression");
   assert.match(shelfDisplay, /onBottle\(bottle\)/, "the cabinet opens the real item detail affordance");
   const footer = cellar.indexOf("ListFooterComponent");
   const huntNext = cellar.indexOf("Hunt next", footer);

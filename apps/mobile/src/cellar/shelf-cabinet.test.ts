@@ -33,3 +33,16 @@ test('custom editions with the same lossy key remain distinct and exact duplicat
  assert.equal(shelf.shelfBottleKey(bottle('known',{bottleName:'Old name'})),'known');
  assert.deepEqual(shelf.rankedShelfBottles([a,b,{...a}]),[a,b]);
 });
+
+test('showcase selections are owned, exact, limited and based on real collection data', () => {
+ const old=bottle('old',{addedAt:'2026-01-01',rating:99,wouldBuyAgain:true});
+ const newer=bottle('new',{addedAt:'2026-10-01',rating:80,isRated:false});
+ const invalid=bottle('invalid',{addedAt:'invalid',rating:0});
+ const tasted=bottle('tasted',{sealedQuantity:0,tastedOnly:true,rating:100,wouldBuyAgain:true});
+ const input=[old,newer,invalid,tasted,{...old}];
+ assert.deepEqual(shelf.showcaseBottles(input,'rated').map(b=>b.bottleId),['old','invalid']);
+ assert.deepEqual(shelf.showcaseBottles(input,'recent').map(b=>b.bottleId),['new','old','invalid']);
+ assert.deepEqual(shelf.showcaseBottles(input,'again').map(b=>b.bottleId),['old']);
+ assert.equal(input.length,5);
+ assert.equal(shelf.showcaseBottles(Array.from({length:30},(_,i)=>bottle(String(i))),'recent').length,3);
+});

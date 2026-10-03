@@ -5,7 +5,7 @@ import { LabelFreeBottleArtwork } from './LabelFreeBottleArtwork';
 
 export function CellarBottleArtwork({ bottle, size = 'grid' }: {
   bottle: CellarBottleIdentity;
-  size?: 'grid' | 'list' | 'detail';
+  size?: 'grid' | 'list' | 'detail' | 'showcase';
 }) {
   const shape = resolveLabelFreeBottleArtwork(bottle);
   if (shape) return <LabelFreeBottleArtwork shape={shape} size={size} />;

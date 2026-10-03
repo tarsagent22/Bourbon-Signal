@@ -29,6 +29,23 @@ export function cabinetRows<T>(items: readonly T[]): T[][] {
   const half = Math.ceil(bounded.length / 2);
   return [bounded.slice(0, half), bounded.slice(half)];
 }
+export type ShowcaseMode = 'rated' | 'recent' | 'again';
+export function showcaseBottles(bottles: readonly MemberCollectionBottle[], mode: ShowcaseMode) {
+  if (mode === 'rated') return rankedShelfBottles(bottles).slice(0, 3);
+  const seen = new Set<string>();
+  const addedTime = (bottle: MemberCollectionBottle) => {
+    const time = Date.parse(bottle.addedAt);
+    return Number.isFinite(time) ? time : 0;
+  };
+  return bottles.map((bottle, index) => ({ bottle, index }))
+    .filter(({ bottle }) => collectionDisplayKind(bottle) === 'owned' && (mode !== 'again' || bottle.wouldBuyAgain === true))
+    .sort((a, b) => addedTime(b.bottle) - addedTime(a.bottle) || a.index - b.index)
+    .filter(({ bottle }) => {
+      const key = shelfBottleKey(bottle);
+      if (seen.has(key)) return false;
+      seen.add(key); return true;
+    }).slice(0, 3).map(({ bottle }) => bottle);
+}
 export function shelfGridLayout(width: number, mode: 'grid' | 'list', fontScale = 1) {
   const columns = mode === 'list' ? 1 : width < 350 || fontScale > 1.15 ? 2 : 3;
   return { columns, tileWidth: (width - 20 - (columns - 1) * 8) / columns };
