@@ -7,12 +7,12 @@ export function useMobileApi() {
   const identity = `${userId || ''}:${sessionId || ''}`;
   const current = useRef({ identity, getToken });
   current.current = { identity, getToken };
-  const api = useMemo(() => createMobileApi({ getToken: async () => {
+  const api = useMemo(() => ({ ...createMobileApi({ getToken: async () => {
     if (current.current.identity !== identity) throw new MobileApiError('The account changed. Please retry.', 401, 'SESSION_CHANGED');
     const token = await current.current.getToken();
     if (current.current.identity !== identity) throw new MobileApiError('The account changed. Please retry.', 401, 'SESSION_CHANGED');
     return token;
-  } }), [identity]);
+  } }), pushAccountId: userId || "" }), [identity]);
   useEffect(() => () => api.clearReadCache(), [api]);
   return api;
 }

@@ -2,19 +2,35 @@ import { useAuth } from "@clerk/expo";
 import * as Notifications from "expo-notifications";
 import { useRouter } from "expo-router";
 import { useEffect, useRef, useState } from "react";
-import { configureRadarNotifications, flushPendingPushRevocation } from "./push-registration";
+import { AppState } from "react-native";
+import { useMobileApi } from "../hooks/useMobileApi";
+import { configureRadarNotifications, flushPendingPushRevocation, refreshRadarPushIfEnabled, watchRadarPushToken } from "./push-registration";
 import { createPendingPushNavigation } from "./push-navigation";
 
 export function PushMaintenance() {
+  const api = useMobileApi();
   useEffect(() => {
     let active = true;
+    let attempts = 0;
+    let retry: ReturnType<typeof setTimeout> | undefined;
+    const recover = async () => {
+      clearTimeout(retry);
+      let needsRetry = false;
+      try {
+        const status = await refreshRadarPushIfEnabled(api);
+        needsRetry = Boolean(status?.warning || (status?.currentDeviceRegistered && !status.enabled));
+      } catch { needsRetry = true; }
+      if (active && needsRetry && attempts++ < 3) retry = setTimeout(() => void recover(), [5000, 30000, 120000][attempts - 1]);
+    };
     const timer = setTimeout(() => {
       if (!active) return;
       configureRadarNotifications();
-      void flushPendingPushRevocation().catch(() => false);
+      void flushPendingPushRevocation().catch(() => false).then(() => { if (active) void recover(); });
     }, 0);
-    return () => { active = false; clearTimeout(timer); };
-  }, []);
+    const foreground = AppState.addEventListener("change", state => { if (state === "active" && active) { attempts = 0; void recover(); } });
+    const tokens = watchRadarPushToken(api);
+    return () => { active = false; clearTimeout(timer); clearTimeout(retry); foreground.remove(); tokens.remove(); };
+  }, [api]);
   return null;
 }
 

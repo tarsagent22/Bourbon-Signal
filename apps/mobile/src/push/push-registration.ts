@@ -12,9 +12,27 @@ const PUSH_REVOCATION_TOKEN_KEY = "bourbon-signal.push-revocation-token";
 export const PENDING_PUSH_REVOCATION_KEY = "bourbon-signal.pending-push-revocation";
 export const PUSH_ENABLED_KEY = "bourbon-signal.push-enabled";
 
-type MobileApi = ReturnType<typeof createMobileApi>;
+type MobileApi = ReturnType<typeof createMobileApi> & { pushAccountId?: string };
 type PushStatusListener = (status: PushDeviceStatus | null) => void;
 let logoutInProgress = false;
+const operations = new Map<string, Promise<PushDeviceStatus | null>>();
+const statusListeners = new Map<PushStatusListener, string>();
+const accountKey = (api: MobileApi) => api.pushAccountId || "legacy";
+const intentKey = (api: MobileApi) => api.pushAccountId ? `${PUSH_ENABLED_KEY}.${api.pushAccountId}` : PUSH_ENABLED_KEY;
+const tokenKey = (api: MobileApi) => `${intentKey(api)}.token`;
+async function rememberIntent(api: MobileApi, enabled: boolean) {
+  if (enabled && logoutInProgress) return;
+  await SecureStore.setItemAsync(intentKey(api), enabled ? "1" : "0");
+  await rememberRadarPushEnabled(enabled);
+}
+function serializePush(api: MobileApi, work: () => Promise<PushDeviceStatus | null>) {
+  const key = accountKey(api);
+  const previous = operations.get(key);
+  const pending = (previous ? previous.catch(() => null) : Promise.resolve()).then(work);
+  operations.set(key, pending);
+  void pending.then(status => { if (status) statusListeners.forEach((account, listener) => { if (account === key) listener(status); }); }, () => {}).finally(() => { if (operations.get(key) === pending) operations.delete(key); });
+  return pending;
+}
 
 type PendingPushRevocation = { deviceId: string; revocationToken: string };
 
@@ -68,7 +86,12 @@ export function configureRadarNotifications() {
   }
 }
 
-export async function radarPushDeviceId() {
+let deviceIdLoad: Promise<string> | undefined;
+export function radarPushDeviceId() {
+  if (!deviceIdLoad) deviceIdLoad = loadRadarPushDeviceId().catch(error => { deviceIdLoad = undefined; throw error; });
+  return deviceIdLoad;
+}
+async function loadRadarPushDeviceId() {
   const existing = await SecureStore.getItemAsync(DEVICE_ID_KEY);
   if (existing) return existing;
   const created = Crypto.randomUUID();
@@ -96,7 +119,7 @@ async function configureAndroidRadarChannel() {
   });
 }
 
-async function registerCurrentRadarPushToken(api: MobileApi, requestPermission: boolean) {
+async function registerCurrentRadarPushToken(api: MobileApi, requestPermission: boolean, currentStatus?: PushDeviceStatus) {
   if (logoutInProgress) return null;
   if (!Device.isDevice) {
     if (requestPermission) throw new Error("Push notifications require a physical device.");
@@ -109,46 +132,72 @@ async function registerCurrentRadarPushToken(api: MobileApi, requestPermission: 
     if (requestPermission) throw new Error("Notification permission was not granted. Enable it in device settings to receive Radar alerts.");
     return null;
   }
+  if (requestPermission) await rememberIntent(api, true);
   const projectId = Constants.expoConfig?.extra?.eas?.projectId || Constants.easConfig?.projectId;
   if (!projectId) throw new Error("Push project configuration is unavailable.");
   const token = await Notifications.getExpoPushTokenAsync({ projectId });
   const deviceId = await radarPushDeviceId();
   if (logoutInProgress) return null;
-  await flushPendingPushRevocation().catch(() => false);
+  if (currentStatus?.enabled && currentStatus.currentDeviceRegistered && !currentStatus.warning && await SecureStore.getItemAsync(tokenKey(api)) === token.data) return currentStatus;
+  if (!await flushPendingPushRevocation()) throw new Error("Previous push registration is still being disconnected.");
+  if (logoutInProgress || await SecureStore.getItemAsync(intentKey(api)) !== "1") return null;
   const status = await api.registerPushDevice({ deviceId, expoPushToken: token.data, platform: Platform.OS === "android" ? "android" : "ios" });
   if (status.revocationToken) await SecureStore.setItemAsync(PUSH_REVOCATION_TOKEN_KEY, status.revocationToken);
+  if (logoutInProgress) {
+    if (status.revocationToken) {
+      await SecureStore.setItemAsync(PENDING_PUSH_REVOCATION_KEY, JSON.stringify({ deviceId, revocationToken: status.revocationToken }));
+      await flushPendingPushRevocation().catch(() => false);
+    }
+    return null;
+  }
+  if (status.enabled && !status.warning) await SecureStore.setItemAsync(tokenKey(api), token.data);
   return status;
 }
 
 export async function enableRadarPush(api: MobileApi) {
   logoutInProgress = false;
-  const status = await registerCurrentRadarPushToken(api, true);
+  const status = await serializePush(api, () => registerCurrentRadarPushToken(api, true));
   if (!status) throw new Error("Push notifications could not be enabled on this device.");
-  await rememberRadarPushEnabled(status.enabled);
   return status;
 }
 
 export async function disableRadarPush(api: MobileApi) {
-  const status = await api.disablePushDevice(await radarPushDeviceId());
-  await rememberRadarPushEnabled(false);
-  await SecureStore.deleteItemAsync(PUSH_REVOCATION_TOKEN_KEY);
-  await SecureStore.deleteItemAsync(PENDING_PUSH_REVOCATION_KEY);
-  return status;
+  await rememberIntent(api, false);
+  const status = await serializePush(api, async () => {
+    await rememberIntent(api, false);
+    const saved = await api.disablePushDevice(await radarPushDeviceId());
+    await SecureStore.deleteItemAsync(tokenKey(api));
+    await SecureStore.deleteItemAsync(PUSH_REVOCATION_TOKEN_KEY);
+    await SecureStore.deleteItemAsync(PENDING_PUSH_REVOCATION_KEY);
+    return saved;
+  });
+  return status!;
 }
 
-export async function refreshRadarPushIfEnabled(api: MobileApi) {
-  if (await SecureStore.getItemAsync(PUSH_ENABLED_KEY) !== "1") return null;
-  const status = await registerCurrentRadarPushToken(api, false);
-  if (status && !status.enabled) await rememberRadarPushEnabled(false);
-  return status;
+export async function refreshRadarPushIfEnabled(api: MobileApi, knownStatus?: PushDeviceStatus) {
+  if (logoutInProgress) return null;
+  const existing = operations.get(accountKey(api));
+  if (existing) return existing;
+  return serializePush(api, async () => {
+    if (logoutInProgress) return null;
+    const current = knownStatus || await api.getPushDeviceStatus(await radarPushDeviceId(), { fresh: true });
+    let intent = await SecureStore.getItemAsync(intentKey(api));
+    // Migrate only an owned registration, never another account's local opt-in.
+    if (intent == null && current.currentDeviceRegistered && !await SecureStore.getItemAsync(PENDING_PUSH_REVOCATION_KEY)) {
+      await rememberIntent(api, true);
+      intent = "1";
+    }
+    if (intent !== "1") return current;
+    return await registerCurrentRadarPushToken(api, false, current) || current;
+  });
 }
 
 export function watchRadarPushToken(api: MobileApi, onStatus?: PushStatusListener) {
-  return Notifications.addPushTokenListener(() => {
-    void refreshRadarPushIfEnabled(api)
-      .then((status) => onStatus?.(status))
-      .catch(() => onStatus?.(null));
+  if (onStatus) statusListeners.set(onStatus, accountKey(api));
+  const subscription = Notifications.addPushTokenListener(() => {
+    void refreshRadarPushIfEnabled(api).catch(() => {});
   });
+  return { remove() { if (onStatus) statusListeners.delete(onStatus); subscription.remove(); } };
 }
 
 // Online device-only mitigation, NOT cross-account ownership or offline safety.
@@ -162,7 +211,9 @@ export async function signOutWithRadarPushDisabled(
   let timer: ReturnType<typeof setTimeout>;
   let expired = false;
   const revoke = async () => {
-    await rememberRadarPushEnabled(false).catch(() => {});
+    await rememberIntent(api, false).catch(() => {});
+    await operations.get(accountKey(api))?.catch(() => null);
+    if (expired) return false;
     const id = await SecureStore.getItemAsync(DEVICE_ID_KEY);
     if (!id || expired) return false;
     const revocationToken = await SecureStore.getItemAsync(PUSH_REVOCATION_TOKEN_KEY);
