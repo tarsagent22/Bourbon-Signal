@@ -35,18 +35,26 @@ test('M13: entered sign-in and MFA fields render persistent accessible names', (
 test('M13: mounted Radar search and SMS input render named controls', () => {
   let index = 0;
   const prefs = preferencesFixture(); prefs.notificationPreferences.sms.available = true;
-  const states = ['watchlist',prefs,profileFixture()];
+  const states: any[] = ['settings',prefs,profileFixture()];
   const module = loadWithMocks('app/(app)/(tabs)/radar.tsx', {
     'react-native': native, 'expo-router': { useLocalSearchParams: () => ({}), useRouter: () => ({ push() {} }) },
     'react-native-safe-area-context': { useSafeAreaInsets: () => ({}), SafeAreaView: 'SafeAreaView' },
-    react: { ...React, useState: (initial: unknown) => [index < states.length ? states[index++] : (index++, initial), () => {}], useEffect() {}, useRef: (v: unknown) => ({ current: v }), useMemo: (f: () => unknown) => f(), useCallback: (f: unknown) => f },
+    react: { ...React, useState: (initial: unknown) => { const slot = index++; if (!(slot in states)) states[slot] = typeof initial === 'function' ? (initial as Function)() : initial; return [states[slot], (value: unknown) => { states[slot] = value; }]; }, useEffect() {}, useRef: (v: unknown) => ({ current: v }), useMemo: (f: () => unknown) => f(), useCallback: (f: unknown) => f },
     '../../../src/components/MemberScreen': { MemberCard: 'MemberCard', SectionTitle: 'SectionTitle', memberScreenStyles: {} },
     '../../../src/hooks/useMobileApi': { useMobileApi: () => ({}) }, '../../../src/hooks/useScreenRevalidation': { useScreenRevalidation() {} }, '../../../src/push/push-registration': {},
     '../../../src/hooks/useAccessibleStatus': { useAccessibleStatus() {} },
   });
-  const fields = nodes(module.default()).filter(n => n.type === 'TextInput');
-  assert.ok(fields.length >= 2);
-  for (const field of fields) assert.ok(field.props.accessibilityLabel, `Missing label for ${field.props.placeholder}`);
+  for (const editor of ['Bottles', 'Notifications']) {
+    index = 0;
+    const row = nodes(module.default()).find(n => n.type === 'Pressable' && n.props.accessibilityLabel?.startsWith(`${editor},`));
+    assert.ok(row); row.props.onPress(); index = 0;
+    const fields = nodes(module.default()).filter(n => n.type === 'TextInput');
+    assert.ok(fields.length >= 1);
+    for (const field of fields) assert.ok(field.props.accessibilityLabel, `Missing label for ${field.props.placeholder}`);
+    index = 0;
+    const back = nodes(module.default()).find(n => n.type === 'Pressable' && n.props.children?.props?.children === '‹ ALL SETTINGS');
+    assert.ok(back); back.props.onPress();
+  }
 });
 test('M09: privacy inventory matches SMS collection, local identifiers and actual support UI', () => {
   const text = fs.readFileSync('store/app-privacy.md','utf8');
