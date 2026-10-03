@@ -35,11 +35,11 @@ test('M13: entered sign-in and MFA fields render persistent accessible names', (
 test('M13: mounted Radar search and SMS input render named controls', () => {
   let index = 0;
   const prefs = preferencesFixture(); prefs.notificationPreferences.sms.available = true; prefs.notificationPreferences.sms.enabled = true;
-  const states: any[] = ['settings',prefs,profileFixture()];
+  const states: any[] = ['settings',prefs,profileFixture({ feedAreas: { states: [{ code: 'AZ', label: 'Arizona', engineCoverage: 'active' }] } } as any)];
   const module = loadWithMocks('app/(app)/(tabs)/radar.tsx', {
     'react-native': native, 'expo-router': { useLocalSearchParams: () => ({}), useRouter: () => ({ push() {} }) },
     'react-native-safe-area-context': { useSafeAreaInsets: () => ({}), SafeAreaView: 'SafeAreaView' },
-    react: { ...React, useState: (initial: unknown) => { const slot = index++; if (!(slot in states)) states[slot] = typeof initial === 'function' ? (initial as Function)() : initial; return [states[slot], (value: unknown) => { states[slot] = value; }]; }, useEffect() {}, useRef: (v: unknown) => ({ current: v }), useMemo: (f: () => unknown) => f(), useCallback: (f: unknown) => f },
+    react: { ...React, useState: (initial: unknown) => { const slot = index++; if (!(slot in states)) states[slot] = typeof initial === 'function' ? (initial as Function)() : initial; return [states[slot], (value: unknown) => { states[slot] = typeof value === 'function' ? (value as Function)(states[slot]) : value; }]; }, useEffect() {}, useRef: (v: unknown) => ({ current: v }), useMemo: (f: () => unknown) => f(), useCallback: (f: unknown) => f },
     '../../../src/components/MemberScreen': { MemberCard: 'MemberCard', SectionTitle: 'SectionTitle', memberScreenStyles: {} },
     '../../../src/hooks/useMobileApi': { useMobileApi: () => ({}) }, '../../../src/hooks/useScreenRevalidation': { useScreenRevalidation() {} }, '../../../src/push/push-registration': {},
     '../../../src/hooks/useAccessibleStatus': { useAccessibleStatus() {} },
@@ -52,6 +52,20 @@ test('M13: mounted Radar search and SMS input render named controls', () => {
   for (const field of fields) assert.ok(field.props.accessibilityLabel, `Missing label for ${field.props.placeholder}`);
   assert.ok(rendered.some(n => n.type === 'Switch' && n.props.accessibilityLabel === 'Email'));
   assert.ok(!rendered.some(n => n.type === 'Switch' && n.props.accessibilityLabel === 'Radar inbox'));
+  const render = () => { index = 0; return nodes(module.default()); };
+  const button = (label: string) => render().find(n => n.type === 'Pressable' && nodes(n).some(child => child.type === 'Text' && child.props.children === label));
+  rendered.find(n => n.type === 'Pressable' && n.props.accessibilityLabel?.startsWith('Edit locations,')).props.onPress();
+  button('ADD A STATE').props.onPress();
+  assert.ok(render().some(n => n.type === 'TextInput' && n.props.accessibilityLabel === 'Search states'));
+  button('Arizona').props.onPress();
+  assert.equal(button('Entire state').props.accessibilityState.checked, false);
+  assert.equal(button('Specific areas').props.accessibilityState.checked, false);
+  assert.equal(button('Save locations').props.disabled, true);
+  button('Entire state').props.onPress();
+  assert.equal(button('Save locations').props.disabled, false);
+  button('CANCEL').props.onPress();
+  assert.deepEqual(prefs.monitoringScopes, []);
+
 
 });
 test('M09: privacy inventory matches SMS collection, local identifiers and actual support UI', () => {
