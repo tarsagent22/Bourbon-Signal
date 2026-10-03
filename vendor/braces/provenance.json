@@ -20,7 +20,7 @@
     "lib/parse.js": "e3c36687d229df409ce376f40749ce39a7afc65409884ee68a988768cc7224bc",
     "lib/compile.js": "d1caf0207e634a24ff671fd5d6c5f502a6ec6faa50929b0b235aeb018c989c24",
     "lib/expand.js": "8f099359fe052ec00be84a4c20a6d6d4fe762d21a24fd537577698cdc151cc77",
-    "lib/stringify.js": "3d8d8a007032d65646509fff2e10b6a871be60da7cc5a9379f11bfef9aebf38d",
+    "lib/stringify.js": "72793f45e03d8c2764142fc368b6fdb7b9cf1345c17f4149150734ff46648963",
     "lib/utils.js": "b5a7596aa67730412b3c029ef09e84e6b67b8e445cffd35d1d295549c89066c7",
     "lib/constants.js": "c18ac5adb57308f1ce42a28552da3a31f5d83709743ebd9a636336813a744d4b",
     "LICENSE": "35bdd8a44339719441900fb50fbefc5e2dca1ca662cbaed7a687de842c8b70f2",
