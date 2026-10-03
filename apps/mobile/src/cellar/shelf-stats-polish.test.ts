@@ -6,8 +6,9 @@ test('polish uses inset tabs, larger image zone, lighter titles and search/filte
  assert.match(page,/tileArt: \{ height: 84/);assert.match(page,/fontWeight: "400", textAlign: "center"/);
  assert.match(page,/padding: 3, borderWidth: StyleSheet.hairlineWidth/);
 });
-test('cabinet offers Shelf Style and guards heading measurements',()=>{
- assert.match(cabinet,/Shelf Style/);assert.doesNotMatch(cabinet,/Edit Shelf/);
- assert.match(cabinet,/Number.isFinite\(height\) && height > 0/);
- assert.match(cabinet,/slots <= 6 \? 70 : 80/);
+test('showcase offers account-saved finishes and flowing headings',()=>{
+ assert.match(cabinet,/Ledge finish/);
+ assert.match(cabinet,/onStyle\(style.id\)/);
+ assert.match(cabinet,/flexWrap: 'wrap'/);
+ assert.doesNotMatch(cabinet,/headingHeight|photoScale|cabinetAssets/);
 });

@@ -4,14 +4,14 @@ import type { LabelFreeShape } from './label-free-bottle-artwork';
 import { LABEL_FREE_ARTWORK as artwork } from './label-free-artwork-assets';
 
 export function LabelFreeBottleArtwork({ shape, size = 'grid' }: {
-  shape: LabelFreeShape; size?: 'grid' | 'list' | 'detail';
+  shape: LabelFreeShape; size?: 'grid' | 'list' | 'detail' | 'showcase';
 }) {
   const phase = useRef(new Animated.Value(0)).current;
   const [reduceMotion, setReduceMotion] = useState(true);
   const [active, setActive] = useState(AppState.currentState === 'active');
   const detail = size === 'detail';
-  const width = detail ? 180 : size === 'grid' ? 80 : 44;
-  const height = detail ? 270 : size === 'grid' ? 116 : 62;
+  const width = detail ? 180 : size === 'showcase' ? 88 : size === 'grid' ? 80 : 44;
+  const height = detail ? 270 : size === 'showcase' ? 148 : size === 'grid' ? 116 : 62;
   useEffect(() => {
     if (!detail) return;
     let mounted = true;
@@ -41,7 +41,7 @@ export function LabelFreeBottleArtwork({ shape, size = 'grid' }: {
       { translateY: phase.interpolate({ inputRange: [0, 1], outputRange: [0, -1.2] }) },
       { rotate: phase.interpolate({ inputRange: [0, 1], outputRange: ['0deg', '.4deg'] }) },
     ] }}>
-      <Image source={artwork[shape]} resizeMode="contain" style={{ width, height }} />
+      <Image source={artwork[shape]} resizeMode="contain" style={{ width, height, ...(size === 'showcase' ? { transform: [{ translateY: 12 }] } : {}) }} />
     </Animated.View>
   </View>;
 }
