@@ -25,8 +25,8 @@ function text(...values: unknown[]) {
   return null;
 }
 
-function outcomeResponse(outcome: HuntOutcomeRecord | null) {
-  return Response.json({ contractVersion: SIGNAL_API_VERSION, outcome }, { headers: PRIVATE_SIGNAL_API_HEADERS });
+function outcomeResponse(outcome: HuntOutcomeRecord | null, reward?: { points: number; balance: number } | { pending: true }) {
+  return Response.json({ contractVersion: SIGNAL_API_VERSION, outcome, ...(reward ? { reward } : {}) }, { headers: PRIVATE_SIGNAL_API_HEADERS });
 }
 
 async function accessibleSignalReference(
@@ -90,21 +90,28 @@ export function createHuntOutcomeApi({
   repository,
   readSignal,
   now = () => new Date().toISOString(),
+  reconcileReward,
 }: {
   repository: OutcomeRepository;
   readSignal: SignalReader;
   now?: () => string;
+  reconcileReward?: (userId: string, episodeId: string) => Promise<{ points: number; balance: number }>;
 }) {
   async function resolve(request: Request, signalId: string) {
     return accessibleSignalReference(request, signalId, readSignal);
   }
 
+  async function reward(userId: string, episodeId: string) {
+    if (!reconcileReward) return undefined;
+    try { return await reconcileReward(userId, episodeId); }
+    catch { return { pending: true as const }; }
+  }
   return {
     async get(request: Request, signalId: string, userId: string) {
       const access = await resolve(request, signalId);
       if ("response" in access) return access.response;
       const outcome = await repository.getForUser(userId, access.reference.availabilityEpisodeId);
-      return outcomeResponse(outcome);
+      return outcomeResponse(outcome, await reward(userId, access.reference.availabilityEpisodeId));
     },
 
     async put(request: Request, signalId: string, userId: string) {
@@ -116,17 +123,17 @@ export function createHuntOutcomeApi({
       if ("response" in access) return access.response;
       if (payload.outcome === null) {
         await repository.removeForUser(userId, access.reference.availabilityEpisodeId);
-        return outcomeResponse(null);
+        return outcomeResponse(null, await reward(userId, access.reference.availabilityEpisodeId));
       }
       const outcome = await repository.setForUser(userId, access.reference, payload.outcome, now());
-      return outcomeResponse(outcome);
+      return outcomeResponse(outcome, await reward(userId, access.reference.availabilityEpisodeId));
     },
 
     async remove(request: Request, signalId: string, userId: string) {
       const access = await resolve(request, signalId);
       if ("response" in access) return access.response;
       await repository.removeForUser(userId, access.reference.availabilityEpisodeId);
-      return outcomeResponse(null);
+      return outcomeResponse(null, await reward(userId, access.reference.availabilityEpisodeId));
     },
   };
 }

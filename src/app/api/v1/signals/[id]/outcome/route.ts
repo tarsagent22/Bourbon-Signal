@@ -1,3 +1,4 @@
+import { reconcileQualityOutcomeReward } from "@/lib/quality-outcome-rewards";
 import { NextRequest } from "next/server";
 import { auth } from "@clerk/nextjs/server";
 import { GET as getSignalDetail } from "../route";
@@ -8,6 +9,7 @@ import { signalApiError } from "@/lib/signals/signal-api-route";
 function outcomeApi() {
   return createHuntOutcomeApi({
     repository: getHuntOutcomeRepository(),
+    reconcileReward: reconcileQualityOutcomeReward,
     readSignal: (request, signalId) => getSignalDetail(request as NextRequest, {
       params: Promise.resolve({ id: signalId }),
     }),

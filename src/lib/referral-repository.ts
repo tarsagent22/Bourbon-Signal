@@ -14,6 +14,7 @@ export interface ReferralSummary {
   referralPoints: number;
   freePointsAwarded: number;
   totalReferrals: number;
+  awardedReferrals?: number;
   freeReferrals: number;
   standardReferrals: number;
   barrelReferrals: number;
@@ -149,6 +150,7 @@ export class ReferralRepository {
     const rows = await this.query.query(
       `SELECT
          codes.code,
+         (SELECT COUNT(*) FROM member_referrals r WHERE r.referrer_user_id=codes.referrer_user_id AND r.awarded_points>0) AS awarded_referrals,
          COALESCE((SELECT SUM(points) FROM member_referral_point_ledger ledger WHERE ledger.referrer_user_id = codes.referrer_user_id), 0) AS referral_points,
          COALESCE((SELECT SUM(points) FROM member_referral_point_ledger ledger WHERE ledger.referrer_user_id = codes.referrer_user_id AND ledger.reason = 'referral_free'), 0) AS free_points_awarded,
          (SELECT COUNT(*) FROM member_referrals referrals WHERE referrals.referrer_user_id = codes.referrer_user_id) AS total_referrals,
@@ -170,6 +172,7 @@ export class ReferralRepository {
       referralPoints: numberValue(row.referral_points),
       freePointsAwarded: numberValue(row.free_points_awarded),
       totalReferrals: numberValue(row.total_referrals),
+      awardedReferrals: numberValue(row.awarded_referrals),
       freeReferrals: numberValue(row.free_referrals),
       standardReferrals: numberValue(row.standard_referrals),
       barrelReferrals: numberValue(row.barrel_referrals),

@@ -64,6 +64,7 @@ export interface HuntOutcomeRecord {
 }
 
 export interface HuntOutcomeResponse {
+  reward?: { points: number; balance: number } | { pending: true };
   contractVersion: "bourbon-signal/mobile-api@1";
   outcome: HuntOutcomeRecord | null;
 }
@@ -353,7 +354,7 @@ export interface ReferralSummary {
     freeAwardLimit: number;
     upgradeAwardsDifferenceOnly: boolean;
   };
-  referrals: { total: number; free: number; standard: number; barrel: number; founder: number };
+  referrals: { total: number; awarded?: number; free: number; standard: number; barrel: number; founder: number };
 }
 
 export interface SignalRewardItem {
@@ -362,13 +363,15 @@ export interface SignalRewardItem {
   points: number;
   fulfillmentType: "physical" | "digital";
   inventoryRemaining?: number | null;
+  options?: { usShippingIncluded?: boolean; glassQuantity?: number; engravingPointsPerGlass?: number; membershipCredit?: boolean; requiresAge21Attestation?: boolean };
 }
 
 export interface SignalPointsSummary {
   balance: number;
   debt: number;
+  activity?: Array<{ id: string; kind: string; points: number; balanceDelta: number; debtDelta: number; sourceType: string; reason: string; createdAt: string }>;
   catalog: SignalRewardItem[];
-  redemptions: Array<{ id: string; itemKey: string; pointsSpent: number; status: string; createdAt: string; updatedAt: string }>;
+  redemptions: Array<{ id: string; itemKey: string; pointsSpent: number; status: string; createdAt: string; updatedAt: string; carrier?: string | null; trackingNumber?: string | null; itemSnapshot?: { name?: string } }>;
   tier: MemberProfile["profile"]["membership"]["tier"];
   redemptionEligible: boolean;
 }
@@ -403,4 +406,24 @@ export interface SightingSubmissionResponse {
   created: boolean;
   duplicate?: boolean;
   sighting: { id: string; bottleName?: string; storeName?: string };
+}
+
+export interface AchievementSummary {
+  points: number;
+  currentWeeklyStreak: number;
+  longestWeeklyStreak: number;
+  eligibleSightings: number;
+  helpfulSightings: number;
+  photoSightings: number;
+  badges: Array<{ id: string; label: string; tier?: string; earnedAt: string; pointsAwarded: number }>;
+  badgeProgress: Array<{ id: string; label: string; tier?: string; current: number; target: number; earned: boolean; description?: string }>;
+}
+export interface RewardShipping {
+  recipientName: string; addressLine1: string; addressLine2: string | null;
+  city: string; stateCode: string; postalCode: string; phone: string;
+  status?: string;
+}
+export interface RewardRedemptionRequest {
+  itemKey: string; idempotencyKey: string; confirmSavedAddress: boolean;
+  details: { glassStyle?: 'standard' | 'personal'; engravingText?: string; age21Attested?: boolean };
 }
