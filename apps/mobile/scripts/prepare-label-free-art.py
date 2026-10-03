@@ -109,7 +109,8 @@ def prepare(jobs_path, masters, batch, mobile):
             assets.append({"shape": shape, "file": filename, "masterFile": master.name, "prompt": job["prompt"],
                            "reference": job["reference"], "referenceSha256": sha(Path(job["reference"])),
                            "approvedMasterSha256": master_hash, "exportSha256": sha(target),
-                           "width": image.width, "height": image.height, "bytes": target.stat().st_size, **refinement})
+                           "width": image.width, "height": image.height, "bytes": target.stat().st_size, **refinement,
+                           **{key: job[key] for key in ("referenceUrl", "sourceImageUrl") if key in job}})
     provenance = {"batch": batch, "method": jobs["method"], "styleReference": jobs["styleReference"],
                   "styleReferenceSha256": sha(Path(jobs["styleReference"])),
                   "export": "Proportional Lanczos downsampling to at most 540x810, then lossless RGBA PNG encoding. No geometry, color, label or background edits.",

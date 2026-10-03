@@ -22,11 +22,20 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-      - name: Install and verify the mobile cryptography backport
+      - name: Install and verify the bounded brace parser backport
+        if: matrix.package != 'engine'
+        working-directory: ${{ matrix.package }}
+        run: |
+          npm ci --ignore-scripts --no-audit --no-fund
+          if [ "${{ matrix.package }}" = "." ]; then
+            node scripts/check-braces-backport-advisories.cjs
+          else
+            node ../../scripts/check-braces-backport-advisories.cjs
+          fi
+      - name: Verify the mobile cryptography backport
         if: matrix.package == 'apps/mobile'
         working-directory: apps/mobile
         run: |
-          npm ci --ignore-scripts --no-audit --no-fund
           node scripts/check-forge-backport-advisories.cjs
       # Audit the lock, not a developer's mutable node_modules. Do not omit dev
       # dependencies, ignore failure, auto-fix, or downgrade the Expo SDK here.

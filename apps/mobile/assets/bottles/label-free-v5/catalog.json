@@ -1,0 +1,474 @@
+{
+  "batch": 5,
+  "products": [
+    {
+      "id": "aristocrat-bourbon-80",
+      "name": "Aristocrat Bourbon 80",
+      "shape": "aristocrat-bourbon-black"
+    },
+    {
+      "id": "blonde-whiskey",
+      "name": "Blonde Whiskey",
+      "shape": "blonde-whiskey-natural"
+    },
+    {
+      "id": "brook-hill-13y-rye-whiskey-pear",
+      "name": "Brook Hill 13Y Rye Whiskey Pear",
+      "shape": "brook-hill-pear-green"
+    },
+    {
+      "id": "bulleit-bourbon-pet",
+      "name": "Bulleit Bourbon (PET)",
+      "shape": "bulleit-pet-black"
+    },
+    {
+      "id": "conviction-1929-double-oak-bourbon",
+      "name": "Conviction 1929 Double Oak Bourbon",
+      "shape": "conviction-double-oak-blue"
+    },
+    {
+      "id": "ealderman-american-sm-whiskey",
+      "name": "Ealderman American SM Whiskey",
+      "shape": "ealderman-malt-natural"
+    },
+    {
+      "id": "evan-williams-black-label-carry-pk",
+      "name": "Evan Williams Black Label Carry Pk",
+      "shape": "evan-carry-pet-black"
+    },
+    {
+      "id": "exceptional-wheated-straight-bourbon-whiskey",
+      "name": "Exceptional Wheated Straight Bourbon Whiskey",
+      "shape": "exceptional-wheated-black"
+    },
+    {
+      "id": "fireball-cinnamon-whisky-traveler",
+      "name": "Fireball Cinnamon Whisky Traveler",
+      "shape": "fireball-traveler-red"
+    },
+    {
+      "id": "highland-mist",
+      "name": "Highland Mist",
+      "shape": "highland-mist-gold"
+    },
+    {
+      "id": "inver-house",
+      "name": "Inver House",
+      "shape": "inver-house-green-gold"
+    },
+    {
+      "id": "jack-daniels-black-label-pet",
+      "name": "Jack Daniel's Black Label PET",
+      "shape": "jack-black-pet"
+    },
+    {
+      "id": "jack-daniels-tn-honey-pet",
+      "name": "Jack Daniel's TN Honey PET",
+      "shape": "jack-honey-pet-brown"
+    },
+    {
+      "id": "jack-daniels-twice-barreled-sp-rel",
+      "name": "Jack Daniel's Twice Barreled Sp. Rel.",
+      "shape": "jack-twice-barrel-black"
+    },
+    {
+      "id": "kentucky-gentleman",
+      "name": "Kentucky Gentleman",
+      "shape": "kentucky-gentleman-gold"
+    },
+    {
+      "id": "old-taylor",
+      "name": "Old Taylor",
+      "shape": "old-taylor-gold"
+    },
+    {
+      "id": "rare-character-sbs-black-bourbon-group-of-nc",
+      "name": "Rare Character SBS Black Bourbon Group of NC",
+      "shape": "rare-nc-black-gold"
+    },
+    {
+      "id": "rich-and-rare-apple",
+      "name": "Rich & Rare Apple",
+      "shape": "rich-rare-apple-gold"
+    },
+    {
+      "id": "single-barrel-series-tier-1-straight-bourbon",
+      "name": "Single Barrel Series Tier 1 Straight Bourbon",
+      "shape": "rare-tier-one-bourbon-blue"
+    },
+    {
+      "id": "single-barrel-series-tier-1-straight-rye",
+      "name": "Single Barrel Series Tier 1 Straight Rye",
+      "shape": "rare-tier-one-rye-green"
+    },
+    {
+      "id": "single-barrel-series-tier-3-finished-bourbon",
+      "name": "Single Barrel Series Tier 3 Finished Bourbon",
+      "shape": "rare-tier-three-bourbon-gray"
+    },
+    {
+      "id": "single-barrel-series-tier-3-finished-rye",
+      "name": "Single Barrel Series Tier 3 Finished Rye",
+      "shape": "rare-tier-three-rye-white"
+    },
+    {
+      "id": "vdc-goose-island-bourbon-county-stout",
+      "name": "VDC Goose Island Bourbon County Stout",
+      "shape": "vdc-goose-stout-black"
+    },
+    {
+      "id": "whiskey-jypsi-barrel-seekers",
+      "name": "Whiskey JYPSI Barrel Seekers",
+      "shape": "jypsi-barrel-seekers-natural"
+    },
+    {
+      "id": "woodford-reserve-12pk-pet",
+      "name": "Woodford Reserve - 12Pk (PET)",
+      "shape": "woodford-mini-pet-black"
+    },
+    {
+      "id": "rebel-100-6y-bottled-in-bond-single-barrel",
+      "name": "Rebel 100 6Y Bottled in Bond Single Barrel",
+      "shape": "rebel-six-bib-blue"
+    },
+    {
+      "id": "jack-daniels-black-label-replica-square",
+      "name": "Jack Daniel's Black Label Replica/Square",
+      "shape": "jack-standard-black"
+    },
+    {
+      "id": "rebel-stave-finish-pure-vanilla-single-barrel",
+      "name": "Rebel Stave Finish Pure Vanilla Single Barrel",
+      "shape": "rebel-burgundy"
+    },
+    {
+      "id": "rebel-stave-finish-rich-mocha-single-barrel",
+      "name": "Rebel Stave Finish Rich Mocha Single Barrel",
+      "shape": "rebel-burgundy"
+    },
+    {
+      "id": "bb_1c4d78c9fee9f02c",
+      "name": "Rebel Stave Finish Collection Rich Mocha",
+      "shape": "rebel-burgundy"
+    }
+  ],
+  "shapes": [
+    "aristocrat-bourbon-black",
+    "blonde-whiskey-natural",
+    "brook-hill-pear-green",
+    "bulleit-pet-black",
+    "conviction-double-oak-blue",
+    "ealderman-malt-natural",
+    "evan-carry-pet-black",
+    "exceptional-wheated-black",
+    "fireball-traveler-red",
+    "highland-mist-gold",
+    "inver-house-green-gold",
+    "jack-black-pet",
+    "jack-honey-pet-brown",
+    "jack-twice-barrel-black",
+    "kentucky-gentleman-gold",
+    "old-taylor-gold",
+    "rare-nc-black-gold",
+    "rich-rare-apple-gold",
+    "rare-tier-one-bourbon-blue",
+    "rare-tier-one-rye-green",
+    "rare-tier-three-bourbon-gray",
+    "rare-tier-three-rye-white",
+    "vdc-goose-stout-black",
+    "jypsi-barrel-seekers-natural",
+    "woodford-mini-pet-black",
+    "rebel-six-bib-blue"
+  ],
+  "reviewEvidence": [
+    {
+      "shape": "aristocrat-bourbon-black",
+      "productIds": [
+        "aristocrat-bourbon-80"
+      ],
+      "referenceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/175396",
+      "sourceImageUrl": "https://abc2.nc.gov/Uploads/Packages/125.jpg",
+      "referenceSha256": "3589d522917d8438c2a8689415fac0dcbaf141808b769529ef890387c33a6ddf",
+      "review": "Physical form, closure color, label removal and transparent edges visually reviewed against exact NC ABC reference."
+    },
+    {
+      "shape": "blonde-whiskey-natural",
+      "productIds": [
+        "blonde-whiskey"
+      ],
+      "referenceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/153341",
+      "sourceImageUrl": "https://abc2.nc.gov/Uploads/Packages/9363.jpg",
+      "referenceSha256": "60c57e0038c0142e5999502035419cabd5a862c5c998138e07444a40ced505d1",
+      "review": "Physical form, closure color, label removal and transparent edges visually reviewed against exact NC ABC reference."
+    },
+    {
+      "shape": "brook-hill-pear-green",
+      "productIds": [
+        "brook-hill-13y-rye-whiskey-pear"
+      ],
+      "referenceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/185845",
+      "sourceImageUrl": "https://abc2.nc.gov/Uploads/Packages/31412.jpg",
+      "referenceSha256": "c7d630b79c5d984f3b8a937b50f090cb88f90b024ec237192393b76305acc903",
+      "review": "Physical form, closure color, label removal and transparent edges visually reviewed against exact NC ABC reference."
+    },
+    {
+      "shape": "bulleit-pet-black",
+      "productIds": [
+        "bulleit-bourbon-pet"
+      ],
+      "referenceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/179110",
+      "sourceImageUrl": "https://abc2.nc.gov/Uploads/Packages/24686.jpg",
+      "referenceSha256": "9c9b5b90591c8b315df69599fe72a9fedbf6bf0476dc0220904cfa143f5c4830",
+      "review": "Physical form, closure color, label removal and transparent edges visually reviewed against exact NC ABC reference."
+    },
+    {
+      "shape": "conviction-double-oak-blue",
+      "productIds": [
+        "conviction-1929-double-oak-bourbon"
+      ],
+      "referenceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/176413",
+      "sourceImageUrl": "https://abc2.nc.gov/Uploads/Packages/17218.jpg",
+      "referenceSha256": "5b4119cc7cdf758e4668840ad1fa4fea4882c7f163351d00266d6bd2854f08ac",
+      "review": "Physical form, closure color, label removal and transparent edges visually reviewed against exact NC ABC reference."
+    },
+    {
+      "shape": "ealderman-malt-natural",
+      "productIds": [
+        "ealderman-american-sm-whiskey"
+      ],
+      "referenceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/152628",
+      "sourceImageUrl": "https://abc2.nc.gov/Uploads/Packages/17899.jpg",
+      "referenceSha256": "dde96828bc619f6822c81f68682e1fd613449710db3e739b1ff4b8b157cab427",
+      "review": "Physical form, closure color, label removal and transparent edges visually reviewed against exact NC ABC reference."
+    },
+    {
+      "shape": "evan-carry-pet-black",
+      "productIds": [
+        "evan-williams-black-label-carry-pk"
+      ],
+      "referenceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/175411",
+      "sourceImageUrl": "https://abc2.nc.gov/Uploads/Packages/154.jpg",
+      "referenceSha256": "f9fb27ab44d38094609ad6974272e66f876d064663578656d2d8e91ff2d895e4",
+      "review": "Physical form, closure color, label removal and transparent edges visually reviewed against exact NC ABC reference."
+    },
+    {
+      "shape": "exceptional-wheated-black",
+      "productIds": [
+        "exceptional-wheated-straight-bourbon-whiskey"
+      ],
+      "referenceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/185865",
+      "sourceImageUrl": "https://abc2.nc.gov/Uploads/Packages/28821.jpg",
+      "referenceSha256": "e95f0a3496c0aa792cb4e1ed79e1ef8a62575779d047e93d927a6c38fab7cd15",
+      "review": "Physical form, closure color, label removal and transparent edges visually reviewed against exact NC ABC reference."
+    },
+    {
+      "shape": "fireball-traveler-red",
+      "productIds": [
+        "fireball-cinnamon-whisky-traveler"
+      ],
+      "referenceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/178871",
+      "sourceImageUrl": "https://abc2.nc.gov/Uploads/Packages/9979.jpg",
+      "referenceSha256": "c4b09bce39bc3a075e5e6c176608083a6482458663887e2e35a470f1b2f42858",
+      "review": "Physical form, closure color, label removal and transparent edges visually reviewed against exact NC ABC reference."
+    },
+    {
+      "shape": "highland-mist-gold",
+      "productIds": [
+        "highland-mist"
+      ],
+      "referenceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/155110",
+      "sourceImageUrl": "https://abc2.nc.gov/Uploads/Packages/455.jpg",
+      "referenceSha256": "93d06e4bc4d49982ec98ebf61bf004edef4500d3ddfb3fd586ac79ca41e77f08",
+      "review": "Physical form, closure color, label removal and transparent edges visually reviewed against exact NC ABC reference."
+    },
+    {
+      "shape": "inver-house-green-gold",
+      "productIds": [
+        "inver-house"
+      ],
+      "referenceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/148542",
+      "sourceImageUrl": "https://abc2.nc.gov/Uploads/Packages/460.jpg",
+      "referenceSha256": "cadee86246f22ddc3fefbff43cb6165829a50fa4d5689160ffa03d66e1950683",
+      "review": "Physical form, closure color, label removal and transparent edges visually reviewed against exact NC ABC reference."
+    },
+    {
+      "shape": "jack-black-pet",
+      "productIds": [
+        "jack-daniels-black-label-pet"
+      ],
+      "referenceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/179492",
+      "sourceImageUrl": "https://abc2.nc.gov/Uploads/Packages/5002.jpg",
+      "referenceSha256": "bc8092994d634a7e28f83a19c9170909be3cb2a7b49ed2aa2688197d13dec199",
+      "review": "Physical form, closure color, label removal and transparent edges visually reviewed against exact NC ABC reference."
+    },
+    {
+      "shape": "jack-honey-pet-brown",
+      "productIds": [
+        "jack-daniels-tn-honey-pet"
+      ],
+      "referenceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/173500",
+      "sourceImageUrl": "https://abc2.nc.gov/Uploads/Packages/8479.jpg",
+      "referenceSha256": "f996543001779b126f8260233ab9a4afd71eb446732bcd79319dada54c603f02",
+      "review": "Physical form, closure color, label removal and transparent edges visually reviewed against exact NC ABC reference."
+    },
+    {
+      "shape": "jack-twice-barrel-black",
+      "productIds": [
+        "jack-daniels-twice-barreled-sp-rel"
+      ],
+      "referenceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/178233",
+      "sourceImageUrl": "https://abc2.nc.gov/Uploads/Packages/21297.jpg",
+      "referenceSha256": "216c9ea3a91e1c98b676d9e3048e89d876eb26703f02f6e78ba4dc73bb69a160",
+      "review": "Physical form, closure color, label removal and transparent edges visually reviewed against exact NC ABC reference."
+    },
+    {
+      "shape": "kentucky-gentleman-gold",
+      "productIds": [
+        "kentucky-gentleman"
+      ],
+      "referenceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/176433",
+      "sourceImageUrl": "https://abc2.nc.gov/Uploads/Packages/kygent.jpg",
+      "referenceSha256": "9a8dcea015509f9d052b6e5f2b2ff5ba849357d4c45cdd2450ca9982f65fc4f6",
+      "review": "Physical form, closure color, label removal and transparent edges visually reviewed against exact NC ABC reference."
+    },
+    {
+      "shape": "old-taylor-gold",
+      "productIds": [
+        "old-taylor"
+      ],
+      "referenceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/153272",
+      "sourceImageUrl": "https://abc2.nc.gov/Uploads/Packages/215.jpg",
+      "referenceSha256": "eef6aab7848d63b259bbc22ca7241993e3bf761a40d369a04d176127f4ea4ea3",
+      "review": "Physical form, closure color, label removal and transparent edges visually reviewed against exact NC ABC reference."
+    },
+    {
+      "shape": "rare-nc-black-gold",
+      "productIds": [
+        "rare-character-sbs-black-bourbon-group-of-nc"
+      ],
+      "referenceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/185852",
+      "sourceImageUrl": "https://abc2.nc.gov/Uploads/Packages/30178.jpg",
+      "referenceSha256": "a08876202798c8780fc5f39b725aa02328b13f8cfe0d7bad7c11e43022a18e6b",
+      "review": "Physical form, closure color, label removal and transparent edges visually reviewed against exact NC ABC reference."
+    },
+    {
+      "shape": "rich-rare-apple-gold",
+      "productIds": [
+        "rich-and-rare-apple"
+      ],
+      "referenceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/176449",
+      "sourceImageUrl": "https://abc2.nc.gov/Uploads/Packages/17021.jpg",
+      "referenceSha256": "19460c41e026d8c854a392d135b8b1110d1fe1da719b6fd44a4732c4eb2e9246",
+      "review": "Physical form, closure color, label removal and transparent edges visually reviewed against exact NC ABC reference."
+    },
+    {
+      "shape": "rare-tier-one-bourbon-blue",
+      "productIds": [
+        "single-barrel-series-tier-1-straight-bourbon"
+      ],
+      "referenceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/185868",
+      "sourceImageUrl": "https://abc2.nc.gov/Uploads/Packages/24846.jpg",
+      "referenceSha256": "f5f9a4aff6d566332881a28a71a886e0a20c72bf37e069ec774b8d3ffcb64bdc",
+      "review": "Physical form, closure color, label removal and transparent edges visually reviewed against exact NC ABC reference."
+    },
+    {
+      "shape": "rare-tier-one-rye-green",
+      "productIds": [
+        "single-barrel-series-tier-1-straight-rye"
+      ],
+      "referenceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/185869",
+      "sourceImageUrl": "https://abc2.nc.gov/Uploads/Packages/24847.jpg",
+      "referenceSha256": "7b8a2f9487a49695f720bb6a3f5e114d8c0cc8a6e54da429b1b4db70dae25a88",
+      "review": "Physical form, closure color, label removal and transparent edges visually reviewed against exact NC ABC reference."
+    },
+    {
+      "shape": "rare-tier-three-bourbon-gray",
+      "productIds": [
+        "single-barrel-series-tier-3-finished-bourbon"
+      ],
+      "referenceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/185870",
+      "sourceImageUrl": "https://abc2.nc.gov/Uploads/Packages/24848.jpg",
+      "referenceSha256": "d195886c378498b4b460dcad7b95d2e21dc94b62c56580a84f3bea86da405048",
+      "review": "Physical form, closure color, label removal and transparent edges visually reviewed against exact NC ABC reference."
+    },
+    {
+      "shape": "rare-tier-three-rye-white",
+      "productIds": [
+        "single-barrel-series-tier-3-finished-rye"
+      ],
+      "referenceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/185871",
+      "sourceImageUrl": "https://abc2.nc.gov/Uploads/Packages/24849.jpg",
+      "referenceSha256": "09fd74d84ee79b04978e0429e9f81cc5af7960aabb773e926bea4ec2720d32a1",
+      "review": "Physical form, closure color, label removal and transparent edges visually reviewed against exact NC ABC reference."
+    },
+    {
+      "shape": "vdc-goose-stout-black",
+      "productIds": [
+        "vdc-goose-island-bourbon-county-stout"
+      ],
+      "referenceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/178087",
+      "sourceImageUrl": "https://abc2.nc.gov/Uploads/Packages/29131.jpg",
+      "referenceSha256": "a9ba38c93c780ea40e596c7ab25eea7570dae73af3bb7996336bb160bc7a52ef",
+      "review": "Physical form, closure color, label removal and transparent edges visually reviewed against exact NC ABC reference."
+    },
+    {
+      "shape": "jypsi-barrel-seekers-natural",
+      "productIds": [
+        "whiskey-jypsi-barrel-seekers"
+      ],
+      "referenceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/176381",
+      "sourceImageUrl": "https://abc2.nc.gov/Uploads/Packages/29580.jpg",
+      "referenceSha256": "5dbb4bd632553102353c654664ac0e3c94a73b099727794b05563817215d76bd",
+      "review": "Physical form, closure color, label removal and transparent edges visually reviewed against exact NC ABC reference."
+    },
+    {
+      "shape": "woodford-mini-pet-black",
+      "productIds": [
+        "woodford-reserve-12pk-pet"
+      ],
+      "referenceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/177787",
+      "sourceImageUrl": "https://abc2.nc.gov/Uploads/Packages/4.jpg",
+      "referenceSha256": "9b0b383a543d2ed82fee2de2040b5712d0beb269cc2b17ec8afbfa3d8449e102",
+      "review": "Physical form, closure color, label removal and transparent edges visually reviewed against exact NC ABC reference."
+    },
+    {
+      "shape": "rebel-six-bib-blue",
+      "productIds": [
+        "rebel-100-6y-bottled-in-bond-single-barrel"
+      ],
+      "referenceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/180518",
+      "sourceImageUrl": "https://abc2.nc.gov/Uploads/Packages/28539.jpg",
+      "referenceSha256": "1a35ebc74a7bc0b43e52cdc4e95ac67ae189fedde9c7eead4ce6b308a8257e15",
+      "review": "Physical form, closure color, label removal and transparent edges visually reviewed against exact NC ABC reference."
+    },
+    {
+      "shape": "jack-standard-black",
+      "productIds": [
+        "jack-daniels-black-label-replica-square"
+      ],
+      "referenceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/179497",
+      "referenceSha256": "21a8bc1cfc43b05e5506cdd50195a851844ba6ee6dc99ea983f6833b6bf3bf2b",
+      "review": "Exact glass replica bottle reviewed against existing artwork: square faceted glass body, black closure, amber whiskey; no printed neck wrap included."
+    },
+    {
+      "shape": "rebel-burgundy",
+      "productIds": [
+        "rebel-stave-finish-pure-vanilla-single-barrel"
+      ],
+      "referenceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/180544",
+      "referenceSha256": "f66119a68b1289a7853c8019fe82d8be0109ec26c87586ee3d803a9a08f6188a",
+      "review": "Exact NC ABC Stave Finish photo reviewed: same broad cylindrical bourbon body, reddish amber liquid, burgundy physical capsule. Blue Bottled in Bond receives a separate illustration."
+    },
+    {
+      "shape": "rebel-burgundy",
+      "productIds": [
+        "rebel-stave-finish-rich-mocha-single-barrel",
+        "bb_1c4d78c9fee9f02c"
+      ],
+      "referenceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/180557",
+      "referenceSha256": "7f1427c91b9cd565dd15369c92964b156d66fd9e9d511881bee3189748d16fb3",
+      "review": "Exact NC ABC Stave Finish photo reviewed: same broad cylindrical bourbon body, reddish amber liquid, burgundy physical capsule. Blue Bottled in Bond receives a separate illustration."
+    }
+  ],
+  "scope": "Bourbon and whiskey only; exact physical variants reviewed. Neutral placeholders remain for unfinished entries."
+}
