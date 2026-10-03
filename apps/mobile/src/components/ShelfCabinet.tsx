@@ -45,7 +45,7 @@ export function ShelfCabinet({ bottles, shelfStyle, busy, onStyle, onBottle }: {
       <View style={styles.names}>
         {featured.map(bottle => <Pressable key={shelfBottleKey(bottle)} accessibilityRole="button" accessibilityLabel={`${bottle.bottleName}. Open details.`} onPress={() => onBottle(bottle)} style={styles.nameSlot}><Text style={styles.bottleName}>{bottle.bottleName}</Text></Pressable>)}
       </View>
-    </> : <View style={styles.empty}><Text style={styles.emptyTitle}>{bottles.length ? 'Your next highlight awaits' : 'Make this shelf yours'}</Text><Text style={styles.emptyCopy}>{emptyCopy[mode]}</Text></View>}
+    </> : <View style={styles.empty}><Text style={styles.emptyTitle}>{bottles.length ? 'Your next highlight awaits' : 'Make this shelf yours'}</Text><Text style={styles.emptyCopy}>{bottles.length ? emptyCopy[mode] : emptyCopy.recent}</Text></View>}
     <Modal visible={picker} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => { if (!busy) setPicker(false); }}>
       <SafeAreaView style={styles.modal}><ScrollView contentContainerStyle={styles.picker}>
         <Text accessibilityRole="header" style={styles.pickerTitle}>Ledge finish</Text>
