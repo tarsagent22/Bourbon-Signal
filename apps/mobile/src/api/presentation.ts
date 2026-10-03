@@ -199,11 +199,11 @@ export function signalCardAppearance(signal: Signal) {
 
 export function signalFeedCardAppearance(signal: Signal) {
   const rarity = signal.bottle.rarity || "limited";
-  const accent = rarity === "unicorn" ? "#D0A4DC" : rarity === "allocated" ? "#E5A15A" : "#D3A258";
+  const accent = rarity === "unicorn" ? "#D0A4DC" : rarity === "allocated" ? "#E5A15A" : "#D7DDE5";
   return {
     rarityLabel: rarity === "unicorn" ? "UNICORN" : rarity === "allocated" ? "ALLOCATED" : "LIMITED",
     surface: "#191612",
-    keyline: "#41372B",
+    keyline: rarity === "limited" ? "#41464F" : "#41372B",
     accent,
     secondaryText: "#B9AD9C",
   };
