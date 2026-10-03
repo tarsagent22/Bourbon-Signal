@@ -10,7 +10,7 @@ import { useMobileApi } from "../../../src/hooks/useMobileApi";
 import { useScreenRevalidation } from "../../../src/hooks/useScreenRevalidation";
 import { useAccessibleStatus } from '../../../src/hooks/useAccessibleStatus';
 import { canonicalBottleKey } from "../../../src/interactions/member-interactions";
-import { ALERT_RARITY_TIERS, alertIsStale, compactMonitoringScopes, compactWatchedBottles, formatPhoneNumber, maskedPhoneNumber, memberAlertBottleNames, monitoringScopesChanged, presentPushIssue, radarLocalityDisplayName, radarStateDisplayCode, scopesForState, bottleWatchMutation, setStatewideScope, stopMonitoringState, toggleAlertRarity, toggleMonitoringScope, watchedBottleCount } from "../../../src/radar/radar-preferences";
+import { ALERT_RARITY_TIERS, alertIsStale, compactWatchedBottles, formatPhoneNumber, maskedPhoneNumber, memberAlertBottleNames, monitoringScopesChanged, presentPushIssue, radarLocalityDisplayName, scopesForState, bottleWatchMutation, setStatewideScope, stopMonitoringState, toggleAlertRarity, toggleMonitoringScope, watchedBottleCount } from "../../../src/radar/radar-preferences";
 import { radarPushState, type PushRecoveryAction } from "../../../src/radar/radar-push-state";
 import { disableRadarPush, enableRadarPush, radarPushDeviceId, radarPushPermission, refreshRadarPushIfEnabled, rememberRadarPushEnabled, watchRadarPushToken } from "../../../src/push/push-registration";
 import { signalRouteForRequestedAlert } from "../../../src/push/push-navigation";
@@ -330,7 +330,9 @@ function WatchlistView({ pushNeedsAttention, pushRecoveryAction, onRecoverPush, 
   const [showTierHelp, setShowTierHelp] = useState(false);
   const [locationsOpen, setLocationsOpen] = useState(false);
   const [editorState, setEditorState] = useState<{ code: string; name: string } | null>(null);
-  const [editorTab, setEditorTab] = useState<"selected" | "browse">("browse");
+  const [scopeMode, setScopeMode] = useState<"state" | "local" | null>(null);
+  const [addingState, setAddingState] = useState(false);
+  const [stateQuery, setStateQuery] = useState("");
   const [editorLevel, setEditorLevel] = useState<MonitoringScopeType>("county");
   const [draftScopes, setDraftScopes] = useState<MonitoringScope[]>([]);
   const [areaQuery, setAreaQuery] = useState("");
@@ -343,7 +345,7 @@ function WatchlistView({ pushNeedsAttention, pushRecoveryAction, onRecoverPush, 
   const states = profile?.profile.feedAreas.states || [];
 
   useEffect(() => {
-    if (!editorState || editorTab !== "browse" || editorLevel === "state") return;
+    if (!editorState || scopeMode !== "local" || editorLevel === "state") return;
     let active = true;
     const timer = setTimeout(() => {
       setAreaBusy(true); setAreaError("");
@@ -353,13 +355,13 @@ function WatchlistView({ pushNeedsAttention, pushRecoveryAction, onRecoverPush, 
         .finally(() => { if (active) setAreaBusy(false); });
     }, 250);
     return () => { active = false; clearTimeout(timer); };
-  }, [api, areaOffset, areaQuery, editorLevel, editorState, editorTab]);
+  }, [api, areaOffset, areaQuery, editorLevel, editorState, scopeMode]);
 
   function openEditor(state: { code: string; label: string }) {
     const current = scopesForState(preferences.monitoringScopes, state.code);
     setEditorState({ code: state.code, name: state.label });
-    setDraftScopes(current.length ? current : setStatewideScope([], { code: state.code, name: state.label }));
-    setEditorTab(current.length ? "selected" : "browse");
+    setDraftScopes(current);
+    setScopeMode(current.some(scope => scope.type === "state") ? "state" : current.length ? "local" : null);
     setEditorLevel(state.code === "NC" ? "board" : "county");
     setAreaQuery(""); setAreaOffset(0); setAreaPage([]); setAreaError("");
   }
@@ -373,19 +375,20 @@ function WatchlistView({ pushNeedsAttention, pushRecoveryAction, onRecoverPush, 
     await Share.share({ message: `Bourbon Signal sources are still expanding in this area. Invite friends to boost community activity. ${link}` });
   }
 
-  const pushDetail = pushError || pushStatus?.warning ? "Setup needed"
-    : pushPermission === "denied" ? "Off · permission disabled in device settings"
-    : pushStatus?.enabled && pushStatus.currentDeviceRegistered !== false && pushPermission === "granted"
-    ? "On for this phone"
-    : pushBusy ? pushStage
-      : preferences.notificationPreferences.push.enabled ? "Setup needed · registration incomplete"
-        : "Off · enable for alerts on this phone";
+  const pushDetail = pushBusy ? pushStage : pushNeedsAttention
+    ? pushRecoveryAction === "settings" ? "Permission blocked"
+      : pushRecoveryAction === "retry-status" ? "Status unavailable"
+        : pushStatus?.warning?.code === "PUSH_PREFERENCE_WRITE_FAILED" ? "Settings sync incomplete"
+          : pushRecoveryAction === "retry-disable" ? "Could not turn off" : "Connection failed"
+    : pushStatus?.enabled && pushPermission === "granted" ? "On" : "Off";
   const selectedInEditor = editorState ? scopesForState(draftScopes, editorState.code) : [];
   const editorHasChanges = Boolean(editorState && monitoringScopesChanged(preferences.monitoringScopes, selectedInEditor, editorState.code));
-  const compactSelected = compactMonitoringScopes(selectedInEditor.filter((scope) => scope.type !== "state"), 6);
-  const visibleRows = editorTab === "selected"
-    ? compactSelected.visible.map((scope) => ({ id: scope.id, level: scope.type, state: scope.state, name: scope.label, displayName: scope.type === "city" ? radarLocalityDisplayName(scope.label) : scope.label, subtitle: null }))
-    : areaPage;
+  const selectedRows = selectedInEditor.filter(scope => scope.type !== "state" && (!areaQuery.trim() || scope.label.toLowerCase().includes(areaQuery.trim().toLowerCase()))).map(scope => ({ id: scope.id, level: scope.type, state: scope.state, name: scope.label }));
+  const visibleRows = [...selectedRows, ...areaPage.filter(row => !selectedRows.some(scope => scope.id === row.id))];
+  const savedStates = [...new Set(preferences.monitoringScopes.map(scope => scope.state))].map(code => ({ code, label: states.find(state => state.code === code)?.label || code }));
+  const stateSummary = (code: string) => { const scopes = scopesForState(preferences.monitoringScopes, code); return scopes.some(scope => scope.type === "state") ? "Entire state" : `${scopes.length} area${scopes.length === 1 ? "" : "s"}`; };
+  const locationLabel = savedStates.length === 1 ? `${savedStates[0].label} · ${stateSummary(savedStates[0].code)}` : radarLocationSummary(preferences);
+  const availableStates = states.filter(state => !savedStates.some(saved => saved.code === state.code) && `${state.label} ${state.code}`.toLowerCase().includes(stateQuery.trim().toLowerCase()));
   const levels: MonitoringScopeType[] = editorState?.code === "NC" ? ["county", "board", "city", "store"] : ["county", "city", "store"];
   const lowCoverage = Boolean(editorState && states.find((state) => state.code === editorState.code)?.engineCoverage !== "active");
 
@@ -401,33 +404,27 @@ function WatchlistView({ pushNeedsAttention, pushRecoveryAction, onRecoverPush, 
     <View style={styles.choiceRow}><Choice disabled={saving} selected={preferences.alertMode === "specific_bottles"} label="Specific bottles" onPress={() => void onSave({ alertMode: "specific_bottles" })} /><Choice disabled={saving} selected={preferences.alertMode === "anything_notable"} label="Discover rare bottles" onPress={() => void onSave({ alertMode: "anything_notable" })} /></View>
     <Text style={styles.muted}>{preferences.alertMode === "anything_notable" ? "Any bottle in your selected tiers." : "Your bottle list and selected tiers must both match."}</Text>
     {preferences.alertMode === "specific_bottles" ? <BottleWatchlist catalog={catalog} preferences={preferences} query={query} saving={saving} watchedKeys={watchedKeys} watchedNames={watchedNames} onQuery={onQuery} onSetWatching={onSetWatching} /> : null}
-    <SectionTitle>Bottle tiers</SectionTitle>
+    <View style={styles.headingRow}><SectionTitle>Bottle tiers</SectionTitle><Pressable accessibilityRole="button" accessibilityLabel="About bottle tiers" accessibilityState={{ expanded: showTierHelp }} onPress={() => setShowTierHelp(value => !value)} style={styles.infoButton}><Text style={styles.chipText}>ⓘ</Text></Pressable></View>
     <View style={styles.choiceRow}>{ALERT_RARITY_TIERS.map((tier) => <RarityChoice disabled={saving} key={tier} label={tier[0].toUpperCase() + tier.slice(1)} selected={preferences.notificationPreferences.rarityTiers.includes(tier)} onPress={() => void onSave({ notificationPreferences: { rarityTiers: toggleAlertRarity(preferences.notificationPreferences.rarityTiers, tier) } })} />)}</View>
 
-    <TextAction label="ABOUT TIERS" expanded={showTierHelp} onPress={() => setShowTierHelp(value => !value)} />
     {showTierHelp ? <Text style={styles.muted}>Unicorn · exceptionally hard to find{"\n"}Allocated · distributed in restricted quantities{"\n"}Limited · limited releases</Text> : null}
       <ToggleRow label="Community sightings" detail="Include recent member reports at specific stores" disabled={saving} value={preferences.notificationPreferences.sightings.enabled} onValueChange={(enabled) => void onSave({ notificationPreferences: { sightings: { enabled } } })} />
     </View>
     <View style={styles.section}>
       <SectionTitle>Locations</SectionTitle>
-      <MemberCard>
-        <Text style={styles.listTitle}>{radarLocationSummary(preferences)}</Text>
-        <TextAction label="EDIT LOCATIONS" disabled={saving} onPress={() => { Keyboard.dismiss(); setLocationsOpen(true); }} />
-      </MemberCard>
+      <Pressable accessibilityRole="button" accessibilityLabel={`Edit locations, ${locationLabel}`} disabled={saving} onPress={() => { Keyboard.dismiss(); setAddingState(false); setStateQuery(""); setLocationsOpen(true); }} style={styles.locationSummary}>
+        <Text style={[styles.listTitle, styles.flex]}>{locationLabel}</Text><Text style={styles.chevron}>›</Text>
+      </Pressable>
     </View>
     <View onLayout={(event) => onNotificationsLayout(event.nativeEvent.layout.y)} style={styles.section}>
     <SectionTitle>Notifications</SectionTitle>
-    {pushNeedsAttention ? <MemberCard accent>
-      <Text style={styles.listTitle}>{pushRecoveryAction === "settings" ? "Phone notifications are blocked" : pushRecoveryAction === "retry-disable" ? "Could not turn off phone notifications" : "Phone notifications need attention"}</Text>
-      <Text style={styles.muted}>{pushRecoveryAction === "settings" ? "Allow notifications in your phone settings." : pushError || "Try reconnecting this phone."}</Text>
-      <SmallButton label={pushBusy ? "Working…" : pushRecoveryAction === "settings" ? "Open Settings" : "Try again"} disabled={saving} onPress={onRecoverPush} />
-    </MemberCard> : null}
     <MemberCard>
-      <ToggleRow label="Phone alerts" detail={pushBusy ? pushStage : pushNeedsAttention ? "Needs attention" : pushDetail} disabled={saving} value={Boolean(pushStatus?.enabled && pushStatus.currentDeviceRegistered !== false && pushPermission === "granted" && !pushError)} onValueChange={(value) => void onTogglePush(value)} />
+      {pushNeedsAttention ? <View style={styles.toggleRow}><View style={styles.flex}><Text style={styles.listTitle}>Phone alerts</Text><Text style={styles.muted}>{pushDetail}</Text></View><TextAction label={pushBusy ? "WORKING…" : pushRecoveryAction === "settings" ? "OPEN SETTINGS" : "RETRY"} disabled={saving || pushBusy} onPress={onRecoverPush} /></View>
+        : <ToggleRow label="Phone alerts" detail={pushDetail} disabled={saving || pushBusy} value={Boolean(pushStatus?.enabled && pushStatus.currentDeviceRegistered !== false && pushPermission === "granted" && !pushError)} onValueChange={(value) => void onTogglePush(value)} />}
       <ToggleRow label="Email"  disabled={saving} value={preferences.notificationPreferences.email.enabled} onValueChange={(enabled) => void onSave({ notificationPreferences: { email: { enabled } } })} />
 
       <ToggleRow label="SMS" detail={!preferences.notificationPreferences.sms.available ? "Unavailable for this membership" : preferences.notificationPreferences.sms.verified ? "Phone verified" : "Enter a phone number to enable"} disabled={saving || !preferences.notificationPreferences.sms.available} value={preferences.notificationPreferences.sms.enabled} onValueChange={(enabled) => { if (enabled && !phone.trim()) { setEditingPhone(true); return; } if (!enabled || phone.trim()) void onSave({ notificationPreferences: { sms: { enabled, ...(phone.trim() ? { phone: phone.trim() } : {}) } } }); }} />
-      {preferences.notificationPreferences.sms.available && preferences.notificationPreferences.sms.verified && !editingPhone ? <View style={styles.phoneSummary}><View><Text style={styles.muted}>Verified mobile</Text><Text style={styles.listTitle}>{maskedPhoneNumber(preferences.notificationPreferences.sms.phone)}</Text></View><TextAction label="CHANGE" disabled={saving} onPress={() => setEditingPhone(true)} /></View> : null}
+      {preferences.notificationPreferences.sms.available && preferences.notificationPreferences.sms.enabled && preferences.notificationPreferences.sms.verified && !editingPhone ? <View style={styles.phoneSummary}><View><Text style={styles.muted}>Verified mobile</Text><Text style={styles.listTitle}>{maskedPhoneNumber(preferences.notificationPreferences.sms.phone)}</Text></View><TextAction label="CHANGE" disabled={saving} onPress={() => setEditingPhone(true)} /></View> : null}
       {preferences.notificationPreferences.sms.available && ((preferences.notificationPreferences.sms.enabled && !preferences.notificationPreferences.sms.verified) || editingPhone) ? <View style={styles.areaEditor}><TextInput accessibilityLabel="Mobile number for SMS alerts" accessibilityHint="Enter your mobile number. Enabling SMS gives consent to receive alert messages." editable={!saving} keyboardType="phone-pad" onChangeText={onPhone} placeholder="Mobile number" placeholderTextColor={colors.muted} style={styles.input} value={formatPhoneNumber(phone)} />{editingPhone ? <View style={styles.rowActions}><TextAction label="CANCEL" disabled={saving} onPress={() => { onPhone(preferences.notificationPreferences.sms.phone || ""); setEditingPhone(false); }} /><TextAction label="SAVE & ENABLE SMS" disabled={saving || phone.replace(/\D/g, "").length !== 10} onPress={() => void (async () => { const saved = await onSave({ notificationPreferences: { sms: { phone: phone.trim(), enabled: true } } }); if (saved) setEditingPhone(false); })()} /></View> : null}</View> : null}
     </MemberCard>
 
@@ -436,29 +433,31 @@ function WatchlistView({ pushNeedsAttention, pushRecoveryAction, onRecoverPush, 
     <Modal animationType="slide" onRequestClose={() => { setEditorState(null); setLocationsOpen(false); }} presentationStyle="fullScreen" visible={locationsOpen || Boolean(editorState)}>
       <SafeAreaView edges={["bottom"]} style={[styles.modalScreen, { paddingTop: Math.max(insets.top, 12) }]}>
         {!editorState ? <View style={styles.modalKeyboard}>
-          <View style={styles.modalHeader}><Text style={styles.modalTitle}>Locations</Text><TextAction label="DONE" onPress={() => setLocationsOpen(false)} /></View>
-          <ScrollView contentContainerStyle={styles.modalBody}>
-            <View style={styles.chips}>{states.map((state) => { const selected = scopesForState(preferences.monitoringScopes, state.code).length > 0; return <Pressable accessibilityRole="button" accessibilityState={{ selected, disabled: saving }} disabled={saving} key={state.code} onPress={() => openEditor(state)} style={[styles.chip, selected && styles.chipSelected, saving && styles.disabled]}><Text style={[styles.chipText, selected && styles.chipTextSelected]}>{radarStateDisplayCode(state.code)}</Text></Pressable>; })}</View>
+          <View style={styles.modalHeader}><Text style={[styles.modalTitle, styles.flex]}>Locations</Text><TextAction label="CLOSE" onPress={() => setLocationsOpen(false)} /></View>
+          <ScrollView contentContainerStyle={styles.stateList} keyboardShouldPersistTaps="handled">
+            {savedStates.map(state => <Pressable accessibilityRole="button" accessibilityLabel={`${state.label}, ${stateSummary(state.code)}`} key={state.code} onPress={() => openEditor(state)} style={styles.locationSummary}><View style={styles.flex}><Text style={styles.listTitle}>{state.label}</Text><Text style={styles.muted}>{stateSummary(state.code)}</Text></View><Text style={styles.chevron}>›</Text></Pressable>)}
+            {!addingState ? <TextAction label="ADD A STATE" onPress={() => setAddingState(true)} /> : <>
+              <TextInput accessibilityLabel="Search states" placeholder="Search states" placeholderTextColor={colors.muted} style={styles.input} value={stateQuery} onChangeText={setStateQuery} autoCorrect={false} />
+              {availableStates.map(state => <Pressable accessibilityRole="button" key={state.code} onPress={() => openEditor(state)} style={styles.areaRow}><Text style={styles.areaRowText}>{state.label}</Text><Text style={styles.chevron}>›</Text></Pressable>)}
+              {!availableStates.length ? <Text style={styles.muted}>No states found</Text> : null}
+            </>}
           </ScrollView>
         </View> : <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.modalKeyboard}>
-          <View style={styles.modalHeader}><View style={styles.flex}><Text numberOfLines={1} style={styles.modalTitle}>{editorState?.name}</Text><Text style={styles.muted}>Choose statewide or precise local monitoring</Text></View><TextAction label="CANCEL" onPress={() => setEditorState(null)} /></View>
+          <View style={styles.modalHeader}><View style={styles.flex}><Text numberOfLines={1} style={styles.modalTitle}>{editorState?.name}</Text></View><TextAction label="CANCEL" onPress={() => setEditorState(null)} /></View>
           <View style={styles.modalBody}>
-            <View style={styles.choiceRow}><Choice label={`Selected (${selectedInEditor.length})`} selected={editorTab === "selected"} onPress={() => setEditorTab("selected")} /><Choice label="Browse" selected={editorTab === "browse"} onPress={() => setEditorTab("browse")} /></View>
-            <Pressable accessibilityRole="radio" accessibilityState={{ checked: selectedInEditor.some((scope) => scope.type === "state") }} onPress={() => editorState && setDraftScopes(setStatewideScope(draftScopes, editorState))} style={[styles.areaRow, selectedInEditor.some((scope) => scope.type === "state") && styles.areaRowSelected]}><Text style={styles.areaRowText}>Statewide</Text><Text style={styles.areaState}>{selectedInEditor.some((scope) => scope.type === "state") ? "SELECTED" : "CHOOSE"}</Text></Pressable>
-            {editorTab === "browse" ? <Text style={styles.scopeGuidance}>{selectedInEditor.some((scope) => scope.type === "state") ? "Adding a local filter replaces statewide monitoring." : "Choosing Statewide replaces your local filters."}</Text> : null}
-            {editorTab === "browse" ? <><ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.levelScroller} contentContainerStyle={styles.levelRow}>{levels.map((level) => <Pressable key={level} onPress={() => { setEditorLevel(level); setAreaOffset(0); setAreaPage([]); }} style={[styles.levelChip, editorLevel === level && styles.chipSelected]}><Text style={[styles.chipText, editorLevel === level && styles.chipTextSelected]}>{level[0]?.toUpperCase()}{level.slice(1)}</Text></Pressable>)}</ScrollView><TextInput autoCorrect={false} clearButtonMode="while-editing" onChangeText={(value) => { setAreaQuery(value); setAreaOffset(0); setAreaPage([]); }} accessibilityLabel={`Search ${editorLevel}`} accessibilityHint="Search available monitoring areas." placeholder={`Search ${editorLevel}`} placeholderTextColor={colors.muted} style={styles.input} value={areaQuery} /></> : null}
-            <ScrollView contentContainerStyle={styles.resultsContent} keyboardDismissMode="on-drag" keyboardShouldPersistTaps="handled" style={styles.resultsList}>
-              {editorTab === "selected" && selectedInEditor.some((scope) => scope.type === "state") ? <Text style={styles.muted}>Statewide monitoring is on. Choose Browse to replace it with local filters.</Text> : null}
-              {visibleRows.map((row) => { const displayName = "displayName" in row && typeof row.displayName === "string" ? row.displayName : row.level === "city" ? radarLocalityDisplayName(row.name) : row.name; const scope: MonitoringScope = { type: row.level, id: row.id, state: row.state, label: row.name }; const selected = draftScopes.some((item) => item.id === row.id); const subtitle = "subtitle" in row && typeof row.subtitle === "string" ? row.subtitle : ""; const message = "message" in row && typeof row.message === "string" ? row.message : ""; return <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: selected }} key={row.id} onPress={() => setDraftScopes(toggleMonitoringScope(draftScopes, scope))} style={[styles.areaRow, selected && styles.areaRowSelected]}><View style={styles.flex}><Text numberOfLines={2} style={styles.areaRowText}>{displayName}</Text>{subtitle ? <Text numberOfLines={1} style={styles.areaSubtitle}>{subtitle}</Text> : null}{message ? <Text numberOfLines={2} style={styles.muted}>{message}</Text> : null}</View><Text style={[styles.areaState, selected && styles.areaStateSelected]}>{editorTab === "selected" ? "REMOVE" : selected ? "ADDED" : "ADD"}</Text></Pressable>; })}
+            <View style={styles.choiceRow}><Choice label="Entire state" selected={scopeMode === "state"} onPress={() => { setScopeMode("state"); if (editorState) setDraftScopes(setStatewideScope(draftScopes, editorState)); }} /><Choice label="Specific areas" selected={scopeMode === "local"} onPress={() => { setScopeMode("local"); setDraftScopes(scopes => scopes.filter(scope => scope.type !== "state")); }} /></View>
+            {scopeMode === "local" ? <Text style={styles.muted}>{selectedInEditor.length} selected</Text> : null}
+            {scopeMode === "local" ? <><ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.levelScroller} contentContainerStyle={styles.levelRow}>{levels.map((level) => <Pressable key={level} onPress={() => { setEditorLevel(level); setAreaOffset(0); setAreaPage([]); }} style={[styles.levelChip, editorLevel === level && styles.chipSelected]}><Text style={[styles.chipText, editorLevel === level && styles.chipTextSelected]}>{level[0]?.toUpperCase()}{level.slice(1)}</Text></Pressable>)}</ScrollView><TextInput autoCorrect={false} clearButtonMode="while-editing" onChangeText={(value) => { setAreaQuery(value); setAreaOffset(0); setAreaPage([]); }} accessibilityLabel={`Search ${editorLevel}`} accessibilityHint="Search available monitoring areas." placeholder={`Search ${editorLevel}`} placeholderTextColor={colors.muted} style={styles.input} value={areaQuery} /></> : null}
+            {scopeMode === "local" ? <ScrollView contentContainerStyle={styles.resultsContent} keyboardDismissMode="on-drag" keyboardShouldPersistTaps="handled" style={styles.resultsList}>
+              {visibleRows.map((row) => { const displayName = "displayName" in row && typeof row.displayName === "string" ? row.displayName : row.level === "city" ? radarLocalityDisplayName(row.name) : row.name; const scope: MonitoringScope = { type: row.level, id: row.id, state: row.state, label: row.name }; const selected = draftScopes.some((item) => item.id === row.id); const subtitle = "subtitle" in row && typeof row.subtitle === "string" ? row.subtitle : ""; const message = "message" in row && typeof row.message === "string" ? row.message : ""; return <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: selected }} key={row.id} onPress={() => setDraftScopes(toggleMonitoringScope(draftScopes, scope))} style={[styles.areaRow, selected && styles.areaRowSelected]}><View style={styles.flex}><Text numberOfLines={2} style={styles.areaRowText}>{displayName}</Text>{subtitle ? <Text numberOfLines={1} style={styles.areaSubtitle}>{subtitle}</Text> : null}{message ? <Text numberOfLines={2} style={styles.muted}>{message}</Text> : null}</View><Text style={[styles.areaState, selected && styles.areaStateSelected]}>{selected ? "✓" : "+"}</Text></Pressable>; })}
+              {!areaBusy && !visibleRows.length ? <Text style={styles.muted}>No areas found</Text> : null}
               {areaBusy ? <Text style={styles.muted}>Loading geography…</Text> : null}
-              {areaError ? <Text accessibilityRole="alert" style={styles.error}>{areaError}</Text> : null}
-              {!areaBusy && !visibleRows.length && editorTab === "selected" && !selectedInEditor.some((scope) => scope.type === "state") ? <Text style={styles.muted}>No local filters selected. Choose Browse to add one.</Text> : null}
-              {editorTab === "browse" && areaHasMore ? <TextAction label="LOAD MORE" onPress={() => setAreaOffset((value) => value + 25)} /> : null}
-              {editorTab === "selected" && compactSelected.hidden ? <Text style={styles.selectedOverflow}>+{compactSelected.hidden} more selected · use Browse and search to manage all</Text> : null}
+              {areaHasMore ? <TextAction label="LOAD MORE" onPress={() => setAreaOffset((value) => value + 25)} /> : null}
               {lowCoverage ? <MemberCard><Text style={styles.listTitle}>Help build activity here</Text><Text style={styles.muted}>Bourbon Signal sources are still expanding in this area. Invite friends to boost community activity.</Text><TextAction label="INVITE FRIENDS" onPress={() => void shareInvite().catch(() => setAreaError("Invite is temporarily unavailable. Try again."))} /></MemberCard> : null}
-            </ScrollView>
+            </ScrollView> : null}
           </View>
-          <View style={styles.pinnedActions}><TextAction danger label="STOP MONITORING" disabled={saving || !editorState || !scopesForState(preferences.monitoringScopes, editorState.code).length} onPress={() => void (async () => { if (!editorState) return; const saved = await onSave({ monitoringScopes: stopMonitoringState(preferences.monitoringScopes, editorState.code) }); if (saved) setEditorState(null); else setAreaError("Monitoring could not be stopped. Try again."); })()} /><SmallButton primary label={saving ? "Saving…" : "Done"} disabled={saving || !editorState || !selectedInEditor.length} onPress={() => void (async () => { if (!editorState) return; if (!editorHasChanges) { setEditorState(null); return; } const next = [...preferences.monitoringScopes.filter((scope) => scope.state !== editorState.code), ...selectedInEditor]; const saved = await onSave({ monitoringScopes: next }); if (saved) setEditorState(null); else setAreaError("Monitoring areas could not be saved. Try again."); })()} /></View>
+          {areaError ? <Text accessibilityRole="alert" style={styles.error}>{areaError}</Text> : null}
+          <View style={styles.pinnedActions}><TextAction danger label="STOP MONITORING" disabled={saving || !editorState || !scopesForState(preferences.monitoringScopes, editorState.code).length} onPress={() => void (async () => { if (!editorState) return; const saved = await onSave({ monitoringScopes: stopMonitoringState(preferences.monitoringScopes, editorState.code) }); if (saved) setEditorState(null); else setAreaError("Monitoring could not be stopped. Try again."); })()} /><SmallButton primary label={saving ? "Saving…" : "Save locations"} disabled={saving || !editorState || !selectedInEditor.length} onPress={() => void (async () => { if (!editorState) return; if (!editorHasChanges) { setEditorState(null); return; } const next = [...preferences.monitoringScopes.filter((scope) => scope.state !== editorState.code), ...selectedInEditor]; const saved = await onSave({ monitoringScopes: next }); if (saved) setEditorState(null); else setAreaError("Monitoring areas could not be saved. Try again."); })()} /></View>
         </KeyboardAvoidingView>}
       </SafeAreaView>
     </Modal>
@@ -467,11 +466,14 @@ function WatchlistView({ pushNeedsAttention, pushRecoveryAction, onRecoverPush, 
 
 function ToggleRow({ label, detail, value, disabled, onValueChange }: { label: string; detail?: string; value: boolean; disabled: boolean; onValueChange: (value: boolean) => void }) { return <View style={styles.toggleRow}><View style={styles.flex}><Text style={styles.listTitle}>{label}</Text>{detail ? <Text style={styles.muted}>{detail}</Text> : null}</View><Switch accessibilityLabel={label} disabled={disabled} onValueChange={onValueChange} trackColor={{ false: colors.border, true: colors.accentPressed }} thumbColor={value ? colors.accent : colors.muted} value={value} /></View>; }
 function Choice({ label, selected, disabled = false, onPress }: { label: string; selected: boolean; disabled?: boolean; onPress: () => void }) { return <Pressable accessibilityRole="radio" accessibilityState={{ checked: selected, disabled }} disabled={disabled} onPress={onPress} style={[styles.choice, selected && styles.choiceSelected, disabled && styles.disabled]}><Text style={[styles.choiceText, selected && styles.choiceTextSelected]}>{label}</Text></Pressable>; }
-function RarityChoice({ label, selected, disabled = false, onPress }: { label: string; selected: boolean; disabled?: boolean; onPress: () => void }) { return <Pressable accessibilityRole="checkbox" accessibilityState={{ checked: selected, disabled }} disabled={disabled} onPress={onPress} style={[styles.choice, selected && styles.choiceSelected, disabled && styles.disabled]}><Text style={[styles.choiceText, selected && styles.choiceTextSelected]}>{label}</Text></Pressable>; }
+function RarityChoice({ label, selected, disabled = false, onPress }: { label: string; selected: boolean; disabled?: boolean; onPress: () => void }) { return <Pressable accessibilityLabel={label} accessibilityRole="checkbox" accessibilityState={{ checked: selected, disabled }} disabled={disabled} onPress={onPress} style={[styles.choice, selected && styles.choiceSelected, disabled && styles.disabled]}><Text style={[styles.choiceText, selected && styles.choiceTextSelected]}>{selected ? "✓ " : ""}{label}</Text></Pressable>; }
 function SmallButton({ label, onPress, disabled = false, primary = false }: { label: string; onPress: () => void; disabled?: boolean; primary?: boolean }) { return <Pressable accessibilityRole="button" disabled={disabled} onPress={onPress} style={({ pressed }) => [styles.smallButton, primary && styles.smallButtonPrimary, disabled && styles.disabled, pressed && !disabled && styles.pressed]}><Text style={[styles.smallButtonText, primary && styles.smallButtonTextPrimary]}>{label}</Text></Pressable>; }
 function TextAction({ label, onPress, disabled = false, danger = false, quiet = false, expanded }: { label: string; onPress: () => void; disabled?: boolean; danger?: boolean; quiet?: boolean; expanded?: boolean }) { return <Pressable accessibilityRole="button" accessibilityState={{ expanded }} disabled={disabled} hitSlop={8} onPress={onPress} style={({ pressed }) => [styles.textActionButton, disabled && styles.disabled, pressed && !disabled && styles.pressed]}><Text style={[styles.textAction, danger && styles.dangerAction, quiet && styles.quietAction]}>{label}</Text></Pressable>; }
 
 const styles = StyleSheet.create({
+  infoButton: { minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center" },
+  stateList: { padding: 18, gap: 12 },
+  locationSummary: { minHeight: 64, padding: 16, borderRadius: 12, backgroundColor: colors.surface, flexDirection: "row", alignItems: "center", gap: 12 },
   compactNotice: { minHeight: 48, flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 14, borderRadius: 12, backgroundColor: colors.surface },
   noticeText: { color: colors.accent, fontSize: 13, lineHeight: 18 },
   emptyAlerts: { minHeight: 60, alignItems: "center", justifyContent: "center", gap: 12, paddingVertical: 16 },
