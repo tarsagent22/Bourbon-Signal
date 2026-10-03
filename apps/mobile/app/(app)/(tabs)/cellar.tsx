@@ -20,7 +20,7 @@ import { CellarBottleArtwork } from "../../../src/components/CellarBottleArtwork
 import { CellarGlencairnSilhouette } from "../../../src/components/CellarGlencairnSilhouette";
 import { ShelfCabinet } from "../../../src/components/ShelfCabinet";
 import { CollectionStatisticsSheet } from "../../../src/components/CollectionStatisticsSheet";
-import { rankedShelfBottles, shelfBottleKey, shelfGridLayout, type ShelfStyle } from "../../../src/cellar/shelf-cabinet";
+import { rankedShelfBottles, shelfBottleKey, shelfGridLayout } from "../../../src/cellar/shelf-cabinet";
 import { EmptyState, ErrorState, LoadingState, memberScreenStyles } from "../../../src/components/MemberScreen";
 import { ScoreSlider } from "../../../src/components/ScoreSlider";
 import { useMobileApi } from "../../../src/hooks/useMobileApi";
@@ -109,10 +109,8 @@ function AccountCellarScreen({ api }: { api: ReturnType<typeof useMobileApi> }) 
   const activeUser = useRef(userId);
   const mounted = useRef(true);
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
-  const styleRevision = useRef(0);
   activeUser.current = userId;
-  const [styleSaving, setStyleSaving] = useState(false);
-  useEffect(() => { setPreferences(null); setSelected(null); setStyleSaving(false); }, [userId]);
+  useEffect(() => { setPreferences(null); setSelected(null); }, [userId]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
@@ -205,14 +203,13 @@ function AccountCellarScreen({ api }: { api: ReturnType<typeof useMobileApi> }) 
   }, [api, persistContributionIds, receiptStorageKey]);
 
   const load = useCallback(async (fresh = false) => {
-    const readStyleRevision = styleRevision.current;
     setLoading(true);
     setError("");
     try {
       const receiptRead = await readContributionReceipts(receiptStorageKey);
       if (!mounted.current) return;
       const nextPreferences = await api.getMemberPreferences({ fresh });
-      if (!mounted.current || activeUser.current !== userId || readStyleRevision !== styleRevision.current) return;
+      if (!mounted.current || activeUser.current !== userId) return;
       acceptServerPreferences(nextPreferences);
       retryPendingContributions(nextPreferences, receiptRead.receipts);
     } catch (caught) {
@@ -379,22 +376,6 @@ function AccountCellarScreen({ api }: { api: ReturnType<typeof useMobileApi> }) 
     }
   }, [acceptServerPreferences, api, canWatchCellarSuggestions, preferences, savingWatchKey]);
 
-  const saveShelfStyle = async (shelfStyle: ShelfStyle) => {
-    if (!userId || styleSaving || mutating) return false;
-    setStyleSaving(true);
-    try {
-      const saved = await api.updateMemberPreferences({ collectionPreferences: { shelfStyle } });
-      if (activeUser.current !== userId) return false;
-      if (saved.collectionPreferences.shelfStyle !== shelfStyle) throw new Error("Shelf finish was not saved. Retry when online.");
-      styleRevision.current += 1;
-      setPreferences(current => current ? { ...current, collectionPreferences: { ...current.collectionPreferences, shelfStyle } } : current);
-      return true;
-    } catch (caught) {
-      if (activeUser.current === userId) Alert.alert("Shelf finish not saved", caught instanceof Error ? caught.message : "Reconnect and try again. Your previous finish is unchanged.");
-      return false;
-    } finally { if (activeUser.current === userId) setStyleSaving(false); }
-  };
-
   return <SafeAreaView edges={["top"]} style={{ flex: 1, backgroundColor: colors.background }}>
     <FlatList
       key={`cellar-${viewMode}-${numColumns}`}
@@ -414,7 +395,7 @@ function AccountCellarScreen({ api }: { api: ReturnType<typeof useMobileApi> }) 
             <Text accessibilityRole="header" style={styles.pageTitle}>My Shelf</Text>
             {preferences ? <View style={styles.statistics}>
               <Text style={styles.summaryDetail}>{statistics.ownedBottleCount} bottles{statistics.averageRating == null ? "" : ` · ${(statistics.averageRating / 10).toFixed(1)} average`}</Text>
-              <Pressable ref={statisticsTrigger} accessibilityLabel="Collection Statistics" accessibilityRole="button" accessibilityHint="View whole-collection statistics and readable Top Rated list" hitSlop={6} onPress={() => { if (!selected && !refineMode && !styleSaving) setStatisticsOpen(true); }} style={styles.statisticsButton}>
+              <Pressable ref={statisticsTrigger} accessibilityLabel="Collection Statistics" accessibilityRole="button" accessibilityHint="View whole-collection statistics and readable Top Rated list" hitSlop={6} onPress={() => { if (!selected && !refineMode) setStatisticsOpen(true); }} style={styles.statisticsButton}>
                 <Text style={styles.statisticsLink}>Stats</Text>
                 <MaterialCommunityIcons accessible={false} name="chevron-right" size={14} color={colors.muted} />
               </Pressable>
@@ -423,7 +404,7 @@ function AccountCellarScreen({ api }: { api: ReturnType<typeof useMobileApi> }) 
           {preferences ? <Pressable accessibilityLabel={canAddToCollection ? "Add whiskey to My Shelf" : "Your free shelf is full"} accessibilityRole="button" accessibilityState={{ disabled: !canAddToCollection }} disabled={!canAddToCollection} onPress={() => router.push("/(app)/cellar/add")} style={({ pressed }) => [styles.addButton, !canAddToCollection && styles.addButtonDisabled, pressed && canAddToCollection && styles.addButtonPressed]}><Text style={[styles.addButtonText, !canAddToCollection && styles.addButtonTextDisabled]}>+ Add</Text></Pressable> : null}
         </View>
         {preferences ? <>
-          <ShelfCabinet bottles={sourceBottles} shelfStyle={preferences.collectionPreferences.shelfStyle || "amber"} busy={styleSaving || mutating} onStyle={saveShelfStyle} onBottle={setSelected} />
+          <ShelfCabinet bottles={sourceBottles} onBottle={setSelected} />
         </> : null}
         {loading && !preferences ? <LoadingState label="Opening My Shelf…" /> : null}
         {error ? <ErrorState message={error} onRetry={() => void load(true)} /> : null}

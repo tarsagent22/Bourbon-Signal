@@ -41,7 +41,7 @@ function harness(count: number, theme: string) {
   runInNewContext(compiled, { module, exports: module.exports, require: customRequire });
   const bottles = Array.from({ length: count }, (_, i) => ({ bottleId: String(i), bottleName: String(i), canonicalKey: String(i), rating: 80, isRated: true, sealedQuantity: 1, openedQuantity: 0, tastedOnly: false }));
   const render = () => { cursor = 0; return module.exports.ShelfCabinet({ bottles, shelfStyle: theme, busy: false, onStyle: async () => true, onBottle: (bottle: any) => { opened = bottle; } }) as Element; };
-  return { render, opened: () => opened, setMode: (mode: string) => { state[1] = mode; } };
+  return { render, opened: () => opened, setMode: (mode: string) => { state[0] = mode; } };
 }
 function descendants(node: any): Element[] {
   if (!node || typeof node !== 'object') return [];
@@ -74,4 +74,15 @@ test('actual showcase tabs switch content and bottle taps open exact details', (
  nodes = descendants(h.render());
  assert.equal(nodes.filter(n => n.props?.testID === 'showcase-bottle').length, 0, 'buy-again never invents favorites');
  assert.ok(nodes.some(n => n.type === 'Text' && String(n.props.children).includes('Would buy again')));
+});
+
+test('legacy finishes share a default shelf without customization controls', () => {
+ const renders = ['amber', 'walnut', 'black'].map(theme => descendants(harness(3, theme).render()));
+ const ledge = (nodes: Element[]) => flatten(nodes.find(n => n.props?.testID === 'showcase-ledge')!.props.style);
+ assert.equal(JSON.stringify(ledge(renders[0])), JSON.stringify(ledge(renders[1])));
+ assert.equal(JSON.stringify(ledge(renders[1])), JSON.stringify(ledge(renders[2])));
+ for (const nodes of renders) {
+  assert.equal(nodes.some(n => n.type === 'Modal' || n.props?.accessibilityRole === 'radio'), false);
+  assert.equal(nodes.filter(n => n.type === 'Pressable').length, 9);
+ }
 });

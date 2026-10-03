@@ -6,9 +6,9 @@ test('polish keeps the image zone and readable titles with quieter search/filter
  assert.match(page,/tileArt: \{ height: 84/);assert.match(page,/fontWeight: "400", textAlign: "center"/);
  assert.match(page,/collectionTabs: \{[^\n]*borderBottomWidth: StyleSheet.hairlineWidth/);
 });
-test('showcase offers account-saved finishes and flowing headings',()=>{
- assert.match(cabinet,/Ledge finish/);
- assert.match(cabinet,/onStyle\(style.id\)/);
+test('showcase has one default appearance and flowing headings',()=>{
+ assert.doesNotMatch(cabinet,/Ledge finish|Customize highlights|<Modal/);
+ assert.doesNotMatch(cabinet,/onStyle|shelfStyle/);
  assert.match(cabinet,/flexWrap: 'wrap'/);
  assert.doesNotMatch(cabinet,/headingHeight|photoScale|cabinetAssets/);
 });
