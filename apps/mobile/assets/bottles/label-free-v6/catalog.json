@@ -1,0 +1,387 @@
+{
+  "batch": 6,
+  "scope": "Remaining tracked bourbon/whiskey worklist. Family names and unverifiable packaging carry explicit detail captions.",
+  "products": [
+    {
+      "id": "2a-bourbon-w-case",
+      "name": "2A Bourbon w/ Case",
+      "shape": "two-a-case-black",
+      "reviewEvidence": {
+        "referenceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/179807",
+        "decision": "Distinct physical form from inspected source; original built-in ImageGen rendering."
+      }
+    },
+    {
+      "id": "bb_40a01e5c27a36a6d",
+      "name": "A. Smith Bowman Abraham Bowman",
+      "shape": "abraham-family-natural",
+      "reviewEvidence": {
+        "referenceUrl": "https://asmithbowman.com/abraham-bowman/",
+        "decision": "Distinct physical form from inspected source; original built-in ImageGen rendering.",
+        "editionSpecified": false
+      },
+      "presentation": "collection"
+    },
+    {
+      "id": "bb_6593beca781b533e",
+      "name": "Booker",
+      "shape": "bookers-wax",
+      "reviewEvidence": {
+        "decision": "Reviewed family container, no release inferred.",
+        "priorAsset": "bookers-wax",
+        "editionSpecified": false
+      },
+      "presentation": "collection"
+    },
+    {
+      "id": "buffalo-trace-distillery-prohibition-collection",
+      "name": "Buffalo Trace Distillery Prohibition Collection",
+      "shape": "prohibition-five-silver",
+      "reviewEvidence": {
+        "referenceUrl": "https://www.buffalotracedistillery.com/content/dam/sazerac/corporate/news/press-releases/2023/buffalo-trace/2023-09-26-btd-prohibition-collection.pdf",
+        "decision": "Distinct physical form from inspected source; original built-in ImageGen rendering.",
+        "editionSpecified": false
+      },
+      "presentation": "collection"
+    },
+    {
+      "id": "bushwood-5y-wheated-bourbon",
+      "name": "Bushwood 5Y Wheated Bourbon",
+      "shape": "bushwood-wheated-golf",
+      "reviewEvidence": {
+        "referenceUrl": "https://bushwood.com/products/bushwood-wheated-bourbon",
+        "decision": "Distinct physical form from inspected source; original built-in ImageGen rendering."
+      }
+    },
+    {
+      "id": "carstairs-white-seal",
+      "name": "Carstairs White Seal",
+      "shape": "carstairs-gold",
+      "reviewEvidence": {
+        "referenceUrl": "https://www.kroger.com/p/carstairs-white-seal-american-blended-whiskey/0008800402202",
+        "decision": "Distinct physical form from inspected source; original built-in ImageGen rendering."
+      }
+    },
+    {
+      "id": "dry-fly-dawn-till-dusk-wheat-whiskey",
+      "name": "Dry Fly Dawn Till Dusk Wheat Whiskey",
+      "shape": "dryfly-wheat-gold",
+      "reviewEvidence": {
+        "referenceUrl": "https://dryflydistilling.com/",
+        "decision": "Producer current wheat-whiskey family container only; Dawn Till Dusk exact packaging could not be verified. Detail caption explicitly discloses this."
+      },
+      "presentation": "representative"
+    },
+    {
+      "id": "evan-williams-black-label-10pk",
+      "name": "Evan Williams Black Label - 10Pk",
+      "shape": "evan-mini-black",
+      "reviewEvidence": {
+        "referenceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/175366",
+        "decision": "Distinct physical form from inspected source; original built-in ImageGen rendering."
+      }
+    },
+    {
+      "id": "fireball-6pk-carrier",
+      "name": "Fireball 6Pk Carrier",
+      "shape": "fireball-hundred-red",
+      "reviewEvidence": {
+        "referenceUrl": "https://www.target.com/p/-/A-53733391",
+        "decision": "Distinct physical form from inspected source; original built-in ImageGen rendering."
+      }
+    },
+    {
+      "id": "fireball-party-bucket",
+      "name": "Fireball Party Bucket",
+      "shape": "fireball-fifty-red",
+      "reviewEvidence": {
+        "referenceUrl": "https://winebarrel.com/products/fireball-pl-66-proof-50-ml",
+        "decision": "Distinct physical form from inspected source; original built-in ImageGen rendering."
+      }
+    },
+    {
+      "id": "fireball-summer-bag",
+      "name": "Fireball Summer Bag",
+      "shape": "fireball-fifty-red",
+      "reviewEvidence": {
+        "referenceUrl": "https://winebarrel.com/products/fireball-pl-66-proof-50-ml",
+        "decision": "Distinct physical form from inspected source; original built-in ImageGen rendering."
+      }
+    },
+    {
+      "id": "fireball-window-box",
+      "name": "Fireball Window Box",
+      "shape": "fireball-red",
+      "reviewEvidence": {
+        "decision": "Inspected exact product package; physical form and closure match existing approved original.",
+        "priorAsset": "fireball-red",
+        "referenceUrl": "https://abc2.nc.gov/Pricing/PriceList"
+      }
+    },
+    {
+      "id": "bb_f8bbbae868f9f21f",
+      "name": "Frey Ranch 10-Year-Old Bourbon Batch 1",
+      "shape": "frey-ten-gold",
+      "reviewEvidence": {
+        "referenceUrl": "https://freyranch.runfair.com/en-US/us/frey-ranch-10-year-old-bourbon-batch-1",
+        "decision": "Distinct physical form from inspected source; original built-in ImageGen rendering."
+      }
+    },
+    {
+      "id": "jack-daniels-equity-w-2-rocks-gls",
+      "name": "Jack Daniel's Equity w/ 2 Rocks GLS",
+      "shape": "jack-standard-black",
+      "reviewEvidence": {
+        "decision": "Inspected exact product package; physical form and closure match existing approved original.",
+        "priorAsset": "jack-standard-black",
+        "referenceUrl": "https://revenue.mt.gov/card/alcoholic-beverages/agency-liquor-stores/holiday-pricing-list/products/jack-daniels-equity"
+      }
+    },
+    {
+      "id": "jack-daniels-tn-honey-w-2-rock-gls",
+      "name": "Jack Daniel's TN Honey w/ 2 Rock GLS",
+      "shape": "jack-honey-black-gold",
+      "reviewEvidence": {
+        "decision": "Inspected exact product package; physical form and closure match existing approved original.",
+        "priorAsset": "jack-honey-black-gold",
+        "referenceUrl": "https://abc2.nc.gov/Pricing/PriceList"
+      }
+    },
+    {
+      "id": "jim-beam-4y-10pk",
+      "name": "Jim Beam 4Y - 10Pk",
+      "shape": "jim-beam-mini-white",
+      "reviewEvidence": {
+        "referenceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/179136",
+        "decision": "Distinct physical form from inspected source; original built-in ImageGen rendering."
+      }
+    },
+    {
+      "id": "jim-beam-4y-pet",
+      "name": "Jim Beam 4Y PET",
+      "shape": "jim-beam-large-pet-white",
+      "reviewEvidence": {
+        "referenceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/175252",
+        "decision": "Distinct physical form from inspected source; original built-in ImageGen rendering."
+      }
+    },
+    {
+      "id": "jim-beam-honey-10pk",
+      "name": "Jim Beam Honey - 10Pk",
+      "shape": "jim-beam-mini-white",
+      "reviewEvidence": {
+        "referenceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/179136",
+        "decision": "Distinct physical form from inspected source; original built-in ImageGen rendering."
+      }
+    },
+    {
+      "id": "liberty-legacies-combat-solider-bourbon",
+      "name": "Liberty Legacies Combat Solider Bourbon",
+      "shape": "liberty-combat-ceramic",
+      "reviewEvidence": {
+        "referenceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/174077",
+        "decision": "Distinct physical form from inspected source; original built-in ImageGen rendering."
+      }
+    },
+    {
+      "id": "liberty-legacies-continental-solider-bourbon",
+      "name": "Liberty Legacies Continental Solider Bourbon",
+      "shape": "liberty-continental-ceramic",
+      "reviewEvidence": {
+        "referenceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/174075",
+        "decision": "Distinct physical form from inspected source; original built-in ImageGen rendering."
+      }
+    },
+    {
+      "id": "bb_00de3ec6e1619105",
+      "name": "Maker",
+      "shape": "makers-mark",
+      "reviewEvidence": {
+        "decision": "Reviewed family container, no release inferred.",
+        "priorAsset": "makers-mark",
+        "editionSpecified": false
+      },
+      "presentation": "collection"
+    },
+    {
+      "id": "makers-mark-12pk",
+      "name": "Maker's Mark - 12Pk",
+      "shape": "makers-mini-wax",
+      "reviewEvidence": {
+        "referenceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/179135",
+        "decision": "Distinct physical form from inspected source; original built-in ImageGen rendering."
+      }
+    },
+    {
+      "id": "bb_767361a015eb9ea9",
+      "name": "Michter",
+      "shape": "michters",
+      "reviewEvidence": {
+        "decision": "Reviewed family container, no release inferred.",
+        "priorAsset": "michters",
+        "editionSpecified": false
+      },
+      "presentation": "collection"
+    },
+    {
+      "id": "michters-barrel",
+      "name": "Michters barrel",
+      "shape": "michters-barrel-sour-wood",
+      "reviewEvidence": {
+        "decision": "Reviewed family container, no release inferred.",
+        "priorAsset": "michters-barrel-sour-wood",
+        "editionSpecified": false
+      },
+      "presentation": "collection"
+    },
+    {
+      "id": "old-hillside-bourbon-juneteenth-edition",
+      "name": "Old Hillside Bourbon Juneteenth Edition",
+      "shape": "hillside-founder-natural",
+      "reviewEvidence": {
+        "decision": "Inspected exact product package; physical form and closure match existing approved original.",
+        "priorAsset": "hillside-founder-natural",
+        "referenceUrl": "https://www.lemon8-app.com/@mo.bosier/7653504913732895245?region=us"
+      }
+    },
+    {
+      "id": "parker-heritage",
+      "name": "Parker's Heritage Collection",
+      "shape": "parker-seventeen-black",
+      "reviewEvidence": {
+        "decision": "Reviewed family container, no release inferred.",
+        "priorAsset": "parker-seventeen-black",
+        "editionSpecified": false
+      },
+      "presentation": "collection"
+    },
+    {
+      "id": "peg-leg-porker-spirit-of-america-2026-bourbon",
+      "name": "Peg Leg Porker Spirit of America 2026 Bourbon",
+      "shape": "peg-spirit-red",
+      "reviewEvidence": {
+        "referenceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/175175",
+        "decision": "Distinct physical form from inspected source; original built-in ImageGen rendering."
+      }
+    },
+    {
+      "id": "rare-character-single-barrel-cbs-and-local-bartenders",
+      "name": "Rare Character Single Barrel CBS & Local Bartenders",
+      "shape": "rare-cbs-silver",
+      "reviewEvidence": {
+        "referenceUrl": "https://abc2.nc.gov/Pricing/ViewItemDetails/169105",
+        "decision": "Distinct physical form from inspected source; original built-in ImageGen rendering."
+      }
+    },
+    {
+      "id": "rebel-4y-100-proof",
+      "name": "Rebel 4Y 100 Proof",
+      "shape": "rebel-burgundy",
+      "reviewEvidence": {
+        "decision": "Inspected exact product package; physical form and closure match existing approved original.",
+        "priorAsset": "rebel-burgundy",
+        "referenceUrl": "https://rebelbourbon.com/whiskeys/rebel-100/"
+      }
+    },
+    {
+      "id": "bb_cd5d49e4d71817d0",
+      "name": "Russell",
+      "shape": "russells",
+      "reviewEvidence": {
+        "decision": "Reviewed family container, no release inferred.",
+        "priorAsset": "russells",
+        "editionSpecified": false
+      },
+      "presentation": "collection"
+    },
+    {
+      "id": "seagrams-vo-pet",
+      "name": "Seagram's VO PET",
+      "shape": "seagram-pet-gold",
+      "reviewEvidence": {
+        "referenceUrl": "https://www.7pmliquor.com/p/seagrams-vo-blended-canadian-whiskey-plastic/70088",
+        "decision": "Distinct physical form from inspected source; original built-in ImageGen rendering."
+      }
+    },
+    {
+      "id": "travelers-club-blend-80",
+      "name": "Travelers Club Blend 80",
+      "shape": "travelers-diamond-gold",
+      "reviewEvidence": {
+        "referenceUrl": "https://mpower-test.myshopify.com/products/travelers-club-blended-whiskey",
+        "decision": "Distinct physical form from inspected source; original built-in ImageGen rendering."
+      }
+    },
+    {
+      "id": "bb_9c8cf2d251d5db7e",
+      "name": "Undammed Thief Creek Straight Bourbon",
+      "shape": "thief-creek-natural",
+      "reviewEvidence": {
+        "referenceUrl": "https://www.undammedspirits.com/",
+        "decision": "Distinct physical form from inspected source; original built-in ImageGen rendering."
+      }
+    },
+    {
+      "id": "bb_2a3a72be37e1c233",
+      "name": "Wild Turkey Master",
+      "shape": "wild-turkey-masters",
+      "reviewEvidence": {
+        "decision": "Reviewed family container, no release inferred.",
+        "priorAsset": "wild-turkey-masters",
+        "editionSpecified": false
+      },
+      "presentation": "collection"
+    },
+    {
+      "id": "bb_efc4285973b6c02f",
+      "name": "Willett Family Estate",
+      "shape": "willett-purple",
+      "reviewEvidence": {
+        "decision": "Reviewed family container, no release inferred.",
+        "priorAsset": "willett-purple",
+        "editionSpecified": false
+      },
+      "presentation": "collection"
+    },
+    {
+      "id": "bb_1be1d2e8e3486e2d",
+      "name": "Wyoming Whiskey Wilderness Bourbon",
+      "shape": "wyoming-wilderness-silver",
+      "reviewEvidence": {
+        "referenceUrl": "https://wyomingwhiskey.com/wilderness/",
+        "decision": "Distinct physical form from inspected source; original built-in ImageGen rendering."
+      }
+    }
+  ],
+  "shapes": [
+    "two-a-case-black",
+    "frey-ten-gold",
+    "peg-spirit-red",
+    "rare-cbs-silver",
+    "jim-beam-large-pet-white",
+    "wyoming-wilderness-silver",
+    "thief-creek-natural",
+    "abraham-family-natural",
+    "bushwood-wheated-golf",
+    "carstairs-gold",
+    "travelers-diamond-gold",
+    "liberty-combat-ceramic",
+    "liberty-continental-ceramic",
+    "jim-beam-mini-white",
+    "evan-mini-black",
+    "makers-mini-wax",
+    "fireball-hundred-red",
+    "fireball-fifty-red",
+    "seagram-pet-gold",
+    "prohibition-five-silver",
+    "dryfly-wheat-gold"
+  ],
+  "excluded": [
+    {
+      "id": "bowmans-virginia",
+      "name": "Bowman's Virginia",
+      "reason": "Virginia vodka, outside whiskey-only authorization.",
+      "referenceUrl": "https://asmithbowman.com/bowmans-vodka/"
+    }
+  ]
+}
