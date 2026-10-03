@@ -7,6 +7,7 @@ import secondBatch from '../../assets/bottles/label-free-v2/catalog.json';
 import thirdBatch from '../../assets/bottles/label-free-v3/catalog.json';
 import fourthBatch from '../../assets/bottles/label-free-v4/catalog.json';
 import fifthBatch from '../../assets/bottles/label-free-v5/catalog.json';
+import sixthBatch from '../../assets/bottles/label-free-v6/catalog.json';
 import { FIRST_BATCH_PRODUCTS, LABEL_FREE_PRODUCTS, resolveLabelFreeBottleArtwork as resolve } from './label-free-bottle-artwork';
 
 test('first batch covers 16 exact catalog entries with corrected physical variants', () => {
@@ -138,8 +139,8 @@ test('third-batch exports and generated registry match every reviewed asset and 
   assert.ok(registry.includes(`label-free-v3/${asset.file}`));
  }
  assert.ok(bytes<6_000_000,'batch3 below6MB');
- assert.equal((registry.match(/require\(/g)||[]).length,38+fourthBatch.shapes.length+fifthBatch.shapes.length);
- for(const batch of [1,2,3,4,5])assert.ok(catalog.includes(`label-free-v${batch}/catalog.json`));
+ assert.equal((registry.match(/require\(/g)||[]).length,38+fourthBatch.shapes.length+fifthBatch.shapes.length+sixthBatch.shapes.length);
+ for(const batch of [1,2,3,4,5,6])assert.ok(catalog.includes(`label-free-v${batch}/catalog.json`));
  const fallback=readFileSync(new URL('./CellarBottleSilhouette.tsx',import.meta.url),'utf8');
  assert.match(fallback,/shape="neutral"/);
  assert.doesNotMatch(fallback,/styles\.label|useBottlePhoto/);

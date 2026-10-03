@@ -23,3 +23,13 @@ export function resolveLabelFreeBottleArtwork(identity: CellarBottleIdentity): L
   return product?.shape;
 }
 
+export function labelFreeArtworkCaption(identity: CellarBottleIdentity): string | undefined {
+  const shape = resolveLabelFreeBottleArtwork(identity);
+  if (!shape) return undefined;
+  const product = identity.bottleName
+    ? LABEL_FREE_PRODUCTS.find(item => [item.name, ...(item.names || [])].some(name => normalize(name) === normalize(identity.bottleName)))
+    : identity.bottleId ? byId.get(identity.bottleId) : undefined;
+  if (product?.presentation === 'collection') return 'Collection artwork · edition not specified';
+  if (product?.presentation === 'representative') return 'Illustrative bottle · packaging not verified';
+  return undefined;
+}

@@ -33,7 +33,9 @@ const invalid = seed.filter(entry => {
   const product = products.get(entry.id);
   return product && (product.name !== entry.name || product.shape === 'neutral' || !shapes.has(product.shape));
 });
-const summary = { catalogEntries: seed.length, mappedEntries: seed.length - missing.length - invalid.length, missing: missing.length, invalid: invalid.length, exportedShapes: shapes.size };
+const collectionEntries = [...products.values()].filter(product => product.presentation === 'collection').length;
+const illustrativeEntries = [...products.values()].filter(product => product.presentation === 'representative').length;
+const summary = { catalogEntries: seed.length, mappedEntries: seed.length - missing.length - invalid.length, collectionEntries, illustrativeEntries, exactEntries: products.size - collectionEntries - illustrativeEntries, missing: missing.length, invalid: invalid.length, exportedShapes: shapes.size };
 console.log(JSON.stringify(summary));
 assert.equal(invalid.length, 0, `Invalid exact artwork mappings: ${invalid.map(entry => entry.name).join(', ')}`);
 if (!allowUnmapped) assert.equal(missing.length, 0, `Catalog artwork incomplete: ${missing.slice(0, 15).map(entry => entry.name).join(', ')}${missing.length > 15 ? ', ...' : ''}`);
