@@ -52,7 +52,7 @@ test('M13: mounted Radar search and SMS input render named controls', () => {
     assert.ok(fields.length >= 1);
     for (const field of fields) assert.ok(field.props.accessibilityLabel, `Missing label for ${field.props.placeholder}`);
     index = 0;
-    const back = nodes(module.default()).find(n => n.type === 'Pressable' && n.props.children?.props?.children === '‹ ALL SETTINGS');
+    const back = nodes(module.default()).find(n => n.type === 'Pressable' && n.props.children?.props?.children === '‹ ALERT PREFERENCES');
     assert.ok(back); back.props.onPress();
   }
 });
