@@ -416,12 +416,12 @@ function AccountCellarScreen({ api }: { api: ReturnType<typeof useMobileApi> }) 
           {preferences ? <Pressable accessibilityLabel={canAddToCollection ? "Add whiskey to My Shelf" : "Your free shelf is full"} accessibilityRole="button" accessibilityState={{ disabled: !canAddToCollection }} disabled={!canAddToCollection} onPress={() => router.push("/(app)/cellar/add")} style={({ pressed }) => [styles.addButton, !canAddToCollection && styles.addButtonDisabled, pressed && canAddToCollection && styles.addButtonPressed]}><Text style={[styles.addButtonText, !canAddToCollection && styles.addButtonTextDisabled]}>+ Add</Text></Pressable> : null}
         </View>
         {preferences ? <>
-          <ShelfCabinet bottles={sourceBottles} shelfStyle={preferences.collectionPreferences.shelfStyle || "amber"} busy={styleSaving || mutating} onStyle={saveShelfStyle} onBottle={setSelected} />
           <Pressable ref={statisticsTrigger} accessibilityLabel="Collection Statistics" accessibilityRole="button" accessibilityHint="View whole-collection statistics and readable Top Rated list" onPress={() => { if (!selected && !refineMode && !styleSaving) setStatisticsOpen(true); }} style={styles.statistics}>
-            <MaterialCommunityIcons accessible={false} name="chart-bar" size={22} color={colors.accent} />
-            <View style={{flex: 1}}><Text style={styles.statisticsTitle}>Collection Statistics</Text><Text style={styles.summaryDetail}>{statistics.ownedBottleCount} bottles · {statistics.ownedWhiskeyCount} owned entries{statistics.averageRating == null ? "" : ` · ${(statistics.averageRating / 10).toFixed(1)} avg`}</Text></View>
-            <MaterialCommunityIcons accessible={false} name="chevron-right" size={20} color={colors.muted} />
+            <Text style={styles.summaryDetail}>{statistics.ownedBottleCount} bottles{statistics.averageRating == null ? "" : ` · ${(statistics.averageRating / 10).toFixed(1)} average`}</Text>
+            <Text style={styles.statisticsLink}>Stats</Text>
+            <MaterialCommunityIcons accessible={false} name="chevron-right" size={14} color={colors.muted} />
           </Pressable>
+          <ShelfCabinet bottles={sourceBottles} shelfStyle={preferences.collectionPreferences.shelfStyle || "amber"} busy={styleSaving || mutating} onStyle={saveShelfStyle} onBottle={setSelected} />
         </> : null}
         {loading && !preferences ? <LoadingState label="Opening My Shelf…" /> : null}
         {error ? <ErrorState message={error} onRetry={() => void load(true)} /> : null}
@@ -499,8 +499,13 @@ function WhiskeyTile({ bottle, onPress, width }: { bottle: MemberCollectionBottl
   >
     <View style={styles.tileArt}>{kind === "owned" ? <CellarBottleArtwork bottle={bottle} /> : <CellarGlencairnSilhouette />}</View>
     <View style={[styles.tileTitleZone, { minHeight: 26 * fontScale }]}><Text numberOfLines={expandedText ? undefined : 2} style={styles.tileName}>{bottle.bottleName}</Text></View>
-    <Text style={styles.tileRating}>{rating}</Text>
-    <Text numberOfLines={expandedText ? undefined : 2} style={styles.inventory}>{kind === "owned" ? inventory : "Tasted only"}</Text>
+    <Text style={[styles.tileRating, !bottle.isRated && styles.tileUnrated]}>{rating}{bottle.isRated ? <Text style={styles.ratingScale}> / 10</Text> : null}</Text>
+    <View style={styles.inventoryBadges}>
+      {kind === "owned" ? <>
+        {bottle.sealedQuantity > 0 ? <View style={styles.inventoryBadge}><Text style={styles.inventory}>{bottle.sealedQuantity > 1 ? `${bottle.sealedQuantity} ` : ""}Sealed</Text></View> : null}
+        {bottle.openedQuantity > 0 ? <View style={[styles.inventoryBadge, styles.openBadge]}><Text style={styles.inventory}>{bottle.openedQuantity > 1 ? `${bottle.openedQuantity} ` : ""}Open</Text></View> : null}
+      </> : <View style={styles.inventoryBadge}><Text style={styles.inventory}>Tasted only</Text></View>}
+    </View>
   </Pressable>;
 }
 
@@ -720,16 +725,16 @@ function Stepper({ label, onChange, value }: { label: string; onChange: (value: 
 
 const styles = StyleSheet.create({
   pageTitle: { color: colors.text, fontSize: 32, fontWeight: "700", fontFamily: "Fraunces_700Bold" },
-  statistics: { minHeight: 44, flexDirection: "row", alignItems: "center", gap: 8, paddingVertical: 4, paddingHorizontal: 10, borderWidth: StyleSheet.hairlineWidth, borderColor: "#29251f", borderRadius: 8, backgroundColor: "#12110e" },
-  statisticsTitle: { color: colors.text, fontSize: 12, fontWeight: "500" },
-  collectionTabs: { flex: 1, flexDirection: "row", gap: 2, padding: 3, borderWidth: StyleSheet.hairlineWidth, borderColor: "#302b24", borderRadius: 9 },
+  statistics: { minHeight: 44, flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 5, marginTop: -8, marginBottom: -4 },
+  statisticsLink: { color: "#c5ad8d", fontSize: 11, marginLeft: 4 },
+  collectionTabs: { flex: 1, flexDirection: "row", gap: 2, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#302b24" },
   tileArt: { height: 84, width: 80, alignItems: "center", justifyContent: "center", transform: [{ scale: 0.73 }] },
-  header: { gap: 3, marginBottom: 0 },
+  header: { gap: 6, marginBottom: 2 },
   topRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 14, paddingTop: 0 },
   topCopy: { flex: 1, gap: 4 },
   eyebrow: { color: colors.muted, fontSize: 10, fontWeight: "800", letterSpacing: 1.2 },
   summaryLine: { color: colors.text, fontSize: 18, fontWeight: "800" },
-  summaryDetail: { color: colors.muted, fontSize: 10, lineHeight: 14 },
+  summaryDetail: { color: colors.muted, fontSize: 12, lineHeight: 17, flexShrink: 1 },
   addButton: { minHeight: 44, minWidth: 78, flexShrink: 0, alignItems: "center", justifyContent: "center", borderRadius: 8, backgroundColor: colors.accent, paddingHorizontal: 18 },
   addButtonPressed: { backgroundColor: colors.accentPressed },
   addButtonDisabled: { backgroundColor: colors.surfaceRaised, borderColor: colors.border, borderWidth: 1 },
@@ -757,39 +762,44 @@ const styles = StyleSheet.create({
   showMoreText: { color: colors.accent, fontSize: 13, fontWeight: "900" },
   huntNext: { gap: 8, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth, borderRadius: 14, backgroundColor: colors.surface, padding: 12 }, huntNextHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10 }, huntNextTitle: { color: colors.text, fontSize: 17, fontWeight: "900" }, huntNextCount: { color: colors.muted, fontSize: 10, textTransform: "uppercase", letterSpacing: 0.7 }, huntNextRow: { gap: 9, borderTopColor: colors.border, borderTopWidth: StyleSheet.hairlineWidth, paddingTop: 10 }, huntNextCopy: { gap: 3 }, huntNextName: { color: colors.text, fontSize: 13, fontWeight: "800" }, huntNextReason: { color: colors.muted, fontSize: 11, lineHeight: 16 }, huntNextButton: { minHeight: 44, alignSelf: "flex-start", justifyContent: "center", borderColor: colors.accent, borderWidth: 1, borderRadius: 999, paddingHorizontal: 12 }, huntNextButtonText: { color: colors.accent, fontSize: 11, fontWeight: "900" },
   controlRow: { flexDirection: "row", gap: 8 },
-  searchField: { flex: 1, minWidth: 0, minHeight: 44, flexDirection: "row", alignItems: "center", paddingLeft: 8, borderColor: "#343029", borderWidth: StyleSheet.hairlineWidth, borderRadius: 7, backgroundColor: "#151410" },
+  searchField: { flex: 1, minWidth: 0, minHeight: 44, flexDirection: "row", alignItems: "center", paddingLeft: 10, borderRadius: 10, backgroundColor: "#1a1713" },
   search: { flex: 1, minWidth: 0, minHeight: 44, color: colors.text, paddingHorizontal: 6, fontSize: 12 },
   sortButton: { minHeight: 44, maxWidth: "44%", justifyContent: "center", borderColor: "#594839", borderWidth: 1, borderRadius: 11, backgroundColor: colors.surface, paddingHorizontal: 11 },
   sortText: { color: colors.text, fontSize: 11, fontWeight: "800" },
   filterBar: { minHeight: 44, flexDirection: "row", alignItems: "center", gap: 8 },
   quickFilterScroller: { flex: 1 },
   quickFilters: { alignItems: "center", gap: 7, paddingRight: 2 },
-  filterChip: { flex: 1, minWidth: 0, minHeight: 44, justifyContent: "center", alignItems: "center", backgroundColor: colors.surface, borderRadius: 6, paddingHorizontal: 2, paddingVertical: 4 },
-  filterChipActive: { backgroundColor: colors.accent },
+  filterChip: { flex: 1, minWidth: 0, minHeight: 44, justifyContent: "center", alignItems: "center", borderBottomWidth: 2, borderBottomColor: "transparent", paddingHorizontal: 2, paddingVertical: 4 },
+  filterChipActive: { borderBottomColor: "#b88a51" },
   filterChipInline: { flexDirection: "row", gap: 3 },
   filterChipText: { color: colors.text, fontSize: 11, fontWeight: "500", textAlign: "center", flexShrink: 1 },
   tabCount: { color: colors.muted, fontSize: 10, textAlign: "center" },
-  filterChipTextActive: { color: colors.background, fontWeight: "700" },
-  moreFiltersButton: { minWidth: 44, minHeight: 44, flexDirection: "row", alignItems: "center", gap: 4, justifyContent: "center", borderColor: "#343029", borderWidth: StyleSheet.hairlineWidth, borderRadius: 7, backgroundColor: "#151410", paddingHorizontal: 6 },
-  moreFiltersButtonActive: { borderColor: colors.accent, backgroundColor: "rgba(214,154,74,0.18)" },
-  moreFiltersText: { color: colors.text, fontSize: 10, fontWeight: "800" },
+  filterChipTextActive: { color: "#e4b16a", fontWeight: "600" },
+  moreFiltersButton: { minWidth: 44, minHeight: 44, flexDirection: "row", alignItems: "center", gap: 4, justifyContent: "center", borderRadius: 7, paddingHorizontal: 4 },
+  moreFiltersButtonActive: { backgroundColor: "rgba(214,154,74,0.08)" },
+  moreFiltersText: { color: colors.muted, fontSize: 10, fontWeight: "500" },
   moreFiltersTextActive: { color: colors.accent },
   browseToolbar: { minHeight: 38, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 },
   showing: { color: colors.muted, fontSize: 11 },
-  viewToggle: { flexDirection: "row", gap: 0, borderColor: "#343029", borderWidth: StyleSheet.hairlineWidth, borderRadius: 7, backgroundColor: "#151410", padding: 0 },
+  viewToggle: { flexDirection: "row", gap: 0 },
   viewModeButton: { minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center", borderRadius: 6, paddingHorizontal: 2 },
-  viewModeButtonActive: { backgroundColor: "rgba(214,154,74,0.18)", borderBottomWidth: 2, borderBottomColor: colors.accent },
+  viewModeButtonActive: { backgroundColor: "rgba(214,154,74,0.07)", borderBottomWidth: 2, borderBottomColor: colors.accent },
   viewModeText: { color: colors.text, fontSize: 19, fontWeight: "500" },
   viewModeTextActive: { color: colors.accent },
   cellarContent: { paddingHorizontal: 10, paddingTop: 0, paddingBottom: 20 },
   gridContent: { gap: 6 },
   gridRow: { gap: 8 },
   gap: { height: 8 },
-  tile: { flexGrow: 0, flexShrink: 0, minWidth: 0, alignItems: "center", gap: 1, paddingHorizontal: 4, paddingVertical: 2, borderColor: "#25221c", borderWidth: StyleSheet.hairlineWidth, borderRadius: 6, backgroundColor: "#13120f" },
+  tile: { flexGrow: 0, flexShrink: 0, minWidth: 0, alignItems: "center", gap: 4, paddingHorizontal: 4, paddingTop: 5, paddingBottom: 9, borderRadius: 10, backgroundColor: "#191612" },
   tileTitleZone: { alignSelf: "stretch", minHeight: 28, justifyContent: "center" },
-  tileName: { alignSelf: "stretch", color: colors.text, fontSize: 10.5, lineHeight: 13, fontFamily: Platform.select({ ios: "Georgia", android: "serif", default: "Georgia" }), fontWeight: "400", textAlign: "center" },
-  tileRating: { color: colors.accent, fontSize: 12, lineHeight: 15, fontWeight: "500" },
-  inventory: { alignSelf: "stretch", textAlign: "center", color: colors.muted, fontSize: 10, lineHeight: 12, textTransform: "capitalize" },
+  tileName: { alignSelf: "stretch", color: colors.text, fontSize: 11, lineHeight: 14, fontFamily: Platform.select({ ios: "Georgia", android: "serif", default: "Georgia" }), fontWeight: "400", textAlign: "center" },
+  tileRating: { color: colors.accent, fontSize: 12, lineHeight: 16, fontWeight: "600" },
+  tileUnrated: { color: colors.muted, fontSize: 10, fontWeight: "400" },
+  ratingScale: { color: colors.muted, fontSize: 9, fontWeight: "400" },
+  inventoryBadges: { flexDirection: "row", flexWrap: "wrap", justifyContent: "center", gap: 3 },
+  inventoryBadge: { backgroundColor: "#25211b", borderRadius: 4, paddingHorizontal: 5, paddingVertical: 3 },
+  openBadge: { backgroundColor: "#30271c" },
+  inventory: { textAlign: "center", color: "#bdb09e", fontSize: 9, lineHeight: 12 },
   listRow: { minHeight: 92, flexDirection: "row", alignItems: "center", gap: 12, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth, borderRadius: 14, backgroundColor: colors.surface, paddingHorizontal: 12, paddingVertical: 10 },
   listCopy: { flex: 1, alignItems: "flex-start", gap: 4 },
   listName: { color: colors.text, fontSize: 15, lineHeight: 19, fontWeight: "800" },

@@ -10,7 +10,8 @@ const row = page.slice(page.indexOf('function WhiskeyListRow('), page.indexOf('f
 test('owned and tasted grid cards display the personal rating without a star', () => {
   assert.ok(tile.length > 0);
   assert.doesNotMatch(tile, /[★☆]|name=["']star/);
-  assert.match(tile, /<Text style=\{styles\.tileRating\}>\{rating\}<\/Text>/);
+  assert.match(tile, /<Text style=\{\[styles\.tileRating, !bottle\.isRated && styles\.tileUnrated\]\}>\{rating\}/);
+  assert.match(tile, /bottle\.isRated \? <Text style=\{styles\.ratingScale\}> \/ 10<\/Text> : null/);
   assert.match(tile, /const rating = formatCollectionRating\(bottle\)/);
   assert.match(tile, /Rating \$\{rating\}/);
   assert.match(tile, /kind === "owned" \? <CellarBottleArtwork bottle=\{bottle\} \/> : <CellarGlencairnSilhouette \/>/);
