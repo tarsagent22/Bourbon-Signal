@@ -112,36 +112,44 @@ test('MM-02 independent real builder/provider-boundary probe: queued OS payload 
   const rejected = await sendExpoPushMessages([a], async () => Response.json({ data: [{ status: 'error', details: { error: 'DeviceNotRegistered' } }] }));
   assert.deepEqual(rejected, { accepted: 0, rejected: 1, tickets: [], invalidTokens: tokens });
 });
-test('MM-03 independent mounted Account probe through actual authenticated layout, including stale mutations', async () => {
+test('MM-03 account and dedicated profile isolate late reads and mutations across authenticated layouts', async () => {
   const { loadWithMocks } = req(root + '/apps/mobile/src/astra-test-harness.ts');
   const React = createRequire(root + '/apps/mobile/package.json')('react');
   let auth = { isLoaded: true, isSignedIn: true, userId: 'A', sessionId: 'session-A' };
   const native = { StyleSheet: { create: v => v }, View: 'View', Text: 'Text', ScrollView: 'ScrollView', RefreshControl: 'RefreshControl', ActivityIndicator: 'ActivityIndicator', Pressable: 'Pressable', TextInput: 'TextInput' };
   const Stack = Object.assign(() => null, { Screen: 'Screen' });
   const layout = loadWithMocks(root + '/apps/mobile/app/(app)/_layout.tsx', { '@clerk/expo': { useAuth: () => auth }, 'expo-router': { Stack, Redirect: 'Redirect' }, 'react-native': native });
-  let currentApi, refresh, instance, index;
+  let currentApi, refresh, instance, index, currentKey;
+  const instances = new Map();
   const hooks = { ...React, useRef: v => instance.refs[index++] ||= { current: v }, useState: v => { const owner = instance, i = index++; if (!(i in owner.states)) owner.states[i] = v; return [owner.states[i], value => { if (owner.mounted) owner.states[i] = typeof value === 'function' ? value(owner.states[i]) : value; }]; }, useMemo: f => f(), useCallback: f => f, useEffect: () => {} };
-  const account = loadWithMocks(root + '/apps/mobile/app/(app)/(tabs)/hq.tsx', { react: hooks, '@clerk/expo': { useAuth: () => ({ ...auth, signOut: async () => {} }) }, 'expo-constants': { default: {} }, 'expo-updates': {}, 'expo-router': { useRouter: () => ({}) }, 'react-native': native,
+  const mocks = { react: hooks, '@clerk/expo': { useAuth: () => ({ ...auth, signOut: async () => {} }) }, 'expo-constants': { default: {} }, 'expo-updates': {}, 'expo-router': { useRouter: () => ({}) }, 'react-native': native,
     '../../../src/hooks/useMobileApi': { useMobileApi: () => currentApi }, '../../../src/hooks/useScreenRevalidation': { useScreenRevalidation: f => { refresh = f; } }, '../../../src/hooks/useAccessibleStatus': { useAccessibleStatus() {} }, '../../../src/push/push-registration': {},
-    '../../../src/components/MemberScreen': { memberScreenStyles: {}, MemberCard: 'MemberCard', SectionTitle: 'SectionTitle', DataRow: 'DataRow', ErrorState: 'ErrorState' },
-  });
+    '../../../src/rewards/RewardUI': { rewardStyles: {}, RewardEmblem: 'RewardEmblem' },
+    '../../../src/components/MemberScreen': { memberScreenStyles: {}, MemberCard: 'MemberCard', SectionTitle: 'SectionTitle', DataRow: 'DataRow', ErrorState: 'ErrorState', LoadingState: 'LoadingState' },
+  };
+  const account = loadWithMocks(root + '/apps/mobile/app/(app)/(tabs)/hq.tsx', mocks);
+  const editor = loadWithMocks(root + '/apps/mobile/app/(app)/account/profile.tsx', mocks);
   const profile = name => ({ displayName: name, customDisplayName: name, membership: { label: 'Standard' }, entitlements: {}, identity: { label: 'Member #123' } });
   const pending = []; const deferred = () => new Promise(resolve => pending.push(resolve));
-  const apiA = { getMemberProfile: deferred, getSignalPoints: deferred, getReferralSummary: deferred, updateMemberProfile: deferred };
-  currentApi = apiA;
-  function render() { const key = layout.default().key; if (!instance || instance.key !== key) { if (instance) instance.mounted = false; instance = { key, mounted: true, states: [], refs: [] }; } index = 0; return account.default(); }
-  render(); const aKey = instance.key; const oldLoad = refresh();
-  // Exercise real mutation handler by rendering the profile editor, then pressing Remove.
-  instance.states[1] = profile('A'); instance.states[13] = true; instance.states[18] = 'profile';
+  currentApi = { getMemberProfile: deferred, getSignalPoints: deferred, getAchievements: deferred, updateMemberProfile: deferred };
+  function render(screen) {
+    const key = layout.default().key;
+    if (key !== currentKey) { for (const old of instances.values()) old.mounted=false; instances.clear(); currentKey=key; }
+    if (!instances.has(screen)) instances.set(screen,{key,mounted:true,states:[],refs:[]});
+    instance=instances.get(screen); index=0; return screen.default();
+  }
+  render(account); const aKey=currentKey; const oldLoad=refresh();
+  render(editor); instance.states[1]=profile('A');
   function elements(node) { if (!node || typeof node !== 'object') return []; return [node, ...[node.props?.children].flat(Infinity).flatMap(elements)]; }
-  const tree = render(); const remove = elements(tree).find(e => e.type === 'Pressable' && e.props.children?.props?.children === 'Remove display name');
-  assert.ok(remove, 'mounted profile editor exposes real mutation callback'); remove.props.onPress();
-  auth = { ...auth, userId: 'B', sessionId: 'session-B' }; currentApi = { ...apiA }; render();
-  assert.notEqual(instance.key, aKey, 'authenticated layout must replace the entire member tree on account switch');
-  const before = JSON.stringify(instance.states);
-  pending[0]({ referralLink: 'A-private-link' }); pending[1]({ profile: profile('Account A private display') }); pending[2]({ balance: 12345, catalog: [], redemptions: [] }); pending[3]({ profile: profile('Account A mutation') });
-  await oldLoad; await new Promise(resolve => setImmediate(resolve));
-  assert.equal(JSON.stringify(instance.states), before, 'old profile/points/referral/mutation completions cannot update B');
-  const bKey = instance.key; auth = { ...auth, sessionId: 'session-B-new' }; render(); assert.notEqual(instance.key, bKey, 'same-user replacement session also remounts');
-  auth = { ...auth, isSignedIn: false }; assert.equal(layout.default().type, 'Redirect');
+  const remove=elements(render(editor)).find(e=>e.type==='Pressable' && e.props.children?.props?.children==='Remove display name');
+  assert.ok(remove,'dedicated editor exposes the real mutation callback'); remove.props.onPress();
+  auth={...auth,userId:'B',sessionId:'session-B'}; render(account);
+  assert.notEqual(currentKey,aKey,'account changes remount the full member layout');
+  const before=JSON.stringify(instance.states);
+  pending[0]({profile:profile('Account A private display')}); pending[1]({balance:12345,catalog:[],redemptions:[]}); pending[2]({badges:[{label:'A private badge'}]}); pending[3]({profile:profile('Account A mutation')});
+  await oldLoad; await new Promise(resolve=>setImmediate(resolve));
+  assert.equal(JSON.stringify(instance.states),before,'late profile, points, achievements and edit results cannot update B');
+  render(editor); assert.equal(instance.states[1],null,'B editor never inherits A profile');
+  const bKey=currentKey;auth={...auth,sessionId:'session-B-new'};render(account);assert.notEqual(currentKey,bKey);
+  auth={...auth,isSignedIn:false};assert.equal(layout.default().type,'Redirect');
 });
