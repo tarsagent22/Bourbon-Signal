@@ -19,12 +19,13 @@
     "verify:native-deps": "npm ls react-native-worklets react-native-reanimated expo-modules-core --all",
     "export:android": "expo export --platform android --output-dir dist/android",
     "export:ios": "expo export --platform ios --output-dir dist/ios",
-    "verify": "npm run verify:native-deps && npm run test:forge-security && npm run test:ios-recovery && npm run verify:reviewed-artwork && npm run typecheck && npm test && npm run test:home-browsing && npm run verify:release-readiness && npm run export:android && npm run export:ios",
+    "verify": "npm run verify:native-deps && npm run test:braces-security && npm run test:forge-security && npm run test:ios-recovery && npm run verify:reviewed-artwork && npm run typecheck && npm test && npm run test:home-browsing && npm run verify:release-readiness && npm run export:android && npm run export:ios",
     "test:astra": "node scripts/test-astra-suite.mjs",
     "test:forge-security": "node --test scripts/forge-security.test.cjs",
     "verify:artwork-coverage": "node scripts/verify-label-free-catalog-coverage.mjs",
     "test:whiskey-phase": "tsx --test src/components/label-free-whiskey-phase.test.ts",
-    "verify:reviewed-artwork": "node scripts/verify-label-free-catalog-coverage.mjs --allow-unmapped"
+    "verify:reviewed-artwork": "node scripts/verify-label-free-catalog-coverage.mjs --allow-unmapped",
+    "test:braces-security": "node ../../scripts/check-braces-backport-advisories.cjs"
   },
   "dependencies": {
     "@clerk/expo": "^4.5.2",
@@ -57,7 +58,8 @@
     "react-native-screens": "~4.26.0",
     "react-native-web": "^0.21.2",
     "react-native-worklets": "0.10.1",
-    "node-forge": "file:vendor/node-forge"
+    "node-forge": "file:vendor/node-forge",
+    "braces": "file:vendor/braces"
   },
   "devDependencies": {
     "@types/node": "^26.2.0",
@@ -71,6 +73,7 @@
     "query-string": "9.5.1",
     "decode-uri-component": "0.5.0",
     "jayson": "4.1.3",
-    "node-forge": "$node-forge"
+    "node-forge": "$node-forge",
+    "braces": "$braces"
   }
 }
