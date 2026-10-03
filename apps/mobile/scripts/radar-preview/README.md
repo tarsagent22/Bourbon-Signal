@@ -13,21 +13,23 @@ with synthetic fixtures. It does not read or write customer data and is not an
 application entry or an OTA payload. Preference changes last until reload.
 
 Scenarios: `?scenario=current`, `denied`, `free`, `setup`, or `save-error`.
-Default reproduces zero current matches with three unread historical matches.
+Default reproduces zero recent alerts with three unread past alerts.
 
 ## Verification — 2026-10-03
 
-- Mobile `npm test`: 342 main tests and 35 Astra tests pass.
+- Mobile `npm test`: 343 main tests and 35 Astra tests pass.
 - Mobile `npm run typecheck`: passes.
 - Root `npm run test:native-thin-slice`: passes.
 - Mobile `npm run export:ios`: passes.
-- Browser: inspected 390px layout; Current/History separation; marking shown
-  historical matches read; bottle search and adding a watch; location editor,
-  statewide selection and save; notification controls; detail expansion;
-  failed save messaging; denied-permission recovery; free membership gate.
+- Browser refinement checks: inspected the 390px Alerts / Alert preferences layout;
+  expanded past alerts while recent alerts remain visible; archived a past alert
+  and verified its count; saved bottle tiers and checked the overview summary;
+  opened Notifications directly through Fix and returned to the three-row overview.
+- Earlier baseline checks covered bottle search, location save, notification controls,
+  detail expansion, failed saves, and free membership gates.
 - Physical iPhone interactions, native permission prompts, delivery of actual
   notifications, and OTA publication are not verified by this fixture.
 
-The release is based on current main and excludes the separate unfinished membership audit. This change does
+This local refinement is based on current main and excludes the separate unfinished membership audit. This change does
 not change server matching policy or membership entitlements. Selected rarity
 tiers still apply to specific-bottle watches as well as discovery mode.

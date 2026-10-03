@@ -9,7 +9,7 @@ const readScreen = (name: "radar" | "post") => readFileSync(resolve(mobileRoot, 
 test("Radar defaults to results and offers a clearly named Settings destination", () => {
   const radar = readScreen("radar");
   assert.match(radar, /useState<RadarView>\("matches"\)/);
-  assert.match(radar, /label: "Matches"[^\n]+label: "Settings"/);
+  assert.match(radar, /label: "Alerts"[^\n]+label: "Alert preferences"/);
   assert.match(radar, /radarSetupNeeded\(nextPreferences\)/);
 });
 
@@ -41,8 +41,8 @@ test("Watchlist expansion disappears when no bottles remain hidden", () => {
 test("settings exposes focused editors and separates sources from delivery", () => {
   const radar = readScreen("radar");
   for (const title of ["Bottles", "Locations", "Notifications"]) assert.ok(radar.includes(`SettingsRow title="${title}"`));
-  assert.match(radar, /bottle list AND in your selected tiers and locations/);
-  const sources = radar.indexOf('<SectionTitle>Match sources</SectionTitle>');
+  assert.match(radar, /bottle list and selected tiers must both match/);
+  const sources = radar.indexOf('<SectionTitle>Sources</SectionTitle>');
   const community = radar.indexOf('<ToggleRow label="Community sightings"');
   const notifications = radar.indexOf('<SectionTitle>Notifications</SectionTitle>');
   assert.ok(sources < community && community < notifications);
@@ -66,17 +66,19 @@ test("preference refreshes cannot overwrite a mutation that starts or finishes i
 
 test("phone recovery retains action-specific retry and removes ambiguous count badges", () => {
   const radar = readScreen("radar");
-  assert.match(radar, /Phone alerts need attention/);
+  assert.match(radar, /Phone notifications need attention/);
   assert.doesNotMatch(radar, /item\.key === "matches" && alerts\.unreadCount/);
-  assert.match(radar, /Keep matches inside the app even when phone push is off/);
+  assert.match(radar, /Keep alerts in the app/);
   assert.match(radar, /pushRecoveryAction === "retry-disable"[\s\S]*togglePush\(false\)/);
   assert.match(radar, /Linking\.openSettings/);
 });
 
 test("current and history stay separate with useful empty states", () => {
   const radar = readScreen("radar");
-  assert.match(radar, /const visible = showPast \? past : current/);
-  assert.match(radar, /No new matches right now/);
+  assert.match(radar, /current\.map\(\(alert\)/);
+  assert.match(radar, /showPast \? past\.map/);
+  assert.match(radar, /Past alerts \(\{past\.length\}\)/);
+  assert.match(radar, /No recent alerts/);
   assert.doesNotMatch(radar, /freshness-qualified|Updated \{lastUpdated\}/);
   assert.match(radar, /View details/);
   assert.match(radar, /availability unconfirmed/);
@@ -87,4 +89,12 @@ test("Post explains the community and points value", () => {
 
   assert.match(post, />Share bottle sightings with the community and earn points<\/Text>/);
   assert.doesNotMatch(post, /Choose the bottle and retailer\. Add only what you observed\./);
+});
+
+test("Radar main destinations have no promotional copy or stacked result tabs", () => {
+  const radar = readScreen("radar");
+  assert.doesNotMatch(radar, /Watching for your next find|Your bottles\. Your locations|YOUR RADAR|Changes save automatically|Choose what to watch/);
+  assert.doesNotMatch(radar, /label=\{`Current|label=\{`History/);
+  assert.match(radar, /setSettingsEditor\("notifications"\); setView\("settings"\)/);
+  assert.match(radar, /view === "matches" && pushReadiness === "Setup needed"/);
 });

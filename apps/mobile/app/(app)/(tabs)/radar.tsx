@@ -19,7 +19,8 @@ import { colors } from "../../../src/theme";
 import { partitionRadarAlerts, radarBottleSummary, radarLocationSummary, radarSetupNeeded } from "../../../src/radar/radar-presentation";
 
 type RadarView = "matches" | "settings";
-const VIEWS: Array<{ key: RadarView; label: string }> = [{ key: "matches", label: "Matches" }, { key: "settings", label: "Settings" }];
+type SettingsEditor = "bottles" | "locations" | "notifications" | null;
+const VIEWS: Array<{ key: RadarView; label: string }> = [{ key: "matches", label: "Alerts" }, { key: "settings", label: "Alert preferences" }];
 
 function pushIssue(caught: unknown, fallback: string) {
   if (caught instanceof MobileApiError) return presentPushIssue(caught, fallback);
@@ -60,7 +61,9 @@ export default function RadarScreen() {
   const preferenceMutationEpoch = useRef(0);
   const handledPushRequests = useRef(new Set<string>());
   const initialDestinationChosen = useRef(false);
+  const [settingsEditor, setSettingsEditor] = useState<SettingsEditor>(null);
   useAccessibleStatus(actionError || error || saveNotice);
+  useEffect(() => { if (!saveNotice) return; const timer = setTimeout(() => setSaveNotice(""), 3000); return () => clearTimeout(timer); }, [saveNotice]);
 
   const load = useCallback(async (fresh = false) => {
     const sequence = ++loadSequence.current;
@@ -141,7 +144,7 @@ export default function RadarScreen() {
       const saved = await api.updateMemberPreferences(patch);
       if (sequence === writeSequence.current) {
         setPreferences(saved);
-        setSaveNotice("Radar settings saved.");
+        setSaveNotice("Saved");
       }
       return saved;
     } catch {
@@ -206,24 +209,22 @@ export default function RadarScreen() {
     refreshControl={<RefreshControl refreshing={loading} onRefresh={() => void load(true)} tintColor={colors.accent} />}
     style={memberScreenStyles.screen}
   >
-    {view === "matches" ? <View style={styles.hero}>
-      <Text style={styles.eyebrow}>YOUR RADAR</Text>
-      <Text style={styles.heroTitle}>{radarSetupNeeded(preferences) ? "Make Radar yours" : "Watching for your next find"}</Text>
-      <Text style={styles.muted}>{radarBottleSummary(preferences)}</Text>
-      <View style={styles.headingRow}><Text style={[styles.muted, styles.flex]}>{radarLocationSummary(preferences)}</Text><TextAction label="EDIT SETTINGS" onPress={() => setView("settings")} /></View>
-      <Text style={[styles.pushReadinessLabel, pushReadiness === "On" && styles.pushOn, pushReadiness === "Setup needed" && styles.pushNeedsSetup]}>Phone alerts {pushReadiness === "Setup needed" ? "need attention" : pushReadiness.toLowerCase()}</Text>
-    </View> : <Text style={styles.muted}>Your bottles. Your locations. Your alerts.</Text>}
-    {pushReadiness === "Setup needed" ? <View style={styles.recovery}>
-      <View style={styles.flex}><Text style={styles.listTitle}>{pushRecoveryAction === "settings" ? "Allow phone notifications" : pushRecoveryAction === "retry-disable" ? "Phone alerts could not be turned off" : pushRecoveryAction === "retry-status" ? "Check phone alert status" : "Phone alerts need attention"}</Text><Text style={styles.muted}>{pushRecoveryAction === "settings" ? "Notifications are disabled in your device settings." : pushError || "This phone is not yet registered for alerts."}</Text></View>
-      <SmallButton label={pushBusy ? "Working…" : pushRecoveryAction === "settings" ? "Open Settings" : "Try again"} disabled={pushBusy || saving} onPress={() => { if (pushRecoveryAction === "settings") void Linking.openSettings().catch(() => setActionError("Open your phone Settings to allow notifications for Bourbon Signal.")); else if (pushRecoveryAction === "retry-status") void load(true); else if (pushRecoveryAction === "retry-disable") void togglePush(false); else void togglePush(true); }} />
+    <View accessibilityRole="tablist" style={styles.tabs}>{VIEWS.map((item) => <Pressable accessibilityRole="tab" accessibilityState={{ selected: view === item.key }} key={item.key} onPress={() => { Keyboard.dismiss(); setView(item.key); setSettingsEditor(null); screenScroll.current?.scrollTo({ y: 0, animated: false }); }} style={[styles.tab, view === item.key && styles.tabSelected]}><Text style={[styles.tabText, view === item.key && styles.tabTextSelected]}>{item.label}</Text></Pressable>)}</View>
+    {view === "matches" && pushReadiness === "Setup needed" ? <View style={styles.compactNotice}>
+      <Text style={[styles.noticeText, styles.flex]}>Phone notifications need attention</Text>
+      <TextAction label="FIX" onPress={() => { setSettingsEditor("notifications"); setView("settings"); screenScroll.current?.scrollTo({ y: 0, animated: false }); }} />
     </View> : null}
     {error ? <ErrorState message={error} onRetry={() => void load(true)} /> : null}
-    <View accessibilityRole="tablist" style={styles.tabs}>{VIEWS.map((item) => <Pressable accessibilityRole="tab" accessibilityState={{ selected: view === item.key }} key={item.key} onPress={() => { Keyboard.dismiss(); setView(item.key); screenScroll.current?.scrollTo({ y: 0, animated: false }); }} style={[styles.tab, view === item.key && styles.tabSelected]}><Text style={[styles.tabText, view === item.key && styles.tabTextSelected]}>{item.label}</Text></Pressable>)}</View>
     {saveNotice ? <Text accessibilityLiveRegion="polite" style={styles.fresh}>{saveNotice}</Text> : null}
     {actionError ? <Text accessibilityRole="alert" style={styles.error}>{actionError}</Text> : null}
 
     {view === "matches" ? <MatchesView alerts={activeAlerts} saving={saving} watchedNames={watchedNames} onMutate={mutateAlert} setupNeeded={radarSetupNeeded(preferences)} onOpenWatchlist={() => setView("settings")} /> : null}
     {view === "settings" ? <WatchlistView
+      settingsEditor={settingsEditor}
+      onEditor={setSettingsEditor}
+      pushRecoveryAction={pushRecoveryAction}
+      pushNeedsAttention={pushReadiness === "Setup needed"}
+      onRecoverPush={() => { if (pushRecoveryAction === "settings") void Linking.openSettings().catch(() => setActionError("Open your phone Settings to allow notifications for Bourbon Signal.")); else if (pushRecoveryAction === "retry-status") void load(true); else if (pushRecoveryAction === "retry-disable") void togglePush(false); else void togglePush(true); }}
       onNavigate={() => screenScroll.current?.scrollTo({ y: 0, animated: false })}
       catalog={searchResults}
       phone={phone}
@@ -252,17 +253,17 @@ function MatchesView({ alerts, saving, watchedNames, setupNeeded, onMutate, onOp
   const [now, setNow] = useState(() => new Date());
   useEffect(() => { const timer = setInterval(() => setNow(new Date()), 60_000); return () => clearInterval(timer); }, []);
   const { current, history: past } = partitionRadarAlerts(alerts, now);
-  const visible = showPast ? past : current;
   return <View style={styles.section}>
-    <View style={styles.choiceRow}><Choice label={`Current (${current.length})`} selected={!showPast} onPress={() => setShowPast(false)} /><Choice label={`History (${past.length})`} selected={showPast} onPress={() => setShowPast(true)} /></View>
-    {visible.some(alert => !alert.readAt) ? <TextAction label="MARK SHOWN READ" disabled={saving} onPress={() => void onMutate("mark_read", visible.filter(item => !item.readAt).map(item => item.id))} /> : null}
-    {showPast && past.length ? <Text style={styles.muted}>Older reports may no longer be available. Check with the store before traveling.</Text> : null}
-    {!visible.length ? <MemberCard>
-      <Text style={styles.cardTitle}>{showPast ? "No past matches yet" : setupNeeded ? "Choose what Radar watches" : "No new matches right now"}</Text>
-      <Text style={styles.muted}>{showPast ? "Older matches will appear here." : setupNeeded ? "Choose your bottles and locations to start finding matches." : "New matches will appear here as Radar finds them. Manage how you hear about them in Settings."}</Text>
-      <View style={styles.rowActions}>{!showPast && past.length ? <SmallButton primary label={`View ${past.length} past matches`} onPress={() => setShowPast(true)} /> : null}<TextAction label={setupNeeded ? "SET UP RADAR" : "EDIT SETTINGS"} onPress={onOpenWatchlist} /></View>
-    </MemberCard> : null}
-    {visible.map((alert) => <AlertCard alert={alert} key={alert.id} saving={saving} watchedNames={watchedNames} onMutate={onMutate} />)}
+    {current.some(alert => !alert.readAt) ? <TextAction label="MARK READ" disabled={saving} onPress={() => void onMutate("mark_read", current.filter(item => !item.readAt).map(item => item.id))} /> : null}
+    {!current.length ? <View style={styles.emptyAlerts}>
+      <Text style={styles.emptyTitle}>{setupNeeded ? "Set up your alerts" : "No recent alerts"}</Text>
+      {setupNeeded ? <SmallButton primary label="Choose preferences" onPress={onOpenWatchlist} /> : null}
+    </View> : null}
+    {current.map((alert) => <AlertCard alert={alert} key={alert.id} saving={saving} watchedNames={watchedNames} onMutate={onMutate} />)}
+    {past.length ? <Pressable accessibilityRole="button" accessibilityState={{ expanded: showPast }} onPress={() => setShowPast(value => !value)} style={styles.historyRow}>
+      <Text style={styles.listTitle}>Past alerts ({past.length})</Text><Text style={styles.chevron}>{showPast ? "−" : "+"}</Text>
+    </Pressable> : null}
+    {showPast ? past.map((alert) => <AlertCard alert={alert} key={alert.id} saving={saving} watchedNames={watchedNames} onMutate={onMutate} />) : null}
   </View>;
 }
 
@@ -275,12 +276,11 @@ function AlertCard({ alert, saving, watchedNames, onMutate }: { alert: MemberAle
   const bottles = memberAlertBottleNames(alert, watchedNames);
   const grouped = bottles.length > 1;
   return <MemberCard accent={!alert.readAt && !stale}>
-    <View style={styles.alertHeading}><Text numberOfLines={2} style={styles.cardTitle}>{grouped ? `${bottles.length} bottles matched` : bottles[0]}</Text><Text style={styles.priority}>{!alert.readAt ? "UNREAD" : ""}</Text></View>
+    <View style={styles.alertHeading}><Text numberOfLines={2} style={styles.cardTitle}>{grouped ? `${bottles.length} bottles` : bottles[0]}</Text><Text style={styles.priority}>{!alert.readAt ? "UNREAD" : ""}</Text></View>
     {grouped ? <Text numberOfLines={2} style={styles.bottleSummary}>{bottles.slice(0, 3).join(" · ")}{bottles.length > 3 ? ` +${bottles.length - 3} more` : ""}</Text> : null}
     <Text style={styles.location}>{[alert.storeLabel, alert.matchedArea || alert.state].filter(Boolean).join(" · ")}</Text>
     <Text style={styles.muted}>{alert.sourceLabel || (alert.sourceType === "community" ? "Community sighting" : "Bourbon Signal")} · {relativeSignalTime(observedAt)}{alert.rarityTier ? ` · ${alert.rarityTier[0]?.toUpperCase()}${alert.rarityTier.slice(1)}` : ""}</Text>
-    {stale ? <Text style={styles.stale}>Past match · availability unconfirmed</Text> : <Text style={styles.fresh}>Recent report · availability unconfirmed</Text>}
-    <Text style={styles.bottleSummary}>Matched{alert.rarityTier ? ` ${alert.rarityTier} tier` : " your bottle preferences"}{alert.matchedArea ? ` · ${alert.matchedArea}` : ""}</Text>
+    {stale ? <Text style={styles.stale}>Past alert · availability unconfirmed</Text> : <Text style={styles.fresh}>Recent report · availability unconfirmed</Text>}
     {detailsExpanded ? <View style={styles.stack}><Text style={styles.muted}>Reported {new Date(observedAt).toLocaleString()}</Text><Text style={styles.muted}>{alert.quantity !== null ? `Reported quantity: ${alert.quantity}. ` : ""}Availability can change after a report.</Text></View> : null}
     <SmallButton primary label={detailsExpanded ? "Hide details" : "View details"} onPress={() => { if (route) router.push(route); else setDetailsExpanded(value => !value); }} />
     <View style={styles.rowActions}>{!alert.readAt ? <SmallButton label="Mark read" disabled={saving} onPress={() => void onMutate("mark_read", alert.id)} /> : null}<SmallButton label="Archive" disabled={saving} onPress={() => void onMutate("archive", alert.id)} /></View>
@@ -319,13 +319,13 @@ function BottleWatchlist({ catalog, preferences, query, saving, watchedKeys, wat
   </View>;
 }
 
-function WatchlistView({ onNavigate, catalog, phone, preferences, profile, pushBusy, pushError, pushPermission, pushStage, pushStatus, query, saving, watchedKeys, watchedNames, onPhone, onQuery, onSave, onSetWatching, onTogglePush }: { onNavigate: () => void; catalog: RadarBottleOption[]; phone: string; preferences: MemberPreferences; profile: MemberProfile | null; pushBusy: boolean; pushError: string; pushPermission: string; pushStage: string; pushStatus: PushDeviceStatus | null; query: string; saving: boolean; watchedKeys: Set<string>; watchedNames: string[]; onPhone: (phone: string) => void; onQuery: (value: string) => void; onSave: (patch: MemberPreferencesPatch) => Promise<MemberPreferences | null>; onSetWatching: (name: string, watched: boolean, preserveAlertMode?: boolean) => Promise<MemberPreferences | null>; onTogglePush: (enabled: boolean) => Promise<void> }) {
+function WatchlistView({ settingsEditor, onEditor, pushNeedsAttention, pushRecoveryAction, onRecoverPush, onNavigate, catalog, phone, preferences, profile, pushBusy, pushError, pushPermission, pushStage, pushStatus, query, saving, watchedKeys, watchedNames, onPhone, onQuery, onSave, onSetWatching, onTogglePush }: { settingsEditor: SettingsEditor; onEditor: (editor: SettingsEditor) => void; pushNeedsAttention: boolean; pushRecoveryAction: PushRecoveryAction; onRecoverPush: () => void; onNavigate: () => void; catalog: RadarBottleOption[]; phone: string; preferences: MemberPreferences; profile: MemberProfile | null; pushBusy: boolean; pushError: string; pushPermission: string; pushStage: string; pushStatus: PushDeviceStatus | null; query: string; saving: boolean; watchedKeys: Set<string>; watchedNames: string[]; onPhone: (phone: string) => void; onQuery: (value: string) => void; onSave: (patch: MemberPreferencesPatch) => Promise<MemberPreferences | null>; onSetWatching: (name: string, watched: boolean, preserveAlertMode?: boolean) => Promise<MemberPreferences | null>; onTogglePush: (enabled: boolean) => Promise<void> }) {
   const router = useRouter();
   const api = useMobileApi();
   const insets = useSafeAreaInsets();
   const [editingPhone, setEditingPhone] = useState(false);
-  const [settingsEditor, setSettingsEditor] = useState<"bottles" | "locations" | "notifications" | null>(null);
-  function openSettingsEditor(editor: typeof settingsEditor) { Keyboard.dismiss(); setSettingsEditor(editor); onNavigate(); }
+  const [showTierHelp, setShowTierHelp] = useState(false);
+  function openSettingsEditor(editor: typeof settingsEditor) { Keyboard.dismiss(); onEditor(editor); onNavigate(); }
   const [editorState, setEditorState] = useState<{ code: string; name: string } | null>(null);
   const [editorTab, setEditorTab] = useState<"selected" | "browse">("browse");
   const [editorLevel, setEditorLevel] = useState<MonitoringScopeType>("county");
@@ -395,46 +395,48 @@ function WatchlistView({ onNavigate, catalog, phone, preferences, profile, pushB
     <TextAction label="SEE MEMBERSHIPS" onPress={() => router.push("/(app)/account/membership")} />
   </MemberCard>;
 
-  const notifications = [pushStatus?.enabled && pushPermission === "granted" && !pushError ? "Phone alerts" : "", preferences.notificationPreferences.email.enabled ? "Email" : "", preferences.notificationPreferences.sms.available && preferences.notificationPreferences.sms.enabled ? "SMS" : "", preferences.notificationPreferences.onSite.enabled ? "In-app inbox" : ""].filter(Boolean).join(" · ") || "Choose how to hear about matches";
+  const notifications = [!pushNeedsAttention && pushStatus?.enabled && pushPermission === "granted" && !pushError ? "Phone alerts" : "", preferences.notificationPreferences.email.enabled ? "Email" : "", preferences.notificationPreferences.sms.available && preferences.notificationPreferences.sms.enabled ? "SMS" : "", preferences.notificationPreferences.onSite.enabled ? "In-app inbox" : ""].filter(Boolean).join(" · ") || "Off";
   return <View style={styles.section}>
     {!settingsEditor ? <>
-      <Text style={styles.muted}>Choose what to watch, where to look, and how to hear about it.</Text>
       <MemberCard>
         <SettingsRow title="Bottles" summary={radarBottleSummary(preferences)} onPress={() => openSettingsEditor("bottles")} />
         <SettingsRow title="Locations" summary={radarLocationSummary(preferences)} onPress={() => openSettingsEditor("locations")} />
-        <SettingsRow title="Notifications" summary={notifications} onPress={() => openSettingsEditor("notifications")} />
+        <SettingsRow title="Notifications" summary={pushNeedsAttention ? `Phone needs attention · ${notifications}` : notifications} onPress={() => openSettingsEditor("notifications")} />
       </MemberCard>
-      <Text style={styles.muted}>Bottle and notification changes save automatically. Save location edits when you are done.</Text>
-    </> : <TextAction label="‹ ALL SETTINGS" disabled={saving} onPress={() => { openSettingsEditor(null); }} />}
+    </> : <TextAction label="‹ ALERT PREFERENCES" disabled={saving} onPress={() => { openSettingsEditor(null); }} />}
     {settingsEditor === "bottles" ? <>
     <SectionTitle>Bottles</SectionTitle>
     <View style={styles.choiceRow}><Choice disabled={saving} selected={preferences.alertMode === "specific_bottles"} label="Specific bottles" onPress={() => void onSave({ alertMode: "specific_bottles" })} /><Choice disabled={saving} selected={preferences.alertMode === "anything_notable"} label="Discover rare bottles" onPress={() => void onSave({ alertMode: "anything_notable" })} /></View>
-    <Text style={styles.muted}>{preferences.alertMode === "anything_notable" ? "Find any bottle in your selected tiers and locations. No bottle list needed." : "Matches must be on your bottle list AND in your selected tiers and locations."}</Text>
+    <Text style={styles.muted}>{preferences.alertMode === "anything_notable" ? "Any bottle in your selected tiers." : "Your bottle list and selected tiers must both match."}</Text>
     {preferences.alertMode === "specific_bottles" ? <BottleWatchlist catalog={catalog} preferences={preferences} query={query} saving={saving} watchedKeys={watchedKeys} watchedNames={watchedNames} onQuery={onQuery} onSetWatching={onSetWatching} /> : null}
     <SectionTitle>Bottle tiers</SectionTitle>
-    <Text style={styles.muted}>Choose at least one tier. These apply to every notification channel.</Text>
     <View style={styles.choiceRow}>{ALERT_RARITY_TIERS.map((tier) => <RarityChoice disabled={saving} key={tier} label={tier[0].toUpperCase() + tier.slice(1)} selected={preferences.notificationPreferences.rarityTiers.includes(tier)} onPress={() => void onSave({ notificationPreferences: { rarityTiers: toggleAlertRarity(preferences.notificationPreferences.rarityTiers, tier) } })} />)}</View>
 
-    <Text style={styles.muted}>Unicorn · exceptionally hard to find{"\n"}Allocated · distributed in restricted quantities{"\n"}Limited · limited releases</Text>
-    <SectionTitle>Match sources</SectionTitle>
-    <Text style={styles.muted}>Store and source reports are included. You can also include reports from members.</Text>
+    <TextAction label="ABOUT TIERS" expanded={showTierHelp} onPress={() => setShowTierHelp(value => !value)} />
+    {showTierHelp ? <Text style={styles.muted}>Unicorn · exceptionally hard to find{"\n"}Allocated · distributed in restricted quantities{"\n"}Limited · limited releases</Text> : null}
+    <SectionTitle>Sources</SectionTitle>
       <ToggleRow label="Community sightings" detail="Include recent member reports at specific stores" disabled={saving} value={preferences.notificationPreferences.sightings.enabled} onValueChange={(enabled) => void onSave({ notificationPreferences: { sightings: { enabled } } })} />
     </> : null}
     {settingsEditor === "locations" ? <>
     <SectionTitle detail={radarMonitoringSummary(preferences.monitoringScopes)}>Locations</SectionTitle>
     <MemberCard>
       <Text style={styles.listTitle}>{locationSummary}</Text>
-      <Text style={styles.muted}>Radar uses only these saved selections. Home browsing filters stay separate.</Text>
-      {<View style={styles.locationChoices}><Text style={styles.muted}>Choose a state to edit statewide or precise local filters.</Text><View style={styles.chips}>{states.map((state) => { const selected = scopesForState(preferences.monitoringScopes, state.code).length > 0; return <Pressable accessibilityRole="button" accessibilityState={{ selected, disabled: saving }} disabled={saving} key={state.code} onPress={() => openEditor(state)} style={[styles.chip, selected && styles.chipSelected, saving && styles.disabled]}><Text style={[styles.chipText, selected && styles.chipTextSelected]}>{radarStateDisplayCode(state.code)}</Text></Pressable>; })}</View></View>}
+      <Text style={styles.muted}>Separate from Home filters.</Text>
+      {<View style={styles.locationChoices}><View style={styles.chips}>{states.map((state) => { const selected = scopesForState(preferences.monitoringScopes, state.code).length > 0; return <Pressable accessibilityRole="button" accessibilityState={{ selected, disabled: saving }} disabled={saving} key={state.code} onPress={() => openEditor(state)} style={[styles.chip, selected && styles.chipSelected, saving && styles.disabled]}><Text style={[styles.chipText, selected && styles.chipTextSelected]}>{radarStateDisplayCode(state.code)}</Text></Pressable>; })}</View></View>}
     </MemberCard>
 
     </> : null}
     {settingsEditor === "notifications" ? <>
     <SectionTitle>Notifications</SectionTitle>
+    {pushNeedsAttention ? <MemberCard accent>
+      <Text style={styles.listTitle}>{pushRecoveryAction === "settings" ? "Phone notifications are blocked" : pushRecoveryAction === "retry-disable" ? "Could not turn off phone notifications" : "Phone notifications need attention"}</Text>
+      <Text style={styles.muted}>{pushRecoveryAction === "settings" ? "Allow notifications in your phone settings." : pushError || "Try reconnecting this phone."}</Text>
+      <SmallButton label={pushBusy ? "Working…" : pushRecoveryAction === "settings" ? "Open Settings" : "Try again"} disabled={saving} onPress={onRecoverPush} />
+    </MemberCard> : null}
     <MemberCard>
-      <ToggleRow label="Phone alerts" detail={pushBusy ? pushStage : pushDetail} disabled={saving} value={Boolean(pushStatus?.enabled && pushStatus.currentDeviceRegistered !== false && pushPermission === "granted" && !pushError)} onValueChange={(value) => void onTogglePush(value)} />
-      <ToggleRow label="Radar inbox" detail="Keep matches inside the app even when phone push is off" disabled={saving} value={preferences.notificationPreferences.onSite.enabled} onValueChange={(enabled) => void onSave({ notificationPreferences: { onSite: { enabled } } })} />
-      <ToggleRow label="Email" detail="Send new matches by email" disabled={saving} value={preferences.notificationPreferences.email.enabled} onValueChange={(enabled) => void onSave({ notificationPreferences: { email: { enabled } } })} />
+      <ToggleRow label="Phone alerts" detail={pushBusy ? pushStage : pushNeedsAttention ? "Needs attention" : pushDetail} disabled={saving} value={Boolean(pushStatus?.enabled && pushStatus.currentDeviceRegistered !== false && pushPermission === "granted" && !pushError)} onValueChange={(value) => void onTogglePush(value)} />
+      <ToggleRow label="Radar inbox" detail="Keep alerts in the app" disabled={saving} value={preferences.notificationPreferences.onSite.enabled} onValueChange={(enabled) => void onSave({ notificationPreferences: { onSite: { enabled } } })} />
+      <ToggleRow label="Email" detail="New alerts by email" disabled={saving} value={preferences.notificationPreferences.email.enabled} onValueChange={(enabled) => void onSave({ notificationPreferences: { email: { enabled } } })} />
 
       <ToggleRow label="SMS" detail={!preferences.notificationPreferences.sms.available ? "Unavailable for this membership" : preferences.notificationPreferences.sms.verified ? "Phone verified" : "Enter a phone number to enable"} disabled={saving || !preferences.notificationPreferences.sms.available} value={preferences.notificationPreferences.sms.enabled} onValueChange={(enabled) => { if (!enabled || phone.trim()) void onSave({ notificationPreferences: { sms: { enabled, ...(phone.trim() ? { phone: phone.trim() } : {}) } } }); }} />
       {preferences.notificationPreferences.sms.available && preferences.notificationPreferences.sms.verified && !editingPhone ? <View style={styles.phoneSummary}><View><Text style={styles.muted}>Verified mobile</Text><Text style={styles.listTitle}>{maskedPhoneNumber(preferences.notificationPreferences.sms.phone)}</Text></View><TextAction label="CHANGE" disabled={saving} onPress={() => setEditingPhone(true)} /></View> : null}
@@ -481,16 +483,15 @@ function SmallButton({ label, onPress, disabled = false, primary = false }: { la
 function TextAction({ label, onPress, disabled = false, danger = false, quiet = false, expanded }: { label: string; onPress: () => void; disabled?: boolean; danger?: boolean; quiet?: boolean; expanded?: boolean }) { return <Pressable accessibilityRole="button" accessibilityState={{ expanded }} disabled={disabled} hitSlop={8} onPress={onPress} style={({ pressed }) => [styles.textActionButton, disabled && styles.disabled, pressed && !disabled && styles.pressed]}><Text style={[styles.textAction, danger && styles.dangerAction, quiet && styles.quietAction]}>{label}</Text></Pressable>; }
 
 const styles = StyleSheet.create({
-  hero: { gap: 6, paddingVertical: 4 },
-  eyebrow: { color: colors.accent, fontSize: 10, fontWeight: "800", letterSpacing: 1.6 },
-  heroTitle: { color: colors.text, fontSize: 25, lineHeight: 31, fontWeight: "700" },
-  recovery: { padding: 14, borderRadius: 14, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.accentPressed, backgroundColor: colors.surface, gap: 12 },
+  compactNotice: { minHeight: 48, flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 14, borderRadius: 12, backgroundColor: colors.surface },
+  noticeText: { color: colors.accent, fontSize: 13, lineHeight: 18 },
+  emptyAlerts: { minHeight: 150, alignItems: "center", justifyContent: "center", gap: 18, padding: 24, borderRadius: 16, backgroundColor: colors.surface },
+  emptyTitle: { color: colors.muted, fontSize: 18, lineHeight: 24, fontWeight: "600", textAlign: "center" },
+  historyRow: { minHeight: 56, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border },
   settingsRow: { minHeight: 76, flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
   chevron: { color: colors.accent, fontSize: 24 },
-  overview: { color: colors.muted, fontSize: 12, fontWeight: "600", letterSpacing: 0.15 },
-  pushReadinessRow: { minHeight: 28, flexDirection: "row", alignItems: "center" }, pushReadinessLabel: { color: colors.muted, fontSize: 12, lineHeight: 17, fontWeight: "700" }, pushNeedsSetup: { color: colors.accent }, pushOn: { color: colors.success },
   tabs: { flexDirection: "row", padding: 3, borderRadius: 13, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface, gap: 3 },
-  tab: { flex: 1, minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 7, borderRadius: 10, paddingHorizontal: 5 }, tabSelected: { backgroundColor: colors.surfaceRaised }, tabText: { color: colors.muted, fontSize: 12, fontWeight: "700", textAlign: "center" }, tabTextSelected: { color: colors.text }, unreadBadge: { minWidth: 20, height: 20, borderRadius: 10, paddingHorizontal: 5, alignItems: "center", justifyContent: "center", backgroundColor: colors.accent }, unreadBadgeText: { color: colors.background, fontSize: 10, fontWeight: "900" },
+  tab: { flex: 1, minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 7, borderRadius: 10, paddingHorizontal: 5 }, tabSelected: { backgroundColor: colors.surfaceRaised }, tabText: { color: colors.muted, fontSize: 12, fontWeight: "700", textAlign: "center" }, tabTextSelected: { color: colors.text },
   section: { gap: 12 }, stack: { gap: 6 }, headingRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 12 }, alertHeading: { flexDirection: "row", justifyContent: "space-between", gap: 12 }, flex: { flex: 1, gap: 3 },
   cardTitle: { color: colors.text, fontSize: 16, lineHeight: 21, fontWeight: "700", flex: 1 }, listTitle: { color: colors.text, fontSize: 14, lineHeight: 19, fontWeight: "700" }, location: { color: colors.text, fontSize: 14, lineHeight: 19 }, muted: { color: colors.muted, fontSize: 12, lineHeight: 17 }, bottleSummary: { color: colors.accent, fontSize: 12, lineHeight: 17, fontWeight: "600" }, fresh: { color: colors.success, fontSize: 11, fontWeight: "700" }, stale: { color: colors.muted, fontSize: 11, fontWeight: "700" }, priority: { color: colors.accent, fontSize: 10, fontWeight: "800", letterSpacing: 1 },
   rowActions: { flexWrap: "wrap", flexDirection: "row", justifyContent: "flex-end", gap: 8 }, smallButton: { minHeight: 44, minWidth: 84, paddingHorizontal: 14, alignItems: "center", justifyContent: "center", borderRadius: 10, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border }, smallButtonPrimary: { backgroundColor: colors.accent, borderColor: colors.accent }, smallButtonText: { color: colors.accent, fontSize: 12, fontWeight: "800" }, smallButtonTextPrimary: { color: colors.background },
