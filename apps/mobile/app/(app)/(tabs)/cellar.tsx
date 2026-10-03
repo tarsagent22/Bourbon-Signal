@@ -412,15 +412,17 @@ function AccountCellarScreen({ api }: { api: ReturnType<typeof useMobileApi> }) 
         <View style={styles.topRow}>
           <View style={styles.topCopy}>
             <Text accessibilityRole="header" style={styles.pageTitle}>My Shelf</Text>
+            {preferences ? <View style={styles.statistics}>
+              <Text style={styles.summaryDetail}>{statistics.ownedBottleCount} bottles{statistics.averageRating == null ? "" : ` · ${(statistics.averageRating / 10).toFixed(1)} average`}</Text>
+              <Pressable ref={statisticsTrigger} accessibilityLabel="Collection Statistics" accessibilityRole="button" accessibilityHint="View whole-collection statistics and readable Top Rated list" hitSlop={6} onPress={() => { if (!selected && !refineMode && !styleSaving) setStatisticsOpen(true); }} style={styles.statisticsButton}>
+                <Text style={styles.statisticsLink}>Stats</Text>
+                <MaterialCommunityIcons accessible={false} name="chevron-right" size={14} color={colors.muted} />
+              </Pressable>
+            </View> : null}
           </View>
           {preferences ? <Pressable accessibilityLabel={canAddToCollection ? "Add whiskey to My Shelf" : "Your free shelf is full"} accessibilityRole="button" accessibilityState={{ disabled: !canAddToCollection }} disabled={!canAddToCollection} onPress={() => router.push("/(app)/cellar/add")} style={({ pressed }) => [styles.addButton, !canAddToCollection && styles.addButtonDisabled, pressed && canAddToCollection && styles.addButtonPressed]}><Text style={[styles.addButtonText, !canAddToCollection && styles.addButtonTextDisabled]}>+ Add</Text></Pressable> : null}
         </View>
         {preferences ? <>
-          <Pressable ref={statisticsTrigger} accessibilityLabel="Collection Statistics" accessibilityRole="button" accessibilityHint="View whole-collection statistics and readable Top Rated list" onPress={() => { if (!selected && !refineMode && !styleSaving) setStatisticsOpen(true); }} style={styles.statistics}>
-            <Text style={styles.summaryDetail}>{statistics.ownedBottleCount} bottles{statistics.averageRating == null ? "" : ` · ${(statistics.averageRating / 10).toFixed(1)} average`}</Text>
-            <Text style={styles.statisticsLink}>Stats</Text>
-            <MaterialCommunityIcons accessible={false} name="chevron-right" size={14} color={colors.muted} />
-          </Pressable>
           <ShelfCabinet bottles={sourceBottles} shelfStyle={preferences.collectionPreferences.shelfStyle || "amber"} busy={styleSaving || mutating} onStyle={saveShelfStyle} onBottle={setSelected} />
         </> : null}
         {loading && !preferences ? <LoadingState label="Opening My Shelf…" /> : null}
@@ -725,13 +727,14 @@ function Stepper({ label, onChange, value }: { label: string; onChange: (value: 
 
 const styles = StyleSheet.create({
   pageTitle: { color: colors.text, fontSize: 32, fontWeight: "700", fontFamily: "Fraunces_700Bold" },
-  statistics: { minHeight: 44, flexDirection: "row", flexWrap: "wrap", alignItems: "center", gap: 5, marginTop: -8, marginBottom: -4 },
-  statisticsLink: { color: "#c5ad8d", fontSize: 11, marginLeft: 4 },
+  statistics: { flexDirection: "row", flexWrap: "wrap", alignItems: "center", columnGap: 6 },
+  statisticsButton: { minHeight: 32, minWidth: 44, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 3 },
+  statisticsLink: { color: "#c5ad8d", fontSize: 11 },
   collectionTabs: { flex: 1, flexDirection: "row", gap: 2, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: "#302b24" },
   tileArt: { height: 84, width: 80, alignItems: "center", justifyContent: "center", transform: [{ scale: 0.73 }] },
   header: { gap: 6, marginBottom: 2 },
-  topRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 14, paddingTop: 0 },
-  topCopy: { flex: 1, gap: 4 },
+  topRow: { flexDirection: "row", alignItems: "flex-start", justifyContent: "space-between", gap: 14, paddingTop: 0 },
+  topCopy: { flex: 1, gap: 0 },
   eyebrow: { color: colors.muted, fontSize: 10, fontWeight: "800", letterSpacing: 1.2 },
   summaryLine: { color: colors.text, fontSize: 18, fontWeight: "800" },
   summaryDetail: { color: colors.muted, fontSize: 12, lineHeight: 17, flexShrink: 1 },

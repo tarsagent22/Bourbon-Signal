@@ -7,7 +7,7 @@ test('showcase replaces cabinet plates with a single ledge and larger named bott
   assert.ok(cabinet.includes('Shelf Highlights'));
   assert.ok(cabinet.includes('showcase-ledge'));
   assert.ok(cabinet.includes('size="showcase"'));
-  assert.ok(cabinet.includes('{bottle.bottleName}'));
+  assert.ok(cabinet.includes('{highlightName(bottle.bottleName)}'));
   assert.ok(!cabinet.includes('cabinetAssets'));
   assert.ok(!cabinet.includes('placement.json'));
 });

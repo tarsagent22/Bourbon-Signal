@@ -12,6 +12,13 @@ const emptyCopy: Record<ShowcaseMode, string> = {
   again: 'Mark an owned bottle “Would buy again” in its tasting notes to feature it here.',
 };
 
+function highlightName(name: string) {
+  // Keep age statements together and separate the release descriptor from the name.
+  const age = /\s+(\d+(?:\.\d+)?\s*(?:years?(?:\s+old)?|yrs?)\b.*)$/i;
+  if (age.test(name)) return name.replace(age, '\n$1');
+  return name.replace(/\s+(Old Fine Whisk(?:y|ey)|Cask Strength|Full Proof|Small Batch|Single Barrel|Bottled in Bond)$/i, '\n$1');
+}
+
 export function ShelfCabinet({ bottles, shelfStyle, busy, onStyle, onBottle }: {
   bottles: readonly MemberCollectionBottle[]; shelfStyle: ShelfStyle; busy: boolean;
   onStyle: (style: ShelfStyle) => Promise<boolean>; onBottle: (bottle: MemberCollectionBottle) => void;
@@ -35,7 +42,6 @@ export function ShelfCabinet({ bottles, shelfStyle, busy, onStyle, onBottle }: {
     {featured.length ? <>
       <View testID="showcase-stage" style={styles.stage}>
         <View pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={styles.glow} />
-        <View pointerEvents="none" accessibilityElementsHidden importantForAccessibility="no-hide-descendants" style={styles.overheadLight} />
         <View style={styles.bottleRow}>
           {featured.map(bottle => <Pressable key={shelfBottleKey(bottle)} testID="showcase-bottle" accessibilityRole="button" accessibilityLabel={`${bottle.bottleName}. Open details.`} onPress={() => onBottle(bottle)} style={styles.bottleSlot}>
             <View pointerEvents="none" style={styles.contactShadow} />
@@ -45,7 +51,7 @@ export function ShelfCabinet({ bottles, shelfStyle, busy, onStyle, onBottle }: {
         <View testID="showcase-ledge" pointerEvents="none" style={[styles.ledge, { backgroundColor: finish }]}><View style={styles.ledgeHighlight} /></View>
       </View>
       <View style={styles.names}>
-        {featured.map(bottle => <Pressable key={shelfBottleKey(bottle)} accessibilityRole="button" accessibilityLabel={`${bottle.bottleName}. Open details.`} onPress={() => onBottle(bottle)} style={styles.nameSlot}><Text style={styles.bottleName}>{bottle.bottleName}</Text></Pressable>)}
+        {featured.map(bottle => <Pressable key={shelfBottleKey(bottle)} accessibilityRole="button" accessibilityLabel={`${bottle.bottleName}. Open details.`} onPress={() => onBottle(bottle)} style={styles.nameSlot}><Text textBreakStrategy="balanced" lineBreakStrategyIOS="standard" style={styles.bottleName}>{highlightName(bottle.bottleName)}</Text></Pressable>)}
       </View>
     </> : <View style={styles.empty}><Text style={styles.emptyTitle}>{bottles.length ? 'Your next highlight awaits' : 'Make this shelf yours'}</Text><Text style={styles.emptyCopy}>{bottles.length ? emptyCopy[mode] : emptyCopy.recent}</Text></View>}
     <Modal visible={picker} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => { if (!busy) setPicker(false); }}>
@@ -60,7 +66,7 @@ export function ShelfCabinet({ bottles, shelfStyle, busy, onStyle, onBottle }: {
 }
 
 const styles = StyleSheet.create({
-  showcase: { backgroundColor: '#181512', borderRadius: 16, paddingTop: 4, paddingBottom: 8, borderWidth: StyleSheet.hairlineWidth, borderColor: '#30271f' },
+  showcase: { backgroundColor: '#181512', borderRadius: 16, paddingTop: 0, paddingBottom: 4, borderWidth: StyleSheet.hairlineWidth, borderColor: '#30271f' },
   heading: { paddingHorizontal: 14, flexDirection: 'row', alignItems: 'center', gap: 8 },
   headingCopy: { flex: 1 },
   title: { color: '#f3ece2', fontFamily: Platform.select({ ios: 'Georgia', android: 'serif' }), fontSize: 17, lineHeight: 23 },
@@ -72,17 +78,16 @@ const styles = StyleSheet.create({
   selectedTab: { borderBottomColor: '#b88a51' },
   tabText: { color: '#b9aa98', fontSize: 11, lineHeight: 17 },
   selectedText: { color: '#e4b16a', fontWeight: '600' },
-  stage: { position: 'relative', paddingHorizontal: 12, paddingTop: 4 },
-  glow: { position: 'absolute', top: 6, left: '8%', right: '8%', height: 112, borderRadius: 70, backgroundColor: 'rgba(214,154,74,0.035)' },
-  overheadLight: { position: 'absolute', top: 6, left: '18%', right: '18%', height: 1, backgroundColor: 'rgba(235,199,151,0.08)' },
+  stage: { position: 'relative', paddingHorizontal: 12, paddingTop: 0 },
+  glow: { position: 'absolute', top: 4, left: 20, right: 20, height: 1, backgroundColor: 'rgba(235,199,151,0.025)', shadowColor: '#d6aa72', shadowOpacity: 0.18, shadowRadius: 24, shadowOffset: { width: 0, height: 12 } },
   bottleRow: { flexDirection: 'row', justifyContent: 'center', alignItems: 'flex-end' },
   bottleSlot: { flex: 1, maxWidth: '33.333%', minHeight: 118, alignItems: 'center', justifyContent: 'flex-end' },
   highlightArt: { width: 88, height: 118, alignItems: 'center', justifyContent: 'center', transform: [{ scale: 0.8 }] },
   contactShadow: { position: 'absolute', bottom: 0, width: 50, height: 5, borderRadius: 25, backgroundColor: 'rgba(0,0,0,0.5)' },
   ledge: { height: 9, marginTop: -1, borderRadius: 2, borderBottomWidth: 3, borderBottomColor: '#21170f', shadowColor: '#000', shadowOpacity: 0.35, shadowRadius: 5, shadowOffset: { width: 0, height: 4 }, elevation: 3 },
   ledgeHighlight: { height: 1, marginHorizontal: 2, backgroundColor: 'rgba(225,176,110,0.32)' },
-  names: { flexDirection: 'row', justifyContent: 'center', alignItems: 'flex-start', paddingHorizontal: 12, marginTop: 8 },
-  nameSlot: { flex: 1, maxWidth: '33.333%', minHeight: 44, paddingHorizontal: 4 },
+  names: { flexDirection: 'row', justifyContent: 'center', alignItems: 'flex-start', paddingHorizontal: 12, marginTop: 4 },
+  nameSlot: { flex: 1, maxWidth: '33.333%', minHeight: 44, paddingHorizontal: 2 },
   bottleName: { color: '#e8dfd2', fontFamily: Platform.select({ ios: 'Georgia', android: 'serif' }), fontSize: 11, lineHeight: 15, textAlign: 'center' },
   empty: { paddingHorizontal: 28, paddingVertical: 32, gap: 8, alignItems: 'center' },
   emptyTitle: { color: '#f3ece2', fontFamily: Platform.select({ ios: 'Georgia', android: 'serif' }), fontSize: 19, textAlign: 'center' },
