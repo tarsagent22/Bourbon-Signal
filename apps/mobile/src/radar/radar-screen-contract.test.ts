@@ -6,15 +6,11 @@ import { test } from "node:test";
 const mobileRoot = process.cwd();
 const readScreen = (name: "radar" | "post") => readFileSync(resolve(mobileRoot, `app/(app)/(tabs)/${name}.tsx`), "utf8");
 
-test("Radar opens on one Watchlist destination before Matches", () => {
+test("Radar defaults to results and offers a clearly named Settings destination", () => {
   const radar = readScreen("radar");
-
-  assert.match(radar, /type RadarView = "matches" \| "watchlist";/);
-  assert.match(radar, /const VIEWS[^\n]+label: "Watchlist"[^\n]+label: "Matches"/);
-  assert.match(radar, /useState<RadarView>\("watchlist"\)/);
-  assert.doesNotMatch(radar, /const VIEWS[^\n]+label: "Watches"/);
-  assert.doesNotMatch(radar, /const VIEWS[^\n]+label: "Areas"/);
-  assert.match(radar, /view === "watchlist" \? <WatchlistView/);
+  assert.match(radar, /useState<RadarView>\("matches"\)/);
+  assert.match(radar, /label: "Matches"[^\n]+label: "Settings"/);
+  assert.match(radar, /radarSetupNeeded\(nextPreferences\)/);
 });
 
 test("alert-inbox navigation always restores Matches even after Watchlist", () => {
@@ -42,15 +38,14 @@ test("Watchlist expansion disappears when no bottles remain hidden", () => {
   assert.match(radar, /if \(showAll && watchlist\.totalCount <= 3\) setShowAll\(false\)/);
 });
 
-test("Watchlist is organized as what, where, and how with collapsed locations", () => {
+test("settings exposes focused editors and separates sources from delivery", () => {
   const radar = readScreen("radar");
-  const bottles = radar.indexOf("<SectionTitle>Bottles</SectionTitle>");
-  const locations = radar.indexOf("<SectionTitle detail={radarMonitoringSummary(preferences.monitoringScopes)}>Locations</SectionTitle>");
-  const delivery = radar.indexOf("<SectionTitle>Delivery</SectionTitle>");
-  assert.ok(bottles >= 0 && bottles < locations && locations < delivery);
-  assert.match(radar, /Anything notable includes/);
-  assert.match(radar, /EDIT LOCATIONS/);
-  assert.match(radar, /locationsExpanded \?/);
+  for (const title of ["Bottles", "Locations", "Notifications"]) assert.ok(radar.includes(`SettingsRow title="${title}"`));
+  assert.match(radar, /bottle list AND in your selected tiers and locations/);
+  const sources = radar.indexOf('<SectionTitle>Match sources</SectionTitle>');
+  const community = radar.indexOf('<ToggleRow label="Community sightings"');
+  const notifications = radar.indexOf('<SectionTitle>Notifications</SectionTitle>');
+  assert.ok(sources < community && community < notifications);
 });
 
 test("quiet watch removal offers an atomic Undo without replacing the full watchlist", () => {
@@ -69,26 +64,22 @@ test("preference refreshes cannot overwrite a mutation that starts or finishes i
   assert.match(radar, /preferenceMutationEpoch\.current \+= 1/);
 });
 
-test("push readiness and unread ownership are explicit", () => {
+test("phone recovery retains action-specific retry and removes ambiguous count badges", () => {
   const radar = readScreen("radar");
-  assert.match(radar, /Push to this phone: \{pushReadiness\}/);
-  assert.match(radar, /Finish setting up push alerts/);
-  assert.match(radar, /item\.key === "matches" && alerts\.unreadCount/);
-  assert.doesNotMatch(radar, /HIDE DETAILS|Support code:/);
+  assert.match(radar, /Phone alerts need attention/);
+  assert.doesNotMatch(radar, /item\.key === "matches" && alerts\.unreadCount/);
   assert.match(radar, /Keep matches inside the app even when phone push is off/);
-  assert.doesNotMatch(radar, /radarMonitoringSummary\(preferences\.monitoringScopes\)[^\n]*alerts\.unreadCount/);
   assert.match(radar, /pushRecoveryAction === "retry-disable"[\s\S]*togglePush\(false\)/);
+  assert.match(radar, /Linking\.openSettings/);
 });
 
-test("Radar empty Matches connects current status, past matches, and Watchlist configuration", () => {
+test("current and history stay separate with useful empty states", () => {
   const radar = readScreen("radar");
-
-  assert.match(radar, /No current matches/);
-  assert.match(radar, /freshness-qualified/);
-  assert.match(radar, /past\.length/);
-  assert.match(radar, /VIEW .*PAST MATCH/);
-  assert.match(radar, /REVIEW WATCHLIST/);
-  assert.match(radar, /onOpenWatchlist=\{\(\) => setView\("watchlist"\)\}/);
+  assert.match(radar, /const visible = showPast \? past : current/);
+  assert.match(radar, /No new matches right now/);
+  assert.doesNotMatch(radar, /freshness-qualified|Updated \{lastUpdated\}/);
+  assert.match(radar, /View details/);
+  assert.match(radar, /availability unconfirmed/);
 });
 
 test("Post explains the community and points value", () => {
