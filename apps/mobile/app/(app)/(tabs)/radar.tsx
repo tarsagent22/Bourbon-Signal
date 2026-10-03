@@ -12,7 +12,7 @@ import { useAccessibleStatus } from '../../../src/hooks/useAccessibleStatus';
 import { canonicalBottleKey } from "../../../src/interactions/member-interactions";
 import { ALERT_RARITY_TIERS, alertIsStale, compactWatchedBottles, formatPhoneNumber, maskedPhoneNumber, memberAlertBottleNames, monitoringScopesChanged, presentPushIssue, radarLocalityDisplayName, scopesForState, bottleWatchMutation, setStatewideScope, stopMonitoringState, toggleAlertRarity, toggleMonitoringScope, watchedBottleCount } from "../../../src/radar/radar-preferences";
 import { radarPushState, type PushRecoveryAction } from "../../../src/radar/radar-push-state";
-import { disableRadarPush, enableRadarPush, radarPushDeviceId, radarPushPermission, refreshRadarPushIfEnabled, rememberRadarPushEnabled, watchRadarPushToken } from "../../../src/push/push-registration";
+import { disableRadarPush, enableRadarPush, radarPushDeviceId, radarPushPermission, refreshRadarPushIfEnabled, watchRadarPushToken } from "../../../src/push/push-registration";
 import { signalRouteForRequestedAlert } from "../../../src/push/push-navigation";
 import { colors } from "../../../src/theme";
 
@@ -92,8 +92,7 @@ export default function RadarScreen() {
         const [deviceId, permission] = await Promise.all([radarPushDeviceId(), radarPushPermission().catch(() => "undetermined")]);
         const nextPush = await api.getPushDeviceStatus(deviceId, { fresh });
         if (sequence !== loadSequence.current) return;
-        await rememberRadarPushEnabled(nextPush.enabled);
-        const refreshedPush = nextPush.enabled ? await refreshRadarPushIfEnabled(api).catch(() => null) : null;
+        const refreshedPush = await refreshRadarPushIfEnabled(api, nextPush).catch(() => null);
         if (sequence !== loadSequence.current) return;
         const resolvedPush = refreshedPush || nextPush;
         setPushStatus(resolvedPush); setPushPermission(permission); setPushStatusLoadFailed(false);
@@ -124,7 +123,7 @@ export default function RadarScreen() {
   }, [alerts.alerts, loading, request, requestedAlert, router]);
   useEffect(() => {
     let active = true;
-    const subscription = watchRadarPushToken(api, (status) => { if (active && status) setPushStatus(status); });
+    const subscription = watchRadarPushToken(api, (status) => { if (active && status) { setPushStatus(status); setPushStatusLoadFailed(false); setPushError(status.warning ? presentPushIssue(status.warning, "Push settings are syncing.").message : ""); if (!status.warning) setPushFailedAction(null); } });
     return () => { active = false; subscription.remove(); };
   }, [api]);
   const watchedKeys = useMemo(() => new Set((preferences?.bottleAlertPreferences.bottleKeys || []).map(canonicalBottleKey)), [preferences]);
@@ -390,6 +389,7 @@ function WatchlistView({ pushNeedsAttention, pushRecoveryAction, onRecoverPush, 
   const locationLabel = savedStates.length === 1 ? `${savedStates[0].label} · ${stateSummary(savedStates[0].code)}` : radarLocationSummary(preferences);
   const availableStates = states.filter(state => !savedStates.some(saved => saved.code === state.code) && `${state.label} ${state.code}`.toLowerCase().includes(stateQuery.trim().toLowerCase()));
   const levels: MonitoringScopeType[] = editorState?.code === "NC" ? ["county", "board", "city", "store"] : ["county", "city", "store"];
+  const compactStateChoice = Boolean(editorState && scopeMode !== "local");
   const lowCoverage = Boolean(editorState && states.find((state) => state.code === editorState.code)?.engineCoverage !== "active");
 
   if (preferences.entitlements?.alertAreaLimit === 0) return <MemberCard>
@@ -430,8 +430,9 @@ function WatchlistView({ pushNeedsAttention, pushRecoveryAction, onRecoverPush, 
 
     </View>
 
-    <Modal animationType="slide" onRequestClose={() => { setEditorState(null); setLocationsOpen(false); }} presentationStyle="fullScreen" visible={locationsOpen || Boolean(editorState)}>
-      <SafeAreaView edges={["bottom"]} style={[styles.modalScreen, { paddingTop: Math.max(insets.top, 12) }]}>
+    <Modal key={compactStateChoice ? "state-choice" : "locations"} animationType="slide" onRequestClose={() => { setEditorState(null); setLocationsOpen(false); }} transparent={compactStateChoice} presentationStyle={compactStateChoice ? "overFullScreen" : "fullScreen"} visible={locationsOpen || Boolean(editorState)}>
+      <View style={compactStateChoice ? styles.sheetBackdrop : styles.modalScreen}>
+      <SafeAreaView edges={["bottom"]} style={compactStateChoice ? styles.choiceSheet : [styles.modalScreen, { paddingTop: Math.max(insets.top, 12) }]}>
         {!editorState ? <View style={styles.modalKeyboard}>
           <View style={styles.modalHeader}><Text style={[styles.modalTitle, styles.flex]}>Locations</Text><TextAction label="CLOSE" onPress={() => setLocationsOpen(false)} /></View>
           <ScrollView contentContainerStyle={styles.stateList} keyboardShouldPersistTaps="handled">
@@ -442,9 +443,9 @@ function WatchlistView({ pushNeedsAttention, pushRecoveryAction, onRecoverPush, 
               {!availableStates.length ? <Text style={styles.muted}>No states found</Text> : null}
             </>}
           </ScrollView>
-        </View> : <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={styles.modalKeyboard}>
+        </View> : <KeyboardAvoidingView behavior={Platform.OS === "ios" ? "padding" : "height"} style={compactStateChoice ? undefined : styles.modalKeyboard}>
           <View style={styles.modalHeader}><View style={styles.flex}><Text numberOfLines={1} style={styles.modalTitle}>{editorState?.name}</Text></View><TextAction label="CANCEL" onPress={() => setEditorState(null)} /></View>
-          <View style={styles.modalBody}>
+          <View style={compactStateChoice ? styles.choiceSheetBody : styles.modalBody}>
             <View style={styles.choiceRow}><Choice label="Entire state" selected={scopeMode === "state"} onPress={() => { setScopeMode("state"); if (editorState) setDraftScopes(setStatewideScope(draftScopes, editorState)); }} /><Choice label="Specific areas" selected={scopeMode === "local"} onPress={() => { setScopeMode("local"); setDraftScopes(scopes => scopes.filter(scope => scope.type !== "state")); }} /></View>
             {scopeMode === "local" ? <Text style={styles.muted}>{selectedInEditor.length} selected</Text> : null}
             {scopeMode === "local" ? <><ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.levelScroller} contentContainerStyle={styles.levelRow}>{levels.map((level) => <Pressable key={level} onPress={() => { setEditorLevel(level); setAreaOffset(0); setAreaPage([]); }} style={[styles.levelChip, editorLevel === level && styles.chipSelected]}><Text style={[styles.chipText, editorLevel === level && styles.chipTextSelected]}>{level[0]?.toUpperCase()}{level.slice(1)}</Text></Pressable>)}</ScrollView><TextInput autoCorrect={false} clearButtonMode="while-editing" onChangeText={(value) => { setAreaQuery(value); setAreaOffset(0); setAreaPage([]); }} accessibilityLabel={`Search ${editorLevel}`} accessibilityHint="Search available monitoring areas." placeholder={`Search ${editorLevel}`} placeholderTextColor={colors.muted} style={styles.input} value={areaQuery} /></> : null}
@@ -460,6 +461,7 @@ function WatchlistView({ pushNeedsAttention, pushRecoveryAction, onRecoverPush, 
           <View style={styles.pinnedActions}><TextAction danger label="STOP MONITORING" disabled={saving || !editorState || !scopesForState(preferences.monitoringScopes, editorState.code).length} onPress={() => void (async () => { if (!editorState) return; const saved = await onSave({ monitoringScopes: stopMonitoringState(preferences.monitoringScopes, editorState.code) }); if (saved) setEditorState(null); else setAreaError("Monitoring could not be stopped. Try again."); })()} /><SmallButton primary label={saving ? "Saving…" : "Save locations"} disabled={saving || !editorState || !selectedInEditor.length} onPress={() => void (async () => { if (!editorState) return; if (!editorHasChanges) { setEditorState(null); return; } const next = [...preferences.monitoringScopes.filter((scope) => scope.state !== editorState.code), ...selectedInEditor]; const saved = await onSave({ monitoringScopes: next }); if (saved) setEditorState(null); else setAreaError("Monitoring areas could not be saved. Try again."); })()} /></View>
         </KeyboardAvoidingView>}
       </SafeAreaView>
+      </View>
     </Modal>
   </View>;
 }
@@ -471,6 +473,9 @@ function SmallButton({ label, onPress, disabled = false, primary = false }: { la
 function TextAction({ label, onPress, disabled = false, danger = false, quiet = false, expanded }: { label: string; onPress: () => void; disabled?: boolean; danger?: boolean; quiet?: boolean; expanded?: boolean }) { return <Pressable accessibilityRole="button" accessibilityState={{ expanded }} disabled={disabled} hitSlop={8} onPress={onPress} style={({ pressed }) => [styles.textActionButton, disabled && styles.disabled, pressed && !disabled && styles.pressed]}><Text style={[styles.textAction, danger && styles.dangerAction, quiet && styles.quietAction]}>{label}</Text></Pressable>; }
 
 const styles = StyleSheet.create({
+  sheetBackdrop: { flex: 1, justifyContent: "flex-end", backgroundColor: "rgba(0,0,0,0.55)" },
+  choiceSheet: { backgroundColor: colors.background, borderTopLeftRadius: 20, borderTopRightRadius: 20, overflow: "hidden" },
+  choiceSheetBody: { padding: 18, gap: 12 },
   infoButton: { minWidth: 44, minHeight: 44, alignItems: "center", justifyContent: "center" },
   stateList: { padding: 18, gap: 12 },
   locationSummary: { minHeight: 64, padding: 16, borderRadius: 12, backgroundColor: colors.surface, flexDirection: "row", alignItems: "center", gap: 12 },
