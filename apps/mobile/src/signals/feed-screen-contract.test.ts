@@ -129,3 +129,14 @@ test("ticker crossfade and rotation are active-screen only and honor assistive p
   assert.match(feed, /animation\.stop\(\)/);
   assert.match(feed, /clearInterval\(timer\)/);
 });
+
+
+test("Home backdrop fills the viewport while the feed and new-signal action clear the native header", () => {
+  assert.match(feed, /require\("\.\.\/\.\.\/\.\.\/assets\/home-shelf-background\.jpg"\)/);
+  assert.match(feed, /homeBackdrop: StyleSheet\.absoluteFill/);
+  assert.match(feed, /pointerEvents="none"/);
+  assert.ok(position('style={styles.homeBackdrop}') < position('<FlatList\n'));
+  assert.match(feed, /const headerHeight = insets\.top \+ 56/);
+  assert.match(feed, /style=\{\[styles\.feedViewport, \{ marginTop: headerHeight \}\]\}/);
+  assert.match(feed, /styles\.newSignalsPill, \{ top: headerHeight \+ 8 \}/);
+});

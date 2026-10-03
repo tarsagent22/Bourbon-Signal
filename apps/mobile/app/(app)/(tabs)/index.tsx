@@ -2,7 +2,8 @@ import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useAuth } from "@clerk/expo";
 import { router, useFocusEffect } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { AccessibilityInfo, Animated, AppState, FlatList, Keyboard, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { AccessibilityInfo, Animated, AppState, FlatList, ImageBackground, Keyboard, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { MobileApiError } from "../../../src/api/client";
 import { relativeSignalTime, signalAccessibilityTime } from "../../../src/api/presentation";
 import type { MemberProfile, Signal, SignalFeedPage } from "../../../src/api/types";
@@ -88,6 +89,8 @@ function FeedSkeleton() {
 
 export default function SignalFeedScreen() {
   const api = useMobileApi();
+  const insets = useSafeAreaInsets();
+  const headerHeight = insets.top + 56;
   const { userId } = useAuth();
   const browsingStorageKey = homeBrowsingStorageKey(userId);
   const [view, setView] = useState<FeedView>("market");
@@ -615,8 +618,17 @@ export default function SignalFeedScreen() {
 
   return (
     <View style={styles.screen}>
+      <View pointerEvents="none" style={styles.homeBackdrop}>
+        <ImageBackground
+          accessibilityIgnoresInvertColors
+          resizeMode="cover"
+          source={require("../../../assets/home-shelf-background.jpg")}
+          style={StyleSheet.absoluteFill}
+        />
+      </View>
       <PushMaintenance />
       <PushResponseHandler />
+      <View style={[styles.feedViewport, { marginTop: headerHeight }]}>
       <FlatList
       ref={listRef}
       contentContainerStyle={styles.list}
@@ -649,12 +661,13 @@ export default function SignalFeedScreen() {
               ? <Text style={styles.end}>You’re caught up.</Text>
               : null}
     />
+      </View>
       {queuedSignals.length ? <Pressable
         accessibilityLabel={`${queuedSignals.length} new ${queuedSignals.length === 1 ? "signal" : "signals"}`}
         accessibilityLiveRegion="polite"
         accessibilityRole="button"
         onPress={acceptNewSignals}
-        style={({ pressed }) => [styles.newSignalsPill, pressed && styles.newSignalsPillPressed]}
+        style={({ pressed }) => [styles.newSignalsPill, { top: headerHeight + 8 }, pressed && styles.newSignalsPillPressed]}
       >
         <MaterialCommunityIcons color="#171009" name="arrow-up" size={17} />
         <Text style={styles.newSignalsText}>New signals · {queuedSignals.length}</Text>
@@ -664,7 +677,9 @@ export default function SignalFeedScreen() {
 }
 
 const styles = StyleSheet.create({
-  screen: { flex: 1 },
+  screen: { flex: 1, backgroundColor: colors.background },
+  homeBackdrop: StyleSheet.absoluteFill,
+  feedViewport: { flex: 1, backgroundColor: "transparent" },
   list: { paddingHorizontal: 16, paddingTop: 10, paddingBottom: 64 },
   separator: { height: 6 },
   header: { gap: 8, marginBottom: 4 },
