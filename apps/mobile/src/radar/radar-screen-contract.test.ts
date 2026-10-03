@@ -38,11 +38,11 @@ test("Watchlist expansion disappears when no bottles remain hidden", () => {
   assert.match(radar, /if \(showAll && watchlist\.totalCount <= 3\) setShowAll\(false\)/);
 });
 
-test("settings exposes focused editors and separates sources from delivery", () => {
+test("preferences shows continuous sections and separates sources from delivery", () => {
   const radar = readScreen("radar");
-  for (const title of ["Bottles", "Locations", "Notifications"]) assert.ok(radar.includes(`SettingsRow title="${title}"`));
+  for (const title of ["Bottles", "Locations", "Notifications"]) assert.ok(radar.includes(`<SectionTitle>${title}</SectionTitle>`));
   assert.match(radar, /bottle list and selected tiers must both match/);
-  const sources = radar.indexOf('<SectionTitle>Sources</SectionTitle>');
+  const sources = radar.indexOf('<SectionTitle>Bottles</SectionTitle>');
   const community = radar.indexOf('<ToggleRow label="Community sightings"');
   const notifications = radar.indexOf('<SectionTitle>Notifications</SectionTitle>');
   assert.ok(sources < community && community < notifications);
@@ -68,7 +68,8 @@ test("phone recovery retains action-specific retry and removes ambiguous count b
   const radar = readScreen("radar");
   assert.match(radar, /Phone notifications need attention/);
   assert.doesNotMatch(radar, /item\.key === "matches" && alerts\.unreadCount/);
-  assert.match(radar, /Keep alerts in the app/);
+  assert.doesNotMatch(radar, /ToggleRow label="Radar inbox"/);
+  assert.match(radar, /onSite: \{ enabled: true \}/);
   assert.match(radar, /pushRecoveryAction === "retry-disable"[\s\S]*togglePush\(false\)/);
   assert.match(radar, /Linking\.openSettings/);
 });
@@ -95,6 +96,6 @@ test("Radar main destinations have no promotional copy or stacked result tabs", 
   const radar = readScreen("radar");
   assert.doesNotMatch(radar, /Watching for your next find|Your bottles\. Your locations|YOUR RADAR|Changes save automatically|Choose what to watch/);
   assert.doesNotMatch(radar, /label=\{`Current|label=\{`History/);
-  assert.match(radar, /setSettingsEditor\("notifications"\); setView\("settings"\)/);
+  assert.match(radar, /setFocusNotifications\(true\); setView\("settings"\)/);
   assert.match(radar, /view === "matches" && pushReadiness === "Setup needed"/);
 });
