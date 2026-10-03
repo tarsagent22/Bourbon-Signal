@@ -261,7 +261,7 @@ assert.equal(watchedRepeats.sections[0]?.items.length, 2, "watchlisted bottles m
 const defaultNotifications = getDefaultNotificationPreferences();
 assert.equal(defaultNotifications.weeklyIntelligence.emailEnabled, false, "weekly intelligence is a separate, default-off opt-in");
 const normalizedLegacy = normalizeNotificationPreferences({ email: { enabled: true, mode: "all" } });
-assert.equal(normalizedLegacy.email.enabled, true);
+assert.equal(normalizedLegacy.email.enabled, false);
 assert.equal(normalizedLegacy.weeklyIntelligence.emailEnabled, false, "real-time email consent never implies weekly consent");
 
 const optedIn = applyWeeklyIntelligencePreferenceTransition({

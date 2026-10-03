@@ -1,4 +1,6 @@
 import assert from 'node:assert/strict';
+import { readFileSync } from 'node:fs';
+import vm from 'node:vm';
 import {
   WeeklyIntelligencePreferenceConflict,
   alertRarityIsSelected,
@@ -19,10 +21,10 @@ assert.equal(legacy.email.enabled, false, 'legacy daily-roundup users must not b
 assert.equal(legacy.email.mode, 'major_only');
 
 const all = normalizeNotificationPreferences({ email: { enabled: true, mode: 'all' } });
-assert.deepEqual(all.email, { enabled: true, mode: 'all' });
+assert.deepEqual(all.email, { enabled: false, mode: 'all' });
 
 const majorOnly = normalizeNotificationPreferences({ email: { enabled: true, mode: 'major_only' } });
-assert.deepEqual(majorOnly.email, { enabled: true, mode: 'major_only' });
+assert.deepEqual(majorOnly.email, { enabled: false, mode: 'major_only' });
 assert.deepEqual(majorOnly.rarityTiers, ['unicorn', 'allocated', 'limited'], 'existing members default to every alert rarity');
 
 const narrowedRarities = applyNotificationPreferencesPatch({
@@ -135,3 +137,23 @@ assert.equal(verifyNewsletterPreferenceAuthorization({
 }), false, 'a resubscribe confirmation cannot authorize unsubscribe');
 
 console.log('Notification preference migration tests passed.');
+
+const retired = applyNotificationPreferencesPatch({ existing: majorOnly, requested: { email: { enabled: true }, sms: { enabled: true, phone: '+15555550123', verified: true } }, now: '2026-10-03T00:00:00.000Z' });
+assert.equal(retired.preferences.email.enabled, false);
+assert.equal(retired.preferences.sms.enabled, false);
+assert.equal(retired.preferences.sms.available, false);
+assert.equal(retired.metadataPatch.email.enabled, false);
+assert.equal(retired.metadataPatch.sms.enabled, false);
+assert.equal(retired.preferences.onSite.enabled, majorOnly.onSite.enabled);
+
+// Exercise the production flags under legacy rollout settings, not fixture overrides.
+const deliverySource = readFileSync(new URL('../src/lib/alert-delivery.ts', import.meta.url), 'utf8');
+const retiredPolicy = deliverySource.match(/function retiredAlertDeliveryEnabled\(\): boolean \{ return false; \}/)?.[0].replace(': boolean', '');
+assert.ok(retiredPolicy);
+for (const channel of ['EMAIL', 'SMS']) {
+  const flag = deliverySource.match(new RegExp(`const ALERT_${channel}_DELIVERY_ENABLED: boolean = ([^;]+);`))?.[1];
+  assert.ok(flag);
+  assert.equal(vm.runInNewContext(`${retiredPolicy}; ${flag}`, { process: { env: { ALERT_DELIVERY_ENABLED: '1', ALERT_EMAIL_DELIVERY_ENABLED: '1', ALERT_SMS_DELIVERY_ENABLED: '1' } } }), false);
+}
+assert.match(deliverySource, /if \(!ALERT_SMS_DELIVERY_ENABLED\) throw new DefinitiveSmsSendError/);
+assert.match(deliverySource, /if \(!ALERT_EMAIL_DELIVERY_ENABLED\) throw new Error\("Email alerts have been retired/);

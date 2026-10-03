@@ -100,7 +100,7 @@ const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
   onSite: { enabled: true },
   push: { enabled: false },
   email: { enabled: false, mode: "major_only" },
-  sms: { enabled: false, available: true, mode: "major_only", verified: false },
+  sms: { enabled: false, available: false, mode: "major_only", verified: false },
   sightings: { enabled: false },
   weeklyIntelligence: { emailEnabled: false, optedInAt: null, unsubscribedAt: null, version: 0 },
 };
@@ -130,7 +130,6 @@ export function normalizeNotificationPreferences(input: unknown): NotificationPr
   const sightings = (source.sightings && typeof source.sightings === "object" ? source.sightings : {}) as Record<string, unknown>;
   const weeklyIntelligence = (source.weeklyIntelligence && typeof source.weeklyIntelligence === "object" ? source.weeklyIntelligence : {}) as Record<string, unknown>;
 
-  const legacyDailyRoundup = email.mode === "daily_roundup";
   const mode = email.mode === "all" || email.mode === "major_only"
     ? email.mode
     : DEFAULT_NOTIFICATION_PREFERENCES.email.mode;
@@ -153,13 +152,12 @@ export function normalizeNotificationPreferences(input: unknown): NotificationPr
       enabled: typeof push.enabled === "boolean" ? push.enabled : DEFAULT_NOTIFICATION_PREFERENCES.push.enabled,
     },
     email: {
-      // Daily roundup was never shipped. Disable legacy selections rather than
-      // silently converting them into real-time emails.
-      enabled: legacyDailyRoundup ? false : (typeof email.enabled === "boolean" ? email.enabled : DEFAULT_NOTIFICATION_PREFERENCES.email.enabled),
+      // Keep compatibility fields for old clients and historical delivery records.
+      enabled: false, // Radar email delivery is retired, including saved opt-ins.
       mode,
     },
     sms: {
-      enabled: typeof sms.enabled === "boolean" ? sms.enabled : DEFAULT_NOTIFICATION_PREFERENCES.sms.enabled,
+      enabled: false, // Old clients cannot re-enable a retired channel.
       available: DEFAULT_NOTIFICATION_PREFERENCES.sms.available,
       mode: sms.mode === "specific_bottles" ? "specific_bottles" : DEFAULT_NOTIFICATION_PREFERENCES.sms.mode,
       phone: typeof sms.phone === "string" ? sms.phone.trim().slice(0, 32) : undefined,

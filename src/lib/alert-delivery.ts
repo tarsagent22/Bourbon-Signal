@@ -124,8 +124,9 @@ const MAX_ONSITE_ALERTS_PER_USER = Number(process.env.ALERT_DELIVERY_MAX_ONSITE_
 const CANDIDATE_POOL_PER_USER = Number(process.env.ALERT_DELIVERY_CANDIDATE_POOL_PER_USER || 25);
 const ALERT_DELIVERY_ENABLED = process.env.ALERT_DELIVERY_ENABLED === "1";
 const ALERT_ONSITE_DELIVERY_ENABLED = ALERT_DELIVERY_ENABLED || process.env.ALERT_ONSITE_DELIVERY_ENABLED === "1";
-const ALERT_EMAIL_DELIVERY_ENABLED = ALERT_DELIVERY_ENABLED || process.env.ALERT_EMAIL_DELIVERY_ENABLED === "1";
-const ALERT_SMS_DELIVERY_ENABLED = process.env.ALERT_SMS_DELIVERY_ENABLED === "1";
+const ALERT_EMAIL_DELIVERY_ENABLED: boolean = retiredAlertDeliveryEnabled();
+const ALERT_SMS_DELIVERY_ENABLED: boolean = retiredAlertDeliveryEnabled();
+function retiredAlertDeliveryEnabled(): boolean { return false; }
 const ALERT_REALTIME_MAX_FRESHNESS_CONFIGURED_HOURS = Number(process.env.ALERT_REALTIME_MAX_FRESHNESS_HOURS);
 const ALERT_REALTIME_MAX_FRESHNESS_HOURS = resolveAlertFreshnessCapHours(ALERT_REALTIME_MAX_FRESHNESS_CONFIGURED_HOURS);
 const ALERT_EMAIL_MAX_FRESHNESS_HOURS = resolveAlertFreshnessCapHours(Number(process.env.ALERT_EMAIL_MAX_FRESHNESS_HOURS || ALERT_REALTIME_MAX_FRESHNESS_HOURS));
@@ -1030,6 +1031,7 @@ function assertTwilioSmsConfigured() {
 }
 
 async function sendTwilioSms(to: string, body: string) {
+  if (!ALERT_SMS_DELIVERY_ENABLED) throw new DefinitiveSmsSendError("SMS alerts have been retired.");
   assertTwilioSmsConfigured();
   const accountSid = process.env.TWILIO_ACCOUNT_SID || "";
   const authToken = process.env.TWILIO_AUTH_TOKEN || "";
@@ -1069,6 +1071,7 @@ function operationalTestRecipient() {
 
 export async function sendOperationalTestAlertEmail(req: Request) {
   assertAlertDeliveryAuthorized(req);
+  if (!ALERT_EMAIL_DELIVERY_ENABLED) throw new Error("Email alerts have been retired.");
 
   const recipient = operationalTestRecipient();
   if (!recipient || !recipient.includes("@")) {

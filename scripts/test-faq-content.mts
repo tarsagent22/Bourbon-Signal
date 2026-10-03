@@ -54,10 +54,8 @@ assert.match(free.answer, /submit sightings/);
 assert.doesNotMatch(free.answer, /requires a paid membership/);
 
 const alertLimits = pricingFaqs.find((item) => item.question === "How do alerts and alert limits work?");
-assert.match(alertLimits?.answer || "", new RegExp(`up to ${TIER_ENTITLEMENTS.standard.smsDailyLimit} SMS alerts per day`));
-assert.match(alertLimits?.answer || "", new RegExp(`up to ${TIER_ENTITLEMENTS.barrel.smsDailyLimit} SMS alerts per day`));
-assert.match(alertLimits?.answer || "", new RegExp(`up to ${TIER_ENTITLEMENTS["bottled-in-bond"].smsDailyLimit} SMS alerts per day`));
-assert.doesNotMatch(alertLimits?.answer || "", /25 SMS alerts per day/);
+assert.match(alertLimits?.answer || "", /push notifications/);
+assert.doesNotMatch(alertLimits?.answer || "", /SMS alerts|email delivery/);
 
 assert.doesNotMatch(JSON.stringify([...productFaqs, ...pricingFaqs]), /Release Radar|release-radar/);
 assert.match(free.answer, /Coverage Map/);

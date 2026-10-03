@@ -52,7 +52,7 @@ export function FreeMemberDayTwoEmail({
             <Section style={planCard}>
               <Text style={planKicker}>STANDARD PROOF</Text>
               <Text style={planTitle}>Full feed and personalized alerts</Text>
-              <Text style={planCopy}>Track up to 15 bottles across five alert areas, get email or text alerts, and use the complete Drop Feed and filters.</Text>
+              <Text style={planCopy}>Track up to 15 bottles across five alert areas, get push alerts, and use the complete Drop Feed and filters.</Text>
               <Text style={planPrice}>7 days free, then $3/month.</Text>
             </Section>
 

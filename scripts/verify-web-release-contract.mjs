@@ -77,9 +77,9 @@ for (const file of srcFiles) {
   if (/daily_roundup|daily roundup/iu.test(read(file))) failures.push(`${file} still exposes the nonexistent daily roundup mode.`);
 }
 const notificationPreferences = read('src/lib/notification-preferences.ts');
-const legacyRoundupReferences = notificationPreferences.match(/daily_roundup/gu) || [];
-if (legacyRoundupReferences.length !== 1 || !notificationPreferences.includes('legacyDailyRoundup = email.mode === "daily_roundup"')) {
-  failures.push('Notification preference normalization must contain exactly one safe legacy daily-roundup migration and no active mode.');
+if (!/email: \{[\s\S]*?enabled: false, \/\/ Radar email delivery is retired/.test(notificationPreferences)
+  || !notificationPreferences.includes('enabled: false, // Old clients cannot re-enable a retired channel.')) {
+  failures.push('Retired Radar email and SMS preferences must remain disabled for legacy clients.');
 }
 
 for (const required of [
