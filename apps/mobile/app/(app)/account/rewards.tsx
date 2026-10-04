@@ -434,7 +434,7 @@ export default function RewardsScreen() {
           <RewardCard>
             <Text style={s.heading}>Badge bonuses</Text>
             <Text style={s.text}>
-              Some badges award 10 bonus points. Expansion badges recognize your
+              Some badges award 10 bonus points. Other badges recognize your
               progress without adding points. Each badge’s details show its
               bonus.
             </Text>
