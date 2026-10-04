@@ -35,10 +35,11 @@ export async function GET(request: NextRequest) {
         total: 0,
         states: [],
         error: "Engine export temporarily unavailable",
+        code: "CATALOG_UNAVAILABLE",
       },
       {
-        status: 200,
-        headers: siteExportHeaders("empty-fallback"),
+        status: 503,
+        headers: { "Cache-Control": "no-store", "Retry-After": "30" },
       }
     );
   }

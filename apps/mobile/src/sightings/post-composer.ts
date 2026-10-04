@@ -1,3 +1,4 @@
+import { createBottleSearchIndex, rankBottleCatalog } from "../cellar/bottle-search";
 import { presentSignal, signalCardAppearance } from "../api/presentation";
 import type { RadarBottleOption, Signal, SightingSubmission } from "../api/types";
 import { buildManualStoreId } from "./manual-sighting";
@@ -93,14 +94,7 @@ export function buildPostSignalPreview(input: {
 }
 
 export function filterBottleSuggestions(catalog: RadarBottleOption[], query: string, limit = 5) {
-  const needle = query.replace(/\s+/g, " ").trim().toLowerCase();
-  if (!needle) return [];
-  return catalog
-    .map((bottle, index) => ({ bottle, index, name: bottle.name.toLowerCase() }))
-    .filter(({ name }) => name.includes(needle))
-    .sort((left, right) => Number(!left.name.startsWith(needle)) - Number(!right.name.startsWith(needle)) || left.index - right.index)
-    .slice(0, Math.max(1, limit))
-    .map(({ bottle }) => bottle);
+  return rankBottleCatalog(createBottleSearchIndex(catalog), query, limit);
 }
 
 export function approvedStoreFromGeography(entry: {

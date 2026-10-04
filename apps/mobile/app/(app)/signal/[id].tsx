@@ -1,7 +1,9 @@
+import { ErrorState } from "../../../src/components/MemberScreen";
+import { useScreenRevalidation } from "../../../src/hooks/useScreenRevalidation";
 import { Stack, useLocalSearchParams } from "expo-router";
 import * as SecureStore from "expo-secure-store";
-import { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, Linking, Platform, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { ActivityIndicator, Linking, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
 import { MobileApiError } from "../../../src/api/client";
 import { presentSignal, signalMemberTagLabel } from "../../../src/api/presentation";
 import type { HuntOutcome, MemberPreferences, Signal } from "../../../src/api/types";
@@ -9,7 +11,7 @@ import { useMobileApi } from "../../../src/hooks/useMobileApi";
 import { addSignalBottleToCollection } from "../../../src/interactions/member-interactions";
 import { bottleWatchMutation } from "../../../src/radar/radar-preferences";
 import { bottleProfileState } from "../../../src/signals/bottle-profile";
-import { colors } from "../../../src/theme";
+import { colors, typeScale, fonts } from "../../../src/theme";
 import { huntOutcomePromptStorageKey, shouldOfferHuntOutcomePrompt } from "../../../src/signals/hunt-outcome-prompt";
 
 const HUNT_OUTCOMES: ReadonlyArray<{ value: HuntOutcome; label: string }> = [
@@ -33,21 +35,28 @@ export default function SignalDetailScreen() {
   const [savingHuntOutcome, setSavingHuntOutcome] = useState(false);
   const [huntOutcomeError, setHuntOutcomeError] = useState("");
 
-  useEffect(() => {
-    let active = true;
+  const sequence = useRef(0);
+  const [refreshing, setRefreshing] = useState(false);
+  const load = useCallback(async (fresh = false) => {
     if (!id) return;
-    void api.getSignal(id).then(result => {
-      if (active) { setSignal(result.signal); setError(""); }
-    }).catch(caught => {
-      if (active) setError(caught instanceof MobileApiError ? caught.message : "This Signal is temporarily unavailable.");
-    });
-    void api.getMemberPreferences().then(result => {
-      if (active) { setPreferences(result); setPreferencesError(""); }
-    }).catch(() => {
-      if (active) setPreferencesError("Member actions are temporarily unavailable. Pull to refresh from Radar or My Shelf and retry.");
-    });
-    return () => { active = false; };
+    const request = ++sequence.current;
+    setRefreshing(true);
+    await Promise.allSettled([
+      api.getSignal(id, { fresh }).then(result => {
+        if (request === sequence.current) { setSignal(result.signal); setError(""); }
+      }).catch(caught => {
+        if (request === sequence.current) setError(caught instanceof MobileApiError ? caught.message : "This Signal is temporarily unavailable.");
+      }),
+      api.getMemberPreferences({ fresh }).then(result => {
+        if (request === sequence.current) { setPreferences(result); setPreferencesError(""); }
+      }).catch(() => {
+        if (request === sequence.current) setPreferencesError("Member actions couldn’t refresh. Try again here.");
+      }),
+    ]);
+    if (request === sequence.current) setRefreshing(false);
   }, [api, id]);
+  useEffect(() => { setSignal(null); setError(""); void load(); return () => { sequence.current += 1; }; }, [load]);
+  useScreenRevalidation(load);
 
   useEffect(() => {
     let active = true;
@@ -133,10 +142,10 @@ export default function SignalDetailScreen() {
     }
   }
 
-  return <ScrollView contentContainerStyle={styles.container}>
+  return <ScrollView contentContainerStyle={styles.container} refreshControl={<RefreshControl refreshing={refreshing && Boolean(signal)} onRefresh={() => void load(true)} tintColor={colors.accent} />}>
     <Stack.Screen options={{ title: "Bottle Profile" }} />
     {!signal && !error ? <ActivityIndicator color={colors.accent} /> : null}
-    {error ? <Text accessibilityRole="alert" style={styles.error}>{error}</Text> : null}
+    {error ? <ErrorState message={error} onRetry={() => void load(true)} /> : null}
     {signal ? <>
       <Text style={styles.title}>{signal.bottle.name}</Text>
       <View accessibilityLabel="Bottle Profile" style={styles.profileCard}>
@@ -154,7 +163,7 @@ export default function SignalDetailScreen() {
           {presented?.reporter ? <Text style={styles.reporter}>Reported by {presented.reporter}</Text> : null}
           {memberTag ? <View style={styles.memberTag}><Text style={styles.memberTagText}>{memberTag}</Text></View> : null}
           {!presented?.reporter && !memberTag ? <Text style={styles.source}>Community report</Text> : null}
-          {signal?.source.actor?.badges?.length?<View style={{flexDirection:"row",flexWrap:"wrap",gap:8}}>{signal.source.actor.badges.map(badge=><Text key={badge} style={{color:colors.accent,fontSize:12}}>{badge}</Text>)}</View>:null}
+          {signal?.source.actor?.badges?.length?<View style={{flexDirection:"row",flexWrap:"wrap",gap:8}}>{signal.source.actor.badges.map(badge=><Text key={badge} style={{color:colors.accent,fontSize: typeScale.small}}>{badge}</Text>)}</View>:null}
         </View> : <Text style={styles.source}>{signal.source.label}</Text>}
         <Detail label="Location" value={presented?.address || presented?.location || signal.location.state || "Location not specified"} />
         <Detail label="Observed" value={new Date(signal.timing.displayAt).toLocaleString()} />
@@ -183,7 +192,7 @@ export default function SignalDetailScreen() {
           {huntOutcomeError ? <Text accessibilityRole="alert" style={styles.error}>{huntOutcomeError}</Text> : null}
         </>}
       </View> : null}
-      {preferencesError ? <Text accessibilityRole="alert" style={styles.error}>{preferencesError}</Text> : null}
+      {preferencesError ? <ErrorState message={preferencesError} onRetry={() => void load(true)} /> : null}
     </> : null}
   </ScrollView>;
 }
@@ -193,7 +202,7 @@ function Detail({ label, value }: { label: string; value: string }) { return <Vi
 function ProfileDetail({ label, value }: { label: string; value: string }) { return <View style={styles.profileDetail}><Text style={styles.profileLabel}>{label}</Text><Text numberOfLines={2} style={styles.profileValue}>{value}</Text></View>; }
 
 const styles = StyleSheet.create({
-  container: { flexGrow: 1, padding: 22, paddingBottom: 42, gap: 18, backgroundColor: colors.background }, source: { color: colors.accent, fontSize: 12, fontWeight: "700", letterSpacing: 0.8, textTransform: "uppercase" }, authorRow: { minHeight: 28, flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 8 }, reporter: { color: colors.text, fontSize: 14, lineHeight: 19, fontWeight: "700" }, memberTag: { backgroundColor: colors.surfaceRaised, borderColor: colors.border, borderWidth: 1, borderRadius: 999, paddingHorizontal: 9, paddingVertical: 5 }, memberTagText: { color: colors.text, fontSize: 10, lineHeight: 13, fontWeight: "800", letterSpacing: 0.4 }, title: { color: colors.text, fontSize: 30, fontWeight: "800" }, sectionTitle: { color: colors.text, fontSize: 18, lineHeight: 23, fontWeight: "800" }, profileCard: { gap: 12, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface, padding: 15 }, profileGrid: { flexDirection: "row", flexWrap: "wrap", rowGap: 13 }, profileDetail: { width: "50%", gap: 3, paddingRight: 8 }, profileLabel: { color: colors.muted, fontSize: 10, fontWeight: "700", letterSpacing: 0.6, textTransform: "uppercase" }, profileValue: { color: colors.text, fontSize: 14, lineHeight: 19, fontWeight: "700" }, signalSection: { gap: 14, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border, paddingTop: 18 }, detail: { gap: 5 }, label: { color: colors.muted, fontSize: 12, textTransform: "uppercase", letterSpacing: 0.7 }, value: { color: colors.text, fontSize: 16, lineHeight: 23 }, error: { color: colors.danger, fontSize: 13, lineHeight: 18 }, disclaimer: { color: colors.muted, fontSize: 12, lineHeight: 18, marginTop: 4 },
-  actions: { gap: 10, marginTop: 4 }, actionsTitle: { color: colors.text, fontSize: 18, fontWeight: "800" }, action: { minHeight: 50, borderColor: colors.accent, borderWidth: 1, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: colors.surface }, actionPressed: { backgroundColor: colors.surfaceRaised }, actionDisabled: { borderColor: colors.border }, actionText: { color: colors.accent, fontSize: 14, fontWeight: "800" }, actionTextDisabled: { color: colors.muted },
-  huntOutcome: { gap: 10, marginTop: 8, borderTopColor: colors.border, borderTopWidth: StyleSheet.hairlineWidth, paddingTop: 18 }, huntOutcomeTitle: { color: colors.text, fontSize: 18, fontWeight: "800" }, huntOutcomeDetail: { color: colors.muted, fontSize: 12, lineHeight: 18 }, huntOutcomeChoices: { flexDirection: "row", flexWrap: "wrap", gap: 8 }, huntOutcomeChoice: { minHeight: 44, justifyContent: "center", borderColor: colors.border, borderWidth: 1, borderRadius: 999, backgroundColor: colors.surface, paddingHorizontal: 12 }, huntOutcomeChoiceActive: { borderColor: colors.accent, backgroundColor: colors.surfaceRaised }, huntOutcomeChoiceText: { color: colors.text, fontSize: 12, fontWeight: "700" }, huntOutcomeSaved: { minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 }, huntOutcomeSavedText: { flex: 1, color: colors.muted, fontSize: 13 }, huntOutcomeSavedValue: { color: colors.text, fontWeight: "800" }, huntOutcomeEdit: { minHeight: 44, justifyContent: "center", paddingHorizontal: 8 }, huntOutcomeEditText: { color: colors.accent, fontWeight: "800" },
+  container: { flexGrow: 1, padding: 22, paddingBottom: 42, gap: 18, backgroundColor: colors.background }, source: { color: colors.accent, fontSize: typeScale.small, fontWeight: "700", letterSpacing: 0.8, textTransform: "uppercase" }, authorRow: { minHeight: 28, flexDirection: "row", alignItems: "center", flexWrap: "wrap", gap: 8 }, reporter: { color: colors.text, fontSize: typeScale.body, lineHeight: 19, fontWeight: "700" }, memberTag: { backgroundColor: colors.surfaceRaised, borderColor: colors.border, borderWidth: 1, borderRadius: 999, paddingHorizontal: 9, paddingVertical: 5 }, memberTagText: { color: colors.text, fontSize: typeScale.caption, lineHeight: 13, fontWeight: "800", letterSpacing: 0.4 }, title: { color: colors.text, fontSize: typeScale.title, fontFamily: fonts.heading, fontWeight: "700" }, sectionTitle: { color: colors.text, fontSize: typeScale.subheading, lineHeight: 23, fontWeight: "800" }, profileCard: { gap: 12, borderRadius: 16, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface, padding: 15 }, profileGrid: { flexDirection: "row", flexWrap: "wrap", rowGap: 13 }, profileDetail: { width: "50%", gap: 3, paddingRight: 8 }, profileLabel: { color: colors.muted, fontSize: typeScale.caption, fontWeight: "700", letterSpacing: 0.6, textTransform: "uppercase" }, profileValue: { color: colors.text, fontSize: typeScale.body, lineHeight: 19, fontWeight: "700" }, signalSection: { gap: 14, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border, paddingTop: 18 }, detail: { gap: 5 }, label: { color: colors.muted, fontSize: typeScale.small, textTransform: "uppercase", letterSpacing: 0.7 }, value: { color: colors.text, fontSize: typeScale.input, lineHeight: 23 }, error: { color: colors.danger, fontSize: typeScale.small, lineHeight: 18 }, disclaimer: { color: colors.muted, fontSize: typeScale.small, lineHeight: 18, marginTop: 4 },
+  actions: { gap: 10, marginTop: 4 }, actionsTitle: { color: colors.text, fontSize: typeScale.subheading, fontWeight: "800" }, action: { minHeight: 50, borderColor: colors.accent, borderWidth: 1, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: colors.surface }, actionPressed: { backgroundColor: colors.surfaceRaised }, actionDisabled: { borderColor: colors.border }, actionText: { color: colors.accent, fontSize: typeScale.body, fontWeight: "800" }, actionTextDisabled: { color: colors.muted },
+  huntOutcome: { gap: 10, marginTop: 8, borderTopColor: colors.border, borderTopWidth: StyleSheet.hairlineWidth, paddingTop: 18 }, huntOutcomeTitle: { color: colors.text, fontSize: typeScale.subheading, fontWeight: "800" }, huntOutcomeDetail: { color: colors.muted, fontSize: typeScale.small, lineHeight: 18 }, huntOutcomeChoices: { flexDirection: "row", flexWrap: "wrap", gap: 8 }, huntOutcomeChoice: { minHeight: 44, justifyContent: "center", borderColor: colors.border, borderWidth: 1, borderRadius: 999, backgroundColor: colors.surface, paddingHorizontal: 12 }, huntOutcomeChoiceActive: { borderColor: colors.accent, backgroundColor: colors.surfaceRaised }, huntOutcomeChoiceText: { color: colors.text, fontSize: typeScale.small, fontWeight: "700" }, huntOutcomeSaved: { minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 }, huntOutcomeSavedText: { flex: 1, color: colors.muted, fontSize: typeScale.small }, huntOutcomeSavedValue: { color: colors.text, fontWeight: "800" }, huntOutcomeEdit: { minHeight: 44, justifyContent: "center", paddingHorizontal: 8 }, huntOutcomeEditText: { color: colors.accent, fontWeight: "800" },
 });

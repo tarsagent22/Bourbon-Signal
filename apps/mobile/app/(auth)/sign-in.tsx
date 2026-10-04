@@ -2,7 +2,7 @@ import { useAuth, useSignIn } from "@clerk/expo";
 import { Redirect, useRouter } from "expo-router";
 import { useEffect, useState } from "react";
 import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
-import { colors } from "../../src/theme";
+import { colors, typeScale, fonts } from "../../src/theme";
 import { useAccessibleStatus } from "../../src/hooks/useAccessibleStatus";
 
 type VerificationStrategy = "email_code" | "phone_code" | "totp" | "backup_code";
@@ -133,10 +133,10 @@ const styles = StyleSheet.create({
   container: { flex: 1, justifyContent: "center", backgroundColor: colors.background, padding: 26, gap: 38 },
   center: { flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: colors.background },
   configuration: { flex: 1, justifyContent: "center", backgroundColor: colors.background, padding: 28, gap: 12 },
-  brand: { gap: 10 }, eyebrow: { color: colors.accent, fontSize: 12, fontWeight: "700", letterSpacing: 1.4 },
-  title: { color: colors.text, fontSize: 36, fontWeight: "800" }, subtitle: { color: colors.muted, fontSize: 16, lineHeight: 24 },
-  form: { gap: 14 }, input: { minHeight: 52, borderWidth: 1, borderColor: colors.border, borderRadius: 12, backgroundColor: colors.surface, color: colors.text, paddingHorizontal: 16, fontSize: 16 },
+  brand: { gap: 10 }, eyebrow: { color: colors.accent, fontSize: typeScale.small, fontWeight: "700", letterSpacing: 1.4 },
+  title: {fontFamily: fonts.heading,  color: colors.text, fontSize: typeScale.title, fontWeight: "700" }, subtitle: { color: colors.muted, fontSize: typeScale.input, lineHeight: 24 },
+  form: { gap: 14 }, input: { minHeight: 52, borderWidth: 1, borderColor: colors.border, borderRadius: 12, backgroundColor: colors.surface, color: colors.text, paddingHorizontal: 16, fontSize: typeScale.input },
   error: { color: colors.danger, lineHeight: 20 }, button: { minHeight: 52, justifyContent: "center", alignItems: "center", borderRadius: 12, backgroundColor: colors.accent },
-  buttonPressed: { backgroundColor: colors.accentPressed }, disabled: { opacity: 0.6 }, buttonText: { color: "#1B1208", fontSize: 16, fontWeight: "800" },
-  linkButton: { minHeight: 44, alignItems: "center", justifyContent: "center" }, linkText: { color: colors.accent, fontSize: 15, fontWeight: "800" },
+  buttonPressed: { backgroundColor: colors.accentPressed }, disabled: { opacity: 0.6 }, buttonText: { color: "#1B1208", fontSize: typeScale.input, fontWeight: "800" },
+  linkButton: { minHeight: 44, alignItems: "center", justifyContent: "center" }, linkText: { color: colors.accent, fontSize: typeScale.input, fontWeight: "800" },
 });

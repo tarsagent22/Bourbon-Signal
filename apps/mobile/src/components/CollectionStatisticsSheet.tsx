@@ -3,7 +3,7 @@ import { AccessibilityInfo, findNodeHandle, Modal, Platform, Pressable, ScrollVi
 import { SafeAreaView } from 'react-native-safe-area-context';
 import type { MemberCollectionBottle } from '../api/types';
 import { collectionInventoryLabel, formatCollectionRating, type collectionStatistics } from '../interactions/member-interactions';
-import { colors } from '../theme';
+import { colors, typeScale, fonts } from '../theme';
 
 type Statistics = ReturnType<typeof collectionStatistics>;
 export function CollectionStatisticsSheet({ visible, statistics, ranked, onClose, onDismiss }: {
@@ -44,5 +44,5 @@ function Stat({label,value,detail}:{label:string;value:string;detail?:string}) {
   return <View accessible style={styles.row}><Text style={styles.label}>{label}</Text><Text style={styles.value}>{value}</Text>{detail ? <Text style={styles.copy}>{detail}</Text> : null}</View>;
 }
 const styles=StyleSheet.create({
-  frame:{flex:1,backgroundColor:colors.background},header:{paddingHorizontal:20,paddingVertical:8,flexDirection:'row',alignItems:'center',gap:12},title:{flex:1,color:colors.text,fontSize:21,fontWeight:'600'},close:{minHeight:44,minWidth:44,justifyContent:'center'},closeText:{color:colors.accent,fontSize:16},content:{paddingHorizontal:20,paddingBottom:32,gap:16},row:{gap:5,paddingVertical:8,borderBottomWidth:StyleSheet.hairlineWidth,borderBottomColor:colors.border},label:{color:colors.text,fontSize:16,fontWeight:'500'},value:{color:colors.accent,fontSize:22},copy:{color:colors.muted,fontSize:14,lineHeight:21},sectionTitle:{color:colors.text,fontSize:22,fontWeight:'600',paddingTop:12},
+  frame:{flex:1,backgroundColor:colors.background},header:{paddingHorizontal:20,paddingVertical:8,flexDirection:'row',alignItems:'center',gap:12},title: {fontFamily: fonts.heading, flex:1,color:colors.text,fontSize: typeScale.title,fontWeight:'600'},close:{minHeight:44,minWidth:44,justifyContent:'center'},closeText:{color:colors.accent,fontSize: typeScale.input},content:{paddingHorizontal:20,paddingBottom:32,gap:16},row:{gap:5,paddingVertical:8,borderBottomWidth:StyleSheet.hairlineWidth,borderBottomColor:colors.border},label:{color:colors.text,fontSize: typeScale.input,fontWeight:'500'},value:{color:colors.accent,fontSize:22},copy:{color:colors.muted,fontSize: typeScale.body,lineHeight:21},sectionTitle:{color:colors.text,fontSize:22,fontWeight:'600',paddingTop:12},
 });

@@ -17,7 +17,7 @@ import {
   MemberCard,
   memberScreenStyles,
 } from "../../../src/components/MemberScreen";
-import { colors } from "../../../src/theme";
+import { colors, typeScale } from "../../../src/theme";
 export default function ProfileScreen() {
   const api = useMobileApi();
   const sequence = useRef(0);
@@ -186,7 +186,7 @@ export default function ProfileScreen() {
   );
 }
 const styles = StyleSheet.create({
-  muted: { color: colors.muted, fontSize: 14, lineHeight: 20 },
+  muted: { color: colors.muted, fontSize: typeScale.body, lineHeight: 20 },
   settingSummary: {
     flexDirection: "row",
     alignItems: "flex-start",
@@ -194,10 +194,10 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   settingCopy: { flex: 1, gap: 3 },
-  settingLabel: { color: colors.muted, fontSize: 12, fontWeight: "700" },
+  settingLabel: { color: colors.muted, fontSize: typeScale.small, fontWeight: "700" },
   settingValue: {
     color: colors.text,
-    fontSize: 18,
+    fontSize: typeScale.subheading,
     lineHeight: 23,
     fontWeight: "800",
   },
@@ -211,7 +211,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-  editButtonText: { color: colors.accent, fontSize: 13, fontWeight: "800" },
+  editButtonText: { color: colors.accent, fontSize: typeScale.small, fontWeight: "800" },
   nameEditor: {
     gap: 9,
     paddingTop: 8,
@@ -226,9 +226,9 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
     color: colors.text,
     paddingHorizontal: 13,
-    fontSize: 16,
+    fontSize: typeScale.input,
   },
-  characterCount: { color: colors.muted, fontSize: 12, textAlign: "right" },
+  characterCount: { color: colors.muted, fontSize: typeScale.small, textAlign: "right" },
   nameActions: {
     flexDirection: "row",
     justifyContent: "flex-end",
@@ -245,7 +245,7 @@ const styles = StyleSheet.create({
   },
   primaryButtonText: {
     color: colors.background,
-    fontSize: 14,
+    fontSize: typeScale.body,
     fontWeight: "900",
   },
   secondaryButton: {
@@ -257,9 +257,9 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     paddingHorizontal: 12,
   },
-  secondaryButtonText: { color: colors.text, fontSize: 13, fontWeight: "700" },
-  error: { color: colors.danger, fontSize: 14, lineHeight: 20 },
-  success: { color: colors.success, fontSize: 14, lineHeight: 20 },
+  secondaryButtonText: { color: colors.text, fontSize: typeScale.small, fontWeight: "700" },
+  error: { color: colors.danger, fontSize: typeScale.body, lineHeight: 20 },
+  success: { color: colors.success, fontSize: typeScale.body, lineHeight: 20 },
   pressed: { opacity: 0.72 },
   primaryPressed: { backgroundColor: colors.accentPressed },
   disabled: { opacity: 0.45 },

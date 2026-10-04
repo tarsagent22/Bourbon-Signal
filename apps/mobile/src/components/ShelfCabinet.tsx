@@ -1,3 +1,4 @@
+import { fonts, typeScale } from "../theme";
 import { useMemo, useState } from 'react';
 import { Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import type { MemberCollectionBottle } from '../api/types';
@@ -56,11 +57,11 @@ const styles = StyleSheet.create({
   showcase: { backgroundColor: '#181410', borderRadius: 16, paddingTop: 14, paddingBottom: 8, borderWidth: StyleSheet.hairlineWidth, borderColor: '#30271f' },
   heading: { paddingHorizontal: 16, paddingBottom: 4, flexDirection: 'row', alignItems: 'center', gap: 8 },
   headingCopy: { flex: 1 },
-  title: { color: '#f3ece2', fontFamily: Platform.select({ ios: 'Georgia', android: 'serif' }), fontSize: 17, lineHeight: 23 },
+  title: { color: '#f3ece2', fontFamily: fonts.bottle, fontSize: typeScale.subheading, lineHeight: 24 },
   tabs: { flexDirection: 'row', flexWrap: 'wrap', gap: 4, paddingHorizontal: 12, marginTop: 0, marginBottom: 0 },
   tab: { minHeight: 44, paddingHorizontal: 8, justifyContent: 'center', borderBottomWidth: 1, borderBottomColor: 'transparent' },
   selectedTab: { borderBottomColor: '#b88a51' },
-  tabText: { color: '#b9aa98', fontSize: 11, lineHeight: 17 },
+  tabText: { color: '#b9aa98', fontSize: typeScale.caption, lineHeight: 17 },
   selectedText: { color: '#e4b16a', fontWeight: '600' },
   stage: { position: 'relative', paddingHorizontal: 12, paddingTop: 10 },
   backPanel: { position: 'absolute', top: 8, bottom: 6, left: 12, right: 12, backgroundColor: '#201912', borderTopLeftRadius: 8, borderTopRightRadius: 8, borderWidth: StyleSheet.hairlineWidth, borderColor: '#35281b' },
@@ -73,8 +74,8 @@ const styles = StyleSheet.create({
   ledgeHighlight: { height: 1, marginHorizontal: 2, backgroundColor: 'rgba(225,176,110,0.32)' },
   names: { flexDirection: 'row', justifyContent: 'center', alignItems: 'flex-start', paddingHorizontal: 12, marginTop: 8 },
   nameSlot: { flex: 1, maxWidth: '33.333%', minHeight: 44, paddingHorizontal: 2 },
-  bottleName: { color: '#e8dfd2', fontFamily: Platform.select({ ios: 'Georgia', android: 'serif' }), fontSize: 11, lineHeight: 15, textAlign: 'center' },
+  bottleName: { color: '#e8dfd2', fontFamily: fonts.bottle, fontSize: typeScale.caption, lineHeight: 15, textAlign: 'center' },
   empty: { paddingHorizontal: 28, paddingVertical: 32, gap: 8, alignItems: 'center' },
-  emptyTitle: { color: '#f3ece2', fontFamily: Platform.select({ ios: 'Georgia', android: 'serif' }), fontSize: 19, textAlign: 'center' },
-  emptyCopy: { color: '#b9aa98', fontSize: 13, lineHeight: 20, textAlign: 'center' },
+  emptyTitle: { color: '#f3ece2', fontFamily: fonts.bottle, fontSize: typeScale.section, textAlign: 'center' },
+  emptyCopy: { color: '#b9aa98', fontSize: typeScale.small, lineHeight: 20, textAlign: 'center' },
 });

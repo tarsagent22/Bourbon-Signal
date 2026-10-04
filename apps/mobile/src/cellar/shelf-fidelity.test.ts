@@ -15,8 +15,8 @@ test('fidelity controls use real four-square/list icons, inline counts and respo
   assert.match(page, /fontScale/);
   assert.doesNotMatch(page, /"▦"|"☷"/);
 });
-test('fidelity cards use platform serif and expandable consistent title zones', () => {
-  assert.match(page, /fontFamily: Platform\.select\(/);
+test('fidelity cards use shared bottle serif and expandable consistent title zones', () => {
+  assert.match(page, /fontFamily: fonts\.bottle/);
   assert.match(page, /styles\.tileTitleZone/);
   assert.match(page, /paddingHorizontal: 10, paddingTop: 0/);
 });

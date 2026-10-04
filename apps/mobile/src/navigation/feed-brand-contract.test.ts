@@ -8,7 +8,7 @@ const tabs = readFileSync(resolve(process.cwd(), "app/(app)/(tabs)/_layout.tsx")
 test("Home header uses the Bourbon Signal brand font and a real alert-inbox action", () => {
   assert.match(tabs, /name="index" options=\{\{ title: "Home"/);
   assert.match(tabs, /headerTitleAlign: "left"/);
-  assert.match(tabs, /fontFamily: "Fraunces_700Bold"/);
+  assert.match(tabs, /fontFamily: fonts\.heading/);
   assert.match(tabs, /Bourbon Signal/);
   assert.match(tabs, /accessibilityLabel="Open alert inbox"/);
   assert.match(tabs, /name="bell-outline"/);

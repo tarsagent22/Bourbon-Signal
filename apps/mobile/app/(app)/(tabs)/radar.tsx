@@ -1,3 +1,4 @@
+import { useBottleCatalog } from "../../../src/hooks/useBottleCatalog";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { Keyboard, KeyboardAvoidingView, Linking, Modal, Platform, Pressable, RefreshControl, ScrollView, Share, StyleSheet, Switch, Text, TextInput, View } from "react-native";
@@ -14,7 +15,7 @@ import { ALERT_RARITY_TIERS, alertIsStale, compactWatchedBottles, memberAlertBot
 import { radarPushState, type PushRecoveryAction } from "../../../src/radar/radar-push-state";
 import { disableRadarPush, enableRadarPush, radarPushDeviceId, radarPushPermission, refreshRadarPushIfEnabled, watchRadarPushToken } from "../../../src/push/push-registration";
 import { signalRouteForRequestedAlert } from "../../../src/push/push-navigation";
-import { colors } from "../../../src/theme";
+import { colors, typeScale, fonts } from "../../../src/theme";
 
 import { partitionRadarAlerts, radarLocationSummary, radarSetupNeeded } from "../../../src/radar/radar-presentation";
 
@@ -40,7 +41,9 @@ export default function RadarScreen() {
   const [preferences, setPreferences] = useState<MemberPreferences | null>(null);
   const [profile, setProfile] = useState<MemberProfile | null>(null);
   const [alerts, setAlerts] = useState<{ alerts: MemberAlert[]; unreadCount: number }>({ alerts: [], unreadCount: 0 });
-  const [catalog, setCatalog] = useState<RadarBottleOption[]>([]);
+  const bottleCatalog = useBottleCatalog();
+  const [sectionError, setSectionError] = useState("");
+  const [alertsLoadFailed, setAlertsLoadFailed] = useState(false);
   const [pushStatus, setPushStatus] = useState<PushDeviceStatus | null>(null);
   const [pushPermission, setPushPermission] = useState("undetermined");
   const [pushBusy, setPushBusy] = useState(false);
@@ -69,22 +72,25 @@ export default function RadarScreen() {
     const preferenceMutationAtStart = preferenceMutationEpoch.current;
     setLoading(true); setError("");
     try {
-      let [nextPreferences, nextAlerts, nextProfile, nextCatalog] = await Promise.all([
+      const results = await Promise.allSettled([
         api.getMemberPreferences({ fresh }).then(value => { if (sequence === loadSequence.current && preferenceMutationAtStart === preferenceMutationEpoch.current) setPreferences(value); return value; }),
         api.getMemberAlerts({ fresh }).then(value => { if (sequence === loadSequence.current) setAlerts(value); return value; }),
         api.getMemberProfile({ fresh }).then(value => { if (sequence === loadSequence.current) setProfile(value); return value; }),
-        api.listRadarBottles({ fresh }).then(value => { if (sequence === loadSequence.current) setCatalog(value); return value; }),
       ]);
       if (sequence !== loadSequence.current) return;
-      if (preferenceMutationAtStart === preferenceMutationEpoch.current) {
+      setAlertsLoadFailed(results[1].status === "rejected");
+      setSectionError([results[1].status === "rejected" ? "Alerts couldn’t refresh." : "", results[2].status === "rejected" ? "Membership details couldn’t refresh." : ""].filter(Boolean).join(" "));
+      let nextPreferences = results[0].status === "fulfilled" ? results[0].value : null;
+      if (!nextPreferences) setError("Alert preferences couldn’t refresh. Try again.");
+      if (sequence !== loadSequence.current) return;
+      if (nextPreferences && preferenceMutationAtStart === preferenceMutationEpoch.current) {
         if (!nextPreferences.notificationPreferences.onSite.enabled) {
           nextPreferences = await api.updateMemberPreferences({ notificationPreferences: { onSite: { enabled: true } } });
           if (sequence !== loadSequence.current || preferenceMutationAtStart !== preferenceMutationEpoch.current) return;
         }
         setPreferences(nextPreferences);
       }
-      setAlerts(nextAlerts); setProfile(nextProfile); setCatalog(nextCatalog);
-      if (!initialDestinationChosen.current) {
+      if (nextPreferences && !initialDestinationChosen.current) {
         initialDestinationChosen.current = true;
         if (requestedSection !== "matches" && radarSetupNeeded(nextPreferences)) setView("settings");
       }
@@ -131,11 +137,7 @@ export default function RadarScreen() {
   }, [api]);
   const watchedKeys = useMemo(() => new Set((preferences?.bottleAlertPreferences.bottleKeys || []).map(canonicalBottleKey)), [preferences]);
   const watchedNames = preferences?.bottleAlertPreferences.bottleNames || [];
-  const searchResults = useMemo(() => {
-    const needle = query.trim().toLowerCase();
-    if (!needle) return [];
-    return catalog.filter((bottle) => bottle.name.toLowerCase().includes(needle)).slice(0, 30);
-  }, [catalog, query]);
+  const searchResults = useMemo(() => bottleCatalog.search(query, 30), [bottleCatalog.search, query]);
   const activeAlerts = alerts.alerts.filter((alert) => !alert.archivedAt);
   const pushPresentation = radarPushState({ status: pushStatus, permission: pushPermission, preferenceEnabled: Boolean(preferences?.notificationPreferences.push.enabled), error: pushError, statusLoadFailed: pushStatusLoadFailed, failedAction: pushFailedAction });
   const pushReadiness = pushPresentation.readiness;
@@ -221,10 +223,12 @@ export default function RadarScreen() {
       <TextAction label="FIX" onPress={() => { setFocusNotifications(true); setView("settings"); screenScroll.current?.scrollTo({ y: 0, animated: false }); }} />
     </View> : null}
     {error ? <ErrorState message={error} onRetry={() => void load(true)} /> : null}
+    {sectionError ? <ErrorState message={sectionError} onRetry={() => void load(true)} /> : null}
+    {view === "settings" && bottleCatalog.error ? <ErrorState message={bottleCatalog.error} onRetry={bottleCatalog.retry} /> : null}
     {saveNotice ? <Text accessibilityLiveRegion="polite" style={styles.fresh}>{saveNotice}</Text> : null}
     {actionError ? <Text accessibilityRole="alert" style={styles.error}>{actionError}</Text> : null}
 
-    {view === "matches" ? <MatchesView alerts={activeAlerts} saving={saving} watchedNames={watchedNames} onMutate={mutateAlert} setupNeeded={radarSetupNeeded(preferences)} onOpenWatchlist={() => setView("settings")} /> : null}
+    {view === "matches" && (!alertsLoadFailed || activeAlerts.length > 0) ? <MatchesView alerts={activeAlerts} saving={saving} watchedNames={watchedNames} onMutate={mutateAlert} setupNeeded={radarSetupNeeded(preferences)} onOpenWatchlist={() => setView("settings")} /> : null}
     {view === "settings" ? <WatchlistView
       onNotificationsLayout={(y) => { if (focusNotifications) { screenScroll.current?.scrollTo({ y: preferencesY.current + y, animated: true }); setFocusNotifications(false); } }}
       pushRecoveryAction={pushRecoveryAction}
@@ -475,20 +479,20 @@ const styles = StyleSheet.create({
   stateList: { padding: 18, gap: 12 },
   locationSummary: { minHeight: 64, padding: 16, borderRadius: 12, backgroundColor: colors.surface, flexDirection: "row", alignItems: "center", gap: 12 },
   compactNotice: { minHeight: 48, flexDirection: "row", alignItems: "center", gap: 12, paddingHorizontal: 14, borderRadius: 12, backgroundColor: colors.surface },
-  noticeText: { color: colors.accent, fontSize: 13, lineHeight: 18 },
+  noticeText: { color: colors.accent, fontSize: typeScale.small, lineHeight: 18 },
   emptyAlerts: { minHeight: 60, alignItems: "center", justifyContent: "center", gap: 12, paddingVertical: 16 },
-  emptyTitle: { color: colors.muted, fontSize: 18, lineHeight: 24, fontWeight: "600", textAlign: "center" },
+  emptyTitle: { color: colors.muted, fontSize: typeScale.subheading, lineHeight: 24, fontWeight: "600", textAlign: "center" },
   historyRow: { minHeight: 56, flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border },
   preferences: { gap: 28 },
-  chevron: { color: colors.accent, fontSize: 24 },
+  chevron: { color: colors.accent, fontSize: typeScale.title, fontFamily: fonts.heading },
   tabs: { flexDirection: "row", padding: 3, borderRadius: 13, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface, gap: 3 },
-  tab: { flex: 1, minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 7, borderRadius: 10, paddingHorizontal: 5 }, tabSelected: { backgroundColor: colors.surfaceRaised }, tabText: { color: colors.muted, fontSize: 12, fontWeight: "700", textAlign: "center" }, tabTextSelected: { color: colors.text },
+  tab: { flex: 1, minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 7, borderRadius: 10, paddingHorizontal: 5 }, tabSelected: { backgroundColor: colors.surfaceRaised }, tabText: { color: colors.muted, fontSize: typeScale.small, fontWeight: "700", textAlign: "center" }, tabTextSelected: { color: colors.text },
   section: { gap: 12 }, stack: { gap: 6 }, headingRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 12 }, alertHeading: { flexDirection: "row", justifyContent: "space-between", gap: 12 }, flex: { flex: 1, gap: 3 },
-  cardTitle: { color: colors.text, fontSize: 16, lineHeight: 21, fontWeight: "700", flex: 1 }, listTitle: { color: colors.text, fontSize: 14, lineHeight: 19, fontWeight: "700" }, location: { color: colors.text, fontSize: 14, lineHeight: 19 }, muted: { color: colors.muted, fontSize: 12, lineHeight: 17 }, bottleSummary: { color: colors.accent, fontSize: 12, lineHeight: 17, fontWeight: "600" }, fresh: { color: colors.success, fontSize: 11, fontWeight: "700" }, stale: { color: colors.muted, fontSize: 11, fontWeight: "700" }, priority: { color: colors.accent, fontSize: 10, fontWeight: "800", letterSpacing: 1 },
-  rowActions: { flexWrap: "wrap", flexDirection: "row", justifyContent: "flex-end", gap: 8 }, smallButton: { minHeight: 44, minWidth: 84, paddingHorizontal: 14, alignItems: "center", justifyContent: "center", borderRadius: 10, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border }, smallButtonPrimary: { backgroundColor: colors.accent, borderColor: colors.accent }, smallButtonText: { color: colors.accent, fontSize: 12, fontWeight: "800" }, smallButtonTextPrimary: { color: colors.background },
-  compactRow: { minHeight: 48, flexDirection: "row", alignItems: "center", gap: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border, paddingHorizontal: 2, paddingVertical: 7 }, input: { minHeight: 46, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface, color: colors.text, paddingHorizontal: 14, fontSize: 16 },
-  chips: { flexDirection: "row", flexWrap: "wrap", gap: 8 }, chip: { minWidth: 46, minHeight: 44, alignItems: "center", justifyContent: "center", paddingHorizontal: 11, borderRadius: 11, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface }, chipSelected: { borderColor: colors.accentPressed, backgroundColor: "#2A1F13" }, chipText: { color: colors.muted, fontSize: 13, fontWeight: "700" }, chipTextSelected: { color: colors.accent },
-  choiceRow: { flexDirection: "row", gap: 8 }, choice: { flex: 1, minHeight: 46, alignItems: "center", justifyContent: "center", borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, paddingHorizontal: 10 }, choiceSelected: { borderColor: colors.accentPressed, backgroundColor: "#2A1F13" }, choiceText: { color: colors.muted, fontSize: 12, fontWeight: "700", textAlign: "center" }, choiceTextSelected: { color: colors.accent },
+  cardTitle: { color: colors.text, fontSize: typeScale.input, lineHeight: 21, fontWeight: "700", flex: 1 }, listTitle: { color: colors.text, fontSize: typeScale.body, lineHeight: 19, fontWeight: "700" }, location: { color: colors.text, fontSize: typeScale.body, lineHeight: 19 }, muted: { color: colors.muted, fontSize: typeScale.small, lineHeight: 17 }, bottleSummary: { color: colors.accent, fontSize: typeScale.small, lineHeight: 17, fontWeight: "600" }, fresh: { color: colors.success, fontSize: typeScale.caption, fontWeight: "700" }, stale: { color: colors.muted, fontSize: typeScale.caption, fontWeight: "700" }, priority: { color: colors.accent, fontSize: typeScale.caption, fontWeight: "800", letterSpacing: 1 },
+  rowActions: { flexWrap: "wrap", flexDirection: "row", justifyContent: "flex-end", gap: 8 }, smallButton: { minHeight: 44, minWidth: 84, paddingHorizontal: 14, alignItems: "center", justifyContent: "center", borderRadius: 10, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border }, smallButtonPrimary: { backgroundColor: colors.accent, borderColor: colors.accent }, smallButtonText: { color: colors.accent, fontSize: typeScale.small, fontWeight: "800" }, smallButtonTextPrimary: { color: colors.background },
+  compactRow: { minHeight: 48, flexDirection: "row", alignItems: "center", gap: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border, paddingHorizontal: 2, paddingVertical: 7 }, input: { minHeight: 46, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface, color: colors.text, paddingHorizontal: 14, fontSize: typeScale.input },
+  chips: { flexDirection: "row", flexWrap: "wrap", gap: 8 }, chip: { minWidth: 46, minHeight: 44, alignItems: "center", justifyContent: "center", paddingHorizontal: 11, borderRadius: 11, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface }, chipSelected: { borderColor: colors.accentPressed, backgroundColor: "#2A1F13" }, chipText: { color: colors.muted, fontSize: typeScale.small, fontWeight: "700" }, chipTextSelected: { color: colors.accent },
+  choiceRow: { flexDirection: "row", gap: 8 }, choice: { flex: 1, minHeight: 46, alignItems: "center", justifyContent: "center", borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, paddingHorizontal: 10 }, choiceSelected: { borderColor: colors.accentPressed, backgroundColor: "#2A1F13" }, choiceText: { color: colors.muted, fontSize: typeScale.small, fontWeight: "700", textAlign: "center" }, choiceTextSelected: { color: colors.accent },
   modalScreen: { flex: 1, backgroundColor: colors.background }, modalKeyboard: { flex: 1 }, modalHeader: { minHeight: 70, paddingHorizontal: 18, paddingTop: 8, paddingBottom: 10, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border, flexDirection: "row", alignItems: "center", gap: 12 }, modalTitle: { color: colors.text, fontSize: 21, lineHeight: 26, fontWeight: "800", flexShrink: 1 }, modalBody: { flex: 1, paddingHorizontal: 18, paddingTop: 12, gap: 10 }, resultsList: { flex: 1 }, resultsContent: { gap: 8, paddingBottom: 14 }, levelScroller: { flexGrow: 0, maxHeight: 46, flexShrink: 0 }, levelRow: { gap: 8, paddingVertical: 1 }, levelChip: { minHeight: 44, paddingHorizontal: 13, alignItems: "center", justifyContent: "center", borderRadius: 11, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border }, pinnedActions: { minHeight: 62, paddingHorizontal: 18, paddingVertical: 10, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border, backgroundColor: colors.surface, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 16 },
-  toggleRow: { minHeight: 56, flexDirection: "row", alignItems: "center", gap: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border }, textActionButton: { minHeight: 44, alignSelf: "flex-start", justifyContent: "center", paddingHorizontal: 2 }, textAction: { color: colors.accent, fontSize: 10, fontWeight: "800", letterSpacing: 0.5 }, dangerAction: { color: colors.danger }, quietAction: { color: colors.muted }, error: { color: colors.danger, fontSize: 13, lineHeight: 18 }, phoneSummary: { minHeight: 48, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 }, locationChoices: { gap: 9, paddingTop: 4 }, undoRow: { minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, paddingHorizontal: 2 }, manageRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border, paddingTop: 8 }, areaEditor: { gap: 7, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border, paddingTop: 10 }, areaRow: { minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, borderRadius: 10, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, paddingHorizontal: 12, paddingVertical: 7 }, areaRowSelected: { borderColor: colors.accentPressed, backgroundColor: "#2A1F13" }, areaRowText: { flex: 1, color: colors.text, fontSize: 13, lineHeight: 18, fontWeight: "600" }, areaSubtitle: { color: colors.muted, fontSize: 11, lineHeight: 15 }, scopeGuidance: { color: colors.muted, fontSize: 11, lineHeight: 15, paddingHorizontal: 2 }, areaState: { color: colors.muted, fontSize: 9, fontWeight: "800", letterSpacing: 0.4 }, areaStateSelected: { color: colors.accent }, selectedOverflow: { color: colors.muted, fontSize: 11, lineHeight: 16, textAlign: "center", paddingVertical: 4 }, disabled: { opacity: 0.45 }, pressed: { opacity: 0.65 },
+  toggleRow: { minHeight: 56, flexDirection: "row", alignItems: "center", gap: 12, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border }, textActionButton: { minHeight: 44, alignSelf: "flex-start", justifyContent: "center", paddingHorizontal: 2 }, textAction: { color: colors.accent, fontSize: typeScale.caption, fontWeight: "800", letterSpacing: 0.5 }, dangerAction: { color: colors.danger }, quietAction: { color: colors.muted }, error: { color: colors.danger, fontSize: typeScale.small, lineHeight: 18 }, phoneSummary: { minHeight: 48, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12 }, locationChoices: { gap: 9, paddingTop: 4 }, undoRow: { minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, paddingHorizontal: 2 }, manageRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border, paddingTop: 8 }, areaEditor: { gap: 7, borderTopWidth: StyleSheet.hairlineWidth, borderTopColor: colors.border, paddingTop: 10 }, areaRow: { minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, borderRadius: 10, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, paddingHorizontal: 12, paddingVertical: 7 }, areaRowSelected: { borderColor: colors.accentPressed, backgroundColor: "#2A1F13" }, areaRowText: { flex: 1, color: colors.text, fontSize: typeScale.small, lineHeight: 18, fontWeight: "600" }, areaSubtitle: { color: colors.muted, fontSize: typeScale.caption, lineHeight: 15 }, scopeGuidance: { color: colors.muted, fontSize: typeScale.caption, lineHeight: 15, paddingHorizontal: 2 }, areaState: { color: colors.muted, fontSize: typeScale.micro, fontWeight: "800", letterSpacing: 0.4 }, areaStateSelected: { color: colors.accent }, selectedOverflow: { color: colors.muted, fontSize: typeScale.caption, lineHeight: 16, textAlign: "center", paddingVertical: 4 }, disabled: { opacity: 0.45 }, pressed: { opacity: 0.65 },
 });

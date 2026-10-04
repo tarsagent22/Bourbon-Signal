@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from "react-native";
 import { useMobileApi } from "../src/hooks/useMobileApi";
 import { MobileApiError } from "../src/api/client";
-import { colors } from "../src/theme";
+import { colors, typeScale } from "../src/theme";
 
 type Destination = "app" | "onboarding" | null;
 
@@ -62,7 +62,7 @@ function Loading() {
 
 const styles = StyleSheet.create({
   center: { flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: colors.background, gap: 16, padding: 24 },
-  error: { color: colors.danger, fontSize: 14, lineHeight: 20, textAlign: "center" },
+  error: { color: colors.danger, fontSize: typeScale.body, lineHeight: 20, textAlign: "center" },
   retry: { minHeight: 48, minWidth: 140, alignItems: "center", justifyContent: "center", borderRadius: 12, backgroundColor: colors.accent },
-  retryText: { color: colors.background, fontSize: 15, fontWeight: "900" },
+  retryText: { color: colors.background, fontSize: typeScale.input, fontWeight: "900" },
 });

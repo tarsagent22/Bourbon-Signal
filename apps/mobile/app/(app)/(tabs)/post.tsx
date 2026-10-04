@@ -1,21 +1,25 @@
+import { useFormDraft } from "../../../src/hooks/useFormDraft";
+import { DraftNotice } from "../../../src/components/DraftNotice";
+import { useBottleCatalog } from "../../../src/hooks/useBottleCatalog";
+import { ErrorState } from "../../../src/components/MemberScreen";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useAuth } from '@clerk/expo';
 import { useRouter } from "expo-router";
 import * as Crypto from "expo-crypto";
 import * as SecureStore from "expo-secure-store";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { ActivityIndicator, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { ActivityIndicator, Alert, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { MobileApiError } from "../../../src/api/client";
 import type { GeographySearchResponse, MemberProfile, RadarBottleOption } from "../../../src/api/types";
 import { MemberCard, memberScreenStyles } from "../../../src/components/MemberScreen";
 import { useMobileApi } from "../../../src/hooks/useMobileApi";
 import { useAccessibleStatus } from '../../../src/hooks/useAccessibleStatus';
 import { createSightingIdempotencyKey, parseSightingDraftBinding, serializeSightingDraftBinding, SIGHTING_IDEMPOTENCY_STORAGE_KEY, type SightingDraftBinding } from "../../../src/sightings/manual-sighting";
-import { approvedStoreFromGeography, buildPostSignalPreview, buildPostSightingSubmission, filterBottleSuggestions, isPostRequiredComplete, POST_QUANTITY_CHOICES, type PostSignalPreview, type PostStoreSelection } from "../../../src/sightings/post-composer";
+import { approvedStoreFromGeography, buildPostSignalPreview, buildPostSightingSubmission, isPostRequiredComplete, POST_QUANTITY_CHOICES, type PostSignalPreview, type PostStoreSelection } from "../../../src/sightings/post-composer";
 import { type SightingPhotoAsset } from "../../../src/sightings/sighting-photo";
 import { type PhotoJournalEntry } from "../../../src/sightings/photo-journal";
 import { chooseSightingPhoto, discardSightingPhoto, sightingPhotoBlob, nativePhotoJournal, retainSightingPhoto, type SightingPhotoSource } from "../../../src/sightings/sighting-photo-native";
-import { colors } from "../../../src/theme";
+import { colors, typeScale, fonts } from "../../../src/theme";
 
 type ActivePicker = "bottle" | "store" | null;
 type GeographyResult = GeographySearchResponse["results"][number];
@@ -32,7 +36,7 @@ function PostComposer({ userId }: { userId: string }) {
   const draftStorageKey = `${SIGHTING_IDEMPOTENCY_STORAGE_KEY}.${userId}`;
   const [profile, setProfile] = useState<MemberProfile["profile"] | null>(null);
   const [loadingProfile, setLoadingProfile] = useState(true);
-  const [bottleCatalog, setBottleCatalog] = useState<RadarBottleOption[]>([]);
+  const bottleCatalog = useBottleCatalog();
   const [bottleName, setBottleName] = useState("");
   const [bottleId, setBottleId] = useState<string | null>(null);
   const [activePicker, setActivePicker] = useState<ActivePicker>(null);
@@ -45,6 +49,8 @@ function PostComposer({ userId }: { userId: string }) {
   const [manualStore, setManualStore] = useState(false);
   const [storeResults, setStoreResults] = useState<PostStoreSelection[]>([]);
   const [storeSearching, setStoreSearching] = useState(false);
+  const [storeSearchError, setStoreSearchError] = useState("");
+  const [storeSearchAttempt, setStoreSearchAttempt] = useState(0);
   const [price, setPrice] = useState("");
   const [quantity, setQuantity] = useState("");
   const [customQuantity, setCustomQuantity] = useState(false);
@@ -61,6 +67,22 @@ function PostComposer({ userId }: { userId: string }) {
   const draftBinding = useRef<SightingDraftBinding | null>(null);
   const storeSearchSequence = useRef(0);
 
+  const draftDefaults = { bottleName: "", bottleId: "", storeName: "", storeAddress: "", storeCity: "", storeState: "", storeZip: "", selectedStoreId: "", manualStore: false, price: "", quantity: "", customQuantity: false, notes: "" };
+  const draft = useFormDraft({ owner: userId, form: "post", defaults: draftDefaults,
+    fields: { bottleName, bottleId: bottleId || "", storeName, storeAddress, storeCity, storeState, storeZip, selectedStoreId: selectedStore?.id || "", manualStore, price, quantity, customQuantity, notes },
+    restore: value => {
+      setBottleName(value.bottleName); setBottleId(value.bottleId || null); setStoreName(value.storeName); setStoreAddress(value.storeAddress); setStoreCity(value.storeCity); setStoreState(value.storeState); setStoreZip(value.storeZip);
+      setSelectedStore(value.selectedStoreId ? { id: value.selectedStoreId, name: value.storeName, address: value.storeAddress, city: value.storeCity, state: value.storeState, zip: value.storeZip } : null);
+      setManualStore(value.manualStore); setPrice(value.price); setQuantity(value.quantity); setCustomQuantity(value.customQuantity); setNotes(value.notes);
+    },
+  });
+  function discardDraft() {
+    Alert.alert("Discard this draft?", "Your unfinished text will be removed from this device.", [
+      { text: "Keep editing", style: "cancel" },
+      { text: "Discard", style: "destructive", onPress: () => { void draft.discard().catch(() => undefined); } },
+    ]);
+  }
+
   useEffect(() => {
     let active = true;
     void api.getMemberProfile()
@@ -69,9 +91,6 @@ function PostComposer({ userId }: { userId: string }) {
         if (active) setError(caught instanceof MobileApiError && caught.status === 401 ? "Your session could not be verified. Return to Signals and retry." : caught instanceof Error ? caught.message : "Posting access is temporarily unavailable.");
       })
       .finally(() => { if (active) setLoadingProfile(false); });
-    void api.listRadarBottles().then(bottles => { if (active) setBottleCatalog(bottles); }).catch(() => {
-      // Manual bottle entry stays available; the server validates identity and rarity.
-    });
     return () => { active = false; };
   }, [api]);
 
@@ -94,9 +113,9 @@ function PostComposer({ userId }: { userId: string }) {
   }, [draftStorageKey, journal]);
 
   const canSubmit = profile?.entitlements.canSubmitSignals === true;
-  const bottleSuggestions = useMemo(() => filterBottleSuggestions(bottleCatalog, bottleName), [bottleCatalog, bottleName]);
+  const bottleSuggestions = useMemo(() => bottleCatalog.search(bottleName, 5), [bottleCatalog.search, bottleName]);
   const requiredComplete = useMemo(() => isPostRequiredComplete({ bottleName, storeName, storeAddress, storeCity, storeState }), [bottleName, storeAddress, storeCity, storeName, storeState]);
-  const selectedBottleRarity = useMemo(() => bottleCatalog.find((bottle) => bottle.id === bottleId)?.rarity, [bottleCatalog, bottleId]);
+  const selectedBottleRarity = useMemo(() => bottleCatalog.catalog.find((bottle) => bottle.id === bottleId)?.rarity, [bottleCatalog.catalog, bottleId]);
   const preview = useMemo(() => buildPostSignalPreview({
     bottleName,
     bottleRarity: selectedBottleRarity,
@@ -119,20 +138,21 @@ function PostComposer({ userId }: { userId: string }) {
       setStoreSearching(false);
       return;
     }
+    setStoreSearchError("");
     const sequence = ++storeSearchSequence.current;
+    setStoreSearching(true);
     const timer = setTimeout(() => {
-      setStoreSearching(true);
       api.searchMonitoringGeography({ levels: ["store"], query, limit: 6 })
         .then((response) => response.results.flatMap((entry: GeographyResult) => {
           const store = approvedStoreFromGeography(entry);
           return store ? [store] : [];
         }))
         .then((results) => { if (storeSearchSequence.current === sequence) setStoreResults(results); })
-        .catch(() => { if (storeSearchSequence.current === sequence) setStoreResults([]); })
+        .catch(() => { if (storeSearchSequence.current === sequence) setStoreSearchError("Store search couldn’t connect. Try again or enter the store manually."); })
         .finally(() => { if (storeSearchSequence.current === sequence) setStoreSearching(false); });
     }, 250);
-    return () => clearTimeout(timer);
-  }, [activePicker, api, canSubmit, manualStore, selectedStore, storeName]);
+    return () => { clearTimeout(timer); if (storeSearchSequence.current === sequence) storeSearchSequence.current += 1; };
+  }, [activePicker, api, canSubmit, manualStore, selectedStore, storeName, storeSearchAttempt]);
 
   function changeBottleName(value: string) {
     setBottleName(value);
@@ -185,6 +205,7 @@ function PostComposer({ userId }: { userId: string }) {
   }
 
   function resetComposer() {
+    void draft.clear().catch(() => undefined);
     setBottleName(""); setBottleId(null); setStoreName(""); setStoreAddress(""); setStoreCity(""); setStoreState(""); setStoreZip("");
     setSelectedStore(null); setManualStore(false); setStoreResults([]); setPrice(""); setQuantity(""); setCustomQuantity(false); setNotes(""); setActivePicker(null);
   }
@@ -319,7 +340,9 @@ function PostComposer({ userId }: { userId: string }) {
         {loadingProfile ? <ActivityIndicator color={colors.accent} /> : null}
         {!loadingProfile && profile && !canSubmit ? <MemberCard><Text style={styles.blockedTitle}>Posting is not included with this membership</Text><Text style={styles.help}>Account shows the membership attached to this account.</Text></MemberCard> : null}
         {canSubmit ? <View style={styles.composer}>
+          {!pendingPhotoAttachment ? <DraftNotice hasContent={draft.hasContent} notice={draft.notice} error={draft.error} onDiscard={discardDraft} /> : null}
           <ComposerSection icon="bottle-tonic-outline" title="Choose a bottle" required>
+            {bottleCatalog.error ? <ErrorState message={bottleCatalog.error} onRetry={bottleCatalog.retry} /> : null}
             <Field autoCapitalize="words" autoCorrect={false} label="Bottle" onChangeText={changeBottleName} onFocus={() => setActivePicker("bottle")} placeholder="Search bottle catalog" value={bottleName} />
             {bottleId ? <SelectionNote icon="check-circle-outline" text="Catalog bottle selected" /> : bottleName.trim() ? <Text style={styles.helper}>Can’t find it? Keep the bottle name exactly as entered.</Text> : null}
             {activePicker === "bottle" && bottleName.trim().length >= 2 && !bottleId ? <SuggestionList empty="No catalog match. You can still use this name.">
@@ -333,6 +356,8 @@ function PostComposer({ userId }: { userId: string }) {
               <Field autoCapitalize="words" autoCorrect={false} label="Store" onChangeText={changeStoreName} onFocus={() => setActivePicker("store")} placeholder="Search retailer, city, or address" value={storeName} />
               {selectedStore ? <View style={styles.selectedStore}><View style={styles.selectionCopy}><Text style={styles.selectionTitle}>{selectedStore.name}</Text><Text style={styles.selectionSubtitle}>{selectedStore.city}, {selectedStore.state} · {selectedStore.address}</Text></View><Pressable accessibilityLabel="Change selected retailer" accessibilityRole="button" hitSlop={8} onPress={() => { changeStoreName(""); setActivePicker("store"); }}><Text style={styles.textAction}>CHANGE</Text></Pressable></View> : null}
               {activePicker === "store" && storeName.trim().length >= 2 && !selectedStore ? <SuggestionList empty={storeSearching ? undefined : "No approved retailer match yet."} loading={storeSearching}>
+                {storeSearchError ? <ErrorState message={storeSearchError} onRetry={() => setStoreSearchAttempt(value => value + 1)} /> : null}
+                {!storeSearching && !storeSearchError && storeName.trim().length >= 2 && !storeResults.length ? <Text style={styles.helper}>No matching stores. Try another name or enter the store manually.</Text> : null}
                 {storeResults.map((store) => <SuggestionRow key={`${store.state}:${store.id}`} onPress={() => chooseStore(store)} subtitle={`${store.city}, ${store.state} · ${store.address}`} title={store.name} />)}
               </SuggestionList> : null}
               {!selectedStore ? <Pressable accessibilityRole="button" onPress={startManualStore} style={({ pressed }) => [styles.manualAction, pressed && styles.pressed]}><MaterialCommunityIcons color={colors.accent} name="pencil-outline" size={16} /><Text style={styles.manualActionText}>Enter store manually</Text></Pressable> : null}
@@ -428,92 +453,92 @@ const styles = StyleSheet.create({
   scroll: { flex: 1 },
   content: { ...memberScreenStyles.content, paddingTop: 15, paddingBottom: 28, gap: 20 },
   postIntro: { gap: 6 },
-  introTitle: { color: colors.text, fontFamily: "Fraunces_700Bold", fontSize: 31, lineHeight: 35, letterSpacing: -0.45 },
-  introDescription: { color: colors.muted, fontSize: 13, lineHeight: 19 },
-  blockedTitle: { color: colors.text, fontSize: 16, fontWeight: "700" },
-  help: { color: colors.muted, fontSize: 13, lineHeight: 19 },
+  introTitle: { color: colors.text, fontFamily: fonts.heading, fontSize: 31, lineHeight: 35, letterSpacing: -0.45 },
+  introDescription: { color: colors.muted, fontSize: typeScale.small, lineHeight: 19 },
+  blockedTitle: { color: colors.text, fontSize: typeScale.input, fontWeight: "700" },
+  help: { color: colors.muted, fontSize: typeScale.small, lineHeight: 19 },
   composer: { gap: 18 },
   section: { gap: 10 },
   sectionHeading: { minHeight: 24, flexDirection: "row", alignItems: "center", gap: 8 },
-  sectionTitle: { flex: 1, color: colors.text, fontSize: 15, fontWeight: "800" },
-  required: { color: colors.muted, fontSize: 9, fontWeight: "800", letterSpacing: 0.9 },
+  sectionTitle: { flex: 1, color: colors.text, fontSize: typeScale.input, fontWeight: "800" },
+  required: { color: colors.muted, fontSize: typeScale.micro, fontWeight: "800", letterSpacing: 0.9 },
   divider: { height: StyleSheet.hairlineWidth, backgroundColor: colors.border, marginVertical: 2 },
   field: { gap: 6, flex: 1 },
-  label: { color: colors.muted, fontSize: 11, fontWeight: "700" },
-  input: { minHeight: 44, borderColor: colors.border, borderWidth: 1, borderRadius: 11, backgroundColor: colors.background, color: colors.text, fontSize: 15, paddingHorizontal: 12, paddingVertical: 9 },
+  label: { color: colors.muted, fontSize: typeScale.caption, fontWeight: "700" },
+  input: { minHeight: 44, borderColor: colors.border, borderWidth: 1, borderRadius: 11, backgroundColor: colors.background, color: colors.text, fontSize: typeScale.input, paddingHorizontal: 12, paddingVertical: 9 },
   multiline: { minHeight: 72, textAlignVertical: "top" },
-  helper: { color: colors.muted, fontSize: 11, lineHeight: 16 },
+  helper: { color: colors.muted, fontSize: typeScale.caption, lineHeight: 16 },
   row: { flexDirection: "row", alignItems: "flex-start", gap: 9 },
   city: { flex: 3 },
   state: { flex: 1, minWidth: 72 },
   suggestions: { borderColor: colors.border, borderWidth: 1, borderRadius: 11, overflow: "hidden", backgroundColor: colors.background, minHeight: 42, justifyContent: "center" },
   suggestionRow: { minHeight: 48, paddingHorizontal: 11, paddingVertical: 8, flexDirection: "row", alignItems: "center", gap: 8, borderBottomColor: colors.border, borderBottomWidth: StyleSheet.hairlineWidth },
-  suggestionTitle: { color: colors.text, fontSize: 13, fontWeight: "700" },
-  suggestionSubtitle: { color: colors.muted, fontSize: 11, lineHeight: 15 },
-  suggestionEmpty: { color: colors.muted, fontSize: 11, lineHeight: 16, padding: 11 },
+  suggestionTitle: { color: colors.text, fontSize: typeScale.small, fontWeight: "700" },
+  suggestionSubtitle: { color: colors.muted, fontSize: typeScale.caption, lineHeight: 15 },
+  suggestionEmpty: { color: colors.muted, fontSize: typeScale.caption, lineHeight: 16, padding: 11 },
   pressed: { backgroundColor: colors.surfaceRaised },
   selectionNote: { flexDirection: "row", alignItems: "center", gap: 5 },
-  selectionNoteText: { color: colors.success, fontSize: 11, fontWeight: "700" },
+  selectionNoteText: { color: colors.success, fontSize: typeScale.caption, fontWeight: "700" },
   selectedStore: { borderColor: colors.accent, borderWidth: StyleSheet.hairlineWidth, borderRadius: 11, padding: 11, flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: colors.surfaceRaised },
   selectionCopy: { flex: 1, gap: 2 },
-  selectionTitle: { color: colors.text, fontSize: 13, fontWeight: "800" },
-  selectionSubtitle: { color: colors.muted, fontSize: 11, lineHeight: 15 },
-  textAction: { color: colors.accent, fontSize: 10, fontWeight: "900", letterSpacing: 0.6 },
+  selectionTitle: { color: colors.text, fontSize: typeScale.small, fontWeight: "800" },
+  selectionSubtitle: { color: colors.muted, fontSize: typeScale.caption, lineHeight: 15 },
+  textAction: { color: colors.accent, fontSize: typeScale.caption, fontWeight: "900", letterSpacing: 0.6 },
   manualAction: { minHeight: 38, alignSelf: "flex-start", borderRadius: 9, flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 9, marginLeft: -9 },
-  manualActionText: { color: colors.accent, fontSize: 12, fontWeight: "800" },
+  manualActionText: { color: colors.accent, fontSize: typeScale.small, fontWeight: "800" },
   manualHeading: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10 },
   priceField: { gap: 6 },
   priceInput: { minHeight: 44, borderColor: colors.border, borderWidth: 1, borderRadius: 11, backgroundColor: colors.background, flexDirection: "row", alignItems: "center", paddingHorizontal: 12 },
-  currency: { color: colors.text, fontSize: 15, fontWeight: "700" },
-  priceTextInput: { flex: 1, color: colors.text, fontSize: 15, paddingHorizontal: 7, paddingVertical: 9 },
+  currency: { color: colors.text, fontSize: typeScale.input, fontWeight: "700" },
+  priceTextInput: { flex: 1, color: colors.text, fontSize: typeScale.input, paddingHorizontal: 7, paddingVertical: 9 },
   chips: { flexDirection: "row", flexWrap: "wrap", gap: 7 },
   chip: { minWidth: 46, minHeight: 36, borderColor: colors.border, borderWidth: 1, borderRadius: 18, alignItems: "center", justifyContent: "center", paddingHorizontal: 12, backgroundColor: colors.background },
   chipActive: { borderColor: colors.accent, backgroundColor: colors.surfaceRaised },
-  chipText: { color: colors.muted, fontSize: 12, fontWeight: "700" },
+  chipText: { color: colors.muted, fontSize: typeScale.small, fontWeight: "700" },
   chipTextActive: { color: colors.accent },
   photoEvidence: { gap: 10, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth, borderRadius: 13, backgroundColor: colors.surfaceRaised, padding: 12 },
   photoHeading: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 10 },
   photoTitleRow: { flexDirection: "row", alignItems: "center", gap: 7 },
-  photoTitle: { color: colors.text, fontSize: 13, fontWeight: "800" },
-  photoOptional: { color: colors.muted, fontSize: 9, fontWeight: "800", letterSpacing: 0.9 },
+  photoTitle: { color: colors.text, fontSize: typeScale.small, fontWeight: "800" },
+  photoOptional: { color: colors.muted, fontSize: typeScale.micro, fontWeight: "800", letterSpacing: 0.9 },
   photoActions: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   photoAction: { minHeight: 40, borderColor: colors.border, borderWidth: 1, borderRadius: 10, backgroundColor: colors.background, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 7, paddingHorizontal: 12 },
-  photoActionText: { color: colors.text, fontSize: 12, fontWeight: "800" },
+  photoActionText: { color: colors.text, fontSize: typeScale.small, fontWeight: "800" },
   photoPreviewWrap: { gap: 9 },
   photoPreview: { width: "100%", height: 178, borderRadius: 11, backgroundColor: colors.background },
   photoRemove: { minHeight: 40, borderRadius: 10, alignItems: "center", justifyContent: "center", paddingHorizontal: 12 },
-  photoRemoveText: { color: colors.danger, fontSize: 12, fontWeight: "800" },
-  photoMessage: { color: colors.accent, fontSize: 11, lineHeight: 16 },
-  photoDisclosure: { color: colors.muted, fontSize: 10, lineHeight: 15 },
+  photoRemoveText: { color: colors.danger, fontSize: typeScale.small, fontWeight: "800" },
+  photoMessage: { color: colors.accent, fontSize: typeScale.caption, lineHeight: 16 },
+  photoDisclosure: { color: colors.muted, fontSize: typeScale.caption, lineHeight: 15 },
 
   previewSection: { gap: 8, marginTop: 2 },
   previewHeading: { gap: 3 },
-  previewHeadingText: { color: colors.accent, fontSize: 10, lineHeight: 14, fontWeight: "900", letterSpacing: 1.05 },
-  previewHelp: { color: colors.muted, fontSize: 11, lineHeight: 15 },
+  previewHeadingText: { color: colors.accent, fontSize: typeScale.caption, lineHeight: 14, fontWeight: "900", letterSpacing: 1.05 },
+  previewHelp: { color: colors.muted, fontSize: typeScale.caption, lineHeight: 15 },
   previewCard: { backgroundColor: "#1A1B1D", borderColor: "#3E4146", borderWidth: StyleSheet.hairlineWidth, borderRadius: 16, paddingHorizontal: 14, paddingVertical: 12, gap: 5.5 },
   previewTopline: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, marginBottom: 1 },
   previewSourceRow: { flexDirection: "row", alignItems: "center", gap: 7, flexShrink: 1 },
-  previewSource: { color: "#B8BDC5", fontSize: 10, lineHeight: 14, fontWeight: "900", letterSpacing: 1.05 },
+  previewSource: { color: "#B8BDC5", fontSize: typeScale.caption, lineHeight: 14, fontWeight: "900", letterSpacing: 1.05 },
   previewKeyline: { width: 1, height: 11, backgroundColor: "#3E4146" },
-  previewContext: { color: "#A9ADB4", fontSize: 9, lineHeight: 13, fontWeight: "800", letterSpacing: 0.8 },
-  previewTime: { color: colors.muted, fontSize: 11, lineHeight: 15, fontWeight: "600" },
-  previewBottle: { color: colors.text, fontSize: 19, lineHeight: 24, fontWeight: "700", letterSpacing: -0.2 },
-  previewStore: { color: colors.text, fontSize: 14, lineHeight: 19, fontWeight: "600" },
-  previewGeography: { color: colors.muted, fontSize: 12, lineHeight: 17, fontWeight: "500" },
+  previewContext: { color: "#A9ADB4", fontSize: typeScale.micro, lineHeight: 13, fontWeight: "800", letterSpacing: 0.8 },
+  previewTime: { color: colors.muted, fontSize: typeScale.caption, lineHeight: 15, fontWeight: "600" },
+  previewBottle: { color: colors.text, fontSize: typeScale.section, lineHeight: 24, fontWeight: "700", letterSpacing: -0.2 },
+  previewStore: { color: colors.text, fontSize: typeScale.body, lineHeight: 19, fontWeight: "600" },
+  previewGeography: { color: colors.muted, fontSize: typeScale.small, lineHeight: 17, fontWeight: "500" },
   previewMetaRow: { minHeight: 20, flexDirection: "row", alignItems: "center", gap: 9, marginTop: 1 },
   previewMetaDivider: { width: 3, height: 3, borderRadius: 2, backgroundColor: colors.border },
-  previewPrice: { color: colors.text, fontSize: 13, lineHeight: 18, fontWeight: "700" },
-  previewQuantity: { color: colors.muted, fontSize: 12, lineHeight: 17, fontWeight: "600", flexShrink: 1 },
-  previewNote: { color: colors.muted, fontSize: 12, lineHeight: 17, marginTop: 1 },
-  previewReporter: { color: colors.muted, fontSize: 11, lineHeight: 15, fontWeight: "600", marginTop: 1 },
-  error: { color: colors.danger, fontSize: 12, lineHeight: 18 },
-  success: { color: colors.success, fontSize: 12, lineHeight: 18 },
-  disclaimer: { color: colors.muted, fontSize: 10, lineHeight: 15 },
+  previewPrice: { color: colors.text, fontSize: typeScale.small, lineHeight: 18, fontWeight: "700" },
+  previewQuantity: { color: colors.muted, fontSize: typeScale.small, lineHeight: 17, fontWeight: "600", flexShrink: 1 },
+  previewNote: { color: colors.muted, fontSize: typeScale.small, lineHeight: 17, marginTop: 1 },
+  previewReporter: { color: colors.muted, fontSize: typeScale.caption, lineHeight: 15, fontWeight: "600", marginTop: 1 },
+  error: { color: colors.danger, fontSize: typeScale.small, lineHeight: 18 },
+  success: { color: colors.success, fontSize: typeScale.small, lineHeight: 18 },
+  disclaimer: { color: colors.muted, fontSize: typeScale.caption, lineHeight: 15 },
   actionFooter: { borderTopColor: colors.border, borderTopWidth: StyleSheet.hairlineWidth, backgroundColor: colors.surface, paddingHorizontal: 18, paddingTop: 10, paddingBottom: 10, gap: 6 },
-  actionHint: { color: colors.muted, fontSize: 10, textAlign: "center" },
+  actionHint: { color: colors.muted, fontSize: typeScale.caption, textAlign: "center" },
   submit: { minHeight: 48, borderRadius: 12, backgroundColor: colors.accent, flexDirection: "row", gap: 7, alignItems: "center", justifyContent: "center" },
   submitDisabled: { backgroundColor: colors.surfaceRaised, borderColor: colors.border, borderWidth: 1 },
   submitPressed: { backgroundColor: colors.accentPressed },
-  submitText: { color: colors.background, fontSize: 14, fontWeight: "900" },
+  submitText: { color: colors.background, fontSize: typeScale.body, fontWeight: "900" },
   submitTextDisabled: { color: colors.muted },
 });

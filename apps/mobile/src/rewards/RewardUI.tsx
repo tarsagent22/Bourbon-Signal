@@ -3,7 +3,7 @@ import type { ComponentProps, ReactNode } from "react";
 import { Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { badgeCatalog } from "./badge-catalog";
 import { badgeFamily } from "./reward-model";
-import { colors } from "../theme";
+import { colors, fonts, typeScale } from "../theme";
 
 export const rewardStyles = StyleSheet.create({
   page: { padding: 20, paddingBottom: 44, gap: 20 },
@@ -16,13 +16,13 @@ export const rewardStyles = StyleSheet.create({
     borderColor: colors.border,
   },
   hero: { borderColor: colors.accent, backgroundColor: colors.surfaceRaised },
-  title: { color: colors.text, fontSize: 24, fontWeight: "800" },
-  heading: { color: colors.text, fontSize: 19, fontWeight: "800" },
-  text: { color: colors.text, fontSize: 15, lineHeight: 22 },
-  muted: { color: colors.muted, fontSize: 14, lineHeight: 21 },
+  title: { color: colors.text, fontFamily: fonts.heading, fontSize: typeScale.title, lineHeight: 40, fontWeight: "700" },
+  heading: { color: colors.text, fontSize: typeScale.section, fontWeight: "700" },
+  text: { color: colors.text, fontSize: typeScale.input, lineHeight: 22 },
+  muted: { color: colors.muted, fontSize: typeScale.body, lineHeight: 21 },
   label: {
     color: colors.accent,
-    fontSize: 11,
+    fontSize: typeScale.caption,
     letterSpacing: 1.5,
     fontWeight: "800",
   },

@@ -1,3 +1,5 @@
+import { feedRetryAction } from "../../../src/signals/feed-recovery";
+import { EmptyState } from "../../../src/components/MemberScreen";
 import MaterialCommunityIcons from "@expo/vector-icons/MaterialCommunityIcons";
 import { useAuth } from "@clerk/expo";
 import { router, useFocusEffect } from "expo-router";
@@ -9,11 +11,11 @@ import type { MemberProfile, Signal, SignalFeedPage } from "../../../src/api/typ
 import { SignalCard } from "../../../src/components/SignalCard";
 import { useMobileApi } from "../../../src/hooks/useMobileApi";
 import { useScreenRevalidation } from "../../../src/hooks/useScreenRevalidation";
-import { DEFAULT_SIGNAL_FILTERS, areaOptionsForState, areaSelectorLabel, filterSignalsByRarity, normalizedFilters, rarityOptionsForView, serverSignalFilters, shouldBackfillRarity, toggleRarity, type SignalFeedFilters } from "../../../src/signals/feed-filters";
+import { DEFAULT_SIGNAL_FILTERS, activeFilterCount, areaOptionsForState, areaSelectorLabel, filterSignalsByRarity, normalizedFilters, rarityOptionsForView, serverSignalFilters, shouldBackfillRarity, toggleRarity, type SignalFeedFilters } from "../../../src/signals/feed-filters";
 import { acceptQueuedSignals, reconcileDisplayedSignals, reconcileQueuedSignals } from "../../../src/signals/home-feed-live";
 import { homeBrowsingStorageKey, loadHomeBrowsingPreferences, saveHomeBrowsingPreferences } from "../../../src/signals/home-browsing-preferences";
 import { PushMaintenance, PushResponseHandler } from "../../../src/push/PushResponseHandler";
-import { colors } from "../../../src/theme";
+import { colors, typeScale } from "../../../src/theme";
 
 type FeedView = "market" | "community";
 
@@ -590,13 +592,14 @@ export default function SignalFeedScreen() {
           ? <View style={styles.message}><Text accessibilityRole="alert" style={styles.error}>{error}</Text><Pressable accessibilityRole="button" onPress={() => load(true)} style={styles.retryTarget}><Text style={styles.retry}>Try again</Text></Pressable></View>
           : filters.rarities.length && loading
             ? <View style={styles.message}><Text style={styles.loadingText}>Finding more matching Signals…</Text></View>
-            : <Text style={styles.empty}>{filters.rarities.length
-              ? view === "community" ? "No member sightings match these tiers." : "No Intel Signals match these tiers right now."
-              : view === "community" ? "No member sightings yet." : "No fresh Intel Signals are available right now."}</Text>}
+            : <EmptyState title={view === "community" ? "No member sightings yet" : "No fresh Intel Signals are available right now"}
+              detail={activeFilterCount(filters) ? "Try a broader search or clear your filters." : view === "community" ? "Share what you spotted to help nearby members." : "New Signals will appear here as they arrive."}
+              actionLabel={activeFilterCount(filters) ? "Clear filters" : view === "community" ? "Post a sighting" : "Refresh feed"}
+              onAction={() => { if (activeFilterCount(filters)) { setBottleQueries(current => ({ ...current, [view]: "" })); applyFilters({ ...DEFAULT_SIGNAL_FILTERS }); } else if (view === "community") router.push("/(app)/(tabs)/post"); else void load(true); }} />}
       ListFooterComponent={loaded && loading
         ? <View style={styles.footer}><Text style={styles.loadingText}>Loading…</Text></View>
         : error && signals.length
-          ? <View style={styles.footer}><Text accessibilityRole="alert" style={styles.footerError}>{error}</Text><Pressable accessibilityRole="button" onPress={() => load(false)} style={styles.retryTarget}><Text style={styles.retry}>Try again</Text></Pressable></View>
+          ? <View style={styles.footer}><Text accessibilityRole="alert" style={styles.footerError}>{error}</Text><Pressable accessibilityRole="button" onPress={() => load(feedRetryAction(hasMore).refresh)} style={styles.retryTarget}><Text style={styles.retry}>{feedRetryAction(hasMore).label}</Text></Pressable></View>
           : loaded && filters.rarities.length > 0 && hasMore
             ? <View style={styles.footer}><Pressable accessibilityRole="button" onPress={() => load(false)} style={styles.retryTarget}><Text style={styles.retry}>Load more matching Signals</Text></Pressable></View>
             : loaded && !hasMore && visibleSignals.length
@@ -627,33 +630,33 @@ const styles = StyleSheet.create({
   header: { gap: 8, marginBottom: 4 },
   newSignalsPill: { position: "absolute", zIndex: 5, top: 8, alignSelf: "center", minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 6, paddingHorizontal: 16, borderRadius: 22, backgroundColor: colors.accent, borderWidth: 1, borderColor: "#F1BC72", shadowColor: "#000", shadowOpacity: 0.32, shadowRadius: 8, shadowOffset: { width: 0, height: 3 }, elevation: 5 },
   newSignalsPillPressed: { backgroundColor: colors.accentPressed, transform: [{ scale: 0.98 }] },
-  newSignalsText: { color: "#171009", fontSize: 12, lineHeight: 16, fontWeight: "900" },
+  newSignalsText: { color: "#171009", fontSize: typeScale.small, lineHeight: 16, fontWeight: "900" },
   segmentedControl: { flexDirection: "row", padding: 3, borderRadius: 14, backgroundColor: colors.surface, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth },
   segment: { flex: 1, minHeight: 44, borderRadius: 11, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 7 },
   segmentSelected: { backgroundColor: "#241A10" },
   segmentPressed: { opacity: 0.78 },
-  segmentLabel: { color: colors.muted, fontSize: 13, fontWeight: "700" },
+  segmentLabel: { color: colors.muted, fontSize: typeScale.small, fontWeight: "700" },
   segmentLabelSelected: { color: colors.text },
   geographyRow: { flexDirection: "row", alignItems: "flex-start", justifyContent: "center", gap: 8 },
   locationSelection: { minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, paddingLeft: 4 },
-  locationSelectionText: { flex: 1, color: colors.muted, fontSize: 11, lineHeight: 15 },
+  locationSelectionText: { flex: 1, color: colors.muted, fontSize: typeScale.caption, lineHeight: 15 },
   clearLocationButton: { minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 3, paddingHorizontal: 6 },
-  clearLocationText: { color: colors.accent, fontSize: 11, fontWeight: "800" },
+  clearLocationText: { color: colors.accent, fontSize: typeScale.caption, fontWeight: "800" },
   filterChooser: { flex: 1, minWidth: 0 },
   filterChooserDisabled: { opacity: 0.48 },
   rarityRow: { flexGrow: 1, gap: 7, paddingRight: 8, justifyContent: "center" },
   rarityChip: { minHeight: 44, justifyContent: "center", paddingHorizontal: 13, borderRadius: 22, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface },
   rarityChipSelected: { borderColor: colors.accentPressed, backgroundColor: "#2A1F13" },
-  rarityChipText: { color: colors.muted, fontSize: 12, fontWeight: "700" },
+  rarityChipText: { color: colors.muted, fontSize: typeScale.small, fontWeight: "700" },
   rarityChipTextSelected: { color: colors.text },
   inlineError: { borderRadius: 12, borderColor: colors.danger, borderWidth: StyleSheet.hairlineWidth, paddingHorizontal: 12, paddingVertical: 10, backgroundColor: colors.surface },
-  inlineErrorText: { color: colors.danger, fontSize: 12, lineHeight: 17 },
+  inlineErrorText: { color: colors.danger, fontSize: typeScale.small, lineHeight: 17 },
   summaryList: { gap: 12 },
   unlockCard: { minHeight: 76, flexDirection: "row", alignItems: "center", gap: 11, borderRadius: 18, borderColor: colors.accentPressed, borderWidth: StyleSheet.hairlineWidth, backgroundColor: "#201810", padding: 14 },
   unlockIcon: { width: 38, height: 38, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: "#2C2115" },
   unlockCopy: { flex: 1, gap: 3 },
-  unlockTitle: { color: colors.text, fontSize: 14, fontWeight: "800" },
-  unlockText: { color: colors.muted, fontSize: 11, lineHeight: 16 },
+  unlockTitle: { color: colors.text, fontSize: typeScale.body, fontWeight: "800" },
+  unlockText: { color: colors.muted, fontSize: typeScale.caption, lineHeight: 16 },
   skeletonList: { gap: 12 },
   skeletonCard: { height: 132, borderRadius: 16, backgroundColor: colors.surface, borderColor: colors.border, borderWidth: StyleSheet.hairlineWidth, padding: 14, gap: 11 },
   skeletonTop: { width: 80, height: 15, borderRadius: 8, backgroundColor: colors.surfaceRaised },
@@ -666,20 +669,20 @@ const styles = StyleSheet.create({
   retryTarget: { minWidth: 80, minHeight: 44, alignItems: "center", justifyContent: "center" },
   empty: { color: colors.muted, textAlign: "center", padding: 32, lineHeight: 20 },
   footer: { padding: 20, alignItems: "center", gap: 8 },
-  loadingText: { color: colors.muted, fontSize: 12 },
+  loadingText: { color: colors.muted, fontSize: typeScale.small },
   footerError: { color: colors.danger, textAlign: "center" },
-  end: { color: colors.muted, textAlign: "center", padding: 24, fontSize: 12 },
+  end: { color: colors.muted, textAlign: "center", padding: 24, fontSize: typeScale.small },
   fieldGroup: { gap: 6 },
   chooserButton: { minHeight: 46, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface, paddingHorizontal: 11, flexDirection: "row", alignItems: "center", gap: 7 },
-  chooserValue: { color: colors.text, fontSize: 13, fontWeight: "600", flex: 1 },
+  chooserValue: { color: colors.text, fontSize: typeScale.small, fontWeight: "600", flex: 1 },
   chooserPlaceholder: { color: colors.muted, fontWeight: "500" },
   chooserOptions: { maxHeight: 190, borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface },
   chooserOption: { minHeight: 44, flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8, paddingHorizontal: 11, borderBottomWidth: StyleSheet.hairlineWidth, borderBottomColor: colors.border },
   chooserOptionSelected: { backgroundColor: "#2A1F13" },
-  chooserOptionText: { color: colors.muted, fontSize: 12, fontWeight: "600" },
-  areaOptionNote: { color: colors.muted, fontSize: 11, lineHeight: 15, textAlign: "center" },
-  areaOptionError: { color: colors.danger, fontSize: 11, lineHeight: 15, textAlign: "center" },
+  chooserOptionText: { color: colors.muted, fontSize: typeScale.small, fontWeight: "600" },
+  areaOptionNote: { color: colors.muted, fontSize: typeScale.caption, lineHeight: 15, textAlign: "center" },
+  areaOptionError: { color: colors.danger, fontSize: typeScale.caption, lineHeight: 15, textAlign: "center" },
   filterInputShell: { minHeight: 46, flexDirection: "row", alignItems: "center", borderRadius: 12, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.border, backgroundColor: colors.surface, paddingLeft: 12, paddingRight: 6, gap: 7 },
-  filterInput: { minHeight: 44, flex: 1, color: colors.text, fontSize: 15, paddingRight: 6 },
+  filterInput: { minHeight: 44, flex: 1, color: colors.text, fontSize: typeScale.input, paddingRight: 6 },
   inputClearButton: { width: 36, height: 36, alignItems: "center", justifyContent: "center" },
 });

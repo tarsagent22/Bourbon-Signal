@@ -1,5 +1,5 @@
 import { ScrollView, StyleSheet, Text, View } from "react-native";
-import { colors } from "../../../src/theme";
+import { colors, typeScale, fonts } from "../../../src/theme";
 
 const sections = [
   ["1. Information we collect", [
@@ -70,12 +70,12 @@ const styles = StyleSheet.create({
   screen: { backgroundColor: colors.background },
   content: { padding: 20, paddingBottom: 52, gap: 14 },
   hero: { paddingVertical: 8, gap: 8 },
-  eyebrow: { color: colors.accent, fontSize: 11, lineHeight: 15, fontWeight: "900", letterSpacing: 1.25 },
-  title: { color: colors.text, fontSize: 29, lineHeight: 35, fontWeight: "900", letterSpacing: -0.4 },
-  updated: { color: colors.accent, fontSize: 12, lineHeight: 17, fontWeight: "700" },
-  intro: { color: colors.muted, fontSize: 15, lineHeight: 22 },
+  eyebrow: { color: colors.accent, fontSize: typeScale.caption, lineHeight: 15, fontWeight: "900", letterSpacing: 1.25 },
+  title: {fontFamily: fonts.heading,  color: colors.text, fontSize: typeScale.title, lineHeight: 40, fontWeight: "700", letterSpacing: -0.4 },
+  updated: { color: colors.accent, fontSize: typeScale.small, lineHeight: 17, fontWeight: "700" },
+  intro: { color: colors.muted, fontSize: typeScale.input, lineHeight: 22 },
   section: { backgroundColor: colors.surface, borderColor: colors.border, borderWidth: 1, borderRadius: 16, padding: 17, gap: 10 },
   sectionTitle: { color: colors.text, fontSize: 17, lineHeight: 22, fontWeight: "800" },
-  body: { color: colors.muted, fontSize: 14, lineHeight: 21 },
+  body: { color: colors.muted, fontSize: typeScale.body, lineHeight: 21 },
   contact: { backgroundColor: colors.surfaceRaised, borderColor: colors.accent, borderWidth: 1, borderRadius: 16, padding: 17, gap: 8 },
 });

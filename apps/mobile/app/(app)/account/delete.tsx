@@ -6,7 +6,7 @@ import { MobileApiError } from "../../../src/api/client";
 import { openAppleSubscriptionManagement } from "../../../src/account/subscription-management";
 import { useAccessibleStatus } from "../../../src/hooks/useAccessibleStatus";
 import { useMobileApi } from "../../../src/hooks/useMobileApi";
-import { colors } from "../../../src/theme";
+import { colors, typeScale, fonts } from "../../../src/theme";
 
 export default function DeleteAccountScreen() {
   const api = useMobileApi();
@@ -96,9 +96,9 @@ export default function DeleteAccountScreen() {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.background }, content: { padding: 20, paddingBottom: 56, gap: 18 }, hero: { gap: 8, paddingVertical: 8 },
-  eyebrow: { color: colors.danger, fontSize: 11, fontWeight: "900", letterSpacing: 1.25 }, title: { color: colors.text, fontSize: 30, lineHeight: 36, fontWeight: "900" }, intro: { color: colors.muted, fontSize: 15, lineHeight: 22 },
-  panel: { backgroundColor: colors.surface, borderRadius: 16, padding: 17, gap: 9 }, subscriptionPanel: { backgroundColor: colors.surfaceRaised, borderRadius: 16, padding: 17, gap: 11 }, panelTitle: { color: colors.text, fontSize: 17, lineHeight: 22, fontWeight: "800" }, body: { color: colors.muted, fontSize: 14, lineHeight: 21 },
-  secondaryButton: { minHeight: 48, borderColor: colors.border, borderWidth: 1, borderRadius: 12, alignItems: "center", justifyContent: "center", paddingHorizontal: 14 }, secondaryButtonText: { color: colors.accent, fontSize: 14, fontWeight: "800", textAlign: "center" },
-  confirmation: { gap: 10 }, confirmLabel: { color: colors.text, fontSize: 15, fontWeight: "800" }, input: { minHeight: 52, borderWidth: 1, borderColor: colors.danger, borderRadius: 12, backgroundColor: colors.surface, color: colors.text, paddingHorizontal: 16, fontSize: 16, letterSpacing: 1.2 }, hint: { color: colors.muted, fontSize: 12, lineHeight: 18 }, error: { color: colors.danger, fontSize: 14, lineHeight: 20 },
-  deleteButton: { minHeight: 52, marginTop: 4, borderRadius: 12, backgroundColor: "#8F352D", alignItems: "center", justifyContent: "center", paddingHorizontal: 14 }, deletePressed: { backgroundColor: "#742820" }, deleteText: { color: colors.text, fontSize: 15, fontWeight: "900" }, disabled: { opacity: 0.45 }, pressed: { opacity: 0.72 },
+  eyebrow: { color: colors.danger, fontSize: typeScale.caption, fontWeight: "900", letterSpacing: 1.25 }, title: { color: colors.text, fontSize: typeScale.title, fontFamily: fonts.heading, lineHeight: 40, fontWeight: "700" }, intro: { color: colors.muted, fontSize: typeScale.input, lineHeight: 22 },
+  panel: { backgroundColor: colors.surface, borderRadius: 16, padding: 17, gap: 9 }, subscriptionPanel: { backgroundColor: colors.surfaceRaised, borderRadius: 16, padding: 17, gap: 11 }, panelTitle: { color: colors.text, fontSize: 17, lineHeight: 22, fontWeight: "800" }, body: { color: colors.muted, fontSize: typeScale.body, lineHeight: 21 },
+  secondaryButton: { minHeight: 48, borderColor: colors.border, borderWidth: 1, borderRadius: 12, alignItems: "center", justifyContent: "center", paddingHorizontal: 14 }, secondaryButtonText: { color: colors.accent, fontSize: typeScale.body, fontWeight: "800", textAlign: "center" },
+  confirmation: { gap: 10 }, confirmLabel: { color: colors.text, fontSize: typeScale.input, fontWeight: "800" }, input: { minHeight: 52, borderWidth: 1, borderColor: colors.danger, borderRadius: 12, backgroundColor: colors.surface, color: colors.text, paddingHorizontal: 16, fontSize: typeScale.input, letterSpacing: 1.2 }, hint: { color: colors.muted, fontSize: typeScale.small, lineHeight: 18 }, error: { color: colors.danger, fontSize: typeScale.body, lineHeight: 20 },
+  deleteButton: { minHeight: 52, marginTop: 4, borderRadius: 12, backgroundColor: "#8F352D", alignItems: "center", justifyContent: "center", paddingHorizontal: 14 }, deletePressed: { backgroundColor: "#742820" }, deleteText: { color: colors.text, fontSize: typeScale.input, fontWeight: "900" }, disabled: { opacity: 0.45 }, pressed: { opacity: 0.72 },
 });
