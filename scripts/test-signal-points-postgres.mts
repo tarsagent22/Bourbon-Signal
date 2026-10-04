@@ -106,7 +106,7 @@ try {
     { text: `INSERT INTO signal_point_ledger(user_id,idempotency_key,entry_kind,points,balance_delta,debt_delta,source_type,metadata)
       VALUES('legacy-referrer','legacy-spend','debit',-6,-1,5,'test','{}'::jsonb)` },
   ]);
-  const signalSchema = await readFile(new URL("../src/lib/signal-points-schema.sql", "../src/lib/membership-month-schema.sql", import.meta.url), "utf8");
+  const signalSchema = await readFile(new URL("../src/lib/signal-points-schema.sql", import.meta.url), "utf8");
   await transaction([{ text: `INSERT INTO signal_reward_catalog(item_key,catalog_version,name,points_cost,fulfillment_type,option_snapshot,active)
     VALUES('bourbon_shipping_gift_card_25',1,'$25 bourbon-shipping partner gift card',650,'digital','{"ownerFulfillment":true,"requiresAge21Attestation":true}'::jsonb,TRUE)
     ON CONFLICT(item_key) DO UPDATE SET active=TRUE` }]);
