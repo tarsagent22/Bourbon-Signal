@@ -357,7 +357,12 @@ export interface ReferralSummary {
   referrals: { total: number; awarded?: number; free: number; standard: number; barrel: number; founder: number };
 }
 
+export interface MembershipMonthDelivery { provider: "stripe" | "apple" | "earned_access"; code?: string; redeemUrl?: string; expiresAt?: string }
+
 export interface SignalRewardItem {
+  redemptionEligible?: boolean;
+  unavailableReason?: string;
+  membershipMonthProvider?: MembershipMonthDelivery["provider"];
   key: string;
   name: string;
   points: number;
@@ -371,7 +376,7 @@ export interface SignalPointsSummary {
   debt: number;
   activity?: Array<{ id: string; kind: string; points: number; balanceDelta: number; debtDelta: number; sourceType: string; reason: string; createdAt: string }>;
   catalog: SignalRewardItem[];
-  redemptions: Array<{ id: string; itemKey: string; pointsSpent: number; status: string; createdAt: string; updatedAt: string; carrier?: string | null; trackingNumber?: string | null; itemSnapshot?: { name?: string } }>;
+  redemptions: Array<{ id: string; itemKey: string; pointsSpent: number; status: string; createdAt: string; updatedAt: string; carrier?: string | null; trackingNumber?: string | null; itemSnapshot?: { name?: string }; membershipMonth?: MembershipMonthDelivery | null }>;
   tier: MemberProfile["profile"]["membership"]["tier"];
   redemptionEligible: boolean;
 }
@@ -426,6 +431,6 @@ export interface RewardShipping {
   status?: string;
 }
 export interface RewardRedemptionRequest {
-  itemKey: string; idempotencyKey: string; confirmSavedAddress: boolean;
+  itemKey: string; idempotencyKey: string; confirmSavedAddress: boolean; platform?: "ios" | "android" | "web";
   details: { glassStyle?: 'standard' | 'personal'; engravingText?: string; age21Attested?: boolean };
 }

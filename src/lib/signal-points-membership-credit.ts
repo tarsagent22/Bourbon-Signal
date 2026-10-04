@@ -45,7 +45,7 @@ export function isMembershipCreditRewardKey(value: unknown): value is Membership
 export function membershipCreditCatalogForTier<T extends { key: string }>(catalog: T[], tier: MembershipTier) {
   return catalog.filter((item) => {
     if (!isMembershipCreditRewardKey(item.key)) return true;
-    return item.key === `${tier}_membership_credit_month`;
+    return item.key === `${tier === "free" ? "standard" : tier}_membership_credit_month`;
   });
 }
 

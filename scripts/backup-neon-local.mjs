@@ -18,8 +18,10 @@ const SIGNAL_POINT_TABLES = [
   'signal_reward_redemptions',
   'signal_reward_redemption_events',
   'signal_reward_fulfillments',
+  'signal_membership_offer_codes',
 ];
 const SIGNAL_POINT_REQUIRED_COLUMNS = {
+  signal_membership_offer_codes: ["id","offer_id","batch_id","tier","audience","environment","code_hash","encrypted_code","expires_at","claimed_at","redemption_id"],
   member_referral_scale_migrations: ['migration_key', 'completed_at'],
   signal_point_accounts: ['user_id', 'balance', 'debt', 'created_at', 'updated_at'],
   signal_point_reward_generations: ['user_id', 'generation', 'reconciled_generation', 'member_rewards_snapshot', 'updated_at'],

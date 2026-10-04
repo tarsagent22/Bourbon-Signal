@@ -1,9 +1,11 @@
+import { usePurchases } from "../../../src/membership/PurchasesProvider";
 import { useAuth } from "@clerk/expo";
 import * as Crypto from "expo-crypto";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useCallback, useRef, useState } from "react";
 import {
   KeyboardAvoidingView,
+  Linking,
   Platform,
   ScrollView,
   Switch,
@@ -54,6 +56,7 @@ export default function RedeemScreen() {
   const { item: itemKey } = useLocalSearchParams<{ item: string }>();
   const { userId } = useAuth();
   const api = useMobileApi();
+  const purchases = usePurchases();
   const router = useRouter();
   const sequence = useRef(0);
   const inFlight = useRef(false);
@@ -75,6 +78,7 @@ export default function RedeemScreen() {
   const [result, setResult] = useState<{
     redemptionId: string;
     balance: number;
+    membershipMonth?: import("../../../src/api/types").MembershipMonthDelivery | null;
   } | null>(null);
   useAccessibleStatus(error || (result ? "Reward redemption received." : ""));
   const load = useCallback(async () => {
@@ -82,7 +86,7 @@ export default function RedeemScreen() {
     setLoading(true);
     setError("");
     try {
-      const summary = await api.getSignalPoints({ fresh: true });
+      const summary = await api.getSignalPoints({ fresh: true, platform: Platform.OS === "ios" ? "ios" : Platform.OS === "android" ? "android" : "web" });
       const reward = summary.catalog.find(
         (candidate) => candidate.key === itemKey,
       );
@@ -149,10 +153,10 @@ export default function RedeemScreen() {
   const engravingValid =
     !personal || /^[A-Za-z0-9][A-Za-z0-9 .,'&-]{0,17}$/.test(engraving.trim());
   const eligible =
-    !!points?.redemptionEligible &&
+    !!(reward?.redemptionEligible ?? points?.redemptionEligible) &&
     !!reward &&
     reward.inventoryRemaining !== 0 &&
-    points.balance >= cost;
+    (points?.balance ?? 0) >= cost;
   async function saveAddress() {
     if (inFlight.current) return;
     inFlight.current = true;
@@ -182,6 +186,7 @@ export default function RedeemScreen() {
     setError("");
     const request: RewardRedemptionRequest = pending || {
       itemKey: reward.key,
+      platform: Platform.OS === "ios" ? "ios" : Platform.OS === "android" ? "android" : "web",
       idempotencyKey: Crypto.randomUUID(),
       confirmSavedAddress: !!physical && confirmedAddress,
       details: {
@@ -228,11 +233,20 @@ export default function RedeemScreen() {
       >
         <RewardCard>
           <RewardEmblem rewardKey={itemKey} />
-          <Text style={s.title}>Reward requested</Text>
+          <Text style={s.title}>{result.membershipMonth ? "Your membership reward" : "Reward requested"}</Text>
           <Text style={s.text}>
-            Your redemption is recorded. Follow its progress in Rewards →
-            Activity.
+            Your redemption is recorded. View the details in Rewards →
+            History.
           </Text>
+          {result.membershipMonth ? <>
+            <Text style={s.text}>{result.membershipMonth.provider === "stripe" ? "Your membership credit is on your Stripe account. It will reduce your next bill, including an annual renewal." : result.membershipMonth.provider === "earned_access" ? "Your month of Standard is active. It ends automatically and does not renew." : "Activate your month with Apple. Your membership updates after Apple confirms redemption."}</Text>
+            {result.membershipMonth.expiresAt ? <Text style={s.muted}>{result.membershipMonth.provider === "apple" ? "Code expires" : "Access ends"} {new Date(result.membershipMonth.expiresAt).toLocaleDateString()}</Text> : null}
+            {result.membershipMonth.code ? <Text selectable style={s.heading}>{result.membershipMonth.code}</Text> : null}
+            {result.membershipMonth.redeemUrl ? <>
+              <RewardButton label="Activate with Apple" onPress={() => void Linking.openURL(result.membershipMonth!.redeemUrl!)} />
+              <RewardButton secondary label="Refresh Apple membership" onPress={() => void purchases.restore().catch(() => setError("Apple has not confirmed the reward yet. Try again after redeeming."))} />
+            </> : null}
+          </> : null}
           <Text style={s.muted}>{result.balance} points available</Text>
           <Text selectable style={s.muted}>
             Reference: {result.redemptionId}
@@ -276,9 +290,9 @@ export default function RedeemScreen() {
                   ? `Current balance: ${points.balance} points. Your saved request may already be recorded.`
                   : `${formatPoints(Math.max(0, points.balance - cost))} points remaining after redemption`}
               </Text>
-              {!points.redemptionEligible ? (
+              {!(reward.redemptionEligible ?? points.redemptionEligible) ? (
                 <Text style={s.error}>
-                  Paid membership is required to redeem.
+                  {reward.unavailableReason || "Membership is required for this reward."}
                 </Text>
               ) : null}
               {reward.inventoryRemaining === 0 ? (
@@ -454,7 +468,7 @@ export default function RedeemScreen() {
                   {reward.options?.usShippingIncluded
                     ? "U.S. shipping is included. "
                     : ""}
-                  Shipment status appears in Activity.
+                  Shipment status appears in History.
                 </Text>
               </RewardCard>
             ) : (
@@ -462,7 +476,7 @@ export default function RedeemScreen() {
                 <Text style={s.heading}>Digital delivery</Text>
                 <Text style={s.muted}>
                   {reward.options?.membershipCredit
-                    ? "Applied to an eligible directly billed membership. Apple subscriptions are not eligible."
+                    ? reward.membershipMonthProvider === "earned_access" ? "Your month of Standard starts immediately and ends automatically. No payment required." : reward.membershipMonthProvider === "apple" ? "Activate the code through Apple. Existing subscriptions resume their regular renewal after the free month. Free-user access does not renew." : "A credit toward your next Stripe bill or annual renewal. Available once every 12 months."
                     : "Delivered to your verified account email after processing."}
                 </Text>
                 {ageRequired && !review && !pending ? (

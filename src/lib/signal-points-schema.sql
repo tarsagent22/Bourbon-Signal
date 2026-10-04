@@ -213,8 +213,8 @@ CREATE TABLE IF NOT EXISTS signal_point_migrations (
 INSERT INTO signal_reward_catalog (item_key,catalog_version,name,points_cost,fulfillment_type,option_snapshot)
 VALUES
   ('sticker_pack',1,'Bourbon Signal sticker pack',75,'physical','{"usShippingIncluded":true}'::jsonb),
-  ('standard_membership_credit_month',3,'One month on us — Standard Proof',150,'digital','{"automaticFulfillment":true,"membershipCredit":true,"eligibleTier":"standard","creditCents":300,"rollingLimitDays":365}'::jsonb),
-  ('barrel_membership_credit_month',3,'One month on us — Barrel Proof',250,'digital','{"automaticFulfillment":true,"membershipCredit":true,"eligibleTier":"barrel","creditCents":600,"rollingLimitDays":365}'::jsonb),
+  ('standard_membership_credit_month',5,'One Month of Standard',150,'digital','{"automaticFulfillment":true,"membershipCredit":true,"eligibleTier":"standard","creditCents":300,"rollingLimitDays":365}'::jsonb),
+  ('barrel_membership_credit_month',5,'One Month of Barrel Proof',250,'digital','{"automaticFulfillment":true,"membershipCredit":true,"eligibleTier":"barrel","creditCents":600,"rollingLimitDays":365}'::jsonb),
   ('rocks_glass',1,'Bourbon Signal rocks glass',400,'physical','{"usShippingIncluded":true,"glassQuantity":1,"engravingPointsPerGlass":125}'::jsonb),
   ('glencairn',4,'Bourbon Signal Glencairn',500,'physical','{"usShippingIncluded":true,"glassQuantity":1,"engravingPointsPerGlass":125}'::jsonb),
   ('bourbon_shipping_gift_card_100',4,'$100 Caskers gift card',2500,'digital','{"ownerFulfillment":true,"requiresAge21Attestation":true,"denominationUsd":100,"partner":"Caskers"}'::jsonb)
@@ -387,7 +387,7 @@ RETURNS TABLE(redemption_id TEXT,redemption_status TEXT,balance INTEGER) LANGUAG
 DECLARE account_row signal_point_accounts%ROWTYPE; catalog_row signal_reward_catalog%ROWTYPE; existing_row signal_reward_redemptions%ROWTYPE;
   total_cost INTEGER; glass_count INTEGER; shipping_snapshot JSONB;
 BEGIN
-  IF p_tier NOT IN ('standard','barrel','bottled-in-bond') THEN RAISE EXCEPTION 'Paid membership required'; END IF;
+  IF p_tier NOT IN ('standard','barrel','bottled-in-bond') AND NOT (p_tier='free' AND p_item_key='standard_membership_credit_month') THEN RAISE EXCEPTION 'Paid membership required'; END IF;
   SELECT * INTO account_row FROM signal_point_accounts WHERE user_id=p_user_id FOR UPDATE;
   IF NOT FOUND THEN RAISE EXCEPTION 'Signal Points account is unavailable'; END IF;
   SELECT * INTO existing_row FROM signal_reward_redemptions WHERE user_id=p_user_id AND idempotency_key=p_idempotency_key;
@@ -401,7 +401,7 @@ BEGIN
   SELECT * INTO catalog_row FROM signal_reward_catalog WHERE item_key=p_item_key AND active=TRUE FOR UPDATE;
   IF NOT FOUND THEN RAISE EXCEPTION 'Reward is unavailable'; END IF;
   IF p_item_key IN ('standard_membership_credit_month','barrel_membership_credit_month') THEN
-    IF (p_item_key='standard_membership_credit_month' AND p_tier<>'standard')
+    IF (p_item_key='standard_membership_credit_month' AND p_tier NOT IN ('free','standard'))
       OR (p_item_key='barrel_membership_credit_month' AND p_tier<>'barrel') THEN
       RAISE EXCEPTION 'Membership credit tier mismatch';
     END IF;
@@ -412,7 +412,7 @@ BEGIN
       AND created_at > NOW() - INTERVAL '1 year'
     ORDER BY created_at DESC LIMIT 1;
     IF FOUND THEN
-      IF existing_row.item_key=p_item_key AND existing_row.status IN ('submitted','approved','digital_fulfillment') THEN
+      IF existing_row.item_key=p_item_key AND existing_row.details=COALESCE(p_details,'{}'::jsonb) AND existing_row.status IN ('submitted','approved','digital_fulfillment') THEN
         RETURN QUERY SELECT existing_row.id,existing_row.status,account_row.balance; RETURN;
       END IF;
       RAISE EXCEPTION 'Membership credit already redeemed within the last 12 months';
@@ -524,7 +524,7 @@ RETURNS TABLE(redemption_id TEXT,redemption_status TEXT,balance INTEGER) LANGUAG
 DECLARE redemption_row signal_reward_redemptions%ROWTYPE; fulfillment_row signal_reward_fulfillments%ROWTYPE; account_balance INTEGER; expected_note TEXT;
 BEGIN
   IF COALESCE(TRIM(p_provider_reference),'')='' THEN RAISE EXCEPTION 'Membership credit provider reference is required'; END IF;
-  expected_note := 'Stripe credit: '||TRIM(p_provider_reference);
+  expected_note := CASE COALESCE(p_metadata->>'provider','stripe') WHEN 'apple' THEN 'Apple offer: ' WHEN 'earned_access' THEN 'Earned access: ' ELSE 'Stripe credit: ' END ||TRIM(p_provider_reference);
   SELECT * INTO redemption_row FROM signal_reward_redemptions WHERE id=p_redemption_id FOR UPDATE;
   IF NOT FOUND THEN RAISE EXCEPTION 'Redemption not found'; END IF;
   IF redemption_row.item_key NOT IN ('standard_membership_credit_month','barrel_membership_credit_month') THEN RAISE EXCEPTION 'Membership credit redemption required'; END IF;
@@ -537,7 +537,7 @@ BEGIN
   END IF;
   IF redemption_row.status<>'digital_fulfillment' THEN RAISE EXCEPTION 'Membership credit is not ready for completion'; END IF;
   UPDATE signal_reward_fulfillments SET owner_notes=expected_note,updated_at=NOW() WHERE signal_reward_fulfillments.redemption_id=p_redemption_id;
-  PERFORM transition_signal_reward_redemption(redemption_row.id,p_actor_id,'delivered','system',(COALESCE(p_metadata,'{}'::jsonb)-'rewardSnapshot')||jsonb_build_object('provider','stripe','providerReference',TRIM(p_provider_reference)));
+  PERFORM transition_signal_reward_redemption(redemption_row.id,p_actor_id,'delivered','system',(COALESCE(p_metadata,'{}'::jsonb)-'rewardSnapshot')||jsonb_build_object('provider',COALESCE(p_metadata->>'provider','stripe'),'providerReference',TRIM(p_provider_reference)));
   SELECT signal_point_accounts.balance INTO account_balance FROM signal_point_accounts WHERE user_id=redemption_row.user_id;
   RETURN QUERY SELECT redemption_row.id,'delivered'::TEXT,account_balance;
 END $$;

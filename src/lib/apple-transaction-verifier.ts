@@ -19,7 +19,7 @@ export function validateAppleTransaction(input: AppleTransactionLookup, decoded:
     || decoded.type !== "Auto-Renewable Subscription") {
     throw new AppleMembershipError("PROVIDER_RESPONSE_INVALID", "Apple transaction does not match the verified subscription.");
   }
-  return { originalTransactionId: decoded.originalTransactionId, revokedAt: decoded.revocationDate };
+  return { originalTransactionId: decoded.originalTransactionId, revokedAt: decoded.revocationDate, offerType: decoded.offerType, offerIdentifier: decoded.offerIdentifier };
 }
 
 export function createAppleTransactionVerifier(env: Record<string, string | undefined>) {

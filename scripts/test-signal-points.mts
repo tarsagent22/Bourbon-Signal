@@ -24,8 +24,8 @@ test("launch catalog has the confirmed versioned prices and fulfillment kinds", 
     bourbon_shipping_gift_card_100: 2500,
   });
   assert.ok(SIGNAL_REWARD_CATALOG.filter((item) => !["glencairn", "bourbon_shipping_gift_card_100", "standard_membership_credit_month", "barrel_membership_credit_month"].includes(item.key)).every((item) => item.catalogVersion === 1));
-  assert.equal(SIGNAL_REWARD_CATALOG.find((item) => item.key === "standard_membership_credit_month")?.catalogVersion, 3);
-  assert.equal(SIGNAL_REWARD_CATALOG.find((item) => item.key === "barrel_membership_credit_month")?.catalogVersion, 3);
+  assert.equal(SIGNAL_REWARD_CATALOG.find((item) => item.key === "standard_membership_credit_month")?.catalogVersion, 5);
+  assert.equal(SIGNAL_REWARD_CATALOG.find((item) => item.key === "barrel_membership_credit_month")?.catalogVersion, 5);
   assert.equal(SIGNAL_REWARD_CATALOG.find((item) => item.key === "bourbon_shipping_gift_card_100")?.catalogVersion, 4);
   assert.equal(SIGNAL_REWARD_CATALOG.find((item) => item.key === "bourbon_shipping_gift_card_100")?.name, "$100 Caskers gift card");
   assert.equal(SIGNAL_REWARD_CATALOG.find((item) => item.key === "bourbon_shipping_gift_card_100")?.fulfillmentType, "digital");
@@ -93,8 +93,8 @@ test("the current reward catalog advances monotonically before member and owner 
   }
   for (const expectedSqlRow of [
     `('sticker_pack',1,'Bourbon Signal sticker pack',75,'physical','{"usShippingIncluded":true}'::jsonb)`,
-    `('standard_membership_credit_month',3,'One month on us — Standard Proof',150,'digital','{"automaticFulfillment":true,"membershipCredit":true,"eligibleTier":"standard","creditCents":300,"rollingLimitDays":365}'::jsonb)`,
-    `('barrel_membership_credit_month',3,'One month on us — Barrel Proof',250,'digital','{"automaticFulfillment":true,"membershipCredit":true,"eligibleTier":"barrel","creditCents":600,"rollingLimitDays":365}'::jsonb)`,
+    `('standard_membership_credit_month',5,'One Month of Standard',150,'digital','{"automaticFulfillment":true,"membershipCredit":true,"eligibleTier":"standard","creditCents":300,"rollingLimitDays":365}'::jsonb)`,
+    `('barrel_membership_credit_month',5,'One Month of Barrel Proof',250,'digital','{"automaticFulfillment":true,"membershipCredit":true,"eligibleTier":"barrel","creditCents":600,"rollingLimitDays":365}'::jsonb)`,
     `('rocks_glass',1,'Bourbon Signal rocks glass',400,'physical','{"usShippingIncluded":true,"glassQuantity":1,"engravingPointsPerGlass":125}'::jsonb)`,
     `('glencairn',4,'Bourbon Signal Glencairn',500,'physical','{"usShippingIncluded":true,"glassQuantity":1,"engravingPointsPerGlass":125}'::jsonb)`,
     `('bourbon_shipping_gift_card_100',4,'$100 Caskers gift card',2500,'digital','{"ownerFulfillment":true,"requiresAge21Attestation":true,"denominationUsd":100,"partner":"Caskers"}'::jsonb)`,
@@ -314,7 +314,7 @@ test("schema, migration, encrypted backup, APIs, drawer, and owner queue are wir
   const adminRoute = read("src/app/api/admin/signal-points/route.ts");
   assert.match(memberRoute, /requireSignalPointsApiAccess/); assert.match(memberRoute, /503/); assert.match(memberRoute, /repository.readMember/);
   assert.match(read("src/lib/signal-points-repository.ts"), /async readMember[\s\S]*?assertCutoverVerified/);
-  assert.doesNotMatch(memberRoute, /privateMetadata|reconcileClerkRewards/);
+  assert.doesNotMatch(memberRoute, /reconcileClerkRewards|\.\.\.user\.privateMetadata/);
   assert.doesNotMatch(redemptionRoute, /reconcileClerkRewards/);
   assert.match(redemptionRoute, /membershipCreditEligibility\([\s\S]*privateMetadata/);
   assert.match(redemptionRoute, /requireSignalPointsApiAccess/); assert.match(redemptionRoute, /verified/i); assert.match(redemptionRoute, /shipping/i); assert.match(redemptionRoute, /503/); assert.match(redemptionRoute, /assertCutoverVerified/);
@@ -333,7 +333,7 @@ test("schema, migration, encrypted backup, APIs, drawer, and owner queue are wir
   }
   for (const path of ["src/app/admin/sightings/page.tsx", "src/app/admin/bottle-queue/page.tsx"]) assert.match(read(path), /requireOwnerPageAccess/);
   const panel = read("src/components/SignalPointsPanel.tsx");
-  assert.match(panel, /Paid membership required/);
+  assert.match(panel, /Free members can earn a month of Standard/);
   assert.match(panel, /useRef/);
   assert.match(panel, /redemptionIntent/i);
   assert.match(panel, /body:\s*JSON\.stringify\([^\n]*idempotencyKey:\s*redemptionIntentKey\(\)/);

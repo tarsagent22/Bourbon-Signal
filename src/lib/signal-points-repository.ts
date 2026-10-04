@@ -16,8 +16,8 @@ const json = (value: unknown) => value && typeof value === "object" ? value as R
 
 const CURRENT_REWARD_CATALOG = [
   { key: "sticker_pack", version: 1, name: "Bourbon Signal sticker pack", points: 75, fulfillmentType: "physical", options: { usShippingIncluded: true } },
-  { key: "standard_membership_credit_month", version: 3, name: "One month on us — Standard Proof", points: 150, fulfillmentType: "digital", options: { automaticFulfillment: true, membershipCredit: true, eligibleTier: "standard", creditCents: 300, rollingLimitDays: 365 } },
-  { key: "barrel_membership_credit_month", version: 3, name: "One month on us — Barrel Proof", points: 250, fulfillmentType: "digital", options: { automaticFulfillment: true, membershipCredit: true, eligibleTier: "barrel", creditCents: 600, rollingLimitDays: 365 } },
+  { key: "standard_membership_credit_month", version: 5, name: "One Month of Standard", points: 150, fulfillmentType: "digital", options: { automaticFulfillment: true, membershipCredit: true, eligibleTier: "standard", creditCents: 300, rollingLimitDays: 365 } },
+  { key: "barrel_membership_credit_month", version: 5, name: "One Month of Barrel Proof", points: 250, fulfillmentType: "digital", options: { automaticFulfillment: true, membershipCredit: true, eligibleTier: "barrel", creditCents: 600, rollingLimitDays: 365 } },
   { key: "rocks_glass", version: 1, name: "Bourbon Signal rocks glass", points: 400, fulfillmentType: "physical", options: { usShippingIncluded: true, glassQuantity: 1, engravingPointsPerGlass: 125 } },
   { key: "glencairn", version: 4, name: "Bourbon Signal Glencairn", points: 500, fulfillmentType: "physical", options: { usShippingIncluded: true, glassQuantity: 1, engravingPointsPerGlass: 125 } },
   { key: "bourbon_shipping_gift_card_100", version: 4, name: "$100 Caskers gift card", points: 2500, fulfillmentType: "digital", options: { ownerFulfillment: true, requiresAge21Attestation: true, denominationUsd: 100, partner: "Caskers" } },
